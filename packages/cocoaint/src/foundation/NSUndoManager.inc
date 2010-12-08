@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSUndoManager.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -34,13 +34,13 @@ const
 
 { External string constants }
 var
-  NSUndoManagerCheckpointNotification: NSString; external name '_NSUndoManagerCheckpointNotification';
-  NSUndoManagerWillUndoChangeNotification: NSString; external name '_NSUndoManagerWillUndoChangeNotification';
-  NSUndoManagerWillRedoChangeNotification: NSString; external name '_NSUndoManagerWillRedoChangeNotification';
-  NSUndoManagerDidUndoChangeNotification: NSString; external name '_NSUndoManagerDidUndoChangeNotification';
-  NSUndoManagerDidRedoChangeNotification: NSString; external name '_NSUndoManagerDidRedoChangeNotification';
-  NSUndoManagerDidOpenUndoGroupNotification: NSString; external name '_NSUndoManagerDidOpenUndoGroupNotification';
-  NSUndoManagerWillCloseUndoGroupNotification: NSString; external name '_NSUndoManagerWillCloseUndoGroupNotification';
+  NSUndoManagerCheckpointNotification: NSString; cvar; external;
+  NSUndoManagerWillUndoChangeNotification: NSString; cvar; external;
+  NSUndoManagerWillRedoChangeNotification: NSString; cvar; external;
+  NSUndoManagerDidUndoChangeNotification: NSString; cvar; external;
+  NSUndoManagerDidRedoChangeNotification: NSString; cvar; external;
+  NSUndoManagerDidOpenUndoGroupNotification: NSString; cvar; external;
+  NSUndoManagerWillCloseUndoGroupNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -48,6 +48,7 @@ var
 {$ifdef FORWARD}
   NSUndoManager = objcclass;
   NSUndoManagerPointer = ^NSUndoManager;
+  NSUndoManagerPtr = NSUndoManagerPointer;
 
 {$endif}
 
@@ -58,22 +59,26 @@ var
 { NSUndoManager }
   NSUndoManager = objcclass(NSObject)
   private
-    __undoStack: id;
-    __redoStack: id;
-    __runLoopModes: NSArray;
-    __disabled: NSInteger;
+    _undoStack: id;
+    _redoStack: id;
+    _runLoopModes: NSArray;
+    _disabled: NSInteger;
     __flags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSUndoManager0: cuint);
+       1: (
         undoing: 0..1;
         redoing: 0..1;
         registeredForCallback: 0..1;
         postingCheckpointNotification: 0..1;
-        groupsByEvent: 0..1;
+        _groupsByEvent: 0..1;
         reserved: 0..((1 shl 27)-1);
+      );
       end;
-    __target: id;
-    __NSUndoManagerReserved1: Pointer;
-    __NSUndoManagerReserved2: Pointer;
-    __NSUndoManagerReserved3: Pointer;
+    _target: id;
+    _proxy: id;
+    _NSUndoManagerReserved1: Pointer;
+    _NSUndoManagerReserved2: Pointer;
     
   public
     class function alloc: NSUndoManager; message 'alloc';

@@ -1,10 +1,15 @@
 { Parsed from Foundation.framework NSException.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
 {$ifndef NSEXCEPTION_PAS_T}
 {$define NSEXCEPTION_PAS_T}
+
+{ Callbacks }
+type
+  NSUncaughtExceptionHandler = procedure (exception: NSException); cdecl;
+
 
 {$endif}
 {$endif}
@@ -21,8 +26,8 @@
 {$define NSEXCEPTION_PAS_F}
 
 { Functions }
-function NSGetUncaughtExceptionHandler: NSUncaughtExceptionHandler; cdecl; external name 'NSGetUncaughtExceptionHandler';
-procedure NSSetUncaughtExceptionHandler(Pointer_: NSUncaughtExceptionHandler); cdecl; external name 'NSSetUncaughtExceptionHandler';
+function NSGetUncaughtExceptionHandler: NSUncaughtExceptionHandler; cdecl; external;
+procedure NSSetUncaughtExceptionHandler(param1: NSUncaughtExceptionHandler); cdecl; external;
 
 {$endif}
 {$endif}
@@ -33,20 +38,21 @@ procedure NSSetUncaughtExceptionHandler(Pointer_: NSUncaughtExceptionHandler); c
 
 { External string constants }
 var
-  NSGenericException: NSString; external name '_NSGenericException';
-  NSRangeException: NSString; external name '_NSRangeException';
-  NSInvalidArgumentException: NSString; external name '_NSInvalidArgumentException';
-  NSInternalInconsistencyException: NSString; external name '_NSInternalInconsistencyException';
-  NSMallocException: NSString; external name '_NSMallocException';
-  NSObjectInaccessibleException: NSString; external name '_NSObjectInaccessibleException';
-  NSObjectNotAvailableException: NSString; external name '_NSObjectNotAvailableException';
-  NSDestinationInvalidException: NSString; external name '_NSDestinationInvalidException';
-  NSPortTimeoutException: NSString; external name '_NSPortTimeoutException';
-  NSInvalidSendPortException: NSString; external name '_NSInvalidSendPortException';
-  NSInvalidReceivePortException: NSString; external name '_NSInvalidReceivePortException';
-  NSPortSendException: NSString; external name '_NSPortSendException';
-  NSPortReceiveException: NSString; external name '_NSPortReceiveException';
-  NSOldStyleException: NSString; external name '_NSOldStyleException';
+  NSGenericException: NSString; cvar; external;
+  NSRangeException: NSString; cvar; external;
+  NSInvalidArgumentException: NSString; cvar; external;
+  NSInternalInconsistencyException: NSString; cvar; external;
+  NSMallocException: NSString; cvar; external;
+  NSObjectInaccessibleException: NSString; cvar; external;
+  NSObjectNotAvailableException: NSString; cvar; external;
+  NSDestinationInvalidException: NSString; cvar; external;
+  NSPortTimeoutException: NSString; cvar; external;
+  NSInvalidSendPortException: NSString; cvar; external;
+  NSInvalidReceivePortException: NSString; cvar; external;
+  NSPortSendException: NSString; cvar; external;
+  NSPortReceiveException: NSString; cvar; external;
+  NSOldStyleException: NSString; cvar; external;
+  NSAssertionHandlerKey: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -54,8 +60,10 @@ var
 {$ifdef FORWARD}
   NSException = objcclass;
   NSExceptionPointer = ^NSException;
+  NSExceptionPtr = NSExceptionPointer;
   NSAssertionHandler = objcclass;
   NSAssertionHandlerPointer = ^NSAssertionHandler;
+  NSAssertionHandlerPtr = NSAssertionHandlerPointer;
 
 {$endif}
 
@@ -69,7 +77,7 @@ var
     _name: NSString;
     _reason: NSString;
     _userInfo: NSDictionary;
-    _reserved: id;
+    reserved: id;
     
   public
     class function alloc: NSException; message 'alloc';
@@ -79,24 +87,33 @@ var
     function name: NSString; message 'name';
     function reason: NSString; message 'reason';
     function userInfo: NSDictionary; message 'userInfo';
+    function callStackReturnAddresses: NSArray; message 'callStackReturnAddresses';
+    function callStackSymbols: NSArray; message 'callStackSymbols';
     procedure raise_; message 'raise';
 
-    { Category: NSExceptionRaisingConveniences }
-    class procedure raise_format(name_: NSString; format: NSString); varargs; message 'raise:format:';
-    class procedure raise_format_arguments(name_: NSString; format: NSString; argList: va_list); message 'raise:format:arguments:';
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 { NSAssertionHandler }
   NSAssertionHandler = objcclass(NSObject)
   private
-    __reserved: Pointer;
+    _reserved: Pointer;
     
   public
     class function alloc: NSAssertionHandler; message 'alloc';
 
     class function currentHandler: NSAssertionHandler; message 'currentHandler';
-    procedure handleFailureInMethod_object_file_lineNumber_description(selector: SEL; object_: id; fileName: NSString; line: NSInteger; format: NSString); varargs; message 'handleFailureInMethod:object:file:lineNumber:description:';
-    procedure handleFailureInFunction_file_lineNumber_description(functionName: NSString; fileName: NSString; line: NSInteger; format: NSString); varargs; message 'handleFailureInFunction:file:lineNumber:description:';
+    procedure handleFailureInMethod_object_file_lineNumber_description(selector: SEL; object_: id; fileName: NSString; line: NSInteger; firstKey: id); varargs; message 'handleFailureInMethod:object:file:lineNumber:description:';
+    procedure handleFailureInFunction_file_lineNumber_description(functionName: NSString; fileName: NSString; line: NSInteger; firstKey: id); varargs; message 'handleFailureInFunction:file:lineNumber:description:';
+  end; external;
+
+{ NSExceptionRaisingConveniencesCategory }
+  NSExceptionRaisingConveniencesCategory = objccategory(NSException)
+    class procedure raise_format(name_: NSString; firstKey: id); varargs; message 'raise:format:';
+    class procedure raise_format_arguments(name_: NSString; format: NSString; argList: va_list); message 'raise:format:arguments:';
   end; external;
 
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSScrollView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -15,7 +15,7 @@
 
 { Records }
 type
-  __SFlags = bitpacked record
+  __SFlags = record
 {$ifdef fpc_big_endian}
     vScrollerRequired: 0..1;
     hScrollerRequired: 0..1;
@@ -57,6 +57,7 @@ type
 {$endif}
   end;
 _SFlags = __SFlags;
+__SFlagsPtr = ^__SFlags;
 
 
 {$endif}
@@ -79,6 +80,7 @@ _SFlags = __SFlags;
 {$ifdef FORWARD}
   NSScrollView = objcclass;
   NSScrollViewPointer = ^NSScrollView;
+  NSScrollViewPtr = NSScrollViewPointer;
 
 {$endif}
 
@@ -89,16 +91,16 @@ _SFlags = __SFlags;
 { NSScrollView }
   NSScrollView = objcclass(NSView)
   private
-    __vScroller: NSScroller;
-    __hScroller: NSScroller;
-    __contentView: NSClipView;
-    __headerClipView: NSClipView;
-    __cornerView: NSView;
-    __ruler: id;
-    __sFlags: _SFlags;
-    __extraIvars: Pointer; {garbage collector: __strong }
-    __horizontalRuler: NSRulerView;
-    __verticalRuler: NSRulerView;
+    _vScroller: NSScroller;
+    _hScroller: NSScroller;
+    _contentView: NSClipView;
+    _headerClipView: NSClipView;
+    _cornerView: NSView;
+    _ruler: id;
+    _sFlags: _SFlags;
+    _extraIvars: Pointer; {garbage collector: __strong }
+    _horizontalRuler: NSRulerView;
+    _verticalRuler: NSRulerView;
     
   public
     class function alloc: NSScrollView; message 'alloc';
@@ -146,8 +148,10 @@ _SFlags = __SFlags;
     procedure tile; message 'tile';
     procedure reflectScrolledClipView(cView: NSClipView); message 'reflectScrolledClipView:';
     procedure scrollWheel(theEvent: NSEvent); message 'scrollWheel:';
+  end; external;
 
-    { Category: NSRulerSupport }
+{ NSRulerSupportCategory }
+  NSRulerSupportCategory = objccategory(NSScrollView)
     class procedure setRulerViewClass(rulerViewClass_: Pobjc_class); message 'setRulerViewClass:';
     class function rulerViewClass: Pobjc_class; message 'rulerViewClass';
     procedure setRulersVisible(flag: Boolean); message 'setRulersVisible:';

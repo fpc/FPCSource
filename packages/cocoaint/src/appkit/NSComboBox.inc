@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSComboBox.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,17 +29,20 @@
 
 { External string constants }
 var
-  NSComboBoxWillPopUpNotification: NSString; external name '_NSComboBoxWillPopUpNotification';
-  NSComboBoxWillDismissNotification: NSString; external name '_NSComboBoxWillDismissNotification';
-  NSComboBoxSelectionDidChangeNotification: NSString; external name '_NSComboBoxSelectionDidChangeNotification';
-  NSComboBoxSelectionIsChangingNotification: NSString; external name '_NSComboBoxSelectionIsChangingNotification';
+  NSComboBoxWillPopUpNotification: NSString; cvar; external;
+  NSComboBoxWillDismissNotification: NSString; cvar; external;
+  NSComboBoxSelectionDidChangeNotification: NSString; cvar; external;
+  NSComboBoxSelectionIsChangingNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
+  NSComboBoxDataSourceProtocol = objcprotocol;
+  NSComboBoxDelegateProtocol = objcprotocol;
   NSComboBox = objcclass;
   NSComboBoxPointer = ^NSComboBox;
+  NSComboBoxPtr = NSComboBoxPointer;
 
 {$endif}
 
@@ -50,7 +53,7 @@ var
 { NSComboBox }
   NSComboBox = objcclass(NSTextField)
   private
-    __dataSource: id;
+    _dataSource: id;
     
   public
     class function alloc: NSComboBox; message 'alloc';
@@ -77,6 +80,8 @@ var
     function numberOfItems: NSInteger; message 'numberOfItems';
     function completes: Boolean; message 'completes';
     procedure setCompletes(completes_: Boolean); message 'setCompletes:';
+    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: id); message 'setDelegate:';
     function dataSource: id; message 'dataSource';
     procedure setDataSource(aSource: id); message 'setDataSource:';
     procedure addItemWithObjectValue(object_: id); message 'addItemWithObjectValue:';
@@ -92,5 +97,26 @@ var
     function objectValues: NSArray; message 'objectValues';
   end; external;
 
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSCOMBOBOX_PAS_P}
+{$define NSCOMBOBOX_PAS_P}
+  
+{ NSComboBoxDataSource Protocol }
+  NSComboBoxDataSourceProtocol = objcprotocol
+    function numberOfItemsInComboBox(aComboBox: NSComboBox): NSInteger; message 'numberOfItemsInComboBox:';
+    function comboBox_objectValueForItemAtIndex(aComboBox: NSComboBox; index: NSInteger): id; message 'comboBox:objectValueForItemAtIndex:';
+    function comboBox_indexOfItemWithStringValue(aComboBox: NSComboBox; string_: NSString): NSUInteger; message 'comboBox:indexOfItemWithStringValue:';
+    function comboBox_completedString(aComboBox: NSComboBox; string_: NSString): NSString; message 'comboBox:completedString:';
+  end; external name 'NSComboBoxDataSource';
+  
+{ NSComboBoxDelegate Protocol }
+  NSComboBoxDelegateProtocol = objcprotocol
+    procedure comboBoxWillPopUp(notification: NSNotification); message 'comboBoxWillPopUp:';
+    procedure comboBoxWillDismiss(notification: NSNotification); message 'comboBoxWillDismiss:';
+    procedure comboBoxSelectionDidChange(notification: NSNotification); message 'comboBoxSelectionDidChange:';
+    procedure comboBoxSelectionIsChanging(notification: NSNotification); message 'comboBoxSelectionIsChanging:';
+  end; external name 'NSComboBoxDelegate';
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMImplementation.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMImplementation = objcclass;
   DOMImplementationPointer = ^DOMImplementation;
+  DOMImplementationPtr = DOMImplementationPointer;
 
 {$endif}
 
@@ -51,8 +52,10 @@
     function createDocument_qualifiedName_doctype(namespaceURI: NSString; qualifiedName: NSString; doctype: DOMDocumentType): DOMDocument; message 'createDocument:qualifiedName:doctype:';
     function createCSSStyleSheet_media(title: NSString; media: NSString): DOMCSSStyleSheet; message 'createCSSStyleSheet:media:';
     function createHTMLDocument(title: NSString): DOMHTMLDocument; message 'createHTMLDocument:';
+  end; external;
 
-    { Category: DOMImplementationDeprecated }
+{ DOMImplementationDeprecatedCategory }
+  DOMImplementationDeprecatedCategory = objccategory(DOMImplementation)
     function hasFeature(feature: NSString; version_: NSString): Boolean; message 'hasFeature:feature:';
     function createDocumentType(qualifiedName: NSString; publicId: NSString; systemId: NSString): DOMDocumentType; message 'createDocumentType:qualifiedName:publicId:';
     function createDocument(namespaceURI: NSString; qualifiedName: NSString; doctype: DOMDocumentType): DOMDocument; message 'createDocument:namespaceURI:qualifiedName:';

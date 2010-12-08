@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSFont.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -9,9 +9,13 @@
 { Types }
 type
   NSGlyph = cuint;
+  NSGlyphPtr = ^NSGlyph;
   NSMultibyteGlyphPacking = NSUInteger;
+  NSMultibyteGlyphPackingPtr = ^NSMultibyteGlyphPacking;
   NSFontRenderingMode = NSUInteger;
+  NSFontRenderingModePtr = ^NSFontRenderingMode;
   NSGlyphRelation = NSUInteger;
+  NSGlyphRelationPtr = ^NSGlyphRelation;
 
 { Constants }
 
@@ -35,6 +39,10 @@ const
   NSTwoByteGlyphPacking = 3;
   NSFourByteGlyphPacking = 4;
 
+const
+  NSGlyphBelow = 1;
+  NSGlyphAbove = 2;
+
 {$endif}
 {$endif}
 
@@ -50,7 +58,7 @@ const
 {$define NSFONT_PAS_F}
 
 { Functions }
-function NSConvertGlyphsToPackedGlyphs(glBufPointer: NSGlyph; count: NSInteger; packing: NSMultibyteGlyphPacking; packedGlyphsPointer: char): NSInteger; cdecl; external name 'NSConvertGlyphsToPackedGlyphs';
+function NSConvertGlyphsToPackedGlyphs(glBuf: NSGlyphPtr; count: NSInteger; packing: NSMultibyteGlyphPacking; packedGlyphs: PChar): NSInteger; cdecl; external;
 
 {$endif}
 {$endif}
@@ -61,8 +69,25 @@ function NSConvertGlyphsToPackedGlyphs(glBufPointer: NSGlyph; count: NSInteger; 
 
 { External string constants }
 var
-  NSAntialiasThresholdChangedNotification: NSString; external name '_NSAntialiasThresholdChangedNotification';
-  NSFontSetChangedNotification: NSString; external name '_NSFontSetChangedNotification';
+  NSAntialiasThresholdChangedNotification: NSString; cvar; external;
+  NSFontSetChangedNotification: NSString; cvar; external;
+  NSAFMFamilyName: NSString; cvar; external;
+  NSAFMFontName: NSString; cvar; external;
+  NSAFMFormatVersion: NSString; cvar; external;
+  NSAFMFullName: NSString; cvar; external;
+  NSAFMNotice: NSString; cvar; external;
+  NSAFMVersion: NSString; cvar; external;
+  NSAFMWeight: NSString; cvar; external;
+  NSAFMEncodingScheme: NSString; cvar; external;
+  NSAFMCharacterSet: NSString; cvar; external;
+  NSAFMCapHeight: NSString; cvar; external;
+  NSAFMXHeight: NSString; cvar; external;
+  NSAFMAscender: NSString; cvar; external;
+  NSAFMDescender: NSString; cvar; external;
+  NSAFMUnderlinePosition: NSString; cvar; external;
+  NSAFMUnderlineThickness: NSString; cvar; external;
+  NSAFMItalicAngle: NSString; cvar; external;
+  NSAFMMappingScheme: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -70,6 +95,7 @@ var
 {$ifdef FORWARD}
   NSFont = objcclass;
   NSFontPointer = ^NSFont;
+  NSFontPtr = NSFontPointer;
 
 {$endif}
 
@@ -80,24 +106,28 @@ var
 { NSFont }
   NSFont = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __name: NSString;
-    __size: CGFloat;
-    __reservedFont1: Pointer;
+    _name: NSString;
+    _size: CGFloat;
+    _retainCount: NSInteger;
     __fFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSFont0: cuint);
+       1: (
         _isScreenFont: 0..1;
         _systemFontType: 0..((1 shl 8)-1);
         _reserved1: 0..((1 shl 4)-1);
         _matrixIsIdentity: 0..1;
         _renderingMode: 0..((1 shl 3)-1);
         _reserved2: 0..((1 shl 15)-1);
+      );
       end;
-    __private: id;
+    _private: id;
     
   public
     class function alloc: NSFont; message 'alloc';
 
     class function fontWithName_size(fontName_: NSString; fontSize: CGFloat): NSFont; message 'fontWithName:size:';
-    class function fontWithName_matrix(fontName_: NSString; fontMatrix: psingle): NSFont; message 'fontWithName:matrix:';
+    class function fontWithName_matrix(fontName_: NSString; fontMatrix: CGFloatPtr): NSFont; message 'fontWithName:matrix:';
     class function fontWithDescriptor_size(fontDescriptor_: NSFontDescriptor; fontSize: CGFloat): NSFont; message 'fontWithDescriptor:size:';
     class function fontWithDescriptor_textTransform(fontDescriptor_: NSFontDescriptor; textTransform_: NSAffineTransform): NSFont; message 'fontWithDescriptor:textTransform:';
     class function userFontOfSize(fontSize: CGFloat): NSFont; message 'userFontOfSize:';
@@ -120,7 +150,7 @@ var
     class function systemFontSizeForControlSize(controlSize: NSControlSize): CGFloat; message 'systemFontSizeForControlSize:';
     function fontName: NSString; message 'fontName';
     function pointSize: CGFloat; message 'pointSize';
-    function matrix: CGFloat; message 'matrix';
+    function matrix: CGFloatPtr; message 'matrix';
     function familyName: NSString; message 'familyName';
     function displayName: NSString; message 'displayName';
     function fontDescriptor: NSFontDescriptor; message 'fontDescriptor';
@@ -142,8 +172,8 @@ var
     function isFixedPitch: Boolean; message 'isFixedPitch';
     function boundingRectForGlyph(aGlyph: NSGlyph): NSRect; message 'boundingRectForGlyph:';
     function advancementForGlyph(ag: NSGlyph): NSSize; message 'advancementForGlyph:';
-    procedure getBoundingRects_forGlyphs_count(bounds: NSRectArray; glyphs: NSGlyphPointer; glyphCount: NSUInteger); message 'getBoundingRects:forGlyphs:count:';
-    procedure getAdvancements_forGlyphs_count(advancements: NSSizeArray; glyphs: NSGlyphPointer; glyphCount: NSUInteger); message 'getAdvancements:forGlyphs:count:';
+    procedure getBoundingRects_forGlyphs_count(bounds: NSRectArray; glyphs: NSGlyphPtr; glyphCount: NSUInteger); message 'getBoundingRects:forGlyphs:count:';
+    procedure getAdvancements_forGlyphs_count(advancements: NSSizeArray; glyphs: NSGlyphPtr; glyphCount: NSUInteger); message 'getAdvancements:forGlyphs:count:';
     procedure getAdvancements_forPackedGlyphs_length(advancements: NSSizeArray; packedGlyphs: Pointer; length: NSUInteger); message 'getAdvancements:forPackedGlyphs:length:';
     procedure set_; message 'set';
     procedure setInContext(graphicsContext: NSGraphicsContext); message 'setInContext:';
@@ -152,17 +182,30 @@ var
     function screenFontWithRenderingMode(renderingMode_: NSFontRenderingMode): NSFont; message 'screenFontWithRenderingMode:';
     function renderingMode: NSFontRenderingMode; message 'renderingMode';
 
-    { Category: NSFontDeprecated }
-    class procedure useFont(fontName_: NSString); message 'useFont:';
-    function widthOfString(string_: NSString): CGFloat; message 'widthOfString:';
-    function glyphIsEncoded(aGlyph: NSGlyph): Boolean; message 'glyphIsEncoded:';
-    class procedure setPreferredFontNames(fontNameArray: NSArray); message 'setPreferredFontNames:';
-    function positionOfGlyph_precededByGlyph_isNominal(curGlyph: NSGlyph; prevGlyph: NSGlyph; nominal: pboolean): NSPoint; message 'positionOfGlyph:precededByGlyph:isNominal:';
-    function positionsForCompositeSequence_numberOfGlyphs_pointArray(someGlyphs: NSGlyphPointer; numGlyphs: NSInteger; points: NSPointArray): NSInteger; message 'positionsForCompositeSequence:numberOfGlyphs:pointArray:';
-    function positionOfGlyph_struckOverGlyph_metricsExist(curGlyph: NSGlyph; prevGlyph: NSGlyph; exist: pboolean): NSPoint; message 'positionOfGlyph:struckOverGlyph:metricsExist:';
-    function positionOfGlyph_struckOverRect_metricsExist(aGlyph: NSGlyph; aRect: NSRect; exist: pboolean): NSPoint; message 'positionOfGlyph:struckOverRect:metricsExist:';
-    function positionOfGlyph_forCharacter_struckOverRect(aGlyph: NSGlyph; aChar: unichar; aRect: NSRect): NSPoint; message 'positionOfGlyph:forCharacter:struckOverRect:';
-    function positionOfGlyph_withRelation_toBaseGlyph_totalAdvancement_metricsExist(thisGlyph: NSGlyph; rel: NSGlyphRelation; baseGlyph: NSGlyph; adv: NSSizePointer; exist: pboolean): NSPoint; message 'positionOfGlyph:withRelation:toBaseGlyph:totalAdvancement:metricsExist:';
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+  end; external;
+
+{ NSFontDeprecatedCategory }
+  NSFontDeprecatedCategory = objccategory(NSFont)
+    class procedure useFont(fontName_: NSString); message 'useFont:'; deprecated 'in Mac OS X 10.4 and later';
+    function widthOfString(string_: NSString): CGFloat; message 'widthOfString:'; deprecated 'in Mac OS X 10.4 and later';
+    function isBaseFont: Boolean; message 'isBaseFont'; deprecated 'in Mac OS X 10.4 and later';
+    function afmDictionary: NSDictionary; message 'afmDictionary'; deprecated 'in Mac OS X 10.4 and later';
+    function glyphIsEncoded(aGlyph: NSGlyph): Boolean; message 'glyphIsEncoded:'; deprecated 'in Mac OS X 10.4 and later';
+    function defaultLineHeightForFont: CGFloat; message 'defaultLineHeightForFont'; deprecated 'in Mac OS X 10.4 and later';
+    class function preferredFontNames: NSArray; message 'preferredFontNames'; deprecated 'in Mac OS X 10.4 and later';
+    class procedure setPreferredFontNames(fontNameArray: NSArray); message 'setPreferredFontNames:'; deprecated 'in Mac OS X 10.4 and later';
+    function encodingScheme: NSString; message 'encodingScheme'; deprecated 'in Mac OS X 10.4 and later';
+    function glyphPacking: NSMultibyteGlyphPacking; message 'glyphPacking'; deprecated 'in Mac OS X 10.4 and later';
+    function positionOfGlyph_precededByGlyph_isNominal(curGlyph: NSGlyph; prevGlyph: NSGlyph; nominal: pboolean): NSPoint; message 'positionOfGlyph:precededByGlyph:isNominal:'; deprecated 'in Mac OS X 10.4 and later';
+    function positionsForCompositeSequence_numberOfGlyphs_pointArray(someGlyphs: NSGlyphPtr; numGlyphs: NSInteger; points: NSPointArray): NSInteger; message 'positionsForCompositeSequence:numberOfGlyphs:pointArray:'; deprecated 'in Mac OS X 10.4 and later';
+    function positionOfGlyph_struckOverGlyph_metricsExist(curGlyph: NSGlyph; prevGlyph: NSGlyph; exist: pboolean): NSPoint; message 'positionOfGlyph:struckOverGlyph:metricsExist:'; deprecated 'in Mac OS X 10.4 and later';
+    function positionOfGlyph_struckOverRect_metricsExist(aGlyph: NSGlyph; aRect: NSRect; exist: pboolean): NSPoint; message 'positionOfGlyph:struckOverRect:metricsExist:'; deprecated 'in Mac OS X 10.4 and later';
+    function positionOfGlyph_forCharacter_struckOverRect(aGlyph: NSGlyph; aChar: unichar; aRect: NSRect): NSPoint; message 'positionOfGlyph:forCharacter:struckOverRect:'; deprecated 'in Mac OS X 10.4 and later';
+    function positionOfGlyph_withRelation_toBaseGlyph_totalAdvancement_metricsExist(thisGlyph: NSGlyph; rel: NSGlyphRelation; baseGlyph: NSGlyph; adv: NSSizePointer; exist: pboolean): NSPoint; message 'positionOfGlyph:withRelation:toBaseGlyph:totalAdvancement:metricsExist:'; deprecated 'in Mac OS X 10.4 and later';
   end; external;
 
 {$endif}

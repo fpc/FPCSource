@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSBundle.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -37,35 +37,44 @@ const
 
 { External string constants }
 var
-  NSBundleDidLoadNotification: NSString; external name '_NSBundleDidLoadNotification';
-  NSLoadedClasses: NSString; external name '_NSLoadedClasses';
+  NSBundleDidLoadNotification: NSString; cvar; external;
+  NSLoadedClasses: NSString; cvar; external;
 
 {$endif}
 {$endif}
 
 {$ifdef USER_PATCHES}
-{ifndef NSBUNDLE_PAS_PATCH}
-{define NSBUNDLE_PAS_PATCH}
-
 {$ifdef INTERFACE}
-function NSLocalizedString(key : NSString): NSString; inline;
+function NSLocalizedString(key : NSString): NSString;
+function NSLocalizedStringFromTable(key : NSString; table : NSString) : NSString;
+function NSLocalizedStringFromTableInBundle(key : NSString; table : NSString; bundle : NSBundle) : NSString;
 {$endif}
 
 {$ifdef IMPLEMENTATION}
+
 function NSLocalizedString(key : NSString): NSString;
-var
- kEmptyString: NSString;
 begin
-  Result := NSBundle.mainBundle.localizedStringForKey_value_table(key, kEmptyString, nil);
+  Result := NSBundle.mainBundle.localizedStringForKey_value_table(key, NSSTR(''), nil);
 end;
+
+function NSLocalizedStringFromTable(key : NSString; table : NSString) : NSString;
+begin
+Result := NSBundle.mainBundle.localizedStringForKey_value_table(key, NSSTR(''), table)
+end;
+
+function NSLocalizedStringFromTableInBundle(key : NSString; table : NSString; bundle : NSBundle) : NSString;
+begin
+Result := bundle.localizedStringForKey_value_table(key, NSSTR(''), table)
+end;
+
 {$endif}
 
-{endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSBundle = objcclass;
   NSBundlePointer = ^NSBundle;
+  NSBundlePtr = NSBundlePointer;
 
 {$endif}
 
@@ -76,14 +85,14 @@ end;
 { NSBundle }
   NSBundle = objcclass(NSObject)
   private
-    __flags: NSUInteger;
-    __cfBundle: id;
-    __refCount: NSUInteger;
-    __principalClass: Pobjc_class;
-    __tmp1: id;
-    __tmp2: id;
-    __reserved1: Pointer;
-    __reserved0: Pointer;
+    _flags: NSUInteger;
+    _cfBundle: id;
+    _refCount: NSUInteger;
+    _principalClass: Pobjc_class;
+    _tmp1: id;
+    _tmp2: id;
+    _reserved1: Pointer;
+    _reserved0: Pointer;
     
   public
     class function alloc: NSBundle; message 'alloc';
@@ -91,6 +100,8 @@ end;
     class function mainBundle: NSBundle; message 'mainBundle';
     class function bundleWithPath(path: NSString): NSBundle; message 'bundleWithPath:';
     function initWithPath(path: NSString): id; message 'initWithPath:';
+    class function bundleWithURL(url: NSURL): NSBundle; message 'bundleWithURL:';
+    function initWithURL(url: NSURL): id; message 'initWithURL:';
     class function bundleForClass(aClass: Pobjc_class): NSBundle; message 'bundleForClass:';
     class function bundleWithIdentifier(identifier: NSString): NSBundle; message 'bundleWithIdentifier:';
     class function allBundles: NSArray; message 'allBundles';
@@ -100,6 +111,14 @@ end;
     function unload: Boolean; message 'unload';
     function preflightAndReturnError(error: NSErrorPointer): Boolean; message 'preflightAndReturnError:';
     function loadAndReturnError(error: NSErrorPointer): Boolean; message 'loadAndReturnError:';
+    function bundleURL: NSURL; message 'bundleURL';
+    function resourceURL: NSURL; message 'resourceURL';
+    function executableURL: NSURL; message 'executableURL';
+    function URLForAuxiliaryExecutable(executableName: NSString): NSURL; message 'URLForAuxiliaryExecutable:';
+    function privateFrameworksURL: NSURL; message 'privateFrameworksURL';
+    function sharedFrameworksURL: NSURL; message 'sharedFrameworksURL';
+    function sharedSupportURL: NSURL; message 'sharedSupportURL';
+    function builtInPlugInsURL: NSURL; message 'builtInPlugInsURL';
     function bundlePath: NSString; message 'bundlePath';
     function resourcePath: NSString; message 'resourcePath';
     function executablePath: NSString; message 'executablePath';
@@ -108,37 +127,31 @@ end;
     function sharedFrameworksPath: NSString; message 'sharedFrameworksPath';
     function sharedSupportPath: NSString; message 'sharedSupportPath';
     function builtInPlugInsPath: NSString; message 'builtInPlugInsPath';
-    function bundleIdentifier: NSString; message 'bundleIdentifier';
-    function classNamed(className_: NSString): Pobjc_class; message 'classNamed:';
-    function principalClass: Pobjc_class; message 'principalClass';
+    class function URLForResource_withExtension_subdirectory_inBundleWithURL(name: NSString; ext: NSString; subpath: NSString; bundleURL_: NSURL): NSURL; message 'URLForResource:withExtension:subdirectory:inBundleWithURL:';
+    class function URLsForResourcesWithExtension_subdirectory_inBundleWithURL(ext: NSString; subpath: NSString; bundleURL_: NSURL): NSArray; message 'URLsForResourcesWithExtension:subdirectory:inBundleWithURL:';
+    function URLForResource_withExtension(name: NSString; ext: NSString): NSURL; message 'URLForResource:withExtension:';
+    function URLForResource_withExtension_subdirectory(name: NSString; ext: NSString; subpath: NSString): NSURL; message 'URLForResource:withExtension:subdirectory:';
+    function URLForResource_withExtension_subdirectory_localization(name: NSString; ext: NSString; subpath: NSString; localizationName: NSString): NSURL; message 'URLForResource:withExtension:subdirectory:localization:';
+    function URLsForResourcesWithExtension_subdirectory(ext: NSString; subpath: NSString): NSArray; message 'URLsForResourcesWithExtension:subdirectory:';
+    function URLsForResourcesWithExtension_subdirectory_localization(ext: NSString; subpath: NSString; localizationName: NSString): NSArray; message 'URLsForResourcesWithExtension:subdirectory:localization:';
     class function pathForResource_ofType_inDirectory(name: NSString; ext: NSString; bundlePath_: NSString): NSString; message 'pathForResource:ofType:inDirectory:';
+    class function pathsForResourcesOfType_inDirectory(ext: NSString; bundlePath_: NSString): NSArray; message 'pathsForResourcesOfType:inDirectory:';
     function pathForResource_ofType(name: NSString; ext: NSString): NSString; message 'pathForResource:ofType:';
     function pathForResource_ofType_inDirectory_forLocalization(name: NSString; ext: NSString; subpath: NSString; localizationName: NSString): NSString; message 'pathForResource:ofType:inDirectory:forLocalization:';
-    class function pathsForResourcesOfType_inDirectory(ext: NSString; bundlePath_: NSString): NSArray; message 'pathsForResourcesOfType:inDirectory:';
     function pathsForResourcesOfType_inDirectory_forLocalization(ext: NSString; subpath: NSString; localizationName: NSString): NSArray; message 'pathsForResourcesOfType:inDirectory:forLocalization:';
     function localizedStringForKey_value_table(key: NSString; value: NSString; tableName: NSString): NSString; message 'localizedStringForKey:value:table:';
+    function bundleIdentifier: NSString; message 'bundleIdentifier';
     function infoDictionary: NSDictionary; message 'infoDictionary';
     function localizedInfoDictionary: NSDictionary; message 'localizedInfoDictionary';
     function objectForInfoDictionaryKey(key: NSString): id; message 'objectForInfoDictionaryKey:';
+    function classNamed(className: NSString): Pobjc_class; message 'classNamed:';
+    function principalClass: Pobjc_class; message 'principalClass';
     function localizations: NSArray; message 'localizations';
     function preferredLocalizations: NSArray; message 'preferredLocalizations';
     function developmentLocalization: NSString; message 'developmentLocalization';
     class function preferredLocalizationsFromArray(localizationsArray: NSArray): NSArray; message 'preferredLocalizationsFromArray:';
     class function preferredLocalizationsFromArray_forPreferences(localizationsArray: NSArray; preferencesArray: NSArray): NSArray; message 'preferredLocalizationsFromArray:forPreferences:';
     function executableArchitectures: NSArray; message 'executableArchitectures';
-
-    { Category: NSBundleHelpExtension }
-    function contextHelpForKey(key: NSString): NSAttributedString; message 'contextHelpForKey:';
-
-    { Category: NSBundleImageExtension }
-    function pathForImageResource(name: NSString): NSString; message 'pathForImageResource:';
-
-    { Category: NSNibLoading }
-    class function loadNibFile_externalNameTable_withZone(fileName: NSString; context: NSDictionary; zone_: NSZonePointer): Boolean; message 'loadNibFile:externalNameTable:withZone:';
-    class function loadNibNamed_owner(nibName: NSString; owner: id): Boolean; message 'loadNibNamed:owner:';
-
-    { Category: NSBundleSoundExtensions }
-    function pathForSoundResource(name: NSString): NSString; message 'pathForSoundResource:';
   end; external;
 
 {$endif}

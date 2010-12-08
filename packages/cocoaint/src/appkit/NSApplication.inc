@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSApplication.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -19,11 +19,36 @@ const
   NSAppKitVersionNumber10_3_7 = 743.33;
   NSAppKitVersionNumber10_3_9 = 743.36;
   NSAppKitVersionNumber10_4 = 824;
+  NSAppKitVersionNumber10_4_1 = 824.1;
+  NSAppKitVersionNumber10_4_3 = 824.23;
+  NSAppKitVersionNumber10_4_4 = 824.33;
+  NSAppKitVersionNumber10_4_7 = 824.41;
+  NSAppKitVersionNumber10_5 = 949;
+  NSAppKitVersionNumber10_5_2 = 949.27;
+  NSAppKitVersionNumber10_5_3 = 949.33;
 
 { Constants }
 
 const
+  NSRunStoppedResponse = -1000;
+  NSRunAbortedResponse = -1001;
+  NSRunContinuesResponse = -1002;
+
+const
   NSUpdateWindowsRunLoopOrdering = 500000;
+
+const
+  NSApplicationPresentationDefault = 0;
+  NSApplicationPresentationAutoHideDock = 1 shl  0;
+  NSApplicationPresentationHideDock = 1 shl  1;
+  NSApplicationPresentationAutoHideMenuBar = 1 shl  2;
+  NSApplicationPresentationHideMenuBar = 1 shl  3;
+  NSApplicationPresentationDisableAppleMenu = 1 shl  4;
+  NSApplicationPresentationDisableProcessSwitching = 1 shl  5;
+  NSApplicationPresentationDisableForceQuit = 1 shl  6;
+  NSApplicationPresentationDisableSessionTermination = 1 shl  7;
+  NSApplicationPresentationDisableHideApplication = 1 shl  8;
+  NSApplicationPresentationDisableMenuBarTransparency = 1 shl  9;
 
 const
   NSCriticalRequest = 0;
@@ -45,15 +70,29 @@ const
   NSPrintingFailure = 3;
   NSPrintingReplyLater = 2;
 
+const
+  NSUserInterfaceLayoutDirectionLeftToRight = 0;
+  NSUserInterfaceLayoutDirectionRightToLeft = 1;
+
 { Types }
 type
+  NSApplicationPresentationOptions = NSUInteger;
+  NSApplicationPresentationOptionsPtr = ^NSApplicationPresentationOptions;
   NSModalSession = Pointer;
-  NSThreadPrivate = Pointer;
+  NSModalSessionPtr = ^NSModalSession;
+  NSThreadPrivate = record end;
   _NSThreadPrivate = NSThreadPrivate;
+  _NSThreadPrivatePtr = ^_NSThreadPrivate;
   NSRequestUserAttentionType = NSUInteger;
+  NSRequestUserAttentionTypePtr = ^NSRequestUserAttentionType;
   NSApplicationDelegateReply = NSUInteger;
+  NSApplicationDelegateReplyPtr = ^NSApplicationDelegateReply;
   NSApplicationTerminateReply = NSUInteger;
+  NSApplicationTerminateReplyPtr = ^NSApplicationTerminateReply;
   NSApplicationPrintReply = NSUInteger;
+  NSApplicationPrintReplyPtr = ^NSApplicationPrintReply;
+  NSUserInterfaceLayoutDirection = NSInteger;
+  NSUserInterfaceLayoutDirectionPtr = ^NSUserInterfaceLayoutDirection;
 
 {$endif}
 {$endif}
@@ -70,14 +109,14 @@ type
 {$define NSAPPLICATION_PAS_F}
 
 { Functions }
-function NSApplicationMain(argc: cint; argvPointer: Pointer {array of char}): cint; cdecl; external name 'NSApplicationMain';
-function NSApplicationLoad: Boolean; cdecl; external name 'NSApplicationLoad';
-function NSShowsServicesMenuItem(Pointer_: NSString): Boolean; cdecl; external name 'NSShowsServicesMenuItem';
-function NSSetShowsServicesMenuItem(Pointer_: NSString; enabled: Boolean): NSInteger; cdecl; external name 'NSSetShowsServicesMenuItem';
-procedure NSUpdateDynamicServices; cdecl; external name 'NSUpdateDynamicServices';
-function NSPerformService(itemNamePointer: NSString; pboardPointer: NSPasteboard): Boolean; cdecl; external name 'NSPerformService';
-procedure NSRegisterServicesProvider(provider: id; namePointer: NSString); cdecl; external name 'NSRegisterServicesProvider';
-procedure NSUnregisterServicesProvider(namePointer: NSString); cdecl; external name 'NSUnregisterServicesProvider';
+function NSApplicationMain(argc: cint; argv: PPChar {array of PChar}): cint; cdecl; external;
+function NSApplicationLoad: Boolean; cdecl; external;
+function NSShowsServicesMenuItem(itemName: NSString): Boolean; cdecl; external;
+function NSSetShowsServicesMenuItem(itemName: NSString; enabled: Boolean): NSInteger; cdecl; external;
+procedure NSUpdateDynamicServices; cdecl; external;
+function NSPerformService(itemName: NSString; pboard: NSPasteboard): Boolean; cdecl; external;
+procedure NSRegisterServicesProvider(provider: id; name: NSString); cdecl; external;
+procedure NSUnregisterServicesProvider(name: NSString); cdecl; external;
 
 {$endif}
 {$endif}
@@ -88,34 +127,36 @@ procedure NSUnregisterServicesProvider(namePointer: NSString); cdecl; external n
 
 { External symbols }
 var
-  NSAppKitVersionNumber: double; external name '_NSAppKitVersionNumber';
-  NSApp: id; external name '_NSApp';
+  NSAppKitVersionNumber: double; cvar; external;
+  NSApp: id; cvar; external;
 
 { External string constants }
 var
-  NSModalPanelRunLoopMode: NSString; external name '_NSModalPanelRunLoopMode';
-  NSEventTrackingRunLoopMode: NSString; external name '_NSEventTrackingRunLoopMode';
-  NSApplicationDidBecomeActiveNotification: NSString; external name '_NSApplicationDidBecomeActiveNotification';
-  NSApplicationDidHideNotification: NSString; external name '_NSApplicationDidHideNotification';
-  NSApplicationDidFinishLaunchingNotification: NSString; external name '_NSApplicationDidFinishLaunchingNotification';
-  NSApplicationDidResignActiveNotification: NSString; external name '_NSApplicationDidResignActiveNotification';
-  NSApplicationDidUnhideNotification: NSString; external name '_NSApplicationDidUnhideNotification';
-  NSApplicationDidUpdateNotification: NSString; external name '_NSApplicationDidUpdateNotification';
-  NSApplicationWillBecomeActiveNotification: NSString; external name '_NSApplicationWillBecomeActiveNotification';
-  NSApplicationWillHideNotification: NSString; external name '_NSApplicationWillHideNotification';
-  NSApplicationWillFinishLaunchingNotification: NSString; external name '_NSApplicationWillFinishLaunchingNotification';
-  NSApplicationWillResignActiveNotification: NSString; external name '_NSApplicationWillResignActiveNotification';
-  NSApplicationWillUnhideNotification: NSString; external name '_NSApplicationWillUnhideNotification';
-  NSApplicationWillUpdateNotification: NSString; external name '_NSApplicationWillUpdateNotification';
-  NSApplicationWillTerminateNotification: NSString; external name '_NSApplicationWillTerminateNotification';
-  NSApplicationDidChangeScreenParametersNotification: NSString; external name '_NSApplicationDidChangeScreenParametersNotification';
+  NSModalPanelRunLoopMode: NSString; cvar; external;
+  NSEventTrackingRunLoopMode: NSString; cvar; external;
+  NSApplicationDidBecomeActiveNotification: NSString; cvar; external;
+  NSApplicationDidHideNotification: NSString; cvar; external;
+  NSApplicationDidFinishLaunchingNotification: NSString; cvar; external;
+  NSApplicationDidResignActiveNotification: NSString; cvar; external;
+  NSApplicationDidUnhideNotification: NSString; cvar; external;
+  NSApplicationDidUpdateNotification: NSString; cvar; external;
+  NSApplicationWillBecomeActiveNotification: NSString; cvar; external;
+  NSApplicationWillHideNotification: NSString; cvar; external;
+  NSApplicationWillFinishLaunchingNotification: NSString; cvar; external;
+  NSApplicationWillResignActiveNotification: NSString; cvar; external;
+  NSApplicationWillUnhideNotification: NSString; cvar; external;
+  NSApplicationWillUpdateNotification: NSString; cvar; external;
+  NSApplicationWillTerminateNotification: NSString; cvar; external;
+  NSApplicationDidChangeScreenParametersNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
+  NSApplicationDelegateProtocol = objcprotocol;
   NSApplication = objcclass;
   NSApplicationPointer = ^NSApplication;
+  NSApplicationPtr = NSApplicationPointer;
 
 {$endif}
 
@@ -126,19 +167,22 @@ var
 { NSApplication }
   NSApplication = objcclass(NSResponder, NSUserInterfaceValidationsProtocol)
   private
-    __currentEvent: NSEvent;
-    __windowList: id;
-    __keyWindow: id;
-    __mainWindow: id;
-    __delegate: id;
-    __hiddenList: id;
-    __hiddenCount: cint;
-    __context: NSInteger;
-    __appleEventSuspensionID: Pointer;
-    __previousKeyWindow: id; {garbage collector: __weak }
-    __unusedApp: cshort;
-    __running: cshort;
+    _currentEvent: NSEvent;
+    _windowList: id;
+    _keyWindow: id;
+    _mainWindow: id;
+    _delegate: id;
+    _hiddenList: idPtr;
+    _hiddenCount: cint;
+    _context: NSInteger;
+    _appleEventSuspensionID: Pointer;
+    _previousKeyWindow: id; {garbage collector: __weak }
+    _unusedApp: cshort;
+    _running: cshort;
     __appFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSApplication0: cuint);
+       1: (
         _hidden: 0..1;
         _RESERVED1: 0..1;
         _active: 0..1;
@@ -164,13 +208,16 @@ var
         _hiddenOnLaunch: 0..1;
         _openStatus: 0..((1 shl 2)-1);
         _batchOrdering: 0..1;
-        _reserved: 0..((1 shl 6)-1);
+        _waitingForTerminationReply: 0..1;
+        _windowMoveDisabled: 0..1;
+        _reserved: 0..((1 shl 4)-1);
+      );
       end;
-    __mainMenu: id;
-    __appIcon: id;
-    __nameTable: id;
-    __eventDelegate: id;
-    __threadingSupport: _NSThreadPrivate;
+    _mainMenu: id;
+    _appIcon: id;
+    _nameTable: id;
+    _eventDelegate: id;
+    _threadingSupport: _NSThreadPrivatePtr;
     
   public
     class function alloc: NSApplication; message 'alloc';
@@ -209,8 +256,6 @@ var
     procedure beginSheet_modalForWindow_modalDelegate_didEndSelector_contextInfo(sheet: NSWindow; docWindow: NSWindow; modalDelegate: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginSheet:modalForWindow:modalDelegate:didEndSelector:contextInfo:';
     procedure endSheet(sheet: NSWindow); message 'endSheet:';
     procedure endSheet_returnCode(sheet: NSWindow; returnCode: NSInteger); message 'endSheet:returnCode:';
-    function runModalForWindow_relativeToWindow(theWindow: NSWindow; docWindow: NSWindow): NSInteger; message 'runModalForWindow:relativeToWindow:';
-    function beginModalSessionForWindow_relativeToWindow(theWindow: NSWindow; docWindow: NSWindow): NSModalSession; message 'beginModalSessionForWindow:relativeToWindow:';
     function nextEventMatchingMask_untilDate_inMode_dequeue(mask: NSUInteger; expiration: NSDate; mode: NSString; deqFlag: Boolean): NSEvent; message 'nextEventMatchingMask:untilDate:inMode:dequeue:';
     procedure discardEventsMatchingMask_beforeEvent(mask: NSUInteger; lastEvent: NSEvent); message 'discardEventsMatchingMask:beforeEvent:';
     procedure postEvent_atStart(event: NSEvent; flag: Boolean); message 'postEvent:atStart:';
@@ -223,8 +268,12 @@ var
     procedure updateWindows; message 'updateWindows';
     procedure setMainMenu(aMenu: NSMenu); message 'setMainMenu:';
     function mainMenu: NSMenu; message 'mainMenu';
+    procedure setHelpMenu(helpMenu: NSMenu); message 'setHelpMenu:';
+    function helpMenu: NSMenu; message 'helpMenu';
     procedure setApplicationIconImage(image: NSImage); message 'setApplicationIconImage:';
     function applicationIconImage: NSImage; message 'applicationIconImage';
+    function activationPolicy: NSApplicationActivationPolicy; message 'activationPolicy';
+    function setActivationPolicy(activationPolicy_: NSApplicationActivationPolicy): Boolean; message 'setActivationPolicy:';
     function dockTile: NSDockTile; message 'dockTile';
     function sendAction_to_from(theAction: SEL; theTarget: id; sender: id): Boolean; message 'sendAction:to:from:';
     function targetForAction(theAction: SEL): id; message 'targetForAction:';
@@ -236,8 +285,16 @@ var
     procedure replyToApplicationShouldTerminate(shouldTerminate: Boolean); message 'replyToApplicationShouldTerminate:';
     procedure replyToOpenOrPrint(reply: NSApplicationDelegateReply); message 'replyToOpenOrPrint:';
     procedure orderFrontCharacterPalette(sender: id); message 'orderFrontCharacterPalette:';
+    function presentationOptions: NSApplicationPresentationOptions; message 'presentationOptions';
+    procedure setPresentationOptions(newOptions: NSApplicationPresentationOptions); message 'setPresentationOptions:';
+    function currentSystemPresentationOptions: NSApplicationPresentationOptions; message 'currentSystemPresentationOptions';
 
-    { Category: NSWindowsMenu }
+    { Adopted Protocols }
+    function validateUserInterfaceItem(anItem: id): Boolean;
+  end; external;
+
+{ NSWindowsMenuCategory }
+  NSWindowsMenuCategory = objccategory(NSApplication)
     procedure setWindowsMenu(aMenu: NSMenu); message 'setWindowsMenu:';
     function windowsMenu: NSMenu; message 'windowsMenu';
     procedure arrangeInFront(sender: id); message 'arrangeInFront:';
@@ -246,34 +303,85 @@ var
     procedure changeWindowsItem_title_filename(win: NSWindow; aString: NSString; isFilename: Boolean); message 'changeWindowsItem:title:filename:';
     procedure updateWindowsItem(win: NSWindow); message 'updateWindowsItem:';
     procedure miniaturizeAll(sender: id); message 'miniaturizeAll:';
+  end; external;
 
-    { Category: NSServicesMenu }
+{ NSFullKeyboardAccessCategory }
+  NSFullKeyboardAccessCategory = objccategory(NSApplication)
+    function isFullKeyboardAccessEnabled: Boolean; message 'isFullKeyboardAccessEnabled';
+  end; external;
+
+{ NSServicesMenuCategory }
+  NSServicesMenuCategory = objccategory(NSApplication)
     procedure setServicesMenu(aMenu: NSMenu); message 'setServicesMenu:';
     function servicesMenu: NSMenu; message 'servicesMenu';
     procedure registerServicesMenuSendTypes_returnTypes(sendTypes: NSArray; returnTypes: NSArray); message 'registerServicesMenuSendTypes:returnTypes:';
-
-    { Category: NSServicesHandling }
-    procedure setServicesProvider(provider: id); message 'setServicesProvider:';
-    function servicesProvider: id; message 'servicesProvider';
-
-    { Category: NSStandardAboutPanel }
-    procedure orderFrontStandardAboutPanel(sender: id); message 'orderFrontStandardAboutPanel:';
-    procedure orderFrontStandardAboutPanelWithOptions(optionsDictionary: NSDictionary); message 'orderFrontStandardAboutPanelWithOptions:';
-
-    { Category: NSApplicationHelpExtension }
-    procedure activateContextHelpMode(sender: id); message 'activateContextHelpMode:';
-    procedure showHelp(sender: id); message 'showHelp:';
-
-    { Category: NSPageLayoutPanel }
-    procedure runPageLayout(sender: id); message 'runPageLayout:';
-
-    { Category: NSColorPanel }
-    procedure orderFrontColorPanel(sender: id); message 'orderFrontColorPanel:';
-
-    { Category: NSScripting }
-    function orderedDocuments: NSArray; message 'orderedDocuments';
-    function orderedWindows: NSArray; message 'orderedWindows';
   end; external;
 
+{ NSServicesRequestsCategory }
+  NSServicesRequestsCategory = objccategory(NSObject)
+    function writeSelectionToPasteboard_types(pboard: NSPasteboard; types: NSArray): Boolean; message 'writeSelectionToPasteboard:types:';
+    function readSelectionFromPasteboard(pboard: NSPasteboard): Boolean; message 'readSelectionFromPasteboard:';
+  end; external;
+
+{ NSServicesHandlingCategory }
+  NSServicesHandlingCategory = objccategory(NSApplication)
+    procedure setServicesProvider(provider: id); message 'setServicesProvider:';
+    function servicesProvider: id; message 'servicesProvider';
+  end; external;
+
+{ NSStandardAboutPanelCategory }
+  NSStandardAboutPanelCategory = objccategory(NSApplication)
+    procedure orderFrontStandardAboutPanel(sender: id); message 'orderFrontStandardAboutPanel:';
+    procedure orderFrontStandardAboutPanelWithOptions(optionsDictionary: NSDictionary); message 'orderFrontStandardAboutPanelWithOptions:';
+  end; external;
+
+{ NSApplicationLayoutDirectionCategory }
+  NSApplicationLayoutDirectionCategory = objccategory(NSApplication)
+    function userInterfaceLayoutDirection: NSUserInterfaceLayoutDirection; message 'userInterfaceLayoutDirection';
+  end; external;
+
+{ NSDeprecated_NSApplicationCategory }
+  NSDeprecated_NSApplicationCategory = objccategory(NSApplication)
+    function runModalForWindow_relativeToWindow(theWindow: NSWindow; docWindow: NSWindow): NSInteger; message 'runModalForWindow:relativeToWindow:'; deprecated 'in Mac OS X 10 and later';
+    function beginModalSessionForWindow_relativeToWindow(theWindow: NSWindow; docWindow: NSWindow): NSModalSession; message 'beginModalSessionForWindow:relativeToWindow:'; deprecated 'in Mac OS X 10 and later';
+    procedure application_printFiles(sender: NSApplication; filenames: NSArray); message 'application:printFiles:';
+  end; external name 'NSDeprecated';
+
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSAPPLICATION_PAS_P}
+{$define NSAPPLICATION_PAS_P}
+  
+{ NSApplicationDelegate Protocol }
+  NSApplicationDelegateProtocol = objcprotocol
+    function applicationShouldTerminate(sender: NSApplication): NSApplicationTerminateReply; message 'applicationShouldTerminate:';
+    function application_openFile(sender: NSApplication; filename: NSString): Boolean; message 'application:openFile:';
+    procedure application_openFiles(sender: NSApplication; filenames: NSArray); message 'application:openFiles:';
+    function application_openTempFile(sender: NSApplication; filename: NSString): Boolean; message 'application:openTempFile:';
+    function applicationShouldOpenUntitledFile(sender: NSApplication): Boolean; message 'applicationShouldOpenUntitledFile:';
+    function applicationOpenUntitledFile(sender: NSApplication): Boolean; message 'applicationOpenUntitledFile:';
+    function application_openFileWithoutUI(sender: id; filename: NSString): Boolean; message 'application:openFileWithoutUI:';
+    function application_printFile(sender: NSApplication; filename: NSString): Boolean; message 'application:printFile:';
+    function application_printFiles_withSettings_showPrintPanels(application: NSApplication; fileNames: NSArray; printSettings: NSDictionary; showPrintPanels: Boolean): NSApplicationPrintReply; message 'application:printFiles:withSettings:showPrintPanels:';
+    function applicationShouldTerminateAfterLastWindowClosed(sender: NSApplication): Boolean; message 'applicationShouldTerminateAfterLastWindowClosed:';
+    function applicationShouldHandleReopen_hasVisibleWindows(sender: NSApplication; flag: Boolean): Boolean; message 'applicationShouldHandleReopen:hasVisibleWindows:';
+    function applicationDockMenu(sender: NSApplication): NSMenu; message 'applicationDockMenu:';
+    function application_willPresentError(application: NSApplication; error: NSError): NSError; message 'application:willPresentError:';
+    procedure applicationWillFinishLaunching(notification: NSNotification); message 'applicationWillFinishLaunching:';
+    procedure applicationDidFinishLaunching(notification: NSNotification); message 'applicationDidFinishLaunching:';
+    procedure applicationWillHide(notification: NSNotification); message 'applicationWillHide:';
+    procedure applicationDidHide(notification: NSNotification); message 'applicationDidHide:';
+    procedure applicationWillUnhide(notification: NSNotification); message 'applicationWillUnhide:';
+    procedure applicationDidUnhide(notification: NSNotification); message 'applicationDidUnhide:';
+    procedure applicationWillBecomeActive(notification: NSNotification); message 'applicationWillBecomeActive:';
+    procedure applicationDidBecomeActive(notification: NSNotification); message 'applicationDidBecomeActive:';
+    procedure applicationWillResignActive(notification: NSNotification); message 'applicationWillResignActive:';
+    procedure applicationDidResignActive(notification: NSNotification); message 'applicationDidResignActive:';
+    procedure applicationWillUpdate(notification: NSNotification); message 'applicationWillUpdate:';
+    procedure applicationDidUpdate(notification: NSNotification); message 'applicationDidUpdate:';
+    procedure applicationWillTerminate(notification: NSNotification); message 'applicationWillTerminate:';
+    procedure applicationDidChangeScreenParameters(notification: NSNotification); message 'applicationDidChangeScreenParameters:';
+  end; external name 'NSApplicationDelegate';
 {$endif}
 {$endif}

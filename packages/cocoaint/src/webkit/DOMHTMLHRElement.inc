@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLHRElement.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMHTMLHRElement = objcclass;
   DOMHTMLHRElementPointer = ^DOMHTMLHRElement;
+  DOMHTMLHRElementPtr = DOMHTMLHRElementPointer;
 
 {$endif}
 
@@ -48,6 +49,8 @@
 
     procedure setAlign (newValue: NSString); message 'setAlign:';
     function align: NSString; message 'align';
+    procedure setNoShade (newValue: Boolean); message 'setNoShade:';
+    function noShade: Boolean; message 'noShade';
     procedure setSize (newValue: NSString); message 'setSize:';
     function size: NSString; message 'size';
     procedure setWidth (newValue: NSString); message 'setWidth:';

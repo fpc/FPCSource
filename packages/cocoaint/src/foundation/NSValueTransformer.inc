@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSValueTransformer.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,11 +29,11 @@
 
 { External string constants }
 var
-  NSNegateBooleanTransformerName: NSString; external name '_NSNegateBooleanTransformerName';
-  NSIsNilTransformerName: NSString; external name '_NSIsNilTransformerName';
-  NSIsNotNilTransformerName: NSString; external name '_NSIsNotNilTransformerName';
-  NSUnarchiveFromDataTransformerName: NSString; external name '_NSUnarchiveFromDataTransformerName';
-  NSKeyedUnarchiveFromDataTransformerName: NSString; external name '_NSKeyedUnarchiveFromDataTransformerName';
+  NSNegateBooleanTransformerName: NSString; cvar; external;
+  NSIsNilTransformerName: NSString; cvar; external;
+  NSIsNotNilTransformerName: NSString; cvar; external;
+  NSUnarchiveFromDataTransformerName: NSString; cvar; external;
+  NSKeyedUnarchiveFromDataTransformerName: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -41,6 +41,7 @@ var
 {$ifdef FORWARD}
   NSValueTransformer = objcclass;
   NSValueTransformerPointer = ^NSValueTransformer;
+  NSValueTransformerPtr = NSValueTransformerPointer;
 
 {$endif}
 

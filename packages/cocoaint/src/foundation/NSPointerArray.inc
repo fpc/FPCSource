@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPointerArray.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSPointerArray = objcclass;
   NSPointerArrayPointer = ^NSPointerArray;
+  NSPointerArrayPtr = NSPointerArrayPointer;
 
 {$endif}
 
@@ -56,7 +57,15 @@
     function count: NSUInteger; message 'count';
     procedure setCount(count_: NSUInteger); message 'setCount:';
 
-    { Category: NSArrayConveniences }
+    { Adopted Protocols }
+    function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePtr; stackbuf: idPtr; len: NSUInteger): NSUInteger;
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+  end; external;
+
+{ NSArrayConveniencesCategory }
+  NSArrayConveniencesCategory = objccategory(NSPointerArray)
     function allObjects: NSArray; message 'allObjects';
   end; external;
 

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSXMLNodeOptions.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -10,25 +10,25 @@
 
 const
   NSXMLNodeOptionsNone = 0;
-  NSXMLNodeIsCDATA = 1  shl  0;
-  NSXMLNodeExpandEmptyElement = 1  shl  1;
-  NSXMLNodeCompactEmptyElement = 1  shl  2;
-  NSXMLNodeUseSingleQuotes = 1  shl  3;
-  NSXMLNodeUseDoubleQuotes = 1  shl  4;
-  NSXMLDocumentTidyHTML = 1  shl  9;
-  NSXMLDocumentTidyXML = 1  shl  10;
-  NSXMLDocumentValidate = 1  shl  13;
-  NSXMLDocumentXInclude = 1  shl  16;
-  NSXMLNodePrettyPrint = 1  shl  17;
-  NSXMLDocumentIncludeContentTypeDeclaration = 1  shl  18;
-  NSXMLNodePreserveNamespaceOrder = 1  shl  20;
-  NSXMLNodePreserveAttributeOrder = 1  shl  21;
-  NSXMLNodePreserveEntities = 1  shl  22;
-  NSXMLNodePreservePrefixes = 1  shl  23;
-  NSXMLNodePreserveCDATA = 1  shl  24;
-  NSXMLNodePreserveWhitespace = 1  shl  25;
-  NSXMLNodePreserveDTD = 1  shl  26;
-  NSXMLNodePreserveCharacterReferences = 1  shl  27;
+  NSXMLNodeIsCDATA = 1 shl 0;
+  NSXMLNodeExpandEmptyElement = 1 shl 1;
+  NSXMLNodeCompactEmptyElement = 1 shl 2;
+  NSXMLNodeUseSingleQuotes = 1 shl 3;
+  NSXMLNodeUseDoubleQuotes = 1 shl 4;
+  NSXMLDocumentTidyHTML = 1 shl 9;
+  NSXMLDocumentTidyXML = 1 shl 10;
+  NSXMLDocumentValidate = 1 shl 13;
+  NSXMLDocumentXInclude = 1 shl 16;
+  NSXMLNodePrettyPrint = 1 shl 17;
+  NSXMLDocumentIncludeContentTypeDeclaration = 1 shl 18;
+  NSXMLNodePreserveNamespaceOrder = 1 shl 20;
+  NSXMLNodePreserveAttributeOrder = 1 shl 21;
+  NSXMLNodePreserveEntities = 1 shl 22;
+  NSXMLNodePreservePrefixes = 1 shl 23;
+  NSXMLNodePreserveCDATA = 1 shl 24;
+  NSXMLNodePreserveWhitespace = 1 shl 25;
+  NSXMLNodePreserveDTD = 1 shl 26;
+  NSXMLNodePreserveCharacterReferences = 1 shl 27;
 
 {$endif}
 {$endif}

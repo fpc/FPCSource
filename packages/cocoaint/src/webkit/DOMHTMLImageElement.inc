@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLImageElement.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMHTMLImageElement = objcclass;
   DOMHTMLImageElementPointer = ^DOMHTMLImageElement;
+  DOMHTMLImageElementPtr = DOMHTMLImageElementPointer;
 
 {$endif}
 
@@ -54,12 +55,29 @@
     function alt: NSString; message 'alt';
     procedure setBorder (newValue: NSString); message 'setBorder:';
     function border: NSString; message 'border';
+    procedure setHeight (newValue: cint); message 'setHeight:';
+    function height: cint; message 'height';
+    procedure setHspace (newValue: cint); message 'setHspace:';
+    function hspace: cint; message 'hspace';
+    procedure setIsMap (newValue: Boolean); message 'setIsMap:';
+    function isMap: Boolean; message 'isMap';
     procedure setLongDesc (newValue: NSString); message 'setLongDesc:';
     function longDesc: NSString; message 'longDesc';
     procedure setSrc (newValue: NSString); message 'setSrc:';
     function src: NSString; message 'src';
     procedure setUseMap (newValue: NSString); message 'setUseMap:';
     function useMap: NSString; message 'useMap';
+    procedure setVspace (newValue: cint); message 'setVspace:';
+    function vspace: cint; message 'vspace';
+    procedure setWidth (newValue: cint); message 'setWidth:';
+    function width: cint; message 'width';
+    function complete: Boolean; message 'complete';
+    procedure setLowsrc (newValue: NSString); message 'setLowsrc:';
+    function lowsrc: NSString; message 'lowsrc';
+    function naturalHeight: cint; message 'naturalHeight';
+    function naturalWidth: cint; message 'naturalWidth';
+    function x: cint; message 'x';
+    function y: cint; message 'y';
     function altDisplayString: NSString; message 'altDisplayString';
     function absoluteImageURL: NSURL; message 'absoluteImageURL';
   end; external;

@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSFetchRequestExpression.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -38,6 +38,7 @@ const
 {$ifdef FORWARD}
   NSFetchRequestExpression = objcclass;
   NSFetchRequestExpressionPointer = ^NSFetchRequestExpression;
+  NSFetchRequestExpressionPtr = NSFetchRequestExpressionPointer;
 
 {$endif}
 
@@ -48,15 +49,19 @@ const
 { NSFetchRequestExpression }
   NSFetchRequestExpression = objcclass(NSExpression)
   private
-    __reserved1: Pointer;
-    __reserved2: Pointer;
-    __reserved3: Pointer;
-    __reserved4: Pointer;
-    __fetchRequest: NSExpression;
-    __managedObjectContext: NSExpression;
+    _reserved1: Pointer;
+    _reserved2: Pointer;
+    _reserved3: Pointer;
+    _reserved4: Pointer;
+    _fetchRequest: NSExpression;
+    _managedObjectContext: NSExpression;
     __flags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSFetchRequestExpression0: cuint);
+       1: (
         isCountOnly: 0..1;
         _RESERVED: 0..((1 shl 31)-1);
+      );
       end;
     
   public

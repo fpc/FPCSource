@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScriptCommand.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -48,6 +48,7 @@ const
 {$ifdef FORWARD}
   NSScriptCommand = objcclass;
   NSScriptCommandPointer = ^NSScriptCommand;
+  NSScriptCommandPtr = NSScriptCommandPointer;
 
 {$endif}
 
@@ -58,19 +59,23 @@ const
 { NSScriptCommand }
   NSScriptCommand = objcclass(NSObject, NSCodingProtocol)
   private
-    __commandDescription: NSScriptCommandDescription;
-    __directParameter: id;
-    __receiversSpecifier: NSScriptObjectSpecifier;
-    __evaluatedReceivers: id;
-    __arguments: NSDictionary;
-    __evaluatedArguments: NSMutableDictionary;
+    _commandDescription: NSScriptCommandDescription;
+    _directParameter: id;
+    _receiversSpecifier: NSScriptObjectSpecifier;
+    _evaluatedReceivers: id;
+    _arguments: NSDictionary;
+    _evaluatedArguments: NSMutableDictionary;
     __flags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSScriptCommand0: cuint);
+       1: (
         hasEvaluatedReceivers: 0..1;
         hasEvaluatedArguments: 0..1;
         RESERVED: 0..((1 shl 30)-1);
+      );
       end;
-    __moreVars: id;
-    __reserved: Pointer;
+    _moreVars: id;
+    _reserved: Pointer;
     
   public
     class function alloc: NSScriptCommand; message 'alloc';
@@ -100,6 +105,10 @@ const
     function appleEvent: NSAppleEventDescriptor; message 'appleEvent';
     procedure suspendExecution; message 'suspendExecution';
     procedure resumeExecutionWithResult(result_: id); message 'resumeExecutionWithResult:';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 {$endif}

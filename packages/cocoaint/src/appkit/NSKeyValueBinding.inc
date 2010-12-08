@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSKeyValueBinding.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -21,7 +21,7 @@
 {$define NSKEYVALUEBINDING_PAS_F}
 
 { Functions }
-function NSIsControllerMarker(object_: id): Boolean; cdecl; external name 'NSIsControllerMarker';
+function NSIsControllerMarker(object_: id): Boolean; cdecl; external;
 
 {$endif}
 {$endif}
@@ -32,119 +32,160 @@ function NSIsControllerMarker(object_: id): Boolean; cdecl; external name 'NSIsC
 
 { External symbols }
 var
-  NSMultipleValuesMarker: id; external name '_NSMultipleValuesMarker';
-  NSNoSelectionMarker: id; external name '_NSNoSelectionMarker';
-  NSNotApplicableMarker: id; external name '_NSNotApplicableMarker';
+  NSMultipleValuesMarker: id; cvar; external;
+  NSNoSelectionMarker: id; cvar; external;
+  NSNotApplicableMarker: id; cvar; external;
 
 { External string constants }
 var
-  NSObservedObjectKey: NSString; external name '_NSObservedObjectKey';
-  NSObservedKeyPathKey: NSString; external name '_NSObservedKeyPathKey';
-  NSOptionsKey: NSString; external name '_NSOptionsKey';
-  NSAlignmentBinding: NSString; external name '_NSAlignmentBinding';
-  NSAlternateImageBinding: NSString; external name '_NSAlternateImageBinding';
-  NSAlternateTitleBinding: NSString; external name '_NSAlternateTitleBinding';
-  NSAnimateBinding: NSString; external name '_NSAnimateBinding';
-  NSAnimationDelayBinding: NSString; external name '_NSAnimationDelayBinding';
-  NSArgumentBinding: NSString; external name '_NSArgumentBinding';
-  NSAttributedStringBinding: NSString; external name '_NSAttributedStringBinding';
-  NSContentArrayBinding: NSString; external name '_NSContentArrayBinding';
-  NSContentArrayForMultipleSelectionBinding: NSString; external name '_NSContentArrayForMultipleSelectionBinding';
-  NSContentBinding: NSString; external name '_NSContentBinding';
-  NSContentDictionaryBinding: NSString; external name '_NSContentDictionaryBinding';
-  NSContentHeightBinding: NSString; external name '_NSContentHeightBinding';
-  NSContentObjectBinding: NSString; external name '_NSContentObjectBinding';
-  NSContentObjectsBinding: NSString; external name '_NSContentObjectsBinding';
-  NSContentSetBinding: NSString; external name '_NSContentSetBinding';
-  NSContentValuesBinding: NSString; external name '_NSContentValuesBinding';
-  NSContentWidthBinding: NSString; external name '_NSContentWidthBinding';
-  NSCriticalValueBinding: NSString; external name '_NSCriticalValueBinding';
-  NSDataBinding: NSString; external name '_NSDataBinding';
-  NSDisplayPatternTitleBinding: NSString; external name '_NSDisplayPatternTitleBinding';
-  NSDisplayPatternValueBinding: NSString; external name '_NSDisplayPatternValueBinding';
-  NSDocumentEditedBinding: NSString; external name '_NSDocumentEditedBinding';
-  NSDoubleClickArgumentBinding: NSString; external name '_NSDoubleClickArgumentBinding';
-  NSDoubleClickTargetBinding: NSString; external name '_NSDoubleClickTargetBinding';
-  NSEditableBinding: NSString; external name '_NSEditableBinding';
-  NSEnabledBinding: NSString; external name '_NSEnabledBinding';
-  NSExcludedKeysBinding: NSString; external name '_NSExcludedKeysBinding';
-  NSFilterPredicateBinding: NSString; external name '_NSFilterPredicateBinding';
-  NSFontBinding: NSString; external name '_NSFontBinding';
-  NSFontBoldBinding: NSString; external name '_NSFontBoldBinding';
-  NSFontFamilyNameBinding: NSString; external name '_NSFontFamilyNameBinding';
-  NSFontItalicBinding: NSString; external name '_NSFontItalicBinding';
-  NSFontNameBinding: NSString; external name '_NSFontNameBinding';
-  NSFontSizeBinding: NSString; external name '_NSFontSizeBinding';
-  NSHeaderTitleBinding: NSString; external name '_NSHeaderTitleBinding';
-  NSHiddenBinding: NSString; external name '_NSHiddenBinding';
-  NSImageBinding: NSString; external name '_NSImageBinding';
-  NSIncludedKeysBinding: NSString; external name '_NSIncludedKeysBinding';
-  NSInitialKeyBinding: NSString; external name '_NSInitialKeyBinding';
-  NSInitialValueBinding: NSString; external name '_NSInitialValueBinding';
-  NSIsIndeterminateBinding: NSString; external name '_NSIsIndeterminateBinding';
-  NSLabelBinding: NSString; external name '_NSLabelBinding';
-  NSLocalizedKeyDictionaryBinding: NSString; external name '_NSLocalizedKeyDictionaryBinding';
-  NSManagedObjectContextBinding: NSString; external name '_NSManagedObjectContextBinding';
-  NSMaximumRecentsBinding: NSString; external name '_NSMaximumRecentsBinding';
-  NSMaxValueBinding: NSString; external name '_NSMaxValueBinding';
-  NSMaxWidthBinding: NSString; external name '_NSMaxWidthBinding';
-  NSMinValueBinding: NSString; external name '_NSMinValueBinding';
-  NSMinWidthBinding: NSString; external name '_NSMinWidthBinding';
-  NSMixedStateImageBinding: NSString; external name '_NSMixedStateImageBinding';
-  NSOffStateImageBinding: NSString; external name '_NSOffStateImageBinding';
-  NSOnStateImageBinding: NSString; external name '_NSOnStateImageBinding';
-  NSPredicateBinding: NSString; external name '_NSPredicateBinding';
-  NSRecentSearchesBinding: NSString; external name '_NSRecentSearchesBinding';
-  NSRepresentedFilenameBinding: NSString; external name '_NSRepresentedFilenameBinding';
-  NSRowHeightBinding: NSString; external name '_NSRowHeightBinding';
-  NSSelectedIdentifierBinding: NSString; external name '_NSSelectedIdentifierBinding';
-  NSSelectedIndexBinding: NSString; external name '_NSSelectedIndexBinding';
-  NSSelectedLabelBinding: NSString; external name '_NSSelectedLabelBinding';
-  NSSelectedObjectBinding: NSString; external name '_NSSelectedObjectBinding';
-  NSSelectedObjectsBinding: NSString; external name '_NSSelectedObjectsBinding';
-  NSSelectedTagBinding: NSString; external name '_NSSelectedTagBinding';
-  NSSelectedValueBinding: NSString; external name '_NSSelectedValueBinding';
-  NSSelectedValuesBinding: NSString; external name '_NSSelectedValuesBinding';
-  NSSelectionIndexesBinding: NSString; external name '_NSSelectionIndexesBinding';
-  NSSelectionIndexPathsBinding: NSString; external name '_NSSelectionIndexPathsBinding';
-  NSSortDescriptorsBinding: NSString; external name '_NSSortDescriptorsBinding';
-  NSTargetBinding: NSString; external name '_NSTargetBinding';
-  NSTextColorBinding: NSString; external name '_NSTextColorBinding';
-  NSTitleBinding: NSString; external name '_NSTitleBinding';
-  NSToolTipBinding: NSString; external name '_NSToolTipBinding';
-  NSTransparentBinding: NSString; external name '_NSTransparentBinding';
-  NSValueBinding: NSString; external name '_NSValueBinding';
-  NSValuePathBinding: NSString; external name '_NSValuePathBinding';
-  NSValueURLBinding: NSString; external name '_NSValueURLBinding';
-  NSVisibleBinding: NSString; external name '_NSVisibleBinding';
-  NSWarningValueBinding: NSString; external name '_NSWarningValueBinding';
-  NSWidthBinding: NSString; external name '_NSWidthBinding';
-  NSAllowsEditingMultipleValuesSelectionBindingOption: NSString; external name '_NSAllowsEditingMultipleValuesSelectionBindingOption';
-  NSAllowsNullArgumentBindingOption: NSString; external name '_NSAllowsNullArgumentBindingOption';
-  NSAlwaysPresentsApplicationModalAlertsBindingOption: NSString; external name '_NSAlwaysPresentsApplicationModalAlertsBindingOption';
-  NSConditionallySetsEditableBindingOption: NSString; external name '_NSConditionallySetsEditableBindingOption';
-  NSConditionallySetsEnabledBindingOption: NSString; external name '_NSConditionallySetsEnabledBindingOption';
-  NSConditionallySetsHiddenBindingOption: NSString; external name '_NSConditionallySetsHiddenBindingOption';
-  NSContinuouslyUpdatesValueBindingOption: NSString; external name '_NSContinuouslyUpdatesValueBindingOption';
-  NSCreatesSortDescriptorBindingOption: NSString; external name '_NSCreatesSortDescriptorBindingOption';
-  NSDeletesObjectsOnRemoveBindingsOption: NSString; external name '_NSDeletesObjectsOnRemoveBindingsOption';
-  NSDisplayNameBindingOption: NSString; external name '_NSDisplayNameBindingOption';
-  NSDisplayPatternBindingOption: NSString; external name '_NSDisplayPatternBindingOption';
-  NSContentPlacementTagBindingOption: NSString; external name '_NSContentPlacementTagBindingOption';
-  NSHandlesContentAsCompoundValueBindingOption: NSString; external name '_NSHandlesContentAsCompoundValueBindingOption';
-  NSInsertsNullPlaceholderBindingOption: NSString; external name '_NSInsertsNullPlaceholderBindingOption';
-  NSInvokesSeparatelyWithArrayObjectsBindingOption: NSString; external name '_NSInvokesSeparatelyWithArrayObjectsBindingOption';
-  NSMultipleValuesPlaceholderBindingOption: NSString; external name '_NSMultipleValuesPlaceholderBindingOption';
-  NSNoSelectionPlaceholderBindingOption: NSString; external name '_NSNoSelectionPlaceholderBindingOption';
-  NSNotApplicablePlaceholderBindingOption: NSString; external name '_NSNotApplicablePlaceholderBindingOption';
-  NSNullPlaceholderBindingOption: NSString; external name '_NSNullPlaceholderBindingOption';
-  NSRaisesForNotApplicableKeysBindingOption: NSString; external name '_NSRaisesForNotApplicableKeysBindingOption';
-  NSPredicateFormatBindingOption: NSString; external name '_NSPredicateFormatBindingOption';
-  NSSelectorNameBindingOption: NSString; external name '_NSSelectorNameBindingOption';
-  NSSelectsAllWhenSettingContentBindingOption: NSString; external name '_NSSelectsAllWhenSettingContentBindingOption';
-  NSValidatesImmediatelyBindingOption: NSString; external name '_NSValidatesImmediatelyBindingOption';
-  NSValueTransformerNameBindingOption: NSString; external name '_NSValueTransformerNameBindingOption';
-  NSValueTransformerBindingOption: NSString; external name '_NSValueTransformerBindingOption';
+  NSObservedObjectKey: NSString; cvar; external;
+  NSObservedKeyPathKey: NSString; cvar; external;
+  NSOptionsKey: NSString; cvar; external;
+  NSAlignmentBinding: NSString; cvar; external;
+  NSAlternateImageBinding: NSString; cvar; external;
+  NSAlternateTitleBinding: NSString; cvar; external;
+  NSAnimateBinding: NSString; cvar; external;
+  NSAnimationDelayBinding: NSString; cvar; external;
+  NSArgumentBinding: NSString; cvar; external;
+  NSAttributedStringBinding: NSString; cvar; external;
+  NSContentArrayBinding: NSString; cvar; external;
+  NSContentArrayForMultipleSelectionBinding: NSString; cvar; external;
+  NSContentBinding: NSString; cvar; external;
+  NSContentDictionaryBinding: NSString; cvar; external;
+  NSContentHeightBinding: NSString; cvar; external;
+  NSContentObjectBinding: NSString; cvar; external;
+  NSContentObjectsBinding: NSString; cvar; external;
+  NSContentSetBinding: NSString; cvar; external;
+  NSContentValuesBinding: NSString; cvar; external;
+  NSContentWidthBinding: NSString; cvar; external;
+  NSCriticalValueBinding: NSString; cvar; external;
+  NSDataBinding: NSString; cvar; external;
+  NSDisplayPatternTitleBinding: NSString; cvar; external;
+  NSDisplayPatternValueBinding: NSString; cvar; external;
+  NSDocumentEditedBinding: NSString; cvar; external;
+  NSDoubleClickArgumentBinding: NSString; cvar; external;
+  NSDoubleClickTargetBinding: NSString; cvar; external;
+  NSEditableBinding: NSString; cvar; external;
+  NSEnabledBinding: NSString; cvar; external;
+  NSExcludedKeysBinding: NSString; cvar; external;
+  NSFilterPredicateBinding: NSString; cvar; external;
+  NSFontBinding: NSString; cvar; external;
+  NSFontBoldBinding: NSString; cvar; external;
+  NSFontFamilyNameBinding: NSString; cvar; external;
+  NSFontItalicBinding: NSString; cvar; external;
+  NSFontNameBinding: NSString; cvar; external;
+  NSFontSizeBinding: NSString; cvar; external;
+  NSHeaderTitleBinding: NSString; cvar; external;
+  NSHiddenBinding: NSString; cvar; external;
+  NSImageBinding: NSString; cvar; external;
+  NSIncludedKeysBinding: NSString; cvar; external;
+  NSInitialKeyBinding: NSString; cvar; external;
+  NSInitialValueBinding: NSString; cvar; external;
+  NSIsIndeterminateBinding: NSString; cvar; external;
+  NSLabelBinding: NSString; cvar; external;
+  NSLocalizedKeyDictionaryBinding: NSString; cvar; external;
+  NSManagedObjectContextBinding: NSString; cvar; external;
+  NSMaximumRecentsBinding: NSString; cvar; external;
+  NSMaxValueBinding: NSString; cvar; external;
+  NSMaxWidthBinding: NSString; cvar; external;
+  NSMinValueBinding: NSString; cvar; external;
+  NSMinWidthBinding: NSString; cvar; external;
+  NSMixedStateImageBinding: NSString; cvar; external;
+  NSOffStateImageBinding: NSString; cvar; external;
+  NSOnStateImageBinding: NSString; cvar; external;
+  NSPredicateBinding: NSString; cvar; external;
+  NSRecentSearchesBinding: NSString; cvar; external;
+  NSRepresentedFilenameBinding: NSString; cvar; external;
+  NSRowHeightBinding: NSString; cvar; external;
+  NSSelectedIdentifierBinding: NSString; cvar; external;
+  NSSelectedIndexBinding: NSString; cvar; external;
+  NSSelectedLabelBinding: NSString; cvar; external;
+  NSSelectedObjectBinding: NSString; cvar; external;
+  NSSelectedObjectsBinding: NSString; cvar; external;
+  NSSelectedTagBinding: NSString; cvar; external;
+  NSSelectedValueBinding: NSString; cvar; external;
+  NSSelectedValuesBinding: NSString; cvar; external;
+  NSSelectionIndexesBinding: NSString; cvar; external;
+  NSSelectionIndexPathsBinding: NSString; cvar; external;
+  NSSortDescriptorsBinding: NSString; cvar; external;
+  NSTargetBinding: NSString; cvar; external;
+  NSTextColorBinding: NSString; cvar; external;
+  NSTitleBinding: NSString; cvar; external;
+  NSToolTipBinding: NSString; cvar; external;
+  NSTransparentBinding: NSString; cvar; external;
+  NSValueBinding: NSString; cvar; external;
+  NSValuePathBinding: NSString; cvar; external;
+  NSValueURLBinding: NSString; cvar; external;
+  NSVisibleBinding: NSString; cvar; external;
+  NSWarningValueBinding: NSString; cvar; external;
+  NSWidthBinding: NSString; cvar; external;
+  NSAllowsEditingMultipleValuesSelectionBindingOption: NSString; cvar; external;
+  NSAllowsNullArgumentBindingOption: NSString; cvar; external;
+  NSAlwaysPresentsApplicationModalAlertsBindingOption: NSString; cvar; external;
+  NSConditionallySetsEditableBindingOption: NSString; cvar; external;
+  NSConditionallySetsEnabledBindingOption: NSString; cvar; external;
+  NSConditionallySetsHiddenBindingOption: NSString; cvar; external;
+  NSContinuouslyUpdatesValueBindingOption: NSString; cvar; external;
+  NSCreatesSortDescriptorBindingOption: NSString; cvar; external;
+  NSDeletesObjectsOnRemoveBindingsOption: NSString; cvar; external;
+  NSDisplayNameBindingOption: NSString; cvar; external;
+  NSDisplayPatternBindingOption: NSString; cvar; external;
+  NSContentPlacementTagBindingOption: NSString; cvar; external;
+  NSHandlesContentAsCompoundValueBindingOption: NSString; cvar; external;
+  NSInsertsNullPlaceholderBindingOption: NSString; cvar; external;
+  NSInvokesSeparatelyWithArrayObjectsBindingOption: NSString; cvar; external;
+  NSMultipleValuesPlaceholderBindingOption: NSString; cvar; external;
+  NSNoSelectionPlaceholderBindingOption: NSString; cvar; external;
+  NSNotApplicablePlaceholderBindingOption: NSString; cvar; external;
+  NSNullPlaceholderBindingOption: NSString; cvar; external;
+  NSRaisesForNotApplicableKeysBindingOption: NSString; cvar; external;
+  NSPredicateFormatBindingOption: NSString; cvar; external;
+  NSSelectorNameBindingOption: NSString; cvar; external;
+  NSSelectsAllWhenSettingContentBindingOption: NSString; cvar; external;
+  NSValidatesImmediatelyBindingOption: NSString; cvar; external;
+  NSValueTransformerNameBindingOption: NSString; cvar; external;
+  NSValueTransformerBindingOption: NSString; cvar; external;
+
+{$endif}
+{$endif}
+
+{$ifdef FORWARD}
+
+{$endif}
+
+{$ifdef CLASSES}
+{$ifndef NSKEYVALUEBINDING_PAS_C}
+{$define NSKEYVALUEBINDING_PAS_C}
+
+{ NSKeyValueBindingCreationCategory }
+  NSKeyValueBindingCreationCategory = objccategory(NSObject)
+    class procedure exposeBinding(binding: NSString); message 'exposeBinding:';
+    function exposedBindings: NSArray; message 'exposedBindings';
+    function valueClassForBinding(binding: NSString): Pobjc_class; message 'valueClassForBinding:';
+    procedure bind_toObject_withKeyPath_options(binding: NSString; observable: id; keyPath: NSString; options: NSDictionary); message 'bind:toObject:withKeyPath:options:';
+    procedure unbind(binding: NSString); message 'unbind:';
+    function infoForBinding(binding: NSString): NSDictionary; message 'infoForBinding:';
+    function optionDescriptionsForBinding(aBinding: NSString): NSArray; message 'optionDescriptionsForBinding:';
+  end; external;
+
+{ NSPlaceholdersCategory }
+  NSPlaceholdersCategory = objccategory(NSObject)
+    class procedure setDefaultPlaceholder_forMarker_withBinding(placeholder: id; marker: id; binding: NSString); message 'setDefaultPlaceholder:forMarker:withBinding:';
+    class function defaultPlaceholderForMarker_withBinding(marker: id; binding: NSString): id; message 'defaultPlaceholderForMarker:withBinding:';
+  end; external;
+
+{ NSEditorRegistrationCategory }
+  NSEditorRegistrationCategory = objccategory(NSObject)
+    procedure objectDidBeginEditing(editor: id); message 'objectDidBeginEditing:';
+    procedure objectDidEndEditing(editor: id); message 'objectDidEndEditing:';
+  end; external;
+
+{ NSEditorCategory }
+  NSEditorCategory = objccategory(NSObject)
+    procedure discardEditing; message 'discardEditing';
+    function commitEditing: Boolean; message 'commitEditing';
+    procedure commitEditingWithDelegate_didCommitSelector_contextInfo(delegate: id; didCommitSelector: SEL; contextInfo: Pointer); message 'commitEditingWithDelegate:didCommitSelector:contextInfo:';
+  end; external;
 
 {$endif}
 {$endif}

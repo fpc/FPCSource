@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMMutationEvent.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -40,6 +40,7 @@ const
 {$ifdef FORWARD}
   DOMMutationEvent = objcclass;
   DOMMutationEventPointer = ^DOMMutationEvent;
+  DOMMutationEventPtr = DOMMutationEventPointer;
 
 {$endif}
 
@@ -57,10 +58,12 @@ const
     function prevValue: NSString; message 'prevValue';
     function newValue: NSString; message 'newValue';
     function attrName: NSString; message 'attrName';
-    function attrChange: cushort; message 'attrChange';
+    function attrChange: cuint; message 'attrChange';
     procedure initMutationEvent_canBubble_cancelable_relatedNode_prevValue_newValue_attrName_attrChange(type__: NSString; canBubble: Boolean; cancelable_: Boolean; relatedNode_: DOMNode; prevValue_: NSString; newValue_: NSString; attrName_: NSString; attrChange_: cushort); message 'initMutationEvent:canBubble:cancelable:relatedNode:prevValue:newValue:attrName:attrChange:';
+  end; external;
 
-    { Category: DOMMutationEventDeprecated }
+{ DOMMutationEventDeprecatedCategory }
+  DOMMutationEventDeprecatedCategory = objccategory(DOMMutationEvent)
     procedure initMutationEvent(type__: NSString; canBubble: Boolean; cancelable_: Boolean; relatedNode_: DOMNode; prevValue_: NSString; newValue_: NSString; attrName_: NSString; attrChange_: cushort); message 'initMutationEvent:type:canBubble:cancelable:relatedNode:prevValue:newValue:attrName:';
   end; external;
 

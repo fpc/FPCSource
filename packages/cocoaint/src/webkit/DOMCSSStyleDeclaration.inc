@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCSSStyleDeclaration.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMCSSStyleDeclaration = objcclass;
   DOMCSSStyleDeclarationPointer = ^DOMCSSStyleDeclaration;
+  DOMCSSStyleDeclarationPtr = DOMCSSStyleDeclarationPointer;
 
 {$endif}
 
@@ -58,8 +59,10 @@
     function item(index: cuint): NSString; message 'item:';
     function getPropertyShorthand(propertyName: NSString): NSString; message 'getPropertyShorthand:';
     function isPropertyImplicit(propertyName: NSString): Boolean; message 'isPropertyImplicit:';
+  end; external;
 
-    { Category: DOMCSSStyleDeclarationDeprecated }
+{ DOMCSSStyleDeclarationDeprecatedCategory }
+  DOMCSSStyleDeclarationDeprecatedCategory = objccategory(DOMCSSStyleDeclaration)
     procedure setProperty(propertyName: NSString; value: NSString; priority: NSString); message 'setProperty:propertyName:value:';
   end; external;
 

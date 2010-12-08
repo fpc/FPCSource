@@ -1,10 +1,25 @@
 { Parsed from Coredata.framework NSManagedObject.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
 {$ifndef NSMANAGEDOBJECT_PAS_T}
 {$define NSMANAGEDOBJECT_PAS_T}
+
+{ Constants }
+
+const
+  NSSnapshotEventUndoInsertion = 1 shl 1;
+  NSSnapshotEventUndoDeletion = 1 shl 2;
+  NSSnapshotEventUndoUpdate = 1 shl 3;
+  NSSnapshotEventRollback = 1 shl 4;
+  NSSnapshotEventRefresh = 1 shl 5;
+  NSSnapshotEventMergePolicy = 1 shl 6;
+
+{ Types }
+type
+  NSSnapshotEventType = NSUInteger;
+  NSSnapshotEventTypePtr = ^NSSnapshotEventType;
 
 {$endif}
 {$endif}
@@ -33,6 +48,7 @@
 {$ifdef FORWARD}
   NSManagedObject = objcclass;
   NSManagedObjectPointer = ^NSManagedObject;
+  NSManagedObjectPtr = NSManagedObjectPointer;
 
 {$endif}
 
@@ -43,21 +59,22 @@
 { NSManagedObject }
   NSManagedObject = objcclass(NSObject)
   private
-    __cd_rc: longint;
-    __cd_stateFlags: uintptr_t;
-    __cd_rawData: id;
-    __cd_entity: id;
-    __cd_managedObjectContext: NSManagedObjectContext; {garbage collector: __weak }
-    __cd_objectID: NSManagedObjectID;
-    __cd_faultHandler: id;
-    __cd_observationInfo: id;
-    __cd_snapshots: id;
-    __cd_lockingInfo: uintptr_t;
-    __cd_queueReference: id;
+    _cd_rc: cint32;
+    _cd_stateFlags: culong;
+    _cd_rawData: id;
+    _cd_entity: id;
+    _cd_managedObjectContext: NSManagedObjectContext;
+    _cd_objectID: NSManagedObjectID;
+    _cd_faultHandler: id;
+    _cd_observationInfo: id;
+    _cd_snapshots: idPtr;
+    _cd_lockingInfo: culong;
+    _cd_queueReference: id;
     
   public
     class function alloc: NSManagedObject; message 'alloc';
 
+    class function contextShouldIgnoreUnmodeledPropertyChanges: Boolean; message 'contextShouldIgnoreUnmodeledPropertyChanges';
     function initWithEntity_insertIntoManagedObjectContext(entity_: NSEntityDescription; context: NSManagedObjectContext): id; message 'initWithEntity:insertIntoManagedObjectContext:';
     function managedObjectContext: NSManagedObjectContext; message 'managedObjectContext';
     function entity: NSEntityDescription; message 'entity';
@@ -67,15 +84,19 @@
     function isDeleted: Boolean; message 'isDeleted';
     function isFault: Boolean; message 'isFault';
     function hasFaultForRelationshipNamed(key: NSString): Boolean; message 'hasFaultForRelationshipNamed:';
+    function faultingState: NSUInteger; message 'faultingState';
     procedure willAccessValueForKey(key: NSString); message 'willAccessValueForKey:';
     procedure didAccessValueForKey(key: NSString); message 'didAccessValueForKey:';
     procedure willChangeValueForKey(key: NSString); message 'willChangeValueForKey:';
     procedure didChangeValueForKey(key: NSString); message 'didChangeValueForKey:';
     procedure willChangeValueForKey_withSetMutation_usingObjects(inKey: NSString; inMutationKind: NSKeyValueSetMutationKind; inObjects: NSSet); message 'willChangeValueForKey:withSetMutation:usingObjects:';
     procedure didChangeValueForKey_withSetMutation_usingObjects(inKey: NSString; inMutationKind: NSKeyValueSetMutationKind; inObjects: NSSet); message 'didChangeValueForKey:withSetMutation:usingObjects:';
-    procedure setObservationInfo(inObservationInfo: Pointer); message 'setObservationInfo:';
+    procedure setObservationInfo(inObservationInfo: id); message 'setObservationInfo:';
+    function observationInfo: id; message 'observationInfo';
     procedure awakeFromFetch; message 'awakeFromFetch';
     procedure awakeFromInsert; message 'awakeFromInsert';
+    procedure awakeFromSnapshotEvents(flags: NSSnapshotEventType); message 'awakeFromSnapshotEvents:';
+    procedure prepareForDeletion; message 'prepareForDeletion';
     procedure willSave; message 'willSave';
     procedure didSave; message 'didSave';
     procedure willTurnIntoFault; message 'willTurnIntoFault';
@@ -86,7 +107,7 @@
     procedure setPrimitiveValue_forKey(value: id; key: NSString); message 'setPrimitiveValue:forKey:';
     function committedValuesForKeys(keys: NSArray): NSDictionary; message 'committedValuesForKeys:';
     function changedValues: NSDictionary; message 'changedValues';
-    function validateValue_forKey_error(value: id; key: NSString; error: NSErrorPointer): Boolean; message 'validateValue:forKey:error:';
+    function validateValue_forKey_error(value: idPtr; key: NSString; error: NSErrorPointer): Boolean; message 'validateValue:forKey:error:';
     function validateForDelete(error: NSErrorPointer): Boolean; message 'validateForDelete:';
     function validateForInsert(error: NSErrorPointer): Boolean; message 'validateForInsert:';
     function validateForUpdate(error: NSErrorPointer): Boolean; message 'validateForUpdate:';

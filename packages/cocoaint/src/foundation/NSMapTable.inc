@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSMapTable.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -17,6 +17,13 @@ const
 { Types }
 type
   NSMapTableOptions = NSUInteger;
+  NSMapTableOptionsPtr = ^NSMapTableOptions;
+
+{ Defines }
+const
+  NSNotAnIntMapKey = NSIntegerMin;
+  NSNotAnIntegerMapKey = NSIntegerMin;
+  NSNotAPointerMapKey = UINTPTR_MAX;
 
 {$endif}
 {$endif}
@@ -27,21 +34,32 @@ type
 
 { Records }
 type
+  
+NSMapEnumerator = record
+    _pi: NSUInteger;
+    _si: NSUInteger;
+    _bs: Pointer;
+  end;
+NSMapEnumeratorPtr = ^NSMapEnumerator;
+
+type
   NSMapTableKeyCallBacks = record
-    hash: function (context: Pointer {bad params!!}): NSUInteger; cdecl;
-    isEqual: function (context: Pointer {bad params!!}): Boolean; cdecl;
-    retain: procedure (context: Pointer {bad params!!}); cdecl;
-    release: procedure (context: Pointer {bad params!!}); cdecl;
-    describe: function (context: Pointer {bad params!!}): id; cdecl;
+    hash: function (table: NSMapTable; param1: Pointer): NSUInteger; cdecl;
+    isEqual: function (table: NSMapTable; param1: Pointer; param2: Pointer): Boolean; cdecl;
+    retain: procedure (table: NSMapTable; param1: Pointer); cdecl;
+    release: procedure (table: NSMapTable; param1: Pointer); cdecl;
+    describe: function (table: NSMapTable; param1: Pointer): NSString; cdecl;
     notAKeyMarker: Pointer;
   end;
+NSMapTableKeyCallBacksPtr = ^NSMapTableKeyCallBacks;
 
 type
   NSMapTableValueCallBacks = record
-    retain: procedure (context: Pointer {bad params!!}); cdecl;
-    release: procedure (context: Pointer {bad params!!}); cdecl;
-    describe: function (context: Pointer {bad params!!}): id; cdecl;
+    retain: procedure (table: NSMapTable; param1: Pointer); cdecl;
+    release: procedure (table: NSMapTable; param1: Pointer); cdecl;
+    describe: function (table: NSMapTable; param1: Pointer): NSString; cdecl;
   end;
+NSMapTableValueCallBacksPtr = ^NSMapTableValueCallBacks;
 
 
 {$endif}
@@ -52,25 +70,25 @@ type
 {$define NSMAPTABLE_PAS_F}
 
 { Functions }
-procedure NSFreeMapTable(tablePointer: NSMapTable); cdecl; external name 'NSFreeMapTable';
-procedure NSResetMapTable(tablePointer: NSMapTable); cdecl; external name 'NSResetMapTable';
-function NSCompareMapTables(table1Pointer: NSMapTable; table2Pointer: NSMapTable): Boolean; cdecl; external name 'NSCompareMapTables';
-function NSCopyMapTableWithZone(tablePointer: NSMapTable; zonePointer: NSZone): NSMapTable; cdecl; external name 'NSCopyMapTableWithZone';
-function NSMapMember(tablePointer: NSMapTable; keyPointer: Pointer; originalKey: Pointer {Pointer}; value: Pointer {Pointer}): Boolean; cdecl; external name 'NSMapMember';
-procedure NSMapGet(tablePointer: NSMapTable; keyPointer: Pointer); cdecl; external name 'NSMapGet';
-procedure NSMapInsert(tablePointer: NSMapTable; keyPointer: Pointer; valuePointer: Pointer); cdecl; external name 'NSMapInsert';
-procedure NSMapInsertKnownAbsent(tablePointer: NSMapTable; keyPointer: Pointer; valuePointer: Pointer); cdecl; external name 'NSMapInsertKnownAbsent';
-procedure NSMapInsertIfAbsent(tablePointer: NSMapTable; keyPointer: Pointer; valuePointer: Pointer); cdecl; external name 'NSMapInsertIfAbsent';
-procedure NSMapRemove(tablePointer: NSMapTable; keyPointer: Pointer); cdecl; external name 'NSMapRemove';
-function NSEnumerateMapTable(tablePointer: NSMapTable): NSMapEnumerator; cdecl; external name 'NSEnumerateMapTable';
-function NSNextMapEnumeratorPair(enumeratorPointer: NSMapEnumerator; key: Pointer {Pointer}; value: Pointer {Pointer}): Boolean; cdecl; external name 'NSNextMapEnumeratorPair';
-procedure NSEndMapTableEnumeration(enumeratorPointer: NSMapEnumerator); cdecl; external name 'NSEndMapTableEnumeration';
-function NSCountMapTable(tablePointer: NSMapTable): NSUInteger; cdecl; external name 'NSCountMapTable';
-function NSStringFromMapTable(tablePointer: NSMapTable): NSString; cdecl; external name 'NSStringFromMapTable';
-function NSAllMapTableKeys(tablePointer: NSMapTable): NSArray; cdecl; external name 'NSAllMapTableKeys';
-function NSAllMapTableValues(tablePointer: NSMapTable): NSArray; cdecl; external name 'NSAllMapTableValues';
-function NSCreateMapTableWithZone(keyCallBacks: NSMapTableKeyCallBacks; valueCallBacks: NSMapTableValueCallBacks; capacity: NSUInteger; zonePointer: NSZone): NSMapTable; cdecl; external name 'NSCreateMapTableWithZone';
-function NSCreateMapTable(keyCallBacks: NSMapTableKeyCallBacks; valueCallBacks: NSMapTableValueCallBacks; capacity: NSUInteger): NSMapTable; cdecl; external name 'NSCreateMapTable';
+procedure NSFreeMapTable(table: NSMapTable); cdecl; external;
+procedure NSResetMapTable(table: NSMapTable); cdecl; external;
+function NSCompareMapTables(table1: NSMapTable; table2: NSMapTable): Boolean; cdecl; external;
+function NSCopyMapTableWithZone(table: NSMapTable; zone: NSZonePtr): NSMapTable; cdecl; external;
+function NSMapMember(table: NSMapTable; key: Pointer; originalKey: PPointer; value: PPointer): Boolean; cdecl; external;
+function NSMapGet(table: NSMapTable; key: Pointer): Pointer; cdecl; external;
+procedure NSMapInsert(table: NSMapTable; key: Pointer; value: Pointer); cdecl; external;
+procedure NSMapInsertKnownAbsent(table: NSMapTable; key: Pointer; value: Pointer); cdecl; external;
+function NSMapInsertIfAbsent(table: NSMapTable; key: Pointer; value: Pointer): Pointer; cdecl; external;
+procedure NSMapRemove(table: NSMapTable; key: Pointer); cdecl; external;
+function NSEnumerateMapTable(table: NSMapTable): NSMapEnumerator; cdecl; external;
+function NSNextMapEnumeratorPair(enumerator: NSMapEnumeratorPtr; key: PPointer; value: PPointer): Boolean; cdecl; external;
+procedure NSEndMapTableEnumeration(enumerator: NSMapEnumeratorPtr); cdecl; external;
+function NSCountMapTable(table: NSMapTable): NSUInteger; cdecl; external;
+function NSStringFromMapTable(table: NSMapTable): NSString; cdecl; external;
+function NSAllMapTableKeys(table: NSMapTable): NSArray; cdecl; external;
+function NSAllMapTableValues(table: NSMapTable): NSArray; cdecl; external;
+function NSCreateMapTableWithZone(keyCallBacks: NSMapTableKeyCallBacks; valueCallBacks: NSMapTableValueCallBacks; capacity: NSUInteger; zone: NSZonePtr): NSMapTable; cdecl; external;
+function NSCreateMapTable(keyCallBacks: NSMapTableKeyCallBacks; valueCallBacks: NSMapTableValueCallBacks; capacity: NSUInteger): NSMapTable; cdecl; external;
 
 {$endif}
 {$endif}
@@ -81,17 +99,19 @@ function NSCreateMapTable(keyCallBacks: NSMapTableKeyCallBacks; valueCallBacks: 
 
 { External symbols }
 var
-  NSIntegerMapKeyCallBacks: NSMapTableKeyCallBacks; external name '_NSIntegerMapKeyCallBacks';
-  NSNonOwnedPointerMapKeyCallBacks: NSMapTableKeyCallBacks; external name '_NSNonOwnedPointerMapKeyCallBacks';
-  NSNonOwnedPointerOrNullMapKeyCallBacks: NSMapTableKeyCallBacks; external name '_NSNonOwnedPointerOrNullMapKeyCallBacks';
-  NSNonRetainedObjectMapKeyCallBacks: NSMapTableKeyCallBacks; external name '_NSNonRetainedObjectMapKeyCallBacks';
-  NSObjectMapKeyCallBacks: NSMapTableKeyCallBacks; external name '_NSObjectMapKeyCallBacks';
-  NSOwnedPointerMapKeyCallBacks: NSMapTableKeyCallBacks; external name '_NSOwnedPointerMapKeyCallBacks';
-  NSIntegerMapValueCallBacks: NSMapTableValueCallBacks; external name '_NSIntegerMapValueCallBacks';
-  NSNonOwnedPointerMapValueCallBacks: NSMapTableValueCallBacks; external name '_NSNonOwnedPointerMapValueCallBacks';
-  NSObjectMapValueCallBacks: NSMapTableValueCallBacks; external name '_NSObjectMapValueCallBacks';
-  NSNonRetainedObjectMapValueCallBacks: NSMapTableValueCallBacks; external name '_NSNonRetainedObjectMapValueCallBacks';
-  NSOwnedPointerMapValueCallBacks: NSMapTableValueCallBacks; external name '_NSOwnedPointerMapValueCallBacks';
+  NSIntegerMapKeyCallBacks: NSMapTableKeyCallBacks; cvar; external;
+  NSNonOwnedPointerMapKeyCallBacks: NSMapTableKeyCallBacks; cvar; external;
+  NSNonOwnedPointerOrNullMapKeyCallBacks: NSMapTableKeyCallBacks; cvar; external;
+  NSNonRetainedObjectMapKeyCallBacks: NSMapTableKeyCallBacks; cvar; external;
+  NSObjectMapKeyCallBacks: NSMapTableKeyCallBacks; cvar; external;
+  NSOwnedPointerMapKeyCallBacks: NSMapTableKeyCallBacks; cvar; external;
+  NSIntMapKeyCallBacks: NSMapTableKeyCallBacks deprecated 'in Mac OS X 10.5 and later'; cvar; external;
+  NSIntegerMapValueCallBacks: NSMapTableValueCallBacks; cvar; external;
+  NSNonOwnedPointerMapValueCallBacks: NSMapTableValueCallBacks; cvar; external;
+  NSObjectMapValueCallBacks: NSMapTableValueCallBacks; cvar; external;
+  NSNonRetainedObjectMapValueCallBacks: NSMapTableValueCallBacks; cvar; external;
+  NSOwnedPointerMapValueCallBacks: NSMapTableValueCallBacks; cvar; external;
+  NSIntMapValueCallBacks: NSMapTableValueCallBacks deprecated 'in Mac OS X 10.5 and later'; cvar; external;
 
 {$endif}
 {$endif}
@@ -99,6 +119,7 @@ var
 {$ifdef FORWARD}
   NSMapTable = objcclass;
   NSMapTablePointer = ^NSMapTable;
+  NSMapTablePtr = NSMapTablePointer;
 
 {$endif}
 
@@ -129,6 +150,12 @@ var
     function objectEnumerator: NSEnumerator; message 'objectEnumerator';
     procedure removeAllObjects; message 'removeAllObjects';
     function dictionaryRepresentation: NSDictionary; message 'dictionaryRepresentation';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+    function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePtr; stackbuf: idPtr; len: NSUInteger): NSUInteger;
   end; external;
 
 {$endif}

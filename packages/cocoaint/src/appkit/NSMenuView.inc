@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMenuView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSMenuView = objcclass;
   NSMenuViewPointer = ^NSMenuView;
+  NSMenuViewPtr = NSMenuViewPointer;
 
 {$endif}
 
@@ -43,27 +44,30 @@
 { NSMenuView }
   NSMenuView = objcclass(NSView)
   private
-    __menu: NSMenu;
-    __cells: NSMutableArray;
-    __stateImageWidth: CGFloat;
-    __imageAndTitleWidth: CGFloat;
-    __keyEquivalentWidth: CGFloat;
-    __extents: CGFloat;
-    __extentsCapacity: cuint;
-    __highlightedItemIndex: cint;
-    __submenuPopupTimer: Pointer;
-    __attachedMenuView: NSMenuView;
-    __scrollArrowHeight: CGFloat;
-    __maxWinHeight: CGFloat;
-    __font: NSFont;
-    __minSize: NSSize;
-    __horizontalEdgePad: CGFloat;
-    _trackingState: Pointer;
-    __scrollingView: id;
+    _menu: NSMenu;
+    _cells: NSMutableArray;
+    _stateImageWidth: CGFloat;
+    _imageAndTitleWidth: CGFloat;
+    _keyEquivalentWidth: CGFloat;
+    _extents: CGFloatPtr;
+    _extentsCapacity: cuint;
+    _highlightedItemIndex: cint;
+    _submenuPopupTimer: Pointer;
+    _attachedMenuView: NSMenuView;
+    _scrollArrowHeight: CGFloat;
+    _maxWinHeight: CGFloat;
+    _font: NSFont;
+    _minSize: NSSize;
+    _horizontalEdgePad: CGFloat;
+    trackingState: Pointer;
+    _scrollingView: id;
     __mvFlags: bitpacked record
-        needsSizing: 0..1;
+      case byte of
+       0: (_anonbitfield_NSMenuView0: cuint);
+       1: (
+        _needsSizing: 0..1;
         releasingWindow: 0..1;
-        isHorizontal: 0..1;
+        _isHorizontal: 0..1;
         disableSizing: 0..1;
         attachedSubmenuWhileMouseWasUp: 0..1;
         needsToCreateCells: 0..1;
@@ -74,6 +78,7 @@
         savedHODState: 0..1;
         drawCenter: 0..1;
         RESERVED: 0..((1 shl 5)-1);
+      );
       end;
     
   public

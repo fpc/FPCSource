@@ -30,8 +30,6 @@ type
 {$include foundation/Foundation.inc}
 {$undef FORWARD}
 
-{$include UndefinedClasses.inc}
-
 {$define CLASSES}
 {$include foundation/Foundation.inc}
 {$undef CLASSES}

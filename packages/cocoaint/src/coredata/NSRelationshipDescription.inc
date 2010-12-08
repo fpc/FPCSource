@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSRelationshipDescription.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -17,6 +17,7 @@ const
 { Types }
 type
   NSDeleteRule = NSUInteger;
+  NSDeleteRulePtr = ^NSDeleteRule;
 
 {$endif}
 {$endif}
@@ -45,6 +46,7 @@ type
 {$ifdef FORWARD}
   NSRelationshipDescription = objcclass;
   NSRelationshipDescriptionPointer = ^NSRelationshipDescription;
+  NSRelationshipDescriptionPtr = NSRelationshipDescriptionPointer;
 
 {$endif}
 
@@ -55,15 +57,15 @@ type
 { NSRelationshipDescription }
   NSRelationshipDescription = objcclass(NSPropertyDescription)
   private
-    __reserved5: Pointer;
-    __reserved6: Pointer;
-    __destinationEntity: NSEntityDescription; {garbage collector: __weak }
-    __lazyDestinationEntityName: NSString;
-    __inverseRelationship: NSRelationshipDescription;
-    __lazyInverseRelationshipName: NSString;
-    __maxCount: culong;
-    __minCount: culong;
-    __deleteRule: NSDeleteRule;
+    _reserved5: Pointer;
+    _reserved6: Pointer;
+    _destinationEntity: NSEntityDescription; {garbage collector: __weak }
+    _lazyDestinationEntityName: NSString;
+    _inverseRelationship: NSRelationshipDescription;
+    _lazyInverseRelationshipName: NSString;
+    _maxCount: culong;
+    _minCount: culong;
+    _deleteRule: NSDeleteRule;
     
   public
     class function alloc: NSRelationshipDescription; message 'alloc';

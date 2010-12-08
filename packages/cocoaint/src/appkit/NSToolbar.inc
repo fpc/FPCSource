@@ -1,15 +1,30 @@
 { Parsed from Appkit.framework NSToolbar.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
 {$ifndef NSTOOLBAR_PAS_T}
 {$define NSTOOLBAR_PAS_T}
 
+{ Constants }
+
+const
+  NSToolbarDisplayModeDefault = 0;
+  NSToolbarDisplayModeIconAndLabel = 1;
+  NSToolbarDisplayModeIconOnly = 2;
+  NSToolbarDisplayModeLabelOnly = 3;
+
+const
+  NSToolbarSizeModeDefault = 0;
+  NSToolbarSizeModeRegular = 1;
+  NSToolbarSizeModeSmall = 2;
+
 { Types }
 type
   NSToolbarDisplayMode = NSUInteger;
+  NSToolbarDisplayModePtr = ^NSToolbarDisplayMode;
   NSToolbarSizeMode = NSUInteger;
+  NSToolbarSizeModePtr = ^NSToolbarSizeMode;
 
 {$endif}
 {$endif}
@@ -34,15 +49,17 @@ type
 
 { External string constants }
 var
-  NSToolbarWillAddItemNotification: NSString; external name '_NSToolbarWillAddItemNotification';
-  NSToolbarDidRemoveItemNotification: NSString; external name '_NSToolbarDidRemoveItemNotification';
+  NSToolbarWillAddItemNotification: NSString; cvar; external;
+  NSToolbarDidRemoveItemNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
+  NSToolbarDelegateProtocol = objcprotocol;
   NSToolbar = objcclass;
   NSToolbarPointer = ^NSToolbar;
+  NSToolbarPtr = NSToolbarPointer;
 
 {$endif}
 
@@ -53,20 +70,23 @@ var
 { NSToolbar }
   NSToolbar = objcclass(NSObject)
   private
-    __toolbarIdentifier: NSString;
-    __currentItems: NSMutableArray;
-    __currentItemIdentifiers: NSMutableArray;
-    __initPListDatabase: NSDictionary;
-    __initPListTarget: id;
-    __selectedItemIdentifier: NSString;
-    __metrics: Pointer;
-    __delegate: id;
-    __window: NSWindow;
-    __configPalette: id;
-    __toolbarView: id;
-    __syncPostEnabledCount: NSInteger;
+    _toolbarIdentifier: NSString;
+    _currentItems: NSMutableArray;
+    _currentItemIdentifiers: NSMutableArray;
+    _initPListDatabase: NSDictionary;
+    _initPListTarget: id;
+    _selectedItemIdentifier: NSString;
+    _metrics: Pointer; {garbage collector: __strong }
+    _delegate: id;
+    _window: NSWindow;
+    _configPalette: id;
+    _toolbarView: id;
+    _syncPostEnabledCount: NSInteger;
     __tbFlags: bitpacked record
-        allowsUserCustomization: 0..1;
+      case byte of
+       0: (_anonbitfield_NSToolbar0: cuint);
+       1: (
+        _allowsUserCustomization: 0..1;
         autosavesUsingIdentifier: 0..1;
         initialConfigurationDone: 0..1;
         shouldHideAfterCustomization: 0..1;
@@ -81,19 +101,22 @@ var
         usesCustomSheetWidth: 0..1;
         clickAndDragPerformsCustomization: 0..1;
         showsNoContextMenu: 0..1;
-        firstMoveableItemIndex: 0..((1 shl 6)-1);
+        currentlyLoadingPlaceholders: 0..1;
+        delegateItemWithItemIdentifier2: 0..1;
+        reserved: 0..((1 shl 4)-1);
         keyboardLoopNeedsUpdating: 0..1;
         showHideDuringConfigurationChangeDisabled: 0..1;
-        displayMode: 0..((1 shl 2)-1);
-        sizeMode: 0..((1 shl 2)-1);
+        _displayMode: 0..((1 shl 2)-1);
+        _sizeMode: 0..((1 shl 2)-1);
         doNotShowBaselineSeparator: 0..1;
         hideWithoutResizingWindowHint: 0..1;
         autovalidatesItemsDisabled: 0..1;
         inAutovalidation: 0..1;
         loadedMetrics: 0..1;
+      );
       end;
-    __customizationSheetWidth: NSInteger;
-    __tbReserved: id;
+    _customizationSheetWidth: NSInteger;
+    _tbReserved: id;
     
   public
     class function alloc: NSToolbar; message 'alloc';
@@ -127,5 +150,20 @@ var
     procedure validateVisibleItems; message 'validateVisibleItems';
   end; external;
 
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSTOOLBAR_PAS_P}
+{$define NSTOOLBAR_PAS_P}
+  
+{ NSToolbarDelegate Protocol }
+  NSToolbarDelegateProtocol = objcprotocol
+    function toolbar_itemForItemIdentifier_willBeInsertedIntoToolbar(toolbar: NSToolbar; itemIdentifier: NSString; flag: Boolean): NSToolbarItem; message 'toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:';
+    function toolbarDefaultItemIdentifiers(toolbar: NSToolbar): NSArray; message 'toolbarDefaultItemIdentifiers:';
+    function toolbarAllowedItemIdentifiers(toolbar: NSToolbar): NSArray; message 'toolbarAllowedItemIdentifiers:';
+    function toolbarSelectableItemIdentifiers(toolbar: NSToolbar): NSArray; message 'toolbarSelectableItemIdentifiers:';
+    procedure toolbarWillAddItem(notification: NSNotification); message 'toolbarWillAddItem:';
+    procedure toolbarDidRemoveItem(notification: NSNotification); message 'toolbarDidRemoveItem:';
+  end; external name 'NSToolbarDelegate';
 {$endif}
 {$endif}

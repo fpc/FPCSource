@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSGarbageCollector.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSGarbageCollector = objcclass;
   NSGarbageCollectorPointer = ^NSGarbageCollector;
+  NSGarbageCollectorPtr = NSGarbageCollectorPointer;
 
 {$endif}
 
@@ -47,7 +48,7 @@
     class function alloc: NSGarbageCollector; message 'alloc';
 
     class function defaultCollector: id; message 'defaultCollector';
-    function isCollecting: Boolean; message 'isCollecting';
+    function isCollecting: Boolean; message 'isCollecting'; deprecated 'in Mac OS X 10.6 and later';
     procedure disable; message 'disable';
     procedure enable; message 'enable';
     function isEnabled: Boolean; message 'isEnabled';
@@ -55,7 +56,7 @@
     procedure collectExhaustively; message 'collectExhaustively';
     procedure disableCollectorForPointer(ptr: Pointer); message 'disableCollectorForPointer:';
     procedure enableCollectorForPointer(ptr: Pointer); message 'enableCollectorForPointer:';
-    function zone_: NSZone; message 'zone';
+    function zone: NSZonePtr; message 'zone';
   end; external;
 
 {$endif}

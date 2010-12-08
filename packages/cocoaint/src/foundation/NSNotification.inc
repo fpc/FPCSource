@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSNotification.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,8 +33,10 @@
 {$ifdef FORWARD}
   NSNotification = objcclass;
   NSNotificationPointer = ^NSNotification;
+  NSNotificationPtr = NSNotificationPointer;
   NSNotificationCenter = objcclass;
   NSNotificationCenterPointer = ^NSNotificationCenter;
+  NSNotificationCenterPtr = NSNotificationCenterPointer;
 
 {$endif}
 
@@ -52,15 +54,16 @@
     function object_: id; message 'object';
     function userInfo: NSDictionary; message 'userInfo';
 
-    { Category: NSNotificationCreation }
-    class function notificationWithName_object(aName: NSString; anObject: id): id; message 'notificationWithName:object:';
-    class function notificationWithName_object_userInfo(aName: NSString; anObject: id; aUserInfo: NSDictionary): id; message 'notificationWithName:object:userInfo:';
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 { NSNotificationCenter }
   NSNotificationCenter = objcclass(NSObject)
   private
-    __impl: Pointer; {garbage collector: __strong }
+    _impl: Pointer; {garbage collector: __strong }
         _callback_block: array[0..3] of Pointer;
         _pad: array[0..7] of Pointer;
     
@@ -74,6 +77,12 @@
     procedure postNotificationName_object_userInfo(aName: NSString; anObject: id; aUserInfo: NSDictionary); message 'postNotificationName:object:userInfo:';
     procedure removeObserver(observer: id); message 'removeObserver:';
     procedure removeObserver_name_object(observer: id; aName: NSString; anObject: id); message 'removeObserver:name:object:';
+  end; external;
+
+{ NSNotificationCreationCategory }
+  NSNotificationCreationCategory = objccategory(NSNotification)
+    class function notificationWithName_object(aName: NSString; anObject: id): id; message 'notificationWithName:object:';
+    class function notificationWithName_object_userInfo(aName: NSString; anObject: id; aUserInfo: NSDictionary): id; message 'notificationWithName:object:userInfo:';
   end; external;
 
 {$endif}

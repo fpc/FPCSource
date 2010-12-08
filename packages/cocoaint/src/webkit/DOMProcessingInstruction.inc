@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMProcessingInstruction.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMProcessingInstruction = objcclass;
   DOMProcessingInstructionPointer = ^DOMProcessingInstruction;
+  DOMProcessingInstructionPtr = DOMProcessingInstructionPointer;
 
 {$endif}
 
@@ -49,6 +50,7 @@
     function target: NSString; message 'target';
     procedure setData (newValue: NSString); message 'setData:';
     function data: NSString; message 'data';
+    function sheet: DOMStyleSheet; message 'sheet';
   end; external;
 
 {$endif}

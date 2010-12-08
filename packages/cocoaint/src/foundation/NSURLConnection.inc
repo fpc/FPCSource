@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLConnection.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSURLConnection = objcclass;
   NSURLConnectionPointer = ^NSURLConnection;
+  NSURLConnectionPtr = NSURLConnectionPointer;
 
 {$endif}
 
@@ -43,7 +44,7 @@
 { NSURLConnection }
   NSURLConnection = objcclass(NSObject)
   private
-    __internal: NSURLConnectionInternal;
+    _internal: NSURLConnectionInternal;
     
   public
     class function alloc: NSURLConnection; message 'alloc';
@@ -52,11 +53,30 @@
     class function connectionWithRequest_delegate(request: NSURLRequest; delegate: id): NSURLConnection; message 'connectionWithRequest:delegate:';
     function initWithRequest_delegate(request: NSURLRequest; delegate: id): id; message 'initWithRequest:delegate:';
     function initWithRequest_delegate_startImmediately(request: NSURLRequest; delegate: id; startImmediately: Boolean): id; message 'initWithRequest:delegate:startImmediately:';
+    procedure start; message 'start';
     procedure cancel; message 'cancel';
     procedure scheduleInRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'scheduleInRunLoop:forMode:';
     procedure unscheduleFromRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'unscheduleFromRunLoop:forMode:';
+  end; external;
 
-    { Category: NSURLConnectionSynchronousLoading }
+{ NSURLConnectionDelegateCategory }
+  NSURLConnectionDelegateCategory = objccategory(NSObject)
+    function connection_willSendRequest_redirectResponse(connection: NSURLConnection; request: NSURLRequest; response: NSURLResponse): NSURLRequest; message 'connection:willSendRequest:redirectResponse:';
+    function connection_needNewBodyStream(connection: NSURLConnection; request: NSURLRequest): NSInputStream; message 'connection:needNewBodyStream:';
+    function connection_canAuthenticateAgainstProtectionSpace(connection: NSURLConnection; protectionSpace: NSURLProtectionSpace): Boolean; message 'connection:canAuthenticateAgainstProtectionSpace:';
+    procedure connection_didReceiveAuthenticationChallenge(connection: NSURLConnection; challenge: NSURLAuthenticationChallenge); message 'connection:didReceiveAuthenticationChallenge:';
+    procedure connection_didCancelAuthenticationChallenge(connection: NSURLConnection; challenge: NSURLAuthenticationChallenge); message 'connection:didCancelAuthenticationChallenge:';
+    function connectionShouldUseCredentialStorage(connection: NSURLConnection): Boolean; message 'connectionShouldUseCredentialStorage:';
+    procedure connection_didReceiveResponse(connection: NSURLConnection; response: NSURLResponse); message 'connection:didReceiveResponse:';
+    procedure connection_didReceiveData(connection: NSURLConnection; data: NSData); message 'connection:didReceiveData:';
+    procedure connection_didSendBodyData_totalBytesWritten_totalBytesExpectedToWrite(connection: NSURLConnection; bytesWritten: NSInteger; totalBytesWritten: NSInteger; totalBytesExpectedToWrite: NSInteger); message 'connection:didSendBodyData:totalBytesWritten:totalBytesExpectedToWrite:';
+    procedure connectionDidFinishLoading(connection: NSURLConnection); message 'connectionDidFinishLoading:';
+    procedure connection_didFailWithError(connection: NSURLConnection; error: NSError); message 'connection:didFailWithError:';
+    function connection_willCacheResponse(connection: NSURLConnection; cachedResponse: NSCachedURLResponse): NSCachedURLResponse; message 'connection:willCacheResponse:';
+  end; external;
+
+{ NSURLConnectionSynchronousLoadingCategory }
+  NSURLConnectionSynchronousLoadingCategory = objccategory(NSURLConnection)
     class function sendSynchronousRequest_returningResponse_error(request: NSURLRequest; response: NSURLResponsePointer; error: NSErrorPointer): NSData; message 'sendSynchronousRequest:returningResponse:error:';
   end; external;
 

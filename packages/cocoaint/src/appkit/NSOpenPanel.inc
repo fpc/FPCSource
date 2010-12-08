@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSOpenPanel.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSOpenPanel = objcclass;
   NSOpenPanelPointer = ^NSOpenPanel;
+  NSOpenPanelPtr = NSOpenPanelPointer;
 
 {$endif}
 
@@ -44,14 +45,13 @@
   NSOpenPanel = objcclass(NSSavePanel)
   private
         _reservedOpenPanel: array[0..3] of char;
-    __privateOpenPanel: Pointer;
+    _privateOpenPanel: Pointer;
     
   public
     class function alloc: NSOpenPanel; message 'alloc';
 
     class function openPanel: NSOpenPanel; message 'openPanel';
     function URLs: NSArray; message 'URLs';
-    function filenames: NSArray; message 'filenames';
     function resolvesAliases: Boolean; message 'resolvesAliases';
     procedure setResolvesAliases(flag: Boolean); message 'setResolvesAliases:';
     function canChooseDirectories: Boolean; message 'canChooseDirectories';
@@ -60,13 +60,16 @@
     procedure setAllowsMultipleSelection(flag: Boolean); message 'setAllowsMultipleSelection:';
     function canChooseFiles: Boolean; message 'canChooseFiles';
     procedure setCanChooseFiles(flag: Boolean); message 'setCanChooseFiles:';
+  end; external;
 
-    { Category: NSOpenPanelRuntime }
+{ NSDeprecated_NSOpenPanelCategory }
+  NSDeprecated_NSOpenPanelCategory = objccategory(NSOpenPanel)
+    function filenames: NSArray; message 'filenames';
     procedure beginSheetForDirectory_file_types_modalForWindow_modalDelegate_didEndSelector_contextInfo(path: NSString; name: NSString; fileTypes: NSArray; docWindow: NSWindow; delegate_: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginSheetForDirectory:file:types:modalForWindow:modalDelegate:didEndSelector:contextInfo:';
     procedure beginForDirectory_file_types_modelessDelegate_didEndSelector_contextInfo(path: NSString; name: NSString; fileTypes: NSArray; delegate_: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginForDirectory:file:types:modelessDelegate:didEndSelector:contextInfo:';
     function runModalForDirectory_file_types(path: NSString; name: NSString; fileTypes: NSArray): NSInteger; message 'runModalForDirectory:file:types:';
     function runModalForTypes(fileTypes: NSArray): NSInteger; message 'runModalForTypes:';
-  end; external;
+  end; external name 'NSDeprecated';
 
 {$endif}
 {$endif}

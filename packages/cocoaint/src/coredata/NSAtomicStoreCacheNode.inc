@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSAtomicStoreCacheNode.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSAtomicStoreCacheNode = objcclass;
   NSAtomicStoreCacheNodePointer = ^NSAtomicStoreCacheNode;
+  NSAtomicStoreCacheNodePtr = NSAtomicStoreCacheNodePointer;
 
 {$endif}
 
@@ -43,10 +44,10 @@
 { NSAtomicStoreCacheNode }
   NSAtomicStoreCacheNode = objcclass(NSObject)
   private
-    __objectID: NSManagedObjectID;
-    ___versionNumber: uintptr_t;
-    __propertyCache: NSMutableDictionary;
-    __reserved1: Pointer;
+    _objectID: NSManagedObjectID;
+    __versionNumber: culong;
+    _propertyCache: NSMutableDictionary;
+    _reserved1: Pointer;
     
   public
     class function alloc: NSAtomicStoreCacheNode; message 'alloc';

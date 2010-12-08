@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebPreferences.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -16,6 +16,7 @@ const
 { Types }
 type
   WebCacheModel = WebNSUInteger;
+  WebCacheModelPtr = ^WebCacheModel;
 
 {$endif}
 {$endif}
@@ -40,7 +41,7 @@ type
 
 { External string constants }
 var
-  WebPreferencesChangedNotification: NSString; external name '_WebPreferencesChangedNotification';
+  WebPreferencesChangedNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -48,6 +49,7 @@ var
 {$ifdef FORWARD}
   WebPreferences = objcclass;
   WebPreferencesPointer = ^WebPreferences;
+  WebPreferencesPtr = WebPreferencesPointer;
 
 {$endif}
 
@@ -58,7 +60,7 @@ var
 { WebPreferences }
   WebPreferences = objcclass(NSObject, NSCodingProtocol)
   private
-    __private: WebPreferencesPrivate;
+    _private: WebPreferencesPrivate;
     
   public
     class function alloc: WebPreferences; message 'alloc';
@@ -118,6 +120,10 @@ var
     function usesPageCache: Boolean; message 'usesPageCache';
     procedure setCacheModel(cacheModel_: WebCacheModel); message 'setCacheModel:';
     function cacheModel: WebCacheModel; message 'cacheModel';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 {$endif}

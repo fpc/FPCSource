@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDocument.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -25,7 +25,9 @@ const
 { Types }
 type
   NSDocumentChangeType = NSUInteger;
+  NSDocumentChangeTypePtr = ^NSDocumentChangeType;
   NSSaveOperationType = NSUInteger;
+  NSSaveOperationTypePtr = ^NSSaveOperationType;
 
 {$endif}
 {$endif}
@@ -54,6 +56,7 @@ type
 {$ifdef FORWARD}
   NSDocument = objcclass;
   NSDocumentPointer = ^NSDocument;
+  NSDocumentPtr = NSDocumentPointer;
 
 {$endif}
 
@@ -64,19 +67,22 @@ type
 { NSDocument }
   NSDocument = objcclass(NSObject, NSUserInterfaceValidationsProtocol)
   private
-    __window: NSWindow;
-    __windowControllers: id;
-    __fileURL: NSURL;
-    __fileType: NSString;
-    __printInfo: NSPrintInfo;
-    __changeCount: clong;
-    _savePanelAccessory: NSView;
-    __displayName: id;
-    __privateData: id;
-    __undoManager: NSUndoManager;
+    _window: NSWindow;
+    _windowControllers: id;
+    _fileURL: NSURL;
+    _fileType: NSString;
+    _printInfo: NSPrintInfo;
+    _changeCount: clong;
+    savePanelAccessory: NSView;
+    _displayName: id;
+    _privateData: id;
+    _undoManager: NSUndoManager;
     __docFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSDocument0: cuint);
+       1: (
         inClose: 0..1;
-        hasUndoManager: 0..1;
+        _hasUndoManager: 0..1;
         isShowingPageLayout: 0..1;
         isRunningPrintOperation: 0..1;
         savePanelNameExtensionHidden: 0..1;
@@ -85,14 +91,16 @@ type
         definitelyHasUnsavedChanges: 0..1;
         definitelyHasUnautosavedChanges: 0..1;
         RESERVED: 0..((1 shl 23)-1);
+      );
       end;
-    __savePanelSaveType: NSString;
+    _savePanelSaveType: NSString;
     
   public
     class function alloc: NSDocument; message 'alloc';
 
     function init: id; message 'init';
     function initWithType_error(typeName: NSString; outError: NSErrorPointer): id; message 'initWithType:error:';
+    class function canConcurrentlyReadDocumentsOfType(typeName: NSString): Boolean; message 'canConcurrentlyReadDocumentsOfType:';
     function initWithContentsOfURL_ofType_error(absoluteURL: NSURL; typeName: NSString; outError: NSErrorPointer): id; message 'initWithContentsOfURL:ofType:error:';
     function initForURL_withContentsOfURL_ofType_error(absoluteDocumentURL: NSURL; absoluteDocumentContentsURL: NSURL; typeName: NSString; outError: NSErrorPointer): id; message 'initForURL:withContentsOfURL:ofType:error:';
     procedure setFileType(typeName: NSString); message 'setFileType:';
@@ -169,36 +177,32 @@ type
     function fileNameExtensionForType_saveOperation(typeName: NSString; saveOperation: NSSaveOperationType): NSString; message 'fileNameExtensionForType:saveOperation:';
     function validateUserInterfaceItem(anItem: id): Boolean; message 'validateUserInterfaceItem:';
 
-    { Category: NSDeprecated }
-    function dataRepresentationOfType(type_: NSString): NSData; message 'dataRepresentationOfType:';
-    function fileAttributesToWriteToFile_ofType_saveOperation(fullDocumentPath: NSString; documentTypeName: NSString; saveOperationType: NSSaveOperationType): NSDictionary; message 'fileAttributesToWriteToFile:ofType:saveOperation:';
-    function fileName: NSString; message 'fileName';
-    function fileWrapperRepresentationOfType(type_: NSString): NSFileWrapper; message 'fileWrapperRepresentationOfType:';
-    function initWithContentsOfFile_ofType(absolutePath: NSString; typeName: NSString): id; message 'initWithContentsOfFile:ofType:';
-    function initWithContentsOfURL_ofType(absoluteURL: NSURL; typeName: NSString): id; message 'initWithContentsOfURL:ofType:';
-    function loadDataRepresentation_ofType(data: NSData; type_: NSString): Boolean; message 'loadDataRepresentation:ofType:';
-    function loadFileWrapperRepresentation_ofType(wrapper: NSFileWrapper; type_: NSString): Boolean; message 'loadFileWrapperRepresentation:ofType:';
-    procedure printShowingPrintPanel(flag: Boolean); message 'printShowingPrintPanel:';
-    function readFromFile_ofType(fileName_: NSString; type_: NSString): Boolean; message 'readFromFile:ofType:';
-    function readFromURL_ofType(url: NSURL; type_: NSString): Boolean; message 'readFromURL:ofType:';
-    function revertToSavedFromFile_ofType(fileName_: NSString; type_: NSString): Boolean; message 'revertToSavedFromFile:ofType:';
-    function revertToSavedFromURL_ofType(url: NSURL; type_: NSString): Boolean; message 'revertToSavedFromURL:ofType:';
-    function runModalPageLayoutWithPrintInfo(printInfo_: NSPrintInfo): NSInteger; message 'runModalPageLayoutWithPrintInfo:';
-    procedure saveToFile_saveOperation_delegate_didSaveSelector_contextInfo(fileName_: NSString; saveOperation: NSSaveOperationType; delegate: id; didSaveSelector: SEL; contextInfo: Pointer); message 'saveToFile:saveOperation:delegate:didSaveSelector:contextInfo:';
-    procedure setFileName(fileName_: NSString); message 'setFileName:';
-    function writeToFile_ofType(fileName_: NSString; type_: NSString): Boolean; message 'writeToFile:ofType:';
-    function writeToFile_ofType_originalFile_saveOperation(fullDocumentPath: NSString; documentTypeName: NSString; fullOriginalDocumentPath: NSString; saveOperationType: NSSaveOperationType): Boolean; message 'writeToFile:ofType:originalFile:saveOperation:';
-    function writeToURL_ofType(url: NSURL; type_: NSString): Boolean; message 'writeToURL:ofType:';
-    function writeWithBackupToFile_ofType_saveOperation(fullDocumentPath: NSString; documentTypeName: NSString; saveOperationType: NSSaveOperationType): Boolean; message 'writeWithBackupToFile:ofType:saveOperation:';
-
-    { Category: NSScripting }
-    function lastComponentOfFileName: NSString; message 'lastComponentOfFileName';
-    procedure setLastComponentOfFileName(str: NSString); message 'setLastComponentOfFileName:';
-    function handleSaveScriptCommand(command: NSScriptCommand): id; message 'handleSaveScriptCommand:';
-    function handleCloseScriptCommand(command: NSCloseCommand): id; message 'handleCloseScriptCommand:';
-    function handlePrintScriptCommand(command: NSScriptCommand): id; message 'handlePrintScriptCommand:';
-    function objectSpecifier: NSScriptObjectSpecifier; message 'objectSpecifier';
+    { Adopted Protocols }
   end; external;
+
+{ NSDeprecated_NSDocumentCategory }
+  NSDeprecated_NSDocumentCategory = objccategory(NSDocument)
+    function dataRepresentationOfType(type_: NSString): NSData; message 'dataRepresentationOfType:'; deprecated 'in Mac OS X 10.4 and later';
+    function fileAttributesToWriteToFile_ofType_saveOperation(fullDocumentPath: NSString; documentTypeName: NSString; saveOperationType: NSSaveOperationType): NSDictionary; message 'fileAttributesToWriteToFile:ofType:saveOperation:';
+    function fileName: NSString; message 'fileName'; deprecated 'in Mac OS X 10.4 and later';
+    function fileWrapperRepresentationOfType(type_: NSString): NSFileWrapper; message 'fileWrapperRepresentationOfType:'; deprecated 'in Mac OS X 10.4 and later';
+    function initWithContentsOfFile_ofType(absolutePath: NSString; typeName: NSString): id; message 'initWithContentsOfFile:ofType:'; deprecated 'in Mac OS X 10.4 and later';
+    function initWithContentsOfURL_ofType(absoluteURL: NSURL; typeName: NSString): id; message 'initWithContentsOfURL:ofType:'; deprecated 'in Mac OS X 10.4 and later';
+    function loadDataRepresentation_ofType(data: NSData; type_: NSString): Boolean; message 'loadDataRepresentation:ofType:'; deprecated 'in Mac OS X 10.4 and later';
+    function loadFileWrapperRepresentation_ofType(wrapper: NSFileWrapper; type_: NSString): Boolean; message 'loadFileWrapperRepresentation:ofType:'; deprecated 'in Mac OS X 10.4 and later';
+    procedure printShowingPrintPanel(flag: Boolean); message 'printShowingPrintPanel:'; deprecated 'in Mac OS X 10.4 and later';
+    function readFromFile_ofType(fileName_: NSString; type_: NSString): Boolean; message 'readFromFile:ofType:'; deprecated 'in Mac OS X 10.4 and later';
+    function readFromURL_ofType(url: NSURL; type_: NSString): Boolean; message 'readFromURL:ofType:'; deprecated 'in Mac OS X 10.4 and later';
+    function revertToSavedFromFile_ofType(fileName_: NSString; type_: NSString): Boolean; message 'revertToSavedFromFile:ofType:'; deprecated 'in Mac OS X 10.4 and later';
+    function revertToSavedFromURL_ofType(url: NSURL; type_: NSString): Boolean; message 'revertToSavedFromURL:ofType:'; deprecated 'in Mac OS X 10.4 and later';
+    function runModalPageLayoutWithPrintInfo(printInfo_: NSPrintInfo): NSInteger; message 'runModalPageLayoutWithPrintInfo:'; deprecated 'in Mac OS X 10.4 and later';
+    procedure saveToFile_saveOperation_delegate_didSaveSelector_contextInfo(fileName_: NSString; saveOperation: NSSaveOperationType; delegate: id; didSaveSelector: SEL; contextInfo: Pointer); message 'saveToFile:saveOperation:delegate:didSaveSelector:contextInfo:'; deprecated 'in Mac OS X 10.4 and later';
+    procedure setFileName(fileName_: NSString); message 'setFileName:'; deprecated 'in Mac OS X 10.4 and later';
+    function writeToFile_ofType(fileName_: NSString; type_: NSString): Boolean; message 'writeToFile:ofType:'; deprecated 'in Mac OS X 10.4 and later';
+    function writeToFile_ofType_originalFile_saveOperation(fullDocumentPath: NSString; documentTypeName: NSString; fullOriginalDocumentPath: NSString; saveOperationType: NSSaveOperationType): Boolean; message 'writeToFile:ofType:originalFile:saveOperation:'; deprecated 'in Mac OS X 10.4 and later';
+    function writeToURL_ofType(url: NSURL; type_: NSString): Boolean; message 'writeToURL:ofType:'; deprecated 'in Mac OS X 10.4 and later';
+    function writeWithBackupToFile_ofType_saveOperation(fullDocumentPath: NSString; documentTypeName: NSString; saveOperationType: NSSaveOperationType): Boolean; message 'writeWithBackupToFile:ofType:saveOperation:'; deprecated 'in Mac OS X 10.4 and later';
+  end; external name 'NSDeprecated';
 
 {$endif}
 {$endif}

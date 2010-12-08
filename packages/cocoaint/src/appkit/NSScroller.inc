@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSScroller.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -35,9 +35,13 @@ const
 { Types }
 type
   NSScrollArrowPosition = NSUInteger;
+  NSScrollArrowPositionPtr = ^NSScrollArrowPosition;
   NSUsableScrollerParts = NSUInteger;
+  NSUsableScrollerPartsPtr = ^NSUsableScrollerParts;
   NSScrollerPart = NSUInteger;
+  NSScrollerPartPtr = ^NSScrollerPart;
   NSScrollerArrow = NSUInteger;
+  NSScrollerArrowPtr = ^NSScrollerArrow;
 
 {$endif}
 {$endif}
@@ -66,6 +70,7 @@ type
 {$ifdef FORWARD}
   NSScroller = objcclass;
   NSScrollerPointer = ^NSScroller;
+  NSScrollerPtr = NSScrollerPointer;
 
 {$endif}
 
@@ -76,20 +81,27 @@ type
 { NSScroller }
   NSScroller = objcclass(NSControl)
   private
-    __curValue: CGFloat;
-    __percent: CGFloat;
-    __knobSize: CGFloat;
+    _curValue: CGFloat;
+    _percent: CGFloat;
+    _knobSize: CGFloat;
     __sFlags2: bitpacked record
-        hitPart: 0..((1 shl 4)-1);
-        controlSize: 0..((1 shl 2)-1);
+      case byte of
+       0: (_anonbitfield_NSScroller0: cuint);
+       1: (
+        _hitPart: 0..((1 shl 4)-1);
+        _controlSize: 0..((1 shl 2)-1);
         inMaxEnd: 0..1;
         setFloatValueOverridden: 0..1;
         setFloatValueKnobProportionOverridden: 0..1;
         reserved: 0..((1 shl 23)-1);
+      );
       end;
-    __target: id;
-    __action: SEL;
+    _target: id;
+    _action: SEL;
     _sFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSScroller1: cuint);
+       1: (
         isHoriz: 0..1;
         arrowsLoc: 0..((1 shl 2)-1);
         partsUsable: 0..((1 shl 2)-1);
@@ -101,8 +113,9 @@ type
         lit: 0..1;
         knobLit: 0..1;
         reserved: 0..1;
-        controlTint: 0..((1 shl 3)-1);
+        _controlTint: 0..((1 shl 3)-1);
         repeatCount: 0..((1 shl 16)-1);
+      );
       end;
     
   public
@@ -130,10 +143,12 @@ type
     function hitPart: NSScrollerPart; message 'hitPart';
     function knobProportion: CGFloat; message 'knobProportion';
     procedure setKnobProportion(proportion: CGFloat); message 'setKnobProportion:';
-
-    { Category: NSDeprecated }
-    procedure setFloatValue_knobProportion(aFloat: single; proportion: CGFloat); message 'setFloatValue:knobProportion:';
   end; external;
+
+{ NSDeprecated_NSScrollerCategory }
+  NSDeprecated_NSScrollerCategory = objccategory(NSScroller)
+    procedure setFloatValue_knobProportion(aFloat: single; proportion: CGFloat); message 'setFloatValue:knobProportion:'; deprecated 'in Mac OS X 10.5 and later';
+  end; external name 'NSDeprecated';
 
 {$endif}
 {$endif}

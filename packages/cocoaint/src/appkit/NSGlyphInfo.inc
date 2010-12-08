@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSGlyphInfo.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -19,6 +19,7 @@ const
 { Types }
 type
   NSCharacterCollection = NSUInteger;
+  NSCharacterCollectionPtr = ^NSCharacterCollection;
 
 {$endif}
 {$endif}
@@ -47,6 +48,7 @@ type
 {$ifdef FORWARD}
   NSGlyphInfo = objcclass;
   NSGlyphInfoPointer = ^NSGlyphInfo;
+  NSGlyphInfoPtr = NSGlyphInfoPointer;
 
 {$endif}
 
@@ -57,7 +59,7 @@ type
 { NSGlyphInfo }
   NSGlyphInfo = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __baseString: NSString;
+    _baseString: NSString;
     
   public
     class function alloc: NSGlyphInfo; message 'alloc';
@@ -68,6 +70,11 @@ type
     function glyphName: NSString; message 'glyphName';
     function characterIdentifier: NSUInteger; message 'characterIdentifier';
     function characterCollection: NSCharacterCollection; message 'characterCollection';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 {$endif}

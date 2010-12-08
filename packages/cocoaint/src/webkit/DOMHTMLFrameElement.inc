@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLFrameElement.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMHTMLFrameElement = objcclass;
   DOMHTMLFrameElementPointer = ^DOMHTMLFrameElement;
+  DOMHTMLFrameElementPtr = DOMHTMLFrameElementPointer;
 
 {$endif}
 
@@ -56,11 +57,18 @@
     function marginWidth: NSString; message 'marginWidth';
     procedure setName (newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
+    procedure setNoResize (newValue: Boolean); message 'setNoResize:';
+    function noResize: Boolean; message 'noResize';
     procedure setScrolling (newValue: NSString); message 'setScrolling:';
     function scrolling: NSString; message 'scrolling';
     procedure setSrc (newValue: NSString); message 'setSrc:';
     function src: NSString; message 'src';
     function contentDocument: DOMDocument; message 'contentDocument';
+    function contentWindow: DOMAbstractView; message 'contentWindow';
+    procedure setLocation (newValue: NSString); message 'setLocation:';
+    function location: NSString; message 'location';
+    function width: cint; message 'width';
+    function height: cint; message 'height';
   end; external;
 
 {$endif}

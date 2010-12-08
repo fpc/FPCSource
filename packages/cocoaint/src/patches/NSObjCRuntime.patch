@@ -1,0 +1,4 @@
+{$ifdef INTERFACE}
+procedure NSLog(fmt:NSString); cdecl; varargs; external;
+{$endif}
+

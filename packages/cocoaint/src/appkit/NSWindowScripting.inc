@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSWindowScripting.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -26,6 +26,36 @@
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSWINDOWSCRIPTING_PAS_S}
 {$define NSWINDOWSCRIPTING_PAS_S}
+
+{$endif}
+{$endif}
+
+{$ifdef FORWARD}
+
+{$endif}
+
+{$ifdef CLASSES}
+{$ifndef NSWINDOWSCRIPTING_PAS_C}
+{$define NSWINDOWSCRIPTING_PAS_C}
+
+{ NSScripting_NSWindowCategory }
+  NSScripting_NSWindowCategory = objccategory(NSWindow)
+    function hasCloseBox: Boolean; message 'hasCloseBox';
+    function hasTitleBar: Boolean; message 'hasTitleBar';
+    function isFloatingPanel: Boolean; message 'isFloatingPanel';
+    function isMiniaturizable: Boolean; message 'isMiniaturizable';
+    function isModalPanel: Boolean; message 'isModalPanel';
+    function isResizable: Boolean; message 'isResizable';
+    function isZoomable: Boolean; message 'isZoomable';
+    function orderedIndex: NSInteger; message 'orderedIndex';
+    procedure setIsMiniaturized(flag: Boolean); message 'setIsMiniaturized:';
+    procedure setIsVisible(flag: Boolean); message 'setIsVisible:';
+    procedure setIsZoomed(flag: Boolean); message 'setIsZoomed:';
+    procedure setOrderedIndex(index: NSInteger); message 'setOrderedIndex:';
+    function handleCloseScriptCommand(command: NSCloseCommand): id; message 'handleCloseScriptCommand:';
+    function handlePrintScriptCommand(command: NSScriptCommand): id; message 'handlePrintScriptCommand:';
+    function handleSaveScriptCommand(command: NSScriptCommand): id; message 'handleSaveScriptCommand:';
+  end; external name 'NSScripting';
 
 {$endif}
 {$endif}

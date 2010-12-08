@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSFontPanel.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -18,12 +18,12 @@ const
   NSFPCurrentField = 134;
 
 const
-  NSFontPanelFaceModeMask = 1  shl  0;
-  NSFontPanelSizeModeMask = 1  shl  1;
-  NSFontPanelCollectionModeMask = 1  shl  2;
+  NSFontPanelFaceModeMask = 1 shl 0;
+  NSFontPanelSizeModeMask = 1 shl 1;
+  NSFontPanelCollectionModeMask = 1 shl 2;
   NSFontPanelUnderlineEffectModeMask = 1 shl 8;
   NSFontPanelStrikethroughEffectModeMask = 1 shl 9;
-  NSFontPanelTextColorEffectModeMask = 1 shl  10;
+  NSFontPanelTextColorEffectModeMask = 1 shl 10;
   NSFontPanelDocumentColorEffectModeMask = 1 shl 11;
   NSFontPanelShadowEffectModeMask = 1 shl 12;
   NSFontPanelAllEffectsModeMask = $FFF00;
@@ -57,6 +57,7 @@ const
 {$ifdef FORWARD}
   NSFontPanel = objcclass;
   NSFontPanelPointer = ^NSFontPanel;
+  NSFontPanelPtr = NSFontPanelPointer;
 
 {$endif}
 
@@ -67,31 +68,34 @@ const
 { NSFontPanel }
   NSFontPanel = objcclass(NSPanel)
   private
-    __manager: NSFontManager;
-    __collectionNames: NSArray;
-    __selection: id;
-    __carbonNotification: Pointer;
-    __targetObject: id;
-    __familyList: id;
-    __faceList: id;
-    __sizeList: id;
-    __mainCollectionList: id;
-    __sizeField: id;
-    __sizeSlider: id;
-    __sizeSliderBox: id;
-    __preview: id;
-    __previewCaption: id;
-    __mainSplitView: id;
-    __mmCollectionList: id;
-    __mmFamilyList: id;
-    __mmFaceList: id;
-    __mmSizeList: id;
-    __extrasPopup: id;
-    __searchField: id;
-    __fixedListButton: id;
-    __sliderButton: id;
-    __accessoryView: id;
+    _manager: NSFontManager;
+    _collectionNames: NSArray;
+    _selection: id;
+    _carbonNotification: Pointer;
+    _targetObject: id;
+    _familyList: id;
+    _faceList: id;
+    _sizeList: id;
+    _mainCollectionList: id;
+    _sizeField: id;
+    _sizeSlider: id;
+    _sizeSliderBox: id;
+    _preview: id;
+    _previewCaption: id;
+    _mainSplitView: id;
+    _mmCollectionList: id;
+    _mmFamilyList: id;
+    _mmFaceList: id;
+    _mmSizeList: id;
+    _extrasPopup: id;
+    _searchField: id;
+    _fixedListButton: id;
+    _sliderButton: id;
+    _accessoryView: id;
     __fpFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSFontPanel0: cuint);
+       1: (
         setFontChange: 0..1;
         setFontAttributeChange: 0..1;
         _delRespFamily: 0..1;
@@ -104,30 +108,31 @@ const
         showEffects: 0..1;
         _uiMode: 0..((1 shl 8)-1);
         _reserved: 0..((1 shl 14)-1);
+      );
       end;
-    __regularModeBox: id;
-    __miniModeBox: id;
-    __modeBoxSuperview: id;
-    __collectionLabel: id;
-    __sizeLabel: id;
-    __faceLabel: id;
-    __familyLabel: id;
-    __sizeStyleButton: id;
-    __newSizeField: id;
-    __editSizeList: id;
-    __editSizeListBox: id;
-    __editSizeSliderBox: id;
-    __editSizeSliderMaxField: id;
-    __editSizeSliderMinField: id;
-    __sizeEditWindow: id;
-    __availableSizes: id;
-    __addCollectionButton: id;
-    __removeCollectionButton: id;
-    __fontPanelPreviewHeight: CGFloat;
-    __typographyPanel: id;
-    __actionButton: id;
-    __fontEffectsBox: id;
-    __sizeStyle: cint;
+    _regularModeBox: id;
+    _miniModeBox: id;
+    _modeBoxSuperview: id;
+    _collectionLabel: id;
+    _sizeLabel: id;
+    _faceLabel: id;
+    _familyLabel: id;
+    _sizeStyleButton: id;
+    _newSizeField: id;
+    _editSizeList: id;
+    _editSizeListBox: id;
+    _editSizeSliderBox: id;
+    _editSizeSliderMaxField: id;
+    _editSizeSliderMinField: id;
+    _sizeEditWindow: id;
+    _availableSizes: id;
+    _addCollectionButton: id;
+    _removeCollectionButton: id;
+    _fontPanelPreviewHeight: CGFloat;
+    _typographyPanel: id;
+    _actionButton: id;
+    _fontEffectsBox: id;
+    _sizeStyle: cint;
     {$ifndef cpu64}
         _fpUnused: array[0..71] of id;
     {$endif}
@@ -145,6 +150,11 @@ const
     function isEnabled: Boolean; message 'isEnabled';
     procedure setEnabled(flag: Boolean); message 'setEnabled:';
     procedure reloadDefaultFontFamilies; message 'reloadDefaultFontFamilies';
+  end; external;
+
+{ NSFontPanelValidationAdditionsCategory }
+  NSFontPanelValidationAdditionsCategory = objccategory(NSObject)
+    function validModesForFontPanel(fontPanel: NSFontPanel): NSUInteger; message 'validModesForFontPanel:';
   end; external;
 
 {$endif}

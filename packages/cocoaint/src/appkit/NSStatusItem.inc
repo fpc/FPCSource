@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSStatusItem.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSStatusItem = objcclass;
   NSStatusItemPointer = ^NSStatusItem;
+  NSStatusItemPtr = NSStatusItemPointer;
 
 {$endif}
 
@@ -43,23 +44,28 @@
 { NSStatusItem }
   NSStatusItem = objcclass(NSObject)
   private
-    __fStatusBar: NSStatusBar;
-    __fLength: CGFloat;
-    __fWindow: NSWindow;
-    __fView: NSView;
-    __fPriority: cint;
+    _fStatusBar: NSStatusBar;
+    _fLength: CGFloat;
+    _fWindow: NSWindow;
+    _fView: NSView;
+    _fPriority: cint;
     __fFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSStatusItem0: cuint);
+       1: (
         customView: 0..1;
-        highlightMode: 0..1;
+        _highlightMode: 0..1;
         hasAlternateImage: 0..1;
         hidden: 0..1;
         backgroundStyle: 0..((1 shl 4)-1);
-        reserved: 0..((1 shl 24)-1);
+        inAdjustLength: 0..1;
+        reserved: 0..((1 shl 23)-1);
+      );
       end;
-    __fReserved1: id;
-    __fReserved2: id;
-    __fReserved3: id;
-    __fReserved4: id;
+    _statusItemMenu: id;
+    _fReserved2: id;
+    _fReserved3: id;
+    _fReserved4: id;
     
   public
     class function alloc: NSStatusItem; message 'alloc';
@@ -67,8 +73,10 @@
     function statusBar: NSStatusBar; message 'statusBar';
     function length: CGFloat; message 'length';
     procedure setLength(length_: CGFloat); message 'setLength:';
+  end; external;
 
-    { Category: NSStatusItemCommon }
+{ NSStatusItemCommonCategory }
+  NSStatusItemCommonCategory = objccategory(NSStatusItem)
     function action: SEL; message 'action';
     procedure setAction(action_: SEL); message 'setAction:';
     function doubleAction: SEL; message 'doubleAction';
@@ -94,8 +102,10 @@
     function sendActionOn(mask: NSInteger): NSInteger; message 'sendActionOn:';
     procedure popUpStatusItemMenu(menu_: NSMenu); message 'popUpStatusItemMenu:';
     procedure drawStatusBarBackgroundInRect_withHighlight(rect: NSRect; highlight: Boolean); message 'drawStatusBarBackgroundInRect:withHighlight:';
+  end; external;
 
-    { Category: NSStatusItemView }
+{ NSStatusItemViewCategory }
+  NSStatusItemViewCategory = objccategory(NSStatusItem)
     function view: NSView; message 'view';
     procedure setView(view_: NSView); message 'setView:';
   end; external;

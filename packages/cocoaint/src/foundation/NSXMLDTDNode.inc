@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSXMLDTDNode.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@ const
 { Types }
 type
   NSXMLDTDNodeKind = NSUInteger;
+  NSXMLDTDNodeKindPtr = ^NSXMLDTDNodeKind;
 
 {$endif}
 {$endif}
@@ -61,6 +62,7 @@ type
 {$ifdef FORWARD}
   NSXMLDTDNode = objcclass;
   NSXMLDTDNodePointer = ^NSXMLDTDNode;
+  NSXMLDTDNodePtr = NSXMLDTDNodePointer;
 
 {$endif}
 
@@ -71,11 +73,11 @@ type
 { NSXMLDTDNode }
   NSXMLDTDNode = objcclass(NSXMLNode)
   private
-    __DTDKind: NSXMLDTDNodeKind;
-    __name: NSString;
-    __notationName: NSString;
-    __publicID: NSString;
-    __systemID: NSString;
+    _DTDKind: NSXMLDTDNodeKind;
+    _name: NSString;
+    _notationName: NSString;
+    _publicID: NSString;
+    _systemID: NSString;
     
   public
     class function alloc: NSXMLDTDNode; message 'alloc';

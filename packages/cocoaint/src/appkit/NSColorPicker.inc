@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSColorPicker.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSColorPicker = objcclass;
   NSColorPickerPointer = ^NSColorPicker;
+  NSColorPickerPtr = NSColorPickerPointer;
 
 {$endif}
 
@@ -43,9 +44,9 @@
 { NSColorPicker }
   NSColorPicker = objcclass(NSObject, NSColorPickingDefaultProtocol)
   private
-    __imageObject: id;
-    __colorPanel: NSColorPanel;
-    __buttonToolTip: NSString;
+    _imageObject: id;
+    _colorPanel: NSColorPanel;
+    _buttonToolTip: NSString;
     
   public
     class function alloc: NSColorPicker; message 'alloc';
@@ -60,6 +61,9 @@
     procedure setMode(mode: NSColorPanelMode); message 'setMode:';
     function buttonToolTip: NSString; message 'buttonToolTip';
     function minContentSize: NSSize; message 'minContentSize';
+
+    { Adopted Protocols }
+    procedure alphaControlAddedOrRemoved(sender: id);
   end; external;
 
 {$endif}

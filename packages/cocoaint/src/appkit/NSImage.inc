@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSImage.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -24,7 +24,9 @@ const
 { Types }
 type
   NSImageLoadStatus = NSUInteger;
+  NSImageLoadStatusPtr = ^NSImageLoadStatus;
   NSImageCacheMode = NSUInteger;
+  NSImageCacheModePtr = ^NSImageCacheMode;
 
 {$endif}
 {$endif}
@@ -49,57 +51,76 @@ type
 
 { External string constants }
 var
-  NSImageNameQuickLookTemplate: NSString; external name '_NSImageNameQuickLookTemplate';
-  NSImageNameBluetoothTemplate: NSString; external name '_NSImageNameBluetoothTemplate';
-  NSImageNameIChatTheaterTemplate: NSString; external name '_NSImageNameIChatTheaterTemplate';
-  NSImageNameSlideshowTemplate: NSString; external name '_NSImageNameSlideshowTemplate';
-  NSImageNameActionTemplate: NSString; external name '_NSImageNameActionTemplate';
-  NSImageNameSmartBadgeTemplate: NSString; external name '_NSImageNameSmartBadgeTemplate';
-  NSImageNameIconViewTemplate: NSString; external name '_NSImageNameIconViewTemplate';
-  NSImageNameListViewTemplate: NSString; external name '_NSImageNameListViewTemplate';
-  NSImageNameColumnViewTemplate: NSString; external name '_NSImageNameColumnViewTemplate';
-  NSImageNameFlowViewTemplate: NSString; external name '_NSImageNameFlowViewTemplate';
-  NSImageNamePathTemplate: NSString; external name '_NSImageNamePathTemplate';
-  NSImageNameInvalidDataFreestandingTemplate: NSString; external name '_NSImageNameInvalidDataFreestandingTemplate';
-  NSImageNameLockLockedTemplate: NSString; external name '_NSImageNameLockLockedTemplate';
-  NSImageNameLockUnlockedTemplate: NSString; external name '_NSImageNameLockUnlockedTemplate';
-  NSImageNameGoRightTemplate: NSString; external name '_NSImageNameGoRightTemplate';
-  NSImageNameGoLeftTemplate: NSString; external name '_NSImageNameGoLeftTemplate';
-  NSImageNameRightFacingTriangleTemplate: NSString; external name '_NSImageNameRightFacingTriangleTemplate';
-  NSImageNameLeftFacingTriangleTemplate: NSString; external name '_NSImageNameLeftFacingTriangleTemplate';
-  NSImageNameAddTemplate: NSString; external name '_NSImageNameAddTemplate';
-  NSImageNameRemoveTemplate: NSString; external name '_NSImageNameRemoveTemplate';
-  NSImageNameRevealFreestandingTemplate: NSString; external name '_NSImageNameRevealFreestandingTemplate';
-  NSImageNameFollowLinkFreestandingTemplate: NSString; external name '_NSImageNameFollowLinkFreestandingTemplate';
-  NSImageNameEnterFullScreenTemplate: NSString; external name '_NSImageNameEnterFullScreenTemplate';
-  NSImageNameExitFullScreenTemplate: NSString; external name '_NSImageNameExitFullScreenTemplate';
-  NSImageNameStopProgressTemplate: NSString; external name '_NSImageNameStopProgressTemplate';
-  NSImageNameStopProgressFreestandingTemplate: NSString; external name '_NSImageNameStopProgressFreestandingTemplate';
-  NSImageNameRefreshTemplate: NSString; external name '_NSImageNameRefreshTemplate';
-  NSImageNameRefreshFreestandingTemplate: NSString; external name '_NSImageNameRefreshFreestandingTemplate';
-  NSImageNameBonjour: NSString; external name '_NSImageNameBonjour';
-  NSImageNameDotMac: NSString; external name '_NSImageNameDotMac';
-  NSImageNameComputer: NSString; external name '_NSImageNameComputer';
-  NSImageNameFolderBurnable: NSString; external name '_NSImageNameFolderBurnable';
-  NSImageNameFolderSmart: NSString; external name '_NSImageNameFolderSmart';
-  NSImageNameNetwork: NSString; external name '_NSImageNameNetwork';
-  NSImageNameMultipleDocuments: NSString; external name '_NSImageNameMultipleDocuments';
-  NSImageNameUserAccounts: NSString; external name '_NSImageNameUserAccounts';
-  NSImageNamePreferencesGeneral: NSString; external name '_NSImageNamePreferencesGeneral';
-  NSImageNameAdvanced: NSString; external name '_NSImageNameAdvanced';
-  NSImageNameInfo: NSString; external name '_NSImageNameInfo';
-  NSImageNameFontPanel: NSString; external name '_NSImageNameFontPanel';
-  NSImageNameColorPanel: NSString; external name '_NSImageNameColorPanel';
-  NSImageNameUser: NSString; external name '_NSImageNameUser';
-  NSImageNameUserGroup: NSString; external name '_NSImageNameUserGroup';
-  NSImageNameEveryone: NSString; external name '_NSImageNameEveryone';
+  NSImageHintCTM: NSString; cvar; external;
+  NSImageHintInterpolation: NSString; cvar; external;
+  NSImageNameQuickLookTemplate: NSString; cvar; external;
+  NSImageNameBluetoothTemplate: NSString; cvar; external;
+  NSImageNameIChatTheaterTemplate: NSString; cvar; external;
+  NSImageNameSlideshowTemplate: NSString; cvar; external;
+  NSImageNameActionTemplate: NSString; cvar; external;
+  NSImageNameSmartBadgeTemplate: NSString; cvar; external;
+  NSImageNameIconViewTemplate: NSString; cvar; external;
+  NSImageNameListViewTemplate: NSString; cvar; external;
+  NSImageNameColumnViewTemplate: NSString; cvar; external;
+  NSImageNameFlowViewTemplate: NSString; cvar; external;
+  NSImageNamePathTemplate: NSString; cvar; external;
+  NSImageNameInvalidDataFreestandingTemplate: NSString; cvar; external;
+  NSImageNameLockLockedTemplate: NSString; cvar; external;
+  NSImageNameLockUnlockedTemplate: NSString; cvar; external;
+  NSImageNameGoRightTemplate: NSString; cvar; external;
+  NSImageNameGoLeftTemplate: NSString; cvar; external;
+  NSImageNameRightFacingTriangleTemplate: NSString; cvar; external;
+  NSImageNameLeftFacingTriangleTemplate: NSString; cvar; external;
+  NSImageNameAddTemplate: NSString; cvar; external;
+  NSImageNameRemoveTemplate: NSString; cvar; external;
+  NSImageNameRevealFreestandingTemplate: NSString; cvar; external;
+  NSImageNameFollowLinkFreestandingTemplate: NSString; cvar; external;
+  NSImageNameEnterFullScreenTemplate: NSString; cvar; external;
+  NSImageNameExitFullScreenTemplate: NSString; cvar; external;
+  NSImageNameStopProgressTemplate: NSString; cvar; external;
+  NSImageNameStopProgressFreestandingTemplate: NSString; cvar; external;
+  NSImageNameRefreshTemplate: NSString; cvar; external;
+  NSImageNameRefreshFreestandingTemplate: NSString; cvar; external;
+  NSImageNameBonjour: NSString; cvar; external;
+  NSImageNameComputer: NSString; cvar; external;
+  NSImageNameFolderBurnable: NSString; cvar; external;
+  NSImageNameFolderSmart: NSString; cvar; external;
+  NSImageNameFolder: NSString; cvar; external;
+  NSImageNameNetwork: NSString; cvar; external;
+  NSImageNameDotMac: NSString; cvar; external;
+  NSImageNameMobileMe: NSString; cvar; external;
+  NSImageNameMultipleDocuments: NSString; cvar; external;
+  NSImageNameUserAccounts: NSString; cvar; external;
+  NSImageNamePreferencesGeneral: NSString; cvar; external;
+  NSImageNameAdvanced: NSString; cvar; external;
+  NSImageNameInfo: NSString; cvar; external;
+  NSImageNameFontPanel: NSString; cvar; external;
+  NSImageNameColorPanel: NSString; cvar; external;
+  NSImageNameUser: NSString; cvar; external;
+  NSImageNameUserGroup: NSString; cvar; external;
+  NSImageNameEveryone: NSString; cvar; external;
+  NSImageNameUserGuest: NSString; cvar; external;
+  NSImageNameMenuOnStateTemplate: NSString; cvar; external;
+  NSImageNameMenuMixedStateTemplate: NSString; cvar; external;
+  NSImageNameApplicationIcon: NSString; cvar; external;
+  NSImageNameTrashEmpty: NSString; cvar; external;
+  NSImageNameTrashFull: NSString; cvar; external;
+  NSImageNameHomeTemplate: NSString; cvar; external;
+  NSImageNameBookmarksTemplate: NSString; cvar; external;
+  NSImageNameCaution: NSString; cvar; external;
+  NSImageNameStatusAvailable: NSString; cvar; external;
+  NSImageNameStatusPartiallyAvailable: NSString; cvar; external;
+  NSImageNameStatusUnavailable: NSString; cvar; external;
+  NSImageNameStatusNone: NSString; cvar; external;
 
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
+  NSImageDelegateProtocol = objcprotocol;
   NSImage = objcclass;
   NSImagePointer = ^NSImage;
+  NSImagePtr = NSImagePointer;
 
 {$endif}
 
@@ -108,11 +129,14 @@ var
 {$define NSIMAGE_PAS_C}
 
 { NSImage }
-  NSImage = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSImage = objcclass(NSObject)
   private
-    __name: NSString;
-    __size: NSSize;
+    _name: NSString;
+    _size: NSSize;
     __flags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSImage0: cuint);
+       1: (
         scalable: 0..1;
         dataRetained: 0..1;
         uniqueWindow: 0..1;
@@ -122,22 +146,22 @@ var
         useEPSOnResolutionMismatch: 0..1;
         colorMatchPreferred: 0..1;
         multipleResolutionMatching: 0..1;
-        subImage: 0..1;
+        focusedWhilePrinting: 0..1;
         archiveByName: 0..1;
         unboundedCacheDepth: 0..1;
         flipped: 0..1;
         aliased: 0..1;
         dirtied: 0..1;
-        cacheMode: 0..((1 shl 2)-1);
-        sampleMode: 0..((1 shl 2)-1);
-        focusedWhilePrinting: 0..1;
-        imageEffectsRequested: 0..1;
-        isTemplate: 0..1;
+        _cacheMode: 0..((1 shl 2)-1);
+        sampleMode: 0..((1 shl 3)-1);
+        reserved2: 0..1;
+        _isTemplate: 0..1;
         failedToExpand: 0..1;
         reserved1: 0..((1 shl 9)-1);
+      );
       end;
-    __reps: id;
-    __imageAuxiliary: _NSImageAuxiliary;
+    _reps: id; {garbage collector: volatile }
+    _imageAuxiliary: _NSImageAuxiliary;
     
   public
     class function alloc: NSImage; message 'alloc';
@@ -149,20 +173,13 @@ var
     function initWithContentsOfURL(url: NSURL): id; message 'initWithContentsOfURL:';
     function initByReferencingFile(fileName: NSString): id; message 'initByReferencingFile:';
     function initByReferencingURL(url: NSURL): id; message 'initByReferencingURL:';
-    function initWithIconRef(iconRef: IconRef): id; message 'initWithIconRef:';
+    function initWithIconRef(iconRef_: IconRef): id; message 'initWithIconRef:';
     function initWithPasteboard(pasteboard: NSPasteboard): id; message 'initWithPasteboard:';
+    function initWithDataIgnoringOrientation(data: NSData): id; message 'initWithDataIgnoringOrientation:';
     procedure setSize(aSize: NSSize); message 'setSize:';
     function size: NSSize; message 'size';
     function setName(string_: NSString): Boolean; message 'setName:';
     function name: NSString; message 'name';
-    procedure setScalesWhenResized(flag: Boolean); message 'setScalesWhenResized:';
-    function scalesWhenResized: Boolean; message 'scalesWhenResized';
-    procedure setDataRetained(flag: Boolean); message 'setDataRetained:';
-    function isDataRetained: Boolean; message 'isDataRetained';
-    procedure setCachedSeparately(flag: Boolean); message 'setCachedSeparately:';
-    function isCachedSeparately: Boolean; message 'isCachedSeparately';
-    procedure setCacheDepthMatchesImageDepth(flag: Boolean); message 'setCacheDepthMatchesImageDepth:';
-    function cacheDepthMatchesImageDepth: Boolean; message 'cacheDepthMatchesImageDepth';
     procedure setBackgroundColor(aColor: NSColor); message 'setBackgroundColor:';
     function backgroundColor: NSColor; message 'backgroundColor';
     procedure setUsesEPSOnResolutionMismatch(flag: Boolean); message 'setUsesEPSOnResolutionMismatch:';
@@ -171,14 +188,9 @@ var
     function prefersColorMatch: Boolean; message 'prefersColorMatch';
     procedure setMatchesOnMultipleResolution(flag: Boolean); message 'setMatchesOnMultipleResolution:';
     function matchesOnMultipleResolution: Boolean; message 'matchesOnMultipleResolution';
-    procedure dissolveToPoint_fraction(point: NSPoint; aFloat: CGFloat); message 'dissolveToPoint:fraction:';
-    procedure dissolveToPoint_fromRect_fraction(point: NSPoint; rect: NSRect; aFloat: CGFloat); message 'dissolveToPoint:fromRect:fraction:';
-    procedure compositeToPoint_operation(point: NSPoint; op: NSCompositingOperation); message 'compositeToPoint:operation:';
-    procedure compositeToPoint_fromRect_operation(point: NSPoint; rect: NSRect; op: NSCompositingOperation); message 'compositeToPoint:fromRect:operation:';
-    procedure compositeToPoint_operation_fraction(point: NSPoint; op: NSCompositingOperation; delta: CGFloat); message 'compositeToPoint:operation:fraction:';
-    procedure compositeToPoint_fromRect_operation_fraction(point: NSPoint; rect: NSRect; op: NSCompositingOperation; delta: CGFloat); message 'compositeToPoint:fromRect:operation:fraction:';
     procedure drawAtPoint_fromRect_operation_fraction(point: NSPoint; fromRect: NSRect; op: NSCompositingOperation; delta: CGFloat); message 'drawAtPoint:fromRect:operation:fraction:';
     procedure drawInRect_fromRect_operation_fraction(rect: NSRect; fromRect: NSRect; op: NSCompositingOperation; delta: CGFloat); message 'drawInRect:fromRect:operation:fraction:';
+    procedure drawInRect_fromRect_operation_fraction_respectFlipped_hints(dstSpacePortionRect: NSRect; srcSpacePortionRect: NSRect; op: NSCompositingOperation; requestedAlpha: CGFloat; respectContextIsFlipped: Boolean; hints: NSDictionary); message 'drawInRect:fromRect:operation:fraction:respectFlipped:hints:';
     function drawRepresentation_inRect(imageRep: NSImageRep; rect: NSRect): Boolean; message 'drawRepresentation:inRect:';
     procedure recache; message 'recache';
     function TIFFRepresentation: NSData; message 'TIFFRepresentation';
@@ -189,7 +201,7 @@ var
     procedure removeRepresentation(imageRep: NSImageRep); message 'removeRepresentation:';
     function isValid: Boolean; message 'isValid';
     procedure lockFocus; message 'lockFocus';
-    procedure lockFocusOnRepresentation(imageRepresentation: NSImageRep); message 'lockFocusOnRepresentation:';
+    procedure lockFocusFlipped(flipped: Boolean); message 'lockFocusFlipped:';
     procedure unlockFocus; message 'unlockFocus';
     function bestRepresentationForDevice(deviceDescription: NSDictionary): NSImageRep; message 'bestRepresentationForDevice:';
     procedure setDelegate(anObject: id); message 'setDelegate:';
@@ -201,8 +213,6 @@ var
     class function imageTypes: NSArray; message 'imageTypes';
     class function imageUnfilteredTypes: NSArray; message 'imageUnfilteredTypes';
     class function canInitWithPasteboard(pasteboard: NSPasteboard): Boolean; message 'canInitWithPasteboard:';
-    procedure setFlipped(flag: Boolean); message 'setFlipped:';
-    function isFlipped: Boolean; message 'isFlipped';
     procedure cancelIncrementalLoad; message 'cancelIncrementalLoad';
     procedure setCacheMode(mode: NSImageCacheMode); message 'setCacheMode:';
     function cacheMode: NSImageCacheMode; message 'cacheMode';
@@ -210,7 +220,54 @@ var
     procedure setAlignmentRect(rect: NSRect); message 'setAlignmentRect:';
     function isTemplate: Boolean; message 'isTemplate';
     procedure setTemplate(isTemplate_: Boolean); message 'setTemplate:';
+    function accessibilityDescription: NSString; message 'accessibilityDescription';
+    procedure setAccessibilityDescription(description_: NSString); message 'setAccessibilityDescription:';
+    function initWithCGImage_size(cgImage: CGImageRef; size_: NSSize): id; message 'initWithCGImage:size:';
+    function CGImageForProposedRect_context_hints(proposedDestRect: NSRectPtr; referenceContext: NSGraphicsContext; hints: NSDictionary): CGImageRef; message 'CGImageForProposedRect:context:hints:';
+    function bestRepresentationForRect_context_hints(rect: NSRect; referenceContext: NSGraphicsContext; hints: NSDictionary): NSImageRep; message 'bestRepresentationForRect:context:hints:';
+    function hitTestRect_withImageDestinationRect_context_hints_flipped(testRectDestSpace: NSRect; imageRectDestSpace: NSRect; context: NSGraphicsContext; hints: NSDictionary; flipped: Boolean): Boolean; message 'hitTestRect:withImageDestinationRect:context:hints:flipped:';
   end; external;
 
+{ NSBundleImageExtensionCategory }
+  NSBundleImageExtensionCategory = objccategory(NSBundle)
+    function pathForImageResource(name: NSString): NSString; message 'pathForImageResource:';
+    function URLForImageResource(name: NSString): NSURL; message 'URLForImageResource:';
+  end; external;
+
+{ NSDeprecated_NSImageCategory }
+  NSDeprecated_NSImageCategory = objccategory(NSImage)
+    procedure setFlipped(flag: Boolean); message 'setFlipped:';
+    function isFlipped: Boolean; message 'isFlipped';
+    procedure dissolveToPoint_fraction(point: NSPoint; aFloat: CGFloat); message 'dissolveToPoint:fraction:';
+    procedure dissolveToPoint_fromRect_fraction(point: NSPoint; rect: NSRect; aFloat: CGFloat); message 'dissolveToPoint:fromRect:fraction:';
+    procedure compositeToPoint_operation(point: NSPoint; op: NSCompositingOperation); message 'compositeToPoint:operation:';
+    procedure compositeToPoint_fromRect_operation(point: NSPoint; rect: NSRect; op: NSCompositingOperation); message 'compositeToPoint:fromRect:operation:';
+    procedure compositeToPoint_operation_fraction(point: NSPoint; op: NSCompositingOperation; delta: CGFloat); message 'compositeToPoint:operation:fraction:';
+    procedure compositeToPoint_fromRect_operation_fraction(point: NSPoint; rect: NSRect; op: NSCompositingOperation; delta: CGFloat); message 'compositeToPoint:fromRect:operation:fraction:';
+    procedure lockFocusOnRepresentation(imageRepresentation: NSImageRep); message 'lockFocusOnRepresentation:';
+    procedure setScalesWhenResized(flag: Boolean); message 'setScalesWhenResized:';
+    function scalesWhenResized: Boolean; message 'scalesWhenResized';
+    procedure setDataRetained(flag: Boolean); message 'setDataRetained:';
+    function isDataRetained: Boolean; message 'isDataRetained';
+    procedure setCachedSeparately(flag: Boolean); message 'setCachedSeparately:';
+    function isCachedSeparately: Boolean; message 'isCachedSeparately';
+    procedure setCacheDepthMatchesImageDepth(flag: Boolean); message 'setCacheDepthMatchesImageDepth:';
+    function cacheDepthMatchesImageDepth: Boolean; message 'cacheDepthMatchesImageDepth';
+  end; external name 'NSDeprecated';
+
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSIMAGE_PAS_P}
+{$define NSIMAGE_PAS_P}
+  
+{ NSImageDelegate Protocol }
+  NSImageDelegateProtocol = objcprotocol
+    function imageDidNotDraw_inRect(sender: id; aRect: NSRect): NSImage; message 'imageDidNotDraw:inRect:';
+    procedure image_willLoadRepresentation(image: NSImage; rep: NSImageRep); message 'image:willLoadRepresentation:';
+    procedure image_didLoadRepresentationHeader(image: NSImage; rep: NSImageRep); message 'image:didLoadRepresentationHeader:';
+    procedure image_didLoadPartOfRepresentation_withValidRows(image: NSImage; rep: NSImageRep; rows: NSInteger); message 'image:didLoadPartOfRepresentation:withValidRows:';
+    procedure image_didLoadRepresentation_withStatus(image: NSImage; rep: NSImageRep; status: NSImageLoadStatus); message 'image:didLoadRepresentation:withStatus:';
+  end; external name 'NSImageDelegate';
 {$endif}
 {$endif}

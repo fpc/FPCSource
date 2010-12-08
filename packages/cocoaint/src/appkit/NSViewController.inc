@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSViewController.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSViewController = objcclass;
   NSViewControllerPointer = ^NSViewController;
+  NSViewControllerPtr = NSViewControllerPointer;
 
 {$endif}
 
@@ -43,15 +44,16 @@
 { NSViewController }
   NSViewController = objcclass(NSResponder)
   private
-    __nibName: NSString;
-    __nibBundle: NSBundle;
-    __representedObject: id;
-    __title: NSString;
+    _nibName: NSString;
+    _nibBundle: NSBundle;
+    _representedObject: id;
+    _title: NSString;
     _view: NSView;
-    __topLevelObjects: NSArray;
-    __editors: NSPointerArray;
-    __autounbinder: id;
-        _reserved: array[0..2] of id;
+    _topLevelObjects: NSArray;
+    _editors: NSPointerArray;
+    _autounbinder: id;
+    _designNibBundleIdentifier: NSString;
+        _reserved: array[0..1] of id;
     
   public
     class function alloc: NSViewController; message 'alloc';

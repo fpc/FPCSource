@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSCachedImageRep.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSCachedImageRep = objcclass;
   NSCachedImageRepPointer = ^NSCachedImageRep;
+  NSCachedImageRepPtr = NSCachedImageRepPointer;
 
 {$endif}
 
@@ -43,14 +44,14 @@
 { NSCachedImageRep }
   NSCachedImageRep = objcclass(NSImageRep)
   private
-    __origin: NSPoint;
-    __window: NSWindow;
-    __cache: Pointer; {garbage collector: __strong }
+    _origin: NSPoint;
+    _window: NSWindow;
+    _cache: Pointer; {garbage collector: __strong }
     
   public
     class function alloc: NSCachedImageRep; message 'alloc';
 
-    function initWithWindow_rect(win: NSWindow; rect_: NSRect): id; message 'initWithWindow:rect:';
+    function initWithWindow_rect(win: NSWindow; rect: NSRect): id; message 'initWithWindow:rect:';
     function initWithSize_depth_separate_alpha(size_: NSSize; depth: NSWindowDepth; flag: Boolean; alpha: Boolean): id; message 'initWithSize:depth:separate:alpha:';
     function window: NSWindow; message 'window';
     function rect: NSRect; message 'rect';

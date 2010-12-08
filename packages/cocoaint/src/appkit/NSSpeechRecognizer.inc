@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSpeechRecognizer.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -31,8 +31,10 @@
 {$endif}
 
 {$ifdef FORWARD}
+  NSSpeechRecognizerDelegateProtocol = objcprotocol;
   NSSpeechRecognizer = objcclass;
   NSSpeechRecognizerPointer = ^NSSpeechRecognizer;
+  NSSpeechRecognizerPtr = NSSpeechRecognizerPointer;
 
 {$endif}
 
@@ -43,7 +45,7 @@
 { NSSpeechRecognizer }
   NSSpeechRecognizer = objcclass(NSObject)
   private
-    __privateNSSpeechRecognizerVars: id;
+    _privateNSSpeechRecognizerVars: id;
     
   public
     class function alloc: NSSpeechRecognizer; message 'alloc';
@@ -63,5 +65,15 @@
     procedure setBlocksOtherRecognizers(flag: Boolean); message 'setBlocksOtherRecognizers:';
   end; external;
 
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSSPEECHRECOGNIZER_PAS_P}
+{$define NSSPEECHRECOGNIZER_PAS_P}
+  
+{ NSSpeechRecognizerDelegate Protocol }
+  NSSpeechRecognizerDelegateProtocol = objcprotocol
+    procedure speechRecognizer_didRecognizeCommand(sender: NSSpeechRecognizer; command: id); message 'speechRecognizer:didRecognizeCommand:';
+  end; external name 'NSSpeechRecognizerDelegate';
 {$endif}
 {$endif}

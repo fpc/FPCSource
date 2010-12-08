@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSLayoutManager.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -32,7 +32,9 @@ const
 { Types }
 type
   NSGlyphInscription = NSUInteger;
+  NSGlyphInscriptionPtr = ^NSGlyphInscription;
   NSTypesetterBehavior = NSInteger;
+  NSTypesetterBehaviorPtr = ^NSTypesetterBehavior;
 
 {$endif}
 {$endif}
@@ -59,8 +61,10 @@ type
 {$endif}
 
 {$ifdef FORWARD}
+  NSLayoutManagerDelegateProtocol = objcprotocol;
   NSLayoutManager = objcclass;
   NSLayoutManagerPointer = ^NSLayoutManager;
+  NSLayoutManagerPtr = NSLayoutManagerPointer;
 
 {$endif}
 
@@ -71,25 +75,28 @@ type
 { NSLayoutManager }
   NSLayoutManager = objcclass(NSObject, NSCodingProtocol)
   private
-    __textStorage: NSTextStorage;
-    __glyphGenerator: NSGlyphGenerator;
-    __typesetter: NSTypesetter;
-    __textContainers: NSMutableArray;
-    __containerUsedRects: NSStorage;
-    __glyphs: NSStorage;
-    __containerRuns: NSRunStorage;
-    __fragmentRuns: NSRunStorage;
-    __glyphLocations: NSRunStorage;
-    __glyphRotationRuns: NSRunStorage;
-    __extraLineFragmentRect: NSRect;
-    __extraLineFragmentUsedRect: NSRect;
-    __extraLineFragmentContainer: NSTextContainer;
-    __glyphHoles: NSSortedArray;
-    __layoutHoles: NSSortedArray;
+    _textStorage: NSTextStorage;
+    _glyphGenerator: NSGlyphGenerator;
+    _typesetter: NSTypesetter;
+    _textContainers: NSMutableArray;
+    _containerUsedRects: NSStorage;
+    _glyphs: NSStorage;
+    _containerRuns: NSRunStorage;
+    _fragmentRuns: NSRunStorage;
+    _glyphLocations: NSRunStorage;
+    _glyphRotationRuns: NSRunStorage;
+    _extraLineFragmentRect: NSRect;
+    _extraLineFragmentUsedRect: NSRect;
+    _extraLineFragmentContainer: NSTextContainer;
+    _glyphHoles: NSSortedArray;
+    _layoutHoles: NSSortedArray;
     __lmFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSLayoutManager0: cuint);
+       1: (
         containersAreFull: 0..1;
         glyphsMightDrawOutsideLines: 0..1;
-        backgroundLayoutEnabled: 0..1;
+        _backgroundLayoutEnabled: 0..1;
         resizingInProgress: 0..1;
         allowScreenFonts: 0..1;
         cachedRectArrayInUse: 0..1;
@@ -109,7 +116,7 @@ type
         hasNonGeneratedGlyphData: 0..1;
         loggedBGLayoutException: 0..1;
         isLayoutRequestedFromSubthread: 0..1;
-        defaultAttachmentScaling: 0..((1 shl 2)-1);
+        _defaultAttachmentScaling: 0..((1 shl 2)-1);
         isInUILayoutMode: 0..1;
         seenRightToLeft: 0..1;
         ignoresViewTransformations: 0..1;
@@ -117,34 +124,35 @@ type
         flipsIfNeeded: 0..1;
         allowNonContig: 0..1;
         useNonContig: 0..1;
+      );
       end;
-    __delegate: id;
-    __textViewResizeDisableStack: cushort;
-    __displayInvalidationDisableStack: cushort;
-    __deferredDisplayCharRange: NSRange;
-    __firstTextView: NSTextView;
-    __cachedRectArray: NSRect; {garbage collector: __strong }
-    __cachedRectArrayCapacity: NSUInteger;
-    __glyphBuffer: char; {garbage collector: __strong }
-    __glyphBufferSize: NSUInteger;
-    __cachedLocationNominalGlyphRange: NSRange;
-    __cachedLocationGlyphIndex: NSUInteger;
-    __cachedLocation: NSPoint;
-    __cachedFontCharRange: NSRange;
-    __cachedFont: NSFont;
-    __firstUnlaidGlyphIndex: NSUInteger;
-    __firstUnlaidCharIndex: NSUInteger;
-    __rulerAccView: NSBox;
-    __rulerAccViewAlignmentButtons: id;
-    __rulerAccViewSpacing: id;
-    __rulerAccViewLeftTabWell: NSTabWell;
-    __rulerAccViewRightTabWell: NSTabWell;
-    __rulerAccViewCenterTabWell: NSTabWell;
-    __rulerAccViewDecimalTabWell: NSTabWell;
-    __rulerAccViewStyles: id;
-    __rulerAccViewLists: id;
-    __newlyFilledGlyphRange: NSRange;
-    __extraData: id;
+    _delegate: id;
+    _textViewResizeDisableStack: cushort;
+    _displayInvalidationDisableStack: cushort;
+    _deferredDisplayCharRange: NSRange;
+    _firstTextView: NSTextView;
+    _cachedRectArray: NSRectPtr; {garbage collector: __strong }
+    _cachedRectArrayCapacity: NSUInteger;
+    _glyphBuffer: PChar; {garbage collector: __strong }
+    _glyphBufferSize: NSUInteger;
+    _cachedLocationNominalGlyphRange: NSRange;
+    _cachedLocationGlyphIndex: NSUInteger;
+    _cachedLocation: NSPoint;
+    _cachedFontCharRange: NSRange;
+    _cachedFont: NSFont;
+    _firstUnlaidGlyphIndex: NSUInteger;
+    _firstUnlaidCharIndex: NSUInteger;
+    _rulerAccView: NSBox;
+    _rulerAccViewAlignmentButtons: id;
+    _rulerAccViewSpacing: id;
+    _rulerAccViewLeftTabWell: NSTabWell;
+    _rulerAccViewRightTabWell: NSTabWell;
+    _rulerAccViewCenterTabWell: NSTabWell;
+    _rulerAccViewDecimalTabWell: NSTabWell;
+    _rulerAccViewStyles: id;
+    _rulerAccViewLists: id;
+    _newlyFilledGlyphRange: NSRange;
+    _extraData: id;
     
   public
     class function alloc: NSLayoutManager; message 'alloc';
@@ -196,7 +204,7 @@ type
     procedure ensureLayoutForGlyphRange(glyphRange: NSRange); message 'ensureLayoutForGlyphRange:';
     procedure ensureLayoutForTextContainer(container: NSTextContainer); message 'ensureLayoutForTextContainer:';
     procedure ensureLayoutForBoundingRect_inTextContainer(bounds: NSRect; container: NSTextContainer); message 'ensureLayoutForBoundingRect:inTextContainer:';
-    procedure insertGlyphs_length_forStartingGlyphAtIndex_characterIndex(glyphs: NSGlyphPointer; length: NSUInteger; glyphIndex: NSUInteger; charIndex: NSUInteger); message 'insertGlyphs:length:forStartingGlyphAtIndex:characterIndex:';
+    procedure insertGlyphs_length_forStartingGlyphAtIndex_characterIndex(glyphs: NSGlyphPtr; length: NSUInteger; glyphIndex: NSUInteger; charIndex: NSUInteger); message 'insertGlyphs:length:forStartingGlyphAtIndex:characterIndex:';
     procedure insertGlyph_atGlyphIndex_characterIndex(glyph: NSGlyph; glyphIndex: NSUInteger; charIndex: NSUInteger); message 'insertGlyph:atGlyphIndex:characterIndex:';
     procedure replaceGlyphAtIndex_withGlyph(glyphIndex: NSUInteger; newGlyph: NSGlyph); message 'replaceGlyphAtIndex:withGlyph:';
     procedure deleteGlyphsInRange(glyphRange: NSRange); message 'deleteGlyphsInRange:';
@@ -210,18 +218,18 @@ type
     function characterIndexForGlyphAtIndex(glyphIndex: NSUInteger): NSUInteger; message 'characterIndexForGlyphAtIndex:';
     function glyphIndexForCharacterAtIndex(charIndex: NSUInteger): NSUInteger; message 'glyphIndexForCharacterAtIndex:';
     function intAttribute_forGlyphAtIndex(attributeTag: NSInteger; glyphIndex: NSUInteger): NSInteger; message 'intAttribute:forGlyphAtIndex:';
-    function getGlyphsInRange_glyphs_characterIndexes_glyphInscriptions_elasticBits(glyphRange: NSRange; glyphBuffer: NSGlyphPointer; charIndexBuffer: NSUIntegerPointer; inscribeBuffer: NSGlyphInscriptionPointer; elasticBuffer: pboolean): NSUInteger; message 'getGlyphsInRange:glyphs:characterIndexes:glyphInscriptions:elasticBits:';
-    function getGlyphsInRange_glyphs_characterIndexes_glyphInscriptions_elasticBits_bidiLevels(glyphRange: NSRange; glyphBuffer: NSGlyphPointer; charIndexBuffer: NSUIntegerPointer; inscribeBuffer: NSGlyphInscriptionPointer; elasticBuffer: pboolean; bidiLevelBuffer: Pointer): NSUInteger; message 'getGlyphsInRange:glyphs:characterIndexes:glyphInscriptions:elasticBits:bidiLevels:';
-    function getGlyphs_range(glyphArray: NSGlyphPointer; glyphRange: NSRange): NSUInteger; message 'getGlyphs:range:';
+    function getGlyphsInRange_glyphs_characterIndexes_glyphInscriptions_elasticBits(glyphRange: NSRange; glyphBuffer: NSGlyphPtr; charIndexBuffer: NSUIntegerPtr; inscribeBuffer: NSGlyphInscriptionPtr; elasticBuffer: pboolean): NSUInteger; message 'getGlyphsInRange:glyphs:characterIndexes:glyphInscriptions:elasticBits:';
+    function getGlyphsInRange_glyphs_characterIndexes_glyphInscriptions_elasticBits_bidiLevels(glyphRange: NSRange; glyphBuffer: NSGlyphPtr; charIndexBuffer: NSUIntegerPtr; inscribeBuffer: NSGlyphInscriptionPtr; elasticBuffer: pboolean; bidiLevelBuffer: PByte): NSUInteger; message 'getGlyphsInRange:glyphs:characterIndexes:glyphInscriptions:elasticBits:bidiLevels:';
+    function getGlyphs_range(glyphArray: NSGlyphPtr; glyphRange: NSRange): NSUInteger; message 'getGlyphs:range:';
     procedure setTextContainer_forGlyphRange(container: NSTextContainer; glyphRange: NSRange); message 'setTextContainer:forGlyphRange:';
     procedure setLineFragmentRect_forGlyphRange_usedRect(fragmentRect: NSRect; glyphRange: NSRange; usedRect: NSRect); message 'setLineFragmentRect:forGlyphRange:usedRect:';
     procedure setExtraLineFragmentRect_usedRect_textContainer(fragmentRect: NSRect; usedRect: NSRect; container: NSTextContainer); message 'setExtraLineFragmentRect:usedRect:textContainer:';
     procedure setLocation_forStartOfGlyphRange(location: NSPoint; glyphRange: NSRange); message 'setLocation:forStartOfGlyphRange:';
-    procedure setLocations_startingGlyphIndexes_count_forGlyphRange(locations: NSPointArray; glyphIndexes: NSUIntegerPointer; count: NSUInteger; glyphRange: NSRange); message 'setLocations:startingGlyphIndexes:count:forGlyphRange:';
+    procedure setLocations_startingGlyphIndexes_count_forGlyphRange(locations: NSPointArray; glyphIndexes: NSUIntegerPtr; count: NSUInteger; glyphRange: NSRange); message 'setLocations:startingGlyphIndexes:count:forGlyphRange:';
     procedure setNotShownAttribute_forGlyphAtIndex(flag: Boolean; glyphIndex: NSUInteger); message 'setNotShownAttribute:forGlyphAtIndex:';
     procedure setDrawsOutsideLineFragment_forGlyphAtIndex(flag: Boolean; glyphIndex: NSUInteger); message 'setDrawsOutsideLineFragment:forGlyphAtIndex:';
     procedure setAttachmentSize_forGlyphRange(attachmentSize: NSSize; glyphRange: NSRange); message 'setAttachmentSize:forGlyphRange:';
-    procedure getFirstUnlaidCharacterIndex_glyphIndex(charIndex: NSUIntegerPointer; glyphIndex: NSUIntegerPointer); message 'getFirstUnlaidCharacterIndex:glyphIndex:';
+    procedure getFirstUnlaidCharacterIndex_glyphIndex(charIndex: NSUIntegerPtr; glyphIndex: NSUIntegerPtr); message 'getFirstUnlaidCharacterIndex:glyphIndex:';
     function firstUnlaidCharacterIndex: NSUInteger; message 'firstUnlaidCharacterIndex';
     function firstUnlaidGlyphIndex: NSUInteger; message 'firstUnlaidGlyphIndex';
     function textContainerForGlyphAtIndex_effectiveRange(glyphIndex: NSUInteger; effectiveGlyphRange: NSRangePointer): NSTextContainer; message 'textContainerForGlyphAtIndex:effectiveRange:';
@@ -248,15 +256,16 @@ type
     function characterRangeForGlyphRange_actualGlyphRange(glyphRange: NSRange; actualGlyphRange: NSRangePointer): NSRange; message 'characterRangeForGlyphRange:actualGlyphRange:';
     function glyphRangeForTextContainer(container: NSTextContainer): NSRange; message 'glyphRangeForTextContainer:';
     function rangeOfNominallySpacedGlyphsContainingIndex(glyphIndex: NSUInteger): NSRange; message 'rangeOfNominallySpacedGlyphsContainingIndex:';
-    function rectArrayForCharacterRange_withinSelectedCharacterRange_inTextContainer_rectCount(charRange: NSRange; selCharRange: NSRange; container: NSTextContainer; rectCount: NSUIntegerPointer): NSRectArray; message 'rectArrayForCharacterRange:withinSelectedCharacterRange:inTextContainer:rectCount:';
-    function rectArrayForGlyphRange_withinSelectedGlyphRange_inTextContainer_rectCount(glyphRange: NSRange; selGlyphRange: NSRange; container: NSTextContainer; rectCount: NSUIntegerPointer): NSRectArray; message 'rectArrayForGlyphRange:withinSelectedGlyphRange:inTextContainer:rectCount:';
+    function rectArrayForCharacterRange_withinSelectedCharacterRange_inTextContainer_rectCount(charRange: NSRange; selCharRange: NSRange; container: NSTextContainer; rectCount: NSUIntegerPtr): NSRectArray; message 'rectArrayForCharacterRange:withinSelectedCharacterRange:inTextContainer:rectCount:';
+    function rectArrayForGlyphRange_withinSelectedGlyphRange_inTextContainer_rectCount(glyphRange: NSRange; selGlyphRange: NSRange; container: NSTextContainer; rectCount: NSUIntegerPtr): NSRectArray; message 'rectArrayForGlyphRange:withinSelectedGlyphRange:inTextContainer:rectCount:';
     function boundingRectForGlyphRange_inTextContainer(glyphRange: NSRange; container: NSTextContainer): NSRect; message 'boundingRectForGlyphRange:inTextContainer:';
     function glyphRangeForBoundingRect_inTextContainer(bounds: NSRect; container: NSTextContainer): NSRange; message 'glyphRangeForBoundingRect:inTextContainer:';
     function glyphRangeForBoundingRectWithoutAdditionalLayout_inTextContainer(bounds: NSRect; container: NSTextContainer): NSRange; message 'glyphRangeForBoundingRectWithoutAdditionalLayout:inTextContainer:';
-    function glyphIndexForPoint_inTextContainer_fractionOfDistanceThroughGlyph(point: NSPoint; container: NSTextContainer; partialFraction: psingle): NSUInteger; message 'glyphIndexForPoint:inTextContainer:fractionOfDistanceThroughGlyph:';
+    function glyphIndexForPoint_inTextContainer_fractionOfDistanceThroughGlyph(point: NSPoint; container: NSTextContainer; partialFraction: CGFloatPtr): NSUInteger; message 'glyphIndexForPoint:inTextContainer:fractionOfDistanceThroughGlyph:';
     function glyphIndexForPoint_inTextContainer(point: NSPoint; container: NSTextContainer): NSUInteger; message 'glyphIndexForPoint:inTextContainer:';
     function fractionOfDistanceThroughGlyphForPoint_inTextContainer(point: NSPoint; container: NSTextContainer): CGFloat; message 'fractionOfDistanceThroughGlyphForPoint:inTextContainer:';
-    function getLineFragmentInsertionPointsForCharacterAtIndex_alternatePositions_inDisplayOrder_positions_characterIndexes(charIndex: NSUInteger; aFlag: Boolean; dFlag: Boolean; positions: psingle; charIndexes: NSUIntegerPointer): NSUInteger; message 'getLineFragmentInsertionPointsForCharacterAtIndex:alternatePositions:inDisplayOrder:positions:characterIndexes:';
+    function characterIndexForPoint_inTextContainer_fractionOfDistanceBetweenInsertionPoints(point: NSPoint; container: NSTextContainer; partialFraction: CGFloatPtr): NSUInteger; message 'characterIndexForPoint:inTextContainer:fractionOfDistanceBetweenInsertionPoints:';
+    function getLineFragmentInsertionPointsForCharacterAtIndex_alternatePositions_inDisplayOrder_positions_characterIndexes(charIndex: NSUInteger; aFlag: Boolean; dFlag: Boolean; positions: CGFloatPtr; charIndexes: NSUIntegerPtr): NSUInteger; message 'getLineFragmentInsertionPointsForCharacterAtIndex:alternatePositions:inDisplayOrder:positions:characterIndexes:';
     function temporaryAttributesAtCharacterIndex_effectiveRange(charIndex: NSUInteger; effectiveCharRange: NSRangePointer): NSDictionary; message 'temporaryAttributesAtCharacterIndex:effectiveRange:';
     procedure setTemporaryAttributes_forCharacterRange(attrs: NSDictionary; charRange: NSRange); message 'setTemporaryAttributes:forCharacterRange:';
     procedure addTemporaryAttributes_forCharacterRange(attrs: NSDictionary; charRange: NSRange); message 'addTemporaryAttributes:forCharacterRange:';
@@ -271,7 +280,13 @@ type
     function usesFontLeading: Boolean; message 'usesFontLeading';
     procedure setUsesFontLeading(flag: Boolean); message 'setUsesFontLeading:';
 
-    { Category: NSTextViewSupport }
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+  end; external;
+
+{ NSTextViewSupportCategory }
+  NSTextViewSupportCategory = objccategory(NSLayoutManager)
     function rulerMarkersForTextView_paragraphStyle_ruler(view: NSTextView; style: NSParagraphStyle; ruler: NSRulerView): NSArray; message 'rulerMarkersForTextView:paragraphStyle:ruler:';
     function rulerAccessoryViewForTextView_paragraphStyle_ruler_enabled(view: NSTextView; style: NSParagraphStyle; ruler: NSRulerView; isEnabled: Boolean): NSView; message 'rulerAccessoryViewForTextView:paragraphStyle:ruler:enabled:';
     function layoutManagerOwnsFirstResponderInWindow(window: NSWindow): Boolean; message 'layoutManagerOwnsFirstResponderInWindow:';
@@ -279,13 +294,26 @@ type
     function textViewForBeginningOfSelection: NSTextView; message 'textViewForBeginningOfSelection';
     procedure drawBackgroundForGlyphRange_atPoint(glyphsToShow: NSRange; origin: NSPoint); message 'drawBackgroundForGlyphRange:atPoint:';
     procedure drawGlyphsForGlyphRange_atPoint(glyphsToShow: NSRange; origin: NSPoint); message 'drawGlyphsForGlyphRange:atPoint:';
-    procedure showPackedGlyphs_length_glyphRange_atPoint_font_color_printingAdjustment(glyphs: Pointer; glyphLen: NSUInteger; glyphRange: NSRange; point: NSPoint; font: NSFont; color: NSColor; printingAdjustment: NSSize); message 'showPackedGlyphs:length:glyphRange:atPoint:font:color:printingAdjustment:';
+    procedure showPackedGlyphs_length_glyphRange_atPoint_font_color_printingAdjustment(glyphs: PChar; glyphLen: NSUInteger; glyphRange: NSRange; point: NSPoint; font: NSFont; color: NSColor; printingAdjustment: NSSize); message 'showPackedGlyphs:length:glyphRange:atPoint:font:color:printingAdjustment:';
     procedure showAttachmentCell_inRect_characterIndex(cell: NSCell; rect: NSRect; attachmentIndex: NSUInteger); message 'showAttachmentCell:inRect:characterIndex:';
+    procedure fillBackgroundRectArray_count_forCharacterRange_color(rectArray: NSRectArray; rectCount: NSUInteger; charRange: NSRange; color: NSColor); message 'fillBackgroundRectArray:count:forCharacterRange:color:';
     procedure drawUnderlineForGlyphRange_underlineType_baselineOffset_lineFragmentRect_lineFragmentGlyphRange_containerOrigin(glyphRange: NSRange; underlineVal: NSInteger; baselineOffset: CGFloat; lineRect: NSRect; lineGlyphRange: NSRange; containerOrigin: NSPoint); message 'drawUnderlineForGlyphRange:underlineType:baselineOffset:lineFragmentRect:lineFragmentGlyphRange:containerOrigin:';
     procedure underlineGlyphRange_underlineType_lineFragmentRect_lineFragmentGlyphRange_containerOrigin(glyphRange: NSRange; underlineVal: NSInteger; lineRect: NSRect; lineGlyphRange: NSRange; containerOrigin: NSPoint); message 'underlineGlyphRange:underlineType:lineFragmentRect:lineFragmentGlyphRange:containerOrigin:';
     procedure drawStrikethroughForGlyphRange_strikethroughType_baselineOffset_lineFragmentRect_lineFragmentGlyphRange_containerOrigin(glyphRange: NSRange; strikethroughVal: NSInteger; baselineOffset: CGFloat; lineRect: NSRect; lineGlyphRange: NSRange; containerOrigin: NSPoint); message 'drawStrikethroughForGlyphRange:strikethroughType:baselineOffset:lineFragmentRect:lineFragmentGlyphRange:containerOrigin:';
     procedure strikethroughGlyphRange_strikethroughType_lineFragmentRect_lineFragmentGlyphRange_containerOrigin(glyphRange: NSRange; strikethroughVal: NSInteger; lineRect: NSRect; lineGlyphRange: NSRange; containerOrigin: NSPoint); message 'strikethroughGlyphRange:strikethroughType:lineFragmentRect:lineFragmentGlyphRange:containerOrigin:';
   end; external;
 
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSLAYOUTMANAGER_PAS_P}
+{$define NSLAYOUTMANAGER_PAS_P}
+  
+{ NSLayoutManagerDelegate Protocol }
+  NSLayoutManagerDelegateProtocol = objcprotocol
+    procedure layoutManagerDidInvalidateLayout(sender: NSLayoutManager); message 'layoutManagerDidInvalidateLayout:';
+    procedure layoutManager_didCompleteLayoutForTextContainer_atEnd(layoutManager: NSLayoutManager; textContainer: NSTextContainer; layoutFinishedFlag: Boolean); message 'layoutManager:didCompleteLayoutForTextContainer:atEnd:';
+    function layoutManager_shouldUseTemporaryAttributes_forDrawingToScreen_atCharacterIndex_effectiveRange(layoutManager: NSLayoutManager; attrs: NSDictionary; toScreen: Boolean; charIndex: NSUInteger; effectiveCharRange: NSRangePointer): NSDictionary; message 'layoutManager:shouldUseTemporaryAttributes:forDrawingToScreen:atCharacterIndex:effectiveRange:';
+  end; external name 'NSLayoutManagerDelegate';
 {$endif}
 {$endif}

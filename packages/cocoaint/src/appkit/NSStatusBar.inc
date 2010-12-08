@@ -1,10 +1,15 @@
 { Parsed from Appkit.framework NSStatusBar.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
 {$ifndef NSSTATUSBAR_PAS_T}
 {$define NSSTATUSBAR_PAS_T}
+
+{ Defines }
+const
+  NSVariableStatusItemLength = -1;
+  NSSquareStatusItemLength = -2;
 
 {$endif}
 {$endif}
@@ -33,6 +38,7 @@
 {$ifdef FORWARD}
   NSStatusBar = objcclass;
   NSStatusBarPointer = ^NSStatusBar;
+  NSStatusBarPtr = NSStatusBarPointer;
 
 {$endif}
 
@@ -43,10 +49,10 @@
 { NSStatusBar }
   NSStatusBar = objcclass(NSObject)
   private
-    __actions: NSMutableArray;
-    __fReserved1: Pointer;
-    __fReserved2: Pointer;
-    __fReserved3: Pointer;
+    _items: id;
+    _fReserved1: Pointer;
+    _fReserved2: Pointer;
+    _registeredForNote: NSInteger;
     
   public
     class function alloc: NSStatusBar; message 'alloc';

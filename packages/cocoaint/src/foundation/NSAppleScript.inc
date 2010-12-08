@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSAppleScript.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,11 +29,11 @@
 
 { External string constants }
 var
-  NSAppleScriptErrorMessage: NSString; external name '_NSAppleScriptErrorMessage';
-  NSAppleScriptErrorNumber: NSString; external name '_NSAppleScriptErrorNumber';
-  NSAppleScriptErrorAppName: NSString; external name '_NSAppleScriptErrorAppName';
-  NSAppleScriptErrorBriefMessage: NSString; external name '_NSAppleScriptErrorBriefMessage';
-  NSAppleScriptErrorRange: NSString; external name '_NSAppleScriptErrorRange';
+  NSAppleScriptErrorMessage: NSString; cvar; external;
+  NSAppleScriptErrorNumber: NSString; cvar; external;
+  NSAppleScriptErrorAppName: NSString; cvar; external;
+  NSAppleScriptErrorBriefMessage: NSString; cvar; external;
+  NSAppleScriptErrorRange: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -41,6 +41,7 @@ var
 {$ifdef FORWARD}
   NSAppleScript = objcclass;
   NSAppleScriptPointer = ^NSAppleScript;
+  NSAppleScriptPtr = NSAppleScriptPointer;
 
 {$endif}
 
@@ -51,10 +52,10 @@ var
 { NSAppleScript }
   NSAppleScript = objcclass(NSObject, NSCopyingProtocol)
   private
-    __source: NSString;
-    __compiledScriptID: cuint;
-    __reserved1: Pointer;
-    __reserved2: Pointer;
+    _source: NSString;
+    _compiledScriptID: cuint;
+    _reserved1: Pointer;
+    _reserved2: Pointer;
     
   public
     class function alloc: NSAppleScript; message 'alloc';
@@ -67,8 +68,8 @@ var
     function executeAndReturnError(errorInfo: NSDictionaryPointer): NSAppleEventDescriptor; message 'executeAndReturnError:';
     function executeAppleEvent_error(event: NSAppleEventDescriptor; errorInfo: NSDictionaryPointer): NSAppleEventDescriptor; message 'executeAppleEvent:error:';
 
-    { Category: NSExtensions }
-    function richTextSource: NSAttributedString; message 'richTextSource';
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
   end; external;
 
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSUserDefaultsController.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSUserDefaultsController = objcclass;
   NSUserDefaultsControllerPointer = ^NSUserDefaultsController;
+  NSUserDefaultsControllerPtr = NSUserDefaultsControllerPointer;
 
 {$endif}
 
@@ -43,15 +44,19 @@
 { NSUserDefaultsController }
   NSUserDefaultsController = objcclass(NSController)
   private
-    __reserved3: Pointer;
-    __reserved4: Pointer;
-    __defaults: NSUserDefaults;
-    __valueBuffer: NSMutableDictionary;
-    __initialValues: NSDictionary;
+    _reserved3: Pointer;
+    _reserved4: Pointer;
+    _defaults: NSUserDefaults;
+    _valueBuffer: NSMutableDictionary;
+    _initialValues: NSDictionary;
     __userDefaultsControllerFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSUserDefaultsController0: cuint);
+       1: (
         _sharedInstance: 0..1;
         _appliesImmediately: 0..1;
         _reservedUserDefaultsController: 0..((1 shl 30)-1);
+      );
       end;
     
   public

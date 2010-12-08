@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSXMLElement.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSXMLElement = objcclass;
   NSXMLElementPointer = ^NSXMLElement;
+  NSXMLElementPtr = NSXMLElementPointer;
 
 {$endif}
 
@@ -43,14 +44,14 @@
 { NSXMLElement }
   NSXMLElement = objcclass(NSXMLNode)
   private
-    __name: NSString;
-    __attributes: NSMutableArray;
-    __namespaces: NSMutableArray;
-    __children: NSArray;
-    __childrenHaveMutated: Boolean;
-        _padding3: array[0..2] of byte;
-    __URI: NSString;
-    __prefixIndex: NSInteger;
+    _name: NSString;
+    _attributes: NSMutableArray;
+    _namespaces: NSMutableArray;
+    _children: NSArray;
+    _childrenHaveMutated: Boolean;
+        _padding3: array[0..2] of cuint8;
+    _URI: NSString;
+    _prefixIndex: NSInteger;
     
   public
     class function alloc: NSXMLElement; message 'alloc';

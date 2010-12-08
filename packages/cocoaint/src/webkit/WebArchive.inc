@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebArchive.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,7 +29,7 @@
 
 { External string constants }
 var
-  WebArchivePboardType: NSString; external name '_WebArchivePboardType';
+  WebArchivePboardType: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -37,6 +37,7 @@ var
 {$ifdef FORWARD}
   WebArchive = objcclass;
   WebArchivePointer = ^WebArchive;
+  WebArchivePtr = WebArchivePointer;
 
 {$endif}
 
@@ -47,7 +48,7 @@ var
 { WebArchive }
   WebArchive = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
-    __private: WebArchivePrivate;
+    _private: WebArchivePrivate;
     
   public
     class function alloc: WebArchive; message 'alloc';
@@ -58,6 +59,11 @@ var
     function subresources: NSArray; message 'subresources';
     function subframeArchives: NSArray; message 'subframeArchives';
     function data: NSData; message 'data';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+    function copyWithZone(zone_: NSZonePtr): id;
   end; external;
 
 {$endif}

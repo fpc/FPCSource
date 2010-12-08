@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSAppleEventDescriptor.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSAppleEventDescriptor = objcclass;
   NSAppleEventDescriptorPointer = ^NSAppleEventDescriptor;
+  NSAppleEventDescriptorPtr = NSAppleEventDescriptorPointer;
 
 {$endif}
 
@@ -43,8 +44,8 @@
 { NSAppleEventDescriptor }
   NSAppleEventDescriptor = objcclass(NSObject, NSCopyingProtocol)
   private
-    __desc: AEDesc;
-    __hasValidDesc: Boolean;
+    _desc: AEDesc;
+    _hasValidDesc: Boolean;
         _padding: array[0..2] of char;
     
   public
@@ -53,7 +54,7 @@
     class function nullDescriptor: NSAppleEventDescriptor; message 'nullDescriptor';
     class function descriptorWithDescriptorType_bytes_length(descriptorType_: DescType; bytes: Pointer; byteCount: NSUInteger): NSAppleEventDescriptor; message 'descriptorWithDescriptorType:bytes:length:';
     class function descriptorWithDescriptorType_data(descriptorType_: DescType; data_: NSData): NSAppleEventDescriptor; message 'descriptorWithDescriptorType:data:';
-    class function descriptorWithBoolean(boolean: Boolean): NSAppleEventDescriptor; message 'descriptorWithBoolean:';
+    class function descriptorWithBoolean(boolean_: Boolean): NSAppleEventDescriptor; message 'descriptorWithBoolean:';
     class function descriptorWithEnumCode(enumerator: OSType): NSAppleEventDescriptor; message 'descriptorWithEnumCode:';
     class function descriptorWithInt32(signedInt: SInt32): NSAppleEventDescriptor; message 'descriptorWithInt32:';
     class function descriptorWithTypeCode(typeCode: OSType): NSAppleEventDescriptor; message 'descriptorWithTypeCode:';
@@ -61,13 +62,13 @@
     class function appleEventWithEventClass_eventID_targetDescriptor_returnID_transactionID(eventClass_: AEEventClass; eventID_: AEEventID; targetDescriptor: NSAppleEventDescriptor; returnID_: AEReturnID; transactionID_: AETransactionID): NSAppleEventDescriptor; message 'appleEventWithEventClass:eventID:targetDescriptor:returnID:transactionID:';
     class function listDescriptor: NSAppleEventDescriptor; message 'listDescriptor';
     class function recordDescriptor: NSAppleEventDescriptor; message 'recordDescriptor';
-    function initWithAEDescNoCopy(aeDesc_: aeDesc_Pointer): id; message 'initWithAEDescNoCopy:';
+    function initWithAEDescNoCopy(aeDesc_: AEDescPtr): id; message 'initWithAEDescNoCopy:';
     function initWithDescriptorType_bytes_length(descriptorType_: DescType; bytes: Pointer; byteCount: NSUInteger): id; message 'initWithDescriptorType:bytes:length:';
     function initWithDescriptorType_data(descriptorType_: DescType; data_: NSData): id; message 'initWithDescriptorType:data:';
     function initWithEventClass_eventID_targetDescriptor_returnID_transactionID(eventClass_: AEEventClass; eventID_: AEEventID; targetDescriptor: NSAppleEventDescriptor; returnID_: AEReturnID; transactionID_: AETransactionID): id; message 'initWithEventClass:eventID:targetDescriptor:returnID:transactionID:';
     function initListDescriptor: id; message 'initListDescriptor';
     function initRecordDescriptor: id; message 'initRecordDescriptor';
-    function aeDesc: AEDesc; message 'aeDesc';
+    function aeDesc: AEDescPtr; message 'aeDesc';
     function descriptorType: DescType; message 'descriptorType';
     function data: NSData; message 'data';
     function booleanValue: Boolean; message 'booleanValue';
@@ -94,6 +95,9 @@
     procedure removeDescriptorWithKeyword(keyword: AEKeyword); message 'removeDescriptorWithKeyword:';
     function keywordForDescriptorAtIndex(index: NSInteger): AEKeyword; message 'keywordForDescriptorAtIndex:';
     function coerceToDescriptorType(descriptorType_: DescType): NSAppleEventDescriptor; message 'coerceToDescriptorType:';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
   end; external;
 
 {$endif}

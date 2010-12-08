@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSParagraphStyle.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -25,7 +25,9 @@ const
 { Types }
 type
   NSTextTabType = NSUInteger;
+  NSTextTabTypePtr = ^NSTextTabType;
   NSLineBreakMode = NSUInteger;
+  NSLineBreakModePtr = ^NSLineBreakMode;
 
 {$endif}
 {$endif}
@@ -50,7 +52,7 @@ type
 
 { External string constants }
 var
-  NSTabColumnTerminatorsAttributeName: NSString; external name '_NSTabColumnTerminatorsAttributeName';
+  NSTabColumnTerminatorsAttributeName: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -58,10 +60,13 @@ var
 {$ifdef FORWARD}
   NSTextTab = objcclass;
   NSTextTabPointer = ^NSTextTab;
+  NSTextTabPtr = NSTextTabPointer;
   NSParagraphStyle = objcclass;
   NSParagraphStylePointer = ^NSParagraphStyle;
+  NSParagraphStylePtr = NSParagraphStylePointer;
   NSMutableParagraphStyle = objcclass;
   NSMutableParagraphStylePointer = ^NSMutableParagraphStyle;
+  NSMutableParagraphStylePtr = NSMutableParagraphStylePointer;
 
 {$endif}
 
@@ -73,15 +78,19 @@ var
   NSTextTab = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     __flags: bitpacked record
-        alignment: 0..((1 shl 4)-1);
+      case byte of
+       0: (_anonbitfield_NSParagraphStyle1: NSTextAlignment);
+       1: (
+        _alignment: 0..((1 shl 4)-1);
         refCount: 0..((1 shl 24)-1);
         unused: 0..((1 shl 4)-1);
         {$ifdef cpu64}
-        int: 0..((1 shl 32)-1);
+        _anonbitfield_NSParagraphStyle0: 0..((1 shl 32)-1);
         {$endif}
+      );
       end;
-    __location: CGFloat;
-    __reserved: id;
+    _location: CGFloat;
+    _reserved: id;
     
   public
     class function alloc: NSTextTab; message 'alloc';
@@ -92,33 +101,42 @@ var
     function initWithType_location(type_: NSTextTabType; loc: CGFloat): id; message 'initWithType:location:';
     function location: CGFloat; message 'location';
     function tabStopType: NSTextTabType; message 'tabStopType';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 { NSParagraphStyle }
   NSParagraphStyle = objcclass(NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol)
   private
-    __lineSpacing: CGFloat;
-    __paragraphSpacing: CGFloat;
-    __headIndent: CGFloat;
-    __tailIndent: CGFloat;
-    __firstLineHeadIndent: CGFloat;
-    __minimumLineHeight: CGFloat;
-    __maximumLineHeight: CGFloat;
-    __tabStops: NSArray;
+    _lineSpacing: CGFloat;
+    _paragraphSpacing: CGFloat;
+    _headIndent: CGFloat;
+    _tailIndent: CGFloat;
+    _firstLineHeadIndent: CGFloat;
+    _minimumLineHeight: CGFloat;
+    _maximumLineHeight: CGFloat;
+    _tabStops: NSArray;
     __flags: bitpacked record
-        alignment: 0..((1 shl 4)-1);
-        lineBreakMode: 0..((1 shl 4)-1);
+      case byte of
+       0: (_anonbitfield_NSParagraphStyle3: NSTextAlignment);
+       1: (
+        _alignment: 0..((1 shl 4)-1);
+        _lineBreakMode: 0..((1 shl 4)-1);
         tabStopsIsMutable: 0..1;
         isNaturalDirection: 0..1;
         rightToLeftDirection: 0..1;
         fixedMultiple: 0..((1 shl 2)-1);
         refCount: 0..((1 shl 19)-1);
         {$ifdef cpu64}
-        int: 0..((1 shl 32)-1);
+        _anonbitfield_NSParagraphStyle2: 0..((1 shl 32)-1);
         {$endif}
+      );
       end;
-    __defaultTabInterval: CGFloat;
-    __extraData: id;
+    _defaultTabInterval: CGFloat;
+    _extraData: id;
     
   public
     class function alloc: NSParagraphStyle; message 'alloc';
@@ -144,6 +162,12 @@ var
     function hyphenationFactor: single; message 'hyphenationFactor';
     function tighteningFactorForTruncation: single; message 'tighteningFactorForTruncation';
     function headerLevel: NSInteger; message 'headerLevel';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    function mutableCopyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 { NSMutableParagraphStyle }

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPrintInfo.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -20,7 +20,9 @@ const
 { Types }
 type
   NSPrintingOrientation = NSUInteger;
+  NSPrintingOrientationPtr = ^NSPrintingOrientation;
   NSPrintingPaginationMode = NSUInteger;
+  NSPrintingPaginationModePtr = ^NSPrintingPaginationMode;
 
 {$endif}
 {$endif}
@@ -45,53 +47,46 @@ type
 
 { External string constants }
 var
-  NSPrintSpoolJob: NSString; external name '_NSPrintSpoolJob';
-  NSPrintPreviewJob: NSString; external name '_NSPrintPreviewJob';
-  NSPrintSaveJob: NSString; external name '_NSPrintSaveJob';
-  NSPrintCancelJob: NSString; external name '_NSPrintCancelJob';
-  NSPrintPaperName: NSString; external name '_NSPrintPaperName';
-  NSPrintPaperSize: NSString; external name '_NSPrintPaperSize';
-  NSPrintOrientation: NSString; external name '_NSPrintOrientation';
-  NSPrintScalingFactor: NSString; external name '_NSPrintScalingFactor';
-  NSPrintLeftMargin: NSString; external name '_NSPrintLeftMargin';
-  NSPrintRightMargin: NSString; external name '_NSPrintRightMargin';
-  NSPrintTopMargin: NSString; external name '_NSPrintTopMargin';
-  NSPrintBottomMargin: NSString; external name '_NSPrintBottomMargin';
-  NSPrintHorizontallyCentered: NSString; external name '_NSPrintHorizontallyCentered';
-  NSPrintVerticallyCentered: NSString; external name '_NSPrintVerticallyCentered';
-  NSPrintHorizontalPagination: NSString; external name '_NSPrintHorizontalPagination';
-  NSPrintVerticalPagination: NSString; external name '_NSPrintVerticalPagination';
-  NSPrintPrinter: NSString; external name '_NSPrintPrinter';
-  NSPrintCopies: NSString; external name '_NSPrintCopies';
-  NSPrintAllPages: NSString; external name '_NSPrintAllPages';
-  NSPrintFirstPage: NSString; external name '_NSPrintFirstPage';
-  NSPrintLastPage: NSString; external name '_NSPrintLastPage';
-  NSPrintMustCollate: NSString; external name '_NSPrintMustCollate';
-  NSPrintReversePageOrder: NSString; external name '_NSPrintReversePageOrder';
-  NSPrintJobDisposition: NSString; external name '_NSPrintJobDisposition';
-  NSPrintSavePath: NSString; external name '_NSPrintSavePath';
-  NSPrintPagesAcross: NSString; external name '_NSPrintPagesAcross';
-  NSPrintPagesDown: NSString; external name '_NSPrintPagesDown';
-  NSPrintTime: NSString; external name '_NSPrintTime';
-  NSPrintDetailedErrorReporting: NSString; external name '_NSPrintDetailedErrorReporting';
-  NSPrintFaxNumber: NSString; external name '_NSPrintFaxNumber';
-  NSPrintPrinterName: NSString; external name '_NSPrintPrinterName';
-  NSPrintHeaderAndFooter: NSString; external name '_NSPrintHeaderAndFooter';
-  NSPrintFormName: NSString; external name '_NSPrintFormName';
-  NSPrintJobFeatures: NSString; external name '_NSPrintJobFeatures';
-  NSPrintManualFeed: NSString; external name '_NSPrintManualFeed';
-  NSPrintPagesPerSheet: NSString; external name '_NSPrintPagesPerSheet';
-  NSPrintPaperFeed: NSString; external name '_NSPrintPaperFeed';
-  NSPrintFaxCoverSheetName: NSString; external name '_NSPrintFaxCoverSheetName';
-  NSPrintFaxHighResolution: NSString; external name '_NSPrintFaxHighResolution';
-  NSPrintFaxModem: NSString; external name '_NSPrintFaxModem';
-  NSPrintFaxReceiverNames: NSString; external name '_NSPrintFaxReceiverNames';
-  NSPrintFaxReceiverNumbers: NSString; external name '_NSPrintFaxReceiverNumbers';
-  NSPrintFaxReturnReceipt: NSString; external name '_NSPrintFaxReturnReceipt';
-  NSPrintFaxSendTime: NSString; external name '_NSPrintFaxSendTime';
-  NSPrintFaxTrimPageEnds: NSString; external name '_NSPrintFaxTrimPageEnds';
-  NSPrintFaxUseCoverSheet: NSString; external name '_NSPrintFaxUseCoverSheet';
-  NSPrintFaxJob: NSString; external name '_NSPrintFaxJob';
+  NSPrintSpoolJob: NSString; cvar; external;
+  NSPrintPreviewJob: NSString; cvar; external;
+  NSPrintSaveJob: NSString; cvar; external;
+  NSPrintCancelJob: NSString; cvar; external;
+  NSPrintPaperName: NSString; cvar; external;
+  NSPrintPaperSize: NSString; cvar; external;
+  NSPrintOrientation: NSString; cvar; external;
+  NSPrintScalingFactor: NSString; cvar; external;
+  NSPrintLeftMargin: NSString; cvar; external;
+  NSPrintRightMargin: NSString; cvar; external;
+  NSPrintTopMargin: NSString; cvar; external;
+  NSPrintBottomMargin: NSString; cvar; external;
+  NSPrintHorizontallyCentered: NSString; cvar; external;
+  NSPrintVerticallyCentered: NSString; cvar; external;
+  NSPrintHorizontalPagination: NSString; cvar; external;
+  NSPrintVerticalPagination: NSString; cvar; external;
+  NSPrintPrinter: NSString; cvar; external;
+  NSPrintCopies: NSString; cvar; external;
+  NSPrintAllPages: NSString; cvar; external;
+  NSPrintFirstPage: NSString; cvar; external;
+  NSPrintLastPage: NSString; cvar; external;
+  NSPrintMustCollate: NSString; cvar; external;
+  NSPrintReversePageOrder: NSString; cvar; external;
+  NSPrintJobDisposition: NSString; cvar; external;
+  NSPrintPagesAcross: NSString; cvar; external;
+  NSPrintPagesDown: NSString; cvar; external;
+  NSPrintTime: NSString; cvar; external;
+  NSPrintDetailedErrorReporting: NSString; cvar; external;
+  NSPrintFaxNumber: NSString; cvar; external;
+  NSPrintPrinterName: NSString; cvar; external;
+  NSPrintSelectionOnly: NSString; cvar; external;
+  NSPrintJobSavingURL: NSString; cvar; external;
+  NSPrintJobSavingFileNameExtensionHidden: NSString; cvar; external;
+  NSPrintHeaderAndFooter: NSString; cvar; external;
+  NSPrintFormName: NSString deprecated 'in Mac OS X 10.2 and later'; cvar; external;
+  NSPrintJobFeatures: NSString deprecated 'in Mac OS X 10.2 and later'; cvar; external;
+  NSPrintManualFeed: NSString deprecated 'in Mac OS X 10.2 and later'; cvar; external;
+  NSPrintPagesPerSheet: NSString deprecated 'in Mac OS X 10.2 and later'; cvar; external;
+  NSPrintPaperFeed: NSString deprecated 'in Mac OS X 10.2 and later'; cvar; external;
+  NSPrintSavePath: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -99,6 +94,7 @@ var
 {$ifdef FORWARD}
   NSPrintInfo = objcclass;
   NSPrintInfoPointer = ^NSPrintInfo;
+  NSPrintInfoPtr = NSPrintInfoPointer;
 
 {$endif}
 
@@ -109,8 +105,8 @@ var
 { NSPrintInfo }
   NSPrintInfo = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __attributes: NSMutableDictionary;
-    __moreVars: id;
+    _attributes: NSMutableDictionary;
+    _moreVars: id;
     
   public
     class function alloc: NSPrintInfo; message 'alloc';
@@ -122,9 +118,11 @@ var
     procedure setPaperName(name: NSString); message 'setPaperName:';
     procedure setPaperSize(size: NSSize); message 'setPaperSize:';
     procedure setOrientation(orientation_: NSPrintingOrientation); message 'setOrientation:';
+    procedure setScalingFactor(scalingFactor: CGFloat); message 'setScalingFactor:';
     function paperName: NSString; message 'paperName';
     function paperSize: NSSize; message 'paperSize';
     function orientation: NSPrintingOrientation; message 'orientation';
+    function scalingFactor: CGFloat; message 'scalingFactor';
     procedure setLeftMargin(margin: CGFloat); message 'setLeftMargin:';
     procedure setRightMargin(margin: CGFloat); message 'setRightMargin:';
     procedure setTopMargin(margin: CGFloat); message 'setTopMargin:';
@@ -155,11 +153,20 @@ var
     function PMPrintSettings: Pointer; message 'PMPrintSettings';
     procedure updateFromPMPageFormat; message 'updateFromPMPageFormat';
     procedure updateFromPMPrintSettings; message 'updateFromPMPrintSettings';
+    procedure setSelectionOnly(selectionOnly: Boolean); message 'setSelectionOnly:';
+    function isSelectionOnly: Boolean; message 'isSelectionOnly';
 
-    { Category: NSDeprecated }
-    class procedure setDefaultPrinter(printer_: NSPrinter); message 'setDefaultPrinter:';
-    class function sizeForPaperName(name: NSString): NSSize; message 'sizeForPaperName:';
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
+
+{ NSDeprecated_NSPrintInfoCategory }
+  NSDeprecated_NSPrintInfoCategory = objccategory(NSPrintInfo)
+    class procedure setDefaultPrinter(printer_: NSPrinter); message 'setDefaultPrinter:'; deprecated 'in Mac OS X 10.2 and later';
+    class function sizeForPaperName(name: NSString): NSSize; message 'sizeForPaperName:'; deprecated 'in Mac OS X 10.2 and later';
+  end; external name 'NSDeprecated';
 
 {$endif}
 {$endif}

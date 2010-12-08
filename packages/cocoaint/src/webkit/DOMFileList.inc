@@ -1,0 +1,55 @@
+{ Parsed from Webkit.framework DOMFileList.h }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+
+
+{$ifdef TYPES}
+{$ifndef DOMFILELIST_PAS_T}
+{$define DOMFILELIST_PAS_T}
+
+{$endif}
+{$endif}
+
+{$ifdef RECORDS}
+{$ifndef DOMFILELIST_PAS_R}
+{$define DOMFILELIST_PAS_R}
+
+{$endif}
+{$endif}
+
+{$ifdef FUNCTIONS}
+{$ifndef DOMFILELIST_PAS_F}
+{$define DOMFILELIST_PAS_F}
+
+{$endif}
+{$endif}
+
+{$ifdef EXTERNAL_SYMBOLS}
+{$ifndef DOMFILELIST_PAS_S}
+{$define DOMFILELIST_PAS_S}
+
+{$endif}
+{$endif}
+
+{$ifdef FORWARD}
+  DOMFileList = objcclass;
+  DOMFileListPointer = ^DOMFileList;
+  DOMFileListPtr = DOMFileListPointer;
+
+{$endif}
+
+{$ifdef CLASSES}
+{$ifndef DOMFILELIST_PAS_C}
+{$define DOMFILELIST_PAS_C}
+
+{ DOMFileList }
+  DOMFileList = objcclass(DOMObject)
+    
+  public
+    class function alloc: DOMFileList; message 'alloc';
+
+    function length: cuint; message 'length';
+    function item(index: cuint): DOMFile; message 'item:';
+  end; external;
+
+{$endif}
+{$endif}

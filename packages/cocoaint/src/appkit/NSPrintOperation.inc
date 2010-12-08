@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPrintOperation.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -17,6 +17,7 @@ const
 { Types }
 type
   NSPrintingPageOrder = NSInteger;
+  NSPrintingPageOrderPtr = ^NSPrintingPageOrder;
 
 {$endif}
 {$endif}
@@ -41,7 +42,7 @@ type
 
 { External string constants }
 var
-  NSPrintOperationExistsException: NSString; external name '_NSPrintOperationExistsException';
+  NSPrintOperationExistsException: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -49,6 +50,7 @@ var
 {$ifdef FORWARD}
   NSPrintOperation = objcclass;
   NSPrintOperationPointer = ^NSPrintOperation;
+  NSPrintOperationPtr = NSPrintOperationPointer;
 
 {$endif}
 
@@ -97,15 +99,17 @@ var
     procedure destroyContext; message 'destroyContext';
     function deliverResult: Boolean; message 'deliverResult';
     procedure cleanUpOperation; message 'cleanUpOperation';
+  end; external;
 
-    { Category: NSDeprecated }
-    procedure setAccessoryView(view_: NSView); message 'setAccessoryView:';
-    function accessoryView: NSView; message 'accessoryView';
+{ NSDeprecated_NSPrintOperationCategory }
+  NSDeprecated_NSPrintOperationCategory = objccategory(NSPrintOperation)
+    procedure setAccessoryView(view_: NSView); message 'setAccessoryView:'; deprecated 'in Mac OS X 10.5 and later';
+    function accessoryView: NSView; message 'accessoryView'; deprecated 'in Mac OS X 10.5 and later';
     procedure setJobStyleHint(hint: NSString); message 'setJobStyleHint:';
     function jobStyleHint: NSString; message 'jobStyleHint';
-    procedure setShowPanels(flag: Boolean); message 'setShowPanels:';
-    function showPanels: Boolean; message 'showPanels';
-  end; external;
+    procedure setShowPanels(flag: Boolean); message 'setShowPanels:'; deprecated 'in Mac OS X 10.4 and later';
+    function showPanels: Boolean; message 'showPanels'; deprecated 'in Mac OS X 10.4 and later';
+  end; external name 'NSDeprecated';
 
 {$endif}
 {$endif}

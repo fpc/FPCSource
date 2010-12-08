@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSEntityDescription.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSEntityDescription = objcclass;
   NSEntityDescriptionPointer = ^NSEntityDescription;
+  NSEntityDescriptionPtr = NSEntityDescriptionPointer;
 
 {$endif}
 
@@ -41,35 +42,41 @@
 {$define NSENTITYDESCRIPTION_PAS_C}
 
 { NSEntityDescription }
-  NSEntityDescription = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol{, NSFastEnumerationProtocol})
+  NSEntityDescription = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol, NSFastEnumerationProtocol)
   private
-    __cd_rc: longint;
-    __reserved1: id;
-    __versionHashModifier: NSString;
-    __versionHash: NSData;
-    __model: NSManagedObjectModel; {garbage collector: __weak }
-    __classNameForEntity: NSString;
-    __instanceClass: Pobjc_class;
-    __name: NSString;
-    __rootentity: NSEntityDescription; {garbage collector: __weak }
-    __superentity: NSEntityDescription; {garbage collector: __weak }
-    __subentities: NSMutableDictionary;
-    __properties: NSMutableDictionary;
-    __propertyMapping: id;
-    __propertyRanges: NSRange; {garbage collector: __strong }
+    _cd_rc: cint32;
+    _reserved1: id;
+    _versionHashModifier: NSString;
+    _versionHash: NSData;
+    _model: NSManagedObjectModel; {garbage collector: __weak }
+    _classNameForEntity: NSString;
+    _instanceClass: Pobjc_class;
+    _name: NSString;
+    _rootentity: NSEntityDescription; {garbage collector: __weak }
+    _superentity: NSEntityDescription; {garbage collector: __weak }
+    _subentities: NSMutableDictionary;
+    _properties: NSMutableDictionary;
+    _propertyMapping: id;
+    _propertyRanges: NSRangePtr; {garbage collector: __strong }
     __entityDescriptionFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSEntityDescription0: cuint);
+       1: (
         _isAbstract: 0..1;
         _shouldValidateOnSave: 0..1;
         _isImmutable: 0..1;
         _isFlattened: 0..1;
         _skipValidation: 0..1;
-        _reservedEntityDescription: 0..((1 shl 27)-1);
+        _hasPropertiesIndexedBySpotlight: 0..1;
+        _hasPropertiesStoredInTruthFile: 0..1;
+        _reservedEntityDescription: 0..((1 shl 25)-1);
+      );
       end;
-    __mappings: NSMutableDictionary;
-    __userInfo: NSMutableDictionary;
-    __flattenedSubentities: id;
-    __kvcPropertyAccessors: id;
-    __modelsReferenceIDForEntity: clong;
+    _extraIvars: Pointer; {garbage collector: __strong }
+    _userInfo: NSMutableDictionary;
+    _flattenedSubentities: id;
+    _kvcPropertyAccessors: idPtrPtr;
+    _modelsReferenceIDForEntity: clong;
     
   public
     class function alloc: NSEntityDescription; message 'alloc';
@@ -99,6 +106,14 @@
     function versionHash: NSData; message 'versionHash';
     function versionHashModifier: NSString; message 'versionHashModifier';
     procedure setVersionHashModifier(modifierString: NSString); message 'setVersionHashModifier:';
+    function renamingIdentifier: NSString; message 'renamingIdentifier';
+    procedure setRenamingIdentifier(value: NSString); message 'setRenamingIdentifier:';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+    function copyWithZone(zone_: NSZonePtr): id;
+    function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePtr; stackbuf: idPtr; len: NSUInteger): NSUInteger;
   end; external;
 
 {$endif}

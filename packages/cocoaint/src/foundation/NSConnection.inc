@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSConnection.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,19 +29,22 @@
 
 { External string constants }
 var
-  NSConnectionReplyMode: NSString; external name '_NSConnectionReplyMode';
-  NSConnectionDidDieNotification: NSString; external name '_NSConnectionDidDieNotification';
-  NSFailedAuthenticationException: NSString; external name '_NSFailedAuthenticationException';
-  NSConnectionDidInitializeNotification: NSString; external name '_NSConnectionDidInitializeNotification';
+  NSConnectionReplyMode: NSString; cvar; external;
+  NSConnectionDidDieNotification: NSString; cvar; external;
+  NSFailedAuthenticationException: NSString; cvar; external;
+  NSConnectionDidInitializeNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
+  NSConnectionDelegateProtocol = objcprotocol;
   NSConnection = objcclass;
   NSConnectionPointer = ^NSConnection;
+  NSConnectionPtr = NSConnectionPointer;
   NSDistantObjectRequest = objcclass;
   NSDistantObjectRequestPointer = ^NSDistantObjectRequest;
+  NSDistantObjectRequestPtr = NSDistantObjectRequestPointer;
 
 {$endif}
 
@@ -55,39 +58,45 @@ var
     _receivePort: id;
     _sendPort: id;
     _delegate: id;
-    _busy: longint;
-    _localProxyCount: longint;
-    _waitCount: longint;
-    _delayedRL: id;
+    busy: cint32;
+    localProxyCount: cint32;
+    waitCount: cint32;
+    delayedRL: id;
     _statistics: id;
-    _isDead: char;
+    isDead: char;
     _isValid: char;
-    _wantsInvalid: char;
-    _authGen: 0..1;
-    _authCheck: 0..1;
-    _encryptFlag: 0..1;
-    _decryptFlag: 0..1;
-    _doRequest: 0..1;
-    _isQueueing: 0..1;
-    _isMulti: 0..1;
-    _invalidateRP: 0..1;
-    ____1: id;
-    ____2: id;
-    _runLoops: id;
+    wantsInvalid: char;
+    _anoninternstruct_NSConnection0: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSConnection0: char);
+       1: (
+        authGen: 0..1;
+        authCheck: 0..1;
+        encryptFlag: 0..1;
+        decryptFlag: 0..1;
+        doRequest: 0..1;
+        isQueueing: 0..1;
+        isMulti: 0..1;
+        invalidateRP: 0..1;
+      );
+      end;
+    ___1: id;
+    ___2: id;
+    runLoops: id;
     _requestModes: id;
     _rootObject: id;
-    _registerInfo: Pointer;
-    _replMode: id;
-    _classInfoImported: id;
-    _releasedProxies: id;
-    _reserved: Pointer;
+    registerInfo: Pointer;
+    replMode: id;
+    classInfoImported: id;
+    releasedProxies: id;
+    reserved: Pointer;
     
   public
     class function alloc: NSConnection; message 'alloc';
 
     function statistics: NSDictionary; message 'statistics';
     class function allConnections: NSArray; message 'allConnections';
-    class function defaultConnection: NSConnection; message 'defaultConnection';
+    class function defaultConnection: NSConnection; message 'defaultConnection'; deprecated 'in Mac OS X 10.6 and later';
     class function connectionWithRegisteredName_host(name: NSString; hostName: NSString): id; message 'connectionWithRegisteredName:host:';
     class function connectionWithRegisteredName_host_usingNameServer(name: NSString; hostName: NSString; server: NSPortNameServer): id; message 'connectionWithRegisteredName:host:usingNameServer:';
     class function rootProxyForConnectionWithRegisteredName_host(name: NSString; hostName: NSString): NSDistantObject; message 'rootProxyForConnectionWithRegisteredName:host:';
@@ -138,5 +147,20 @@ var
     procedure replyWithException(exception: NSException); message 'replyWithException:';
   end; external;
 
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSCONNECTION_PAS_P}
+{$define NSCONNECTION_PAS_P}
+  
+{ NSConnectionDelegate Protocol }
+  NSConnectionDelegateProtocol = objcprotocol
+    function makeNewConnection_sender(conn: NSConnection; ancestor: NSConnection): Boolean; message 'makeNewConnection:sender:';
+    function connection_shouldMakeNewConnection(ancestor: NSConnection; conn: NSConnection): Boolean; message 'connection:shouldMakeNewConnection:';
+    function authenticationDataForComponents(components: NSArray): NSData; message 'authenticationDataForComponents:';
+    function authenticateComponents_withData(components: NSArray; signature: NSData): Boolean; message 'authenticateComponents:withData:';
+    function createConversationForConnection(conn: NSConnection): id; message 'createConversationForConnection:';
+    function connection_handleRequest(connection: NSConnection; doreq: NSDistantObjectRequest): Boolean; message 'connection:handleRequest:';
+  end; external name 'NSConnectionDelegate';
 {$endif}
 {$endif}

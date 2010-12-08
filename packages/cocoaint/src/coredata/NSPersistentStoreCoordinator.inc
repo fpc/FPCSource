@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSPersistentStoreCoordinator.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,25 +29,39 @@
 
 { External string constants }
 var
-  NSSQLiteStoreType: NSString; external name '_NSSQLiteStoreType';
-  NSXMLStoreType: NSString; external name '_NSXMLStoreType';
-  NSBinaryStoreType: NSString; external name '_NSBinaryStoreType';
-  NSInMemoryStoreType: NSString; external name '_NSInMemoryStoreType';
-  NSStoreTypeKey: NSString; external name '_NSStoreTypeKey';
-  NSStoreUUIDKey: NSString; external name '_NSStoreUUIDKey';
-  NSPersistentStoreCoordinatorStoresDidChangeNotification: NSString; external name '_NSPersistentStoreCoordinatorStoresDidChangeNotification';
-  NSAddedPersistentStoresKey: NSString; external name '_NSAddedPersistentStoresKey';
-  NSRemovedPersistentStoresKey: NSString; external name '_NSRemovedPersistentStoresKey';
-  NSUUIDChangedPersistentStoresKey: NSString; external name '_NSUUIDChangedPersistentStoresKey';
-  NSReadOnlyPersistentStoreOption: NSString; external name '_NSReadOnlyPersistentStoreOption';
-  NSValidateXMLStoreOption: NSString; external name '_NSValidateXMLStoreOption';
-  NSPersistentStoreTimeoutOption: NSString; external name '_NSPersistentStoreTimeoutOption';
-  NSSQLitePragmasOption: NSString; external name '_NSSQLitePragmasOption';
-  NSIgnorePersistentStoreVersioningOption: NSString; external name '_NSIgnorePersistentStoreVersioningOption';
-  NSMigratePersistentStoresAutomaticallyOption: NSString; external name '_NSMigratePersistentStoresAutomaticallyOption';
-  NSStoreModelVersionHashesKey: NSString; external name '_NSStoreModelVersionHashesKey';
-  NSStoreModelVersionIdentifiersKey: NSString; external name '_NSStoreModelVersionIdentifiersKey';
-  NSPersistentStoreOSCompatibility: NSString; external name '_NSPersistentStoreOSCompatibility';
+  NSSQLiteStoreType: NSString; cvar; external;
+  NSXMLStoreType: NSString; cvar; external;
+  NSBinaryStoreType: NSString; cvar; external;
+  NSInMemoryStoreType: NSString; cvar; external;
+  NSStoreTypeKey: NSString; cvar; external;
+  NSStoreUUIDKey: NSString; cvar; external;
+  NSPersistentStoreCoordinatorStoresDidChangeNotification: NSString; cvar; external;
+  NSPersistentStoreCoordinatorWillRemoveStoreNotification: NSString; cvar; external;
+  NSAddedPersistentStoresKey: NSString; cvar; external;
+  NSRemovedPersistentStoresKey: NSString; cvar; external;
+  NSUUIDChangedPersistentStoresKey: NSString; cvar; external;
+  NSReadOnlyPersistentStoreOption: NSString; cvar; external;
+  NSValidateXMLStoreOption: NSString; cvar; external;
+  NSPersistentStoreTimeoutOption: NSString; cvar; external;
+  NSSQLitePragmasOption: NSString; cvar; external;
+  NSSQLiteAnalyzeOption: NSString; cvar; external;
+  NSSQLiteManualVacuumOption: NSString; cvar; external;
+  NSIgnorePersistentStoreVersioningOption: NSString; cvar; external;
+  NSMigratePersistentStoresAutomaticallyOption: NSString; cvar; external;
+  NSInferMappingModelAutomaticallyOption: NSString; cvar; external;
+  NSStoreModelVersionHashesKey: NSString; cvar; external;
+  NSStoreModelVersionIdentifiersKey: NSString; cvar; external;
+  NSPersistentStoreOSCompatibility: NSString; cvar; external;
+  NSXMLExternalRecordType: NSString; cvar; external;
+  NSBinaryExternalRecordType: NSString; cvar; external;
+  NSExternalRecordsFileFormatOption: NSString; cvar; external;
+  NSExternalRecordsDirectoryOption: NSString; cvar; external;
+  NSExternalRecordExtensionOption: NSString; cvar; external;
+  NSEntityNameInPathKey: NSString; cvar; external;
+  NSStoreUUIDInPathKey: NSString; cvar; external;
+  NSStorePathKey: NSString; cvar; external;
+  NSModelPathKey: NSString; cvar; external;
+  NSObjectURIKey: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -55,6 +69,7 @@ var
 {$ifdef FORWARD}
   NSPersistentStoreCoordinator = objcclass;
   NSPersistentStoreCoordinatorPointer = ^NSPersistentStoreCoordinator;
+  NSPersistentStoreCoordinatorPtr = NSPersistentStoreCoordinatorPointer;
 
 {$endif}
 
@@ -65,13 +80,13 @@ var
 { NSPersistentStoreCoordinator }
   NSPersistentStoreCoordinator = objcclass(NSObject, NSLockingProtocol)
   private
-    __reserved: Pointer;
-    __reserved2: Pointer;
-    __reserved3: Pointer;
-    __reserved4: Pointer;
-    __managedObjectModel: NSManagedObjectModel;
-    __coreLock: id;
-    __persistentStores: NSMutableArray;
+    _reserved: Pointer;
+    _reserved2: Pointer;
+    _reserved3: Pointer;
+    _externalRecordsHelper: id;
+    _managedObjectModel: NSManagedObjectModel;
+    _coreLock: id;
+    _persistentStores: NSMutableArray;
     
   public
     class function alloc: NSPersistentStoreCoordinator; message 'alloc';
@@ -80,6 +95,8 @@ var
     class procedure registerStoreClass_forStoreType(storeClass: Pobjc_class; storeType: NSString); message 'registerStoreClass:forStoreType:';
     class function metadataForPersistentStoreOfType_URL_error(storeType: NSString; url: NSURL; error: NSErrorPointer): NSDictionary; message 'metadataForPersistentStoreOfType:URL:error:';
     class function setMetadata_forPersistentStoreOfType_URL_error(metadata: NSDictionary; storeType: NSString; url: NSURL; error: NSErrorPointer): Boolean; message 'setMetadata:forPersistentStoreOfType:URL:error:';
+    class function elementsDerivedFromExternalRecordURL(fileURL: NSURL): NSDictionary; message 'elementsDerivedFromExternalRecordURL:';
+    function importStoreWithIdentifier_fromExternalRecordsDirectory_toURL_options_withType_error(storeIdentifier: NSString; externalRecordsURL: NSURL; destinationURL: NSURL; options: NSDictionary; storeType: NSString; error: NSErrorPointer): NSPersistentStore; message 'importStoreWithIdentifier:fromExternalRecordsDirectory:toURL:options:withType:error:';
     procedure setMetadata_forPersistentStore(metadata: NSDictionary; store: NSPersistentStore); message 'setMetadata:forPersistentStore:';
     function metadataForPersistentStore(store: NSPersistentStore): NSDictionary; message 'metadataForPersistentStore:';
     function initWithManagedObjectModel(model: NSManagedObjectModel): id; message 'initWithManagedObjectModel:';
@@ -95,7 +112,9 @@ var
     procedure lock; message 'lock';
     procedure unlock; message 'unlock';
     function tryLock: Boolean; message 'tryLock';
-    class function metadataForPersistentStoreWithURL_error(url: NSURL; error: NSErrorPointer): NSDictionary; message 'metadataForPersistentStoreWithURL:error:';
+    class function metadataForPersistentStoreWithURL_error(url: NSURL; error: NSErrorPointer): NSDictionary; message 'metadataForPersistentStoreWithURL:error:'; deprecated 'in Mac OS X 10.5 and later';
+
+    { Adopted Protocols }
   end; external;
 
 {$endif}

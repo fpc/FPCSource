@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSDecimalNumber.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,10 +29,10 @@
 
 { External string constants }
 var
-  NSDecimalNumberExactnessException: NSString; external name '_NSDecimalNumberExactnessException';
-  NSDecimalNumberOverflowException: NSString; external name '_NSDecimalNumberOverflowException';
-  NSDecimalNumberUnderflowException: NSString; external name '_NSDecimalNumberUnderflowException';
-  NSDecimalNumberDivideByZeroException: NSString; external name '_NSDecimalNumberDivideByZeroException';
+  NSDecimalNumberExactnessException: NSString; cvar; external;
+  NSDecimalNumberOverflowException: NSString; cvar; external;
+  NSDecimalNumberUnderflowException: NSString; cvar; external;
+  NSDecimalNumberDivideByZeroException: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -41,8 +41,10 @@ var
   NSDecimalNumberBehaviorsProtocol = objcprotocol;
   NSDecimalNumber = objcclass;
   NSDecimalNumberPointer = ^NSDecimalNumber;
+  NSDecimalNumberPtr = NSDecimalNumberPointer;
   NSDecimalNumberHandler = objcclass;
   NSDecimalNumberHandlerPointer = ^NSDecimalNumberHandler;
+  NSDecimalNumberHandlerPtr = NSDecimalNumberHandlerPointer;
 
 {$endif}
 
@@ -53,14 +55,20 @@ var
 { NSDecimalNumber }
   NSDecimalNumber = objcclass(NSNumber)
   private
-    __exponent: 0..((1 shl 8)-1);
-    __length: 0..((1 shl 4)-1);
-    __isNegative: 0..1;
-    __isCompact: 0..1;
-    __reserved: 0..1;
-    __hasExternalRefCount: 0..1;
-    __refs: 0..((1 shl 16)-1);
-    __mantissa: cushort;
+    _anoninternstruct_NSDecimalNumber0: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSDecimalNumber0: cint);
+       1: (
+        _exponent: 0..((1 shl 8)-1);
+        _length: 0..((1 shl 4)-1);
+        _isNegative: 0..1;
+        _isCompact: 0..1;
+        _reserved: 0..1;
+        _hasExternalRefCount: 0..1;
+        _refs: 0..((1 shl 16)-1);
+      );
+      end;
+    _mantissa: cushort;
     
   public
     class function alloc: NSDecimalNumber; message 'alloc';
@@ -103,15 +111,21 @@ var
 { NSDecimalNumberHandler }
   NSDecimalNumberHandler = objcclass(NSObject, NSDecimalNumberBehaviorsProtocol, NSCodingProtocol)
   private
-    __scale: 0..((1 shl 16)-1);
-    __roundingMode: 0..((1 shl 3)-1);
-    __raiseOnExactness: 0..1;
-    __raiseOnOverflow: 0..1;
-    __raiseOnUnderflow: 0..1;
-    __raiseOnDivideByZero: 0..1;
-    __unused: 0..((1 shl 9)-1);
-    __reserved2: Pointer;
-    __reserved: Pointer;
+    _anoninternstruct_NSDecimalNumber1: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSDecimalNumber1: cint);
+       1: (
+        _scale: 0..((1 shl 16)-1);
+        _roundingMode: 0..((1 shl 3)-1);
+        _raiseOnExactness: 0..1;
+        _raiseOnOverflow: 0..1;
+        _raiseOnUnderflow: 0..1;
+        _raiseOnDivideByZero: 0..1;
+        _unused: 0..((1 shl 9)-1);
+      );
+      end;
+    _reserved2: Pointer;
+    _reserved: Pointer;
     
   public
     class function alloc: NSDecimalNumberHandler; message 'alloc';
@@ -119,6 +133,23 @@ var
     class function defaultDecimalNumberHandler: id; message 'defaultDecimalNumberHandler';
     function initWithRoundingMode_scale_raiseOnExactness_raiseOnOverflow_raiseOnUnderflow_raiseOnDivideByZero(roundingMode: NSRoundingMode; scale: cshort; exact: Boolean; overflow: Boolean; underflow: Boolean; divideByZero: Boolean): id; message 'initWithRoundingMode:scale:raiseOnExactness:raiseOnOverflow:raiseOnUnderflow:raiseOnDivideByZero:';
     class function decimalNumberHandlerWithRoundingMode_scale_raiseOnExactness_raiseOnOverflow_raiseOnUnderflow_raiseOnDivideByZero(roundingMode: NSRoundingMode; scale: cshort; exact: Boolean; overflow: Boolean; underflow: Boolean; divideByZero: Boolean): id; message 'decimalNumberHandlerWithRoundingMode:scale:raiseOnExactness:raiseOnOverflow:raiseOnUnderflow:raiseOnDivideByZero:';
+
+    { Adopted Protocols }
+    function roundingMode: NSRoundingMode;
+    function scale: cshort;
+    function exceptionDuringOperation_error_leftOperand_rightOperand(operation: SEL; error: NSCalculationError; leftOperand: NSDecimalNumber; rightOperand: NSDecimalNumber): NSDecimalNumber;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+  end; external;
+
+{ NSDecimalNumberExtensionsCategory }
+  NSDecimalNumberExtensionsCategory = objccategory(NSNumber)
+    function decimalValue: NSDecimal; message 'decimalValue';
+  end; external;
+
+{ NSDecimalNumberScanningCategory }
+  NSDecimalNumberScanningCategory = objccategory(NSScanner)
+    function scanDecimal(dcm: NSDecimalPtr): Boolean; message 'scanDecimal:';
   end; external;
 
 {$endif}

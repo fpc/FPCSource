@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLLIElement.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMHTMLLIElement = objcclass;
   DOMHTMLLIElementPointer = ^DOMHTMLLIElement;
+  DOMHTMLLIElementPtr = DOMHTMLLIElementPointer;
 
 {$endif}
 
@@ -48,6 +49,8 @@
 
     procedure setType (newValue: NSString); message 'setType:';
     function type_: NSString; message 'type_';
+    procedure setValue (newValue: cint); message 'setValue:';
+    function value: cint; message 'value';
   end; external;
 
 {$endif}

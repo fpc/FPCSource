@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSlider.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSSlider = objcclass;
   NSSliderPointer = ^NSSlider;
+  NSSliderPtr = NSSliderPointer;
 
 {$endif}
 
@@ -66,8 +67,10 @@
     function image: NSImage; message 'image';
     function isVertical: NSInteger; message 'isVertical';
     function acceptsFirstMouse(theEvent: NSEvent): Boolean; message 'acceptsFirstMouse:';
+  end; external;
 
-    { Category: NSTickMarkSupport }
+{ NSTickMarkSupport_NSSliderCategory }
+  NSTickMarkSupport_NSSliderCategory = objccategory(NSSlider)
     procedure setNumberOfTickMarks(count: NSInteger); message 'setNumberOfTickMarks:';
     function numberOfTickMarks: NSInteger; message 'numberOfTickMarks';
     procedure setTickMarkPosition(position: NSTickMarkPosition); message 'setTickMarkPosition:';
@@ -78,7 +81,7 @@
     function rectOfTickMarkAtIndex(index: NSInteger): NSRect; message 'rectOfTickMarkAtIndex:';
     function indexOfTickMarkAtPoint(point: NSPoint): NSInteger; message 'indexOfTickMarkAtPoint:';
     function closestTickMarkValueToValue(value: double): double; message 'closestTickMarkValueToValue:';
-  end; external;
+  end; external name 'NSTickMarkSupport';
 
 {$endif}
 {$endif}

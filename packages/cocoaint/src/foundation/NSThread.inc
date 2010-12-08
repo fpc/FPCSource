@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSThread.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,9 +29,9 @@
 
 { External string constants }
 var
-  NSWillBecomeMultiThreadedNotification: NSString; external name '_NSWillBecomeMultiThreadedNotification';
-  NSDidBecomeSingleThreadedNotification: NSString; external name '_NSDidBecomeSingleThreadedNotification';
-  NSThreadWillExitNotification: NSString; external name '_NSThreadWillExitNotification';
+  NSWillBecomeMultiThreadedNotification: NSString; cvar; external;
+  NSDidBecomeSingleThreadedNotification: NSString; cvar; external;
+  NSThreadWillExitNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -39,6 +39,7 @@ var
 {$ifdef FORWARD}
   NSThread = objcclass;
   NSThreadPointer = ^NSThread;
+  NSThreadPtr = NSThreadPointer;
 
 {$endif}
 
@@ -49,8 +50,8 @@ var
 { NSThread }
   NSThread = objcclass(NSObject)
   private
-    __private: id;
-        _bytes: array[0..43] of byte;
+    _private: id;
+        _bytes: array[0..43] of cuint8;
     
   public
     class function alloc: NSThread; message 'alloc';
@@ -65,6 +66,7 @@ var
     class function threadPriority: double; message 'threadPriority';
     class function setThreadPriority(p: double): Boolean; message 'setThreadPriority:';
     class function callStackReturnAddresses: NSArray; message 'callStackReturnAddresses';
+    class function callStackSymbols: NSArray; message 'callStackSymbols';
     procedure setName(n: NSString); message 'setName:';
     function name: NSString; message 'name';
     function stackSize: NSUInteger; message 'stackSize';
@@ -79,6 +81,15 @@ var
     procedure cancel; message 'cancel';
     procedure start; message 'start';
     procedure main; message 'main';
+  end; external;
+
+{ NSThreadPerformAdditionsCategory }
+  NSThreadPerformAdditionsCategory = objccategory(NSObject)
+    procedure performSelectorOnMainThread_withObject_waitUntilDone_modes(aSelector: SEL; arg: id; wait: Boolean; array_: NSArray); message 'performSelectorOnMainThread:withObject:waitUntilDone:modes:';
+    procedure performSelectorOnMainThread_withObject_waitUntilDone(aSelector: SEL; arg: id; wait: Boolean); message 'performSelectorOnMainThread:withObject:waitUntilDone:';
+    procedure performSelector_onThread_withObject_waitUntilDone_modes(aSelector: SEL; thr: NSThread; arg: id; wait: Boolean; array_: NSArray); message 'performSelector:onThread:withObject:waitUntilDone:modes:';
+    procedure performSelector_onThread_withObject_waitUntilDone(aSelector: SEL; thr: NSThread; arg: id; wait: Boolean); message 'performSelector:onThread:withObject:waitUntilDone:';
+    procedure performSelectorInBackground_withObject(aSelector: SEL; arg: id); message 'performSelectorInBackground:withObject:';
   end; external;
 
 {$endif}

@@ -3,10 +3,6 @@ type
  WebNSInteger = clong;
  
  
-{ Parser hacks }
-type
- webView_Pointer = pointer;
-
 { Missing }
 type
  JSGlobalContextRef = pointer;

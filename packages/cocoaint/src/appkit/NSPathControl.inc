@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPathControl.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:08 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -34,6 +34,7 @@
   NSPathControlDelegateProtocol = objcprotocol;
   NSPathControl = objcclass;
   NSPathControlPointer = ^NSPathControl;
+  NSPathControlPtr = NSPathControlPointer;
 
 {$endif}
 
@@ -44,17 +45,17 @@
 { NSPathControl }
   NSPathControl = objcclass(NSControl)
   private
-    __draggingSourceOperationMaskForLocal: NSDragOperation;
-    __draggingSourceOperationMaskForNonLocal: NSDragOperation;
-    __dropOperation: NSDragOperation;
-    __delegate: id;
-    __aux: id;
+    _draggingSourceOperationMaskForLocal: NSDragOperation;
+    _draggingSourceOperationMaskForNonLocal: NSDragOperation;
+    _reserved: NSInteger;
+    _delegate: id;
+    _aux: id;
     
   public
     class function alloc: NSPathControl; message 'alloc';
 
     function URL: NSURL; message 'URL';
-    procedure setURL(URL_: NSURL); message 'setURL:';
+    procedure setURL(url_: NSURL); message 'setURL:';
     function doubleAction: SEL; message 'doubleAction';
     procedure setDoubleAction(action_: SEL); message 'setDoubleAction:';
     function pathStyle: NSPathStyle; message 'pathStyle';
@@ -67,6 +68,8 @@
     function delegate: id; message 'delegate';
     procedure setDelegate(delegate_: id); message 'setDelegate:';
     procedure setDraggingSourceOperationMask_forLocal(mask: NSDragOperation; isLocal: Boolean); message 'setDraggingSourceOperationMask:forLocal:';
+    procedure setMenu(menu_: NSMenu); message 'setMenu:';
+    function menu: NSMenu; message 'menu';
   end; external;
 
 {$endif}

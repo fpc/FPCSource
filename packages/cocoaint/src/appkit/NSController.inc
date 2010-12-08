@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSController.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSController = objcclass;
   NSControllerPointer = ^NSController;
+  NSControllerPtr = NSControllerPointer;
 
 {$endif}
 
@@ -43,26 +44,30 @@
 { NSController }
   NSController = objcclass(NSObject, NSCodingProtocol)
   private
-    __reserved: Pointer;
-    __reserved2: Pointer;
-    __specialPurposeType: cint;
-    __bindingAdaptor: id;
-    __editors: NSMutableArray;
-    __declaredKeys: NSMutableArray;
-    __dependentKeyToModelKeyTable: NSMutableDictionary;
-    __modelKeyToDependentKeyTable: NSMutableDictionary;
-    __modelKeysToRefreshEachTime: NSMutableArray;
+    _reserved: Pointer;
+    _reserved2: Pointer;
+    _specialPurposeType: cint;
+    _bindingAdaptor: id;
+    _editors: NSMutableArray;
+    _declaredKeys: NSMutableArray;
+    _dependentKeyToModelKeyTable: NSMutableDictionary;
+    _modelKeyToDependentKeyTable: NSMutableDictionary;
+    _modelKeysToRefreshEachTime: NSMutableArray;
     __bindingsControllerFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSController0: cuint);
+       1: (
         _alwaysPresentsApplicationModalAlerts: 0..1;
         _refreshesAllModelKeys: 0..1;
         _multipleObservedModelObjects: 0..1;
         _isEditing: 0..1;
         _reservedController: 0..((1 shl 28)-1);
+      );
       end;
-    __reservedOther: NSMutableDictionary;
-    __modelObservingTracker: id;
-    __expectedObservingInfo: id;
-    __singleValueAccessor: id;
+    _reservedOther: NSMutableDictionary;
+    _modelObservingTracker: id;
+    _expectedObservingInfo: id;
+    _singleValueAccessor: id;
     
   public
     class function alloc: NSController; message 'alloc';
@@ -73,6 +78,10 @@
     function commitEditing: Boolean; message 'commitEditing';
     procedure commitEditingWithDelegate_didCommitSelector_contextInfo(delegate: id; didCommitSelector: SEL; contextInfo: Pointer); message 'commitEditingWithDelegate:didCommitSelector:contextInfo:';
     function isEditing: Boolean; message 'isEditing';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 {$endif}

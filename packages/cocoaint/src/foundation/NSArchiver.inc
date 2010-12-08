@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSArchiver.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,7 +29,7 @@
 
 { External string constants }
 var
-  NSInconsistentArchiveException: NSString; external name '_NSInconsistentArchiveException';
+  NSInconsistentArchiveException: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -37,8 +37,10 @@ var
 {$ifdef FORWARD}
   NSArchiver = objcclass;
   NSArchiverPointer = ^NSArchiver;
+  NSArchiverPtr = NSArchiverPointer;
   NSUnarchiver = objcclass;
   NSUnarchiverPointer = ^NSUnarchiver;
+  NSUnarchiverPtr = NSUnarchiverPointer;
 
 {$endif}
 
@@ -49,18 +51,18 @@ var
 { NSArchiver }
   NSArchiver = objcclass(NSCoder)
   private
-    _mdata: Pointer; {garbage collector: __strong }
-    _pointerTable: Pointer;
-    _stringTable: Pointer;
-    _ids: Pointer;
-    _map: Pointer;
-    _replacementTable: Pointer;
-    _reserved: Pointer;
+    mdata: Pointer; {garbage collector: __strong }
+    pointerTable: Pointer;
+    stringTable: Pointer;
+    ids: Pointer;
+    map: Pointer;
+    replacementTable: Pointer;
+    reserved: Pointer;
     
   public
     class function alloc: NSArchiver; message 'alloc';
 
-    function initForWritingWithMutableData(mdata: NSMutableData): id; message 'initForWritingWithMutableData:';
+    function initForWritingWithMutableData(mdata_: NSMutableData): id; message 'initForWritingWithMutableData:';
     function archiverData: NSMutableData; message 'archiverData';
     procedure encodeRootObject(rootObject: id); message 'encodeRootObject:';
     procedure encodeConditionalObject(object_: id); message 'encodeConditionalObject:';
@@ -74,28 +76,28 @@ var
 { NSUnarchiver }
   NSUnarchiver = objcclass(NSCoder)
   private
-    _datax: Pointer;
-    _cursor: NSUInteger;
-    _objectZone: NSZone;
+    datax: Pointer;
+    cursor: NSUInteger;
+    _objectZone: NSZonePtr;
     _systemVersion: NSUInteger;
-    _streamerVersion: char;
-    _swap: char;
-    _unused1: char;
-    _unused2: char;
-    _pointerTable: Pointer;
-    _stringTable: Pointer;
-    _classVersions: id;
-    _lastLabel: NSInteger;
-    _map: Pointer;
-    _allUnarchivedObjects: Pointer;
-    _reserved: id;
+    streamerVersion: char;
+    swap: char;
+    unused1: char;
+    unused2: char;
+    pointerTable: Pointer;
+    stringTable: Pointer;
+    classVersions: id;
+    lastLabel: NSInteger;
+    map: Pointer;
+    allUnarchivedObjects: Pointer;
+    reserved: id;
     
   public
     class function alloc: NSUnarchiver; message 'alloc';
 
     function initForReadingWithData(data: NSData): id; message 'initForReadingWithData:';
-    procedure setObjectZone(zone_: NSZonePointer); message 'setObjectZone:';
-    function objectZone: NSZone; message 'objectZone';
+    procedure setObjectZone(zone_: NSZonePtr); message 'setObjectZone:';
+    function objectZone: NSZonePtr; message 'objectZone';
     function isAtEnd: Boolean; message 'isAtEnd';
     function systemVersion: cuint; message 'systemVersion';
     class function unarchiveObjectWithData(data: NSData): id; message 'unarchiveObjectWithData:';
@@ -103,6 +105,12 @@ var
     class procedure decodeClassName_asClassName(inArchiveName: NSString; trueName: NSString); message 'decodeClassName:asClassName:';
     class function classNameDecodedForArchiveClassName(inArchiveName: NSString): NSString; message 'classNameDecodedForArchiveClassName:';
     procedure replaceObject_withObject(object_: id; newObject: id); message 'replaceObject:withObject:';
+  end; external;
+
+{ NSArchiverCallbackCategory }
+  NSArchiverCallbackCategory = objccategory(NSObject)
+    function classForArchiver: Pobjc_class; message 'classForArchiver';
+    function replacementObjectForArchiver(archiver: NSArchiver): id; message 'replacementObjectForArchiver:';
   end; external;
 
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPortCoder.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSPortCoder = objcclass;
   NSPortCoderPointer = ^NSPortCoder;
+  NSPortCoderPtr = NSPortCoderPointer;
 
 {$endif}
 
@@ -53,6 +54,12 @@
     function decodePortObject: NSPort; message 'decodePortObject';
     function initWithReceivePort_sendPort_components(rcvPort: NSPort; sndPort: NSPort; comps: NSArray): id; message 'initWithReceivePort:sendPort:components:';
     procedure dispatch; message 'dispatch';
+  end; external;
+
+{ NSDistributedObjectsCategory }
+  NSDistributedObjectsCategory = objccategory(NSObject)
+    function classForPortCoder: Pobjc_class; message 'classForPortCoder';
+    function replacementObjectForPortCoder(coder: NSPortCoder): id; message 'replacementObjectForPortCoder:';
   end; external;
 
 {$endif}

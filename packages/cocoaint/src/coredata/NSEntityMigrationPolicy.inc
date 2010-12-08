@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSEntityMigrationPolicy.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,11 +29,12 @@
 
 { External string constants }
 var
-  NSMigrationManagerKey: NSString; external name '_NSMigrationManagerKey';
-  NSMigrationSourceObjectKey: NSString; external name '_NSMigrationSourceObjectKey';
-  NSMigrationDestinationObjectKey: NSString; external name '_NSMigrationDestinationObjectKey';
-  NSMigrationEntityMappingKey: NSString; external name '_NSMigrationEntityMappingKey';
-  NSMigrationPropertyMappingKey: NSString; external name '_NSMigrationPropertyMappingKey';
+  NSMigrationManagerKey: NSString; cvar; external;
+  NSMigrationSourceObjectKey: NSString; cvar; external;
+  NSMigrationDestinationObjectKey: NSString; cvar; external;
+  NSMigrationEntityMappingKey: NSString; cvar; external;
+  NSMigrationPropertyMappingKey: NSString; cvar; external;
+  NSMigrationEntityPolicyKey: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -41,6 +42,7 @@ var
 {$ifdef FORWARD}
   NSEntityMigrationPolicy = objcclass;
   NSEntityMigrationPolicyPointer = ^NSEntityMigrationPolicy;
+  NSEntityMigrationPolicyPtr = NSEntityMigrationPolicyPointer;
 
 {$endif}
 

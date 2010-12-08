@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSPersistentStore.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSPersistentStore = objcclass;
   NSPersistentStorePointer = ^NSPersistentStore;
+  NSPersistentStorePtr = NSPersistentStorePointer;
 
 {$endif}
 
@@ -43,33 +44,39 @@
 { NSPersistentStore }
   NSPersistentStore = objcclass(NSObject)
   private
-    __coordinator: NSPersistentStoreCoordinator; {garbage collector: __weak }
-    __configurationName: NSString;
-    __url: NSURL;
-    __options: NSDictionary;
-    __oidFactories: NSMutableDictionary;
-    __defaultFaultHandler: id;
+    _coordinator: NSPersistentStoreCoordinator; {garbage collector: __weak }
+    _configurationName: NSString;
+    _url: NSURL;
+    _options: NSDictionary;
+    _oidFactories: NSMutableDictionary;
+    _defaultFaultHandler: id;
     __flags: bitpacked record
-        isReadOnly: 0..1;
+      case byte of
+       0: (_anonbitfield_NSPersistentStore0: cuint);
+       1: (
+        _isReadOnly: 0..1;
         cleanOnRemove: 0..1;
         isMDDirty: 0..1;
         _RESERVED: 0..((1 shl 29)-1);
+      );
       end;
-    __temporaryIDClass: Pointer;
-    __reserved2: Pointer;
-    __reserved3: Pointer;
+    _temporaryIDClass: Pointer;
+    _reserved2: Pointer;
+    _reserved3: Pointer;
     
   public
     class function alloc: NSPersistentStore; message 'alloc';
 
-    class function metadataForPersistentStoreWithURL_error(URL_: NSURL; error: NSErrorPointer): NSDictionary; message 'metadataForPersistentStoreWithURL:error:';
-    class function setMetadata_forPersistentStoreWithURL_error(metadata_: NSDictionary; URL_: NSURL; error: NSErrorPointer): Boolean; message 'setMetadata:forPersistentStoreWithURL:error:';
-    function initWithPersistentStoreCoordinator_configurationName_URL_options(root: NSPersistentStoreCoordinator; name: NSString; URL_: NSURL; options_: NSDictionary): id; message 'initWithPersistentStoreCoordinator:configurationName:URL:options:';
+    class function metadataForPersistentStoreWithURL_error(url_: NSURL; error: NSErrorPointer): NSDictionary; message 'metadataForPersistentStoreWithURL:error:';
+    class function setMetadata_forPersistentStoreWithURL_error(metadata_: NSDictionary; url_: NSURL; error: NSErrorPointer): Boolean; message 'setMetadata:forPersistentStoreWithURL:error:';
+    class function migrationManagerClass: Pobjc_class; message 'migrationManagerClass';
+    function initWithPersistentStoreCoordinator_configurationName_URL_options(root: NSPersistentStoreCoordinator; name: NSString; url_: NSURL; options_: NSDictionary): id; message 'initWithPersistentStoreCoordinator:configurationName:URL:options:';
+    function loadMetadata(error: NSErrorPointer): Boolean; message 'loadMetadata:';
     function persistentStoreCoordinator: NSPersistentStoreCoordinator; message 'persistentStoreCoordinator';
     function configurationName: NSString; message 'configurationName';
     function options: NSDictionary; message 'options';
     function URL: NSURL; message 'URL';
-    procedure setURL(URL_: NSURL); message 'setURL:';
+    procedure setURL(url_: NSURL); message 'setURL:';
     function identifier: NSString; message 'identifier';
     procedure setIdentifier(identifier_: NSString); message 'setIdentifier:';
     function type_: NSString; message 'type';

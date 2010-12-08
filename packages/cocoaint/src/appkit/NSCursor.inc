@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSCursor.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -37,6 +37,7 @@ const
 {$ifdef FORWARD}
   NSCursor = objcclass;
   NSCursorPointer = ^NSCursor;
+  NSCursorPtr = NSCursorPointer;
 
 {$endif}
 
@@ -47,19 +48,24 @@ const
 { NSCursor }
   NSCursor = objcclass(NSObject, NSCodingProtocol)
   private
-    __hotSpot: NSPoint;
+    _hotSpot: NSPoint;
     __flags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSCursor1: cuint);
+       1: (
         onMouseExited: 0..1;
         onMouseEntered: 0..1;
         cursorType: 0..((1 shl 8)-1);
-        int: 0..((1 shl 22)-1);
+        _anonbitfield_NSCursor0: 0..((1 shl 22)-1);
+      );
       end;
-    __image: id;
+    _image: id;
     
   public
     class function alloc: NSCursor; message 'alloc';
 
     class function currentCursor: NSCursor; message 'currentCursor';
+    class function currentSystemCursor: NSCursor; message 'currentSystemCursor';
     class function arrowCursor: NSCursor; message 'arrowCursor';
     class function IBeamCursor: NSCursor; message 'IBeamCursor';
     class function pointingHandCursor: NSCursor; message 'pointingHandCursor';
@@ -73,6 +79,10 @@ const
     class function resizeUpDownCursor: NSCursor; message 'resizeUpDownCursor';
     class function crosshairCursor: NSCursor; message 'crosshairCursor';
     class function disappearingItemCursor: NSCursor; message 'disappearingItemCursor';
+    class function operationNotAllowedCursor: NSCursor; message 'operationNotAllowedCursor';
+    class function dragLinkCursor: NSCursor; message 'dragLinkCursor';
+    class function dragCopyCursor: NSCursor; message 'dragCopyCursor';
+    class function contextualMenuCursor: NSCursor; message 'contextualMenuCursor';
     function initWithImage_hotSpot(newImage: NSImage; aPoint: NSPoint): id; message 'initWithImage:hotSpot:';
     function initWithImage_foregroundColorHint_backgroundColorHint_hotSpot(newImage: NSImage; fg: NSColor; bg: NSColor; hotSpot_: NSPoint): id; message 'initWithImage:foregroundColorHint:backgroundColorHint:hotSpot:';
     class procedure hide; message 'hide';
@@ -89,6 +99,10 @@ const
     function isSetOnMouseEntered: Boolean; message 'isSetOnMouseEntered';
     procedure mouseEntered(theEvent: NSEvent); message 'mouseEntered:';
     procedure mouseExited(theEvent: NSEvent); message 'mouseExited:';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 {$endif}

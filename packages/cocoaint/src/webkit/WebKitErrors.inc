@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebKitErrors.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -41,10 +41,10 @@ const
 
 { External string constants }
 var
-  WebKitErrorDomain: NSString; external name '_WebKitErrorDomain';
-  WebKitErrorMIMETypeKey: NSString; external name '_WebKitErrorMIMETypeKey';
-  WebKitErrorPlugInNameKey: NSString; external name '_WebKitErrorPlugInNameKey';
-  WebKitErrorPlugInPageURLStringKey: NSString; external name '_WebKitErrorPlugInPageURLStringKey';
+  WebKitErrorDomain: NSString; cvar; external;
+  WebKitErrorMIMETypeKey: NSString; cvar; external;
+  WebKitErrorPlugInNameKey: NSString; cvar; external;
+  WebKitErrorPlugInPageURLStringKey: NSString; cvar; external;
 
 {$endif}
 {$endif}

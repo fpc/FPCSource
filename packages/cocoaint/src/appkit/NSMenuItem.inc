@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMenuItem.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSMenuItem = objcclass;
   NSMenuItemPointer = ^NSMenuItem;
+  NSMenuItemPtr = NSMenuItemPointer;
 
 {$endif}
 
@@ -43,30 +44,40 @@
 { NSMenuItem }
   NSMenuItem = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol, NSValidatedUserInterfaceItemProtocol)
   private
-    __menu: NSMenu;
-    __title: NSString;
-    __keyEquivalent: NSString;
-    __keyEquivalentModifierMask: NSUInteger;
-    __mnemonicLocation: NSInteger;
-    __state: NSInteger;
-    __image: NSImage;
-    __onStateImage: NSImage;
-    __offStateImage: NSImage;
-    __mixedStateImage: NSImage;
-    __target: id;
-    __action: SEL;
-    __tag: NSInteger;
-    __extraData: id;
+    _menu: NSMenu;
+    _title: NSString;
+    _keyEquivalent: NSString;
+    _keyEquivalentModifierMask: NSUInteger;
+    _userKEGenerationCount: NSInteger;
+    _state: NSInteger;
+    _image: NSImage;
+    _submenu: NSMenu;
+    _uiid: NSString;
+    _repObject: id;
+    _target: id;
+    _action: SEL;
+    _tag: NSInteger;
+    _extraData: id;
     __miFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSMenuItem0: cuint);
+       1: (
         disabled: 0..1;
         isSeparator: 0..1;
         hidden: 0..1;
         alternate: 0..1;
         indent: 0..((1 shl 4)-1);
-        changed: 0..((1 shl 16)-1);
+        keShareMode: 0..((1 shl 3)-1);
+        RESERVED1: 0..((1 shl 13)-1);
         highlighted: 0..1;
         limitedView: 0..1;
-        RESERVED: 0..((1 shl 6)-1);
+        nextItemIsAlternate: 0..1;
+        blockKE: 0..1;
+        ignoredForAccessibility: 0..1;
+        hiddenActiveKE: 0..1;
+        noRepeatKEs: 0..1;
+        RESERVED: 0..1;
+      );
       end;
     
   public
@@ -81,6 +92,7 @@
     function hasSubmenu: Boolean; message 'hasSubmenu';
     procedure setSubmenu(submenu_: NSMenu); message 'setSubmenu:';
     function submenu: NSMenu; message 'submenu';
+    function parentItem: NSMenuItem; message 'parentItem';
     procedure setTitle(aString: NSString); message 'setTitle:';
     function title: NSString; message 'title';
     procedure setAttributedTitle(string_: NSAttributedString); message 'setAttributedTitle:';
@@ -91,9 +103,6 @@
     procedure setKeyEquivalentModifierMask(mask: NSUInteger); message 'setKeyEquivalentModifierMask:';
     function keyEquivalentModifierMask: NSUInteger; message 'keyEquivalentModifierMask';
     function userKeyEquivalent: NSString; message 'userKeyEquivalent';
-    procedure setMnemonicLocation(location: NSUInteger); message 'setMnemonicLocation:';
-    function mnemonicLocation: NSUInteger; message 'mnemonicLocation';
-    function mnemonic: NSString; message 'mnemonic';
     procedure setTitleWithMnemonic(stringWithAmpersand: NSString); message 'setTitleWithMnemonic:';
     procedure setImage(menuImage: NSImage); message 'setImage:';
     function image: NSImage; message 'image';
@@ -127,7 +136,24 @@
     function isHiddenOrHasHiddenAncestor: Boolean; message 'isHiddenOrHasHiddenAncestor';
     procedure setToolTip(toolTip_: NSString); message 'setToolTip:';
     function toolTip: NSString; message 'toolTip';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
+
+{ NSViewEnclosingMenuItemCategory }
+  NSViewEnclosingMenuItemCategory = objccategory(NSView)
+    function enclosingMenuItem: NSMenuItem; message 'enclosingMenuItem';
+  end; external;
+
+{ NSDeprecated_NSMenuItemCategory }
+  NSDeprecated_NSMenuItemCategory = objccategory(NSMenuItem)
+    procedure setMnemonicLocation(location: NSUInteger); message 'setMnemonicLocation:'; deprecated 'in Mac OS X 10.6 and later';
+    function mnemonicLocation: NSUInteger; message 'mnemonicLocation'; deprecated 'in Mac OS X 10.6 and later';
+    function mnemonic: NSString; message 'mnemonic'; deprecated 'in Mac OS X 10.6 and later';
+  end; external name 'NSDeprecated';
 
 {$endif}
 {$endif}

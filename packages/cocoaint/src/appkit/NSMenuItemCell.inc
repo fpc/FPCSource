@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMenuItemCell.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSMenuItemCell = objcclass;
   NSMenuItemCellPointer = ^NSMenuItemCell;
+  NSMenuItemCellPtr = NSMenuItemCellPointer;
 
 {$endif}
 
@@ -43,18 +44,23 @@
 { NSMenuItemCell }
   NSMenuItemCell = objcclass(NSButtonCell)
   private
-    __extraData: id;
-    __stateImageSize: NSSize;
-    __imageSize: NSSize;
-    __titleSize: NSSize;
-    __keyEquivalentSize: NSSize;
-    __size: NSSize;
+    _extraData: id;
+    _stateImageSize: NSSize;
+    _imageSize: NSSize;
+    _titleSize: NSSize;
+    _keyEquivalentSize: NSSize;
+    _size: NSSize;
     __micFlags: bitpacked record
-        needsSizing: 0..1;
+      case byte of
+       0: (_anonbitfield_NSMenuItemCell0: cuint);
+       1: (
+        _needsSizing: 0..1;
         reserved: 0..1;
-        needsDisplay: 0..1;
+        _needsDisplay: 0..1;
         keyEquivGlyphWidth: 0..((1 shl 16)-1);
-        RESERVED_: 0..((1 shl 13)-1);
+        uniqueAgainstMain: 0..1;
+        _RESERVED: 0..((1 shl 12)-1);
+      );
       end;
     
   public

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSData.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -9,11 +9,31 @@
 { Constants }
 
 const
-  NSMappedRead = 1;
-  NSUncachedRead = 2;
+  NSDataReadingMapped = 1 shl 0;
+  NSDataReadingUncached = 1 shl 1;
 
 const
-  NSAtomicWrite = 1;
+  NSDataWritingAtomic = 1 shl 0;
+
+const
+  NSMappedRead = NSDataReadingMapped;
+  NSUncachedRead = NSDataReadingUncached;
+
+const
+  NSAtomicWrite = NSDataWritingAtomic;
+
+const
+  NSDataSearchBackwards = 1 shl 0;
+  NSDataSearchAnchored = 1 shl 1;
+
+{ Types }
+type
+  NSDataReadingOptions = NSUInteger;
+  NSDataReadingOptionsPtr = ^NSDataReadingOptions;
+  NSDataWritingOptions = NSUInteger;
+  NSDataWritingOptionsPtr = ^NSDataWritingOptions;
+  NSDataSearchOptions = NSUInteger;
+  NSDataSearchOptionsPtr = ^NSDataSearchOptions;
 
 {$endif}
 {$endif}
@@ -42,8 +62,13 @@ const
 {$ifdef FORWARD}
   NSData = objcclass;
   NSDataPointer = ^NSData;
+  NSDataPtr = NSDataPointer;
   NSMutableData = objcclass;
   NSMutableDataPointer = ^NSMutableData;
+  NSMutableDataPtr = NSMutableDataPointer;
+  NSPurgeableData = objcclass;
+  NSPurgeableDataPointer = ^NSPurgeableData;
+  NSPurgeableDataPtr = NSPurgeableDataPointer;
 
 {$endif}
 
@@ -60,38 +85,11 @@ const
     function length: NSUInteger; message 'length';
     function bytes: Pointer; message 'bytes';
 
-    { Category: NSExtendedData }
-    function description: NSString; message 'description';
-    procedure getBytes(buffer: Pointer); message 'getBytes:';
-    procedure getBytes_length(buffer: Pointer; length_: NSUInteger); message 'getBytes:length:';
-    procedure getBytes_range(buffer: Pointer; range: NSRange); message 'getBytes:range:';
-    function isEqualToData(other: NSData): Boolean; message 'isEqualToData:';
-    function subdataWithRange(range: NSRange): NSData; message 'subdataWithRange:';
-    function writeToFile_atomically(path: NSString; useAuxiliaryFile: Boolean): Boolean; message 'writeToFile:atomically:';
-    function writeToURL_atomically(url: NSURL; atomically: Boolean): Boolean; message 'writeToURL:atomically:';
-    function writeToFile_options_error(path: NSString; writeOptionsMask: NSUInteger; errorPtr: NSErrorPointer): Boolean; message 'writeToFile:options:error:';
-    function writeToURL_options_error(url: NSURL; writeOptionsMask: NSUInteger; errorPtr: NSErrorPointer): Boolean; message 'writeToURL:options:error:';
-
-    { Category: NSDataCreation }
-    class function data: id; message 'data';
-    class function dataWithBytes_length(bytes_: Pointer; length_: NSUInteger): id; message 'dataWithBytes:length:';
-    class function dataWithBytesNoCopy_length(bytes_: Pointer; length_: NSUInteger): id; message 'dataWithBytesNoCopy:length:';
-    class function dataWithBytesNoCopy_length_freeWhenDone(bytes_: Pointer; length_: NSUInteger; b: Boolean): id; message 'dataWithBytesNoCopy:length:freeWhenDone:';
-    class function dataWithContentsOfFile_options_error(path: NSString; readOptionsMask: NSUInteger; errorPtr: NSErrorPointer): id; message 'dataWithContentsOfFile:options:error:';
-    class function dataWithContentsOfURL_options_error(url: NSURL; readOptionsMask: NSUInteger; errorPtr: NSErrorPointer): id; message 'dataWithContentsOfURL:options:error:';
-    class function dataWithContentsOfFile(path: NSString): id; message 'dataWithContentsOfFile:';
-    class function dataWithContentsOfURL(url: NSURL): id; message 'dataWithContentsOfURL:';
-    class function dataWithContentsOfMappedFile(path: NSString): id; message 'dataWithContentsOfMappedFile:';
-    function initWithBytes_length(bytes_: Pointer; length_: NSUInteger): id; message 'initWithBytes:length:';
-    function initWithBytesNoCopy_length(bytes_: Pointer; length_: NSUInteger): id; message 'initWithBytesNoCopy:length:';
-    function initWithBytesNoCopy_length_freeWhenDone(bytes_: Pointer; length_: NSUInteger; b: Boolean): id; message 'initWithBytesNoCopy:length:freeWhenDone:';
-    function initWithContentsOfFile_options_error(path: NSString; readOptionsMask: NSUInteger; errorPtr: NSErrorPointer): id; message 'initWithContentsOfFile:options:error:';
-    function initWithContentsOfURL_options_error(url: NSURL; readOptionsMask: NSUInteger; errorPtr: NSErrorPointer): id; message 'initWithContentsOfURL:options:error:';
-    function initWithContentsOfFile(path: NSString): id; message 'initWithContentsOfFile:';
-    function initWithContentsOfURL(url: NSURL): id; message 'initWithContentsOfURL:';
-    function initWithContentsOfMappedFile(path: NSString): id; message 'initWithContentsOfMappedFile:';
-    function initWithData(data_: NSData): id; message 'initWithData:';
-    class function dataWithData(data_: NSData): id; message 'dataWithData:';
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    function mutableCopyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 { NSMutableData }
@@ -102,8 +100,70 @@ const
 
     function mutableBytes: Pointer; message 'mutableBytes';
     procedure setLength(length_: NSUInteger); message 'setLength:';
+  end; external;
 
-    { Category: NSExtendedMutableData }
+{ NSPurgeableData }
+  NSPurgeableData = objcclass(NSMutableData, NSDiscardableContentProtocol)
+  private
+    _length: NSUInteger;
+    _accessCount: cint32;
+        _private: array[0..31] of cuint8;
+    _reserved: Pointer;
+    
+  public
+    class function alloc: NSPurgeableData; message 'alloc';
+
+    { Adopted Protocols }
+    function beginContentAccess: Boolean;
+    procedure endContentAccess;
+    procedure discardContentIfPossible;
+    function isContentDiscarded: Boolean;
+  end; external;
+
+{ NSExtendedDataCategory }
+  NSExtendedDataCategory = objccategory(NSData)
+    function description: NSString; message 'description';
+    procedure getBytes_length(buffer: Pointer; length_: NSUInteger); message 'getBytes:length:';
+    procedure getBytes_range(buffer: Pointer; range: NSRange); message 'getBytes:range:';
+    function isEqualToData(other: NSData): Boolean; message 'isEqualToData:';
+    function subdataWithRange(range: NSRange): NSData; message 'subdataWithRange:';
+    function writeToFile_atomically(path: NSString; useAuxiliaryFile: Boolean): Boolean; message 'writeToFile:atomically:';
+    function writeToURL_atomically(url: NSURL; atomically: Boolean): Boolean; message 'writeToURL:atomically:';
+    function writeToFile_options_error(path: NSString; writeOptionsMask: NSDataWritingOptions; errorPtr: NSErrorPointer): Boolean; message 'writeToFile:options:error:';
+    function writeToURL_options_error(url: NSURL; writeOptionsMask: NSDataWritingOptions; errorPtr: NSErrorPointer): Boolean; message 'writeToURL:options:error:';
+    function rangeOfData_options_range(dataToFind: NSData; mask: NSDataSearchOptions; searchRange: NSRange): NSRange; message 'rangeOfData:options:range:';
+  end; external;
+
+{ NSDataCreationCategory }
+  NSDataCreationCategory = objccategory(NSData)
+    class function data: id; message 'data';
+    class function dataWithBytes_length(bytes_: Pointer; length_: NSUInteger): id; message 'dataWithBytes:length:';
+    class function dataWithBytesNoCopy_length(bytes_: Pointer; length_: NSUInteger): id; message 'dataWithBytesNoCopy:length:';
+    class function dataWithBytesNoCopy_length_freeWhenDone(bytes_: Pointer; length_: NSUInteger; b: Boolean): id; message 'dataWithBytesNoCopy:length:freeWhenDone:';
+    class function dataWithContentsOfFile_options_error(path: NSString; readOptionsMask: NSDataReadingOptions; errorPtr: NSErrorPointer): id; message 'dataWithContentsOfFile:options:error:';
+    class function dataWithContentsOfURL_options_error(url: NSURL; readOptionsMask: NSDataReadingOptions; errorPtr: NSErrorPointer): id; message 'dataWithContentsOfURL:options:error:';
+    class function dataWithContentsOfFile(path: NSString): id; message 'dataWithContentsOfFile:';
+    class function dataWithContentsOfURL(url: NSURL): id; message 'dataWithContentsOfURL:';
+    class function dataWithContentsOfMappedFile(path: NSString): id; message 'dataWithContentsOfMappedFile:';
+    function initWithBytes_length(bytes_: Pointer; length_: NSUInteger): id; message 'initWithBytes:length:';
+    function initWithBytesNoCopy_length(bytes_: Pointer; length_: NSUInteger): id; message 'initWithBytesNoCopy:length:';
+    function initWithBytesNoCopy_length_freeWhenDone(bytes_: Pointer; length_: NSUInteger; b: Boolean): id; message 'initWithBytesNoCopy:length:freeWhenDone:';
+    function initWithContentsOfFile_options_error(path: NSString; readOptionsMask: NSDataReadingOptions; errorPtr: NSErrorPointer): id; message 'initWithContentsOfFile:options:error:';
+    function initWithContentsOfURL_options_error(url: NSURL; readOptionsMask: NSDataReadingOptions; errorPtr: NSErrorPointer): id; message 'initWithContentsOfURL:options:error:';
+    function initWithContentsOfFile(path: NSString): id; message 'initWithContentsOfFile:';
+    function initWithContentsOfURL(url: NSURL): id; message 'initWithContentsOfURL:';
+    function initWithContentsOfMappedFile(path: NSString): id; message 'initWithContentsOfMappedFile:';
+    function initWithData(data_: NSData): id; message 'initWithData:';
+    class function dataWithData(data_: NSData): id; message 'dataWithData:';
+  end; external;
+
+{ NSDeprecated_NSDataCategory }
+  NSDeprecated_NSDataCategory = objccategory(NSData)
+    procedure getBytes(buffer: Pointer); message 'getBytes:';
+  end; external name 'NSDeprecated';
+
+{ NSExtendedMutableDataCategory }
+  NSExtendedMutableDataCategory = objccategory(NSMutableData)
     procedure appendBytes_length(bytes_: Pointer; length_: NSUInteger); message 'appendBytes:length:';
     procedure appendData(other: NSData); message 'appendData:';
     procedure increaseLengthBy(extraLength: NSUInteger); message 'increaseLengthBy:';
@@ -111,8 +171,10 @@ const
     procedure resetBytesInRange(range: NSRange); message 'resetBytesInRange:';
     procedure setData(data_: NSData); message 'setData:';
     procedure replaceBytesInRange_withBytes_length(range: NSRange; replacementBytes: Pointer; replacementLength: NSUInteger); message 'replaceBytesInRange:withBytes:length:';
+  end; external;
 
-    { Category: NSMutableDataCreation }
+{ NSMutableDataCreationCategory }
+  NSMutableDataCreationCategory = objccategory(NSMutableData)
     class function dataWithCapacity(aNumItems: NSUInteger): id; message 'dataWithCapacity:';
     class function dataWithLength(length_: NSUInteger): id; message 'dataWithLength:';
     function initWithCapacity(capacity: NSUInteger): id; message 'initWithCapacity:';

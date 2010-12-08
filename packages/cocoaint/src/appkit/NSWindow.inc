@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSWindow.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -9,24 +9,25 @@
 { Defines }
 const
   NSAppKitVersionNumberWithCustomSheetPosition = 686.0;
+  NSAppKitVersionNumberWithDeferredWindowDisplaySupport = 1019.0;
 
 { Constants }
 
 const
   NSBorderlessWindowMask = 0;
-  NSTitledWindowMask = 1  shl  0;
-  NSClosableWindowMask = 1  shl  1;
-  NSMiniaturizableWindowMask = 1  shl  2;
-  NSResizableWindowMask = 1  shl  3;
+  NSTitledWindowMask = 1 shl 0;
+  NSClosableWindowMask = 1 shl 1;
+  NSMiniaturizableWindowMask = 1 shl 2;
+  NSResizableWindowMask = 1 shl 3;
 
 const
-  NSTexturedBackgroundWindowMask = 1  shl  8;
+  NSTexturedBackgroundWindowMask = 1 shl 8;
 
 const
-  NSUnscaledWindowMask = 1  shl  11;
+  NSUnscaledWindowMask = 1 shl 11;
 
 const
-  NSUnifiedTitleAndToolbarWindowMask = 1  shl  12;
+  NSUnifiedTitleAndToolbarWindowMask = 1 shl 12;
 
 const
   NSDisplayWindowRunLoopOrdering = 600000;
@@ -44,8 +45,21 @@ const
 
 const
   NSWindowCollectionBehaviorDefault = 0;
-  NSWindowCollectionBehaviorCanJoinAllSpaces = 1  shl  0;
-  NSWindowCollectionBehaviorMoveToActiveSpace = 1  shl  1;
+  NSWindowCollectionBehaviorCanJoinAllSpaces = 1 shl 0;
+  NSWindowCollectionBehaviorMoveToActiveSpace = 1 shl 1;
+
+const
+  NSWindowCollectionBehaviorManaged = 1 shl 2;
+  NSWindowCollectionBehaviorTransient = 1 shl 3;
+  NSWindowCollectionBehaviorStationary = 1 shl 4;
+
+const
+  NSWindowCollectionBehaviorParticipatesInCycle = 1 shl 5;
+  NSWindowCollectionBehaviorIgnoresCycle = 1 shl 6;
+
+const
+  NSWindowNumberListAllApplications = 1 shl 0;
+  NSWindowNumberListAllSpaces = 1 shl 4;
 
 const
   NSDirectSelection = 0;
@@ -62,10 +76,17 @@ const
 { Types }
 type
   NSWindowSharingType = NSUInteger;
+  NSWindowSharingTypePtr = ^NSWindowSharingType;
   NSWindowBackingLocation = NSUInteger;
+  NSWindowBackingLocationPtr = ^NSWindowBackingLocation;
   NSWindowCollectionBehavior = NSUInteger;
+  NSWindowCollectionBehaviorPtr = ^NSWindowCollectionBehavior;
+  NSWindowNumberListOptions = NSUInteger;
+  NSWindowNumberListOptionsPtr = ^NSWindowNumberListOptions;
   NSSelectionDirection = NSUInteger;
+  NSSelectionDirectionPtr = ^NSSelectionDirection;
   NSWindowButton = NSUInteger;
+  NSWindowButtonPtr = ^NSWindowButton;
 
 {$endif}
 {$endif}
@@ -90,30 +111,34 @@ type
 
 { External string constants }
 var
-  NSWindowDidBecomeKeyNotification: NSString; external name '_NSWindowDidBecomeKeyNotification';
-  NSWindowDidBecomeMainNotification: NSString; external name '_NSWindowDidBecomeMainNotification';
-  NSWindowDidChangeScreenNotification: NSString; external name '_NSWindowDidChangeScreenNotification';
-  NSWindowDidDeminiaturizeNotification: NSString; external name '_NSWindowDidDeminiaturizeNotification';
-  NSWindowDidExposeNotification: NSString; external name '_NSWindowDidExposeNotification';
-  NSWindowDidMiniaturizeNotification: NSString; external name '_NSWindowDidMiniaturizeNotification';
-  NSWindowDidMoveNotification: NSString; external name '_NSWindowDidMoveNotification';
-  NSWindowDidResignKeyNotification: NSString; external name '_NSWindowDidResignKeyNotification';
-  NSWindowDidResignMainNotification: NSString; external name '_NSWindowDidResignMainNotification';
-  NSWindowDidResizeNotification: NSString; external name '_NSWindowDidResizeNotification';
-  NSWindowDidUpdateNotification: NSString; external name '_NSWindowDidUpdateNotification';
-  NSWindowWillCloseNotification: NSString; external name '_NSWindowWillCloseNotification';
-  NSWindowWillMiniaturizeNotification: NSString; external name '_NSWindowWillMiniaturizeNotification';
-  NSWindowWillMoveNotification: NSString; external name '_NSWindowWillMoveNotification';
-  NSWindowWillBeginSheetNotification: NSString; external name '_NSWindowWillBeginSheetNotification';
-  NSWindowDidEndSheetNotification: NSString; external name '_NSWindowDidEndSheetNotification';
-  NSWindowDidChangeScreenProfileNotification: NSString; external name '_NSWindowDidChangeScreenProfileNotification';
+  NSWindowDidBecomeKeyNotification: NSString; cvar; external;
+  NSWindowDidBecomeMainNotification: NSString; cvar; external;
+  NSWindowDidChangeScreenNotification: NSString; cvar; external;
+  NSWindowDidDeminiaturizeNotification: NSString; cvar; external;
+  NSWindowDidExposeNotification: NSString; cvar; external;
+  NSWindowDidMiniaturizeNotification: NSString; cvar; external;
+  NSWindowDidMoveNotification: NSString; cvar; external;
+  NSWindowDidResignKeyNotification: NSString; cvar; external;
+  NSWindowDidResignMainNotification: NSString; cvar; external;
+  NSWindowDidResizeNotification: NSString; cvar; external;
+  NSWindowDidUpdateNotification: NSString; cvar; external;
+  NSWindowWillCloseNotification: NSString; cvar; external;
+  NSWindowWillMiniaturizeNotification: NSString; cvar; external;
+  NSWindowWillMoveNotification: NSString; cvar; external;
+  NSWindowWillBeginSheetNotification: NSString; cvar; external;
+  NSWindowDidEndSheetNotification: NSString; cvar; external;
+  NSWindowDidChangeScreenProfileNotification: NSString; cvar; external;
+  NSWindowWillStartLiveResizeNotification: NSString; cvar; external;
+  NSWindowDidEndLiveResizeNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
+  NSWindowDelegateProtocol = objcprotocol;
   NSWindow = objcclass;
   NSWindowPointer = ^NSWindow;
+  NSWindowPtr = NSWindowPointer;
 
 {$endif}
 
@@ -124,38 +149,41 @@ var
 { NSWindow }
   NSWindow = objcclass(NSResponder)
   private
-    __frame: NSRect;
-    __contentView: id;
-    __delegate: id;
-    __firstResponder: NSResponder;
-    __lastLeftHit: NSView;
-    __lastRightHit: NSView;
-    __counterpart: id;
-    __fieldEditor: id;
-    __winEventMask: cint;
-    __windowNum: NSInteger;
-    __level: cint;
-    __backgroundColor: NSColor;
-    __borderView: id;
-    __postingDisabled: char;
-    __styleMask: char;
-    __flushDisabled: char;
-    __reservedWindow1: char;
-    __cursorRects: Pointer;
-    __trectTable: Pointer;
-    __miniIcon: NSImage;
-    __unused: cint;
-    __dragTypes: NSMutableSet;
-    __representedURL: NSURL;
-    __sizeLimits: NSSize;
-    __frameSaveName: NSString;
-    __regDragTypes: NSSet;
+    _frame: NSRect;
+    _contentView: id;
+    _delegate: id;
+    _firstResponder: NSResponder;
+    _lastLeftHit: NSView;
+    _lastRightHit: NSView;
+    _counterpart: id;
+    _fieldEditor: id;
+    _winEventMask: cint;
+    _windowNum: NSInteger;
+    _level: cint;
+    _backgroundColor: NSColor;
+    _borderView: id;
+    _postingDisabled: char;
+    _styleMask: char;
+    _flushDisabled: char;
+    _reservedWindow1: char;
+    _cursorRects: Pointer;
+    _trectTable: Pointer;
+    _miniIcon: NSImage;
+    _unused: cint;
+    _dragTypes: NSMutableSet;
+    _representedURL: NSURL;
+    _sizeLimits: NSSizePtr;
+    _frameSaveName: NSString;
+    _regDragTypes: NSSet;
     __wFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSWindow0: cuint);
+       1: (
         backing: 0..((1 shl 2)-1);
         visible: 0..1;
-        isMainWindow: 0..1;
-        isKeyWindow: 0..1;
-        hidesOnDeactivate: 0..1;
+        _isMainWindow: 0..1;
+        _isKeyWindow: 0..1;
+        _hidesOnDeactivate: 0..1;
         dontFreeWhenClosed: 0..1;
         oneShot: 0..1;
         deferred: 0..1;
@@ -164,10 +192,10 @@ var
         validCursorRects: 0..1;
         docEdited: 0..1;
         dynamicDepthLimit: 0..1;
-        worksWhenModal: 0..1;
+        _worksWhenModal: 0..1;
         limitedBecomeKey: 0..1;
         needsFlush: 0..1;
-        viewsNeedDisplay: 0..1;
+        _viewsNeedDisplay: 0..1;
         ignoredFirstMouse: 0..1;
         repostedFirstMouse: 0..1;
         windowDying: 0..1;
@@ -178,7 +206,7 @@ var
         optimizeDrawing: 0..1;
         titleIsRepresentedFilename: 0..1;
         excludedFromWindowsMenu: 0..1;
-        depthLimit: 0..((1 shl 4)-1);
+        _depthLimit: 0..((1 shl 4)-1);
         delegateReturnsValidRequestor: 0..1;
         lmouseupPending: 0..1;
         rmouseupPending: 0..1;
@@ -196,7 +224,7 @@ var
         tossedFirstEvent: 0..1;
         isImageCache: 0..1;
         interfaceStyle: 0..((1 shl 3)-1);
-        keyViewSelectionDirection: 0..((1 shl 2)-1);
+        _keyViewSelectionDirection: 0..((1 shl 2)-1);
         defaultButtonCellKETemporarilyDisabled: 0..1;
         defaultButtonCellKEDisabled: 0..1;
         menuHasBeenSet: 0..1;
@@ -208,10 +236,11 @@ var
         needsZoom: 0..1;
         sentWindowNeedsDisplayMsg: 0..1;
         liveResizeActive: 0..1;
+      );
       end;
-    __defaultButtonCell: id;
-    __initialFirstResponder: NSView;
-    __auxiliaryStorage: NSWindowAuxiliary;
+    _defaultButtonCell: id;
+    _initialFirstResponder: NSView;
+    _auxiliaryStorage: NSWindowAuxiliary;
     
   public
     class function alloc: NSWindow; message 'alloc';
@@ -239,6 +268,7 @@ var
     function delegate: id; message 'delegate';
     function windowNumber: NSInteger; message 'windowNumber';
     function styleMask: NSUInteger; message 'styleMask';
+    procedure setStyleMask(styleMask_: NSUInteger); message 'setStyleMask:';
     function fieldEditor_forObject(createFlag: Boolean; anObject: id): NSText; message 'fieldEditor:forObject:';
     procedure endEditingFor(anObject: id); message 'endEditingFor:';
     function constrainFrameRect_toScreen(frameRect: NSRect; screen_: NSScreen): NSRect; message 'constrainFrameRect:toScreen:';
@@ -250,6 +280,7 @@ var
     function frame: NSRect; message 'frame';
     function animationResizeTime(newFrame: NSRect): NSTimeInterval; message 'animationResizeTime:';
     procedure setFrame_display_animate(frameRect: NSRect; displayFlag: Boolean; animateFlag: Boolean); message 'setFrame:display:animate:';
+    function inLiveResize: Boolean; message 'inLiveResize';
     procedure setShowsResizeIndicator(show: Boolean); message 'setShowsResizeIndicator:';
     function showsResizeIndicator: Boolean; message 'showsResizeIndicator';
     procedure setResizeIncrements(increments: NSSize); message 'setResizeIncrements:';
@@ -295,6 +326,8 @@ var
     function contentBorderThicknessForEdge(edge: NSRectEdge): CGFloat; message 'contentBorderThicknessForEdge:';
     procedure setAutorecalculatesContentBorderThickness_forEdge(flag: Boolean; edge: NSRectEdge); message 'setAutorecalculatesContentBorderThickness:forEdge:';
     function autorecalculatesContentBorderThicknessForEdge(edge: NSRectEdge): Boolean; message 'autorecalculatesContentBorderThicknessForEdge:';
+    procedure setMovable(flag: Boolean); message 'setMovable:';
+    function isMovable: Boolean; message 'isMovable';
     procedure setMovableByWindowBackground(flag: Boolean); message 'setMovableByWindowBackground:';
     function isMovableByWindowBackground: Boolean; message 'isMovableByWindowBackground';
     procedure setHidesOnDeactivate(flag: Boolean); message 'setHidesOnDeactivate:';
@@ -327,6 +360,8 @@ var
     procedure becomeMainWindow; message 'becomeMainWindow';
     procedure resignMainWindow; message 'resignMainWindow';
     function worksWhenModal: Boolean; message 'worksWhenModal';
+    function preventsApplicationTerminationWhenModal: Boolean; message 'preventsApplicationTerminationWhenModal';
+    procedure setPreventsApplicationTerminationWhenModal(flag: Boolean); message 'setPreventsApplicationTerminationWhenModal:';
     function convertBaseToScreen(aPoint: NSPoint): NSPoint; message 'convertBaseToScreen:';
     function convertScreenToBase(aPoint: NSPoint): NSPoint; message 'convertScreenToBase:';
     procedure performClose(sender: id); message 'performClose:';
@@ -369,6 +404,8 @@ var
     procedure setPreferredBackingLocation(backingLocation_: NSWindowBackingLocation); message 'setPreferredBackingLocation:';
     function preferredBackingLocation: NSWindowBackingLocation; message 'preferredBackingLocation';
     function backingLocation: NSWindowBackingLocation; message 'backingLocation';
+    function allowsConcurrentViewDrawing: Boolean; message 'allowsConcurrentViewDrawing';
+    procedure setAllowsConcurrentViewDrawing(flag: Boolean); message 'setAllowsConcurrentViewDrawing:';
     function displaysWhenScreenProfileChanges: Boolean; message 'displaysWhenScreenProfileChanges';
     procedure setDisplaysWhenScreenProfileChanges(flag: Boolean); message 'setDisplaysWhenScreenProfileChanges:';
     procedure disableScreenUpdatesUntilFlush; message 'disableScreenUpdatesUntilFlush';
@@ -376,7 +413,8 @@ var
     procedure setCanBecomeVisibleWithoutLogin(flag: Boolean); message 'setCanBecomeVisibleWithoutLogin:';
     procedure setCollectionBehavior(behavior: NSWindowCollectionBehavior); message 'setCollectionBehavior:';
     function collectionBehavior: NSWindowCollectionBehavior; message 'collectionBehavior';
-    procedure setCanBeVisibleOnAllSpaces(flag: Boolean); message 'setCanBeVisibleOnAllSpaces:';
+    procedure setCanBeVisibleOnAllSpaces(flag_BUT_DEPRECATED: Boolean); message 'setCanBeVisibleOnAllSpaces:';
+    function isOnActiveSpace: Boolean; message 'isOnActiveSpace';
     function stringWithSavedFrame: NSString; message 'stringWithSavedFrame';
     procedure setFrameFromString(string_: NSString); message 'setFrameFromString:';
     procedure saveFrameUsingName(name: NSString); message 'saveFrameUsingName:';
@@ -422,8 +460,14 @@ var
     procedure setParentWindow(window: NSWindow); message 'setParentWindow:';
     function graphicsContext: NSGraphicsContext; message 'graphicsContext';
     function userSpaceScaleFactor: CGFloat; message 'userSpaceScaleFactor';
+    procedure setColorSpace(colorSpace: NSColorSpace); message 'setColorSpace:';
+    function colorSpace: NSColorSpace; message 'colorSpace';
+    class function windowNumbersWithOptions(options: NSWindowNumberListOptions): NSArray; message 'windowNumbersWithOptions:';
+    class function windowNumberAtPoint_belowWindowWithWindowNumber(point: NSPoint; windowNumber_: NSInteger): NSInteger; message 'windowNumberAtPoint:belowWindowWithWindowNumber:';
+  end; external;
 
-    { Category: NSKeyboardUI }
+{ NSKeyboardUI_NSWindowCategory }
+  NSKeyboardUI_NSWindowCategory = objccategory(NSWindow)
     procedure setInitialFirstResponder(view: NSView); message 'setInitialFirstResponder:';
     function initialFirstResponder: NSView; message 'initialFirstResponder';
     procedure selectNextKeyView(sender: id); message 'selectNextKeyView:';
@@ -438,44 +482,67 @@ var
     procedure setAutorecalculatesKeyViewLoop(flag: Boolean); message 'setAutorecalculatesKeyViewLoop:';
     function autorecalculatesKeyViewLoop: Boolean; message 'autorecalculatesKeyViewLoop';
     procedure recalculateKeyViewLoop; message 'recalculateKeyViewLoop';
+  end; external name 'NSKeyboardUI';
 
-    { Category: NSToolbarSupport }
+{ NSToolbarSupportCategory }
+  NSToolbarSupportCategory = objccategory(NSWindow)
     procedure setToolbar(toolbar_: NSToolbar); message 'setToolbar:';
     function toolbar: NSToolbar; message 'toolbar';
     procedure toggleToolbarShown(sender: id); message 'toggleToolbarShown:';
     procedure runToolbarCustomizationPalette(sender: id); message 'runToolbarCustomizationPalette:';
     procedure setShowsToolbarButton(show: Boolean); message 'setShowsToolbarButton:';
     function showsToolbarButton: Boolean; message 'showsToolbarButton';
+  end; external;
 
-    { Category: NSDrag }
+{ NSDrag_NSWindowCategory }
+  NSDrag_NSWindowCategory = objccategory(NSWindow)
     procedure dragImage_at_offset_event_pasteboard_source_slideBack(anImage: NSImage; baseLocation: NSPoint; initialOffset: NSSize; event: NSEvent; pboard: NSPasteboard; sourceObj: id; slideFlag: Boolean); message 'dragImage:at:offset:event:pasteboard:source:slideBack:';
     procedure registerForDraggedTypes(newTypes: NSArray); message 'registerForDraggedTypes:';
     procedure unregisterDraggedTypes; message 'unregisterDraggedTypes';
+  end; external name 'NSDrag';
 
-    { Category: NSCarbonExtensions }
-    function initWithWindowRef(windowRef: Pointer): NSWindow; message 'initWithWindowRef:';
+{ NSCarbonExtensionsCategory }
+  NSCarbonExtensionsCategory = objccategory(NSWindow)
+    function initWithWindowRef(windowRef_: Pointer): NSWindow; message 'initWithWindowRef:';
     function windowRef: Pointer; message 'windowRef';
-
-    { Category: Drawers }
-    function drawers: NSArray; message 'drawers';
-
-    { Category: NSScripting }
-    function hasCloseBox: Boolean; message 'hasCloseBox';
-    function hasTitleBar: Boolean; message 'hasTitleBar';
-    function isFloatingPanel: Boolean; message 'isFloatingPanel';
-    function isMiniaturizable: Boolean; message 'isMiniaturizable';
-    function isModalPanel: Boolean; message 'isModalPanel';
-    function isResizable: Boolean; message 'isResizable';
-    function isZoomable: Boolean; message 'isZoomable';
-    function orderedIndex: NSInteger; message 'orderedIndex';
-    procedure setIsMiniaturized(flag: Boolean); message 'setIsMiniaturized:';
-    procedure setIsVisible(flag: Boolean); message 'setIsVisible:';
-    procedure setIsZoomed(flag: Boolean); message 'setIsZoomed:';
-    procedure setOrderedIndex(index: NSInteger); message 'setOrderedIndex:';
-    function handleCloseScriptCommand(command: NSCloseCommand): id; message 'handleCloseScriptCommand:';
-    function handlePrintScriptCommand(command: NSScriptCommand): id; message 'handlePrintScriptCommand:';
-    function handleSaveScriptCommand(command: NSScriptCommand): id; message 'handleSaveScriptCommand:';
   end; external;
 
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSWINDOW_PAS_P}
+{$define NSWINDOW_PAS_P}
+  
+{ NSWindowDelegate Protocol }
+  NSWindowDelegateProtocol = objcprotocol
+    function windowShouldClose(sender: id): Boolean; message 'windowShouldClose:';
+    function windowWillReturnFieldEditor_toObject(sender: NSWindow; client: id): id; message 'windowWillReturnFieldEditor:toObject:';
+    function windowWillResize_toSize(sender: NSWindow; frameSize: NSSize): NSSize; message 'windowWillResize:toSize:';
+    function windowWillUseStandardFrame_defaultFrame(window: NSWindow; newFrame: NSRect): NSRect; message 'windowWillUseStandardFrame:defaultFrame:';
+    function windowShouldZoom_toFrame(window: NSWindow; newFrame: NSRect): Boolean; message 'windowShouldZoom:toFrame:';
+    function windowWillReturnUndoManager(window: NSWindow): NSUndoManager; message 'windowWillReturnUndoManager:';
+    function window_willPositionSheet_usingRect(window: NSWindow; sheet: NSWindow; rect: NSRect): NSRect; message 'window:willPositionSheet:usingRect:';
+    function window_shouldPopUpDocumentPathMenu(window: NSWindow; menu: NSMenu): Boolean; message 'window:shouldPopUpDocumentPathMenu:';
+    function window_shouldDragDocumentWithEvent_from_withPasteboard(window: NSWindow; event: NSEvent; dragImageLocation: NSPoint; pasteboard: NSPasteboard): Boolean; message 'window:shouldDragDocumentWithEvent:from:withPasteboard:';
+    procedure windowDidResize(notification: NSNotification); message 'windowDidResize:';
+    procedure windowDidExpose(notification: NSNotification); message 'windowDidExpose:';
+    procedure windowWillMove(notification: NSNotification); message 'windowWillMove:';
+    procedure windowDidMove(notification: NSNotification); message 'windowDidMove:';
+    procedure windowDidBecomeKey(notification: NSNotification); message 'windowDidBecomeKey:';
+    procedure windowDidResignKey(notification: NSNotification); message 'windowDidResignKey:';
+    procedure windowDidBecomeMain(notification: NSNotification); message 'windowDidBecomeMain:';
+    procedure windowDidResignMain(notification: NSNotification); message 'windowDidResignMain:';
+    procedure windowWillClose(notification: NSNotification); message 'windowWillClose:';
+    procedure windowWillMiniaturize(notification: NSNotification); message 'windowWillMiniaturize:';
+    procedure windowDidMiniaturize(notification: NSNotification); message 'windowDidMiniaturize:';
+    procedure windowDidDeminiaturize(notification: NSNotification); message 'windowDidDeminiaturize:';
+    procedure windowDidUpdate(notification: NSNotification); message 'windowDidUpdate:';
+    procedure windowDidChangeScreen(notification: NSNotification); message 'windowDidChangeScreen:';
+    procedure windowDidChangeScreenProfile(notification: NSNotification); message 'windowDidChangeScreenProfile:';
+    procedure windowWillBeginSheet(notification: NSNotification); message 'windowWillBeginSheet:';
+    procedure windowDidEndSheet(notification: NSNotification); message 'windowDidEndSheet:';
+    procedure windowWillStartLiveResize(notification: NSNotification); message 'windowWillStartLiveResize:';
+    procedure windowDidEndLiveResize(notification: NSNotification); message 'windowDidEndLiveResize:';
+  end; external name 'NSWindowDelegate';
 {$endif}
 {$endif}

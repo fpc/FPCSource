@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSControl.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,16 +29,18 @@
 
 { External string constants }
 var
-  NSControlTextDidBeginEditingNotification: NSString; external name '_NSControlTextDidBeginEditingNotification';
-  NSControlTextDidEndEditingNotification: NSString; external name '_NSControlTextDidEndEditingNotification';
-  NSControlTextDidChangeNotification: NSString; external name '_NSControlTextDidChangeNotification';
+  NSControlTextDidBeginEditingNotification: NSString; cvar; external;
+  NSControlTextDidEndEditingNotification: NSString; cvar; external;
+  NSControlTextDidChangeNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
+  NSControlTextEditingDelegateProtocol = objcprotocol;
   NSControl = objcclass;
   NSControlPointer = ^NSControl;
+  NSControlPtr = NSControlPointer;
 
 {$endif}
 
@@ -49,16 +51,20 @@ var
 { NSControl }
   NSControl = objcclass(NSView)
   private
-    __tag: NSInteger;
-    __cell: id;
+    _tag: NSInteger;
+    _cell: id;
     __conFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSControl0: cuint);
+       1: (
         enabled: 0..1;
         ignoreMultiClick: 0..1;
-        calcSize: 0..1;
+        _calcSize: 0..1;
         drawingAncestor: 0..1;
         ibReserved: 0..1;
         updateCellFocus: 0..1;
         reserved: 0..((1 shl 26)-1);
+      );
       end;
     
   public
@@ -86,7 +92,6 @@ var
     procedure setContinuous(flag: Boolean); message 'setContinuous:';
     function isEnabled: Boolean; message 'isEnabled';
     procedure setEnabled(flag: Boolean); message 'setEnabled:';
-    procedure setFloatingPointFormat_left_right(autoRange: Boolean; leftDigits: NSUInteger; rightDigits: NSUInteger); message 'setFloatingPointFormat:left:right:';
     function alignment: NSTextAlignment; message 'alignment';
     procedure setAlignment(mode: NSTextAlignment); message 'setAlignment:';
     function font: NSFont; message 'font';
@@ -124,16 +129,48 @@ var
     function integerValue: NSInteger; message 'integerValue';
     procedure setIntegerValue(anInteger: NSInteger); message 'setIntegerValue:';
     procedure takeIntegerValueFrom(sender: id); message 'takeIntegerValueFrom:';
+  end; external;
 
-    { Category: NSKeyboardUI }
+{ NSKeyboardUI_NSControlCategory }
+  NSKeyboardUI_NSControlCategory = objccategory(NSControl)
     procedure performClick(sender: id); message 'performClick:';
     procedure setRefusesFirstResponder(flag: Boolean); message 'setRefusesFirstResponder:';
     function refusesFirstResponder: Boolean; message 'refusesFirstResponder';
+  end; external name 'NSKeyboardUI';
 
-    { Category: NSControlAttributedStringMethods }
+{ NSControlSubclassNotificationsCategory }
+  NSControlSubclassNotificationsCategory = objccategory(NSObject)
+    procedure controlTextDidBeginEditing(obj: NSNotification); message 'controlTextDidBeginEditing:';
+    procedure controlTextDidEndEditing(obj: NSNotification); message 'controlTextDidEndEditing:';
+    procedure controlTextDidChange(obj: NSNotification); message 'controlTextDidChange:';
+  end; external;
+
+{ NSControlAttributedStringMethodsCategory }
+  NSControlAttributedStringMethodsCategory = objccategory(NSControl)
     function attributedStringValue: NSAttributedString; message 'attributedStringValue';
     procedure setAttributedStringValue(obj: NSAttributedString); message 'setAttributedStringValue:';
   end; external;
 
+{ NSDeprecated_NSControlCategory }
+  NSDeprecated_NSControlCategory = objccategory(NSControl)
+    procedure setFloatingPointFormat_left_right(autoRange: Boolean; leftDigits: NSUInteger; rightDigits: NSUInteger); message 'setFloatingPointFormat:left:right:'; deprecated 'in Mac OS X 10 and later';
+  end; external name 'NSDeprecated';
+
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSCONTROL_PAS_P}
+{$define NSCONTROL_PAS_P}
+  
+{ NSControlTextEditingDelegate Protocol }
+  NSControlTextEditingDelegateProtocol = objcprotocol
+    function control_textShouldBeginEditing(control: NSControl; fieldEditor: NSText): Boolean; message 'control:textShouldBeginEditing:';
+    function control_textShouldEndEditing(control: NSControl; fieldEditor: NSText): Boolean; message 'control:textShouldEndEditing:';
+    function control_didFailToFormatString_errorDescription(control: NSControl; string_: NSString; error: NSString): Boolean; message 'control:didFailToFormatString:errorDescription:';
+    procedure control_didFailToValidatePartialString_errorDescription(control: NSControl; string_: NSString; error: NSString); message 'control:didFailToValidatePartialString:errorDescription:';
+    function control_isValidObject(control: NSControl; obj: id): Boolean; message 'control:isValidObject:';
+    function control_textView_doCommandBySelector(control: NSControl; textView: NSTextView; commandSelector: SEL): Boolean; message 'control:textView:doCommandBySelector:';
+    function control_textView_completions_forPartialWordRange_indexOfSelectedItem(control: NSControl; textView: NSTextView; words: NSArray; charRange: NSRange; index: NSIntegerPtr): NSArray; message 'control:textView:completions:forPartialWordRange:indexOfSelectedItem:';
+  end; external name 'NSControlTextEditingDelegate';
 {$endif}
 {$endif}

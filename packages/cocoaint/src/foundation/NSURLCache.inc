@@ -1,14 +1,22 @@
 { Parsed from Foundation.framework NSURLCache.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
 {$ifndef NSURLCACHE_PAS_T}
 {$define NSURLCACHE_PAS_T}
 
+{ Constants }
+
+const
+  NSURLCacheStorageAllowed = 0;
+  NSURLCacheStorageAllowedInMemoryOnly = 1;
+  NSURLCacheStorageNotAllowed = 2;
+
 { Types }
 type
   NSURLCacheStoragePolicy = NSUInteger;
+  NSURLCacheStoragePolicyPtr = ^NSURLCacheStoragePolicy;
 
 {$endif}
 {$endif}
@@ -37,8 +45,10 @@ type
 {$ifdef FORWARD}
   NSCachedURLResponse = objcclass;
   NSCachedURLResponsePointer = ^NSCachedURLResponse;
+  NSCachedURLResponsePtr = NSCachedURLResponsePointer;
   NSURLCache = objcclass;
   NSURLCachePointer = ^NSURLCache;
+  NSURLCachePtr = NSURLCachePointer;
 
 {$endif}
 
@@ -49,7 +59,7 @@ type
 { NSCachedURLResponse }
   NSCachedURLResponse = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
-    __internal: NSCachedURLResponseInternal;
+    _internal: NSCachedURLResponseInternal;
     
   public
     class function alloc: NSCachedURLResponse; message 'alloc';
@@ -60,12 +70,17 @@ type
     function data: NSData; message 'data';
     function userInfo: NSDictionary; message 'userInfo';
     function storagePolicy: NSURLCacheStoragePolicy; message 'storagePolicy';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+    function copyWithZone(zone_: NSZonePtr): id;
   end; external;
 
 { NSURLCache }
   NSURLCache = objcclass(NSObject)
   private
-    __internal: NSURLCacheInternal;
+    _internal: NSURLCacheInternal;
     
   public
     class function alloc: NSURLCache; message 'alloc';

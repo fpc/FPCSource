@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSImageView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSImageView = objcclass;
   NSImageViewPointer = ^NSImageView;
+  NSImageViewPtr = NSImageViewPointer;
 
 {$endif}
 
@@ -44,15 +45,20 @@
   NSImageView = objcclass(NSControl)
   private
     __ivFlags: bitpacked record
-        _unused: 0..((1 shl 27)-1);
+      case byte of
+       0: (_anonbitfield_NSImageView0: cuint);
+       1: (
+        _unused: 0..((1 shl 26)-1);
+        _rejectsMultiFileDrops: 0..1;
         _compatibleScalingAndAlignment: 0..1;
-        _compatibleImage: 0..1;
+        _reserved: 0..1;
         _overridesDrawing: 0..1;
         _allowsCutCopyPaste: 0..1;
         _editable: 0..1;
+      );
       end;
-    __target: id;
-    __action: SEL;
+    _target: id;
+    _action: SEL;
     
   public
     class function alloc: NSImageView; message 'alloc';

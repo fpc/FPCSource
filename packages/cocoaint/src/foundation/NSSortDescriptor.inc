@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSSortDescriptor.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSSortDescriptor = objcclass;
   NSSortDescriptorPointer = ^NSSortDescriptor;
+  NSSortDescriptorPtr = NSSortDescriptorPointer;
 
 {$endif}
 
@@ -43,14 +44,16 @@
 { NSSortDescriptor }
   NSSortDescriptor = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
-    __sortDescriptorFlags: NSUInteger;
-    __key: NSString;
-    __selector: SEL;
-    __selectorName: NSString;
+    _sortDescriptorFlags: NSUInteger;
+    _key: NSString;
+    _selector: SEL;
+    _selectorOrBlock: id;
     
   public
     class function alloc: NSSortDescriptor; message 'alloc';
 
+    class function sortDescriptorWithKey_ascending(key_: NSString; ascending_: Boolean): id; message 'sortDescriptorWithKey:ascending:';
+    class function sortDescriptorWithKey_ascending_selector(key_: NSString; ascending_: Boolean; selector_: SEL): id; message 'sortDescriptorWithKey:ascending:selector:';
     function initWithKey_ascending(key_: NSString; ascending_: Boolean): id; message 'initWithKey:ascending:';
     function initWithKey_ascending_selector(key_: NSString; ascending_: Boolean; selector_: SEL): id; message 'initWithKey:ascending:selector:';
     function key: NSString; message 'key';
@@ -58,7 +61,27 @@
     function selector: SEL; message 'selector';
     function compareObject_toObject(object_: id; object_1: id): NSComparisonResult; message 'compareObject:toObject:';
     function reversedSortDescriptor: id; message 'reversedSortDescriptor';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+    function copyWithZone(zone_: NSZonePtr): id;
   end; external;
+
+{ NSSortDescriptorSortingCategory }
+  NSSortDescriptorSortingCategory = objccategory(NSSet)
+    function sortedArrayUsingDescriptors(sortDescriptors: NSArray): NSArray; message 'sortedArrayUsingDescriptors:';
+  end; external;
+
+{ NSSortDescriptorSorting_NSArrayCategory }
+  NSSortDescriptorSorting_NSArrayCategory = objccategory(NSArray)
+    function sortedArrayUsingDescriptors(sortDescriptors: NSArray): NSArray; message 'sortedArrayUsingDescriptors:';
+  end; external name 'NSSortDescriptorSorting';
+
+{ NSSortDescriptorSorting_NSMutableArrayCategory }
+  NSSortDescriptorSorting_NSMutableArrayCategory = objccategory(NSMutableArray)
+    procedure sortUsingDescriptors(sortDescriptors: NSArray); message 'sortUsingDescriptors:';
+  end; external name 'NSSortDescriptorSorting';
 
 {$endif}
 {$endif}

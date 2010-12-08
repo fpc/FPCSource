@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework CoreDataErrors.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -46,6 +46,8 @@ const
   NSMigrationManagerDestinationStoreError = 134160;
   NSEntityMigrationPolicyError = 134170;
   NSSQLiteError = 134180;
+  NSInferredMappingModelError = 134190;
+  NSExternalRecordImportError = 134200;
 
 {$endif}
 {$endif}
@@ -70,14 +72,14 @@ const
 
 { External string constants }
 var
-  NSDetailedErrorsKey: NSString; external name '_NSDetailedErrorsKey';
-  NSValidationObjectErrorKey: NSString; external name '_NSValidationObjectErrorKey';
-  NSValidationKeyErrorKey: NSString; external name '_NSValidationKeyErrorKey';
-  NSValidationPredicateErrorKey: NSString; external name '_NSValidationPredicateErrorKey';
-  NSValidationValueErrorKey: NSString; external name '_NSValidationValueErrorKey';
-  NSAffectedStoresErrorKey: NSString; external name '_NSAffectedStoresErrorKey';
-  NSAffectedObjectsErrorKey: NSString; external name '_NSAffectedObjectsErrorKey';
-  NSSQLiteErrorDomain: NSString; external name '_NSSQLiteErrorDomain';
+  NSDetailedErrorsKey: NSString; cvar; external;
+  NSValidationObjectErrorKey: NSString; cvar; external;
+  NSValidationKeyErrorKey: NSString; cvar; external;
+  NSValidationPredicateErrorKey: NSString; cvar; external;
+  NSValidationValueErrorKey: NSString; cvar; external;
+  NSAffectedStoresErrorKey: NSString; cvar; external;
+  NSAffectedObjectsErrorKey: NSString; cvar; external;
+  NSSQLiteErrorDomain: NSString; cvar; external;
 
 {$endif}
 {$endif}

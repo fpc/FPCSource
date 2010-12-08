@@ -1,0 +1,99 @@
+{ Parsed from Foundation.framework NSInvocation.h }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+
+
+{$ifdef TYPES}
+{$ifndef NSINVOCATION_PAS_T}
+{$define NSINVOCATION_PAS_T}
+
+{ Constants }
+
+const
+  NSObjCNoType = 0;
+
+{$endif}
+{$endif}
+
+{$ifdef RECORDS}
+{$ifndef NSINVOCATION_PAS_R}
+{$define NSINVOCATION_PAS_R}
+
+{ Records }
+type
+  value = record
+    _type: NSInteger;
+    charValue: char;
+    shortValue: cshort;
+    longValue: clong;
+    longlongValue: clonglong;
+    floatValue: single;
+    doubleValue: double;
+    boolValue: bool;
+    selectorValue: SEL;
+    objectValue: id;
+    pointerValue: Pointer;
+    structLocation: Pointer;
+    cStringLocation: PChar;
+  end deprecated 'in Mac OS X 10.5 and later';
+valuePtr = ^value;
+
+
+{$endif}
+{$endif}
+
+{$ifdef FUNCTIONS}
+{$ifndef NSINVOCATION_PAS_F}
+{$define NSINVOCATION_PAS_F}
+
+{$endif}
+{$endif}
+
+{$ifdef EXTERNAL_SYMBOLS}
+{$ifndef NSINVOCATION_PAS_S}
+{$define NSINVOCATION_PAS_S}
+
+{$endif}
+{$endif}
+
+{$ifdef FORWARD}
+  NSInvocation = objcclass;
+  NSInvocationPointer = ^NSInvocation;
+  NSInvocationPtr = NSInvocationPointer;
+
+{$endif}
+
+{$ifdef CLASSES}
+{$ifndef NSINVOCATION_PAS_C}
+{$define NSINVOCATION_PAS_C}
+
+{ NSInvocation }
+  NSInvocation = objcclass(NSObject)
+  private
+    _frame: Pointer;
+    _retdata: Pointer;
+    _signature: id;
+    _container: id;
+    _retainedArgs: cuint8;
+        _reserved: array[0..14] of cuint8;
+    
+  public
+    class function alloc: NSInvocation; message 'alloc';
+
+    class function invocationWithMethodSignature(sig: NSMethodSignature): NSInvocation; message 'invocationWithMethodSignature:';
+    function methodSignature: NSMethodSignature; message 'methodSignature';
+    procedure retainArguments; message 'retainArguments';
+    function argumentsRetained: Boolean; message 'argumentsRetained';
+    function target: id; message 'target';
+    procedure setTarget(target_: id); message 'setTarget:';
+    function selector: SEL; message 'selector';
+    procedure setSelector(selector_: SEL); message 'setSelector:';
+    procedure getReturnValue(retLoc: Pointer); message 'getReturnValue:';
+    procedure setReturnValue(retLoc: Pointer); message 'setReturnValue:';
+    procedure getArgument_atIndex(argumentLocation: Pointer; idx: NSInteger); message 'getArgument:atIndex:';
+    procedure setArgument_atIndex(argumentLocation: Pointer; idx: NSInteger); message 'setArgument:atIndex:';
+    procedure invoke; message 'invoke';
+    procedure invokeWithTarget(target_: id); message 'invokeWithTarget:';
+  end; external;
+
+{$endif}
+{$endif}

@@ -1,12 +1,17 @@
-{	Foundation.h
-	Copyright (c) 1994-2007, Apple Inc. All rights reserved.
-}
 
-{ == PasCocoa Additions == }
+{ Parse category/protocol symbols from NSObject.h }
+{-parse NSObject.h}
+
+{ This unit adds categories and protocols to NSObject in objcbase.pp }
+{ //include NSObjectSupport.inc} 
+
+{ === From OS 10.5 === }
 {$include NSObjCRuntime.inc} 
-{$include NSAffineTransform.inc} 
+{$include NSInvocation.inc}
+{$include NSPointerFunctions.inc}
+{include NSAffineTransform.inc} 
 {$include NSArray.inc} 
-{$include NSAttributedString.inc} 
+{include NSAttributedString.inc}
 {$include NSAutoreleasePool.inc} 
 {$include NSBundle.inc} 
 {$include NSCalendar.inc} 
@@ -56,7 +61,6 @@
 {$include NSNumberFormatter.inc} 
 {$include NSOperation.inc} 
 {$include NSPointerArray.inc} 
-{--------->WHERE DID THIS GO??}{include NSPointerFunctions.inc} 
 {$include NSPort.inc} 
 {$include NSPortCoder.inc} 
 {$include NSPortMessage.inc} 
@@ -88,7 +92,7 @@
 {$include NSXMLElement.inc} 
 {$include NSXMLNodeOptions.inc} 
 {$include NSXMLParser.inc} 
-{$include NSZone.inc} 
+{ include NSZone.inc} 
 {$include NSExpression.inc} 
 {$include NSPredicate.inc} 
 {$include NSComparisonPredicate.inc} 
@@ -120,3 +124,8 @@
 {$include NSHTTPCookieStorage.inc} 
 {$include NSURLDownload.inc} 
 {$include NSURLError.inc} 
+
+{ === From OS 10.6 === }
+{$include NSCache.inc}
+{$include NSOrthography.inc}
+{$include NSTextCheckingResult.inc}

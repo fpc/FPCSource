@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSText.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,10 @@ const
   NSWritingDirectionRightToLeft = 1;
 
 const
+  NSTextWritingDirectionEmbedding = 0 shl 1;
+  NSTextWritingDirectionOverride = 1 shl 1;
+
+const
   NSIllegalTextMovement = 0;
   NSReturnTextMovement = $10;
   NSTabTextMovement = $11;
@@ -47,7 +51,9 @@ const
 { Types }
 type
   NSTextAlignment = NSUInteger;
+  NSTextAlignmentPtr = ^NSTextAlignment;
   NSWritingDirection = NSInteger;
+  NSWritingDirectionPtr = ^NSWritingDirection;
 
 {$endif}
 {$endif}
@@ -72,16 +78,18 @@ type
 
 { External string constants }
 var
-  NSTextDidBeginEditingNotification: NSString; external name '_NSTextDidBeginEditingNotification';
-  NSTextDidEndEditingNotification: NSString; external name '_NSTextDidEndEditingNotification';
-  NSTextDidChangeNotification: NSString; external name '_NSTextDidChangeNotification';
+  NSTextDidBeginEditingNotification: NSString; cvar; external;
+  NSTextDidEndEditingNotification: NSString; cvar; external;
+  NSTextDidChangeNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
+  NSTextDelegateProtocol = objcprotocol;
   NSText = objcclass;
   NSTextPointer = ^NSText;
+  NSTextPtr = NSTextPointer;
 
 {$endif}
 
@@ -92,7 +100,7 @@ var
 { NSText }
   NSText = objcclass(NSView, NSChangeSpellingProtocol, NSIgnoreMisspelledWordsProtocol)
   private
-    __ivars: id;
+    _ivars: id;
     
   public
     class function alloc: NSText; message 'alloc';
@@ -167,7 +175,25 @@ var
     procedure showGuessPanel(sender: id); message 'showGuessPanel:';
     procedure checkSpelling(sender: id); message 'checkSpelling:';
     procedure toggleRuler(sender: id); message 'toggleRuler:';
+
+    { Adopted Protocols }
+    procedure changeSpelling(sender: id);
+    procedure ignoreSpelling(sender: id);
   end; external;
 
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSTEXT_PAS_P}
+{$define NSTEXT_PAS_P}
+  
+{ NSTextDelegate Protocol }
+  NSTextDelegateProtocol = objcprotocol
+    function textShouldBeginEditing(textObject: NSText): Boolean; message 'textShouldBeginEditing:';
+    function textShouldEndEditing(textObject: NSText): Boolean; message 'textShouldEndEditing:';
+    procedure textDidBeginEditing(notification: NSNotification); message 'textDidBeginEditing:';
+    procedure textDidEndEditing(notification: NSNotification); message 'textDidEndEditing:';
+    procedure textDidChange(notification: NSNotification); message 'textDidChange:';
+  end; external name 'NSTextDelegate';
 {$endif}
 {$endif}

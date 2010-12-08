@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSResponder.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSResponder = objcclass;
   NSResponderPointer = ^NSResponder;
+  NSResponderPtr = NSResponderPointer;
 
 {$endif}
 
@@ -43,7 +44,7 @@
 { NSResponder }
   NSResponder = objcclass(NSObject, NSCodingProtocol)
   private
-    __nextResponder: id;
+    _nextResponder: id;
     
   public
     class function alloc: NSResponder; message 'alloc';
@@ -72,6 +73,15 @@
     procedure tabletPoint(theEvent: NSEvent); message 'tabletPoint:';
     procedure tabletProximity(theEvent: NSEvent); message 'tabletProximity:';
     procedure cursorUpdate(event: NSEvent); message 'cursorUpdate:';
+    procedure magnifyWithEvent(event: NSEvent); message 'magnifyWithEvent:';
+    procedure rotateWithEvent(event: NSEvent); message 'rotateWithEvent:';
+    procedure swipeWithEvent(event: NSEvent); message 'swipeWithEvent:';
+    procedure beginGestureWithEvent(event: NSEvent); message 'beginGestureWithEvent:';
+    procedure endGestureWithEvent(event: NSEvent); message 'endGestureWithEvent:';
+    procedure touchesBeganWithEvent(event: NSEvent); message 'touchesBeganWithEvent:';
+    procedure touchesMovedWithEvent(event: NSEvent); message 'touchesMovedWithEvent:';
+    procedure touchesEndedWithEvent(event: NSEvent); message 'touchesEndedWithEvent:';
+    procedure touchesCancelledWithEvent(event: NSEvent); message 'touchesCancelledWithEvent:';
     procedure noResponderFor(eventSelector: SEL); message 'noResponderFor:';
     function acceptsFirstResponder: Boolean; message 'acceptsFirstResponder';
     function becomeFirstResponder: Boolean; message 'becomeFirstResponder';
@@ -81,13 +91,21 @@
     procedure setMenu(menu_: NSMenu); message 'setMenu:';
     function menu: NSMenu; message 'menu';
     procedure showContextHelp(sender: id); message 'showContextHelp:';
-    procedure helpRequested(eventPtr: NSEventPointer); message 'helpRequested:';
+    procedure helpRequested(eventPtr: NSEvent); message 'helpRequested:';
     function shouldBeTreatedAsInkEvent(theEvent: NSEvent): Boolean; message 'shouldBeTreatedAsInkEvent:';
 
-    { Category: NSKeyboardUI }
-    function performMnemonic(theString: NSString): Boolean; message 'performMnemonic:';
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+  end; external;
 
-    { Category: NSStandardKeyBindingMethods }
+{ NSKeyboardUICategory }
+  NSKeyboardUICategory = objccategory(NSResponder)
+    function performMnemonic(theString: NSString): Boolean; message 'performMnemonic:';
+  end; external;
+
+{ NSStandardKeyBindingMethodsCategory }
+  NSStandardKeyBindingMethodsCategory = objccategory(NSResponder)
     procedure insertText(insertString: id); message 'insertText:';
     procedure doCommandBySelector(aSelector: SEL); message 'doCommandBySelector:';
     procedure moveForward(sender: id); message 'moveForward:';
@@ -113,16 +131,32 @@
     procedure moveWordBackwardAndModifySelection(sender: id); message 'moveWordBackwardAndModifySelection:';
     procedure moveUpAndModifySelection(sender: id); message 'moveUpAndModifySelection:';
     procedure moveDownAndModifySelection(sender: id); message 'moveDownAndModifySelection:';
+    procedure moveToBeginningOfLineAndModifySelection(sender: id); message 'moveToBeginningOfLineAndModifySelection:';
+    procedure moveToEndOfLineAndModifySelection(sender: id); message 'moveToEndOfLineAndModifySelection:';
+    procedure moveToBeginningOfParagraphAndModifySelection(sender: id); message 'moveToBeginningOfParagraphAndModifySelection:';
+    procedure moveToEndOfParagraphAndModifySelection(sender: id); message 'moveToEndOfParagraphAndModifySelection:';
+    procedure moveToEndOfDocumentAndModifySelection(sender: id); message 'moveToEndOfDocumentAndModifySelection:';
+    procedure moveToBeginningOfDocumentAndModifySelection(sender: id); message 'moveToBeginningOfDocumentAndModifySelection:';
+    procedure pageDownAndModifySelection(sender: id); message 'pageDownAndModifySelection:';
+    procedure pageUpAndModifySelection(sender: id); message 'pageUpAndModifySelection:';
+    procedure moveParagraphForwardAndModifySelection(sender: id); message 'moveParagraphForwardAndModifySelection:';
+    procedure moveParagraphBackwardAndModifySelection(sender: id); message 'moveParagraphBackwardAndModifySelection:';
     procedure moveWordRight(sender: id); message 'moveWordRight:';
     procedure moveWordLeft(sender: id); message 'moveWordLeft:';
     procedure moveRightAndModifySelection(sender: id); message 'moveRightAndModifySelection:';
     procedure moveLeftAndModifySelection(sender: id); message 'moveLeftAndModifySelection:';
     procedure moveWordRightAndModifySelection(sender: id); message 'moveWordRightAndModifySelection:';
     procedure moveWordLeftAndModifySelection(sender: id); message 'moveWordLeftAndModifySelection:';
+    procedure moveToLeftEndOfLine(sender: id); message 'moveToLeftEndOfLine:';
+    procedure moveToRightEndOfLine(sender: id); message 'moveToRightEndOfLine:';
+    procedure moveToLeftEndOfLineAndModifySelection(sender: id); message 'moveToLeftEndOfLineAndModifySelection:';
+    procedure moveToRightEndOfLineAndModifySelection(sender: id); message 'moveToRightEndOfLineAndModifySelection:';
     procedure scrollPageUp(sender: id); message 'scrollPageUp:';
     procedure scrollPageDown(sender: id); message 'scrollPageDown:';
     procedure scrollLineUp(sender: id); message 'scrollLineUp:';
     procedure scrollLineDown(sender: id); message 'scrollLineDown:';
+    procedure scrollToBeginningOfDocument(sender: id); message 'scrollToBeginningOfDocument:';
+    procedure scrollToEndOfDocument(sender: id); message 'scrollToEndOfDocument:';
     procedure transpose(sender: id); message 'transpose:';
     procedure transposeWords(sender: id); message 'transposeWords:';
     procedure selectAll(sender: id); message 'selectAll:';
@@ -138,6 +172,8 @@
     procedure insertTabIgnoringFieldEditor(sender: id); message 'insertTabIgnoringFieldEditor:';
     procedure insertLineBreak(sender: id); message 'insertLineBreak:';
     procedure insertContainerBreak(sender: id); message 'insertContainerBreak:';
+    procedure insertSingleQuoteIgnoringSubstitution(sender: id); message 'insertSingleQuoteIgnoringSubstitution:';
+    procedure insertDoubleQuoteIgnoringSubstitution(sender: id); message 'insertDoubleQuoteIgnoringSubstitution:';
     procedure changeCaseOfLetter(sender: id); message 'changeCaseOfLetter:';
     procedure uppercaseWord(sender: id); message 'uppercaseWord:';
     procedure lowercaseWord(sender: id); message 'lowercaseWord:';
@@ -158,18 +194,24 @@
     procedure selectToMark(sender: id); message 'selectToMark:';
     procedure swapWithMark(sender: id); message 'swapWithMark:';
     procedure cancelOperation(sender: id); message 'cancelOperation:';
+    procedure makeBaseWritingDirectionNatural(sender: id); message 'makeBaseWritingDirectionNatural:';
+    procedure makeBaseWritingDirectionLeftToRight(sender: id); message 'makeBaseWritingDirectionLeftToRight:';
+    procedure makeBaseWritingDirectionRightToLeft(sender: id); message 'makeBaseWritingDirectionRightToLeft:';
+    procedure makeTextWritingDirectionNatural(sender: id); message 'makeTextWritingDirectionNatural:';
+    procedure makeTextWritingDirectionLeftToRight(sender: id); message 'makeTextWritingDirectionLeftToRight:';
+    procedure makeTextWritingDirectionRightToLeft(sender: id); message 'makeTextWritingDirectionRightToLeft:';
+  end; external;
 
-    { Category: NSUndoSupport }
+{ NSUndoSupportCategory }
+  NSUndoSupportCategory = objccategory(NSResponder)
     function undoManager: NSUndoManager; message 'undoManager';
+  end; external;
 
-    { Category: NSErrorPresentation }
+{ NSErrorPresentationCategory }
+  NSErrorPresentationCategory = objccategory(NSResponder)
     procedure presentError_modalForWindow_delegate_didPresentSelector_contextInfo(error: NSError; window: NSWindow; delegate: id; didPresentSelector: SEL; contextInfo: Pointer); message 'presentError:modalForWindow:delegate:didPresentSelector:contextInfo:';
     function presentError(error: NSError): Boolean; message 'presentError:';
     function willPresentError(error: NSError): NSError; message 'willPresentError:';
-
-    { Category: NSInterfaceStyle }
-    function interfaceStyle: NSInterfaceStyle; message 'interfaceStyle';
-    procedure setInterfaceStyle(interfaceStyle_: NSInterfaceStyle); message 'setInterfaceStyle:';
   end; external;
 
 {$endif}

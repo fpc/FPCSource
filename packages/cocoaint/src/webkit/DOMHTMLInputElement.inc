@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLInputElement.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMHTMLInputElement = objcclass;
   DOMHTMLInputElementPointer = ^DOMHTMLInputElement;
+  DOMHTMLInputElementPtr = DOMHTMLInputElementPointer;
 
 {$endif}
 
@@ -48,6 +49,8 @@
 
     procedure setDefaultValue (newValue: NSString); message 'setDefaultValue:';
     function defaultValue: NSString; message 'defaultValue';
+    procedure setDefaultChecked (newValue: Boolean); message 'setDefaultChecked:';
+    function defaultChecked: Boolean; message 'defaultChecked';
     function form: DOMHTMLFormElement; message 'form';
     procedure setAccept (newValue: NSString); message 'setAccept:';
     function accept: NSString; message 'accept';
@@ -57,8 +60,20 @@
     function align: NSString; message 'align';
     procedure setAlt (newValue: NSString); message 'setAlt:';
     function alt: NSString; message 'alt';
+    procedure setChecked (newValue: Boolean); message 'setChecked:';
+    function checked: Boolean; message 'checked';
+    procedure setDisabled (newValue: Boolean); message 'setDisabled:';
+    function disabled: Boolean; message 'disabled';
+    procedure setAutofocus (newValue: Boolean); message 'setAutofocus:';
+    function autofocus: Boolean; message 'autofocus';
+    procedure setMaxLength (newValue: cint); message 'setMaxLength:';
+    function maxLength: cint; message 'maxLength';
+    procedure setMultiple (newValue: Boolean); message 'setMultiple:';
+    function multiple: Boolean; message 'multiple';
     procedure setName (newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
+    procedure setReadOnly (newValue: Boolean); message 'setReadOnly:';
+    function readOnly: Boolean; message 'readOnly';
     procedure setSize (newValue: NSString); message 'setSize:';
     function size: NSString; message 'size';
     procedure setSrc (newValue: NSString); message 'setSrc:';
@@ -69,12 +84,19 @@
     function useMap: NSString; message 'useMap';
     procedure setValue (newValue: NSString); message 'setValue:';
     function value: NSString; message 'value';
+    function willValidate: Boolean; message 'willValidate';
+    procedure setIndeterminate (newValue: Boolean); message 'setIndeterminate:';
+    function indeterminate: Boolean; message 'indeterminate';
+    procedure setSelectionStart (newValue: cint); message 'setSelectionStart:';
+    function selectionStart: cint; message 'selectionStart';
+    procedure setSelectionEnd (newValue: cint); message 'setSelectionEnd:';
+    function selectionEnd: cint; message 'selectionEnd';
     function altDisplayString: NSString; message 'altDisplayString';
     function absoluteImageURL: NSURL; message 'absoluteImageURL';
-    procedure blur; message 'blur';
-    procedure focus; message 'focus';
+    function files: DOMFileList; message 'files';
     procedure select; message 'select';
     procedure click; message 'click';
+    procedure setSelectionRange_end(start: cint; end_: cint); message 'setSelectionRange:end:';
   end; external;
 
 {$endif}

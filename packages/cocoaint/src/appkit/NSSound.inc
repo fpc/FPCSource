@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSound.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,14 +29,16 @@
 
 { External string constants }
 var
-  NSSoundPboardType: NSString; external name '_NSSoundPboardType';
+  NSSoundPboardType: NSString; cvar; external;
 
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
+  NSSoundDelegateProtocol = objcprotocol;
   NSSound = objcclass;
   NSSoundPointer = ^NSSound;
+  NSSoundPtr = NSSoundPointer;
 
 {$endif}
 
@@ -45,12 +47,12 @@ var
 {$define NSSOUND_PAS_C}
 
 { NSSound }
-  NSSound = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSSound = objcclass(NSObject)
   private
-    __delegate: id;
-    __info: id;
+    _delegate: id;
+    _info: id;
         _reserved: array[0..5] of id;
-    __sFlags: NSUInteger;
+    _sFlags: NSUInteger;
     
   public
     class function alloc: NSSound; message 'alloc';
@@ -83,11 +85,28 @@ var
     function playbackDeviceIdentifier: NSString; message 'playbackDeviceIdentifier';
     procedure setChannelMapping(channelMapping_: NSArray); message 'setChannelMapping:';
     function channelMapping: NSArray; message 'channelMapping';
-
-    { Category: NSDeprecated }
-    class function soundUnfilteredFileTypes: NSArray; message 'soundUnfilteredFileTypes';
-    class function soundUnfilteredPasteboardTypes: NSArray; message 'soundUnfilteredPasteboardTypes';
   end; external;
 
+{ NSDeprecated_NSSoundCategory }
+  NSDeprecated_NSSoundCategory = objccategory(NSSound)
+    class function soundUnfilteredFileTypes: NSArray; message 'soundUnfilteredFileTypes'; deprecated 'in Mac OS X 10.5 and later';
+    class function soundUnfilteredPasteboardTypes: NSArray; message 'soundUnfilteredPasteboardTypes'; deprecated 'in Mac OS X 10.5 and later';
+  end; external name 'NSDeprecated';
+
+{ NSBundleSoundExtensionsCategory }
+  NSBundleSoundExtensionsCategory = objccategory(NSBundle)
+    function pathForSoundResource(name: NSString): NSString; message 'pathForSoundResource:';
+  end; external;
+
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSSOUND_PAS_P}
+{$define NSSOUND_PAS_P}
+  
+{ NSSoundDelegate Protocol }
+  NSSoundDelegateProtocol = objcprotocol
+    procedure sound_didFinishPlaying(sound: NSSound; aBool: Boolean); message 'sound:didFinishPlaying:';
+  end; external name 'NSSoundDelegate';
 {$endif}
 {$endif}

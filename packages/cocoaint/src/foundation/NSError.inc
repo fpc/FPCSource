@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSError.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,19 +29,20 @@
 
 { External string constants }
 var
-  NSCocoaErrorDomain: NSString; external name '_NSCocoaErrorDomain';
-  NSPOSIXErrorDomain: NSString; external name '_NSPOSIXErrorDomain';
-  NSOSStatusErrorDomain: NSString; external name '_NSOSStatusErrorDomain';
-  NSMachErrorDomain: NSString; external name '_NSMachErrorDomain';
-  NSUnderlyingErrorKey: NSString; external name '_NSUnderlyingErrorKey';
-  NSLocalizedDescriptionKey: NSString; external name '_NSLocalizedDescriptionKey';
-  NSLocalizedFailureReasonErrorKey: NSString; external name '_NSLocalizedFailureReasonErrorKey';
-  NSLocalizedRecoverySuggestionErrorKey: NSString; external name '_NSLocalizedRecoverySuggestionErrorKey';
-  NSLocalizedRecoveryOptionsErrorKey: NSString; external name '_NSLocalizedRecoveryOptionsErrorKey';
-  NSRecoveryAttempterErrorKey: NSString; external name '_NSRecoveryAttempterErrorKey';
-  NSStringEncodingErrorKey: NSString; external name '_NSStringEncodingErrorKey';
-  NSURLErrorKey: NSString; external name '_NSURLErrorKey';
-  NSFilePathErrorKey: NSString; external name '_NSFilePathErrorKey';
+  NSCocoaErrorDomain: NSString; cvar; external;
+  NSPOSIXErrorDomain: NSString; cvar; external;
+  NSOSStatusErrorDomain: NSString; cvar; external;
+  NSMachErrorDomain: NSString; cvar; external;
+  NSUnderlyingErrorKey: NSString; cvar; external;
+  NSLocalizedDescriptionKey: NSString; cvar; external;
+  NSLocalizedFailureReasonErrorKey: NSString; cvar; external;
+  NSLocalizedRecoverySuggestionErrorKey: NSString; cvar; external;
+  NSLocalizedRecoveryOptionsErrorKey: NSString; cvar; external;
+  NSRecoveryAttempterErrorKey: NSString; cvar; external;
+  NSHelpAnchorErrorKey: NSString; cvar; external;
+  NSStringEncodingErrorKey: NSString; cvar; external;
+  NSURLErrorKey: NSString; cvar; external;
+  NSFilePathErrorKey: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -49,6 +50,7 @@ var
 {$ifdef FORWARD}
   NSError = objcclass;
   NSErrorPointer = ^NSError;
+  NSErrorPtr = NSErrorPointer;
 
 {$endif}
 
@@ -59,10 +61,10 @@ var
 { NSError }
   NSError = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __reserved: Pointer;
-    __code: NSInteger;
-    __domain: NSString;
-    __userInfo: NSDictionary;
+    _reserved: Pointer;
+    _code: NSInteger;
+    _domain: NSString;
+    _userInfo: NSDictionary;
     
   public
     class function alloc: NSError; message 'alloc';
@@ -77,6 +79,18 @@ var
     function localizedRecoverySuggestion: NSString; message 'localizedRecoverySuggestion';
     function localizedRecoveryOptions: NSArray; message 'localizedRecoveryOptions';
     function recoveryAttempter: id; message 'recoveryAttempter';
+    function helpAnchor: NSString; message 'helpAnchor';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+  end; external;
+
+{ NSErrorRecoveryAttemptingCategory }
+  NSErrorRecoveryAttemptingCategory = objccategory(NSObject)
+    procedure attemptRecoveryFromError_optionIndex_delegate_didRecoverSelector_contextInfo(error: NSError; recoveryOptionIndex: NSUInteger; delegate: id; didRecoverSelector: SEL; contextInfo: Pointer); message 'attemptRecoveryFromError:optionIndex:delegate:didRecoverSelector:contextInfo:';
+    function attemptRecoveryFromError_optionIndex(error: NSError; recoveryOptionIndex: NSUInteger): Boolean; message 'attemptRecoveryFromError:optionIndex:';
   end; external;
 
 {$endif}

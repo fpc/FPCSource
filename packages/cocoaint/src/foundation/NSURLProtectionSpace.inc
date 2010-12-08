@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLProtectionSpace.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -27,12 +27,31 @@
 {$ifndef NSURLPROTECTIONSPACE_PAS_S}
 {$define NSURLPROTECTIONSPACE_PAS_S}
 
+{ External string constants }
+var
+  NSURLProtectionSpaceHTTP: NSString; cvar; external;
+  NSURLProtectionSpaceHTTPS: NSString; cvar; external;
+  NSURLProtectionSpaceFTP: NSString; cvar; external;
+  NSURLProtectionSpaceHTTPProxy: NSString; cvar; external;
+  NSURLProtectionSpaceHTTPSProxy: NSString; cvar; external;
+  NSURLProtectionSpaceFTPProxy: NSString; cvar; external;
+  NSURLProtectionSpaceSOCKSProxy: NSString; cvar; external;
+  NSURLAuthenticationMethodDefault: NSString; cvar; external;
+  NSURLAuthenticationMethodHTTPBasic: NSString; cvar; external;
+  NSURLAuthenticationMethodHTTPDigest: NSString; cvar; external;
+  NSURLAuthenticationMethodHTMLForm: NSString; cvar; external;
+  NSURLAuthenticationMethodNTLM: NSString; cvar; external;
+  NSURLAuthenticationMethodNegotiate: NSString; cvar; external;
+  NSURLAuthenticationMethodClientCertificate: NSString; cvar; external;
+  NSURLAuthenticationMethodServerTrust: NSString; cvar; external;
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSURLProtectionSpace = objcclass;
   NSURLProtectionSpacePointer = ^NSURLProtectionSpace;
+  NSURLProtectionSpacePtr = NSURLProtectionSpacePointer;
 
 {$endif}
 
@@ -43,7 +62,7 @@
 { NSURLProtectionSpace }
   NSURLProtectionSpace = objcclass(NSObject, NSCopyingProtocol)
   private
-    __internal: NSURLProtectionSpaceInternal;
+    _internal: NSURLProtectionSpaceInternal;
     
   public
     class function alloc: NSURLProtectionSpace; message 'alloc';
@@ -58,6 +77,19 @@
     function proxyType: NSString; message 'proxyType';
     function protocol: NSString; message 'protocol';
     function authenticationMethod: NSString; message 'authenticationMethod';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+  end; external;
+
+{ NSClientCertificateSpaceCategory }
+  NSClientCertificateSpaceCategory = objccategory(NSURLProtectionSpace)
+    function distinguishedNames: NSArray; message 'distinguishedNames';
+  end; external;
+
+{ NSServerTrustValidationSpaceCategory }
+  NSServerTrustValidationSpaceCategory = objccategory(NSURLProtectionSpace)
+    function serverTrust: SecTrustRef; message 'serverTrust';
   end; external;
 
 {$endif}

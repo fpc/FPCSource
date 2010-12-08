@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPathComponentCell.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:08 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSPathComponentCell = objcclass;
   NSPathComponentCellPointer = ^NSPathComponentCell;
+  NSPathComponentCellPtr = NSPathComponentCellPointer;
 
 {$endif}
 
@@ -43,19 +44,24 @@
 { NSPathComponentCell }
   NSPathComponentCell = objcclass(NSTextFieldCell)
   private
-    __image: NSImage;
-    __fullWidth: CGFloat;
-    __resizedWidth: CGFloat;
-    __currentWidth: CGFloat;
-    __url: NSURL;
+    _image: NSImage;
+    _fullWidth: CGFloat;
+    _resizedWidth: CGFloat;
+    _currentWidth: CGFloat;
+    _url: NSURL;
     __flags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSPathComponentCell0: cuint);
+       1: (
         shouldDrawArrow: 0..1;
         drawsAsNavigationBar: 0..1;
         isFirstItem: 0..1;
         isLastItem: 0..1;
-        reserved: 0..((1 shl 28)-1);
+        isDropTarget: 0..1;
+        reserved: 0..((1 shl 27)-1);
+      );
       end;
-    __aux: id;
+    _aux: id;
     
   public
     class function alloc: NSPathComponentCell; message 'alloc';
@@ -63,7 +69,7 @@
     function image: NSImage; message 'image';
     procedure setImage(value: NSImage); message 'setImage:';
     function URL: NSURL; message 'URL';
-    procedure setURL(URL_: NSURL); message 'setURL:';
+    procedure setURL(url_: NSURL); message 'setURL:';
   end; external;
 
 {$endif}

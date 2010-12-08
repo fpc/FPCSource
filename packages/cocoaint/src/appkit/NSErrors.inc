@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSErrors.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,42 +29,42 @@
 
 { External string constants }
 var
-  NSTextLineTooLongException: NSString; external name '_NSTextLineTooLongException';
-  NSTextNoSelectionException: NSString; external name '_NSTextNoSelectionException';
-  NSWordTablesWriteException: NSString; external name '_NSWordTablesWriteException';
-  NSWordTablesReadException: NSString; external name '_NSWordTablesReadException';
-  NSTextReadException: NSString; external name '_NSTextReadException';
-  NSTextWriteException: NSString; external name '_NSTextWriteException';
-  NSPasteboardCommunicationException: NSString; external name '_NSPasteboardCommunicationException';
-  NSPrintingCommunicationException: NSString; external name '_NSPrintingCommunicationException';
-  NSAbortModalException: NSString; external name '_NSAbortModalException';
-  NSAbortPrintingException: NSString; external name '_NSAbortPrintingException';
-  NSIllegalSelectorException: NSString; external name '_NSIllegalSelectorException';
-  NSAppKitVirtualMemoryException: NSString; external name '_NSAppKitVirtualMemoryException';
-  NSBadRTFDirectiveException: NSString; external name '_NSBadRTFDirectiveException';
-  NSBadRTFFontTableException: NSString; external name '_NSBadRTFFontTableException';
-  NSBadRTFStyleSheetException: NSString; external name '_NSBadRTFStyleSheetException';
-  NSTypedStreamVersionException: NSString; external name '_NSTypedStreamVersionException';
-  NSTIFFException: NSString; external name '_NSTIFFException';
-  NSPrintPackageException: NSString; external name '_NSPrintPackageException';
-  NSBadRTFColorTableException: NSString; external name '_NSBadRTFColorTableException';
-  NSDraggingException: NSString; external name '_NSDraggingException';
-  NSColorListIOException: NSString; external name '_NSColorListIOException';
-  NSColorListNotEditableException: NSString; external name '_NSColorListNotEditableException';
-  NSBadBitmapParametersException: NSString; external name '_NSBadBitmapParametersException';
-  NSWindowServerCommunicationException: NSString; external name '_NSWindowServerCommunicationException';
-  NSFontUnavailableException: NSString; external name '_NSFontUnavailableException';
-  NSPPDIncludeNotFoundException: NSString; external name '_NSPPDIncludeNotFoundException';
-  NSPPDParseException: NSString; external name '_NSPPDParseException';
-  NSPPDIncludeStackOverflowException: NSString; external name '_NSPPDIncludeStackOverflowException';
-  NSPPDIncludeStackUnderflowException: NSString; external name '_NSPPDIncludeStackUnderflowException';
-  NSRTFPropertyStackOverflowException: NSString; external name '_NSRTFPropertyStackOverflowException';
-  NSAppKitIgnoredException: NSString; external name '_NSAppKitIgnoredException';
-  NSBadComparisonException: NSString; external name '_NSBadComparisonException';
-  NSImageCacheException: NSString; external name '_NSImageCacheException';
-  NSNibLoadingException: NSString; external name '_NSNibLoadingException';
-  NSBrowserIllegalDelegateException: NSString; external name '_NSBrowserIllegalDelegateException';
-  NSAccessibilityException: NSString; external name '_NSAccessibilityException';
+  NSTextLineTooLongException: NSString; cvar; external;
+  NSTextNoSelectionException: NSString; cvar; external;
+  NSWordTablesWriteException: NSString; cvar; external;
+  NSWordTablesReadException: NSString; cvar; external;
+  NSTextReadException: NSString; cvar; external;
+  NSTextWriteException: NSString; cvar; external;
+  NSPasteboardCommunicationException: NSString; cvar; external;
+  NSPrintingCommunicationException: NSString; cvar; external;
+  NSAbortModalException: NSString; cvar; external;
+  NSAbortPrintingException: NSString; cvar; external;
+  NSIllegalSelectorException: NSString; cvar; external;
+  NSAppKitVirtualMemoryException: NSString; cvar; external;
+  NSBadRTFDirectiveException: NSString; cvar; external;
+  NSBadRTFFontTableException: NSString; cvar; external;
+  NSBadRTFStyleSheetException: NSString; cvar; external;
+  NSTypedStreamVersionException: NSString; cvar; external;
+  NSTIFFException: NSString; cvar; external;
+  NSPrintPackageException: NSString; cvar; external;
+  NSBadRTFColorTableException: NSString; cvar; external;
+  NSDraggingException: NSString; cvar; external;
+  NSColorListIOException: NSString; cvar; external;
+  NSColorListNotEditableException: NSString; cvar; external;
+  NSBadBitmapParametersException: NSString; cvar; external;
+  NSWindowServerCommunicationException: NSString; cvar; external;
+  NSFontUnavailableException: NSString; cvar; external;
+  NSPPDIncludeNotFoundException: NSString; cvar; external;
+  NSPPDParseException: NSString; cvar; external;
+  NSPPDIncludeStackOverflowException: NSString; cvar; external;
+  NSPPDIncludeStackUnderflowException: NSString; cvar; external;
+  NSRTFPropertyStackOverflowException: NSString; cvar; external;
+  NSAppKitIgnoredException: NSString; cvar; external;
+  NSBadComparisonException: NSString; cvar; external;
+  NSImageCacheException: NSString; cvar; external;
+  NSNibLoadingException: NSString; cvar; external;
+  NSBrowserIllegalDelegateException: NSString; cvar; external;
+  NSAccessibilityException: NSString; cvar; external;
 
 {$endif}
 {$endif}

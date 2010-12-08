@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSFileHandle.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,14 +29,14 @@
 
 { External string constants }
 var
-  NSFileHandleOperationException: NSString; external name '_NSFileHandleOperationException';
-  NSFileHandleReadCompletionNotification: NSString; external name '_NSFileHandleReadCompletionNotification';
-  NSFileHandleReadToEndOfFileCompletionNotification: NSString; external name '_NSFileHandleReadToEndOfFileCompletionNotification';
-  NSFileHandleConnectionAcceptedNotification: NSString; external name '_NSFileHandleConnectionAcceptedNotification';
-  NSFileHandleDataAvailableNotification: NSString; external name '_NSFileHandleDataAvailableNotification';
-  NSFileHandleNotificationDataItem: NSString; external name '_NSFileHandleNotificationDataItem';
-  NSFileHandleNotificationFileHandleItem: NSString; external name '_NSFileHandleNotificationFileHandleItem';
-  NSFileHandleNotificationMonitorModes: NSString; external name '_NSFileHandleNotificationMonitorModes';
+  NSFileHandleOperationException: NSString; cvar; external;
+  NSFileHandleReadCompletionNotification: NSString; cvar; external;
+  NSFileHandleReadToEndOfFileCompletionNotification: NSString; cvar; external;
+  NSFileHandleConnectionAcceptedNotification: NSString; cvar; external;
+  NSFileHandleDataAvailableNotification: NSString; cvar; external;
+  NSFileHandleNotificationDataItem: NSString; cvar; external;
+  NSFileHandleNotificationFileHandleItem: NSString; cvar; external;
+  NSFileHandleNotificationMonitorModes: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -44,8 +44,10 @@ var
 {$ifdef FORWARD}
   NSFileHandle = objcclass;
   NSFileHandlePointer = ^NSFileHandle;
+  NSFileHandlePtr = NSFileHandlePointer;
   NSPipe = objcclass;
   NSPipePointer = ^NSPipe;
+  NSPipePtr = NSPipePointer;
 
 {$endif}
 
@@ -69,30 +71,6 @@ var
     procedure truncateFileAtOffset(offset: culonglong); message 'truncateFileAtOffset:';
     procedure synchronizeFile; message 'synchronizeFile';
     procedure closeFile; message 'closeFile';
-
-    { Category: NSFileHandleCreation }
-    class function fileHandleWithStandardInput: id; message 'fileHandleWithStandardInput';
-    class function fileHandleWithStandardOutput: id; message 'fileHandleWithStandardOutput';
-    class function fileHandleWithStandardError: id; message 'fileHandleWithStandardError';
-    class function fileHandleWithNullDevice: id; message 'fileHandleWithNullDevice';
-    class function fileHandleForReadingAtPath(path: NSString): id; message 'fileHandleForReadingAtPath:';
-    class function fileHandleForWritingAtPath(path: NSString): id; message 'fileHandleForWritingAtPath:';
-    class function fileHandleForUpdatingAtPath(path: NSString): id; message 'fileHandleForUpdatingAtPath:';
-
-    { Category: NSFileHandleAsynchronousAccess }
-    procedure readInBackgroundAndNotifyForModes(modes: NSArray); message 'readInBackgroundAndNotifyForModes:';
-    procedure readInBackgroundAndNotify; message 'readInBackgroundAndNotify';
-    procedure readToEndOfFileInBackgroundAndNotifyForModes(modes: NSArray); message 'readToEndOfFileInBackgroundAndNotifyForModes:';
-    procedure readToEndOfFileInBackgroundAndNotify; message 'readToEndOfFileInBackgroundAndNotify';
-    procedure acceptConnectionInBackgroundAndNotifyForModes(modes: NSArray); message 'acceptConnectionInBackgroundAndNotifyForModes:';
-    procedure acceptConnectionInBackgroundAndNotify; message 'acceptConnectionInBackgroundAndNotify';
-    procedure waitForDataInBackgroundAndNotifyForModes(modes: NSArray); message 'waitForDataInBackgroundAndNotifyForModes:';
-    procedure waitForDataInBackgroundAndNotify; message 'waitForDataInBackgroundAndNotify';
-
-    { Category: NSFileHandlePlatformSpecific }
-    function initWithFileDescriptor_closeOnDealloc(fd: cint; closeopt: Boolean): id; message 'initWithFileDescriptor:closeOnDealloc:';
-    function initWithFileDescriptor(fd: cint): id; message 'initWithFileDescriptor:';
-    function fileDescriptor: cint; message 'fileDescriptor';
   end; external;
 
 { NSPipe }
@@ -105,6 +83,39 @@ var
     function fileHandleForWriting: NSFileHandle; message 'fileHandleForWriting';
     function init: id; message 'init';
     class function pipe: id; message 'pipe';
+  end; external;
+
+{ NSFileHandleCreationCategory }
+  NSFileHandleCreationCategory = objccategory(NSFileHandle)
+    class function fileHandleWithStandardInput: id; message 'fileHandleWithStandardInput';
+    class function fileHandleWithStandardOutput: id; message 'fileHandleWithStandardOutput';
+    class function fileHandleWithStandardError: id; message 'fileHandleWithStandardError';
+    class function fileHandleWithNullDevice: id; message 'fileHandleWithNullDevice';
+    class function fileHandleForReadingAtPath(path: NSString): id; message 'fileHandleForReadingAtPath:';
+    class function fileHandleForWritingAtPath(path: NSString): id; message 'fileHandleForWritingAtPath:';
+    class function fileHandleForUpdatingAtPath(path: NSString): id; message 'fileHandleForUpdatingAtPath:';
+    class function fileHandleForReadingFromURL_error(url: NSURL; error: NSErrorPointer): id; message 'fileHandleForReadingFromURL:error:';
+    class function fileHandleForWritingToURL_error(url: NSURL; error: NSErrorPointer): id; message 'fileHandleForWritingToURL:error:';
+    class function fileHandleForUpdatingURL_error(url: NSURL; error: NSErrorPointer): id; message 'fileHandleForUpdatingURL:error:';
+  end; external;
+
+{ NSFileHandleAsynchronousAccessCategory }
+  NSFileHandleAsynchronousAccessCategory = objccategory(NSFileHandle)
+    procedure readInBackgroundAndNotifyForModes(modes: NSArray); message 'readInBackgroundAndNotifyForModes:';
+    procedure readInBackgroundAndNotify; message 'readInBackgroundAndNotify';
+    procedure readToEndOfFileInBackgroundAndNotifyForModes(modes: NSArray); message 'readToEndOfFileInBackgroundAndNotifyForModes:';
+    procedure readToEndOfFileInBackgroundAndNotify; message 'readToEndOfFileInBackgroundAndNotify';
+    procedure acceptConnectionInBackgroundAndNotifyForModes(modes: NSArray); message 'acceptConnectionInBackgroundAndNotifyForModes:';
+    procedure acceptConnectionInBackgroundAndNotify; message 'acceptConnectionInBackgroundAndNotify';
+    procedure waitForDataInBackgroundAndNotifyForModes(modes: NSArray); message 'waitForDataInBackgroundAndNotifyForModes:';
+    procedure waitForDataInBackgroundAndNotify; message 'waitForDataInBackgroundAndNotify';
+  end; external;
+
+{ NSFileHandlePlatformSpecificCategory }
+  NSFileHandlePlatformSpecificCategory = objccategory(NSFileHandle)
+    function initWithFileDescriptor_closeOnDealloc(fd: cint; closeopt: Boolean): id; message 'initWithFileDescriptor:closeOnDealloc:';
+    function initWithFileDescriptor(fd: cint): id; message 'initWithFileDescriptor:';
+    function fileDescriptor: cint; message 'fileDescriptor';
   end; external;
 
 {$endif}

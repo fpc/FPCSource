@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSGradient.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -9,12 +9,13 @@
 { Types }
 type
   NSGradientDrawingOptions = NSUInteger;
+  NSGradientDrawingOptionsPtr = ^NSGradientDrawingOptions;
 
 { Constants }
 
 const
-  NSGradientDrawsBeforeStartingLocation = 1  shl  0;
-  NSGradientDrawsAfterEndingLocation = 1  shl  1;
+  NSGradientDrawsBeforeStartingLocation = 1 shl 0;
+  NSGradientDrawsAfterEndingLocation = 1 shl 1;
 
 {$endif}
 {$endif}
@@ -43,6 +44,7 @@ const
 {$ifdef FORWARD}
   NSGradient = objcclass;
   NSGradientPointer = ^NSGradient;
+  NSGradientPtr = NSGradientPointer;
 
 {$endif}
 
@@ -53,21 +55,21 @@ const
 { NSGradient }
   NSGradient = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __colorArray: NSArray;
-    __colorSpace: NSColorSpace;
-    __functionRef: Pointer; {garbage collector: __strong }
-    __componentArray: Pointer;
-    __reserved1: Pointer;
-    __reserved2: Pointer;
-    __reserved3: Pointer;
+    _colorArray: NSArray;
+    _colorSpace: NSColorSpace;
+    _functionRef: Pointer; {garbage collector: __strong }
+    _componentArray: Pointer;
+    _reserved1: Pointer;
+    _reserved2: Pointer;
+    _reserved3: Pointer;
     
   public
     class function alloc: NSGradient; message 'alloc';
 
     function initWithStartingColor_endingColor(startingColor: NSColor; endingColor: NSColor): id; message 'initWithStartingColor:endingColor:';
     function initWithColors(colorArray: NSArray): id; message 'initWithColors:';
-    function initWithColorsAndLocations(firstColor: NSColor): id; varargs; message 'initWithColorsAndLocations:';
-    function initWithColors_atLocations_colorSpace(colorArray: NSArray; locations: psingle; colorSpace_: NSColorSpace): id; message 'initWithColors:atLocations:colorSpace:';
+    function initWithColorsAndLocations(firstKey: id): id; varargs; message 'initWithColorsAndLocations:';
+    function initWithColors_atLocations_colorSpace(colorArray: NSArray; locations: CGFloatPtr; colorSpace_: NSColorSpace): id; message 'initWithColors:atLocations:colorSpace:';
     procedure drawFromPoint_toPoint_options(startingPoint: NSPoint; endingPoint: NSPoint; options: NSGradientDrawingOptions); message 'drawFromPoint:toPoint:options:';
     procedure drawInRect_angle(rect: NSRect; angle: CGFloat); message 'drawInRect:angle:';
     procedure drawInBezierPath_angle(path: NSBezierPath; angle: CGFloat); message 'drawInBezierPath:angle:';
@@ -76,8 +78,13 @@ const
     procedure drawInBezierPath_relativeCenterPosition(path: NSBezierPath; relativeCenterPosition: NSPoint); message 'drawInBezierPath:relativeCenterPosition:';
     function colorSpace: NSColorSpace; message 'colorSpace';
     function numberOfColorStops: NSInteger; message 'numberOfColorStops';
-    procedure getColor_location_atIndex(color: NSColorPointer; location: psingle; index: NSInteger); message 'getColor:location:atIndex:';
+    procedure getColor_location_atIndex(color: NSColorPointer; location: CGFloatPtr; index: NSInteger); message 'getColor:location:atIndex:';
     function interpolatedColorAtLocation(location: CGFloat): NSColor; message 'interpolatedColorAtLocation:';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 {$endif}

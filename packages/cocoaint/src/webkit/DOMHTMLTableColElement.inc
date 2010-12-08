@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLTableColElement.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:19:00 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMHTMLTableColElement = objcclass;
   DOMHTMLTableColElementPointer = ^DOMHTMLTableColElement;
+  DOMHTMLTableColElementPtr = DOMHTMLTableColElementPointer;
 
 {$endif}
 
@@ -52,6 +53,8 @@
     function ch: NSString; message 'ch';
     procedure setChOff (newValue: NSString); message 'setChOff:';
     function chOff: NSString; message 'chOff';
+    procedure setSpan (newValue: cint); message 'setSpan:';
+    function span: cint; message 'span';
     procedure setVAlign (newValue: NSString); message 'setVAlign:';
     function vAlign: NSString; message 'vAlign';
     procedure setWidth (newValue: NSString); message 'setWidth:';

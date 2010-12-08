@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSAttributeDescription.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -21,10 +21,12 @@ const
   NSDateAttributeType = 900;
   NSBinaryDataAttributeType = 1000;
   NSTransformableAttributeType = 1800;
+  NSObjectIDAttributeType = 2000;
 
 { Types }
 type
   NSAttributeType = NSUInteger;
+  NSAttributeTypePtr = ^NSAttributeType;
 
 {$endif}
 {$endif}
@@ -53,6 +55,7 @@ type
 {$ifdef FORWARD}
   NSAttributeDescription = objcclass;
   NSAttributeDescriptionPointer = ^NSAttributeDescription;
+  NSAttributeDescriptionPtr = NSAttributeDescriptionPointer;
 
 {$endif}
 
@@ -63,15 +66,19 @@ type
 { NSAttributeDescription }
   NSAttributeDescription = objcclass(NSPropertyDescription)
   private
-    __attributeValueClass: Pobjc_class;
-    __valueTransformerName: NSString;
-    __type: NSAttributeType;
-    __attributeValueClassName: NSString;
+    _attributeValueClass: Pobjc_class;
+    _valueTransformerName: NSString;
+    _type: NSAttributeType;
+    _attributeValueClassName: NSString;
     __attributeDescriptionFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSAttributeDescription0: cuint);
+       1: (
         _useForLocking: 0..1;
         _reservedAttributeDescription: 0..((1 shl 31)-1);
+      );
       end;
-    __defaultValue: id;
+    _defaultValue: id;
     
   public
     class function alloc: NSAttributeDescription; message 'alloc';
@@ -81,7 +88,7 @@ type
     function attributeValueClassName: NSString; message 'attributeValueClassName';
     function defaultValue: id; message 'defaultValue';
     procedure setDefaultValue(value: id); message 'setDefaultValue:';
-    procedure setAttributeValueClassName(className_: NSString); message 'setAttributeValueClassName:';
+    procedure setAttributeValueClassName(className: NSString); message 'setAttributeValueClassName:';
     function versionHash: NSData; message 'versionHash';
     function valueTransformerName: NSString; message 'valueTransformerName';
     procedure setValueTransformerName(string_: NSString); message 'setValueTransformerName:';

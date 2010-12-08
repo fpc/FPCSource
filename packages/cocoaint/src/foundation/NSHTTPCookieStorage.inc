@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSHTTPCookieStorage.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -16,6 +16,7 @@ const
 { Types }
 type
   NSHTTPCookieAcceptPolicy = NSUInteger;
+  NSHTTPCookieAcceptPolicyPtr = ^NSHTTPCookieAcceptPolicy;
 
 {$endif}
 {$endif}
@@ -38,12 +39,18 @@ type
 {$ifndef NSHTTPCOOKIESTORAGE_PAS_S}
 {$define NSHTTPCOOKIESTORAGE_PAS_S}
 
+{ External string constants }
+var
+  NSHTTPCookieManagerAcceptPolicyChangedNotification: NSString; cvar; external;
+  NSHTTPCookieManagerCookiesChangedNotification: NSString; cvar; external;
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSHTTPCookieStorage = objcclass;
   NSHTTPCookieStoragePointer = ^NSHTTPCookieStorage;
+  NSHTTPCookieStoragePtr = NSHTTPCookieStoragePointer;
 
 {$endif}
 
@@ -54,12 +61,13 @@ type
 { NSHTTPCookieStorage }
   NSHTTPCookieStorage = objcclass(NSObject)
   private
-    __internal: NSHTTPCookieStorageInternal;
+    _internal: NSHTTPCookieStorageInternal;
     
   public
     class function alloc: NSHTTPCookieStorage; message 'alloc';
 
     class function sharedHTTPCookieStorage: NSHTTPCookieStorage; message 'sharedHTTPCookieStorage';
+    function initWithStorageLocation(storageFileURL: NSURL): id; message 'initWithStorageLocation:';
     function cookies: NSArray; message 'cookies';
     procedure setCookie(cookie: NSHTTPCookie); message 'setCookie:';
     procedure deleteCookie(cookie: NSHTTPCookie); message 'deleteCookie:';

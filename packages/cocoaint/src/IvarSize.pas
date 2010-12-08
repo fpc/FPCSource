@@ -2,7 +2,7 @@
 {$modeswitch objectivec1}
 program IvarSize;
 uses
- objp,objcrtl,objcrtlmacosx;
+ objcrtl,objcrtlmacosx,CocoaAll;
 type
  TDerivedNSAffineTransform = objcclass (NSAffineTransform)
  extrabyte: byte;

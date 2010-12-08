@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSCalendar.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -19,6 +19,7 @@ const
   NSWeekCalendarUnit = kCFCalendarUnitWeek;
   NSWeekdayCalendarUnit = kCFCalendarUnitWeekday;
   NSWeekdayOrdinalCalendarUnit = kCFCalendarUnitWeekdayOrdinal;
+  NSQuarterCalendarUnit = kCFCalendarUnitQuarter;
 
 const
   NSWrapCalendarComponents = kCFCalendarComponentsWrap;
@@ -29,6 +30,7 @@ const
 { Types }
 type
   NSCalendarUnit = NSUInteger;
+  NSCalendarUnitPtr = ^NSCalendarUnit;
 
 {$endif}
 {$endif}
@@ -57,8 +59,10 @@ type
 {$ifdef FORWARD}
   NSCalendar = objcclass;
   NSCalendarPointer = ^NSCalendar;
+  NSCalendarPtr = NSCalendarPointer;
   NSDateComponents = objcclass;
   NSDateComponentsPointer = ^NSDateComponents;
+  NSDateComponentsPtr = NSDateComponentsPointer;
 
 {$endif}
 
@@ -73,6 +77,7 @@ type
     class function alloc: NSCalendar; message 'alloc';
 
     class function currentCalendar: id; message 'currentCalendar';
+    class function autoupdatingCurrentCalendar: id; message 'autoupdatingCurrentCalendar';
     function initWithCalendarIdentifier(ident: NSString): id; message 'initWithCalendarIdentifier:';
     function calendarIdentifier: NSString; message 'calendarIdentifier';
     procedure setLocale(locale_: NSLocale); message 'setLocale:';
@@ -87,11 +92,16 @@ type
     function maximumRangeOfUnit(unit_: NSCalendarUnit): NSRange; message 'maximumRangeOfUnit:';
     function rangeOfUnit_inUnit_forDate(smaller: NSCalendarUnit; larger: NSCalendarUnit; date: NSDate): NSRange; message 'rangeOfUnit:inUnit:forDate:';
     function ordinalityOfUnit_inUnit_forDate(smaller: NSCalendarUnit; larger: NSCalendarUnit; date: NSDate): NSUInteger; message 'ordinalityOfUnit:inUnit:forDate:';
-    function rangeOfUnit_startDate_interval_forDate(unit_: NSCalendarUnit; datep: NSDatePointer; tip: NSTimeIntervalPointer; date: NSDate): Boolean; message 'rangeOfUnit:startDate:interval:forDate:';
+    function rangeOfUnit_startDate_interval_forDate(unit_: NSCalendarUnit; datep: NSDatePointer; tip: NSTimeIntervalPtr; date: NSDate): Boolean; message 'rangeOfUnit:startDate:interval:forDate:';
     function dateFromComponents(comps: NSDateComponents): NSDate; message 'dateFromComponents:';
     function components_fromDate(unitFlags: NSUInteger; date: NSDate): NSDateComponents; message 'components:fromDate:';
     function dateByAddingComponents_toDate_options(comps: NSDateComponents; date: NSDate; opts: NSUInteger): NSDate; message 'dateByAddingComponents:toDate:options:';
     function components_fromDate_toDate_options(unitFlags: NSUInteger; startingDate: NSDate; resultDate: NSDate; opts: NSUInteger): NSDateComponents; message 'components:fromDate:toDate:options:';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 { NSDateComponents }
@@ -110,6 +120,7 @@ type
     function week: NSInteger; message 'week';
     function weekday: NSInteger; message 'weekday';
     function weekdayOrdinal: NSInteger; message 'weekdayOrdinal';
+    function quarter: NSInteger; message 'quarter';
     procedure setEra(v: NSInteger); message 'setEra:';
     procedure setYear(v: NSInteger); message 'setYear:';
     procedure setMonth(v: NSInteger); message 'setMonth:';
@@ -120,6 +131,12 @@ type
     procedure setWeek(v: NSInteger); message 'setWeek:';
     procedure setWeekday(v: NSInteger); message 'setWeekday:';
     procedure setWeekdayOrdinal(v: NSInteger); message 'setWeekdayOrdinal:';
+    procedure setQuarter(v: NSInteger); message 'setQuarter:';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 {$endif}

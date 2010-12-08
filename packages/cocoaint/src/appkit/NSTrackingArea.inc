@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTrackingArea.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -27,6 +27,7 @@ const
 { Types }
 type
   NSTrackingAreaOptions = NSUInteger;
+  NSTrackingAreaOptionsPtr = ^NSTrackingAreaOptions;
 
 {$endif}
 {$endif}
@@ -55,6 +56,7 @@ type
 {$ifdef FORWARD}
   NSTrackingArea = objcclass;
   NSTrackingAreaPointer = ^NSTrackingArea;
+  NSTrackingAreaPtr = NSTrackingAreaPointer;
 
 {$endif}
 
@@ -65,21 +67,26 @@ type
 { NSTrackingArea }
   NSTrackingArea = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __rect: NSRect;
-    __owner: id; {garbage collector: __weak }
-    __userInfo: NSDictionary;
-    __options: NSTrackingAreaOptions;
-    __privateFlags: NSInteger;
-    __reserved: Pointer;
+    _rect: NSRect;
+    _owner: id; {garbage collector: __weak }
+    _userInfo: NSDictionary;
+    _options: NSTrackingAreaOptions;
+    _privateFlags: NSInteger;
+    _reserved: Pointer;
     
   public
     class function alloc: NSTrackingArea; message 'alloc';
 
-    function initWithRect_options_owner_userInfo(rect_: NSRect; options_: NSTrackingAreaOptions; owner_: id; userInfo_: NSDictionary): NSTrackingArea; message 'initWithRect:options:owner:userInfo:';
+    function initWithRect_options_owner_userInfo(rect_: NSRect; options_: NSTrackingAreaOptions; owner_: id; userInfo_: NSDictionary): id; message 'initWithRect:options:owner:userInfo:';
     function rect: NSRect; message 'rect';
     function options: NSTrackingAreaOptions; message 'options';
     function owner: id; message 'owner';
     function userInfo: NSDictionary; message 'userInfo';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSString.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -9,9 +9,13 @@
 { Types }
 type
   unichar = cushort;
+  unicharPtr = ^unichar;
   NSStringCompareOptions = NSUInteger;
+  NSStringCompareOptionsPtr = ^NSStringCompareOptions;
   NSStringEncoding = NSUInteger;
+  NSStringEncodingPtr = ^NSStringEncoding;
   NSStringEncodingConversionOptions = NSUInteger;
+  NSStringEncodingConversionOptionsPtr = ^NSStringEncodingConversionOptions;
 
 { Constants }
 
@@ -84,8 +88,8 @@ const
 
 { External string constants }
 var
-  NSParseErrorException: NSString; external name '_NSParseErrorException';
-  NSCharacterConversionException: NSString; external name '_NSCharacterConversionException';
+  NSParseErrorException: NSString; cvar; external;
+  NSCharacterConversionException: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -93,12 +97,16 @@ var
 {$ifdef FORWARD}
   NSString = objcclass;
   NSStringPointer = ^NSString;
+  NSStringPtr = NSStringPointer;
   NSMutableString = objcclass;
   NSMutableStringPointer = ^NSMutableString;
+  NSMutableStringPtr = NSMutableStringPointer;
   NSSimpleCString = objcclass;
   NSSimpleCStringPointer = ^NSSimpleCString;
+  NSSimpleCStringPtr = NSSimpleCStringPointer;
   NSConstantString = objcclass;
   NSConstantStringPointer = ^NSConstantString;
+  NSConstantStringPtr = NSConstantStringPointer;
 
 {$endif}
 
@@ -115,8 +123,44 @@ var
     function length: NSUInteger; message 'length';
     function characterAtIndex(index: NSUInteger): unichar; message 'characterAtIndex:';
 
-    { Category: NSStringExtensionMethods }
-    procedure getCharacters(buffer: PChar); message 'getCharacters:';
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    function mutableCopyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+  end; external;
+
+{ NSMutableString }
+  NSMutableString = objcclass(NSString)
+    
+  public
+    class function alloc: NSMutableString; message 'alloc';
+
+    procedure replaceCharactersInRange_withString(range: NSRange; aString: NSString); message 'replaceCharactersInRange:withString:';
+  end; external;
+
+{ NSSimpleCString }
+  NSSimpleCString = objcclass(NSString)
+  private
+    bytes: PChar;
+    numBytes: cint;
+    {$ifdef cpu64}
+    _unused: cint;
+    {$endif}
+    
+  public
+    class function alloc: NSSimpleCString; message 'alloc';
+  end; external;
+
+{ NSConstantString }
+  NSConstantString = objcclass(NSSimpleCString)
+    
+  public
+    class function alloc: NSConstantString; message 'alloc';
+  end; external;
+
+{ NSStringExtensionMethodsCategory }
+  NSStringExtensionMethodsCategory = objccategory(NSString)
     procedure getCharacters_range(buffer: PChar; aRange: NSRange); message 'getCharacters:range:';
     function substringFromIndex(from: NSUInteger): NSString; message 'substringFromIndex:';
     function substringToIndex(to_: NSUInteger): NSString; message 'substringToIndex:';
@@ -128,6 +172,7 @@ var
     function caseInsensitiveCompare(string__: NSString): NSComparisonResult; message 'caseInsensitiveCompare:';
     function localizedCompare(string__: NSString): NSComparisonResult; message 'localizedCompare:';
     function localizedCaseInsensitiveCompare(string__: NSString): NSComparisonResult; message 'localizedCaseInsensitiveCompare:';
+    function localizedStandardCompare(string__: NSString): NSComparisonResult; message 'localizedStandardCompare:';
     function isEqualToString(aString: NSString): Boolean; message 'isEqualToString:';
     function hasPrefix(aString: NSString): Boolean; message 'hasPrefix:';
     function hasSuffix(aString: NSString): Boolean; message 'hasSuffix:';
@@ -141,7 +186,7 @@ var
     function rangeOfComposedCharacterSequenceAtIndex(index: NSUInteger): NSRange; message 'rangeOfComposedCharacterSequenceAtIndex:';
     function rangeOfComposedCharacterSequencesForRange(range: NSRange): NSRange; message 'rangeOfComposedCharacterSequencesForRange:';
     function stringByAppendingString(aString: NSString): NSString; message 'stringByAppendingString:';
-    function stringByAppendingFormat(format: NSString): NSString; varargs; message 'stringByAppendingFormat:';
+    function stringByAppendingFormat(firstKey: id): NSString; varargs; message 'stringByAppendingFormat:';
     function doubleValue: double; message 'doubleValue';
     function floatValue: single; message 'floatValue';
     function intValue: cint; message 'intValue';
@@ -156,9 +201,9 @@ var
     function capitalizedString: NSString; message 'capitalizedString';
     function stringByTrimmingCharactersInSet(set_: NSCharacterSet): NSString; message 'stringByTrimmingCharactersInSet:';
     function stringByPaddingToLength_withString_startingAtIndex(newLength: NSUInteger; padString: NSString; padIndex: NSUInteger): NSString; message 'stringByPaddingToLength:withString:startingAtIndex:';
-    procedure getLineStart_end_contentsEnd_forRange(startPtr: NSUIntegerPointer; lineEndPtr: NSUIntegerPointer; contentsEndPtr: NSUIntegerPointer; range: NSRange); message 'getLineStart:end:contentsEnd:forRange:';
+    procedure getLineStart_end_contentsEnd_forRange(startPtr: NSUIntegerPtr; lineEndPtr: NSUIntegerPtr; contentsEndPtr: NSUIntegerPtr; range: NSRange); message 'getLineStart:end:contentsEnd:forRange:';
     function lineRangeForRange(range: NSRange): NSRange; message 'lineRangeForRange:';
-    procedure getParagraphStart_end_contentsEnd_forRange(startPtr: NSUIntegerPointer; parEndPtr: NSUIntegerPointer; contentsEndPtr: NSUIntegerPointer; range: NSRange); message 'getParagraphStart:end:contentsEnd:forRange:';
+    procedure getParagraphStart_end_contentsEnd_forRange(startPtr: NSUIntegerPtr; parEndPtr: NSUIntegerPtr; contentsEndPtr: NSUIntegerPtr; range: NSRange); message 'getParagraphStart:end:contentsEnd:forRange:';
     function paragraphRangeForRange(range: NSRange): NSRange; message 'paragraphRangeForRange:';
     function description: NSString; message 'description';
     function hash: NSUInteger; message 'hash';
@@ -168,8 +213,8 @@ var
     function dataUsingEncoding(encoding: NSStringEncoding): NSData; message 'dataUsingEncoding:';
     function canBeConvertedToEncoding(encoding: NSStringEncoding): Boolean; message 'canBeConvertedToEncoding:';
     function cStringUsingEncoding(encoding: NSStringEncoding): PChar; message 'cStringUsingEncoding:';
-    function getCString_maxLength_encoding(buffer: Pointer; maxBufferCount: NSUInteger; encoding: NSStringEncoding): Boolean; message 'getCString:maxLength:encoding:';
-    function getBytes_maxLength_usedLength_encoding_options_range_remainingRange(buffer: Pointer; maxBufferCount: NSUInteger; usedBufferCount: NSUIntegerPointer; encoding: NSStringEncoding; options: NSStringEncodingConversionOptions; range: NSRange; leftover: NSRangePointer): Boolean; message 'getBytes:maxLength:usedLength:encoding:options:range:remainingRange:';
+    function getCString_maxLength_encoding(buffer: PChar; maxBufferCount: NSUInteger; encoding: NSStringEncoding): Boolean; message 'getCString:maxLength:encoding:';
+    function getBytes_maxLength_usedLength_encoding_options_range_remainingRange(buffer: Pointer; maxBufferCount: NSUInteger; usedBufferCount: NSUIntegerPtr; encoding: NSStringEncoding; options: NSStringEncodingConversionOptions; range: NSRange; leftover: NSRangePointer): Boolean; message 'getBytes:maxLength:usedLength:encoding:options:range:remainingRange:';
     function maximumLengthOfBytesUsingEncoding(enc: NSStringEncoding): NSUInteger; message 'maximumLengthOfBytesUsingEncoding:';
     function lengthOfBytesUsingEncoding(enc: NSStringEncoding): NSUInteger; message 'lengthOfBytesUsingEncoding:';
     function decomposedStringWithCanonicalMapping: NSString; message 'decomposedStringWithCanonicalMapping';
@@ -182,16 +227,16 @@ var
     function stringByReplacingCharactersInRange_withString(range: NSRange; replacement: NSString): NSString; message 'stringByReplacingCharactersInRange:withString:';
     function UTF8String: PChar; message 'UTF8String';
     class function defaultCStringEncoding: NSStringEncoding; message 'defaultCStringEncoding';
-    class function availableStringEncodings: NSStringEncoding; message 'availableStringEncodings';
+    class function availableStringEncodings: NSStringEncodingPtr; message 'availableStringEncodings';
     class function localizedNameOfStringEncoding(encoding: NSStringEncoding): NSString; message 'localizedNameOfStringEncoding:';
     function init: id; message 'init';
     function initWithCharactersNoCopy_length_freeWhenDone(characters: PChar; length_: NSUInteger; freeBuffer: Boolean): id; message 'initWithCharactersNoCopy:length:freeWhenDone:';
     function initWithCharacters_length(characters: PChar; length_: NSUInteger): id; message 'initWithCharacters:length:';
     function initWithUTF8String(nullTerminatedCString: PChar): id; message 'initWithUTF8String:';
     function initWithString(aString: NSString): id; message 'initWithString:';
-    function initWithFormat(format: NSString): id; varargs; message 'initWithFormat:';
+    function initWithFormat(firstKey: id): id; varargs; message 'initWithFormat:';
     function initWithFormat_arguments(format: NSString; argList: va_list): id; message 'initWithFormat:arguments:';
-    function initWithFormat_locale(format: NSString; locale: id): id; varargs; message 'initWithFormat:locale:';
+    function initWithFormat_locale(format: NSString; firstKey: id): id; varargs; message 'initWithFormat:locale:';
     function initWithFormat_locale_arguments(format: NSString; locale: id; argList: va_list): id; message 'initWithFormat:locale:arguments:';
     function initWithData_encoding(data: NSData; encoding: NSStringEncoding): id; message 'initWithData:encoding:';
     function initWithBytes_length_encoding(bytes: Pointer; len: NSUInteger; encoding: NSStringEncoding): id; message 'initWithBytes:length:encoding:';
@@ -200,111 +245,60 @@ var
     class function stringWithString(string__: NSString): id; message 'stringWithString:';
     class function stringWithCharacters_length(characters: PChar; length_: NSUInteger): id; message 'stringWithCharacters:length:';
     class function stringWithUTF8String(nullTerminatedCString: PChar): id; message 'stringWithUTF8String:';
-    class function stringWithFormat(format: NSString): id; varargs; message 'stringWithFormat:';
-    class function localizedStringWithFormat(format: NSString): id; varargs; message 'localizedStringWithFormat:';
+    class function stringWithFormat(firstKey: id): id; varargs; message 'stringWithFormat:';
+    class function localizedStringWithFormat(firstKey: id): id; varargs; message 'localizedStringWithFormat:';
     function initWithCString_encoding(nullTerminatedCString: PChar; encoding: NSStringEncoding): id; message 'initWithCString:encoding:';
     class function stringWithCString_encoding(cString: PChar; enc: NSStringEncoding): id; message 'stringWithCString:encoding:';
     function initWithContentsOfURL_encoding_error(url: NSURL; enc: NSStringEncoding; error: NSErrorPointer): id; message 'initWithContentsOfURL:encoding:error:';
     function initWithContentsOfFile_encoding_error(path: NSString; enc: NSStringEncoding; error: NSErrorPointer): id; message 'initWithContentsOfFile:encoding:error:';
     class function stringWithContentsOfURL_encoding_error(url: NSURL; enc: NSStringEncoding; error: NSErrorPointer): id; message 'stringWithContentsOfURL:encoding:error:';
     class function stringWithContentsOfFile_encoding_error(path: NSString; enc: NSStringEncoding; error: NSErrorPointer): id; message 'stringWithContentsOfFile:encoding:error:';
-    function initWithContentsOfURL_usedEncoding_error(url: NSURL; enc: NSStringEncodingPointer; error: NSErrorPointer): id; message 'initWithContentsOfURL:usedEncoding:error:';
-    function initWithContentsOfFile_usedEncoding_error(path: NSString; enc: NSStringEncodingPointer; error: NSErrorPointer): id; message 'initWithContentsOfFile:usedEncoding:error:';
-    class function stringWithContentsOfURL_usedEncoding_error(url: NSURL; enc: NSStringEncodingPointer; error: NSErrorPointer): id; message 'stringWithContentsOfURL:usedEncoding:error:';
-    class function stringWithContentsOfFile_usedEncoding_error(path: NSString; enc: NSStringEncodingPointer; error: NSErrorPointer): id; message 'stringWithContentsOfFile:usedEncoding:error:';
+    function initWithContentsOfURL_usedEncoding_error(url: NSURL; enc: NSStringEncodingPtr; error: NSErrorPointer): id; message 'initWithContentsOfURL:usedEncoding:error:';
+    function initWithContentsOfFile_usedEncoding_error(path: NSString; enc: NSStringEncodingPtr; error: NSErrorPointer): id; message 'initWithContentsOfFile:usedEncoding:error:';
+    class function stringWithContentsOfURL_usedEncoding_error(url: NSURL; enc: NSStringEncodingPtr; error: NSErrorPointer): id; message 'stringWithContentsOfURL:usedEncoding:error:';
+    class function stringWithContentsOfFile_usedEncoding_error(path: NSString; enc: NSStringEncodingPtr; error: NSErrorPointer): id; message 'stringWithContentsOfFile:usedEncoding:error:';
     function writeToURL_atomically_encoding_error(url: NSURL; useAuxiliaryFile: Boolean; enc: NSStringEncoding; error: NSErrorPointer): Boolean; message 'writeToURL:atomically:encoding:error:';
     function writeToFile_atomically_encoding_error(path: NSString; useAuxiliaryFile: Boolean; enc: NSStringEncoding; error: NSErrorPointer): Boolean; message 'writeToFile:atomically:encoding:error:';
-
-    { Category: NSExtendedStringPropertyListParsing }
-    function propertyList: id; message 'propertyList';
-    function propertyListFromStringsFileFormat: NSDictionary; message 'propertyListFromStringsFileFormat';
-
-    { Category: NSStringDeprecated }
-    procedure getCString(bytes: Pointer); message 'getCString:';
-    procedure getCString_maxLength(bytes: Pointer; maxLength: NSUInteger); message 'getCString:maxLength:';
-    procedure getCString_maxLength_range_remainingRange(bytes: Pointer; maxLength: NSUInteger; aRange: NSRange; leftoverRange: NSRangePointer); message 'getCString:maxLength:range:remainingRange:';
-    function writeToFile_atomically(path: NSString; useAuxiliaryFile: Boolean): Boolean; message 'writeToFile:atomically:';
-    function writeToURL_atomically(url: NSURL; atomically: Boolean): Boolean; message 'writeToURL:atomically:';
-    function initWithContentsOfFile(path: NSString): id; message 'initWithContentsOfFile:';
-    function initWithContentsOfURL(url: NSURL): id; message 'initWithContentsOfURL:';
-    class function stringWithContentsOfFile(path: NSString): id; message 'stringWithContentsOfFile:';
-    class function stringWithContentsOfURL(url: NSURL): id; message 'stringWithContentsOfURL:';
-    function initWithCStringNoCopy_length_freeWhenDone(bytes: Pointer; length_: NSUInteger; freeBuffer: Boolean): id; message 'initWithCStringNoCopy:length:freeWhenDone:';
-    function initWithCString_length(bytes: PChar; length_: NSUInteger): id; message 'initWithCString:length:';
-    function initWithCString(bytes: PChar): id; message 'initWithCString:';
-    class function stringWithCString_length(bytes: PChar; length_: NSUInteger): id; message 'stringWithCString:length:';
-    class function stringWithCString(bytes: PChar): id; message 'stringWithCString:';
-
-    { Category: NSStringPathExtensions }
-    class function pathWithComponents(components: NSArray): NSString; message 'pathWithComponents:';
-    function pathComponents: NSArray; message 'pathComponents';
-    function isAbsolutePath: Boolean; message 'isAbsolutePath';
-    function lastPathComponent: NSString; message 'lastPathComponent';
-    function stringByDeletingLastPathComponent: NSString; message 'stringByDeletingLastPathComponent';
-    function stringByAppendingPathComponent(str: NSString): NSString; message 'stringByAppendingPathComponent:';
-    function pathExtension: NSString; message 'pathExtension';
-    function stringByDeletingPathExtension: NSString; message 'stringByDeletingPathExtension';
-    function stringByAppendingPathExtension(str: NSString): NSString; message 'stringByAppendingPathExtension:';
-    function stringByAbbreviatingWithTildeInPath: NSString; message 'stringByAbbreviatingWithTildeInPath';
-    function stringByExpandingTildeInPath: NSString; message 'stringByExpandingTildeInPath';
-    function stringByStandardizingPath: NSString; message 'stringByStandardizingPath';
-    function stringByResolvingSymlinksInPath: NSString; message 'stringByResolvingSymlinksInPath';
-    function stringsByAppendingPaths(paths: NSArray): NSArray; message 'stringsByAppendingPaths:';
-    function completePathIntoString_caseSensitive_matchesIntoArray_filterTypes(outputName: NSStringPointer; flag: Boolean; outputArray: NSArrayPointer; filterTypes: NSArray): NSUInteger; message 'completePathIntoString:caseSensitive:matchesIntoArray:filterTypes:';
-    function fileSystemRepresentation: PChar; message 'fileSystemRepresentation';
-    function getFileSystemRepresentation_maxLength(cname: Pointer; max: NSUInteger): Boolean; message 'getFileSystemRepresentation:maxLength:';
-
-    { Category: NSURLUtilities }
-    function stringByAddingPercentEscapesUsingEncoding(enc: NSStringEncoding): NSString; message 'stringByAddingPercentEscapesUsingEncoding:';
-    function stringByReplacingPercentEscapesUsingEncoding(enc: NSStringEncoding): NSString; message 'stringByReplacingPercentEscapesUsingEncoding:';
-
-    { Category: NSStringDrawing }
-    function sizeWithAttributes(attrs: NSDictionary): NSSize; message 'sizeWithAttributes:';
-    procedure drawAtPoint_withAttributes(point: NSPoint; attrs: NSDictionary); message 'drawAtPoint:withAttributes:';
-    procedure drawInRect_withAttributes(rect: NSRect; attrs: NSDictionary); message 'drawInRect:withAttributes:';
-
-    { Category: NSExtendedStringDrawing }
-    procedure drawWithRect_options_attributes(rect: NSRect; options: NSStringDrawingOptions; attributes: NSDictionary); message 'drawWithRect:options:attributes:';
-    function boundingRectWithSize_options_attributes(size: NSSize; options: NSStringDrawingOptions; attributes: NSDictionary): NSRect; message 'boundingRectWithSize:options:attributes:';
   end; external;
 
-{ NSMutableString }
-  NSMutableString = objcclass(NSString)
-    
-  public
-    class function alloc: NSMutableString; message 'alloc';
-
-    procedure replaceCharactersInRange_withString(range: NSRange; aString: NSString); message 'replaceCharactersInRange:withString:';
-
-    { Category: NSMutableStringExtensionMethods }
+{ NSMutableStringExtensionMethodsCategory }
+  NSMutableStringExtensionMethodsCategory = objccategory(NSMutableString)
     procedure insertString_atIndex(aString: NSString; loc: NSUInteger); message 'insertString:atIndex:';
     procedure deleteCharactersInRange(range: NSRange); message 'deleteCharactersInRange:';
     procedure appendString(aString: NSString); message 'appendString:';
-    procedure appendFormat(format: NSString); varargs; message 'appendFormat:';
+    procedure appendFormat(firstKey: id); varargs; message 'appendFormat:';
     procedure setString(aString: NSString); message 'setString:';
     function initWithCapacity(capacity: NSUInteger): id; message 'initWithCapacity:';
     class function stringWithCapacity(capacity: NSUInteger): id; message 'stringWithCapacity:';
     function replaceOccurrencesOfString_withString_options_range(target: NSString; replacement: NSString; options: NSStringCompareOptions; searchRange: NSRange): NSUInteger; message 'replaceOccurrencesOfString:withString:options:range:';
   end; external;
 
-{ NSSimpleCString }
-  NSSimpleCString = objcclass(NSString)
-  private
-    _bytes: char;
-    _numBytes: cint;
-    {$ifdef cpu64}
-    __unused: cint;
-    {$endif}
-    
-  public
-    class function alloc: NSSimpleCString; message 'alloc';
+{ NSExtendedStringPropertyListParsingCategory }
+  NSExtendedStringPropertyListParsingCategory = objccategory(NSString)
+    function propertyList: id; message 'propertyList';
+    function propertyListFromStringsFileFormat: NSDictionary; message 'propertyListFromStringsFileFormat';
   end; external;
 
-{ NSConstantString }
-  NSConstantString = objcclass(NSSimpleCString)
-    
-  public
-    class function alloc: NSConstantString; message 'alloc';
+{ NSStringDeprecatedCategory }
+  NSStringDeprecatedCategory = objccategory(NSString)
+    function cString: PChar; message 'cString'; deprecated 'in Mac OS X 10.4 and later';
+    function lossyCString: PChar; message 'lossyCString'; deprecated 'in Mac OS X 10.4 and later';
+    function cStringLength: NSUInteger; message 'cStringLength'; deprecated 'in Mac OS X 10.4 and later';
+    procedure getCString(bytes: PChar); message 'getCString:'; deprecated 'in Mac OS X 10.4 and later';
+    procedure getCString_maxLength(bytes: PChar; maxLength: NSUInteger); message 'getCString:maxLength:'; deprecated 'in Mac OS X 10.4 and later';
+    procedure getCString_maxLength_range_remainingRange(bytes: PChar; maxLength: NSUInteger; aRange: NSRange; leftoverRange: NSRangePointer); message 'getCString:maxLength:range:remainingRange:'; deprecated 'in Mac OS X 10.4 and later';
+    function writeToFile_atomically(path: NSString; useAuxiliaryFile: Boolean): Boolean; message 'writeToFile:atomically:'; deprecated 'in Mac OS X 10.4 and later';
+    function writeToURL_atomically(url: NSURL; atomically: Boolean): Boolean; message 'writeToURL:atomically:'; deprecated 'in Mac OS X 10.4 and later';
+    function initWithContentsOfFile(path: NSString): id; message 'initWithContentsOfFile:'; deprecated 'in Mac OS X 10.4 and later';
+    function initWithContentsOfURL(url: NSURL): id; message 'initWithContentsOfURL:'; deprecated 'in Mac OS X 10.4 and later';
+    class function stringWithContentsOfFile(path: NSString): id; message 'stringWithContentsOfFile:'; deprecated 'in Mac OS X 10.4 and later';
+    class function stringWithContentsOfURL(url: NSURL): id; message 'stringWithContentsOfURL:'; deprecated 'in Mac OS X 10.4 and later';
+    function initWithCStringNoCopy_length_freeWhenDone(bytes: PChar; length_: NSUInteger; freeBuffer: Boolean): id; message 'initWithCStringNoCopy:length:freeWhenDone:'; deprecated 'in Mac OS X 10.4 and later';
+    function initWithCString_length(bytes: PChar; length_: NSUInteger): id; message 'initWithCString:length:'; deprecated 'in Mac OS X 10.4 and later';
+    function initWithCString(bytes: PChar): id; message 'initWithCString:'; deprecated 'in Mac OS X 10.4 and later';
+    class function stringWithCString_length(bytes: PChar; length_: NSUInteger): id; message 'stringWithCString:length:'; deprecated 'in Mac OS X 10.4 and later';
+    class function stringWithCString(bytes: PChar): id; message 'stringWithCString:'; deprecated 'in Mac OS X 10.4 and later';
+    procedure getCharacters(buffer: PChar); message 'getCharacters:';
   end; external;
 
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSKeyValueObserving.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,8 +29,11 @@ const
 { Types }
 type
   NSKeyValueObservingOptions = NSUInteger;
+  NSKeyValueObservingOptionsPtr = ^NSKeyValueObservingOptions;
   NSKeyValueChange = NSUInteger;
+  NSKeyValueChangePtr = ^NSKeyValueChange;
   NSKeyValueSetMutationKind = NSUInteger;
+  NSKeyValueSetMutationKindPtr = ^NSKeyValueSetMutationKind;
 
 {$endif}
 {$endif}
@@ -55,11 +58,70 @@ type
 
 { External string constants }
 var
-  NSKeyValueChangeKindKey: NSString; external name '_NSKeyValueChangeKindKey';
-  NSKeyValueChangeNewKey: NSString; external name '_NSKeyValueChangeNewKey';
-  NSKeyValueChangeOldKey: NSString; external name '_NSKeyValueChangeOldKey';
-  NSKeyValueChangeIndexesKey: NSString; external name '_NSKeyValueChangeIndexesKey';
-  NSKeyValueChangeNotificationIsPriorKey: NSString; external name '_NSKeyValueChangeNotificationIsPriorKey';
+  NSKeyValueChangeKindKey: NSString; cvar; external;
+  NSKeyValueChangeNewKey: NSString; cvar; external;
+  NSKeyValueChangeOldKey: NSString; cvar; external;
+  NSKeyValueChangeIndexesKey: NSString; cvar; external;
+  NSKeyValueChangeNotificationIsPriorKey: NSString; cvar; external;
+
+{$endif}
+{$endif}
+
+{$ifdef FORWARD}
+
+{$endif}
+
+{$ifdef CLASSES}
+{$ifndef NSKEYVALUEOBSERVING_PAS_C}
+{$define NSKEYVALUEOBSERVING_PAS_C}
+
+{ NSKeyValueObservingCategory }
+  NSKeyValueObservingCategory = objccategory(NSObject)
+    procedure observeValueForKeyPath_ofObject_change_context(keyPath: NSString; object_: id; change: NSDictionary; context: Pointer); message 'observeValueForKeyPath:ofObject:change:context:';
+  end; external;
+
+{ NSKeyValueObserverRegistrationCategory }
+  NSKeyValueObserverRegistrationCategory = objccategory(NSObject)
+    procedure addObserver_forKeyPath_options_context(observer: NSObject; keyPath: NSString; options: NSKeyValueObservingOptions; context: Pointer); message 'addObserver:forKeyPath:options:context:';
+    procedure removeObserver_forKeyPath(observer: NSObject; keyPath: NSString); message 'removeObserver:forKeyPath:';
+  end; external;
+
+{ NSKeyValueObserverRegistration_NSArrayCategory }
+  NSKeyValueObserverRegistration_NSArrayCategory = objccategory(NSArray)
+    procedure addObserver_toObjectsAtIndexes_forKeyPath_options_context(observer: NSObject; indexes: NSIndexSet; keyPath: NSString; options: NSKeyValueObservingOptions; context: Pointer); message 'addObserver:toObjectsAtIndexes:forKeyPath:options:context:';
+    procedure removeObserver_fromObjectsAtIndexes_forKeyPath(observer: NSObject; indexes: NSIndexSet; keyPath: NSString); message 'removeObserver:fromObjectsAtIndexes:forKeyPath:';
+    procedure addObserver_forKeyPath_options_context(observer: NSObject; keyPath: NSString; options: NSKeyValueObservingOptions; context: Pointer); message 'addObserver:forKeyPath:options:context:';
+    procedure removeObserver_forKeyPath(observer: NSObject; keyPath: NSString); message 'removeObserver:forKeyPath:';
+  end; external name 'NSKeyValueObserverRegistration';
+
+{ NSKeyValueObserverRegistration_NSSetCategory }
+  NSKeyValueObserverRegistration_NSSetCategory = objccategory(NSSet)
+    procedure addObserver_forKeyPath_options_context(observer: NSObject; keyPath: NSString; options: NSKeyValueObservingOptions; context: Pointer); message 'addObserver:forKeyPath:options:context:';
+    procedure removeObserver_forKeyPath(observer: NSObject; keyPath: NSString); message 'removeObserver:forKeyPath:';
+  end; external name 'NSKeyValueObserverRegistration';
+
+{ NSKeyValueObserverNotificationCategory }
+  NSKeyValueObserverNotificationCategory = objccategory(NSObject)
+    procedure willChangeValueForKey(key: NSString); message 'willChangeValueForKey:';
+    procedure didChangeValueForKey(key: NSString); message 'didChangeValueForKey:';
+    procedure willChange_valuesAtIndexes_forKey(changeKind: NSKeyValueChange; indexes: NSIndexSet; key: NSString); message 'willChange:valuesAtIndexes:forKey:';
+    procedure didChange_valuesAtIndexes_forKey(changeKind: NSKeyValueChange; indexes: NSIndexSet; key: NSString); message 'didChange:valuesAtIndexes:forKey:';
+    procedure willChangeValueForKey_withSetMutation_usingObjects(key: NSString; mutationKind: NSKeyValueSetMutationKind; objects: NSSet); message 'willChangeValueForKey:withSetMutation:usingObjects:';
+    procedure didChangeValueForKey_withSetMutation_usingObjects(key: NSString; mutationKind: NSKeyValueSetMutationKind; objects: NSSet); message 'didChangeValueForKey:withSetMutation:usingObjects:';
+  end; external;
+
+{ NSKeyValueObservingCustomizationCategory }
+  NSKeyValueObservingCustomizationCategory = objccategory(NSObject)
+    class function keyPathsForValuesAffectingValueForKey(key: NSString): NSSet; message 'keyPathsForValuesAffectingValueForKey:';
+    class function automaticallyNotifiesObserversForKey(key: NSString): Boolean; message 'automaticallyNotifiesObserversForKey:';
+    procedure setObservationInfo(observationInfo: Pointer); message 'setObservationInfo:';
+    function observationInfo: Pointer; message 'observationInfo';
+  end; external;
+
+{ NSDeprecatedKeyValueObservingCustomizationCategory }
+  NSDeprecatedKeyValueObservingCustomizationCategory = objccategory(NSObject)
+    class procedure setKeys_triggerChangeNotificationsForDependentKey(keys: NSArray; dependentKey: NSString); message 'setKeys:triggerChangeNotificationsForDependentKey:'; deprecated 'in Mac OS X 10.5 and later';
+  end; external;
 
 {$endif}
 {$endif}

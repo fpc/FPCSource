@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSLock.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -34,12 +34,16 @@
   NSLockingProtocol = objcprotocol;
   NSLock = objcclass;
   NSLockPointer = ^NSLock;
+  NSLockPtr = NSLockPointer;
   NSConditionLock = objcclass;
   NSConditionLockPointer = ^NSConditionLock;
+  NSConditionLockPtr = NSConditionLockPointer;
   NSRecursiveLock = objcclass;
   NSRecursiveLockPointer = ^NSRecursiveLock;
+  NSRecursiveLockPtr = NSRecursiveLockPointer;
   NSCondition = objcclass;
   NSConditionPointer = ^NSCondition;
+  NSConditionPtr = NSConditionPointer;
 
 {$endif}
 
@@ -50,7 +54,7 @@
 { NSLock }
   NSLock = objcclass(NSObject, NSLockingProtocol)
   private
-    __priv: Pointer;
+    _priv: Pointer;
     
   public
     class function alloc: NSLock; message 'alloc';
@@ -58,12 +62,17 @@
     function tryLock: Boolean; message 'tryLock';
     function lockBeforeDate(limit: NSDate): Boolean; message 'lockBeforeDate:';
     procedure setName(n: NSString); message 'setName:';
+    function name: NSString; message 'name';
+
+    { Adopted Protocols }
+    procedure lock;
+    procedure unlock;
   end; external;
 
 { NSConditionLock }
   NSConditionLock = objcclass(NSObject, NSLockingProtocol)
   private
-    __priv: Pointer;
+    _priv: Pointer;
     
   public
     class function alloc: NSConditionLock; message 'alloc';
@@ -77,12 +86,17 @@
     function lockBeforeDate(limit: NSDate): Boolean; message 'lockBeforeDate:';
     function lockWhenCondition_beforeDate(condition_: NSInteger; limit: NSDate): Boolean; message 'lockWhenCondition:beforeDate:';
     procedure setName(n: NSString); message 'setName:';
+    function name: NSString; message 'name';
+
+    { Adopted Protocols }
+    procedure lock;
+    procedure unlock;
   end; external;
 
 { NSRecursiveLock }
   NSRecursiveLock = objcclass(NSObject, NSLockingProtocol)
   private
-    __priv: Pointer;
+    _priv: Pointer;
     
   public
     class function alloc: NSRecursiveLock; message 'alloc';
@@ -90,12 +104,17 @@
     function tryLock: Boolean; message 'tryLock';
     function lockBeforeDate(limit: NSDate): Boolean; message 'lockBeforeDate:';
     procedure setName(n: NSString); message 'setName:';
+    function name: NSString; message 'name';
+
+    { Adopted Protocols }
+    procedure lock;
+    procedure unlock;
   end; external;
 
 { NSCondition }
   NSCondition = objcclass(NSObject, NSLockingProtocol)
   private
-    __priv: Pointer;
+    _priv: Pointer;
     
   public
     class function alloc: NSCondition; message 'alloc';
@@ -105,6 +124,11 @@
     procedure signal; message 'signal';
     procedure broadcast; message 'broadcast';
     procedure setName(n: NSString); message 'setName:';
+    function name: NSString; message 'name';
+
+    { Adopted Protocols }
+    procedure lock;
+    procedure unlock;
   end; external;
 
 {$endif}

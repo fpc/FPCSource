@@ -1,10 +1,16 @@
 { Parsed from Webkit.framework DOMRangeException.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:19:00 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
 {$ifndef DOMRANGEEXCEPTION_PAS_T}
 {$define DOMRANGEEXCEPTION_PAS_T}
+
+{ Constants }
+
+const
+  DOM_BAD_BOUNDARYPOINTS_ERR = 1;
+  DOM_INVALID_NODE_TYPE_ERR = 2;
 
 {$endif}
 {$endif}
@@ -29,7 +35,7 @@
 
 { External string constants }
 var
-  DOMRangeException: NSString; external name '_DOMRangeException';
+  DOMRangeException: NSString; cvar; external;
 
 {$endif}
 {$endif}

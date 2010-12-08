@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTreeNode.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSTreeNode = objcclass;
   NSTreeNodePointer = ^NSTreeNode;
+  NSTreeNodePtr = NSTreeNodePointer;
 
 {$endif}
 
@@ -43,15 +44,19 @@
 { NSTreeNode }
   NSTreeNode = objcclass(NSObject)
   private
-    __childNodesProxy: id;
-    __representedObject: id;
-    __observationInfo: Pointer;
-    __reserved2: id;
-    __childNodes: NSMutableArray;
-    __parentNode: NSTreeNode;
+    _childNodesProxy: id;
+    _representedObject: id;
+    _observationInfo: Pointer;
+    _reserved2: id;
+    _childNodes: NSMutableArray;
+    _parentNode: NSTreeNode;
     __NSTreeNodeFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSTreeNode0: cuint);
+       1: (
         ignoreObserving: 0..1;
         reserved: 0..((1 shl 31)-1);
+      );
       end;
     
   public

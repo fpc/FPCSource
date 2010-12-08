@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSObjectScripting.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -26,6 +26,26 @@
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSOBJECTSCRIPTING_PAS_S}
 {$define NSOBJECTSCRIPTING_PAS_S}
+
+{$endif}
+{$endif}
+
+{$ifdef FORWARD}
+
+{$endif}
+
+{$ifdef CLASSES}
+{$ifndef NSOBJECTSCRIPTING_PAS_C}
+{$define NSOBJECTSCRIPTING_PAS_C}
+
+{ NSScriptingCategory }
+  NSScriptingCategory = objccategory(NSObject)
+    function scriptingValueForSpecifier(objectSpecifier: NSScriptObjectSpecifier): id; message 'scriptingValueForSpecifier:';
+    function scriptingProperties: NSDictionary; message 'scriptingProperties';
+    procedure setScriptingProperties(properties: NSDictionary); message 'setScriptingProperties:';
+    function copyScriptingValue_forKey_withProperties(value: id; key: NSString; properties: NSDictionary): id; message 'copyScriptingValue:forKey:withProperties:';
+    function newScriptingObjectOfClass_forValueForKey_withContentsValue_properties(objectClass: Pobjc_class; key: NSString; contentsValue: id; properties: NSDictionary): id; message 'newScriptingObjectOfClass:forValueForKey:withContentsValue:properties:';
+  end; external;
 
 {$endif}
 {$endif}

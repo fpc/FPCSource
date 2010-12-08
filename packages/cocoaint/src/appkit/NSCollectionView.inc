@@ -1,10 +1,21 @@
 { Parsed from Appkit.framework NSCollectionView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:08 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
 
 
 {$ifdef TYPES}
 {$ifndef NSCOLLECTIONVIEW_PAS_T}
 {$define NSCOLLECTIONVIEW_PAS_T}
+
+{ Types }
+type
+  NSCollectionViewDropOperation = NSInteger;
+  NSCollectionViewDropOperationPtr = ^NSCollectionViewDropOperation;
+
+{ Constants }
+
+const
+  NSCollectionViewDropOn = 0;
+  NSCollectionViewDropBefore = 1;
 
 {$endif}
 {$endif}
@@ -31,10 +42,13 @@
 {$endif}
 
 {$ifdef FORWARD}
+  NSCollectionViewDelegateProtocol = objcprotocol;
   NSCollectionViewItem = objcclass;
   NSCollectionViewItemPointer = ^NSCollectionViewItem;
+  NSCollectionViewItemPtr = NSCollectionViewItemPointer;
   NSCollectionView = objcclass;
   NSCollectionViewPointer = ^NSCollectionView;
+  NSCollectionViewPtr = NSCollectionViewPointer;
 
 {$endif}
 
@@ -43,82 +57,90 @@
 {$define NSCOLLECTIONVIEW_PAS_C}
 
 { NSCollectionViewItem }
-  NSCollectionViewItem = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSCollectionViewItem = objcclass(NSViewController, NSCopyingProtocol)
   private
-        _reserved: array[0..1] of Pointer;
-    __archive: NSMutableData;
-    __ownerView: NSCollectionView;
-    __representedObject: id;
-    __view: NSView;
-    __itemFlags: bitpacked record
-        _selected: 0..1;
-        _removalNeeded: 0..1;
-        _suppressSelectionChangeNotification: 0..1;
-        _reservedAnimationContainer: 0..((1 shl 29)-1);
+    _collectionView: NSCollectionView;
+    __cviFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSCollectionView0: cuint);
+       1: (
+        _isSelected: 0..1;
+        suppressSelectionChangedNotification: 0..1;
+        connectionsCopied: 0..1;
+        reserved: 0..((1 shl 29)-1);
+      );
       end;
-    __targetViewFrameRect: NSRect;
-    __appliedViewFrameRect: NSRect;
-    __containerReferenceCounter: NSUInteger;
+    _cachedArchive: NSData;
+    _reserved2: Pointer;
     
   public
     class function alloc: NSCollectionViewItem; message 'alloc';
 
     function collectionView: NSCollectionView; message 'collectionView';
-    procedure setRepresentedObject(object_: id); message 'setRepresentedObject:';
-    function representedObject: id; message 'representedObject';
-    procedure setView(view_: NSView); message 'setView:';
-    function view: NSView; message 'view';
     procedure setSelected(flag: Boolean); message 'setSelected:';
     function isSelected: Boolean; message 'isSelected';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
   end; external;
 
 { NSCollectionView }
   NSCollectionView = objcclass(NSView)
   private
-        _reserved: array[0..8] of Pointer;
-    __backgroundLayers: NSMutableArray;
-    __content: NSArray;
-    __selectionIndexes: NSMutableIndexSet;
-    __itemPrototype: NSCollectionViewItem;
-    __minGridSize: NSSize;
-    __maxGridSize: NSSize;
-    __minGridRows: NSUInteger;
-    __maxGridRows: NSUInteger;
-    __minGridColumns: NSUInteger;
-    __maxGridColumns: NSUInteger;
-    __backgroundColors: NSArray;
-    __animationContainerFlags: bitpacked record
-        _ignoreFrameSizeChanges: 0..1;
-        _selectable: 0..1;
-        _allowsMultipleSelection: 0..1;
-        _avoidsEmptySelection: 0..1;
-        _superviewIsClipView: 0..1;
-        _gridParametersReadFromPrototype: 0..1;
+    _content: NSArray;
+    _selectionIndexes: NSMutableIndexSet;
+    _itemPrototype: NSCollectionViewItem;
+    _minItemSize: NSSize;
+    _maxItemSize: NSSize;
+    _maxGridRows: NSUInteger;
+    _maxGridColumns: NSUInteger;
+    _backgroundColors: NSArray;
+    _displayedItems: NSMutableArray;
+    _animationDuration: NSTimeInterval;
+    __cvFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSCollectionView1: cuint);
+       1: (
         _isFirstResponder: 0..1;
-        _reservedAnimationContainer: 0..((1 shl 25)-1);
+        invalidateItemViews: 0..1;
+        selectable: 0..1;
+        _allowsMultipleSelection: 0..1;
+        avoidsEmptySelection: 0..1;
+        superviewIsClipView: 0..1;
+        needsUpdateGrid: 0..1;
+        needsUpdateBackground: 0..1;
+        gridSettingsNeedUpdate: 0..1;
+        guardSetFrameSize: 0..1;
+        canDisplayItems: 0..1;
+        animateForDrag: 0..1;
+        unarchiving: 0..1;
+        reserved: 0..((1 shl 19)-1);
+      );
       end;
-    __targetFrameSize: NSSize;
-    __targetGridSize: NSSize;
-    __targetUnfilledViewSpace: NSSize;
-    __targetNumberOfGridRows: NSUInteger;
-    __targetNumberOfGridColumns: NSUInteger;
-    __targetItems: NSMutableArray;
-    __appliedFrameSize: NSSize;
-    __appliedGridSize: NSSize;
-    __appliedUnfilledViewSpace: NSSize;
-    __appliedNumberOfGridRows: NSUInteger;
-    __appliedNumberOfGridColumns: NSUInteger;
-    __appliedItems: NSMutableArray;
-    __appliedItemsAsSet: NSMutableSet;
-    __appliedRemovedItemsAsSet: NSMutableSet;
-    __animationDuration: NSTimeInterval;
-    __animation: NSViewAnimation;
-    __hideItems: NSMutableArray;
-    __showItems: NSMutableArray;
+    _delegate: id;
+    _backgroundLayers: NSMutableArray;
+    _storedFrameSize: NSSize;
+    _cachedNib: NSNib;
+    _animTimer: NSTimer;
+    _removedItems: NSArray;
+    _resizeTimer: NSTimer;
+    _draggedIndexes: NSIndexSet;
+    _draggingSourceOperationMaskForLocal: NSDragOperation;
+    _draggingSourceOperationMaskForNonLocal: NSDragOperation;
+    _currentDropIndex: NSInteger;
+    _currentDropSpaceIndex: NSInteger;
+    _shiftRow: NSInteger;
+    _currentDragOperation: NSDragOperation;
+    _currentDropOperation: NSCollectionViewDropOperation;
+    _dragTimer: NSTimer;
+    _private: id;
+        _reserved: array[0..15] of Pointer;
     
   public
     class function alloc: NSCollectionView; message 'alloc';
 
+    procedure setDelegate(aDelegate: id); message 'setDelegate:';
+    function delegate: id; message 'delegate';
     function isFirstResponder: Boolean; message 'isFirstResponder';
     procedure setContent(content_: NSArray); message 'setContent:';
     function content: NSArray; message 'content';
@@ -141,7 +163,26 @@
     function maxItemSize: NSSize; message 'maxItemSize';
     procedure setBackgroundColors(colors: NSArray); message 'setBackgroundColors:';
     function backgroundColors: NSArray; message 'backgroundColors';
+    function itemAtIndex(index: NSUInteger): NSCollectionViewItem; message 'itemAtIndex:';
+    function frameForItemAtIndex(index: NSUInteger): NSRect; message 'frameForItemAtIndex:';
+    procedure setDraggingSourceOperationMask_forLocal(dragOperationMask: NSDragOperation; localDestination: Boolean); message 'setDraggingSourceOperationMask:forLocal:';
+    function draggingImageForItemsAtIndexes_withEvent_offset(indexes: NSIndexSet; event: NSEvent; dragImageOffset: NSPointPointer): NSImage; message 'draggingImageForItemsAtIndexes:withEvent:offset:';
   end; external;
 
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSCOLLECTIONVIEW_PAS_P}
+{$define NSCOLLECTIONVIEW_PAS_P}
+  
+{ NSCollectionViewDelegate Protocol }
+  NSCollectionViewDelegateProtocol = objcprotocol
+    function collectionView_canDragItemsAtIndexes_withEvent(collectionView: NSCollectionView; indexes: NSIndexSet; event: NSEvent): Boolean; message 'collectionView:canDragItemsAtIndexes:withEvent:';
+    function collectionView_writeItemsAtIndexes_toPasteboard(collectionView: NSCollectionView; indexes: NSIndexSet; pasteboard: NSPasteboard): Boolean; message 'collectionView:writeItemsAtIndexes:toPasteboard:';
+    function collectionView_namesOfPromisedFilesDroppedAtDestination_forDraggedItemsAtIndexes(collectionView: NSCollectionView; dropURL: NSURL; indexes: NSIndexSet): NSArray; message 'collectionView:namesOfPromisedFilesDroppedAtDestination:forDraggedItemsAtIndexes:';
+    function collectionView_draggingImageForItemsAtIndexes_withEvent_offset(collectionView: NSCollectionView; indexes: NSIndexSet; event: NSEvent; dragImageOffset: NSPointPointer): NSImage; message 'collectionView:draggingImageForItemsAtIndexes:withEvent:offset:';
+    function collectionView_validateDrop_proposedIndex_dropOperation(collectionView: NSCollectionView; draggingInfo: id; proposedDropIndex: NSIntegerPtr; proposedDropOperation: NSCollectionViewDropOperationPtr): NSDragOperation; message 'collectionView:validateDrop:proposedIndex:dropOperation:';
+    function collectionView_acceptDrop_index_dropOperation(collectionView: NSCollectionView; draggingInfo: id; index: NSInteger; dropOperation: NSCollectionViewDropOperation): Boolean; message 'collectionView:acceptDrop:index:dropOperation:';
+  end; external name 'NSCollectionViewDelegate';
 {$endif}
 {$endif}

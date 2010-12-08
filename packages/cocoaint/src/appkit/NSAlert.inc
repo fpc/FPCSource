@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAlert.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -21,6 +21,7 @@ const
 { Types }
 type
   NSAlertStyle = NSUInteger;
+  NSAlertStylePtr = ^NSAlertStyle;
 
 {$endif}
 {$endif}
@@ -47,8 +48,10 @@ type
 {$endif}
 
 {$ifdef FORWARD}
+  NSAlertDelegateProtocol = objcprotocol;
   NSAlert = objcclass;
   NSAlertPointer = ^NSAlert;
+  NSAlertPtr = NSAlertPointer;
 
 {$endif}
 
@@ -59,42 +62,42 @@ type
 { NSAlert }
   NSAlert = objcclass(NSObject)
   private
-    __informationField: NSTextField;
-    __first: id;
-    __second: id;
-    __third: id;
-    __buttons: NSArray;
-    __panel: NSPanel;
-    __messageField: id;
-    __imageView: id;
-    __minButtonSize: NSSize;
-    __buttonSpacing: CGFloat;
-    __buttonPadding: CGFloat;
-    __messagePadding: CGFloat;
-    __buttonSpacingMaxX: CGFloat;
-    __buttonSpacingY: CGFloat;
-    __modalDelegate: id;
-    __docWindow: NSWindow;
-    __didEndSelector: SEL;
-    __didDismissSelector: SEL;
-    __unbadgedImage: NSImage;
-    __defaultPanelSize: NSSize;
-    __helpButton: id;
-    __delegate: id;
-    __alertStyle: NSAlertStyle;
-    __helpAnchor: id;
-    __layoutDone: Boolean;
-    __showsHelp: Boolean;
-    __showsSuppressionButton: Boolean;
-    _reserved: Boolean;
-    __suppressionButton: id;
-    __accessoryView: id;
+    _informationField: NSTextField;
+    _first: id;
+    _second: id;
+    _third: id;
+    _buttons: NSArray;
+    _panel: NSPanel;
+    _messageField: id;
+    _imageView: id;
+    _minButtonSize: NSSize;
+    _buttonSpacing: CGFloat;
+    _buttonPadding: CGFloat;
+    _messagePadding: CGFloat;
+    _buttonSpacingMaxX: CGFloat;
+    _buttonSpacingY: CGFloat;
+    _modalDelegate: id;
+    _docWindow: NSWindow;
+    _didEndSelector: SEL;
+    _didDismissSelector: SEL;
+    _unbadgedImage: NSImage;
+    _defaultPanelSize: NSSize;
+    _helpButton: id;
+    _delegate: id;
+    _alertStyle: NSAlertStyle;
+    _helpAnchor: id;
+    _layoutDone: Boolean;
+    _showsHelp: Boolean;
+    _showsSuppressionButton: Boolean;
+    reserved: Boolean;
+    _suppressionButton: id;
+    _accessoryView: id;
     
   public
     class function alloc: NSAlert; message 'alloc';
 
     class function alertWithError(error: NSError): NSAlert; message 'alertWithError:';
-    class function alertWithMessageText_defaultButton_alternateButton_otherButton_informativeTextWithFormat(message: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; format: NSString): NSAlert; varargs; message 'alertWithMessageText:defaultButton:alternateButton:otherButton:informativeTextWithFormat:';
+    class function alertWithMessageText_defaultButton_alternateButton_otherButton_informativeTextWithFormat(message: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; firstKey: id): NSAlert; varargs; message 'alertWithMessageText:defaultButton:alternateButton:otherButton:informativeTextWithFormat:';
     procedure setMessageText(messageText_: NSString); message 'setMessageText:';
     procedure setInformativeText(informativeText_: NSString); message 'setInformativeText:';
     function messageText: NSString; message 'messageText';
@@ -118,9 +121,20 @@ type
     function accessoryView: NSView; message 'accessoryView';
     procedure layout; message 'layout';
     function runModal: NSInteger; message 'runModal';
+    procedure alertDidEnd_returnCode_contextInfo(alert: NSAlert; returnCode: NSInteger; contextInfo: Pointer); message 'alertDidEnd:returnCode:contextInfo:';
     procedure beginSheetModalForWindow_modalDelegate_didEndSelector_contextInfo(window_: NSWindow; delegate_: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginSheetModalForWindow:modalDelegate:didEndSelector:contextInfo:';
     function window: id; message 'window';
   end; external;
 
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSALERT_PAS_P}
+{$define NSALERT_PAS_P}
+  
+{ NSAlertDelegate Protocol }
+  NSAlertDelegateProtocol = objcprotocol
+    function alertShowHelp(alert: NSAlert): Boolean; message 'alertShowHelp:';
+  end; external name 'NSAlertDelegate';
 {$endif}
 {$endif}

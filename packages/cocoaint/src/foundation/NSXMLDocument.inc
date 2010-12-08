@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSXMLDocument.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -17,6 +17,7 @@ const
 { Types }
 type
   NSXMLDocumentContentKind = NSUInteger;
+  NSXMLDocumentContentKindPtr = ^NSXMLDocumentContentKind;
 
 {$endif}
 {$endif}
@@ -45,6 +46,7 @@ type
 {$ifdef FORWARD}
   NSXMLDocument = objcclass;
   NSXMLDocumentPointer = ^NSXMLDocument;
+  NSXMLDocumentPtr = NSXMLDocumentPointer;
 
 {$endif}
 
@@ -55,18 +57,18 @@ type
 { NSXMLDocument }
   NSXMLDocument = objcclass(NSXMLNode)
   private
-    __encoding: NSString;
-    __version: NSString;
-    __docType: NSXMLDTD;
-    __children: NSArray;
-    __childrenHaveMutated: Boolean;
-    __standalone: Boolean;
-        _padding3: array[0..1] of byte;
-    __rootElement: NSXMLElement;
-    __URI: NSString;
-    __MIMEType: NSString;
-    __fidelityMask: NSUInteger;
-    __contentKind: NSXMLDocumentContentKind;
+    _encoding: NSString;
+    _version: NSString;
+    _docType: NSXMLDTD;
+    _children: NSArray;
+    _childrenHaveMutated: Boolean;
+    _standalone: Boolean;
+        _padding3: array[0..1] of cuint8;
+    _rootElement: NSXMLElement;
+    _URI: NSString;
+    _MIMEType: NSString;
+    _fidelityMask: NSUInteger;
+    _contentKind: NSXMLDocumentContentKind;
     
   public
     class function alloc: NSXMLDocument; message 'alloc';

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSNumberFormatter.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -39,9 +39,13 @@ const
 { Types }
 type
   NSNumberFormatterStyle = NSUInteger;
+  NSNumberFormatterStylePtr = ^NSNumberFormatterStyle;
   NSNumberFormatterBehavior = NSUInteger;
+  NSNumberFormatterBehaviorPtr = ^NSNumberFormatterBehavior;
   NSNumberFormatterPadPosition = NSUInteger;
+  NSNumberFormatterPadPositionPtr = ^NSNumberFormatterPadPosition;
   NSNumberFormatterRoundingMode = NSUInteger;
+  NSNumberFormatterRoundingModePtr = ^NSNumberFormatterRoundingMode;
 
 {$endif}
 {$endif}
@@ -70,6 +74,7 @@ type
 {$ifdef FORWARD}
   NSNumberFormatter = objcclass;
   NSNumberFormatterPointer = ^NSNumberFormatter;
+  NSNumberFormatterPtr = NSNumberFormatterPointer;
 
 {$endif}
 
@@ -80,18 +85,18 @@ type
 { NSNumberFormatter }
   NSNumberFormatter = objcclass(NSFormatter)
   private
-    __attributes: NSMutableDictionary;
-    __formatter: CFNumberFormatterRef; {garbage collector: __strong }
-    __counter: NSUInteger;
+    _attributes: NSMutableDictionary;
+    _formatter: CFNumberFormatterRef; {garbage collector: __strong }
+    _counter: NSUInteger;
         _reserved: array[0..11] of Pointer;
     
   public
     class function alloc: NSNumberFormatter; message 'alloc';
 
-    function init: id; message 'init';
-    function getObjectValue_forString_range_error(obj: id; string_: NSString; rangep: NSRangePointer; error: NSErrorPointer): Boolean; message 'getObjectValue:forString:range:error:';
+    function getObjectValue_forString_range_error(obj: idPtr; string_: NSString; rangep: NSRangePtr; error: NSErrorPointer): Boolean; message 'getObjectValue:forString:range:error:';
     function stringFromNumber(number: NSNumber): NSString; message 'stringFromNumber:';
     function numberFromString(string_: NSString): NSNumber; message 'numberFromString:';
+    class function localizedStringFromNumber_numberStyle(num: NSNumber; nstyle: NSNumberFormatterStyle): NSString; message 'localizedStringFromNumber:numberStyle:';
     function numberStyle: NSNumberFormatterStyle; message 'numberStyle';
     procedure setNumberStyle(style: NSNumberFormatterStyle); message 'setNumberStyle:';
     function locale: NSLocale; message 'locale';
@@ -194,14 +199,22 @@ type
     procedure setMinimum(number: NSNumber); message 'setMinimum:';
     function maximum: NSNumber; message 'maximum';
     procedure setMaximum(number: NSNumber); message 'setMaximum:';
+    function currencyGroupingSeparator: NSString; message 'currencyGroupingSeparator';
     procedure setCurrencyGroupingSeparator(string_: NSString); message 'setCurrencyGroupingSeparator:';
+    function isLenient: Boolean; message 'isLenient';
     procedure setLenient(b: Boolean); message 'setLenient:';
+    function usesSignificantDigits: Boolean; message 'usesSignificantDigits';
     procedure setUsesSignificantDigits(b: Boolean); message 'setUsesSignificantDigits:';
+    function minimumSignificantDigits: NSUInteger; message 'minimumSignificantDigits';
     procedure setMinimumSignificantDigits(number: NSUInteger); message 'setMinimumSignificantDigits:';
+    function maximumSignificantDigits: NSUInteger; message 'maximumSignificantDigits';
     procedure setMaximumSignificantDigits(number: NSUInteger); message 'setMaximumSignificantDigits:';
+    function isPartialStringValidationEnabled: Boolean; message 'isPartialStringValidationEnabled';
     procedure setPartialStringValidationEnabled(b: Boolean); message 'setPartialStringValidationEnabled:';
+  end; external;
 
-    { Category: NSNumberFormatterCompatibility }
+{ NSNumberFormatterCompatibilityCategory }
+  NSNumberFormatterCompatibilityCategory = objccategory(NSNumberFormatter)
     function hasThousandSeparators: Boolean; message 'hasThousandSeparators';
     procedure setHasThousandSeparators(flag: Boolean); message 'setHasThousandSeparators:';
     function thousandSeparator: NSString; message 'thousandSeparator';

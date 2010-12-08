@@ -1,10 +1,15 @@
 { Parsed from Webkit.framework DOMObject.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
 {$ifndef DOMOBJECT_PAS_T}
 {$define DOMOBJECT_PAS_T}
+
+{ Types }
+type
+  DOMObjectInternal = record end;
+  DOMObjectInternalPtr = ^DOMObjectInternal;
 
 {$endif}
 {$endif}
@@ -33,6 +38,7 @@
 {$ifdef FORWARD}
   DOMObject = objcclass;
   DOMObjectPointer = ^DOMObject;
+  DOMObjectPtr = DOMObjectPointer;
 
 {$endif}
 
@@ -43,12 +49,17 @@
 { DOMObject }
   DOMObject = objcclass(WebScriptObject, NSCopyingProtocol)
   private
-    __internal: DOMObjectInternal;
+    _internal: DOMObjectInternalPtr;
     
   public
     class function alloc: DOMObject; message 'alloc';
 
-    { Category: DOMLinkStyle }
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+  end; external;
+
+{ DOMLinkStyleCategory }
+  DOMLinkStyleCategory = objccategory(DOMObject)
     function sheet: DOMStyleSheet; message 'sheet';
   end; external;
 

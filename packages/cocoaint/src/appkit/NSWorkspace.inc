@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSWorkspace.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -9,7 +9,9 @@
 { Types }
 type
   NSWorkspaceLaunchOptions = NSUInteger;
+  NSWorkspaceLaunchOptionsPtr = ^NSWorkspaceLaunchOptions;
   NSWorkspaceIconCreationOptions = NSUInteger;
+  NSWorkspaceIconCreationOptionsPtr = ^NSWorkspaceIconCreationOptions;
 
 { Constants }
 
@@ -24,10 +26,11 @@ const
   NSWorkspaceLaunchNewInstance = $00080000;
   NSWorkspaceLaunchAndHide = $00100000;
   NSWorkspaceLaunchAndHideOthers = $00200000;
+  NSWorkspaceLaunchDefault = NSWorkspaceLaunchAsync or NSWorkspaceLaunchAllowingClassicStartup;
 
 const
-  NSExcludeQuickDrawElementsIconCreationOption = 1  shl  1;
-  NSExclude10_4ElementsIconCreationOption = 1  shl  2;
+  NSExcludeQuickDrawElementsIconCreationOption = 1 shl 1;
+  NSExclude10_4ElementsIconCreationOption = 1 shl 2;
 
 {$endif}
 {$endif}
@@ -52,28 +55,54 @@ const
 
 { External string constants }
 var
-  NSWorkspaceDidLaunchApplicationNotification: NSString; external name '_NSWorkspaceDidLaunchApplicationNotification';
-  NSWorkspaceDidMountNotification: NSString; external name '_NSWorkspaceDidMountNotification';
-  NSWorkspaceDidPerformFileOperationNotification: NSString; external name '_NSWorkspaceDidPerformFileOperationNotification';
-  NSWorkspaceDidTerminateApplicationNotification: NSString; external name '_NSWorkspaceDidTerminateApplicationNotification';
-  NSWorkspaceDidUnmountNotification: NSString; external name '_NSWorkspaceDidUnmountNotification';
-  NSWorkspaceWillLaunchApplicationNotification: NSString; external name '_NSWorkspaceWillLaunchApplicationNotification';
-  NSWorkspaceWillPowerOffNotification: NSString; external name '_NSWorkspaceWillPowerOffNotification';
-  NSWorkspaceWillUnmountNotification: NSString; external name '_NSWorkspaceWillUnmountNotification';
-  NSWorkspaceWillSleepNotification: NSString; external name '_NSWorkspaceWillSleepNotification';
-  NSWorkspaceDidWakeNotification: NSString; external name '_NSWorkspaceDidWakeNotification';
-  NSWorkspaceSessionDidBecomeActiveNotification: NSString; external name '_NSWorkspaceSessionDidBecomeActiveNotification';
-  NSWorkspaceSessionDidResignActiveNotification: NSString; external name '_NSWorkspaceSessionDidResignActiveNotification';
-  NSWorkspaceMoveOperation: NSString; external name '_NSWorkspaceMoveOperation';
-  NSWorkspaceCopyOperation: NSString; external name '_NSWorkspaceCopyOperation';
-  NSWorkspaceLinkOperation: NSString; external name '_NSWorkspaceLinkOperation';
-  NSWorkspaceCompressOperation: NSString; external name '_NSWorkspaceCompressOperation';
-  NSWorkspaceDecompressOperation: NSString; external name '_NSWorkspaceDecompressOperation';
-  NSWorkspaceEncryptOperation: NSString; external name '_NSWorkspaceEncryptOperation';
-  NSWorkspaceDecryptOperation: NSString; external name '_NSWorkspaceDecryptOperation';
-  NSWorkspaceDestroyOperation: NSString; external name '_NSWorkspaceDestroyOperation';
-  NSWorkspaceRecycleOperation: NSString; external name '_NSWorkspaceRecycleOperation';
-  NSWorkspaceDuplicateOperation: NSString; external name '_NSWorkspaceDuplicateOperation';
+  NSWorkspaceDesktopImageScalingKey: NSString; cvar; external;
+  NSWorkspaceDesktopImageAllowClippingKey: NSString; cvar; external;
+  NSWorkspaceDesktopImageFillColorKey: NSString; cvar; external;
+  NSWorkspaceApplicationKey: NSString; cvar; external;
+  NSWorkspaceWillLaunchApplicationNotification: NSString; cvar; external;
+  NSWorkspaceDidLaunchApplicationNotification: NSString; cvar; external;
+  NSWorkspaceDidTerminateApplicationNotification: NSString; cvar; external;
+  NSWorkspaceDidHideApplicationNotification: NSString; cvar; external;
+  NSWorkspaceDidUnhideApplicationNotification: NSString; cvar; external;
+  NSWorkspaceDidActivateApplicationNotification: NSString; cvar; external;
+  NSWorkspaceDidDeactivateApplicationNotification: NSString; cvar; external;
+  NSWorkspaceVolumeLocalizedNameKey: NSString; cvar; external;
+  NSWorkspaceVolumeURLKey: NSString; cvar; external;
+  NSWorkspaceVolumeOldLocalizedNameKey: NSString; cvar; external;
+  NSWorkspaceVolumeOldURLKey: NSString; cvar; external;
+  NSWorkspaceDidMountNotification: NSString; cvar; external;
+  NSWorkspaceDidUnmountNotification: NSString; cvar; external;
+  NSWorkspaceWillUnmountNotification: NSString; cvar; external;
+  NSWorkspaceDidRenameVolumeNotification: NSString; cvar; external;
+  NSWorkspaceWillPowerOffNotification: NSString; cvar; external;
+  NSWorkspaceWillSleepNotification: NSString; cvar; external;
+  NSWorkspaceDidWakeNotification: NSString; cvar; external;
+  NSWorkspaceScreensDidSleepNotification: NSString; cvar; external;
+  NSWorkspaceScreensDidWakeNotification: NSString; cvar; external;
+  NSWorkspaceSessionDidBecomeActiveNotification: NSString; cvar; external;
+  NSWorkspaceSessionDidResignActiveNotification: NSString; cvar; external;
+  NSWorkspaceDidPerformFileOperationNotification: NSString; cvar; external;
+  NSWorkspaceDidChangeFileLabelsNotification: NSString; cvar; external;
+  NSWorkspaceActiveSpaceDidChangeNotification: NSString; cvar; external;
+  NSWorkspaceLaunchConfigurationAppleEvent: NSString; cvar; external;
+  NSWorkspaceLaunchConfigurationArguments: NSString; cvar; external;
+  NSWorkspaceLaunchConfigurationEnvironment: NSString; cvar; external;
+  NSWorkspaceLaunchConfigurationArchitecture: NSString; cvar; external;
+  NSWorkspaceMoveOperation: NSString; cvar; external;
+  NSWorkspaceCopyOperation: NSString; cvar; external;
+  NSWorkspaceLinkOperation: NSString; cvar; external;
+  NSWorkspaceCompressOperation: NSString; cvar; external;
+  NSWorkspaceDecompressOperation: NSString; cvar; external;
+  NSWorkspaceEncryptOperation: NSString; cvar; external;
+  NSWorkspaceDecryptOperation: NSString; cvar; external;
+  NSWorkspaceDestroyOperation: NSString; cvar; external;
+  NSWorkspaceRecycleOperation: NSString; cvar; external;
+  NSWorkspaceDuplicateOperation: NSString; cvar; external;
+  NSPlainFileType: NSString deprecated 'in Mac OS X 10.6 and later'; cvar; external;
+  NSDirectoryFileType: NSString deprecated 'in Mac OS X 10.6 and later'; cvar; external;
+  NSApplicationFileType: NSString deprecated 'in Mac OS X 10.6 and later'; cvar; external;
+  NSFilesystemFileType: NSString deprecated 'in Mac OS X 10.6 and later'; cvar; external;
+  NSShellCommandFileType: NSString deprecated 'in Mac OS X 10.6 and later'; cvar; external;
 
 {$endif}
 {$endif}
@@ -81,6 +110,7 @@ var
 {$ifdef FORWARD}
   NSWorkspace = objcclass;
   NSWorkspacePointer = ^NSWorkspace;
+  NSWorkspacePtr = NSWorkspacePointer;
 
 {$endif}
 
@@ -92,11 +122,9 @@ var
   NSWorkspace = objcclass(NSObject)
   private
     _notificationCenter: NSNotificationCenter;
-    {$ifndef cpu64}
-    _deviceStatusCount: cint;
-    _applicationStatusCount: cint;
-    {$endif}
-    __reservedWorkspace1: Pointer;
+    deviceStatusCount: cint;
+    applicationStatusCount: cint;
+    _reservedWorkspace1: id;
     
   public
     class function alloc: NSWorkspace; message 'alloc';
@@ -106,34 +134,34 @@ var
     function openFile(fullPath: NSString): Boolean; message 'openFile:';
     function openFile_withApplication(fullPath: NSString; appName: NSString): Boolean; message 'openFile:withApplication:';
     function openFile_withApplication_andDeactivate(fullPath: NSString; appName: NSString; flag: Boolean): Boolean; message 'openFile:withApplication:andDeactivate:';
-    function openTempFile(fullPath: NSString): Boolean; message 'openTempFile:';
     function openFile_fromImage_at_inView(fullPath: NSString; anImage: NSImage; point: NSPoint; aView: NSView): Boolean; message 'openFile:fromImage:at:inView:';
     function openURL(url: NSURL): Boolean; message 'openURL:';
     function launchApplication(appName: NSString): Boolean; message 'launchApplication:';
+    function launchApplicationAtURL_options_configuration_error(url: NSURL; options: NSWorkspaceLaunchOptions; configuration: NSDictionary; error: NSErrorPointer): NSRunningApplication; message 'launchApplicationAtURL:options:configuration:error:';
     function launchApplication_showIcon_autolaunch(appName: NSString; showIcon: Boolean; autolaunch: Boolean): Boolean; message 'launchApplication:showIcon:autolaunch:';
     function fullPathForApplication(appName: NSString): NSString; message 'fullPathForApplication:';
-    function selectFile_inFileViewerRootedAtPath(fullPath: NSString; rootFullpath: NSString): Boolean; message 'selectFile:inFileViewerRootedAtPath:';
-    procedure findApplications; message 'findApplications';
-    procedure noteFileSystemChanged; message 'noteFileSystemChanged';
-    function fileSystemChanged: Boolean; message 'fileSystemChanged';
-    procedure noteUserDefaultsChanged; message 'noteUserDefaultsChanged';
-    function userDefaultsChanged: Boolean; message 'userDefaultsChanged';
+    function selectFile_inFileViewerRootedAtPath(fullPath: NSString; rootFullPath: NSString): Boolean; message 'selectFile:inFileViewerRootedAtPath:';
+    procedure activateFileViewerSelectingURLs(fileURLs: NSArray); message 'activateFileViewerSelectingURLs:';
+    function showSearchResultsForQueryString(queryString: NSString): Boolean; message 'showSearchResultsForQueryString:';
+    procedure noteFileSystemChanged(path: NSString); message 'noteFileSystemChanged:';
     function getInfoForFile_application_type(fullPath: NSString; appName: NSStringPointer; type_: NSStringPointer): Boolean; message 'getInfoForFile:application:type:';
     function isFilePackageAtPath(fullPath: NSString): Boolean; message 'isFilePackageAtPath:';
     function iconForFile(fullPath: NSString): NSImage; message 'iconForFile:';
     function iconForFiles(fullPaths: NSArray): NSImage; message 'iconForFiles:';
     function iconForFileType(fileType: NSString): NSImage; message 'iconForFileType:';
     function setIcon_forFile_options(image: NSImage; fullPath: NSString; options: NSWorkspaceIconCreationOptions): Boolean; message 'setIcon:forFile:options:';
+    function fileLabels: NSArray; message 'fileLabels';
+    function fileLabelColors: NSArray; message 'fileLabelColors';
     function getFileSystemInfoForPath_isRemovable_isWritable_isUnmountable_description_type(fullPath: NSString; removableFlag: pboolean; writableFlag: pboolean; unmountableFlag: pboolean; description_: NSStringPointer; fileSystemType: NSStringPointer): Boolean; message 'getFileSystemInfoForPath:isRemovable:isWritable:isUnmountable:description:type:';
-    function performFileOperation_source_destination_files_tag(operation: NSString; source: NSString; destination: NSString; files: NSArray; tag: NSIntegerPointer): Boolean; message 'performFileOperation:source:destination:files:tag:';
+    function performFileOperation_source_destination_files_tag(operation: NSString; source: NSString; destination: NSString; files: NSArray; tag: NSIntegerPtr): Boolean; message 'performFileOperation:source:destination:files:tag:';
     function unmountAndEjectDeviceAtPath(path: NSString): Boolean; message 'unmountAndEjectDeviceAtPath:';
+    function unmountAndEjectDeviceAtURL_error(url: NSURL; error: NSErrorPointer): Boolean; message 'unmountAndEjectDeviceAtURL:error:';
     function extendPowerOffBy(requested: NSInteger): NSInteger; message 'extendPowerOffBy:';
-    procedure slideImage_from_to(image: NSImage; fromPoint: NSPoint; toPoint: NSPoint); message 'slideImage:from:to:';
     procedure hideOtherApplications; message 'hideOtherApplications';
     function mountedLocalVolumePaths: NSArray; message 'mountedLocalVolumePaths';
     function mountedRemovableMedia: NSArray; message 'mountedRemovableMedia';
-    function mountNewRemovableMedia: NSArray; message 'mountNewRemovableMedia';
-    procedure checkForRemovableMedia; message 'checkForRemovableMedia';
+    function URLForApplicationWithBundleIdentifier(bundleIdentifier: NSString): NSURL; message 'URLForApplicationWithBundleIdentifier:';
+    function URLForApplicationToOpenURL(url: NSURL): NSURL; message 'URLForApplicationToOpenURL:';
     function absolutePathForAppBundleWithIdentifier(bundleIdentifier: NSString): NSString; message 'absolutePathForAppBundleWithIdentifier:';
     function launchAppWithBundleIdentifier_options_additionalEventParamDescriptor_launchIdentifier(bundleIdentifier: NSString; options: NSWorkspaceLaunchOptions; descriptor: NSAppleEventDescriptor; identifier: NSNumberPointer): Boolean; message 'launchAppWithBundleIdentifier:options:additionalEventParamDescriptor:launchIdentifier:';
     function openURLs_withAppBundleIdentifier_options_additionalEventParamDescriptor_launchIdentifiers(urls: NSArray; bundleIdentifier: NSString; options: NSWorkspaceLaunchOptions; descriptor: NSAppleEventDescriptor; identifiers: NSArrayPointer): Boolean; message 'openURLs:withAppBundleIdentifier:options:additionalEventParamDescriptor:launchIdentifiers:';
@@ -145,6 +173,25 @@ var
     function filenameExtension_isValidForType(filenameExtension: NSString; typeName: NSString): Boolean; message 'filenameExtension:isValidForType:';
     function type_conformsToType(firstTypeName: NSString; secondTypeName: NSString): Boolean; message 'type:conformsToType:';
   end; external;
+
+{ NSDesktopImagesCategory }
+  NSDesktopImagesCategory = objccategory(NSWorkspace)
+    function setDesktopImageURL_forScreen_options_error(url: NSURL; screen: NSScreen; options: NSDictionary; error: NSErrorPointer): Boolean; message 'setDesktopImageURL:forScreen:options:error:';
+    function desktopImageURLForScreen(screen: NSScreen): NSURL; message 'desktopImageURLForScreen:';
+    function desktopImageOptionsForScreen(screen: NSScreen): NSDictionary; message 'desktopImageOptionsForScreen:';
+  end; external;
+
+{ NSDeprecated_NSWorkspaceCategory }
+  NSDeprecated_NSWorkspaceCategory = objccategory(NSWorkspace)
+    function openTempFile(fullPath: NSString): Boolean; message 'openTempFile:'; deprecated 'in Mac OS X 10.6 and later';
+    procedure findApplications; message 'findApplications'; deprecated 'in Mac OS X 10.6 and later';
+    procedure noteUserDefaultsChanged; message 'noteUserDefaultsChanged'; deprecated 'in Mac OS X 10.6 and later';
+    procedure slideImage_from_to(image: NSImage; fromPoint: NSPoint; toPoint: NSPoint); message 'slideImage:from:to:'; deprecated 'in Mac OS X 10.6 and later';
+    procedure checkForRemovableMedia; message 'checkForRemovableMedia'; deprecated 'in Mac OS X 10.6 and later';
+    function fileSystemChanged: Boolean; message 'fileSystemChanged'; deprecated 'in Mac OS X 10.6 and later';
+    function userDefaultsChanged: Boolean; message 'userDefaultsChanged'; deprecated 'in Mac OS X 10.6 and later';
+    function mountNewRemovableMedia: NSArray; message 'mountNewRemovableMedia'; deprecated 'in Mac OS X 10.6 and later';
+  end; external name 'NSDeprecated';
 
 {$endif}
 {$endif}

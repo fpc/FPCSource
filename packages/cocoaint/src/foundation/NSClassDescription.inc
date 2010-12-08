@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSClassDescription.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,7 +29,7 @@
 
 { External string constants }
 var
-  NSClassDescriptionNeededForClassNotification: NSString; external name '_NSClassDescriptionNeededForClassNotification';
+  NSClassDescriptionNeededForClassNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -37,6 +37,7 @@ var
 {$ifdef FORWARD}
   NSClassDescription = objcclass;
   NSClassDescriptionPointer = ^NSClassDescription;
+  NSClassDescriptionPtr = NSClassDescriptionPointer;
 
 {$endif}
 
@@ -53,6 +54,15 @@ var
     class procedure registerClassDescription_forClass(description_: NSClassDescription; aClass: Pobjc_class); message 'registerClassDescription:forClass:';
     class procedure invalidateClassDescriptionCache; message 'invalidateClassDescriptionCache';
     class function classDescriptionForClass(aClass: Pobjc_class): NSClassDescription; message 'classDescriptionForClass:';
+    function attributeKeys: NSArray; message 'attributeKeys';
+    function toOneRelationshipKeys: NSArray; message 'toOneRelationshipKeys';
+    function toManyRelationshipKeys: NSArray; message 'toManyRelationshipKeys';
+    function inverseForRelationshipKey(relationshipKey: NSString): NSString; message 'inverseForRelationshipKey:';
+  end; external;
+
+{ NSClassDescriptionPrimitivesCategory }
+  NSClassDescriptionPrimitivesCategory = objccategory(NSObject)
+    function classDescription: NSClassDescription; message 'classDescription';
     function attributeKeys: NSArray; message 'attributeKeys';
     function toOneRelationshipKeys: NSArray; message 'toOneRelationshipKeys';
     function toManyRelationshipKeys: NSArray; message 'toManyRelationshipKeys';

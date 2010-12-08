@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSProtocolChecker.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSProtocolChecker = objcclass;
   NSProtocolCheckerPointer = ^NSProtocolChecker;
+  NSProtocolCheckerPtr = NSProtocolCheckerPointer;
 
 {$endif}
 
@@ -46,10 +47,12 @@
   public
     class function alloc: NSProtocolChecker; message 'alloc';
 
-    function protocol: objc_protocol; message 'protocol';
+    function protocol: Protocol; message 'protocol';
     function target: NSObject; message 'target';
+  end; external;
 
-    { Category: NSProtocolCheckerCreation }
+{ NSProtocolCheckerCreationCategory }
+  NSProtocolCheckerCreationCategory = objccategory(NSProtocolChecker)
     class function protocolCheckerWithTarget_protocol(anObject: NSObject; aProtocol: objc_protocol): id; message 'protocolCheckerWithTarget:protocol:';
     function initWithTarget_protocol(anObject: NSObject; aProtocol: objc_protocol): id; message 'initWithTarget:protocol:';
   end; external;

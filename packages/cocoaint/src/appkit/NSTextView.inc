@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -38,9 +38,13 @@ const
 { Types }
 type
   NSSelectionGranularity = NSUInteger;
+  NSSelectionGranularityPtr = ^NSSelectionGranularity;
   NSSelectionAffinity = NSUInteger;
+  NSSelectionAffinityPtr = ^NSSelectionAffinity;
   NSFindPanelAction = NSUInteger;
+  NSFindPanelActionPtr = ^NSFindPanelAction;
   NSFindPanelSubstringMatchType = NSUInteger;
+  NSFindPanelSubstringMatchTypePtr = ^NSFindPanelSubstringMatchType;
 
 {$endif}
 {$endif}
@@ -65,20 +69,22 @@ type
 
 { External string constants }
 var
-  NSFindPanelSearchOptionsPboardType: NSString; external name '_NSFindPanelSearchOptionsPboardType';
-  NSFindPanelCaseInsensitiveSearch: NSString; external name '_NSFindPanelCaseInsensitiveSearch';
-  NSFindPanelSubstringMatch: NSString; external name '_NSFindPanelSubstringMatch';
-  NSAllRomanInputSourcesLocaleIdentifier: NSString; external name '_NSAllRomanInputSourcesLocaleIdentifier';
-  NSTextViewWillChangeNotifyingTextViewNotification: NSString; external name '_NSTextViewWillChangeNotifyingTextViewNotification';
-  NSTextViewDidChangeSelectionNotification: NSString; external name '_NSTextViewDidChangeSelectionNotification';
-  NSTextViewDidChangeTypingAttributesNotification: NSString; external name '_NSTextViewDidChangeTypingAttributesNotification';
+  NSFindPanelSearchOptionsPboardType: NSString; cvar; external;
+  NSFindPanelCaseInsensitiveSearch: NSString; cvar; external;
+  NSFindPanelSubstringMatch: NSString; cvar; external;
+  NSAllRomanInputSourcesLocaleIdentifier: NSString; cvar; external;
+  NSTextViewWillChangeNotifyingTextViewNotification: NSString; cvar; external;
+  NSTextViewDidChangeSelectionNotification: NSString; cvar; external;
+  NSTextViewDidChangeTypingAttributesNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
+  NSTextViewDelegateProtocol = objcprotocol;
   NSTextView = objcclass;
   NSTextViewPointer = ^NSTextView;
+  NSTextViewPtr = NSTextViewPointer;
 
 {$endif}
 
@@ -123,7 +129,6 @@ var
     procedure changeColor(sender: id); message 'changeColor:';
     procedure changeAttributes(sender: id); message 'changeAttributes:';
     procedure changeDocumentBackgroundColor(sender: id); message 'changeDocumentBackgroundColor:';
-    procedure toggleBaseWritingDirection(sender: id); message 'toggleBaseWritingDirection:';
     procedure orderFrontSpacingPanel(sender: id); message 'orderFrontSpacingPanel:';
     procedure orderFrontLinkPanel(sender: id); message 'orderFrontLinkPanel:';
     procedure orderFrontListPanel(sender: id); message 'orderFrontListPanel:';
@@ -149,14 +154,18 @@ var
     procedure startSpeaking(sender: id); message 'startSpeaking:';
     procedure stopSpeaking(sender: id); message 'stopSpeaking:';
     function characterIndexForInsertionAtPoint(point: NSPoint): NSUInteger; message 'characterIndexForInsertionAtPoint:';
+  end; external;
 
-    { Category: NSCompletion }
+{ NSCompletionCategory }
+  NSCompletionCategory = objccategory(NSTextView)
     procedure complete(sender: id); message 'complete:';
     function rangeForUserCompletion: NSRange; message 'rangeForUserCompletion';
-    function completionsForPartialWordRange_indexOfSelectedItem(charRange: NSRange; index: NSIntegerPointer): NSArray; message 'completionsForPartialWordRange:indexOfSelectedItem:';
+    function completionsForPartialWordRange_indexOfSelectedItem(charRange: NSRange; index: NSIntegerPtr): NSArray; message 'completionsForPartialWordRange:indexOfSelectedItem:';
     procedure insertCompletion_forPartialWordRange_movement_isFinal(word: NSString; charRange: NSRange; movement: NSInteger; flag: Boolean); message 'insertCompletion:forPartialWordRange:movement:isFinal:';
+  end; external;
 
-    { Category: NSPasteboard }
+{ NSPasteboard_NSTextViewCategory }
+  NSPasteboard_NSTextViewCategory = objccategory(NSTextView)
     function writablePasteboardTypes: NSArray; message 'writablePasteboardTypes';
     function writeSelectionToPasteboard_type(pboard: NSPasteboard; type_: NSString): Boolean; message 'writeSelectionToPasteboard:type:';
     function writeSelectionToPasteboard_types(pboard: NSPasteboard; types: NSArray): Boolean; message 'writeSelectionToPasteboard:types:';
@@ -168,15 +177,19 @@ var
     function validRequestorForSendType_returnType(sendType: NSString; returnType: NSString): id; message 'validRequestorForSendType:returnType:';
     procedure pasteAsPlainText(sender: id); message 'pasteAsPlainText:';
     procedure pasteAsRichText(sender: id); message 'pasteAsRichText:';
+  end; external name 'NSPasteboard';
 
-    { Category: NSDragging }
+{ NSDraggingCategory }
+  NSDraggingCategory = objccategory(NSTextView)
     function dragSelectionWithEvent_offset_slideBack(event: NSEvent; mouseOffset: NSSize; slideBack: Boolean): Boolean; message 'dragSelectionWithEvent:offset:slideBack:';
     function dragImageForSelectionWithEvent_origin(event: NSEvent; origin: NSPointPointer): NSImage; message 'dragImageForSelectionWithEvent:origin:';
     function acceptableDragTypes: NSArray; message 'acceptableDragTypes';
     function dragOperationForDraggingInfo_type(dragInfo: id; type_: NSString): NSDragOperation; message 'dragOperationForDraggingInfo:type:';
     procedure cleanUpAfterDragOperation; message 'cleanUpAfterDragOperation';
+  end; external;
 
-    { Category: NSSharing }
+{ NSSharingCategory }
+  NSSharingCategory = objccategory(NSTextView)
     function selectedRanges: NSArray; message 'selectedRanges';
     procedure setSelectedRanges_affinity_stillSelecting(ranges: NSArray; affinity: NSSelectionAffinity; stillSelectingFlag: Boolean); message 'setSelectedRanges:affinity:stillSelecting:';
     procedure setSelectedRanges(ranges: NSArray); message 'setSelectedRanges:';
@@ -228,6 +241,7 @@ var
     procedure setAllowsUndo(flag: Boolean); message 'setAllowsUndo:';
     function allowsUndo: Boolean; message 'allowsUndo';
     procedure breakUndoCoalescing; message 'breakUndoCoalescing';
+    function isCoalescingUndo: Boolean; message 'isCoalescingUndo';
     function allowsImageEditing: Boolean; message 'allowsImageEditing';
     procedure setAllowsImageEditing(flag: Boolean); message 'setAllowsImageEditing:';
     procedure showFindIndicatorForRange(charRange: NSRange); message 'showFindIndicatorForRange:';
@@ -251,6 +265,12 @@ var
     procedure setUsesFontPanel(flag: Boolean); message 'setUsesFontPanel:';
     function isRulerVisible: Boolean; message 'isRulerVisible';
     procedure setSelectedRange(charRange: NSRange); message 'setSelectedRange:';
+    function allowedInputSourceLocales: NSArray; message 'allowedInputSourceLocales';
+    procedure setAllowedInputSourceLocales(localeIdentifiers: NSArray); message 'setAllowedInputSourceLocales:';
+  end; external;
+
+{ NSTextCheckingCategory }
+  NSTextCheckingCategory = objccategory(NSTextView)
     function smartInsertDeleteEnabled: Boolean; message 'smartInsertDeleteEnabled';
     procedure setSmartInsertDeleteEnabled(flag: Boolean); message 'setSmartInsertDeleteEnabled:';
     function smartDeleteRangeForProposedRange(proposedCharRange: NSRange): NSRange; message 'smartDeleteRangeForProposedRange:';
@@ -264,9 +284,65 @@ var
     procedure setAutomaticLinkDetectionEnabled(flag: Boolean); message 'setAutomaticLinkDetectionEnabled:';
     function isAutomaticLinkDetectionEnabled: Boolean; message 'isAutomaticLinkDetectionEnabled';
     procedure toggleAutomaticLinkDetection(sender: id); message 'toggleAutomaticLinkDetection:';
-    function allowedInputSourceLocales: NSArray; message 'allowedInputSourceLocales';
-    procedure setAllowedInputSourceLocales(localeIdentifiers: NSArray); message 'setAllowedInputSourceLocales:';
+    procedure setAutomaticDataDetectionEnabled(flag: Boolean); message 'setAutomaticDataDetectionEnabled:';
+    function isAutomaticDataDetectionEnabled: Boolean; message 'isAutomaticDataDetectionEnabled';
+    procedure toggleAutomaticDataDetection(sender: id); message 'toggleAutomaticDataDetection:';
+    procedure setAutomaticDashSubstitutionEnabled(flag: Boolean); message 'setAutomaticDashSubstitutionEnabled:';
+    function isAutomaticDashSubstitutionEnabled: Boolean; message 'isAutomaticDashSubstitutionEnabled';
+    procedure toggleAutomaticDashSubstitution(sender: id); message 'toggleAutomaticDashSubstitution:';
+    procedure setAutomaticTextReplacementEnabled(flag: Boolean); message 'setAutomaticTextReplacementEnabled:';
+    function isAutomaticTextReplacementEnabled: Boolean; message 'isAutomaticTextReplacementEnabled';
+    procedure toggleAutomaticTextReplacement(sender: id); message 'toggleAutomaticTextReplacement:';
+    procedure setAutomaticSpellingCorrectionEnabled(flag: Boolean); message 'setAutomaticSpellingCorrectionEnabled:';
+    function isAutomaticSpellingCorrectionEnabled: Boolean; message 'isAutomaticSpellingCorrectionEnabled';
+    procedure toggleAutomaticSpellingCorrection(sender: id); message 'toggleAutomaticSpellingCorrection:';
+    function enabledTextCheckingTypes: NSTextCheckingTypes; message 'enabledTextCheckingTypes';
+    procedure setEnabledTextCheckingTypes(checkingTypes: NSTextCheckingTypes); message 'setEnabledTextCheckingTypes:';
+    procedure checkTextInRange_types_options(range: NSRange; checkingTypes: NSTextCheckingTypes; options: NSDictionary); message 'checkTextInRange:types:options:';
+    procedure handleTextCheckingResults_forRange_types_options_orthography_wordCount(results: NSArray; range: NSRange; checkingTypes: NSTextCheckingTypes; options: NSDictionary; orthography: NSOrthography; wordCount: NSInteger); message 'handleTextCheckingResults:forRange:types:options:orthography:wordCount:';
+    procedure orderFrontSubstitutionsPanel(sender: id); message 'orderFrontSubstitutionsPanel:';
+    procedure checkTextInSelection(sender: id); message 'checkTextInSelection:';
+    procedure checkTextInDocument(sender: id); message 'checkTextInDocument:';
   end; external;
 
+{ NSDeprecated_NSTextViewCategory }
+  NSDeprecated_NSTextViewCategory = objccategory(NSTextView)
+    procedure toggleBaseWritingDirection(sender: id); message 'toggleBaseWritingDirection:';
+  end; external name 'NSDeprecated';
+
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSTEXTVIEW_PAS_P}
+{$define NSTEXTVIEW_PAS_P}
+  
+{ NSTextViewDelegate Protocol }
+  NSTextViewDelegateProtocol = objcprotocol
+    function textView_clickedOnLink_atIndex(textView: NSTextView; link: id; charIndex: NSUInteger): Boolean; message 'textView:clickedOnLink:atIndex:';
+    procedure textView_clickedOnCell_inRect_atIndex(textView: NSTextView; cell: id; cellFrame: NSRect; charIndex: NSUInteger); message 'textView:clickedOnCell:inRect:atIndex:';
+    procedure textView_doubleClickedOnCell_inRect_atIndex(textView: NSTextView; cell: id; cellFrame: NSRect; charIndex: NSUInteger); message 'textView:doubleClickedOnCell:inRect:atIndex:';
+    procedure textView_draggedCell_inRect_event_atIndex(view: NSTextView; cell: id; rect: NSRect; event: NSEvent; charIndex: NSUInteger); message 'textView:draggedCell:inRect:event:atIndex:';
+    function textView_writablePasteboardTypesForCell_atIndex(view: NSTextView; cell: id; charIndex: NSUInteger): NSArray; message 'textView:writablePasteboardTypesForCell:atIndex:';
+    function textView_writeCell_atIndex_toPasteboard_type(view: NSTextView; cell: id; charIndex: NSUInteger; pboard: NSPasteboard; type_: NSString): Boolean; message 'textView:writeCell:atIndex:toPasteboard:type:';
+    function textView_willChangeSelectionFromCharacterRange_toCharacterRange(textView: NSTextView; oldSelectedCharRange: NSRange; newSelectedCharRange: NSRange): NSRange; message 'textView:willChangeSelectionFromCharacterRange:toCharacterRange:';
+    function textView_willChangeSelectionFromCharacterRanges_toCharacterRanges(textView: NSTextView; oldSelectedCharRanges: NSArray; newSelectedCharRanges: NSArray): NSArray; message 'textView:willChangeSelectionFromCharacterRanges:toCharacterRanges:';
+    function textView_shouldChangeTextInRanges_replacementStrings(textView: NSTextView; affectedRanges: NSArray; replacementStrings: NSArray): Boolean; message 'textView:shouldChangeTextInRanges:replacementStrings:';
+    function textView_shouldChangeTypingAttributes_toAttributes(textView: NSTextView; oldTypingAttributes: NSDictionary; newTypingAttributes: NSDictionary): NSDictionary; message 'textView:shouldChangeTypingAttributes:toAttributes:';
+    procedure textViewDidChangeSelection(notification: NSNotification); message 'textViewDidChangeSelection:';
+    procedure textViewDidChangeTypingAttributes(notification: NSNotification); message 'textViewDidChangeTypingAttributes:';
+    function textView_willDisplayToolTip_forCharacterAtIndex(textView: NSTextView; tooltip: NSString; characterIndex: NSUInteger): NSString; message 'textView:willDisplayToolTip:forCharacterAtIndex:';
+    function textView_completions_forPartialWordRange_indexOfSelectedItem(textView: NSTextView; words: NSArray; charRange: NSRange; index: NSIntegerPtr): NSArray; message 'textView:completions:forPartialWordRange:indexOfSelectedItem:';
+    function textView_shouldChangeTextInRange_replacementString(textView: NSTextView; affectedCharRange: NSRange; replacementString: NSString): Boolean; message 'textView:shouldChangeTextInRange:replacementString:';
+    function textView_doCommandBySelector(textView: NSTextView; commandSelector: SEL): Boolean; message 'textView:doCommandBySelector:';
+    function textView_shouldSetSpellingState_range(textView: NSTextView; value: NSInteger; affectedCharRange: NSRange): NSInteger; message 'textView:shouldSetSpellingState:range:';
+    function textView_menu_forEvent_atIndex(view: NSTextView; menu: NSMenu; event: NSEvent; charIndex: NSUInteger): NSMenu; message 'textView:menu:forEvent:atIndex:';
+    function textView_willCheckTextInRange_options_types(view: NSTextView; range: NSRange; options: NSDictionary; checkingTypes: NSTextCheckingTypesPtr): NSDictionary; message 'textView:willCheckTextInRange:options:types:';
+    function textView_didCheckTextInRange_types_options_results_orthography_wordCount(view: NSTextView; range: NSRange; checkingTypes: NSTextCheckingTypes; options: NSDictionary; results: NSArray; orthography: NSOrthography; wordCount: NSInteger): NSArray; message 'textView:didCheckTextInRange:types:options:results:orthography:wordCount:';
+    function textView_clickedOnLink(textView: NSTextView; link: id): Boolean; message 'textView:clickedOnLink:';
+    procedure textView_clickedOnCell_inRect(textView: NSTextView; cell: id; cellFrame: NSRect); message 'textView:clickedOnCell:inRect:';
+    procedure textView_doubleClickedOnCell_inRect(textView: NSTextView; cell: id; cellFrame: NSRect); message 'textView:doubleClickedOnCell:inRect:';
+    procedure textView_draggedCell_inRect_event(view: NSTextView; cell: id; rect: NSRect; event: NSEvent); message 'textView:draggedCell:inRect:event:';
+    function undoManagerForTextView(view: NSTextView): NSUndoManager; message 'undoManagerForTextView:';
+  end; external name 'NSTextViewDelegate';
 {$endif}
 {$endif}

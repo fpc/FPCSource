@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSXMLParser.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -106,6 +106,7 @@ const
 { Types }
 type
   NSXMLParserError = NSInteger;
+  NSXMLParserErrorPtr = ^NSXMLParserError;
 
 {$endif}
 {$endif}
@@ -130,14 +131,16 @@ type
 
 { External string constants }
 var
-  NSXMLParserErrorDomain: NSString; external name '_NSXMLParserErrorDomain';
+  NSXMLParserErrorDomain: NSString; cvar; external;
 
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
+  NSXMLParserDelegateProtocol = objcprotocol;
   NSXMLParser = objcclass;
   NSXMLParserPointer = ^NSXMLParser;
+  NSXMLParserPtr = NSXMLParserPointer;
 
 {$endif}
 
@@ -148,11 +151,11 @@ var
 { NSXMLParser }
   NSXMLParser = objcclass(NSObject)
   private
-    __parser: Pointer;
-    __delegate: id;
-    __reserved1: id;
-    __reserved2: id;
-    __reserved3: id;
+    _parser: Pointer;
+    _delegate: id;
+    _reserved1: id;
+    _reserved2: id;
+    _reserved3: id;
     
   public
     class function alloc: NSXMLParser; message 'alloc';
@@ -170,13 +173,44 @@ var
     function parse: Boolean; message 'parse';
     procedure abortParsing; message 'abortParsing';
     function parserError: NSError; message 'parserError';
+  end; external;
 
-    { Category: NSXMLParserLocatorAdditions }
+{ NSXMLParserLocatorAdditionsCategory }
+  NSXMLParserLocatorAdditionsCategory = objccategory(NSXMLParser)
     function publicID: NSString; message 'publicID';
     function systemID: NSString; message 'systemID';
     function lineNumber: NSInteger; message 'lineNumber';
     function columnNumber: NSInteger; message 'columnNumber';
   end; external;
 
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSXMLPARSER_PAS_P}
+{$define NSXMLPARSER_PAS_P}
+  
+{ NSXMLParserDelegate Protocol }
+  NSXMLParserDelegateProtocol = objcprotocol
+    procedure parserDidStartDocument(parser: NSXMLParser); message 'parserDidStartDocument:';
+    procedure parserDidEndDocument(parser: NSXMLParser); message 'parserDidEndDocument:';
+    procedure parser_foundNotationDeclarationWithName_publicID_systemID(parser: NSXMLParser; name: NSString; publicID: NSString; systemID: NSString); message 'parser:foundNotationDeclarationWithName:publicID:systemID:';
+    procedure parser_foundUnparsedEntityDeclarationWithName_publicID_systemID_notationName(parser: NSXMLParser; name: NSString; publicID: NSString; systemID: NSString; notationName: NSString); message 'parser:foundUnparsedEntityDeclarationWithName:publicID:systemID:notationName:';
+    procedure parser_foundAttributeDeclarationWithName_forElement_type_defaultValue(parser: NSXMLParser; attributeName: NSString; elementName: NSString; type_: NSString; defaultValue: NSString); message 'parser:foundAttributeDeclarationWithName:forElement:type:defaultValue:';
+    procedure parser_foundElementDeclarationWithName_model(parser: NSXMLParser; elementName: NSString; model: NSString); message 'parser:foundElementDeclarationWithName:model:';
+    procedure parser_foundInternalEntityDeclarationWithName_value(parser: NSXMLParser; name: NSString; value: NSString); message 'parser:foundInternalEntityDeclarationWithName:value:';
+    procedure parser_foundExternalEntityDeclarationWithName_publicID_systemID(parser: NSXMLParser; name: NSString; publicID: NSString; systemID: NSString); message 'parser:foundExternalEntityDeclarationWithName:publicID:systemID:';
+    procedure parser_didStartElement_namespaceURI_qualifiedName_attributes(parser: NSXMLParser; elementName: NSString; namespaceURI: NSString; qName: NSString; attributeDict: NSDictionary); message 'parser:didStartElement:namespaceURI:qualifiedName:attributes:';
+    procedure parser_didEndElement_namespaceURI_qualifiedName(parser: NSXMLParser; elementName: NSString; namespaceURI: NSString; qName: NSString); message 'parser:didEndElement:namespaceURI:qualifiedName:';
+    procedure parser_didStartMappingPrefix_toURI(parser: NSXMLParser; prefix: NSString; namespaceURI: NSString); message 'parser:didStartMappingPrefix:toURI:';
+    procedure parser_didEndMappingPrefix(parser: NSXMLParser; prefix: NSString); message 'parser:didEndMappingPrefix:';
+    procedure parser_foundCharacters(parser: NSXMLParser; string_: NSString); message 'parser:foundCharacters:';
+    procedure parser_foundIgnorableWhitespace(parser: NSXMLParser; whitespaceString: NSString); message 'parser:foundIgnorableWhitespace:';
+    procedure parser_foundProcessingInstructionWithTarget_data(parser: NSXMLParser; target: NSString; data: NSString); message 'parser:foundProcessingInstructionWithTarget:data:';
+    procedure parser_foundComment(parser: NSXMLParser; comment: NSString); message 'parser:foundComment:';
+    procedure parser_foundCDATA(parser: NSXMLParser; CDATABlock: NSData); message 'parser:foundCDATA:';
+    function parser_resolveExternalEntityName_systemID(parser: NSXMLParser; name: NSString; systemID: NSString): NSData; message 'parser:resolveExternalEntityName:systemID:';
+    procedure parser_parseErrorOccurred(parser: NSXMLParser; parseError: NSError); message 'parser:parseErrorOccurred:';
+    procedure parser_validationErrorOccurred(parser: NSXMLParser; validationError: NSError); message 'parser:validationErrorOccurred:';
+  end; external name 'NSXMLParserDelegate';
 {$endif}
 {$endif}

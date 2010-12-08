@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSImageRep.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -34,7 +34,7 @@ const
 
 { External string constants }
 var
-  NSImageRepRegistryDidChangeNotification: NSString; external name '_NSImageRepRegistryDidChangeNotification';
+  NSImageRepRegistryDidChangeNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -42,6 +42,7 @@ var
 {$ifdef FORWARD}
   NSImageRep = objcclass;
   NSImageRepPointer = ^NSImageRep;
+  NSImageRepPtr = NSImageRepPointer;
 
 {$endif}
 
@@ -53,20 +54,24 @@ var
   NSImageRep = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     __repFlags: bitpacked record
-        hasAlpha: 0..1;
-        isOpaque: 0..1;
-        cacheParamsComputed: 0..1;
-        cacheAlphaComputed: 0..1;
+      case byte of
+       0: (_anonbitfield_NSImageRep0: cuint);
+       1: (
+        _hasAlpha: 0..1;
+        _isOpaque: 0..1;
+        cacheParamsComputed: 0..1 deprecated;
+        cacheAlphaComputed: 0..1 deprecated;
         loadState: 0..((1 shl 2)-1);
-        keepCacheWindow: 0..1;
+        keepCacheWindow: 0..1 deprecated;
         reserved: 0..1;
-        bitsPerSample: 0..((1 shl 8)-1);
+        _bitsPerSample: 0..((1 shl 8)-1);
         gsaved: 0..((1 shl 16)-1);
+      );
       end;
-    __colorSpaceName: NSString;
-    __size: NSSize;
-    __pixelsWide: cint;
-    __pixelsHigh: cint;
+    _colorSpaceName: NSString;
+    _size: NSSize;
+    _pixelsWide: cint;
+    _pixelsHigh: cint;
     
   public
     class function alloc: NSImageRep; message 'alloc';
@@ -74,6 +79,7 @@ var
     function draw: Boolean; message 'draw';
     function drawAtPoint(point: NSPoint): Boolean; message 'drawAtPoint:';
     function drawInRect(rect: NSRect): Boolean; message 'drawInRect:';
+    function drawInRect_fromRect_operation_fraction_respectFlipped_hints(dstSpacePortionRect: NSRect; srcSpacePortionRect: NSRect; op: NSCompositingOperation; requestedAlpha: CGFloat; respectContextIsFlipped: Boolean; hints: NSDictionary): Boolean; message 'drawInRect:fromRect:operation:fraction:respectFlipped:hints:';
     procedure setSize(aSize: NSSize); message 'setSize:';
     function size: NSSize; message 'size';
     procedure setAlpha(flag: Boolean); message 'setAlpha:';
@@ -109,6 +115,12 @@ var
     class function imageRepWithContentsOfURL(url: NSURL): id; message 'imageRepWithContentsOfURL:';
     class function imageRepsWithPasteboard(pasteboard: NSPasteboard): NSArray; message 'imageRepsWithPasteboard:';
     class function imageRepWithPasteboard(pasteboard: NSPasteboard): id; message 'imageRepWithPasteboard:';
+    function CGImageForProposedRect_context_hints(proposedDestRect: NSRectPtr; context: NSGraphicsContext; hints: NSDictionary): CGImageRef; message 'CGImageForProposedRect:context:hints:';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 {$endif}

@@ -1,67 +1,82 @@
 unit CocoaAll;
 
-{$mode objfpc}
+{$mode delphi}
 {$modeswitch objectivec1}
+{$modeswitch cvar} { for "external" after the semi-colon with external vars }
 
 interface
 
 uses 
   ctypes,
   AEDataModel,IconsCore,
-  CFBase, CFArray, CFBag , CFCharacterSet, CFData, CFDate, CFDictionary, CFNumber ,CFPropertyList, CFSet, CFString, CFStringEncodingExt, CFTimeZone, CFTree, CFURL, CFXMLNode, CFXMLParser, CFMachPort, CFMessagePort, CFRunLoop, CFSocket, CFBinaryHeap, CFBitVector, CFBundle, CFByteOrders, CFPlugIn, CFPreferences, CFURLAccess, CFUUID, CFLocale, CFStream, CFDateFormatter, CFNumberFormatter, CFCalendar, CFUserNotification, CFNotificationCenter, CFAttributedString,
+  CFBase, CFArray, CFBag , CFCharacterSet, CFData, CFDate, CFDictionary, CFNumber ,CFPropertyList, CFSet, CFString, CFStringEncodingExt, CFTimeZone, CFTree, CFURL, CFXMLNode, CFXMLParser, CFMachPort, CFMessagePort, CFRunLoop, CFSocket, CFBinaryHeap, CFBitVector, CFBundle, CFByteOrders, CFPlugIn, CFPreferences, CFURLAccess, CFUUID, CFLocale, CFStream, CFDateFormatter, CFNumberFormatter, CFCalendar, CFUserNotification, CFNotificationCenter, CFAttributedString, CFNetworkErrorss,
   CGBase, CGAffineTransforms, CGBitmapContext, CGColor, CGColorSpace, CGContext, CGDataConsumer, CGDataProvider, CGDirectDisplay, CGDirectPalette, CGDisplayConfiguration, CGDisplayFades, CGErrors, CGEvent, CGEventSource, CGEventTypes, CGFont, CGFunction, CGGLContext, CGGeometry, CGImage, CGLayer, CGPDFArray, CGPDFContentStream, CGPDFContext, CGPDFDictionary, CGPDFDocument, CGPDFObject, CGPDFOperatorTable, CGPDFPage, CGPDFScanner, CGPDFStream, CGPDFString, CGPSConverter, CGPath, CGPattern, CGRemoteOperation, CGSession, CGShading, CGWindowLevels,
-  MacTypes;
+  CVBase,CVImageBuffer,
+  IOSurfaceAPI,
+  SecBase, SecTrust,
+  MacTypes, MacOSXPosix,
+  macgl, CGLTypes,
+  AnonClassDefinitionsQuartzcore;
   
 {$linkframework Cocoa}
 {$define INTERFACE}
 
 {$include UndefinedTypes.inc}
+// also includes the ones for foundation and appkit
+{$include quartzcore/AnonIncludeClassDefinitionsQuartzcore.inc}
 
 {$define HEADER}
 {$include foundation/Foundation.inc}
+{$include quartzcore/QuartzCore.inc}
 {$include appkit/AppKit.inc}
 {$undef HEADER}
 
 {$define TYPES}
 {$include foundation/Foundation.inc}
+{$include quartzcore/QuartzCore.inc}
 {$include appkit/AppKit.inc}
 {$undef TYPES}
 
 {$define RECORDS}
 {$include foundation/Foundation.inc}
+{$include quartzcore/QuartzCore.inc}
 {$include appkit/AppKit.inc}
 {$undef RECORDS}
 
 type
 {$define FORWARD}
 {$include foundation/Foundation.inc}
+{$include quartzcore/QuartzCore.inc}
 {$include appkit/AppKit.inc}
 {$undef FORWARD}
 
-{$include UndefinedClasses.inc}
-
-{$define CLASSES}
-{$include foundation/Foundation.inc}
-{$include appkit/AppKit.inc}
-{$undef CLASSES}
- 
 {$define PROTOCOLS}
 {$include foundation/Foundation.inc}
+{$include quartzcore/QuartzCore.inc}
 {$include appkit/AppKit.inc}
 {$undef PROTOCOLS}
 
+{$define CLASSES}
+{$include foundation/Foundation.inc}
+{$include quartzcore/QuartzCore.inc}
+{$include appkit/AppKit.inc}
+{$undef CLASSES}
+ 
 {$define FUNCTIONS}
 {$include foundation/Foundation.inc}
+{$include quartzcore/QuartzCore.inc}
 {$include appkit/AppKit.inc}
 {$undef FUNCTIONS}
 
 {$define EXTERNAL_SYMBOLS}
 {$include foundation/Foundation.inc}
+{$include quartzcore/QuartzCore.inc}
 {$include appkit/AppKit.inc}
 {$undef EXTERNAL_SYMBOLS}
 
 {$define USER_PATCHES}
 {$include foundation/Foundation.inc}
+{$include quartzcore/QuartzCore.inc}
 {$include appkit/AppKit.inc}
 {$undef USER_PATCHES}
 
@@ -98,6 +113,7 @@ implementation
 
 {$define USER_PATCHES}
 {$include foundation/Foundation.inc}
+{$include quartzcore/QuartzCore.inc}
 {$include appkit/AppKit.inc}
 {$undef USER_PATCHES}
 

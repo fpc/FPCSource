@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSProgressIndicator.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -8,10 +8,13 @@
 
 { Types }
 type
-  __NSProgressIndicatorThreadInfo = Pointer;
+  __NSProgressIndicatorThreadInfo = record end;
   _NSProgressIndicatorThreadInfo = __NSProgressIndicatorThreadInfo;
+  _NSProgressIndicatorThreadInfoPtr = ^_NSProgressIndicatorThreadInfo;
   NSProgressIndicatorThickness = NSUInteger;
+  NSProgressIndicatorThicknessPtr = ^NSProgressIndicatorThickness;
   NSProgressIndicatorStyle = NSUInteger;
+  NSProgressIndicatorStylePtr = ^NSProgressIndicatorStyle;
 
 { Constants }
 
@@ -52,6 +55,7 @@ const
 {$ifdef FORWARD}
   NSProgressIndicator = objcclass;
   NSProgressIndicatorPointer = ^NSProgressIndicator;
+  NSProgressIndicatorPtr = NSProgressIndicatorPointer;
 
 {$endif}
 
@@ -62,32 +66,41 @@ const
 { NSProgressIndicator }
   NSProgressIndicator = objcclass(NSView)
   private
-    __isBezeled: Boolean;
-    __isIndeterminate: Boolean;
-    __threadedAnimation: Boolean;
-    __minimum: double;
-    __maximum: double;
-    __value: double;
-    __animationIndex: cint;
-    __animationDelay: NSTimeInterval;
-    __timer: id;
-    __animationThreadLock: id;
-    __cachedImage: id;
-    __cachedImageLock: id;
-    _isSpinning: 0..1;
-    _isVector: 0..1;
-    _isLocked: 0..1;
-    _controlTint: 0..((1 shl 3)-1);
-    _controlSize: 0..((1 shl 2)-1);
-    _style: 0..1;
-    __delayedStartup: 0..1;
-    __orderOutForResize: 0..1;
-    _hideWhenStopped: 0..1;
-    _revive: 0..1;
-    _RESERVED: 0..((1 shl 19)-1);
-    __progressIndicatorFlags: record
+    _isBezeled: Boolean;
+    _isIndeterminate: Boolean;
+    _threadedAnimation: Boolean;
+    _minimum: double;
+    _maximum: double;
+    _value: double;
+    _animationIndex: cint;
+    _animationDelay: NSTimeInterval;
+    _timer: id;
+    _drawingWidth: CGFloat;
+    _roundColor: id;
+    _reserved: id;
+     {garbage collector: volatile }
+    __progressIndicatorFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSProgressIndicator0: cuint);
+       1: (
+        isSpinning: 0..1;
+        isVector: 0..1;
+        isLocked: 0..1;
+        _controlTint: 0..((1 shl 3)-1);
+        _controlSize: 0..((1 shl 2)-1);
+        _style: 0..1;
+        _delayedStartup: 0..1;
+        _orderOutForResize: 0..1;
+        hideWhenStopped: 0..1;
+        revive: 0..1;
+        _temporarilyBlockHeartBeating: 0..1;
+        _isHidden: 0..1;
+        _isHeartBeatInstalled: 0..1;
+        _lastFrame: 0..((1 shl 8)-1);
+        RESERVED: 0..((1 shl 8)-1);
+      );
       end;
-    __NSProgressIndicatorReserved1: id;
+    _NSProgressIndicatorReserved1: id;
     
   public
     class function alloc: NSProgressIndicator; message 'alloc';
@@ -107,18 +120,22 @@ const
     function maxValue: double; message 'maxValue';
     procedure setMinValue(newMinimum: double); message 'setMinValue:';
     procedure setMaxValue(newMaximum: double); message 'setMaxValue:';
-    function animationDelay: NSTimeInterval; message 'animationDelay';
-    procedure setAnimationDelay(delay: NSTimeInterval); message 'setAnimationDelay:';
     function usesThreadedAnimation: Boolean; message 'usesThreadedAnimation';
     procedure setUsesThreadedAnimation(threadedAnimation: Boolean); message 'setUsesThreadedAnimation:';
     procedure startAnimation(sender: id); message 'startAnimation:';
     procedure stopAnimation(sender: id); message 'stopAnimation:';
-    procedure animate(sender: id); message 'animate:';
     procedure setStyle(style_: NSProgressIndicatorStyle); message 'setStyle:';
     function style: NSProgressIndicatorStyle; message 'style';
     procedure sizeToFit; message 'sizeToFit';
     function isDisplayedWhenStopped: Boolean; message 'isDisplayedWhenStopped';
     procedure setDisplayedWhenStopped(isDisplayed: Boolean); message 'setDisplayedWhenStopped:';
+  end; external;
+
+{ NSProgressIndicatorDeprecatedCategory }
+  NSProgressIndicatorDeprecatedCategory = objccategory(NSProgressIndicator)
+    function animationDelay: NSTimeInterval; message 'animationDelay';
+    procedure setAnimationDelay(delay: NSTimeInterval); message 'setAnimationDelay:';
+    procedure animate(sender: id); message 'animate:';
   end; external;
 
 {$endif}

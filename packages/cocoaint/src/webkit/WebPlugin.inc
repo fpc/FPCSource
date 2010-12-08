@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebPlugin.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -26,6 +26,30 @@
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef WEBPLUGIN_PAS_S}
 {$define WEBPLUGIN_PAS_S}
+
+{$endif}
+{$endif}
+
+{$ifdef FORWARD}
+
+{$endif}
+
+{$ifdef CLASSES}
+{$ifndef WEBPLUGIN_PAS_C}
+{$define WEBPLUGIN_PAS_C}
+
+{ WebPlugInCategory }
+  WebPlugInCategory = objccategory(NSObject)
+    procedure webPlugInInitialize; message 'webPlugInInitialize';
+    procedure webPlugInStart; message 'webPlugInStart';
+    procedure webPlugInStop; message 'webPlugInStop';
+    procedure webPlugInDestroy; message 'webPlugInDestroy';
+    procedure webPlugInSetIsSelected(isSelected: Boolean); message 'webPlugInSetIsSelected:';
+    function objectForWebScript: id; message 'objectForWebScript';
+    procedure webPlugInMainResourceDidReceiveResponse(response: NSURLResponse); message 'webPlugInMainResourceDidReceiveResponse:';
+    procedure webPlugInMainResourceDidReceiveData(data: NSData); message 'webPlugInMainResourceDidReceiveData:';
+    procedure webPlugInMainResourceDidFailWithError(error: NSError); message 'webPlugInMainResourceDidFailWithError:';
+  end; external;
 
 {$endif}
 {$endif}

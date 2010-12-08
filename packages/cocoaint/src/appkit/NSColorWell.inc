@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSColorWell.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSColorWell = objcclass;
   NSColorWellPointer = ^NSColorWell;
+  NSColorWellPtr = NSColorWellPointer;
 
 {$endif}
 
@@ -43,15 +44,19 @@
 { NSColorWell }
   NSColorWell = objcclass(NSControl)
   private
-    __color: NSColor;
-    __target: id;
-    __action: SEL;
+    _color: NSColor;
+    _target: id;
+    _action: SEL;
     __cwFlags: bitpacked record
-        isActive: 0..1;
-        isBordered: 0..1;
+      case byte of
+       0: (_anonbitfield_NSColorWell0: cuint);
+       1: (
+        _isActive: 0..1;
+        _isBordered: 0..1;
         cantDraw: 0..1;
         isNotContinuous: 0..1;
         reservedColorWell: 0..((1 shl 28)-1);
+      );
       end;
     
   public

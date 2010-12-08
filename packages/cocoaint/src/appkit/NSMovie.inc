@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMovie.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSMovie = objcclass;
   NSMoviePointer = ^NSMovie;
+  NSMoviePtr = NSMoviePointer;
 
 {$endif}
 
@@ -43,26 +44,34 @@
 { NSMovie }
   NSMovie = objcclass(NSObject, NSCodingProtocol)
   private
-    __movie: Pointer;
-    __url: NSURL;
+    _movie: Pointer;
+    _url: NSURL;
     __movieFlags: bitpacked record
-        dispose_: 0..1;
+      case byte of
+       0: (_anonbitfield_NSMovie0: cint);
+       1: (
+        _dispose: 0..1;
         reserved: 0..((1 shl 31)-1);
+      );
       end;
-    __reserved1: clong;
-    __reserved2: clong;
+    _reserved1: clong;
+    _reserved2: clong;
     
   public
     class function alloc: NSMovie; message 'alloc';
 
-    function initWithMovie(movie: Pointer): id; message 'initWithMovie:';
-    function initWithURL_byReference(URL_: NSURL; byRef: Boolean): id; message 'initWithURL:byReference:';
-    function initWithPasteboard(pasteboard: NSPasteboard): id; message 'initWithPasteboard:';
-    function QTMovie: Pointer; message 'QTMovie';
-    function URL: NSURL; message 'URL';
-    class function movieUnfilteredFileTypes: NSArray; message 'movieUnfilteredFileTypes';
-    class function movieUnfilteredPasteboardTypes: NSArray; message 'movieUnfilteredPasteboardTypes';
-    class function canInitWithPasteboard(pasteboard: NSPasteboard): Boolean; message 'canInitWithPasteboard:';
+    function initWithMovie(movie: Pointer): id; message 'initWithMovie:'; deprecated 'in Mac OS X 10.5 and later';
+    function initWithURL_byReference(url: NSURL; byRef: Boolean): id; message 'initWithURL:byReference:'; deprecated 'in Mac OS X 10.5 and later';
+    function initWithPasteboard(pasteboard: NSPasteboard): id; message 'initWithPasteboard:'; deprecated 'in Mac OS X 10.5 and later';
+    function QTMovie_: Pointer; message 'QTMovie'; deprecated 'in Mac OS X 10.5 and later';
+    function URL: NSURL; message 'URL'; deprecated 'in Mac OS X 10.5 and later';
+    class function movieUnfilteredFileTypes: NSArray; message 'movieUnfilteredFileTypes'; deprecated 'in Mac OS X 10.5 and later';
+    class function movieUnfilteredPasteboardTypes: NSArray; message 'movieUnfilteredPasteboardTypes'; deprecated 'in Mac OS X 10.5 and later';
+    class function canInitWithPasteboard(pasteboard: NSPasteboard): Boolean; message 'canInitWithPasteboard:'; deprecated 'in Mac OS X 10.5 and later';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 {$endif}

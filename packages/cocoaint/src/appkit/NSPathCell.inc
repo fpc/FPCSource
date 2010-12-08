@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPathCell.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:08 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -16,6 +16,7 @@ const
 { Types }
 type
   NSPathStyle = NSInteger;
+  NSPathStylePtr = ^NSPathStyle;
 
 {$endif}
 {$endif}
@@ -45,6 +46,7 @@ type
   NSPathCellDelegateProtocol = objcprotocol;
   NSPathCell = objcclass;
   NSPathCellPointer = ^NSPathCell;
+  NSPathCellPtr = NSPathCellPointer;
 
 {$endif}
 
@@ -53,24 +55,28 @@ type
 {$define NSPATHCELL_PAS_C}
 
 { NSPathCell }
-  NSPathCell = objcclass(NSActionCell)
+  NSPathCell = objcclass(NSActionCell, NSOpenSavePanelDelegateProtocol)
   private
-    __backgroundColor: NSColor;
-    __borderColors: NSMutableArray;
-    __cells: NSMutableArray;
-    __clickedCell: NSPathComponentCell;
-    __hoveredCell: NSPathComponentCell;
-    __popUpButtonCell: NSPopUpButtonCell;
-    __currentRect: NSRect;
-    __animation: NSAnimation;
-    __allowedTypes: NSArray;
-    __doubleAction: SEL;
-    __delegate: id;
+    _backgroundColor: NSColor;
+    _borderColors: NSMutableArray;
+    _cells: NSMutableArray;
+    _clickedCell: NSPathComponentCell;
+    _hoveredCell: NSPathComponentCell;
+    _popUpButtonCell: NSPopUpButtonCell;
+    _currentRect: NSRect;
+    _animation: NSAnimation;
+    _allowedTypes: NSArray;
+    _doubleAction: SEL;
+    _delegate: id;
     __piFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSPathCell0: cuint);
+       1: (
         reserved: 0..((1 shl 32)-1);
+      );
       end;
-    __pathStyle: NSPathStyle;
-    __aux: id;
+    _pathStyle: NSPathStyle;
+    _aux: id;
     
   public
     class function alloc: NSPathCell; message 'alloc';
@@ -78,7 +84,7 @@ type
     function pathStyle: NSPathStyle; message 'pathStyle';
     procedure setPathStyle(style: NSPathStyle); message 'setPathStyle:';
     function URL: NSURL; message 'URL';
-    procedure setURL(URL_: NSURL); message 'setURL:';
+    procedure setURL(url_: NSURL); message 'setURL:';
     procedure setObjectValue(obj: id); message 'setObjectValue:';
     function allowedTypes: NSArray; message 'allowedTypes';
     procedure setAllowedTypes(allowedTypes_: NSArray); message 'setAllowedTypes:';
@@ -101,6 +107,14 @@ type
     procedure setPlaceholderAttributedString(string_: NSAttributedString); message 'setPlaceholderAttributedString:';
     function placeholderAttributedString: NSAttributedString; message 'placeholderAttributedString';
     procedure setControlSize(size: NSControlSize); message 'setControlSize:';
+
+    { Adopted Protocols }
+    function panel_shouldEnableURL(sender: id; url: NSURL): Boolean;
+    function panel_validateURL_error(sender: id; url: NSURL; outError: NSErrorPointer): Boolean;
+    procedure panel_didChangeToDirectoryURL(sender: id; url: NSURL);
+    function panel_userEnteredFilename_confirmed(sender: id; filename: NSString; okFlag: Boolean): NSString;
+    procedure panel_willExpand(sender: id; expanding: Boolean);
+    procedure panelSelectionDidChange(sender: id);
   end; external;
 
 {$endif}

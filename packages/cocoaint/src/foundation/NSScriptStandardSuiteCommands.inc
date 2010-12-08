@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScriptStandardSuiteCommands.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -16,6 +16,7 @@ const
 { Types }
 type
   NSSaveOptions = NSUInteger;
+  NSSaveOptionsPtr = ^NSSaveOptions;
 
 {$endif}
 {$endif}
@@ -44,24 +45,34 @@ type
 {$ifdef FORWARD}
   NSCloneCommand = objcclass;
   NSCloneCommandPointer = ^NSCloneCommand;
+  NSCloneCommandPtr = NSCloneCommandPointer;
   NSCloseCommand = objcclass;
   NSCloseCommandPointer = ^NSCloseCommand;
+  NSCloseCommandPtr = NSCloseCommandPointer;
   NSCountCommand = objcclass;
   NSCountCommandPointer = ^NSCountCommand;
+  NSCountCommandPtr = NSCountCommandPointer;
   NSCreateCommand = objcclass;
   NSCreateCommandPointer = ^NSCreateCommand;
+  NSCreateCommandPtr = NSCreateCommandPointer;
   NSDeleteCommand = objcclass;
   NSDeleteCommandPointer = ^NSDeleteCommand;
+  NSDeleteCommandPtr = NSDeleteCommandPointer;
   NSExistsCommand = objcclass;
   NSExistsCommandPointer = ^NSExistsCommand;
+  NSExistsCommandPtr = NSExistsCommandPointer;
   NSGetCommand = objcclass;
   NSGetCommandPointer = ^NSGetCommand;
+  NSGetCommandPtr = NSGetCommandPointer;
   NSMoveCommand = objcclass;
   NSMoveCommandPointer = ^NSMoveCommand;
+  NSMoveCommandPtr = NSMoveCommandPointer;
   NSQuitCommand = objcclass;
   NSQuitCommandPointer = ^NSQuitCommand;
+  NSQuitCommandPtr = NSQuitCommandPointer;
   NSSetCommand = objcclass;
   NSSetCommandPointer = ^NSSetCommand;
+  NSSetCommandPtr = NSSetCommandPointer;
 
 {$endif}
 
@@ -72,7 +83,7 @@ type
 { NSCloneCommand }
   NSCloneCommand = objcclass(NSScriptCommand)
   private
-    __keySpecifier: NSScriptObjectSpecifier;
+    _keySpecifier: NSScriptObjectSpecifier;
     
   public
     class function alloc: NSCloneCommand; message 'alloc';
@@ -100,7 +111,7 @@ type
 { NSCreateCommand }
   NSCreateCommand = objcclass(NSScriptCommand)
   private
-    __moreVars2: id;
+    _moreVars2: id;
     
   public
     class function alloc: NSCreateCommand; message 'alloc';
@@ -112,7 +123,7 @@ type
 { NSDeleteCommand }
   NSDeleteCommand = objcclass(NSScriptCommand)
   private
-    __keySpecifier: NSScriptObjectSpecifier;
+    _keySpecifier: NSScriptObjectSpecifier;
     
   public
     class function alloc: NSDeleteCommand; message 'alloc';
@@ -138,7 +149,7 @@ type
 { NSMoveCommand }
   NSMoveCommand = objcclass(NSScriptCommand)
   private
-    __keySpecifier: NSScriptObjectSpecifier;
+    _keySpecifier: NSScriptObjectSpecifier;
     
   public
     class function alloc: NSMoveCommand; message 'alloc';
@@ -159,7 +170,7 @@ type
 { NSSetCommand }
   NSSetCommand = objcclass(NSScriptCommand)
   private
-    __keySpecifier: NSScriptObjectSpecifier;
+    _keySpecifier: NSScriptObjectSpecifier;
     
   public
     class function alloc: NSSetCommand; message 'alloc';

@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCSSMediaRule.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMCSSMediaRule = objcclass;
   DOMCSSMediaRulePointer = ^DOMCSSMediaRule;
+  DOMCSSMediaRulePtr = DOMCSSMediaRulePointer;
 
 {$endif}
 
@@ -50,8 +51,10 @@
     function cssRules: DOMCSSRuleList; message 'cssRules';
     function insertRule_index(rule: NSString; index: cuint): cuint; message 'insertRule:index:';
     procedure deleteRule(index: cuint); message 'deleteRule:';
+  end; external;
 
-    { Category: DOMCSSMediaRuleDeprecated }
+{ DOMCSSMediaRuleDeprecatedCategory }
+  DOMCSSMediaRuleDeprecatedCategory = objccategory(DOMCSSMediaRule)
     function insertRule(rule: NSString; index: cuint): cuint; message 'insertRule:rule:';
   end; external;
 

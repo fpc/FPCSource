@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSGlyphGenerator.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -9,9 +9,9 @@
 { Constants }
 
 const
-  NSShowControlGlyphs = 1  shl  0;
-  NSShowInvisibleGlyphs = 1  shl  1;
-  NSWantsBidiLevels = 1  shl  2;
+  NSShowControlGlyphs = 1 shl 0;
+  NSShowInvisibleGlyphs = 1 shl 1;
+  NSWantsBidiLevels = 1 shl 2;
 
 {$endif}
 {$endif}
@@ -41,6 +41,7 @@ const
   NSGlyphStorageProtocol = objcprotocol;
   NSGlyphGenerator = objcclass;
   NSGlyphGeneratorPointer = ^NSGlyphGenerator;
+  NSGlyphGeneratorPtr = NSGlyphGeneratorPointer;
 
 {$endif}
 
@@ -54,7 +55,7 @@ const
   public
     class function alloc: NSGlyphGenerator; message 'alloc';
 
-    procedure generateGlyphsForGlyphStorage_desiredNumberOfCharacters_glyphIndex_characterIndex(glyphStorage: id; nChars: NSUInteger; glyphIndex: NSUIntegerPointer; charIndex: NSUIntegerPointer); message 'generateGlyphsForGlyphStorage:desiredNumberOfCharacters:glyphIndex:characterIndex:';
+    procedure generateGlyphsForGlyphStorage_desiredNumberOfCharacters_glyphIndex_characterIndex(glyphStorage: id; nChars: NSUInteger; glyphIndex: NSUIntegerPtr; charIndex: NSUIntegerPtr); message 'generateGlyphsForGlyphStorage:desiredNumberOfCharacters:glyphIndex:characterIndex:';
     class function sharedGlyphGenerator: id; message 'sharedGlyphGenerator';
   end; external;
 
@@ -66,7 +67,7 @@ const
   
 { NSGlyphStorage Protocol }
   NSGlyphStorageProtocol = objcprotocol
-    procedure insertGlyphs_length_forStartingGlyphAtIndex_characterIndex(glyphs: NSGlyphPointer; length: NSUInteger; glyphIndex: NSUInteger; charIndex: NSUInteger); message 'insertGlyphs:length:forStartingGlyphAtIndex:characterIndex:';
+    procedure insertGlyphs_length_forStartingGlyphAtIndex_characterIndex(glyphs: NSGlyphPtr; length: NSUInteger; glyphIndex: NSUInteger; charIndex: NSUInteger); message 'insertGlyphs:length:forStartingGlyphAtIndex:characterIndex:';
     procedure setIntAttribute_value_forGlyphAtIndex(attributeTag: NSInteger; val: NSInteger; glyphIndex: NSUInteger); message 'setIntAttribute:value:forGlyphAtIndex:';
     function attributedString: NSAttributedString; message 'attributedString';
     function layoutOptions: NSUInteger; message 'layoutOptions';

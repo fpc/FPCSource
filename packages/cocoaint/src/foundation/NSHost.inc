@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSHost.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSHost = objcclass;
   NSHostPointer = ^NSHost;
+  NSHostPtr = NSHostPointer;
 
 {$endif}
 
@@ -45,7 +46,7 @@
   private
     _names: NSArray;
     _addresses: NSArray;
-    _reserved: Pointer;
+    reserved: Pointer;
     
   public
     class function alloc: NSHost; message 'alloc';
@@ -61,6 +62,7 @@
     function names: NSArray; message 'names';
     function address: NSString; message 'address';
     function addresses: NSArray; message 'addresses';
+    function localizedName: NSString; message 'localizedName';
   end; external;
 
 {$endif}

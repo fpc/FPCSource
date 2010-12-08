@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMovieView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -16,6 +16,7 @@ const
 { Types }
 type
   NSQTMovieLoopMode = NSUInteger;
+  NSQTMovieLoopModePtr = ^NSQTMovieLoopMode;
 
 {$endif}
 {$endif}
@@ -27,14 +28,19 @@ type
 { Records }
 type
   __MVFlags = bitpacked record
-    editable: 0..1;
-    loopMode: 0..((1 shl 3)-1);
-    playsEveryFrame: 0..1;
-    playsSelectionOnly: 0..1;
-    controllerVisible: 0..1;
-    reserved: 0..((1 shl 25)-1);
+    case byte of
+    0: (_anonbitfield_NSMovieView0: cuint);
+    1: (
+          editable: 0..1;
+          loopMode: 0..((1 shl 3)-1);
+          playsEveryFrame: 0..1;
+          playsSelectionOnly: 0..1;
+          controllerVisible: 0..1;
+          reserved: 0..((1 shl 25)-1);
+       );
   end;
 _MVFlags = __MVFlags;
+__MVFlagsPtr = ^__MVFlags;
 
 
 {$endif}
@@ -57,6 +63,7 @@ _MVFlags = __MVFlags;
 {$ifdef FORWARD}
   NSMovieView = objcclass;
   NSMovieViewPointer = ^NSMovieView;
+  NSMovieViewPtr = NSMovieViewPointer;
 
 {$endif}
 
@@ -67,54 +74,57 @@ _MVFlags = __MVFlags;
 { NSMovieView }
   NSMovieView = objcclass(NSView, NSUserInterfaceValidationsProtocol)
   private
-    __fMovie: NSMovie;
-    __fRate: single;
-    __fVolume: single;
-    __fFlags: _MVFlags;
-    __fAuxData: Pointer;
-    __fReserved1: culong;
-    __fReserved2: culong;
-    __fReserved3: culong;
+    _fMovie: NSMovie;
+    _fRate: single;
+    _fVolume: single;
+    _fFlags: _MVFlags;
+    _fAuxData: Pointer;
+    _fReserved1: culong;
+    _fReserved2: culong;
+    _fReserved3: culong;
     
   public
     class function alloc: NSMovieView; message 'alloc';
 
-    procedure setMovie(movie_: NSMovie); message 'setMovie:';
-    function movie: NSMovie; message 'movie';
-    function movieController: Pointer; message 'movieController';
-    function movieRect: NSRect; message 'movieRect';
-    procedure start(sender: id); message 'start:';
-    procedure stop(sender: id); message 'stop:';
-    function isPlaying: Boolean; message 'isPlaying';
-    procedure gotoPosterFrame(sender: id); message 'gotoPosterFrame:';
-    procedure gotoBeginning(sender: id); message 'gotoBeginning:';
-    procedure gotoEnd(sender: id); message 'gotoEnd:';
-    procedure stepForward(sender: id); message 'stepForward:';
-    procedure stepBack(sender: id); message 'stepBack:';
-    procedure setRate(rate_: single); message 'setRate:';
-    function rate: single; message 'rate';
-    procedure setVolume(volume_: single); message 'setVolume:';
-    function volume: single; message 'volume';
-    procedure setMuted(mute: Boolean); message 'setMuted:';
-    function isMuted: Boolean; message 'isMuted';
-    procedure setLoopMode(mode: NSQTMovieLoopMode); message 'setLoopMode:';
-    function loopMode: NSQTMovieLoopMode; message 'loopMode';
-    procedure setPlaysSelectionOnly(flag: Boolean); message 'setPlaysSelectionOnly:';
-    function playsSelectionOnly: Boolean; message 'playsSelectionOnly';
-    procedure setPlaysEveryFrame(flag: Boolean); message 'setPlaysEveryFrame:';
-    function playsEveryFrame: Boolean; message 'playsEveryFrame';
-    procedure showController_adjustingSize(show: Boolean; adjustSize: Boolean); message 'showController:adjustingSize:';
-    function isControllerVisible: Boolean; message 'isControllerVisible';
-    procedure resizeWithMagnification(magnification: CGFloat); message 'resizeWithMagnification:';
-    function sizeForMagnification(magnification: CGFloat): NSSize; message 'sizeForMagnification:';
-    procedure setEditable(editable: Boolean); message 'setEditable:';
-    function isEditable: Boolean; message 'isEditable';
-    procedure cut(sender: id); message 'cut:';
-    procedure copy_(sender: id); message 'copy:';
-    procedure paste(sender: id); message 'paste:';
+    procedure setMovie(movie: NSMovie); message 'setMovie:'; deprecated 'in Mac OS X 10.5 and later';
+    function movie: NSMovie; message 'movie'; deprecated 'in Mac OS X 10.5 and later';
+    function movieController: Pointer; message 'movieController'; deprecated 'in Mac OS X 10.5 and later';
+    function movieRect: NSRect; message 'movieRect'; deprecated 'in Mac OS X 10.5 and later';
+    procedure start(sender: id); message 'start:'; deprecated 'in Mac OS X 10.5 and later';
+    procedure stop(sender: id); message 'stop:'; deprecated 'in Mac OS X 10.5 and later';
+    function isPlaying: Boolean; message 'isPlaying'; deprecated 'in Mac OS X 10.5 and later';
+    procedure gotoPosterFrame(sender: id); message 'gotoPosterFrame:'; deprecated 'in Mac OS X 10.5 and later';
+    procedure gotoBeginning(sender: id); message 'gotoBeginning:'; deprecated 'in Mac OS X 10.5 and later';
+    procedure gotoEnd(sender: id); message 'gotoEnd:'; deprecated 'in Mac OS X 10.5 and later';
+    procedure stepForward(sender: id); message 'stepForward:'; deprecated 'in Mac OS X 10.5 and later';
+    procedure stepBack(sender: id); message 'stepBack:'; deprecated 'in Mac OS X 10.5 and later';
+    procedure setRate(rate: single); message 'setRate:'; deprecated 'in Mac OS X 10.5 and later';
+    function rate: single; message 'rate'; deprecated 'in Mac OS X 10.5 and later';
+    procedure setVolume(volume: single); message 'setVolume:'; deprecated 'in Mac OS X 10.5 and later';
+    function volume: single; message 'volume'; deprecated 'in Mac OS X 10.5 and later';
+    procedure setMuted(mute: Boolean); message 'setMuted:'; deprecated 'in Mac OS X 10.5 and later';
+    function isMuted: Boolean; message 'isMuted'; deprecated 'in Mac OS X 10.5 and later';
+    procedure setLoopMode(mode: NSQTMovieLoopMode); message 'setLoopMode:'; deprecated 'in Mac OS X 10.5 and later';
+    function loopMode: NSQTMovieLoopMode; message 'loopMode'; deprecated 'in Mac OS X 10.5 and later';
+    procedure setPlaysSelectionOnly(flag: Boolean); message 'setPlaysSelectionOnly:'; deprecated 'in Mac OS X 10.5 and later';
+    function playsSelectionOnly: Boolean; message 'playsSelectionOnly'; deprecated 'in Mac OS X 10.5 and later';
+    procedure setPlaysEveryFrame(flag: Boolean); message 'setPlaysEveryFrame:'; deprecated 'in Mac OS X 10.5 and later';
+    function playsEveryFrame: Boolean; message 'playsEveryFrame'; deprecated 'in Mac OS X 10.5 and later';
+    procedure showController_adjustingSize(show: Boolean; adjustSize: Boolean); message 'showController:adjustingSize:'; deprecated 'in Mac OS X 10.5 and later';
+    function isControllerVisible: Boolean; message 'isControllerVisible'; deprecated 'in Mac OS X 10.5 and later';
+    procedure resizeWithMagnification(magnification: CGFloat); message 'resizeWithMagnification:'; deprecated 'in Mac OS X 10.5 and later';
+    function sizeForMagnification(magnification: CGFloat): NSSize; message 'sizeForMagnification:'; deprecated 'in Mac OS X 10.5 and later';
+    procedure setEditable(editable: Boolean); message 'setEditable:'; deprecated 'in Mac OS X 10.5 and later';
+    function isEditable: Boolean; message 'isEditable'; deprecated 'in Mac OS X 10.5 and later';
+    procedure cut(sender: id); message 'cut:'; deprecated 'in Mac OS X 10.5 and later';
+    procedure copy_(sender: id); message 'copy:'; deprecated 'in Mac OS X 10.5 and later';
+    procedure paste(sender: id); message 'paste:'; deprecated 'in Mac OS X 10.5 and later';
     procedure delete(sender: id); message 'delete:';
-    procedure selectAll(sender: id); message 'selectAll:';
-    procedure clear(sender: id); message 'clear:';
+    procedure selectAll(sender: id); message 'selectAll:'; deprecated 'in Mac OS X 10.5 and later';
+    procedure clear(sender: id); message 'clear:'; deprecated 'in Mac OS X 10.5 and later';
+
+    { Adopted Protocols }
+    function validateUserInterfaceItem(anItem: id): Boolean;
   end; external;
 
 {$endif}

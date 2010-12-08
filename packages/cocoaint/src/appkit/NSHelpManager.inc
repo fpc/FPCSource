@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSHelpManager.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,8 +29,8 @@
 
 { External string constants }
 var
-  NSContextHelpModeDidActivateNotification: NSString; external name '_NSContextHelpModeDidActivateNotification';
-  NSContextHelpModeDidDeactivateNotification: NSString; external name '_NSContextHelpModeDidDeactivateNotification';
+  NSContextHelpModeDidActivateNotification: NSString; cvar; external;
+  NSContextHelpModeDidDeactivateNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -38,6 +38,7 @@ var
 {$ifdef FORWARD}
   NSHelpManager = objcclass;
   NSHelpManagerPointer = ^NSHelpManager;
+  NSHelpManagerPtr = NSHelpManagerPointer;
 
 {$endif}
 
@@ -48,13 +49,13 @@ var
 { NSHelpManager }
   NSHelpManager = objcclass(NSObject)
   private
-    __helpMapTable: NSMapTable;
-    __keyMapTable: NSMapTable;
-    __bundleMapTable: NSMapTable;
-    __helpWindow: NSWindow;
-    __shadowWindow: NSWindow;
-    __evtWindow: NSWindow;
-    __helpBundle: NSBundle;
+    _helpMapTable: NSMapTable;
+    _keyMapTable: NSMapTable;
+    _bundleMapTable: NSMapTable;
+    _helpWindow: NSWindow;
+    _shadowWindow: NSWindow;
+    _evtWindow: NSWindow;
+    _helpBundle: NSBundle;
     
   public
     class function alloc: NSHelpManager; message 'alloc';
@@ -68,6 +69,18 @@ var
     function showContextHelpForObject_locationHint(object_: id; pt: NSPoint): Boolean; message 'showContextHelpForObject:locationHint:';
     procedure openHelpAnchor_inBook(anchor: NSString; book: NSString); message 'openHelpAnchor:inBook:';
     procedure findString_inBook(query: NSString; book: NSString); message 'findString:inBook:';
+    function registerBooksInBundle(bundle: NSBundle): Boolean; message 'registerBooksInBundle:';
+  end; external;
+
+{ NSBundleHelpExtensionCategory }
+  NSBundleHelpExtensionCategory = objccategory(NSBundle)
+    function contextHelpForKey(key: NSString): NSAttributedString; message 'contextHelpForKey:';
+  end; external;
+
+{ NSApplicationHelpExtensionCategory }
+  NSApplicationHelpExtensionCategory = objccategory(NSApplication)
+    procedure activateContextHelpMode(sender: id); message 'activateContextHelpMode:';
+    procedure showHelp(sender: id); message 'showHelp:';
   end; external;
 
 {$endif}

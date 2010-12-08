@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSpeechSynthesizer.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -16,6 +16,7 @@ const
 { Types }
 type
   NSSpeechBoundary = NSUInteger;
+  NSSpeechBoundaryPtr = ^NSSpeechBoundary;
 
 {$endif}
 {$endif}
@@ -40,68 +41,71 @@ type
 
 { External string constants }
 var
-  NSVoiceName: NSString; external name '_NSVoiceName';
-  NSVoiceIdentifier: NSString; external name '_NSVoiceIdentifier';
-  NSVoiceAge: NSString; external name '_NSVoiceAge';
-  NSVoiceGender: NSString; external name '_NSVoiceGender';
-  NSVoiceDemoText: NSString; external name '_NSVoiceDemoText';
-  NSVoiceLocaleIdentifier: NSString; external name '_NSVoiceLocaleIdentifier';
-  NSVoiceSupportedCharacters: NSString; external name '_NSVoiceSupportedCharacters';
-  NSVoiceIndividuallySpokenCharacters: NSString; external name '_NSVoiceIndividuallySpokenCharacters';
-  NSVoiceGenderNeuter: NSString; external name '_NSVoiceGenderNeuter';
-  NSVoiceGenderMale: NSString; external name '_NSVoiceGenderMale';
-  NSVoiceGenderFemale: NSString; external name '_NSVoiceGenderFemale';
-  NSSpeechStatusProperty: NSString; external name '_NSSpeechStatusProperty';
-  NSSpeechErrorsProperty: NSString; external name '_NSSpeechErrorsProperty';
-  NSSpeechInputModeProperty: NSString; external name '_NSSpeechInputModeProperty';
-  NSSpeechCharacterModeProperty: NSString; external name '_NSSpeechCharacterModeProperty';
-  NSSpeechNumberModeProperty: NSString; external name '_NSSpeechNumberModeProperty';
-  NSSpeechRateProperty: NSString; external name '_NSSpeechRateProperty';
-  NSSpeechPitchBaseProperty: NSString; external name '_NSSpeechPitchBaseProperty';
-  NSSpeechPitchModProperty: NSString; external name '_NSSpeechPitchModProperty';
-  NSSpeechVolumeProperty: NSString; external name '_NSSpeechVolumeProperty';
-  NSSpeechSynthesizerInfoProperty: NSString; external name '_NSSpeechSynthesizerInfoProperty';
-  NSSpeechRecentSyncProperty: NSString; external name '_NSSpeechRecentSyncProperty';
-  NSSpeechPhonemeSymbolsProperty: NSString; external name '_NSSpeechPhonemeSymbolsProperty';
-  NSSpeechCurrentVoiceProperty: NSString; external name '_NSSpeechCurrentVoiceProperty';
-  NSSpeechCommandDelimiterProperty: NSString; external name '_NSSpeechCommandDelimiterProperty';
-  NSSpeechResetProperty: NSString; external name '_NSSpeechResetProperty';
-  NSSpeechOutputToFileURLProperty: NSString; external name '_NSSpeechOutputToFileURLProperty';
-  NSSpeechModeText: NSString; external name '_NSSpeechModeText';
-  NSSpeechModePhoneme: NSString; external name '_NSSpeechModePhoneme';
-  NSSpeechModeNormal: NSString; external name '_NSSpeechModeNormal';
-  NSSpeechModeLiteral: NSString; external name '_NSSpeechModeLiteral';
-  NSSpeechStatusOutputBusy: NSString; external name '_NSSpeechStatusOutputBusy';
-  NSSpeechStatusOutputPaused: NSString; external name '_NSSpeechStatusOutputPaused';
-  NSSpeechStatusNumberOfCharactersLeft: NSString; external name '_NSSpeechStatusNumberOfCharactersLeft';
-  NSSpeechStatusPhonemeCode: NSString; external name '_NSSpeechStatusPhonemeCode';
-  NSSpeechErrorCount: NSString; external name '_NSSpeechErrorCount';
-  NSSpeechErrorOldestCode: NSString; external name '_NSSpeechErrorOldestCode';
-  NSSpeechErrorOldestCharacterOffset: NSString; external name '_NSSpeechErrorOldestCharacterOffset';
-  NSSpeechErrorNewestCode: NSString; external name '_NSSpeechErrorNewestCode';
-  NSSpeechErrorNewestCharacterOffset: NSString; external name '_NSSpeechErrorNewestCharacterOffset';
-  NSSpeechSynthesizerInfoIdentifier: NSString; external name '_NSSpeechSynthesizerInfoIdentifier';
-  NSSpeechSynthesizerInfoVersion: NSString; external name '_NSSpeechSynthesizerInfoVersion';
-  NSSpeechPhonemeInfoOpcode: NSString; external name '_NSSpeechPhonemeInfoOpcode';
-  NSSpeechPhonemeInfoSymbol: NSString; external name '_NSSpeechPhonemeInfoSymbol';
-  NSSpeechPhonemeInfoExample: NSString; external name '_NSSpeechPhonemeInfoExample';
-  NSSpeechPhonemeInfoHiliteStart: NSString; external name '_NSSpeechPhonemeInfoHiliteStart';
-  NSSpeechPhonemeInfoHiliteEnd: NSString; external name '_NSSpeechPhonemeInfoHiliteEnd';
-  NSSpeechCommandPrefix: NSString; external name '_NSSpeechCommandPrefix';
-  NSSpeechCommandSuffix: NSString; external name '_NSSpeechCommandSuffix';
-  NSSpeechDictionaryLocaleIdentifier: NSString; external name '_NSSpeechDictionaryLocaleIdentifier';
-  NSSpeechDictionaryModificationDate: NSString; external name '_NSSpeechDictionaryModificationDate';
-  NSSpeechDictionaryPronunciations: NSString; external name '_NSSpeechDictionaryPronunciations';
-  NSSpeechDictionaryAbbreviations: NSString; external name '_NSSpeechDictionaryAbbreviations';
-  NSSpeechDictionaryEntrySpelling: NSString; external name '_NSSpeechDictionaryEntrySpelling';
-  NSSpeechDictionaryEntryPhonemes: NSString; external name '_NSSpeechDictionaryEntryPhonemes';
+  NSVoiceName: NSString; cvar; external;
+  NSVoiceIdentifier: NSString; cvar; external;
+  NSVoiceAge: NSString; cvar; external;
+  NSVoiceGender: NSString; cvar; external;
+  NSVoiceDemoText: NSString; cvar; external;
+  NSVoiceLocaleIdentifier: NSString; cvar; external;
+  NSVoiceSupportedCharacters: NSString; cvar; external;
+  NSVoiceIndividuallySpokenCharacters: NSString; cvar; external;
+  NSVoiceGenderNeuter: NSString; cvar; external;
+  NSVoiceGenderMale: NSString; cvar; external;
+  NSVoiceGenderFemale: NSString; cvar; external;
+  NSVoiceLanguage: NSString deprecated 'in Mac OS X 10.5 and later'; cvar; external;
+  NSSpeechStatusProperty: NSString; cvar; external;
+  NSSpeechErrorsProperty: NSString; cvar; external;
+  NSSpeechInputModeProperty: NSString; cvar; external;
+  NSSpeechCharacterModeProperty: NSString; cvar; external;
+  NSSpeechNumberModeProperty: NSString; cvar; external;
+  NSSpeechRateProperty: NSString; cvar; external;
+  NSSpeechPitchBaseProperty: NSString; cvar; external;
+  NSSpeechPitchModProperty: NSString; cvar; external;
+  NSSpeechVolumeProperty: NSString; cvar; external;
+  NSSpeechSynthesizerInfoProperty: NSString; cvar; external;
+  NSSpeechRecentSyncProperty: NSString; cvar; external;
+  NSSpeechPhonemeSymbolsProperty: NSString; cvar; external;
+  NSSpeechCurrentVoiceProperty: NSString; cvar; external;
+  NSSpeechCommandDelimiterProperty: NSString; cvar; external;
+  NSSpeechResetProperty: NSString; cvar; external;
+  NSSpeechOutputToFileURLProperty: NSString; cvar; external;
+  NSSpeechModeText: NSString; cvar; external;
+  NSSpeechModePhoneme: NSString; cvar; external;
+  NSSpeechModeNormal: NSString; cvar; external;
+  NSSpeechModeLiteral: NSString; cvar; external;
+  NSSpeechStatusOutputBusy: NSString; cvar; external;
+  NSSpeechStatusOutputPaused: NSString; cvar; external;
+  NSSpeechStatusNumberOfCharactersLeft: NSString; cvar; external;
+  NSSpeechStatusPhonemeCode: NSString; cvar; external;
+  NSSpeechErrorCount: NSString; cvar; external;
+  NSSpeechErrorOldestCode: NSString; cvar; external;
+  NSSpeechErrorOldestCharacterOffset: NSString; cvar; external;
+  NSSpeechErrorNewestCode: NSString; cvar; external;
+  NSSpeechErrorNewestCharacterOffset: NSString; cvar; external;
+  NSSpeechSynthesizerInfoIdentifier: NSString; cvar; external;
+  NSSpeechSynthesizerInfoVersion: NSString; cvar; external;
+  NSSpeechPhonemeInfoOpcode: NSString; cvar; external;
+  NSSpeechPhonemeInfoSymbol: NSString; cvar; external;
+  NSSpeechPhonemeInfoExample: NSString; cvar; external;
+  NSSpeechPhonemeInfoHiliteStart: NSString; cvar; external;
+  NSSpeechPhonemeInfoHiliteEnd: NSString; cvar; external;
+  NSSpeechCommandPrefix: NSString; cvar; external;
+  NSSpeechCommandSuffix: NSString; cvar; external;
+  NSSpeechDictionaryLocaleIdentifier: NSString; cvar; external;
+  NSSpeechDictionaryModificationDate: NSString; cvar; external;
+  NSSpeechDictionaryPronunciations: NSString; cvar; external;
+  NSSpeechDictionaryAbbreviations: NSString; cvar; external;
+  NSSpeechDictionaryEntrySpelling: NSString; cvar; external;
+  NSSpeechDictionaryEntryPhonemes: NSString; cvar; external;
 
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
+  NSSpeechSynthesizerDelegateProtocol = objcprotocol;
   NSSpeechSynthesizer = objcclass;
   NSSpeechSynthesizerPointer = ^NSSpeechSynthesizer;
+  NSSpeechSynthesizerPtr = NSSpeechSynthesizerPointer;
 
 {$endif}
 
@@ -112,7 +116,7 @@ var
 { NSSpeechSynthesizer }
   NSSpeechSynthesizer = objcclass(NSObject)
   private
-    __privateNSSpeechSynthesizerVars: id;
+    _privateNSSpeechSynthesizerVars: id;
     
   public
     class function alloc: NSSpeechSynthesizer; message 'alloc';
@@ -145,5 +149,19 @@ var
     class function attributesForVoice(voice_: NSString): NSDictionary; message 'attributesForVoice:';
   end; external;
 
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSSPEECHSYNTHESIZER_PAS_P}
+{$define NSSPEECHSYNTHESIZER_PAS_P}
+  
+{ NSSpeechSynthesizerDelegate Protocol }
+  NSSpeechSynthesizerDelegateProtocol = objcprotocol
+    procedure speechSynthesizer_didFinishSpeaking(sender: NSSpeechSynthesizer; finishedSpeaking: Boolean); message 'speechSynthesizer:didFinishSpeaking:';
+    procedure speechSynthesizer_willSpeakWord_ofString(sender: NSSpeechSynthesizer; characterRange: NSRange; string_: NSString); message 'speechSynthesizer:willSpeakWord:ofString:';
+    procedure speechSynthesizer_willSpeakPhoneme(sender: NSSpeechSynthesizer; phonemeOpcode: cshort); message 'speechSynthesizer:willSpeakPhoneme:';
+    procedure speechSynthesizer_didEncounterErrorAtIndex_ofString_message(sender: NSSpeechSynthesizer; characterIndex: NSUInteger; string_: NSString; message: NSString); message 'speechSynthesizer:didEncounterErrorAtIndex:ofString:message:';
+    procedure speechSynthesizer_didEncounterSyncMessage(sender: NSSpeechSynthesizer; message: NSString); message 'speechSynthesizer:didEncounterSyncMessage:';
+  end; external name 'NSSpeechSynthesizerDelegate';
 {$endif}
 {$endif}

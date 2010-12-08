@@ -1,18 +1,8 @@
-{
-	AppKit.h
-	Application Kit
-	Copyright (c) 1994-2007, Apple Inc.
-	All rights reserved.
 
-	This file is included by all AppKit application source files for easy building.  Using this file is preferred over importing individual files because it will use a precompiled version.
-}
-
-
-{NOTE: These headers were added for compatibility}
+{ Added for compatibility }
 {$include CIColor.inc}
-{include NSValidatedUserInterfaceItem.inc}	// ??? NSValidatedUserInterfaceItem.h is not located in the current version in AppKit.framework.
 
-{From AppKit.h}
+{ === From OS 10.5 === }
 {$include NSResponder.inc} 
 {$include NSGraphicsContext.inc} 
 {$include NSAccessibility.inc} 
@@ -30,7 +20,6 @@
 {$include NSFontManager.inc} 
 {$include NSFormCell.inc} 
 {$include NSMenu.inc} 
-{$include NSMenuItem.inc} 
 {$include NSColor.inc} 
 {$include NSColorSpace.inc} 
 {$include NSBrowserCell.inc} 
@@ -72,6 +61,7 @@
 {$include NSTokenFieldCell.inc} 
 {$include NSTrackingArea.inc} 
 {$include NSView.inc} 
+{$include NSMenuItem.inc} 
 {$include NSScrollView.inc} 
 {$include NSSplitView.inc} 
 {$include NSClipView.inc} 
@@ -120,7 +110,6 @@
 {$include NSRulerView.inc} 
 {$include NSSecureTextField.inc} 
 {$include NSInterfaceStyle.inc} 
-{------------> NOT FOUND!}{include NSNibDeclarations.inc} 
 {$include NSProgressIndicator.inc} 
 {$include NSTabView.inc} 
 {$include NSTabViewItem.inc} 
@@ -151,6 +140,7 @@
 {$include NSStepperCell.inc} 
 {$include NSGlyphInfo.inc} 
 {$include NSShadow.inc} 
+{$include NSTypesetter.inc}
 {$include NSATSTypesetter.inc} 
 {$include NSGlyphGenerator.inc} 
 {$include NSSearchField.inc} 
@@ -173,9 +163,20 @@
 {$include NSPersistentDocument.inc} 
 {$include NSRuleEditor.inc} 
 {$include NSPredicateEditor.inc} 
-{include NSPredicateEditorRowTemplate.inc} 	// ??? this is missing from I don't know where
+{$include NSPredicateEditorRowTemplate.inc}
 {$include NSPathCell.inc} 
 {$include NSPathControl.inc} 
 {$include NSPathComponentCell.inc} 
 {$include NSCollectionView.inc} 
 {$include NSTextInputClient.inc} 
+
+{ === From OS 10.6 === }
+{include NSOpenGLLayer.inc}
+{$include NSPasteboardItem.inc}
+{$include NSRunningApplication.inc}
+{$include NSTextInputContext.inc}
+{$include NSTouch.inc}
+{$include NSUserInterfaceItemSearching.inc}
+
+{ === Added for 10.6 parse but from 10.5 === }
+{$include NSUserInterfaceValidation.inc}

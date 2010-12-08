@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSIndexSet.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,8 +33,10 @@
 {$ifdef FORWARD}
   NSIndexSet = objcclass;
   NSIndexSetPointer = ^NSIndexSet;
+  NSIndexSetPtr = NSIndexSetPointer;
   NSMutableIndexSet = objcclass;
   NSMutableIndexSetPointer = ^NSMutableIndexSet;
+  NSMutableIndexSetPtr = NSMutableIndexSetPointer;
 
 {$endif}
 
@@ -46,10 +48,14 @@
   NSIndexSet = objcclass(NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol)
   private
     __indexSetFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSIndexSet0: NSUInteger);
+       1: (
         _isEmpty: 0..1;
         _hasSingleRange: 0..1;
         _cacheValid: 0..1;
         _reservedArrayBinderController: 0..((1 shl 29)-1);
+      );
       end;
     __singleRange: record
         _range: NSRange;
@@ -79,18 +85,24 @@
     function indexLessThanIndex(value: NSUInteger): NSUInteger; message 'indexLessThanIndex:';
     function indexGreaterThanOrEqualToIndex(value: NSUInteger): NSUInteger; message 'indexGreaterThanOrEqualToIndex:';
     function indexLessThanOrEqualToIndex(value: NSUInteger): NSUInteger; message 'indexLessThanOrEqualToIndex:';
-    function getIndexes_maxCount_inIndexRange(indexBuffer: NSUIntegerPointer; bufferSize: NSUInteger; range: NSRangePointer): NSUInteger; message 'getIndexes:maxCount:inIndexRange:';
+    function getIndexes_maxCount_inIndexRange(indexBuffer: NSUIntegerPtr; bufferSize: NSUInteger; range: NSRangePointer): NSUInteger; message 'getIndexes:maxCount:inIndexRange:';
     function countOfIndexesInRange(range: NSRange): NSUInteger; message 'countOfIndexesInRange:';
     function containsIndex(value: NSUInteger): Boolean; message 'containsIndex:';
     function containsIndexesInRange(range: NSRange): Boolean; message 'containsIndexesInRange:';
     function containsIndexes(indexSet_: NSIndexSet): Boolean; message 'containsIndexes:';
     function intersectsIndexesInRange(range: NSRange): Boolean; message 'intersectsIndexesInRange:';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    function mutableCopyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 { NSMutableIndexSet }
   NSMutableIndexSet = objcclass(NSIndexSet)
   private
-    __reserved: Pointer;
+    _reserved: Pointer;
     
   public
     class function alloc: NSMutableIndexSet; message 'alloc';

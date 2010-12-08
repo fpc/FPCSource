@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSDistantObject.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSDistantObject = objcclass;
   NSDistantObjectPointer = ^NSDistantObject;
+  NSDistantObjectPtr = NSDistantObjectPointer;
 
 {$endif}
 
@@ -43,14 +44,14 @@
 { NSDistantObject }
   NSDistantObject = objcclass(NSProxy, NSCodingProtocol)
   private
-    __knownSelectors: id;
-    __wireCount: NSUInteger;
-    __refCount: NSUInteger;
-    __proto: id;
-    ____2: word;
-    ____1: byte;
-    __wireType: byte;
-    __remoteClass: id;
+    _knownSelectors: id;
+    _wireCount: NSUInteger;
+    _refCount: NSUInteger;
+    _proto: id;
+    ___2: cuint16;
+    ___1: cuint8;
+    _wireType: cuint8;
+    _remoteClass: id;
     
   public
     class function alloc: NSDistantObject; message 'alloc';
@@ -61,6 +62,10 @@
     function initWithLocal_connection(target: id; connection: NSConnection): id; message 'initWithLocal:connection:';
     procedure setProtocolForProxy(proto: objc_protocol); message 'setProtocolForProxy:';
     function connectionForProxy: NSConnection; message 'connectionForProxy';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 {$endif}

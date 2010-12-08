@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLScriptElement.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:19:00 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMHTMLScriptElement = objcclass;
   DOMHTMLScriptElementPointer = ^DOMHTMLScriptElement;
+  DOMHTMLScriptElementPtr = DOMHTMLScriptElementPointer;
 
 {$endif}
 
@@ -54,6 +55,8 @@
     function event: NSString; message 'event';
     procedure setCharset (newValue: NSString); message 'setCharset:';
     function charset: NSString; message 'charset';
+    procedure setDefer (newValue: Boolean); message 'setDefer:';
+    function defer: Boolean; message 'defer';
     procedure setSrc (newValue: NSString); message 'setSrc:';
     function src: NSString; message 'src';
     procedure setType (newValue: NSString); message 'setType:';

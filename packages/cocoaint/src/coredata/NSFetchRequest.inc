@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSFetchRequest.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -11,10 +11,12 @@
 const
   NSManagedObjectResultType = $00;
   NSManagedObjectIDResultType = $01;
+  NSDictionaryResultType = $02;
 
 { Types }
 type
   NSFetchRequestResultType = NSUInteger;
+  NSFetchRequestResultTypePtr = ^NSFetchRequestResultType;
 
 {$endif}
 {$endif}
@@ -43,6 +45,7 @@ type
 {$ifdef FORWARD}
   NSFetchRequest = objcclass;
   NSFetchRequestPointer = ^NSFetchRequest;
+  NSFetchRequestPtr = NSFetchRequestPointer;
 
 {$endif}
 
@@ -53,25 +56,30 @@ type
 { NSFetchRequest }
   NSFetchRequest = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
-    __reserved: Pointer;
-    __reserved2: Pointer;
-    __reserved3: Pointer;
-    __reserved4: Pointer;
-    __entity: NSEntityDescription; {garbage collector: __weak }
-    __predicate: NSPredicate;
-    __sortDescriptors: NSArray;
-    __inUseCounter: culong;
-    __fetchLimit: culong;
-    __affectedStores: NSArray;
-    __relationshipKeyPathsForPrefetching: NSArray;
+    _reserved: Pointer;
+    _reserved2: Pointer;
+    _offset: NSUInteger;
+    _valuesToFetch: NSArray;
+    _entity: NSEntityDescription; {garbage collector: __weak }
+    _predicate: NSPredicate;
+    _sortDescriptors: NSArray;
+    _batchSize: NSUInteger;
+    _fetchLimit: culong;
+    _affectedStores: NSArray;
+    _relationshipKeyPathsForPrefetching: NSArray;
     __flags: bitpacked record
-        autoDistinct: 0..1;
-        includesSubentities: 0..1;
-        includesPropertyValues: 0..1;
-        resultType: 0..((1 shl 3)-1);
-        returnsObjectsAsFaults: 0..1;
+      case byte of
+       0: (_anonbitfield_NSFetchRequest0: cuint);
+       1: (
+        distinctValuesOnly: 0..1;
+        _includesSubentities: 0..1;
+        _includesPropertyValues: 0..1;
+        _resultType: 0..((1 shl 3)-1);
+        _returnsObjectsAsFaults: 0..1;
         excludePendingChanges: 0..1;
-        _RESERVED: 0..((1 shl 24)-1);
+        isInUse: 0..1;
+        __RESERVED: 0..((1 shl 23)-1);
+      );
       end;
     
   public
@@ -97,6 +105,21 @@ type
     procedure setReturnsObjectsAsFaults(yesNo: Boolean); message 'setReturnsObjectsAsFaults:';
     function relationshipKeyPathsForPrefetching: NSArray; message 'relationshipKeyPathsForPrefetching';
     procedure setRelationshipKeyPathsForPrefetching(keys: NSArray); message 'setRelationshipKeyPathsForPrefetching:';
+    function includesPendingChanges: Boolean; message 'includesPendingChanges';
+    procedure setIncludesPendingChanges(flag: Boolean); message 'setIncludesPendingChanges:';
+    function returnsDistinctResults: Boolean; message 'returnsDistinctResults';
+    procedure setReturnsDistinctResults(flag: Boolean); message 'setReturnsDistinctResults:';
+    function propertiesToFetch: NSArray; message 'propertiesToFetch';
+    procedure setPropertiesToFetch(values: NSArray); message 'setPropertiesToFetch:';
+    function fetchOffset: NSUInteger; message 'fetchOffset';
+    procedure setFetchOffset(offset: NSUInteger); message 'setFetchOffset:';
+    function fetchBatchSize: NSUInteger; message 'fetchBatchSize';
+    procedure setFetchBatchSize(bsize: NSUInteger); message 'setFetchBatchSize:';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+    function copyWithZone(zone_: NSZonePtr): id;
   end; external;
 
 {$endif}

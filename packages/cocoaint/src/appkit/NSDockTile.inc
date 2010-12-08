@@ -1,10 +1,14 @@
 { Parsed from Appkit.framework NSDockTile.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
 {$ifndef NSDOCKTILE_PAS_T}
 {$define NSDOCKTILE_PAS_T}
+
+{ Defines }
+const
+  NSAppKitVersionNumberWithDockTilePlugInSupport = 1001.0;
 
 {$endif}
 {$endif}
@@ -31,8 +35,10 @@
 {$endif}
 
 {$ifdef FORWARD}
+  NSDockTilePlugInProtocol = objcprotocol;
   NSDockTile = objcclass;
   NSDockTilePointer = ^NSDockTile;
+  NSDockTilePtr = NSDockTilePointer;
 
 {$endif}
 
@@ -43,17 +49,21 @@
 { NSDockTile }
   NSDockTile = objcclass(NSObject)
   private
-    __owner: id;
-    __dockContextRef: Pointer;
-    __contentView: NSView;
-    __frameView: NSView;
-    __backstopView: NSView;
-    __badgeLabel: NSString;
+    _owner: id;
+    _dockContextRef: Pointer;
+    _contentView: NSView;
+    _frameView: NSView;
+    _backstopView: NSView;
+    _badgeLabel: NSString;
     __dFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSDockTile0: cuint);
+       1: (
         showsAppBadge: 0..1;
         reserved: 0..((1 shl 31)-1);
+      );
       end;
-    __dockTileSize: NSSize;
+    _dockTileSize: NSSize;
         reserved: array[0..4] of id;
     
   public
@@ -70,5 +80,16 @@
     function owner: id; message 'owner';
   end; external;
 
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSDOCKTILE_PAS_P}
+{$define NSDOCKTILE_PAS_P}
+  
+{ NSDockTilePlugIn Protocol }
+  NSDockTilePlugInProtocol = objcprotocol
+    procedure setDockTile(dockTile: NSDockTile); message 'setDockTile:';
+    function dockMenu: NSMenu; message 'dockMenu';
+  end; external name 'NSDockTilePlugIn';
 {$endif}
 {$endif}

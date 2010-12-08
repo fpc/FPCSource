@@ -1,4 +1,5 @@
-{$mode objfpc}
+{$mode delphi}
+{$modeswitch cvar}
 {$modeswitch objectivec1}
 unit CoreData;
 interface
@@ -6,6 +7,8 @@ uses
 	ctypes, CocoaAll;
 {$linkframework Cocoa}	{ Cocoa is "umbrella" fremework, includes CoreData }
 {$define INTERFACE}
+
+{$include coredata/AnonIncludeClassDefinitionsCoredata.inc}
 
 {$define HEADER}
 {$include coredata/CoreData.inc}
@@ -19,22 +22,17 @@ uses
 {$include coredata/CoreData.inc}
 {$undef RECORDS}
 
-type
-	{GK: ctypes don't define it... }
-	uintptr_t	= ptruint;
 {$define FORWARD}
 {$include coredata/CoreData.inc}
 {$undef FORWARD}
 
-{$define CLASSES}
-	{ Internal class in NSMigrationManager.h }
-	NSMigrationContext = id;
-{$include coredata/CoreData.inc}
-{$undef CLASSES}
-
 {$define PROTOCOLS}
 {$include coredata/CoreData.inc}
 {$undef PROTOCOLS}
+
+{$define CLASSES}
+{$include coredata/CoreData.inc}
+{$undef CLASSES}
 
 {$define FUNCTIONS}
 {$include coredata/CoreData.inc}

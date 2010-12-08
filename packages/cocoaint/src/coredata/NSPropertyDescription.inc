@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSPropertyDescription.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSPropertyDescription = objcclass;
   NSPropertyDescriptionPointer = ^NSPropertyDescription;
+  NSPropertyDescriptionPtr = NSPropertyDescriptionPointer;
 
 {$endif}
 
@@ -43,24 +44,30 @@
 { NSPropertyDescription }
   NSPropertyDescription = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
-    __reserved: Pointer;
-    __versionHashModifier: NSString;
-    __versionHash: NSData;
-    __entity: NSEntityDescription; {garbage collector: __weak }
-    __name: NSString;
-    __validationPredicates: NSArray;
-    __validationWarnings: NSArray;
+    _reserved: Pointer;
+    _versionHashModifier: NSString;
+    _versionHash: NSData;
+    _entity: NSEntityDescription; {garbage collector: __weak }
+    _name: NSString;
+    _validationPredicates: NSArray;
+    _validationWarnings: NSArray;
     __propertyDescriptionFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSPropertyDescription0: cuint);
+       1: (
         _isReadOnly: 0..1;
         _isTransient: 0..1;
         _isOptional: 0..1;
         _isIndexed: 0..1;
         _skipValidation: 0..1;
-        _reservedPropertyDescription: 0..((1 shl 27)-1);
+        _isIndexedBySpotlight: 0..1;
+        _isStoredInExternalRecord: 0..1;
+        _reservedPropertyDescription: 0..((1 shl 25)-1);
+      );
       end;
-    __mappings: NSMutableDictionary;
-    __userInfo: NSMutableDictionary;
-    __entitysReferenceIDForProperty: clong;
+    _extraIvars: Pointer; {garbage collector: __strong }
+    _userInfo: NSMutableDictionary;
+    _entitysReferenceIDForProperty: clong;
     
   public
     class function alloc: NSPropertyDescription; message 'alloc';
@@ -82,6 +89,17 @@
     function versionHash: NSData; message 'versionHash';
     function versionHashModifier: NSString; message 'versionHashModifier';
     procedure setVersionHashModifier(modifierString: NSString); message 'setVersionHashModifier:';
+    function isIndexedBySpotlight: Boolean; message 'isIndexedBySpotlight';
+    procedure setIndexedBySpotlight(flag: Boolean); message 'setIndexedBySpotlight:';
+    function isStoredInExternalRecord: Boolean; message 'isStoredInExternalRecord';
+    procedure setStoredInExternalRecord(flag: Boolean); message 'setStoredInExternalRecord:';
+    function renamingIdentifier: NSString; message 'renamingIdentifier';
+    procedure setRenamingIdentifier(value: NSString); message 'setRenamingIdentifier:';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+    function copyWithZone(zone_: NSZonePtr): id;
   end; external;
 
 {$endif}

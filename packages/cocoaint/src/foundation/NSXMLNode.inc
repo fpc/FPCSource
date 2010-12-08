@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSXMLNode.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -26,6 +26,7 @@ const
 { Types }
 type
   NSXMLNodeKind = NSUInteger;
+  NSXMLNodeKindPtr = ^NSXMLNodeKind;
 
 {$endif}
 {$endif}
@@ -54,6 +55,7 @@ type
 {$ifdef FORWARD}
   NSXMLNode = objcclass;
   NSXMLNodePointer = ^NSXMLNode;
+  NSXMLNodePtr = NSXMLNodePointer;
 
 {$endif}
 
@@ -64,10 +66,10 @@ type
 { NSXMLNode }
   NSXMLNode = objcclass(NSObject, NSCopyingProtocol)
   private
-    __kind: NSXMLNodeKind;
-    __parent: NSXMLNode;
-    __index: NSUInteger;
-    __objectValue: id;
+    _kind: NSXMLNodeKind;
+    _parent: NSXMLNode;
+    _index: NSUInteger;
+    _objectValue: id;
     
   public
     class function alloc: NSXMLNode; message 'alloc';
@@ -119,9 +121,12 @@ type
     function XMLString: NSString; message 'XMLString';
     function XMLStringWithOptions(options: NSUInteger): NSString; message 'XMLStringWithOptions:';
     function canonicalXMLStringPreservingComments(comments: Boolean): NSString; message 'canonicalXMLStringPreservingComments:';
-    function nodesForXPath_error(XPath_: NSString; error: NSErrorPointer): NSArray; message 'nodesForXPath:error:';
+    function nodesForXPath_error(xpath_: NSString; error: NSErrorPointer): NSArray; message 'nodesForXPath:error:';
     function objectsForXQuery_constants_error(xquery: NSString; constants: NSDictionary; error: NSErrorPointer): NSArray; message 'objectsForXQuery:constants:error:';
     function objectsForXQuery_error(xquery: NSString; error: NSErrorPointer): NSArray; message 'objectsForXQuery:error:';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
   end; external;
 
 {$endif}

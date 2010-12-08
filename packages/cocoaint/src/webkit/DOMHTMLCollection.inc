@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLCollection.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMHTMLCollection = objcclass;
   DOMHTMLCollectionPointer = ^DOMHTMLCollection;
+  DOMHTMLCollectionPtr = DOMHTMLCollectionPointer;
 
 {$endif}
 
@@ -49,6 +50,7 @@
     function length: cuint; message 'length';
     function item(index: cuint): DOMNode; message 'item:';
     function namedItem(name: NSString): DOMNode; message 'namedItem:';
+    function tags(name: NSString): DOMNodeList; message 'tags:';
   end; external;
 
 {$endif}

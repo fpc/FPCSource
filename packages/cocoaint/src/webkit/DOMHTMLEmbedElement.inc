@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLEmbedElement.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMHTMLEmbedElement = objcclass;
   DOMHTMLEmbedElementPointer = ^DOMHTMLEmbedElement;
+  DOMHTMLEmbedElementPtr = DOMHTMLEmbedElementPointer;
 
 {$endif}
 
@@ -48,12 +49,16 @@
 
     procedure setAlign (newValue: NSString); message 'setAlign:';
     function align: NSString; message 'align';
+    procedure setHeight (newValue: cint); message 'setHeight:';
+    function height: cint; message 'height';
     procedure setName (newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
     procedure setSrc (newValue: NSString); message 'setSrc:';
     function src: NSString; message 'src';
     procedure setType (newValue: NSString); message 'setType:';
     function type_: NSString; message 'type_';
+    procedure setWidth (newValue: cint); message 'setWidth:';
+    function width: cint; message 'width';
   end; external;
 
 {$endif}

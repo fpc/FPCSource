@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSNotificationQueue.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -21,7 +21,9 @@ const
 { Types }
 type
   NSPostingStyle = NSUInteger;
+  NSPostingStylePtr = ^NSPostingStyle;
   NSNotificationCoalescing = NSUInteger;
+  NSNotificationCoalescingPtr = ^NSNotificationCoalescing;
 
 {$endif}
 {$endif}
@@ -50,6 +52,7 @@ type
 {$ifdef FORWARD}
   NSNotificationQueue = objcclass;
   NSNotificationQueuePointer = ^NSNotificationQueue;
+  NSNotificationQueuePtr = NSNotificationQueuePointer;
 
 {$endif}
 
@@ -60,11 +63,11 @@ type
 { NSNotificationQueue }
   NSNotificationQueue = objcclass(NSObject)
   private
-    __notificationCenter: id;
-    __asapQueue: id;
-    __asapObs: id;
-    __idleQueue: id;
-    __idleObs: id;
+    _notificationCenter: id;
+    _asapQueue: id;
+    _asapObs: id;
+    _idleQueue: id;
+    _idleObs: id;
     
   public
     class function alloc: NSNotificationQueue; message 'alloc';

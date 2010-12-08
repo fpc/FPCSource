@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLTableCellElement.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:19:00 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMHTMLTableCellElement = objcclass;
   DOMHTMLTableCellElementPointer = ^DOMHTMLTableCellElement;
+  DOMHTMLTableCellElementPtr = DOMHTMLTableCellElementPointer;
 
 {$endif}
 
@@ -59,10 +60,16 @@
     function ch: NSString; message 'ch';
     procedure setChOff (newValue: NSString); message 'setChOff:';
     function chOff: NSString; message 'chOff';
+    procedure setColSpan (newValue: cint); message 'setColSpan:';
+    function colSpan: cint; message 'colSpan';
     procedure setHeaders (newValue: NSString); message 'setHeaders:';
     function headers: NSString; message 'headers';
     procedure setHeight (newValue: NSString); message 'setHeight:';
     function height: NSString; message 'height';
+    procedure setNoWrap (newValue: Boolean); message 'setNoWrap:';
+    function noWrap: Boolean; message 'noWrap';
+    procedure setRowSpan (newValue: cint); message 'setRowSpan:';
+    function rowSpan: cint; message 'rowSpan';
     procedure setScope (newValue: NSString); message 'setScope:';
     function scope: NSString; message 'scope';
     procedure setVAlign (newValue: NSString); message 'setVAlign:';

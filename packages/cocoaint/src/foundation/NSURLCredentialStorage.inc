@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLCredentialStorage.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -27,12 +27,17 @@
 {$ifndef NSURLCREDENTIALSTORAGE_PAS_S}
 {$define NSURLCREDENTIALSTORAGE_PAS_S}
 
+{ External string constants }
+var
+  NSURLCredentialStorageChangedNotification: NSString; cvar; external;
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSURLCredentialStorage = objcclass;
   NSURLCredentialStoragePointer = ^NSURLCredentialStorage;
+  NSURLCredentialStoragePtr = NSURLCredentialStoragePointer;
 
 {$endif}
 
@@ -43,7 +48,7 @@
 { NSURLCredentialStorage }
   NSURLCredentialStorage = objcclass(NSObject)
   private
-    __internal: NSURLCredentialStorageInternal;
+    _internal: NSURLCredentialStorageInternal;
     
   public
     class function alloc: NSURLCredentialStorage; message 'alloc';

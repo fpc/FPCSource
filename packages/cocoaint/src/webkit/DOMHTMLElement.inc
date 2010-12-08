@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLElement.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMHTMLElement = objcclass;
   DOMHTMLElementPointer = ^DOMHTMLElement;
+  DOMHTMLElementPtr = DOMHTMLElementPointer;
 
 {$endif}
 
@@ -55,7 +56,9 @@
     procedure setDir (newValue: NSString); message 'setDir:';
     function dir: NSString; message 'dir';
     procedure setClassName (newValue: NSString); message 'setClassName:';
-    function className_: NSString; message 'className_';
+    function className: NSString; message 'className';
+    procedure setTabIndex (newValue: cint); message 'setTabIndex:';
+    function tabIndex: cint; message 'tabIndex';
     procedure setInnerHTML (newValue: NSString); message 'setInnerHTML:';
     function innerHTML: NSString; message 'innerHTML';
     procedure setInnerText (newValue: NSString); message 'setInnerText:';

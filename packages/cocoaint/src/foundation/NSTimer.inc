@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSTimer.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSTimer = objcclass;
   NSTimerPointer = ^NSTimer;
+  NSTimerPtr = NSTimerPointer;
 
 {$endif}
 

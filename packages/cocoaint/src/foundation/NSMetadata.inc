@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSMetadata.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,27 +29,32 @@
 
 { External string constants }
 var
-  NSMetadataQueryDidStartGatheringNotification: NSString; external name '_NSMetadataQueryDidStartGatheringNotification';
-  NSMetadataQueryGatheringProgressNotification: NSString; external name '_NSMetadataQueryGatheringProgressNotification';
-  NSMetadataQueryDidFinishGatheringNotification: NSString; external name '_NSMetadataQueryDidFinishGatheringNotification';
-  NSMetadataQueryDidUpdateNotification: NSString; external name '_NSMetadataQueryDidUpdateNotification';
-  NSMetadataQueryResultContentRelevanceAttribute: NSString; external name '_NSMetadataQueryResultContentRelevanceAttribute';
-  NSMetadataQueryUserHomeScope: NSString; external name '_NSMetadataQueryUserHomeScope';
-  NSMetadataQueryLocalComputerScope: NSString; external name '_NSMetadataQueryLocalComputerScope';
-  NSMetadataQueryNetworkScope: NSString; external name '_NSMetadataQueryNetworkScope';
+  NSMetadataQueryDidStartGatheringNotification: NSString; cvar; external;
+  NSMetadataQueryGatheringProgressNotification: NSString; cvar; external;
+  NSMetadataQueryDidFinishGatheringNotification: NSString; cvar; external;
+  NSMetadataQueryDidUpdateNotification: NSString; cvar; external;
+  NSMetadataQueryResultContentRelevanceAttribute: NSString; cvar; external;
+  NSMetadataQueryUserHomeScope: NSString; cvar; external;
+  NSMetadataQueryLocalComputerScope: NSString; cvar; external;
+  NSMetadataQueryNetworkScope: NSString; cvar; external;
 
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
+  NSMetadataQueryDelegateProtocol = objcprotocol;
   NSMetadataQuery = objcclass;
   NSMetadataQueryPointer = ^NSMetadataQuery;
+  NSMetadataQueryPtr = NSMetadataQueryPointer;
   NSMetadataItem = objcclass;
   NSMetadataItemPointer = ^NSMetadataItem;
+  NSMetadataItemPtr = NSMetadataItemPointer;
   NSMetadataQueryAttributeValueTuple = objcclass;
   NSMetadataQueryAttributeValueTuplePointer = ^NSMetadataQueryAttributeValueTuple;
+  NSMetadataQueryAttributeValueTuplePtr = NSMetadataQueryAttributeValueTuplePointer;
   NSMetadataQueryResultGroup = objcclass;
   NSMetadataQueryResultGroupPointer = ^NSMetadataQueryResultGroup;
+  NSMetadataQueryResultGroupPtr = NSMetadataQueryResultGroupPointer;
 
 {$endif}
 
@@ -60,10 +65,10 @@ var
 { NSMetadataQuery }
   NSMetadataQuery = objcclass(NSObject)
   private
-    __flags: NSUInteger;
-    __interval: NSTimeInterval;
+    _flags: NSUInteger;
+    _interval: NSTimeInterval;
         _private: array[0..10] of id;
-    __reserved: Pointer;
+    _reserved: Pointer; {garbage collector: __strong }
     
   public
     class function alloc: NSMetadataQuery; message 'alloc';
@@ -102,8 +107,8 @@ var
 { NSMetadataItem }
   NSMetadataItem = objcclass(NSObject)
   private
-    __item: id;
-    __reserved: Pointer;
+    _item: id;
+    _reserved: Pointer; {garbage collector: __strong }
     
   public
     class function alloc: NSMetadataItem; message 'alloc';
@@ -116,10 +121,10 @@ var
 { NSMetadataQueryAttributeValueTuple }
   NSMetadataQueryAttributeValueTuple = objcclass(NSObject)
   private
-    __attr: id;
-    __value: id;
-    __count: NSUInteger;
-    __reserved: Pointer;
+    _attr: id;
+    _value: id;
+    _count: NSUInteger;
+    _reserved: Pointer;
     
   public
     class function alloc: NSMetadataQueryAttributeValueTuple; message 'alloc';
@@ -133,8 +138,8 @@ var
   NSMetadataQueryResultGroup = objcclass(NSObject)
   private
         _private: array[0..8] of id;
-    __private2: NSUInteger;
-    __reserved: Pointer;
+    _private2: NSUInteger;
+    _reserved: Pointer;
     
   public
     class function alloc: NSMetadataQueryResultGroup; message 'alloc';
@@ -147,5 +152,16 @@ var
     function results: NSArray; message 'results';
   end; external;
 
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSMETADATA_PAS_P}
+{$define NSMETADATA_PAS_P}
+  
+{ NSMetadataQueryDelegate Protocol }
+  NSMetadataQueryDelegateProtocol = objcprotocol
+    function metadataQuery_replacementObjectForResultObject(query: NSMetadataQuery; result_: NSMetadataItem): id; message 'metadataQuery:replacementObjectForResultObject:';
+    function metadataQuery_replacementValueForAttribute_value(query: NSMetadataQuery; attrName: NSString; attrValue: id): id; message 'metadataQuery:replacementValueForAttribute:value:';
+  end; external name 'NSMetadataQueryDelegate';
 {$endif}
 {$endif}

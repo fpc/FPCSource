@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSTimeZone.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -13,10 +13,13 @@ const
   NSTimeZoneNameStyleShortStandard = 1;
   NSTimeZoneNameStyleDaylightSaving = 2;
   NSTimeZoneNameStyleShortDaylightSaving = 3;
+  NSTimeZoneNameStyleGeneric = 4;
+  NSTimeZoneNameStyleShortGeneric = 5;
 
 { Types }
 type
   NSTimeZoneNameStyle = NSInteger;
+  NSTimeZoneNameStylePtr = ^NSTimeZoneNameStyle;
 
 {$endif}
 {$endif}
@@ -41,7 +44,7 @@ type
 
 { External string constants }
 var
-  NSSystemTimeZoneDidChangeNotification: NSString; external name '_NSSystemTimeZoneDidChangeNotification';
+  NSSystemTimeZoneDidChangeNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -49,6 +52,7 @@ var
 {$ifdef FORWARD}
   NSTimeZone = objcclass;
   NSTimeZonePointer = ^NSTimeZone;
+  NSTimeZonePtr = NSTimeZonePointer;
 
 {$endif}
 
@@ -70,7 +74,14 @@ var
     function daylightSavingTimeOffsetForDate(aDate: NSDate): NSTimeInterval; message 'daylightSavingTimeOffsetForDate:';
     function nextDaylightSavingTimeTransitionAfterDate(aDate: NSDate): NSDate; message 'nextDaylightSavingTimeTransitionAfterDate:';
 
-    { Category: NSExtendedTimeZone }
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+  end; external;
+
+{ NSExtendedTimeZoneCategory }
+  NSExtendedTimeZoneCategory = objccategory(NSTimeZone)
     class function systemTimeZone: NSTimeZone; message 'systemTimeZone';
     class procedure resetSystemTimeZone; message 'resetSystemTimeZone';
     class function defaultTimeZone: NSTimeZone; message 'defaultTimeZone';
@@ -78,14 +89,20 @@ var
     class function localTimeZone: NSTimeZone; message 'localTimeZone';
     class function knownTimeZoneNames: NSArray; message 'knownTimeZoneNames';
     class function abbreviationDictionary: NSDictionary; message 'abbreviationDictionary';
+    class procedure setAbbreviationDictionary(dict: NSDictionary); message 'setAbbreviationDictionary:';
+    class function timeZoneDataVersion: NSString; message 'timeZoneDataVersion';
     function secondsFromGMT: NSInteger; message 'secondsFromGMT';
     function abbreviation: NSString; message 'abbreviation';
     function isDaylightSavingTime: Boolean; message 'isDaylightSavingTime';
+    function daylightSavingTimeOffset: NSTimeInterval; message 'daylightSavingTimeOffset';
+    function nextDaylightSavingTimeTransition: NSDate; message 'nextDaylightSavingTimeTransition';
     function description: NSString; message 'description';
     function isEqualToTimeZone(aTimeZone: NSTimeZone): Boolean; message 'isEqualToTimeZone:';
     function localizedName_locale(style: NSTimeZoneNameStyle; locale: NSLocale): NSString; message 'localizedName:locale:';
+  end; external;
 
-    { Category: NSTimeZoneCreation }
+{ NSTimeZoneCreationCategory }
+  NSTimeZoneCreationCategory = objccategory(NSTimeZone)
     class function timeZoneWithName(tzName: NSString): id; message 'timeZoneWithName:';
     class function timeZoneWithName_data(tzName: NSString; aData: NSData): id; message 'timeZoneWithName:data:';
     function initWithName(tzName: NSString): id; message 'initWithName:';

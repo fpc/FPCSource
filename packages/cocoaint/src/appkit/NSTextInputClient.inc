@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextInputClient.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:08 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -54,6 +54,7 @@
     function fractionOfDistanceThroughGlyphForPoint(aPoint: NSPoint): CGFloat; message 'fractionOfDistanceThroughGlyphForPoint:';
     function baselineDeltaForCharacterAtIndex(anIndex: NSUInteger): CGFloat; message 'baselineDeltaForCharacterAtIndex:';
     function windowLevel: NSInteger; message 'windowLevel';
+    function drawsVerticallyForCharacterAtIndex(charIndex: NSUInteger): Boolean; message 'drawsVerticallyForCharacterAtIndex:';
   end; external name 'NSTextInputClient';
 {$endif}
 {$endif}

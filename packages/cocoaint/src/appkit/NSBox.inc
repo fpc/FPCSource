@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSBox.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -27,7 +27,9 @@ const
 { Types }
 type
   NSTitlePosition = NSUInteger;
+  NSTitlePositionPtr = ^NSTitlePosition;
   NSBoxType = NSUInteger;
+  NSBoxTypePtr = ^NSBoxType;
 
 {$endif}
 {$endif}
@@ -56,6 +58,7 @@ type
 {$ifdef FORWARD}
   NSBox = objcclass;
   NSBoxPointer = ^NSBox;
+  NSBoxPtr = NSBoxPointer;
 
 {$endif}
 
@@ -66,23 +69,27 @@ type
 { NSBox }
   NSBox = objcclass(NSView)
   private
-    __titleCell: id;
-    __contentView: id;
-    __offsets: NSSize;
-    __borderRect: NSRect;
-    __titleRect: NSRect;
+    _titleCell: id;
+    _contentView: id;
+    _offsets: NSSize;
+    _borderRect: NSRect;
+    _titleRect: NSRect;
     __bFlags: bitpacked record
-        borderType: 0..((1 shl 2)-1);
-        titlePosition: 0..((1 shl 3)-1);
+      case byte of
+       0: (_anonbitfield_NSBox0: NSBorderType);
+       1: (
+        _borderType: 0..((1 shl 2)-1);
+        _titlePosition: 0..((1 shl 3)-1);
         backgroundTransparent: 0..1;
         reserved: 0..((1 shl 2)-1);
         needsTile: 0..1;
         transparent: 0..1;
         colorAltInterpretation: 0..1;
-        boxType: 0..((1 shl 3)-1);
+        _boxType: 0..((1 shl 3)-1);
         _RESERVED: 0..((1 shl 18)-1);
+      );
       end;
-    __unused: id;
+    _unused: id;
     
   public
     class function alloc: NSBox; message 'alloc';
@@ -108,11 +115,15 @@ type
     procedure setContentView(aView: NSView); message 'setContentView:';
     function isTransparent: Boolean; message 'isTransparent';
     procedure setTransparent(flag: Boolean); message 'setTransparent:';
+  end; external;
 
-    { Category: NSKeyboardUI }
+{ NSKeyboardUI_NSBoxCategory }
+  NSKeyboardUI_NSBoxCategory = objccategory(NSBox)
     procedure setTitleWithMnemonic(stringWithAmpersand: NSString); message 'setTitleWithMnemonic:';
+  end; external name 'NSKeyboardUI';
 
-    { Category: NSCustomBoxTypeProperties }
+{ NSCustomBoxTypePropertiesCategory }
+  NSCustomBoxTypePropertiesCategory = objccategory(NSBox)
     function borderWidth: CGFloat; message 'borderWidth';
     procedure setBorderWidth(borderWidth_: CGFloat); message 'setBorderWidth:';
     function cornerRadius: CGFloat; message 'cornerRadius';

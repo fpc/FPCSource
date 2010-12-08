@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSManagedObjectContext.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,22 +29,23 @@
 
 { External string constants }
 var
-  NSManagedObjectContextDidSaveNotification: NSString; external name '_NSManagedObjectContextDidSaveNotification';
-  NSManagedObjectContextObjectsDidChangeNotification: NSString; external name '_NSManagedObjectContextObjectsDidChangeNotification';
-  NSInsertedObjectsKey: NSString; external name '_NSInsertedObjectsKey';
-  NSUpdatedObjectsKey: NSString; external name '_NSUpdatedObjectsKey';
-  NSDeletedObjectsKey: NSString; external name '_NSDeletedObjectsKey';
-  NSRefreshedObjectsKey: NSString; external name '_NSRefreshedObjectsKey';
-  NSInvalidatedObjectsKey: NSString; external name '_NSInvalidatedObjectsKey';
-  NSInvalidatedAllObjectsKey: NSString; external name '_NSInvalidatedAllObjectsKey';
+  NSManagedObjectContextWillSaveNotification: NSString; cvar; external;
+  NSManagedObjectContextDidSaveNotification: NSString; cvar; external;
+  NSManagedObjectContextObjectsDidChangeNotification: NSString; cvar; external;
+  NSInsertedObjectsKey: NSString; cvar; external;
+  NSUpdatedObjectsKey: NSString; cvar; external;
+  NSDeletedObjectsKey: NSString; cvar; external;
+  NSRefreshedObjectsKey: NSString; cvar; external;
+  NSInvalidatedObjectsKey: NSString; cvar; external;
+  NSInvalidatedAllObjectsKey: NSString; cvar; external;
 
 { External symbols }
 var
-  NSErrorMergePolicy: id; external name '_NSErrorMergePolicy';
-  NSMergeByPropertyStoreTrumpMergePolicy: id; external name '_NSMergeByPropertyStoreTrumpMergePolicy';
-  NSMergeByPropertyObjectTrumpMergePolicy: id; external name '_NSMergeByPropertyObjectTrumpMergePolicy';
-  NSOverwriteMergePolicy: id; external name '_NSOverwriteMergePolicy';
-  NSRollbackMergePolicy: id; external name '_NSRollbackMergePolicy';
+  NSErrorMergePolicy: id; cvar; external;
+  NSMergeByPropertyStoreTrumpMergePolicy: id; cvar; external;
+  NSMergeByPropertyObjectTrumpMergePolicy: id; cvar; external;
+  NSOverwriteMergePolicy: id; cvar; external;
+  NSRollbackMergePolicy: id; cvar; external;
 
 {$endif}
 {$endif}
@@ -52,6 +53,7 @@ var
 {$ifdef FORWARD}
   NSManagedObjectContext = objcclass;
   NSManagedObjectContextPointer = ^NSManagedObjectContext;
+  NSManagedObjectContextPtr = NSManagedObjectContextPointer;
 
 {$endif}
 
@@ -62,11 +64,14 @@ var
 { NSManagedObjectContext }
   NSManagedObjectContext = objcclass(NSObject, NSCodingProtocol, NSLockingProtocol)
   private
-    __spinLock: longint;
-    __objectStore: NSPersistentStoreCoordinator;
-    __undoManager: NSUndoManager;
-    __children: NSMutableArray;
+    _spinLock: cint32;
+    _objectStore: NSPersistentStoreCoordinator;
+    _undoManager: NSUndoManager;
+    _children: NSMutableArray;
     __flags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSManagedObjectContext0: cuint);
+       1: (
         _registeredForCallback: 0..1;
         _propagatesDeletesAtEndOfEvent: 0..1;
         _exhaustiveValidation: 0..1;
@@ -80,36 +85,36 @@ var
         _isDirty: 0..1;
         _ignoreUndoCheckpoints: 0..1;
         _propagatingDeletes: 0..1;
-        _reservedFlags: 0..((1 shl 19)-1);
+        _isNSEditorEditing: 0..1;
+        _isMainThreadBlessed: 0..1;
+        _reservedFlags: 0..((1 shl 17)-1);
+      );
       end;
-    __unprocessedChanges: NSMutableSet;
-    __unprocessedDeletes: NSMutableSet;
-    __unprocessedInserts: NSMutableSet;
-    __insertedObjects: NSMutableSet;
-    __deletedObjects: NSMutableSet;
-    __changedObjects: NSMutableSet;
-    __lockedObjects: NSMutableSet;
-    __refreshedObjects: NSMutableSet;
-    __infoByGID: id;
-    __cachedObsInfoByEntity: id;
-    __undoTransactionID: cshort;
-    __lock: id;
-    __lockCount: clong;
-    __objectStoreLockCount: clong;
-    __fetchTimestamp: NSTimeInterval;
-    __delegate: id;
-    __referenceQueue: id;
-    __ignoreChangeNotification: clong;
-    __mergePolicy: id;
-    __cd_rc: longint;
-    __managedObjectContextEditorFlags: bitpacked record
-        _isEditing: 0..1;
-        _reservedManagedObjectContext: 0..((1 shl 31)-1);
-      end;
-    __editors: id;
-    __debuggingRecords: id;
-    __reserved1: Pointer;
-    __reserved2: Pointer;
+    _unprocessedChanges: NSMutableSet;
+    _unprocessedDeletes: NSMutableSet;
+    _unprocessedInserts: NSMutableSet;
+    _insertedObjects: NSMutableSet;
+    _deletedObjects: NSMutableSet;
+    _changedObjects: NSMutableSet;
+    _lockedObjects: NSMutableSet;
+    _refreshedObjects: NSMutableSet;
+    _infoByGID: id;
+    _cachedObsInfoByEntity: idPtr;
+    _undoTransactionID: cshort;
+    _lock: id;
+    _lockCount: clong;
+    _objectStoreLockCount: clong;
+    _fetchTimestamp: NSTimeInterval;
+    _delegate: id;
+    _referenceQueue: id;
+    _ignoreChangeNotification: clong;
+    _mergePolicy: id;
+    _cd_rc: cint32;
+    _reserved3: cint32;
+    _editors: id;
+    _debuggingRecords: idPtr;
+    _reserved1: Pointer;
+    _reserved2: Pointer;
     
   public
     class function alloc: NSManagedObjectContext; message 'alloc';
@@ -121,6 +126,7 @@ var
     function hasChanges: Boolean; message 'hasChanges';
     function objectRegisteredForID(objectID: NSManagedObjectID): NSManagedObject; message 'objectRegisteredForID:';
     function objectWithID(objectID: NSManagedObjectID): NSManagedObject; message 'objectWithID:';
+    function existingObjectWithID_error(objectID: NSManagedObjectID; error: NSErrorPointer): NSManagedObject; message 'existingObjectWithID:error:';
     function executeFetchRequest_error(request: NSFetchRequest; error: NSErrorPointer): NSArray; message 'executeFetchRequest:error:';
     function countForFetchRequest_error(request: NSFetchRequest; error: NSErrorPointer): NSUInteger; message 'countForFetchRequest:error:';
     procedure insertObject(object_: NSManagedObject); message 'insertObject:';
@@ -152,6 +158,10 @@ var
     function mergePolicy: id; message 'mergePolicy';
     function obtainPermanentIDsForObjects_error(objects: NSArray; error: NSErrorPointer): Boolean; message 'obtainPermanentIDsForObjects:error:';
     procedure mergeChangesFromContextDidSaveNotification(notification: NSNotification); message 'mergeChangesFromContextDidSaveNotification:';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 {$endif}

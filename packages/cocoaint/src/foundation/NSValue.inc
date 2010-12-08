@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSValue.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,8 +33,10 @@
 {$ifdef FORWARD}
   NSValue = objcclass;
   NSValuePointer = ^NSValue;
+  NSValuePtr = NSValuePointer;
   NSNumber = objcclass;
   NSNumberPointer = ^NSNumber;
+  NSNumberPtr = NSNumberPointer;
 
 {$endif}
 
@@ -51,17 +53,10 @@
     procedure getValue(value: Pointer); message 'getValue:';
     function objCType: PChar; message 'objCType';
 
-    { Category: NSValueCreation }
-    function initWithBytes_objCType(value: Pointer; type_: PChar): id; message 'initWithBytes:objCType:';
-    class function valueWithBytes_objCType(value: Pointer; type_: PChar): NSValue; message 'valueWithBytes:objCType:';
-    class function value_withObjCType(value: Pointer; type_: PChar): NSValue; message 'value:withObjCType:';
-
-    { Category: NSValueExtensionMethods }
-    class function valueWithNonretainedObject(anObject: id): NSValue; message 'valueWithNonretainedObject:';
-    function nonretainedObjectValue: id; message 'nonretainedObjectValue';
-    class function valueWithPointer(pointer_: Pointer): NSValue; message 'valueWithPointer:';
-    function pointerValue: Pointer; message 'pointerValue';
-    function isEqualToValue(value: NSValue): Boolean; message 'isEqualToValue:';
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 { NSNumber }
@@ -89,10 +84,28 @@
     function compare(otherNumber: NSNumber): NSComparisonResult; message 'compare:';
     function isEqualToNumber(number: NSNumber): Boolean; message 'isEqualToNumber:';
     function descriptionWithLocale(locale: id): NSString; message 'descriptionWithLocale:';
+  end; external;
 
-    { Category: NSNumberCreation }
-    function initWithChar(value: char_): id; message 'initWithChar:';
-    function initWithUnsignedChar(value: char_): id; message 'initWithUnsignedChar:';
+{ NSValueCreationCategory }
+  NSValueCreationCategory = objccategory(NSValue)
+    function initWithBytes_objCType(value: Pointer; type_: PChar): id; message 'initWithBytes:objCType:';
+    class function valueWithBytes_objCType(value: Pointer; type_: PChar): NSValue; message 'valueWithBytes:objCType:';
+    class function value_withObjCType(value: Pointer; type_: PChar): NSValue; message 'value:withObjCType:';
+  end; external;
+
+{ NSValueExtensionMethodsCategory }
+  NSValueExtensionMethodsCategory = objccategory(NSValue)
+    class function valueWithNonretainedObject(anObject: id): NSValue; message 'valueWithNonretainedObject:';
+    function nonretainedObjectValue: id; message 'nonretainedObjectValue';
+    class function valueWithPointer(pointer_: Pointer): NSValue; message 'valueWithPointer:';
+    function pointerValue: Pointer; message 'pointerValue';
+    function isEqualToValue(value: NSValue): Boolean; message 'isEqualToValue:';
+  end; external;
+
+{ NSNumberCreationCategory }
+  NSNumberCreationCategory = objccategory(NSNumber)
+    function initWithChar(value: char): id; message 'initWithChar:';
+    function initWithUnsignedChar(value: char): id; message 'initWithUnsignedChar:';
     function initWithShort(value: cshort): id; message 'initWithShort:';
     function initWithUnsignedShort(value: cushort): id; message 'initWithUnsignedShort:';
     function initWithInt(value: cint): id; message 'initWithInt:';
@@ -106,8 +119,8 @@
     function initWithBool(value: Boolean): id; message 'initWithBool:';
     function initWithInteger(value: NSInteger): id; message 'initWithInteger:';
     function initWithUnsignedInteger(value: NSUInteger): id; message 'initWithUnsignedInteger:';
-    class function numberWithChar(value: char_): NSNumber; message 'numberWithChar:';
-    class function numberWithUnsignedChar(value: char_): NSNumber; message 'numberWithUnsignedChar:';
+    class function numberWithChar(value: char): NSNumber; message 'numberWithChar:';
+    class function numberWithUnsignedChar(value: char): NSNumber; message 'numberWithUnsignedChar:';
     class function numberWithShort(value: cshort): NSNumber; message 'numberWithShort:';
     class function numberWithUnsignedShort(value: cushort): NSNumber; message 'numberWithUnsignedShort:';
     class function numberWithInt(value: cint): NSNumber; message 'numberWithInt:';
@@ -121,9 +134,6 @@
     class function numberWithBool(value: Boolean): NSNumber; message 'numberWithBool:';
     class function numberWithInteger(value: NSInteger): NSNumber; message 'numberWithInteger:';
     class function numberWithUnsignedInteger(value: NSUInteger): NSNumber; message 'numberWithUnsignedInteger:';
-
-    { Category: NSDecimalNumberExtensions }
-    function decimalValue: NSDecimal; message 'decimalValue';
   end; external;
 
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSMappingModel.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSMappingModel = objcclass;
   NSMappingModelPointer = ^NSMappingModel;
+  NSMappingModelPtr = NSMappingModelPointer;
 
 {$endif}
 
@@ -43,20 +44,25 @@
 { NSMappingModel }
   NSMappingModel = objcclass(NSObject)
   private
-    __reserved: Pointer;
-    __reserved1: Pointer;
-    __reserved2: Pointer;
-    __entityMappings: NSMutableArray;
-    __entityMappingsByName: NSMutableDictionary;
+    _reserved: Pointer;
+    _reserved1: Pointer;
+    _reserved2: Pointer;
+    _entityMappings: NSMutableArray;
+    _entityMappingsByName: NSMutableDictionary;
     __modelMappingFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSMappingModel0: cuint);
+       1: (
         _isInUse: 0..1;
         _reservedModelMapping: 0..((1 shl 31)-1);
+      );
       end;
     
   public
     class function alloc: NSMappingModel; message 'alloc';
 
     class function mappingModelFromBundles_forSourceModel_destinationModel(bundles: NSArray; sourceModel: NSManagedObjectModel; destinationModel: NSManagedObjectModel): NSMappingModel; message 'mappingModelFromBundles:forSourceModel:destinationModel:';
+    class function inferredMappingModelForSourceModel_destinationModel_error(sourceModel: NSManagedObjectModel; destinationModel: NSManagedObjectModel; error: NSErrorPointer): NSMappingModel; message 'inferredMappingModelForSourceModel:destinationModel:error:';
     function initWithContentsOfURL(url: NSURL): id; message 'initWithContentsOfURL:';
     function entityMappings: NSArray; message 'entityMappings';
     procedure setEntityMappings(mappings: NSArray); message 'setEntityMappings:';

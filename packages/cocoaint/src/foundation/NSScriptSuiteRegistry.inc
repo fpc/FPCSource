@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScriptSuiteRegistry.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSScriptSuiteRegistry = objcclass;
   NSScriptSuiteRegistryPointer = ^NSScriptSuiteRegistry;
+  NSScriptSuiteRegistryPtr = NSScriptSuiteRegistryPointer;
 
 {$endif}
 
@@ -43,19 +44,19 @@
 { NSScriptSuiteRegistry }
   NSScriptSuiteRegistry = objcclass(NSObject)
   private
-    __isLoadingSDEFFiles: Boolean;
+    _isLoadingSDEFFiles: Boolean;
         _reserved1: array[0..2] of char;
-    __seenBundles: NSMutableSet;
-    __suiteDescriptionsBeingCollected: NSMutableArray;
-    __classDescriptionNeedingRegistration: NSScriptClassDescription;
-    __suiteDescriptions: NSMutableArray;
-    __commandDescriptionNeedingRegistration: NSScriptCommandDescription;
-    __cachedClassDescriptionsByAppleEventCode: NSMutableDictionary;
-    __cachedCommandDescriptionsByAppleEventCodes: NSMutableDictionary;
-    __cachedSuiteDescriptionsByName: NSDictionary;
-    __complexTypeDescriptionsByName: NSMutableDictionary;
-    __listTypeDescriptionsByName: NSMutableDictionary;
-    __nextComplexTypeAppleEventCode: cuint;
+    _seenBundles: NSMutableSet;
+    _suiteDescriptionsBeingCollected: NSMutableArray;
+    _classDescriptionNeedingRegistration: NSScriptClassDescription;
+    _suiteDescriptions: NSMutableArray;
+    _commandDescriptionNeedingRegistration: NSScriptCommandDescription;
+    _cachedClassDescriptionsByAppleEventCode: NSMutableDictionary;
+    _cachedCommandDescriptionsByAppleEventCodes: NSMutableDictionary;
+    _cachedSuiteDescriptionsByName: NSDictionary;
+    _complexTypeDescriptionsByName: NSMutableDictionary;
+    _listTypeDescriptionsByName: NSMutableDictionary;
+    _nextComplexTypeAppleEventCode: cuint;
         _reserved2: array[0..3] of Pointer;
     
   public
@@ -65,7 +66,7 @@
     class procedure setSharedScriptSuiteRegistry(registry: NSScriptSuiteRegistry); message 'setSharedScriptSuiteRegistry:';
     procedure loadSuitesFromBundle(bundle: NSBundle); message 'loadSuitesFromBundle:';
     procedure loadSuiteWithDictionary_fromBundle(suiteDeclaration: NSDictionary; bundle: NSBundle); message 'loadSuiteWithDictionary:fromBundle:';
-    procedure registerClassDescription(classDescription_: NSScriptClassDescription); message 'registerClassDescription:';
+    procedure registerClassDescription(classDescription: NSScriptClassDescription); message 'registerClassDescription:';
     procedure registerCommandDescription(commandDescription: NSScriptCommandDescription); message 'registerCommandDescription:';
     function suiteNames: NSArray; message 'suiteNames';
     function appleEventCodeForSuite(suiteName: NSString): FourCharCode; message 'appleEventCodeForSuite:';

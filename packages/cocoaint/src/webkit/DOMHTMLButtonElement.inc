@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLButtonElement.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMHTMLButtonElement = objcclass;
   DOMHTMLButtonElementPointer = ^DOMHTMLButtonElement;
+  DOMHTMLButtonElementPtr = DOMHTMLButtonElementPointer;
 
 {$endif}
 
@@ -49,11 +50,17 @@
     function form: DOMHTMLFormElement; message 'form';
     procedure setAccessKey (newValue: NSString); message 'setAccessKey:';
     function accessKey: NSString; message 'accessKey';
+    procedure setDisabled (newValue: Boolean); message 'setDisabled:';
+    function disabled: Boolean; message 'disabled';
+    procedure setAutofocus (newValue: Boolean); message 'setAutofocus:';
+    function autofocus: Boolean; message 'autofocus';
     procedure setName (newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
     function type_: NSString; message 'type_';
     procedure setValue (newValue: NSString); message 'setValue:';
     function value: NSString; message 'value';
+    function willValidate: Boolean; message 'willValidate';
+    procedure click; message 'click';
   end; external;
 
 {$endif}

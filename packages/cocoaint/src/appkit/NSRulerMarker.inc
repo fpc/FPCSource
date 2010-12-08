@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSRulerMarker.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSRulerMarker = objcclass;
   NSRulerMarkerPointer = ^NSRulerMarker;
+  NSRulerMarkerPtr = NSRulerMarkerPointer;
 
 {$endif}
 
@@ -43,18 +44,22 @@
 { NSRulerMarker }
   NSRulerMarker = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __ruler: NSRulerView;
-    __location: CGFloat;
-    __image: NSImage;
-    __imageOrigin: NSPoint;
+    _ruler: NSRulerView;
+    _location: CGFloat;
+    _image: NSImage;
+    _imageOrigin: NSPoint;
     __rFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSRulerMarker0: cuint);
+       1: (
         movable: 0..1;
         removable: 0..1;
         dragging: 0..1;
         pinned: 0..1;
         _reserved: 0..((1 shl 28)-1);
+      );
       end;
-    __representedObject: id;
+    _representedObject: id;
     
   public
     class function alloc: NSRulerMarker; message 'alloc';
@@ -78,6 +83,11 @@
     function thicknessRequiredInRuler: CGFloat; message 'thicknessRequiredInRuler';
     procedure drawRect(rect: NSRect); message 'drawRect:';
     function trackMouse_adding(mouseDownEvent: NSEvent; isAdding: Boolean): Boolean; message 'trackMouse:adding:';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSavePanel.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -22,14 +22,28 @@ const
 { Records }
 type
   __SPFlags = bitpacked record
-    saveMode: 0..1;
-    isExpanded: 0..1;
-    allowsOtherFileTypes: 0..1;
-    canCreateDirectories: 0..1;
-    canSelectedHiddenExtension: 0..1;
-    reserved: 0..((1 shl 27)-1);
+    case byte of
+    0: (_anonbitfield_NSSavePanel0: cuint);
+    1: (
+          saveMode: 0..1;
+          isExpanded: 0..1;
+          allowsOtherFileTypes: 0..1;
+          canCreateDirectories: 0..1;
+          canSelectedHiddenExtension: 0..1;
+          inConfigureForDirectory: 0..1;
+          delegate_shouldShowFilename: 0..1;
+          delegate_compareFilename: 0..1;
+          delegate_shouldEnableURL: 0..1;
+          delegate_validateURL: 0..1;
+          delegate_didChangeToDirectoryURL: 0..1;
+          changingFrameSize: 0..1;
+          movingAccessoryView: 0..1;
+          userAccessoryViewFrameChange: 0..1;
+          reserved: 0..((1 shl 18)-1);
+       );
   end;
 _SPFlags = __SPFlags;
+__SPFlagsPtr = ^__SPFlags;
 
 
 {$endif}
@@ -50,8 +64,10 @@ _SPFlags = __SPFlags;
 {$endif}
 
 {$ifdef FORWARD}
+  NSOpenSavePanelDelegateProtocol = objcprotocol;
   NSSavePanel = objcclass;
   NSSavePanelPointer = ^NSSavePanel;
+  NSSavePanelPtr = NSSavePanelPointer;
 
 {$endif}
 
@@ -62,45 +78,42 @@ _SPFlags = __SPFlags;
 { NSSavePanel }
   NSSavePanel = objcclass(NSPanel)
   private
-    __navView: NSNavView;
-    __accessoryView: NSView;
-    __allowedFileTypes: NSArray;
-    __validatedPosixName: NSString;
-    __hiddenExtension: NSString;
-    __messageTextField: NSTextField;
-    __savePane: NSView;
-    __saveNavSeparatorBox: NSBox;
-    __savePaneTopPartsContainer: NSView;
-    __nameField: NSTextField;
-    __nameFieldLabel: NSTextField;
-    __expansionButton: NSButton;
-    __directoryPopUpContainer: NSView;
-    __directoryPopUp: id;
-    __directoryPopUpLabel: NSTextField;
-    __navViewContainer: NSBox;
-    __accessoryViewContainer: NSBox;
-    __bottomControlsContainer: NSView;
-    __hideExtensionButton: NSButton;
-    __newFolderButton: NSButton;
-    __cancelButton: NSButton;
-    __okButton: NSButton;
-    __filepathInputController: id;
-    __newFolderController: id;
-    __spFlags: _SPFlags;
-    __spAuxiliaryStorage: NSSavePanelAuxiliary;
+    _navView: NSNavView;
+    _accessoryView: NSView;
+    _allowedFileTypes: NSArray;
+    _validatedPosixName: NSString;
+    _hiddenExtension: NSString;
+    _messageTextField: NSTextField;
+    _savePane: NSView;
+    _saveNavSeparatorBox: NSBox;
+    _savePaneTopPartsContainer: NSView;
+    _nameField: NSTextField;
+    _nameFieldLabel: NSTextField;
+    _expansionButton: NSButton;
+    _directoryPopUpContainer: NSView;
+    _directoryPopUp: id;
+    _directoryPopUpLabel: NSTextField;
+    _navViewContainer: NSBox;
+    _accessoryViewContainer: NSBox;
+    _bottomControlsContainer: NSView;
+    _hideExtensionButton: NSButton;
+    _newFolderButton: NSButton;
+    _cancelButton: NSButton;
+    _okButton: NSButton;
+    _filepathInputController: id;
+    _newFolderController: id;
+    _spFlags: _SPFlags;
+    _spAuxiliaryStorage: NSSavePanelAuxiliary;
         _reserved: array[0..4] of char;
-    __private: Pointer;
+    _openProgressIndicator: NSProgressIndicator;
     
   public
     class function alloc: NSSavePanel; message 'alloc';
 
     class function savePanel: NSSavePanel; message 'savePanel';
     function URL: NSURL; message 'URL';
-    function filename: NSString; message 'filename';
-    function directory: NSString; message 'directory';
-    procedure setDirectory(path: NSString); message 'setDirectory:';
-    function requiredFileType: NSString; message 'requiredFileType';
-    procedure setRequiredFileType(type_: NSString); message 'setRequiredFileType:';
+    function directoryURL: NSURL; message 'directoryURL';
+    procedure setDirectoryURL(url_: NSURL); message 'setDirectoryURL:';
     function allowedFileTypes: NSArray; message 'allowedFileTypes';
     procedure setAllowedFileTypes(types: NSArray); message 'setAllowedFileTypes:';
     function allowsOtherFileTypes: Boolean; message 'allowsOtherFileTypes';
@@ -124,18 +137,51 @@ _SPFlags = __SPFlags;
     procedure setTitle(title_: NSString); message 'setTitle:';
     function nameFieldLabel: NSString; message 'nameFieldLabel';
     procedure setNameFieldLabel(label_: NSString); message 'setNameFieldLabel:';
+    function nameFieldStringValue: NSString; message 'nameFieldStringValue';
+    procedure setNameFieldStringValue(value: NSString); message 'setNameFieldStringValue:';
     function message: NSString; message 'message';
     procedure setMessage(message_: NSString); message 'setMessage:';
     procedure validateVisibleColumns; message 'validateVisibleColumns';
-    procedure selectText(sender: id); message 'selectText:';
-
-    { Category: NSSavePanelRuntime }
+    function showsHiddenFiles: Boolean; message 'showsHiddenFiles';
+    procedure setShowsHiddenFiles(flag: Boolean); message 'setShowsHiddenFiles:';
     procedure ok(sender: id); message 'ok:';
     procedure cancel(sender: id); message 'cancel:';
-    procedure beginSheetForDirectory_file_modalForWindow_modalDelegate_didEndSelector_contextInfo(path: NSString; name: NSString; docWindow: NSWindow; delegate_: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginSheetForDirectory:file:modalForWindow:modalDelegate:didEndSelector:contextInfo:';
-    function runModalForDirectory_file(path: NSString; name: NSString): NSInteger; message 'runModalForDirectory:file:';
     function runModal: NSInteger; message 'runModal';
   end; external;
 
+{ NSSavePanelDelegateDeprecatedCategory }
+  NSSavePanelDelegateDeprecatedCategory = objccategory(NSObject)
+    function panel_isValidFilename(sender: id; filename: NSString): Boolean; message 'panel:isValidFilename:';
+    procedure panel_directoryDidChange(sender: id; path: NSString); message 'panel:directoryDidChange:';
+    function panel_shouldShowFilename(sender: id; filename: NSString): Boolean; message 'panel:shouldShowFilename:';
+  end; external;
+
+{ NSDeprecated_NSSavePanelCategory }
+  NSDeprecated_NSSavePanelCategory = objccategory(NSSavePanel)
+    function filename: NSString; message 'filename';
+    function directory: NSString; message 'directory';
+    procedure setDirectory(path: NSString); message 'setDirectory:';
+    function requiredFileType: NSString; message 'requiredFileType';
+    procedure setRequiredFileType(type_: NSString); message 'setRequiredFileType:';
+    procedure beginSheetForDirectory_file_modalForWindow_modalDelegate_didEndSelector_contextInfo(path: NSString; name: NSString; docWindow: NSWindow; delegate_: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginSheetForDirectory:file:modalForWindow:modalDelegate:didEndSelector:contextInfo:';
+    function runModalForDirectory_file(path: NSString; name: NSString): NSInteger; message 'runModalForDirectory:file:';
+    procedure selectText(sender: id); message 'selectText:'; deprecated 'in Mac OS X 10.3 and later';
+  end; external name 'NSDeprecated';
+
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSSAVEPANEL_PAS_P}
+{$define NSSAVEPANEL_PAS_P}
+  
+{ NSOpenSavePanelDelegate Protocol }
+  NSOpenSavePanelDelegateProtocol = objcprotocol
+    function panel_shouldEnableURL(sender: id; url: NSURL): Boolean; message 'panel:shouldEnableURL:';
+    function panel_validateURL_error(sender: id; url: NSURL; outError: NSErrorPointer): Boolean; message 'panel:validateURL:error:';
+    procedure panel_didChangeToDirectoryURL(sender: id; url: NSURL); message 'panel:didChangeToDirectoryURL:';
+    function panel_userEnteredFilename_confirmed(sender: id; filename: NSString; okFlag: Boolean): NSString; message 'panel:userEnteredFilename:confirmed:';
+    procedure panel_willExpand(sender: id; expanding: Boolean); message 'panel:willExpand:';
+    procedure panelSelectionDidChange(sender: id); message 'panelSelectionDidChange:';
+  end; external name 'NSOpenSavePanelDelegate';
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSBezierPath.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -31,9 +31,13 @@ const
 { Types }
 type
   NSLineCapStyle = NSUInteger;
+  NSLineCapStylePtr = ^NSLineCapStyle;
   NSLineJoinStyle = NSUInteger;
+  NSLineJoinStylePtr = ^NSLineJoinStyle;
   NSWindingRule = NSUInteger;
+  NSWindingRulePtr = ^NSWindingRule;
   NSBezierPathElement = NSUInteger;
+  NSBezierPathElementPtr = ^NSBezierPathElement;
 
 {$endif}
 {$endif}
@@ -62,6 +66,7 @@ type
 {$ifdef FORWARD}
   NSBezierPath = objcclass;
   NSBezierPathPointer = ^NSBezierPath;
+  NSBezierPathPtr = NSBezierPathPointer;
 
 {$endif}
 
@@ -72,25 +77,31 @@ type
 { NSBezierPath }
   NSBezierPath = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __segmentCount: NSInteger;
-    __segmentMax: NSInteger;
-    __head: PATHSEGMENT;
-    __lastSubpathIndex: NSInteger;
-    __elementCount: NSInteger;
-    __lineWidth: CGFloat;
-    __controlPointBounds: NSRect;
-    __miterLimit: CGFloat;
-    __flatness: CGFloat;
-    __dashedLinePattern: CGFloat;
-    __dashedLineCount: NSUInteger;
-    __dashedLinePhase: CGFloat;
-    __path: Pointer;
-        _private: array[0..3] of id;
+    _elementCount: NSInteger;
+    _elementMax: NSInteger;
+    __head: Pointer;
+    _lastSubpathIndex: NSInteger;
+    _extraSegments: Pointer;
+    _lineWidth: CGFloat;
+    _controlPointBounds: NSRect;
+    _miterLimit: CGFloat;
+    _flatness: CGFloat;
+    _dashedLinePattern: CGFloatPtr;
+    _dashedLineCount: NSUInteger;
+    _dashedLinePhase: CGFloat;
+    _path: Pointer;
+    _extraSegmentCount: NSInteger;
+    _extraSegmentMax: NSInteger;
+        _private: array[0..1] of id;
     __bpFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSBezierPath0: cuint);
+       1: (
         _flags: 0..((1 shl 8)-1);
         _pathState: 0..((1 shl 2)-1);
         
         _unused: 0..((1 shl 22)-1);
+      );
       end;
     
   public
@@ -119,10 +130,12 @@ type
     class function defaultLineWidth: CGFloat; message 'defaultLineWidth';
     procedure moveToPoint(point: NSPoint); message 'moveToPoint:';
     procedure lineToPoint(point: NSPoint); message 'lineToPoint:';
+    procedure curveToPoint_controlPoint1_controlPoint2(endPoint: NSPoint; controlPoint: NSPoint; controlPoint1: NSPoint); message 'curveToPoint:controlPoint1:controlPoint2:';
     procedure closePath; message 'closePath';
     procedure removeAllPoints; message 'removeAllPoints';
     procedure relativeMoveToPoint(point: NSPoint); message 'relativeMoveToPoint:';
     procedure relativeLineToPoint(point: NSPoint); message 'relativeLineToPoint:';
+    procedure relativeCurveToPoint_controlPoint1_controlPoint2(endPoint: NSPoint; controlPoint: NSPoint; controlPoint1: NSPoint); message 'relativeCurveToPoint:controlPoint1:controlPoint2:';
     function lineWidth: CGFloat; message 'lineWidth';
     procedure setLineWidth(lineWidth_: CGFloat); message 'setLineWidth:';
     function lineCapStyle: NSLineCapStyle; message 'lineCapStyle';
@@ -135,8 +148,8 @@ type
     procedure setMiterLimit(miterLimit_: CGFloat); message 'setMiterLimit:';
     function flatness: CGFloat; message 'flatness';
     procedure setFlatness(flatness_: CGFloat); message 'setFlatness:';
-    procedure getLineDash_count_phase(pattern: psingle; count: NSIntegerPointer; phase: psingle); message 'getLineDash:count:phase:';
-    procedure setLineDash_count_phase(pattern: psingle; count: NSInteger; phase: CGFloat); message 'setLineDash:count:phase:';
+    procedure getLineDash_count_phase(pattern: CGFloatPtr; count: NSIntegerPtr; phase: CGFloatPtr); message 'getLineDash:count:phase:';
+    procedure setLineDash_count_phase(pattern: CGFloatPtr; count: NSInteger; phase: CGFloat); message 'setLineDash:count:phase:';
     procedure stroke; message 'stroke';
     procedure fill; message 'fill';
     procedure addClip; message 'addClip';
@@ -149,18 +162,32 @@ type
     function controlPointBounds: NSRect; message 'controlPointBounds';
     function bounds: NSRect; message 'bounds';
     function elementCount: NSInteger; message 'elementCount';
+    function elementAtIndex_associatedPoints(index: NSInteger; points: NSPointArray): NSBezierPathElement; message 'elementAtIndex:associatedPoints:';
     function elementAtIndex(index: NSInteger): NSBezierPathElement; message 'elementAtIndex:';
     procedure setAssociatedPoints_atIndex(points: NSPointArray; index: NSInteger); message 'setAssociatedPoints:atIndex:';
     procedure appendBezierPath(path: NSBezierPath); message 'appendBezierPath:';
     procedure appendBezierPathWithRect(rect: NSRect); message 'appendBezierPathWithRect:';
     procedure appendBezierPathWithPoints_count(points: NSPointArray; count: NSInteger); message 'appendBezierPathWithPoints:count:';
     procedure appendBezierPathWithOvalInRect(rect: NSRect); message 'appendBezierPathWithOvalInRect:';
+    procedure appendBezierPathWithArcWithCenter_radius_startAngle_endAngle_clockwise(center: NSPoint; radius: CGFloat; startAngle: CGFloat; endAngle: CGFloat; clockwise: Boolean); message 'appendBezierPathWithArcWithCenter:radius:startAngle:endAngle:clockwise:';
+    procedure appendBezierPathWithArcWithCenter_radius_startAngle_endAngle(center: NSPoint; radius: CGFloat; startAngle: CGFloat; endAngle: CGFloat); message 'appendBezierPathWithArcWithCenter:radius:startAngle:endAngle:';
+    procedure appendBezierPathWithArcFromPoint_toPoint_radius(point: NSPoint; point1: NSPoint; radius: CGFloat); message 'appendBezierPathWithArcFromPoint:toPoint:radius:';
     procedure appendBezierPathWithGlyph_inFont(glyph: NSGlyph; font: NSFont); message 'appendBezierPathWithGlyph:inFont:';
+    procedure appendBezierPathWithGlyphs_count_inFont(glyphs: NSGlyphPtr; count: NSInteger; font: NSFont); message 'appendBezierPathWithGlyphs:count:inFont:';
     procedure appendBezierPathWithPackedGlyphs(packedGlyphs: PChar); message 'appendBezierPathWithPackedGlyphs:';
     procedure appendBezierPathWithRoundedRect_xRadius_yRadius(rect: NSRect; xRadius: CGFloat; yRadius: CGFloat); message 'appendBezierPathWithRoundedRect:xRadius:yRadius:';
     function containsPoint(point: NSPoint): Boolean; message 'containsPoint:';
-    function cachesBezierPath: Boolean; message 'cachesBezierPath';
-    procedure setCachesBezierPath(flag: Boolean); message 'setCachesBezierPath:';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+  end; external;
+
+{ NSBezierPathDeprecatedCategory }
+  NSBezierPathDeprecatedCategory = objccategory(NSBezierPath)
+    function cachesBezierPath: Boolean; message 'cachesBezierPath'; deprecated 'in Mac OS X 10 and later';
+    procedure setCachesBezierPath(flag: Boolean); message 'setCachesBezierPath:'; deprecated 'in Mac OS X 10 and later';
   end; external;
 
 {$endif}

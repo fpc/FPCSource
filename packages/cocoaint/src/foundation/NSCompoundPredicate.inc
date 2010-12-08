@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSCompoundPredicate.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -16,6 +16,7 @@ const
 { Types }
 type
   NSCompoundPredicateType = NSUInteger;
+  NSCompoundPredicateTypePtr = ^NSCompoundPredicateType;
 
 {$endif}
 {$endif}
@@ -44,6 +45,7 @@ type
 {$ifdef FORWARD}
   NSCompoundPredicate = objcclass;
   NSCompoundPredicatePointer = ^NSCompoundPredicate;
+  NSCompoundPredicatePtr = NSCompoundPredicatePointer;
 
 {$endif}
 
@@ -54,9 +56,9 @@ type
 { NSCompoundPredicate }
   NSCompoundPredicate = objcclass(NSPredicate)
   private
-    __reserved2: Pointer;
-    __type: NSUInteger;
-    __subpredicates: NSArray;
+    _reserved2: Pointer;
+    _type: NSUInteger;
+    _subpredicates: NSArray;
     
   public
     class function alloc: NSCompoundPredicate; message 'alloc';

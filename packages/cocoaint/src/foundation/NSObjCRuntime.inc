@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSObjCRuntime.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -8,6 +8,7 @@
 
 { Defines }
 const
+  NS_BLOCKS_AVAILABLE = 0;
   NSFoundationVersionNumber10_0 = 397.40;
   NSFoundationVersionNumber10_1 = 425.00;
   NSFoundationVersionNumber10_1_1 = 425.00;
@@ -46,13 +47,57 @@ const
   NSFoundationVersionNumber10_4_9 = 567.29;
   NSFoundationVersionNumber10_4_10 = 567.29;
   NSFoundationVersionNumber10_4_11 = 567.36;
+  NSFoundationVersionNumber10_5 = 677.00;
+  NSFoundationVersionNumber10_5_1 = 677.10;
+  NSFoundationVersionNumber10_5_2 = 677.15;
+  NSFoundationVersionNumber10_5_3 = 677.19;
+  NSFoundationVersionNumber10_5_4 = 677.19;
+  NSFoundationVersionNumber10_5_5 = 677.21;
+  NSFoundationVersionNumber10_5_6 = 677.22;
+  NSFoundationVersionNumber_iPhoneOS_2_0 = 678.24;
+  NSFoundationVersionNumber_iPhoneOS_2_1 = 678.26;
+  NSFoundationVersionNumber_iPhoneOS_2_2 = 678.29;
   NSINTEGER_DEFINED = 1;
 
 { Types }
 type
+{$if defined(cpu64) or defined(cpuarm) or defined(win32)}
   NSInteger = clong;
   NSUInteger = culong;
+{$else}
+  NSInteger = cint;
+  NSUInteger = cuint;
+{$endif}
+  NSIntegerPtr = ^NSInteger;
+  NSUIntegerPtr = ^NSUInteger;
   NSComparisonResult = NSInteger;
+  NSComparisonResultPtr = ^NSComparisonResult;
+  NSEnumerationOptions = NSUInteger;
+  NSEnumerationOptionsPtr = ^NSEnumerationOptions;
+  NSSortOptions = NSUInteger;
+  NSSortOptionsPtr = ^NSSortOptions;
+
+{ Constants }
+
+const
+  NSOrderedAscending = -1;
+  NSOrderedSame = 0;
+  NSOrderedDescending = 1;
+
+const
+  NSEnumerationConcurrent = 1 shl 0;
+  NSEnumerationReverse = 1 shl 1;
+
+const
+  NSSortConcurrent = 1 shl 0;
+  NSSortStable = 1 shl 4;
+
+const
+  NSIntegerMax = high(NSInteger);
+  NSIntegerMin = low(NSInteger);
+  NSUIntegerMin = low(NSUinteger);
+  NSUIntegerMax = high(NSUinteger);
+  NSNotFound = NSIntegerMax;
 
 {$endif}
 {$endif}
@@ -69,14 +114,13 @@ type
 {$define NSOBJCRUNTIME_PAS_F}
 
 { Functions }
-function NSStringFromSelector(aSelector: SEL): NSString; cdecl; external name 'NSStringFromSelector';
-function NSSelectorFromString(aSelectorNamePointer: NSString): SEL; cdecl; external name 'NSSelectorFromString';
-function NSStringFromClass(aClass: Pobjc_class): NSString; cdecl; external name 'NSStringFromClass';
-function NSClassFromString(aClassNamePointer: NSString): Pobjc_class; cdecl; external name 'NSClassFromString';
-function NSStringFromProtocol(protoPointer: Protocol): NSString; cdecl; external name 'NSStringFromProtocol';
-function NSProtocolFromString(namestrPointer: NSString): Protocol; cdecl; external name 'NSProtocolFromString';
-function NSGetSizeAndAlignment(typePtrPointer: char; sizepPointer: NSUInteger; alignpPointer: NSUInteger): char; cdecl; external name 'NSGetSizeAndAlignment';
-procedure NSLogv(formatPointer: NSString; args: va_list); cdecl; external name 'NSLogv';
+function NSStringFromSelector(aSelector: SEL): NSString; cdecl; external;
+function NSSelectorFromString(aSelectorName: NSString): SEL; cdecl; external;
+function NSStringFromClass(aClass: Pobjc_class): NSString; cdecl; external;
+function NSClassFromString(aClassName: NSString): Pobjc_class; cdecl; external;
+function NSStringFromProtocol(proto: Protocol): NSString; cdecl; external;
+function NSProtocolFromString(namestr: NSString): Protocol; cdecl; external;
+function NSGetSizeAndAlignment(typePtr: PChar; sizep: NSUIntegerPtr; alignp: NSUIntegerPtr): PChar; cdecl; external;
 
 {$endif}
 {$endif}
@@ -87,17 +131,16 @@ procedure NSLogv(formatPointer: NSString; args: va_list); cdecl; external name '
 
 { External symbols }
 var
-  NSFoundationVersionNumber: double; external name '_NSFoundationVersionNumber';
+  NSFoundationVersionNumber: double; cvar; external;
 
 {$endif}
 {$endif}
 
 {$ifdef USER_PATCHES}
-{$ifndef NSOBJCRUNTIME_PAS_PATCH}
-{$define NSOBJCRUNTIME_PAS_PATCH}
 {$ifdef INTERFACE}
 procedure NSLog(fmt:NSString); cdecl; varargs; external;
 {$endif}
 
-{$endif}
+
+
 {$endif}

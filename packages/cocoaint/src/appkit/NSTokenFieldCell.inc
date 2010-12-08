@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTokenFieldCell.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -16,6 +16,7 @@ const
 { Types }
 type
   NSTokenStyle = NSUInteger;
+  NSTokenStylePtr = ^NSTokenStyle;
 
 {$endif}
 {$endif}
@@ -42,8 +43,10 @@ type
 {$endif}
 
 {$ifdef FORWARD}
+  NSTokenFieldCellDelegateProtocol = objcprotocol;
   NSTokenFieldCell = objcclass;
   NSTokenFieldCellPointer = ^NSTokenFieldCell;
+  NSTokenFieldCellPtr = NSTokenFieldCellPointer;
 
 {$endif}
 
@@ -54,16 +57,19 @@ type
 { NSTokenFieldCell }
   NSTokenFieldCell = objcclass(NSTextFieldCell)
   private
-    __tokenizingCharacterSet: NSCharacterSet;
-    __delegate: id;
-    __completionDelay: NSTimeInterval;
-    __cache: id;
-    __defaultTerminator: id;
-    __trackingArea: id;
-    __lastCell: id;
-    __lastCellFrame: NSRect;
+    _tokenizingCharacterSet: NSCharacterSet;
+    _delegate: id;
+    _completionDelay: NSTimeInterval;
+    _cache: id;
+    _defaultTerminator: id;
+    _trackingArea: id;
+    _lastCell: id;
+    _lastCellFrame: NSRect;
         _reserved: array[0..6] of id;
     __tfcFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSTokenFieldCell0: cuint);
+       1: (
         _style: 0..((1 shl 4)-1);
         
         _invalidCache: 0..1;
@@ -72,8 +78,10 @@ type
         _pendingComplete: 0..1;
         _autoCompleteMode: 0..((1 shl 2)-1);
         _inValidateEditing: 0..1;
+        _performingDrop: 0..1;
         
-        _reserved: 0..((1 shl 21)-1);
+        __reserved: 0..((1 shl 20)-1);
+      );
       end;
     
   public
@@ -91,5 +99,24 @@ type
     function delegate: id; message 'delegate';
   end; external;
 
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSTOKENFIELDCELL_PAS_P}
+{$define NSTOKENFIELDCELL_PAS_P}
+  
+{ NSTokenFieldCellDelegate Protocol }
+  NSTokenFieldCellDelegateProtocol = objcprotocol
+    function tokenFieldCell_completionsForSubstring_indexOfToken_indexOfSelectedItem(tokenFieldCell: NSTokenFieldCell; substring: NSString; tokenIndex: NSInteger; selectedIndex: NSIntegerPtr): NSArray; message 'tokenFieldCell:completionsForSubstring:indexOfToken:indexOfSelectedItem:';
+    function tokenFieldCell_shouldAddObjects_atIndex(tokenFieldCell: NSTokenFieldCell; tokens: NSArray; index: NSUInteger): NSArray; message 'tokenFieldCell:shouldAddObjects:atIndex:';
+    function tokenFieldCell_displayStringForRepresentedObject(tokenFieldCell: NSTokenFieldCell; representedObject: id): NSString; message 'tokenFieldCell:displayStringForRepresentedObject:';
+    function tokenFieldCell_editingStringForRepresentedObject(tokenFieldCell: NSTokenFieldCell; representedObject: id): NSString; message 'tokenFieldCell:editingStringForRepresentedObject:';
+    function tokenFieldCell_representedObjectForEditingString(tokenFieldCell: NSTokenFieldCell; editingString: NSString): id; message 'tokenFieldCell:representedObjectForEditingString:';
+    function tokenFieldCell_writeRepresentedObjects_toPasteboard(tokenFieldCell: NSTokenFieldCell; objects: NSArray; pboard: NSPasteboard): Boolean; message 'tokenFieldCell:writeRepresentedObjects:toPasteboard:';
+    function tokenFieldCell_readFromPasteboard(tokenFieldCell: NSTokenFieldCell; pboard: NSPasteboard): NSArray; message 'tokenFieldCell:readFromPasteboard:';
+    function tokenFieldCell_menuForRepresentedObject(tokenFieldCell: NSTokenFieldCell; representedObject: id): NSMenu; message 'tokenFieldCell:menuForRepresentedObject:';
+    function tokenFieldCell_hasMenuForRepresentedObject(tokenFieldCell: NSTokenFieldCell; representedObject: id): Boolean; message 'tokenFieldCell:hasMenuForRepresentedObject:';
+    function tokenFieldCell_styleForRepresentedObject(tokenFieldCell: NSTokenFieldCell; representedObject: id): NSTokenStyle; message 'tokenFieldCell:styleForRepresentedObject:';
+  end; external name 'NSTokenFieldCellDelegate';
 {$endif}
 {$endif}

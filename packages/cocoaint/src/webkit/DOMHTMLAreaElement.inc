@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLAreaElement.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMHTMLAreaElement = objcclass;
   DOMHTMLAreaElementPointer = ^DOMHTMLAreaElement;
+  DOMHTMLAreaElementPtr = DOMHTMLAreaElementPointer;
 
 {$endif}
 
@@ -54,10 +55,19 @@
     function coords: NSString; message 'coords';
     procedure setHref (newValue: NSString); message 'setHref:';
     function href: NSString; message 'href';
+    procedure setNoHref (newValue: Boolean); message 'setNoHref:';
+    function noHref: Boolean; message 'noHref';
     procedure setShape (newValue: NSString); message 'setShape:';
     function shape: NSString; message 'shape';
     procedure setTarget (newValue: NSString); message 'setTarget:';
     function target: NSString; message 'target';
+    function hashName: NSString; message 'hashName';
+    function host: NSString; message 'host';
+    function hostname: NSString; message 'hostname';
+    function pathname: NSString; message 'pathname';
+    function port: NSString; message 'port';
+    function protocol: NSString; message 'protocol';
+    function search: NSString; message 'search';
     function absoluteLinkURL: NSURL; message 'absoluteLinkURL';
   end; external;
 

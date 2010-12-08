@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSBrowser.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -18,10 +18,16 @@ const
   NSBrowserAutoColumnResizing = 1;
   NSBrowserUserColumnResizing = 2;
 
+const
+  NSBrowserDropOn = 0;
+  NSBrowserDropAbove = 1;
+
 { Types }
 type
   NSBrowserColumnResizingType = NSUInteger;
+  NSBrowserColumnResizingTypePtr = ^NSBrowserColumnResizingType;
   NSBrowserDropOperation = NSUInteger;
+  NSBrowserDropOperationPtr = ^NSBrowserDropOperation;
 
 {$endif}
 {$endif}
@@ -32,7 +38,7 @@ type
 
 { Records }
 type
-  __Brflags = bitpacked record
+  __Brflags = record
 {$ifdef fpc_big_endian}
     allowsMultipleSelection: 0..1;
     allowsBranchSelection: 0..1;
@@ -92,6 +98,7 @@ type
 {$endif}
   end;
 _Brflags = __Brflags;
+__BrflagsPtr = ^__Brflags;
 
 
 {$endif}
@@ -110,14 +117,16 @@ _Brflags = __Brflags;
 
 { External string constants }
 var
-  NSBrowserColumnConfigurationDidChangeNotification: NSString; external name '_NSBrowserColumnConfigurationDidChangeNotification';
+  NSBrowserColumnConfigurationDidChangeNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
+  NSBrowserDelegateProtocol = objcprotocol;
   NSBrowser = objcclass;
   NSBrowserPointer = ^NSBrowser;
+  NSBrowserPtr = NSBrowserPointer;
 
 {$endif}
 
@@ -128,24 +137,24 @@ var
 { NSBrowser }
   NSBrowser = objcclass(NSControl)
   private
-    __target: id;
-    __action: SEL;
-    __delegate: id;
-    __doubleAction: SEL;
-    __matrixClass: Pobjc_class;
-    __cellPrototype: id;
-    __columnSize: NSSize;
-    __numberOfVisibleColumns: cshort;
-    __minColumnWidth: cshort;
-    __firstVisibleColumn: cshort;
-    __maxVisibleColumns: cshort;
-    __titles: NSMutableArray;
-    __pathSeparator: NSString;
-    __columns: NSMutableArray;
-    __brAuxiliaryStorage: id;
-    __firstColumnTitle: NSString;
-    __scroller: NSScroller;
-    __brflags: _Brflags;
+    _target: id;
+    _action: SEL;
+    _delegate: id;
+    _doubleAction: SEL;
+    _matrixClass: Pobjc_class;
+    _cellPrototype: id;
+    _columnSize: NSSize;
+    _numberOfVisibleColumns: cshort;
+    _minColumnWidth: cshort;
+    _firstVisibleColumn: cshort;
+    _maxVisibleColumns: cshort;
+    _titles: NSMutableArray;
+    _pathSeparator: NSString;
+    _columns: NSMutableArray;
+    _brAuxiliaryStorage: id;
+    _firstColumnTitle: NSString;
+    _scroller: NSScroller;
+    _brflags: _Brflags;
     
   public
     class function alloc: NSBrowser; message 'alloc';
@@ -166,6 +175,8 @@ var
     function reusesColumns: Boolean; message 'reusesColumns';
     procedure setHasHorizontalScroller(flag: Boolean); message 'setHasHorizontalScroller:';
     function hasHorizontalScroller: Boolean; message 'hasHorizontalScroller';
+    procedure setAutohidesScroller(flag: Boolean); message 'setAutohidesScroller:';
+    function autohidesScroller: Boolean; message 'autohidesScroller';
     procedure setSeparatesColumns(flag: Boolean); message 'setSeparatesColumns:';
     function separatesColumns: Boolean; message 'separatesColumns';
     procedure setTitled(flag: Boolean); message 'setTitled:';
@@ -182,10 +193,15 @@ var
     function allowsEmptySelection: Boolean; message 'allowsEmptySelection';
     procedure setTakesTitleFromPreviousColumn(flag: Boolean); message 'setTakesTitleFromPreviousColumn:';
     function takesTitleFromPreviousColumn: Boolean; message 'takesTitleFromPreviousColumn';
-    procedure setAcceptsArrowKeys(flag: Boolean); message 'setAcceptsArrowKeys:';
-    function acceptsArrowKeys: Boolean; message 'acceptsArrowKeys';
     procedure setSendsActionOnArrowKeys(flag: Boolean); message 'setSendsActionOnArrowKeys:';
     function sendsActionOnArrowKeys: Boolean; message 'sendsActionOnArrowKeys';
+    function itemAtIndexPath(indexPath: NSIndexPath): id; message 'itemAtIndexPath:';
+    function itemAtRow_inColumn(row: NSInteger; column: NSInteger): id; message 'itemAtRow:inColumn:';
+    function indexPathForColumn(column: NSInteger): NSIndexPath; message 'indexPathForColumn:';
+    function isLeafItem(item: id): Boolean; message 'isLeafItem:';
+    procedure reloadDataForRowIndexes_inColumn(rowIndexes: NSIndexSet; column: NSInteger); message 'reloadDataForRowIndexes:inColumn:';
+    function parentForItemsInColumn(column: NSInteger): id; message 'parentForItemsInColumn:';
+    procedure scrollRowToVisible_inColumn(row: NSInteger; column: NSInteger); message 'scrollRowToVisible:inColumn:';
     procedure setTitle_ofColumn(aString: NSString; column: NSInteger); message 'setTitle:ofColumn:';
     function titleOfColumn(column: NSInteger): NSString; message 'titleOfColumn:';
     procedure setPathSeparator(newString: NSString); message 'setPathSeparator:';
@@ -193,12 +209,18 @@ var
     function setPath(path_: NSString): Boolean; message 'setPath:';
     function path: NSString; message 'path';
     function pathToColumn(column: NSInteger): NSString; message 'pathToColumn:';
+    function clickedColumn: NSInteger; message 'clickedColumn';
+    function clickedRow: NSInteger; message 'clickedRow';
     function selectedColumn: NSInteger; message 'selectedColumn';
     function selectedCell: id; message 'selectedCell';
     function selectedCellInColumn(column: NSInteger): id; message 'selectedCellInColumn:';
     function selectedCells: NSArray; message 'selectedCells';
     procedure selectRow_inColumn(row: NSInteger; column: NSInteger); message 'selectRow:inColumn:';
     function selectedRowInColumn(column: NSInteger): NSInteger; message 'selectedRowInColumn:';
+    function selectionIndexPath: NSIndexPath; message 'selectionIndexPath';
+    procedure setSelectionIndexPath(path_: NSIndexPath); message 'setSelectionIndexPath:';
+    function selectionIndexPaths: NSArray; message 'selectionIndexPaths';
+    procedure setSelectionIndexPaths(paths: NSArray); message 'setSelectionIndexPaths:';
     procedure selectRowIndexes_inColumn(indexes: NSIndexSet; column: NSInteger); message 'selectRowIndexes:inColumn:';
     function selectedRowIndexesInColumn(column: NSInteger): NSIndexSet; message 'selectedRowIndexesInColumn:';
     procedure reloadColumn(column: NSInteger); message 'reloadColumn:';
@@ -206,8 +228,8 @@ var
     procedure scrollColumnsRightBy(shiftAmount: NSInteger); message 'scrollColumnsRightBy:';
     procedure scrollColumnsLeftBy(shiftAmount: NSInteger); message 'scrollColumnsLeftBy:';
     procedure scrollColumnToVisible(column: NSInteger); message 'scrollColumnToVisible:';
-    procedure setLastColumn(column: NSInteger); message 'setLastColumn:';
     function lastColumn: NSInteger; message 'lastColumn';
+    procedure setLastColumn(column: NSInteger); message 'setLastColumn:';
     procedure addColumn; message 'addColumn';
     function numberOfVisibleColumns: NSInteger; message 'numberOfVisibleColumns';
     function firstVisibleColumn: NSInteger; message 'firstVisibleColumn';
@@ -225,14 +247,21 @@ var
     function titleHeight: CGFloat; message 'titleHeight';
     function frameOfColumn(column: NSInteger): NSRect; message 'frameOfColumn:';
     function frameOfInsideOfColumn(column: NSInteger): NSRect; message 'frameOfInsideOfColumn:';
+    function frameOfRow_inColumn(row: NSInteger; column: NSInteger): NSRect; message 'frameOfRow:inColumn:';
+    function getRow_column_forPoint(row: NSIntegerPtr; column: NSIntegerPtr; point: NSPoint): Boolean; message 'getRow:column:forPoint:';
     function columnWidthForColumnContentWidth(columnContentWidth: CGFloat): CGFloat; message 'columnWidthForColumnContentWidth:';
     function columnContentWidthForColumnWidth(columnWidth: CGFloat): CGFloat; message 'columnContentWidthForColumnWidth:';
-    procedure setColumnResizingType(columnResizingType_: NSBrowserColumnResizingType); message 'setColumnResizingType:';
+    procedure setColumnResizingType(columnResizingType: NSBrowserColumnResizingType); message 'setColumnResizingType:';
     function columnResizingType: NSBrowserColumnResizingType; message 'columnResizingType';
     procedure setPrefersAllColumnUserResizing(prefersAllColumnResizing: Boolean); message 'setPrefersAllColumnUserResizing:';
     function prefersAllColumnUserResizing: Boolean; message 'prefersAllColumnUserResizing';
     procedure setWidth_ofColumn(columnWidth: CGFloat; columnIndex: NSInteger); message 'setWidth:ofColumn:';
     function widthOfColumn(column: NSInteger): CGFloat; message 'widthOfColumn:';
+    procedure setRowHeight(height: CGFloat); message 'setRowHeight:';
+    function rowHeight: CGFloat; message 'rowHeight';
+    procedure noteHeightOfRowsWithIndexesChanged_inColumn(indexSet: NSIndexSet; columnIndex: NSInteger); message 'noteHeightOfRowsWithIndexesChanged:inColumn:';
+    procedure setDefaultColumnWidth(columnWidth: CGFloat); message 'setDefaultColumnWidth:';
+    function defaultColumnWidth: CGFloat; message 'defaultColumnWidth';
     procedure setColumnsAutosaveName(name: NSString); message 'setColumnsAutosaveName:';
     function columnsAutosaveName: NSString; message 'columnsAutosaveName';
     class procedure removeSavedColumnsWithAutosaveName(name: NSString); message 'removeSavedColumnsWithAutosaveName:';
@@ -243,11 +272,61 @@ var
     procedure setAllowsTypeSelect(value: Boolean); message 'setAllowsTypeSelect:';
     procedure setBackgroundColor(color: NSColor); message 'setBackgroundColor:';
     function backgroundColor: NSColor; message 'backgroundColor';
-    procedure displayColumn(column: NSInteger); message 'displayColumn:';
-    procedure displayAllColumns; message 'displayAllColumns';
-    procedure scrollViaScroller(sender: NSScroller); message 'scrollViaScroller:';
-    procedure updateScroller; message 'updateScroller';
+    procedure editItemAtIndexPath_withEvent_select(indexPath: NSIndexPath; theEvent: NSEvent; select: Boolean); message 'editItemAtIndexPath:withEvent:select:';
   end; external;
 
+{ NSDeprecated_NSBrowserCategory }
+  NSDeprecated_NSBrowserCategory = objccategory(NSBrowser)
+    procedure setAcceptsArrowKeys(flag: Boolean); message 'setAcceptsArrowKeys:'; deprecated 'in Mac OS X 10.6 and later';
+    function acceptsArrowKeys: Boolean; message 'acceptsArrowKeys'; deprecated 'in Mac OS X 10.6 and later';
+    procedure displayColumn(column: NSInteger); message 'displayColumn:'; deprecated 'in Mac OS X 10.3 and later';
+    procedure displayAllColumns; message 'displayAllColumns'; deprecated 'in Mac OS X 10.3 and later';
+    procedure scrollViaScroller(sender: NSScroller); message 'scrollViaScroller:'; deprecated 'in Mac OS X 10.3 and later';
+    procedure updateScroller; message 'updateScroller'; deprecated 'in Mac OS X 10.3 and later';
+  end; external name 'NSDeprecated';
+
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSBROWSER_PAS_P}
+{$define NSBROWSER_PAS_P}
+  
+{ NSBrowserDelegate Protocol }
+  NSBrowserDelegateProtocol = objcprotocol
+    function browser_numberOfRowsInColumn(sender: NSBrowser; column: NSInteger): NSInteger; message 'browser:numberOfRowsInColumn:';
+    procedure browser_createRowsForColumn_inMatrix(sender: NSBrowser; column: NSInteger; matrix: NSMatrix); message 'browser:createRowsForColumn:inMatrix:';
+    function browser_numberOfChildrenOfItem(browser: NSBrowser; item: id): NSInteger; message 'browser:numberOfChildrenOfItem:';
+    function browser_child_ofItem(browser: NSBrowser; index: NSInteger; item: id): id; message 'browser:child:ofItem:';
+    function browser_isLeafItem(browser: NSBrowser; item: id): Boolean; message 'browser:isLeafItem:';
+    function browser_objectValueForItem(browser: NSBrowser; item: id): id; message 'browser:objectValueForItem:';
+    function browser_heightOfRow_inColumn(browser: NSBrowser; row: NSInteger; columnIndex: NSInteger): CGFloat; message 'browser:heightOfRow:inColumn:';
+    function rootItemForBrowser(browser: NSBrowser): id; message 'rootItemForBrowser:';
+    procedure browser_setObjectValue_forItem(browser: NSBrowser; object_: id; item: id); message 'browser:setObjectValue:forItem:';
+    function browser_shouldEditItem(browser: NSBrowser; item: id): Boolean; message 'browser:shouldEditItem:';
+    procedure browser_willDisplayCell_atRow_column(sender: NSBrowser; cell: id; row: NSInteger; column: NSInteger); message 'browser:willDisplayCell:atRow:column:';
+    function browser_titleOfColumn(sender: NSBrowser; column: NSInteger): NSString; message 'browser:titleOfColumn:';
+    function browser_selectCellWithString_inColumn(sender: NSBrowser; title: NSString; column: NSInteger): Boolean; message 'browser:selectCellWithString:inColumn:';
+    function browser_selectRow_inColumn(sender: NSBrowser; row: NSInteger; column: NSInteger): Boolean; message 'browser:selectRow:inColumn:';
+    function browser_isColumnValid(sender: NSBrowser; column: NSInteger): Boolean; message 'browser:isColumnValid:';
+    procedure browserWillScroll(sender: NSBrowser); message 'browserWillScroll:';
+    procedure browserDidScroll(sender: NSBrowser); message 'browserDidScroll:';
+    function browser_shouldSizeColumn_forUserResize_toWidth(browser: NSBrowser; columnIndex: NSInteger; forUserResize: Boolean; suggestedWidth: CGFloat): CGFloat; message 'browser:shouldSizeColumn:forUserResize:toWidth:';
+    function browser_sizeToFitWidthOfColumn(browser: NSBrowser; columnIndex: NSInteger): CGFloat; message 'browser:sizeToFitWidthOfColumn:';
+    procedure browserColumnConfigurationDidChange(notification: NSNotification); message 'browserColumnConfigurationDidChange:';
+    function browser_shouldShowCellExpansionForRow_column(browser: NSBrowser; row: NSInteger; column: NSInteger): Boolean; message 'browser:shouldShowCellExpansionForRow:column:';
+    function browser_writeRowsWithIndexes_inColumn_toPasteboard(browser: NSBrowser; rowIndexes: NSIndexSet; column: NSInteger; pasteboard: NSPasteboard): Boolean; message 'browser:writeRowsWithIndexes:inColumn:toPasteboard:';
+    function browser_namesOfPromisedFilesDroppedAtDestination_forDraggedRowsWithIndexes_inColumn(browser: NSBrowser; dropDestination: NSURL; rowIndexes: NSIndexSet; column: NSInteger): NSArray; message 'browser:namesOfPromisedFilesDroppedAtDestination:forDraggedRowsWithIndexes:inColumn:';
+    function browser_canDragRowsWithIndexes_inColumn_withEvent(browser: NSBrowser; rowIndexes: NSIndexSet; column: NSInteger; event: NSEvent): Boolean; message 'browser:canDragRowsWithIndexes:inColumn:withEvent:';
+    function browser_draggingImageForRowsWithIndexes_inColumn_withEvent_offset(browser: NSBrowser; rowIndexes: NSIndexSet; column: NSInteger; event: NSEvent; dragImageOffset: NSPointPointer): NSImage; message 'browser:draggingImageForRowsWithIndexes:inColumn:withEvent:offset:';
+    function browser_validateDrop_proposedRow_column_dropOperation(browser: NSBrowser; info: id; row: NSIntegerPtr; column: NSIntegerPtr; dropOperation: NSBrowserDropOperationPtr): NSDragOperation; message 'browser:validateDrop:proposedRow:column:dropOperation:';
+    function browser_acceptDrop_atRow_column_dropOperation(browser: NSBrowser; info: id; row: NSInteger; column: NSInteger; dropOperation: NSBrowserDropOperation): Boolean; message 'browser:acceptDrop:atRow:column:dropOperation:';
+    function browser_typeSelectStringForRow_inColumn(browser: NSBrowser; row: NSInteger; column: NSInteger): NSString; message 'browser:typeSelectStringForRow:inColumn:';
+    function browser_shouldTypeSelectForEvent_withCurrentSearchString(browser: NSBrowser; event: NSEvent; searchString: NSString): Boolean; message 'browser:shouldTypeSelectForEvent:withCurrentSearchString:';
+    function browser_nextTypeSelectMatchFromRow_toRow_inColumn_forString(browser: NSBrowser; startRow: NSInteger; endRow: NSInteger; column: NSInteger; searchString: NSString): NSInteger; message 'browser:nextTypeSelectMatchFromRow:toRow:inColumn:forString:';
+    function browser_previewViewControllerForLeafItem(browser: NSBrowser; item: id): NSViewController; message 'browser:previewViewControllerForLeafItem:';
+    function browser_headerViewControllerForItem(browser: NSBrowser; item: id): NSViewController; message 'browser:headerViewControllerForItem:';
+    procedure browser_didChangeLastColumn_toColumn(browser: NSBrowser; oldLastColumn: NSInteger; column: NSInteger); message 'browser:didChangeLastColumn:toColumn:';
+    function browser_selectionIndexesForProposedSelection_inColumn(browser: NSBrowser; proposedSelectionIndexes: NSIndexSet; column: NSInteger): NSIndexSet; message 'browser:selectionIndexesForProposedSelection:inColumn:';
+  end; external name 'NSBrowserDelegate';
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSManagedObjectID.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSManagedObjectID = objcclass;
   NSManagedObjectIDPointer = ^NSManagedObjectID;
+  NSManagedObjectIDPtr = NSManagedObjectIDPointer;
 
 {$endif}
 
@@ -50,6 +51,9 @@
     function persistentStore: NSPersistentStore; message 'persistentStore';
     function isTemporaryID: Boolean; message 'isTemporaryID';
     function URIRepresentation: NSURL; message 'URIRepresentation';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
   end; external;
 
 {$endif}

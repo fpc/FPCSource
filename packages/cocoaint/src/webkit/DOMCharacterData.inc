@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCharacterData.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMCharacterData = objcclass;
   DOMCharacterDataPointer = ^DOMCharacterData;
+  DOMCharacterDataPtr = DOMCharacterDataPointer;
 
 {$endif}
 
@@ -54,8 +55,10 @@
     procedure insertData_data(offset: cuint; data_: NSString); message 'insertData:data:';
     procedure deleteData_length(offset: cuint; length_: cuint); message 'deleteData:length:';
     procedure replaceData_length_data(offset: cuint; length_: cuint; data_: NSString); message 'replaceData:length:data:';
+  end; external;
 
-    { Category: DOMCharacterDataDeprecated }
+{ DOMCharacterDataDeprecatedCategory }
+  DOMCharacterDataDeprecatedCategory = objccategory(DOMCharacterData)
     function substringData(offset: cuint; length_: cuint): NSString; message 'substringData:offset:';
     procedure insertData(offset: cuint; data_: NSString); message 'insertData:offset:';
     procedure deleteData(offset: cuint; length_: cuint); message 'deleteData:offset:';

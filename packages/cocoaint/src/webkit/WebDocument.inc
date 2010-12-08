@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebDocument.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -47,7 +47,7 @@
     procedure dataSourceUpdated(dataSource: WebDataSource); message 'dataSourceUpdated:';
     procedure setNeedsLayout(flag: Boolean); message 'setNeedsLayout:';
     procedure layout; message 'layout';
-    procedure viewWillMoveToHostWindow(hostWindow: NSWindowPointer); message 'viewWillMoveToHostWindow:';
+    procedure viewWillMoveToHostWindow(hostWindow: NSWindowPtr); message 'viewWillMoveToHostWindow:';
     procedure viewDidMoveToHostWindow; message 'viewDidMoveToHostWindow';
   end; external name 'WebDocumentView';
   

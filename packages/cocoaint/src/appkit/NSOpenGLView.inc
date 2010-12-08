@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSOpenGLView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSOpenGLView = objcclass;
   NSOpenGLViewPointer = ^NSOpenGLView;
+  NSOpenGLViewPtr = NSOpenGLViewPointer;
 
 {$endif}
 
@@ -43,11 +44,11 @@
 { NSOpenGLView }
   NSOpenGLView = objcclass(NSView)
   private
-    __openGLContext: NSOpenGLContext;
-    __pixelFormat: NSOpenGLPixelFormat;
-    __reserved1: NSInteger;
-    __reserved2: NSInteger;
-    __reserved3: NSInteger;
+    _openGLContext: NSOpenGLContext;
+    _pixelFormat: NSOpenGLPixelFormat;
+    _reserved1: NSInteger;
+    _reserved2: NSInteger;
+    _reserved3: NSInteger;
     
   public
     class function alloc: NSOpenGLView; message 'alloc';

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLProtocol.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -34,6 +34,7 @@
   NSURLProtocolClientProtocol = objcprotocol;
   NSURLProtocol = objcclass;
   NSURLProtocolPointer = ^NSURLProtocol;
+  NSURLProtocolPtr = NSURLProtocolPointer;
 
 {$endif}
 
@@ -44,7 +45,7 @@
 { NSURLProtocol }
   NSURLProtocol = objcclass(NSObject)
   private
-    __internal: NSURLProtocolInternal;
+    _internal: NSURLProtocolInternal;
     
   public
     class function alloc: NSURLProtocol; message 'alloc';

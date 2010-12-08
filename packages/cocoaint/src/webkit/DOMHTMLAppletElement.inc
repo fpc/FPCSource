@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLAppletElement.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMHTMLAppletElement = objcclass;
   DOMHTMLAppletElementPointer = ^DOMHTMLAppletElement;
+  DOMHTMLAppletElementPtr = DOMHTMLAppletElementPointer;
 
 {$endif}
 
@@ -58,10 +59,14 @@
     function codeBase: NSString; message 'codeBase';
     procedure setHeight (newValue: NSString); message 'setHeight:';
     function height: NSString; message 'height';
+    procedure setHspace (newValue: cint); message 'setHspace:';
+    function hspace: cint; message 'hspace';
     procedure setName (newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
     procedure setObject (newValue: NSString); message 'setObject:';
     function object_: NSString; message 'object_';
+    procedure setVspace (newValue: cint); message 'setVspace:';
+    function vspace: cint; message 'vspace';
     procedure setWidth (newValue: NSString); message 'setWidth:';
     function width: NSString; message 'width';
   end; external;

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTabView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -24,6 +24,7 @@ const
 { Types }
 type
   NSTabViewType = NSUInteger;
+  NSTabViewTypePtr = ^NSTabViewType;
 
 {$endif}
 {$endif}
@@ -50,8 +51,10 @@ type
 {$endif}
 
 {$ifdef FORWARD}
+  NSTabViewDelegateProtocol = objcprotocol;
   NSTabView = objcclass;
   NSTabViewPointer = ^NSTabView;
+  NSTabViewPtr = NSTabViewPointer;
 
 {$endif}
 
@@ -62,39 +65,47 @@ type
 { NSTabView }
   NSTabView = objcclass(NSView)
   private
-    __tabViewItems: id;
-    __selectedTabViewItem: NSTabViewItem;
-    __font: NSFont;
-    __tabViewType: NSTabViewType;
-    __allowTruncatedLabels: Boolean;
-    __delegate: id;
-    __tabViewUnusedBOOL1: Boolean;
-    __drawsBackground: Boolean;
-    __pressedTabViewItem: NSTabViewItem;
-    __endTabWidth: NSInteger;
-    __maxOverlap: NSInteger;
-    __tabHeight: CGFloat;
-    __tabViewItemWithKeyView: NSTabViewItem;
-    __originalNextKeyView: NSView;
+    _tabViewItems: id;
+    _selectedTabViewItem: NSTabViewItem;
+    _font: NSFont;
+    _tabViewType: NSTabViewType;
+    _allowTruncatedLabels: Boolean;
+    _delegate: id;
+    _tabViewUnusedBOOL1: Boolean;
+    _drawsBackground: Boolean;
+    _pressedTabViewItem: NSTabViewItem;
+    _endTabWidth: NSInteger;
+    _maxOverlap: NSInteger;
+    _tabHeight: CGFloat;
+    _tabViewItemWithKeyView: NSTabViewItem;
+    _originalNextKeyView: NSView;
     __delegateRespondTo: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSTabView0: cuint);
+       1: (
         shouldSelectTabViewItem: 0..1;
         willSelectTabViewItem: 0..1;
         didSelectTabViewItem: 0..1;
         didChangeNumberOfTabViewItems: 0..1;
         reserved: 0..((1 shl 28)-1);
+      );
       end;
     __flags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSTabView1: cuint);
+       1: (
         needsLayout: 0..1;
-        controlTint: 0..((1 shl 3)-1);
-        controlSize: 0..((1 shl 2)-1);
+        _controlTint: 0..((1 shl 3)-1);
+        _controlSize: 0..((1 shl 2)-1);
         wiringNibConnections: 0..1;
         wiringInteriorLastKeyView: 0..1;
         originalNextKeyViewChanged: 0..1;
         liveResizeSkippedResetToolTips: 0..1;
         reserved: 0..((1 shl 22)-1);
+      );
       end;
-    __focusedTabViewItem: NSTabViewItem;
-    __tabViewUnused2: Pointer;
+    _focusedTabViewItem: NSTabViewItem;
+    _tabViewUnused2: Pointer;
     
   public
     class function alloc: NSTabView; message 'alloc';
@@ -135,5 +146,18 @@ type
     function indexOfTabViewItemWithIdentifier(identifier: id): NSInteger; message 'indexOfTabViewItemWithIdentifier:';
   end; external;
 
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSTABVIEW_PAS_P}
+{$define NSTABVIEW_PAS_P}
+  
+{ NSTabViewDelegate Protocol }
+  NSTabViewDelegateProtocol = objcprotocol
+    function tabView_shouldSelectTabViewItem(tabView: NSTabView; tabViewItem: NSTabViewItem): Boolean; message 'tabView:shouldSelectTabViewItem:';
+    procedure tabView_willSelectTabViewItem(tabView: NSTabView; tabViewItem: NSTabViewItem); message 'tabView:willSelectTabViewItem:';
+    procedure tabView_didSelectTabViewItem(tabView: NSTabView; tabViewItem: NSTabViewItem); message 'tabView:didSelectTabViewItem:';
+    procedure tabViewDidChangeNumberOfTabViewItems(TabView: NSTabView); message 'tabViewDidChangeNumberOfTabViewItems:';
+  end; external name 'NSTabViewDelegate';
 {$endif}
 {$endif}

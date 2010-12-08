@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSToolbarItem.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -37,13 +37,13 @@ const
 
 { External string constants }
 var
-  NSToolbarSeparatorItemIdentifier: NSString; external name '_NSToolbarSeparatorItemIdentifier';
-  NSToolbarSpaceItemIdentifier: NSString; external name '_NSToolbarSpaceItemIdentifier';
-  NSToolbarFlexibleSpaceItemIdentifier: NSString; external name '_NSToolbarFlexibleSpaceItemIdentifier';
-  NSToolbarShowColorsItemIdentifier: NSString; external name '_NSToolbarShowColorsItemIdentifier';
-  NSToolbarShowFontsItemIdentifier: NSString; external name '_NSToolbarShowFontsItemIdentifier';
-  NSToolbarCustomizeToolbarItemIdentifier: NSString; external name '_NSToolbarCustomizeToolbarItemIdentifier';
-  NSToolbarPrintItemIdentifier: NSString; external name '_NSToolbarPrintItemIdentifier';
+  NSToolbarSeparatorItemIdentifier: NSString; cvar; external;
+  NSToolbarSpaceItemIdentifier: NSString; cvar; external;
+  NSToolbarFlexibleSpaceItemIdentifier: NSString; cvar; external;
+  NSToolbarShowColorsItemIdentifier: NSString; cvar; external;
+  NSToolbarShowFontsItemIdentifier: NSString; cvar; external;
+  NSToolbarCustomizeToolbarItemIdentifier: NSString; cvar; external;
+  NSToolbarPrintItemIdentifier: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -51,6 +51,7 @@ var
 {$ifdef FORWARD}
   NSToolbarItem = objcclass;
   NSToolbarItemPointer = ^NSToolbarItem;
+  NSToolbarItemPtr = NSToolbarItemPointer;
 
 {$endif}
 
@@ -61,16 +62,19 @@ var
 { NSToolbarItem }
   NSToolbarItem = objcclass(NSObject, NSCopyingProtocol, NSValidatedUserInterfaceItemProtocol)
   private
-    __toolbar: NSToolbar;
-    __image: NSImage;
-    __itemIdentifier: NSString;
-    __label: NSString;
-    __labelAlignment: NSTextAlignment;
-    __paletteLabel: NSString;
-    __toolTip: NSString;
-    __menuItemRep: NSMenuItem;
-    __tag: NSInteger;
+    _toolbar: NSToolbar;
+    _image: NSImage;
+    _itemIdentifier: NSString;
+    _label: NSString;
+    _labelAlignment: NSTextAlignment;
+    _paletteLabel: NSString;
+    _toolTip: NSString;
+    _menuItemRep: NSMenuItem;
+    _tag: NSInteger;
     __tbiFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSToolbarItem0: cuint);
+       1: (
         viewRespondsToIsEnabled: 0..1;
         viewRespondsToSetEnabled: 0..1;
         viewRespondsToTag: 0..1;
@@ -81,7 +85,7 @@ var
         viewRespondsToSetTarget: 0..1;
         viewRespondsToImage: 0..1;
         viewRespondsToSetImage: 0..1;
-        isEnabled: 0..1;
+        _isEnabled: 0..1;
         isUserRemovable: 0..1;
         menuHasBeenSet: 0..1;
         menuRepIsDefault: 0..1;
@@ -90,20 +94,21 @@ var
         isCustomItemType: 0..1;
         hasValidatedAutoModeConfiguration: 0..1;
         useAutoModeConfiguration: 0..1;
-        hasNonDefaultPrioritySetting: 0..1;
+        RESERVED2: 0..1;
         autovalidationDisabled: 0..1;
         tagHasBeenSet: 0..1;
         sizeHasBeenSet: 0..1;
         stateWasDisabledBeforeSheet: 0..1;
         RESERVED: 0..((1 shl 8)-1);
+      );
       end;
-    __allPossibleLabelsToFit: NSArray;
-    __itemViewer: id;
-    __view: NSView;
-    __minSize: NSSize;
-    __maxSize: NSSize;
+    _tbiReserved: id;
+    _itemViewer: id;
+    _view: NSView;
+    _minSize: NSSize;
+    _maxSize: NSSize;
     {$ifdef cpu64}
-    __toolbarItemReserved: id;
+    _toolbarItemReserved: id;
     {$endif}
     
   public
@@ -142,6 +147,14 @@ var
     procedure setAutovalidates(resistance: Boolean); message 'setAutovalidates:';
     function autovalidates: Boolean; message 'autovalidates';
     function allowsDuplicatesInToolbar: Boolean; message 'allowsDuplicatesInToolbar';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+  end; external;
+
+{ NSToolbarItemValidationCategory }
+  NSToolbarItemValidationCategory = objccategory(NSObject)
+    function validateToolbarItem(theItem: NSToolbarItem): Boolean; message 'validateToolbarItem:';
   end; external;
 
 {$endif}

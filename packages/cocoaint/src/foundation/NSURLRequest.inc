@@ -1,14 +1,26 @@
 { Parsed from Foundation.framework NSURLRequest.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
 {$ifndef NSURLREQUEST_PAS_T}
 {$define NSURLREQUEST_PAS_T}
 
+{ Constants }
+
+const
+  NSURLRequestUseProtocolCachePolicy = 0;
+  NSURLRequestReloadIgnoringLocalCacheData = 1;
+  NSURLRequestReloadIgnoringLocalAndRemoteCacheData = 4;
+  NSURLRequestReloadIgnoringCacheData = NSURLRequestReloadIgnoringLocalCacheData;
+  NSURLRequestReturnCacheDataElseLoad = 2;
+  NSURLRequestReturnCacheDataDontLoad = 3;
+  NSURLRequestReloadRevalidatingCacheData = 5;
+
 { Types }
 type
   NSURLRequestCachePolicy = NSUInteger;
+  NSURLRequestCachePolicyPtr = ^NSURLRequestCachePolicy;
 
 {$endif}
 {$endif}
@@ -37,8 +49,10 @@ type
 {$ifdef FORWARD}
   NSURLRequest = objcclass;
   NSURLRequestPointer = ^NSURLRequest;
+  NSURLRequestPtr = NSURLRequestPointer;
   NSMutableURLRequest = objcclass;
   NSMutableURLRequestPointer = ^NSMutableURLRequest;
+  NSMutableURLRequestPtr = NSMutableURLRequestPointer;
 
 {$endif}
 
@@ -49,7 +63,7 @@ type
 { NSURLRequest }
   NSURLRequest = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol, NSMutableCopyingProtocol)
   private
-    __internal: NSURLRequestInternal;
+    _internal: NSURLRequestInternal;
     
   public
     class function alloc: NSURLRequest; message 'alloc';
@@ -63,13 +77,11 @@ type
     function timeoutInterval: NSTimeInterval; message 'timeoutInterval';
     function mainDocumentURL: NSURL; message 'mainDocumentURL';
 
-    { Category: NSHTTPURLRequest }
-    function HTTPMethod: NSString; message 'HTTPMethod';
-    function allHTTPHeaderFields: NSDictionary; message 'allHTTPHeaderFields';
-    function valueForHTTPHeaderField(field: NSString): NSString; message 'valueForHTTPHeaderField:';
-    function HTTPBody: NSData; message 'HTTPBody';
-    function HTTPBodyStream: NSInputStream; message 'HTTPBodyStream';
-    function HTTPShouldHandleCookies: Boolean; message 'HTTPShouldHandleCookies';
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+    function copyWithZone(zone_: NSZonePtr): id;
+    function mutableCopyWithZone(zone_: NSZonePtr): id;
   end; external;
 
 { NSMutableURLRequest }
@@ -82,8 +94,20 @@ type
     procedure setCachePolicy(policy: NSURLRequestCachePolicy); message 'setCachePolicy:';
     procedure setTimeoutInterval(seconds: NSTimeInterval); message 'setTimeoutInterval:';
     procedure setMainDocumentURL(URL_: NSURL); message 'setMainDocumentURL:';
+  end; external;
 
-    { Category: NSMutableHTTPURLRequest }
+{ NSHTTPURLRequestCategory }
+  NSHTTPURLRequestCategory = objccategory(NSURLRequest)
+    function HTTPMethod: NSString; message 'HTTPMethod';
+    function allHTTPHeaderFields: NSDictionary; message 'allHTTPHeaderFields';
+    function valueForHTTPHeaderField(field: NSString): NSString; message 'valueForHTTPHeaderField:';
+    function HTTPBody: NSData; message 'HTTPBody';
+    function HTTPBodyStream: NSInputStream; message 'HTTPBodyStream';
+    function HTTPShouldHandleCookies: Boolean; message 'HTTPShouldHandleCookies';
+  end; external;
+
+{ NSMutableHTTPURLRequestCategory }
+  NSMutableHTTPURLRequestCategory = objccategory(NSMutableURLRequest)
     procedure setHTTPMethod(method: NSString); message 'setHTTPMethod:';
     procedure setAllHTTPHeaderFields(headerFields: NSDictionary); message 'setAllHTTPHeaderFields:';
     procedure setValue_forHTTPHeaderField(value: NSString; field: NSString); message 'setValue:forHTTPHeaderField:';

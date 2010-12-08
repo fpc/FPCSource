@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSGraphicsContext.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -12,19 +12,13 @@ const
   NSImageInterpolationDefault = 0;
   NSImageInterpolationNone = 1;
   NSImageInterpolationLow = 2;
+  NSImageInterpolationMedium = 4;
   NSImageInterpolationHigh = 3;
-
-const
-  NSColorRenderingIntentDefault = 0;
-  NSColorRenderingIntentAbsoluteColorimetric = 1;
-  NSColorRenderingIntentRelativeColorimetric = 2;
-  NSColorRenderingIntentPerceptual = 3;
-  NSColorRenderingIntentSaturation = 4;
 
 { Types }
 type
   NSImageInterpolation = NSUInteger;
-  NSColorRenderingIntent = NSInteger;
+  NSImageInterpolationPtr = ^NSImageInterpolation;
 
 {$endif}
 {$endif}
@@ -49,10 +43,10 @@ type
 
 { External string constants }
 var
-  NSGraphicsContextDestinationAttributeName: NSString; external name '_NSGraphicsContextDestinationAttributeName';
-  NSGraphicsContextRepresentationFormatAttributeName: NSString; external name '_NSGraphicsContextRepresentationFormatAttributeName';
-  NSGraphicsContextPSFormat: NSString; external name '_NSGraphicsContextPSFormat';
-  NSGraphicsContextPDFFormat: NSString; external name '_NSGraphicsContextPDFFormat';
+  NSGraphicsContextDestinationAttributeName: NSString; cvar; external;
+  NSGraphicsContextRepresentationFormatAttributeName: NSString; cvar; external;
+  NSGraphicsContextPSFormat: NSString; cvar; external;
+  NSGraphicsContextPDFFormat: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -60,6 +54,7 @@ var
 {$ifdef FORWARD}
   NSGraphicsContext = objcclass;
   NSGraphicsContextPointer = ^NSGraphicsContext;
+  NSGraphicsContextPtr = NSGraphicsContextPointer;
 
 {$endif}
 
@@ -86,13 +81,19 @@ var
     function attributes: NSDictionary; message 'attributes';
     function isDrawingToScreen: Boolean; message 'isDrawingToScreen';
     procedure flushGraphics; message 'flushGraphics';
-    function focusStack: id; message 'focusStack';
-    procedure setFocusStack(stack: id); message 'setFocusStack:';
     function graphicsPort: Pointer; message 'graphicsPort';
     function isFlipped: Boolean; message 'isFlipped';
+  end; external;
 
-    { Category: NSQuartzCoreAdditions }
+{ NSQuartzCoreAdditionsCategory }
+  NSQuartzCoreAdditionsCategory = objccategory(NSGraphicsContext)
     function CIContext: CIContext; message 'CIContext';
+  end; external;
+
+{ NSGraphicsContextDeprecatedCategory }
+  NSGraphicsContextDeprecatedCategory = objccategory(NSGraphicsContext)
+    function focusStack: id; message 'focusStack';
+    procedure setFocusStack(stack: id); message 'setFocusStack:';
   end; external;
 
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScriptExecutionContext.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSScriptExecutionContext = objcclass;
   NSScriptExecutionContextPointer = ^NSScriptExecutionContext;
+  NSScriptExecutionContextPtr = NSScriptExecutionContextPointer;
 
 {$endif}
 
@@ -43,10 +44,10 @@
 { NSScriptExecutionContext }
   NSScriptExecutionContext = objcclass(NSObject)
   private
-    __topLevelObject: id;
-    __objectBeingTested: id;
-    __rangeContainerObject: id;
-    __moreVars: id;
+    _topLevelObject: id;
+    _objectBeingTested: id;
+    _rangeContainerObject: id;
+    _moreVars: id;
     
   public
     class function alloc: NSScriptExecutionContext; message 'alloc';

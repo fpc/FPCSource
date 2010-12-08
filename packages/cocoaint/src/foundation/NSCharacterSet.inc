@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSCharacterSet.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -38,8 +38,10 @@ const
 {$ifdef FORWARD}
   NSCharacterSet = objcclass;
   NSCharacterSetPointer = ^NSCharacterSet;
+  NSCharacterSetPtr = NSCharacterSetPointer;
   NSMutableCharacterSet = objcclass;
   NSMutableCharacterSetPointer = ^NSMutableCharacterSet;
+  NSMutableCharacterSetPtr = NSMutableCharacterSetPointer;
 
 {$endif}
 
@@ -77,7 +79,13 @@ const
     function invertedSet: NSCharacterSet; message 'invertedSet';
     function longCharacterIsMember(theLongChar: UTF32Char): Boolean; message 'longCharacterIsMember:';
     function isSupersetOfSet(theOtherSet: NSCharacterSet): Boolean; message 'isSupersetOfSet:';
-    function hasMemberInPlane(thePlane: byte): Boolean; message 'hasMemberInPlane:';
+    function hasMemberInPlane(thePlane: cuint8): Boolean; message 'hasMemberInPlane:';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    function mutableCopyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 { NSMutableCharacterSet }
@@ -93,6 +101,10 @@ const
     procedure formUnionWithCharacterSet(otherSet: NSCharacterSet); message 'formUnionWithCharacterSet:';
     procedure formIntersectionWithCharacterSet(otherSet: NSCharacterSet); message 'formIntersectionWithCharacterSet:';
     procedure invert; message 'invert';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    function mutableCopyWithZone(zone_: NSZonePtr): id;
   end; external;
 
 {$endif}

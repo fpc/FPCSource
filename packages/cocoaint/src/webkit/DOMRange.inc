@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMRange.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:19:00 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -45,6 +45,7 @@ const
 {$ifdef FORWARD}
   DOMRange = objcclass;
   DOMRangePointer = ^DOMRange;
+  DOMRangePtr = DOMRangePointer;
 
 {$endif}
 
@@ -83,8 +84,15 @@ const
     function cloneRange: DOMRange; message 'cloneRange';
     function toString: NSString; message 'toString';
     procedure detach; message 'detach';
+    function createContextualFragment(html: NSString): DOMDocumentFragment; message 'createContextualFragment:';
+    function intersectsNode(refNode: DOMNode): Boolean; message 'intersectsNode:';
+    function compareNode(refNode: DOMNode): cshort; message 'compareNode:';
+    function comparePoint_offset(refNode: DOMNode; offset: cint): cshort; message 'comparePoint:offset:';
+    function isPointInRange_offset(refNode: DOMNode; offset: cint): Boolean; message 'isPointInRange:offset:';
+  end; external;
 
-    { Category: DOMRangeDeprecated }
+{ DOMRangeDeprecatedCategory }
+  DOMRangeDeprecatedCategory = objccategory(DOMRange)
     procedure setStart(refNode: DOMNode; offset: cint); message 'setStart:refNode:';
     procedure setEnd(refNode: DOMNode; offset: cint); message 'setEnd:refNode:';
     function compareBoundaryPoints(how: cushort; sourceRange: DOMRange): cshort; message 'compareBoundaryPoints:how:';

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAffineTransform.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -19,6 +19,7 @@ type
     m11, m12, m21, m22: CGFloat;
     tX, tY: CGFloat;
   end;
+NSAffineTransformStructPtr = ^NSAffineTransformStruct;
 
 
 {$endif}
@@ -41,6 +42,7 @@ type
 {$ifdef FORWARD}
   NSAffineTransform = objcclass;
   NSAffineTransformPointer = ^NSAffineTransform;
+  NSAffineTransformPtr = NSAffineTransformPointer;
 
 {$endif}
 
@@ -51,7 +53,7 @@ type
 { NSAffineTransform }
   NSAffineTransform = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __transformStruct: NSAffineTransformStruct;
+    _transformStruct: NSAffineTransformStruct;
     
   public
     class function alloc: NSAffineTransform; message 'alloc';
@@ -71,7 +73,14 @@ type
     function transformStruct: NSAffineTransformStruct; message 'transformStruct';
     procedure setTransformStruct(transformStruct_: NSAffineTransformStruct); message 'setTransformStruct:';
 
-    { Category: NSAppKitAdditons }
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+  end; external;
+
+{ NSAppKitAdditonsCategory }
+  NSAppKitAdditonsCategory = objccategory(NSAffineTransform)
     function transformBezierPath(aPath: NSBezierPath): NSBezierPath; message 'transformBezierPath:';
     procedure set_; message 'set';
     procedure concat; message 'concat';

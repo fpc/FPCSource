@@ -1,10 +1,27 @@
 { Parsed from Appkit.framework NSFileWrapper.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
 {$ifndef NSFILEWRAPPER_PAS_T}
 {$define NSFILEWRAPPER_PAS_T}
+
+{ Constants }
+
+const
+  NSFileWrapperReadingImmediate = 1 shl 0;
+  NSFileWrapperReadingWithoutMapping = 1 shl 1;
+
+const
+  NSFileWrapperWritingAtomic = 1 shl 0;
+  NSFileWrapperWritingWithNameUpdating = 1 shl 1;
+
+{ Types }
+type
+  NSFileWrapperReadingOptions = NSUInteger;
+  NSFileWrapperReadingOptionsPtr = ^NSFileWrapperReadingOptions;
+  NSFileWrapperWritingOptions = NSUInteger;
+  NSFileWrapperWritingOptionsPtr = ^NSFileWrapperWritingOptions;
 
 {$endif}
 {$endif}
@@ -33,6 +50,7 @@
 {$ifdef FORWARD}
   NSFileWrapper = objcclass;
   NSFileWrapperPointer = ^NSFileWrapper;
+  NSFileWrapperPtr = NSFileWrapperPointer;
 
 {$endif}
 
@@ -43,46 +61,60 @@
 { NSFileWrapper }
   NSFileWrapper = objcclass(NSObject, NSCodingProtocol)
   private
-    __impl: id;
-    __fileName: NSString;
-    __preferredFileName: NSString;
-    __fileAttributes: NSDictionary;
-    __image: NSImage;
-    __moreVars: id;
+    _fileAttributes: NSDictionary;
+    _preferredFileName: NSString;
+    _fileName: NSString;
+    _contents: id;
+    _icon: NSImage;
+    _moreVars: id;
     
   public
     class function alloc: NSFileWrapper; message 'alloc';
 
-    function initDirectoryWithFileWrappers(docs: NSDictionary): id; message 'initDirectoryWithFileWrappers:';
-    function initRegularFileWithContents(data: NSData): id; message 'initRegularFileWithContents:';
-    function initSymbolicLinkWithDestination(path: NSString): id; message 'initSymbolicLinkWithDestination:';
-    function initWithPath(path: NSString): id; message 'initWithPath:';
-    function initWithSerializedRepresentation(data: NSData): id; message 'initWithSerializedRepresentation:';
-    function writeToFile_atomically_updateFilenames(path: NSString; atomicFlag: Boolean; updateFilenamesFlag: Boolean): Boolean; message 'writeToFile:atomically:updateFilenames:';
-    function serializedRepresentation: NSData; message 'serializedRepresentation';
-    procedure setFilename(filename_: NSString); message 'setFilename:';
-    function filename: NSString; message 'filename';
-    procedure setPreferredFilename(filename_: NSString); message 'setPreferredFilename:';
-    function preferredFilename: NSString; message 'preferredFilename';
-    procedure setFileAttributes(attributes: NSDictionary); message 'setFileAttributes:';
-    function fileAttributes: NSDictionary; message 'fileAttributes';
-    function isRegularFile: Boolean; message 'isRegularFile';
+    function initWithURL_options_error(url: NSURL; options: NSFileWrapperReadingOptions; outError: NSErrorPointer): id; message 'initWithURL:options:error:';
+    function initDirectoryWithFileWrappers(childrenByPreferredName: NSDictionary): id; message 'initDirectoryWithFileWrappers:';
+    function initRegularFileWithContents(contents: NSData): id; message 'initRegularFileWithContents:';
+    function initSymbolicLinkWithDestinationURL(url: NSURL): id; message 'initSymbolicLinkWithDestinationURL:';
+    function initWithSerializedRepresentation(serializeRepresentation: NSData): id; message 'initWithSerializedRepresentation:';
     function isDirectory: Boolean; message 'isDirectory';
+    function isRegularFile: Boolean; message 'isRegularFile';
     function isSymbolicLink: Boolean; message 'isSymbolicLink';
+    procedure setPreferredFilename(fileName_: NSString); message 'setPreferredFilename:';
+    function preferredFilename: NSString; message 'preferredFilename';
+    procedure setFilename(fileName_: NSString); message 'setFilename:';
+    function filename: NSString; message 'filename';
+    procedure setFileAttributes(fileAttributes_: NSDictionary); message 'setFileAttributes:';
+    function fileAttributes: NSDictionary; message 'fileAttributes';
     procedure setIcon(icon_: NSImage); message 'setIcon:';
     function icon: NSImage; message 'icon';
+    function matchesContentsOfURL(url: NSURL): Boolean; message 'matchesContentsOfURL:';
+    function readFromURL_options_error(url: NSURL; options: NSFileWrapperReadingOptions; outError: NSErrorPointer): Boolean; message 'readFromURL:options:error:';
+    function writeToURL_options_originalContentsURL_error(url: NSURL; options: NSFileWrapperWritingOptions; originalContentsURL: NSURL; outError: NSErrorPointer): Boolean; message 'writeToURL:options:originalContentsURL:error:';
+    function serializedRepresentation: NSData; message 'serializedRepresentation';
+    function addFileWrapper(child: NSFileWrapper): NSString; message 'addFileWrapper:';
+    function addRegularFileWithContents_preferredFilename(data: NSData; fileName_: NSString): NSString; message 'addRegularFileWithContents:preferredFilename:';
+    procedure removeFileWrapper(child: NSFileWrapper); message 'removeFileWrapper:';
+    function fileWrappers: NSDictionary; message 'fileWrappers';
+    function keyForFileWrapper(child: NSFileWrapper): NSString; message 'keyForFileWrapper:';
+    function regularFileContents: NSData; message 'regularFileContents';
+    function symbolicLinkDestinationURL: NSURL; message 'symbolicLinkDestinationURL';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+  end; external;
+
+{ NSDeprecated_NSFileWrapperCategory }
+  NSDeprecated_NSFileWrapperCategory = objccategory(NSFileWrapper)
+    function initWithPath(path: NSString): id; message 'initWithPath:';
+    function initSymbolicLinkWithDestination(path: NSString): id; message 'initSymbolicLinkWithDestination:';
     function needsToBeUpdatedFromPath(path: NSString): Boolean; message 'needsToBeUpdatedFromPath:';
     function updateFromPath(path: NSString): Boolean; message 'updateFromPath:';
-    function addFileWrapper(doc: NSFileWrapper): NSString; message 'addFileWrapper:';
-    procedure removeFileWrapper(doc: NSFileWrapper); message 'removeFileWrapper:';
-    function fileWrappers: NSDictionary; message 'fileWrappers';
-    function keyForFileWrapper(doc: NSFileWrapper): NSString; message 'keyForFileWrapper:';
+    function writeToFile_atomically_updateFilenames(path: NSString; atomicFlag: Boolean; updateFilenamesFlag: Boolean): Boolean; message 'writeToFile:atomically:updateFilenames:';
     function addFileWithPath(path: NSString): NSString; message 'addFileWithPath:';
-    function addRegularFileWithContents_preferredFilename(data: NSData; filename_: NSString): NSString; message 'addRegularFileWithContents:preferredFilename:';
     function addSymbolicLinkWithDestination_preferredFilename(path: NSString; filename_: NSString): NSString; message 'addSymbolicLinkWithDestination:preferredFilename:';
-    function regularFileContents: NSData; message 'regularFileContents';
     function symbolicLinkDestination: NSString; message 'symbolicLinkDestination';
-  end; external;
+  end; external name 'NSDeprecated';
 
 {$endif}
 {$endif}

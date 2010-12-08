@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScriptCommandDescription.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSScriptCommandDescription = objcclass;
   NSScriptCommandDescriptionPointer = ^NSScriptCommandDescription;
+  NSScriptCommandDescriptionPtr = NSScriptCommandDescriptionPointer;
 
 {$endif}
 
@@ -43,14 +44,14 @@
 { NSScriptCommandDescription }
   NSScriptCommandDescription = objcclass(NSObject, NSCodingProtocol)
   private
-    __suiteName: NSString;
-    __plistCommandName: NSString;
-    __classAppleEventCode: FourCharCode;
-    __idAppleEventCode: FourCharCode;
-    __objcClassName: NSString;
-    __resultTypeNameOrDescription: NSObject;
-    __plistResultTypeAppleEventCode: FourCharCode;
-    __moreVars: id;
+    _suiteName: NSString;
+    _plistCommandName: NSString;
+    _classAppleEventCode: FourCharCode;
+    _idAppleEventCode: FourCharCode;
+    _objcClassName: NSString;
+    _resultTypeNameOrDescription: NSObject;
+    _plistResultTypeAppleEventCode: FourCharCode;
+    _moreVars: id;
     
   public
     class function alloc: NSScriptCommandDescription; message 'alloc';
@@ -68,7 +69,11 @@
     function appleEventCodeForArgumentWithName(argumentName: NSString): FourCharCode; message 'appleEventCodeForArgumentWithName:';
     function isOptionalArgumentWithName(argumentName: NSString): Boolean; message 'isOptionalArgumentWithName:';
     function createCommandInstance: NSScriptCommand; message 'createCommandInstance';
-    function createCommandInstanceWithZone(zone_: NSZonePointer): NSScriptCommand; message 'createCommandInstanceWithZone:';
+    function createCommandInstanceWithZone(zone_: NSZonePtr): NSScriptCommand; message 'createCommandInstanceWithZone:';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSInputServer.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -35,6 +35,7 @@
   NSInputServerMouseTrackerProtocol = objcprotocol;
   NSInputServer = objcclass;
   NSInputServerPointer = ^NSInputServer;
+  NSInputServerPtr = NSInputServerPointer;
 
 {$endif}
 
@@ -45,11 +46,31 @@
 { NSInputServer }
   NSInputServer = objcclass(NSObject, NSInputServiceProviderProtocol, NSInputServerMouseTrackerProtocol)
   private
-    __name: NSString;
-    __delegate: id;
+    _name: NSString;
+    _delegate: id;
     
   public
     class function alloc: NSInputServer; message 'alloc';
+
+    { Adopted Protocols }
+    procedure insertText_client(aString: id; sender: id);
+    procedure doCommandBySelector_client(aSelector: SEL; sender: id);
+    procedure markedTextAbandoned(sender: id);
+    procedure markedTextSelectionChanged_client(newSel: NSRange; sender: id);
+    procedure terminate(sender: id);
+    function canBeDisabled: Boolean;
+    function wantsToInterpretAllKeystrokes: Boolean;
+    function wantsToHandleMouseEvents: Boolean;
+    function wantsToDelayTextChangeNotifications: Boolean;
+    procedure inputClientBecomeActive(sender: id);
+    procedure inputClientResignActive(sender: id);
+    procedure inputClientEnabled(sender: id);
+    procedure inputClientDisabled(sender: id);
+    procedure activeConversationWillChange_fromOldConversation(sender: id; oldConversation: NSInteger);
+    procedure activeConversationChanged_toNewConversation(sender: id; newConversation: NSInteger);
+    function mouseDownOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id): Boolean;
+    function mouseDraggedOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id): Boolean;
+    procedure mouseUpOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id);
   end; external;
 
 {$endif}
@@ -60,28 +81,28 @@
   
 { NSInputServiceProvider Protocol }
   NSInputServiceProviderProtocol = objcprotocol
-    procedure insertText_client(aString: id; sender: id); message 'insertText:client:';
-    procedure doCommandBySelector_client(aSelector: SEL; sender: id); message 'doCommandBySelector:client:';
-    procedure markedTextAbandoned(sender: id); message 'markedTextAbandoned:';
-    procedure markedTextSelectionChanged_client(newSel: NSRange; sender: id); message 'markedTextSelectionChanged:client:';
-    procedure terminate(sender: id); message 'terminate:';
-    function canBeDisabled: Boolean; message 'canBeDisabled';
-    function wantsToInterpretAllKeystrokes: Boolean; message 'wantsToInterpretAllKeystrokes';
-    function wantsToHandleMouseEvents: Boolean; message 'wantsToHandleMouseEvents';
-    function wantsToDelayTextChangeNotifications: Boolean; message 'wantsToDelayTextChangeNotifications';
-    procedure inputClientBecomeActive(sender: id); message 'inputClientBecomeActive:';
-    procedure inputClientResignActive(sender: id); message 'inputClientResignActive:';
-    procedure inputClientEnabled(sender: id); message 'inputClientEnabled:';
-    procedure inputClientDisabled(sender: id); message 'inputClientDisabled:';
-    procedure activeConversationWillChange_fromOldConversation(sender: id; oldConversation: NSInteger); message 'activeConversationWillChange:fromOldConversation:';
-    procedure activeConversationChanged_toNewConversation(sender: id; newConversation: NSInteger); message 'activeConversationChanged:toNewConversation:';
+    procedure insertText_client(aString: id; sender: id); message 'insertText:client:'; deprecated 'in Mac OS X 10.6 and later';
+    procedure doCommandBySelector_client(aSelector: SEL; sender: id); message 'doCommandBySelector:client:'; deprecated 'in Mac OS X 10.6 and later';
+    procedure markedTextAbandoned(sender: id); message 'markedTextAbandoned:'; deprecated 'in Mac OS X 10.6 and later';
+    procedure markedTextSelectionChanged_client(newSel: NSRange; sender: id); message 'markedTextSelectionChanged:client:'; deprecated 'in Mac OS X 10.6 and later';
+    procedure terminate(sender: id); message 'terminate:'; deprecated 'in Mac OS X 10.6 and later';
+    function canBeDisabled: Boolean; message 'canBeDisabled'; deprecated 'in Mac OS X 10.6 and later';
+    function wantsToInterpretAllKeystrokes: Boolean; message 'wantsToInterpretAllKeystrokes'; deprecated 'in Mac OS X 10.6 and later';
+    function wantsToHandleMouseEvents: Boolean; message 'wantsToHandleMouseEvents'; deprecated 'in Mac OS X 10.6 and later';
+    function wantsToDelayTextChangeNotifications: Boolean; message 'wantsToDelayTextChangeNotifications'; deprecated 'in Mac OS X 10.6 and later';
+    procedure inputClientBecomeActive(sender: id); message 'inputClientBecomeActive:'; deprecated 'in Mac OS X 10.6 and later';
+    procedure inputClientResignActive(sender: id); message 'inputClientResignActive:'; deprecated 'in Mac OS X 10.6 and later';
+    procedure inputClientEnabled(sender: id); message 'inputClientEnabled:'; deprecated 'in Mac OS X 10.6 and later';
+    procedure inputClientDisabled(sender: id); message 'inputClientDisabled:'; deprecated 'in Mac OS X 10.6 and later';
+    procedure activeConversationWillChange_fromOldConversation(sender: id; oldConversation: NSInteger); message 'activeConversationWillChange:fromOldConversation:'; deprecated 'in Mac OS X 10.6 and later';
+    procedure activeConversationChanged_toNewConversation(sender: id; newConversation: NSInteger); message 'activeConversationChanged:toNewConversation:'; deprecated 'in Mac OS X 10.6 and later';
   end; external name 'NSInputServiceProvider';
   
 { NSInputServerMouseTracker Protocol }
   NSInputServerMouseTrackerProtocol = objcprotocol
-    function mouseDownOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id): Boolean; message 'mouseDownOnCharacterIndex:atCoordinate:withModifier:client:';
-    function mouseDraggedOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id): Boolean; message 'mouseDraggedOnCharacterIndex:atCoordinate:withModifier:client:';
-    procedure mouseUpOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id); message 'mouseUpOnCharacterIndex:atCoordinate:withModifier:client:';
+    function mouseDownOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id): Boolean; message 'mouseDownOnCharacterIndex:atCoordinate:withModifier:client:'; deprecated 'in Mac OS X 10.6 and later';
+    function mouseDraggedOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id): Boolean; message 'mouseDraggedOnCharacterIndex:atCoordinate:withModifier:client:'; deprecated 'in Mac OS X 10.6 and later';
+    procedure mouseUpOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id); message 'mouseUpOnCharacterIndex:atCoordinate:withModifier:client:'; deprecated 'in Mac OS X 10.6 and later';
   end; external name 'NSInputServerMouseTracker';
 {$endif}
 {$endif}

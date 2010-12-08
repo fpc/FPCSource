@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSColorSpace.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -21,6 +21,7 @@ const
 { Types }
 type
   NSColorSpaceModel = NSInteger;
+  NSColorSpaceModelPtr = ^NSColorSpaceModel;
 
 {$endif}
 {$endif}
@@ -49,6 +50,7 @@ type
 {$ifdef FORWARD}
   NSColorSpace = objcclass;
   NSColorSpacePointer = ^NSColorSpace;
+  NSColorSpacePtr = NSColorSpacePointer;
 
 {$endif}
 
@@ -59,17 +61,21 @@ type
 { NSColorSpace }
   NSColorSpace = objcclass(NSObject, NSCodingProtocol)
   private
-    __profile: id;
+    _profile: id;
     __flags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSColorSpace2: cuint);
+       1: (
         colorSpaceID: 0..((1 shl 8)-1);
         storageType: 0..((1 shl 3)-1);
         replacedDuringUnarchiving: 0..1;
-        int: 0..((1 shl 20)-1);
+        _anonbitfield_NSColorSpace0: 0..((1 shl 20)-1);
         {$ifdef cpu64}
-        int2: 0..((1 shl 32)-1);
+        _anonbitfield_NSColorSpace1: 0..((1 shl 32)-1);
         {$endif}
+      );
       end;
-    ___cgColorSpace: Pointer;
+    __cgColorSpace: Pointer;
         _reserved: array[0..4] of Pointer;
     
   public
@@ -79,7 +85,7 @@ type
     function ICCProfileData: NSData; message 'ICCProfileData';
     function initWithColorSyncProfile(prof: Pointer): id; message 'initWithColorSyncProfile:';
     function colorSyncProfile: Pointer; message 'colorSyncProfile';
-    function initWithCGColorSpace(CGColorSpace_: CGColorSpaceRef): id; message 'initWithCGColorSpace:';
+    function initWithCGColorSpace(cgColorSpace: CGColorSpaceRef): id; message 'initWithCGColorSpace:';
     function CGColorSpace: CGColorSpaceRef; message 'CGColorSpace';
     function numberOfColorComponents: NSInteger; message 'numberOfColorComponents';
     function colorSpaceModel: NSColorSpaceModel; message 'colorSpaceModel';
@@ -91,7 +97,13 @@ type
     class function deviceGrayColorSpace: NSColorSpace; message 'deviceGrayColorSpace';
     class function deviceCMYKColorSpace: NSColorSpace; message 'deviceCMYKColorSpace';
     class function sRGBColorSpace: NSColorSpace; message 'sRGBColorSpace';
+    class function genericGamma22GrayColorSpace: NSColorSpace; message 'genericGamma22GrayColorSpace';
     class function adobeRGB1998ColorSpace: NSColorSpace; message 'adobeRGB1998ColorSpace';
+    class function availableColorSpacesWithModel(model: NSColorSpaceModel): NSArray; message 'availableColorSpacesWithModel:';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSPropertyMapping.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSPropertyMapping = objcclass;
   NSPropertyMappingPointer = ^NSPropertyMapping;
+  NSPropertyMappingPtr = NSPropertyMappingPointer;
 
 {$endif}
 
@@ -43,15 +44,19 @@
 { NSPropertyMapping }
   NSPropertyMapping = objcclass(NSObject)
   private
-    __reserved: Pointer;
-    __reserved1: Pointer;
-    __reserved2: Pointer;
-    __name: NSString;
-    __valueExpression: NSExpression;
-    __userInfo: NSDictionary;
+    _reserved: Pointer;
+    _reserved1: Pointer;
+    _propertyTransforms: NSArray;
+    _name: NSString;
+    _valueExpression: NSExpression;
+    _userInfo: NSDictionary;
     __propertyMappingFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSPropertyMapping0: cuint);
+       1: (
         _isInUse: 0..1;
         _reservedPropertyMapping: 0..((1 shl 31)-1);
+      );
       end;
     
   public

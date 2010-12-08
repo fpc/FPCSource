@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSManagedObjectModel.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSManagedObjectModel = objcclass;
   NSManagedObjectModelPointer = ^NSManagedObjectModel;
+  NSManagedObjectModelPtr = NSManagedObjectModelPointer;
 
 {$endif}
 
@@ -41,19 +42,23 @@
 {$define NSMANAGEDOBJECTMODEL_PAS_C}
 
 { NSManagedObjectModel }
-  NSManagedObjectModel = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol{, NSFastEnumerationProtocol})
+  NSManagedObjectModel = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol, NSFastEnumerationProtocol)
   private
-    __reserved: Pointer;
-    __reserved2: Pointer;
-    __localizationPolicy: id;
-    __entities: NSMutableDictionary;
-    __configurations: NSMutableDictionary;
-    __fetchRequestTemplates: NSMutableDictionary;
-    __versionIdentifiers: NSSet;
+    _reserved: Pointer;
+    _reserved2: Pointer;
+    _localizationPolicy: id;
+    _entities: NSMutableDictionary;
+    _configurations: NSMutableDictionary;
+    _fetchRequestTemplates: NSMutableDictionary;
+    _versionIdentifiers: NSSet;
     __managedObjectModelFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSManagedObjectModel0: cuint);
+       1: (
         _isInUse: 0..1;
         _isImmutable: 0..1;
         _reservedEntityDescription: 0..((1 shl 30)-1);
+      );
       end;
     
   public
@@ -81,6 +86,12 @@
     procedure setVersionIdentifiers(identifiers: NSSet); message 'setVersionIdentifiers:';
     function isConfiguration_compatibleWithStoreMetadata(configuration: NSString; metadata: NSDictionary): Boolean; message 'isConfiguration:compatibleWithStoreMetadata:';
     function entityVersionHashesByName: NSDictionary; message 'entityVersionHashesByName';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+    function copyWithZone(zone_: NSZonePtr): id;
+    function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePtr; stackbuf: idPtr; len: NSUInteger): NSUInteger;
   end; external;
 
 {$endif}

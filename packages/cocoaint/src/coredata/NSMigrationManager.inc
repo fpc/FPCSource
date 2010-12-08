@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSMigrationManager.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Fri Oct 2 11:46:33 EDT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSMigrationManager = objcclass;
   NSMigrationManagerPointer = ^NSMigrationManager;
+  NSMigrationManagerPtr = NSMigrationManagerPointer;
 
 {$endif}
 
@@ -43,24 +44,28 @@
 { NSMigrationManager }
   NSMigrationManager = objcclass(NSObject)
   private
-    __sourceModel: NSManagedObjectModel;
-    __sourceEntitiesByVersionHash: NSDictionary;
-    __destinationModel: NSManagedObjectModel;
-    __destinationEntitiesByVersionHash: NSDictionary;
-    __mappingModel: NSMappingModel;
-    __sourceManagedObjectContext: NSManagedObjectContext;
-    __destinationManagedObjectContext: NSManagedObjectContext;
-    __migrationContext: NSMigrationContext;
-    __userInfo: NSDictionary;
+    _sourceModel: NSManagedObjectModel;
+    _sourceEntitiesByVersionHash: NSDictionary;
+    _destinationModel: NSManagedObjectModel;
+    _destinationEntitiesByVersionHash: NSDictionary;
+    _mappingModel: NSMappingModel;
+    _sourceManagedObjectContext: NSManagedObjectContext;
+    _destinationManagedObjectContext: NSManagedObjectContext;
+    _migrationContext: NSMigrationContext;
+    _userInfo: NSDictionary;
     __migrationManagerFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSMigrationManager0: cuint);
+       1: (
         _migrationWasCancelled: 0..1;
         _reservedMigrationManager: 0..((1 shl 31)-1);
+      );
       end;
-    __migrationCancellationError: NSError;
-    __reserved1: id;
-    __reserved2: id;
-    __reserved3: id;
-    __reserved4: id;
+    _migrationCancellationError: NSError;
+    _reserved1: id;
+    _reserved2: id;
+    _reserved3: id;
+    _reserved4: id;
     
   public
     class function alloc: NSMigrationManager; message 'alloc';
@@ -76,6 +81,7 @@
     function sourceEntityForEntityMapping(mEntity: NSEntityMapping): NSEntityDescription; message 'sourceEntityForEntityMapping:';
     function destinationEntityForEntityMapping(mEntity: NSEntityMapping): NSEntityDescription; message 'destinationEntityForEntityMapping:';
     procedure associateSourceInstance_withDestinationInstance_forEntityMapping(sourceInstance: NSManagedObject; destinationInstance: NSManagedObject; entityMapping: NSEntityMapping); message 'associateSourceInstance:withDestinationInstance:forEntityMapping:';
+    function destinationInstancesForEntityMappingNamed_sourceInstances(mappingName: NSString; sourceInstances: NSArray): NSArray; message 'destinationInstancesForEntityMappingNamed:sourceInstances:';
     function sourceInstancesForEntityMappingNamed_destinationInstances(mappingName: NSString; destinationInstances: NSArray): NSArray; message 'sourceInstancesForEntityMappingNamed:destinationInstances:';
     function currentEntityMapping: NSEntityMapping; message 'currentEntityMapping';
     function migrationProgress: single; message 'migrationProgress';

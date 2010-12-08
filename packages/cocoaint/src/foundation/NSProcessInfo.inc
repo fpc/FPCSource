@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSProcessInfo.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -44,6 +44,7 @@ const
 {$ifdef FORWARD}
   NSProcessInfo = objcclass;
   NSProcessInfoPointer = ^NSProcessInfo;
+  NSProcessInfoPtr = NSProcessInfoPointer;
 
 {$endif}
 
@@ -57,8 +58,8 @@ const
     _environment: NSDictionary;
     _arguments: NSArray;
     _hostName: NSString;
-    _name: NSString;
-    _reserved: Pointer;
+    name: NSString;
+    reserved: Pointer;
     
   public
     class function alloc: NSProcessInfo; message 'alloc';
@@ -77,6 +78,9 @@ const
     function processorCount: NSUInteger; message 'processorCount';
     function activeProcessorCount: NSUInteger; message 'activeProcessorCount';
     function physicalMemory: culonglong; message 'physicalMemory';
+    function systemUptime: NSTimeInterval; message 'systemUptime';
+    procedure disableSuddenTermination; message 'disableSuddenTermination';
+    procedure enableSuddenTermination; message 'enableSuddenTermination';
   end; external;
 
 {$endif}

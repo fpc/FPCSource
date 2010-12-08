@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMMouseEvent.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMMouseEvent = objcclass;
   DOMMouseEventPointer = ^DOMMouseEvent;
+  DOMMouseEventPtr = DOMMouseEventPointer;
 
 {$endif}
 
@@ -54,11 +55,19 @@
     function shiftKey: Boolean; message 'shiftKey';
     function altKey: Boolean; message 'altKey';
     function metaKey: Boolean; message 'metaKey';
-    function button: cushort; message 'button';
+    function button: cuint; message 'button';
     function relatedTarget: id; message 'relatedTarget';
+    function offsetX: cint; message 'offsetX';
+    function offsetY: cint; message 'offsetY';
+    function x: cint; message 'x';
+    function y: cint; message 'y';
+    function fromElement: DOMNode; message 'fromElement';
+    function toElement: DOMNode; message 'toElement';
     procedure initMouseEvent_canBubble_cancelable_view_detail_screenX_screenY_clientX_clientY_ctrlKey_altKey_shiftKey_metaKey_button_relatedTarget(type__: NSString; canBubble: Boolean; cancelable_: Boolean; view_: DOMAbstractView; detail_: cint; screenX_: cint; screenY_: cint; clientX_: cint; clientY_: cint; ctrlKey_: Boolean; altKey_: Boolean; shiftKey_: Boolean; metaKey_: Boolean; button_: cushort; relatedTarget_: id); message 'initMouseEvent:canBubble:cancelable:view:detail:screenX:screenY:clientX:clientY:ctrlKey:altKey:shiftKey:metaKey:button:relatedTarget:';
+  end; external;
 
-    { Category: DOMMouseEventDeprecated }
+{ DOMMouseEventDeprecatedCategory }
+  DOMMouseEventDeprecatedCategory = objccategory(DOMMouseEvent)
     procedure initMouseEvent(type__: NSString; canBubble: Boolean; cancelable_: Boolean; view_: DOMAbstractView; detail_: cint; screenX_: cint; screenY_: cint; clientX_: cint; clientY_: cint; ctrlKey_: Boolean; altKey_: Boolean; shiftKey_: Boolean; metaKey_: Boolean; button_: cushort; relatedTarget_: id); message 'initMouseEvent:type:canBubble:cancelable:view:detail:screenX:screenY:clientX:clientY:ctrlKey:altKey:shiftKey:metaKey:button:';
   end; external;
 

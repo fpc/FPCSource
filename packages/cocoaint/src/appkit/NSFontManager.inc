@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSFontManager.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -9,7 +9,9 @@
 { Types }
 type
   NSFontTraitMask = NSUInteger;
+  NSFontTraitMaskPtr = ^NSFontTraitMask;
   NSFontAction = NSUInteger;
+  NSFontActionPtr = ^NSFontAction;
 
 { Constants }
 
@@ -28,7 +30,7 @@ const
   NSUnitalicFontMask = $01000000;
 
 const
-  NSFontCollectionApplicationOnlyMask = 1  shl  0;
+  NSFontCollectionApplicationOnlyMask = 1 shl 0;
 
 const
   NSNoFontChangeAction = 0;
@@ -67,6 +69,7 @@ const
 {$ifdef FORWARD}
   NSFontManager = objcclass;
   NSFontManagerPointer = ^NSFontManager;
+  NSFontManagerPtr = NSFontManagerPointer;
 
 {$endif}
 
@@ -77,23 +80,27 @@ const
 { NSFontManager }
   NSFontManager = objcclass(NSObject)
   private
-    __panel: NSFontPanel;
-    __fmReserved1: cuint;
-    __action: SEL;
-    __actionOrigin: id;
-    __target: id;
-    __selFont: NSFont;
+    _panel: NSFontPanel;
+    _fmReserved1: cuint;
+    _action: SEL;
+    _actionOrigin: id;
+    _target: id;
+    _selFont: NSFont;
     __fmFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSFontManager0: cuint);
+       1: (
         multipleFont: 0..1;
         disabled: 0..1;
         senderTagMode: 0..((1 shl 2)-1);
         _RESERVED: 0..((1 shl 12)-1);
+      );
       end;
-    __fmReserved3: cushort;
-    __delegate: id;
-    __collections: id;
-    __hiddenCollections: id;
-    __fmReserved4: NSUInteger;
+    _fmReserved3: cushort;
+    _delegate: id;
+    _collections: id;
+    _hiddenCollections: id;
+    _fmReserved4: NSUInteger;
     
   public
     class function alloc: NSFontManager; message 'alloc';
@@ -141,8 +148,10 @@ const
     function convertFontTraits(traits: NSFontTraitMask): NSFontTraitMask; message 'convertFontTraits:';
     procedure setTarget(aTarget: id); message 'setTarget:';
     function target: id; message 'target';
+  end; external;
 
-    { Category: NSFontManagerMenuActionMethods }
+{ NSFontManagerMenuActionMethodsCategory }
+  NSFontManagerMenuActionMethodsCategory = objccategory(NSFontManager)
     function fontNamed_hasTraits(fName: NSString; someTraits: NSFontTraitMask): Boolean; message 'fontNamed:hasTraits:';
     function availableFontNamesWithTraits(someTraits: NSFontTraitMask): NSArray; message 'availableFontNamesWithTraits:';
     procedure addFontTrait(sender: id); message 'addFontTrait:';
@@ -151,6 +160,16 @@ const
     procedure modifyFont(sender: id); message 'modifyFont:';
     procedure orderFrontFontPanel(sender: id); message 'orderFrontFontPanel:';
     procedure orderFrontStylesPanel(sender: id); message 'orderFrontStylesPanel:';
+  end; external;
+
+{ NSFontManagerDelegateCategory }
+  NSFontManagerDelegateCategory = objccategory(NSObject)
+    function fontManager_willIncludeFont(sender: id; fontName: NSString): Boolean; message 'fontManager:willIncludeFont:';
+  end; external;
+
+{ NSFontManagerResponderMethodCategory }
+  NSFontManagerResponderMethodCategory = objccategory(NSObject)
+    procedure changeFont(sender: id); message 'changeFont:';
   end; external;
 
 {$endif}

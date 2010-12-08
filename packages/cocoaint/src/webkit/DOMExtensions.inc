@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMExtensions.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:19:00 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -26,6 +26,31 @@
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef DOMEXTENSIONS_PAS_S}
 {$define DOMEXTENSIONS_PAS_S}
+
+{$endif}
+{$endif}
+
+{$ifdef FORWARD}
+
+{$endif}
+
+{$ifdef CLASSES}
+{$ifndef DOMEXTENSIONS_PAS_C}
+{$define DOMEXTENSIONS_PAS_C}
+
+{ DOMNodeExtensionsCategory }
+  DOMNodeExtensionsCategory = objccategory(DOMNode)
+  end; external;
+
+{ DOMElementAppKitExtensionsCategory }
+  DOMElementAppKitExtensionsCategory = objccategory(DOMElement)
+  end; external;
+
+{ DOMHTMLDocumentExtensionsCategory }
+  DOMHTMLDocumentExtensionsCategory = objccategory(DOMHTMLDocument)
+    function createDocumentFragmentWithMarkupString_baseURL(markupString: NSString; baseURL: NSURL): DOMDocumentFragment; message 'createDocumentFragmentWithMarkupString:baseURL:';
+    function createDocumentFragmentWithText(text: NSString): DOMDocumentFragment; message 'createDocumentFragmentWithText:';
+  end; external;
 
 {$endif}
 {$endif}

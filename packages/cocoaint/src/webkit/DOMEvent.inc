@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMEvent.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -40,6 +40,7 @@ const
 {$ifdef FORWARD}
   DOMEvent = objcclass;
   DOMEventPointer = ^DOMEvent;
+  DOMEventPtr = DOMEventPointer;
 
 {$endif}
 
@@ -56,15 +57,22 @@ const
     function type_: NSString; message 'type_';
     function target: id; message 'target';
     function currentTarget: id; message 'currentTarget';
-    function eventPhase: cushort; message 'eventPhase';
+    function eventPhase: cuint; message 'eventPhase';
     function bubbles: Boolean; message 'bubbles';
     function cancelable: Boolean; message 'cancelable';
     function timeStamp: DOMTimeStamp; message 'timeStamp';
+    function srcElement: id; message 'srcElement';
+    procedure setReturnValue (newValue: Boolean); message 'setReturnValue:';
+    function returnValue: Boolean; message 'returnValue';
+    procedure setCancelBubble (newValue: Boolean); message 'setCancelBubble:';
+    function cancelBubble: Boolean; message 'cancelBubble';
     procedure stopPropagation; message 'stopPropagation';
     procedure preventDefault; message 'preventDefault';
     procedure initEvent_canBubbleArg_cancelableArg(eventTypeArg: NSString; canBubbleArg: Boolean; cancelableArg: Boolean); message 'initEvent:canBubbleArg:cancelableArg:';
+  end; external;
 
-    { Category: DOMEventDeprecated }
+{ DOMEventDeprecatedCategory }
+  DOMEventDeprecatedCategory = objccategory(DOMEvent)
     procedure initEvent(eventTypeArg: NSString; canBubbleArg: Boolean; cancelableArg: Boolean); message 'initEvent:eventTypeArg:canBubbleArg:';
   end; external;
 

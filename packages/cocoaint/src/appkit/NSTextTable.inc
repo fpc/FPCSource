@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextTable.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -38,10 +38,15 @@ const
 { Types }
 type
   NSTextBlockValueType = NSUInteger;
+  NSTextBlockValueTypePtr = ^NSTextBlockValueType;
   NSTextBlockDimension = NSUInteger;
+  NSTextBlockDimensionPtr = ^NSTextBlockDimension;
   NSTextBlockLayer = NSInteger;
+  NSTextBlockLayerPtr = ^NSTextBlockLayer;
   NSTextBlockVerticalAlignment = NSUInteger;
+  NSTextBlockVerticalAlignmentPtr = ^NSTextBlockVerticalAlignment;
   NSTextTableLayoutAlgorithm = NSUInteger;
+  NSTextTableLayoutAlgorithmPtr = ^NSTextTableLayoutAlgorithm;
 
 {$endif}
 {$endif}
@@ -70,10 +75,13 @@ type
 {$ifdef FORWARD}
   NSTextBlock = objcclass;
   NSTextBlockPointer = ^NSTextBlock;
+  NSTextBlockPtr = NSTextBlockPointer;
   NSTextTableBlock = objcclass;
   NSTextTableBlockPointer = ^NSTextTableBlock;
+  NSTextTableBlockPtr = NSTextTableBlockPointer;
   NSTextTable = objcclass;
   NSTextTablePointer = ^NSTextTable;
+  NSTextTablePtr = NSTextTablePointer;
 
 {$endif}
 
@@ -84,13 +92,13 @@ type
 { NSTextBlock }
   NSTextBlock = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
-    __propVals: Pointer;
-    __propMask: NSUInteger;
-    __typeMask: NSUInteger;
-    __primParamVal: id;
-    __otherParamVals: id;
-    __blockPrimary: Pointer;
-    __blockSecondary: Pointer;
+    _propVals: Pointer;
+    _propMask: NSUInteger;
+    _typeMask: NSUInteger;
+    _primParamVal: id;
+    _otherParamVals: id;
+    _blockPrimary: Pointer;
+    _blockSecondary: Pointer;
     
   public
     class function alloc: NSTextBlock; message 'alloc';
@@ -116,18 +124,23 @@ type
     function rectForLayoutAtPoint_inRect_textContainer_characterRange(startingPoint: NSPoint; rect: NSRect; textContainer: NSTextContainer; charRange: NSRange): NSRect; message 'rectForLayoutAtPoint:inRect:textContainer:characterRange:';
     function boundsRectForContentRect_inRect_textContainer_characterRange(contentRect: NSRect; rect: NSRect; textContainer: NSTextContainer; charRange: NSRange): NSRect; message 'boundsRectForContentRect:inRect:textContainer:characterRange:';
     procedure drawBackgroundWithFrame_inView_characterRange_layoutManager(frameRect: NSRect; controlView: NSView; charRange: NSRange; layoutManager: NSLayoutManager); message 'drawBackgroundWithFrame:inView:characterRange:layoutManager:';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+    function copyWithZone(zone_: NSZonePtr): id;
   end; external;
 
 { NSTextTableBlock }
   NSTextTableBlock = objcclass(NSTextBlock)
   private
-    __table: NSTextTable;
-    __rowNum: NSInteger;
-    __colNum: NSInteger;
-    __rowSpan: NSInteger;
-    __colSpan: NSInteger;
-    __tableBlockPrimary: Pointer;
-    __tableBlockSecondary: Pointer;
+    _table: NSTextTable;
+    _rowNum: NSInteger;
+    _colNum: NSInteger;
+    _rowSpan: NSInteger;
+    _colSpan: NSInteger;
+    _tableBlockPrimary: Pointer;
+    _tableBlockSecondary: Pointer;
     
   public
     class function alloc: NSTextTableBlock; message 'alloc';
@@ -143,11 +156,11 @@ type
 { NSTextTable }
   NSTextTable = objcclass(NSTextBlock)
   private
-    __numCols: NSUInteger;
-    __tableFlags: NSUInteger;
-    __lcache: id;
-    __tablePrimary: Pointer;
-    __tableSecondary: Pointer;
+    _numCols: NSUInteger;
+    _tableFlags: NSUInteger;
+    _lcache: id;
+    _tablePrimary: Pointer;
+    _tableSecondary: Pointer;
     
   public
     class function alloc: NSTextTable; message 'alloc';

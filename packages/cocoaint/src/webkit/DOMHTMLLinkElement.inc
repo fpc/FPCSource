@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLLinkElement.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:19:00 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMHTMLLinkElement = objcclass;
   DOMHTMLLinkElementPointer = ^DOMHTMLLinkElement;
+  DOMHTMLLinkElementPtr = DOMHTMLLinkElementPointer;
 
 {$endif}
 
@@ -46,6 +47,8 @@
   public
     class function alloc: DOMHTMLLinkElement; message 'alloc';
 
+    procedure setDisabled (newValue: Boolean); message 'setDisabled:';
+    function disabled: Boolean; message 'disabled';
     procedure setCharset (newValue: NSString); message 'setCharset:';
     function charset: NSString; message 'charset';
     procedure setHref (newValue: NSString); message 'setHref:';
@@ -62,6 +65,7 @@
     function target: NSString; message 'target';
     procedure setType (newValue: NSString); message 'setType:';
     function type_: NSString; message 'type_';
+    function sheet: DOMStyleSheet; message 'sheet';
     function absoluteLinkURL: NSURL; message 'absoluteLinkURL';
   end; external;
 

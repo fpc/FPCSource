@@ -1,74 +1,27 @@
-{WebKit.h}
-{$include WebArchive.inc}
-{$include WebBackForwardList.inc}
-{$include WebDataSource.inc}
-{$include WebDocument.inc}
-{$include WebDOMOperations.inc}
-{$include WebDownload.inc}
-{$include WebEditingDelegate.inc}
-{$include WebFrame.inc}
-{$include WebFrameLoadDelegate.inc}
-{$include WebFrameView.inc}
-{$include WebHistory.inc}
-{$include WebHistoryItem.inc}
-{$include WebKitErrors.inc}
-{$include WebPlugin.inc}
-{$include WebPluginContainer.inc}
-{$include WebPluginViewFactory.inc}
-{$include WebPolicyDelegate.inc}
-{$include WebPreferences.inc}
-{$include WebResource.inc}
-{$include WebResourceLoadDelegate.inc}
-{$include WebScriptObject.inc}
-{$include WebUIDelegate.inc}
-{$include WebView.inc}
+{ Parsed from Webkit.framework WebKit.h }
 
-{DOMCore.h}
+{$include WebScriptObject.inc}
 {$include DOMObject.inc}
 {$include DOMNode.inc}
-{$include DOMNodeList.inc}
-{$include DOMNotation.inc}
-{$include DOMAttr.inc}
+
 {$include DOMCharacterData.inc}
-{$include DOMComment.inc}
-{$include DOMDocument.inc}
-{$include DOMDocumentFragment.inc}
-{$include DOMDocumentType.inc}
-{$include DOMElement.inc}
-{$include DOMEntity.inc}
-{$include DOMEntityReference.inc}
-{$include DOMException.inc}
-{$include DOMImplementation.inc}
-{$include DOMNamedNodeMap.inc}
-{$include DOMProcessingInstruction.inc}
 {$include DOMText.inc}
-{$include DOMCDATASection.inc}
 
-{DOMEvents.h}
-{$include DOMEvent.inc}
-{$include DOMEventException.inc}
-{$include DOMEventListener.inc}
-{$include DOMEventTarget.inc}
-{$include DOMUIEvent.inc}
-{$include DOMKeyboardEvent.inc}
-{$include DOMMouseEvent.inc}
-{$include DOMMutationEvent.inc}
-{$include DOMOverflowEvent.inc}
-{$include DOMWheelEvent.inc}
-
-{DOMStylesheets.h}
 {$include DOMStyleSheet.inc}
-{$include DOMStyleSheetList.inc}
-{$include DOMMediaList.inc}
 
-{DOMCSS.h}
+{$include CarbonUtils.inc}
+{$include DOM.inc}
+{$include DOMAbstractView.inc}
+{$include DOMAttr.inc}
+{$include DOMCDATASection.inc}
+{$include DOMCSS.inc}
 {$include DOMCSSRule.inc}
+{$include DOMCSSValue.inc}
 {$include DOMCSSCharsetRule.inc}
 {$include DOMCSSFontFaceRule.inc}
 {$include DOMCSSImportRule.inc}
 {$include DOMCSSMediaRule.inc}
 {$include DOMCSSPageRule.inc}
-{$include DOMCSSValue.inc}
 {$include DOMCSSPrimitiveValue.inc}
 {$include DOMCSSRuleList.inc}
 {$include DOMCSSStyleDeclaration.inc}
@@ -76,11 +29,24 @@
 {$include DOMCSSStyleSheet.inc}
 {$include DOMCSSUnknownRule.inc}
 {$include DOMCSSValueList.inc}
+{$include DOMComment.inc}
+{$include DOMCore.inc}
 {$include DOMCounter.inc}
-{$include DOMRGBColor.inc}
-{$include DOMRect.inc}
-
-{DOMHTML.h}
+{$include DOMDocument.inc}
+{$include DOMDocumentFragment.inc}
+{$include DOMDocumentType.inc}
+{$include DOMElement.inc}
+{$include DOMEntity.inc}
+{$include DOMEntityReference.inc}
+{$include DOMEvent.inc}
+{$include DOMEventException.inc}
+{$include DOMEventListener.inc}
+{$include DOMEventTarget.inc}
+{$include DOMEvents.inc}
+{$include DOMException.inc}
+{$include DOMFile.inc}
+{$include DOMFileList.inc}
+{$include DOMHTML.inc}
 {$include DOMHTMLElement.inc}
 {$include DOMHTMLAnchorElement.inc}
 {$include DOMHTMLAppletElement.inc}
@@ -139,28 +105,63 @@
 {$include DOMHTMLTextAreaElement.inc}
 {$include DOMHTMLTitleElement.inc}
 {$include DOMHTMLUListElement.inc}
-
-{DOMRanges.h}
+{$include DOMImplementation.inc}
+{$include DOMUIEvent.inc}
+{$include DOMKeyboardEvent.inc}
+{$include DOMMediaList.inc}
+{$include DOMMouseEvent.inc}
+{$include DOMMutationEvent.inc}
+{$include DOMNamedNodeMap.inc}
+{$include DOMNodeFilter.inc}
+{$include DOMNodeIterator.inc}
+{$include DOMNodeList.inc}
+{$include DOMNotation.inc}
+{$include DOMOverflowEvent.inc}
+{$include DOMProcessingInstruction.inc}
+{$include DOMProgressEvent.inc}
+{$include DOMRGBColor.inc}
 {$include DOMRange.inc}
 {$include DOMRangeException.inc}
-
-{DOMXPath.h}
+{$include DOMRanges.inc}
+{$include DOMRect.inc}
+{$include DOMStyleSheetList.inc}
+{$include DOMStylesheets.inc}
+{$include DOMTraversal.inc}
+{$include DOMTreeWalker.inc}
+{$include DOMViews.inc}
+{$include DOMWheelEvent.inc}
+{$include DOMXPath.inc}
 {$include DOMXPathException.inc}
 {$include DOMXPathExpression.inc}
 {$include DOMXPathNSResolver.inc}
 {$include DOMXPathResult.inc}
+{$include HIWebView.inc}
+{$include WebArchive.inc}
+{$include WebBackForwardList.inc}
+{$include WebDOMOperations.inc}
+{$include WebDataSource.inc}
+{$include WebDocument.inc}
+{$include WebDownload.inc}
+{$include WebEditingDelegate.inc}
+{$include WebFrame.inc}
+{$include WebFrameLoadDelegate.inc}
+{$include WebFrameView.inc}
+{$include WebHistory.inc}
+{$include WebHistoryItem.inc}
+{ include WebJavaPlugIn.inc}
+{ include WebKit.inc}
+{$include WebKitErrors.inc}
+{$include WebPlugin.inc}
+{$include WebPluginContainer.inc}
+{$include WebPluginViewFactory.inc}
+{$include WebPolicyDelegate.inc}
+{$include WebPreferences.inc}
+{$include WebResource.inc}
+{$include WebResourceLoadDelegate.inc}
+{$include WebUIDelegate.inc}
+{$include WebView.inc}
+{ include npapi.inc}
+{ include npfunctions.inc}
+{ include npruntime.inc}
 
-{DOM.h}
-{$include DOMCSS.inc}
 {$include DOMExtensions.inc}
-{$include DOMEvents.inc}
-{$include DOMRanges.inc}
-{$include DOMTraversal.inc}
-{$include DOMAbstractView.inc}
-
-{Misc.}
-{$include DOMTraversal.inc}
-{$include DOMNodeIterator.inc}
-{$include DOMTreeWalker.inc}
-
-{include}

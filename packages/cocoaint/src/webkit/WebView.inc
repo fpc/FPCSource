@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,25 +29,25 @@
 
 { External string constants }
 var
-  WebElementDOMNodeKey: NSString; external name '_WebElementDOMNodeKey';
-  WebElementFrameKey: NSString; external name '_WebElementFrameKey';
-  WebElementImageAltStringKey: NSString; external name '_WebElementImageAltStringKey';
-  WebElementImageKey: NSString; external name '_WebElementImageKey';
-  WebElementImageRectKey: NSString; external name '_WebElementImageRectKey';
-  WebElementImageURLKey: NSString; external name '_WebElementImageURLKey';
-  WebElementIsSelectedKey: NSString; external name '_WebElementIsSelectedKey';
-  WebElementLinkURLKey: NSString; external name '_WebElementLinkURLKey';
-  WebElementLinkTargetFrameKey: NSString; external name '_WebElementLinkTargetFrameKey';
-  WebElementLinkTitleKey: NSString; external name '_WebElementLinkTitleKey';
-  WebElementLinkLabelKey: NSString; external name '_WebElementLinkLabelKey';
-  WebViewProgressStartedNotification: NSString; external name '_WebViewProgressStartedNotification';
-  WebViewProgressEstimateChangedNotification: NSString; external name '_WebViewProgressEstimateChangedNotification';
-  WebViewProgressFinishedNotification: NSString; external name '_WebViewProgressFinishedNotification';
-  WebViewDidBeginEditingNotification: NSString; external name '_WebViewDidBeginEditingNotification';
-  WebViewDidChangeNotification: NSString; external name '_WebViewDidChangeNotification';
-  WebViewDidEndEditingNotification: NSString; external name '_WebViewDidEndEditingNotification';
-  WebViewDidChangeTypingStyleNotification: NSString; external name '_WebViewDidChangeTypingStyleNotification';
-  WebViewDidChangeSelectionNotification: NSString; external name '_WebViewDidChangeSelectionNotification';
+  WebElementDOMNodeKey: NSString; cvar; external;
+  WebElementFrameKey: NSString; cvar; external;
+  WebElementImageAltStringKey: NSString; cvar; external;
+  WebElementImageKey: NSString; cvar; external;
+  WebElementImageRectKey: NSString; cvar; external;
+  WebElementImageURLKey: NSString; cvar; external;
+  WebElementIsSelectedKey: NSString; cvar; external;
+  WebElementLinkURLKey: NSString; cvar; external;
+  WebElementLinkTargetFrameKey: NSString; cvar; external;
+  WebElementLinkTitleKey: NSString; cvar; external;
+  WebElementLinkLabelKey: NSString; cvar; external;
+  WebViewProgressStartedNotification: NSString; cvar; external;
+  WebViewProgressEstimateChangedNotification: NSString; cvar; external;
+  WebViewProgressFinishedNotification: NSString; cvar; external;
+  WebViewDidBeginEditingNotification: NSString; cvar; external;
+  WebViewDidChangeNotification: NSString; cvar; external;
+  WebViewDidEndEditingNotification: NSString; cvar; external;
+  WebViewDidChangeTypingStyleNotification: NSString; cvar; external;
+  WebViewDidChangeSelectionNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -55,6 +55,7 @@ var
 {$ifdef FORWARD}
   WebView = objcclass;
   WebViewPointer = ^WebView;
+  WebViewPtr = WebViewPointer;
 
 {$endif}
 
@@ -65,7 +66,7 @@ var
 { WebView }
   WebView = objcclass(NSView)
   private
-    __private: WebViewPrivate;
+    _private: WebViewPrivate;
     
   public
     class function alloc: WebView; message 'alloc';
@@ -74,8 +75,8 @@ var
     class function canShowMIMETypeAsHTML(MIMEType: NSString): Boolean; message 'canShowMIMETypeAsHTML:';
     class function MIMETypesShownAsHTML: NSArray; message 'MIMETypesShownAsHTML';
     class procedure setMIMETypesShownAsHTML(MIMETypes: NSArray); message 'setMIMETypesShownAsHTML:';
-    class function URLFromPasteboard(pasteboard: NSPasteboardPointer): NSURL; message 'URLFromPasteboard:';
-    class function URLTitleFromPasteboard(pasteboard: NSPasteboardPointer): NSString; message 'URLTitleFromPasteboard:';
+    class function URLFromPasteboard(pasteboard: NSPasteboardPtr): NSURL; message 'URLFromPasteboard:';
+    class function URLTitleFromPasteboard(pasteboard: NSPasteboardPtr): NSString; message 'URLTitleFromPasteboard:';
     class procedure registerURLSchemeAsLocal(scheme: NSString); message 'registerURLSchemeAsLocal:';
     function initWithFrame_frameName_groupName(frame_: NSRect; frameName: NSString; groupName_: NSString): id; message 'initWithFrame:frameName:groupName:';
     procedure close; message 'close';
@@ -116,8 +117,8 @@ var
     function preferences: WebPreferences; message 'preferences';
     procedure setPreferencesIdentifier(anIdentifier: NSString); message 'setPreferencesIdentifier:';
     function preferencesIdentifier: NSString; message 'preferencesIdentifier';
-    procedure setHostWindow(hostWindow_: NSWindowPointer); message 'setHostWindow:';
-    function hostWindow: NSWindow; message 'hostWindow';
+    procedure setHostWindow(hostWindow_: NSWindowPtr); message 'setHostWindow:';
+    function hostWindow: NSWindowPtr; message 'hostWindow';
     function searchFor_direction_caseSensitive_wrap(string_: NSString; forward: Boolean; caseFlag: Boolean; wrapFlag: Boolean): Boolean; message 'searchFor:direction:caseSensitive:wrap:';
     class procedure registerViewClass_representationClass_forMIMEType(viewClass: Pobjc_class; representationClass: Pobjc_class; MIMEType: NSString); message 'registerViewClass:representationClass:forMIMEType:';
     procedure setGroupName(groupName_: NSString); message 'setGroupName:';
@@ -126,23 +127,28 @@ var
     function isLoading: Boolean; message 'isLoading';
     function elementAtPoint(point: NSPoint): NSDictionary; message 'elementAtPoint:';
     function pasteboardTypesForSelection: NSArray; message 'pasteboardTypesForSelection';
-    procedure writeSelectionWithPasteboardTypes_toPasteboard(types: NSArray; pasteboard: NSPasteboardPointer); message 'writeSelectionWithPasteboardTypes:toPasteboard:';
+    procedure writeSelectionWithPasteboardTypes_toPasteboard(types: NSArray; pasteboard: NSPasteboardPtr); message 'writeSelectionWithPasteboardTypes:toPasteboard:';
     function pasteboardTypesForElement(element: NSDictionary): NSArray; message 'pasteboardTypesForElement:';
-    procedure writeElement_withPasteboardTypes_toPasteboard(element: NSDictionary; types: NSArray; pasteboard: NSPasteboardPointer); message 'writeElement:withPasteboardTypes:toPasteboard:';
+    procedure writeElement_withPasteboardTypes_toPasteboard(element: NSDictionary; types: NSArray; pasteboard: NSPasteboardPtr); message 'writeElement:withPasteboardTypes:toPasteboard:';
     procedure moveDragCaretToPoint(point: NSPoint); message 'moveDragCaretToPoint:';
     procedure removeDragCaret; message 'removeDragCaret';
     procedure setDrawsBackground(drawsBackround: Boolean); message 'setDrawsBackground:';
     function drawsBackground: Boolean; message 'drawsBackground';
+    procedure setShouldUpdateWhileOffscreen(updateWhileOffscreen: Boolean); message 'setShouldUpdateWhileOffscreen:';
+    function shouldUpdateWhileOffscreen: Boolean; message 'shouldUpdateWhileOffscreen';
     procedure setMainFrameURL(URLString: NSString); message 'setMainFrameURL:';
     function mainFrameURL: NSString; message 'mainFrameURL';
     function mainFrameDocument: DOMDocument; message 'mainFrameDocument';
     function mainFrameTitle: NSString; message 'mainFrameTitle';
     function mainFrameIcon: NSImage; message 'mainFrameIcon';
+  end; external;
 
-    { Category: WebIBActions }
+{ WebIBActionsCategory }
+  WebIBActionsCategory = objccategory(WebView)
     procedure takeStringURLFrom(sender: id); message 'takeStringURLFrom:';
     procedure stopLoading(sender: id); message 'stopLoading:';
     procedure reload(sender: id); message 'reload:';
+    procedure reloadFromOrigin(sender: id); message 'reloadFromOrigin:';
     function canGoBack: Boolean; message 'canGoBack';
     function canGoForward: Boolean; message 'canGoForward';
     function canMakeTextLarger: Boolean; message 'canMakeTextLarger';
@@ -153,11 +159,15 @@ var
     procedure makeTextStandardSize(sender: id); message 'makeTextStandardSize:';
     procedure toggleContinuousSpellChecking(sender: id); message 'toggleContinuousSpellChecking:';
     procedure toggleSmartInsertDelete(sender: id); message 'toggleSmartInsertDelete:';
+  end; external;
 
-    { Category: WebViewCSS }
+{ WebViewCSSCategory }
+  WebViewCSSCategory = objccategory(WebView)
     function computedStyleForElement_pseudoElement(element: DOMElement; pseudoElement: NSString): DOMCSSStyleDeclaration; message 'computedStyleForElement:pseudoElement:';
+  end; external;
 
-    { Category: WebViewEditing }
+{ WebViewEditingCategory }
+  WebViewEditingCategory = objccategory(WebView)
     function editableDOMRangeForPoint(point: NSPoint): DOMRange; message 'editableDOMRangeForPoint:';
     procedure setSelectedDOMRange_affinity(range: DOMRange; selectionAffinity_: NSSelectionAffinity); message 'setSelectedDOMRange:affinity:';
     function selectedDOMRange: DOMRange; message 'selectedDOMRange';
@@ -176,16 +186,20 @@ var
     procedure setEditingDelegate(delegate: id); message 'setEditingDelegate:';
     function editingDelegate: id; message 'editingDelegate';
     function styleDeclarationWithText(text: NSString): DOMCSSStyleDeclaration; message 'styleDeclarationWithText:';
+  end; external;
 
-    { Category: WebViewUndoableEditing }
+{ WebViewUndoableEditingCategory }
+  WebViewUndoableEditingCategory = objccategory(WebView)
     procedure replaceSelectionWithNode(node: DOMNode); message 'replaceSelectionWithNode:';
     procedure replaceSelectionWithText(text: NSString); message 'replaceSelectionWithText:';
     procedure replaceSelectionWithMarkupString(markupString: NSString); message 'replaceSelectionWithMarkupString:';
     procedure replaceSelectionWithArchive(archive: WebArchive); message 'replaceSelectionWithArchive:';
     procedure deleteSelection; message 'deleteSelection';
     procedure applyStyle(style: DOMCSSStyleDeclaration); message 'applyStyle:';
+  end; external;
 
-    { Category: WebViewEditingActions }
+{ WebViewEditingActionsCategory }
+  WebViewEditingActionsCategory = objccategory(WebView)
     procedure copy_(sender: id); message 'copy:';
     procedure cut(sender: id); message 'cut:';
     procedure paste(sender: id); message 'paste:';

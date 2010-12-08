@@ -1,10 +1,25 @@
 { Parsed from Appkit.framework NSMenu.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
 {$ifndef NSMENU_PAS_T}
 {$define NSMENU_PAS_T}
+
+{ Constants }
+
+const
+  NSMenuPropertyItemTitle = 1 shl 0;
+  NSMenuPropertyItemAttributedTitle = 1 shl 1;
+  NSMenuPropertyItemKeyEquivalent = 1 shl 2;
+  NSMenuPropertyItemImage = 1 shl 3;
+  NSMenuPropertyItemEnabled = 1 shl 4;
+  NSMenuPropertyItemAccessibilityDescription = 1 shl 5;
+
+{ Types }
+type
+  NSMenuProperties = NSUInteger;
+  NSMenuPropertiesPtr = ^NSMenuProperties;
 
 {$endif}
 {$endif}
@@ -29,20 +44,22 @@
 
 { External string constants }
 var
-  NSMenuWillSendActionNotification: NSString; external name '_NSMenuWillSendActionNotification';
-  NSMenuDidSendActionNotification: NSString; external name '_NSMenuDidSendActionNotification';
-  NSMenuDidAddItemNotification: NSString; external name '_NSMenuDidAddItemNotification';
-  NSMenuDidRemoveItemNotification: NSString; external name '_NSMenuDidRemoveItemNotification';
-  NSMenuDidChangeItemNotification: NSString; external name '_NSMenuDidChangeItemNotification';
-  NSMenuDidBeginTrackingNotification: NSString; external name '_NSMenuDidBeginTrackingNotification';
-  NSMenuDidEndTrackingNotification: NSString; external name '_NSMenuDidEndTrackingNotification';
+  NSMenuWillSendActionNotification: NSString; cvar; external;
+  NSMenuDidSendActionNotification: NSString; cvar; external;
+  NSMenuDidAddItemNotification: NSString; cvar; external;
+  NSMenuDidRemoveItemNotification: NSString; cvar; external;
+  NSMenuDidChangeItemNotification: NSString; cvar; external;
+  NSMenuDidBeginTrackingNotification: NSString; cvar; external;
+  NSMenuDidEndTrackingNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
+  NSMenuDelegateProtocol = objcprotocol;
   NSMenu = objcclass;
   NSMenuPointer = ^NSMenu;
+  NSMenuPtr = NSMenuPointer;
 
 {$endif}
 
@@ -53,42 +70,45 @@ var
 { NSMenu }
   NSMenu = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __supermenu: NSMenu;
-    __title: NSString;
-    __itemArray: id;
-    __menuImpl: id;
+    _supermenu: NSMenu;
+    _title: NSString;
+    _itemArray: id;
+    _extra: id;
     __mFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSMenu0: cuint);
+       1: (
         noAutoenable: 0..1;
-        menuChangedMessagesDisabled: 0..1;
-        needsMenuChangedMessage: 0..1;
-        suppressAutoenable: 0..1;
+        inMain: 0..1;
+        internalPerformAction: 0..1;
+        condenseSeparators: 0..1;
         disabled: 0..1;
         ownedByPopUp: 0..1;
         delegateNeedsUpdate: 0..1;
         delegateUpdateItem: 0..1;
         delegateHasKeyEquiv: 0..1;
         delegateHasAltKeyEquiv: 0..1;
-        keyEquivalentMapIsDirty: 0..1;
         excludeMarkColumn: 0..1;
         isContextualMenu: 0..1;
-        RESERVED: 0..((1 shl 19)-1);
-        
+        cmPluginMode: 0..((1 shl 2)-1);
+        invertedCMPluginTypes: 0..((1 shl 2)-1);
+        allowsDifferentSelection: 0..1;
+        RESERVED: 0..((1 shl 15)-1);
+      );
       end;
-    __name: NSString;
+    _name: NSString;
     
   public
     class function alloc: NSMenu; message 'alloc';
 
-    class procedure setMenuZone(aZone: NSZonePointer); message 'setMenuZone:';
-    class function menuZone: NSZone; message 'menuZone';
-    class procedure popUpContextMenu_withEvent_forView(menu: NSMenu; event: NSEvent; view: NSView); message 'popUpContextMenu:withEvent:forView:';
-    class procedure popUpContextMenu_withEvent_forView_withFont(menu: NSMenu; event: NSEvent; view: NSView; font: NSFont); message 'popUpContextMenu:withEvent:forView:withFont:';
-    class procedure setMenuBarVisible(visible: Boolean); message 'setMenuBarVisible:';
-    class function menuBarVisible: Boolean; message 'menuBarVisible';
     function initWithTitle(aTitle: NSString): id; message 'initWithTitle:';
     procedure setTitle(aString: NSString); message 'setTitle:';
     function title: NSString; message 'title';
-    procedure setSupermenu(supermenu_: NSMenu); message 'setSupermenu:';
+    class procedure popUpContextMenu_withEvent_forView(menu: NSMenu; event: NSEvent; view: NSView); message 'popUpContextMenu:withEvent:forView:';
+    class procedure popUpContextMenu_withEvent_forView_withFont(menu: NSMenu; event: NSEvent; view: NSView; font: NSFont); message 'popUpContextMenu:withEvent:forView:withFont:';
+    function popUpMenuPositioningItem_atLocation_inView(item: NSMenuItem; location: NSPoint; view: NSView): Boolean; message 'popUpMenuPositioningItem:atLocation:inView:';
+    class procedure setMenuBarVisible(visible: Boolean); message 'setMenuBarVisible:';
+    class function menuBarVisible: Boolean; message 'menuBarVisible';
     function supermenu: NSMenu; message 'supermenu';
     procedure insertItem_atIndex(newItem: NSMenuItem; index: NSInteger); message 'insertItem:atIndex:';
     procedure addItem(newItem: NSMenuItem); message 'addItem:';
@@ -97,6 +117,7 @@ var
     procedure removeItemAtIndex(index: NSInteger); message 'removeItemAtIndex:';
     procedure removeItem(item: NSMenuItem); message 'removeItem:';
     procedure setSubmenu_forItem(aMenu: NSMenu; anItem: NSMenuItem); message 'setSubmenu:forItem:';
+    procedure removeAllItems; message 'removeAllItems';
     function itemArray: NSArray; message 'itemArray';
     function numberOfItems: NSInteger; message 'numberOfItems';
     function indexOfItem(index: NSMenuItem): NSInteger; message 'indexOfItem:';
@@ -105,40 +126,87 @@ var
     function indexOfItemWithRepresentedObject(object_: id): NSInteger; message 'indexOfItemWithRepresentedObject:';
     function indexOfItemWithSubmenu(submenu: NSMenu): NSInteger; message 'indexOfItemWithSubmenu:';
     function indexOfItemWithTarget_andAction(target: id; actionSelector: SEL): NSInteger; message 'indexOfItemWithTarget:andAction:';
-    function itemAtIndex(index: NSInteger): NSMenuItem; message 'itemAtIndex:';
     function itemWithTitle(aTitle: NSString): NSMenuItem; message 'itemWithTitle:';
     function itemWithTag(tag: NSInteger): NSMenuItem; message 'itemWithTag:';
     procedure setAutoenablesItems(flag: Boolean); message 'setAutoenablesItems:';
     function autoenablesItems: Boolean; message 'autoenablesItems';
-    function performKeyEquivalent(theEvent: NSEvent): Boolean; message 'performKeyEquivalent:';
     procedure update; message 'update';
-    procedure setMenuChangedMessagesEnabled(flag: Boolean); message 'setMenuChangedMessagesEnabled:';
-    function menuChangedMessagesEnabled: Boolean; message 'menuChangedMessagesEnabled';
+    function performKeyEquivalent(theEvent: NSEvent): Boolean; message 'performKeyEquivalent:';
     procedure itemChanged(item: NSMenuItem); message 'itemChanged:';
-    procedure helpRequested(eventPtr: NSEventPointer); message 'helpRequested:';
-    procedure setMenuRepresentation(menuRep: id); message 'setMenuRepresentation:';
-    function menuRepresentation: id; message 'menuRepresentation';
-    procedure setContextMenuRepresentation(menuRep: id); message 'setContextMenuRepresentation:';
-    function contextMenuRepresentation: id; message 'contextMenuRepresentation';
-    procedure setTearOffMenuRepresentation(menuRep: id); message 'setTearOffMenuRepresentation:';
-    function tearOffMenuRepresentation: id; message 'tearOffMenuRepresentation';
-    function isTornOff: Boolean; message 'isTornOff';
-    function attachedMenu: NSMenu; message 'attachedMenu';
-    function isAttached: Boolean; message 'isAttached';
-    procedure sizeToFit; message 'sizeToFit';
-    function locationForSubmenu(aSubmenu: NSMenu): NSPoint; message 'locationForSubmenu:';
     procedure performActionForItemAtIndex(index: NSInteger); message 'performActionForItemAtIndex:';
     procedure setDelegate(anObject: id); message 'setDelegate:';
     function delegate: id; message 'delegate';
     function menuBarHeight: CGFloat; message 'menuBarHeight';
     procedure cancelTracking; message 'cancelTracking';
+    procedure cancelTrackingWithoutAnimation; message 'cancelTrackingWithoutAnimation';
     function highlightedItem: NSMenuItem; message 'highlightedItem';
+    function minimumWidth: CGFloat; message 'minimumWidth';
+    procedure setMinimumWidth(width: CGFloat); message 'setMinimumWidth:';
+    function size: NSSize; message 'size';
+    function font: NSFont; message 'font';
+    procedure setFont(font_: NSFont); message 'setFont:';
+    function allowsContextMenuPlugIns: Boolean; message 'allowsContextMenuPlugIns';
+    procedure setAllowsContextMenuPlugIns(allows: Boolean); message 'setAllowsContextMenuPlugIns:';
     procedure setShowsStateColumn(showsState: Boolean); message 'setShowsStateColumn:';
     function showsStateColumn: Boolean; message 'showsStateColumn';
+    class function menuZone: NSZonePtr; message 'menuZone';
+    procedure setMenuChangedMessagesEnabled(flag: Boolean); message 'setMenuChangedMessagesEnabled:';
+    function menuChangedMessagesEnabled: Boolean; message 'menuChangedMessagesEnabled';
+    procedure helpRequested(eventPtr: NSEvent); message 'helpRequested:';
+    function isTornOff: Boolean; message 'isTornOff';
 
-    { Category: NSSubmenuAction }
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+  end; external;
+
+{ NSSubmenuActionCategory }
+  NSSubmenuActionCategory = objccategory(NSMenu)
     procedure submenuAction(sender: id); message 'submenuAction:';
   end; external;
 
+{ NSMenuValidationCategory }
+  NSMenuValidationCategory = objccategory(NSObject)
+    function validateMenuItem(menuItem: NSMenuItem): Boolean; message 'validateMenuItem:';
+  end; external;
+
+{ NSMenuPropertiesToUpdateCategory }
+  NSMenuPropertiesToUpdateCategory = objccategory(NSMenu)
+    function propertiesToUpdate: NSMenuProperties; message 'propertiesToUpdate';
+  end; external;
+
+{ NSDeprecated_NSMenuCategory }
+  NSDeprecated_NSMenuCategory = objccategory(NSMenu)
+    procedure setMenuRepresentation(menuRep: id); message 'setMenuRepresentation:'; deprecated 'in Mac OS X 10.2 and later';
+    function menuRepresentation: id; message 'menuRepresentation'; deprecated 'in Mac OS X 10.2 and later';
+    procedure setContextMenuRepresentation(menuRep: id); message 'setContextMenuRepresentation:'; deprecated 'in Mac OS X 10.2 and later';
+    function contextMenuRepresentation: id; message 'contextMenuRepresentation'; deprecated 'in Mac OS X 10.2 and later';
+    procedure setTearOffMenuRepresentation(menuRep: id); message 'setTearOffMenuRepresentation:'; deprecated 'in Mac OS X 10.2 and later';
+    function tearOffMenuRepresentation: id; message 'tearOffMenuRepresentation'; deprecated 'in Mac OS X 10.2 and later';
+    class procedure setMenuZone(aZone: NSZonePtr); message 'setMenuZone:'; deprecated 'in Mac OS X 10.2 and later';
+    function attachedMenu: NSMenu; message 'attachedMenu'; deprecated 'in Mac OS X 10.2 and later';
+    function isAttached: Boolean; message 'isAttached'; deprecated 'in Mac OS X 10.2 and later';
+    procedure sizeToFit; message 'sizeToFit'; deprecated 'in Mac OS X 10.2 and later';
+    function locationForSubmenu(aSubmenu: NSMenu): NSPoint; message 'locationForSubmenu:'; deprecated 'in Mac OS X 10.2 and later';
+  end; external name 'NSDeprecated';
+
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSMENU_PAS_P}
+{$define NSMENU_PAS_P}
+  
+{ NSMenuDelegate Protocol }
+  NSMenuDelegateProtocol = objcprotocol
+    procedure menuNeedsUpdate(menu: NSMenu); message 'menuNeedsUpdate:';
+    function numberOfItemsInMenu(menu: NSMenu): NSInteger; message 'numberOfItemsInMenu:';
+    function menu_updateItem_atIndex_shouldCancel(menu: NSMenu; item: NSMenuItem; index: NSInteger; shouldCancel: Boolean): Boolean; message 'menu:updateItem:atIndex:shouldCancel:';
+    function menuHasKeyEquivalent_forEvent_target_action(menu: NSMenu; event: NSEvent; target: idPtr; action: SELPtr): Boolean; message 'menuHasKeyEquivalent:forEvent:target:action:';
+    procedure menuWillOpen(menu: NSMenu); message 'menuWillOpen:';
+    procedure menuDidClose(menu: NSMenu); message 'menuDidClose:';
+    procedure menu_willHighlightItem(menu: NSMenu; item: NSMenuItem); message 'menu:willHighlightItem:';
+    function confinementRectForMenu_onScreen(menu: NSMenu; screen: NSScreen): NSRect; message 'confinementRectForMenu:onScreen:';
+  end; external name 'NSMenuDelegate';
 {$endif}
 {$endif}

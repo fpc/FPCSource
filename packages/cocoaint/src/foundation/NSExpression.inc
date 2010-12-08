@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSExpression.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -19,10 +19,12 @@ const
   NSMinusSetExpressionType = 6;
   NSSubqueryExpressionType = 13;
   NSAggregateExpressionType = 7;
+  NSBlockExpressionType = 19;
 
 { Types }
 type
   NSExpressionType = NSUInteger;
+  NSExpressionTypePtr = ^NSExpressionType;
 
 {$endif}
 {$endif}
@@ -51,6 +53,7 @@ type
 {$ifdef FORWARD}
   NSExpression = objcclass;
   NSExpressionPointer = ^NSExpression;
+  NSExpressionPtr = NSExpressionPointer;
 
 {$endif}
 
@@ -61,8 +64,8 @@ type
 { NSExpression }
   NSExpression = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
-    __reserved: Pointer;
-    __expressionType: NSExpressionType;
+    _reserved: Pointer;
+    _expressionType: NSExpressionType;
     
   public
     class function alloc: NSExpression; message 'alloc';
@@ -91,6 +94,11 @@ type
     function leftExpression: NSExpression; message 'leftExpression';
     function rightExpression: NSExpression; message 'rightExpression';
     function expressionValueWithObject_context(object_: id; context: NSMutableDictionary): id; message 'expressionValueWithObject:context:';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+    function copyWithZone(zone_: NSZonePtr): id;
   end; external;
 
 {$endif}

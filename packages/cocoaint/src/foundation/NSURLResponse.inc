@@ -1,10 +1,14 @@
 { Parsed from Foundation.framework NSURLResponse.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
 {$ifndef NSURLRESPONSE_PAS_T}
 {$define NSURLRESPONSE_PAS_T}
+
+{ Defines }
+const
+  NSURLResponseUnknownLength = -1;
 
 {$endif}
 {$endif}
@@ -33,8 +37,10 @@
 {$ifdef FORWARD}
   NSURLResponse = objcclass;
   NSURLResponsePointer = ^NSURLResponse;
+  NSURLResponsePtr = NSURLResponsePointer;
   NSHTTPURLResponse = objcclass;
   NSHTTPURLResponsePointer = ^NSHTTPURLResponse;
+  NSHTTPURLResponsePtr = NSHTTPURLResponsePointer;
 
 {$endif}
 
@@ -45,7 +51,7 @@
 { NSURLResponse }
   NSURLResponse = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
-    __internal: NSURLResponseInternal;
+    _internal: NSURLResponseInternal;
     
   public
     class function alloc: NSURLResponse; message 'alloc';
@@ -56,12 +62,17 @@
     function expectedContentLength: clonglong; message 'expectedContentLength';
     function textEncodingName: NSString; message 'textEncodingName';
     function suggestedFilename: NSString; message 'suggestedFilename';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
+    function copyWithZone(zone_: NSZonePtr): id;
   end; external;
 
 { NSHTTPURLResponse }
   NSHTTPURLResponse = objcclass(NSURLResponse)
   private
-    __httpInternal: NSHTTPURLResponseInternal;
+    _httpInternal: NSHTTPURLResponseInternal;
     
   public
     class function alloc: NSHTTPURLResponse; message 'alloc';

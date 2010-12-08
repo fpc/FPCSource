@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebHistoryItem.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -29,7 +29,7 @@
 
 { External string constants }
 var
-  WebHistoryItemChangedNotification: NSString; external name '_WebHistoryItemChangedNotification';
+  WebHistoryItemChangedNotification: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -37,6 +37,7 @@ var
 {$ifdef FORWARD}
   WebHistoryItem = objcclass;
   WebHistoryItemPointer = ^WebHistoryItem;
+  WebHistoryItemPtr = WebHistoryItemPointer;
 
 {$endif}
 
@@ -47,7 +48,7 @@ var
 { WebHistoryItem }
   WebHistoryItem = objcclass(NSObject, NSCopyingProtocol)
   private
-    __private: WebHistoryItemPrivate;
+    _private: WebHistoryItemPrivate;
     
   public
     class function alloc: WebHistoryItem; message 'alloc';
@@ -60,6 +61,9 @@ var
     procedure setAlternateTitle(alternateTitle_: NSString); message 'setAlternateTitle:';
     function alternateTitle: NSString; message 'alternateTitle';
     function icon: NSImage; message 'icon';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
   end; external;
 
 {$endif}

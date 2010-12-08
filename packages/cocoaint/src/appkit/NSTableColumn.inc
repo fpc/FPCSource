@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTableColumn.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -38,6 +38,7 @@ const
 {$ifdef FORWARD}
   NSTableColumn = objcclass;
   NSTableColumnPointer = ^NSTableColumn;
+  NSTableColumnPtr = NSTableColumnPointer;
 
 {$endif}
 
@@ -48,24 +49,28 @@ const
 { NSTableColumn }
   NSTableColumn = objcclass(NSObject, NSCodingProtocol)
   private
-    __identifier: id;
-    __width: CGFloat;
-    __minWidth: CGFloat;
-    __maxWidth: CGFloat;
-    __tableView: NSTableView;
-    __headerCell: NSCell;
-    __dataCell: NSCell;
+    _identifier: id;
+    _width: CGFloat;
+    _minWidth: CGFloat;
+    _maxWidth: CGFloat;
+    _tableView: NSTableView;
+    _headerCell: NSCell;
+    _dataCell: NSCell;
     __cFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSTableColumn0: cuint);
+       1: (
         oldIsResizable: 0..1;
-        isEditable: 0..1;
+        _isEditable: 0..1;
         resizedPostingDisableCount: 0..((1 shl 8)-1);
         canUseReorderResizeImageCache: 0..1;
         userResizingAllowed: 0..1;
         autoResizingAllowed: 0..1;
         hidden: 0..1;
         RESERVED: 0..((1 shl 18)-1);
+      );
       end;
-    __tcAuxiliaryStorage: id;
+    _tcAuxiliaryStorage: id;
     
   public
     class function alloc: NSTableColumn; message 'alloc';
@@ -91,15 +96,23 @@ const
     procedure sizeToFit; message 'sizeToFit';
     procedure setSortDescriptorPrototype(sortDescriptor: NSSortDescriptor); message 'setSortDescriptorPrototype:';
     function sortDescriptorPrototype: NSSortDescriptor; message 'sortDescriptorPrototype';
-    procedure setResizingMask(resizingMask_: NSUInteger); message 'setResizingMask:';
+    procedure setResizingMask(resizingMask: NSUInteger); message 'setResizingMask:';
     function resizingMask: NSUInteger; message 'resizingMask';
     procedure setHeaderToolTip(string_: NSString); message 'setHeaderToolTip:';
     function headerToolTip: NSString; message 'headerToolTip';
     function isHidden: Boolean; message 'isHidden';
     procedure setHidden(hidden: Boolean); message 'setHidden:';
-    procedure setResizable(flag: Boolean); message 'setResizable:';
-    function isResizable: Boolean; message 'isResizable';
+
+    { Adopted Protocols }
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
+
+{ NSDeprecated_NSTableColumnCategory }
+  NSDeprecated_NSTableColumnCategory = objccategory(NSTableColumn)
+    procedure setResizable(flag: Boolean); message 'setResizable:'; deprecated 'in Mac OS X 10.4 and later';
+    function isResizable: Boolean; message 'isResizable'; deprecated 'in Mac OS X 10.4 and later';
+  end; external name 'NSDeprecated';
 
 {$endif}
 {$endif}

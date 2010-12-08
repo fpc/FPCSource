@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPortNameServer.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,12 +33,16 @@
 {$ifdef FORWARD}
   NSPortNameServer = objcclass;
   NSPortNameServerPointer = ^NSPortNameServer;
+  NSPortNameServerPtr = NSPortNameServerPointer;
   NSMachBootstrapServer = objcclass;
   NSMachBootstrapServerPointer = ^NSMachBootstrapServer;
+  NSMachBootstrapServerPtr = NSMachBootstrapServerPointer;
   NSMessagePortNameServer = objcclass;
   NSMessagePortNameServerPointer = ^NSMessagePortNameServer;
+  NSMessagePortNameServerPtr = NSMessagePortNameServerPointer;
   NSSocketPortNameServer = objcclass;
   NSSocketPortNameServerPointer = ^NSSocketPortNameServer;
+  NSSocketPortNameServerPtr = NSSocketPortNameServerPointer;
 
 {$endif}
 
@@ -94,10 +98,10 @@
     function portForName_host(name: NSString; host: NSString): NSPort; message 'portForName:host:';
     function registerPort_name(port: NSPort; name: NSString): Boolean; message 'registerPort:name:';
     function removePortForName(name: NSString): Boolean; message 'removePortForName:';
-    function portForName_host_nameServerPortNumber(name: NSString; host: NSString; portNumber: word): NSPort; message 'portForName:host:nameServerPortNumber:';
-    function registerPort_name_nameServerPortNumber(port: NSPort; name: NSString; portNumber: word): Boolean; message 'registerPort:name:nameServerPortNumber:';
-    procedure setDefaultNameServerPortNumber(portNumber: word); message 'setDefaultNameServerPortNumber:';
-    function defaultNameServerPortNumber: word; message 'defaultNameServerPortNumber';
+    function portForName_host_nameServerPortNumber(name: NSString; host: NSString; portNumber: cuint16): NSPort; message 'portForName:host:nameServerPortNumber:';
+    function registerPort_name_nameServerPortNumber(port: NSPort; name: NSString; portNumber: cuint16): Boolean; message 'registerPort:name:nameServerPortNumber:';
+    procedure setDefaultNameServerPortNumber(portNumber: cuint16); message 'setDefaultNameServerPortNumber:';
+    function defaultNameServerPortNumber: cuint16; message 'defaultNameServerPortNumber';
   end; external;
 
 {$endif}

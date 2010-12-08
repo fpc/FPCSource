@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebDOMOperations.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -26,6 +26,49 @@
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef WEBDOMOPERATIONS_PAS_S}
 {$define WEBDOMOPERATIONS_PAS_S}
+
+{$endif}
+{$endif}
+
+{$ifdef FORWARD}
+
+{$endif}
+
+{$ifdef CLASSES}
+{$ifndef WEBDOMOPERATIONS_PAS_C}
+{$define WEBDOMOPERATIONS_PAS_C}
+
+{ WebDOMNodeOperationsCategory }
+  WebDOMNodeOperationsCategory = objccategory(DOMNode)
+    function webArchive: WebArchive; message 'webArchive';
+  end; external;
+
+{ WebDOMDocumentOperationsCategory }
+  WebDOMDocumentOperationsCategory = objccategory(DOMDocument)
+    function webFrame: WebFrame; message 'webFrame';
+    function URLWithAttributeString(string_: NSString): NSURL; message 'URLWithAttributeString:';
+  end; external;
+
+{ WebDOMRangeOperationsCategory }
+  WebDOMRangeOperationsCategory = objccategory(DOMRange)
+    function webArchive: WebArchive; message 'webArchive';
+    function markupString: NSString; message 'markupString';
+  end; external;
+
+{ WebDOMHTMLFrameElementOperationsCategory }
+  WebDOMHTMLFrameElementOperationsCategory = objccategory(DOMHTMLFrameElement)
+    function contentFrame: WebFrame; message 'contentFrame';
+  end; external;
+
+{ WebDOMHTMLIFrameElementOperationsCategory }
+  WebDOMHTMLIFrameElementOperationsCategory = objccategory(DOMHTMLIFrameElement)
+    function contentFrame: WebFrame; message 'contentFrame';
+  end; external;
+
+{ WebDOMHTMLObjectElementOperationsCategory }
+  WebDOMHTMLObjectElementOperationsCategory = objccategory(DOMHTMLObjectElement)
+    function contentFrame: WebFrame; message 'contentFrame';
+  end; external;
 
 {$endif}
 {$endif}

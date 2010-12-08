@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAppleScriptExtensions.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -26,6 +26,22 @@
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSAPPLESCRIPTEXTENSIONS_PAS_S}
 {$define NSAPPLESCRIPTEXTENSIONS_PAS_S}
+
+{$endif}
+{$endif}
+
+{$ifdef FORWARD}
+
+{$endif}
+
+{$ifdef CLASSES}
+{$ifndef NSAPPLESCRIPTEXTENSIONS_PAS_C}
+{$define NSAPPLESCRIPTEXTENSIONS_PAS_C}
+
+{ NSExtensionsCategory }
+  NSExtensionsCategory = objccategory(NSAppleScript)
+    function richTextSource: NSAttributedString; message 'richTextSource';
+  end; external;
 
 {$endif}
 {$endif}

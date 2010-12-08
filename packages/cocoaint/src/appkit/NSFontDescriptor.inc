@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSFontDescriptor.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -8,35 +8,37 @@
 
 { Types }
 type
-  NSFontSymbolicTraits = cardinal;
-  NSFontFamilyClass = cardinal;
+  NSFontSymbolicTraits = cuint32;
+  NSFontSymbolicTraitsPtr = ^NSFontSymbolicTraits;
+  NSFontFamilyClass = cuint32;
+  NSFontFamilyClassPtr = ^NSFontFamilyClass;
 
 { Constants }
 
 const
-  NSFontUnknownClass = 0  shl  28;
-  NSFontOldStyleSerifsClass = 1  shl  28;
-  NSFontTransitionalSerifsClass = 2  shl  28;
-  NSFontModernSerifsClass = 3  shl  28;
-  NSFontClarendonSerifsClass = 4  shl  28;
-  NSFontSlabSerifsClass = 5  shl  28;
-  NSFontFreeformSerifsClass = 7  shl  28;
-  NSFontSansSerifClass = 8  shl  28;
-  NSFontOrnamentalsClass = 9  shl  28;
-  NSFontScriptsClass = 10  shl  28;
-  NSFontSymbolicClass = 12  shl  28;
+  NSFontUnknownClass = 0 shl 28;
+  NSFontOldStyleSerifsClass = 1 shl 28;
+  NSFontTransitionalSerifsClass = 2 shl 28;
+  NSFontModernSerifsClass = 3 shl 28;
+  NSFontClarendonSerifsClass = 4 shl 28;
+  NSFontSlabSerifsClass = 5 shl 28;
+  NSFontFreeformSerifsClass = 7 shl 28;
+  NSFontSansSerifClass = 8 shl 28;
+  NSFontOrnamentalsClass = 9 shl 28;
+  NSFontScriptsClass = 10 shl 28;
+  NSFontSymbolicClass = 12 shl 28;
 
 const
   NSFontFamilyClassMask = $F0000000;
 
 const
-  NSFontItalicTrait = 1  shl  0;
-  NSFontBoldTrait = 1  shl  1;
-  NSFontExpandedTrait = 1  shl  5;
-  NSFontCondensedTrait = 1  shl  6;
-  NSFontMonoSpaceTrait = 1  shl  10;
-  NSFontVerticalTrait = 1  shl  11;
-  NSFontUIOptimizedTrait = 1  shl  12;
+  NSFontItalicTrait = 1 shl 0;
+  NSFontBoldTrait = 1 shl 1;
+  NSFontExpandedTrait = 1 shl 5;
+  NSFontCondensedTrait = 1 shl 6;
+  NSFontMonoSpaceTrait = 1 shl 10;
+  NSFontVerticalTrait = 1 shl 11;
+  NSFontUIOptimizedTrait = 1 shl 12;
 
 {$endif}
 {$endif}
@@ -61,29 +63,30 @@ const
 
 { External string constants }
 var
-  NSFontFamilyAttribute: NSString; external name '_NSFontFamilyAttribute';
-  NSFontNameAttribute: NSString; external name '_NSFontNameAttribute';
-  NSFontFaceAttribute: NSString; external name '_NSFontFaceAttribute';
-  NSFontSizeAttribute: NSString; external name '_NSFontSizeAttribute';
-  NSFontVisibleNameAttribute: NSString; external name '_NSFontVisibleNameAttribute';
-  NSFontMatrixAttribute: NSString; external name '_NSFontMatrixAttribute';
-  NSFontVariationAttribute: NSString; external name '_NSFontVariationAttribute';
-  NSFontCharacterSetAttribute: NSString; external name '_NSFontCharacterSetAttribute';
-  NSFontCascadeListAttribute: NSString; external name '_NSFontCascadeListAttribute';
-  NSFontTraitsAttribute: NSString; external name '_NSFontTraitsAttribute';
-  NSFontFixedAdvanceAttribute: NSString; external name '_NSFontFixedAdvanceAttribute';
-  NSFontFeatureSettingsAttribute: NSString; external name '_NSFontFeatureSettingsAttribute';
-  NSFontSymbolicTrait: NSString; external name '_NSFontSymbolicTrait';
-  NSFontWeightTrait: NSString; external name '_NSFontWeightTrait';
-  NSFontWidthTrait: NSString; external name '_NSFontWidthTrait';
-  NSFontSlantTrait: NSString; external name '_NSFontSlantTrait';
-  NSFontVariationAxisIdentifierKey: NSString; external name '_NSFontVariationAxisIdentifierKey';
-  NSFontVariationAxisMinimumValueKey: NSString; external name '_NSFontVariationAxisMinimumValueKey';
-  NSFontVariationAxisMaximumValueKey: NSString; external name '_NSFontVariationAxisMaximumValueKey';
-  NSFontVariationAxisDefaultValueKey: NSString; external name '_NSFontVariationAxisDefaultValueKey';
-  NSFontVariationAxisNameKey: NSString; external name '_NSFontVariationAxisNameKey';
-  NSFontFeatureTypeIdentifierKey: NSString; external name '_NSFontFeatureTypeIdentifierKey';
-  NSFontFeatureSelectorIdentifierKey: NSString; external name '_NSFontFeatureSelectorIdentifierKey';
+  NSFontFamilyAttribute: NSString; cvar; external;
+  NSFontNameAttribute: NSString; cvar; external;
+  NSFontFaceAttribute: NSString; cvar; external;
+  NSFontSizeAttribute: NSString; cvar; external;
+  NSFontVisibleNameAttribute: NSString; cvar; external;
+  NSFontMatrixAttribute: NSString; cvar; external;
+  NSFontVariationAttribute: NSString; cvar; external;
+  NSFontCharacterSetAttribute: NSString; cvar; external;
+  NSFontCascadeListAttribute: NSString; cvar; external;
+  NSFontTraitsAttribute: NSString; cvar; external;
+  NSFontFixedAdvanceAttribute: NSString; cvar; external;
+  NSFontFeatureSettingsAttribute: NSString; cvar; external;
+  NSFontColorAttribute: NSString; cvar; external;
+  NSFontSymbolicTrait: NSString; cvar; external;
+  NSFontWeightTrait: NSString; cvar; external;
+  NSFontWidthTrait: NSString; cvar; external;
+  NSFontSlantTrait: NSString; cvar; external;
+  NSFontVariationAxisIdentifierKey: NSString; cvar; external;
+  NSFontVariationAxisMinimumValueKey: NSString; cvar; external;
+  NSFontVariationAxisMaximumValueKey: NSString; cvar; external;
+  NSFontVariationAxisDefaultValueKey: NSString; cvar; external;
+  NSFontVariationAxisNameKey: NSString; cvar; external;
+  NSFontFeatureTypeIdentifierKey: NSString; cvar; external;
+  NSFontFeatureSelectorIdentifierKey: NSString; cvar; external;
 
 {$endif}
 {$endif}
@@ -91,6 +94,7 @@ var
 {$ifdef FORWARD}
   NSFontDescriptor = objcclass;
   NSFontDescriptorPointer = ^NSFontDescriptor;
+  NSFontDescriptorPtr = NSFontDescriptorPointer;
 
 {$endif}
 
@@ -101,12 +105,12 @@ var
 { NSFontDescriptor }
   NSFontDescriptor = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __attributes: NSMutableDictionary;
-    __reserved1: id;
-    __reserved2: id;
-    __reserved3: id;
-    __reserved4: id;
-    __reserved5: id;
+    _attributes: NSMutableDictionary;
+    _reserved1: id;
+    _reserved2: id;
+    _reserved3: id;
+    _reserved4: id;
+    _reserved5: id;
     
   public
     class function alloc: NSFontDescriptor; message 'alloc';
@@ -129,6 +133,11 @@ var
     function fontDescriptorWithMatrix(matrix_: NSAffineTransform): NSFontDescriptor; message 'fontDescriptorWithMatrix:';
     function fontDescriptorWithFace(newFace: NSString): NSFontDescriptor; message 'fontDescriptorWithFace:';
     function fontDescriptorWithFamily(newFamily: NSString): NSFontDescriptor; message 'fontDescriptorWithFamily:';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 {$endif}

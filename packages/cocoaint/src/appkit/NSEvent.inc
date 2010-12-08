@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSEvent.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -32,19 +32,54 @@ const
   NSOtherMouseDown = 25;
   NSOtherMouseUp = 26;
   NSOtherMouseDragged = 27;
+  NSEventTypeGesture = 29;
+  NSEventTypeMagnify = 30;
+  NSEventTypeSwipe = 31;
+  NSEventTypeRotate = 18;
+  NSEventTypeBeginGesture = 19;
+  NSEventTypeEndGesture = 20;
 
 const
+  NSLeftMouseDownMask = 1 shl NSLeftMouseDown;
+  NSLeftMouseUpMask = 1 shl NSLeftMouseUp;
+  NSRightMouseDownMask = 1 shl NSRightMouseDown;
+  NSRightMouseUpMask = 1 shl NSRightMouseUp;
+  NSMouseMovedMask = 1 shl NSMouseMoved;
+  NSLeftMouseDraggedMask = 1 shl NSLeftMouseDragged;
+  NSRightMouseDraggedMask = 1 shl NSRightMouseDragged;
+  NSMouseEnteredMask = 1 shl NSMouseEntered;
+  NSMouseExitedMask = 1 shl NSMouseExited;
+  NSKeyDownMask = 1 shl NSKeyDown;
+  NSKeyUpMask = 1 shl NSKeyUp;
+  NSFlagsChangedMask = 1 shl NSFlagsChanged;
+  NSAppKitDefinedMask = 1 shl NSAppKitDefined;
+  NSSystemDefinedMask = 1 shl NSSystemDefined;
+  NSApplicationDefinedMask = 1 shl NSApplicationDefined;
+  NSPeriodicMask = 1 shl NSPeriodic;
+  NSCursorUpdateMask = 1 shl NSCursorUpdate;
+  NSScrollWheelMask = 1 shl NSScrollWheel;
+  NSTabletPointMask = 1 shl NSTabletPoint;
+  NSTabletProximityMask = 1 shl NSTabletProximity;
+  NSOtherMouseDownMask = 1 shl NSOtherMouseDown;
+  NSOtherMouseUpMask = 1 shl NSOtherMouseUp;
+  NSOtherMouseDraggedMask = 1 shl NSOtherMouseDragged;
+  NSEventMaskGesture = 1 shl NSEventTypeGesture;
+  NSEventMaskMagnify = 1 shl NSEventTypeMagnify;
+  NSEventMaskSwipe = 1 shl NSEventTypeSwipe;
+  NSEventMaskRotate = 1 shl NSEventTypeRotate;
+  NSEventMaskBeginGesture = 1 shl NSEventTypeBeginGesture;
+  NSEventMaskEndGesture = 1 shl NSEventTypeEndGesture;
   NSAnyEventMask = NSUIntegerMax;
 
 const
-  NSAlphaShiftKeyMask = 1  shl  16;
-  NSShiftKeyMask = 1  shl  17;
-  NSControlKeyMask = 1  shl  18;
-  NSAlternateKeyMask = 1  shl  19;
-  NSCommandKeyMask = 1  shl  20;
-  NSNumericPadKeyMask = 1  shl  21;
-  NSHelpKeyMask = 1  shl  22;
-  NSFunctionKeyMask = 1  shl  23;
+  NSAlphaShiftKeyMask = 1 shl 16;
+  NSShiftKeyMask = 1 shl 17;
+  NSControlKeyMask = 1 shl 18;
+  NSAlternateKeyMask = 1 shl 19;
+  NSCommandKeyMask = 1 shl 20;
+  NSNumericPadKeyMask = 1 shl 21;
+  NSHelpKeyMask = 1 shl 22;
+  NSFunctionKeyMask = 1 shl 23;
   NSDeviceIndependentModifierFlagsMask = $ffff0000;
 
 const
@@ -147,11 +182,14 @@ const
   NSMouseEventSubtype = NX_SUBTYPE_DEFAULT;
   NSTabletPointEventSubtype = NX_SUBTYPE_TABLET_POINT;
   NSTabletProximityEventSubtype = NX_SUBTYPE_TABLET_PROXIMITY;
+  NSTouchEventSubtype = NX_SUBTYPE_MOUSE_TOUCH;
 
 { Types }
 type
   NSEventType = NSUInteger;
+  NSEventTypePtr = ^NSEventType;
   NSPointingDeviceType = NSUInteger;
+  NSPointingDeviceTypePtr = ^NSPointingDeviceType;
 
 {$endif}
 {$endif}
@@ -180,6 +218,7 @@ type
 {$ifdef FORWARD}
   NSEvent = objcclass;
   NSEventPointer = ^NSEvent;
+  NSEventPtr = NSEventPointer;
 
 {$endif}
 
@@ -190,23 +229,23 @@ type
 { NSEvent }
   NSEvent = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __type: NSEventType;
-    __location: NSPoint;
-    __modifierFlags: cuint;
-    __WSTimestamp: NSInteger;
-    __timestamp: NSTimeInterval;
-    __windowNumber: NSInteger;
-    __window: NSWindow;
-    __context: NSGraphicsContext;
+    _type: NSEventType;
+    _location: NSPoint;
+    _modifierFlags: cuint;
+    _WSTimestamp: id;
+    _timestamp: NSTimeInterval;
+    _windowNumber: NSInteger;
+    _window: NSWindow;
+    _context: NSGraphicsContext;
     _mouse: record
-        eventNumber: cint;
-        clickCount: cint;
-        pressure: single;
+        _eventNumber: cint;
+        _clickCount: cint;
+        _pressure: single;
         {$ifdef cpu64}
-        deltaX: CGFloat;
-        deltaY: CGFloat;
-        subtype: cint;
-        buttonNumber: cshort;
+        _deltaX: CGFloat;
+        _deltaY: CGFloat;
+        _subtype: cint;
+        _buttonNumber: cshort;
         reserved1: cshort;
             reserved2: array[0..2] of cint;
         {$endif}
@@ -214,34 +253,53 @@ type
     _key: record
         keys: NSString;
         unmodKeys: NSString;
-        keyCode: cushort;
-        isARepeat: Boolean;
+        _keyCode: cushort;
+        _isARepeat: Boolean;
         {$ifdef cpu64}
-            reserved: array[0..5] of cint;
+        eventFlags: cint;
+            reserved: array[0..4] of cint;
         {$endif}
       end;
     _tracking: record
-        eventNumber: cint;
-        trackingNumber: NSInteger;
-        userData: Pointer;
+        _eventNumber: cint;
+        _trackingNumber: NSInteger;
+        _userData: Pointer;
         {$ifdef cpu64}
             reserved: array[0..5] of cint;
         {$endif}
       end;
     _scrollWheel: record
-        deltaX: CGFloat;
-        deltaY: CGFloat;
-        deltaZ: CGFloat;
+        _deltaX: CGFloat;
+        _deltaY: CGFloat;
+        _deltaZ: CGFloat;
         {$ifdef cpu64}
-        subtype: cshort;
+        _subtype: cshort;
         reserved1: cshort;
             reserved2: array[0..5] of cint;
         {$endif}
       end;
+    _axisGesture: record
+        _deltaX: CGFloat;
+        _deltaY: CGFloat;
+        _deltaZ: CGFloat;
+        {$ifdef cpu64}
+            reserved: array[0..6] of cint;
+        {$endif}
+      end;
+    _miscGesture: record
+        _subtype: cshort;
+        gestureEnded: Boolean;
+        reserved: Boolean;
+        value: cint;
+        percentage: single;
+        {$ifdef cpu64}
+            reserved2: array[0..6] of cint;
+        {$endif}
+      end;
     _misc: record
-        subtype: cint;
-        data1: NSInteger;
-        data2: NSInteger;
+        _subtype: cint;
+        _data1: NSInteger;
+        _data2: NSInteger;
         {$ifdef cpu64}
             reserved: array[0..5] of cint;
         {$endif}
@@ -252,10 +310,10 @@ type
     {$endif}
     __data: record
       end;
-    __eventRef: Pointer;
+    _eventRef: Pointer;
     {$ifdef cpu64}
-    _reserved1: Pointer;
-    _reserved2: Pointer;
+    reserved1: Pointer;
+    reserved2: Pointer;
     {$endif}
     
   public
@@ -288,16 +346,17 @@ type
     function eventRef: Pointer; message 'eventRef';
     class function eventWithEventRef(eventRef_: Pointer): NSEvent; message 'eventWithEventRef:';
     function CGEvent: CGEventRef; message 'CGEvent';
-    class function eventWithCGEvent(CGEvent_: CGEventRef): NSEvent; message 'eventWithCGEvent:';
+    class function eventWithCGEvent(cgEvent_: CGEventRef): NSEvent; message 'eventWithCGEvent:';
     class procedure setMouseCoalescingEnabled(flag: Boolean); message 'setMouseCoalescingEnabled:';
     class function isMouseCoalescingEnabled: Boolean; message 'isMouseCoalescingEnabled';
+    function magnification: CGFloat; message 'magnification';
     function deviceID: NSUInteger; message 'deviceID';
+    function rotation: single; message 'rotation';
     function absoluteX: NSInteger; message 'absoluteX';
     function absoluteY: NSInteger; message 'absoluteY';
     function absoluteZ: NSInteger; message 'absoluteZ';
     function buttonMask: NSUInteger; message 'buttonMask';
     function tilt: NSPoint; message 'tilt';
-    function rotation: single; message 'rotation';
     function tangentialPressure: single; message 'tangentialPressure';
     function vendorDefined: id; message 'vendorDefined';
     function vendorID: NSUInteger; message 'vendorID';
@@ -310,6 +369,7 @@ type
     function capabilityMask: NSUInteger; message 'capabilityMask';
     function pointingDeviceType: NSPointingDeviceType; message 'pointingDeviceType';
     function isEnteringProximity: Boolean; message 'isEnteringProximity';
+    function touchesMatchingPhase_inView(phase: NSTouchPhase; view: NSView): NSSet; message 'touchesMatchingPhase:inView:';
     class procedure startPeriodicEventsAfterDelay_withPeriod(delay: NSTimeInterval; period: NSTimeInterval); message 'startPeriodicEventsAfterDelay:withPeriod:';
     class procedure stopPeriodicEvents; message 'stopPeriodicEvents';
     class function mouseEventWithType_location_modifierFlags_timestamp_windowNumber_context_eventNumber_clickCount_pressure(type__: NSEventType; location: NSPoint; flags: NSUInteger; time: NSTimeInterval; wNum: NSInteger; context_: NSGraphicsContext; eNum: NSInteger; cNum: NSInteger; pressure_: single): NSEvent; message 'mouseEventWithType:location:modifierFlags:timestamp:windowNumber:context:eventNumber:clickCount:pressure:';
@@ -317,6 +377,15 @@ type
     class function enterExitEventWithType_location_modifierFlags_timestamp_windowNumber_context_eventNumber_trackingNumber_userData(type__: NSEventType; location: NSPoint; flags: NSUInteger; time: NSTimeInterval; wNum: NSInteger; context_: NSGraphicsContext; eNum: NSInteger; tNum: NSInteger; data: Pointer): NSEvent; message 'enterExitEventWithType:location:modifierFlags:timestamp:windowNumber:context:eventNumber:trackingNumber:userData:';
     class function otherEventWithType_location_modifierFlags_timestamp_windowNumber_context_subtype_data1_data2(type__: NSEventType; location: NSPoint; flags: NSUInteger; time: NSTimeInterval; wNum: NSInteger; context_: NSGraphicsContext; subtype_: cshort; d: NSInteger; d1: NSInteger): NSEvent; message 'otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:';
     class function mouseLocation: NSPoint; message 'mouseLocation';
+    class function pressedMouseButtons: NSUInteger; message 'pressedMouseButtons';
+    class function doubleClickInterval: NSTimeInterval; message 'doubleClickInterval';
+    class function keyRepeatDelay: NSTimeInterval; message 'keyRepeatDelay';
+    class function keyRepeatInterval: NSTimeInterval; message 'keyRepeatInterval';
+
+    { Adopted Protocols }
+    function copyWithZone(zone_: NSZonePtr): id;
+    procedure encodeWithCoder(aCoder: NSCoder);
+    function initWithCoder(aDecoder: NSCoder): id;
   end; external;
 
 {$endif}

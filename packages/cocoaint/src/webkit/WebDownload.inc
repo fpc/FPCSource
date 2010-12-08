@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebDownload.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   WebDownload = objcclass;
   WebDownloadPointer = ^WebDownload;
+  WebDownloadPtr = WebDownloadPointer;
 
 {$endif}
 
@@ -43,10 +44,15 @@
 { WebDownload }
   WebDownload = objcclass(NSURLDownload)
   private
-    __webInternal: WebDownloadInternal;
+    _webInternal: WebDownloadInternal;
     
   public
     class function alloc: WebDownload; message 'alloc';
+  end; external;
+
+{ WebDownloadDelegateCategory }
+  WebDownloadDelegateCategory = objccategory(NSObject)
+    function downloadWindowForAuthenticationSheet(download: WebDownload): NSWindowPtr; message 'downloadWindowForAuthenticationSheet:';
   end; external;
 
 {$endif}

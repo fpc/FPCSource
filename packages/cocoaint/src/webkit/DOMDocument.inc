@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMDocument.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   DOMDocument = objcclass;
   DOMDocumentPointer = ^DOMDocument;
+  DOMDocumentPtr = DOMDocumentPointer;
 
 {$endif}
 
@@ -49,8 +50,39 @@
     function doctype: DOMDocumentType; message 'doctype';
     function implementation_: DOMImplementation; message 'implementation_';
     function documentElement: DOMElement; message 'documentElement';
+    function inputEncoding: NSString; message 'inputEncoding';
+    function xmlEncoding: NSString; message 'xmlEncoding';
+    procedure setXmlVersion (newValue: NSString); message 'setXmlVersion:';
+    function xmlVersion: NSString; message 'xmlVersion';
+    procedure setXmlStandalone (newValue: Boolean); message 'setXmlStandalone:';
+    function xmlStandalone: Boolean; message 'xmlStandalone';
+    procedure setDocumentURI (newValue: NSString); message 'setDocumentURI:';
+    function documentURI: NSString; message 'documentURI';
     function defaultView: DOMAbstractView; message 'defaultView';
     function styleSheets: DOMStyleSheetList; message 'styleSheets';
+    procedure setTitle (newValue: NSString); message 'setTitle:';
+    function title: NSString; message 'title';
+    function referrer: NSString; message 'referrer';
+    function domain: NSString; message 'domain';
+    function uRL: NSString; message 'uRL';
+    procedure setCookie (newValue: NSString); message 'setCookie:';
+    function cookie: NSString; message 'cookie';
+    procedure setBody (newValue: DOMHTMLElement); message 'setBody:';
+    function body: DOMHTMLElement; message 'body';
+    function images: DOMHTMLCollection; message 'images';
+    function applets: DOMHTMLCollection; message 'applets';
+    function links: DOMHTMLCollection; message 'links';
+    function forms: DOMHTMLCollection; message 'forms';
+    function anchors: DOMHTMLCollection; message 'anchors';
+    function lastModified: NSString; message 'lastModified';
+    procedure setCharset (newValue: NSString); message 'setCharset:';
+    function charset: NSString; message 'charset';
+    function defaultCharset: NSString; message 'defaultCharset';
+    function readyState: NSString; message 'readyState';
+    function characterSet: NSString; message 'characterSet';
+    function preferredStylesheetSet: NSString; message 'preferredStylesheetSet';
+    procedure setSelectedStylesheetSet (newValue: NSString); message 'setSelectedStylesheetSet:';
+    function selectedStylesheetSet: NSString; message 'selectedStylesheetSet';
     function createElement(tagName: NSString): DOMElement; message 'createElement:';
     function createDocumentFragment: DOMDocumentFragment; message 'createDocumentFragment';
     function createTextNode(data: NSString): DOMText; message 'createTextNode:';
@@ -68,33 +100,44 @@
     function adoptNode(source: DOMNode): DOMNode; message 'adoptNode:';
     function createEvent(eventType: NSString): DOMEvent; message 'createEvent:';
     function createRange: DOMRange; message 'createRange';
+    function createNodeIterator_whatToShow_filter_expandEntityReferences(root: DOMNode; whatToShow: cuint; filter: id; expandEntityReferences: Boolean): DOMNodeIterator; message 'createNodeIterator:whatToShow:filter:expandEntityReferences:';
+    function createTreeWalker_whatToShow_filter_expandEntityReferences(root: DOMNode; whatToShow: cuint; filter: id; expandEntityReferences: Boolean): DOMTreeWalker; message 'createTreeWalker:whatToShow:filter:expandEntityReferences:';
     function getOverrideStyle_pseudoElement(element: DOMElement; pseudoElement: NSString): DOMCSSStyleDeclaration; message 'getOverrideStyle:pseudoElement:';
     function createExpression_resolver(expression: NSString; resolver: id): DOMXPathExpression; message 'createExpression:resolver:';
     function createNSResolver(nodeResolver: DOMNode): id; message 'createNSResolver:';
     function evaluate_contextNode_resolver_type_inResult(expression: NSString; contextNode: DOMNode; resolver: id; type_: cushort; inResult: DOMXPathResult): DOMXPathResult; message 'evaluate:contextNode:resolver:type:inResult:';
+    function execCommand_userInterface_value(command: NSString; userInterface: Boolean; value: NSString): Boolean; message 'execCommand:userInterface:value:';
+    function execCommand_userInterface(command: NSString; userInterface: Boolean): Boolean; message 'execCommand:userInterface:';
+    function execCommand(command: NSString): Boolean; message 'execCommand:';
+    function queryCommandEnabled(command: NSString): Boolean; message 'queryCommandEnabled:';
+    function queryCommandIndeterm(command: NSString): Boolean; message 'queryCommandIndeterm:';
+    function queryCommandState(command: NSString): Boolean; message 'queryCommandState:';
+    function queryCommandSupported(command: NSString): Boolean; message 'queryCommandSupported:';
+    function queryCommandValue(command: NSString): NSString; message 'queryCommandValue:';
+    function getElementsByName(elementName: NSString): DOMNodeList; message 'getElementsByName:';
+    function elementFromPoint_y(x: cint; y: cint): DOMElement; message 'elementFromPoint:y:';
     function createCSSStyleDeclaration: DOMCSSStyleDeclaration; message 'createCSSStyleDeclaration';
     function getComputedStyle_pseudoElement(element: DOMElement; pseudoElement: NSString): DOMCSSStyleDeclaration; message 'getComputedStyle:pseudoElement:';
     function getMatchedCSSRules_pseudoElement(element: DOMElement; pseudoElement: NSString): DOMCSSRuleList; message 'getMatchedCSSRules:pseudoElement:';
     function getMatchedCSSRules_pseudoElement_authorOnly(element: DOMElement; pseudoElement: NSString; authorOnly: Boolean): DOMCSSRuleList; message 'getMatchedCSSRules:pseudoElement:authorOnly:';
+    function getElementsByClassName(tagname: NSString): DOMNodeList; message 'getElementsByClassName:';
+    function querySelector(selectors: NSString): DOMElement; message 'querySelector:';
+    function querySelectorAll(selectors: NSString): DOMNodeList; message 'querySelectorAll:';
+  end; external;
 
-    { Category: DOMDocumentDeprecated }
+{ DOMDocumentDeprecatedCategory }
+  DOMDocumentDeprecatedCategory = objccategory(DOMDocument)
     function createProcessingInstruction(target: NSString; data: NSString): DOMProcessingInstruction; message 'createProcessingInstruction:target:';
     function importNode(importedNode: DOMNode; deep: Boolean): DOMNode; message 'importNode:importedNode:';
     function createElementNS(namespaceURI_: NSString; qualifiedName: NSString): DOMElement; message 'createElementNS:namespaceURI:';
     function createAttributeNS(namespaceURI_: NSString; qualifiedName: NSString): DOMAttr; message 'createAttributeNS:namespaceURI:';
     function getElementsByTagNameNS(namespaceURI_: NSString; localName_: NSString): DOMNodeList; message 'getElementsByTagNameNS:namespaceURI:';
-    function getOverrideStyle(element: DOMElement; pseudoElement: NSString): DOMCSSStyleDeclaration; message 'getOverrideStyle:element:';
-    function createExpression(expression: NSString; resolver: id): DOMXPathExpression; message 'createExpression:expression:';
-    function evaluate(expression: NSString; contextNode: DOMNode; resolver: id; type_: cushort; inResult: DOMXPathResult): DOMXPathResult; message 'evaluate:expression:contextNode:resolver:type:';
-    function getComputedStyle(element: DOMElement; pseudoElement: NSString): DOMCSSStyleDeclaration; message 'getComputedStyle:element:';
-
-    { Category: DOMDocumentTraversal }
-    function createNodeIterator_whatToShow_filter_expandEntityReferences(root: DOMNode; whatToShow: cuint; filter: id; expandEntityReferences: Boolean): DOMNodeIterator; message 'createNodeIterator:whatToShow:filter:expandEntityReferences:';
-    function createTreeWalker_whatToShow_filter_expandEntityReferences(root: DOMNode; whatToShow: cuint; filter: id; expandEntityReferences: Boolean): DOMTreeWalker; message 'createTreeWalker:whatToShow:filter:expandEntityReferences:';
-
-    { Category: DOMDocumentTraversalDeprecated }
     function createNodeIterator(root: DOMNode; whatToShow: cuint; filter: id; expandEntityReferences: Boolean): DOMNodeIterator; message 'createNodeIterator:root:whatToShow:filter:';
     function createTreeWalker(root: DOMNode; whatToShow: cuint; filter: id; expandEntityReferences: Boolean): DOMTreeWalker; message 'createTreeWalker:root:whatToShow:filter:';
+    function getOverrideStyle(element: DOMElement; pseudoElement: NSString): DOMCSSStyleDeclaration; message 'getOverrideStyle:element:';
+    function createExpression(expression: NSString; resolver_BUT_DEPRECATED: id): DOMXPathExpression; message 'createExpression:expression:';
+    function evaluate(expression: NSString; contextNode: DOMNode; resolver: id; type_: cushort; inResult_BUT_DEPRECATED: DOMXPathResult): DOMXPathResult; message 'evaluate:expression:contextNode:resolver:type:';
+    function getComputedStyle(element: DOMElement; pseudoElement: NSString): DOMCSSStyleDeclaration; message 'getComputedStyle:element:';
   end; external;
 
 {$endif}

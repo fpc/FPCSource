@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSScreen.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -8,8 +8,9 @@
 
 { Types }
 type
-  NSScreenAuxiliary = Pointer;
+  NSScreenAuxiliary = record end;
   NSScreenAuxiliaryOpaque = NSScreenAuxiliary;
+  NSScreenAuxiliaryOpaquePtr = ^NSScreenAuxiliaryOpaque;
 
 {$endif}
 {$endif}
@@ -32,12 +33,17 @@ type
 {$ifndef NSSCREEN_PAS_S}
 {$define NSSCREEN_PAS_S}
 
+{ External string constants }
+var
+  NSScreenColorSpaceDidChangeNotification: NSString; cvar; external;
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSScreen = objcclass;
   NSScreenPointer = ^NSScreen;
+  NSScreenPtr = NSScreenPointer;
 
 {$endif}
 
@@ -48,10 +54,10 @@ type
 { NSScreen }
   NSScreen = objcclass(NSObject)
   private
-    __frame: NSRect;
-    __depth: NSWindowDepth;
-    __screenNumber: cint;
-    __auxiliaryStorage: NSScreenAuxiliaryOpaque;
+    _frame: NSRect;
+    _depth: NSWindowDepth;
+    _screenNumber: cint;
+    _auxiliaryStorage: id;
     
   public
     class function alloc: NSScreen; message 'alloc';
@@ -63,7 +69,8 @@ type
     function frame: NSRect; message 'frame';
     function visibleFrame: NSRect; message 'visibleFrame';
     function deviceDescription: NSDictionary; message 'deviceDescription';
-    function supportedWindowDepths: NSWindowDepth; message 'supportedWindowDepths';
+    function colorSpace: NSColorSpace; message 'colorSpace';
+    function supportedWindowDepths: NSWindowDepthPtr; message 'supportedWindowDepths';
     function userSpaceScaleFactor: CGFloat; message 'userSpaceScaleFactor';
   end; external;
 

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTreeController.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -33,6 +33,7 @@
 {$ifdef FORWARD}
   NSTreeController = objcclass;
   NSTreeControllerPointer = ^NSTreeController;
+  NSTreeControllerPtr = NSTreeControllerPointer;
 
 {$endif}
 
@@ -43,13 +44,16 @@
 { NSTreeController }
   NSTreeController = objcclass(NSObjectController)
   private
-    __treeControllerReserved1: id;
-    __modelObservingKeyPaths: NSArray;
-    __treeStructureObservers: id;
-    __arrangedObjects: id;
-    __rootNode: id;
-    __selectionIndexPaths: id;
+    _treeControllerReserved1: id;
+    _modelObservingKeyPaths: NSArray;
+    _treeStructureObservers: id;
+    _arrangedObjects: id;
+    _rootNode: id;
+    _selectionIndexPaths: id;
     __treeControllerFlags: bitpacked record
+      case byte of
+       0: (_anonbitfield_NSTreeController0: cuint);
+       1: (
         _avoidsEmptySelection: 0..1;
         _preservesSelection: 0..1;
         _selectsInsertedObjects: 0..1;
@@ -61,13 +65,15 @@
         _mutatingNodes: 0..1;
         _performingFetch: 0..1;
         _skipSortingAfterFetch: 0..1;
-        _reservedTreeController: 0..((1 shl 21)-1);
+        _usesIdenticalComparisonOfModelObjects: 0..1;
+        _reservedTreeController: 0..((1 shl 20)-1);
+      );
       end;
-    __selectedObjects: NSArray;
-    __childrenKeyPath: NSString;
-    __countKeyPath: NSString;
-    __leafKeyPath: NSString;
-    __sortDescriptors: NSArray;
+    _selectedObjects: NSArray;
+    _childrenKeyPath: NSString;
+    _countKeyPath: NSString;
+    _leafKeyPath: NSString;
+    _sortDescriptors: NSArray;
     
   public
     class function alloc: NSTreeController; message 'alloc';

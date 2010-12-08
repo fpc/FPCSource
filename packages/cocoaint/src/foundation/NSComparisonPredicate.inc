@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSComparisonPredicate.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
 
 
 {$ifdef TYPES}
@@ -36,7 +36,9 @@ const
 { Types }
 type
   NSComparisonPredicateModifier = NSUInteger;
+  NSComparisonPredicateModifierPtr = ^NSComparisonPredicateModifier;
   NSPredicateOperatorType = NSUInteger;
+  NSPredicateOperatorTypePtr = ^NSPredicateOperatorType;
 
 {$endif}
 {$endif}
@@ -65,6 +67,7 @@ type
 {$ifdef FORWARD}
   NSComparisonPredicate = objcclass;
   NSComparisonPredicatePointer = ^NSComparisonPredicate;
+  NSComparisonPredicatePtr = NSComparisonPredicatePointer;
 
 {$endif}
 
@@ -75,10 +78,10 @@ type
 { NSComparisonPredicate }
   NSComparisonPredicate = objcclass(NSPredicate)
   private
-    __reserved2: Pointer;
-    __predicateOperator: NSPredicateOperator;
-    __lhs: NSExpression;
-    __rhs: NSExpression;
+    _reserved2: Pointer;
+    _predicateOperator: NSPredicateOperator;
+    _lhs: NSExpression;
+    _rhs: NSExpression;
     
   public
     class function alloc: NSComparisonPredicate; message 'alloc';
