@@ -186,8 +186,6 @@ uses MacTypes,SecBase,cssmtype,cssmapple,CFBase,CFArray,CFData,CFDate;
 {$endc} {not MACOSALLINCLUDE}
 
 
-{$ifc TARGET_OS_MAC}
-
 {!
 	@header SecTrust
 	The functions and data types in SecTrust implement trust computation and allow the user to apply trust decisions to the trust configuration.
@@ -261,6 +259,7 @@ function SecTrustCreateWithCertificates( certificates: CFArrayRef; policies: CFT
 }    
 function SecTrustSetPolicies( trust: SecTrustRef; policies: CFTypeRef ): OSStatus; external name '_SecTrustSetPolicies';
 
+{$ifc TARGET_OS_MAC}
 {!
 	@function SecTrustSetParameters
 	@abstract Sets the action and action data for a trust.
@@ -270,6 +269,7 @@ function SecTrustSetPolicies( trust: SecTrustRef; policies: CFTypeRef ): OSStatu
 	@result A result code. See "Security Error Codes" (SecBase.h).
  }
 function SecTrustSetParameters( trustRef: SecTrustRef; action: CSSM_TP_ACTION; actionData: CFDataRef ): OSStatus; external name '_SecTrustSetParameters';
+{$endc} {TARGET_OS_MAC}
 
 {!
 	@function SecTrustSetAnchorCertificates
@@ -328,6 +328,7 @@ function SecTrustGetVerifyTime( trust: SecTrustRef ): CFAbsoluteTime; external n
 }
 function SecTrustEvaluate( trust: SecTrustRef; var result: SecTrustResultType ): OSStatus; external name '_SecTrustEvaluate';
 
+{$ifc TARGET_OS_MAC}
 {!
 	@function SecTrustGetResult
 	@abstract Returns detail information on the outcome of a call to SecTrustEvaluate.
@@ -365,6 +366,7 @@ function SecTrustGetCssmResultCode( trust: SecTrustRef; var resultCode: OSStatus
 	@result A result code. See "Security Error Codes" (SecBase.h).
 }
 function SecTrustGetTPHandle( trust: SecTrustRef; var handle: CSSM_TP_HANDLE ): OSStatus; external name '_SecTrustGetTPHandle';
+{$endc} {TARGET_OS_MAC}
 
 {!
     @function SecTrustCopyPolicies
@@ -393,6 +395,7 @@ function SecTrustCopyCustomAnchorCertificates( trust: SecTrustRef; var anchors: 
 }
 function SecTrustCopyAnchorCertificates( var anchors: CFArrayRef ): OSStatus; external name '_SecTrustCopyAnchorCertificates';
 
+{$ifc TARGET_OS_MAC}
 {!
 	@function SecTrustGetCSSMAnchorCertificates
 	@abstract Retrieves the CSSM anchor certificates.
@@ -429,7 +432,6 @@ function SecTrustGetUserTrust( certificate: SecCertificateRef; policy: SecPolicy
 }
 function SecTrustSetUserTrust( certificate: SecCertificateRef; policy: SecPolicyRef; trustSetting: SecTrustUserSetting ): OSStatus; external name '_SecTrustSetUserTrust';
 (* DEPRECATED_IN_MAC_OS_X_VERSION_10_5_AND_LATER *)
-
 {$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 

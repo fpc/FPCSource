@@ -186,9 +186,7 @@ uses MacTypes,CFBase;
 {$endc} {not MACOSALLINCLUDE}
 
 
-{$ifc TARGET_OS_MAC}
-
-{$ifc TARGET_CPU_64}
+{$ifc TARGET_CPU_64 or TARGET_CPU_ARM}
 {$packrecords C}
 {$elsec}
 {$ALIGN POWER}
@@ -478,8 +476,6 @@ const
 	errSecPkcs12VerifyFailure = -25264;	{ MAC verification failed during PKCS12 Import. }
 	
 	errSecDecode = -26275;  { Unable to decode the provided data. }
-
-{$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
