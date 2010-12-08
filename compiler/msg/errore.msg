@@ -368,7 +368,7 @@ scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN dire
 #
 # Parser
 #
-# 03296 is the last used one
+# 03298 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1341,6 +1341,16 @@ parser_f_no_generic_inside_generic=03297_F_Declaration of generic class inside a
 % (guarded by internal error 200511173 in tscannerfile.startrecordtokens).
 % Since generics are implemented by recording tokens, it is not possible to
 % have declaration of generic class inside another generic class.
+parser_e_forward_protocol_declaration_must_be_resolved=03298_E_Forward declaration of objcprotocol "$1" must be resolved before an objcclass can conform to it
+% An objcprotocol must be fully defined before classes can conform to it.
+% This error occurs in the following situation:
+% \begin{verbatim}
+%  Type MyProtocol = objcprotoocl;
+%       ChildClass = Class(NSObject,MyProtocol)
+%         ...
+%       end;
+% \end{verbatim}
+% where \var{MyProtocol} is declared but not defined.
 % \end{description}
 #
 # Type Checking
