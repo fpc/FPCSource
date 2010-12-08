@@ -65,10 +65,10 @@ interface
     { helper functions - they insert nested objects hierarcy to the symtablestack
       with object hierarchy
     }
-    function push_child_hierarcy(obj:tobjectdef):integer;
-    function pop_child_hierarchy(obj:tobjectdef):integer;
-    function push_nested_hierarchy(obj:tobjectdef):integer;
-    function pop_nested_hierarchy(obj:tobjectdef):integer;
+    function push_child_hierarcy(obj:tabstractrecorddef):integer;
+    function pop_child_hierarchy(obj:tabstractrecorddef):integer;
+    function push_nested_hierarchy(obj:tabstractrecorddef):integer;
+    function pop_nested_hierarchy(obj:tabstractrecorddef):integer;
 
 implementation
 
@@ -97,15 +97,21 @@ implementation
         Declaring it as string here results in an error when compiling (PFV) }
       current_procinfo = 'error';
 
-    function push_child_hierarcy(obj:tobjectdef):integer;
+    function push_child_hierarcy(obj:tabstractrecorddef):integer;
       var
         _class,hp : tobjectdef;
       begin
+        if obj.typ=recorddef then
+          begin
+            symtablestack.push(obj.symtable);
+            result:=1;
+            exit;
+          end;
         result:=0;
         { insert class hierarchy in the reverse order }
         hp:=nil;
         repeat
-          _class:=obj;
+          _class:=tobjectdef(obj);
           while _class.childof<>hp do
             _class:=_class.childof;
           hp:=_class;
@@ -114,20 +120,26 @@ implementation
         until hp=obj;
       end;
 
-    function push_nested_hierarchy(obj:tobjectdef):integer;
+    function push_nested_hierarchy(obj:tabstractrecorddef):integer;
       begin
         result:=0;
-        if obj.owner.symtabletype=ObjectSymtable then
-          inc(result,push_nested_hierarchy(tobjectdef(obj.owner.defowner)));
+        if obj.owner.symtabletype in [ObjectSymtable,recordsymtable] then
+          inc(result,push_nested_hierarchy(tabstractrecorddef(obj.owner.defowner)));
         inc(result,push_child_hierarcy(obj));
       end;
 
-    function pop_child_hierarchy(obj:tobjectdef):integer;
+    function pop_child_hierarchy(obj:tabstractrecorddef):integer;
       var
         _class : tobjectdef;
       begin
+        if obj.typ=recorddef then
+          begin
+            symtablestack.pop(obj.symtable);
+            result:=1;
+            exit;
+          end;
         result:=0;
-        _class:=obj;
+        _class:=tobjectdef(obj);
         while assigned(_class) do
           begin
             symtablestack.pop(_class.symtable);
@@ -136,11 +148,11 @@ implementation
           end;
       end;
 
-    function pop_nested_hierarchy(obj:tobjectdef):integer;
+    function pop_nested_hierarchy(obj:tabstractrecorddef):integer;
       begin
         result:=pop_child_hierarchy(obj);
-        if obj.owner.symtabletype=ObjectSymtable then
-          inc(result,pop_nested_hierarchy(tobjectdef(obj.owner.defowner)));
+        if obj.owner.symtabletype in [ObjectSymtable,recordsymtable] then
+          inc(result,pop_nested_hierarchy(tabstractrecorddef(obj.owner.defowner)));
       end;
 
     procedure insert_funcret_para(pd:tabstractprocdef);

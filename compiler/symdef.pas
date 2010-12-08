@@ -171,9 +171,15 @@ interface
        { tabstractrecorddef }
 
        tabstractrecorddef= class(tstoreddef)
+          objname,
+          objrealname: PShortString;
           symtable : TSymtable;
           cloneddef      : tabstractrecorddef;
           cloneddefderef : tderef;
+          constructor create(const n:string; dt:tdeftyp);
+          constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          destructor destroy; override;
           function  GetSymtable(t:tGetSymtable):TSymtable;override;
           function is_packed:boolean;
           function RttiName: string;
@@ -182,7 +188,7 @@ interface
        trecorddef = class(tabstractrecorddef)
        public
           isunion       : boolean;
-          constructor create(p : TSymtable);
+          constructor create(const n:string; p:TSymtable);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           function getcopy : tstoreddef;override;
@@ -246,8 +252,6 @@ interface
 
           { for C++ classes: name of the library this class is imported from }
           import_lib,
-          objname,
-          objrealname,
           { for Objective-C: protocols and classes can have the same name there }
           objextname     : pshortstring;
           objectoptions  : tobjectoptions;
@@ -274,7 +278,7 @@ interface
           classref_created_in_current_module : boolean;
           { store implemented interfaces defs and name mappings }
           ImplementedInterfaces : TFPObjectList;
-          constructor create(ot : tobjecttyp;const n : string;c : tobjectdef);
+          constructor create(ot:tobjecttyp;const n:string;c:tobjectdef);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           function getcopy : tstoreddef;override;
@@ -869,11 +873,11 @@ implementation
            st:=st.defowner.owner;
          end;
         { object/classes symtable, nested type definitions in classes require the while loop }
-        while st.symtabletype=ObjectSymtable do
+        while st.symtabletype in [ObjectSymtable,recordsymtable] do
          begin
-           if st.defowner.typ<>objectdef then
+           if not (st.defowner.typ in [objectdef,recorddef]) then
             internalerror(200204174);
-           prefix:=tobjectdef(st.defowner).objname^+'_$_'+prefix;
+           prefix:=tabstractrecorddef(st.defowner).objname^+'_$_'+prefix;
            st:=st.defowner.owner;
          end;
         { symtable must now be static or global }
@@ -2554,6 +2558,33 @@ implementation
                               tabstractrecorddef
 ***************************************************************************}
 
+    constructor tabstractrecorddef.create(const n:string; dt:tdeftyp);
+      begin
+        inherited create(dt);
+        objname:=stringdup(upper(n));
+        objrealname:=stringdup(n);
+      end;
+
+    constructor tabstractrecorddef.ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(dt,ppufile);
+        objrealname:=stringdup(ppufile.getstring);
+        objname:=stringdup(upper(objrealname^));
+      end;
+
+    procedure tabstractrecorddef.ppuwrite(ppufile: tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putstring(objrealname^);
+      end;
+
+    destructor tabstractrecorddef.destroy;
+      begin
+        stringdispose(objname);
+        stringdispose(objrealname);
+        inherited destroy;
+      end;
+
     function tabstractrecorddef.GetSymtable(t:tGetSymtable):TSymtable;
       begin
          if t=gs_record then
@@ -2572,14 +2603,14 @@ implementation
       var
         tmp: tabstractrecorddef;
       begin
-        Result:=typename;
+        Result:=objrealname^;
         tmp:=self;
         repeat
           if tmp.owner.symtabletype in [ObjectSymtable,recordsymtable] then
             tmp:=tabstractrecorddef(tmp.owner.defowner)
           else
             break;
-          Result:=tmp.typename+'.'+Result;
+          Result:=tmp.objrealname^+'.'+Result;
         until tmp=nil;
       end;
 
@@ -2588,9 +2619,9 @@ implementation
                                   trecorddef
 ***************************************************************************}
 
-    constructor trecorddef.create(p : TSymtable);
+    constructor trecorddef.create(const n:string; p:TSymtable);
       begin
-         inherited create(recorddef);
+         inherited create(n,recorddef);
          symtable:=p;
          { we can own the symtable only if nobody else owns a copy so far }
          if symtable.refcount=1 then
@@ -2606,7 +2637,7 @@ implementation
            ppufile.getderef(cloneddefderef)
          else
            begin
-             symtable:=trecordsymtable.create(0);
+             symtable:=trecordsymtable.create(objrealname^,0);
              trecordsymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).padalignment:=shortint(ppufile.getbyte);
@@ -2633,7 +2664,7 @@ implementation
 
     function trecorddef.getcopy : tstoreddef;
       begin
-        result:=trecorddef.create(symtable.getcopy);
+        result:=trecorddef.create(objrealname^,symtable.getcopy);
         trecorddef(result).isunion:=isunion;
         include(trecorddef(result).defoptions,df_copied_def);
       end;
@@ -3933,9 +3964,9 @@ implementation
                               TOBJECTDEF
 ***************************************************************************}
 
-   constructor tobjectdef.create(ot : tobjecttyp;const n : string;c : tobjectdef);
+   constructor tobjectdef.create(ot:tobjecttyp;const n:string;c:tobjectdef);
      begin
-        inherited create(objectdef);
+        inherited create(n,objectdef);
         fcurrent_dispid:=0;
         objecttype:=ot;
         objectoptions:=[];
@@ -3945,8 +3976,6 @@ implementation
         vmtentries:=TFPList.Create;
         vmt_offset:=0;
         set_parent(c);
-        objname:=stringdup(upper(n));
-        objrealname:=stringdup(n);
         if objecttype in [odt_interfacecorba,odt_interfacecom,odt_dispinterface] then
           prepareguid;
         { setup implemented interfaces }
@@ -3968,8 +3997,6 @@ implementation
       begin
          inherited ppuload(objectdef,ppufile);
          objecttype:=tobjecttyp(ppufile.getbyte);
-         objrealname:=stringdup(ppufile.getstring);
-         objname:=stringdup(upper(objrealname^));
          objextname:=stringdup(ppufile.getstring);
          { only used for external Objective-C classes/protocols }
          if (objextname^='') then
@@ -4054,8 +4081,6 @@ implementation
              symtable.free;
              symtable:=nil;
            end;
-         stringdispose(objname);
-         stringdispose(objrealname);
          stringdispose(objextname);
          stringdispose(import_lib);
          stringdispose(iidstr);
@@ -4088,14 +4113,10 @@ implementation
       var
         i : longint;
       begin
-        result:=tobjectdef.create(objecttype,objname^,childof);
+        result:=tobjectdef.create(objecttype,objrealname^,childof);
         { the constructor allocates a symtable which we release to avoid memory leaks }
         tobjectdef(result).symtable.free;
         tobjectdef(result).symtable:=symtable.getcopy;
-        if assigned(objname) then
-          tobjectdef(result).objname:=stringdup(objname^);
-        if assigned(objrealname) then
-          tobjectdef(result).objrealname:=stringdup(objrealname^);
         if assigned(objextname) then
           tobjectdef(result).objextname:=stringdup(objextname^);
         if assigned(import_lib) then
@@ -4141,7 +4162,6 @@ implementation
          ppufile.do_indirect_crc:=true;
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(objecttype));
-         ppufile.putstring(objrealname^);
          if assigned(objextname) then
            ppufile.putstring(objextname^)
          else

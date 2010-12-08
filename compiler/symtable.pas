@@ -104,7 +104,7 @@ interface
 
        trecordsymtable = class(tabstractrecordsymtable)
        public
-          constructor create(usealign:shortint);
+          constructor create(const n:string;usealign:shortint);
           procedure insertunionst(unionst : trecordsymtable;offset : longint);
        end;
 
@@ -1047,9 +1047,9 @@ implementation
                               TRecordSymtable
 ****************************************************************************}
 
-    constructor trecordsymtable.create(usealign:shortint);
+    constructor trecordsymtable.create(const n:string;usealign:shortint);
       begin
-        inherited create('',usealign);
+        inherited create(n,usealign);
         symtabletype:=recordsymtable;
       end;
 
@@ -1622,7 +1622,7 @@ implementation
     function generate_nested_name(symtable:tsymtable;delimiter:string):string;
       begin
         result:='';
-        while assigned(symtable) and (symtable.symtabletype=ObjectSymtable) do
+        while assigned(symtable) and (symtable.symtabletype in [ObjectSymtable,recordsymtable]) do
           begin
             if (result='') then
               result:=symtable.name^

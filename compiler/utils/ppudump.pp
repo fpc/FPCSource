@@ -2091,6 +2091,7 @@ begin
          ibrecorddef :
            begin
              readcommondef('Record definition',defoptions);
+             writeln(space,'   Name of Record : ',getstring);
              writeln(space,'       FieldAlign : ',getbyte);
              writeln(space,'      RecordAlign : ',getbyte);
              writeln(space,'         PadAlign : ',getbyte);
@@ -2108,6 +2109,7 @@ begin
          ibobjectdef :
            begin
              readcommondef('Object/Class definition',defoptions);
+             writeln(space,'    Name of Class : ',getstring);
              b:=getbyte;
              write  (space,'             Type : ');
              case tobjecttyp(b) of
@@ -2121,7 +2123,6 @@ begin
                odt_objcprotocol   : writeln('objcprotocol');
                else                 writeln('!! Warning: Invalid object type ',b);
              end;
-             writeln(space,'    Name of Class : ',getstring);
              writeln(space,'    External name : ',getstring);
              writeln(space,'       Import lib : ',getstring);
              writeln(space,'         DataSize : ',getaint);

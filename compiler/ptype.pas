@@ -871,15 +871,15 @@ implementation
       end;
 
     { reads a record declaration }
-    function record_dec : tdef;
+    function record_dec(const n:tidstring):tdef;
       var
          old_current_structdef : tabstractrecorddef;
          recst : trecordsymtable;
       begin
          old_current_structdef:=current_structdef;
          { create recdef }
-         recst:=trecordsymtable.create(current_settings.packrecords);
-         current_structdef:=trecorddef.create(recst);
+         recst:=trecordsymtable.create(n,current_settings.packrecords);
+         current_structdef:=trecorddef.create(n,recst);
          result:=current_structdef;
          { insert in symtablestack }
          symtablestack.push(recst);
@@ -890,8 +890,7 @@ implementation
          recst.addalignmentpadding;
          { restore symtable stack }
          symtablestack.pop(recst);
-         if trecorddef(record_dec).is_packed and
-            is_managed_type(record_dec) then
+         if trecorddef(current_structdef).is_packed and is_managed_type(current_structdef) then
            Message(type_e_no_packed_inittable);
          current_structdef:=old_current_structdef;
       end;
@@ -1314,7 +1313,7 @@ implementation
               end;
             _RECORD:
               begin
-                def:=record_dec;
+                def:=record_dec(name);
               end;
             _PACKED,
             _BITPACKED:
@@ -1349,7 +1348,7 @@ implementation
                           def:=object_dec(odt_object,name,genericdef,genericlist,nil);
                         end;
                       else
-                        def:=record_dec;
+                        def:=record_dec(name);
                     end;
                     current_settings.packrecords:=oldpackrecords;
                   end;

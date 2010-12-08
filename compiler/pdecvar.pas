@@ -1608,8 +1608,8 @@ implementation
                 Message(type_e_ordinal_expr_expected);
               consume(_OF);
 
-              UnionSymtable:=trecordsymtable.create(current_settings.packrecords);
-              UnionDef:=trecorddef.create(unionsymtable);
+              UnionSymtable:=trecordsymtable.create('',current_settings.packrecords);
+              UnionDef:=trecorddef.create('',unionsymtable);
               uniondef.isunion:=true;
               startvarrecsize:=UnionSymtable.datasize;
               { align the bitpacking to the next byte }
