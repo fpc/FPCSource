@@ -769,7 +769,7 @@ begin
           Result := vDouble;
         end;
         varDate     : begin
-          if (varDate > MaxCurrency) or (varDate < MinCurrency) then
+          if (vDate > MaxCurrency) or (vDate < MinCurrency) then
             VariantTypeMismatch(vType, varCurrency);
           Result := vDate;
         end;
