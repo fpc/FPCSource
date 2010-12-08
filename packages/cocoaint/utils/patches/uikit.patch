@@ -1,0 +1,52 @@
+--- /Data/dev/cocoa/parsedheaders/iphoneheaders/foundation/NSObjCRuntime.inc	2010-10-04 00:21:29.000000000 +0200
++++ uikit-skel/src/foundation/NSObjCRuntime.inc	2010-10-03 22:12:15.000000000 +0200
+@@ -60,14 +60,17 @@
+ 
+ { Types }
+ type
++{$if defined(cpu64) or defined(win32)}
+   NSInteger = clong;
+   NSIntegerPtr = ^NSInteger;
+   NSUInteger = culong;
+   NSUIntegerPtr = ^NSUInteger;
++{$else}
+   NSInteger = cint;
+   NSIntegerPtr = ^NSInteger;
+   NSUInteger = cuint;
+   NSUIntegerPtr = ^NSUInteger;
++{$endif}
+   NSComparisonResult = NSInteger;
+   NSComparisonResultPtr = ^NSComparisonResult;
+ 
+@@ -79,6 +82,10 @@
+   NSOrderedDescending = 1;
+ 
+ const
++  NSIntegerMax = high(NSInteger);
++  NSIntegerMin = low(NSInteger);
++  NSUIntegerMin = low(NSUinteger);
++  NSUIntegerMax = high(NSUinteger);
+   NSNotFound = NSIntegerMax;
+ 
+ {$endif}
+--- /Data/dev/cocoa/parsedheaders/iphoneheaders/foundation/NSRange.inc	2010-10-04 00:21:29.000000000 +0200
++++ uikit-skel/src/foundation/NSRange.inc	2010-10-03 22:14:20.000000000 +0200
+@@ -10,9 +10,4 @@
+ 
+-{ Types }
+-type
+-  NSRangePointer = ^NSRange;
+-  NSRangePointerPtr = ^NSRangePointer;
+-
+ {$endif}
+ {$endif}
+ 
+@@ -26,6 +21,8 @@
+   end;
+ NSRange = _NSRange;
+ _NSRangePtr = ^_NSRange;
++NSRangePtr = ^NSRange;
++NSRangePointer = NSRangePtr;
+ 
+ 
+ {$endif}

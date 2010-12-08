@@ -2,59 +2,22 @@
 
 class TObjPParser extends TPasCocoaParser {
 	
-	var $objc_id = "id";							// Default type for generic objects
-	var $objc_id_real = "id";						// The real type of generic objects (id)
-	var $sel_string = "SEL";						
 	var $trailing_underscore = true;
-	var $print_header_references = false;
 	
 	// ignore these classes when testing for ivar size
 	var $ignore_class_ivar_comparison = array(	"NSNibOutletConnector", "NSNibConnector", "NSNibControlConnector", "NSPredicateEditorRowTemplate", "NSSegmentedCell",
 												"NSSimpleHorizontalTypesetter", "NSInvocation", "NSPointerFunctions", "NSConstantString");
 	
-	var $reserved_keywords = array(	"const", "object", "string", "array", "var", "set", "interface", "classname", "unit",
-									"self", "type", "raise", "property", "to", "for", "with", "function", "procedure", "result",
-									"pointer", "create", "new", "dispose", "label", "packed", "record", "char", "class", "implementation",
-									
-									// identifiers from NSObject
-									"zone", 
-									);
-
-	var $replace_types = array(	"void"=>"Pointer", "BOOL"=>"Boolean", "long"=>"clong", "int"=>"cint",
-								"unsigned long"=>"culong", "unsigned short"=>"cushort", "void *"=>"Pointer", "unsigned int"=>"cuint",
-								"Class"=>"Pobjc_class", "uint"=>"cuint",
-								"uint8_t"=>"byte", "signed int"=>"cint", "const char"=>"char", "const void"=>"Pointer",
-								"const uint8_t"=>"byte", "unsigned"=>"cuint", "int32_t"=>"longint", "float"=>"single",
-								"unsigned long long"=>"culonglong", "int64_t"=>"clonglong", "uint32_t"=>"cardinal", "uint16_t"=>"word",
-								"unsigned char"=>"char", "short"=>"cshort", "double"=>"double", "long long"=>"clonglong",
-								
-								// ??? new in instance var parser: (add to main section eventually)
-								"signed char"=>"char", "uint64_t"=>"qword", 
-								
-								// work-arounds - the type replacement needs regex to handle with spaces I guess
-								"void*"=>"Pointer",
-								
-								// macros
-								"IBAction"=>"void", "IBOutlet"=>"",
-								
-								// special pointers
-								"const id *"=>"NSObjectArrayOfObjectsPtr", "Protocol *"=>"Protocol", "NSObject *"=>"NSObject",
-								"const char *"=>"PChar", "const void *"=>"Pointer", "unsigned char *"=>"Pointer", "char *"=>"PChar",
-								"unsigned *"=>"Pointer", "unichar *"=>"PWideChar", "const unichar *"=>"PWideChar", 
-								);
-		
 	// These methods require that the last parameter append a trailing underscore (if $trailing_underscore is on)
-	var $trailing_underscore_methods = array("- (void)copy:(id)sender;", "- (void)setNeedsDisplay:(BOOL)flag;");
-
-	// We use direct Cocoa classes now always
-	var $toll_free_bridge = array();
+	var $trailing_underscore_methods = array("- (void)copy:(id)sender;", "- (void)setNeedsDisplay:(BOOL)flag;","- (void*)QTMovie;","- (QTMovie *)QTMovie;","- (BOOL)load:(NSError **)error;");
 	
-	var $ignore_methods = array("observationInfo");	
+	var $ignore_methods = array("observationInfo"); 
 
 	// Converts an Objective-c method name to Pascal
 	function ConvertObjcMethodName ($method) {
 		$params = explode(":", $method);
 		$name = "";
+		$count = 0;
 		
 		if (count($params) > 1) {
 			foreach ($params as $value) {
@@ -72,18 +35,13 @@ class TObjPParser extends TPasCocoaParser {
 		$name = $this->ReplaceObjcType($name);
 		
 		return $name;
-	}	
-
-	// We use direct objc classes now so we don't need to replace them with references like in PasCocoa
-	function ReplaceNSTypesWithRef ($string) {
-		return $string;
-	}
+	} 
 
 	// Converts an Objective-C method to Pascal format 
-	function ConvertObjcMethodToPascal ($class, $source, $parts, $protected_keywords, $has_params) {
+	function ConvertObjcMethodToPascal ($class, $source, $parts, $protected_keywords, $has_params, $deprecatedmods) {
 		
-		// remove deprecated macros from method source
-		$source = eregi_replace("[[:space:]]*DEPRECATED_IN_MAC_OS_X_VERSION_[0-9]+_[0-9]+_AND_LATER", "", $source);
+		//print("$source\n");
+		//print_r($parts);
 		
 		// replace "hinted" params comment with hinted type
 		if ($this->replace_hinted_params) {
@@ -96,61 +54,64 @@ class TObjPParser extends TPasCocoaParser {
 			}
 
 			// return type
-			if (eregi("(/\*[[:space:]]*(.*)[[:space:]]*\*/)", $parts[2], $captures)) $parts[2] = $captures[2];
+			if (eregi("(/\*[[:space:]]*(.*)[[:space:]]*\*/)", $parts[2], $captures)) $parts[2] = $this->ReplaceRemoteMessagingModifiers($captures[2], $null);
 
 			//print_r($parts);
 
-		} else { // remmove comments from params and return type
+		} else { // remove comments from params and return type
 			$parts[4] = eregi_replace("(/\*.*\*/)", "", $parts[4]);
-			$parts[4] = trim($parts[4], " ");
+			$parts[4] = trim($parts[4]);
 
 			$parts[2] = eregi_replace("(/\*.*\*/)", "", $parts[2]);
-			$parts[2] = trim($parts[2], " ");
+			$parts[2] = $this->ReplaceRemoteMessagingModifiers($parts[2], $null);
 		}
-
+	
 		$return_type_clean = $parts[2];
+		$return_type_pointers = preg_replace("![^*]+!e", "", $return_type_clean);
+		$return_type_clean = trim($return_type_clean,"* 	");
 
 		// perform preformatting before attempting to protect keywords
 		$parts[2] = $this->FormatObjcType($parts[2], $modifiers);
-		$parts[4] = $this->FormatObjcParams($parts[4]);
-
-		// protect keywords in the parameter and return type
-		if (count($protected_keywords) > 0) {
-			foreach ($protected_keywords as $keyword) {
-				$parts[4] = istr_replace_word($keyword, $keyword."_", $parts[4]);
-				$parts[2] = istr_replace_word($keyword, $keyword."_", $parts[2]);
-			}
-		}
-
+		$parts[4] = $this->FormatObjcParams($parts[4], $variable_arguments);
+		//print($parts[4]."\n");
+		
 		if ($has_params) {
 			$name = $this->ConvertObjcMethodName($source);
 
 			// merge default protected keywords for the class/category
 			if ($this->default_protected["*"]) $protected_keywords = array_merge($this->default_protected["*"], $protected_keywords);
 			if ($this->default_protected[$class]) $protected_keywords = array_merge($this->default_protected[$class], $protected_keywords);
-
-			$param_array = $this->ConvertObjcParamsToPascal($parts[4], $protected_keywords, $variable_arguments);
+			
+			
+			$param_array = $this->ConvertObjcParamsToPascal($parts[4], $protected_keywords);
 			$params = "(".$param_array["string"].")";
 			$params_with_modifiers = "(".$param_array["string_with_modifiers"].")";
+			
 		} else {
 			$params = "";
 			$params_with_modifiers = "";
+			// no parameters -> definitely no underscore normally, but there are some
+			// conflicts...
 			$name = $parts[3];
+			// clean it up
+			if ($this->trailing_underscore) {
+				if (in_array($source, $this->trailing_underscore_methods)) $name = $name . "_";	
+			}
 			$param_array = null;
 			$variable_arguments = false;
 		}
 
 		// protect method name from keywords
 		if ($this->IsKeywordReserved($name)) $name .= "_";
-
+		
 		// replace objc type
-		$return_type = $this->ConvertReturnType($return_type_clean);
+		$return_type = $this->ConvertReturnType($return_type_clean,$return_type_pointers);
 
 		$virtual = "";
 		$class_prefix = "";
 
 		// determine the type based on return value
-		if (ereg($this->regex_procedure_type, $return_type_clean)) {
+		if (ereg($this->regex_procedure_type, $return_type_clean.$return_type_pointers)) {
 			$kind = "procedure";
 		} else {
 			$kind = "function";
@@ -181,15 +142,11 @@ class TObjPParser extends TPasCocoaParser {
 
 			$method = $class_prefix."function $name$params_with_modifiers: $return_type;$modifier$virtual";
 			$method_template = "[KIND] [PREFIX]$name"."[PARAMS]: [RETURN];$modifier";
-			$method_template_function = "function [PREFIX]$name"."[PARAMS]: [RETURN];$modifier";
 		}
 
 		$method_template_procedure = "procedure [PREFIX]$name"."[PARAMS];$modifier";
 		$method_template_function = "function [PREFIX]$name"."[PARAMS]: [RETURN];$modifier";
 
-		// ??? DEBUGGING
-		//print("$method\n");
-		
 		// build structure
 		$struct["def"] = $method;
 		$struct["template"] = $method_template;
@@ -197,6 +154,7 @@ class TObjPParser extends TPasCocoaParser {
 		$struct["template_procedure"] = $method_template_procedure;
 		$struct["objc_method"] = $this->CopyObjcMethodName($source);
 		$struct["class_prefix"] = $class_prefix;
+		if ($deprecatedmods != "") $struct["deprecated"] = $deprecatedmods.";";
 		//$struct["def_objc"] = eregi("(.*);", $source, $captures[1]);
 		if ($return_type == "void") $return_type = "";
 		$struct["return"] = $return_type;
@@ -217,7 +175,7 @@ class TObjPParser extends TPasCocoaParser {
 		// FPC bug work around
 		if (strlen($name) > $this->maximum_method_length) {
 			$struct["can_override"] = false;
-			print("	# WARNING: method $name can't override because the name is too long\n");
+			print(" # WARNING: method $name can't override because the name is too long\n");
 			$this->warning_count ++;
 		}
 
@@ -239,45 +197,104 @@ class TObjPParser extends TPasCocoaParser {
 			return true;
 		}
 	}
+
+  function PrintGlobalClassInfo($all_classes, $defined_classes, $anon_classes) {
+		// add all classes as anonymous external classes to a separate unit.
+		// They will be overridden by the actual definitions in the translated
+		// headers part of the main unit, but this way they can appear as record
+		// field types and as callback parameters
+
+		// open the output file if we not printing to terminal
+		if (!$this->show) {
+			$this->output = fopen("$this->root$this->out/AnonClassDefinitions".ucfirst($this->framework).".pas", "w+");
+		}
+		
+		$this->PrintOutput(0, "{ Parsed from ".ucfirst($this->framework)." }");
+
+		$date = @date("D M j G:i:s T Y");
+		
+		$this->PrintOutput(0, "");
+		// allows parameter names conflicting with field names
+		$this->PrintOutput(0, "{\$mode delphi}");
+		$this->PrintOutput(0, "{\$modeswitch objectivec1}");
+		// enables "external" after the semi-colon
+		$this->PrintOutput(0, "{\$modeswitch cvar}");
+		$this->PrintOutput(0, "");
+
+		$this->PrintOutPut(0,"unit AnonClassDefinitions".ucfirst($this->framework).";");
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "interface");
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "type");
+
+    foreach ($all_classes as $class)
+			$this->PrintOutput(1, $class." = objcclass; external;");
+
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "implementation");
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "end.");
+
+
+		// Now all anonymous external classes that have no real definition to an
+		// include file that is added to the main unit. This way it is possible
+		// to declare variables of these types in user programs without having to
+		// include the unit above will all anonymous classes (should not be used)
+
+		// open the output file if we not printing to terminal
+		if (!$this->show) {
+			$this->output = fopen("$this->root$this->out/$this->framework/AnonIncludeClassDefinitions".ucfirst($this->framework).".inc", "w+");
+		}
+		
+		$this->PrintOutput(0, "{ Parsed from ".ucfirst($this->framework)." }");
+
+		$date = @date("D M j G:i:s T Y");
+		
+
+		// add all classes as anonymous external classes. They will be overridden
+		// by the actual definitions in the translated headers, but this way they
+		// can appear as record field types and as callback parameters
+		$first = true;
+    foreach ($anon_classes as $class) {
+    	if (!in_array($class,$defined_classes)) {
+    		if ($first) {
+    			$this->PrintOutput(0, "type");
+    			$first = false;
+    		}
+				$this->PrintOutput(1, $class." = objcclass; external;");
+			}
+		}
+  }
+
 	
 	// Prints all classes from the header in Objective-P FPC format
 	function PrintHeader ($header) {
 		global $version;
+		//print_r($header);
+		//print_r($this->dump["categories"]);
 		
-		$this->output = fopen($header["path"], "w+");
+		// open the output file if we not printing to terminal
+		if (!$this->show) {
+			if ($this->merge_headers) {
+				$this->output = fopen($header["path_merge"], "w+");
+			} else {
+				$this->output = fopen($header["path"], "w+");
+			}
+		}
 
 		$this->PrintOutput(0, "{ Parsed from ".ucfirst($header["framework"]).".framework ".$header["name"]." }");
 
-		$date = date("D M j G:i:s T Y");
-		$this->PrintOutput(0, "{ Version $version - $date }");
+		$date = @date("D M j G:i:s T Y");
+		$this->PrintOutput(0, "{ Version: $version - $date }");
 		$this->PrintOutput(0, "");
 
 		$macro = strtoupper(substr($header["name"], 0, (strripos($header["name"], "."))));
-		
-		/*
-		if ($header["classes"]) {
-			$this->PrintOutput(0, "{\$ifdef HEADER}");
-			$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_H}");
-			$this->PrintOutput(0, "{\$define $macro"."_PAS_H}");
-			$this->PrintOutput(0, "type");
-			
-			foreach ($header["classes"] as $class) {
-				
-				// Make a pointer to each class
-				$this->PrintOutput(1, $class["name"]."Pointer = Pointer;");
-			}
-		
-			$this->PrintOutput(0, "");
-			$this->PrintOutput(0, "{\$endif}");
-			$this->PrintOutput(0, "{\$endif}");
-		}
-		*/
 		
 		$this->PrintOutput(0, "");
 		$this->PrintOutput(0, "{\$ifdef TYPES}");
 		$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_T}");
 		$this->PrintOutput(0, "{\$define $macro"."_PAS_T}");
-		$this->PrintTypes($header);
+		$this->PrintTypes($header, false);
 		$this->PrintOutput(0, "");
 		$this->PrintOutput(0, "{\$endif}");
 		$this->PrintOutput(0, "{\$endif}");
@@ -334,11 +351,14 @@ class TObjPParser extends TPasCocoaParser {
 			
 			if ($header["classes"]) {
 				foreach ($header["classes"] as $class) {
-					$this->PrintOutput(1, $class["name"]." = objcclass;");
-					$this->PrintOutput(1, $class["name"]."Pointer = ^".$class["name"].";");
+					if ($class["name"]) {
+						$this->PrintOutput(1, $class["name"]." = objcclass;");
+						$this->PrintOutput(1, $class["name"].$this->class_pointer_suffix." = ^".$class["name"].";");
+						// for consistency also offer Ptr-name variant
+						$this->PrintOutput(1, $class["name"]."Ptr = ".$class["name"].$this->class_pointer_suffix.";");
+					}
 				}
 			}
-			
 			$this->PrintOutput(0, "");
 			$this->PrintOutput(0, "{\$endif}");
 		}
@@ -350,8 +370,13 @@ class TObjPParser extends TPasCocoaParser {
 			$this->PrintOutput(0, "{\$define $macro"."_PAS_C}");
 
 			foreach ($header["classes"] as $class) {
-				//if (in_array($class["name"], $this->cocoa_classes))
-				$this->PrintClass($class);
+				if ($class["name"]) $this->PrintClass($class);
+			}
+
+			if (count($header["categories"]) > 0) {
+				foreach ($header["categories"] as $category) {
+					$this->PrintCategory($class, $category);
+				}
 			}
 
 			$this->PrintOutput(0, "");
@@ -369,12 +394,14 @@ class TObjPParser extends TPasCocoaParser {
 			foreach ($header["protocols"] as $protocol) {
 				$this->PrintOutput(1, "");
 				$this->PrintOutput(0, "{ ".$protocol["name"]." Protocol }");
+				if ($protocol["comment"]) $this->PrintOutput(0, $protocol["comment"]);
 				$this->PrintOutput(1, $protocol["name"]."$this->protocol_suffix = objcprotocol");
 
 				// print methods
 				if ($protocol["methods"]) {
 					foreach ($protocol["methods"] as $name => $method) {
-						$this->PrintOutput(2, $method["def"]." message '".$method["objc_method"]."';");
+						if ($method["comment"]) $this->PrintOutput(2, $method["comment"]);
+						$this->PrintOutput(2, $method["def"]." message '".$method["objc_method"]."';".$method["deprecated"]);
 					}
 				}
 				
@@ -386,15 +413,45 @@ class TObjPParser extends TPasCocoaParser {
 		}
 	}
 	
+	function PrintCategory ($class, $category) {
+
+		// declare real category if external
+		if ($category["external"]) {
+			$new_name = " name '".$category["external_name"]."'";
+		}
+		
+		$category_name = $category["name"].$this->category_suffix;
+		
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "{ $category_name }");
+		if ($category["comment"]) $this->PrintOutput(0, $category["comment"]);
+		
+		// print super class or protocol which the class conforms to
+		$this->PrintOutput(1, "$category_name = objccategory(".$category["super"].")");
+		
+		// print methods
+		if ($category["methods"]) {
+			foreach ($category["methods"] as $method) {
+				if ($method["comment"]) $this->PrintOutput(2, $method["comment"]);
+				$this->PrintOutput(2, $method["def"]." message '".$method["objc_method"]."';".$method["deprecated"]);
+			}
+		} 
+
+		$this->PrintOutput(1, "end; external$new_name;");
+	}
+		
 	function PrintClass ($class) {
 
 		$this->PrintOutput(0, "");
 		$this->PrintOutput(0, "{ ".$class["name"]." }");
+		
+		if ($class["comment"]) $this->PrintOutput(0, $class["comment"]);
 		//print_r($class["methods"]);
 		
+		
 		// print super class or protocol which the class conforms to
-		if ($class["conforms"]) {
-			$this->PrintOutput(1, $class["name"]." = objcclass(".$class["super"].", ".$class["conforms"].")");
+		if ($class["adopts"]) {
+			$this->PrintOutput(1, $class["name"]." = objcclass(".$class["super"].", ".$class["adopts"].")");
 		} elseif ($class["super"]) {
 			$this->PrintOutput(1, $class["name"]." = objcclass(".$class["super"].")");
 		}
@@ -416,144 +473,27 @@ class TObjPParser extends TPasCocoaParser {
 		if ($class["methods"]) {
 			$this->PrintOutput(0, "");
 			foreach ($class["methods"] as $method) {
-				$this->PrintOutput(2, $method["def"]." message '".$method["objc_method"]."';");
+				if ($method["comment"]) $this->PrintOutput(2, $method["comment"]);
+				$this->PrintOutput(2, $method["def"]." message '".$method["objc_method"]."';".$method["deprecated"]);
 			}
 		}
+		
+		// print adopted protocol methods
+		if (count($class["protocols"]) > 0) {
+			$this->PrintOutput(0, "");
+			$this->PrintOutput(2, "{ Adopted Protocols }");
+			//print_r($this->dump["protocols"]);
 
-		// print category-level methods
-		if (count($class["categories"]) > 0) {
-			foreach ($class["categories"] as $name => $category) {
-				$this->PrintOutput(0, "");
-				$this->PrintOutput(2, "{ Category: $name }");
-
-				if ($category["methods"]) {
-					foreach ($category["methods"] as $method) {
-						$this->PrintOutput(2, $method["def"]." message '".$method["objc_method"]."';");
+			foreach ($class["protocols"] as $name) {
+				if ($this->dump["protocols"][$name]) {
+					foreach ($this->dump["protocols"][$name] as $method) {
+						if (!$this->ClassContainsMethod($class, $method)) $this->PrintOutput(2, $method["def"]);
 					}
-				}	
+				}
 			}
 		}
 
 		$this->PrintOutput(1, "end; external;");
-	}
-
-	function PrintDelegateReference ($valid_categories) {
-		global $version;
-
-		$date = date("D M j G:i:s T Y");
-		$this->PrintOutput(0, "{ Version $version - $date }");
-		$this->PrintOutput(0, "");
-
-		ksort($this->delegate_methods);
-		
-		$this->PrintOutput(0, "unit $this->master_delegate_file;");
-		$this->PrintOutput(0, "interface");
-		
-		$this->PrintOutput(0, "");
-		$this->PrintOutput(0, "{ Copy and paste these delegate methods into your real classes. }");
-		
-		
-		// implemented methods
-		foreach ($this->delegate_methods as $category => $selectors) {
-			if (in_array($category, $this->ignore_categories)) continue;
-			
-			// make sure the category is valid
-			$valid = false;
-			foreach ($valid_categories as $pattern) {
-				if (eregi($pattern, $category)) {
-					$valid = true;
-					break;
-				}
-			}
-			if (!$valid) continue;
-			
-			$this->PrintOutput(0, "");
-			$this->PrintOutput(0, "type");
-			$this->PrintOutput(1, "$category = objccategory (NSObject)");
-			//$this->PrintOutput(1, "public");
-			
-			foreach ($selectors as $selector) {
-				
-				// FPC long name bug work-around
-				if (strlen($selector["name_pascal"]) > $this->maximum_method_length) continue;
-				
-				if ($selector["kind"] == "procedure") {
-					$this->PrintOutput(2, $selector["kind"]." ".$selector["name_pascal"].$selector["param_string"].";"." message '".$selector["name"]."';");
-				} else {
-					$this->PrintOutput(2, $selector["kind"]." ".$selector["name_pascal"].$selector["param_string"].": ".$selector["method"]["return"].";"." message '".$selector["name"]."';");
-				}
-			}
-			
-			$this->PrintOutput(1, "end;");
-		}
-		
-	}
-
-	function PrintIvarSizeComparison ($path) {
-		$count = 0;
-		$block = true;
-		$block_count = 1;
-		$limit = 2000;
-		
-		$handle = fopen($path, "w+");
-		if (!$handle) die("Bad path to size comparison output program!");
-		
-		fwrite($handle, "{\$mode objfpc}\n");
-		fwrite($handle, "{\$modeswitch objectivec1}\n");
-
-		fwrite($handle, "program IvarSize;\n");
-		fwrite($handle, "uses\n");
-		fwrite($handle, " objp,objcrtl,objcrtlmacosx;\n");
-		
-		// print derived classes
-		foreach ($this->cocoa_classes as $class) {
-			if (in_array($class, $this->ignore_class_ivar_comparison)) continue;
-			if ($previous == $class) continue;
-			
-			fwrite($handle, "type\n");
-			fwrite($handle, " TDerived$class = objcclass ($class)\n");
-			fwrite($handle, " extrabyte: byte;\n");
-			fwrite($handle, "end;\n");
-			
-			$previous = $class;
-		}
-		
-		// print procedures
-		foreach ($this->cocoa_classes as $class) {
-			if (in_array($class, $this->ignore_class_ivar_comparison)) continue;
-			if ($previous == $class) continue;
-			
-			if ($count == 0) {
-				fwrite($handle, "\n");
-				fwrite($handle, "procedure PrintGlue$block_count;\n");
-				fwrite($handle, "begin\n");
-				
-				$block_count ++;
-			}
-			
-			$count ++;
-			
-		 	fwrite($handle, " if class_getInstanceSize(TDerived$class) <> (class_getInstanceSize($class)+1) then\n");
-		    fwrite($handle, " writeln('size of $class is wrong: ',class_getInstanceSize(TDerived$class),' <> ',class_getInstanceSize($class)+1);\n");
-			
-			if ($count == $limit) {
-				fwrite($handle, "end;\n");
-				$count = 0;
-			}
-			
-			$previous = $class;
-		}
-		
-		if ($count < $limit) {
-			fwrite($handle, "end;\n");
-			$block_count --;
-		}
-		
-		fwrite($handle, "begin\n");
-		for ($i=1; $i < $block_count + 1; $i++) { 
-			fwrite($handle, " PrintGlue$i;\n");
-		}
-		fwrite($handle, "end.\n");
 	}
 
 }

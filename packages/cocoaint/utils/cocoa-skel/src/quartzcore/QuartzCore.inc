@@ -1,0 +1,52 @@
+{$include CAAnimation.inc}
+{$include CABase.inc}
+{$include CIFilter.inc}
+{$include CALayer.inc}
+{$include CACIFilterAdditions.inc}
+{$include CAConstraintLayoutManager.inc}
+{$include CAEmitterCell.inc}
+{$include CAEmitterLayer.inc}
+{$include CAGradientLayer.inc}
+{$include CAMediaTiming.inc}
+{$include CAMediaTimingFunction.inc}
+{$include CAOpenGLLayer.inc}
+{$include CARenderer.inc}
+{$include CAReplicatorLayer.inc}
+{$include CAScrollLayer.inc}
+{$include CAShapeLayer.inc}
+{$include CATextLayer.inc}
+{$include CATiledLayer.inc}
+{$include CATransaction.inc}
+{$include CATransform3D.inc}
+{$include CATransformLayer.inc}
+{$include CAValueFunction.inc}
+{$include CIColor.inc}
+{$include CIContext.inc}
+{$include CIFilterGenerator.inc}
+{$include CIFilterShape.inc}
+{$include CIImage.inc}
+{$include CIImageAccumulator.inc}
+{$include CIImageProvider.inc}
+{$include CIKernel.inc}
+{$include CIPlugIn.inc}
+{$include CIPlugInInterface.inc}
+{$include CIRAWFilter.inc}
+{$include CISampler.inc}
+{$include CIVector.inc}
+{$include CVBase.inc}
+{$include CVBuffer.inc}
+{$include CVDisplayLink.inc}
+{$include CVHostTime.inc}
+{$include CVImageBuffer.inc}
+{$include CVOpenGLBuffer.inc}
+{$include CVOpenGLBufferPool.inc}
+{$include CVOpenGLTexture.inc}
+{$include CVOpenGLTextureCache.inc}
+{$include CVPixelBuffer.inc}
+{$include CVPixelBufferPool.inc}
+{$include CVPixelFormatDescription.inc}
+{$include CVReturn.inc}
+{ include CoreAnimation.inc}
+{ include CoreImage.inc}
+{ include CoreVideo.inc}
+{ include QuartzCore.inc}
