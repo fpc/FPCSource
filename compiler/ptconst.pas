@@ -191,7 +191,7 @@ implementation
           end;
 
         begin
-           n:=comp_expr(true);
+           n:=comp_expr(true,false);
            { for C-style booleans, true=-1 and false=0) }
            if is_cbool(def) then
              inserttypeconv(n,def);
@@ -291,7 +291,7 @@ implementation
           n : tnode;
           value : bestreal;
         begin
-          n:=comp_expr(true);
+          n:=comp_expr(true,false);
           if is_constrealnode(n) then
             value:=trealconstnode(n).value_real
           else if is_constintnode(n) then
@@ -332,7 +332,7 @@ implementation
         var
           n : tnode;
         begin
-          n:=comp_expr(true);
+          n:=comp_expr(true,false);
           case n.nodetype of
             loadvmtaddrn:
               begin
@@ -369,7 +369,7 @@ implementation
           ll        : tasmlabel;
           varalign  : shortint;
         begin
-          p:=comp_expr(true);
+          p:=comp_expr(true,false);
           { remove equal typecasts for pointer/nil addresses }
           if (p.nodetype=typeconvn) then
             with Ttypeconvnode(p) do
@@ -587,7 +587,7 @@ implementation
           p : tnode;
           i : longint;
         begin
-          p:=comp_expr(true);
+          p:=comp_expr(true,false);
           if p.nodetype=setconstn then
             begin
               { be sure to convert to the correct result, else
@@ -622,7 +622,7 @@ implementation
         var
           p : tnode;
         begin
-          p:=comp_expr(true);
+          p:=comp_expr(true,false);
           if p.nodetype=ordconstn then
             begin
               if equal_defs(p.resultdef,def) or
@@ -653,7 +653,7 @@ implementation
           ca        : pchar;
           winlike   : boolean;
         begin
-          n:=comp_expr(true);
+          n:=comp_expr(true,false);
           { load strval and strlength of the constant tree }
           if (n.nodetype=stringconstn) or is_wide_or_unicode_string(def) or is_constwidecharnode(n) or
             ((n.nodetype=typen) and is_interfacecorba(ttypenode(n).typedef)) then
@@ -772,7 +772,7 @@ implementation
             n : tnode;
           begin
             result:=true;
-            n:=comp_expr(true);
+            n:=comp_expr(true,false);
             if (n.nodetype <> ordconstn) or
                (not equal_defs(n.resultdef,def) and
                 not is_subequal(n.resultdef,def)) then
@@ -873,7 +873,7 @@ implementation
           else if is_anychar(def.elementdef) then
             begin
                char_size:=def.elementdef.size;
-               n:=comp_expr(true);
+               n:=comp_expr(true,false);
                if n.nodetype=stringconstn then
                  begin
                    len:=tstringconstnode(n).len;
@@ -970,7 +970,7 @@ implementation
             Message(parser_e_no_procvarobj_const);
           { parse the rest too, so we can continue with error checking }
           getprocvardef:=def;
-          n:=comp_expr(true);
+          n:=comp_expr(true,false);
           getprocvardef:=nil;
           if codegenerror then
             begin
@@ -1062,7 +1062,7 @@ implementation
           { GUID }
           if (def=rec_tguid) and (token=_ID) then
             begin
-              n:=comp_expr(true);
+              n:=comp_expr(true,false);
               if n.nodetype=stringconstn then
                 handle_stringconstn
               else
@@ -1085,7 +1085,7 @@ implementation
             end;
           if (def=rec_tguid) and ((token=_CSTRING) or (token=_CCHAR)) then
             begin
-              n:=comp_expr(true);
+              n:=comp_expr(true,false);
               inserttypeconv(n,cshortstringtype);
               if n.nodetype=stringconstn then
                 handle_stringconstn
@@ -1278,7 +1278,7 @@ implementation
           { only allow nil for class and interface }
           if is_class_or_interface_or_dispinterface_or_objc(def) then
             begin
-              n:=comp_expr(true);
+              n:=comp_expr(true,false);
               if n.nodetype<>niln then
                 begin
                   Message(parser_e_type_const_not_possible);

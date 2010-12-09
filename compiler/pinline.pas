@@ -76,7 +76,7 @@ implementation
         storepos : tfileposinfo;
       begin
         consume(_LKLAMMER);
-        p:=comp_expr(true);
+        p:=comp_expr(true,false);
         { calc return type }
         if is_new then
           begin
@@ -98,12 +98,12 @@ implementation
               classh := classh.childof;
             if is_new then
               begin
-                sym:=search_class_member(classh,'CREATE');
+                sym:=search_struct_member(classh,'CREATE');
                 p2 := cloadvmtaddrnode.create(ctypenode.create(p.resultdef));
               end
             else
               begin
-                sym:=search_class_member(classh,'FREE');
+                sym:=search_struct_member(classh,'FREE');
                 p2 := p;
              end;
 
@@ -161,7 +161,7 @@ implementation
               begin
                  Message1(type_e_pointer_type_expected,p.resultdef.typename);
                  p.free;
-                 p:=factor(false);
+                 p:=factor(false,false);
                  p.free;
                  consume(_RKLAMMER);
                  new_dispose_statement:=cerrornode.create;
@@ -172,7 +172,7 @@ implementation
               begin
                  Message(parser_e_pointer_to_class_expected);
                  p.free;
-                 new_dispose_statement:=factor(false);
+                 new_dispose_statement:=factor(false,false);
                  consume_all_until(_RKLAMMER);
                  consume(_RKLAMMER);
                  exit;
@@ -182,7 +182,7 @@ implementation
             if is_class(classh) then
               begin
                  Message(parser_e_no_new_or_dispose_for_classes);
-                 new_dispose_statement:=factor(false);
+                 new_dispose_statement:=factor(false,false);
                  consume_all_until(_RKLAMMER);
                  consume(_RKLAMMER);
                  exit;
@@ -190,7 +190,7 @@ implementation
             { search cons-/destructor, also in parent classes }
             storepos:=current_tokenpos;
             current_tokenpos:=destructorpos;
-            sym:=search_class_member(classh,destructorname);
+            sym:=search_struct_member(classh,destructorname);
             current_tokenpos:=storepos;
 
             { the second parameter of new/dispose must be a call }
@@ -353,7 +353,7 @@ implementation
         again  : boolean; { dummy for do_proc_call }
       begin
         consume(_LKLAMMER);
-        p1:=factor(false);
+        p1:=factor(false,false);
         if p1.nodetype<>typen then
          begin
            Message(type_e_type_id_expected);

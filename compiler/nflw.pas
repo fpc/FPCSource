@@ -383,7 +383,7 @@ implementation
                  ccallparanode.create(caddrnode.create(ctemprefnode.create(state)),nil)
                )
              );
-         sym:=search_class_member(objc_fastenumeration,'COUNTBYENUMERATINGWITHSTATE_OBJECTS_COUNT');
+         sym:=search_struct_member(objc_fastenumeration,'COUNTBYENUMERATINGWITHSTATE_OBJECTS_COUNT');
          if not assigned(sym) or
             (sym.typ<>procsym) then
            internalerror(2010061901);

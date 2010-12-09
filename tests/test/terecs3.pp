@@ -17,5 +17,9 @@ begin
     halt(2);
   if F.C <> 1 then
     halt(3);
+  if F.Test(3) <> 4 then
+    halt(4);
+  if F.Test1(4) <> 5 then
+    halt(5);
   WriteLn('ok');
 end.

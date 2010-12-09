@@ -213,7 +213,7 @@ interface
     function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  search_system_type(const s: TIDString): ttypesym;
     function  search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
-    function  search_class_member(pd : tobjectdef;const s : string):tsym;
+    function  search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
     function  search_enumerator_operator(from_def,to_def:Tdef):Tprocdef;
     function  search_class_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
@@ -1188,7 +1188,7 @@ implementation
          if not(sym.typ in [procsym,propertysym]) then
            begin
               { but private ids can be reused }
-              hsym:=search_class_member(tobjectdef(defowner),hashedid.id);
+              hsym:=search_struct_member(tobjectdef(defowner),hashedid.id);
               if assigned(hsym) and
                  (
                   (
@@ -1322,13 +1322,13 @@ implementation
           as the procsym }
         if not is_funcret_sym(sym) and
            (defowner.typ=procdef) and
-           assigned(tprocdef(defowner)._class) and
-           (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) and
+           assigned(tprocdef(defowner).struct) and
+           (tprocdef(defowner).owner.defowner=tprocdef(defowner).struct) and
            (
             not(m_delphi in current_settings.modeswitches) or
-            is_object(tprocdef(defowner)._class)
+            is_object(tprocdef(defowner).struct)
            ) then
-          result:=tprocdef(defowner)._class.symtable.checkduplicate(hashedid,sym);
+          result:=tprocdef(defowner).struct.symtable.checkduplicate(hashedid,sym);
       end;
 
 
@@ -1352,13 +1352,13 @@ implementation
           exit;
         if not(m_duplicate_names in current_settings.modeswitches) and
            (defowner.typ=procdef) and
-           assigned(tprocdef(defowner)._class) and
-           (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) and
+           assigned(tprocdef(defowner).struct) and
+           (tprocdef(defowner).owner.defowner=tprocdef(defowner).struct) and
            (
             not(m_delphi in current_settings.modeswitches) or
-            is_object(tprocdef(defowner)._class)
+            is_object(tprocdef(defowner).struct)
            ) then
-          result:=tprocdef(defowner)._class.symtable.checkduplicate(hashedid,sym);
+          result:=tprocdef(defowner).struct.symtable.checkduplicate(hashedid,sym);
       end;
 
 
@@ -1878,6 +1878,7 @@ implementation
       var
         hashedid  : THashedIDString;
         stackitem : psymtablestackitem;
+        classh : tobjectdef;
       begin
         result:=false;
         hashedid.id:=s;
@@ -1886,27 +1887,46 @@ implementation
           begin
             {
               It is not possible to have type symbols in:
-                records
                 parameters
-              Exception are classes, objects, generic definitions and specializations
+              Exception are classes, objects, records, generic definitions and specializations
               that have the parameterized types inserted in the symtable.
             }
             srsymtable:=stackitem^.symtable;
+            if (srsymtable.symtabletype=ObjectSymtable) then
+              begin
+                classh:=tobjectdef(srsymtable.defowner);
+                while assigned(classh) do
+                  begin
+                    srsymtable:=classh.symtable;
+                    srsym:=tsym(srsymtable.FindWithHash(hashedid));
+                    if assigned(srsym) and
+                       (srsym.typ=typesym) and
+                       is_visible_for_object(srsym,current_structdef) then
+                      begin
+                        addsymref(srsym);
+                        result:=true;
+                        exit;
+                      end;
+                    classh:=classh.childof;
+                  end;
+              end
+            else
             if not(srsymtable.symtabletype in [recordsymtable,ObjectSymtable,parasymtable]) or
                (assigned(srsymtable.defowner) and
                 (
                  (df_generic in tdef(srsymtable.defowner).defoptions) or
                  (df_specialization in tdef(srsymtable.defowner).defoptions) or
-                 is_class_or_object(tdef(srsymtable.defowner)))
-                ) then
+                 is_class_or_object(tdef(srsymtable.defowner)) or
+                 is_record(tdef(srsymtable.defowner))
+                )
+               ) then
               begin
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
                 if assigned(srsym) and
                    not(srsym.typ in [fieldvarsym,paravarsym]) and
                    (
                     not (srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or
-                    (is_visible_for_object(srsym,current_structdef) and
-                     (srsym.typ=typesym))
+                    ((srsym.typ=typesym)and is_visible_for_object(srsym,current_structdef))
                    ) then
                   begin
                     { we need to know if a procedure references symbols
@@ -2428,17 +2448,17 @@ implementation
       end;
 
 
-    function search_class_member(pd : tobjectdef;const s : string):tsym;
+    function search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
     { searches n in symtable of pd and all anchestors }
       var
         hashedid   : THashedIDString;
         srsym      : tsym;
-        orgpd      : tobjectdef;
+        orgpd      : tabstractrecorddef;
         srsymtable : tsymtable;
       begin
         { in case this is a formal objcclass, first find the real definition }
-        if (oo_is_formal in pd.objectoptions) then
-          pd:=find_real_objcclass_definition(pd,true);
+        if (pd.typ=objectdef) and (oo_is_formal in tobjectdef(pd).objectoptions) then
+          pd:=find_real_objcclass_definition(tobjectdef(pd),true);
         hashedid.id:=s;
         orgpd:=pd;
         while assigned(pd) do
@@ -2446,15 +2466,18 @@ implementation
            srsym:=tsym(pd.symtable.FindWithHash(hashedid));
            if assigned(srsym) then
             begin
-              search_class_member:=srsym;
+              search_struct_member:=srsym;
               exit;
             end;
-           pd:=pd.childof;
+           if pd.typ=objectdef then
+             pd:=tobjectdef(pd).childof
+           else
+             pd:=nil;
          end;
 
         { not found, now look for class helpers }
         if is_objcclass(pd) then
-          search_class_helper(orgpd,s,result,srsymtable)
+          search_class_helper(tobjectdef(orgpd),s,result,srsymtable)
         else
           result:=nil;
       end;

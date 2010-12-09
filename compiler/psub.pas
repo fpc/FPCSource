@@ -290,15 +290,15 @@ implementation
       begin
         result:=internalstatements(newstatement);
 
-        if assigned(current_objectdef) then
+        if assigned(current_structdef) then
           begin
             { a constructor needs a help procedure }
             if (current_procinfo.procdef.proctypeoption=potype_constructor) then
               begin
-                if is_class(current_objectdef) then
+                if is_class(current_structdef) then
                   begin
                     include(current_procinfo.flags,pi_needs_implicit_finally);
-                    srsym:=search_class_member(current_objectdef,'NEWINSTANCE');
+                    srsym:=search_struct_member(current_objectdef,'NEWINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
                       begin
@@ -320,7 +320,7 @@ implementation
                       internalerror(200305108);
                   end
                 else
-                  if is_object(current_objectdef) then
+                  if is_object(current_structdef) then
                     begin
                       { parameter 3 : vmt_offset }
                       { parameter 2 : address of pointer to vmt,
@@ -359,9 +359,9 @@ implementation
 
             { maybe call BeforeDestruction for classes }
             if (current_procinfo.procdef.proctypeoption=potype_destructor) and
-               is_class(current_objectdef) then
+               is_class(current_structdef) then
               begin
-                srsym:=search_class_member(current_objectdef,'BEFOREDESTRUCTION');
+                srsym:=search_struct_member(current_objectdef,'BEFOREDESTRUCTION');
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
@@ -393,7 +393,7 @@ implementation
       begin
         result:=internalstatements(newstatement);
 
-        if assigned(current_objectdef) then
+        if assigned(current_structdef) then
           begin
             { Don't test self and the vmt here. The reason is that  }
             { a constructor already checks whether these are valid  }
@@ -406,9 +406,9 @@ implementation
             { a destructor needs a help procedure }
             if (current_procinfo.procdef.proctypeoption=potype_destructor) then
               begin
-                if is_class(current_objectdef) then
+                if is_class(current_structdef) then
                   begin
-                    srsym:=search_class_member(current_objectdef,'FREEINSTANCE');
+                    srsym:=search_struct_member(current_objectdef,'FREEINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
                       begin
@@ -430,7 +430,7 @@ implementation
                       internalerror(200305108);
                   end
                 else
-                  if is_object(current_objectdef) then
+                  if is_object(current_structdef) then
                     begin
                       { finalize object data }
                       if is_managed_type(current_objectdef) then
@@ -471,7 +471,7 @@ implementation
 
         { a constructor needs call destructor (if available) when it
           is not inherited }
-        if not assigned(current_objectdef) or
+        if not assigned(current_structdef) or
            (current_procinfo.procdef.proctypeoption<>potype_constructor) then
           begin
             { no constructor }
@@ -495,7 +495,7 @@ implementation
                 { if safecall is used for a class method we need to call }
                 { SafecallException virtual method                       }
                 { In other case we return E_UNEXPECTED error value       }
-                if is_class(current_procinfo.procdef._class) then
+                if is_class(current_procinfo.procdef.struct) then
                   begin
                     { temp variable to store exception address }
                     exceptaddrnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,
@@ -513,7 +513,7 @@ implementation
                       cassignmentnode.create(
                         ctemprefnode.create(exceptobjnode),
                         ccallnode.createintern('fpc_popobjectstack', nil)));
-                    exceptsym:=search_class_member(current_procinfo.procdef._class,'SAFECALLEXCEPTION');
+                    exceptsym:=search_struct_member(tobjectdef(current_procinfo.procdef.struct),'SAFECALLEXCEPTION');
                     addstatement(newstatement,
                       cassignmentnode.create(
                         cloadnode.create(sym,sym.Owner),
@@ -595,7 +595,7 @@ implementation
         newstatement: tstatementnode;
         pd: tprocdef;
       begin
-        if assigned(current_objectdef) and
+        if assigned(current_structdef) and
            (current_procinfo.procdef.proctypeoption=potype_constructor) then
           begin
             { Don't test self and the vmt here. See generate_bodyexit_block }
@@ -604,9 +604,9 @@ implementation
             current_settings.localswitches:=oldlocalswitches-[cs_check_object,cs_check_range];
 
             { call AfterConstruction for classes }
-            if is_class(current_objectdef) then
+            if is_class(current_structdef) then
               begin
-                srsym:=search_class_member(current_objectdef,'AFTERCONSTRUCTION');
+                srsym:=search_struct_member(current_objectdef,'AFTERCONSTRUCTION');
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
@@ -806,7 +806,7 @@ implementation
         old_current_procinfo : tprocinfo;
         oldmaxfpuregisters : longint;
         oldfilepos : tfileposinfo;
-        old_current_objectdef : tobjectdef;
+        old_current_structdef : tabstractrecorddef;
         templist : TAsmList;
         headertai : tai;
         i : integer;
@@ -833,12 +833,12 @@ implementation
 
         old_current_procinfo:=current_procinfo;
         oldfilepos:=current_filepos;
-        old_current_objectdef:=current_objectdef;
+        old_current_structdef:=current_structdef;
         oldmaxfpuregisters:=current_settings.maxfpuregisters;
 
         current_procinfo:=self;
         current_filepos:=entrypos;
-        current_objectdef:=procdef._class;
+        current_structdef:=procdef.struct;
 
         templist:=TAsmList.create;
 
@@ -1265,7 +1265,7 @@ implementation
         templist.free;
         current_settings.maxfpuregisters:=oldmaxfpuregisters;
         current_filepos:=oldfilepos;
-        current_objectdef:=old_current_objectdef;
+        current_structdef:=old_current_structdef;
         current_procinfo:=old_current_procinfo;
       end;
 
@@ -1273,11 +1273,11 @@ implementation
     procedure tcgprocinfo.add_to_symtablestack;
       begin
         { insert symtables for the class, but only if it is no nested function }
-        if assigned(procdef._class) and
+        if assigned(procdef.struct) and
            not(assigned(parent) and
                assigned(parent.procdef) and
-               assigned(parent.procdef._class)) then
-          push_nested_hierarchy(procdef._class);
+               assigned(parent.procdef.struct)) then
+          push_nested_hierarchy(procdef.struct);
 
         { insert parasymtable in symtablestack when parsing
           a function }
@@ -1303,11 +1303,11 @@ implementation
           symtablestack.pop(procdef.parast);
 
         { remove symtables for the class, but only if it is no nested function }
-        if assigned(procdef._class) and
+        if assigned(procdef.struct) and
            not(assigned(parent) and
                assigned(parent.procdef) and
-               assigned(parent.procdef._class)) then
-          pop_nested_hierarchy(procdef._class);
+               assigned(parent.procdef.struct)) then
+          pop_nested_hierarchy(procdef.struct);
       end;
 
 
@@ -1379,22 +1379,22 @@ implementation
          old_current_procinfo : tprocinfo;
          old_block_type : tblock_type;
          st : TSymtable;
-         old_current_objectdef,
+         old_current_structdef: tabstractrecorddef;
          old_current_genericdef,
          old_current_specializedef : tobjectdef;
       begin
          old_current_procinfo:=current_procinfo;
          old_block_type:=block_type;
-         old_current_objectdef:=current_objectdef;
+         old_current_structdef:=current_structdef;
          old_current_genericdef:=current_genericdef;
          old_current_specializedef:=current_specializedef;
 
          current_procinfo:=self;
-         current_objectdef:=procdef._class;
-         if assigned(current_objectdef) and (df_generic in current_objectdef.defoptions) then
-           current_genericdef:=current_objectdef;
-         if assigned(current_objectdef) and (df_specialization in current_objectdef.defoptions) then
-           current_specializedef:=current_objectdef;
+         current_structdef:=procdef.struct;
+         if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
+           current_genericdef:=tobjectdef(current_structdef);
+         if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
+           current_specializedef:=tobjectdef(current_structdef);
 
          { calculate the lexical level }
          if procdef.parast.symtablelevel>maxnesting then
@@ -1500,7 +1500,7 @@ implementation
 {    aktstate.destroy;}
     {$endif state_tracking}
 
-         current_objectdef:=old_current_objectdef;
+         current_structdef:=old_current_structdef;
          current_genericdef:=old_current_genericdef;
          current_specializedef:=old_current_specializedef;
          current_procinfo:=old_current_procinfo;
@@ -1646,7 +1646,7 @@ implementation
 
       var
         old_current_procinfo : tprocinfo;
-        old_current_objectdef,
+        old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
         old_current_specializedef : tobjectdef;
         pdflags    : tpdflags;
@@ -1655,19 +1655,19 @@ implementation
       begin
          { save old state }
          old_current_procinfo:=current_procinfo;
-         old_current_objectdef:=current_objectdef;
+         old_current_structdef:=current_structdef;
          old_current_genericdef:=current_genericdef;
          old_current_specializedef:=current_specializedef;
 
          { reset current_procinfo.procdef to nil to be sure that nothing is writing
            to another procdef }
          current_procinfo:=nil;
-         current_objectdef:=nil;
+         current_structdef:=nil;
          current_genericdef:=nil;
          current_specializedef:=nil;
 
          { parse procedure declaration }
-         pd:=parse_proc_dec(isclassmethod, old_current_objectdef);
+         pd:=parse_proc_dec(isclassmethod,old_current_structdef);
 
          { set the default function options }
          if parse_only then
@@ -1710,8 +1710,8 @@ implementation
          if not proc_add_definition(pd) then
            begin
              { A method must be forward defined (in the object declaration) }
-             if assigned(pd._class) and
-                (not assigned(old_current_objectdef)) then
+             if assigned(pd.struct) and
+                (not assigned(old_current_structdef)) then
               begin
                 MessagePos1(pd.fileinfo,parser_e_header_dont_match_any_member,pd.fullprocname(false));
                 tprocsym(pd.procsym).write_parameter_lists(pd);
@@ -1792,7 +1792,7 @@ implementation
                current_asmdata.DefineAsmSymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
            end;
 
-         current_objectdef:=old_current_objectdef;
+         current_structdef:=old_current_structdef;
          current_genericdef:=old_current_genericdef;
          current_specializedef:=old_current_specializedef;
          current_procinfo:=old_current_procinfo;
@@ -1842,7 +1842,7 @@ implementation
                      if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR]) then
                        Message(parser_e_procedure_or_function_expected);
 
-                     if is_interface(current_objectdef) then
+                     if is_interface(current_structdef) then
                        Message(parser_e_no_static_method_in_interfaces)
                      else
                        { class methods are also allowed for Objective-C protocols }

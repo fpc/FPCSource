@@ -160,7 +160,8 @@ implementation
         case left.resultdef.typ of
           classrefdef :
             resultdef:=left.resultdef;
-          objectdef :
+          objectdef,
+          recorddef:
             { access to the classtype while specializing? }
             if (df_generic in left.resultdef.defoptions) then
               begin
@@ -202,7 +203,7 @@ implementation
              if is_objcclass(left.resultdef) and
                 (left.nodetype<>typen) then
                begin
-                 vs:=search_class_member(tobjectdef(left.resultdef),'ISA');
+                 vs:=search_struct_member(tobjectdef(left.resultdef),'ISA');
                  if not assigned(vs) or
                     (tsym(vs).typ<>fieldvarsym) then
                    internalerror(2009092502);

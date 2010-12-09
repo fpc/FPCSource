@@ -83,7 +83,7 @@ implementation
             if token=_ID then
              begin
                if assigned(aclass) then
-                 sym:=search_class_member(aclass,pattern)
+                 sym:=search_struct_member(aclass,pattern)
                else
                  searchsym(pattern,sym,srsymtable);
                if assigned(sym) then
@@ -137,7 +137,7 @@ implementation
                            begin
                              sym:=tsym(st.Find(pattern));
                              if not(assigned(sym)) and is_object(def) then
-                               sym:=search_class_member(tobjectdef(def),pattern);
+                               sym:=search_struct_member(tobjectdef(def),pattern);
                              if assigned(sym) then
                               begin
                                 pl.addsym(sl_subscript,sym);
@@ -177,7 +177,7 @@ implementation
                          if def.typ=arraydef then
                           begin
                             idx:=0;
-                            p:=comp_expr(true);
+                            p:=comp_expr(true,false);
                             if (not codegenerror) then
                              begin
                                if (p.nodetype=ordconstn) then
@@ -268,7 +268,7 @@ implementation
 
               if try_to_consume(_DISPID) then
                 begin
-                  pt:=comp_expr(true);
+                  pt:=comp_expr(true,false);
                   if is_constintnode(pt) then
                     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
                       message(parser_e_range_check_error)
@@ -427,7 +427,7 @@ implementation
               if (idtoken=_INDEX) then
                 begin
                    consume(_INDEX);
-                   pt:=comp_expr(true);
+                   pt:=comp_expr(true,false);
                    { Only allow enum and integer indexes. Convert all integer
                      values to s32int to be compatible with delphi, because the
                      procedure matching requires equal parameters }
@@ -457,7 +457,7 @@ implementation
          else
            begin
               { do an property override }
-              overridden:=search_class_member(aclass.childof,p.name);
+              overridden:=search_struct_member(aclass.childof,p.name);
               if assigned(overridden) and
                  (overridden.typ=propertysym) and
                  not(is_dispinterface(aclass)) then
@@ -618,7 +618,7 @@ implementation
                            methods
                          }
                          if (not assigned(aclass) or
-                             (search_class_member(aclass,pattern)=nil)) and
+                             (search_struct_member(aclass,pattern)=nil)) and
                             searchsym(pattern,sym,srsymtable) and
                             (sym.typ = constsym) then
                            begin
@@ -678,14 +678,14 @@ implementation
                 begin
                   Message(parser_e_property_cant_have_a_default_value);
                   { Error recovery }
-                  pt:=comp_expr(true);
+                  pt:=comp_expr(true,false);
                   pt.free;
                 end
               else
                 begin
                   { Get the result of the default, the firstpass is
                     needed to support values like -1 }
-                  pt:=comp_expr(true);
+                  pt:=comp_expr(true,false);
                   if (p.propdef.typ=setdef) and
                      (pt.nodetype=arrayconstructorn) then
                     begin
@@ -1428,7 +1428,8 @@ implementation
              { Don't search in the recordsymtable for types (can be nested!) }
              recstlist.count:=0;
              if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) and
-                 not is_class_or_object(tdef(recst.defowner)) then
+                 not is_class_or_object(tdef(recst.defowner)) and
+                 not is_record(tdef(recst.defowner)) then
                begin
                  recstlist.add(recst);
                  symtablestack.pop(recst);
@@ -1619,11 +1620,11 @@ implementation
               symtablestack.push(UnionSymtable);
               repeat
                 repeat
-                  pt:=comp_expr(true);
+                  pt:=comp_expr(true,false);
                   if not(pt.nodetype=ordconstn) then
                     Message(parser_e_illegal_expression);
                   if try_to_consume(_POINTPOINT) then
-                    pt:=crangenode.create(pt,comp_expr(true));
+                    pt:=crangenode.create(pt,comp_expr(true,false));
                   pt.free;
                   if token=_COMMA then
                     consume(_COMMA)

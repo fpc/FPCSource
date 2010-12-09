@@ -2034,7 +2034,7 @@ implementation
         def.dbg_state:=dbg_state_writing;
 
         current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Procdef '+def.fullprocname(true))));
-        if not is_objc_class_or_protocol(def._class) then
+        if not is_objc_class_or_protocol(def.struct) then
           append_entry(DW_TAG_subprogram,true,
             [DW_AT_name,DW_FORM_string,symname(def.procsym)+#0
             { data continues below }
@@ -2065,7 +2065,7 @@ implementation
           append_attribute(DW_AT_external,DW_FORM_flag,[true]);
         { Abstract or virtual/overriding method.  }
         if (([po_abstractmethod, po_virtualmethod, po_overridingmethod] * def.procoptions) <> []) and
-           not is_objc_class_or_protocol(def._class) then
+           not is_objc_class_or_protocol(def.struct) then
           begin
             if not(po_abstractmethod in def.procoptions) then
               append_attribute(DW_AT_virtuality,DW_FORM_data1,[ord(DW_VIRTUALITY_virtual)])

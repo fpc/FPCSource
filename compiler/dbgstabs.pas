@@ -66,7 +66,7 @@ interface
         procedure write_sym_stabstr(list:TAsmList;sym:tsym;const ss:ansistring);
         { tdef writing }
         function  def_stab_number(def:tdef):string;
-        function  def_stab_classnumber(def:tobjectdef):string;
+        function  def_stab_classnumber(def:tabstractrecorddef):string;
         function  def_var_value(const s:string;arg:pointer):string;
         function  def_stabstr_evaluate(def:tdef;const s:string;const vars:array of string):ansistring;
         procedure write_def_stabstr(list:TAsmList;def:tdef;const ss:ansistring);
@@ -314,11 +314,11 @@ implementation
       end;
 
 
-    function TDebugInfoStabs.def_stab_classnumber(def:tobjectdef):string;
+    function TDebugInfoStabs.def_stab_classnumber(def:tabstractrecorddef):string;
       begin
         if def.stab_number=0 then
           def_stab_number(def);
-        if (def.objecttype=odt_class) then
+        if (def.typ=objectdef) and (tobjectdef(def).objecttype=odt_class) then
           result:=tostr(def.stab_number-1)
         else
           result:=tostr(def.stab_number);
@@ -414,7 +414,7 @@ implementation
                lindex := pd.extnumber;
                {doesnt seem to be necessary
                lindex := lindex or $80000000;}
-               virtualind := '*'+tostr(lindex)+';'+def_stab_classnumber(pd._class)+';'
+               virtualind := '*'+tostr(lindex)+';'+def_stab_classnumber(pd.struct)+';'
              end
             else
              virtualind := '.';
@@ -1345,13 +1345,13 @@ implementation
                 end
             else
               begin
-                if not(is_class(tprocdef(sym.owner.defowner)._class)) then
+                if not(is_class(tprocdef(sym.owner.defowner).struct)) then
                   c:='v'
                 else
                   c:='p';
                 if (sym.localloc.loc=LOC_REFERENCE) then
                   ss:=sym_stabstr_evaluate(sym,'"$$t:$1",${N_TSYM},0,0,$2',
-                        [c+def_stab_number(tprocdef(sym.owner.defowner)._class),tostr(sym.localloc.reference.offset)])
+                        [c+def_stab_number(tprocdef(sym.owner.defowner).struct),tostr(sym.localloc.reference.offset)])
                 else
                   begin
                     if (c='p') then
@@ -1360,7 +1360,7 @@ implementation
                       c:='a';
                     regidx:=findreg_by_number(sym.localloc.register);
                     ss:=sym_stabstr_evaluate(sym,'"$$t:$1",${N_RSYM},0,0,$2',
-                        [c+def_stab_number(tprocdef(sym.owner.defowner)._class),tostr(regstabs_table[regidx])]);
+                        [c+def_stab_number(tprocdef(sym.owner.defowner).struct),tostr(regstabs_table[regidx])]);
                   end
               end;
           end

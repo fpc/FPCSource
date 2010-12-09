@@ -94,8 +94,8 @@ implementation
         include(current_objectdef.objectoptions,oo_has_constructor);
         { Set return type, class constructors return the
           created instance, object constructors return boolean }
-        if is_class(pd._class) then
-          pd.returndef:=pd._class
+        if is_class(pd.struct) then
+          pd.returndef:=pd.struct
         else
 {$ifdef CPU64bitaddr}
           pd.returndef:=bool64type;
@@ -314,7 +314,7 @@ implementation
         p : tnode;
         valid : boolean;
       begin
-        p:=comp_expr(true);
+        p:=comp_expr(true,false);
         if p.nodetype=stringconstn then
           begin
             stringdispose(current_objectdef.iidstr);
@@ -544,7 +544,7 @@ implementation
 
       procedure chkobjc(pd: tprocdef);
         begin
-          if is_objc_class_or_protocol(pd._class) then
+          if is_objc_class_or_protocol(pd.struct) then
             begin
               include(pd.procoptions,po_objc);
             end;
@@ -790,7 +790,7 @@ implementation
 
                 oldparse_only:=parse_only;
                 parse_only:=true;
-                pd:=parse_proc_dec(is_classdef, current_objectdef);
+                pd:=parse_proc_dec(is_classdef,current_objectdef);
 
                 { this is for error recovery as well as forward }
                 { interface mappings, i.e. mapping to a method  }
@@ -800,9 +800,9 @@ implementation
                     parse_object_proc_directives(pd);
 
                     { check if dispid is set }
-                    if is_dispinterface(pd._class) and not (po_dispid in pd.procoptions) then
+                    if is_dispinterface(pd.struct) and not (po_dispid in pd.procoptions) then
                       begin
-                        pd.dispid:=pd._class.get_next_dispid;
+                        pd.dispid:=tobjectdef(pd.struct).get_next_dispid;
                         include(pd.procoptions, po_dispid);
                       end;
 

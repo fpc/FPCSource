@@ -71,7 +71,7 @@ implementation
          ex,if_a,else_a : tnode;
       begin
          consume(_IF);
-         ex:=comp_expr(true);
+         ex:=comp_expr(true,false);
          consume(_THEN);
          if token<>_ELSE then
            if_a:=statement
@@ -125,7 +125,7 @@ implementation
          casenode : tcasenode;
       begin
          consume(_CASE);
-         caseexpr:=comp_expr(true);
+         caseexpr:=comp_expr(true,false);
          { determines result type }
          do_typecheckpass(caseexpr);
          { variants must be accepted, but first they must be converted to integer }
@@ -300,7 +300,7 @@ implementation
          consume(_UNTIL);
 
          first:=cblocknode.create(first);
-         p_e:=comp_expr(true);
+         p_e:=comp_expr(true,false);
          result:=cwhilerepeatnode.create(p_e,first,false,true);
       end;
 
@@ -312,7 +312,7 @@ implementation
 
       begin
          consume(_WHILE);
-         p_e:=comp_expr(true);
+         p_e:=comp_expr(true,false);
          consume(_DO);
          p_a:=statement;
          result:=cwhilerepeatnode.create(p_e,p_a,true,false);
@@ -424,7 +424,7 @@ implementation
              else
                MessagePos(hloopvar.fileinfo,type_e_illegal_count_var);
 
-             hfrom:=comp_expr(true);
+             hfrom:=comp_expr(true,false);
 
              if try_to_consume(_DOWNTO) then
                backward:=true
@@ -434,7 +434,7 @@ implementation
                  backward:=false;
                end;
 
-             hto:=comp_expr(true);
+             hto:=comp_expr(true,false);
              consume(_DO);
 
              { Check if the constants fit in the range }
@@ -471,7 +471,7 @@ implementation
             var
               expr: tnode;
             begin
-              expr:=comp_expr(true);
+              expr:=comp_expr(true,false);
 
               consume(_DO);
 
@@ -490,7 +490,7 @@ implementation
          { parse loop header }
          consume(_FOR);
 
-         hloopvar:=factor(false);
+         hloopvar:=factor(false,false);
          valid_for_loopvar(hloopvar,true);
 
          if try_to_consume(_ASSIGNMENT) then
@@ -533,7 +533,7 @@ implementation
 
 
       begin
-         p:=comp_expr(true);
+         p:=comp_expr(true,false);
          do_typecheckpass(p);
 
          if (p.nodetype=vecn) and
@@ -725,12 +725,12 @@ implementation
          if not(token in endtokens) then
            begin
               { object }
-              pobj:=comp_expr(true);
+              pobj:=comp_expr(true,false);
               if try_to_consume(_AT) then
                 begin
-                   paddr:=comp_expr(true);
+                   paddr:=comp_expr(true,false);
                    if try_to_consume(_COMMA) then
-                     pframe:=comp_expr(true);
+                     pframe:=comp_expr(true,false);
                 end;
            end
          else
@@ -1204,8 +1204,7 @@ implementation
                     { can be nil in case there was an error in the expression }
                     assigned(tcallnode(p).procdefinition) and
                     not((tcallnode(p).procdefinition.proctypeoption=potype_constructor) and
-                        assigned(tprocdef(tcallnode(p).procdefinition)._class) and
-                        is_object(tprocdef(tcallnode(p).procdefinition)._class)) then
+                        is_object(tprocdef(tcallnode(p).procdefinition).struct)) then
                    Message(parser_e_illegal_expression);
                end;
              code:=p;
@@ -1314,7 +1313,7 @@ implementation
              if (current_procinfo.procdef.localst.symtabletype=localsymtable) then
                inc(locals,tabstractlocalsymtable(current_procinfo.procdef.localst).count_locals);
              if (locals=0) and
-                (current_procinfo.procdef.owner.symtabletype<>ObjectSymtable) and
+                not (current_procinfo.procdef.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
                 (not assigned(current_procinfo.procdef.funcretsym) or
                  (tabstractvarsym(current_procinfo.procdef.funcretsym).refs<=1)) and
                 not(paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption)) then

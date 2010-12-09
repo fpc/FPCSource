@@ -191,7 +191,7 @@ implementation
           begin
             consume(_LSHARPBRACKET);
             repeat
-              pt2:=factor(false);
+              pt2:=factor(false,true);
               pt2.free;
             until not try_to_consume(_COMMA);
             consume(_RSHARPBRACKET);
@@ -227,7 +227,7 @@ implementation
                   consume(_COMMA)
                 else
                   first:=false;
-                pt2:=factor(false);
+                pt2:=factor(false,true);
                 if pt2.nodetype=typen then
                   begin
                     if df_generic in pt2.resultdef.defoptions then
@@ -253,9 +253,9 @@ implementation
           consume(_RSHARPBRACKET);
 
         { Special case if we are referencing the current defined object }
-        if assigned(current_objectdef) and
-           (current_objectdef.objname^=uspecializename) then
-          tt:=current_objectdef;
+        if assigned(current_structdef) and
+           (current_structdef.objname^=uspecializename) then
+          tt:=current_structdef;
 
         { for units specializations can already be needed in the interface, therefor we
           will use the global symtable. Programs don't have a globalsymtable and there we
@@ -373,7 +373,7 @@ implementation
         srsymtable : TSymtable;
         s,sorg : TIDString;
         t : ttoken;
-        objdef : tobjectdef;
+        structdef : tabstractrecorddef;
       begin
          s:=pattern;
          sorg:=orgpattern;
@@ -381,20 +381,20 @@ implementation
          { use of current parsed object:
             - classes can be used also in classes
             - objects can be parameters }
-         objdef:=current_objectdef;
-         while Assigned(objdef) and (objdef.typ=objectdef) do
+         structdef:=current_structdef;
+         while Assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
            begin
-             if (tobjectdef(objdef).objname^=pattern) and
+             if (structdef.objname^=pattern) and
                 (
                   (testcurobject=2) or
-                  is_class_or_interface_or_objc(objdef)
+                  is_class_or_interface_or_objc(structdef)
                 ) then
                 begin
                   consume(_ID);
-                  def:=objdef;
+                  def:=structdef;
                   exit;
                 end;
-             objdef:=tobjectdef(tobjectdef(objdef).owner.defowner);
+             structdef:=tabstractrecorddef(structdef.owner.defowner);
            end;
          { Use the special searchsym_type that ignores records and parameters }
          searchsym_type(s,srsym,srsymtable);
@@ -505,12 +505,12 @@ implementation
                                 consume(_POINT);
                                 consume(_ID);
                              end
-                            else if is_class_or_object(def) then
+                            else if is_class_or_object(def) or is_record(def) then
                               begin
-                                symtablestack.push(tobjectdef(def).symtable);
+                                symtablestack.push(tabstractrecorddef(def).symtable);
                                 consume(_POINT);
                                 id_type(t2,isforwarddef);
-                                symtablestack.pop(tobjectdef(def).symtable);
+                                symtablestack.pop(tabstractrecorddef(def).symtable);
                                 def:=t2;
                               end
                             else
@@ -584,6 +584,7 @@ implementation
           Exit;
 
         current_structdef.symtable.currentvisibility:=vis_public;
+        testcurobject:=1;
         has_destructor:=false;
         fields_allowed:=true;
         is_classdef:=false;
@@ -716,49 +717,23 @@ implementation
                    is_classdef:=true;
                  end;
               end;
-{ todo: record methods
             _PROCEDURE,
             _FUNCTION:
               begin
                 oldparse_only:=parse_only;
                 parse_only:=true;
-                pd:=parse_proc_dec(is_classdef, recorddef);
+                pd:=parse_proc_dec(is_classdef,current_structdef);
 
                 { this is for error recovery as well as forward }
                 { interface mappings, i.e. mapping to a method  }
                 { which isn't declared yet                      }
                 if assigned(pd) then
                   begin
-                    parse_object_proc_directives(pd);
-
-                    { check if dispid is set }
-                    if is_dispinterface(pd._class) and not (po_dispid in pd.procoptions) then
-                      begin
-                        pd.dispid:=pd._class.get_next_dispid;
-                        include(pd.procoptions, po_dispid);
-                      end;
-
-                    { all Macintosh Object Pascal methods are virtual.  }
-                    { this can't be a class method, because macpas mode }
-                    { has no m_class                                    }
-                    if (m_mac in current_settings.modeswitches) then
-                      include(pd.procoptions,po_virtualmethod);
-
+                    parse_record_proc_directives(pd);
                     handle_calling_convention(pd);
 
                     { add definition to procsym }
                     proc_add_definition(pd);
-
-                    { add procdef options to objectdef options }
-                    if (po_msgint in pd.procoptions) then
-                      include(current_objectdef.objectoptions,oo_has_msgint);
-                    if (po_msgstr in pd.procoptions) then
-                      include(current_objectdef.objectoptions,oo_has_msgstr);
-                    if (po_virtualmethod in pd.procoptions) then
-                      include(current_objectdef.objectoptions,oo_has_virtual);
-
-                    chkcpp(pd);
-                    chkobjc(pd);
                   end;
 
                 maybe_parse_hint_directives(pd);
@@ -767,6 +742,7 @@ implementation
                 fields_allowed:=false;
                 is_classdef:=false;
               end;
+{ todo: constructor
             _CONSTRUCTOR :
               begin
                 if (current_objectdef.symtable.currentvisibility=vis_published) and
@@ -868,6 +844,8 @@ implementation
               consume(_ID); { Give a ident expected message, like tp7 }
           end;
         until false;
+
+        testcurobject:=0;
       end;
 
     { reads a record declaration }
@@ -913,7 +891,7 @@ implementation
            lv,hv   : TConstExprInt;
            old_block_type : tblock_type;
            dospecialize : boolean;
-           objdef: TDef;
+           structdef: TDef;
         begin
            old_block_type:=block_type;
            dospecialize:=false;
@@ -922,32 +900,32 @@ implementation
               - objects can be parameters }
            if (token=_ID) then
              begin
-               objdef:=current_objectdef;
-               while Assigned(objdef) and (objdef.typ=objectdef) do
+               structdef:=current_structdef;
+               while Assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
                  begin
-                   if (tobjectdef(objdef).objname^=pattern) and
+                   if (tabstractrecorddef(structdef).objname^=pattern) and
                       (
                         (testcurobject=2) or
-                        is_class_or_interface_or_objc(objdef)
+                        is_class_or_interface_or_objc(structdef)
                       ) then
                       begin
                         consume(_ID);
-                        def:=objdef;
+                        def:=structdef;
                         exit;
                       end;
-                   objdef:=tobjectdef(tobjectdef(objdef).owner.defowner);
+                   structdef:=tdef(tabstractrecorddef(structdef).owner.defowner);
                  end;
              end;
            { Generate a specialization? }
            if try_to_consume(_SPECIALIZE) then
              dospecialize:=true;
            { we can't accept a equal in type }
-           pt1:=comp_expr(false);
+           pt1:=comp_expr(false,true);
            if not dospecialize and
               try_to_consume(_POINTPOINT) then
              begin
                { get high value of range }
-               pt2:=comp_expr(false);
+               pt2:=comp_expr(false,false);
                { make both the same type or give an error. This is not
                  done when both are integer values, because typecasting
                  between -3200..3200 will result in a signed-unsigned
@@ -1257,7 +1235,7 @@ implementation
                     begin
                        oldlocalswitches:=current_settings.localswitches;
                        include(current_settings.localswitches,cs_allow_enum_calc);
-                       p:=comp_expr(true);
+                       p:=comp_expr(true,false);
                        current_settings.localswitches:=oldlocalswitches;
                        if (p.nodetype=ordconstn) then
                         begin

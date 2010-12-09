@@ -85,7 +85,7 @@ implementation
         if orgname='' then
          internalerror(9584582);
         hp:=nil;
-        p:=comp_expr(true);
+        p:=comp_expr(true,false);
         storetokenpos:=current_tokenpos;
         current_tokenpos:=filepos;
         case p.nodetype of
@@ -748,7 +748,7 @@ implementation
              _EQUAL:
                 begin
                    consume(_EQUAL);
-                   p:=comp_expr(true);
+                   p:=comp_expr(true,false);
                    storetokenpos:=current_tokenpos;
                    current_tokenpos:=filepos;
                    sym:=nil;

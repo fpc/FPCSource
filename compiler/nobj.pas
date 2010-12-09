@@ -536,7 +536,7 @@ implementation
                 { Add procdef to the implemented interface }
                 if assigned(implprocdef) then
                   begin
-                    if (implprocdef._class.objecttype<>odt_objcclass) then
+                    if (tobjectdef(implprocdef.struct).objecttype<>odt_objcclass) then
                       ImplIntf.AddImplProc(implprocdef)
                     else
                       begin
@@ -1345,7 +1345,7 @@ implementation
           etVirtualMethodResult, etVirtualMethodClass:
             begin
               pd := tprocdef(tpropertysym(AImplIntf.ImplementsGetter).propaccesslist[palt_read].procdef);
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(pd._class.vmtmethodoffset(pd.extnumber)));
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(tobjectdef(pd.struct).vmtmethodoffset(pd.extnumber)));
             end;
           else
             internalerror(200802162);

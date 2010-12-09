@@ -1334,10 +1334,7 @@ Begin
       i:=255;
      base:=Copy(s,1,i-1);
      delete(s,1,i);
-     if st.symtabletype=ObjectSymtable then
-       sym:=search_class_member(tobjectdef(st.defowner),base)
-     else
-       sym:=tsym(st.Find(base));
+     sym:=search_struct_member(tabstractrecorddef(st.defowner),base);
      if not assigned(sym) then
       begin
         GetRecordOffsetSize:=false;
@@ -1398,7 +1395,7 @@ Begin
                  begin
                    { size = sizeof(target_system_pointer) }
                    size:=sizeof(pint);
-                   offset:=procdef._class.vmtmethodoffset(procdef.extnumber)
+                   offset:=tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber)
                  end;
              end;
            { if something comes after the procsym, it's invalid assembler syntax }

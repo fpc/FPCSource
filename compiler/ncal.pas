@@ -1671,7 +1671,8 @@ implementation
             begin
               if (procdefinition.typ<>procdef) then
                 internalerror(200305062);
-              if (oo_has_vmt in tprocdef(procdefinition)._class.objectoptions) then
+              if (tprocdef(procdefinition).struct.typ=objectdef) and
+                 (oo_has_vmt in tobjectdef(tprocdef(procdefinition).struct).objectoptions) then
                 begin
                   { we only need the vmt, loading self is not required and there is no
                     need to check for typen, because that will always get the
@@ -2871,7 +2872,7 @@ implementation
               error and to prevent users from generating non-working code
               when they expect to clone the current instance, see bug 3662 (PFV) }
               if (procdefinition.proctypeoption=potype_constructor) and
-                 is_class(tprocdef(procdefinition)._class) and
+                 is_class(tprocdef(procdefinition).struct) and
                  assigned(methodpointer) and
                  (nf_is_self in methodpointer.flags) then
                 resultdef:=voidtype

@@ -534,9 +534,9 @@ implementation
         result:=internalstatements(newstatement);
 
         { call fail helper and exit normal }
-        if is_class(current_objectdef) then
+        if is_class(current_structdef) then
           begin
-            srsym:=search_class_member(current_objectdef,'FREEINSTANCE');
+            srsym:=search_struct_member(current_objectdef,'FREEINSTANCE');
             if assigned(srsym) and
                (srsym.typ=procsym) then
               begin
@@ -556,7 +556,7 @@ implementation
               internalerror(200305108);
           end
         else
-          if is_object(current_objectdef) then
+          if is_object(current_structdef) then
             begin
               { parameter 3 : vmt_offset }
               { parameter 2 : pointer to vmt }

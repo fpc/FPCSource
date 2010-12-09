@@ -506,8 +506,8 @@ interface
           localst : TSymtable;
           funcretsym : tsym;
           funcretsymderef : tderef;
-          _class : tobjectdef;
-          _classderef : tderef;
+          struct : tabstractrecorddef;
+          structderef : tderef;
 {$if defined(powerpc) or defined(m68k)}
           { library symbol for AmigaOS/MorphOS }
           libsym : tsym;
@@ -782,6 +782,7 @@ interface
     function is_class_or_interface_or_dispinterface(def: tdef): boolean;
     function is_class_or_interface_or_dispinterface_or_objc(def: tdef): boolean;
     function is_class_or_object(def: tdef): boolean;
+    function is_record(def: tdef): boolean;
 
     procedure loadobjctypes;
     procedure maybeloadcocoatypes;
@@ -3137,7 +3138,7 @@ implementation
          forwarddef:=true;
          interfacedef:=false;
          hasforward:=false;
-         _class := nil;
+         struct := nil;
          import_dll:=nil;
          import_name:=nil;
          import_nr:=0;
@@ -3161,7 +3162,7 @@ implementation
           _mangledname:=nil;
          extnumber:=ppufile.getword;
          level:=ppufile.getbyte;
-         ppufile.getderef(_classderef);
+         ppufile.getderef(structderef);
          ppufile.getderef(procsymderef);
          ppufile.getposinfo(fileinfo);
          visibility:=tvisibility(ppufile.getbyte);
@@ -3303,7 +3304,7 @@ implementation
 
          ppufile.putword(extnumber);
          ppufile.putbyte(parast.symtablelevel);
-         ppufile.putderef(_classderef);
+         ppufile.putderef(structderef);
          ppufile.putderef(procsymderef);
          ppufile.putposinfo(fileinfo);
          ppufile.putbyte(byte(visibility));
@@ -3389,9 +3390,9 @@ implementation
         showhidden:=true;
 {$endif EXTDEBUG}
         s:='';
-        if assigned(_class) then
+        if assigned(struct) then
          begin
-           s:=_class.RttiName+'.';
+           s:=struct.RttiName+'.';
            if (po_classmethod in procoptions) and
               not (proctypeoption in [potype_class_constructor,potype_class_destructor]) then
              s:='class ' + s;
@@ -3466,7 +3467,7 @@ implementation
     procedure tprocdef.buildderef;
       begin
          inherited buildderef;
-         _classderef.build(_class);
+         structderef.build(struct);
          { procsym that originaly defined this definition, should be in the
            same symtable }
          procsymderef.build(procsym);
@@ -3500,7 +3501,7 @@ implementation
     procedure tprocdef.deref;
       begin
          inherited deref;
-         _class:=tobjectdef(_classderef.resolve);
+         struct:=tabstractrecorddef(structderef.resolve);
          { procsym that originaly defined this definition, should be in the
            same symtable }
          procsym:=tprocsym(procsymderef.resolve);
@@ -4978,7 +4979,7 @@ implementation
             else
               { all checks already done }
               exit;
-            if not(oo_is_external in pd._class.objectoptions) then
+            if not((pd.struct.typ=objectdef)and(oo_is_external in tobjectdef(pd.struct).objectoptions)) then
               begin
                 if (po_varargs in pd.procoptions) then
                   MessagePos(pd.fileinfo,parser_e_varargs_need_cdecl_and_external)
@@ -5073,11 +5074,11 @@ implementation
         if (def.typ=procdef) then
           begin
             pd.setmangledname(target_info.Cprefix+pd.cplusplusmangledname);
-            if (oo_is_external in pd._class.objectoptions) then
+            if (pd.struct.typ=objectdef) and (oo_is_external in tobjectdef(pd.struct).objectoptions) then
               begin
                 { copied from psub.read_proc }
-                if assigned(pd._class.import_lib) then
-                   current_module.AddExternalImport(pd._class.import_lib^,pd.mangledname,0,false,false)
+                if assigned(tobjectdef(pd.struct).import_lib) then
+                   current_module.AddExternalImport(tobjectdef(pd.struct).import_lib^,pd.mangledname,0,false,false)
                  else
                    begin
                      { add import name to external list for DLL scanning }
@@ -5489,6 +5490,13 @@ implementation
           assigned(def) and
           (def.typ=objectdef) and
           (tobjectdef(def).objecttype in [odt_class,odt_object]);
+      end;
+
+    function is_record(def: tdef): boolean;
+      begin
+        result:=
+          assigned(def) and
+          (def.typ=recorddef);
       end;
 
     procedure loadobjctypes;
