@@ -13,16 +13,6 @@
 
  **********************************************************************}
 
-Resourcestring
-
-  SNoInterfaces  = 'No interfaces supported';
-
-Procedure NoInterfaces;
-
-begin
-  Raise Exception.Create(SNoInterfaces);
-end;
-
 Procedure VariantTypeMismatch; overload;
 begin
   Raise EVariantError.CreateCode(VAR_TYPEMISMATCH);
