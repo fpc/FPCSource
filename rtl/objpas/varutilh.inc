@@ -28,7 +28,7 @@ function VariantChangeTypeEx(var VargDest: TVarData; const VargSrc: TVarData; LC
 function VariantClear(var Varg: TVarData): HRESULT; stdcall;
 function VariantCopy(var VargDest: TVarData; const VargSrc: TVarData): HRESULT; stdcall;
 function VariantCopyInd(var VargDest: TVarData;  const VargSrc: TVarData): HRESULT; stdcall;
-function VariantInit(var Varg: TVarData): HRESULT; stdcall;
+procedure VariantInit(var Varg: TVarData); stdcall;
 
 {  Variant array functions }
 

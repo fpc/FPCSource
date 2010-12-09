@@ -44,7 +44,7 @@ function VariantChangeTypeEx(var VargDest: TVarData; const VargSrc: TVarData; LC
 function VariantClear(var Varg: TVarData): HRESULT; stdcall;external oleaut;
 function VariantCopy(var VargDest: TVarData; const VargSrc: TVarData): HRESULT; stdcall;external oleaut;
 function VariantCopyInd(var VargDest: TVarData;  const VargSrc: TVarData): HRESULT; stdcall;external oleaut;
-function VariantInit(var Varg: TVarData): HRESULT; stdcall;external oleaut;
+procedure VariantInit(var Varg: TVarData); stdcall;external oleaut;
 
 {  Variant array functions }
 

@@ -45,14 +45,13 @@ end;
     Basic variant handling.
   ---------------------------------------------------------------------}
 
-function VariantInit(var Varg: TVarData): HRESULT;stdcall;
+procedure VariantInit(var Varg: TVarData); stdcall;
 begin
   With Varg do
     begin
       FillChar(VBytes, SizeOf(VBytes), 0);
       VType:=varEmpty;
     end;
-  Result:=VAR_OK;
 end;
 
 function VariantClear(var Varg: TVarData): HRESULT;stdcall;
@@ -84,7 +83,8 @@ begin
           exit(VAR_BADVARTYPE)
         end;
     end;
-  Result:=VariantInit(Varg);
+  VariantInit(Varg);
+  Result:=VAR_OK;
 end;
 
 function VariantCopy(var VargDest: TVarData; const VargSrc: TVarData): HRESULT;stdcall;
