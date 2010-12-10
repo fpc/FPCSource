@@ -1357,7 +1357,16 @@ function Win32CompareTextUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
   are relevant already for the system unit }
 procedure InitWin32Widestrings;
   begin
+    { return value: number of code points in the string. Whenever an invalid
+      code point is encountered, all characters part of this invalid code point
+      are considered to form one "character" and the next character is
+      considered to be the start of a new (possibly also invalid) code point }
 //!!!    CharLengthPCharProc : function(const Str: PChar): PtrInt;
+    { return value:
+      -1 if incomplete or invalid code point
+      0 if NULL character,
+      > 0 if that's the length in bytes of the code point }
+//!!!!    CodePointLengthProc : function(const Str: PChar; MaxLookAead: PtrInt): Ptrint;
     widestringmanager.CompareWideStringProc:=@Win32CompareWideString;
     widestringmanager.CompareTextWideStringProc:=@Win32CompareTextWideString;
     widestringmanager.UpperAnsiStringProc:=@Win32AnsiUpperCase;

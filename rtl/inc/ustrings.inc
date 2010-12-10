@@ -88,6 +88,21 @@ begin
 end;
 
 
+function DefaultCharLengthPChar(const Str: PChar): PtrInt;
+  begin
+    DefaultCharLengthPChar:=length(Str);
+  end;
+
+
+function DefaultCodePointLength(const Str: PChar; MaxLookAead: PtrInt): Ptrint;
+  begin
+    if str[0]<>#0 then
+      DefaultCodePointLength:=1
+    else
+      DefaultCodePointLength:=0;
+  end;
+
+
 Procedure GetUnicodeStringManager (Var Manager : TUnicodeStringManager);
 begin
   manager:=widestringmanager;
@@ -2506,13 +2521,6 @@ function CompareTextUnicodeString(const s1, s2 : UnicodeString): PtrInt;
   begin
     unimplementedunicodestring;
   end;
-
-
-function CharLengthPChar(const Str: PChar): PtrInt;
-  begin
-    unimplementedunicodestring;
-  end;
-
 {$warnings on}
 
 procedure initunicodestringmanager;
@@ -2535,7 +2543,8 @@ procedure initunicodestringmanager;
 {$endif HAS_WIDESTRINGMANAGER}
     widestringmanager.CompareWideStringProc:=@CompareUnicodeString;
     widestringmanager.CompareTextWideStringProc:=@CompareTextUnicodeString;
-    widestringmanager.CharLengthPCharProc:=@CharLengthPChar;
+    widestringmanager.CharLengthPCharProc:=@DefaultCharLengthPChar;
+    widestringmanager.CodePointLengthProc:=@DefaultCodePointLength;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
   end;
 

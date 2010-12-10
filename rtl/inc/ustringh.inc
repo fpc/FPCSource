@@ -67,7 +67,16 @@ Type
 }
     CompareWideStringProc : function(const s1, s2 : WideString) : PtrInt;
     CompareTextWideStringProc : function(const s1, s2 : WideString): PtrInt;
+    { return value: number of code points in the string. Whenever an invalid
+      code point is encountered, all characters part of this invalid code point
+      are considered to form one "character" and the next character is
+      considered to be the start of a new (possibly also invalid) code point }
     CharLengthPCharProc : function(const Str: PChar): PtrInt;
+    { return value:
+      -1 if incomplete or invalid code point
+      0 if NULL character,
+      > 0 if that's the length in bytes of the code point }
+    CodePointLengthProc : function(const Str: PChar; MaxLookAead: PtrInt): Ptrint;
 
     UpperAnsiStringProc : function(const s : ansistring) : ansistring;
     LowerAnsiStringProc : function(const s : ansistring) : ansistring;

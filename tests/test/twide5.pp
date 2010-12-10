@@ -2,6 +2,7 @@
 
 var
   ws: widestring;
+  uns: unicodestring;
   us: UCS4String;
 begin
 // the compiler does not yet support characters which require
@@ -42,4 +43,15 @@ begin
      (ws[7]<>#$d87e) or
      (ws[8]<>#$dc04) then
     halt(3);
+  uns:='éłŁćçŹ'#$d87e#$dc04;
+  if (length(uns)<>8) or
+     (uns[1]<>'é') or
+     (uns[2]<>'ł') or
+     (uns[3]<>'Ł') or
+     (uns[4]<>'ć') or
+     (uns[5]<>'ç') or
+     (uns[6]<>'Ź') or
+     (uns[7]<>#$d87e) or
+     (uns[8]<>#$dc04) then
+    halt(4);
 end.
