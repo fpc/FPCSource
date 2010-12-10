@@ -1671,7 +1671,8 @@ function CompareTextWideString(const s1, s2 : WideString): PtrInt;
 
 {$warnings on}
 
-function CharLengthPChar(const Str: PChar): PtrInt;forward;
+function DefaultCharLengthPChar(const Str: PChar): PtrInt;forward;
+function DefaultCodePointLength(const Str: PChar; MaxLookAead: PtrInt): Ptrint;forward;
 
 
 procedure initwidestringmanager;
@@ -1685,5 +1686,6 @@ procedure initwidestringmanager;
 {$endif HAS_WIDESTRINGMANAGER}
     widestringmanager.CompareWideStringProc:=@CompareWideString;
     widestringmanager.CompareTextWideStringProc:=@CompareTextWideString;
-    widestringmanager.CharLengthPCharProc:=@CharLengthPChar;
+    widestringmanager.CharLengthPCharProc:=@DefaultCharLengthPChar;
+    widestringmanager.CodePointLengthProc:=@DefaultCodePointLength;
   end;
