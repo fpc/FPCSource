@@ -179,598 +179,598 @@ const msgtxt : array[0..000219,1..240] of char=(
   '03062_E_Cannot access a protected field of an object here'#000+
   '03063_E_Cannot ac','cess a private field of an object here'#000+
   '03066_E_Overridden methods must have the same return type: "$2" is ove'+
-  'rriden by "$1" which has another return type'#000+
+  'rridden by "$1" which has another return type'#000+
   '03067_E_EXPORT declared functions can'#039't be nested'#000+
   '03068_E_Methods can'#039't be EXPORTed'#000+
-  '03','069_E_Call by var for arg no. $1 has to match exactly: Got "$2" ex'+
+  '0','3069_E_Call by var for arg no. $1 has to match exactly: Got "$2" ex'+
   'pected "$3"'#000+
   '03070_E_Class isn'#039't a parent class of the current class'#000+
   '03071_E_SELF is only allowed in methods'#000+
-  '03072_E_Methods can be only in other methods called direct with ty','pe'+
+  '03072_E_Methods can be only in other methods called direct with t','ype'+
   ' identifier of the class'#000+
   '03073_E_Illegal use of '#039':'#039#000+
   '03074_E_range check error in set constructor or duplicate set element'#000+
   '03075_E_Pointer to object expected'#000+
   '03076_E_Expression must be constructor call'#000+
-  '03077_E_Expression must be destructor',' call'#000+
+  '03077_E_Expression must be destructo','r call'#000+
   '03078_E_Illegal order of record elements'#000+
   '03079_E_Expression type must be class or record type'#000+
   '03080_E_Procedures can'#039't return a value'#000+
   '03081_E_constructors and destructors must be methods'#000+
   '03082_E_Operator is not overloaded'#000+
-  '03083_E_Impo','ssible to overload assignment for equal types'#000+
+  '03083_E_Imp','ossible to overload assignment for equal types'#000+
   '03084_E_Impossible operator overload'#000+
   '03085_E_Re-raise isn'#039't possible there'#000+
   '03086_E_The extended syntax of new or dispose isn'#039't allowed for a '+
   'class'#000+
-  '03088_E_Procedure overloading is switched off'#000+
-  '0','3089_E_It is not possible to overload this operator. Related overlo'+
-  'adable operators (if any) are: $1'#000+
+  '03088_E_Procedure overloading is switched off'#000,
+  '03089_E_It is not possible to overload this operator. Related overload'+
+  'able operators (if any) are: $1'#000+
   '03090_E_Comparative operator must return a boolean value'#000+
   '03091_E_Only virtual methods can be abstract'#000+
-  '03092_F_Use of unsupported feature!'#000+
-  '0','3093_E_The mix of different kind of objects (class, object, interfa'+
-  'ce, etc) isn'#039't allowed'#000+
+  '03092_F_Use of unsupported feature!'#000,
+  '03093_E_The mix of different kind of objects (class, object, interface'+
+  ', etc) isn'#039't allowed'#000+
   '03094_W_Unknown procedure directive had to be ignored: "$1"'#000+
   '03095_E_absolute can only be associated to one variable'#000+
-  '03096_E_absolute can only be assoc','iated with a var or const'#000+
+  '03096_E_absolute can only be asso','ciated with a var or const'#000+
   '03097_E_Only one variable can be initialized'#000+
   '03098_E_Abstract methods shouldn'#039't have any definition (with funct'+
   'ion body)'#000+
   '03099_E_This overloaded function can'#039't be local (must be exported)'+
   #000+
-  '03100_W_Virtual methods ar','e used without a constructor in "$1"'#000+
+  '03100_W_Virtual methods a','re used without a constructor in "$1"'#000+
   '03101_CL_Macro defined: $1'#000+
   '03102_CL_Macro undefined: $1'#000+
   '03103_CL_Macro $1 set to $2'#000+
   '03104_I_Compiling $1'#000+
   '03105_UL_Parsing interface of unit $1'#000+
   '03106_UL_Parsing implementation of $1'#000+
-  '03107_DL_Compiling $1 ','for the second time'#000+
+  '03107_DL_Compiling $1',' for the second time'#000+
   '03109_E_No property found to override'#000+
   '03110_E_Only one default property is allowed'#000+
   '03111_E_The default property must be an array property'#000+
   '03112_E_Virtual constructors are only supported in class object model'#000+
-  '03113_E_No d','efault property available'#000+
+  '03113_E_No ','default property available'#000+
   '03114_E_The class can'#039't have a published section, use the {$M+} sw'+
   'itch'#000+
   '03115_E_Forward declaration of class "$1" must be resolved here to use'+
   ' the class as ancestor'#000+
   '03116_E_Local operators not supported'#000+
-  '03117_E_Proc','edure directive "$1" not allowed in interface section'#000+
+  '03117_E_Pro','cedure directive "$1" not allowed in interface section'#000+
   '03118_E_Procedure directive "$1" not allowed in implementation section'+
   #000+
   '03119_E_Procedure directive "$1" not allowed in procvar declaration'#000+
-  '03120_E_Function is already declared Public/For','ward "$1"'#000+
+  '03120_E_Function is already declared Public/Fo','rward "$1"'#000+
   '03121_E_Can'#039't use both EXPORT and EXTERNAL'#000+
   '03123_W_"$1" not yet supported inside inline procedure/function'#000+
   '03124_W_Inlining disabled'#000+
   '03125_I_Writing Browser log $1'#000+
   '03126_H_may be pointer dereference is missing'#000+
-  '03127_F_Selected ass','embler reader not supported'#000+
+  '03127_F_Selected as','sembler reader not supported'#000+
   '03128_E_Procedure directive "$1" has conflicts with other directives'#000+
   '03129_E_Calling convention doesn'#039't match forward'#000+
   '03131_E_Property can'#039't have a default value'#000+
-  '03132_E_The default value of a property must be co','nstant'#000+
+  '03132_E_The default value of a property must be c','onstant'#000+
   '03133_E_Symbol can'#039't be published, can be only a class'#000+
   '03134_E_This kind of property can'#039't be published'#000+
   '03136_E_An import name is required'#000+
   '03138_E_Division by zero'#000+
   '03139_E_Invalid floating point operation'#000+
-  '03140_E_Upper bound of range',' is less than lower bound'#000+
+  '03140_E_Upper bound of rang','e is less than lower bound'#000+
   '03141_W_string "$1" is longer than "$2"'#000+
   '03142_E_string length is larger than array of char length'#000+
   '03143_E_Illegal expression after message directive'#000+
-  '03144_E_Message handlers can take only one call by ref. parameter',#000+
+  '03144_E_Message handlers can take only one call by ref. paramete','r'#000+
   '03145_E_Duplicate message label: "$1"'#000+
   '03146_E_Self can only be an explicit parameter in methods which are me'+
   'ssage handlers'#000+
   '03147_E_Threadvars can be only static or global'#000+
   '03148_F_Direct assembler not supported for binary output format'#000+
-  '0314','9_W_Don'#039't load OBJPAS unit manually, use \{\$mode objfpc\} o'+
+  '031','49_W_Don'#039't load OBJPAS unit manually, use \{\$mode objfpc\} o'+
   'r \{\$mode delphi\} instead'#000+
   '03150_E_OVERRIDE can'#039't be used in objects'#000+
   '03151_E_Data types which require initialization/finalization can'#039't'+
   ' be used in variant records'#000+
-  '03152_E_Resource','strings can be only static or global'#000+
+  '03152_E_Resourc','estrings can be only static or global'#000+
   '03153_E_Exit with argument can'#039't be used here'#000+
   '03154_E_The type of the storage symbol must be boolean'#000+
   '03155_E_This symbol isn'#039't allowed as storage symbol'#000+
-  '03156_E_Only classes which are compiled in $M+ mod','e can be published'+
+  '03156_E_Only classes which are compiled in $M+ mo','de can be published'+
   #000+
   '03157_E_Procedure directive expected'#000+
   '03158_E_The value for a property index must be of an ordinal type'#000+
   '03159_E_Procedure name too short to be exported'#000+
   '03160_E_No DEFFILE entry can be generated for unit global vars'#000+
-  '03161_E','_Compile without -WD option'#000+
+  '03161_','E_Compile without -WD option'#000+
   '03162_F_You need ObjFpc (-S2) or Delphi (-Sd) mode to compile this mod'+
   'ule'#000+
   '03163_E_Can'#039't export with index under $1'#000+
   '03164_E_Exporting of variables is not supported under $1'#000+
   '03165_E_Improper GUID syntax'#000+
-  '03168_W_Pro','cedure named "$1" not found that is suitable for implemen'+
+  '03168_W_Pr','ocedure named "$1" not found that is suitable for implemen'+
   'ting the $2.$3'#000+
   '03169_E_interface identifier expected'#000+
   '03170_E_Type "$1" can'#039't be used as array index type'#000+
   '03171_E_Con- and destructors aren'#039't allowed in interfaces'#000+
-  '03172_E_Access speci','fiers can'#039't be used in INTERFACES'#000+
+  '03172_E_Access spec','ifiers can'#039't be used in INTERFACES'#000+
   '03173_E_An interface can'#039't contain fields'#000+
   '03174_E_Can'#039't declare local procedure as EXTERNAL'#000+
   '03175_W_Some fields coming before "$1" weren'#039't initialized'#000+
-  '03176_E_Some fields coming before "$1" weren'#039't initiali','zed'#000+
+  '03176_E_Some fields coming before "$1" weren'#039't initial','ized'#000+
   '03177_W_Some fields coming after "$1" weren'#039't initialized'#000+
   '03178_E_VarArgs directive (or '#039'...'#039' in MacPas) without CDecl/C'+
   'PPDecl/MWPascal and External'#000+
   '03179_E_Self must be a normal (call-by-value) parameter'#000+
-  '03180_E_Interface "$1" has no i','nterface identification'#000+
+  '03180_E_Interface "$1" has no ','interface identification'#000+
   '03181_E_Unknown class field or method identifier "$1"'#000+
   '03182_W_Overriding calling convention "$1" with "$2"'#000+
   '03183_E_Typed constants of the type "procedure of object" can only be '+
   'initialized with NIL'#000+
-  '03184_E_Default va','lue can only be assigned to one parameter'#000+
+  '03184_E_Default v','alue can only be assigned to one parameter'#000+
   '03185_E_Default parameter required for "$1"'#000+
   '03186_W_Use of unsupported feature!'#000+
   '03187_H_C arrays are passed by reference'#000+
   '03188_E_C array of const must be the last argument'#000+
-  '03189_H_Type "$1" redefini','tion'#000+
+  '03189_H_Type "$1" redefin','ition'#000+
   '03190_W_cdecl'#039'ared functions have no high parameter'#000+
   '03191_W_cdecl'#039'ared functions do not support open strings'#000+
   '03192_E_Cannot initialize variables declared as threadvar'#000+
   '03193_E_Message directive is only allowed in Classes'#000+
-  '03194_E_Procedu','re or Function expected'#000+
+  '03194_E_Proced','ure or Function expected'#000+
   '03195_W_Calling convention directive ignored: "$1"'#000+
   '03196_E_REINTRODUCE can'#039't be used in objects'#000+
   '03197_E_Each argument must have its own location'#000+
   '03198_E_Each argument must have an explicit location'#000+
-  '03199_E_Unknown ar','gument location'#000+
+  '03199_E_Unknown a','rgument location'#000+
   '03200_E_32 Bit-Integer or pointer variable expected'#000+
   '03201_E_Goto statements aren'#039't allowed between different procedure'+
   's'#000+
   '03202_F_Procedure too complex, it requires too many registers'#000+
   '03203_E_Illegal expression'#000+
-  '03204_E_Invalid',' integer expression'#000+
+  '03204_E_Invali','d integer expression'#000+
   '03205_E_Illegal qualifier'#000+
   '03206_E_High range limit < low range limit'#000+
   '03207_E_Exit'#039's parameter must be the name of the procedure it is u'+
   'sed in'#000+
   '03208_E_Illegal assignment to for-loop variable "$1"'#000+
-  '03209_E_Can'#039't declare loc','al variable as EXTERNAL'#000+
+  '03209_E_Can'#039't declare lo','cal variable as EXTERNAL'#000+
   '03210_E_Procedure is already declared EXTERNAL'#000+
   '03211_W_Implicit uses of Variants unit'#000+
   '03212_E_Class and static methods can'#039't be used in INTERFACES'#000+
   '03213_E_Overflow in arithmetic operation'#000+
-  '03214_E_Protected or private',' expected'#000+
+  '03214_E_Protected or privat','e expected'#000+
   '03215_E_SLICE can'#039't be used outside of parameter list'#000+
   '03216_E_A DISPINTERFACE can'#039't have a parent class'#000+
   '03217_E_A DISPINTERFACE needs a guid'#000+
   '03218_W_Overridden methods must have a related return type. This code '+
-  'may crash, it depen','ds on a Delphi parser bug ("$2" is overridden by '+
+  'may crash, it depe','nds on a Delphi parser bug ("$2" is overridden by '+
   '"$1" which has another return type)'#000+
   '03219_E_Dispatch IDs must be ordinal constants'#000+
   '03220_E_The range of the array is too large'#000+
-  '03221_E_The address cannot be taken of bit packed array elements',' and'+
+  '03221_E_The address cannot be taken of bit packed array element','s and'+
   ' record fields'#000+
   '03222_E_Dynamic arrays cannot be packed'#000+
   '03223_E_Bit packed array elements and record fields cannot be used as '+
   'loop variables'#000+
   '03224_E_VAR and TYPE are allowed only in generics'#000+
   '03225_E_This type can'#039't be a generic'#000+
-  '03226_W_D','on'#039't load LINEINFO unit manually, Use the -gl compiler '+
+  '03226_W_','Don'#039't load LINEINFO unit manually, Use the -gl compiler '+
   'switch instead'#000+
   '03227_E_No function result type specified for function "$1"'#000+
   '03228_E_Specialization is only supported for generic types'#000+
-  '03229_E_Generics can'#039't be used as parameters when s','pecializing g'+
+  '03229_E_Generics can'#039't be used as parameters when ','specializing g'+
   'enerics'#000+
   '03230_E_Constants of objects containing a VMT aren'#039't allowed'#000+
   '03231_E_Taking the address of labels defined outside the current scope'+
   ' isn'#039't allowed'#000+
   '03233_E_Cannot initialize variables declared as external'#000+
-  '03234_E_Illegal ','function result type'#000+
+  '03234_E_Illegal',' function result type'#000+
   '03235_E_No common type possible between "$1" and "$2"'#000+
   '03236_E_Generics without specialization cannot be used as a type for a'+
   ' variable'#000+
   '03237_W_Register list is ignored for pure assembler routines'#000+
-  '03238_E_Implements prope','rty must have class or interface type'#000+
+  '03238_E_Implements prop','erty must have class or interface type'#000+
   '03239_E_Implements-property must implement interface of correct type, '+
   'found "$1" expected "$2"'#000+
   '03240_E_Implements-property must have read specifier'#000+
-  '03241_E_Implements-property must not have write-specif','ier'#000+
+  '03241_E_Implements-property must not have write-speci','fier'#000+
   '03242_E_Implements-property must not have stored-specifier'#000+
   '03243_E_Implements-property used on unimplemented interface: "$1"'#000+
   '03244_E_Floating point not supported for this target'#000+
   '03245_E_Class "$1" does not implement interface "$2"'#000+
-  '03246','_E_Type used by implements must be an interface'#000+
+  '0324','6_E_Type used by implements must be an interface'#000+
   '03247_E_Variables cannot be exported with a different name on this tar'+
   'get, add the name to the declaration using the "export" directive (var'+
   'iable name: $1, declared export name: $2)'#000+
-  '03248_E_We','ak external symbols are not supported for the current targ'+
+  '03248_E_W','eak external symbols are not supported for the current targ'+
   'et'#000+
   '03249_E_Forward type definition does not match'#000+
   '03250_N_Virtual method "$1" has a lower visibility ($2) than parent cl'+
   'ass $3 ($4)'#000+
-  '03251_E_Fields cannot appear after a method or pro','perty definition, '+
+  '03251_E_Fields cannot appear after a method or pr','operty definition, '+
   'start a new visibility section first'#000+
   '03252_E_Parameters cannot contain local type definitions. Use a separa'+
   'te type definition in a type block.'#000+
   '03253_E_ABSTRACT and SEALED conflict'#000+
-  '03254_E_Cannot create a descendant of the ','sealed class "$1"'#000+
+  '03254_E_Cannot create a descendant of the',' sealed class "$1"'#000+
   '03255_E_SEALED class cannot have an ABSTRACT method'#000+
   '03256_E_Only virtual methods can be final'#000+
   '03257_E_Final method cannot be overridden: "$1"'#000+
   '03259_E_Invalid enumerator identifier: "$1"'#000+
-  '03260_E_Enumerator identifier requir','ed'#000+
+  '03260_E_Enumerator identifier requi','red'#000+
   '03261_E_Enumerator MoveNext pattern method is not valid. Method must b'+
   'e a function with the Boolean return type and no required arguments.'#000+
   '03262_E_Enumerator Current pattern property is not valid. Property mus'+
   't have a getter.'#000+
-  '03263_E_Onl','y one enumerator MoveNext method is allowed per class/obj'+
+  '03263_E_On','ly one enumerator MoveNext method is allowed per class/obj'+
   'ect'#000+
   '03264_E_Only one enumerator Current property is allowed per class/obje'+
   'ct'#000+
   '03265_E_For in loop cannot be used for the type "$1"'#000+
   '04000_E_Type mismatch'#000+
-  '04001_E_Incompatible types: got',' "$1" expected "$2"'#000+
+  '04001_E_Incompatible types: go','t "$1" expected "$2"'#000+
   '04002_E_Type mismatch between "$1" and "$2"'#000+
   '04003_E_Type identifier expected'#000+
   '04004_E_Variable identifier expected'#000+
   '04005_E_Integer expression expected, but got "$1"'#000+
   '04006_E_Boolean expression expected, but got "$1"'#000+
-  '04007_','E_Ordinal expression expected'#000+
+  '04007','_E_Ordinal expression expected'#000+
   '04008_E_pointer type expected, but got "$1"'#000+
   '04009_E_class type expected, but got "$1"'#000+
   '04011_E_Can'#039't evaluate constant expression'#000+
   '04012_E_Set elements are not compatible'#000+
-  '04013_E_Operation not implemented for set','s'#000+
+  '04013_E_Operation not implemented for se','ts'#000+
   '04014_W_Automatic type conversion from floating type to COMP which is '+
   'an integer type'#000+
   '04015_H_use DIV instead to get an integer result'#000+
   '04016_E_string types doesn'#039't match, because of $V+ mode'#000+
-  '04017_E_succ or pred on enums with assignments ','not possible'#000+
+  '04017_E_succ or pred on enums with assignments',' not possible'#000+
   '04018_E_Can'#039't read or write variables of this type'#000+
   '04019_E_Can'#039't use readln or writeln on typed file'#000+
   '04020_E_Can'#039't use read or write on untyped file.'#000+
   '04021_E_Type conflict between set elements'#000+
-  '04022_W_lo/hi(dword/qword) returns',' the upper/lower word/dword'#000+
+  '04022_W_lo/hi(dword/qword) return','s the upper/lower word/dword'#000+
   '04023_E_Integer or real expression expected'#000+
   '04024_E_Wrong type "$1" in array constructor'#000+
   '04025_E_Incompatible type for arg no. $1: Got "$2", expected "$3"'#000+
-  '04026_E_Method (variable) and Procedure (variable) are no','t compatibl'+
+  '04026_E_Method (variable) and Procedure (variable) are n','ot compatibl'+
   'e'#000+
   '04027_E_Illegal constant passed to internal math function'#000+
   '04028_E_Can'#039't take the address of constant expressions'#000+
   '04029_E_Argument can'#039't be assigned to'#000+
   '04030_E_Can'#039't assign local procedure/function to procedure variabl'+
   'e'#000+
-  '04031_E_','Can'#039't assign values to an address'#000+
+  '04031_E','_Can'#039't assign values to an address'#000+
   '04032_E_Can'#039't assign values to const variable'#000+
   '04033_E_Array type required'#000+
   '04034_E_interface type expected, but got "$1"'#000+
   '04035_H_Mixing signed expressions and longwords gives a 64bit result'#000+
-  '04036_W_Mixing si','gned expressions and cardinals here may cause a ran'+
+  '04036_W_Mixing s','igned expressions and cardinals here may cause a ran'+
   'ge check error'#000+
   '04037_E_Typecast has different size ($1 -> $2) in assignment'#000+
   '04038_E_enums with assignments can'#039't be used as array index'#000+
-  '04039_E_Class or Object types "$1" and "$2" are not r','elated'#000+
+  '04039_E_Class or Object types "$1" and "$2" are not ','related'#000+
   '04040_W_Class types "$1" and "$2" are not related'#000+
   '04041_E_Class or interface type expected, but got "$1"'#000+
   '04042_E_Type "$1" is not completely defined'#000+
   '04043_W_String literal has more characters than short string length'#000+
-  '04044_W_Comparis','on is always false due to range of values'#000+
+  '04044_W_Compari','son is always false due to range of values'#000+
   '04045_W_Comparison is always true due to range of values'#000+
   '04046_W_Constructing a class "$1" with abstract method "$2"'#000+
   '04047_H_The left operand of the IN operator should be byte sized'#000+
-  '04048_W_Type siz','e mismatch, possible loss of data / range check erro'+
+  '04048_W_Type si','ze mismatch, possible loss of data / range check erro'+
   'r'#000+
   '04049_H_Type size mismatch, possible loss of data / range check error'#000+
   '04050_E_The address of an abstract method can'#039't be taken'#000+
-  '04051_E_Assignments to formal parameters and open arrays ar','e not pos'+
+  '04051_E_Assignments to formal parameters and open arrays a','re not pos'+
   'sible'#000+
   '04052_E_Constant Expression expected'#000+
   '04053_E_Operation "$1" not supported for types "$2" and "$3"'#000+
   '04054_E_Illegal type conversion: "$1" to "$2"'#000+
   '04055_H_Conversion between ordinals and pointers is not portable'#000+
-  '04056_W_Conversi','on between ordinals and pointers is not portable'#000+
+  '04056_W_Convers','ion between ordinals and pointers is not portable'#000+
   '04057_E_Can'#039't determine which overloaded function to call'#000+
   '04058_E_Illegal counter variable'#000+
   '04059_W_Converting constant real value to double for C variable argume'+
-  'nt, add explicit typecast to p','revent this.'#000+
+  'nt, add explicit typecast to ','prevent this.'#000+
   '04060_E_Class or COM interface type expected, but got "$1"'#000+
   '04061_E_Constant packed arrays are not yet supported'#000+
   '04062_E_Incompatible type for arg no. $1: Got "$2" expected "(Bit)Pack'+
   'ed Array"'#000+
-  '04063_E_Incompatible type for arg n','o. $1: Got "$2" expected "(not pa'+
+  '04063_E_Incompatible type for arg ','no. $1: Got "$2" expected "(not pa'+
   'cked) Array"'#000+
   '04064_E_Elements of packed arrays cannot be of a type which need to be'+
   ' initialised'#000+
   '04065_E_Constant packed records and objects are not yet supported'#000+
-  '04066_W_Arithmetic "$1" on untyped pointer is',' unportable to {$T+}, s'+
+  '04066_W_Arithmetic "$1" on untyped pointer i','s unportable to {$T+}, s'+
   'uggest typecast'#000+
   '04076_E_Can'#039't take address of a subroutine marked as local'#000+
   '04077_E_Can'#039't export subroutine marked as local from a unit'#000+
   '04078_E_Type is not automatable: "$1"'#000+
-  '04079_H_Converting the operands to "$1" befo','re doing the add could p'+
+  '04079_H_Converting the operands to "$1" bef','ore doing the add could p'+
   'revent overflow errors.'#000+
   '04080_H_Converting the operands to "$1" before doing the subtract coul'+
   'd prevent overflow errors.'#000+
   '04081_H_Converting the operands to "$1" before doing the multiply coul'+
-  'd prevent overflow errors','.'#000+
+  'd prevent overflow error','s.'#000+
   '04082_W_Converting pointers to signed integers may result in wrong com'+
   'parison results and range errors, use an unsigned type instead.'#000+
   '04083_E_Interface type $1 has no valid GUID'#000+
   '04084_E_Invalid selector name'#000+
-  '04085_E_Expected Objective-C m','ethod, but got $1'#000+
+  '04085_E_Expected Objective-C ','method, but got $1'#000+
   '04086_E_Expected Objective-C method or constant method name'#000+
   '04087_E_No type info available for this type'#000+
   '05000_E_Identifier not found "$1"'#000+
   '05001_F_Internal Error in SymTableStack()'#000+
   '05002_E_Duplicate identifier "$1"'#000+
-  '05003_H','_Identifier already defined in $1 at line $2'#000+
+  '05003_','H_Identifier already defined in $1 at line $2'#000+
   '05004_E_Unknown identifier "$1"'#000+
   '05005_E_Forward declaration not solved "$1"'#000+
   '05007_E_Error in type definition'#000+
   '05009_E_Forward type not resolved "$1"'#000+
-  '05010_E_Only static variables can be used in st','atic methods or outsi'+
+  '05010_E_Only static variables can be used in s','tatic methods or outsi'+
   'de methods'#000+
   '05012_F_record or class type expected'#000+
   '05013_E_Instances of classes or objects with an abstract method are no'+
   't allowed'#000+
   '05014_W_Label not defined "$1"'#000+
   '05015_E_Label used but not defined "$1"'#000+
-  '05016_E_Illegal lab','el declaration'#000+
+  '05016_E_Illegal la','bel declaration'#000+
   '05017_E_GOTO and LABEL are not supported (use switch -Sg)'#000+
   '05018_E_Label not found'#000+
   '05019_E_identifier isn'#039't a label'#000+
   '05020_E_label already defined'#000+
   '05021_E_illegal type declaration of set elements'#000+
-  '05022_E_Forward class definitio','n not resolved "$1"'#000+
+  '05022_E_Forward class definiti','on not resolved "$1"'#000+
   '05023_H_Unit "$1" not used in $2'#000+
   '05024_H_Parameter "$1" not used'#000+
   '05025_N_Local variable "$1" not used'#000+
   '05026_H_Value parameter "$1" is assigned but never used'#000+
   '05027_N_Local variable "$1" is assigned but never used'#000+
-  '05028_H','_Local $1 "$2" is not used'#000+
+  '05028_','H_Local $1 "$2" is not used'#000+
   '05029_N_Private field "$1.$2" is never used'#000+
   '05030_N_Private field "$1.$2" is assigned but never used'#000+
   '05031_N_Private method "$1.$2" never used'#000+
   '05032_E_Set type expected'#000+
-  '05033_W_Function result does not seem to be ','set'#000+
+  '05033_W_Function result does not seem to be',' set'#000+
   '05034_W_Type "$1" is not aligned correctly in current record for C'#000+
   '05035_E_Unknown record field identifier "$1"'#000+
   '05036_W_Local variable "$1" does not seem to be initialized'#000+
   '05037_W_Variable "$1" does not seem to be initialized'#000+
-  '05038_E_id','entifier idents no member "$1"'#000+
+  '05038_E_i','dentifier idents no member "$1"'#000+
   '05039_H_Found declaration: $1'#000+
   '05040_E_Data element too large'#000+
   '05042_E_No matching implementation for interface method "$1" found'#000+
   '05043_W_Symbol "$1" is deprecated'#000+
   '05044_W_Symbol "$1" is not portable'#000+
-  '05055_W_Sym','bol "$1" is not implemented'#000+
+  '05055_W_Sy','mbol "$1" is not implemented'#000+
   '05056_E_Can'#039't create unique type from this type'#000+
   '05057_H_Local variable "$1" does not seem to be initialized'#000+
   '05058_H_Variable "$1" does not seem to be initialized'#000+
-  '05059_W_Function result variable does not seem to ','initialized'#000+
+  '05059_W_Function result variable does not seem to',' initialized'#000+
   '05060_H_Function result variable does not seem to be initialized'#000+
   '05061_W_Variable "$1" read but nowhere assigned'#000+
   '05062_H_Found abstract method: $1'#000+
   '05063_W_Symbol "$1" is experimental'#000+
-  '05064_W_Forward declaration "$1" not resolved',', assumed external'#000+
+  '05064_W_Forward declaration "$1" not resolve','d, assumed external'#000+
   '05065_W_Symbol "$1" is belongs to a library'#000+
   '05066_W_Symbol "$1" is deprecated: "$2"'#000+
   '05067_E_Cannot find an enumerator for the type "$1"'#000+
   '05068_E_Cannot find a "MoveNext" method in enumerator "$1"'#000+
-  '05069_E_Cannot find a "Cur','rent" property in enumerator "$1"'#000+
+  '05069_E_Cannot find a "Cu','rrent" property in enumerator "$1"'#000+
   '06009_E_Parameter list size exceeds 65535 bytes'#000+
   '06012_E_File types must be var parameters'#000+
   '06013_E_The use of a far pointer isn'#039't allowed there'#000+
   '06015_E_EXPORT declared functions can'#039't be called'#000+
-  '06016_W_Possi','ble illegal call of constructor or destructor'#000+
+  '06016_W_Poss','ible illegal call of constructor or destructor'#000+
   '06017_N_Inefficient code'#000+
   '06018_W_unreachable code'#000+
   '06020_E_Abstract methods can'#039't be called directly'#000+
   '06027_DL_Register $1 weight $2 $3'#000+
   '06029_DL_Stack frame is omitted'#000+
-  '06031_E_Object or class meth','ods can'#039't be inline.'#000+
+  '06031_E_Object or class met','hods can'#039't be inline.'#000+
   '06032_E_Procvar calls cannot be inline.'#000+
   '06033_E_No code for inline procedure stored'#000+
   '06035_E_Element zero of an ansi/wide- or longstring can'#039't be acces'+
   'sed, use (set)length instead'#000+
-  '06037_E_Constructors or destructors cann','ot be called inside a '#039'w'+
+  '06037_E_Constructors or destructors can','not be called inside a '#039'w'+
   'ith'#039' clause'#000+
   '06038_E_Cannot call message handler methods directly'#000+
   '06039_E_Jump in or outside of an exception block'#000+
   '06040_E_Control flow statements aren'#039't allowed in a finally block'#000+
-  '06041_W_Parameters size exceeds limi','t for certain cpu'#039's'#000+
+  '06041_W_Parameters size exceeds lim','it for certain cpu'#039's'#000+
   '06042_W_Local variable size exceed limit for certain cpu'#039's'#000+
   '06043_E_Local variables size exceeds supported limit'#000+
   '06044_E_BREAK not allowed'#000+
   '06045_E_CONTINUE not allowed'#000+
-  '06046_F_Unknown compilerproc "$1". Check if you use t','he correct run '+
+  '06046_F_Unknown compilerproc "$1". Check if you use ','the correct run '+
   'time library.'#000+
   '06047_F_Cannot find system type "$1". Check if you use the correct run'+
   ' time library.'#000+
   '06048_H_Inherited call to abstract method ignored'#000+
   '06049_E_Goto label "$1" not defined or optimized away'#000+
-  '07000_DL_Starting $1 s','tyled assembler parsing'#000+
+  '07000_DL_Starting $1 ','styled assembler parsing'#000+
   '07001_DL_Finished $1 styled assembler parsing'#000+
   '07002_E_Non-label pattern contains @'#000+
   '07004_E_Error building record offset'#000+
   '07005_E_OFFSET used without identifier'#000+
   '07006_E_TYPE used without identifier'#000+
-  '07007_E_Cannot use l','ocal variable or parameters here'#000+
+  '07007_E_Cannot use ','local variable or parameters here'#000+
   '07008_E_need to use OFFSET here'#000+
   '07009_E_need to use $ here'#000+
   '07010_E_Cannot use multiple relocatable symbols'#000+
   '07011_E_Relocatable symbol can only be added'#000+
   '07012_E_Invalid constant expression'#000+
-  '07013_E_Relocatable',' symbol is not allowed'#000+
+  '07013_E_Relocatabl','e symbol is not allowed'#000+
   '07014_E_Invalid reference syntax'#000+
   '07015_E_You cannot reach $1 from that code'#000+
   '07016_E_Local symbols/labels aren'#039't allowed as references'#000+
   '07017_E_Invalid base and index register usage'#000+
-  '07018_W_Possible error in object fiel','d handling'#000+
+  '07018_W_Possible error in object fie','ld handling'#000+
   '07019_E_Wrong scale factor specified'#000+
   '07020_E_Multiple index register usage'#000+
   '07021_E_Invalid operand type'#000+
   '07022_E_Invalid string as opcode operand: $1'#000+
   '07023_W_@CODE and @DATA not supported'#000+
-  '07024_E_Null label references are not allo','wed'#000+
+  '07024_E_Null label references are not all','owed'#000+
   '07025_E_Divide by zero in asm evaluator'#000+
   '07026_E_Illegal expression'#000+
   '07027_E_escape sequence ignored: $1'#000+
   '07028_E_Invalid symbol reference'#000+
   '07029_W_Fwait can cause emulation problems with emu387'#000+
-  '07030_W_$1 without operand translated into $1','P'#000+
+  '07030_W_$1 without operand translated into $','1P'#000+
   '07031_W_ENTER instruction is not supported by Linux kernel'#000+
   '07032_W_Calling an overload function in assembler'#000+
   '07033_E_Unsupported symbol type for operand'#000+
   '07034_E_Constant value out of bounds'#000+
   '07035_E_Error converting decimal $1'#000+
-  '07036_E_Erro','r converting octal $1'#000+
+  '07036_E_Err','or converting octal $1'#000+
   '07037_E_Error converting binary $1'#000+
   '07038_E_Error converting hexadecimal $1'#000+
   '07039_H_$1 translated to $2'#000+
   '07040_W_$1 is associated to an overloaded function'#000+
   '07041_E_Cannot use SELF outside a method'#000+
-  '07042_E_Cannot use OLDE','BP outside a nested procedure'#000+
+  '07042_E_Cannot use OLD','EBP outside a nested procedure'#000+
   '07043_W_Procedures can'#039't return any value in asm code'#000+
   '07044_E_SEG not supported'#000+
   '07045_E_Size suffix and destination or source size do not match'#000+
   '07046_W_Size suffix and destination or source size do not match'#000+
-  '07','047_E_Assembler syntax error'#000+
+  '0','7047_E_Assembler syntax error'#000+
   '07048_E_Invalid combination of opcode and operands'#000+
   '07049_E_Assembler syntax error in operand'#000+
   '07050_E_Assembler syntax error in constant'#000+
   '07051_E_Invalid String expression'#000+
-  '07052_W_constant with symbol $1 for addre','ss which is not on a pointe'+
+  '07052_W_constant with symbol $1 for addr','ess which is not on a pointe'+
   'r'#000+
   '07053_E_Unrecognized opcode $1'#000+
   '07054_E_Invalid or missing opcode'#000+
   '07055_E_Invalid combination of prefix and opcode: $1'#000+
   '07056_E_Invalid combination of override and opcode: $1'#000+
   '07057_E_Too many operands on line'#000+
-  '0705','8_W_NEAR ignored'#000+
+  '070','58_W_NEAR ignored'#000+
   '07059_W_FAR ignored'#000+
   '07060_E_Duplicate local symbol $1'#000+
   '07061_E_Undefined local symbol $1'#000+
   '07062_E_Unknown label identifier $1'#000+
   '07063_E_Invalid register name'#000+
   '07064_E_Invalid floating point register name'#000+
-  '07066_W_Modulo not suppo','rted'#000+
+  '07066_W_Modulo not supp','orted'#000+
   '07067_E_Invalid floating point constant $1'#000+
   '07068_E_Invalid floating point expression'#000+
   '07069_E_Wrong symbol type'#000+
   '07070_E_Cannot index a local var or parameter with a register'#000+
   '07071_E_Invalid segment override expression'#000+
-  '07072_W_Identifier',' $1 supposed external'#000+
+  '07072_W_Identifie','r $1 supposed external'#000+
   '07073_E_Strings not allowed as constants'#000+
   '07074_No type of variable specified'#000+
   '07075_E_assembler code not returned to text section'#000+
   '07076_E_Not a directive or local symbol $1'#000+
-  '07077_E_Using a defined name as a local label'#000,
+  '07077_E_Using a defined name as a local label',#000+
   '07078_E_Dollar token is used without an identifier'#000+
   '07079_W_32bit constant created for address'#000+
   '07080_N_.align is target specific, use .balign or .p2align'#000+
   '07081_E_Can'#039't access fields directly for parameters'#000+
-  '07082_E_Can'#039't access fields of obje','cts/classes directly'#000+
+  '07082_E_Can'#039't access fields of obj','ects/classes directly'#000+
   '07083_E_No size specified and unable to determine the size of the oper'+
   'ands'#000+
   '07084_E_Cannot use RESULT in this function'#000+
   '07086_W_"$1" without operand translated into "$1 %st,%st(1)"'#000+
-  '07087_W_"$1 %st(n)" translated into "$1 ','%st,%st(n)"'#000+
+  '07087_W_"$1 %st(n)" translated into "$1',' %st,%st(n)"'#000+
   '07088_W_"$1 %st(n)" translated into "$1 %st(n),%st"'#000+
   '07089_E_Char < not allowed here'#000+
   '07090_E_Char > not allowed here'#000+
   '07093_W_ALIGN not supported'#000+
   '07094_E_Inc and Dec cannot be together'#000+
   '07095_E_Invalid reglist for movem'#000+
-  '07096_E_Reg','list invalid for opcode'#000+
+  '07096_E_Re','glist invalid for opcode'#000+
   '07097_E_Higher cpu mode required ($1)'#000+
   '07098_W_No size specified and unable to determine the size of the oper'+
   'ands, using DWORD as default'#000+
   '07099_E_Syntax error while trying to parse a shifter operand'#000+
-  '07100_E_Address of',' packed component is not at a byte boundary'#000+
+  '07100_E_Address o','f packed component is not at a byte boundary'#000+
   '07101_W_No size specified and unable to determine the size of the oper'+
   'ands, using BYTE as default'#000+
   '07102_W_Use of +offset(%ebp) for parameters invalid here'#000+
-  '07103_W_Use of +offset(%ebp) is not compa','tible with regcall conventi'+
+  '07103_W_Use of +offset(%ebp) is not comp','atible with regcall conventi'+
   'on'#000+
   '07104_W_Use of -offset(%ebp) is not recommended for local variable acc'+
   'ess'#000+
   '07105_W_Use of -offset(%esp), access may cause a crash or value may be'+
   ' lost'#000+
-  '07106_E_VMTOffset must be used in combination with a virtual',' method,'+
+  '07106_E_VMTOffset must be used in combination with a virtua','l method,'+
   ' and "$1" is not virtual'#000+
   '07107_E_Generating PIC, but reference is not PIC-safe'#000+
   '08000_F_Too many assembler files'#000+
   '08001_F_Selected assembler output not supported'#000+
   '08002_F_Comp not supported'#000+
-  '08003_F_Direct not support for binary writers',#000+
+  '08003_F_Direct not support for binary writer','s'#000+
   '08004_E_Allocating of data is only allowed in bss section'#000+
   '08005_F_No binary writer selected'#000+
   '08006_E_Asm: Opcode $1 not in table'#000+
   '08007_E_Asm: $1 invalid combination of opcode and operands'#000+
   '08008_E_Asm: 16 Bit references not supported'#000+
-  '08009_E','_Asm: Invalid effective address'#000+
+  '08009_','E_Asm: Invalid effective address'#000+
   '08010_E_Asm: Immediate or reference expected'#000+
   '08011_E_Asm: $1 value exceeds bounds $2'#000+
   '08012_E_Asm: Short jump is out of range $1'#000+
   '08013_E_Asm: Undefined label $1'#000+
-  '08014_E_Asm: Comp type not supported for this ta','rget'#000+
+  '08014_E_Asm: Comp type not supported for this t','arget'#000+
   '08015_E_Asm: Extended type not supported for this target'#000+
   '08016_E_Asm: Duplicate label $1'#000+
   '08017_E_Asm: Redefined label $1'#000+
   '08018_E_Asm: First defined here'#000+
   '08019_E_Asm: Invalid register $1'#000+
-  '08020_E_Asm: 16 or 32 Bit references not supporte','d'#000+
+  '08020_E_Asm: 16 or 32 Bit references not support','ed'#000+
   '08021_E_Asm: 64 Bit operands not supported'#000+
   '09000_W_Source operating system redefined'#000+
   '09001_I_Assembling (pipe) $1'#000+
   '09002_E_Can'#039't create assembler file: $1'#000+
   '09003_E_Can'#039't create object file: $1'#000+
   '09004_E_Can'#039't create archive file: $1'#000+
-  '09005_E_A','ssembler $1 not found, switching to external assembling'#000+
+  '09005_E_','Assembler $1 not found, switching to external assembling'#000+
   '09006_T_Using assembler: $1'#000+
   '09007_E_Error while assembling exitcode $1'#000+
   '09008_E_Can'#039't call the assembler, error $1 switching to external a'+
   'ssembling'#000+
   '09009_I_Assembling $1'#000+
-  '09010_I_Assembl','ing with smartlinking $1'#000+
+  '09010_I_Assemb','ling with smartlinking $1'#000+
   '09011_W_Object $1 not found, Linking may fail !'#000+
   '09012_W_Library $1 not found, Linking may fail !'#000+
   '09013_E_Error while linking'#000+
   '09014_E_Can'#039't call the linker, switching to external linking'#000+
   '09015_I_Linking $1'#000+
-  '09016_E_Ut','il $1 not found, switching to external linking'#000+
+  '09016_E_U','til $1 not found, switching to external linking'#000+
   '09017_T_Using util $1'#000+
   '09018_E_Creation of Executables not supported'#000+
   '09019_E_Creation of Dynamic/Shared Libraries not supported'#000+
   '09020_I_Closing script $1'#000+
-  '09021_E_resource compiler "$1" not found',', switching to external mode'+
+  '09021_E_resource compiler "$1" not foun','d, switching to external mode'+
   #000+
   '09022_I_Compiling resource $1'#000+
   '09023_T_unit $1 can'#039't be statically linked, switching to smart lin'+
   'king'#000+
   '09024_T_unit $1 can'#039't be smart linked, switching to static linking'+
   #000+
-  '09025_T_unit $1 can'#039't be shared linked, swi','tching to static link'+
+  '09025_T_unit $1 can'#039't be shared linked, sw','itching to static link'+
   'ing'#000+
   '09026_E_unit $1 can'#039't be smart or static linked'#000+
   '09027_E_unit $1 can'#039't be shared or static linked'#000+
   '09028_D_Calling resource compiler "$1" with "$2" as command line'#000+
   '09029_E_Error while compiling resources'#000+
-  '09030_E_Can'#039't',' call the resource compiler "$1", switching to exte'+
-  'rnal mode'#000+
+  '09030_E_Can'#039,'t call the resource compiler "$1", switching to exter'+
+  'nal mode'#000+
   '09031_E_Can'#039't open resource file "$1"'#000+
   '09032_E_Can'#039't write resource file "$1"'#000+
   '09128_F_Can'#039't post process executable $1'#000+
   '09129_F_Can'#039't open executable $1'#000+
-  '09130_X_Size of Code: $1 byt','es'#000+
+  '09130_X_Size of Code: $1 by','tes'#000+
   '09131_X_Size of initialized data: $1 bytes'#000+
   '09132_X_Size of uninitialized data: $1 bytes'#000+
   '09133_X_Stack space reserved: $1 bytes'#000+
   '09134_X_Stack space committed: $1 bytes'#000+
   '09200_F_Executable image size is too big for $1 target.'#000+
-  '09201_W_Object',' file "$1" contains 32-bit absolute relocation to symb'+
+  '09201_W_Objec','t file "$1" contains 32-bit absolute relocation to symb'+
   'ol "$2".'#000+
   '10000_T_Unitsearch: $1'#000+
   '10001_T_PPU Loading $1'#000+
@@ -779,10 +779,10 @@ const msgtxt : array[0..000219,1..240] of char=(
   '10004_U_PPU Crc: $1'#000+
   '10005_U_PPU Time: $1'#000+
   '10006_U_PPU File too short'#000+
-  '10007_U_PPU Invalid ','Header (no PPU at the begin)'#000+
+  '10007_U_PPU Invalid',' Header (no PPU at the begin)'#000+
   '10008_U_PPU Invalid Version $1'#000+
   '10009_U_PPU is compiled for another processor'#000+
-  '10010_U_PPU is compiled for an other target'#000+
+  '10010_U_PPU is compiled for another target'#000+
   '10011_U_PPU Source: $1'#000+
   '10012_U_Writing $1'#000+
   '10013_F_Can'#039't Write PPU-File'#000+
