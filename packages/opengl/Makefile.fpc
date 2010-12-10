@@ -25,6 +25,8 @@ units_openbsd=glx glext
 units_darwin=glx glext
 exampledirs=examples
 
+implicitunits=freeglut
+
 [install]
 fpcpackage=y
 

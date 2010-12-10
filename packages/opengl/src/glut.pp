@@ -457,7 +457,7 @@ var
 {$ENDIF MORPHOS}
 
 procedure LoadGlut(const dll: String);
-procedure FreeGlut;
+procedure UnloadGlut;
 
 implementation
 
@@ -468,11 +468,13 @@ implementation
 {$INCLUDE tinygl.inc}
 
 {$ELSE MORPHOS}
+uses FreeGlut;
+
 var
   hDLL: TLibHandle;
 {$ENDIF MORPHOS}
 
-procedure FreeGlut;
+procedure UnloadGlut;
 begin
 {$IFDEF MORPHOS}
   // MorphOS's GL will closed down by TinyGL unit, nothing is needed here.
@@ -595,6 +597,8 @@ begin
   @glutEnterGameMode := nil;
   @glutLeaveGameMode := nil;
   @glutGameModeGet := nil;
+  
+  UnloadFreeGlut;
 {$ENDIF MORPHOS}
 end;
 
@@ -615,7 +619,7 @@ var
 
 begin
 
-  FreeGlut;
+  UnloadGlut;
 
   hDLL := LoadLibrary(PChar(dll));
   if hDLL = 0 then raise Exception.Create('Could not load Glut from ' + dll);
@@ -748,6 +752,7 @@ begin
   except
     raise Exception.Create('Could not load ' + MethodName + ' from ' + dll);
   end;
+  LoadFreeGlut(hDLL);
 end;
 {$ENDIF MORPHOS}
 
@@ -772,6 +777,6 @@ initialization
 
 finalization
 
-  FreeGlut;
+  UnloadGlut;
 
 end.
