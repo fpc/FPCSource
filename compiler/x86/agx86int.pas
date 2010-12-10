@@ -304,7 +304,7 @@ implementation
           top_reg :
             AsmWrite(masm_regname(o.reg));
           top_const :
-            AsmWrite(tostr(longint(o.val)));
+            AsmWrite(tostr(o.val));
           top_ref :
             begin
               if o.ref^.refaddr=addr_no then
@@ -384,7 +384,7 @@ implementation
         top_reg :
           AsmWrite(masm_regname(o.reg));
         top_const :
-          AsmWrite(tostr(longint(o.val)));
+          AsmWrite(tostr(o.val));
         top_ref :
           { what about lcall or ljmp ??? }
           begin
