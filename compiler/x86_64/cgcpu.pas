@@ -148,7 +148,7 @@ unit cgcpu;
       begin
         if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
           Internalerror(200006137);
-        if not assigned(procdef._class) or
+        if not assigned(procdef.struct) or
            (procdef.procoptions*[po_classmethod, po_staticmethod,
              po_methodpointer, po_interrupt, po_iocheck]<>[]) then
           Internalerror(200006138);
@@ -180,7 +180,7 @@ unit cgcpu;
               reference_reset_base(href,NR_RDI,0,sizeof(pint));
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_RAX);
             { jmp *vmtoffs(%eax) ; method offs }
-            reference_reset_base(href,NR_RAX,procdef._class.vmtmethodoffset(procdef.extnumber),sizeof(pint));
+            reference_reset_base(href,NR_RAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
             list.concat(taicpu.op_ref_reg(A_MOV,S_Q,href,NR_RAX));
             list.concat(taicpu.op_reg(A_JMP,S_Q,NR_RAX));
           end

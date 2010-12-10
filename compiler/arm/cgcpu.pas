@@ -2452,7 +2452,7 @@ unit cgcpu;
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
           { call/jmp  vmtoffs(%eax) ; method offs }
-          reference_reset_base(href,NR_R12,procdef._class.vmtmethodoffset(procdef.extnumber),sizeof(pint));
+          reference_reset_base(href,NR_R12,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R12);
           list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R12));
         end;
@@ -2462,7 +2462,7 @@ unit cgcpu;
       begin
         if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
           Internalerror(200006137);
-        if not assigned(procdef._class) or
+        if not assigned(procdef.struct) or
            (procdef.procoptions*[po_classmethod, po_staticmethod,
              po_methodpointer, po_interrupt, po_iocheck]<>[]) then
           Internalerror(200006138);
