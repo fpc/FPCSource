@@ -707,14 +707,11 @@ end;
 
 
 procedure sysvartopstr (var s; const v : Variant);
+var
+  tmp: AnsiString;
 begin
-  if VarType(v) = varNull then
-    if NullStrictConvert then
-      VarCastError(varNull, varString)
-    else
-      ShortString(s) := NullAsStringValue
-  else
-    ShortString(s) := VariantToShortString(TVarData(V));
+  sysvartolstr(tmp, v);
+  ShortString(s) := tmp;
 end;
 
 
@@ -2132,10 +2129,17 @@ begin
   with v do
     if vType < varInt64 then
       VarResultCheck(VariantClear(v))
-    else if vType = varString then begin
-      AnsiString(vString) := '';
-      vType := varEmpty
-    end else if vType = varAny then
+    else if vType = varString then
+      begin
+        AnsiString(vString) := '';
+        vType := varEmpty;
+      end
+    else if vType = varUString then
+      begin
+        UnicodeString(vString) := '';
+        vType := varEmpty;
+      end
+    else if vType = varAny then
       ClearAnyProc(v)
     else if vType and varArray <> 0 then
       DoVarClearArray(v)
@@ -3667,9 +3671,9 @@ function TCustomVariantType._Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdc
 
 {$warnings off}
 procedure TCustomVariantType.SimplisticClear(var V: TVarData);
-  begin
-    NotSupported('TCustomVariantType.SimplisticClear');
-  end;
+begin
+  VarDataInit(V);
+end;
 
 
 procedure TCustomVariantType.SimplisticCopy(var Dest: TVarData; const Source: TVarData;  const Indirect: Boolean = False);
@@ -3811,7 +3815,7 @@ end;
 function TCustomVariantType.VarDataIsEmptyParam(const V: TVarData): Boolean;
 
 begin
-  VarIsEmptyParam(Variant(V));
+  Result:=VarIsEmptyParam(Variant(V));
 end;
 
 
@@ -3955,14 +3959,14 @@ end;
 procedure TCustomVariantType.BinaryOp(var Left: TVarData; const Right: TVarData; const Operation: TVarOp);
 
 begin
-  NotSupported('TCustomVariantType.BinaryOp');
+  RaiseInvalidOp;
 end;
 
 
 procedure TCustomVariantType.UnaryOp(var Right: TVarData; const Operation: TVarOp);
 
 begin
-  NotSupported('TCustomVariantType.UnaryOp');
+  RaiseInvalidOp;
 end;
 
 

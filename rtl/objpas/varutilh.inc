@@ -71,7 +71,6 @@ function VariantToInt64(const VargSrc : TVarData ) : Int64;
 function VariantToQWord(const VargSrc : TVarData ) : Qword;
 function VariantToWideString(const VargSrc : TVarData) : WideString;
 function VariantToAnsiString(const VargSrc : TVarData) : AnsiString;
-function VariantToShortString(const VargSrc : TVarData) : ShortString;
 
 {Debug routines }
 procedure DumpVariant(const VSrc : Variant);

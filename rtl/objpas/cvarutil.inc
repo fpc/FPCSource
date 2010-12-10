@@ -1422,11 +1422,6 @@ begin
 end;
 
 
-Function VariantToShortString(const VargSrc : TVarData) : ShortString;
-begin
-  Result:=VariantToAnsiString(VargSrc);
-end;
-
 { ---------------------------------------------------------------------
     Some debug routines
   ---------------------------------------------------------------------}
