@@ -454,7 +454,7 @@ begin
   if FStateCount=length(FStateTable) then
     setlength(FStateTable,(FStateCount * 3) div 2);
 
-  if not (aMatchType in [mtChar,mtTerminal]) then FRegexType := rtRegEx;
+  if not (aMatchType in [mtChar,mtTerminal,mtNone]) then FRegexType := rtRegEx;
 end;
 {--------}
 procedure TRegexEngine.rcClear;
@@ -706,6 +706,8 @@ begin
         end;
         {move past the close parenthesis}
         inc(FPosn);
+        {always handle expressions with parentheses as regular-expression}
+        FRegexType := rtRegEx;
       end;
     '[' :
       begin
@@ -954,6 +956,8 @@ begin
     {now set the end state for the initial term to point to the final
      end state for the second expr and the overall expr}
     rcSetState(EndState1, FStateCount, UnusedState);
+    {always handle expressions with a pipe as regular-expression}
+    FRegexType := rtRegEx;
   end;
 end;
 {--------}
@@ -1092,11 +1096,10 @@ begin
               if m = -1 then
                 rcAddState(mtNone, #0, nil, NewFinalState, TempEndStateAtom);
 
-              if FRegexType <> rtRegEx then
-                FRegexType := rtRegEx;
-
               Result := StartStateAtom;
               end;
+            {always handle expressions with braces as regular-expression}
+            FRegexType := rtRegEx;
           end;
 
   else
