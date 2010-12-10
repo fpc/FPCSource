@@ -458,15 +458,17 @@ begin
   for i := 0 to FStateCount-1 do begin
     with FStateTable[i] do begin
       if (sdMatchType = mtClass) or
-         (sdMatchType = mtNegClass) then
-        if (sdClass <> nil) then
+         (sdMatchType = mtNegClass) and
+         (sdClass <> nil) then
         begin
           for j := i+1 to FStateCount-1 do
            if (FStateTable[j].sdClass = sdClass) then
              FStateTable[j].sdClass := nil;
           FreeMem(sdClass, sizeof(TCharSet));
         end;
-      FillChar(FStateTable[i],SizeOf(FStateTable[i]),#0);
+      // I am not sure if the next line is necessary. rcAddState set all values, so
+      // it shouldn't be necessary to clear its contents?
+      // FillChar(FStateTable[i],SizeOf(FStateTable[i]),#0);
     end;
   end;
   {clear the state transition table}
@@ -742,22 +744,19 @@ begin
       end;
     '\' :
       begin
-        case (FPosn+1)^ of
-          'd','D','s','S','w','W':
-            begin
-              New(CharClass);
-              CharClass^ := [];
-              if not rcParseCharRange(CharClass) then begin
-                Dispose(CharClass);
-                Result := ErrorState;
-                Exit;
-              end;
-              Result := rcAddState(mtClass, #0, CharClass,
+        if (FPosn+1)^ in ['d','D','s','S','w','W'] then begin
+          New(CharClass);
+          CharClass^ := [];
+          if not rcParseCharRange(CharClass) then begin
+            Dispose(CharClass);
+            Result := ErrorState;
+            Exit;
+          end;
+          Result := rcAddState(mtClass, #0, CharClass,
                                NewFinalState, UnusedState);
-            end;
-          else
-            Result := rcParseChar;
-        end;
+        end
+        else
+          Result := rcParseChar;
       end;
   else
     {otherwise parse a single character}
@@ -816,8 +815,7 @@ begin
     begin
     inc(FPosn);
     ch := rcReturnEscapeChar;
-      if (FRegexType <> rtRegEx) then
-        FRegexType := rtRegEx;
+    FRegexType := rtRegEx;
     end
   else
     ch :=FPosn^;
