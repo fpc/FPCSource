@@ -695,15 +695,6 @@ packages/cocoaint/utils/*.s
 packages/cocoaint/utils/Package.fpc
 packages/cocoaint/utils/build-stamp.*
 packages/cocoaint/utils/fpcmade.*
-packages/cocoaint/utils/iphone/*.bak
-packages/cocoaint/utils/iphone/*.exe
-packages/cocoaint/utils/iphone/*.o
-packages/cocoaint/utils/iphone/*.ppu
-packages/cocoaint/utils/iphone/*.s
-packages/cocoaint/utils/iphone/Package.fpc
-packages/cocoaint/utils/iphone/build-stamp.*
-packages/cocoaint/utils/iphone/fpcmade.*
-packages/cocoaint/utils/iphone/units
 packages/cocoaint/utils/units
 packages/dbus/*.bak
 packages/dbus/*.exe
