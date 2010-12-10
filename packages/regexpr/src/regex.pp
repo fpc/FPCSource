@@ -254,6 +254,13 @@ var
   pc : pchar;
   x:integer;
 begin
+  if Offset>length(S) then
+    begin
+    Result := False;
+    MatchPos := 0;
+    Exit;
+    end;
+
   {if the regex string hasn't been parsed yet, do so}
   if (FStateCount = 0) then begin
     if not Parse(ErrorPos, ErrorCode) then
