@@ -1900,7 +1900,7 @@ implementation
                     srsymtable:=classh.symtable;
                     srsym:=tsym(srsymtable.FindWithHash(hashedid));
                     if assigned(srsym) and
-                       (srsym.typ=typesym) and
+                       not(srsym.typ in [fieldvarsym,paravarsym,propertysym,procsym,labelsym]) and
                        is_visible_for_object(srsym,current_structdef) then
                       begin
                         addsymref(srsym);
@@ -1911,23 +1911,12 @@ implementation
                   end;
               end
             else
-            if not(srsymtable.symtabletype in [recordsymtable,ObjectSymtable,parasymtable]) or
-               (assigned(srsymtable.defowner) and
-                (
-                 (df_generic in tdef(srsymtable.defowner).defoptions) or
-                 (df_specialization in tdef(srsymtable.defowner).defoptions) or
-                 is_class_or_object(tdef(srsymtable.defowner)) or
-                 is_record(tdef(srsymtable.defowner))
-                )
-               ) then
+            if srsymtable.symtabletype<>parasymtable then
               begin
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
-                if assigned(srsym) and
-                   not(srsym.typ in [fieldvarsym,paravarsym]) and
-                   (
-                    not (srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or
-                    ((srsym.typ=typesym)and is_visible_for_object(srsym,current_structdef))
-                   ) then
+                if assigned(srsym) and 
+                   not(srsym.typ in [fieldvarsym,paravarsym,propertysym,procsym,labelsym]) and
+                   (not (srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or is_visible_for_object(srsym,current_structdef)) then
                   begin
                     { we need to know if a procedure references symbols
                       in the static symtable, because then it can't be
