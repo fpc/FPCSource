@@ -1130,36 +1130,28 @@ var
 Procedure InitDLL;
 
 Var
-  P : Pointer;
-
+  pathBuf: array[0..MAX_PATH-1] of char;
+  pathLength: Integer;
 begin
-  CFGDLLHandle:=LoadLibrary('shell32.dll');
-  if (CFGDLLHandle<>0) then
-    begin
-    P:=GetProcAddress(CFGDLLHandle,'SHGetFolderPathA');
-    If (P=Nil) then
-      begin
-      FreeLibrary(CFGDLLHandle);
-      CFGDllHandle:=0;
-      end
-    else
-      SHGetFolderPath:=PFNSHGetFolderPath(P);
-    end;
-  If (P=Nil) then
-    begin
-    CFGDLLHandle:=LoadLibrary('shfolder.dll');
+  { Load shfolder.dll using a full path, in order to prevent spoofing (Mantis #18185)
+    Don't bother loading shell32.dll because shfolder.dll itself redirects SHGetFolderPath
+    to shell32.dll whenever possible. }
+  pathLength:=GetSystemDirectory(pathBuf, MAX_PATH);
+  if (pathLength>0) and (pathLength<MAX_PATH-14) then { 14=length('\shfolder.dll'#0) }
+  begin
+    StrLCopy(@pathBuf[pathLength],'\shfolder.dll',MAX_PATH-pathLength-1);
+    CFGDLLHandle:=LoadLibrary(pathBuf);
+
     if (CFGDLLHandle<>0) then
+    begin
+      Pointer(ShGetFolderPath):=GetProcAddress(CFGDLLHandle,'SHGetFolderPathA');
+      If @ShGetFolderPath=nil then
       begin
-      P:=GetProcAddress(CFGDLLHandle,'SHGetFolderPathA');
-      If (P=Nil) then
-        begin
         FreeLibrary(CFGDLLHandle);
         CFGDllHandle:=0;
-        end
-      else
-        ShGetFolderPath:=PFNSHGetFolderPath(P);
       end;
     end;
+  end;
   If (@ShGetFolderPath=Nil) then
     Raise Exception.Create('Could not determine SHGetFolderPath Function');
 end;
