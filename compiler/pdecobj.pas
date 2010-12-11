@@ -32,6 +32,11 @@ interface
     { parses a object declaration }
     function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tobjectdef;
 
+    function class_constructor_head:tprocdef;
+    function class_destructor_head:tprocdef;
+    function constructor_head:tprocdef;
+    function destructor_head:tprocdef;
+
 implementation
 
     uses
@@ -57,7 +62,7 @@ implementation
         result:=nil;
         consume(_CONSTRUCTOR);
         { must be at same level as in implementation }
-        parse_proc_head(current_objectdef,potype_class_constructor,pd);
+        parse_proc_head(current_structdef,potype_class_constructor,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -67,7 +72,7 @@ implementation
         if (pd.maxparacount>0) then
           Message(parser_e_no_paras_for_class_constructor);
         consume(_SEMICOLON);
-        include(current_objectdef.objectoptions,oo_has_class_constructor);
+        include(current_structdef.objectoptions,oo_has_class_constructor);
         current_module.flags:=current_module.flags or uf_classinits;
         { no return value }
         pd.returndef:=voidtype;
@@ -81,7 +86,7 @@ implementation
         result:=nil;
         consume(_CONSTRUCTOR);
         { must be at same level as in implementation }
-        parse_proc_head(current_objectdef,potype_constructor,pd);
+        parse_proc_head(current_structdef,potype_constructor,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -91,10 +96,10 @@ implementation
            (pd.procsym.name<>'INIT') then
           Message(parser_e_constructorname_must_be_init);
         consume(_SEMICOLON);
-        include(current_objectdef.objectoptions,oo_has_constructor);
-        { Set return type, class constructors return the
+        include(current_structdef.objectoptions,oo_has_constructor);
+        { Set return type, class and record constructors return the
           created instance, object constructors return boolean }
-        if is_class(pd.struct) then
+        if is_class(pd.struct) or is_record(pd.struct) then
           pd.returndef:=pd.struct
         else
 {$ifdef CPU64bitaddr}
@@ -170,7 +175,7 @@ implementation
       begin
         result:=nil;
         consume(_DESTRUCTOR);
-        parse_proc_head(current_objectdef,potype_class_destructor,pd);
+        parse_proc_head(current_structdef,potype_class_destructor,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -180,7 +185,7 @@ implementation
         if (pd.maxparacount>0) then
           Message(parser_e_no_paras_for_class_destructor);
         consume(_SEMICOLON);
-        include(current_objectdef.objectoptions,oo_has_class_destructor);
+        include(current_structdef.objectoptions,oo_has_class_destructor);
         current_module.flags:=current_module.flags or uf_classinits;
         { no return value }
         pd.returndef:=voidtype;
@@ -193,7 +198,7 @@ implementation
       begin
         result:=nil;
         consume(_DESTRUCTOR);
-        parse_proc_head(current_objectdef,potype_destructor,pd);
+        parse_proc_head(current_structdef,potype_destructor,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -207,7 +212,7 @@ implementation
            (m_fpc in current_settings.modeswitches) then
           Message(parser_e_no_paras_for_destructor);
         consume(_SEMICOLON);
-        include(current_objectdef.objectoptions,oo_has_destructor);
+        include(current_structdef.objectoptions,oo_has_destructor);
         { no return value }
         pd.returndef:=voidtype;
         result:=pd;
