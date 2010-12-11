@@ -4,7 +4,6 @@ unit terecs_u1;
 {$mode delphi}
 
 interface
-
 type
   HWND = integer;
   TFoo = record
@@ -20,8 +19,12 @@ type
     var
       F3: TBar;
       F4: Byte;
+    class var
+      F5: TBar;
     function Test(n: TBar): TBar;
     class function Test1(n: TBar): TBar;
+    class constructor Create;
+    class destructor Destroy;
   end;
 
 implementation
@@ -36,5 +39,14 @@ begin
   Result := C + n;
 end;
 
-end.
+class constructor TFoo.Create;
+begin
+  F5 := 6;
+end;
 
+class destructor TFoo.Destroy;
+begin
+  WriteLn('TFoo.Destroy');
+end;
+
+end.

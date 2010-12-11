@@ -1530,25 +1530,25 @@ implementation
                      consume(_SEMICOLON);
                      include(options, vd_class);
                    end;
-                 if vd_class in options then
-                 begin
-                   { add static flag and staticvarsyms }
-                   for i:=0 to sc.count-1 do
-                     begin
-                       fieldvs:=tfieldvarsym(sc[i]);
-                       include(fieldvs.symoptions,sp_static);
-                       { generate the symbol which reserves the space }
-                       static_name:=lower(generate_nested_name(recst,'_'))+'_'+fieldvs.name;
-                       hstaticvs:=tstaticvarsym.create('$_static_'+static_name,vs_value,hdef,[]);
-                       include(hstaticvs.symoptions,sp_internal);
-                       recst.get_unit_symtable.insert(hstaticvs);
-                       insertbssdata(hstaticvs);
-                       { generate the symbol for the access }
-                       sl:=tpropaccesslist.create;
-                       sl.addsym(sl_load,hstaticvs);
-                       recst.insert(tabsolutevarsym.create_ref('$'+static_name,hdef,sl));
-                     end;
-                 end;
+               end;
+               if vd_class in options then
+               begin
+                 { add static flag and staticvarsyms }
+                 for i:=0 to sc.count-1 do
+                   begin
+                     fieldvs:=tfieldvarsym(sc[i]);
+                     include(fieldvs.symoptions,sp_static);
+                     { generate the symbol which reserves the space }
+                     static_name:=lower(generate_nested_name(recst,'_'))+'_'+fieldvs.name;
+                     hstaticvs:=tstaticvarsym.create('$_static_'+static_name,vs_value,hdef,[]);
+                     include(hstaticvs.symoptions,sp_internal);
+                     recst.get_unit_symtable.insert(hstaticvs);
+                     insertbssdata(hstaticvs);
+                     { generate the symbol for the access }
+                     sl:=tpropaccesslist.create;
+                     sl.addsym(sl_load,hstaticvs);
+                     recst.insert(tabsolutevarsym.create_ref('$'+static_name,hdef,sl));
+                   end;
                end;
              if (visibility=vis_published) and
                 not(is_class(hdef)) then

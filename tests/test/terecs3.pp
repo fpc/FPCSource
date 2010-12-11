@@ -21,5 +21,7 @@ begin
     halt(4);
   if F.Test1(4) <> 5 then
     halt(5);
+  if F.F5 <> 6 then
+    halt(6);
   WriteLn('ok');
 end.
