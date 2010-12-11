@@ -33,7 +33,7 @@ interface
       tvar_dec_option=(vd_record,vd_object,vd_threadvar,vd_class);
       tvar_dec_options=set of tvar_dec_option;
 
-    function  read_property_dec(is_classproperty:boolean; aclass:tobjectdef):tpropertysym;
+    function  read_property_dec(is_classproperty:boolean;astruct:tobjectdef):tpropertysym;
 
     procedure read_var_decls(options:Tvar_dec_options);
 
@@ -66,7 +66,7 @@ implementation
        ;
 
 
-    function read_property_dec(is_classproperty:boolean; aclass:tobjectdef):tpropertysym;
+    function read_property_dec(is_classproperty:boolean;astruct:tobjectdef):tpropertysym;
 
         { convert a node tree to symlist and return the last
           symbol }
@@ -82,14 +82,14 @@ implementation
             def:=nil;
             if token=_ID then
              begin
-               if assigned(aclass) then
-                 sym:=search_struct_member(aclass,pattern)
+               if assigned(astruct) then
+                 sym:=search_struct_member(astruct,pattern)
                else
                  searchsym(pattern,sym,srsymtable);
                if assigned(sym) then
                 begin
-                  if assigned(aclass) and
-                     not is_visible_for_object(sym,aclass) then
+                  if assigned(astruct) and
+                     not is_visible_for_object(sym,astruct) then
                     Message(parser_e_cant_access_private_member);
                   case sym.typ of
                     fieldvarsym :
@@ -279,7 +279,7 @@ implementation
                   pt.free;
                 end
               else
-                p.dispid:=aclass.get_next_dispid;
+                p.dispid:=astruct.get_next_dispid;
             end;
 
           procedure add_index_parameter(var paranr: word; p: tpropertysym; readprocdef, writeprocdef, storedprocdef: tprocvardef);
@@ -324,7 +324,7 @@ implementation
          storedprocdef:=tprocvardef.create(normal_function_level);
 
          { make them method pointers }
-         if assigned(aclass) and not is_classproperty then
+         if assigned(astruct) and not is_classproperty then
            begin
              include(readprocdef.procoptions,po_methodpointer);
              include(writeprocdef.procoptions,po_methodpointer);
@@ -416,12 +416,12 @@ implementation
          { force property interface
              there is a property parameter
              a global property }
-         if (token=_COLON) or (paranr>0) or (aclass=nil) then
+         if (token=_COLON) or (paranr>0) or (astruct=nil) then
            begin
               consume(_COLON);
               single_type(p.propdef,false,false);
 
-              if is_dispinterface(aclass) and not is_automatable(p.propdef) then
+              if is_dispinterface(astruct) and not is_automatable(p.propdef) then
                 Message1(type_e_not_automatable,p.propdef.typename);
 
               if (idtoken=_INDEX) then
@@ -457,10 +457,10 @@ implementation
          else
            begin
               { do an property override }
-              overridden:=search_struct_member(aclass.childof,p.name);
+              overridden:=search_struct_member(astruct.childof,p.name);
               if assigned(overridden) and
                  (overridden.typ=propertysym) and
-                 not(is_dispinterface(aclass)) then
+                 not(is_dispinterface(astruct)) then
                 begin
                   p.overriddenpropsym:=tpropertysym(overridden);
                   { inherit all type related entries }
@@ -478,14 +478,14 @@ implementation
                   message(parser_e_no_property_found_to_override);
                 end;
            end;
-         if ((p.visibility=vis_published) or is_dispinterface(aclass)) and
+         if ((p.visibility=vis_published) or is_dispinterface(astruct)) and
             (not(p.propdef.is_publishable) or (sp_static in p.symoptions)) then
            begin
              Message(parser_e_cant_publish_that_property);
              p.visibility:=vis_public;
            end;
 
-         if not(is_dispinterface(aclass)) then
+         if not(is_dispinterface(astruct)) then
            begin
              if try_to_consume(_READ) then
                begin
@@ -585,7 +585,7 @@ implementation
          else
            parse_dispinterface(p);
 
-         if assigned(aclass) and not(is_dispinterface(aclass)) and not is_classproperty then
+         if assigned(astruct) and not(is_dispinterface(astruct)) and not is_classproperty then
            begin
              { ppo_stored is default on for not overridden properties }
              if not assigned(p.overriddenpropsym) then
@@ -617,8 +617,8 @@ implementation
                          { make sure we don't let constants mask class fields/
                            methods
                          }
-                         if (not assigned(aclass) or
-                             (search_struct_member(aclass,pattern)=nil)) and
+                         if (not assigned(astruct) or
+                             (search_struct_member(astruct,pattern)=nil)) and
                             searchsym(pattern,sym,srsymtable) and
                             (sym.typ = constsym) then
                            begin
@@ -782,9 +782,9 @@ implementation
                  exit;
                end;
              found:=false;
-             for i:=0 to aclass.ImplementedInterfaces.Count-1 do
+             for i:=0 to astruct.ImplementedInterfaces.Count-1 do
                begin
-                 ImplIntf:=TImplementedInterface(aclass.ImplementedInterfaces[i]);
+                 ImplIntf:=TImplementedInterface(astruct.ImplementedInterfaces[i]);
 
                  if compare_defs(def,ImplIntf.IntfDef,nothingn)>=te_equal then
                    begin
