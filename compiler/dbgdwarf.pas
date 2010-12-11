@@ -2675,7 +2675,7 @@ implementation
         if not get_symlist_sym_offset(symlist,tosym,offset) then
           exit;
 
-        if (tosym.owner.symtabletype<>objectsymtable) then
+        if not (tosym.owner.symtabletype in [objectsymtable,recordsymtable]) then
           begin
             if (tosym.typ=fieldvarsym) then
               internalerror(2009031404);

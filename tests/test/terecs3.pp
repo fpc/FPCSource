@@ -23,5 +23,11 @@ begin
     halt(5);
   if F.F5 <> 6 then
     halt(6);
+  F.P3 := 7;
+  if F.P3 <> 7 then
+    halt(7);
+  F.P5 := 8;
+  if F.P5 <> 8 then
+    halt(8);
   WriteLn('ok');
 end.

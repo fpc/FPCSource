@@ -36,6 +36,7 @@ interface
     function class_destructor_head:tprocdef;
     function constructor_head:tprocdef;
     function destructor_head:tprocdef;
+    procedure struct_property_dec(is_classproperty:boolean);
 
 implementation
 
@@ -111,22 +112,22 @@ implementation
       end;
 
 
-    procedure property_dec(is_classproperty:boolean);
+    procedure struct_property_dec(is_classproperty:boolean);
       var
         p : tpropertysym;
       begin
-        { check for a class }
-        if not((is_class_or_interface_or_dispinterface(current_objectdef)) or
-           (not(m_tp7 in current_settings.modeswitches) and (is_object(current_objectdef)))) then
+        { check for a class or record }
+        if not((is_class_or_interface_or_dispinterface(current_structdef) or is_record(current_structdef)) or
+           (not(m_tp7 in current_settings.modeswitches) and (is_object(current_structdef)))) then
           Message(parser_e_syntax_error);
         consume(_PROPERTY);
-        p:=read_property_dec(is_classproperty, current_objectdef);
+        p:=read_property_dec(is_classproperty,current_structdef);
         consume(_SEMICOLON);
         if try_to_consume(_DEFAULT) then
           begin
-            if oo_has_default_property in current_objectdef.objectoptions then
+            if oo_has_default_property in current_structdef.objectoptions then
               message(parser_e_only_one_default_property);
-            include(current_objectdef.objectoptions,oo_has_default_property);
+            include(current_structdef.objectoptions,oo_has_default_property);
             include(p.propoptions,ppo_defaultproperty);
             if not(ppo_hasparameters in p.propoptions) then
               message(parser_e_property_need_paras);
@@ -144,11 +145,11 @@ implementation
             begin
               if pattern='CURRENT' then
               begin
-                if oo_has_enumerator_current in current_objectdef.objectoptions then
+                if oo_has_enumerator_current in current_structdef.objectoptions then
                   message(parser_e_only_one_enumerator_current);
                 if not p.propaccesslist[palt_read].empty then
                 begin
-                  include(current_objectdef.objectoptions,oo_has_enumerator_current);
+                  include(current_structdef.objectoptions,oo_has_enumerator_current);
                   include(p.propoptions,ppo_enumerator_current);
                 end
                 else
@@ -764,7 +765,7 @@ implementation
               end;
             _PROPERTY :
               begin
-                property_dec(is_classdef);
+                struct_property_dec(is_classdef);
                 fields_allowed:=false;
                 is_classdef:=false;
               end;

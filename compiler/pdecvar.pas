@@ -33,7 +33,7 @@ interface
       tvar_dec_option=(vd_record,vd_object,vd_threadvar,vd_class);
       tvar_dec_options=set of tvar_dec_option;
 
-    function  read_property_dec(is_classproperty:boolean;astruct:tobjectdef):tpropertysym;
+    function  read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;
 
     procedure read_var_decls(options:Tvar_dec_options);
 
@@ -66,7 +66,7 @@ implementation
        ;
 
 
-    function read_property_dec(is_classproperty:boolean;astruct:tobjectdef):tpropertysym;
+    function read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;
 
         { convert a node tree to symlist and return the last
           symbol }
@@ -279,7 +279,7 @@ implementation
                   pt.free;
                 end
               else
-                p.dispid:=astruct.get_next_dispid;
+                p.dispid:=tobjectdef(astruct).get_next_dispid;
             end;
 
           procedure add_index_parameter(var paranr: word; p: tpropertysym; readprocdef, writeprocdef, storedprocdef: tprocvardef);
@@ -457,7 +457,10 @@ implementation
          else
            begin
               { do an property override }
-              overridden:=search_struct_member(astruct.childof,p.name);
+              if (astruct.typ=objectdef) then
+                overridden:=search_struct_member(tobjectdef(astruct).childof,p.name)
+              else
+                overridden:=nil;
               if assigned(overridden) and
                  (overridden.typ=propertysym) and
                  not(is_dispinterface(astruct)) then
@@ -585,7 +588,8 @@ implementation
          else
            parse_dispinterface(p);
 
-         if assigned(astruct) and not(is_dispinterface(astruct)) and not is_classproperty then
+         { stored is not allowed for dispinterfaces, records or class properties }
+         if assigned(astruct) and not(is_dispinterface(astruct) or is_record(astruct)) and not is_classproperty then
            begin
              { ppo_stored is default on for not overridden properties }
              if not assigned(p.overriddenpropsym) then
@@ -672,7 +676,7 @@ implementation
                 end;
               end;
            end;
-         if try_to_consume(_DEFAULT) then
+         if not is_record(astruct) and try_to_consume(_DEFAULT) then
            begin
               if not allow_default_property(p) then
                 begin
@@ -713,7 +717,7 @@ implementation
                   pt.free;
                 end;
            end
-         else if try_to_consume(_NODEFAULT) then
+         else if not is_record(astruct) and try_to_consume(_NODEFAULT) then
            begin
               p.default:=longint($80000000);
            end;
@@ -724,7 +728,7 @@ implementation
            end;
 *)
          { Parse possible "implements" keyword }
-         if try_to_consume(_IMPLEMENTS) then
+         if not is_record(astruct) and try_to_consume(_IMPLEMENTS) then
            begin
              single_type(def,false,false);
 
@@ -782,9 +786,9 @@ implementation
                  exit;
                end;
              found:=false;
-             for i:=0 to astruct.ImplementedInterfaces.Count-1 do
+             for i:=0 to tobjectdef(astruct).ImplementedInterfaces.Count-1 do
                begin
-                 ImplIntf:=TImplementedInterface(astruct.ImplementedInterfaces[i]);
+                 ImplIntf:=TImplementedInterface(tobjectdef(astruct).ImplementedInterfaces[i]);
 
                  if compare_defs(def,ImplIntf.IntfDef,nothingn)>=te_equal then
                    begin

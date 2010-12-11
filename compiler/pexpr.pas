@@ -1083,7 +1083,10 @@ implementation
                          if (sp_static in sym.symoptions) then
                            begin
                              static_name:=lower(sym.owner.name^)+'_'+sym.name;
-                             searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable);
+                             if sym.owner.defowner.typ=objectdef then
+                               searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable)
+                             else
+                               searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
                              if assigned(sym) then
                                check_hints(sym,sym.symoptions,sym.deprecatedmsg);
                              p1.free;
@@ -1134,7 +1137,10 @@ implementation
                          if (sp_static in sym.symoptions) then
                            begin
                              static_name:=lower(sym.owner.name^)+'_'+sym.name;
-                             searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable);
+                             if sym.owner.defowner.typ=objectdef then
+                               searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable)
+                             else
+                               searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
                              if assigned(sym) then
                                check_hints(sym,sym.symoptions,sym.deprecatedmsg);
                              p1.free;

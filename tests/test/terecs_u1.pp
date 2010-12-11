@@ -23,6 +23,13 @@ type
       F5: TBar;
     function Test(n: TBar): TBar;
     class function Test1(n: TBar): TBar;
+
+    procedure Set3(const Value: TBar);
+    class procedure Set5(const Value: TBar); static;
+
+    property P3: TBar read F3 write Set3;
+    class property P5: TBar read F5 write Set5;
+
     class constructor Create;
     class destructor Destroy;
   end;
@@ -47,6 +54,16 @@ end;
 class destructor TFoo.Destroy;
 begin
   WriteLn('TFoo.Destroy');
+end;
+
+procedure TFoo.Set3(const Value: TBar);
+begin
+  F3 := Value;
+end;
+
+class procedure TFoo.Set5(const Value: TBar); static;
+begin
+  F5 := Value;
 end;
 
 end.

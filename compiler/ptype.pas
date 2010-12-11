@@ -701,7 +701,7 @@ implementation
               end;
             _PROPERTY :
               begin
-                property_dec(is_classdef);
+                struct_property_dec(is_classdef);
                 fields_allowed:=false;
                 is_classdef:=false;
               end;
