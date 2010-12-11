@@ -15,10 +15,8 @@
 
 { Platform specific information }
 type
-  THandle = Pointer;
-  ULONG_PTR = PtrUInt;
+  THandle = PtrUInt;
   TThreadID = THandle;
-  SIZE_T = ULONG_PTR;
 
   { the fields of this record are os dependent  }
   { and they shouldn't be used in a program     }
@@ -30,7 +28,7 @@ type
     RecursionCount : longint;
     OwningThread : THandle;
     LockSemaphore : THandle;
-    SpinCount : ULONG_PTR;
+    SpinCount : LongWord; // PtrUInt?
   end;
 
 var

@@ -32,11 +32,11 @@
    function  RtlFreeHeap(hHeap : THandle; dwFlags : LongWord; MemoryPointer : Pointer): Boolean;
      stdcall; external ntdll name 'RtlFreeHeap';
    function RtlCreateHeap(Flags: LongWord; Base: Pointer; SizeToReserve: PtrUInt;
-     SizeToCommit: PtrUInt; Lock: PVOID; Parameters: Pointer): THandle;
+     SizeToCommit: PtrUInt; Lock: Pointer; Parameters: Pointer): THandle;
      stdcall; external ntdll name 'RtlCreateHeap';
 
 var
-  SysHeap: THandle = Nil;
+  SysHeap: THandle = 0;
 
 procedure PrepareSysHeap;
 begin
@@ -45,7 +45,7 @@ begin
     SysHeap := RtlCreateHeap(2, Nil, 65534, 65534, Nil, Nil)
   else
     // use the heap passed on startup
-    SysHeap := PPEB(CurrentPEB)^.ProcessHeap;
+    SysHeap := THandle(PSimplePEB(CurrentPEB)^.ProcessHeap);
 end;
 
 {$endif KMODE}
@@ -56,7 +56,7 @@ end;
 
 function SysOSAlloc(size: ptruint): pointer;
 begin
-  if SysHeap = Nil then
+  if SysHeap = 0 then
     PrepareSysHeap;
   SysOSAlloc := RtlAllocateHeap(SysHeap, 0, size);
 end;
@@ -66,7 +66,7 @@ end;
 procedure SysOSFree(p: pointer; size: ptruint);
 begin
   // if heap isn't set, then nothing was allocated
-  if SysHeap <> Nil then
+  if SysHeap <> 0 then
     RtlFreeHeap(SysHeap, 0, p);
 end;
 

@@ -8,18 +8,20 @@ main=rtl
 [target]
 loaders=
 #units=system objpas macpas iso7185 buildrtl lineinfo lnfodwrf
-units=system objpas buildrtl
-implicitunits=ndk ndkutils ddk
-#      ctypes strings
-#      heaptrc matrix \
-#      windows winsock winsock2 initc cmem dynlibs signals \
-#      dos crt objects messages \
-#      rtlconsts sysconst sysutils math types \
-#      strutils dateutils varutils variants typinfo fgl classes \
-#      convutils stdconvs cpu mmx charset ucomplex getopts \
-#      winevent sockets printer \
-#      video mouse keyboard fmtbcd \
-#      winsysut sharemem exeinfo fpintres
+units=system objpas iso7185 buildrtl
+implicitunits=ndk ndkutils ddk \
+      ctypes strings \
+#      heaptrc
+      matrix \
+#      initc cmem dynlibs signals \
+#      dos crt objects \
+      rtlconsts sysconst sysutils math types \
+      strutils dateutils varutils variants typinfo fgl classes \
+      convutils stdconvs $(CPU_UNITS) charset ucomplex getopts \
+#      sockets printer \
+#      video mouse keyboard
+       fmtbcd #\
+#      sharemem exeinfo fpintres
 
 # shared=$(DLLS)
 
@@ -36,7 +38,7 @@ fpcdir=../..
 target=nativent
 
 [compiler]
-includedir=$(INC) $(PROCINC) $(DDKINC)
+includedir=$(INC) $(PROCINC) $(DDKINC) $(NDKINC)
 sourcedir=$(INC) $(PROCINC) $(COMMON)
 
 
@@ -46,8 +48,19 @@ INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 DDKINC=ddk
+NDKINC=ndk
 
 UNITPREFIX=rtl
+
+CPU_UNITS=
+
+ifeq ($(ARCH),i386)
+CPU_UNITS=x86 cpu mmx
+endif
+
+ifeq ($(ARCH),x86_64)
+CPU_UNITS=x86 cpu
+endif
 
 ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
 #LOADERS=wprt0 wdllprt0 gprt0 wcygprt0
@@ -101,8 +114,8 @@ system$(PPUEXT) : system.pp $(SYSDEPS)
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 
-#macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT)
-#        $(COMPILER) $(INC)/macpas.pp $(REDIR)
+macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT)
+        $(COMPILER) $(INC)/macpas.pp $(REDIR)
 
 buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -Fi$(DDKINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
