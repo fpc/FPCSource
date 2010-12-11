@@ -2092,6 +2092,8 @@ begin
            begin
              readcommondef('Record definition',defoptions);
              writeln(space,'   Name of Record : ',getstring);
+             write  (space,'          Options : ');
+             readobjectdefoptions;
              writeln(space,'       FieldAlign : ',getbyte);
              writeln(space,'      RecordAlign : ',getbyte);
              writeln(space,'         PadAlign : ',getbyte);
@@ -2110,6 +2112,8 @@ begin
            begin
              readcommondef('Object/Class definition',defoptions);
              writeln(space,'    Name of Class : ',getstring);
+             write  (space,'          Options : ');
+             readobjectdefoptions;
              b:=getbyte;
              write  (space,'             Type : ');
              case tobjecttyp(b) of
@@ -2131,8 +2135,6 @@ begin
              writeln(space,'       Vmt offset : ',getlongint);
              write  (space,  '   Ancestor Class : ');
              readderef('');
-             write  (space,'          Options : ');
-             readobjectdefoptions;
 
              if tobjecttyp(b) in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
                begin

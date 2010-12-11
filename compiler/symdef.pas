@@ -176,6 +176,7 @@ interface
           symtable : TSymtable;
           cloneddef      : tabstractrecorddef;
           cloneddefderef : tderef;
+          objectoptions  : tobjectoptions;
           constructor create(const n:string; dt:tdeftyp);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -254,7 +255,6 @@ interface
           import_lib,
           { for Objective-C: protocols and classes can have the same name there }
           objextname     : pshortstring;
-          objectoptions  : tobjectoptions;
           { to be able to have a variable vmt position }
           { and no vmt field for objects without virtuals }
           vmtentries     : TFPList;
@@ -2564,6 +2564,7 @@ implementation
         inherited create(dt);
         objname:=stringdup(upper(n));
         objrealname:=stringdup(n);
+        objectoptions:=[];
       end;
 
     constructor tabstractrecorddef.ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
@@ -2571,12 +2572,14 @@ implementation
         inherited ppuload(dt,ppufile);
         objrealname:=stringdup(ppufile.getstring);
         objname:=stringdup(upper(objrealname^));
+        ppufile.getsmallset(objectoptions);
       end;
 
     procedure tabstractrecorddef.ppuwrite(ppufile: tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
         ppufile.putstring(objrealname^);
+        ppufile.putsmallset(objectoptions);
       end;
 
     destructor tabstractrecorddef.destroy;
@@ -3970,7 +3973,6 @@ implementation
         inherited create(n,objectdef);
         fcurrent_dispid:=0;
         objecttype:=ot;
-        objectoptions:=[];
         childof:=nil;
         symtable:=tObjectSymtable.create(self,n,current_settings.packrecords);
         { create space for vmt !! }
@@ -4012,7 +4014,6 @@ implementation
          tObjectSymtable(symtable).recordalignment:=ppufile.getbyte;
          vmt_offset:=ppufile.getlongint;
          ppufile.getderef(childofderef);
-         ppufile.getsmallset(objectoptions);
 
          { load guid }
          iidstr:=nil;
@@ -4176,7 +4177,6 @@ implementation
          ppufile.putbyte(tObjectSymtable(symtable).recordalignment);
          ppufile.putlongint(vmt_offset);
          ppufile.putderef(childofderef);
-         ppufile.putsmallset(objectoptions);
          if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
            begin
               ppufile.putguid(iidguid^);
