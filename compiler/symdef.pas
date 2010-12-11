@@ -168,6 +168,7 @@ interface
           function  GetTypeName:string;override;
        end;
 
+       tprocdef = class;
        { tabstractrecorddef }
 
        tabstractrecorddef= class(tstoreddef)
@@ -181,6 +182,7 @@ interface
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           destructor destroy; override;
+          function find_procdef_bytype(pt:tproctypeoption): tprocdef;
           function  GetSymtable(t:tGetSymtable):TSymtable;override;
           function is_packed:boolean;
           function RttiName: string;
@@ -204,7 +206,6 @@ interface
           function  needs_inittable : boolean;override;
        end;
 
-       tprocdef = class;
        tobjectdef = class;
 
        { TImplementedInterface }
@@ -306,7 +307,6 @@ interface
           procedure check_forwards;
           procedure insertvmt;
           procedure set_parent(c : tobjectdef);
-          function find_procdef_bytype(pt:tproctypeoption): tprocdef;
           function find_destructor: tprocdef;
           function implements_any_interfaces: boolean;
           { dispinterface support }
@@ -2589,6 +2589,24 @@ implementation
         inherited destroy;
       end;
 
+    function tabstractrecorddef.find_procdef_bytype(pt:tproctypeoption): tprocdef;
+      var
+        i: longint;
+        sym: tsym;
+      begin
+        for i:=0 to symtable.SymList.Count-1 do
+          begin
+            sym:=tsym(symtable.SymList[i]);
+            if sym.typ=procsym then
+              begin
+                result:=tprocsym(sym).find_procdef_bytype(pt);
+                if assigned(result) then
+                  exit;
+              end;
+          end;
+          result:=nil;
+      end;
+
     function tabstractrecorddef.GetSymtable(t:tGetSymtable):TSymtable;
       begin
          if t=gs_record then
@@ -4526,24 +4544,6 @@ implementation
              hp:=hp.childof;
           end;
         is_related:=false;
-     end;
-
-   function tobjectdef.find_procdef_bytype(pt:tproctypeoption): tprocdef;
-     var
-       i: longint;
-       sym: tsym;
-     begin
-       for i:=0 to symtable.SymList.Count-1 do
-         begin
-           sym:=tsym(symtable.SymList[i]);
-           if sym.typ=procsym then
-             begin
-               result:=tprocsym(sym).find_procdef_bytype(pt);
-               if assigned(result) then
-                 exit;
-             end;
-         end;
-         result:=nil;
      end;
 
    function tobjectdef.find_destructor: tprocdef;

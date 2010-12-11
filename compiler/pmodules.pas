@@ -376,13 +376,13 @@ implementation
         ResourceStringTables.free;
       end;
 
-    procedure AddToClasInits(p:TObject;arg:pointer);
+    procedure AddToStructInits(p:TObject;arg:pointer);
       var
-        ClassList: TFPList absolute arg;
+        StructList: TFPList absolute arg;
       begin
-        if (tdef(p).typ=objectdef) and
-           ([oo_has_class_constructor,oo_has_class_destructor] * tobjectdef(p).objectoptions <> []) then
-          ClassList.Add(p);
+        if (tdef(p).typ in [objectdef,recorddef]) and
+           ([oo_has_class_constructor,oo_has_class_destructor] * tabstractrecorddef(p).objectoptions <> []) then
+          StructList.Add(p);
       end;
 
     procedure InsertInitFinalTable;
@@ -391,32 +391,32 @@ implementation
         unitinits : TAsmList;
         count : longint;
 
-        procedure write_class_inits(u: tmodule);
+        procedure write_struct_inits(u: tmodule);
           var
             i: integer;
-            classlist: TFPList;
+            structlist: TFPList;
             pd: tprocdef;
           begin
-            classlist := TFPList.Create;
+            structlist := TFPList.Create;
             if assigned(u.globalsymtable) then
-              u.globalsymtable.DefList.ForEachCall(@AddToClasInits,classlist);
-            u.localsymtable.DefList.ForEachCall(@AddToClasInits,classlist);
-            { write classes }
-            for i := 0 to classlist.Count - 1 do
+              u.globalsymtable.DefList.ForEachCall(@AddToStructInits,structlist);
+            u.localsymtable.DefList.ForEachCall(@AddToStructInits,structlist);
+            { write structures }
+            for i := 0 to structlist.Count - 1 do
             begin
-              pd := tobjectdef(classlist[i]).find_procdef_bytype(potype_class_constructor);
+              pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_constructor);
               if assigned(pd) then
                 unitinits.concat(Tai_const.Createname(pd.mangledname,0))
               else
                 unitinits.concat(Tai_const.Create_pint(0));
-              pd := tobjectdef(classlist[i]).find_procdef_bytype(potype_class_destructor);
+              pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_destructor);
               if assigned(pd) then
                 unitinits.concat(Tai_const.Createname(pd.mangledname,0))
               else
                 unitinits.concat(Tai_const.Create_pint(0));
               inc(count);
             end;
-            classlist.free;
+            structlist.free;
           end;
 
       begin
@@ -427,7 +427,7 @@ implementation
          begin
            { insert class constructors/destructors of the unit }
            if (hp.u.flags and uf_classinits) <> 0 then
-             write_class_inits(hp.u);
+             write_struct_inits(hp.u);
            { call the unit init code and make it external }
            if (hp.u.flags and (uf_init or uf_finalize))<>0 then
              begin
@@ -445,7 +445,7 @@ implementation
          end;
         { insert class constructors/destructor of the program }
         if (current_module.flags and uf_classinits) <> 0 then
-          write_class_inits(current_module);
+          write_struct_inits(current_module);
         { Insert initialization/finalization of the program }
         if (current_module.flags and (uf_init or uf_finalize))<>0 then
           begin

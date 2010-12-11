@@ -368,7 +368,7 @@ scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN dire
 #
 # Parser
 #
-# 03298 is the last used one
+# 03299 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1342,8 +1342,10 @@ parser_f_no_generic_inside_generic=03297_F_Declaration of generic class inside a
 % Since generics are implemented by recording tokens, it is not possible to
 % have declaration of generic class inside another generic class.
 % \end{description}
-parser_e_no_record_published=03298_E_Record types cannot have published sections.
-% Published sections can be used only inside classes
+parser_e_no_record_published=03298_E_Record types cannot have published sections
+% Published sections can be used only inside classes.
+parser_e_no_destructor_in_records=03299_E_Destructors aren't allowed in records
+% Destructor declarations aren't allowed in records.
 #
 # Type Checking
 #
