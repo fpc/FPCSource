@@ -566,6 +566,9 @@ function CharLengthPChar(const Str: PChar): PtrInt;
   begin
     result:=0;
     s:=str;
+{$ifndef beos}
+    fillchar(mbstate,sizeof(mbstate),0);
+{$endif not beos}
     repeat
 {$ifdef beos}
       nextlen:=ptrint(mblen(str,MB_CUR_MAX));
@@ -578,6 +581,26 @@ function CharLengthPChar(const Str: PChar): PtrInt;
       inc(result,nextlen);
       inc(s,nextlen);
     until (nextlen=0);
+  end;
+
+
+function CodePointLength(const Str: PChar; maxlookahead: ptrint): PtrInt;
+  var
+    nextlen: ptrint;
+{$ifndef beos}
+    mbstate: mbstate_t;
+{$endif not beos}
+  begin
+{$ifdef beos}
+    result:=ptrint(mblen(str,maxlookahead));
+{$else beos}
+    fillchar(mbstate,sizeof(mbstate),0);
+    result:=ptrint(mbrlen(str,maxlookahead,@mbstate));
+    { mbrlen can also return -2 for "incomplete but potially valid character
+      and data has been processed" }
+    if result<0 then
+      result:=-1;
+{$endif beos}
   end;
 
 
@@ -758,6 +781,7 @@ begin
       CompareTextWideStringProc:=@CompareTextWideString;
 
       CharLengthPCharProc:=@CharLengthPChar;
+      CodePointLengthProc:=@CodePointLength;
 
       UpperAnsiStringProc:=@UpperAnsiString;
       LowerAnsiStringProc:=@LowerAnsiString;
