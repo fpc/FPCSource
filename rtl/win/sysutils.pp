@@ -1061,7 +1061,6 @@ Procedure LoadVersionInfo;
 Var
    versioninfo : TOSVERSIONINFO;
 begin
-  kernel32dll:=0;
   GetDiskFreeSpaceEx:=nil;
   versioninfo.dwOSVersionInfoSize:=sizeof(versioninfo);
   GetVersionEx(versioninfo);
@@ -1071,14 +1070,9 @@ begin
   Win32BuildNumber:=versionInfo.dwBuildNumber;
   Move (versioninfo.szCSDVersion ,Win32CSDVersion[1],128);
   win32CSDVersion[0]:=chr(strlen(pchar(@versioninfo.szCSDVersion)));
-  if ((versioninfo.dwPlatformId=VER_PLATFORM_WIN32_WINDOWS) and
-    (versioninfo.dwBuildNUmber>=1000)) or
-    (versioninfo.dwPlatformId=VER_PLATFORM_WIN32_NT) then
-    begin
-       kernel32dll:=LoadLibrary('kernel32');
-       if kernel32dll<>0 then
-         GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
-    end;
+  kernel32dll:=GetModuleHandle('kernel32');
+  if kernel32dll<>0 then
+    GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
 end;
 
 Const
@@ -1393,8 +1387,6 @@ Initialization
   OnBeep:=@SysBeep;
 Finalization
   DoneExceptions;
-  if kernel32dll<>0 then
-   FreeLibrary(kernel32dll);
- if CFGDLLHandle<>0 then
+  if CFGDLLHandle<>0 then
    FreeLibrary(CFGDllHandle);
 end.
