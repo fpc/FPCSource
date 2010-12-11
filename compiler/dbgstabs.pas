@@ -783,7 +783,7 @@ implementation
         else
           do_write_object(list,def);
         { VMT symbol }
-        if (oo_has_vmt in tobjectdef(def).objectoptions) and
+        if (oo_has_vmt in def.objectoptions) and
            assigned(def.owner) and
            assigned(def.owner.name) then
           list.concat(Tai_stab.create(stab_stabs,strpnew('"vmt_'+GetSymTableName(def.owner)+tobjectdef(def).objname^+':S'+

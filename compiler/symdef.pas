@@ -4979,7 +4979,7 @@ implementation
             else
               { all checks already done }
               exit;
-            if not((pd.struct.typ=objectdef)and(oo_is_external in tobjectdef(pd.struct).objectoptions)) then
+            if not(oo_is_external in pd.struct.objectoptions) then
               begin
                 if (po_varargs in pd.procoptions) then
                   MessagePos(pd.fileinfo,parser_e_varargs_need_cdecl_and_external)
@@ -5074,7 +5074,7 @@ implementation
         if (def.typ=procdef) then
           begin
             pd.setmangledname(target_info.Cprefix+pd.cplusplusmangledname);
-            if (pd.struct.typ=objectdef) and (oo_is_external in tobjectdef(pd.struct).objectoptions) then
+            if (oo_is_external in pd.struct.objectoptions) then
               begin
                 { copied from psub.read_proc }
                 if assigned(tobjectdef(pd.struct).import_lib) then

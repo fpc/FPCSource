@@ -1478,8 +1478,7 @@ begin
   if pd.typ<>procdef then
     internalerror(200304269);
   if assigned(tprocdef(pd).struct) and
-    (tprocdef(pd).struct.typ=objectdef) and
-    (oo_is_sealed in tobjectdef(tprocdef(pd).struct).objectoptions) then
+    (oo_is_sealed in tprocdef(pd).struct.objectoptions) then
     Message(parser_e_sealed_class_cannot_have_abstract_methods)
   else
   if (po_virtualmethod in pd.procoptions) then
@@ -1508,13 +1507,13 @@ begin
   begin
     if pattern='MOVENEXT' then
     begin
-      if oo_has_enumerator_movenext in tobjectdef(tprocdef(pd).struct).objectoptions then
+      if oo_has_enumerator_movenext in tprocdef(pd).struct.objectoptions then
         message(parser_e_only_one_enumerator_movenext);
       pd.calcparas;
       if (pd.proctypeoption = potype_function) and is_boolean(pd.returndef) and
          (pd.minparacount = 0) then
       begin
-        include(tobjectdef(tprocdef(pd).struct).objectoptions, oo_has_enumerator_movenext);
+        include(tprocdef(pd).struct.objectoptions, oo_has_enumerator_movenext);
         include(pd.procoptions,po_enumerator_movenext);
       end
       else

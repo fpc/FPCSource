@@ -2446,7 +2446,7 @@ implementation
         srsymtable : tsymtable;
       begin
         { in case this is a formal objcclass, first find the real definition }
-        if (pd.typ=objectdef) and (oo_is_formal in tobjectdef(pd).objectoptions) then
+        if (oo_is_formal in pd.objectoptions) then
           pd:=find_real_objcclass_definition(tobjectdef(pd),true);
         hashedid.id:=s;
         orgpd:=pd;

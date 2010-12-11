@@ -1672,7 +1672,7 @@ implementation
               if (procdefinition.typ<>procdef) then
                 internalerror(200305062);
               if (tprocdef(procdefinition).struct.typ=objectdef) and
-                 (oo_has_vmt in tobjectdef(tprocdef(procdefinition).struct).objectoptions) then
+                 (oo_has_vmt in tprocdef(procdefinition).struct.objectoptions) then
                 begin
                   { we only need the vmt, loading self is not required and there is no
                     need to check for typen, because that will always get the
