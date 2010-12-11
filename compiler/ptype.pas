@@ -732,6 +732,12 @@ implementation
                 if assigned(pd) then
                   begin
                     parse_record_proc_directives(pd);
+
+                    { since records have no inheritance don't allow non static
+                      class methods. delphi do so. }
+                    if is_classdef and not (po_staticmethod in pd.procoptions) then
+                      MessagePos(pd.fileinfo, parser_e_class_methods_only_static_in_records);
+
                     handle_calling_convention(pd);
 
                     { add definition to procsym }

@@ -22,7 +22,7 @@ type
     class var
       F5: TBar;
     function Test(n: TBar): TBar;
-    class function Test1(n: TBar): TBar;
+    class function Test1(n: TBar): TBar; static;
 
     procedure Set3(const Value: TBar);
     class procedure Set5(const Value: TBar); static;
