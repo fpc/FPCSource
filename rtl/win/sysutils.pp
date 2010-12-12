@@ -224,11 +224,8 @@ const
                FILE_SHARE_READ,
                FILE_SHARE_WRITE,
                FILE_SHARE_READ or FILE_SHARE_WRITE);
-Var
-  FN : string;
 begin
-  FN:=FileName+#0;
-  result := CreateFile(@FN[1], dword(AccessMode[Mode and 3]),
+  result := CreateFile(PChar(FileName), dword(AccessMode[Mode and 3]),
                        dword(ShareMode[(Mode and $F0) shr 4]), nil, OPEN_EXISTING,
                        FILE_ATTRIBUTE_NORMAL, 0);
   //if fail api return feInvalidHandle (INVALIDE_HANDLE=feInvalidHandle=-1)
@@ -236,11 +233,8 @@ end;
 
 
 Function FileCreate (Const FileName : String) : THandle;
-Var
-  FN : string;
 begin
-  FN:=FileName+#0;
-  Result := CreateFile(@FN[1], GENERIC_READ or GENERIC_WRITE,
+  Result := CreateFile(PChar(FileName), GENERIC_READ or GENERIC_WRITE,
                        0, nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 end;
 
