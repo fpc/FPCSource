@@ -832,7 +832,13 @@ implementation
          symtablestack.push(recst);
          { parse record }
          consume(_RECORD);
-         parse_record_members;
+         if m_extended_records in current_settings.modeswitches then
+           parse_record_members
+         else
+           begin
+             read_record_fields([vd_record]);
+             consume(_END);
+           end;
          { make the record size aligned }
          recst.addalignmentpadding;
          { restore symtable stack }

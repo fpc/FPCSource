@@ -1411,7 +1411,8 @@ implementation
          sc:=TFPObjectList.create(false);
          recstlist:=TFPObjectList.create(false);;
          while (token=_ID) and
-            not(([vd_object,vd_record]*options<>[]) and
+            not(((vd_object in options) or
+                 ((vd_record in options) and (m_extended_records in current_settings.modeswitches))) and
                 (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT])) do
            begin
              visibility:=symtablestack.top.currentvisibility;
