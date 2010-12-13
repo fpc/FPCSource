@@ -764,11 +764,7 @@ implementation
                 if is_classdef then
                   pd:=class_constructor_head
                 else
-                  begin
-                    pd:=constructor_head;
-                    { raise internal error for now - constructor is not implemented yet }
-                    internalerror(201012110);
-                  end;
+                  pd:=constructor_head;
                 parse_record_proc_directives(pd);
                 handle_calling_convention(pd);
 

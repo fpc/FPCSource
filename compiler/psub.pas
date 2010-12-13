@@ -345,16 +345,18 @@ implementation
                           ccallnode.createintern('fpc_help_constructor',para)));
                     end
                 else
-                  internalerror(200305103);
+                  if not is_record(current_structdef) then
+                    internalerror(200305103);
                 { if self=nil then exit
                   calling fail instead of exit is useless because
                   there is nothing to dispose (PFV) }
-                addstatement(newstatement,cifnode.create(
-                    caddnode.create(equaln,
-                        load_self_pointer_node,
-                        cnilnode.create),
-                    cexitnode.create(nil),
-                    nil));
+                if is_class_or_object(current_structdef) then
+                  addstatement(newstatement,cifnode.create(
+                      caddnode.create(equaln,
+                          load_self_pointer_node,
+                          cnilnode.create),
+                      cexitnode.create(nil),
+                      nil));
               end;
 
             { maybe call BeforeDestruction for classes }
