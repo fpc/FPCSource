@@ -1642,7 +1642,6 @@ packages/fcl-base/examples/base64decodingtestcase.pas svneol=native#text/plain
 packages/fcl-base/examples/cachetest.pp svneol=native#text/plain
 packages/fcl-base/examples/cfgtest.pp svneol=native#text/plain
 packages/fcl-base/examples/crittest.pp svneol=native#text/plain
-packages/fcl-base/examples/daemon.pp svneol=native#text/plain
 packages/fcl-base/examples/daemon.txt svneol=native#text/plain
 packages/fcl-base/examples/dbugsrv.pp svneol=native#text/plain
 packages/fcl-base/examples/debugtest.pp svneol=native#text/plain
@@ -1978,6 +1977,9 @@ packages/fcl-db/tests/testsqlscript.pas svneol=native#text/plain
 packages/fcl-db/tests/toolsunit.pas -text
 packages/fcl-extra/Makefile svneol=native#text/plain
 packages/fcl-extra/Makefile.fpc svneol=native#text/plain
+packages/fcl-extra/examples/Makefile svneol=native#text/plain
+packages/fcl-extra/examples/Makefile.fpc svneol=native#text/plain
+packages/fcl-extra/examples/daemon.pp svneol=native#text/plain
 packages/fcl-extra/fpmake.pp svneol=native#text/pascal
 packages/fcl-extra/src/daemonapp.pp svneol=native#text/plain
 packages/fcl-extra/src/unix/daemonapp.inc svneol=native#text/plain
