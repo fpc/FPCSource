@@ -265,7 +265,7 @@ type
       CallDesc: PCallDesc; Params: Pointer); cdecl;
 
 Const
-  CMaxNumberOfCustomVarTypes = $06FF;
+  CMaxNumberOfCustomVarTypes = $0EFF;
   CMinVarType = $0100;
   CMaxVarType = CMinVarType + CMaxNumberOfCustomVarTypes;
   CIncVarType = $000F;
@@ -367,6 +367,7 @@ uses
 var
   customvarianttypes    : array of TCustomVariantType;
   customvarianttypelock : trtlcriticalsection;
+  customvariantcurrtype : LongInt;
 
 const
   { all variants for which vType and varComplexType = 0 do not require
@@ -3548,13 +3549,31 @@ function FindCustomVariantType(const aVarType: TVarType; out CustomVariantType: 
   end;
 
 
-{$warnings off}
 function FindCustomVariantType(const TypeName: string;  out CustomVariantType: TCustomVariantType): Boolean; overload;
-
-begin
-  NotSupported('FindCustomVariantType');
-end;
-{$warnings on}
+  var
+    i: Integer;
+    tmp: TCustomVariantType;
+    ShortTypeName: shortstring;
+  begin
+    ShortTypeName:=TypeName;  // avoid conversion in the loop
+    result:=False;
+    EnterCriticalSection(customvarianttypelock);
+    try
+      for i:=low(customvarianttypes) to high(customvarianttypes) do
+        begin
+          tmp:=customvarianttypes[i];
+          result:=Assigned(tmp) and (tmp<>InvalidCustomVariantType) and
+            tmp.ClassNameIs(ShortTypeName);
+          if result then
+            begin
+              CustomVariantType:=tmp;
+              Exit;
+            end;
+        end;
+    finally
+      LeaveCriticalSection(customvarianttypelock);
+    end;
+  end;
 
 function Unassigned: Variant; // Unassigned standard constant
 begin
@@ -3569,30 +3588,37 @@ function Null: Variant;       // Null standard constant
     TVarData(Result).vType := varNull;
   end;
 
+procedure VarDispInvokeError;
+  begin
+    raise EVariantDispatchError(SDispatchError);
+  end;
 
 { ---------------------------------------------------------------------
     TCustomVariantType Class.
   ---------------------------------------------------------------------}
 
-{$warnings off}
+{ All TCustomVariantType descendants are singletons, they ignore automatic refcounting. }
 function TCustomVariantType.QueryInterface(const IID: TGUID; out Obj): HResult;  stdcall;
   begin
-    NotSupported('TCustomVariantType.QueryInterface');
+    if GetInterface(IID, obj) then
+      result := S_OK
+    else
+      result := E_NOINTERFACE;
   end;
 
 
 function TCustomVariantType._AddRef: Integer; stdcall;
   begin
-    NotSupported('TCustomVariantType._AddRef');
+    result := -1;
   end;
 
 
 function TCustomVariantType._Release: Integer; stdcall;
   begin
-    NotSupported('TCustomVariantType._Release');
+    result := -1;
   end;
 
-
+{$warnings off}
 procedure TCustomVariantType.SimplisticClear(var V: TVarData);
   begin
     NotSupported('TCustomVariantType.SimplisticClear');
@@ -3607,20 +3633,19 @@ end;
 
 procedure TCustomVariantType.RaiseInvalidOp;
 begin
-  NotSupported('TCustomVariantType.RaiseInvalidOp');
+  VarInvalidOp;
 end;
 
 
 procedure TCustomVariantType.RaiseCastError;
 begin
-  NotSupported('TCustomVariantType.RaiseCastError');
+  VarCastError;
 end;
 
 
 procedure TCustomVariantType.RaiseDispError;
-
 begin
-  NotSupported('TCustomVariantType.RaiseDispError');
+  VarDispInvokeError;
 end;
 
 
@@ -3649,7 +3674,7 @@ end;
 procedure TCustomVariantType.DispInvoke(Dest: PVarData; const Source: TVarData; CallDesc: PCallDesc; Params: Pointer);
 
 begin
-  NotSupported('TCustomVariantType.DispInvoke');
+  RaiseDispError;
 end;
 
 
@@ -3788,24 +3813,53 @@ begin
 end;
 
 
-constructor TCustomVariantType.Create;
+procedure RegisterCustomVariantType(obj: TCustomVariantType; RequestedVarType: TVarType;
+  UseFirstAvailable: Boolean);
+var
+  index,L: Integer;
 begin
-  inherited Create;
   EnterCriticalSection(customvarianttypelock);
   try
-    SetLength(customvarianttypes,Length(customvarianttypes)+1);
-    customvarianttypes[High(customvarianttypes)]:=self;
-    FVarType:=CMinVarType+High(customvarianttypes);
+    L:=Length(customvarianttypes);
+    if UseFirstAvailable then
+    begin
+      repeat
+        inc(customvariantcurrtype);
+        if customvariantcurrtype>=CMaxVarType then
+          raise EVariantError.Create(SVarTypeTooManyCustom);
+      until ((customvariantcurrtype-CMinVarType)>=L) or
+        (customvarianttypes[customvariantcurrtype-CMinVarType]=nil);
+      RequestedVarType:=customvariantcurrtype;
+    end
+    else if (RequestedVarType<CFirstUserType) or (RequestedVarType>CMaxVarType) then
+      raise EVariantError.CreateFmt(SVarTypeOutOfRangeWithPrefix, ['$', RequestedVarType]);
+
+    index:=RequestedVarType-CMinVarType;
+    if index>=L then
+      SetLength(customvarianttypes,L+1);
+    if Assigned(customvarianttypes[index]) then
+    begin
+      if customvarianttypes[index]=InvalidCustomVariantType then
+        raise EVariantError.CreateFmt(SVarTypeNotUsableWithPrefix, ['$', RequestedVarType])
+      else
+        raise EVariantError.CreateFmt(SVarTypeAlreadyUsedWithPrefix,
+          ['$', RequestedVarType, customvarianttypes[index].ClassName]);
+    end;
+    customvarianttypes[index]:=obj;
+    obj.FVarType:=RequestedVarType;
   finally
     LeaveCriticalSection(customvarianttypelock);
   end;
 end;
 
+constructor TCustomVariantType.Create;
+begin
+  RegisterCustomVariantType(Self,0,True);
+end;
 
 constructor TCustomVariantType.Create(RequestedVarType: TVarType);
-
 begin
-  FVarType:=RequestedVarType;
+  RegisterCustomVariantType(Self,RequestedVarType,False);
 end;
 
 
@@ -3889,7 +3943,6 @@ end;
     TInvokeableVariantType implementation
   ---------------------------------------------------------------------}
 
-{$warnings off}
 procedure TInvokeableVariantType.DispInvoke(Dest: PVarData; const Source: TVarData; CallDesc: PCallDesc; Params: Pointer);
 
 begin
@@ -3899,27 +3952,30 @@ end;
 function TInvokeableVariantType.DoFunction(var Dest: TVarData; const V: TVarData; const Name: string; const Arguments: TVarDataArray): Boolean;
 
 begin
-  NotSupported('TInvokeableVariantType.DoFunction');
+  result := False;
 end;
 
 function TInvokeableVariantType.DoProcedure(const V: TVarData; const Name: string; const Arguments: TVarDataArray): Boolean;
 begin
-  NotSupported('TInvokeableVariantType.DoProcedure');
+  result := False
 end;
 
 
 function TInvokeableVariantType.GetProperty(var Dest: TVarData; const V: TVarData; const Name: string): Boolean;
   begin
-    NotSupported('TInvokeableVariantType.GetProperty');
+    result := False;
   end;
 
 
 function TInvokeableVariantType.SetProperty(const V: TVarData; const Name: string; const Value: TVarData): Boolean;
   begin
-    NotSupported('TInvokeableVariantType.SetProperty');
+    result := False;
   end;
-{$warnings on}
 
+
+{ ---------------------------------------------------------------------
+    TPublishableVariantType implementation
+  ---------------------------------------------------------------------}
 
 function TPublishableVariantType.GetProperty(var Dest: TVarData; const V: TVarData; const Name: string): Boolean;
   begin
@@ -4424,6 +4480,8 @@ var
 
 Initialization
   InitCriticalSection(customvarianttypelock);
+  // start with one-less value, so first increment yields CFirstUserType
+  customvariantcurrtype:=CFirstUserType-1;
   SetSysVariantManager;
   SetClearVarToEmptyParam(TVarData(EmptyParam));
   VarClearProc:=@DoVarClear;
