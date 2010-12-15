@@ -176,6 +176,12 @@ Implementation
                  ((oper.opr.typ=OPR_LOCAL) and (oper.opr.localsym.localloc.loc<>LOC_REGISTER)) then
                 message(asmr_e_cannot_index_relative_var);
               oper.opr.ref.base:=actasmregister;
+{$ifdef x86_64}
+              { non-GOT based RIP-relative accesses are also position-independent }
+              if (oper.opr.ref.base=NR_RIP) and
+                 (oper.opr.ref.refaddr<>addr_pic) then
+                oper.opr.ref.refaddr:=addr_pic_no_got;
+{$endif x86_64}
               Consume(AS_REGISTER);
               { can either be a register or a right parenthesis }
               { (reg)        }

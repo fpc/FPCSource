@@ -230,7 +230,7 @@ begin
       if (cs_create_pic in current_settings.moduleswitches) and
          assigned(opr.ref.symbol) and
          not assigned(opr.ref.relsymbol) and
-         (opr.ref.refaddr<>addr_pic) then
+         not(opr.ref.refaddr in [addr_pic,addr_pic_no_got]) then
         begin
           if (opr.ref.symbol.name <> '_GLOBAL_OFFSET_TABLE_') then
             begin 
