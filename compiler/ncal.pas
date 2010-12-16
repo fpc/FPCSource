@@ -1652,10 +1652,6 @@ implementation
           { constructors }
           if (procdefinition.proctypeoption=potype_constructor) then
             begin
-              { for records self in constructor maps to result }
-              if (tprocdef(procdefinition).struct.typ=recorddef) then
-                selftree:=funcretnode.getcopy
-              else
               { push 0 as self when allocation is needed }
               if (methodpointer.resultdef.typ=classrefdef) or
                  (cnf_new_call in callnodeflags) then

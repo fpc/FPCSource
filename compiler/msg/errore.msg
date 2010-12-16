@@ -368,7 +368,7 @@ scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN dire
 #
 # Parser
 #
-# 03299 is the last used one
+# 03301 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1348,6 +1348,8 @@ parser_e_no_destructor_in_records=03299_E_Destructors aren't allowed in records
 parser_e_class_methods_only_static_in_records=03300_E_Class methods must be static in records
 % Class methods declarations aren't allowed in records without static modifier.
 % Records have no inheritance and therefore non static class methods have no sence for them.
+parser_e_no_constructor_in_records=03301_E_Constructors aren't allowed in records
+% Constructor declarations aren't allowed in records.
 #
 # Type Checking
 #

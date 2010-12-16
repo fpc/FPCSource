@@ -314,10 +314,7 @@ implementation
                       vsp:=vs_var;
                     hdef:=tprocdef(pd).struct;
                   end;
-                if is_record(tprocdef(pd).struct) and (pd.proctypeoption=potype_constructor) then
-                  vs:=tparavarsym.create('$self',paranr_self,vs_value,hdef,[vo_is_self,vo_is_hidden_para,vo_is_funcret])
-                else
-                  vs:=tparavarsym.create('$self',paranr_self,vsp,hdef,[vo_is_self,vo_is_hidden_para]);
+                vs:=tparavarsym.create('$self',paranr_self,vsp,hdef,[vo_is_self,vo_is_hidden_para]);
                 pd.parast.insert(vs);
 
                 current_tokenpos:=storepos;
