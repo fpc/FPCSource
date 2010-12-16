@@ -29,5 +29,8 @@ begin
   F.P5 := 8;
   if F.P5 <> 8 then
     halt(8);
+  // test Self
+  F.Test2;
+  F.Test3;
   WriteLn('ok');
 end.

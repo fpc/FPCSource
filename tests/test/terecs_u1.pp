@@ -32,7 +32,12 @@ type
 
     class constructor Create;
     class destructor Destroy;
+
+    procedure Test2;
+    procedure Test3;
   end;
+
+procedure Test4(AFoo: TFoo);
 
 implementation
 
@@ -64,6 +69,27 @@ end;
 class procedure TFoo.Set5(const Value: TBar); static;
 begin
   F5 := Value;
+end;
+
+procedure TFoo.Test2;
+begin
+  if Self.C <> 1 then
+    halt(50);
+  if Self.F3 <> 7 then
+    halt(51);
+end;
+
+procedure TFoo.Test3;
+begin
+  Test4(Self);
+end;
+
+procedure Test4(AFoo: TFoo);
+begin
+  if AFoo.C <> 1 then
+    halt(100);
+  if AFoo.P3 <> 7 then
+    halt(101);
 end;
 
 end.
