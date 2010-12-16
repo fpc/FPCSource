@@ -1,5 +1,5 @@
 { %NORUN }
-{ %SKIPTARGET=macos }
+{ %SKIPTARGET=macos,go32v2 }
 
 {$ifdef darwin}
 {$PIC+}

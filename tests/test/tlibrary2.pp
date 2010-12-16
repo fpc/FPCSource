@@ -1,3 +1,4 @@
+{ %skiptarget=go32v2 }
 { %NEEDLIBRARY }
 
 { Test program to test linking to fpc library }
