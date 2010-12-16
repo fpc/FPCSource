@@ -527,9 +527,9 @@ implementation
                   if assigned(tprocdef(def).localst) then
                     write_symtable_procdefs(list,tprocdef(def).localst);
                 end;
-              objectdef :
+              objectdef,recorddef :
                 begin
-                  write_symtable_procdefs(list,tobjectdef(def).symtable);
+                  write_symtable_procdefs(list,tabstractrecorddef(def).symtable);
                 end;
             end;
           end;

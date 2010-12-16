@@ -1109,7 +1109,7 @@ implementation
           RType := 'f';
         if assigned(def.owner) then
           begin
-            if (def.owner.symtabletype = objecTSymtable) then
+            if (def.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
               obj := GetSymTableName(def.owner)+'__'+GetSymName(def.procsym);
             if not(cs_gdb_valgrind in current_settings.globalswitches) and
                (def.owner.symtabletype=localsymtable) and
@@ -1197,7 +1197,7 @@ implementation
         ss : ansistring;
       begin
         ss:='';
-        if (sym.owner.symtabletype=objecTSymtable) and
+        if (sym.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
            (sp_static in sym.symoptions) then
           ss:=sym_stabstr_evaluate(sym,'"${ownername}__${name}:S$1",${N_LCSYM},0,${line},${mangledname}',
               [def_stab_number(sym.vardef)]);
