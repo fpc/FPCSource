@@ -558,7 +558,7 @@ BEGIN
        Do_DiskData:=int64(rec.TotalAllocUnits)*rec.SecPerClus*rec.BytePerSec;
     end
    else
-    Do_DiskData:=-1;
+    OldDosDiskData;
   end
  else
   OldDosDiskData;
