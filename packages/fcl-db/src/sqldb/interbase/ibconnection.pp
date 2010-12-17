@@ -905,7 +905,7 @@ begin
             case SQLDA^.SQLVar[x].SQLLen of
               2 : begin
                   Move(CurrBuff^, smalli, 2);
-                  c := longi*intpower(10,SQLDA^.SQLVar[x].SQLScale);
+                  c := smalli*intpower(10,SQLDA^.SQLVar[x].SQLScale);
                   end;
               4 : begin
                   Move(CurrBuff^, longi, 4);
