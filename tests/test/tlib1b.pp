@@ -29,7 +29,7 @@ w:
   s2:=ExtractFilename(s2);
   writeln({ 'Func: ',s1,'} 'Source: ',s2,' Line: ',l);
   { GetLineInfo of dwarf doesn't return the function name }
-  if { (s1<>'P') or } (s2<>'tlib1a.pp') or (l<>9) then
+  if { (s1<>'P') or } (s2<>'tlib1a.pp') or (l<>10) then
     halt(1);
 
   { main program }
@@ -37,7 +37,7 @@ w:
   s2:=ExtractFilename(s2);
   writeln({ 'Func: ',s1,'} 'Source: ',s2,' Line: ',l);
   { GetLineInfo of dwarf doesn't return the function name }
-  if { (s1<>'P') or } (s2<>'tlib1b.pp') or (l<>23) then
+  if { (s1<>'P') or } (s2<>'tlib1b.pp') or (l<>24) then
     halt(1);
 
   writeln('ok');
