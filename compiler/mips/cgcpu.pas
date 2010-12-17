@@ -1649,7 +1649,7 @@ procedure TCgMPSel.g_intf_wrapper(list: tasmlist; procdef: tprocdef; const label
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
           { call/jmp  vmtoffs(%eax) ; method offs }
-          reference_reset_base(href, NR_R24, procdef._class.vmtmethodoffset(procdef.extnumber), sizeof(aint));
+          reference_reset_base(href, NR_R24, tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber), sizeof(aint));
           cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R24);
           list.concat(taicpu.op_reg(A_JR, NR_R24));
         end;
@@ -1659,7 +1659,7 @@ var
 begin
   if procdef.proctypeoption <> potype_none then
     Internalerror(200006137);
-  if not assigned(procdef._class) or
+  if not assigned(procdef.struct) or
     (procdef.procoptions * [po_classmethod, po_staticmethod,
     po_methodpointer, po_interrupt, po_iocheck] <> []) then
     Internalerror(200006138);

@@ -1654,8 +1654,8 @@ implementation
 
     procedure TDebugInfoDwarf.appenddef_record(list:TAsmList;def:trecorddef);
       begin
-        if assigned(def.typesym) then
-          appenddef_record_named(list,def,symname(def.typesym))
+        if assigned(def.objname) then
+          appenddef_record_named(list,def,def.objname^)
         else
           appenddef_record_named(list,def,'');
       end;
@@ -1674,6 +1674,11 @@ implementation
             ]);
         finish_entry;
         def.symtable.symList.ForEachCall(@enum_membersyms_callback,nil);
+        { don't know whether external record declaration is allow but if it so then
+          do the same as we do for other object types - skip procdef info generation
+          for external defs (Paul Ishenin) }
+        if not(oo_is_external in def.objectoptions) then
+          write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],def.symtable);
         finish_children;
       end;
 
@@ -2000,7 +2005,7 @@ implementation
         in_currentunit:=def.in_currentunit;
 
         if not in_currentunit and
-          (def.owner.symtabletype<>objectsymtable) then
+          not (def.owner.symtabletype in [objectsymtable,recordsymtable]) then
           exit;
 
         { happens for init procdef of units without init section }
@@ -2015,7 +2020,7 @@ implementation
         defnumberlist.Add(def);
 
         { Write methods and only in the scope of their parent objectdefs.  }
-        if (def.owner.symtabletype=objectsymtable) then
+        if (def.owner.symtabletype in [objectsymtable,recordsymtable]) then
           begin
             { this code can also work for nested procdefs, but is not yet
               activated for those because there is no clear advantage yet to
@@ -2034,7 +2039,7 @@ implementation
         def.dbg_state:=dbg_state_writing;
 
         current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Procdef '+def.fullprocname(true))));
-        if not is_objc_class_or_protocol(def._class) then
+        if not is_objc_class_or_protocol(def.struct) then
           append_entry(DW_TAG_subprogram,true,
             [DW_AT_name,DW_FORM_string,symname(def.procsym)+#0
             { data continues below }
@@ -2065,7 +2070,7 @@ implementation
           append_attribute(DW_AT_external,DW_FORM_flag,[true]);
         { Abstract or virtual/overriding method.  }
         if (([po_abstractmethod, po_virtualmethod, po_overridingmethod] * def.procoptions) <> []) and
-           not is_objc_class_or_protocol(def._class) then
+           not is_objc_class_or_protocol(def.struct) then
           begin
             if not(po_abstractmethod in def.procoptions) then
               append_attribute(DW_AT_virtuality,DW_FORM_data1,[ord(DW_VIRTUALITY_virtual)])
@@ -2081,7 +2086,7 @@ implementation
           end;
 
         { accessibility: public/private/protected }
-        if (def.owner.symtabletype=objectsymtable) then
+        if (def.owner.symtabletype in [objectsymtable,recordsymtable]) then
           append_visibility(def.visibility);
 
         { Return type.  }
@@ -2487,7 +2492,7 @@ implementation
           end;
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(fieldoffset));
-        if (sym.owner.symtabletype=objectsymtable) then
+        if (sym.owner.symtabletype in [objectsymtable,recordsymtable]) then
           append_visibility(sym.visibility);
 
         append_labelentry_ref(DW_AT_type,def_dwarf_lab(def));
@@ -2675,7 +2680,7 @@ implementation
         if not get_symlist_sym_offset(symlist,tosym,offset) then
           exit;
 
-        if (tosym.owner.symtabletype<>objectsymtable) then
+        if not (tosym.owner.symtabletype in [objectsymtable,recordsymtable]) then
           begin
             if (tosym.typ=fieldvarsym) then
               internalerror(2009031404);
@@ -3130,7 +3135,7 @@ implementation
           result:=tobjectdef(ttypesym(sym).typedef).objextname^
         else if (ds_dwarf_method_class_prefix in current_settings.debugswitches) and
                 (sym.typ=procsym) and
-                (tprocsym(sym).owner.symtabletype=objectsymtable) then
+                (tprocsym(sym).owner.symtabletype in [objectsymtable,recordsymtable]) then
           result:=tprocsym(sym).owner.name^+'__'+sym.name
         else
           result:=sym.name;

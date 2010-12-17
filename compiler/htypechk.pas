@@ -66,7 +66,7 @@ interface
         FParaNode   : tnode;
         FParaLength : smallint;
         FAllowVariant : boolean;
-        procedure collect_overloads_in_class(ProcdefOverloadList:TFPObjectList);
+        procedure collect_overloads_in_struct(ProcdefOverloadList:TFPObjectList);
         procedure collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall,explicitunit: boolean);
         procedure create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit:boolean);
         function  proc_add(ps:tprocsym;pd:tprocdef;objcidcall: boolean):pcandidate;
@@ -1714,21 +1714,21 @@ implementation
       end;
 
 
-    procedure tcallcandidates.collect_overloads_in_class(ProcdefOverloadList:TFPObjectList);
+    procedure tcallcandidates.collect_overloads_in_struct(ProcdefOverloadList:TFPObjectList);
       var
         j          : integer;
         pd         : tprocdef;
         srsym      : tsym;
-        objdef     : tobjectdef;
+        structdef  : tabstractrecorddef;
         hashedid   : THashedIDString;
         hasoverload : boolean;
       begin
-        objdef:=tobjectdef(fprocsym.owner.defowner);
+        structdef:=tabstractrecorddef(fprocsym.owner.defowner);
         hashedid.id:=fprocsym.name;
         hasoverload:=false;
-        while assigned(objdef) do
+        while assigned(structdef) do
          begin
-           srsym:=tprocsym(objdef.symtable.FindWithHash(hashedid));
+           srsym:=tprocsym(structdef.symtable.FindWithHash(hashedid));
            if assigned(srsym) and
               { Delphi allows hiding a property by a procedure with the same name }
               (srsym.typ=procsym) then
@@ -1747,7 +1747,10 @@ implementation
                  break;
              end;
            { next parent }
-           objdef:=objdef.childof;
+           if (structdef.typ=objectdef) then
+             structdef:=tobjectdef(structdef).childof
+           else
+             structdef:=nil;
          end;
       end;
 
@@ -1830,7 +1833,7 @@ implementation
         hp    : pcandidate;
         pt    : tcallparanode;
         found : boolean;
-        contextobjdef : tobjectdef;
+        contextstructdef : tabstractrecorddef;
         ProcdefOverloadList : TFPObjectList;
       begin
         FCandidateProcs:=nil;
@@ -1839,8 +1842,8 @@ implementation
         ProcdefOverloadList:=TFPObjectList.Create(false);
         if not objcidcall and
            (FOperator=NOTOKEN) and
-           (FProcsym.owner.symtabletype=objectsymtable) then
-          collect_overloads_in_class(ProcdefOverloadList)
+           (FProcsym.owner.symtabletype in [objectsymtable,recordsymtable]) then
+          collect_overloads_in_struct(ProcdefOverloadList)
         else
           collect_overloads_in_units(ProcdefOverloadList,objcidcall,explicitunit);
 
@@ -1864,15 +1867,15 @@ implementation
           units. At least kylix supports it this way (PFV) }
         if assigned(FProcSymtable) and
            (
-            (FProcSymtable.symtabletype=ObjectSymtable) or
+            (FProcSymtable.symtabletype in [ObjectSymtable,recordsymtable]) or
             ((FProcSymtable.symtabletype=withsymtable) and
-             (FProcSymtable.defowner.typ=objectdef))
+             (FProcSymtable.defowner.typ in [objectdef,recorddef]))
            ) and
            (FProcSymtable.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
            FProcSymtable.defowner.owner.iscurrentunit then
-          contextobjdef:=tobjectdef(FProcSymtable.defowner)
+          contextstructdef:=tabstractrecorddef(FProcSymtable.defowner)
         else
-          contextobjdef:=current_objectdef;
+          contextstructdef:=current_structdef;
 
         { Process all found overloads }
         for j:=0 to ProcdefOverloadList.Count-1 do
@@ -1897,8 +1900,8 @@ implementation
                ) and
                (
                 ignorevisibility or
-                (pd.owner.symtabletype<>objectsymtable) or
-                is_visible_for_object(pd,contextobjdef)
+                not (pd.owner.symtabletype in [objectsymtable,recordsymtable]) or
+                is_visible_for_object(pd,contextstructdef)
                ) then
               begin
                 { don't add duplicates, only compare visible parameters for the user }

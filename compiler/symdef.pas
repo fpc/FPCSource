@@ -168,18 +168,30 @@ interface
           function  GetTypeName:string;override;
        end;
 
+       tprocdef = class;
+       { tabstractrecorddef }
+
        tabstractrecorddef= class(tstoreddef)
+          objname,
+          objrealname: PShortString;
           symtable : TSymtable;
           cloneddef      : tabstractrecorddef;
           cloneddefderef : tderef;
+          objectoptions  : tobjectoptions;
+          constructor create(const n:string; dt:tdeftyp);
+          constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          destructor destroy; override;
+          function find_procdef_bytype(pt:tproctypeoption): tprocdef;
           function  GetSymtable(t:tGetSymtable):TSymtable;override;
           function is_packed:boolean;
+          function RttiName: string;
        end;
 
        trecorddef = class(tabstractrecorddef)
        public
           isunion       : boolean;
-          constructor create(p : TSymtable);
+          constructor create(const n:string; p:TSymtable);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           function getcopy : tstoreddef;override;
@@ -194,7 +206,6 @@ interface
           function  needs_inittable : boolean;override;
        end;
 
-       tprocdef = class;
        tobjectdef = class;
 
        { TImplementedInterface }
@@ -243,11 +254,8 @@ interface
 
           { for C++ classes: name of the library this class is imported from }
           import_lib,
-          objname,
-          objrealname,
           { for Objective-C: protocols and classes can have the same name there }
           objextname     : pshortstring;
-          objectoptions  : tobjectoptions;
           { to be able to have a variable vmt position }
           { and no vmt field for objects without virtuals }
           vmtentries     : TFPList;
@@ -271,7 +279,7 @@ interface
           classref_created_in_current_module : boolean;
           { store implemented interfaces defs and name mappings }
           ImplementedInterfaces : TFPObjectList;
-          constructor create(ot : tobjecttyp;const n : string;c : tobjectdef);
+          constructor create(ot:tobjecttyp;const n:string;c:tobjectdef);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           function getcopy : tstoreddef;override;
@@ -299,7 +307,6 @@ interface
           procedure check_forwards;
           procedure insertvmt;
           procedure set_parent(c : tobjectdef);
-          function find_procdef_bytype(pt:tproctypeoption): tprocdef;
           function find_destructor: tprocdef;
           function implements_any_interfaces: boolean;
           { dispinterface support }
@@ -320,7 +327,6 @@ interface
           function check_objc_types: boolean;
           { C++ }
           procedure finish_cpp_data;
-          function RttiName: string;
        end;
 
        tclassrefdef = class(tabstractpointerdef)
@@ -500,8 +506,8 @@ interface
           localst : TSymtable;
           funcretsym : tsym;
           funcretsymderef : tderef;
-          _class : tobjectdef;
-          _classderef : tderef;
+          struct : tabstractrecorddef;
+          structderef : tderef;
 {$if defined(powerpc) or defined(m68k)}
           { library symbol for AmigaOS/MorphOS }
           libsym : tsym;
@@ -631,7 +637,8 @@ interface
        end;
 
     var
-       current_objectdef : tobjectdef;  { used for private functions check !! }
+       current_structdef: tabstractrecorddef;
+       current_objectdef : tobjectdef absolute current_structdef;  { used for private functions check !! }
        current_genericdef : tobjectdef; { used to reject declaration of generic class inside generic class }
        current_specializedef : tobjectdef; { used to implement usage of generic class in itself }
 
@@ -775,6 +782,7 @@ interface
     function is_class_or_interface_or_dispinterface(def: tdef): boolean;
     function is_class_or_interface_or_dispinterface_or_objc(def: tdef): boolean;
     function is_class_or_object(def: tdef): boolean;
+    function is_record(def: tdef): boolean;
 
     procedure loadobjctypes;
     procedure maybeloadcocoatypes;
@@ -866,11 +874,11 @@ implementation
            st:=st.defowner.owner;
          end;
         { object/classes symtable, nested type definitions in classes require the while loop }
-        while st.symtabletype=ObjectSymtable do
+        while st.symtabletype in [ObjectSymtable,recordsymtable] do
          begin
-           if st.defowner.typ<>objectdef then
+           if not (st.defowner.typ in [objectdef,recorddef]) then
             internalerror(200204174);
-           prefix:=tobjectdef(st.defowner).objname^+'_$_'+prefix;
+           prefix:=tabstractrecorddef(st.defowner).objname^+'_$_'+prefix;
            st:=st.defowner.owner;
          end;
         { symtable must now be static or global }
@@ -2551,6 +2559,54 @@ implementation
                               tabstractrecorddef
 ***************************************************************************}
 
+    constructor tabstractrecorddef.create(const n:string; dt:tdeftyp);
+      begin
+        inherited create(dt);
+        objname:=stringdup(upper(n));
+        objrealname:=stringdup(n);
+        objectoptions:=[];
+      end;
+
+    constructor tabstractrecorddef.ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(dt,ppufile);
+        objrealname:=stringdup(ppufile.getstring);
+        objname:=stringdup(upper(objrealname^));
+        ppufile.getsmallset(objectoptions);
+      end;
+
+    procedure tabstractrecorddef.ppuwrite(ppufile: tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putstring(objrealname^);
+        ppufile.putsmallset(objectoptions);
+      end;
+
+    destructor tabstractrecorddef.destroy;
+      begin
+        stringdispose(objname);
+        stringdispose(objrealname);
+        inherited destroy;
+      end;
+
+    function tabstractrecorddef.find_procdef_bytype(pt:tproctypeoption): tprocdef;
+      var
+        i: longint;
+        sym: tsym;
+      begin
+        for i:=0 to symtable.SymList.Count-1 do
+          begin
+            sym:=tsym(symtable.SymList[i]);
+            if sym.typ=procsym then
+              begin
+                result:=tprocsym(sym).find_procdef_bytype(pt);
+                if assigned(result) then
+                  exit;
+              end;
+          end;
+          result:=nil;
+      end;
+
     function tabstractrecorddef.GetSymtable(t:tGetSymtable):TSymtable;
       begin
          if t=gs_record then
@@ -2565,14 +2621,29 @@ implementation
         result:=tabstractrecordsymtable(symtable).is_packed;
       end;
 
+    function tabstractrecorddef.RttiName: string;
+      var
+        tmp: tabstractrecorddef;
+      begin
+        Result:=objrealname^;
+        tmp:=self;
+        repeat
+          if tmp.owner.symtabletype in [ObjectSymtable,recordsymtable] then
+            tmp:=tabstractrecorddef(tmp.owner.defowner)
+          else
+            break;
+          Result:=tmp.objrealname^+'.'+Result;
+        until tmp=nil;
+      end;
+
 
 {***************************************************************************
                                   trecorddef
 ***************************************************************************}
 
-    constructor trecorddef.create(p : TSymtable);
+    constructor trecorddef.create(const n:string; p:TSymtable);
       begin
-         inherited create(recorddef);
+         inherited create(n,recorddef);
          symtable:=p;
          { we can own the symtable only if nobody else owns a copy so far }
          if symtable.refcount=1 then
@@ -2588,7 +2659,7 @@ implementation
            ppufile.getderef(cloneddefderef)
          else
            begin
-             symtable:=trecordsymtable.create(0);
+             symtable:=trecordsymtable.create(objrealname^,0);
              trecordsymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).padalignment:=shortint(ppufile.getbyte);
@@ -2615,7 +2686,7 @@ implementation
 
     function trecorddef.getcopy : tstoreddef;
       begin
-        result:=trecorddef.create(symtable.getcopy);
+        result:=trecorddef.create(objrealname^,symtable.getcopy);
         trecorddef(result).isunion:=isunion;
         include(trecorddef(result).defoptions,df_copied_def);
       end;
@@ -3088,7 +3159,7 @@ implementation
          forwarddef:=true;
          interfacedef:=false;
          hasforward:=false;
-         _class := nil;
+         struct := nil;
          import_dll:=nil;
          import_name:=nil;
          import_nr:=0;
@@ -3112,7 +3183,7 @@ implementation
           _mangledname:=nil;
          extnumber:=ppufile.getword;
          level:=ppufile.getbyte;
-         ppufile.getderef(_classderef);
+         ppufile.getderef(structderef);
          ppufile.getderef(procsymderef);
          ppufile.getposinfo(fileinfo);
          visibility:=tvisibility(ppufile.getbyte);
@@ -3254,7 +3325,7 @@ implementation
 
          ppufile.putword(extnumber);
          ppufile.putbyte(parast.symtablelevel);
-         ppufile.putderef(_classderef);
+         ppufile.putderef(structderef);
          ppufile.putderef(procsymderef);
          ppufile.putposinfo(fileinfo);
          ppufile.putbyte(byte(visibility));
@@ -3340,9 +3411,9 @@ implementation
         showhidden:=true;
 {$endif EXTDEBUG}
         s:='';
-        if assigned(_class) then
+        if assigned(struct) then
          begin
-           s:=_class.RttiName+'.';
+           s:=struct.RttiName+'.';
            if (po_classmethod in procoptions) and
               not (proctypeoption in [potype_class_constructor,potype_class_destructor]) then
              s:='class ' + s;
@@ -3417,7 +3488,7 @@ implementation
     procedure tprocdef.buildderef;
       begin
          inherited buildderef;
-         _classderef.build(_class);
+         structderef.build(struct);
          { procsym that originaly defined this definition, should be in the
            same symtable }
          procsymderef.build(procsym);
@@ -3451,7 +3522,7 @@ implementation
     procedure tprocdef.deref;
       begin
          inherited deref;
-         _class:=tobjectdef(_classderef.resolve);
+         struct:=tabstractrecorddef(structderef.resolve);
          { procsym that originaly defined this definition, should be in the
            same symtable }
          procsym:=tprocsym(procsymderef.resolve);
@@ -3915,20 +3986,17 @@ implementation
                               TOBJECTDEF
 ***************************************************************************}
 
-   constructor tobjectdef.create(ot : tobjecttyp;const n : string;c : tobjectdef);
+   constructor tobjectdef.create(ot:tobjecttyp;const n:string;c:tobjectdef);
      begin
-        inherited create(objectdef);
+        inherited create(n,objectdef);
         fcurrent_dispid:=0;
         objecttype:=ot;
-        objectoptions:=[];
         childof:=nil;
         symtable:=tObjectSymtable.create(self,n,current_settings.packrecords);
         { create space for vmt !! }
         vmtentries:=TFPList.Create;
         vmt_offset:=0;
         set_parent(c);
-        objname:=stringdup(upper(n));
-        objrealname:=stringdup(n);
         if objecttype in [odt_interfacecorba,odt_interfacecom,odt_dispinterface] then
           prepareguid;
         { setup implemented interfaces }
@@ -3950,8 +4018,6 @@ implementation
       begin
          inherited ppuload(objectdef,ppufile);
          objecttype:=tobjecttyp(ppufile.getbyte);
-         objrealname:=stringdup(ppufile.getstring);
-         objname:=stringdup(upper(objrealname^));
          objextname:=stringdup(ppufile.getstring);
          { only used for external Objective-C classes/protocols }
          if (objextname^='') then
@@ -3966,7 +4032,6 @@ implementation
          tObjectSymtable(symtable).recordalignment:=ppufile.getbyte;
          vmt_offset:=ppufile.getlongint;
          ppufile.getderef(childofderef);
-         ppufile.getsmallset(objectoptions);
 
          { load guid }
          iidstr:=nil;
@@ -4036,8 +4101,6 @@ implementation
              symtable.free;
              symtable:=nil;
            end;
-         stringdispose(objname);
-         stringdispose(objrealname);
          stringdispose(objextname);
          stringdispose(import_lib);
          stringdispose(iidstr);
@@ -4070,14 +4133,10 @@ implementation
       var
         i : longint;
       begin
-        result:=tobjectdef.create(objecttype,objname^,childof);
+        result:=tobjectdef.create(objecttype,objrealname^,childof);
         { the constructor allocates a symtable which we release to avoid memory leaks }
         tobjectdef(result).symtable.free;
         tobjectdef(result).symtable:=symtable.getcopy;
-        if assigned(objname) then
-          tobjectdef(result).objname:=stringdup(objname^);
-        if assigned(objrealname) then
-          tobjectdef(result).objrealname:=stringdup(objrealname^);
         if assigned(objextname) then
           tobjectdef(result).objextname:=stringdup(objextname^);
         if assigned(import_lib) then
@@ -4123,7 +4182,6 @@ implementation
          ppufile.do_indirect_crc:=true;
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(objecttype));
-         ppufile.putstring(objrealname^);
          if assigned(objextname) then
            ppufile.putstring(objextname^)
          else
@@ -4137,7 +4195,6 @@ implementation
          ppufile.putbyte(tObjectSymtable(symtable).recordalignment);
          ppufile.putlongint(vmt_offset);
          ppufile.putderef(childofderef);
-         ppufile.putsmallset(objectoptions);
          if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
            begin
               ppufile.putguid(iidguid^);
@@ -4487,24 +4544,6 @@ implementation
              hp:=hp.childof;
           end;
         is_related:=false;
-     end;
-
-   function tobjectdef.find_procdef_bytype(pt:tproctypeoption): tprocdef;
-     var
-       i: longint;
-       sym: tsym;
-     begin
-       for i:=0 to symtable.SymList.Count-1 do
-         begin
-           sym:=tsym(symtable.SymList[i]);
-           if sym.typ=procsym then
-             begin
-               result:=tprocsym(sym).find_procdef_bytype(pt);
-               if assigned(result) then
-                 exit;
-             end;
-         end;
-         result:=nil;
      end;
 
    function tobjectdef.find_destructor: tprocdef;
@@ -4940,7 +4979,7 @@ implementation
             else
               { all checks already done }
               exit;
-            if not(oo_is_external in pd._class.objectoptions) then
+            if not(oo_is_external in pd.struct.objectoptions) then
               begin
                 if (po_varargs in pd.procoptions) then
                   MessagePos(pd.fileinfo,parser_e_varargs_need_cdecl_and_external)
@@ -5035,11 +5074,11 @@ implementation
         if (def.typ=procdef) then
           begin
             pd.setmangledname(target_info.Cprefix+pd.cplusplusmangledname);
-            if (oo_is_external in pd._class.objectoptions) then
+            if (oo_is_external in pd.struct.objectoptions) then
               begin
                 { copied from psub.read_proc }
-                if assigned(pd._class.import_lib) then
-                   current_module.AddExternalImport(pd._class.import_lib^,pd.mangledname,0,false,false)
+                if assigned(tobjectdef(pd.struct).import_lib) then
+                   current_module.AddExternalImport(tobjectdef(pd.struct).import_lib^,pd.mangledname,0,false,false)
                  else
                    begin
                      { add import name to external list for DLL scanning }
@@ -5056,22 +5095,6 @@ implementation
       begin
         self.symtable.DefList.ForEachCall(@do_cpp_import_info,nil);
       end;
-
-    function tobjectdef.RttiName: string;
-      var
-        tmp: tobjectdef;
-      begin
-        Result:=objrealname^;
-        tmp:=self;
-        repeat
-          if tmp.owner.symtabletype=ObjectSymtable then
-            tmp:=tobjectdef(tmp.owner.defowner)
-          else
-            break;
-          Result:=tmp.objrealname^+'.'+Result;
-        until tmp=nil;
-      end;
-
 
 {****************************************************************************
                              TImplementedInterface
@@ -5467,6 +5490,13 @@ implementation
           assigned(def) and
           (def.typ=objectdef) and
           (tobjectdef(def).objecttype in [odt_class,odt_object]);
+      end;
+
+    function is_record(def: tdef): boolean;
+      begin
+        result:=
+          assigned(def) and
+          (def.typ=recorddef);
       end;
 
     procedure loadobjctypes;

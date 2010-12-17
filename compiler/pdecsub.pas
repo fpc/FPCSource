@@ -31,13 +31,15 @@ interface
     type
       tpdflag=(
         pd_body,         { directive needs a body }
-        pd_implemen,     { directive can be used implementation section }
-        pd_interface,    { directive can be used interface section }
-        pd_object,       { directive can be used object declaration }
-        pd_procvar,      { directive can be used procvar declaration }
-        pd_notobject,    { directive can not be used object declaration }
-        pd_notobjintf,   { directive can not be used interface declaration }
-        pd_notprocvar,   { directive can not be used procvar declaration }
+        pd_implemen,     { directive can be used in implementation section }
+        pd_interface,    { directive can be used in interface section }
+        pd_object,       { directive can be used with object declaration }
+        pd_record,       { directive can be used with record declaration }
+        pd_procvar,      { directive can be used with procvar declaration }
+        pd_notobject,    { directive can not be used with object declaration }
+        pd_notrecord,    { directive can not be used with record declaration }
+        pd_notobjintf,   { directive can not be used with interface declaration }
+        pd_notprocvar,   { directive can not be used with procvar declaration }
         pd_dispinterface,{ directive can be used with dispinterface methods }
         pd_cppobject,    { directive can be used with cppclass }
         pd_objcclass,    { directive can be used with objcclass }
@@ -59,16 +61,17 @@ interface
     procedure parse_proc_directives(pd:tabstractprocdef;var pdflags:tpdflags);
     procedure parse_var_proc_directives(sym:tsym);
     procedure parse_object_proc_directives(pd:tabstractprocdef);
-    function  parse_proc_head(aclass:tobjectdef;potype:tproctypeoption;var pd:tprocdef):boolean;
-    function  parse_proc_dec(isclassmethod:boolean; aclass:tobjectdef):tprocdef;
+    procedure parse_record_proc_directives(pd:tabstractprocdef);
+    function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;var pd:tprocdef):boolean;
+    function  parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef):tprocdef;
 
     { helper functions - they insert nested objects hierarcy to the symtablestack
       with object hierarchy
     }
-    function push_child_hierarcy(obj:tobjectdef):integer;
-    function pop_child_hierarchy(obj:tobjectdef):integer;
-    function push_nested_hierarchy(obj:tobjectdef):integer;
-    function pop_nested_hierarchy(obj:tobjectdef):integer;
+    function push_child_hierarcy(obj:tabstractrecorddef):integer;
+    function pop_child_hierarchy(obj:tabstractrecorddef):integer;
+    function push_nested_hierarchy(obj:tabstractrecorddef):integer;
+    function pop_nested_hierarchy(obj:tabstractrecorddef):integer;
 
 implementation
 
@@ -97,15 +100,21 @@ implementation
         Declaring it as string here results in an error when compiling (PFV) }
       current_procinfo = 'error';
 
-    function push_child_hierarcy(obj:tobjectdef):integer;
+    function push_child_hierarcy(obj:tabstractrecorddef):integer;
       var
         _class,hp : tobjectdef;
       begin
+        if obj.typ=recorddef then
+          begin
+            symtablestack.push(obj.symtable);
+            result:=1;
+            exit;
+          end;
         result:=0;
         { insert class hierarchy in the reverse order }
         hp:=nil;
         repeat
-          _class:=obj;
+          _class:=tobjectdef(obj);
           while _class.childof<>hp do
             _class:=_class.childof;
           hp:=_class;
@@ -114,20 +123,26 @@ implementation
         until hp=obj;
       end;
 
-    function push_nested_hierarchy(obj:tobjectdef):integer;
+    function push_nested_hierarchy(obj:tabstractrecorddef):integer;
       begin
         result:=0;
-        if obj.owner.symtabletype=ObjectSymtable then
-          inc(result,push_nested_hierarchy(tobjectdef(obj.owner.defowner)));
+        if obj.owner.symtabletype in [ObjectSymtable,recordsymtable] then
+          inc(result,push_nested_hierarchy(tabstractrecorddef(obj.owner.defowner)));
         inc(result,push_child_hierarcy(obj));
       end;
 
-    function pop_child_hierarchy(obj:tobjectdef):integer;
+    function pop_child_hierarchy(obj:tabstractrecorddef):integer;
       var
         _class : tobjectdef;
       begin
+        if obj.typ=recorddef then
+          begin
+            symtablestack.pop(obj.symtable);
+            result:=1;
+            exit;
+          end;
         result:=0;
-        _class:=obj;
+        _class:=tobjectdef(obj);
         while assigned(_class) do
           begin
             symtablestack.pop(_class.symtable);
@@ -136,11 +151,11 @@ implementation
           end;
       end;
 
-    function pop_nested_hierarchy(obj:tobjectdef):integer;
+    function pop_nested_hierarchy(obj:tabstractrecorddef):integer;
       begin
         result:=pop_child_hierarchy(obj);
-        if obj.owner.symtabletype=ObjectSymtable then
-          inc(result,pop_nested_hierarchy(tobjectdef(obj.owner.defowner)));
+        if obj.owner.symtabletype in [ObjectSymtable,recordsymtable] then
+          inc(result,pop_nested_hierarchy(tabstractrecorddef(obj.owner.defowner)));
       end;
 
     procedure insert_funcret_para(pd:tabstractprocdef);
@@ -234,7 +249,7 @@ implementation
         sl       : tpropaccesslist;
       begin
         if (pd.typ=procdef) and
-           is_objc_class_or_protocol(tprocdef(pd)._class) and
+           is_objc_class_or_protocol(tprocdef(pd).struct) and
            (pd.parast.symtablelevel=normal_function_level) then
           begin
             { insert Objective-C self and selector parameters }
@@ -251,7 +266,7 @@ implementation
               { compatible with what gcc does }
               hdef:=objc_idtype
             else
-              hdef:=tprocdef(pd)._class;
+              hdef:=tprocdef(pd).struct;
 
             vs:=tparavarsym.create('$self',paranr_objc_self,vs_value,hdef,[vo_is_self,vo_is_hidden_para]);
             pd.parast.insert(vs);
@@ -266,7 +281,7 @@ implementation
         else
           begin
              if (pd.typ=procdef) and
-                assigned(tprocdef(pd)._class) and
+                assigned(tprocdef(pd).struct) and
                 (pd.parast.symtablelevel=normal_function_level) then
               begin
                 { static class methods have no hidden self/vmt pointer }
@@ -277,7 +292,8 @@ implementation
                 current_tokenpos:=tprocdef(pd).fileinfo;
 
                 { Generate VMT variable for constructor/destructor }
-                if (pd.proctypeoption in [potype_constructor,potype_destructor]) and not(is_cppclass(tprocdef(pd)._class)) then
+                if (pd.proctypeoption in [potype_constructor,potype_destructor]) and
+                   not(is_cppclass(tprocdef(pd).struct) or is_record(tprocdef(pd).struct)) then
                  begin
                    { can't use classrefdef as type because inheriting
                      will then always file because of a type mismatch }
@@ -291,12 +307,12 @@ implementation
                 vsp:=vs_value;
                 if (po_staticmethod in pd.procoptions) or
                    (po_classmethod in pd.procoptions) then
-                  hdef:=tclassrefdef.create(tprocdef(pd)._class)
+                  hdef:=tclassrefdef.create(tprocdef(pd).struct)
                 else
                   begin
-                    if is_object(tprocdef(pd)._class) then
+                    if is_object(tprocdef(pd).struct) or is_record(tprocdef(pd).struct) then
                       vsp:=vs_var;
-                    hdef:=tprocdef(pd)._class;
+                    hdef:=tprocdef(pd).struct;
                   end;
                 vs:=tparavarsym.create('$self',paranr_self,vsp,hdef,[vo_is_self,vo_is_hidden_para]);
                 pd.parast.insert(vs);
@@ -397,7 +413,7 @@ implementation
                     MessagePos(fileinfo,parser_w_cdecl_no_openstring);
                  if not(po_external in pd.procoptions) and
                     (pd.typ<>procvardef) and
-                    not is_objc_class_or_protocol(tprocdef(pd)._class) then
+                    not is_objc_class_or_protocol(tprocdef(pd).struct) then
                    if is_array_of_const(vardef) then
                      MessagePos(fileinfo,parser_e_varargs_need_cdecl_and_external)
                    else
@@ -720,7 +736,7 @@ implementation
             CGMessage(cg_e_file_must_call_by_reference);
 
           { Dispinterfaces are restricted to using only automatable types }
-          if (pd.typ=procdef) and is_dispinterface(tprocdef(pd)._class) and
+          if (pd.typ=procdef) and is_dispinterface(tprocdef(pd).struct) and
              not is_automatable(hdef) then
             Message1(type_e_not_automatable,hdef.typename);
 
@@ -772,7 +788,7 @@ implementation
       end;
 
 
-    function parse_proc_head(aclass:tobjectdef;potype:tproctypeoption;var pd:tprocdef):boolean;
+    function parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;var pd:tprocdef):boolean;
       var
         hs       : string;
         orgsp,sp : TIDString;
@@ -788,7 +804,7 @@ implementation
         popclass : integer;
         ImplIntf : TImplementedInterface;
         old_parse_generic : boolean;
-        old_current_objectdef,
+        old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
         old_current_specializedef : tobjectdef;
       begin
@@ -813,9 +829,10 @@ implementation
           end;
 
         { examine interface map: function/procedure iname.functionname=locfuncname }
-        if assigned(aclass) and
-           assigned(aclass.ImplementedInterfaces) and
-           (aclass.ImplementedInterfaces.count>0) and
+        if assigned(astruct) and
+           (astruct.typ=objectdef) and
+           assigned(tobjectdef(astruct).ImplementedInterfaces) and
+           (tobjectdef(astruct).ImplementedInterfaces.count>0) and
            try_to_consume(_POINT) then
          begin
            storepos:=current_tokenpos;
@@ -832,7 +849,7 @@ implementation
            ImplIntf:=nil;
            if (srsym.typ=typesym) and
               (ttypesym(srsym).typedef.typ=objectdef) then
-             ImplIntf:=aclass.find_implemented_interface(tobjectdef(ttypesym(srsym).typedef));
+             ImplIntf:=tobjectdef(astruct).find_implemented_interface(tobjectdef(ttypesym(srsym).typedef));
            if ImplIntf=nil then
              Message(parser_e_interface_id_expected);
            consume(_ID);
@@ -848,14 +865,14 @@ implementation
          end;
 
         { method  ? }
-        if not assigned(aclass) and
+        if not assigned(astruct) and
            (potype<>potype_operator) and
            (symtablestack.top.symtablelevel=main_program_level) and
            try_to_consume(_POINT) then
          begin
            repeat
              searchagain:=false;
-             if not assigned(aclass) then
+             if not assigned(astruct) then
                begin
                  { search for object name }
                  storepos:=current_tokenpos;
@@ -875,19 +892,19 @@ implementation
              consume(_ID);
              { qualifier is class name ? }
              if (srsym.typ=typesym) and
-                (ttypesym(srsym).typedef.typ=objectdef) then
+                (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
               begin
-                aclass:=tobjectdef(ttypesym(srsym).typedef);
+                astruct:=tabstractrecorddef(ttypesym(srsym).typedef);
                 if (token<>_POINT) and (potype in [potype_class_constructor,potype_class_destructor]) then
                   sp := lower(sp);
-                srsym:=tsym(aclass.symtable.Find(sp));
+                srsym:=tsym(astruct.symtable.Find(sp));
                 if assigned(srsym) then
                  begin
                    if srsym.typ=procsym then
                      aprocsym:=tprocsym(srsym)
                    else
                    if (srsym.typ=typesym) and
-                      (ttypesym(srsym).typedef.typ=objectdef) then
+                      (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
                      begin
                        searchagain:=true;
                        consume(_POINT);
@@ -908,7 +925,7 @@ implementation
                  begin
                    Message(parser_e_methode_id_expected);
                    { recover by making it a normal procedure instead of method }
-                   aclass:=nil;
+                   astruct:=nil;
                  end;
               end
              else
@@ -1001,27 +1018,27 @@ implementation
             checkstack:=checkstack^.next;
           end;
         pd:=tprocdef.create(st.symtablelevel+1);
-        pd._class:=aclass;
+        pd.struct:=astruct;
         pd.procsym:=aprocsym;
         pd.proctypeoption:=potype;
 
         { methods inherit df_generic or df_specialization from the objectdef }
-        if assigned(pd._class) and
+        if assigned(pd.struct) and
            (pd.parast.symtablelevel=normal_function_level) then
           begin
-            if (df_generic in pd._class.defoptions) then
+            if (df_generic in pd.struct.defoptions) then
               begin
                 include(pd.defoptions,df_generic);
                 parse_generic:=true;
               end;
-            if (df_specialization in pd._class.defoptions) then
+            if (df_specialization in pd.struct.defoptions) then
               begin
                 include(pd.defoptions,df_specialization);
                 { Find corresponding genericdef, we need it later to
                   replay the tokens to generate the body }
-                if not assigned(pd._class.genericdef) then
+                if not assigned(pd.struct.genericdef) then
                   internalerror(200512113);
-                genericst:=pd._class.genericdef.GetSymtable(gs_record);
+                genericst:=pd.struct.genericdef.GetSymtable(gs_record);
                 if not assigned(genericst) then
                   internalerror(200512114);
                 { We are parsing the same objectdef, the def index numbers
@@ -1034,9 +1051,9 @@ implementation
           end;
 
         { methods need to be exported }
-        if assigned(aclass) and
+        if assigned(astruct) and
            (
-            (symtablestack.top.symtabletype=ObjectSymtable) or
+            (symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) or
             (symtablestack.top.symtablelevel=main_program_level)
            ) then
           include(pd.procoptions,po_global);
@@ -1052,19 +1069,19 @@ implementation
           begin
             { Add ObjectSymtable to be able to find nested type definitions }
             popclass:=0;
-            if assigned(pd._class) and
+            if assigned(pd.struct) and
                (pd.parast.symtablelevel=normal_function_level) and
-               (symtablestack.top.symtabletype<>ObjectSymtable) then
+               not(symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
               begin
-                popclass:=push_nested_hierarchy(pd._class);
-                old_current_objectdef:=current_objectdef;
+                popclass:=push_nested_hierarchy(pd.struct);
+                old_current_structdef:=current_structdef;
                 old_current_genericdef:=current_genericdef;
                 old_current_specializedef:=current_specializedef;
-                current_objectdef:=pd._class;
-                if assigned(current_objectdef) and (df_generic in current_objectdef.defoptions) then
-                  current_genericdef:=current_objectdef;
-                if assigned(current_objectdef) and (df_specialization in current_objectdef.defoptions) then
-                  current_specializedef:=current_objectdef;
+                current_structdef:=pd.struct;
+                if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
+                  current_genericdef:=tobjectdef(current_structdef);
+                if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
+                  current_specializedef:=tobjectdef(current_structdef);
               end;
             { Add parameter symtable }
             if pd.parast.symtabletype<>staticsymtable then
@@ -1074,10 +1091,10 @@ implementation
               symtablestack.pop(pd.parast);
             if popclass>0 then
               begin
-                current_objectdef:=old_current_objectdef;
+                current_structdef:=old_current_structdef;
                 current_genericdef:=old_current_genericdef;
                 current_specializedef:=old_current_specializedef;
-                dec(popclass,pop_nested_hierarchy(pd._class));
+                dec(popclass,pop_nested_hierarchy(pd.struct));
                 if popclass<>0 then
                   internalerror(201011260); // 11 nov 2010 index 0
               end;
@@ -1088,13 +1105,13 @@ implementation
       end;
 
 
-    function parse_proc_dec(isclassmethod:boolean; aclass:tobjectdef):tprocdef;
+    function parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef):tprocdef;
       var
         pd : tprocdef;
         locationstr: string;
         old_parse_generic: boolean;
         popclass: integer;
-        old_current_objectdef,
+        old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
         old_current_specializedef: tobjectdef;
       begin
@@ -1104,7 +1121,7 @@ implementation
           _FUNCTION :
             begin
               consume(_FUNCTION);
-              if parse_proc_head(aclass,potype_function,pd) then
+              if parse_proc_head(astruct,potype_function,pd) then
                 begin
                   { pd=nil when it is a interface mapping }
                   if assigned(pd) then
@@ -1115,32 +1132,32 @@ implementation
                          inc(testcurobject);
                          { Add ObjectSymtable to be able to find generic type definitions }
                          popclass:=0;
-                         if assigned(pd._class) and
+                         if assigned(pd.struct) and
                             (pd.parast.symtablelevel=normal_function_level) and
-                            (symtablestack.top.symtabletype<>ObjectSymtable) then
+                            not (symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
                            begin
-                             popclass:=push_nested_hierarchy(pd._class);
-                             parse_generic:=(df_generic in pd._class.defoptions);
-                             old_current_objectdef:=current_objectdef;
+                             popclass:=push_nested_hierarchy(pd.struct);
+                             parse_generic:=(df_generic in pd.struct.defoptions);
+                             old_current_structdef:=current_structdef;
                              old_current_genericdef:=current_genericdef;
                              old_current_specializedef:=current_specializedef;
-                             current_objectdef:=pd._class;
-                             if assigned(current_objectdef) and (df_generic in current_objectdef.defoptions) then
-                               current_genericdef:=current_objectdef;
-                             if assigned(current_objectdef) and (df_specialization in current_objectdef.defoptions) then
-                               current_specializedef:=current_objectdef;
+                             current_structdef:=pd.struct;
+                             if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
+                               current_genericdef:=tobjectdef(current_structdef);
+                             if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
+                               current_specializedef:=tobjectdef(current_structdef);
                            end;
                          single_type(pd.returndef,false,false);
 
-                         if is_dispinterface(pd._class) and not is_automatable(pd.returndef) then
+                         if is_dispinterface(pd.struct) and not is_automatable(pd.returndef) then
                            Message1(type_e_not_automatable,pd.returndef.typename);
 
                          if popclass>0 then
                            begin
-                             current_objectdef:=old_current_objectdef;
+                             current_structdef:=old_current_structdef;
                              current_genericdef:=old_current_genericdef;
                              current_specializedef:=old_current_specializedef;
-                             dec(popclass,pop_nested_hierarchy(pd._class));
+                             dec(popclass,pop_nested_hierarchy(pd.struct));
                              if popclass<>0 then
                                internalerror(201012020);
                            end;
@@ -1175,7 +1192,7 @@ implementation
                        begin
                           if (
                               parse_only and
-                              not(is_interface(pd._class))
+                              not(is_interface(pd.struct))
                              ) or
                              (m_repeat_forward in current_settings.modeswitches) then
                           begin
@@ -1198,7 +1215,7 @@ implementation
           _PROCEDURE :
             begin
               consume(_PROCEDURE);
-              if parse_proc_head(aclass,potype_procedure,pd) then
+              if parse_proc_head(astruct,potype_procedure,pd) then
                 begin
                   { pd=nil when it is an interface mapping }
                   if assigned(pd) then
@@ -1214,17 +1231,17 @@ implementation
             begin
               consume(_CONSTRUCTOR);
               if isclassmethod then
-                parse_proc_head(aclass,potype_class_constructor,pd)
+                parse_proc_head(astruct,potype_class_constructor,pd)
               else
-                parse_proc_head(aclass,potype_constructor,pd);
+                parse_proc_head(astruct,potype_constructor,pd);
               if not isclassmethod and
                  assigned(pd) and
-                 assigned(pd._class) then
+                 assigned(pd.struct) then
                 begin
                   { Set return type, class constructors return the
                     created instance, object constructors return boolean }
-                  if is_class(pd._class) then
-                    pd.returndef:=pd._class
+                  if is_class(pd.struct) or is_record(pd.struct) then
+                    pd.returndef:=pd.struct
                   else
 {$ifdef CPU64bitaddr}
                     pd.returndef:=bool64type;
@@ -1240,9 +1257,9 @@ implementation
             begin
               consume(_DESTRUCTOR);
               if isclassmethod then
-                parse_proc_head(aclass,potype_class_destructor,pd)
+                parse_proc_head(astruct,potype_class_destructor,pd)
               else
-                parse_proc_head(aclass,potype_destructor,pd);
+                parse_proc_head(astruct,potype_destructor,pd);
               if assigned(pd) then
                 pd.returndef:=voidtype;
             end;
@@ -1274,7 +1291,7 @@ implementation
                  end;
                end;
               consume(token);
-              parse_proc_head(aclass,potype_operator,pd);
+              parse_proc_head(astruct,potype_operator,pd);
               if assigned(pd) then
                 begin
                   { operators always need to be searched in all units }
@@ -1363,7 +1380,7 @@ procedure pd_export(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200304264);
-  if assigned(tprocdef(pd)._class) then
+  if assigned(tprocdef(pd).struct) then
     Message(parser_e_methods_dont_be_export);
   if pd.parast.symtablelevel>normal_function_level then
     Message(parser_e_dont_nest_export);
@@ -1461,7 +1478,8 @@ procedure pd_abstract(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200304269);
-  if oo_is_sealed in tprocdef(pd)._class.objectoptions then
+  if assigned(tprocdef(pd).struct) and
+    (oo_is_sealed in tprocdef(pd).struct.objectoptions) then
     Message(parser_e_sealed_class_cannot_have_abstract_methods)
   else
   if (po_virtualmethod in pd.procoptions) then
@@ -1490,13 +1508,13 @@ begin
   begin
     if pattern='MOVENEXT' then
     begin
-      if oo_has_enumerator_movenext in tprocdef(pd)._class.objectoptions then
+      if oo_has_enumerator_movenext in tprocdef(pd).struct.objectoptions then
         message(parser_e_only_one_enumerator_movenext);
       pd.calcparas;
       if (pd.proctypeoption = potype_function) and is_boolean(pd.returndef) and
          (pd.minparacount = 0) then
       begin
-        include(tprocdef(pd)._class.objectoptions, oo_has_enumerator_movenext);
+        include(tprocdef(pd).struct.objectoptions, oo_has_enumerator_movenext);
         include(pd.procoptions,po_enumerator_movenext);
       end
       else
@@ -1519,10 +1537,10 @@ begin
   if pd.typ<>procdef then
     internalerror(2003042610);
   if (pd.proctypeoption=potype_constructor) and
-     is_object(tprocdef(pd)._class) then
+     is_object(tprocdef(pd).struct) then
     Message(parser_e_constructor_cannot_be_not_virtual);
 {$ifdef WITHDMT}
-  if is_object(tprocdef(pd)._class) and
+  if is_object(tprocdef(pd).struct) and
      (token<>_SEMICOLON) then
     begin
        { any type of parameter is allowed here! }
@@ -1547,7 +1565,7 @@ var pt:Tnode;
 begin
   if pd.typ<>procdef then
     internalerror(200604301);
-  pt:=comp_expr(true);
+  pt:=comp_expr(true,false);
   if is_constintnode(pt) then
     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
       message(parser_e_range_check_error)
@@ -1570,9 +1588,9 @@ procedure pd_override(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(2003042611);
-  if not(is_class_or_interface_or_objc(tprocdef(pd)._class)) then
+  if not(is_class_or_interface_or_objc(tprocdef(pd).struct)) then
     Message(parser_e_no_object_override)
-  else if is_objccategory(tprocdef(pd)._class) then
+  else if is_objccategory(tprocdef(pd).struct) then
     Message(parser_e_no_category_override);
 end;
 
@@ -1590,20 +1608,20 @@ var
 begin
   if pd.typ<>procdef then
     internalerror(2003042613);
-  if not is_class(tprocdef(pd)._class) and
-     not is_objc_class_or_protocol(tprocdef(pd)._class) then
+  if not is_class(tprocdef(pd).struct) and
+     not is_objc_class_or_protocol(tprocdef(pd).struct) then
     Message(parser_e_msg_only_for_classes);
   if ([po_msgstr,po_msgint]*pd.procoptions)<>[] then
     Message(parser_e_multiple_messages);
   { check parameter type }
-  if not is_objc_class_or_protocol(tprocdef(pd)._class) then
+  if not is_objc_class_or_protocol(tprocdef(pd).struct) then
     begin
       paracnt:=0;
       pd.parast.SymList.ForEachCall(@check_msg_para,@paracnt);
       if paracnt<>1 then
         Message(parser_e_ill_msg_param);
     end;
-  pt:=comp_expr(true);
+  pt:=comp_expr(true,false);
   { message is 1-character long }
   if is_constcharnode(pt) then
     begin
@@ -1619,7 +1637,7 @@ begin
     end
   else
    if is_constintnode(pt) and
-      is_class(tprocdef(pd)._class) then
+      is_class(tprocdef(pd).struct) then
     begin
       include(pd.procoptions,po_msgint);
       if (Tordconstnode(pt).value<int64(low(Tprocdef(pd).messageinf.i))) or
@@ -1632,7 +1650,7 @@ begin
     Message(parser_e_ill_msg_expr);
   { check whether the selector name is valid in case of Objective-C }
   if (po_msgstr in pd.procoptions) and
-     is_objc_class_or_protocol(tprocdef(pd)._class) and
+     is_objc_class_or_protocol(tprocdef(pd).struct) and
      not objcvalidselectorname(@tprocdef(pd).messageinf.str^[1],length(tprocdef(pd).messageinf.str^)) then
     Message1(type_e_invalid_objc_selector_name,tprocdef(pd).messageinf.str^);
   pt.free;
@@ -1643,8 +1661,8 @@ procedure pd_reintroduce(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200401211);
-  if not(is_class_or_interface_or_object(tprocdef(pd)._class)) and
-     not(is_objccategory(tprocdef(pd)._class)) then
+  if not(is_class_or_interface_or_object(tprocdef(pd).struct)) and
+     not(is_objccategory(tprocdef(pd).struct)) then
     Message(parser_e_no_object_reintroduce);
 end;
 
@@ -1925,7 +1943,7 @@ const
    (
     (
       idtok:_ABSTRACT;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord];
       handler  : @pd_abstract;
       pocall   : pocall_none;
       pooption : [po_abstractmethod];
@@ -1988,7 +2006,7 @@ const
       mutexclpo     : [po_interrupt,po_external,po_inline]
     ),(
       idtok:_DYNAMIC;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord];
       handler  : @pd_virtual;
       pocall   : pocall_none;
       pooption : [po_virtualmethod];
@@ -1997,7 +2015,7 @@ const
       mutexclpo     : [po_exports,po_interrupt,po_external,po_overridingmethod,po_inline]
     ),(
       idtok:_EXPORT;
-      pd_flags : [pd_body,pd_interface,pd_implemen,pd_notobjintf];
+      pd_flags : [pd_body,pd_interface,pd_implemen,pd_notobjintf,pd_notrecord];
       handler  : @pd_export;
       pocall   : pocall_none;
       pooption : [po_exports,po_global];
@@ -2006,7 +2024,7 @@ const
       mutexclpo     : [po_external,po_interrupt,po_inline]
     ),(
       idtok:_EXTERNAL;
-      pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf,pd_cppobject];
+      pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf,pd_cppobject,pd_notrecord];
       handler  : @pd_external;
       pocall   : pocall_none;
       pooption : [po_external];
@@ -2016,7 +2034,7 @@ const
       mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
     ),(
       idtok:_FAR;
-      pd_flags : [pd_implemen,pd_body,pd_interface,pd_procvar,pd_notobject,pd_notobjintf];
+      pd_flags : [pd_implemen,pd_body,pd_interface,pd_procvar,pd_notobject,pd_notobjintf,pd_notrecord];
       handler  : @pd_far;
       pocall   : pocall_none;
       pooption : [];
@@ -2025,7 +2043,7 @@ const
       mutexclpo     : [po_inline]
     ),(
       idtok:_FAR16;
-      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar,pd_notobject];
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar,pd_notobject,pd_notrecord];
       handler  : nil;
       pocall   : pocall_far16;
       pooption : [];
@@ -2034,7 +2052,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_FINAL;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord];
       handler  : @pd_final;
       pocall   : pocall_none;
       pooption : [po_finalmethod];
@@ -2043,7 +2061,7 @@ const
       mutexclpo     : [po_exports,po_interrupt,po_external,po_inline]
     ),(
       idtok:_FORWARD;
-      pd_flags : [pd_implemen,pd_notobject,pd_notobjintf];
+      pd_flags : [pd_implemen,pd_notobject,pd_notobjintf,pd_notrecord];
       handler  : @pd_forward;
       pocall   : pocall_none;
       pooption : [];
@@ -2070,7 +2088,7 @@ const
       mutexclpo     : [po_exports,po_external,po_interrupt,po_virtualmethod]
     ),(
       idtok:_INTERNCONST;
-      pd_flags : [pd_interface,pd_body,pd_notobject,pd_notobjintf];
+      pd_flags : [pd_interface,pd_body,pd_notobject,pd_notobjintf,pd_notrecord];
       handler  : @pd_internconst;
       pocall   : pocall_none;
       pooption : [po_internconst];
@@ -2079,7 +2097,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_INTERNPROC;
-      pd_flags : [pd_interface,pd_notobject,pd_notobjintf];
+      pd_flags : [pd_interface,pd_notobject,pd_notobjintf,pd_notrecord];
       handler  : @pd_internproc;
       pocall   : pocall_internproc;
       pooption : [];
@@ -2088,7 +2106,7 @@ const
       mutexclpo     : [po_exports,po_external,po_interrupt,po_assembler,po_iocheck,po_virtualmethod]
     ),(
       idtok:_INTERRUPT;
-      pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf];
+      pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf,pd_notrecord];
       handler  : @pd_interrupt;
       pocall   : pocall_oldfpccall;
       pooption : [po_interrupt];
@@ -2116,7 +2134,7 @@ const
       mutexclpo     : [po_external,po_exports]
     ),(
       idtok:_MESSAGE;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass, pd_objcprot];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass,pd_objcprot,pd_notrecord];
       handler  : @pd_message;
       pocall   : pocall_none;
       pooption : []; { can be po_msgstr or po_msgint }
@@ -2134,7 +2152,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_NEAR;
-      pd_flags : [pd_implemen,pd_body,pd_procvar,pd_notobjintf];
+      pd_flags : [pd_implemen,pd_body,pd_procvar,pd_notobjintf,pd_notrecord];
       handler  : @pd_near;
       pocall   : pocall_none;
       pooption : [];
@@ -2161,7 +2179,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_OVERRIDE;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass,pd_notrecord];
       handler  : @pd_override;
       pocall   : pocall_none;
       pooption : [po_overridingmethod,po_virtualmethod];
@@ -2179,7 +2197,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_PUBLIC;
-      pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobject,pd_notobjintf];
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobject,pd_notobjintf,pd_notrecord];
       handler  : @pd_public;
       pocall   : pocall_none;
       pooption : [po_public,po_global];
@@ -2197,7 +2215,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_REINTRODUCE;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass,pd_notrecord];
       handler  : @pd_reintroduce;
       pocall   : pocall_none;
       pooption : [po_reintroduce];
@@ -2226,7 +2244,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_STATIC;
-      pd_flags : [pd_interface,pd_implemen,pd_body,pd_object,pd_notobjintf];
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_object,pd_record,pd_notobjintf];
       handler  : @pd_static;
       pocall   : pocall_none;
       pooption : [po_staticmethod];
@@ -2256,7 +2274,7 @@ const
       mutexclpo     : [po_external,po_assembler,po_interrupt,po_exports]
     ),(
       idtok:_VIRTUAL;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord];
       handler  : @pd_virtual;
       pocall   : pocall_none;
       pooption : [po_virtualmethod];
@@ -2274,7 +2292,7 @@ const
       mutexclpo     : [po_assembler,po_external,po_virtualmethod]
     ),(
       idtok:_VARARGS;
-      pd_flags : [pd_interface,pd_implemen,pd_procvar,pd_objcclass, pd_objcprot];
+      pd_flags : [pd_interface,pd_implemen,pd_procvar,pd_objcclass,pd_objcprot];
       handler  : nil;
       pocall   : pocall_none;
       pooption : [po_varargs];
@@ -2293,7 +2311,7 @@ const
       mutexclpo     : [po_interrupt]
     ),(
       idtok:_WEAKEXTERNAL;
-      pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf,pd_cppobject];
+      pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf,pd_cppobject,pd_notrecord];
       handler  : @pd_weakexternal;
       pocall   : pocall_none;
       { mark it both external and weak external, so we don't have to
@@ -2380,7 +2398,7 @@ const
          begin
             { parsing a procvar type the name can be any
               next variable !! }
-            if ((pdflags * [pd_procvar,pd_object,pd_objcclass,pd_objcprot])=[]) and
+            if ((pdflags * [pd_procvar,pd_object,pd_record,pd_objcclass,pd_objcprot])=[]) and
                not(idtoken=_PROPERTY) then
               Message1(parser_w_unknown_proc_directive_ignored,name);
             exit;
@@ -2392,6 +2410,10 @@ const
            (symtablestack.top.symtabletype=ObjectSymtable) and
            { directive allowed for cpp classes? }
            not(is_cppclass(tdef(symtablestack.top.defowner)) and (pd_cppobject in proc_direcdata[p].pd_flags)) then
+           exit;
+
+        if (pd_notrecord in proc_direcdata[p].pd_flags) and
+           (symtablestack.top.symtabletype=recordsymtable) then
            exit;
 
         { Conflicts between directives ? }
@@ -2427,26 +2449,31 @@ const
          begin
            { Check if the directive is only for objects }
            if (pd_object in proc_direcdata[p].pd_flags) and
-              not assigned(tprocdef(pd)._class) then
+              not assigned(tprocdef(pd).struct) then
+            exit;
+
+           { Check if the directive is only for records }
+           if (pd_record in proc_direcdata[p].pd_flags) and
+              not assigned(tprocdef(pd).struct) then
             exit;
 
            { check if method and directive not for interface }
            if (pd_notobjintf in proc_direcdata[p].pd_flags) and
-              is_interface(tprocdef(pd)._class) then
+              is_interface(tprocdef(pd).struct) then
             exit;
 
            { check if method and directive not for interface }
-           if is_dispinterface(tprocdef(pd)._class) and
+           if is_dispinterface(tprocdef(pd).struct) and
              not(pd_dispinterface in proc_direcdata[p].pd_flags) then
             exit;
 
            { check if method and directive not for objcclass }
-           if is_objcclass(tprocdef(pd)._class) and
+           if is_objcclass(tprocdef(pd).struct) and
              not(pd_objcclass in proc_direcdata[p].pd_flags) then
             exit;
 
            { check if method and directive not for objcprotocol }
-           if is_objcprotocol(tprocdef(pd)._class) and
+           if is_objcprotocol(tprocdef(pd).struct) and
              not(pd_objcprot in proc_direcdata[p].pd_flags) then
             exit;
 
@@ -2545,8 +2572,8 @@ const
             case pd.proccalloption of
               pocall_cdecl :
                 begin
-                  if assigned(pd._class) then
-                    result:=target_info.Cprefix+pd._class.objrealname^+'_'+pd.procsym.realname
+                  if assigned(pd.struct) then
+                    result:=target_info.Cprefix+pd.struct.objrealname^+'_'+pd.procsym.realname
                   else
                     result:=target_info.Cprefix+pd.procsym.realname;
                 end;
@@ -2616,8 +2643,8 @@ const
             case pd.proccalloption of
               pocall_cdecl :
                 begin
-                  if assigned(pd._class) then
-                   pd.aliasnames.insert(target_info.Cprefix+pd._class.objrealname^+'_'+pd.procsym.realname)
+                  if assigned(pd.struct) then
+                   pd.aliasnames.insert(target_info.Cprefix+pd.struct.objrealname^+'_'+pd.procsym.realname)
                   else
                     begin
                       { Export names are not mangled on Windows and OS/2, see also pexports.pas }
@@ -2643,13 +2670,13 @@ const
       begin
         { set the default calling convention if none provided }
         if (pd.typ=procdef) and
-           (is_objc_class_or_protocol(tprocdef(pd)._class) or
-            is_cppclass(tprocdef(pd)._class)) then
+           (is_objc_class_or_protocol(tprocdef(pd).struct) or
+            is_cppclass(tprocdef(pd).struct)) then
           begin
             { none of the explicit calling conventions should be allowed }
             if (po_hascallingconvention in pd.procoptions) then
               internalerror(2009032501);
-            if is_cppclass(tprocdef(pd)._class) then
+            if is_cppclass(tprocdef(pd).struct) then
               pd.proccalloption:=pocall_cppdecl
             else
               pd.proccalloption:=pocall_cdecl;
@@ -2704,7 +2731,7 @@ const
                      (pd.typ=procvardef) or
                      { for objcclasses this is checked later, because the entire
                        class may be external.  }
-                     is_objc_class_or_protocol(tprocdef(pd)._class)) and
+                     is_objc_class_or_protocol(tprocdef(pd).struct)) and
                  not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal])) then
                 Message(parser_e_varargs_need_cdecl_and_external);
             end
@@ -2850,6 +2877,13 @@ const
         parse_proc_directives(pd,pdflags);
       end;
 
+    procedure parse_record_proc_directives(pd:tabstractprocdef);
+      var
+        pdflags : tpdflags;
+      begin
+        pdflags:=[pd_record];
+        parse_proc_directives(pd,pdflags);
+      end;
 
     function proc_add_definition(var currpd:tprocdef):boolean;
       {
@@ -3129,7 +3163,7 @@ const
                  { check if all procs have overloading, but not if the proc is a method or
                    already declared forward, then the check is already done }
                  if not(fwpd.hasforward or
-                        assigned(currpd._class) or
+                        assigned(currpd.struct) or
                         (currpd.forwarddef<>fwpd.forwarddef) or
                         ((po_overload in currpd.procoptions) and
                          (po_overload in fwpd.procoptions))) then

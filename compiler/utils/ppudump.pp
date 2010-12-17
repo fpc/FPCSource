@@ -2091,6 +2091,9 @@ begin
          ibrecorddef :
            begin
              readcommondef('Record definition',defoptions);
+             writeln(space,'   Name of Record : ',getstring);
+             write  (space,'          Options : ');
+             readobjectdefoptions;
              writeln(space,'       FieldAlign : ',getbyte);
              writeln(space,'      RecordAlign : ',getbyte);
              writeln(space,'         PadAlign : ',getbyte);
@@ -2108,6 +2111,9 @@ begin
          ibobjectdef :
            begin
              readcommondef('Object/Class definition',defoptions);
+             writeln(space,'    Name of Class : ',getstring);
+             write  (space,'          Options : ');
+             readobjectdefoptions;
              b:=getbyte;
              write  (space,'             Type : ');
              case tobjecttyp(b) of
@@ -2121,7 +2127,6 @@ begin
                odt_objcprotocol   : writeln('objcprotocol');
                else                 writeln('!! Warning: Invalid object type ',b);
              end;
-             writeln(space,'    Name of Class : ',getstring);
              writeln(space,'    External name : ',getstring);
              writeln(space,'       Import lib : ',getstring);
              writeln(space,'         DataSize : ',getaint);
@@ -2130,8 +2135,6 @@ begin
              writeln(space,'       Vmt offset : ',getlongint);
              write  (space,  '   Ancestor Class : ');
              readderef('');
-             write  (space,'          Options : ');
-             readobjectdefoptions;
 
              if tobjecttyp(b) in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
                begin

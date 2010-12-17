@@ -32,6 +32,12 @@ interface
     { parses a object declaration }
     function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tobjectdef;
 
+    function class_constructor_head:tprocdef;
+    function class_destructor_head:tprocdef;
+    function constructor_head:tprocdef;
+    function destructor_head:tprocdef;
+    procedure struct_property_dec(is_classproperty:boolean);
+
 implementation
 
     uses
@@ -57,7 +63,7 @@ implementation
         result:=nil;
         consume(_CONSTRUCTOR);
         { must be at same level as in implementation }
-        parse_proc_head(current_objectdef,potype_class_constructor,pd);
+        parse_proc_head(current_structdef,potype_class_constructor,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -67,7 +73,7 @@ implementation
         if (pd.maxparacount>0) then
           Message(parser_e_no_paras_for_class_constructor);
         consume(_SEMICOLON);
-        include(current_objectdef.objectoptions,oo_has_class_constructor);
+        include(current_structdef.objectoptions,oo_has_class_constructor);
         current_module.flags:=current_module.flags or uf_classinits;
         { no return value }
         pd.returndef:=voidtype;
@@ -81,7 +87,7 @@ implementation
         result:=nil;
         consume(_CONSTRUCTOR);
         { must be at same level as in implementation }
-        parse_proc_head(current_objectdef,potype_constructor,pd);
+        parse_proc_head(current_structdef,potype_constructor,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -91,11 +97,11 @@ implementation
            (pd.procsym.name<>'INIT') then
           Message(parser_e_constructorname_must_be_init);
         consume(_SEMICOLON);
-        include(current_objectdef.objectoptions,oo_has_constructor);
-        { Set return type, class constructors return the
+        include(current_structdef.objectoptions,oo_has_constructor);
+        { Set return type, class and record constructors return the
           created instance, object constructors return boolean }
-        if is_class(pd._class) then
-          pd.returndef:=pd._class
+        if is_class(pd.struct) or is_record(pd.struct) then
+          pd.returndef:=pd.struct
         else
 {$ifdef CPU64bitaddr}
           pd.returndef:=bool64type;
@@ -106,22 +112,22 @@ implementation
       end;
 
 
-    procedure property_dec(is_classproperty:boolean);
+    procedure struct_property_dec(is_classproperty:boolean);
       var
         p : tpropertysym;
       begin
-        { check for a class }
-        if not((is_class_or_interface_or_dispinterface(current_objectdef)) or
-           (not(m_tp7 in current_settings.modeswitches) and (is_object(current_objectdef)))) then
+        { check for a class or record }
+        if not((is_class_or_interface_or_dispinterface(current_structdef) or is_record(current_structdef)) or
+           (not(m_tp7 in current_settings.modeswitches) and (is_object(current_structdef)))) then
           Message(parser_e_syntax_error);
         consume(_PROPERTY);
-        p:=read_property_dec(is_classproperty, current_objectdef);
+        p:=read_property_dec(is_classproperty,current_structdef);
         consume(_SEMICOLON);
         if try_to_consume(_DEFAULT) then
           begin
-            if oo_has_default_property in current_objectdef.objectoptions then
+            if oo_has_default_property in current_structdef.objectoptions then
               message(parser_e_only_one_default_property);
-            include(current_objectdef.objectoptions,oo_has_default_property);
+            include(current_structdef.objectoptions,oo_has_default_property);
             include(p.propoptions,ppo_defaultproperty);
             if not(ppo_hasparameters in p.propoptions) then
               message(parser_e_property_need_paras);
@@ -139,11 +145,11 @@ implementation
             begin
               if pattern='CURRENT' then
               begin
-                if oo_has_enumerator_current in current_objectdef.objectoptions then
+                if oo_has_enumerator_current in current_structdef.objectoptions then
                   message(parser_e_only_one_enumerator_current);
                 if not p.propaccesslist[palt_read].empty then
                 begin
-                  include(current_objectdef.objectoptions,oo_has_enumerator_current);
+                  include(current_structdef.objectoptions,oo_has_enumerator_current);
                   include(p.propoptions,ppo_enumerator_current);
                 end
                 else
@@ -170,7 +176,7 @@ implementation
       begin
         result:=nil;
         consume(_DESTRUCTOR);
-        parse_proc_head(current_objectdef,potype_class_destructor,pd);
+        parse_proc_head(current_structdef,potype_class_destructor,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -180,7 +186,7 @@ implementation
         if (pd.maxparacount>0) then
           Message(parser_e_no_paras_for_class_destructor);
         consume(_SEMICOLON);
-        include(current_objectdef.objectoptions,oo_has_class_destructor);
+        include(current_structdef.objectoptions,oo_has_class_destructor);
         current_module.flags:=current_module.flags or uf_classinits;
         { no return value }
         pd.returndef:=voidtype;
@@ -193,7 +199,7 @@ implementation
       begin
         result:=nil;
         consume(_DESTRUCTOR);
-        parse_proc_head(current_objectdef,potype_destructor,pd);
+        parse_proc_head(current_structdef,potype_destructor,pd);
         if not assigned(pd) then
           begin
             consume(_SEMICOLON);
@@ -207,7 +213,7 @@ implementation
            (m_fpc in current_settings.modeswitches) then
           Message(parser_e_no_paras_for_destructor);
         consume(_SEMICOLON);
-        include(current_objectdef.objectoptions,oo_has_destructor);
+        include(current_structdef.objectoptions,oo_has_destructor);
         { no return value }
         pd.returndef:=voidtype;
         result:=pd;
@@ -319,7 +325,7 @@ implementation
         p : tnode;
         valid : boolean;
       begin
-        p:=comp_expr(true);
+        p:=comp_expr(true,false);
         if p.nodetype=stringconstn then
           begin
             stringdispose(current_objectdef.iidstr);
@@ -549,7 +555,7 @@ implementation
 
       procedure chkobjc(pd: tprocdef);
         begin
-          if is_objc_class_or_protocol(pd._class) then
+          if is_objc_class_or_protocol(pd.struct) then
             begin
               include(pd.procoptions,po_objc);
             end;
@@ -764,7 +770,7 @@ implementation
               end;
             _PROPERTY :
               begin
-                property_dec(is_classdef);
+                struct_property_dec(is_classdef);
                 fields_allowed:=false;
                 is_classdef:=false;
               end;
@@ -795,7 +801,7 @@ implementation
 
                 oldparse_only:=parse_only;
                 parse_only:=true;
-                pd:=parse_proc_dec(is_classdef, current_objectdef);
+                pd:=parse_proc_dec(is_classdef,current_objectdef);
 
                 { this is for error recovery as well as forward }
                 { interface mappings, i.e. mapping to a method  }
@@ -805,9 +811,9 @@ implementation
                     parse_object_proc_directives(pd);
 
                     { check if dispid is set }
-                    if is_dispinterface(pd._class) and not (po_dispid in pd.procoptions) then
+                    if is_dispinterface(pd.struct) and not (po_dispid in pd.procoptions) then
                       begin
-                        pd.dispid:=pd._class.get_next_dispid;
+                        pd.dispid:=tobjectdef(pd.struct).get_next_dispid;
                         include(pd.procoptions, po_dispid);
                       end;
 

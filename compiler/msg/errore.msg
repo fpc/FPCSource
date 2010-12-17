@@ -368,7 +368,7 @@ scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN dire
 #
 # Parser
 #
-# 03298 is the last used one
+# 03302 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1310,7 +1310,6 @@ parser_e_no_paras_for_class_constructor=03290_E_Class constructors can't have pa
 parser_e_no_paras_for_class_destructor=03291_E_Class destructors can't have parameters
 % You are declaring a class destructor with a parameter list. Class destructor methods
 % cannot have parameters.
-
 parser_f_modeswitch_objc_required=03292_F_This construct requires the \{\$modeswitch objectivec1\} mode switch to be active
 % Objective-Pascal constructs are not supported when \{\$modeswitch ObjectiveC1\}
 % is not active.
@@ -1352,6 +1351,15 @@ parser_e_forward_protocol_declaration_must_be_resolved=03298_E_Forward declarati
 % \end{verbatim}
 % where \var{MyProtocol} is declared but not defined.
 % \end{description}
+parser_e_no_record_published=03299_E_Record types cannot have published sections
+% Published sections can be used only inside classes.
+parser_e_no_destructor_in_records=03300_E_Destructors aren't allowed in records
+% Destructor declarations aren't allowed in records.
+parser_e_class_methods_only_static_in_records=03301_E_Class methods must be static in records
+% Class methods declarations aren't allowed in records without static modifier.
+% Records have no inheritance and therefore non static class methods have no sence for them.
+parser_e_no_constructor_in_records=03302_E_Constructors aren't allowed in records
+% Constructor declarations aren't allowed in records.
 #
 # Type Checking
 #

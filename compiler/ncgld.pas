@@ -500,9 +500,9 @@ implementation
                        begin
                          if (not assigned(current_procinfo) or
                              wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
-                           procdef._class.register_vmt_call(procdef.extnumber);
+                           tobjectdef(procdef.struct).register_vmt_call(procdef.extnumber);
             {$ifdef vtentry}
-                         if not is_interface(procdef._class) then
+                         if not is_interface(procdef.struct) then
                            begin
                              inc(current_asmdata.NextVTEntryNr);
                              current_asmdata.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(current_asmdata.NextVTEntryNr)+'_'+procdef._class.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(pint)),AT_FUNCTION,0));
@@ -517,7 +517,7 @@ implementation
                              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
                            end;
                          { load method address }
-                         reference_reset_base(href,hregister,procdef._class.vmtmethodoffset(procdef.extnumber),sizeof(pint));
+                         reference_reset_base(href,hregister,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
                          hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
                          cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
                          { ... and store it }

@@ -301,17 +301,17 @@ implementation
                  definition }
                if vo_is_self in tabstractvarsym(symtableentry).varoptions then
                  begin
-                   resultdef:=tprocdef(symtableentry.owner.defowner)._class;
+                   resultdef:=tprocdef(symtableentry.owner.defowner).struct;
                    if (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) or
                       (po_staticmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
                      resultdef:=tclassrefdef.create(resultdef)
-                   else if is_object(resultdef) and
+                   else if (is_object(resultdef) or is_record(resultdef)) and
                            (nf_load_self_pointer in flags) then
                      resultdef:=tpointerdef.create(resultdef);
                  end
                else if vo_is_vmt in tabstractvarsym(symtableentry).varoptions then
                  begin
-                   resultdef:=tprocdef(symtableentry.owner.defowner)._class;
+                   resultdef:=tprocdef(symtableentry.owner.defowner).struct;
                    resultdef:=tclassrefdef.create(resultdef);
                  end
                else

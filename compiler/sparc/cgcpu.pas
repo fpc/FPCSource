@@ -1355,7 +1355,7 @@ implementation
       begin
         if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
           Internalerror(200006137);
-        if not assigned(procdef._class) or
+        if not assigned(procdef.struct) or
            (procdef.procoptions*[po_classmethod, po_staticmethod,
              po_methodpointer, po_interrupt, po_iocheck]<>[]) then
           Internalerror(200006138);
@@ -1384,7 +1384,7 @@ implementation
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_G1);
             g1_used:=true; 
             { jmp *vmtoffs(%eax) ; method offs }
-            reference_reset_base(href,NR_G1,procdef._class.vmtmethodoffset(procdef.extnumber),sizeof(pint));
+            reference_reset_base(href,NR_G1,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
             list.concat(taicpu.op_ref_reg(A_LD,href,NR_G1));
             list.concat(taicpu.op_reg(A_JMP,NR_G1));
 	    g1_used:=false;

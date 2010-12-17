@@ -36,10 +36,10 @@ interface
     function  readconstant(const orgname:string;const filepos:tfileposinfo):tconstsym;
 
     procedure const_dec;
-    procedure consts_dec(in_class: boolean);
+    procedure consts_dec(in_structure: boolean);
     procedure label_dec;
     procedure type_dec;
-    procedure types_dec(in_class: boolean);
+    procedure types_dec(in_structure: boolean);
     procedure var_dec;
     procedure threadvar_dec;
     procedure property_dec(is_classpropery: boolean);
@@ -85,7 +85,7 @@ implementation
         if orgname='' then
          internalerror(9584582);
         hp:=nil;
-        p:=comp_expr(true);
+        p:=comp_expr(true,false);
         storetokenpos:=current_tokenpos;
         current_tokenpos:=filepos;
         case p.nodetype of
@@ -161,7 +161,7 @@ implementation
         consts_dec(false);
       end;
 
-    procedure consts_dec(in_class: boolean);
+    procedure consts_dec(in_structure: boolean);
       var
          orgname : TIDString;
          hdef : tdef;
@@ -254,7 +254,7 @@ implementation
                         tclist:=current_asmdata.asmlists[al_rotypedconsts]
                       else
                         tclist:=current_asmdata.asmlists[al_typedconsts];
-                      read_typed_const(tclist,tstaticvarsym(sym),in_class);
+                      read_typed_const(tclist,tstaticvarsym(sym),in_structure);
                     end;
                 end;
 
@@ -262,7 +262,7 @@ implementation
                 { generate an error }
                 consume(_EQUAL);
            end;
-         until (token<>_ID)or(in_class and (idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]));
+         until (token<>_ID)or(in_structure and (idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]));
          block_type:=old_block_type;
       end;
 
@@ -309,7 +309,7 @@ implementation
       end;
 
 
-    procedure types_dec(in_class: boolean);
+    procedure types_dec(in_structure: boolean);
 
       procedure get_cpp_class_external_status(od: tobjectdef);
         var
@@ -669,7 +669,7 @@ implementation
              end;
            if assigned(generictypelist) then
              generictypelist.free;
-         until (token<>_ID)or(in_class and (idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]));
+         until (token<>_ID)or(in_structure and (idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]));
          { resolve type block forward declarations and restore a unit
            container for them }
          resolve_forward_types;
@@ -748,7 +748,7 @@ implementation
              _EQUAL:
                 begin
                    consume(_EQUAL);
-                   p:=comp_expr(true);
+                   p:=comp_expr(true,false);
                    storetokenpos:=current_tokenpos;
                    current_tokenpos:=filepos;
                    sym:=nil;

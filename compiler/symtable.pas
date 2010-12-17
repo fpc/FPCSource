@@ -104,7 +104,7 @@ interface
 
        trecordsymtable = class(tabstractrecordsymtable)
        public
-          constructor create(usealign:shortint);
+          constructor create(const n:string;usealign:shortint);
           procedure insertunionst(unionst : trecordsymtable;offset : longint);
        end;
 
@@ -200,19 +200,20 @@ interface
 
 {*** Search ***}
     procedure addsymref(sym:tsym);
-    function  is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tobjectdef):boolean;
-    function  is_visible_for_object(pd:tprocdef;contextobjdef:tobjectdef):boolean;
-    function  is_visible_for_object(sym:tsym;contextobjdef:tobjectdef):boolean;
+    function  is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
+    function  is_visible_for_object(pd:tprocdef;contextobjdef:tabstractrecorddef):boolean;
+    function  is_visible_for_object(sym:tsym;contextobjdef:tabstractrecorddef):boolean;
     function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_module(pm:pointer;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_named_module(const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
     function  searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
+    function  searchsym_in_record(recordh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_class_by_msgint(classh:tobjectdef;msgid:longint;out srdef : tdef;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  search_system_type(const s: TIDString): ttypesym;
     function  search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
-    function  search_class_member(pd : tobjectdef;const s : string):tsym;
+    function  search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
     function  search_enumerator_operator(from_def,to_def:Tdef):Tprocdef;
     function  search_class_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
@@ -579,7 +580,7 @@ implementation
       begin
          if (tsym(sym).typ in [staticvarsym,localvarsym,paravarsym,fieldvarsym]) and
             ((tsym(sym).owner.symtabletype in
-             [parasymtable,localsymtable,ObjectSymtable,staticsymtable])) then
+             [parasymtable,localsymtable,ObjectSymtable,recordsymtable,staticsymtable])) then
            begin
             { unused symbol should be reported only if no }
             { error is reported                     }
@@ -602,8 +603,8 @@ implementation
                    end
                  else if (tsym(sym).owner.symtabletype=parasymtable) then
                    MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_not_used,tsym(sym).prettyname)
-                 else if (tsym(sym).owner.symtabletype=ObjectSymtable) then
-                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_not_used,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname)
+                 else if (tsym(sym).owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_not_used,tabstractrecorddef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname)
                  else
                    MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_not_used,tsym(sym).prettyname);
               end
@@ -615,8 +616,8 @@ implementation
                         not(vo_is_funcret in tabstractvarsym(sym).varoptions) then
                        MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_only_set,tsym(sym).prettyname)
                    end
-                 else if (tsym(sym).owner.symtabletype=ObjectSymtable) then
-                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_only_set,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname)
+                 else if (tsym(sym).owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_only_set,tabstractrecorddef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname)
                  else if tabstractvarsym(sym).varoptions*[vo_is_funcret,vo_is_public,vo_is_external]=[] then
                    MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_only_set,tsym(sym).prettyname);
               end
@@ -625,22 +626,22 @@ implementation
               MessagePos1(tsym(sym).fileinfo,sym_w_identifier_only_read,tsym(sym).prettyname)
           end
         else if ((tsym(sym).owner.symtabletype in
-              [ObjectSymtable,parasymtable,localsymtable,staticsymtable])) then
+              [ObjectSymtable,parasymtable,localsymtable,staticsymtable,recordsymtable])) then
           begin
            if (Errorcount<>0) or
               (sp_internal in tsym(sym).symoptions) then
              exit;
            { do not claim for inherited private fields !! }
-           if (tsym(sym).refs=0) and (tsym(sym).owner.symtabletype=ObjectSymtable) then
+           if (tsym(sym).refs=0) and (tsym(sym).owner.symtabletype in [ObjectSymtable,recordsymtable]) then
              case tsym(sym).typ of
                typesym:
-                 MessagePos2(tsym(sym).fileinfo,sym_n_private_type_not_used,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
+                 MessagePos2(tsym(sym).fileinfo,sym_n_private_type_not_used,tabstractrecorddef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
                constsym:
-                 MessagePos2(tsym(sym).fileinfo,sym_n_private_const_not_used,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
+                 MessagePos2(tsym(sym).fileinfo,sym_n_private_const_not_used,tabstractrecorddef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
                propertysym:
-                 MessagePos2(tsym(sym).fileinfo,sym_n_private_property_not_used,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
+                 MessagePos2(tsym(sym).fileinfo,sym_n_private_property_not_used,tabstractrecorddef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
              else
-               MessagePos2(tsym(sym).fileinfo,sym_n_private_method_not_used,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
+               MessagePos2(tsym(sym).fileinfo,sym_n_private_method_not_used,tabstractrecorddef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
              end
            { units references are problematic }
            else
@@ -679,9 +680,9 @@ implementation
            Don't test simple object aliases PM
          }
          if (tsym(sym).typ=typesym) and
-            (ttypesym(sym).typedef.typ=objectdef) and
+            (ttypesym(sym).typedef.typ in [objectdef,recorddef]) and
             (ttypesym(sym).typedef.typesym=tsym(sym)) then
-           tobjectdef(ttypesym(sym).typedef).symtable.SymList.ForEachCall(@TestPrivate,nil);
+           tabstractrecorddef(ttypesym(sym).typedef).symtable.SymList.ForEachCall(@TestPrivate,nil);
       end;
 
 
@@ -1046,9 +1047,9 @@ implementation
                               TRecordSymtable
 ****************************************************************************}
 
-    constructor trecordsymtable.create(usealign:shortint);
+    constructor trecordsymtable.create(const n:string;usealign:shortint);
       begin
-        inherited create('',usealign);
+        inherited create(n,usealign);
         symtabletype:=recordsymtable;
       end;
 
@@ -1187,7 +1188,7 @@ implementation
          if not(sym.typ in [procsym,propertysym]) then
            begin
               { but private ids can be reused }
-              hsym:=search_class_member(tobjectdef(defowner),hashedid.id);
+              hsym:=search_struct_member(tobjectdef(defowner),hashedid.id);
               if assigned(hsym) and
                  (
                   (
@@ -1321,13 +1322,13 @@ implementation
           as the procsym }
         if not is_funcret_sym(sym) and
            (defowner.typ=procdef) and
-           assigned(tprocdef(defowner)._class) and
-           (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) and
+           assigned(tprocdef(defowner).struct) and
+           (tprocdef(defowner).owner.defowner=tprocdef(defowner).struct) and
            (
             not(m_delphi in current_settings.modeswitches) or
-            is_object(tprocdef(defowner)._class)
+            is_object(tprocdef(defowner).struct)
            ) then
-          result:=tprocdef(defowner)._class.symtable.checkduplicate(hashedid,sym);
+          result:=tprocdef(defowner).struct.symtable.checkduplicate(hashedid,sym);
       end;
 
 
@@ -1351,13 +1352,13 @@ implementation
           exit;
         if not(m_duplicate_names in current_settings.modeswitches) and
            (defowner.typ=procdef) and
-           assigned(tprocdef(defowner)._class) and
-           (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) and
+           assigned(tprocdef(defowner).struct) and
+           (tprocdef(defowner).owner.defowner=tprocdef(defowner).struct) and
            (
             not(m_delphi in current_settings.modeswitches) or
-            is_object(tprocdef(defowner)._class)
+            is_object(tprocdef(defowner).struct)
            ) then
-          result:=tprocdef(defowner)._class.symtable.checkduplicate(hashedid,sym);
+          result:=tprocdef(defowner).struct.symtable.checkduplicate(hashedid,sym);
       end;
 
 
@@ -1603,8 +1604,8 @@ implementation
       var
         s1,s2 : string;
       begin
-        if def.typ=objectdef then
-          s1:=tobjectdef(def).RttiName
+        if def.typ in [objectdef,recorddef] then
+          s1:=tabstractrecorddef(def).RttiName
         else
           s1:=def.typename;
         { When the names are the same try to include the unit name }
@@ -1621,7 +1622,7 @@ implementation
     function generate_nested_name(symtable:tsymtable;delimiter:string):string;
       begin
         result:='';
-        while assigned(symtable) and (symtable.symtabletype=ObjectSymtable) do
+        while assigned(symtable) and (symtable.symtabletype in [ObjectSymtable,recordsymtable]) do
           begin
             if (result='') then
               result:=symtable.name^
@@ -1692,25 +1693,25 @@ implementation
        end;
 
 
-    function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tobjectdef):boolean;
+    function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
 
-      function is_holded_by(childdef,ownerdef: tobjectdef): boolean;
+      function is_holded_by(childdef,ownerdef: tabstractrecorddef): boolean;
         begin
           result:=childdef=ownerdef;
-          if not result and (childdef.owner.symtabletype=ObjectSymtable) then
-            result:=is_holded_by(tobjectdef(childdef.owner.defowner),ownerdef);
+          if not result and (childdef.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+            result:=is_holded_by(tabstractrecorddef(childdef.owner.defowner),ownerdef);
         end;
 
       var
-        symownerdef : tobjectdef;
+        symownerdef : tabstractrecorddef;
       begin
         result:=false;
 
         { Get objdectdef owner of the symtable for the is_related checks }
         if not assigned(symst) or
-           (symst.symtabletype<>objectsymtable) then
+           not (symst.symtabletype in [objectsymtable,recordsymtable]) then
           internalerror(200810285);
-        symownerdef:=tobjectdef(symst.defowner);
+        symownerdef:=tabstractrecorddef(symst.defowner);
         case symvisibility of
           vis_private :
             begin
@@ -1723,28 +1724,28 @@ implementation
                       ( // the case of specialize inside the generic declaration
                        (symownerdef.owner.symtabletype = objectsymtable) and
                        (
-                         assigned(current_objectdef) and
+                         assigned(current_structdef) and
                          (
-                           (current_objectdef=symownerdef) or
-                           (current_objectdef.owner.iscurrentunit)
+                           (current_structdef=symownerdef) or
+                           (current_structdef.owner.iscurrentunit)
                          )
                        ) or
                        (
-                         not assigned(current_objectdef) and
+                         not assigned(current_structdef) and
                          (symownerdef.owner.iscurrentunit)
                        )
                       );
             end;
           vis_strictprivate :
             begin
-              result:=assigned(current_objectdef) and
-                      is_holded_by(current_objectdef,symownerdef);
+              result:=assigned(current_structdef) and
+                      is_holded_by(current_structdef,symownerdef);
             end;
           vis_strictprotected :
             begin
-               result:=assigned(current_objectdef) and
-                       (current_objectdef.is_related(symownerdef) or
-                        is_holded_by(current_objectdef,symownerdef));
+               result:=assigned(current_structdef) and
+                       (current_structdef.is_related(symownerdef) or
+                        is_holded_by(current_structdef,symownerdef));
             end;
           vis_protected :
             begin
@@ -1765,14 +1766,14 @@ implementation
                        ( // the case of specialize inside the generic declaration
                         (symownerdef.owner.symtabletype = objectsymtable) and
                         (
-                          assigned(current_objectdef) and
+                          assigned(current_structdef) and
                           (
-                            (current_objectdef=symownerdef) or
-                            (current_objectdef.owner.iscurrentunit)
+                            (current_structdef=symownerdef) or
+                            (current_structdef.owner.iscurrentunit)
                           )
                         ) or
                         (
-                          not assigned(current_objectdef) and
+                          not assigned(current_structdef) and
                           (symownerdef.owner.iscurrentunit)
                          )
                        )
@@ -1785,13 +1786,13 @@ implementation
       end;
 
 
-    function is_visible_for_object(pd:tprocdef;contextobjdef:tobjectdef):boolean;
+    function is_visible_for_object(pd:tprocdef;contextobjdef:tabstractrecorddef):boolean;
       begin
         result:=is_visible_for_object(pd.owner,pd.visibility,contextobjdef);
       end;
 
 
-    function is_visible_for_object(sym:tsym;contextobjdef:tobjectdef):boolean;
+    function is_visible_for_object(sym:tsym;contextobjdef:tabstractrecorddef):boolean;
       var
         i  : longint;
         pd : tprocdef;
@@ -1819,7 +1820,7 @@ implementation
     function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
         hashedid   : THashedIDString;
-        contextobjdef : tobjectdef;
+        contextstructdef : tabstractrecorddef;
         stackitem  : psymtablestackitem;
       begin
         result:=false;
@@ -1845,14 +1846,14 @@ implementation
                       defined in this unit }
                     if (srsymtable.symtabletype=withsymtable) and
                        assigned(srsymtable.defowner) and
-                       (srsymtable.defowner.typ=objectdef) and
+                       (srsymtable.defowner.typ in [recorddef,objectdef]) and
                        (srsymtable.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
                        (srsymtable.defowner.owner.iscurrentunit) then
-                      contextobjdef:=tobjectdef(srsymtable.defowner)
+                      contextstructdef:=tobjectdef(srsymtable.defowner)
                     else
-                      contextobjdef:=current_objectdef;
-                    if (srsym.owner.symtabletype<>objectsymtable) or
-                       is_visible_for_object(srsym,contextobjdef) then
+                      contextstructdef:=current_structdef;
+                    if not (srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or
+                       is_visible_for_object(srsym,contextstructdef) then
                       begin
                         { we need to know if a procedure references symbols
                           in the static symtable, because then it can't be
@@ -1877,6 +1878,7 @@ implementation
       var
         hashedid  : THashedIDString;
         stackitem : psymtablestackitem;
+        classh : tobjectdef;
       begin
         result:=false;
         hashedid.id:=s;
@@ -1885,28 +1887,36 @@ implementation
           begin
             {
               It is not possible to have type symbols in:
-                records
                 parameters
-              Exception are classes, objects, generic definitions and specializations
+              Exception are classes, objects, records, generic definitions and specializations
               that have the parameterized types inserted in the symtable.
             }
             srsymtable:=stackitem^.symtable;
-            if not(srsymtable.symtabletype in [recordsymtable,ObjectSymtable,parasymtable]) or
-               (assigned(srsymtable.defowner) and
-                (
-                 (df_generic in tdef(srsymtable.defowner).defoptions) or
-                 (df_specialization in tdef(srsymtable.defowner).defoptions) or
-                 is_class_or_object(tdef(srsymtable.defowner)))
-                ) then
+            if (srsymtable.symtabletype=ObjectSymtable) then
               begin
+                classh:=tobjectdef(srsymtable.defowner);
+                while assigned(classh) do
+                  begin
+                    srsymtable:=classh.symtable;
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
                 if assigned(srsym) and
-                   not(srsym.typ in [fieldvarsym,paravarsym]) and
-                   (
-                    (srsym.owner.symtabletype<>objectsymtable) or
-                    (is_visible_for_object(srsym,current_objectdef) and
-                     (srsym.typ=typesym))
-                   ) then
+                       not(srsym.typ in [fieldvarsym,paravarsym,propertysym,procsym,labelsym]) and
+                       is_visible_for_object(srsym,current_structdef) then
+                  begin
+                        addsymref(srsym);
+                        result:=true;
+                        exit;
+                      end;
+                    classh:=classh.childof;
+                  end;
+              end
+            else
+            if srsymtable.symtabletype<>parasymtable then
+              begin
+                srsym:=tsym(srsymtable.FindWithHash(hashedid));
+                if assigned(srsym) and 
+                   not(srsym.typ in [fieldvarsym,paravarsym,propertysym,procsym,labelsym]) and
+                   (not (srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or is_visible_for_object(srsym,current_structdef)) then
                   begin
                     { we need to know if a procedure references symbols
                       in the static symtable, because then it can't be
@@ -2113,6 +2123,22 @@ implementation
           end;
       end;
 
+    function  searchsym_in_record(recordh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
+      var
+        hashedid : THashedIDString;
+      begin
+        hashedid.id:=s;
+        srsymtable:=recordh.symtable;
+        srsym:=tsym(srsymtable.FindWithHash(hashedid));
+        if assigned(srsym) and is_visible_for_object(srsym,recordh) then
+          begin
+            addsymref(srsym);
+            result:=true;
+            exit;
+          end;
+        srsym:=nil;
+        srsymtable:=nil;
+      end;
 
     function searchsym_in_class_by_msgint(classh:tobjectdef;msgid:longint;out srdef : tdef;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
@@ -2411,17 +2437,17 @@ implementation
       end;
 
 
-    function search_class_member(pd : tobjectdef;const s : string):tsym;
+    function search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
     { searches n in symtable of pd and all anchestors }
       var
         hashedid   : THashedIDString;
         srsym      : tsym;
-        orgpd      : tobjectdef;
+        orgpd      : tabstractrecorddef;
         srsymtable : tsymtable;
       begin
         { in case this is a formal objcclass, first find the real definition }
         if (oo_is_formal in pd.objectoptions) then
-          pd:=find_real_objcclass_definition(pd,true);
+          pd:=find_real_objcclass_definition(tobjectdef(pd),true);
         hashedid.id:=s;
         orgpd:=pd;
         while assigned(pd) do
@@ -2429,15 +2455,18 @@ implementation
            srsym:=tsym(pd.symtable.FindWithHash(hashedid));
            if assigned(srsym) then
             begin
-              search_class_member:=srsym;
+              search_struct_member:=srsym;
               exit;
             end;
-           pd:=pd.childof;
+           if pd.typ=objectdef then
+             pd:=tobjectdef(pd).childof
+           else
+             pd:=nil;
          end;
 
         { not found, now look for class helpers }
         if is_objcclass(pd) then
-          search_class_helper(orgpd,s,result,srsymtable)
+          search_class_helper(tobjectdef(orgpd),s,result,srsymtable)
         else
           result:=nil;
       end;

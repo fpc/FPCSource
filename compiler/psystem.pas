@@ -347,8 +347,8 @@ implementation
           end;
         addtype('$s64currency',s64currencytype);
         { Add a type for virtual method tables }
-        hrecst:=trecordsymtable.create(current_settings.packrecords);
-        vmttype:=trecorddef.create(hrecst);
+        hrecst:=trecordsymtable.create('',current_settings.packrecords);
+        vmttype:=trecorddef.create('',hrecst);
         pvmttype:=tpointerdef.create(vmttype);
         { can't use addtype for pvmt because the rtti of the pointed
           type is not available. The rtti for pvmt will be written implicitly
@@ -371,10 +371,10 @@ implementation
         tarraydef(vmtarraytype).elementdef:=pvmttype;
         addtype('$vtblarray',vmtarraytype);
         { Add a type for methodpointers }
-        hrecst:=trecordsymtable.create(1);
+        hrecst:=trecordsymtable.create('',1);
         addfield(hrecst,tfieldvarsym.create('$proc',vs_value,voidpointertype,[]));
         addfield(hrecst,tfieldvarsym.create('$self',vs_value,voidpointertype,[]));
-        methodpointertype:=trecorddef.create(hrecst);
+        methodpointertype:=trecorddef.create('',hrecst);
         addtype('$methodpointer',methodpointertype);
         symtablestack.pop(systemunit);
       end;

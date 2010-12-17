@@ -33,7 +33,7 @@ interface
       tvar_dec_option=(vd_record,vd_object,vd_threadvar,vd_class);
       tvar_dec_options=set of tvar_dec_option;
 
-    function  read_property_dec(is_classproperty:boolean; aclass:tobjectdef):tpropertysym;
+    function  read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;
 
     procedure read_var_decls(options:Tvar_dec_options);
 
@@ -66,7 +66,7 @@ implementation
        ;
 
 
-    function read_property_dec(is_classproperty:boolean; aclass:tobjectdef):tpropertysym;
+    function read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;
 
         { convert a node tree to symlist and return the last
           symbol }
@@ -82,14 +82,14 @@ implementation
             def:=nil;
             if token=_ID then
              begin
-               if assigned(aclass) then
-                 sym:=search_class_member(aclass,pattern)
+               if assigned(astruct) then
+                 sym:=search_struct_member(astruct,pattern)
                else
                  searchsym(pattern,sym,srsymtable);
                if assigned(sym) then
                 begin
-                  if assigned(aclass) and
-                     not is_visible_for_object(sym,aclass) then
+                  if assigned(astruct) and
+                     not is_visible_for_object(sym,astruct) then
                     Message(parser_e_cant_access_private_member);
                   case sym.typ of
                     fieldvarsym :
@@ -137,7 +137,7 @@ implementation
                            begin
                              sym:=tsym(st.Find(pattern));
                              if not(assigned(sym)) and is_object(def) then
-                               sym:=search_class_member(tobjectdef(def),pattern);
+                               sym:=search_struct_member(tobjectdef(def),pattern);
                              if assigned(sym) then
                               begin
                                 pl.addsym(sl_subscript,sym);
@@ -177,7 +177,7 @@ implementation
                          if def.typ=arraydef then
                           begin
                             idx:=0;
-                            p:=comp_expr(true);
+                            p:=comp_expr(true,false);
                             if (not codegenerror) then
                              begin
                                if (p.nodetype=ordconstn) then
@@ -268,7 +268,7 @@ implementation
 
               if try_to_consume(_DISPID) then
                 begin
-                  pt:=comp_expr(true);
+                  pt:=comp_expr(true,false);
                   if is_constintnode(pt) then
                     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
                       message(parser_e_range_check_error)
@@ -279,7 +279,7 @@ implementation
                   pt.free;
                 end
               else
-                p.dispid:=aclass.get_next_dispid;
+                p.dispid:=tobjectdef(astruct).get_next_dispid;
             end;
 
           procedure add_index_parameter(var paranr: word; p: tpropertysym; readprocdef, writeprocdef, storedprocdef: tprocvardef);
@@ -324,7 +324,7 @@ implementation
          storedprocdef:=tprocvardef.create(normal_function_level);
 
          { make them method pointers }
-         if assigned(aclass) and not is_classproperty then
+         if assigned(astruct) and not is_classproperty then
            begin
              include(readprocdef.procoptions,po_methodpointer);
              include(writeprocdef.procoptions,po_methodpointer);
@@ -416,18 +416,18 @@ implementation
          { force property interface
              there is a property parameter
              a global property }
-         if (token=_COLON) or (paranr>0) or (aclass=nil) then
+         if (token=_COLON) or (paranr>0) or (astruct=nil) then
            begin
               consume(_COLON);
               single_type(p.propdef,false,false);
 
-              if is_dispinterface(aclass) and not is_automatable(p.propdef) then
+              if is_dispinterface(astruct) and not is_automatable(p.propdef) then
                 Message1(type_e_not_automatable,p.propdef.typename);
 
               if (idtoken=_INDEX) then
                 begin
                    consume(_INDEX);
-                   pt:=comp_expr(true);
+                   pt:=comp_expr(true,false);
                    { Only allow enum and integer indexes. Convert all integer
                      values to s32int to be compatible with delphi, because the
                      procedure matching requires equal parameters }
@@ -457,10 +457,13 @@ implementation
          else
            begin
               { do an property override }
-              overridden:=search_class_member(aclass.childof,p.name);
+              if (astruct.typ=objectdef) then
+                overridden:=search_struct_member(tobjectdef(astruct).childof,p.name)
+              else
+                overridden:=nil;
               if assigned(overridden) and
                  (overridden.typ=propertysym) and
-                 not(is_dispinterface(aclass)) then
+                 not(is_dispinterface(astruct)) then
                 begin
                   p.overriddenpropsym:=tpropertysym(overridden);
                   { inherit all type related entries }
@@ -478,14 +481,14 @@ implementation
                   message(parser_e_no_property_found_to_override);
                 end;
            end;
-         if ((p.visibility=vis_published) or is_dispinterface(aclass)) and
+         if ((p.visibility=vis_published) or is_dispinterface(astruct)) and
             (not(p.propdef.is_publishable) or (sp_static in p.symoptions)) then
            begin
              Message(parser_e_cant_publish_that_property);
              p.visibility:=vis_public;
            end;
 
-         if not(is_dispinterface(aclass)) then
+         if not(is_dispinterface(astruct)) then
            begin
              if try_to_consume(_READ) then
                begin
@@ -585,7 +588,8 @@ implementation
          else
            parse_dispinterface(p);
 
-         if assigned(aclass) and not(is_dispinterface(aclass)) and not is_classproperty then
+         { stored is not allowed for dispinterfaces, records or class properties }
+         if assigned(astruct) and not(is_dispinterface(astruct) or is_record(astruct)) and not is_classproperty then
            begin
              { ppo_stored is default on for not overridden properties }
              if not assigned(p.overriddenpropsym) then
@@ -617,8 +621,8 @@ implementation
                          { make sure we don't let constants mask class fields/
                            methods
                          }
-                         if (not assigned(aclass) or
-                             (search_class_member(aclass,pattern)=nil)) and
+                         if (not assigned(astruct) or
+                             (search_struct_member(astruct,pattern)=nil)) and
                             searchsym(pattern,sym,srsymtable) and
                             (sym.typ = constsym) then
                            begin
@@ -672,20 +676,20 @@ implementation
                 end;
               end;
            end;
-         if try_to_consume(_DEFAULT) then
+         if not is_record(astruct) and try_to_consume(_DEFAULT) then
            begin
               if not allow_default_property(p) then
                 begin
                   Message(parser_e_property_cant_have_a_default_value);
                   { Error recovery }
-                  pt:=comp_expr(true);
+                  pt:=comp_expr(true,false);
                   pt.free;
                 end
               else
                 begin
                   { Get the result of the default, the firstpass is
                     needed to support values like -1 }
-                  pt:=comp_expr(true);
+                  pt:=comp_expr(true,false);
                   if (p.propdef.typ=setdef) and
                      (pt.nodetype=arrayconstructorn) then
                     begin
@@ -713,7 +717,7 @@ implementation
                   pt.free;
                 end;
            end
-         else if try_to_consume(_NODEFAULT) then
+         else if not is_record(astruct) and try_to_consume(_NODEFAULT) then
            begin
               p.default:=longint($80000000);
            end;
@@ -724,7 +728,7 @@ implementation
            end;
 *)
          { Parse possible "implements" keyword }
-         if try_to_consume(_IMPLEMENTS) then
+         if not is_record(astruct) and try_to_consume(_IMPLEMENTS) then
            begin
              single_type(def,false,false);
 
@@ -782,9 +786,9 @@ implementation
                  exit;
                end;
              found:=false;
-             for i:=0 to aclass.ImplementedInterfaces.Count-1 do
+             for i:=0 to tobjectdef(astruct).ImplementedInterfaces.Count-1 do
                begin
-                 ImplIntf:=TImplementedInterface(aclass.ImplementedInterfaces[i]);
+                 ImplIntf:=TImplementedInterface(tobjectdef(astruct).ImplementedInterfaces[i]);
 
                  if compare_defs(def,ImplIntf.IntfDef,nothingn)>=te_equal then
                    begin
@@ -1407,7 +1411,8 @@ implementation
          sc:=TFPObjectList.create(false);
          recstlist:=TFPObjectList.create(false);;
          while (token=_ID) and
-            not((vd_object in options) and
+            not(((vd_object in options) or
+                 ((vd_record in options) and (m_extended_records in current_settings.modeswitches))) and
                 (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT])) do
            begin
              visibility:=symtablestack.top.currentvisibility;
@@ -1428,7 +1433,8 @@ implementation
              { Don't search in the recordsymtable for types (can be nested!) }
              recstlist.count:=0;
              if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) and
-                 not is_class_or_object(tdef(recst.defowner)) then
+                 not is_class_or_object(tdef(recst.defowner)) and
+                 not is_record(tdef(recst.defowner)) then
                begin
                  recstlist.add(recst);
                  symtablestack.pop(recst);
@@ -1529,6 +1535,7 @@ implementation
                      consume(_SEMICOLON);
                      include(options, vd_class);
                    end;
+               end;
                  if vd_class in options then
                  begin
                    { add static flag and staticvarsyms }
@@ -1548,7 +1555,6 @@ implementation
                        recst.insert(tabsolutevarsym.create_ref('$'+static_name,hdef,sl));
                      end;
                  end;
-               end;
              if (visibility=vis_published) and
                 not(is_class(hdef)) then
                begin
@@ -1608,8 +1614,8 @@ implementation
                 Message(type_e_ordinal_expr_expected);
               consume(_OF);
 
-              UnionSymtable:=trecordsymtable.create(current_settings.packrecords);
-              UnionDef:=trecorddef.create(unionsymtable);
+              UnionSymtable:=trecordsymtable.create('',current_settings.packrecords);
+              UnionDef:=trecorddef.create('',unionsymtable);
               uniondef.isunion:=true;
               startvarrecsize:=UnionSymtable.datasize;
               { align the bitpacking to the next byte }
@@ -1619,11 +1625,11 @@ implementation
               symtablestack.push(UnionSymtable);
               repeat
                 repeat
-                  pt:=comp_expr(true);
+                  pt:=comp_expr(true,false);
                   if not(pt.nodetype=ordconstn) then
                     Message(parser_e_illegal_expression);
                   if try_to_consume(_POINTPOINT) then
-                    pt:=crangenode.create(pt,comp_expr(true));
+                    pt:=crangenode.create(pt,comp_expr(true,false));
                   pt.free;
                   if token=_COMMA then
                     consume(_COMMA)

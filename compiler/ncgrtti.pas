@@ -318,9 +318,9 @@ implementation
                   begin
                      { virtual method, write vmt offset }
                      current_asmdata.asmlists[al_rtti].concat(Tai_const.create(aitconst_ptr,
-                       tprocdef(propaccesslist.procdef)._class.vmtmethodoffset(tprocdef(propaccesslist.procdef).extnumber)));
+                       tobjectdef(tprocdef(propaccesslist.procdef).struct).vmtmethodoffset(tprocdef(propaccesslist.procdef).extnumber)));
                      { register for wpo }
-                     tprocdef(propaccesslist.procdef)._class.register_vmt_call(tprocdef(propaccesslist.procdef).extnumber);
+                     tobjectdef(tprocdef(propaccesslist.procdef).struct).register_vmt_call(tprocdef(propaccesslist.procdef).extnumber);
                      {$ifdef vtentry}
                      { not sure if we can insert those vtentry symbols safely here }
                      {$error register methods used for published properties}

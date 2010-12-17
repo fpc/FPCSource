@@ -72,7 +72,7 @@ implementation
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
-       pbase,pexpr,pdecsub,pdecvar,pdecobj;
+       pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl;
 
 
     procedure resolve_forward_types;
@@ -191,7 +191,7 @@ implementation
           begin
             consume(_LSHARPBRACKET);
             repeat
-              pt2:=factor(false);
+              pt2:=factor(false,true);
               pt2.free;
             until not try_to_consume(_COMMA);
             consume(_RSHARPBRACKET);
@@ -227,7 +227,7 @@ implementation
                   consume(_COMMA)
                 else
                   first:=false;
-                pt2:=factor(false);
+                pt2:=factor(false,true);
                 if pt2.nodetype=typen then
                   begin
                     if df_generic in pt2.resultdef.defoptions then
@@ -253,9 +253,9 @@ implementation
           consume(_RSHARPBRACKET);
 
         { Special case if we are referencing the current defined object }
-        if assigned(current_objectdef) and
-           (current_objectdef.objname^=uspecializename) then
-          tt:=current_objectdef;
+        if assigned(current_structdef) and
+           (current_structdef.objname^=uspecializename) then
+          tt:=current_structdef;
 
         { for units specializations can already be needed in the interface, therefor we
           will use the global symtable. Programs don't have a globalsymtable and there we
@@ -373,7 +373,7 @@ implementation
         srsymtable : TSymtable;
         s,sorg : TIDString;
         t : ttoken;
-        objdef : tobjectdef;
+        structdef : tabstractrecorddef;
       begin
          s:=pattern;
          sorg:=orgpattern;
@@ -381,20 +381,20 @@ implementation
          { use of current parsed object:
             - classes can be used also in classes
             - objects can be parameters }
-         objdef:=current_objectdef;
-         while Assigned(objdef) and (objdef.typ=objectdef) do
+         structdef:=current_structdef;
+         while Assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
            begin
-             if (tobjectdef(objdef).objname^=pattern) and
+             if (structdef.objname^=pattern) and
                 (
                   (testcurobject=2) or
-                  is_class_or_interface_or_objc(objdef)
+                  is_class_or_interface_or_objc(structdef)
                 ) then
                 begin
                   consume(_ID);
-                  def:=objdef;
+                  def:=structdef;
                   exit;
                 end;
-             objdef:=tobjectdef(tobjectdef(objdef).owner.defowner);
+             structdef:=tabstractrecorddef(structdef.owner.defowner);
            end;
          { Use the special searchsym_type that ignores records and parameters }
          searchsym_type(s,srsym,srsymtable);
@@ -505,12 +505,12 @@ implementation
                                 consume(_POINT);
                                 consume(_ID);
                              end
-                            else if is_class_or_object(def) then
+                            else if is_class_or_object(def) or is_record(def) then
                               begin
-                                symtablestack.push(tobjectdef(def).symtable);
+                                symtablestack.push(tabstractrecorddef(def).symtable);
                                 consume(_POINT);
                                 id_type(t2,isforwarddef);
-                                symtablestack.pop(tobjectdef(def).symtable);
+                                symtablestack.pop(tabstractrecorddef(def).symtable);
                                 def:=t2;
                               end
                             else
@@ -551,27 +551,303 @@ implementation
           end;
       end;
 
-    { reads a record declaration }
-    function record_dec : tdef;
+    procedure parse_record_members;
+
+        procedure maybe_parse_hint_directives(pd:tprocdef);
+        var
+          dummysymoptions : tsymoptions;
+          deprecatedmsg : pshortstring;
+        begin
+          dummysymoptions:=[];
+          deprecatedmsg:=nil;
+          while try_consume_hintdirective(dummysymoptions,deprecatedmsg) do
+            Consume(_SEMICOLON);
+          if assigned(pd) then
+            begin
+              pd.symoptions:=pd.symoptions+dummysymoptions;
+              pd.deprecatedmsg:=deprecatedmsg;
+            end
+          else
+            stringdispose(deprecatedmsg);
+        end;
+
       var
+        pd : tprocdef;
+        oldparse_only: boolean;
+        member_blocktype : tblock_type;
+        fields_allowed, is_classdef, classfields: boolean;
+        vdoptions: tvar_dec_options;
+      begin
+        { empty record declaration ? }
+        if (token=_SEMICOLON) then
+          Exit;
+
+        current_structdef.symtable.currentvisibility:=vis_public;
+        testcurobject:=1;
+        fields_allowed:=true;
+        is_classdef:=false;
+        classfields:=false;
+        member_blocktype:=bt_general;
+        repeat
+          case token of
+            _TYPE :
+              begin
+                consume(_TYPE);
+                member_blocktype:=bt_type;
+              end;
+            _VAR :
+              begin
+                consume(_VAR);
+                fields_allowed:=true;
+                member_blocktype:=bt_general;
+                classfields:=is_classdef;
+                is_classdef:=false;
+              end;
+            _CONST:
+              begin
+                consume(_CONST);
+                member_blocktype:=bt_const;
+              end;
+            _ID, _CASE :
+              begin
+                case idtoken of
+                  _PRIVATE :
+                    begin
+                       consume(_PRIVATE);
+                       current_structdef.symtable.currentvisibility:=vis_private;
+                       include(current_structdef.objectoptions,oo_has_private);
+                       fields_allowed:=true;
+                       is_classdef:=false;
+                       classfields:=false;
+                       member_blocktype:=bt_general;
+                     end;
+                   _PROTECTED :
+                     begin
+                       consume(_PROTECTED);
+                       current_structdef.symtable.currentvisibility:=vis_protected;
+                       include(current_structdef.objectoptions,oo_has_protected);
+                       fields_allowed:=true;
+                       is_classdef:=false;
+                       classfields:=false;
+                       member_blocktype:=bt_general;
+                     end;
+                   _PUBLIC :
+                     begin
+                       consume(_PUBLIC);
+                       current_structdef.symtable.currentvisibility:=vis_public;
+                       fields_allowed:=true;
+                       is_classdef:=false;
+                       classfields:=false;
+                       member_blocktype:=bt_general;
+                     end;
+                   _PUBLISHED :
+                     begin
+                       Message(parser_e_no_record_published);
+                       consume(_PUBLISHED);
+                       current_structdef.symtable.currentvisibility:=vis_published;
+                       fields_allowed:=true;
+                       is_classdef:=false;
+                       classfields:=false;
+                       member_blocktype:=bt_general;
+                     end;
+                   _STRICT :
+                     begin
+                        consume(_STRICT);
+                        if token=_ID then
+                          begin
+                            case idtoken of
+                              _PRIVATE:
+                                begin
+                                  consume(_PRIVATE);
+                                  current_structdef.symtable.currentvisibility:=vis_strictprivate;
+                                  include(current_structdef.objectoptions,oo_has_strictprivate);
+                                end;
+                              _PROTECTED:
+                                begin
+                                  consume(_PROTECTED);
+                                  current_structdef.symtable.currentvisibility:=vis_strictprotected;
+                                  include(current_structdef.objectoptions,oo_has_strictprotected);
+                                end;
+                              else
+                                message(parser_e_protected_or_private_expected);
+                            end;
+                          end
+                        else
+                          message(parser_e_protected_or_private_expected);
+                        fields_allowed:=true;
+                        is_classdef:=false;
+                        classfields:=false;
+                        member_blocktype:=bt_general;
+                     end
+                    else
+                      begin
+                        if member_blocktype=bt_general then
+                          begin
+                            if (not fields_allowed) then
+                              Message(parser_e_field_not_allowed_here);
+                            vdoptions:=[vd_record];
+                            if classfields then
+                              include(vdoptions,vd_class);
+                            read_record_fields(vdoptions);
+                          end
+                        else if member_blocktype=bt_type then
+                          types_dec(true)
+                        else if member_blocktype=bt_const then
+                          consts_dec(true)
+                        else
+                          internalerror(201001110);
+                      end;
+                end;
+              end;
+            _PROPERTY :
+              begin
+                struct_property_dec(is_classdef);
+                fields_allowed:=false;
+                is_classdef:=false;
+              end;
+            _CLASS:
+              begin
+                is_classdef:=false;
+                { read class method }
+                if try_to_consume(_CLASS) then
+                 begin
+                   { class modifier is only allowed for procedures, functions, }
+                   { constructors, destructors, fields and properties          }
+                   if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR]) then
+                     Message(parser_e_procedure_or_function_expected);
+
+                   is_classdef:=true;
+                 end;
+              end;
+            _PROCEDURE,
+            _FUNCTION:
+              begin
+                oldparse_only:=parse_only;
+                parse_only:=true;
+                pd:=parse_proc_dec(is_classdef,current_structdef);
+
+                { this is for error recovery as well as forward }
+                { interface mappings, i.e. mapping to a method  }
+                { which isn't declared yet                      }
+                if assigned(pd) then
+                  begin
+                    parse_record_proc_directives(pd);
+
+                    { since records have no inheritance don't allow non static
+                      class methods. delphi do so. }
+                    if is_classdef and not (po_staticmethod in pd.procoptions) then
+                      MessagePos(pd.fileinfo, parser_e_class_methods_only_static_in_records);
+
+                    handle_calling_convention(pd);
+
+                    { add definition to procsym }
+                    proc_add_definition(pd);
+                  end;
+
+                maybe_parse_hint_directives(pd);
+
+                parse_only:=oldparse_only;
+                fields_allowed:=false;
+                is_classdef:=false;
+              end;
+            _CONSTRUCTOR :
+              begin
+                if not is_classdef then
+                  Message(parser_e_no_constructor_in_records);
+                if not is_classdef and (current_structdef.symtable.currentvisibility <> vis_public) then
+                  Message(parser_w_constructor_should_be_public);
+
+                { only 1 class constructor is allowed }
+                if is_classdef and (oo_has_class_constructor in current_structdef.objectoptions) then
+                  Message1(parser_e_only_one_class_constructor_allowed, current_structdef.objrealname^);
+
+                oldparse_only:=parse_only;
+                parse_only:=true;
+                if is_classdef then
+                  pd:=class_constructor_head
+                else
+                  pd:=constructor_head;
+                parse_record_proc_directives(pd);
+                handle_calling_convention(pd);
+
+                { add definition to procsym }
+                proc_add_definition(pd);
+
+                maybe_parse_hint_directives(pd);
+
+                parse_only:=oldparse_only;
+                fields_allowed:=false;
+                is_classdef:=false;
+              end;
+            _DESTRUCTOR :
+              begin
+                if not is_classdef then
+                  Message(parser_e_no_destructor_in_records);
+
+                { only 1 class destructor is allowed }
+                if is_classdef and (oo_has_class_destructor in current_structdef.objectoptions) then
+                  Message1(parser_e_only_one_class_destructor_allowed, current_structdef.objrealname^);
+
+                oldparse_only:=parse_only;
+                parse_only:=true;
+                if is_classdef then
+                  pd:=class_destructor_head
+                else
+                  pd:=destructor_head;
+                parse_record_proc_directives(pd);
+                handle_calling_convention(pd);
+
+                { add definition to procsym }
+                proc_add_definition(pd);
+
+                maybe_parse_hint_directives(pd);
+
+                parse_only:=oldparse_only;
+                fields_allowed:=false;
+                is_classdef:=false;
+              end;
+            _END :
+              begin
+                consume(_END);
+                break;
+              end;
+            else
+              consume(_ID); { Give a ident expected message, like tp7 }
+          end;
+        until false;
+
+        testcurobject:=0;
+      end;
+
+    { reads a record declaration }
+    function record_dec(const n:tidstring):tdef;
+      var
+         old_current_structdef : tabstractrecorddef;
          recst : trecordsymtable;
       begin
+         old_current_structdef:=current_structdef;
          { create recdef }
-         recst:=trecordsymtable.create(current_settings.packrecords);
-         record_dec:=trecorddef.create(recst);
+         recst:=trecordsymtable.create(n,current_settings.packrecords);
+         current_structdef:=trecorddef.create(n,recst);
+         result:=current_structdef;
          { insert in symtablestack }
          symtablestack.push(recst);
          { parse record }
          consume(_RECORD);
+         if m_extended_records in current_settings.modeswitches then
+           parse_record_members
+         else
+           begin
          read_record_fields([vd_record]);
          consume(_END);
+           end;
          { make the record size aligned }
          recst.addalignmentpadding;
          { restore symtable stack }
          symtablestack.pop(recst);
-         if trecorddef(record_dec).is_packed and
-            is_managed_type(record_dec) then
+         if trecorddef(current_structdef).is_packed and is_managed_type(current_structdef) then
            Message(type_e_no_packed_inittable);
+         current_structdef:=old_current_structdef;
       end;
 
 
@@ -592,7 +868,7 @@ implementation
            lv,hv   : TConstExprInt;
            old_block_type : tblock_type;
            dospecialize : boolean;
-           objdef: TDef;
+           structdef: TDef;
         begin
            old_block_type:=block_type;
            dospecialize:=false;
@@ -601,32 +877,32 @@ implementation
               - objects can be parameters }
            if (token=_ID) then
              begin
-               objdef:=current_objectdef;
-               while Assigned(objdef) and (objdef.typ=objectdef) do
+               structdef:=current_structdef;
+               while Assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
                  begin
-                   if (tobjectdef(objdef).objname^=pattern) and
+                   if (tabstractrecorddef(structdef).objname^=pattern) and
                       (
                         (testcurobject=2) or
-                        is_class_or_interface_or_objc(objdef)
+                        is_class_or_interface_or_objc(structdef)
                       ) then
                       begin
                         consume(_ID);
-                        def:=objdef;
+                        def:=structdef;
                         exit;
                       end;
-                   objdef:=tobjectdef(tobjectdef(objdef).owner.defowner);
+                   structdef:=tdef(tabstractrecorddef(structdef).owner.defowner);
                  end;
              end;
            { Generate a specialization? }
            if try_to_consume(_SPECIALIZE) then
              dospecialize:=true;
            { we can't accept a equal in type }
-           pt1:=comp_expr(false);
+           pt1:=comp_expr(false,true);
            if not dospecialize and
               try_to_consume(_POINTPOINT) then
              begin
                { get high value of range }
-               pt2:=comp_expr(false);
+               pt2:=comp_expr(false,false);
                { make both the same type or give an error. This is not
                  done when both are integer values, because typecasting
                  between -3200..3200 will result in a signed-unsigned
@@ -936,7 +1212,7 @@ implementation
                     begin
                        oldlocalswitches:=current_settings.localswitches;
                        include(current_settings.localswitches,cs_allow_enum_calc);
-                       p:=comp_expr(true);
+                       p:=comp_expr(true,false);
                        current_settings.localswitches:=oldlocalswitches;
                        if (p.nodetype=ordconstn) then
                         begin
@@ -992,7 +1268,7 @@ implementation
               end;
             _RECORD:
               begin
-                def:=record_dec;
+                def:=record_dec(name);
               end;
             _PACKED,
             _BITPACKED:
@@ -1027,7 +1303,7 @@ implementation
                           def:=object_dec(odt_object,name,genericdef,genericlist,nil);
                         end;
                       else
-                        def:=record_dec;
+                        def:=record_dec(name);
                     end;
                     current_settings.packrecords:=oldpackrecords;
                   end;
