@@ -474,7 +474,7 @@ implementation
       while assigned(hp) do
        begin
          if do_line and not(hp.typ in SkipLineInfo) and
-            not DoNotSplitLine then
+            not DoNotSplitLine and (InlineLevel=0) then
            begin
               hp1:=hp as tailineinfo;
            { load infile }

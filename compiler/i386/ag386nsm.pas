@@ -552,7 +552,7 @@ interface
            begin
              hp1:=hp as tailineinfo;
              current_filepos:=hp1.fileinfo;
-             if do_line then
+             if do_line and (InlineLevel=0) then
               begin
               { load infile }
                 if lastfileinfo.fileindex<>hp1.fileinfo.fileindex then
