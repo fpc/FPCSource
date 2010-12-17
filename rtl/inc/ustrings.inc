@@ -48,7 +48,7 @@ Const
 
 {
   Default UnicodeChar <-> Char conversion is to only convert the
-  lower 127 chars, all others are translated to spaces.
+  lower 127 chars, all others are translated to '?'.
 
   These routines can be overwritten for the Current Locale
 }
@@ -56,15 +56,18 @@ Const
 procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:ansistring;len:SizeInt);
 var
   i : SizeInt;
+  p : PAnsiChar;
 begin
   setlength(dest,len);
+  p:=pointer(dest);         {SetLength guarantees that dest is unique}
   for i:=1 to len do
     begin
       if word(source^)<256 then
-        dest[i]:=char(word(source^))
+        p^:=char(word(source^))
       else
-        dest[i]:='?';
+        p^:='?';
       inc(source);
+      inc(p);
     end;
 end;
 
@@ -72,12 +75,15 @@ end;
 procedure DefaultAnsi2UnicodeMove(source:pchar;var dest:unicodestring;len:SizeInt);
 var
   i : SizeInt;
+  p : PUnicodeChar;
 begin
   setlength(dest,len);
+  p:=pointer(dest);         {SetLength guarantees that dest is unique}
   for i:=1 to len do
     begin
-      dest[i]:=unicodechar(byte(source^));
+      p^:=unicodechar(byte(source^));
       inc(source);
+      inc(p);
     end;
 end;
 

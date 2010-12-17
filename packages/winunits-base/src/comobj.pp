@@ -1085,7 +1085,7 @@ HKCR
           for i:=0 to CallDesc^.ArgCount-1 do
             begin
 {$ifdef DEBUG_COMDISPATCH}
-              writeln('DispatchInvoke: Params = ',hexstr(PtrInt(Params),SizeOf(Pointer)*2));
+              writeln('DispatchInvoke: Params = ',hexstr(Params));
 {$endif DEBUG_COMDISPATCH}
               { get plain type }
               CurrType:=CallDesc^.ArgTypes[i] and $3f;
@@ -1138,7 +1138,7 @@ HKCR
                       end;
                   end
                 end
-              else
+              else   { by-value argument }
                 case CurrType of
                   varStrArg:
                     begin
@@ -1156,18 +1156,24 @@ HKCR
                   varVariant:
                     begin
 {$ifdef DEBUG_COMDISPATCH}
-                      writeln('Unimplemented variant dispatch');
+                      writeln('By-value Variant, making a copy');
 {$endif DEBUG_COMDISPATCH}
+                      { Codegen always passes a pointer to variant,
+                       *unlike* Delphi which pushes the entire TVarData }
+                      Arguments[i]:=PVarData(PPointer(Params)^)^;
+                      Inc(PPointer(Params));
                     end;
                   varCurrency,
                   varDouble,
-                  VarDate:
+                  varInt64,
+                  varQWord,
+                  varDate:
                     begin
 {$ifdef DEBUG_COMDISPATCH}
-                      writeln('Got 8 byte float argument');
+                      writeln('Got 8 byte argument');
 {$endif DEBUG_COMDISPATCH}
                       Arguments[i].VType:=CurrType;
-                      move(PPointer(Params)^,Arguments[i].VDouble,sizeof(Double));
+                      Arguments[i].VDouble:=PDouble(Params)^;
                       inc(PDouble(Params));
                     end;
                   else
@@ -1334,7 +1340,7 @@ HKCR
         flags : WORD;
         invokeresult : HRESULT;
         preallocateddata : array[0..15] of TVarData;
-        Arguments : ^TVarData;
+        Arguments : PVarData;
         NamedArguments : PPointer;
         CurrType : byte;
         namedcount,i : byte;
@@ -1350,7 +1356,7 @@ HKCR
           for i:=0 to desc^.CallDesc.ArgCount-1 do
             begin
   {$ifdef DEBUG_DISPATCH}
-              writeln('DoDispCallByID: Params = ',hexstr(PtrInt(Params),SizeOf(Pointer)*2));
+              writeln('DoDispCallByID: Params = ',hexstr(Params));
   {$endif DEBUG_DISPATCH}
               { get plain type }
               CurrType:=desc^.CallDesc.ArgTypes[i] and $3f;
@@ -1368,24 +1374,27 @@ HKCR
               else
                 begin
   {$ifdef DEBUG_DISPATCH}
-                  writeln('DispatchInvoke: Got ref argument with type = ',CurrType);
+                  writeln('DispatchInvoke: Got value argument with type = ',CurrType);
   {$endif DEBUG_DISPATCH}
                   case CurrType of
                     varVariant:
                       begin
-                        Arguments[i].VType:=CurrType;
-                        move(PVarData(Params)^,Arguments[i],sizeof(TVarData));
+                       { Codegen always passes a pointer to variant,
+                         *unlike* Delphi which pushes the entire TVarData }
+                        Arguments[i]:=PVarData(PPointer(Params)^)^;
                         inc(PVarData(Params));
                       end;
                     varCurrency,
                     varDouble,
-                    VarDate:
+                    varInt64,
+                    varQWord,
+                    varDate:
                       begin
   {$ifdef DEBUG_DISPATCH}
-                        writeln('DispatchInvoke: Got 8 byte float argument');
+                        writeln('DispatchInvoke: Got 8 byte argument');
   {$endif DEBUG_DISPATCH}
                         Arguments[i].VType:=CurrType;
-                        move(PPointer(Params)^,Arguments[i].VDouble,sizeof(Double));
+                        Arguments[i].VDouble:=PDouble(Params)^;
                         inc(PDouble(Params));
                       end;
                   else

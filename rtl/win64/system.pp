@@ -55,6 +55,7 @@ const
   StdInputHandle  : THandle = 0;
   StdOutputHandle : THandle = 0;
   StdErrorHandle  : THandle = 0;
+  System_exception_frame : PEXCEPTION_FRAME =nil;
 
   FileNameCaseSensitive : boolean = true;
   CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
@@ -400,6 +401,19 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      install_exception_handlers;
      ExitCode:=0;
      asm
+        { allocate space for an exception frame }
+        pushq $0
+        pushq %gs:(0)
+        { movl  %rsp,%gs:(0)
+          but don't insert it as it doesn't
+          point to anything yet
+          this will be used in signals unit }
+        movq %rsp,%rax
+{$ifdef FPC_HAS_RIP_RELATIVE}
+        movq %rax,System_exception_frame(%rip)
+{$else}
+        movq %rax,System_exception_frame
+{$endif}
         { keep stack aligned }
         pushq $0
         pushq %rbp

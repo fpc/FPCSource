@@ -13,7 +13,7 @@ unit buildrtl;
       winevent, sockets, printer,
       video, mouse, keyboard, fmtbcd,
       sharemem, fpintres,
-      cpu;
+      cpu, signals;
 
   implementation
 

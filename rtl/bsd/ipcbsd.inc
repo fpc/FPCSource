@@ -80,7 +80,7 @@ begin
   msgsnd:=do_syscall(syscall_nr_msgsys,2, msqid, TSysParam(msgp), TSysParam(msgsz), msgflg);
 end;
 
-Function msgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:cint; msgflg:cint):cint;
+Function msgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:clong; msgflg:cint):cint;
 begin
   msgrcv:=(do_syscall(syscall_nr_msgsys,3, msqid, TSysParam(msgp), msgsz, msgtyp, msgflg));
 end;

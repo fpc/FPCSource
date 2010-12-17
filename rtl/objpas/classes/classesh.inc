@@ -693,7 +693,7 @@ type
     procedure Clear; override;
     procedure Delete(Index: Integer); override;
     procedure Exchange(Index1, Index2: Integer); override;
-    function Find(const S: string; var Index: Integer): Boolean; virtual;
+    function Find(const S: string; Out Index: Integer): Boolean; virtual;
     function IndexOf(const S: string): Integer; override;
     procedure Insert(Index: Integer; const S: string); override;
     procedure Sort; virtual;
@@ -1577,7 +1577,7 @@ type
   private
     FOwner: TComponent;
     FName: TComponentName;
-    FTag: Longint;
+    FTag: Ptrint;
     FComponents: TFpList;
     FFreeNotifies: TFpList;
     FDesignInfo: Longint;
@@ -1676,7 +1676,7 @@ type
     property VCLComObject: Pointer read FVCLComObject write FVCLComObject;
   published
     property Name: TComponentName read FName write SetName stored False;
-    property Tag: Longint read FTag write FTag default 0;
+    property Tag: PtrInt read FTag write FTag default 0;
   end;
 
 { TBasicActionLink }

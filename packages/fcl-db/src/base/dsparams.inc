@@ -678,7 +678,7 @@ end;
 Procedure TParam.SetAsVariant(const AValue: Variant);
 begin
   FValue:=AValue;
-  FBound:=not VarIsClear(Value);
+  FBound:=not VarIsClear(AValue);
   if FDataType = ftUnknown then
     case VarType(Value) of
       varBoolean  : FDataType:=ftBoolean;

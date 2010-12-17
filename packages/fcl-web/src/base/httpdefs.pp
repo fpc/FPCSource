@@ -268,6 +268,8 @@ type
     FURI: String;
     FFiles : TUploadedFiles;
     FReturnedPathInfo : String;
+    FLocalPathPrefix : string;
+    function GetLocalPathPrefix: string;
     procedure ParseFirstHeaderLine(const line: String);override;
     function GetFirstHeaderLine: String;
   Protected
@@ -287,6 +289,7 @@ type
     destructor destroy; override;
     Function  GetNextPathInfo : String;
     Property  ReturnedPathInfo : String Read FReturnedPathInfo Write FReturnedPathInfo;
+    Property  LocalPathPrefix : string Read GetLocalPathPrefix;
     Property  CommandLine : String Read FCommandLine;
     Property  Command : String read FCommand;
     Property  URI : String read FURI;                // Uniform Resource Identifier
@@ -381,9 +384,11 @@ Function IncludeHTTPPathDelimiter(const AStr: String): String;
 
 implementation
 
+uses
 {$ifdef CGIDEBUG}
-uses dbugintf;
+  dbugintf,
 {$endif}
+  strutils;
 
 Resourcestring
   SErrContentAlreadySent        = 'HTTP Response content was already sent';
@@ -907,6 +912,7 @@ begin
   inherited create;
   FHandleGetOnPost:=True;
   FFiles:=TUploadedFiles.Create(TUPloadedFile);
+  FLocalPathPrefix:='-';
 end;
 
 destructor TRequest.destroy;
@@ -974,6 +980,25 @@ begin
     Query:= Copy(URI, i + 1, Length(URI));
     FURI := Copy(URI, 1, i - 1);
   end;
+end;
+
+function TRequest.GetLocalPathPrefix: string;
+var
+  pi: String;
+  i: Cardinal;
+begin
+  if FLocalPathPrefix='-' then
+    begin
+    pi := PathInfo;
+    FLocalPathPrefix := '';
+    i := 0;
+    repeat
+    i := PosEx('/',PI,i+1);
+    if i > 0 then
+      FLocalPathPrefix := FLocalPathPrefix + '../';
+    until i=0;
+    end;
+  result := FLocalPathPrefix;
 end;
 
 function TRequest.GetFieldValue(AIndex: integer): String;
@@ -1141,7 +1166,7 @@ begin
     if FHandleGetOnPost then
       InitGetVars;
     end
-  else if CompareText(R,'GET')=0 then
+  else if (CompareText(R,'GET')=0) or (CompareText(R,'HEAD')=0) then
     InitGetVars
   else
     Raise Exception.CreateFmt(SErrInvalidRequestMethod,[R]);

@@ -19,6 +19,10 @@ interface
 
 Const
 
+{$if defined(go32v2)}
+  {$define USE_STATIC_LIBC}
+{$endif}
+
 {$if defined(win32)}
   LibName = 'msvcrt';
 {$elseif defined(win64)}
@@ -37,10 +41,18 @@ Const
   LibName = 'c';
 {$endif}
 
+{$ifdef USE_STATIC_LIBC}
+  {$linklib c}
+Function malloc (Size : ptruint) : Pointer;cdecl; external;
+Procedure free (P : pointer); cdecl; external;
+function realloc (P : Pointer; Size : ptruint) : pointer;cdecl; external;
+Function calloc (unitSize,UnitCount : ptruint) : pointer;cdecl; external;
+{$else not USE_STATIC_LIBC}
 Function Malloc (Size : ptruint) : Pointer; {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'malloc';
 Procedure Free (P : pointer); {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'free';
 function ReAlloc (P : Pointer; Size : ptruint) : pointer; {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'realloc';
 Function CAlloc (unitSize,UnitCount : ptruint) : pointer; {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'calloc';
+{$endif not USE_STATIC_LIBC}
 
 implementation
 
@@ -154,7 +166,7 @@ Const
       DoneThread : nil;
       RelocateHeap : nil;
       GetHeapStatus : @CGetHeapStatus;
-      GetFPCHeapStatus: @CGetFPCHeapStatus;	
+      GetFPCHeapStatus: @CGetFPCHeapStatus;
     );
 
 Var
