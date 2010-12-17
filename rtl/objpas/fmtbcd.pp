@@ -1645,13 +1645,6 @@ IMPLEMENTATION
        _endSELECT;
      end;
 
-  function VarToBCD ( const aValue : Variant ) : tBCD;
-
-    begin
-      if VarIsFmtBCD(aValue) then
-        Result:=TFMTBcdVarData(TVarData(aValue).VPointer).BCD
-     end;
-
   function CurrToBCD ( const Curr : currency;
                          var BCD : tBCD;
                              Precision : Integer = 32;
@@ -3759,6 +3752,15 @@ begin
         not_implemented;
     end;
 end;
+
+function VarToBCD ( const aValue : Variant ) : tBCD;
+  begin
+    if VarIsFmtBCD(aValue) then
+      Result:=TFMTBcdVarData(TVarData(aValue).vPointer).BCD
+    else
+      Result:=VariantToBCD(TVarData(aValue));
+   end;
+
 
 constructor TFMTBcdVarData.create;
   begin
