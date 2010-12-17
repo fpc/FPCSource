@@ -296,6 +296,23 @@ begin
 end;
 *)
 
+function AlphaBlend(color1, color2: TFPColor): TFPColor;
+var
+  factor: single;
+begin
+  if color2.alpha = $ffff then
+    Result := color2
+  else
+  begin
+    factor := (color1.alpha / $ffff) * (1 - color2.alpha / $ffff);
+
+    Result.red := Round(color1.red * factor + color2.red * color2.alpha / $ffff);
+    Result.green := Round(color1.green * factor + color2.green * color2.alpha / $ffff);
+    Result.blue := Round(color1.blue * factor + color2.blue * color2.alpha / $ffff);
+    Result.alpha := Round(factor * $ffff + color2.alpha);
+  end;
+end;
+
 function CompareColors(const Color1, Color2: TFPColor): integer;
 begin
   Result:=integer(Color1.Red)-integer(Color2.Red);

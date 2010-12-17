@@ -266,6 +266,9 @@ function ConvertColorToData (const From : TDeviceColor; Fmt : TColorFormat) : TC
 function ConvertColor (const From : TFPColor; Fmt : TColorFormat) : TDeviceColor;
 function ConvertColor (const From : TDeviceColor; Fmt : TColorFormat) : TDeviceColor;
 *)
+
+function AlphaBlend(color1, color2: TFPColor): TFPColor;
+
 function FPColor (r,g,b,a:word) : TFPColor;
 function FPColor (r,g,b:word) : TFPColor;
 {$ifdef debug}function MakeHex (n:TColordata;nr:byte): string;{$endif}

@@ -253,6 +253,8 @@ Procedure TFPThreadedTimerDriver.StopTimer;
 begin
   FThread.FTimerDriver:=Nil;
   FThread.Terminate; // Will free itself.
+  FThread:=Nil;
+  CheckSynchronize; // make sure thread is not stuck at synchronize call.
 end;
 
 
