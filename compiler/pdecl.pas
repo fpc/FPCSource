@@ -558,6 +558,9 @@ implementation
                           end;
 
                       include(hdef.defoptions,df_unique);
+                      if (hdef.typ in [pointerdef,classrefdef]) and
+                         (tabstractpointerdef(hdef).pointeddef.typ=forwarddef) then
+                        current_module.checkforwarddefs.add(hdef);
                     end;
                   if not assigned(hdef.typesym) then
                     hdef.typesym:=newtype;

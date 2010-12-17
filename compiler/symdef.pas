@@ -129,9 +129,10 @@ interface
        tforwarddef = class(tstoreddef)
           tosymname : pshortstring;
           forwardpos : tfileposinfo;
-          constructor create(const s:string;const pos : tfileposinfo);
+          constructor create(const s:string;const pos:tfileposinfo);
           destructor destroy;override;
-          function  GetTypeName:string;override;
+          function getcopy:tstoreddef;override;
+          function GetTypeName:string;override;
        end;
 
        tundefineddef = class(tstoreddef)
@@ -162,7 +163,7 @@ interface
           is_far : boolean;
           constructor create(def:tdef);
           constructor createfar(def:tdef);
-          function getcopy : tstoreddef;override;
+          function getcopy:tstoreddef;override;
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  GetTypeName:string;override;
@@ -333,9 +334,10 @@ interface
           constructor create(def:tdef);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function  GetTypeName:string;override;
-          function  is_publishable : boolean;override;
-          function  rtti_mangledname(rt:trttitype):string;override;
+          function getcopy:tstoreddef;override;
+          function GetTypeName:string;override;
+          function is_publishable : boolean;override;
+          function rtti_mangledname(rt:trttitype):string;override;
           procedure register_created_object_type;override;
        end;
 
@@ -2101,7 +2103,13 @@ implementation
 
     function tpointerdef.getcopy : tstoreddef;
       begin
-        result:=tpointerdef.create(pointeddef);
+        { don't use direct pointeddef if it is a forwarddef because in other case
+          one of them will be destroyed on forward type resolve and the second will
+          point to garbage }
+        if pointeddef.typ=forwarddef then
+          result:=tpointerdef.create(tforwarddef(pointeddef).getcopy)
+        else
+          result:=tpointerdef.create(pointeddef);
         tpointerdef(result).is_far:=is_far;
         tpointerdef(result).savesize:=savesize;
       end;
@@ -2144,6 +2152,16 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.writeentry(ibclassrefdef);
+      end;
+
+
+    function tclassrefdef.getcopy:tstoreddef;
+      begin
+        if pointeddef.typ=forwarddef then
+          result:=tclassrefdef.create(tforwarddef(pointeddef).getcopy)
+        else
+          result:=tclassrefdef.create(pointeddef);
+        tclassrefdef(result).savesize:=savesize;
       end;
 
 
@@ -5236,7 +5254,7 @@ implementation
                                 TFORWARDDEF
 ****************************************************************************}
 
-   constructor tforwarddef.create(const s:string;const pos : tfileposinfo);
+   constructor tforwarddef.create(const s:string;const pos:tfileposinfo);
      begin
         inherited create(forwarddef);
         tosymname:=stringdup(s);
@@ -5256,6 +5274,10 @@ implementation
         inherited destroy;
       end;
 
+    function tforwarddef.getcopy:tstoreddef;
+      begin
+        result:=tforwarddef.create(tosymname^, forwardpos);
+      end;
 
 {****************************************************************************
                                TUNDEFINEDDEF
