@@ -66,9 +66,6 @@ procedure WinDoneCriticalSection(var cs : TRTLCriticalSection);
 procedure WinEnterCriticalSection(var cs : TRTLCriticalSection);
   {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'EnterCriticalSection';
 
-function  WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
-  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'TryEnterCriticalSection';
-
 procedure WinLeaveCriticalSection(var cs : TRTLCriticalSection);
   {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'LeaveCriticalSection';
 
@@ -80,6 +77,15 @@ CONST
    WAIT_ABANDONED = $80;
    WAIT_FAILED = $ffffffff;
 
+{$ifndef SUPPORT_WIN95}
+function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
+  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'TryEnterCriticalSection';
+{$else SUPPORT_WIN95}
+type
+  TTryEnterCriticalSection = function(var cs : TRTLCriticalSection):longint; stdcall;
+var
+  WinTryEnterCriticalSection : TTryEnterCriticalSection;
+{$endif SUPPORT_WIN95}
 
 {*****************************************************************************
                              Threadvar support
@@ -148,10 +154,10 @@ CONST
       var
         dataindex : pointer;
         errorsave : dword;
-      begin	    
+      begin	
 {$ifdef dummy}
         { it least in the on windows 7 x64, this still doesn't not work, fs:(0x2c) is
-          self referencing on this system (FK) 
+          self referencing on this system (FK)
           MVC: It also does not work on Windows Vista 32-bit, Home Premium, SP 1. Results in a crash}
         asm
           movl TLSKey,%edx
@@ -352,6 +358,35 @@ begin
   WinEnterCriticalSection(PRTLCriticalSection(@cs)^);
 end;
 
+{$ifdef SUPPORT_WIN95}
+function Win95TryEnterCriticalSection(var cs : TRTLCriticalSection):longint;stdcall;
+var
+  MyThreadID : DWORD;
+begin
+  MyThreadId:=GetCurrentThreadId();
+  if InterlockedIncrement(cs.LockCount)=0 then
+    begin
+      cs.OwningThread:=MyThreadId;
+      cs.RecursionCount:=1;
+      result:=1;
+    end
+  else
+    begin
+      if cs.OwningThread=MyThreadId then
+        begin
+          InterlockedDecrement(cs.LockCount);
+          InterlockedIncrement(cs.RecursionCount);
+          result:=1;
+        end
+      else
+        begin
+          InterlockedDecrement(cs.LockCount);
+          result:=0;
+        end;
+    end;
+end;
+{$endif SUPPORT_WIN95}
+
 function SysTryEnterCriticalSection(var cs):longint;
 begin
   result:=WinTryEnterCriticalSection(PRTLCriticalSection(@cs)^);
@@ -456,6 +491,10 @@ Var
   WinThreadManager : TThreadManager;
 
 Procedure InitSystemThreads;
+{$IFDEF SUPPORT_WIN95}
+var
+  KernelHandle : THandle;
+{$ENDIF SUPPORT_WIN95}
 begin
   With WinThreadManager do
     begin
@@ -497,5 +536,16 @@ begin
   ThreadID := GetCurrentThreadID;
   if IsLibrary then
     SysInitMultithreading;
+{$IFDEF SUPPORT_WIN95}
+  { Try to find TryEnterCriticalSection function }
+  KernelHandle:=LoadLibrary(KernelDLL);
+  if KernelHandle<>0 then
+    begin
+      WinTryEnterCriticalSection:=TTryEnterCriticalSection(GetProcAddress(KernelHandle,'TryEnterCriticalSection'));
+      FreeLibrary(KernelHandle);
+    end;
+  if not assigned(WinTryEnterCriticalSection) then
+    WinTryEnterCriticalSection:=@Win95TryEnterCriticalSection;
+{$ENDIF SUPPORT_WIN95}
 end;
 
