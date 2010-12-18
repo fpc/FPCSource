@@ -1302,9 +1302,17 @@ implementation
                    end;
                  staticvarsym:
                    begin
-                     // typed constant is a staticvarsym
+                     { typed constant is a staticvarsym
+                       now they are absolutevarsym }
                      p1.free;
                      p1:=cloadnode.create(sym,sym.Owner);
+                   end;
+                 absolutevarsym:
+                   begin
+                     p1.free;
+                     p1:=nil;
+                     { typed constants are absolutebarsyms now to handle storage properly }
+                     propaccesslist_to_node(p1,nil,tabsolutevarsym(sym).ref);
                    end
                  else
                    internalerror(16);

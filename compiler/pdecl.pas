@@ -165,7 +165,7 @@ implementation
       var
          orgname : TIDString;
          hdef : tdef;
-         sym : tsym;
+         sym, tmp : tsym;
          dummysymoptions : tsymoptions;
          deprecatedmsg : pshortstring;
          storetokenpos,filepos : tfileposinfo;
@@ -173,6 +173,8 @@ implementation
          skipequal : boolean;
          tclist : tasmlist;
          varspez : tvarspez;
+         static_name : string;
+         sl : tpropaccesslist;
       begin
          old_block_type:=block_type;
          block_type:=bt_const;
@@ -218,10 +220,30 @@ implementation
                      varspez:=vs_const
                    else
                      varspez:=vs_value;
-                   sym:=tstaticvarsym.create(orgname,varspez,hdef,[]);
-                   sym.visibility:=symtablestack.top.currentvisibility;
+                   { if we are dealing with structure const then we need to handle it as a
+                     structure static variable: create a symbol in unit symtable and a reference
+                     to it from the structure or linking will fail }
+                   if symtablestack.top.symtabletype in [recordsymtable,ObjectSymtable] then
+                     begin
+                       { generate the symbol which reserves the space }
+                       static_name:=lower(generate_nested_name(symtablestack.top,'_'))+'_'+orgname;
+                       sym:=tstaticvarsym.create('$_static_'+static_name,varspez,hdef,[]);
+                       include(sym.symoptions,sp_internal);
+                       tabstractrecordsymtable(symtablestack.top).get_unit_symtable.insert(sym);
+                       { generate the symbol for the access }
+                       sl:=tpropaccesslist.create;
+                       sl.addsym(sl_load,sym);
+                       tmp:=tabsolutevarsym.create_ref(orgname,hdef,sl);
+                       tmp.visibility:=symtablestack.top.currentvisibility;
+                       symtablestack.top.insert(tmp);
+                     end
+                   else
+                     begin
+                       sym:=tstaticvarsym.create(orgname,varspez,hdef,[]);
+                       sym.visibility:=symtablestack.top.currentvisibility;
+                       symtablestack.top.insert(sym);
+                     end;
                    current_tokenpos:=storetokenpos;
-                   symtablestack.top.insert(sym);
                    { procvar can have proc directives, but not type references }
                    if (hdef.typ=procvardef) and
                       (hdef.typesym=nil) then
