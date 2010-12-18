@@ -33,7 +33,7 @@ Type
    ISC_UCHAR     = cuchar;
    ISC_SHORT     = cshort;
    ISC_USHORT    = cushort;
-   ISC_STATUS    = clong;
+   ISC_STATUS    = ptrint;   // bug 17360
    ISC_INT64     = clonglong;
    ISC_UINT64    = culonglong;
 {$IFDEF CPU64}
