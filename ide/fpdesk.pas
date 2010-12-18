@@ -47,7 +47,7 @@ uses Dos,
      Video,
      Views,App,HistList,BrowCol,
      WUtils,WResourc,WViews,WEditor,
-     fpdebug,
+     fpdebug, wcedit,
 {$ifdef Unix}
      FPKeys,
 {$endif Unix}
@@ -352,6 +352,14 @@ begin
 {$endif NODEBUG}
 end;
 
+
+function DeskUseSyntaxHighlight(Editor: PFileEditor): boolean;
+var b : boolean;
+begin
+  b:= (*(Editor^.IsFlagSet(efSyntaxHighlight)) and *) ((Editor^.FileName='') or MatchesFileList(NameAndExtOf(Editor^.FileName),HighlightExts));
+  DeskUseSyntaxHighlight:=b;
+end;
+
 function ReadOpenWindows(F: PResourceFile): boolean;
 var S: PMemoryStream;
     OK: boolean;
@@ -393,7 +401,12 @@ begin
           end
         else
         begin
-          GetData(L,sizeof(L)); SW^.Editor^.SetFlags(L);
+          GetData(L,sizeof(L));
+          If DeskUseSyntaxHighlight(SW^.Editor) Then
+            L:=L or efSyntaxHighlight
+          else
+            L:=L and not efSyntaxHighlight;
+          SW^.Editor^.SetFlags(L);
           GetData(TP,sizeof(TP)); GetData(TP2,sizeof(TP2));
           SW^.Editor^.SetSelection(TP,TP2);
           GetData(TP,sizeof(TP)); SW^.Editor^.SetCurPtr(TP.X,TP.Y);
