@@ -1152,13 +1152,24 @@ var
   BytesRead: longint;
 
   function ReadFromStream: longint;
+
   const
     READ_BYTES = 2048;
+
+  type
+    TMessages = (mCompiling, mLinking);
+
   var
+    //ifdef the MsgNum so it contains the correct message numbers for each compiler version.
+    MsgNum : array [TMessages] of integer = (3104, 9015);
+
     n: longint;
     BuffPos: longint;
     sLine: string;
     ch: char;
+    msg: TMessages;
+    ipos: integer;
+    snum: string;
   begin
     // make sure we have room
     M.SetSize(BytesRead + READ_BYTES);
@@ -1181,8 +1192,15 @@ var
           if Verbose then
             writeln(sLine)
           else
-            if (Pos('Compiling', sLine) = 1) or (Pos('Linking', sLine) = 1) then
-              writeln('       ', sLine);
+            begin
+              for msg := Low(TMessages) to High(TMessages) do
+              begin
+                snum := Format('(%d)', [MsgNum[msg]]);
+                ipos := Pos(snum, sLine);
+                if ipos = 1 then
+                  writeln('      ', Copy(sLine, ipos + Length(snum), Length(sLine) - ipos - Length(snum) + 1));
+              end;
+            end;
 
           sLine := '';
           BuffPos := M.Position;
@@ -1209,10 +1227,13 @@ begin
     BytesRead := 0;
 
     P := TProcess.Create(nil);
-    P.CommandLine := Path + ' ' + ComLine;
-    P.Options := [poUsePipes];
 
-    //writeln('Execute: ', P.CommandLine);
+    if Verbose then
+      P.CommandLine := Path + ' ' + ComLine
+    else
+      P.CommandLine := Path + ' -vq ' + ComLine;
+
+    P.Options := [poUsePipes];
 
     P.Execute;
     while P.Running do
