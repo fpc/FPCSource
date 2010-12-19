@@ -591,7 +591,9 @@ implementation
         if not(iscvarargs) then
           maybe_call_procvar(p,true);
         if not(iscvarargs) and
-           (p.nodetype=stringconstn) then
+           (p.nodetype=stringconstn) and
+           { don't cast to AnsiString if already casted to Wide/UnicodeString, issue #18266 }
+           (tstringconstnode(p).cst_type in [cst_conststring,cst_shortstring,cst_longstring]) then
           p:=ctypeconvnode.create_internal(p,cansistringtype)
         else
           case p.resultdef.typ of
