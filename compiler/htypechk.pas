@@ -97,30 +97,30 @@ interface
     const
       tok2nodes=24;
       tok2node:array[1..tok2nodes] of ttok2noderec=(
-        (tok:_PLUS    ;nod:addn;op_overloading_supported:true),      { binary overloading supported }
-        (tok:_MINUS   ;nod:subn;op_overloading_supported:true),      { binary and unary overloading supported }
-        (tok:_STAR    ;nod:muln;op_overloading_supported:true),      { binary overloading supported }
-        (tok:_SLASH   ;nod:slashn;op_overloading_supported:true),    { binary overloading supported }
-        (tok:_EQUAL   ;nod:equaln;op_overloading_supported:true),    { binary overloading supported }
-        (tok:_GT      ;nod:gtn;op_overloading_supported:true),       { binary overloading supported }
-        (tok:_LT      ;nod:ltn;op_overloading_supported:true),       { binary overloading supported }
-        (tok:_GTE     ;nod:gten;op_overloading_supported:true),      { binary overloading supported }
-        (tok:_LTE     ;nod:lten;op_overloading_supported:true),      { binary overloading supported }
-        (tok:_SYMDIF  ;nod:symdifn;op_overloading_supported:true),   { binary overloading supported }
-        (tok:_STARSTAR;nod:starstarn;op_overloading_supported:true), { binary overloading supported }
-        (tok:_OP_AS     ;nod:asn;op_overloading_supported:false),    { binary overloading NOT supported }
-        (tok:_OP_IN     ;nod:inn;op_overloading_supported:false),    { binary overloading NOT supported }
-        (tok:_OP_IS     ;nod:isn;op_overloading_supported:false),    { binary overloading NOT supported }
-        (tok:_OP_OR     ;nod:orn;op_overloading_supported:true),     { binary overloading supported }
-        (tok:_OP_AND    ;nod:andn;op_overloading_supported:true),    { binary overloading supported }
-        (tok:_OP_DIV    ;nod:divn;op_overloading_supported:true),    { binary overloading supported }
-        (tok:_OP_NOT    ;nod:notn;op_overloading_supported:true),    { unary overloading supported }
-        (tok:_OP_MOD    ;nod:modn;op_overloading_supported:true),    { binary overloading supported }
-        (tok:_OP_SHL    ;nod:shln;op_overloading_supported:true),    { binary overloading supported }
-        (tok:_OP_SHR    ;nod:shrn;op_overloading_supported:true),    { binary overloading supported }
-        (tok:_OP_XOR    ;nod:xorn;op_overloading_supported:true),    { binary overloading supported }
-        (tok:_ASSIGNMENT;nod:assignn;op_overloading_supported:true), { unary overloading supported }
-        (tok:_UNEQUAL ;nod:unequaln;op_overloading_supported:false)  { binary overloading NOT supported  overload = instead }
+        (tok:_PLUS      ;nod:addn;op_overloading_supported:true),      { binary overloading supported }
+        (tok:_MINUS     ;nod:subn;op_overloading_supported:true),      { binary and unary overloading supported }
+        (tok:_STAR      ;nod:muln;op_overloading_supported:true),      { binary overloading supported }
+        (tok:_SLASH     ;nod:slashn;op_overloading_supported:true),    { binary overloading supported }
+        (tok:_EQUAL     ;nod:equaln;op_overloading_supported:true),    { binary overloading supported }
+        (tok:_GT        ;nod:gtn;op_overloading_supported:true),       { binary overloading supported }
+        (tok:_LT        ;nod:ltn;op_overloading_supported:true),       { binary overloading supported }
+        (tok:_GTE       ;nod:gten;op_overloading_supported:true),      { binary overloading supported }
+        (tok:_LTE       ;nod:lten;op_overloading_supported:true),      { binary overloading supported }
+        (tok:_SYMDIF    ;nod:symdifn;op_overloading_supported:true),   { binary overloading supported }
+        (tok:_STARSTAR  ;nod:starstarn;op_overloading_supported:true), { binary overloading supported }
+        (tok:_OP_AS     ;nod:asn;op_overloading_supported:false),      { binary overloading NOT supported }
+        (tok:_OP_IN     ;nod:inn;op_overloading_supported:false),      { binary overloading NOT supported }
+        (tok:_OP_IS     ;nod:isn;op_overloading_supported:false),      { binary overloading NOT supported }
+        (tok:_OP_OR     ;nod:orn;op_overloading_supported:true),       { binary overloading supported }
+        (tok:_OP_AND    ;nod:andn;op_overloading_supported:true),      { binary overloading supported }
+        (tok:_OP_DIV    ;nod:divn;op_overloading_supported:true),      { binary overloading supported }
+        (tok:_OP_NOT    ;nod:notn;op_overloading_supported:true),      { unary overloading supported }
+        (tok:_OP_MOD    ;nod:modn;op_overloading_supported:true),      { binary overloading supported }
+        (tok:_OP_SHL    ;nod:shln;op_overloading_supported:true),      { binary overloading supported }
+        (tok:_OP_SHR    ;nod:shrn;op_overloading_supported:true),      { binary overloading supported }
+        (tok:_OP_XOR    ;nod:xorn;op_overloading_supported:true),      { binary overloading supported }
+        (tok:_ASSIGNMENT;nod:assignn;op_overloading_supported:true),   { unary overloading supported }
+        (tok:_UNEQUAL   ;nod:unequaln;op_overloading_supported:false)  { binary overloading NOT supported  overload = instead }
       );
 
       { true, if we are parsing stuff which allows array constructors }
