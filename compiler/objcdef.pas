@@ -48,7 +48,7 @@ interface
     type
       trecordinfostate = (ris_initial, ris_afterpointer, ris_dontprint);
 
-    function addencodedtype(def: tdef; recordinfostate: trecordinfostate; bpacked: boolean; var encodedstr: ansistring; out founderror: tdef): boolean;
+    function objcaddencodedtype(def: tdef; recordinfostate: trecordinfostate; bpacked: boolean; var encodedstr: ansistring; out founderror: tdef): boolean;
 
 implementation
 
@@ -137,7 +137,7 @@ implementation
                     encodedstr:=encodedstr+'}{?=';
                   end
               end;
-            if not addencodedtype(field.vardef,ris_afterpointer,bpacked,encodedstr,founderror) then
+            if not objcaddencodedtype(field.vardef,ris_afterpointer,bpacked,encodedstr,founderror) then
               exit;
           end;
         for i:=0 to variantstarts.count-1 do
@@ -148,7 +148,7 @@ implementation
       end;
 
 
-    function addencodedtype(def: tdef; recordinfostate: trecordinfostate; bpacked: boolean; var encodedstr: ansistring; out founderror: tdef): boolean;
+    function objcaddencodedtype(def: tdef; recordinfostate: trecordinfostate; bpacked: boolean; var encodedstr: ansistring; out founderror: tdef): boolean;
       var
         recname: ansistring;
         recdef: trecorddef;
@@ -226,7 +226,7 @@ implementation
                   newstate:=recordinfostate;
                   if (recordinfostate<ris_dontprint) then
                     newstate:=succ(newstate);
-                  if not addencodedtype(tpointerdef(def).pointeddef,newstate,false,encodedstr,founderror) then
+                  if not objcaddencodedtype(tpointerdef(def).pointeddef,newstate,false,encodedstr,founderror) then
                     begin
                       result:=false;
                       { report the exact (nested) error defintion }
@@ -360,7 +360,7 @@ implementation
                       encodedstr:=encodedstr+'['+tostr(len);
                       { Embedded structured types in the array are printed
                         in full regardless of the current recordinfostate.  }
-                      if not addencodedtype(tarraydef(def).elementdef,ris_initial,false,encodedstr,founderror) then
+                      if not objcaddencodedtype(tarraydef(def).elementdef,ris_initial,false,encodedstr,founderror) then
                         begin
                           result:=false;
                           { report the exact (nested) error defintion }
@@ -435,7 +435,7 @@ implementation
 
     function objctryencodetype(def: tdef; out encodedtype: ansistring; out founderror: tdef): boolean;
       begin
-        result:=addencodedtype(def,ris_initial,false,encodedtype,founderror);
+        result:=objcaddencodedtype(def,ris_initial,false,encodedtype,founderror);
       end;
 
 
