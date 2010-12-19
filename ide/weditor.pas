@@ -5706,18 +5706,49 @@ begin
 end;
 
 {$ifdef WinClipSupported}
+
+const
+   linelimit = 200;
+
 function TCustomCodeEditor.ClipPasteWin: Boolean;
-var OK: boolean;
-    l,i : longint;
+var
+    StorePos : TPoint;
+    first : boolean;
+
+procedure InsertStringWrap(const s: string; var i : Longint);
+var
+    BPos,EPos: TPoint;
+begin
+  if first then
+    begin
+      { we need to cut the line in two
+      if not at end of line PM }
+      InsertNewLine;
+      SetCurPtr(StorePos.X,StorePos.Y);
+      InsertText(s);
+      first:=false;
+    end
+  else
+    begin
+      Inc(i);
+      InsertLine(i,s);
+      BPos.X:=0;BPos.Y:=i;
+      EPOS.X:=Length(s);EPos.Y:=i;
+      AddAction(eaInsertLine,BPos,EPos,GetDisplayText(i),GetFlags);
+    end;
+end;
+
+var
+    OK: boolean;
+    l,i,len,len10 : longint;
     p,p10,p2,p13 : pchar;
     s : string;
-    BPos,EPos,StorePos : TPoint;
-    first : boolean;
 begin
   Lock;
   OK:=WinClipboardSupported;
   if OK then
     begin
+
       first:=true;
       StorePos:=CurPos;
       i:=CurPos.Y;
@@ -5732,48 +5763,39 @@ begin
             PushInfo(msg_readingwinclipboard);
           AddGroupedAction(eaPasteWin);
           p2:=p;
-          p13:=strpos(p,#13);
-          p10:=strpos(p,#10);
-          while assigned(p10) do
-            begin
-              if p13+1=p10 then
-                p13[0]:=#0
-              else
-                p10[0]:=#0;
-              s:=strpas(p2);
-              if first then
-                begin
-                  { we need to cut the line in two
-                    if not at end of line PM }
-                  InsertNewLine;
-                  SetCurPtr(StorePos.X,StorePos.Y);
-                  InsertText(s);
-                  first:=false;
-                end
-              else
-                begin
-                  Inc(i);
-                  InsertLine(i,s);
-                  BPos.X:=0;BPos.Y:=i;
-                  EPOS.X:=Length(s);EPos.Y:=i;
-                  AddAction(eaInsertLine,BPos,EPos,GetDisplayText(i),GetFlags);
-                end;
-              if p13+1=p10 then
-                p13[0]:=#13
-              else
-                p10[0]:=#10;
-              p2:=@p10[1];
-              p13:=strpos(p2,#13);
-              p10:=strpos(p2,#10);
-            end;
-          if strlen(p2)>0 then
-            begin
-              s:=strpas(p2);
-              if not first then
-                SetCurPtr(0,i+1);
-              InsertText(s);
-            end;
-          SetCurPtr(StorePos.X,StorePos.Y);
+          len:=strlen(p2);
+          // issue lines ((#13)#10 terminated) of maximally "linelimit" chars.
+          // does not take initial X position into account
+          repeat
+            p13:=strpos(p2,#13);
+            p10:=strpos(p2,#10);
+            if len> linelimit then
+              len:=linelimit;
+            if assigned(p10) then
+              begin
+               len10:=p10-p2;
+               if len10<len then
+                 begin
+                   if p13+1=p10 then
+                     dec(len10);
+                   len:=len10;
+                 end
+               else
+                 p10:=nil;  // signal no cleanup
+              end;
+            setlength(s,len);
+            if len>0 then
+              move(p2^,s[1],len);
+            // cleanup
+            if assigned(p10) then
+              p2:=p10+1
+            else
+              inc(p2,len);
+            insertstringwrap(s,i);
+            len:=strlen(p2);
+          until len=0;
+
+          SetCurPtr(StorePos.X,StorePos.Y);  // y+i to get after paste?
           SetModified(true);
           UpdateAttrs(StorePos.Y,attrAll);
           CloseGroupedAction(eaPasteWin);
