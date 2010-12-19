@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2002-5 by Tomas Hajny,
+    Copyright (c) 2002-2010 by Tomas Hajny,
     member of the Free Pascal development team.
 
     OS/2 threading support implementation
@@ -28,6 +28,11 @@ const
  sem_Indefinite_Wait = cardinal (-1);
  dtSuspended = 1;
  dtStack_Commited = 2;
+ deThread = 0; {DosExit - exit thread only}
+ dcWW_Wait = 0;
+ dcWW_NoWait = 1;
+ dpThread = 2;
+ dpSameClass = 0;
 
 
 { import the necessary stuff from the OS }
@@ -57,13 +62,34 @@ function DosRequestMutExSem (Handle:longint; Timeout: cardinal): cardinal; cdecl
 function DosReleaseMutExSem (Handle: longint): cardinal; cdecl;
                                                  external 'DOSCALLS' index 335;
 
-{
+function DosSuspendThread (TID:cardinal): cardinal; cdecl;
+                                                 external 'DOSCALLS' index 238;
+
+function DosResumeThread (TID: cardinal): cardinal; cdecl;
+                                                 external 'DOSCALLS' index 237;
+
+function DosKillThread (TID: cardinal): cardinal; cdecl;
+                                                 external 'DOSCALLS' index 111;
+
+function DosWaitThread (var TID: cardinal; Option: cardinal): cardinal; cdecl;
+                                                 external 'DOSCALLS' index 349;
+
 function DosEnterCritSec:cardinal; cdecl; external 'DOSCALLS' index 232;
 
 function DosExitCritSec:cardinal; cdecl; external 'DOSCALLS' index 233;
-}
 
 procedure DosSleep (MSec: cardinal); cdecl; external 'DOSCALLS' index 229;
+
+{
+procedure DosExit (Action, Result: cardinal); cdecl;
+                                                 external 'DOSCALLS' index 234;
+
+Already declared in the main part of system.pas...
+}
+
+function DosSetPriority (Scope, TrClass: cardinal; Delta: longint;
+                                           PortID: cardinal): cardinal; cdecl;
+                                                 external 'DOSCALLS' index 236;
 
 
 {*****************************************************************************
@@ -73,11 +99,13 @@ procedure DosSleep (MSec: cardinal); cdecl; external 'DOSCALLS' index 229;
 const
  ThreadVarBlockSize: dword = 0;
 
-var
+
+const
 (* Pointer to an allocated dword space within the local thread *)
 (* memory area. Pointer to the real memory block allocated for *)
 (* thread vars in this block is then stored in this dword.     *)
- DataIndex: PPointer;
+ DataIndex: PPointer = nil;
+
 
 procedure SysInitThreadvar (var Offset: dword; Size: dword);
 begin
@@ -85,10 +113,6 @@ begin
  Inc (ThreadVarBlockSize, Size);
 end;
 
-function SysRelocateThreadVar (Offset: dword): pointer;
-begin
- SysRelocateThreadVar := DataIndex^ + Offset;
-end;
 
 procedure SysAllocateThreadVars;
 begin
@@ -98,15 +122,62 @@ begin
  { these aren't allocated yet ...           }
  { allocate room on the heap for the thread vars }
  if DosAllocMem (DataIndex^, ThreadVarBlockSize, pag_Read or pag_Write
-                                      or pag_Commit) <> 0 then HandleError (8);
+                                                       or pag_Commit) <> 0 then
+  HandleError (8);
+{ The Windows API apparently provides a way to fill the allocated memory with }
+{ zeros; we probably need to do it ourselves for compatibility. }
+ FillChar (DataIndex^^, 0, ThreadVarBlockSize);
 end;
+
+
+function SysRelocateThreadVar (Offset: dword): pointer;
+begin
+{ DataIndex itself not checked for not being nil - expected that this should }
+{ not be necessary because the equivalent check (i.e. TlsKey not being set)  }
+{ is note performed by the Windows implementation.                           }
+  if DataIndex^ = nil then
+   begin
+    SysAllocateThreadVars;
+    InitThread ($1000000);
+   end;
+  SysRelocateThreadVar := DataIndex^ + Offset;
+end;
+
+
+procedure SysInitMultithreading;
+begin
+  { do not check IsMultiThread, as program could have altered it, out of Delphi habit }
+
+  { the thread attach/detach code uses locks to avoid multiple calls of this }
+  if DataIndex = nil then
+   begin
+    { We're still running in single thread mode, setup the TLS }
+    if DosAllocThreadLocalMemory (1, DataIndex) <> 0 then RunError (8);
+    InitThreadVars (@SysRelocateThreadvar);
+    IsMultiThread := true;
+   end;
+end;
+
+
+procedure SysFiniMultithreading;
+begin
+  if IsMultiThread then
+   begin
+    if DosFreeThreadLocalMemory (DataIndex) <> 0 then
+     begin
+{??? What to do if releasing fails?}
+     end;
+    DataIndex := nil;
+   end;
+end;
+
 
 procedure SysReleaseThreadVars;
 begin
-  { release thread vars }
   DosFreeMem (DataIndex^);
-  DosFreeThreadLocalMemory (DataIndex);
+  DataIndex^ := nil;
 end;
+
 
 (*    procedure InitThreadVars;
       begin
@@ -178,125 +249,148 @@ end;
       end;
 
 
-    function SysBeginThread(sa : Pointer;stacksize : SizeUInt;
-                         ThreadFunction : tthreadfunc;p : pointer;
-                         creationFlags : dword; var ThreadId : TThreadID) : DWord;
-      var
-        TI: PThreadInfo;
-      begin
+function SysBeginThread (SA: pointer; StackSize : PtrUInt;
+                         ThreadFunction: TThreadFunc; P: pointer;
+                         CreationFlags: cardinal; var ThreadId: TThreadID): DWord;
+var
+  TI: PThreadInfo;
+begin
+{ WriteLn is not a good idea before thread initialization...
+  $ifdef DEBUG_MT}
+  WriteLn ('Creating new thread');
+{ $endif DEBUG_MT}
+{ Initialize multithreading if not done }
+  SysInitMultithreading;
+  InitThreadVars (@SysRelocateThreadVar);
+{ the only way to pass data to the newly created thread
+  in a MT safe way, is to use the heap }
+  New (TI);
+  TI^.F := ThreadFunction;
+  TI^.P := P;
+  TI^.StkLen := StackSize;
 {$ifdef DEBUG_MT}
-        writeln('Creating new thread');
+  WriteLn ('Starting new thread');
 {$endif DEBUG_MT}
-        { Initialize multithreading if not done }
-        if not IsMultiThread then
-         begin
-           if DosAllocThreadLocalMemory (1, DataIndex) <> 0
-             then RunError (8);
-           InitThreadVars(@SysRelocateThreadVar);
-           IsMultiThread:=true;
-         end;
-        { the only way to pass data to the newly created thread
-          in a MT safe way, is to use the heap }
-        New (TI);
-        TI^.F := ThreadFunction;
-        TI^.P := P;
-        TI^.StkLen := StackSize;
-        { call pthread_create }
-{$ifdef DEBUG_MT}
-        writeln('Starting new thread');
-{$endif DEBUG_MT}
-        if DosCreateThread (DWord (ThreadID), @ThreadMain, SA,
-                                           CreationFlags, StackSize) = 0 then
-        SysBeginThread := ThreadID else SysBeginThread := 0;
-      end;
+  ThreadID := 0;
+  if DosCreateThread (cardinal (ThreadID), @ThreadMain, SA,
+                                             CreationFlags, StackSize) = 0 then
+   SysBeginThread := ThreadID
+  else
+   begin
+    SysBeginThread := 0;
+{$IFDEF DEBUG_MT}
+    WriteLn ('Thread creation failed');
+{$ENDIF DEBUG_MT}
+    Dispose (TI);
+   end;
+end;
 
 
-    procedure SysEndThread (ExitCode : DWord);
-      begin
-        DoneThread;
-        DosExit (1, ExitCode);
-      end;
+procedure SysEndThread (ExitCode: cardinal);
+begin
+  DoneThread;
+  DosExit (0, ExitCode);
+end;
 
 
-    procedure SysThreadSwitch;
-    begin
-      DosSleep (0);
-    end;
+procedure SysThreadSwitch;
+begin
+  DosSleep (0);
+end;
 
 
-    function SysSuspendThread (ThreadHandle: dword): dword;
-    begin
- {$WARNING TODO!}
-{     SysSuspendThread := WinSuspendThread(threadHandle);
-}
-    end;
+function SysSuspendThread (ThreadHandle: dword): dword;
+begin
+{$WARNING Check expected return value}
+  SysSuspendThread := DosSuspendThread (ThreadHandle);
+end;
 
 
-    function SysResumeThread (ThreadHandle: dword): dword;
-    begin
-{$WARNING TODO!}
-{      SysResumeThread := WinResumeThread(threadHandle);
-}
-    end;
+function SysResumeThread (ThreadHandle: dword): dword;
+begin
+{$WARNING Check expected return value}
+  SysResumeThread := DosResumeThread (ThreadHandle);
+end;
 
 
-    function SysKillThread (ThreadHandle: dword): dword;
-    var
-      ExitCode: dword;
-    begin
-{$WARNING TODO!}
-{
-      if not TerminateThread (ThreadHandle, ExitCode) then
-        SysKillThread := GetLastError
-      else
-        SysKillThread := 0;
-}
-    end;
+function SysKillThread (ThreadHandle: dword): dword;
+begin
+  SysKillThread := DosKillThread (ThreadHandle);
+end;
 
-    function SysCloseThread (threadHandle : TThreadID) : dword;
-    begin
-      SysCloseThread := 0;
+function SysCloseThread (ThreadHandle: TThreadID): dword;
+begin
+{ Probably not relevant under OS/2? }
 //      SysCloseThread:=CloseHandle(threadHandle);
-    end;
+end;
 
-    function SysWaitForThreadTerminate (ThreadHandle: dword;
+function SysWaitForThreadTerminate (ThreadHandle: dword;
                                                     TimeoutMs: longint): dword;
-    begin
-{$WARNING TODO!}
-{
-      if TimeoutMs = 0 then dec (timeoutMs);  // $ffffffff is INFINITE
-      SysWaitForThreadTerminate := WaitForSingleObject(threadHandle, TimeoutMs);
-}
-    end;
+var
+  RC: cardinal;
+const
+{ Wait at most 100 ms before next check for thread termination }
+  WaitTime = 100;
+begin
+  if TimeoutMs = 0 then
+   RC := DosWaitThread (ThreadHandle, dcWW_Wait)
+  else
+   repeat
+    RC := DosWaitThread (ThreadHandle, dcWW_NoWait);
+    if RC = 294 then
+     begin
+      if TimeoutMs > WaitTime then
+       DosSleep (WaitTime)
+      else
+       begin
+        DosSleep (TimeoutMs);
+        DosWaitThread (ThreadHandle, dcWW_NoWait);
+       end;
+      Dec (TimeoutMs, WaitTime);
+     end;
+   until (RC <> 294) or (TimeoutMs <= 0);
+  SysWaitForThreadTerminate := RC;
+end;
 
 
-    function SysThreadSetPriority (ThreadHandle: dword;
-                                                       Prio: longint): boolean;
-    {-15..+15, 0=normal}
-    begin
+function SysThreadSetPriority (ThreadHandle: dword; Prio: longint): boolean;
+{-15..+15, 0=normal}
+var
+  Delta: longint;
+begin
 {$WARNING TODO!}
 {
       SysThreadSetPriority:=WinThreadSetPriority(threadHandle,Prio);
+
+Find out current priority first using DosGetInfoBlocks, then calculate delta
+(recalculate the scale from -15..+15 on input to -31..+31 used by OS/2).
+
+  SysThreadSetPriority := DosSetPriority (dpThread, dpSameClass, Delta,
+                                                                 ThreadHandle);
 }
-    end;
+end;
 
 
-    function SysThreadGetPriority (ThreadHandle: dword): longint;
-    begin
+function SysThreadGetPriority (ThreadHandle: dword): longint;
+begin
 {$WARNING TODO!}
 {
       SysThreadGetPriority:=WinThreadGetPriority(threadHandle);
+
+  DosGetInfoBlocks - recalculate the scale afterwards to -15..+15
 }
-    end;
+end;
 
 
-    function SysGetCurrentThreadID: dword;
-    begin
+function SysGetCurrentThreadID: dword;
+begin
 {$WARNING TODO!}
 {
       SysGetCurrentThreadId:=WinGetCurrentThreadId;
+
+  DosGetInfoBlocks
 }
-    end;
+end;
 
 
 
