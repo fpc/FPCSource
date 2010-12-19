@@ -25,7 +25,7 @@ const
  pag_Guard = 8;
  pag_Commit = $10;
  obj_Tile = $40;
- sem_Indefinite_Wait = -1;
+ sem_Indefinite_Wait = cardinal (-1);
  dtSuspended = 1;
  dtStack_Commited = 2;
 
