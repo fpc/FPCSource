@@ -120,7 +120,7 @@ interface
         (tok:_OP_SHR    ;nod:shrn;op_overloading_supported:true),      { binary overloading supported }
         (tok:_OP_XOR    ;nod:xorn;op_overloading_supported:true),      { binary overloading supported }
         (tok:_ASSIGNMENT;nod:assignn;op_overloading_supported:true),   { unary overloading supported }
-        (tok:_UNEQUAL   ;nod:unequaln;op_overloading_supported:false)  { binary overloading NOT supported  overload = instead }
+        (tok:_UNEQUAL   ;nod:unequaln;op_overloading_supported:true)   { binary overloading supported }
       );
 
       { true, if we are parsing stuff which allows array constructors }
@@ -560,8 +560,80 @@ implementation
         operpd  : tprocdef;
         ht      : tnode;
         ppn     : tcallparanode;
-        candidates : tcallcandidates;
         cand_cnt : integer;
+
+        function search_operator(optoken:ttoken;generror:boolean): integer;
+          var
+            candidates : tcallcandidates;
+          begin
+            { generate parameter nodes }
+            ppn:=ccallparanode.create(tbinarynode(t).right.getcopy,ccallparanode.create(tbinarynode(t).left.getcopy,nil));
+            ppn.get_paratype;
+            candidates:=tcallcandidates.create_operator(optoken,ppn);
+
+            { for commutative operators we can swap arguments and try again }
+            if (candidates.count=0) and
+               not(optoken in [_OP_SHL,_OP_SHR,_OP_DIV,_OP_MOD,_STARSTAR,_SLASH,_MINUS]) then
+              begin
+                candidates.free;
+                reverseparameters(ppn);
+                { reverse compare operators }
+                case optoken of
+                  _LT:
+                    optoken:=_GTE;
+                  _GT:
+                    optoken:=_LTE;
+                  _LTE:
+                    optoken:=_GT;
+                  _GTE:
+                    optoken:=_LT;
+                end;
+                candidates:=tcallcandidates.create_operator(optoken,ppn);
+              end;
+
+            { stop when there are no operators found }
+            result:=candidates.count;
+            if (result=0) and generror then
+              begin
+                CGMessage(parser_e_operator_not_overloaded);
+                candidates.free;
+                exit;
+              end;
+
+            if (result>0) then
+              begin
+                { Retrieve information about the candidates }
+                candidates.get_information;
+        {$ifdef EXTDEBUG}
+                { Display info when multiple candidates are found }
+                candidates.dump_info(V_Debug);
+        {$endif EXTDEBUG}
+                result:=candidates.choose_best(tabstractprocdef(operpd),false);
+              end;
+
+            { exit when no overloads are found }
+            if (result=0) and generror then
+              begin
+                CGMessage3(parser_e_operator_not_overloaded_3,ld.typename,arraytokeninfo[optoken].str,rd.typename);
+                candidates.free;
+                exit;
+              end;
+
+            { Multiple candidates left? }
+            if result>1 then
+              begin
+                CGMessage(type_e_cant_choose_overload_function);
+    {$ifdef EXTDEBUG}
+                candidates.dump_info(V_Hint);
+    {$else EXTDEBUG}
+                candidates.list(false);
+    {$endif EXTDEBUG}
+                { we'll just use the first candidate to make the
+                  call }
+              end;
+            candidates.free;
+          end;
+
       begin
         isbinaryoverloaded:=false;
         operpd:=nil;
@@ -575,9 +647,10 @@ implementation
         result:=true;
 
         case t.nodetype of
-           equaln,
-           unequaln :
+           equaln:
              optoken:=_EQUAL;
+           unequaln:
+             optoken:=_UNEQUAL;
            addn:
              optoken:=_PLUS;
            subn:
@@ -620,72 +693,23 @@ implementation
              end;
         end;
 
-        { generate parameter nodes }
-        ppn:=ccallparanode.create(tbinarynode(t).right.getcopy,ccallparanode.create(tbinarynode(t).left.getcopy,nil));
-        ppn.get_paratype;
-        candidates:=tcallcandidates.create_operator(optoken,ppn);
+        cand_cnt:=search_operator(optoken,optoken<>_UNEQUAL);
 
-        { for commutative operators we can swap arguments and try again }
-        if (candidates.count=0) and
-           not(optoken in [_OP_SHL,_OP_SHR,_OP_DIV,_OP_MOD,_STARSTAR,_SLASH,_MINUS]) then
+        { no operator found for "<>" then search for "=" operator }
+        if (cand_cnt=0) and (optoken=_UNEQUAL) then
           begin
-            candidates.free;
-            reverseparameters(ppn);
-            { reverse compare operators }
-            case optoken of
-              _LT:
-                optoken:=_GTE;
-              _GT:
-                optoken:=_LTE;
-              _LTE:
-                optoken:=_GT;
-              _GTE:
-                optoken:=_LT;
-            end;
-            candidates:=tcallcandidates.create_operator(optoken,ppn);
+            ppn.free;
+            operpd:=nil;
+            optoken:=_EQUAL;
+            cand_cnt:=search_operator(optoken,true);
           end;
 
-        { stop when there are no operators found }
-        if candidates.count=0 then
+        if (cand_cnt=0) then
           begin
-            CGMessage(parser_e_operator_not_overloaded);
-            candidates.free;
             ppn.free;
             t:=cnothingnode.create;
             exit;
           end;
-
-        { Retrieve information about the candidates }
-        candidates.get_information;
-{$ifdef EXTDEBUG}
-        { Display info when multiple candidates are found }
-        candidates.dump_info(V_Debug);
-{$endif EXTDEBUG}
-        cand_cnt:=candidates.choose_best(tabstractprocdef(operpd),false);
-
-        { exit when no overloads are found }
-        if cand_cnt=0 then
-          begin
-            CGMessage3(parser_e_operator_not_overloaded_3,ld.typename,arraytokeninfo[optoken].str,rd.typename);
-            candidates.free;
-            ppn.free;
-            t:=cnothingnode.create;
-            exit;
-          end;
-
-        { Multiple candidates left? }
-        if cand_cnt>1 then
-          begin
-            CGMessage(type_e_cant_choose_overload_function);
-{$ifdef EXTDEBUG}
-            candidates.dump_info(V_Hint);
-{$else EXTDEBUG}
-            candidates.list(false);
-{$endif EXTDEBUG}
-            { we'll just use the first candidate to make the
-              call }
-          end;
-        candidates.free;
 
         addsymref(operpd.procsym);
 
@@ -697,7 +721,9 @@ implementation
           skip the overload choosing in callnode.pass_typecheck }
         tcallnode(ht).procdefinition:=operpd;
 
-        if t.nodetype=unequaln then
+        { if we found "=" operator for "<>" expression then use it
+          together with "not" }
+        if (t.nodetype=unequaln) and (optoken=_EQUAL) then
           ht:=cnotnode.create(ht);
         t:=ht;
       end;

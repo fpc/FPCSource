@@ -1284,8 +1284,6 @@ implementation
                        optoken := _OP_ENUMERATOR
                      else
                        Message1(parser_e_overload_operator_failed,'');
-                   _UNEQUAL:
-                     Message1(parser_e_overload_operator_failed,'=');
                    else
                      Message1(parser_e_overload_operator_failed,'');
                  end;
@@ -1317,7 +1315,7 @@ implementation
                   else
                    begin
                      single_type(pd.returndef,false,false);
-                     if (optoken in [_EQUAL,_GT,_LT,_GTE,_LTE]) and
+                     if (optoken in [_EQUAL,_UNEQUAL,_GT,_LT,_GTE,_LTE]) and
                         ((pd.returndef.typ<>orddef) or
                          (torddef(pd.returndef).ordtype<>pasbool)) then
                         Message(parser_e_comparative_operator_return_boolean);

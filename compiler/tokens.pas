@@ -39,6 +39,7 @@ type
     _LT,
     _GTE,
     _LTE,
+    _UNEQUAL,
     _SYMDIF,
     _STARSTAR,
     _OP_AS,
@@ -56,7 +57,6 @@ type
     _OP_ENUMERATOR,
     { special chars }
     _CARET,
-    _UNEQUAL,
     _LECKKLAMMER,
     _RECKKLAMMER,
     _POINT,
@@ -302,6 +302,7 @@ const
       (str:'<'             ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'>='            ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'<='            ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'<>'            ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'><'            ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'**'            ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'as'            ;special:true ;keyword:m_none;op:NOTOKEN),
@@ -319,7 +320,6 @@ const
       (str:'enumerator'    ;special:true ;keyword:m_none;op:NOTOKEN),
     { Special chars }
       (str:'^'             ;special:true ;keyword:m_none;op:NOTOKEN),
-      (str:'<>'            ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'['             ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:']'             ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'.'             ;special:true ;keyword:m_none;op:NOTOKEN),

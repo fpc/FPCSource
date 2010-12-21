@@ -268,7 +268,7 @@ interface
          ('error',
           'plus','minus','star','slash','equal',
           'greater','lower','greater_or_equal',
-          'lower_or_equal',
+          'lower_or_equal', 'not_equal',
           'sym_diff','starstar',
           'as','is','in','or',
           'and','div','mod','not','shl','shr','xor',
