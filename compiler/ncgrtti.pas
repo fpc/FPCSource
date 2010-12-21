@@ -48,6 +48,9 @@ interface
         procedure write_rtti_data(def:tdef;rt:trttitype);
         procedure write_child_rtti_data(def:tdef;rt:trttitype);
         function  ref_rtti(def:tdef;rt:trttitype):tasmsymbol;
+        procedure write_header(def: tdef; typekind: byte);
+        procedure write_string(const s: string);
+        procedure maybe_write_align;
       public
         procedure write_rtti(def:tdef;rt:trttitype);
         function  get_rtti_label(def:tdef;rt:trttitype):tasmsymbol;
@@ -89,6 +92,29 @@ implementation
 {***************************************************************************
                               TRTTIWriter
 ***************************************************************************}
+
+    procedure TRTTIWriter.maybe_write_align;
+      begin
+        if (tf_requires_proper_alignment in target_info.flags) then
+          current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+      end;
+
+    procedure TRTTIWriter.write_string(const s: string);
+      begin
+        current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(s)));
+        current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(s));
+      end;
+
+    procedure TRTTIWriter.write_header(def: tdef; typekind: byte);
+      begin
+        if def.typ=arraydef then
+          InternalError(201012211);
+        current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(typekind));
+        if assigned(def.typesym) then
+          write_string(ttypesym(def.typesym).realname)
+        else
+          current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(#0));
+      end;
 
     procedure TRTTIWriter.write_rtti_name(def:tdef);
       var
@@ -361,10 +387,8 @@ implementation
                   internalerror(200512201);
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(propnameitem.propindex));
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(proctypesinfo));
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(tpropertysym(sym).realname)));
-                current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(tpropertysym(sym).realname));
-                if (tf_requires_proper_alignment in target_info.flags) then
-                  current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+                write_string(tpropertysym(sym).realname);
+                maybe_write_align;
              end;
           end;
       end;
@@ -387,32 +411,22 @@ implementation
         begin
           case def.stringtype of
             st_ansistring:
-              begin
-                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkAString));
-                 write_rtti_name(def);
-              end;
+              write_header(def,tkAString);
+
             st_widestring:
-              begin
-                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkWString));
-                 write_rtti_name(def);
-              end;
+              write_header(def,tkWString);
+
             st_unicodestring:
-              begin
-                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkUString));
-                 write_rtti_name(def);
-              end;
+              write_header(def,tkUString);
+
             st_longstring:
-              begin
-                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkLString));
-                 write_rtti_name(def);
-              end;
+              write_header(def,tkLString);
+
             st_shortstring:
               begin
-                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkSString));
-                 write_rtti_name(def);
+                 write_header(def,tkSString);
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(def.len));
-                 if (tf_requires_proper_alignment in target_info.flags) then
-                   current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+                 maybe_write_align;  // is align necessary here?
               end;
           end;
         end;
@@ -422,10 +436,8 @@ implementation
            i  : integer;
            hp : tenumsym;
         begin
-          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkEnumeration));
-          write_rtti_name(def);
-          if (tf_requires_proper_alignment in target_info.flags) then
-            current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUInt)));
+          write_header(def,tkEnumeration);
+          maybe_write_align;
           case longint(def.size) of
             1 :
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otUByte));
@@ -441,12 +453,10 @@ implementation
             We need to adhere to this, otherwise things will break.
             Note that other code (e.g. enumdef_rtti_calcstringtablestart()) relies on the
             exact sequence too. }
-          if (tf_requires_proper_alignment in target_info.flags) then
-            current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUint)));
+          maybe_write_align;
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.min));
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.max));
-          if (tf_requires_proper_alignment in target_info.flags) then
-            current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUint)));
+          maybe_write_align;  // is align necessary here?
           { write base type }
           if assigned(def.basedef) then
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.basedef,rt)))
@@ -460,17 +470,15 @@ implementation
               else
               if hp.value>def.maxval then
                 break;
-              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(hp.realname)));
-              current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(hp.realname));
+              write_string(hp.realname);
             end;
           { write unit name }
-          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(current_module.realmodulename^)));
-          current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(current_module.realmodulename^));
+          write_string(current_module.realmodulename^);
         end;
 
         procedure orddef_rtti(def:torddef);
 
-          procedure dointeger;
+          procedure dointeger(typekind: byte);
           const
             trans : array[tordtype] of byte =
               (otUByte{otNone},
@@ -479,12 +487,10 @@ implementation
                otUByte,otSByte,otSWord,otSLong,otSByte,
                otUByte,otUWord,otUByte);
           begin
-            write_rtti_name(def);
-            if (tf_requires_proper_alignment in target_info.flags) then
-              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+            write_header(def,typekind);
+            maybe_write_align;
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(byte(trans[def.ordtype])));
-            if (tf_requires_proper_alignment in target_info.flags) then
-              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+            maybe_write_align;
             {Convert to longint to smuggle values in high(longint)+1..high(cardinal) into asmlist.}
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(longint(def.low.svalue)));
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(longint(def.high.svalue)));
@@ -494,10 +500,8 @@ implementation
           case def.ordtype of
             s64bit :
               begin
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkInt64));
-                write_rtti_name(def);
-                if (tf_requires_proper_alignment in target_info.flags) then
-                  current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+                write_header(def,tkInt64);
+                maybe_write_align;
                 { low }
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_64bit(def.low.svalue));
                 { high }
@@ -505,10 +509,8 @@ implementation
               end;
             u64bit :
               begin
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkQWord));
-                write_rtti_name(def);
-                if (tf_requires_proper_alignment in target_info.flags) then
-                  current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+                write_header(def,tkQWord);
+                maybe_write_align;
                 {use svalue because Create_64bit accepts int64, prevents range checks}
                 { low }
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_64bit(def.low.svalue));
@@ -516,33 +518,19 @@ implementation
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_64bit(def.high.svalue));
               end;
             pasbool:
-              begin
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkBool));
-                dointeger;
-              end;
+                dointeger(tkBool);
             uchar:
-              begin
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkChar));
-                dointeger;
-              end;
+                dointeger(tkChar);
             uwidechar:
-              begin
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkWChar));
-                dointeger;
-              end;
+                dointeger(tkWChar);
             scurrency:
               begin
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkFloat));
-                write_rtti_name(def);
-                if (tf_requires_proper_alignment in target_info.flags) then
-                  current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+                write_header(def,tkFloat);
+                maybe_write_align;
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(ftCurr));
               end;
             else
-              begin
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkInteger));
-                dointeger;
-              end;
+              dointeger(tkInteger);
           end;
         end;
 
@@ -553,20 +541,16 @@ implementation
           translate : array[tfloattype] of byte =
              (ftSingle,ftDouble,ftExtended,ftExtended,ftComp,ftCurr,ftFloat128);
         begin
-           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkFloat));
-           write_rtti_name(def);
-           if (tf_requires_proper_alignment in target_info.flags) then
-             current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+           write_header(def,tkFloat);
+           maybe_write_align;
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(translate[def.floattype]));
         end;
 
 
         procedure setdef_rtti(def:tsetdef);
         begin
-           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkSet));
-           write_rtti_name(def);
-           if (tf_requires_proper_alignment in target_info.flags) then
-             current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+           write_header(def,tkSet);
+           maybe_write_align;
            case def.size of
              1:
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otUByte));
@@ -577,8 +561,7 @@ implementation
              else
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otUByte));
            end;
-           if (tf_requires_proper_alignment in target_info.flags) then
-             current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+           maybe_write_align;
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)));
         end;
 
@@ -590,8 +573,7 @@ implementation
            else
              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkarray));
            write_rtti_name(def);
-           if (tf_requires_proper_alignment in target_info.flags) then
-             current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+           maybe_write_align;
            { size of elements }
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(def.elesize));
 
@@ -622,8 +604,7 @@ implementation
                else
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(0));
                { write unit name }
-               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(current_module.realmodulename^)));
-               current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(current_module.realmodulename^));
+               write_string(current_module.realmodulename^);
              end;
         end;
 
@@ -631,10 +612,8 @@ implementation
         var
           fieldcnt : longint;
         begin
-           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkrecord));
-           write_rtti_name(def);
-           if (tf_requires_proper_alignment in target_info.flags) then
-             current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+           write_header(def,tkRecord);
+           maybe_write_align;
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.size));
            fieldcnt:=fields_count(def.symtable,rt);
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(fieldcnt));
@@ -693,8 +672,7 @@ implementation
                  { write flags for current parameter }
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(paraspec));
                  { write name of current parameter }
-                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(parasym.realname)));
-                 current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(parasym.realname));
+                 write_string(parasym.realname);
                  { write name of type of current parameter }
                  write_rtti_name(parasym.vardef);
                end;
@@ -707,10 +685,8 @@ implementation
           if po_methodpointer in def.procoptions then
             begin
                { write method id and name }
-               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkmethod));
-               write_rtti_name(def);
-               if (tf_requires_proper_alignment in target_info.flags) then
-                 current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+               write_header(def,tkMethod);
+               maybe_write_align;
 
                { write kind of method }
                case def.proctypeoption of
@@ -749,9 +725,7 @@ implementation
                begin
                  { write name of result type }
                  write_rtti_name(def.returndef);
-
-                 if (tf_requires_proper_alignment in target_info.flags) then
-                   current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUint)));
+                 maybe_write_align;
 
                  { write result typeinfo }
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.returndef,fullrtti)))
@@ -759,9 +733,7 @@ implementation
 
                { write calling convention }
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(ProcCallOptionToCallConv[def.proccalloption]));
-
-               if (tf_requires_proper_alignment in target_info.flags) then
-                 current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUint)));
+               maybe_write_align;
 
                { write params typeinfo }
                for i:=0 to def.paras.count-1 do
@@ -769,10 +741,7 @@ implementation
                    current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(tparavarsym(def.paras[i]).vardef,fullrtti)));
             end
           else
-            begin
-              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkprocvar));
-              write_rtti_name(def);
-            end;
+            write_header(def,tkProcvar);
         end;
 
 
@@ -813,15 +782,12 @@ implementation
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(propnamelist.count));
 
             { write unit name }
-            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(current_module.realmodulename^)));
-            current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(current_module.realmodulename^));
-            if (tf_requires_proper_alignment in target_info.flags) then
-              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+            write_string(current_module.realmodulename^);
+            maybe_write_align;
 
             { write published properties for this object }
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(published_properties_count(def.symtable)));
-            if (tf_requires_proper_alignment in target_info.flags) then
-              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+            maybe_write_align;
             published_properties_write_rtti_data(propnamelist,def.symtable);
 
             propnamelist.free;
@@ -859,8 +825,7 @@ implementation
               {
               ifDispatch, }
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(IntfFlags));
-            if (tf_requires_proper_alignment in target_info.flags) then
-              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+            maybe_write_align;
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(longint(def.iidguid^.D1)));
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(def.iidguid^.D2));
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(def.iidguid^.D3));
@@ -868,21 +833,15 @@ implementation
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(def.iidguid^.D4[i]));
 
             { write unit name }
-            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(current_module.realmodulename^)));
-            current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(current_module.realmodulename^));
-            if (tf_requires_proper_alignment in target_info.flags) then
-              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+            write_string(current_module.realmodulename^);
+            maybe_write_align;
 
             { write iidstr }
             if assigned(def.iidstr) then
-              begin
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(def.iidstr^)));
-                current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(def.iidstr^));
-              end
+              write_string(def.iidstr^)
             else
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(0));
-            if (tf_requires_proper_alignment in target_info.flags) then
-              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+            maybe_write_align;
 
             { write published properties for this object }
             published_properties_write_rtti_data(propnamelist,def.symtable);
@@ -906,10 +865,8 @@ implementation
            end;
 
            { generate the name }
-           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(def.objrealname^)));
-           current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(def.objrealname^));
-           if (tf_requires_proper_alignment in target_info.flags) then
-             current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+           write_string(def.objrealname^);
+           maybe_write_align;
 
            case rt of
              initrtti :
@@ -1030,8 +987,7 @@ implementation
               asmlists[al_rtti].concat(Tai_const.create_32bit(longint(mode)));
               if mode=lookup then
                 begin
-                  if (tf_requires_proper_alignment in target_info.flags) then
-                    current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+                  maybe_write_align;
                   o:=syms[0].value;  {Start with min value.}
                   for i:=0 to sym_count-1 do
                     begin
@@ -1046,16 +1002,13 @@ implementation
                 end
               else
                 begin
-                  if (tf_requires_proper_alignment in target_info.flags) then
-                    current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+                  maybe_write_align;
                   asmlists[al_rtti].concat(Tai_const.create_32bit(sym_count));
                   for i:=0 to sym_count-1 do
                     begin
-                      if (tf_requires_proper_alignment in target_info.flags) then
-                        current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+                      maybe_write_align;
                       asmlists[al_rtti].concat(Tai_const.create_32bit(syms[i].value));
-                      if (tf_requires_proper_alignment in target_info.flags) then
-                        current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));	
+                      maybe_write_align;
                       asmlists[al_rtti].concat(Tai_const.create_sym_offset(mainrtti,st+offsets[i]));
                     end;
                 end;
@@ -1081,15 +1034,13 @@ implementation
               asmlists[al_rtti].concat(Tai_symbol.create_global(rttilab,0));
               asmlists[al_rtti].concat(Tai_const.create_32bit(sym_count));
               { need to align the entry record according to the largest member }
-              if (tf_requires_proper_alignment in target_info.flags) then
-                 current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+              maybe_write_align;
               for i:=0 to sym_count-1 do
                 begin
                   if (tf_requires_proper_alignment in target_info.flags) then
-                    current_asmdata.asmlists[al_rtti].concat(cai_align.Create(4));
+                    current_asmdata.asmlists[al_rtti].concat(cai_align.Create(4));  // necessary?
                   asmlists[al_rtti].concat(Tai_const.create_32bit(syms[i].value));
-                  if (tf_requires_proper_alignment in target_info.flags) then
-                    current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));	
+                  maybe_write_align;
                   asmlists[al_rtti].concat(Tai_const.create_sym_offset(mainrtti,st+offsets[i]));
                 end;
               asmlists[al_rtti].concat(Tai_symbol_end.create(rttilab));
