@@ -2787,7 +2787,7 @@ implementation
    const
       { Warning these stay be ordered !! }
       operator_levels:array[Toperator_precedence] of set of Ttoken=
-         ([_LT,_LTE,_GT,_GTE,_EQUAL,_UNEQUAL,_OP_IN],
+         ([_LT,_LTE,_GT,_GTE,_EQ,_NE,_OP_IN],
           [_PLUS,_MINUS,_OP_OR,_PIPE,_OP_XOR],
           [_CARET,_SYMDIF,_STARSTAR,_STAR,_SLASH,
            _OP_AS,_OP_IS,_OP_AND,_AMPERSAND,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR],
@@ -2808,7 +2808,7 @@ implementation
           p1:=sub_expr(succ(pred_level),true,typeonly);
         repeat
           if (token in operator_levels[pred_level]) and
-             ((token<>_EQUAL) or accept_equal) then
+             ((token<>_EQ) or accept_equal) then
            begin
              oldt:=token;
              filepos:=current_tokenpos;
@@ -2826,7 +2826,7 @@ implementation
                  p1:=caddnode.create(muln,p1,p2);
                _SLASH :
                  p1:=caddnode.create(slashn,p1,p2);
-               _EQUAL :
+               _EQ:
                  p1:=caddnode.create(equaln,p1,p2);
                _GT :
                  p1:=caddnode.create(gtn,p1,p2);
@@ -2874,7 +2874,7 @@ implementation
                  p1:=caddnode.create(xorn,p1,p2);
                _ASSIGNMENT :
                  p1:=cassignmentnode.create(p1,p2);
-               _UNEQUAL :
+               _NE :
                  p1:=caddnode.create(unequaln,p1,p2);
              end;
              p1.fileinfo:=filepos;

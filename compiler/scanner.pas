@@ -1303,7 +1303,7 @@ In case not, the value returned can be arbitrary.
            op:=current_scanner.preproc_token;
            if (op = _ID) and (current_scanner.preproc_pattern = 'IN') then
              op := _IN;
-           if not (op in [_IN,_EQUAL,_UNEQUAL,_LT,_GT,_LTE,_GTE]) then
+           if not (op in [_IN,_EQ,_NE,_LT,_GT,_LTE,_GTE]) then
              begin
                 read_expr:=hs1;
                 exit;
@@ -1341,9 +1341,9 @@ In case not, the value returned can be arbitrary.
                        val(hs1,l1,w);
                        val(hs2,l2,w);
                        case op of
-                         _EQUAL :
+                         _EQ :
                            b:=l1=l2;
-                         _UNEQUAL :
+                         _NE :
                            b:=l1<>l2;
                          _LT :
                            b:=l1<l2;
@@ -1358,9 +1358,9 @@ In case not, the value returned can be arbitrary.
                    else
                      begin
                        case op of
-                         _EQUAL :
+                         _EQ:
                            b:=hs1=hs2;
-                         _UNEQUAL :
+                         _NE :
                            b:=hs1<>hs2;
                          _LT :
                            b:=hs1<hs2;
@@ -3728,7 +3728,7 @@ In case not, the value returned can be arbitrary.
              '=' :
                begin
                  readchar;
-                 token:=_EQUAL;
+                 token:=_EQ;
                  goto exit_label;
                end;
 
@@ -4050,7 +4050,7 @@ In case not, the value returned can be arbitrary.
                        '>' :
                          begin
                            readchar;
-                           token:=_UNEQUAL;
+                           token:=_NE;
                            goto exit_label;
                          end;
                        '=' :
@@ -4169,7 +4169,7 @@ exit_label:
            '=' :
              begin
                readchar;
-               readpreproc:=_EQUAL;
+               readpreproc:=_EQ;
              end;
            '>' :
              begin
@@ -4189,7 +4189,7 @@ exit_label:
                  '>' :
                    begin
                      readchar;
-                     readpreproc:=_UNEQUAL;
+                     readpreproc:=_NE;
                    end;
                  '=' :
                    begin

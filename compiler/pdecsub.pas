@@ -705,7 +705,7 @@ implementation
                 { default parameter }
                 if (m_default_para in current_settings.modeswitches) then
                  begin
-                   if try_to_consume(_EQUAL) then
+                   if try_to_consume(_EQ) then
                     begin
                       vs:=tparavarsym(sc[0]);
                       if sc.count>1 then
@@ -855,7 +855,7 @@ implementation
            consume(_ID);
            { Create unique name <interface>.<method> }
            hs:=sp+'.'+pattern;
-           consume(_EQUAL);
+           consume(_EQ);
            if assigned(ImplIntf) and
               (token=_ID) then
              ImplIntf.AddMapping(hs,pattern);
@@ -1315,7 +1315,7 @@ implementation
                   else
                    begin
                      single_type(pd.returndef,false,false);
-                     if (optoken in [_EQUAL,_UNEQUAL,_GT,_LT,_GTE,_LTE]) and
+                     if (optoken in [_EQ,_NE,_GT,_LT,_GTE,_LTE]) and
                         ((pd.returndef.typ<>orddef) or
                          (torddef(pd.returndef).ordtype<>pasbool)) then
                         Message(parser_e_comparative_operator_return_boolean);
@@ -2810,12 +2810,12 @@ const
               res:=parse_proc_direc(pd,pdflags);
             end;
            { A procedure directive normally followed by a semicolon, but in
-             a const section or reading a type we should stop when _EQUAL is found,
+             a const section or reading a type we should stop when _EQ is found,
              because a constant/default value follows }
            if res then
             begin
               if (block_type=bt_const_type) and
-                 (token=_EQUAL) then
+                 (token=_EQ) then
                break;
               { support procedure proc;stdcall export; }
               if not(check_proc_directive((pd.typ=procvardef))) then
@@ -2823,7 +2823,7 @@ const
                   { support "record p : procedure stdcall end;" and
                     "var p : procedure stdcall = nil;" }
                   if (pd_procvar in pdflags) and
-                     (token in [_END,_RKLAMMER,_EQUAL]) then
+                     (token in [_END,_RKLAMMER,_EQ]) then
                     break
                   else
                     begin

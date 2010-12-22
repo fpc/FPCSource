@@ -184,9 +184,9 @@ implementation
            consume(_ID);
            case token of
 
-             _EQUAL:
+             _EQ:
                 begin
-                   consume(_EQUAL);
+                   consume(_EQ);
                    sym:=readconstant(orgname,filepos);
                    { Support hint directives }
                    dummysymoptions:=[];
@@ -271,7 +271,7 @@ implementation
                    if not skipequal then
                     begin
                       { get init value }
-                      consume(_EQUAL);
+                      consume(_EQ);
                       if (cs_typed_const_writable in current_settings.localswitches) then
                         tclist:=current_asmdata.asmlists[al_rotypedconsts]
                       else
@@ -282,7 +282,7 @@ implementation
 
               else
                 { generate an error }
-                consume(_EQUAL);
+                consume(_EQ);
            end;
          until (token<>_ID)or(in_structure and (idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]));
          block_type:=old_block_type;
@@ -478,7 +478,7 @@ implementation
                consume(_RSHARPBRACKET);
              end;
 
-           consume(_EQUAL);
+           consume(_EQ);
 
            { support 'ttype=type word' syntax }
            isunique:=try_to_consume(_TYPE);
@@ -770,9 +770,9 @@ implementation
            filepos:=current_tokenpos;
            consume(_ID);
            case token of
-             _EQUAL:
+             _EQ:
                 begin
-                   consume(_EQUAL);
+                   consume(_EQ);
                    p:=comp_expr(true,false);
                    storetokenpos:=current_tokenpos;
                    current_tokenpos:=filepos;
@@ -816,7 +816,7 @@ implementation
                    consume(_SEMICOLON);
                    p.free;
                 end;
-              else consume(_EQUAL);
+              else consume(_EQ);
            end;
          until token<>_ID;
          block_type:=old_block_type;

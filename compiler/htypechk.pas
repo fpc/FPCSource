@@ -101,7 +101,7 @@ interface
         (tok:_MINUS     ;nod:subn;op_overloading_supported:true),      { binary and unary overloading supported }
         (tok:_STAR      ;nod:muln;op_overloading_supported:true),      { binary overloading supported }
         (tok:_SLASH     ;nod:slashn;op_overloading_supported:true),    { binary overloading supported }
-        (tok:_EQUAL     ;nod:equaln;op_overloading_supported:true),    { binary overloading supported }
+        (tok:_EQ        ;nod:equaln;op_overloading_supported:true),    { binary overloading supported }
         (tok:_GT        ;nod:gtn;op_overloading_supported:true),       { binary overloading supported }
         (tok:_LT        ;nod:ltn;op_overloading_supported:true),       { binary overloading supported }
         (tok:_GTE       ;nod:gten;op_overloading_supported:true),      { binary overloading supported }
@@ -120,7 +120,7 @@ interface
         (tok:_OP_SHR    ;nod:shrn;op_overloading_supported:true),      { binary overloading supported }
         (tok:_OP_XOR    ;nod:xorn;op_overloading_supported:true),      { binary overloading supported }
         (tok:_ASSIGNMENT;nod:assignn;op_overloading_supported:true),   { unary overloading supported }
-        (tok:_UNEQUAL   ;nod:unequaln;op_overloading_supported:true)   { binary overloading supported }
+        (tok:_NE        ;nod:unequaln;op_overloading_supported:true)   { binary overloading supported }
       );
 
       { true, if we are parsing stuff which allows array constructors }
@@ -648,9 +648,9 @@ implementation
 
         case t.nodetype of
            equaln:
-             optoken:=_EQUAL;
+             optoken:=_EQ;
            unequaln:
-             optoken:=_UNEQUAL;
+             optoken:=_NE;
            addn:
              optoken:=_PLUS;
            subn:
@@ -693,14 +693,14 @@ implementation
              end;
         end;
 
-        cand_cnt:=search_operator(optoken,optoken<>_UNEQUAL);
+        cand_cnt:=search_operator(optoken,optoken<>_NE);
 
         { no operator found for "<>" then search for "=" operator }
-        if (cand_cnt=0) and (optoken=_UNEQUAL) then
+        if (cand_cnt=0) and (optoken=_NE) then
           begin
             ppn.free;
             operpd:=nil;
-            optoken:=_EQUAL;
+            optoken:=_EQ;
             cand_cnt:=search_operator(optoken,true);
           end;
 
@@ -723,7 +723,7 @@ implementation
 
         { if we found "=" operator for "<>" expression then use it
           together with "not" }
-        if (t.nodetype=unequaln) and (optoken=_EQUAL) then
+        if (t.nodetype=unequaln) and (optoken=_EQ) then
           ht:=cnotnode.create(ht);
         t:=ht;
       end;

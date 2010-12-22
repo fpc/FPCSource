@@ -1207,7 +1207,7 @@ implementation
                         with previous 1.0.x versions }
                       ((m_fpc in current_settings.modeswitches) and
                        try_to_consume(_ASSIGNMENT)) or
-                      try_to_consume(_EQUAL)
+                      try_to_consume(_EQ)
                      ) then
                     begin
                        oldlocalswitches:=current_settings.localswitches;

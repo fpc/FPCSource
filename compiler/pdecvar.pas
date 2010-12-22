@@ -1010,7 +1010,7 @@ implementation
             Message(parser_e_initialized_only_one_var);
           if vo_is_thread_var in vs.varoptions then
             Message(parser_e_initialized_not_for_threadvar);
-          consume(_EQUAL);
+          consume(_EQ);
           case vs.typ of
             localvarsym :
               begin
@@ -1299,7 +1299,7 @@ implementation
 
              { Handling of Delphi typed const = initialized vars }
              if allowdefaultvalue and
-                (token=_EQUAL) and
+                (token=_EQ) and
                 not(m_tp7 in current_settings.modeswitches) and
                 (symtablestack.top.symtabletype<>parasymtable) then
                begin
@@ -1326,7 +1326,7 @@ implementation
                  { Add calling convention for procvar }
                  handle_calling_convention(tprocvardef(hdef));
                  { Handling of Delphi typed const = initialized vars }
-                 if (token=_EQUAL) and
+                 if (token=_EQ) and
                     not(m_tp7 in current_settings.modeswitches) and
                     (symtablestack.top.symtabletype<>parasymtable) then
                    begin
