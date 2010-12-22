@@ -58,11 +58,11 @@ const
       cmCollapseFold         = 51266;
       cmExpandFold           = 51267;
       cmDelToEndOfWord       = 51268;
-
+      cmInputLineLen         = 51269;
+      
       EditorTextBufSize = 32768;
       MaxLineLength     = 255;
       MaxLineCount      = 2000000;
-
 
       CodeTemplateCursorChar = '|'; { char to signal cursor pos in templates }
 
@@ -708,10 +708,16 @@ type
     TCodeEditorDialog = function(Dialog: Integer; Info: Pointer): Word;
 
     TEditorInputLine = object(TInputLine)
-      Procedure   HandleEvent(var Event : TEvent);virtual;
+         Procedure   HandleEvent(var Event : TEvent);virtual;
     end;
     PEditorInputLine = ^TEditorInputLine;
+ 
+    TSearchHelperDialog = object(TDialog)
+             OkButton: PButton;
+             Procedure   HandleEvent(var Event : TEvent);virtual;
+    end;
 
+    PSearchHelperDialog = ^TSearchHelperDialog;
 
 const
      { used for ShiftDel and ShiftIns to avoid
@@ -6930,15 +6936,36 @@ begin
        End
      else
        Inherited HandleEvent(Event);
+  s:=getstr(data);
+  Message(Owner,evBroadCast,cminputlinelen,pointer(length(s)));
 end;
+
+procedure TSearchHelperDialog.HandleEvent(var Event : TEvent);
+begin
+ case Event.What of
+     evBroadcast :
+           case Event.Command of
+                   cminputlinelen : begin
+                                      if Event.InfoLong=0 then
+                                        okbutton^.DisableCommands([cmok]) 
+                                      else
+                                        okbutton^.EnableCommands([cmok]);
+                                      clearevent(event);
+                                    end;
+             end;      
+       end;
+  inherited HandleEvent(Event);
+end;
+
 
 function CreateFindDialog: PDialog;
 var R,R1,R2: TRect;
-    D: PDialog;
+    D: PSearchHelperDialog;
     IL1: PEditorInputLine;
     Control : PView;
     CB1: PCheckBoxes;
     RB1,RB2,RB3: PRadioButtons;
+    but : PButton;
 begin
   R.Assign(0,0,56,15);
   New(D, Init(R, dialog_find));
@@ -6997,7 +7024,8 @@ begin
     Insert(New(PLabel, Init(R1, label_find_origin, RB3)));
 
     GetExtent(R); R.Grow(-13,-1); R.A.Y:=R.B.Y-2; R.B.X:=R.A.X+10;
-    Insert(New(PButton, Init(R, btn_OK, cmOK, bfDefault)));
+    Okbutton:=New(PButton, Init(R, btn_OK, cmOK, bfDefault));
+    Insert(OkButton);
     R.Move(19,0);
     Insert(New(PButton, Init(R, btn_Cancel, cmCancel, bfNormal)));
   end;
