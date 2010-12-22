@@ -36,7 +36,6 @@ interface
 
       TRTTIWriter=class
       private
-        function  fields_count(st:tsymtable;rt:trttitype):longint;
         procedure fields_write_rtti(st:tsymtable;rt:trttitype);
         procedure fields_write_rtti_data(st:tsymtable;rt:trttitype);
         procedure write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
@@ -137,32 +136,21 @@ implementation
            current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(#0));
       end;
 
-
-    function TRTTIWriter.fields_count(st:tsymtable;rt:trttitype):longint;
-      var
-        i   : longint;
-        sym : tsym;
-      begin
-        result:=0;
-        for i:=0 to st.SymList.Count-1 do
-          begin
-            sym:=tsym(st.SymList[i]);
-            if (tsym(sym).typ=fieldvarsym) and
-               not(sp_static in tsym(sym).symoptions) and
-               (
-                (rt=fullrtti) or
-                tfieldvarsym(sym).vardef.needs_inittable
-               ) then
-              inc(result);
-          end;
-      end;
-
-
+    { writes a 32-bit count followed by array of field infos for given symtable }
     procedure TRTTIWriter.fields_write_rtti_data(st:tsymtable;rt:trttitype);
       var
         i   : longint;
         sym : tsym;
+        fieldcnt: longint;
+        lastai: TLinkedListItem;
       begin
+        fieldcnt:=0;
+        { Count will be inserted at this location. It cannot be nil as we've just
+          written header for this symtable owner. But stay safe. }
+        lastai:=current_asmdata.asmlists[al_rtti].last;
+        if lastai=nil then
+          InternalError(201012212);
+
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
@@ -175,8 +163,11 @@ implementation
               begin
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(tfieldvarsym(sym).vardef,rt)));
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tfieldvarsym(sym).fieldoffset));
+                inc(fieldcnt);
               end;
           end;
+        { insert field count before data }
+        current_asmdata.asmlists[al_rtti].InsertAfter(Tai_const.Create_32bit(fieldcnt),lastai)
       end;
 
 
@@ -609,14 +600,10 @@ implementation
         end;
 
         procedure recorddef_rtti(def:trecorddef);
-        var
-          fieldcnt : longint;
         begin
            write_header(def,tkRecord);
            maybe_write_align;
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.size));
-           fieldcnt:=fields_count(def.symtable,rt);
-           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(fieldcnt));
            fields_write_rtti_data(def.symtable,rt);
         end;
 
@@ -750,7 +737,6 @@ implementation
           procedure objectdef_rtti_class_init(def:tobjectdef);
           begin
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.size));
-            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(fields_count(def.symtable,rt)));
             fields_write_rtti_data(def.symtable,rt);
           end;
 
