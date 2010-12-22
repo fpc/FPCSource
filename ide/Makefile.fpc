@@ -45,6 +45,18 @@ override FPCOPT+= -d$(PPC_TARGET)
 
 ifndef NOGDB
 
+ifeq ($(FULL_TARGET),i386-win32)
+needlinkparam=1
+endif
+
+
+ifeq ($(FULL_TARGET),x86_64-win64)
+needlinkparam=1
+endif
+
+ifdef needlinkparam
+override SPECIALLINK=-Xe -k--allow-multiple-definition
+endif
 # Try to find GDB library
 # Look for a valid GDBLIBDIR environment variable
 ifdef GDBLIBDIR
@@ -166,7 +178,7 @@ compilerclean :
 # to use.
 #
 fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
-        $(COMPILER) $(GDBLIBINCCOND) fp.pas
+        $(COMPILER) $(GDBLIBINCCOND) $(SPECIALLINK) fp.pas
 
 buildfp:
         $(MAKE) compilerunits
