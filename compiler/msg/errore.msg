@@ -1350,7 +1350,6 @@ parser_e_forward_protocol_declaration_must_be_resolved=03298_E_Forward declarati
 %       end;
 % \end{verbatim}
 % where \var{MyProtocol} is declared but not defined.
-% \end{description}
 parser_e_no_record_published=03299_E_Record types cannot have published sections
 % Published sections can be used only inside classes.
 parser_e_no_destructor_in_records=03300_E_Destructors aren't allowed in records
@@ -1360,6 +1359,7 @@ parser_e_class_methods_only_static_in_records=03301_E_Class methods must be stat
 % Records have no inheritance and therefore non static class methods have no sence for them.
 parser_e_no_constructor_in_records=03302_E_Constructors aren't allowed in records
 % Constructor declarations aren't allowed in records.
+% \end{description}
 #
 # Type Checking
 #
