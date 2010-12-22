@@ -395,7 +395,7 @@ implementation
 
         procedure variantdef_rtti(def:tvariantdef);
         begin
-           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkVariant));
+          write_header(def,tkVariant);
         end;
 
         procedure stringdef_rtti(def:tstringdef);
@@ -734,7 +734,7 @@ implementation
 
         procedure objectdef_rtti(def:tobjectdef);
 
-          procedure objectdef_rtti_class_init(def:tobjectdef);
+          procedure objectdef_rtti_fields(def:tobjectdef);
           begin
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.size));
             fields_write_rtti_data(def.symtable,rt);
@@ -858,16 +858,20 @@ implementation
              initrtti :
                begin
                  if def.objecttype in [odt_class,odt_object] then
-                   objectdef_rtti_class_init(def)
+                   objectdef_rtti_fields(def)
                  else
                    objectdef_rtti_interface_init(def);
                end;
              fullrtti :
                begin
-                 if def.objecttype in [odt_class,odt_object] then
-                   objectdef_rtti_class_full(def)
+                 case def.objecttype of
+                   odt_class:
+                     objectdef_rtti_class_full(def);
+                   odt_object:
+                     objectdef_rtti_fields(def);
                  else
                    objectdef_rtti_interface_full(def);
+                 end;
                end;
            end;
         end;
@@ -1152,7 +1156,7 @@ implementation
             begin
               if assigned(tobjectdef(def).childof) then
                 write_rtti(tobjectdef(def).childof,rt);
-              if rt=initrtti then
+              if (rt=initrtti) or (tobjectdef(def).objecttype=odt_object) then
                 fields_write_rtti(tobjectdef(def).symtable,rt)
               else
                 published_write_rtti(tobjectdef(def).symtable,rt);
