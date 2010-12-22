@@ -183,6 +183,7 @@ interface
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           destructor destroy; override;
+          procedure check_forwards; virtual;
           function find_procdef_bytype(pt:tproctypeoption): tprocdef;
           function  GetSymtable(t:tGetSymtable):TSymtable;override;
           function is_packed:boolean;
@@ -305,7 +306,7 @@ interface
           function  needs_inittable : boolean;override;
           function  rtti_mangledname(rt:trttitype):string;override;
           function  vmt_mangledname : string;
-          procedure check_forwards;
+          procedure check_forwards; override;
           procedure insertvmt;
           procedure set_parent(c : tobjectdef);
           function find_destructor: tprocdef;
@@ -2607,6 +2608,11 @@ implementation
         inherited destroy;
       end;
 
+    procedure tabstractrecorddef.check_forwards;
+      begin
+        tstoredsymtable(symtable).check_forwards;
+      end;
+
     function tabstractrecorddef.find_procdef_bytype(pt:tproctypeoption): tprocdef;
       var
         i: longint;
@@ -4485,7 +4491,7 @@ implementation
    procedure tobjectdef.check_forwards;
      begin
         if not(objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcprotocol]) then
-          tstoredsymtable(symtable).check_forwards;
+          inherited;
         if (oo_is_forward in objectoptions) then
           begin
              { ok, in future, the forward can be resolved }

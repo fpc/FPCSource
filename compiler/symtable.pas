@@ -558,8 +558,8 @@ implementation
           if (tsym(sym).typ=typesym) and
              assigned(ttypesym(sym).typedef) and
              (ttypesym(sym).typedef.typesym=ttypesym(sym)) and
-             (ttypesym(sym).typedef.typ=objectdef) then
-           tobjectdef(ttypesym(sym).typedef).check_forwards;
+             (ttypesym(sym).typedef.typ in [objectdef,recorddef]) then
+           tabstractrecorddef(ttypesym(sym).typedef).check_forwards;
       end;
 
 
