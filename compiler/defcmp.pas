@@ -337,7 +337,7 @@ implementation
                          begin
                            doconv:=tc_string_2_string;
                            { Don't prefer conversions from widestring to a
-                             normal string as we can loose information }
+                             normal string as we can lose information }
                            if (tstringdef(def_from).stringtype in [st_widestring,st_unicodestring]) and
                              not (tstringdef(def_to).stringtype in [st_widestring,st_unicodestring]) then
                              eq:=te_convert_l3
