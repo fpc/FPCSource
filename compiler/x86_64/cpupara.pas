@@ -664,6 +664,16 @@ unit cpupara;
               { Win ABI depends on size to pass it in a register or not }
               else if (target_info.system=system_x86_64_win64) then
                 result:=not aggregate_in_registers_win64(varspez,def.size)
+              { pass constant parameters that would be passed via memory by
+                reference for non-cdecl/cppdecl, and make sure that the tmethod
+                record (size=16) is passed the same way as a complex procvar }
+              else if ((varspez=vs_const) and
+                       not(calloption in [pocall_cdecl,pocall_cppdecl])) or
+                      (def.size=16) then
+                begin
+                  numclasses:=classify_argument(def,vs_value,def.size,classes,0);
+                  result:=numclasses=0;
+                end
               else
               { SysV ABI always passes it as value parameter }
                 result:=false;
