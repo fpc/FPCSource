@@ -264,15 +264,33 @@ interface
     procedure DoneSymtable;
 
     const
-       overloaded_names : array [NOTOKEN..last_overloaded] of string[16] =
-         ('error',
-          'plus','minus','star','slash','equal',
-          'greater','lower','greater_or_equal',
-          'lower_or_equal', 'not_equal',
-          'sym_diff','starstar',
-          'as','is','in','or',
-          'and','div','mod','not','shl','shr','xor',
-          'assign','enumerator');
+      overloaded_names : array [NOTOKEN..last_overloaded] of string[16] = (
+    { NOTOKEN        }  'error',
+    { _PLUS          }  'plus',
+    { _MINUS         }  'minus',
+    { _STAR          }  'star',
+    { _SLASH         }  'slash',
+    { _EQ            }  'equal',
+    { _GT            }  'greater',
+    { _LT            }  'lower',
+    { _GTE           }  'greater_or_equal',
+    { _LTE           }  'lower_or_equal',
+    { _NE            }  'not_equal',
+    { _SYMDIF        }  'sym_diff',
+    { _STARSTAR      }  'starstar',
+    { _OP_AS         }  'as',
+    { _OP_IN         }  'in',
+    { _OP_IS         }  'is',
+    { _OP_OR         }  'or',
+    { _OP_AND        }  'and',
+    { _OP_DIV        }  'div',
+    { _OP_MOD        }  'mod',
+    { _OP_NOT        }  'not',
+    { _OP_SHL        }  'shl',
+    { _OP_SHR        }  'shr',
+    { _OP_XOR        }  'xor',
+    { _ASSIGNMENT    }  'assign',
+    { _OP_ENUMERATOR }  'enumerator');
 
 
 
