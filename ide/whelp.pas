@@ -176,12 +176,6 @@ function  GetHelpFileTypeCount: integer;
 procedure GetHelpFileType(Index: sw_integer; var HT: THelpFileType);
 procedure DoneHelpFilesTypes;
 
-{$ifdef ENDIAN_BIG}
-Procedure SwapLong(var x : longint);
-Procedure SwapWord(var x : word);
-{$endif ENDIAN_BIG}
-
-
 implementation
 
 uses
@@ -210,32 +204,6 @@ type
 
 const
   HelpFileTypes : PHelpFileTypeCollection = nil;
-
-
-{$ifdef ENDIAN_BIG}
-Procedure SwapLong(var x : longint);
-var
-  y : word;
-  z : word;
-Begin
-  y := (x shr 16) and $FFFF;
-  y := ((y shl 8) and $FFFF) or ((y shr 8) and $ff);
-  z := x and $FFFF;
-  z := ((z shl 8) and $FFFF) or ((z shr 8) and $ff);
-  x := (longint(z) shl 16) or longint(y);
-End;
-
-
-Procedure SwapWord(var x : word);
-var
-  z : byte;
-Begin
-  z := (x shr 8) and $ff;
-  x := x and $ff;
-  x := (x shl 8);
-  x := x or z;
-End;
-{$endif ENDIAN_BIG}
 
 
 function NewHelpFileType(AOpenProc: THelpFileOpenProc): PHelpFileType;
@@ -386,7 +354,7 @@ begin
     P^.Links:=nil;
     if P^.Param<>nil then DisposeStr(P^.Param); P^.Param:=nil;
     if Assigned(P^.ExtData) then
-      FreeMem(P^.ExtData{$ifndef FPC},P^.ExtDataSize{$endif});
+      FreeMem(P^.ExtData);
     if Assigned(P^.NamedMarks) then Dispose(P^.NamedMarks, Done); P^.NamedMarks:=nil;
     Dispose(P);
   end;
