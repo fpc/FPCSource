@@ -92,7 +92,6 @@ CONST
       TLSKey : DWord = $ffffffff;
     var
       MainThreadIdWin32 : DWORD;
-      AttachingThread : TRTLCriticalSection;
 
     procedure SysInitThreadvar(var offset : dword;size : dword);
       begin

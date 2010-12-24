@@ -58,11 +58,11 @@ const
       cmCollapseFold         = 51266;
       cmExpandFold           = 51267;
       cmDelToEndOfWord       = 51268;
-
+      cmInputLineLen         = 51269;
+      
       EditorTextBufSize = 32768;
       MaxLineLength     = 255;
       MaxLineCount      = 2000000;
-
 
       CodeTemplateCursorChar = '|'; { char to signal cursor pos in templates }
 
@@ -708,10 +708,16 @@ type
     TCodeEditorDialog = function(Dialog: Integer; Info: Pointer): Word;
 
     TEditorInputLine = object(TInputLine)
-      Procedure   HandleEvent(var Event : TEvent);virtual;
+         Procedure   HandleEvent(var Event : TEvent);virtual;
     end;
     PEditorInputLine = ^TEditorInputLine;
+ 
+    TSearchHelperDialog = object(TDialog)
+             OkButton: PButton;
+             Procedure   HandleEvent(var Event : TEvent);virtual;
+    end;
 
+    PSearchHelperDialog = ^TSearchHelperDialog;
 
 const
      { used for ShiftDel and ShiftIns to avoid
@@ -5706,18 +5712,49 @@ begin
 end;
 
 {$ifdef WinClipSupported}
+
+const
+   linelimit = 200;
+
 function TCustomCodeEditor.ClipPasteWin: Boolean;
-var OK: boolean;
-    l,i : longint;
+var
+    StorePos : TPoint;
+    first : boolean;
+
+procedure InsertStringWrap(const s: string; var i : Longint);
+var
+    BPos,EPos: TPoint;
+begin
+  if first then
+    begin
+      { we need to cut the line in two
+      if not at end of line PM }
+      InsertNewLine;
+      SetCurPtr(StorePos.X,StorePos.Y);
+      InsertText(s);
+      first:=false;
+    end
+  else
+    begin
+      Inc(i);
+      InsertLine(i,s);
+      BPos.X:=0;BPos.Y:=i;
+      EPOS.X:=Length(s);EPos.Y:=i;
+      AddAction(eaInsertLine,BPos,EPos,GetDisplayText(i),GetFlags);
+    end;
+end;
+
+var
+    OK: boolean;
+    l,i,len,len10 : longint;
     p,p10,p2,p13 : pchar;
     s : string;
-    BPos,EPos,StorePos : TPoint;
-    first : boolean;
 begin
   Lock;
   OK:=WinClipboardSupported;
   if OK then
     begin
+
       first:=true;
       StorePos:=CurPos;
       i:=CurPos.Y;
@@ -5732,48 +5769,39 @@ begin
             PushInfo(msg_readingwinclipboard);
           AddGroupedAction(eaPasteWin);
           p2:=p;
-          p13:=strpos(p,#13);
-          p10:=strpos(p,#10);
-          while assigned(p10) do
-            begin
-              if p13+1=p10 then
-                p13[0]:=#0
-              else
-                p10[0]:=#0;
-              s:=strpas(p2);
-              if first then
-                begin
-                  { we need to cut the line in two
-                    if not at end of line PM }
-                  InsertNewLine;
-                  SetCurPtr(StorePos.X,StorePos.Y);
-                  InsertText(s);
-                  first:=false;
-                end
-              else
-                begin
-                  Inc(i);
-                  InsertLine(i,s);
-                  BPos.X:=0;BPos.Y:=i;
-                  EPOS.X:=Length(s);EPos.Y:=i;
-                  AddAction(eaInsertLine,BPos,EPos,GetDisplayText(i),GetFlags);
-                end;
-              if p13+1=p10 then
-                p13[0]:=#13
-              else
-                p10[0]:=#10;
-              p2:=@p10[1];
-              p13:=strpos(p2,#13);
-              p10:=strpos(p2,#10);
-            end;
-          if strlen(p2)>0 then
-            begin
-              s:=strpas(p2);
-              if not first then
-                SetCurPtr(0,i+1);
-              InsertText(s);
-            end;
-          SetCurPtr(StorePos.X,StorePos.Y);
+          len:=strlen(p2);
+          // issue lines ((#13)#10 terminated) of maximally "linelimit" chars.
+          // does not take initial X position into account
+          repeat
+            p13:=strpos(p2,#13);
+            p10:=strpos(p2,#10);
+            if len> linelimit then
+              len:=linelimit;
+            if assigned(p10) then
+              begin
+               len10:=p10-p2;
+               if len10<len then
+                 begin
+                   if p13+1=p10 then
+                     dec(len10);
+                   len:=len10;
+                 end
+               else
+                 p10:=nil;  // signal no cleanup
+              end;
+            setlength(s,len);
+            if len>0 then
+              move(p2^,s[1],len);
+            // cleanup
+            if assigned(p10) then
+              p2:=p10+1
+            else
+              inc(p2,len);
+            insertstringwrap(s,i);
+            len:=strlen(p2);
+          until len=0;
+
+          SetCurPtr(StorePos.X,StorePos.Y);  // y+i to get after paste?
           SetModified(true);
           UpdateAttrs(StorePos.Y,attrAll);
           CloseGroupedAction(eaPasteWin);
@@ -6908,15 +6936,36 @@ begin
        End
      else
        Inherited HandleEvent(Event);
+  s:=getstr(data);
+  Message(Owner,evBroadCast,cminputlinelen,pointer(length(s)));
 end;
+
+procedure TSearchHelperDialog.HandleEvent(var Event : TEvent);
+begin
+ case Event.What of
+     evBroadcast :
+           case Event.Command of
+                   cminputlinelen : begin
+                                      if Event.InfoLong=0 then
+                                        okbutton^.DisableCommands([cmok]) 
+                                      else
+                                        okbutton^.EnableCommands([cmok]);
+                                      clearevent(event);
+                                    end;
+             end;      
+       end;
+  inherited HandleEvent(Event);
+end;
+
 
 function CreateFindDialog: PDialog;
 var R,R1,R2: TRect;
-    D: PDialog;
+    D: PSearchHelperDialog;
     IL1: PEditorInputLine;
     Control : PView;
     CB1: PCheckBoxes;
     RB1,RB2,RB3: PRadioButtons;
+    but : PButton;
 begin
   R.Assign(0,0,56,15);
   New(D, Init(R, dialog_find));
@@ -6975,7 +7024,8 @@ begin
     Insert(New(PLabel, Init(R1, label_find_origin, RB3)));
 
     GetExtent(R); R.Grow(-13,-1); R.A.Y:=R.B.Y-2; R.B.X:=R.A.X+10;
-    Insert(New(PButton, Init(R, btn_OK, cmOK, bfDefault)));
+    Okbutton:=New(PButton, Init(R, btn_OK, cmOK, bfDefault));
+    Insert(OkButton);
     R.Move(19,0);
     Insert(New(PButton, Init(R, btn_Cancel, cmCancel, bfNormal)));
   end;

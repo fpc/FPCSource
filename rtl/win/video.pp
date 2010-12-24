@@ -551,11 +551,14 @@ var
    ColCounter  : Longint;
    smallforce  : boolean;
    x1,y1,x2,y2 : longint;
+   p1,p2,p3    : PCardinal;
+   j           : integer;
 begin
   if force then
    smallforce:=true
   else
    begin
+    {$ifdef cpui386}
      asm
         pushl   %esi
         pushl   %edi
@@ -569,6 +572,36 @@ begin
         popl    %edi
         popl    %esi
      end;
+   {$else}
+    {$ifdef cpux86_64}
+     asm
+        pushq   %rsi
+        pushq   %rdi
+        xorq    %rcx,%rcx  
+        movq    VideoBuf,%rsi
+        movq    OldVideoBuf,%rdi
+        movl    VideoBufSize,%ecx
+        shrq    $2,%rcx
+        repe
+        cmpsl
+        setne   smallforce
+        popq    %rdi
+        popq    %rsi
+     end;
+    {$else}
+      {$INFO No optimized version for this CPU, reverting to a pascal version}
+       j:=Videobufsize shr 2;
+       smallforce:=false;
+       p1:=pcardinal(VideoBuf);
+       p2:=pcardinal(OldVideoBuf);
+       p3:=@pcardinal(videobuf)[j];
+       while (p1<p3) and (p1^=p2^) do
+         begin
+           inc(p1); inc(p2);
+         end; 
+       smallforce:=p1<>p3;  
+    {$ENDIF}
+   {$endif}
    end;
   if SmallForce then
    begin

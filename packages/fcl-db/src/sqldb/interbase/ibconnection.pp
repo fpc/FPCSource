@@ -121,7 +121,7 @@ type
 implementation
 
 uses
-  strutils, typinfo;
+  strutils;
 
 type
   TTm = packed record
@@ -954,7 +954,7 @@ begin
         else
           begin
             result := false;
-            databaseerror('Field type '+getenumname(typeinfo(tfieldtype),ord(FieldDef.DataType))+' not supported.');
+            databaseerrorfmt(SUnsupportedFieldType, [Fieldtypenames[FieldDef.DataType], Self]);
           end
       end;  { case }
       end; { if/else }

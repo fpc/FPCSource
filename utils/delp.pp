@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1999-2000 by Peter Vreman
+    Copyright (c) 1999-2010 by Peter Vreman, Michael Van Canneyt
 
     Deletes all files generated for Pascal (*.exe,units,objects,libs)
 
@@ -19,13 +19,14 @@
 
  ****************************************************************************}
 program Delp;
+
 uses
   dos,getopts;
 
 const
-  Version   = 'Version 1.1';
+  Version   = 'Version 1.2';
   Title     = 'DelPascal';
-  Copyright = 'Copyright (c) 1999-2002 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1999-2010 by the Free Pascal Development Team';
 
 
 function DStr(l:longint):string;
@@ -165,7 +166,7 @@ Var quiet: boolean;
 procedure usage;
 
 begin
-  Writeln('Delp [options] <directory>');
+  Writeln('Delp [options] <directory> [<directory2> [<directory3> ...]');
   Writeln('Where options is one of:');
   writeln('  -e    Delete executables also (Not on Unix)');
   writeln('  -h    Display (this) help message.');
@@ -197,21 +198,20 @@ var
   hp     : pmaskitem;
   found  : boolean;
   basedir : string;
+  i : Integer;
 
 begin
   ProcessOptions;
-  if Optind<>ParamCount then
+  I:=OptInd;
+  if (OptInd=0) or (OptInd>ParamCount) then
     Usage;
-  BaseDir:=Paramstr(OptInd);
-  If BaseDir[Length(BaseDir)]<>DirectorySeparator then
-    BaseDir:=BaseDir+DirectorySeparator;
   { Win32 target }
   AddMask('*.ppw *.ow *.aw *.sw');
   AddMask('ppas.bat ppas.sh link.res fpcmaked fpcmade fpcmade.*');
   AddMask('*.tpu *.tpp *.tpw *.tr');
   AddMask('*.dcu *.dcp *.bpl');
   AddMask('*.log *.bak *.~pas *.~pp *.*~');
-  AddMask('*.ppu *.o *.a *.s');
+  AddMask('*.ppu *.o *.a *.s *.or *.compiled');
   AddMask('*.pp1 *.o1 *.a1 *.s1');
   AddMask('*.ppo *.oo *.ao *.so');
   AddMask('*.rst');
@@ -225,38 +225,46 @@ begin
       writeln(Copyright);
       Writeln;
     end;
-  FindFirst(basedir+'*.*',anyfile,Dir);
   Total:=0;
-  while (doserror=0) do
-   begin
-     hp:=masklist;
-     while assigned(hp) do
+  While (I<=ParamCount) do
+    begin
+    BaseDir:=Paramstr(I);
+    If BaseDir[Length(BaseDir)]<>DirectorySeparator then
+      BaseDir:=BaseDir+DirectorySeparator;
+    FindFirst(basedir+'*.*',anyfile,Dir);
+    while (doserror=0) do
       begin
+      hp:=masklist;
+      while assigned(hp) do
+        begin
         if MatchesMask(Dir.Name,hp^.mask) then
-         begin
-           EraseFile(BaseDir+Dir.Name);
-           inc(hp^.Files);
-           inc(hp^.Size,Dir.Size);
-           break;
-         end;
+          begin
+          EraseFile(BaseDir+Dir.Name);
+          inc(hp^.Files);
+          inc(hp^.Size,Dir.Size);
+          break;
+          end;
         hp:=hp^.next;
+        end;
+        FindNext(Dir);
       end;
-     FindNext(Dir);
-   end;
-{Write Results}
+    FindClose(Dir);
+    Inc(I);
+    end;
+  { Write Results }
   found:=false;
   hp:=masklist;
   while assigned(hp) do
-   begin
-     if hp^.Files>0 then
+    begin
+    if hp^.Files>0 then
       begin
-        if not quiet then
-          WriteLn(' - Removed ',hp^.Files:2,' ',hp^.Mask,' (',DStr(hp^.Size)+' Bytes)');
-        inc(Total,hp^.Size);
-        found:=true;
+      if not quiet then
+        WriteLn(' - Removed ',hp^.Files:2,' ',hp^.Mask,' (',DStr(hp^.Size)+' Bytes)');
+      inc(Total,hp^.Size);
+      found:=true;
       end;
-     hp:=hp^.next;
-   end;
+    hp:=hp^.next;
+    end;
   if not quiet then
     if not found then
       WriteLn(' - No Redundant Files Found!')
