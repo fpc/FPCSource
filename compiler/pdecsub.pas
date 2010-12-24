@@ -1004,11 +1004,12 @@ implementation
          end
         else
          begin
-           { check for constructor/destructor which is not allowed here }
+           { check for constructor/destructor/class operators which are not allowed here }
            if (not parse_only) and
-              (potype in [potype_constructor,potype_destructor,
-                          potype_class_constructor,potype_class_destructor]) then
-             Message(parser_e_constructors_always_objects);
+              ((potype in [potype_constructor,potype_destructor,
+                           potype_class_constructor,potype_class_destructor]) or
+               ((potype=potype_operator) and (m_delphi in current_settings.modeswitches))) then
+             Message(parser_e_only_methods_allowed);
 
            repeat
              searchagain:=false;

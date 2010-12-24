@@ -636,8 +636,8 @@ parser_e_void_function=03080_E_Prozeduren k馬nen keinen Wert zur…kliefern
 % In \fpc, you can specify a return value for a function when using
 % the \var{exit} statement. This error occurs when you try to do this with a
 % procedure. Procedures cannot return a value.
-parser_e_constructors_always_objects=03081_E_Konstruktoren und Destruktoren m《sen Methoden sein
-% You're declaring a procedure as destructor or constructor, when the
+parser_e_only_methods_allowed=03081_E_Konstruktoren, Destructoren und class operators m《sen Methoden sein
+% You're declaring a procedure as destructor, constructor or class operator, when the
 % procedure isn't a class method.
 parser_e_operator_not_overloaded=03082_E_Operator besitzt kein Overload
 % You're trying to use an overloaded operator when it isn't overloaded for

@@ -615,8 +615,8 @@ parser_e_void_function=03080_E_Prosedur tidak mengembalikan nilai
 % Dalam \fpc, anda dapat menetapkan nilai balik untuk sebuah fungsi saat
 % memakai pernyataan \var{exit}. Kesalahan ini terjadi ketika anda mencoba untuk
 % melakukan ini dengan prosedur. Prosedure tidak bisa mengembalikan nilai.
-parser_e_constructors_always_objects=03081_E_konstruktor dan destruktor harus sebuah metode
-% Anda mendeklarasikan sebuah procedure sebagai destruktor atau konstruktor, ketika
+parser_e_only_methods_allowed=03081_E_konstruktor, destruktor dan class operator harus sebuah metode
+% Anda mendeklarasikan sebuah procedure sebagai destruktor, konstructor atau class operator, ketika
 % prosedure bukan metode kelas.
 parser_e_operator_not_overloaded=03082_E_Operator tidak di-overload
 % Anda mencoba untuk menggunakan operator yang di-overload saat ia bukan tipe

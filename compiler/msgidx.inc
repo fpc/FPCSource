@@ -178,7 +178,7 @@ const
   parser_e_invalid_record_const=03078;
   parser_e_false_with_expr=03079;
   parser_e_void_function=03080;
-  parser_e_constructors_always_objects=03081;
+  parser_e_only_methods_allowed=03081;
   parser_e_operator_not_overloaded=03082;
   parser_e_no_such_assignment=03083;
   parser_e_overload_impossible=03084;
@@ -876,7 +876,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 58202;
+  MsgTxtSize = 58219;
 
   MsgIdxMax : array[1..20] of longint=(
     24,88,303,97,82,54,111,22,202,63,
