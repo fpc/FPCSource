@@ -3095,7 +3095,7 @@ implementation
     function tabstractprocdef.no_self_node: boolean;
       begin
         Result:=([po_staticmethod,po_classmethod]<=procoptions)or
-                (proctypeoption in [potype_class_constructor,potype_class_destructor]);
+                (proctypeoption in [potype_class_constructor,potype_class_destructor,potype_operator]);
       end;
 
 

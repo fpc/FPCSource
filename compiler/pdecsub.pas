@@ -807,6 +807,85 @@ implementation
         old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
         old_current_specializedef : tobjectdef;
+        lasttoken,lastidtoken: ttoken;
+
+        procedure parse_operator_name;
+         begin
+           if (lasttoken in [first_overloaded..last_overloaded]) then
+            begin
+              optoken:=token;
+            end
+           else
+            begin
+              case lasttoken of
+                _CARET:
+                  Message1(parser_e_overload_operator_failed,'**');
+                _ID:
+                  if lastidtoken=_ENUMERATOR then
+                    optoken:=_OP_ENUMERATOR
+                  else
+                  if (m_delphi in current_settings.modeswitches) then
+                    case lastidtoken of
+//                         _IMPLICIT:optoken:=;
+//                         _EXPLICIT:optoken:=;
+                      _NEGATIVE:optoken:=_MINUS;
+//                         _POSITIVE:optoken:=_PLUS;
+//                         _INC:optoken:=;
+//                         _DEC:optoken:=;
+                      _LOGICALNOT:optoken:=_OP_NOT;
+                      _IN:optoken:=_OP_IN;
+                      _EQUAL:optoken:=_EQ;
+                      _NOTEQUAL:optoken:=_NE;
+                      _GREATERTHAN:optoken:=_GT;
+                      _GREATERTHANOREQUAL:optoken:=_GTE;
+                      _LESSTHAN:optoken:=_LT;
+                      _LESSTHANOREQUAL:optoken:=_LTE;
+                      _ADD:optoken:=_PLUS;
+                      _SUBTRACT:optoken:=_MINUS;
+                      _MULTIPLY:optoken:=_STAR;
+                      _DIVIDE:optoken:=_SLASH;
+                      _INTDIVIDE:optoken:=_OP_DIV;
+                      _MODULUS:optoken:=_OP_MOD;
+                      _LEFTSHIFT:optoken:=_OP_SHL;
+                      _RIGHTSHIFT:optoken:=_OP_SHR;
+                      _LOGICALAND:optoken:=_OP_AND;
+                      _LOGICALOR:optoken:=_OP_OR;
+                      _LOGICALXOR:optoken:=_OP_XOR;
+                      _BITWISEAND:optoken:=_OP_AND;
+                      _BITWISEOR:optoken:=_OP_OR;
+                      _BITWISEXOR:optoken:=_OP_XOR;
+                      else
+                        Message1(parser_e_overload_operator_failed,'');
+                    end
+                  else
+                    Message1(parser_e_overload_operator_failed,'');
+                else
+                  Message1(parser_e_overload_operator_failed,'');
+              end;
+            end;
+           sp:=overloaded_names[optoken];
+           orgsp:=sp;
+         end;
+
+        procedure consume_proc_name;
+          begin
+            lasttoken:=token;
+            lastidtoken:=idtoken;
+            if potype=potype_operator then
+              optoken:=NOTOKEN;
+            if (potype=potype_operator) and (token<>_ID) then
+              begin
+                parse_operator_name;
+                consume(token);
+              end
+            else
+              begin
+                sp:=pattern;
+                orgsp:=orgpattern;
+                consume(_ID);
+              end;
+          end;
+
       begin
         { Save the position where this procedure really starts }
         procstartfilepos:=current_tokenpos;
@@ -816,17 +895,7 @@ implementation
         pd:=nil;
         aprocsym:=nil;
 
-        if potype=potype_operator then
-          begin
-            sp:=overloaded_names[optoken];
-            orgsp:=sp;
-          end
-        else
-          begin
-            sp:=pattern;
-            orgsp:=orgpattern;
-            consume(_ID);
-          end;
+        consume_proc_name;
 
         { examine interface map: function/procedure iname.functionname=locfuncname }
         if assigned(astruct) and
@@ -866,7 +935,6 @@ implementation
 
         { method  ? }
         if not assigned(astruct) and
-           (potype<>potype_operator) and
            (symtablestack.top.symtablelevel=main_program_level) and
            try_to_consume(_POINT) then
          begin
@@ -886,17 +954,19 @@ implementation
                  current_tokenpos:=storepos;
                end;
              { consume proc name }
-             sp:=pattern;
-             orgsp:=orgpattern;
              procstartfilepos:=current_tokenpos;
-             consume(_ID);
+             consume_proc_name;
              { qualifier is class name ? }
              if (srsym.typ=typesym) and
                 (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
               begin
                 astruct:=tabstractrecorddef(ttypesym(srsym).typedef);
-                if (token<>_POINT) and (potype in [potype_class_constructor,potype_class_destructor]) then
-                  sp := lower(sp);
+                if (token<>_POINT) then
+                  if (potype in [potype_class_constructor,potype_class_destructor]) then
+                    sp:=lower(sp)
+                  else
+                  if (potype=potype_operator)and(optoken=NOTOKEN) then
+                    parse_operator_name;
                 srsym:=tsym(astruct.symtable.Find(sp));
                 if assigned(srsym) then
                  begin
@@ -943,6 +1013,9 @@ implementation
            repeat
              searchagain:=false;
              current_tokenpos:=procstartfilepos;
+
+             if (potype=potype_operator)and(optoken=NOTOKEN) then
+               parse_operator_name;
 
              srsymtable:=symtablestack.top;
              srsym:=tsym(srsymtable.Find(sp));
@@ -1263,32 +1336,11 @@ implementation
               if assigned(pd) then
                 pd.returndef:=voidtype;
             end;
-
-          _OPERATOR :
+        else
+          if (token=_OPERATOR) or
+             (isclassmethod and (idtoken=_OPERATOR)) then
             begin
               consume(_OPERATOR);
-              if (token in [first_overloaded..last_overloaded]) then
-               begin
-                 optoken:=token;
-               end
-              else
-               begin
-                 { Use the dummy NOTOKEN that is also declared
-                   for the overloaded_operator[] }
-                 optoken:=NOTOKEN;
-                 case token of
-                   _CARET:
-                     Message1(parser_e_overload_operator_failed,'**');
-                   _ID:
-                     if idtoken = _ENUMERATOR then
-                       optoken := _OP_ENUMERATOR
-                     else
-                       Message1(parser_e_overload_operator_failed,'');
-                   else
-                     Message1(parser_e_overload_operator_failed,'');
-                 end;
-               end;
-              consume(token);
               parse_proc_head(astruct,potype_operator,pd);
               if assigned(pd) then
                 begin

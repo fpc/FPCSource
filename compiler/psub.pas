@@ -1841,7 +1841,8 @@ implementation
                    begin
                      { class modifier is only allowed for procedures, functions, }
                      { constructors, destructors, fields and properties          }
-                     if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR]) then
+                     if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR,_OPERATOR]) and
+                        not((token=_ID) and (idtoken=_OPERATOR)) then
                        Message(parser_e_procedure_or_function_expected);
 
                      if is_interface(current_structdef) then
@@ -1879,7 +1880,7 @@ implementation
               else
                 begin
                   case idtoken of
-                    _RESOURCESTRING :
+                    _RESOURCESTRING:
                       begin
                         { m_class is needed, because the resourcestring
                           loading is in the ObjPas unit }
@@ -1887,6 +1888,16 @@ implementation
                           resourcestring_dec
 {                        else
                           break;}
+                      end;
+                    _OPERATOR:
+                      begin
+                        if is_classdef then
+                          begin
+                            read_proc(is_classdef);
+                            is_classdef:=false;
+                          end
+                        else
+                          break;
                       end;
                     _PROPERTY:
                       begin

@@ -1878,6 +1878,20 @@ implementation
            (FProcsym.owner.symtabletype in [objectsymtable,recordsymtable]) then
           collect_overloads_in_struct(tabstractrecorddef(FProcsym.owner.defowner),ProcdefOverloadList)
         else
+        if (FOperator<>NOTOKEN) then
+          begin
+            { check operands and if they contain records then search in records,
+              then search in unit }
+            pt:=tcallparanode(FParaNode);
+            while assigned(pt) do
+              begin
+                if (pt.resultdef.typ=recorddef) then
+                  collect_overloads_in_struct(tabstractrecorddef(pt.resultdef),ProcdefOverloadList);
+                pt:=tcallparanode(pt.right);
+              end;
+            collect_overloads_in_units(ProcdefOverloadList,objcidcall,explicitunit);
+          end
+        else
           collect_overloads_in_units(ProcdefOverloadList,objcidcall,explicitunit);
 
         { determine length of parameter list.

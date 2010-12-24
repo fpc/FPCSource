@@ -608,7 +608,7 @@ implementation
                 consume(_CONST);
                 member_blocktype:=bt_const;
               end;
-            _ID, _CASE :
+            _ID, _CASE, _OPERATOR :
               begin
                 case idtoken of
                   _PRIVATE :
@@ -680,6 +680,32 @@ implementation
                         member_blocktype:=bt_general;
                      end
                     else
+                    if is_classdef and (idtoken=_OPERATOR) then
+                      begin
+                        oldparse_only:=parse_only;
+                        parse_only:=true;
+                        pd:=parse_proc_dec(is_classdef,current_structdef);
+
+                        { this is for error recovery as well as forward }
+                        { interface mappings, i.e. mapping to a method  }
+                        { which isn't declared yet                      }
+                        if assigned(pd) then
+                          begin
+                            parse_record_proc_directives(pd);
+
+                            handle_calling_convention(pd);
+
+                            { add definition to procsym }
+                            proc_add_definition(pd);
+                          end;
+
+                        maybe_parse_hint_directives(pd);
+
+                        parse_only:=oldparse_only;
+                        fields_allowed:=false;
+                        is_classdef:=false;
+                      end
+                      else
                       begin
                         if member_blocktype=bt_general then
                           begin
@@ -713,7 +739,8 @@ implementation
                  begin
                    { class modifier is only allowed for procedures, functions, }
                    { constructors, destructors, fields and properties          }
-                   if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR]) then
+                   if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR,_OPERATOR]) and
+                      not((token=_ID) and (idtoken=_OPERATOR)) then
                      Message(parser_e_procedure_or_function_expected);
 
                    is_classdef:=true;
