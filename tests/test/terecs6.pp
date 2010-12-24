@@ -1,4 +1,4 @@
-program Project1;
+program terecs6;
 
 {$mode delphi}
 {$apptype console}
@@ -26,10 +26,10 @@ type
     class operator LogicalOr(a, b: TFoo): Boolean;
     class operator LogicalAnd(a, b: TFoo): Boolean;
     class operator LogicalXor(a, b: TFoo): Boolean;
-//    class operator LogicalNot(a: TFoo): TFoo;
-//    class operator BitwiseOr(a, b: TFoo): TFoo;
-//    class operator BitwiseAnd(a, b: TFoo): TFoo;
-//    class operator BitwiseXor(a, b: TFoo): TFoo;
+    class operator LogicalNot(a: TFoo): TFoo;
+    class operator BitwiseOr(a, b: TFoo): TFoo;
+    class operator BitwiseAnd(a, b: TFoo): TFoo;
+    class operator BitwiseXor(a, b: TFoo): TFoo;
 //    class operator Inc(a: TFoo): TFoo;
 //    class operator Dec(a: TFoo): TFoo;
  end;
@@ -124,6 +124,26 @@ begin
   Result := (a.F xor b.F) <> 0;
 end;
 
+class operator TFoo.LogicalNot(a: TFoo): TFoo;
+begin
+  Result.F := not a.F;
+end;
+
+class operator TFoo.BitwiseOr(a, b: TFoo): TFoo;
+begin
+  Result.F := a.F or b.F;
+end;
+
+class operator TFoo.BitwiseAnd(a, b: TFoo): TFoo;
+begin
+  Result.F := a.F and b.F;
+end;
+
+class operator TFoo.BitwiseXor(a, b: TFoo): TFoo;
+begin
+  Result.F := a.F xor b.F;
+end;
+
 var
   a, b: TFoo;
 begin
@@ -167,5 +187,15 @@ begin
     halt(18);
   if not (a xor b) then
     halt(19);
+  if (not a).F <> (not 1) then
+    halt(20);
+{ bitwise operators current does not work if logical are defined
+  if (a or b).F <> (a.F or b.F) then
+    halt(21);
+  if (a and b).F <> (a.F and b.F) then
+    halt(22);
+  if (a xor b).F <> (a.F xor b.F) then
+    halt(23);
+}
   WriteLn('ok');
 end.

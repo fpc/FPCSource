@@ -1183,11 +1183,52 @@ implementation
       var
         pd : tprocdef;
         locationstr: string;
-        old_parse_generic: boolean;
-        popclass: integer;
-        old_current_structdef: tabstractrecorddef;
-        old_current_genericdef,
-        old_current_specializedef: tobjectdef;
+
+        procedure read_returndef(pd: tprocdef);
+          var
+            popclass: integer;
+            old_parse_generic: boolean;
+            old_current_structdef: tabstractrecorddef;
+            old_current_genericdef,
+            old_current_specializedef: tobjectdef;
+          begin
+            old_parse_generic:=parse_generic;
+            inc(testcurobject);
+            { Add ObjectSymtable to be able to find generic type definitions }
+            popclass:=0;
+            if assigned(pd.struct) and
+               (pd.parast.symtablelevel=normal_function_level) and
+               not (symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
+              begin
+                popclass:=push_nested_hierarchy(pd.struct);
+                parse_generic:=(df_generic in pd.struct.defoptions);
+                old_current_structdef:=current_structdef;
+                old_current_genericdef:=current_genericdef;
+                old_current_specializedef:=current_specializedef;
+                current_structdef:=pd.struct;
+                if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
+                  current_genericdef:=tobjectdef(current_structdef);
+                if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
+                  current_specializedef:=tobjectdef(current_structdef);
+              end;
+            single_type(pd.returndef,false,false);
+
+            if is_dispinterface(pd.struct) and not is_automatable(pd.returndef) then
+              Message1(type_e_not_automatable,pd.returndef.typename);
+
+            if popclass>0 then
+              begin
+                current_structdef:=old_current_structdef;
+                current_genericdef:=old_current_genericdef;
+                current_specializedef:=old_current_specializedef;
+                dec(popclass,pop_nested_hierarchy(pd.struct));
+                if popclass<>0 then
+                  internalerror(201012020);
+              end;
+            dec(testcurobject);
+            parse_generic:=old_parse_generic;
+          end;
+
       begin
         locationstr:='';
         pd:=nil;
@@ -1202,42 +1243,7 @@ implementation
                     begin
                       if try_to_consume(_COLON) then
                        begin
-                         old_parse_generic:=parse_generic;
-                         inc(testcurobject);
-                         { Add ObjectSymtable to be able to find generic type definitions }
-                         popclass:=0;
-                         if assigned(pd.struct) and
-                            (pd.parast.symtablelevel=normal_function_level) and
-                            not (symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
-                           begin
-                             popclass:=push_nested_hierarchy(pd.struct);
-                             parse_generic:=(df_generic in pd.struct.defoptions);
-                             old_current_structdef:=current_structdef;
-                             old_current_genericdef:=current_genericdef;
-                             old_current_specializedef:=current_specializedef;
-                             current_structdef:=pd.struct;
-                             if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
-                               current_genericdef:=tobjectdef(current_structdef);
-                             if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
-                               current_specializedef:=tobjectdef(current_structdef);
-                           end;
-                         single_type(pd.returndef,false,false);
-
-                         if is_dispinterface(pd.struct) and not is_automatable(pd.returndef) then
-                           Message1(type_e_not_automatable,pd.returndef.typename);
-
-                         if popclass>0 then
-                           begin
-                             current_structdef:=old_current_structdef;
-                             current_genericdef:=old_current_genericdef;
-                             current_specializedef:=old_current_specializedef;
-                             dec(popclass,pop_nested_hierarchy(pd.struct));
-                             if popclass<>0 then
-                               internalerror(201012020);
-                           end;
-                         dec(testcurobject);
-                         parse_generic:=old_parse_generic;
-
+                         read_returndef(pd);
                          if (target_info.system in [system_m68k_amiga]) then
                           begin
                            if (idtoken=_LOCATION) then
@@ -1349,6 +1355,8 @@ implementation
                   include(pd.procoptions,po_overload);
                   if pd.parast.symtablelevel>normal_function_level then
                     Message(parser_e_no_local_operator);
+                  if isclassmethod then
+                    include(pd.procoptions,po_classmethod);
                   if token<>_ID then
                     begin
                        if not(m_result in current_settings.modeswitches) then
@@ -1367,7 +1375,7 @@ implementation
                     end
                   else
                    begin
-                     single_type(pd.returndef,false,false);
+                     read_returndef(pd);
                      if (optoken in [_EQ,_NE,_GT,_LT,_GTE,_LTE,_OP_IN]) and
                         ((pd.returndef.typ<>orddef) or
                          (torddef(pd.returndef).ordtype<>pasbool)) then
