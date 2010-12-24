@@ -55,6 +55,8 @@ type
     _OP_XOR,
     _ASSIGNMENT,
     _OP_ENUMERATOR,
+    _OP_INC,
+    _OP_DEC,
     { special chars }
     _CARET,
     _LECKKLAMMER,
@@ -296,7 +298,7 @@ const
   { last operator which can be overloaded, the first_overloaded should
     be declared directly after NOTOKEN }
   first_overloaded = succ(NOTOKEN);
-  last_overloaded  = _OP_ENUMERATOR;
+  last_overloaded  = _OP_DEC;
 
 type
   tokenrec=record
@@ -345,6 +347,8 @@ const
       (str:'xor'           ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:':='            ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'enumerator'    ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'++'            ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'--'            ;special:true ;keyword:m_none;op:NOTOKEN),
     { Special chars }
       (str:'^'             ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'['             ;special:true ;keyword:m_none;op:NOTOKEN),

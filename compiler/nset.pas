@@ -251,8 +251,8 @@ implementation
          t:=self;
          if isbinaryoverloaded(t) then
            begin
-              result:=t;
-              exit;
+             result:=t;
+             exit;
            end;
 
          if right.resultdef.typ<>setdef then

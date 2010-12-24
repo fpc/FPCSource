@@ -30,8 +30,8 @@ type
     class operator BitwiseOr(a, b: TFoo): TFoo;
     class operator BitwiseAnd(a, b: TFoo): TFoo;
     class operator BitwiseXor(a, b: TFoo): TFoo;
-//    class operator Inc(a: TFoo): TFoo;
-//    class operator Dec(a: TFoo): TFoo;
+    class operator Inc(a: TFoo): TFoo;
+    class operator Dec(a: TFoo): TFoo;
  end;
 
 class operator TFoo.Equal(a, b: TFoo): Boolean;
@@ -144,6 +144,16 @@ begin
   Result.F := a.F xor b.F;
 end;
 
+class operator TFoo.Inc(a: TFoo): TFoo;
+begin
+  Result.F := a.F + 1;
+end;
+
+class operator TFoo.Dec(a: TFoo): TFoo;
+begin
+  Result.F := a.F - 1;
+end;
+
 var
   a, b: TFoo;
 begin
@@ -197,5 +207,11 @@ begin
   if (a xor b).F <> (a.F xor b.F) then
     halt(23);
 }
+  inc(a);
+  if a.F <> 2 then
+    halt(24);
+  dec(b);
+  if b.F <> 1 then
+    halt(25);
   WriteLn('ok');
 end.

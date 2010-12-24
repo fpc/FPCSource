@@ -290,7 +290,9 @@ interface
     { _OP_SHR        }  'shr',
     { _OP_XOR        }  'xor',
     { _ASSIGNMENT    }  'assign',
-    { _OP_ENUMERATOR }  'enumerator');
+    { _OP_ENUMERATOR }  'enumerator',
+    { _OP_INC        }  'inc',
+    { _OP_DEC        }  'dec');
 
 
 

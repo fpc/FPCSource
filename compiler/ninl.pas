@@ -2348,7 +2348,17 @@ implementation
                            end;
                         end
                        else
-                        CGMessagePos(left.fileinfo,type_e_ordinal_expr_expected);
+                         begin
+                           hp:=self;
+                           if isunaryoverloaded(hp) then
+                             begin
+                               { inc(rec) and dec(rec) assigns result value to argument }
+                               result:=cassignmentnode.create(tcallparanode(left).left.getcopy,hp);
+                               exit;
+                             end
+                           else
+                             CGMessagePos(left.fileinfo,type_e_ordinal_expr_expected);
+                         end;
                     end
                   else
                     CGMessagePos(fileinfo,type_e_mismatch);

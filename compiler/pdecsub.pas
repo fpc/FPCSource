@@ -830,8 +830,8 @@ implementation
 //                         _EXPLICIT:optoken:=;
                       _NEGATIVE:optoken:=_MINUS;
 //                         _POSITIVE:optoken:=_PLUS;
-//                         _INC:optoken:=;
-//                         _DEC:optoken:=;
+                      _INC:optoken:=_OP_INC;
+                      _DEC:optoken:=_OP_DEC;
                       _LOGICALNOT:optoken:=_OP_NOT;
                       _IN:optoken:=_OP_IN;
                       _EQUAL:optoken:=_EQ;
