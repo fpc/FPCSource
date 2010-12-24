@@ -1315,7 +1315,7 @@ implementation
                   else
                    begin
                      single_type(pd.returndef,false,false);
-                     if (optoken in [_EQ,_NE,_GT,_LT,_GTE,_LTE]) and
+                     if (optoken in [_EQ,_NE,_GT,_LT,_GTE,_LTE,_OP_IN]) and
                         ((pd.returndef.typ<>orddef) or
                          (torddef(pd.returndef).ordtype<>pasbool)) then
                         Message(parser_e_comparative_operator_return_boolean);

@@ -109,7 +109,7 @@ interface
         (tok:_SYMDIF    ;nod:symdifn;op_overloading_supported:true),   { binary overloading supported }
         (tok:_STARSTAR  ;nod:starstarn;op_overloading_supported:true), { binary overloading supported }
         (tok:_OP_AS     ;nod:asn;op_overloading_supported:false),      { binary overloading NOT supported }
-        (tok:_OP_IN     ;nod:inn;op_overloading_supported:false),      { binary overloading NOT supported }
+        (tok:_OP_IN     ;nod:inn;op_overloading_supported:true),       { binary overloading supported }
         (tok:_OP_IS     ;nod:isn;op_overloading_supported:false),      { binary overloading NOT supported }
         (tok:_OP_OR     ;nod:orn;op_overloading_supported:true),       { binary overloading supported }
         (tok:_OP_AND    ;nod:andn;op_overloading_supported:true),      { binary overloading supported }
@@ -685,6 +685,8 @@ implementation
              optoken:=_OP_SHL;
            shrn :
              optoken:=_OP_SHR;
+           inn :
+             optoken:=_OP_IN;
            else
              begin
                CGMessage(parser_e_operator_not_overloaded);

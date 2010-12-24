@@ -229,12 +229,6 @@ implementation
              exit;
           end;
 
-         if right.resultdef.typ<>setdef then
-           CGMessage(sym_e_set_expected);
-
-         if codegenerror then
-           exit;
-
          if (right.nodetype=typen) then
            begin
              { we need to create a setconstn }
@@ -253,6 +247,19 @@ implementation
 
          if not assigned(left.resultdef) then
            internalerror(20021126);
+
+         t:=self;
+         if isbinaryoverloaded(t) then
+           begin
+              result:=t;
+              exit;
+           end;
+
+         if right.resultdef.typ<>setdef then
+           CGMessage(sym_e_set_expected);
+
+         if codegenerror then
+           exit;
 
          if (m_tp7 in current_settings.modeswitches) then
            begin

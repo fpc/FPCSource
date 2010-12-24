@@ -9602,6 +9602,7 @@ tests/test/toperator5.pp svneol=native#text/plain
 tests/test/toperator6.pp svneol=native#text/plain
 tests/test/toperator7.pp svneol=native#text/plain
 tests/test/toperator8.pp svneol=native#text/pascal
+tests/test/toperator9.pp svneol=native#text/pascal
 tests/test/tover1.pp svneol=native#text/plain
 tests/test/tover2.pp svneol=native#text/plain
 tests/test/tover3.pp svneol=native#text/plain
