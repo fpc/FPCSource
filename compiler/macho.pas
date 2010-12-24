@@ -493,27 +493,27 @@ type
    * image.  Other load commands without this bit that are not understood will
    * simply be ignored.
     }
+const
+  LC_REQ_DYLD   = $80000000;
 
 { Constants for the cmd field of all load commands, the type  }
-
 const
-  LC_REQ_DYLD   = $80000000; { segment of this file to be mapped  }
-  LC_SEGMENT    = $1; { link-edit stab symbol table info  }
-  LC_SYMTAB     = $2;  { link-edit gdb symbol table info (obsolete)  }
-  LC_SYMSEG     = $3;  { thread  }
-  LC_THREAD     = $4;  { unix thread (includes a stack)  }
-  LC_UNIXTHREAD = $5;  { load a specified fixed VM shared library  }
-  LC_LOADFVMLIB = $6;  { fixed VM shared library identification  }
-  LC_IDFVMLIB   = $7;    { object identification info (obsolete)  }
-  LC_IDENT      = $8;     { fixed VM file inclusion (internal use)  }
-  LC_FVMFILE    = $9;  { prepage command (internal use)  }
-  LC_PREPAGE    = $a;  { dynamic link-edit symbol table info  }
-  LC_DYSYMTAB   = $b; { load a dynamically linked shared library  }
-  LC_LOAD_DYLIB = $c; { dynamically linked shared lib ident  }
-  LC_ID_DYLIB   = $d; { load a dynamic linker  }
-  LC_LOAD_DYLINKER  = $e; { dynamic linker identification  }
-  LC_ID_DYLINKER    = $f; { modules prebound for a dynamically  }
-  LC_PREBOUND_DYLIB = $10;  {  linked shared library  }
+  LC_SEGMENT        = $1;  { segment of this file to be mapped }
+  LC_SYMTAB         = $2;  { link-edit stab symbol table info  }
+  LC_SYMSEG         = $3;  { link-edit gdb symbol table info (obsolete)  }
+  LC_THREAD         = $4;  { thread  }
+  LC_UNIXTHREAD     = $5;  { unix thread (includes a stack)  }
+  LC_LOADFVMLIB     = $6;  { load a specified fixed VM shared library  }
+  LC_IDFVMLIB       = $7;  { fixed VM shared library identification  }
+  LC_IDENT          = $8;  { object identification info (obsolete)  }
+  LC_FVMFILE        = $9;  { fixed VM file inclusion (internal use)  }
+  LC_PREPAGE        = $a;  { prepage command (internal use)  }
+  LC_DYSYMTAB       = $b;  { dynamic link-edit symbol table info  }
+  LC_LOAD_DYLIB     = $c;  { load a dynamically linked shared library  }
+  LC_ID_DYLIB       = $d;  { dynamically linked shared lib ident  }
+  LC_LOAD_DYLINKER  = $e;  { load a dynamic linker  }
+  LC_ID_DYLINKER    = $f;  { dynamic linker identification  }
+  LC_PREBOUND_DYLIB = $10; { modules prebound for a dynamically linked shared library  }
   LC_ROUTINES       = $11; { image routines  }
   LC_SUB_FRAMEWORK  = $12; { sub framework  }
   LC_SUB_UMBRELLA   = $13; { sub umbrella  }
