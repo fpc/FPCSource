@@ -258,6 +258,25 @@ unit raatt;
                end
            end;
 {$endif POWERPC}
+{$if defined(ARM)}
+           { Thumb-2 instructions can have a .W postfix to indicate 32bit instructions
+           }
+           case c of
+             '.':
+               begin
+                 actasmpattern:=actasmpattern+c;
+                 c:=current_scanner.asmgetchar;
+
+                 if upcase(c) = 'W' then
+                   begin
+                     actasmpattern:=actasmpattern+c;
+                     c:=current_scanner.asmgetchar;
+                   end
+                 else
+                   internalerror(2010122301);
+               end
+           end;
+{$endif ARM}
            { Opcode ? }
            If is_asmopcode(upper(actasmpattern)) then
             Begin

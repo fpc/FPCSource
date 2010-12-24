@@ -148,7 +148,7 @@ asm
         moveq pc,lr
         rsb     r1,r1,#7
         mov     r1,r1,lsl #2
-        add     pc,pc,r1
+        add     pc,r1
         mov     r0,r0
         strb r2,[r3],#1
         strb r2,[r3],#1

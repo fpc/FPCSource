@@ -32,6 +32,7 @@ Unit raarmgas;
     type
       tarmattreader = class(tattreader)
         actoppostfix : TOpPostfix;
+        actwideformat : boolean;
         function is_asmopcode(const s: string):boolean;override;
         function is_register(const s:string):boolean;override;
         procedure handleopcode;override;
@@ -916,6 +917,7 @@ Unit raarmgas;
             Opcode:=ActOpcode;
             condition:=ActCondition;
             oppostfix:=actoppostfix;
+            wideformat:=actwideformat;
           end;
 
         { We are reading operands, so opcode will be an AS_ID }
@@ -1056,6 +1058,15 @@ Unit raarmgas;
                   end;
               end;
           end;
+        { check for format postfix }
+        if length(hs)>0 then
+          begin
+            if upcase(copy(hs,1,2)) = '.W' then
+              begin
+                actwideformat:=true;
+                delete(hs,1,2);
+              end;
+          end;
         { if we stripped all postfixes, it's a valid opcode }
         is_asmopcode:=length(hs)=0;
       end;
@@ -1094,6 +1105,7 @@ Unit raarmgas;
         instr.ConcatInstruction(curlist);
         instr.Free;
         actoppostfix:=PF_None;
+        actwideformat:=false;
       end;
 
 

@@ -36,6 +36,7 @@ unit raarm;
 
       TARMInstruction=class(TInstruction)
         oppostfix : toppostfix;
+        wideformat : boolean; // For wide(32bit) instructions of the thumb-2 instruction set
         function ConcatInstruction(p:TAsmList) : tai;override;
       end;
 
@@ -48,6 +49,7 @@ unit raarm;
       begin
         result:=inherited ConcatInstruction(p);
         (result as taicpu).oppostfix:=oppostfix;
+        (result as taicpu).wideformat:=wideformat;
       end;
 
 

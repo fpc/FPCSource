@@ -2810,12 +2810,12 @@ unit cgcpu;
         inherited init_register_allocators;
         { currently, we save R14 always, so we can use it }
         if (target_info.system<>system_arm_darwin) then
-          rg[R_INTREGISTER]:=trgcputhumb2.create(R_INTREGISTER,R_SUBWHOLE,
+          rg[R_INTREGISTER]:=trgintcputhumb2.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
                RS_R9,RS_R10,RS_R12,RS_R14],first_int_imreg,[])
         else
           { r9 is not available on Darwin according to the llvm code generator }
-          rg[R_INTREGISTER]:=trgcputhumb2.create(R_INTREGISTER,R_SUBWHOLE,
+          rg[R_INTREGISTER]:=trgintcputhumb2.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
                RS_R10,RS_R12,RS_R14],first_int_imreg,[]);
         rg[R_FPUREGISTER]:=trgcputhumb2.create(R_FPUREGISTER,R_SUBNONE,

@@ -46,6 +46,10 @@ unit rgcpu;
          procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
        end;
 
+       trgintcputhumb2 = class(trgcputhumb2)
+         procedure add_cpu_interferences(p : tai);override;
+       end;
+
        trgintcpu = class(trgcpu)
          procedure add_cpu_interferences(p : tai);override;
        end;
@@ -56,6 +60,44 @@ unit rgcpu;
       verbose, cutils,globtype,
       cgobj,
       procinfo;
+
+    procedure trgintcputhumb2.add_cpu_interferences(p: tai);
+      begin
+        if p.typ=ait_instruction then
+          begin
+            case taicpu(p).opcode of
+              A_ADD:
+                begin
+                  if taicpu(p).ops = 3 then
+                    begin
+                      if (taicpu(p).oper[0]^.typ = top_reg) and
+                         (taicpu(p).oper[1]^.typ = top_reg) and
+                         (taicpu(p).oper[2]^.typ in [top_reg, top_shifterop]) then
+                        begin
+                          { if d == 13 || (d == 15 && S == ‚Äò0‚Äô) || n == 15 || m IN [13,15] then UNPREDICTABLE; }
+                          add_edge(getsupreg(taicpu(p).oper[0]^.reg), RS_R13);
+                          if taicpu(p).oppostfix <> PF_S then
+                            add_edge(getsupreg(taicpu(p).oper[0]^.reg), RS_R15);
+
+                          add_edge(getsupreg(taicpu(p).oper[1]^.reg), RS_R15);
+
+                          if (taicpu(p).oper[2]^.typ = top_shifterop) and
+                             (taicpu(p).oper[2]^.shifterop^.rs <> NR_NO) then
+                            begin
+                              add_edge(getsupreg(taicpu(p).oper[2]^.shifterop^.rs), RS_R13);
+                              add_edge(getsupreg(taicpu(p).oper[2]^.shifterop^.rs), RS_R15);
+                            end
+                          else if (taicpu(p).oper[2]^.typ = top_reg) then
+                            begin
+                              add_edge(getsupreg(taicpu(p).oper[2]^.reg), RS_R13);
+                              add_edge(getsupreg(taicpu(p).oper[2]^.reg), RS_R15);
+                            end;
+                        end;
+                    end;
+                end;
+            end;
+          end;
+      end;
 
 
     procedure trgcpu.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);

@@ -1227,7 +1227,7 @@ implementation
 
 {$ifdef ARM}
             { because of the limited constant size of the arm, all data access is done pc relative }
-            insertpcrelativedata(aktproccode,aktlocaldata);
+            finalizearmcode(aktproccode,aktlocaldata);
 {$endif ARM}
 
             { Add end symbol and debug info }
