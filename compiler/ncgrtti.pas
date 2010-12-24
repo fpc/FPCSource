@@ -37,7 +37,7 @@ interface
       TRTTIWriter=class
       private
         procedure fields_write_rtti(st:tsymtable;rt:trttitype);
-        procedure fields_write_rtti_data(st:tsymtable;rt:trttitype);
+        procedure fields_write_rtti_data(def:tabstractrecorddef;rt:trttitype);
         procedure write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
         procedure published_write_rtti(st:tsymtable;rt:trttitype);
         function  published_properties_count(st:tsymtable):longint;
@@ -137,12 +137,13 @@ implementation
       end;
 
     { writes a 32-bit count followed by array of field infos for given symtable }
-    procedure TRTTIWriter.fields_write_rtti_data(st:tsymtable;rt:trttitype);
+    procedure TRTTIWriter.fields_write_rtti_data(def:tabstractrecorddef;rt:trttitype);
       var
         i   : longint;
         sym : tsym;
         fieldcnt: longint;
         lastai: TLinkedListItem;
+        st: tsymtable;
       begin
         fieldcnt:=0;
         { Count will be inserted at this location. It cannot be nil as we've just
@@ -151,6 +152,17 @@ implementation
         if lastai=nil then
           InternalError(201012212);
 
+        { For objects, treat parent (if any) as a field with offset 0. This
+          provides correct handling of entire instance with RTL rtti routines. }
+        if (def.typ=objectdef) and (tobjectdef(def).objecttype=odt_object) and
+            Assigned(tobjectdef(def).childof) and
+            tobjectdef(def).childof.needs_inittable then
+          begin
+            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(tobjectdef(def).childof,rt)));
+            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(0));
+            inc(fieldcnt);
+          end;
+        st:=def.symtable;
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
@@ -604,7 +616,7 @@ implementation
            write_header(def,tkRecord);
            maybe_write_align;
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.size));
-           fields_write_rtti_data(def.symtable,rt);
+           fields_write_rtti_data(def,rt);
         end;
 
 
@@ -737,7 +749,7 @@ implementation
           procedure objectdef_rtti_fields(def:tobjectdef);
           begin
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.size));
-            fields_write_rtti_data(def.symtable,rt);
+            fields_write_rtti_data(def,rt);
           end;
 
           procedure objectdef_rtti_interface_init(def:tobjectdef);

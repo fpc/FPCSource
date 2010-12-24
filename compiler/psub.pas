@@ -434,9 +434,16 @@ implementation
                 else
                   if is_object(current_structdef) then
                     begin
-                      { finalize object data }
+                      { finalize object data, but only if not in inherited call }
                       if is_managed_type(current_objectdef) then
-                        addstatement(newstatement,finalize_data_node(load_self_node));
+                        begin
+                          addstatement(newstatement,cifnode.create(
+                            caddnode.create(unequaln,
+                              ctypeconvnode.create_internal(load_vmt_pointer_node,voidpointertype),
+                              cnilnode.create),
+                            finalize_data_node(load_self_node),
+                            nil));
+                        end;
                       { parameter 3 : vmt_offset }
                       { parameter 2 : pointer to vmt }
                       { parameter 1 : self pointer }
