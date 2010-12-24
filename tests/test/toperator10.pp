@@ -1,3 +1,4 @@
+{ %fail}
 program toperator10;
 
 {$mode delphi}
