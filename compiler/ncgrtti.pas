@@ -156,7 +156,7 @@ implementation
           provides correct handling of entire instance with RTL rtti routines. }
         if (def.typ=objectdef) and (tobjectdef(def).objecttype=odt_object) and
             Assigned(tobjectdef(def).childof) and
-            tobjectdef(def).childof.needs_inittable then
+            ((rt=fullrtti) or (tobjectdef(def).childof.needs_inittable)) then
           begin
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(tobjectdef(def).childof,rt)));
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(0));
