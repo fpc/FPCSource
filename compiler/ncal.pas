@@ -2959,7 +2959,7 @@ implementation
           begin
             { When this is method the methodpointer must be available }
             if (right=nil) and
-               (procdefinition.owner.symtabletype=ObjectSymtable) and
+               (procdefinition.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
                not procdefinition.no_self_node then
               internalerror(200305061);
           end;
