@@ -821,44 +821,45 @@ implementation
                 _CARET:
                   Message1(parser_e_overload_operator_failed,'**');
                 _ID:
-                  if lastidtoken=_ENUMERATOR then
-                    optoken:=_OP_ENUMERATOR
-                  else
-                  if (m_delphi in current_settings.modeswitches) then
-                    case lastidtoken of
-                      _IMPLICIT:optoken:=_ASSIGNMENT;
-                      _EXPLICIT:optoken:=_OP_EXPLICIT;
-                      _NEGATIVE:optoken:=_MINUS;
-//                         _POSITIVE:optoken:=_PLUS;
-                      _INC:optoken:=_OP_INC;
-                      _DEC:optoken:=_OP_DEC;
-                      _LOGICALNOT:optoken:=_OP_NOT;
-                      _IN:optoken:=_OP_IN;
-                      _EQUAL:optoken:=_EQ;
-                      _NOTEQUAL:optoken:=_NE;
-                      _GREATERTHAN:optoken:=_GT;
-                      _GREATERTHANOREQUAL:optoken:=_GTE;
-                      _LESSTHAN:optoken:=_LT;
-                      _LESSTHANOREQUAL:optoken:=_LTE;
-                      _ADD:optoken:=_PLUS;
-                      _SUBTRACT:optoken:=_MINUS;
-                      _MULTIPLY:optoken:=_STAR;
-                      _DIVIDE:optoken:=_SLASH;
-                      _INTDIVIDE:optoken:=_OP_DIV;
-                      _MODULUS:optoken:=_OP_MOD;
-                      _LEFTSHIFT:optoken:=_OP_SHL;
-                      _RIGHTSHIFT:optoken:=_OP_SHR;
-                      _LOGICALAND:optoken:=_OP_AND;
-                      _LOGICALOR:optoken:=_OP_OR;
-                      _LOGICALXOR:optoken:=_OP_XOR;
-                      _BITWISEAND:optoken:=_OP_AND;
-                      _BITWISEOR:optoken:=_OP_OR;
-                      _BITWISEXOR:optoken:=_OP_XOR;
-                      else
-                        Message1(parser_e_overload_operator_failed,'');
-                    end
-                  else
-                    Message1(parser_e_overload_operator_failed,'');
+                  case lastidtoken of
+                    _ENUMERATOR:optoken:=_OP_ENUMERATOR;
+                    _EXPLICIT:optoken:=_OP_EXPLICIT;
+                    _INC:optoken:=_OP_INC;
+                    _DEC:optoken:=_OP_DEC;
+                    else
+                    if (m_delphi in current_settings.modeswitches) then
+                      case lastidtoken of
+                        _IMPLICIT:optoken:=_ASSIGNMENT;
+                        _NEGATIVE:optoken:=_MINUS;
+  //                         _POSITIVE:optoken:=_PLUS;
+                        _LOGICALNOT:optoken:=_OP_NOT;
+                        _IN:optoken:=_OP_IN;
+                        _EQUAL:optoken:=_EQ;
+                        _NOTEQUAL:optoken:=_NE;
+                        _GREATERTHAN:optoken:=_GT;
+                        _GREATERTHANOREQUAL:optoken:=_GTE;
+                        _LESSTHAN:optoken:=_LT;
+                        _LESSTHANOREQUAL:optoken:=_LTE;
+                        _ADD:optoken:=_PLUS;
+                        _SUBTRACT:optoken:=_MINUS;
+                        _MULTIPLY:optoken:=_STAR;
+                        _DIVIDE:optoken:=_SLASH;
+                        _INTDIVIDE:optoken:=_OP_DIV;
+                        _MODULUS:optoken:=_OP_MOD;
+                        _LEFTSHIFT:optoken:=_OP_SHL;
+                        _RIGHTSHIFT:optoken:=_OP_SHR;
+                        _LOGICALAND:optoken:=_OP_AND;
+                        _LOGICALOR:optoken:=_OP_OR;
+                        _LOGICALXOR:optoken:=_OP_XOR;
+                        _BITWISEAND:optoken:=_OP_AND;
+                        _BITWISEOR:optoken:=_OP_OR;
+                        _BITWISEXOR:optoken:=_OP_XOR;
+                        else
+                          Message1(parser_e_overload_operator_failed,'');
+                      end
+                    else
+                      Message1(parser_e_overload_operator_failed,'');
+                  end
                 else
                   Message1(parser_e_overload_operator_failed,'');
               end;
