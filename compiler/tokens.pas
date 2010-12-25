@@ -54,6 +54,7 @@ type
     _OP_SHR,
     _OP_XOR,
     _ASSIGNMENT,
+    _OP_EXPLICIT,
     _OP_ENUMERATOR,
     _OP_INC,
     _OP_DEC,
@@ -299,6 +300,7 @@ const
     be declared directly after NOTOKEN }
   first_overloaded = succ(NOTOKEN);
   last_overloaded  = _OP_DEC;
+  last_operator = _GENERICSPECIALTOKEN;
 
 type
   tokenrec=record
@@ -346,9 +348,10 @@ const
       (str:'shr'           ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'xor'           ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:':='            ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'explicit'      ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'enumerator'    ;special:true ;keyword:m_none;op:NOTOKEN),
-      (str:'++'            ;special:true ;keyword:m_none;op:NOTOKEN),
-      (str:'--'            ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'inc'           ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'dec'           ;special:true ;keyword:m_none;op:NOTOKEN),
     { Special chars }
       (str:'^'             ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'['             ;special:true ;keyword:m_none;op:NOTOKEN),

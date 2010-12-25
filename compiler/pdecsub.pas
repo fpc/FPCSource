@@ -826,8 +826,8 @@ implementation
                   else
                   if (m_delphi in current_settings.modeswitches) then
                     case lastidtoken of
-//                         _IMPLICIT:optoken:=;
-//                         _EXPLICIT:optoken:=;
+                      _IMPLICIT:optoken:=_ASSIGNMENT;
+                      _EXPLICIT:optoken:=_OP_EXPLICIT;
                       _NEGATIVE:optoken:=_MINUS;
 //                         _POSITIVE:optoken:=_PLUS;
                       _INC:optoken:=_OP_INC;
@@ -1380,7 +1380,7 @@ implementation
                         ((pd.returndef.typ<>orddef) or
                          (torddef(pd.returndef).ordtype<>pasbool)) then
                         Message(parser_e_comparative_operator_return_boolean);
-                     if (optoken=_ASSIGNMENT) and
+                     if (optoken in [_ASSIGNMENT,_OP_EXPLICIT]) and
                         equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) then
                        message(parser_e_no_such_assignment)
                      else if not isoperatoracceptable(pd,optoken) then

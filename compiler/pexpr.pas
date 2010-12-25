@@ -2786,7 +2786,7 @@ implementation
 ****************************************************************************}
    const
       { Warning these stay be ordered !! }
-      operator_levels:array[Toperator_precedence] of set of Ttoken=
+      operator_levels:array[Toperator_precedence] of set of NOTOKEN..last_operator=
          ([_LT,_LTE,_GT,_GTE,_EQ,_NE,_OP_IN],
           [_PLUS,_MINUS,_OP_OR,_PIPE,_OP_XOR],
           [_CARET,_SYMDIF,_STARSTAR,_STAR,_SLASH,

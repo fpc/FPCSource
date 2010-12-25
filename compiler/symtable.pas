@@ -214,7 +214,7 @@ interface
     function  search_system_type(const s: TIDString): ttypesym;
     function  search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
     function  search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
-    function  search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
+    function  search_assignment_operator(from_def,to_def:Tdef;explicit:boolean):Tprocdef;
     function  search_enumerator_operator(from_def,to_def:Tdef):Tprocdef;
     function  search_class_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
     function  search_objc_method(const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
@@ -290,6 +290,7 @@ interface
     { _OP_SHR        }  'shr',
     { _OP_XOR        }  'xor',
     { _ASSIGNMENT    }  'assign',
+    { _OP_EXPLICIT   }  'explicit',
     { _OP_ENUMERATOR }  'enumerator',
     { _OP_INC        }  'inc',
     { _OP_DEC        }  'dec');
@@ -2234,7 +2235,9 @@ implementation
       end;
 
 
-    function search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
+    function search_assignment_operator(from_def,to_def:Tdef;explicit:boolean):Tprocdef;
+      const
+        op_token:array[boolean] of ttoken=(_ASSIGNMENT,_OP_EXPLICIT);
       var
         sym : Tprocsym;
         hashedid : THashedIDString;
@@ -2244,7 +2247,7 @@ implementation
         bestpd : tprocdef;
         stackitem : psymtablestackitem;
       begin
-        hashedid.id:='assign';
+        hashedid.id:=overloaded_names[op_token[explicit]];
         besteq:=te_incompatible;
         bestpd:=nil;
         stackitem:=symtablestack.stack;

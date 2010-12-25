@@ -8,6 +8,8 @@ uses
 type
   TFoo = record
     F: Integer;
+    class operator Explicit(a: TFoo): Integer;
+    class operator Implicit(a: TFoo): Integer;
     class operator Equal(a, b: TFoo): Boolean;
     class operator NotEqual(a, b: TFoo): Boolean;
     class operator In(a, b: TFoo): Boolean;
@@ -33,6 +35,17 @@ type
     class operator Inc(a: TFoo): TFoo;
     class operator Dec(a: TFoo): TFoo;
  end;
+
+class operator TFoo.Explicit(a: TFoo): Integer;
+begin
+  // to check the difference with implicit
+  Result := a.F + 1;
+end;
+
+class operator TFoo.Implicit(a: TFoo): Integer;
+begin
+  Result := a.F;
+end;
 
 class operator TFoo.Equal(a, b: TFoo): Boolean;
 begin
@@ -156,6 +169,7 @@ end;
 
 var
   a, b: TFoo;
+  i: integer;
 begin
   a.F := 1;
   b.F := 2;
@@ -213,5 +227,10 @@ begin
   dec(b);
   if b.F <> 1 then
     halt(25);
+  i := b;
+  if i <> 1 then
+    halt(26);
+  if Integer(b) <> 2 then
+    halt(27);
   WriteLn('ok');
 end.
