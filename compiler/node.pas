@@ -67,6 +67,7 @@ interface
           callparan,        {Represents a parameter}
           realconstn,       {Represents a real value}
           unaryminusn,      {Represents a sign change (i.e. -2)}
+          unaryplusn,       {Represents a check for +Value}
           asmn,             {Represents an assembler node }
           vecn,             {Represents array indexing}
           pointerconstn,    {Represents a pointer constant}
@@ -151,6 +152,7 @@ interface
           'callparan',
           'realconstn',
           'unaryminusn',
+          'unaryplusn',
           'asmn',
           'vecn',
           'pointerconstn',

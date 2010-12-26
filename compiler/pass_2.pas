@@ -105,6 +105,7 @@ implementation
              'noth-callpar',{callparan}
              'realconst',   {realconstn}
              'unaryminus',  {unaryminusn}
+             'unaryplus',   {unaryplusn}
              'asm',         {asmn}
              'vecn',        {vecn}
              'pointerconst',{pointerconstn}

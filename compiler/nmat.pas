@@ -67,6 +67,13 @@ interface
        end;
        tunaryminusnodeclass = class of tunaryminusnode;
 
+       tunaryplusnode = class(tunarynode)
+         constructor create(expr : tnode);virtual;
+         function pass_1 : tnode;override;
+         function pass_typecheck:tnode;override;
+       end;
+       tunaryplusnodeclass = class of tunaryplusnode;
+
        tnotnode = class(tunarynode)
           constructor create(expr : tnode);virtual;
           function pass_1 : tnode;override;
@@ -82,6 +89,7 @@ interface
        cmoddivnode : tmoddivnodeclass = tmoddivnode;
        cshlshrnode : tshlshrnodeclass = tshlshrnode;
        cunaryminusnode : tunaryminusnodeclass = tunaryminusnode;
+       cunaryplusnode : tunaryplusnodeclass = tunaryplusnode;
        cnotnode : tnotnodeclass = tnotnode;
 
 implementation
@@ -728,6 +736,73 @@ implementation
              else if (left.resultdef.typ=orddef) then
                expectloc:=LOC_REGISTER;
           end;
+      end;
+
+{****************************************************************************
+                             TUNARYPLUSNODE
+ ****************************************************************************}
+
+    constructor tunaryplusnode.create(expr: tnode);
+      begin
+        inherited create(unaryplusn,expr);
+      end;
+
+    function tunaryplusnode.pass_1: tnode;
+      begin
+        { can never happen because all the conversions happen 
+          in pass_typecheck }
+        internalerror(201012250);
+      end;
+
+    function tunaryplusnode.pass_typecheck: tnode;
+      var
+        t:tnode;
+      begin
+        result:=nil;
+        typecheckpass(left);
+        set_varstate(left,vs_read,[vsf_must_be_valid]);
+        if codegenerror then
+          exit;
+
+        if is_constintnode(left) or
+           is_constrealnode(left) or
+           (left.resultdef.typ=floatdef) or
+           is_currency(left.resultdef)
+{$ifdef SUPPORT_MMX}
+           or ((cs_mmx in current_settings.localswitches) and
+                is_mmx_able_array(left.resultdef))
+{$endif SUPPORT_MMX}
+        then
+          begin
+            result:=left;
+            left:=nil;
+          end
+{$ifndef cpu64bitaddr}
+        else if is_64bit(left.resultdef) then
+          begin
+            inserttypeconv(left,s64inttype);
+            result:=left;
+            left:=nil;
+          end
+{$endif not cpu64bitaddr}
+        else if (left.resultdef.typ=orddef) then
+          begin
+            inserttypeconv(left,sinttype);
+            result:=left;
+            left:=nil;
+          end
+        else
+          begin
+            { allow operator overloading }
+            t:=self;
+            if isunaryoverloaded(t) then
+              begin
+                result:=t;
+                exit;
+             end;
+
+             CGMessage(type_e_mismatch);
+           end;
       end;
 
 

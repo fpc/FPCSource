@@ -341,7 +341,9 @@ implementation
         result:=false;
         case treetyp of
           subn,
+          addn,
           unaryminusn,
+          unaryplusn,
           inlinen:
             begin
               { only Inc, Dec inline functions are supported for now, so skip check inlinenumber }
@@ -506,6 +508,8 @@ implementation
              optoken:=_OP_NOT;
            unaryminusn:
              optoken:=_MINUS;
+           unaryplusn:
+             optoken:=_PLUS;
            inlinen:
              case inlinenumber of
                 in_inc_x:

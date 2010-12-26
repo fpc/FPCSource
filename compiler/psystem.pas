@@ -506,6 +506,7 @@ implementation
         nodeclass[callparan]:=ccallparanode;
         nodeclass[realconstn]:=crealconstnode;
         nodeclass[unaryminusn]:=cunaryminusnode;
+        nodeclass[unaryplusn]:=cunaryplusnode;
         nodeclass[asmn]:=casmnode;
         nodeclass[vecn]:=cvecnode;
         nodeclass[pointerconstn]:=cpointerconstnode;

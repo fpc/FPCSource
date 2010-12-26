@@ -831,7 +831,7 @@ implementation
                       case lastidtoken of
                         _IMPLICIT:optoken:=_ASSIGNMENT;
                         _NEGATIVE:optoken:=_MINUS;
-  //                         _POSITIVE:optoken:=_PLUS;
+                        _POSITIVE:optoken:=_PLUS;
                         _LOGICALNOT:optoken:=_OP_NOT;
                         _IN:optoken:=_OP_IN;
                         _EQUAL:optoken:=_EQ;
