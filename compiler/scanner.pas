@@ -2045,18 +2045,20 @@ In case not, the value returned can be arbitrary.
 
     procedure tscannerfile.recordtoken;
       var
-        a : array[0..1] of byte;
+        t : ttoken;
+        s : tspecialgenerictoken;
         len : sizeint;
       begin
         if not assigned(recordtokenbuf) then
           internalerror(200511176);
+        t:=_GENERICSPECIALTOKEN;
         { settings changed? }
         if CompareByte(current_settings,last_settings,sizeof(current_settings))<>0 then
           begin
             { use a special token to record it }
-            a[0]:=byte(_GENERICSPECIALTOKEN);
-            a[1]:=byte(ST_LOADSETTINGS);
-            recordtokenbuf.write(a,2);
+            s:=ST_LOADSETTINGS;
+            recordtokenbuf.write(t,SizeOf(t));
+            recordtokenbuf.write(s,1);
             recordtokenbuf.write(current_settings,sizeof(current_settings));
             last_settings:=current_settings;
           end;
@@ -2064,32 +2066,32 @@ In case not, the value returned can be arbitrary.
         { file pos changes? }
         if current_tokenpos.line<>last_filepos.line then
           begin
-            a[0]:=byte(_GENERICSPECIALTOKEN);
-            a[1]:=byte(ST_LINE);
-            recordtokenbuf.write(a,2);
+            s:=ST_LINE;
+            recordtokenbuf.write(t,SizeOf(t));
+            recordtokenbuf.write(s,1);
             recordtokenbuf.write(current_tokenpos.line,sizeof(current_tokenpos.line));
             last_filepos.line:=current_tokenpos.line;
           end;
         if current_tokenpos.column<>last_filepos.column then
           begin
-            a[0]:=byte(_GENERICSPECIALTOKEN);
-            a[1]:=byte(ST_COLUMN);
-            recordtokenbuf.write(a,2);
+            s:=ST_COLUMN;
+            recordtokenbuf.write(t,SizeOf(t));
+            recordtokenbuf.write(s,1);
             recordtokenbuf.write(current_tokenpos.column,sizeof(current_tokenpos.column));
             last_filepos.column:=current_tokenpos.column;
           end;
         if current_tokenpos.fileindex<>last_filepos.fileindex then
           begin
-            a[0]:=byte(_GENERICSPECIALTOKEN);
-            a[1]:=byte(ST_FILEINDEX);
-            recordtokenbuf.write(a,2);
+            s:=ST_FILEINDEX;
+            recordtokenbuf.write(t,SizeOf(t));
+            recordtokenbuf.write(s,1);
             recordtokenbuf.write(current_tokenpos.fileindex,sizeof(current_tokenpos.fileindex));
             last_filepos.fileindex:=current_tokenpos.fileindex;
           end;
 
-        recordtokenbuf.write(token,1);
+        recordtokenbuf.write(token,SizeOf(token));
         if token=_ID then
-          recordtokenbuf.write(idtoken,1);
+          recordtokenbuf.write(idtoken,SizeOf(idtoken));
         case token of
           _CWCHAR,
           _CWSTRING :
@@ -2168,9 +2170,9 @@ In case not, the value returned can be arbitrary.
           end;
         repeat
           { load token from the buffer }
-          replaytokenbuf.read(token,1);
+          replaytokenbuf.read(token,SizeOf(token));
           if token=_ID then
-            replaytokenbuf.read(idtoken,1)
+            replaytokenbuf.read(idtoken,SizeOf(idtoken))
           else
             idtoken:=_NOID;
           case token of
