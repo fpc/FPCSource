@@ -29,11 +29,6 @@ interface
        globtype,cclasses,
        symtype,symdef,symbase;
 
-    var
-       { hack, which allows to use the current parsed }
-       { object type as function argument type  }
-       testcurobject : byte;
-
     procedure resolve_forward_types;
 
     { reads a type identifier }
@@ -382,18 +377,14 @@ implementation
             - classes can be used also in classes
             - objects can be parameters }
          structdef:=current_structdef;
-         while Assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
+         while assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
            begin
-             if (structdef.objname^=pattern) and
-                (
-                  (testcurobject=2) or
-                  is_class_or_interface_or_objc(structdef)
-                ) then
-                begin
-                  consume(_ID);
-                  def:=structdef;
-                  exit;
-                end;
+             if (structdef.objname^=pattern) then
+               begin
+                 consume(_ID);
+                 def:=structdef;
+                 exit;
+               end;
              structdef:=tabstractrecorddef(structdef.owner.defowner);
            end;
          { Use the special searchsym_type that ignores records and parameters }
@@ -583,7 +574,6 @@ implementation
           Exit;
 
         current_structdef.symtable.currentvisibility:=vis_public;
-        testcurobject:=1;
         fields_allowed:=true;
         is_classdef:=false;
         classfields:=false;
@@ -842,8 +832,6 @@ implementation
               consume(_ID); { Give a ident expected message, like tp7 }
           end;
         until false;
-
-        testcurobject:=0;
       end;
 
     { reads a record declaration }
@@ -895,7 +883,7 @@ implementation
            lv,hv   : TConstExprInt;
            old_block_type : tblock_type;
            dospecialize : boolean;
-           structdef: TDef;
+           structdef: tabstractrecorddef;
         begin
            old_block_type:=block_type;
            dospecialize:=false;
@@ -905,19 +893,15 @@ implementation
            if (token=_ID) then
              begin
                structdef:=current_structdef;
-               while Assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
+               while assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
                  begin
-                   if (tabstractrecorddef(structdef).objname^=pattern) and
-                      (
-                        (testcurobject=2) or
-                        is_class_or_interface_or_objc(structdef)
-                      ) then
-                      begin
-                        consume(_ID);
-                        def:=structdef;
-                        exit;
-                      end;
-                   structdef:=tdef(tabstractrecorddef(structdef).owner.defowner);
+                   if (structdef.objname^=pattern) then
+                     begin
+                       consume(_ID);
+                       def:=structdef;
+                       exit;
+                     end;
+                   structdef:=tabstractrecorddef(structdef.owner.defowner);
                  end;
              end;
            { Generate a specialization? }

@@ -357,7 +357,6 @@ implementation
               { create a list of the parameters }
               symtablestack.push(readprocdef.parast);
               sc:=TFPObjectList.create(false);
-              inc(testcurobject);
               repeat
                 if try_to_consume(_VAR) then
                   varspez:=vs_var
@@ -403,7 +402,6 @@ implementation
                   end;
               until not try_to_consume(_SEMICOLON);
               sc.free;
-              dec(testcurobject);
               symtablestack.pop(readprocdef.parast);
               consume(_RECKKLAMMER);
 
@@ -1406,7 +1404,7 @@ implementation
 {$endif powerpc or powerpc64}
          { Force an expected ID error message }
          if not (token in [_ID,_CASE,_END]) then
-          consume(_ID);
+           consume(_ID);
          { read vars }
          sc:=TFPObjectList.create(false);
          recstlist:=TFPObjectList.create(false);;
@@ -1447,6 +1445,15 @@ implementation
                    end;
                end;
              read_anon_type(hdef,false);
+             { allow only static fields reference to struct where they are declared }
+             if not (vd_class in options) and
+               (is_object(hdef) or is_record(hdef)) and
+               is_owned_by(tabstractrecorddef(recst.defowner),tabstractrecorddef(hdef)) then
+               begin
+                 Message1(type_e_type_is_not_completly_defined, tabstractrecorddef(hdef).RttiName);
+                 { for error recovery or compiler will crash later }
+                 hdef:=generrordef;
+               end;
              { restore stack }
              for i:=recstlist.count-1 downto 0 do
                begin

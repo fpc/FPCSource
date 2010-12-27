@@ -528,7 +528,6 @@ implementation
         sc:=TFPObjectList.create(false);
         defaultrequired:=false;
         paranr:=0;
-        inc(testcurobject);
         block_type:=bt_var;
         is_univ:=false;
         repeat
@@ -782,7 +781,6 @@ implementation
         { remove parasymtable from stack }
         sc.free;
         { reset object options }
-        dec(testcurobject);
         block_type:=old_block_type;
         consume(_RKLAMMER);
       end;
@@ -1196,7 +1194,6 @@ implementation
             old_current_specializedef: tobjectdef;
           begin
             old_parse_generic:=parse_generic;
-            inc(testcurobject);
             { Add ObjectSymtable to be able to find generic type definitions }
             popclass:=0;
             if assigned(pd.struct) and
@@ -1228,7 +1225,6 @@ implementation
                 if popclass<>0 then
                   internalerror(201012020);
               end;
-            dec(testcurobject);
             parse_generic:=old_parse_generic;
           end;
 

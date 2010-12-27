@@ -156,13 +156,13 @@ type
 
   { symbol options }
   tsymoption=(sp_none,
-    sp_static,
+    sp_static,              { static symbol in class/object/record }
     sp_hint_deprecated,
     sp_hint_platform,
     sp_hint_library,
     sp_hint_unimplemented,
     sp_has_overloaded,
-    sp_internal,  { internal symbol, not reported as unused }
+    sp_internal,            { internal symbol, not reported as unused }
     sp_implicitrename,
     sp_hint_experimental,
     sp_generic_para,

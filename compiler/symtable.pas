@@ -200,6 +200,7 @@ interface
 
 {*** Search ***}
     procedure addsymref(sym:tsym);
+    function  is_owned_by(childdef,ownerdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(pd:tprocdef;contextobjdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(sym:tsym;contextobjdef:tabstractrecorddef):boolean;
@@ -747,7 +748,11 @@ implementation
     procedure TStoredSymtable._needs_init_final(sym:TObject;arg:pointer);
       begin
          if b_needs_init_final then
-          exit;
+           exit;
+         { don't check static symbols - they can be present in structures only and 
+           always have a reference to a symbol defined on unit level }
+         if sp_static in tsym(sym).symoptions then
+           exit;
          case tsym(sym).typ of
            fieldvarsym,
            staticvarsym,
@@ -1714,15 +1719,14 @@ implementation
        end;
 
 
+    function is_owned_by(childdef,ownerdef:tabstractrecorddef):boolean;
+      begin
+        result:=childdef=ownerdef;
+        if not result and (childdef.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+          result:=is_owned_by(tabstractrecorddef(childdef.owner.defowner),ownerdef);
+      end;
+
     function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
-
-      function is_holded_by(childdef,ownerdef: tabstractrecorddef): boolean;
-        begin
-          result:=childdef=ownerdef;
-          if not result and (childdef.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-            result:=is_holded_by(tabstractrecorddef(childdef.owner.defowner),ownerdef);
-        end;
-
       var
         symownerdef : tabstractrecorddef;
       begin
@@ -1760,13 +1764,13 @@ implementation
           vis_strictprivate :
             begin
               result:=assigned(current_structdef) and
-                      is_holded_by(current_structdef,symownerdef);
+                      is_owned_by(current_structdef,symownerdef);
             end;
           vis_strictprotected :
             begin
                result:=assigned(current_structdef) and
                        (current_structdef.is_related(symownerdef) or
-                        is_holded_by(current_structdef,symownerdef));
+                        is_owned_by(current_structdef,symownerdef));
             end;
           vis_protected :
             begin

@@ -55,10 +55,6 @@ implementation
 
     procedure initparser;
       begin
-         { we didn't parse a object or class declaration }
-         { and no function header                        }
-         testcurobject:=0;
-
          { Current compiled module/proc }
          set_current_module(nil);
          current_module:=nil;
