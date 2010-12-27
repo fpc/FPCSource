@@ -368,7 +368,7 @@ scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN dire
 #
 # Parser
 #
-# 03302 is the last used one
+# 03303 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1360,6 +1360,9 @@ parser_e_class_methods_only_static_in_records=03301_E_Class methods must be stat
 parser_e_no_constructor_in_records=03302_E_Constructors aren't allowed in records
 % Constructor declarations aren't allowed in records.
 % \end{description}
+parser_e_at_least_one_argument_must_be_of_type=03303_E_At least one argument must be of type "$1"
+% It is required that at least one argument be of type of structure where this method is defined.
+% For example class operators must contain at least one argument of the structure where they are defined.
 #
 # Type Checking
 #

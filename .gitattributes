@@ -9329,6 +9329,7 @@ tests/test/terecs3.pp svneol=native#text/pascal
 tests/test/terecs4.pp svneol=native#text/pascal
 tests/test/terecs5.pp svneol=native#text/pascal
 tests/test/terecs6.pp svneol=native#text/pascal
+tests/test/terecs7.pp svneol=native#text/pascal
 tests/test/terecs_u1.pp svneol=native#text/pascal
 tests/test/testcmem.pp svneol=native#text/plain
 tests/test/testda1.pp svneol=native#text/plain

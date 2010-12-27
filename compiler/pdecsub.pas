@@ -1182,8 +1182,10 @@ implementation
 
     function parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef):tprocdef;
       var
-        pd : tprocdef;
+        pd: tprocdef;
         locationstr: string;
+        i: integer;
+        found: boolean;
 
         procedure read_returndef(pd: tprocdef);
           var
@@ -1377,6 +1379,18 @@ implementation
                   else
                    begin
                      read_returndef(pd);
+                     if (po_classmethod in pd.procoptions) then
+                       begin
+                         found:=false;
+                         for i := 0 to pd.parast.SymList.Count - 1 do
+                           if tparavarsym(pd.parast.SymList[0]).vardef=pd.struct then
+                             begin
+                               found:=true;
+                               break;
+                             end;
+                         if not found then
+                           Message1(parser_e_at_least_one_argument_must_be_of_type,pd.struct.RttiName);
+                       end;
                      if (optoken in [_EQ,_NE,_GT,_LT,_GTE,_LTE,_OP_IN]) and
                         ((pd.returndef.typ<>orddef) or
                          (torddef(pd.returndef).ordtype<>pasbool)) then
