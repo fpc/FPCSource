@@ -1383,7 +1383,7 @@ implementation
                        begin
                          found:=false;
                          for i := 0 to pd.parast.SymList.Count - 1 do
-                           if tparavarsym(pd.parast.SymList[0]).vardef=pd.struct then
+                           if tparavarsym(pd.parast.SymList[i]).vardef=pd.struct then
                              begin
                                found:=true;
                                break;
