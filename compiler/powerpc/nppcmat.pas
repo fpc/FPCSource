@@ -576,6 +576,8 @@ end;
            end
          else
            begin
+              if left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF] then
+                location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,true);
               location_copy(location,left.location);
               location.loc:=LOC_REGISTER;
               case left.location.loc of
