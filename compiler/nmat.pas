@@ -749,7 +749,8 @@ implementation
 
     function tunaryplusnode.pass_1: tnode;
       begin
-        { can never happen because all the conversions happen 
+        result:=nil;
+        { can never happen because all the conversions happen
           in pass_typecheck }
         internalerror(201012250);
       end;
