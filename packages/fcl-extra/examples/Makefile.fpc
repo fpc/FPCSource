@@ -1,0 +1,26 @@
+#
+#   Makefile.fpc for Free Component Library Examples/Tests
+#
+
+[target]
+programs_freebsd=daemon
+programs_darwin=daemon 
+programs_iphonesim=daemon 
+programs_solaris= daemon 
+programs_netbsd=daemon 
+programs_openbsd=daemon
+programs_linux=daemon  
+programs_win32= daemon
+programs_win64=daemon 
+
+[require]
+packages=fcl-base fcl-extra
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+[rules]
+.NOTPARALLEL:

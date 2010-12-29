@@ -49,14 +49,14 @@ begin
   Repeat
     Sleep(1000);
     inc(c);
-    Application.Logger.Info(Format('Tick : %d',[C]));
+    Application.Log(etcustom,Format('Tick : %d',[C]));
   Until Terminated;
 end;
 
 Procedure AWriteln(MSg : String; B : Boolean);
 
 begin
-  Application.Logger.Info(Msg+BoolToStr(B));
+  Application.Log(etcustom,Msg+BoolToStr(B));
 end;
 
 { TTestDaemon }
