@@ -254,6 +254,13 @@ var
   pc : pchar;
   x:integer;
 begin
+  if Offset>length(S) then
+    begin
+    Result := False;
+    MatchPos := 0;
+    Exit;
+    end;
+
   {if the regex string hasn't been parsed yet, do so}
   if (FStateCount = 0) then begin
     if not Parse(ErrorPos, ErrorCode) then
@@ -447,20 +454,28 @@ begin
   if FStateCount=length(FStateTable) then
     setlength(FStateTable,(FStateCount * 3) div 2);
 
-  if not (aMatchType in [mtChar,mtTerminal]) then FRegexType := rtRegEx;
+  if not (aMatchType in [mtChar,mtTerminal,mtNone]) then FRegexType := rtRegEx;
 end;
 {--------}
 procedure TRegexEngine.rcClear;
 var
-  i : integer;
+  i, j : integer;
 begin
   {free all items in the state transition table}
   for i := 0 to FStateCount-1 do begin
     with FStateTable[i] do begin
       if (sdMatchType = mtClass) or
-         (sdMatchType = mtNegClass) then
-        if (sdClass <> nil) then
+         (sdMatchType = mtNegClass) and
+         (sdClass <> nil) then
+        begin
+          for j := i+1 to FStateCount-1 do
+           if (FStateTable[j].sdClass = sdClass) then
+             FStateTable[j].sdClass := nil;
           FreeMem(sdClass, sizeof(TCharSet));
+        end;
+      // I am not sure if the next line is necessary. rcAddState set all values, so
+      // it shouldn't be necessary to clear its contents?
+      // FillChar(FStateTable[i],SizeOf(FStateTable[i]),#0);
     end;
   end;
   {clear the state transition table}
@@ -691,6 +706,8 @@ begin
         end;
         {move past the close parenthesis}
         inc(FPosn);
+        {always handle expressions with parentheses as regular-expression}
+        FRegexType := rtRegEx;
       end;
     '[' :
       begin
@@ -733,6 +750,22 @@ begin
         {add a new state for the 'any character' token}
         Result := rcAddState(mtAnyChar, #0, nil,
                              NewFinalState, UnusedState);
+      end;
+    '\' :
+      begin
+        if (FPosn+1)^ in ['d','D','s','S','w','W'] then begin
+          New(CharClass);
+          CharClass^ := [];
+          if not rcParseCharRange(CharClass) then begin
+            Dispose(CharClass);
+            Result := ErrorState;
+            Exit;
+          end;
+          Result := rcAddState(mtClass, #0, CharClass,
+                               NewFinalState, UnusedState);
+        end
+        else
+          Result := rcParseChar;
       end;
   else
     {otherwise parse a single character}
@@ -791,6 +824,7 @@ begin
     begin
     inc(FPosn);
     ch := rcReturnEscapeChar;
+    FRegexType := rtRegEx;
     end
   else
     ch :=FPosn^;
@@ -922,6 +956,8 @@ begin
     {now set the end state for the initial term to point to the final
      end state for the second expr and the overall expr}
     rcSetState(EndState1, FStateCount, UnusedState);
+    {always handle expressions with a pipe as regular-expression}
+    FRegexType := rtRegEx;
   end;
 end;
 {--------}
@@ -1062,6 +1098,8 @@ begin
 
               Result := StartStateAtom;
               end;
+            {always handle expressions with braces as regular-expression}
+            FRegexType := rtRegEx;
           end;
 
   else

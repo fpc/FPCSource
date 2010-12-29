@@ -68,7 +68,7 @@ type
 
 Type
    ISC_USHORT    = word;
-   ISC_STATUS    = clong;
+   ISC_STATUS    = ptrint;   // bug 17360
    ISC_INT64     = int64;
    ISC_UINT64    = qword;
    ISC_LONG      = Longint;

@@ -3,7 +3,7 @@
 #
 
 [target]
-programs=glutdemo morph3d bounce radblur glutdemova
+programs=glutdemo morph3d bounce radblur glutdemova freeglutdemo
 programs_linux=glxtest
 programs_freebsd=glxtest
 programs_netbsd=glxtest

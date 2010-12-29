@@ -684,7 +684,7 @@ begin
     end;
 end;
 
-    
+
 procedure TDebugController.SetTBreak(tbreakstring : string);
 begin
   Command('tbreak '+tbreakstring);
@@ -3201,6 +3201,12 @@ procedure   TWatchesListBox.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
 begin
   case Event.What of
+    evMouseDown : begin
+                   if Event.Double then
+                      Message(@Self,evCommand,cmEdit,nil)
+                   else
+                     ClearEvent(Event);
+                  end;
     evKeyDown :
       begin
         DontClear:=false;

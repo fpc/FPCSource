@@ -124,7 +124,8 @@ const
       hint_searchmenu        = 'Text and symbols search commands';
       hint_searchfind        = 'Search for text';
       hint_searchreplace     = 'Search for text and replace it with new text';
-      hint_searchagain       = 'Repeat the last Search or Replace command';
+      hint_replaceagain      = 'Repeat the last Replace command (%s with %s)';
+      hint_searchagain       = 'Repeat the last Search  command (%s)';
       hint_gotoline          = 'Move the cursor to a specified line number';
       hint_objects           = 'Open a browser displaying all objects in the program';
       hint_modules           = 'Open a browser displaying all modules of the program';
@@ -286,7 +287,12 @@ begin
     hcSearchMenu    : S:=hint_searchmenu;
     hcFind          : S:=hint_searchfind;
     hcReplace       : S:=hint_searchreplace;
-    hcSearchAgain   : S:=hint_searchagain;
+    hcSearchAgain   : begin
+                        if (FindFlags and ffDoReplace)<>0 then
+                          s:=formatstrstr2(hint_replaceagain,findstr,WEditor.replacestr)
+                        else
+                          s:=formatstrstr(hint_searchagain,findstr);
+                      end;
     hcGotoLine      : S:=hint_gotoline;
     hcObjects       : S:=hint_objects;
     hcModules       : S:=hint_modules;

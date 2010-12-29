@@ -63,6 +63,7 @@ Type
   Protected
     procedure SetContentProducer(const AValue: THTTPContentProducer);virtual;
     Function  GetDisplayName : String; override;
+    Function  GetNamePath : String; override;
     Procedure SetDisplayName(const AValue : String); override;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean);
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean); virtual;
@@ -312,6 +313,13 @@ end;
 function TCustomWebAction.GetDisplayName: String;
 begin
   If (FName='') then
+    FName:=ClassName+IntToStr(self.Index);
+  Result:=FName;
+end;
+
+Function TCustomWebAction.GetNamePath : String;
+begin
+ If (FName='') then
     FName:=ClassName+IntToStr(self.Index);
   Result:=FName;
 end;

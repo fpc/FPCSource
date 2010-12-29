@@ -24,15 +24,49 @@ var
 begin
    writeln('*** Testing unit regexpr ***');
 
+   { runtime error test }
+    initok:=GenerateRegExprEngine('[o]{1,2}',[],r);
+    if not initok then
+      do_error(1);
+    if not(RegExprPos(r,'book',index,len)) or
+      (index<>1) or (len<>2) then
+      do_error(1);
+    // if it has bug, error  An unhandled exception when r.Free
+    DestroyregExprEngine(r); // bug:Test for rcClear
+
    writeln('*** Searching tests ***');
    { basic tests }
 
    initok:=GenerateRegExprEngine('.*',[],r);
    if not initok then
-     do_error(90);
+     do_error(50);
    if not(RegExprPos(r,'CXXXX',index,len)) or
      (index<>0) or (len<>5) then
-     do_error(91);
+     do_error(51);
+   DestroyregExprEngine(r);
+
+   initok:=GenerateRegExprEngine('\t\t',[],r);
+   if not initok then
+     do_error(52);
+   if not(RegExprPos(r,'a'+#9+#9+'b'+'\t\t',index,len)) or
+     (index<>1) or (len<>2) then
+     do_error(52);
+   DestroyregExprEngine(r);
+
+   initok:=GenerateRegExprEngine('\t',[],r);
+   if not initok then
+     do_error(53);
+   if not(RegExprPos(r,'a'+#9+#9+'b'+'\t\t',index,len)) or
+     (index<>1) or (len<>1) then
+     do_error(53);
+   DestroyregExprEngine(r);
+
+   initok:=GenerateRegExprEngine('\w',[],r);
+   if not initok then
+     do_error(54);
+   if not(RegExprPos(r,'- abc \w',index,len)) or
+     (index<>2) or (len<>1) then
+     do_error(54);
    DestroyregExprEngine(r);
 
    { java package name }
@@ -364,6 +398,14 @@ begin
      do_error(718);
    DestroyregExprEngine(r);
 
+   initok:=GenerateRegExprEngine('o{2}',[],r);
+   if not initok then
+     do_error(719);
+   if not(RegExprPos(r,'book',index,len)) or
+     (index<>1) or (len<>2) then
+     do_error(719);
+   DestroyregExprEngine(r);
+
    (* {n,m} tests *)
    initok:=GenerateRegExprEngine('Cat(AZ){1,3}',[],r);
    if not initok then
@@ -410,6 +452,14 @@ begin
      do_error(729);
    if RegExprPos(r,'BCatDAzizzzzHello',index,len) then
      do_error(729);
+   DestroyregExprEngine(r);
+
+   initok:=GenerateRegExprEngine('o{2,2}',[],r);
+   if not initok then
+     do_error(730);
+   if not(RegExprPos(r,'book',index,len)) or
+     (index<>1) or (len<>2) then
+     do_error(730);
    DestroyregExprEngine(r);
 
 

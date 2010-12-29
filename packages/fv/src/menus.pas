@@ -1455,7 +1455,7 @@ BEGIN
      {$IFNDEF OS_WINDOWS}
      MoveChar(B[I], #179, Byte(CNormal), 1);          { '|' char to buffer }
      {$ELSE}
-     MoveChar(B[I], #166, Byte(CNormal), 1);          { '|' char to buffer }
+     MoveChar(B[I], #124, Byte(CNormal), 1);          { '|' char to buffer }
      {$ENDIF}
      Inc(I, 2);                                       { Move along }
      MoveStr(B[I], HintBuf, Byte(CNormal));           { Move hint to buffer }

@@ -1,5 +1,5 @@
 {
-    This file is part of the Free Pascal Integrated Development Environment
+    wThis file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 2000 by Berczi Gabor
 
     Borland OA .HLP reader objects and routines
@@ -223,11 +223,9 @@ begin
       OK:=ReadRecord(R,true);
       OK:=OK and (R.SClass=oa_rtFileHeader) and (R.Size=SizeOf(Header));
       if OK then Move(R.Data^,Header,SizeOf(Header));
-{$ifdef ENDIAN_BIG}
-      SwapWord(Header.Options);
-      SwapWord(Header.MainIndexScreen);
-      SwapWord(Header.MaxScreenSize);
-{$endif ENDIAN_BIG}
+      Header.Options        :=LEToN(Header.Options);
+      Header.MainIndexScreen:=LEToN(Header.MainIndexScreen);
+      Header.MaxScreenSize  :=LEToN(Header.MaxScreenSize );
       DisposeRecord(R);
     end;
   end;
@@ -240,9 +238,7 @@ var OK: boolean;
     L,I: longint;
 function GetCtxPos(C: THLPContextPos): longint;
 begin
-{$ifdef ENDIAN_BIG}
-  SwapWord(C.LoW);
-{$endif ENDIAN_BIG}
+  c.LoW:=LEToN(Word(C.LoW));
   GetCtxPos:=longint(C.HiB) shl 16 + C.LoW;
 end;
 begin
@@ -250,9 +246,7 @@ begin
   if OK then
   with THLPContexts(R.Data^) do
   begin
-{$ifdef ENDIAN_BIG}
-  SwapWord(ContextCount);
-{$endif ENDIAN_BIG}
+  ContextCount:=LEToN(ContextCount);
   for I:=1 to longint(ContextCount)-1 do
   begin
     if Topics^.Count=MaxCollectionSize then Break;
@@ -289,9 +283,7 @@ begin
   if OK then
   with THLPIndexTable(R.Data^) do
   begin
-{$ifdef ENDIAN_BIG}
-  SwapWord(IndexCount);
-{$endif ENDIAN_BIG}
+  IndexCount:=LEToN(IndexCount);
   for I:=0 to IndexCount-1 do
   begin
     LenCode:=PByteArray(@Entries)^[CurPtr];
@@ -335,9 +327,7 @@ var OK: boolean;
 begin
   FillChar(R, SizeOf(R), 0);
   F^.Read(H,SizeOf(H));
-{$ifdef ENDIAN_BIG}
-  SwapWord(H.RecLength);
-{$endif ENDIAN_BIG}
+  H.RecLength:=LEToN(H.RecLength);
   OK:=F^.Status=stOK;
   if OK then
   begin
@@ -447,7 +437,7 @@ begin
                 end;
     ncRepChar : begin
                   Cnt:=2+GetNextNibble;
-                  C:=GetNextChar{$ifdef FPC}(){$endif};
+                  C:=GetNextChar();
                   for I:=1 to Cnt-1 do AddChar(C);
                 end;
   end;
@@ -516,19 +506,15 @@ begin
         TP55FormatVersion :
            with THLPKeywordRecord55(KeyWR.Data^) do
            begin
-{$ifdef ENDIAN_BIG}
-             SwapWord(UpContext);
-             SwapWord(DownContext);
-{$endif ENDIAN_BIG}
+             UpContext:=LEToN(UpContext);
+             DownContext:=LEToN(DownContext);
              T^.LinkCount:=KeywordCount;
              GetMem(T^.Links,T^.LinkSize);
              if T^.LinkCount>0 then
              for I:=0 to T^.LinkCount-1 do
              with Keywords[I] do
              begin
-{$ifdef ENDIAN_BIG}
-               SwapWord(KwContext);
-{$endif ENDIAN_BIG}
+               KwContext:=LEToN(KwContext);
                T^.Links^[I].Context:=KwContext;
                T^.Links^[I].FileID:=ID;
                Inc(LinkPosCount);
@@ -542,19 +528,15 @@ begin
       else
            with THLPKeywordRecord(KeyWR.Data^) do
            begin
-{$ifdef ENDIAN_BIG}
-             SwapWord(KeywordCount);
-             SwapWord(UpContext);
-             SwapWord(DownContext);
-{$endif ENDIAN_BIG}
+             KeywordCount:=LEToN(KeywordCount);
+             UpContext:=LEToN(UpContext);
+             DownContext:=LEToN(DownContext);
              T^.LinkCount:=KeywordCount;
              GetMem(T^.Links,T^.LinkSize);
              if KeywordCount>0 then
              for I:=0 to KeywordCount-1 do
              begin
-{$ifdef ENDIAN_BIG}
-               SwapWord(Keywords[I].KwContext);
-{$endif ENDIAN_BIG}
+               Keywords[I].KwContext:=LEToN(Keywords[I].KwContext);
                T^.Links^[I].Context:=Keywords[I].KwContext;
                T^.Links^[I].FileID:=ID;
              end;
@@ -588,7 +570,7 @@ end;
 
 procedure RegisterHelpType;
 begin
-  RegisterHelpFileType({$ifdef FPC}@{$endif}CreateProc);
+  RegisterHelpFileType(@CreateProc);
 end;
 
 END.

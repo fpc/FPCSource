@@ -224,11 +224,8 @@ const
                FILE_SHARE_READ,
                FILE_SHARE_WRITE,
                FILE_SHARE_READ or FILE_SHARE_WRITE);
-Var
-  FN : string;
 begin
-  FN:=FileName+#0;
-  result := CreateFile(@FN[1], dword(AccessMode[Mode and 3]),
+  result := CreateFile(PChar(FileName), dword(AccessMode[Mode and 3]),
                        dword(ShareMode[(Mode and $F0) shr 4]), nil, OPEN_EXISTING,
                        FILE_ATTRIBUTE_NORMAL, 0);
   //if fail api return feInvalidHandle (INVALIDE_HANDLE=feInvalidHandle=-1)
@@ -236,11 +233,8 @@ end;
 
 
 Function FileCreate (Const FileName : String) : THandle;
-Var
-  FN : string;
 begin
-  FN:=FileName+#0;
-  Result := CreateFile(@FN[1], GENERIC_READ or GENERIC_WRITE,
+  Result := CreateFile(PChar(FileName), GENERIC_READ or GENERIC_WRITE,
                        0, nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 end;
 
@@ -1061,7 +1055,6 @@ Procedure LoadVersionInfo;
 Var
    versioninfo : TOSVERSIONINFO;
 begin
-  kernel32dll:=0;
   GetDiskFreeSpaceEx:=nil;
   versioninfo.dwOSVersionInfoSize:=sizeof(versioninfo);
   GetVersionEx(versioninfo);
@@ -1071,14 +1064,9 @@ begin
   Win32BuildNumber:=versionInfo.dwBuildNumber;
   Move (versioninfo.szCSDVersion ,Win32CSDVersion[1],128);
   win32CSDVersion[0]:=chr(strlen(pchar(@versioninfo.szCSDVersion)));
-  if ((versioninfo.dwPlatformId=VER_PLATFORM_WIN32_WINDOWS) and
-    (versioninfo.dwBuildNUmber>=1000)) or
-    (versioninfo.dwPlatformId=VER_PLATFORM_WIN32_NT) then
-    begin
-       kernel32dll:=LoadLibrary('kernel32');
-       if kernel32dll<>0 then
-         GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
-    end;
+  kernel32dll:=GetModuleHandle('kernel32');
+  if kernel32dll<>0 then
+    GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
 end;
 
 Const
@@ -1136,36 +1124,28 @@ var
 Procedure InitDLL;
 
 Var
-  P : Pointer;
-
+  pathBuf: array[0..MAX_PATH-1] of char;
+  pathLength: Integer;
 begin
-  CFGDLLHandle:=LoadLibrary('shell32.dll');
-  if (CFGDLLHandle<>0) then
-    begin
-    P:=GetProcAddress(CFGDLLHandle,'SHGetFolderPathA');
-    If (P=Nil) then
-      begin
-      FreeLibrary(CFGDLLHandle);
-      CFGDllHandle:=0;
-      end
-    else
-      SHGetFolderPath:=PFNSHGetFolderPath(P);
-    end;
-  If (P=Nil) then
-    begin
-    CFGDLLHandle:=LoadLibrary('shfolder.dll');
+  { Load shfolder.dll using a full path, in order to prevent spoofing (Mantis #18185)
+    Don't bother loading shell32.dll because shfolder.dll itself redirects SHGetFolderPath
+    to shell32.dll whenever possible. }
+  pathLength:=GetSystemDirectory(pathBuf, MAX_PATH);
+  if (pathLength>0) and (pathLength<MAX_PATH-14) then { 14=length('\shfolder.dll'#0) }
+  begin
+    StrLCopy(@pathBuf[pathLength],'\shfolder.dll',MAX_PATH-pathLength-1);
+    CFGDLLHandle:=LoadLibrary(pathBuf);
+
     if (CFGDLLHandle<>0) then
+    begin
+      Pointer(ShGetFolderPath):=GetProcAddress(CFGDLLHandle,'SHGetFolderPathA');
+      If @ShGetFolderPath=nil then
       begin
-      P:=GetProcAddress(CFGDLLHandle,'SHGetFolderPathA');
-      If (P=Nil) then
-        begin
         FreeLibrary(CFGDLLHandle);
         CFGDllHandle:=0;
-        end
-      else
-        ShGetFolderPath:=PFNSHGetFolderPath(P);
       end;
     end;
+  end;
   If (@ShGetFolderPath=Nil) then
     Raise Exception.Create('Could not determine SHGetFolderPath Function');
 end;
@@ -1383,8 +1363,6 @@ Initialization
   InitSysConfigDir;
 Finalization
   DoneExceptions;
-  if kernel32dll<>0 then
-   FreeLibrary(kernel32dll);
- if CFGDLLHandle<>0 then
+  if CFGDLLHandle<>0 then
    FreeLibrary(CFGDllHandle);
 end.

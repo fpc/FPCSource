@@ -131,8 +131,14 @@ Type
   Published
     Property FileName;
     Property Template;
-//    Property AllowTagParams;
-//    Property OnReplaceTag;
+    Property AllowTagParams;
+    Property OnReplaceTag;
+    Property StartDelimiter;
+    Property EndDelimiter;
+    Property ParamStartDelimiter;
+    Property ParamEndDelimiter;
+    Property ParamValueSeparator;
+    Property OnGetParam;
   end;
   
   ETemplateParser = Class(Exception);
