@@ -849,7 +849,7 @@ implementation
          symtablestack.push(recst);
          { parse record }
          consume(_RECORD);
-         if m_extended_records in current_settings.modeswitches then
+         if m_advanced_records in current_settings.modeswitches then
            parse_record_members
          else
            begin

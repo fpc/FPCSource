@@ -273,7 +273,7 @@ interface
          m_objectivec2,         { support interfacing with Objective-C (2.0) }
          m_nested_procvars,     { support nested procedural variables }
          m_non_local_goto,      { support non local gotos (like iso pascal) }
-         m_extended_records     { extended record syntax with visibility sections, methods and properties }
+         m_advanced_records     { advanced record syntax with visibility sections, methods and properties }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -393,7 +393,7 @@ interface
          'OBJECTIVEC2',
          'NESTEDPROCVARS',
          'NONLOCALGOTO',
-         'EXTENDEDRECORDS');
+         'ADVANCEDRECORDS');
 
 
      type
