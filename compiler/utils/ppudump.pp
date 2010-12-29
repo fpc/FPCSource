@@ -1933,6 +1933,7 @@ begin
              write  (space,'     Pointed Type : ');
              readderef('');
              writeln(space,'           Is Far : ',(getbyte<>0));
+             writeln(space,' Has Pointer Math : ',(getbyte<>0));
            end;
 
          iborddef :

@@ -378,6 +378,20 @@ implementation
                  include(init_settings.moduleswitches,cs_support_goto);
              end;
 
+           { support pointer math by default in fpc/objfpc modes }
+           if ([m_fpc,m_objfpc] * current_settings.modeswitches <> []) then
+             begin
+               include(current_settings.localswitches,cs_pointermath);
+               if changeinit then
+                 include(init_settings.localswitches,cs_pointermath);
+             end
+           else
+             begin
+               exclude(current_settings.localswitches,cs_pointermath);
+               if changeinit then
+                 exclude(init_settings.localswitches,cs_pointermath);
+             end;
+
            { Default enum and set packing for delphi/tp7 }
            if (m_tp7 in current_settings.modeswitches) or
               (m_delphi in current_settings.modeswitches) then

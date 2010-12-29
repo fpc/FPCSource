@@ -110,7 +110,7 @@ interface
          cs_mmx,cs_mmx_saturation,
          { parser }
          cs_typed_addresses,cs_strict_var_strings,cs_ansistrings,cs_bitpacking,
-         cs_varpropsetter,cs_scopedenums,
+         cs_varpropsetter,cs_scopedenums,cs_pointermath,
          { macpas specific}
          cs_external_var, cs_externally_visible
        );
@@ -261,7 +261,6 @@ interface
                                   procedure variables                     }
          m_autoderef,           { does auto dereferencing of struct. vars }
          m_initfinal,           { initialization/finalization for units }
-         m_add_pointer,         { allow pointer add/sub operations }
          m_default_ansistring,  { ansistring turned on by default }
          m_out,                 { support the calling convention OUT }
          m_default_para,        { support default parameters }
@@ -382,7 +381,6 @@ interface
          'POINTERTOPROCVAR',
          'AUTODEREF',
          'INITFINAL',
-         'POINTERARITHMETICS',
          'ANSISTRINGS',
          'OUT',
          'DEFAULTPARAMETERS',

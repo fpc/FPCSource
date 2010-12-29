@@ -161,6 +161,7 @@ interface
 
        tpointerdef = class(tabstractpointerdef)
           is_far : boolean;
+          has_pointer_math : boolean;
           constructor create(def:tdef);
           constructor createfar(def:tdef);
           function getcopy:tstoreddef;override;
@@ -2085,6 +2086,7 @@ implementation
       begin
         inherited create(pointerdef,def);
         is_far:=false;
+        has_pointer_math:=cs_pointermath in current_settings.localswitches;
       end;
 
 
@@ -2092,6 +2094,7 @@ implementation
       begin
         inherited create(pointerdef,def);
         is_far:=true;
+        has_pointer_math:=cs_pointermath in current_settings.localswitches;
       end;
 
 
@@ -2099,6 +2102,7 @@ implementation
       begin
          inherited ppuload(pointerdef,ppufile);
          is_far:=(ppufile.getbyte<>0);
+         has_pointer_math:=(ppufile.getbyte<>0);
       end;
 
 
@@ -2112,6 +2116,7 @@ implementation
         else
           result:=tpointerdef.create(pointeddef);
         tpointerdef(result).is_far:=is_far;
+        tpointerdef(result).has_pointer_math:=has_pointer_math;
         tpointerdef(result).savesize:=savesize;
       end;
 
@@ -2120,6 +2125,7 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(is_far));
+         ppufile.putbyte(byte(has_pointer_math));
          ppufile.writeentry(ibpointerdef);
       end;
 

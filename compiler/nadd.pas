@@ -1737,7 +1737,7 @@ implementation
             if nodetype=addn then
               begin
                 if not(cs_extsyntax in current_settings.moduleswitches) or
-                   (not(is_pchar(ld)) and not(m_add_pointer in current_settings.modeswitches)) then
+                   (not(is_pchar(ld)) and not(cs_pointermath in current_settings.localswitches) and not tpointerdef(ld).has_pointer_math) then
                   CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                 if (rd.typ=pointerdef) and
                    (tpointerdef(rd).pointeddef.size>1) then
@@ -1768,7 +1768,7 @@ implementation
                  if (lt=niln) then
                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),'NIL',rd.typename);
                  if not(cs_extsyntax in current_settings.moduleswitches) or
-                    (not(is_pchar(ld)) and not(m_add_pointer in current_settings.modeswitches)) then
+                    (not(is_pchar(ld)) and not(cs_pointermath in current_settings.localswitches) and not tpointerdef(ld).has_pointer_math) then
                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                  if (ld.typ=pointerdef) then
                  begin

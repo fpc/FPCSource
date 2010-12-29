@@ -863,7 +863,8 @@ implementation
                  (except voidpointer) in delphi/tp7 it's only allowed for pchars. }
                if not is_voidpointer(left.resultdef) and
                   (
-                   (m_fpc in current_settings.modeswitches) or
+                   (cs_pointermath in current_settings.localswitches) or
+                   tpointerdef(left.resultdef).has_pointer_math or
                    is_pchar(left.resultdef) or
                    is_pwidechar(left.resultdef)
                   ) then
