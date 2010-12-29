@@ -61,7 +61,7 @@ UNIT FVCommon;
 {$I platform.inc}
 {====================================================================}
 
-{$ifdef win32}
+{$ifdef OS_WINDOWS}
   uses
     Windows;
 {$endif}
@@ -99,7 +99,7 @@ CONST
 {$IFDEF BIT_16}                                       { 16 BIT DEFINITION }
    MaxBytes = 65520;                                  { Maximum data size }
 {$ENDIF}
-{$IFDEF BIT_32}                                       { 32 BIT DEFINITION }
+{$IFDEF BIT_32_OR_MORE}                                       { 32 BIT DEFINITION }
    MaxBytes = 128*1024*1024;                          { Maximum data size }
 {$ENDIF}
    MaxWords = MaxBytes DIV SizeOf(Word);              { Max words }
@@ -117,7 +117,7 @@ CONST
 {                           CPU TYPE DEFINITIONS                            }
 {---------------------------------------------------------------------------}
 TYPE
-{$IFDEF BIT_32}                                       { 32 BIT CODE }
+{$IFDEF BIT_32_OR_MORE}                               { 32 BIT CODE }
    CPUWord = Longint;                                 { CPUWord is 32 bit }
    CPUInt = Longint;                                  { CPUInt is 32 bit }
 {$ELSE}                                               { 16 BIT CODE }
@@ -133,7 +133,7 @@ TYPE
    Sw_Word    = Word;                                 { Standard word }
    Sw_Integer = Integer;                              { Standard integer }
 {$ENDIF}
-{$IFDEF BIT_32}                                       { 32 BIT DEFINITIONS }
+{$IFDEF BIT_32_OR_MORE}                               { 32 BIT DEFINITIONS }
    Sw_Word    = Cardinal;                             { Long integer now }
    Sw_Integer = LongInt;                              { Long integer now }
 {$ENDIF}

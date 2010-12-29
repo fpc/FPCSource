@@ -1072,10 +1072,10 @@ begin
      keyshift:=KeyBoard.GetKeyEventShiftState(key);
      // some kbds still honour old XT E0 prefix. (org IBM ps/2, win98?) bug #8978
      if (keycode and $FF = $E0) and
-        (byte(keycode shr 8) in  
+        (byte(keycode shr 8) in
               [$1C,$1D,$2A,$35..$38,$46..$49,$4b,$4d,$4f,$50..$53]) Then
           keycode := keycode and $FF00;
-     
+
      { fixup shift-keys }
      if keyshift and kbShift<>0 then
        begin
@@ -1341,10 +1341,10 @@ begin
     exit;
   GetVideoMode(StartupScreenMode);
   GetVideoMode(ScreenMode);
-{$ifdef win32}
+{$ifdef OS_WINDOWS}
   { Force the console to the current screen mode }
   Video.SetVideoMode(ScreenMode);
-{$endif win32}
+{$endif OS_WINDOWS}
 
   If (StoreScreenMode.Col<>0) and
      ((StoreScreenMode.color<>ScreenMode.color) or
@@ -1587,7 +1587,7 @@ BEGIN
    DetectVideo;                                       { Detect video }
 {   InitKeyboard;}
    InitSystemMsg;
-{$ifdef win32}
+{$ifdef OS_WINDOWS}
    SetFileApisToOEM;
 {$endif}
 

@@ -394,7 +394,7 @@ ifeq ($(FULL_TARGET),x86_64-darwin)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes  fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc gmp fcl-extra univint opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes  fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick tcl opengl gtk1 fpgtk fftw sdl openssl cdrom httpd13 httpd20 httpd22 numlib fcl-extra opencl ptc graph
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes  fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick gdbint tcl opengl gtk1 fpgtk fftw sdl openssl cdrom httpd13 httpd20 httpd22 numlib fcl-extra opencl ptc graph
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes
@@ -3859,6 +3859,7 @@ TARGET_DIRS_ODBC=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_IMAGEMAGICK=1
+TARGET_DIRS_GDBINT=1
 TARGET_DIRS_TCL=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK1=1

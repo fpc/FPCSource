@@ -292,13 +292,13 @@ PROCEDURE SetTime (Hour, Minute, Second, Sec100: Word);
      POP BP;                                          { Restore register }
    END;
    {$ENDIF}
-   {$IFDEF BIT_32}                                    { 32 BIT WINDOWS CODE }
+   {$IFDEF BIT_32_OR_MORE}                            { 32 BIT WINDOWS CODE }
    VAR DT: TSystemTime;
    BEGIN
      {$IFDEF PPC_FPC}                                 { FPC WINDOWS COMPILER }
-     GetLocalTime(@DT);                              { Get the date/time }
+     GetLocalTime(@DT);                               { Get the date/time }
      {$ELSE}                                          { OTHER COMPILERS }
-     GetLocalTime(DT);                               { Get the date/time }
+     GetLocalTime(DT);                                { Get the date/time }
      {$ENDIF}
      DT.wHour := Hour;                                { Transfer hour }
      DT.wMinute := Minute;                            { Transfer minute }
@@ -417,7 +417,7 @@ PROCEDURE GetTime (Var Hour, Minute, Second, Sec100: Word);
      STOSW;                                           { Return hours }
    END;
    {$ENDIF}
-   {$IFDEF BIT_32}                                    { 32 BIT WINDOWS CODE }
+   {$IFDEF BIT_32_OR_MORE}                            { 32 BIT WINDOWS CODE }
    VAR DT: TSystemTime;
    BEGIN
      {$IFDEF PPC_FPC}                                 { FPC WINDOWS COMPILER }

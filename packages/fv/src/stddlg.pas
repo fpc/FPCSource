@@ -619,9 +619,9 @@ resourcestring  sChangeDirectory='Change Directory';
 {$ifdef go32v2}
 {$define NetDrive}
 {$endif go32v2}
-{$ifdef win32}
+{$ifdef OS_WINDOWS}
 {$define NetDrive}
-{$endif win32}
+{$endif OS_WINDOWS}
 
 procedure RemoveDoubleDirSep(var ExpPath : PathStr);
 var
@@ -671,7 +671,7 @@ begin
     // This function is called on current directories.
     // If the current dir starts with a . on Linux it is is hidden.
     // That's why we allow hidden dirs below (bug 6173)
-    FindFirst(ExpPath, Directory+hidden, SR); 
+    FindFirst(ExpPath, Directory+hidden, SR);
     PathValid := (DosError = 0) and (SR.Attr and Directory <> 0);
 {$ifdef NetDrive}
     if (DosError<>0) and (length(ExpPath)>2) and
@@ -2746,11 +2746,11 @@ begin
   else
     IllegalChars := ';,=+<>|"[] '+DirSeparator;
 {$else not go32v2}
-{$ifdef win32}
+{$ifdef OS_WINDOWS}
     IllegalChars := ';,=+<>|"[]'+DirSeparator;
-{$else not go32v2 and not win32 }
+{$else not go32v2 and not OS_WINDOWS }
     IllegalChars := ';,=+<>|"[] '+DirSeparator;
-{$endif not win32}
+{$endif not OS_WINDOWS}
 {$endif not go32v2}
 {$else not PPC_FPC}
   IllegalChars := ';,=+<>|"[] '+DirSeparator;

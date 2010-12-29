@@ -1,5 +1,5 @@
 {
-   System independent system interface for win32
+   System independent system interface for win32/win64
 
    Copyright (c) 2000 by Pierre Muller
 

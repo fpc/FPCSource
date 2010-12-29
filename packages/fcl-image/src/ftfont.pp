@@ -31,10 +31,10 @@ type
     FIndex, FFontID : integer;
     FFace : PFT_Face;
     FAngle : real;
-    procedure DrawChar (x,y:integer; data:PByteArray; pitch, width, height:integer);
-    procedure DrawCharBW (x,y:integer; data:PByteArray; pitch, width, height:integer);
     procedure ClearLastText;
   protected
+    procedure DrawChar (x,y:integer; data:PByteArray; pitch, width, height:integer); virtual;
+    procedure DrawCharBW (x,y:integer; data:PByteArray; pitch, width, height:integer); virtual;
     procedure SetName (AValue:string); override;
     procedure SetIndex (AValue : integer);
     procedure SetSize (AValue : integer); override;
