@@ -229,7 +229,7 @@ implementation
             pointerdef :
               begin
                 if ((rd.typ in [orddef,enumdef,pointerdef,classrefdef,procvardef]) or
-                    is_class_or_interface_or_dispinterface_or_objc(rd)) then
+                    is_implicit_pointer_object_type(rd)) then
                  begin
                    allowed:=false;
                    exit;
@@ -289,9 +289,9 @@ implementation
               end;
             objectdef :
               begin
-                { <> and = are defined for classes }
+                { <> and = are defined for implicit pointer object types }
                 if (treetyp in [equaln,unequaln]) and
-                   is_class_or_interface_or_dispinterface_or_objc(ld) then
+                   is_implicit_pointer_object_type(ld) then
                  begin
                    allowed:=false;
                    exit;
@@ -944,7 +944,7 @@ implementation
                end;
              subscriptn :
                begin
-                 if is_class_or_interface_or_dispinterface_or_objc(tunarynode(p).left.resultdef) then
+                 if is_implicit_pointer_object_type(tunarynode(p).left.resultdef) then
                    newstate := vs_read;
                  p:=tunarynode(p).left;
                end;
@@ -1098,7 +1098,7 @@ implementation
                  pointerdef :
                    gotpointer:=true;
                  objectdef :
-                   gotclass:=is_class_or_interface_or_dispinterface_or_objc(hp.resultdef);
+                   gotclass:=is_implicit_pointer_object_type(hp.resultdef);
                  recorddef :
                    gotrecord:=true;
                  classrefdef :
@@ -1215,7 +1215,7 @@ implementation
                    pointerdef :
                      gotpointer:=true;
                    objectdef :
-                     gotclass:=is_class_or_interface_or_dispinterface_or_objc(hp.resultdef);
+                     gotclass:=is_implicit_pointer_object_type(hp.resultdef);
                    classrefdef :
                      gotclass:=true;
                    arraydef :
@@ -1309,10 +1309,9 @@ implementation
                      else
                        exit;
                    end;
-                 { a class/interface access is an implicit }
-                 { dereferencing                           }
+                 { implicit pointer object types result in dereferencing }
                  hp:=tsubscriptnode(hp).left;
-                 if is_class_or_interface_or_dispinterface_or_objc(hp.resultdef) then
+                 if is_implicit_pointer_object_type(hp.resultdef) then
                    gotderef:=true;
                end;
              muln,
@@ -1401,7 +1400,7 @@ implementation
                    pointerdef :
                      gotpointer:=true;
                    objectdef :
-                     gotclass:=is_class_or_interface_or_dispinterface_or_objc(hp.resultdef);
+                     gotclass:=is_implicit_pointer_object_type(hp.resultdef);
                    recorddef, { handle record like class it needs a subscription }
                    classrefdef :
                      gotclass:=true;

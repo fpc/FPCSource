@@ -783,7 +783,7 @@ interface
     function is_class_or_interface_or_objc(def: tdef): boolean;
     function is_class_or_interface_or_object(def: tdef): boolean;
     function is_class_or_interface_or_dispinterface(def: tdef): boolean;
-    function is_class_or_interface_or_dispinterface_or_objc(def: tdef): boolean;
+    function is_implicit_pointer_object_type(def: tdef): boolean;
     function is_class_or_object(def: tdef): boolean;
     function is_record(def: tdef): boolean;
 
@@ -1155,7 +1155,7 @@ implementation
           procvardef :
             is_intregable:=tprocvardef(self).is_addressonly;
           objectdef:
-            is_intregable:=(is_class_or_interface_or_dispinterface_or_objc(self)) and not needs_inittable;
+            is_intregable:=(is_implicit_pointer_object_type(self)) and not needs_inittable;
           setdef:
             is_intregable:=is_smallset(self);
           recorddef:
@@ -5509,7 +5509,7 @@ implementation
       end;
 
 
-    function is_class_or_interface_or_dispinterface_or_objc(def: tdef): boolean;
+    function is_implicit_pointer_object_type(def: tdef): boolean;
       begin
         result:=
           assigned(def) and

@@ -282,7 +282,7 @@ implementation
                  objectdef:
                    begin
                      if (m_delphi in current_settings.modeswitches) and
-                        is_class_or_interface_or_dispinterface_or_objc(def_from) and
+                        is_implicit_pointer_object_type(def_from) and
                         (cdo_explicit in cdoptions) then
                       begin
                         eq:=te_convert_l1;
@@ -1131,11 +1131,11 @@ implementation
                  classrefdef,
                  objectdef :
                    begin
-                     { class types and class reference type
+                     { implicit pointer object and class reference types
                        can be assigned to void pointers, but it is less
                        preferred than assigning to a related objectdef }
                      if (
-                         is_class_or_interface_or_dispinterface_or_objc(def_from) or
+                         is_implicit_pointer_object_type(def_from) or
                          (def_from.typ=classrefdef)
                         ) and
                         (tpointerdef(def_to).pointeddef.typ=orddef) and
@@ -1268,8 +1268,8 @@ implementation
                   eq:=te_convert_l1;
                 end
                else
-               { Class/interface specific }
-                if is_class_or_interface_or_dispinterface_or_objc(def_to) then
+               { specific to implicit pointer object types }
+                if is_implicit_pointer_object_type(def_to) then
                  begin
                    { void pointer also for delphi mode }
                    if (m_delphi in current_settings.modeswitches) and

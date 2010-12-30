@@ -495,7 +495,7 @@ implementation
                    procvardef,
                    classrefdef : ;
                    objectdef :
-                     if not is_class_or_interface_or_dispinterface_or_objc(p1.resultdef) then
+                     if not is_implicit_pointer_object_type(p1.resultdef) then
                        begin
                          Message(parser_e_illegal_parameter_list);
                          err:=true;

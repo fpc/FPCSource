@@ -1275,8 +1275,8 @@ implementation
               exit;
             end;
 
-          { only allow nil for class and interface }
-          if is_class_or_interface_or_dispinterface_or_objc(def) then
+          { only allow nil for implicit pointer object types }
+          if is_implicit_pointer_object_type(def) then
             begin
               n:=comp_expr(true,false);
               if n.nodetype<>niln then

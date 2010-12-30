@@ -291,8 +291,8 @@ implementation
          if codegenerror then
            exit;
          paraloc1.init;
-         { classes and interfaces must be dereferenced implicitly }
-         if is_class_or_interface_or_dispinterface_or_objc(left.resultdef) then
+         { several object types must be dereferenced implicitly }
+         if is_implicit_pointer_object_type(left.resultdef) then
            begin
              { the contents of a class are aligned to a sizeof(pointer) }
              location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),sizeof(pint));

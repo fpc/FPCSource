@@ -687,8 +687,8 @@ implementation
          if codegenerror then
           exit;
 
-         { classes must be dereferenced implicitly }
-         if is_class_or_interface_or_dispinterface_or_objc(left.resultdef) then
+         { several object types must be dereferenced implicitly }
+         if is_implicit_pointer_object_type(left.resultdef) then
            expectloc:=LOC_REFERENCE
          else
            begin

@@ -511,7 +511,7 @@ implementation
                      (token=_OBJCPROTOCOL) or
                      (token=_OBJCCATEGORY)) and
                     (assigned(ttypesym(sym).typedef)) and
-                    is_class_or_interface_or_dispinterface_or_objc(ttypesym(sym).typedef) and
+                    is_implicit_pointer_object_type(ttypesym(sym).typedef) and
                     (oo_is_forward in tobjectdef(ttypesym(sym).typedef).objectoptions) then
                   begin
                     case token of

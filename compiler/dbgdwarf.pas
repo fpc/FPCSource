@@ -941,7 +941,7 @@ implementation
                           on when the typecast is changed to 'as' }
                         current_asmdata.getdatalabel(TAsmLabel(pointer(def.dwarf_lab)));
                         current_asmdata.getdatalabel(TAsmLabel(pointer(def.dwarf_ref_lab)));
-                        if is_class_or_interface_or_dispinterface_or_objc(def) then
+                        if is_implicit_pointer_object_type(def) then
                           current_asmdata.getdatalabel(TAsmLabel(pointer(tobjectdef(def).dwarf_struct_lab)));
                       end;
                   end;
@@ -953,7 +953,7 @@ implementation
                 { addrlabel instead of datalabel because it must be a local one }
                 current_asmdata.getaddrlabel(TAsmLabel(pointer(def.dwarf_lab)));
                 current_asmdata.getaddrlabel(TAsmLabel(pointer(def.dwarf_ref_lab)));
-                if is_class_or_interface_or_dispinterface_or_objc(def) then
+                if is_implicit_pointer_object_type(def) then
                   current_asmdata.getaddrlabel(TAsmLabel(pointer(tobjectdef(def).dwarf_struct_lab)));
               end;
             if def.dbg_state=dbg_state_used then
@@ -3419,7 +3419,7 @@ implementation
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
               if (def.childof.dbg_state=dbg_state_unused) then
                 def.childof.dbg_state:=dbg_state_used;
-              if is_class_or_interface_or_dispinterface_or_objc(def) then
+              if is_implicit_pointer_object_type(def) then
                 append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def.childof))
               else
                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.childof));
