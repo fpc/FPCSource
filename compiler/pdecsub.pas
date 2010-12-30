@@ -802,9 +802,9 @@ implementation
         popclass : integer;
         ImplIntf : TImplementedInterface;
         old_parse_generic : boolean;
-        old_current_structdef: tabstractrecorddef;
+        old_current_structdef,
         old_current_genericdef,
-        old_current_specializedef : tobjectdef;
+        old_current_specializedef : tabstractrecorddef;
         lasttoken,lastidtoken: ttoken;
 
         procedure parse_operator_name;
@@ -1189,9 +1189,9 @@ implementation
           var
             popclass: integer;
             old_parse_generic: boolean;
-            old_current_structdef: tabstractrecorddef;
+            old_current_structdef,
             old_current_genericdef,
-            old_current_specializedef: tobjectdef;
+            old_current_specializedef: tabstractrecorddef;
           begin
             old_parse_generic:=parse_generic;
             { Add ObjectSymtable to be able to find generic type definitions }

@@ -1388,9 +1388,9 @@ implementation
          old_current_procinfo : tprocinfo;
          old_block_type : tblock_type;
          st : TSymtable;
-         old_current_structdef: tabstractrecorddef;
+         old_current_structdef,
          old_current_genericdef,
-         old_current_specializedef : tobjectdef;
+         old_current_specializedef: tabstractrecorddef;
       begin
          old_current_procinfo:=current_procinfo;
          old_block_type:=block_type;
@@ -1655,9 +1655,9 @@ implementation
 
       var
         old_current_procinfo : tprocinfo;
-        old_current_structdef: tabstractrecorddef;
+        old_current_structdef,
         old_current_genericdef,
-        old_current_specializedef : tobjectdef;
+        old_current_specializedef: tabstractrecorddef;
         pdflags    : tpdflags;
         pd,firstpd : tprocdef;
         s          : string;
