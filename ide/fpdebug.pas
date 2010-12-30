@@ -517,6 +517,11 @@ const
   FrameName = '$ebp';
 {$define FrameNameKnown}
 {$endif i386}
+{$ifdef x86_64}
+const
+  FrameName = '$rbp';
+{$define FrameNameKnown}
+{$endif x86_64}
 {$ifdef m68k}
 const
   FrameName = '$fp';
