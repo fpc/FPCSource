@@ -166,12 +166,12 @@ implementation
             if (df_generic in left.resultdef.defoptions) then
               begin
                 defaultresultdef:=true;
-                if assigned(current_objectdef) then
+                if assigned(current_structdef) then
                   begin
-                    if assigned(current_objectdef.genericdef) then
-                      if current_objectdef.genericdef=left.resultdef then
+                    if assigned(current_structdef.genericdef) then
+                      if current_structdef.genericdef=left.resultdef then
                         begin
-                          resultdef:=tclassrefdef.create(current_objectdef);
+                          resultdef:=tclassrefdef.create(current_structdef);
                           defaultresultdef:=false;
                         end
                       else

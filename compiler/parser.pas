@@ -60,7 +60,7 @@ implementation
          current_module:=nil;
          current_asmdata:=nil;
          current_procinfo:=nil;
-         current_objectdef:=nil;
+         current_structdef:=nil;
          current_genericdef:=nil;
          current_specializedef:=nil;
 
@@ -134,7 +134,7 @@ implementation
          current_module:=nil;
          current_procinfo:=nil;
          current_asmdata:=nil;
-         current_objectdef:=nil;
+         current_structdef:=nil;
          current_genericdef:=nil;
          current_specializedef:=nil;
 
@@ -293,7 +293,7 @@ implementation
          { parsing a procedure or declaration should be finished }
          if assigned(current_procinfo) then
            internalerror(200811121);
-         if assigned(current_objectdef) then
+         if assigned(current_structdef) then
            internalerror(200811122);
          inc(compile_level);
          parser_current_file:=filename;

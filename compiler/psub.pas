@@ -298,7 +298,7 @@ implementation
                 if is_class(current_structdef) then
                   begin
                     include(current_procinfo.flags,pi_needs_implicit_finally);
-                    srsym:=search_struct_member(current_objectdef,'NEWINSTANCE');
+                    srsym:=search_struct_member(current_structdef,'NEWINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
                       begin
@@ -363,7 +363,7 @@ implementation
             if (current_procinfo.procdef.proctypeoption=potype_destructor) and
                is_class(current_structdef) then
               begin
-                srsym:=search_struct_member(current_objectdef,'BEFOREDESTRUCTION');
+                srsym:=search_struct_member(current_structdef,'BEFOREDESTRUCTION');
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
@@ -410,7 +410,7 @@ implementation
               begin
                 if is_class(current_structdef) then
                   begin
-                    srsym:=search_struct_member(current_objectdef,'FREEINSTANCE');
+                    srsym:=search_struct_member(current_structdef,'FREEINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
                       begin
@@ -435,7 +435,7 @@ implementation
                   if is_object(current_structdef) then
                     begin
                       { finalize object data, but only if not in inherited call }
-                      if is_managed_type(current_objectdef) then
+                      if is_managed_type(current_structdef) then
                         begin
                           addstatement(newstatement,cifnode.create(
                             caddnode.create(unequaln,
@@ -615,7 +615,7 @@ implementation
             { call AfterConstruction for classes }
             if is_class(current_structdef) then
               begin
-                srsym:=search_struct_member(current_objectdef,'AFTERCONSTRUCTION');
+                srsym:=search_struct_member(current_structdef,'AFTERCONSTRUCTION');
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin

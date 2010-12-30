@@ -641,8 +641,8 @@ interface
        end;
 
     var
-       current_structdef: tabstractrecorddef;
-       current_objectdef : tobjectdef absolute current_structdef;  { used for private functions check !! }
+       current_structdef: tabstractrecorddef; { used for private functions check !! }
+       current_objectdef : tobjectdef absolute current_structdef;
        current_genericdef : tobjectdef; { used to reject declaration of generic class inside generic class }
        current_specializedef : tobjectdef; { used to implement usage of generic class in itself }
 

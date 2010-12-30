@@ -731,11 +731,11 @@ implementation
       var
         i : longint;
         def : tdef;
-        old_current_objectdef : tobjectdef;
+        old_current_structdef : tabstractrecorddef;
         overridesclasshelper : boolean;
       begin
-        old_current_objectdef:=current_objectdef;
-        current_objectdef:=_class;
+        old_current_structdef:=current_structdef;
+        current_structdef:=_class;
 
         _class.resetvmtentries;
 
@@ -770,7 +770,7 @@ implementation
             intf_allocate_vtbls;
           end;
 
-        current_objectdef:=old_current_objectdef;
+        current_structdef:=old_current_structdef;
       end;
 
 

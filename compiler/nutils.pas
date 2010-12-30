@@ -536,7 +536,7 @@ implementation
         { call fail helper and exit normal }
         if is_class(current_structdef) then
           begin
-            srsym:=search_struct_member(current_objectdef,'FREEINSTANCE');
+            srsym:=search_struct_member(current_structdef,'FREEINSTANCE');
             if assigned(srsym) and
                (srsym.typ=procsym) then
               begin
