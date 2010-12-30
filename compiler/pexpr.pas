@@ -1541,7 +1541,7 @@ implementation
                              begin
                                p1:=ctypenode.create(hdef);
                                { search also in inherited methods }
-                               searchsym_in_class(tobjectdef(hdef),current_objectdef,pattern,srsym,srsymtable);
+                               searchsym_in_class(tobjectdef(hdef),tobjectdef(current_structdef),pattern,srsym,srsymtable);
                                if assigned(srsym) then
                                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                consume(_ID);
@@ -2369,12 +2369,12 @@ implementation
                     assigned(current_structdef) and
                     (current_structdef.typ=objectdef) then
                   begin
-                    hclassdef:=current_objectdef.childof;
+                    hclassdef:=tobjectdef(current_structdef).childof;
                     { Objective-C categories *replace* methods in the class
                       they extend, or add methods to it. So calling an
                       inherited method always calls the method inherited from
                       the parent of the extended class }
-                    if is_objccategory(current_objectdef) then
+                    if is_objccategory(current_structdef) then
                       hclassdef:=hclassdef.childof;
                     { if inherited; only then we need the method with
                       the same name }
@@ -2393,7 +2393,7 @@ implementation
                         if (po_msgstr in pd.procoptions) then
                           searchsym_in_class_by_msgstr(hclassdef,pd.messageinf.str^,srsym,srsymtable)
                        else
-                         searchsym_in_class(hclassdef,current_objectdef,hs,srsym,srsymtable);
+                         searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable);
                      end
                     else
                      begin
@@ -2401,7 +2401,7 @@ implementation
                        hsorg:=orgpattern;
                        consume(_ID);
                        anon_inherited:=false;
-                       searchsym_in_class(hclassdef,current_objectdef,hs,srsym,srsymtable);
+                       searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable);
                      end;
                     if assigned(srsym) then
                      begin
