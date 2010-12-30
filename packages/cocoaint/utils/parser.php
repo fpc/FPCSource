@@ -1,9 +1,8 @@
 <?php
 
-$version = "2.1.2";
+$version = "2.1.3";
 
-require("source/pascocoa_parser.php");
-require("source/objp_parser.php");
+require("source/objp.php");
 
 /**
  * Cocoa framework parser for Objective-Pascal
@@ -27,7 +26,7 @@ function HandleCommandLineOptions ($argv) {
 	global $ignore_headers;
 	global $only_files;
 	
-	// defaults
+	// Define defaults
 	$options["framework_path"] = "/System/Library/Frameworks";
 
 	foreach ($argv as $option) {
@@ -53,10 +52,6 @@ function HandleCommandLineOptions ($argv) {
 				break;
 				
 			case 'all':
-				$options[$key] = true;
-				break;
-
-			case 'objp':
 				$options[$key] = true;
 				break;
 
@@ -95,6 +90,10 @@ function HandleCommandLineOptions ($argv) {
 			case 'webkit':
 				$options[$key] = true;
 				break;
+			
+			case 'sdk':
+				$options[$key] = trim($value, "\"");
+				break;
 
 			case 'ignore':
 				$ignore_headers = explode(",", trim($value, "\""));
@@ -115,38 +114,7 @@ function HandleCommandLineOptions ($argv) {
 	}
 }
 
-// ??? TESTING
-$testing = false;
-
-if ($testing) {
-	print("=== WARNING: TESTING MODE ENABLED - COMMAND LINE IS OVERRIDDEN! ===\n");
-	//$GLOBALS["argv"][] = "-webkit";
-	$GLOBALS["argv"][] = "-root=/Developer/ObjectivePascal/dev";
-	//$GLOBALS["argv"][] = "-delegates";
-	$GLOBALS["argv"][] = "-objp";
-	$GLOBALS["argv"][] = "-comments";
-	//$GLOBALS["argv"][] = "-reference";
-	$GLOBALS["argv"][] = "-all";
-	//$GLOBALS["argv"][] = "-noprint";
-	//$GLOBALS["argv"][] = "-show";
-	//$GLOBALS["argv"][] = "-only=\"UIWindow.h\"";
-	$GLOBALS["argv"][] = "-frameworks=\"^foundation,quartzcore,appkit\"";
-
-	//$GLOBALS["argv"][] = "-framework_path=\"/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS2.2.1.sdk/System/Library/Frameworks\"";
-	//$GLOBALS["argv"][] = "-header=\"uikit/UIView.h\"";
-	
-	//$GLOBALS["argv"][] = "-framework_path=\"/System/Library/Frameworks\"";
-	//$GLOBALS["argv"][] = "-header=\"webkit/DOMDocument.h\"";
-	
-	//$GLOBALS["argv"][] = "-framework_path=\"/System/Library/Frameworks\"";
-	//$GLOBALS["argv"][] = "-header=\"foundation/NSObjcRuntime.h\"";
-	//$GLOBALS["argv"][] = "-header=\"foundation/NSMapTable.h\"";
-	$GLOBALS["argv"][] = "-header=\"appkit/NSApplication.h\"";
-	//$GLOBALS["argv"][] = "-header=\"quartzcore/CALayer.h\""; //CAMediaTimingFunction
-
-	//$GLOBALS["argv"][] = "-show";
-}
-
+// Print the script usage if the command line is empty
 if (count($GLOBALS["argv"]) == 1) {
 	print("Cocoa Framework Parser ($version) usage:\n");
 	print("php parser.php [options]\n\n");
@@ -160,9 +128,8 @@ if (count($GLOBALS["argv"]) == 1) {
 	print("  -merge     		Headers are merged by difference (using diff/patch) instead of overwritten.\n");
 	print("  -ignore=\"NSObject.h,NSArray.h\"     Ignores the list of headers during parsing (-all only, no spaces).\n");
 	print("  -only=\"NSObject.h,NSArray.h\"       Only print these files (-all only, no spaces).\n");
-	print("  -noprint       	Parses but does not print (-all only).\n");
+	print("  -noprint       	Parses but does not print.\n");
 	print("  -encodings    	 	Prints Pascal type encoding glue for GenerateTypeEncodings.p (-all only).\n");
-	print("  -objp     			Prints classes in FPC Objective Pascal dialect (obsolete).\n");
 	print("  -iphone     		One-time parse for iPhone headers.\n");
 	print("  -cocoa     		One-time parse for Cocoa (AppKit/Foundation) headers.\n");
 	print("  -frameworks=\"appkit,foundation\"    List of supported frameworks to parse.\n");
@@ -180,36 +147,38 @@ if ($options["out"]) {
 	@mkdir($root_path, 0777);
 	@mkdir($root_path."/foundation", 0777);
 	@mkdir($root_path."/appkit", 0777);
-//	@mkdir($root_path."/webkit", 0777);
 	@mkdir($root_path."/uikit", 0777);
-//	@mkdir($root_path."/reference", 0777);
 }
 
 // setup -iphone options
 if ($options["iphone"]) {
 	$options["all"] = true;
-	$options["objp"] = true;
-	$options["frameworks"] = array("foundation","quartzcore","uikit");
+	
+	if (!$options["sdk"]) $options["sdk"] = "4.2";
+	
+	//$options["framework_path"] = "/Developer/Platforms/iPhoneOS.Platform/Developer/SDKs/iPhoneOS$sdk_version.sdk/System/Library/Frameworks";
+	$options["framework_path"] = "/Developer/Platforms/iPhoneSimulator.Platform/Developer/SDKs/iPhoneSimulator".$options["sdk"].".sdk/System/Library/Frameworks";
+	
+	$options["frameworks"] = array("foundation","quartzcore","opengles","uikit");
 }
 
 // setup -cocoa options
 if ($options["cocoa"]) {
 	$options["all"] = true;
-	$options["objp"] = true;
 	$options["frameworks"] = array("appkit","foundation","quartzcore");
 	$ignore_headers = array();
 }
 
 if ($options["webkit"]) {
 	$options["all"] = true;
-	$options["objp"] = true;
 	$options["frameworks"] = array("foundation","webkit");
 }
 
 // create the parser instance
-$parser = new TObjPParser ($root_path, "", $options["frameworks"],  $options["framework_path"], $options["show"]);
+$parser = new ObjectivePParser($root_path, "", $options["frameworks"],  $options["framework_path"], $options["show"]);
 
 // Set additional options
+// ??? These should be accessors
 $parser->parse_comments = $options["comments"];
 $parser->merge_headers = $options["merge"];
 
@@ -220,15 +189,10 @@ if ($options["header"] && !$options["all"]) {
 	$parser->ProcessFile($path, !$options["noprint"]);
 }
 
-//$parser->PrintIvarSizeComparison("/Users/ryanjoseph/Desktop/objp/IvarSize.p");
-//exit;
-
 // Process all headers
 if ($options["all"]) {
 	$parser->ParseAllFrameworks($ignore_headers, null);
 	if (!$options["noprint"]) $parser->PrintAllHeaders("", $duplicate_headers, $only_files, $options["reference"]);
-	if ($options["delegates"]) $parser->ParseDelegateClasses();
-	if ($options["encodings"]) $parser->PrintTypeEncodingGlue();
 }
 
 ?>

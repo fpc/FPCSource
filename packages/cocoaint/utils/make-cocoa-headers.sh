@@ -6,9 +6,9 @@ set -e
 # convert basic cocoa headers
 php parser.php -cocoa -root=`pwd`/cocoa-skel/src
 # convert webkit headers
-php parser.php -objp -all -frameworks=foundation,webkit -root=`pwd`/cocoa-skel/src
+php parser.php -all -frameworks=foundation,webkit -root=`pwd`/cocoa-skel/src
 # convert coredata headers
-php parser.php -objp -all -frameworks=foundation,coredata -root=`pwd`/cocoa-skel/src
+php parser.php -all -frameworks=foundation,coredata -root=`pwd`/cocoa-skel/src
 # correct some translations the automatic translation cannot handle
 patch -p0 < patches/cocoa-coredata-webkit.patch
 # empty two headers that exist both in foundation and in appkit, and that

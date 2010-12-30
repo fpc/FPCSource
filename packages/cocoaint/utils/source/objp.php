@@ -1,70 +1,10 @@
 <?php
-function ReadTextFile ($path) {
-	if ($handle = fopen($path, "r")) {
-		return fread($handle, 400 * 1024);
-		fclose($handle);
-	}
-}
-	
-function str_replace_word ($needle, $replacement, $haystack) {
-    $pattern = "/\b$needle\b/";
-    $haystack = preg_replace($pattern, $replacement, $haystack);
-    return $haystack;
-}
 
-function istr_replace_word ($needle, $replacement, $haystack) {
-    $pattern = "/\b$needle\b/i";
-    $haystack = preg_replace($pattern, $replacement, $haystack);
-    return $haystack;
-}
+// Includes
+require_once("utilities.php");
+require_once("objp_base.php");
 
-function strtolowerref(&$str) {
-  $str = strtolower($str);
-}
-
-	// converts "STR_XX_YY_ZZ" to "Str Xx Yy Zz"
-	function DeprecatedMacroToDirective($str)
-	{
-		// AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 etc
-		if (preg_match("!DEPRECATED_(IN_.*VERSION_.*)_AND_LATER!", $str, $matches)) {
-			$str = strtolower($matches[1]);
-			// cleanup
-			$str = preg_replace("!in_mac_os_x_version_!", "in Mac OS X ", $str);
-			$str = preg_replace("!([0-9])_([0-9])!e", '\1.\2', $str);
-			return " deprecated '" . $str . " and later'";
-		// NS_DEPRECATED(__MAC_10_1,__MAC_10_6,__IPHONE_NA,__IPHONE_NA),
-		// __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_1,__MAC_10_6,__IPHONE_NA,__IPHONE_NA,
-		// NS_DEPRECATED_IPHONE(__IPHONE_2_0,__IPHONE_2_0),
-		// NS_DEPRECATED_MAC(__MAC_10_1, __MAC_10_5)
-		} elseif (preg_match("!DEPRECATED(_IPHONE|_MAC)?\(([^)]+)\)!", $str, $matches)) {
-			$str = strtolower($matches[2]);
-			$versions = preg_replace("!__MAC_!e", "Mac OS X ", $str);
-			$versions = preg_replace("!__IPHONE_!e", "iOS ", $versions);
-			$versions = preg_replace("!([0-9])_([0-9])!e", '\1.\2', $versions);
-			$deprecatedversions = explode(",", $matches[2]);
-			$result = "";
-			if ($matches[1] == "") {
-				$macindex = 2;
-				$iphoneindex = 4;
-			} elseif ($matches[1] == "_IPHONE") {
-				$macindex = -1;
-				$iphoneindex = 2;
-			} else {
-				$macindex = 2;
-				$iphoneindex = -1;
-			}
-			if (($macindex != -1) && !preg_match("!Mac OS X( Version)? NA|MAC_NA!", $deprecatedversions[$macindex])) {
-				$result = "in " . $deprecatedversions[$macindex] . " and later";
-			}
-			if (($iphoneindex != -1) && !preg_match("!iOS( Version)? NA|IPHONE_NA!", $deprecatedversions[$iphoneindex])) {
-				if ($result != "") $result .= ", ";
-				$result .= "in " . $deprecatedversions[$iphoneindex] . " and later";
-			}
-			return " deprecated '" . $result . "'";
-		}
-	}
-
-
+// Constants
 define("CAST_HANDLE", true);
 define("DONT_CAST_HANDLE", false);
 
@@ -77,269 +17,13 @@ define("DONT_REGISTER_SEL", false);
 define("USE_HANDLE", true);
 define("DONT_USE_HANDLE", false);
 	
-class TPasCocoaParser {
-
-	// Frameworks to parse (loaded from frameworks.xml)
-	var $frameworks = array();
-	
-	var $maximum_method_length = 111; 	// WE GET THIS ERROR: NSDelegatesAll.pas(6109,296) Error: Identifier not found "NSDelegateController_NSLayoutManagerDelegate_layoutManager_shouldUseTemporaryAttributes_forDrawingToScreen_atCharacterIndex_effectiveRange"
-	
-	var $output;									// current output file handle                        
-	var $root;										// root for printing/locating resources              
-	var $out;										// directory to print                                
-	var $show;										// print output to screen instead of file            
-	var $framework;									// current framework being parsed                    
-	var $current_class;								// reference to current class structure being parsed 
-	var $current_header;							// reference to current header structure being parsed
-	var $method_count;								// count of all methods parsed                       
-	var $class_count;								// count of all classes parsed                       
-	var $warning_count;								// count of parser warnings                          
-	var $parser_skipping;							// the parser is skipping lines in the current file  
-	var $inside_macro_block;						// the parser is inside a macro block, no nesting!
-	var $instance_var_scope;						// current scope of the instance variable parser
-	var $dump = array();							// Convert Pascal classes
-	var $delegate_methods = array();				// Delegate methods and types from GEN_BRIDGE_METADATA XML data
-	var $delegate_method_names = array();			// Delegate method name array
-	var $type_encodings = array();					// Master listing of type encodings for each method in the frameworks
-	
-	// Comments Builder
-	var $comment_eol;
-	var $comment_terminated;
-	var $comment_fragment;
-	var $comment_fragment_previous;
-	var $comment_fragment_open;
-	var $comment_previous;
-	var $comment_block_open;
-	var $comment_block_closed;
-	var $comment_header;
-	
-	// Macros Builder
-	var $macro_block = "";
-	var $in_macro_block = false;
-
-	/**
-	 * PARSER OPTIONS
-	 */
-	var $objc_id = "id";									// Default type for generic objects
-	var $sel_string = "SEL";								// The selector string type which registers selectors internally
-	var $protocol_suffix = "Protocol";						// All protocols append this suffix 
-	var $pointer_type_suffx = "Ref";						// NS*** pointers in parameter lists are suffixed with this
-	var $class_pointer_suffix = "Pointer";					// Pointers to NS*** classes are suffxed with this
-	var $register_selectors = true;							// Register selectors automatically inside the wrappers
-	var $show_added_messages = false;						// show messages when methods are added to a class
-	var $show_class_hierarchy = false;
-	var $objects_are_wrappers = false;						// Treat all objects (id) like wrappers. i.e aObject.Handle;
-	var $replace_hinted_params = false;						// replace comment hints with hinted type - (void * /* CMProfileRef */)colorSyncProfile;
-	var $trailing_underscore = false;						// Append the trailing underscore for last parameter
-	var $record_keyword = "record";							// The keyword used for printing records
-	var $bitpacked_record_keyword = "bitpacked record";		// The keyword used for printing bitpacked records
-	var $string_macro = "NSString";
-	var $category_suffix = "Category";								// To prevent naming conlicts all objccategories are suffixed with this work
-	var $parse_comments = false;							// Comments are parsed and inserted by context
-	var $merge_headers = false;								// Headers are printed by merging difference instead of overwritting
-	var $comment_break = "\n";								// This text will be inserted before each comment to break lines
-	var $comment_padding_left = " ";						// Padding applied to the left side of all comments
-	var $comment_padding_right = " ";						// Padding applied to the right side of all comments
-	var $varargs_param_name = "firstKey";					// The name of the first parameter for methods using varargs
-	
-	// array of all known framework classes (both regular and anonymous)
-	var $cocoa_classes = array("Protocol");
-	
-	// array of all anonymous external classes. This list will include
-	// classes that are first defined anonymously and then normally
-	var $anon_cocoa_classes = array();
-	
-	// array of all defined external classes. This list will only
-	// include classes that are completely defined
-	var $defined_cocoa_classes = array();
-
-	// array of function pointer types that are declared without an indirection
-	// (e.g. NSUncaughtExceptionHandler in NSException.h) -> do not add Ptr
-	// suffix when deriving the pointer type
-	var $implicit_function_pointer_types = array();
-	
-	// array of opaque struct pointer types
-	var $opaque_structs = array();
-	
-	// array of all known framework categories					                     
-	var $cocoa_categories = array(); 						                 
-
-	// Pascal keywords to protect
-	var $reserved_keywords = array( "const", "object", "string", "array", "var", "set", "interface", "unit", "begin", "end",
-									"type", "raise", "property", "to", "for", "with", "function", "procedure", "result",
-									"pointer", "create", "new", "dispose", "label", "packed", "record", "class", "implementation",
-									);
-
-									
-	// FPC methods that can't be overloaded
-	var $reserved_methods = array("");
-	
-	// Types which can not be altered by reserved keywords
-	var $reserved_types = array("Pointer");
-	
-	// Objective-c types to convert
-	var $replace_types = array("BOOL"=>"Boolean", "long"=>"clong", "int"=>"cint",
-								"unsigned long"=>"culong", "unsigned short"=>"cushort", "void *"=>"Pointer", "unsigned int"=>"cuint",
-								"Class"=>"Pobjc_class", "uint"=>"cuint",
-								"uint8_t"=>"cuint8", "signed int"=>"cint", "const char"=>"char", "const void *"=>"Pointer",
-								"const uint8_t"=>"cuint8", "unsigned"=>"cuint", "int32_t"=>"cint32", "float"=>"single",
-								"unsigned long long"=>"culonglong", "int64_t"=>"cint64", "uint32_t"=>"cuint32", "uint16_t"=>"cuint16",
-								"unsigned char"=>"char", "short"=>"cshort", "double"=>"double", "long long"=>"clonglong",
-								"uintptr_t"=>"culong","intptr_t"=>"clong",
-								"signed char"=>"char", "uint64_t"=>"cuint64", 
-								
-								// work-arounds - the type replacement needs regex to handle with spaces I guess
-								"void*"=>"Pointer",
-								
-								// macros
-								"IBAction"=>"void", "IBOutlet"=>"",
-								
-								// special pointers
-								"const id *"=>"NSObjectArrayOfObjectsPtr", "Protocol *"=>"objc_protocol", "NSObject *"=>"NSObject",
-								"const char *"=>"PChar", "const void *"=>"Pointer", "unsigned char *"=>"PByte", "char *"=>"PChar",
-								"unsigned *"=>"pcuint", "unichar *"=>"PChar", "const unichar *"=>"PChar", 
-								);
-		
-	// These "types" are hints to the Objective-C garbage collector
-	var $garbage_collector_hints = array("__strong", "__weak", "volatile", "___strong", "___weak");
-
-	// These identifiers are used with remote messaging
-	var $remote_messaging_modifiers = array("oneway", "in", "out", "inout", "bycopy", "byref");
-
-	var $null_macros = array("IBOutlet", "IBAction");
-	
-	// External NSString macros. Additional values are imported from frameworks.xml
-	var $external_string_macros = "APPKIT_EXTERN|FOUNDATION_EXPORT|EXTERN|extern";
-
-	// Types which have known pointers declared in the headers
-	var $pointer_types = array(	// MacOSAll types
-								// C/Cocoa types
-								"void"=>"Pointer","const void"=>"Pointer",
-								"Boolean"=>"pboolean",
-								"clong"=>"pclong","cint"=>"pcint",
-								"culong"=>"pculong","cushort"=>"pcushort","cuint"=>"pcuint",
-								"cuint8"=>"pbyte","char"=>"PChar",
-								"clonglong"=>"pclonglong","culonglong"=>"pculonglong",
-								"cint64"=>"pcint64",
-								"cuint32"=>"pcuint32","cuint16"=>"pcuint16",
-								"cshort"=>"pcshort",
-
-								"single"=>"psingle", "double"=>"pdouble",
-								);
-	
-	// Types to ignore
-	var $ignore_types = array("CGFloat");
-	
-	// Comments (or fragments starting with the pattern) to ignore (regex)
-	var $ignore_comments = array();
-	
-	// Categories to ignore
-	// NSURLLoading is deprecated in 10.4 and later, and causes problems
-	// when parsing the iPhoneOS foundation
-	var $ignore_categories = array("NSURLLoading");
-	
-	// Methods to ignore
-	var $ignore_methods = array(	"retain", "release", "retainCount", "copyWithZone", "mutableCopyWithZone",
-									"allocWithZone", "alloc", "copy", "mutableCopy", "self_", "autorelease", "awakeFromNib",
-									"observationInfo",
-								);	
-	
-	// Lines to ignore
-	var $ignore_lines = array();
-	
-	// default protected keywords by class/category
-	// these may be useful if super classes were not parsed before
-	var $default_protected = array(	"*"=>array("description", "classDescription", "zone"),
-	//								"NSDeprecated"=>array("accessoryView"),
-									"NSToolbarSupport"=>array("toolbar"),
-									"DOMNode"=>array("version"),
-									"WebView"=>array("frame"),
-									"DOMImplementation"=>array("version"),
-									"NSTableView"=>array("cell","toolTip","menu"),
-									"NSMovie"=>array("QTMovie"),
-									"UIAcceleration"=>array("timestamp","x","y","z"),
-									);
-	
-	var $skip_blocks = array(	//"^#if __LP64__.*"=>"^#(else|endif)+",
-								"^#if __BLOCKS__"=>"^#(else|endif)+",
-								"^#if NS_BLOCKS_AVAILABLE"=>"^#(else|endif)+",
-								"^#ifndef CGFLOAT_DEFINED"=>"^#(else|endif)+",
-								);
-								
-	var $macro_blocks = array(	"^#if \(__LP64__\)"=>"\$ifdef cpu64",
-								"^#if __LP64__.*"=>"\$ifdef cpu64",
-								"^#if !__LP64__.*"=>"\$ifndef cpu64",
-								"^#if defined \(__LP64__\)"=>"\$ifdef cpu64",
-								"^#if ![[:space:]]*\(__LP64__\)"=>"\$ifndef cpu64",
-								"^#ifdef __BIG_ENDIAN__"=>"\$ifdef fpc_big_endian",
-								// not really clean (assumes all arm devices are embedded)
-								"^#if __LP64__ \|\| TARGET_OS_EMBEDDED \|\| TARGET_OS_IPHONE \|\| TARGET_OS_WIN32 \|\| NS_BUILD_32_LIKE_64"=>"\$if defined(cpu64) or defined(cpuarm) or defined(win32)",
-								// replacement must be updated once we support AppleTV (presumably defines TARGET_OS_EMBEDDED but not TARGET_OS_IPHONE)
-								"^#if __LP64__ \|\| (TARGET_OS_EMBEDDED && !TARGET_OS_IPHONE) \|\| TARGET_OS_WIN32 \|\| NS_BUILD_32_LIKE_64"=>"\$if defined(cpu64) or defined(win32)"
-								//"^#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_[0-9]+_[0-9]+"=>"*",
-								);
-	
-	// These macros are used to suggest which version of a framework the symbol is available in	but removed to assist the parser			
-	var $version_macros = array(	"[[:space:]]*DEPRECATED_IN_.*_VERSION_[0-9]+_[0-9]+_AND_LATER[[:space:]]*",
-									"[[:space:]]*AVAILABLE_.*_VERSION_[0-9]+_[0-9]+_AND_LATER_BUT_DEPRECATED_IN_.*_VERSION_[0-9]+_[0-9]+[[:space:]]*",
-									"[[:space:]]*AVAILABLE_.*_VERSION_[0-9]+_[0-9]+_AND_LATER[[:space:]]*",
-									"[[:space:]]*AVAILABLE_.*_VERSION_[0-9]+_[0-9]+[[:space:]]*",
-									"[[:space:]]*.*_VERSION_MAX_ALLOWED[[:space:]]*",
-									"[[:space:]]__OSX_AVAILABLE.*\([^)]+\)",
-									);
-								
-																		
-	/**
-	 * COMMON REGULAR EXPRESIONS
-	 */
-	var $regex_objc_method_params = "^(-|\+)[[:space:]]*\(([^)]*)\)[[:space:]]*([a-zA-Z0-9]+):(.*);";
-	var $regex_objc_method_no_params = "^(-|\+)[[:space:]]*\(([^)]*)\)[[:space:]]*([a-zA-Z0-9]+);";
-	var $regex_objc_method_partial = "^(-|\+)[[:space:]]*\(([^)]*)\)[[:space:]]*([a-zA-Z0-9]+):(.*)";
-	var $regex_objc_method_terminate = "(.*);[[:space:]]*$";
-	var $regex_objc_category = "^@interface ([a-zA-Z]+)[[:space:]]*\(([a-zA-Z]+)\)";
-	var $regex_objc_class = "^@interface ([a-zA-Z]+)[[:space:]]*:[[:space:]]*([a-zA-Z]+)[[:space:]]*(<(.*)>)*";
-	var $regex_objc_class_no_super = "^@interface ([a-zA-Z]+)[[:space:]]*<(.*)>[[:space:]]*";
-	var $regex_objc_protocol = "^@protocol ([a-zA-Z]+)";
-	var $regex_procedure_type = "^[[:space:]]*(void|IBAction)+[[:space:]]*$";
-	var $regex_scope_compiler_directive = "^\s*@(private|protected|public)(;*)+\s*$";
-	var $regex_objc_property_attributes = "^@property[[:space:]]*\(([^)]*)\)[[:space:]]*([a-zA-Z_0-9]+)[[:space:]]*(\*)*[[:space:]]*(.*);";
-	var $regex_objc_property = "^@property[[:space:]]*([a-zA-Z_0-9]+)[[:space:]]*(\*)*[[:space:]]*(.*);";
-	var $regex_objc_anon_class = "^@class[[:space:]]*(.*);";
-	// $1 = return type
-	// $2 = pointer modifiers
-	// $3 = inline para name if any
-	// $4 = parameteres
-	var $pregex_function_pointer = "!^\s*([^*]+)\s*([*]*)\s*\(\s*[*]\s*(\w+)?\s*\)\s*\((.*)\)\s*;\s*$!";
-	// same as above except no ";" at the end
-	var $pregex_function_pointer_c_paratype = "!^\s*([^*]+)\s*([*]*)\s*\(\s*[*]\s*(\w+)?\s*\)\s*\((.*)\)\s*$!";
-	// Obj-C: additional brackets and para name
-	// $1 = return type
-	// $2 = pointer modifiers for return type
-	// $3 = inline type name if any
-	// $4 = parameters
-	// $5 = para name
-	// last "word" is next part of method name before next colon
-	var $pregex_function_pointer_objc_paratype = "!^\s*\(([^*]+)\s*([*]*)\s*\(\s*[*]\s*(\w+)?\s*\)\s*\((.*)\)\s*\)\s*(\w+)\s*\w+\s*$!";
-	// the (*) for the function pointer is "optional" in the sense that you can
-	// also declare a (useless?) function type (i.e., without the pointer) and
-	// then afterwards declare variables to be pointers to this type
-	var $pregex_function_pointer_typedef = "!^\s*typedef\s*([^*]+)\s*([*]*)\b\s*(?:\(\s*([*])\s*(\w+)?\s*\)|(\w+))\s*\((.*)\)\s*(\w+)?\s*;\s*$!";
-	
-	// semi-colon optional because sometimes on next line with availability
-	// macro
-	// $1 = return type
-	// $2 = pointer modifiers for return type
-	// $3 = function name
-	// $4 = parameters
-	var $pregex_external_function_end = "\s+([^*]+)\s*([*]*)\b\s*(\w+)\s*\((.*)\)\s*;?\s*$!";
-	
-	var $pregex_deprecated_macro = "!DEPRECATED!";
+class ObjectivePParser extends ObjectivePParserBase {
 
 	/**
 	 * UTILITIES
 	 */
 	
-// Skips blocks in the current file being parsed
+	// Skips blocks in the current file being parsed
 	function SkipBlock ($line) {
 		
 		if ($line != "") {
@@ -363,130 +47,9 @@ class TPasCocoaParser {
 		    ($this->dump["master"][$this->current_class["name"]] ["field_names"] != null) &&
 		    in_array($keyword, $this->dump["master"][$this->current_class["name"]] ["field_names"])) return true;
 	}
-	
-	// Replace type with pointer equivalent
-	function ReplacePointerType ($type) {
-		$found = false;
 		
-		// all classes are implicit pointer types
-		if (in_array($type, $this->cocoa_classes)) return $type;
-		
-		// function pointer types are sometimes also implicit
-		// pointers
-		if (in_array($type, $this->implicit_function_pointer_types)) return $type;
-
-		// PPointer = ^Pointer
-		if ($type == "Pointer") return "PPointer";
-		if ($type == "PChar") return "PPChar";
-		
-		// use preferred pointer type
-		foreach ($this->pointer_types as $objc_type => $replace_type) {
-			if ($objc_type == $type) {
-				$found = true;
-				$type = $replace_type;
-				break;
-			}
-		}
-		
-		//$type = "Pointer {".$type."}";
-		// use generic pointer type
-		if (!$found)
-			$type = $type."Ptr";
-		
-		return $type;
-	}
-	
-	// Makes a struct field into an inline array (or returns field un-changed)
-	function MakeFieldInlineArray ($io_field, $line, $name, $type) {
-
-		if (eregi("\[([0-9]+)\];", $line, $array_size)) {
-			$length = (int)$array_size[1] - 1;
-			if ($length > 0) {
-				$io_field = "    $name: array[0..$length] of $type;";
-			}
-		}
-		
-		return $io_field;
-	}
-
-	// Makes a type bitpacked (or returns type un-changed)
-	function MakeFieldBitPacked ($ioType, $field, &$bitpacked) {
-		$bitpacked = false;
-		
-		if (preg_match("!:([0-9]+)\s*(?:__attribute__\(\([^)]*\)\))?\s*;$!", $field, $bitpack)) {
-			$length = (int)$bitpack[1];
-			if ($length > 1) {
-				$ioType = "0..((1 shl $length)-1)";
-			} else {
-				$ioType = "0..$length";
-			}
-			
-			$bitpacked = true;
-		}
-		
-		return $ioType;
-	}
-
-	// Replace objc type with preferred type
-	function ReplaceObjcType ($type) {
-	
-		foreach ($this->replace_types as $objc_type => $replace_type) {
-			if ($objc_type == $type) {
-				$type = $replace_type;
-				break;
-			}
-		}
-		
-		return $type;
-	}
-		
-	// Replace garbage collector hints
-	function ReplaceGarbageCollectorHints ($string, &$io_hint) {
-		$io_hint = false;
-		
-		foreach ($this->garbage_collector_hints as $hint) {
-			$out_string = str_ireplace($hint, "", $string);
-			if ($out_string != $string) {
-				$io_hint = $hint;
-				$string = $out_string;
-			}
-		}
-		
-		return $string;
-	}
-	
-	// Replace remote message passing modifiers
-	function ReplaceRemoteMessagingModifiers ($string, &$io_modifier) {
-		$io_hint = false;
-
-		foreach ($this->remote_messaging_modifiers as $modifier) {
-			$out_string = preg_replace("!\b".$modifier."\b!", "", $string);
-			if ($out_string != $string) {
-				$io_modifier = $modifier;
-				$string = $out_string;
-			}
-		}
-			
-		return trim($string);
-	}
-	
-	
-	// Replace type of reference parameter with pointer
-	function ReplaceReferenceParameterType ($type) {
-		$type = $this->ReplaceObjcType($type);
-		return $this->ReplacePointerType($type);
-	}
-	
-	// Replace a framework class with generic id and comment hint
-	function ReplaceFrameworkClassWithID ($string) {
-		foreach ($this->cocoa_classes as $class) {
-			$string = istr_replace_word($class, $this->objc_id, $string);
-		}
-		return $string;
-	}
-				
-	// Copies the name from an Objective-C method definition
-	function CopyObjcMethodName ($method) {
+	// Extracts the name from an Objective-C method definition
+	function ExtractObjcMethodName ($method) {
 		
 		// cut out comments first
 		$method = eregi_replace("(/\*.*\*/)", "", $method);
@@ -562,30 +125,6 @@ class TPasCocoaParser {
 //		print("field conversion result: ".$result["name"].": ".$result["type"]."\n");
 		return $result;
 	}
-
-	// adds a function callback type with name $name, and returns
-	// the name of the callback type
-	function AddCallback($name, $function_pointer) {
-		if ($this->current_header) {
-			$type = $this->current_header["name_clean"].ucwords($name);
-	
-			if (!@in_array($function_pointer, $this->current_header["types"]["callbacks"])) {
-				$count = 0;
-				while (@array_key_exists($type, $this->current_header["types"]["callbacks"])) {
-					$count ++;
-					$type = "$type$count";
-				}
-				
-				// append the new type to the the current class
-				$this->current_header["types"]["callbacks"][$type] = $function_pointer;  
-			} else {
-				// Use the name of the existing callback of matching type
-				$type = array_search($function_pointer, $this->current_header["types"]["callbacks"]);
-			}
-			return $type;
-		}
-		return "invalid_callback_type_because_no_current_header";
-	}
 	
 	function ExtractCParaNameAndType($param) {
 //		print("Converting $param\n");
@@ -660,74 +199,470 @@ class TPasCocoaParser {
 
 		return $modifiers;
 	}
+						
+	// Print string to output file
+	function PrintOutput ($indent, $string) {
+		for ($i=0; $i < $indent; $i++) { 
+			$indent_string .= "  ";
+		}
+		
+		if (($this->output) && (!$this->show)) fwrite($this->output, "$indent_string$string\n");
+		
+		if ($this->show) print("$indent_string$string\n");
+	}
+		
+	// Returns a class hierarchy array 
+	function GetClassHierarchy ($class, &$hierarchy) {
+		if (!$hierarchy) $hierarchy = array();
+		$hierarchy[] = $class["name"];
+		
+		if ($class["super_class"]) {
+			$hierarchy[] = $this->GetClassHierarchy($class["super_class"], $hierarchy);
+		} else {
+			$hierarchy[] = "NSObject";
+		}
+		
+		return $class["name"];
+	}
 	
-	// Converts a C parameter string to Pascal
-	function ConvertCParamsPascal ($string) {
+	// Returns all protected keywords in a class hierarchy
+	function GetProtectedKeywords ($in_class) {
+		$this->GetClassHierarchy($in_class, $hierarchy);
+		$keywords = array();
 		
-//		print("params: $string\n");
-		if ((trim($string) == "void")  || (trim($string) == "")) return "";
-
-		$params = explode(",", $string);
-		$count = 0;
-		$param_string = "";
+		foreach ($hierarchy as $class) {
+			if ($this->dump["master"][$class]["protected_keywords"]) {
+				foreach ($this->dump["master"][$class]["protected_keywords"] as $keyword) $keywords[] = strtolower($keyword);
+			}
+		}
 		
-		foreach ($params as $param) {
+		return $keywords;
+	}
+	
+	// Gets the preferred property name from attributes
+	function GetPropertyName ($kind, $params, &$name) {
+		foreach ($params as $value) {
+			$pair = explode("=", $value);
 			
-			$name_type = $this->ExtractCParaNameAndType($param);
-			$type = $name_type["type"];
-			$name = $name_type["name"];
-			$pointertype = $name_type["pointermods"];
-			
-			// create name if none is specified
-			if ($name == "") {
-				$count ++;
-				$name = "param$count";
-			}
-
-			// remove const keywords
-			$type = str_replace_word("const", "", $type);
-			$type = $this->ReplaceObjcType($type);
-
-			// Remove array brackets (NSUInteger[])p
-			if (eregi("\[[0-9]*\]", $name)) {
-				$orgtype = $this->EncodePointerModifiers($type,$pointertype);
-				$pointertype .= "*";
-				$type = $this->EncodePointerModifiers($type,$pointertype)." {array of $orgtype}";
-				$name = eregi_replace("\[[0-9]*\]", "", $name);
-			} else {
-				$type = $this->EncodePointerModifiers($type,$pointertype);
-			}
-			$modifier = "";
-			
-			if ($this->IsKeywordReserved($name)) $name .= "_";
-			
-			// multiple parameters
-			if ($type == "...") {
-				$param_string .= "varargs: array of const";
+			if ($pair[0] == $kind) {
+				$name = $pair[1];
+				return true;
 				break;
 			}
-			
-			$param_string .= "$modifier$name: $type; ";
 		}
-		
-		$param_string = trim($param_string, "; ");
-		//print("$param_string\n");
-		return $param_string;
+	}
+
+	// Checks if a line has a property and returns the parts
+	function LineHasProperty ($line, &$parts) {
+		if (eregi($this->regex_objc_property_attributes, $line, $captures)) {
+			$parts = $captures;
+			//print_r($parts);
+			return true;
+		} elseif (eregi($this->regex_objc_property, $line, $captures)) {
+			$parts = $captures;
+			//print_r($parts);
+			return true;
+		}
 	}
 	
-	// Remove OS X versions macros from a line
-	// NOTE: These should be re-inlcuded in Pascal
-	function RemoveVersionMacros ($line, &$deprecatedmods) {
-		if (preg_match($this->pregex_deprecated_macro,$line)) {
-			$deprecatedmods = DeprecatedMacroToDirective($line);
-		} else {
-			$deprecatedmods = "";
+	// Returns header a category should be moved to
+	function FindCategoryHeader ($category) {
+		
+		foreach ($this->dump as $name => $header) {
+			if ((@array_key_exists($category, $header["classes"])) && ($category != "NSObject")) {
+				return $name;
+			}
 		}
-		foreach ($this->version_macros as $macro) {
-			$line = eregi_replace($macro, "", $line);
-		}
-		return $line;
 	}
+	
+	// Checks if $class (array) contains $method (array)
+	function ClassContainsMethod ($class, $method) {
+		if ($class["methods"]) {
+			foreach ($class["methods"] as $key) {
+				if ($key["name"] == $method["name"]) return true;
+			}
+		}
+	}
+	
+	function GetAnonBitFieldName() {
+		$name = "_anonbitfield_".$this->current_header["name_clean"].$this->current_header["anonbitfields"];
+		$this->current_header["anonbitfields"]++;
+		return $name;
+	}
+	
+	// create a variant record with a first anonymous field of type
+	// first_bitpacked_type so that the compiler may correctly align it
+	// (it does not do that currently, but this at least provides a
+	//  hint to the programmer)
+	function BitPackedForceAlignment($first_bitpacked_type, $firstindent, $otherindents) {
+		$result = $firstindent . "case byte of\n" . $otherindents ."0: (" . $this->GetAnonBitFieldName() . ": $first_bitpacked_type);\n" . $otherindents . "1: (";
+		return $result;
+	}
+	
+	function EncodePointerModifiers($type, $pointertype) {
+		if ($pointertype[0] == "*") $type = $this->ReplacePointerType($type);
+		if ($pointertype[1] == "*") {
+			if ($type == "Pointer") {
+				$type = "PPointer";
+			} elseif ($type == "PChar") {
+				$type = "PPChar";
+			} elseif (in_array($type, $this->cocoa_classes)) {
+				$type = $type.$this->class_pointer_suffix;
+			} else {
+				// to match MacOSAll types
+				$type = $type."Ptr";
+			}
+		}
+		return $type;
+	}
+			
+	/**
+	 * ADDING LANGUAGE STRUCTURE UTILITIES
+	 */
+	
+	// Adds a method structure to a class and performs checks for overloaded methods
+	function AddMethodToClass (&$method, &$class) {
+		
+		// ignore methods
+//		if (in_array($method["name"], $this->ignore_methods)) return false;
+		
+		// add comment to the method
+		$method["comment"] = $this->InsertCurrentComment();
+
+		if (@!in_array($method["name"], $class["declared_methods"])) {
+			
+			$class["all"][$method["name"]] = $method;
+			$class["protected_keywords"][] = $method["name"];
+			$class["declared_methods"][] = $method["name"];
+			$this->dump["all_methods"][$class["name"]][] = $method["objc_method"];
+			
+			if ($this->show_added_messages) print("	@ Added ".$method["name"]." to ".$class["name"]."\n");
+
+			$this->method_count ++;
+			return true;
+		} else {
+			print("	! ".$method["def"]." already exists in ".$class["name"]." defined as ".$class["all"][$method["name"]]["def"]."\n");
+		}
+	}
+	
+	// Adds a typedef to the header and handles organization to prevent order conflicts
+	function AddTypeDef (&$header, $typedef) {
+		
+		//$this->AppendCurrentMacro($header["types"]["typedef"]);
+		$this->AppendCurrentComment($header["types"]["typedef"]);
+		if ($this->comment_terminated) $header["types"]["typedef"][] = $this->InsertCurrentComment();
+		
+		$header["types"]["typedef"][] = $typedef;
+	}
+		
+	// adds a function callback type with name $name, and returns
+	// the name of the callback type
+	function AddCallback($name, $function_pointer) {
+		if ($this->current_header) {
+			$type = $this->current_header["name_clean"].ucwords($name);
+	
+			if (!@in_array($function_pointer, $this->current_header["types"]["callbacks"])) {
+				$count = 0;
+				while (@array_key_exists($type, $this->current_header["types"]["callbacks"])) {
+					$count ++;
+					$type = "$type$count";
+				}
+				
+				// append the new type to the the current class
+				$this->current_header["types"]["callbacks"][$type] = $function_pointer;  
+			} else {
+				// Use the name of the existing callback of matching type
+				$type = array_search($function_pointer, $this->current_header["types"]["callbacks"]);
+			}
+			return $type;
+		}
+		return "invalid_callback_type_because_no_current_header";
+	}
+	
+	/**
+	 * OBJC FORMATTING UTILITIES
+	 */
+	
+	// Performs additional formatting on Objective-c type i.e. (out NSObject **)
+	function FormatObjcType ($type, &$modifiers) {
+		$modifiers = "";
+		
+		// toss out all const identifiers
+		$type = istr_replace_word("const", "", $type);
+		
+		// replace inout paramaters
+		$type = istr_replace_word("inout", "", $type);
+		$type = istr_replace_word("out", "", $type);
+		$type_clean = trim($type, "* ");
+		
+		// Replace types before cleaning
+		$type = $this->ReplaceObjcType($type);
+		
+		// Remove protocol which type conforms to (id <NSURLHandleClient>)
+		$type = eregi_replace("<.*>", "", $type);
+		
+		// Remove array brackets (NSUInteger[])p
+		$type = eregi_replace("\[[0-9]*\]", "", $type);
+		
+		// var params to non-object types (NSRange *)
+		if (ereg("([a-zA-Z0-9_]+)[[:space:]]*[*]+$", $type, $captures)) { 
+			if (!in_array($captures[1], $this->cocoa_classes)) {
+				$type = $this->ReplaceReferenceParameterType($type_clean);
+				//$modifiers = "var ";
+			}
+		} 
+		
+		// Handle NS*** pointers (NSError **)
+		if (ereg("(NS[a-zA-Z0-9_]+)[[:space:]]*\*\*$", $type, $captures)) { 
+			if (in_array($captures[1], $this->cocoa_classes)) {
+				$type = "$type_clean$this->class_pointer_suffix";
+			}
+		}
+		
+		// clean the type
+		$type = trim($type, "* 	");
+		
+		//print("$type\n");
+		return $type;
+	}
+	
+	// Performs additional formatting on Objective-c parameter types		
+	function FormatObjcParams ($string, &$variable_arguments) {
+		$params = explode(":", $string);
+		$string = "";
+		$variable_arguments = false;
+		// print_r($params);
+		
+		if (count($params) > 0) {
+			foreach ($params as $value) {
+				
+				// parameter is varargs
+				if (eregi("(.*),[[:space:]]*\.\.\.", $value)) {
+					$string .= ":(id)$this->varargs_param_name";
+					$variable_arguments = true;
+					//print("$value\n");
+					continue;
+				}
+				
+				if (preg_match("!^[^(]*$!",$value)) {
+					// parameter without type -> id
+					$value = "(id)".$value;
+				}
+
+				// normal parameter
+				if (ereg("\((.*)\)", $value, $captures)) {
+					$new_value = $this->ReplaceObjcType($captures[1]);
+					
+					if ($new_value != $captures[1]) $value = ereg_replace("\((.*)\)", "($new_value)", $value);
+					
+					$string .= ":$value";
+					continue;
+				}
+				
+			}
+		}
+		$string = ltrim($string, ":");
+		return $string;
+	}
+
+	/**
+	 * SYNTAX MAKING UTILITIES
+	 */	
+		
+	// Makes a paramater list string with options to modify
+	function MakeParamList ($param_array, $use_handle, $cast_handle, $direct, $register_selector) {
+		$params = "";
+		foreach ($param_array as $pair) {
+			
+			// register selector parameters
+			if (($register_selector) && ($pair["type"] == "SEL")) {
+				$params .= "sel_registerName(".$pair["name"]."), ";
+				continue;
+			}
+			
+			// use the object handle for NSObject descendants
+			if ($use_handle) {
+				if (in_array($pair["type"], $this->cocoa_classes)) {
+
+					// cast the param to the original class type
+					if ($cast_handle) {
+						if ($direct == ACCESS_HANDLE_DIRECT) {
+							$params .= $pair["type"]."(".$pair["name"].".Handle), ";
+						} else {
+							$params .= $pair["type"]."(GetHandle(".$pair["name"].")), ";
+						}
+					} else {
+						if ($direct == ACCESS_HANDLE_DIRECT) {
+							$params .= $pair["name"].".Handle, ";
+						} else {
+							$params .= "GetHandle(".$pair["name"]."), ";
+						}
+					}
+
+				} else {
+					if (($this->objects_are_wrappers) && ($pair["type"] == $this->objc_id)) {	// id is always a wrapper
+						if ($direct == ACCESS_HANDLE_DIRECT) {
+							$params .= $pair["type"]."(".$pair["name"].".Handle), ";
+						} else {
+							$params .= $pair["type"]."(GetHandle(".$pair["name"].")), ";
+						}
+					} else {
+						$params .= $pair["name"].", ";
+					}
+				}
+			} else { // append without modification
+				$params .= $pair["name"].", ";
+			}
+		}
+		
+		return trim($params, ", ");
+	}
+	
+	// Makes a list of paramameter variables with NS*** class types cast to "id" or the original class
+	function MakeObjcTypeParamList ($param_array, $objc_type) {
+		$params = "";
+		foreach ($param_array as $pair) {
+			if (in_array($pair["type"], $this->cocoa_classes)) {
+				if ($objc_type) {
+					$params .= "$this->objc_id(".$pair["name"]."), ";
+				} else {
+					$params .= $pair["type"]."(".$pair["name"]."), ";
+				}
+			} else {
+				$params .= $pair["name"].", ";
+			}
+		}
+		return trim($params, ", ");
+	}
+	
+	// Makes a struct field into an inline array (or returns field un-changed)
+	function MakeFieldInlineArray ($io_field, $line, $name, $type) {
+
+		if (eregi("\[([0-9]+)\];", $line, $array_size)) {
+			$length = (int)$array_size[1] - 1;
+			if ($length > 0) {
+				$io_field = "    $name: array[0..$length] of $type;";
+			}
+		}
+		
+		return $io_field;
+	}
+
+	// Makes a type bitpacked (or returns type un-changed)
+	function MakeFieldBitPacked ($ioType, $field, &$bitpacked) {
+		$bitpacked = false;
+		
+		if (preg_match("!:([0-9]+)\s*(?:__attribute__\(\([^)]*\)\))?\s*;$!", $field, $bitpack)) {
+			$length = (int)$bitpack[1];
+			if ($length > 1) {
+				$ioType = "0..((1 shl $length)-1)";
+			} else {
+				$ioType = "0..$length";
+			}
+			
+			$bitpacked = true;
+		}
+		
+		return $ioType;
+	}
+	
+	/**
+	 * REPLACEMENT UTILITIES
+	 */
+	
+	// Replace type with pointer equivalent
+	function ReplacePointerType ($type) {
+		$found = false;
+		
+		// all classes are implicit pointer types
+		if (in_array($type, $this->cocoa_classes)) return $type;
+		
+		// function pointer types are sometimes also implicit
+		// pointers
+		if (in_array($type, $this->implicit_function_pointer_types)) return $type;
+
+		// PPointer = ^Pointer
+		if ($type == "Pointer") return "PPointer";
+		if ($type == "PChar") return "PPChar";
+		
+		// use preferred pointer type
+		foreach ($this->pointer_types as $objc_type => $replace_type) {
+			if ($objc_type == $type) {
+				$found = true;
+				$type = $replace_type;
+				break;
+			}
+		}
+		
+		//$type = "Pointer {".$type."}";
+		// use generic pointer type
+		if (!$found)
+			$type = $type."Ptr";
+		
+		return $type;
+	}
+
+	// Replace objc type with preferred type
+	function ReplaceObjcType ($type) {
+	
+		foreach ($this->replace_types as $objc_type => $replace_type) {
+			if ($objc_type == $type) {
+				$type = $replace_type;
+				break;
+			}
+		}
+		
+		return $type;
+	}
+		
+	// Replace garbage collector hints
+	function ReplaceGarbageCollectorHints ($string, &$io_hint) {
+		$io_hint = false;
+		
+		foreach ($this->garbage_collector_hints as $hint) {
+			$out_string = str_ireplace($hint, "", $string);
+			if ($out_string != $string) {
+				$io_hint = $hint;
+				$string = $out_string;
+			}
+		}
+		
+		return $string;
+	}
+	
+	// Replace remote message passing modifiers
+	function ReplaceRemoteMessagingModifiers ($string, &$io_modifier) {
+		$io_hint = false;
+
+		foreach ($this->remote_messaging_modifiers as $modifier) {
+			$out_string = preg_replace("!\b".$modifier."\b!", "", $string);
+			if ($out_string != $string) {
+				$io_modifier = $modifier;
+				$string = $out_string;
+			}
+		}
+			
+		return trim($string);
+	}
+	
+	// Replace type of reference parameter with pointer
+	function ReplaceReferenceParameterType ($type) {
+		$type = $this->ReplaceObjcType($type);
+		return $this->ReplacePointerType($type);
+	}
+	
+	// Replace a framework class with generic id and comment hint
+	function ReplaceFrameworkClassWithID ($string) {
+		foreach ($this->cocoa_classes as $class) {
+			$string = istr_replace_word($class, $this->objc_id, $string);
+		}
+		return $string;
+	}
+				
+
+	/**
+	 * MACRO UTILITIES
+	 */
 	
 	// Insert macro blocks to replace c-style blocks
 	function InsertMacroBlocks ($line, &$in_macro_block) {
@@ -763,7 +698,6 @@ class TPasCocoaParser {
 			}
 		}
 	}
-
 
 	// Appends the current macro to a recipient and resets it's reference
 	function AppendCurrentMacro (&$recipient) {
@@ -820,6 +754,383 @@ class TPasCocoaParser {
 			}
 		}
 	}
+
+	// Remove OS X versions macros from a line
+	// NOTE: These should be re-inlcuded in Pascal
+	function RemoveVersionMacros ($line, &$deprecatedmods) {
+		if (preg_match($this->pregex_deprecated_macro,$line)) {
+			$deprecatedmods = DeprecatedMacroToDirective($line);
+		} else {
+			$deprecatedmods = "";
+		}
+		foreach ($this->version_macros as $macro) {
+			$line = eregi_replace($macro, "", $line);
+		}
+		return $line;
+	}
+				
+	/**
+	 * CONVERTING UTILITIES
+	 */
+	
+	// Converts an Objective-c parameter string to Pascal		
+	function ConvertObjcParamsToPascal ($string, $protected_keywords) {
+		$params = explode(":", $string);
+		$list = array();
+		$list["pairs"] = array();
+		$param_list = array();
+		//print_r($params);
+		//print("$string\n");
+
+		if (count($params) > 0) {
+
+			foreach ($params as $value) {
+				$value = trim($value);
+				$valid = false;
+				$modifiers = "";
+
+				$value = $this->ReplaceRemoteMessagingModifiers($value, $null);
+
+				// function pointer (callback)
+				if (preg_match($this->pregex_function_pointer_objc_paratype, $value, $captures)) {
+					$name = $captures[5];
+
+					$function_pointer = $this->ParseFunctionDeclaration($captures[1], $captures[2], "", $captures[4], false, "");
+					$type = $this->AddCallback($name, $function_pointer);
+					$valid = true;
+				} elseif ((eregi("\(([a-zA-Z_]+).*\)([a-zA-Z_]+).*\.\.\.", $value, $captures)) || (eregi("(.*),[[:space:]]*\.\.\.", $value, $captures))) { // variable arguments
+					$name = $captures[2];
+					$type = $captures[1];
+					$valid = true;
+				} elseif (eregi("\((.*)\)[[:space:]]*([a-zA-Z_]+)", $value, $captures)) { // standard parameter
+
+					$captures[1] = trim($captures[1]);
+					$type = $this->FormatObjcType($captures[1], $modifiers);
+					$name = $captures[2];
+
+					$valid = true;
+				}
+
+				if ($valid) {
+
+					// protect reserved keywords
+					if ($this->IsKeywordReserved($name)) $name .= "_";
+
+					if (!in_array($type, $this->reserved_types)) {
+						if ($this->IsKeywordReserved($type)) $type .= "_";
+					}
+
+					// can't have "boolean: boolean;" parameters
+					if (preg_match("!\b$name\b!i",$type)) $name .= "_";
+
+//					print("para name: \"$name\"\n");
+//					print_r("protected: \"$protected_keywords\"\n");
+					while (@in_array(strtolower($name), $protected_keywords)) $name .= "_";
+
+					// case-insensitive in_array:
+//					if( preg_match("/\b$name\b/i", join(" ", array_values($protected_keywords))) ) $name .= "_";
+//					if (@in_array($type, $protected_keywords)) $type .= "_";
+
+					// replace objc types
+					$type = $this->ReplaceObjcType($type);
+
+					// make sure we label duplicate params, which are allowed in Objective-C
+					while (in_array($name, $param_list)) {
+						$count ++;
+						$name = "$name$count";
+					}
+
+					// id is always a wrapper
+					if (($this->objects_are_wrappers) && ($type == $this->objc_id)) {
+						$name_list = "$type(GetHandle($name))";
+					} else {
+						$name_list = $name;
+					}
+
+					// add modifiers to the name if there are any
+					$name_with_modifiers = $modifiers.$name;
+
+					// create pair array
+					$pair["name"] = $name;
+					$pair["type"] = $type;
+
+					// append list
+					$list["pairs"][] = $pair;
+					$list["string_with_modifiers"] .= "$name_with_modifiers: $type; ";
+					$list["string"] .= "$name: $type; ";
+					$list["list"] .= "$name_list, ";
+					$param_list[] = $name;
+				}
+			}
+		}
+		// clean up the strings
+		$list["string"] = trim($list["string"], "; ");
+		$list["string_with_modifiers"] = trim($list["string_with_modifiers"], "; ");
+		$list["list"] = trim($list["list"], ", ");
+
+		return $list;
+	}
+	
+	// Converts an Objective-C method to Pascal format 
+	function ConvertObjcMethodToPascal ($class, $source, $parts, $protected_keywords, $has_params, $deprecatedmods) {
+		
+		//print("$source\n");
+		//print_r($parts);
+		
+		// replace "hinted" params comment with hinted type
+		if ($this->replace_hinted_params) {
+
+			// param string
+			if (eregi("(/\*[[:space:]]*(.*)[[:space:]]*\*/)", $parts[4], $captures)) {
+				// ??? change the parameter to the hinted type
+				//$parts[4] = eregi_replace("(/\*.*\*/)", $captures[2], $parts[4]);
+				//$parts[4] = trim($parts[4], " ");
+			}
+
+			// return type
+			if (eregi("(/\*[[:space:]]*(.*)[[:space:]]*\*/)", $parts[2], $captures)) $parts[2] = $this->ReplaceRemoteMessagingModifiers($captures[2], $null);
+
+			//print_r($parts);
+
+		} else { // remove comments from params and return type
+			$parts[4] = eregi_replace("(/\*.*\*/)", "", $parts[4]);
+			$parts[4] = trim($parts[4]);
+
+			$parts[2] = eregi_replace("(/\*.*\*/)", "", $parts[2]);
+			$parts[2] = $this->ReplaceRemoteMessagingModifiers($parts[2], $null);
+		}
+	
+		$return_type_clean = $parts[2];
+		$return_type_pointers = preg_replace("![^*]+!e", "", $return_type_clean);
+		$return_type_clean = trim($return_type_clean,"* 	");
+
+		// perform preformatting before attempting to protect keywords
+		$parts[2] = $this->FormatObjcType($parts[2], $modifiers);
+		$parts[4] = $this->FormatObjcParams($parts[4], $variable_arguments);
+		//print($parts[4]."\n");
+		
+		if ($has_params) {
+			$name = $this->ConvertObjcMethodName($source);
+
+			// merge default protected keywords for the class/category
+			if ($this->default_protected["*"]) $protected_keywords = array_merge($this->default_protected["*"], $protected_keywords);
+			if ($this->default_protected[$class]) $protected_keywords = array_merge($this->default_protected[$class], $protected_keywords);
+			
+			
+			$param_array = $this->ConvertObjcParamsToPascal($parts[4], $protected_keywords);
+			$params = "(".$param_array["string"].")";
+			$params_with_modifiers = "(".$param_array["string_with_modifiers"].")";
+			
+		} else {
+			$params = "";
+			$params_with_modifiers = "";
+			// no parameters -> definitely no underscore normally, but there are some
+			// conflicts...
+			$name = $parts[3];
+			// clean it up
+			if ($this->trailing_underscore) {
+				if (in_array($source, $this->trailing_underscore_methods)) $name = $name . "_";	
+			}
+			$param_array = null;
+			$variable_arguments = false;
+		}
+
+		// protect method name from keywords
+		if ($this->IsKeywordReserved($name)) $name .= "_";
+		
+		// replace objc type
+		$return_type = $this->ConvertReturnType($return_type_clean,$return_type_pointers);
+
+		$virtual = "";
+		$class_prefix = "";
+
+		// determine the type based on return value
+		if (ereg($this->regex_procedure_type, $return_type_clean.$return_type_pointers)) {
+			$kind = "procedure";
+		} else {
+			$kind = "function";
+		}
+
+		// determine if this is a class method
+		if ($parts[1] == "+") {
+			$class_prefix = "class ";
+		
+			// These methods probably return the an allocated instance of the class, a typical convenience method.
+			// ??? Ack! $class may be the category or protocol name
+			//if ($return_type == $this->objc_id) $return_type = $class; 
+		}
+
+		// Replace SEL with the string equivalent
+		if ($this->register_selectors) {
+			$params_with_modifiers = str_replace_word("SEL", $this->sel_string, $params_with_modifiers);
+		}
+
+		// make method templates
+		if ($kind != "function") {
+			if ($variable_arguments) $modifier .= " varargs;";
+		
+			$method = "$class_prefix$kind $name$params_with_modifiers;$modifier$virtual";
+			$method_template = "[KIND] [PREFIX]$name"."[PARAMS];$modifier";
+		} else {
+			if ($variable_arguments) $return_type = "$return_type; varargs";
+
+			$method = $class_prefix."function $name$params_with_modifiers: $return_type;$modifier$virtual";
+			$method_template = "[KIND] [PREFIX]$name"."[PARAMS]: [RETURN];$modifier";
+		}
+
+		$method_template_procedure = "procedure [PREFIX]$name"."[PARAMS];$modifier";
+		$method_template_function = "function [PREFIX]$name"."[PARAMS]: [RETURN];$modifier";
+
+		// build structure
+		$struct["def"] = $method;
+		$struct["template"] = $method_template;
+		$struct["template_function"] = $method_template_function;
+		$struct["template_procedure"] = $method_template_procedure;
+		$struct["objc_method"] = $this->ExtractObjcMethodName($source);
+		$struct["class_prefix"] = $class_prefix;
+		if ($deprecatedmods != "") $struct["deprecated"] = $deprecatedmods.";";
+		//$struct["def_objc"] = eregi("(.*);", $source, $captures[1]);
+		if ($return_type == "void") $return_type = "";
+		$struct["return"] = $return_type;
+	
+		if (in_array($return_type, $this->cocoa_classes)) $struct["returns_wrapper"] = true;
+		$struct["param_string_clean"] = trim($params, "()");
+		$struct["param_string_clean_with_modifiers"] = trim($params_with_modifiers, "()");
+		$struct["param_string"] = $params;
+		$struct["param_string_with_modifiers"] = $params_with_modifiers;
+		$struct["param_array"] = $param_array["pairs"];
+		$struct["param_list"] = $param_array["list"];
+		$struct["class"] = $class;
+		$struct["name"] = $name;
+		$struct["kind"] = $kind;
+
+		if ($struct["param_array"] != null) $struct["has_params"] = true;
+
+		// FPC bug work around
+		if (strlen($name) > $this->maximum_method_length) {
+			$struct["can_override"] = false;
+			print(" # WARNING: method $name can't override because the name is too long\n");
+			$this->warning_count ++;
+		}
+
+		return $struct;
+	}
+	
+	// Converts a C parameter string to Pascal
+	function ConvertCParamsPascal ($string) {
+
+//		print("params: $string\n");
+		if ((trim($string) == "void")  || (trim($string) == "")) return "";
+
+		$params = explode(",", $string);
+		$count = 0;
+		$param_string = "";
+
+		foreach ($params as $param) {
+
+			$name_type = $this->ExtractCParaNameAndType($param);
+			$type = $name_type["type"];
+			$name = $name_type["name"];
+			$pointertype = $name_type["pointermods"];
+
+			// create name if none is specified
+			if ($name == "") {
+				$count ++;
+				$name = "param$count";
+			}
+
+			// remove const keywords
+			$type = str_replace_word("const", "", $type);
+			$type = $this->ReplaceObjcType($type);
+
+			// Remove array brackets (NSUInteger[])p
+			if (eregi("\[[0-9]*\]", $name)) {
+				$orgtype = $this->EncodePointerModifiers($type,$pointertype);
+				$pointertype .= "*";
+				$type = $this->EncodePointerModifiers($type,$pointertype)." {array of $orgtype}";
+				$name = eregi_replace("\[[0-9]*\]", "", $name);
+			} else {
+				$type = $this->EncodePointerModifiers($type,$pointertype);
+			}
+			$modifier = "";
+
+			if ($this->IsKeywordReserved($name)) $name .= "_";
+
+			// multiple parameters
+			if ($type == "...") {
+				$param_string .= "varargs: array of const";
+				break;
+			}
+
+			$param_string .= "$modifier$name: $type; ";
+		}
+
+		$param_string = trim($param_string, "; ");
+		//print("$param_string\n");
+		return $param_string;
+	}
+	
+	// Converts an Objective-c method name to Pascal
+	function ConvertObjcMethodName ($method) {
+		$params = explode(":", $method);
+		$name = "";
+		$count = 0;
+		
+		if (count($params) > 1) {
+			foreach ($params as $value) {
+				if (eregi("([a-zA-Z0-9]+)$", $value, $captures)) $name .= $captures[1]."_";
+			}
+		} else {
+			if (eregi("([a-zA-Z0-9]+)(;)*$", $params[0], $captures)) $name .= $captures[1]."_";
+		}
+		
+		// clean it up
+		if ($this->trailing_underscore) {
+		 if (!in_array($method, $this->trailing_underscore_methods)) $name = trim($name, "_");	
+		}
+		
+		$name = $this->ReplaceObjcType($name);
+		
+		return $name;
+	} 
+	
+	// Convert a method return type to Pascal
+	function ConvertReturnType ($type, $pointertype) {
+		$type = $this->ReplaceGarbageCollectorHints($type, $null);
+		$type = $this->ReplaceRemoteMessagingModifiers($type, $null);
+
+		// format the return type to make sure it's clean
+		$type = $this->FormatObjcType($type, $null_modifier);
+		// translate type to Pascal
+		$type = $this->ReplaceObjcType($type);
+		// incorportate pointer modifiers
+		$type = $this->EncodePointerModifiers($type,$pointertype);
+
+		return $type;
+	}
+	
+	/**
+	 * USER PATCHES
+	 */
+	function InsertPatches ($header) {
+		$path = "$this->root/patches/".$header["name_clean"].".patch";
+		if ($handle = @fopen($path, "r")) {
+			$text = file_get_contents($path);
+			$this->PrintOutput(0, $text);
+			fclose($handle);
+		}
+	}
+	
+	function HeaderContainsPatch ($header) {
+		if ($handle = @fopen("$this->root/patches/".$header["name_clean"].".patch", "r")) {
+			fclose($handle);
+			return true;
+		}
+	}
+
+	/**
+	 * COMMENTS
+	 */
 	
 	// Trim a comment string
 	function TrimComment ($comment, $preserve_line_endings) {
@@ -849,11 +1160,18 @@ class TPasCocoaParser {
 		// comment parsing is off, bail!
 		if (!$this->parse_comments) return;
 		
-		// single-line comments
-		// ??? check if this is at the end of line or not! this could be a full line comment
-		if (eregi("[[:space:]]+//(.*)", $line, $captures)) {
+		// single-line comment at start of line
+		if (eregi("^[[:space:]]*//(.*)", $line, $captures)) {
 			//print("$captures[1]\n");
+			// ignore comment
+			foreach ($this->ignore_comments as $pattern) {
+				if (eregi($pattern, $captures[1])) return;
+			}
 			
+			$this->comment_terminated = $this->TrimComment($captures[1], false);
+			return;
+		} elseif (eregi("[[:space:]]+//(.*)", $line, $captures)) { // single-line comments at end of line
+			//print("$captures[1]\n");
 			// ignore comment
 			foreach ($this->ignore_comments as $pattern) {
 				if (eregi($pattern, $captures[1])) return;
@@ -1031,350 +1349,238 @@ class TPasCocoaParser {
 		return $line;
 	}
 	
-	// Performs additional formatting on Objective-c type i.e. (out NSObject **)
-	function FormatObjcType ($type, &$modifiers) {
-		$modifiers = "";
-		
-		// toss out all const identifiers
-		$type = istr_replace_word("const", "", $type);
-		
-		// replace inout paramaters
-		$type = istr_replace_word("inout", "", $type);
-		$type = istr_replace_word("out", "", $type);
-		$type_clean = trim($type, "* ");
-		
-		// Replace types before cleaning
-		$type = $this->ReplaceObjcType($type);
-		
-		// Remove protocol which type conforms to (id <NSURLHandleClient>)
-		$type = eregi_replace("<.*>", "", $type);
-		
-		// Remove array brackets (NSUInteger[])p
-		$type = eregi_replace("\[[0-9]*\]", "", $type);
-		
-		// var params to non-object types (NSRange *)
-		if (ereg("([a-zA-Z0-9_]+)[[:space:]]*[*]+$", $type, $captures)) { 
-			if (!in_array($captures[1], $this->cocoa_classes)) {
-				$type = $this->ReplaceReferenceParameterType($type_clean);
-				//$modifiers = "var ";
-			}
-		} 
-		
-		// Handle NS*** pointers (NSError **)
-		if (ereg("(NS[a-zA-Z0-9_]+)[[:space:]]*\*\*$", $type, $captures)) { 
-			if (in_array($captures[1], $this->cocoa_classes)) {
-				$type = "$type_clean$this->class_pointer_suffix";
-			}
-		}
-		
-		// clean the type
-		$type = trim($type, "* 	");
-		
-		//print("$type\n");
-		return $type;
-	}
-	
-	// Performs additional formatting on Objective-c parameter types		
-	function FormatObjcParams ($string, &$variable_arguments) {
-		$params = explode(":", $string);
-		$string = "";
-		$variable_arguments = false;
-		// print_r($params);
-		
-		if (count($params) > 0) {
-			foreach ($params as $value) {
-				
-				// parameter is varargs
-				if (eregi("(.*),[[:space:]]*\.\.\.", $value)) {
-					$string .= ":(id)$this->varargs_param_name";
-					$variable_arguments = true;
-					//print("$value\n");
-					continue;
-				}
-				
-				if (preg_match("!^[^(]*$!",$value)) {
-					// parameter without type -> id
-					$value = "(id)".$value;
-				}
-
-				// normal parameter
-				if (ereg("\((.*)\)", $value, $captures)) {
-					$new_value = $this->ReplaceObjcType($captures[1]);
-					
-					if ($new_value != $captures[1]) $value = ereg_replace("\((.*)\)", "($new_value)", $value);
-					
-					$string .= ":$value";
-					continue;
-				}
-				
-			}
-		}
-		$string = ltrim($string, ":");
-		return $string;
-	}
-	
-	// Converts an Objective-c parameter string to Pascal		
-	function ConvertObjcParamsToPascal ($string, $protected_keywords) {
-		$params = explode(":", $string);
-		$list = array();
-		$list["pairs"] = array();
-		$param_list = array();
-		//print_r($params);
-		//print("$string\n");
-		
-		if (count($params) > 0) {
-			
-			foreach ($params as $value) {
-				$value = trim($value);
-				$valid = false;
-				$modifiers = "";
-				
-				$value = $this->ReplaceRemoteMessagingModifiers($value, $null);
-				
-				// function pointer (callback)
-				if (preg_match($this->pregex_function_pointer_objc_paratype, $value, $captures)) {
-					$name = $captures[5];
-					
-					$function_pointer = $this->ParseFunctionDeclaration($captures[1], $captures[2], "", $captures[4], false, "");
-					$type = $this->AddCallback($name, $function_pointer);
-					$valid = true;
-				} elseif ((eregi("\(([a-zA-Z_]+).*\)([a-zA-Z_]+).*\.\.\.", $value, $captures)) || (eregi("(.*),[[:space:]]*\.\.\.", $value, $captures))) { // variable arguments
-					$name = $captures[2];
-					$type = $captures[1];
-					$valid = true;
-				} elseif (eregi("\((.*)\)[[:space:]]*([a-zA-Z_]+)", $value, $captures)) { // standard parameter
-					
-					$captures[1] = trim($captures[1]);
-					$type = $this->FormatObjcType($captures[1], $modifiers);
-					$name = $captures[2];
-					
-					$valid = true;
-				}
-				
-				if ($valid) {
-					
-					// protect reserved keywords
-					if ($this->IsKeywordReserved($name)) $name .= "_";
-					
-					if (!in_array($type, $this->reserved_types)) {
-						if ($this->IsKeywordReserved($type)) $type .= "_";
-					}
-
-					// can't have "boolean: boolean;" parameters
-					if (preg_match("!\b$name\b!i",$type)) $name .= "_";
-
-//					print("para name: \"$name\"\n");
-//					print_r("protected: \"$protected_keywords\"\n");
-					while (@in_array(strtolower($name), $protected_keywords)) $name .= "_";
-					
-					// case-insensitive in_array:
-//					if( preg_match("/\b$name\b/i", join(" ", array_values($protected_keywords))) ) $name .= "_";
-//					if (@in_array($type, $protected_keywords)) $type .= "_";
-					
-					// replace objc types
-					$type = $this->ReplaceObjcType($type);
-					
-					// make sure we label duplicate params, which are allowed in Objective-C
-					while (in_array($name, $param_list)) {
-						$count ++;
-						$name = "$name$count";
-					}
-					
-					// id is always a wrapper
-					if (($this->objects_are_wrappers) && ($type == $this->objc_id)) {
-						$name_list = "$type(GetHandle($name))";
-					} else {
-						$name_list = $name;
-					}
-					
-					// add modifiers to the name if there are any
-					$name_with_modifiers = $modifiers.$name;
-
-					// create pair array
-					$pair["name"] = $name;
-					$pair["type"] = $type;
-					
-					// append list
-					$list["pairs"][] = $pair;
-					$list["string_with_modifiers"] .= "$name_with_modifiers: $type; ";
-					$list["string"] .= "$name: $type; ";
-					$list["list"] .= "$name_list, ";
-					$param_list[] = $name;
-				}
-			}
-		}
-		// clean up the strings
-		$list["string"] = trim($list["string"], "; ");
-		$list["string_with_modifiers"] = trim($list["string_with_modifiers"], "; ");
-		$list["list"] = trim($list["list"], ", ");
-		
-		return $list;
-	}
-	
-	// Print string to output file
-	function PrintOutput ($indent, $string) {
-		for ($i=0; $i < $indent; $i++) { 
-			$indent_string .= "  ";
-		}
-		
-		if (($this->output) && (!$this->show)) fwrite($this->output, "$indent_string$string\n");
-		
-		if ($this->show) print("$indent_string$string\n");
-	}
-		
-	// Returns a class hierarchy array 
-	function GetClassHierarchy ($class, &$hierarchy) {
-		if (!$hierarchy) $hierarchy = array();
-		$hierarchy[] = $class["name"];
-		
-		if ($class["super_class"]) {
-			$hierarchy[] = $this->GetClassHierarchy($class["super_class"], $hierarchy);
-		} else {
-			$hierarchy[] = "NSObject";
-		}
-		
-		return $class["name"];
-	}
-	
-	// Returns all protected keywords in a class hierarchy
-	function GetProtectedKeywords ($in_class) {
-		$this->GetClassHierarchy($in_class, $hierarchy);
-		$keywords = array();
-		
-		foreach ($hierarchy as $class) {
-			if ($this->dump["master"][$class]["protected_keywords"]) {
-				foreach ($this->dump["master"][$class]["protected_keywords"] as $keyword) $keywords[] = strtolower($keyword);
-			}
-		}
-		
-		return $keywords;
-	}
-	
-	
-	// Returns header a category should be moved to
-	function FindCategoryHeader ($category) {
-		
-		foreach ($this->dump as $name => $header) {
-			if ((@array_key_exists($category, $header["classes"])) && ($category != "NSObject")) {
-				return $name;
-			}
-		}
-	}
-	
-	// Checks if $class (array) contains $method (array)
-	function ClassContainsMethod ($class, $method) {
-		if ($class["methods"]) {
-			foreach ($class["methods"] as $key) {
-				if ($key["name"] == $method["name"]) return true;
-			}
-		}
-	}
-	
-	// Adds a method structure to a class and performs checks for overloaded methods
-	function AddMethodToClass (&$method, &$class) {
-		
-		// ignore methods
-//		if (in_array($method["name"], $this->ignore_methods)) return false;
-		
-		// add comment to the method
-		$method["comment"] = $this->InsertCurrentComment();
-		
-		if (@!in_array($method["name"], $class["declared_methods"])) {
-			
-			$class["all"][$method["name"]] = $method;
-			$class["protected_keywords"][] = $method["name"];
-			$class["declared_methods"][] = $method["name"];
-			$this->dump["all_methods"][$class["name"]][] = $method["objc_method"];
-			
-			if ($this->show_added_messages) print("	@ Added ".$method["name"]." to ".$class["name"]."\n");
-
-			$this->method_count ++;
-			return true;
-		} else {
-			print("	! ".$method["def"]." already exists in ".$class["name"]." defined as ".$class["all"][$method["name"]]["def"]."\n");
-		}
-	}
-	
-	// Adds a typedef to the header and handles organization to prevent order conflicts
-	function AddTypeDef (&$header, $typedef) {
-		
-		//$this->AppendCurrentMacro($header["types"]["typedef"]);
-		$this->AppendCurrentComment($header["types"]["typedef"]);
-		if ($this->comment_terminated) $header["types"]["typedef"][] = $this->InsertCurrentComment();
-		
-		$header["types"]["typedef"][] = $typedef;
-	}
-		
-	// Returns a paramater list string with options to modify
-	function MakeParamList ($param_array, $use_handle, $cast_handle, $direct, $register_selector) {
-		$params = "";
-		foreach ($param_array as $pair) {
-			
-			// register selector parameters
-			if (($register_selector) && ($pair["type"] == "SEL")) {
-				$params .= "sel_registerName(".$pair["name"]."), ";
-				continue;
-			}
-			
-			// use the object handle for NSObject descendants
-			if ($use_handle) {
-				if (in_array($pair["type"], $this->cocoa_classes)) {
-
-					// cast the param to the original class type
-					if ($cast_handle) {
-						if ($direct == ACCESS_HANDLE_DIRECT) {
-							$params .= $pair["type"]."(".$pair["name"].".Handle), ";
-						} else {
-							$params .= $pair["type"]."(GetHandle(".$pair["name"].")), ";
-						}
-					} else {
-						if ($direct == ACCESS_HANDLE_DIRECT) {
-							$params .= $pair["name"].".Handle, ";
-						} else {
-							$params .= "GetHandle(".$pair["name"]."), ";
-						}
-					}
-
-				} else {
-					if (($this->objects_are_wrappers) && ($pair["type"] == $this->objc_id)) {	// id is always a wrapper
-						if ($direct == ACCESS_HANDLE_DIRECT) {
-							$params .= $pair["type"]."(".$pair["name"].".Handle), ";
-						} else {
-							$params .= $pair["type"]."(GetHandle(".$pair["name"].")), ";
-						}
-					} else {
-						$params .= $pair["name"].", ";
-					}
-				}
-			} else { // append without modification
-				$params .= $pair["name"].", ";
-			}
-		}
-		
-		return trim($params, ", ");
-	}
-	
-	// Returns a list of paramameter variables with NS*** class types cast to "id" or the original class
-	function MakeObjcTypeParamList ($param_array, $objc_type) {
-		$params = "";
-		foreach ($param_array as $pair) {
-			if (in_array($pair["type"], $this->cocoa_classes)) {
-				if ($objc_type) {
-					$params .= "$this->objc_id(".$pair["name"]."), ";
-				} else {
-					$params .= $pair["type"]."(".$pair["name"]."), ";
-				}
-			} else {
-				$params .= $pair["name"].", ";
-			}
-		}
-		return trim($params, ", ");
-	}
-	
 	/**
 	 * PRINTING METHODS
 	 */
-															
+	
+	function PrintClass ($class) {
+
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "{ ".$class["name"]." }");
+		
+		if ($class["comment"]) $this->PrintOutput(0, $class["comment"]);
+		//print_r($class["methods"]);
+		
+		
+		// print super class or protocol which the class conforms to
+		if ($class["adopts"]) {
+			$this->PrintOutput(1, $class["name"]." = objcclass(".$class["super"].", ".$class["adopts"].")");
+		} elseif ($class["super"]) {
+			$this->PrintOutput(1, $class["name"]." = objcclass(".$class["super"].")");
+		}
+
+		// print instance variables
+		if ($class["ivars"]) {
+			$this->PrintOutput(1, "private");
+			foreach ($class["ivars"] as $ivar) {
+				$this->PrintOutput(2, $ivar);
+			}
+		}
+
+		// print alloc method for the class
+		$this->PrintOutput(2, "");
+		$this->PrintOutput(1, "public");
+		$this->PrintOutput(2, "class function alloc: ".$class["name"]."; message 'alloc';");
+		
+		// print class-level methods
+		if ($class["methods"]) {
+			$this->PrintOutput(0, "");
+			foreach ($class["methods"] as $method) {
+				if ($method["comment"]) $this->PrintOutput(2, $method["comment"]);
+				$this->PrintOutput(2, $method["def"]." message '".$method["objc_method"]."';".$method["deprecated"]);
+			}
+		}
+		
+		// print adopted protocol methods
+		if (count($class["protocols"]) > 0) {
+			$this->PrintOutput(0, "");
+			$this->PrintOutput(2, "{ Adopted Protocols }");
+			//print_r($this->dump["protocols"]);
+
+			foreach ($class["protocols"] as $name) {
+				if ($this->dump["protocols"][$name]) {
+					foreach ($this->dump["protocols"][$name] as $method) {
+						if (!$this->ClassContainsMethod($class, $method)) $this->PrintOutput(2, $method["def"]);
+					}
+				}
+			}
+		}
+
+		$this->PrintOutput(1, "end; external;");
+	}
+	
+	function PrintCategory ($class, $category) {
+
+		// declare real category if external
+		if ($category["external"]) {
+			$new_name = " name '".$category["external_name"]."'";
+		}
+		
+		$category_name = $category["name"].$this->category_suffix;
+		
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "{ $category_name }");
+		if ($category["comment"]) $this->PrintOutput(0, $category["comment"]);
+		
+		// print super class or protocol which the class conforms to
+		$this->PrintOutput(1, "$category_name = objccategory(".$category["super"].")");
+		
+		// print methods
+		if ($category["methods"]) {
+			foreach ($category["methods"] as $method) {
+				if ($method["comment"]) $this->PrintOutput(2, $method["comment"]);
+				$this->PrintOutput(2, $method["def"]." message '".$method["objc_method"]."';".$method["deprecated"]);
+			}
+		} 
+
+		$this->PrintOutput(1, "end; external$new_name;");
+	}
+						
+	function PrintHeader ($header) {
+		global $version;
+		//print_r($header);
+		//print_r($this->dump["categories"]);
+		
+		// open the output file if we not printing to terminal
+		if (!$this->show) {
+			if ($this->merge_headers) {
+				$this->output = fopen($header["path_merge"], "w+");
+			} else {
+				$this->output = fopen($header["path"], "w+");
+			}
+		}
+
+		$this->PrintOutput(0, "{ Parsed from ".ucfirst($header["framework"]).".framework ".$header["name"]." }");
+
+		$date = @date("D M j G:i:s T Y");
+		$this->PrintOutput(0, "{ Version: $version - $date }");
+		$this->PrintOutput(0, "");
+
+		$macro = strtoupper(substr($header["name"], 0, (strripos($header["name"], "."))));
+		
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "{\$ifdef TYPES}");
+		$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_T}");
+		$this->PrintOutput(0, "{\$define $macro"."_PAS_T}");
+		$this->PrintTypes($header, false);
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "{\$endif}");
+		$this->PrintOutput(0, "{\$endif}");
+
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "{\$ifdef RECORDS}");
+		$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_R}");
+		$this->PrintOutput(0, "{\$define $macro"."_PAS_R}");
+		
+		// Records from types
+		$this->PrintRecords($header);
+		
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "{\$endif}");
+		$this->PrintOutput(0, "{\$endif}");
+
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "{\$ifdef FUNCTIONS}");
+		$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_F}");
+		$this->PrintOutput(0, "{\$define $macro"."_PAS_F}");
+		$this->PrintFunctions($header);
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "{\$endif}");
+		$this->PrintOutput(0, "{\$endif}");
+
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "{\$ifdef EXTERNAL_SYMBOLS}");
+		$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_S}");
+		$this->PrintOutput(0, "{\$define $macro"."_PAS_S}");
+		$this->PrintExternalSymbols($header);
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "{\$endif}");
+		$this->PrintOutput(0, "{\$endif}");
+		
+		// insert user patches
+		if ($this->HeaderContainsPatch($header)) {
+			$this->PrintOutput(0, "");
+			$this->PrintOutput(0, "{\$ifdef USER_PATCHES}");
+			//$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_PATCH}");
+			//$this->PrintOutput(0, "{\$define $macro"."_PAS_PATCH}");
+			$this->InsertPatches($header);
+			$this->PrintOutput(0, "");
+			//$this->PrintOutput(0, "{\$endif}");
+			$this->PrintOutput(0, "{\$endif}");
+		}
+
+		if (($header["classes"]) || ($header["protocols"])) {
+			$this->PrintOutput(0, "");
+			$this->PrintOutput(0, "{\$ifdef FORWARD}");
+
+			if ($header["protocols"]) {
+				foreach ($header["protocols"] as $protocol) $this->PrintOutput(1, $protocol["name"]."$this->protocol_suffix = objcprotocol;");
+			}
+			
+			if ($header["classes"]) {
+				foreach ($header["classes"] as $class) {
+					if ($class["name"]) {
+						$this->PrintOutput(1, $class["name"]." = objcclass;");
+						$this->PrintOutput(1, $class["name"].$this->class_pointer_suffix." = ^".$class["name"].";");
+						// for consistency also offer Ptr-name variant
+						$this->PrintOutput(1, $class["name"]."Ptr = ".$class["name"].$this->class_pointer_suffix.";");
+					}
+				}
+			}
+			$this->PrintOutput(0, "");
+			$this->PrintOutput(0, "{\$endif}");
+		}
+
+		if ($header["classes"]) {
+			$this->PrintOutput(0, "");
+			$this->PrintOutput(0, "{\$ifdef CLASSES}");
+			$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_C}");
+			$this->PrintOutput(0, "{\$define $macro"."_PAS_C}");
+
+			foreach ($header["classes"] as $class) {
+				if ($class["name"]) $this->PrintClass($class);
+			}
+
+			if (count($header["categories"]) > 0) {
+				foreach ($header["categories"] as $category) {
+					$this->PrintCategory($class, $category);
+				}
+			}
+
+			$this->PrintOutput(0, "");
+			$this->PrintOutput(0, "{\$endif}");
+			$this->PrintOutput(0, "{\$endif}");
+		}
+
+
+		if ($header["protocols"]) {
+			$this->PrintOutput(0, "{\$ifdef PROTOCOLS}");
+			$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_P}");
+			$this->PrintOutput(0, "{\$define $macro"."_PAS_P}");
+
+			
+			foreach ($header["protocols"] as $protocol) {
+				$this->PrintOutput(1, "");
+				$this->PrintOutput(0, "{ ".$protocol["name"]." Protocol }");
+				if ($protocol["comment"]) $this->PrintOutput(0, $protocol["comment"]);
+				$this->PrintOutput(1, $protocol["name"]."$this->protocol_suffix = objcprotocol");
+
+				// print methods
+				if ($protocol["methods"]) {
+					foreach ($protocol["methods"] as $name => $method) {
+						if ($method["comment"]) $this->PrintOutput(2, $method["comment"]);
+						$this->PrintOutput(2, $method["def"]." message '".$method["objc_method"]."';".$method["deprecated"]);
+					}
+				}
+				
+				$this->PrintOutput(1, "end; external name '".$protocol["name"]."';");		
+			}
+			
+			$this->PrintOutput(0, "{\$endif}");
+			$this->PrintOutput(0, "{\$endif}");
+		}
+	}															
+	
 	// Prints all externally defined symbols
 	function PrintExternalSymbols ($header) {
 		if (!$this->dump[$header["name"]]["types"]) return;
@@ -1681,8 +1887,72 @@ class TPasCocoaParser {
 		unlink($merged);
 	}
 
-  function PrintGlobalClassInfo($all_classes, $anon_classes) {
-    // for pascocoa: do nothing
+  function PrintGlobalClassInfo($all_classes, $defined_classes, $anon_classes) {
+		// add all classes as anonymous external classes to a separate unit.
+		// They will be overridden by the actual definitions in the translated
+		// headers part of the main unit, but this way they can appear as record
+		// field types and as callback parameters
+
+		// open the output file if we not printing to terminal
+		if (!$this->show) {
+			$this->output = fopen("$this->root$this->out/AnonClassDefinitions".ucfirst($this->framework).".pas", "w+");
+		}
+		
+		$this->PrintOutput(0, "{ Parsed from ".ucfirst($this->framework)." }");
+
+		$date = @date("D M j G:i:s T Y");
+		
+		$this->PrintOutput(0, "");
+		// allows parameter names conflicting with field names
+		$this->PrintOutput(0, "{\$mode delphi}");
+		$this->PrintOutput(0, "{\$modeswitch objectivec1}");
+		// enables "external" after the semi-colon
+		$this->PrintOutput(0, "{\$modeswitch cvar}");
+		$this->PrintOutput(0, "");
+
+		$this->PrintOutPut(0,"unit AnonClassDefinitions".ucfirst($this->framework).";");
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "interface");
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "type");
+
+    foreach ($all_classes as $class)
+			$this->PrintOutput(1, $class." = objcclass; external;");
+
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "implementation");
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "end.");
+
+
+		// Now all anonymous external classes that have no real definition to an
+		// include file that is added to the main unit. This way it is possible
+		// to declare variables of these types in user programs without having to
+		// include the unit above will all anonymous classes (should not be used)
+
+		// open the output file if we not printing to terminal
+		if (!$this->show) {
+			$this->output = fopen("$this->root$this->out/$this->framework/AnonIncludeClassDefinitions".ucfirst($this->framework).".inc", "w+");
+		}
+		
+		$this->PrintOutput(0, "{ Parsed from ".ucfirst($this->framework)." }");
+
+		$date = @date("D M j G:i:s T Y");
+		
+
+		// add all classes as anonymous external classes. They will be overridden
+		// by the actual definitions in the translated headers, but this way they
+		// can appear as record field types and as callback parameters
+		$first = true;
+    foreach ($anon_classes as $class) {
+    	if (!in_array($class,$defined_classes)) {
+    		if ($first) {
+    			$this->PrintOutput(0, "type");
+    			$first = false;
+    		}
+				$this->PrintOutput(1, $class." = objcclass; external;");
+			}
+		}
   }
 
 	// Prints all headers parsed
@@ -1731,14 +2001,106 @@ class TPasCocoaParser {
 	}	
 	
 	/**
+	 * PRE-PARSING METHODS
+	 */
+	
+	// Parse all "pre-defined" category methods in a header
+	function PreparseCategoryMethods ($file) {
+			$contents = file_get_contents($file);
+			$file_name = substr($file, (strripos($file, "/")) + 1, strlen($file));
+			
+			$lines = explode("\n", $contents);
+			foreach ($lines as $line) {
+							
+				// skip blocks
+				if ($this->SkipBlock($line)) continue;
+
+				// parse category
+				if ($got_category) {
+					
+					// build method fragment
+					if ($method_fragment) $method_fragment .= " ".trim($line, " 	");
+					
+					// found method fragment termination
+					if (($method_fragment) && (eregi($this->regex_objc_method_terminate, $line))) {
+						$line = $method_fragment;
+						$method_fragment = null;
+					}
+					
+					// found method
+					$method = null;
+					if (eregi($this->regex_objc_method_params, $line, $captures)) {
+						$method = $this->ConvertObjcMethodToPascal($current_category, $line, $captures, array(), true, "");						
+					} elseif (eregi($this->regex_objc_method_no_params, $line, $captures)) {
+						$method = $this->ConvertObjcMethodToPascal($current_category, $line, $captures, array(), false, "");	
+					} elseif (eregi($this->regex_objc_method_partial, $line, $captures)) {
+						$method_fragment = $line;
+					}
+					
+					// append to classes
+					if (($method) && ($current_class)) {
+						$this->dump[$category_owner]["category_methods"][] = $method["name"];
+						//print($method["name"]."\n");
+					}
+					
+					// found the end
+					if (ereg("^@end", $line)) $got_category = false;
+				}
+				
+				// got category
+				if (eregi($this->regex_objc_category, $line, $captures)) {
+					$category_owner = $this->FindCategoryHeader($captures[1]);
+					if ($category_owner) {
+						$got_category = true;
+						$current_category = $captures[2];
+						$current_class = $captures[1];
+					} else {
+						$current_class = null;
+					}
+				}
+			}
+			
+		return $this->dump[$category_owner]["category_methods"];
+	}
+	
+	// Preparses a class for protected keywords
+	function PreparseClass ($lines, $line_count) {
+		$protected_keywords = array();
+		
+		for ($i=$line_count; $i < count($lines); $i++) { 
+			$line = $lines[$i - 1];
+			
+			// skip blocks
+			if ($this->SkipBlock($line)) continue;
+
+			// build method fragment
+			if ($method_fragment) $method_fragment .= " ".trim($line, " 	");
+			
+			// found method fragment termination
+			if (($method_fragment) && (eregi($this->regex_objc_method_terminate, $line))) {
+				$line = $method_fragment;
+				$method_fragment = null;
+			}
+			
+			// found method
+			if (eregi($this->regex_objc_method_params, $line, $captures)) {
+				$method = $this->ConvertObjcMethodToPascal($current, $line, $captures, $protected_keywords, true, "");
+				$this->current_class["protected_keywords"][] = strtolower($method["name"]);
+			} elseif (eregi($this->regex_objc_method_no_params, $line, $captures)) {
+				$method = $this->ConvertObjcMethodToPascal($current, $line, $captures, $protected_keywords, false, "");
+				$this->current_class["protected_keywords"][] = strtolower($method["name"]);
+			} elseif (eregi($this->regex_objc_method_partial, $line, $captures)) {
+				$method_fragment = $line;
+			}
+			
+			// class ended
+			if (ereg("^@end", $line)) return $protected_keywords;
+		}
+	}
+	
+	/**
 	 * PARSING METHODS
 	 */
-
-	function GetAnonBitFieldName() {
-		$name = "_anonbitfield_".$this->current_header["name_clean"].$this->current_header["anonbitfields"];
-		$this->current_header["anonbitfields"]++;
-		return $name;
-	}
 	
 	function ParseNormalField($line, $protected_keywords, &$field_bitpacked, &$bitpacked_real_type, &$this_class_field_names) {
 		if (preg_match("!^\s*([^-{}*@+,<;:]*struct[^-*@+,<;:]+|[^-{}*@+,<;:]+)\b\s*(?:<([^>]*)>)?([*]*)\s*(\w+)((?:\s*,\s*[^:;[]+)*)?\s*(:[0-9]+)?\s*(\[.*\])?\s*(?:__attribute__\(\(([^)]*)\)\))?\s*;!", $line, $captures)) { // regular field
@@ -1758,8 +2120,8 @@ class TPasCocoaParser {
 					// captures[6]: bitfield specification if any, empty otherwise
 					// captures[7]:	array specification if any, empty otherwise
 					// captures[8]: attributes if any, empty otherwise
-		
-					
+
+
 					if ($captures[3] != "") { // pointer type -> ok (cannot be wrongly interpreted)
 						$type = trim($captures[1]);
 						$pointertype = $captures[3];
@@ -1775,7 +2137,7 @@ class TPasCocoaParser {
 		//				print("regular field: \"$name\": $type\n");
 					}
 		//			print("field \"$name\": \"$type\", attr: $captures[8]\n");
-					
+
 					// if we have id <protocollist> and there's only one protocol in the
 					// in the list, we can replace id with the protocol
 					if (($type == "id") && ($captures[2] != "") && !strstr(",", $captures[2])) {
@@ -1786,7 +2148,7 @@ class TPasCocoaParser {
 					// stored in othernames
 					$othernames = $captures[5];
 					$field_prefix = "";
-					
+
 					// Multiple Objective-C fields cannot have the same name, but they
 					// are case-insensitive and some only differ in case (only "reserved"
 					// fields until now, but that can change)
@@ -1812,35 +2174,34 @@ class TPasCocoaParser {
 					foreach (explode($othernames, ",") as $othername) {
 						while (in_array(strtolower("$field_prefix$othername"),$protected_keywords)) $field_prefix.="_";
 						if ($this->IsKeywordReserved($field_prefix.$othernamename)) $field_prefix .= "_";
-						}
+					}
 		*/
 					// remove "struct" from the type
 					$type = preg_replace("!(\b)struct\b!","\1",$type);
-		
+
 					// clean/convert type			
 					$type = $this->ReplaceObjcType($type);
 					$bitpacked_real_type = $type;
 					$type = $this->MakeFieldBitPacked($type, $line, $field_bitpacked);
-					
+
 					// add pointer modifiers
 					$type = $this->EncodePointerModifiers($type,$pointertype);
-		
+
 					$field = "$field_prefix$name$othernames: $type";
 					if ($captures[8] && strstr("deprecated",$captures[8])) $field .= " deprecated";
 					$field .= ";";
 					$field = $this->MakeFieldInlineArray($field, $line, $name, $type);
 					$field = eregi_replace("<.*>", "", $field);
 					return $field;
-				}
-			return "";
 		}
-
+			return "";
+	}
 
 	function ParseInstanceVariables ($line, &$struct, $protected_keywords, &$this_class_field_names) {
 		$field = null;
 		$field_bitpacked = false;
 //		print("$line\n");
-			
+
 		// insert macros
 		if ($macro = $this->InsertMacroBlocks($line, $this->inside_macro_block)) {
 			if ($struct["valid"]) {
@@ -1850,7 +2211,7 @@ class TPasCocoaParser {
 				return $macro;
 			}
 		}
-		
+
 		// got inline struct, probably a reference to a private struct
 		if (eregi("[[:space:]]*struct[[:space:]]+([a-zA-Z0-9_]+)[[:space:]]+\*([a-zA-Z0-9_]+)", $line, $captures)) {
 			if ($struct["valid"]) {
@@ -1876,7 +2237,7 @@ class TPasCocoaParser {
 			$struct["fieldnames"] = array();
 			return null;
 		}
-		
+
 		// create an anonymous struct in case we have bitpacked fields without a
 		// surrounding struct
 		if (!$struct["valid"] && preg_match("!.*:[0-9]+\s*;!", $line)) {
@@ -1893,7 +2254,7 @@ class TPasCocoaParser {
 			// make sure the current field isn't added anymore
 			$struct["valid"] = false;
 		}
-		
+
 		// end of struct
 		if (eregi("^[[:space:]]*}[[:space:]]*([a-zA-Z_0-9]+);", $line, $captures)) {
 			$struct["name"] = "_".trim($captures[1], " 	");
@@ -1901,16 +2262,16 @@ class TPasCocoaParser {
 			$struct["isfinished"] = true;
 			return "struct";
 		}
-		
+
 		// set field prefix to protect scope
 		if (!$struct["valid"]) $field_prefix = "_";
-		
+
 		// remove null-defined macros: 
 		$line = str_ireplace($this->null_macros, "", $line);
-		
+
 		// replace garbage collector hints in the field	
 		$line = $this->ReplaceGarbageCollectorHints($line, $garbage_collector_hint);
-		
+
 		if (preg_match($this->pregex_function_pointer, $line, $captures)) { // function pointer
 //			print("function pointer: $line\n");
 			$field =$this->ParseFunctionDeclaration($captures[1], $captures[2], $captures[3], $captures[4], false, "");
@@ -1926,7 +2287,7 @@ class TPasCocoaParser {
 
 		// mark the field as having a garbage collector field
 		if ($garbage_collector_hint) $field = "$field {garbage collector: $garbage_collector_hint }";
-		
+
 		// return field
 		if ($struct["valid"]) {
 			if (!$struct["bitpacked"]) $struct["bitpacked_first_type"] = $bitpacked_real_type;
@@ -1935,6 +2296,28 @@ class TPasCocoaParser {
 		} else {
 			return $field;
 		}
+	}
+	
+	// Parses a struct field into a list
+	function ParseStructList ($line, $input, $name, $type) {
+		$field = "";
+		
+		$list = explode(",", $input);
+		if (count($list) > 1) {
+			$field = "    ";
+			foreach ($list as $key) {
+				$key = trim($key, " ");
+				$field .= "$key, ";
+			}
+			
+			$field = rtrim($field, ", ");
+			$field .= ": $type;\n";
+		} else {
+			$field = "    $name: $type;";
+			$field = $this->MakeFieldInlineArray($field, $line, $name, $type)."\n";
+		}
+		
+		return $field;
 	}
 	
 	// Parses $line into a function declaration string. Handles both
@@ -2045,19 +2428,10 @@ class TPasCocoaParser {
 			}
 		}
 	}
-
-	// create a variant record with a first anonymous field of type
-	// first_bitpacked_type so that the compiler may correctly align it
-	// (it does not do that currently, but this at least provides a
-	//  hint to the programmer)
-	function BitPackedForceAlignment($first_bitpacked_type, $firstindent, $otherindents) {
-		$result = $firstindent . "case byte of\n" . $otherindents ."0: (" . $this->GetAnonBitFieldName() . ": $first_bitpacked_type);\n" . $otherindents . "1: (";
-		return $result;
-	}
-
+		
 	// Parse external symbols, enums and typedef's from the header
 	function ParseHeaderTypes ($file) {
-			$contents = ReadTextFile($file);
+			$contents = file_get_contents($file);
 			$file_name = substr($file, (strripos($file, "/")) + 1, strlen($file));	
 			$any_field_bitpacked = false;
 			$all_fields_bitpacked = false;
@@ -2465,7 +2839,7 @@ class TPasCocoaParser {
 	
 	// Parse all protocols in a header
 	function ParseHeaderProtocols ($file) {
-			$contents = ReadTextFile($file);
+			$contents = file_get_contents($file);
 			$file_name = substr($file, (strripos($file, "/")) + 1, strlen($file));
 			
 			// reset comments from previous parsing sections
@@ -2563,10 +2937,9 @@ class TPasCocoaParser {
 		//print_r($this->current_class);
 	}
 	
-	
 	// Parse all categories in a header
 	function ParseHeaderCategories ($file) {
-			$contents = ReadTextFile($file);
+			$contents = file_get_contents($file);
 			$file_name = substr($file, (strripos($file, "/")) + 1, strlen($file));
 			
 			// reset comments from previous parsing sections
@@ -2692,160 +3065,7 @@ class TPasCocoaParser {
 			
 		//print_r($this->current_class);
 	}
-	
-	// Parse all "pre-defined" category methods in a header
-	function PreparseCategoryMethods ($file) {
-			$contents = ReadTextFile($file);
-			$file_name = substr($file, (strripos($file, "/")) + 1, strlen($file));
 			
-			$lines = explode("\n", $contents);
-			foreach ($lines as $line) {
-							
-				// skip blocks
-				if ($this->SkipBlock($line)) continue;
-
-				// parse category
-				if ($got_category) {
-					
-					// build method fragment
-					if ($method_fragment) $method_fragment .= " ".trim($line, " 	");
-					
-					// found method fragment termination
-					if (($method_fragment) && (eregi($this->regex_objc_method_terminate, $line))) {
-						$line = $method_fragment;
-						$method_fragment = null;
-					}
-					
-					// found method
-					$method = null;
-					if (eregi($this->regex_objc_method_params, $line, $captures)) {
-						$method = $this->ConvertObjcMethodToPascal($current_category, $line, $captures, array(), true, "");						
-					} elseif (eregi($this->regex_objc_method_no_params, $line, $captures)) {
-						$method = $this->ConvertObjcMethodToPascal($current_category, $line, $captures, array(), false, "");	
-					} elseif (eregi($this->regex_objc_method_partial, $line, $captures)) {
-						$method_fragment = $line;
-					}
-					
-					// append to classes
-					if (($method) && ($current_class)) {
-						$this->dump[$category_owner]["category_methods"][] = $method["name"];
-						//print($method["name"]."\n");
-					}
-					
-					// found the end
-					if (ereg("^@end", $line)) $got_category = false;
-				}
-				
-				// got category
-				if (eregi($this->regex_objc_category, $line, $captures)) {
-					$category_owner = $this->FindCategoryHeader($captures[1]);
-					if ($category_owner) {
-						$got_category = true;
-						$current_category = $captures[2];
-						$current_class = $captures[1];
-					} else {
-						$current_class = null;
-					}
-				}
-			}
-			
-		return $this->dump[$category_owner]["category_methods"];
-	}
-	
-	// Preparses a class for protected keywords
-	function PreparseClass ($lines, $line_count) {
-		$protected_keywords = array();
-		
-		for ($i=$line_count; $i < count($lines); $i++) { 
-			$line = $lines[$i - 1];
-			
-			// skip blocks
-			if ($this->SkipBlock($line)) continue;
-
-			// build method fragment
-			if ($method_fragment) $method_fragment .= " ".trim($line, " 	");
-			
-			// found method fragment termination
-			if (($method_fragment) && (eregi($this->regex_objc_method_terminate, $line))) {
-				$line = $method_fragment;
-				$method_fragment = null;
-			}
-			
-			// found method
-			if (eregi($this->regex_objc_method_params, $line, $captures)) {
-				$method = $this->ConvertObjcMethodToPascal($current, $line, $captures, $protected_keywords, true, "");
-				$this->current_class["protected_keywords"][] = strtolower($method["name"]);
-			} elseif (eregi($this->regex_objc_method_no_params, $line, $captures)) {
-				$method = $this->ConvertObjcMethodToPascal($current, $line, $captures, $protected_keywords, false, "");
-				$this->current_class["protected_keywords"][] = strtolower($method["name"]);
-			} elseif (eregi($this->regex_objc_method_partial, $line, $captures)) {
-				$method_fragment = $line;
-			}
-			
-			// class ended
-			if (ereg("^@end", $line)) return $protected_keywords;
-		}
-	}
-	
-	// Gets the preferred property name from attributes
-	function GetPropertyName ($kind, $params, &$name) {
-		foreach ($params as $value) {
-			$pair = explode("=", $value);
-			
-			if ($pair[0] == $kind) {
-				$name = $pair[1];
-				return true;
-				break;
-			}
-		}
-	}
-
-	function EncodePointerModifiers($type, $pointertype) {
-		if ($pointertype[0] == "*") $type = $this->ReplacePointerType($type);
-		if ($pointertype[1] == "*") {
-			if ($type == "Pointer") {
-				$type = "PPointer";
-			} elseif ($type == "PChar") {
-				$type = "PPChar";
-			} elseif (in_array($type, $this->cocoa_classes)) {
-				$type = $type.$this->class_pointer_suffix;
-			} else {
-				// to match MacOSAll types
-				$type = $type."Ptr";
-			}
-		}
-		return $type;
-	}
-
-	
-	// Convert a method return type to Pascal
-	function ConvertReturnType ($type, $pointertype) {
-		$type = $this->ReplaceGarbageCollectorHints($type, $null);
-		$type = $this->ReplaceRemoteMessagingModifiers($type, $null);
-
-		// format the return type to make sure it's clean
-		$type = $this->FormatObjcType($type, $null_modifier);
-		// translate type to Pascal
-		$type = $this->ReplaceObjcType($type);
-		// incorportate pointer modifiers
-		$type = $this->EncodePointerModifiers($type,$pointertype);
-
-		return $type;
-	}
-	
-	// Checks if a line has a property and returns the parts
-	function LineHasProperty ($line, &$parts) {
-		if (eregi($this->regex_objc_property_attributes, $line, $captures)) {
-			$parts = $captures;
-			//print_r($parts);
-			return true;
-		} elseif (eregi($this->regex_objc_property, $line, $captures)) {
-			$parts = $captures;
-			//print_r($parts);
-			return true;
-		}
-	}
-	
 	// Parse a property into accessor methods
 	function ParseClassProperty ($class, $parts, $deprecatedmods) {
 		
@@ -2944,9 +3164,9 @@ class TPasCocoaParser {
 		return $methods;
 	}
 	
-	// Main entry to parse a header
+	// Parse header classes and methods
 	function ParseHeaderClasses ($file) {
-			$contents = ReadTextFile($file);
+			$contents = file_get_contents($file);
 			
 			$file_name = substr($file, (strripos($file, "/")) + 1, strlen($file));
 			$line_count = 0;
@@ -3180,7 +3400,7 @@ class TPasCocoaParser {
 		
 		//print_r($this->dump[$file_name]["classes"][$current]);
 	}		
-	
+
 	// Parse categories which depend on another header
 	function ParseHeaderDependents ($file) {
 		$file_name = substr($file, (strripos($file, "/")) + 1, strlen($file));
@@ -3190,7 +3410,6 @@ class TPasCocoaParser {
 		print("+ Parsed $file_name for dependents\n");
 	}
 	
-	
 	// Main entry to parse a header
 	function ParseHeader ($file) {
 			$file_name = substr($file, (strripos($file, "/")) + 1, strlen($file));
@@ -3199,7 +3418,7 @@ class TPasCocoaParser {
 			// get the framework we're parsing from if it was specified during a batch parse
 			if ((!$this->framework) && (eregi("/([a-zA-Z]+)\.framework", $file, $captures))) $this->framework = strtolower($captures[1]);
 			
-			// get the output path
+			// set the dump for the header
 			$this->dump[$file_name]["path"] = "$this->root$this->out/$this->framework/$name_clean.inc";
 			$this->dump[$file_name]["path_partial"] = "$this->framework/$name_clean.inc";
 			$this->dump[$file_name]["path_merge"] = $this->dump[$file_name]["path"].".merge";
@@ -3209,6 +3428,8 @@ class TPasCocoaParser {
 			$this->dump[$file_name]["anoninternstrucs"] = 0;
 			$this->dump[$file_name]["anonbitfields"] = 0;
 			$this->current_header = &$this->dump[$file_name];
+			
+			// parse each section of the header
 			$this->ParseHeaderTypes($file);
 			$this->ParseHeaderProtocols($file);
 			$this->ParseHeaderClasses($file);
@@ -3235,7 +3456,7 @@ class TPasCocoaParser {
 			
 			// Load the header if found
 			if (file_exists($path)) {
-				$contents = ReadTextFile($path);
+				$contents = file_get_contents($path);
 				$lines = explode("\n", $contents);
 
 				foreach ($lines as $line) {
@@ -3278,9 +3499,8 @@ class TPasCocoaParser {
 					}
 				}
 			} else {
-				print("*** The master include ".$framework_info["root"]." is missing. ***\n");
-				exit;
-			}	
+				die("FATAL: The master include \"$path\" is missing.\n");
+			}
 		}
 		
 		// diagnostics
@@ -3288,6 +3508,10 @@ class TPasCocoaParser {
 		
 		if ($this->warning_count > 0) print("• $this->warning_count warnings were encountered.\n\n");
 	}
+		
+	/**
+	 * MAIN METHODS
+	 */
 						
 	// Parse all classes/categories (non-delegate) from the header
 	function CollectHeaderClasses ($file) {
@@ -3295,7 +3519,7 @@ class TPasCocoaParser {
 		// can't find the header, bail
 		if (!file_exists($file)) return;
 			
-		$contents = ReadTextFile($file);
+		$contents = file_get_contents($file);
 			
 		$lines = explode("\n", $contents);
 		foreach ($lines as $line) {
@@ -3345,16 +3569,22 @@ class TPasCocoaParser {
 			
 			// framework is disabled
 			if ($framework_info["enabled"] != 1) continue;
-			$handle = opendir($framework_info["headers"]);
-			while (($file = readdir($handle)) !== false) {
-				if (eregi($framework_info["header_pattern"], $file)) {
-					$this->CollectHeaderClasses($framework_info["headers"]."/$file");
+			
+			if ($handle = @opendir($framework_info["headers"])) {
+				while (($file = readdir($handle)) !== false) {
+					if (eregi($framework_info["header_pattern"], $file)) {
+						$this->CollectHeaderClasses($framework_info["headers"]."/$file");
+					}
 				}
+				closedir($handle);
+			} else {
+				die("FATAL: The framework \"$framework_name\" can not be located at ".$framework_info["headers"]);
 			}
-			closedir($handle);
+			
 		}
 	}		
 
+	// Process a single and print output
 	function ProcessFile ($file, $print) {
 		
 		// set the current framework to null so it's parsed from the framework
@@ -3366,12 +3596,12 @@ class TPasCocoaParser {
 		if ($print) $this->PrintAllHeaders("", null, null, false);
 	}
 	
+	// Loads parser settings from the XML file
 	function LoadFrameworksXML ($framework_path) {
 		$xml = new SimpleXMLElement(file_get_contents("frameworks.xml"));
 		
 		foreach ($xml as $framework) {
 				$this->frameworks[(string) $framework->name]["root"] = (string) $framework->root;
-				$this->frameworks[(string) $framework->name]["bridge"] = (string) $framework->bridge;
 				$this->frameworks[(string) $framework->name]["headers"] = (string) $framework->headers;
 				if ($framework_path != "")
 					$this->frameworks[(string) $framework->name]["headers"] = preg_replace("!^.*/System/Library/Frameworks!", $framework_path, $this->frameworks[(string) $framework->name]["headers"]);
@@ -3388,7 +3618,7 @@ class TPasCocoaParser {
 		}
 		
 	}
-		
+
 	function __construct ($directory, $out_directory, $frameworks, $frameworks_path, $show)  {
 		$this->root = $directory;
 		$this->out = $out_directory;
@@ -3439,5 +3669,7 @@ class TPasCocoaParser {
 		//exit;
 		$this->BuildFrameworkClasses();
 	}
+
 }
+
 ?>
