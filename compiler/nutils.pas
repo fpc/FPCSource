@@ -562,7 +562,7 @@ implementation
               { parameter 2 : pointer to vmt }
               { parameter 1 : self pointer }
               para:=ccallparanode.create(
-                        cordconstnode.create(current_objectdef.vmt_offset,s32inttype,false),
+                        cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false),
                     ccallparanode.create(
                         ctypeconvnode.create_internal(
                             load_vmt_pointer_node,

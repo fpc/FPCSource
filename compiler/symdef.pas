@@ -642,12 +642,11 @@ interface
 
     var
        current_structdef: tabstractrecorddef; { used for private functions check !! }
-       current_objectdef : tobjectdef absolute current_structdef;
        current_genericdef : tabstractrecorddef; { used to reject declaration of generic class inside generic class }
        current_specializedef : tabstractrecorddef; { used to implement usage of generic class in itself }
 
     { default types }
-       generrordef,              { error in definition }
+       generrordef,               { error in definition }
        voidpointertype,           { pointer for Void-pointeddef }
        charpointertype,           { pointer for Char-pointeddef }
        widecharpointertype,       { pointer for WideChar-pointeddef }

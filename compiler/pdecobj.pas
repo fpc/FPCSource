@@ -55,6 +55,8 @@ implementation
         Declaring it as string here results in an error when compiling (PFV) }
       current_procinfo = 'error';
 
+    var
+      current_objectdef : tobjectdef absolute current_structdef;
 
     function class_constructor_head:tprocdef;
       var

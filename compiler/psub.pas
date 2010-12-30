@@ -328,7 +328,7 @@ implementation
                         that memory was allocated }
                       { parameter 1 : self pointer }
                       para:=ccallparanode.create(
-                                cordconstnode.create(current_objectdef.vmt_offset,s32inttype,false),
+                                cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false),
                             ccallparanode.create(
                                 ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
@@ -448,7 +448,7 @@ implementation
                       { parameter 2 : pointer to vmt }
                       { parameter 1 : self pointer }
                       para:=ccallparanode.create(
-                                cordconstnode.create(current_objectdef.vmt_offset,s32inttype,false),
+                                cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false),
                             ccallparanode.create(
                                 ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
@@ -643,11 +643,11 @@ implementation
                   internalerror(200305106);
               end;
 
-            if withexceptblock then
+            if withexceptblock and (current_structdef.typ=objectdef) then
               begin
                 { Generate the implicit "fail" code for a constructor (destroy
                   in case an exception happened) }
-                pd:=current_objectdef.find_destructor;
+                pd:=tobjectdef(current_structdef).find_destructor;
                 { this will always be the case for classes, since tobject has
                   a destructor }
                 if assigned(pd) then
