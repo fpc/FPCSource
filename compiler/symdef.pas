@@ -175,8 +175,8 @@ interface
 
        tabstractrecorddef= class(tstoreddef)
           objname,
-          objrealname: PShortString;
-          symtable : TSymtable;
+          objrealname    : PShortString;
+          symtable       : TSymtable;
           cloneddef      : tabstractrecorddef;
           cloneddefderef : tderef;
           objectoptions  : tobjectoptions;
@@ -2638,10 +2638,10 @@ implementation
 
     function tabstractrecorddef.GetSymtable(t:tGetSymtable):TSymtable;
       begin
-         if t=gs_record then
-         GetSymtable:=symtable
+        if t=gs_record then
+          GetSymtable:=symtable
         else
-         GetSymtable:=nil;
+          GetSymtable:=nil;
       end;
 
 
