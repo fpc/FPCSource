@@ -953,9 +953,9 @@ implementation
 
     function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tobjectdef;
       var
-        old_current_structdef,
+        old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
-        old_current_specializedef: tabstractrecorddef;
+        old_current_specializedef: tstoreddef;
       begin
         old_current_structdef:=current_structdef;
         old_current_genericdef:=current_genericdef;

@@ -837,9 +837,9 @@ implementation
     { reads a record declaration }
     function record_dec(const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList):tdef;
       var
-         old_current_structdef,
+         old_current_structdef: tabstractrecorddef;
          old_current_genericdef,
-         old_current_specializedef: tabstractrecorddef;
+         old_current_specializedef: tstoreddef;
          old_parse_generic: boolean;
          recst: trecordsymtable;
       begin
@@ -1055,7 +1055,7 @@ implementation
         end;
 
 
-      procedure array_dec(is_packed: boolean);
+      procedure array_dec(is_packed:boolean;genericdef:tstoreddef;genericlist:TFPObjectList);
         var
           lowval,
           highval   : TConstExprInt;
@@ -1286,7 +1286,7 @@ implementation
               end;
             _ARRAY:
               begin
-                array_dec(false);
+                array_dec(false,genericdef,genericlist);
               end;
             _SET:
               begin
@@ -1312,7 +1312,7 @@ implementation
                   (token = _BITPACKED);
                 consume(token);
                 if token=_ARRAY then
-                  array_dec(bitpacking)
+                  array_dec(bitpacking,genericdef,genericlist)
                 else if token=_SET then
                   set_dec
                 else if token=_FILE then
