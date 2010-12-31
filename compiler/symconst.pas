@@ -90,8 +90,8 @@ const
   mkClassFunction    = 5;
   mkClassConstructor = 6;
   mkClassDestructor  = 7;
+  mkOperatorOverload = 8;
 // delphi has the next too:
-//mkOperatorOverload = 8;
 //mkSafeProcedure    = 9;
 //mkSafeFunction     = 10;
 

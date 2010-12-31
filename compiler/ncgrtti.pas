@@ -693,6 +693,7 @@ implementation
                  potype_destructor: methodkind:=mkDestructor;
                  potype_class_constructor: methodkind:=mkClassConstructor;
                  potype_class_destructor: methodkind:=mkClassDestructor;
+                 potype_operator: methodkind:=mkOperatorOverload;
                  potype_procedure: 
                    if po_classmethod in def.procoptions then 
                      methodkind:=mkClassProcedure
