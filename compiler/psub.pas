@@ -1401,9 +1401,9 @@ implementation
          current_procinfo:=self;
          current_structdef:=procdef.struct;
          if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
-           current_genericdef:=tobjectdef(current_structdef);
+           current_genericdef:=current_structdef;
          if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
-           current_specializedef:=tobjectdef(current_structdef);
+           current_specializedef:=current_structdef;
 
          { calculate the lexical level }
          if procdef.parast.symtablelevel>maxnesting then

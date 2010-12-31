@@ -37,6 +37,7 @@ interface
     function constructor_head:tprocdef;
     function destructor_head:tprocdef;
     procedure struct_property_dec(is_classproperty:boolean);
+    procedure insert_generic_parameter_types(genericdef:tstoreddef;genericlist:TFPObjectList);
 
 implementation
 
@@ -591,7 +592,7 @@ implementation
         pd : tprocdef;
         has_destructor,
         oldparse_only,
-        old_parse_generic : boolean;
+        old_parse_generic: boolean;
         object_member_blocktype : tblock_type;
         fields_allowed, is_classdef, classfields: boolean;
         vdoptions: tvar_dec_options;

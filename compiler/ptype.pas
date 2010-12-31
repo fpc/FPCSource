@@ -835,12 +835,21 @@ implementation
       end;
 
     { reads a record declaration }
-    function record_dec(const n:tidstring):tdef;
+    function record_dec(const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList):tdef;
       var
-         old_current_structdef : tabstractrecorddef;
-         recst : trecordsymtable;
+         old_current_structdef,
+         old_current_genericdef,
+         old_current_specializedef: tabstractrecorddef;
+         old_parse_generic: boolean;
+         recst: trecordsymtable;
       begin
          old_current_structdef:=current_structdef;
+         old_current_genericdef:=current_genericdef;
+         old_current_specializedef:=current_specializedef;
+         old_parse_generic:=parse_generic;
+
+         current_genericdef:=nil;
+         current_specializedef:=nil;
          { create recdef }
          recst:=trecordsymtable.create(n,current_settings.packrecords);
          current_structdef:=trecorddef.create(n,recst);
@@ -849,20 +858,34 @@ implementation
          symtablestack.push(recst);
          { parse record }
          consume(_RECORD);
+
+         { usage of specialized type inside its generic template }
+         if assigned(genericdef) then
+           current_specializedef:=current_structdef
+         { reject declaration of generic class inside generic class }
+         else if assigned(genericlist) then
+           current_genericdef:=current_structdef;
+
+         insert_generic_parameter_types(genericdef,genericlist);
+         parse_generic:=(df_generic in current_structdef.defoptions);
          if m_advanced_records in current_settings.modeswitches then
            parse_record_members
          else
            begin
-         read_record_fields([vd_record]);
-         consume(_END);
-           end;
+             read_record_fields([vd_record]);
+             consume(_END);
+            end;
          { make the record size aligned }
          recst.addalignmentpadding;
          { restore symtable stack }
          symtablestack.pop(recst);
          if trecorddef(current_structdef).is_packed and is_managed_type(current_structdef) then
            Message(type_e_no_packed_inittable);
+         { restore old state }
+         parse_generic:=old_parse_generic;
          current_structdef:=old_current_structdef;
+         current_genericdef:=old_current_genericdef;
+         current_specializedef:=old_current_specializedef;
       end;
 
 
@@ -1279,7 +1302,7 @@ implementation
               end;
             _RECORD:
               begin
-                def:=record_dec(name);
+                def:=record_dec(name,genericdef,genericlist);
               end;
             _PACKED,
             _BITPACKED:
@@ -1314,7 +1337,7 @@ implementation
                           def:=object_dec(odt_object,name,genericdef,genericlist,nil);
                         end;
                       else
-                        def:=record_dec(name);
+                        def:=record_dec(name,genericdef,genericlist);
                     end;
                     current_settings.packrecords:=oldpackrecords;
                   end;

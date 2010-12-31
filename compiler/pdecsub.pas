@@ -1152,9 +1152,9 @@ implementation
                 old_current_specializedef:=current_specializedef;
                 current_structdef:=pd.struct;
                 if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
-                  current_genericdef:=tobjectdef(current_structdef);
+                  current_genericdef:=current_structdef;
                 if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
-                  current_specializedef:=tobjectdef(current_structdef);
+                  current_specializedef:=current_structdef;
               end;
             { Add parameter symtable }
             if pd.parast.symtabletype<>staticsymtable then
@@ -1207,9 +1207,9 @@ implementation
                 old_current_specializedef:=current_specializedef;
                 current_structdef:=pd.struct;
                 if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
-                  current_genericdef:=tobjectdef(current_structdef);
+                  current_genericdef:=current_structdef;
                 if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
-                  current_specializedef:=tobjectdef(current_structdef);
+                  current_specializedef:=current_structdef;
               end;
             single_type(pd.returndef,false,false);
 
