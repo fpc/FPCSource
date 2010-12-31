@@ -1106,9 +1106,9 @@ parser_e_packed_element_no_loop=03223_E_Bit packed array elements and record fie
 % (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
 % be packed at the bit level. For performance reasons, they cannot be
 % used as loop variables.
-parser_e_type_var_const_only_in_generics_and_classes=03224_E_VAR, TYPE and CONST are allowed only in generics and classes
+parser_e_type_var_const_only_in_records_and_classes=03224_E_VAR, TYPE and CONST are allowed only in records, objects and classes
 % The usage of VAR, TYPE and CONST to declare new types inside an object is allowed only inside
-% generics and classes.
+% records, objects and classes.
 parser_e_cant_create_generics_of_this_type=03225_E_This type can't be a generic
 % Only Classes, Objects, Interfaces and Records are allowed to be used as generic.
 parser_w_no_lineinfo_use_switch=03226_W_Don't load LINEINFO unit manually, Use the -gl compiler switch instead

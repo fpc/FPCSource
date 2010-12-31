@@ -1428,21 +1428,15 @@ implementation
              until not try_to_consume(_COMMA);
              consume(_COLON);
 
-             { Don't search in the recordsymtable for types (can be nested!) }
+             { Don't search for types where they can't be:
+               types can be only in objects, classes and records.
+               This just speedup the search a bit. }
              recstlist.count:=0;
-             if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) and
-                 not is_class_or_object(tdef(recst.defowner)) and
-                 not is_record(tdef(recst.defowner)) then
+             if not is_class_or_object(tdef(recst.defowner)) and
+                not is_record(tdef(recst.defowner)) then
                begin
                  recstlist.add(recst);
                  symtablestack.pop(recst);
-                 while (symtablestack.top.symtabletype=recordsymtable) and
-                       ([df_generic,df_specialization]*tdef(symtablestack.top.defowner).defoptions=[]) do
-                   begin
-                     recst:=tabstractrecordsymtable(symtablestack.top);
-                     recstlist.add(recst);
-                     symtablestack.pop(recst);
-                   end;
                end;
              read_anon_type(hdef,false);
              { allow only static fields reference to struct where they are declared }

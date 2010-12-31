@@ -618,17 +618,15 @@ implementation
           case token of
             _TYPE :
               begin
-                if (([df_generic,df_specialization]*current_structdef.defoptions)=[]) and
-                   not(current_objectdef.objecttype in [odt_class,odt_object]) then
-                  Message(parser_e_type_var_const_only_in_generics_and_classes);
-                 consume(_TYPE);
-                 object_member_blocktype:=bt_type;
+                if not(current_objectdef.objecttype in [odt_class,odt_object]) then
+                  Message(parser_e_type_var_const_only_in_records_and_classes);
+                consume(_TYPE);
+                object_member_blocktype:=bt_type;
               end;
             _VAR :
               begin
-                if (([df_generic,df_specialization]*current_structdef.defoptions)=[]) and
-                   not(current_objectdef.objecttype in [odt_class,odt_object]) then
-                  Message(parser_e_type_var_const_only_in_generics_and_classes);
+                if not(current_objectdef.objecttype in [odt_class,odt_object]) then
+                  Message(parser_e_type_var_const_only_in_records_and_classes);
                 consume(_VAR);
                 fields_allowed:=true;
                 object_member_blocktype:=bt_general;
@@ -637,9 +635,8 @@ implementation
               end;
             _CONST:
               begin
-                if (([df_generic,df_specialization]*current_structdef.defoptions)=[]) and
-                   not(current_objectdef.objecttype in [odt_class,odt_object]) then
-                  Message(parser_e_type_var_const_only_in_generics_and_classes);
+                if not(current_objectdef.objecttype in [odt_class,odt_object]) then
+                  Message(parser_e_type_var_const_only_in_records_and_classes);
                 consume(_CONST);
                 object_member_blocktype:=bt_const;
               end;
