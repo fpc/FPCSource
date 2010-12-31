@@ -3801,13 +3801,20 @@ implementation
         begin
           if assigned(def.objname) then
             append_entry(tag,true,[
-              DW_AT_name,DW_FORM_string,def.objrealname^+#0,
-              DW_AT_byte_size,DW_FORM_udata,def.size
+              DW_AT_name,DW_FORM_string,def.objrealname^+#0
               ])
           else
-            append_entry(DW_TAG_structure_type,true,[
-              DW_AT_byte_size,DW_FORM_udata,def.size
-              ]);
+            append_entry(DW_TAG_structure_type,true,[]);
+          append_attribute(DW_AT_byte_size,DW_FORM_udata,[tobjectsymtable(def.symtable).datasize]);
+          // The pointer to the class-structure is hidden. The debug-information
+          // does not contain an implicit pointer, but the data-adress is dereferenced here.
+          // In case of a nil-pointer, report the class as being unallocated.
+          append_block1(DW_AT_allocated,2);
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+          append_block1(DW_AT_data_location,2);
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
           finish_entry;
         end;
 
@@ -3869,10 +3876,6 @@ implementation
             end;
           odt_class:
             begin
-              { not sure if the implicit pointer is needed for tag_class (MWE)}
-              {
-              doimplicitpointer;
-              }
               dostruct(DW_TAG_class_type);
               doparent(false);
             end;
