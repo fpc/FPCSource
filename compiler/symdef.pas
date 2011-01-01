@@ -345,12 +345,12 @@ interface
 
        tarraydef = class(tstoreddef)
           lowrange,
-          highrange  : aint;
-          rangedef   : tdef;
+          highrange     : aint;
+          rangedef      : tdef;
           rangedefderef : tderef;
-          arrayoptions : tarraydefoptions;
+          arrayoptions  : tarraydefoptions;
        protected
-          _elementdef : tdef;
+          _elementdef      : tdef;
           _elementdefderef : tderef;
           procedure setelementdef(def:tdef);
        public
@@ -358,7 +358,7 @@ interface
           function elepackedbitsize : aint;
           function elecount : aword;
           constructor create_from_pointer(def:tdef);
-          constructor create(l,h : aint;def:tdef);
+          constructor create(l,h:aint;def:tdef);
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -2330,7 +2330,7 @@ implementation
                            TARRAYDEF
 ***************************************************************************}
 
-    constructor tarraydef.create(l,h : aint;def:tdef);
+    constructor tarraydef.create(l,h:aint;def:tdef);
       begin
          inherited create(arraydef);
          lowrange:=l;

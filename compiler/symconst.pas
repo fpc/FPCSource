@@ -435,13 +435,19 @@ type
   );
 
   { types of the symtables }
-  TSymtabletype = (abstracTSymtable,
-    globalsymtable,staticsymtable,
-    ObjectSymtable,recordsymtable,
-    localsymtable,parasymtable,
-    withsymtable,stt_excepTSymtable,
-    exportedmacrosymtable, localmacrosymtable,
-    enumsymtable
+  TSymtabletype = (
+    abstractsymtable,      { not a real symtable             }
+    globalsymtable,        { unit interface symtable         }
+    staticsymtable,        { unit implementation symtable    }
+    ObjectSymtable,        { object symtable                 }
+    recordsymtable,        { record symtable                 }
+    localsymtable,         { subroutine symtable             }
+    parasymtable,          { arguments symtable              }
+    withsymtable,          { with operator symtable          }
+    stt_excepTSymtable,    { try/except symtable             }
+    exportedmacrosymtable, { }
+    localmacrosymtable,    { }
+    enumsymtable           { symtable for enum members       }
   );
 
 
