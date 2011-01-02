@@ -335,13 +335,9 @@ implementation
 
       procedure finalize_objc_class_or_protocol_external_status(od: tobjectdef);
         begin
-          { Objective-C classes can be external -> all messages inside are
-            external (defined at the class level instead of per method, so
-            that you cannot define some methods as external and some not)
-          }
           if  [oo_is_external,oo_is_forward] <= od.objectoptions then
             begin
-              { formal definition: x = objcclass; external; }
+              { formal definition: x = objcclass external; }
               exclude(od.objectoptions,oo_is_forward);
               include(od.objectoptions,oo_is_formal);
             end;
