@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTokenFieldCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -55,7 +55,7 @@ type
 {$define NSTOKENFIELDCELL_PAS_C}
 
 { NSTokenFieldCell }
-  NSTokenFieldCell = objcclass(NSTextFieldCell)
+  NSTokenFieldCell = objcclass external (NSTextFieldCell)
   private
     _tokenizingCharacterSet: NSCharacterSet;
     _delegate: id;
@@ -85,8 +85,6 @@ type
       end;
     
   public
-    class function alloc: NSTokenFieldCell; message 'alloc';
-
     procedure setTokenStyle(style: NSTokenStyle); message 'setTokenStyle:';
     function tokenStyle: NSTokenStyle; message 'tokenStyle';
     procedure setCompletionDelay(delay: NSTimeInterval); message 'setCompletionDelay:';
@@ -97,7 +95,7 @@ type
     class function defaultTokenizingCharacterSet: NSCharacterSet; message 'defaultTokenizingCharacterSet';
     procedure setDelegate(anObject: id); message 'setDelegate:';
     function delegate: id; message 'delegate';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -106,7 +104,7 @@ type
 {$define NSTOKENFIELDCELL_PAS_P}
   
 { NSTokenFieldCellDelegate Protocol }
-  NSTokenFieldCellDelegateProtocol = objcprotocol
+  NSTokenFieldCellDelegateProtocol = objcprotocol external name 'NSTokenFieldCellDelegate'
     function tokenFieldCell_completionsForSubstring_indexOfToken_indexOfSelectedItem(tokenFieldCell: NSTokenFieldCell; substring: NSString; tokenIndex: NSInteger; selectedIndex: NSIntegerPtr): NSArray; message 'tokenFieldCell:completionsForSubstring:indexOfToken:indexOfSelectedItem:';
     function tokenFieldCell_shouldAddObjects_atIndex(tokenFieldCell: NSTokenFieldCell; tokens: NSArray; index: NSUInteger): NSArray; message 'tokenFieldCell:shouldAddObjects:atIndex:';
     function tokenFieldCell_displayStringForRepresentedObject(tokenFieldCell: NSTokenFieldCell; representedObject: id): NSString; message 'tokenFieldCell:displayStringForRepresentedObject:';
@@ -117,6 +115,6 @@ type
     function tokenFieldCell_menuForRepresentedObject(tokenFieldCell: NSTokenFieldCell; representedObject: id): NSMenu; message 'tokenFieldCell:menuForRepresentedObject:';
     function tokenFieldCell_hasMenuForRepresentedObject(tokenFieldCell: NSTokenFieldCell; representedObject: id): Boolean; message 'tokenFieldCell:hasMenuForRepresentedObject:';
     function tokenFieldCell_styleForRepresentedObject(tokenFieldCell: NSTokenFieldCell; representedObject: id): NSTokenStyle; message 'tokenFieldCell:styleForRepresentedObject:';
-  end; external name 'NSTokenFieldCellDelegate';
+  end;
 {$endif}
 {$endif}

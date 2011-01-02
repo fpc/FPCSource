@@ -176,7 +176,17 @@ class ObjectivePParserBase {
 	
 	// Methods to ignore
 	var $ignore_methods = array(	"observationInfo",
-																);	
+																);
+
+  // methods to rename to particular alternatives
+	var $replace_instance_methods = array ( "class" => "_class", );
+	var $replace_class_methods = array ("respondsToSelector" => "classRespondsToSelector",
+												"isEqual" => "classIsEqual",
+												"hash" => "classHash",
+												"superClass" => "classSuperClass",
+												"class" => "classClass",
+												"conformsToProtocol" => "classConformsToProtocol",
+												"classDescription" => "_classDescription", );
 	
 	// Lines to ignore
 	var $ignore_lines = array();

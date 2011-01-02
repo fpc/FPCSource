@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSStringDrawing.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -54,30 +54,30 @@ type
 {$define NSSTRINGDRAWING_PAS_C}
 
 { NSStringDrawingCategory }
-  NSStringDrawingCategory = objccategory(NSString)
+  NSStringDrawingCategory = objccategory external (NSString)
     function sizeWithAttributes(attrs: NSDictionary): NSSize; message 'sizeWithAttributes:';
     procedure drawAtPoint_withAttributes(point: NSPoint; attrs: NSDictionary); message 'drawAtPoint:withAttributes:';
     procedure drawInRect_withAttributes(rect: NSRect; attrs: NSDictionary); message 'drawInRect:withAttributes:';
-  end; external;
+  end;
 
 { NSStringDrawing_NSAttributedStringCategory }
-  NSStringDrawing_NSAttributedStringCategory = objccategory(NSAttributedString)
+  NSStringDrawing_NSAttributedStringCategory = objccategory external name 'NSStringDrawing' (NSAttributedString)
     function size: NSSize; message 'size';
     procedure drawAtPoint(point: NSPoint); message 'drawAtPoint:';
     procedure drawInRect(rect: NSRect); message 'drawInRect:';
-  end; external name 'NSStringDrawing';
+  end;
 
 { NSExtendedStringDrawingCategory }
-  NSExtendedStringDrawingCategory = objccategory(NSString)
+  NSExtendedStringDrawingCategory = objccategory external (NSString)
     procedure drawWithRect_options_attributes(rect: NSRect; options: NSStringDrawingOptions; attributes: NSDictionary); message 'drawWithRect:options:attributes:';
     function boundingRectWithSize_options_attributes(size: NSSize; options: NSStringDrawingOptions; attributes: NSDictionary): NSRect; message 'boundingRectWithSize:options:attributes:';
-  end; external;
+  end;
 
 { NSExtendedStringDrawing_NSAttributedStringCategory }
-  NSExtendedStringDrawing_NSAttributedStringCategory = objccategory(NSAttributedString)
+  NSExtendedStringDrawing_NSAttributedStringCategory = objccategory external name 'NSExtendedStringDrawing' (NSAttributedString)
     procedure drawWithRect_options(rect: NSRect; options: NSStringDrawingOptions); message 'drawWithRect:options:';
     function boundingRectWithSize_options(size: NSSize; options: NSStringDrawingOptions): NSRect; message 'boundingRectWithSize:options:';
-  end; external name 'NSExtendedStringDrawing';
+  end;
 
 {$endif}
 {$endif}

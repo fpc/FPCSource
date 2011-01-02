@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCSSStyleDeclaration.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMCSSSTYLEDECLARATION_PAS_C}
 
 { DOMCSSStyleDeclaration }
-  DOMCSSStyleDeclaration = objcclass(DOMObject)
+  DOMCSSStyleDeclaration = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMCSSStyleDeclaration; message 'alloc';
-
     procedure setCssText (newValue: NSString); message 'setCssText:';
     function cssText: NSString; message 'cssText';
     function length: cuint; message 'length';
@@ -59,12 +57,12 @@
     function item(index: cuint): NSString; message 'item:';
     function getPropertyShorthand(propertyName: NSString): NSString; message 'getPropertyShorthand:';
     function isPropertyImplicit(propertyName: NSString): Boolean; message 'isPropertyImplicit:';
-  end; external;
+  end;
 
 { DOMCSSStyleDeclarationDeprecatedCategory }
-  DOMCSSStyleDeclarationDeprecatedCategory = objccategory(DOMCSSStyleDeclaration)
+  DOMCSSStyleDeclarationDeprecatedCategory = objccategory external (DOMCSSStyleDeclaration)
     procedure setProperty(propertyName: NSString; value: NSString; priority: NSString); message 'setProperty:propertyName:value:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

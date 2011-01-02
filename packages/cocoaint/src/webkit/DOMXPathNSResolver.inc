@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMXPathNSResolver.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -39,8 +39,8 @@
 {$define DOMXPATHNSRESOLVER_PAS_P}
   
 { DOMXPathNSResolver Protocol }
-  DOMXPathNSResolverProtocol = objcprotocol
+  DOMXPathNSResolverProtocol = objcprotocol external name 'DOMXPathNSResolver'
     function lookupNamespaceURI(prefix: NSString): NSString; message 'lookupNamespaceURI:';
-  end; external name 'DOMXPathNSResolver';
+  end;
 {$endif}
 {$endif}

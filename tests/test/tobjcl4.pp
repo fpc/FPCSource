@@ -17,8 +17,8 @@ const
 {$endif}
 
 type
-  MyHiddenObjcClass=objcclass(NSObject)
-  end; external;
+  MyHiddenObjcClass=objcclass external (NSObject)
+  end;
 
 var
   a: MyHiddenObjcClass;

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSData.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -77,11 +77,9 @@ type
 {$define NSDATA_PAS_C}
 
 { NSData }
-  NSData = objcclass(NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol)
+  NSData = objcclass external (NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol)
     
   public
-    class function alloc: NSData; message 'alloc';
-
     function length: NSUInteger; message 'length';
     function bytes: Pointer; message 'bytes';
 
@@ -90,20 +88,18 @@ type
     function mutableCopyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSMutableData }
-  NSMutableData = objcclass(NSData)
+  NSMutableData = objcclass external (NSData)
     
   public
-    class function alloc: NSMutableData; message 'alloc';
-
     function mutableBytes: Pointer; message 'mutableBytes';
     procedure setLength(length_: NSUInteger); message 'setLength:';
-  end; external;
+  end;
 
 { NSPurgeableData }
-  NSPurgeableData = objcclass(NSMutableData, NSDiscardableContentProtocol)
+  NSPurgeableData = objcclass external (NSMutableData, NSDiscardableContentProtocol)
   private
     _length: NSUInteger;
     _accessCount: cint32;
@@ -111,17 +107,16 @@ type
     _reserved: Pointer;
     
   public
-    class function alloc: NSPurgeableData; message 'alloc';
 
     { Adopted Protocols }
     function beginContentAccess: Boolean;
     procedure endContentAccess;
     procedure discardContentIfPossible;
     function isContentDiscarded: Boolean;
-  end; external;
+  end;
 
 { NSExtendedDataCategory }
-  NSExtendedDataCategory = objccategory(NSData)
+  NSExtendedDataCategory = objccategory external (NSData)
     function description: NSString; message 'description';
     procedure getBytes_length(buffer: Pointer; length_: NSUInteger); message 'getBytes:length:';
     procedure getBytes_range(buffer: Pointer; range: NSRange); message 'getBytes:range:';
@@ -132,10 +127,10 @@ type
     function writeToFile_options_error(path: NSString; writeOptionsMask: NSDataWritingOptions; errorPtr: NSErrorPointer): Boolean; message 'writeToFile:options:error:';
     function writeToURL_options_error(url: NSURL; writeOptionsMask: NSDataWritingOptions; errorPtr: NSErrorPointer): Boolean; message 'writeToURL:options:error:';
     function rangeOfData_options_range(dataToFind: NSData; mask: NSDataSearchOptions; searchRange: NSRange): NSRange; message 'rangeOfData:options:range:';
-  end; external;
+  end;
 
 { NSDataCreationCategory }
-  NSDataCreationCategory = objccategory(NSData)
+  NSDataCreationCategory = objccategory external (NSData)
     class function data: id; message 'data';
     class function dataWithBytes_length(bytes_: Pointer; length_: NSUInteger): id; message 'dataWithBytes:length:';
     class function dataWithBytesNoCopy_length(bytes_: Pointer; length_: NSUInteger): id; message 'dataWithBytesNoCopy:length:';
@@ -155,15 +150,15 @@ type
     function initWithContentsOfMappedFile(path: NSString): id; message 'initWithContentsOfMappedFile:';
     function initWithData(data_: NSData): id; message 'initWithData:';
     class function dataWithData(data_: NSData): id; message 'dataWithData:';
-  end; external;
+  end;
 
 { NSDeprecated_NSDataCategory }
-  NSDeprecated_NSDataCategory = objccategory(NSData)
+  NSDeprecated_NSDataCategory = objccategory external name 'NSDeprecated' (NSData)
     procedure getBytes(buffer: Pointer); message 'getBytes:';
-  end; external name 'NSDeprecated';
+  end;
 
 { NSExtendedMutableDataCategory }
-  NSExtendedMutableDataCategory = objccategory(NSMutableData)
+  NSExtendedMutableDataCategory = objccategory external (NSMutableData)
     procedure appendBytes_length(bytes_: Pointer; length_: NSUInteger); message 'appendBytes:length:';
     procedure appendData(other: NSData); message 'appendData:';
     procedure increaseLengthBy(extraLength: NSUInteger); message 'increaseLengthBy:';
@@ -171,15 +166,15 @@ type
     procedure resetBytesInRange(range: NSRange); message 'resetBytesInRange:';
     procedure setData(data_: NSData); message 'setData:';
     procedure replaceBytesInRange_withBytes_length(range: NSRange; replacementBytes: Pointer; replacementLength: NSUInteger); message 'replaceBytesInRange:withBytes:length:';
-  end; external;
+  end;
 
 { NSMutableDataCreationCategory }
-  NSMutableDataCreationCategory = objccategory(NSMutableData)
+  NSMutableDataCreationCategory = objccategory external (NSMutableData)
     class function dataWithCapacity(aNumItems: NSUInteger): id; message 'dataWithCapacity:';
     class function dataWithLength(length_: NSUInteger): id; message 'dataWithLength:';
     function initWithCapacity(capacity: NSUInteger): id; message 'initWithCapacity:';
     function initWithLength(length_: NSUInteger): id; message 'initWithLength:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

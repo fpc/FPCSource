@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPathCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -55,7 +55,7 @@ type
 {$define NSPATHCELL_PAS_C}
 
 { NSPathCell }
-  NSPathCell = objcclass(NSActionCell, NSOpenSavePanelDelegateProtocol)
+  NSPathCell = objcclass external (NSActionCell, NSOpenSavePanelDelegateProtocol)
   private
     _backgroundColor: NSColor;
     _borderColors: NSMutableArray;
@@ -79,8 +79,6 @@ type
     _aux: id;
     
   public
-    class function alloc: NSPathCell; message 'alloc';
-
     function pathStyle: NSPathStyle; message 'pathStyle';
     procedure setPathStyle(style: NSPathStyle); message 'setPathStyle:';
     function URL: NSURL; message 'URL';
@@ -115,7 +113,7 @@ type
     function panel_userEnteredFilename_confirmed(sender: id; filename: NSString; okFlag: Boolean): NSString;
     procedure panel_willExpand(sender: id; expanding: Boolean);
     procedure panelSelectionDidChange(sender: id);
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -124,9 +122,9 @@ type
 {$define NSPATHCELL_PAS_P}
   
 { NSPathCellDelegate Protocol }
-  NSPathCellDelegateProtocol = objcprotocol
+  NSPathCellDelegateProtocol = objcprotocol external name 'NSPathCellDelegate'
     procedure pathCell_willDisplayOpenPanel(pathCell: NSPathCell; openPanel: NSOpenPanel); message 'pathCell:willDisplayOpenPanel:';
     procedure pathCell_willPopUpMenu(pathCell: NSPathCell; menu: NSMenu); message 'pathCell:willPopUpMenu:';
-  end; external name 'NSPathCellDelegate';
+  end;
 {$endif}
 {$endif}

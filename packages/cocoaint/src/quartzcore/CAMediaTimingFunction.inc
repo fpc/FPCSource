@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CAMediaTimingFunction.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -50,13 +50,11 @@ var
 {$define CAMEDIATIMINGFUNCTION_PAS_C}
 
 { CAMediaTimingFunction }
-  CAMediaTimingFunction = objcclass(NSObject, NSCodingProtocol)
+  CAMediaTimingFunction = objcclass external (NSObject, NSCodingProtocol)
   private
     __priv: Pointer;
     
   public
-    class function alloc: CAMediaTimingFunction; message 'alloc';
-
     class function functionWithName(name: NSString): id; message 'functionWithName:';
     class function functionWithControlPoints(c: single; c1: single; c2: single; c3: single): id; message 'functionWithControlPoints:c1x:c1y:c2x:';
     function initWithControlPoints(c: single; c1: single; c2: single; c3: single): id; message 'initWithControlPoints:c1x:c1y:c2x:';
@@ -65,7 +63,7 @@ var
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

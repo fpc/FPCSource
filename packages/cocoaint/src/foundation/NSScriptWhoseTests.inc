@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScriptWhoseTests.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -65,47 +65,41 @@ type
 {$define NSSCRIPTWHOSETESTS_PAS_C}
 
 { NSScriptWhoseTest }
-  NSScriptWhoseTest = objcclass(NSObject, NSCodingProtocol)
+  NSScriptWhoseTest = objcclass external (NSObject, NSCodingProtocol)
     
   public
-    class function alloc: NSScriptWhoseTest; message 'alloc';
-
     function isTrue: Boolean; message 'isTrue';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSLogicalTest }
-  NSLogicalTest = objcclass(NSScriptWhoseTest)
+  NSLogicalTest = objcclass external (NSScriptWhoseTest)
   private
     _operator: cint;
     _subTests: id;
     
   public
-    class function alloc: NSLogicalTest; message 'alloc';
-
     function initAndTestWithTests(subTests: NSArray): id; message 'initAndTestWithTests:';
     function initOrTestWithTests(subTests: NSArray): id; message 'initOrTestWithTests:';
     function initNotTestWithTest(subTest: NSScriptWhoseTest): id; message 'initNotTestWithTest:';
-  end; external;
+  end;
 
 { NSSpecifierTest }
-  NSSpecifierTest = objcclass(NSScriptWhoseTest)
+  NSSpecifierTest = objcclass external (NSScriptWhoseTest)
   private
     _comparisonOperator: NSTestComparisonOperation;
     _object1: NSScriptObjectSpecifier;
     _object2: id;
     
   public
-    class function alloc: NSSpecifierTest; message 'alloc';
-
     function initWithObjectSpecifier_comparisonOperator_testObject(obj: NSScriptObjectSpecifier; compOp: NSTestComparisonOperation; obj1: id): id; message 'initWithObjectSpecifier:comparisonOperator:testObject:';
-  end; external;
+  end;
 
 { NSComparisonMethodsCategory }
-  NSComparisonMethodsCategory = objccategory(NSObject)
+  NSComparisonMethodsCategory = objccategory external (NSObject)
     function isEqualTo(object_: id): Boolean; message 'isEqualTo:';
     function isLessThanOrEqualTo(object_: id): Boolean; message 'isLessThanOrEqualTo:';
     function isLessThan(object_: id): Boolean; message 'isLessThan:';
@@ -115,10 +109,10 @@ type
     function doesContain(object_: id): Boolean; message 'doesContain:';
     function isLike(object_: NSString): Boolean; message 'isLike:';
     function isCaseInsensitiveLike(object_: NSString): Boolean; message 'isCaseInsensitiveLike:';
-  end; external;
+  end;
 
 { NSScriptingComparisonMethodsCategory }
-  NSScriptingComparisonMethodsCategory = objccategory(NSObject)
+  NSScriptingComparisonMethodsCategory = objccategory external (NSObject)
     function scriptingIsEqualTo(object_: id): Boolean; message 'scriptingIsEqualTo:';
     function scriptingIsLessThanOrEqualTo(object_: id): Boolean; message 'scriptingIsLessThanOrEqualTo:';
     function scriptingIsLessThan(object_: id): Boolean; message 'scriptingIsLessThan:';
@@ -127,7 +121,7 @@ type
     function scriptingBeginsWith(object_: id): Boolean; message 'scriptingBeginsWith:';
     function scriptingEndsWith(object_: id): Boolean; message 'scriptingEndsWith:';
     function scriptingContains(object_: id): Boolean; message 'scriptingContains:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

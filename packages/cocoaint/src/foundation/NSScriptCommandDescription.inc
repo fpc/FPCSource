@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScriptCommandDescription.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSSCRIPTCOMMANDDESCRIPTION_PAS_C}
 
 { NSScriptCommandDescription }
-  NSScriptCommandDescription = objcclass(NSObject, NSCodingProtocol)
+  NSScriptCommandDescription = objcclass external (NSObject, NSCodingProtocol)
   private
     _suiteName: NSString;
     _plistCommandName: NSString;
@@ -54,8 +54,6 @@
     _moreVars: id;
     
   public
-    class function alloc: NSScriptCommandDescription; message 'alloc';
-
     function initWithSuiteName_commandName_dictionary(suiteName_: NSString; commandName_: NSString; commandDeclaration: NSDictionary): id; message 'initWithSuiteName:commandName:dictionary:';
     function suiteName: NSString; message 'suiteName';
     function commandName: NSString; message 'commandName';
@@ -74,7 +72,7 @@
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

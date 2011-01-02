@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLMarqueeElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,14 +42,12 @@
 {$define DOMHTMLMARQUEEELEMENT_PAS_C}
 
 { DOMHTMLMarqueeElement }
-  DOMHTMLMarqueeElement = objcclass(DOMHTMLElement)
+  DOMHTMLMarqueeElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLMarqueeElement; message 'alloc';
-
     procedure start; message 'start';
     procedure stop; message 'stop';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

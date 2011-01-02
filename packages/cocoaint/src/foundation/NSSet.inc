@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSSet.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -48,11 +48,9 @@
 {$define NSSET_PAS_C}
 
 { NSSet }
-  NSSet = objcclass(NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol, NSFastEnumerationProtocol)
+  NSSet = objcclass external (NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol, NSFastEnumerationProtocol)
     
   public
-    class function alloc: NSSet; message 'alloc';
-
     function count: NSUInteger; message 'count';
     function member(object_: id): id; message 'member:';
     function objectEnumerator: NSEnumerator; message 'objectEnumerator';
@@ -63,27 +61,23 @@
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePtr; stackbuf: idPtr; len: NSUInteger): NSUInteger;
-  end; external;
+  end;
 
 { NSMutableSet }
-  NSMutableSet = objcclass(NSSet)
+  NSMutableSet = objcclass external (NSSet)
     
   public
-    class function alloc: NSMutableSet; message 'alloc';
-
     procedure addObject(object_: id); message 'addObject:';
     procedure removeObject(object_: id); message 'removeObject:';
-  end; external;
+  end;
 
 { NSCountedSet }
-  NSCountedSet = objcclass(NSMutableSet)
+  NSCountedSet = objcclass external (NSMutableSet)
   private
     _table: id;
     _reserved: Pointer;
     
   public
-    class function alloc: NSCountedSet; message 'alloc';
-
     function initWithCapacity(numItems: NSUInteger): id; message 'initWithCapacity:';
     function initWithArray(array_: NSArray): id; message 'initWithArray:';
     function initWithSet(set__: NSSet): id; message 'initWithSet:';
@@ -91,10 +85,10 @@
     function objectEnumerator: NSEnumerator; message 'objectEnumerator';
     procedure addObject(object_: id); message 'addObject:';
     procedure removeObject(object_: id); message 'removeObject:';
-  end; external;
+  end;
 
 { NSExtendedSetCategory }
-  NSExtendedSetCategory = objccategory(NSSet)
+  NSExtendedSetCategory = objccategory external (NSSet)
     function allObjects: NSArray; message 'allObjects';
     function anyObject: id; message 'anyObject';
     function containsObject(anObject: id): Boolean; message 'containsObject:';
@@ -108,10 +102,10 @@
     function setByAddingObject(anObject: id): NSSet; message 'setByAddingObject:';
     function setByAddingObjectsFromSet(other: NSSet): NSSet; message 'setByAddingObjectsFromSet:';
     function setByAddingObjectsFromArray(other: NSArray): NSSet; message 'setByAddingObjectsFromArray:';
-  end; external;
+  end;
 
 { NSSetCreationCategory }
-  NSSetCreationCategory = objccategory(NSSet)
+  NSSetCreationCategory = objccategory external (NSSet)
     class function set_: id; message 'set';
     class function setWithObject(object_: id): id; message 'setWithObject:';
     class function setWithObjects_count(objects: idPtr; cnt: NSUInteger): id; message 'setWithObjects:count:';
@@ -123,23 +117,23 @@
     function initWithSet(set__: NSSet): id; message 'initWithSet:';
     function initWithSet_copyItems(set__: NSSet; flag: Boolean): id; message 'initWithSet:copyItems:';
     function initWithArray(array_: NSArray): id; message 'initWithArray:';
-  end; external;
+  end;
 
 { NSExtendedMutableSetCategory }
-  NSExtendedMutableSetCategory = objccategory(NSMutableSet)
+  NSExtendedMutableSetCategory = objccategory external (NSMutableSet)
     procedure addObjectsFromArray(array_: NSArray); message 'addObjectsFromArray:';
     procedure intersectSet(otherSet: NSSet); message 'intersectSet:';
     procedure minusSet(otherSet: NSSet); message 'minusSet:';
     procedure removeAllObjects; message 'removeAllObjects';
     procedure unionSet(otherSet: NSSet); message 'unionSet:';
     procedure setSet(otherSet: NSSet); message 'setSet:';
-  end; external;
+  end;
 
 { NSMutableSetCreationCategory }
-  NSMutableSetCreationCategory = objccategory(NSMutableSet)
+  NSMutableSetCreationCategory = objccategory external (NSMutableSet)
     class function setWithCapacity(numItems: NSUInteger): id; message 'setWithCapacity:';
     function initWithCapacity(numItems: NSUInteger): id; message 'initWithCapacity:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

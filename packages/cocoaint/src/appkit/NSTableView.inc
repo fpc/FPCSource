@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTableView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -140,7 +140,7 @@ var
 {$define NSTABLEVIEW_PAS_C}
 
 { NSTableView }
-  NSTableView = objcclass(NSControl, NSUserInterfaceValidationsProtocol, NSTextViewDelegateProtocol)
+  NSTableView = objcclass external (NSControl, NSUserInterfaceValidationsProtocol, NSTextViewDelegateProtocol)
   private
     _headerView: NSTableHeaderView;
     _cornerView: NSView;
@@ -171,8 +171,6 @@ var
     _reserved: id;
     
   public
-    class function alloc: NSTableView; message 'alloc';
-
     procedure setDataSource(aSource: id); message 'setDataSource:';
     function dataSource: id; message 'dataSource';
     procedure setDelegate(delegate_: id); message 'setDelegate:';
@@ -314,15 +312,15 @@ var
     procedure textView_doubleClickedOnCell_inRect(textView: NSTextView; cell: id; cellFrame: NSRect);
     procedure textView_draggedCell_inRect_event(view: NSTextView; cell: id; rect: NSRect; event: NSEvent);
     function undoManagerForTextView(view: NSTextView): NSUndoManager;
-  end; external;
+  end;
 
 { NSTableViewDataSourceDeprecatedCategory }
-  NSTableViewDataSourceDeprecatedCategory = objccategory(NSObject)
+  NSTableViewDataSourceDeprecatedCategory = objccategory external (NSObject)
     function tableView_writeRows_toPasteboard(tableView: NSTableView; rows: NSArray; pboard: NSPasteboard): Boolean; message 'tableView:writeRows:toPasteboard:'; deprecated 'in Mac OS X 10.4 and later';
-  end; external;
+  end;
 
 { NSDeprecated_NSTableViewCategory }
-  NSDeprecated_NSTableViewCategory = objccategory(NSTableView)
+  NSDeprecated_NSTableViewCategory = objccategory external name 'NSDeprecated' (NSTableView)
     procedure setDrawsGrid(flag: Boolean); message 'setDrawsGrid:'; deprecated 'in Mac OS X 10.3 and later';
     function drawsGrid: Boolean; message 'drawsGrid'; deprecated 'in Mac OS X 10.3 and later';
     procedure selectColumn_byExtendingSelection(column: NSInteger; extend: Boolean); message 'selectColumn:byExtendingSelection:'; deprecated 'in Mac OS X 10.3 and later';
@@ -333,7 +331,7 @@ var
     procedure setAutoresizesAllColumnsToFit(flag: Boolean); message 'setAutoresizesAllColumnsToFit:'; deprecated 'in Mac OS X 10.4 and later';
     function autoresizesAllColumnsToFit: Boolean; message 'autoresizesAllColumnsToFit'; deprecated 'in Mac OS X 10.4 and later';
     function columnsInRect(rect: NSRect): NSRange; message 'columnsInRect:'; deprecated 'in Mac OS X 10.5 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}
@@ -342,7 +340,7 @@ var
 {$define NSTABLEVIEW_PAS_P}
   
 { NSTableViewDelegate Protocol }
-  NSTableViewDelegateProtocol = objcprotocol
+  NSTableViewDelegateProtocol = objcprotocol external name 'NSTableViewDelegate'
     procedure tableView_willDisplayCell_forTableColumn_row(tableView: NSTableView; cell: id; tableColumn: NSTableColumn; row: NSInteger); message 'tableView:willDisplayCell:forTableColumn:row:';
     function tableView_shouldEditTableColumn_row(tableView: NSTableView; tableColumn: NSTableColumn; row: NSInteger): Boolean; message 'tableView:shouldEditTableColumn:row:';
     function selectionShouldChangeInTableView(tableView: NSTableView): Boolean; message 'selectionShouldChangeInTableView:';
@@ -367,10 +365,10 @@ var
     procedure tableViewColumnDidMove(notification: NSNotification); message 'tableViewColumnDidMove:';
     procedure tableViewColumnDidResize(notification: NSNotification); message 'tableViewColumnDidResize:';
     procedure tableViewSelectionIsChanging(notification: NSNotification); message 'tableViewSelectionIsChanging:';
-  end; external name 'NSTableViewDelegate';
+  end;
   
 { NSTableViewDataSource Protocol }
-  NSTableViewDataSourceProtocol = objcprotocol
+  NSTableViewDataSourceProtocol = objcprotocol external name 'NSTableViewDataSource'
     function numberOfRowsInTableView(tableView: NSTableView): NSInteger; message 'numberOfRowsInTableView:';
     function tableView_objectValueForTableColumn_row(tableView: NSTableView; tableColumn: NSTableColumn; row: NSInteger): id; message 'tableView:objectValueForTableColumn:row:';
     procedure tableView_setObjectValue_forTableColumn_row(tableView: NSTableView; object_: id; tableColumn: NSTableColumn; row: NSInteger); message 'tableView:setObjectValue:forTableColumn:row:';
@@ -379,6 +377,6 @@ var
     function tableView_validateDrop_proposedRow_proposedDropOperation(tableView: NSTableView; info: id; row: NSInteger; dropOperation: NSTableViewDropOperation): NSDragOperation; message 'tableView:validateDrop:proposedRow:proposedDropOperation:';
     function tableView_acceptDrop_row_dropOperation(tableView: NSTableView; info: id; row: NSInteger; dropOperation: NSTableViewDropOperation): Boolean; message 'tableView:acceptDrop:row:dropOperation:';
     function tableView_namesOfPromisedFilesDroppedAtDestination_forDraggedRowsWithIndexes(tableView: NSTableView; dropDestination: NSURL; indexSet: NSIndexSet): NSArray; message 'tableView:namesOfPromisedFilesDroppedAtDestination:forDraggedRowsWithIndexes:';
-  end; external name 'NSTableViewDataSource';
+  end;
 {$endif}
 {$endif}

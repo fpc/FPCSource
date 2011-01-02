@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPageLayout.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSPAGELAYOUT_PAS_C}
 
 { NSPageLayout }
-  NSPageLayout = objcclass(NSObject)
+  NSPageLayout = objcclass external (NSObject)
   private
     _accessoryControllers: NSMutableArray;
     _originalPrintInfo: NSPrintInfo;
@@ -58,8 +58,6 @@
     {$endif}
     
   public
-    class function alloc: NSPageLayout; message 'alloc';
-
     class function pageLayout: NSPageLayout; message 'pageLayout';
     procedure addAccessoryController(accessoryController: NSViewController); message 'addAccessoryController:';
     procedure removeAccessoryController(accessoryController: NSViewController); message 'removeAccessoryController:';
@@ -68,20 +66,20 @@
     function runModalWithPrintInfo(printInfo_: NSPrintInfo): NSInteger; message 'runModalWithPrintInfo:';
     function runModal: NSInteger; message 'runModal';
     function printInfo: NSPrintInfo; message 'printInfo';
-  end; external;
+  end;
 
 { NSDeprecated_NSPageLayoutCategory }
-  NSDeprecated_NSPageLayoutCategory = objccategory(NSPageLayout)
+  NSDeprecated_NSPageLayoutCategory = objccategory external name 'NSDeprecated' (NSPageLayout)
     procedure setAccessoryView(accessoryView: NSView); message 'setAccessoryView:'; deprecated 'in Mac OS X 10.5 and later';
     function accessoryView: NSView; message 'accessoryView'; deprecated 'in Mac OS X 10.5 and later';
     procedure readPrintInfo; message 'readPrintInfo'; deprecated 'in Mac OS X 10.5 and later';
     procedure writePrintInfo; message 'writePrintInfo'; deprecated 'in Mac OS X 10.5 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 { NSPageLayoutPanelCategory }
-  NSPageLayoutPanelCategory = objccategory(NSApplication)
+  NSPageLayoutPanelCategory = objccategory external (NSApplication)
     procedure runPageLayout(sender: id); message 'runPageLayout:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

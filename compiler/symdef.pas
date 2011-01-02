@@ -323,8 +323,6 @@ interface
           procedure register_maybe_created_object_type;
           procedure register_created_classref_type;
           procedure register_vmt_call(index:longint);
-          { ObjC & C++ }
-          procedure make_all_methods_external;
           { ObjC }
           procedure finish_objc_data;
           function check_objc_types: boolean;
@@ -565,6 +563,7 @@ interface
           function  objcmangledname : string;
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
+          procedure make_external;
        end;
 
        { single linked list of overloaded procs }
@@ -3515,6 +3514,14 @@ implementation
                  not is_nested_pd(self));
       end;
 
+
+    procedure tprocdef.make_external;
+      begin
+        include(procoptions,po_external);
+        forwarddef:=false;
+      end;
+
+
     function tprocdef.GetSymtable(t:tGetSymtable):TSymtable;
       begin
         case t of
@@ -4954,24 +4961,6 @@ implementation
       begin
         if (is_object(self) or is_class(self)) then
           current_module.wpoinfo.addcalledvmtentry(self,index);
-      end;
-
-
-    procedure make_procdef_external(data: tobject; arg: pointer);
-      var
-        def: tdef absolute data;
-      begin
-        if (def.typ = procdef) then
-          begin
-            include(tprocdef(def).procoptions,po_external);
-            tprocdef(def).forwarddef:=false;
-          end;
-      end;
-
-
-    procedure tobjectdef.make_all_methods_external;
-      begin
-         self.symtable.deflist.foreachcall(@make_procdef_external,nil);
       end;
 
 

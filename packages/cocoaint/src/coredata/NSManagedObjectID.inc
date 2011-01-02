@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSManagedObjectID.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define NSMANAGEDOBJECTID_PAS_C}
 
 { NSManagedObjectID }
-  NSManagedObjectID = objcclass(NSObject, NSCopyingProtocol)
+  NSManagedObjectID = objcclass external (NSObject, NSCopyingProtocol)
     
   public
-    class function alloc: NSManagedObjectID; message 'alloc';
-
     function entity: NSEntityDescription; message 'entity';
     function persistentStore: NSPersistentStore; message 'persistentStore';
     function isTemporaryID: Boolean; message 'isTemporaryID';
@@ -54,7 +52,7 @@
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

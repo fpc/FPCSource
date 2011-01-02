@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSFontDescriptor.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -103,7 +103,7 @@ var
 {$define NSFONTDESCRIPTOR_PAS_C}
 
 { NSFontDescriptor }
-  NSFontDescriptor = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSFontDescriptor = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _attributes: NSMutableDictionary;
     _reserved1: id;
@@ -113,8 +113,6 @@ var
     _reserved5: id;
     
   public
-    class function alloc: NSFontDescriptor; message 'alloc';
-
     function postscriptName: NSString; message 'postscriptName';
     function pointSize: CGFloat; message 'pointSize';
     function matrix: NSAffineTransform; message 'matrix';
@@ -138,7 +136,7 @@ var
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

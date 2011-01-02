@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMKeyboardEvent.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -50,11 +50,9 @@ const
 {$define DOMKEYBOARDEVENT_PAS_C}
 
 { DOMKeyboardEvent }
-  DOMKeyboardEvent = objcclass(DOMUIEvent)
+  DOMKeyboardEvent = objcclass external (DOMUIEvent)
     
   public
-    class function alloc: DOMKeyboardEvent; message 'alloc';
-
     function keyIdentifier: NSString; message 'keyIdentifier';
     function keyLocation: cuint; message 'keyLocation';
     function ctrlKey: Boolean; message 'ctrlKey';
@@ -67,7 +65,7 @@ const
     function getModifierState(keyIdentifierArg: NSString): Boolean; message 'getModifierState:';
     procedure initKeyboardEvent_canBubble_cancelable_view_keyIdentifier_keyLocation_ctrlKey_altKey_shiftKey_metaKey_altGraphKey(type__: NSString; canBubble: Boolean; cancelable_: Boolean; view_: DOMAbstractView; keyIdentifier_: NSString; keyLocation_: cuint; ctrlKey_: Boolean; altKey_: Boolean; shiftKey_: Boolean; metaKey_: Boolean; altGraphKey_: Boolean); message 'initKeyboardEvent:canBubble:cancelable:view:keyIdentifier:keyLocation:ctrlKey:altKey:shiftKey:metaKey:altGraphKey:';
     procedure initKeyboardEvent_canBubble_cancelable_view_keyIdentifier_keyLocation_ctrlKey_altKey_shiftKey_metaKey(type__: NSString; canBubble: Boolean; cancelable_: Boolean; view_: DOMAbstractView; keyIdentifier_: NSString; keyLocation_: cuint; ctrlKey_: Boolean; altKey_: Boolean; shiftKey_: Boolean; metaKey_: Boolean); message 'initKeyboardEvent:canBubble:cancelable:view:keyIdentifier:keyLocation:ctrlKey:altKey:shiftKey:metaKey:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

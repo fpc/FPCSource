@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMMediaList.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,18 +42,16 @@
 {$define DOMMEDIALIST_PAS_C}
 
 { DOMMediaList }
-  DOMMediaList = objcclass(DOMObject)
+  DOMMediaList = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMMediaList; message 'alloc';
-
     procedure setMediaText (newValue: NSString); message 'setMediaText:';
     function mediaText: NSString; message 'mediaText';
     function length: cuint; message 'length';
     function item(index: cuint): NSString; message 'item:';
     procedure deleteMedium(oldMedium: NSString); message 'deleteMedium:';
     procedure appendMedium(newMedium: NSString); message 'appendMedium:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

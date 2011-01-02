@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScriptStandardSuiteCommands.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -81,103 +81,86 @@ type
 {$define NSSCRIPTSTANDARDSUITECOMMANDS_PAS_C}
 
 { NSCloneCommand }
-  NSCloneCommand = objcclass(NSScriptCommand)
+  NSCloneCommand = objcclass external (NSScriptCommand)
   private
     _keySpecifier: NSScriptObjectSpecifier;
     
   public
-    class function alloc: NSCloneCommand; message 'alloc';
-
     procedure setReceiversSpecifier(receiversRef: NSScriptObjectSpecifier); message 'setReceiversSpecifier:';
     function keySpecifier: NSScriptObjectSpecifier; message 'keySpecifier';
-  end; external;
+  end;
 
 { NSCloseCommand }
-  NSCloseCommand = objcclass(NSScriptCommand)
+  NSCloseCommand = objcclass external (NSScriptCommand)
     
   public
-    class function alloc: NSCloseCommand; message 'alloc';
-
     function saveOptions: NSSaveOptions; message 'saveOptions';
-  end; external;
+  end;
 
 { NSCountCommand }
-  NSCountCommand = objcclass(NSScriptCommand)
+  NSCountCommand = objcclass external (NSScriptCommand)
     
   public
-    class function alloc: NSCountCommand; message 'alloc';
-  end; external;
+  end;
 
 { NSCreateCommand }
-  NSCreateCommand = objcclass(NSScriptCommand)
+  NSCreateCommand = objcclass external (NSScriptCommand)
   private
     _moreVars2: id;
     
   public
-    class function alloc: NSCreateCommand; message 'alloc';
-
     function createClassDescription: NSScriptClassDescription; message 'createClassDescription';
     function resolvedKeyDictionary: NSDictionary; message 'resolvedKeyDictionary';
-  end; external;
+  end;
 
 { NSDeleteCommand }
-  NSDeleteCommand = objcclass(NSScriptCommand)
+  NSDeleteCommand = objcclass external (NSScriptCommand)
   private
     _keySpecifier: NSScriptObjectSpecifier;
     
   public
-    class function alloc: NSDeleteCommand; message 'alloc';
-
     procedure setReceiversSpecifier(receiversRef: NSScriptObjectSpecifier); message 'setReceiversSpecifier:';
     function keySpecifier: NSScriptObjectSpecifier; message 'keySpecifier';
-  end; external;
+  end;
 
 { NSExistsCommand }
-  NSExistsCommand = objcclass(NSScriptCommand)
+  NSExistsCommand = objcclass external (NSScriptCommand)
     
   public
-    class function alloc: NSExistsCommand; message 'alloc';
-  end; external;
+  end;
 
 { NSGetCommand }
-  NSGetCommand = objcclass(NSScriptCommand)
+  NSGetCommand = objcclass external (NSScriptCommand)
     
   public
-    class function alloc: NSGetCommand; message 'alloc';
-  end; external;
+  end;
 
 { NSMoveCommand }
-  NSMoveCommand = objcclass(NSScriptCommand)
+  NSMoveCommand = objcclass external (NSScriptCommand)
   private
     _keySpecifier: NSScriptObjectSpecifier;
     
   public
-    class function alloc: NSMoveCommand; message 'alloc';
-
     procedure setReceiversSpecifier(receiversRef: NSScriptObjectSpecifier); message 'setReceiversSpecifier:';
     function keySpecifier: NSScriptObjectSpecifier; message 'keySpecifier';
-  end; external;
+  end;
 
 { NSQuitCommand }
-  NSQuitCommand = objcclass(NSScriptCommand)
+  NSQuitCommand = objcclass external (NSScriptCommand)
     
   public
-    class function alloc: NSQuitCommand; message 'alloc';
-
     function saveOptions: NSSaveOptions; message 'saveOptions';
-  end; external;
+  end;
 
 { NSSetCommand }
-  NSSetCommand = objcclass(NSScriptCommand)
+  NSSetCommand = objcclass external (NSScriptCommand)
   private
     _keySpecifier: NSScriptObjectSpecifier;
     
   public
-    class function alloc: NSSetCommand; message 'alloc';
-
     procedure setReceiversSpecifier(receiversRef: NSScriptObjectSpecifier); message 'setReceiversSpecifier:';
     function keySpecifier: NSScriptObjectSpecifier; message 'keySpecifier';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

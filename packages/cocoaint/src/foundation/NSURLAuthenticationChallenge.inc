@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLAuthenticationChallenge.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -43,13 +43,11 @@
 {$define NSURLAUTHENTICATIONCHALLENGE_PAS_C}
 
 { NSURLAuthenticationChallenge }
-  NSURLAuthenticationChallenge = objcclass(NSObject)
+  NSURLAuthenticationChallenge = objcclass external (NSObject)
   private
     _internal: NSURLAuthenticationChallengeInternal;
     
   public
-    class function alloc: NSURLAuthenticationChallenge; message 'alloc';
-
     function initWithProtectionSpace_proposedCredential_previousFailureCount_failureResponse_error_sender(space: NSURLProtectionSpace; credential: NSURLCredential; previousFailureCount_: NSInteger; response: NSURLResponse; error_: NSError; sender_: id): id; message 'initWithProtectionSpace:proposedCredential:previousFailureCount:failureResponse:error:sender:';
     function initWithAuthenticationChallenge_sender(challenge: NSURLAuthenticationChallenge; sender_: id): id; message 'initWithAuthenticationChallenge:sender:';
     function protectionSpace: NSURLProtectionSpace; message 'protectionSpace';
@@ -58,7 +56,7 @@
     function failureResponse: NSURLResponse; message 'failureResponse';
     function error: NSError; message 'error';
     function sender: id; message 'sender';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -67,10 +65,10 @@
 {$define NSURLAUTHENTICATIONCHALLENGE_PAS_P}
   
 { NSURLAuthenticationChallengeSender Protocol }
-  NSURLAuthenticationChallengeSenderProtocol = objcprotocol
+  NSURLAuthenticationChallengeSenderProtocol = objcprotocol external name 'NSURLAuthenticationChallengeSender'
     procedure useCredential_forAuthenticationChallenge(credential: NSURLCredential; challenge: NSURLAuthenticationChallenge); message 'useCredential:forAuthenticationChallenge:';
     procedure continueWithoutCredentialForAuthenticationChallenge(challenge: NSURLAuthenticationChallenge); message 'continueWithoutCredentialForAuthenticationChallenge:';
     procedure cancelAuthenticationChallenge(challenge: NSURLAuthenticationChallenge); message 'cancelAuthenticationChallenge:';
-  end; external name 'NSURLAuthenticationChallengeSender';
+  end;
 {$endif}
 {$endif}

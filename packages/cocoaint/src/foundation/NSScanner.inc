@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScanner.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define NSSCANNER_PAS_C}
 
 { NSScanner }
-  NSScanner = objcclass(NSObject, NSCopyingProtocol)
+  NSScanner = objcclass external (NSObject, NSCopyingProtocol)
     
   public
-    class function alloc: NSScanner; message 'alloc';
-
     function string_: NSString; message 'string';
     function scanLocation: NSUInteger; message 'scanLocation';
     procedure setScanLocation(pos: NSUInteger); message 'setScanLocation:';
@@ -56,10 +54,10 @@
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 { NSExtendedScannerCategory }
-  NSExtendedScannerCategory = objccategory(NSScanner)
+  NSExtendedScannerCategory = objccategory external (NSScanner)
     function charactersToBeSkipped: NSCharacterSet; message 'charactersToBeSkipped';
     function caseSensitive: Boolean; message 'caseSensitive';
     function locale: id; message 'locale';
@@ -80,7 +78,7 @@
     function initWithString(string__: NSString): id; message 'initWithString:';
     class function scannerWithString(string__: NSString): id; message 'scannerWithString:';
     class function localizedScannerWithString(string__: NSString): id; message 'localizedScannerWithString:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

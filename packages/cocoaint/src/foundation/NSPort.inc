@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPort.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -69,11 +69,9 @@ var
 {$define NSPORT_PAS_C}
 
 { NSPort }
-  NSPort = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSPort = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
     
   public
-    class function alloc: NSPort; message 'alloc';
-
     class function allocWithZone(zone_: NSZonePtr): id; message 'allocWithZone:';
     class function port: NSPort; message 'port';
     procedure invalidate; message 'invalidate';
@@ -92,10 +90,10 @@ var
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSMachPort }
-  NSMachPort = objcclass(NSPort)
+  NSMachPort = objcclass external (NSPort)
   private
     _delegate: id;
     _flags: NSUInteger;
@@ -103,8 +101,6 @@ var
     _reserved: NSUInteger;
     
   public
-    class function alloc: NSMachPort; message 'alloc';
-
     class function portWithMachPort(machPort_: cuint32): NSPort; message 'portWithMachPort:';
     function initWithMachPort(machPort_: cuint32): id; message 'initWithMachPort:';
     procedure setDelegate(anObject: id); message 'setDelegate:';
@@ -114,20 +110,19 @@ var
     function machPort: cuint32; message 'machPort';
     procedure scheduleInRunLoop_forMode(runLoop: NSRunLoop; mode: NSString); message 'scheduleInRunLoop:forMode:';
     procedure removeFromRunLoop_forMode(runLoop: NSRunLoop; mode: NSString); message 'removeFromRunLoop:forMode:';
-  end; external;
+  end;
 
 { NSMessagePort }
-  NSMessagePort = objcclass(NSPort)
+  NSMessagePort = objcclass external (NSPort)
   private
     _port: Pointer; {garbage collector: __strong }
     _delegate: id;
     
   public
-    class function alloc: NSMessagePort; message 'alloc';
-  end; external;
+  end;
 
 { NSSocketPort }
-  NSSocketPort = objcclass(NSPort)
+  NSSocketPort = objcclass external (NSPort)
   private
     _receiver: Pointer; {garbage collector: __strong }
     _connectors: Pointer; {garbage collector: __strong }
@@ -141,8 +136,6 @@ var
     _reserved: NSUInteger;
     
   public
-    class function alloc: NSSocketPort; message 'alloc';
-
     function init: id; message 'init';
     function initWithTCPPort(port_: cushort): id; message 'initWithTCPPort:';
     function initWithProtocolFamily_socketType_protocol_address(family: cint; type_: cint; protocol_: cint; address_: NSData): id; message 'initWithProtocolFamily:socketType:protocol:address:';
@@ -154,7 +147,7 @@ var
     function protocol: cint; message 'protocol';
     function address: NSData; message 'address';
     function socket: NSSocketNativeHandle; message 'socket';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -163,13 +156,13 @@ var
 {$define NSPORT_PAS_P}
   
 { NSPortDelegate Protocol }
-  NSPortDelegateProtocol = objcprotocol
+  NSPortDelegateProtocol = objcprotocol external name 'NSPortDelegate'
     procedure handlePortMessage(message: NSPortMessage); message 'handlePortMessage:';
-  end; external name 'NSPortDelegate';
+  end;
   
 { NSMachPortDelegate Protocol }
-  NSMachPortDelegateProtocol = objcprotocol
+  NSMachPortDelegateProtocol = objcprotocol external name 'NSMachPortDelegate'
     procedure handleMachMessage(msg: Pointer); message 'handleMachMessage:';
-  end; external name 'NSMachPortDelegate';
+  end;
 {$endif}
 {$endif}

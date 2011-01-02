@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSProgressIndicator.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -64,7 +64,7 @@ const
 {$define NSPROGRESSINDICATOR_PAS_C}
 
 { NSProgressIndicator }
-  NSProgressIndicator = objcclass(NSView)
+  NSProgressIndicator = objcclass external (NSView)
   private
     _isBezeled: Boolean;
     _isIndeterminate: Boolean;
@@ -103,8 +103,6 @@ const
     _NSProgressIndicatorReserved1: id;
     
   public
-    class function alloc: NSProgressIndicator; message 'alloc';
-
     function isIndeterminate: Boolean; message 'isIndeterminate';
     procedure setIndeterminate(flag: Boolean); message 'setIndeterminate:';
     function isBezeled: Boolean; message 'isBezeled';
@@ -129,14 +127,14 @@ const
     procedure sizeToFit; message 'sizeToFit';
     function isDisplayedWhenStopped: Boolean; message 'isDisplayedWhenStopped';
     procedure setDisplayedWhenStopped(isDisplayed: Boolean); message 'setDisplayedWhenStopped:';
-  end; external;
+  end;
 
 { NSProgressIndicatorDeprecatedCategory }
-  NSProgressIndicatorDeprecatedCategory = objccategory(NSProgressIndicator)
+  NSProgressIndicatorDeprecatedCategory = objccategory external (NSProgressIndicator)
     function animationDelay: NSTimeInterval; message 'animationDelay';
     procedure setAnimationDelay(delay: NSTimeInterval); message 'setAnimationDelay:';
     procedure animate(sender: id); message 'animate:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

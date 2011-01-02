@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScriptCommand.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -57,7 +57,7 @@ const
 {$define NSSCRIPTCOMMAND_PAS_C}
 
 { NSScriptCommand }
-  NSScriptCommand = objcclass(NSObject, NSCodingProtocol)
+  NSScriptCommand = objcclass external (NSObject, NSCodingProtocol)
   private
     _commandDescription: NSScriptCommandDescription;
     _directParameter: id;
@@ -78,8 +78,6 @@ const
     _reserved: Pointer;
     
   public
-    class function alloc: NSScriptCommand; message 'alloc';
-
     function initWithCommandDescription(commandDef: NSScriptCommandDescription): id; message 'initWithCommandDescription:';
     function commandDescription: NSScriptCommandDescription; message 'commandDescription';
     procedure setDirectParameter(directParameter_: id); message 'setDirectParameter:';
@@ -109,7 +107,7 @@ const
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

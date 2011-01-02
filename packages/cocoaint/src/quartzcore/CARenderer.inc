@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CARenderer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,13 +42,11 @@
 {$define CARENDERER_PAS_C}
 
 { CARenderer }
-  CARenderer = objcclass(NSObject)
+  CARenderer = objcclass external (NSObject)
   private
     __priv: Pointer;
     
   public
-    class function alloc: CARenderer; message 'alloc';
-
     class function rendererWithCGLContext_options(ctx: Pointer; dict: NSDictionary): CARenderer; message 'rendererWithCGLContext:options:';
     procedure setLayer (newValue: CALayer); message 'setLayer:';
     function layer: CALayer; message 'layer';
@@ -60,7 +58,7 @@
     procedure render; message 'render';
     function nextFrameTime: CFTimeInterval; message 'nextFrameTime';
     procedure endFrame; message 'endFrame';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

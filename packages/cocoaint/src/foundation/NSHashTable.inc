@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSHashTable.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -106,11 +106,9 @@ var
 {$define NSHASHTABLE_PAS_C}
 
 { NSHashTable }
-  NSHashTable = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol, NSFastEnumerationProtocol)
+  NSHashTable = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol, NSFastEnumerationProtocol)
     
   public
-    class function alloc: NSHashTable; message 'alloc';
-
     function initWithOptions_capacity(options: NSPointerFunctionsOptions; initialCapacity: NSUInteger): id; message 'initWithOptions:capacity:';
     function initWithPointerFunctions_capacity(functions: NSPointerFunctions; initialCapacity: NSUInteger): id; message 'initWithPointerFunctions:capacity:';
     class function hashTableWithOptions(options: NSPointerFunctionsOptions): id; message 'hashTableWithOptions:';
@@ -138,7 +136,7 @@ var
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePtr; stackbuf: idPtr; len: NSUInteger): NSUInteger;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLMetaElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLMETAELEMENT_PAS_C}
 
 { DOMHTMLMetaElement }
-  DOMHTMLMetaElement = objcclass(DOMHTMLElement)
+  DOMHTMLMetaElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLMetaElement; message 'alloc';
-
     procedure setContent (newValue: NSString); message 'setContent:';
     function content: NSString; message 'content';
     procedure setHttpEquiv (newValue: NSString); message 'setHttpEquiv:';
@@ -55,7 +53,7 @@
     function name: NSString; message 'name';
     procedure setScheme (newValue: NSString); message 'setScheme:';
     function scheme: NSString; message 'scheme';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

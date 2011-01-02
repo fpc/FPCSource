@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAlert.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -60,7 +60,7 @@ type
 {$define NSALERT_PAS_C}
 
 { NSAlert }
-  NSAlert = objcclass(NSObject)
+  NSAlert = objcclass external (NSObject)
   private
     _informationField: NSTextField;
     _first: id;
@@ -94,8 +94,6 @@ type
     _accessoryView: id;
     
   public
-    class function alloc: NSAlert; message 'alloc';
-
     class function alertWithError(error: NSError): NSAlert; message 'alertWithError:';
     class function alertWithMessageText_defaultButton_alternateButton_otherButton_informativeTextWithFormat(message: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; firstKey: id): NSAlert; varargs; message 'alertWithMessageText:defaultButton:alternateButton:otherButton:informativeTextWithFormat:';
     procedure setMessageText(messageText_: NSString); message 'setMessageText:';
@@ -124,7 +122,7 @@ type
     procedure alertDidEnd_returnCode_contextInfo(alert: NSAlert; returnCode: NSInteger; contextInfo: Pointer); message 'alertDidEnd:returnCode:contextInfo:';
     procedure beginSheetModalForWindow_modalDelegate_didEndSelector_contextInfo(window_: NSWindow; delegate_: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginSheetModalForWindow:modalDelegate:didEndSelector:contextInfo:';
     function window: id; message 'window';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -133,8 +131,8 @@ type
 {$define NSALERT_PAS_P}
   
 { NSAlertDelegate Protocol }
-  NSAlertDelegateProtocol = objcprotocol
+  NSAlertDelegateProtocol = objcprotocol external name 'NSAlertDelegate'
     function alertShowHelp(alert: NSAlert): Boolean; message 'alertShowHelp:';
-  end; external name 'NSAlertDelegate';
+  end;
 {$endif}
 {$endif}

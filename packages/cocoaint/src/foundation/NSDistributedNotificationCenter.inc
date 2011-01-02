@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSDistributedNotificationCenter.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -63,11 +63,9 @@ var
 {$define NSDISTRIBUTEDNOTIFICATIONCENTER_PAS_C}
 
 { NSDistributedNotificationCenter }
-  NSDistributedNotificationCenter = objcclass(NSNotificationCenter)
+  NSDistributedNotificationCenter = objcclass external (NSNotificationCenter)
     
   public
-    class function alloc: NSDistributedNotificationCenter; message 'alloc';
-
     class function notificationCenterForType(notificationCenterType: NSString): NSDistributedNotificationCenter; message 'notificationCenterForType:';
     class function defaultCenter: id; message 'defaultCenter';
     procedure addObserver_selector_name_object_suspensionBehavior(observer: id; selector: SEL; name: NSString; object_: NSString; suspensionBehavior: NSNotificationSuspensionBehavior); message 'addObserver:selector:name:object:suspensionBehavior:';
@@ -79,7 +77,7 @@ var
     procedure postNotificationName_object(aName: NSString; anObject: NSString); message 'postNotificationName:object:';
     procedure postNotificationName_object_userInfo(aName: NSString; anObject: NSString; aUserInfo: NSDictionary); message 'postNotificationName:object:userInfo:';
     procedure removeObserver_name_object(observer: id; aName: NSString; anObject: NSString); message 'removeObserver:name:object:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

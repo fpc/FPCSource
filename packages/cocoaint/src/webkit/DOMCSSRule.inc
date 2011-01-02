@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCSSRule.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -56,17 +56,15 @@ const
 {$define DOMCSSRULE_PAS_C}
 
 { DOMCSSRule }
-  DOMCSSRule = objcclass(DOMObject)
+  DOMCSSRule = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMCSSRule; message 'alloc';
-
     function type_: cuint; message 'type_';
     procedure setCssText (newValue: NSString); message 'setCssText:';
     function cssText: NSString; message 'cssText';
     function parentStyleSheet: DOMCSSStyleSheet; message 'parentStyleSheet';
     function parentRule: DOMCSSRule; message 'parentRule';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

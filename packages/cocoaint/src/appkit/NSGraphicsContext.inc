@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSGraphicsContext.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -63,11 +63,9 @@ var
 {$define NSGRAPHICSCONTEXT_PAS_C}
 
 { NSGraphicsContext }
-  NSGraphicsContext = objcclass(NSObject)
+  NSGraphicsContext = objcclass external (NSObject)
     
   public
-    class function alloc: NSGraphicsContext; message 'alloc';
-
     class function graphicsContextWithAttributes(attributes_: NSDictionary): NSGraphicsContext; message 'graphicsContextWithAttributes:';
     class function graphicsContextWithWindow(window: NSWindow): NSGraphicsContext; message 'graphicsContextWithWindow:';
     class function graphicsContextWithBitmapImageRep(bitmapRep: NSBitmapImageRep): NSGraphicsContext; message 'graphicsContextWithBitmapImageRep:';
@@ -83,18 +81,18 @@ var
     procedure flushGraphics; message 'flushGraphics';
     function graphicsPort: Pointer; message 'graphicsPort';
     function isFlipped: Boolean; message 'isFlipped';
-  end; external;
+  end;
 
 { NSQuartzCoreAdditionsCategory }
-  NSQuartzCoreAdditionsCategory = objccategory(NSGraphicsContext)
+  NSQuartzCoreAdditionsCategory = objccategory external (NSGraphicsContext)
     function CIContext: CIContext; message 'CIContext';
-  end; external;
+  end;
 
 { NSGraphicsContextDeprecatedCategory }
-  NSGraphicsContextDeprecatedCategory = objccategory(NSGraphicsContext)
+  NSGraphicsContextDeprecatedCategory = objccategory external (NSGraphicsContext)
     function focusStack: id; message 'focusStack';
     procedure setFocusStack(stack: id); message 'setFocusStack:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

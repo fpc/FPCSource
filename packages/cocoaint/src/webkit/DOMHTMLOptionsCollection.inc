@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLOptionsCollection.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLOPTIONSCOLLECTION_PAS_C}
 
 { DOMHTMLOptionsCollection }
-  DOMHTMLOptionsCollection = objcclass(DOMObject)
+  DOMHTMLOptionsCollection = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMHTMLOptionsCollection; message 'alloc';
-
     procedure setSelectedIndex (newValue: cint); message 'setSelectedIndex:';
     function selectedIndex: cint; message 'selectedIndex';
     procedure setLength (newValue: cuint); message 'setLength:';
@@ -55,7 +53,7 @@
     procedure remove(index: cuint); message 'remove:';
     function item(index: cuint): DOMNode; message 'item:';
     function namedItem(name: NSString): DOMNode; message 'namedItem:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

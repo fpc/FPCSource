@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTypesetter.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -57,7 +57,7 @@ type
 {$define NSTYPESETTER_PAS_C}
 
 { NSTypesetter }
-  NSTypesetter = objcclass(NSObject)
+  NSTypesetter = objcclass external (NSObject)
   private
     {$ifdef cpu64}
     _reserved: Pointer;
@@ -66,8 +66,6 @@ type
     {$endif}
     
   public
-    class function alloc: NSTypesetter; message 'alloc';
-
     function usesFontLeading: Boolean; message 'usesFontLeading';
     procedure setUsesFontLeading(flag: Boolean); message 'setUsesFontLeading:';
     function typesetterBehavior: NSTypesetterBehavior; message 'typesetterBehavior';
@@ -110,20 +108,20 @@ type
     class function sharedSystemTypesetter: id; message 'sharedSystemTypesetter';
     class function sharedSystemTypesetterForBehavior(theBehavior: NSTypesetterBehavior): id; message 'sharedSystemTypesetterForBehavior:';
     class function defaultTypesetterBehavior: NSTypesetterBehavior; message 'defaultTypesetterBehavior';
-  end; external;
+  end;
 
 { NSLayoutPhaseInterfaceCategory }
-  NSLayoutPhaseInterfaceCategory = objccategory(NSTypesetter)
+  NSLayoutPhaseInterfaceCategory = objccategory external (NSTypesetter)
     procedure willSetLineFragmentRect_forGlyphRange_usedRect_baselineOffset(lineRect: NSRectPointer; glyphRange: NSRange; usedRect: NSRectPointer; baselineOffset: CGFloatPtr); message 'willSetLineFragmentRect:forGlyphRange:usedRect:baselineOffset:';
     function shouldBreakLineByWordBeforeCharacterAtIndex(charIndex: NSUInteger): Boolean; message 'shouldBreakLineByWordBeforeCharacterAtIndex:';
     function shouldBreakLineByHyphenatingBeforeCharacterAtIndex(charIndex: NSUInteger): Boolean; message 'shouldBreakLineByHyphenatingBeforeCharacterAtIndex:';
     function hyphenationFactorForGlyphAtIndex(glyphIndex: NSUInteger): single; message 'hyphenationFactorForGlyphAtIndex:';
     function hyphenCharacterForGlyphAtIndex(glyphIndex: NSUInteger): UTF32Char; message 'hyphenCharacterForGlyphAtIndex:';
     function boundingBoxForControlGlyphAtIndex_forTextContainer_proposedLineFragment_glyphPosition_characterIndex(glyphIndex: NSUInteger; textContainer: NSTextContainer; proposedRect: NSRect; glyphPosition: NSPoint; charIndex: NSUInteger): NSRect; message 'boundingBoxForControlGlyphAtIndex:forTextContainer:proposedLineFragment:glyphPosition:characterIndex:';
-  end; external;
+  end;
 
 { NSGlyphStorageInterfaceCategory }
-  NSGlyphStorageInterfaceCategory = objccategory(NSTypesetter)
+  NSGlyphStorageInterfaceCategory = objccategory external (NSTypesetter)
     function characterRangeForGlyphRange_actualGlyphRange(glyphRange: NSRange; actualGlyphRange: NSRangePointer): NSRange; message 'characterRangeForGlyphRange:actualGlyphRange:';
     function glyphRangeForCharacterRange_actualCharacterRange(charRange: NSRange; actualCharRange: NSRangePointer): NSRange; message 'glyphRangeForCharacterRange:actualCharacterRange:';
     function getGlyphsInRange_glyphs_characterIndexes_glyphInscriptions_elasticBits_bidiLevels(glyphsRange: NSRange; glyphBuffer: NSGlyphPtr; charIndexBuffer: NSUIntegerPtr; inscribeBuffer: NSGlyphInscriptionPtr; elasticBuffer: pboolean; bidiLevelBuffer: PByte): NSUInteger; message 'getGlyphsInRange:glyphs:characterIndexes:glyphInscriptions:elasticBits:bidiLevels:';
@@ -137,7 +135,7 @@ type
     procedure setLocation_withAdvancements_forStartOfGlyphRange(location: NSPoint; advancements: CGFloatPtr; glyphRange: NSRange); message 'setLocation:withAdvancements:forStartOfGlyphRange:';
     procedure setAttachmentSize_forGlyphRange(attachmentSize: NSSize; glyphRange: NSRange); message 'setAttachmentSize:forGlyphRange:';
     procedure setBidiLevels_forGlyphRange(levels: pbyte; glyphRange: NSRange); message 'setBidiLevels:forGlyphRange:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

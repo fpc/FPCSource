@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSManagedObject.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -57,7 +57,7 @@ type
 {$define NSMANAGEDOBJECT_PAS_C}
 
 { NSManagedObject }
-  NSManagedObject = objcclass(NSObject)
+  NSManagedObject = objcclass external (NSObject)
   private
     _cd_rc: cint32;
     _cd_stateFlags: culong;
@@ -72,8 +72,6 @@ type
     _cd_queueReference: id;
     
   public
-    class function alloc: NSManagedObject; message 'alloc';
-
     class function contextShouldIgnoreUnmodeledPropertyChanges: Boolean; message 'contextShouldIgnoreUnmodeledPropertyChanges';
     function initWithEntity_insertIntoManagedObjectContext(entity_: NSEntityDescription; context: NSManagedObjectContext): id; message 'initWithEntity:insertIntoManagedObjectContext:';
     function managedObjectContext: NSManagedObjectContext; message 'managedObjectContext';
@@ -111,7 +109,7 @@ type
     function validateForDelete(error: NSErrorPointer): Boolean; message 'validateForDelete:';
     function validateForInsert(error: NSErrorPointer): Boolean; message 'validateForInsert:';
     function validateForUpdate(error: NSErrorPointer): Boolean; message 'validateForUpdate:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

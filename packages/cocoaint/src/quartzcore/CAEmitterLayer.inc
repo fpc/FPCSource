@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CAEmitterLayer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -60,11 +60,9 @@ var
 {$define CAEMITTERLAYER_PAS_C}
 
 { CAEmitterLayer }
-  CAEmitterLayer = objcclass(CALayer)
+  CAEmitterLayer = objcclass external (CALayer)
     
   public
-    class function alloc: CAEmitterLayer; message 'alloc';
-
     procedure setEmitterCells (newValue: NSArray); message 'setEmitterCells:';
     function emitterCells: NSArray; message 'emitterCells';
     procedure setBirthRate (newValue: single); message 'setBirthRate:';
@@ -95,7 +93,7 @@ var
     function spin: single; message 'spin';
     procedure setSeed (newValue: cuint); message 'setSeed:';
     function seed: cuint; message 'seed';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

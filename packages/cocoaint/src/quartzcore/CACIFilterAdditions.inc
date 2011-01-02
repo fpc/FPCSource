@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CACIFilterAdditions.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -39,12 +39,12 @@
 {$define CACIFILTERADDITIONS_PAS_C}
 
 { CACIFilterAdditionsCategory }
-  CACIFilterAdditionsCategory = objccategory(CIFilter)
+  CACIFilterAdditionsCategory = objccategory external (CIFilter)
     procedure setName (newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
     procedure setEnabled (newValue: Boolean); message 'setEnabled:';
     function isEnabled: Boolean; message 'isEnabled';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

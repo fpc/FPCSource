@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMOverflowEvent.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -49,16 +49,14 @@ const
 {$define DOMOVERFLOWEVENT_PAS_C}
 
 { DOMOverflowEvent }
-  DOMOverflowEvent = objcclass(DOMEvent)
+  DOMOverflowEvent = objcclass external (DOMEvent)
     
   public
-    class function alloc: DOMOverflowEvent; message 'alloc';
-
     function orient: cuint; message 'orient';
     function horizontalOverflow: Boolean; message 'horizontalOverflow';
     function verticalOverflow: Boolean; message 'verticalOverflow';
     procedure initOverflowEvent_horizontalOverflow_verticalOverflow(orient_: cushort; horizontalOverflow_: Boolean; verticalOverflow_: Boolean); message 'initOverflowEvent:horizontalOverflow:verticalOverflow:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

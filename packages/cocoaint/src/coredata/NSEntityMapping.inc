@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSEntityMapping.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -57,7 +57,7 @@ type
 {$define NSENTITYMAPPING_PAS_C}
 
 { NSEntityMapping }
-  NSEntityMapping = objcclass(NSObject)
+  NSEntityMapping = objcclass external (NSObject)
   private
     _reserved: Pointer;
     _reserved1: Pointer;
@@ -83,8 +83,6 @@ type
       end;
     
   public
-    class function alloc: NSEntityMapping; message 'alloc';
-
     function name: NSString; message 'name';
     procedure setName(name_: NSString); message 'setName:';
     function mappingType: NSEntityMappingType; message 'mappingType';
@@ -107,7 +105,7 @@ type
     procedure setUserInfo(dict: NSDictionary); message 'setUserInfo:';
     function entityMigrationPolicyClassName: NSString; message 'entityMigrationPolicyClassName';
     procedure setEntityMigrationPolicyClassName(name_: NSString); message 'setEntityMigrationPolicyClassName:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

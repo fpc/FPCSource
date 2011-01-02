@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLParamElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLPARAMELEMENT_PAS_C}
 
 { DOMHTMLParamElement }
-  DOMHTMLParamElement = objcclass(DOMHTMLElement)
+  DOMHTMLParamElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLParamElement; message 'alloc';
-
     procedure setName (newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
     procedure setType (newValue: NSString); message 'setType:';
@@ -55,7 +53,7 @@
     function value: NSString; message 'value';
     procedure setValueType (newValue: NSString); message 'setValueType:';
     function valueType: NSString; message 'valueType';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

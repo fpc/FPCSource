@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSEntityDescription.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSENTITYDESCRIPTION_PAS_C}
 
 { NSEntityDescription }
-  NSEntityDescription = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol, NSFastEnumerationProtocol)
+  NSEntityDescription = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol, NSFastEnumerationProtocol)
   private
     _cd_rc: cint32;
     _reserved1: id;
@@ -79,8 +79,6 @@
     _modelsReferenceIDForEntity: clong;
     
   public
-    class function alloc: NSEntityDescription; message 'alloc';
-
     class function entityForName_inManagedObjectContext(entityName: NSString; context: NSManagedObjectContext): NSEntityDescription; message 'entityForName:inManagedObjectContext:';
     class function insertNewObjectForEntityForName_inManagedObjectContext(entityName: NSString; context: NSManagedObjectContext): id; message 'insertNewObjectForEntityForName:inManagedObjectContext:';
     function managedObjectModel: NSManagedObjectModel; message 'managedObjectModel';
@@ -114,7 +112,7 @@
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
     function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePtr; stackbuf: idPtr; len: NSUInteger): NSUInteger;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

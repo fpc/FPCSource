@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSKeyValueBinding.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -158,7 +158,7 @@ var
 {$define NSKEYVALUEBINDING_PAS_C}
 
 { NSKeyValueBindingCreationCategory }
-  NSKeyValueBindingCreationCategory = objccategory(NSObject)
+  NSKeyValueBindingCreationCategory = objccategory external (NSObject)
     class procedure exposeBinding(binding: NSString); message 'exposeBinding:';
     function exposedBindings: NSArray; message 'exposedBindings';
     function valueClassForBinding(binding: NSString): Pobjc_class; message 'valueClassForBinding:';
@@ -166,26 +166,26 @@ var
     procedure unbind(binding: NSString); message 'unbind:';
     function infoForBinding(binding: NSString): NSDictionary; message 'infoForBinding:';
     function optionDescriptionsForBinding(aBinding: NSString): NSArray; message 'optionDescriptionsForBinding:';
-  end; external;
+  end;
 
 { NSPlaceholdersCategory }
-  NSPlaceholdersCategory = objccategory(NSObject)
+  NSPlaceholdersCategory = objccategory external (NSObject)
     class procedure setDefaultPlaceholder_forMarker_withBinding(placeholder: id; marker: id; binding: NSString); message 'setDefaultPlaceholder:forMarker:withBinding:';
     class function defaultPlaceholderForMarker_withBinding(marker: id; binding: NSString): id; message 'defaultPlaceholderForMarker:withBinding:';
-  end; external;
+  end;
 
 { NSEditorRegistrationCategory }
-  NSEditorRegistrationCategory = objccategory(NSObject)
+  NSEditorRegistrationCategory = objccategory external (NSObject)
     procedure objectDidBeginEditing(editor: id); message 'objectDidBeginEditing:';
     procedure objectDidEndEditing(editor: id); message 'objectDidEndEditing:';
-  end; external;
+  end;
 
 { NSEditorCategory }
-  NSEditorCategory = objccategory(NSObject)
+  NSEditorCategory = objccategory external (NSObject)
     procedure discardEditing; message 'discardEditing';
     function commitEditing: Boolean; message 'commitEditing';
     procedure commitEditingWithDelegate_didCommitSelector_contextInfo(delegate: id; didCommitSelector: SEL; contextInfo: Pointer); message 'commitEditingWithDelegate:didCommitSelector:contextInfo:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

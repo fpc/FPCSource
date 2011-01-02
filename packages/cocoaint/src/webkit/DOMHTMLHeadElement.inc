@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLHeadElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,14 +42,12 @@
 {$define DOMHTMLHEADELEMENT_PAS_C}
 
 { DOMHTMLHeadElement }
-  DOMHTMLHeadElement = objcclass(DOMHTMLElement)
+  DOMHTMLHeadElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLHeadElement; message 'alloc';
-
     procedure setProfile (newValue: NSString); message 'setProfile:';
     function profile: NSString; message 'profile';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

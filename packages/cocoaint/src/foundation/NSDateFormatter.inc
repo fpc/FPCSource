@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSDateFormatter.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -63,15 +63,13 @@ type
 {$define NSDATEFORMATTER_PAS_C}
 
 { NSDateFormatter }
-  NSDateFormatter = objcclass(NSFormatter)
+  NSDateFormatter = objcclass external (NSFormatter)
   private
     _attributes: NSMutableDictionary;
     _formatter: CFDateFormatterRef; {garbage collector: __strong }
     _counter: NSUInteger;
     
   public
-    class function alloc: NSDateFormatter; message 'alloc';
-
     function getObjectValue_forString_range_error(obj: idPtr; string_: NSString; rangep: NSRangePtr; error: NSErrorPointer): Boolean; message 'getObjectValue:forString:range:error:';
     function stringFromDate(date: NSDate): NSString; message 'stringFromDate:';
     function dateFromString(string_: NSString): NSDate; message 'dateFromString:';
@@ -145,13 +143,13 @@ type
     procedure setGregorianStartDate(date: NSDate); message 'setGregorianStartDate:';
     function doesRelativeDateFormatting: Boolean; message 'doesRelativeDateFormatting';
     procedure setDoesRelativeDateFormatting(b: Boolean); message 'setDoesRelativeDateFormatting:';
-  end; external;
+  end;
 
 { NSDateFormatterCompatibilityCategory }
-  NSDateFormatterCompatibilityCategory = objccategory(NSDateFormatter)
+  NSDateFormatterCompatibilityCategory = objccategory external (NSDateFormatter)
     function initWithDateFormat_allowNaturalLanguage(format: NSString; flag: Boolean): id; message 'initWithDateFormat:allowNaturalLanguage:';
     function allowsNaturalLanguage: Boolean; message 'allowsNaturalLanguage';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

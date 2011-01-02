@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSFileHandle.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -56,11 +56,9 @@ var
 {$define NSFILEHANDLE_PAS_C}
 
 { NSFileHandle }
-  NSFileHandle = objcclass(NSObject)
+  NSFileHandle = objcclass external (NSObject)
     
   public
-    class function alloc: NSFileHandle; message 'alloc';
-
     function availableData: NSData; message 'availableData';
     function readDataToEndOfFile: NSData; message 'readDataToEndOfFile';
     function readDataOfLength(length: NSUInteger): NSData; message 'readDataOfLength:';
@@ -71,22 +69,20 @@ var
     procedure truncateFileAtOffset(offset: culonglong); message 'truncateFileAtOffset:';
     procedure synchronizeFile; message 'synchronizeFile';
     procedure closeFile; message 'closeFile';
-  end; external;
+  end;
 
 { NSPipe }
-  NSPipe = objcclass(NSObject)
+  NSPipe = objcclass external (NSObject)
     
   public
-    class function alloc: NSPipe; message 'alloc';
-
     function fileHandleForReading: NSFileHandle; message 'fileHandleForReading';
     function fileHandleForWriting: NSFileHandle; message 'fileHandleForWriting';
     function init: id; message 'init';
     class function pipe: id; message 'pipe';
-  end; external;
+  end;
 
 { NSFileHandleCreationCategory }
-  NSFileHandleCreationCategory = objccategory(NSFileHandle)
+  NSFileHandleCreationCategory = objccategory external (NSFileHandle)
     class function fileHandleWithStandardInput: id; message 'fileHandleWithStandardInput';
     class function fileHandleWithStandardOutput: id; message 'fileHandleWithStandardOutput';
     class function fileHandleWithStandardError: id; message 'fileHandleWithStandardError';
@@ -97,10 +93,10 @@ var
     class function fileHandleForReadingFromURL_error(url: NSURL; error: NSErrorPointer): id; message 'fileHandleForReadingFromURL:error:';
     class function fileHandleForWritingToURL_error(url: NSURL; error: NSErrorPointer): id; message 'fileHandleForWritingToURL:error:';
     class function fileHandleForUpdatingURL_error(url: NSURL; error: NSErrorPointer): id; message 'fileHandleForUpdatingURL:error:';
-  end; external;
+  end;
 
 { NSFileHandleAsynchronousAccessCategory }
-  NSFileHandleAsynchronousAccessCategory = objccategory(NSFileHandle)
+  NSFileHandleAsynchronousAccessCategory = objccategory external (NSFileHandle)
     procedure readInBackgroundAndNotifyForModes(modes: NSArray); message 'readInBackgroundAndNotifyForModes:';
     procedure readInBackgroundAndNotify; message 'readInBackgroundAndNotify';
     procedure readToEndOfFileInBackgroundAndNotifyForModes(modes: NSArray); message 'readToEndOfFileInBackgroundAndNotifyForModes:';
@@ -109,14 +105,14 @@ var
     procedure acceptConnectionInBackgroundAndNotify; message 'acceptConnectionInBackgroundAndNotify';
     procedure waitForDataInBackgroundAndNotifyForModes(modes: NSArray); message 'waitForDataInBackgroundAndNotifyForModes:';
     procedure waitForDataInBackgroundAndNotify; message 'waitForDataInBackgroundAndNotify';
-  end; external;
+  end;
 
 { NSFileHandlePlatformSpecificCategory }
-  NSFileHandlePlatformSpecificCategory = objccategory(NSFileHandle)
+  NSFileHandlePlatformSpecificCategory = objccategory external (NSFileHandle)
     function initWithFileDescriptor_closeOnDealloc(fd: cint; closeopt: Boolean): id; message 'initWithFileDescriptor:closeOnDealloc:';
     function initWithFileDescriptor(fd: cint): id; message 'initWithFileDescriptor:';
     function fileDescriptor: cint; message 'fileDescriptor';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

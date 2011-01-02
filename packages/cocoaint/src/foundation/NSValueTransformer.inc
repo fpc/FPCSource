@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSValueTransformer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -50,11 +50,9 @@ var
 {$define NSVALUETRANSFORMER_PAS_C}
 
 { NSValueTransformer }
-  NSValueTransformer = objcclass(NSObject)
+  NSValueTransformer = objcclass external (NSObject)
     
   public
-    class function alloc: NSValueTransformer; message 'alloc';
-
     class procedure setValueTransformer_forName(transformer: NSValueTransformer; name: NSString); message 'setValueTransformer:forName:';
     class function valueTransformerForName(name: NSString): NSValueTransformer; message 'valueTransformerForName:';
     class function valueTransformerNames: NSArray; message 'valueTransformerNames';
@@ -62,7 +60,7 @@ var
     class function allowsReverseTransformation: Boolean; message 'allowsReverseTransformation';
     function transformedValue(value: id): id; message 'transformedValue:';
     function reverseTransformedValue(value: id): id; message 'reverseTransformedValue:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

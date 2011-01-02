@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSConnection.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -53,7 +53,7 @@ var
 {$define NSCONNECTION_PAS_C}
 
 { NSConnection }
-  NSConnection = objcclass(NSObject)
+  NSConnection = objcclass external (NSObject)
   private
     _receivePort: id;
     _sendPort: id;
@@ -92,8 +92,6 @@ var
     reserved: Pointer;
     
   public
-    class function alloc: NSConnection; message 'alloc';
-
     function statistics: NSDictionary; message 'statistics';
     class function allConnections: NSArray; message 'allConnections';
     class function defaultConnection: NSConnection; message 'defaultConnection'; deprecated 'in Mac OS X 10.6 and later';
@@ -133,19 +131,17 @@ var
     procedure runInNewThread; message 'runInNewThread';
     function remoteObjects: NSArray; message 'remoteObjects';
     function localObjects: NSArray; message 'localObjects';
-  end; external;
+  end;
 
 { NSDistantObjectRequest }
-  NSDistantObjectRequest = objcclass(NSObject)
+  NSDistantObjectRequest = objcclass external (NSObject)
     
   public
-    class function alloc: NSDistantObjectRequest; message 'alloc';
-
     function invocation: NSInvocation; message 'invocation';
     function connection: NSConnection; message 'connection';
     function conversation: id; message 'conversation';
     procedure replyWithException(exception: NSException); message 'replyWithException:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -154,13 +150,13 @@ var
 {$define NSCONNECTION_PAS_P}
   
 { NSConnectionDelegate Protocol }
-  NSConnectionDelegateProtocol = objcprotocol
+  NSConnectionDelegateProtocol = objcprotocol external name 'NSConnectionDelegate'
     function makeNewConnection_sender(conn: NSConnection; ancestor: NSConnection): Boolean; message 'makeNewConnection:sender:';
     function connection_shouldMakeNewConnection(ancestor: NSConnection; conn: NSConnection): Boolean; message 'connection:shouldMakeNewConnection:';
     function authenticationDataForComponents(components: NSArray): NSData; message 'authenticationDataForComponents:';
     function authenticateComponents_withData(components: NSArray; signature: NSData): Boolean; message 'authenticateComponents:withData:';
     function createConversationForConnection(conn: NSConnection): id; message 'createConversationForConnection:';
     function connection_handleRequest(connection: NSConnection; doreq: NSDistantObjectRequest): Boolean; message 'connection:handleRequest:';
-  end; external name 'NSConnectionDelegate';
+  end;
 {$endif}
 {$endif}

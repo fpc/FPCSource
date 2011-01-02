@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSAtomicStoreCacheNode.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSATOMICSTORECACHENODE_PAS_C}
 
 { NSAtomicStoreCacheNode }
-  NSAtomicStoreCacheNode = objcclass(NSObject)
+  NSAtomicStoreCacheNode = objcclass external (NSObject)
   private
     _objectID: NSManagedObjectID;
     __versionNumber: culong;
@@ -50,15 +50,13 @@
     _reserved1: Pointer;
     
   public
-    class function alloc: NSAtomicStoreCacheNode; message 'alloc';
-
     function initWithObjectID(moid: NSManagedObjectID): id; message 'initWithObjectID:';
     function objectID: NSManagedObjectID; message 'objectID';
     function propertyCache: NSMutableDictionary; message 'propertyCache';
     procedure setPropertyCache(propertyCache_: NSMutableDictionary); message 'setPropertyCache:';
     function valueForKey(key: NSString): id; message 'valueForKey:';
     procedure setValue_forKey(value: id; key: NSString); message 'setValue:forKey:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

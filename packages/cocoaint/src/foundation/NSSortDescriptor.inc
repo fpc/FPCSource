@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSSortDescriptor.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSSORTDESCRIPTOR_PAS_C}
 
 { NSSortDescriptor }
-  NSSortDescriptor = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
+  NSSortDescriptor = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     _sortDescriptorFlags: NSUInteger;
     _key: NSString;
@@ -50,8 +50,6 @@
     _selectorOrBlock: id;
     
   public
-    class function alloc: NSSortDescriptor; message 'alloc';
-
     class function sortDescriptorWithKey_ascending(key_: NSString; ascending_: Boolean): id; message 'sortDescriptorWithKey:ascending:';
     class function sortDescriptorWithKey_ascending_selector(key_: NSString; ascending_: Boolean; selector_: SEL): id; message 'sortDescriptorWithKey:ascending:selector:';
     function initWithKey_ascending(key_: NSString; ascending_: Boolean): id; message 'initWithKey:ascending:';
@@ -66,22 +64,22 @@
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 { NSSortDescriptorSortingCategory }
-  NSSortDescriptorSortingCategory = objccategory(NSSet)
+  NSSortDescriptorSortingCategory = objccategory external (NSSet)
     function sortedArrayUsingDescriptors(sortDescriptors: NSArray): NSArray; message 'sortedArrayUsingDescriptors:';
-  end; external;
+  end;
 
 { NSSortDescriptorSorting_NSArrayCategory }
-  NSSortDescriptorSorting_NSArrayCategory = objccategory(NSArray)
+  NSSortDescriptorSorting_NSArrayCategory = objccategory external name 'NSSortDescriptorSorting' (NSArray)
     function sortedArrayUsingDescriptors(sortDescriptors: NSArray): NSArray; message 'sortedArrayUsingDescriptors:';
-  end; external name 'NSSortDescriptorSorting';
+  end;
 
 { NSSortDescriptorSorting_NSMutableArrayCategory }
-  NSSortDescriptorSorting_NSMutableArrayCategory = objccategory(NSMutableArray)
+  NSSortDescriptorSorting_NSMutableArrayCategory = objccategory external name 'NSSortDescriptorSorting' (NSMutableArray)
     procedure sortUsingDescriptors(sortDescriptors: NSArray); message 'sortUsingDescriptors:';
-  end; external name 'NSSortDescriptorSorting';
+  end;
 
 {$endif}
 {$endif}

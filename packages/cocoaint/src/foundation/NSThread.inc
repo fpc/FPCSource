@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSThread.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -48,14 +48,12 @@ var
 {$define NSTHREAD_PAS_C}
 
 { NSThread }
-  NSThread = objcclass(NSObject)
+  NSThread = objcclass external (NSObject)
   private
     _private: id;
         _bytes: array[0..43] of cuint8;
     
   public
-    class function alloc: NSThread; message 'alloc';
-
     class function currentThread: NSThread; message 'currentThread';
     class procedure detachNewThreadSelector_toTarget_withObject(selector: SEL; target: id; argument: id); message 'detachNewThreadSelector:toTarget:withObject:';
     class function isMultiThreaded: Boolean; message 'isMultiThreaded';
@@ -81,16 +79,16 @@ var
     procedure cancel; message 'cancel';
     procedure start; message 'start';
     procedure main; message 'main';
-  end; external;
+  end;
 
 { NSThreadPerformAdditionsCategory }
-  NSThreadPerformAdditionsCategory = objccategory(NSObject)
+  NSThreadPerformAdditionsCategory = objccategory external (NSObject)
     procedure performSelectorOnMainThread_withObject_waitUntilDone_modes(aSelector: SEL; arg: id; wait: Boolean; array_: NSArray); message 'performSelectorOnMainThread:withObject:waitUntilDone:modes:';
     procedure performSelectorOnMainThread_withObject_waitUntilDone(aSelector: SEL; arg: id; wait: Boolean); message 'performSelectorOnMainThread:withObject:waitUntilDone:';
     procedure performSelector_onThread_withObject_waitUntilDone_modes(aSelector: SEL; thr: NSThread; arg: id; wait: Boolean; array_: NSArray); message 'performSelector:onThread:withObject:waitUntilDone:modes:';
     procedure performSelector_onThread_withObject_waitUntilDone(aSelector: SEL; thr: NSThread; arg: id; wait: Boolean); message 'performSelector:onThread:withObject:waitUntilDone:';
     procedure performSelectorInBackground_withObject(aSelector: SEL; arg: id); message 'performSelectorInBackground:withObject:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

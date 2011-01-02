@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSGradient.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -53,7 +53,7 @@ const
 {$define NSGRADIENT_PAS_C}
 
 { NSGradient }
-  NSGradient = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSGradient = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _colorArray: NSArray;
     _colorSpace: NSColorSpace;
@@ -64,8 +64,6 @@ const
     _reserved3: Pointer;
     
   public
-    class function alloc: NSGradient; message 'alloc';
-
     function initWithStartingColor_endingColor(startingColor: NSColor; endingColor: NSColor): id; message 'initWithStartingColor:endingColor:';
     function initWithColors(colorArray: NSArray): id; message 'initWithColors:';
     function initWithColorsAndLocations(firstKey: id): id; varargs; message 'initWithColorsAndLocations:';
@@ -85,7 +83,7 @@ const
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

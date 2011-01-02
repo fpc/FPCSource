@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTrackingArea.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -65,7 +65,7 @@ type
 {$define NSTRACKINGAREA_PAS_C}
 
 { NSTrackingArea }
-  NSTrackingArea = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSTrackingArea = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _rect: NSRect;
     _owner: id; {garbage collector: __weak }
@@ -75,8 +75,6 @@ type
     _reserved: Pointer;
     
   public
-    class function alloc: NSTrackingArea; message 'alloc';
-
     function initWithRect_options_owner_userInfo(rect_: NSRect; options_: NSTrackingAreaOptions; owner_: id; userInfo_: NSDictionary): id; message 'initWithRect:options:owner:userInfo:';
     function rect: NSRect; message 'rect';
     function options: NSTrackingAreaOptions; message 'options';
@@ -87,7 +85,7 @@ type
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

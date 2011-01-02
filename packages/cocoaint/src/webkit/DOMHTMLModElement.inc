@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLModElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,16 +42,14 @@
 {$define DOMHTMLMODELEMENT_PAS_C}
 
 { DOMHTMLModElement }
-  DOMHTMLModElement = objcclass(DOMHTMLElement)
+  DOMHTMLModElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLModElement; message 'alloc';
-
     procedure setCite (newValue: NSString); message 'setCite:';
     function cite: NSString; message 'cite';
     procedure setDateTime (newValue: NSString); message 'setDateTime:';
     function dateTime: NSString; message 'dateTime';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

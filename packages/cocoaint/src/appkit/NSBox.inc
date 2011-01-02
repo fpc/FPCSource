@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSBox.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -67,7 +67,7 @@ type
 {$define NSBOX_PAS_C}
 
 { NSBox }
-  NSBox = objcclass(NSView)
+  NSBox = objcclass external (NSView)
   private
     _titleCell: id;
     _contentView: id;
@@ -92,8 +92,6 @@ type
     _unused: id;
     
   public
-    class function alloc: NSBox; message 'alloc';
-
     function borderType: NSBorderType; message 'borderType';
     function titlePosition: NSTitlePosition; message 'titlePosition';
     procedure setBorderType(aType: NSBorderType); message 'setBorderType:';
@@ -115,15 +113,15 @@ type
     procedure setContentView(aView: NSView); message 'setContentView:';
     function isTransparent: Boolean; message 'isTransparent';
     procedure setTransparent(flag: Boolean); message 'setTransparent:';
-  end; external;
+  end;
 
 { NSKeyboardUI_NSBoxCategory }
-  NSKeyboardUI_NSBoxCategory = objccategory(NSBox)
+  NSKeyboardUI_NSBoxCategory = objccategory external name 'NSKeyboardUI' (NSBox)
     procedure setTitleWithMnemonic(stringWithAmpersand: NSString); message 'setTitleWithMnemonic:';
-  end; external name 'NSKeyboardUI';
+  end;
 
 { NSCustomBoxTypePropertiesCategory }
-  NSCustomBoxTypePropertiesCategory = objccategory(NSBox)
+  NSCustomBoxTypePropertiesCategory = objccategory external (NSBox)
     function borderWidth: CGFloat; message 'borderWidth';
     procedure setBorderWidth(borderWidth_: CGFloat); message 'setBorderWidth:';
     function cornerRadius: CGFloat; message 'cornerRadius';
@@ -132,7 +130,7 @@ type
     procedure setBorderColor(borderColor_: NSColor); message 'setBorderColor:';
     function fillColor: NSColor; message 'fillColor';
     procedure setFillColor(fillColor_: NSColor); message 'setFillColor:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

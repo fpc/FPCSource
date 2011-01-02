@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSCalendar.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -71,11 +71,9 @@ type
 {$define NSCALENDAR_PAS_C}
 
 { NSCalendar }
-  NSCalendar = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSCalendar = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
     
   public
-    class function alloc: NSCalendar; message 'alloc';
-
     class function currentCalendar: id; message 'currentCalendar';
     class function autoupdatingCurrentCalendar: id; message 'autoupdatingCurrentCalendar';
     function initWithCalendarIdentifier(ident: NSString): id; message 'initWithCalendarIdentifier:';
@@ -102,14 +100,12 @@ type
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSDateComponents }
-  NSDateComponents = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSDateComponents = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
     
   public
-    class function alloc: NSDateComponents; message 'alloc';
-
     function era: NSInteger; message 'era';
     function year: NSInteger; message 'year';
     function month: NSInteger; message 'month';
@@ -137,7 +133,7 @@ type
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

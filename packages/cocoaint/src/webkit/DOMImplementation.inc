@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMImplementation.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,25 +42,23 @@
 {$define DOMIMPLEMENTATION_PAS_C}
 
 { DOMImplementation }
-  DOMImplementation = objcclass(DOMObject)
+  DOMImplementation = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMImplementation; message 'alloc';
-
     function hasFeature_version(feature: NSString; version_: NSString): Boolean; message 'hasFeature:version:';
     function createDocumentType_publicId_systemId(qualifiedName: NSString; publicId: NSString; systemId: NSString): DOMDocumentType; message 'createDocumentType:publicId:systemId:';
     function createDocument_qualifiedName_doctype(namespaceURI: NSString; qualifiedName: NSString; doctype: DOMDocumentType): DOMDocument; message 'createDocument:qualifiedName:doctype:';
     function createCSSStyleSheet_media(title: NSString; media: NSString): DOMCSSStyleSheet; message 'createCSSStyleSheet:media:';
     function createHTMLDocument(title: NSString): DOMHTMLDocument; message 'createHTMLDocument:';
-  end; external;
+  end;
 
 { DOMImplementationDeprecatedCategory }
-  DOMImplementationDeprecatedCategory = objccategory(DOMImplementation)
+  DOMImplementationDeprecatedCategory = objccategory external (DOMImplementation)
     function hasFeature(feature: NSString; version_: NSString): Boolean; message 'hasFeature:feature:';
     function createDocumentType(qualifiedName: NSString; publicId: NSString; systemId: NSString): DOMDocumentType; message 'createDocumentType:qualifiedName:publicId:';
     function createDocument(namespaceURI: NSString; qualifiedName: NSString; doctype: DOMDocumentType): DOMDocument; message 'createDocument:namespaceURI:qualifiedName:';
     function createCSSStyleSheet(title: NSString; media: NSString): DOMCSSStyleSheet; message 'createCSSStyleSheet:title:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

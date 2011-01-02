@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSAppleEventDescriptor.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,15 +42,13 @@
 {$define NSAPPLEEVENTDESCRIPTOR_PAS_C}
 
 { NSAppleEventDescriptor }
-  NSAppleEventDescriptor = objcclass(NSObject, NSCopyingProtocol)
+  NSAppleEventDescriptor = objcclass external (NSObject, NSCopyingProtocol)
   private
     _desc: AEDesc;
     _hasValidDesc: Boolean;
         _padding: array[0..2] of char;
     
   public
-    class function alloc: NSAppleEventDescriptor; message 'alloc';
-
     class function nullDescriptor: NSAppleEventDescriptor; message 'nullDescriptor';
     class function descriptorWithDescriptorType_bytes_length(descriptorType_: DescType; bytes: Pointer; byteCount: NSUInteger): NSAppleEventDescriptor; message 'descriptorWithDescriptorType:bytes:length:';
     class function descriptorWithDescriptorType_data(descriptorType_: DescType; data_: NSData): NSAppleEventDescriptor; message 'descriptorWithDescriptorType:data:';
@@ -98,7 +96,7 @@
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

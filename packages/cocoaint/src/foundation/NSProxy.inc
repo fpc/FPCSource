@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSProxy.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,27 +42,26 @@
 {$define NSPROXY_PAS_C}
 
 { NSProxy }
-  NSProxy = objcclass(NSObject, NSObjectProtocol)
+  NSProxy = objcclass external (NSObjectProtocol)
   private
     isa: Pobjc_class;
     
   public
-    class function alloc: NSProxy; message 'alloc';
-
     class function alloc: id; message 'alloc';
     class function allocWithZone(zone_: NSZonePtr): id; message 'allocWithZone:';
-    class function class_: Pobjc_class; message 'class';
+    class function classClass: Pobjc_class; message 'class';
     procedure forwardInvocation(invocation: NSInvocation); message 'forwardInvocation:';
     function methodSignatureForSelector(sel_: SEL): NSMethodSignature; message 'methodSignatureForSelector:';
     procedure dealloc; message 'dealloc';
     procedure finalize; message 'finalize';
     function description: NSString; message 'description';
-    class function respondsToSelector(aSelector: SEL): Boolean; message 'respondsToSelector:';
+    class function classRespondsToSelector(aSelector: SEL): Boolean; message 'respondsToSelector:';
 
     { Adopted Protocols }
     function isEqual(object_: id): Boolean;
     function hash: NSUInteger;
     function superclass: Pobjc_class;
+    function _class: Pobjc_class;
     function self: id;
     function zone: NSZonePtr;
     function performSelector(aSelector: SEL): id;
@@ -72,11 +71,12 @@
     function isKindOfClass(aClass: Pobjc_class): Boolean;
     function isMemberOfClass(aClass: Pobjc_class): Boolean;
     function conformsToProtocol(aProtocol: objc_protocol): Boolean;
+    function respondsToSelector(aSelector: SEL): Boolean;
     function retain: id;
     procedure release;
     function autorelease: id;
     function retainCount: NSUInteger;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

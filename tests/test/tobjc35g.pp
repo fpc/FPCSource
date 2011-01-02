@@ -7,9 +7,14 @@
 {$mode objfpc}
 {$modeswitch objectivec1}
 
+uses
+  uobjc35g;
 type
-  { formal class with external name is not allowed }
-  NSArray = objcclass; external name 'NSArray';
+  { external names must match }
+  MyNSArray = objcclass external name 'NSArray2';
+
+  ta = objcclass(MyNSArray)
+  end;
 
 begin
 end.

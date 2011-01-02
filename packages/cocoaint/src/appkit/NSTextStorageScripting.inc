@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextStorageScripting.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -39,7 +39,7 @@
 {$define NSTEXTSTORAGESCRIPTING_PAS_C}
 
 { ScriptingCategory }
-  ScriptingCategory = objccategory(NSTextStorage)
+  ScriptingCategory = objccategory external (NSTextStorage)
     function attributeRuns: NSArray; message 'attributeRuns';
     procedure setAttributeRuns(attributeRuns: NSArray); message 'setAttributeRuns:';
     function paragraphs: NSArray; message 'paragraphs';
@@ -52,7 +52,7 @@
     procedure setFont(font: NSFont); message 'setFont:';
     function foregroundColor: NSColor; message 'foregroundColor';
     procedure setForegroundColor(color: NSColor); message 'setForegroundColor:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

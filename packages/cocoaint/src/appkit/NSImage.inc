@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSImage.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -129,7 +129,7 @@ var
 {$define NSIMAGE_PAS_C}
 
 { NSImage }
-  NSImage = objcclass(NSObject)
+  NSImage = objcclass external (NSObject)
   private
     _name: NSString;
     _size: NSSize;
@@ -164,8 +164,6 @@ var
     _imageAuxiliary: _NSImageAuxiliary;
     
   public
-    class function alloc: NSImage; message 'alloc';
-
     class function imageNamed(name_: NSString): id; message 'imageNamed:';
     function initWithSize(aSize: NSSize): id; message 'initWithSize:';
     function initWithData(data: NSData): id; message 'initWithData:';
@@ -226,16 +224,16 @@ var
     function CGImageForProposedRect_context_hints(proposedDestRect: NSRectPtr; referenceContext: NSGraphicsContext; hints: NSDictionary): CGImageRef; message 'CGImageForProposedRect:context:hints:';
     function bestRepresentationForRect_context_hints(rect: NSRect; referenceContext: NSGraphicsContext; hints: NSDictionary): NSImageRep; message 'bestRepresentationForRect:context:hints:';
     function hitTestRect_withImageDestinationRect_context_hints_flipped(testRectDestSpace: NSRect; imageRectDestSpace: NSRect; context: NSGraphicsContext; hints: NSDictionary; flipped: Boolean): Boolean; message 'hitTestRect:withImageDestinationRect:context:hints:flipped:';
-  end; external;
+  end;
 
 { NSBundleImageExtensionCategory }
-  NSBundleImageExtensionCategory = objccategory(NSBundle)
+  NSBundleImageExtensionCategory = objccategory external (NSBundle)
     function pathForImageResource(name: NSString): NSString; message 'pathForImageResource:';
     function URLForImageResource(name: NSString): NSURL; message 'URLForImageResource:';
-  end; external;
+  end;
 
 { NSDeprecated_NSImageCategory }
-  NSDeprecated_NSImageCategory = objccategory(NSImage)
+  NSDeprecated_NSImageCategory = objccategory external name 'NSDeprecated' (NSImage)
     procedure setFlipped(flag: Boolean); message 'setFlipped:';
     function isFlipped: Boolean; message 'isFlipped';
     procedure dissolveToPoint_fraction(point: NSPoint; aFloat: CGFloat); message 'dissolveToPoint:fraction:';
@@ -253,7 +251,7 @@ var
     function isCachedSeparately: Boolean; message 'isCachedSeparately';
     procedure setCacheDepthMatchesImageDepth(flag: Boolean); message 'setCacheDepthMatchesImageDepth:';
     function cacheDepthMatchesImageDepth: Boolean; message 'cacheDepthMatchesImageDepth';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}
@@ -262,12 +260,12 @@ var
 {$define NSIMAGE_PAS_P}
   
 { NSImageDelegate Protocol }
-  NSImageDelegateProtocol = objcprotocol
+  NSImageDelegateProtocol = objcprotocol external name 'NSImageDelegate'
     function imageDidNotDraw_inRect(sender: id; aRect: NSRect): NSImage; message 'imageDidNotDraw:inRect:';
     procedure image_willLoadRepresentation(image: NSImage; rep: NSImageRep); message 'image:willLoadRepresentation:';
     procedure image_didLoadRepresentationHeader(image: NSImage; rep: NSImageRep); message 'image:didLoadRepresentationHeader:';
     procedure image_didLoadPartOfRepresentation_withValidRows(image: NSImage; rep: NSImageRep; rows: NSInteger); message 'image:didLoadPartOfRepresentation:withValidRows:';
     procedure image_didLoadRepresentation_withStatus(image: NSImage; rep: NSImageRep; status: NSImageLoadStatus); message 'image:didLoadRepresentation:withStatus:';
-  end; external name 'NSImageDelegate';
+  end;
 {$endif}
 {$endif}

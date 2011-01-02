@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSRange.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -56,10 +56,10 @@ function NSRangeFromString(aString: NSString): NSRange; cdecl; external;
 {$define NSRANGE_PAS_C}
 
 { NSValueRangeExtensionsCategory }
-  NSValueRangeExtensionsCategory = objccategory(NSValue)
+  NSValueRangeExtensionsCategory = objccategory external (NSValue)
     class function valueWithRange(range: NSRange): NSValue; message 'valueWithRange:';
     function rangeValue: NSRange; message 'rangeValue';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -333,85 +333,18 @@ implementation
 
     procedure types_dec(in_structure: boolean);
 
-      procedure get_cpp_class_external_status(od: tobjectdef);
-        var
-          hs: string;
-
-        begin
-          { C++ classes can be external -> all methods inside are external
-           (defined at the class level instead of per method, so that you cannot
-           define some methods as external and some not)
-          }
-          if (token=_ID) and
-             (idtoken=_EXTERNAL) then
-            begin
-              consume(_EXTERNAL);
-              { copied from pdecsub.pd_external }
-              if not(token=_SEMICOLON) and not(idtoken=_NAME) then
-                begin
-                  { Always add library prefix and suffix to create an uniform name }
-                  hs:=get_stringconst;
-                  if ExtractFileExt(hs)='' then
-                    hs:=ChangeFileExt(hs,target_info.sharedlibext);
-                  if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
-                    hs:=target_info.sharedlibprefix+hs;
-                  od.import_lib:=stringdup(hs);
-                end;
-              include(od.objectoptions, oo_is_external);
-              { check if we shall use another name for the class }
-              if (token=_ID) and
-                 (idtoken=_NAME) then
-                begin
-                  consume(_NAME);
-                  od.objextname:=stringdup(get_stringconst);
-                end
-              else
-                od.objextname:=stringdup(od.objrealname^);
-              consume(_SEMICOLON);
-              { now all methods need to be external }
-              od.make_all_methods_external;
-              include(od.objectoptions,oo_is_external);
-            end
-          else
-            od.objextname:=stringdup(od.objrealname^);
-          { ToDo: read the namespace of the class (influences the mangled name)}
-        end;
-
-      procedure get_objc_class_or_protocol_external_status(od: tobjectdef);
+      procedure finalize_objc_class_or_protocol_external_status(od: tobjectdef);
         begin
           { Objective-C classes can be external -> all messages inside are
             external (defined at the class level instead of per method, so
             that you cannot define some methods as external and some not)
           }
-          if (token=_ID) and
-             (idtoken=_EXTERNAL) then
+          if  [oo_is_external,oo_is_forward] <= od.objectoptions then
             begin
-              consume(_EXTERNAL);
-              if (token=_ID) and
-                 (idtoken=_NAME) and
-                 not(oo_is_forward in od.objectoptions) then
-                begin
-                  consume(_NAME);
-                  od.objextname:=stringdup(get_stringconst);
-                end
-              else
-                { the external name doesn't matter for formally declared
-                  classes, and allowing to specify one would mean that we would
-                  have to check it for consistency with the actual definition
-                  later on }
-                od.objextname:=stringdup(od.objrealname^);
-              consume(_SEMICOLON);
-              od.make_all_methods_external;
-              include(od.objectoptions,oo_is_external);
-              if (oo_is_forward in od.objectoptions) then
-                begin
-                  { formal definition: x = objcclass; external; }
-                  exclude(od.objectoptions,oo_is_forward);
-                  include(od.objectoptions,oo_is_formal);
-                end;
-            end
-          else { or also allow "public name 'x'"? }
-            od.objextname:=stringdup(od.objrealname^);
+              { formal definition: x = objcclass; external; }
+              exclude(od.objectoptions,oo_is_forward);
+              include(od.objectoptions,oo_is_formal);
+            end;
         end;
 
 
@@ -633,14 +566,11 @@ implementation
                     try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
                     consume(_SEMICOLON);
 
-                    { we have to know whether the class or protocol is
-                      external before the vmt is built, because some errors/
-                      hints depend on this  }
+                    { change a forward and external objcclass declaration into
+                      formal external definition, so the compiler does not
+                      expect an real definition later }
                     if is_objc_class_or_protocol(hdef) then
-                      get_objc_class_or_protocol_external_status(tobjectdef(hdef));
-
-                    if is_cppclass(hdef) then
-                      get_cpp_class_external_status(tobjectdef(hdef));
+                      finalize_objc_class_or_protocol_external_status(tobjectdef(hdef));
 
                     { Build VMT indexes, skip for type renaming and forward classes }
                     if (hdef.typesym=newtype) and

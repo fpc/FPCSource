@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLCredential.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -54,41 +54,39 @@ type
 {$define NSURLCREDENTIAL_PAS_C}
 
 { NSURLCredential }
-  NSURLCredential = objcclass(NSObject, NSCopyingProtocol)
+  NSURLCredential = objcclass external (NSObject, NSCopyingProtocol)
   private
     _internal: NSURLCredentialInternal; {garbage collector: __strong }
     
   public
-    class function alloc: NSURLCredential; message 'alloc';
-
     function persistence: NSURLCredentialPersistence; message 'persistence';
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 { NSInternetPasswordCategory }
-  NSInternetPasswordCategory = objccategory(NSURLCredential)
+  NSInternetPasswordCategory = objccategory external (NSURLCredential)
     function initWithUser_password_persistence(user_: NSString; password_: NSString; persistence_: NSURLCredentialPersistence): id; message 'initWithUser:password:persistence:';
     class function credentialWithUser_password_persistence(user_: NSString; password_: NSString; persistence_: NSURLCredentialPersistence): NSURLCredential; message 'credentialWithUser:password:persistence:';
     function user: NSString; message 'user';
     function password: NSString; message 'password';
     function hasPassword: Boolean; message 'hasPassword';
-  end; external;
+  end;
 
 { NSClientCertificateCategory }
-  NSClientCertificateCategory = objccategory(NSURLCredential)
+  NSClientCertificateCategory = objccategory external (NSURLCredential)
     function initWithIdentity_certificates_persistence(identity_: SecIdentityRef; certArray: NSArray; persistence_: NSURLCredentialPersistence): id; message 'initWithIdentity:certificates:persistence:';
     class function credentialWithIdentity_certificates_persistence(identity_: SecIdentityRef; certArray: NSArray; persistence_: NSURLCredentialPersistence): NSURLCredential; message 'credentialWithIdentity:certificates:persistence:';
     function identity: SecIdentityRef; message 'identity';
     function certificates: NSArray; message 'certificates';
-  end; external;
+  end;
 
 { NSServerTrustCategory }
-  NSServerTrustCategory = objccategory(NSURLCredential)
+  NSServerTrustCategory = objccategory external (NSURLCredential)
     function initWithTrust(trust: SecTrustRef): id; message 'initWithTrust:';
     class function credentialForTrust(trust: SecTrustRef): NSURLCredential; message 'credentialForTrust:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

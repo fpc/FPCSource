@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAnimation.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -82,7 +82,7 @@ var
 {$define NSANIMATION_PAS_C}
 
 { NSAnimation }
-  NSAnimation = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSAnimation = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _duration: NSTimeInterval;
     _currentProgress: NSAnimationProgress;
@@ -123,8 +123,6 @@ var
     _reserved4: NSInteger;
     
   public
-    class function alloc: NSAnimation; message 'alloc';
-
     function initWithDuration_animationCurve(duration_: NSTimeInterval; animationCurve_: NSAnimationCurve): id; message 'initWithDuration:animationCurve:';
     procedure startAnimation; message 'startAnimation';
     procedure stopAnimation; message 'stopAnimation';
@@ -156,10 +154,10 @@ var
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSViewAnimation }
-  NSViewAnimation = objcclass(NSAnimation)
+  NSViewAnimation = objcclass external (NSAnimation)
   private
     _viewAnimations: NSArray;
     _viewAnimationInfo: CFMutableDictionaryRef;
@@ -180,12 +178,10 @@ var
     _reserved8: NSUInteger;
     
   public
-    class function alloc: NSViewAnimation; message 'alloc';
-
     function initWithViewAnimations(viewAnimations_: NSArray): id; message 'initWithViewAnimations:';
     function viewAnimations: NSArray; message 'viewAnimations';
     procedure setViewAnimations(viewAnimations_: NSArray); message 'setViewAnimations:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -194,20 +190,20 @@ var
 {$define NSANIMATION_PAS_P}
   
 { NSAnimationDelegate Protocol }
-  NSAnimationDelegateProtocol = objcprotocol
+  NSAnimationDelegateProtocol = objcprotocol external name 'NSAnimationDelegate'
     function animationShouldStart(animation: NSAnimation): Boolean; message 'animationShouldStart:';
     procedure animationDidStop(animation: NSAnimation); message 'animationDidStop:';
     procedure animationDidEnd(animation: NSAnimation); message 'animationDidEnd:';
     function animation_valueForProgress(animation: NSAnimation; progress: NSAnimationProgress): single; message 'animation:valueForProgress:';
     procedure animation_didReachProgressMark(animation: NSAnimation; progress: NSAnimationProgress); message 'animation:didReachProgressMark:';
-  end; external name 'NSAnimationDelegate';
+  end;
   
 { NSAnimatablePropertyContainer Protocol }
-  NSAnimatablePropertyContainerProtocol = objcprotocol
+  NSAnimatablePropertyContainerProtocol = objcprotocol external name 'NSAnimatablePropertyContainer'
     function animator: id; message 'animator';
     function animations: NSDictionary; message 'animations';
     procedure setAnimations(dict: NSDictionary); message 'setAnimations:';
     function animationForKey(key: NSString): id; message 'animationForKey:';
-  end; external name 'NSAnimatablePropertyContainer';
+  end;
 {$endif}
 {$endif}

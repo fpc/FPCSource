@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSliderCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -61,7 +61,7 @@ type
 {$define NSSLIDERCELL_PAS_C}
 
 { NSSliderCell }
-  NSSliderCell = objcclass(NSActionCell)
+  NSSliderCell = objcclass external (NSActionCell)
   private
         _reserved: array[0..2] of cint;
     _numberOfTickMarks: cint;
@@ -87,8 +87,6 @@ type
       end;
     
   public
-    class function alloc: NSSliderCell; message 'alloc';
-
     class function prefersTrackingUntilMouseUp: Boolean; message 'prefersTrackingUntilMouseUp';
     function minValue: double; message 'minValue';
     procedure setMinValue(aDouble: double); message 'setMinValue:';
@@ -113,10 +111,10 @@ type
     function trackRect: NSRect; message 'trackRect';
     procedure setSliderType(sliderType_: NSSliderType); message 'setSliderType:';
     function sliderType: NSSliderType; message 'sliderType';
-  end; external;
+  end;
 
 { NSTickMarkSupportCategory }
-  NSTickMarkSupportCategory = objccategory(NSSliderCell)
+  NSTickMarkSupportCategory = objccategory external (NSSliderCell)
     procedure setNumberOfTickMarks(count: NSInteger); message 'setNumberOfTickMarks:';
     function numberOfTickMarks: NSInteger; message 'numberOfTickMarks';
     procedure setTickMarkPosition(position: NSTickMarkPosition); message 'setTickMarkPosition:';
@@ -127,7 +125,7 @@ type
     function rectOfTickMarkAtIndex(index: NSInteger): NSRect; message 'rectOfTickMarkAtIndex:';
     function indexOfTickMarkAtPoint(point: NSPoint): NSInteger; message 'indexOfTickMarkAtPoint:';
     function closestTickMarkValueToValue(value: double): double; message 'closestTickMarkValueToValue:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

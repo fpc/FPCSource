@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPortMessage.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSPORTMESSAGE_PAS_C}
 
 { NSPortMessage }
-  NSPortMessage = objcclass(NSObject)
+  NSPortMessage = objcclass external (NSObject)
   private
     localPort: NSPort;
     remotePort: NSPort;
@@ -52,8 +52,6 @@
     reserved: Pointer;
     
   public
-    class function alloc: NSPortMessage; message 'alloc';
-
     function initWithSendPort_receivePort_components(sendPort_: NSPort; replyPort: NSPort; components_: NSArray): id; message 'initWithSendPort:receivePort:components:';
     function components: NSArray; message 'components';
     function receivePort: NSPort; message 'receivePort';
@@ -61,7 +59,7 @@
     function sendBeforeDate(date: NSDate): Boolean; message 'sendBeforeDate:';
     function msgid: cuint32; message 'msgid';
     procedure setMsgid(msgid_: cuint32); message 'setMsgid:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

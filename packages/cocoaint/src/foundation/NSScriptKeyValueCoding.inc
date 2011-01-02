@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScriptKeyValueCoding.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -43,7 +43,7 @@ var
 {$define NSSCRIPTKEYVALUECODING_PAS_C}
 
 { NSScriptKeyValueCodingCategory }
-  NSScriptKeyValueCodingCategory = objccategory(NSObject)
+  NSScriptKeyValueCodingCategory = objccategory external (NSObject)
     function valueAtIndex_inPropertyWithKey(index: NSUInteger; key: NSString): id; message 'valueAtIndex:inPropertyWithKey:';
     function valueWithName_inPropertyWithKey(name: NSString; key: NSString): id; message 'valueWithName:inPropertyWithKey:';
     function valueWithUniqueID_inPropertyWithKey(uniqueID: id; key: NSString): id; message 'valueWithUniqueID:inPropertyWithKey:';
@@ -52,7 +52,7 @@ var
     procedure replaceValueAtIndex_inPropertyWithKey_withValue(index: NSUInteger; key: NSString; value: id); message 'replaceValueAtIndex:inPropertyWithKey:withValue:';
     procedure insertValue_inPropertyWithKey(value: id; key: NSString); message 'insertValue:inPropertyWithKey:';
     function coerceValue_forKey(value: id; key: NSString): id; message 'coerceValue:forKey:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

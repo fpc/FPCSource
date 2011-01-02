@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPredicateEditorRowTemplate.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSPREDICATEEDITORROWTEMPLATE_PAS_C}
 
 { NSPredicateEditorRowTemplate }
-  NSPredicateEditorRowTemplate = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
+  NSPredicateEditorRowTemplate = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     _templateType: NSInteger;
     _predicateOptions: NSUInteger;
@@ -62,8 +62,6 @@
     _patternReserved: id;
     
   public
-    class function alloc: NSPredicateEditorRowTemplate; message 'alloc';
-
     function matchForPredicate(predicate: NSPredicate): double; message 'matchForPredicate:';
     function templateViews: NSArray; message 'templateViews';
     procedure setPredicate(predicate: NSPredicate); message 'setPredicate:';
@@ -85,7 +83,7 @@
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

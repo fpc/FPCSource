@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMStyleSheet.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMSTYLESHEET_PAS_C}
 
 { DOMStyleSheet }
-  DOMStyleSheet = objcclass(DOMObject)
+  DOMStyleSheet = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMStyleSheet; message 'alloc';
-
     function type_: NSString; message 'type_';
     procedure setDisabled (newValue: Boolean); message 'setDisabled:';
     function disabled: Boolean; message 'disabled';
@@ -55,7 +53,7 @@
     function href: NSString; message 'href';
     function title: NSString; message 'title';
     function media: DOMMediaList; message 'media';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

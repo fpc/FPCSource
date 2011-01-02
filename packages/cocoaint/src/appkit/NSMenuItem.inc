@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMenuItem.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSMENUITEM_PAS_C}
 
 { NSMenuItem }
-  NSMenuItem = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol, NSValidatedUserInterfaceItemProtocol)
+  NSMenuItem = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol, NSValidatedUserInterfaceItemProtocol)
   private
     _menu: NSMenu;
     _title: NSString;
@@ -81,8 +81,6 @@
       end;
     
   public
-    class function alloc: NSMenuItem; message 'alloc';
-
     class procedure setUsesUserKeyEquivalents(flag: Boolean); message 'setUsesUserKeyEquivalents:';
     class function usesUserKeyEquivalents: Boolean; message 'usesUserKeyEquivalents';
     class function separatorItem: NSMenuItem; message 'separatorItem';
@@ -141,19 +139,19 @@
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSViewEnclosingMenuItemCategory }
-  NSViewEnclosingMenuItemCategory = objccategory(NSView)
+  NSViewEnclosingMenuItemCategory = objccategory external (NSView)
     function enclosingMenuItem: NSMenuItem; message 'enclosingMenuItem';
-  end; external;
+  end;
 
 { NSDeprecated_NSMenuItemCategory }
-  NSDeprecated_NSMenuItemCategory = objccategory(NSMenuItem)
+  NSDeprecated_NSMenuItemCategory = objccategory external name 'NSDeprecated' (NSMenuItem)
     procedure setMnemonicLocation(location: NSUInteger); message 'setMnemonicLocation:'; deprecated 'in Mac OS X 10.6 and later';
     function mnemonicLocation: NSUInteger; message 'mnemonicLocation'; deprecated 'in Mac OS X 10.6 and later';
     function mnemonic: NSString; message 'mnemonic'; deprecated 'in Mac OS X 10.6 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSParagraphStyle.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -75,7 +75,7 @@ var
 {$define NSPARAGRAPHSTYLE_PAS_C}
 
 { NSTextTab }
-  NSTextTab = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSTextTab = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     __flags: bitpacked record
       case byte of
@@ -93,8 +93,6 @@ var
     _reserved: id;
     
   public
-    class function alloc: NSTextTab; message 'alloc';
-
     function initWithTextAlignment_location_options(alignment_: NSTextAlignment; loc: CGFloat; options_: NSDictionary): id; message 'initWithTextAlignment:location:options:';
     function alignment: NSTextAlignment; message 'alignment';
     function options: NSDictionary; message 'options';
@@ -106,10 +104,10 @@ var
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSParagraphStyle }
-  NSParagraphStyle = objcclass(NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol)
+  NSParagraphStyle = objcclass external (NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol)
   private
     _lineSpacing: CGFloat;
     _paragraphSpacing: CGFloat;
@@ -139,8 +137,6 @@ var
     _extraData: id;
     
   public
-    class function alloc: NSParagraphStyle; message 'alloc';
-
     class function defaultParagraphStyle: NSParagraphStyle; message 'defaultParagraphStyle';
     class function defaultWritingDirectionForLanguage(languageName: NSString): NSWritingDirection; message 'defaultWritingDirectionForLanguage:';
     function lineSpacing: CGFloat; message 'lineSpacing';
@@ -168,14 +164,12 @@ var
     function mutableCopyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSMutableParagraphStyle }
-  NSMutableParagraphStyle = objcclass(NSParagraphStyle)
+  NSMutableParagraphStyle = objcclass external (NSParagraphStyle)
     
   public
-    class function alloc: NSMutableParagraphStyle; message 'alloc';
-
     procedure setLineSpacing(aFloat: CGFloat); message 'setLineSpacing:';
     procedure setParagraphSpacing(aFloat: CGFloat); message 'setParagraphSpacing:';
     procedure setAlignment(alignment_: NSTextAlignment); message 'setAlignment:';
@@ -198,7 +192,7 @@ var
     procedure setHyphenationFactor(aFactor: single); message 'setHyphenationFactor:';
     procedure setTighteningFactorForTruncation(aFactor: single); message 'setTighteningFactorForTruncation:';
     procedure setHeaderLevel(level: NSInteger); message 'setHeaderLevel:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

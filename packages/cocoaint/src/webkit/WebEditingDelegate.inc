@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebEditingDelegate.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -51,7 +51,7 @@ const
 {$define WEBEDITINGDELEGATE_PAS_C}
 
 { WebViewEditingDelegateCategory }
-  WebViewEditingDelegateCategory = objccategory(NSObject)
+  WebViewEditingDelegateCategory = objccategory external (NSObject)
     function webView_shouldBeginEditingInDOMRange(webView_: WebView; range: DOMRange): Boolean; message 'webView:shouldBeginEditingInDOMRange:';
     function webView_shouldEndEditingInDOMRange(webView_: WebView; range: DOMRange): Boolean; message 'webView:shouldEndEditingInDOMRange:';
     function webView_shouldInsertNode_replacingDOMRange_givenAction(webView_: WebView; node: DOMNode; range: DOMRange; action: WebViewInsertAction): Boolean; message 'webView:shouldInsertNode:replacingDOMRange:givenAction:';
@@ -67,7 +67,7 @@ const
     procedure webViewDidChangeTypingStyle(notification: NSNotification); message 'webViewDidChangeTypingStyle:';
     procedure webViewDidChangeSelection(notification: NSNotification); message 'webViewDidChangeSelection:';
     function undoManagerForWebView(webView_: WebView): NSUndoManager; message 'undoManagerForWebView:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

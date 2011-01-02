@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -220,15 +220,13 @@ var
 {$define NSCELL_PAS_C}
 
 { NSCell }
-  NSCell = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSCell = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _contents: id;
     _cFlags: _CFlags;
     _support: id;
     
   public
-    class function alloc: NSCell; message 'alloc';
-
     class function prefersTrackingUntilMouseUp: Boolean; message 'prefersTrackingUntilMouseUp';
     function initTextCell(aString: NSString): id; message 'initTextCell:';
     function initImageCell(image_: NSImage): id; message 'initImageCell:';
@@ -349,10 +347,10 @@ var
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSKeyboardUI_NSCellCategory }
-  NSKeyboardUI_NSCellCategory = objccategory(NSCell)
+  NSKeyboardUI_NSCellCategory = objccategory external name 'NSKeyboardUI' (NSCell)
     procedure setRefusesFirstResponder(flag: Boolean); message 'setRefusesFirstResponder:';
     function refusesFirstResponder: Boolean; message 'refusesFirstResponder';
     function acceptsFirstResponder: Boolean; message 'acceptsFirstResponder';
@@ -367,50 +365,50 @@ var
     function focusRingType: NSFocusRingType; message 'focusRingType';
     class function defaultFocusRingType: NSFocusRingType; message 'defaultFocusRingType';
     function wantsNotificationForMarkedText: Boolean; message 'wantsNotificationForMarkedText';
-  end; external name 'NSKeyboardUI';
+  end;
 
 { NSCellAttributedStringMethodsCategory }
-  NSCellAttributedStringMethodsCategory = objccategory(NSCell)
+  NSCellAttributedStringMethodsCategory = objccategory external (NSCell)
     function attributedStringValue: NSAttributedString; message 'attributedStringValue';
     procedure setAttributedStringValue(obj: NSAttributedString); message 'setAttributedStringValue:';
     function allowsEditingTextAttributes: Boolean; message 'allowsEditingTextAttributes';
     procedure setAllowsEditingTextAttributes(flag: Boolean); message 'setAllowsEditingTextAttributes:';
     function importsGraphics: Boolean; message 'importsGraphics';
     procedure setImportsGraphics(flag: Boolean); message 'setImportsGraphics:';
-  end; external;
+  end;
 
 { NSCellMixedStateCategory }
-  NSCellMixedStateCategory = objccategory(NSCell)
+  NSCellMixedStateCategory = objccategory external (NSCell)
     procedure setAllowsMixedState(flag: Boolean); message 'setAllowsMixedState:';
     function allowsMixedState: Boolean; message 'allowsMixedState';
     function nextState: NSInteger; message 'nextState';
     procedure setNextState; message 'setNextState';
-  end; external;
+  end;
 
 { NSCellHitTestCategory }
-  NSCellHitTestCategory = objccategory(NSCell)
+  NSCellHitTestCategory = objccategory external (NSCell)
     function hitTestForEvent_inRect_ofView(event: NSEvent; cellFrame: NSRect; controlView_: NSView): NSUInteger; message 'hitTestForEvent:inRect:ofView:';
-  end; external;
+  end;
 
 { NSCellExpansionCategory }
-  NSCellExpansionCategory = objccategory(NSCell)
+  NSCellExpansionCategory = objccategory external (NSCell)
     function expansionFrameWithFrame_inView(cellFrame: NSRect; view: NSView): NSRect; message 'expansionFrameWithFrame:inView:';
     procedure drawWithExpansionFrame_inView(cellFrame: NSRect; view: NSView); message 'drawWithExpansionFrame:inView:';
-  end; external;
+  end;
 
 { NSCellBackgroundStyleCategory }
-  NSCellBackgroundStyleCategory = objccategory(NSCell)
+  NSCellBackgroundStyleCategory = objccategory external (NSCell)
     function backgroundStyle: NSBackgroundStyle; message 'backgroundStyle';
     procedure setBackgroundStyle(style: NSBackgroundStyle); message 'setBackgroundStyle:';
     function interiorBackgroundStyle: NSBackgroundStyle; message 'interiorBackgroundStyle';
-  end; external;
+  end;
 
 { NSDeprecated_NSCellCategory }
-  NSDeprecated_NSCellCategory = objccategory(NSCell)
+  NSDeprecated_NSCellCategory = objccategory external name 'NSDeprecated' (NSCell)
     function entryType: NSInteger; message 'entryType'; deprecated 'in Mac OS X 10 and later';
     procedure setEntryType(aType: NSInteger); message 'setEntryType:'; deprecated 'in Mac OS X 10 and later';
     procedure setFloatingPointFormat_left_right(autoRange: Boolean; leftDigits: NSUInteger; rightDigits: NSUInteger); message 'setFloatingPointFormat:left:right:'; deprecated 'in Mac OS X 10 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}

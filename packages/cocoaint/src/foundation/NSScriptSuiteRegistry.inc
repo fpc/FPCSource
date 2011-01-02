@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScriptSuiteRegistry.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSSCRIPTSUITEREGISTRY_PAS_C}
 
 { NSScriptSuiteRegistry }
-  NSScriptSuiteRegistry = objcclass(NSObject)
+  NSScriptSuiteRegistry = objcclass external (NSObject)
   private
     _isLoadingSDEFFiles: Boolean;
         _reserved1: array[0..2] of char;
@@ -60,8 +60,6 @@
         _reserved2: array[0..3] of Pointer;
     
   public
-    class function alloc: NSScriptSuiteRegistry; message 'alloc';
-
     class function sharedScriptSuiteRegistry: NSScriptSuiteRegistry; message 'sharedScriptSuiteRegistry';
     class procedure setSharedScriptSuiteRegistry(registry: NSScriptSuiteRegistry); message 'setSharedScriptSuiteRegistry:';
     procedure loadSuitesFromBundle(bundle: NSBundle); message 'loadSuitesFromBundle:';
@@ -77,7 +75,7 @@
     function classDescriptionWithAppleEventCode(appleEventCode: FourCharCode): NSScriptClassDescription; message 'classDescriptionWithAppleEventCode:';
     function commandDescriptionWithAppleEventClass_andAppleEventCode(appleEventClassCode: FourCharCode; appleEventIDCode: FourCharCode): NSScriptCommandDescription; message 'commandDescriptionWithAppleEventClass:andAppleEventCode:';
     function aeteResource(languageName: NSString): NSData; message 'aeteResource:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

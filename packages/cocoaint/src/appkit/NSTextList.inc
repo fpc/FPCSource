@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextList.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -47,7 +47,7 @@ const
 {$define NSTEXTLIST_PAS_C}
 
 { NSTextList }
-  NSTextList = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
+  NSTextList = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     _markerFormat: NSString;
     _listFlags: NSUInteger;
@@ -55,8 +55,6 @@ const
     _listSecondary: Pointer;
     
   public
-    class function alloc: NSTextList; message 'alloc';
-
     function initWithMarkerFormat_options(format: NSString; mask: NSUInteger): id; message 'initWithMarkerFormat:options:';
     function markerFormat: NSString; message 'markerFormat';
     function listOptions: NSUInteger; message 'listOptions';
@@ -68,7 +66,7 @@ const
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

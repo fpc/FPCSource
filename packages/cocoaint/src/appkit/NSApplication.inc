@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSApplication.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -165,7 +165,7 @@ var
 {$define NSAPPLICATION_PAS_C}
 
 { NSApplication }
-  NSApplication = objcclass(NSResponder, NSUserInterfaceValidationsProtocol)
+  NSApplication = objcclass external (NSResponder, NSUserInterfaceValidationsProtocol)
   private
     _currentEvent: NSEvent;
     _windowList: id;
@@ -220,8 +220,6 @@ var
     _threadingSupport: _NSThreadPrivatePtr;
     
   public
-    class function alloc: NSApplication; message 'alloc';
-
     class function sharedApplication: NSApplication; message 'sharedApplication';
     procedure setDelegate(anObject: id); message 'setDelegate:';
     function delegate: id; message 'delegate';
@@ -291,10 +289,10 @@ var
 
     { Adopted Protocols }
     function validateUserInterfaceItem(anItem: id): Boolean;
-  end; external;
+  end;
 
 { NSWindowsMenuCategory }
-  NSWindowsMenuCategory = objccategory(NSApplication)
+  NSWindowsMenuCategory = objccategory external (NSApplication)
     procedure setWindowsMenu(aMenu: NSMenu); message 'setWindowsMenu:';
     function windowsMenu: NSMenu; message 'windowsMenu';
     procedure arrangeInFront(sender: id); message 'arrangeInFront:';
@@ -303,49 +301,49 @@ var
     procedure changeWindowsItem_title_filename(win: NSWindow; aString: NSString; isFilename: Boolean); message 'changeWindowsItem:title:filename:';
     procedure updateWindowsItem(win: NSWindow); message 'updateWindowsItem:';
     procedure miniaturizeAll(sender: id); message 'miniaturizeAll:';
-  end; external;
+  end;
 
 { NSFullKeyboardAccessCategory }
-  NSFullKeyboardAccessCategory = objccategory(NSApplication)
+  NSFullKeyboardAccessCategory = objccategory external (NSApplication)
     function isFullKeyboardAccessEnabled: Boolean; message 'isFullKeyboardAccessEnabled';
-  end; external;
+  end;
 
 { NSServicesMenuCategory }
-  NSServicesMenuCategory = objccategory(NSApplication)
+  NSServicesMenuCategory = objccategory external (NSApplication)
     procedure setServicesMenu(aMenu: NSMenu); message 'setServicesMenu:';
     function servicesMenu: NSMenu; message 'servicesMenu';
     procedure registerServicesMenuSendTypes_returnTypes(sendTypes: NSArray; returnTypes: NSArray); message 'registerServicesMenuSendTypes:returnTypes:';
-  end; external;
+  end;
 
 { NSServicesRequestsCategory }
-  NSServicesRequestsCategory = objccategory(NSObject)
+  NSServicesRequestsCategory = objccategory external (NSObject)
     function writeSelectionToPasteboard_types(pboard: NSPasteboard; types: NSArray): Boolean; message 'writeSelectionToPasteboard:types:';
     function readSelectionFromPasteboard(pboard: NSPasteboard): Boolean; message 'readSelectionFromPasteboard:';
-  end; external;
+  end;
 
 { NSServicesHandlingCategory }
-  NSServicesHandlingCategory = objccategory(NSApplication)
+  NSServicesHandlingCategory = objccategory external (NSApplication)
     procedure setServicesProvider(provider: id); message 'setServicesProvider:';
     function servicesProvider: id; message 'servicesProvider';
-  end; external;
+  end;
 
 { NSStandardAboutPanelCategory }
-  NSStandardAboutPanelCategory = objccategory(NSApplication)
+  NSStandardAboutPanelCategory = objccategory external (NSApplication)
     procedure orderFrontStandardAboutPanel(sender: id); message 'orderFrontStandardAboutPanel:';
     procedure orderFrontStandardAboutPanelWithOptions(optionsDictionary: NSDictionary); message 'orderFrontStandardAboutPanelWithOptions:';
-  end; external;
+  end;
 
 { NSApplicationLayoutDirectionCategory }
-  NSApplicationLayoutDirectionCategory = objccategory(NSApplication)
+  NSApplicationLayoutDirectionCategory = objccategory external (NSApplication)
     function userInterfaceLayoutDirection: NSUserInterfaceLayoutDirection; message 'userInterfaceLayoutDirection';
-  end; external;
+  end;
 
 { NSDeprecated_NSApplicationCategory }
-  NSDeprecated_NSApplicationCategory = objccategory(NSApplication)
+  NSDeprecated_NSApplicationCategory = objccategory external name 'NSDeprecated' (NSApplication)
     function runModalForWindow_relativeToWindow(theWindow: NSWindow; docWindow: NSWindow): NSInteger; message 'runModalForWindow:relativeToWindow:'; deprecated 'in Mac OS X 10 and later';
     function beginModalSessionForWindow_relativeToWindow(theWindow: NSWindow; docWindow: NSWindow): NSModalSession; message 'beginModalSessionForWindow:relativeToWindow:'; deprecated 'in Mac OS X 10 and later';
     procedure application_printFiles(sender: NSApplication; filenames: NSArray); message 'application:printFiles:';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}
@@ -354,7 +352,7 @@ var
 {$define NSAPPLICATION_PAS_P}
   
 { NSApplicationDelegate Protocol }
-  NSApplicationDelegateProtocol = objcprotocol
+  NSApplicationDelegateProtocol = objcprotocol external name 'NSApplicationDelegate'
     function applicationShouldTerminate(sender: NSApplication): NSApplicationTerminateReply; message 'applicationShouldTerminate:';
     function application_openFile(sender: NSApplication; filename: NSString): Boolean; message 'application:openFile:';
     procedure application_openFiles(sender: NSApplication; filenames: NSArray); message 'application:openFiles:';
@@ -382,6 +380,6 @@ var
     procedure applicationDidUpdate(notification: NSNotification); message 'applicationDidUpdate:';
     procedure applicationWillTerminate(notification: NSNotification); message 'applicationWillTerminate:';
     procedure applicationDidChangeScreenParameters(notification: NSNotification); message 'applicationDidChangeScreenParameters:';
-  end; external name 'NSApplicationDelegate';
+  end;
 {$endif}
 {$endif}

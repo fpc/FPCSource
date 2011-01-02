@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CAMediaTiming.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -47,7 +47,7 @@ var
 {$define CAMEDIATIMING_PAS_P}
   
 { CAMediaTiming Protocol }
-  CAMediaTimingProtocol = objcprotocol
+  CAMediaTimingProtocol = objcprotocol external name 'CAMediaTiming'
     procedure setBeginTime (newValue: CFTimeInterval); message 'setBeginTime:';
     function beginTime: CFTimeInterval; message 'beginTime';
     procedure setDuration (newValue: CFTimeInterval); message 'setDuration:';
@@ -64,6 +64,6 @@ var
     function autoreverses: Boolean; message 'autoreverses';
     procedure setFillMode (newValue: NSString); message 'setFillMode:';
     function fillMode: NSString; message 'fillMode';
-  end; external name 'CAMediaTiming';
+  end;
 {$endif}
 {$endif}

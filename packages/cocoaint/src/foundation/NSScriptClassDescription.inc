@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScriptClassDescription.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSSCRIPTCLASSDESCRIPTION_PAS_C}
 
 { NSScriptClassDescription }
-  NSScriptClassDescription = objcclass(NSClassDescription)
+  NSScriptClassDescription = objcclass external (NSClassDescription)
   private
     _suiteName: NSString;
     _objcClassName: NSString;
@@ -55,8 +55,6 @@
     _moreVars: id;
     
   public
-    class function alloc: NSScriptClassDescription; message 'alloc';
-
     class function classDescriptionForClass(aClass: Pobjc_class): NSScriptClassDescription; message 'classDescriptionForClass:';
     function initWithSuiteName_className_dictionary(suiteName_: NSString; className_: NSString; classDeclaration: NSDictionary): id; message 'initWithSuiteName:className:dictionary:';
     function suiteName: NSString; message 'suiteName';
@@ -77,18 +75,18 @@
     function hasOrderedToManyRelationshipForKey(key: NSString): Boolean; message 'hasOrderedToManyRelationshipForKey:';
     function hasReadablePropertyForKey(key: NSString): Boolean; message 'hasReadablePropertyForKey:';
     function hasWritablePropertyForKey(key: NSString): Boolean; message 'hasWritablePropertyForKey:';
-  end; external;
+  end;
 
 { NSDeprecated_NSScriptClassDescriptionCategory }
-  NSDeprecated_NSScriptClassDescriptionCategory = objccategory(NSScriptClassDescription)
+  NSDeprecated_NSScriptClassDescriptionCategory = objccategory external name 'NSDeprecated' (NSScriptClassDescription)
     function isReadOnlyKey(key: NSString): Boolean; message 'isReadOnlyKey:'; deprecated 'in Mac OS X 10.5 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 { NSScriptClassDescription_NSObjectCategory }
-  NSScriptClassDescription_NSObjectCategory = objccategory(NSObject)
+  NSScriptClassDescription_NSObjectCategory = objccategory external name 'NSScriptClassDescription' (NSObject)
     function classCode: FourCharCode; message 'classCode';
     function className: NSString; message 'className';
-  end; external name 'NSScriptClassDescription';
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSGlyphGenerator.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -50,14 +50,12 @@ const
 {$define NSGLYPHGENERATOR_PAS_C}
 
 { NSGlyphGenerator }
-  NSGlyphGenerator = objcclass(NSObject)
+  NSGlyphGenerator = objcclass external (NSObject)
     
   public
-    class function alloc: NSGlyphGenerator; message 'alloc';
-
     procedure generateGlyphsForGlyphStorage_desiredNumberOfCharacters_glyphIndex_characterIndex(glyphStorage: id; nChars: NSUInteger; glyphIndex: NSUIntegerPtr; charIndex: NSUIntegerPtr); message 'generateGlyphsForGlyphStorage:desiredNumberOfCharacters:glyphIndex:characterIndex:';
     class function sharedGlyphGenerator: id; message 'sharedGlyphGenerator';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -66,11 +64,11 @@ const
 {$define NSGLYPHGENERATOR_PAS_P}
   
 { NSGlyphStorage Protocol }
-  NSGlyphStorageProtocol = objcprotocol
+  NSGlyphStorageProtocol = objcprotocol external name 'NSGlyphStorage'
     procedure insertGlyphs_length_forStartingGlyphAtIndex_characterIndex(glyphs: NSGlyphPtr; length: NSUInteger; glyphIndex: NSUInteger; charIndex: NSUInteger); message 'insertGlyphs:length:forStartingGlyphAtIndex:characterIndex:';
     procedure setIntAttribute_value_forGlyphAtIndex(attributeTag: NSInteger; val: NSInteger; glyphIndex: NSUInteger); message 'setIntAttribute:value:forGlyphAtIndex:';
     function attributedString: NSAttributedString; message 'attributedString';
     function layoutOptions: NSUInteger; message 'layoutOptions';
-  end; external name 'NSGlyphStorage';
+  end;
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSAppleEventManager.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -56,14 +56,12 @@ var
 {$define NSAPPLEEVENTMANAGER_PAS_C}
 
 { NSAppleEventManager }
-  NSAppleEventManager = objcclass(NSObject)
+  NSAppleEventManager = objcclass external (NSObject)
   private
     _isPreparedForDispatch: Boolean;
         _padding: array[0..2] of char;
     
   public
-    class function alloc: NSAppleEventManager; message 'alloc';
-
     class function sharedAppleEventManager: NSAppleEventManager; message 'sharedAppleEventManager';
     procedure setEventHandler_andSelector_forEventClass_andEventID(handler: id; handleEventSelector: SEL; eventClass: AEEventClass; eventID: AEEventID); message 'setEventHandler:andSelector:forEventClass:andEventID:';
     procedure removeEventHandlerForEventClass_andEventID(eventClass: AEEventClass; eventID: AEEventID); message 'removeEventHandlerForEventClass:andEventID:';
@@ -75,7 +73,7 @@ var
     function replyAppleEventForSuspensionID(suspensionID: NSAppleEventManagerSuspensionID): NSAppleEventDescriptor; message 'replyAppleEventForSuspensionID:';
     procedure setCurrentAppleEventAndReplyEventWithSuspensionID(suspensionID: NSAppleEventManagerSuspensionID); message 'setCurrentAppleEventAndReplyEventWithSuspensionID:';
     procedure resumeWithSuspensionID(suspensionID: NSAppleEventManagerSuspensionID); message 'resumeWithSuspensionID:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

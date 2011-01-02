@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSImageCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -69,7 +69,7 @@ type
 {$define NSIMAGECELL_PAS_C}
 
 { NSImageCell }
-  NSImageCell = objcclass(NSCell, NSCopyingProtocol, NSCodingProtocol)
+  NSImageCell = objcclass external (NSCell, NSCopyingProtocol, NSCodingProtocol)
   private
     _controlView: id;
     __icFlags: bitpacked record
@@ -87,8 +87,6 @@ type
     _scaledImage: NSImage;
     
   public
-    class function alloc: NSImageCell; message 'alloc';
-
     function imageAlignment: NSImageAlignment; message 'imageAlignment';
     procedure setImageAlignment(newAlign: NSImageAlignment); message 'setImageAlignment:';
     function imageScaling: NSImageScaling; message 'imageScaling';
@@ -100,7 +98,7 @@ type
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

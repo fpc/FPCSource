@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSCache.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -43,15 +43,13 @@
 {$define NSCACHE_PAS_C}
 
 { NSCache }
-  NSCache = objcclass(NSObject)
+  NSCache = objcclass external (NSObject)
   private
     _delegate: id;
         _private: array[0..4] of Pointer;
     _reserved: Pointer;
     
   public
-    class function alloc: NSCache; message 'alloc';
-
     procedure setName(n: NSString); message 'setName:';
     function name: NSString; message 'name';
     procedure setDelegate(d: id); message 'setDelegate:';
@@ -67,7 +65,7 @@
     function countLimit: NSUInteger; message 'countLimit';
     function evictsObjectsWithDiscardedContent: Boolean; message 'evictsObjectsWithDiscardedContent';
     procedure setEvictsObjectsWithDiscardedContent(b: Boolean); message 'setEvictsObjectsWithDiscardedContent:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -76,8 +74,8 @@
 {$define NSCACHE_PAS_P}
   
 { NSCacheDelegate Protocol }
-  NSCacheDelegateProtocol = objcprotocol
+  NSCacheDelegateProtocol = objcprotocol external name 'NSCacheDelegate'
     procedure cache_willEvictObject(cache: NSCache; obj: id); message 'cache:willEvictObject:';
-  end; external name 'NSCacheDelegate';
+  end;
 {$endif}
 {$endif}

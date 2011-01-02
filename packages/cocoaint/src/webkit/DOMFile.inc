@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMFile.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,14 +42,12 @@
 {$define DOMFILE_PAS_C}
 
 { DOMFile }
-  DOMFile = objcclass(DOMObject)
+  DOMFile = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMFile; message 'alloc';
-
     function fileName: NSString; message 'fileName';
     function fileSize: cuint; message 'fileSize';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

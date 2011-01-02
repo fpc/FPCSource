@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSComboBoxCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -43,7 +43,7 @@
 {$define NSCOMBOBOXCELL_PAS_C}
 
 { NSComboBoxCell }
-  NSComboBoxCell = objcclass(NSTextFieldCell)
+  NSComboBoxCell = objcclass external (NSTextFieldCell)
   private
     _delegate: id;
     _dataSource: id;
@@ -71,8 +71,7 @@
     _reserved: Pointer;
     
   public
-    class function alloc: NSComboBoxCell; message 'alloc';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -81,11 +80,11 @@
 {$define NSCOMBOBOXCELL_PAS_P}
   
 { NSComboBoxCellDataSource Protocol }
-  NSComboBoxCellDataSourceProtocol = objcprotocol
+  NSComboBoxCellDataSourceProtocol = objcprotocol external name 'NSComboBoxCellDataSource'
     function numberOfItemsInComboBoxCell(comboBoxCell: NSComboBoxCell): NSInteger; message 'numberOfItemsInComboBoxCell:';
     function comboBoxCell_objectValueForItemAtIndex(aComboBoxCell: NSComboBoxCell; index: NSInteger): id; message 'comboBoxCell:objectValueForItemAtIndex:';
     function comboBoxCell_indexOfItemWithStringValue(aComboBoxCell: NSComboBoxCell; string_: NSString): NSUInteger; message 'comboBoxCell:indexOfItemWithStringValue:';
     function comboBoxCell_completedString(aComboBoxCell: NSComboBoxCell; uncompletedString: NSString): NSString; message 'comboBoxCell:completedString:';
-  end; external name 'NSComboBoxCellDataSource';
+  end;
 {$endif}
 {$endif}

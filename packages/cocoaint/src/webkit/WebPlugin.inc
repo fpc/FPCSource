@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebPlugin.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -39,7 +39,7 @@
 {$define WEBPLUGIN_PAS_C}
 
 { WebPlugInCategory }
-  WebPlugInCategory = objccategory(NSObject)
+  WebPlugInCategory = objccategory external (NSObject)
     procedure webPlugInInitialize; message 'webPlugInInitialize';
     procedure webPlugInStart; message 'webPlugInStart';
     procedure webPlugInStop; message 'webPlugInStop';
@@ -49,7 +49,7 @@
     procedure webPlugInMainResourceDidReceiveResponse(response: NSURLResponse); message 'webPlugInMainResourceDidReceiveResponse:';
     procedure webPlugInMainResourceDidReceiveData(data: NSData); message 'webPlugInMainResourceDidReceiveData:';
     procedure webPlugInMainResourceDidFailWithError(error: NSError); message 'webPlugInMainResourceDidFailWithError:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

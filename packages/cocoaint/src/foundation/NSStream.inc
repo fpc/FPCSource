@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSStream.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -97,11 +97,9 @@ var
 {$define NSSTREAM_PAS_C}
 
 { NSStream }
-  NSStream = objcclass(NSObject)
+  NSStream = objcclass external (NSObject)
     
   public
-    class function alloc: NSStream; message 'alloc';
-
     procedure open; message 'open';
     procedure close; message 'close';
     function delegate: id; message 'delegate';
@@ -112,46 +110,42 @@ var
     procedure removeFromRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'removeFromRunLoop:forMode:';
     function streamStatus: NSStreamStatus; message 'streamStatus';
     function streamError: NSError; message 'streamError';
-  end; external;
+  end;
 
 { NSInputStream }
-  NSInputStream = objcclass(NSStream)
+  NSInputStream = objcclass external (NSStream)
     
   public
-    class function alloc: NSInputStream; message 'alloc';
-
     function read_maxLength(buffer: pbyte; len: NSUInteger): NSInteger; message 'read:maxLength:';
     function getBuffer_length(buffer: pbyte; len: NSUIntegerPtr): Boolean; message 'getBuffer:length:';
     function hasBytesAvailable: Boolean; message 'hasBytesAvailable';
-  end; external;
+  end;
 
 { NSOutputStream }
-  NSOutputStream = objcclass(NSStream)
+  NSOutputStream = objcclass external (NSStream)
     
   public
-    class function alloc: NSOutputStream; message 'alloc';
-
     function write_maxLength(buffer: pbyte; len: NSUInteger): NSInteger; message 'write:maxLength:';
     function hasSpaceAvailable: Boolean; message 'hasSpaceAvailable';
-  end; external;
+  end;
 
 { NSSocketStreamCreationExtensionsCategory }
-  NSSocketStreamCreationExtensionsCategory = objccategory(NSStream)
+  NSSocketStreamCreationExtensionsCategory = objccategory external (NSStream)
     class procedure getStreamsToHost_port_inputStream_outputStream(host: NSHost; port: NSInteger; inputStream: NSInputStreamPointer; outputStream: NSOutputStreamPointer); message 'getStreamsToHost:port:inputStream:outputStream:';
-  end; external;
+  end;
 
 { NSInputStreamExtensionsCategory }
-  NSInputStreamExtensionsCategory = objccategory(NSInputStream)
+  NSInputStreamExtensionsCategory = objccategory external (NSInputStream)
     function initWithData(data: NSData): id; message 'initWithData:';
     function initWithFileAtPath(path: NSString): id; message 'initWithFileAtPath:';
     function initWithURL(url: NSURL): id; message 'initWithURL:';
     class function inputStreamWithData(data: NSData): id; message 'inputStreamWithData:';
     class function inputStreamWithFileAtPath(path: NSString): id; message 'inputStreamWithFileAtPath:';
     class function inputStreamWithURL(url: NSURL): id; message 'inputStreamWithURL:';
-  end; external;
+  end;
 
 { NSOutputStreamExtensionsCategory }
-  NSOutputStreamExtensionsCategory = objccategory(NSOutputStream)
+  NSOutputStreamExtensionsCategory = objccategory external (NSOutputStream)
     function initToMemory: id; message 'initToMemory';
     function initToBuffer_capacity(buffer: pbyte; capacity: NSUInteger): id; message 'initToBuffer:capacity:';
     function initToFileAtPath_append(path: NSString; shouldAppend: Boolean): id; message 'initToFileAtPath:append:';
@@ -160,7 +154,7 @@ var
     class function outputStreamToBuffer_capacity(buffer: pbyte; capacity: NSUInteger): id; message 'outputStreamToBuffer:capacity:';
     class function outputStreamToFileAtPath_append(path: NSString; shouldAppend: Boolean): id; message 'outputStreamToFileAtPath:append:';
     class function outputStreamWithURL_append(url: NSURL; shouldAppend: Boolean): id; message 'outputStreamWithURL:append:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -169,8 +163,8 @@ var
 {$define NSSTREAM_PAS_P}
   
 { NSStreamDelegate Protocol }
-  NSStreamDelegateProtocol = objcprotocol
+  NSStreamDelegateProtocol = objcprotocol external name 'NSStreamDelegate'
     procedure stream_handleEvent(aStream: NSStream; eventCode: NSStreamEvent); message 'stream:handleEvent:';
-  end; external name 'NSStreamDelegate';
+  end;
 {$endif}
 {$endif}

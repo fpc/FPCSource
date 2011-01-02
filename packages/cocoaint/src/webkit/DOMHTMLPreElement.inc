@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLPreElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,16 +42,14 @@
 {$define DOMHTMLPREELEMENT_PAS_C}
 
 { DOMHTMLPreElement }
-  DOMHTMLPreElement = objcclass(DOMHTMLElement)
+  DOMHTMLPreElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLPreElement; message 'alloc';
-
     procedure setWidth (newValue: cint); message 'setWidth:';
     function width: cint; message 'width';
     procedure setWrap (newValue: Boolean); message 'setWrap:';
     function wrap: Boolean; message 'wrap';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

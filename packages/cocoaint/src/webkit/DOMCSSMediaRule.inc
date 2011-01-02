@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCSSMediaRule.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,21 +42,19 @@
 {$define DOMCSSMEDIARULE_PAS_C}
 
 { DOMCSSMediaRule }
-  DOMCSSMediaRule = objcclass(DOMCSSRule)
+  DOMCSSMediaRule = objcclass external (DOMCSSRule)
     
   public
-    class function alloc: DOMCSSMediaRule; message 'alloc';
-
     function media: DOMMediaList; message 'media';
     function cssRules: DOMCSSRuleList; message 'cssRules';
     function insertRule_index(rule: NSString; index: cuint): cuint; message 'insertRule:index:';
     procedure deleteRule(index: cuint); message 'deleteRule:';
-  end; external;
+  end;
 
 { DOMCSSMediaRuleDeprecatedCategory }
-  DOMCSSMediaRuleDeprecatedCategory = objccategory(DOMCSSMediaRule)
+  DOMCSSMediaRuleDeprecatedCategory = objccategory external (DOMCSSMediaRule)
     function insertRule(rule: NSString; index: cuint): cuint; message 'insertRule:rule:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

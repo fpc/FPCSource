@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSWorkspace.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -119,7 +119,7 @@ var
 {$define NSWORKSPACE_PAS_C}
 
 { NSWorkspace }
-  NSWorkspace = objcclass(NSObject)
+  NSWorkspace = objcclass external (NSObject)
   private
     _notificationCenter: NSNotificationCenter;
     deviceStatusCount: cint;
@@ -127,8 +127,6 @@ var
     _reservedWorkspace1: id;
     
   public
-    class function alloc: NSWorkspace; message 'alloc';
-
     class function sharedWorkspace: NSWorkspace; message 'sharedWorkspace';
     function notificationCenter: NSNotificationCenter; message 'notificationCenter';
     function openFile(fullPath: NSString): Boolean; message 'openFile:';
@@ -172,17 +170,17 @@ var
     function preferredFilenameExtensionForType(typeName: NSString): NSString; message 'preferredFilenameExtensionForType:';
     function filenameExtension_isValidForType(filenameExtension: NSString; typeName: NSString): Boolean; message 'filenameExtension:isValidForType:';
     function type_conformsToType(firstTypeName: NSString; secondTypeName: NSString): Boolean; message 'type:conformsToType:';
-  end; external;
+  end;
 
 { NSDesktopImagesCategory }
-  NSDesktopImagesCategory = objccategory(NSWorkspace)
+  NSDesktopImagesCategory = objccategory external (NSWorkspace)
     function setDesktopImageURL_forScreen_options_error(url: NSURL; screen: NSScreen; options: NSDictionary; error: NSErrorPointer): Boolean; message 'setDesktopImageURL:forScreen:options:error:';
     function desktopImageURLForScreen(screen: NSScreen): NSURL; message 'desktopImageURLForScreen:';
     function desktopImageOptionsForScreen(screen: NSScreen): NSDictionary; message 'desktopImageOptionsForScreen:';
-  end; external;
+  end;
 
 { NSDeprecated_NSWorkspaceCategory }
-  NSDeprecated_NSWorkspaceCategory = objccategory(NSWorkspace)
+  NSDeprecated_NSWorkspaceCategory = objccategory external name 'NSDeprecated' (NSWorkspace)
     function openTempFile(fullPath: NSString): Boolean; message 'openTempFile:'; deprecated 'in Mac OS X 10.6 and later';
     procedure findApplications; message 'findApplications'; deprecated 'in Mac OS X 10.6 and later';
     procedure noteUserDefaultsChanged; message 'noteUserDefaultsChanged'; deprecated 'in Mac OS X 10.6 and later';
@@ -191,7 +189,7 @@ var
     function fileSystemChanged: Boolean; message 'fileSystemChanged'; deprecated 'in Mac OS X 10.6 and later';
     function userDefaultsChanged: Boolean; message 'userDefaultsChanged'; deprecated 'in Mac OS X 10.6 and later';
     function mountNewRemovableMedia: NSArray; message 'mountNewRemovableMedia'; deprecated 'in Mac OS X 10.6 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}

@@ -42,7 +42,7 @@ interface
 implementation
 
     uses
-      cutils,
+      sysutils,cutils,
       globals,verbose,systems,tokens,
       symbase,symsym,symtable,
       node,nld,nmem,ncon,ncnv,ncal,
@@ -344,23 +344,85 @@ implementation
         p.free;
       end;
 
+    procedure get_cpp_class_external_status(od: tobjectdef);
+      var
+        hs: string;
+      begin
+        { C++ classes can be external -> all methods inside are external
+         (defined at the class level instead of per method, so that you cannot
+         define some methods as external and some not)
+        }
+        if try_to_consume(_EXTERNAL) then
+          begin
+            if token in [_CSTRING,_CWSTRING,_CCHAR,_CWCHAR] then
+              begin
+                { Always add library prefix and suffix to create an uniform name }
+                hs:=get_stringconst;
+                if ExtractFileExt(hs)='' then
+                  hs:=ChangeFileExt(hs,target_info.sharedlibext);
+                if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
+                  hs:=target_info.sharedlibprefix+hs;
+                od.import_lib:=stringdup(hs);
+              end;
+            include(od.objectoptions, oo_is_external);
+            { check if we shall use another name for the class }
+            if try_to_consume(_NAME) then
+              od.objextname:=stringdup(get_stringconst)
+            else
+              od.objextname:=stringdup(od.objrealname^);
+            include(od.objectoptions,oo_is_external);
+          end
+        else
+          od.objextname:=stringdup(od.objrealname^);
+        { ToDo: read the namespace of the class (influences the mangled name)}
+      end;
+
+    procedure get_objc_class_or_protocol_external_status(od: tobjectdef);
+      begin
+        { Objective-C classes can be external -> all messages inside are
+          external (defined at the class level instead of per method, so
+          that you cannot define some methods as external and some not)
+        }
+        if try_to_consume(_EXTERNAL) then
+          begin
+            if try_to_consume(_NAME) then
+              od.objextname:=stringdup(get_stringconst)
+            else
+              { the external name doesn't matter for formally declared
+                classes, and allowing to specify one would mean that we would
+                have to check it for consistency with the actual definition
+                later on }
+              od.objextname:=stringdup(od.objrealname^);
+            include(od.objectoptions,oo_is_external);
+          end
+        else
+          od.objextname:=stringdup(od.objrealname^);
+      end;
+
+
     procedure parse_object_options;
       begin
-        if current_objectdef.objecttype in [odt_object,odt_class] then
-          begin
-            while true do
-              begin
-                if try_to_consume(_ABSTRACT) then
-                  include(current_structdef.objectoptions,oo_is_abstract)
-                else
-                if try_to_consume(_SEALED) then
-                  include(current_structdef.objectoptions,oo_is_sealed)
-                else
-                  break;
-              end;
-            if [oo_is_abstract, oo_is_sealed] * current_structdef.objectoptions = [oo_is_abstract, oo_is_sealed] then
-              Message(parser_e_abstract_and_sealed_conflict);
-          end;
+        case current_objectdef.objecttype of
+          odt_object,odt_class:
+            begin
+              while true do
+                begin
+                  if try_to_consume(_ABSTRACT) then
+                    include(current_structdef.objectoptions,oo_is_abstract)
+                  else
+                  if try_to_consume(_SEALED) then
+                    include(current_structdef.objectoptions,oo_is_sealed)
+                  else
+                    break;
+                end;
+              if [oo_is_abstract, oo_is_sealed] * current_structdef.objectoptions = [oo_is_abstract, oo_is_sealed] then
+                Message(parser_e_abstract_and_sealed_conflict);
+            end;
+          odt_cppclass:
+            get_cpp_class_external_status(current_objectdef);
+          odt_objcclass,odt_objcprotocol,odt_objccategory:
+            get_objc_class_or_protocol_external_status(current_objectdef);
+        end;
       end;
 
     procedure parse_parent_classes;
@@ -1039,6 +1101,13 @@ implementation
            (current_objectdef.objecttype in [odt_interfacecom,odt_class]) then
           include(current_structdef.objectoptions,oo_can_have_published);
 
+        { Objective-C objectdefs can be "formal definitions", in which case
+          the syntax is "type tc = objcclass external;" -> we have to parse
+          its object options (external) already here, to make sure that such
+          definitions are recognised as formal defs }
+        if objecttype in [odt_objcclass,odt_objcprotocol,odt_objccategory] then
+          parse_object_options;
+
         { forward def? }
         if not assigned(fd) and
            (token=_SEMICOLON) then
@@ -1057,7 +1126,8 @@ implementation
               end;
 
             { parse list of options (abstract / sealed) }
-            parse_object_options;
+            if not(objecttype in [odt_objcclass,odt_objcprotocol,odt_objccategory]) then
+              parse_object_options;
 
             { parse list of parent classes }
             parse_parent_classes;

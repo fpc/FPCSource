@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSActionCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSACTIONCELL_PAS_C}
 
 { NSActionCell }
-  NSActionCell = objcclass(NSCell)
+  NSActionCell = objcclass external (NSCell)
   private
     _tag: NSInteger;
     _target: id;
@@ -50,15 +50,13 @@
     _controlView: id;
     
   public
-    class function alloc: NSActionCell; message 'alloc';
-
     function target: id; message 'target';
     procedure setTarget(anObject: id); message 'setTarget:';
     function action: SEL; message 'action';
     procedure setAction(aSelector: SEL); message 'setAction:';
     function tag: NSInteger; message 'tag';
     procedure setTag(anInt: NSInteger); message 'setTag:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

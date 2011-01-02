@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAffineTransform.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -51,13 +51,11 @@ NSAffineTransformStructPtr = ^NSAffineTransformStruct;
 {$define NSAFFINETRANSFORM_PAS_C}
 
 { NSAffineTransform }
-  NSAffineTransform = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSAffineTransform = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _transformStruct: NSAffineTransformStruct;
     
   public
-    class function alloc: NSAffineTransform; message 'alloc';
-
     class function transform: NSAffineTransform; message 'transform';
     function initWithTransform(transform_: NSAffineTransform): id; message 'initWithTransform:';
     procedure translateXBy_yBy(deltaX: CGFloat; deltaY: CGFloat); message 'translateXBy:yBy:';
@@ -77,14 +75,14 @@ NSAffineTransformStructPtr = ^NSAffineTransformStruct;
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSAppKitAdditonsCategory }
-  NSAppKitAdditonsCategory = objccategory(NSAffineTransform)
+  NSAppKitAdditonsCategory = objccategory external (NSAffineTransform)
     function transformBezierPath(aPath: NSBezierPath): NSBezierPath; message 'transformBezierPath:';
     procedure set_; message 'set';
     procedure concat; message 'concat';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

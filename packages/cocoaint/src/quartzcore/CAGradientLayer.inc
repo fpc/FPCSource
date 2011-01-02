@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CAGradientLayer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -46,11 +46,9 @@ var
 {$define CAGRADIENTLAYER_PAS_C}
 
 { CAGradientLayer }
-  CAGradientLayer = objcclass(CALayer)
+  CAGradientLayer = objcclass external (CALayer)
     
   public
-    class function alloc: CAGradientLayer; message 'alloc';
-
     procedure setColors (newValue: NSArray); message 'setColors:';
     function colors: NSArray; message 'colors';
     procedure setLocations (newValue: NSArray); message 'setLocations:';
@@ -61,7 +59,7 @@ var
     function endPoint: CGPoint; message 'endPoint';
     procedure setType (newValue: NSString); message 'setType:';
     function type_: NSString; message 'type_';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -15,10 +15,10 @@ type
   TMyTestClass = objcclass(NSObject)
   end;
 
-  TMyTestClass2 = objcclass(NSObject)
+  TMyTestClass2 = objcclass external name 'TMyTestClass' (NSObject)
     { should give a hint because of a missing 'override' }
     function hash: cuint;
-  end; external name 'TMyTestClass';
+  end;
 
 var
   a: id;

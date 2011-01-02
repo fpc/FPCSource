@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLFrameSetElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,16 +42,14 @@
 {$define DOMHTMLFRAMESETELEMENT_PAS_C}
 
 { DOMHTMLFrameSetElement }
-  DOMHTMLFrameSetElement = objcclass(DOMHTMLElement)
+  DOMHTMLFrameSetElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLFrameSetElement; message 'alloc';
-
     procedure setCols (newValue: NSString); message 'setCols:';
     function cols: NSString; message 'cols';
     procedure setRows (newValue: NSString); message 'setRows:';
     function rows: NSString; message 'rows';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

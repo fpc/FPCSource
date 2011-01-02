@@ -14,12 +14,12 @@
 type
   ta = objcprotocol;
 
-  tb = objcclass
+  tb = objcclass external name 'NSObject'
     a: ta;
-  end; external name 'NSObject';
+  end;
 
-  ta = objcprotocol
-  end; external name 'NSObject';
+  ta = objcprotocol external name 'NSObject'
+  end; 
 
 begin
 end.

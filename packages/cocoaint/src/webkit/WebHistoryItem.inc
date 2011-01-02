@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebHistoryItem.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -46,13 +46,11 @@ var
 {$define WEBHISTORYITEM_PAS_C}
 
 { WebHistoryItem }
-  WebHistoryItem = objcclass(NSObject, NSCopyingProtocol)
+  WebHistoryItem = objcclass external (NSObject, NSCopyingProtocol)
   private
     _private: WebHistoryItemPrivate;
     
   public
-    class function alloc: WebHistoryItem; message 'alloc';
-
     function initWithURLString_title_lastVisitedTimeInterval(URLString_: NSString; title_: NSString; time: NSTimeInterval): id; message 'initWithURLString:title:lastVisitedTimeInterval:';
     function originalURLString: NSString; message 'originalURLString';
     function URLString: NSString; message 'URLString';
@@ -64,7 +62,7 @@ var
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

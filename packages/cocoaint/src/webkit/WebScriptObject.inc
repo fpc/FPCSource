@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebScriptObject.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -45,13 +45,11 @@
 {$define WEBSCRIPTOBJECT_PAS_C}
 
 { WebScriptObject }
-  WebScriptObject = objcclass(NSObject)
+  WebScriptObject = objcclass external (NSObject)
   private
     _private: WebScriptObjectPrivate;
     
   public
-    class function alloc: WebScriptObject; message 'alloc';
-
     class function throwException(exceptionMessage: NSString): Boolean; message 'throwException:';
     function callWebScriptMethod_withArguments(name: NSString; arguments: NSArray): id; message 'callWebScriptMethod:withArguments:';
     function evaluateWebScript(script: NSString): id; message 'evaluateWebScript:';
@@ -60,24 +58,22 @@
     function webScriptValueAtIndex(index: cuint): id; message 'webScriptValueAtIndex:';
     procedure setWebScriptValueAtIndex_value(index: cuint; value: id); message 'setWebScriptValueAtIndex:value:';
     procedure setException(description_: NSString); message 'setException:';
-  end; external;
+  end;
 
 { WebUndefined }
-  WebUndefined = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
+  WebUndefined = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
     
   public
-    class function alloc: WebUndefined; message 'alloc';
-
     class function undefined: WebUndefined; message 'undefined';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 { WebScriptingCategory }
-  WebScriptingCategory = objccategory(NSObject)
+  WebScriptingCategory = objccategory external (NSObject)
     class function webScriptNameForSelector(selector: SEL): NSString; message 'webScriptNameForSelector:';
     class function isSelectorExcludedFromWebScript(selector: SEL): Boolean; message 'isSelectorExcludedFromWebScript:';
     class function webScriptNameForKey(name: PChar): NSString; message 'webScriptNameForKey:';
@@ -85,7 +81,7 @@
     function invokeUndefinedMethodFromWebScript_withArguments(name: NSString; arguments: NSArray): id; message 'invokeUndefinedMethodFromWebScript:withArguments:';
     function invokeDefaultMethodWithArguments(arguments: NSArray): id; message 'invokeDefaultMethodWithArguments:';
     procedure finalizeForWebScript; message 'finalizeForWebScript';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

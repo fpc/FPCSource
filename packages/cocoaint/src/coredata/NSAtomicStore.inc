@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSAtomicStore.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSATOMICSTORE_PAS_C}
 
 { NSAtomicStore }
-  NSAtomicStore = objcclass(NSPersistentStore)
+  NSAtomicStore = objcclass external (NSPersistentStore)
   private
     _nodeCache: NSMutableDictionary;
     _entityCache: NSMutableDictionary;
@@ -52,8 +52,6 @@
     _reserved5: Pointer;
     
   public
-    class function alloc: NSAtomicStore; message 'alloc';
-
     function initWithPersistentStoreCoordinator_configurationName_URL_options(coordinator: NSPersistentStoreCoordinator; configurationName_: NSString; url_: NSURL; options_: NSDictionary): id; message 'initWithPersistentStoreCoordinator:configurationName:URL:options:';
     function load_(error: NSErrorPointer): Boolean; message 'load:';
     function save(error: NSErrorPointer): Boolean; message 'save:';
@@ -66,7 +64,7 @@
     function objectIDForEntity_referenceObject(entity: NSEntityDescription; data: id): NSManagedObjectID; message 'objectIDForEntity:referenceObject:';
     function newReferenceObjectForManagedObject(managedObject: NSManagedObject): id; message 'newReferenceObjectForManagedObject:';
     function referenceObjectForObjectID(objectID: NSManagedObjectID): id; message 'referenceObjectForObjectID:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

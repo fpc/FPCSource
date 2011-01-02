@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSpellChecker.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -53,7 +53,7 @@ var
 {$define NSSPELLCHECKER_PAS_C}
 
 { NSSpellChecker }
-  NSSpellChecker = objcclass(NSObject)
+  NSSpellChecker = objcclass external (NSObject)
   private
     _guessesBrowser: id;
     _wordField: id;
@@ -94,8 +94,6 @@ var
     _grammarControl: id;
     
   public
-    class function alloc: NSSpellChecker; message 'alloc';
-
     class function sharedSpellChecker: NSSpellChecker; message 'sharedSpellChecker';
     class function sharedSpellCheckerExists: Boolean; message 'sharedSpellCheckerExists';
     class function uniqueSpellDocumentTag: NSInteger; message 'uniqueSpellDocumentTag';
@@ -132,13 +130,13 @@ var
     procedure learnWord(word: NSString); message 'learnWord:';
     function hasLearnedWord(word: NSString): Boolean; message 'hasLearnedWord:';
     procedure unlearnWord(word: NSString); message 'unlearnWord:';
-  end; external;
+  end;
 
 { NSDeprecated_NSSpellCheckerCategory }
-  NSDeprecated_NSSpellCheckerCategory = objccategory(NSSpellChecker)
+  NSDeprecated_NSSpellCheckerCategory = objccategory external name 'NSDeprecated' (NSSpellChecker)
     function guessesForWord(word: NSString): NSArray; message 'guessesForWord:';
     procedure forgetWord(word: NSString); message 'forgetWord:'; deprecated 'in Mac OS X 10.5 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}

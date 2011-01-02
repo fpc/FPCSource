@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CIPlugInInterface.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -39,8 +39,8 @@
 {$define CIPLUGININTERFACE_PAS_P}
   
 { CIPlugInRegistration Protocol }
-  CIPlugInRegistrationProtocol = objcprotocol
+  CIPlugInRegistrationProtocol = objcprotocol external name 'CIPlugInRegistration'
     function load(host: Pointer): Boolean; message 'load:';
-  end; external name 'CIPlugInRegistration';
+  end;
 {$endif}
 {$endif}

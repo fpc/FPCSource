@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSFetchRequest.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -54,7 +54,7 @@ type
 {$define NSFETCHREQUEST_PAS_C}
 
 { NSFetchRequest }
-  NSFetchRequest = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
+  NSFetchRequest = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     _reserved: Pointer;
     _reserved2: Pointer;
@@ -83,8 +83,6 @@ type
       end;
     
   public
-    class function alloc: NSFetchRequest; message 'alloc';
-
     function entity: NSEntityDescription; message 'entity';
     procedure setEntity(entity_: NSEntityDescription); message 'setEntity:';
     function predicate: NSPredicate; message 'predicate';
@@ -120,7 +118,7 @@ type
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

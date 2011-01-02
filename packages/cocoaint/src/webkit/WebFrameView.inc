@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebFrameView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,13 +42,11 @@
 {$define WEBFRAMEVIEW_PAS_C}
 
 { WebFrameView }
-  WebFrameView = objcclass(NSView)
+  WebFrameView = objcclass external (NSView)
   private
     _private: WebFrameViewPrivate;
     
   public
-    class function alloc: WebFrameView; message 'alloc';
-
     function webFrame: WebFrame; message 'webFrame';
     function documentView: NSViewPtr; message 'documentView';
     procedure setAllowsScrolling(flag: Boolean); message 'setAllowsScrolling:';
@@ -57,7 +55,7 @@
     function printOperationWithPrintInfo(printInfo: NSPrintInfoPtr): NSPrintOperationPtr; message 'printOperationWithPrintInfo:';
     function documentViewShouldHandlePrint: Boolean; message 'documentViewShouldHandlePrint';
     procedure printDocumentView; message 'printDocumentView';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

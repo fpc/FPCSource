@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CATransaction.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -49,11 +49,9 @@ var
 {$define CATRANSACTION_PAS_C}
 
 { CATransaction }
-  CATransaction = objcclass(NSObject)
+  CATransaction = objcclass external (NSObject)
     
   public
-    class function alloc: CATransaction; message 'alloc';
-
     class procedure begin_; message 'begin';
     class procedure commit; message 'commit';
     class procedure flush; message 'flush';
@@ -67,7 +65,7 @@ var
     class procedure setDisableActions(flag: Boolean); message 'setDisableActions:';
     class function valueForKey(key: NSString): id; message 'valueForKey:';
     class procedure setValue_forKey(anObject: id; key: NSString); message 'setValue:forKey:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

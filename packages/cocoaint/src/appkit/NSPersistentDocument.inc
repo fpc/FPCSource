@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPersistentDocument.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSPERSISTENTDOCUMENT_PAS_C}
 
 { NSPersistentDocument }
-  NSPersistentDocument = objcclass(NSDocument)
+  NSPersistentDocument = objcclass external (NSDocument)
   private
     _managedObjectModel: NSManagedObjectModel;
     _managedObjectContext: NSManagedObjectContext;
@@ -53,8 +53,6 @@
     _reserved4: Pointer;
     
   public
-    class function alloc: NSPersistentDocument; message 'alloc';
-
     function managedObjectContext: NSManagedObjectContext; message 'managedObjectContext';
     procedure setManagedObjectContext(managedObjectContext_: NSManagedObjectContext); message 'setManagedObjectContext:';
     function managedObjectModel: id; message 'managedObjectModel';
@@ -63,12 +61,12 @@
     function writeToURL_ofType_forSaveOperation_originalContentsURL_error(absoluteURL: NSURL; typeName: NSString; saveOperation: NSSaveOperationType; absoluteOriginalContentsURL: NSURL; error: NSErrorPointer): Boolean; message 'writeToURL:ofType:forSaveOperation:originalContentsURL:error:';
     function readFromURL_ofType_error(absoluteURL: NSURL; typeName: NSString; error: NSErrorPointer): Boolean; message 'readFromURL:ofType:error:';
     function revertToContentsOfURL_ofType_error(inAbsoluteURL: NSURL; inTypeName: NSString; outError: NSErrorPointer): Boolean; message 'revertToContentsOfURL:ofType:error:';
-  end; external;
+  end;
 
 { NSDeprecated_NSPersistentDocumentCategory }
-  NSDeprecated_NSPersistentDocumentCategory = objccategory(NSPersistentDocument)
+  NSDeprecated_NSPersistentDocumentCategory = objccategory external name 'NSDeprecated' (NSPersistentDocument)
     function configurePersistentStoreCoordinatorForURL_ofType_error(url: NSURL; fileType_: NSString; error: NSErrorPointer): Boolean; message 'configurePersistentStoreCoordinatorForURL:ofType:error:';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}

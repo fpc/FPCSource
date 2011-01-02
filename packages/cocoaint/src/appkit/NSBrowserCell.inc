@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSBrowserCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define NSBROWSERCELL_PAS_C}
 
 { NSBrowserCell }
-  NSBrowserCell = objcclass(NSCell)
+  NSBrowserCell = objcclass external (NSCell)
     
   public
-    class function alloc: NSBrowserCell; message 'alloc';
-
     class function branchImage: NSImage; message 'branchImage';
     class function highlightedBranchImage: NSImage; message 'highlightedBranchImage';
     function highlightColorInView(controlView_: NSView): NSColor; message 'highlightColorInView:';
@@ -60,7 +58,7 @@
     function image: NSImage; message 'image';
     procedure setAlternateImage(newAltImage: NSImage); message 'setAlternateImage:';
     function alternateImage: NSImage; message 'alternateImage';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

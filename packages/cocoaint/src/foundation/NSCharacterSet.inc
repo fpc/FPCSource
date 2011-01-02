@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSCharacterSet.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -50,11 +50,9 @@ const
 {$define NSCHARACTERSET_PAS_C}
 
 { NSCharacterSet }
-  NSCharacterSet = objcclass(NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol)
+  NSCharacterSet = objcclass external (NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol)
     
   public
-    class function alloc: NSCharacterSet; message 'alloc';
-
     class function controlCharacterSet: id; message 'controlCharacterSet';
     class function whitespaceCharacterSet: id; message 'whitespaceCharacterSet';
     class function whitespaceAndNewlineCharacterSet: id; message 'whitespaceAndNewlineCharacterSet';
@@ -86,14 +84,12 @@ const
     function mutableCopyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSMutableCharacterSet }
-  NSMutableCharacterSet = objcclass(NSCharacterSet, NSCopyingProtocol, NSMutableCopyingProtocol)
+  NSMutableCharacterSet = objcclass external (NSCharacterSet, NSCopyingProtocol, NSMutableCopyingProtocol)
     
   public
-    class function alloc: NSMutableCharacterSet; message 'alloc';
-
     procedure addCharactersInRange(aRange: NSRange); message 'addCharactersInRange:';
     procedure removeCharactersInRange(aRange: NSRange); message 'removeCharactersInRange:';
     procedure addCharactersInString(aString: NSString); message 'addCharactersInString:';
@@ -105,7 +101,7 @@ const
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
     function mutableCopyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

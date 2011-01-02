@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAttributedString.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -154,11 +154,9 @@ var
 {$define NSATTRIBUTEDSTRING_PAS_C}
 
 { NSAttributedString }
-  NSAttributedString = objcclass(NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol)
+  NSAttributedString = objcclass external (NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol)
     
   public
-    class function alloc: NSAttributedString; message 'alloc';
-
     function string_: NSString; message 'string';
     function attributesAtIndex_effectiveRange(location: NSUInteger; range: NSRangePointer): NSDictionary; message 'attributesAtIndex:effectiveRange:';
 
@@ -167,20 +165,18 @@ var
     function mutableCopyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSMutableAttributedString }
-  NSMutableAttributedString = objcclass(NSAttributedString)
+  NSMutableAttributedString = objcclass external (NSAttributedString)
     
   public
-    class function alloc: NSMutableAttributedString; message 'alloc';
-
     procedure replaceCharactersInRange_withString(range: NSRange; str: NSString); message 'replaceCharactersInRange:withString:';
     procedure setAttributes_range(attrs: NSDictionary; range: NSRange); message 'setAttributes:range:';
-  end; external;
+  end;
 
 { NSExtendedAttributedStringCategory }
-  NSExtendedAttributedStringCategory = objccategory(NSAttributedString)
+  NSExtendedAttributedStringCategory = objccategory external (NSAttributedString)
     function length: NSUInteger; message 'length';
     function attribute_atIndex_effectiveRange(attrName: NSString; location: NSUInteger; range: NSRangePointer): id; message 'attribute:atIndex:effectiveRange:';
     function attributedSubstringFromRange(range: NSRange): NSAttributedString; message 'attributedSubstringFromRange:';
@@ -190,10 +186,10 @@ var
     function initWithString(str: NSString): id; message 'initWithString:';
     function initWithString_attributes(str: NSString; attrs: NSDictionary): id; message 'initWithString:attributes:';
     function initWithAttributedString(attrStr: NSAttributedString): id; message 'initWithAttributedString:';
-  end; external;
+  end;
 
 { NSExtendedMutableAttributedStringCategory }
-  NSExtendedMutableAttributedStringCategory = objccategory(NSMutableAttributedString)
+  NSExtendedMutableAttributedStringCategory = objccategory external (NSMutableAttributedString)
     function mutableString: NSMutableString; message 'mutableString';
     procedure addAttribute_value_range(name: NSString; value: id; range: NSRange); message 'addAttribute:value:range:';
     procedure addAttributes_range(attrs: NSDictionary; range: NSRange); message 'addAttributes:range:';
@@ -205,10 +201,10 @@ var
     procedure setAttributedString(attrString: NSAttributedString); message 'setAttributedString:';
     procedure beginEditing; message 'beginEditing';
     procedure endEditing; message 'endEditing';
-  end; external;
+  end;
 
 { NSAttributedStringKitAdditionsCategory }
-  NSAttributedStringKitAdditionsCategory = objccategory(NSAttributedString)
+  NSAttributedStringKitAdditionsCategory = objccategory external (NSAttributedString)
     function fontAttributesInRange(range: NSRange): NSDictionary; message 'fontAttributesInRange:';
     function rulerAttributesInRange(range: NSRange): NSDictionary; message 'rulerAttributesInRange:';
     function containsAttachments: Boolean; message 'containsAttachments';
@@ -240,18 +236,18 @@ var
     function RTFDFromRange_documentAttributes(range: NSRange; dict: NSDictionary): NSData; message 'RTFDFromRange:documentAttributes:';
     function RTFDFileWrapperFromRange_documentAttributes(range: NSRange; dict: NSDictionary): NSFileWrapper; message 'RTFDFileWrapperFromRange:documentAttributes:';
     function docFormatFromRange_documentAttributes(range: NSRange; dict: NSDictionary): NSData; message 'docFormatFromRange:documentAttributes:';
-  end; external;
+  end;
 
 { NSDeprecatedKitAdditionsCategory }
-  NSDeprecatedKitAdditionsCategory = objccategory(NSAttributedString)
+  NSDeprecatedKitAdditionsCategory = objccategory external (NSAttributedString)
     class function textFileTypes: NSArray; message 'textFileTypes';
     class function textPasteboardTypes: NSArray; message 'textPasteboardTypes';
     class function textUnfilteredFileTypes: NSArray; message 'textUnfilteredFileTypes';
     class function textUnfilteredPasteboardTypes: NSArray; message 'textUnfilteredPasteboardTypes';
-  end; external;
+  end;
 
 { NSMutableAttributedStringKitAdditionsCategory }
-  NSMutableAttributedStringKitAdditionsCategory = objccategory(NSMutableAttributedString)
+  NSMutableAttributedStringKitAdditionsCategory = objccategory external (NSMutableAttributedString)
     function readFromURL_options_documentAttributes_error(url: NSURL; opts: NSDictionary; dict: NSDictionaryPointer; error: NSErrorPointer): Boolean; message 'readFromURL:options:documentAttributes:error:';
     function readFromData_options_documentAttributes_error(data: NSData; opts: NSDictionary; dict: NSDictionaryPointer; error: NSErrorPointer): Boolean; message 'readFromData:options:documentAttributes:error:';
     function readFromURL_options_documentAttributes(url: NSURL; options: NSDictionary; dict: NSDictionaryPointer): Boolean; message 'readFromURL:options:documentAttributes:';
@@ -266,7 +262,7 @@ var
     procedure fixFontAttributeInRange(range: NSRange); message 'fixFontAttributeInRange:';
     procedure fixParagraphStyleAttributeInRange(range: NSRange); message 'fixParagraphStyleAttributeInRange:';
     procedure fixAttachmentAttributeInRange(range: NSRange); message 'fixAttachmentAttributeInRange:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

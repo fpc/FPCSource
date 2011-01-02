@@ -8,7 +8,7 @@ unit uobjc35f;
 interface
 
 type
-  MyExternalClass = objcclass; external;
+  MyExternalClass = objcclass external;
 
 procedure test;
 

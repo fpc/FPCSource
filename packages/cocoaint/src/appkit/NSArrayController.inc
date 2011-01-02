@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSArrayController.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSARRAYCONTROLLER_PAS_C}
 
 { NSArrayController }
-  NSArrayController = objcclass(NSObjectController)
+  NSArrayController = objcclass external (NSObjectController)
   private
     _reserved4: Pointer;
     _rearrangementExtensions: id;
@@ -77,8 +77,6 @@
     _arrangedObjects: NSArray;
     
   public
-    class function alloc: NSArrayController; message 'alloc';
-
     procedure rearrangeObjects; message 'rearrangeObjects';
     procedure setAutomaticallyRearrangesObjects(flag: Boolean); message 'setAutomaticallyRearrangesObjects:';
     function automaticallyRearrangesObjects: Boolean; message 'automaticallyRearrangesObjects';
@@ -126,7 +124,7 @@
     procedure removeObjectsAtArrangedObjectIndexes(indexes: NSIndexSet); message 'removeObjectsAtArrangedObjectIndexes:';
     procedure removeObject(object_: id); message 'removeObject:';
     procedure removeObjects(objects: NSArray); message 'removeObjects:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

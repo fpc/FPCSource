@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSClassDescription.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -46,11 +46,9 @@ var
 {$define NSCLASSDESCRIPTION_PAS_C}
 
 { NSClassDescription }
-  NSClassDescription = objcclass(NSObject)
+  NSClassDescription = objcclass external (NSObject)
     
   public
-    class function alloc: NSClassDescription; message 'alloc';
-
     class procedure registerClassDescription_forClass(description_: NSClassDescription; aClass: Pobjc_class); message 'registerClassDescription:forClass:';
     class procedure invalidateClassDescriptionCache; message 'invalidateClassDescriptionCache';
     class function classDescriptionForClass(aClass: Pobjc_class): NSClassDescription; message 'classDescriptionForClass:';
@@ -58,16 +56,16 @@ var
     function toOneRelationshipKeys: NSArray; message 'toOneRelationshipKeys';
     function toManyRelationshipKeys: NSArray; message 'toManyRelationshipKeys';
     function inverseForRelationshipKey(relationshipKey: NSString): NSString; message 'inverseForRelationshipKey:';
-  end; external;
+  end;
 
 { NSClassDescriptionPrimitivesCategory }
-  NSClassDescriptionPrimitivesCategory = objccategory(NSObject)
+  NSClassDescriptionPrimitivesCategory = objccategory external (NSObject)
     function classDescription: NSClassDescription; message 'classDescription';
     function attributeKeys: NSArray; message 'attributeKeys';
     function toOneRelationshipKeys: NSArray; message 'toOneRelationshipKeys';
     function toManyRelationshipKeys: NSArray; message 'toManyRelationshipKeys';
     function inverseForRelationshipKey(relationshipKey: NSString): NSString; message 'inverseForRelationshipKey:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSAppleScript.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -50,7 +50,7 @@ var
 {$define NSAPPLESCRIPT_PAS_C}
 
 { NSAppleScript }
-  NSAppleScript = objcclass(NSObject, NSCopyingProtocol)
+  NSAppleScript = objcclass external (NSObject, NSCopyingProtocol)
   private
     _source: NSString;
     _compiledScriptID: cuint;
@@ -58,8 +58,6 @@ var
     _reserved2: Pointer;
     
   public
-    class function alloc: NSAppleScript; message 'alloc';
-
     function initWithContentsOfURL_error(url: NSURL; errorInfo: NSDictionaryPointer): id; message 'initWithContentsOfURL:error:';
     function initWithSource(source_: NSString): id; message 'initWithSource:';
     function source: NSString; message 'source';
@@ -70,7 +68,7 @@ var
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

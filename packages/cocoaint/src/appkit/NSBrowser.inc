@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSBrowser.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -135,7 +135,7 @@ var
 {$define NSBROWSER_PAS_C}
 
 { NSBrowser }
-  NSBrowser = objcclass(NSControl)
+  NSBrowser = objcclass external (NSControl)
   private
     _target: id;
     _action: SEL;
@@ -157,8 +157,6 @@ var
     _brflags: _Brflags;
     
   public
-    class function alloc: NSBrowser; message 'alloc';
-
     class function cellClass: Pobjc_class; message 'cellClass';
     procedure loadColumnZero; message 'loadColumnZero';
     function isLoaded: Boolean; message 'isLoaded';
@@ -273,17 +271,17 @@ var
     procedure setBackgroundColor(color: NSColor); message 'setBackgroundColor:';
     function backgroundColor: NSColor; message 'backgroundColor';
     procedure editItemAtIndexPath_withEvent_select(indexPath: NSIndexPath; theEvent: NSEvent; select: Boolean); message 'editItemAtIndexPath:withEvent:select:';
-  end; external;
+  end;
 
 { NSDeprecated_NSBrowserCategory }
-  NSDeprecated_NSBrowserCategory = objccategory(NSBrowser)
+  NSDeprecated_NSBrowserCategory = objccategory external name 'NSDeprecated' (NSBrowser)
     procedure setAcceptsArrowKeys(flag: Boolean); message 'setAcceptsArrowKeys:'; deprecated 'in Mac OS X 10.6 and later';
     function acceptsArrowKeys: Boolean; message 'acceptsArrowKeys'; deprecated 'in Mac OS X 10.6 and later';
     procedure displayColumn(column: NSInteger); message 'displayColumn:'; deprecated 'in Mac OS X 10.3 and later';
     procedure displayAllColumns; message 'displayAllColumns'; deprecated 'in Mac OS X 10.3 and later';
     procedure scrollViaScroller(sender: NSScroller); message 'scrollViaScroller:'; deprecated 'in Mac OS X 10.3 and later';
     procedure updateScroller; message 'updateScroller'; deprecated 'in Mac OS X 10.3 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}
@@ -292,7 +290,7 @@ var
 {$define NSBROWSER_PAS_P}
   
 { NSBrowserDelegate Protocol }
-  NSBrowserDelegateProtocol = objcprotocol
+  NSBrowserDelegateProtocol = objcprotocol external name 'NSBrowserDelegate'
     function browser_numberOfRowsInColumn(sender: NSBrowser; column: NSInteger): NSInteger; message 'browser:numberOfRowsInColumn:';
     procedure browser_createRowsForColumn_inMatrix(sender: NSBrowser; column: NSInteger; matrix: NSMatrix); message 'browser:createRowsForColumn:inMatrix:';
     function browser_numberOfChildrenOfItem(browser: NSBrowser; item: id): NSInteger; message 'browser:numberOfChildrenOfItem:';
@@ -327,6 +325,6 @@ var
     function browser_headerViewControllerForItem(browser: NSBrowser; item: id): NSViewController; message 'browser:headerViewControllerForItem:';
     procedure browser_didChangeLastColumn_toColumn(browser: NSBrowser; oldLastColumn: NSInteger; column: NSInteger); message 'browser:didChangeLastColumn:toColumn:';
     function browser_selectionIndexesForProposedSelection_inColumn(browser: NSBrowser; proposedSelectionIndexes: NSIndexSet; column: NSInteger): NSIndexSet; message 'browser:selectionIndexesForProposedSelection:inColumn:';
-  end; external name 'NSBrowserDelegate';
+  end;
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTabViewItem.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -54,7 +54,7 @@ type
 {$define NSTABVIEWITEM_PAS_C}
 
 { NSTabViewItem }
-  NSTabViewItem = objcclass(NSObject, NSCodingProtocol)
+  NSTabViewItem = objcclass external (NSObject, NSCodingProtocol)
   private
     _identifier: id;
     _label: NSString;
@@ -81,8 +81,6 @@ type
     _auxiliaryStorage: id;
     
   public
-    class function alloc: NSTabViewItem; message 'alloc';
-
     function initWithIdentifier(identifier_: id): id; message 'initWithIdentifier:';
     function identifier: id; message 'identifier';
     function view: id; message 'view';
@@ -104,7 +102,7 @@ type
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

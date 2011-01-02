@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSImageRep.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -51,7 +51,7 @@ var
 {$define NSIMAGEREP_PAS_C}
 
 { NSImageRep }
-  NSImageRep = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSImageRep = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     __repFlags: bitpacked record
       case byte of
@@ -74,8 +74,6 @@ var
     _pixelsHigh: cint;
     
   public
-    class function alloc: NSImageRep; message 'alloc';
-
     function draw: Boolean; message 'draw';
     function drawAtPoint(point: NSPoint): Boolean; message 'drawAtPoint:';
     function drawInRect(rect: NSRect): Boolean; message 'drawInRect:';
@@ -121,7 +119,7 @@ var
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

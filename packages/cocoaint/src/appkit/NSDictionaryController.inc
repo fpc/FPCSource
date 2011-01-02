@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDictionaryController.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSDICTIONARYCONTROLLER_PAS_C}
 
 { NSDictionaryController }
-  NSDictionaryController = objcclass(NSArrayController)
+  NSDictionaryController = objcclass external (NSArrayController)
   private
     _reserved5: Pointer;
     _reserved6: Pointer;
@@ -67,8 +67,6 @@
       end;
     
   public
-    class function alloc: NSDictionaryController; message 'alloc';
-
     function newObject: id; message 'newObject';
     procedure setInitialKey(key: NSString); message 'setInitialKey:';
     function initialKey: NSString; message 'initialKey';
@@ -82,10 +80,10 @@
     function localizedKeyDictionary: NSDictionary; message 'localizedKeyDictionary';
     procedure setLocalizedKeyTable(stringsFileName: NSString); message 'setLocalizedKeyTable:';
     function localizedKeyTable: NSString; message 'localizedKeyTable';
-  end; external;
+  end;
 
 { NSDictionaryControllerKeyValuePairCategory }
-  NSDictionaryControllerKeyValuePairCategory = objccategory(NSObject)
+  NSDictionaryControllerKeyValuePairCategory = objccategory external (NSObject)
     procedure setLocalizedKey(localizedKey: NSString); message 'setLocalizedKey:';
     function localizedKey: NSString; message 'localizedKey';
     procedure setKey(key: NSString); message 'setKey:';
@@ -93,7 +91,7 @@
     procedure setValue(value: id); message 'setValue:';
     function value: id; message 'value';
     function isExplicitlyIncluded: Boolean; message 'isExplicitlyIncluded';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

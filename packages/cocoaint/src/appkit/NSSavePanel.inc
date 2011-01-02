@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSavePanel.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -76,7 +76,7 @@ __SPFlagsPtr = ^__SPFlags;
 {$define NSSAVEPANEL_PAS_C}
 
 { NSSavePanel }
-  NSSavePanel = objcclass(NSPanel)
+  NSSavePanel = objcclass external (NSPanel)
   private
     _navView: NSNavView;
     _accessoryView: NSView;
@@ -108,8 +108,6 @@ __SPFlagsPtr = ^__SPFlags;
     _openProgressIndicator: NSProgressIndicator;
     
   public
-    class function alloc: NSSavePanel; message 'alloc';
-
     class function savePanel: NSSavePanel; message 'savePanel';
     function URL: NSURL; message 'URL';
     function directoryURL: NSURL; message 'directoryURL';
@@ -147,17 +145,17 @@ __SPFlagsPtr = ^__SPFlags;
     procedure ok(sender: id); message 'ok:';
     procedure cancel(sender: id); message 'cancel:';
     function runModal: NSInteger; message 'runModal';
-  end; external;
+  end;
 
 { NSSavePanelDelegateDeprecatedCategory }
-  NSSavePanelDelegateDeprecatedCategory = objccategory(NSObject)
+  NSSavePanelDelegateDeprecatedCategory = objccategory external (NSObject)
     function panel_isValidFilename(sender: id; filename: NSString): Boolean; message 'panel:isValidFilename:';
     procedure panel_directoryDidChange(sender: id; path: NSString); message 'panel:directoryDidChange:';
     function panel_shouldShowFilename(sender: id; filename: NSString): Boolean; message 'panel:shouldShowFilename:';
-  end; external;
+  end;
 
 { NSDeprecated_NSSavePanelCategory }
-  NSDeprecated_NSSavePanelCategory = objccategory(NSSavePanel)
+  NSDeprecated_NSSavePanelCategory = objccategory external name 'NSDeprecated' (NSSavePanel)
     function filename: NSString; message 'filename';
     function directory: NSString; message 'directory';
     procedure setDirectory(path: NSString); message 'setDirectory:';
@@ -166,7 +164,7 @@ __SPFlagsPtr = ^__SPFlags;
     procedure beginSheetForDirectory_file_modalForWindow_modalDelegate_didEndSelector_contextInfo(path: NSString; name: NSString; docWindow: NSWindow; delegate_: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginSheetForDirectory:file:modalForWindow:modalDelegate:didEndSelector:contextInfo:';
     function runModalForDirectory_file(path: NSString; name: NSString): NSInteger; message 'runModalForDirectory:file:';
     procedure selectText(sender: id); message 'selectText:'; deprecated 'in Mac OS X 10.3 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}
@@ -175,13 +173,13 @@ __SPFlagsPtr = ^__SPFlags;
 {$define NSSAVEPANEL_PAS_P}
   
 { NSOpenSavePanelDelegate Protocol }
-  NSOpenSavePanelDelegateProtocol = objcprotocol
+  NSOpenSavePanelDelegateProtocol = objcprotocol external name 'NSOpenSavePanelDelegate'
     function panel_shouldEnableURL(sender: id; url: NSURL): Boolean; message 'panel:shouldEnableURL:';
     function panel_validateURL_error(sender: id; url: NSURL; outError: NSErrorPointer): Boolean; message 'panel:validateURL:error:';
     procedure panel_didChangeToDirectoryURL(sender: id; url: NSURL); message 'panel:didChangeToDirectoryURL:';
     function panel_userEnteredFilename_confirmed(sender: id; filename: NSString; okFlag: Boolean): NSString; message 'panel:userEnteredFilename:confirmed:';
     procedure panel_willExpand(sender: id; expanding: Boolean); message 'panel:willExpand:';
     procedure panelSelectionDidChange(sender: id); message 'panelSelectionDidChange:';
-  end; external name 'NSOpenSavePanelDelegate';
+  end;
 {$endif}
 {$endif}

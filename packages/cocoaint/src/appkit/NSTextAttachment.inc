@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextAttachment.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -51,12 +51,11 @@ const
 {$define NSTEXTATTACHMENT_PAS_C}
 
 { NSTextAttachmentCell }
-  NSTextAttachmentCell = objcclass(NSCell, NSTextAttachmentCellProtocol)
+  NSTextAttachmentCell = objcclass external (NSCell, NSTextAttachmentCellProtocol)
   private
     _attachment: NSTextAttachment;
     
   public
-    class function alloc: NSTextAttachmentCell; message 'alloc';
 
     { Adopted Protocols }
     procedure drawWithFrame_inView(cellFrame: NSRect; controlView: NSView);
@@ -72,10 +71,10 @@ const
     function wantsToTrackMouseForEvent_inRect_ofView_atCharacterIndex(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger): Boolean;
     function trackMouse_inRect_ofView_atCharacterIndex_untilMouseUp(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger; flag: Boolean): Boolean;
     function cellFrameForTextContainer_proposedLineFragment_glyphPosition_characterIndex(textContainer: NSTextContainer; lineFrag: NSRect; position: NSPoint; charIndex: NSUInteger): NSRect;
-  end; external;
+  end;
 
 { NSTextAttachment }
-  NSTextAttachment = objcclass(NSObject, NSCodingProtocol)
+  NSTextAttachment = objcclass external (NSObject, NSCodingProtocol)
   private
     _fileWrapper: NSFileWrapper;
     _cell: NSTextAttachmentCellProtocol;
@@ -90,8 +89,6 @@ const
       end;
     
   public
-    class function alloc: NSTextAttachment; message 'alloc';
-
     function initWithFileWrapper(fileWrapper_: NSFileWrapper): id; message 'initWithFileWrapper:';
     procedure setFileWrapper(fileWrapper_: NSFileWrapper); message 'setFileWrapper:';
     function fileWrapper: NSFileWrapper; message 'fileWrapper';
@@ -101,17 +98,17 @@ const
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSAttributedStringAttachmentConveniencesCategory }
-  NSAttributedStringAttachmentConveniencesCategory = objccategory(NSAttributedString)
+  NSAttributedStringAttachmentConveniencesCategory = objccategory external (NSAttributedString)
     class function attributedStringWithAttachment(attachment: NSTextAttachment): NSAttributedString; message 'attributedStringWithAttachment:';
-  end; external;
+  end;
 
 { NSMutableAttributedStringAttachmentConveniencesCategory }
-  NSMutableAttributedStringAttachmentConveniencesCategory = objccategory(NSMutableAttributedString)
+  NSMutableAttributedStringAttachmentConveniencesCategory = objccategory external (NSMutableAttributedString)
     procedure updateAttachmentsFromPath(path: NSString); message 'updateAttachmentsFromPath:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -120,7 +117,7 @@ const
 {$define NSTEXTATTACHMENT_PAS_P}
   
 { NSTextAttachmentCell Protocol }
-  NSTextAttachmentCellProtocol = objcprotocol
+  NSTextAttachmentCellProtocol = objcprotocol external name 'NSTextAttachmentCell'
     procedure drawWithFrame_inView(cellFrame: NSRect; controlView: NSView); message 'drawWithFrame:inView:';
     function wantsToTrackMouse: Boolean; message 'wantsToTrackMouse';
     procedure highlight_withFrame_inView(flag: Boolean; cellFrame: NSRect; controlView: NSView); message 'highlight:withFrame:inView:';
@@ -134,6 +131,6 @@ const
     function wantsToTrackMouseForEvent_inRect_ofView_atCharacterIndex(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger): Boolean; message 'wantsToTrackMouseForEvent:inRect:ofView:atCharacterIndex:';
     function trackMouse_inRect_ofView_atCharacterIndex_untilMouseUp(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger; flag: Boolean): Boolean; message 'trackMouse:inRect:ofView:atCharacterIndex:untilMouseUp:';
     function cellFrameForTextContainer_proposedLineFragment_glyphPosition_characterIndex(textContainer: NSTextContainer; lineFrag: NSRect; position: NSPoint; charIndex: NSUInteger): NSRect; message 'cellFrameForTextContainer:proposedLineFragment:glyphPosition:characterIndex:';
-  end; external name 'NSTextAttachmentCell';
+  end;
 {$endif}
 {$endif}

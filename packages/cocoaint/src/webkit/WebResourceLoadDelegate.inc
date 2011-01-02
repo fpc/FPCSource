@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebResourceLoadDelegate.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -39,7 +39,7 @@
 {$define WEBRESOURCELOADDELEGATE_PAS_C}
 
 { WebResourceLoadDelegateCategory }
-  WebResourceLoadDelegateCategory = objccategory(NSObject)
+  WebResourceLoadDelegateCategory = objccategory external (NSObject)
     function webView_identifierForInitialRequest_fromDataSource(sender: WebView; request: NSURLRequest; dataSource: WebDataSource): id; message 'webView:identifierForInitialRequest:fromDataSource:';
     function webView_resource_willSendRequest_redirectResponse_fromDataSource(sender: WebView; identifier: id; request: NSURLRequest; redirectResponse: NSURLResponse; dataSource: WebDataSource): NSURLRequest; message 'webView:resource:willSendRequest:redirectResponse:fromDataSource:';
     procedure webView_resource_didReceiveAuthenticationChallenge_fromDataSource(sender: WebView; identifier: id; challenge: NSURLAuthenticationChallenge; dataSource: WebDataSource); message 'webView:resource:didReceiveAuthenticationChallenge:fromDataSource:';
@@ -49,7 +49,7 @@
     procedure webView_resource_didFinishLoadingFromDataSource(sender: WebView; identifier: id; dataSource: WebDataSource); message 'webView:resource:didFinishLoadingFromDataSource:';
     procedure webView_resource_didFailLoadingWithError_fromDataSource(sender: WebView; identifier: id; error: NSError; dataSource: WebDataSource); message 'webView:resource:didFailLoadingWithError:fromDataSource:';
     procedure webView_plugInFailedWithError_dataSource(sender: WebView; error: NSError; dataSource: WebDataSource); message 'webView:plugInFailedWithError:dataSource:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

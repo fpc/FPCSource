@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CATiledLayer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define CATILEDLAYER_PAS_C}
 
 { CATiledLayer }
-  CATiledLayer = objcclass(CALayer)
+  CATiledLayer = objcclass external (CALayer)
     
   public
-    class function alloc: CATiledLayer; message 'alloc';
-
     class function fadeDuration: CFTimeInterval; message 'fadeDuration';
     procedure setLevelsOfDetail (newValue: size_t); message 'setLevelsOfDetail:';
     function levelsOfDetail: size_t; message 'levelsOfDetail';
@@ -54,7 +52,7 @@
     function levelsOfDetailBias: size_t; message 'levelsOfDetailBias';
     procedure setTileSize (newValue: CGSize); message 'setTileSize:';
     function tileSize: CGSize; message 'tileSize';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

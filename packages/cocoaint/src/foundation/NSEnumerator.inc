@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSEnumerator.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -54,21 +54,19 @@ NSFastEnumerationStatePtr = ^NSFastEnumerationState;
 {$define NSENUMERATOR_PAS_C}
 
 { NSEnumerator }
-  NSEnumerator = objcclass(NSObject, NSFastEnumerationProtocol)
+  NSEnumerator = objcclass external (NSObject, NSFastEnumerationProtocol)
     
   public
-    class function alloc: NSEnumerator; message 'alloc';
-
     function nextObject: id; message 'nextObject';
 
     { Adopted Protocols }
     function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePtr; stackbuf: idPtr; len: NSUInteger): NSUInteger;
-  end; external;
+  end;
 
 { NSExtendedEnumeratorCategory }
-  NSExtendedEnumeratorCategory = objccategory(NSEnumerator)
+  NSExtendedEnumeratorCategory = objccategory external (NSEnumerator)
     function allObjects: NSArray; message 'allObjects';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -77,8 +75,8 @@ NSFastEnumerationStatePtr = ^NSFastEnumerationState;
 {$define NSENUMERATOR_PAS_P}
   
 { NSFastEnumeration Protocol }
-  NSFastEnumerationProtocol = objcprotocol
+  NSFastEnumerationProtocol = objcprotocol external name 'NSFastEnumeration'
     function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePtr; stackbuf: idPtr; len: NSUInteger): NSUInteger; message 'countByEnumeratingWithState:objects:count:';
-  end; external name 'NSFastEnumeration';
+  end;
 {$endif}
 {$endif}

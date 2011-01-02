@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSFontPanel.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -66,7 +66,7 @@ const
 {$define NSFONTPANEL_PAS_C}
 
 { NSFontPanel }
-  NSFontPanel = objcclass(NSPanel)
+  NSFontPanel = objcclass external (NSPanel)
   private
     _manager: NSFontManager;
     _collectionNames: NSArray;
@@ -138,8 +138,6 @@ const
     {$endif}
     
   public
-    class function alloc: NSFontPanel; message 'alloc';
-
     class function sharedFontPanel: NSFontPanel; message 'sharedFontPanel';
     class function sharedFontPanelExists: Boolean; message 'sharedFontPanelExists';
     function accessoryView: NSView; message 'accessoryView';
@@ -150,12 +148,12 @@ const
     function isEnabled: Boolean; message 'isEnabled';
     procedure setEnabled(flag: Boolean); message 'setEnabled:';
     procedure reloadDefaultFontFamilies; message 'reloadDefaultFontFamilies';
-  end; external;
+  end;
 
 { NSFontPanelValidationAdditionsCategory }
-  NSFontPanelValidationAdditionsCategory = objccategory(NSObject)
+  NSFontPanelValidationAdditionsCategory = objccategory external (NSObject)
     function validModesForFontPanel(fontPanel: NSFontPanel): NSUInteger; message 'validModesForFontPanel:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

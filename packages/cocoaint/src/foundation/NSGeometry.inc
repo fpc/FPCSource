@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSGeometry.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -146,34 +146,34 @@ var
 {$define NSGEOMETRY_PAS_C}
 
 { NSValueGeometryExtensionsCategory }
-  NSValueGeometryExtensionsCategory = objccategory(NSValue)
+  NSValueGeometryExtensionsCategory = objccategory external (NSValue)
     class function valueWithPoint(point: NSPoint): NSValue; message 'valueWithPoint:';
     class function valueWithSize(size: NSSize): NSValue; message 'valueWithSize:';
     class function valueWithRect(rect: NSRect): NSValue; message 'valueWithRect:';
     function pointValue: NSPoint; message 'pointValue';
     function sizeValue: NSSize; message 'sizeValue';
     function rectValue: NSRect; message 'rectValue';
-  end; external;
+  end;
 
 { NSGeometryCodingCategory }
-  NSGeometryCodingCategory = objccategory(NSCoder)
+  NSGeometryCodingCategory = objccategory external (NSCoder)
     procedure encodePoint(point: NSPoint); message 'encodePoint:';
     function decodePoint: NSPoint; message 'decodePoint';
     procedure encodeSize(size: NSSize); message 'encodeSize:';
     function decodeSize: NSSize; message 'decodeSize';
     procedure encodeRect(rect: NSRect); message 'encodeRect:';
     function decodeRect: NSRect; message 'decodeRect';
-  end; external;
+  end;
 
 { NSGeometryKeyedCodingCategory }
-  NSGeometryKeyedCodingCategory = objccategory(NSCoder)
+  NSGeometryKeyedCodingCategory = objccategory external (NSCoder)
     procedure encodePoint_forKey(point: NSPoint; key: NSString); message 'encodePoint:forKey:';
     procedure encodeSize_forKey(size: NSSize; key: NSString); message 'encodeSize:forKey:';
     procedure encodeRect_forKey(rect: NSRect; key: NSString); message 'encodeRect:forKey:';
     function decodePointForKey(key: NSString): NSPoint; message 'decodePointForKey:';
     function decodeSizeForKey(key: NSString): NSSize; message 'decodeSizeForKey:';
     function decodeRectForKey(key: NSString): NSRect; message 'decodeRectForKey:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

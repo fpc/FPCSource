@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSValue.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -45,11 +45,9 @@
 {$define NSVALUE_PAS_C}
 
 { NSValue }
-  NSValue = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSValue = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
     
   public
-    class function alloc: NSValue; message 'alloc';
-
     procedure getValue(value: Pointer); message 'getValue:';
     function objCType: PChar; message 'objCType';
 
@@ -57,14 +55,12 @@
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSNumber }
-  NSNumber = objcclass(NSValue)
+  NSNumber = objcclass external (NSValue)
     
   public
-    class function alloc: NSNumber; message 'alloc';
-
     function charValue: char; message 'charValue';
     function unsignedCharValue: char; message 'unsignedCharValue';
     function shortValue: cshort; message 'shortValue';
@@ -84,26 +80,26 @@
     function compare(otherNumber: NSNumber): NSComparisonResult; message 'compare:';
     function isEqualToNumber(number: NSNumber): Boolean; message 'isEqualToNumber:';
     function descriptionWithLocale(locale: id): NSString; message 'descriptionWithLocale:';
-  end; external;
+  end;
 
 { NSValueCreationCategory }
-  NSValueCreationCategory = objccategory(NSValue)
+  NSValueCreationCategory = objccategory external (NSValue)
     function initWithBytes_objCType(value: Pointer; type_: PChar): id; message 'initWithBytes:objCType:';
     class function valueWithBytes_objCType(value: Pointer; type_: PChar): NSValue; message 'valueWithBytes:objCType:';
     class function value_withObjCType(value: Pointer; type_: PChar): NSValue; message 'value:withObjCType:';
-  end; external;
+  end;
 
 { NSValueExtensionMethodsCategory }
-  NSValueExtensionMethodsCategory = objccategory(NSValue)
+  NSValueExtensionMethodsCategory = objccategory external (NSValue)
     class function valueWithNonretainedObject(anObject: id): NSValue; message 'valueWithNonretainedObject:';
     function nonretainedObjectValue: id; message 'nonretainedObjectValue';
     class function valueWithPointer(pointer_: Pointer): NSValue; message 'valueWithPointer:';
     function pointerValue: Pointer; message 'pointerValue';
     function isEqualToValue(value: NSValue): Boolean; message 'isEqualToValue:';
-  end; external;
+  end;
 
 { NSNumberCreationCategory }
-  NSNumberCreationCategory = objccategory(NSNumber)
+  NSNumberCreationCategory = objccategory external (NSNumber)
     function initWithChar(value: char): id; message 'initWithChar:';
     function initWithUnsignedChar(value: char): id; message 'initWithUnsignedChar:';
     function initWithShort(value: cshort): id; message 'initWithShort:';
@@ -134,7 +130,7 @@
     class function numberWithBool(value: Boolean): NSNumber; message 'numberWithBool:';
     class function numberWithInteger(value: NSInteger): NSNumber; message 'numberWithInteger:';
     class function numberWithUnsignedInteger(value: NSUInteger): NSNumber; message 'numberWithUnsignedInteger:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

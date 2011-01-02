@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSUserDefaultsController.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSUSERDEFAULTSCONTROLLER_PAS_C}
 
 { NSUserDefaultsController }
-  NSUserDefaultsController = objcclass(NSController)
+  NSUserDefaultsController = objcclass external (NSController)
   private
     _reserved3: Pointer;
     _reserved4: Pointer;
@@ -60,8 +60,6 @@
       end;
     
   public
-    class function alloc: NSUserDefaultsController; message 'alloc';
-
     class function sharedUserDefaultsController: id; message 'sharedUserDefaultsController';
     function initWithDefaults_initialValues(defaults_: NSUserDefaults; initialValues_: NSDictionary): id; message 'initWithDefaults:initialValues:';
     function defaults: NSUserDefaults; message 'defaults';
@@ -74,7 +72,7 @@
     procedure revert(sender: id); message 'revert:';
     procedure save(sender: id); message 'save:';
     procedure revertToInitialValues(sender: id); message 'revertToInitialValues:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

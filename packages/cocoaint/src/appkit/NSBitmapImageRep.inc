@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSBitmapImageRep.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -103,7 +103,7 @@ var
 {$define NSBITMAPIMAGEREP_PAS_C}
 
 { NSBitmapImageRep }
-  NSBitmapImageRep = objcclass(NSImageRep)
+  NSBitmapImageRep = objcclass external (NSImageRep)
   private
     __moreRepFlags: bitpacked record
       case byte of
@@ -130,8 +130,6 @@ var
     _properties: id;
     
   public
-    class function alloc: NSBitmapImageRep; message 'alloc';
-
     function initWithFocusedViewRect(rect: NSRect): id; message 'initWithFocusedViewRect:';
     function initWithBitmapDataPlanes_pixelsWide_pixelsHigh_bitsPerSample_samplesPerPixel_hasAlpha_isPlanar_colorSpaceName_bytesPerRow_bitsPerPixel(planes: PChar; width: NSInteger; height: NSInteger; bps: NSInteger; spp: NSInteger; alpha: Boolean; isPlanar_: Boolean; colorSpaceName_: NSString; rBytes: NSInteger; pBits: NSInteger): id; message 'initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bytesPerRow:bitsPerPixel:';
     function initWithBitmapDataPlanes_pixelsWide_pixelsHigh_bitsPerSample_samplesPerPixel_hasAlpha_isPlanar_colorSpaceName_bitmapFormat_bytesPerRow_bitsPerPixel(planes: PChar; width: NSInteger; height: NSInteger; bps: NSInteger; spp: NSInteger; alpha: Boolean; isPlanar_: Boolean; colorSpaceName_: NSString; bitmapFormat_: NSBitmapFormat; rBytes: NSInteger; pBits: NSInteger): id; message 'initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bitmapFormat:bytesPerRow:bitsPerPixel:';
@@ -169,15 +167,15 @@ var
     function colorSpace: NSColorSpace; message 'colorSpace';
     function bitmapImageRepByConvertingToColorSpace_renderingIntent(targetSpace: NSColorSpace; renderingIntent: NSColorRenderingIntent): NSBitmapImageRep; message 'bitmapImageRepByConvertingToColorSpace:renderingIntent:';
     function bitmapImageRepByRetaggingWithColorSpace(newSpace: NSColorSpace): NSBitmapImageRep; message 'bitmapImageRepByRetaggingWithColorSpace:';
-  end; external;
+  end;
 
 { NSBitmapImageFileTypeExtensionsCategory }
-  NSBitmapImageFileTypeExtensionsCategory = objccategory(NSBitmapImageRep)
+  NSBitmapImageFileTypeExtensionsCategory = objccategory external (NSBitmapImageRep)
     class function representationOfImageRepsInArray_usingType_properties(imageReps: NSArray; storageType: NSBitmapImageFileType; properties: NSDictionary): NSData; message 'representationOfImageRepsInArray:usingType:properties:';
     function representationUsingType_properties(storageType: NSBitmapImageFileType; properties: NSDictionary): NSData; message 'representationUsingType:properties:';
     procedure setProperty_withValue(property_: NSString; value: id); message 'setProperty:withValue:';
     function valueForProperty(property_: NSString): id; message 'valueForProperty:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

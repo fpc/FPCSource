@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSProcessInfo.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -53,7 +53,7 @@ const
 {$define NSPROCESSINFO_PAS_C}
 
 { NSProcessInfo }
-  NSProcessInfo = objcclass(NSObject)
+  NSProcessInfo = objcclass external (NSObject)
   private
     _environment: NSDictionary;
     _arguments: NSArray;
@@ -62,8 +62,6 @@ const
     reserved: Pointer;
     
   public
-    class function alloc: NSProcessInfo; message 'alloc';
-
     class function processInfo: NSProcessInfo; message 'processInfo';
     function environment: NSDictionary; message 'environment';
     function arguments: NSArray; message 'arguments';
@@ -81,7 +79,7 @@ const
     function systemUptime: NSTimeInterval; message 'systemUptime';
     procedure disableSuddenTermination; message 'disableSuddenTermination';
     procedure enableSuddenTermination; message 'enableSuddenTermination';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

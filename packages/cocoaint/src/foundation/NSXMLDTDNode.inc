@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSXMLDTDNode.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -71,7 +71,7 @@ type
 {$define NSXMLDTDNODE_PAS_C}
 
 { NSXMLDTDNode }
-  NSXMLDTDNode = objcclass(NSXMLNode)
+  NSXMLDTDNode = objcclass external (NSXMLNode)
   private
     _DTDKind: NSXMLDTDNodeKind;
     _name: NSString;
@@ -80,8 +80,6 @@ type
     _systemID: NSString;
     
   public
-    class function alloc: NSXMLDTDNode; message 'alloc';
-
     function initWithXMLString(string_: NSString): id; message 'initWithXMLString:';
     procedure setDTDKind(kind_: NSXMLDTDNodeKind); message 'setDTDKind:';
     function DTDKind: NSXMLDTDNodeKind; message 'DTDKind';
@@ -92,7 +90,7 @@ type
     function systemID: NSString; message 'systemID';
     procedure setNotationName(notationName_: NSString); message 'setNotationName:';
     function notationName: NSString; message 'notationName';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

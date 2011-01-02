@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSOpenGLView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSOPENGLVIEW_PAS_C}
 
 { NSOpenGLView }
-  NSOpenGLView = objcclass(NSView)
+  NSOpenGLView = objcclass external (NSView)
   private
     _openGLContext: NSOpenGLContext;
     _pixelFormat: NSOpenGLPixelFormat;
@@ -51,8 +51,6 @@
     _reserved3: NSInteger;
     
   public
-    class function alloc: NSOpenGLView; message 'alloc';
-
     class function defaultPixelFormat: NSOpenGLPixelFormat; message 'defaultPixelFormat';
     function initWithFrame_pixelFormat(frameRect: NSRect; format: NSOpenGLPixelFormat): id; message 'initWithFrame:pixelFormat:';
     procedure setOpenGLContext(context: NSOpenGLContext); message 'setOpenGLContext:';
@@ -63,7 +61,7 @@
     procedure setPixelFormat(pixelFormat_: NSOpenGLPixelFormat); message 'setPixelFormat:';
     function pixelFormat: NSOpenGLPixelFormat; message 'pixelFormat';
     procedure prepareOpenGL; message 'prepareOpenGL';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

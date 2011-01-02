@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSRelationshipDescription.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -55,7 +55,7 @@ type
 {$define NSRELATIONSHIPDESCRIPTION_PAS_C}
 
 { NSRelationshipDescription }
-  NSRelationshipDescription = objcclass(NSPropertyDescription)
+  NSRelationshipDescription = objcclass external (NSPropertyDescription)
   private
     _reserved5: Pointer;
     _reserved6: Pointer;
@@ -68,8 +68,6 @@ type
     _deleteRule: NSDeleteRule;
     
   public
-    class function alloc: NSRelationshipDescription; message 'alloc';
-
     function destinationEntity: NSEntityDescription; message 'destinationEntity';
     procedure setDestinationEntity(entity_: NSEntityDescription); message 'setDestinationEntity:';
     function inverseRelationship: NSRelationshipDescription; message 'inverseRelationship';
@@ -82,7 +80,7 @@ type
     procedure setDeleteRule(rule: NSDeleteRule); message 'setDeleteRule:';
     function isToMany: Boolean; message 'isToMany';
     function versionHash: NSData; message 'versionHash';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLFrameElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLFRAMEELEMENT_PAS_C}
 
 { DOMHTMLFrameElement }
-  DOMHTMLFrameElement = objcclass(DOMHTMLElement)
+  DOMHTMLFrameElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLFrameElement; message 'alloc';
-
     procedure setFrameBorder (newValue: NSString); message 'setFrameBorder:';
     function frameBorder: NSString; message 'frameBorder';
     procedure setLongDesc (newValue: NSString); message 'setLongDesc:';
@@ -69,7 +67,7 @@
     function location: NSString; message 'location';
     function width: cint; message 'width';
     function height: cint; message 'height';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

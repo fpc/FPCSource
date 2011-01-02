@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLBaseElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,16 +42,14 @@
 {$define DOMHTMLBASEELEMENT_PAS_C}
 
 { DOMHTMLBaseElement }
-  DOMHTMLBaseElement = objcclass(DOMHTMLElement)
+  DOMHTMLBaseElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLBaseElement; message 'alloc';
-
     procedure setHref (newValue: NSString); message 'setHref:';
     function href: NSString; message 'href';
     procedure setTarget (newValue: NSString); message 'setTarget:';
     function target: NSString; message 'target';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTouch.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -57,7 +57,7 @@ type
 {$define NSTOUCH_PAS_C}
 
 { NSTouch }
-  NSTouch = objcclass(NSObject, NSCopyingProtocol)
+  NSTouch = objcclass external (NSObject, NSCopyingProtocol)
   private
     _index: NSInteger;
     _identity: id;
@@ -77,8 +77,6 @@ type
     _reserved8: id;
     
   public
-    class function alloc: NSTouch; message 'alloc';
-
     function nSObject: id; message 'nSObject';
     function identity: id; message 'identity';
     function phase: NSTouchPhase; message 'phase';
@@ -89,7 +87,7 @@ type
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

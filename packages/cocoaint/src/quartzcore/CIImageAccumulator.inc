@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CIImageAccumulator.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,13 +42,11 @@
 {$define CIIMAGEACCUMULATOR_PAS_C}
 
 { CIImageAccumulator }
-  CIImageAccumulator = objcclass(NSObject)
+  CIImageAccumulator = objcclass external (NSObject)
   private
     _state: Pointer;
     
   public
-    class function alloc: CIImageAccumulator; message 'alloc';
-
     class function imageAccumulatorWithExtent_format(r: CGRect; f: CIFormat): CIImageAccumulator; message 'imageAccumulatorWithExtent:format:';
     function initWithExtent_format(r: CGRect; f: CIFormat): id; message 'initWithExtent:format:';
     function extent: CGRect; message 'extent';
@@ -57,7 +55,7 @@
     procedure setImage(im: CIImage); message 'setImage:';
     procedure setImage_dirtyRect(im: CIImage; r: CGRect); message 'setImage:dirtyRect:';
     procedure clear; message 'clear';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

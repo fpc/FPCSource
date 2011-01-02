@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSApplicationScripting.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -39,15 +39,15 @@
 {$define NSAPPLICATIONSCRIPTING_PAS_C}
 
 { NSScripting_NSApplicationCategory }
-  NSScripting_NSApplicationCategory = objccategory(NSApplication)
+  NSScripting_NSApplicationCategory = objccategory external name 'NSScripting' (NSApplication)
     function orderedDocuments: NSArray; message 'orderedDocuments';
     function orderedWindows: NSArray; message 'orderedWindows';
-  end; external name 'NSScripting';
+  end;
 
 { NSApplicationScriptingDelegationCategory }
-  NSApplicationScriptingDelegationCategory = objccategory(NSObject)
+  NSApplicationScriptingDelegationCategory = objccategory external (NSObject)
     function application_delegateHandlesKey(sender: NSApplication; key: NSString): Boolean; message 'application:delegateHandlesKey:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLTableElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLTABLEELEMENT_PAS_C}
 
 { DOMHTMLTableElement }
-  DOMHTMLTableElement = objcclass(DOMHTMLElement)
+  DOMHTMLTableElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLTableElement; message 'alloc';
-
     procedure setCaption (newValue: DOMHTMLTableCaptionElement); message 'setCaption:';
     function caption: DOMHTMLTableCaptionElement; message 'caption';
     procedure setTHead (newValue: DOMHTMLTableSectionElement); message 'setTHead:';
@@ -81,7 +79,7 @@
     procedure deleteCaption; message 'deleteCaption';
     function insertRow(index: cint): DOMHTMLElement; message 'insertRow:';
     procedure deleteRow(index: cint); message 'deleteRow:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

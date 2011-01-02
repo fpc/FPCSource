@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMNodeFilter.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -59,8 +59,8 @@ const
 {$define DOMNODEFILTER_PAS_P}
   
 { DOMNodeFilter Protocol }
-  DOMNodeFilterProtocol = objcprotocol
+  DOMNodeFilterProtocol = objcprotocol external name 'DOMNodeFilter'
     function acceptNode(n: DOMNode): cshort; message 'acceptNode:';
-  end; external name 'DOMNodeFilter';
+  end;
 {$endif}
 {$endif}

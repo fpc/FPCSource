@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CAAnimation.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -73,14 +73,12 @@ var
 {$define CAANIMATION_PAS_C}
 
 { CAAnimation }
-  CAAnimation = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol, CAMediaTimingProtocol, CAActionProtocol)
+  CAAnimation = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol, CAMediaTimingProtocol, CAActionProtocol)
   private
     __attr: Pointer;
     _flags: cuint32;
     
   public
-    class function alloc: CAAnimation; message 'alloc';
-
     class function animation: id; message 'animation';
     class function defaultValueForKey(key: NSString): id; message 'defaultValueForKey:';
     function shouldArchiveValueForKey(key: NSString): Boolean; message 'shouldArchiveValueForKey:';
@@ -111,14 +109,12 @@ var
     function autoreverses: Boolean;
     procedure setFillMode (newValue: NSString);
     function fillMode: NSString;
-  end; external;
+  end;
 
 { CAPropertyAnimation }
-  CAPropertyAnimation = objcclass(CAAnimation)
+  CAPropertyAnimation = objcclass external (CAAnimation)
     
   public
-    class function alloc: CAPropertyAnimation; message 'alloc';
-
     class function animationWithKeyPath(path: NSString): id; message 'animationWithKeyPath:';
     procedure setKeyPath (newValue: NSString); message 'setKeyPath:';
     function keyPath: NSString; message 'keyPath';
@@ -128,28 +124,24 @@ var
     function isCumulative: Boolean; message 'isCumulative';
     procedure setValueFunction (newValue: CAValueFunction); message 'setValueFunction:';
     function valueFunction: CAValueFunction; message 'valueFunction';
-  end; external;
+  end;
 
 { CABasicAnimation }
-  CABasicAnimation = objcclass(CAPropertyAnimation)
+  CABasicAnimation = objcclass external (CAPropertyAnimation)
     
   public
-    class function alloc: CABasicAnimation; message 'alloc';
-
     procedure setFromValue (newValue: id); message 'setFromValue:';
     function fromValue: id; message 'fromValue';
     procedure setToValue (newValue: id); message 'setToValue:';
     function toValue: id; message 'toValue';
     procedure setByValue (newValue: id); message 'setByValue:';
     function byValue: id; message 'byValue';
-  end; external;
+  end;
 
 { CAKeyframeAnimation }
-  CAKeyframeAnimation = objcclass(CAPropertyAnimation)
+  CAKeyframeAnimation = objcclass external (CAPropertyAnimation)
     
   public
-    class function alloc: CAKeyframeAnimation; message 'alloc';
-
     procedure setValues (newValue: NSArray); message 'setValues:';
     function values: NSArray; message 'values';
     procedure setPath (newValue: CGPathRef); message 'setPath:';
@@ -162,14 +154,12 @@ var
     function calculationMode: NSString; message 'calculationMode';
     procedure setRotationMode (newValue: NSString); message 'setRotationMode:';
     function rotationMode: NSString; message 'rotationMode';
-  end; external;
+  end;
 
 { CATransition }
-  CATransition = objcclass(CAAnimation)
+  CATransition = objcclass external (CAAnimation)
     
   public
-    class function alloc: CATransition; message 'alloc';
-
     procedure setType (newValue: NSString); message 'setType:';
     function type_: NSString; message 'type_';
     procedure setSubtype (newValue: NSString); message 'setSubtype:';
@@ -180,23 +170,21 @@ var
     function endProgress: single; message 'endProgress';
     procedure setFilter (newValue: id); message 'setFilter:';
     function filter: id; message 'filter';
-  end; external;
+  end;
 
 { CAAnimationGroup }
-  CAAnimationGroup = objcclass(CAAnimation)
+  CAAnimationGroup = objcclass external (CAAnimation)
     
   public
-    class function alloc: CAAnimationGroup; message 'alloc';
-
     procedure setAnimations (newValue: NSArray); message 'setAnimations:';
     function animations: NSArray; message 'animations';
-  end; external;
+  end;
 
 { CAAnimationDelegateCategory }
-  CAAnimationDelegateCategory = objccategory(NSObject)
+  CAAnimationDelegateCategory = objccategory external (NSObject)
     procedure animationDidStart(anim: CAAnimation); message 'animationDidStart:';
     procedure animationDidStop_finished(anim: CAAnimation; flag: Boolean); message 'animationDidStop:finished:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

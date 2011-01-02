@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSOpenPanel.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,14 +42,12 @@
 {$define NSOPENPANEL_PAS_C}
 
 { NSOpenPanel }
-  NSOpenPanel = objcclass(NSSavePanel)
+  NSOpenPanel = objcclass external (NSSavePanel)
   private
         _reservedOpenPanel: array[0..3] of char;
     _privateOpenPanel: Pointer;
     
   public
-    class function alloc: NSOpenPanel; message 'alloc';
-
     class function openPanel: NSOpenPanel; message 'openPanel';
     function URLs: NSArray; message 'URLs';
     function resolvesAliases: Boolean; message 'resolvesAliases';
@@ -60,16 +58,16 @@
     procedure setAllowsMultipleSelection(flag: Boolean); message 'setAllowsMultipleSelection:';
     function canChooseFiles: Boolean; message 'canChooseFiles';
     procedure setCanChooseFiles(flag: Boolean); message 'setCanChooseFiles:';
-  end; external;
+  end;
 
 { NSDeprecated_NSOpenPanelCategory }
-  NSDeprecated_NSOpenPanelCategory = objccategory(NSOpenPanel)
+  NSDeprecated_NSOpenPanelCategory = objccategory external name 'NSDeprecated' (NSOpenPanel)
     function filenames: NSArray; message 'filenames';
     procedure beginSheetForDirectory_file_types_modalForWindow_modalDelegate_didEndSelector_contextInfo(path: NSString; name: NSString; fileTypes: NSArray; docWindow: NSWindow; delegate_: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginSheetForDirectory:file:types:modalForWindow:modalDelegate:didEndSelector:contextInfo:';
     procedure beginForDirectory_file_types_modelessDelegate_didEndSelector_contextInfo(path: NSString; name: NSString; fileTypes: NSArray; delegate_: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginForDirectory:file:types:modelessDelegate:didEndSelector:contextInfo:';
     function runModalForDirectory_file_types(path: NSString; name: NSString; fileTypes: NSArray): NSInteger; message 'runModalForDirectory:file:types:';
     function runModalForTypes(fileTypes: NSArray): NSInteger; message 'runModalForTypes:';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSDecimalNumber.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -53,7 +53,7 @@ var
 {$define NSDECIMALNUMBER_PAS_C}
 
 { NSDecimalNumber }
-  NSDecimalNumber = objcclass(NSNumber)
+  NSDecimalNumber = objcclass external (NSNumber)
   private
     _anoninternstruct_NSDecimalNumber0: bitpacked record
       case byte of
@@ -71,8 +71,6 @@ var
     _mantissa: cushort;
     
   public
-    class function alloc: NSDecimalNumber; message 'alloc';
-
     function initWithMantissa_exponent_isNegative(mantissa: culonglong; exponent: cshort; flag: Boolean): id; message 'initWithMantissa:exponent:isNegative:';
     function initWithDecimal(dcm: NSDecimal): id; message 'initWithDecimal:';
     function initWithString(numberValue: NSString): id; message 'initWithString:';
@@ -106,10 +104,10 @@ var
     class function defaultBehavior: id; message 'defaultBehavior';
     function objCType: PChar; message 'objCType';
     function doubleValue: double; message 'doubleValue';
-  end; external;
+  end;
 
 { NSDecimalNumberHandler }
-  NSDecimalNumberHandler = objcclass(NSObject, NSDecimalNumberBehaviorsProtocol, NSCodingProtocol)
+  NSDecimalNumberHandler = objcclass external (NSObject, NSDecimalNumberBehaviorsProtocol, NSCodingProtocol)
   private
     _anoninternstruct_NSDecimalNumber1: bitpacked record
       case byte of
@@ -128,8 +126,6 @@ var
     _reserved: Pointer;
     
   public
-    class function alloc: NSDecimalNumberHandler; message 'alloc';
-
     class function defaultDecimalNumberHandler: id; message 'defaultDecimalNumberHandler';
     function initWithRoundingMode_scale_raiseOnExactness_raiseOnOverflow_raiseOnUnderflow_raiseOnDivideByZero(roundingMode: NSRoundingMode; scale: cshort; exact: Boolean; overflow: Boolean; underflow: Boolean; divideByZero: Boolean): id; message 'initWithRoundingMode:scale:raiseOnExactness:raiseOnOverflow:raiseOnUnderflow:raiseOnDivideByZero:';
     class function decimalNumberHandlerWithRoundingMode_scale_raiseOnExactness_raiseOnOverflow_raiseOnUnderflow_raiseOnDivideByZero(roundingMode: NSRoundingMode; scale: cshort; exact: Boolean; overflow: Boolean; underflow: Boolean; divideByZero: Boolean): id; message 'decimalNumberHandlerWithRoundingMode:scale:raiseOnExactness:raiseOnOverflow:raiseOnUnderflow:raiseOnDivideByZero:';
@@ -140,17 +136,17 @@ var
     function exceptionDuringOperation_error_leftOperand_rightOperand(operation: SEL; error: NSCalculationError; leftOperand: NSDecimalNumber; rightOperand: NSDecimalNumber): NSDecimalNumber;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSDecimalNumberExtensionsCategory }
-  NSDecimalNumberExtensionsCategory = objccategory(NSNumber)
+  NSDecimalNumberExtensionsCategory = objccategory external (NSNumber)
     function decimalValue: NSDecimal; message 'decimalValue';
-  end; external;
+  end;
 
 { NSDecimalNumberScanningCategory }
-  NSDecimalNumberScanningCategory = objccategory(NSScanner)
+  NSDecimalNumberScanningCategory = objccategory external (NSScanner)
     function scanDecimal(dcm: NSDecimalPtr): Boolean; message 'scanDecimal:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -159,10 +155,10 @@ var
 {$define NSDECIMALNUMBER_PAS_P}
   
 { NSDecimalNumberBehaviors Protocol }
-  NSDecimalNumberBehaviorsProtocol = objcprotocol
+  NSDecimalNumberBehaviorsProtocol = objcprotocol external name 'NSDecimalNumberBehaviors'
     function roundingMode: NSRoundingMode; message 'roundingMode';
     function scale: cshort; message 'scale';
     function exceptionDuringOperation_error_leftOperand_rightOperand(operation: SEL; error: NSCalculationError; leftOperand: NSDecimalNumber; rightOperand: NSDecimalNumber): NSDecimalNumber; message 'exceptionDuringOperation:error:leftOperand:rightOperand:';
-  end; external name 'NSDecimalNumberBehaviors';
+  end;
 {$endif}
 {$endif}

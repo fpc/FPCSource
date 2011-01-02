@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPointerFunctions.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -63,11 +63,9 @@ type
 {$define NSPOINTERFUNCTIONS_PAS_C}
 
 { NSPointerFunctions }
-  NSPointerFunctions = objcclass(NSObject, NSCopyingProtocol)
+  NSPointerFunctions = objcclass external (NSObject, NSCopyingProtocol)
     
   public
-    class function alloc: NSPointerFunctions; message 'alloc';
-
     function initWithOptions(options: NSPointerFunctionsOptions): id; message 'initWithOptions:';
     class function pointerFunctionsWithOptions(options: NSPointerFunctionsOptions): id; message 'pointerFunctionsWithOptions:';
 (*
@@ -89,7 +87,7 @@ type
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

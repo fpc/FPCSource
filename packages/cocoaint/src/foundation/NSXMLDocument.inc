@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSXMLDocument.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -55,7 +55,7 @@ type
 {$define NSXMLDOCUMENT_PAS_C}
 
 { NSXMLDocument }
-  NSXMLDocument = objcclass(NSXMLNode)
+  NSXMLDocument = objcclass external (NSXMLNode)
   private
     _encoding: NSString;
     _version: NSString;
@@ -71,8 +71,6 @@ type
     _contentKind: NSXMLDocumentContentKind;
     
   public
-    class function alloc: NSXMLDocument; message 'alloc';
-
     function initWithXMLString_options_error(string_: NSString; mask: NSUInteger; error: NSErrorPointer): id; message 'initWithXMLString:options:error:';
     function initWithContentsOfURL_options_error(url: NSURL; mask: NSUInteger; error: NSErrorPointer): id; message 'initWithContentsOfURL:options:error:';
     function initWithData_options_error(data: NSData; mask: NSUInteger; error: NSErrorPointer): id; message 'initWithData:options:error:';
@@ -104,7 +102,7 @@ type
     function objectByApplyingXSLTString_arguments_error(xslt: NSString; arguments: NSDictionary; error: NSErrorPointer): id; message 'objectByApplyingXSLTString:arguments:error:';
     function objectByApplyingXSLTAtURL_arguments_error(xsltURL: NSURL; argument: NSDictionary; error: NSErrorPointer): id; message 'objectByApplyingXSLTAtURL:arguments:error:';
     function validateAndReturnError(error: NSErrorPointer): Boolean; message 'validateAndReturnError:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

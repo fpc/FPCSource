@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebDataSource.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,13 +42,11 @@
 {$define WEBDATASOURCE_PAS_C}
 
 { WebDataSource }
-  WebDataSource = objcclass(NSObject)
+  WebDataSource = objcclass external (NSObject)
   private
     _private: WebDataSourcePrivate;
     
   public
-    class function alloc: WebDataSource; message 'alloc';
-
     function initWithRequest(request_: NSURLRequest): id; message 'initWithRequest:';
     function data: NSData; message 'data';
     function representation: id; message 'representation';
@@ -65,7 +63,7 @@
     function subresources: NSArray; message 'subresources';
     function subresourceForURL(URL: NSURL): WebResource; message 'subresourceForURL:';
     procedure addSubresource(subresource: WebResource); message 'addSubresource:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

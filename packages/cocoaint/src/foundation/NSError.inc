@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSError.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -59,7 +59,7 @@ var
 {$define NSERROR_PAS_C}
 
 { NSError }
-  NSError = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSError = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _reserved: Pointer;
     _code: NSInteger;
@@ -67,8 +67,6 @@ var
     _userInfo: NSDictionary;
     
   public
-    class function alloc: NSError; message 'alloc';
-
     function initWithDomain_code_userInfo(domain_: NSString; code_: NSInteger; dict: NSDictionary): id; message 'initWithDomain:code:userInfo:';
     class function errorWithDomain_code_userInfo(domain_: NSString; code_: NSInteger; dict: NSDictionary): id; message 'errorWithDomain:code:userInfo:';
     function domain: NSString; message 'domain';
@@ -85,13 +83,13 @@ var
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSErrorRecoveryAttemptingCategory }
-  NSErrorRecoveryAttemptingCategory = objccategory(NSObject)
+  NSErrorRecoveryAttemptingCategory = objccategory external (NSObject)
     procedure attemptRecoveryFromError_optionIndex_delegate_didRecoverSelector_contextInfo(error: NSError; recoveryOptionIndex: NSUInteger; delegate: id; didRecoverSelector: SEL; contextInfo: Pointer); message 'attemptRecoveryFromError:optionIndex:delegate:didRecoverSelector:contextInfo:';
     function attemptRecoveryFromError_optionIndex(error: NSError; recoveryOptionIndex: NSUInteger): Boolean; message 'attemptRecoveryFromError:optionIndex:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

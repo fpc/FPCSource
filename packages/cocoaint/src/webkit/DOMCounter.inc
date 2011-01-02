@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCounter.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,15 +42,13 @@
 {$define DOMCOUNTER_PAS_C}
 
 { DOMCounter }
-  DOMCounter = objcclass(DOMObject)
+  DOMCounter = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMCounter; message 'alloc';
-
     function identifier: NSString; message 'identifier';
     function listStyle: NSString; message 'listStyle';
     function separator: NSString; message 'separator';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

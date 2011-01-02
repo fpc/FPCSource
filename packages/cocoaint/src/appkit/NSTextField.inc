@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextField.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -43,14 +43,12 @@
 {$define NSTEXTFIELD_PAS_C}
 
 { NSTextField }
-  NSTextField = objcclass(NSControl, NSUserInterfaceValidationsProtocol)
+  NSTextField = objcclass external (NSControl, NSUserInterfaceValidationsProtocol)
   private
     _delegate: id;
     _errorAction: SEL;
     
   public
-    class function alloc: NSTextField; message 'alloc';
-
     procedure setBackgroundColor(color: NSColor); message 'setBackgroundColor:';
     function backgroundColor: NSColor; message 'backgroundColor';
     procedure setDrawsBackground(flag: Boolean); message 'setDrawsBackground:';
@@ -79,20 +77,20 @@
 
     { Adopted Protocols }
     function validateUserInterfaceItem(anItem: id): Boolean;
-  end; external;
+  end;
 
 { NSKeyboardUI_NSTextFieldCategory }
-  NSKeyboardUI_NSTextFieldCategory = objccategory(NSTextField)
+  NSKeyboardUI_NSTextFieldCategory = objccategory external name 'NSKeyboardUI' (NSTextField)
     procedure setTitleWithMnemonic(stringWithAmpersand: NSString); message 'setTitleWithMnemonic:';
-  end; external name 'NSKeyboardUI';
+  end;
 
 { NSTextFieldAttributedStringMethodsCategory }
-  NSTextFieldAttributedStringMethodsCategory = objccategory(NSTextField)
+  NSTextFieldAttributedStringMethodsCategory = objccategory external (NSTextField)
     function allowsEditingTextAttributes: Boolean; message 'allowsEditingTextAttributes';
     procedure setAllowsEditingTextAttributes(flag: Boolean); message 'setAllowsEditingTextAttributes:';
     function importsGraphics: Boolean; message 'importsGraphics';
     procedure setImportsGraphics(flag: Boolean); message 'setImportsGraphics:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -101,7 +99,7 @@
 {$define NSTEXTFIELD_PAS_P}
   
 { NSTextFieldDelegate Protocol }
-  NSTextFieldDelegateProtocol = objcprotocol
-  end; external name 'NSTextFieldDelegate';
+  NSTextFieldDelegateProtocol = objcprotocol external name 'NSTextFieldDelegate'
+  end;
 {$endif}
 {$endif}

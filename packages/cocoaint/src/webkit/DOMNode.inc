@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMNode.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -64,11 +64,9 @@ const
 {$define DOMNODE_PAS_C}
 
 { DOMNode }
-  DOMNode = objcclass(DOMObject, DOMEventTargetProtocol)
+  DOMNode = objcclass external (DOMObject, DOMEventTargetProtocol)
     
   public
-    class function alloc: DOMNode; message 'alloc';
-
     function nodeName: NSString; message 'nodeName';
     procedure setNodeValue (newValue: NSString); message 'setNodeValue:';
     function nodeValue: NSString; message 'nodeValue';
@@ -112,14 +110,14 @@ const
     function dispatchEvent(event: DOMEvent): Boolean;
     procedure addEventListener(type_: NSString; listener: id; useCapture: Boolean);
     procedure removeEventListener(type_: NSString; listener: id; useCapture: Boolean);
-  end; external;
+  end;
 
 { DOMNodeDeprecatedCategory }
-  DOMNodeDeprecatedCategory = objccategory(DOMNode)
+  DOMNodeDeprecatedCategory = objccategory external (DOMNode)
     function insertBefore(newChild: DOMNode; refChild: DOMNode): DOMNode; message 'insertBefore:newChild:';
     function replaceChild(newChild: DOMNode; oldChild: DOMNode): DOMNode; message 'replaceChild:newChild:';
     function isSupported(feature: NSString; version_: NSString): Boolean; message 'isSupported:feature:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

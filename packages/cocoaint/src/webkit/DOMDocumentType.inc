@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMDocumentType.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,18 +42,16 @@
 {$define DOMDOCUMENTTYPE_PAS_C}
 
 { DOMDocumentType }
-  DOMDocumentType = objcclass(DOMNode)
+  DOMDocumentType = objcclass external (DOMNode)
     
   public
-    class function alloc: DOMDocumentType; message 'alloc';
-
     function name: NSString; message 'name';
     function entities: DOMNamedNodeMap; message 'entities';
     function notations: DOMNamedNodeMap; message 'notations';
     function publicId: NSString; message 'publicId';
     function systemId: NSString; message 'systemId';
     function internalSubset: NSString; message 'internalSubset';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CAShapeLayer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -53,11 +53,9 @@ var
 {$define CASHAPELAYER_PAS_C}
 
 { CAShapeLayer }
-  CAShapeLayer = objcclass(CALayer)
+  CAShapeLayer = objcclass external (CALayer)
     
   public
-    class function alloc: CAShapeLayer; message 'alloc';
-
     procedure setPath (newValue: CGPathRef); message 'setPath:';
     function path: CGPathRef; message 'path';
     procedure setFillColor (newValue: CGColorRef); message 'setFillColor:';
@@ -78,7 +76,7 @@ var
     function lineDashPhase: CGFloat; message 'lineDashPhase';
     procedure setLineDashPattern (newValue: NSArray); message 'setLineDashPattern:';
     function lineDashPattern: NSArray; message 'lineDashPattern';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

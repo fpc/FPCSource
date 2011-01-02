@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSTextCheckingResult.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -79,11 +79,9 @@ var
 {$define NSTEXTCHECKINGRESULT_PAS_C}
 
 { NSTextCheckingResult }
-  NSTextCheckingResult = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSTextCheckingResult = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
     
   public
-    class function alloc: NSTextCheckingResult; message 'alloc';
-
     function resultType: NSTextCheckingType; message 'resultType';
     function range: NSRange; message 'range';
 
@@ -91,10 +89,10 @@ var
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSTextCheckingResultOptionalCategory }
-  NSTextCheckingResultOptionalCategory = objccategory(NSTextCheckingResult)
+  NSTextCheckingResultOptionalCategory = objccategory external (NSTextCheckingResult)
     function orthography: NSOrthography; message 'orthography';
     function grammarDetails: NSArray; message 'grammarDetails';
     function date: NSDate; message 'date';
@@ -103,10 +101,10 @@ var
     function addressComponents: NSDictionary; message 'addressComponents';
     function uRL: NSURL; message 'uRL';
     function replacementString: NSString; message 'replacementString';
-  end; external;
+  end;
 
 { NSTextCheckingResultCreationCategory }
-  NSTextCheckingResultCreationCategory = objccategory(NSTextCheckingResult)
+  NSTextCheckingResultCreationCategory = objccategory external (NSTextCheckingResult)
     class function orthographyCheckingResultWithRange_orthography(range_: NSRange; orthography_: NSOrthography): NSTextCheckingResult; message 'orthographyCheckingResultWithRange:orthography:';
     class function spellCheckingResultWithRange(range_: NSRange): NSTextCheckingResult; message 'spellCheckingResultWithRange:';
     class function grammarCheckingResultWithRange_details(range_: NSRange; details: NSArray): NSTextCheckingResult; message 'grammarCheckingResultWithRange:details:';
@@ -118,7 +116,7 @@ var
     class function dashCheckingResultWithRange_replacementString(range_: NSRange; replacementString_: NSString): NSTextCheckingResult; message 'dashCheckingResultWithRange:replacementString:';
     class function replacementCheckingResultWithRange_replacementString(range_: NSRange; replacementString_: NSString): NSTextCheckingResult; message 'replacementCheckingResultWithRange:replacementString:';
     class function correctionCheckingResultWithRange_replacementString(range_: NSRange; replacementString_: NSString): NSTextCheckingResult; message 'correctionCheckingResultWithRange:replacementString:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

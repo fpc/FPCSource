@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSpellProtocol.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -40,13 +40,13 @@
 {$define NSSPELLPROTOCOL_PAS_P}
   
 { NSChangeSpelling Protocol }
-  NSChangeSpellingProtocol = objcprotocol
+  NSChangeSpellingProtocol = objcprotocol external name 'NSChangeSpelling'
     procedure changeSpelling(sender: id); message 'changeSpelling:';
-  end; external name 'NSChangeSpelling';
+  end;
   
 { NSIgnoreMisspelledWords Protocol }
-  NSIgnoreMisspelledWordsProtocol = objcprotocol
+  NSIgnoreMisspelledWordsProtocol = objcprotocol external name 'NSIgnoreMisspelledWords'
     procedure ignoreSpelling(sender: id); message 'ignoreSpelling:';
-  end; external name 'NSIgnoreMisspelledWords';
+  end;
 {$endif}
 {$endif}

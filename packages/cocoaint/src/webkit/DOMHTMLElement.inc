@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLELEMENT_PAS_C}
 
 { DOMHTMLElement }
-  DOMHTMLElement = objcclass(DOMElement)
+  DOMHTMLElement = objcclass external (DOMElement)
     
   public
-    class function alloc: DOMHTMLElement; message 'alloc';
-
     procedure setIdName (newValue: NSString); message 'setIdName:';
     function idName: NSString; message 'idName';
     procedure setTitle (newValue: NSString); message 'setTitle:';
@@ -72,7 +70,7 @@
     function contentEditable: NSString; message 'contentEditable';
     function isContentEditable: Boolean; message 'isContentEditable';
     function titleDisplayString: NSString; message 'titleDisplayString';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

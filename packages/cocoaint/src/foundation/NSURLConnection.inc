@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLConnection.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,13 +42,11 @@
 {$define NSURLCONNECTION_PAS_C}
 
 { NSURLConnection }
-  NSURLConnection = objcclass(NSObject)
+  NSURLConnection = objcclass external (NSObject)
   private
     _internal: NSURLConnectionInternal;
     
   public
-    class function alloc: NSURLConnection; message 'alloc';
-
     class function canHandleRequest(request: NSURLRequest): Boolean; message 'canHandleRequest:';
     class function connectionWithRequest_delegate(request: NSURLRequest; delegate: id): NSURLConnection; message 'connectionWithRequest:delegate:';
     function initWithRequest_delegate(request: NSURLRequest; delegate: id): id; message 'initWithRequest:delegate:';
@@ -57,10 +55,10 @@
     procedure cancel; message 'cancel';
     procedure scheduleInRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'scheduleInRunLoop:forMode:';
     procedure unscheduleFromRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'unscheduleFromRunLoop:forMode:';
-  end; external;
+  end;
 
 { NSURLConnectionDelegateCategory }
-  NSURLConnectionDelegateCategory = objccategory(NSObject)
+  NSURLConnectionDelegateCategory = objccategory external (NSObject)
     function connection_willSendRequest_redirectResponse(connection: NSURLConnection; request: NSURLRequest; response: NSURLResponse): NSURLRequest; message 'connection:willSendRequest:redirectResponse:';
     function connection_needNewBodyStream(connection: NSURLConnection; request: NSURLRequest): NSInputStream; message 'connection:needNewBodyStream:';
     function connection_canAuthenticateAgainstProtectionSpace(connection: NSURLConnection; protectionSpace: NSURLProtectionSpace): Boolean; message 'connection:canAuthenticateAgainstProtectionSpace:';
@@ -73,12 +71,12 @@
     procedure connectionDidFinishLoading(connection: NSURLConnection); message 'connectionDidFinishLoading:';
     procedure connection_didFailWithError(connection: NSURLConnection; error: NSError); message 'connection:didFailWithError:';
     function connection_willCacheResponse(connection: NSURLConnection; cachedResponse: NSCachedURLResponse): NSCachedURLResponse; message 'connection:willCacheResponse:';
-  end; external;
+  end;
 
 { NSURLConnectionSynchronousLoadingCategory }
-  NSURLConnectionSynchronousLoadingCategory = objccategory(NSURLConnection)
+  NSURLConnectionSynchronousLoadingCategory = objccategory external (NSURLConnection)
     class function sendSynchronousRequest_returningResponse_error(request: NSURLRequest; response: NSURLResponsePointer; error: NSErrorPointer): NSData; message 'sendSynchronousRequest:returningResponse:error:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

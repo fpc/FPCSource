@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSHTTPCookieStorage.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -59,13 +59,11 @@ var
 {$define NSHTTPCOOKIESTORAGE_PAS_C}
 
 { NSHTTPCookieStorage }
-  NSHTTPCookieStorage = objcclass(NSObject)
+  NSHTTPCookieStorage = objcclass external (NSObject)
   private
     _internal: NSHTTPCookieStorageInternal;
     
   public
-    class function alloc: NSHTTPCookieStorage; message 'alloc';
-
     class function sharedHTTPCookieStorage: NSHTTPCookieStorage; message 'sharedHTTPCookieStorage';
     function initWithStorageLocation(storageFileURL: NSURL): id; message 'initWithStorageLocation:';
     function cookies: NSArray; message 'cookies';
@@ -75,7 +73,7 @@ var
     procedure setCookies_forURL_mainDocumentURL(cookies_: NSArray; URL: NSURL; mainDocumentURL: NSURL); message 'setCookies:forURL:mainDocumentURL:';
     function cookieAcceptPolicy: NSHTTPCookieAcceptPolicy; message 'cookieAcceptPolicy';
     procedure setCookieAcceptPolicy(cookieAcceptPolicy_: NSHTTPCookieAcceptPolicy); message 'setCookieAcceptPolicy:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

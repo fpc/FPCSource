@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMenu.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -68,7 +68,7 @@ var
 {$define NSMENU_PAS_C}
 
 { NSMenu }
-  NSMenu = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSMenu = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _supermenu: NSMenu;
     _title: NSString;
@@ -99,8 +99,6 @@ var
     _name: NSString;
     
   public
-    class function alloc: NSMenu; message 'alloc';
-
     function initWithTitle(aTitle: NSString): id; message 'initWithTitle:';
     procedure setTitle(aString: NSString); message 'setTitle:';
     function title: NSString; message 'title';
@@ -159,25 +157,25 @@ var
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSSubmenuActionCategory }
-  NSSubmenuActionCategory = objccategory(NSMenu)
+  NSSubmenuActionCategory = objccategory external (NSMenu)
     procedure submenuAction(sender: id); message 'submenuAction:';
-  end; external;
+  end;
 
 { NSMenuValidationCategory }
-  NSMenuValidationCategory = objccategory(NSObject)
+  NSMenuValidationCategory = objccategory external (NSObject)
     function validateMenuItem(menuItem: NSMenuItem): Boolean; message 'validateMenuItem:';
-  end; external;
+  end;
 
 { NSMenuPropertiesToUpdateCategory }
-  NSMenuPropertiesToUpdateCategory = objccategory(NSMenu)
+  NSMenuPropertiesToUpdateCategory = objccategory external (NSMenu)
     function propertiesToUpdate: NSMenuProperties; message 'propertiesToUpdate';
-  end; external;
+  end;
 
 { NSDeprecated_NSMenuCategory }
-  NSDeprecated_NSMenuCategory = objccategory(NSMenu)
+  NSDeprecated_NSMenuCategory = objccategory external name 'NSDeprecated' (NSMenu)
     procedure setMenuRepresentation(menuRep: id); message 'setMenuRepresentation:'; deprecated 'in Mac OS X 10.2 and later';
     function menuRepresentation: id; message 'menuRepresentation'; deprecated 'in Mac OS X 10.2 and later';
     procedure setContextMenuRepresentation(menuRep: id); message 'setContextMenuRepresentation:'; deprecated 'in Mac OS X 10.2 and later';
@@ -189,7 +187,7 @@ var
     function isAttached: Boolean; message 'isAttached'; deprecated 'in Mac OS X 10.2 and later';
     procedure sizeToFit; message 'sizeToFit'; deprecated 'in Mac OS X 10.2 and later';
     function locationForSubmenu(aSubmenu: NSMenu): NSPoint; message 'locationForSubmenu:'; deprecated 'in Mac OS X 10.2 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}
@@ -198,7 +196,7 @@ var
 {$define NSMENU_PAS_P}
   
 { NSMenuDelegate Protocol }
-  NSMenuDelegateProtocol = objcprotocol
+  NSMenuDelegateProtocol = objcprotocol external name 'NSMenuDelegate'
     procedure menuNeedsUpdate(menu: NSMenu); message 'menuNeedsUpdate:';
     function numberOfItemsInMenu(menu: NSMenu): NSInteger; message 'numberOfItemsInMenu:';
     function menu_updateItem_atIndex_shouldCancel(menu: NSMenu; item: NSMenuItem; index: NSInteger; shouldCancel: Boolean): Boolean; message 'menu:updateItem:atIndex:shouldCancel:';
@@ -207,6 +205,6 @@ var
     procedure menuDidClose(menu: NSMenu); message 'menuDidClose:';
     procedure menu_willHighlightItem(menu: NSMenu; item: NSMenuItem); message 'menu:willHighlightItem:';
     function confinementRectForMenu_onScreen(menu: NSMenu; screen: NSScreen): NSRect; message 'confinementRectForMenu:onScreen:';
-  end; external name 'NSMenuDelegate';
+  end;
 {$endif}
 {$endif}

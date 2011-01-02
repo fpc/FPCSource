@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSString.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -115,11 +115,9 @@ var
 {$define NSSTRING_PAS_C}
 
 { NSString }
-  NSString = objcclass(NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol)
+  NSString = objcclass external (NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol)
     
   public
-    class function alloc: NSString; message 'alloc';
-
     function length: NSUInteger; message 'length';
     function characterAtIndex(index: NSUInteger): unichar; message 'characterAtIndex:';
 
@@ -128,19 +126,17 @@ var
     function mutableCopyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSMutableString }
-  NSMutableString = objcclass(NSString)
+  NSMutableString = objcclass external (NSString)
     
   public
-    class function alloc: NSMutableString; message 'alloc';
-
     procedure replaceCharactersInRange_withString(range: NSRange; aString: NSString); message 'replaceCharactersInRange:withString:';
-  end; external;
+  end;
 
 { NSSimpleCString }
-  NSSimpleCString = objcclass(NSString)
+  NSSimpleCString = objcclass external (NSString)
   private
     bytes: PChar;
     numBytes: cint;
@@ -149,18 +145,16 @@ var
     {$endif}
     
   public
-    class function alloc: NSSimpleCString; message 'alloc';
-  end; external;
+  end;
 
 { NSConstantString }
-  NSConstantString = objcclass(NSSimpleCString)
+  NSConstantString = objcclass external (NSSimpleCString)
     
   public
-    class function alloc: NSConstantString; message 'alloc';
-  end; external;
+  end;
 
 { NSStringExtensionMethodsCategory }
-  NSStringExtensionMethodsCategory = objccategory(NSString)
+  NSStringExtensionMethodsCategory = objccategory external (NSString)
     procedure getCharacters_range(buffer: PChar; aRange: NSRange); message 'getCharacters:range:';
     function substringFromIndex(from: NSUInteger): NSString; message 'substringFromIndex:';
     function substringToIndex(to_: NSUInteger): NSString; message 'substringToIndex:';
@@ -259,10 +253,10 @@ var
     class function stringWithContentsOfFile_usedEncoding_error(path: NSString; enc: NSStringEncodingPtr; error: NSErrorPointer): id; message 'stringWithContentsOfFile:usedEncoding:error:';
     function writeToURL_atomically_encoding_error(url: NSURL; useAuxiliaryFile: Boolean; enc: NSStringEncoding; error: NSErrorPointer): Boolean; message 'writeToURL:atomically:encoding:error:';
     function writeToFile_atomically_encoding_error(path: NSString; useAuxiliaryFile: Boolean; enc: NSStringEncoding; error: NSErrorPointer): Boolean; message 'writeToFile:atomically:encoding:error:';
-  end; external;
+  end;
 
 { NSMutableStringExtensionMethodsCategory }
-  NSMutableStringExtensionMethodsCategory = objccategory(NSMutableString)
+  NSMutableStringExtensionMethodsCategory = objccategory external (NSMutableString)
     procedure insertString_atIndex(aString: NSString; loc: NSUInteger); message 'insertString:atIndex:';
     procedure deleteCharactersInRange(range: NSRange); message 'deleteCharactersInRange:';
     procedure appendString(aString: NSString); message 'appendString:';
@@ -271,16 +265,16 @@ var
     function initWithCapacity(capacity: NSUInteger): id; message 'initWithCapacity:';
     class function stringWithCapacity(capacity: NSUInteger): id; message 'stringWithCapacity:';
     function replaceOccurrencesOfString_withString_options_range(target: NSString; replacement: NSString; options: NSStringCompareOptions; searchRange: NSRange): NSUInteger; message 'replaceOccurrencesOfString:withString:options:range:';
-  end; external;
+  end;
 
 { NSExtendedStringPropertyListParsingCategory }
-  NSExtendedStringPropertyListParsingCategory = objccategory(NSString)
+  NSExtendedStringPropertyListParsingCategory = objccategory external (NSString)
     function propertyList: id; message 'propertyList';
     function propertyListFromStringsFileFormat: NSDictionary; message 'propertyListFromStringsFileFormat';
-  end; external;
+  end;
 
 { NSStringDeprecatedCategory }
-  NSStringDeprecatedCategory = objccategory(NSString)
+  NSStringDeprecatedCategory = objccategory external (NSString)
     function cString: PChar; message 'cString'; deprecated 'in Mac OS X 10.4 and later';
     function lossyCString: PChar; message 'lossyCString'; deprecated 'in Mac OS X 10.4 and later';
     function cStringLength: NSUInteger; message 'cStringLength'; deprecated 'in Mac OS X 10.4 and later';
@@ -299,7 +293,7 @@ var
     class function stringWithCString_length(bytes: PChar; length_: NSUInteger): id; message 'stringWithCString:length:'; deprecated 'in Mac OS X 10.4 and later';
     class function stringWithCString(bytes: PChar): id; message 'stringWithCString:'; deprecated 'in Mac OS X 10.4 and later';
     procedure getCharacters(buffer: PChar); message 'getCharacters:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

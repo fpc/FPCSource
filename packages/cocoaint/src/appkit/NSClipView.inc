@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSClipView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSCLIPVIEW_PAS_C}
 
 { NSClipView }
-  NSClipView = objcclass(NSView)
+  NSClipView = objcclass external (NSView)
   private
     _backgroundColor: NSColor;
     _docView: NSView;
@@ -75,8 +75,6 @@
       end;
     
   public
-    class function alloc: NSClipView; message 'alloc';
-
     procedure setBackgroundColor(color: NSColor); message 'setBackgroundColor:';
     function backgroundColor: NSColor; message 'backgroundColor';
     procedure setDrawsBackground(flag: Boolean); message 'setDrawsBackground:';
@@ -94,13 +92,13 @@
     function autoscroll(theEvent: NSEvent): Boolean; message 'autoscroll:';
     function constrainScrollPoint(newOrigin: NSPoint): NSPoint; message 'constrainScrollPoint:';
     procedure scrollToPoint(newOrigin: NSPoint); message 'scrollToPoint:';
-  end; external;
+  end;
 
 { NSClipViewSuperviewCategory }
-  NSClipViewSuperviewCategory = objccategory(NSView)
+  NSClipViewSuperviewCategory = objccategory external (NSView)
     procedure reflectScrolledClipView(aClipView: NSClipView); message 'reflectScrolledClipView:';
     procedure scrollClipView_toPoint(aClipView: NSClipView; aPoint: NSPoint); message 'scrollClipView:toPoint:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

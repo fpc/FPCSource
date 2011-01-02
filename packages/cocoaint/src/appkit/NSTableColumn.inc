@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTableColumn.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -47,7 +47,7 @@ const
 {$define NSTABLECOLUMN_PAS_C}
 
 { NSTableColumn }
-  NSTableColumn = objcclass(NSObject, NSCodingProtocol)
+  NSTableColumn = objcclass external (NSObject, NSCodingProtocol)
   private
     _identifier: id;
     _width: CGFloat;
@@ -73,8 +73,6 @@ const
     _tcAuxiliaryStorage: id;
     
   public
-    class function alloc: NSTableColumn; message 'alloc';
-
     function initWithIdentifier(identifier_: id): id; message 'initWithIdentifier:';
     procedure setIdentifier(identifier_: id); message 'setIdentifier:';
     function identifier: id; message 'identifier';
@@ -106,13 +104,13 @@ const
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSDeprecated_NSTableColumnCategory }
-  NSDeprecated_NSTableColumnCategory = objccategory(NSTableColumn)
+  NSDeprecated_NSTableColumnCategory = objccategory external name 'NSDeprecated' (NSTableColumn)
     procedure setResizable(flag: Boolean); message 'setResizable:'; deprecated 'in Mac OS X 10.4 and later';
     function isResizable: Boolean; message 'isResizable'; deprecated 'in Mac OS X 10.4 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}

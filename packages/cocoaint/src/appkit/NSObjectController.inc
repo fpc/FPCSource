@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSObjectController.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSOBJECTCONTROLLER_PAS_C}
 
 { NSObjectController }
-  NSObjectController = objcclass(NSController)
+  NSObjectController = objcclass external (NSController)
   private
     _reserved3: Pointer;
     _managedProxy: id;
@@ -68,8 +68,6 @@
     _objectHandler: id;
     
   public
-    class function alloc: NSObjectController; message 'alloc';
-
     function initWithContent(content_: id): id; message 'initWithContent:';
     procedure setContent(content_: id); message 'setContent:';
     function content: id; message 'content';
@@ -90,10 +88,10 @@
     procedure remove(sender: id); message 'remove:';
     function canRemove: Boolean; message 'canRemove';
     function validateUserInterfaceItem(item: id): Boolean; message 'validateUserInterfaceItem:';
-  end; external;
+  end;
 
 { NSManagedControllerCategory }
-  NSManagedControllerCategory = objccategory(NSObjectController)
+  NSManagedControllerCategory = objccategory external (NSObjectController)
     function managedObjectContext: NSManagedObjectContext; message 'managedObjectContext';
     procedure setManagedObjectContext(managedObjectContext_: NSManagedObjectContext); message 'setManagedObjectContext:';
     function entityName: NSString; message 'entityName';
@@ -105,7 +103,7 @@
     procedure setUsesLazyFetching(enabled: Boolean); message 'setUsesLazyFetching:';
     function usesLazyFetching: Boolean; message 'usesLazyFetching';
     function defaultFetchRequest: NSFetchRequest; message 'defaultFetchRequest';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

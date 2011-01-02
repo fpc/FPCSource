@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCSSStyleSheet.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMCSSSTYLESHEET_PAS_C}
 
 { DOMCSSStyleSheet }
-  DOMCSSStyleSheet = objcclass(DOMStyleSheet)
+  DOMCSSStyleSheet = objcclass external (DOMStyleSheet)
     
   public
-    class function alloc: DOMCSSStyleSheet; message 'alloc';
-
     function ownerRule: DOMCSSRule; message 'ownerRule';
     function cssRules: DOMCSSRuleList; message 'cssRules';
     function rules: DOMCSSRuleList; message 'rules';
@@ -54,12 +52,12 @@
     procedure deleteRule(index: cuint); message 'deleteRule:';
     function addRule_style_index(selector: NSString; style: NSString; index: cuint): cint; message 'addRule:style:index:';
     procedure removeRule(index: cuint); message 'removeRule:';
-  end; external;
+  end;
 
 { DOMCSSStyleSheetDeprecatedCategory }
-  DOMCSSStyleSheetDeprecatedCategory = objccategory(DOMCSSStyleSheet)
+  DOMCSSStyleSheetDeprecatedCategory = objccategory external (DOMCSSStyleSheet)
     function insertRule(rule: NSString; index: cuint): cuint; message 'insertRule:rule:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

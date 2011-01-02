@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSNotification.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -45,11 +45,9 @@
 {$define NSNOTIFICATION_PAS_C}
 
 { NSNotification }
-  NSNotification = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSNotification = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
     
   public
-    class function alloc: NSNotification; message 'alloc';
-
     function name: NSString; message 'name';
     function object_: id; message 'object';
     function userInfo: NSDictionary; message 'userInfo';
@@ -58,18 +56,16 @@
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSNotificationCenter }
-  NSNotificationCenter = objcclass(NSObject)
+  NSNotificationCenter = objcclass external (NSObject)
   private
     _impl: Pointer; {garbage collector: __strong }
         _callback_block: array[0..3] of Pointer;
         _pad: array[0..7] of Pointer;
     
   public
-    class function alloc: NSNotificationCenter; message 'alloc';
-
     class function defaultCenter: id; message 'defaultCenter';
     procedure addObserver_selector_name_object(observer: id; aSelector: SEL; aName: NSString; anObject: id); message 'addObserver:selector:name:object:';
     procedure postNotification(notification: NSNotification); message 'postNotification:';
@@ -77,13 +73,13 @@
     procedure postNotificationName_object_userInfo(aName: NSString; anObject: id; aUserInfo: NSDictionary); message 'postNotificationName:object:userInfo:';
     procedure removeObserver(observer: id); message 'removeObserver:';
     procedure removeObserver_name_object(observer: id; aName: NSString; anObject: id); message 'removeObserver:name:object:';
-  end; external;
+  end;
 
 { NSNotificationCreationCategory }
-  NSNotificationCreationCategory = objccategory(NSNotification)
+  NSNotificationCreationCategory = objccategory external (NSNotification)
     class function notificationWithName_object(aName: NSString; anObject: id): id; message 'notificationWithName:object:';
     class function notificationWithName_object_userInfo(aName: NSString; anObject: id; aUserInfo: NSDictionary): id; message 'notificationWithName:object:userInfo:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

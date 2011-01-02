@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CIColor.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,14 +42,12 @@
 {$define CICOLOR_PAS_C}
 
 { CIColor }
-  CIColor = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
+  CIColor = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     _priv: Pointer;
         _pad: array[0..2] of Pointer;
     
   public
-    class function alloc: CIColor; message 'alloc';
-
     class function colorWithCGColor(c: CGColorRef): CIColor; message 'colorWithCGColor:';
     class function colorWithRed_green_blue_alpha(r: CGFloat; g: CGFloat; b: CGFloat; a: CGFloat): CIColor; message 'colorWithRed:green:blue:alpha:';
     class function colorWithRed_green_blue(r: CGFloat; g: CGFloat; b: CGFloat): CIColor; message 'colorWithRed:green:blue:';
@@ -68,7 +66,7 @@
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

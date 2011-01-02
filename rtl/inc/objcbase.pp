@@ -25,10 +25,10 @@ uses
   ctypes;
 
 type
-  NSString = objcclass; external;
-  NSInvocation = objcclass; external;
-  NSMethodSignature = objcclass; external;
-  NSCoder = objcclass; external;
+  NSString = objcclass external;
+  NSInvocation = objcclass external;
+  NSMethodSignature = objcclass external;
+  NSCoder = objcclass external;
 
 { needed by NSZone.h below }
 {$if defined(cpu64) or defined(cpuarm) or defined(win32)}
@@ -78,10 +78,10 @@ const
   function NSRealMemoryAvailable: NSUInteger; cdecl; external;
 
 type
-  Protocol = objcclass
-  end; external;
+  Protocol = objcclass external
+  end;
 
-  NSObjectProtocol = objcprotocol
+  NSObjectProtocol = objcprotocol external name 'NSObject'
     function isEqual(obj: id): boolean; message 'isEqual:';
     function hash: cuint; message 'hash';
 
@@ -108,13 +108,13 @@ type
     function retain: id; message 'retain';
     procedure release;  message 'release'; { oneway }
     function autorelease: id; message 'autorelease';
-    function retainCount: cint; message 'retainCount';
+    function retainCount: NSUInteger; message 'retainCount';
 
     function description: NSString; message 'description';
-  end; external name 'NSObject';
+  end;
 
 
-  NSObject = objcclass(NSObjectProtocol)
+  NSObject = objcclass external (NSObjectProtocol)
    strict protected
     isa: pobjc_class;
    public
@@ -154,7 +154,7 @@ type
     function retain: id;
     procedure release; { oneway }
     function autorelease: id;
-    function retainCount: cint;
+    function retainCount: NSUInteger;
 
     function description: NSString;
 
@@ -216,41 +216,41 @@ type
     // class that's also called classDescription
     class function _classDescription: NSString; message 'description';
 
-  end; external;
+  end;
 
 
-  NSCoderMethods = objccategory(NSObject)
+  NSCoderMethods = objccategory external (NSObject)
     class function version: cint; message 'version';
     class procedure setVersion(aVersion: cint); message 'setVersion:';
     function classForCoder: pobjc_class; message 'classForCoder';
     function replacementObjectForCoder(aCoder: NSCoder): id; message 'replacementObjectForCoder:';
     function awakeAfterUsingCoder(aDecoder: NSCoder): id; message 'awakeAfterUsingCoder:';
-  end; external;   
+  end;
 
 
-  NSCopyingProtocol = objcprotocol
+  NSCopyingProtocol = objcprotocol external name 'NSCopying'
     function copyWithZone(zone_: NSZonePtr): id; message 'copyWithZone:';
-  end; external name 'NSCopying';
+  end;
 
 
 { NSMutableCopying Protocol }
-  NSMutableCopyingProtocol = objcprotocol
+  NSMutableCopyingProtocol = objcprotocol external name 'NSMutableCopying'
     function mutableCopyWithZone(zone_: NSZonePtr): id; message 'mutableCopyWithZone:';
-  end; external name 'NSMutableCopying';
+  end;
   
 { NSCoding Protocol }
-  NSCodingProtocol = objcprotocol
+  NSCodingProtocol = objcprotocol external name 'NSCoding'
     procedure encodeWithCoder(aCoder: NSCoder); message 'encodeWithCoder:';
     function initWithCoder(aDecoder: NSCoder): id; message 'initWithCoder:';
-  end; external name 'NSCoding';
+  end;
   
 { NSDiscardableContent Protocol }
-  NSDiscardableContentProtocol = objcprotocol
+  NSDiscardableContentProtocol = objcprotocol external name 'NSDiscardableContent'
     function beginContentAccess: Boolean; message 'beginContentAccess';
     procedure endContentAccess; message 'endContentAccess';
     procedure discardContentIfPossible; message 'discardContentIfPossible';
     function isContentDiscarded: Boolean; message 'isContentDiscarded';
-  end; external name 'NSDiscardableContent';
+  end;
 
 implementation
 

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSRulerMarker.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSRULERMARKER_PAS_C}
 
 { NSRulerMarker }
-  NSRulerMarker = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSRulerMarker = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _ruler: NSRulerView;
     _location: CGFloat;
@@ -62,8 +62,6 @@
     _representedObject: id;
     
   public
-    class function alloc: NSRulerMarker; message 'alloc';
-
     function initWithRulerView_markerLocation_image_imageOrigin(ruler_: NSRulerView; location: CGFloat; image_: NSImage; imageOrigin_: NSPoint): id; message 'initWithRulerView:markerLocation:image:imageOrigin:';
     function ruler: NSRulerView; message 'ruler';
     procedure setMarkerLocation(location: CGFloat); message 'setMarkerLocation:';
@@ -88,7 +86,7 @@
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

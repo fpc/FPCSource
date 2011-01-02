@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSFormCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,15 +42,13 @@
 {$define NSFORMCELL_PAS_C}
 
 { NSFormCell }
-  NSFormCell = objcclass(NSActionCell)
+  NSFormCell = objcclass external (NSActionCell)
   private
     _titleWidth: CGFloat;
     _titleCell: id;
     _titleEndPoint: CGFloat;
     
   public
-    class function alloc: NSFormCell; message 'alloc';
-
     function initTextCell(aString: NSString): id; message 'initTextCell:';
     function titleWidth(aSize: NSSize): CGFloat; message 'titleWidth:';
     procedure setTitleWidth(width: CGFloat); message 'setTitleWidth:';
@@ -67,18 +65,18 @@
     function placeholderAttributedString: NSAttributedString; message 'placeholderAttributedString';
     function titleBaseWritingDirection: NSWritingDirection; message 'titleBaseWritingDirection';
     procedure setTitleBaseWritingDirection(writingDirection: NSWritingDirection); message 'setTitleBaseWritingDirection:';
-  end; external;
+  end;
 
 { NSKeyboardUI_NSFormCellCategory }
-  NSKeyboardUI_NSFormCellCategory = objccategory(NSFormCell)
+  NSKeyboardUI_NSFormCellCategory = objccategory external name 'NSKeyboardUI' (NSFormCell)
     procedure setTitleWithMnemonic(stringWithAmpersand: NSString); message 'setTitleWithMnemonic:';
-  end; external name 'NSKeyboardUI';
+  end;
 
 { NSFormCellAttributedStringMethodsCategory }
-  NSFormCellAttributedStringMethodsCategory = objccategory(NSFormCell)
+  NSFormCellAttributedStringMethodsCategory = objccategory external (NSFormCell)
     function attributedTitle: NSAttributedString; message 'attributedTitle';
     procedure setAttributedTitle(obj: NSAttributedString); message 'setAttributedTitle:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

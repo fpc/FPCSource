@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCSSValueList.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,14 +42,12 @@
 {$define DOMCSSVALUELIST_PAS_C}
 
 { DOMCSSValueList }
-  DOMCSSValueList = objcclass(DOMCSSValue)
+  DOMCSSValueList = objcclass external (DOMCSSValue)
     
   public
-    class function alloc: DOMCSSValueList; message 'alloc';
-
     function length: cuint; message 'length';
     function item(index: cuint): DOMCSSValue; message 'item:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

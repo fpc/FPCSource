@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSPersistentStoreCoordinator.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -78,7 +78,7 @@ var
 {$define NSPERSISTENTSTORECOORDINATOR_PAS_C}
 
 { NSPersistentStoreCoordinator }
-  NSPersistentStoreCoordinator = objcclass(NSObject, NSLockingProtocol)
+  NSPersistentStoreCoordinator = objcclass external (NSObject, NSLockingProtocol)
   private
     _reserved: Pointer;
     _reserved2: Pointer;
@@ -89,8 +89,6 @@ var
     _persistentStores: NSMutableArray;
     
   public
-    class function alloc: NSPersistentStoreCoordinator; message 'alloc';
-
     class function registeredStoreTypes: NSDictionary; message 'registeredStoreTypes';
     class procedure registerStoreClass_forStoreType(storeClass: Pobjc_class; storeType: NSString); message 'registerStoreClass:forStoreType:';
     class function metadataForPersistentStoreOfType_URL_error(storeType: NSString; url: NSURL; error: NSErrorPointer): NSDictionary; message 'metadataForPersistentStoreOfType:URL:error:';
@@ -115,7 +113,7 @@ var
     class function metadataForPersistentStoreWithURL_error(url: NSURL; error: NSErrorPointer): NSDictionary; message 'metadataForPersistentStoreWithURL:error:'; deprecated 'in Mac OS X 10.5 and later';
 
     { Adopted Protocols }
-  end; external;
+  end;
 
 {$endif}
 {$endif}

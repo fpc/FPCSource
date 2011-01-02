@@ -8,7 +8,7 @@
 {$modeswitch objectivec1}
 
 type
-  NSArray = objcclass; external;
+  NSArray = objcclass external;
 
   MyObject = objcclass(NSArray)
   end;

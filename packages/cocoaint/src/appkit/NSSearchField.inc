@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSearchField.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSSEARCHFIELD_PAS_C}
 
 { NSSearchField }
-  NSSearchField = objcclass(NSTextField)
+  NSSearchField = objcclass external (NSTextField)
   private
     _reserved1: cuint;
     _reserved2: cuint;
@@ -50,13 +50,11 @@
     _reserved4: cuint;
     
   public
-    class function alloc: NSSearchField; message 'alloc';
-
     procedure setRecentSearches(searches: NSArray); message 'setRecentSearches:';
     function recentSearches: NSArray; message 'recentSearches';
     procedure setRecentsAutosaveName(string_: NSString); message 'setRecentsAutosaveName:';
     function recentsAutosaveName: NSString; message 'recentsAutosaveName';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

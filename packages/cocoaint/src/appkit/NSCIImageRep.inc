@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSCIImageRep.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,24 +42,22 @@
 {$define NSCIIMAGEREP_PAS_C}
 
 { NSCIImageRep }
-  NSCIImageRep = objcclass(NSImageRep)
+  NSCIImageRep = objcclass external (NSImageRep)
   private
     _ciImage: CIImage;
     
   public
-    class function alloc: NSCIImageRep; message 'alloc';
-
     class function imageRepWithCIImage(image: CIImage): id; message 'imageRepWithCIImage:';
     function initWithCIImage(image: CIImage): id; message 'initWithCIImage:';
     function CIImage: CIImage; message 'CIImage';
-  end; external;
+  end;
 
 { NSAppKitAdditions_CIImageCategory }
-  NSAppKitAdditions_CIImageCategory = objccategory(CIImage)
+  NSAppKitAdditions_CIImageCategory = objccategory external name 'NSAppKitAdditions' (CIImage)
     function initWithBitmapImageRep(bitmapImageRep: NSBitmapImageRep): id; message 'initWithBitmapImageRep:';
     procedure drawInRect_fromRect_operation_fraction(rect: NSRect; fromRect: NSRect; op: NSCompositingOperation; delta: CGFloat); message 'drawInRect:fromRect:operation:fraction:';
     procedure drawAtPoint_fromRect_operation_fraction(point: NSPoint; fromRect: NSRect; op: NSCompositingOperation; delta: CGFloat); message 'drawAtPoint:fromRect:operation:fraction:';
-  end; external name 'NSAppKitAdditions';
+  end;
 
 {$endif}
 {$endif}

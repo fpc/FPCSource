@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLLIElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,16 +42,14 @@
 {$define DOMHTMLLIELEMENT_PAS_C}
 
 { DOMHTMLLIElement }
-  DOMHTMLLIElement = objcclass(DOMHTMLElement)
+  DOMHTMLLIElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLLIElement; message 'alloc';
-
     procedure setType (newValue: NSString); message 'setType:';
     function type_: NSString; message 'type_';
     procedure setValue (newValue: cint); message 'setValue:';
     function value: cint; message 'value';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

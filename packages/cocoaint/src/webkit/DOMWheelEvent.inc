@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMWheelEvent.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMWHEELEVENT_PAS_C}
 
 { DOMWheelEvent }
-  DOMWheelEvent = objcclass(DOMUIEvent)
+  DOMWheelEvent = objcclass external (DOMUIEvent)
     
   public
-    class function alloc: DOMWheelEvent; message 'alloc';
-
     function screenX: cint; message 'screenX';
     function screenY: cint; message 'screenY';
     function clientX: cint; message 'clientX';
@@ -64,7 +62,7 @@
     function y: cint; message 'y';
     function isHorizontal: Boolean; message 'isHorizontal';
     procedure initWheelEvent_wheelDeltaY_view_screenX_screenY_clientX_clientY_ctrlKey_altKey_shiftKey_metaKey(wheelDeltaX_: cint; wheelDeltaY_: cint; view_: DOMAbstractView; screenX_: cint; screenY_: cint; clientX_: cint; clientY_: cint; ctrlKey_: Boolean; altKey_: Boolean; shiftKey_: Boolean; metaKey_: Boolean); message 'initWheelEvent:wheelDeltaY:view:screenX:screenY:clientX:clientY:ctrlKey:altKey:shiftKey:metaKey:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

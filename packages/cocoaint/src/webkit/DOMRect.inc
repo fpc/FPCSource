@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMRect.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,16 +42,14 @@
 {$define DOMRECT_PAS_C}
 
 { DOMRect }
-  DOMRect = objcclass(DOMObject)
+  DOMRect = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMRect; message 'alloc';
-
     function top: DOMCSSPrimitiveValue; message 'top';
     function right: DOMCSSPrimitiveValue; message 'right';
     function bottom: DOMCSSPrimitiveValue; message 'bottom';
     function left: DOMCSSPrimitiveValue; message 'left';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

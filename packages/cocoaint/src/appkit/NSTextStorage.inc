@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextStorage.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -54,7 +54,7 @@ var
 {$define NSTEXTSTORAGE_PAS_C}
 
 { NSTextStorage }
-  NSTextStorage = objcclass(NSMutableAttributedString)
+  NSTextStorage = objcclass external (NSMutableAttributedString)
   private
     _editedRange: NSRange;
     _editedDelta: NSInteger;
@@ -74,8 +74,6 @@ var
     _sideData: id;
     
   public
-    class function alloc: NSTextStorage; message 'alloc';
-
     procedure addLayoutManager(obj: NSLayoutManager); message 'addLayoutManager:';
     procedure removeLayoutManager(obj: NSLayoutManager); message 'removeLayoutManager:';
     function layoutManagers: NSArray; message 'layoutManagers';
@@ -89,7 +87,7 @@ var
     function changeInLength: NSInteger; message 'changeInLength';
     procedure setDelegate(delegate_: id); message 'setDelegate:';
     function delegate: id; message 'delegate';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -98,9 +96,9 @@ var
 {$define NSTEXTSTORAGE_PAS_P}
   
 { NSTextStorageDelegate Protocol }
-  NSTextStorageDelegateProtocol = objcprotocol
+  NSTextStorageDelegateProtocol = objcprotocol external name 'NSTextStorageDelegate'
     procedure textStorageWillProcessEditing(notification: NSNotification); message 'textStorageWillProcessEditing:';
     procedure textStorageDidProcessEditing(notification: NSNotification); message 'textStorageDidProcessEditing:';
-  end; external name 'NSTextStorageDelegate';
+  end;
 {$endif}
 {$endif}

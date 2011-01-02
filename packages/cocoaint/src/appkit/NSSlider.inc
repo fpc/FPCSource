@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSlider.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define NSSLIDER_PAS_C}
 
 { NSSlider }
-  NSSlider = objcclass(NSControl)
+  NSSlider = objcclass external (NSControl)
     
   public
-    class function alloc: NSSlider; message 'alloc';
-
     function minValue: double; message 'minValue';
     procedure setMinValue(aDouble: double); message 'setMinValue:';
     function maxValue: double; message 'maxValue';
@@ -67,10 +65,10 @@
     function image: NSImage; message 'image';
     function isVertical: NSInteger; message 'isVertical';
     function acceptsFirstMouse(theEvent: NSEvent): Boolean; message 'acceptsFirstMouse:';
-  end; external;
+  end;
 
 { NSTickMarkSupport_NSSliderCategory }
-  NSTickMarkSupport_NSSliderCategory = objccategory(NSSlider)
+  NSTickMarkSupport_NSSliderCategory = objccategory external name 'NSTickMarkSupport' (NSSlider)
     procedure setNumberOfTickMarks(count: NSInteger); message 'setNumberOfTickMarks:';
     function numberOfTickMarks: NSInteger; message 'numberOfTickMarks';
     procedure setTickMarkPosition(position: NSTickMarkPosition); message 'setTickMarkPosition:';
@@ -81,7 +79,7 @@
     function rectOfTickMarkAtIndex(index: NSInteger): NSRect; message 'rectOfTickMarkAtIndex:';
     function indexOfTickMarkAtPoint(point: NSPoint): NSInteger; message 'indexOfTickMarkAtPoint:';
     function closestTickMarkValueToValue(value: double): double; message 'closestTickMarkValueToValue:';
-  end; external name 'NSTickMarkSupport';
+  end;
 
 {$endif}
 {$endif}

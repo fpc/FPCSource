@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSMigrationManager.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSMIGRATIONMANAGER_PAS_C}
 
 { NSMigrationManager }
-  NSMigrationManager = objcclass(NSObject)
+  NSMigrationManager = objcclass external (NSObject)
   private
     _sourceModel: NSManagedObjectModel;
     _sourceEntitiesByVersionHash: NSDictionary;
@@ -68,8 +68,6 @@
     _reserved4: id;
     
   public
-    class function alloc: NSMigrationManager; message 'alloc';
-
     function initWithSourceModel_destinationModel(sourceModel_: NSManagedObjectModel; destinationModel_: NSManagedObjectModel): id; message 'initWithSourceModel:destinationModel:';
     function migrateStoreFromURL_type_options_withMappingModel_toDestinationURL_destinationType_destinationOptions_error(sourceURL: NSURL; sStoreType: NSString; sOptions: NSDictionary; mappings: NSMappingModel; dURL: NSURL; dStoreType: NSString; dOptions: NSDictionary; error: NSErrorPointer): Boolean; message 'migrateStoreFromURL:type:options:withMappingModel:toDestinationURL:destinationType:destinationOptions:error:';
     procedure reset; message 'reset';
@@ -88,7 +86,7 @@
     function userInfo: NSDictionary; message 'userInfo';
     procedure setUserInfo(dict: NSDictionary); message 'setUserInfo:';
     procedure cancelMigrationWithError(error: NSError); message 'cancelMigrationWithError:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

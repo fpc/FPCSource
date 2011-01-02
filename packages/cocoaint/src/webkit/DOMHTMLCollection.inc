@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLCollection.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,16 +42,14 @@
 {$define DOMHTMLCOLLECTION_PAS_C}
 
 { DOMHTMLCollection }
-  DOMHTMLCollection = objcclass(DOMObject)
+  DOMHTMLCollection = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMHTMLCollection; message 'alloc';
-
     function length: cuint; message 'length';
     function item(index: cuint): DOMNode; message 'item:';
     function namedItem(name: NSString): DOMNode; message 'namedItem:';
     function tags(name: NSString): DOMNodeList; message 'tags:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

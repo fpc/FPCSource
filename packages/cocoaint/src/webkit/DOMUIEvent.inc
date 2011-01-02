@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMUIEvent.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMUIEVENT_PAS_C}
 
 { DOMUIEvent }
-  DOMUIEvent = objcclass(DOMEvent)
+  DOMUIEvent = objcclass external (DOMEvent)
     
   public
-    class function alloc: DOMUIEvent; message 'alloc';
-
     function view: DOMAbstractView; message 'view';
     function detail: cint; message 'detail';
     function keyCode: cint; message 'keyCode';
@@ -57,12 +55,12 @@
     function pageY: cint; message 'pageY';
     function which: cint; message 'which';
     procedure initUIEvent_canBubble_cancelable_view_detail(type__: NSString; canBubble: Boolean; cancelable_: Boolean; view_: DOMAbstractView; detail_: cint); message 'initUIEvent:canBubble:cancelable:view:detail:';
-  end; external;
+  end;
 
 { DOMUIEventDeprecatedCategory }
-  DOMUIEventDeprecatedCategory = objccategory(DOMUIEvent)
+  DOMUIEventDeprecatedCategory = objccategory external (DOMUIEvent)
     procedure initUIEvent(type__: NSString; canBubble: Boolean; cancelable_: Boolean; view_: DOMAbstractView; detail_: cint); message 'initUIEvent:type:canBubble:cancelable:view:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

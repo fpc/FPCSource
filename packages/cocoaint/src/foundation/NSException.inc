@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSException.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -72,7 +72,7 @@ var
 {$define NSEXCEPTION_PAS_C}
 
 { NSException }
-  NSException = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSException = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _name: NSString;
     _reason: NSString;
@@ -80,8 +80,6 @@ var
     reserved: id;
     
   public
-    class function alloc: NSException; message 'alloc';
-
     class function exceptionWithName_reason_userInfo(name_: NSString; reason_: NSString; userInfo_: NSDictionary): NSException; message 'exceptionWithName:reason:userInfo:';
     function initWithName_reason_userInfo(aName: NSString; aReason: NSString; aUserInfo: NSDictionary): id; message 'initWithName:reason:userInfo:';
     function name: NSString; message 'name';
@@ -95,26 +93,24 @@ var
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSAssertionHandler }
-  NSAssertionHandler = objcclass(NSObject)
+  NSAssertionHandler = objcclass external (NSObject)
   private
     _reserved: Pointer;
     
   public
-    class function alloc: NSAssertionHandler; message 'alloc';
-
     class function currentHandler: NSAssertionHandler; message 'currentHandler';
     procedure handleFailureInMethod_object_file_lineNumber_description(selector: SEL; object_: id; fileName: NSString; line: NSInteger; firstKey: id); varargs; message 'handleFailureInMethod:object:file:lineNumber:description:';
     procedure handleFailureInFunction_file_lineNumber_description(functionName: NSString; fileName: NSString; line: NSInteger; firstKey: id); varargs; message 'handleFailureInFunction:file:lineNumber:description:';
-  end; external;
+  end;
 
 { NSExceptionRaisingConveniencesCategory }
-  NSExceptionRaisingConveniencesCategory = objccategory(NSException)
+  NSExceptionRaisingConveniencesCategory = objccategory external (NSException)
     class procedure raise_format(name_: NSString; firstKey: id); varargs; message 'raise:format:';
     class procedure raise_format_arguments(name_: NSString; format: NSString; argList: va_list); message 'raise:format:arguments:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

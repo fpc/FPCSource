@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDocument.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -65,7 +65,7 @@ type
 {$define NSDOCUMENT_PAS_C}
 
 { NSDocument }
-  NSDocument = objcclass(NSObject, NSUserInterfaceValidationsProtocol)
+  NSDocument = objcclass external (NSObject, NSUserInterfaceValidationsProtocol)
   private
     _window: NSWindow;
     _windowControllers: id;
@@ -96,8 +96,6 @@ type
     _savePanelSaveType: NSString;
     
   public
-    class function alloc: NSDocument; message 'alloc';
-
     function init: id; message 'init';
     function initWithType_error(typeName: NSString; outError: NSErrorPointer): id; message 'initWithType:error:';
     class function canConcurrentlyReadDocumentsOfType(typeName: NSString): Boolean; message 'canConcurrentlyReadDocumentsOfType:';
@@ -178,10 +176,10 @@ type
     function validateUserInterfaceItem(anItem: id): Boolean; message 'validateUserInterfaceItem:';
 
     { Adopted Protocols }
-  end; external;
+  end;
 
 { NSDeprecated_NSDocumentCategory }
-  NSDeprecated_NSDocumentCategory = objccategory(NSDocument)
+  NSDeprecated_NSDocumentCategory = objccategory external name 'NSDeprecated' (NSDocument)
     function dataRepresentationOfType(type_: NSString): NSData; message 'dataRepresentationOfType:'; deprecated 'in Mac OS X 10.4 and later';
     function fileAttributesToWriteToFile_ofType_saveOperation(fullDocumentPath: NSString; documentTypeName: NSString; saveOperationType: NSSaveOperationType): NSDictionary; message 'fileAttributesToWriteToFile:ofType:saveOperation:';
     function fileName: NSString; message 'fileName'; deprecated 'in Mac OS X 10.4 and later';
@@ -202,7 +200,7 @@ type
     function writeToFile_ofType_originalFile_saveOperation(fullDocumentPath: NSString; documentTypeName: NSString; fullOriginalDocumentPath: NSString; saveOperationType: NSSaveOperationType): Boolean; message 'writeToFile:ofType:originalFile:saveOperation:'; deprecated 'in Mac OS X 10.4 and later';
     function writeToURL_ofType(url: NSURL; type_: NSString): Boolean; message 'writeToURL:ofType:'; deprecated 'in Mac OS X 10.4 and later';
     function writeWithBackupToFile_ofType_saveOperation(fullDocumentPath: NSString; documentTypeName: NSString; saveOperationType: NSSaveOperationType): Boolean; message 'writeWithBackupToFile:ofType:saveOperation:'; deprecated 'in Mac OS X 10.4 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}

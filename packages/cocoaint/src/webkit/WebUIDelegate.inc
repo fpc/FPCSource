@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebUIDelegate.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -97,7 +97,7 @@ type
 {$define WEBUIDELEGATE_PAS_C}
 
 { WebUIDelegateCategory }
-  WebUIDelegateCategory = objccategory(NSObject)
+  WebUIDelegateCategory = objccategory external (NSObject)
     function webView_createWebViewWithRequest(sender: WebView; request: NSURLRequest): WebView; message 'webView:createWebViewWithRequest:';
     procedure webViewShow(sender: WebView); message 'webViewShow:';
     function webView_createWebViewModalDialogWithRequest(sender: WebView; request: NSURLRequest): WebView; message 'webView:createWebViewModalDialogWithRequest:';
@@ -141,7 +141,7 @@ type
     function webView_runJavaScriptTextInputPanelWithPrompt_defaultText(sender: WebView; prompt: NSString; defaultText: NSString): NSString; message 'webView:runJavaScriptTextInputPanelWithPrompt:defaultText:';
     procedure webView_setContentRect(sender: WebView; frame: NSRect); message 'webView:setContentRect:';
     function webViewContentRect(sender: WebView): NSRect; message 'webViewContentRect:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -150,10 +150,10 @@ type
 {$define WEBUIDELEGATE_PAS_P}
   
 { WebOpenPanelResultListener Protocol }
-  WebOpenPanelResultListenerProtocol = objcprotocol
+  WebOpenPanelResultListenerProtocol = objcprotocol external name 'WebOpenPanelResultListener'
     procedure chooseFilename(fileName: NSString); message 'chooseFilename:';
     procedure chooseFilenames(fileNames: NSArray); message 'chooseFilenames:';
     procedure cancel; message 'cancel';
-  end; external name 'WebOpenPanelResultListener';
+  end;
 {$endif}
 {$endif}

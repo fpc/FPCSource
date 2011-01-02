@@ -7,10 +7,10 @@
 {$modeswitch objectivec1}
 
 type
-  ta = objcclass
+  ta = objcclass external
     { no constructors in Objective-C }
     constructor create; message 'create';
-  end; external;
+  end;
 
 begin
 end.

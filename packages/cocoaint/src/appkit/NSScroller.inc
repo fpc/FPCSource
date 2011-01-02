@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSScroller.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -79,7 +79,7 @@ type
 {$define NSSCROLLER_PAS_C}
 
 { NSScroller }
-  NSScroller = objcclass(NSControl)
+  NSScroller = objcclass external (NSControl)
   private
     _curValue: CGFloat;
     _percent: CGFloat;
@@ -119,8 +119,6 @@ type
       end;
     
   public
-    class function alloc: NSScroller; message 'alloc';
-
     class function scrollerWidth: CGFloat; message 'scrollerWidth';
     class function scrollerWidthForControlSize(controlSize_: NSControlSize): CGFloat; message 'scrollerWidthForControlSize:';
     procedure drawParts; message 'drawParts';
@@ -143,12 +141,12 @@ type
     function hitPart: NSScrollerPart; message 'hitPart';
     function knobProportion: CGFloat; message 'knobProportion';
     procedure setKnobProportion(proportion: CGFloat); message 'setKnobProportion:';
-  end; external;
+  end;
 
 { NSDeprecated_NSScrollerCategory }
-  NSDeprecated_NSScrollerCategory = objccategory(NSScroller)
+  NSDeprecated_NSScrollerCategory = objccategory external name 'NSDeprecated' (NSScroller)
     procedure setFloatValue_knobProportion(aFloat: single; proportion: CGFloat); message 'setFloatValue:knobProportion:'; deprecated 'in Mac OS X 10.5 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}

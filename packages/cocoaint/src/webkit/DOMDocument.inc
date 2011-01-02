@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMDocument.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMDOCUMENT_PAS_C}
 
 { DOMDocument }
-  DOMDocument = objcclass(DOMNode)
+  DOMDocument = objcclass external (DOMNode)
     
   public
-    class function alloc: DOMDocument; message 'alloc';
-
     function doctype: DOMDocumentType; message 'doctype';
     function implementation_: DOMImplementation; message 'implementation_';
     function documentElement: DOMElement; message 'documentElement';
@@ -123,10 +121,10 @@
     function getElementsByClassName(tagname: NSString): DOMNodeList; message 'getElementsByClassName:';
     function querySelector(selectors: NSString): DOMElement; message 'querySelector:';
     function querySelectorAll(selectors: NSString): DOMNodeList; message 'querySelectorAll:';
-  end; external;
+  end;
 
 { DOMDocumentDeprecatedCategory }
-  DOMDocumentDeprecatedCategory = objccategory(DOMDocument)
+  DOMDocumentDeprecatedCategory = objccategory external (DOMDocument)
     function createProcessingInstruction(target: NSString; data: NSString): DOMProcessingInstruction; message 'createProcessingInstruction:target:';
     function importNode(importedNode: DOMNode; deep: Boolean): DOMNode; message 'importNode:importedNode:';
     function createElementNS(namespaceURI_: NSString; qualifiedName: NSString): DOMElement; message 'createElementNS:namespaceURI:';
@@ -138,7 +136,7 @@
     function createExpression(expression: NSString; resolver_BUT_DEPRECATED: id): DOMXPathExpression; message 'createExpression:expression:';
     function evaluate(expression: NSString; contextNode: DOMNode; resolver: id; type_: cushort; inResult_BUT_DEPRECATED: DOMXPathResult): DOMXPathResult; message 'evaluate:expression:contextNode:resolver:type:';
     function getComputedStyle(element: DOMElement; pseudoElement: NSString): DOMCSSStyleDeclaration; message 'getComputedStyle:element:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

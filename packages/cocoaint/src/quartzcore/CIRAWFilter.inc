@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CIRAWFilter.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -59,10 +59,10 @@ var
 {$define CIRAWFILTER_PAS_C}
 
 { CIRAWFilterCategory }
-  CIRAWFilterCategory = objccategory(CIFilter)
+  CIRAWFilterCategory = objccategory external (CIFilter)
     class function filterWithImageURL_options(url: NSURL; options: NSDictionary): CIFilter; message 'filterWithImageURL:options:';
     class function filterWithImageData_options(data: NSData; options: NSDictionary): CIFilter; message 'filterWithImageData:options:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

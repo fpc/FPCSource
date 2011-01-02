@@ -1957,6 +1957,11 @@ sym_e_objc_formal_class_not_resolved=05080_E_No complete definition of the forma
 % of the class to be in scope.
 sym_e_interprocgoto_into_init_final_code_not_allowed=05081_E_Gotos into initialization or finalization blocks of units are not allowed
 % Gotos into initialization or finalization blockse of units are not allowed.
+sym_e_external_class_name_mismatch1=05082=E_Invalid external name "$1" for formal class "$2"
+sym_e_external_class_name_mismatch2=05083=E_Complete class definition with external name "$1" here
+% When a class is declared using a formal external definition, the actual external
+% definition (if any) must specify the same external name as the formal definition
+% (since both definitions refer to the same actual class type).
 %
 % \end{description}
 #

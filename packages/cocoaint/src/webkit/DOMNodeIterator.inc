@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMNodeIterator.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMNODEITERATOR_PAS_C}
 
 { DOMNodeIterator }
-  DOMNodeIterator = objcclass(DOMObject)
+  DOMNodeIterator = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMNodeIterator; message 'alloc';
-
     function root: DOMNode; message 'root';
     function whatToShow: cuint; message 'whatToShow';
     function filter: id; message 'filter';
@@ -56,7 +54,7 @@
     function nextNode: DOMNode; message 'nextNode';
     function previousNode: DOMNode; message 'previousNode';
     procedure detach; message 'detach';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

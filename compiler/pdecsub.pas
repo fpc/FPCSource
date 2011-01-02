@@ -1661,7 +1661,11 @@ begin
   if not(is_class_or_interface_or_objc(tprocdef(pd).struct)) then
     Message(parser_e_no_object_override)
   else if is_objccategory(tprocdef(pd).struct) then
-    Message(parser_e_no_category_override);
+    Message(parser_e_no_category_override)
+  else if not is_objc_class_or_protocol(tprocdef(pd).struct) and
+          not is_cppclass(tprocdef(pd).struct) and
+          (po_external in pd.procoptions) then
+    Message1(parser_e_proc_dir_conflict,'OVERRIDE');
 end;
 
 procedure pd_overload(pd:tabstractprocdef);
@@ -1686,6 +1690,8 @@ begin
   { check parameter type }
   if not is_objc_class_or_protocol(tprocdef(pd).struct) then
     begin
+      if po_external in pd.procoptions then
+        Message1(parser_e_proc_dir_conflict,'MESSAGE');
       paracnt:=0;
       pd.parast.SymList.ForEachCall(@check_msg_para,@paracnt);
       if paracnt<>1 then
@@ -2210,7 +2216,7 @@ const
       pooption : []; { can be po_msgstr or po_msgint }
       mutexclpocall : [pocall_internproc];
       mutexclpotype : [potype_constructor,potype_destructor,potype_operator,potype_class_constructor,potype_class_destructor];
-      mutexclpo     : [po_interrupt,po_external,po_inline]
+      mutexclpo     : [po_interrupt,po_inline]
     ),(
       idtok:_MWPASCAL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
@@ -2255,7 +2261,7 @@ const
       pooption : [po_overridingmethod,po_virtualmethod];
       mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
-      mutexclpo     : [po_exports,po_external,po_interrupt,po_virtualmethod,po_inline]
+      mutexclpo     : [po_exports,po_interrupt,po_virtualmethod,po_inline]
     ),(
       idtok:_PASCAL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
@@ -2854,6 +2860,13 @@ const
             include(pd.procoptions,po_has_public_name);
             include(pd.procoptions,po_global);
           end;
+
+        { methods from external class definitions are all external themselves }
+        if (pd.typ=procdef) and
+           assigned(tprocdef(pd).struct) and
+           (tprocdef(pd).struct.typ=objectdef) and
+           (oo_is_external in tobjectdef(tprocdef(pd).struct).objectoptions) then
+          tprocdef(pd).make_external;
 
         { Class constructors and destructor are static class methods in real. }
         { There are many places in the compiler where either class or static  }

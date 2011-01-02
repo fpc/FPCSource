@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CATextLayer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -54,13 +54,11 @@ var
 {$define CATEXTLAYER_PAS_C}
 
 { CATextLayer }
-  CATextLayer = objcclass(CALayer)
+  CATextLayer = objcclass external (CALayer)
   private
     __state: Pointer;
     
   public
-    class function alloc: CATextLayer; message 'alloc';
-
     procedure setString (newValue: id); message 'setString:';
     function string_: id; message 'string_';
     procedure setFont (newValue: CFTypeRef); message 'setFont:';
@@ -75,7 +73,7 @@ var
     function truncationMode: NSString; message 'truncationMode';
     procedure setAlignmentMode (newValue: NSString); message 'setAlignmentMode:';
     function alignmentMode: NSString; message 'alignmentMode';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

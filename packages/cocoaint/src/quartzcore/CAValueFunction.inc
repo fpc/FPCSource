@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CAValueFunction.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -56,21 +56,19 @@ var
 {$define CAVALUEFUNCTION_PAS_C}
 
 { CAValueFunction }
-  CAValueFunction = objcclass(NSObject, NSCodingProtocol)
+  CAValueFunction = objcclass external (NSObject, NSCodingProtocol)
   private
     _string: NSString;
     _impl: Pointer;
     
   public
-    class function alloc: CAValueFunction; message 'alloc';
-
     class function functionWithName(name: NSString): id; message 'functionWithName:';
     function name: NSString; message 'name';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

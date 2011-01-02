@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLObjectElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLOBJECTELEMENT_PAS_C}
 
 { DOMHTMLObjectElement }
-  DOMHTMLObjectElement = objcclass(DOMHTMLElement)
+  DOMHTMLObjectElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLObjectElement; message 'alloc';
-
     function form: DOMHTMLFormElement; message 'form';
     procedure setCode (newValue: NSString); message 'setCode:';
     function code: NSString; message 'code';
@@ -82,7 +80,7 @@
     function width: NSString; message 'width';
     function contentDocument: DOMDocument; message 'contentDocument';
     function absoluteImageURL: NSURL; message 'absoluteImageURL';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

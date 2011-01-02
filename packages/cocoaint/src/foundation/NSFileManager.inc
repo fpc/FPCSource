@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSFileManager.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -106,11 +106,9 @@ var
 {$define NSFILEMANAGER_PAS_C}
 
 { NSFileManager }
-  NSFileManager = objcclass(NSObject)
+  NSFileManager = objcclass external (NSObject)
     
   public
-    class function alloc: NSFileManager; message 'alloc';
-
     class function defaultManager: NSFileManager; message 'defaultManager';
     function mountedVolumeURLsIncludingResourceValuesForKeys_options(propertyKeys: NSArray; options: NSVolumeEnumerationOptions): NSArray; message 'mountedVolumeURLsIncludingResourceValuesForKeys:options:';
     function contentsOfDirectoryAtURL_includingPropertiesForKeys_options_error(url: NSURL; keys: NSArray; mask: NSDirectoryEnumerationOptions; error: NSErrorPointer): NSArray; message 'contentsOfDirectoryAtURL:includingPropertiesForKeys:options:error:';
@@ -163,29 +161,27 @@ var
     function fileSystemRepresentationWithPath(path: NSString): PChar; message 'fileSystemRepresentationWithPath:';
     function stringWithFileSystemRepresentation_length(str: PChar; len: NSUInteger): NSString; message 'stringWithFileSystemRepresentation:length:';
     function replaceItemAtURL_withItemAtURL_backupItemName_options_resultingItemURL_error(originalItemURL: NSURL; newItemURL: NSURL; backupItemName: NSString; options: NSFileManagerItemReplacementOptions; resultingURL: NSURLPointer; error: NSErrorPointer): Boolean; message 'replaceItemAtURL:withItemAtURL:backupItemName:options:resultingItemURL:error:';
-  end; external;
+  end;
 
 { NSDirectoryEnumerator }
-  NSDirectoryEnumerator = objcclass(NSEnumerator)
+  NSDirectoryEnumerator = objcclass external (NSEnumerator)
     
   public
-    class function alloc: NSDirectoryEnumerator; message 'alloc';
-
     function fileAttributes: NSDictionary; message 'fileAttributes';
     function directoryAttributes: NSDictionary; message 'directoryAttributes';
     procedure skipDescendents; message 'skipDescendents';
     function level: NSUInteger; message 'level';
     procedure skipDescendants; message 'skipDescendants';
-  end; external;
+  end;
 
 { NSCopyLinkMoveHandlerCategory }
-  NSCopyLinkMoveHandlerCategory = objccategory(NSObject)
+  NSCopyLinkMoveHandlerCategory = objccategory external (NSObject)
     function fileManager_shouldProceedAfterError(fm: NSFileManager; errorInfo: NSDictionary): Boolean; message 'fileManager:shouldProceedAfterError:'; deprecated 'in Mac OS X 10.5 and later';
     procedure fileManager_willProcessPath(fm: NSFileManager; path: NSString); message 'fileManager:willProcessPath:'; deprecated 'in Mac OS X 10.5 and later';
-  end; external;
+  end;
 
 { NSFileManagerFileOperationAdditionsCategory }
-  NSFileManagerFileOperationAdditionsCategory = objccategory(NSObject)
+  NSFileManagerFileOperationAdditionsCategory = objccategory external (NSObject)
     function fileManager_shouldCopyItemAtPath_toPath(fileManager: NSFileManager; srcPath: NSString; dstPath: NSString): Boolean; message 'fileManager:shouldCopyItemAtPath:toPath:';
     function fileManager_shouldCopyItemAtURL_toURL(fileManager: NSFileManager; srcURL: NSURL; dstURL: NSURL): Boolean; message 'fileManager:shouldCopyItemAtURL:toURL:';
     function fileManager_shouldProceedAfterError_copyingItemAtPath_toPath(fileManager: NSFileManager; error: NSError; srcPath: NSString; dstPath: NSString): Boolean; message 'fileManager:shouldProceedAfterError:copyingItemAtPath:toPath:';
@@ -202,10 +198,10 @@ var
     function fileManager_shouldRemoveItemAtURL(fileManager: NSFileManager; URL: NSURL): Boolean; message 'fileManager:shouldRemoveItemAtURL:';
     function fileManager_shouldProceedAfterError_removingItemAtPath(fileManager: NSFileManager; error: NSError; path: NSString): Boolean; message 'fileManager:shouldProceedAfterError:removingItemAtPath:';
     function fileManager_shouldProceedAfterError_removingItemAtURL(fileManager: NSFileManager; error: NSError; URL: NSURL): Boolean; message 'fileManager:shouldProceedAfterError:removingItemAtURL:';
-  end; external;
+  end;
 
 { NSFileAttributesCategory }
-  NSFileAttributesCategory = objccategory(NSDictionary)
+  NSFileAttributesCategory = objccategory external (NSDictionary)
     function fileSize: culonglong; message 'fileSize';
     function fileModificationDate: NSDate; message 'fileModificationDate';
     function fileType: NSString; message 'fileType';
@@ -222,7 +218,7 @@ var
     function fileCreationDate: NSDate; message 'fileCreationDate';
     function fileOwnerAccountID: NSNumber; message 'fileOwnerAccountID';
     function fileGroupOwnerAccountID: NSNumber; message 'fileGroupOwnerAccountID';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

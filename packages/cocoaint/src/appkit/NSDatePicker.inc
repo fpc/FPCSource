@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDatePicker.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define NSDATEPICKER_PAS_C}
 
 { NSDatePicker }
-  NSDatePicker = objcclass(NSControl)
+  NSDatePicker = objcclass external (NSControl)
     
   public
-    class function alloc: NSDatePicker; message 'alloc';
-
     function datePickerStyle: NSDatePickerStyle; message 'datePickerStyle';
     procedure setDatePickerStyle(newStyle: NSDatePickerStyle); message 'setDatePickerStyle:';
     function isBezeled: Boolean; message 'isBezeled';
@@ -79,7 +77,7 @@
     procedure setMaxDate(date: NSDate); message 'setMaxDate:';
     function delegate: id; message 'delegate';
     procedure setDelegate(anObject: id); message 'setDelegate:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

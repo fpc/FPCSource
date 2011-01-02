@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLTextAreaElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLTEXTAREAELEMENT_PAS_C}
 
 { DOMHTMLTextAreaElement }
-  DOMHTMLTextAreaElement = objcclass(DOMHTMLElement)
+  DOMHTMLTextAreaElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLTextAreaElement; message 'alloc';
-
     procedure setDefaultValue (newValue: NSString); message 'setDefaultValue:';
     function defaultValue: NSString; message 'defaultValue';
     function form: DOMHTMLFormElement; message 'form';
@@ -74,7 +72,7 @@
     function selectionEnd: cint; message 'selectionEnd';
     procedure select; message 'select';
     procedure setSelectionRange_end(start: cint; end_: cint); message 'setSelectionRange:end:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

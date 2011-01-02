@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSMetadata.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -63,7 +63,7 @@ var
 {$define NSMETADATA_PAS_C}
 
 { NSMetadataQuery }
-  NSMetadataQuery = objcclass(NSObject)
+  NSMetadataQuery = objcclass external (NSObject)
   private
     _flags: NSUInteger;
     _interval: NSTimeInterval;
@@ -71,8 +71,6 @@ var
     _reserved: Pointer; {garbage collector: __strong }
     
   public
-    class function alloc: NSMetadataQuery; message 'alloc';
-
     function init: id; message 'init';
     function delegate: id; message 'delegate';
     procedure setDelegate(delegate_: id); message 'setDelegate:';
@@ -102,24 +100,22 @@ var
     function valueLists: NSDictionary; message 'valueLists';
     function groupedResults: NSArray; message 'groupedResults';
     function valueOfAttribute_forResultAtIndex(attrName: NSString; idx: NSUInteger): id; message 'valueOfAttribute:forResultAtIndex:';
-  end; external;
+  end;
 
 { NSMetadataItem }
-  NSMetadataItem = objcclass(NSObject)
+  NSMetadataItem = objcclass external (NSObject)
   private
     _item: id;
     _reserved: Pointer; {garbage collector: __strong }
     
   public
-    class function alloc: NSMetadataItem; message 'alloc';
-
     function valueForAttribute(key: NSString): id; message 'valueForAttribute:';
     function valuesForAttributes(keys: NSArray): NSDictionary; message 'valuesForAttributes:';
     function attributes: NSArray; message 'attributes';
-  end; external;
+  end;
 
 { NSMetadataQueryAttributeValueTuple }
-  NSMetadataQueryAttributeValueTuple = objcclass(NSObject)
+  NSMetadataQueryAttributeValueTuple = objcclass external (NSObject)
   private
     _attr: id;
     _value: id;
@@ -127,30 +123,26 @@ var
     _reserved: Pointer;
     
   public
-    class function alloc: NSMetadataQueryAttributeValueTuple; message 'alloc';
-
     function attribute: NSString; message 'attribute';
     function value: id; message 'value';
     function count: NSUInteger; message 'count';
-  end; external;
+  end;
 
 { NSMetadataQueryResultGroup }
-  NSMetadataQueryResultGroup = objcclass(NSObject)
+  NSMetadataQueryResultGroup = objcclass external (NSObject)
   private
         _private: array[0..8] of id;
     _private2: NSUInteger;
     _reserved: Pointer;
     
   public
-    class function alloc: NSMetadataQueryResultGroup; message 'alloc';
-
     function attribute: NSString; message 'attribute';
     function value: id; message 'value';
     function subgroups: NSArray; message 'subgroups';
     function resultCount: NSUInteger; message 'resultCount';
     function resultAtIndex(idx: NSUInteger): id; message 'resultAtIndex:';
     function results: NSArray; message 'results';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -159,9 +151,9 @@ var
 {$define NSMETADATA_PAS_P}
   
 { NSMetadataQueryDelegate Protocol }
-  NSMetadataQueryDelegateProtocol = objcprotocol
+  NSMetadataQueryDelegateProtocol = objcprotocol external name 'NSMetadataQueryDelegate'
     function metadataQuery_replacementObjectForResultObject(query: NSMetadataQuery; result_: NSMetadataItem): id; message 'metadataQuery:replacementObjectForResultObject:';
     function metadataQuery_replacementValueForAttribute_value(query: NSMetadataQuery; attrName: NSString; attrValue: id): id; message 'metadataQuery:replacementValueForAttribute:value:';
-  end; external name 'NSMetadataQueryDelegate';
+  end;
 {$endif}
 {$endif}

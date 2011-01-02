@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSHTTPCookie.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -58,13 +58,11 @@ var
 {$define NSHTTPCOOKIE_PAS_C}
 
 { NSHTTPCookie }
-  NSHTTPCookie = objcclass(NSObject)
+  NSHTTPCookie = objcclass external (NSObject)
   private
     _cookiePrivate: NSHTTPCookieInternal;
     
   public
-    class function alloc: NSHTTPCookie; message 'alloc';
-
     function initWithProperties(properties_: NSDictionary): id; message 'initWithProperties:';
     class function cookieWithProperties(properties_: NSDictionary): id; message 'cookieWithProperties:';
     class function requestHeaderFieldsWithCookies(cookies: NSArray): NSDictionary; message 'requestHeaderFieldsWithCookies:';
@@ -82,7 +80,7 @@ var
     function comment: NSString; message 'comment';
     function commentURL: NSURL; message 'commentURL';
     function portList: NSArray; message 'portList';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

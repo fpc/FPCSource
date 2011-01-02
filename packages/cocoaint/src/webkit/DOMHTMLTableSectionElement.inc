@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLTableSectionElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLTABLESECTIONELEMENT_PAS_C}
 
 { DOMHTMLTableSectionElement }
-  DOMHTMLTableSectionElement = objcclass(DOMHTMLElement)
+  DOMHTMLTableSectionElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLTableSectionElement; message 'alloc';
-
     procedure setAlign (newValue: NSString); message 'setAlign:';
     function align: NSString; message 'align';
     procedure setCh (newValue: NSString); message 'setCh:';
@@ -58,7 +56,7 @@
     function rows: DOMHTMLCollection; message 'rows';
     function insertRow(index: cint): DOMHTMLElement; message 'insertRow:';
     procedure deleteRow(index: cint); message 'deleteRow:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

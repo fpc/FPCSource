@@ -88,6 +88,26 @@ class ObjectivePParser extends ObjectivePParserBase {
 		return $name;
 	}
 
+
+	function MaybeRenameMethod(&$name, $isclassmethod) {
+	  if ($isclassmethod) {
+			foreach ($this->replace_class_methods as $org_name => $replace_name) {
+				if ($name == $org_name) {
+					$name = $replace_name;
+					break;
+				}
+			}
+	  } else {
+			foreach ($this->replace_instance_methods as $org_name => $replace_name) {
+				if ($name == $org_name) {
+					$name = $replace_name;
+					break;
+				}
+			}
+	  }
+	}
+
+
 	// in case of a non-function pointer and non-pointer type,
 	// split a C field expression (e.g. "long afield" or
 	// "long int :32") into its type and field name. Necessary
@@ -218,8 +238,6 @@ class ObjectivePParser extends ObjectivePParserBase {
 		
 		if ($class["super_class"]) {
 			$hierarchy[] = $this->GetClassHierarchy($class["super_class"], $hierarchy);
-		} else {
-			$hierarchy[] = "NSObject";
 		}
 		
 		return $class["name"];
@@ -934,6 +952,9 @@ class ObjectivePParser extends ObjectivePParserBase {
 			$param_array = null;
 			$variable_arguments = false;
 		}
+		
+		// rename method if required
+		$this->MaybeRenameMethod($name,$parts[1]=="+");
 
 		// protect method name from keywords
 		if ($this->IsKeywordReserved($name)) $name .= "_";
@@ -1361,12 +1382,17 @@ class ObjectivePParser extends ObjectivePParserBase {
 		if ($class["comment"]) $this->PrintOutput(0, $class["comment"]);
 		//print_r($class["methods"]);
 		
-		
 		// print super class or protocol which the class conforms to
 		if ($class["adopts"]) {
-			$this->PrintOutput(1, $class["name"]." = objcclass(".$class["super"].", ".$class["adopts"].")");
+			if ($class["super"]) {
+				$this->PrintOutput(1, $class["name"]." = objcclass external (".$class["super"].", ".$class["adopts"].")");
+			}	else {
+				$this->PrintOutput(1, $class["name"]." = objcclass external (".$class["adopts"].")");
+			}
 		} elseif ($class["super"]) {
-			$this->PrintOutput(1, $class["name"]." = objcclass(".$class["super"].")");
+			$this->PrintOutput(1, $class["name"]." = objcclass external (".$class["super"].")");
+		} else {
+			$this->PrintOutput(1, $class["name"]." = objcclass external");
 		}
 
 		// print instance variables
@@ -1377,14 +1403,12 @@ class ObjectivePParser extends ObjectivePParserBase {
 			}
 		}
 
-		// print alloc method for the class
+		// print methods (public)
 		$this->PrintOutput(2, "");
 		$this->PrintOutput(1, "public");
-		$this->PrintOutput(2, "class function alloc: ".$class["name"]."; message 'alloc';");
 		
 		// print class-level methods
 		if ($class["methods"]) {
-			$this->PrintOutput(0, "");
 			foreach ($class["methods"] as $method) {
 				if ($method["comment"]) $this->PrintOutput(2, $method["comment"]);
 				$this->PrintOutput(2, $method["def"]." message '".$method["objc_method"]."';".$method["deprecated"]);
@@ -1406,7 +1430,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 			}
 		}
 
-		$this->PrintOutput(1, "end; external;");
+		$this->PrintOutput(1, "end;");
 	}
 	
 	function PrintCategory ($class, $category) {
@@ -1423,7 +1447,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 		if ($category["comment"]) $this->PrintOutput(0, $category["comment"]);
 		
 		// print super class or protocol which the class conforms to
-		$this->PrintOutput(1, "$category_name = objccategory(".$category["super"].")");
+		$this->PrintOutput(1, "$category_name = objccategory external$new_name (".$category["super"].")");
 		
 		// print methods
 		if ($category["methods"]) {
@@ -1433,7 +1457,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 			}
 		} 
 
-		$this->PrintOutput(1, "end; external$new_name;");
+		$this->PrintOutput(1, "end;");
 	}
 						
 	function PrintHeader ($header) {
@@ -1563,7 +1587,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 				$this->PrintOutput(1, "");
 				$this->PrintOutput(0, "{ ".$protocol["name"]." Protocol }");
 				if ($protocol["comment"]) $this->PrintOutput(0, $protocol["comment"]);
-				$this->PrintOutput(1, $protocol["name"]."$this->protocol_suffix = objcprotocol");
+				$this->PrintOutput(1, $protocol["name"]."$this->protocol_suffix = objcprotocol external name '".$protocol["name"]."'");
 
 				// print methods
 				if ($protocol["methods"]) {
@@ -1573,7 +1597,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 					}
 				}
 				
-				$this->PrintOutput(1, "end; external name '".$protocol["name"]."';");		
+				$this->PrintOutput(1, "end;");		
 			}
 			
 			$this->PrintOutput(0, "{\$endif}");
@@ -1917,7 +1941,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 		$this->PrintOutput(0, "type");
 
     foreach ($all_classes as $class)
-			$this->PrintOutput(1, $class." = objcclass; external;");
+			$this->PrintOutput(1, $class." = objcclass external;");
 
 		$this->PrintOutput(0, "");
 		$this->PrintOutput(0, "implementation");
@@ -1950,7 +1974,7 @@ class ObjectivePParser extends ObjectivePParserBase {
     			$this->PrintOutput(0, "type");
     			$first = false;
     		}
-				$this->PrintOutput(1, $class." = objcclass; external;");
+				$this->PrintOutput(1, $class." = objcclass external;");
 			}
 		}
   }
@@ -3327,6 +3351,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 				if ((eregi($this->regex_objc_class, $line, $captures)) || (eregi($this->regex_objc_class_no_super, $line, $captures))) {
 					$current = $captures[1];
 					$got_class = true;
+					$has_superclass = true;
 					
 					// check for instance variable section
 					if (eregi("{\s*$", $line)) $got_instance_vars = true;
@@ -3336,6 +3361,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 						if ($captures[3]) $this->dump[$file_name]["classes"][$current]["adopts"] = $captures[3];
 					} else {
 						if ($captures[2]) $this->dump[$file_name]["classes"][$current]["adopts"] = $captures[2];
+						$has_superclass=false;
 					}
 					
 					// clean up the conforms string
@@ -3357,8 +3383,10 @@ class ObjectivePParser extends ObjectivePParserBase {
 					}
 					
 					$this->dump[$file_name]["classes"][$current]["name"] = $captures[1];
-					$this->dump[$file_name]["classes"][$current]["super"] = $captures[2];
-					$this->dump[$file_name]["classes"][$current]["super_class"] = &$this->dump["master"][$captures[2]];
+					if ($has_superclass) {
+						$this->dump[$file_name]["classes"][$current]["super"] = $captures[2];
+						$this->dump[$file_name]["classes"][$current]["super_class"] = &$this->dump["master"][$captures[2]];
+					}
 					$this->dump[$file_name]["classes"][$current]["file_name"] = $file_name;
 					$this->dump[$file_name]["classes"][$current]["file_clean"] = substr($file_name, 0, (strripos($file_name, ".")));
 					$this->dump[$file_name]["classes"][$current]["protected_keywords"] = array();

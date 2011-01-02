@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLProtectionSpace.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -60,13 +60,11 @@ var
 {$define NSURLPROTECTIONSPACE_PAS_C}
 
 { NSURLProtectionSpace }
-  NSURLProtectionSpace = objcclass(NSObject, NSCopyingProtocol)
+  NSURLProtectionSpace = objcclass external (NSObject, NSCopyingProtocol)
   private
     _internal: NSURLProtectionSpaceInternal;
     
   public
-    class function alloc: NSURLProtectionSpace; message 'alloc';
-
     function initWithHost_port_protocol_realm_authenticationMethod(host_: NSString; port_: NSInteger; protocol_: NSString; realm_: NSString; authenticationMethod_: NSString): id; message 'initWithHost:port:protocol:realm:authenticationMethod:';
     function initWithProxyHost_port_type_realm_authenticationMethod(host_: NSString; port_: NSInteger; type_: NSString; realm_: NSString; authenticationMethod_: NSString): id; message 'initWithProxyHost:port:type:realm:authenticationMethod:';
     function realm: NSString; message 'realm';
@@ -80,17 +78,17 @@ var
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 { NSClientCertificateSpaceCategory }
-  NSClientCertificateSpaceCategory = objccategory(NSURLProtectionSpace)
+  NSClientCertificateSpaceCategory = objccategory external (NSURLProtectionSpace)
     function distinguishedNames: NSArray; message 'distinguishedNames';
-  end; external;
+  end;
 
 { NSServerTrustValidationSpaceCategory }
-  NSServerTrustValidationSpaceCategory = objccategory(NSURLProtectionSpace)
+  NSServerTrustValidationSpaceCategory = objccategory external (NSURLProtectionSpace)
     function serverTrust: SecTrustRef; message 'serverTrust';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

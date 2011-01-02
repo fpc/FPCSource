@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSExpression.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -62,14 +62,12 @@ type
 {$define NSEXPRESSION_PAS_C}
 
 { NSExpression }
-  NSExpression = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
+  NSExpression = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     _reserved: Pointer;
     _expressionType: NSExpressionType;
     
   public
-    class function alloc: NSExpression; message 'alloc';
-
     class function expressionForConstantValue(obj: id): NSExpression; message 'expressionForConstantValue:';
     class function expressionForEvaluatedObject: NSExpression; message 'expressionForEvaluatedObject';
     class function expressionForVariable(string_: NSString): NSExpression; message 'expressionForVariable:';
@@ -99,7 +97,7 @@ type
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

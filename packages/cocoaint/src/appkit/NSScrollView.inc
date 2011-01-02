@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSScrollView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -89,7 +89,7 @@ __SFlagsPtr = ^__SFlags;
 {$define NSSCROLLVIEW_PAS_C}
 
 { NSScrollView }
-  NSScrollView = objcclass(NSView)
+  NSScrollView = objcclass external (NSView)
   private
     _vScroller: NSScroller;
     _hScroller: NSScroller;
@@ -103,8 +103,6 @@ __SFlagsPtr = ^__SFlags;
     _verticalRuler: NSRulerView;
     
   public
-    class function alloc: NSScrollView; message 'alloc';
-
     class function frameSizeForContentSize_hasHorizontalScroller_hasVerticalScroller_borderType(cSize: NSSize; hFlag: Boolean; vFlag: Boolean; aType: NSBorderType): NSSize; message 'frameSizeForContentSize:hasHorizontalScroller:hasVerticalScroller:borderType:';
     class function contentSizeForFrameSize_hasHorizontalScroller_hasVerticalScroller_borderType(fSize: NSSize; hFlag: Boolean; vFlag: Boolean; aType: NSBorderType): NSSize; message 'contentSizeForFrameSize:hasHorizontalScroller:hasVerticalScroller:borderType:';
     function documentVisibleRect: NSRect; message 'documentVisibleRect';
@@ -148,10 +146,10 @@ __SFlagsPtr = ^__SFlags;
     procedure tile; message 'tile';
     procedure reflectScrolledClipView(cView: NSClipView); message 'reflectScrolledClipView:';
     procedure scrollWheel(theEvent: NSEvent); message 'scrollWheel:';
-  end; external;
+  end;
 
 { NSRulerSupportCategory }
-  NSRulerSupportCategory = objccategory(NSScrollView)
+  NSRulerSupportCategory = objccategory external (NSScrollView)
     class procedure setRulerViewClass(rulerViewClass_: Pobjc_class); message 'setRulerViewClass:';
     class function rulerViewClass: Pobjc_class; message 'rulerViewClass';
     procedure setRulersVisible(flag: Boolean); message 'setRulersVisible:';
@@ -164,7 +162,7 @@ __SFlagsPtr = ^__SFlags;
     function horizontalRulerView: NSRulerView; message 'horizontalRulerView';
     procedure setVerticalRulerView(ruler: NSRulerView); message 'setVerticalRulerView:';
     function verticalRulerView: NSRulerView; message 'verticalRulerView';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

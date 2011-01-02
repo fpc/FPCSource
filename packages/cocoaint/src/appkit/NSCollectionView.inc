@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSCollectionView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -57,7 +57,7 @@ const
 {$define NSCOLLECTIONVIEW_PAS_C}
 
 { NSCollectionViewItem }
-  NSCollectionViewItem = objcclass(NSViewController, NSCopyingProtocol)
+  NSCollectionViewItem = objcclass external (NSViewController, NSCopyingProtocol)
   private
     _collectionView: NSCollectionView;
     __cviFlags: bitpacked record
@@ -74,18 +74,16 @@ const
     _reserved2: Pointer;
     
   public
-    class function alloc: NSCollectionViewItem; message 'alloc';
-
     function collectionView: NSCollectionView; message 'collectionView';
     procedure setSelected(flag: Boolean); message 'setSelected:';
     function isSelected: Boolean; message 'isSelected';
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 { NSCollectionView }
-  NSCollectionView = objcclass(NSView)
+  NSCollectionView = objcclass external (NSView)
   private
     _content: NSArray;
     _selectionIndexes: NSMutableIndexSet;
@@ -137,8 +135,6 @@ const
         _reserved: array[0..15] of Pointer;
     
   public
-    class function alloc: NSCollectionView; message 'alloc';
-
     procedure setDelegate(aDelegate: id); message 'setDelegate:';
     function delegate: id; message 'delegate';
     function isFirstResponder: Boolean; message 'isFirstResponder';
@@ -167,7 +163,7 @@ const
     function frameForItemAtIndex(index: NSUInteger): NSRect; message 'frameForItemAtIndex:';
     procedure setDraggingSourceOperationMask_forLocal(dragOperationMask: NSDragOperation; localDestination: Boolean); message 'setDraggingSourceOperationMask:forLocal:';
     function draggingImageForItemsAtIndexes_withEvent_offset(indexes: NSIndexSet; event: NSEvent; dragImageOffset: NSPointPointer): NSImage; message 'draggingImageForItemsAtIndexes:withEvent:offset:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -176,13 +172,13 @@ const
 {$define NSCOLLECTIONVIEW_PAS_P}
   
 { NSCollectionViewDelegate Protocol }
-  NSCollectionViewDelegateProtocol = objcprotocol
+  NSCollectionViewDelegateProtocol = objcprotocol external name 'NSCollectionViewDelegate'
     function collectionView_canDragItemsAtIndexes_withEvent(collectionView: NSCollectionView; indexes: NSIndexSet; event: NSEvent): Boolean; message 'collectionView:canDragItemsAtIndexes:withEvent:';
     function collectionView_writeItemsAtIndexes_toPasteboard(collectionView: NSCollectionView; indexes: NSIndexSet; pasteboard: NSPasteboard): Boolean; message 'collectionView:writeItemsAtIndexes:toPasteboard:';
     function collectionView_namesOfPromisedFilesDroppedAtDestination_forDraggedItemsAtIndexes(collectionView: NSCollectionView; dropURL: NSURL; indexes: NSIndexSet): NSArray; message 'collectionView:namesOfPromisedFilesDroppedAtDestination:forDraggedItemsAtIndexes:';
     function collectionView_draggingImageForItemsAtIndexes_withEvent_offset(collectionView: NSCollectionView; indexes: NSIndexSet; event: NSEvent; dragImageOffset: NSPointPointer): NSImage; message 'collectionView:draggingImageForItemsAtIndexes:withEvent:offset:';
     function collectionView_validateDrop_proposedIndex_dropOperation(collectionView: NSCollectionView; draggingInfo: id; proposedDropIndex: NSIntegerPtr; proposedDropOperation: NSCollectionViewDropOperationPtr): NSDragOperation; message 'collectionView:validateDrop:proposedIndex:dropOperation:';
     function collectionView_acceptDrop_index_dropOperation(collectionView: NSCollectionView; draggingInfo: id; index: NSInteger; dropOperation: NSCollectionViewDropOperation): Boolean; message 'collectionView:acceptDrop:index:dropOperation:';
-  end; external name 'NSCollectionViewDelegate';
+  end;
 {$endif}
 {$endif}

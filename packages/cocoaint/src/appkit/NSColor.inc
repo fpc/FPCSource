@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSColor.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -50,11 +50,9 @@ var
 {$define NSCOLOR_PAS_C}
 
 { NSColor }
-  NSColor = objcclass(NSObject)
+  NSColor = objcclass external (NSObject)
     
   public
-    class function alloc: NSColor; message 'alloc';
-
     class function colorWithCalibratedWhite_alpha(white: CGFloat; alpha: CGFloat): NSColor; message 'colorWithCalibratedWhite:alpha:';
     class function colorWithCalibratedHue_saturation_brightness_alpha(hue: CGFloat; saturation: CGFloat; brightness: CGFloat; alpha: CGFloat): NSColor; message 'colorWithCalibratedHue:saturation:brightness:alpha:';
     class function colorWithCalibratedRed_green_blue_alpha(red: CGFloat; green: CGFloat; blue: CGFloat; alpha: CGFloat): NSColor; message 'colorWithCalibratedRed:green:blue:alpha:';
@@ -154,22 +152,22 @@ var
     procedure drawSwatchInRect(rect: NSRect); message 'drawSwatchInRect:';
     class procedure setIgnoresAlpha(flag: Boolean); message 'setIgnoresAlpha:';
     class function ignoresAlpha: Boolean; message 'ignoresAlpha';
-  end; external;
+  end;
 
 { NSQuartzCoreAdditions_NSColorCategory }
-  NSQuartzCoreAdditions_NSColorCategory = objccategory(NSColor)
+  NSQuartzCoreAdditions_NSColorCategory = objccategory external name 'NSQuartzCoreAdditions' (NSColor)
     class function colorWithCIColor(color: CIColor): NSColor; message 'colorWithCIColor:';
-  end; external name 'NSQuartzCoreAdditions';
+  end;
 
 { NSAppKitAdditionsCategory }
-  NSAppKitAdditionsCategory = objccategory(CIColor)
+  NSAppKitAdditionsCategory = objccategory external (CIColor)
     function initWithColor(color: NSColor): id; message 'initWithColor:';
-  end; external;
+  end;
 
 { NSAppKitColorExtensionsCategory }
-  NSAppKitColorExtensionsCategory = objccategory(NSCoder)
+  NSAppKitColorExtensionsCategory = objccategory external (NSCoder)
     function decodeNXColor: NSColor; message 'decodeNXColor';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

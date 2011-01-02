@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextInputClient.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -39,7 +39,7 @@
 {$define NSTEXTINPUTCLIENT_PAS_P}
   
 { NSTextInputClient Protocol }
-  NSTextInputClientProtocol = objcprotocol
+  NSTextInputClientProtocol = objcprotocol external name 'NSTextInputClient'
     procedure insertText_replacementRange(aString: id; replacementRange: NSRange); message 'insertText:replacementRange:';
     procedure setMarkedText_selectedRange_replacementRange(aString: id; selectedRange: NSRange; replacementRange: NSRange); message 'setMarkedText:selectedRange:replacementRange:';
     procedure unmarkText; message 'unmarkText';
@@ -55,6 +55,6 @@
     function baselineDeltaForCharacterAtIndex(anIndex: NSUInteger): CGFloat; message 'baselineDeltaForCharacterAtIndex:';
     function windowLevel: NSInteger; message 'windowLevel';
     function drawsVerticallyForCharacterAtIndex(charIndex: NSUInteger): Boolean; message 'drawsVerticallyForCharacterAtIndex:';
-  end; external name 'NSTextInputClient';
+  end;
 {$endif}
 {$endif}

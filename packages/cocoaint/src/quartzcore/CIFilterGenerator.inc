@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CIFilterGenerator.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -48,13 +48,11 @@ var
 {$define CIFILTERGENERATOR_PAS_C}
 
 { CIFilterGenerator }
-  CIFilterGenerator = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
+  CIFilterGenerator = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     ___strong: Pointer;
     
   public
-    class function alloc: CIFilterGenerator; message 'alloc';
-
     class function filterGenerator: CIFilterGenerator; message 'filterGenerator';
     class function filterGeneratorWithContentsOfURL(aURL: NSURL): CIFilterGenerator; message 'filterGeneratorWithContentsOfURL:';
     function initWithContentsOfURL(aURL: NSURL): id; message 'initWithContentsOfURL:';
@@ -74,7 +72,7 @@ var
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPortNameServer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -51,48 +51,40 @@
 {$define NSPORTNAMESERVER_PAS_C}
 
 { NSPortNameServer }
-  NSPortNameServer = objcclass(NSObject)
+  NSPortNameServer = objcclass external (NSObject)
     
   public
-    class function alloc: NSPortNameServer; message 'alloc';
-
     class function systemDefaultPortNameServer: NSPortNameServer; message 'systemDefaultPortNameServer';
     function portForName(name: NSString): NSPort; message 'portForName:';
     function portForName_host(name: NSString; host: NSString): NSPort; message 'portForName:host:';
     function registerPort_name(port: NSPort; name: NSString): Boolean; message 'registerPort:name:';
     function removePortForName(name: NSString): Boolean; message 'removePortForName:';
-  end; external;
+  end;
 
 { NSMachBootstrapServer }
-  NSMachBootstrapServer = objcclass(NSPortNameServer)
+  NSMachBootstrapServer = objcclass external (NSPortNameServer)
     
   public
-    class function alloc: NSMachBootstrapServer; message 'alloc';
-
     class function sharedInstance: id; message 'sharedInstance';
     function portForName(name: NSString): NSPort; message 'portForName:';
     function portForName_host(name: NSString; host: NSString): NSPort; message 'portForName:host:';
     function registerPort_name(port: NSPort; name: NSString): Boolean; message 'registerPort:name:';
     function servicePortWithName(name: NSString): NSPort; message 'servicePortWithName:';
-  end; external;
+  end;
 
 { NSMessagePortNameServer }
-  NSMessagePortNameServer = objcclass(NSPortNameServer)
+  NSMessagePortNameServer = objcclass external (NSPortNameServer)
     
   public
-    class function alloc: NSMessagePortNameServer; message 'alloc';
-
     class function sharedInstance: id; message 'sharedInstance';
     function portForName(name: NSString): NSPort; message 'portForName:';
     function portForName_host(name: NSString; host: NSString): NSPort; message 'portForName:host:';
-  end; external;
+  end;
 
 { NSSocketPortNameServer }
-  NSSocketPortNameServer = objcclass(NSPortNameServer)
+  NSSocketPortNameServer = objcclass external (NSPortNameServer)
     
   public
-    class function alloc: NSSocketPortNameServer; message 'alloc';
-
     class function sharedInstance: id; message 'sharedInstance';
     function portForName(name: NSString): NSPort; message 'portForName:';
     function portForName_host(name: NSString; host: NSString): NSPort; message 'portForName:host:';
@@ -102,7 +94,7 @@
     function registerPort_name_nameServerPortNumber(port: NSPort; name: NSString; portNumber: cuint16): Boolean; message 'registerPort:name:nameServerPortNumber:';
     procedure setDefaultNameServerPortNumber(portNumber: cuint16); message 'setDefaultNameServerPortNumber:';
     function defaultNameServerPortNumber: cuint16; message 'defaultNameServerPortNumber';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
