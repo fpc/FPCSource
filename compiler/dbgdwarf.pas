@@ -2310,6 +2310,20 @@ implementation
                         templist.concat(tai_const.create_8bit(ord(DW_OP_breg0)+dreg));
                         templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset+offset));
                         blocksize:=1+Lengthsleb128(sym.localloc.reference.offset);
+{$ifndef gdb_supports_DW_AT_variable_parameter}
+                        { Parameters which are passed by reference. (var and the like)
+                          Hide the reference-pointer and dereference the pointer
+                          in the DW_AT_location block.
+                        }
+                        if (sym.typ=paravarsym) and
+                            paramanager.push_addr_param(sym.varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption) and
+                            not(vo_has_local_copy in sym.varoptions) and
+                            not is_open_string(sym.vardef) then
+                          begin
+                            templist.concat(tai_const.create_8bit(ord(DW_OP_deref)));
+                            inc(blocksize);
+                          end
+{$endif not gdb_supports_DW_AT_variable_parameter}
                       end;
                   end
                 else
@@ -2396,15 +2410,7 @@ implementation
           that).  }
         if (vo_is_self in sym.varoptions) then
           append_attribute(DW_AT_artificial,DW_FORM_flag,[true]);
-{$ifndef gdb_supports_DW_AT_variable_parameter}
-        if (sym.typ=paravarsym) and
-            paramanager.push_addr_param(sym.varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption) and
-            not(vo_has_local_copy in sym.varoptions) and
-            not is_open_string(sym.vardef) then
-          append_labelentry_ref(DW_AT_type,def_dwarf_ref_lab(def))
-        else
-{$endif not gdb_supports_DW_AT_variable_parameter}
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(def));
+        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def));
 
         templist.free;
 
