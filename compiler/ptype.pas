@@ -1240,10 +1240,13 @@ implementation
         hdef : tdef;
         pd : tabstractprocdef;
         is_func,
-        enumdupmsg, first : boolean;
+        enumdupmsg, first, is_specialize : boolean;
         newtype : ttypesym;
         oldlocalswitches : tlocalswitches;
         bitpacking: boolean;
+        stitem: psymtablestackitem;
+        sym: tsym;
+        st: tsymtable;
       begin
          def:=nil;
          case token of
@@ -1258,8 +1261,37 @@ implementation
                 { allow negativ value_str }
                 l:=int64(-1);
                 enumdupmsg:=false;
-                aktenumdef:=tenumdef.create;
+                { check that we are not adding an enum from specialization
+                  we can't just use current_specializedef because of inner types
+                  like specialize array of record }
+                is_specialize:=false;
+                stitem:=symtablestack.stack;
+                while assigned(stitem) do
+                  begin
+                    { check records, classes and arrays because they can be specialized }
+                    if stitem^.symtable.symtabletype in [recordsymtable,ObjectSymtable,arraysymtable] then
+                      begin
+                        is_specialize:=is_specialize or (df_specialization in tstoreddef(stitem^.symtable.defowner).defoptions);
+                        stitem:=stitem^.next;
+                      end
+                    else
+                      break;
+                  end;
+                if not is_specialize then
+                  aktenumdef:=tenumdef.create
+                else
+                  aktenumdef:=nil;
                 repeat
+                  { if it is a specialization then search the first enum member
+                    and get the member owner instead of just created enumdef }
+                  if not assigned(aktenumdef) then
+                    begin
+                      searchsym(pattern,sym,st);
+                      if sym.typ=enumsym then
+                        aktenumdef:=tenumsym(sym).definition
+                      else
+                        internalerror(201101021);
+                    end;
                   s:=orgpattern;
                   defpos:=current_tokenpos;
                   consume(_ID);
@@ -1303,12 +1335,16 @@ implementation
                   else
                     inc(l.svalue);
                   first:=false;
-                  storepos:=current_tokenpos;
-                  current_tokenpos:=defpos;
-                  tenumsymtable(aktenumdef.symtable).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));
-                  if not (cs_scopedenums in current_settings.localswitches) then
-                    tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));
-                  current_tokenpos:=storepos;
+                  { don't generate enum members is this is a specialization because aktenumdef is copied from the generic type }
+                  if not is_specialize then
+                    begin
+                      storepos:=current_tokenpos;
+                      current_tokenpos:=defpos;
+                      tenumsymtable(aktenumdef.symtable).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));
+                      if not (cs_scopedenums in current_settings.localswitches) then
+                        tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));
+                      current_tokenpos:=storepos;
+                    end;
                 until not try_to_consume(_COMMA);
                 def:=aktenumdef;
                 consume(_RKLAMMER);

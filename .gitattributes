@@ -9415,6 +9415,7 @@ tests/test/tgeneric23.pp svneol=native#text/pascal
 tests/test/tgeneric24.pp svneol=native#text/pascal
 tests/test/tgeneric25.pp svneol=native#text/pascal
 tests/test/tgeneric26.pp svneol=native#text/pascal
+tests/test/tgeneric27.pp svneol=native#text/pascal
 tests/test/tgeneric3.pp svneol=native#text/plain
 tests/test/tgeneric4.pp svneol=native#text/plain
 tests/test/tgeneric5.pp svneol=native#text/plain

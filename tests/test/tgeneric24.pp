@@ -1,4 +1,4 @@
-program project1;
+program tgeneric24;
 
 {$mode objfpc}{$H+}
 {$apptype console}
