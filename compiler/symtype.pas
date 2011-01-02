@@ -228,6 +228,7 @@ implementation
               end;
             recordsymtable,
             enumsymtable,
+            arraysymtable,
             localsymtable,
             parasymtable,
             ObjectSymtable :

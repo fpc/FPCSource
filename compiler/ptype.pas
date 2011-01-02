@@ -200,14 +200,16 @@ implementation
         first:=true;
         generictypelist:=TFPObjectList.create(false);
         case genericdef.typ of
-          procdef :
+          procdef:
             st:=genericdef.GetSymtable(gs_para);
           objectdef,
-          recorddef :
+          recorddef:
             st:=genericdef.GetSymtable(gs_record);
+          arraydef:
+            st:=tarraydef(genericdef).symtable;
+          else
+            internalerror(200511182);
         end;
-        if not assigned(st) then
-          internalerror(200511182);
 
         { Parse type parameters }
         if not assigned(genericdef.typesym) then
@@ -866,7 +868,7 @@ implementation
          else if assigned(genericlist) then
            current_genericdef:=current_structdef;
 
-         insert_generic_parameter_types(genericdef,genericlist);
+         insert_generic_parameter_types(current_structdef,genericdef,genericlist);
          parse_generic:=(df_generic in current_structdef.defoptions);
          if m_advanced_records in current_settings.modeswitches then
            parse_record_members
@@ -1098,7 +1100,17 @@ implementation
             end;
           end;
 
+        var
+          old_current_genericdef,
+          old_current_specializedef: tstoreddef;
+          old_parse_generic: boolean;
         begin
+           old_current_genericdef:=current_genericdef;
+           old_current_specializedef:=current_specializedef;
+           old_parse_generic:=parse_generic;
+
+           current_genericdef:=nil;
+           current_specializedef:=nil;
            arrdef:=nil;
            consume(_ARRAY);
            { open array? }
@@ -1194,16 +1206,33 @@ implementation
                 include(arrdef.arrayoptions,ado_IsDynamicArray);
                 def:=arrdef;
              end;
+           if assigned(arrdef) then
+             begin
+               { usage of specialized type inside its generic template }
+               if assigned(genericdef) then
+                 current_specializedef:=arrdef
+               { reject declaration of generic class inside generic class }
+               else if assigned(genericlist) then
+                 current_genericdef:=arrdef;
+               symtablestack.push(arrdef.symtable);
+               insert_generic_parameter_types(arrdef,genericdef,genericlist);
+               parse_generic:=(df_generic in arrdef.defoptions);
+             end;
            consume(_OF);
            read_anon_type(tt2,true);
            { set element type of the last array definition }
            if assigned(arrdef) then
              begin
+               symtablestack.pop(arrdef.symtable);
                arrdef.elementdef:=tt2;
                if is_packed and
                   is_managed_type(tt2) then
                  Message(type_e_no_packed_inittable);
              end;
+           { restore old state }
+           parse_generic:=old_parse_generic;
+           current_genericdef:=old_current_genericdef;
+           current_specializedef:=old_current_specializedef;
         end;
 
       var
@@ -1225,7 +1254,7 @@ implementation
            _LKLAMMER:
               begin
                 consume(_LKLAMMER);
-                first := true;
+                first:=true;
                 { allow negativ value_str }
                 l:=int64(-1);
                 enumdupmsg:=false;
@@ -1273,7 +1302,7 @@ implementation
                     end
                   else
                     inc(l.svalue);
-                  first := false;
+                  first:=false;
                   storepos:=current_tokenpos;
                   current_tokenpos:=defpos;
                   tenumsymtable(aktenumdef.symtable).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));

@@ -681,7 +681,7 @@ implementation
               end;
             end;
 
-           if isgeneric and not(hdef.typ in [objectdef,recorddef]) then
+           if isgeneric and not(hdef.typ in [objectdef,recorddef,arraydef]) then
              message(parser_e_cant_create_generics_of_this_type);
 
            { Stop recording a generic template }

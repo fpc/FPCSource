@@ -37,7 +37,7 @@ interface
     function constructor_head:tprocdef;
     function destructor_head:tprocdef;
     procedure struct_property_dec(is_classproperty:boolean);
-    procedure insert_generic_parameter_types(genericdef:tstoreddef;genericlist:TFPObjectList);
+    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
 
 implementation
 
@@ -534,22 +534,31 @@ implementation
       end;
 
 
-    procedure insert_generic_parameter_types(genericdef:tstoreddef;genericlist:TFPObjectList);
+    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
       var
-        i : longint;
-        generictype : ttypesym;
+        i: longint;
+        generictype: ttypesym;
+        st: tsymtable;
       begin
-        current_structdef.genericdef:=genericdef;
+        def.genericdef:=genericdef;
         if not assigned(genericlist) then
           exit;
+
+        case def.typ of
+          recorddef,objectdef: st:=tabstractrecorddef(def).symtable;
+          arraydef: st:=tarraydef(def).symtable;
+          else
+            internalerror(201101020);
+        end;
+
         for i:=0 to genericlist.count-1 do
           begin
             generictype:=ttypesym(genericlist[i]);
             if generictype.typedef.typ=undefineddef then
-              include(current_structdef.defoptions,df_generic)
+              include(def.defoptions,df_generic)
             else
-              include(current_structdef.defoptions,df_specialization);
-            symtablestack.top.insert(generictype);
+              include(def.defoptions,df_specialization);
+            st.insert(generictype);
           end;
        end;
 
@@ -1057,7 +1066,7 @@ implementation
             parse_guid;
 
             symtablestack.push(current_structdef.symtable);
-            insert_generic_parameter_types(genericdef,genericlist);
+            insert_generic_parameter_types(current_structdef,genericdef,genericlist);
             { parse and insert object members }
             parse_object_members;
             symtablestack.pop(current_structdef.symtable);

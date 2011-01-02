@@ -447,7 +447,9 @@ type
     stt_excepTSymtable,    { try/except symtable             }
     exportedmacrosymtable, { }
     localmacrosymtable,    { }
-    enumsymtable           { symtable for enum members       }
+    enumsymtable,          { symtable for enum members       }
+    arraysymtable          { used to store parameterised type
+                             in array                        }
   );
 
 

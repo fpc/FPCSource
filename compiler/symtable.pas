@@ -183,6 +183,14 @@ interface
           constructor create(adefowner:tdef);
        end;
 
+       { tarraysymtable }
+
+       tarraysymtable = class(tstoredsymtable)
+       public
+          procedure insertdef(def:TDefEntry);override;
+          constructor create(adefowner:tdef);
+       end;
+
     var
        systemunit     : tglobalsymtable; { pointer to the system unit }
 
@@ -1619,6 +1627,27 @@ implementation
       begin
         inherited Create('');
         symtabletype:=enumsymtable;
+        defowner:=adefowner;
+      end;
+
+{****************************************************************************
+                          TArraySymtable
+****************************************************************************}
+
+    procedure tarraysymtable.insertdef(def: TDefEntry);
+      begin
+        { Enums must also be available outside the record scope,
+          insert in the owner of this symtable }
+        if def.typ=enumdef then
+          defowner.owner.insertdef(def)
+        else
+          inherited insertdef(def);
+      end;
+
+    constructor tarraysymtable.create(adefowner: tdef);
+      begin
+        inherited Create('');
+        symtabletype:=arraysymtable;
         defowner:=adefowner;
       end;
 

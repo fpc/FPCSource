@@ -349,6 +349,7 @@ interface
           rangedef      : tdef;
           rangedefderef : tderef;
           arrayoptions  : tarraydefoptions;
+          symtable      : TSymtable;
        protected
           _elementdef      : tdef;
           _elementdefderef : tderef;
@@ -360,6 +361,7 @@ interface
           constructor create_from_pointer(def:tdef);
           constructor create(l,h:aint;def:tdef);
           constructor ppuload(ppufile:tcompilerppufile);
+          destructor destroy; override;
           function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  GetTypeName:string;override;
@@ -2338,8 +2340,15 @@ implementation
          rangedef:=def;
          _elementdef:=nil;
          arrayoptions:=[];
+         symtable:=tarraysymtable.create(self);
       end;
 
+    destructor tarraydef.destroy;
+      begin
+        symtable.free;
+        symtable:=nil;
+        inherited;
+      end;
 
     constructor tarraydef.create_from_pointer(def:tdef);
       begin
@@ -2359,6 +2368,8 @@ implementation
          lowrange:=ppufile.getaint;
          highrange:=ppufile.getaint;
          ppufile.getsmallset(arrayoptions);
+         symtable:=tarraysymtable.create(self);
+         tarraysymtable(symtable).ppuload(ppufile)
       end;
 
 
@@ -2373,6 +2384,7 @@ implementation
     procedure tarraydef.buildderef;
       begin
         inherited buildderef;
+        tarraysymtable(symtable).buildderef;
         _elementdefderef.build(_elementdef);
         rangedefderef.build(rangedef);
       end;
@@ -2381,6 +2393,7 @@ implementation
     procedure tarraydef.deref;
       begin
         inherited deref;
+        tarraysymtable(symtable).deref;
         _elementdef:=tdef(_elementdefderef.resolve);
         rangedef:=tdef(rangedefderef.resolve);
       end;
@@ -2395,6 +2408,7 @@ implementation
          ppufile.putaint(highrange);
          ppufile.putsmallset(arrayoptions);
          ppufile.writeentry(ibarraydef);
+         tarraysymtable(symtable).ppuwrite(ppufile);
       end;
 
 

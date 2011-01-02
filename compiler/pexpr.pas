@@ -1395,7 +1395,7 @@ implementation
                if typeonly then
                  searchsym_type(pattern,srsym,srsymtable)
                else
-               searchsym(pattern,srsym,srsymtable);
+                 searchsym(pattern,srsym,srsymtable);
 
                { handle unit specification like System.Writeln }
                unit_found:=try_consume_unitsym(srsym,srsymtable,t);
