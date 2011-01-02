@@ -6,7 +6,9 @@
 packages=fcl-base fcl-xml fcl-net
 
 [target]
-programs=rpcserv rpccli
+programs=rpcserv rpccli 
+programs_linux=cdnslookup
+programs_freebsd=cdnslookup
 units=svrclass svrclass_xmlrpc
 
 [compiler]

@@ -1527,6 +1527,7 @@ packages/fcl-net/Makefile.fpc svneol=native#text/plain
 packages/fcl-net/README.txt svneol=native#text/plain
 packages/fcl-net/examples/Makefile svneol=native#text/plain
 packages/fcl-net/examples/Makefile.fpc svneol=native#text/plain
+packages/fcl-net/examples/cnslookup.pp svneol=native#text/plain
 packages/fcl-net/examples/ip6test.pp svneol=native#text/plain
 packages/fcl-net/examples/readme.txt svneol=native#text/plain
 packages/fcl-net/examples/rpccli.pp svneol=native#text/plain
