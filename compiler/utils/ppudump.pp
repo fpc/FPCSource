@@ -1979,6 +1979,8 @@ begin
              writeln(space,'            Range : ',getaint,' to ',getaint);
              write  (space,'          Options : ');
              readarraydefoptions;
+             readdefinitions('symbols');
+             readsymbols('symbols');
            end;
 
          ibprocdef :
@@ -2076,6 +2078,12 @@ begin
              readcommondef('WideString definition',defoptions);
              writeln(space,'           Length : ',getlongint);
            end;
+         
+         ibunicodestringdef :
+           begin
+             readcommondef('UnicodeString definition',defoptions);
+             writeln(space,'           Length : ',getlongint);
+           end;
 
          ibansistringdef :
            begin
@@ -2143,7 +2151,6 @@ begin
                   for j:=1to 16 do
                    getbyte;
                   writeln(space,'       IID String : ',getstring);
-                  writeln(space,'  Last VTable idx : ',getlongint);
                end;
 
              l:=getlongint;
