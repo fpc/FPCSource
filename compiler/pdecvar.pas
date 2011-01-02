@@ -1492,9 +1492,12 @@ implementation
 
              { types that use init/final are not allowed in variant parts, but
                classes are allowed }
-             if (variantrecordlevel>0) and
-                is_managed_type(hdef) then
-               Message(parser_e_cant_use_inittable_here);
+             if (variantrecordlevel>0) then
+               if is_managed_type(hdef) then
+                 Message(parser_e_cant_use_inittable_here)
+               else
+               if hdef.typ=undefineddef then
+                 Message(parser_e_cant_use_type_parameters_here);
 
              { try to parse the hint directives }
              hintsymoptions:=[];
