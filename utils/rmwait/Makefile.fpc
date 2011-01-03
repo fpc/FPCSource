@@ -12,4 +12,4 @@ fpcpackage=y
 fpcdir=../..
 
 [rules]
-rmwait$(EXEEXT): rmwait.pp
+rmwait$(EXEEXT): rmwait.pas

@@ -12090,6 +12090,7 @@ utils/ppdep.pp svneol=native#text/plain
 utils/ptop.pp svneol=native#text/plain
 utils/ptopu.pp svneol=native#text/plain
 utils/rmcvsdir.pp svneol=native#text/plain
+utils/rmwait/Makefile svneol=native#text/plain
 utils/rmwait/Makefile.fpc svneol=native#text/plain
 utils/rmwait/rmwait.pas svneol=native#text/plain
 utils/rstconv.pp svneol=native#text/plain
