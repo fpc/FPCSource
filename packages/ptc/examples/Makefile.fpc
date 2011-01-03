@@ -8,9 +8,9 @@ version=2.5.1
 
 [target]
 programs=area buffer clear clip con_info console fire  \
-         flower hicolor image keyboard keybrd2 land \
+         flower hicolor image keyboard keyboard2 land \
          lights modes mojo palette pixel random save \
-         stretch texwarp timer tunnel3d tunnel  
+         stretch texwarp timer tunnel3d tunnel
 
 [compiler]
 unitdir=../$(UNITTARGETDIRPREFIX)
