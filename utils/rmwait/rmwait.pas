@@ -271,6 +271,7 @@ begin
   WriteLn ('                                 individual attempts (default 5 seconds)');
   WriteLn (' --                              stop processing of options');
   WriteLn;
+{$WARNING TODO: Add information about passing parameters via RMWAIT_OPTS environment variable once implemented}
   WriteLn ('To remove a file whose name starts with a ''-'', for example ''-file'',');
   WriteLn ('use one of these commands:');
   WriteLn (' rm -- -file');
@@ -533,6 +534,7 @@ begin
     Syntax
   else
    begin
+{$WARNING TODO: Add support for passing parameters via RMWAIT_OPTS environment variable}
     K := 1;
     Par := ParamStr (K);
 
