@@ -83,7 +83,7 @@ type
 
   NSObjectProtocol = objcprotocol external name 'NSObject'
     function isEqual(obj: id): boolean; message 'isEqual:';
-    function hash: cuint; message 'hash';
+    function hash: NSUInteger; message 'hash';
 
     function superclass: pobjc_class; message 'superclass';
     function _class: pobjc_class; message 'class';
@@ -122,7 +122,7 @@ type
       definition by the compiler, but you can still repeat them if you want }
     function isEqual(obj: id): boolean;
     function isEqual_(obj: id): boolean; message 'isEqual:';
-    function hash: cuint;
+    function hash: NSUInteger;
 
     function superclass: pobjc_class;
     function _class: pobjc_class;
