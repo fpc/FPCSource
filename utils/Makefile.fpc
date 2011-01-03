@@ -21,6 +21,8 @@ dirs_netbsd=fpcres
 dirs_darwin=fpcres fpcreslipo
 dirs_iphonesim=fpcres fpcreslipo
 dirs_solaris=fpcres
+dirs_os2=fpmc fpcres
+dirs_emx=fpmc fpcres
 rsts=rstconv
 
 [require]
