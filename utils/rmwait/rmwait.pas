@@ -1,6 +1,6 @@
 {
     rmwait - remove (delete) file(s) with optional retries
-    Copyright (C) 2009 by Tomas Hajny, member of the Free Pascal team
+    Copyright (C) 2009-2011 by Tomas Hajny, member of the Free Pascal team
 
     This tool tries to mimic behaviour of GNU rm, but it provides
     the additional feature of retries and it also fixes some issues
@@ -45,6 +45,7 @@ const
   OptRetries: longint = 1;
   OptWait: longint = 5;
   OptsStop: boolean = false;
+  RmWaitEnvVarName = 'RMWAIT_OPTS';
 
 
 var
@@ -194,7 +195,11 @@ begin
 {$I+}
         Inc (Tries);
         if (R = 5) and (Tries <= OptRetries) then
+         begin
+          VerbLine ('Removal attempt failed, waiting ' + StrF (OptWait) + ' seconds before trying again...');
           Wait (OptWait);
+         end;
+
       until (R <> 5) or (Tries > OptRetries);
       case R of
         0: ;
@@ -251,7 +256,7 @@ end;
 procedure Syntax;
 begin
   WriteLn;
-  WriteLn ('RMWait - remove (delete) file(s) with optional retries');
+  WriteLn ('RmWait - remove (delete) file(s) with optional retries');
   WriteLn;
   WriteLn ('Syntax:');
   WriteLn (ParamStr (0) + ' [<options>...] [<file specifications>...]');
@@ -271,7 +276,8 @@ begin
   WriteLn ('                                 individual attempts (default 5 seconds)');
   WriteLn (' --                              stop processing of options');
   WriteLn;
-{$WARNING TODO: Add information about passing parameters via RMWAIT_OPTS environment variable once implemented}
+  WriteLn ('Options may also be passed via environment variable RMWAIT_OPTS.');
+  WriteLn;
   WriteLn ('To remove a file whose name starts with a ''-'', for example ''-file'',');
   WriteLn ('use one of these commands:');
   WriteLn (' rm -- -file');
@@ -484,7 +490,7 @@ begin
        OptVerbose := true
       else if S = 'VERSION' then
        begin
-        WriteLn ('rmwait - version 20091101');
+        WriteLn ('rmwait - version 20110104');
         Halt;
        end
       else if Copy (S, 1, 3) = 'TRY' then
@@ -518,8 +524,8 @@ begin
 end;
 
 var
-  J, K: longint;
-  Par: string;
+  J, K, L: longint;
+  EnvOpts, Par: string;
 
 begin
 {$IFDEF OS2}
@@ -529,12 +535,35 @@ begin
   OldExit := ExitProc;
   ExitProc := @NewExit;
 
+  EnvOpts := GetEnv (RmWaitEnvVarName);
+  K := 1;
+  while (K < Length (EnvOpts)) and not OptsStop do
+   begin
+    while (EnvOpts [K] = ' ') and (K < Length (EnvOpts)) do
+     Inc (K);
+    if EnvOpts [K] = '-' then
+     begin
+      L := Succ (K);
+      while ((L <= Length (EnvOpts)) and (EnvOpts [L] <> ' ')) do
+       Inc (L);
+      Par := Copy (EnvOpts, K, L - K);
+      ProcessOpts (Par);
+      K := Succ (L);
+     end
+    else
+     Syntax;
+    if OptsStop then
+     begin
+      EnvOpts := '';
+      OptsStop := false;
+     end;
+   end;
+
   J := ParamCount;
   if J = 0 then
     Syntax
   else
    begin
-{$WARNING TODO: Add support for passing parameters via RMWAIT_OPTS environment variable}
     K := 1;
     Par := ParamStr (K);
 
