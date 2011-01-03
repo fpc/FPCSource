@@ -270,13 +270,13 @@ ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  rmwait
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpmc fpcres
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpmc fpcres rmwait
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpmc fpcres
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpmc fpcres rmwait
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres
@@ -309,7 +309,7 @@ ifeq ($(FULL_TARGET),i386-darwin)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres fpcreslipo
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpmc fpcres
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpmc fpcres rmwait
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
@@ -318,7 +318,7 @@ ifeq ($(FULL_TARGET),i386-netwlibc)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres rmwait
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
@@ -402,7 +402,7 @@ ifeq ($(FULL_TARGET),x86_64-darwin)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres fpcreslipo
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpmc fpcres
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpmc fpcres rmwait
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
@@ -417,7 +417,7 @@ ifeq ($(FULL_TARGET),arm-darwin)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres fpcreslipo
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres
+override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg  fpcres rmwait
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 override TARGET_DIRS+=fppkg fpcm tply h2pas fprcp dxegen fpdoc fpcmkcfg
@@ -2893,6 +2893,7 @@ TARGET_DIRS_FPRCP=1
 TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
+TARGET_DIRS_RMWAIT=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 TARGET_DIRS_FPPKG=1
@@ -2905,6 +2906,7 @@ TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
 TARGET_DIRS_FPMC=1
 TARGET_DIRS_FPCRES=1
+TARGET_DIRS_RMWAIT=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_FPPKG=1
@@ -2917,6 +2919,7 @@ TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
 TARGET_DIRS_FPMC=1
 TARGET_DIRS_FPCRES=1
+TARGET_DIRS_RMWAIT=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 TARGET_DIRS_FPPKG=1
@@ -3036,6 +3039,7 @@ TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
 TARGET_DIRS_FPMC=1
 TARGET_DIRS_FPCRES=1
+TARGET_DIRS_RMWAIT=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 TARGET_DIRS_FPPKG=1
@@ -3067,6 +3071,7 @@ TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
 TARGET_DIRS_FPCRES=1
+TARGET_DIRS_RMWAIT=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 TARGET_DIRS_FPPKG=1
@@ -3367,6 +3372,7 @@ TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
 TARGET_DIRS_FPMC=1
 TARGET_DIRS_FPCRES=1
+TARGET_DIRS_RMWAIT=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 TARGET_DIRS_FPPKG=1
@@ -3421,6 +3427,7 @@ TARGET_DIRS_DXEGEN=1
 TARGET_DIRS_FPDOC=1
 TARGET_DIRS_FPCMKCFG=1
 TARGET_DIRS_FPCRES=1
+TARGET_DIRS_RMWAIT=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 TARGET_DIRS_FPPKG=1
@@ -3941,6 +3948,51 @@ fpcres_makefiles:
 fpcres:
 	$(MAKE) -C fpcres all
 .PHONY: fpcres_all fpcres_debug fpcres_smart fpcres_release fpcres_units fpcres_examples fpcres_shared fpcres_install fpcres_sourceinstall fpcres_exampleinstall fpcres_distinstall fpcres_zipinstall fpcres_zipsourceinstall fpcres_zipexampleinstall fpcres_zipdistinstall fpcres_clean fpcres_distclean fpcres_cleanall fpcres_info fpcres_makefiles fpcres
+endif
+ifdef TARGET_DIRS_RMWAIT
+rmwait_all:
+	$(MAKE) -C rmwait all
+rmwait_debug:
+	$(MAKE) -C rmwait debug
+rmwait_smart:
+	$(MAKE) -C rmwait smart
+rmwait_release:
+	$(MAKE) -C rmwait release
+rmwait_units:
+	$(MAKE) -C rmwait units
+rmwait_examples:
+	$(MAKE) -C rmwait examples
+rmwait_shared:
+	$(MAKE) -C rmwait shared
+rmwait_install:
+	$(MAKE) -C rmwait install
+rmwait_sourceinstall:
+	$(MAKE) -C rmwait sourceinstall
+rmwait_exampleinstall:
+	$(MAKE) -C rmwait exampleinstall
+rmwait_distinstall:
+	$(MAKE) -C rmwait distinstall
+rmwait_zipinstall:
+	$(MAKE) -C rmwait zipinstall
+rmwait_zipsourceinstall:
+	$(MAKE) -C rmwait zipsourceinstall
+rmwait_zipexampleinstall:
+	$(MAKE) -C rmwait zipexampleinstall
+rmwait_zipdistinstall:
+	$(MAKE) -C rmwait zipdistinstall
+rmwait_clean:
+	$(MAKE) -C rmwait clean
+rmwait_distclean:
+	$(MAKE) -C rmwait distclean
+rmwait_cleanall:
+	$(MAKE) -C rmwait cleanall
+rmwait_info:
+	$(MAKE) -C rmwait info
+rmwait_makefiles:
+	$(MAKE) -C rmwait makefiles
+rmwait:
+	$(MAKE) -C rmwait all
+.PHONY: rmwait_all rmwait_debug rmwait_smart rmwait_release rmwait_units rmwait_examples rmwait_shared rmwait_install rmwait_sourceinstall rmwait_exampleinstall rmwait_distinstall rmwait_zipinstall rmwait_zipsourceinstall rmwait_zipexampleinstall rmwait_zipdistinstall rmwait_clean rmwait_distclean rmwait_cleanall rmwait_info rmwait_makefiles rmwait
 endif
 ifdef TARGET_DIRS_FPMC
 fpmc_all:
