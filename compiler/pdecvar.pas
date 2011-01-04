@@ -384,11 +384,11 @@ implementation
                         { define range and type of range }
                         hdef:=tarraydef.create(0,-1,s32inttype);
                         { define field type }
-                        single_type(arraytype,false,false);
+                        single_type(arraytype,[]);
                         tarraydef(hdef).elementdef:=arraytype;
                       end
                     else
-                      single_type(hdef,false,false);
+                      single_type(hdef,[]);
                   end
                 else
                   hdef:=cformaltype;
@@ -417,7 +417,7 @@ implementation
          if (token=_COLON) or (paranr>0) or (astruct=nil) then
            begin
               consume(_COLON);
-              single_type(p.propdef,false,false);
+              single_type(p.propdef,[]);
 
               if is_dispinterface(astruct) and not is_automatable(p.propdef) then
                 Message1(type_e_not_automatable,p.propdef.typename);
@@ -728,7 +728,7 @@ implementation
          { Parse possible "implements" keyword }
          if not is_record(astruct) and try_to_consume(_IMPLEMENTS) then
            begin
-             single_type(def,false,false);
+             single_type(def,[]);
 
              if not(is_interface(def)) then
                message(parser_e_class_implements_must_be_interface);

@@ -593,7 +593,7 @@ implementation
               begin
                 block_type:=bt_var_type;
                 consume(_COLON);
-                single_type(pv.returndef,false,false);
+                single_type(pv.returndef,[]);
                 block_type:=bt_var;
               end;
              hdef:=pv;
@@ -641,7 +641,7 @@ implementation
                 else
                  begin
                    { define field type }
-                   single_type(arrayelementdef,false,false);
+                   single_type(arrayelementdef,[]);
                    tarraydef(hdef).elementdef:=arrayelementdef;
                  end;
               end
@@ -655,7 +655,7 @@ implementation
                 else
                   begin
                     block_type:=bt_var_type;
-                    single_type(hdef,false,false);
+                    single_type(hdef,[]);
                     block_type:=bt_var;
                   end;
 
@@ -1211,7 +1211,7 @@ implementation
                 if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
                   current_specializedef:=current_structdef;
               end;
-            single_type(pd.returndef,false,false);
+            single_type(pd.returndef,[]);
 
             if is_dispinterface(pd.struct) and not is_automatable(pd.returndef) then
               Message1(type_e_not_automatable,pd.returndef.typename);

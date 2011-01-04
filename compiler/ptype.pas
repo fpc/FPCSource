@@ -29,13 +29,17 @@ interface
        globtype,cclasses,
        symtype,symdef,symbase;
 
+    type
+      TSingleTypeOption=(stoIsForwardDef,stoAllowTypeDef,stoParseClassParent);
+      TSingleTypeOptions=set of TSingleTypeOption;
+
     procedure resolve_forward_types;
 
     { reads a type identifier }
     procedure id_type(var def : tdef;isforwarddef:boolean);
 
     { reads a string, file type or a type identifier }
-    procedure single_type(var def:tdef;isforwarddef,allowtypedef:boolean);
+    procedure single_type(var def:tdef;options:TSingleTypeOptions);
 
     { reads any type declaration, where the resulting type will get name as type identifier }
     procedure read_named_type(var def:tdef;const name : TIDString;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
@@ -136,7 +140,7 @@ implementation
       end;
 
 
-    procedure generate_specialization(var tt:tdef);
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean);
       var
         st  : TSymtable;
         srsym : tsym;
@@ -177,6 +181,8 @@ implementation
               of generic and specialization might not be equally sized which
               is later assumed }
             tt:=tundefineddef.create;
+            if parse_class_parent then
+              tt:=genericdef;
             onlyparsepara:=true;
           end;
 
@@ -438,7 +444,7 @@ implementation
       end;
 
 
-    procedure single_type(var def:tdef;isforwarddef,allowtypedef:boolean);
+    procedure single_type(var def:tdef;options:TSingleTypeOptions);
        var
          t2 : tdef;
          dospecialize,
@@ -449,17 +455,17 @@ implementation
            again:=false;
              case token of
                _STRING:
-                 string_dec(def,allowtypedef);
+                 string_dec(def,stoAllowTypeDef in options);
 
                _FILE:
                  begin
                     consume(_FILE);
                     if (token=_OF) then
                       begin
-                         if not(allowtypedef) then
+                         if not(stoAllowTypeDef in options) then
                            Message(parser_e_no_local_para_def);
                          consume(_OF);
-                         single_type(t2,false,false);
+                         single_type(t2,[]);
                          if is_managed_type(t2) then
                            Message(parser_e_no_refcounted_typed_file);
                          def:=tfiledef.createtyped(t2);
@@ -472,7 +478,7 @@ implementation
                  begin
                    if try_to_consume(_SPECIALIZE) then
                      begin
-                       if not(allowtypedef) then
+                       if not(stoAllowTypeDef in options) then
                          begin
                            Message(parser_e_no_local_para_def);
 
@@ -489,7 +495,7 @@ implementation
                      end
                    else
                      begin
-                       id_type(def,isforwarddef);
+                       id_type(def,stoIsForwardDef in options);
                        { handle types inside classes, e.g. TNode.TLongint }
                        while (token=_POINT) do
                          begin
@@ -502,7 +508,7 @@ implementation
                               begin
                                 symtablestack.push(tabstractrecorddef(def).symtable);
                                 consume(_POINT);
-                                id_type(t2,isforwarddef);
+                                id_type(t2,stoIsForwardDef in options);
                                 symtablestack.pop(tabstractrecorddef(def).symtable);
                                 def:=t2;
                               end
@@ -519,8 +525,10 @@ implementation
                  end;
             end;
         until not again;
+        if (stoAllowTypeDef in options)and(m_delphi in current_settings.modeswitches) then
+          dospecialize:=token=_LSHARPBRACKET;
         if dospecialize then
-          generate_specialization(def)
+          generate_specialization(def,stoParseClassParent in options)
         else
           begin
             if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
@@ -990,7 +998,7 @@ implementation
                    if (m_delphi in current_settings.modeswitches) then
                      dospecialize:=token=_LSHARPBRACKET;
                    if dospecialize then
-                     generate_specialization(def)
+                     generate_specialization(def,false)
                    else
                      begin
                        if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
@@ -1236,7 +1244,8 @@ implementation
            current_genericdef:=old_current_genericdef;
            current_specializedef:=old_current_specializedef;
         end;
-
+      const
+        SingleTypeOptionsInTypeBlock:array[Boolean] of TSingleTypeOptions = ([],[stoIsForwardDef]);
       var
         p  : tnode;
         hdef : tdef;
@@ -1254,7 +1263,7 @@ implementation
          case token of
             _STRING,_FILE:
               begin
-                single_type(def,false,true);
+                single_type(def,[stoAllowTypeDef]);
               end;
            _LKLAMMER:
               begin
@@ -1362,7 +1371,7 @@ implementation
            _CARET:
               begin
                 consume(_CARET);
-                single_type(tt2,(block_type=bt_type),false);
+                single_type(tt2,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
                 def:=tpointerdef.create(tt2);
                 if tt2.typ=forwarddef then
                   current_module.checkforwarddefs.add(def);
@@ -1383,7 +1392,7 @@ implementation
                 else if token=_SET then
                   set_dec
                 else if token=_FILE then
-                  single_type(def,false,true)
+                  single_type(def,[stoAllowTypeDef])
                 else
                   begin
                     oldpackrecords:=current_settings.packrecords;
@@ -1429,7 +1438,7 @@ implementation
                    ) then
                   begin
                     consume(_OF);
-                    single_type(hdef,(block_type=bt_type),false);
+                    single_type(hdef,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
                     if is_class(hdef) or
                        is_objcclass(hdef) then
                       def:=tclassrefdef.create(hdef)
@@ -1502,7 +1511,7 @@ implementation
                 if is_func then
                  begin
                    consume(_COLON);
-                   single_type(pd.returndef,false,false);
+                   single_type(pd.returndef,[]);
                  end;
                 if try_to_consume(_OF) then
                   begin
@@ -1536,7 +1545,7 @@ implementation
               if (token=_KLAMMERAFFE) and (m_iso in current_settings.modeswitches) then
                 begin
                   consume(_KLAMMERAFFE);
-                  single_type(tt2,(block_type=bt_type),false);
+                  single_type(tt2,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
                   def:=tpointerdef.create(tt2);
                   if tt2.typ=forwarddef then
                     current_module.checkforwarddefs.add(def);

@@ -306,7 +306,8 @@ implementation
       begin
         while try_to_consume(_COMMA) do
           begin
-             id_type(hdef,false);
+             { use single_type instead of id_type for specialize support }
+             single_type(hdef,[stoAllowTypeDef,stoParseClassParent]);
              if (hdef.typ<>objectdef) then
                begin
                   if intf then
@@ -442,7 +443,7 @@ implementation
           begin
             consume(_LKLAMMER);
             { use single_type instead of id_type for specialize support }
-            single_type(hdef,false,false);
+            single_type(hdef,[stoAllowTypeDef, stoParseClassParent]);
             if (not assigned(hdef)) or
                (hdef.typ<>objectdef) then
               begin
@@ -662,8 +663,7 @@ implementation
       var
         pd : tprocdef;
         has_destructor,
-        oldparse_only,
-        old_parse_generic: boolean;
+        oldparse_only: boolean;
         object_member_blocktype : tblock_type;
         fields_allowed, is_classdef, classfields: boolean;
         vdoptions: tvar_dec_options;
@@ -673,9 +673,6 @@ implementation
            (token=_SEMICOLON) then
           exit;
 
-        old_parse_generic:=parse_generic;
-
-        parse_generic:=(df_generic in current_structdef.defoptions);
         { in "publishable" classes the default access type is published }
         if (oo_can_have_published in current_structdef.objectoptions) then
           current_structdef.symtable.currentvisibility:=vis_published
@@ -1016,9 +1013,6 @@ implementation
               consume(_ID); { Give a ident expected message, like tp7 }
           end;
         until false;
-
-        { restore }
-        parse_generic:=old_parse_generic;
       end;
 
 
@@ -1027,10 +1021,12 @@ implementation
         old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
         old_current_specializedef: tstoreddef;
+        old_parse_generic: boolean;
       begin
         old_current_structdef:=current_structdef;
         old_current_genericdef:=current_genericdef;
         old_current_specializedef:=current_specializedef;
+        old_parse_generic:=parse_generic;
 
         current_structdef:=nil;
         current_genericdef:=nil;
@@ -1129,14 +1125,16 @@ implementation
             if not(objecttype in [odt_objcclass,odt_objcprotocol,odt_objccategory]) then
               parse_object_options;
 
+            symtablestack.push(current_structdef.symtable);
+            insert_generic_parameter_types(current_structdef,genericdef,genericlist);
+            parse_generic:=(df_generic in current_structdef.defoptions);
+
             { parse list of parent classes }
             parse_parent_classes;
 
             { parse optional GUID for interfaces }
             parse_guid;
 
-            symtablestack.push(current_structdef.symtable);
-            insert_generic_parameter_types(current_structdef,genericdef,genericlist);
             { parse and insert object members }
             parse_object_members;
             symtablestack.pop(current_structdef.symtable);
@@ -1171,6 +1169,7 @@ implementation
         current_structdef:=old_current_structdef;
         current_genericdef:=old_current_genericdef;
         current_specializedef:=old_current_specializedef;
+        parse_generic:=old_parse_generic;
       end;
 
 end.
