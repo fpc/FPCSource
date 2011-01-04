@@ -389,12 +389,16 @@ implementation
            generictypelist:=nil;
            generictokenbuf:=nil;
 
-           { generic declaration? }
-           isgeneric:=try_to_consume(_GENERIC);
+           { fpc generic declaration? }
+           isgeneric:=not(m_delphi in current_settings.modeswitches) and try_to_consume(_GENERIC);
 
            typename:=pattern;
            orgtypename:=orgpattern;
            consume(_ID);
+
+           { delphi generic declaration? }
+           if (m_delphi in current_settings.modeswitches) then
+             isgeneric:=token=_LSHARPBRACKET;
 
            { Generic type declaration? }
            if isgeneric then

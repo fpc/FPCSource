@@ -929,9 +929,8 @@ implementation
                    structdef:=tabstractrecorddef(structdef.owner.defowner);
                  end;
              end;
-           { Generate a specialization? }
-           if try_to_consume(_SPECIALIZE) then
-             dospecialize:=true;
+           { Generate a specialization in FPC mode? }
+           dospecialize:=not(m_delphi in current_settings.modeswitches) and try_to_consume(_SPECIALIZE);
            { we can't accept a equal in type }
            pt1:=comp_expr(false,true);
            if not dospecialize and
@@ -987,6 +986,9 @@ implementation
                if (pt1.nodetype=typen) then
                  begin
                    def:=ttypenode(pt1).resultdef;
+                   { Delphi mode specialization? }
+                   if (m_delphi in current_settings.modeswitches) then
+                     dospecialize:=token=_LSHARPBRACKET;
                    if dospecialize then
                      generate_specialization(def)
                    else
