@@ -50,6 +50,7 @@ interface
     { generate persistent type information like VMT, RTTI and inittables }
     procedure write_persistent_type_info(st:tsymtable);
 
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean);
 
 implementation
 
@@ -199,7 +200,8 @@ implementation
             exit;
           end;
 
-        consume(_LSHARPBRACKET);
+        if not try_to_consume(_LT) then
+          consume(_LSHARPBRACKET);
         { Parse generic parameters, for each undefineddef in the symtable of
           the genericdef we need to have a new def }
         err:=false;
@@ -252,7 +254,7 @@ implementation
           end;
         uspecializename:=upper(specializename);
         { force correct error location if too much type parameters are passed }
-        if token<>_RSHARPBRACKET then
+        if not (token in [_RSHARPBRACKET,_GT]) then
           consume(_RSHARPBRACKET);
 
         { Special case if we are referencing the current defined object }
@@ -361,7 +363,8 @@ implementation
           end;
 
         generictypelist.free;
-        consume(_RSHARPBRACKET);
+        if not try_to_consume(_GT) then
+          consume(_RSHARPBRACKET);
       end;
 
 
