@@ -527,14 +527,6 @@ implementation
             hasparentdefined:=true;
           end;
 
-        { no generic as parents }
-        if assigned(childof) and
-           (df_generic in childof.defoptions) then
-          begin
-            Message(parser_e_no_generics_as_types);
-            childof:=nil;
-          end;
-
         { if no parent class, then a class get tobject as parent }
         if not assigned(childof) then
           begin
