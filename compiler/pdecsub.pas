@@ -929,7 +929,7 @@ implementation
                                 sym:=tsym(astruct.symtable.SymList[i]);
                                 if sp_generic_para in sym.symoptions then
                                   begin
-                                    ok:=sym.RealName=pattern;
+                                    ok:=sym.Name=pattern;
                                     inc(i);
                                     break;
                                   end;
