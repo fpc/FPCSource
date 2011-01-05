@@ -872,12 +872,16 @@ program install;
        begin
          WLibPath := false;
          DosFreeModule (Handle);
-       end
-      else
-       if DosLoadModule (@ErrPath, SizeOf (ErrPath), @BFD2EName, Handle) = 0 then
-        begin
-         WLibPath := false;
-         DosFreeModule (Handle);
+         if DosLoadModule (@ErrPath, SizeOf (ErrPath), @BFD2EName, Handle) = 0 then
+          begin
+           WLibPath := false;
+           DosFreeModule (Handle);
+          end
+         else
+          begin
+           WLibPath := true;
+           Inc (YB, 2);
+          end;
         end
        else
         begin
@@ -903,9 +907,11 @@ program install;
       if WLibPath then
        begin
          if WPath then
-          S := 'and your LIBPATH with ''' + S + '\dll'''
+          S := 'and your LIBPATH with ''' + S
          else
-          S := 'Extend your LIBPATH with ''' + S + '\dll''';
+          S := 'Extend your LIBPATH with ''' + S;
+         System.Delete (S, Length (S) - 3, 4);
+         S := S + '\dll''';
          R.Assign (2, YB - 14, 64, YB - 12);
          P := New (PStaticText, Init (R, S));
          Insert (P);
@@ -921,7 +927,7 @@ program install;
 {$ENDIF}
 
       R.Assign(2, YB - 13, 64, YB - 12);
-      P:=new(pstatictext,init(r,'To compile files enter fpc [file]'''));
+      P:=new(pstatictext,init(r,'To compile files enter ''fpc [file]'''));
       insert(P);
 
       if haside then
