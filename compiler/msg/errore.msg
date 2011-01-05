@@ -1713,6 +1713,10 @@ type_w_procvar_univ_conflicting_para=04095_W_Coerced univ parameter type in proc
 % when \var{test} returns.
 type_e_generics_cannot_reference_itself=04096_E_Type parameters of specializations of generics cannot reference the currently specialized type
 % Recursive specializations of generics like \var{Type MyType = specialize MyGeneric<MyType>;} are not possible.
+type_e_type_parameters_are_not_allowed_here=04097_E_Type parameters are not allowed on non-generic class/record/object procedure or function
+% Type parameters are only allowed for methods of generic classes, records or objects
+type_e_generic_declaration_does_not_match=04098_E_Generic declaration of "$1" differs from previous declaration
+% Generic declaration does not match the previous declaration
 %
 % \end{description}
 #

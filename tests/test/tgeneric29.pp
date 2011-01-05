@@ -21,12 +21,12 @@ type
 
   TGenericArray<T> = array of T;
 
-function TGenericClass{<T>}.DoSomething(Arg: T): T;
+function TGenericClass<T>.DoSomething(Arg: T): T;
 begin
   Result := Arg;
 end;
 
-function TGenericClass{<T>}.Test(Arg: Intf): Intf;
+function TGenericClass<T>.Test(Arg: Intf): Intf;
 begin
   Result := Arg;
 end;

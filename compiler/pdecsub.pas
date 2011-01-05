@@ -791,9 +791,7 @@ implementation
         hs       : string;
         orgsp,sp : TIDString;
         srsym : tsym;
-        srsymtable : TSymtable;
         checkstack : psymtablestackitem;
-        storepos,
         procstartfilepos : tfileposinfo;
         searchagain : boolean;
         st,
@@ -885,6 +883,89 @@ implementation
               end;
           end;
 
+        function search_object_name(sp:TIDString;gen_error:boolean):tsym;
+          var
+            storepos:tfileposinfo;
+            srsymtable:TSymtable;
+          begin
+            storepos:=current_tokenpos;
+            current_tokenpos:=procstartfilepos;
+            searchsym(sp,result,srsymtable);
+            if not assigned(result) then
+              begin
+                if gen_error then
+                  identifier_not_found(orgsp);
+                result:=generrorsym;
+              end;
+            current_tokenpos:=storepos;
+          end;
+
+        function consume_generic_type_parameter:boolean;
+          var
+            i:integer;
+            ok:boolean;
+            sym:tsym;
+          begin
+            result:=not assigned(astruct)and(m_delphi in current_settings.modeswitches);
+            if result then
+              begin
+                { a generic type parameter? }
+                srsym:=search_object_name(sp,false);
+                if (srsym.typ=typesym) and
+                   (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
+                begin
+                  astruct:=tabstractrecorddef(ttypesym(srsym).typedef);
+                  if (df_generic in astruct.defoptions) then
+                    begin
+                      consume(_LT);
+                      ok:=true;
+                      i:=0;
+                      repeat
+                        if ok and (token=_ID)  then
+                          begin
+                            ok:=false;
+                            while i<astruct.symtable.SymList.Count-1 do
+                              begin
+                                sym:=tsym(astruct.symtable.SymList[i]);
+                                if sp_generic_para in sym.symoptions then
+                                  begin
+                                    ok:=sym.RealName=pattern;
+                                    inc(i);
+                                    break;
+                                  end;
+                                inc(i);
+                              end;
+                            if not ok then
+                              Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
+                          end;
+                        consume(_ID);
+                      until not try_to_consume(_COMMA);
+                      if ok then
+                        while i<astruct.symtable.SymList.Count-1 do
+                          begin
+                            sym:=tsym(astruct.symtable.SymList[i]);
+                            if sp_generic_para in sym.symoptions then
+                              begin
+                                Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
+                                break;
+                              end;
+                            inc(i);
+                          end;
+                      consume(_GT);
+                    end
+                  else
+                  if try_to_consume(_LT) then
+                    begin
+                      Message(type_e_type_parameters_are_not_allowed_here);
+                      repeat
+                        consume(_ID);
+                      until not try_to_consume(_COMMA);
+                      consume(_GT);
+                    end;
+                end;
+              end;
+          end;
+
       begin
         { Save the position where this procedure really starts }
         procstartfilepos:=current_tokenpos;
@@ -903,16 +984,7 @@ implementation
            (tobjectdef(astruct).ImplementedInterfaces.count>0) and
            try_to_consume(_POINT) then
          begin
-           storepos:=current_tokenpos;
-           current_tokenpos:=procstartfilepos;
-           { get interface syms}
-           searchsym(sp,srsym,srsymtable);
-           if not assigned(srsym) then
-            begin
-              identifier_not_found(orgsp);
-              srsym:=generrorsym;
-            end;
-           current_tokenpos:=storepos;
+           srsym:=search_object_name(sp,true);
            { qualifier is interface? }
            ImplIntf:=nil;
            if (srsym.typ=typesym) and
@@ -933,25 +1005,14 @@ implementation
          end;
 
         { method  ? }
-        if not assigned(astruct) and
+        if (consume_generic_type_parameter or not assigned(astruct)) and
            (symtablestack.top.symtablelevel=main_program_level) and
            try_to_consume(_POINT) then
          begin
            repeat
              searchagain:=false;
              if not assigned(astruct) then
-               begin
-                 { search for object name }
-                 storepos:=current_tokenpos;
-                 current_tokenpos:=procstartfilepos;
-                 searchsym(sp,srsym,srsymtable);
-                 if not assigned(srsym) then
-                  begin
-                    identifier_not_found(orgsp);
-                    srsym:=generrorsym;
-                  end;
-                 current_tokenpos:=storepos;
-               end;
+               srsym:=search_object_name(sp,true);
              { consume proc name }
              procstartfilepos:=current_tokenpos;
              consume_proc_name;
@@ -1017,14 +1078,13 @@ implementation
              if (potype=potype_operator)and(optoken=NOTOKEN) then
                parse_operator_name;
 
-             srsymtable:=symtablestack.top;
-             srsym:=tsym(srsymtable.Find(sp));
+             srsym:=tsym(symtablestack.top.Find(sp));
 
              { Also look in the globalsymtable if we didn't found
                the symbol in the localsymtable }
              if not assigned(srsym) and
                 not(parse_only) and
-                (srsymtable=current_module.localsymtable) and
+                (symtablestack.top=current_module.localsymtable) and
                 assigned(current_module.globalsymtable) then
                srsym:=tsym(current_module.globalsymtable.Find(sp));
 
