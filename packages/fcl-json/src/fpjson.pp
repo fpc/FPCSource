@@ -382,7 +382,7 @@ Type
     // Examine
     procedure Iterate(Iterator : TJSONObjectIterator; Data: TObject);
     function IndexOf(Item: TJSONData): Integer;
-    Function IndexOfName(const AName: TJSONStringType): Integer;
+    Function IndexOfName(const AName: TJSONStringType; CaseInsensitive : Boolean = False): Integer;
     // Manipulate
     Procedure Clear;  override;
     function Add(const AName: TJSONStringType; AValue: TJSONData): Integer; overload;
@@ -416,10 +416,12 @@ Type
   
 Function StringToJSONString(const S : TJSONStringType) : TJSONStringType;
 Function JSONStringToString(const S : TJSONStringType) : TJSONStringType;
-
+Function JSONTypeName(JSONType : TJSONType) : String;
 
 
 implementation
+
+Uses typinfo;
 
 Resourcestring
   SErrCannotConvertFromNull = 'Cannot convert data from Null value';
@@ -519,6 +521,11 @@ begin
     Inc(P);
     end;
   Result:=Result+Copy(S,J,I-J+1);
+end;
+
+function JSONTypeName(JSONType: TJSONType): String;
+begin
+  Result:=GetEnumName(TypeInfo(TJSONType),Ord(JSONType));
 end;
 
 
@@ -1316,6 +1323,8 @@ begin
     if not (foSingleLineArray in Options) then
       Result:=Result+sLineBreak
     end;
+ if not (foSingleLineArray in Options) then
+    Result:=Result+IndentString(Options, CurrentIndent);
   Result:=Result+']';
 end;
 
@@ -1870,9 +1879,16 @@ begin
   Result:=FHash.IndexOf(Item);
 end;
 
-function TJSONObject.IndexOfName(const AName: TJSONStringType): Integer;
+function TJSONObject.IndexOfName(const AName: TJSONStringType; CaseInsensitive : Boolean = False): Integer;
+
 begin
   Result:=FHash.FindIndexOf(AName);
+  if (Result=-1) and CaseInsensitive then
+    begin
+    Result:=Count-1;
+    While (Result>=0) and (CompareText(Names[Result],AName)<>0) do
+      Dec(Result);
+    end;
 end;
 
 procedure TJSONObject.Clear;
