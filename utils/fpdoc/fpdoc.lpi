@@ -4,94 +4,143 @@
     <Version Value="9"/>
     <General>
       <Flags>
-        <SaveClosedFiles Value="False"/>
         <SaveOnlyProjectUnits Value="True"/>
-        <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
-        <LRSInOutputDirectory Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
+      <Title Value="FPDoc Documentation generator"/>
+      <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
+      <Icon Value="0"/>
     </General>
+    <i18n>
+      <EnableI18N LFM="False"/>
+    </i18n>
     <VersionInfo>
       <StringTable ProductVersion=""/>
     </VersionInfo>
+    <BuildModes Count="1">
+      <Item1 Name="Default" Default="True"/>
+    </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
-      <IgnoreBinaries Value="False"/>
       <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
-      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+        <CommandLineParams Value="--project=fpdoc.xml"/>
+        <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="11">
+    <RequiredPackages Count="1">
+      <Item1>
+        <PackageName Value="FCL"/>
+      </Item1>
+    </RequiredPackages>
+    <Units Count="14">
       <Unit0>
         <Filename Value="fpdoc.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="FPDoc"/>
       </Unit0>
       <Unit1>
-        <Filename Value="dwriter.pp"/>
+        <Filename Value="dglobals.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="dWriter"/>
+        <UnitName Value="dGlobals"/>
       </Unit1>
       <Unit2>
+        <Filename Value="dw_dxml.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="dw_dxml"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="dw_html.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="dw_html"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="dw_ipflin.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="dw_ipflin"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="dw_latex.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="dw_latex"/>
+      </Unit5>
+      <Unit6>
         <Filename Value="dwlinear.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="dwlinear"/>
-      </Unit2>
-      <Unit3>
-        <Filename Value="dw_latex.pp"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="dw_LaTeX"/>
-      </Unit3>
-      <Unit4>
-        <Filename Value="dw_xml.pp"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="dw_XML"/>
-      </Unit4>
-      <Unit5>
-        <Filename Value="dw_html.pp"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="dw_HTML"/>
-      </Unit5>
-      <Unit6>
-        <Filename Value="dw_man.pp"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="dw_man"/>
       </Unit6>
       <Unit7>
         <Filename Value="dw_linrtf.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="dw_LinRTF"/>
+        <UnitName Value="dw_linrtf"/>
       </Unit7>
       <Unit8>
+        <Filename Value="dw_man.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="dw_man"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="dwriter.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="dwriter"/>
+      </Unit9>
+      <Unit10>
         <Filename Value="dw_txt.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="dw_txt"/>
-      </Unit8>
-      <Unit9>
-        <Filename Value="dglobals.pp"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="dGlobals"/>
-      </Unit9>
-      <Unit10>
-        <Filename Value="dw_ipflin.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="dw_ipflin"/>
       </Unit10>
+      <Unit11>
+        <Filename Value="dw_xml.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="dw_xml"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="fpdocproj.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpdocproj"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="fpdocxmlopts.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpdocxmlopts"/>
+      </Unit13>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="9"/>
-    </Parsing>
+    <Target>
+      <Filename Value="fpdoc"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
     <Other>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
 </CONFIG>
