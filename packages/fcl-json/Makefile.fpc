@@ -7,8 +7,8 @@ name=fcl-json
 version=2.5.1
 
 [target]
-units=fpjson jsonscanner jsonparser jsonconf
-rsts=fpjson jsonscanner jsonparser jsonconf
+units=fpjson jsonscanner jsonparser jsonconf fpjsonrtti
+rsts=fpjson jsonscanner jsonparser jsonconf fpjsonrtti
 
 [require]
 packages=fcl-base
@@ -29,3 +29,5 @@ fpcdir=../..
 jsonparser$(PPUEXT): jsonparser.pp fpjson$(PPUEXT) jsonscanner$(PPUEXT)
 
 jsonconf$(PPUEXT): jsonparser$(PPUEXT) fpjson$(PPUEXT)
+
+fpjsonrtti$(PPUEXT): jsonparser$(PPUEXT) fpjson$(PPUEXT)
