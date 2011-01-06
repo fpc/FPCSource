@@ -26,10 +26,12 @@ unit pdecl;
 interface
 
     uses
+      { common }
+      cclasses,
       { global }
       globtype,
       { symtable }
-      symsym,
+      symsym,symdef,
       { pass_1 }
       node;
 
@@ -45,19 +47,23 @@ interface
     procedure property_dec(is_classpropery: boolean);
     procedure resourcestring_dec;
 
+    { generics support }
+    function parse_generic_parameters:TFPObjectList;
+    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
+
 implementation
 
     uses
        SysUtils,
        { common }
-       cutils,cclasses,
+       cutils,
        { global }
        globals,tokens,verbose,widestr,constexp,
        systems,
        { aasm }
        aasmbase,aasmtai,aasmdata,fmodule,
        { symtable }
-       symconst,symbase,symtype,symdef,symtable,paramgr,defutil,
+       symconst,symbase,symtype,symtable,paramgr,defutil,
        { pass 1 }
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
        { codegen }
@@ -330,6 +336,50 @@ implementation
          consume(_SEMICOLON);
       end;
 
+    function parse_generic_parameters:TFPObjectList;
+    var
+      generictype : ttypesym;
+    begin
+      result:=TFPObjectList.Create(false);
+      repeat
+        if token=_ID then
+          begin
+            generictype:=ttypesym.create(orgpattern,cundefinedtype);
+            include(generictype.symoptions,sp_generic_para);
+            result.add(generictype);
+          end;
+        consume(_ID);
+      until not try_to_consume(_COMMA) ;
+    end;
+
+    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
+      var
+        i: longint;
+        generictype: ttypesym;
+        st: tsymtable;
+      begin
+        def.genericdef:=genericdef;
+        if not assigned(genericlist) then
+          exit;
+
+        case def.typ of
+          recorddef,objectdef: st:=tabstractrecorddef(def).symtable;
+          arraydef: st:=tarraydef(def).symtable;
+          procvardef,procdef: st:=tabstractprocdef(def).parast;
+          else
+            internalerror(201101020);
+        end;
+
+        for i:=0 to genericlist.count-1 do
+          begin
+            generictype:=ttypesym(genericlist[i]);
+            if generictype.typedef.typ=undefineddef then
+              include(def.defoptions,df_generic)
+            else
+              include(def.defoptions,df_specialization);
+            st.insert(generictype);
+          end;
+       end;
 
     procedure types_dec(in_structure: boolean);
 
@@ -341,23 +391,6 @@ implementation
               exclude(od.objectoptions,oo_is_forward);
               include(od.objectoptions,oo_is_formal);
             end;
-        end;
-
-
-        function parse_generic_parameters:TFPObjectList;
-        var
-          generictype : ttypesym;
-        begin
-          result:=TFPObjectList.Create(false);
-          repeat
-            if token=_ID then
-              begin
-                generictype:=ttypesym.create(orgpattern,cundefinedtype);
-                include(generictype.symoptions,sp_generic_para);
-                result.add(generictype);
-              end;
-            consume(_ID);
-          until not try_to_consume(_COMMA) ;
         end;
 
       var

@@ -37,7 +37,6 @@ interface
     function constructor_head:tprocdef;
     function destructor_head:tprocdef;
     procedure struct_property_dec(is_classproperty:boolean);
-    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
 
 implementation
 
@@ -587,37 +586,6 @@ implementation
         else if (current_objectdef.objecttype=odt_dispinterface) then
           message(parser_e_dispinterface_needs_a_guid);
       end;
-
-
-    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
-      var
-        i: longint;
-        generictype: ttypesym;
-        st: tsymtable;
-      begin
-        def.genericdef:=genericdef;
-        if not assigned(genericlist) then
-          exit;
-
-        case def.typ of
-          recorddef,objectdef: st:=tabstractrecorddef(def).symtable;
-          arraydef: st:=tarraydef(def).symtable;
-          procvardef: st:=tprocvardef(def).parast;
-          else
-            internalerror(201101020);
-        end;
-
-        for i:=0 to genericlist.count-1 do
-          begin
-            generictype:=ttypesym(genericlist[i]);
-            if generictype.typedef.typ=undefineddef then
-              include(def.defoptions,df_generic)
-            else
-              include(def.defoptions,df_specialization);
-            st.insert(generictype);
-          end;
-       end;
-
 
     procedure parse_object_members;
 
