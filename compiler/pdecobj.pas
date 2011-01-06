@@ -602,6 +602,7 @@ implementation
         case def.typ of
           recorddef,objectdef: st:=tabstractrecorddef(def).symtable;
           arraydef: st:=tarraydef(def).symtable;
+          procvardef: st:=tprocvardef(def).parast;
           else
             internalerror(201101020);
         end;

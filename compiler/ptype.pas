@@ -215,6 +215,8 @@ implementation
             st:=genericdef.GetSymtable(gs_record);
           arraydef:
             st:=tarraydef(genericdef).symtable;
+          procvardef:
+            st:=genericdef.GetSymtable(gs_para);
           else
             internalerror(200511182);
         end;
@@ -327,17 +329,31 @@ implementation
                 read_named_type(tt,specializename,genericdef,generictypelist,false);
                 ttypesym(srsym).typedef:=tt;
                 tt.typesym:=srsym;
+
+                case tt.typ of
+                  { Build VMT indexes for classes }
+                  objectdef:
+                    begin
+                      vmtbuilder:=TVMTBuilder.Create(tobjectdef(tt));
+                      vmtbuilder.generate_vmt;
+                      vmtbuilder.free;
+                    end;
+                  { handle params, calling convention, etc }
+                  procvardef:
+                    begin
+                      if not check_proc_directive(true) then
+                        begin
+                          try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg);
+                          consume(_SEMICOLON);
+                        end;
+                      parse_var_proc_directives(ttypesym(srsym));
+                      handle_calling_convention(tprocvardef(tt));
+                      if try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg) then
+                        consume(_SEMICOLON);
+                    end;
+                end;
                 { Consume the semicolon if it is also recorded }
                 try_to_consume(_SEMICOLON);
-
-
-                { Build VMT indexes for classes }
-                if (tt.typ=objectdef) then
-                  begin
-                    vmtbuilder:=TVMTBuilder.Create(tobjectdef(tt));
-                    vmtbuilder.generate_vmt;
-                    vmtbuilder.free;
-                  end;
               end;
 
             { Restore symtablestack }
@@ -1247,15 +1263,87 @@ implementation
            current_genericdef:=old_current_genericdef;
            current_specializedef:=old_current_specializedef;
         end;
+
+        function procvar_dec(genericdef:tstoreddef;genericlist:TFPObjectList):tdef;
+          var
+            is_func:boolean;
+            pd:tabstractprocdef;
+            newtype:ttypesym;
+            old_current_genericdef,
+            old_current_specializedef: tstoreddef;
+            old_parse_generic: boolean;
+          begin
+            old_current_genericdef:=current_genericdef;
+            old_current_specializedef:=current_specializedef;
+            old_parse_generic:=parse_generic;
+
+            current_genericdef:=nil;
+            current_specializedef:=nil;
+
+            is_func:=(token=_FUNCTION);
+            consume(token);
+            pd:=tprocvardef.create(normal_function_level);
+
+            { usage of specialized type inside its generic template }
+            if assigned(genericdef) then
+              current_specializedef:=pd
+            { reject declaration of generic class inside generic class }
+            else if assigned(genericlist) then
+              current_genericdef:=pd;
+            symtablestack.push(pd.parast);
+            insert_generic_parameter_types(pd,genericdef,genericlist);
+            parse_generic:=(df_generic in pd.defoptions);
+            { don't allow to add defs to the symtable - use it for type param search only }
+            tparasymtable(pd.parast).readonly:=true;
+
+            if token=_LKLAMMER then
+              parse_parameter_dec(pd);
+            if is_func then
+              begin
+                consume(_COLON);
+                single_type(pd.returndef,[]);
+              end;
+            if try_to_consume(_OF) then
+              begin
+                consume(_OBJECT);
+                include(pd.procoptions,po_methodpointer);
+              end
+            else if (m_nested_procvars in current_settings.modeswitches) and
+                    try_to_consume(_IS) then
+              begin
+                consume(_NESTED);
+                pd.parast.symtablelevel:=normal_function_level+1;
+                pd.check_mark_as_nested;
+              end;
+            symtablestack.pop(pd.parast);
+            tparasymtable(pd.parast).readonly:=false;
+            result:=pd;
+            { possible proc directives }
+            if parseprocvardir then
+              begin
+                if check_proc_directive(true) then
+                  begin
+                    newtype:=ttypesym.create('unnamed',result);
+                    parse_var_proc_directives(tsym(newtype));
+                    newtype.typedef:=nil;
+                    result.typesym:=nil;
+                    newtype.free;
+                  end;
+                { Add implicit hidden parameters and function result }
+                handle_calling_convention(pd);
+              end;
+            { restore old state }
+            parse_generic:=old_parse_generic;
+            current_genericdef:=old_current_genericdef;
+            current_specializedef:=old_current_specializedef;
+          end;
+
       const
         SingleTypeOptionsInTypeBlock:array[Boolean] of TSingleTypeOptions = ([],[stoIsForwardDef]);
       var
         p  : tnode;
         hdef : tdef;
-        pd : tabstractprocdef;
-        is_func,
         enumdupmsg, first, is_specialize : boolean;
-        newtype : ttypesym;
         oldlocalswitches : tlocalswitches;
         bitpacking: boolean;
         stitem: psymtablestackitem;
@@ -1506,43 +1594,7 @@ implementation
             _PROCEDURE,
             _FUNCTION:
               begin
-                is_func:=(token=_FUNCTION);
-                consume(token);
-                pd:=tprocvardef.create(normal_function_level);
-                if token=_LKLAMMER then
-                  parse_parameter_dec(pd);
-                if is_func then
-                 begin
-                   consume(_COLON);
-                   single_type(pd.returndef,[]);
-                 end;
-                if try_to_consume(_OF) then
-                  begin
-                    consume(_OBJECT);
-                    include(pd.procoptions,po_methodpointer);
-                  end
-                else if (m_nested_procvars in current_settings.modeswitches) and
-                        try_to_consume(_IS) then
-                  begin
-                    consume(_NESTED);
-                    pd.parast.symtablelevel:=normal_function_level+1;
-                    pd.check_mark_as_nested;
-                  end;
-                def:=pd;
-                { possible proc directives }
-                if parseprocvardir then
-                  begin
-                    if check_proc_directive(true) then
-                      begin
-                         newtype:=ttypesym.create('unnamed',def);
-                         parse_var_proc_directives(tsym(newtype));
-                         newtype.typedef:=nil;
-                         def.typesym:=nil;
-                         newtype.free;
-                      end;
-                    { Add implicit hidden parameters and function result }
-                    handle_calling_convention(pd);
-                  end;
+                def:=procvar_dec(genericdef,genericlist);
               end;
             else
               if (token=_KLAMMERAFFE) and (m_iso in current_settings.modeswitches) then
