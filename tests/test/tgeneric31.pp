@@ -1,3 +1,4 @@
+{ %fail }
 program tgeneric31;
 
 {$mode delphi}
