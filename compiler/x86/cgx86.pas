@@ -408,9 +408,7 @@ unit cgx86;
                   safety reasons
                 }
                 if (ref.symbol.bind=AB_LOCAL) and
-                   (ref.symbol.typ=AT_DATA) and
-                   ((target_info.system=system_x86_64_darwin) or
-                    (target_info.system=system_x86_64_solaris)) then
+                   (ref.symbol.typ=AT_DATA) then
                   begin
                     { unfortunately, RIP-based addresses don't support an index }
                     if (ref.base<>NR_NO) or
@@ -937,9 +935,7 @@ unit cgx86;
                     else if (cs_create_pic in current_settings.moduleswitches)
 {$ifdef x86_64}
                              and not((ref.symbol.bind=AB_LOCAL) and
-                                     (ref.symbol.typ=AT_DATA) and
-                                     ((target_info.system=system_x86_64_darwin) or 
-                                     (target_info.system=system_x86_64_solaris)))
+                                     (ref.symbol.typ=AT_DATA))
 {$endif x86_64}
                             then
                       begin
