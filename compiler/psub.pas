@@ -1984,20 +1984,20 @@ implementation
         oldsymtablestack   : tsymtablestack;
         pu : tused_unit;
         hmodule : tmodule;
-        specobj : tobjectdef;
+        specobj : tabstractrecorddef;
       begin
         if not((tsym(p).typ=typesym) and
                (ttypesym(p).typedef.typesym=tsym(p)) and
-               (ttypesym(p).typedef.typ=objectdef) and
+               (ttypesym(p).typedef.typ in [objectdef,recorddef]) and
                (df_specialization in ttypesym(p).typedef.defoptions)
               ) then
           exit;
 
         { Setup symtablestack a definition time }
-        specobj:=tobjectdef(ttypesym(p).typedef);
+        specobj:=tabstractrecorddef(ttypesym(p).typedef);
         oldsymtablestack:=symtablestack;
         symtablestack:=tsymtablestack.create;
-        if not assigned(tobjectdef(ttypesym(p).typedef).genericdef) then
+        if not assigned(specobj.genericdef) then
           internalerror(200705151);
         hmodule:=find_module_from_symtable(specobj.genericdef.owner);
         if hmodule=nil then
@@ -2016,7 +2016,7 @@ implementation
           symtablestack.push(hmodule.localsymtable);
 
         { procedure definitions for classes or objects }
-        if is_class_or_object(specobj) then
+        if is_class_or_object(specobj) or is_record(specobj) then
           begin
             for i:=0 to specobj.symtable.DefList.Count-1 do
               begin
