@@ -326,7 +326,8 @@ type
     odt_dispinterface,
     odt_objcclass,
     odt_objcprotocol,
-    odt_objccategory { note that these are changed into odt_class afterwards }
+    odt_objccategory, { note that these are changed into odt_class afterwards }
+    odt_classhelper
   );
 
   { Variations in interfaces implementation }

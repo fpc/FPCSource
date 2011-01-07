@@ -2135,7 +2135,7 @@ implementation
                 classh:=classh.childof;
               end;
           end;
-        if is_objcclass(orgclass) then
+        if is_objcclass(orgclass) or is_class(orgclass) then
           result:=search_class_helper(orgclass,s,srsym,srsymtable)
         else
           begin

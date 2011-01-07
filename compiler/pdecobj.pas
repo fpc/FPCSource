@@ -373,9 +373,11 @@ implementation
 
         { reads the parent class }
         if (token=_LKLAMMER) or
-           is_objccategory(current_objectdef) then
+           is_objccategory(current_objectdef) or
+           is_objectpascal_classhelper(current_objectdef) then
           begin
-            consume(_LKLAMMER);
+            if not is_objectpascal_classhelper(current_objectdef) then
+              consume(_LKLAMMER);
             { use single_type instead of id_type for specialize support }
             single_type(hdef,false,false);
             if (not assigned(hdef)) or
@@ -385,7 +387,10 @@ implementation
                   Message1(type_e_class_type_expected,hdef.typename)
                 else if is_objccategory(current_objectdef) then
                   { a category must specify the class to extend }
-                  Message(type_e_objcclass_type_expected);
+                  Message(type_e_objcclass_type_expected)
+                else if is_objectpascal_classhelper(current_objectdef) then
+                  { a class helper must specify the class to extend }
+                  Message(type_e_class_type_expected);
               end
             else
               begin
@@ -408,7 +413,8 @@ implementation
                             Message(parser_e_mix_of_classes_and_objects);
                        end
                      else
-                       if oo_is_sealed in childof.objectoptions then
+                       if (oo_is_sealed in childof.objectoptions) and
+                           not is_objectpascal_classhelper(current_objectdef) then
                          Message1(parser_e_sealed_descendant,childof.typename);
                    odt_interfacecorba,
                    odt_interfacecom:
@@ -512,7 +518,8 @@ implementation
                     handleImplementedProtocol(intfchildof);
                 readImplementedInterfacesAndProtocols(current_objectdef.objecttype=odt_class);
               end;
-            consume(_RKLAMMER);
+            if not is_objectpascal_classhelper(current_objectdef) then
+              consume(_RKLAMMER);
           end;
       end;
 
@@ -1046,6 +1053,13 @@ implementation
             if (objecttype=odt_objccategory) then
               begin
                 current_objectdef.objecttype:=odt_objcclass;
+                include(current_objectdef.objectoptions,oo_is_classhelper);
+              end;
+
+            { change classhepers into Delphi type class helpers }
+            if (objecttype=odt_classhelper) then
+              begin
+                current_objectdef.objecttype:=odt_class;
                 include(current_objectdef.objectoptions,oo_is_classhelper);
               end;
 

@@ -311,6 +311,7 @@ interface
           procedure set_parent(c : tobjectdef);
           function find_destructor: tprocdef;
           function implements_any_interfaces: boolean;
+          procedure finish_classhelper;
           { dispinterface support }
           function get_next_dispid: longint;
           { enumerator support }
@@ -773,12 +774,14 @@ interface
     function is_object(def: tdef): boolean;
     function is_class(def: tdef): boolean;
     function is_cppclass(def: tdef): boolean;
+    function is_objectpascal_classhelper(def: tdef): boolean;
     function is_objcclass(def: tdef): boolean;
     function is_objcclassref(def: tdef): boolean;
     function is_objcprotocol(def: tdef): boolean;
     function is_objccategory(def: tdef): boolean;
     function is_objc_class_or_protocol(def: tdef): boolean;
     function is_objc_protocol_or_category(def: tdef): boolean;
+    function is_classhelper(def: tdef): boolean;
     function is_class_or_interface(def: tdef): boolean;
     function is_class_or_interface_or_objc(def: tdef): boolean;
     function is_class_or_interface_or_object(def: tdef): boolean;
@@ -4024,7 +4027,7 @@ implementation
         if objecttype in [odt_interfacecorba,odt_interfacecom,odt_dispinterface] then
           prepareguid;
         { setup implemented interfaces }
-        if objecttype in [odt_class,odt_objcclass,odt_objcprotocol] then
+        if objecttype in [odt_class,odt_objcclass,odt_objcprotocol,odt_classhelper] then
           ImplementedInterfaces:=TFPObjectList.Create(true)
         else
           ImplementedInterfaces:=nil;
@@ -4589,6 +4592,11 @@ implementation
       begin
         result := (ImplementedInterfaces.Count > 0) or
           (assigned(childof) and childof.implements_any_interfaces);
+      end;
+
+    procedure tobjectdef.finish_classhelper;
+      begin
+        self.symtable.DefList.foreachcall(@create_class_helper_for_procdef,nil);
       end;
 
     function tobjectdef.size : aint;
@@ -5418,6 +5426,19 @@ implementation
       end;
 
 
+    function is_objectpascal_classhelper(def: tdef): boolean;
+      begin
+        result:=
+          assigned(def) and
+          (def.typ=objectdef) and
+          { if used as a forward type }
+          ((tobjectdef(def).objecttype=odt_classhelper) or
+          { if used as after it has been resolved }
+           ((tobjectdef(def).objecttype=odt_class) and
+            (oo_is_classhelper in tobjectdef(def).objectoptions)));
+      end;
+
+
     function is_objcclassref(def: tdef): boolean;
       begin
         is_objcclassref:=
@@ -5467,6 +5488,12 @@ implementation
              (oo_is_classhelper in tobjectdef(def).objectoptions)));
       end;
 
+    function is_classhelper(def: tdef): boolean;
+      begin
+         result:=
+           is_objectpascal_classhelper(def) or
+           is_objccategory(def);
+      end;
 
     function is_class_or_interface(def: tdef): boolean;
       begin

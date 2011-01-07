@@ -1369,6 +1369,13 @@ implementation
                       Message1(type_e_class_or_objcclass_type_expected,hdef.typename);
                   end
                 else
+                if (idtoken=_HELPER) then
+                  begin
+                    consume(_HELPER);
+                    consume(_FOR);
+                    def:=object_dec(odt_classhelper,name,genericdef,genericlist,nil);
+                  end
+                else
                   def:=object_dec(odt_class,name,genericdef,genericlist,nil);
               end;
             _CPPCLASS :
