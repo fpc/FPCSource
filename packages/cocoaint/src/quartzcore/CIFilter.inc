@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CIFilter.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -126,13 +126,11 @@ var
 {$define CIFILTER_PAS_C}
 
 { CIFilter }
-  CIFilter = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
+  CIFilter = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
         _priv: array[0..7] of Pointer;
     
   public
-    class function alloc: CIFilter; message 'alloc';
-
     function inputKeys: NSArray; message 'inputKeys';
     function outputKeys: NSArray; message 'outputKeys';
     procedure setDefaults; message 'setDefaults';
@@ -144,10 +142,10 @@ var
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 { CIFilterRegistryCategory }
-  CIFilterRegistryCategory = objccategory(CIFilter)
+  CIFilterRegistryCategory = objccategory external (CIFilter)
     class function filterWithName(name: NSString): CIFilter; message 'filterWithName:';
     class function filterWithName_keysAndValues(name: NSString; firstKey: id): CIFilter; varargs; message 'filterWithName:keysAndValues:';
     class function filterNamesInCategory(category: NSString): NSArray; message 'filterNamesInCategory:';
@@ -157,7 +155,7 @@ var
     class function localizedNameForCategory(category: NSString): NSString; message 'localizedNameForCategory:';
     class function localizedDescriptionForFilterName(filterName: NSString): NSString; message 'localizedDescriptionForFilterName:';
     class function localizedReferenceDocumentationForFilterName(filterName: NSString): NSURL; message 'localizedReferenceDocumentationForFilterName:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

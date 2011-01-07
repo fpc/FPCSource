@@ -349,8 +349,82 @@ begin
   Close(FFile);
 end;
 
+type
+  { TGraphVizClassChartFormatter }
+
+  TGraphVizClassChartFormatter = class(TClassChartFormatter)
+    FFile : Text;
+    FMode : TClassMode;
+    FIndent : integer;
+    Procedure EmitLine(S : string);
+  Protected
+    procedure DoEmitClass(E : TDomElement); override;
+    procedure DoNextColumn(E: TDomElement); override;
+    procedure DoHeadClass(E: TDomElement); override;
+    procedure StartSubClass(E: TDomElement); override;
+    procedure EndSubClass(E: TDomElement; HasSiblings : Boolean); override;
+    Procedure StartChart; override;
+    Procedure EndChart; override;
+  end;
+
+  { TGraphVizClassChartFormatter }
+
+  procedure TGraphVizClassChartFormatter.EmitLine(S: String);
+  begin
+    Writeln(FFile,StringofChar(' ',Findent*2),S);
+  end;
+
+  procedure TGraphVizClassChartFormatter.DoEmitClass(E: TDomElement);
+  begin
+    Case ClassMode of
+      cmFirstClass : EmitLine(Format('%s -> %s', [E.ParentNode.NodeName, E.NodeName]));
+      cmNormal     : EmitLine(Format('%s -> %s', [E.ParentNode.NodeName, E.NodeName]));
+      cmSubClass   : EmitLine(Format('%s -> %s', [E.ParentNode.NodeName, E.NodeName]));
+      cmHeadClass  : EmitLine(Format('%s -> %s', [E.ParentNode.NodeName, E.NodeName]));
+    end;
+  end;
+
+  procedure TGraphVizClassChartFormatter.DoNextColumn(E: TDomElement);
+  begin
+    Inherited;
+    FIndent:=0;
+  end;
+
+  procedure TGraphVizClassChartFormatter.DoHeadClass(E: TDomElement);
+  begin
+  //  DoNextColumn(E);
+    inherited DoHeadClass(E);
+  end;
+
+
+  procedure TGraphVizClassChartFormatter.EndSubClass(E: TDomElement; HasSiblings : Boolean);
+  begin
+    If FIndent>0 then
+      Dec(Findent);
+  end;
+
+  procedure TGraphVizClassChartFormatter.StartSubClass(E: TDomElement);
+  begin
+    inherited StartSubClass(E);
+    Inc(Findent);
+  end;
+
+  procedure TGraphVizClassChartFormatter.StartChart;
+  begin
+    Assign(FFile,FileName);
+    Rewrite(FFile);
+    EmitLine('digraph G {');
+  end;
+
+  procedure TGraphVizClassChartFormatter.EndChart;
+  begin
+    EmitLine('}');
+    Close(FFile);
+  end;
+
+
 Type
-  TOutputFormat = (ofxml,ofPostscript);
+  TOutputFormat = (ofXML,ofPostscript, ofGraphViz);
 
 Var
   OutputFormat : TOutputFormat = ofXML;
@@ -361,7 +435,6 @@ const
   FPCVersion: String = {$I %FPCVERSION%};
   FPCDate: String = {$I %FPCDATE%};
 
-  
 
 function TClassTreeEngine.CreateElement(AClass: TPTreeElement; const AName: String;
   AParent: TPasElement; AVisibility : TPasMemberVisibility;
@@ -583,6 +656,14 @@ begin
           finally
             Free;
           end;
+      ofGraphViz :
+        With TGraphVizClassChartFormatter.Create(XML) do
+          try
+            FileName:=AOutputName;
+            CreateChart;
+          finally
+            Free;
+          end;
     end;
     Writeln(StdErr,Format(SClassesAdded,[ACount,InputFiles.Count]));
   Finally
@@ -632,6 +713,7 @@ begin
   Writeln(' --kind=objectkind   Specify object kind. One of object, class, interface.');
   Writeln(' --lang=language     Use selected language.');
   Writeln(' --output=filename   Send output to file.');
+  Writeln(' --format=name       Kind of output to create: XML, PostScript, GraphViz.');
 end;
 
 procedure ParseOption(const s: String);

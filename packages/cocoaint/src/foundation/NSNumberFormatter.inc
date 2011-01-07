@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSNumberFormatter.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -83,7 +83,7 @@ type
 {$define NSNUMBERFORMATTER_PAS_C}
 
 { NSNumberFormatter }
-  NSNumberFormatter = objcclass(NSFormatter)
+  NSNumberFormatter = objcclass external (NSFormatter)
   private
     _attributes: NSMutableDictionary;
     _formatter: CFNumberFormatterRef; {garbage collector: __strong }
@@ -91,8 +91,6 @@ type
         _reserved: array[0..11] of Pointer;
     
   public
-    class function alloc: NSNumberFormatter; message 'alloc';
-
     function getObjectValue_forString_range_error(obj: idPtr; string_: NSString; rangep: NSRangePtr; error: NSErrorPointer): Boolean; message 'getObjectValue:forString:range:error:';
     function stringFromNumber(number: NSNumber): NSString; message 'stringFromNumber:';
     function numberFromString(string_: NSString): NSNumber; message 'numberFromString:';
@@ -211,10 +209,10 @@ type
     procedure setMaximumSignificantDigits(number: NSUInteger); message 'setMaximumSignificantDigits:';
     function isPartialStringValidationEnabled: Boolean; message 'isPartialStringValidationEnabled';
     procedure setPartialStringValidationEnabled(b: Boolean); message 'setPartialStringValidationEnabled:';
-  end; external;
+  end;
 
 { NSNumberFormatterCompatibilityCategory }
-  NSNumberFormatterCompatibilityCategory = objccategory(NSNumberFormatter)
+  NSNumberFormatterCompatibilityCategory = objccategory external (NSNumberFormatter)
     function hasThousandSeparators: Boolean; message 'hasThousandSeparators';
     procedure setHasThousandSeparators(flag: Boolean); message 'setHasThousandSeparators:';
     function thousandSeparator: NSString; message 'thousandSeparator';
@@ -231,7 +229,7 @@ type
     procedure setAttributedStringForNotANumber(newAttributedString: NSAttributedString); message 'setAttributedStringForNotANumber:';
     function roundingBehavior: NSDecimalNumberHandler; message 'roundingBehavior';
     procedure setRoundingBehavior(newRoundingBehavior: NSDecimalNumberHandler); message 'setRoundingBehavior:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

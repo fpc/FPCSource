@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSNib.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -47,7 +47,7 @@ var
 {$define NSNIB_PAS_C}
 
 { NSNib }
-  NSNib = objcclass(NSObject, NSCodingProtocol)
+  NSNib = objcclass external (NSObject, NSCodingProtocol)
   private
     _data: NSData;
     _images: NSArray;
@@ -65,8 +65,6 @@ var
     reserved2: id;
     
   public
-    class function alloc: NSNib; message 'alloc';
-
     function initWithContentsOfURL(nibFileURL: NSURL): id; message 'initWithContentsOfURL:';
     function initWithNibNamed_bundle(nibName: NSString; bundle: NSBundle): id; message 'initWithNibNamed:bundle:';
     function instantiateNibWithExternalNameTable(externalNameTable: NSDictionary): Boolean; message 'instantiateNibWithExternalNameTable:';
@@ -75,7 +73,7 @@ var
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

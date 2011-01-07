@@ -313,7 +313,7 @@ const
   parser_e_packed_element_no_var_addr=03221;
   parser_e_packed_dynamic_open_array=03222;
   parser_e_packed_element_no_loop=03223;
-  parser_e_type_var_const_only_in_generics_and_classes=03224;
+  parser_e_type_var_const_only_in_records_and_classes=03224;
   parser_e_cant_create_generics_of_this_type=03225;
   parser_w_no_lineinfo_use_switch=03226;
   parser_e_no_funcret_specified=03227;
@@ -391,6 +391,8 @@ const
   parser_e_no_destructor_in_records=03300;
   parser_e_class_methods_only_static_in_records=03301;
   parser_e_no_constructor_in_records=03302;
+  parser_e_at_least_one_argument_must_be_of_type=03303;
+  parser_e_cant_use_type_parameters_here=03304;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -478,6 +480,8 @@ const
   type_e_objcclass_type_expected=04094;
   type_w_procvar_univ_conflicting_para=04095;
   type_e_generics_cannot_reference_itself=04096;
+  type_e_type_parameters_are_not_allowed_here=04097;
+  type_e_generic_declaration_does_not_match=04098;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -546,6 +550,8 @@ const
   sym_w_experimental_unit=05079;
   sym_e_objc_formal_class_not_resolved=05080;
   sym_e_interprocgoto_into_init_final_code_not_allowed=05081;
+  sym_e_external_class_name_mismatch1=05082;
+  sym_e_external_class_name_mismatch2=05083;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -876,9 +882,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 58219;
+  MsgTxtSize = 58664;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,88,303,97,82,54,111,22,202,63,
+    24,88,305,99,84,54,111,22,202,63,
     49,20,1,1,1,1,1,1,1,1
   );

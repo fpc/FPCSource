@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSRulerView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -53,7 +53,7 @@ type
 {$define NSRULERVIEW_PAS_C}
 
 { NSRulerView }
-  NSRulerView = objcclass(NSView)
+  NSRulerView = objcclass external (NSView)
   private
     _scrollView: NSScrollView;
     _orientation: NSRulerOrientation;
@@ -72,8 +72,6 @@ type
     _reservedRulerView1: id;
     
   public
-    class function alloc: NSRulerView; message 'alloc';
-
     class procedure registerUnitWithName_abbreviation_unitToPointsConversionFactor_stepUpCycle_stepDownCycle(unitName: NSString; abbreviation: NSString; conversionFactor: CGFloat; stepUpCycle: NSArray; stepDownCycle: NSArray); message 'registerUnitWithName:abbreviation:unitToPointsConversionFactor:stepUpCycle:stepDownCycle:';
     function initWithScrollView_orientation(scrollView_: NSScrollView; orientation_: NSRulerOrientation): id; message 'initWithScrollView:orientation:';
     procedure setScrollView(scrollView_: NSScrollView); message 'setScrollView:';
@@ -106,10 +104,10 @@ type
     procedure drawHashMarksAndLabelsInRect(rect: NSRect); message 'drawHashMarksAndLabelsInRect:';
     procedure drawMarkersInRect(rect: NSRect); message 'drawMarkersInRect:';
     function isFlipped: Boolean; message 'isFlipped';
-  end; external;
+  end;
 
 { NSRulerMarkerClientViewDelegationCategory }
-  NSRulerMarkerClientViewDelegationCategory = objccategory(NSView)
+  NSRulerMarkerClientViewDelegationCategory = objccategory external (NSView)
     function rulerView_shouldMoveMarker(ruler: NSRulerView; marker: NSRulerMarker): Boolean; message 'rulerView:shouldMoveMarker:';
     function rulerView_willMoveMarker_toLocation(ruler: NSRulerView; marker: NSRulerMarker; location: CGFloat): CGFloat; message 'rulerView:willMoveMarker:toLocation:';
     procedure rulerView_didMoveMarker(ruler: NSRulerView; marker: NSRulerMarker); message 'rulerView:didMoveMarker:';
@@ -120,7 +118,7 @@ type
     procedure rulerView_didAddMarker(ruler: NSRulerView; marker: NSRulerMarker); message 'rulerView:didAddMarker:';
     procedure rulerView_handleMouseDown(ruler: NSRulerView; event: NSEvent); message 'rulerView:handleMouseDown:';
     procedure rulerView_willSetClientView(ruler: NSRulerView; newClient: NSView); message 'rulerView:willSetClientView:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSCalendarDate.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSCALENDARDATE_PAS_C}
 
 { NSCalendarDate }
-  NSCalendarDate = objcclass(NSDate)
+  NSCalendarDate = objcclass external (NSDate)
   private
     refCount: NSUInteger;
     _timeIntervalSinceReferenceDate: NSTimeInterval;
@@ -51,8 +51,6 @@
     _reserved: Pointer;
     
   public
-    class function alloc: NSCalendarDate; message 'alloc';
-
     class function calendarDate: id; message 'calendarDate';
     class function dateWithString_calendarFormat_locale(description_: NSString; format: NSString; locale: id): id; message 'dateWithString:calendarFormat:locale:';
     class function dateWithString_calendarFormat(description_: NSString; format: NSString): id; message 'dateWithString:calendarFormat:';
@@ -79,17 +77,17 @@
     procedure setCalendarFormat(format: NSString); message 'setCalendarFormat:';
     procedure setTimeZone(aTimeZone: NSTimeZone); message 'setTimeZone:';
     procedure years_months_days_hours_minutes_seconds_sinceDate(yp: NSIntegerPtr; mop: NSIntegerPtr; dp: NSIntegerPtr; hp: NSIntegerPtr; mip: NSIntegerPtr; sp: NSIntegerPtr; date_: NSCalendarDate); message 'years:months:days:hours:minutes:seconds:sinceDate:';
-  end; external;
+  end;
 
 { NSCalendarDateExtrasCategory }
-  NSCalendarDateExtrasCategory = objccategory(NSDate)
+  NSCalendarDateExtrasCategory = objccategory external (NSDate)
     class function dateWithNaturalLanguageString_locale(string_: NSString; locale: id): id; message 'dateWithNaturalLanguageString:locale:';
     class function dateWithNaturalLanguageString(string_: NSString): id; message 'dateWithNaturalLanguageString:';
     class function dateWithString(aString: NSString): id; message 'dateWithString:';
     function dateWithCalendarFormat_timeZone(format: NSString; aTimeZone: NSTimeZone): NSCalendarDate; message 'dateWithCalendarFormat:timeZone:';
     function descriptionWithCalendarFormat_timeZone_locale(format: NSString; aTimeZone: NSTimeZone; locale: id): NSString; message 'descriptionWithCalendarFormat:timeZone:locale:';
     function initWithString(description_: NSString): id; message 'initWithString:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

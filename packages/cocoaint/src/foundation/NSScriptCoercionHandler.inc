@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScriptCoercionHandler.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,17 +42,15 @@
 {$define NSSCRIPTCOERCIONHANDLER_PAS_C}
 
 { NSScriptCoercionHandler }
-  NSScriptCoercionHandler = objcclass(NSObject)
+  NSScriptCoercionHandler = objcclass external (NSObject)
   private
     _coercers: id;
     
   public
-    class function alloc: NSScriptCoercionHandler; message 'alloc';
-
     class function sharedCoercionHandler: NSScriptCoercionHandler; message 'sharedCoercionHandler';
     function coerceValue_toClass(value: id; toClass: Pobjc_class): id; message 'coerceValue:toClass:';
     procedure registerCoercer_selector_toConvertFromClass_toClass(coercer: id; selector: SEL; fromClass: Pobjc_class; toClass: Pobjc_class); message 'registerCoercer:selector:toConvertFromClass:toClass:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

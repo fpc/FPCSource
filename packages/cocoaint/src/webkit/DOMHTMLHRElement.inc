@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLHRElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLHRELEMENT_PAS_C}
 
 { DOMHTMLHRElement }
-  DOMHTMLHRElement = objcclass(DOMHTMLElement)
+  DOMHTMLHRElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLHRElement; message 'alloc';
-
     procedure setAlign (newValue: NSString); message 'setAlign:';
     function align: NSString; message 'align';
     procedure setNoShade (newValue: Boolean); message 'setNoShade:';
@@ -55,7 +53,7 @@
     function size: NSString; message 'size';
     procedure setWidth (newValue: NSString); message 'setWidth:';
     function width: NSString; message 'width';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

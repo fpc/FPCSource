@@ -62,7 +62,7 @@ interface
     procedure parse_var_proc_directives(sym:tsym);
     procedure parse_object_proc_directives(pd:tabstractprocdef);
     procedure parse_record_proc_directives(pd:tabstractprocdef);
-    function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;var pd:tprocdef):boolean;
+    function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;out pd:tprocdef):boolean;
     function  parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef):tprocdef;
 
     { helper functions - they insert nested objects hierarcy to the symtablestack
@@ -528,7 +528,6 @@ implementation
         sc:=TFPObjectList.create(false);
         defaultrequired:=false;
         paranr:=0;
-        inc(testcurobject);
         block_type:=bt_var;
         is_univ:=false;
         repeat
@@ -594,7 +593,7 @@ implementation
               begin
                 block_type:=bt_var_type;
                 consume(_COLON);
-                single_type(pv.returndef,false,false);
+                single_type(pv.returndef,[]);
                 block_type:=bt_var;
               end;
              hdef:=pv;
@@ -642,7 +641,7 @@ implementation
                 else
                  begin
                    { define field type }
-                   single_type(arrayelementdef,false,false);
+                   single_type(arrayelementdef,[]);
                    tarraydef(hdef).elementdef:=arrayelementdef;
                  end;
               end
@@ -656,7 +655,7 @@ implementation
                 else
                   begin
                     block_type:=bt_var_type;
-                    single_type(hdef,false,false);
+                    single_type(hdef,[]);
                     block_type:=bt_var;
                   end;
 
@@ -782,20 +781,17 @@ implementation
         { remove parasymtable from stack }
         sc.free;
         { reset object options }
-        dec(testcurobject);
         block_type:=old_block_type;
         consume(_RKLAMMER);
       end;
 
 
-    function parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;var pd:tprocdef):boolean;
+    function parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;out pd:tprocdef):boolean;
       var
         hs       : string;
         orgsp,sp : TIDString;
         srsym : tsym;
-        srsymtable : TSymtable;
         checkstack : psymtablestackitem;
-        storepos,
         procstartfilepos : tfileposinfo;
         searchagain : boolean;
         st,
@@ -806,7 +802,7 @@ implementation
         old_parse_generic : boolean;
         old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
-        old_current_specializedef : tobjectdef;
+        old_current_specializedef: tstoreddef;
         lasttoken,lastidtoken: ttoken;
 
         procedure parse_operator_name;
@@ -831,7 +827,7 @@ implementation
                       case lastidtoken of
                         _IMPLICIT:optoken:=_ASSIGNMENT;
                         _NEGATIVE:optoken:=_MINUS;
-  //                         _POSITIVE:optoken:=_PLUS;
+                        _POSITIVE:optoken:=_PLUS;
                         _LOGICALNOT:optoken:=_OP_NOT;
                         _IN:optoken:=_OP_IN;
                         _EQUAL:optoken:=_EQ;
@@ -887,6 +883,89 @@ implementation
               end;
           end;
 
+        function search_object_name(sp:TIDString;gen_error:boolean):tsym;
+          var
+            storepos:tfileposinfo;
+            srsymtable:TSymtable;
+          begin
+            storepos:=current_tokenpos;
+            current_tokenpos:=procstartfilepos;
+            searchsym(sp,result,srsymtable);
+            if not assigned(result) then
+              begin
+                if gen_error then
+                  identifier_not_found(orgsp);
+                result:=generrorsym;
+              end;
+            current_tokenpos:=storepos;
+          end;
+
+        function consume_generic_type_parameter:boolean;
+          var
+            i:integer;
+            ok:boolean;
+            sym:tsym;
+          begin
+            result:=not assigned(astruct)and(m_delphi in current_settings.modeswitches);
+            if result then
+              begin
+                { a generic type parameter? }
+                srsym:=search_object_name(sp,false);
+                if (srsym.typ=typesym) and
+                   (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
+                begin
+                  astruct:=tabstractrecorddef(ttypesym(srsym).typedef);
+                  if (df_generic in astruct.defoptions) then
+                    begin
+                      consume(_LT);
+                      ok:=true;
+                      i:=0;
+                      repeat
+                        if ok and (token=_ID)  then
+                          begin
+                            ok:=false;
+                            while i<astruct.symtable.SymList.Count-1 do
+                              begin
+                                sym:=tsym(astruct.symtable.SymList[i]);
+                                if sp_generic_para in sym.symoptions then
+                                  begin
+                                    ok:=sym.Name=pattern;
+                                    inc(i);
+                                    break;
+                                  end;
+                                inc(i);
+                              end;
+                            if not ok then
+                              Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
+                          end;
+                        consume(_ID);
+                      until not try_to_consume(_COMMA);
+                      if ok then
+                        while i<astruct.symtable.SymList.Count-1 do
+                          begin
+                            sym:=tsym(astruct.symtable.SymList[i]);
+                            if sp_generic_para in sym.symoptions then
+                              begin
+                                Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
+                                break;
+                              end;
+                            inc(i);
+                          end;
+                      consume(_GT);
+                    end
+                  else
+                  if try_to_consume(_LT) then
+                    begin
+                      Message(type_e_type_parameters_are_not_allowed_here);
+                      repeat
+                        consume(_ID);
+                      until not try_to_consume(_COMMA);
+                      consume(_GT);
+                    end;
+                end;
+              end;
+          end;
+
       begin
         { Save the position where this procedure really starts }
         procstartfilepos:=current_tokenpos;
@@ -905,16 +984,7 @@ implementation
            (tobjectdef(astruct).ImplementedInterfaces.count>0) and
            try_to_consume(_POINT) then
          begin
-           storepos:=current_tokenpos;
-           current_tokenpos:=procstartfilepos;
-           { get interface syms}
-           searchsym(sp,srsym,srsymtable);
-           if not assigned(srsym) then
-            begin
-              identifier_not_found(orgsp);
-              srsym:=generrorsym;
-            end;
-           current_tokenpos:=storepos;
+           srsym:=search_object_name(sp,true);
            { qualifier is interface? }
            ImplIntf:=nil;
            if (srsym.typ=typesym) and
@@ -935,25 +1005,14 @@ implementation
          end;
 
         { method  ? }
-        if not assigned(astruct) and
+        if (consume_generic_type_parameter or not assigned(astruct)) and
            (symtablestack.top.symtablelevel=main_program_level) and
            try_to_consume(_POINT) then
          begin
            repeat
              searchagain:=false;
              if not assigned(astruct) then
-               begin
-                 { search for object name }
-                 storepos:=current_tokenpos;
-                 current_tokenpos:=procstartfilepos;
-                 searchsym(sp,srsym,srsymtable);
-                 if not assigned(srsym) then
-                  begin
-                    identifier_not_found(orgsp);
-                    srsym:=generrorsym;
-                  end;
-                 current_tokenpos:=storepos;
-               end;
+               srsym:=search_object_name(sp,true);
              { consume proc name }
              procstartfilepos:=current_tokenpos;
              consume_proc_name;
@@ -1019,14 +1078,13 @@ implementation
              if (potype=potype_operator)and(optoken=NOTOKEN) then
                parse_operator_name;
 
-             srsymtable:=symtablestack.top;
-             srsym:=tsym(srsymtable.Find(sp));
+             srsym:=tsym(symtablestack.top.Find(sp));
 
              { Also look in the globalsymtable if we didn't found
                the symbol in the localsymtable }
              if not assigned(srsym) and
                 not(parse_only) and
-                (srsymtable=current_module.localsymtable) and
+                (symtablestack.top=current_module.localsymtable) and
                 assigned(current_module.globalsymtable) then
                srsym:=tsym(current_module.globalsymtable.Find(sp));
 
@@ -1154,9 +1212,9 @@ implementation
                 old_current_specializedef:=current_specializedef;
                 current_structdef:=pd.struct;
                 if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
-                  current_genericdef:=tobjectdef(current_structdef);
+                  current_genericdef:=current_structdef;
                 if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
-                  current_specializedef:=tobjectdef(current_structdef);
+                  current_specializedef:=current_structdef;
               end;
             { Add parameter symtable }
             if pd.parast.symtabletype<>staticsymtable then
@@ -1182,8 +1240,10 @@ implementation
 
     function parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef):tprocdef;
       var
-        pd : tprocdef;
+        pd: tprocdef;
         locationstr: string;
+        i: integer;
+        found: boolean;
 
         procedure read_returndef(pd: tprocdef);
           var
@@ -1191,10 +1251,9 @@ implementation
             old_parse_generic: boolean;
             old_current_structdef: tabstractrecorddef;
             old_current_genericdef,
-            old_current_specializedef: tobjectdef;
+            old_current_specializedef: tstoreddef;
           begin
             old_parse_generic:=parse_generic;
-            inc(testcurobject);
             { Add ObjectSymtable to be able to find generic type definitions }
             popclass:=0;
             if assigned(pd.struct) and
@@ -1208,11 +1267,11 @@ implementation
                 old_current_specializedef:=current_specializedef;
                 current_structdef:=pd.struct;
                 if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
-                  current_genericdef:=tobjectdef(current_structdef);
+                  current_genericdef:=current_structdef;
                 if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
-                  current_specializedef:=tobjectdef(current_structdef);
+                  current_specializedef:=current_structdef;
               end;
-            single_type(pd.returndef,false,false);
+            single_type(pd.returndef,[]);
 
             if is_dispinterface(pd.struct) and not is_automatable(pd.returndef) then
               Message1(type_e_not_automatable,pd.returndef.typename);
@@ -1226,7 +1285,6 @@ implementation
                 if popclass<>0 then
                   internalerror(201012020);
               end;
-            dec(testcurobject);
             parse_generic:=old_parse_generic;
           end;
 
@@ -1377,6 +1435,18 @@ implementation
                   else
                    begin
                      read_returndef(pd);
+                     if (po_classmethod in pd.procoptions) then
+                       begin
+                         found:=false;
+                         for i := 0 to pd.parast.SymList.Count - 1 do
+                           if tparavarsym(pd.parast.SymList[i]).vardef=pd.struct then
+                             begin
+                               found:=true;
+                               break;
+                             end;
+                         if not found then
+                           Message1(parser_e_at_least_one_argument_must_be_of_type,pd.struct.RttiName);
+                       end;
                      if (optoken in [_EQ,_NE,_GT,_LT,_GTE,_LTE,_OP_IN]) and
                         ((pd.returndef.typ<>orddef) or
                          (torddef(pd.returndef).ordtype<>pasbool)) then
@@ -1651,7 +1721,11 @@ begin
   if not(is_class_or_interface_or_objc(tprocdef(pd).struct)) then
     Message(parser_e_no_object_override)
   else if is_objccategory(tprocdef(pd).struct) then
-    Message(parser_e_no_category_override);
+    Message(parser_e_no_category_override)
+  else if not is_objc_class_or_protocol(tprocdef(pd).struct) and
+          not is_cppclass(tprocdef(pd).struct) and
+          (po_external in pd.procoptions) then
+    Message1(parser_e_proc_dir_conflict,'OVERRIDE');
 end;
 
 procedure pd_overload(pd:tabstractprocdef);
@@ -1676,6 +1750,8 @@ begin
   { check parameter type }
   if not is_objc_class_or_protocol(tprocdef(pd).struct) then
     begin
+      if po_external in pd.procoptions then
+        Message1(parser_e_proc_dir_conflict,'MESSAGE');
       paracnt:=0;
       pd.parast.SymList.ForEachCall(@check_msg_para,@paracnt);
       if paracnt<>1 then
@@ -2200,7 +2276,7 @@ const
       pooption : []; { can be po_msgstr or po_msgint }
       mutexclpocall : [pocall_internproc];
       mutexclpotype : [potype_constructor,potype_destructor,potype_operator,potype_class_constructor,potype_class_destructor];
-      mutexclpo     : [po_interrupt,po_external,po_inline]
+      mutexclpo     : [po_interrupt,po_inline]
     ),(
       idtok:_MWPASCAL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
@@ -2245,7 +2321,7 @@ const
       pooption : [po_overridingmethod,po_virtualmethod];
       mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
-      mutexclpo     : [po_exports,po_external,po_interrupt,po_virtualmethod,po_inline]
+      mutexclpo     : [po_exports,po_interrupt,po_virtualmethod,po_inline]
     ),(
       idtok:_PASCAL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
@@ -2844,6 +2920,13 @@ const
             include(pd.procoptions,po_has_public_name);
             include(pd.procoptions,po_global);
           end;
+
+        { methods from external class definitions are all external themselves }
+        if (pd.typ=procdef) and
+           assigned(tprocdef(pd).struct) and
+           (tprocdef(pd).struct.typ=objectdef) and
+           (oo_is_external in tobjectdef(tprocdef(pd).struct).objectoptions) then
+          tprocdef(pd).make_external;
 
         { Class constructors and destructor are static class methods in real. }
         { There are many places in the compiler where either class or static  }

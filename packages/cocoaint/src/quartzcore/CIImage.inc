@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CIImage.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -57,14 +57,12 @@ var
 {$define CIIMAGE_PAS_C}
 
 { CIImage }
-  CIImage = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
+  CIImage = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     _state: Pointer;
     _priv: Pointer;
     
   public
-    class function alloc: CIImage; message 'alloc';
-
     class function imageWithCGImage(image: CGImageRef): CIImage; message 'imageWithCGImage:';
     class function imageWithCGImage_options(image: CGImageRef; d: NSDictionary): CIImage; message 'imageWithCGImage:options:';
     class function imageWithCGLayer(layer: CGLayerRef): CIImage; message 'imageWithCGLayer:';
@@ -107,7 +105,7 @@ var
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

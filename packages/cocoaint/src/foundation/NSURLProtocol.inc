@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLProtocol.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -43,13 +43,11 @@
 {$define NSURLPROTOCOL_PAS_C}
 
 { NSURLProtocol }
-  NSURLProtocol = objcclass(NSObject)
+  NSURLProtocol = objcclass external (NSObject)
   private
     _internal: NSURLProtocolInternal;
     
   public
-    class function alloc: NSURLProtocol; message 'alloc';
-
     function initWithRequest_cachedResponse_client(request_: NSURLRequest; cachedResponse_: NSCachedURLResponse; client_: id): id; message 'initWithRequest:cachedResponse:client:';
     function client: id; message 'client';
     function request: NSURLRequest; message 'request';
@@ -64,7 +62,7 @@
     class procedure removePropertyForKey_inRequest(key: NSString; request_: NSMutableURLRequest); message 'removePropertyForKey:inRequest:';
     class function registerClass(protocolClass: Pobjc_class): Boolean; message 'registerClass:';
     class procedure unregisterClass(protocolClass: Pobjc_class); message 'unregisterClass:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -73,7 +71,7 @@
 {$define NSURLPROTOCOL_PAS_P}
   
 { NSURLProtocolClient Protocol }
-  NSURLProtocolClientProtocol = objcprotocol
+  NSURLProtocolClientProtocol = objcprotocol external name 'NSURLProtocolClient'
     procedure URLProtocol_wasRedirectedToRequest_redirectResponse(protocol: NSURLProtocol; request: NSURLRequest; redirectResponse: NSURLResponse); message 'URLProtocol:wasRedirectedToRequest:redirectResponse:';
     procedure URLProtocol_cachedResponseIsValid(protocol: NSURLProtocol; cachedResponse: NSCachedURLResponse); message 'URLProtocol:cachedResponseIsValid:';
     procedure URLProtocol_didReceiveResponse_cacheStoragePolicy(protocol: NSURLProtocol; response: NSURLResponse; policy: NSURLCacheStoragePolicy); message 'URLProtocol:didReceiveResponse:cacheStoragePolicy:';
@@ -82,6 +80,6 @@
     procedure URLProtocol_didFailWithError(protocol: NSURLProtocol; error: NSError); message 'URLProtocol:didFailWithError:';
     procedure URLProtocol_didReceiveAuthenticationChallenge(protocol: NSURLProtocol; challenge: NSURLAuthenticationChallenge); message 'URLProtocol:didReceiveAuthenticationChallenge:';
     procedure URLProtocol_didCancelAuthenticationChallenge(protocol: NSURLProtocol; challenge: NSURLAuthenticationChallenge); message 'URLProtocol:didCancelAuthenticationChallenge:';
-  end; external name 'NSURLProtocolClient';
+  end;
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCSSPrimitiveValue.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -72,11 +72,9 @@ const
 {$define DOMCSSPRIMITIVEVALUE_PAS_C}
 
 { DOMCSSPrimitiveValue }
-  DOMCSSPrimitiveValue = objcclass(DOMCSSValue)
+  DOMCSSPrimitiveValue = objcclass external (DOMCSSValue)
     
   public
-    class function alloc: DOMCSSPrimitiveValue; message 'alloc';
-
     function primitiveType: cuint; message 'primitiveType';
     procedure setFloatValue_floatValue(unitType: cushort; floatValue: single); message 'setFloatValue:floatValue:';
     function getFloatValue(unitType: cushort): single; message 'getFloatValue:';
@@ -85,13 +83,13 @@ const
     function getCounterValue: DOMCounter; message 'getCounterValue';
     function getRectValue: DOMRect; message 'getRectValue';
     function getRGBColorValue: DOMRGBColor; message 'getRGBColorValue';
-  end; external;
+  end;
 
 { DOMCSSPrimitiveValueDeprecatedCategory }
-  DOMCSSPrimitiveValueDeprecatedCategory = objccategory(DOMCSSPrimitiveValue)
+  DOMCSSPrimitiveValueDeprecatedCategory = objccategory external (DOMCSSPrimitiveValue)
     procedure setFloatValue(unitType: cushort; floatValue: single); message 'setFloatValue:unitType:';
     procedure setStringValue(stringType: cushort; stringValue: NSString); message 'setStringValue:stringType:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

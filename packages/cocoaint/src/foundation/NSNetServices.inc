@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSNetServices.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -74,15 +74,13 @@ var
 {$define NSNETSERVICES_PAS_C}
 
 { NSNetService }
-  NSNetService = objcclass(NSObject)
+  NSNetService = objcclass external (NSObject)
   private
     _netService: id;
     _delegate: id;
     _reserved: id;
     
   public
-    class function alloc: NSNetService; message 'alloc';
-
     function initWithDomain_type_name_port(domain_: NSString; type__: NSString; name_: NSString; port_: cint): id; message 'initWithDomain:type:name:port:';
     function initWithDomain_type_name(domain_: NSString; type__: NSString; name_: NSString): id; message 'initWithDomain:type:name:';
     function delegate: id; message 'delegate';
@@ -107,18 +105,16 @@ var
     function TXTRecordData: NSData; message 'TXTRecordData';
     procedure startMonitoring; message 'startMonitoring';
     procedure stopMonitoring; message 'stopMonitoring';
-  end; external;
+  end;
 
 { NSNetServiceBrowser }
-  NSNetServiceBrowser = objcclass(NSObject)
+  NSNetServiceBrowser = objcclass external (NSObject)
   private
     _netServiceBrowser: id;
     _delegate: id;
     _reserved: Pointer;
     
   public
-    class function alloc: NSNetServiceBrowser; message 'alloc';
-
     function init: id; message 'init';
     function delegate: id; message 'delegate';
     procedure setDelegate(delegate_: id); message 'setDelegate:';
@@ -128,18 +124,18 @@ var
     procedure searchForRegistrationDomains; message 'searchForRegistrationDomains';
     procedure searchForServicesOfType_inDomain(type_: NSString; domainString: NSString); message 'searchForServicesOfType:inDomain:';
     procedure stop; message 'stop';
-  end; external;
+  end;
 
 { NSDeprecated_NSNetServiceCategory }
-  NSDeprecated_NSNetServiceCategory = objccategory(NSNetService)
+  NSDeprecated_NSNetServiceCategory = objccategory external name 'NSDeprecated' (NSNetService)
     function protocolSpecificInformation: NSString; message 'protocolSpecificInformation'; deprecated 'in Mac OS X 10.4 and later';
     procedure setProtocolSpecificInformation(specificInformation: NSString); message 'setProtocolSpecificInformation:'; deprecated 'in Mac OS X 10.4 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 { NSDeprecated_NSNetServiceBrowserCategory }
-  NSDeprecated_NSNetServiceBrowserCategory = objccategory(NSNetServiceBrowser)
+  NSDeprecated_NSNetServiceBrowserCategory = objccategory external name 'NSDeprecated' (NSNetServiceBrowser)
     procedure searchForAllDomains; message 'searchForAllDomains'; deprecated 'in Mac OS X 10.4 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}
@@ -148,7 +144,7 @@ var
 {$define NSNETSERVICES_PAS_P}
   
 { NSNetServiceDelegate Protocol }
-  NSNetServiceDelegateProtocol = objcprotocol
+  NSNetServiceDelegateProtocol = objcprotocol external name 'NSNetServiceDelegate'
     procedure netServiceWillPublish(sender: NSNetService); message 'netServiceWillPublish:';
     procedure netServiceDidPublish(sender: NSNetService); message 'netServiceDidPublish:';
     procedure netService_didNotPublish(sender: NSNetService; errorDict: NSDictionary); message 'netService:didNotPublish:';
@@ -157,10 +153,10 @@ var
     procedure netService_didNotResolve(sender: NSNetService; errorDict: NSDictionary); message 'netService:didNotResolve:';
     procedure netServiceDidStop(sender: NSNetService); message 'netServiceDidStop:';
     procedure netService_didUpdateTXTRecordData(sender: NSNetService; data: NSData); message 'netService:didUpdateTXTRecordData:';
-  end; external name 'NSNetServiceDelegate';
+  end;
   
 { NSNetServiceBrowserDelegate Protocol }
-  NSNetServiceBrowserDelegateProtocol = objcprotocol
+  NSNetServiceBrowserDelegateProtocol = objcprotocol external name 'NSNetServiceBrowserDelegate'
     procedure netServiceBrowserWillSearch(aNetServiceBrowser: NSNetServiceBrowser); message 'netServiceBrowserWillSearch:';
     procedure netServiceBrowserDidStopSearch(aNetServiceBrowser: NSNetServiceBrowser); message 'netServiceBrowserDidStopSearch:';
     procedure netServiceBrowser_didNotSearch(aNetServiceBrowser: NSNetServiceBrowser; errorDict: NSDictionary); message 'netServiceBrowser:didNotSearch:';
@@ -168,6 +164,6 @@ var
     procedure netServiceBrowser_didFindService_moreComing(aNetServiceBrowser: NSNetServiceBrowser; aNetService: NSNetService; moreComing: Boolean); message 'netServiceBrowser:didFindService:moreComing:';
     procedure netServiceBrowser_didRemoveDomain_moreComing(aNetServiceBrowser: NSNetServiceBrowser; domainString: NSString; moreComing: Boolean); message 'netServiceBrowser:didRemoveDomain:moreComing:';
     procedure netServiceBrowser_didRemoveService_moreComing(aNetServiceBrowser: NSNetServiceBrowser; aNetService: NSNetService; moreComing: Boolean); message 'netServiceBrowser:didRemoveService:moreComing:';
-  end; external name 'NSNetServiceBrowserDelegate';
+  end;
 {$endif}
 {$endif}

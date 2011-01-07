@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTableHeaderCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,14 +42,12 @@
 {$define NSTABLEHEADERCELL_PAS_C}
 
 { NSTableHeaderCell }
-  NSTableHeaderCell = objcclass(NSTextFieldCell)
+  NSTableHeaderCell = objcclass external (NSTextFieldCell)
     
   public
-    class function alloc: NSTableHeaderCell; message 'alloc';
-
     procedure drawSortIndicatorWithFrame_inView_ascending_priority(cellFrame: NSRect; controlView_: NSView; ascending: Boolean; priority: NSInteger); message 'drawSortIndicatorWithFrame:inView:ascending:priority:';
     function sortIndicatorRectForBounds(theRect: NSRect): NSRect; message 'sortIndicatorRectForBounds:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

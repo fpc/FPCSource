@@ -1,20 +1,21 @@
 program Project1;
 
 {$mode objfpc}{$H+}
+{$apptype console}
 
 type
 
   { TStack }
 
   generic TStack<T> = class(TObject)
-   public
+  public
     procedure Clear; virtual;
     destructor Destroy; override;
   end;
 
-  { TIntegerStack }
+  { TAdvStack }
 
-  TAdvStack = class(specialize TStack<T>)
+  generic TAdvStack<T> = class(specialize TStack<T>)
   public
     procedure Clear; override;
   end;
@@ -25,7 +26,7 @@ type
 
   { TIntegerStack2 }
 
-  TIntegerStack2 = class(specialize TAdvStack<Integer>);
+  TIntegerStack2 = class(specialize TAdvStack<Integer>)
   public
     procedure Clear; override;
   end;

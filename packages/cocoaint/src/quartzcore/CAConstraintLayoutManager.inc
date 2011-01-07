@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CAConstraintLayoutManager.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -62,16 +62,14 @@ type
 {$define CACONSTRAINTLAYOUTMANAGER_PAS_C}
 
 { CAConstraintLayoutManager }
-  CAConstraintLayoutManager = objcclass(NSObject)
+  CAConstraintLayoutManager = objcclass external (NSObject)
     
   public
-    class function alloc: CAConstraintLayoutManager; message 'alloc';
-
     class function layoutManager: id; message 'layoutManager';
-  end; external;
+  end;
 
 { CAConstraint }
-  CAConstraint = objcclass(NSObject, NSCodingProtocol)
+  CAConstraint = objcclass external (NSObject, NSCodingProtocol)
   private
     _srcId: NSString;
     _anoninternstruct_CAConstraintLayoutManager0: bitpacked record
@@ -85,8 +83,6 @@ type
     _scale, _offset: CGFloat;
     
   public
-    class function alloc: CAConstraint; message 'alloc';
-
     class function constraintWithAttribute_relativeTo_attribute_scale_offset(attr: CAConstraintAttribute; srcId: NSString; srcAttr: CAConstraintAttribute; m: CGFloat; c: CGFloat): id; message 'constraintWithAttribute:relativeTo:attribute:scale:offset:';
     class function constraintWithAttribute_relativeTo_attribute_offset(attr: CAConstraintAttribute; srcId: NSString; srcAttr: CAConstraintAttribute; c: CGFloat): id; message 'constraintWithAttribute:relativeTo:attribute:offset:';
     class function constraintWithAttribute_relativeTo_attribute(attr: CAConstraintAttribute; srcId: NSString; srcAttr: CAConstraintAttribute): id; message 'constraintWithAttribute:relativeTo:attribute:';
@@ -100,14 +96,14 @@ type
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { CAConstraintLayoutManager_CALayerCategory }
-  CAConstraintLayoutManager_CALayerCategory = objccategory(CALayer)
+  CAConstraintLayoutManager_CALayerCategory = objccategory external name 'CAConstraintLayoutManager' (CALayer)
     procedure setConstraints (newValue: NSArray); message 'setConstraints:';
     function constraints: NSArray; message 'constraints';
     procedure addConstraint(c: CAConstraint); message 'addConstraint:';
-  end; external name 'CAConstraintLayoutManager';
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSText.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -98,13 +98,11 @@ var
 {$define NSTEXT_PAS_C}
 
 { NSText }
-  NSText = objcclass(NSView, NSChangeSpellingProtocol, NSIgnoreMisspelledWordsProtocol)
+  NSText = objcclass external (NSView, NSChangeSpellingProtocol, NSIgnoreMisspelledWordsProtocol)
   private
     _ivars: id;
     
   public
-    class function alloc: NSText; message 'alloc';
-
     function string_: NSString; message 'string';
     procedure setString(string__: NSString); message 'setString:';
     procedure replaceCharactersInRange_withString(range: NSRange; aString: NSString); message 'replaceCharactersInRange:withString:';
@@ -179,7 +177,7 @@ var
     { Adopted Protocols }
     procedure changeSpelling(sender: id);
     procedure ignoreSpelling(sender: id);
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -188,12 +186,12 @@ var
 {$define NSTEXT_PAS_P}
   
 { NSTextDelegate Protocol }
-  NSTextDelegateProtocol = objcprotocol
+  NSTextDelegateProtocol = objcprotocol external name 'NSTextDelegate'
     function textShouldBeginEditing(textObject: NSText): Boolean; message 'textShouldBeginEditing:';
     function textShouldEndEditing(textObject: NSText): Boolean; message 'textShouldEndEditing:';
     procedure textDidBeginEditing(notification: NSNotification); message 'textDidBeginEditing:';
     procedure textDidEndEditing(notification: NSNotification); message 'textDidEndEditing:';
     procedure textDidChange(notification: NSNotification); message 'textDidChange:';
-  end; external name 'NSTextDelegate';
+  end;
 {$endif}
 {$endif}

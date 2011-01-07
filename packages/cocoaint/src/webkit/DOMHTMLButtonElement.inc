@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLButtonElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLBUTTONELEMENT_PAS_C}
 
 { DOMHTMLButtonElement }
-  DOMHTMLButtonElement = objcclass(DOMHTMLElement)
+  DOMHTMLButtonElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLButtonElement; message 'alloc';
-
     function form: DOMHTMLFormElement; message 'form';
     procedure setAccessKey (newValue: NSString); message 'setAccessKey:';
     function accessKey: NSString; message 'accessKey';
@@ -61,7 +59,7 @@
     function value: NSString; message 'value';
     function willValidate: Boolean; message 'willValidate';
     procedure click; message 'click';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

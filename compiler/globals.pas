@@ -51,15 +51,15 @@ interface
        delphimodeswitches =
          [m_delphi,m_all,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
-          m_out,m_default_para,m_duplicate_names,m_hintdirective,m_add_pointer,
-          m_property,m_default_inline,m_except,m_extended_records];
+          m_out,m_default_para,m_duplicate_names,m_hintdirective,
+          m_property,m_default_inline,m_except,m_advanced_records];
        fpcmodeswitches =
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
-          m_cvar_support,m_initfinal,m_add_pointer,m_hintdirective,
+          m_cvar_support,m_initfinal,m_hintdirective,
           m_property,m_default_inline];
        objfpcmodeswitches =
          [m_objfpc,m_fpc,m_all,m_class,m_objpas,m_result,m_string_pchar,m_nested_comment,
-          m_repeat_forward,m_cvar_support,m_initfinal,m_add_pointer,m_out,m_default_para,m_hintdirective,
+          m_repeat_forward,m_cvar_support,m_initfinal,m_out,m_default_para,m_hintdirective,
           m_property,m_default_inline,m_except];
        tpmodeswitches =
          [m_tp7,m_all,m_tp_procvar,m_duplicate_names];
@@ -350,7 +350,7 @@ interface
         );
         globalswitches : [cs_check_unit_name,cs_link_static];
         moduleswitches : [cs_extsyntax,cs_implicit_exceptions];
-        localswitches : [cs_check_io,cs_typed_const_writable];
+        localswitches : [cs_check_io,cs_typed_const_writable,cs_pointermath];
         modeswitches : fpcmodeswitches;
         optimizerswitches : [];
         genwpoptimizerswitches : [];

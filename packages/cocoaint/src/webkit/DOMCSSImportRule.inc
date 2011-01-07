@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCSSImportRule.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,15 +42,13 @@
 {$define DOMCSSIMPORTRULE_PAS_C}
 
 { DOMCSSImportRule }
-  DOMCSSImportRule = objcclass(DOMCSSRule)
+  DOMCSSImportRule = objcclass external (DOMCSSRule)
     
   public
-    class function alloc: DOMCSSImportRule; message 'alloc';
-
     function href: NSString; message 'href';
     function media: DOMMediaList; message 'media';
     function styleSheet: DOMCSSStyleSheet; message 'styleSheet';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

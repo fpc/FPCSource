@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSBezierPath.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -75,7 +75,7 @@ type
 {$define NSBEZIERPATH_PAS_C}
 
 { NSBezierPath }
-  NSBezierPath = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSBezierPath = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _elementCount: NSInteger;
     _elementMax: NSInteger;
@@ -105,8 +105,6 @@ type
       end;
     
   public
-    class function alloc: NSBezierPath; message 'alloc';
-
     class function bezierPath: NSBezierPath; message 'bezierPath';
     class function bezierPathWithRect(rect: NSRect): NSBezierPath; message 'bezierPathWithRect:';
     class function bezierPathWithOvalInRect(rect: NSRect): NSBezierPath; message 'bezierPathWithOvalInRect:';
@@ -182,13 +180,13 @@ type
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSBezierPathDeprecatedCategory }
-  NSBezierPathDeprecatedCategory = objccategory(NSBezierPath)
+  NSBezierPathDeprecatedCategory = objccategory external (NSBezierPath)
     function cachesBezierPath: Boolean; message 'cachesBezierPath'; deprecated 'in Mac OS X 10 and later';
     procedure setCachesBezierPath(flag: Boolean); message 'setCachesBezierPath:'; deprecated 'in Mac OS X 10 and later';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

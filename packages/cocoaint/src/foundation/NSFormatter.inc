@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSFormatter.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define NSFORMATTER_PAS_C}
 
 { NSFormatter }
-  NSFormatter = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSFormatter = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
     
   public
-    class function alloc: NSFormatter; message 'alloc';
-
     function stringForObjectValue(obj: id): NSString; message 'stringForObjectValue:';
     function attributedStringForObjectValue_withDefaultAttributes(obj: id; attrs: NSDictionary): NSAttributedString; message 'attributedStringForObjectValue:withDefaultAttributes:';
     function editingStringForObjectValue(obj: id): NSString; message 'editingStringForObjectValue:';
@@ -58,7 +56,7 @@
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDocumentController.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSDOCUMENTCONTROLLER_PAS_C}
 
 { NSDocumentController }
-  NSDocumentController = objcclass(NSObject, NSCodingProtocol, NSUserInterfaceValidationsProtocol)
+  NSDocumentController = objcclass external (NSObject, NSCodingProtocol, NSUserInterfaceValidationsProtocol)
   private
     _documents: id;
     _moreVars: id;
@@ -51,8 +51,6 @@
     _recentsLimit: cint;
     
   public
-    class function alloc: NSDocumentController; message 'alloc';
-
     class function sharedDocumentController: id; message 'sharedDocumentController';
     function init: id; message 'init';
     function documents: NSArray; message 'documents';
@@ -96,10 +94,10 @@
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSDeprecated_NSDocumentControllerCategory }
-  NSDeprecated_NSDocumentControllerCategory = objccategory(NSDocumentController)
+  NSDeprecated_NSDocumentControllerCategory = objccategory external name 'NSDeprecated' (NSDocumentController)
     function fileExtensionsFromType(typeName: NSString): NSArray; message 'fileExtensionsFromType:'; deprecated 'in Mac OS X 10.5 and later';
     function typeFromFileExtension(fileNameExtensionOrHFSFileType: NSString): NSString; message 'typeFromFileExtension:'; deprecated 'in Mac OS X 10.5 and later';
     function documentForFileName(fileName: NSString): id; message 'documentForFileName:'; deprecated 'in Mac OS X 10.4 and later';
@@ -112,7 +110,7 @@
     function openUntitledDocumentOfType_display(type_: NSString; display: Boolean): id; message 'openUntitledDocumentOfType:display:'; deprecated 'in Mac OS X 10.4 and later';
     procedure setShouldCreateUI(flag: Boolean); message 'setShouldCreateUI:'; deprecated 'in Mac OS X 10.4 and later';
     function shouldCreateUI: Boolean; message 'shouldCreateUI'; deprecated 'in Mac OS X 10.4 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}

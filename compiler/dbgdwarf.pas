@@ -941,7 +941,7 @@ implementation
                           on when the typecast is changed to 'as' }
                         current_asmdata.getdatalabel(TAsmLabel(pointer(def.dwarf_lab)));
                         current_asmdata.getdatalabel(TAsmLabel(pointer(def.dwarf_ref_lab)));
-                        if is_class_or_interface_or_dispinterface_or_objc(def) then
+                        if is_implicit_pointer_object_type(def) then
                           current_asmdata.getdatalabel(TAsmLabel(pointer(tobjectdef(def).dwarf_struct_lab)));
                       end;
                   end;
@@ -953,7 +953,7 @@ implementation
                 { addrlabel instead of datalabel because it must be a local one }
                 current_asmdata.getaddrlabel(TAsmLabel(pointer(def.dwarf_lab)));
                 current_asmdata.getaddrlabel(TAsmLabel(pointer(def.dwarf_ref_lab)));
-                if is_class_or_interface_or_dispinterface_or_objc(def) then
+                if is_implicit_pointer_object_type(def) then
                   current_asmdata.getaddrlabel(TAsmLabel(pointer(tobjectdef(def).dwarf_struct_lab)));
               end;
             if def.dbg_state=dbg_state_used then
@@ -2310,6 +2310,20 @@ implementation
                         templist.concat(tai_const.create_8bit(ord(DW_OP_breg0)+dreg));
                         templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset+offset));
                         blocksize:=1+Lengthsleb128(sym.localloc.reference.offset);
+{$ifndef gdb_supports_DW_AT_variable_parameter}
+                        { Parameters which are passed by reference. (var and the like)
+                          Hide the reference-pointer and dereference the pointer
+                          in the DW_AT_location block.
+                        }
+                        if (sym.typ=paravarsym) and
+                            paramanager.push_addr_param(sym.varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption) and
+                            not(vo_has_local_copy in sym.varoptions) and
+                            not is_open_string(sym.vardef) then
+                          begin
+                            templist.concat(tai_const.create_8bit(ord(DW_OP_deref)));
+                            inc(blocksize);
+                          end
+{$endif not gdb_supports_DW_AT_variable_parameter}
                       end;
                   end
                 else
@@ -2396,15 +2410,7 @@ implementation
           that).  }
         if (vo_is_self in sym.varoptions) then
           append_attribute(DW_AT_artificial,DW_FORM_flag,[true]);
-{$ifndef gdb_supports_DW_AT_variable_parameter}
-        if (sym.typ=paravarsym) and
-            paramanager.push_addr_param(sym.varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption) and
-            not(vo_has_local_copy in sym.varoptions) and
-            not is_open_string(sym.vardef) then
-          append_labelentry_ref(DW_AT_type,def_dwarf_ref_lab(def))
-        else
-{$endif not gdb_supports_DW_AT_variable_parameter}
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(def));
+        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def));
 
         templist.free;
 
@@ -3419,7 +3425,7 @@ implementation
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
               if (def.childof.dbg_state=dbg_state_unused) then
                 def.childof.dbg_state:=dbg_state_used;
-              if is_class_or_interface_or_dispinterface_or_objc(def) then
+              if is_implicit_pointer_object_type(def) then
                 append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def.childof))
               else
                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.childof));
@@ -3801,13 +3807,20 @@ implementation
         begin
           if assigned(def.objname) then
             append_entry(tag,true,[
-              DW_AT_name,DW_FORM_string,def.objrealname^+#0,
-              DW_AT_byte_size,DW_FORM_udata,def.size
+              DW_AT_name,DW_FORM_string,def.objrealname^+#0
               ])
           else
-            append_entry(DW_TAG_structure_type,true,[
-              DW_AT_byte_size,DW_FORM_udata,def.size
-              ]);
+            append_entry(DW_TAG_structure_type,true,[]);
+          append_attribute(DW_AT_byte_size,DW_FORM_udata,[tobjectsymtable(def.symtable).datasize]);
+          // The pointer to the class-structure is hidden. The debug-information
+          // does not contain an implicit pointer, but the data-adress is dereferenced here.
+          // In case of a nil-pointer, report the class as being unallocated.
+          append_block1(DW_AT_allocated,2);
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+          append_block1(DW_AT_data_location,2);
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
           finish_entry;
         end;
 
@@ -3869,10 +3882,6 @@ implementation
             end;
           odt_class:
             begin
-              { not sure if the implicit pointer is needed for tag_class (MWE)}
-              {
-              doimplicitpointer;
-              }
               dostruct(DW_TAG_class_type);
               doparent(false);
             end;

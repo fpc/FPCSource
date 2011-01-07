@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSpeechRecognizer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -43,13 +43,11 @@
 {$define NSSPEECHRECOGNIZER_PAS_C}
 
 { NSSpeechRecognizer }
-  NSSpeechRecognizer = objcclass(NSObject)
+  NSSpeechRecognizer = objcclass external (NSObject)
   private
     _privateNSSpeechRecognizerVars: id;
     
   public
-    class function alloc: NSSpeechRecognizer; message 'alloc';
-
     function init: id; message 'init';
     procedure startListening; message 'startListening';
     procedure stopListening; message 'stopListening';
@@ -63,7 +61,7 @@
     procedure setListensInForegroundOnly(flag: Boolean); message 'setListensInForegroundOnly:';
     function blocksOtherRecognizers: Boolean; message 'blocksOtherRecognizers';
     procedure setBlocksOtherRecognizers(flag: Boolean); message 'setBlocksOtherRecognizers:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -72,8 +70,8 @@
 {$define NSSPEECHRECOGNIZER_PAS_P}
   
 { NSSpeechRecognizerDelegate Protocol }
-  NSSpeechRecognizerDelegateProtocol = objcprotocol
+  NSSpeechRecognizerDelegateProtocol = objcprotocol external name 'NSSpeechRecognizerDelegate'
     procedure speechRecognizer_didRecognizeCommand(sender: NSSpeechRecognizer; command: id); message 'speechRecognizer:didRecognizeCommand:';
-  end; external name 'NSSpeechRecognizerDelegate';
+  end;
 {$endif}
 {$endif}

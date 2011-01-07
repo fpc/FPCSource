@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSWindowController.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSWINDOWCONTROLLER_PAS_C}
 
 { NSWindowController }
-  NSWindowController = objcclass(NSResponder, NSCodingProtocol)
+  NSWindowController = objcclass external (NSResponder, NSCodingProtocol)
   private
     _window: NSWindow;
     _windowNibName: NSString;
@@ -64,8 +64,6 @@
     _moreVars: id;
     
   public
-    class function alloc: NSWindowController; message 'alloc';
-
     function initWithWindow(window_: NSWindow): id; message 'initWithWindow:';
     function initWithWindowNibName(windowNibName_: NSString): id; message 'initWithWindowNibName:';
     function initWithWindowNibName_owner(windowNibName_: NSString; owner_: id): id; message 'initWithWindowNibName:owner:';
@@ -96,7 +94,7 @@
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

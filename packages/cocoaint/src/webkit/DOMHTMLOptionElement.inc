@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLOptionElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLOPTIONELEMENT_PAS_C}
 
 { DOMHTMLOptionElement }
-  DOMHTMLOptionElement = objcclass(DOMHTMLElement)
+  DOMHTMLOptionElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLOptionElement; message 'alloc';
-
     function form: DOMHTMLFormElement; message 'form';
     procedure setDefaultSelected (newValue: Boolean); message 'setDefaultSelected:';
     function defaultSelected: Boolean; message 'defaultSelected';
@@ -60,7 +58,7 @@
     function selected: Boolean; message 'selected';
     procedure setValue (newValue: NSString); message 'setValue:';
     function value: NSString; message 'value';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

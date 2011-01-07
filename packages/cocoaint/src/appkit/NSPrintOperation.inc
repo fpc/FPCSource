@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPrintOperation.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -59,11 +59,9 @@ var
 {$define NSPRINTOPERATION_PAS_C}
 
 { NSPrintOperation }
-  NSPrintOperation = objcclass(NSObject)
+  NSPrintOperation = objcclass external (NSObject)
     
   public
-    class function alloc: NSPrintOperation; message 'alloc';
-
     class function printOperationWithView_printInfo(view_: NSView; printInfo_: NSPrintInfo): NSPrintOperation; message 'printOperationWithView:printInfo:';
     class function PDFOperationWithView_insideRect_toData_printInfo(view_: NSView; rect: NSRect; data: NSMutableData; printInfo_: NSPrintInfo): NSPrintOperation; message 'PDFOperationWithView:insideRect:toData:printInfo:';
     class function PDFOperationWithView_insideRect_toPath_printInfo(view_: NSView; rect: NSRect; path: NSString; printInfo_: NSPrintInfo): NSPrintOperation; message 'PDFOperationWithView:insideRect:toPath:printInfo:';
@@ -99,17 +97,17 @@ var
     procedure destroyContext; message 'destroyContext';
     function deliverResult: Boolean; message 'deliverResult';
     procedure cleanUpOperation; message 'cleanUpOperation';
-  end; external;
+  end;
 
 { NSDeprecated_NSPrintOperationCategory }
-  NSDeprecated_NSPrintOperationCategory = objccategory(NSPrintOperation)
+  NSDeprecated_NSPrintOperationCategory = objccategory external name 'NSDeprecated' (NSPrintOperation)
     procedure setAccessoryView(view_: NSView); message 'setAccessoryView:'; deprecated 'in Mac OS X 10.5 and later';
     function accessoryView: NSView; message 'accessoryView'; deprecated 'in Mac OS X 10.5 and later';
     procedure setJobStyleHint(hint: NSString); message 'setJobStyleHint:';
     function jobStyleHint: NSString; message 'jobStyleHint';
     procedure setShowPanels(flag: Boolean); message 'setShowPanels:'; deprecated 'in Mac OS X 10.4 and later';
     function showPanels: Boolean; message 'showPanels'; deprecated 'in Mac OS X 10.4 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}

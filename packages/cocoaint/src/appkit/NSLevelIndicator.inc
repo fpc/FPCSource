@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSLevelIndicator.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define NSLEVELINDICATOR_PAS_C}
 
 { NSLevelIndicator }
-  NSLevelIndicator = objcclass(NSControl)
+  NSLevelIndicator = objcclass external (NSControl)
     
   public
-    class function alloc: NSLevelIndicator; message 'alloc';
-
     function minValue: double; message 'minValue';
     procedure setMinValue(minValue_: double); message 'setMinValue:';
     function maxValue: double; message 'maxValue';
@@ -63,7 +61,7 @@
     procedure setNumberOfMajorTickMarks(count: NSInteger); message 'setNumberOfMajorTickMarks:';
     function tickMarkValueAtIndex(index: NSInteger): double; message 'tickMarkValueAtIndex:';
     function rectOfTickMarkAtIndex(index: NSInteger): NSRect; message 'rectOfTickMarkAtIndex:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

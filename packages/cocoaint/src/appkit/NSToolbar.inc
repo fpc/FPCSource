@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSToolbar.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -68,7 +68,7 @@ var
 {$define NSTOOLBAR_PAS_C}
 
 { NSToolbar }
-  NSToolbar = objcclass(NSObject)
+  NSToolbar = objcclass external (NSObject)
   private
     _toolbarIdentifier: NSString;
     _currentItems: NSMutableArray;
@@ -119,8 +119,6 @@ var
     _tbReserved: id;
     
   public
-    class function alloc: NSToolbar; message 'alloc';
-
     function initWithIdentifier(identifier_: NSString): id; message 'initWithIdentifier:';
     procedure insertItemWithItemIdentifier_atIndex(itemIdentifier: NSString; index: NSInteger); message 'insertItemWithItemIdentifier:atIndex:';
     procedure removeItemAtIndex(index: NSInteger); message 'removeItemAtIndex:';
@@ -148,7 +146,7 @@ var
     procedure setConfigurationFromDictionary(configDict: NSDictionary); message 'setConfigurationFromDictionary:';
     function configurationDictionary: NSDictionary; message 'configurationDictionary';
     procedure validateVisibleItems; message 'validateVisibleItems';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -157,13 +155,13 @@ var
 {$define NSTOOLBAR_PAS_P}
   
 { NSToolbarDelegate Protocol }
-  NSToolbarDelegateProtocol = objcprotocol
+  NSToolbarDelegateProtocol = objcprotocol external name 'NSToolbarDelegate'
     function toolbar_itemForItemIdentifier_willBeInsertedIntoToolbar(toolbar: NSToolbar; itemIdentifier: NSString; flag: Boolean): NSToolbarItem; message 'toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:';
     function toolbarDefaultItemIdentifiers(toolbar: NSToolbar): NSArray; message 'toolbarDefaultItemIdentifiers:';
     function toolbarAllowedItemIdentifiers(toolbar: NSToolbar): NSArray; message 'toolbarAllowedItemIdentifiers:';
     function toolbarSelectableItemIdentifiers(toolbar: NSToolbar): NSArray; message 'toolbarSelectableItemIdentifiers:';
     procedure toolbarWillAddItem(notification: NSNotification); message 'toolbarWillAddItem:';
     procedure toolbarDidRemoveItem(notification: NSNotification); message 'toolbarDidRemoveItem:';
-  end; external name 'NSToolbarDelegate';
+  end;
 {$endif}
 {$endif}

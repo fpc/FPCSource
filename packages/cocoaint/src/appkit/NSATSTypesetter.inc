@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSATSTypesetter.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSATSTYPESETTER_PAS_C}
 
 { NSATSTypesetter }
-  NSATSTypesetter = objcclass(NSTypesetter)
+  NSATSTypesetter = objcclass external (NSTypesetter)
   private
     _attributedString: NSAttributedString;
     _paragraphGlyphRange: NSRange;
@@ -58,18 +58,16 @@
     _private: id;
     
   public
-    class function alloc: NSATSTypesetter; message 'alloc';
-
     class function sharedTypesetter: id; message 'sharedTypesetter';
-  end; external;
+  end;
 
 { NSPantherCompatibilityCategory }
-  NSPantherCompatibilityCategory = objccategory(NSATSTypesetter)
+  NSPantherCompatibilityCategory = objccategory external (NSATSTypesetter)
     function lineFragmentRectForProposedRect_remainingRect(proposedRect: NSRect; remainingRect: NSRectPointer): NSRect; message 'lineFragmentRectForProposedRect:remainingRect:'; deprecated 'in Mac OS X 10.4 and later';
-  end; external;
+  end;
 
 { NSPrimitiveInterfaceCategory }
-  NSPrimitiveInterfaceCategory = objccategory(NSATSTypesetter)
+  NSPrimitiveInterfaceCategory = objccategory external (NSATSTypesetter)
     function usesFontLeading: Boolean; message 'usesFontLeading';
     procedure setUsesFontLeading(flag: Boolean); message 'setUsesFontLeading:';
     function typesetterBehavior: NSTypesetterBehavior; message 'typesetterBehavior';
@@ -95,20 +93,20 @@
     function currentTextContainer: NSTextContainer; message 'currentTextContainer';
     procedure setHardInvalidation_forGlyphRange(flag: Boolean; glyphRange: NSRange); message 'setHardInvalidation:forGlyphRange:';
     procedure getLineFragmentRect_usedRect_forParagraphSeparatorGlyphRange_atProposedOrigin(lineFragmentRect: NSRectPtr; lineFragmentUsedRect: NSRectPtr; paragraphSeparatorGlyphRange_: NSRange; lineOrigin: NSPoint); message 'getLineFragmentRect:usedRect:forParagraphSeparatorGlyphRange:atProposedOrigin:';
-  end; external;
+  end;
 
 { NSLayoutPhaseInterface_NSATSTypesetterCategory }
-  NSLayoutPhaseInterface_NSATSTypesetterCategory = objccategory(NSATSTypesetter)
+  NSLayoutPhaseInterface_NSATSTypesetterCategory = objccategory external name 'NSLayoutPhaseInterface' (NSATSTypesetter)
     procedure willSetLineFragmentRect_forGlyphRange_usedRect_baselineOffset(lineRect: NSRectPtr; glyphRange: NSRange; usedRect: NSRectPtr; baselineOffset: CGFloatPtr); message 'willSetLineFragmentRect:forGlyphRange:usedRect:baselineOffset:';
     function shouldBreakLineByWordBeforeCharacterAtIndex(charIndex: NSUInteger): Boolean; message 'shouldBreakLineByWordBeforeCharacterAtIndex:';
     function shouldBreakLineByHyphenatingBeforeCharacterAtIndex(charIndex: NSUInteger): Boolean; message 'shouldBreakLineByHyphenatingBeforeCharacterAtIndex:';
     function hyphenationFactorForGlyphAtIndex(glyphIndex: NSUInteger): single; message 'hyphenationFactorForGlyphAtIndex:';
     function hyphenCharacterForGlyphAtIndex(glyphIndex: NSUInteger): UTF32Char; message 'hyphenCharacterForGlyphAtIndex:';
     function boundingBoxForControlGlyphAtIndex_forTextContainer_proposedLineFragment_glyphPosition_characterIndex(glyphIndex: NSUInteger; textContainer: NSTextContainer; proposedRect: NSRect; glyphPosition: NSPoint; charIndex: NSUInteger): NSRect; message 'boundingBoxForControlGlyphAtIndex:forTextContainer:proposedLineFragment:glyphPosition:characterIndex:';
-  end; external name 'NSLayoutPhaseInterface';
+  end;
 
 { NSGlyphStorageInterface_NSATSTypesetterCategory }
-  NSGlyphStorageInterface_NSATSTypesetterCategory = objccategory(NSATSTypesetter)
+  NSGlyphStorageInterface_NSATSTypesetterCategory = objccategory external name 'NSGlyphStorageInterface' (NSATSTypesetter)
     function characterRangeForGlyphRange_actualGlyphRange(glyphRange: NSRange; actualGlyphRange: NSRangePointer): NSRange; message 'characterRangeForGlyphRange:actualGlyphRange:';
     function glyphRangeForCharacterRange_actualCharacterRange(charRange: NSRange; actualCharRange: NSRangePointer): NSRange; message 'glyphRangeForCharacterRange:actualCharacterRange:';
     function getGlyphsInRange_glyphs_characterIndexes_glyphInscriptions_elasticBits(glyphsRange: NSRange; glyphBuffer: NSGlyphPtr; charIndexBuffer: NSUIntegerPtr; inscribeBuffer: NSGlyphInscriptionPtr; elasticBuffer: pboolean): NSUInteger; message 'getGlyphsInRange:glyphs:characterIndexes:glyphInscriptions:elasticBits:';
@@ -121,7 +119,7 @@
     procedure setLocation_withAdvancements_forStartOfGlyphRange(location: NSPoint; advancements: CGFloatPtr; glyphRange: NSRange); message 'setLocation:withAdvancements:forStartOfGlyphRange:';
     procedure setAttachmentSize_forGlyphRange(attachmentSize: NSSize; glyphRange: NSRange); message 'setAttachmentSize:forGlyphRange:';
     procedure setBidiLevels_forGlyphRange(levels: pbyte; glyphRange: NSRange); message 'setBidiLevels:forGlyphRange:';
-  end; external name 'NSGlyphStorageInterface';
+  end;
 
 {$endif}
 {$endif}

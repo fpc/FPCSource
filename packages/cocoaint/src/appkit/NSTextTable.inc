@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextTable.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -90,7 +90,7 @@ type
 {$define NSTEXTTABLE_PAS_C}
 
 { NSTextBlock }
-  NSTextBlock = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
+  NSTextBlock = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     _propVals: Pointer;
     _propMask: NSUInteger;
@@ -101,8 +101,6 @@ type
     _blockSecondary: Pointer;
     
   public
-    class function alloc: NSTextBlock; message 'alloc';
-
     function init: id; message 'init';
     procedure setValue_type_forDimension(val: CGFloat; type_: NSTextBlockValueType; dimension: NSTextBlockDimension); message 'setValue:type:forDimension:';
     function valueForDimension(dimension: NSTextBlockDimension): CGFloat; message 'valueForDimension:';
@@ -129,10 +127,10 @@ type
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 { NSTextTableBlock }
-  NSTextTableBlock = objcclass(NSTextBlock)
+  NSTextTableBlock = objcclass external (NSTextBlock)
   private
     _table: NSTextTable;
     _rowNum: NSInteger;
@@ -143,18 +141,16 @@ type
     _tableBlockSecondary: Pointer;
     
   public
-    class function alloc: NSTextTableBlock; message 'alloc';
-
     function initWithTable_startingRow_rowSpan_startingColumn_columnSpan(table_: NSTextTable; row: NSInteger; rowSpan_: NSInteger; col: NSInteger; colSpan: NSInteger): id; message 'initWithTable:startingRow:rowSpan:startingColumn:columnSpan:';
     function table: NSTextTable; message 'table';
     function startingRow: NSInteger; message 'startingRow';
     function rowSpan: NSInteger; message 'rowSpan';
     function startingColumn: NSInteger; message 'startingColumn';
     function columnSpan: NSInteger; message 'columnSpan';
-  end; external;
+  end;
 
 { NSTextTable }
-  NSTextTable = objcclass(NSTextBlock)
+  NSTextTable = objcclass external (NSTextBlock)
   private
     _numCols: NSUInteger;
     _tableFlags: NSUInteger;
@@ -163,8 +159,6 @@ type
     _tableSecondary: Pointer;
     
   public
-    class function alloc: NSTextTable; message 'alloc';
-
     function numberOfColumns: NSUInteger; message 'numberOfColumns';
     procedure setNumberOfColumns(numCols: NSUInteger); message 'setNumberOfColumns:';
     function layoutAlgorithm: NSTextTableLayoutAlgorithm; message 'layoutAlgorithm';
@@ -176,7 +170,7 @@ type
     function rectForBlock_layoutAtPoint_inRect_textContainer_characterRange(block: NSTextTableBlock; startingPoint: NSPoint; rect: NSRect; textContainer: NSTextContainer; charRange: NSRange): NSRect; message 'rectForBlock:layoutAtPoint:inRect:textContainer:characterRange:';
     function boundsRectForBlock_contentRect_inRect_textContainer_characterRange(block: NSTextTableBlock; contentRect: NSRect; rect: NSRect; textContainer: NSTextContainer; charRange: NSRange): NSRect; message 'boundsRectForBlock:contentRect:inRect:textContainer:characterRange:';
     procedure drawBackgroundForBlock_withFrame_inView_characterRange_layoutManager(block: NSTextTableBlock; frameRect: NSRect; controlView: NSView; charRange: NSRange; layoutManager: NSLayoutManager); message 'drawBackgroundForBlock:withFrame:inView:characterRange:layoutManager:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

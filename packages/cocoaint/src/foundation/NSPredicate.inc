@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPredicate.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,13 +42,11 @@
 {$define NSPREDICATE_PAS_C}
 
 { NSPredicate }
-  NSPredicate = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
+  NSPredicate = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     _reserved: Pointer;
     
   public
-    class function alloc: NSPredicate; message 'alloc';
-
     class function predicateWithFormat_argumentArray(predicateFormat_: NSString; arguments: NSArray): NSPredicate; message 'predicateWithFormat:argumentArray:';
     class function predicateWithFormat(firstKey: id): NSPredicate; varargs; message 'predicateWithFormat:';
     class function predicateWithFormat_arguments(predicateFormat_: NSString; argList: va_list): NSPredicate; message 'predicateWithFormat:arguments:';
@@ -62,27 +60,27 @@
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 { NSPredicateSupportCategory }
-  NSPredicateSupportCategory = objccategory(NSArray)
+  NSPredicateSupportCategory = objccategory external (NSArray)
     function filteredArrayUsingPredicate(predicate: NSPredicate): NSArray; message 'filteredArrayUsingPredicate:';
-  end; external;
+  end;
 
 { NSPredicateSupport_NSMutableArrayCategory }
-  NSPredicateSupport_NSMutableArrayCategory = objccategory(NSMutableArray)
+  NSPredicateSupport_NSMutableArrayCategory = objccategory external name 'NSPredicateSupport' (NSMutableArray)
     procedure filterUsingPredicate(predicate: NSPredicate); message 'filterUsingPredicate:';
-  end; external name 'NSPredicateSupport';
+  end;
 
 { NSPredicateSupport_NSSetCategory }
-  NSPredicateSupport_NSSetCategory = objccategory(NSSet)
+  NSPredicateSupport_NSSetCategory = objccategory external name 'NSPredicateSupport' (NSSet)
     function filteredSetUsingPredicate(predicate: NSPredicate): NSSet; message 'filteredSetUsingPredicate:';
-  end; external name 'NSPredicateSupport';
+  end;
 
 { NSPredicateSupport_NSMutableSetCategory }
-  NSPredicateSupport_NSMutableSetCategory = objccategory(NSMutableSet)
+  NSPredicateSupport_NSMutableSetCategory = objccategory external name 'NSPredicateSupport' (NSMutableSet)
     procedure filterUsingPredicate(predicate: NSPredicate); message 'filterUsingPredicate:';
-  end; external name 'NSPredicateSupport';
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSUserDefaults.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -75,14 +75,12 @@ var
 {$define NSUSERDEFAULTS_PAS_C}
 
 { NSUserDefaults }
-  NSUserDefaults = objcclass(NSObject)
+  NSUserDefaults = objcclass external (NSObject)
   private
     _private: id;
         _reserved: array[0..3] of Pointer;
     
   public
-    class function alloc: NSUserDefaults; message 'alloc';
-
     class function standardUserDefaults: NSUserDefaults; message 'standardUserDefaults';
     class procedure resetStandardUserDefaults; message 'resetStandardUserDefaults';
     function init: id; message 'init';
@@ -120,7 +118,7 @@ var
     function synchronize: Boolean; message 'synchronize';
     function objectIsForcedForKey(key: NSString): Boolean; message 'objectIsForcedForKey:';
     function objectIsForcedForKey_inDomain(key: NSString; domain: NSString): Boolean; message 'objectIsForcedForKey:inDomain:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

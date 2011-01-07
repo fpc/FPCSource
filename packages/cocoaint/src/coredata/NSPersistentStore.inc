@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSPersistentStore.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSPERSISTENTSTORE_PAS_C}
 
 { NSPersistentStore }
-  NSPersistentStore = objcclass(NSObject)
+  NSPersistentStore = objcclass external (NSObject)
   private
     _coordinator: NSPersistentStoreCoordinator; {garbage collector: __weak }
     _configurationName: NSString;
@@ -65,8 +65,6 @@
     _reserved3: Pointer;
     
   public
-    class function alloc: NSPersistentStore; message 'alloc';
-
     class function metadataForPersistentStoreWithURL_error(url_: NSURL; error: NSErrorPointer): NSDictionary; message 'metadataForPersistentStoreWithURL:error:';
     class function setMetadata_forPersistentStoreWithURL_error(metadata_: NSDictionary; url_: NSURL; error: NSErrorPointer): Boolean; message 'setMetadata:forPersistentStoreWithURL:error:';
     class function migrationManagerClass: Pobjc_class; message 'migrationManagerClass';
@@ -86,7 +84,7 @@
     procedure setMetadata(storeMetadata: NSDictionary); message 'setMetadata:';
     procedure didAddToPersistentStoreCoordinator(coordinator: NSPersistentStoreCoordinator); message 'didAddToPersistentStoreCoordinator:';
     procedure willRemoveFromPersistentStoreCoordinator(coordinator: NSPersistentStoreCoordinator); message 'willRemoveFromPersistentStoreCoordinator:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

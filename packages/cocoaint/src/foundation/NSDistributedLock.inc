@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSDistributedLock.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,20 +42,18 @@
 {$define NSDISTRIBUTEDLOCK_PAS_C}
 
 { NSDistributedLock }
-  NSDistributedLock = objcclass(NSObject)
+  NSDistributedLock = objcclass external (NSObject)
   private
     _priv: Pointer;
     
   public
-    class function alloc: NSDistributedLock; message 'alloc';
-
     class function lockWithPath(path: NSString): NSDistributedLock; message 'lockWithPath:';
     function initWithPath(path: NSString): id; message 'initWithPath:';
     function tryLock: Boolean; message 'tryLock';
     procedure unlock; message 'unlock';
     procedure breakLock; message 'breakLock';
     function lockDate: NSDate; message 'lockDate';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

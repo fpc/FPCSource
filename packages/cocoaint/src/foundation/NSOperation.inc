@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSOperation.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -70,14 +70,12 @@ var
 {$define NSOPERATION_PAS_C}
 
 { NSOperation }
-  NSOperation = objcclass(NSObject)
+  NSOperation = objcclass external (NSObject)
   private
     _private: id;
     _reserved: Pointer;
     
   public
-    class function alloc: NSOperation; message 'alloc';
-
     function init: id; message 'init';
     procedure start; message 'start';
     procedure main; message 'main';
@@ -95,33 +93,29 @@ var
     procedure waitUntilFinished; message 'waitUntilFinished';
     function threadPriority: double; message 'threadPriority';
     procedure setThreadPriority(p: double); message 'setThreadPriority:';
-  end; external;
+  end;
 
 { NSInvocationOperation }
-  NSInvocationOperation = objcclass(NSOperation)
+  NSInvocationOperation = objcclass external (NSOperation)
   private
     _inv: id;
     _exception: id;
     _reserved2: Pointer;
     
   public
-    class function alloc: NSInvocationOperation; message 'alloc';
-
     function initWithTarget_selector_object(target: id; sel_: SEL; arg: id): id; message 'initWithTarget:selector:object:';
     function initWithInvocation(inv: NSInvocation): id; message 'initWithInvocation:';
     function invocation: NSInvocation; message 'invocation';
     function result_: id; message 'result';
-  end; external;
+  end;
 
 { NSOperationQueue }
-  NSOperationQueue = objcclass(NSObject)
+  NSOperationQueue = objcclass external (NSObject)
   private
     _private: id;
     _reserved: Pointer;
     
   public
-    class function alloc: NSOperationQueue; message 'alloc';
-
     procedure addOperation(op: NSOperation); message 'addOperation:';
     procedure addOperations_waitUntilFinished(ops: NSArray; wait: Boolean); message 'addOperations:waitUntilFinished:';
     function operations: NSArray; message 'operations';
@@ -136,7 +130,7 @@ var
     procedure waitUntilAllOperationsAreFinished; message 'waitUntilAllOperationsAreFinished';
     class function currentQueue: id; message 'currentQueue';
     class function mainQueue: id; message 'mainQueue';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

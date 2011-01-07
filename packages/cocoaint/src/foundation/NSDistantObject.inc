@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSDistantObject.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSDISTANTOBJECT_PAS_C}
 
 { NSDistantObject }
-  NSDistantObject = objcclass(NSProxy, NSCodingProtocol)
+  NSDistantObject = objcclass external (NSProxy, NSCodingProtocol)
   private
     _knownSelectors: id;
     _wireCount: NSUInteger;
@@ -54,8 +54,6 @@
     _remoteClass: id;
     
   public
-    class function alloc: NSDistantObject; message 'alloc';
-
     class function proxyWithTarget_connection(target: id; connection: NSConnection): NSDistantObject; message 'proxyWithTarget:connection:';
     function initWithTarget_connection(target: id; connection: NSConnection): id; message 'initWithTarget:connection:';
     class function proxyWithLocal_connection(target: id; connection: NSConnection): NSDistantObject; message 'proxyWithLocal:connection:';
@@ -66,7 +64,7 @@
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

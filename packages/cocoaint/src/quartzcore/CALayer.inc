@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CALayer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -81,7 +81,7 @@ var
 {$define CALAYER_PAS_C}
 
 { CALayer }
-  CALayer = objcclass(NSObject, NSCodingProtocol, CAMediaTimingProtocol)
+  CALayer = objcclass external (NSObject, NSCodingProtocol, CAMediaTimingProtocol)
   private
     __attr: record
         refcount: cint32;
@@ -99,8 +99,6 @@ var
       end;
     
   public
-    class function alloc: CALayer; message 'alloc';
-
     class function layer: id; message 'layer';
     function init: id; message 'init';
     function initWithLayer(layer_: id): id; message 'initWithLayer:';
@@ -252,21 +250,21 @@ var
     function autoreverses: Boolean;
     procedure setFillMode (newValue: NSString);
     function fillMode: NSString;
-  end; external;
+  end;
 
 { CALayoutManagerCategory }
-  CALayoutManagerCategory = objccategory(NSObject)
+  CALayoutManagerCategory = objccategory external (NSObject)
     function preferredSizeOfLayer(layer: CALayer): CGSize; message 'preferredSizeOfLayer:';
     procedure invalidateLayoutOfLayer(layer: CALayer); message 'invalidateLayoutOfLayer:';
     procedure layoutSublayersOfLayer(layer: CALayer); message 'layoutSublayersOfLayer:';
-  end; external;
+  end;
 
 { CALayerDelegateCategory }
-  CALayerDelegateCategory = objccategory(NSObject)
+  CALayerDelegateCategory = objccategory external (NSObject)
     procedure displayLayer(layer: CALayer); message 'displayLayer:';
     procedure drawLayer_inContext(layer: CALayer; ctx: CGContextRef); message 'drawLayer:inContext:';
     function actionForLayer_forKey(layer: CALayer; event: NSString): id; message 'actionForLayer:forKey:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -275,7 +273,7 @@ var
 {$define CALAYER_PAS_P}
   
 { CAAction Protocol }
-  CAActionProtocol = objcprotocol
-  end; external name 'CAAction';
+  CAActionProtocol = objcprotocol external name 'CAAction'
+  end;
 {$endif}
 {$endif}

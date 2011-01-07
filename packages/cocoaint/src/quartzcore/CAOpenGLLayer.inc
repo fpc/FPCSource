@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CAOpenGLLayer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,13 +42,11 @@
 {$define CAOPENGLLAYER_PAS_C}
 
 { CAOpenGLLayer }
-  CAOpenGLLayer = objcclass(CALayer)
+  CAOpenGLLayer = objcclass external (CALayer)
   private
     __glPriv: Pointer;
     
   public
-    class function alloc: CAOpenGLLayer; message 'alloc';
-
     procedure setAsynchronous (newValue: Boolean); message 'setAsynchronous:';
     function isAsynchronous: Boolean; message 'isAsynchronous';
     function canDrawInCGLContext_pixelFormat_forLayerTime_displayTime(ctx: CGLContextObj; pf: CGLPixelFormatObj; t: CFTimeInterval; ts: CVTimeStampPtr): Boolean; message 'canDrawInCGLContext:pixelFormat:forLayerTime:displayTime:';
@@ -57,7 +55,7 @@
     procedure releaseCGLPixelFormat(pf: CGLPixelFormatObj); message 'releaseCGLPixelFormat:';
     function copyCGLContextForPixelFormat(pf: CGLPixelFormatObj): CGLContextObj; message 'copyCGLContextForPixelFormat:';
     procedure releaseCGLContext(ctx: CGLContextObj); message 'releaseCGLContext:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

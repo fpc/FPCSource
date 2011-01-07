@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSMappingModel.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSMAPPINGMODEL_PAS_C}
 
 { NSMappingModel }
-  NSMappingModel = objcclass(NSObject)
+  NSMappingModel = objcclass external (NSObject)
   private
     _reserved: Pointer;
     _reserved1: Pointer;
@@ -59,15 +59,13 @@
       end;
     
   public
-    class function alloc: NSMappingModel; message 'alloc';
-
     class function mappingModelFromBundles_forSourceModel_destinationModel(bundles: NSArray; sourceModel: NSManagedObjectModel; destinationModel: NSManagedObjectModel): NSMappingModel; message 'mappingModelFromBundles:forSourceModel:destinationModel:';
     class function inferredMappingModelForSourceModel_destinationModel_error(sourceModel: NSManagedObjectModel; destinationModel: NSManagedObjectModel; error: NSErrorPointer): NSMappingModel; message 'inferredMappingModelForSourceModel:destinationModel:error:';
     function initWithContentsOfURL(url: NSURL): id; message 'initWithContentsOfURL:';
     function entityMappings: NSArray; message 'entityMappings';
     procedure setEntityMappings(mappings: NSArray); message 'setEntityMappings:';
     function entityMappingsByName: NSDictionary; message 'entityMappingsByName';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

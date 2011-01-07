@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSXMLElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSXMLELEMENT_PAS_C}
 
 { NSXMLElement }
-  NSXMLElement = objcclass(NSXMLNode)
+  NSXMLElement = objcclass external (NSXMLNode)
   private
     _name: NSString;
     _attributes: NSMutableArray;
@@ -54,8 +54,6 @@
     _prefixIndex: NSInteger;
     
   public
-    class function alloc: NSXMLElement; message 'alloc';
-
     function initWithName(name_: NSString): id; message 'initWithName:';
     function initWithName_URI(name_: NSString; URI_: NSString): id; message 'initWithName:URI:';
     function initWithName_stringValue(name_: NSString; string_: NSString): id; message 'initWithName:stringValue:';
@@ -83,7 +81,7 @@
     procedure addChild(child: NSXMLNode); message 'addChild:';
     procedure replaceChildAtIndex_withNode(index_: NSUInteger; node: NSXMLNode); message 'replaceChildAtIndex:withNode:';
     procedure normalizeAdjacentTextNodesPreservingCDATA(preserve: Boolean); message 'normalizeAdjacentTextNodesPreservingCDATA:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

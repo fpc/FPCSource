@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSComparisonPredicate.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -76,7 +76,7 @@ type
 {$define NSCOMPARISONPREDICATE_PAS_C}
 
 { NSComparisonPredicate }
-  NSComparisonPredicate = objcclass(NSPredicate)
+  NSComparisonPredicate = objcclass external (NSPredicate)
   private
     _reserved2: Pointer;
     _predicateOperator: NSPredicateOperator;
@@ -84,8 +84,6 @@ type
     _rhs: NSExpression;
     
   public
-    class function alloc: NSComparisonPredicate; message 'alloc';
-
     class function predicateWithLeftExpression_rightExpression_modifier_type_options(lhs: NSExpression; rhs: NSExpression; modifier: NSComparisonPredicateModifier; type_: NSPredicateOperatorType; options_: NSUInteger): NSPredicate; message 'predicateWithLeftExpression:rightExpression:modifier:type:options:';
     class function predicateWithLeftExpression_rightExpression_customSelector(lhs: NSExpression; rhs: NSExpression; selector: SEL): NSPredicate; message 'predicateWithLeftExpression:rightExpression:customSelector:';
     function initWithLeftExpression_rightExpression_modifier_type_options(lhs: NSExpression; rhs: NSExpression; modifier: NSComparisonPredicateModifier; type_: NSPredicateOperatorType; options_: NSUInteger): id; message 'initWithLeftExpression:rightExpression:modifier:type:options:';
@@ -96,7 +94,7 @@ type
     function rightExpression: NSExpression; message 'rightExpression';
     function customSelector: SEL; message 'customSelector';
     function options: NSUInteger; message 'options';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

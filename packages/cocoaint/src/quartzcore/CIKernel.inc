@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CIKernel.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,17 +42,15 @@
 {$define CIKERNEL_PAS_C}
 
 { CIKernel }
-  CIKernel = objcclass(NSObject)
+  CIKernel = objcclass external (NSObject)
   private
     _priv: Pointer;
     
   public
-    class function alloc: CIKernel; message 'alloc';
-
     class function kernelsWithString(s: NSString): NSArray; message 'kernelsWithString:';
     function name: NSString; message 'name';
     procedure setROISelector(aMethod: SEL); message 'setROISelector:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSStatusItem.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSSTATUSITEM_PAS_C}
 
 { NSStatusItem }
-  NSStatusItem = objcclass(NSObject)
+  NSStatusItem = objcclass external (NSObject)
   private
     _fStatusBar: NSStatusBar;
     _fLength: CGFloat;
@@ -68,15 +68,13 @@
     _fReserved4: id;
     
   public
-    class function alloc: NSStatusItem; message 'alloc';
-
     function statusBar: NSStatusBar; message 'statusBar';
     function length: CGFloat; message 'length';
     procedure setLength(length_: CGFloat); message 'setLength:';
-  end; external;
+  end;
 
 { NSStatusItemCommonCategory }
-  NSStatusItemCommonCategory = objccategory(NSStatusItem)
+  NSStatusItemCommonCategory = objccategory external (NSStatusItem)
     function action: SEL; message 'action';
     procedure setAction(action_: SEL); message 'setAction:';
     function doubleAction: SEL; message 'doubleAction';
@@ -102,13 +100,13 @@
     function sendActionOn(mask: NSInteger): NSInteger; message 'sendActionOn:';
     procedure popUpStatusItemMenu(menu_: NSMenu); message 'popUpStatusItemMenu:';
     procedure drawStatusBarBackgroundInRect_withHighlight(rect: NSRect; highlight: Boolean); message 'drawStatusBarBackgroundInRect:withHighlight:';
-  end; external;
+  end;
 
 { NSStatusItemViewCategory }
-  NSStatusItemViewCategory = objccategory(NSStatusItem)
+  NSStatusItemViewCategory = objccategory external (NSStatusItem)
     function view: NSView; message 'view';
     procedure setView(view_: NSView); message 'setView:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

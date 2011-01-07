@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDatePickerCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -71,7 +71,7 @@ type
 {$define NSDATEPICKERCELL_PAS_C}
 
 { NSDatePickerCell }
-  NSDatePickerCell = objcclass(NSActionCell)
+  NSDatePickerCell = objcclass external (NSActionCell)
   private
     _timeInterval: NSTimeInterval;
     _minDate: NSDate;
@@ -105,8 +105,6 @@ type
     _reserved4: id;
     
   public
-    class function alloc: NSDatePickerCell; message 'alloc';
-
     function datePickerStyle: NSDatePickerStyle; message 'datePickerStyle';
     procedure setDatePickerStyle(newStyle: NSDatePickerStyle); message 'setDatePickerStyle:';
     function drawsBackground: Boolean; message 'drawsBackground';
@@ -135,7 +133,7 @@ type
     procedure setMaxDate(date: NSDate); message 'setMaxDate:';
     function delegate: id; message 'delegate';
     procedure setDelegate(anObject: id); message 'setDelegate:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -144,8 +142,8 @@ type
 {$define NSDATEPICKERCELL_PAS_P}
   
 { NSDatePickerCellDelegate Protocol }
-  NSDatePickerCellDelegateProtocol = objcprotocol
+  NSDatePickerCellDelegateProtocol = objcprotocol external name 'NSDatePickerCellDelegate'
     procedure datePickerCell_validateProposedDateValue_timeInterval(aDatePickerCell: NSDatePickerCell; proposedDateValue: NSDatePointer; proposedTimeInterval: NSTimeIntervalPtr); message 'datePickerCell:validateProposedDateValue:timeInterval:';
-  end; external name 'NSDatePickerCellDelegate';
+  end;
 {$endif}
 {$endif}

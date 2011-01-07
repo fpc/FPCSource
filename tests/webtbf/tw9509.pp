@@ -1,3 +1,4 @@
+{ %fail }
 {$mode objfpc}
 {$interfaces corba}
 type

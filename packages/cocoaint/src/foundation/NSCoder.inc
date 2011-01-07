@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSCoder.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -45,20 +45,18 @@ function NXReadNSObjectFromCoder(decoder: NSCoder): NSObject; cdecl; external; d
 {$define NSCODER_PAS_C}
 
 { NSCoder }
-  NSCoder = objcclass(NSObject)
+  NSCoder = objcclass external (NSObject)
     
   public
-    class function alloc: NSCoder; message 'alloc';
-
     procedure encodeValueOfObjCType_at(type_: PChar; addr: Pointer); message 'encodeValueOfObjCType:at:';
     procedure encodeDataObject(data: NSData); message 'encodeDataObject:';
     procedure decodeValueOfObjCType_at(type_: PChar; data: Pointer); message 'decodeValueOfObjCType:at:';
     function decodeDataObject: NSData; message 'decodeDataObject';
     function versionForClassName(className: NSString): NSInteger; message 'versionForClassName:';
-  end; external;
+  end;
 
 { NSExtendedCoderCategory }
-  NSExtendedCoderCategory = objccategory(NSCoder)
+  NSExtendedCoderCategory = objccategory external (NSCoder)
     procedure encodeObject(object_: id); message 'encodeObject:';
     procedure encodeRootObject(rootObject: id); message 'encodeRootObject:';
     procedure encodeBycopyObject(anObject: id); message 'encodeBycopyObject:';
@@ -97,13 +95,13 @@ function NXReadNSObjectFromCoder(decoder: NSCoder): NSObject; cdecl; external; d
     function decodeBytesForKey_returnedLength(key: NSString; lengthp: NSUIntegerPtr): pbyte; message 'decodeBytesForKey:returnedLength:';
     procedure encodeInteger_forKey(intv: NSInteger; key: NSString); message 'encodeInteger:forKey:';
     function decodeIntegerForKey(key: NSString): NSInteger; message 'decodeIntegerForKey:';
-  end; external;
+  end;
 
 { NSTypedstreamCompatibilityCategory }
-  NSTypedstreamCompatibilityCategory = objccategory(NSCoder)
+  NSTypedstreamCompatibilityCategory = objccategory external (NSCoder)
     procedure encodeNXObject(object_: id); message 'encodeNXObject:'; deprecated 'in Mac OS X 10.5 and later';
     function decodeNXObject: id; message 'decodeNXObject'; deprecated 'in Mac OS X 10.5 and later';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

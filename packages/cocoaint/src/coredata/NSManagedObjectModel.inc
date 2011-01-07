@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSManagedObjectModel.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSMANAGEDOBJECTMODEL_PAS_C}
 
 { NSManagedObjectModel }
-  NSManagedObjectModel = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol, NSFastEnumerationProtocol)
+  NSManagedObjectModel = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol, NSFastEnumerationProtocol)
   private
     _reserved: Pointer;
     _reserved2: Pointer;
@@ -62,8 +62,6 @@
       end;
     
   public
-    class function alloc: NSManagedObjectModel; message 'alloc';
-
     class function mergedModelFromBundles(bundles: NSArray): NSManagedObjectModel; message 'mergedModelFromBundles:';
     class function modelByMergingModels(models: NSArray): NSManagedObjectModel; message 'modelByMergingModels:';
     function init: id; message 'init';
@@ -92,7 +90,7 @@
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
     function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePtr; stackbuf: idPtr; len: NSUInteger): NSUInteger;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

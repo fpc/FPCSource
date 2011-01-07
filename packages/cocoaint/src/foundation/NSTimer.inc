@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSTimer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define NSTIMER_PAS_C}
 
 { NSTimer }
-  NSTimer = objcclass(NSObject)
+  NSTimer = objcclass external (NSObject)
     
   public
-    class function alloc: NSTimer; message 'alloc';
-
     class function timerWithTimeInterval_invocation_repeats(ti: NSTimeInterval; invocation: NSInvocation; yesOrNo: Boolean): NSTimer; message 'timerWithTimeInterval:invocation:repeats:';
     class function scheduledTimerWithTimeInterval_invocation_repeats(ti: NSTimeInterval; invocation: NSInvocation; yesOrNo: Boolean): NSTimer; message 'scheduledTimerWithTimeInterval:invocation:repeats:';
     class function timerWithTimeInterval_target_selector_userInfo_repeats(ti: NSTimeInterval; aTarget: id; aSelector: SEL; userInfo_: id; yesOrNo: Boolean): NSTimer; message 'timerWithTimeInterval:target:selector:userInfo:repeats:';
@@ -59,7 +57,7 @@
     procedure invalidate; message 'invalidate';
     function isValid: Boolean; message 'isValid';
     function userInfo: id; message 'userInfo';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

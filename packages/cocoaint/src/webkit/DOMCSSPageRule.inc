@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCSSPageRule.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,15 +42,13 @@
 {$define DOMCSSPAGERULE_PAS_C}
 
 { DOMCSSPageRule }
-  DOMCSSPageRule = objcclass(DOMCSSRule)
+  DOMCSSPageRule = objcclass external (DOMCSSRule)
     
   public
-    class function alloc: DOMCSSPageRule; message 'alloc';
-
     procedure setSelectorText (newValue: NSString); message 'setSelectorText:';
     function selectorText: NSString; message 'selectorText';
     function style: DOMCSSStyleDeclaration; message 'style';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

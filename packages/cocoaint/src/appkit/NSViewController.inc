@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSViewController.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSVIEWCONTROLLER_PAS_C}
 
 { NSViewController }
-  NSViewController = objcclass(NSResponder)
+  NSViewController = objcclass external (NSResponder)
   private
     _nibName: NSString;
     _nibBundle: NSBundle;
@@ -56,8 +56,6 @@
         _reserved: array[0..1] of id;
     
   public
-    class function alloc: NSViewController; message 'alloc';
-
     function initWithNibName_bundle(nibNameOrNil: NSString; nibBundleOrNil: NSBundle): id; message 'initWithNibName:bundle:';
     procedure setRepresentedObject(representedObject_: id); message 'setRepresentedObject:';
     function representedObject: id; message 'representedObject';
@@ -71,7 +69,7 @@
     procedure commitEditingWithDelegate_didCommitSelector_contextInfo(delegate: id; didCommitSelector: SEL; contextInfo: Pointer); message 'commitEditingWithDelegate:didCommitSelector:contextInfo:';
     function commitEditing: Boolean; message 'commitEditing';
     procedure discardEditing; message 'discardEditing';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

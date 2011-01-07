@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CIImageProvider.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -44,15 +44,15 @@ var
 {$define CIIMAGEPROVIDER_PAS_C}
 
 { CIImageProviderCategory }
-  CIImageProviderCategory = objccategory(CIImage)
+  CIImageProviderCategory = objccategory external (CIImage)
     class function imageWithImageProvider_size_width_format_colorSpace_options(p: id; width: size_t; height: size_t; f: CIFormat; cs: CGColorSpaceRef; dict: NSDictionary): CIImage; message 'imageWithImageProvider:size:width:format:colorSpace:options:';
     function initWithImageProvider_size_width_format_colorSpace_options(p: id; width: size_t; height: size_t; f: CIFormat; cs: CGColorSpaceRef; dict: NSDictionary): id; message 'initWithImageProvider:size:width:format:colorSpace:options:';
-  end; external;
+  end;
 
 { CIImageProvider_NSObjectCategory }
-  CIImageProvider_NSObjectCategory = objccategory(NSObject)
+  CIImageProvider_NSObjectCategory = objccategory external name 'CIImageProvider' (NSObject)
     procedure provideImageData_bytesPerRow_origin_x_size_width_userInfo(data: Pointer; rowbytes: size_t; x: size_t; y: size_t; width: size_t; height: size_t; info: id); message 'provideImageData:bytesPerRow:origin:x:size:width:userInfo:';
-  end; external name 'CIImageProvider';
+  end;
 
 {$endif}
 {$endif}

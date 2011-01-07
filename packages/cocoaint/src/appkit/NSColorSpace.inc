@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSColorSpace.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -59,7 +59,7 @@ type
 {$define NSCOLORSPACE_PAS_C}
 
 { NSColorSpace }
-  NSColorSpace = objcclass(NSObject, NSCodingProtocol)
+  NSColorSpace = objcclass external (NSObject, NSCodingProtocol)
   private
     _profile: id;
     __flags: bitpacked record
@@ -79,8 +79,6 @@ type
         _reserved: array[0..4] of Pointer;
     
   public
-    class function alloc: NSColorSpace; message 'alloc';
-
     function initWithICCProfileData(iccData: NSData): id; message 'initWithICCProfileData:';
     function ICCProfileData: NSData; message 'ICCProfileData';
     function initWithColorSyncProfile(prof: Pointer): id; message 'initWithColorSyncProfile:';
@@ -104,7 +102,7 @@ type
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

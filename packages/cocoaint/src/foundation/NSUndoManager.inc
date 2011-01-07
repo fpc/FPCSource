@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSUndoManager.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -57,7 +57,7 @@ var
 {$define NSUNDOMANAGER_PAS_C}
 
 { NSUndoManager }
-  NSUndoManager = objcclass(NSObject)
+  NSUndoManager = objcclass external (NSObject)
   private
     _undoStack: id;
     _redoStack: id;
@@ -81,8 +81,6 @@ var
     _NSUndoManagerReserved2: Pointer;
     
   public
-    class function alloc: NSUndoManager; message 'alloc';
-
     procedure beginUndoGrouping; message 'beginUndoGrouping';
     procedure endUndoGrouping; message 'endUndoGrouping';
     function groupingLevel: NSInteger; message 'groupingLevel';
@@ -113,7 +111,7 @@ var
     function redoMenuItemTitle: NSString; message 'redoMenuItemTitle';
     function undoMenuTitleForUndoActionName(actionName: NSString): NSString; message 'undoMenuTitleForUndoActionName:';
     function redoMenuTitleForUndoActionName(actionName: NSString): NSString; message 'redoMenuTitleForUndoActionName:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

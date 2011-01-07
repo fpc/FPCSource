@@ -1238,7 +1238,7 @@ end;
        Path : TCmdStr;
        found : boolean;
      begin
-       found:=FindFile(FixFileName(ChangeFileExt(bin,source_info.exeext)),'.;'+exepath,allowcache,foundfile);
+       found:=FindFile(FixFileName(ChangeFileExt(bin,source_info.exeext)),exepath,allowcache,foundfile);
        if not found then
         begin
 {$ifdef macos}

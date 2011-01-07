@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -93,11 +93,9 @@ var
 {$define NSTEXTVIEW_PAS_C}
 
 { NSTextView }
-  NSTextView = objcclass(NSText)
+  NSTextView = objcclass external (NSText)
     
   public
-    class function alloc: NSTextView; message 'alloc';
-
     function initWithFrame_textContainer(frameRect: NSRect; container: NSTextContainer): id; message 'initWithFrame:textContainer:';
     function initWithFrame(frameRect: NSRect): id; message 'initWithFrame:';
     function textContainer: NSTextContainer; message 'textContainer';
@@ -154,18 +152,18 @@ var
     procedure startSpeaking(sender: id); message 'startSpeaking:';
     procedure stopSpeaking(sender: id); message 'stopSpeaking:';
     function characterIndexForInsertionAtPoint(point: NSPoint): NSUInteger; message 'characterIndexForInsertionAtPoint:';
-  end; external;
+  end;
 
 { NSCompletionCategory }
-  NSCompletionCategory = objccategory(NSTextView)
+  NSCompletionCategory = objccategory external (NSTextView)
     procedure complete(sender: id); message 'complete:';
     function rangeForUserCompletion: NSRange; message 'rangeForUserCompletion';
     function completionsForPartialWordRange_indexOfSelectedItem(charRange: NSRange; index: NSIntegerPtr): NSArray; message 'completionsForPartialWordRange:indexOfSelectedItem:';
     procedure insertCompletion_forPartialWordRange_movement_isFinal(word: NSString; charRange: NSRange; movement: NSInteger; flag: Boolean); message 'insertCompletion:forPartialWordRange:movement:isFinal:';
-  end; external;
+  end;
 
 { NSPasteboard_NSTextViewCategory }
-  NSPasteboard_NSTextViewCategory = objccategory(NSTextView)
+  NSPasteboard_NSTextViewCategory = objccategory external name 'NSPasteboard' (NSTextView)
     function writablePasteboardTypes: NSArray; message 'writablePasteboardTypes';
     function writeSelectionToPasteboard_type(pboard: NSPasteboard; type_: NSString): Boolean; message 'writeSelectionToPasteboard:type:';
     function writeSelectionToPasteboard_types(pboard: NSPasteboard; types: NSArray): Boolean; message 'writeSelectionToPasteboard:types:';
@@ -177,19 +175,19 @@ var
     function validRequestorForSendType_returnType(sendType: NSString; returnType: NSString): id; message 'validRequestorForSendType:returnType:';
     procedure pasteAsPlainText(sender: id); message 'pasteAsPlainText:';
     procedure pasteAsRichText(sender: id); message 'pasteAsRichText:';
-  end; external name 'NSPasteboard';
+  end;
 
 { NSDraggingCategory }
-  NSDraggingCategory = objccategory(NSTextView)
+  NSDraggingCategory = objccategory external (NSTextView)
     function dragSelectionWithEvent_offset_slideBack(event: NSEvent; mouseOffset: NSSize; slideBack: Boolean): Boolean; message 'dragSelectionWithEvent:offset:slideBack:';
     function dragImageForSelectionWithEvent_origin(event: NSEvent; origin: NSPointPointer): NSImage; message 'dragImageForSelectionWithEvent:origin:';
     function acceptableDragTypes: NSArray; message 'acceptableDragTypes';
     function dragOperationForDraggingInfo_type(dragInfo: id; type_: NSString): NSDragOperation; message 'dragOperationForDraggingInfo:type:';
     procedure cleanUpAfterDragOperation; message 'cleanUpAfterDragOperation';
-  end; external;
+  end;
 
 { NSSharingCategory }
-  NSSharingCategory = objccategory(NSTextView)
+  NSSharingCategory = objccategory external (NSTextView)
     function selectedRanges: NSArray; message 'selectedRanges';
     procedure setSelectedRanges_affinity_stillSelecting(ranges: NSArray; affinity: NSSelectionAffinity; stillSelectingFlag: Boolean); message 'setSelectedRanges:affinity:stillSelecting:';
     procedure setSelectedRanges(ranges: NSArray); message 'setSelectedRanges:';
@@ -267,10 +265,10 @@ var
     procedure setSelectedRange(charRange: NSRange); message 'setSelectedRange:';
     function allowedInputSourceLocales: NSArray; message 'allowedInputSourceLocales';
     procedure setAllowedInputSourceLocales(localeIdentifiers: NSArray); message 'setAllowedInputSourceLocales:';
-  end; external;
+  end;
 
 { NSTextCheckingCategory }
-  NSTextCheckingCategory = objccategory(NSTextView)
+  NSTextCheckingCategory = objccategory external (NSTextView)
     function smartInsertDeleteEnabled: Boolean; message 'smartInsertDeleteEnabled';
     procedure setSmartInsertDeleteEnabled(flag: Boolean); message 'setSmartInsertDeleteEnabled:';
     function smartDeleteRangeForProposedRange(proposedCharRange: NSRange): NSRange; message 'smartDeleteRangeForProposedRange:';
@@ -303,12 +301,12 @@ var
     procedure orderFrontSubstitutionsPanel(sender: id); message 'orderFrontSubstitutionsPanel:';
     procedure checkTextInSelection(sender: id); message 'checkTextInSelection:';
     procedure checkTextInDocument(sender: id); message 'checkTextInDocument:';
-  end; external;
+  end;
 
 { NSDeprecated_NSTextViewCategory }
-  NSDeprecated_NSTextViewCategory = objccategory(NSTextView)
+  NSDeprecated_NSTextViewCategory = objccategory external name 'NSDeprecated' (NSTextView)
     procedure toggleBaseWritingDirection(sender: id); message 'toggleBaseWritingDirection:';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}
@@ -317,7 +315,7 @@ var
 {$define NSTEXTVIEW_PAS_P}
   
 { NSTextViewDelegate Protocol }
-  NSTextViewDelegateProtocol = objcprotocol
+  NSTextViewDelegateProtocol = objcprotocol external name 'NSTextViewDelegate'
     function textView_clickedOnLink_atIndex(textView: NSTextView; link: id; charIndex: NSUInteger): Boolean; message 'textView:clickedOnLink:atIndex:';
     procedure textView_clickedOnCell_inRect_atIndex(textView: NSTextView; cell: id; cellFrame: NSRect; charIndex: NSUInteger); message 'textView:clickedOnCell:inRect:atIndex:';
     procedure textView_doubleClickedOnCell_inRect_atIndex(textView: NSTextView; cell: id; cellFrame: NSRect; charIndex: NSUInteger); message 'textView:doubleClickedOnCell:inRect:atIndex:';
@@ -343,6 +341,6 @@ var
     procedure textView_doubleClickedOnCell_inRect(textView: NSTextView; cell: id; cellFrame: NSRect); message 'textView:doubleClickedOnCell:inRect:';
     procedure textView_draggedCell_inRect_event(view: NSTextView; cell: id; rect: NSRect; event: NSEvent); message 'textView:draggedCell:inRect:event:';
     function undoManagerForTextView(view: NSTextView): NSUndoManager; message 'undoManagerForTextView:';
-  end; external name 'NSTextViewDelegate';
+  end;
 {$endif}
 {$endif}

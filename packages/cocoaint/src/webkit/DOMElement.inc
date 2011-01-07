@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMELEMENT_PAS_C}
 
 { DOMElement }
-  DOMElement = objcclass(DOMNode)
+  DOMElement = objcclass external (DOMNode)
     
   public
-    class function alloc: DOMElement; message 'alloc';
-
     function tagName: NSString; message 'tagName';
     function style: DOMCSSStyleDeclaration; message 'style';
     function offsetLeft: cint; message 'offsetLeft';
@@ -95,10 +93,10 @@
     function getElementsByClassName(name: NSString): DOMNodeList; message 'getElementsByClassName:';
     function querySelector(selectors: NSString): DOMElement; message 'querySelector:';
     function querySelectorAll(selectors: NSString): DOMNodeList; message 'querySelectorAll:';
-  end; external;
+  end;
 
 { DOMElementDeprecatedCategory }
-  DOMElementDeprecatedCategory = objccategory(DOMElement)
+  DOMElementDeprecatedCategory = objccategory external (DOMElement)
     procedure setAttribute(name: NSString; value: NSString); message 'setAttribute:name:';
     function getAttributeNS(namespaceURI_: NSString; localName_: NSString): NSString; message 'getAttributeNS:namespaceURI:';
     procedure setAttributeNS(namespaceURI_: NSString; qualifiedName: NSString; value: NSString); message 'setAttributeNS:namespaceURI:qualifiedName:';
@@ -106,7 +104,7 @@
     function getElementsByTagNameNS(namespaceURI_: NSString; localName_: NSString): DOMNodeList; message 'getElementsByTagNameNS:namespaceURI:';
     function getAttributeNodeNS(namespaceURI_: NSString; localName_: NSString): DOMAttr; message 'getAttributeNodeNS:namespaceURI:';
     function hasAttributeNS(namespaceURI_: NSString; localName_: NSString): Boolean; message 'hasAttributeNS:namespaceURI:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

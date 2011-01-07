@@ -8,12 +8,12 @@
 {$modeswitch objectivec1}
 
 type
-  ta = objcclass
+  ta = objcclass external
     { should give an error about a wrong number of parameters --
       the message name suggests two parameters, but the procedure
       has only one. }
     procedure test(a: longint); message 'test:a:';
-  end; external;
+  end;
 
 var
   a: ta;

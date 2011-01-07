@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSOutlineView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -131,7 +131,7 @@ var
 {$define NSOUTLINEVIEW_PAS_C}
 
 { NSOutlineView }
-  NSOutlineView = objcclass(NSTableView)
+  NSOutlineView = objcclass external (NSTableView)
   private
     _numberOfRows: NSInteger;
     __rowEntryTree: Pointer;
@@ -159,8 +159,6 @@ var
     _ovReserved: id;
     
   public
-    class function alloc: NSOutlineView; message 'alloc';
-
     procedure setDelegate(anObject: id); message 'setDelegate:';
     function delegate: id; message 'delegate';
     procedure setDataSource(aSource: id); message 'setDataSource:';
@@ -191,10 +189,10 @@ var
     function shouldCollapseAutoExpandedItemsForDeposited(deposited: Boolean): Boolean; message 'shouldCollapseAutoExpandedItemsForDeposited:';
     function autosaveExpandedItems: Boolean; message 'autosaveExpandedItems';
     procedure setAutosaveExpandedItems(save: Boolean); message 'setAutosaveExpandedItems:';
-  end; external;
+  end;
 
 { NSOutlineViewNotificationsCategory }
-  NSOutlineViewNotificationsCategory = objccategory(NSObject)
+  NSOutlineViewNotificationsCategory = objccategory external (NSObject)
     procedure outlineViewSelectionDidChange(notification: NSNotification); message 'outlineViewSelectionDidChange:';
     procedure outlineViewColumnDidMove(notification: NSNotification); message 'outlineViewColumnDidMove:';
     procedure outlineViewColumnDidResize(notification: NSNotification); message 'outlineViewColumnDidResize:';
@@ -203,7 +201,7 @@ var
     procedure outlineViewItemDidExpand(notification: NSNotification); message 'outlineViewItemDidExpand:';
     procedure outlineViewItemWillCollapse(notification: NSNotification); message 'outlineViewItemWillCollapse:';
     procedure outlineViewItemDidCollapse(notification: NSNotification); message 'outlineViewItemDidCollapse:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -212,7 +210,7 @@ var
 {$define NSOUTLINEVIEW_PAS_P}
   
 { NSOutlineViewDataSource Protocol }
-  NSOutlineViewDataSourceProtocol = objcprotocol
+  NSOutlineViewDataSourceProtocol = objcprotocol external name 'NSOutlineViewDataSource'
     function outlineView_child_ofItem(outlineView: NSOutlineView; index: NSInteger; item: id): id; message 'outlineView:child:ofItem:';
     function outlineView_isItemExpandable(outlineView: NSOutlineView; item: id): Boolean; message 'outlineView:isItemExpandable:';
     function outlineView_numberOfChildrenOfItem(outlineView: NSOutlineView; item: id): NSInteger; message 'outlineView:numberOfChildrenOfItem:';
@@ -225,10 +223,10 @@ var
     function outlineView_validateDrop_proposedItem_proposedChildIndex(outlineView: NSOutlineView; info: id; item: id; index: NSInteger): NSDragOperation; message 'outlineView:validateDrop:proposedItem:proposedChildIndex:';
     function outlineView_acceptDrop_item_childIndex(outlineView: NSOutlineView; info: id; item: id; index: NSInteger): Boolean; message 'outlineView:acceptDrop:item:childIndex:';
     function outlineView_namesOfPromisedFilesDroppedAtDestination_forDraggedItems(outlineView: NSOutlineView; dropDestination: NSURL; items: NSArray): NSArray; message 'outlineView:namesOfPromisedFilesDroppedAtDestination:forDraggedItems:';
-  end; external name 'NSOutlineViewDataSource';
+  end;
   
 { NSOutlineViewDelegate Protocol }
-  NSOutlineViewDelegateProtocol = objcprotocol
+  NSOutlineViewDelegateProtocol = objcprotocol external name 'NSOutlineViewDelegate'
     procedure outlineView_willDisplayCell_forTableColumn_item(outlineView: NSOutlineView; cell: id; tableColumn: NSTableColumn; item: id); message 'outlineView:willDisplayCell:forTableColumn:item:';
     function outlineView_shouldEditTableColumn_item(outlineView: NSOutlineView; tableColumn: NSTableColumn; item: id): Boolean; message 'outlineView:shouldEditTableColumn:item:';
     function selectionShouldChangeInOutlineView(outlineView: NSOutlineView): Boolean; message 'selectionShouldChangeInOutlineView:';
@@ -253,6 +251,6 @@ var
     function outlineView_sizeToFitWidthOfColumn(outlineView: NSOutlineView; column: NSInteger): CGFloat; message 'outlineView:sizeToFitWidthOfColumn:';
     function outlineView_shouldReorderColumn_toColumn(outlineView: NSOutlineView; columnIndex: NSInteger; newColumnIndex: NSInteger): Boolean; message 'outlineView:shouldReorderColumn:toColumn:';
     function outlineView_shouldShowOutlineCellForItem(outlineView: NSOutlineView; item: id): Boolean; message 'outlineView:shouldShowOutlineCellForItem:';
-  end; external name 'NSOutlineViewDelegate';
+  end;
 {$endif}
 {$endif}

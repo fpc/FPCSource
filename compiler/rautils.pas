@@ -696,7 +696,7 @@ end;
 Function TOperand.SetupSelf:boolean;
 Begin
   SetupSelf:=false;
-  if assigned(current_objectdef) then
+  if assigned(current_structdef) then
     SetupSelf:=setupvar('self',false)
   else
     Message(asmr_e_cannot_use_SELF_outside_a_method);
@@ -1307,7 +1307,7 @@ Begin
   base:=Copy(s,1,i-1);
   delete(s,1,i);
   if base='SELF' then
-   st:=current_objectdef.symtable
+   st:=current_structdef.symtable
   else
    begin
      asmsearchsym(base,sym,srsymtable);

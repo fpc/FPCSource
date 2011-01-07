@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CAReplicatorLayer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define CAREPLICATORLAYER_PAS_C}
 
 { CAReplicatorLayer }
-  CAReplicatorLayer = objcclass(CALayer)
+  CAReplicatorLayer = objcclass external (CALayer)
     
   public
-    class function alloc: CAReplicatorLayer; message 'alloc';
-
     procedure setInstanceCount (newValue: NSInteger); message 'setInstanceCount:';
     function instanceCount: NSInteger; message 'instanceCount';
     procedure setPreservesDepth (newValue: Boolean); message 'setPreservesDepth:';
@@ -65,7 +63,7 @@
     function instanceBlueOffset: single; message 'instanceBlueOffset';
     procedure setInstanceAlphaOffset (newValue: single); message 'setInstanceAlphaOffset:';
     function instanceAlphaOffset: single; message 'instanceAlphaOffset';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

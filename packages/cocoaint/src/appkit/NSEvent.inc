@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSEvent.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -227,7 +227,7 @@ type
 {$define NSEVENT_PAS_C}
 
 { NSEvent }
-  NSEvent = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSEvent = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _type: NSEventType;
     _location: NSPoint;
@@ -317,8 +317,6 @@ type
     {$endif}
     
   public
-    class function alloc: NSEvent; message 'alloc';
-
     function type_: NSEventType; message 'type';
     function modifierFlags: NSUInteger; message 'modifierFlags';
     function timestamp: NSTimeInterval; message 'timestamp';
@@ -386,7 +384,7 @@ type
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

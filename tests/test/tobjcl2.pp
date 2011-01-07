@@ -16,7 +16,7 @@ const
 {$endif}
 
 type
-  MyLibObjCClass = objcclass(NSObject)
+  MyLibObjCClass = objcclass external (NSObject)
    public
     fa: byte;
     function publicfun: byte; message 'publicfun';
@@ -26,7 +26,7 @@ type
    private
     fc: byte;
     function privatefun: byte; message 'privatefun';
-  end; external;
+  end;
 
   MyDerivedClass = objcclass(MyLibObjCClass)
     l: longint;

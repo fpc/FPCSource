@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMatrix.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -130,7 +130,7 @@ __MFlagsPtr = ^__MFlags;
 {$define NSMATRIX_PAS_C}
 
 { NSMatrix }
-  NSMatrix = objcclass(NSControl, NSUserInterfaceValidationsProtocol)
+  NSMatrix = objcclass external (NSControl, NSUserInterfaceValidationsProtocol)
   private
     _target: id;
     _action: SEL;
@@ -153,8 +153,6 @@ __MFlagsPtr = ^__MFlags;
     _mFlags: _MFlags;
     
   public
-    class function alloc: NSMatrix; message 'alloc';
-
     function initWithFrame(frameRect: NSRect): id; message 'initWithFrame:';
     function initWithFrame_mode_prototype_numberOfRows_numberOfColumns(frameRect: NSRect; aMode: NSMatrixMode; aCell: NSCell; rowsHigh: NSInteger; colsWide: NSInteger): id; message 'initWithFrame:mode:prototype:numberOfRows:numberOfColumns:';
     function initWithFrame_mode_cellClass_numberOfRows_numberOfColumns(frameRect: NSRect; aMode: NSMatrixMode; factoryId: Pobjc_class; rowsHigh: NSInteger; colsWide: NSInteger): id; message 'initWithFrame:mode:cellClass:numberOfRows:numberOfColumns:';
@@ -249,15 +247,15 @@ __MFlagsPtr = ^__MFlags;
 
     { Adopted Protocols }
     function validateUserInterfaceItem(anItem: id): Boolean;
-  end; external;
+  end;
 
 { NSKeyboardUI_NSMatrixCategory }
-  NSKeyboardUI_NSMatrixCategory = objccategory(NSMatrix)
+  NSKeyboardUI_NSMatrixCategory = objccategory external name 'NSKeyboardUI' (NSMatrix)
     procedure setTabKeyTraversesCells(flag: Boolean); message 'setTabKeyTraversesCells:';
     function tabKeyTraversesCells: Boolean; message 'tabKeyTraversesCells';
     procedure setKeyCell(keyCell_: NSCell); message 'setKeyCell:';
     function keyCell: id; message 'keyCell';
-  end; external name 'NSKeyboardUI';
+  end;
 
 {$endif}
 {$endif}
@@ -266,7 +264,7 @@ __MFlagsPtr = ^__MFlags;
 {$define NSMATRIX_PAS_P}
   
 { NSMatrixDelegate Protocol }
-  NSMatrixDelegateProtocol = objcprotocol
-  end; external name 'NSMatrixDelegate';
+  NSMatrixDelegateProtocol = objcprotocol external name 'NSMatrixDelegate'
+  end;
 {$endif}
 {$endif}

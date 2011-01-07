@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebPluginViewFactory.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -47,8 +47,8 @@ var
 {$define WEBPLUGINVIEWFACTORY_PAS_P}
   
 { WebPlugInViewFactory Protocol }
-  WebPlugInViewFactoryProtocol = objcprotocol
+  WebPlugInViewFactoryProtocol = objcprotocol external name 'WebPlugInViewFactory'
     class function plugInViewWithArguments(arguments: NSDictionary): NSViewPtr; message 'plugInViewWithArguments:';
-  end; external name 'WebPlugInViewFactory';
+  end;
 {$endif}
 {$endif}

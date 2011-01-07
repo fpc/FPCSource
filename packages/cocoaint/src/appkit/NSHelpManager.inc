@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSHelpManager.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -47,7 +47,7 @@ var
 {$define NSHELPMANAGER_PAS_C}
 
 { NSHelpManager }
-  NSHelpManager = objcclass(NSObject)
+  NSHelpManager = objcclass external (NSObject)
   private
     _helpMapTable: NSMapTable;
     _keyMapTable: NSMapTable;
@@ -58,8 +58,6 @@ var
     _helpBundle: NSBundle;
     
   public
-    class function alloc: NSHelpManager; message 'alloc';
-
     class function sharedHelpManager: NSHelpManager; message 'sharedHelpManager';
     class procedure setContextHelpModeActive(active: Boolean); message 'setContextHelpModeActive:';
     class function isContextHelpModeActive: Boolean; message 'isContextHelpModeActive';
@@ -70,18 +68,18 @@ var
     procedure openHelpAnchor_inBook(anchor: NSString; book: NSString); message 'openHelpAnchor:inBook:';
     procedure findString_inBook(query: NSString; book: NSString); message 'findString:inBook:';
     function registerBooksInBundle(bundle: NSBundle): Boolean; message 'registerBooksInBundle:';
-  end; external;
+  end;
 
 { NSBundleHelpExtensionCategory }
-  NSBundleHelpExtensionCategory = objccategory(NSBundle)
+  NSBundleHelpExtensionCategory = objccategory external (NSBundle)
     function contextHelpForKey(key: NSString): NSAttributedString; message 'contextHelpForKey:';
-  end; external;
+  end;
 
 { NSApplicationHelpExtensionCategory }
-  NSApplicationHelpExtensionCategory = objccategory(NSApplication)
+  NSApplicationHelpExtensionCategory = objccategory external (NSApplication)
     procedure activateContextHelpMode(sender: id); message 'activateContextHelpMode:';
     procedure showHelp(sender: id); message 'showHelp:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

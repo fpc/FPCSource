@@ -1202,7 +1202,7 @@ IMPLEMENTATION
       pack_BCD := True;
      end;
 
-  procedure SetDecimals ( var dp,
+  procedure SetDecimals ( out dp,
                               dc : Char );
 
     begin
@@ -1704,6 +1704,7 @@ IMPLEMENTATION
       l :  {$ifopt r+} 0..maxfmtbcdfractionsize + 1 + 1 {$else} Integer {$endif};
       i :  {$ifopt r+} low ( bh.FDig )..high ( bh.LDig ) {$else} Integer {$endif};
       pp : {$ifopt r+} low ( bh.FDig ) - 1..1 {$else} Integer {$endif};
+      dp, dc : Char;
 
     begin
 {$ifdef use_ansistring}
@@ -1712,6 +1713,7 @@ IMPLEMENTATION
       unpack_BCD ( BCD, bh );
       WITH bh do
         begin
+          SetDecimals ( dp, dc );
           l := 0;
           if Neg
             then begin
@@ -1742,9 +1744,9 @@ IMPLEMENTATION
                     then begin
 {$ifndef use_ansistring}
                       Inc ( l );
-                      result[l] := '.';
+                      result[l] := dp;
 {$else}
-                      result := result + '.';
+                      result := result + dp;
 {$endif}
                      end;
 {$ifndef use_ansistring}
@@ -3755,11 +3757,8 @@ end;
 
 function VarToBCD ( const aValue : Variant ) : tBCD;
   begin
-    if VarIsFmtBCD(aValue) then
-      Result:=TFMTBcdVarData(TVarData(aValue).vPointer).BCD
-    else
-      Result:=VariantToBCD(TVarData(aValue));
-   end;
+    Result:=VariantToBCD(TVarData(aValue));
+  end;
 
 
 constructor TFMTBcdVarData.create;

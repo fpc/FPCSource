@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSPropertyDescription.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSPROPERTYDESCRIPTION_PAS_C}
 
 { NSPropertyDescription }
-  NSPropertyDescription = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
+  NSPropertyDescription = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     _reserved: Pointer;
     _versionHashModifier: NSString;
@@ -70,8 +70,6 @@
     _entitysReferenceIDForProperty: clong;
     
   public
-    class function alloc: NSPropertyDescription; message 'alloc';
-
     function entity: NSEntityDescription; message 'entity';
     function name: NSString; message 'name';
     procedure setName(name_: NSString); message 'setName:';
@@ -100,7 +98,7 @@
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -357,7 +357,6 @@ implementation
               { create a list of the parameters }
               symtablestack.push(readprocdef.parast);
               sc:=TFPObjectList.create(false);
-              inc(testcurobject);
               repeat
                 if try_to_consume(_VAR) then
                   varspez:=vs_var
@@ -385,11 +384,11 @@ implementation
                         { define range and type of range }
                         hdef:=tarraydef.create(0,-1,s32inttype);
                         { define field type }
-                        single_type(arraytype,false,false);
+                        single_type(arraytype,[]);
                         tarraydef(hdef).elementdef:=arraytype;
                       end
                     else
-                      single_type(hdef,false,false);
+                      single_type(hdef,[]);
                   end
                 else
                   hdef:=cformaltype;
@@ -403,7 +402,6 @@ implementation
                   end;
               until not try_to_consume(_SEMICOLON);
               sc.free;
-              dec(testcurobject);
               symtablestack.pop(readprocdef.parast);
               consume(_RECKKLAMMER);
 
@@ -419,7 +417,7 @@ implementation
          if (token=_COLON) or (paranr>0) or (astruct=nil) then
            begin
               consume(_COLON);
-              single_type(p.propdef,false,false);
+              single_type(p.propdef,[]);
 
               if is_dispinterface(astruct) and not is_automatable(p.propdef) then
                 Message1(type_e_not_automatable,p.propdef.typename);
@@ -730,7 +728,7 @@ implementation
          { Parse possible "implements" keyword }
          if not is_record(astruct) and try_to_consume(_IMPLEMENTS) then
            begin
-             single_type(def,false,false);
+             single_type(def,[]);
 
              if not(is_interface(def)) then
                message(parser_e_class_implements_must_be_interface);
@@ -1406,13 +1404,13 @@ implementation
 {$endif powerpc or powerpc64}
          { Force an expected ID error message }
          if not (token in [_ID,_CASE,_END]) then
-          consume(_ID);
+           consume(_ID);
          { read vars }
          sc:=TFPObjectList.create(false);
          recstlist:=TFPObjectList.create(false);;
          while (token=_ID) and
             not(((vd_object in options) or
-                 ((vd_record in options) and (m_extended_records in current_settings.modeswitches))) and
+                 ((vd_record in options) and (m_advanced_records in current_settings.modeswitches))) and
                 (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT])) do
            begin
              visibility:=symtablestack.top.currentvisibility;
@@ -1430,23 +1428,26 @@ implementation
              until not try_to_consume(_COMMA);
              consume(_COLON);
 
-             { Don't search in the recordsymtable for types (can be nested!) }
+             { Don't search for types where they can't be:
+               types can be only in objects, classes and records.
+               This just speedup the search a bit. }
              recstlist.count:=0;
-             if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) and
-                 not is_class_or_object(tdef(recst.defowner)) and
-                 not is_record(tdef(recst.defowner)) then
+             if not is_class_or_object(tdef(recst.defowner)) and
+                not is_record(tdef(recst.defowner)) then
                begin
                  recstlist.add(recst);
                  symtablestack.pop(recst);
-                 while (symtablestack.top.symtabletype=recordsymtable) and
-                       ([df_generic,df_specialization]*tdef(symtablestack.top.defowner).defoptions=[]) do
-                   begin
-                     recst:=tabstractrecordsymtable(symtablestack.top);
-                     recstlist.add(recst);
-                     symtablestack.pop(recst);
-                   end;
                end;
              read_anon_type(hdef,false);
+             { allow only static fields reference to struct where they are declared }
+             if not (vd_class in options) and
+               (is_object(hdef) or is_record(hdef)) and
+               is_owned_by(tabstractrecorddef(recst.defowner),tabstractrecorddef(hdef)) then
+               begin
+                 Message1(type_e_type_is_not_completly_defined, tabstractrecorddef(hdef).RttiName);
+                 { for error recovery or compiler will crash later }
+                 hdef:=generrordef;
+               end;
              { restore stack }
              for i:=recstlist.count-1 downto 0 do
                begin
@@ -1491,9 +1492,12 @@ implementation
 
              { types that use init/final are not allowed in variant parts, but
                classes are allowed }
-             if (variantrecordlevel>0) and
-                is_managed_type(hdef) then
-               Message(parser_e_cant_use_inittable_here);
+             if (variantrecordlevel>0) then
+               if is_managed_type(hdef) then
+                 Message(parser_e_cant_use_inittable_here)
+               else
+               if hdef.typ=undefineddef then
+                 Message(parser_e_cant_use_type_parameters_here);
 
              { try to parse the hint directives }
              hintsymoptions:=[];

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSLock.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -52,13 +52,11 @@
 {$define NSLOCK_PAS_C}
 
 { NSLock }
-  NSLock = objcclass(NSObject, NSLockingProtocol)
+  NSLock = objcclass external (NSObject, NSLockingProtocol)
   private
     _priv: Pointer;
     
   public
-    class function alloc: NSLock; message 'alloc';
-
     function tryLock: Boolean; message 'tryLock';
     function lockBeforeDate(limit: NSDate): Boolean; message 'lockBeforeDate:';
     procedure setName(n: NSString); message 'setName:';
@@ -67,16 +65,14 @@
     { Adopted Protocols }
     procedure lock;
     procedure unlock;
-  end; external;
+  end;
 
 { NSConditionLock }
-  NSConditionLock = objcclass(NSObject, NSLockingProtocol)
+  NSConditionLock = objcclass external (NSObject, NSLockingProtocol)
   private
     _priv: Pointer;
     
   public
-    class function alloc: NSConditionLock; message 'alloc';
-
     function initWithCondition(condition_: NSInteger): id; message 'initWithCondition:';
     function condition: NSInteger; message 'condition';
     procedure lockWhenCondition(condition_: NSInteger); message 'lockWhenCondition:';
@@ -91,16 +87,14 @@
     { Adopted Protocols }
     procedure lock;
     procedure unlock;
-  end; external;
+  end;
 
 { NSRecursiveLock }
-  NSRecursiveLock = objcclass(NSObject, NSLockingProtocol)
+  NSRecursiveLock = objcclass external (NSObject, NSLockingProtocol)
   private
     _priv: Pointer;
     
   public
-    class function alloc: NSRecursiveLock; message 'alloc';
-
     function tryLock: Boolean; message 'tryLock';
     function lockBeforeDate(limit: NSDate): Boolean; message 'lockBeforeDate:';
     procedure setName(n: NSString); message 'setName:';
@@ -109,16 +103,14 @@
     { Adopted Protocols }
     procedure lock;
     procedure unlock;
-  end; external;
+  end;
 
 { NSCondition }
-  NSCondition = objcclass(NSObject, NSLockingProtocol)
+  NSCondition = objcclass external (NSObject, NSLockingProtocol)
   private
     _priv: Pointer;
     
   public
-    class function alloc: NSCondition; message 'alloc';
-
     procedure wait; message 'wait';
     function waitUntilDate(limit: NSDate): Boolean; message 'waitUntilDate:';
     procedure signal; message 'signal';
@@ -129,7 +121,7 @@
     { Adopted Protocols }
     procedure lock;
     procedure unlock;
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -138,9 +130,9 @@
 {$define NSLOCK_PAS_P}
   
 { NSLocking Protocol }
-  NSLockingProtocol = objcprotocol
+  NSLockingProtocol = objcprotocol external name 'NSLocking'
     procedure lock; message 'lock';
     procedure unlock; message 'unlock';
-  end; external name 'NSLocking';
+  end;
 {$endif}
 {$endif}

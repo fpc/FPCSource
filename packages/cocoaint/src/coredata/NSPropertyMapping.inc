@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSPropertyMapping.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSPROPERTYMAPPING_PAS_C}
 
 { NSPropertyMapping }
-  NSPropertyMapping = objcclass(NSObject)
+  NSPropertyMapping = objcclass external (NSObject)
   private
     _reserved: Pointer;
     _reserved1: Pointer;
@@ -60,15 +60,13 @@
       end;
     
   public
-    class function alloc: NSPropertyMapping; message 'alloc';
-
     function name: NSString; message 'name';
     procedure setName(name_: NSString); message 'setName:';
     function valueExpression: NSExpression; message 'valueExpression';
     procedure setValueExpression(expression: NSExpression); message 'setValueExpression:';
     function userInfo: NSDictionary; message 'userInfo';
     procedure setUserInfo(userInfo_: NSDictionary); message 'setUserInfo:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

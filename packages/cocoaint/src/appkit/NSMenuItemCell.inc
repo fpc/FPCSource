@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMenuItemCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSMENUITEMCELL_PAS_C}
 
 { NSMenuItemCell }
-  NSMenuItemCell = objcclass(NSButtonCell)
+  NSMenuItemCell = objcclass external (NSButtonCell)
   private
     _extraData: id;
     _stateImageSize: NSSize;
@@ -64,8 +64,6 @@
       end;
     
   public
-    class function alloc: NSMenuItemCell; message 'alloc';
-
     procedure setMenuItem(item: NSMenuItem); message 'setMenuItem:';
     function menuItem: NSMenuItem; message 'menuItem';
     procedure setMenuView(menuView_: NSMenuView); message 'setMenuView:';
@@ -89,7 +87,7 @@
     procedure drawKeyEquivalentWithFrame_inView(cellFrame: NSRect; controlView_: NSView); message 'drawKeyEquivalentWithFrame:inView:';
     procedure drawBorderAndBackgroundWithFrame_inView(cellFrame: NSRect; controlView_: NSView); message 'drawBorderAndBackgroundWithFrame:inView:';
     function tag: NSInteger; message 'tag';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

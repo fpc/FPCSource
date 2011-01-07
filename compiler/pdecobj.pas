@@ -41,7 +41,7 @@ interface
 implementation
 
     uses
-      cutils,
+      sysutils,cutils,
       globals,verbose,systems,tokens,
       symbase,symsym,symtable,
       node,nld,nmem,ncon,ncnv,ncal,
@@ -55,6 +55,8 @@ implementation
         Declaring it as string here results in an error when compiling (PFV) }
       current_procinfo = 'error';
 
+    var
+      current_objectdef : tobjectdef absolute current_structdef;
 
     function class_constructor_head:tprocdef;
       var
@@ -225,10 +227,10 @@ implementation
         i   : longint;
         def : tdef;
       begin
-        include(current_objectdef.objectoptions,oo_has_virtual);
-        for i:=0 to current_objectdef.symtable.DefList.count-1 do
+        include(current_structdef.objectoptions,oo_has_virtual);
+        for i:=0 to current_structdef.symtable.DefList.count-1 do
           begin
-            def:=tdef(current_objectdef.symtable.DefList[i]);
+            def:=tdef(current_structdef.symtable.DefList[i]);
             if assigned(def) and
                (def.typ=procdef) then
               begin
@@ -244,9 +246,9 @@ implementation
         i   : longint;
         def : tdef;
       begin
-        for i:=0 to current_objectdef.symtable.DefList.count-1 do
+        for i:=0 to current_structdef.symtable.DefList.count-1 do
           begin
-            def:=tdef(current_objectdef.symtable.DefList[i]);
+            def:=tdef(current_structdef.symtable.DefList[i]);
             if assigned(def) and
                (def.typ=procdef) then
               begin
@@ -303,7 +305,8 @@ implementation
       begin
         while try_to_consume(_COMMA) do
           begin
-             id_type(hdef,false);
+             { use single_type instead of id_type for specialize support }
+             single_type(hdef,[stoAllowTypeDef,stoParseClassParent]);
              if (hdef.typ<>objectdef) then
                begin
                   if intf then
@@ -334,30 +337,92 @@ implementation
             if (current_objectdef.objecttype in [odt_interfacecom,odt_dispinterface]) and
                not valid then
               Message(parser_e_improper_guid_syntax);
-            include(current_objectdef.objectoptions,oo_has_valid_guid);
+            include(current_structdef.objectoptions,oo_has_valid_guid);
           end
         else
           Message(parser_e_illegal_expression);
         p.free;
       end;
 
+    procedure get_cpp_class_external_status(od: tobjectdef);
+      var
+        hs: string;
+      begin
+        { C++ classes can be external -> all methods inside are external
+         (defined at the class level instead of per method, so that you cannot
+         define some methods as external and some not)
+        }
+        if try_to_consume(_EXTERNAL) then
+          begin
+            if token in [_CSTRING,_CWSTRING,_CCHAR,_CWCHAR] then
+              begin
+                { Always add library prefix and suffix to create an uniform name }
+                hs:=get_stringconst;
+                if ExtractFileExt(hs)='' then
+                  hs:=ChangeFileExt(hs,target_info.sharedlibext);
+                if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
+                  hs:=target_info.sharedlibprefix+hs;
+                od.import_lib:=stringdup(hs);
+              end;
+            include(od.objectoptions, oo_is_external);
+            { check if we shall use another name for the class }
+            if try_to_consume(_NAME) then
+              od.objextname:=stringdup(get_stringconst)
+            else
+              od.objextname:=stringdup(od.objrealname^);
+            include(od.objectoptions,oo_is_external);
+          end
+        else
+          od.objextname:=stringdup(od.objrealname^);
+        { ToDo: read the namespace of the class (influences the mangled name)}
+      end;
+
+    procedure get_objc_class_or_protocol_external_status(od: tobjectdef);
+      begin
+        { Objective-C classes can be external -> all messages inside are
+          external (defined at the class level instead of per method, so
+          that you cannot define some methods as external and some not)
+        }
+        if try_to_consume(_EXTERNAL) then
+          begin
+            if try_to_consume(_NAME) then
+              od.objextname:=stringdup(get_stringconst)
+            else
+              { the external name doesn't matter for formally declared
+                classes, and allowing to specify one would mean that we would
+                have to check it for consistency with the actual definition
+                later on }
+              od.objextname:=stringdup(od.objrealname^);
+            include(od.objectoptions,oo_is_external);
+          end
+        else
+          od.objextname:=stringdup(od.objrealname^);
+      end;
+
+
     procedure parse_object_options;
       begin
-        if current_objectdef.objecttype in [odt_object,odt_class] then
-          begin
-            while true do
-              begin
-                if try_to_consume(_ABSTRACT) then
-                  include(current_objectdef.objectoptions,oo_is_abstract)
-                else
-                if try_to_consume(_SEALED) then
-                  include(current_objectdef.objectoptions,oo_is_sealed)
-                else
-                  break;
-              end;
-            if [oo_is_abstract, oo_is_sealed] * current_objectdef.objectoptions = [oo_is_abstract, oo_is_sealed] then
-              Message(parser_e_abstract_and_sealed_conflict);
-          end;
+        case current_objectdef.objecttype of
+          odt_object,odt_class:
+            begin
+              while true do
+                begin
+                  if try_to_consume(_ABSTRACT) then
+                    include(current_structdef.objectoptions,oo_is_abstract)
+                  else
+                  if try_to_consume(_SEALED) then
+                    include(current_structdef.objectoptions,oo_is_sealed)
+                  else
+                    break;
+                end;
+              if [oo_is_abstract, oo_is_sealed] * current_structdef.objectoptions = [oo_is_abstract, oo_is_sealed] then
+                Message(parser_e_abstract_and_sealed_conflict);
+            end;
+          odt_cppclass:
+            get_cpp_class_external_status(current_objectdef);
+          odt_objcclass,odt_objcprotocol,odt_objccategory:
+            get_objc_class_or_protocol_external_status(current_objectdef);
+        end;
       end;
 
     procedure parse_parent_classes;
@@ -373,19 +438,19 @@ implementation
 
         { reads the parent class }
         if (token=_LKLAMMER) or
-           is_objccategory(current_objectdef) or
-           is_objectpascal_classhelper(current_objectdef) then
+           is_objccategory(current_structdef) or
+           is_objectpascal_classhelper(current_structdef) then
           begin
             if not is_objectpascal_classhelper(current_objectdef) then
               consume(_LKLAMMER);
             { use single_type instead of id_type for specialize support }
-            single_type(hdef,false,false);
+            single_type(hdef,[stoAllowTypeDef, stoParseClassParent]);
             if (not assigned(hdef)) or
                (hdef.typ<>objectdef) then
               begin
                 if assigned(hdef) then
                   Message1(type_e_class_type_expected,hdef.typename)
-                else if is_objccategory(current_objectdef) then
+                else if is_objccategory(current_structdef) then
                   { a category must specify the class to extend }
                   Message(type_e_objcclass_type_expected)
                 else if is_objectpascal_classhelper(current_objectdef) then
@@ -432,7 +497,7 @@ implementation
                        begin
                          if is_objcprotocol(childof) then
                            begin
-                             if not(oo_is_classhelper in current_objectdef.objectoptions) then
+                             if not(oo_is_classhelper in current_structdef.objectoptions) then
                                begin
                                  intfchildof:=childof;
                                  childof:=nil;
@@ -467,14 +532,6 @@ implementation
             hasparentdefined:=true;
           end;
 
-        { no generic as parents }
-        if assigned(childof) and
-           (df_generic in childof.defoptions) then
-          begin
-            Message(parser_e_no_generics_as_types);
-            childof:=nil;
-          end;
-
         { if no parent class, then a class get tobject as parent }
         if not assigned(childof) then
           begin
@@ -505,7 +562,7 @@ implementation
           end;
 
         { remove forward flag, is resolved }
-        exclude(current_objectdef.objectoptions,oo_is_forward);
+        exclude(current_structdef.objectoptions,oo_is_forward);
 
         if hasparentdefined then
           begin
@@ -536,27 +593,6 @@ implementation
         else if (current_objectdef.objecttype=odt_dispinterface) then
           message(parser_e_dispinterface_needs_a_guid);
       end;
-
-
-    procedure insert_generic_parameter_types(genericdef:tstoreddef;genericlist:TFPObjectList);
-      var
-        i : longint;
-        generictype : ttypesym;
-      begin
-        current_objectdef.genericdef:=genericdef;
-        if not assigned(genericlist) then
-          exit;
-        for i:=0 to genericlist.count-1 do
-          begin
-            generictype:=ttypesym(genericlist[i]);
-            if generictype.typedef.typ=undefineddef then
-              include(current_objectdef.defoptions,df_generic)
-            else
-              include(current_objectdef.defoptions,df_specialization);
-            symtablestack.top.insert(generictype);
-          end;
-       end;
-
 
     procedure parse_object_members;
 
@@ -595,8 +631,7 @@ implementation
       var
         pd : tprocdef;
         has_destructor,
-        oldparse_only,
-        old_parse_generic : boolean;
+        oldparse_only: boolean;
         object_member_blocktype : tblock_type;
         fields_allowed, is_classdef, classfields: boolean;
         vdoptions: tvar_dec_options;
@@ -606,15 +641,11 @@ implementation
            (token=_SEMICOLON) then
           exit;
 
-        old_parse_generic:=parse_generic;
-
-        parse_generic:=(df_generic in current_objectdef.defoptions);
         { in "publishable" classes the default access type is published }
-        if (oo_can_have_published in current_objectdef.objectoptions) then
-          current_objectdef.symtable.currentvisibility:=vis_published
+        if (oo_can_have_published in current_structdef.objectoptions) then
+          current_structdef.symtable.currentvisibility:=vis_published
         else
-          current_objectdef.symtable.currentvisibility:=vis_public;
-        testcurobject:=1;
+          current_structdef.symtable.currentvisibility:=vis_public;
         has_destructor:=false;
         fields_allowed:=true;
         is_classdef:=false;
@@ -624,17 +655,15 @@ implementation
           case token of
             _TYPE :
               begin
-                if (([df_generic,df_specialization]*current_objectdef.defoptions)=[]) and
-                   not(current_objectdef.objecttype in [odt_class,odt_object]) then
-                  Message(parser_e_type_var_const_only_in_generics_and_classes);
-                 consume(_TYPE);
-                 object_member_blocktype:=bt_type;
+                if not(current_objectdef.objecttype in [odt_class,odt_object]) then
+                  Message(parser_e_type_var_const_only_in_records_and_classes);
+                consume(_TYPE);
+                object_member_blocktype:=bt_type;
               end;
             _VAR :
               begin
-                if (([df_generic,df_specialization]*current_objectdef.defoptions)=[]) and
-                   not(current_objectdef.objecttype in [odt_class,odt_object]) then
-                  Message(parser_e_type_var_const_only_in_generics_and_classes);
+                if not(current_objectdef.objecttype in [odt_class,odt_object]) then
+                  Message(parser_e_type_var_const_only_in_records_and_classes);
                 consume(_VAR);
                 fields_allowed:=true;
                 object_member_blocktype:=bt_general;
@@ -643,30 +672,29 @@ implementation
               end;
             _CONST:
               begin
-                if (([df_generic,df_specialization]*current_objectdef.defoptions)=[]) and
-                   not(current_objectdef.objecttype in [odt_class,odt_object]) then
-                  Message(parser_e_type_var_const_only_in_generics_and_classes);
+                if not(current_objectdef.objecttype in [odt_class,odt_object]) then
+                  Message(parser_e_type_var_const_only_in_records_and_classes);
                 consume(_CONST);
                 object_member_blocktype:=bt_const;
               end;
             _ID :
               begin
-                if is_objcprotocol(current_objectdef) and
+                if is_objcprotocol(current_structdef) and
                    ((idtoken=_REQUIRED) or
                     (idtoken=_OPTIONAL)) then
                   begin
-                    current_objectdef.symtable.currentlyoptional:=(idtoken=_OPTIONAL);
+                    current_structdef.symtable.currentlyoptional:=(idtoken=_OPTIONAL);
                     consume(idtoken)
                   end
                 else case idtoken of
                   _PRIVATE :
                     begin
-                      if is_interface(current_objectdef) or
-                         is_objc_protocol_or_category(current_objectdef) then
+                      if is_interface(current_structdef) or
+                         is_objc_protocol_or_category(current_structdef) then
                         Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PRIVATE);
-                       current_objectdef.symtable.currentvisibility:=vis_private;
-                       include(current_objectdef.objectoptions,oo_has_private);
+                       current_structdef.symtable.currentvisibility:=vis_private;
+                       include(current_structdef.objectoptions,oo_has_private);
                        fields_allowed:=true;
                        is_classdef:=false;
                        classfields:=false;
@@ -674,12 +702,12 @@ implementation
                      end;
                    _PROTECTED :
                      begin
-                       if is_interface(current_objectdef) or
-                          is_objc_protocol_or_category(current_objectdef) then
+                       if is_interface(current_structdef) or
+                          is_objc_protocol_or_category(current_structdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PROTECTED);
-                       current_objectdef.symtable.currentvisibility:=vis_protected;
-                       include(current_objectdef.objectoptions,oo_has_protected);
+                       current_structdef.symtable.currentvisibility:=vis_protected;
+                       include(current_structdef.objectoptions,oo_has_protected);
                        fields_allowed:=true;
                        is_classdef:=false;
                        classfields:=false;
@@ -687,11 +715,11 @@ implementation
                      end;
                    _PUBLIC :
                      begin
-                       if is_interface(current_objectdef) or
-                          is_objc_protocol_or_category(current_objectdef) then
+                       if is_interface(current_structdef) or
+                          is_objc_protocol_or_category(current_structdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PUBLIC);
-                       current_objectdef.symtable.currentvisibility:=vis_public;
+                       current_structdef.symtable.currentvisibility:=vis_public;
                        fields_allowed:=true;
                        is_classdef:=false;
                        classfields:=false;
@@ -702,14 +730,14 @@ implementation
                        { we've to check for a pushlished section in non-  }
                        { publishable classes later, if a real declaration }
                        { this is the way, delphi does it                  }
-                       if is_interface(current_objectdef) then
+                       if is_interface(current_structdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
                        { Objective-C classes do not support "published",
                          as basically everything is published.  }
-                       if is_objc_class_or_protocol(current_objectdef) then
+                       if is_objc_class_or_protocol(current_structdef) then
                          Message(parser_e_no_objc_published);
                        consume(_PUBLISHED);
-                       current_objectdef.symtable.currentvisibility:=vis_published;
+                       current_structdef.symtable.currentvisibility:=vis_published;
                        fields_allowed:=true;
                        is_classdef:=false;
                        classfields:=false;
@@ -717,8 +745,8 @@ implementation
                      end;
                    _STRICT :
                      begin
-                       if is_interface(current_objectdef) or
-                          is_objc_protocol_or_category(current_objectdef) then
+                       if is_interface(current_structdef) or
+                          is_objc_protocol_or_category(current_structdef) then
                           Message(parser_e_no_access_specifier_in_interfaces);
                         consume(_STRICT);
                         if token=_ID then
@@ -727,14 +755,14 @@ implementation
                               _PRIVATE:
                                 begin
                                   consume(_PRIVATE);
-                                  current_objectdef.symtable.currentvisibility:=vis_strictprivate;
-                                  include(current_objectdef.objectoptions,oo_has_strictprivate);
+                                  current_structdef.symtable.currentvisibility:=vis_strictprivate;
+                                  include(current_structdef.objectoptions,oo_has_strictprivate);
                                 end;
                               _PROTECTED:
                                 begin
                                   consume(_PROTECTED);
-                                  current_objectdef.symtable.currentvisibility:=vis_strictprotected;
-                                  include(current_objectdef.objectoptions,oo_has_strictprotected);
+                                  current_structdef.symtable.currentvisibility:=vis_strictprotected;
+                                  include(current_structdef.objectoptions,oo_has_strictprotected);
                                 end;
                               else
                                 message(parser_e_protected_or_private_expected);
@@ -751,12 +779,12 @@ implementation
                       begin
                         if object_member_blocktype=bt_general then
                           begin
-                            if is_interface(current_objectdef) or
-                               is_objc_protocol_or_category(current_objectdef) then
+                            if is_interface(current_structdef) or
+                               is_objc_protocol_or_category(current_structdef) then
                               Message(parser_e_no_vars_in_interfaces);
 
-                            if (current_objectdef.symtable.currentvisibility=vis_published) and
-                               not(oo_can_have_published in current_objectdef.objectoptions) then
+                            if (current_structdef.symtable.currentvisibility=vis_published) and
+                               not(oo_can_have_published in current_structdef.objectoptions) then
                               Message(parser_e_cant_have_published);
                             if (not fields_allowed) then
                               Message(parser_e_field_not_allowed_here);
@@ -792,7 +820,7 @@ implementation
                    if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR]) then
                      Message(parser_e_procedure_or_function_expected);
 
-                   if is_interface(current_objectdef) then
+                   if is_interface(current_structdef) then
                      Message(parser_e_no_static_method_in_interfaces)
                    else
                      { class methods are also allowed for Objective-C protocols }
@@ -802,13 +830,13 @@ implementation
             _PROCEDURE,
             _FUNCTION:
               begin
-                if (current_objectdef.symtable.currentvisibility=vis_published) and
-                   not(oo_can_have_published in current_objectdef.objectoptions) then
+                if (current_structdef.symtable.currentvisibility=vis_published) and
+                   not(oo_can_have_published in current_structdef.objectoptions) then
                   Message(parser_e_cant_have_published);
 
                 oldparse_only:=parse_only;
                 parse_only:=true;
-                pd:=parse_proc_dec(is_classdef,current_objectdef);
+                pd:=parse_proc_dec(is_classdef,current_structdef);
 
                 { this is for error recovery as well as forward }
                 { interface mappings, i.e. mapping to a method  }
@@ -837,11 +865,11 @@ implementation
 
                     { add procdef options to objectdef options }
                     if (po_msgint in pd.procoptions) then
-                      include(current_objectdef.objectoptions,oo_has_msgint);
+                      include(current_structdef.objectoptions,oo_has_msgint);
                     if (po_msgstr in pd.procoptions) then
-                      include(current_objectdef.objectoptions,oo_has_msgstr);
+                      include(current_structdef.objectoptions,oo_has_msgstr);
                     if (po_virtualmethod in pd.procoptions) then
-                      include(current_objectdef.objectoptions,oo_has_virtual);
+                      include(current_structdef.objectoptions,oo_has_virtual);
 
                     chkcpp(pd);
                     chkobjc(pd);
@@ -855,23 +883,23 @@ implementation
               end;
             _CONSTRUCTOR :
               begin
-                if (current_objectdef.symtable.currentvisibility=vis_published) and
-                  not(oo_can_have_published in current_objectdef.objectoptions) then
+                if (current_structdef.symtable.currentvisibility=vis_published) and
+                  not(oo_can_have_published in current_structdef.objectoptions) then
                   Message(parser_e_cant_have_published);
 
-                if not is_classdef and not(current_objectdef.symtable.currentvisibility in [vis_public,vis_published]) then
+                if not is_classdef and not(current_structdef.symtable.currentvisibility in [vis_public,vis_published]) then
                   Message(parser_w_constructor_should_be_public);
 
-                if is_interface(current_objectdef) then
+                if is_interface(current_structdef) then
                   Message(parser_e_no_con_des_in_interfaces);
 
                 { Objective-C does not know the concept of a constructor }
-                if is_objc_class_or_protocol(current_objectdef) then
+                if is_objc_class_or_protocol(current_structdef) then
                   Message(parser_e_objc_no_constructor_destructor);
 
                 { only 1 class constructor is allowed }
-                if is_classdef and (oo_has_class_constructor in current_objectdef.objectoptions) then
-                  Message1(parser_e_only_one_class_constructor_allowed, current_objectdef.objrealname^);
+                if is_classdef and (oo_has_class_constructor in current_structdef.objectoptions) then
+                  Message1(parser_e_only_one_class_constructor_allowed, current_structdef.objrealname^);
 
                 oldparse_only:=parse_only;
                 parse_only:=true;
@@ -887,7 +915,7 @@ implementation
 
                 { add procdef options to objectdef options }
                 if (po_virtualmethod in pd.procoptions) then
-                  include(current_objectdef.objectoptions,oo_has_virtual);
+                  include(current_structdef.objectoptions,oo_has_virtual);
                 chkcpp(pd);
                 maybe_parse_hint_directives(pd);
 
@@ -897,8 +925,8 @@ implementation
               end;
             _DESTRUCTOR :
               begin
-                if (current_objectdef.symtable.currentvisibility=vis_published) and
-                   not(oo_can_have_published in current_objectdef.objectoptions) then
+                if (current_structdef.symtable.currentvisibility=vis_published) and
+                   not(oo_can_have_published in current_structdef.objectoptions) then
                   Message(parser_e_cant_have_published);
 
                 if not is_classdef then
@@ -907,19 +935,19 @@ implementation
                   else
                     has_destructor:=true;
 
-                if is_interface(current_objectdef) then
+                if is_interface(current_structdef) then
                   Message(parser_e_no_con_des_in_interfaces);
 
-                if not is_classdef and (current_objectdef.symtable.currentvisibility<>vis_public) then
+                if not is_classdef and (current_structdef.symtable.currentvisibility<>vis_public) then
                   Message(parser_w_destructor_should_be_public);
 
                 { Objective-C does not know the concept of a destructor }
-                if is_objc_class_or_protocol(current_objectdef) then
+                if is_objc_class_or_protocol(current_structdef) then
                   Message(parser_e_objc_no_constructor_destructor);
 
                 { only 1 class destructor is allowed }
-                if is_classdef and (oo_has_class_destructor in current_objectdef.objectoptions) then
-                  Message1(parser_e_only_one_class_destructor_allowed, current_objectdef.objrealname^);
+                if is_classdef and (oo_has_class_destructor in current_structdef.objectoptions) then
+                  Message1(parser_e_only_one_class_destructor_allowed, current_structdef.objrealname^);
 
                 oldparse_only:=parse_only;
                 parse_only:=true;
@@ -935,7 +963,7 @@ implementation
 
                 { add procdef options to objectdef options }
                 if (po_virtualmethod in pd.procoptions) then
-                  include(current_objectdef.objectoptions,oo_has_virtual);
+                  include(current_structdef.objectoptions,oo_has_virtual);
 
                 chkcpp(pd);
                 maybe_parse_hint_directives(pd);
@@ -953,24 +981,22 @@ implementation
               consume(_ID); { Give a ident expected message, like tp7 }
           end;
         until false;
-
-        { restore }
-        testcurobject:=0;
-        parse_generic:=old_parse_generic;
       end;
 
 
     function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tobjectdef;
       var
-        old_current_objectdef : tobjectdef;
-        old_current_genericdef : tobjectdef;
-        old_current_specializedef : tobjectdef;
+        old_current_structdef: tabstractrecorddef;
+        old_current_genericdef,
+        old_current_specializedef: tstoreddef;
+        old_parse_generic: boolean;
       begin
-        old_current_objectdef:=current_objectdef;
+        old_current_structdef:=current_structdef;
         old_current_genericdef:=current_genericdef;
         old_current_specializedef:=current_specializedef;
+        old_parse_generic:=parse_generic;
 
-        current_objectdef:=nil;
+        current_structdef:=nil;
         current_genericdef:=nil;
         current_specializedef:=nil;
 
@@ -986,11 +1012,11 @@ implementation
               begin
                 Message(parser_e_forward_mismatch);
                 { recover }
-                current_objectdef:=tobjectdef.create(current_objectdef.objecttype,n,nil);
-                include(current_objectdef.objectoptions,oo_is_forward);
+                current_structdef:=tobjectdef.create(current_objectdef.objecttype,n,nil);
+                include(current_structdef.objectoptions,oo_is_forward);
               end
             else
-              current_objectdef:=fd
+              current_structdef:=fd
           end
         else
           begin
@@ -999,20 +1025,20 @@ implementation
               Message(parser_f_no_anonym_objects);
 
             { create new class }
-            current_objectdef:=tobjectdef.create(objecttype,n,nil);
+            current_structdef:=tobjectdef.create(objecttype,n,nil);
 
             { include always the forward flag, it'll be removed after the parent class have been
               added. This is to prevent circular childof loops }
-            include(current_objectdef.objectoptions,oo_is_forward);
+            include(current_structdef.objectoptions,oo_is_forward);
 
             if (cs_compilesystem in current_settings.moduleswitches) then
               begin
                 case current_objectdef.objecttype of
                   odt_interfacecom :
-                    if (current_objectdef.objname^='IUNKNOWN') then
+                    if (current_structdef.objname^='IUNKNOWN') then
                       interface_iunknown:=current_objectdef;
                   odt_class :
-                    if (current_objectdef.objname^='TOBJECT') then
+                    if (current_structdef.objname^='TOBJECT') then
                       class_tobject:=current_objectdef;
                 end;
               end;
@@ -1028,16 +1054,23 @@ implementation
 
         { usage of specialized type inside its generic template }
         if assigned(genericdef) then
-          current_specializedef:=current_objectdef
+          current_specializedef:=current_structdef
         { reject declaration of generic class inside generic class }
         else if assigned(genericlist) then
-          current_genericdef:=current_objectdef;
+          current_genericdef:=current_structdef;
 
         { set published flag in $M+ mode, it can also be inherited and will
           be added when the parent class set with tobjectdef.set_parent (PFV) }
         if (cs_generate_rtti in current_settings.localswitches) and
            (current_objectdef.objecttype in [odt_interfacecom,odt_class]) then
-          include(current_objectdef.objectoptions,oo_can_have_published);
+          include(current_structdef.objectoptions,oo_can_have_published);
+
+        { Objective-C objectdefs can be "formal definitions", in which case
+          the syntax is "type tc = objcclass external;" -> we have to parse
+          its object options (external) already here, to make sure that such
+          definitions are recognised as formal defs }
+        if objecttype in [odt_objcclass,odt_objcprotocol,odt_objccategory] then
+          parse_object_options;
 
         { forward def? }
         if not assigned(fd) and
@@ -1045,7 +1078,7 @@ implementation
           begin
             { add to the list of definitions to check that the forward
               is resolved. this is required for delphi mode }
-            current_module.checkforwarddefs.add(current_objectdef);
+            current_module.checkforwarddefs.add(current_structdef);
           end
         else
           begin
@@ -1053,7 +1086,7 @@ implementation
             if (objecttype=odt_objccategory) then
               begin
                 current_objectdef.objecttype:=odt_objcclass;
-                include(current_objectdef.objectoptions,oo_is_classhelper);
+                include(current_structdef.objectoptions,oo_is_classhelper);
               end;
 
             { change classhepers into Delphi type class helpers }
@@ -1064,7 +1097,12 @@ implementation
               end;
 
             { parse list of options (abstract / sealed) }
-            parse_object_options;
+            if not(objecttype in [odt_objcclass,odt_objcprotocol,odt_objccategory]) then
+              parse_object_options;
+
+            symtablestack.push(current_structdef.symtable);
+            insert_generic_parameter_types(current_structdef,genericdef,genericlist);
+            parse_generic:=(df_generic in current_structdef.defoptions);
 
             { parse list of parent classes }
             parse_parent_classes;
@@ -1072,42 +1110,41 @@ implementation
             { parse optional GUID for interfaces }
             parse_guid;
 
-            symtablestack.push(current_objectdef.symtable);
-            insert_generic_parameter_types(genericdef,genericlist);
             { parse and insert object members }
             parse_object_members;
-            symtablestack.pop(current_objectdef.symtable);
+            symtablestack.pop(current_structdef.symtable);
           end;
 
         { generate vmt space if needed }
-        if not(oo_has_vmt in current_objectdef.objectoptions) and
-           not(oo_is_forward in current_objectdef.objectoptions) and
+        if not(oo_has_vmt in current_structdef.objectoptions) and
+           not(oo_is_forward in current_structdef.objectoptions) and
            (
-            ([oo_has_virtual,oo_has_constructor,oo_has_destructor]*current_objectdef.objectoptions<>[]) or
+            ([oo_has_virtual,oo_has_constructor,oo_has_destructor]*current_structdef.objectoptions<>[]) or
             (current_objectdef.objecttype in [odt_class])
            ) then
           current_objectdef.insertvmt;
 
         { for implemented classes with a vmt check if there is a constructor }
-        if (oo_has_vmt in current_objectdef.objectoptions) and
-           not(oo_is_forward in current_objectdef.objectoptions) and
-           not(oo_has_constructor in current_objectdef.objectoptions) and
-           not is_objc_class_or_protocol(current_objectdef) then
-          Message1(parser_w_virtual_without_constructor,current_objectdef.objrealname^);
+        if (oo_has_vmt in current_structdef.objectoptions) and
+           not(oo_is_forward in current_structdef.objectoptions) and
+           not(oo_has_constructor in current_structdef.objectoptions) and
+           not is_objc_class_or_protocol(current_structdef) then
+          Message1(parser_w_virtual_without_constructor,current_structdef.objrealname^);
 
-        if is_interface(current_objectdef) or
-           is_objcprotocol(current_objectdef) then
+        if is_interface(current_structdef) or
+           is_objcprotocol(current_structdef) then
           setinterfacemethodoptions
-        else if is_objcclass(current_objectdef) then
+        else if is_objcclass(current_structdef) then
           setobjcclassmethodoptions;
 
         { return defined objectdef }
         result:=current_objectdef;
 
         { restore old state }
-        current_objectdef:=old_current_objectdef;
+        current_structdef:=old_current_structdef;
         current_genericdef:=old_current_genericdef;
         current_specializedef:=old_current_specializedef;
+        parse_generic:=old_parse_generic;
       end;
 
 end.

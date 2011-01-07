@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSearchFieldCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -49,7 +49,7 @@ const
 {$define NSSEARCHFIELDCELL_PAS_C}
 
 { NSSearchFieldCell }
-  NSSearchFieldCell = objcclass(NSTextFieldCell)
+  NSSearchFieldCell = objcclass external (NSTextFieldCell)
   private
     __sfFlags: bitpacked record
       case byte of
@@ -80,8 +80,6 @@ const
     _reserved4: cuint;
     
   public
-    class function alloc: NSSearchFieldCell; message 'alloc';
-
     function searchButtonCell: NSButtonCell; message 'searchButtonCell';
     procedure setSearchButtonCell(cell: NSButtonCell); message 'setSearchButtonCell:';
     function cancelButtonCell: NSButtonCell; message 'cancelButtonCell';
@@ -103,7 +101,7 @@ const
     function recentsAutosaveName: NSString; message 'recentsAutosaveName';
     function sendsSearchStringImmediately: Boolean; message 'sendsSearchStringImmediately';
     procedure setSendsSearchStringImmediately(flag: Boolean); message 'setSendsSearchStringImmediately:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSStepper.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSSTEPPER_PAS_C}
 
 { NSStepper }
-  NSStepper = objcclass(NSControl)
+  NSStepper = objcclass external (NSControl)
   private
     _reserved1: cuint;
     _reserved2: cuint;
@@ -50,8 +50,6 @@
     _reserved4: cuint;
     
   public
-    class function alloc: NSStepper; message 'alloc';
-
     function minValue: double; message 'minValue';
     procedure setMinValue(minValue_: double); message 'setMinValue:';
     function maxValue: double; message 'maxValue';
@@ -62,7 +60,7 @@
     procedure setValueWraps(valueWraps_: Boolean); message 'setValueWraps:';
     function autorepeat: Boolean; message 'autorepeat';
     procedure setAutorepeat(autorepeat_: Boolean); message 'setAutorepeat:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

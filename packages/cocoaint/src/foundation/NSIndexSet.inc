@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSIndexSet.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -45,7 +45,7 @@
 {$define NSINDEXSET_PAS_C}
 
 { NSIndexSet }
-  NSIndexSet = objcclass(NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol)
+  NSIndexSet = objcclass external (NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol)
   private
     __indexSetFlags: bitpacked record
       case byte of
@@ -68,8 +68,6 @@
       end;
     
   public
-    class function alloc: NSIndexSet; message 'alloc';
-
     class function indexSet: id; message 'indexSet';
     class function indexSetWithIndex(value: NSUInteger): id; message 'indexSetWithIndex:';
     class function indexSetWithIndexesInRange(range: NSRange): id; message 'indexSetWithIndexesInRange:';
@@ -97,16 +95,14 @@
     function mutableCopyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSMutableIndexSet }
-  NSMutableIndexSet = objcclass(NSIndexSet)
+  NSMutableIndexSet = objcclass external (NSIndexSet)
   private
     _reserved: Pointer;
     
   public
-    class function alloc: NSMutableIndexSet; message 'alloc';
-
     procedure addIndexes(indexSet_: NSIndexSet); message 'addIndexes:';
     procedure removeIndexes(indexSet_: NSIndexSet); message 'removeIndexes:';
     procedure removeAllIndexes; message 'removeAllIndexes';
@@ -115,7 +111,7 @@
     procedure addIndexesInRange(range: NSRange); message 'addIndexesInRange:';
     procedure removeIndexesInRange(range: NSRange); message 'removeIndexesInRange:';
     procedure shiftIndexesStartingAtIndex_by(index: NSUInteger; delta: NSInteger); message 'shiftIndexesStartingAtIndex:by:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

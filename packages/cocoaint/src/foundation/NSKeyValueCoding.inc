@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSKeyValueCoding.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -54,7 +54,7 @@ var
 {$define NSKEYVALUECODING_PAS_C}
 
 { NSKeyValueCodingCategory }
-  NSKeyValueCodingCategory = objccategory(NSObject)
+  NSKeyValueCodingCategory = objccategory external (NSObject)
     class function accessInstanceVariablesDirectly: Boolean; message 'accessInstanceVariablesDirectly';
     function valueForKey(key: NSString): id; message 'valueForKey:';
     procedure setValue_forKey(value: id; key: NSString); message 'setValue:forKey:';
@@ -71,32 +71,32 @@ var
     procedure setNilValueForKey(key: NSString); message 'setNilValueForKey:';
     function dictionaryWithValuesForKeys(keys: NSArray): NSDictionary; message 'dictionaryWithValuesForKeys:';
     procedure setValuesForKeysWithDictionary(keyedValues: NSDictionary); message 'setValuesForKeysWithDictionary:';
-  end; external;
+  end;
 
 { NSKeyValueCoding_NSArrayCategory }
-  NSKeyValueCoding_NSArrayCategory = objccategory(NSArray)
+  NSKeyValueCoding_NSArrayCategory = objccategory external name 'NSKeyValueCoding' (NSArray)
     function valueForKey(key: NSString): id; message 'valueForKey:';
     procedure setValue_forKey(value: id; key: NSString); message 'setValue:forKey:';
-  end; external name 'NSKeyValueCoding';
+  end;
 
 { NSKeyValueCoding_NSDictionaryCategory }
-  NSKeyValueCoding_NSDictionaryCategory = objccategory(NSDictionary)
+  NSKeyValueCoding_NSDictionaryCategory = objccategory external name 'NSKeyValueCoding' (NSDictionary)
     function valueForKey(key: NSString): id; message 'valueForKey:';
-  end; external name 'NSKeyValueCoding';
+  end;
 
 { NSKeyValueCoding_NSMutableDictionaryCategory }
-  NSKeyValueCoding_NSMutableDictionaryCategory = objccategory(NSMutableDictionary)
+  NSKeyValueCoding_NSMutableDictionaryCategory = objccategory external name 'NSKeyValueCoding' (NSMutableDictionary)
     procedure setValue_forKey(value: id; key: NSString); message 'setValue:forKey:';
-  end; external name 'NSKeyValueCoding';
+  end;
 
 { NSKeyValueCoding_NSSetCategory }
-  NSKeyValueCoding_NSSetCategory = objccategory(NSSet)
+  NSKeyValueCoding_NSSetCategory = objccategory external name 'NSKeyValueCoding' (NSSet)
     function valueForKey(key: NSString): id; message 'valueForKey:';
     procedure setValue_forKey(value: id; key: NSString); message 'setValue:forKey:';
-  end; external name 'NSKeyValueCoding';
+  end;
 
 { NSDeprecatedKeyValueCodingCategory }
-  NSDeprecatedKeyValueCodingCategory = objccategory(NSObject)
+  NSDeprecatedKeyValueCodingCategory = objccategory external (NSObject)
     class function useStoredAccessor: Boolean; message 'useStoredAccessor'; deprecated 'in Mac OS X 10.4 and later';
     function storedValueForKey(key: NSString): id; message 'storedValueForKey:'; deprecated 'in Mac OS X 10.4 and later';
     procedure takeStoredValue_forKey(value: id; key: NSString); message 'takeStoredValue:forKey:'; deprecated 'in Mac OS X 10.4 and later';
@@ -107,7 +107,7 @@ var
     procedure unableToSetNilForKey(key: NSString); message 'unableToSetNilForKey:'; deprecated 'in Mac OS X 10.3 and later';
     function valuesForKeys(keys: NSArray): NSDictionary; message 'valuesForKeys:'; deprecated 'in Mac OS X 10.3 and later';
     procedure takeValuesFromDictionary(properties: NSDictionary); message 'takeValuesFromDictionary:'; deprecated 'in Mac OS X 10.3 and later';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

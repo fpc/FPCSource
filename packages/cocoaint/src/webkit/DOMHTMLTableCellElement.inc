@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLTableCellElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLTABLECELLELEMENT_PAS_C}
 
 { DOMHTMLTableCellElement }
-  DOMHTMLTableCellElement = objcclass(DOMHTMLElement)
+  DOMHTMLTableCellElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLTableCellElement; message 'alloc';
-
     function cellIndex: cint; message 'cellIndex';
     procedure setAbbr (newValue: NSString); message 'setAbbr:';
     function abbr: NSString; message 'abbr';
@@ -76,7 +74,7 @@
     function vAlign: NSString; message 'vAlign';
     procedure setWidth (newValue: NSString); message 'setWidth:';
     function width: NSString; message 'width';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

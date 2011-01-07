@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebPluginContainer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -39,12 +39,12 @@
 {$define WEBPLUGINCONTAINER_PAS_C}
 
 { WebPlugInContainerCategory }
-  WebPlugInContainerCategory = objccategory(NSObject)
+  WebPlugInContainerCategory = objccategory external (NSObject)
     procedure webPlugInContainerLoadRequest_inFrame(request: NSURLRequest; target: NSString); message 'webPlugInContainerLoadRequest:inFrame:';
     procedure webPlugInContainerShowStatus(message: NSString); message 'webPlugInContainerShowStatus:';
     function webPlugInContainerSelectionColor: NSColor; message 'webPlugInContainerSelectionColor';
     function webFrame: WebFrame; message 'webFrame';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

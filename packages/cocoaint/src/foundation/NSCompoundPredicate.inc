@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSCompoundPredicate.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -54,22 +54,20 @@ type
 {$define NSCOMPOUNDPREDICATE_PAS_C}
 
 { NSCompoundPredicate }
-  NSCompoundPredicate = objcclass(NSPredicate)
+  NSCompoundPredicate = objcclass external (NSPredicate)
   private
     _reserved2: Pointer;
     _type: NSUInteger;
     _subpredicates: NSArray;
     
   public
-    class function alloc: NSCompoundPredicate; message 'alloc';
-
     function initWithType_subpredicates(type_: NSCompoundPredicateType; subpredicates_: NSArray): id; message 'initWithType:subpredicates:';
     function compoundPredicateType: NSCompoundPredicateType; message 'compoundPredicateType';
     function subpredicates: NSArray; message 'subpredicates';
     class function andPredicateWithSubpredicates(subpredicates_: NSArray): NSPredicate; message 'andPredicateWithSubpredicates:';
     class function orPredicateWithSubpredicates(subpredicates_: NSArray): NSPredicate; message 'orPredicateWithSubpredicates:';
     class function notPredicateWithSubpredicate(predicate: NSPredicate): NSPredicate; message 'notPredicateWithSubpredicate:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -14,7 +14,7 @@ end;
 
 // define external incomplete version
 type
-  NSObject = objcclass; external;
+  NSObject = objcclass external;
 
   // NSObject should still resolve to the full definition in objcbase
   MyObject = objcclass(NSObject)

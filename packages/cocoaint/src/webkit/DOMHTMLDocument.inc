@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLDocument.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLDOCUMENT_PAS_C}
 
 { DOMHTMLDocument }
-  DOMHTMLDocument = objcclass(DOMDocument)
+  DOMHTMLDocument = objcclass external (DOMDocument)
     
   public
-    class function alloc: DOMHTMLDocument; message 'alloc';
-
     function embeds: DOMHTMLCollection; message 'embeds';
     function plugins: DOMHTMLCollection; message 'plugins';
     function scripts: DOMHTMLCollection; message 'scripts';
@@ -76,7 +74,7 @@
     procedure captureEvents; message 'captureEvents';
     procedure releaseEvents; message 'releaseEvents';
     function hasFocus: Boolean; message 'hasFocus';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

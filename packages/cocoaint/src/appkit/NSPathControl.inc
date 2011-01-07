@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPathControl.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -43,7 +43,7 @@
 {$define NSPATHCONTROL_PAS_C}
 
 { NSPathControl }
-  NSPathControl = objcclass(NSControl)
+  NSPathControl = objcclass external (NSControl)
   private
     _draggingSourceOperationMaskForLocal: NSDragOperation;
     _draggingSourceOperationMaskForNonLocal: NSDragOperation;
@@ -52,8 +52,6 @@
     _aux: id;
     
   public
-    class function alloc: NSPathControl; message 'alloc';
-
     function URL: NSURL; message 'URL';
     procedure setURL(url_: NSURL); message 'setURL:';
     function doubleAction: SEL; message 'doubleAction';
@@ -70,7 +68,7 @@
     procedure setDraggingSourceOperationMask_forLocal(mask: NSDragOperation; isLocal: Boolean); message 'setDraggingSourceOperationMask:forLocal:';
     procedure setMenu(menu_: NSMenu); message 'setMenu:';
     function menu: NSMenu; message 'menu';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -79,12 +77,12 @@
 {$define NSPATHCONTROL_PAS_P}
   
 { NSPathControlDelegate Protocol }
-  NSPathControlDelegateProtocol = objcprotocol
+  NSPathControlDelegateProtocol = objcprotocol external name 'NSPathControlDelegate'
     function pathControl_shouldDragPathComponentCell_withPasteboard(pathControl: NSPathControl; pathComponentCell: NSPathComponentCell; pasteboard: NSPasteboard): Boolean; message 'pathControl:shouldDragPathComponentCell:withPasteboard:';
     function pathControl_validateDrop(pathControl: NSPathControl; info: id): NSDragOperation; message 'pathControl:validateDrop:';
     function pathControl_acceptDrop(pathControl: NSPathControl; info: id): Boolean; message 'pathControl:acceptDrop:';
     procedure pathControl_willDisplayOpenPanel(pathControl: NSPathControl; openPanel: NSOpenPanel); message 'pathControl:willDisplayOpenPanel:';
     procedure pathControl_willPopUpMenu(pathControl: NSPathControl; menu: NSMenu); message 'pathControl:willPopUpMenu:';
-  end; external name 'NSPathControlDelegate';
+  end;
 {$endif}
 {$endif}

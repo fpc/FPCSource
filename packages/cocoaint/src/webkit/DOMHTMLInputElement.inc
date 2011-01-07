@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLInputElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLINPUTELEMENT_PAS_C}
 
 { DOMHTMLInputElement }
-  DOMHTMLInputElement = objcclass(DOMHTMLElement)
+  DOMHTMLInputElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLInputElement; message 'alloc';
-
     procedure setDefaultValue (newValue: NSString); message 'setDefaultValue:';
     function defaultValue: NSString; message 'defaultValue';
     procedure setDefaultChecked (newValue: Boolean); message 'setDefaultChecked:';
@@ -97,7 +95,7 @@
     procedure select; message 'select';
     procedure click; message 'click';
     procedure setSelectionRange_end(start: cint; end_: cint); message 'setSelectionRange:end:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

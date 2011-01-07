@@ -7,10 +7,10 @@
 {$modeswitch objectivec1}
 
 type
-  ta = objcclass
+  ta = objcclass external
     { no destructors in Objective-C }
     destructor done; message 'done';
-  end; external;
+  end;
 
 begin
 end.

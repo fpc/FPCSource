@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLScriptElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLSCRIPTELEMENT_PAS_C}
 
 { DOMHTMLScriptElement }
-  DOMHTMLScriptElement = objcclass(DOMHTMLElement)
+  DOMHTMLScriptElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLScriptElement; message 'alloc';
-
     procedure setText (newValue: NSString); message 'setText:';
     function text: NSString; message 'text';
     procedure setHtmlFor (newValue: NSString); message 'setHtmlFor:';
@@ -61,7 +59,7 @@
     function src: NSString; message 'src';
     procedure setType (newValue: NSString); message 'setType:';
     function type_: NSString; message 'type_';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

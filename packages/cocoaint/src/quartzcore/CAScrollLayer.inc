@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CAScrollLayer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -49,23 +49,21 @@ var
 {$define CASCROLLLAYER_PAS_C}
 
 { CAScrollLayer }
-  CAScrollLayer = objcclass(CALayer)
+  CAScrollLayer = objcclass external (CALayer)
     
   public
-    class function alloc: CAScrollLayer; message 'alloc';
-
     procedure scrollToPoint(p: CGPoint); message 'scrollToPoint:';
     procedure scrollToRect(r: CGRect); message 'scrollToRect:';
     procedure setScrollMode (newValue: NSString); message 'setScrollMode:';
     function scrollMode: NSString; message 'scrollMode';
-  end; external;
+  end;
 
 { CALayerScrollingCategory }
-  CALayerScrollingCategory = objccategory(CALayer)
+  CALayerScrollingCategory = objccategory external (CALayer)
     procedure scrollPoint(p: CGPoint); message 'scrollPoint:';
     procedure scrollRectToVisible(r: CGRect); message 'scrollRectToVisible:';
     function visibleRect: CGRect; message 'visibleRect';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

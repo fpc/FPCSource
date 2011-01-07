@@ -134,7 +134,7 @@ type
    pthread_condattr_t   = ^pthread_condattr_t_rec;
    pthread_key_t        = cint;
    pthread_rwlock_t     = ^pthread_rwlock_t_rec;
-   pthread_rwlockattr_t = ^pthread_rwlock_t_rec;
+   pthread_rwlockattr_t = ^pthread_rwlockattr_t_rec;
 
    sem_t_rec		= record end;
    sem_t                = ^sem_t_rec;

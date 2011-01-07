@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSControl.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -49,7 +49,7 @@ var
 {$define NSCONTROL_PAS_C}
 
 { NSControl }
-  NSControl = objcclass(NSView)
+  NSControl = objcclass external (NSView)
   private
     _tag: NSInteger;
     _cell: id;
@@ -68,8 +68,6 @@ var
       end;
     
   public
-    class function alloc: NSControl; message 'alloc';
-
     class procedure setCellClass(factoryId: Pobjc_class); message 'setCellClass:';
     class function cellClass: Pobjc_class; message 'cellClass';
     function initWithFrame(frameRect: NSRect): id; message 'initWithFrame:';
@@ -129,32 +127,32 @@ var
     function integerValue: NSInteger; message 'integerValue';
     procedure setIntegerValue(anInteger: NSInteger); message 'setIntegerValue:';
     procedure takeIntegerValueFrom(sender: id); message 'takeIntegerValueFrom:';
-  end; external;
+  end;
 
 { NSKeyboardUI_NSControlCategory }
-  NSKeyboardUI_NSControlCategory = objccategory(NSControl)
+  NSKeyboardUI_NSControlCategory = objccategory external name 'NSKeyboardUI' (NSControl)
     procedure performClick(sender: id); message 'performClick:';
     procedure setRefusesFirstResponder(flag: Boolean); message 'setRefusesFirstResponder:';
     function refusesFirstResponder: Boolean; message 'refusesFirstResponder';
-  end; external name 'NSKeyboardUI';
+  end;
 
 { NSControlSubclassNotificationsCategory }
-  NSControlSubclassNotificationsCategory = objccategory(NSObject)
+  NSControlSubclassNotificationsCategory = objccategory external (NSObject)
     procedure controlTextDidBeginEditing(obj: NSNotification); message 'controlTextDidBeginEditing:';
     procedure controlTextDidEndEditing(obj: NSNotification); message 'controlTextDidEndEditing:';
     procedure controlTextDidChange(obj: NSNotification); message 'controlTextDidChange:';
-  end; external;
+  end;
 
 { NSControlAttributedStringMethodsCategory }
-  NSControlAttributedStringMethodsCategory = objccategory(NSControl)
+  NSControlAttributedStringMethodsCategory = objccategory external (NSControl)
     function attributedStringValue: NSAttributedString; message 'attributedStringValue';
     procedure setAttributedStringValue(obj: NSAttributedString); message 'setAttributedStringValue:';
-  end; external;
+  end;
 
 { NSDeprecated_NSControlCategory }
-  NSDeprecated_NSControlCategory = objccategory(NSControl)
+  NSDeprecated_NSControlCategory = objccategory external name 'NSDeprecated' (NSControl)
     procedure setFloatingPointFormat_left_right(autoRange: Boolean; leftDigits: NSUInteger; rightDigits: NSUInteger); message 'setFloatingPointFormat:left:right:'; deprecated 'in Mac OS X 10 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}
@@ -163,7 +161,7 @@ var
 {$define NSCONTROL_PAS_P}
   
 { NSControlTextEditingDelegate Protocol }
-  NSControlTextEditingDelegateProtocol = objcprotocol
+  NSControlTextEditingDelegateProtocol = objcprotocol external name 'NSControlTextEditingDelegate'
     function control_textShouldBeginEditing(control: NSControl; fieldEditor: NSText): Boolean; message 'control:textShouldBeginEditing:';
     function control_textShouldEndEditing(control: NSControl; fieldEditor: NSText): Boolean; message 'control:textShouldEndEditing:';
     function control_didFailToFormatString_errorDescription(control: NSControl; string_: NSString; error: NSString): Boolean; message 'control:didFailToFormatString:errorDescription:';
@@ -171,6 +169,6 @@ var
     function control_isValidObject(control: NSControl; obj: id): Boolean; message 'control:isValidObject:';
     function control_textView_doCommandBySelector(control: NSControl; textView: NSTextView; commandSelector: SEL): Boolean; message 'control:textView:doCommandBySelector:';
     function control_textView_completions_forPartialWordRange_indexOfSelectedItem(control: NSControl; textView: NSTextView; words: NSArray; charRange: NSRange; index: NSIntegerPtr): NSArray; message 'control:textView:completions:forPartialWordRange:indexOfSelectedItem:';
-  end; external name 'NSControlTextEditingDelegate';
+  end;
 {$endif}
 {$endif}

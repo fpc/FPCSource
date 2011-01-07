@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSIndexPath.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSINDEXPATH_PAS_C}
 
 { NSIndexPath }
-  NSIndexPath = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSIndexPath = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _indexes: NSUIntegerPtr;
     _hash: NSUInteger;
@@ -50,8 +50,6 @@
     _reserved: Pointer;
     
   public
-    class function alloc: NSIndexPath; message 'alloc';
-
     class function indexPathWithIndex(index: NSUInteger): id; message 'indexPathWithIndex:';
     class function indexPathWithIndexes_length(indexes: NSUIntegerPtr; length_: NSUInteger): id; message 'indexPathWithIndexes:length:';
     function initWithIndex(index: NSUInteger): id; message 'initWithIndex:';
@@ -67,7 +65,7 @@
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

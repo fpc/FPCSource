@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPrintInfo.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -103,14 +103,12 @@ var
 {$define NSPRINTINFO_PAS_C}
 
 { NSPrintInfo }
-  NSPrintInfo = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSPrintInfo = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _attributes: NSMutableDictionary;
     _moreVars: id;
     
   public
-    class function alloc: NSPrintInfo; message 'alloc';
-
     class procedure setSharedPrintInfo(printInfo: NSPrintInfo); message 'setSharedPrintInfo:';
     class function sharedPrintInfo: NSPrintInfo; message 'sharedPrintInfo';
     function initWithDictionary(attributes: NSDictionary): id; message 'initWithDictionary:';
@@ -160,13 +158,13 @@ var
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSDeprecated_NSPrintInfoCategory }
-  NSDeprecated_NSPrintInfoCategory = objccategory(NSPrintInfo)
+  NSDeprecated_NSPrintInfoCategory = objccategory external name 'NSDeprecated' (NSPrintInfo)
     class procedure setDefaultPrinter(printer_: NSPrinter); message 'setDefaultPrinter:'; deprecated 'in Mac OS X 10.2 and later';
     class function sizeForPaperName(name: NSString): NSSize; message 'sizeForPaperName:'; deprecated 'in Mac OS X 10.2 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}

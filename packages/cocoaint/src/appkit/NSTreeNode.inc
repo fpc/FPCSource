@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTreeNode.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSTREENODE_PAS_C}
 
 { NSTreeNode }
-  NSTreeNode = objcclass(NSObject)
+  NSTreeNode = objcclass external (NSObject)
   private
     _childNodesProxy: id;
     _representedObject: id;
@@ -60,8 +60,6 @@
       end;
     
   public
-    class function alloc: NSTreeNode; message 'alloc';
-
     class function treeNodeWithRepresentedObject(modelObject: id): id; message 'treeNodeWithRepresentedObject:';
     function initWithRepresentedObject(modelObject: id): id; message 'initWithRepresentedObject:';
     function representedObject: id; message 'representedObject';
@@ -72,7 +70,7 @@
     function descendantNodeAtIndexPath(indexPath_: NSIndexPath): NSTreeNode; message 'descendantNodeAtIndexPath:';
     function parentNode: NSTreeNode; message 'parentNode';
     procedure sortWithSortDescriptors_recursively(sortDescriptors: NSArray; recursively: Boolean); message 'sortWithSortDescriptors:recursively:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

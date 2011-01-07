@@ -269,7 +269,6 @@ interface
 
     procedure tcgaddnode.second_addsmallset;
       var
-        tmpreg : tregister;
         cgop    : TOpCg;
         opdone  : boolean;
       begin
@@ -301,21 +300,16 @@ interface
                  end;
               if opdone then
                 begin
+                  if (right.location.size<>left.location.size) or
+                     (location.size<>left.location.size) then
+                    internalerror(2010123001);
+                  { make sure we don't modify left/right.location, because we told
+                    force_reg_left_right above that they can be constant }
+                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,location.size,right.location.register,location.register);
                   if left.location.loc = LOC_CONSTANT then
-                    begin
-                      tmpreg := cg.getintregister(current_asmdata.CurrAsmList,location.size);
-                      cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,
-                        left.location.value,tmpreg);
-                      cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,location.size,right.location.register,right.location.register);
-                      cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_AND,location.size,right.location.register,tmpreg);
-                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,location.size,tmpreg,location.register);
-                    end
+                    cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,location.size,left.location.value,location.register)
                   else
-                    begin
-                      cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,right.location.size,right.location.register,right.location.register);
-                      cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_AND,left.location.size,right.location.register,left.location.register);
-                      cg.a_load_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
-                    end;
+                    cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_AND,location.size,left.location.register,location.register);
                 end;
             end;
           else

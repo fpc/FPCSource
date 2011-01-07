@@ -28,6 +28,10 @@ unit comobj;
 
     type
       EOleError = class(Exception);
+     
+      // apparantly used by axctrls.
+      // http://lazarus.freepascal.org/index.php/topic,11612.0.html
+      TConnectEvent = procedure(const Sink: IUnknown; Connecting: Boolean) of object;
 
       EOleSysError = class(EOleError)
       private

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPasteboardItem.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -43,7 +43,7 @@
 {$define NSPASTEBOARDITEM_PAS_C}
 
 { NSPasteboardItem }
-  NSPasteboardItem = objcclass(NSObject, NSPasteboardWritingProtocol, NSPasteboardReadingProtocol)
+  NSPasteboardItem = objcclass external (NSObject, NSPasteboardWritingProtocol, NSPasteboardReadingProtocol)
   private
     _pasteboard: NSPasteboard;
     _index: NSUInteger;
@@ -52,8 +52,6 @@
     _reserved: Pointer;
     
   public
-    class function alloc: NSPasteboardItem; message 'alloc';
-
     function types: NSArray; message 'types';
     function availableTypeFromArray(types_: NSArray): NSString; message 'availableTypeFromArray:';
     function setDataProvider_forTypes(dataProvider: id; types_: NSArray): Boolean; message 'setDataProvider:forTypes:';
@@ -71,7 +69,7 @@
     class function readableTypesForPasteboard(pasteboard: NSPasteboard): NSArray;
     class function readingOptionsForType_pasteboard(type_: NSString; pasteboard: NSPasteboard): NSPasteboardReadingOptions;
     function initWithPasteboardPropertyList_ofType(propertyList: id; type_: NSString): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -80,9 +78,9 @@
 {$define NSPASTEBOARDITEM_PAS_P}
   
 { NSPasteboardItemDataProvider Protocol }
-  NSPasteboardItemDataProviderProtocol = objcprotocol
+  NSPasteboardItemDataProviderProtocol = objcprotocol external name 'NSPasteboardItemDataProvider'
     procedure pasteboard_item_provideDataForType(pasteboard: NSPasteboard; item: NSPasteboardItem; type_: NSString); message 'pasteboard:item:provideDataForType:';
     procedure pasteboardFinishedWithDataProvider(pasteboard: NSPasteboard); message 'pasteboardFinishedWithDataProvider:';
-  end; external name 'NSPasteboardItemDataProvider';
+  end;
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSComboBox.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -51,13 +51,11 @@ var
 {$define NSCOMBOBOX_PAS_C}
 
 { NSComboBox }
-  NSComboBox = objcclass(NSTextField)
+  NSComboBox = objcclass external (NSTextField)
   private
     _dataSource: id;
     
   public
-    class function alloc: NSComboBox; message 'alloc';
-
     function hasVerticalScroller: Boolean; message 'hasVerticalScroller';
     procedure setHasVerticalScroller(flag: Boolean); message 'setHasVerticalScroller:';
     function intercellSpacing: NSSize; message 'intercellSpacing';
@@ -95,7 +93,7 @@ var
     function objectValueOfSelectedItem: id; message 'objectValueOfSelectedItem';
     function indexOfItemWithObjectValue(object_: id): NSInteger; message 'indexOfItemWithObjectValue:';
     function objectValues: NSArray; message 'objectValues';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -104,19 +102,19 @@ var
 {$define NSCOMBOBOX_PAS_P}
   
 { NSComboBoxDataSource Protocol }
-  NSComboBoxDataSourceProtocol = objcprotocol
+  NSComboBoxDataSourceProtocol = objcprotocol external name 'NSComboBoxDataSource'
     function numberOfItemsInComboBox(aComboBox: NSComboBox): NSInteger; message 'numberOfItemsInComboBox:';
     function comboBox_objectValueForItemAtIndex(aComboBox: NSComboBox; index: NSInteger): id; message 'comboBox:objectValueForItemAtIndex:';
     function comboBox_indexOfItemWithStringValue(aComboBox: NSComboBox; string_: NSString): NSUInteger; message 'comboBox:indexOfItemWithStringValue:';
     function comboBox_completedString(aComboBox: NSComboBox; string_: NSString): NSString; message 'comboBox:completedString:';
-  end; external name 'NSComboBoxDataSource';
+  end;
   
 { NSComboBoxDelegate Protocol }
-  NSComboBoxDelegateProtocol = objcprotocol
+  NSComboBoxDelegateProtocol = objcprotocol external name 'NSComboBoxDelegate'
     procedure comboBoxWillPopUp(notification: NSNotification); message 'comboBoxWillPopUp:';
     procedure comboBoxWillDismiss(notification: NSNotification); message 'comboBoxWillDismiss:';
     procedure comboBoxSelectionDidChange(notification: NSNotification); message 'comboBoxSelectionDidChange:';
     procedure comboBoxSelectionIsChanging(notification: NSNotification); message 'comboBoxSelectionIsChanging:';
-  end; external name 'NSComboBoxDelegate';
+  end;
 {$endif}
 {$endif}

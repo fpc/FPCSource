@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CIFilterShape.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,14 +42,12 @@
 {$define CIFILTERSHAPE_PAS_C}
 
 { CIFilterShape }
-  CIFilterShape = objcclass(NSObject, NSCopyingProtocol)
+  CIFilterShape = objcclass external (NSObject, NSCopyingProtocol)
   private
     _pad: cuint32;
     _priv: Pointer;
     
   public
-    class function alloc: CIFilterShape; message 'alloc';
-
     class function shapeWithRect(r: CGRect): id; message 'shapeWithRect:';
     function initWithRect(r: CGRect): id; message 'initWithRect:';
     function transformBy_interior(m: CGAffineTransform; flag: Boolean): CIFilterShape; message 'transformBy:interior:';
@@ -61,7 +59,7 @@
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

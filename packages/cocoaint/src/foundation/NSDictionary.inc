@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSDictionary.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -45,11 +45,9 @@
 {$define NSDICTIONARY_PAS_C}
 
 { NSDictionary }
-  NSDictionary = objcclass(NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol, NSFastEnumerationProtocol)
+  NSDictionary = objcclass external (NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol, NSFastEnumerationProtocol)
     
   public
-    class function alloc: NSDictionary; message 'alloc';
-
     function count: NSUInteger; message 'count';
     function objectForKey(aKey: id): id; message 'objectForKey:';
     function keyEnumerator: NSEnumerator; message 'keyEnumerator';
@@ -60,20 +58,18 @@
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePtr; stackbuf: idPtr; len: NSUInteger): NSUInteger;
-  end; external;
+  end;
 
 { NSMutableDictionary }
-  NSMutableDictionary = objcclass(NSDictionary)
+  NSMutableDictionary = objcclass external (NSDictionary)
     
   public
-    class function alloc: NSMutableDictionary; message 'alloc';
-
     procedure removeObjectForKey(aKey: id); message 'removeObjectForKey:';
     procedure setObject_forKey(anObject: id; aKey: id); message 'setObject:forKey:';
-  end; external;
+  end;
 
 { NSExtendedDictionaryCategory }
-  NSExtendedDictionaryCategory = objccategory(NSDictionary)
+  NSExtendedDictionaryCategory = objccategory external (NSDictionary)
     function allKeys: NSArray; message 'allKeys';
     function allKeysForObject(anObject: id): NSArray; message 'allKeysForObject:';
     function allValues: NSArray; message 'allValues';
@@ -88,10 +84,10 @@
     function writeToURL_atomically(url: NSURL; atomically: Boolean): Boolean; message 'writeToURL:atomically:';
     function keysSortedByValueUsingSelector(comparator: SEL): NSArray; message 'keysSortedByValueUsingSelector:';
     procedure getObjects_andKeys(objects: idPtr; keys: idPtr); message 'getObjects:andKeys:';
-  end; external;
+  end;
 
 { NSDictionaryCreationCategory }
-  NSDictionaryCreationCategory = objccategory(NSDictionary)
+  NSDictionaryCreationCategory = objccategory external (NSDictionary)
     class function dictionary: id; message 'dictionary';
     class function dictionaryWithObject_forKey(object_: id; key: id): id; message 'dictionaryWithObject:forKey:';
     class function dictionaryWithObjects_forKeys_count(objects: idPtr; keys: idPtr; cnt: NSUInteger): id; message 'dictionaryWithObjects:forKeys:count:';
@@ -107,21 +103,21 @@
     class function dictionaryWithContentsOfURL(url: NSURL): id; message 'dictionaryWithContentsOfURL:';
     function initWithContentsOfFile(path: NSString): id; message 'initWithContentsOfFile:';
     function initWithContentsOfURL(url: NSURL): id; message 'initWithContentsOfURL:';
-  end; external;
+  end;
 
 { NSExtendedMutableDictionaryCategory }
-  NSExtendedMutableDictionaryCategory = objccategory(NSMutableDictionary)
+  NSExtendedMutableDictionaryCategory = objccategory external (NSMutableDictionary)
     procedure addEntriesFromDictionary(otherDictionary: NSDictionary); message 'addEntriesFromDictionary:';
     procedure removeAllObjects; message 'removeAllObjects';
     procedure removeObjectsForKeys(keyArray: NSArray); message 'removeObjectsForKeys:';
     procedure setDictionary(otherDictionary: NSDictionary); message 'setDictionary:';
-  end; external;
+  end;
 
 { NSMutableDictionaryCreationCategory }
-  NSMutableDictionaryCreationCategory = objccategory(NSMutableDictionary)
+  NSMutableDictionaryCreationCategory = objccategory external (NSMutableDictionary)
     class function dictionaryWithCapacity(numItems: NSUInteger): id; message 'dictionaryWithCapacity:';
     function initWithCapacity(numItems: NSUInteger): id; message 'initWithCapacity:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMProcessingInstruction.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,16 +42,14 @@
 {$define DOMPROCESSINGINSTRUCTION_PAS_C}
 
 { DOMProcessingInstruction }
-  DOMProcessingInstruction = objcclass(DOMNode)
+  DOMProcessingInstruction = objcclass external (DOMNode)
     
   public
-    class function alloc: DOMProcessingInstruction; message 'alloc';
-
     function target: NSString; message 'target';
     procedure setData (newValue: NSString); message 'setData:';
     function data: NSString; message 'data';
     function sheet: DOMStyleSheet; message 'sheet';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

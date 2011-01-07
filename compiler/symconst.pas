@@ -90,8 +90,8 @@ const
   mkClassFunction    = 5;
   mkClassConstructor = 6;
   mkClassDestructor  = 7;
+  mkOperatorOverload = 8;
 // delphi has the next too:
-//mkOperatorOverload = 8;
 //mkSafeProcedure    = 9;
 //mkSafeFunction     = 10;
 
@@ -156,13 +156,13 @@ type
 
   { symbol options }
   tsymoption=(sp_none,
-    sp_static,
+    sp_static,              { static symbol in class/object/record }
     sp_hint_deprecated,
     sp_hint_platform,
     sp_hint_library,
     sp_hint_unimplemented,
     sp_has_overloaded,
-    sp_internal,  { internal symbol, not reported as unused }
+    sp_internal,            { internal symbol, not reported as unused }
     sp_implicitrename,
     sp_hint_experimental,
     sp_generic_para,
@@ -436,13 +436,21 @@ type
   );
 
   { types of the symtables }
-  TSymtabletype = (abstracTSymtable,
-    globalsymtable,staticsymtable,
-    ObjectSymtable,recordsymtable,
-    localsymtable,parasymtable,
-    withsymtable,stt_excepTSymtable,
-    exportedmacrosymtable, localmacrosymtable,
-    enumsymtable
+  TSymtabletype = (
+    abstractsymtable,      { not a real symtable             }
+    globalsymtable,        { unit interface symtable         }
+    staticsymtable,        { unit implementation symtable    }
+    ObjectSymtable,        { object symtable                 }
+    recordsymtable,        { record symtable                 }
+    localsymtable,         { subroutine symtable             }
+    parasymtable,          { arguments symtable              }
+    withsymtable,          { with operator symtable          }
+    stt_excepTSymtable,    { try/except symtable             }
+    exportedmacrosymtable, { }
+    localmacrosymtable,    { }
+    enumsymtable,          { symtable for enum members       }
+    arraysymtable          { used to store parameterised type
+                             in array                        }
   );
 
 

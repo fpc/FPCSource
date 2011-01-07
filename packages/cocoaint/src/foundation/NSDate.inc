@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSDate.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -55,21 +55,19 @@ var
 {$define NSDATE_PAS_C}
 
 { NSDate }
-  NSDate = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSDate = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
     
   public
-    class function alloc: NSDate; message 'alloc';
-
     function timeIntervalSinceReferenceDate: NSTimeInterval; message 'timeIntervalSinceReferenceDate';
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSExtendedDateCategory }
-  NSExtendedDateCategory = objccategory(NSDate)
+  NSExtendedDateCategory = objccategory external (NSDate)
     function timeIntervalSinceDate(anotherDate: NSDate): NSTimeInterval; message 'timeIntervalSinceDate:';
     function timeIntervalSinceNow: NSTimeInterval; message 'timeIntervalSinceNow';
     function timeIntervalSince1970: NSTimeInterval; message 'timeIntervalSince1970';
@@ -81,10 +79,10 @@ var
     function isEqualToDate(otherDate: NSDate): Boolean; message 'isEqualToDate:';
     function description: NSString; message 'description';
     function descriptionWithLocale(locale: id): NSString; message 'descriptionWithLocale:';
-  end; external;
+  end;
 
 { NSDateCreationCategory }
-  NSDateCreationCategory = objccategory(NSDate)
+  NSDateCreationCategory = objccategory external (NSDate)
     class function date: id; message 'date';
     class function dateWithTimeIntervalSinceNow(secs: NSTimeInterval): id; message 'dateWithTimeIntervalSinceNow:';
     class function dateWithTimeIntervalSinceReferenceDate(secs: NSTimeInterval): id; message 'dateWithTimeIntervalSinceReferenceDate:';
@@ -97,7 +95,7 @@ var
     function initWithTimeIntervalSinceReferenceDate(secsToBeAdded: NSTimeInterval): id; message 'initWithTimeIntervalSinceReferenceDate:';
     function initWithTimeIntervalSince1970(ti: NSTimeInterval): id; message 'initWithTimeIntervalSince1970:';
     function initWithTimeInterval_sinceDate(secsToBeAdded: NSTimeInterval; anotherDate: NSDate): id; message 'initWithTimeInterval:sinceDate:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

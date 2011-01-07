@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSInputManager.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -43,7 +43,7 @@
 {$define NSINPUTMANAGER_PAS_C}
 
 { NSInputManager }
-  NSInputManager = objcclass(NSObject, NSTextInputProtocol)
+  NSInputManager = objcclass external (NSObject, NSTextInputProtocol)
   private
     _currentClient: id;
     _server: id;
@@ -62,8 +62,6 @@
     _reservedInputManager2: cint;
     
   public
-    class function alloc: NSInputManager; message 'alloc';
-
     class function currentInputManager: NSInputManager; message 'currentInputManager';
     class procedure cycleToNextInputLanguage(sender: id); message 'cycleToNextInputLanguage:';
     class procedure cycleToNextInputServerInLanguage(sender: id); message 'cycleToNextInputServerInLanguage:';
@@ -92,7 +90,7 @@
     function firstRectForCharacterRange(theRange: NSRange): NSRect;
     function characterIndexForPoint(thePoint: NSPoint): NSUInteger;
     function validAttributesForMarkedText: NSArray;
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -101,7 +99,7 @@
 {$define NSINPUTMANAGER_PAS_P}
   
 { NSTextInput Protocol }
-  NSTextInputProtocol = objcprotocol
+  NSTextInputProtocol = objcprotocol external name 'NSTextInput'
     procedure insertText(aString: id); message 'insertText:';
     procedure doCommandBySelector(aSelector: SEL); message 'doCommandBySelector:';
     procedure setMarkedText_selectedRange(aString: id; selRange: NSRange); message 'setMarkedText:selectedRange:';
@@ -114,6 +112,6 @@
     function firstRectForCharacterRange(theRange: NSRange): NSRect; message 'firstRectForCharacterRange:';
     function characterIndexForPoint(thePoint: NSPoint): NSUInteger; message 'characterIndexForPoint:';
     function validAttributesForMarkedText: NSArray; message 'validAttributesForMarkedText';
-  end; external name 'NSTextInput';
+  end;
 {$endif}
 {$endif}

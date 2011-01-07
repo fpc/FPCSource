@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMXPathExpression.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,18 +42,16 @@
 {$define DOMXPATHEXPRESSION_PAS_C}
 
 { DOMXPathExpression }
-  DOMXPathExpression = objcclass(DOMObject)
+  DOMXPathExpression = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMXPathExpression; message 'alloc';
-
     function evaluate_type_inResult(contextNode: DOMNode; type_: cushort; inResult: DOMXPathResult): DOMXPathResult; message 'evaluate:type:inResult:';
-  end; external;
+  end;
 
 { DOMXPathExpressionDeprecatedCategory }
-  DOMXPathExpressionDeprecatedCategory = objccategory(DOMXPathExpression)
+  DOMXPathExpressionDeprecatedCategory = objccategory external (DOMXPathExpression)
     function evaluate(contextNode: DOMNode; type_: cushort; inResult_BUT_DEPRECATED: DOMXPathResult): DOMXPathResult; message 'evaluate:contextNode:type:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

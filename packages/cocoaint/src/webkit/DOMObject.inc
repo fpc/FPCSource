@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMObject.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -47,21 +47,20 @@ type
 {$define DOMOBJECT_PAS_C}
 
 { DOMObject }
-  DOMObject = objcclass(WebScriptObject, NSCopyingProtocol)
+  DOMObject = objcclass external (WebScriptObject, NSCopyingProtocol)
   private
     _internal: DOMObjectInternalPtr;
     
   public
-    class function alloc: DOMObject; message 'alloc';
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 { DOMLinkStyleCategory }
-  DOMLinkStyleCategory = objccategory(DOMObject)
+  DOMLinkStyleCategory = objccategory external (DOMObject)
     function sheet: DOMStyleSheet; message 'sheet';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

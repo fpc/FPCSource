@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -167,7 +167,7 @@ var
 {$define NSVIEW_PAS_C}
 
 { NSView }
-  NSView = objcclass(NSResponder)
+  NSView = objcclass external (NSResponder)
   private
     _frame: NSRect;
     _bounds: NSRect;
@@ -194,8 +194,6 @@ var
       end;
     
   public
-    class function alloc: NSView; message 'alloc';
-
     function initWithFrame(frameRect: NSRect): id; message 'initWithFrame:';
     function window: NSWindow; message 'window';
     function superview: NSView; message 'superview';
@@ -361,15 +359,15 @@ var
     function rectPreservedDuringLiveResize: NSRect; message 'rectPreservedDuringLiveResize';
     procedure getRectsExposedDuringLiveResize_count(exposedRects: NSRect; count: NSIntegerPtr); message 'getRectsExposedDuringLiveResize:count:';
     function inputContext: NSTextInputContext; message 'inputContext';
-  end; external;
+  end;
 
 { NSToolTipOwnerCategory }
-  NSToolTipOwnerCategory = objccategory(NSObject)
+  NSToolTipOwnerCategory = objccategory external (NSObject)
     function view_stringForToolTip_point_userData(view: NSView; tag: NSToolTipTag; point: NSPoint; data: Pointer): NSString; message 'view:stringForToolTip:point:userData:';
-  end; external;
+  end;
 
 { NSKeyboardUI_NSViewCategory }
-  NSKeyboardUI_NSViewCategory = objccategory(NSView)
+  NSKeyboardUI_NSViewCategory = objccategory external name 'NSKeyboardUI' (NSView)
     function performMnemonic(theString: NSString): Boolean; message 'performMnemonic:';
     procedure setNextKeyView(next: NSView); message 'setNextKeyView:';
     function nextKeyView: NSView; message 'nextKeyView';
@@ -381,10 +379,10 @@ var
     procedure setFocusRingType(focusRingType_: NSFocusRingType); message 'setFocusRingType:';
     function focusRingType: NSFocusRingType; message 'focusRingType';
     class function defaultFocusRingType: NSFocusRingType; message 'defaultFocusRingType';
-  end; external name 'NSKeyboardUI';
+  end;
 
 { NSPrintingCategory }
-  NSPrintingCategory = objccategory(NSView)
+  NSPrintingCategory = objccategory external (NSView)
     procedure writeEPSInsideRect_toPasteboard(rect: NSRect; pasteboard: NSPasteboard); message 'writeEPSInsideRect:toPasteboard:';
     function dataWithEPSInsideRect(rect: NSRect): NSData; message 'dataWithEPSInsideRect:';
     procedure writePDFInsideRect_toPasteboard(rect: NSRect; pasteboard: NSPasteboard); message 'writePDFInsideRect:toPasteboard:';
@@ -406,29 +404,29 @@ var
     procedure endDocument; message 'endDocument';
     procedure beginPageInRect_atPlacement(aRect: NSRect; location: NSPoint); message 'beginPageInRect:atPlacement:';
     procedure endPage; message 'endPage';
-  end; external;
+  end;
 
 { NSDragCategory }
-  NSDragCategory = objccategory(NSView)
+  NSDragCategory = objccategory external (NSView)
     procedure dragImage_at_offset_event_pasteboard_source_slideBack(anImage: NSImage; viewLocation: NSPoint; initialOffset: NSSize; event: NSEvent; pboard: NSPasteboard; sourceObj: id; slideFlag: Boolean); message 'dragImage:at:offset:event:pasteboard:source:slideBack:';
     function registeredDraggedTypes: NSArray; message 'registeredDraggedTypes';
     procedure registerForDraggedTypes(newTypes: NSArray); message 'registerForDraggedTypes:';
     procedure unregisterDraggedTypes; message 'unregisterDraggedTypes';
     function dragFile_fromRect_slideBack_event(filename: NSString; rect: NSRect; aFlag: Boolean; event: NSEvent): Boolean; message 'dragFile:fromRect:slideBack:event:';
     function dragPromisedFilesOfTypes_fromRect_source_slideBack_event(typeArray: NSArray; rect: NSRect; sourceObject: id; aFlag: Boolean; event: NSEvent): Boolean; message 'dragPromisedFilesOfTypes:fromRect:source:slideBack:event:';
-  end; external;
+  end;
 
 { NSFullScreenModeCategory }
-  NSFullScreenModeCategory = objccategory(NSView)
+  NSFullScreenModeCategory = objccategory external (NSView)
     function enterFullScreenMode_withOptions(screen: NSScreen; options: NSDictionary): Boolean; message 'enterFullScreenMode:withOptions:';
     procedure exitFullScreenModeWithOptions(options: NSDictionary); message 'exitFullScreenModeWithOptions:';
     function isInFullScreenMode: Boolean; message 'isInFullScreenMode';
-  end; external;
+  end;
 
 { NSDefinitionCategory }
-  NSDefinitionCategory = objccategory(NSView)
+  NSDefinitionCategory = objccategory external (NSView)
     procedure showDefinitionForAttributedString_atPoint(attrString: NSAttributedString; textBaselineOrigin: NSPoint); message 'showDefinitionForAttributedString:atPoint:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

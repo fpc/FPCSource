@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSNull.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,18 +42,16 @@
 {$define NSNULL_PAS_C}
 
 { NSNull }
-  NSNull = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSNull = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
     
   public
-    class function alloc: NSNull; message 'alloc';
-
     class function null: NSNull; message 'null';
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

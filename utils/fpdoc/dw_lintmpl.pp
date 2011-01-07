@@ -89,8 +89,8 @@ Type
     procedure StartChapter(ChapterName : String); override;
     procedure StartOverview(WithAccess : Boolean); override;
     procedure EndOverview; override;
-    procedure WriteOverviewMember(ALabel,AName,Access,ADescr : String); override;
-    procedure WriteOverviewMember(ALabel,AName,ADescr : String); override;
+    procedure WriteOverviewMember(const ALabel,AName,Access,ADescr : String); override;
+    procedure WriteOverviewMember(const ALabel,AName,ADescr : String); override;
     Class Function FileNameExtension : String; override;
     // Description node conversion. Overrides for TFPDocWriter.
     procedure DescrBeginBold; override;
@@ -374,7 +374,7 @@ begin
 end;
 
 
-function TTemplateWriter.FileNameExtension: String;
+class function TTemplateWriter.FileNameExtension: String;
 begin
   Result:=TTemplateExtension;
 end;
@@ -520,7 +520,7 @@ begin
   { End of overview }
 end;
 
-procedure TTemplateWriter.WriteOverviewMember(ALabel,AName,Access,ADescr : String);
+procedure TTemplateWriter.WriteOverviewMember(Const ALabel,AName,Access,ADescr : String);
 
 begin
   { Write one entry in property overview:
@@ -531,7 +531,7 @@ begin
   }
 end;
 
-procedure TTemplateWriter.WriteOverviewMember(ALabel,AName,ADescr : String);
+procedure TTemplateWriter.WriteOverviewMember(Const ALabel,AName,ADescr : String);
 
 begin
   { Write one entry in method overview:

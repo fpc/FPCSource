@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMProgressEvent.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,16 +42,14 @@
 {$define DOMPROGRESSEVENT_PAS_C}
 
 { DOMProgressEvent }
-  DOMProgressEvent = objcclass(DOMEvent)
+  DOMProgressEvent = objcclass external (DOMEvent)
     
   public
-    class function alloc: DOMProgressEvent; message 'alloc';
-
     function lengthComputable: Boolean; message 'lengthComputable';
     function loaded: cuint; message 'loaded';
     function total: cuint; message 'total';
     procedure initProgressEvent_canBubbleArg_cancelableArg_lengthComputableArg_loadedArg_totalArg(typeArg: NSString; canBubbleArg: Boolean; cancelableArg: Boolean; lengthComputableArg: Boolean; loadedArg: cuint; totalArg: cuint); message 'initProgressEvent:canBubbleArg:cancelableArg:lengthComputableArg:loadedArg:totalArg:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

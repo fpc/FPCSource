@@ -29,10 +29,9 @@ interface
        globtype,cclasses,
        symtype,symdef,symbase;
 
-    var
-       { hack, which allows to use the current parsed }
-       { object type as function argument type  }
-       testcurobject : byte;
+    type
+      TSingleTypeOption=(stoIsForwardDef,stoAllowTypeDef,stoParseClassParent);
+      TSingleTypeOptions=set of TSingleTypeOption;
 
     procedure resolve_forward_types;
 
@@ -40,7 +39,7 @@ interface
     procedure id_type(var def : tdef;isforwarddef:boolean);
 
     { reads a string, file type or a type identifier }
-    procedure single_type(var def:tdef;isforwarddef,allowtypedef:boolean);
+    procedure single_type(var def:tdef;options:TSingleTypeOptions);
 
     { reads any type declaration, where the resulting type will get name as type identifier }
     procedure read_named_type(var def:tdef;const name : TIDString;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
@@ -51,6 +50,7 @@ interface
     { generate persistent type information like VMT, RTTI and inittables }
     procedure write_persistent_type_info(st:tsymtable);
 
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean);
 
 implementation
 
@@ -141,7 +141,7 @@ implementation
       end;
 
 
-    procedure generate_specialization(var tt:tdef);
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean);
       var
         st  : TSymtable;
         srsym : tsym;
@@ -182,6 +182,8 @@ implementation
               of generic and specialization might not be equally sized which
               is later assumed }
             tt:=tundefineddef.create;
+            if parse_class_parent then
+              tt:=genericdef;
             onlyparsepara:=true;
           end;
 
@@ -198,21 +200,26 @@ implementation
             exit;
           end;
 
-        consume(_LSHARPBRACKET);
+        if not try_to_consume(_LT) then
+          consume(_LSHARPBRACKET);
         { Parse generic parameters, for each undefineddef in the symtable of
           the genericdef we need to have a new def }
         err:=false;
         first:=true;
         generictypelist:=TFPObjectList.create(false);
         case genericdef.typ of
-          procdef :
+          procdef:
             st:=genericdef.GetSymtable(gs_para);
           objectdef,
-          recorddef :
+          recorddef:
             st:=genericdef.GetSymtable(gs_record);
+          arraydef:
+            st:=tarraydef(genericdef).symtable;
+          procvardef:
+            st:=genericdef.GetSymtable(gs_para);
+          else
+            internalerror(200511182);
         end;
-        if not assigned(st) then
-          internalerror(200511182);
 
         { Parse type parameters }
         if not assigned(genericdef.typesym) then
@@ -249,7 +256,7 @@ implementation
           end;
         uspecializename:=upper(specializename);
         { force correct error location if too much type parameters are passed }
-        if token<>_RSHARPBRACKET then
+        if not (token in [_RSHARPBRACKET,_GT]) then
           consume(_RSHARPBRACKET);
 
         { Special case if we are referencing the current defined object }
@@ -322,17 +329,31 @@ implementation
                 read_named_type(tt,specializename,genericdef,generictypelist,false);
                 ttypesym(srsym).typedef:=tt;
                 tt.typesym:=srsym;
+
+                case tt.typ of
+                  { Build VMT indexes for classes }
+                  objectdef:
+                    begin
+                      vmtbuilder:=TVMTBuilder.Create(tobjectdef(tt));
+                      vmtbuilder.generate_vmt;
+                      vmtbuilder.free;
+                    end;
+                  { handle params, calling convention, etc }
+                  procvardef:
+                    begin
+                      if not check_proc_directive(true) then
+                        begin
+                          try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg);
+                          consume(_SEMICOLON);
+                        end;
+                      parse_var_proc_directives(ttypesym(srsym));
+                      handle_calling_convention(tprocvardef(tt));
+                      if try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg) then
+                        consume(_SEMICOLON);
+                    end;
+                end;
                 { Consume the semicolon if it is also recorded }
                 try_to_consume(_SEMICOLON);
-
-
-                { Build VMT indexes for classes }
-                if (tt.typ=objectdef) then
-                  begin
-                    vmtbuilder:=TVMTBuilder.Create(tobjectdef(tt));
-                    vmtbuilder.generate_vmt;
-                    vmtbuilder.free;
-                  end;
               end;
 
             { Restore symtablestack }
@@ -358,7 +379,8 @@ implementation
           end;
 
         generictypelist.free;
-        consume(_RSHARPBRACKET);
+        if not try_to_consume(_GT) then
+          consume(_RSHARPBRACKET);
       end;
 
 
@@ -382,18 +404,14 @@ implementation
             - classes can be used also in classes
             - objects can be parameters }
          structdef:=current_structdef;
-         while Assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
+         while assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
            begin
-             if (structdef.objname^=pattern) and
-                (
-                  (testcurobject=2) or
-                  is_class_or_interface_or_objc(structdef)
-                ) then
-                begin
-                  consume(_ID);
-                  def:=structdef;
-                  exit;
-                end;
+             if (structdef.objname^=pattern) then
+               begin
+                 consume(_ID);
+                 def:=structdef;
+                 exit;
+               end;
              structdef:=tabstractrecorddef(structdef.owner.defowner);
            end;
          { Use the special searchsym_type that ignores records and parameters }
@@ -445,7 +463,7 @@ implementation
       end;
 
 
-    procedure single_type(var def:tdef;isforwarddef,allowtypedef:boolean);
+    procedure single_type(var def:tdef;options:TSingleTypeOptions);
        var
          t2 : tdef;
          dospecialize,
@@ -456,17 +474,17 @@ implementation
            again:=false;
              case token of
                _STRING:
-                 string_dec(def,allowtypedef);
+                 string_dec(def,stoAllowTypeDef in options);
 
                _FILE:
                  begin
                     consume(_FILE);
                     if (token=_OF) then
                       begin
-                         if not(allowtypedef) then
+                         if not(stoAllowTypeDef in options) then
                            Message(parser_e_no_local_para_def);
                          consume(_OF);
-                         single_type(t2,false,false);
+                         single_type(t2,[]);
                          if is_managed_type(t2) then
                            Message(parser_e_no_refcounted_typed_file);
                          def:=tfiledef.createtyped(t2);
@@ -479,7 +497,7 @@ implementation
                  begin
                    if try_to_consume(_SPECIALIZE) then
                      begin
-                       if not(allowtypedef) then
+                       if not(stoAllowTypeDef in options) then
                          begin
                            Message(parser_e_no_local_para_def);
 
@@ -496,7 +514,7 @@ implementation
                      end
                    else
                      begin
-                       id_type(def,isforwarddef);
+                       id_type(def,stoIsForwardDef in options);
                        { handle types inside classes, e.g. TNode.TLongint }
                        while (token=_POINT) do
                          begin
@@ -509,7 +527,7 @@ implementation
                               begin
                                 symtablestack.push(tabstractrecorddef(def).symtable);
                                 consume(_POINT);
-                                id_type(t2,isforwarddef);
+                                id_type(t2,stoIsForwardDef in options);
                                 symtablestack.pop(tabstractrecorddef(def).symtable);
                                 def:=t2;
                               end
@@ -526,8 +544,10 @@ implementation
                  end;
             end;
         until not again;
+        if (stoAllowTypeDef in options)and(m_delphi in current_settings.modeswitches) then
+          dospecialize:=token=_LSHARPBRACKET;
         if dospecialize then
-          generate_specialization(def)
+          generate_specialization(def,stoParseClassParent in options)
         else
           begin
             if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
@@ -583,7 +603,6 @@ implementation
           Exit;
 
         current_structdef.symtable.currentvisibility:=vis_public;
-        testcurobject:=1;
         fields_allowed:=true;
         is_classdef:=false;
         classfields:=false;
@@ -842,17 +861,24 @@ implementation
               consume(_ID); { Give a ident expected message, like tp7 }
           end;
         until false;
-
-        testcurobject:=0;
       end;
 
     { reads a record declaration }
-    function record_dec(const n:tidstring):tdef;
+    function record_dec(const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList):tdef;
       var
-         old_current_structdef : tabstractrecorddef;
-         recst : trecordsymtable;
+         old_current_structdef: tabstractrecorddef;
+         old_current_genericdef,
+         old_current_specializedef: tstoreddef;
+         old_parse_generic: boolean;
+         recst: trecordsymtable;
       begin
          old_current_structdef:=current_structdef;
+         old_current_genericdef:=current_genericdef;
+         old_current_specializedef:=current_specializedef;
+         old_parse_generic:=parse_generic;
+
+         current_genericdef:=nil;
+         current_specializedef:=nil;
          { create recdef }
          recst:=trecordsymtable.create(n,current_settings.packrecords);
          current_structdef:=trecorddef.create(n,recst);
@@ -861,20 +887,34 @@ implementation
          symtablestack.push(recst);
          { parse record }
          consume(_RECORD);
-         if m_extended_records in current_settings.modeswitches then
+
+         { usage of specialized type inside its generic template }
+         if assigned(genericdef) then
+           current_specializedef:=current_structdef
+         { reject declaration of generic class inside generic class }
+         else if assigned(genericlist) then
+           current_genericdef:=current_structdef;
+
+         insert_generic_parameter_types(current_structdef,genericdef,genericlist);
+         parse_generic:=(df_generic in current_structdef.defoptions);
+         if m_advanced_records in current_settings.modeswitches then
            parse_record_members
          else
            begin
-         read_record_fields([vd_record]);
-         consume(_END);
-           end;
+             read_record_fields([vd_record]);
+             consume(_END);
+            end;
          { make the record size aligned }
          recst.addalignmentpadding;
          { restore symtable stack }
          symtablestack.pop(recst);
          if trecorddef(current_structdef).is_packed and is_managed_type(current_structdef) then
            Message(type_e_no_packed_inittable);
+         { restore old state }
+         parse_generic:=old_parse_generic;
          current_structdef:=old_current_structdef;
+         current_genericdef:=old_current_genericdef;
+         current_specializedef:=old_current_specializedef;
       end;
 
 
@@ -895,7 +935,7 @@ implementation
            lv,hv   : TConstExprInt;
            old_block_type : tblock_type;
            dospecialize : boolean;
-           structdef: TDef;
+           structdef: tabstractrecorddef;
         begin
            old_block_type:=block_type;
            dospecialize:=false;
@@ -905,24 +945,19 @@ implementation
            if (token=_ID) then
              begin
                structdef:=current_structdef;
-               while Assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
+               while assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
                  begin
-                   if (tabstractrecorddef(structdef).objname^=pattern) and
-                      (
-                        (testcurobject=2) or
-                        is_class_or_interface_or_objc(structdef)
-                      ) then
-                      begin
-                        consume(_ID);
-                        def:=structdef;
-                        exit;
-                      end;
-                   structdef:=tdef(tabstractrecorddef(structdef).owner.defowner);
+                   if (structdef.objname^=pattern) then
+                     begin
+                       consume(_ID);
+                       def:=structdef;
+                       exit;
+                     end;
+                   structdef:=tabstractrecorddef(structdef.owner.defowner);
                  end;
              end;
-           { Generate a specialization? }
-           if try_to_consume(_SPECIALIZE) then
-             dospecialize:=true;
+           { Generate a specialization in FPC mode? }
+           dospecialize:=not(m_delphi in current_settings.modeswitches) and try_to_consume(_SPECIALIZE);
            { we can't accept a equal in type }
            pt1:=comp_expr(false,true);
            if not dospecialize and
@@ -978,8 +1013,11 @@ implementation
                if (pt1.nodetype=typen) then
                  begin
                    def:=ttypenode(pt1).resultdef;
+                   { Delphi mode specialization? }
+                   if (m_delphi in current_settings.modeswitches) then
+                     dospecialize:=token=_LSHARPBRACKET;
                    if dospecialize then
-                     generate_specialization(def)
+                     generate_specialization(def,false)
                    else
                      begin
                        if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
@@ -1048,7 +1086,7 @@ implementation
         end;
 
 
-      procedure array_dec(is_packed: boolean);
+      procedure array_dec(is_packed:boolean;genericdef:tstoreddef;genericlist:TFPObjectList);
         var
           lowval,
           highval   : TConstExprInt;
@@ -1091,7 +1129,17 @@ implementation
             end;
           end;
 
+        var
+          old_current_genericdef,
+          old_current_specializedef: tstoreddef;
+          old_parse_generic: boolean;
         begin
+           old_current_genericdef:=current_genericdef;
+           old_current_specializedef:=current_specializedef;
+           old_parse_generic:=parse_generic;
+
+           current_genericdef:=nil;
+           current_specializedef:=nil;
            arrdef:=nil;
            consume(_ARRAY);
            { open array? }
@@ -1187,43 +1235,165 @@ implementation
                 include(arrdef.arrayoptions,ado_IsDynamicArray);
                 def:=arrdef;
              end;
+           if assigned(arrdef) then
+             begin
+               { usage of specialized type inside its generic template }
+               if assigned(genericdef) then
+                 current_specializedef:=arrdef
+               { reject declaration of generic class inside generic class }
+               else if assigned(genericlist) then
+                 current_genericdef:=arrdef;
+               symtablestack.push(arrdef.symtable);
+               insert_generic_parameter_types(arrdef,genericdef,genericlist);
+               parse_generic:=(df_generic in arrdef.defoptions);
+             end;
            consume(_OF);
            read_anon_type(tt2,true);
            { set element type of the last array definition }
            if assigned(arrdef) then
              begin
+               symtablestack.pop(arrdef.symtable);
                arrdef.elementdef:=tt2;
                if is_packed and
                   is_managed_type(tt2) then
                  Message(type_e_no_packed_inittable);
              end;
+           { restore old state }
+           parse_generic:=old_parse_generic;
+           current_genericdef:=old_current_genericdef;
+           current_specializedef:=old_current_specializedef;
         end;
 
+        function procvar_dec(genericdef:tstoreddef;genericlist:TFPObjectList):tdef;
+          var
+            is_func:boolean;
+            pd:tabstractprocdef;
+            newtype:ttypesym;
+            old_current_genericdef,
+            old_current_specializedef: tstoreddef;
+            old_parse_generic: boolean;
+          begin
+            old_current_genericdef:=current_genericdef;
+            old_current_specializedef:=current_specializedef;
+            old_parse_generic:=parse_generic;
+
+            current_genericdef:=nil;
+            current_specializedef:=nil;
+
+            is_func:=(token=_FUNCTION);
+            consume(token);
+            pd:=tprocvardef.create(normal_function_level);
+
+            { usage of specialized type inside its generic template }
+            if assigned(genericdef) then
+              current_specializedef:=pd
+            { reject declaration of generic class inside generic class }
+            else if assigned(genericlist) then
+              current_genericdef:=pd;
+            symtablestack.push(pd.parast);
+            insert_generic_parameter_types(pd,genericdef,genericlist);
+            parse_generic:=(df_generic in pd.defoptions);
+            { don't allow to add defs to the symtable - use it for type param search only }
+            tparasymtable(pd.parast).readonly:=true;
+
+            if token=_LKLAMMER then
+              parse_parameter_dec(pd);
+            if is_func then
+              begin
+                consume(_COLON);
+                single_type(pd.returndef,[]);
+              end;
+            if try_to_consume(_OF) then
+              begin
+                consume(_OBJECT);
+                include(pd.procoptions,po_methodpointer);
+              end
+            else if (m_nested_procvars in current_settings.modeswitches) and
+                    try_to_consume(_IS) then
+              begin
+                consume(_NESTED);
+                pd.parast.symtablelevel:=normal_function_level+1;
+                pd.check_mark_as_nested;
+              end;
+            symtablestack.pop(pd.parast);
+            tparasymtable(pd.parast).readonly:=false;
+            result:=pd;
+            { possible proc directives }
+            if parseprocvardir then
+              begin
+                if check_proc_directive(true) then
+                  begin
+                    newtype:=ttypesym.create('unnamed',result);
+                    parse_var_proc_directives(tsym(newtype));
+                    newtype.typedef:=nil;
+                    result.typesym:=nil;
+                    newtype.free;
+                  end;
+                { Add implicit hidden parameters and function result }
+                handle_calling_convention(pd);
+              end;
+            { restore old state }
+            parse_generic:=old_parse_generic;
+            current_genericdef:=old_current_genericdef;
+            current_specializedef:=old_current_specializedef;
+          end;
+
+      const
+        SingleTypeOptionsInTypeBlock:array[Boolean] of TSingleTypeOptions = ([],[stoIsForwardDef]);
       var
         p  : tnode;
         hdef : tdef;
-        pd : tabstractprocdef;
-        is_func,
-        enumdupmsg, first : boolean;
-        newtype : ttypesym;
+        enumdupmsg, first, is_specialize : boolean;
         oldlocalswitches : tlocalswitches;
         bitpacking: boolean;
+        stitem: psymtablestackitem;
+        sym: tsym;
+        st: tsymtable;
       begin
          def:=nil;
          case token of
             _STRING,_FILE:
               begin
-                single_type(def,false,true);
+                single_type(def,[stoAllowTypeDef]);
               end;
            _LKLAMMER:
               begin
                 consume(_LKLAMMER);
-                first := true;
+                first:=true;
                 { allow negativ value_str }
                 l:=int64(-1);
                 enumdupmsg:=false;
-                aktenumdef:=tenumdef.create;
+                { check that we are not adding an enum from specialization
+                  we can't just use current_specializedef because of inner types
+                  like specialize array of record }
+                is_specialize:=false;
+                stitem:=symtablestack.stack;
+                while assigned(stitem) do
+                  begin
+                    { check records, classes and arrays because they can be specialized }
+                    if stitem^.symtable.symtabletype in [recordsymtable,ObjectSymtable,arraysymtable] then
+                      begin
+                        is_specialize:=is_specialize or (df_specialization in tstoreddef(stitem^.symtable.defowner).defoptions);
+                        stitem:=stitem^.next;
+                      end
+                    else
+                      break;
+                  end;
+                if not is_specialize then
+                  aktenumdef:=tenumdef.create
+                else
+                  aktenumdef:=nil;
                 repeat
+                  { if it is a specialization then search the first enum member
+                    and get the member owner instead of just created enumdef }
+                  if not assigned(aktenumdef) then
+                    begin
+                      searchsym(pattern,sym,st);
+                      if sym.typ=enumsym then
+                        aktenumdef:=tenumsym(sym).definition
+                      else
+                        internalerror(201101021);
+                    end;
                   s:=orgpattern;
                   defpos:=current_tokenpos;
                   consume(_ID);
@@ -1266,20 +1436,24 @@ implementation
                     end
                   else
                     inc(l.svalue);
-                  first := false;
-                  storepos:=current_tokenpos;
-                  current_tokenpos:=defpos;
-                  tenumsymtable(aktenumdef.symtable).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));
-                  if not (cs_scopedenums in current_settings.localswitches) then
-                    tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));
-                  current_tokenpos:=storepos;
+                  first:=false;
+                  { don't generate enum members is this is a specialization because aktenumdef is copied from the generic type }
+                  if not is_specialize then
+                    begin
+                      storepos:=current_tokenpos;
+                      current_tokenpos:=defpos;
+                      tenumsymtable(aktenumdef.symtable).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));
+                      if not (cs_scopedenums in current_settings.localswitches) then
+                        tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));
+                      current_tokenpos:=storepos;
+                    end;
                 until not try_to_consume(_COMMA);
                 def:=aktenumdef;
                 consume(_RKLAMMER);
               end;
             _ARRAY:
               begin
-                array_dec(false);
+                array_dec(false,genericdef,genericlist);
               end;
             _SET:
               begin
@@ -1288,14 +1462,14 @@ implementation
            _CARET:
               begin
                 consume(_CARET);
-                single_type(tt2,(block_type=bt_type),false);
+                single_type(tt2,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
                 def:=tpointerdef.create(tt2);
                 if tt2.typ=forwarddef then
                   current_module.checkforwarddefs.add(def);
               end;
             _RECORD:
               begin
-                def:=record_dec(name);
+                def:=record_dec(name,genericdef,genericlist);
               end;
             _PACKED,
             _BITPACKED:
@@ -1305,11 +1479,11 @@ implementation
                   (token = _BITPACKED);
                 consume(token);
                 if token=_ARRAY then
-                  array_dec(bitpacking)
+                  array_dec(bitpacking,genericdef,genericlist)
                 else if token=_SET then
                   set_dec
                 else if token=_FILE then
-                  single_type(def,false,true)
+                  single_type(def,[stoAllowTypeDef])
                 else
                   begin
                     oldpackrecords:=current_settings.packrecords;
@@ -1330,7 +1504,7 @@ implementation
                           def:=object_dec(odt_object,name,genericdef,genericlist,nil);
                         end;
                       else
-                        def:=record_dec(name);
+                        def:=record_dec(name,genericdef,genericlist);
                     end;
                     current_settings.packrecords:=oldpackrecords;
                   end;
@@ -1355,7 +1529,7 @@ implementation
                    ) then
                   begin
                     consume(_OF);
-                    single_type(hdef,(block_type=bt_type),false);
+                    single_type(hdef,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
                     if is_class(hdef) or
                        is_objcclass(hdef) then
                       def:=tclassrefdef.create(hdef)
@@ -1427,49 +1601,13 @@ implementation
             _PROCEDURE,
             _FUNCTION:
               begin
-                is_func:=(token=_FUNCTION);
-                consume(token);
-                pd:=tprocvardef.create(normal_function_level);
-                if token=_LKLAMMER then
-                  parse_parameter_dec(pd);
-                if is_func then
-                 begin
-                   consume(_COLON);
-                   single_type(pd.returndef,false,false);
-                 end;
-                if try_to_consume(_OF) then
-                  begin
-                    consume(_OBJECT);
-                    include(pd.procoptions,po_methodpointer);
-                  end
-                else if (m_nested_procvars in current_settings.modeswitches) and
-                        try_to_consume(_IS) then
-                  begin
-                    consume(_NESTED);
-                    pd.parast.symtablelevel:=normal_function_level+1;
-                    pd.check_mark_as_nested;
-                  end;
-                def:=pd;
-                { possible proc directives }
-                if parseprocvardir then
-                  begin
-                    if check_proc_directive(true) then
-                      begin
-                         newtype:=ttypesym.create('unnamed',def);
-                         parse_var_proc_directives(tsym(newtype));
-                         newtype.typedef:=nil;
-                         def.typesym:=nil;
-                         newtype.free;
-                      end;
-                    { Add implicit hidden parameters and function result }
-                    handle_calling_convention(pd);
-                  end;
+                def:=procvar_dec(genericdef,genericlist);
               end;
             else
               if (token=_KLAMMERAFFE) and (m_iso in current_settings.modeswitches) then
                 begin
                   consume(_KLAMMERAFFE);
-                  single_type(tt2,(block_type=bt_type),false);
+                  single_type(tt2,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
                   def:=tpointerdef.create(tt2);
                   if tt2.typ=forwarddef then
                     current_module.checkforwarddefs.add(def);

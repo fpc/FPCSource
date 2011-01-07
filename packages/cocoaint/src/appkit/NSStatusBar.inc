@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSStatusBar.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -47,7 +47,7 @@ const
 {$define NSSTATUSBAR_PAS_C}
 
 { NSStatusBar }
-  NSStatusBar = objcclass(NSObject)
+  NSStatusBar = objcclass external (NSObject)
   private
     _items: id;
     _fReserved1: Pointer;
@@ -55,14 +55,12 @@ const
     _registeredForNote: NSInteger;
     
   public
-    class function alloc: NSStatusBar; message 'alloc';
-
     class function systemStatusBar: NSStatusBar; message 'systemStatusBar';
     function statusItemWithLength(length: CGFloat): NSStatusItem; message 'statusItemWithLength:';
     procedure removeStatusItem(item: NSStatusItem); message 'removeStatusItem:';
     function isVertical: Boolean; message 'isVertical';
     function thickness: CGFloat; message 'thickness';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

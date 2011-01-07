@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMEventTarget.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -39,12 +39,12 @@
 {$define DOMEVENTTARGET_PAS_P}
   
 { DOMEventTarget Protocol }
-  DOMEventTargetProtocol = objcprotocol
+  DOMEventTargetProtocol = objcprotocol external name 'DOMEventTarget'
     procedure addEventListener_listener_useCapture(type_: NSString; listener: id; useCapture: Boolean); message 'addEventListener:listener:useCapture:';
     procedure removeEventListener_listener_useCapture(type_: NSString; listener: id; useCapture: Boolean); message 'removeEventListener:listener:useCapture:';
     function dispatchEvent(event: DOMEvent): Boolean; message 'dispatchEvent:';
     procedure addEventListener(type_: NSString; listener: id; useCapture: Boolean); message 'addEventListener:type:listener:';
     procedure removeEventListener(type_: NSString; listener: id; useCapture: Boolean); message 'removeEventListener:type:listener:';
-  end; external name 'DOMEventTarget';
+  end;
 {$endif}
 {$endif}

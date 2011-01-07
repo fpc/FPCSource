@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLTableCaptionElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,14 +42,12 @@
 {$define DOMHTMLTABLECAPTIONELEMENT_PAS_C}
 
 { DOMHTMLTableCaptionElement }
-  DOMHTMLTableCaptionElement = objcclass(DOMHTMLElement)
+  DOMHTMLTableCaptionElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLTableCaptionElement; message 'alloc';
-
     procedure setAlign (newValue: NSString); message 'setAlign:';
     function align: NSString; message 'align';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

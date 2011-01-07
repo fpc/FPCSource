@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTabView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -63,7 +63,7 @@ type
 {$define NSTABVIEW_PAS_C}
 
 { NSTabView }
-  NSTabView = objcclass(NSView)
+  NSTabView = objcclass external (NSView)
   private
     _tabViewItems: id;
     _selectedTabViewItem: NSTabViewItem;
@@ -108,8 +108,6 @@ type
     _tabViewUnused2: Pointer;
     
   public
-    class function alloc: NSTabView; message 'alloc';
-
     procedure selectTabViewItem(tabViewItem: NSTabViewItem); message 'selectTabViewItem:';
     procedure selectTabViewItemAtIndex(index: NSInteger); message 'selectTabViewItemAtIndex:';
     procedure selectTabViewItemWithIdentifier(identifier: id); message 'selectTabViewItemWithIdentifier:';
@@ -144,7 +142,7 @@ type
     function indexOfTabViewItem(tabViewItem: NSTabViewItem): NSInteger; message 'indexOfTabViewItem:';
     function tabViewItemAtIndex(index: NSInteger): NSTabViewItem; message 'tabViewItemAtIndex:';
     function indexOfTabViewItemWithIdentifier(identifier: id): NSInteger; message 'indexOfTabViewItemWithIdentifier:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -153,11 +151,11 @@ type
 {$define NSTABVIEW_PAS_P}
   
 { NSTabViewDelegate Protocol }
-  NSTabViewDelegateProtocol = objcprotocol
+  NSTabViewDelegateProtocol = objcprotocol external name 'NSTabViewDelegate'
     function tabView_shouldSelectTabViewItem(tabView: NSTabView; tabViewItem: NSTabViewItem): Boolean; message 'tabView:shouldSelectTabViewItem:';
     procedure tabView_willSelectTabViewItem(tabView: NSTabView; tabViewItem: NSTabViewItem); message 'tabView:willSelectTabViewItem:';
     procedure tabView_didSelectTabViewItem(tabView: NSTabView; tabViewItem: NSTabViewItem); message 'tabView:didSelectTabViewItem:';
     procedure tabViewDidChangeNumberOfTabViewItems(TabView: NSTabView); message 'tabViewDidChangeNumberOfTabViewItems:';
-  end; external name 'NSTabViewDelegate';
+  end;
 {$endif}
 {$endif}

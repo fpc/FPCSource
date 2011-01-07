@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSToolbarItemGroup.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSTOOLBARITEMGROUP_PAS_C}
 
 { NSToolbarItemGroup }
-  NSToolbarItemGroup = objcclass(NSToolbarItem)
+  NSToolbarItemGroup = objcclass external (NSToolbarItem)
   private
     _groupItems: id;
     __giFlags: bitpacked record
@@ -56,11 +56,9 @@
     _giReserved: id;
     
   public
-    class function alloc: NSToolbarItemGroup; message 'alloc';
-
     procedure setSubitems(subitems_: NSArray); message 'setSubitems:';
     function subitems: NSArray; message 'subitems';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

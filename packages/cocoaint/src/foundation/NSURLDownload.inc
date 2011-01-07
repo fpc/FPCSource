@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLDownload.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,13 +42,11 @@
 {$define NSURLDOWNLOAD_PAS_C}
 
 { NSURLDownload }
-  NSURLDownload = objcclass(NSObject)
+  NSURLDownload = objcclass external (NSObject)
   private
     _internal: NSURLDownloadInternal;
     
   public
-    class function alloc: NSURLDownload; message 'alloc';
-
     class function canResumeDownloadDecodedWithEncodingMIMEType(MIMEType: NSString): Boolean; message 'canResumeDownloadDecodedWithEncodingMIMEType:';
     function initWithRequest_delegate(request_: NSURLRequest; delegate: id): id; message 'initWithRequest:delegate:';
     function initWithResumeData_delegate_path(resumeData_: NSData; delegate: id; path: NSString): id; message 'initWithResumeData:delegate:path:';
@@ -58,10 +56,10 @@
     function resumeData: NSData; message 'resumeData';
     procedure setDeletesFileUponFailure(deletesFileUponFailure_: Boolean); message 'setDeletesFileUponFailure:';
     function deletesFileUponFailure: Boolean; message 'deletesFileUponFailure';
-  end; external;
+  end;
 
 { NSURLDownloadDelegateCategory }
-  NSURLDownloadDelegateCategory = objccategory(NSObject)
+  NSURLDownloadDelegateCategory = objccategory external (NSObject)
     procedure downloadDidBegin(download: NSURLDownload); message 'downloadDidBegin:';
     function download_willSendRequest_redirectResponse(download: NSURLDownload; request: NSURLRequest; redirectResponse: NSURLResponse): NSURLRequest; message 'download:willSendRequest:redirectResponse:';
     function download_canAuthenticateAgainstProtectionSpace(connection: NSURLDownload; protectionSpace: NSURLProtectionSpace): Boolean; message 'download:canAuthenticateAgainstProtectionSpace:';
@@ -76,7 +74,7 @@
     procedure download_didCreateDestination(download: NSURLDownload; path: NSString); message 'download:didCreateDestination:';
     procedure downloadDidFinish(download: NSURLDownload); message 'downloadDidFinish:';
     procedure download_didFailWithError(download: NSURLDownload; error: NSError); message 'download:didFailWithError:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

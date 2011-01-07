@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextContainer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -64,7 +64,7 @@ type
 {$define NSTEXTCONTAINER_PAS_C}
 
 { NSTextContainer }
-  NSTextContainer = objcclass(NSObject, NSCodingProtocol)
+  NSTextContainer = objcclass external (NSObject, NSCodingProtocol)
   private
     _layoutManager: NSLayoutManager;
     _textView: NSTextView;
@@ -82,8 +82,6 @@ type
       end;
     
   public
-    class function alloc: NSTextContainer; message 'alloc';
-
     function initWithContainerSize(size: NSSize): id; message 'initWithContainerSize:';
     function layoutManager: NSLayoutManager; message 'layoutManager';
     procedure setLayoutManager(layoutManager_: NSLayoutManager); message 'setLayoutManager:';
@@ -105,7 +103,7 @@ type
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

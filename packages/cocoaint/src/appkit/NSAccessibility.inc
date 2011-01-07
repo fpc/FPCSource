@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAccessibility.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -337,7 +337,7 @@ var
 {$define NSACCESSIBILITY_PAS_C}
 
 { NSAccessibilityCategory }
-  NSAccessibilityCategory = objccategory(NSObject)
+  NSAccessibilityCategory = objccategory external (NSObject)
     function accessibilityAttributeNames: NSArray; message 'accessibilityAttributeNames';
     function accessibilityAttributeValue(attribute: NSString): id; message 'accessibilityAttributeValue:';
     function accessibilityIsAttributeSettable(attribute: NSString): Boolean; message 'accessibilityIsAttributeSettable:';
@@ -353,12 +353,12 @@ var
     function accessibilityIndexOfChild(child: id): NSUInteger; message 'accessibilityIndexOfChild:';
     function accessibilityArrayAttributeCount(attribute: NSString): NSUInteger; message 'accessibilityArrayAttributeCount:';
     function accessibilityArrayAttributeValues_index_maxCount(attribute: NSString; index: NSUInteger; maxCount: NSUInteger): NSArray; message 'accessibilityArrayAttributeValues:index:maxCount:';
-  end; external;
+  end;
 
 { NSAccessibilityAdditionsCategory }
-  NSAccessibilityAdditionsCategory = objccategory(NSObject)
+  NSAccessibilityAdditionsCategory = objccategory external (NSObject)
     function accessibilitySetOverrideValue_forAttribute(value: id; attribute: NSString): Boolean; message 'accessibilitySetOverrideValue:forAttribute:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

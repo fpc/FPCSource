@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPointerArray.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define NSPOINTERARRAY_PAS_C}
 
 { NSPointerArray }
-  NSPointerArray = objcclass(NSObject, NSFastEnumerationProtocol, NSCopyingProtocol, NSCodingProtocol)
+  NSPointerArray = objcclass external (NSObject, NSFastEnumerationProtocol, NSCopyingProtocol, NSCodingProtocol)
     
   public
-    class function alloc: NSPointerArray; message 'alloc';
-
     function pointerFunctions: NSPointerFunctions; message 'pointerFunctions';
     function pointerAtIndex(index: NSUInteger): Pointer; message 'pointerAtIndex:';
     procedure addPointer(pointer_: Pointer); message 'addPointer:';
@@ -62,12 +60,12 @@
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSArrayConveniencesCategory }
-  NSArrayConveniencesCategory = objccategory(NSPointerArray)
+  NSArrayConveniencesCategory = objccategory external (NSPointerArray)
     function allObjects: NSArray; message 'allObjects';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

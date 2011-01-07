@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMovieView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -72,7 +72,7 @@ __MVFlagsPtr = ^__MVFlags;
 {$define NSMOVIEVIEW_PAS_C}
 
 { NSMovieView }
-  NSMovieView = objcclass(NSView, NSUserInterfaceValidationsProtocol)
+  NSMovieView = objcclass external (NSView, NSUserInterfaceValidationsProtocol)
   private
     _fMovie: NSMovie;
     _fRate: single;
@@ -84,8 +84,6 @@ __MVFlagsPtr = ^__MVFlags;
     _fReserved3: culong;
     
   public
-    class function alloc: NSMovieView; message 'alloc';
-
     procedure setMovie(movie: NSMovie); message 'setMovie:'; deprecated 'in Mac OS X 10.5 and later';
     function movie: NSMovie; message 'movie'; deprecated 'in Mac OS X 10.5 and later';
     function movieController: Pointer; message 'movieController'; deprecated 'in Mac OS X 10.5 and later';
@@ -125,7 +123,7 @@ __MVFlagsPtr = ^__MVFlags;
 
     { Adopted Protocols }
     function validateUserInterfaceItem(anItem: id): Boolean;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

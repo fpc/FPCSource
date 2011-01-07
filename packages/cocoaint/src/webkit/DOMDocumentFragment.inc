@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMDocumentFragment.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,10 @@
 {$define DOMDOCUMENTFRAGMENT_PAS_C}
 
 { DOMDocumentFragment }
-  DOMDocumentFragment = objcclass(DOMNode)
+  DOMDocumentFragment = objcclass external (DOMNode)
     
   public
-    class function alloc: DOMDocumentFragment; message 'alloc';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

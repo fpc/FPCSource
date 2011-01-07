@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CISampler.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -50,13 +50,11 @@ var
 {$define CISAMPLER_PAS_C}
 
 { CISampler }
-  CISampler = objcclass(NSObject, NSCopyingProtocol)
+  CISampler = objcclass external (NSObject, NSCopyingProtocol)
   private
     _priv: Pointer;
     
   public
-    class function alloc: CISampler; message 'alloc';
-
     class function samplerWithImage(im: CIImage): CISampler; message 'samplerWithImage:';
     class function samplerWithImage_keysAndValues(im: CIImage; firstKey: id): CISampler; varargs; message 'samplerWithImage:keysAndValues:';
     class function samplerWithImage_options(im: CIImage; dict: NSDictionary): CISampler; message 'samplerWithImage:options:';
@@ -68,7 +66,7 @@ var
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

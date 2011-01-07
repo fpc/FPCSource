@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSXMLDTD.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSXMLDTD_PAS_C}
 
 { NSXMLDTD }
-  NSXMLDTD = objcclass(NSXMLNode)
+  NSXMLDTD = objcclass external (NSXMLNode)
   private
     _name: NSString;
     _publicID: NSString;
@@ -59,8 +59,6 @@
         _padding2: array[0..2] of cuint8;
     
   public
-    class function alloc: NSXMLDTD; message 'alloc';
-
     function initWithContentsOfURL_options_error(url: NSURL; mask: NSUInteger; error: NSErrorPointer): id; message 'initWithContentsOfURL:options:error:';
     function initWithData_options_error(data: NSData; mask: NSUInteger; error: NSErrorPointer): id; message 'initWithData:options:error:';
     procedure setPublicID(publicID_: NSString); message 'setPublicID:';
@@ -78,7 +76,7 @@
     function elementDeclarationForName(name_: NSString): NSXMLDTDNode; message 'elementDeclarationForName:';
     function attributeDeclarationForName_elementName(name_: NSString; elementName: NSString): NSXMLDTDNode; message 'attributeDeclarationForName:elementName:';
     class function predefinedEntityDeclarationForName(name_: NSString): NSXMLDTDNode; message 'predefinedEntityDeclarationForName:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

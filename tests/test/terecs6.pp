@@ -34,6 +34,8 @@ type
     class operator BitwiseXor(a, b: TFoo): TFoo;
     class operator Inc(a: TFoo): TFoo;
     class operator Dec(a: TFoo): TFoo;
+    class operator Negative(a: TFoo): TFoo;
+    class operator Positive(a: TFoo): TFoo;
  end;
 
 class operator TFoo.Explicit(a: TFoo): Integer;
@@ -167,6 +169,17 @@ begin
   Result.F := a.F - 1;
 end;
 
+class operator TFoo.Negative(a: TFoo): TFoo;
+begin
+  Result.F := -a.F;
+end;
+
+class operator TFoo.Positive(a: TFoo): TFoo;
+begin
+  // to check that operator is called change the result value
+  Result.F := a.F+1;
+end;
+
 var
   a, b: TFoo;
   i: integer;
@@ -232,5 +245,11 @@ begin
     halt(26);
   if Integer(b) <> 2 then
     halt(27);
+  b := -b;
+  if b.F <> -1 then
+    halt(28);
+  b := +b;
+  if b.F <> 0 then
+    halt(29);
   WriteLn('ok');
 end.

@@ -946,6 +946,11 @@ unit scandir;
       recordpendingverbosityfullswitch(switchesstatestack[switchesstatestackpos].verbosity);
     end;
 
+    procedure dir_pointermath;
+      begin
+        do_localswitch(cs_pointermath);
+      end;
+
     procedure dir_profile;
       begin
         do_moduleswitch(cs_profile);
@@ -1450,6 +1455,7 @@ unit scandir;
         AddDirective('PACKSET',directive_all, @dir_packset);
         AddDirective('PASCALMAINNAME',directive_all, @dir_pascalmainname);
         AddDirective('PIC',directive_all, @dir_pic);
+        AddDirective('POINTERMATH',directive_all, @dir_pointermath);
         AddDirective('POP',directive_all, @dir_pop);
         AddDirective('PROFILE',directive_all, @dir_profile);
         AddDirective('PUSH',directive_all, @dir_push);

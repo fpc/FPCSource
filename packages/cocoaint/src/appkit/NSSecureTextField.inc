@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSecureTextField.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -45,23 +45,20 @@
 {$define NSSECURETEXTFIELD_PAS_C}
 
 { NSSecureTextField }
-  NSSecureTextField = objcclass(NSTextField)
+  NSSecureTextField = objcclass external (NSTextField)
     
   public
-    class function alloc: NSSecureTextField; message 'alloc';
-  end; external;
+  end;
 
 { NSSecureTextFieldCell }
-  NSSecureTextFieldCell = objcclass(NSTextFieldCell)
+  NSSecureTextFieldCell = objcclass external (NSTextFieldCell)
   private
     _echosBullets: Boolean;
     
   public
-    class function alloc: NSSecureTextFieldCell; message 'alloc';
-
     procedure setEchosBullets(flag: Boolean); message 'setEchosBullets:';
     function echosBullets: Boolean; message 'echosBullets';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

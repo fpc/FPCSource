@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPortCoder.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define NSPORTCODER_PAS_C}
 
 { NSPortCoder }
-  NSPortCoder = objcclass(NSCoder)
+  NSPortCoder = objcclass external (NSCoder)
     
   public
-    class function alloc: NSPortCoder; message 'alloc';
-
     function isBycopy: Boolean; message 'isBycopy';
     function isByref: Boolean; message 'isByref';
     function connection: NSConnection; message 'connection';
@@ -54,13 +52,13 @@
     function decodePortObject: NSPort; message 'decodePortObject';
     function initWithReceivePort_sendPort_components(rcvPort: NSPort; sndPort: NSPort; comps: NSArray): id; message 'initWithReceivePort:sendPort:components:';
     procedure dispatch; message 'dispatch';
-  end; external;
+  end;
 
 { NSDistributedObjectsCategory }
-  NSDistributedObjectsCategory = objccategory(NSObject)
+  NSDistributedObjectsCategory = objccategory external (NSObject)
     function classForPortCoder: Pobjc_class; message 'classForPortCoder';
     function replacementObjectForPortCoder(coder: NSPortCoder): id; message 'replacementObjectForPortCoder:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

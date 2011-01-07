@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CIContext.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -48,13 +48,11 @@ var
 {$define CICONTEXT_PAS_C}
 
 { CIContext }
-  CIContext = objcclass(NSObject)
+  CIContext = objcclass external (NSObject)
   private
     _priv: id;
     
   public
-    class function alloc: CIContext; message 'alloc';
-
     class function contextWithCGLContext_pixelFormat_colorSpace_options(ctx: CGLContextObj; pf: CGLPixelFormatObj; cs: CGColorSpaceRef; dict: NSDictionary): CIContext; message 'contextWithCGLContext:pixelFormat:colorSpace:options:';
     class function contextWithCGLContext_pixelFormat_options(ctx: CGLContextObj; pf: CGLPixelFormatObj; dict: NSDictionary): CIContext; message 'contextWithCGLContext:pixelFormat:options:';
     class function contextWithCGContext_options(ctx: CGContextRef; dict: NSDictionary): CIContext; message 'contextWithCGContext:options:';
@@ -67,7 +65,7 @@ var
     procedure render_toIOSurface_bounds_colorSpace(im: CIImage; surface: IOSurfaceRef; r: CGRect; cs: CGColorSpaceRef); message 'render:toIOSurface:bounds:colorSpace:';
     procedure reclaimResources; message 'reclaimResources';
     procedure clearCaches; message 'clearCaches';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

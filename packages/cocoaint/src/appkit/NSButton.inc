@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSButton.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define NSBUTTON_PAS_C}
 
 { NSButton }
-  NSButton = objcclass(NSControl, NSUserInterfaceValidationsProtocol)
+  NSButton = objcclass external (NSControl, NSUserInterfaceValidationsProtocol)
     
   public
-    class function alloc: NSButton; message 'alloc';
-
     function title: NSString; message 'title';
     procedure setTitle(aString: NSString); message 'setTitle:';
     function alternateTitle: NSString; message 'alternateTitle';
@@ -75,45 +73,45 @@
 
     { Adopted Protocols }
     function validateUserInterfaceItem(anItem: id): Boolean;
-  end; external;
+  end;
 
 { NSKeyboardUI_NSButtonCategory }
-  NSKeyboardUI_NSButtonCategory = objccategory(NSButton)
+  NSKeyboardUI_NSButtonCategory = objccategory external name 'NSKeyboardUI' (NSButton)
     procedure setTitleWithMnemonic(stringWithAmpersand: NSString); message 'setTitleWithMnemonic:';
-  end; external name 'NSKeyboardUI';
+  end;
 
 { NSButtonAttributedStringMethodsCategory }
-  NSButtonAttributedStringMethodsCategory = objccategory(NSButton)
+  NSButtonAttributedStringMethodsCategory = objccategory external (NSButton)
     function attributedTitle: NSAttributedString; message 'attributedTitle';
     procedure setAttributedTitle(aString: NSAttributedString); message 'setAttributedTitle:';
     function attributedAlternateTitle: NSAttributedString; message 'attributedAlternateTitle';
     procedure setAttributedAlternateTitle(obj: NSAttributedString); message 'setAttributedAlternateTitle:';
-  end; external;
+  end;
 
 { NSButtonBezelStylesCategory }
-  NSButtonBezelStylesCategory = objccategory(NSButton)
+  NSButtonBezelStylesCategory = objccategory external (NSButton)
     procedure setBezelStyle(bezelStyle_: NSBezelStyle); message 'setBezelStyle:';
     function bezelStyle: NSBezelStyle; message 'bezelStyle';
-  end; external;
+  end;
 
 { NSButtonMixedStateCategory }
-  NSButtonMixedStateCategory = objccategory(NSButton)
+  NSButtonMixedStateCategory = objccategory external (NSButton)
     procedure setAllowsMixedState(flag: Boolean); message 'setAllowsMixedState:';
     function allowsMixedState: Boolean; message 'allowsMixedState';
     procedure setNextState; message 'setNextState';
-  end; external;
+  end;
 
 { NSButtonBorderCategory }
-  NSButtonBorderCategory = objccategory(NSButton)
+  NSButtonBorderCategory = objccategory external (NSButton)
     procedure setShowsBorderOnlyWhileMouseInside(show: Boolean); message 'setShowsBorderOnlyWhileMouseInside:';
     function showsBorderOnlyWhileMouseInside: Boolean; message 'showsBorderOnlyWhileMouseInside';
-  end; external;
+  end;
 
 { NSButtonSoundExtensionsCategory }
-  NSButtonSoundExtensionsCategory = objccategory(NSButton)
+  NSButtonSoundExtensionsCategory = objccategory external (NSButton)
     procedure setSound(aSound: NSSound); message 'setSound:';
     function sound: NSSound; message 'sound';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -495,7 +495,7 @@ implementation
                    procvardef,
                    classrefdef : ;
                    objectdef :
-                     if not is_class_or_interface_or_dispinterface_or_objc(p1.resultdef) then
+                     if not is_implicit_pointer_object_type(p1.resultdef) then
                        begin
                          Message(parser_e_illegal_parameter_list);
                          err:=true;
@@ -1395,7 +1395,7 @@ implementation
                if typeonly then
                  searchsym_type(pattern,srsym,srsymtable)
                else
-               searchsym(pattern,srsym,srsymtable);
+                 searchsym(pattern,srsym,srsymtable);
 
                { handle unit specification like System.Writeln }
                unit_found:=try_consume_unitsym(srsym,srsymtable,t);
@@ -1522,6 +1522,11 @@ implementation
                        if (hdef=cvarianttype) and
                           not(cs_compilesystem in current_settings.moduleswitches) then
                          current_module.flags:=current_module.flags or uf_uses_variants;
+                       { if we get a generic then check that it is not an inline specialization }
+                       if (df_generic in hdef.defoptions) and
+                          (token=_LT) and
+                          (m_delphi in current_settings.modeswitches) then
+                          generate_specialization(hdef,false);
                        if try_to_consume(_LKLAMMER) then
                         begin
                           p1:=comp_expr(true,false);
@@ -1541,7 +1546,7 @@ implementation
                              begin
                                p1:=ctypenode.create(hdef);
                                { search also in inherited methods }
-                               searchsym_in_class(tobjectdef(hdef),current_objectdef,pattern,srsym,srsymtable);
+                               searchsym_in_class(tobjectdef(hdef),tobjectdef(current_structdef),pattern,srsym,srsymtable);
                                if assigned(srsym) then
                                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                consume(_ID);
@@ -2369,12 +2374,12 @@ implementation
                     assigned(current_structdef) and
                     (current_structdef.typ=objectdef) then
                   begin
-                    hclassdef:=current_objectdef.childof;
+                    hclassdef:=tobjectdef(current_structdef).childof;
                     { Objective-C categories *replace* methods in the class
                       they extend, or add methods to it. So calling an
                       inherited method always calls the method inherited from
                       the parent of the extended class }
-                    if is_objccategory(current_objectdef) then
+                    if is_objccategory(current_structdef) then
                       hclassdef:=hclassdef.childof;
                     { if inherited; only then we need the method with
                       the same name }
@@ -2393,7 +2398,7 @@ implementation
                         if (po_msgstr in pd.procoptions) then
                           searchsym_in_class_by_msgstr(hclassdef,pd.messageinf.str^,srsym,srsymtable)
                        else
-                         searchsym_in_class(hclassdef,current_objectdef,hs,srsym,srsymtable);
+                         searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable);
                      end
                     else
                      begin
@@ -2401,7 +2406,7 @@ implementation
                        hsorg:=orgpattern;
                        consume(_ID);
                        anon_inherited:=false;
-                       searchsym_in_class(hclassdef,current_objectdef,hs,srsym,srsymtable);
+                       searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable);
                      end;
                     if assigned(srsym) then
                      begin
@@ -2660,9 +2665,7 @@ implementation
                begin
                  consume(_PLUS);
                  p1:=factor(false,false);
-                 { we must generate a new node to do 0+<p1> otherwise the + will
-                   not be checked }
-                 p1:=caddnode.create(addn,genintconstnode(0),p1);
+                 p1:=cunaryplusnode.create(p1);
                end;
 
              _MINUS :

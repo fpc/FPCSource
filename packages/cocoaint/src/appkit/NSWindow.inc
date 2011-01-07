@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSWindow.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -147,7 +147,7 @@ var
 {$define NSWINDOW_PAS_C}
 
 { NSWindow }
-  NSWindow = objcclass(NSResponder)
+  NSWindow = objcclass external (NSResponder)
   private
     _frame: NSRect;
     _contentView: id;
@@ -243,8 +243,6 @@ var
     _auxiliaryStorage: NSWindowAuxiliary;
     
   public
-    class function alloc: NSWindow; message 'alloc';
-
     class function frameRectForContentRect_styleMask(cRect: NSRect; aStyle: NSUInteger): NSRect; message 'frameRectForContentRect:styleMask:';
     class function contentRectForFrameRect_styleMask(fRect: NSRect; aStyle: NSUInteger): NSRect; message 'contentRectForFrameRect:styleMask:';
     class function minFrameWidthWithTitle_styleMask(aTitle: NSString; aStyle: NSUInteger): CGFloat; message 'minFrameWidthWithTitle:styleMask:';
@@ -464,10 +462,10 @@ var
     function colorSpace: NSColorSpace; message 'colorSpace';
     class function windowNumbersWithOptions(options: NSWindowNumberListOptions): NSArray; message 'windowNumbersWithOptions:';
     class function windowNumberAtPoint_belowWindowWithWindowNumber(point: NSPoint; windowNumber_: NSInteger): NSInteger; message 'windowNumberAtPoint:belowWindowWithWindowNumber:';
-  end; external;
+  end;
 
 { NSKeyboardUI_NSWindowCategory }
-  NSKeyboardUI_NSWindowCategory = objccategory(NSWindow)
+  NSKeyboardUI_NSWindowCategory = objccategory external name 'NSKeyboardUI' (NSWindow)
     procedure setInitialFirstResponder(view: NSView); message 'setInitialFirstResponder:';
     function initialFirstResponder: NSView; message 'initialFirstResponder';
     procedure selectNextKeyView(sender: id); message 'selectNextKeyView:';
@@ -482,30 +480,30 @@ var
     procedure setAutorecalculatesKeyViewLoop(flag: Boolean); message 'setAutorecalculatesKeyViewLoop:';
     function autorecalculatesKeyViewLoop: Boolean; message 'autorecalculatesKeyViewLoop';
     procedure recalculateKeyViewLoop; message 'recalculateKeyViewLoop';
-  end; external name 'NSKeyboardUI';
+  end;
 
 { NSToolbarSupportCategory }
-  NSToolbarSupportCategory = objccategory(NSWindow)
+  NSToolbarSupportCategory = objccategory external (NSWindow)
     procedure setToolbar(toolbar_: NSToolbar); message 'setToolbar:';
     function toolbar: NSToolbar; message 'toolbar';
     procedure toggleToolbarShown(sender: id); message 'toggleToolbarShown:';
     procedure runToolbarCustomizationPalette(sender: id); message 'runToolbarCustomizationPalette:';
     procedure setShowsToolbarButton(show: Boolean); message 'setShowsToolbarButton:';
     function showsToolbarButton: Boolean; message 'showsToolbarButton';
-  end; external;
+  end;
 
 { NSDrag_NSWindowCategory }
-  NSDrag_NSWindowCategory = objccategory(NSWindow)
+  NSDrag_NSWindowCategory = objccategory external name 'NSDrag' (NSWindow)
     procedure dragImage_at_offset_event_pasteboard_source_slideBack(anImage: NSImage; baseLocation: NSPoint; initialOffset: NSSize; event: NSEvent; pboard: NSPasteboard; sourceObj: id; slideFlag: Boolean); message 'dragImage:at:offset:event:pasteboard:source:slideBack:';
     procedure registerForDraggedTypes(newTypes: NSArray); message 'registerForDraggedTypes:';
     procedure unregisterDraggedTypes; message 'unregisterDraggedTypes';
-  end; external name 'NSDrag';
+  end;
 
 { NSCarbonExtensionsCategory }
-  NSCarbonExtensionsCategory = objccategory(NSWindow)
+  NSCarbonExtensionsCategory = objccategory external (NSWindow)
     function initWithWindowRef(windowRef_: Pointer): NSWindow; message 'initWithWindowRef:';
     function windowRef: Pointer; message 'windowRef';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -514,7 +512,7 @@ var
 {$define NSWINDOW_PAS_P}
   
 { NSWindowDelegate Protocol }
-  NSWindowDelegateProtocol = objcprotocol
+  NSWindowDelegateProtocol = objcprotocol external name 'NSWindowDelegate'
     function windowShouldClose(sender: id): Boolean; message 'windowShouldClose:';
     function windowWillReturnFieldEditor_toObject(sender: NSWindow; client: id): id; message 'windowWillReturnFieldEditor:toObject:';
     function windowWillResize_toSize(sender: NSWindow; frameSize: NSSize): NSSize; message 'windowWillResize:toSize:';
@@ -543,6 +541,6 @@ var
     procedure windowDidEndSheet(notification: NSNotification); message 'windowDidEndSheet:';
     procedure windowWillStartLiveResize(notification: NSNotification); message 'windowWillStartLiveResize:';
     procedure windowDidEndLiveResize(notification: NSNotification); message 'windowDidEndLiveResize:';
-  end; external name 'NSWindowDelegate';
+  end;
 {$endif}
 {$endif}

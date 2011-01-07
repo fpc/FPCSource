@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSplitView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -60,13 +60,11 @@ var
 {$define NSSPLITVIEW_PAS_C}
 
 { NSSplitView }
-  NSSplitView = objcclass(NSView)
+  NSSplitView = objcclass external (NSView)
   private
     _variables: id;
     
   public
-    class function alloc: NSSplitView; message 'alloc';
-
     procedure setVertical(flag: Boolean); message 'setVertical:';
     function isVertical: Boolean; message 'isVertical';
     procedure setDividerStyle(dividerStyle_: NSSplitViewDividerStyle); message 'setDividerStyle:';
@@ -83,13 +81,13 @@ var
     function minPossiblePositionOfDividerAtIndex(dividerIndex: NSInteger): CGFloat; message 'minPossiblePositionOfDividerAtIndex:';
     function maxPossiblePositionOfDividerAtIndex(dividerIndex: NSInteger): CGFloat; message 'maxPossiblePositionOfDividerAtIndex:';
     procedure setPosition_ofDividerAtIndex(position: CGFloat; dividerIndex: NSInteger); message 'setPosition:ofDividerAtIndex:';
-  end; external;
+  end;
 
 { NSDeprecated_NSSplitViewCategory }
-  NSDeprecated_NSSplitViewCategory = objccategory(NSSplitView)
+  NSDeprecated_NSSplitViewCategory = objccategory external name 'NSDeprecated' (NSSplitView)
     procedure setIsPaneSplitter(flag: Boolean); message 'setIsPaneSplitter:'; deprecated 'in Mac OS X 10.6 and later';
     function isPaneSplitter: Boolean; message 'isPaneSplitter'; deprecated 'in Mac OS X 10.6 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}
@@ -98,7 +96,7 @@ var
 {$define NSSPLITVIEW_PAS_P}
   
 { NSSplitViewDelegate Protocol }
-  NSSplitViewDelegateProtocol = objcprotocol
+  NSSplitViewDelegateProtocol = objcprotocol external name 'NSSplitViewDelegate'
     function splitView_canCollapseSubview(splitView: NSSplitView; subview: NSView): Boolean; message 'splitView:canCollapseSubview:';
     function splitView_shouldCollapseSubview_forDoubleClickOnDividerAtIndex(splitView: NSSplitView; subview: NSView; dividerIndex: NSInteger): Boolean; message 'splitView:shouldCollapseSubview:forDoubleClickOnDividerAtIndex:';
     function splitView_constrainMinCoordinate_ofSubviewAt(splitView: NSSplitView; proposedMinimumPosition: CGFloat; dividerIndex: NSInteger): CGFloat; message 'splitView:constrainMinCoordinate:ofSubviewAt:';
@@ -111,6 +109,6 @@ var
     function splitView_additionalEffectiveRectOfDividerAtIndex(splitView: NSSplitView; dividerIndex: NSInteger): NSRect; message 'splitView:additionalEffectiveRectOfDividerAtIndex:';
     procedure splitViewWillResizeSubviews(notification: NSNotification); message 'splitViewWillResizeSubviews:';
     procedure splitViewDidResizeSubviews(notification: NSNotification); message 'splitViewDidResizeSubviews:';
-  end; external name 'NSSplitViewDelegate';
+  end;
 {$endif}
 {$endif}

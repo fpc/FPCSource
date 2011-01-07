@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCharacterData.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMCHARACTERDATA_PAS_C}
 
 { DOMCharacterData }
-  DOMCharacterData = objcclass(DOMNode)
+  DOMCharacterData = objcclass external (DOMNode)
     
   public
-    class function alloc: DOMCharacterData; message 'alloc';
-
     procedure setData (newValue: NSString); message 'setData:';
     function data: NSString; message 'data';
     function length: cuint; message 'length';
@@ -55,15 +53,15 @@
     procedure insertData_data(offset: cuint; data_: NSString); message 'insertData:data:';
     procedure deleteData_length(offset: cuint; length_: cuint); message 'deleteData:length:';
     procedure replaceData_length_data(offset: cuint; length_: cuint; data_: NSString); message 'replaceData:length:data:';
-  end; external;
+  end;
 
 { DOMCharacterDataDeprecatedCategory }
-  DOMCharacterDataDeprecatedCategory = objccategory(DOMCharacterData)
+  DOMCharacterDataDeprecatedCategory = objccategory external (DOMCharacterData)
     function substringData(offset: cuint; length_: cuint): NSString; message 'substringData:offset:';
     procedure insertData(offset: cuint; data_: NSString); message 'insertData:offset:';
     procedure deleteData(offset: cuint; length_: cuint); message 'deleteData:offset:';
     procedure replaceData(offset: cuint; length_: cuint; data_: NSString); message 'replaceData:offset:length:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

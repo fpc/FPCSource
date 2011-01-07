@@ -374,6 +374,12 @@ $CPUCROSSIFDEF2
 #-Fr$FPCPATH/msg/errore.msg
 #-Fr$FPCPATH/msg/errorn.msg
 
+# searchpath for units and other system dependent things
+-Fu$FPCPATH/units/\$fpctarget
+-Fu$FPCPATH/units/\$fpctarget/*
+-Fu$FPCPATH/units/\$fpctarget/rtl
+#-Fu~/fpc/packages/base/*/units/$fpctarget;~/fpc/fcl/units/$fpctarget;~/fpc/rtl/units/$fpctarget
+
 #IFDEF FPCAPACHE_1_3
 -Fu$FPCPATH/units/\$fpctarget/httpd13/
 #ELSE
@@ -383,12 +389,6 @@ $CPUCROSSIFDEF2
 -Fu$FPCPATH/units/\$fpctarget/httpd22
 #ENDIF
 #ENDIF
-
-# searchpath for units and other system dependent things
--Fu$FPCPATH/units/\$fpctarget
--Fu$FPCPATH/units/\$fpctarget/*
--Fu$FPCPATH/units/\$fpctarget/rtl
-#-Fu~/fpc/packages/base/*/units/$fpctarget;~/fpc/fcl/units/$fpctarget;~/fpc/rtl/units/$fpctarget
 
 # searchpath for libraries
 $GCCDIR

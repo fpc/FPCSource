@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSColorPanel.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -75,7 +75,7 @@ var
 {$define NSCOLORPANEL_PAS_C}
 
 { NSColorPanel }
-  NSColorPanel = objcclass(NSPanel)
+  NSColorPanel = objcclass external (NSPanel)
   private
     _colorSwatch: id;
     _reserved1: id;
@@ -110,8 +110,6 @@ var
     _opacityTextController: id;
     
   public
-    class function alloc: NSColorPanel; message 'alloc';
-
     class function sharedColorPanel: NSColorPanel; message 'sharedColorPanel';
     class function sharedColorPanelExists: Boolean; message 'sharedColorPanelExists';
     class function dragColor_withEvent_fromView(color_: NSColor; theEvent: NSEvent; sourceView: NSView): Boolean; message 'dragColor:withEvent:fromView:';
@@ -132,17 +130,17 @@ var
     procedure setTarget(anObject: id); message 'setTarget:';
     procedure attachColorList(colorList: NSColorList); message 'attachColorList:';
     procedure detachColorList(colorList: NSColorList); message 'detachColorList:';
-  end; external;
+  end;
 
 { NSColorPanel_NSApplicationCategory }
-  NSColorPanel_NSApplicationCategory = objccategory(NSApplication)
+  NSColorPanel_NSApplicationCategory = objccategory external name 'NSColorPanel' (NSApplication)
     procedure orderFrontColorPanel(sender: id); message 'orderFrontColorPanel:';
-  end; external name 'NSColorPanel';
+  end;
 
 { NSColorPanelResponderMethodCategory }
-  NSColorPanelResponderMethodCategory = objccategory(NSObject)
+  NSColorPanelResponderMethodCategory = objccategory external (NSObject)
     procedure changeColor(sender: id); message 'changeColor:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLQuoteElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,14 +42,12 @@
 {$define DOMHTMLQUOTEELEMENT_PAS_C}
 
 { DOMHTMLQuoteElement }
-  DOMHTMLQuoteElement = objcclass(DOMHTMLElement)
+  DOMHTMLQuoteElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLQuoteElement; message 'alloc';
-
     procedure setCite (newValue: NSString); message 'setCite:';
     function cite: NSString; message 'cite';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

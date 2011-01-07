@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLCredentialStorage.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -46,13 +46,11 @@ var
 {$define NSURLCREDENTIALSTORAGE_PAS_C}
 
 { NSURLCredentialStorage }
-  NSURLCredentialStorage = objcclass(NSObject)
+  NSURLCredentialStorage = objcclass external (NSObject)
   private
     _internal: NSURLCredentialStorageInternal;
     
   public
-    class function alloc: NSURLCredentialStorage; message 'alloc';
-
     class function sharedCredentialStorage: NSURLCredentialStorage; message 'sharedCredentialStorage';
     function credentialsForProtectionSpace(space: NSURLProtectionSpace): NSDictionary; message 'credentialsForProtectionSpace:';
     function allCredentials: NSDictionary; message 'allCredentials';
@@ -60,7 +58,7 @@ var
     procedure removeCredential_forProtectionSpace(credential: NSURLCredential; space: NSURLProtectionSpace); message 'removeCredential:forProtectionSpace:';
     function defaultCredentialForProtectionSpace(space: NSURLProtectionSpace): NSURLCredential; message 'defaultCredentialForProtectionSpace:';
     procedure setDefaultCredential_forProtectionSpace(credential: NSURLCredential; space: NSURLProtectionSpace); message 'setDefaultCredential:forProtectionSpace:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

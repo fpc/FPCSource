@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSColorPicker.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,15 +42,13 @@
 {$define NSCOLORPICKER_PAS_C}
 
 { NSColorPicker }
-  NSColorPicker = objcclass(NSObject, NSColorPickingDefaultProtocol)
+  NSColorPicker = objcclass external (NSObject, NSColorPickingDefaultProtocol)
   private
     _imageObject: id;
     _colorPanel: NSColorPanel;
     _buttonToolTip: NSString;
     
   public
-    class function alloc: NSColorPicker; message 'alloc';
-
     function initWithPickerMask_colorPanel(mask: NSUInteger; owningColorPanel: NSColorPanel): id; message 'initWithPickerMask:colorPanel:';
     function colorPanel: NSColorPanel; message 'colorPanel';
     function provideNewButtonImage: NSImage; message 'provideNewButtonImage';
@@ -64,7 +62,7 @@
 
     { Adopted Protocols }
     procedure alphaControlAddedOrRemoved(sender: id);
-  end; external;
+  end;
 
 {$endif}
 {$endif}

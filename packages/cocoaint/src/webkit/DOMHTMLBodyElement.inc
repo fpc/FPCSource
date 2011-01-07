@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLBodyElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLBODYELEMENT_PAS_C}
 
 { DOMHTMLBodyElement }
-  DOMHTMLBodyElement = objcclass(DOMHTMLElement)
+  DOMHTMLBodyElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLBodyElement; message 'alloc';
-
     procedure setALink (newValue: NSString); message 'setALink:';
     function aLink: NSString; message 'aLink';
     procedure setBackground (newValue: NSString); message 'setBackground:';
@@ -59,7 +57,7 @@
     function text: NSString; message 'text';
     procedure setVLink (newValue: NSString); message 'setVLink:';
     function vLink: NSString; message 'vLink';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

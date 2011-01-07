@@ -298,7 +298,7 @@ implementation
                 if is_class(current_structdef) then
                   begin
                     include(current_procinfo.flags,pi_needs_implicit_finally);
-                    srsym:=search_struct_member(current_objectdef,'NEWINSTANCE');
+                    srsym:=search_struct_member(current_structdef,'NEWINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
                       begin
@@ -328,7 +328,7 @@ implementation
                         that memory was allocated }
                       { parameter 1 : self pointer }
                       para:=ccallparanode.create(
-                                cordconstnode.create(current_objectdef.vmt_offset,s32inttype,false),
+                                cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false),
                             ccallparanode.create(
                                 ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
@@ -363,7 +363,7 @@ implementation
             if (current_procinfo.procdef.proctypeoption=potype_destructor) and
                is_class(current_structdef) then
               begin
-                srsym:=search_struct_member(current_objectdef,'BEFOREDESTRUCTION');
+                srsym:=search_struct_member(current_structdef,'BEFOREDESTRUCTION');
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
@@ -410,7 +410,7 @@ implementation
               begin
                 if is_class(current_structdef) then
                   begin
-                    srsym:=search_struct_member(current_objectdef,'FREEINSTANCE');
+                    srsym:=search_struct_member(current_structdef,'FREEINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
                       begin
@@ -435,7 +435,7 @@ implementation
                   if is_object(current_structdef) then
                     begin
                       { finalize object data, but only if not in inherited call }
-                      if is_managed_type(current_objectdef) then
+                      if is_managed_type(current_structdef) then
                         begin
                           addstatement(newstatement,cifnode.create(
                             caddnode.create(unequaln,
@@ -448,7 +448,7 @@ implementation
                       { parameter 2 : pointer to vmt }
                       { parameter 1 : self pointer }
                       para:=ccallparanode.create(
-                                cordconstnode.create(current_objectdef.vmt_offset,s32inttype,false),
+                                cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false),
                             ccallparanode.create(
                                 ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
@@ -615,7 +615,7 @@ implementation
             { call AfterConstruction for classes }
             if is_class(current_structdef) then
               begin
-                srsym:=search_struct_member(current_objectdef,'AFTERCONSTRUCTION');
+                srsym:=search_struct_member(current_structdef,'AFTERCONSTRUCTION');
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
@@ -643,11 +643,11 @@ implementation
                   internalerror(200305106);
               end;
 
-            if withexceptblock then
+            if withexceptblock and (current_structdef.typ=objectdef) then
               begin
                 { Generate the implicit "fail" code for a constructor (destroy
                   in case an exception happened) }
-                pd:=current_objectdef.find_destructor;
+                pd:=tobjectdef(current_structdef).find_destructor;
                 { this will always be the case for classes, since tobject has
                   a destructor }
                 if assigned(pd) then
@@ -1390,7 +1390,7 @@ implementation
          st : TSymtable;
          old_current_structdef: tabstractrecorddef;
          old_current_genericdef,
-         old_current_specializedef : tobjectdef;
+         old_current_specializedef: tstoreddef;
       begin
          old_current_procinfo:=current_procinfo;
          old_block_type:=block_type;
@@ -1401,9 +1401,9 @@ implementation
          current_procinfo:=self;
          current_structdef:=procdef.struct;
          if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
-           current_genericdef:=tobjectdef(current_structdef);
+           current_genericdef:=current_structdef;
          if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
-           current_specializedef:=tobjectdef(current_structdef);
+           current_specializedef:=current_structdef;
 
          { calculate the lexical level }
          if procdef.parast.symtablelevel>maxnesting then
@@ -1657,7 +1657,7 @@ implementation
         old_current_procinfo : tprocinfo;
         old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
-        old_current_specializedef : tobjectdef;
+        old_current_specializedef: tstoreddef;
         pdflags    : tpdflags;
         pd,firstpd : tprocdef;
         s          : string;
@@ -1984,20 +1984,20 @@ implementation
         oldsymtablestack   : tsymtablestack;
         pu : tused_unit;
         hmodule : tmodule;
-        specobj : tobjectdef;
+        specobj : tabstractrecorddef;
       begin
         if not((tsym(p).typ=typesym) and
                (ttypesym(p).typedef.typesym=tsym(p)) and
-               (ttypesym(p).typedef.typ=objectdef) and
+               (ttypesym(p).typedef.typ in [objectdef,recorddef]) and
                (df_specialization in ttypesym(p).typedef.defoptions)
               ) then
           exit;
 
         { Setup symtablestack a definition time }
-        specobj:=tobjectdef(ttypesym(p).typedef);
+        specobj:=tabstractrecorddef(ttypesym(p).typedef);
         oldsymtablestack:=symtablestack;
         symtablestack:=tsymtablestack.create;
-        if not assigned(tobjectdef(ttypesym(p).typedef).genericdef) then
+        if not assigned(specobj.genericdef) then
           internalerror(200705151);
         hmodule:=find_module_from_symtable(specobj.genericdef.owner);
         if hmodule=nil then
@@ -2016,7 +2016,7 @@ implementation
           symtablestack.push(hmodule.localsymtable);
 
         { procedure definitions for classes or objects }
-        if is_class_or_object(specobj) then
+        if is_class_or_object(specobj) or is_record(specobj) then
           begin
             for i:=0 to specobj.symtable.DefList.Count-1 do
               begin

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPathUtilities.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -91,7 +91,7 @@ function NSSearchPathForDirectoriesInDomains(directory: NSSearchPathDirectory; d
 {$define NSPATHUTILITIES_PAS_C}
 
 { NSStringPathExtensionsCategory }
-  NSStringPathExtensionsCategory = objccategory(NSString)
+  NSStringPathExtensionsCategory = objccategory external (NSString)
     class function pathWithComponents(components: NSArray): NSString; message 'pathWithComponents:';
     function pathComponents: NSArray; message 'pathComponents';
     function isAbsolutePath: Boolean; message 'isAbsolutePath';
@@ -109,12 +109,12 @@ function NSSearchPathForDirectoriesInDomains(directory: NSSearchPathDirectory; d
     function completePathIntoString_caseSensitive_matchesIntoArray_filterTypes(outputName: NSStringPointer; flag: Boolean; outputArray: NSArrayPointer; filterTypes: NSArray): NSUInteger; message 'completePathIntoString:caseSensitive:matchesIntoArray:filterTypes:';
     function fileSystemRepresentation: PChar; message 'fileSystemRepresentation';
     function getFileSystemRepresentation_maxLength(cname: PChar; max: NSUInteger): Boolean; message 'getFileSystemRepresentation:maxLength:';
-  end; external;
+  end;
 
 { NSArrayPathExtensionsCategory }
-  NSArrayPathExtensionsCategory = objccategory(NSArray)
+  NSArrayPathExtensionsCategory = objccategory external (NSArray)
     function pathsMatchingExtensions(filterTypes: NSArray): NSArray; message 'pathsMatchingExtensions:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

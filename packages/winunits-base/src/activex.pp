@@ -3403,7 +3403,7 @@ Type
 
     IPropertySetStorage = Interface(IUnknown)
      ['{0000013A-0000-0000-C000-000000000046}']
-     function Create(const rfmtid:FMTID; const pclsid:CLSID; grfFlags:DWORD; grfMode:DWORD; out ppprstg:IPropertyStorage):HRESULT;
+     function Create(const rfmtid:FMTID; const pclsid:CLSID; grfFlags:DWORD; grfMode:DWORD; out ppprstg:IPropertyStorage):HRESULT; StdCall;
      function Open(const fmtid:FMTID; grfMode:DWORD; out ppprstg:IPropertyStorage):HRESULT; StdCall;
      function Delete(const rfmtid:FMTID):HRESULT; StdCall;
      function Enum(out ppenum:IEnumSTATPROPSETSTG):HRESULT; StdCall;

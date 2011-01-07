@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSRuleEditor.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -73,7 +73,7 @@ var
 {$define NSRULEEDITOR_PAS_C}
 
 { NSRuleEditor }
-  NSRuleEditor = objcclass(NSControl)
+  NSRuleEditor = objcclass external (NSControl)
   private
     _ruleDataSource: id;
     _ruleDelegate: id;
@@ -123,8 +123,6 @@ var
     _ruleReserved2: id;
     
   public
-    class function alloc: NSRuleEditor; message 'alloc';
-
     procedure setDelegate(delegate_: id); message 'setDelegate:';
     function delegate: id; message 'delegate';
     procedure setFormattingStringsFilename(stringsFilename: NSString); message 'setFormattingStringsFilename:';
@@ -167,7 +165,7 @@ var
     function criteriaKeyPath: NSString; message 'criteriaKeyPath';
     procedure setDisplayValuesKeyPath(keyPath: NSString); message 'setDisplayValuesKeyPath:';
     function displayValuesKeyPath: NSString; message 'displayValuesKeyPath';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -176,12 +174,12 @@ var
 {$define NSRULEEDITOR_PAS_P}
   
 { NSRuleEditorDelegate Protocol }
-  NSRuleEditorDelegateProtocol = objcprotocol
+  NSRuleEditorDelegateProtocol = objcprotocol external name 'NSRuleEditorDelegate'
     function ruleEditor_numberOfChildrenForCriterion_withRowType(editor: NSRuleEditor; criterion: id; rowType: NSRuleEditorRowType): NSInteger; message 'ruleEditor:numberOfChildrenForCriterion:withRowType:';
     function ruleEditor_child_forCriterion_withRowType(editor: NSRuleEditor; index: NSInteger; criterion: id; rowType: NSRuleEditorRowType): id; message 'ruleEditor:child:forCriterion:withRowType:';
     function ruleEditor_displayValueForCriterion_inRow(editor: NSRuleEditor; criterion: id; row: NSInteger): id; message 'ruleEditor:displayValueForCriterion:inRow:';
     function ruleEditor_predicatePartsForCriterion_withDisplayValue_inRow(editor: NSRuleEditor; criterion: id; value: id; row: NSInteger): NSDictionary; message 'ruleEditor:predicatePartsForCriterion:withDisplayValue:inRow:';
     procedure ruleEditorRowsDidChange(notification: NSNotification); message 'ruleEditorRowsDidChange:';
-  end; external name 'NSRuleEditorDelegate';
+  end;
 {$endif}
 {$endif}

@@ -9,9 +9,9 @@
 {$include NSObjCRuntime.inc} 
 {$include NSInvocation.inc}
 {$include NSPointerFunctions.inc}
-{include NSAffineTransform.inc} 
+{$include NSAffineTransform.inc} 
 {$include NSArray.inc} 
-{include NSAttributedString.inc}
+{$include NSAttributedString.inc}
 {$include NSAutoreleasePool.inc} 
 {$include NSBundle.inc} 
 {$include NSCalendar.inc} 

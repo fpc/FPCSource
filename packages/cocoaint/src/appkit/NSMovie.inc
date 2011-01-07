@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMovie.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSMOVIE_PAS_C}
 
 { NSMovie }
-  NSMovie = objcclass(NSObject, NSCodingProtocol)
+  NSMovie = objcclass external (NSObject, NSCodingProtocol)
   private
     _movie: Pointer;
     _url: NSURL;
@@ -58,8 +58,6 @@
     _reserved2: clong;
     
   public
-    class function alloc: NSMovie; message 'alloc';
-
     function initWithMovie(movie: Pointer): id; message 'initWithMovie:'; deprecated 'in Mac OS X 10.5 and later';
     function initWithURL_byReference(url: NSURL; byRef: Boolean): id; message 'initWithURL:byReference:'; deprecated 'in Mac OS X 10.5 and later';
     function initWithPasteboard(pasteboard: NSPasteboard): id; message 'initWithPasteboard:'; deprecated 'in Mac OS X 10.5 and later';
@@ -72,7 +70,7 @@
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

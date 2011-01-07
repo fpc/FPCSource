@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSTask.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -57,11 +57,9 @@ var
 {$define NSTASK_PAS_C}
 
 { NSTask }
-  NSTask = objcclass(NSObject)
+  NSTask = objcclass external (NSObject)
     
   public
-    class function alloc: NSTask; message 'alloc';
-
     function init: id; message 'init';
     procedure setLaunchPath(path: NSString); message 'setLaunchPath:';
     procedure setArguments(arguments_: NSArray); message 'setArguments:';
@@ -86,13 +84,13 @@ var
     function isRunning: Boolean; message 'isRunning';
     function terminationStatus: cint; message 'terminationStatus';
     function terminationReason: NSTaskTerminationReason; message 'terminationReason';
-  end; external;
+  end;
 
 { NSTaskConveniencesCategory }
-  NSTaskConveniencesCategory = objccategory(NSTask)
+  NSTaskConveniencesCategory = objccategory external (NSTask)
     class function launchedTaskWithLaunchPath_arguments(path: NSString; arguments_: NSArray): NSTask; message 'launchedTaskWithLaunchPath:arguments:';
     procedure waitUntilExit; message 'waitUntilExit';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

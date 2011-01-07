@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPasteboard.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -111,7 +111,7 @@ var
 {$define NSPASTEBOARD_PAS_C}
 
 { NSPasteboard }
-  NSPasteboard = objcclass(NSObject)
+  NSPasteboard = objcclass external (NSObject)
   private
     _pboard: id;
     _gen: cint;
@@ -124,8 +124,6 @@ var
         _reserved: array[0..2] of Pointer;
     
   public
-    class function alloc: NSPasteboard; message 'alloc';
-
     class function generalPasteboard: NSPasteboard; message 'generalPasteboard';
     class function pasteboardWithName(name_: NSString): NSPasteboard; message 'pasteboardWithName:';
     class function pasteboardWithUniqueName: NSPasteboard; message 'pasteboardWithUniqueName';
@@ -149,39 +147,39 @@ var
     function dataForType(dataType: NSString): NSData; message 'dataForType:';
     function propertyListForType(dataType: NSString): id; message 'propertyListForType:';
     function stringForType(dataType: NSString): NSString; message 'stringForType:';
-  end; external;
+  end;
 
 { FilterServicesCategory }
-  FilterServicesCategory = objccategory(NSPasteboard)
+  FilterServicesCategory = objccategory external (NSPasteboard)
     class function typesFilterableTo(type_: NSString): NSArray; message 'typesFilterableTo:';
     class function pasteboardByFilteringFile(filename: NSString): NSPasteboard; message 'pasteboardByFilteringFile:';
     class function pasteboardByFilteringData_ofType(data: NSData; type_: NSString): NSPasteboard; message 'pasteboardByFilteringData:ofType:';
     class function pasteboardByFilteringTypesInPasteboard(pboard: NSPasteboard): NSPasteboard; message 'pasteboardByFilteringTypesInPasteboard:';
-  end; external;
+  end;
 
 { NSPasteboardOwnerCategory }
-  NSPasteboardOwnerCategory = objccategory(NSObject)
+  NSPasteboardOwnerCategory = objccategory external (NSObject)
     procedure pasteboard_provideDataForType(sender: NSPasteboard; type_: NSString); message 'pasteboard:provideDataForType:';
     procedure pasteboardChangedOwner(sender: NSPasteboard); message 'pasteboardChangedOwner:';
-  end; external;
+  end;
 
 { NSPasteboardSupportCategory }
-  NSPasteboardSupportCategory = objccategory(NSURL)
+  NSPasteboardSupportCategory = objccategory external (NSURL)
     class function URLFromPasteboard(pasteBoard: NSPasteboard): NSURL; message 'URLFromPasteboard:';
     procedure writeToPasteboard(pasteBoard: NSPasteboard); message 'writeToPasteboard:';
-  end; external;
+  end;
 
 { NSPasteboardSupport_NSStringCategory }
-  NSPasteboardSupport_NSStringCategory = objccategory(NSString)
-  end; external name 'NSPasteboardSupport';
+  NSPasteboardSupport_NSStringCategory = objccategory external name 'NSPasteboardSupport' (NSString)
+  end;
 
 { NSFileContentsCategory }
-  NSFileContentsCategory = objccategory(NSPasteboard)
+  NSFileContentsCategory = objccategory external (NSPasteboard)
     function writeFileContents(filename: NSString): Boolean; message 'writeFileContents:';
     function readFileContentsType_toFile(type_: NSString; filename: NSString): NSString; message 'readFileContentsType:toFile:';
     function writeFileWrapper(wrapper: NSFileWrapper): Boolean; message 'writeFileWrapper:';
     function readFileWrapper: NSFileWrapper; message 'readFileWrapper';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -190,17 +188,17 @@ var
 {$define NSPASTEBOARD_PAS_P}
   
 { NSPasteboardWriting Protocol }
-  NSPasteboardWritingProtocol = objcprotocol
+  NSPasteboardWritingProtocol = objcprotocol external name 'NSPasteboardWriting'
     function writableTypesForPasteboard(pasteboard: NSPasteboard): NSArray; message 'writableTypesForPasteboard:';
     function writingOptionsForType_pasteboard(type_: NSString; pasteboard: NSPasteboard): NSPasteboardWritingOptions; message 'writingOptionsForType:pasteboard:';
     function pasteboardPropertyListForType(type_: NSString): id; message 'pasteboardPropertyListForType:';
-  end; external name 'NSPasteboardWriting';
+  end;
   
 { NSPasteboardReading Protocol }
-  NSPasteboardReadingProtocol = objcprotocol
+  NSPasteboardReadingProtocol = objcprotocol external name 'NSPasteboardReading'
     class function readableTypesForPasteboard(pasteboard: NSPasteboard): NSArray; message 'readableTypesForPasteboard:';
     class function readingOptionsForType_pasteboard(type_: NSString; pasteboard: NSPasteboard): NSPasteboardReadingOptions; message 'readingOptionsForType:pasteboard:';
     function initWithPasteboardPropertyList_ofType(propertyList: id; type_: NSString): id; message 'initWithPasteboardPropertyList:ofType:';
-  end; external name 'NSPasteboardReading';
+  end;
 {$endif}
 {$endif}

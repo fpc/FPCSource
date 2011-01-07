@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSFetchedPropertyDescription.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSFETCHEDPROPERTYDESCRIPTION_PAS_C}
 
 { NSFetchedPropertyDescription }
-  NSFetchedPropertyDescription = objcclass(NSPropertyDescription)
+  NSFetchedPropertyDescription = objcclass external (NSPropertyDescription)
   private
     _reserved5: Pointer;
     _reserved6: Pointer;
@@ -50,11 +50,9 @@
     _lazyFetchRequestEntityName: NSString;
     
   public
-    class function alloc: NSFetchedPropertyDescription; message 'alloc';
-
     function fetchRequest: NSFetchRequest; message 'fetchRequest';
     procedure setFetchRequest(fetchRequest_: NSFetchRequest); message 'setFetchRequest:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

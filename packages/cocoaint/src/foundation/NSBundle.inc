@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSBundle.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -83,7 +83,7 @@ end;
 {$define NSBUNDLE_PAS_C}
 
 { NSBundle }
-  NSBundle = objcclass(NSObject)
+  NSBundle = objcclass external (NSObject)
   private
     _flags: NSUInteger;
     _cfBundle: id;
@@ -95,8 +95,6 @@ end;
     _reserved0: Pointer;
     
   public
-    class function alloc: NSBundle; message 'alloc';
-
     class function mainBundle: NSBundle; message 'mainBundle';
     class function bundleWithPath(path: NSString): NSBundle; message 'bundleWithPath:';
     function initWithPath(path: NSString): id; message 'initWithPath:';
@@ -152,7 +150,7 @@ end;
     class function preferredLocalizationsFromArray(localizationsArray: NSArray): NSArray; message 'preferredLocalizationsFromArray:';
     class function preferredLocalizationsFromArray_forPreferences(localizationsArray: NSArray; preferencesArray: NSArray): NSArray; message 'preferredLocalizationsFromArray:forPreferences:';
     function executableArchitectures: NSArray; message 'executableArchitectures';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

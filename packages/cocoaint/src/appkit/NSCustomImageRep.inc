@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSCustomImageRep.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,19 +42,17 @@
 {$define NSCUSTOMIMAGEREP_PAS_C}
 
 { NSCustomImageRep }
-  NSCustomImageRep = objcclass(NSImageRep)
+  NSCustomImageRep = objcclass external (NSImageRep)
   private
     _drawMethod: SEL;
     _drawObject: id;
     _reserved: cuint;
     
   public
-    class function alloc: NSCustomImageRep; message 'alloc';
-
     function initWithDrawSelector_delegate(aMethod: SEL; anObject: id): id; message 'initWithDrawSelector:delegate:';
     function drawSelector: SEL; message 'drawSelector';
     function delegate: id; message 'delegate';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

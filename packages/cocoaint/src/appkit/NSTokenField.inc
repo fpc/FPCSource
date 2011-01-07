@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTokenField.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -43,11 +43,9 @@
 {$define NSTOKENFIELD_PAS_C}
 
 { NSTokenField }
-  NSTokenField = objcclass(NSTextField)
+  NSTokenField = objcclass external (NSTextField)
     
   public
-    class function alloc: NSTokenField; message 'alloc';
-
     procedure setDelegate(anObject: id); message 'setDelegate:';
     function delegate: id; message 'delegate';
     procedure setTokenStyle(style: NSTokenStyle); message 'setTokenStyle:';
@@ -58,7 +56,7 @@
     procedure setTokenizingCharacterSet(characterSet: NSCharacterSet); message 'setTokenizingCharacterSet:';
     function tokenizingCharacterSet: NSCharacterSet; message 'tokenizingCharacterSet';
     class function defaultTokenizingCharacterSet: NSCharacterSet; message 'defaultTokenizingCharacterSet';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -67,7 +65,7 @@
 {$define NSTOKENFIELD_PAS_P}
   
 { NSTokenFieldDelegate Protocol }
-  NSTokenFieldDelegateProtocol = objcprotocol
+  NSTokenFieldDelegateProtocol = objcprotocol external name 'NSTokenFieldDelegate'
     function tokenField_completionsForSubstring_indexOfToken_indexOfSelectedItem(tokenField: NSTokenField; substring: NSString; tokenIndex: NSInteger; selectedIndex: NSIntegerPtr): NSArray; message 'tokenField:completionsForSubstring:indexOfToken:indexOfSelectedItem:';
     function tokenField_shouldAddObjects_atIndex(tokenField: NSTokenField; tokens: NSArray; index: NSUInteger): NSArray; message 'tokenField:shouldAddObjects:atIndex:';
     function tokenField_displayStringForRepresentedObject(tokenField: NSTokenField; representedObject: id): NSString; message 'tokenField:displayStringForRepresentedObject:';
@@ -78,6 +76,6 @@
     function tokenField_menuForRepresentedObject(tokenField: NSTokenField; representedObject: id): NSMenu; message 'tokenField:menuForRepresentedObject:';
     function tokenField_hasMenuForRepresentedObject(tokenField: NSTokenField; representedObject: id): Boolean; message 'tokenField:hasMenuForRepresentedObject:';
     function tokenField_styleForRepresentedObject(tokenField: NSTokenField; representedObject: id): NSTokenStyle; message 'tokenField:styleForRepresentedObject:';
-  end; external name 'NSTokenFieldDelegate';
+  end;
 {$endif}
 {$endif}

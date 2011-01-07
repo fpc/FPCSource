@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMXPathResult.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -56,11 +56,9 @@ const
 {$define DOMXPATHRESULT_PAS_C}
 
 { DOMXPathResult }
-  DOMXPathResult = objcclass(DOMObject)
+  DOMXPathResult = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMXPathResult; message 'alloc';
-
     function resultType: cuint; message 'resultType';
     function numberValue: double; message 'numberValue';
     function stringValue: NSString; message 'stringValue';
@@ -70,7 +68,7 @@ const
     function snapshotLength: cuint; message 'snapshotLength';
     function iterateNext: DOMNode; message 'iterateNext';
     function snapshotItem(index: cuint): DOMNode; message 'snapshotItem:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

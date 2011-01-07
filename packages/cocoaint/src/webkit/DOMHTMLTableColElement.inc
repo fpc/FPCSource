@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLTableColElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLTABLECOLELEMENT_PAS_C}
 
 { DOMHTMLTableColElement }
-  DOMHTMLTableColElement = objcclass(DOMHTMLElement)
+  DOMHTMLTableColElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLTableColElement; message 'alloc';
-
     procedure setAlign (newValue: NSString); message 'setAlign:';
     function align: NSString; message 'align';
     procedure setCh (newValue: NSString); message 'setCh:';
@@ -59,7 +57,7 @@
     function vAlign: NSString; message 'vAlign';
     procedure setWidth (newValue: NSString); message 'setWidth:';
     function width: NSString; message 'width';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

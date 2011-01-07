@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSXMLParser.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -149,7 +149,7 @@ var
 {$define NSXMLPARSER_PAS_C}
 
 { NSXMLParser }
-  NSXMLParser = objcclass(NSObject)
+  NSXMLParser = objcclass external (NSObject)
   private
     _parser: Pointer;
     _delegate: id;
@@ -158,8 +158,6 @@ var
     _reserved3: id;
     
   public
-    class function alloc: NSXMLParser; message 'alloc';
-
     function initWithContentsOfURL(url: NSURL): id; message 'initWithContentsOfURL:';
     function initWithData(data: NSData): id; message 'initWithData:';
     function delegate: id; message 'delegate';
@@ -173,15 +171,15 @@ var
     function parse: Boolean; message 'parse';
     procedure abortParsing; message 'abortParsing';
     function parserError: NSError; message 'parserError';
-  end; external;
+  end;
 
 { NSXMLParserLocatorAdditionsCategory }
-  NSXMLParserLocatorAdditionsCategory = objccategory(NSXMLParser)
+  NSXMLParserLocatorAdditionsCategory = objccategory external (NSXMLParser)
     function publicID: NSString; message 'publicID';
     function systemID: NSString; message 'systemID';
     function lineNumber: NSInteger; message 'lineNumber';
     function columnNumber: NSInteger; message 'columnNumber';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -190,7 +188,7 @@ var
 {$define NSXMLPARSER_PAS_P}
   
 { NSXMLParserDelegate Protocol }
-  NSXMLParserDelegateProtocol = objcprotocol
+  NSXMLParserDelegateProtocol = objcprotocol external name 'NSXMLParserDelegate'
     procedure parserDidStartDocument(parser: NSXMLParser); message 'parserDidStartDocument:';
     procedure parserDidEndDocument(parser: NSXMLParser); message 'parserDidEndDocument:';
     procedure parser_foundNotationDeclarationWithName_publicID_systemID(parser: NSXMLParser; name: NSString; publicID: NSString; systemID: NSString); message 'parser:foundNotationDeclarationWithName:publicID:systemID:';
@@ -211,6 +209,6 @@ var
     function parser_resolveExternalEntityName_systemID(parser: NSXMLParser; name: NSString; systemID: NSString): NSData; message 'parser:resolveExternalEntityName:systemID:';
     procedure parser_parseErrorOccurred(parser: NSXMLParser; parseError: NSError); message 'parser:parseErrorOccurred:';
     procedure parser_validationErrorOccurred(parser: NSXMLParser; validationError: NSError); message 'parser:validationErrorOccurred:';
-  end; external name 'NSXMLParserDelegate';
+  end;
 {$endif}
 {$endif}

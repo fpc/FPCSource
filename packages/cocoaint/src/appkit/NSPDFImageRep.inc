@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPDFImageRep.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSPDFIMAGEREP_PAS_C}
 
 { NSPDFImageRep }
-  NSPDFImageRep = objcclass(NSImageRep)
+  NSPDFImageRep = objcclass external (NSImageRep)
   private
     _pdfData: NSData;
     _reserved1: cint;
@@ -50,8 +50,6 @@
     _private: id;
     
   public
-    class function alloc: NSPDFImageRep; message 'alloc';
-
     class function imageRepWithData(pdfData: NSData): id; message 'imageRepWithData:';
     function initWithData(pdfData: NSData): id; message 'initWithData:';
     function PDFRepresentation: NSData; message 'PDFRepresentation';
@@ -59,7 +57,7 @@
     procedure setCurrentPage(page: NSInteger); message 'setCurrentPage:';
     function currentPage: NSInteger; message 'currentPage';
     function pageCount: NSInteger; message 'pageCount';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

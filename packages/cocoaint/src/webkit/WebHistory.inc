@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebHistory.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -51,13 +51,11 @@ var
 {$define WEBHISTORY_PAS_C}
 
 { WebHistory }
-  WebHistory = objcclass(NSObject)
+  WebHistory = objcclass external (NSObject)
   private
     _historyPrivate: WebHistoryPrivate;
     
   public
-    class function alloc: WebHistory; message 'alloc';
-
     class function optionalSharedHistory: WebHistory; message 'optionalSharedHistory';
     class procedure setOptionalSharedHistory(history: WebHistory); message 'setOptionalSharedHistory:';
     function loadFromURL_error(URL: NSURL; error: NSErrorPointer): Boolean; message 'loadFromURL:error:';
@@ -72,7 +70,7 @@ var
     function historyItemLimit: cint; message 'historyItemLimit';
     procedure setHistoryAgeInDaysLimit(limit: cint); message 'setHistoryAgeInDaysLimit:';
     function historyAgeInDaysLimit: cint; message 'historyAgeInDaysLimit';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

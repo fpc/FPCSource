@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSShadow.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSSHADOW_PAS_C}
 
 { NSShadow }
-  NSShadow = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSShadow = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _shadowFlags: NSUInteger;
     _shadowOffset: NSSize;
@@ -52,8 +52,6 @@
     _reserved: Pointer;
     
   public
-    class function alloc: NSShadow; message 'alloc';
-
     function init: id; message 'init';
     function shadowOffset: NSSize; message 'shadowOffset';
     procedure setShadowOffset(offset: NSSize); message 'setShadowOffset:';
@@ -67,7 +65,7 @@
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLImageElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLIMAGEELEMENT_PAS_C}
 
 { DOMHTMLImageElement }
-  DOMHTMLImageElement = objcclass(DOMHTMLElement)
+  DOMHTMLImageElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLImageElement; message 'alloc';
-
     procedure setName (newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
     procedure setAlign (newValue: NSString); message 'setAlign:';
@@ -80,7 +78,7 @@
     function y: cint; message 'y';
     function altDisplayString: NSString; message 'altDisplayString';
     function absoluteImageURL: NSURL; message 'absoluteImageURL';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

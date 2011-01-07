@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSNotificationQueue.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -61,7 +61,7 @@ type
 {$define NSNOTIFICATIONQUEUE_PAS_C}
 
 { NSNotificationQueue }
-  NSNotificationQueue = objcclass(NSObject)
+  NSNotificationQueue = objcclass external (NSObject)
   private
     _notificationCenter: id;
     _asapQueue: id;
@@ -70,14 +70,12 @@ type
     _idleObs: id;
     
   public
-    class function alloc: NSNotificationQueue; message 'alloc';
-
     class function defaultQueue: id; message 'defaultQueue';
     function initWithNotificationCenter(notificationCenter: NSNotificationCenter): id; message 'initWithNotificationCenter:';
     procedure enqueueNotification_postingStyle(notification: NSNotification; postingStyle: NSPostingStyle); message 'enqueueNotification:postingStyle:';
     procedure enqueueNotification_postingStyle_coalesceMask_forModes(notification: NSNotification; postingStyle: NSPostingStyle; coalesceMask: NSUInteger; modes: NSArray); message 'enqueueNotification:postingStyle:coalesceMask:forModes:';
     procedure dequeueNotificationsMatching_coalesceMask(notification: NSNotification; coalesceMask: NSUInteger); message 'dequeueNotificationsMatching:coalesceMask:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

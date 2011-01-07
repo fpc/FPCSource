@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebResource.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,13 +42,11 @@
 {$define WEBRESOURCE_PAS_C}
 
 { WebResource }
-  WebResource = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
+  WebResource = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     _private: WebResourcePrivate;
     
   public
-    class function alloc: WebResource; message 'alloc';
-
     function initWithData_URL_MIMEType_textEncodingName_frameName(data_: NSData; URL_: NSURL; MIMEType_: NSString; textEncodingName_: NSString; frameName_: NSString): id; message 'initWithData:URL:MIMEType:textEncodingName:frameName:';
     function data: NSData; message 'data';
     function URL: NSURL; message 'URL';
@@ -60,7 +58,7 @@
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

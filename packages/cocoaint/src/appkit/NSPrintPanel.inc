@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPrintPanel.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -68,7 +68,7 @@ var
 {$define NSPRINTPANEL_PAS_C}
 
 { NSPrintPanel }
-  NSPrintPanel = objcclass(NSObject)
+  NSPrintPanel = objcclass external (NSObject)
   private
     _accessoryControllers: NSMutableArray;
     _previewController: id;
@@ -90,8 +90,6 @@ var
     {$endif}
     
   public
-    class function alloc: NSPrintPanel; message 'alloc';
-
     class function printPanel: NSPrintPanel; message 'printPanel';
     procedure addAccessoryController(accessoryController: NSViewController); message 'addAccessoryController:';
     procedure removeAccessoryController(accessoryController: NSViewController); message 'removeAccessoryController:';
@@ -108,15 +106,15 @@ var
     function runModalWithPrintInfo(printInfo_: NSPrintInfo): NSInteger; message 'runModalWithPrintInfo:';
     function runModal: NSInteger; message 'runModal';
     function printInfo: NSPrintInfo; message 'printInfo';
-  end; external;
+  end;
 
 { NSDeprecated_NSPrintPanelCategory }
-  NSDeprecated_NSPrintPanelCategory = objccategory(NSPrintPanel)
+  NSDeprecated_NSPrintPanelCategory = objccategory external name 'NSDeprecated' (NSPrintPanel)
     procedure setAccessoryView(accessoryView: NSView); message 'setAccessoryView:'; deprecated 'in Mac OS X 10.5 and later';
     function accessoryView: NSView; message 'accessoryView'; deprecated 'in Mac OS X 10.5 and later';
     procedure updateFromPrintInfo; message 'updateFromPrintInfo'; deprecated 'in Mac OS X 10.5 and later';
     procedure finalWritePrintInfo; message 'finalWritePrintInfo'; deprecated 'in Mac OS X 10.5 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}
@@ -125,9 +123,9 @@ var
 {$define NSPRINTPANEL_PAS_P}
   
 { NSPrintPanelAccessorizing Protocol }
-  NSPrintPanelAccessorizingProtocol = objcprotocol
+  NSPrintPanelAccessorizingProtocol = objcprotocol external name 'NSPrintPanelAccessorizing'
     function localizedSummaryItems: NSArray; message 'localizedSummaryItems';
     function keyPathsForValuesAffectingPreview: NSSet; message 'keyPathsForValuesAffectingPreview';
-  end; external name 'NSPrintPanelAccessorizing';
+  end;
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMTreeWalker.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMTREEWALKER_PAS_C}
 
 { DOMTreeWalker }
-  DOMTreeWalker = objcclass(DOMObject)
+  DOMTreeWalker = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMTreeWalker; message 'alloc';
-
     function root: DOMNode; message 'root';
     function whatToShow: cuint; message 'whatToShow';
     function filter: id; message 'filter';
@@ -60,7 +58,7 @@
     function nextSibling: DOMNode; message 'nextSibling';
     function previousNode: DOMNode; message 'previousNode';
     function nextNode: DOMNode; message 'nextNode';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

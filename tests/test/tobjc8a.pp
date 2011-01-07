@@ -12,10 +12,10 @@ uses
   ctypes;
 
 type
-  TMyTestClass = objcclass(NSObject)
+  TMyTestClass = objcclass external name 'NSObject' (NSObject)
     { should not give a hint, since we have 'override' }
     function hash: cuint; override;
-  end; external name 'NSObject';
+  end;
 
 var
   a: id;

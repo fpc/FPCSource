@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMEvent.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -49,11 +49,9 @@ const
 {$define DOMEVENT_PAS_C}
 
 { DOMEvent }
-  DOMEvent = objcclass(DOMObject)
+  DOMEvent = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMEvent; message 'alloc';
-
     function type_: NSString; message 'type_';
     function target: id; message 'target';
     function currentTarget: id; message 'currentTarget';
@@ -69,12 +67,12 @@ const
     procedure stopPropagation; message 'stopPropagation';
     procedure preventDefault; message 'preventDefault';
     procedure initEvent_canBubbleArg_cancelableArg(eventTypeArg: NSString; canBubbleArg: Boolean; cancelableArg: Boolean); message 'initEvent:canBubbleArg:cancelableArg:';
-  end; external;
+  end;
 
 { DOMEventDeprecatedCategory }
-  DOMEventDeprecatedCategory = objccategory(DOMEvent)
+  DOMEventDeprecatedCategory = objccategory external (DOMEvent)
     procedure initEvent(eventTypeArg: NSString; canBubbleArg: Boolean; cancelableArg: Boolean); message 'initEvent:eventTypeArg:canBubbleArg:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

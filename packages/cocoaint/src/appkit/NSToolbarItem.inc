@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSToolbarItem.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -60,7 +60,7 @@ var
 {$define NSTOOLBARITEM_PAS_C}
 
 { NSToolbarItem }
-  NSToolbarItem = objcclass(NSObject, NSCopyingProtocol, NSValidatedUserInterfaceItemProtocol)
+  NSToolbarItem = objcclass external (NSObject, NSCopyingProtocol, NSValidatedUserInterfaceItemProtocol)
   private
     _toolbar: NSToolbar;
     _image: NSImage;
@@ -112,8 +112,6 @@ var
     {$endif}
     
   public
-    class function alloc: NSToolbarItem; message 'alloc';
-
     function initWithItemIdentifier(itemIdentifier_: NSString): id; message 'initWithItemIdentifier:';
     function itemIdentifier: NSString; message 'itemIdentifier';
     function toolbar: NSToolbar; message 'toolbar';
@@ -150,12 +148,12 @@ var
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 { NSToolbarItemValidationCategory }
-  NSToolbarItemValidationCategory = objccategory(NSObject)
+  NSToolbarItemValidationCategory = objccategory external (NSObject)
     function validateToolbarItem(theItem: NSToolbarItem): Boolean; message 'validateToolbarItem:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

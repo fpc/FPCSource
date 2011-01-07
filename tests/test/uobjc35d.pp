@@ -8,7 +8,7 @@ unit uobjc35d;
 interface
 
 type
-  MyExternalClass = objcclass; external;
+  MyExternalClass = objcclass external;
 
   MyClass = objcclass(NSObject)
     ff: MyExternalClass

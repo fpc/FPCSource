@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CAEmitterCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,15 +42,13 @@
 {$define CAEMITTERCELL_PAS_C}
 
 { CAEmitterCell }
-  CAEmitterCell = objcclass(NSObject, NSCodingProtocol, CAMediaTimingProtocol)
+  CAEmitterCell = objcclass external (NSObject, NSCodingProtocol, CAMediaTimingProtocol)
   private
     __attr: Pointer;
     _state: Pointer;
     _flags: cuint32;
     
   public
-    class function alloc: CAEmitterCell; message 'alloc';
-
     class function emitterCell: id; message 'emitterCell';
     class function defaultValueForKey(key: NSString): id; message 'defaultValueForKey:';
     function shouldArchiveValueForKey(key: NSString): Boolean; message 'shouldArchiveValueForKey:';
@@ -142,7 +140,7 @@
     function autoreverses: Boolean;
     procedure setFillMode (newValue: NSString);
     function fillMode: NSString;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

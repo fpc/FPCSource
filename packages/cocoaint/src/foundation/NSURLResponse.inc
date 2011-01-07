@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLResponse.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -49,13 +49,11 @@ const
 {$define NSURLRESPONSE_PAS_C}
 
 { NSURLResponse }
-  NSURLResponse = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
+  NSURLResponse = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     _internal: NSURLResponseInternal;
     
   public
-    class function alloc: NSURLResponse; message 'alloc';
-
     function initWithURL_MIMEType_expectedContentLength_textEncodingName(URL_: NSURL; MIMEType_: NSString; length: NSInteger; name: NSString): id; message 'initWithURL:MIMEType:expectedContentLength:textEncodingName:';
     function URL: NSURL; message 'URL';
     function MIMEType: NSString; message 'MIMEType';
@@ -67,20 +65,18 @@ const
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 { NSHTTPURLResponse }
-  NSHTTPURLResponse = objcclass(NSURLResponse)
+  NSHTTPURLResponse = objcclass external (NSURLResponse)
   private
     _httpInternal: NSHTTPURLResponseInternal;
     
   public
-    class function alloc: NSHTTPURLResponse; message 'alloc';
-
     function statusCode: NSInteger; message 'statusCode';
     function allHeaderFields: NSDictionary; message 'allHeaderFields';
     class function localizedStringForStatusCode(statusCode_: NSInteger): NSString; message 'localizedStringForStatusCode:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

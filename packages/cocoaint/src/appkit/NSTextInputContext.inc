@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextInputContext.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -46,7 +46,7 @@ var
 {$define NSTEXTINPUTCONTEXT_PAS_C}
 
 { NSTextInputContext }
-  NSTextInputContext = objcclass(NSObject)
+  NSTextInputContext = objcclass external (NSObject)
   private
     _client: id;
     _inputLocales: NSArray;
@@ -83,8 +83,6 @@ var
       end;
     
   public
-    class function alloc: NSTextInputContext; message 'alloc';
-
     class function currentInputContext: NSTextInputContext; message 'currentInputContext';
     function initWithClient(theClient: id): id; message 'initWithClient:';
     function client: id; message 'client';
@@ -101,7 +99,7 @@ var
     procedure setSelectedKeyboardInputSource (newValue: NSString); message 'setSelectedKeyboardInputSource:';
     function selectedKeyboardInputSource: NSString; message 'selectedKeyboardInputSource';
     class function localizedNameForInputSource(inputSourceIdentifier: NSString): NSString; message 'localizedNameForInputSource:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

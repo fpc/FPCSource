@@ -161,6 +161,7 @@ interface
 
        tpointerdef = class(tabstractpointerdef)
           is_far : boolean;
+          has_pointer_math : boolean;
           constructor create(def:tdef);
           constructor createfar(def:tdef);
           function getcopy:tstoreddef;override;
@@ -174,8 +175,8 @@ interface
 
        tabstractrecorddef= class(tstoreddef)
           objname,
-          objrealname: PShortString;
-          symtable : TSymtable;
+          objrealname    : PShortString;
+          symtable       : TSymtable;
           cloneddef      : tabstractrecorddef;
           cloneddefderef : tderef;
           objectoptions  : tobjectoptions;
@@ -323,8 +324,6 @@ interface
           procedure register_maybe_created_object_type;
           procedure register_created_classref_type;
           procedure register_vmt_call(index:longint);
-          { ObjC & C++ }
-          procedure make_all_methods_external;
           { ObjC }
           procedure finish_objc_data;
           function check_objc_types: boolean;
@@ -345,12 +344,13 @@ interface
 
        tarraydef = class(tstoreddef)
           lowrange,
-          highrange  : aint;
-          rangedef   : tdef;
+          highrange     : aint;
+          rangedef      : tdef;
           rangedefderef : tderef;
-          arrayoptions : tarraydefoptions;
+          arrayoptions  : tarraydefoptions;
+          symtable      : TSymtable;
        protected
-          _elementdef : tdef;
+          _elementdef      : tdef;
           _elementdefderef : tderef;
           procedure setelementdef(def:tdef);
        public
@@ -358,8 +358,9 @@ interface
           function elepackedbitsize : aint;
           function elecount : aword;
           constructor create_from_pointer(def:tdef);
-          constructor create(l,h : aint;def:tdef);
+          constructor create(l,h:aint;def:tdef);
           constructor ppuload(ppufile:tcompilerppufile);
+          destructor destroy; override;
           function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  GetTypeName:string;override;
@@ -563,6 +564,7 @@ interface
           function  objcmangledname : string;
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
+          procedure make_external;
        end;
 
        { single linked list of overloaded procs }
@@ -641,13 +643,12 @@ interface
        end;
 
     var
-       current_structdef: tabstractrecorddef;
-       current_objectdef : tobjectdef absolute current_structdef;  { used for private functions check !! }
-       current_genericdef : tobjectdef; { used to reject declaration of generic class inside generic class }
-       current_specializedef : tobjectdef; { used to implement usage of generic class in itself }
+       current_structdef: tabstractrecorddef; { used for private functions check !! }
+       current_genericdef: tstoreddef;        { used to reject declaration of generic class inside generic class }
+       current_specializedef: tstoreddef;     { used to implement usage of generic class in itself }
 
     { default types }
-       generrordef,              { error in definition }
+       generrordef,               { error in definition }
        voidpointertype,           { pointer for Void-pointeddef }
        charpointertype,           { pointer for Char-pointeddef }
        widecharpointertype,       { pointer for WideChar-pointeddef }
@@ -786,7 +787,7 @@ interface
     function is_class_or_interface_or_objc(def: tdef): boolean;
     function is_class_or_interface_or_object(def: tdef): boolean;
     function is_class_or_interface_or_dispinterface(def: tdef): boolean;
-    function is_class_or_interface_or_dispinterface_or_objc(def: tdef): boolean;
+    function is_implicit_pointer_object_type(def: tdef): boolean;
     function is_class_or_object(def: tdef): boolean;
     function is_record(def: tdef): boolean;
 
@@ -1158,7 +1159,7 @@ implementation
           procvardef :
             is_intregable:=tprocvardef(self).is_addressonly;
           objectdef:
-            is_intregable:=(is_class_or_interface_or_dispinterface_or_objc(self)) and not needs_inittable;
+            is_intregable:=(is_implicit_pointer_object_type(self)) and not needs_inittable;
           setdef:
             is_intregable:=is_smallset(self);
           recorddef:
@@ -2088,6 +2089,7 @@ implementation
       begin
         inherited create(pointerdef,def);
         is_far:=false;
+        has_pointer_math:=cs_pointermath in current_settings.localswitches;
       end;
 
 
@@ -2095,6 +2097,7 @@ implementation
       begin
         inherited create(pointerdef,def);
         is_far:=true;
+        has_pointer_math:=cs_pointermath in current_settings.localswitches;
       end;
 
 
@@ -2102,6 +2105,7 @@ implementation
       begin
          inherited ppuload(pointerdef,ppufile);
          is_far:=(ppufile.getbyte<>0);
+         has_pointer_math:=(ppufile.getbyte<>0);
       end;
 
 
@@ -2115,6 +2119,7 @@ implementation
         else
           result:=tpointerdef.create(pointeddef);
         tpointerdef(result).is_far:=is_far;
+        tpointerdef(result).has_pointer_math:=has_pointer_math;
         tpointerdef(result).savesize:=savesize;
       end;
 
@@ -2123,6 +2128,7 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(is_far));
+         ppufile.putbyte(byte(has_pointer_math));
          ppufile.writeentry(ibpointerdef);
       end;
 
@@ -2328,7 +2334,7 @@ implementation
                            TARRAYDEF
 ***************************************************************************}
 
-    constructor tarraydef.create(l,h : aint;def:tdef);
+    constructor tarraydef.create(l,h:aint;def:tdef);
       begin
          inherited create(arraydef);
          lowrange:=l;
@@ -2336,8 +2342,15 @@ implementation
          rangedef:=def;
          _elementdef:=nil;
          arrayoptions:=[];
+         symtable:=tarraysymtable.create(self);
       end;
 
+    destructor tarraydef.destroy;
+      begin
+        symtable.free;
+        symtable:=nil;
+        inherited;
+      end;
 
     constructor tarraydef.create_from_pointer(def:tdef);
       begin
@@ -2357,6 +2370,8 @@ implementation
          lowrange:=ppufile.getaint;
          highrange:=ppufile.getaint;
          ppufile.getsmallset(arrayoptions);
+         symtable:=tarraysymtable.create(self);
+         tarraysymtable(symtable).ppuload(ppufile)
       end;
 
 
@@ -2371,6 +2386,7 @@ implementation
     procedure tarraydef.buildderef;
       begin
         inherited buildderef;
+        tarraysymtable(symtable).buildderef;
         _elementdefderef.build(_elementdef);
         rangedefderef.build(rangedef);
       end;
@@ -2379,6 +2395,7 @@ implementation
     procedure tarraydef.deref;
       begin
         inherited deref;
+        tarraysymtable(symtable).deref;
         _elementdef:=tdef(_elementdefderef.resolve);
         rangedef:=tdef(rangedefderef.resolve);
       end;
@@ -2393,6 +2410,7 @@ implementation
          ppufile.putaint(highrange);
          ppufile.putsmallset(arrayoptions);
          ppufile.writeentry(ibarraydef);
+         tarraysymtable(symtable).ppuwrite(ppufile);
       end;
 
 
@@ -2636,10 +2654,10 @@ implementation
 
     function tabstractrecorddef.GetSymtable(t:tGetSymtable):TSymtable;
       begin
-         if t=gs_record then
-         GetSymtable:=symtable
+        if t=gs_record then
+          GetSymtable:=symtable
         else
-         GetSymtable:=nil;
+          GetSymtable:=nil;
       end;
 
 
@@ -3498,6 +3516,14 @@ implementation
                 (not(m_nested_procvars in current_settings.modeswitches) or
                  not is_nested_pd(self));
       end;
+
+
+    procedure tprocdef.make_external;
+      begin
+        include(procoptions,po_external);
+        forwarddef:=false;
+      end;
+
 
     function tprocdef.GetSymtable(t:tGetSymtable):TSymtable;
       begin
@@ -4946,24 +4972,6 @@ implementation
       end;
 
 
-    procedure make_procdef_external(data: tobject; arg: pointer);
-      var
-        def: tdef absolute data;
-      begin
-        if (def.typ = procdef) then
-          begin
-            include(tprocdef(def).procoptions,po_external);
-            tprocdef(def).forwarddef:=false;
-          end;
-      end;
-
-
-    procedure tobjectdef.make_all_methods_external;
-      begin
-         self.symtable.deflist.foreachcall(@make_procdef_external,nil);
-      end;
-
-
     procedure check_and_finish_msg(data: tobject; arg: pointer);
       var
         def: tdef absolute data;
@@ -5531,7 +5539,7 @@ implementation
       end;
 
 
-    function is_class_or_interface_or_dispinterface_or_objc(def: tdef): boolean;
+    function is_implicit_pointer_object_type(def: tdef): boolean;
       begin
         result:=
           assigned(def) and

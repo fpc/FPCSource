@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMExtensions.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -39,18 +39,18 @@
 {$define DOMEXTENSIONS_PAS_C}
 
 { DOMNodeExtensionsCategory }
-  DOMNodeExtensionsCategory = objccategory(DOMNode)
-  end; external;
+  DOMNodeExtensionsCategory = objccategory external (DOMNode)
+  end;
 
 { DOMElementAppKitExtensionsCategory }
-  DOMElementAppKitExtensionsCategory = objccategory(DOMElement)
-  end; external;
+  DOMElementAppKitExtensionsCategory = objccategory external (DOMElement)
+  end;
 
 { DOMHTMLDocumentExtensionsCategory }
-  DOMHTMLDocumentExtensionsCategory = objccategory(DOMHTMLDocument)
+  DOMHTMLDocumentExtensionsCategory = objccategory external (DOMHTMLDocument)
     function createDocumentFragmentWithMarkupString_baseURL(markupString: NSString; baseURL: NSURL): DOMDocumentFragment; message 'createDocumentFragmentWithMarkupString:baseURL:';
     function createDocumentFragmentWithText(text: NSString): DOMDocumentFragment; message 'createDocumentFragmentWithText:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

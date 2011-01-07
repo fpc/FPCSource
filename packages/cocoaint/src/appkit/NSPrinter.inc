@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPrinter.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -54,7 +54,7 @@ type
 {$define NSPRINTER_PAS_C}
 
 { NSPrinter }
-  NSPrinter = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSPrinter = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _printerName: NSString;
     _printer: Pointer;
@@ -69,8 +69,6 @@ type
     {$endif}
     
   public
-    class function alloc: NSPrinter; message 'alloc';
-
     class function printerNames: NSArray; message 'printerNames';
     class function printerTypes: NSArray; message 'printerTypes';
     class function printerWithName(name_: NSString): NSPrinter; message 'printerWithName:';
@@ -94,10 +92,10 @@ type
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSDeprecated_NSPrinterCategory }
-  NSDeprecated_NSPrinterCategory = objccategory(NSPrinter)
+  NSDeprecated_NSPrinterCategory = objccategory external name 'NSDeprecated' (NSPrinter)
     function imageRectForPaper(paperName: NSString): NSRect; message 'imageRectForPaper:'; deprecated 'in Mac OS X 10.2 and later';
     function acceptsBinary: Boolean; message 'acceptsBinary'; deprecated 'in Mac OS X 10.2 and later';
     function isColor: Boolean; message 'isColor'; deprecated 'in Mac OS X 10.2 and later';
@@ -107,7 +105,7 @@ type
     function domain: NSString; message 'domain'; deprecated 'in Mac OS X 10.2 and later';
     function host: NSString; message 'host'; deprecated 'in Mac OS X 10.2 and later';
     function note: NSString; message 'note'; deprecated 'in Mac OS X 10.2 and later';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}

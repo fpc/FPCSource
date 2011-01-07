@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSInvocation.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -67,7 +67,7 @@ valuePtr = ^value;
 {$define NSINVOCATION_PAS_C}
 
 { NSInvocation }
-  NSInvocation = objcclass(NSObject)
+  NSInvocation = objcclass external (NSObject)
   private
     _frame: Pointer;
     _retdata: Pointer;
@@ -77,8 +77,6 @@ valuePtr = ^value;
         _reserved: array[0..14] of cuint8;
     
   public
-    class function alloc: NSInvocation; message 'alloc';
-
     class function invocationWithMethodSignature(sig: NSMethodSignature): NSInvocation; message 'invocationWithMethodSignature:';
     function methodSignature: NSMethodSignature; message 'methodSignature';
     procedure retainArguments; message 'retainArguments';
@@ -93,7 +91,7 @@ valuePtr = ^value;
     procedure setArgument_atIndex(argumentLocation: Pointer; idx: NSInteger); message 'setArgument:atIndex:';
     procedure invoke; message 'invoke';
     procedure invokeWithTarget(target_: id); message 'invokeWithTarget:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

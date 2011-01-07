@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSProtocolChecker.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,20 +42,18 @@
 {$define NSPROTOCOLCHECKER_PAS_C}
 
 { NSProtocolChecker }
-  NSProtocolChecker = objcclass(NSProxy)
+  NSProtocolChecker = objcclass external (NSProxy)
     
   public
-    class function alloc: NSProtocolChecker; message 'alloc';
-
     function protocol: Protocol; message 'protocol';
     function target: NSObject; message 'target';
-  end; external;
+  end;
 
 { NSProtocolCheckerCreationCategory }
-  NSProtocolCheckerCreationCategory = objccategory(NSProtocolChecker)
+  NSProtocolCheckerCreationCategory = objccategory external (NSProtocolChecker)
     class function protocolCheckerWithTarget_protocol(anObject: NSObject; aProtocol: objc_protocol): id; message 'protocolCheckerWithTarget:protocol:';
     function initWithTarget_protocol(anObject: NSObject; aProtocol: objc_protocol): id; message 'initWithTarget:protocol:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

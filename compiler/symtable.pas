@@ -125,13 +125,17 @@ interface
        tlocalsymtable = class(tabstractlocalsymtable)
        public
           constructor create(adefowner:tdef;level:byte);
-          function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
+          function checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
        end;
+
+       { tparasymtable }
 
        tparasymtable = class(tabstractlocalsymtable)
        public
+          readonly: boolean;
           constructor create(adefowner:tdef;level:byte);
-          function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
+          function checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
+          procedure insertdef(def:TDefEntry);override;
        end;
 
        tabstractuniTSymtable = class(tstoredsymtable)
@@ -183,6 +187,14 @@ interface
           constructor create(adefowner:tdef);
        end;
 
+       { tarraysymtable }
+
+       tarraysymtable = class(tstoredsymtable)
+       public
+          procedure insertdef(def:TDefEntry);override;
+          constructor create(adefowner:tdef);
+       end;
+
     var
        systemunit     : tglobalsymtable; { pointer to the system unit }
 
@@ -200,6 +212,7 @@ interface
 
 {*** Search ***}
     procedure addsymref(sym:tsym);
+    function  is_owned_by(childdef,ownerdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(pd:tprocdef;contextobjdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(sym:tsym;contextobjdef:tabstractrecorddef):boolean;
@@ -747,7 +760,11 @@ implementation
     procedure TStoredSymtable._needs_init_final(sym:TObject;arg:pointer);
       begin
          if b_needs_init_final then
-          exit;
+           exit;
+         { don't check static symbols - they can be present in structures only and 
+           always have a reference to a symbol defined on unit level }
+         if sp_static in tsym(sym).symoptions then
+           exit;
          case tsym(sym).typ of
            fieldvarsym,
            staticvarsym,
@@ -1360,6 +1377,7 @@ implementation
     constructor tparasymtable.create(adefowner:tdef;level:byte);
       begin
         inherited create('');
+        readonly:=false;
         defowner:=adefowner;
         symtabletype:=parasymtable;
         symtablelevel:=level;
@@ -1380,6 +1398,14 @@ implementation
             is_object(tprocdef(defowner).struct)
            ) then
           result:=tprocdef(defowner).struct.symtable.checkduplicate(hashedid,sym);
+      end;
+
+    procedure tparasymtable.insertdef(def: TDefEntry);
+      begin
+        if readonly then
+          defowner.owner.insertdef(def)
+        else
+          inherited insertdef(def);
       end;
 
 
@@ -1617,6 +1643,27 @@ implementation
         defowner:=adefowner;
       end;
 
+{****************************************************************************
+                          TArraySymtable
+****************************************************************************}
+
+    procedure tarraysymtable.insertdef(def: TDefEntry);
+      begin
+        { Enums must also be available outside the record scope,
+          insert in the owner of this symtable }
+        if def.typ=enumdef then
+          defowner.owner.insertdef(def)
+        else
+          inherited insertdef(def);
+      end;
+
+    constructor tarraysymtable.create(adefowner: tdef);
+      begin
+        inherited Create('');
+        symtabletype:=arraysymtable;
+        defowner:=adefowner;
+      end;
+
 {*****************************************************************************
                              Helper Routines
 *****************************************************************************}
@@ -1714,15 +1761,14 @@ implementation
        end;
 
 
+    function is_owned_by(childdef,ownerdef:tabstractrecorddef):boolean;
+      begin
+        result:=childdef=ownerdef;
+        if not result and (childdef.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+          result:=is_owned_by(tabstractrecorddef(childdef.owner.defowner),ownerdef);
+      end;
+
     function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
-
-      function is_holded_by(childdef,ownerdef: tabstractrecorddef): boolean;
-        begin
-          result:=childdef=ownerdef;
-          if not result and (childdef.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-            result:=is_holded_by(tabstractrecorddef(childdef.owner.defowner),ownerdef);
-        end;
-
       var
         symownerdef : tabstractrecorddef;
       begin
@@ -1760,13 +1806,13 @@ implementation
           vis_strictprivate :
             begin
               result:=assigned(current_structdef) and
-                      is_holded_by(current_structdef,symownerdef);
+                      is_owned_by(current_structdef,symownerdef);
             end;
           vis_strictprotected :
             begin
                result:=assigned(current_structdef) and
                        (current_structdef.is_related(symownerdef) or
-                        is_holded_by(current_structdef,symownerdef));
+                        is_owned_by(current_structdef,symownerdef));
             end;
           vis_protected :
             begin
@@ -1919,11 +1965,11 @@ implementation
                 while assigned(classh) do
                   begin
                     srsymtable:=classh.symtable;
-                srsym:=tsym(srsymtable.FindWithHash(hashedid));
-                if assigned(srsym) and
-                       not(srsym.typ in [fieldvarsym,paravarsym,propertysym,procsym,labelsym]) and
-                       is_visible_for_object(srsym,current_structdef) then
-                  begin
+                    srsym:=tsym(srsymtable.FindWithHash(hashedid));
+                     if assigned(srsym) and
+                        not(srsym.typ in [fieldvarsym,paravarsym,propertysym,procsym,labelsym]) and
+                        is_visible_for_object(srsym,current_structdef) then
+                       begin
                         addsymref(srsym);
                         result:=true;
                         exit;
@@ -1932,7 +1978,6 @@ implementation
                   end;
               end
             else
-            if srsymtable.symtabletype<>parasymtable then
               begin
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
                 if assigned(srsym) and 
@@ -2059,6 +2104,12 @@ implementation
                    is_objcclass(ttypesym(srsym).typedef) and
                    not(oo_is_formal in tobjectdef(ttypesym(srsym).typedef).objectoptions) then
                   begin
+                    { the external name for the formal and the real definition must match }
+                    if tobjectdef(ttypesym(srsym).typedef).objextname^<>pd.objextname^ then
+                      begin
+                        Message2(sym_e_external_class_name_mismatch1,pd.objextname^,pd.typename);
+                        MessagePos1(srsym.fileinfo,sym_e_external_class_name_mismatch2,tobjectdef(ttypesym(srsym).typedef).objextname^);
+                      end;
                     result:=tobjectdef(ttypesym(srsym).typedef);
                     if assigned(current_procinfo) and
                        (srsym.owner.symtabletype=staticsymtable) then

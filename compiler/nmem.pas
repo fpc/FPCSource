@@ -166,12 +166,12 @@ implementation
             if (df_generic in left.resultdef.defoptions) then
               begin
                 defaultresultdef:=true;
-                if assigned(current_objectdef) then
+                if assigned(current_structdef) then
                   begin
-                    if assigned(current_objectdef.genericdef) then
-                      if current_objectdef.genericdef=left.resultdef then
+                    if assigned(current_structdef.genericdef) then
+                      if current_structdef.genericdef=left.resultdef then
                         begin
-                          resultdef:=tclassrefdef.create(current_objectdef);
+                          resultdef:=tclassrefdef.create(current_structdef);
                           defaultresultdef:=false;
                         end
                       else
@@ -687,8 +687,8 @@ implementation
          if codegenerror then
           exit;
 
-         { classes must be dereferenced implicitly }
-         if is_class_or_interface_or_dispinterface_or_objc(left.resultdef) then
+         { several object types must be dereferenced implicitly }
+         if is_implicit_pointer_object_type(left.resultdef) then
            expectloc:=LOC_REFERENCE
          else
            begin
@@ -863,7 +863,8 @@ implementation
                  (except voidpointer) in delphi/tp7 it's only allowed for pchars. }
                if not is_voidpointer(left.resultdef) and
                   (
-                   (m_fpc in current_settings.modeswitches) or
+                   (cs_pointermath in current_settings.localswitches) or
+                   tpointerdef(left.resultdef).has_pointer_math or
                    is_pchar(left.resultdef) or
                    is_pwidechar(left.resultdef)
                   ) then

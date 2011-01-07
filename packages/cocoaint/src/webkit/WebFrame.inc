@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebFrame.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,13 +42,11 @@
 {$define WEBFRAME_PAS_C}
 
 { WebFrame }
-  WebFrame = objcclass(NSObject)
+  WebFrame = objcclass external (NSObject)
   private
     _private: WebFramePrivate;
     
   public
-    class function alloc: WebFrame; message 'alloc';
-
     function initWithName_webFrameView_webView(name_: NSString; view: WebFrameView; webView_: WebView): id; message 'initWithName:webFrameView:webView:';
     function name: NSString; message 'name';
     function webView: WebView; message 'webView';
@@ -70,7 +68,7 @@
     function childFrames: NSArray; message 'childFrames';
     function windowObject: WebScriptObject; message 'windowObject';
     function globalContext: JSGlobalContextRef; message 'globalContext';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

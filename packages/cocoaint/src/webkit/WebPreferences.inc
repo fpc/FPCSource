@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebPreferences.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -58,13 +58,11 @@ var
 {$define WEBPREFERENCES_PAS_C}
 
 { WebPreferences }
-  WebPreferences = objcclass(NSObject, NSCodingProtocol)
+  WebPreferences = objcclass external (NSObject, NSCodingProtocol)
   private
     _private: WebPreferencesPrivate;
     
   public
-    class function alloc: WebPreferences; message 'alloc';
-
     class function standardPreferences: WebPreferences; message 'standardPreferences';
     function initWithIdentifier(anIdentifier: NSString): id; message 'initWithIdentifier:';
     function identifier: NSString; message 'identifier';
@@ -124,7 +122,7 @@ var
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSOpenGL.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -131,7 +131,7 @@ procedure NSOpenGLGetVersion(major: GLintPtr; minor: GLintPtr); cdecl; external;
 {$define NSOPENGL_PAS_C}
 
 { NSOpenGLPixelFormat }
-  NSOpenGLPixelFormat = objcclass(NSObject, NSCodingProtocol)
+  NSOpenGLPixelFormat = objcclass external (NSObject, NSCodingProtocol)
   private
     _pixelFormatAuxiliary: NSOpenGLPixelFormatAuxiliaryPtr;
     _pixelAttributes: NSData;
@@ -140,8 +140,6 @@ procedure NSOpenGLGetVersion(major: GLintPtr; minor: GLintPtr); cdecl; external;
     _reserved3: NSInteger;
     
   public
-    class function alloc: NSOpenGLPixelFormat; message 'alloc';
-
     function initWithAttributes(attribs: NSOpenGLPixelFormatAttributePtr): id; message 'initWithAttributes:';
     function initWithData(attribs: NSData): id; message 'initWithData:';
     function initWithCGLPixelFormatObj(format: Pointer): id; message 'initWithCGLPixelFormatObj:';
@@ -154,18 +152,16 @@ procedure NSOpenGLGetVersion(major: GLintPtr; minor: GLintPtr); cdecl; external;
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSOpenGLPixelBuffer }
-  NSOpenGLPixelBuffer = objcclass(NSObject)
+  NSOpenGLPixelBuffer = objcclass external (NSObject)
   private
     __pixelBufferAuxiliary: Pointer;
     _reserved1: Pointer;
     _reserved2: Pointer;
     
   public
-    class function alloc: NSOpenGLPixelBuffer; message 'alloc';
-
     function initWithTextureTarget_textureInternalFormat_textureMaxMipMapLevel_pixelsWide_pixelsHigh(target: GLenum; format: GLenum; maxLevel: GLint; pixelsWide_: GLsizei; pixelsHigh_: GLsizei): id; message 'initWithTextureTarget:textureInternalFormat:textureMaxMipMapLevel:pixelsWide:pixelsHigh:';
     function initWithCGLPBufferObj(pbuffer: Pointer): id; message 'initWithCGLPBufferObj:';
     function CGLPBufferObj: Pointer; message 'CGLPBufferObj';
@@ -174,17 +170,15 @@ procedure NSOpenGLGetVersion(major: GLintPtr; minor: GLintPtr); cdecl; external;
     function textureTarget: GLenum; message 'textureTarget';
     function textureInternalFormat: GLenum; message 'textureInternalFormat';
     function textureMaxMipMapLevel: GLint; message 'textureMaxMipMapLevel';
-  end; external;
+  end;
 
 { NSOpenGLContext }
-  NSOpenGLContext = objcclass(NSObject)
+  NSOpenGLContext = objcclass external (NSObject)
   private
     _view: NSView;
     _contextAuxiliary: NSOpenGLContextAuxiliaryPtr;
     
   public
-    class function alloc: NSOpenGLContext; message 'alloc';
-
     function initWithFormat_shareContext(format: NSOpenGLPixelFormat; share: NSOpenGLContext): id; message 'initWithFormat:shareContext:';
     function initWithCGLContextObj(context: Pointer): id; message 'initWithCGLContextObj:';
     procedure setView(view_: NSView); message 'setView:';
@@ -209,7 +203,7 @@ procedure NSOpenGLGetVersion(major: GLintPtr; minor: GLintPtr); cdecl; external;
     function pixelBufferCubeMapFace: GLenum; message 'pixelBufferCubeMapFace';
     function pixelBufferMipMapLevel: GLint; message 'pixelBufferMipMapLevel';
     procedure setTextureImageToPixelBuffer_colorBuffer(pixelBuffer_: NSOpenGLPixelBuffer; source: GLenum); message 'setTextureImageToPixelBuffer:colorBuffer:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

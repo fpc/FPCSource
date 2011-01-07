@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMAttr.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,18 +42,16 @@
 {$define DOMATTR_PAS_C}
 
 { DOMAttr }
-  DOMAttr = objcclass(DOMNode)
+  DOMAttr = objcclass external (DOMNode)
     
   public
-    class function alloc: DOMAttr; message 'alloc';
-
     function name: NSString; message 'name';
     function specified: Boolean; message 'specified';
     procedure setValue (newValue: NSString); message 'setValue:';
     function value: NSString; message 'value';
     function ownerElement: DOMElement; message 'ownerElement';
     function style: DOMCSSStyleDeclaration; message 'style';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

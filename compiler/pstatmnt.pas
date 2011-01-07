@@ -597,8 +597,8 @@ implementation
                     p:=ctemprefnode.create(calltempnode);
                     typecheckpass(p);
                   end;
-                { classes and interfaces have implicit dereferencing }
-                hasimplicitderef:=is_class_or_interface_or_dispinterface_or_objc(p.resultdef) or
+                { several object types have implicit dereferencing }
+                hasimplicitderef:=is_implicit_pointer_object_type(p.resultdef) or
                                   (p.resultdef.typ = classrefdef);
                 if hasimplicitderef then
                   hdef:=p.resultdef

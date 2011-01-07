@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPopUpButton.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -46,7 +46,7 @@ var
 {$define NSPOPUPBUTTON_PAS_C}
 
 { NSPopUpButton }
-  NSPopUpButton = objcclass(NSButton)
+  NSPopUpButton = objcclass external (NSButton)
   private
     __pbFlags: bitpacked record
       case byte of
@@ -61,8 +61,6 @@ var
     {$endif}
     
   public
-    class function alloc: NSPopUpButton; message 'alloc';
-
     function initWithFrame_pullsDown(buttonFrame: NSRect; flag: Boolean): id; message 'initWithFrame:pullsDown:';
     procedure setMenu(menu_: NSMenu); message 'setMenu:';
     function menu: NSMenu; message 'menu';
@@ -99,7 +97,7 @@ var
     function itemTitleAtIndex(index: NSInteger): NSString; message 'itemTitleAtIndex:';
     function itemTitles: NSArray; message 'itemTitles';
     function titleOfSelectedItem: NSString; message 'titleOfSelectedItem';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

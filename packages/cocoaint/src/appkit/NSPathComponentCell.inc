@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPathComponentCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSPATHCOMPONENTCELL_PAS_C}
 
 { NSPathComponentCell }
-  NSPathComponentCell = objcclass(NSTextFieldCell)
+  NSPathComponentCell = objcclass external (NSTextFieldCell)
   private
     _image: NSImage;
     _fullWidth: CGFloat;
@@ -64,13 +64,11 @@
     _aux: id;
     
   public
-    class function alloc: NSPathComponentCell; message 'alloc';
-
     function image: NSImage; message 'image';
     procedure setImage(value: NSImage); message 'setImage:';
     function URL: NSURL; message 'URL';
     procedure setURL(url_: NSURL); message 'setURL:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

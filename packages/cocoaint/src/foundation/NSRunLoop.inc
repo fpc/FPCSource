@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSRunLoop.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -47,7 +47,7 @@ var
 {$define NSRUNLOOP_PAS_C}
 
 { NSRunLoop }
-  NSRunLoop = objcclass(NSObject)
+  NSRunLoop = objcclass external (NSObject)
   private
     _rl: id;
     _dperf: id;
@@ -57,8 +57,6 @@ var
         _reserved: array[0..5] of Pointer;
     
   public
-    class function alloc: NSRunLoop; message 'alloc';
-
     class function currentRunLoop: NSRunLoop; message 'currentRunLoop';
     class function mainRunLoop: NSRunLoop; message 'mainRunLoop';
     function currentMode: NSString; message 'currentMode';
@@ -68,30 +66,30 @@ var
     procedure removePort_forMode(aPort: NSPort; mode: NSString); message 'removePort:forMode:';
     function limitDateForMode(mode: NSString): NSDate; message 'limitDateForMode:';
     procedure acceptInputForMode_beforeDate(mode: NSString; limitDate: NSDate); message 'acceptInputForMode:beforeDate:';
-  end; external;
+  end;
 
 { NSRunLoopConveniencesCategory }
-  NSRunLoopConveniencesCategory = objccategory(NSRunLoop)
+  NSRunLoopConveniencesCategory = objccategory external (NSRunLoop)
     procedure run; message 'run';
     procedure runUntilDate(limitDate: NSDate); message 'runUntilDate:';
     function runMode_beforeDate(mode: NSString; limitDate: NSDate): Boolean; message 'runMode:beforeDate:';
     procedure configureAsServer; message 'configureAsServer'; deprecated 'in Mac OS X 10.5 and later';
-  end; external;
+  end;
 
 { NSDelayedPerformingCategory }
-  NSDelayedPerformingCategory = objccategory(NSObject)
+  NSDelayedPerformingCategory = objccategory external (NSObject)
     procedure performSelector_withObject_afterDelay_inModes(aSelector: SEL; anArgument: id; delay: NSTimeInterval; modes: NSArray); message 'performSelector:withObject:afterDelay:inModes:';
     procedure performSelector_withObject_afterDelay(aSelector: SEL; anArgument: id; delay: NSTimeInterval); message 'performSelector:withObject:afterDelay:';
     class procedure cancelPreviousPerformRequestsWithTarget_selector_object(aTarget: id; aSelector: SEL; anArgument: id); message 'cancelPreviousPerformRequestsWithTarget:selector:object:';
     class procedure cancelPreviousPerformRequestsWithTarget(aTarget: id); message 'cancelPreviousPerformRequestsWithTarget:';
-  end; external;
+  end;
 
 { NSOrderedPerformCategory }
-  NSOrderedPerformCategory = objccategory(NSRunLoop)
+  NSOrderedPerformCategory = objccategory external (NSRunLoop)
     procedure performSelector_target_argument_order_modes(aSelector: SEL; target: id; arg: id; order: NSUInteger; modes: NSArray); message 'performSelector:target:argument:order:modes:';
     procedure cancelPerformSelector_target_argument(aSelector: SEL; target: id; arg: id); message 'cancelPerformSelector:target:argument:';
     procedure cancelPerformSelectorsWithTarget(target: id); message 'cancelPerformSelectorsWithTarget:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

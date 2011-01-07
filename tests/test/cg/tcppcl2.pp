@@ -5,15 +5,15 @@ program tcppcl2;
 {$L cpptcl2.o}
 
 type
-  TestClass = cppclass
+  TestClass = cppclass external
   public
     class procedure TestProc;
-  end; external;
+  end;
 
-  TestClass2 = cppclass
+  TestClass2 = cppclass external name 'testclass'
   public
     class procedure TestProc;
-  end; external name 'testclass';
+  end;
 
 begin
   try

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSRunningApplication.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -60,7 +60,7 @@ type
 {$define NSRUNNINGAPPLICATION_PAS_C}
 
 { NSRunningApplication }
-  NSRunningApplication = objcclass(NSObject)
+  NSRunningApplication = objcclass external (NSObject)
   private
     _superReserved: id;
     _asn: Pointer; {garbage collector: __strong }
@@ -96,8 +96,6 @@ type
     _appReserved: id;
     
   public
-    class function alloc: NSRunningApplication; message 'alloc';
-
     function terminated: Boolean; message 'terminated';
     function finishedLaunching: Boolean; message 'finishedLaunching';
     function hidden: Boolean; message 'hidden';
@@ -119,12 +117,12 @@ type
     class function runningApplicationsWithBundleIdentifier(bundleIdentifier_: NSString): NSArray; message 'runningApplicationsWithBundleIdentifier:';
     class function runningApplicationWithProcessIdentifier(pid: pid_t): NSRunningApplication; message 'runningApplicationWithProcessIdentifier:';
     class function currentApplication: NSRunningApplication; message 'currentApplication';
-  end; external;
+  end;
 
 { NSWorkspaceRunningApplicationsCategory }
-  NSWorkspaceRunningApplicationsCategory = objccategory(NSWorkspace)
+  NSWorkspaceRunningApplicationsCategory = objccategory external (NSWorkspace)
     function runningApplications: NSArray; message 'runningApplications';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

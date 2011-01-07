@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSFileWrapper.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -59,7 +59,7 @@ type
 {$define NSFILEWRAPPER_PAS_C}
 
 { NSFileWrapper }
-  NSFileWrapper = objcclass(NSObject, NSCodingProtocol)
+  NSFileWrapper = objcclass external (NSObject, NSCodingProtocol)
   private
     _fileAttributes: NSDictionary;
     _preferredFileName: NSString;
@@ -69,8 +69,6 @@ type
     _moreVars: id;
     
   public
-    class function alloc: NSFileWrapper; message 'alloc';
-
     function initWithURL_options_error(url: NSURL; options: NSFileWrapperReadingOptions; outError: NSErrorPointer): id; message 'initWithURL:options:error:';
     function initDirectoryWithFileWrappers(childrenByPreferredName: NSDictionary): id; message 'initDirectoryWithFileWrappers:';
     function initRegularFileWithContents(contents: NSData): id; message 'initRegularFileWithContents:';
@@ -102,10 +100,10 @@ type
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSDeprecated_NSFileWrapperCategory }
-  NSDeprecated_NSFileWrapperCategory = objccategory(NSFileWrapper)
+  NSDeprecated_NSFileWrapperCategory = objccategory external name 'NSDeprecated' (NSFileWrapper)
     function initWithPath(path: NSString): id; message 'initWithPath:';
     function initSymbolicLinkWithDestination(path: NSString): id; message 'initSymbolicLinkWithDestination:';
     function needsToBeUpdatedFromPath(path: NSString): Boolean; message 'needsToBeUpdatedFromPath:';
@@ -114,7 +112,7 @@ type
     function addFileWithPath(path: NSString): NSString; message 'addFileWithPath:';
     function addSymbolicLinkWithDestination_preferredFilename(path: NSString; filename_: NSString): NSString; message 'addSymbolicLinkWithDestination:preferredFilename:';
     function symbolicLinkDestination: NSString; message 'symbolicLinkDestination';
-  end; external name 'NSDeprecated';
+  end;
 
 {$endif}
 {$endif}

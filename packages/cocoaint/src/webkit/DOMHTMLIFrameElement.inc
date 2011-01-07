@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLIFrameElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLIFRAMEELEMENT_PAS_C}
 
 { DOMHTMLIFrameElement }
-  DOMHTMLIFrameElement = objcclass(DOMHTMLElement)
+  DOMHTMLIFrameElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLIFrameElement; message 'alloc';
-
     procedure setAlign (newValue: NSString); message 'setAlign:';
     function align: NSString; message 'align';
     procedure setFrameBorder (newValue: NSString); message 'setFrameBorder:';
@@ -69,7 +67,7 @@
     function width: NSString; message 'width';
     function contentDocument: DOMDocument; message 'contentDocument';
     function contentWindow: DOMAbstractView; message 'contentWindow';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

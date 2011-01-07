@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAnimationContext.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,20 +42,18 @@
 {$define NSANIMATIONCONTEXT_PAS_C}
 
 { NSAnimationContext }
-  NSAnimationContext = objcclass(NSObject)
+  NSAnimationContext = objcclass external (NSObject)
   private
     _duration: NSTimeInterval;
         _reserved: array[0..4] of id;
     
   public
-    class function alloc: NSAnimationContext; message 'alloc';
-
     class procedure beginGrouping; message 'beginGrouping';
     class procedure endGrouping; message 'endGrouping';
     class function currentContext: NSAnimationContext; message 'currentContext';
     procedure setDuration(duration_: NSTimeInterval); message 'setDuration:';
     function duration: NSTimeInterval; message 'duration';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

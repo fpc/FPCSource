@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLHandle.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -70,7 +70,7 @@ var
 {$define NSURLHANDLE_PAS_C}
 
 { NSURLHandle }
-  NSURLHandle = objcclass(NSObject)
+  NSURLHandle = objcclass external (NSObject)
   private
     _clients: NSMutableArray;
     _data: id;
@@ -78,8 +78,6 @@ var
     _reserved: NSInteger;
     
   public
-    class function alloc: NSURLHandle; message 'alloc';
-
     class procedure registerURLHandleClass(anURLHandleSubclass: Pobjc_class); message 'registerURLHandleClass:'; deprecated 'in Mac OS X 10.4 and later';
     class function URLHandleClassForURL(anURL: NSURL): Pobjc_class; message 'URLHandleClassForURL:'; deprecated 'in Mac OS X 10.4 and later';
     function status: NSURLHandleStatus; message 'status'; deprecated 'in Mac OS X 10.4 and later';
@@ -103,7 +101,7 @@ var
     function loadInForeground: NSData; message 'loadInForeground'; deprecated 'in Mac OS X 10.4 and later';
     procedure beginLoadInBackground; message 'beginLoadInBackground'; deprecated 'in Mac OS X 10.4 and later';
     procedure endLoadInBackground; message 'endLoadInBackground'; deprecated 'in Mac OS X 10.4 and later';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -112,12 +110,12 @@ var
 {$define NSURLHANDLE_PAS_P}
   
 { NSURLHandleClient Protocol }
-  NSURLHandleClientProtocol = objcprotocol
+  NSURLHandleClientProtocol = objcprotocol external name 'NSURLHandleClient'
     procedure URLHandle_resourceDataDidBecomeAvailable(sender: NSURLHandle; newBytes: NSData); message 'URLHandle:resourceDataDidBecomeAvailable:'; deprecated 'in Mac OS X 10.4 and later';
     procedure URLHandleResourceDidBeginLoading(sender: NSURLHandle); message 'URLHandleResourceDidBeginLoading:'; deprecated 'in Mac OS X 10.4 and later';
     procedure URLHandleResourceDidFinishLoading(sender: NSURLHandle); message 'URLHandleResourceDidFinishLoading:'; deprecated 'in Mac OS X 10.4 and later';
     procedure URLHandleResourceDidCancelLoading(sender: NSURLHandle); message 'URLHandleResourceDidCancelLoading:'; deprecated 'in Mac OS X 10.4 and later';
     procedure URLHandle_resourceDidFailLoadingWithReason(sender: NSURLHandle; reason: NSString); message 'URLHandle:resourceDidFailLoadingWithReason:'; deprecated 'in Mac OS X 10.4 and later';
-  end; external name 'NSURLHandleClient';
+  end;
 {$endif}
 {$endif}

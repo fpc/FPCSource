@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSXMLNode.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -64,7 +64,7 @@ type
 {$define NSXMLNODE_PAS_C}
 
 { NSXMLNode }
-  NSXMLNode = objcclass(NSObject, NSCopyingProtocol)
+  NSXMLNode = objcclass external (NSObject, NSCopyingProtocol)
   private
     _kind: NSXMLNodeKind;
     _parent: NSXMLNode;
@@ -72,8 +72,6 @@ type
     _objectValue: id;
     
   public
-    class function alloc: NSXMLNode; message 'alloc';
-
     function initWithKind(kind_: NSXMLNodeKind): id; message 'initWithKind:';
     function initWithKind_options(kind_: NSXMLNodeKind; options: NSUInteger): id; message 'initWithKind:options:';
     class function document: id; message 'document';
@@ -127,7 +125,7 @@ type
 
     { Adopted Protocols }
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

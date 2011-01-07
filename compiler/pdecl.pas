@@ -26,10 +26,12 @@ unit pdecl;
 interface
 
     uses
+      { common }
+      cclasses,
       { global }
       globtype,
       { symtable }
-      symsym,
+      symsym,symdef,
       { pass_1 }
       node;
 
@@ -45,19 +47,23 @@ interface
     procedure property_dec(is_classpropery: boolean);
     procedure resourcestring_dec;
 
+    { generics support }
+    function parse_generic_parameters:TFPObjectList;
+    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
+
 implementation
 
     uses
        SysUtils,
        { common }
-       cutils,cclasses,
+       cutils,
        { global }
        globals,tokens,verbose,widestr,constexp,
        systems,
        { aasm }
        aasmbase,aasmtai,aasmdata,fmodule,
        { symtable }
-       symconst,symbase,symtype,symdef,symtable,paramgr,defutil,
+       symconst,symbase,symtype,symtable,paramgr,defutil,
        { pass 1 }
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
        { codegen }
@@ -330,105 +336,61 @@ implementation
          consume(_SEMICOLON);
       end;
 
+    function parse_generic_parameters:TFPObjectList;
+    var
+      generictype : ttypesym;
+    begin
+      result:=TFPObjectList.Create(false);
+      repeat
+        if token=_ID then
+          begin
+            generictype:=ttypesym.create(orgpattern,cundefinedtype);
+            include(generictype.symoptions,sp_generic_para);
+            result.add(generictype);
+          end;
+        consume(_ID);
+      until not try_to_consume(_COMMA) ;
+    end;
+
+    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
+      var
+        i: longint;
+        generictype: ttypesym;
+        st: tsymtable;
+      begin
+        def.genericdef:=genericdef;
+        if not assigned(genericlist) then
+          exit;
+
+        case def.typ of
+          recorddef,objectdef: st:=tabstractrecorddef(def).symtable;
+          arraydef: st:=tarraydef(def).symtable;
+          procvardef,procdef: st:=tabstractprocdef(def).parast;
+          else
+            internalerror(201101020);
+        end;
+
+        for i:=0 to genericlist.count-1 do
+          begin
+            generictype:=ttypesym(genericlist[i]);
+            if generictype.typedef.typ=undefineddef then
+              include(def.defoptions,df_generic)
+            else
+              include(def.defoptions,df_specialization);
+            st.insert(generictype);
+          end;
+       end;
 
     procedure types_dec(in_structure: boolean);
 
-      procedure get_cpp_class_external_status(od: tobjectdef);
-        var
-          hs: string;
-
+      procedure finalize_objc_class_or_protocol_external_status(od: tobjectdef);
         begin
-          { C++ classes can be external -> all methods inside are external
-           (defined at the class level instead of per method, so that you cannot
-           define some methods as external and some not)
-          }
-          if (token=_ID) and
-             (idtoken=_EXTERNAL) then
+          if  [oo_is_external,oo_is_forward] <= od.objectoptions then
             begin
-              consume(_EXTERNAL);
-              { copied from pdecsub.pd_external }
-              if not(token=_SEMICOLON) and not(idtoken=_NAME) then
-                begin
-                  { Always add library prefix and suffix to create an uniform name }
-                  hs:=get_stringconst;
-                  if ExtractFileExt(hs)='' then
-                    hs:=ChangeFileExt(hs,target_info.sharedlibext);
-                  if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
-                    hs:=target_info.sharedlibprefix+hs;
-                  od.import_lib:=stringdup(hs);
-                end;
-              include(od.objectoptions, oo_is_external);
-              { check if we shall use another name for the class }
-              if (token=_ID) and
-                 (idtoken=_NAME) then
-                begin
-                  consume(_NAME);
-                  od.objextname:=stringdup(get_stringconst);
-                end
-              else
-                od.objextname:=stringdup(od.objrealname^);
-              consume(_SEMICOLON);
-              { now all methods need to be external }
-              od.make_all_methods_external;
-              include(od.objectoptions,oo_is_external);
-            end
-          else
-            od.objextname:=stringdup(od.objrealname^);
-          { ToDo: read the namespace of the class (influences the mangled name)}
-        end;
-
-      procedure get_objc_class_or_protocol_external_status(od: tobjectdef);
-        begin
-          { Objective-C classes can be external -> all messages inside are
-            external (defined at the class level instead of per method, so
-            that you cannot define some methods as external and some not)
-          }
-          if (token=_ID) and
-             (idtoken=_EXTERNAL) then
-            begin
-              consume(_EXTERNAL);
-              if (token=_ID) and
-                 (idtoken=_NAME) and
-                 not(oo_is_forward in od.objectoptions) then
-                begin
-                  consume(_NAME);
-                  od.objextname:=stringdup(get_stringconst);
-                end
-              else
-                { the external name doesn't matter for formally declared
-                  classes, and allowing to specify one would mean that we would
-                  have to check it for consistency with the actual definition
-                  later on }
-                od.objextname:=stringdup(od.objrealname^);
-              consume(_SEMICOLON);
-              od.make_all_methods_external;
-              include(od.objectoptions,oo_is_external);
-              if (oo_is_forward in od.objectoptions) then
-                begin
-                  { formal definition: x = objcclass; external; }
-                  exclude(od.objectoptions,oo_is_forward);
-                  include(od.objectoptions,oo_is_formal);
-                end;
-            end
-          else { or also allow "public name 'x'"? }
-            od.objextname:=stringdup(od.objrealname^);
-        end;
-
-
-        function parse_generic_parameters:TFPObjectList;
-        var
-          generictype : ttypesym;
-        begin
-          result:=TFPObjectList.Create(false);
-          repeat
-            if token=_ID then
-              begin
-                generictype:=ttypesym.create(orgpattern,cundefinedtype);
-                include(generictype.symoptions,sp_generic_para);
-                result.add(generictype);
-              end;
-            consume(_ID);
-          until not try_to_consume(_COMMA) ;
+              { formal definition: x = objcclass external; }
+              exclude(od.objectoptions,oo_is_forward);
+              include(od.objectoptions,oo_is_formal);
+            end;
         end;
 
       var
@@ -460,12 +422,16 @@ implementation
            generictypelist:=nil;
            generictokenbuf:=nil;
 
-           { generic declaration? }
-           isgeneric:=try_to_consume(_GENERIC);
+           { fpc generic declaration? }
+           isgeneric:=not(m_delphi in current_settings.modeswitches) and try_to_consume(_GENERIC);
 
            typename:=pattern;
            orgtypename:=orgpattern;
            consume(_ID);
+
+           { delphi generic declaration? }
+           if (m_delphi in current_settings.modeswitches) then
+             isgeneric:=token=_LSHARPBRACKET;
 
            { Generic type declaration? }
            if isgeneric then
@@ -511,7 +477,7 @@ implementation
                      (token=_OBJCPROTOCOL) or
                      (token=_OBJCCATEGORY)) and
                     (assigned(ttypesym(sym).typedef)) and
-                    is_class_or_interface_or_dispinterface_or_objc(ttypesym(sym).typedef) and
+                    is_implicit_pointer_object_type(ttypesym(sym).typedef) and
                     (oo_is_forward in tobjectdef(ttypesym(sym).typedef).objectoptions) then
                   begin
                     case token of
@@ -633,14 +599,11 @@ implementation
                     try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
                     consume(_SEMICOLON);
 
-                    { we have to know whether the class or protocol is
-                      external before the vmt is built, because some errors/
-                      hints depend on this  }
+                    { change a forward and external objcclass declaration into
+                      formal external definition, so the compiler does not
+                      expect an real definition later }
                     if is_objc_class_or_protocol(hdef) then
-                      get_objc_class_or_protocol_external_status(tobjectdef(hdef));
-
-                    if is_cppclass(hdef) then
-                      get_cpp_class_external_status(tobjectdef(hdef));
+                      finalize_objc_class_or_protocol_external_status(tobjectdef(hdef));
 
                     { Build VMT indexes, skip for type renaming and forward classes }
                     if (hdef.typesym=newtype) and
@@ -684,7 +647,7 @@ implementation
               end;
             end;
 
-           if isgeneric and not(hdef.typ in [objectdef,recorddef]) then
+           if isgeneric and not(hdef.typ in [objectdef,recorddef,arraydef,procvardef]) then
              message(parser_e_cant_create_generics_of_this_type);
 
            { Stop recording a generic template }

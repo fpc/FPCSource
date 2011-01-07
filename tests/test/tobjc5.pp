@@ -7,10 +7,10 @@
 {$modeswitch objectivec1}
 
 type
-  ta = objcclass
+  ta = objcclass external
     { needs message name specification }
     procedure test; 
-  end; external;
+  end;
 
 begin
 end.

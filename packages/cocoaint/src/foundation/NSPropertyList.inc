@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPropertyList.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -63,13 +63,11 @@ type
 {$define NSPROPERTYLIST_PAS_C}
 
 { NSPropertyListSerialization }
-  NSPropertyListSerialization = objcclass(NSObject)
+  NSPropertyListSerialization = objcclass external (NSObject)
   private
         reserved: array[0..5] of Pointer;
     
   public
-    class function alloc: NSPropertyListSerialization; message 'alloc';
-
     class function propertyList_isValidForFormat(plist: id; format: NSPropertyListFormat): Boolean; message 'propertyList:isValidForFormat:';
     class function dataWithPropertyList_format_options_error(plist: id; format: NSPropertyListFormat; opt: NSPropertyListWriteOptions; error: NSErrorPointer): NSData; message 'dataWithPropertyList:format:options:error:';
     class function writePropertyList_toStream_format_options_error(plist: id; stream: NSOutputStream; format: NSPropertyListFormat; opt: NSPropertyListWriteOptions; error: NSErrorPointer): NSInteger; message 'writePropertyList:toStream:format:options:error:';
@@ -77,7 +75,7 @@ type
     class function propertyListWithStream_options_format_error(stream: NSInputStream; opt: NSPropertyListReadOptions; format: NSPropertyListFormatPtr; error: NSErrorPointer): id; message 'propertyListWithStream:options:format:error:';
     class function dataFromPropertyList_format_errorDescription(plist: id; format: NSPropertyListFormat; errorString: NSStringPointer): NSData; message 'dataFromPropertyList:format:errorDescription:';
     class function propertyListFromData_mutabilityOption_format_errorDescription(data: NSData; opt: NSPropertyListMutabilityOptions; format: NSPropertyListFormatPtr; errorString: NSStringPointer): id; message 'propertyListFromData:mutabilityOption:format:errorDescription:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSImageView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSIMAGEVIEW_PAS_C}
 
 { NSImageView }
-  NSImageView = objcclass(NSControl)
+  NSImageView = objcclass external (NSControl)
   private
     __ivFlags: bitpacked record
       case byte of
@@ -61,8 +61,6 @@
     _action: SEL;
     
   public
-    class function alloc: NSImageView; message 'alloc';
-
     function image: NSImage; message 'image';
     procedure setImage(newImage: NSImage); message 'setImage:';
     function imageAlignment: NSImageAlignment; message 'imageAlignment';
@@ -77,7 +75,7 @@
     function animates: Boolean; message 'animates';
     function allowsCutCopyPaste: Boolean; message 'allowsCutCopyPaste';
     procedure setAllowsCutCopyPaste(allow: Boolean); message 'setAllowsCutCopyPaste:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

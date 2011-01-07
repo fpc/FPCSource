@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSMapTable.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -128,11 +128,9 @@ var
 {$define NSMAPTABLE_PAS_C}
 
 { NSMapTable }
-  NSMapTable = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol, NSFastEnumerationProtocol)
+  NSMapTable = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol, NSFastEnumerationProtocol)
     
   public
-    class function alloc: NSMapTable; message 'alloc';
-
     function initWithKeyOptions_valueOptions_capacity(keyOptions: NSPointerFunctionsOptions; valueOptions: NSPointerFunctionsOptions; initialCapacity: NSUInteger): id; message 'initWithKeyOptions:valueOptions:capacity:';
     function initWithKeyPointerFunctions_valuePointerFunctions_capacity(keyFunctions: NSPointerFunctions; valueFunctions: NSPointerFunctions; initialCapacity: NSUInteger): id; message 'initWithKeyPointerFunctions:valuePointerFunctions:capacity:';
     class function mapTableWithKeyOptions_valueOptions(keyOptions: NSPointerFunctionsOptions; valueOptions: NSPointerFunctionsOptions): id; message 'mapTableWithKeyOptions:valueOptions:';
@@ -156,7 +154,7 @@ var
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePtr; stackbuf: idPtr; len: NSUInteger): NSUInteger;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

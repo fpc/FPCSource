@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSMethodSignature.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,14 +42,12 @@
 {$define NSMETHODSIGNATURE_PAS_C}
 
 { NSMethodSignature }
-  NSMethodSignature = objcclass(NSObject)
+  NSMethodSignature = objcclass external (NSObject)
   private
     _private: Pointer;
         _reserved: array[0..5] of Pointer;
     
   public
-    class function alloc: NSMethodSignature; message 'alloc';
-
     class function signatureWithObjCTypes(types: PChar): NSMethodSignature; message 'signatureWithObjCTypes:';
     function numberOfArguments: NSUInteger; message 'numberOfArguments';
     function getArgumentTypeAtIndex(idx: NSUInteger): PChar; message 'getArgumentTypeAtIndex:';
@@ -57,7 +55,7 @@
     function isOneway: Boolean; message 'isOneway';
     function methodReturnType: PChar; message 'methodReturnType';
     function methodReturnLength: NSUInteger; message 'methodReturnLength';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

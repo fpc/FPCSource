@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSObjectScripting.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -39,13 +39,13 @@
 {$define NSOBJECTSCRIPTING_PAS_C}
 
 { NSScriptingCategory }
-  NSScriptingCategory = objccategory(NSObject)
+  NSScriptingCategory = objccategory external (NSObject)
     function scriptingValueForSpecifier(objectSpecifier: NSScriptObjectSpecifier): id; message 'scriptingValueForSpecifier:';
     function scriptingProperties: NSDictionary; message 'scriptingProperties';
     procedure setScriptingProperties(properties: NSDictionary); message 'setScriptingProperties:';
     function copyScriptingValue_forKey_withProperties(value: id; key: NSString; properties: NSDictionary): id; message 'copyScriptingValue:forKey:withProperties:';
     function newScriptingObjectOfClass_forValueForKey_withContentsValue_properties(objectClass: Pobjc_class; key: NSString; contentsValue: id; properties: NSDictionary): id; message 'newScriptingObjectOfClass:forValueForKey:withContentsValue:properties:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

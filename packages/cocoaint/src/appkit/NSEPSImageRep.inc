@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSEPSImageRep.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,21 +42,19 @@
 {$define NSEPSIMAGEREP_PAS_C}
 
 { NSEPSImageRep }
-  NSEPSImageRep = objcclass(NSImageRep)
+  NSEPSImageRep = objcclass external (NSImageRep)
   private
     _bBoxOrigin: NSPoint;
     _epsData: NSData;
     _pdfImageRep: NSPDFImageRep;
     
   public
-    class function alloc: NSEPSImageRep; message 'alloc';
-
     class function imageRepWithData(epsData: NSData): id; message 'imageRepWithData:';
     function initWithData(epsData: NSData): id; message 'initWithData:';
     procedure prepareGState; message 'prepareGState';
     function EPSRepresentation: NSData; message 'EPSRepresentation';
     function boundingBox: NSRect; message 'boundingBox';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

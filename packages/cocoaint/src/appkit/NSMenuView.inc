@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMenuView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSMENUVIEW_PAS_C}
 
 { NSMenuView }
-  NSMenuView = objcclass(NSView)
+  NSMenuView = objcclass external (NSView)
   private
     _menu: NSMenu;
     _cells: NSMutableArray;
@@ -82,8 +82,6 @@
       end;
     
   public
-    class function alloc: NSMenuView; message 'alloc';
-
     class function menuBarHeight: CGFloat; message 'menuBarHeight';
     function initWithFrame(frame_: NSRect): id; message 'initWithFrame:';
     function initAsTearOff: id; message 'initAsTearOff';
@@ -126,7 +124,7 @@
     function trackWithEvent(event: NSEvent): Boolean; message 'trackWithEvent:';
     function horizontalEdgePadding: CGFloat; message 'horizontalEdgePadding';
     procedure setHorizontalEdgePadding(pad: CGFloat); message 'setHorizontalEdgePadding:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

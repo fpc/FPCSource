@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCSSFontFaceRule.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,13 +42,11 @@
 {$define DOMCSSFONTFACERULE_PAS_C}
 
 { DOMCSSFontFaceRule }
-  DOMCSSFontFaceRule = objcclass(DOMCSSRule)
+  DOMCSSFontFaceRule = objcclass external (DOMCSSRule)
     
   public
-    class function alloc: DOMCSSFontFaceRule; message 'alloc';
-
     function style: DOMCSSStyleDeclaration; message 'style';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSFetchRequestExpression.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -47,7 +47,7 @@ const
 {$define NSFETCHREQUESTEXPRESSION_PAS_C}
 
 { NSFetchRequestExpression }
-  NSFetchRequestExpression = objcclass(NSExpression)
+  NSFetchRequestExpression = objcclass external (NSExpression)
   private
     _reserved1: Pointer;
     _reserved2: Pointer;
@@ -65,13 +65,11 @@ const
       end;
     
   public
-    class function alloc: NSFetchRequestExpression; message 'alloc';
-
     class function expressionForFetch_context_countOnly(fetch: NSExpression; context: NSExpression; countFlag: Boolean): NSExpression; message 'expressionForFetch:context:countOnly:';
     function requestExpression: NSExpression; message 'requestExpression';
     function contextExpression: NSExpression; message 'contextExpression';
     function isCountOnlyRequest: Boolean; message 'isCountOnlyRequest';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

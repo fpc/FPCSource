@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSFontManager.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -78,7 +78,7 @@ const
 {$define NSFONTMANAGER_PAS_C}
 
 { NSFontManager }
-  NSFontManager = objcclass(NSObject)
+  NSFontManager = objcclass external (NSObject)
   private
     _panel: NSFontPanel;
     _fmReserved1: cuint;
@@ -103,8 +103,6 @@ const
     _fmReserved4: NSUInteger;
     
   public
-    class function alloc: NSFontManager; message 'alloc';
-
     class procedure setFontPanelFactory(factoryId: Pobjc_class); message 'setFontPanelFactory:';
     class procedure setFontManagerFactory(factoryId: Pobjc_class); message 'setFontManagerFactory:';
     class function sharedFontManager: NSFontManager; message 'sharedFontManager';
@@ -148,10 +146,10 @@ const
     function convertFontTraits(traits: NSFontTraitMask): NSFontTraitMask; message 'convertFontTraits:';
     procedure setTarget(aTarget: id); message 'setTarget:';
     function target: id; message 'target';
-  end; external;
+  end;
 
 { NSFontManagerMenuActionMethodsCategory }
-  NSFontManagerMenuActionMethodsCategory = objccategory(NSFontManager)
+  NSFontManagerMenuActionMethodsCategory = objccategory external (NSFontManager)
     function fontNamed_hasTraits(fName: NSString; someTraits: NSFontTraitMask): Boolean; message 'fontNamed:hasTraits:';
     function availableFontNamesWithTraits(someTraits: NSFontTraitMask): NSArray; message 'availableFontNamesWithTraits:';
     procedure addFontTrait(sender: id); message 'addFontTrait:';
@@ -160,17 +158,17 @@ const
     procedure modifyFont(sender: id); message 'modifyFont:';
     procedure orderFrontFontPanel(sender: id); message 'orderFrontFontPanel:';
     procedure orderFrontStylesPanel(sender: id); message 'orderFrontStylesPanel:';
-  end; external;
+  end;
 
 { NSFontManagerDelegateCategory }
-  NSFontManagerDelegateCategory = objccategory(NSObject)
+  NSFontManagerDelegateCategory = objccategory external (NSObject)
     function fontManager_willIncludeFont(sender: id; fontName: NSString): Boolean; message 'fontManager:willIncludeFont:';
-  end; external;
+  end;
 
 { NSFontManagerResponderMethodCategory }
-  NSFontManagerResponderMethodCategory = objccategory(NSObject)
+  NSFontManagerResponderMethodCategory = objccategory external (NSObject)
     procedure changeFont(sender: id); message 'changeFont:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

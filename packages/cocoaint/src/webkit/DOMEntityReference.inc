@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMEntityReference.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,10 @@
 {$define DOMENTITYREFERENCE_PAS_C}
 
 { DOMEntityReference }
-  DOMEntityReference = objcclass(DOMNode)
+  DOMEntityReference = objcclass external (DOMNode)
     
   public
-    class function alloc: DOMEntityReference; message 'alloc';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

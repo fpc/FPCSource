@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLMapElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,15 +42,13 @@
 {$define DOMHTMLMAPELEMENT_PAS_C}
 
 { DOMHTMLMapElement }
-  DOMHTMLMapElement = objcclass(DOMHTMLElement)
+  DOMHTMLMapElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLMapElement; message 'alloc';
-
     function areas: DOMHTMLCollection; message 'areas';
     procedure setName (newValue: NSString); message 'setName:';
     function name: NSString; message 'name';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

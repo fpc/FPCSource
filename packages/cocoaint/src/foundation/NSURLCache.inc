@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLCache.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -57,13 +57,11 @@ type
 {$define NSURLCACHE_PAS_C}
 
 { NSCachedURLResponse }
-  NSCachedURLResponse = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
+  NSCachedURLResponse = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     _internal: NSCachedURLResponseInternal;
     
   public
-    class function alloc: NSCachedURLResponse; message 'alloc';
-
     function initWithResponse_data(response_: NSURLResponse; data_: NSData): id; message 'initWithResponse:data:';
     function initWithResponse_data_userInfo_storagePolicy(response_: NSURLResponse; data_: NSData; userInfo_: NSDictionary; storagePolicy_: NSURLCacheStoragePolicy): id; message 'initWithResponse:data:userInfo:storagePolicy:';
     function response: NSURLResponse; message 'response';
@@ -75,16 +73,14 @@ type
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function copyWithZone(zone_: NSZonePtr): id;
-  end; external;
+  end;
 
 { NSURLCache }
-  NSURLCache = objcclass(NSObject)
+  NSURLCache = objcclass external (NSObject)
   private
     _internal: NSURLCacheInternal;
     
   public
-    class function alloc: NSURLCache; message 'alloc';
-
     class function sharedURLCache: NSURLCache; message 'sharedURLCache';
     class procedure setSharedURLCache(cache: NSURLCache); message 'setSharedURLCache:';
     function initWithMemoryCapacity_diskCapacity_diskPath(memoryCapacity_: NSUInteger; diskCapacity_: NSUInteger; path: NSString): id; message 'initWithMemoryCapacity:diskCapacity:diskPath:';
@@ -98,7 +94,7 @@ type
     procedure setDiskCapacity(diskCapacity_: NSUInteger); message 'setDiskCapacity:';
     function currentMemoryUsage: NSUInteger; message 'currentMemoryUsage';
     function currentDiskUsage: NSUInteger; message 'currentDiskUsage';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLMenuElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,14 +42,12 @@
 {$define DOMHTMLMENUELEMENT_PAS_C}
 
 { DOMHTMLMenuElement }
-  DOMHTMLMenuElement = objcclass(DOMHTMLElement)
+  DOMHTMLMenuElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLMenuElement; message 'alloc';
-
     procedure setCompact (newValue: Boolean); message 'setCompact:';
     function compact: Boolean; message 'compact';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

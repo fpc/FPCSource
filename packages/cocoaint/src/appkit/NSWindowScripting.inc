@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSWindowScripting.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -39,7 +39,7 @@
 {$define NSWINDOWSCRIPTING_PAS_C}
 
 { NSScripting_NSWindowCategory }
-  NSScripting_NSWindowCategory = objccategory(NSWindow)
+  NSScripting_NSWindowCategory = objccategory external name 'NSScripting' (NSWindow)
     function hasCloseBox: Boolean; message 'hasCloseBox';
     function hasTitleBar: Boolean; message 'hasTitleBar';
     function isFloatingPanel: Boolean; message 'isFloatingPanel';
@@ -55,7 +55,7 @@
     function handleCloseScriptCommand(command: NSCloseCommand): id; message 'handleCloseScriptCommand:';
     function handlePrintScriptCommand(command: NSScriptCommand): id; message 'handlePrintScriptCommand:';
     function handleSaveScriptCommand(command: NSScriptCommand): id; message 'handleSaveScriptCommand:';
-  end; external name 'NSScripting';
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMMutationEvent.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -49,23 +49,21 @@ const
 {$define DOMMUTATIONEVENT_PAS_C}
 
 { DOMMutationEvent }
-  DOMMutationEvent = objcclass(DOMEvent)
+  DOMMutationEvent = objcclass external (DOMEvent)
     
   public
-    class function alloc: DOMMutationEvent; message 'alloc';
-
     function relatedNode: DOMNode; message 'relatedNode';
     function prevValue: NSString; message 'prevValue';
     function newValue: NSString; message 'newValue';
     function attrName: NSString; message 'attrName';
     function attrChange: cuint; message 'attrChange';
     procedure initMutationEvent_canBubble_cancelable_relatedNode_prevValue_newValue_attrName_attrChange(type__: NSString; canBubble: Boolean; cancelable_: Boolean; relatedNode_: DOMNode; prevValue_: NSString; newValue_: NSString; attrName_: NSString; attrChange_: cushort); message 'initMutationEvent:canBubble:cancelable:relatedNode:prevValue:newValue:attrName:attrChange:';
-  end; external;
+  end;
 
 { DOMMutationEventDeprecatedCategory }
-  DOMMutationEventDeprecatedCategory = objccategory(DOMMutationEvent)
+  DOMMutationEventDeprecatedCategory = objccategory external (DOMMutationEvent)
     procedure initMutationEvent(type__: NSString; canBubble: Boolean; cancelable_: Boolean; relatedNode_: DOMNode; prevValue_: NSString; newValue_: NSString; attrName_: NSString; attrChange_: cushort); message 'initMutationEvent:type:canBubble:cancelable:relatedNode:prevValue:newValue:attrName:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

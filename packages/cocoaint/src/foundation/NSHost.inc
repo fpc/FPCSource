@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSHost.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,15 +42,13 @@
 {$define NSHOST_PAS_C}
 
 { NSHost }
-  NSHost = objcclass(NSObject)
+  NSHost = objcclass external (NSObject)
   private
     _names: NSArray;
     _addresses: NSArray;
     reserved: Pointer;
     
   public
-    class function alloc: NSHost; message 'alloc';
-
     class function currentHost: NSHost; message 'currentHost';
     class function hostWithName(name_: NSString): NSHost; message 'hostWithName:';
     class function hostWithAddress(address_: NSString): NSHost; message 'hostWithAddress:';
@@ -63,7 +61,7 @@
     function address: NSString; message 'address';
     function addresses: NSArray; message 'addresses';
     function localizedName: NSString; message 'localizedName';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLBRElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,14 +42,12 @@
 {$define DOMHTMLBRELEMENT_PAS_C}
 
 { DOMHTMLBRElement }
-  DOMHTMLBRElement = objcclass(DOMHTMLElement)
+  DOMHTMLBRElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLBRElement; message 'alloc';
-
     procedure setClear (newValue: NSString); message 'setClear:';
     function clear: NSString; message 'clear';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

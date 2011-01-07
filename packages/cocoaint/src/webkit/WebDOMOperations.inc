@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebDOMOperations.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -39,36 +39,36 @@
 {$define WEBDOMOPERATIONS_PAS_C}
 
 { WebDOMNodeOperationsCategory }
-  WebDOMNodeOperationsCategory = objccategory(DOMNode)
+  WebDOMNodeOperationsCategory = objccategory external (DOMNode)
     function webArchive: WebArchive; message 'webArchive';
-  end; external;
+  end;
 
 { WebDOMDocumentOperationsCategory }
-  WebDOMDocumentOperationsCategory = objccategory(DOMDocument)
+  WebDOMDocumentOperationsCategory = objccategory external (DOMDocument)
     function webFrame: WebFrame; message 'webFrame';
     function URLWithAttributeString(string_: NSString): NSURL; message 'URLWithAttributeString:';
-  end; external;
+  end;
 
 { WebDOMRangeOperationsCategory }
-  WebDOMRangeOperationsCategory = objccategory(DOMRange)
+  WebDOMRangeOperationsCategory = objccategory external (DOMRange)
     function webArchive: WebArchive; message 'webArchive';
     function markupString: NSString; message 'markupString';
-  end; external;
+  end;
 
 { WebDOMHTMLFrameElementOperationsCategory }
-  WebDOMHTMLFrameElementOperationsCategory = objccategory(DOMHTMLFrameElement)
+  WebDOMHTMLFrameElementOperationsCategory = objccategory external (DOMHTMLFrameElement)
     function contentFrame: WebFrame; message 'contentFrame';
-  end; external;
+  end;
 
 { WebDOMHTMLIFrameElementOperationsCategory }
-  WebDOMHTMLIFrameElementOperationsCategory = objccategory(DOMHTMLIFrameElement)
+  WebDOMHTMLIFrameElementOperationsCategory = objccategory external (DOMHTMLIFrameElement)
     function contentFrame: WebFrame; message 'contentFrame';
-  end; external;
+  end;
 
 { WebDOMHTMLObjectElementOperationsCategory }
-  WebDOMHTMLObjectElementOperationsCategory = objccategory(DOMHTMLObjectElement)
+  WebDOMHTMLObjectElementOperationsCategory = objccategory external (DOMHTMLObjectElement)
     function contentFrame: WebFrame; message 'contentFrame';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

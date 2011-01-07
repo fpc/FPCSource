@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebFrameLoadDelegate.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -39,7 +39,7 @@
 {$define WEBFRAMELOADDELEGATE_PAS_C}
 
 { WebFrameLoadDelegateCategory }
-  WebFrameLoadDelegateCategory = objccategory(NSObject)
+  WebFrameLoadDelegateCategory = objccategory external (NSObject)
     procedure webView_didStartProvisionalLoadForFrame(sender: WebView; frame: WebFrame); message 'webView:didStartProvisionalLoadForFrame:';
     procedure webView_didReceiveServerRedirectForProvisionalLoadForFrame(sender: WebView; frame: WebFrame); message 'webView:didReceiveServerRedirectForProvisionalLoadForFrame:';
     procedure webView_didFailProvisionalLoadWithError_forFrame(sender: WebView; error: NSError; frame: WebFrame); message 'webView:didFailProvisionalLoadWithError:forFrame:';
@@ -54,7 +54,7 @@
     procedure webView_willCloseFrame(sender: WebView; frame: WebFrame); message 'webView:willCloseFrame:';
     procedure webView_didClearWindowObject_forFrame(webView_: WebView; windowObject: WebScriptObject; frame: WebFrame); message 'webView:didClearWindowObject:forFrame:';
     procedure webView_windowScriptObjectAvailable(webView_: WebView; windowScriptObject: WebScriptObject); message 'webView:windowScriptObjectAvailable:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

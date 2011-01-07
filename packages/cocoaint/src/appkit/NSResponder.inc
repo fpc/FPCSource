@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSResponder.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,13 +42,11 @@
 {$define NSRESPONDER_PAS_C}
 
 { NSResponder }
-  NSResponder = objcclass(NSObject, NSCodingProtocol)
+  NSResponder = objcclass external (NSObject, NSCodingProtocol)
   private
     _nextResponder: id;
     
   public
-    class function alloc: NSResponder; message 'alloc';
-
     function nextResponder: NSResponder; message 'nextResponder';
     procedure setNextResponder(aResponder: NSResponder); message 'setNextResponder:';
     function tryToPerform_with(anAction: SEL; anObject: id): Boolean; message 'tryToPerform:with:';
@@ -97,15 +95,15 @@
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSKeyboardUICategory }
-  NSKeyboardUICategory = objccategory(NSResponder)
+  NSKeyboardUICategory = objccategory external (NSResponder)
     function performMnemonic(theString: NSString): Boolean; message 'performMnemonic:';
-  end; external;
+  end;
 
 { NSStandardKeyBindingMethodsCategory }
-  NSStandardKeyBindingMethodsCategory = objccategory(NSResponder)
+  NSStandardKeyBindingMethodsCategory = objccategory external (NSResponder)
     procedure insertText(insertString: id); message 'insertText:';
     procedure doCommandBySelector(aSelector: SEL); message 'doCommandBySelector:';
     procedure moveForward(sender: id); message 'moveForward:';
@@ -200,19 +198,19 @@
     procedure makeTextWritingDirectionNatural(sender: id); message 'makeTextWritingDirectionNatural:';
     procedure makeTextWritingDirectionLeftToRight(sender: id); message 'makeTextWritingDirectionLeftToRight:';
     procedure makeTextWritingDirectionRightToLeft(sender: id); message 'makeTextWritingDirectionRightToLeft:';
-  end; external;
+  end;
 
 { NSUndoSupportCategory }
-  NSUndoSupportCategory = objccategory(NSResponder)
+  NSUndoSupportCategory = objccategory external (NSResponder)
     function undoManager: NSUndoManager; message 'undoManager';
-  end; external;
+  end;
 
 { NSErrorPresentationCategory }
-  NSErrorPresentationCategory = objccategory(NSResponder)
+  NSErrorPresentationCategory = objccategory external (NSResponder)
     procedure presentError_modalForWindow_delegate_didPresentSelector_contextInfo(error: NSError; window: NSWindow; delegate: id; didPresentSelector: SEL; contextInfo: Pointer); message 'presentError:modalForWindow:delegate:didPresentSelector:contextInfo:';
     function presentError(error: NSError): Boolean; message 'presentError:';
     function willPresentError(error: NSError): NSError; message 'willPresentError:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

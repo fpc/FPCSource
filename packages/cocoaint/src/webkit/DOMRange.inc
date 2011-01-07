@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMRange.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -54,11 +54,9 @@ const
 {$define DOMRANGE_PAS_C}
 
 { DOMRange }
-  DOMRange = objcclass(DOMObject)
+  DOMRange = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMRange; message 'alloc';
-
     function startContainer: DOMNode; message 'startContainer';
     function startOffset: cint; message 'startOffset';
     function endContainer: DOMNode; message 'endContainer';
@@ -89,14 +87,14 @@ const
     function compareNode(refNode: DOMNode): cshort; message 'compareNode:';
     function comparePoint_offset(refNode: DOMNode; offset: cint): cshort; message 'comparePoint:offset:';
     function isPointInRange_offset(refNode: DOMNode; offset: cint): Boolean; message 'isPointInRange:offset:';
-  end; external;
+  end;
 
 { DOMRangeDeprecatedCategory }
-  DOMRangeDeprecatedCategory = objccategory(DOMRange)
+  DOMRangeDeprecatedCategory = objccategory external (DOMRange)
     procedure setStart(refNode: DOMNode; offset: cint); message 'setStart:refNode:';
     procedure setEnd(refNode: DOMNode; offset: cint); message 'setEnd:refNode:';
     function compareBoundaryPoints(how: cushort; sourceRange: DOMRange): cshort; message 'compareBoundaryPoints:how:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

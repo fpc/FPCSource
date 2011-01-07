@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSCachedImageRep.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,20 +42,18 @@
 {$define NSCACHEDIMAGEREP_PAS_C}
 
 { NSCachedImageRep }
-  NSCachedImageRep = objcclass(NSImageRep)
+  NSCachedImageRep = objcclass external (NSImageRep)
   private
     _origin: NSPoint;
     _window: NSWindow;
     _cache: Pointer; {garbage collector: __strong }
     
   public
-    class function alloc: NSCachedImageRep; message 'alloc';
-
     function initWithWindow_rect(win: NSWindow; rect: NSRect): id; message 'initWithWindow:rect:';
     function initWithSize_depth_separate_alpha(size_: NSSize; depth: NSWindowDepth; flag: Boolean; alpha: Boolean): id; message 'initWithSize:depth:separate:alpha:';
     function window: NSWindow; message 'window';
     function rect: NSRect; message 'rect';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

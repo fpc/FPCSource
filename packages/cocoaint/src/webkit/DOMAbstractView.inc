@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMAbstractView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,13 +42,11 @@
 {$define DOMABSTRACTVIEW_PAS_C}
 
 { DOMAbstractView }
-  DOMAbstractView = objcclass(DOMObject)
+  DOMAbstractView = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMAbstractView; message 'alloc';
-
     function document: DOMDocument; message 'document';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

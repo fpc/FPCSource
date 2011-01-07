@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSUserInterfaceValidation.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -40,14 +40,14 @@
 {$define NSUSERINTERFACEVALIDATION_PAS_P}
   
 { NSValidatedUserInterfaceItem Protocol }
-  NSValidatedUserInterfaceItemProtocol = objcprotocol
+  NSValidatedUserInterfaceItemProtocol = objcprotocol external name 'NSValidatedUserInterfaceItem'
     function action: SEL; message 'action';
     function tag: NSInteger; message 'tag';
-  end; external name 'NSValidatedUserInterfaceItem';
+  end;
   
 { NSUserInterfaceValidations Protocol }
-  NSUserInterfaceValidationsProtocol = objcprotocol
+  NSUserInterfaceValidationsProtocol = objcprotocol external name 'NSUserInterfaceValidations'
     function validateUserInterfaceItem(anItem: id): Boolean; message 'validateUserInterfaceItem:';
-  end; external name 'NSUserInterfaceValidations';
+  end;
 {$endif}
 {$endif}

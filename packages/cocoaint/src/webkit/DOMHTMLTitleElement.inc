@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLTitleElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,14 +42,12 @@
 {$define DOMHTMLTITLEELEMENT_PAS_C}
 
 { DOMHTMLTitleElement }
-  DOMHTMLTitleElement = objcclass(DOMHTMLElement)
+  DOMHTMLTitleElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLTitleElement; message 'alloc';
-
     procedure setText (newValue: NSString); message 'setText:';
     function text: NSString; message 'text';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

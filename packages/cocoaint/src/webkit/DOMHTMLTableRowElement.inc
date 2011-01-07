@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLTableRowElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLTABLEROWELEMENT_PAS_C}
 
 { DOMHTMLTableRowElement }
-  DOMHTMLTableRowElement = objcclass(DOMHTMLElement)
+  DOMHTMLTableRowElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLTableRowElement; message 'alloc';
-
     function rowIndex: cint; message 'rowIndex';
     function sectionRowIndex: cint; message 'sectionRowIndex';
     function cells: DOMHTMLCollection; message 'cells';
@@ -62,7 +60,7 @@
     function vAlign: NSString; message 'vAlign';
     function insertCell(index: cint): DOMHTMLElement; message 'insertCell:';
     procedure deleteCell(index: cint); message 'deleteCell:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

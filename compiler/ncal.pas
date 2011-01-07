@@ -1671,8 +1671,7 @@ implementation
             begin
               if (procdefinition.typ<>procdef) then
                 internalerror(200305062);
-              if (tprocdef(procdefinition).struct.typ=objectdef) and
-                 (oo_has_vmt in tprocdef(procdefinition).struct.objectoptions) then
+              if (oo_has_vmt in tprocdef(procdefinition).struct.objectoptions) then
                 begin
                   { we only need the vmt, loading self is not required and there is no
                     need to check for typen, because that will always get the
@@ -2876,8 +2875,8 @@ implementation
                  assigned(methodpointer) and
                  (nf_is_self in methodpointer.flags) then
                 resultdef:=voidtype
-            else
-              resultdef:=procdefinition.returndef;
+              else
+                resultdef:=procdefinition.returndef;
            end
          else
            resultdef:=typedef;

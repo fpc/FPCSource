@@ -6,7 +6,7 @@ program tcppclass1;
 {$L cpptcl1.o}
 
 type
-  TestClass = cppclass
+  TestClass = cppclass external
     class procedure Test1;
     { boolean }
     class procedure Test2(aArg1: Boolean);
@@ -41,7 +41,7 @@ type
     { combinations }
     class procedure Test25(aArg1: Byte; aArg2: Word; aArg3: LongWord; aArg4: QWord);
     class procedure Test26(aArg1: Pointer; var aArg2: Char; aArg3: Single);
-  end; external;
+  end;
 
 const
   HelloWorld = 'Hello World';

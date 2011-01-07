@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSLocale.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -90,11 +90,9 @@ var
 {$define NSLOCALE_PAS_C}
 
 { NSLocale }
-  NSLocale = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  NSLocale = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
     
   public
-    class function alloc: NSLocale; message 'alloc';
-
     function objectForKey(key: id): id; message 'objectForKey:';
     function displayNameForKey_value(key: id; value: id): NSString; message 'displayNameForKey:value:';
 
@@ -102,23 +100,23 @@ var
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSExtendedLocaleCategory }
-  NSExtendedLocaleCategory = objccategory(NSLocale)
+  NSExtendedLocaleCategory = objccategory external (NSLocale)
     function localeIdentifier: NSString; message 'localeIdentifier';
-  end; external;
+  end;
 
 { NSLocaleCreationCategory }
-  NSLocaleCreationCategory = objccategory(NSLocale)
+  NSLocaleCreationCategory = objccategory external (NSLocale)
     class function systemLocale: id; message 'systemLocale';
     class function currentLocale: id; message 'currentLocale';
     class function autoupdatingCurrentLocale: id; message 'autoupdatingCurrentLocale';
     function initWithLocaleIdentifier(string_: NSString): id; message 'initWithLocaleIdentifier:';
-  end; external;
+  end;
 
 { NSLocaleGeneralInfoCategory }
-  NSLocaleGeneralInfoCategory = objccategory(NSLocale)
+  NSLocaleGeneralInfoCategory = objccategory external (NSLocale)
     class function availableLocaleIdentifiers: NSArray; message 'availableLocaleIdentifiers';
     class function ISOLanguageCodes: NSArray; message 'ISOLanguageCodes';
     class function ISOCountryCodes: NSArray; message 'ISOCountryCodes';
@@ -133,7 +131,7 @@ var
     class function windowsLocaleCodeFromLocaleIdentifier(localeIdentifier_: NSString): cuint32; message 'windowsLocaleCodeFromLocaleIdentifier:';
     class function characterDirectionForLanguage(isoLangCode: NSString): NSLocaleLanguageDirection; message 'characterDirectionForLanguage:';
     class function lineDirectionForLanguage(isoLangCode: NSString): NSLocaleLanguageDirection; message 'lineDirectionForLanguage:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

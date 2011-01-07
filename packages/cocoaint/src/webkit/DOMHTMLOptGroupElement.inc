@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLOptGroupElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,16 +42,14 @@
 {$define DOMHTMLOPTGROUPELEMENT_PAS_C}
 
 { DOMHTMLOptGroupElement }
-  DOMHTMLOptGroupElement = objcclass(DOMHTMLElement)
+  DOMHTMLOptGroupElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLOptGroupElement; message 'alloc';
-
     procedure setDisabled (newValue: Boolean); message 'setDisabled:';
     function disabled: Boolean; message 'disabled';
     procedure setLabel (newValue: NSString); message 'setLabel:';
     function label_: NSString; message 'label_';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

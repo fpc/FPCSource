@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCSSCharsetRule.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,13 +42,11 @@
 {$define DOMCSSCHARSETRULE_PAS_C}
 
 { DOMCSSCharsetRule }
-  DOMCSSCharsetRule = objcclass(DOMCSSRule)
+  DOMCSSCharsetRule = objcclass external (DOMCSSRule)
     
   public
-    class function alloc: DOMCSSCharsetRule; message 'alloc';
-
     function encoding: NSString; message 'encoding';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

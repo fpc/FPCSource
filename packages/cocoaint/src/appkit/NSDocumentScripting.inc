@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDocumentScripting.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -39,14 +39,14 @@
 {$define NSDOCUMENTSCRIPTING_PAS_C}
 
 { NSScripting_NSDocumentCategory }
-  NSScripting_NSDocumentCategory = objccategory(NSDocument)
+  NSScripting_NSDocumentCategory = objccategory external name 'NSScripting' (NSDocument)
     function lastComponentOfFileName: NSString; message 'lastComponentOfFileName';
     procedure setLastComponentOfFileName(str: NSString); message 'setLastComponentOfFileName:';
     function handleSaveScriptCommand(command: NSScriptCommand): id; message 'handleSaveScriptCommand:';
     function handleCloseScriptCommand(command: NSCloseCommand): id; message 'handleCloseScriptCommand:';
     function handlePrintScriptCommand(command: NSScriptCommand): id; message 'handlePrintScriptCommand:';
     function objectSpecifier: NSScriptObjectSpecifier; message 'objectSpecifier';
-  end; external name 'NSScripting';
+  end;
 
 {$endif}
 {$endif}

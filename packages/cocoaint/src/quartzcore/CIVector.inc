@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CIVector.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define CIVECTOR_PAS_C}
 
 { CIVector }
-  CIVector = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  CIVector = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _count: size_t;
         vec: array[0..3] of CGFloat;
@@ -51,8 +51,6 @@
       end;
     
   public
-    class function alloc: CIVector; message 'alloc';
-
     class function vectorWithValues_count(values: CGFloatPtr; count_: size_t): CIVector; message 'vectorWithValues:count:';
     class function vectorWithX(x_: CGFloat): CIVector; message 'vectorWithX:';
     class function vectorWithX_Y(x_: CGFloat; y_: CGFloat): CIVector; message 'vectorWithX:Y:';
@@ -77,7 +75,7 @@
     function copyWithZone(zone_: NSZonePtr): id;
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

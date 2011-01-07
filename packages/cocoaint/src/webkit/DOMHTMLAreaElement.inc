@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLAreaElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLAREAELEMENT_PAS_C}
 
 { DOMHTMLAreaElement }
-  DOMHTMLAreaElement = objcclass(DOMHTMLElement)
+  DOMHTMLAreaElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLAreaElement; message 'alloc';
-
     procedure setAccessKey (newValue: NSString); message 'setAccessKey:';
     function accessKey: NSString; message 'accessKey';
     procedure setAlt (newValue: NSString); message 'setAlt:';
@@ -69,7 +67,7 @@
     function protocol: NSString; message 'protocol';
     function search: NSString; message 'search';
     function absoluteLinkURL: NSURL; message 'absoluteLinkURL';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

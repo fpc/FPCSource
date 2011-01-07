@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSLevelIndicatorCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -55,7 +55,7 @@ type
 {$define NSLEVELINDICATORCELL_PAS_C}
 
 { NSLevelIndicatorCell }
-  NSLevelIndicatorCell = objcclass(NSActionCell)
+  NSLevelIndicatorCell = objcclass external (NSActionCell)
   private
     _value: double;
     _minValue: double;
@@ -81,8 +81,6 @@ type
     _reserved4: cint;
     
   public
-    class function alloc: NSLevelIndicatorCell; message 'alloc';
-
     function initWithLevelIndicatorStyle(levelIndicatorStyle_: NSLevelIndicatorStyle): id; message 'initWithLevelIndicatorStyle:';
     function levelIndicatorStyle: NSLevelIndicatorStyle; message 'levelIndicatorStyle';
     procedure setLevelIndicatorStyle(levelIndicatorStyle_: NSLevelIndicatorStyle); message 'setLevelIndicatorStyle:';
@@ -103,7 +101,7 @@ type
     function rectOfTickMarkAtIndex(index: NSInteger): NSRect; message 'rectOfTickMarkAtIndex:';
     function tickMarkValueAtIndex(index: NSInteger): double; message 'tickMarkValueAtIndex:';
     procedure setImage(image_: NSImage); message 'setImage:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

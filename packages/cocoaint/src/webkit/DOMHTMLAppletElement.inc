@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLAppletElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMHTMLAPPLETELEMENT_PAS_C}
 
 { DOMHTMLAppletElement }
-  DOMHTMLAppletElement = objcclass(DOMHTMLElement)
+  DOMHTMLAppletElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLAppletElement; message 'alloc';
-
     procedure setAlign (newValue: NSString); message 'setAlign:';
     function align: NSString; message 'align';
     procedure setAlt (newValue: NSString); message 'setAlt:';
@@ -69,7 +67,7 @@
     function vspace: cint; message 'vspace';
     procedure setWidth (newValue: NSString); message 'setWidth:';
     function width: NSString; message 'width';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

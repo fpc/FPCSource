@@ -1946,6 +1946,12 @@ implementation
                       currabsreloc:=RELOC_GOTPCREL;
                       currabsreloc32:=RELOC_GOTPCREL;
                     end
+                  else if oper[opidx]^.ref^.refaddr=addr_pic_no_got then
+                    begin
+                      currrelreloc:=RELOC_RELATIVE;
+                      currabsreloc:=RELOC_RELATIVE;
+                      currabsreloc32:=RELOC_RELATIVE;
+                    end
                   else
 {$endif x86_64}
                     begin

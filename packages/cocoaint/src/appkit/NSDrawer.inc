@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDrawer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -63,7 +63,7 @@ var
 {$define NSDRAWER_PAS_C}
 
 { NSDrawer }
-  NSDrawer = objcclass(NSResponder)
+  NSDrawer = objcclass external (NSResponder)
   private
     _drawerState: NSDrawerState;
     _drawerNextState: NSDrawerState;
@@ -88,8 +88,6 @@ var
     _drawerObserver: CFRunLoopObserverRef; {garbage collector: __strong }
     
   public
-    class function alloc: NSDrawer; message 'alloc';
-
     function initWithContentSize_preferredEdge(contentSize_: NSSize; edge_: NSRectEdge): id; message 'initWithContentSize:preferredEdge:';
     procedure setParentWindow(parent: NSWindow); message 'setParentWindow:';
     function parentWindow: NSWindow; message 'parentWindow';
@@ -115,12 +113,12 @@ var
     function leadingOffset: CGFloat; message 'leadingOffset';
     procedure setTrailingOffset(offset: CGFloat); message 'setTrailingOffset:';
     function trailingOffset: CGFloat; message 'trailingOffset';
-  end; external;
+  end;
 
 { DrawersCategory }
-  DrawersCategory = objccategory(NSWindow)
+  DrawersCategory = objccategory external (NSWindow)
     function drawers: NSArray; message 'drawers';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -129,7 +127,7 @@ var
 {$define NSDRAWER_PAS_P}
   
 { NSDrawerDelegate Protocol }
-  NSDrawerDelegateProtocol = objcprotocol
+  NSDrawerDelegateProtocol = objcprotocol external name 'NSDrawerDelegate'
     function drawerShouldOpen(sender: NSDrawer): Boolean; message 'drawerShouldOpen:';
     function drawerShouldClose(sender: NSDrawer): Boolean; message 'drawerShouldClose:';
     function drawerWillResizeContents_toSize(sender: NSDrawer; contentSize: NSSize): NSSize; message 'drawerWillResizeContents:toSize:';
@@ -137,6 +135,6 @@ var
     procedure drawerDidOpen(notification: NSNotification); message 'drawerDidOpen:';
     procedure drawerWillClose(notification: NSNotification); message 'drawerWillClose:';
     procedure drawerDidClose(notification: NSNotification); message 'drawerDidClose:';
-  end; external name 'NSDrawerDelegate';
+  end;
 {$endif}
 {$endif}

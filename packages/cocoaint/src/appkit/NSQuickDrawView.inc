@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSQuickDrawView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,17 +42,15 @@
 {$define NSQUICKDRAWVIEW_PAS_C}
 
 { NSQuickDrawView }
-  NSQuickDrawView = objcclass(NSView)
+  NSQuickDrawView = objcclass external (NSView)
   private
     _qdPort: Pointer;
     _savePort: Pointer;
     _synchToView: Boolean;
     
   public
-    class function alloc: NSQuickDrawView; message 'alloc';
-
     function qdPort: Pointer; message 'qdPort'; deprecated 'in Mac OS X 10.4 and later';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

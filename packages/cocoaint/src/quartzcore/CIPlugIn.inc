@@ -1,5 +1,5 @@
 { Parsed from Quartzcore.framework CIPlugIn.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:07 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,17 +42,15 @@
 {$define CIPLUGIN_PAS_C}
 
 { CIPlugIn }
-  CIPlugIn = objcclass(NSObject)
+  CIPlugIn = objcclass external (NSObject)
   private
         _priv: array[0..7] of Pointer;
     
   public
-    class function alloc: CIPlugIn; message 'alloc';
-
     class procedure loadAllPlugIns; message 'loadAllPlugIns';
     class procedure loadNonExecutablePlugIns; message 'loadNonExecutablePlugIns';
     class procedure loadPlugIn_allowNonExecutable(url: NSURL; allowNonExecutable: Boolean); message 'loadPlugIn:allowNonExecutable:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

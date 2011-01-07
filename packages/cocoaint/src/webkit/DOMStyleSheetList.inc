@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMStyleSheetList.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,14 +42,12 @@
 {$define DOMSTYLESHEETLIST_PAS_C}
 
 { DOMStyleSheetList }
-  DOMStyleSheetList = objcclass(DOMObject)
+  DOMStyleSheetList = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMStyleSheetList; message 'alloc';
-
     function length: cuint; message 'length';
     function item(index: cuint): DOMStyleSheet; message 'item:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

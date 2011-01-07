@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSCursor.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -46,7 +46,7 @@ const
 {$define NSCURSOR_PAS_C}
 
 { NSCursor }
-  NSCursor = objcclass(NSObject, NSCodingProtocol)
+  NSCursor = objcclass external (NSObject, NSCodingProtocol)
   private
     _hotSpot: NSPoint;
     __flags: bitpacked record
@@ -62,8 +62,6 @@ const
     _image: id;
     
   public
-    class function alloc: NSCursor; message 'alloc';
-
     class function currentCursor: NSCursor; message 'currentCursor';
     class function currentSystemCursor: NSCursor; message 'currentSystemCursor';
     class function arrowCursor: NSCursor; message 'arrowCursor';
@@ -103,7 +101,7 @@ const
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

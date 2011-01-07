@@ -17,7 +17,7 @@ const
 {$endif}
 
 type
-  MyLibObjCClass = objcclass(NSObject)
+  MyLibObjCClass = objcclass external (NSObject)
    public
     fa: byte;
     fb: byte;
@@ -28,7 +28,7 @@ type
     function publicfun: byte; message 'publicfun';
     function protectedfun: byte; message 'protectedfun';
     function privatefun: byte; message 'privatefun';
-  end; external;
+  end;
 
 var
   a: MyLibObjCClass;

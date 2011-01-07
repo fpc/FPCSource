@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebView.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -64,13 +64,11 @@ var
 {$define WEBVIEW_PAS_C}
 
 { WebView }
-  WebView = objcclass(NSView)
+  WebView = objcclass external (NSView)
   private
     _private: WebViewPrivate;
     
   public
-    class function alloc: WebView; message 'alloc';
-
     class function canShowMIMEType(MIMEType: NSString): Boolean; message 'canShowMIMEType:';
     class function canShowMIMETypeAsHTML(MIMEType: NSString): Boolean; message 'canShowMIMETypeAsHTML:';
     class function MIMETypesShownAsHTML: NSArray; message 'MIMETypesShownAsHTML';
@@ -141,10 +139,10 @@ var
     function mainFrameDocument: DOMDocument; message 'mainFrameDocument';
     function mainFrameTitle: NSString; message 'mainFrameTitle';
     function mainFrameIcon: NSImage; message 'mainFrameIcon';
-  end; external;
+  end;
 
 { WebIBActionsCategory }
-  WebIBActionsCategory = objccategory(WebView)
+  WebIBActionsCategory = objccategory external (WebView)
     procedure takeStringURLFrom(sender: id); message 'takeStringURLFrom:';
     procedure stopLoading(sender: id); message 'stopLoading:';
     procedure reload(sender: id); message 'reload:';
@@ -159,15 +157,15 @@ var
     procedure makeTextStandardSize(sender: id); message 'makeTextStandardSize:';
     procedure toggleContinuousSpellChecking(sender: id); message 'toggleContinuousSpellChecking:';
     procedure toggleSmartInsertDelete(sender: id); message 'toggleSmartInsertDelete:';
-  end; external;
+  end;
 
 { WebViewCSSCategory }
-  WebViewCSSCategory = objccategory(WebView)
+  WebViewCSSCategory = objccategory external (WebView)
     function computedStyleForElement_pseudoElement(element: DOMElement; pseudoElement: NSString): DOMCSSStyleDeclaration; message 'computedStyleForElement:pseudoElement:';
-  end; external;
+  end;
 
 { WebViewEditingCategory }
-  WebViewEditingCategory = objccategory(WebView)
+  WebViewEditingCategory = objccategory external (WebView)
     function editableDOMRangeForPoint(point: NSPoint): DOMRange; message 'editableDOMRangeForPoint:';
     procedure setSelectedDOMRange_affinity(range: DOMRange; selectionAffinity_: NSSelectionAffinity); message 'setSelectedDOMRange:affinity:';
     function selectedDOMRange: DOMRange; message 'selectedDOMRange';
@@ -186,20 +184,20 @@ var
     procedure setEditingDelegate(delegate: id); message 'setEditingDelegate:';
     function editingDelegate: id; message 'editingDelegate';
     function styleDeclarationWithText(text: NSString): DOMCSSStyleDeclaration; message 'styleDeclarationWithText:';
-  end; external;
+  end;
 
 { WebViewUndoableEditingCategory }
-  WebViewUndoableEditingCategory = objccategory(WebView)
+  WebViewUndoableEditingCategory = objccategory external (WebView)
     procedure replaceSelectionWithNode(node: DOMNode); message 'replaceSelectionWithNode:';
     procedure replaceSelectionWithText(text: NSString); message 'replaceSelectionWithText:';
     procedure replaceSelectionWithMarkupString(markupString: NSString); message 'replaceSelectionWithMarkupString:';
     procedure replaceSelectionWithArchive(archive: WebArchive); message 'replaceSelectionWithArchive:';
     procedure deleteSelection; message 'deleteSelection';
     procedure applyStyle(style: DOMCSSStyleDeclaration); message 'applyStyle:';
-  end; external;
+  end;
 
 { WebViewEditingActionsCategory }
-  WebViewEditingActionsCategory = objccategory(WebView)
+  WebViewEditingActionsCategory = objccategory external (WebView)
     procedure copy_(sender: id); message 'copy:';
     procedure cut(sender: id); message 'cut:';
     procedure paste(sender: id); message 'paste:';
@@ -288,7 +286,7 @@ var
     procedure selectParagraph(sender: id); message 'selectParagraph:';
     procedure selectWord(sender: id); message 'selectWord:';
     procedure uppercaseWord(sender: id); message 'uppercaseWord:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

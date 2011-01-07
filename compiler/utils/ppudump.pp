@@ -871,6 +871,7 @@ type
     mask : tdefstate;
     str  : string[30];
   end;
+  ptoken=^ttoken;
 const
   defopt : array[1..ord(high(tdefoption))] of tdefopt=(
      (mask:df_unique;         str:'Unique Type'),
@@ -893,6 +894,7 @@ var
   first  : boolean;
   tokenbufsize : longint;
   tokenbuf : pbyte;
+  token : ttoken;
   len : sizeint;
   wstring : widestring;
   astring : ansistring;
@@ -945,13 +947,14 @@ begin
       write(space,' Tokens: ');
       while i<tokenbufsize do
         begin
-          if ttoken(tokenbuf[i])<>_GENERICSPECIALTOKEN then
-            write(arraytokeninfo[ttoken(tokenbuf[i])].str);
-          case ttoken(tokenbuf[i]) of
+          token:=ptoken(@tokenbuf[i])^;
+          if token<>_GENERICSPECIALTOKEN then
+            write(arraytokeninfo[token].str);
+          inc(i,SizeOf(token));
+          case token of
             _CWCHAR,
             _CWSTRING :
               begin
-                inc(i);
                 len:=psizeint(@tokenbuf[i])^;
                 inc(i,sizeof(sizeint));
                 setlength(wstring,len);
@@ -961,7 +964,6 @@ begin
               end;
             _CSTRING:
               begin
-                inc(i);
                 len:=psizeint(@tokenbuf[i])^;
                 inc(i,sizeof(sizeint));
                 setlength(astring,len);
@@ -973,14 +975,12 @@ begin
             _INTCONST,
             _REALNUMBER :
               begin
-                inc(i);
                 write(' ',pshortstring(@tokenbuf[i])^);
                 inc(i,tokenbuf[i]+1);
               end;
             _ID :
               begin
-                inc(i);
-                inc(i);
+                inc(i,SizeOf(ttoken)); // idtoken
                 write(' ',pshortstring(@tokenbuf[i])^);
                 inc(i,tokenbuf[i]+1);
               {
@@ -991,7 +991,6 @@ begin
               end;
             _GENERICSPECIALTOKEN:
               begin
-                inc(i);
                 case tspecialgenerictoken(tokenbuf[i]) of
                   ST_LOADSETTINGS:
                     begin
@@ -1031,8 +1030,6 @@ begin
                 continue;
               }
               end;
-            else
-              inc(i);
           end;
 
           if i<tokenbufsize then
@@ -1933,6 +1930,7 @@ begin
              write  (space,'     Pointed Type : ');
              readderef('');
              writeln(space,'           Is Far : ',(getbyte<>0));
+             writeln(space,' Has Pointer Math : ',(getbyte<>0));
            end;
 
          iborddef :
@@ -1978,6 +1976,8 @@ begin
              writeln(space,'            Range : ',getaint,' to ',getaint);
              write  (space,'          Options : ');
              readarraydefoptions;
+             readdefinitions('symbols');
+             readsymbols('symbols');
            end;
 
          ibprocdef :
@@ -2075,6 +2075,12 @@ begin
              readcommondef('WideString definition',defoptions);
              writeln(space,'           Length : ',getlongint);
            end;
+         
+         ibunicodestringdef :
+           begin
+             readcommondef('UnicodeString definition',defoptions);
+             writeln(space,'           Length : ',getlongint);
+           end;
 
          ibansistringdef :
            begin
@@ -2142,7 +2148,6 @@ begin
                   for j:=1to 16 do
                    getbyte;
                   writeln(space,'       IID String : ',getstring);
-                  writeln(space,'  Last VTable idx : ',getlongint);
                end;
 
              l:=getlongint;

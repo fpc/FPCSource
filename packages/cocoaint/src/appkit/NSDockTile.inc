@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDockTile.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -47,7 +47,7 @@ const
 {$define NSDOCKTILE_PAS_C}
 
 { NSDockTile }
-  NSDockTile = objcclass(NSObject)
+  NSDockTile = objcclass external (NSObject)
   private
     _owner: id;
     _dockContextRef: Pointer;
@@ -67,8 +67,6 @@ const
         reserved: array[0..4] of id;
     
   public
-    class function alloc: NSDockTile; message 'alloc';
-
     function size: NSSize; message 'size';
     procedure setContentView(view: NSView); message 'setContentView:';
     function contentView: NSView; message 'contentView';
@@ -78,7 +76,7 @@ const
     procedure setBadgeLabel(string_: NSString); message 'setBadgeLabel:';
     function badgeLabel: NSString; message 'badgeLabel';
     function owner: id; message 'owner';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -87,9 +85,9 @@ const
 {$define NSDOCKTILE_PAS_P}
   
 { NSDockTilePlugIn Protocol }
-  NSDockTilePlugInProtocol = objcprotocol
+  NSDockTilePlugInProtocol = objcprotocol external name 'NSDockTilePlugIn'
     procedure setDockTile(dockTile: NSDockTile); message 'setDockTile:';
     function dockMenu: NSMenu; message 'dockMenu';
-  end; external name 'NSDockTilePlugIn';
+  end;
 {$endif}
 {$endif}

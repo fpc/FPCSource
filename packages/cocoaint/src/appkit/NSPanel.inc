@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPanel.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -79,18 +79,16 @@ procedure NSReleaseAlertPanel(panel: id); cdecl; external;
 {$define NSPANEL_PAS_C}
 
 { NSPanel }
-  NSPanel = objcclass(NSWindow)
+  NSPanel = objcclass external (NSWindow)
     
   public
-    class function alloc: NSPanel; message 'alloc';
-
     function isFloatingPanel: Boolean; message 'isFloatingPanel';
     procedure setFloatingPanel(flag: Boolean); message 'setFloatingPanel:';
     function becomesKeyOnlyIfNeeded: Boolean; message 'becomesKeyOnlyIfNeeded';
     procedure setBecomesKeyOnlyIfNeeded(flag: Boolean); message 'setBecomesKeyOnlyIfNeeded:';
     function worksWhenModal: Boolean; message 'worksWhenModal';
     procedure setWorksWhenModal(flag: Boolean); message 'setWorksWhenModal:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

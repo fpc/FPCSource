@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSpeechSynthesizer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -114,13 +114,11 @@ var
 {$define NSSPEECHSYNTHESIZER_PAS_C}
 
 { NSSpeechSynthesizer }
-  NSSpeechSynthesizer = objcclass(NSObject)
+  NSSpeechSynthesizer = objcclass external (NSObject)
   private
     _privateNSSpeechSynthesizerVars: id;
     
   public
-    class function alloc: NSSpeechSynthesizer; message 'alloc';
-
     function initWithVoice(voice_: NSString): id; message 'initWithVoice:';
     function startSpeakingString(string_: NSString): Boolean; message 'startSpeakingString:';
     function startSpeakingString_toURL(string_: NSString; url: NSURL): Boolean; message 'startSpeakingString:toURL:';
@@ -147,7 +145,7 @@ var
     class function defaultVoice: NSString; message 'defaultVoice';
     class function availableVoices: NSArray; message 'availableVoices';
     class function attributesForVoice(voice_: NSString): NSDictionary; message 'attributesForVoice:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -156,12 +154,12 @@ var
 {$define NSSPEECHSYNTHESIZER_PAS_P}
   
 { NSSpeechSynthesizerDelegate Protocol }
-  NSSpeechSynthesizerDelegateProtocol = objcprotocol
+  NSSpeechSynthesizerDelegateProtocol = objcprotocol external name 'NSSpeechSynthesizerDelegate'
     procedure speechSynthesizer_didFinishSpeaking(sender: NSSpeechSynthesizer; finishedSpeaking: Boolean); message 'speechSynthesizer:didFinishSpeaking:';
     procedure speechSynthesizer_willSpeakWord_ofString(sender: NSSpeechSynthesizer; characterRange: NSRange; string_: NSString); message 'speechSynthesizer:willSpeakWord:ofString:';
     procedure speechSynthesizer_willSpeakPhoneme(sender: NSSpeechSynthesizer; phonemeOpcode: cshort); message 'speechSynthesizer:willSpeakPhoneme:';
     procedure speechSynthesizer_didEncounterErrorAtIndex_ofString_message(sender: NSSpeechSynthesizer; characterIndex: NSUInteger; string_: NSString; message: NSString); message 'speechSynthesizer:didEncounterErrorAtIndex:ofString:message:';
     procedure speechSynthesizer_didEncounterSyncMessage(sender: NSSpeechSynthesizer; message: NSString); message 'speechSynthesizer:didEncounterSyncMessage:';
-  end; external name 'NSSpeechSynthesizerDelegate';
+  end;
 {$endif}
 {$endif}

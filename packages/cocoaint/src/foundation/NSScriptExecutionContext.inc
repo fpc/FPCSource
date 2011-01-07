@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScriptExecutionContext.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSSCRIPTEXECUTIONCONTEXT_PAS_C}
 
 { NSScriptExecutionContext }
-  NSScriptExecutionContext = objcclass(NSObject)
+  NSScriptExecutionContext = objcclass external (NSObject)
   private
     _topLevelObject: id;
     _objectBeingTested: id;
@@ -50,8 +50,6 @@
     _moreVars: id;
     
   public
-    class function alloc: NSScriptExecutionContext; message 'alloc';
-
     class function sharedScriptExecutionContext: NSScriptExecutionContext; message 'sharedScriptExecutionContext';
     function topLevelObject: id; message 'topLevelObject';
     procedure setTopLevelObject(obj: id); message 'setTopLevelObject:';
@@ -59,7 +57,7 @@
     procedure setObjectBeingTested(obj: id); message 'setObjectBeingTested:';
     function rangeContainerObject: id; message 'rangeContainerObject';
     procedure setRangeContainerObject(obj: id); message 'setRangeContainerObject:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

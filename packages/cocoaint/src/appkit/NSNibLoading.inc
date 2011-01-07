@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSNibLoading.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -39,15 +39,15 @@
 {$define NSNIBLOADING_PAS_C}
 
 { NSNibLoadingCategory }
-  NSNibLoadingCategory = objccategory(NSBundle)
+  NSNibLoadingCategory = objccategory external (NSBundle)
     class function loadNibFile_externalNameTable_withZone(fileName: NSString; context: NSDictionary; zone_: NSZonePtr): Boolean; message 'loadNibFile:externalNameTable:withZone:';
     class function loadNibNamed_owner(nibName: NSString; owner: id): Boolean; message 'loadNibNamed:owner:';
-  end; external;
+  end;
 
 { NSNibAwakingCategory }
-  NSNibAwakingCategory = objccategory(NSObject)
+  NSNibAwakingCategory = objccategory external (NSObject)
     procedure awakeFromNib; message 'awakeFromNib';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

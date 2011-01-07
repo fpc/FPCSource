@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMNamedNodeMap.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,11 +42,9 @@
 {$define DOMNAMEDNODEMAP_PAS_C}
 
 { DOMNamedNodeMap }
-  DOMNamedNodeMap = objcclass(DOMObject)
+  DOMNamedNodeMap = objcclass external (DOMObject)
     
   public
-    class function alloc: DOMNamedNodeMap; message 'alloc';
-
     function length: cuint; message 'length';
     function getNamedItem(name: NSString): DOMNode; message 'getNamedItem:';
     function setNamedItem(node: DOMNode): DOMNode; message 'setNamedItem:';
@@ -55,13 +53,13 @@
     function getNamedItemNS_localName(namespaceURI: NSString; localName: NSString): DOMNode; message 'getNamedItemNS:localName:';
     function setNamedItemNS(node: DOMNode): DOMNode; message 'setNamedItemNS:';
     function removeNamedItemNS_localName(namespaceURI: NSString; localName: NSString): DOMNode; message 'removeNamedItemNS:localName:';
-  end; external;
+  end;
 
 { DOMNamedNodeMapDeprecatedCategory }
-  DOMNamedNodeMapDeprecatedCategory = objccategory(DOMNamedNodeMap)
+  DOMNamedNodeMapDeprecatedCategory = objccategory external (DOMNamedNodeMap)
     function getNamedItemNS(namespaceURI: NSString; localName: NSString): DOMNode; message 'getNamedItemNS:namespaceURI:';
     function removeNamedItemNS(namespaceURI: NSString; localName: NSString): DOMNode; message 'removeNamedItemNS:namespaceURI:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDragging.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -58,7 +58,7 @@ const
 {$define NSDRAGGING_PAS_C}
 
 { NSDraggingDestinationCategory }
-  NSDraggingDestinationCategory = objccategory(NSObject)
+  NSDraggingDestinationCategory = objccategory external (NSObject)
     function draggingEntered(sender: id): NSDragOperation; message 'draggingEntered:';
     function draggingUpdated(sender: id): NSDragOperation; message 'draggingUpdated:';
     procedure draggingExited(sender: id); message 'draggingExited:';
@@ -67,22 +67,22 @@ const
     procedure concludeDragOperation(sender: id); message 'concludeDragOperation:';
     procedure draggingEnded(sender: id); message 'draggingEnded:';
     function wantsPeriodicDraggingUpdates: Boolean; message 'wantsPeriodicDraggingUpdates';
-  end; external;
+  end;
 
 { NSDraggingSourceCategory }
-  NSDraggingSourceCategory = objccategory(NSObject)
+  NSDraggingSourceCategory = objccategory external (NSObject)
     function draggingSourceOperationMaskForLocal(flag: Boolean): NSDragOperation; message 'draggingSourceOperationMaskForLocal:';
     function namesOfPromisedFilesDroppedAtDestination(dropDestination: NSURL): NSArray; message 'namesOfPromisedFilesDroppedAtDestination:';
     procedure draggedImage_beganAt(image: NSImage; screenPoint: NSPoint); message 'draggedImage:beganAt:';
     procedure draggedImage_endedAt_operation(image: NSImage; screenPoint: NSPoint; operation: NSDragOperation); message 'draggedImage:endedAt:operation:';
     procedure draggedImage_movedTo(image: NSImage; screenPoint: NSPoint); message 'draggedImage:movedTo:';
     function ignoreModifierKeysWhileDragging: Boolean; message 'ignoreModifierKeysWhileDragging';
-  end; external;
+  end;
 
 { NSDraggingSourceDeprecatedCategory }
-  NSDraggingSourceDeprecatedCategory = objccategory(NSObject)
+  NSDraggingSourceDeprecatedCategory = objccategory external (NSObject)
     procedure draggedImage_endedAt_deposited(image: NSImage; screenPoint: NSPoint; flag: Boolean); message 'draggedImage:endedAt:deposited:'; deprecated 'in Mac OS X 10.1 and later';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -91,7 +91,7 @@ const
 {$define NSDRAGGING_PAS_P}
   
 { NSDraggingInfo Protocol }
-  NSDraggingInfoProtocol = objcprotocol
+  NSDraggingInfoProtocol = objcprotocol external name 'NSDraggingInfo'
     function draggingDestinationWindow: NSWindow; message 'draggingDestinationWindow';
     function draggingSourceOperationMask: NSDragOperation; message 'draggingSourceOperationMask';
     function draggingLocation: NSPoint; message 'draggingLocation';
@@ -102,6 +102,6 @@ const
     function draggingSequenceNumber: NSInteger; message 'draggingSequenceNumber';
     procedure slideDraggedImageTo(screenPoint: NSPoint); message 'slideDraggedImageTo:';
     function namesOfPromisedFilesDroppedAtDestination(dropDestination: NSURL): NSArray; message 'namesOfPromisedFilesDroppedAtDestination:';
-  end; external name 'NSDraggingInfo';
+  end;
 {$endif}
 {$endif}

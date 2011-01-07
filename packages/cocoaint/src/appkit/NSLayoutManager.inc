@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSLayoutManager.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -73,7 +73,7 @@ type
 {$define NSLAYOUTMANAGER_PAS_C}
 
 { NSLayoutManager }
-  NSLayoutManager = objcclass(NSObject, NSCodingProtocol)
+  NSLayoutManager = objcclass external (NSObject, NSCodingProtocol)
   private
     _textStorage: NSTextStorage;
     _glyphGenerator: NSGlyphGenerator;
@@ -155,8 +155,6 @@ type
     _extraData: id;
     
   public
-    class function alloc: NSLayoutManager; message 'alloc';
-
     function init: id; message 'init';
     function textStorage: NSTextStorage; message 'textStorage';
     procedure setTextStorage(textStorage_: NSTextStorage); message 'setTextStorage:';
@@ -283,10 +281,10 @@ type
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 { NSTextViewSupportCategory }
-  NSTextViewSupportCategory = objccategory(NSLayoutManager)
+  NSTextViewSupportCategory = objccategory external (NSLayoutManager)
     function rulerMarkersForTextView_paragraphStyle_ruler(view: NSTextView; style: NSParagraphStyle; ruler: NSRulerView): NSArray; message 'rulerMarkersForTextView:paragraphStyle:ruler:';
     function rulerAccessoryViewForTextView_paragraphStyle_ruler_enabled(view: NSTextView; style: NSParagraphStyle; ruler: NSRulerView; isEnabled: Boolean): NSView; message 'rulerAccessoryViewForTextView:paragraphStyle:ruler:enabled:';
     function layoutManagerOwnsFirstResponderInWindow(window: NSWindow): Boolean; message 'layoutManagerOwnsFirstResponderInWindow:';
@@ -301,7 +299,7 @@ type
     procedure underlineGlyphRange_underlineType_lineFragmentRect_lineFragmentGlyphRange_containerOrigin(glyphRange: NSRange; underlineVal: NSInteger; lineRect: NSRect; lineGlyphRange: NSRange; containerOrigin: NSPoint); message 'underlineGlyphRange:underlineType:lineFragmentRect:lineFragmentGlyphRange:containerOrigin:';
     procedure drawStrikethroughForGlyphRange_strikethroughType_baselineOffset_lineFragmentRect_lineFragmentGlyphRange_containerOrigin(glyphRange: NSRange; strikethroughVal: NSInteger; baselineOffset: CGFloat; lineRect: NSRect; lineGlyphRange: NSRange; containerOrigin: NSPoint); message 'drawStrikethroughForGlyphRange:strikethroughType:baselineOffset:lineFragmentRect:lineFragmentGlyphRange:containerOrigin:';
     procedure strikethroughGlyphRange_strikethroughType_lineFragmentRect_lineFragmentGlyphRange_containerOrigin(glyphRange: NSRange; strikethroughVal: NSInteger; lineRect: NSRect; lineGlyphRange: NSRange; containerOrigin: NSPoint); message 'strikethroughGlyphRange:strikethroughType:lineFragmentRect:lineFragmentGlyphRange:containerOrigin:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -310,10 +308,10 @@ type
 {$define NSLAYOUTMANAGER_PAS_P}
   
 { NSLayoutManagerDelegate Protocol }
-  NSLayoutManagerDelegateProtocol = objcprotocol
+  NSLayoutManagerDelegateProtocol = objcprotocol external name 'NSLayoutManagerDelegate'
     procedure layoutManagerDidInvalidateLayout(sender: NSLayoutManager); message 'layoutManagerDidInvalidateLayout:';
     procedure layoutManager_didCompleteLayoutForTextContainer_atEnd(layoutManager: NSLayoutManager; textContainer: NSTextContainer; layoutFinishedFlag: Boolean); message 'layoutManager:didCompleteLayoutForTextContainer:atEnd:';
     function layoutManager_shouldUseTemporaryAttributes_forDrawingToScreen_atCharacterIndex_effectiveRange(layoutManager: NSLayoutManager; attrs: NSDictionary; toScreen: Boolean; charIndex: NSUInteger; effectiveCharRange: NSRangePointer): NSDictionary; message 'layoutManager:shouldUseTemporaryAttributes:forDrawingToScreen:atCharacterIndex:effectiveRange:';
-  end; external name 'NSLayoutManagerDelegate';
+  end;
 {$endif}
 {$endif}

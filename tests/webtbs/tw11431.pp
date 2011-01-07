@@ -10,7 +10,7 @@ type
   generic IGenericCollection<_T> = interface
   end;
 
-  generic CGenericCollection<_T> = class( IGenericCollection)
+  generic CGenericCollection<_T> = class(TInterfacedObject, specialize IGenericCollection<_T>)
   end;
 
 implementation

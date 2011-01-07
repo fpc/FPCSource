@@ -11,14 +11,14 @@ uses
   uobjc7;
 
 type
-  tobjcclass = objcclass(tobjcprot)
+{ fake external name to avoid linking errors because
+  we add external references to ensure that all
+  necessary libraries are linked, like gcc does }
+  tobjcclass = objcclass external name 'NSObject' (tobjcprot)
     procedure isrequired;
     procedure isoptional;
     procedure alsorequired;
-{ fake external name to avoid linking errors once we
-  add external references in all cases to ensure that
-  all necessary libraries are linked, like gcc does }
-  end; external name 'NSObject'; 
+  end; 
 
 
 begin

@@ -536,7 +536,7 @@ implementation
         { call fail helper and exit normal }
         if is_class(current_structdef) then
           begin
-            srsym:=search_struct_member(current_objectdef,'FREEINSTANCE');
+            srsym:=search_struct_member(current_structdef,'FREEINSTANCE');
             if assigned(srsym) and
                (srsym.typ=procsym) then
               begin
@@ -562,7 +562,7 @@ implementation
               { parameter 2 : pointer to vmt }
               { parameter 1 : self pointer }
               para:=ccallparanode.create(
-                        cordconstnode.create(current_objectdef.vmt_offset,s32inttype,false),
+                        cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false),
                     ccallparanode.create(
                         ctypeconvnode.create_internal(
                             load_vmt_pointer_node,
@@ -725,7 +725,7 @@ implementation
                 end;
               subscriptn:
                 begin
-                  if is_class_or_interface_or_dispinterface_or_objc(tunarynode(p).left.resultdef) then
+                  if is_implicit_pointer_object_type(tunarynode(p).left.resultdef) then
                     inc(result,2);
                   if (result = NODE_COMPLEXITY_INF) then
                     exit;

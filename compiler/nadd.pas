@@ -1598,19 +1598,19 @@ implementation
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
-         { class or interface equation }
-         else if is_class_or_interface_or_dispinterface_or_objc(rd) or is_class_or_interface_or_dispinterface_or_objc(ld) then
+         { implicit pointer object type comparison }
+         else if is_implicit_pointer_object_type(rd) or is_implicit_pointer_object_type(ld) then
           begin
             if (nodetype in [equaln,unequaln]) then
               begin
-                if is_class_or_interface_or_dispinterface_or_objc(rd) and is_class_or_interface_or_dispinterface_or_objc(ld) then
+                if is_implicit_pointer_object_type(rd) and is_implicit_pointer_object_type(ld) then
                  begin
                    if tobjectdef(rd).is_related(tobjectdef(ld)) then
                     inserttypeconv(right,left.resultdef)
                    else
                     inserttypeconv(left,right.resultdef);
                  end
-                else if is_class_or_interface_or_dispinterface_or_objc(rd) then
+                else if is_implicit_pointer_object_type(rd) then
                   inserttypeconv(left,right.resultdef)
                 else
                   inserttypeconv(right,left.resultdef);
@@ -1633,8 +1633,8 @@ implementation
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
-         { allows comperasion with nil pointer }
-         else if is_class_or_interface_or_dispinterface_or_objc(rd) or (rd.typ=classrefdef) then
+         { allow comparison with nil pointer }
+         else if is_implicit_pointer_object_type(rd) or (rd.typ=classrefdef) then
           begin
             if (nodetype in [equaln,unequaln]) then
               inserttypeconv(left,right.resultdef)
@@ -1642,7 +1642,7 @@ implementation
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
-         else if is_class_or_interface_or_dispinterface_or_objc(ld) or (ld.typ=classrefdef) then
+         else if is_implicit_pointer_object_type(ld) or (ld.typ=classrefdef) then
           begin
             if (nodetype in [equaln,unequaln]) then
               inserttypeconv(right,left.resultdef)
@@ -1737,7 +1737,9 @@ implementation
             if nodetype=addn then
               begin
                 if not(cs_extsyntax in current_settings.moduleswitches) or
-                   (not(is_pchar(ld)) and not(m_add_pointer in current_settings.modeswitches)) then
+                   (not (is_pchar(ld) or is_chararray(ld) or is_open_chararray(ld) or is_widechar(ld) or is_widechararray(ld) or is_open_widechararray(ld)) and
+                    not(cs_pointermath in current_settings.localswitches) and
+                    not((ld.typ=pointerdef) and tpointerdef(ld).has_pointer_math)) then
                   CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                 if (rd.typ=pointerdef) and
                    (tpointerdef(rd).pointeddef.size>1) then
@@ -1768,7 +1770,9 @@ implementation
                  if (lt=niln) then
                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),'NIL',rd.typename);
                  if not(cs_extsyntax in current_settings.moduleswitches) or
-                    (not(is_pchar(ld)) and not(m_add_pointer in current_settings.modeswitches)) then
+                   (not (is_pchar(ld) or is_chararray(ld) or is_open_chararray(ld) or is_widechar(ld) or is_widechararray(ld) or is_open_widechararray(ld)) and
+                    not(cs_pointermath in current_settings.localswitches) and
+                    not((ld.typ=pointerdef) and tpointerdef(ld).has_pointer_math)) then
                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                  if (ld.typ=pointerdef) then
                  begin
@@ -2710,7 +2714,7 @@ implementation
                 expectloc:=LOC_FLAGS;
            end
 
-         else if is_class_or_interface_or_dispinterface_or_objc(ld) then
+         else if is_implicit_pointer_object_type(ld) then
             begin
               expectloc:=LOC_FLAGS;
             end

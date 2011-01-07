@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSKeyedArchiver.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -52,7 +52,7 @@ var
 {$define NSKEYEDARCHIVER_PAS_C}
 
 { NSKeyedArchiver }
-  NSKeyedArchiver = objcclass(NSCoder)
+  NSKeyedArchiver = objcclass external (NSCoder)
   private
     _stream: Pointer;
     _flags: NSUInteger;
@@ -73,8 +73,6 @@ var
     _reserved0: Pointer; {garbage collector: __strong }
     
   public
-    class function alloc: NSKeyedArchiver; message 'alloc';
-
     class function archivedDataWithRootObject(rootObject: id): NSData; message 'archivedDataWithRootObject:';
     class function archiveRootObject_toFile(rootObject: id; path: NSString): Boolean; message 'archiveRootObject:toFile:';
     function initForWritingWithMutableData(data: NSMutableData): id; message 'initForWritingWithMutableData:';
@@ -94,10 +92,10 @@ var
     procedure encodeFloat_forKey(realv: single; key: NSString); message 'encodeFloat:forKey:';
     procedure encodeDouble_forKey(realv: double; key: NSString); message 'encodeDouble:forKey:';
     procedure encodeBytes_length_forKey(bytesp: pbyte; lenv: NSUInteger; key: NSString); message 'encodeBytes:length:forKey:';
-  end; external;
+  end;
 
 { NSKeyedUnarchiver }
-  NSKeyedUnarchiver = objcclass(NSCoder)
+  NSKeyedUnarchiver = objcclass external (NSCoder)
   private
     _delegate: id;
     _flags: cuint32;
@@ -117,8 +115,6 @@ var
     _reserved0: Pointer; {garbage collector: __strong }
     
   public
-    class function alloc: NSKeyedUnarchiver; message 'alloc';
-
     class function unarchiveObjectWithData(data: NSData): id; message 'unarchiveObjectWithData:';
     class function unarchiveObjectWithFile(path: NSString): id; message 'unarchiveObjectWithFile:';
     function initForReadingWithData(data: NSData): id; message 'initForReadingWithData:';
@@ -136,19 +132,19 @@ var
     function decodeFloatForKey(key: NSString): single; message 'decodeFloatForKey:';
     function decodeDoubleForKey(key: NSString): double; message 'decodeDoubleForKey:';
     function decodeBytesForKey_returnedLength(key: NSString; lengthp: NSUIntegerPtr): pbyte; message 'decodeBytesForKey:returnedLength:';
-  end; external;
+  end;
 
 { NSKeyedArchiverObjectSubstitutionCategory }
-  NSKeyedArchiverObjectSubstitutionCategory = objccategory(NSObject)
+  NSKeyedArchiverObjectSubstitutionCategory = objccategory external (NSObject)
     function classForKeyedArchiver: Pobjc_class; message 'classForKeyedArchiver';
     function replacementObjectForKeyedArchiver(archiver: NSKeyedArchiver): id; message 'replacementObjectForKeyedArchiver:';
     class function classFallbacksForKeyedArchiver: NSArray; message 'classFallbacksForKeyedArchiver';
-  end; external;
+  end;
 
 { NSKeyedUnarchiverObjectSubstitutionCategory }
-  NSKeyedUnarchiverObjectSubstitutionCategory = objccategory(NSObject)
+  NSKeyedUnarchiverObjectSubstitutionCategory = objccategory external (NSObject)
     class function classForKeyedUnarchiver: Pobjc_class; message 'classForKeyedUnarchiver';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -157,21 +153,21 @@ var
 {$define NSKEYEDARCHIVER_PAS_P}
   
 { NSKeyedArchiverDelegate Protocol }
-  NSKeyedArchiverDelegateProtocol = objcprotocol
+  NSKeyedArchiverDelegateProtocol = objcprotocol external name 'NSKeyedArchiverDelegate'
     function archiver_willEncodeObject(archiver: NSKeyedArchiver; object_: id): id; message 'archiver:willEncodeObject:';
     procedure archiver_didEncodeObject(archiver: NSKeyedArchiver; object_: id); message 'archiver:didEncodeObject:';
     procedure archiver_willReplaceObject_withObject(archiver: NSKeyedArchiver; object_: id; newObject: id); message 'archiver:willReplaceObject:withObject:';
     procedure archiverWillFinish(archiver: NSKeyedArchiver); message 'archiverWillFinish:';
     procedure archiverDidFinish(archiver: NSKeyedArchiver); message 'archiverDidFinish:';
-  end; external name 'NSKeyedArchiverDelegate';
+  end;
   
 { NSKeyedUnarchiverDelegate Protocol }
-  NSKeyedUnarchiverDelegateProtocol = objcprotocol
+  NSKeyedUnarchiverDelegateProtocol = objcprotocol external name 'NSKeyedUnarchiverDelegate'
     function unarchiver_cannotDecodeObjectOfClassName_originalClasses(unarchiver: NSKeyedUnarchiver; name: NSString; classNames: NSArray): Pobjc_class; message 'unarchiver:cannotDecodeObjectOfClassName:originalClasses:';
     function unarchiver_didDecodeObject(unarchiver: NSKeyedUnarchiver; object_: id): id; message 'unarchiver:didDecodeObject:';
     procedure unarchiver_willReplaceObject_withObject(unarchiver: NSKeyedUnarchiver; object_: id; newObject: id); message 'unarchiver:willReplaceObject:withObject:';
     procedure unarchiverWillFinish(unarchiver: NSKeyedUnarchiver); message 'unarchiverWillFinish:';
     procedure unarchiverDidFinish(unarchiver: NSKeyedUnarchiver); message 'unarchiverDidFinish:';
-  end; external name 'NSKeyedUnarchiverDelegate';
+  end;
 {$endif}
 {$endif}

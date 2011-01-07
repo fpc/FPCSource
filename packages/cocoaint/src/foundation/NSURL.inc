@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURL.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -98,7 +98,7 @@ var
 {$define NSURL_PAS_C}
 
 { NSURL }
-  NSURL = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol, NSURLHandleClientProtocol)
+  NSURL = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol, NSURLHandleClientProtocol)
   private
     _urlString: NSString;
     _baseURL: NSURL;
@@ -106,8 +106,6 @@ var
     _reserved: Pointer; {garbage collector: __strong }
     
   public
-    class function alloc: NSURL; message 'alloc';
-
     function initWithScheme_host_path(scheme_: NSString; host_: NSString; path_: NSString): id; message 'initWithScheme:host:path:';
     function initFileURLWithPath_isDirectory(path_: NSString; isDir: Boolean): id; message 'initFileURLWithPath:isDirectory:';
     function initFileURLWithPath(path_: NSString): id; message 'initFileURLWithPath:';
@@ -156,24 +154,24 @@ var
     procedure URLHandleResourceDidFinishLoading(sender: NSURLHandle);
     procedure URLHandleResourceDidCancelLoading(sender: NSURLHandle);
     procedure URLHandle_resourceDidFailLoadingWithReason(sender: NSURLHandle; reason: NSString);
-  end; external;
+  end;
 
 { NSURLUtilitiesCategory }
-  NSURLUtilitiesCategory = objccategory(NSString)
+  NSURLUtilitiesCategory = objccategory external (NSString)
     function stringByAddingPercentEscapesUsingEncoding(enc: NSStringEncoding): NSString; message 'stringByAddingPercentEscapesUsingEncoding:';
     function stringByReplacingPercentEscapesUsingEncoding(enc: NSStringEncoding): NSString; message 'stringByReplacingPercentEscapesUsingEncoding:';
-  end; external;
+  end;
 
 { NSURLClientCategory }
-  NSURLClientCategory = objccategory(NSObject)
+  NSURLClientCategory = objccategory external (NSObject)
     procedure URL_resourceDataDidBecomeAvailable(sender: NSURL; newBytes: NSData); message 'URL:resourceDataDidBecomeAvailable:'; deprecated 'in Mac OS X 10.4 and later';
     procedure URLResourceDidFinishLoading(sender: NSURL); message 'URLResourceDidFinishLoading:'; deprecated 'in Mac OS X 10.4 and later';
     procedure URLResourceDidCancelLoading(sender: NSURL); message 'URLResourceDidCancelLoading:'; deprecated 'in Mac OS X 10.4 and later';
     procedure URL_resourceDidFailLoadingWithReason(sender: NSURL; reason: NSString); message 'URL:resourceDidFailLoadingWithReason:'; deprecated 'in Mac OS X 10.4 and later';
-  end; external;
+  end;
 
 { NSURLPathUtilitiesCategory }
-  NSURLPathUtilitiesCategory = objccategory(NSURL)
+  NSURLPathUtilitiesCategory = objccategory external (NSURL)
     class function fileURLWithPathComponents(components: NSArray): NSURL; message 'fileURLWithPathComponents:';
     function pathComponents: NSArray; message 'pathComponents';
     function lastPathComponent: NSString; message 'lastPathComponent';
@@ -184,7 +182,7 @@ var
     function URLByDeletingPathExtension: NSURL; message 'URLByDeletingPathExtension';
     function URLByStandardizingPath: NSURL; message 'URLByStandardizingPath';
     function URLByResolvingSymlinksInPath: NSURL; message 'URLByResolvingSymlinksInPath';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

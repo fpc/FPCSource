@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLFontElement.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,18 +42,16 @@
 {$define DOMHTMLFONTELEMENT_PAS_C}
 
 { DOMHTMLFontElement }
-  DOMHTMLFontElement = objcclass(DOMHTMLElement)
+  DOMHTMLFontElement = objcclass external (DOMHTMLElement)
     
   public
-    class function alloc: DOMHTMLFontElement; message 'alloc';
-
     procedure setColor (newValue: NSString); message 'setColor:';
     function color: NSString; message 'color';
     procedure setFace (newValue: NSString); message 'setFace:';
     function face: NSString; message 'face';
     procedure setSize (newValue: NSString); message 'setSize:';
     function size: NSString; message 'size';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPopUpButtonCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -58,7 +58,7 @@ var
 {$define NSPOPUPBUTTONCELL_PAS_C}
 
 { NSPopUpButtonCell }
-  NSPopUpButtonCell = objcclass(NSMenuItemCell)
+  NSPopUpButtonCell = objcclass external (NSMenuItemCell)
   private
     _menu: NSMenu;
     _selectedIndex: cint;
@@ -84,8 +84,6 @@ var
     {$endif}
     
   public
-    class function alloc: NSPopUpButtonCell; message 'alloc';
-
     function initTextCell_pullsDown(stringValue_: NSString; pullDown: Boolean): id; message 'initTextCell:pullsDown:';
     procedure setMenu(menu_: NSMenu); message 'setMenu:';
     function menu: NSMenu; message 'menu';
@@ -133,7 +131,7 @@ var
     procedure setArrowPosition(position: NSPopUpArrowPosition); message 'setArrowPosition:';
     function objectValue: id; message 'objectValue';
     procedure setObjectValue(obj: id); message 'setObjectValue:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

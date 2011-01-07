@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSController.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,7 +42,7 @@
 {$define NSCONTROLLER_PAS_C}
 
 { NSController }
-  NSController = objcclass(NSObject, NSCodingProtocol)
+  NSController = objcclass external (NSObject, NSCodingProtocol)
   private
     _reserved: Pointer;
     _reserved2: Pointer;
@@ -70,8 +70,6 @@
     _singleValueAccessor: id;
     
   public
-    class function alloc: NSController; message 'alloc';
-
     procedure objectDidBeginEditing(editor: id); message 'objectDidBeginEditing:';
     procedure objectDidEndEditing(editor: id); message 'objectDidEndEditing:';
     procedure discardEditing; message 'discardEditing';
@@ -82,7 +80,7 @@
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
-  end; external;
+  end;
 
 {$endif}
 {$endif}

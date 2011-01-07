@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSArchiver.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -49,7 +49,7 @@ var
 {$define NSARCHIVER_PAS_C}
 
 { NSArchiver }
-  NSArchiver = objcclass(NSCoder)
+  NSArchiver = objcclass external (NSCoder)
   private
     mdata: Pointer; {garbage collector: __strong }
     pointerTable: Pointer;
@@ -60,8 +60,6 @@ var
     reserved: Pointer;
     
   public
-    class function alloc: NSArchiver; message 'alloc';
-
     function initForWritingWithMutableData(mdata_: NSMutableData): id; message 'initForWritingWithMutableData:';
     function archiverData: NSMutableData; message 'archiverData';
     procedure encodeRootObject(rootObject: id); message 'encodeRootObject:';
@@ -71,10 +69,10 @@ var
     procedure encodeClassName_intoClassName(trueName: NSString; inArchiveName: NSString); message 'encodeClassName:intoClassName:';
     function classNameEncodedForTrueClassName(trueName: NSString): NSString; message 'classNameEncodedForTrueClassName:';
     procedure replaceObject_withObject(object_: id; newObject: id); message 'replaceObject:withObject:';
-  end; external;
+  end;
 
 { NSUnarchiver }
-  NSUnarchiver = objcclass(NSCoder)
+  NSUnarchiver = objcclass external (NSCoder)
   private
     datax: Pointer;
     cursor: NSUInteger;
@@ -93,8 +91,6 @@ var
     reserved: id;
     
   public
-    class function alloc: NSUnarchiver; message 'alloc';
-
     function initForReadingWithData(data: NSData): id; message 'initForReadingWithData:';
     procedure setObjectZone(zone_: NSZonePtr); message 'setObjectZone:';
     function objectZone: NSZonePtr; message 'objectZone';
@@ -105,13 +101,13 @@ var
     class procedure decodeClassName_asClassName(inArchiveName: NSString; trueName: NSString); message 'decodeClassName:asClassName:';
     class function classNameDecodedForArchiveClassName(inArchiveName: NSString): NSString; message 'classNameDecodedForArchiveClassName:';
     procedure replaceObject_withObject(object_: id; newObject: id); message 'replaceObject:withObject:';
-  end; external;
+  end;
 
 { NSArchiverCallbackCategory }
-  NSArchiverCallbackCategory = objccategory(NSObject)
+  NSArchiverCallbackCategory = objccategory external (NSObject)
     function classForArchiver: Pobjc_class; message 'classForArchiver';
     function replacementObjectForArchiver(archiver: NSArchiver): id; message 'replacementObjectForArchiver:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

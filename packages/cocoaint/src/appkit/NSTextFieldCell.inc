@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextFieldCell.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:06 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -53,7 +53,7 @@ type
 {$define NSTEXTFIELDCELL_PAS_C}
 
 { NSTextFieldCell }
-  NSTextFieldCell = objcclass(NSActionCell)
+  NSTextFieldCell = objcclass external (NSActionCell)
   private
     _backgroundColor: NSColor;
     _textColor: NSColor;
@@ -76,8 +76,6 @@ type
       end;
     
   public
-    class function alloc: NSTextFieldCell; message 'alloc';
-
     procedure setBackgroundColor(color: NSColor); message 'setBackgroundColor:';
     function backgroundColor: NSColor; message 'backgroundColor';
     procedure setDrawsBackground(flag: Boolean); message 'setDrawsBackground:';
@@ -94,7 +92,7 @@ type
     procedure setWantsNotificationForMarkedText(flag: Boolean); message 'setWantsNotificationForMarkedText:';
     function allowedInputSourceLocales: NSArray; message 'allowedInputSourceLocales';
     procedure setAllowedInputSourceLocales(localeIdentifiers: NSArray); message 'setAllowedInputSourceLocales:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMNotation.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:27 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -42,14 +42,12 @@
 {$define DOMNOTATION_PAS_C}
 
 { DOMNotation }
-  DOMNotation = objcclass(DOMNode)
+  DOMNotation = objcclass external (DOMNode)
     
   public
-    class function alloc: DOMNotation; message 'alloc';
-
     function publicId: NSString; message 'publicId';
     function systemId: NSString; message 'systemId';
-  end; external;
+  end;
 
 {$endif}
 {$endif}

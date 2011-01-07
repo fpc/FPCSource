@@ -1,5 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
+    Copyright (c) 2010 Jasper Lievisse Adriaanse
     Copyright (c) 2004 Marco van de Voort
     member of the Free Pascal development team.
 
@@ -14,8 +15,8 @@
 {
  * System call numbers.
  *
- * created from;OpenBSD: syscalls.master,v 1.62 2003/09/07 21:00:27 miod Exp
- *  (OpenBSD/i386 3.4 release distro)
+ * created from; OpenBSD: syscalls.master,v 1.104 2010/10/28 15:02:41 millert Exp 
+ *  (OpenBSD/i386 4.9 release)
 }
 Const
         syscall_nr_syscall      = 0  ;
@@ -205,7 +206,30 @@ Const
         syscall_nr_getresgid    = 283;
         syscall_nr_setresgid    = 284;
         syscall_nr_mquery       = 286;
-        syscall_nr_MAXSYSCALL   = 287;
-
-
-
+        syscall_nr_closefrom    = 287;
+        syscall_nr_signalstack  = 288;
+        syscall_nr_shmget       = 289;
+        syscall_nr_semop        = 290;
+        syscall_nr_stat         = 291;
+        syscall_nr_fstat        = 292;
+        syscall_nr_lstat        = 293;
+        syscall_nr_fhstat       = 294;
+        syscall_nr___semctl     = 294;
+        syscall_nr_shmctl       = 295;
+        syscall_nr_msgctl       = 296;
+        syscall_nr_sched_yield  = 298;
+        syscall_nr_getthrid     = 299;
+        syscall_nr_thrsleep     = 300;
+        syscall_nr_thrwakeup    = 301;
+        syscall_nr_exit         = 302;
+        syscall_nr_thrsigdivert = 303;
+        syscall_nr___getcwd     = 304;
+        syscall_nr_adjfreq      = 305;
+        syscall_nr_getfsstat    = 306;
+        syscall_nr_statfs       = 307;
+        syscall_nr_fstatfs      = 308;
+        syscall_nr_fhstatfs     = 309;
+        syscall_nr_setrtable    = 310;
+        syscall_nr_getrtable    = 311;
+        syscall_nr_getdirentries        = 312;
+        syscall_nr_MAXSYSCALL   = 313;

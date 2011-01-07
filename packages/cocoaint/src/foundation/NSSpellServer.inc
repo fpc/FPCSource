@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSSpellServer.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -49,7 +49,7 @@ var
 {$define NSSPELLSERVER_PAS_C}
 
 { NSSpellServer }
-  NSSpellServer = objcclass(NSObject)
+  NSSpellServer = objcclass external (NSObject)
   private
     _delegate: id;
     _caseSensitive: NSInteger;
@@ -70,14 +70,12 @@ var
     _reservedSpellServer2: Pointer;
     
   public
-    class function alloc: NSSpellServer; message 'alloc';
-
     procedure setDelegate(anObject: id); message 'setDelegate:';
     function delegate: id; message 'delegate';
     function registerLanguage_byVendor(language: NSString; vendor: NSString): Boolean; message 'registerLanguage:byVendor:';
     function isWordInUserDictionaries_caseSensitive(word: NSString; flag: Boolean): Boolean; message 'isWordInUserDictionaries:caseSensitive:';
     procedure run; message 'run';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
@@ -86,7 +84,7 @@ var
 {$define NSSPELLSERVER_PAS_P}
   
 { NSSpellServerDelegate Protocol }
-  NSSpellServerDelegateProtocol = objcprotocol
+  NSSpellServerDelegateProtocol = objcprotocol external name 'NSSpellServerDelegate'
     function spellServer_findMisspelledWordInString_language_wordCount_countOnly(sender: NSSpellServer; stringToCheck: NSString; language: NSString; wordCount: NSIntegerPtr; countOnly: Boolean): NSRange; message 'spellServer:findMisspelledWordInString:language:wordCount:countOnly:';
     function spellServer_suggestGuessesForWord_inLanguage(sender: NSSpellServer; word: NSString; language: NSString): NSArray; message 'spellServer:suggestGuessesForWord:inLanguage:';
     procedure spellServer_didLearnWord_inLanguage(sender: NSSpellServer; word: NSString; language: NSString); message 'spellServer:didLearnWord:inLanguage:';
@@ -94,6 +92,6 @@ var
     function spellServer_suggestCompletionsForPartialWordRange_inString_language(sender: NSSpellServer; range: NSRange; string_: NSString; language: NSString): NSArray; message 'spellServer:suggestCompletionsForPartialWordRange:inString:language:';
     function spellServer_checkGrammarInString_language_details(sender: NSSpellServer; stringToCheck: NSString; language: NSString; details: NSArrayPointer): NSRange; message 'spellServer:checkGrammarInString:language:details:';
     function spellServer_checkString_offset_types_options_orthography_wordCount(sender: NSSpellServer; stringToCheck: NSString; offset: NSUInteger; checkingTypes: NSTextCheckingTypes; options: NSDictionary; orthography: NSOrthography; wordCount: NSIntegerPtr): NSArray; message 'spellServer:checkString:offset:types:options:orthography:wordCount:';
-  end; external name 'NSSpellServerDelegate';
+  end;
 {$endif}
 {$endif}

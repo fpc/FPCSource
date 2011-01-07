@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSArray.h }
-{ Version: 2.1.2 - Wed Dec 8 10:06:43 CET 2010 }
+{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -50,11 +50,9 @@ type
 {$define NSARRAY_PAS_C}
 
 { NSArray }
-  NSArray = objcclass(NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol, NSFastEnumerationProtocol)
+  NSArray = objcclass external (NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol, NSFastEnumerationProtocol)
     
   public
-    class function alloc: NSArray; message 'alloc';
-
     function count: NSUInteger; message 'count';
     function objectAtIndex(index: NSUInteger): id; message 'objectAtIndex:';
 
@@ -64,23 +62,21 @@ type
     procedure encodeWithCoder(aCoder: NSCoder);
     function initWithCoder(aDecoder: NSCoder): id;
     function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePtr; stackbuf: idPtr; len: NSUInteger): NSUInteger;
-  end; external;
+  end;
 
 { NSMutableArray }
-  NSMutableArray = objcclass(NSArray)
+  NSMutableArray = objcclass external (NSArray)
     
   public
-    class function alloc: NSMutableArray; message 'alloc';
-
     procedure addObject(anObject: id); message 'addObject:';
     procedure insertObject_atIndex(anObject: id; index: NSUInteger); message 'insertObject:atIndex:';
     procedure removeLastObject; message 'removeLastObject';
     procedure removeObjectAtIndex(index: NSUInteger); message 'removeObjectAtIndex:';
     procedure replaceObjectAtIndex_withObject(index: NSUInteger; anObject: id); message 'replaceObjectAtIndex:withObject:';
-  end; external;
+  end;
 
 { NSExtendedArrayCategory }
-  NSExtendedArrayCategory = objccategory(NSArray)
+  NSExtendedArrayCategory = objccategory external (NSArray)
     function arrayByAddingObject(anObject: id): NSArray; message 'arrayByAddingObject:';
     function arrayByAddingObjectsFromArray(otherArray: NSArray): NSArray; message 'arrayByAddingObjectsFromArray:';
     function componentsJoinedByString(separator: NSString): NSString; message 'componentsJoinedByString:';
@@ -108,10 +104,10 @@ type
     procedure makeObjectsPerformSelector(aSelector: SEL); message 'makeObjectsPerformSelector:';
     procedure makeObjectsPerformSelector_withObject(aSelector: SEL; argument: id); message 'makeObjectsPerformSelector:withObject:';
     function objectsAtIndexes(indexes: NSIndexSet): NSArray; message 'objectsAtIndexes:';
-  end; external;
+  end;
 
 { NSArrayCreationCategory }
-  NSArrayCreationCategory = objccategory(NSArray)
+  NSArrayCreationCategory = objccategory external (NSArray)
     class function array_: id; message 'array';
     class function arrayWithObject(anObject: id): id; message 'arrayWithObject:';
     class function arrayWithObjects_count(objects: NSObjectArrayOfObjectsPtr; cnt: NSUInteger): id; message 'arrayWithObjects:count:';
@@ -125,15 +121,15 @@ type
     class function arrayWithContentsOfURL(url: NSURL): id; message 'arrayWithContentsOfURL:';
     function initWithContentsOfFile(path: NSString): id; message 'initWithContentsOfFile:';
     function initWithContentsOfURL(url: NSURL): id; message 'initWithContentsOfURL:';
-  end; external;
+  end;
 
 { NSDeprecatedCategory }
-  NSDeprecatedCategory = objccategory(NSArray)
+  NSDeprecatedCategory = objccategory external (NSArray)
     procedure getObjects(objects: idPtr); message 'getObjects:';
-  end; external;
+  end;
 
 { NSExtendedMutableArrayCategory }
-  NSExtendedMutableArrayCategory = objccategory(NSMutableArray)
+  NSExtendedMutableArrayCategory = objccategory external (NSMutableArray)
     procedure addObjectsFromArray(otherArray: NSArray); message 'addObjectsFromArray:';
     procedure exchangeObjectAtIndex_withObjectAtIndex(idx: NSUInteger; idx1: NSUInteger); message 'exchangeObjectAtIndex:withObjectAtIndex:';
     procedure removeAllObjects; message 'removeAllObjects';
@@ -152,13 +148,13 @@ type
     procedure insertObjects_atIndexes(objects: NSArray; indexes: NSIndexSet); message 'insertObjects:atIndexes:';
     procedure removeObjectsAtIndexes(indexes: NSIndexSet); message 'removeObjectsAtIndexes:';
     procedure replaceObjectsAtIndexes_withObjects(indexes: NSIndexSet; objects: NSArray); message 'replaceObjectsAtIndexes:withObjects:';
-  end; external;
+  end;
 
 { NSMutableArrayCreationCategory }
-  NSMutableArrayCreationCategory = objccategory(NSMutableArray)
+  NSMutableArrayCreationCategory = objccategory external (NSMutableArray)
     class function arrayWithCapacity(numItems: NSUInteger): id; message 'arrayWithCapacity:';
     function initWithCapacity(numItems: NSUInteger): id; message 'initWithCapacity:';
-  end; external;
+  end;
 
 {$endif}
 {$endif}
