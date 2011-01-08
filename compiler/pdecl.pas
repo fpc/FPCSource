@@ -654,9 +654,8 @@ implementation
                tstoreddef(hdef).generictokenbuf:=generictokenbuf;
                { Generic is never a type renaming }
                hdef.typesym:=newtype;
+               generictypelist.free;
              end;
-           if assigned(generictypelist) then
-             generictypelist.free;
          until (token<>_ID)or(in_structure and (idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]));
          { resolve type block forward declarations and restore a unit
            container for them }

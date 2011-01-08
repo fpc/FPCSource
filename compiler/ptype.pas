@@ -30,7 +30,12 @@ interface
        symtype,symdef,symbase;
 
     type
-      TSingleTypeOption=(stoIsForwardDef,stoAllowTypeDef,stoParseClassParent);
+      TSingleTypeOption=(
+        stoIsForwardDef,          { foward declaration         }
+        stoAllowTypeDef,          { allow type definitions     }
+        stoAllowSpecialization,   { allow type specialization  }
+        stoParseClassParent       { parse of parent class type }
+      );
       TSingleTypeOptions=set of TSingleTypeOption;
 
     procedure resolve_forward_types;
@@ -497,7 +502,7 @@ implementation
                  begin
                    if try_to_consume(_SPECIALIZE) then
                      begin
-                       if not(stoAllowTypeDef in options) then
+                       if ([stoAllowSpecialization,stoAllowTypeDef] * options = []) then
                          begin
                            Message(parser_e_no_local_para_def);
 
@@ -544,7 +549,8 @@ implementation
                  end;
             end;
         until not again;
-        if (stoAllowTypeDef in options)and(m_delphi in current_settings.modeswitches) then
+        if ([stoAllowSpecialization,stoAllowTypeDef] * options <> []) and
+           (m_delphi in current_settings.modeswitches) then
           dospecialize:=token=_LSHARPBRACKET;
         if dospecialize then
           generate_specialization(def,stoParseClassParent in options)

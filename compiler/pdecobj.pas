@@ -306,7 +306,7 @@ implementation
         while try_to_consume(_COMMA) do
           begin
              { use single_type instead of id_type for specialize support }
-             single_type(hdef,[stoAllowTypeDef,stoParseClassParent]);
+             single_type(hdef,[stoAllowSpecialization,stoParseClassParent]);
              if (hdef.typ<>objectdef) then
                begin
                   if intf then
@@ -442,7 +442,7 @@ implementation
           begin
             consume(_LKLAMMER);
             { use single_type instead of id_type for specialize support }
-            single_type(hdef,[stoAllowTypeDef, stoParseClassParent]);
+            single_type(hdef,[stoAllowSpecialization, stoParseClassParent]);
             if (not assigned(hdef)) or
                (hdef.typ<>objectdef) then
               begin

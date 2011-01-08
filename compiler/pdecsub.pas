@@ -655,7 +655,7 @@ implementation
                 else
                   begin
                     block_type:=bt_var_type;
-                    single_type(hdef,[]);
+                    single_type(hdef,[stoAllowSpecialization]);
                     block_type:=bt_var;
                   end;
 
@@ -1271,7 +1271,7 @@ implementation
                 if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
                   current_specializedef:=current_structdef;
               end;
-            single_type(pd.returndef,[]);
+            single_type(pd.returndef,[stoAllowSpecialization]);
 
             if is_dispinterface(pd.struct) and not is_automatable(pd.returndef) then
               Message1(type_e_not_automatable,pd.returndef.typename);
