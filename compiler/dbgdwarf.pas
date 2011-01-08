@@ -606,6 +606,9 @@ implementation
         DW_OP_push_object_address := $97,DW_OP_call2 := $98,
         DW_OP_call4 := $99,DW_OP_call_ref := $9a,
 
+        { DWARF 4 extensions.   }
+        DW_OP_implicit_value := $9e, DW_OP_stack_value := $9f,
+
         { GNU extensions.   }
         DW_OP_GNU_push_tls_address := $e0,
 
