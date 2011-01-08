@@ -351,6 +351,7 @@ interface
         procedure appendsym_var_with_name_type_offset(list:TAsmList; sym:tabstractnormalvarsym; const name: string; def: tdef; offset: pint; const flags: tdwarfvarsymflags);
         { used for fields and properties mapped to fields }
         procedure appendsym_fieldvar_with_name_offset(list:TAsmList;sym: tfieldvarsym;const name: string; def: tdef; offset: pint);
+        procedure appendsym_const_member(list:TAsmList;sym:tconstsym;ismember:boolean);
 
         procedure beforeappendsym(list:TAsmList;sym:tsym);override;
         procedure appendsym_staticvar(list:TAsmList;sym:tstaticvarsym);override;
@@ -1019,6 +1020,8 @@ implementation
             appendsym_fieldvar(TAsmList(arg),tfieldvarsym(p));
           propertysym:
             appendsym_property(TAsmList(arg),tpropertysym(p));
+          constsym:
+            appendsym_const_member(TAsmList(arg),tconstsym(p),true);
         end;
       end;
 
@@ -2505,8 +2508,12 @@ implementation
         finish_entry;
       end;
 
-
     procedure TDebugInfoDwarf.appendsym_const(list:TAsmList;sym:tconstsym);
+    begin
+      appendsym_const_member(list,sym,false);
+    end;
+
+    procedure TDebugInfoDwarf.appendsym_const_member(list:TAsmList;sym:tconstsym;ismember:boolean);
       var
         i,
         size: aint;
@@ -2520,9 +2527,20 @@ implementation
         if (sym.owner.symtabletype=parasymtable) then
           exit;
 
-        append_entry(DW_TAG_variable,false,[
-          DW_AT_name,DW_FORM_string,symname(sym)+#0
-          ]);
+        if ismember then
+          append_entry(DW_TAG_member,false,[
+            DW_AT_name,DW_FORM_string,symname(sym)+#0,
+          { The DW_AT_declaration tag is invalid according to the DWARF specifications.
+            But gcc adds this to static const members and gdb checks
+            for this flag. So we have to set it also.
+          }
+            DW_AT_declaration,DW_FORM_flag,true,
+            DW_AT_external,DW_FORM_flag,true
+            ])
+        else
+          append_entry(DW_TAG_variable,false,[
+            DW_AT_name,DW_FORM_string,symname(sym)+#0
+            ]);
         { for string constants, constdef isn't set because they have no real type }
         case sym.consttyp of
           conststring:
