@@ -753,17 +753,15 @@ implementation
             _CLASS:
               begin
                 is_classdef:=false;
-                { read class method }
-                if try_to_consume(_CLASS) then
-                 begin
-                   { class modifier is only allowed for procedures, functions, }
-                   { constructors, destructors, fields and properties          }
-                   if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR,_OPERATOR]) and
-                      not((token=_ID) and (idtoken=_OPERATOR)) then
-                     Message(parser_e_procedure_or_function_expected);
+                { read class method/field/property }
+                consume(_CLASS);
+                { class modifier is only allowed for procedures, functions, }
+                { constructors, destructors, fields and properties          }
+                if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR,_OPERATOR]) and
+                   not((token=_ID) and (idtoken=_OPERATOR)) then
+                  Message(parser_e_procedure_or_function_expected);
 
-                   is_classdef:=true;
-                 end;
+                is_classdef:=true;
               end;
             _PROCEDURE,
             _FUNCTION:
