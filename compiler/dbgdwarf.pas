@@ -3414,27 +3414,28 @@ implementation
       end;
 
     procedure TDebugInfoDwarf2.appenddef_object(list:TAsmList;def: tobjectdef);
-      procedure doappend;
+      procedure doappend(const createlabel: boolean; const objectname: PShortString);
         begin
-          { Objective-C class: same as regular class, except for
-              a) Apple-specific tag that identifies it as an Objective-C class
-              b) use extname^ instead of objname
-          }
-          if (def.objecttype=odt_objcclass) then
+          if createlabel then
+            begin
+              if not(tf_dwarf_only_local_labels in target_info.flags) then
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(def_dwarf_class_struct_lab(def),0))
+              else
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(def_dwarf_class_struct_lab(def),0));
+            end;
+          if assigned(objectname) then
             append_entry(DW_TAG_structure_type,true,[
-              DW_AT_name,DW_FORM_string,def.objextname^+#0,
-              DW_AT_byte_size,DW_FORM_udata,tobjectsymtable(def.symtable).datasize,
-              DW_AT_APPLE_runtime_class,DW_FORM_data1,DW_LANG_ObjC
-              ])
-          else if assigned(def.objname) then
-            append_entry(DW_TAG_structure_type,true,[
-              DW_AT_name,DW_FORM_string,def.objname^+#0,
+              DW_AT_name,DW_FORM_string,objectname^+#0,
               DW_AT_byte_size,DW_FORM_udata,tobjectsymtable(def.symtable).datasize
               ])
           else
             append_entry(DW_TAG_structure_type,true,[
               DW_AT_byte_size,DW_FORM_udata,tobjectsymtable(def.symtable).datasize
               ]);
+          { Apple-specific tag that identifies it as an Objective-C class }
+          if (def.objecttype=odt_objcclass) then
+            append_attribute(DW_AT_APPLE_runtime_class,DW_FORM_data1,[DW_LANG_ObjC]);
+
           finish_entry;
           if assigned(def.childof) then
             begin
@@ -3489,27 +3490,25 @@ implementation
         case def.objecttype of
           odt_cppclass,
           odt_object:
-            doappend;
+            doappend(false,def.objname);
           odt_interfacecom,
           odt_interfacecorba,
           odt_dispinterface,
-          odt_class,
-          odt_objcclass:
+          odt_class:
             begin
-              if (def.objecttype<>odt_objcclass) then
-                begin
-                  { implicit pointer }
-                  append_entry(DW_TAG_pointer_type,false,[]);
-                  append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def));
-                  finish_entry;
-                end;
+              { implicit pointer }
+              append_entry(DW_TAG_pointer_type,false,[]);
+              append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def));
+              finish_entry;
 
-              if not(tf_dwarf_only_local_labels in target_info.flags) then
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(def_dwarf_class_struct_lab(def),0))
-              else
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(def_dwarf_class_struct_lab(def),0));
-              doappend;
+              doappend(true,def.objname);
             end;
+          odt_objcclass:
+            { Objective-C class: same as regular class, except for
+                a) Apple-specific tag that identifies it as an Objective-C class
+                b) use extname^ instead of objname
+            }
+            doappend(true,def.objextname);
           odt_objcprotocol:
             begin
               append_entry(DW_TAG_pointer_type,false,[]);
