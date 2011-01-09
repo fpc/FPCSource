@@ -2383,7 +2383,7 @@ implementation
                       hclassdef:=hclassdef.childof;
                     { if inherited; only then we need the method with
                       the same name }
-                    if token in endtokens then
+                    if token <> _ID then
                      begin
                        hs:=current_procinfo.procdef.procsym.name;
                        hsorg:=current_procinfo.procdef.procsym.realname;
