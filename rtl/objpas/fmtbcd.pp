@@ -1217,8 +1217,8 @@ IMPLEMENTATION
                                 end;
 { find out language-specific ? }
         DecimalPoint_is_System: begin
-                                 dp := DecimalSeparator;
-                                 dc := ThousandSeparator;
+                                 dp := DefaultFormatSettings.DecimalSeparator;
+                                 dc := DefaultFormatSettings.ThousandSeparator;
                                 end;
        end;
      end;

@@ -420,8 +420,8 @@ var
 begin
   j := 1;
   for i := 1 to Length(s) do
-    if s[i] <> ThousandSeparator then begin
-      if s[i] = DecimalSeparator then
+    if s[i] <> DefaultFormatSettings.ThousandSeparator then begin
+      if s[i] = DefaultFormatSettings.DecimalSeparator then
         s[j] := '.'
       else
         s[j] := s[i];
