@@ -126,7 +126,7 @@ begin
   }
 end;
 
-procedure TWin32Window.Update(AForce: Boolean = False);
+procedure TWin32Window.Update(AForce: Boolean = False; AWaitForMessage: Boolean = False);
 var
   message: MSG;
 begin
@@ -137,11 +137,18 @@ begin
     { updated to pump all window messages, and not just for our FWindow;
       this fixes keyboard layout switching and maybe other bugs and side effects...
       Seems like Windows wants everything pumped :) }
-    while PeekMessage(message, {FWindow}0, 0, 0, PM_REMOVE) do
+    if AWaitForMessage then
     begin
+      GetMessage(message, {FWindow}0, 0, 0);
       TranslateMessage(message);
       DispatchMessage(message);
-    end;
+    end
+    else
+      while PeekMessage(message, {FWindow}0, 0, 0, PM_REMOVE) do
+      begin
+        TranslateMessage(message);
+        DispatchMessage(message);
+      end;
   end
   else
     Sleep(0);

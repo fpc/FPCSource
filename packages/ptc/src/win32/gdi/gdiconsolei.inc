@@ -484,32 +484,42 @@ begin
 end;
 
 function TGDIConsole.NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
+var
+  UseGetMessage: Boolean;
 begin
   CheckOpen('TGDIConsole.NextEvent');
 //  CheckUnlocked('TGDIConsole.NextEvent');
 
   FreeAndNil(AEvent);
+  UseGetMessage := False;
   repeat
     { update window }
-    FWindow.Update;
+    FWindow.Update(False, UseGetMessage);
 
     { try to find an event that matches the EventMask }
     AEvent := FEventQueue.NextEvent(AEventMask);
+    if AWait then
+      UseGetMessage := True;
   until (not AWait) or (AEvent <> Nil);
   Result := AEvent <> nil;
 end;
 
 function TGDIConsole.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent;
+var
+  UseGetMessage: Boolean;
 begin
   CheckOpen('TGDIConsole.PeekEvent');
 //  CheckUnlocked('TGDIConsole.PeekEvent');
 
+  UseGetMessage := False;
   repeat
     { update window }
-    FWindow.Update;
+    FWindow.Update(False, UseGetMessage);
 
     { try to find an event that matches the EventMask }
     Result := FEventQueue.PeekEvent(AEventMask);
+    if AWait then
+      UseGetMessage := True;
   until (not AWait) or (Result <> Nil);
 end;
 
