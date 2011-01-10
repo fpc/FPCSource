@@ -582,16 +582,16 @@ end;
 
 procedure TFPCustomCanvas.CopyRect (x,y:integer; canvas:TFPCustomCanvas;
   SourceRect:TRect);
-var xx,r,t : integer;
+var yy,r,t : integer;
 begin
   SortRect (SourceRect);
-  with SourceRect do
-    for r := left to right do
-      begin
-      xx := r - left + x;
-      for t := bottom to top do
-        colors[xx,(t - bottom + y)] := canvas.colors[r,t];
-      end;
+  with SourceRect do begin
+    for t := top to bottom do begin
+      yy := t - top + y;
+      for r := left to right do
+        colors[r - left + x,yy] := canvas.colors[r,t];
+    end;
+  end;
 end;
 
 procedure TFPCustomCanvas.Draw (x,y:integer; image:TFPCustomImage);
