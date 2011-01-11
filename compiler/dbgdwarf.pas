@@ -388,6 +388,7 @@ interface
       private
       protected
         procedure appenddef_set_intern(list:TAsmList;def:tsetdef; force_tag_set: boolean);
+        procedure append_object_struct(def: tobjectdef; const createlabel: boolean; const objectname: PShortString);
 
         procedure appenddef_file(list:TAsmList;def:tfiledef); override;
         procedure appenddef_formal(list:TAsmList;def:tformaldef); override;
@@ -3413,84 +3414,85 @@ implementation
         finish_entry;
       end;
 
+    procedure TDebugInfoDwarf2.append_object_struct(def: tobjectdef; const createlabel: boolean; const objectname: PShortString);
+      begin
+        if createlabel then
+          begin
+            if not(tf_dwarf_only_local_labels in target_info.flags) then
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(def_dwarf_class_struct_lab(def),0))
+            else
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(def_dwarf_class_struct_lab(def),0));
+          end;
+        if assigned(objectname) then
+          append_entry(DW_TAG_structure_type,true,[
+            DW_AT_name,DW_FORM_string,objectname^+#0,
+            DW_AT_byte_size,DW_FORM_udata,tobjectsymtable(def.symtable).datasize
+            ])
+        else
+          append_entry(DW_TAG_structure_type,true,[
+            DW_AT_byte_size,DW_FORM_udata,tobjectsymtable(def.symtable).datasize
+            ]);
+        { Apple-specific tag that identifies it as an Objective-C class }
+        if (def.objecttype=odt_objcclass) then
+          append_attribute(DW_AT_APPLE_runtime_class,DW_FORM_data1,[DW_LANG_ObjC]);
+
+        finish_entry;
+        if assigned(def.childof) then
+          begin
+            append_entry(DW_TAG_inheritance,false,[
+              DW_AT_accessibility,DW_FORM_data1,DW_ACCESS_public,
+              DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(0)
+            ]);
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
+            if (def.childof.dbg_state=dbg_state_unused) then
+              def.childof.dbg_state:=dbg_state_used;
+            if is_implicit_pointer_object_type(def) then
+              append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def.childof))
+            else
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.childof));
+            finish_entry;
+          end;
+        if (oo_has_vmt in def.objectoptions) and
+           (not assigned(def.childof) or
+            not(oo_has_vmt in def.childof.objectoptions)) then
+          begin
+            { vmt field }
+            append_entry(DW_TAG_member,false,[
+                DW_AT_artificial,DW_FORM_flag,true,
+                DW_AT_name,DW_FORM_string,'_vptr$'+def.objname^+#0,
+                DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(def.vmt_offset)
+            ]);
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(def.vmt_offset));
+            { should be changed into a pointer to a function returning an }
+            { int and with TAG_unspecified_parameters                     }
+            if (voidpointertype.dbg_state=dbg_state_unused) then
+              voidpointertype.dbg_state:=dbg_state_used;
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(voidpointertype));
+            finish_entry;
+          end;
+
+        def.symtable.symList.ForEachCall(@enum_membersyms_callback,nil);
+        { Write the methods in the scope of the class/object, except for Objective-C.  }
+        if is_objc_class_or_protocol(def) then
+          finish_children;
+        { don't write procdefs of externally defined classes, gcc doesn't
+          either (info is probably gotten from ObjC runtime)  }
+        if not(oo_is_external in def.objectoptions) then
+          write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],def.symtable);
+        if not is_objc_class_or_protocol(def) then
+          finish_children;
+      end;
+
+
     procedure TDebugInfoDwarf2.appenddef_object(list:TAsmList;def: tobjectdef);
-      procedure doappend(const createlabel: boolean; const objectname: PShortString);
-        begin
-          if createlabel then
-            begin
-              if not(tf_dwarf_only_local_labels in target_info.flags) then
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(def_dwarf_class_struct_lab(def),0))
-              else
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(def_dwarf_class_struct_lab(def),0));
-            end;
-          if assigned(objectname) then
-            append_entry(DW_TAG_structure_type,true,[
-              DW_AT_name,DW_FORM_string,objectname^+#0,
-              DW_AT_byte_size,DW_FORM_udata,tobjectsymtable(def.symtable).datasize
-              ])
-          else
-            append_entry(DW_TAG_structure_type,true,[
-              DW_AT_byte_size,DW_FORM_udata,tobjectsymtable(def.symtable).datasize
-              ]);
-          { Apple-specific tag that identifies it as an Objective-C class }
-          if (def.objecttype=odt_objcclass) then
-            append_attribute(DW_AT_APPLE_runtime_class,DW_FORM_data1,[DW_LANG_ObjC]);
-
-          finish_entry;
-          if assigned(def.childof) then
-            begin
-              append_entry(DW_TAG_inheritance,false,[
-                DW_AT_accessibility,DW_FORM_data1,DW_ACCESS_public,
-                DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(0)
-              ]);
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
-              if (def.childof.dbg_state=dbg_state_unused) then
-                def.childof.dbg_state:=dbg_state_used;
-              if is_implicit_pointer_object_type(def) then
-                append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def.childof))
-              else
-                append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.childof));
-              finish_entry;
-            end;
-          if (oo_has_vmt in def.objectoptions) and
-             (not assigned(def.childof) or
-              not(oo_has_vmt in def.childof.objectoptions)) then
-            begin
-              { vmt field }
-              append_entry(DW_TAG_member,false,[
-                  DW_AT_artificial,DW_FORM_flag,true,
-                  DW_AT_name,DW_FORM_string,'_vptr$'+def.objname^+#0,
-                  DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(def.vmt_offset)
-              ]);
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(def.vmt_offset));
-              { should be changed into a pointer to a function returning an }
-              { int and with TAG_unspecified_parameters                     }
-              if (voidpointertype.dbg_state=dbg_state_unused) then
-                voidpointertype.dbg_state:=dbg_state_used;
-              append_labelentry_ref(DW_AT_type,def_dwarf_lab(voidpointertype));
-              finish_entry;
-            end;
-
-          def.symtable.symList.ForEachCall(@enum_membersyms_callback,nil);
-          { Write the methods in the scope of the class/object, except for Objective-C.  }
-          if is_objc_class_or_protocol(def) then
-            finish_children;
-          { don't write procdefs of externally defined classes, gcc doesn't
-            either (info is probably gotten from ObjC runtime)  }
-          if not(oo_is_external in def.objectoptions) then
-            write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],def.symtable);
-          if not is_objc_class_or_protocol(def) then
-            finish_children;
-        end;
-
 
       begin
         case def.objecttype of
           odt_cppclass,
           odt_object:
-            doappend(false,def.objname);
+            append_object_struct(def,false,def.objname);
           odt_interfacecom,
           odt_interfacecorba,
           odt_dispinterface,
@@ -3501,14 +3503,14 @@ implementation
               append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def));
               finish_entry;
 
-              doappend(true,def.objname);
+              append_object_struct(def,true,def.objname);
             end;
           odt_objcclass:
             { Objective-C class: same as regular class, except for
                 a) Apple-specific tag that identifies it as an Objective-C class
                 b) use extname^ instead of objname
             }
-            doappend(true,def.objextname);
+            append_object_struct(def,true,def.objextname);
           odt_objcprotocol:
             begin
               append_entry(DW_TAG_pointer_type,false,[]);
@@ -3902,8 +3904,14 @@ implementation
             end;
           odt_class:
             begin
-              dostruct(DW_TAG_class_type);
-              doparent(false);
+              //dostruct(DW_TAG_class_type);
+              //doparent(false);
+              append_entry(DW_TAG_pointer_type,false,[]);
+              append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def));
+              finish_entry;
+
+              append_object_struct(def,true,def.objrealname);
+              Exit;
             end;
         else
           internalerror(200609171);
