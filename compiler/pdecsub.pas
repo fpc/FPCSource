@@ -915,9 +915,8 @@ implementation
                    (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
                 begin
                   astruct:=tabstractrecorddef(ttypesym(srsym).typedef);
-                  if (df_generic in astruct.defoptions) then
+                  if (df_generic in astruct.defoptions) and try_to_consume(_LT) then
                     begin
-                      consume(_LT);
                       ok:=true;
                       i:=0;
                       repeat
@@ -954,13 +953,22 @@ implementation
                       consume(_GT);
                     end
                   else
-                  if try_to_consume(_LT) then
+                  if (df_generic in astruct.defoptions) and (token=_POINT) then
                     begin
-                      Message(type_e_type_parameters_are_not_allowed_here);
-                      repeat
-                        consume(_ID);
-                      until not try_to_consume(_COMMA);
-                      consume(_GT);
+                      Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
+                    end
+                  else
+                    begin
+                      { not a method. routine name just accidentally match some structure name }
+                      astruct:=nil;
+                      if try_to_consume(_LT) then
+                        begin
+                          Message(type_e_type_parameters_are_not_allowed_here);
+                          repeat
+                            consume(_ID);
+                          until not try_to_consume(_COMMA);
+                          consume(_GT);
+                        end;
                     end;
                 end;
               end;
