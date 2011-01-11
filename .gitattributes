@@ -4442,6 +4442,7 @@ packages/libxml/src/xmlunicode.inc svneol=native#text/plain
 packages/libxml/src/xmlversion.inc svneol=native#text/plain
 packages/libxml/src/xmlwriter.inc svneol=native#text/plain
 packages/libxml/src/xmlxsd.pas svneol=native#text/plain
+packages/libxml/src/xmlxsdparser.pas svneol=native#text/plain
 packages/libxml/src/xpath.inc svneol=native#text/plain
 packages/libxml/src/xpathInternals.inc svneol=native#text/plain
 packages/libxml/src/xpointer.inc svneol=native#text/plain

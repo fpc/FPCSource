@@ -7,7 +7,7 @@ name=libxml2
 version=2.5.1
 
 [target]
-units=xml2 xmlxsd
+units=xml2 xmlxsdparser xmlxsd
 exampledirs=examples
 
 [require]
