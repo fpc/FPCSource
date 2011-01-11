@@ -65,7 +65,7 @@ Function SearchLabel(const s: string; var hl: tasmlabel;emit:boolean): boolean;
 
 type
   TOprType=(OPR_NONE,OPR_CONSTANT,OPR_SYMBOL,OPR_LOCAL,
-            OPR_REFERENCE,OPR_REGISTER,OPR_REGLIST,OPR_COND,OPR_REGSET,OPR_SHIFTEROP);
+            OPR_REFERENCE,OPR_REGISTER,OPR_REGLIST,OPR_COND,OPR_REGSET,OPR_SHIFTEROP,OPR_MODEFLAGS);
 
   TOprRec = record
     case typ:TOprType of
@@ -88,6 +88,7 @@ type
       OPR_REGSET    : (regset : tcpuregisterset; regtype: tregistertype; subreg: tsubregister);
       OPR_SHIFTEROP : (shifterop : tshifterop);
       OPR_COND      : (cc : tasmcond);
+      OPR_MODEFLAGS : (flags : tcpumodeflags);
 {$endif arm}
   end;
 
@@ -1067,6 +1068,8 @@ end;
                 ai.loadshifterop(i-1,shifterop);
               OPR_COND:
                 ai.loadconditioncode(i-1,cc);
+              OPR_MODEFLAGS:
+                ai.loadmodeflags(i-1,flags);
 {$endif ARM}
               { ignore wrong operand }
               OPR_NONE:

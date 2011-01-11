@@ -204,6 +204,13 @@ unit agarmgas;
             end;
           top_conditioncode:
             getopstr:=cond2str[o.cc];
+          top_modeflags:
+            begin
+              getopstr:='';
+              if mfA in o.modeflags then getopstr:=getopstr+'a';
+              if mfI in o.modeflags then getopstr:=getopstr+'i';
+              if mfF in o.modeflags then getopstr:=getopstr+'f';
+            end;
           top_ref:
             if o.ref^.refaddr=addr_full then
               begin

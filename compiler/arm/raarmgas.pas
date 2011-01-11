@@ -672,6 +672,38 @@ Unit raarmgas;
               end;
           end;
 
+
+        function is_modeflag(hs : string): boolean;
+          var
+            i: longint;
+            flags: tcpumodeflags;
+          begin
+            is_modeflag := false;
+
+            flags:=[];
+            hs:=lower(hs);
+
+            if (actopcode in [A_CPSID,A_CPSIE]) and (length(hs) >= 1) then
+              begin
+                for i:=1 to length(hs) do
+                  begin
+                    case hs[i] of
+                      'a':
+                        Include(flags,mfA);
+                      'f':
+                        Include(flags,mfF);
+                      'i':
+                        Include(flags,mfI);
+                    else
+                      exit;
+                    end;
+                  end;
+                oper.opr.typ := OPR_MODEFLAGS;
+                oper.opr.flags := flags;
+                exit(true);
+              end;
+          end;
+
       var
         tempreg : tregister;
         ireg : tsuperregister;
@@ -716,11 +748,16 @@ Unit raarmgas;
           *)
           AS_ID: { A constant expression, or a Variable ref.  }
             Begin
+              if is_modeflag(actasmpattern) then
+                begin
+                  consume(AS_ID);
+                end
+              else
               { Condition code? }
               if is_conditioncode(actasmpattern) then
-              begin
-                consume(AS_ID);
-              end
+                begin
+                  consume(AS_ID);
+                end
               else
               { Local Label ? }
               if is_locallabel(actasmpattern) then
