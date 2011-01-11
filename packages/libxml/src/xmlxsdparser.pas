@@ -173,10 +173,21 @@ function xsdParseUnsignedInt(Chars: PChar; Len: Integer): Longword;
 function xsdParseUnsignedLong(Chars: PChar; Len: Integer): QWord;
 function xsdParseEnum(Chars: PChar; Len: Integer; enum: array of Utf8String): Integer;
 
-implementation
 
+{ INTERNAL HELPERS!!! }
 const
-  IGNORE_LAST = Pointer(-1);
+  XSD_IGNORE_LAST = Pointer(-1); // maybe used as L parameter if the string is zero terminated
+
+function __parseNonNegativeInteger(var P: PChar; const L: PChar; out Value: QWord): Boolean;
+function __parseInteger(var P: PChar; const L: PChar; out Value: Int64): Boolean;
+function __parseFloat(var P: PChar; const L: PChar; out Value: Extended): Boolean;
+function __parseTimezone(var P: PChar; const L: PChar; out T: TXsdTimezone): Boolean;
+function __parseDate(var P: PChar; const L: PChar; out Year, Month, Day: Longword; BC: PBoolean): Boolean;
+function __parseTime(var P: PChar; const L: PChar; const AllowMoreThan24h: Boolean;
+  out Hour, Minute, Second, Milliseconds: Longword): Boolean;
+function __strpas(Chars: PChar; Len: Integer): Utf8String;
+
+implementation
 
 function xsdFormatBase64(Value: TStream): Utf8String;
 const
@@ -648,18 +659,21 @@ begin
   Result := True;
 end;
 
-function __parseTime(var P: PChar; const L: PChar; out Hour, Minute, Second, Milliseconds: Longword): Boolean;
+function __parseTime(var P: PChar; const L: PChar; const AllowMoreThan24h: Boolean;
+  out Hour, Minute, Second, Milliseconds: Longword): Boolean;
 var
   I: Integer;
+  Ms: Longword;
 begin
-  { expect 00..24 }
-  Hour := 0; I := 2;
+  { expect 00..24 (except if AllowMoreThan24h) }
+  Hour := 0;
+  if AllowMoreThan24h then I := 9 { maximal 9 digits for hour } else I := 2;
   while (P < L) and (P^ in ['0'..'9']) and (I > 0) do
   begin
     Hour := 10*Hour + Ord(P^) - Ord('0');
     Inc(P); Dec(I);
   end;
-  if Hour > 24 then
+  if not AllowMoreThan24h and (Hour > 24) then
     Exit(False);
 
   { expect ':' }
@@ -674,7 +688,7 @@ begin
     Minute := 10*Minute + Ord(P^) - Ord('0');
     Dec(I); Inc(P);
   end;
-  if (Minute > 59) or ((Hour = 24) and (Minute > 0)) then
+  if (Minute > 59) or (not AllowMoreThan24h and (Hour = 24) and (Minute > 0)) then
     Exit(False);
 
   { expect ':' }
@@ -689,7 +703,7 @@ begin
     Second := 10*Second + Ord(P^) - Ord('0');
     Dec(I); Inc(P);
   end;
-  if (Second > 59) or ((Hour = 24) and (Second > 0)) then
+  if (Second > 59) or (not AllowMoreThan24h and (Hour = 24) and (Second > 0)) then
     Exit(False);
 
   { allow '.' }
@@ -698,13 +712,15 @@ begin
     Inc(P);
 
     { expect integer }
-    Milliseconds := 0; I := 4;
-    while (P < L) and (P^ in ['0'..'9']) and (I > 0) do
+    Ms := 0; I := 1;
+    while (P < L) and (P^ in ['0'..'9']) do
     begin
-      Milliseconds := 10*Milliseconds + Ord(P^) - Ord('0');
-      Dec(I); Inc(P);
+      Ms := 10*Ms + Ord(P^) - Ord('0');
+      I := 10*I;
+      Inc(P);
     end;
-    if (Milliseconds > 999) or ((Hour = 24) and (Milliseconds > 0)) then
+    Milliseconds := (1000*Ms) div I;
+    if (Milliseconds >= 999) or (not AllowMoreThan24h and (Hour = 24) and (Milliseconds > 0)) then
       Exit(False);
   end else
     Milliseconds := 0;
@@ -1057,8 +1073,8 @@ begin
       __parseTimezone(P, L, T) and (P = L)
   end else
     Result := Assigned(P) and
-      __parseDate(P, IGNORE_LAST, Year, Month, Day, BC) and
-      __parseTimezone(P, IGNORE_LAST, T) and (P^ = #0);
+      __parseDate(P, XSD_IGNORE_LAST, Year, Month, Day, BC) and
+      __parseTimezone(P, XSD_IGNORE_LAST, T) and (P^ = #0);
 
   { assign Timezone if requested }
   if Result and Assigned(Timezone) then
@@ -1091,12 +1107,12 @@ begin
   begin
     L := P + Len;
     Result := Assigned(P) and
-      __parseTime(P, L, Hour, Minute, Second, Milliseconds) and
+      __parseTime(P, L, False, Hour, Minute, Second, Milliseconds) and
       __parseTimezone(P, L, T) and (P = L)
   end else
     Result := Assigned(P) and
-      __parseTime(P, IGNORE_LAST, Hour, Minute, Second, Milliseconds) and
-      __parseTimezone(P, IGNORE_LAST, T) and (P^ = #0);
+      __parseTime(P, XSD_IGNORE_LAST, False, Hour, Minute, Second, Milliseconds) and
+      __parseTimezone(P, XSD_IGNORE_LAST, T) and (P^ = #0);
 
   { assign Timezone if requested }
   if Result and Assigned(Timezone) then
@@ -1138,14 +1154,14 @@ begin
     Result := Assigned(P) and
       __parseDate(P, L, Year, Month, Day, BC) and
       __parseT(P, L) and
-      __parseTime(P, L, Hour, Minute, Second, Milliseconds) and
+      __parseTime(P, L, False, Hour, Minute, Second, Milliseconds) and
       __parseTimezone(P, L, T) and (P = L)
   end else
     Result := Assigned(P) and
-      __parseDate(P, IGNORE_LAST, Year, Month, Day, BC) and
-      __parseT(P, IGNORE_LAST) and
-      __parseTime(P, IGNORE_LAST, Hour, Minute, Second, Milliseconds) and
-      __parseTimezone(P, IGNORE_LAST, T) and (P^ = #0);
+      __parseDate(P, XSD_IGNORE_LAST, Year, Month, Day, BC) and
+      __parseT(P, XSD_IGNORE_LAST) and
+      __parseTime(P, XSD_IGNORE_LAST, False, Hour, Minute, Second, Milliseconds) and
+      __parseTimezone(P, XSD_IGNORE_LAST, T) and (P^ = #0);
 
   { assign Timezone if requested }
   if Result and Assigned(Timezone) then
@@ -1179,7 +1195,7 @@ begin
     L := P + Len;
     Result := Assigned(P) and __parseFloat(P, L, Value) and (P = L)
   end else
-    Result := Assigned(P) and __parseFloat(P, IGNORE_LAST, Value) and (P^ = #0);
+    Result := Assigned(P) and __parseFloat(P, XSD_IGNORE_LAST, Value) and (P^ = #0);
 end;
 
 function xsdTryParseDouble(Chars: PChar; Len: Integer; out Value: Double): Boolean;
@@ -1194,7 +1210,7 @@ begin
     L := P + Len;
     Result := Assigned(P) and __parseFloat(P, L, Tmp) and (P = L)
   end else
-    Result := Assigned(P) and __parseFloat(P, IGNORE_LAST, Tmp) and (P^ = #0);
+    Result := Assigned(P) and __parseFloat(P, XSD_IGNORE_LAST, Tmp) and (P^ = #0);
   Value := Tmp;
 end;
 
@@ -1210,7 +1226,7 @@ begin
     L := P + Len;
     Result := Assigned(P) and __parseFloat(P, L, Tmp) and (P = L)
   end else
-    Result := Assigned(P) and __parseFloat(P, IGNORE_LAST, Tmp) and (P^ = #0);
+    Result := Assigned(P) and __parseFloat(P, XSD_IGNORE_LAST, Tmp) and (P^ = #0);
   Value := Tmp;
 end;
 
@@ -1225,7 +1241,7 @@ begin
     L := P + Len;
     Result := Assigned(P) and __parseInteger(P, L, Value) and (P = L)
   end else
-    Result := Assigned(P) and __parseInteger(P, IGNORE_LAST, Value) and (P^ = #0);
+    Result := Assigned(P) and __parseInteger(P, XSD_IGNORE_LAST, Value) and (P^ = #0);
 end;
 
 function xsdTryParseNonNegativeInteger(Chars: PChar; Len: Integer; out Value: QWord): Boolean;
@@ -1239,7 +1255,7 @@ begin
     L := P + Len;
     Result := Assigned(P) and __parseNonNegativeInteger(P, L, Value) and (P = L)
   end else
-    Result := Assigned(P) and __parseNonNegativeInteger(P, IGNORE_LAST, Value) and (P^ = #0);
+    Result := Assigned(P) and __parseNonNegativeInteger(P, XSD_IGNORE_LAST, Value) and (P^ = #0);
 end;
 
 function xsdTryParseNonPositiveInteger(Chars: PChar; Len: Integer; out Value: Int64): Boolean;
