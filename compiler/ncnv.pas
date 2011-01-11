@@ -1962,6 +1962,7 @@ implementation
                                 (
                                  not(is_open_array(left.resultdef)) and
                                  not(is_array_constructor(left.resultdef)) and
+                                 not(is_array_of_const(left.resultdef)) and
                                  (left.resultdef.size=resultdef.size) and
                                  { disallow casts of const nodes }
                                  (not is_constnode(left) or
