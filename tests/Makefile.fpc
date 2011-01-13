@@ -253,6 +253,10 @@ endif
 ifdef TEST_VERBOSE
 override DOTESTOPT+=-V
 endif
+# Also display benchmarks
+ifdef TEST_BENCH
+override DOTESTOPT+=-D
+endif
 ifdef V
 Q=
 QECHO=
