@@ -4,6 +4,7 @@ program loader;
 {$mode objfpc}{$H+}
 
 uses
+  popuperr,
   dynlibs;
 var
   h: TLibHandle;

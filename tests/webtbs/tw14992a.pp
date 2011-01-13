@@ -2,6 +2,10 @@
 { %opt=-gh }
 { %norun }
 library dll1;
+ 
+uses
+  popuperr;
+
 begin
   IsMultiThread:=True;
 end.
