@@ -707,6 +707,8 @@ interface
        class_tobject : tobjectdef;
        { pointer to the ancestor of all COM interfaces }
        interface_iunknown : tobjectdef;
+       { pointer to the ancestor of all dispinterfaces }
+       interface_idispatch : tobjectdef;
        { pointer to the TGUID type
          of all interfaces         }
        rec_tguid : trecorddef;
@@ -4134,9 +4136,12 @@ implementation
             (objname^='TOBJECT') then
            class_tobject:=self;
          if (childof=nil) and
-            (objecttype=odt_interfacecom) and
-            (objname^='IUNKNOWN') then
-           interface_iunknown:=self;
+            (objecttype=odt_interfacecom) then
+            if (objname^='IUNKNOWN') then
+              interface_iunknown:=self
+            else
+            if (objname^='IDISPATCH') then
+              interface_idispatch:=self;
          if (childof=nil) and
             (objecttype=odt_objcclass) and
             (objname^='PROTOCOL') then

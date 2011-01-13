@@ -536,6 +536,8 @@ implementation
               odt_interfacecom:
                 if current_objectdef<>interface_iunknown then
                   childof:=interface_iunknown;
+              odt_dispinterface:
+                childof:=interface_idispatch;
               odt_objcclass:
                 CGMessage(parser_h_no_objc_parent);
             end;
@@ -1027,7 +1029,10 @@ implementation
                 case current_objectdef.objecttype of
                   odt_interfacecom :
                     if (current_structdef.objname^='IUNKNOWN') then
-                      interface_iunknown:=current_objectdef;
+                      interface_iunknown:=current_objectdef
+                    else
+                    if (current_structdef.objname^='IDISPATCH') then
+                      interface_idispatch:=current_objectdef;
                   odt_class :
                     if (current_structdef.objname^='TOBJECT') then
                       class_tobject:=current_objectdef;

@@ -1078,7 +1078,7 @@ parser_e_protected_or_private_expected=03214_E_Protected or private expected
 parser_e_illegal_slice=03215_E_SLICE can't be used outside of parameter list
 % \var{slice} can be used only for arguments accepting an open array parameter.
 parser_e_dispinterface_cant_have_parent=03216_E_A DISPINTERFACE can't have a parent class
-% A DISPINTERFACE is a special type of interface which can't have a parent class.
+% A DISPINTERFACE is a special type of interface which can't have a parent class. Dispinterface always derive from IDispatch type.
 parser_e_dispinterface_needs_a_guid=03217_E_A DISPINTERFACE needs a guid
 % A DISPINTERFACE always needs an interface identification (a GUID).
 parser_w_overridden_methods_not_same_ret=03218_W_Overridden methods must have a related return type. This code may crash, it depends on a Delphi parser bug ("$2" is overridden by "$1" which has another return type)
