@@ -1445,7 +1445,7 @@ implementation
              begin
                { interface -> guid }
                if (def_to=rec_tguid) and
-                  (is_interfacecom(def_from) or is_dispinterface(def_from)) then
+                  (is_interfacecom_or_dispinterface(def_from)) then
                 begin
                   doconv:=tc_intf_2_guid;
                   eq:=te_convert_l1;

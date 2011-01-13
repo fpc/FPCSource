@@ -592,7 +592,7 @@ implementation
           typecheckpass(p);
         if is_ansistring(p.resultdef) or
            is_wide_or_unicode_string(p.resultdef) or
-           is_interfacecom(p.resultdef) or
+           is_interfacecom_or_dispinterface(p.resultdef) or
            is_dynamic_array(p.resultdef) then
           begin
             result:=cassignmentnode.create(
@@ -656,7 +656,7 @@ implementation
                cnilnode.create
                ));
           end
-        else if is_interfacecom(p.resultdef) then
+        else if is_interfacecom_or_dispinterface(p.resultdef) then
           begin
             result:=internalstatements(newstatement);
             addstatement(newstatement,ccallnode.createintern('fpc_intf_decr_ref',

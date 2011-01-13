@@ -626,7 +626,7 @@ implementation
           end;
 
         { call helpers for interface }
-        if is_interfacecom(left.resultdef) then
+        if is_interfacecom_or_dispinterface(left.resultdef) then
          begin
 	   { Normal interface assignments are handled by the generic refcount incr/decr }
            if not right.resultdef.is_related(left.resultdef) then
@@ -712,7 +712,7 @@ implementation
         { call helpers for composite types containing automated types }
         else if is_managed_type(left.resultdef) and
             (left.resultdef.typ in [arraydef,objectdef,recorddef]) and
-            not is_interfacecom(left.resultdef) and
+            not is_interfacecom_or_dispinterface(left.resultdef) and
             not is_dynamic_array(left.resultdef) then
          begin
            hp:=ccallparanode.create(caddrnode.create_internal(

@@ -768,6 +768,7 @@ interface
 
     { should be in the types unit, but the types unit uses the node stuff :( }
     function is_interfacecom(def: tdef): boolean;
+    function is_interfacecom_or_dispinterface(def: tdef): boolean;
     function is_interfacecorba(def: tdef): boolean;
     function is_interface(def: tdef): boolean;
     function is_dispinterface(def: tdef): boolean;
@@ -4645,7 +4646,7 @@ implementation
         odt_objcclass,
         odt_objcprotocol:
           vmtmethodoffset:=0;
-        odt_interfacecom,odt_interfacecorba:
+        odt_interfacecom,odt_interfacecorba,odt_dispinterface:
           vmtmethodoffset:=index*sizeof(pint);
         else
 {$ifdef WITHDMT}
@@ -4668,9 +4669,9 @@ implementation
     function tobjectdef.needs_inittable : boolean;
       begin
          case objecttype of
-            odt_dispinterface,
             odt_class :
               needs_inittable:=false;
+            odt_dispinterface,
             odt_interfacecom:
               needs_inittable:=true;
             odt_interfacecorba:
@@ -5362,6 +5363,14 @@ implementation
           assigned(def) and
           (def.typ=objectdef) and
           (tobjectdef(def).objecttype=odt_interfacecom);
+      end;
+
+    function is_interfacecom_or_dispinterface(def: tdef): boolean;
+      begin
+        is_interfacecom_or_dispinterface:=
+          assigned(def) and
+          (def.typ=objectdef) and
+          (tobjectdef(def).objecttype in [odt_interfacecom,odt_dispinterface]);
       end;
 
     function is_interfacecorba(def: tdef): boolean;
