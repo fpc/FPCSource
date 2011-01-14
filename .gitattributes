@@ -9619,6 +9619,7 @@ tests/test/tobject8.pp svneol=native#text/plain
 tests/test/toperator1.pp svneol=native#text/plain
 tests/test/toperator10.pp svneol=native#text/pascal
 tests/test/toperator11.pp svneol=native#text/pascal
+tests/test/toperator12.pp svneol=native#text/pascal
 tests/test/toperator2.pp svneol=native#text/plain
 tests/test/toperator3.pp svneol=native#text/plain
 tests/test/toperator4.pp svneol=native#text/plain

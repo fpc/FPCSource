@@ -1443,7 +1443,10 @@ implementation
                   else
                    begin
                      read_returndef(pd);
-                     if (po_classmethod in pd.procoptions) then
+                     { check that class operators have either return type of structure or }
+                     { at least one argument of that type                                 }
+                     if (po_classmethod in pd.procoptions) and
+                        (pd.returndef <> pd.struct) then
                        begin
                          found:=false;
                          for i := 0 to pd.parast.SymList.Count - 1 do
