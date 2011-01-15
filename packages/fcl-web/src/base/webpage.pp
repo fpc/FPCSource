@@ -14,8 +14,21 @@ type
   TAjaxRequestResponseEvent = procedure(Sender: TObject; ARequest: TRequest; AResponse: TAjaxResponse) of object;
 
 type
+
+  { IWebPageDesigner }
+
   IWebPageDesigner = interface(IUnknown)
+  ['{25629DEA-79D5-4165-A0A3-BE6E2BA74442}']
     procedure Invalidate;
+  end;
+
+  { IHTMLDesignable }
+
+  IHTMLDesignable = interface(IUnknown)
+  ['{C75546D6-9C93-49F0-809F-D29C52CD306D}']
+    function GetDesigner: IWebPageDesigner;
+    procedure SetDesigner(const AValue: IWebPageDesigner);
+    property Designer: IWebPageDesigner read GetDesigner write SetDesigner;
   end;
 
   { TStandardWebController }
@@ -41,7 +54,7 @@ type
 
   { TWebPage }
 
-  TWebPage = class(TDataModule, IHTMLContentProducerContainer)
+  TWebPage = class(TDataModule, IHTMLContentProducerContainer, IHTMLDesignable)
   private
     FAfterAjaxRequest: TAjaxRequestResponseEvent;
     FBaseURL: string;
@@ -56,8 +69,10 @@ type
     function GetContentProducer(Index: integer): THTMLContentProducer;
     function GetContentProducerList: TFPList;
     function GetContentProducers(Index: integer): THTMLContentProducer;
+    function GetDesigner: IWebPageDesigner;
     function GetHasWebController: boolean;
     function GetWebController: TWebController;
+    procedure SetDesigner(const AValue: IWebPageDesigner);
   protected
     procedure DoAfterAjaxRequest(ARequest: TRequest; AnAjaxResponse: TAjaxResponse); virtual;
     procedure DoHandleAjaxRequest(ARequest: TRequest; AnAjaxResponse: TAjaxResponse; var Handled: boolean); virtual;
@@ -82,7 +97,7 @@ type
     procedure HandlePage(ARequest: TRequest; AResponse: TResponse; AWriter: THTMLwriter; AWebModule: TFPWebModule = nil); virtual;
     procedure DoBeforeGenerateXML; virtual;
     procedure CleanupAfterRequest; virtual;
-    property Designer: IWebPageDesigner read FDesigner write FDesigner;
+    property Designer: IWebPageDesigner read GetDesigner write SetDesigner;
     property Request: TRequest read FRequest;
     property ContentProducers[Index: integer]: THTMLContentProducer read GetContentProducer;
     property HasWebController: boolean read GetHasWebController;
@@ -259,6 +274,11 @@ begin
   Result:=THTMLContentProducer(ContentProducerList[Index]);
 end;
 
+function TWebPage.GetDesigner: IWebPageDesigner;
+begin
+  result := FDesigner;
+end;
+
 function TWebPage.GetHasWebController: boolean;
 begin
   result := assigned(FWebController);
@@ -269,6 +289,11 @@ begin
   if not assigned(FWebController) then
     raise exception.create('No webcontroller available');
   result := FWebController;
+end;
+
+procedure TWebPage.SetDesigner(const AValue: IWebPageDesigner);
+begin
+  FDesigner := AValue;
 end;
 
 function TWebPage.GetContentProducerList: TFPList;
