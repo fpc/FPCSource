@@ -1016,6 +1016,36 @@ implementation
       end;
 
 
+    { checks whether sym is a static field and if so, translates the access
+      to the appropriate node tree }
+    function handle_staticfield_access(sym: tsym; nested: boolean; var p1: tnode): boolean;
+      var
+        static_name: shortstring;
+        srsymtable: tsymtable;
+      begin
+        result:=false;
+        { generate access code }
+        if (sp_static in sym.symoptions) then
+          begin
+            result:=true;
+            if not nested then
+              static_name:=lower(sym.owner.name^)+'_'+sym.name
+            else
+             static_name:=lower(generate_nested_name(sym.owner,'_'))+'_'+sym.name;
+            if sym.owner.defowner.typ=objectdef then
+              searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable)
+            else
+              searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
+            if assigned(sym) then
+              check_hints(sym,sym.symoptions,sym.deprecatedmsg);
+            p1.free;
+            p1:=nil;
+            { static syms are always stored as absolutevarsym to handle scope and storage properly }
+            propaccesslist_to_node(p1,nil,tabsolutevarsym(sym).ref);
+          end;
+      end;
+
+
     { the following procedure handles the access to a property symbol }
     procedure handle_propertysym(propsym : tpropertysym;st : TSymtable;var p1 : tnode);
       var
@@ -1024,9 +1054,7 @@ implementation
          membercall : boolean;
          callflags  : tcallnodeflags;
          propaccesslist : tpropaccesslist;
-         static_name : shortstring;
          sym: tsym;
-         srsymtable : tsymtable;
          statements : tstatementnode;
          converted_result_data : ttempcreatenode;
       begin
@@ -1080,21 +1108,7 @@ implementation
                      fieldvarsym :
                        begin
                          { generate access code }
-                         if (sp_static in sym.symoptions) then
-                           begin
-                             static_name:=lower(sym.owner.name^)+'_'+sym.name;
-                             if sym.owner.defowner.typ=objectdef then
-                               searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable)
-                             else
-                               searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
-                             if assigned(sym) then
-                               check_hints(sym,sym.symoptions,sym.deprecatedmsg);
-                             p1.free;
-                             p1:=nil;
-                             { static syms are always stored as absolutevarsym to handle scope and storage properly }
-                             propaccesslist_to_node(p1,nil,tabsolutevarsym(sym).ref);
-                           end
-                         else
+                         if not handle_staticfield_access(sym,false,p1) then
                            propaccesslist_to_node(p1,st,propaccesslist);
                          include(p1.flags,nf_isproperty);
                          consume(_ASSIGNMENT);
@@ -1134,21 +1148,7 @@ implementation
                      fieldvarsym :
                        begin
                          { generate access code }
-                         if (sp_static in sym.symoptions) then
-                           begin
-                             static_name:=lower(sym.owner.name^)+'_'+sym.name;
-                             if sym.owner.defowner.typ=objectdef then
-                               searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable)
-                             else
-                               searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
-                             if assigned(sym) then
-                               check_hints(sym,sym.symoptions,sym.deprecatedmsg);
-                             p1.free;
-                             p1:=nil;
-                             { static syms are always stored as absolutevarsym to handle scope and storage properly }
-                             propaccesslist_to_node(p1,nil,tabsolutevarsym(sym).ref);
-                           end
-                         else
+                         if not handle_staticfield_access(sym,false,p1) then
                            propaccesslist_to_node(p1,st,propaccesslist);
                          include(p1.flags,nf_isproperty);
                        end;
@@ -1200,9 +1200,7 @@ implementation
     { the ID token has to be consumed before calling this function }
     procedure do_member_read(structh:tabstractrecorddef;getaddr:boolean;sym:tsym;var p1:tnode;var again:boolean;callflags:tcallnodeflags);
       var
-         static_name : string;
          isclassref  : boolean;
-         srsymtable  : TSymtable;
       begin
          if sym=nil then
            begin
@@ -1245,21 +1243,7 @@ implementation
                    end;
                  fieldvarsym:
                    begin
-                      if (sp_static in sym.symoptions) then
-                        begin
-                          static_name:=lower(generate_nested_name(sym.owner,'_'))+'_'+sym.name;
-                          if sym.Owner.defowner.typ=objectdef then
-                            searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable)
-                          else
-                            searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
-                          if assigned(sym) then
-                            check_hints(sym,sym.symoptions,sym.deprecatedmsg);
-                          p1.free;
-                          p1:=nil;
-                          { static syms are always stored as absolutevarsym to handle scope and storage properly }
-                          propaccesslist_to_node(p1,nil,tabsolutevarsym(sym).ref);
-                        end
-                      else
+                      if not handle_staticfield_access(sym,true,p1) then
                         begin
                           if isclassref then
                             if assigned(p1) and
