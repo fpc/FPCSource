@@ -7469,6 +7469,7 @@ rtl/qnx/signal.inc svneol=native#text/plain
 rtl/qnx/system.pp svneol=native#text/plain
 rtl/solaris/Makefile svneol=native#text/plain
 rtl/solaris/Makefile.fpc svneol=native#text/plain
+rtl/solaris/clocale.inc svneol=native#text/plain
 rtl/solaris/errno.inc svneol=native#text/plain
 rtl/solaris/errnostr.inc svneol=native#text/plain
 rtl/solaris/i386/sighnd.inc svneol=native#text/plain
