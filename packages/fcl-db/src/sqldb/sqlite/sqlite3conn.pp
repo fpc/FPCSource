@@ -99,7 +99,7 @@ Var
 implementation
 
 uses
-  dbconst, sysutils, typinfo, dateutils;
+  dbconst, sysutils, dateutils;
  
 type
 
@@ -190,7 +190,7 @@ begin
                 checkerror(sqlite3_bind_blob(fstatement,I,pcharstr(str1), length(str1),@freebindstring));
                 end; 
       else 
-        databaseerror('Parameter type '+getenumname(typeinfo(tfieldtype),ord(P.datatype))+' not supported.');
+        DatabaseErrorFmt(SUnsupportedParameter, [Fieldtypenames[P.DataType], Self]);
       end; { Case }
     end;   
 end;
