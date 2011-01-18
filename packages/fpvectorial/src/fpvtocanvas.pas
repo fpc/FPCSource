@@ -61,13 +61,18 @@ begin
       CurSegment := TPathSegment(ASource.Paths[i].Next());
 
       case CurSegment.SegmentType of
+      stMoveTo:
+      begin
+        ADest.MoveTo(
+          Round(ADestX + AMulX * Cur2DSegment.X),
+          Round(ADestY + AMulY * Cur2DSegment.Y)
+          );
+      end;
       st2DLine, st3DLine:
       begin
-        PosX := Round(Cur2DSegment.X);
-        PosY := Round(Cur2DSegment.Y);
         ADest.LineTo(
-          Round(ADestX + AMulX * PosX),
-          Round(ADestY + AMulY * PosY)
+          Round(ADestX + AMulX * Cur2DSegment.X),
+          Round(ADestY + AMulY * Cur2DSegment.Y)
           );
       end;
       { To draw a bezier we need to divide the interval in parts and make

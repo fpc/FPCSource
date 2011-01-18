@@ -22,7 +22,7 @@ units=$(SYSTEMUNIT) unixtype ctypes strings objpas macpas \
       strutils fmtbcd rtlconsts cthreads \
       convutils stdconvs \
       dos objects \
-      cwstring fpintres $(CPU_UNITS)
+      cwstring fpintres clocale $(CPU_UNITS)
 
 implicitunits=exeinfo
 

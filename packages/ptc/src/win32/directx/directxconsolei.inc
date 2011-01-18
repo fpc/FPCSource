@@ -496,36 +496,46 @@ begin
 end;
 
 function TDirectXConsole.NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
+var
+  UseGetMessage: Boolean;
 begin
   CHECK_OPEN('TDirectXConsole.NextEvent');
 //  CHECK_LOCK('TDirectXConsole.NextEvent');
 
   FreeAndNil(AEvent);
+  UseGetMessage := False;
   repeat
     FPrimary.Block;
 
     { update window }
-    FWindow.Update;
+    FWindow.Update(False, UseGetMessage);
 
     { try to find an event that matches the EventMask }
     AEvent := FEventQueue.NextEvent(AEventMask);
+    if AWait then
+      UseGetMessage := True;
   until (not AWait) or (AEvent <> nil);
   Result := AEvent <> nil;
 end;
 
 function TDirectXConsole.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent;
+var
+  UseGetMessage: Boolean;
 begin
   CHECK_OPEN('TDirectXConsole.PeekEvent');
 //  CHECK_LOCK('TDirectXConsole.PeekEvent');
 
+  UseGetMessage := False;
   repeat
     FPrimary.Block;
 
     { update window }
-    FWindow.Update;
+    FWindow.Update(False, UseGetMessage);
 
     { try to find an event that matches the EventMask }
     Result := FEventQueue.PeekEvent(AEventMask);
+    if AWait then
+      UseGetMessage := True;
   until (not AWait) or (Result <> nil);
 end;
 

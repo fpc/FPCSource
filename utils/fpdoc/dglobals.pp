@@ -119,6 +119,7 @@ resourcestring
   SCHMUsageAutoTOC = 'Automatically generate a Table of Contents. Ignores --toc-file';
   SCHMUsageAutoIDX = 'Automatically generate an Index. Ignores --index-file';
   SCHMUsageMakeSearch = 'Automatically generate a Search Index from filenames that match *.htm*';
+  SCHMUsageChmTitle= 'Title of the chm. Defaults to the value from --package';
 
   // Linear usage
   SLinearUsageDupLinkedDocsP1 = 'Duplicate linked element documentation in';

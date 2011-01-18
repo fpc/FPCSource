@@ -1,0 +1,169 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <General>
+      <MainUnit Value="0"/>
+      <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
+      <Icon Value="0"/>
+      <ActiveWindowIndexAtStart Value="0"/>
+    </General>
+    <i18n>
+      <EnableI18N LFM="False"/>
+    </i18n>
+    <VersionInfo>
+      <StringTable ProductVersion=""/>
+    </VersionInfo>
+    <BuildModes Count="1" Active="Default">
+      <Item1 Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+    <RequiredPackages Count="1">
+      <Item1>
+        <PackageName Value="LCL"/>
+      </Item1>
+    </RequiredPackages>
+    <Units Count="2">
+      <Unit0>
+        <Filename Value="fpvviewer.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpvviewer"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="fpvv_mainform.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmFPVViewer"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="fpvv_mainform"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="13"/>
+        <CursorPos X="42" Y="39"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit1>
+    </Units>
+    <JumpHistory Count="17" HistoryIndex="16">
+      <Position1>
+        <Filename Value="fpvv_mainform.pas"/>
+        <Caret Line="11" Column="11" TopLine="1"/>
+      </Position1>
+      <Position2>
+        <Filename Value="fpvv_mainform.pas"/>
+        <Caret Line="14" Column="11" TopLine="1"/>
+      </Position2>
+      <Position3>
+        <Filename Value="fpvv_mainform.pas"/>
+        <Caret Line="171" Column="1" TopLine="135"/>
+      </Position3>
+      <Position4>
+        <Filename Value="fpvviewer.lpr"/>
+        <Caret Line="16" Column="9" TopLine="1"/>
+      </Position4>
+      <Position5>
+        <Filename Value="fpvviewer.lpr"/>
+        <Caret Line="8" Column="1" TopLine="1"/>
+      </Position5>
+      <Position6>
+        <Filename Value="fpvv_mainform.pas"/>
+        <Caret Line="36" Column="1" TopLine="25"/>
+      </Position6>
+      <Position7>
+        <Filename Value="fpvv_mainform.pas"/>
+        <Caret Line="41" Column="1" TopLine="12"/>
+      </Position7>
+      <Position8>
+        <Filename Value="fpvv_mainform.pas"/>
+        <Caret Line="8" Column="34" TopLine="1"/>
+      </Position8>
+      <Position9>
+        <Filename Value="fpvv_mainform.pas"/>
+        <Caret Line="134" Column="17" TopLine="61"/>
+      </Position9>
+      <Position10>
+        <Filename Value="fpvv_mainform.pas"/>
+        <Caret Line="8" Column="34" TopLine="1"/>
+      </Position10>
+      <Position11>
+        <Filename Value="fpvv_mainform.pas"/>
+        <Caret Line="163" Column="1" TopLine="126"/>
+      </Position11>
+      <Position12>
+        <Filename Value="fpvv_mainform.pas"/>
+        <Caret Line="8" Column="34" TopLine="1"/>
+      </Position12>
+      <Position13>
+        <Filename Value="fpvv_mainform.pas"/>
+        <Caret Line="161" Column="1" TopLine="1"/>
+      </Position13>
+      <Position14>
+        <Filename Value="fpvv_mainform.pas"/>
+        <Caret Line="8" Column="34" TopLine="1"/>
+      </Position14>
+      <Position15>
+        <Filename Value="fpvv_mainform.pas"/>
+        <Caret Line="12" Column="14" TopLine="37"/>
+      </Position15>
+      <Position16>
+        <Filename Value="fpvv_mainform.pas"/>
+        <Caret Line="47" Column="1" TopLine="26"/>
+      </Position16>
+      <Position17>
+        <Filename Value="fpvv_mainform.pas"/>
+        <Caret Line="38" Column="20" TopLine="13"/>
+      </Position17>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="9"/>
+    <Target>
+      <Filename Value="fpvviewer"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
+    <Linking>
+      <Options>
+        <Win32>
+          <GraphicApplication Value="True"/>
+        </Win32>
+      </Options>
+    </Linking>
+    <Other>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

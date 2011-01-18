@@ -10,9 +10,9 @@ version=2.4.3
 dirs=fppkg fpcm tply h2pas fprcp dxegen fpdoc
 programs=ppdep ptop rstconv data2inc delp bin2obj postw32 rmcvsdir
 programs_linux=grab_vcsa
-dirs_win32=fpmc fpcres
-dirs_win64=fpmc fpcres
-dirs_wince=fpcres
+dirs_win32=fpmc fpcres rmwait
+dirs_win64=fpmc fpcres rmwait
+dirs_wince=fpcres rmwait
 dirs_haiku=fpcres
 dirs_linux=fpcres
 dirs_freebsd=fpcres
@@ -20,6 +20,9 @@ dirs_openbsd=fpcres
 dirs_netbsd=fpcres
 dirs_darwin=fpcres fpcreslipo
 dirs_solaris=fpcres
+dirs_os2=fpmc fpcres rmwait
+dirs_emx=fpmc fpcres rmwait
+dirs_go32v2=rmwait
 rsts=rstconv
 
 [require]

@@ -458,17 +458,8 @@ end;
 
 
 Procedure GetLocalTime(var SystemTime: TSystemTime);
-Var
-  Syst : Windows.TSystemtime;
 begin
-  windows.Getlocaltime(@syst);
-  SystemTime.year:=syst.wYear;
-  SystemTime.month:=syst.wMonth;
-  SystemTime.day:=syst.wDay;
-  SystemTime.hour:=syst.wHour;
-  SystemTime.minute:=syst.wMinute;
-  SystemTime.second:=syst.wSecond;
-  SystemTime.millisecond:=syst.wMilliSeconds;
+  windows.Getlocaltime(SystemTime);
 end;
 
 

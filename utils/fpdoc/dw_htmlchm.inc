@@ -10,6 +10,7 @@ type
     FChm: TChmWriter;
     FTempUncompressed: TStream;
     FTempUncompressedName: String;
+    FChmTitle: String;
     FTOCName,
     FIndexName,
     FDefaultPage: String;
@@ -450,7 +451,7 @@ begin
   FTempUncompressedName := GetTempFileName+IntToStr(GetProcessID) +'.raw';
   FTempUncompressed := TFileStream.Create(FTempUncompressedName, fmOpenReadWrite  or fmCreate);
   FChm := TChmWriter.Create(FOutChm, False);
-  FChm.Title := Copy(Package.Name, 2, Length(Package.Name));
+  FChm.Title := FChmTitle;
   FChm.TempRawStream := FTempUncompressed;
   FChm.OnGetFileData := @RetrieveOtherFiles;
   FChm.OnLastFile := @LastFileAdded;
@@ -512,8 +513,13 @@ begin
     FNoBinIndex := True
   else if Cmd = '--make-searchable' then
     FMakeSearchable := True
+  else if Cmd = '--chm-title' then
+    FChmTitle := arg
   else
     Result:=inherited InterPretOption(Cmd, Arg);
+
+  if Length(FChmTitle) = 0 then
+    FChmTitle := Copy(Package.Name, 2, Length(Package.Name));
 end;
 
 class procedure TCHMHTMLWriter.Usage(List: TStrings);
@@ -535,6 +541,8 @@ begin
   List.Add(SCHMUsageAutoTOC);
   List.add('--make-searchable');
   List.Add(SCHMUsageMakeSearch);
+  List.Add('--chm-title');
+  List.Add(SCHMUsageChmTitle);
 end;
 
 

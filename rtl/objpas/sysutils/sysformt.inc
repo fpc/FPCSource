@@ -19,8 +19,9 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
 
     Procedure ReadInteger;
 
-    var Code: Word;
-
+    var
+      Code: Word;
+      ArgN: SizeInt;
     begin
       If Value<>-1 then exit; // Was already read.
       OldPos:=ChPos;
@@ -30,16 +31,27 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
         DoFormatError(feInvalidFormat);
       If Fmt[ChPos]='*' then
         begin
-        If (ChPos>OldPos) or (ArgPos>High(Args)) then
+
+        if Index=-1 then
+          ArgN:=Argpos
+        else
+        begin
+          ArgN:=Index;
+          Inc(Index);
+        end;
+
+        If (ChPos>OldPos) or (ArgN>High(Args)) then
           DoFormatError(feInvalidFormat);
-        case Args[ArgPos].Vtype of
-          vtInteger: Value := Args[ArgPos].VInteger;
-          vtInt64: Value := Args[ArgPos].VInt64^;
-          vtQWord: Value := Args[ArgPos].VQWord^;
+
+        ArgPos:=ArgN+1;
+
+        case Args[ArgN].Vtype of
+          vtInteger: Value := Args[ArgN].VInteger;
+          vtInt64: Value := Args[ArgN].VInt64^;
+          vtQWord: Value := Args[ArgN].VQWord^;
         else
           DoFormatError(feInvalidFormat);
         end;
-        Inc(ArgPos);
         Inc(ChPos);
         end
       else
@@ -196,8 +208,6 @@ begin
    end;
   result:=true;
 end;
-
-Const Zero = '000000000000000000000000000000000000000000000000000000000000000';
 
 begin
   Result:='';

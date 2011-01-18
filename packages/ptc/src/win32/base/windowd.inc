@@ -68,7 +68,7 @@ type
     procedure Cursor(AFlag: Boolean);
     procedure ConfineCursor(AFlag: Boolean);
     procedure Resize(AWidth, AHeight: Integer);
-    procedure Update(AForce: Boolean = False);
+    procedure Update(AForce: Boolean = False; AWaitForMessage: Boolean = False);
     property Handle: HWND read FWindow;
     property Thread: DWord read GetThread;
     property Managed: Boolean read FManaged;
