@@ -722,6 +722,7 @@ var
 
 begin
   PKFields:=TStringList.Create;
+  PKFields.Delimiter:=';';
   IXFields:=TStringList.Create;
   IXFields.Delimiter:=';';
 
@@ -750,6 +751,9 @@ begin
 
     IndexDefs.Add(IndexName, IXFields.DelimitedText, IndexOptions);
     end;
+
+  if PKFields.Count > 0 then //in special case for INTEGER PRIMARY KEY column, unique index is not created
+    IndexDefs.Add('$PRIMARY_KEY$', PKFields.DelimitedText, [ixPrimary,ixUnique]);
 
   PKFields.Free;
   IXFields.Free;
