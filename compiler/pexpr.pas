@@ -535,8 +535,6 @@ implementation
               in_args:=true;
               p1:=comp_expr(true,false);
               p1:=caddrnode.create(p1);
-              if cs_typed_addresses in current_settings.localswitches then
-                include(p1.flags,nf_typedaddr);
               consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
