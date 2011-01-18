@@ -1,0 +1,29 @@
+<docproject>
+  <packages>
+    <!-- Multiple packages can be entered. 
+         If only one is specified, it is selected. 
+         "name" is a mandatory attribute
+         a "units" tag is required, and a "descriptions" tag as well
+    -->
+    <package name="fpdoc" output="docdir" contentfile="fpdoc.cnt">
+      <!-- All input files, one "unit" tag per unit -->
+      <units>
+        <!-- "file" is a mandatory attribute, "options" is not mandatory -->
+        <unit file="dglobals.pp" options="-S2"/>
+      </units>
+      <descriptions>
+        <!-- Description files here. One "description" tag per file.
+            "file" is the only mandatory attribute -->
+        <description file="dglobals.xml"/>
+      </descriptions>
+    </package>
+  </packages>
+  <options>
+    <!-- All command-line options can be specified here with the same name
+         and value as on the actual command-line. Boolean options must have
+         a value of 'true', '1' or 'yes' -->
+    <option name="format" value="html"/>
+    <option name="hide-protected" value="true"/>
+    <option name="footer-date" value="yyyy-mm-dd"/>
+  </options>
+</docproject>
