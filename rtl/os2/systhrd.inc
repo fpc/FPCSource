@@ -256,23 +256,22 @@ var
   TI: PThreadInfo;
 begin
 { WriteLn is not a good idea before thread initialization...
-  $ifdef DEBUG_MT}
+  $ifdef DEBUG_MT
   WriteLn ('Creating new thread');
-{ $endif DEBUG_MT}
+ $endif DEBUG_MT}
 { Initialize multithreading if not done }
   SysInitMultithreading;
-  InitThreadVars (@SysRelocateThreadVar);
 { the only way to pass data to the newly created thread
   in a MT safe way, is to use the heap }
   New (TI);
   TI^.F := ThreadFunction;
   TI^.P := P;
   TI^.StkLen := StackSize;
+  ThreadID := 0;
 {$ifdef DEBUG_MT}
   WriteLn ('Starting new thread');
 {$endif DEBUG_MT}
-  ThreadID := 0;
-  if DosCreateThread (cardinal (ThreadID), @ThreadMain, SA,
+  if DosCreateThread (cardinal (ThreadID), @ThreadMain, TI,
                                              CreationFlags, StackSize) = 0 then
    SysBeginThread := ThreadID
   else
@@ -383,13 +382,11 @@ end;
 
 
 function SysGetCurrentThreadID: dword;
+var
+  TIB: PThreadInfoBlock;
 begin
-{$WARNING TODO!}
-{
-      SysGetCurrentThreadId:=WinGetCurrentThreadId;
-
-  DosGetInfoBlocks
-}
+  DosGetInfoBlocks (@TIB, nil);
+  SysGetCurrentThreadID := TIB^.TIB2^.TID;
 end;
 
 
