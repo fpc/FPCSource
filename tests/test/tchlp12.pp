@@ -30,5 +30,6 @@ begin
   f := TFoo.Create;
   if f.Test <> 2 then
     Halt(1);
+  Writeln('ok');
 end.
 

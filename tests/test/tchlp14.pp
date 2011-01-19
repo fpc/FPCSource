@@ -4,7 +4,7 @@
 program tchlp14;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
 type

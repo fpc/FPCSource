@@ -1,5 +1,6 @@
-{ %NORUN }
+{ %FAIL }
 
+{ a class helper must extend a subclass of the parent class helper }
 program tchlp36;
 
 {$ifdef fpc}
@@ -7,7 +8,11 @@ program tchlp36;
 {$endif}
 
 type
-  TObjectHelper = class helper for TObject
+  TBar = class
+
+  end;
+
+  TBarHelper = class helper for TBar
     procedure Test;
   end;
 
@@ -15,15 +20,12 @@ type
 
   end;
 
-  TFooHelper = class helper(TObjectHelper) for TFoo
+  TFooHelper = class helper(TFooHelper) for TFoo
   end;
 
-procedure TObjectHelper.Test;
+procedure TBarHelper.Test;
 begin
 end;
 
-var
-  f: TFoo;
 begin
-  f.Test;
 end.

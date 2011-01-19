@@ -1,6 +1,6 @@
-{ %FAIL }
+{ %NORUN }
 
-{ class helpers must extend the same class if inheriting }
+{ class helpers can extend a subclass of the parent's extended class }
 program tchlp26;
 
 {$ifdef fpc}

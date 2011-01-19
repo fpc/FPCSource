@@ -17,5 +17,7 @@ begin
   Writeln('f.Test: ', res);
   if res <> 2 then
     Halt(1);
+
+  Writeln('ok');
 end.
 

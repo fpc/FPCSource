@@ -39,5 +39,6 @@ begin
   f := TFooSub.Create;
   if f.Test <> 3 then
     Halt(1);
+  Writeln('ok');
 end.
 
