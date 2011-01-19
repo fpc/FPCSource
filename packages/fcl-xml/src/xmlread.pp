@@ -1208,7 +1208,7 @@ begin
       Result := True;
     until False;
     FSource.FBuf := p;
-  until (p^ <> #0) or (not FSource.Reload);
+  until (FSource.FBuf < FSource.FBufEnd) or (not FSource.Reload);
   if (not Result) and Required then
     FatalError('Expected whitespace');
 end;

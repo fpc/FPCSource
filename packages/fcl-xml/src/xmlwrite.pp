@@ -681,14 +681,17 @@ begin
   wrtStr('?>');
 
   // TODO: now handled as a regular PI, remove this?
-  if Length(TXMLDocument(node).StylesheetType) > 0 then
+  if node is TXMLDocument then
   begin
-    wrtStr(FLineBreak);
-    wrtStr('<?xml-stylesheet type="');
-    wrtStr(TXMLDocument(node).StylesheetType);
-    wrtStr('" href="');
-    wrtStr(TXMLDocument(node).StylesheetHRef);
-    wrtStr('"?>');
+    if Length(TXMLDocument(node).StylesheetType) > 0 then
+    begin
+      wrtStr(FLineBreak);
+      wrtStr('<?xml-stylesheet type="');
+      wrtStr(TXMLDocument(node).StylesheetType);
+      wrtStr('" href="');
+      wrtStr(TXMLDocument(node).StylesheetHRef);
+      wrtStr('"?>');
+    end;
   end;
 
   child := node.FirstChild;
