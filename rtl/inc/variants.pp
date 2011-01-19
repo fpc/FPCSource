@@ -2897,12 +2897,15 @@ function VarIsClear(const V: Variant): Boolean;
 
 Var
   VT : TVarType;
-
+  CustomType: TCustomVariantType;
 begin
   VT:=TVarData(V).vType and varTypeMask;
-  Result:=(VT=varEmpty) or
-          (((VT=varDispatch) or (VT=varUnknown))
-           and (TVarData(V).vDispatch=Nil));
+  if VT<CFirstUserType then
+    Result:=(VT=varEmpty) or
+            (((VT=varDispatch) or (VT=varUnknown))
+             and (TVarData(V).vDispatch=Nil))
+   else
+     Result:=FindCustomVariantType(VT,CustomType) and CustomType.IsClear(TVarData(V));
 end;
 
 
@@ -3921,14 +3924,8 @@ end;
 
 
 function TCustomVariantType.IsClear(const V: TVarData): Boolean;
-
-Var
-  VT : TVarType;
-  
 begin
-  VT:=V.vType and varTypeMask;
-  Result:=(VT=varEmpty) or (((VT=varDispatch) or (VT=varUnknown))
-                            and (TVarData(V).vDispatch=Nil));
+  result:=False;
 end;
 
 
