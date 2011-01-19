@@ -294,67 +294,57 @@ implementation
          { several object types must be dereferenced implicitly }
          if is_implicit_pointer_object_type(left.resultdef) then
            begin
-             { the contents of a class are aligned to a sizeof(pointer) }
-             location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),sizeof(pint));
-             case left.location.loc of
-                LOC_CREGISTER,
-                LOC_REGISTER:
-                  begin
-                  {$ifdef cpu_uses_separate_address_registers}
-                    if getregtype(left.location.register)<>R_ADDRESSREGISTER then
+             if not is_managed_type(left.resultdef) then
+               begin
+                 { the contents of a class are aligned to a sizeof(pointer) }
+                 location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),sizeof(pint));
+                 case left.location.loc of
+                    LOC_CREGISTER,
+                    LOC_REGISTER:
                       begin
-                        location.reference.base:=rg.getaddressregister(current_asmdata.CurrAsmList);
-                        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,
-                          left.location.register,location.reference.base);
-                      end
+                      {$ifdef cpu_uses_separate_address_registers}
+                        if getregtype(left.location.register)<>R_ADDRESSREGISTER then
+                          begin
+                            location.reference.base:=rg.getaddressregister(current_asmdata.CurrAsmList);
+                            cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,
+                              left.location.register,location.reference.base);
+                          end
+                        else
+                      {$endif}
+                          location.reference.base := left.location.register;
+                      end;
+                    LOC_CREFERENCE,
+                    LOC_REFERENCE:
+                      begin
+                         location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                         cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,left.location,location.reference.base);
+                      end;
+                    LOC_CONSTANT:
+                      begin
+                        { can happen with @classtype(pointerconst).field }
+                        location.reference.offset:=left.location.value;
+                      end;
                     else
-                  {$endif}
-                      location.reference.base := left.location.register;
-                  end;
-                LOC_CREFERENCE,
-                LOC_REFERENCE:
+                      internalerror(2009092401);
+                 end;
+                 { implicit deferencing }
+                 if (cs_use_heaptrc in current_settings.globalswitches) and
+                    (cs_checkpointer in current_settings.localswitches) and
+                    not(cs_compilesystem in current_settings.moduleswitches) then
                   begin
-                     location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                     cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,left.location,location.reference.base);
+                    paramanager.getintparaloc(pocall_default,1,paraloc1);
+                    cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
+                    paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+                    cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+                    cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
+                    cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
                   end;
-                LOC_CONSTANT:
-                  begin
-                    { can happen with @classtype(pointerconst).field }
-                    location.reference.offset:=left.location.value;
-                  end;
-                else
-                  internalerror(2009092401);
-             end;
-             { implicit deferencing }
-             if (cs_use_heaptrc in current_settings.globalswitches) and
-                (cs_checkpointer in current_settings.localswitches) and
-                not(cs_compilesystem in current_settings.moduleswitches) then
-              begin
-                paramanager.getintparaloc(pocall_default,1,paraloc1);
-                cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
-                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-                cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
-                cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-              end;
-           end
-         else if is_interfacecom(left.resultdef) then
-           begin
-             location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),sizeof(pint));
-             tg.GetTempTyped(current_asmdata.CurrAsmList,left.resultdef,tt_normal,location.reference);
-             cg.a_load_loc_ref(current_asmdata.CurrAsmList,OS_ADDR,left.location,location.reference);
-             { implicit deferencing also for interfaces }
-             if (cs_use_heaptrc in current_settings.globalswitches) and
-                (cs_checkpointer in current_settings.localswitches) and
-                not(cs_compilesystem in current_settings.moduleswitches) then
-              begin
-                paramanager.getintparaloc(pocall_default,1,paraloc1);
-                cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
-                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-                cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
-                cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-              end;
+               end
+             else
+               { reference-counted implicit pointer object types don't have
+                 fields -> cannot be subscripted (calls are handled via call
+                 nodes) }
+               internalerror(2011011901);
            end
          else
            begin
