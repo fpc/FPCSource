@@ -43,7 +43,8 @@ interface
         pd_dispinterface,{ directive can be used with dispinterface methods }
         pd_cppobject,    { directive can be used with cppclass }
         pd_objcclass,    { directive can be used with objcclass }
-        pd_objcprot      { directive can be used with objcprotocol }
+        pd_objcprot,     { directive can be used with objcprotocol }
+        pd_nothelper     { directive can not be used with record/class helper declaration }
       );
       tpdflags=set of tpdflag;
 
@@ -1669,6 +1670,9 @@ begin
   if (pd.proctypeoption=potype_constructor) and
      is_object(tprocdef(pd).struct) then
     Message(parser_e_constructor_cannot_be_not_virtual);
+  if is_objectpascal_classhelper(tprocdef(pd).struct) and
+      (m_objfpc in current_settings.modeswitches) then
+    Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_VIRTUAL].str);
 {$ifdef WITHDMT}
   if is_object(tprocdef(pd).struct) and
      (token<>_SEMICOLON) then
@@ -1718,7 +1722,10 @@ procedure pd_override(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(2003042611);
-  if not(is_class_or_interface_or_objc(tprocdef(pd).struct)) then
+  if is_objectpascal_classhelper(tprocdef(pd).struct) and
+      (m_objfpc in current_settings.modeswitches) then
+    Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_OVERRIDE].str)
+  else if not(is_class_or_interface_or_objc(tprocdef(pd).struct)) then
     Message(parser_e_no_object_override)
   else if is_objccategory(tprocdef(pd).struct) then
     Message(parser_e_no_category_override)
@@ -1745,6 +1752,9 @@ begin
   if not is_class(tprocdef(pd).struct) and
      not is_objc_class_or_protocol(tprocdef(pd).struct) then
     Message(parser_e_msg_only_for_classes);
+  if is_objectpascal_classhelper(tprocdef(pd).struct) and
+      (m_objfpc in current_settings.modeswitches) then
+    Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_MESSAGE].str);
   if ([po_msgstr,po_msgint]*pd.procoptions)<>[] then
     Message(parser_e_multiple_messages);
   { check parameter type }
@@ -1800,6 +1810,9 @@ begin
   if not(is_class_or_interface_or_object(tprocdef(pd).struct)) and
      not(is_objccategory(tprocdef(pd).struct)) then
     Message(parser_e_no_object_reintroduce);
+  if is_objectpascal_classhelper(tprocdef(pd).struct) and
+      (m_objfpc in current_settings.modeswitches) then
+    Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_REINTRODUCE].str);
 end;
 
 
@@ -2079,7 +2092,7 @@ const
    (
     (
       idtok:_ABSTRACT;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord,pd_nothelper];
       handler  : @pd_abstract;
       pocall   : pocall_none;
       pooption : [po_abstractmethod];
@@ -2151,7 +2164,7 @@ const
       mutexclpo     : [po_exports,po_interrupt,po_external,po_overridingmethod,po_inline]
     ),(
       idtok:_EXPORT;
-      pd_flags : [pd_body,pd_interface,pd_implemen,pd_notobjintf,pd_notrecord];
+      pd_flags : [pd_body,pd_interface,pd_implemen,pd_notobjintf,pd_notrecord,pd_nothelper];
       handler  : @pd_export;
       pocall   : pocall_none;
       pooption : [po_exports,po_global];
@@ -2160,7 +2173,7 @@ const
       mutexclpo     : [po_external,po_interrupt,po_inline]
     ),(
       idtok:_EXTERNAL;
-      pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf,pd_cppobject,pd_notrecord];
+      pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf,pd_cppobject,pd_notrecord,pd_nothelper];
       handler  : @pd_external;
       pocall   : pocall_none;
       pooption : [po_external];
@@ -2170,7 +2183,7 @@ const
       mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
     ),(
       idtok:_FAR;
-      pd_flags : [pd_implemen,pd_body,pd_interface,pd_procvar,pd_notobject,pd_notobjintf,pd_notrecord];
+      pd_flags : [pd_implemen,pd_body,pd_interface,pd_procvar,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];
       handler  : @pd_far;
       pocall   : pocall_none;
       pooption : [];
@@ -2179,7 +2192,7 @@ const
       mutexclpo     : [po_inline]
     ),(
       idtok:_FAR16;
-      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar,pd_notobject,pd_notrecord];
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar,pd_notobject,pd_notrecord,pd_nothelper];
       handler  : nil;
       pocall   : pocall_far16;
       pooption : [];
@@ -2197,7 +2210,7 @@ const
       mutexclpo     : [po_exports,po_interrupt,po_external,po_inline]
     ),(
       idtok:_FORWARD;
-      pd_flags : [pd_implemen,pd_notobject,pd_notobjintf,pd_notrecord];
+      pd_flags : [pd_implemen,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];
       handler  : @pd_forward;
       pocall   : pocall_none;
       pooption : [];
@@ -2224,7 +2237,7 @@ const
       mutexclpo     : [po_exports,po_external,po_interrupt,po_virtualmethod]
     ),(
       idtok:_INTERNCONST;
-      pd_flags : [pd_interface,pd_body,pd_notobject,pd_notobjintf,pd_notrecord];
+      pd_flags : [pd_interface,pd_body,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];
       handler  : @pd_internconst;
       pocall   : pocall_none;
       pooption : [po_internconst];
@@ -2233,7 +2246,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_INTERNPROC;
-      pd_flags : [pd_interface,pd_notobject,pd_notobjintf,pd_notrecord];
+      pd_flags : [pd_interface,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];
       handler  : @pd_internproc;
       pocall   : pocall_internproc;
       pooption : [];
@@ -2242,7 +2255,7 @@ const
       mutexclpo     : [po_exports,po_external,po_interrupt,po_assembler,po_iocheck,po_virtualmethod]
     ),(
       idtok:_INTERRUPT;
-      pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf,pd_notrecord];
+      pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];
       handler  : @pd_interrupt;
       pocall   : pocall_oldfpccall;
       pooption : [po_interrupt];
@@ -2288,7 +2301,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_NEAR;
-      pd_flags : [pd_implemen,pd_body,pd_procvar,pd_notobjintf,pd_notrecord];
+      pd_flags : [pd_implemen,pd_body,pd_procvar,pd_notobjintf,pd_notrecord,pd_nothelper];
       handler  : @pd_near;
       pocall   : pocall_none;
       pooption : [];
@@ -2333,7 +2346,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_PUBLIC;
-      pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobject,pd_notobjintf,pd_notrecord];
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];
       handler  : @pd_public;
       pocall   : pocall_none;
       pooption : [po_public,po_global];
@@ -2447,7 +2460,7 @@ const
       mutexclpo     : [po_interrupt]
     ),(
       idtok:_WEAKEXTERNAL;
-      pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf,pd_cppobject,pd_notrecord];
+      pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf,pd_cppobject,pd_notrecord,pd_nothelper];
       handler  : @pd_weakexternal;
       pocall   : pocall_none;
       { mark it both external and weak external, so we don't have to
@@ -2611,6 +2624,11 @@ const
            { check if method and directive not for objcprotocol }
            if is_objcprotocol(tprocdef(pd).struct) and
              not(pd_objcprot in proc_direcdata[p].pd_flags) then
+            exit;
+
+           { check if method and directive not for record/class helper }
+           if is_objectpascal_classhelper(tprocdef(pd).struct) and
+             (pd_nothelper in proc_direcdata[p].pd_flags) then
             exit;
 
          end;

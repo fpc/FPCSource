@@ -883,6 +883,13 @@ implementation
                     if (m_mac in current_settings.modeswitches) then
                       include(pd.procoptions,po_virtualmethod);
 
+                    { for class helpers virtual, final, override make no sense,
+                      so they are rejected in mode ObjFPC (in pdecsub) and
+                      ignored in mode Delphi (here)
+                    }
+                    if is_objectpascal_classhelper(current_structdef) then
+                      pd.procoptions:=pd.procoptions-[po_virtualmethod,po_finalmethod,po_overridingmethod];
+
                     handle_calling_convention(pd);
 
                     { add definition to procsym }
