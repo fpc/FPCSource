@@ -436,12 +436,30 @@ implementation
         intfchildof:=nil;
         hasparentdefined:=false;
 
+        { the "parent" of a class helper is not really treated as its parent;
+          it's only used to extend the searched scope }
+        if is_objectpascal_classhelper(current_structdef) then
+          begin
+            if try_to_consume(_LKLAMMER) then
+              begin
+                { TODO : check what these flags mean }
+                single_type(hdef,[stoAllowTypeDef, stoParseClassParent]);
+                if not is_objectpascal_classhelper(hdef) then
+                  begin
+                    Message(parser_e_classhelper_id_expected);
+                    hdef:=nil;
+                  end;
+                current_objectdef.helperparent:=tobjectdef(hdef);
+                consume(_RKLAMMER);
+              end;
+            consume(_FOR);
+          end;
+
         { reads the parent class }
         if (token=_LKLAMMER) or
-           is_objccategory(current_structdef) or
-           is_objectpascal_classhelper(current_structdef) then
+           is_classhelper(current_structdef) then
           begin
-            if not is_objectpascal_classhelper(current_objectdef) then
+            if not is_objectpascal_classhelper(current_structdef) then
               consume(_LKLAMMER);
             { use single_type instead of id_type for specialize support }
             single_type(hdef,[stoAllowTypeDef, stoParseClassParent]);
@@ -464,23 +482,29 @@ implementation
                   isn't allowed }
                 case current_objectdef.objecttype of
                    odt_class:
-                     if not(is_class(childof)) then
-                       begin
-                          if is_interface(childof) then
-                            begin
-                               { we insert the interface after the child
-                                 is set, see below
-                               }
-                               intfchildof:=childof;
-                               childof:=class_tobject;
-                            end
-                          else
-                            Message(parser_e_mix_of_classes_and_objects);
-                       end
+                     if is_objectpascal_classhelper(childof) then
+                       { a class helper is not allowed as parent or extended
+                         class
+                       }
+                       Message(parser_e_classhelper_not_allowed_here)
                      else
-                       if (oo_is_sealed in childof.objectoptions) and
-                           not is_objectpascal_classhelper(current_objectdef) then
-                         Message1(parser_e_sealed_descendant,childof.typename);
+                       if not(is_class(childof)) then
+                         begin
+                            if is_interface(childof) then
+                              begin
+                                 { we insert the interface after the child
+                                   is set, see below
+                                 }
+                                 intfchildof:=childof;
+                                 childof:=class_tobject;
+                              end
+                            else
+                              Message(parser_e_mix_of_classes_and_objects);
+                         end
+                       else
+                         if (oo_is_sealed in childof.objectoptions) and
+                             not is_objectpascal_classhelper(current_structdef) then
+                           Message1(parser_e_sealed_descendant,childof.typename);
                    odt_interfacecorba,
                    odt_interfacecom:
                      begin
@@ -564,7 +588,8 @@ implementation
         { remove forward flag, is resolved }
         exclude(current_structdef.objectoptions,oo_is_forward);
 
-        if hasparentdefined then
+        if hasparentdefined and
+            not is_objectpascal_classhelper(current_structdef) then
           begin
             if current_objectdef.objecttype in [odt_class,odt_objcclass,odt_objcprotocol] then
               begin
@@ -575,8 +600,7 @@ implementation
                     handleImplementedProtocol(intfchildof);
                 readImplementedInterfacesAndProtocols(current_objectdef.objecttype=odt_class);
               end;
-            if not is_objectpascal_classhelper(current_objectdef) then
-              consume(_RKLAMMER);
+            consume(_RKLAMMER);
           end;
       end;
 
@@ -780,7 +804,8 @@ implementation
                         if object_member_blocktype=bt_general then
                           begin
                             if is_interface(current_structdef) or
-                               is_objc_protocol_or_category(current_structdef) then
+                               is_objc_protocol_or_category(current_structdef) or
+                               is_objectpascal_classhelper(current_structdef) then
                               Message(parser_e_no_vars_in_interfaces);
 
                             if (current_structdef.symtable.currentvisibility=vis_published) and
@@ -938,6 +963,10 @@ implementation
                 if is_interface(current_structdef) then
                   Message(parser_e_no_con_des_in_interfaces);
 
+                { (class) destructors are not allowed in class helpers }
+                if is_objectpascal_classhelper(current_structdef) then
+                  Message(parser_e_no_destructor_in_records);
+
                 if not is_classdef and (current_structdef.symtable.currentvisibility<>vis_public) then
                   Message(parser_w_destructor_should_be_public);
 
@@ -1089,7 +1118,7 @@ implementation
                 include(current_structdef.objectoptions,oo_is_classhelper);
               end;
 
-            { change classhepers into Delphi type class helpers }
+            { change classhelpers into Object Pascal style class helpers }
             if (objecttype=odt_classhelper) then
               begin
                 current_objectdef.objecttype:=odt_class;
@@ -1097,7 +1126,8 @@ implementation
               end;
 
             { parse list of options (abstract / sealed) }
-            if not(objecttype in [odt_objcclass,odt_objcprotocol,odt_objccategory]) then
+            if not(objecttype in [odt_objcclass,odt_objcprotocol,odt_objccategory]) and
+                not is_objectpascal_classhelper(current_objectdef) then
               parse_object_options;
 
             symtablestack.push(current_structdef.symtable);

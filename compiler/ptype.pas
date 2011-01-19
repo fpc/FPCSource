@@ -1546,7 +1546,6 @@ implementation
                 if (idtoken=_HELPER) then
                   begin
                     consume(_HELPER);
-                    consume(_FOR);
                     def:=object_dec(odt_classhelper,name,genericdef,genericlist,nil);
                   end
                 else

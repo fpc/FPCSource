@@ -255,6 +255,12 @@ interface
           childof        : tobjectdef;
           childofderef   : tderef;
 
+          { for Object Pascal class helpers: the parent class helper is only
+            used to extend the scope of a used class helper by another class
+            helper for the same extended class or a superclass (which is defined
+            by childof }
+          helperparent   : tobjectdef;
+          helperparentderef: tderef;
           { for C++ classes: name of the library this class is imported from }
           import_lib,
           { for Objective-C: protocols and classes can have the same name there }
@@ -4095,6 +4101,9 @@ implementation
               iidstr:=stringdup(ppufile.getstring);
            end;
 
+         if oo_is_classhelper in objectoptions then
+           ppufile.getderef(helperparentderef);
+
          vmtentries:=TFPList.Create;
          vmtentries.count:=ppufile.getlongint;
          for i:=0 to vmtentries.count-1 do
@@ -4253,6 +4262,8 @@ implementation
               ppufile.putguid(iidguid^);
               ppufile.putstring(iidstr^);
            end;
+         if oo_is_classhelper in objectoptions then
+           ppufile.putderef(helperparentderef);
 
          ppufile.putlongint(vmtentries.count);
          for i:=0 to vmtentries.count-1 do
@@ -4311,6 +4322,9 @@ implementation
          else
            tstoredsymtable(symtable).buildderef;
 
+         if oo_is_classhelper in objectoptions then
+           helperparentderef.build(helperparent);
+
          for i:=0 to vmtentries.count-1 do
            begin
              vmtentry:=pvmtentry(vmtentries[i]);
@@ -4339,6 +4353,8 @@ implementation
            end
          else
            tstoredsymtable(symtable).deref;
+         if oo_is_classhelper in objectoptions then
+           helperparent:=tobjectdef(helperparentderef.resolve);
          for i:=0 to vmtentries.count-1 do
            begin
              vmtentry:=pvmtentry(vmtentries[i]);
