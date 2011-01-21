@@ -271,7 +271,7 @@ ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes  fv graph unzip gdbint
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes  fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick gdbint libpng mad tcl opengl gtk1 gtk2 librsvg a52 cdrom fpgtk openal fftw lua fcl-extra  oggvorbis sdl openssl graph pcap httpd13 httpd20 httpd22 pxlib numlib winceunits cairo libxml gmp opencl ptc libsee
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes  fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick gdbint libpng mad tcl opengl gtk1 gtk2 librsvg a52 cdrom fpgtk openal fftw lua fcl-extra  oggvorbis sdl openssl graph pcap httpd13 httpd20 httpd22 pxlib numlib winceunits cairo libxml gmp opencl ptc libsee nvapi
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes  fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
@@ -394,7 +394,7 @@ ifeq ($(FULL_TARGET),x86_64-darwin)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes  fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc gmp fcl-extra univint opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes  fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick gdbint tcl opengl gtk1 fpgtk fftw sdl openssl cdrom httpd13 httpd20 httpd22 numlib fcl-extra opencl ptc graph
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes  fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick gdbint tcl opengl gtk1 fpgtk fftw sdl openssl cdrom httpd13 httpd20 httpd22 numlib fcl-extra opencl ptc graph nvapi
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes
@@ -1742,6 +1742,7 @@ TARGET_DIRS_GMP=1
 TARGET_DIRS_OPENCL=1
 TARGET_DIRS_PTC=1
 TARGET_DIRS_LIBSEE=1
+TARGET_DIRS_NVAPI=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_HASH=1
@@ -3876,6 +3877,7 @@ TARGET_DIRS_FCL-EXTRA=1
 TARGET_DIRS_OPENCL=1
 TARGET_DIRS_PTC=1
 TARGET_DIRS_GRAPH=1
+TARGET_DIRS_NVAPI=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 TARGET_DIRS_HASH=1
@@ -8869,6 +8871,51 @@ winceunits_makefiles:
 winceunits:
 	$(MAKE) -C winceunits all
 .PHONY: winceunits_all winceunits_debug winceunits_smart winceunits_release winceunits_units winceunits_examples winceunits_shared winceunits_install winceunits_sourceinstall winceunits_exampleinstall winceunits_distinstall winceunits_zipinstall winceunits_zipsourceinstall winceunits_zipexampleinstall winceunits_zipdistinstall winceunits_clean winceunits_distclean winceunits_cleanall winceunits_info winceunits_makefiles winceunits
+endif
+ifdef TARGET_DIRS_NVAPI
+nvapi_all:
+	$(MAKE) -C nvapi all
+nvapi_debug:
+	$(MAKE) -C nvapi debug
+nvapi_smart:
+	$(MAKE) -C nvapi smart
+nvapi_release:
+	$(MAKE) -C nvapi release
+nvapi_units:
+	$(MAKE) -C nvapi units
+nvapi_examples:
+	$(MAKE) -C nvapi examples
+nvapi_shared:
+	$(MAKE) -C nvapi shared
+nvapi_install:
+	$(MAKE) -C nvapi install
+nvapi_sourceinstall:
+	$(MAKE) -C nvapi sourceinstall
+nvapi_exampleinstall:
+	$(MAKE) -C nvapi exampleinstall
+nvapi_distinstall:
+	$(MAKE) -C nvapi distinstall
+nvapi_zipinstall:
+	$(MAKE) -C nvapi zipinstall
+nvapi_zipsourceinstall:
+	$(MAKE) -C nvapi zipsourceinstall
+nvapi_zipexampleinstall:
+	$(MAKE) -C nvapi zipexampleinstall
+nvapi_zipdistinstall:
+	$(MAKE) -C nvapi zipdistinstall
+nvapi_clean:
+	$(MAKE) -C nvapi clean
+nvapi_distclean:
+	$(MAKE) -C nvapi distclean
+nvapi_cleanall:
+	$(MAKE) -C nvapi cleanall
+nvapi_info:
+	$(MAKE) -C nvapi info
+nvapi_makefiles:
+	$(MAKE) -C nvapi makefiles
+nvapi:
+	$(MAKE) -C nvapi all
+.PHONY: nvapi_all nvapi_debug nvapi_smart nvapi_release nvapi_units nvapi_examples nvapi_shared nvapi_install nvapi_sourceinstall nvapi_exampleinstall nvapi_distinstall nvapi_zipinstall nvapi_zipsourceinstall nvapi_zipexampleinstall nvapi_zipdistinstall nvapi_clean nvapi_distclean nvapi_cleanall nvapi_info nvapi_makefiles nvapi
 endif
 ifdef TARGET_DIRS_REXX
 rexx_all:
