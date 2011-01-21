@@ -406,8 +406,7 @@ implementation
          sorg:=orgpattern;
          pos:=current_tokenpos;
          { use of current parsed object:
-            - classes can be used also in classes
-            - objects can be parameters }
+           classes, objects, records can be used also in themself }
          structdef:=current_structdef;
          while assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
            begin
@@ -419,7 +418,7 @@ implementation
                end;
              structdef:=tabstractrecorddef(structdef.owner.defowner);
            end;
-         { Use the special searchsym_type that ignores records and parameters }
+         { Use the special searchsym_type that search only types }
          searchsym_type(s,srsym,srsymtable);
          { handle unit specification like System.Writeln }
          is_unit_specific:=try_consume_unitsym(srsym,srsymtable,t);
@@ -944,8 +943,7 @@ implementation
            old_block_type:=block_type;
            dospecialize:=false;
            { use of current parsed object:
-              - classes can be used also in classes
-              - objects can be parameters }
+             classes, objects, records can be used also in themself }
            if (token=_ID) then
              begin
                structdef:=current_structdef;
