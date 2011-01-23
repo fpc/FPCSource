@@ -930,7 +930,7 @@ mem                   \300\2\x0F\x01\203              286,PRIV
 
 [LJMP,ljmp]
 (Ch_ROp1, Ch_None, Ch_None)
-rm16|32|64            \300\320\1\xFF\204              8086
+rm16|32|64            \300\320\1\xFF\205              8086
 mem|far               \300\320\1\xFF\205              8086
 mem|near              \300\320\1\xFF\204              8086
 
