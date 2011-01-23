@@ -80,6 +80,9 @@ implementation
     {$ifndef NOTARGETNATIVENT}
       ,t_nativent
     {$endif}
+    {$ifndef NOTARGETEMBEDDED}
+      ,t_embed
+    {$endif}
 
 {**************************************
              Assemblers

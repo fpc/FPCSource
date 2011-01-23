@@ -82,11 +82,11 @@ Var
 begin
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
-{$ifdef ARM}
+{$if defined(ARM) or defined(i386)}
   prtobj:='';
-{$else ARM}
+{$else}
   prtobj:='prt0';
-{$endif ARM}
+{$endif}
   cprtobj:='cprt0';
   if linklibc then
     prtobj:=cprtobj;
@@ -293,6 +293,41 @@ begin
       Add('_end = .;');
     end;
 {$endif ARM}
+{$ifdef i386}
+  with linkres do
+    begin
+      Add('ENTRY(_START)');
+      Add('SECTIONS');
+      Add('{');
+      Add('     . = 0x100000;');
+      Add('     .text ALIGN (0x1000) :');
+      Add('    {');
+      Add('    KEEP(*(.init, .init.*))');
+      Add('    *(.text, .text.*)');
+      Add('    *(.strings)');
+      Add('    *(.rodata, .rodata.*)');
+      Add('    *(.comment)');
+      Add('    _etext = .;');
+      Add('    }');
+      Add('    .data ALIGN (0x1000) :');
+      Add('    {');
+      Add('    _data = .;');
+      Add('    *(.data, .data.*)');
+      Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+      Add('    _edata = .;');
+      Add('    }');
+      Add('    . = ALIGN(4);');
+      Add('    .bss :');
+      Add('    {');
+      Add('    _bss_start = .;');
+      Add('    *(.bss, .bss.*)');
+      Add('    *(COMMON)');
+      Add('    }');
+      Add('_bss_end = . ;');
+      Add('}');
+      Add('_end = .;');
+    end;
+{$endif I386}
 
   { Write and Close response }
   linkres.writetodisk;
@@ -354,7 +389,7 @@ begin
    DeleteFile(outputexedir+Info.ResName);
 
 { Post process }
-  if success then
+  if success and (target_info.system=system_arm_embedded) then
     begin
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
         ChangeFileExt(current_module.exefilename^,'.elf')+' '+
@@ -379,4 +414,9 @@ initialization
   RegisterExternalLinker(system_avr_embedded_info,TlinkerEmbedded);
   RegisterTarget(system_avr_embedded_info);
 {$endif avr}
+
+{$ifdef i386}
+  RegisterExternalLinker(system_i386_embedded_info,TlinkerEmbedded);
+  RegisterTarget(system_i386_embedded_info);
+{$endif i386}
 end.
