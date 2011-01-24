@@ -241,13 +241,30 @@ implementation
                (ppo_hasparameters in p.propoptions);
           end;
 
-          procedure parse_dispinterface(p : tpropertysym);
+          procedure create_accessor_procsym(p: tpropertysym; pd: tprocdef; const prefix: string;
+              accesstype: tpropaccesslisttypes);
             var
-              {procsym: tprocsym;
-              procdef: tprocdef;
-              valuepara: tparavarsym;}
+              sym: tprocsym;
+            begin
+              handle_calling_convention(pd);
+              sym:=tprocsym.create(prefix+lower(p.realname));
+              symtablestack.top.insert(sym);
+              pd.procsym:=sym;
+              include(pd.procoptions,po_dispid);
+              include(pd.procoptions,po_global);
+              pd.visibility:=vis_private;
+              proc_add_definition(pd);
+              p.propaccesslist[accesstype].addsym(sl_call,sym);
+              p.propaccesslist[accesstype].procdef:=pd;
+            end;
+
+          procedure parse_dispinterface(p : tpropertysym; readpd,writepd: tprocdef;
+              var paranr: word);
+            var
               hasread, haswrite: boolean;
               pt: tnode;
+              hdispid: longint;
+              hparavs: tparavarsym;
             begin
               p.propaccesslist[palt_read].clear;
               p.propaccesslist[palt_write].clear;
@@ -260,12 +277,6 @@ implementation
               else if try_to_consume(_WRITEONLY) then
                 hasread:=false;
 
-              if hasread then
-                include(p.propoptions, ppo_dispid_read);
-
-              if haswrite then
-                include(p.propoptions, ppo_dispid_write);
-
               if try_to_consume(_DISPID) then
                 begin
                   pt:=comp_expr(true,false);
@@ -273,16 +284,39 @@ implementation
                     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
                       message(parser_e_range_check_error)
                     else
-                      p.dispid:=Tordconstnode(pt).value.svalue
+                      hdispid:=Tordconstnode(pt).value.svalue
                   else
                     Message(parser_e_dispid_must_be_ord_const);
                   pt.free;
                 end
               else
-                p.dispid:=tobjectdef(astruct).get_next_dispid;
+                hdispid:=tobjectdef(astruct).get_next_dispid;
+
+              { COM property is simply a pair of methods, tagged with 'propertyget'
+                and 'propertyset' flags (or a single method if access is restricted).
+                Creating these implicit accessor methods also allows the rest of compiler
+                to handle dispinterface properties the same way as regular ones. }
+              if hasread then
+                begin
+                  readpd.returndef:=p.propdef;
+                  readpd.dispid:=hdispid;
+                  readpd.proctypeoption:=potype_propgetter;
+                  create_accessor_procsym(p,readpd,'get$',palt_read);
+                end;
+              if haswrite then
+                begin
+                  { add an extra parameter, a placeholder of the value to set }
+                  inc(paranr);
+                  hparavs:=tparavarsym.create('$value',10*paranr,vs_value,p.propdef,[]);
+                  writepd.parast.insert(hparavs);
+
+                  writepd.proctypeoption:=potype_propsetter;
+                  writepd.dispid:=hdispid;
+                  create_accessor_procsym(p,writepd,'put$',palt_write);
+                end;
             end;
 
-          procedure add_index_parameter(var paranr: word; p: tpropertysym; readprocdef, writeprocdef: tprocvardef);
+          procedure add_index_parameter(var paranr: word; p: tpropertysym; readprocdef, writeprocdef: tprocdef);
             var
               hparavs: tparavarsym;
             begin
@@ -310,21 +344,23 @@ implementation
          found        : boolean;
          hreadparavs,
          hparavs      : tparavarsym;
-         storedprocdef,
+         storedprocdef: tprocvardef;
          readprocdef,
-         writeprocdef : tprocvardef;
+         writeprocdef : tprocdef;
       begin
-         { Generate temp procvardefs to search for matching read/write
+         { Generate temp procdefs to search for matching read/write
            procedures. the readprocdef will store all definitions }
          paranr:=0;
-         readprocdef:=tprocvardef.create(normal_function_level);
-         writeprocdef:=tprocvardef.create(normal_function_level);
+         readprocdef:=tprocdef.create(normal_function_level);
+         writeprocdef:=tprocdef.create(normal_function_level);
 
-         { make them method pointers }
-         if assigned(astruct) and not is_classproperty then
+         readprocdef.struct:=astruct;
+         writeprocdef.struct:=astruct;
+
+         if assigned(astruct) and is_classproperty then
            begin
-             include(readprocdef.procoptions,po_methodpointer);
-             include(writeprocdef.procoptions,po_methodpointer);
+             readprocdef.procoptions:=[po_staticmethod,po_classmethod];
+             writeprocdef.procoptions:=[po_staticmethod,po_classmethod];
            end;
 
          if token<>_ID then
@@ -577,7 +613,7 @@ implementation
                end;
            end
          else
-           parse_dispinterface(p);
+           parse_dispinterface(p,readprocdef,writeprocdef,paranr);
 
          { stored is not allowed for dispinterfaces, records or class properties }
          if assigned(astruct) and not(is_dispinterface(astruct) or is_record(astruct)) and not is_classproperty then
@@ -835,9 +871,11 @@ implementation
                message1(parser_e_implements_uses_non_implemented_interface,def.typename);
          end;
 
-         { remove temporary procvardefs }
-         readprocdef.owner.deletedef(readprocdef);
-         writeprocdef.owner.deletedef(writeprocdef);
+         { remove unneeded procdefs }
+         if readprocdef.proctypeoption<>potype_propgetter then
+           readprocdef.owner.deletedef(readprocdef);
+         if writeprocdef.proctypeoption<>potype_propsetter then
+           writeprocdef.owner.deletedef(writeprocdef);
 
          result:=p;
       end;

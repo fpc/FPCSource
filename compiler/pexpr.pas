@@ -1053,8 +1053,6 @@ implementation
          callflags  : tcallnodeflags;
          propaccesslist : tpropaccesslist;
          sym: tsym;
-         statements : tstatementnode;
-         converted_result_data : ttempcreatenode;
       begin
          { property parameters? read them only if the property really }
          { has parameters                                             }
@@ -1122,16 +1120,6 @@ implementation
                   end;
                 end
               else
-              if (ppo_dispid_write in propsym.propoptions) then
-                begin
-                  consume(_ASSIGNMENT);
-                  p2:=comp_expr(true,false);
-                  { concat value parameter too }
-                  p2:=ccallparanode.create(p2,paras);
-                  paras:=nil;
-                  p1:=translate_disp_call(p1,p2,dct_propput,'',propsym.dispid,voidtype);
-                end
-              else
                 begin
                    p1:=cerrornode.create;
                    Message(parser_e_no_procedure_to_access_property);
@@ -1167,20 +1155,6 @@ implementation
                           Message(type_e_mismatch);
                        end;
                   end;
-                end
-              else
-              if (ppo_dispid_read in propsym.propoptions) then
-                begin
-                  p2:=internalstatements(statements);
-                  converted_result_data:=ctempcreatenode.create(propsym.propdef,sizeof(propsym.propdef),tt_persistent,true);
-                  addstatement(statements,converted_result_data);
-                  addstatement(statements,cassignmentnode.create(ctemprefnode.create(converted_result_data),
-                    ctypeconvnode.create_internal(translate_disp_call(p1,paras,dct_propget,'',propsym.dispid,propsym.propdef),
-                    propsym.propdef)));
-                  addstatement(statements,ctempdeletenode.create_normal_temp(converted_result_data));
-                  addstatement(statements,ctemprefnode.create(converted_result_data));
-                  p1:=p2;
-                  paras:=nil;
                 end
               else
                 begin
@@ -1932,7 +1906,8 @@ implementation
 
                _LECKKLAMMER:
                   begin
-                    if is_class_or_interface_or_object(p1.resultdef) then
+                    if is_class_or_interface_or_object(p1.resultdef) or
+                      is_dispinterface(p1.resultdef) then
                       begin
                         { default property }
                         protsym:=search_default_property(tobjectdef(p1.resultdef));

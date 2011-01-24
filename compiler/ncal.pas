@@ -2601,6 +2601,7 @@ implementation
         is_const : boolean;
         statements : tstatementnode;
         converted_result_data : ttempcreatenode;
+        calltype: tdispcalltype;
       label
         errorexit;
       begin
@@ -2994,6 +2995,12 @@ implementation
          { dispinterface methode invoke? }
          if assigned(methodpointer) and is_dispinterface(methodpointer.resultdef) then
            begin
+             case procdefinition.proctypeoption of
+               potype_propgetter: calltype:=dct_propget;
+               potype_propsetter: calltype:=dct_propput;
+             else
+               calltype:=dct_method;
+             end;
              { if the result is used, we've to insert a call to convert the type to be on the "safe side" }
              if (cnf_return_value_used in callnodeflags) and not is_void(procdefinition.returndef) then
                begin
@@ -3001,13 +3008,13 @@ implementation
                  converted_result_data:=ctempcreatenode.create(procdefinition.returndef,sizeof(procdefinition.returndef),tt_persistent,true);
                  addstatement(statements,converted_result_data);
                  addstatement(statements,cassignmentnode.create(ctemprefnode.create(converted_result_data),
-                   ctypeconvnode.create_internal(translate_disp_call(methodpointer,parameters,dct_method,'',tprocdef(procdefinition).dispid,procdefinition.returndef),
+                   ctypeconvnode.create_internal(translate_disp_call(methodpointer,parameters,calltype,'',tprocdef(procdefinition).dispid,procdefinition.returndef),
                    procdefinition.returndef)));
                  addstatement(statements,ctempdeletenode.create_normal_temp(converted_result_data));
                  addstatement(statements,ctemprefnode.create(converted_result_data));
                end
              else
-               result:=translate_disp_call(methodpointer,parameters,dct_method,'',tprocdef(procdefinition).dispid,voidtype);
+               result:=translate_disp_call(methodpointer,parameters,calltype,'',tprocdef(procdefinition).dispid,voidtype);
 
              { don't free reused nodes }
              methodpointer:=nil;
