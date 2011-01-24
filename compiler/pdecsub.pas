@@ -1463,7 +1463,8 @@ implementation
                          (torddef(pd.returndef).ordtype<>pasbool)) then
                         Message(parser_e_comparative_operator_return_boolean);
                      if (optoken in [_ASSIGNMENT,_OP_EXPLICIT]) and
-                        equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) then
+                        equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) and
+                        (pd.returndef.typ<>undefineddef) and (tparavarsym(pd.parast.SymList[0]).vardef.typ<>undefineddef) then
                        message(parser_e_no_such_assignment)
                      else if not isoperatoracceptable(pd,optoken) then
                        Message(parser_e_overload_impossible);
