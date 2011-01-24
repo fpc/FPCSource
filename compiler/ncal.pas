@@ -1178,20 +1178,24 @@ implementation
           callcleanupblock.derefimpl;
         if assigned(funcretnode) then
           funcretnode.derefimpl;
-        { Connect parasyms }
-        pt:=tcallparanode(left);
-        while assigned(pt) and
-              (cpf_varargs_para in pt.callparaflags) do
-          pt:=tcallparanode(pt.right);
-        for i:=procdefinition.paras.count-1 downto 0 do
+        { generic method has no procdefinition }
+        if assigned(procdefinition) then
           begin
-            if not assigned(pt) then
-              internalerror(200311077);
-            pt.parasym:=tparavarsym(procdefinition.paras[i]);
-            pt:=tcallparanode(pt.right);
+            { Connect parasyms }
+            pt:=tcallparanode(left);
+            while assigned(pt) and
+                  (cpf_varargs_para in pt.callparaflags) do
+              pt:=tcallparanode(pt.right);
+            for i:=procdefinition.paras.count-1 downto 0 do
+              begin
+                if not assigned(pt) then
+                  internalerror(200311077);
+                pt.parasym:=tparavarsym(procdefinition.paras[i]);
+                pt:=tcallparanode(pt.right);
+              end;
+            if assigned(pt) then
+              internalerror(200311078);
           end;
-        if assigned(pt) then
-          internalerror(200311078);
       end;
 
 
