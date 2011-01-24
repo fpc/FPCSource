@@ -445,6 +445,19 @@ implementation
                   begin
                     result:=
                       is_class_or_interface_or_object(pf.returndef);
+                    if result then
+                      begin
+                        if not assigned(tobjectdef(pf.returndef).search_enumerator_move) then
+                          begin
+                            Message1(sym_e_no_enumerator_move, pf.returndef.typename);
+                            result:=false;
+                          end;
+                        if not assigned(tobjectdef(pf.returndef).search_enumerator_current) then
+                          begin
+                            Message1(sym_e_no_enumerator_current,pf.returndef.typename);
+                            result:=false;
+                          end;
+                      end;
                   end
                 else
                   begin
