@@ -282,7 +282,7 @@ implementation
                 p.dispid:=tobjectdef(astruct).get_next_dispid;
             end;
 
-          procedure add_index_parameter(var paranr: word; p: tpropertysym; readprocdef, writeprocdef, storedprocdef: tprocvardef);
+          procedure add_index_parameter(var paranr: word; p: tpropertysym; readprocdef, writeprocdef: tprocvardef);
             var
               hparavs: tparavarsym;
             begin
@@ -291,8 +291,6 @@ implementation
               readprocdef.parast.insert(hparavs);
               hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
               writeprocdef.parast.insert(hparavs);
-              hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
-              storedprocdef.parast.insert(hparavs);
             end;
 
       var
@@ -321,18 +319,13 @@ implementation
          paranr:=0;
          readprocdef:=tprocvardef.create(normal_function_level);
          writeprocdef:=tprocvardef.create(normal_function_level);
-         storedprocdef:=tprocvardef.create(normal_function_level);
 
          { make them method pointers }
          if assigned(astruct) and not is_classproperty then
            begin
              include(readprocdef.procoptions,po_methodpointer);
              include(writeprocdef.procoptions,po_methodpointer);
-             include(storedprocdef.procoptions,po_methodpointer);
            end;
-
-         { method for stored must return boolean }
-         storedprocdef.returndef:=booltype;
 
          if token<>_ID then
            begin
@@ -448,7 +441,7 @@ implementation
                    p.indexdef:=pt.resultdef;
                    include(p.propoptions,ppo_indexed);
                    { concat a longint to the para templates }
-                   add_index_parameter(paranr,p,readprocdef,writeprocdef,storedprocdef);
+                   add_index_parameter(paranr,p,readprocdef,writeprocdef);
                    pt.free;
                 end;
            end
@@ -471,7 +464,7 @@ implementation
                   p.default:=tpropertysym(overridden).default;
                   p.propoptions:=tpropertysym(overridden).propoptions;
                   if ppo_indexed in p.propoptions then
-                    add_index_parameter(paranr,p,readprocdef,writeprocdef,storedprocdef);
+                    add_index_parameter(paranr,p,readprocdef,writeprocdef);
                 end
               else
                 begin
@@ -641,11 +634,25 @@ implementation
                             case sym.typ of
                               procsym :
                                 begin
+                                   { Create a temporary procvardef to handle parameters }
+                                   storedprocdef:=tprocvardef.create(normal_function_level);
+                                   include(storedprocdef.procoptions,po_methodpointer);
+                                   { Return type must be boolean }
+                                   storedprocdef.returndef:=booltype;
+                                   { Add index parameter if needed }
+                                   if ppo_indexed in p.propoptions then
+                                     begin
+                                       hparavs:=tparavarsym.create('$index',10,vs_value,p.indexdef,[]);
+                                       storedprocdef.parast.insert(hparavs);
+                                     end;
+
                                    { Insert hidden parameters }
                                    handle_calling_convention(storedprocdef);
                                    p.propaccesslist[palt_stored].procdef:=Tprocsym(sym).Find_procdef_bypara(storedprocdef.paras,storedprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
                                    if not assigned(p.propaccesslist[palt_stored].procdef) then
                                      message(parser_e_ill_property_storage_sym);
+                                   { Not needed anymore }
+                                   storedprocdef.owner.deletedef(storedprocdef);
                                 end;
                               fieldvarsym :
                                 begin
