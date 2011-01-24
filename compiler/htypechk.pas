@@ -444,15 +444,16 @@ implementation
                 if optoken=_OP_ENUMERATOR then
                   begin
                     result:=
-                      is_class_or_interface_or_object(pf.returndef);
+                      is_class_or_interface_or_object(pf.returndef) or
+                      is_record(pf.returndef);
                     if result then
                       begin
-                        if not assigned(tobjectdef(pf.returndef).search_enumerator_move) then
+                        if not assigned(tabstractrecorddef(pf.returndef).search_enumerator_move) then
                           begin
                             Message1(sym_e_no_enumerator_move, pf.returndef.typename);
                             result:=false;
                           end;
-                        if not assigned(tobjectdef(pf.returndef).search_enumerator_current) then
+                        if not assigned(tabstractrecorddef(pf.returndef).search_enumerator_current) then
                           begin
                             Message1(sym_e_no_enumerator_current,pf.returndef.typename);
                             result:=false;
