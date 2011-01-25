@@ -2258,9 +2258,6 @@ implementation
                 begin
                   { the parser has already made sure the expression is valid }
 
-                  { there could be a procvar, which is 2*sizeof(pointer), while we }
-                  { must only check the first pointer -> can't just convert to an  }
-                  { add node in all cases                                          }
                   set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
                   resultdef:=booltype;
                 end;
@@ -2722,7 +2719,17 @@ implementation
 
           in_assigned_x:
             begin
-              expectloc := LOC_JUMP;
+              { in case of a complex procvar, only check the "code" pointer }
+              hp:=tcallparanode(left).left;
+              { reused }
+              tcallparanode(left).left:=nil;
+              if (hp.resultdef.typ=procvardef) and
+                 not tprocvardef(hp.resultdef).is_addressonly then
+                begin
+                  inserttypeconv_explicit(hp,search_system_type('TMETHOD').typedef);
+                  hp:=csubscriptnode.create(tsym(tabstractrecorddef(hp.resultdef).symtable.find('CODE')),hp);
+                end;
+              result:=caddnode.create(unequaln,hp,cnilnode.create);
             end;
 
           in_pred_x,
