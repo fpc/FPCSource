@@ -12003,7 +12003,7 @@ end;
 function TreeView_GetRoot(hwnd:hwnd) : HTREEITEM;inline;
 
 begin
-  TreeView_GetNextItem(hwnd, NIL,  TVGN_ROOT);
+  Result:=TreeView_GetNextItem(hwnd, NIL,  TVGN_ROOT);
 end;
 
 // Macro 177
@@ -12012,7 +12012,7 @@ end;
 
 function TreeView_GetLastVisible(hwnd:hwnd) : HTREEITEM;inline;
 begin
-  TreeView_GetNextItem(hwnd, NIL,  TVGN_LASTVISIBLE)
+  Result:=TreeView_GetNextItem(hwnd, NIL,  TVGN_LASTVISIBLE)
 end;
 
 // Macro 178
