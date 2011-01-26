@@ -121,6 +121,15 @@ type
     Value: utf8string;
   end;
 
+  TvEntity = class
+  public
+  end;
+
+  TvCircle = class(TvEntity)
+  public
+    X, Y, Z, Radius: Double;
+  end;
+
 type
 
   TvCustomVectorialWriter = class;
@@ -132,6 +141,7 @@ type
   private
     FPaths: TFPList;
     FTexts: TFPList;
+    FEntities: TFPList;
     FTmpPath: TPath;
     FTmpText: TvText;
     procedure RemoveCallback(data, arg: pointer);
@@ -158,6 +168,8 @@ type
     function  GetPathCount: Integer;
     function  GetText(ANum: Cardinal): TvText;
     function  GetTextCount: Integer;
+    function  GetEntity(ANum: Cardinal): TvEntity;
+    function  GetEntityCount: Integer;
     { Data removing methods }
     procedure Clear;
     procedure RemoveAllPaths;
@@ -172,6 +184,7 @@ type
     procedure EndPath();
     procedure AddText(AX, AY, AZ: Double; FontName: string; FontSize: integer; AText: utf8string); overload;
     procedure AddText(AX, AY, AZ: Double; AStr: utf8string); overload;
+    procedure AddCircle(AX, AY, AZ, ARadius: Double);
     { properties }
     property PathCount: Integer read GetPathCount;
     property Paths[Index: Cardinal]: TPath read GetPath;
@@ -186,6 +199,7 @@ type
   TvCustomVectorialReader = class
   public
     { General reading methods }
+    constructor Create; virtual;
     procedure ReadFromFile(AFileName: string; AData: TvVectorialDocument); virtual;
     procedure ReadFromStream(AStream: TStream; AData: TvVectorialDocument); virtual;
     procedure ReadFromStrings(AStrings: TStrings; AData: TvVectorialDocument); virtual;
@@ -202,6 +216,7 @@ type
   TvCustomVectorialWriter = class
   public
     { General writing methods }
+    constructor Create; virtual;
     procedure WriteToFile(AFileName: string; AData: TvVectorialDocument); virtual;
     procedure WriteToStream(AStream: TStream; AData: TvVectorialDocument); virtual;
     procedure WriteToStrings(AStrings: TStrings; AData: TvVectorialDocument); virtual;
@@ -339,6 +354,7 @@ begin
 
   FPaths := TFPList.Create;
   FTexts := TFPList.Create;
+  FEntities := TFPList.Create;
   FTmpPath := TPath.Create;
 end;
 
@@ -351,6 +367,7 @@ begin
 
   FPaths.Free;
   FTexts.Free;
+  FEntities.Free;
 
   inherited Destroy;
 end;
@@ -518,6 +535,18 @@ end;
 procedure TvVectorialDocument.AddText(AX, AY, AZ: Double; AStr: utf8string);
 begin
   AddText(AX, AY, AZ, '', 10, AStr);
+end;
+
+procedure TvVectorialDocument.AddCircle(AX, AY, AZ, ARadius: Double);
+var
+  lCircle: TvCircle;
+begin
+  lCircle := TvCircle.Create;
+  lCircle.X := AX;
+  lCircle.Y := AY;
+  lCircle.Z := AZ;
+  lCircle.Radius := ARadius;
+  FEntities.Add(lCircle);
 end;
 
 {@@
@@ -747,6 +776,20 @@ begin
   Result := FTexts.Count;
 end;
 
+function TvVectorialDocument.GetEntity(ANum: Cardinal): TvEntity;
+begin
+  if ANum >= FEntities.Count then raise Exception.Create('TvVectorialDocument.GetEntity: Entity number out of bounds');
+
+  if FEntities.Items[ANum] = nil then raise Exception.Create('TvVectorialDocument.GetEntity: Invalid Entity number');
+
+  Result := TvEntity(FEntities.Items[ANum]);
+end;
+
+function TvVectorialDocument.GetEntityCount: Integer;
+begin
+  Result := FEntities.Count;
+end;
+
 {@@
   Clears all data in the document
 }
@@ -757,6 +800,11 @@ begin
 end;
 
 { TvCustomVectorialReader }
+
+constructor TvCustomVectorialReader.Create;
+begin
+  inherited Create;
+end;
 
 procedure TvCustomVectorialReader.ReadFromFile(AFileName: string; AData: TvVectorialDocument);
 var
@@ -805,6 +853,11 @@ begin
 end;
 
 { TsCustomSpreadWriter }
+
+constructor TvCustomVectorialWriter.Create;
+begin
+  inherited Create;
+end;
 
 {@@
   Default file writting method.

@@ -40,6 +40,9 @@ var
   CurX, CurY: Integer; // Not modified by ADestX, etc
   CurveLength: Integer;
   t: Double;
+  // For entities
+  CurEntity: TvEntity;
+  CurCircle: TvCircle;
 begin
   {$ifdef FPVECTORIALDEBUG}
   WriteLn(':>DrawFPVectorialToCanvas');
@@ -97,6 +100,21 @@ begin
         PosY := Round(Cur2DBSegment.Y);
       end;
       end;
+    end;
+  end;
+
+  for i := 0 to ASource.GetEntityCount - 1 do
+  begin
+    CurEntity := ASource.GetEntity(i);
+    CurCircle := CurEntity as TvCircle;
+    if CurEntity is TvCircle then
+    begin
+      ADest.Ellipse(
+        Round(ADestX + AmulX * (CurCircle.X - CurCircle.Radius)),
+        Round(ADestY + AMulY * (CurCircle.Y - CurCircle.Radius)),
+        Round(ADestX + AmulX * (CurCircle.X + CurCircle.Radius)),
+        Round(ADestY + AMulY * (CurCircle.Y + CurCircle.Radius))
+        );
     end;
   end;
 
