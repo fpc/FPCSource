@@ -101,7 +101,7 @@ interface
     procedure gen_load_return_value(list:TAsmList);
 
     procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
-    procedure gen_intf_wrappers(list:TAsmList;st:TSymtable);
+    procedure gen_intf_wrappers(list:TAsmList;st:TSymtable;nested:boolean);
     procedure gen_load_vmt_register(list:TAsmList;objdef:tobjectdef;selfloc:tlocation;var vmtreg:tregister);
 
     procedure get_used_regvars(n: tnode; var rv: tusedregvars);
@@ -2963,19 +2963,24 @@ implementation
       end;
 
 
-    procedure gen_intf_wrappers(list:TAsmList;st:TSymtable);
+    procedure gen_intf_wrappers(list:TAsmList;st:TSymtable;nested:boolean);
       var
         i   : longint;
         def : tdef;
       begin
-        create_codegen;
+        if not nested then
+          create_codegen;
         for i:=0 to st.DefList.Count-1 do
           begin
             def:=tdef(st.DefList[i]);
+            { if def can contain nested types then handle it symtable }
+            if def.typ in [objectdef,recorddef] then
+              gen_intf_wrappers(list,tabstractrecorddef(def).symtable,true);
             if is_class(def) then
               gen_intf_wrapper(list,tobjectdef(def));
           end;
-        destroy_codegen;
+        if not nested then
+          destroy_codegen;
       end;
 
 
