@@ -18,7 +18,7 @@ unit fpvectorial;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, Math;
 
 type
   TvVectorialFormat = (
@@ -121,13 +121,41 @@ type
     Value: utf8string;
   end;
 
+  {@@
+  }
   TvEntity = class
   public
   end;
 
+  {@@
+  }
   TvCircle = class(TvEntity)
   public
-    X, Y, Z, Radius: Double;
+    CenterX, CenterY, CenterZ, Radius: Double;
+  end;
+
+  {@@
+  }
+  TvCircularArc = class(TvEntity)
+  public
+    CenterX, CenterY, CenterZ, Radius: Double;
+    StartAngle, EndAngle: Double;
+  end;
+
+  {@@
+  }
+
+  { TvEllipse }
+
+  TvEllipse = class(TvEntity)
+  public
+    // Mandatory fields
+    CenterX, CenterY, CenterZ, MajorHalfAxis, MinorHalfAxis: Double;
+    {@@ The Angle is measured in radians in relation to the positive X axis }
+    Angle: Double;
+    // Calculated fields
+    BoundingRect: TRect;
+    procedure CalculateBoundingRectangle;
   end;
 
 type
@@ -184,7 +212,9 @@ type
     procedure EndPath();
     procedure AddText(AX, AY, AZ: Double; FontName: string; FontSize: integer; AText: utf8string); overload;
     procedure AddText(AX, AY, AZ: Double; AStr: utf8string); overload;
-    procedure AddCircle(AX, AY, AZ, ARadius: Double);
+    procedure AddCircle(ACenterX, ACenterY, ACenterZ, ARadius: Double);
+    procedure AddCircularArc(ACenterX, ACenterY, ACenterZ, ARadius, AStartAngle, AEndAngle: Double);
+    procedure AddEllipse(CenterX, CenterY, CenterZ, MajorHalfAxis, MinorHalfAxis, Angle: Double);
     { properties }
     property PathCount: Integer read GetPathCount;
     property Paths[Index: Cardinal]: TPath read GetPath;
@@ -329,6 +359,38 @@ begin
     GvVectorialFormats[len].WriterRegistered := True;
     GvVectorialFormats[len].Format := AFormat;
   end;
+end;
+
+{ TvEllipse }
+
+procedure TvEllipse.CalculateBoundingRectangle;
+var
+  t, tmp: Double;
+begin
+  {
+    To calculate the bounding rectangle we can do this:
+
+    Ellipse equations:You could try using the parametrized equations for an ellipse rotated at an arbitrary angle:
+
+    x = CenterX + MajorHalfAxis*cos(t)*cos(Angle) - MinorHalfAxis*sin(t)*sin(Angle)
+    y = CenterY + MinorHalfAxis*sin(t)*cos(Angle) + MajorHalfAxis*cos(t)*sin(Angle)
+
+    You can then differentiate and solve for gradient = 0:
+    0 = dx/dt = -MajorHalfAxis*sin(t)*cos(Angle) - MinorHalfAxis*cos(t)*sin(Angle)
+    =>
+    tan(t) = -MinorHalfAxis*tan(Angle)/MajorHalfAxis
+    =>
+    t = cotang(-MinorHalfAxis*tan(Angle)/MajorHalfAxis)
+
+    On the other axis:
+
+    0 = dy/dt = b*cos(t)*cos(phi) - a*sin(t)*sin(phi)
+    =>
+    tan(t) = b*cot(phi)/a
+  }
+  t := cotan(-MinorHalfAxis*tan(Angle)/MajorHalfAxis);
+  tmp := CenterX + MajorHalfAxis*cos(t)*cos(Angle) - MinorHalfAxis*sin(t)*sin(Angle);
+  BoundingRect.Right := Round(tmp);
 end;
 
 { TsWorksheet }
@@ -537,16 +599,46 @@ begin
   AddText(AX, AY, AZ, '', 10, AStr);
 end;
 
-procedure TvVectorialDocument.AddCircle(AX, AY, AZ, ARadius: Double);
+procedure TvVectorialDocument.AddCircle(ACenterX, ACenterY, ACenterZ, ARadius: Double);
 var
   lCircle: TvCircle;
 begin
   lCircle := TvCircle.Create;
-  lCircle.X := AX;
-  lCircle.Y := AY;
-  lCircle.Z := AZ;
+  lCircle.CenterX := ACenterX;
+  lCircle.CenterY := ACenterY;
+  lCircle.CenterZ := ACenterZ;
   lCircle.Radius := ARadius;
   FEntities.Add(lCircle);
+end;
+
+procedure TvVectorialDocument.AddCircularArc(ACenterX, ACenterY, ACenterZ,
+  ARadius, AStartAngle, AEndAngle: Double);
+var
+  lCircularArc: TvCircularArc;
+begin
+  lCircularArc := TvCircularArc.Create;
+  lCircularArc.CenterX := ACenterX;
+  lCircularArc.CenterY := ACenterY;
+  lCircularArc.CenterZ := ACenterZ;
+  lCircularArc.Radius := ARadius;
+  lCircularArc.StartAngle := AStartAngle;
+  lCircularArc.EndAngle := AEndAngle;
+  FEntities.Add(lCircularArc);
+end;
+
+procedure TvVectorialDocument.AddEllipse(CenterX, CenterY, CenterZ,
+  MajorHalfAxis, MinorHalfAxis, Angle: Double);
+var
+  lEllipse: TvEllipse;
+begin
+  lEllipse := TvEllipse.Create;
+  lEllipse.CenterX := CenterX;
+  lEllipse.CenterY := CenterY;
+  lEllipse.CenterZ := CenterZ;
+  lEllipse.MajorHalfAxis := MajorHalfAxis;
+  lEllipse.MinorHalfAxis := MinorHalfAxis;
+  lEllipse.Angle := Angle;
+  FEntities.Add(lEllipse);
 end;
 
 {@@

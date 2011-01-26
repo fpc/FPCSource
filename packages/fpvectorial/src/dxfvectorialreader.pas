@@ -66,15 +66,11 @@ type
 
   TvDXFVectorialReader = class(TvCustomVectorialReader)
   private
-    // CIRCLE
-    CircleCenterX, CircleCenterY, CircleCenterZ, CircleRadius: Double;
-    // LINE
-    LineStartX, LineStartY, LineStartZ: Double;
-    LineEndX, LineEndY, LineEndZ: Double;
     //
     function  SeparateString(AString: string; ASeparator: Char): T10Strings;
     procedure ReadENTITIES(ATokens: TDXFTokens; AData: TvVectorialDocument);
     procedure ReadENTITIES_LINE(ATokens: TDXFTokens; AData: TvVectorialDocument);
+    procedure ReadENTITIES_ARC(ATokens: TDXFTokens; AData: TvVectorialDocument);
     procedure ReadENTITIES_CIRCLE(ATokens: TDXFTokens; AData: TvVectorialDocument);
     procedure ReadENTITIES_ELLIPSE(ATokens: TDXFTokens; AData: TvVectorialDocument);
     procedure ReadENTITIES_TEXT(ATokens: TDXFTokens; AData: TvVectorialDocument);
@@ -318,44 +314,9 @@ begin
   for i := 0 to ATokens.Count - 1 do
   begin
     CurToken := TDXFToken(ATokens.Items[i]);
-    if CurToken.StrValue = 'CIRCLE' then
-    begin
-      CircleCenterX := 0.0;
-      CircleCenterY := 0.0;
-      CircleCenterZ := 0.0;
-      CircleRadius := 0.0;
-
-      ReadENTITIES_CIRCLE(CurToken.Childs, AData);
-
-      AData.AddCircle(CircleCenterX, CircleCenterY,
-        CircleCenterZ, CircleRadius);
-    end
-    else if CurToken.StrValue = 'ELLIPSE' then
-    begin
-      // ...
-      ReadENTITIES_ELLIPSE(CurToken.Childs, AData);
-    end
-    else if CurToken.StrValue = 'LINE' then
-    begin
-      // Initial values
-      LineStartX := 0;
-      LineStartY := 0;
-      LineStartZ := 0;
-      LineEndX := 0;
-      LineEndY := 0;
-      LineEndZ := 0;
-
-      // Read the data of the line
-      ReadENTITIES_LINE(CurToken.Childs, AData);
-
-      // And now write it
-      {$ifdef FPVECTORIALDEBUG}
-      WriteLn(Format('Adding Line from %f,%f to %f,%f', [LineStartX, LineStartY, LineEndX, LineEndY]));
-      {$endif}
-      AData.StartPath(LineStartX, LineStartY);
-      AData.AddLineToPath(LineEndX, LineEndY);
-      AData.EndPath();
-    end
+    if CurToken.StrValue = 'CIRCLE' then ReadENTITIES_CIRCLE(CurToken.Childs, AData)
+    else if CurToken.StrValue = 'ELLIPSE' then ReadENTITIES_ELLIPSE(CurToken.Childs, AData)
+    else if CurToken.StrValue = 'LINE' then ReadENTITIES_LINE(CurToken.Childs, AData)
     else if CurToken.StrValue = 'TEXT' then
     begin
       // ...
@@ -367,7 +328,18 @@ procedure TvDXFVectorialReader.ReadENTITIES_LINE(ATokens: TDXFTokens; AData: TvV
 var
   CurToken: TDXFToken;
   i: Integer;
+  // LINE
+  LineStartX, LineStartY, LineStartZ: Double;
+  LineEndX, LineEndY, LineEndZ: Double;
 begin
+  // Initial values
+  LineStartX := 0;
+  LineStartY := 0;
+  LineStartZ := 0;
+  LineEndX := 0;
+  LineEndY := 0;
+  LineEndZ := 0;
+
   for i := 0 to ATokens.Count - 1 do
   begin
     // Now read and process the item name
@@ -388,6 +360,62 @@ begin
       31: LineEndZ := CurToken.FloatValue;
     end;
   end;
+
+  // And now write it
+  {$ifdef FPVECTORIALDEBUG}
+  WriteLn(Format('Adding Line from %f,%f to %f,%f', [LineStartX, LineStartY, LineEndX, LineEndY]));
+  {$endif}
+  AData.StartPath(LineStartX, LineStartY);
+  AData.AddLineToPath(LineEndX, LineEndY);
+  AData.EndPath();
+end;
+
+{
+100 Subclass marker (AcDbCircle)
+39 Thickness (optional; default = 0)
+10 Center point (in OCS) DXF: X value; APP: 3D point
+20, 30 DXF: Y and Z values of center point (in OCS)
+40 Radius
+100 Subclass marker (AcDbArc)
+50 Start angle
+51 End angle
+210 Extrusion direction. (optional; default = 0, 0, 1) DXF: X value; APP: 3D vector
+220, 230 DXF: Y and Z values of extrusion direction (optional)
+}
+procedure TvDXFVectorialReader.ReadENTITIES_ARC(ATokens: TDXFTokens;
+  AData: TvVectorialDocument);
+var
+  CurToken: TDXFToken;
+  i: Integer;
+  CenterX, CenterY, CenterZ, Radius, StartAngle, EndAngle: Double;
+begin
+  CenterX := 0.0;
+  CenterY := 0.0;
+  CenterZ := 0.0;
+  Radius := 0.0;
+  StartAngle := 0.0;
+  EndAngle := 0.0;
+
+  for i := 0 to ATokens.Count - 1 do
+  begin
+    // Now read and process the item name
+    CurToken := TDXFToken(ATokens.Items[i]);
+
+    // Avoid an exception by previously checking if the conversion can be made
+    if (CurToken.GroupCode = DXF_ENTITIES_HANDLE) or
+      (CurToken.GroupCode = DXF_ENTITIES_AcDbEntity) then Continue;
+
+    CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue));
+
+    case CurToken.GroupCode of
+      10: CenterX := CurToken.FloatValue;
+      20: CenterY := CurToken.FloatValue;
+      30: CenterZ := CurToken.FloatValue;
+      40: Radius := CurToken.FloatValue;
+    end;
+  end;
+
+  AData.AddCircularArc(CenterX, CenterY, CenterZ, Radius, StartAngle, EndAngle);
 end;
 
 {
@@ -405,7 +433,13 @@ procedure TvDXFVectorialReader.ReadENTITIES_CIRCLE(ATokens: TDXFTokens;
 var
   CurToken: TDXFToken;
   i: Integer;
+  CircleCenterX, CircleCenterY, CircleCenterZ, CircleRadius: Double;
 begin
+  CircleCenterX := 0.0;
+  CircleCenterY := 0.0;
+  CircleCenterZ := 0.0;
+  CircleRadius := 0.0;
+
   for i := 0 to ATokens.Count - 1 do
   begin
     // Now read and process the item name
@@ -424,6 +458,9 @@ begin
       40: CircleRadius := CurToken.FloatValue;
     end;
   end;
+
+  AData.AddCircle(CircleCenterX, CircleCenterY,
+    CircleCenterZ, CircleRadius);
 end;
 
 {
@@ -443,7 +480,7 @@ procedure TvDXFVectorialReader.ReadENTITIES_ELLIPSE(ATokens: TDXFTokens;
 var
   CurToken: TDXFToken;
   i: Integer;
-  CenterX, CenterY, CenterZ: Double;
+  CenterX, CenterY, CenterZ, MajorHalfAxis, MinorHalfAxis, Angle: Double;
 begin
   for i := 0 to ATokens.Count - 1 do
   begin
@@ -461,7 +498,11 @@ begin
       20: CenterY := CurToken.FloatValue;
       30: CenterZ := CurToken.FloatValue;
     end;
+
   end;
+
+  //
+  AData.AddEllipse(CenterX, CenterY, CenterZ, MajorHalfAxis, MinorHalfAxis, Angle);
 end;
 
 {
@@ -498,8 +539,35 @@ end;
 }
 procedure TvDXFVectorialReader.ReadENTITIES_TEXT(ATokens: TDXFTokens;
   AData: TvVectorialDocument);
+var
+  CurToken: TDXFToken;
+  i: Integer;
+  PosX, PosY, PosZ: Double;
+  Str: string;
 begin
+  for i := 0 to ATokens.Count - 1 do
+  begin
+    // Now read and process the item name
+    CurToken := TDXFToken(ATokens.Items[i]);
 
+    // Avoid an exception by previously checking if the conversion can be made
+    if (CurToken.GroupCode = DXF_ENTITIES_HANDLE) or
+      (CurToken.GroupCode = 1) or
+      (CurToken.GroupCode = DXF_ENTITIES_AcDbEntity) then Continue;
+
+    CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue));
+
+    case CurToken.GroupCode of
+      1:  Str := CurToken.StrValue;
+      10: PosX := CurToken.FloatValue;
+      20: PosY := CurToken.FloatValue;
+      30: PosZ := CurToken.FloatValue;
+    end;
+
+  end;
+
+  //
+//  AData.AddEllipse(CenterX, CenterY, CenterZ, MajorHalfAxis, MinorHalfAxis, Angle);
 end;
 
 function TvDXFVectorialReader.GetCoordinateValue(AStr: shortstring): Double;
