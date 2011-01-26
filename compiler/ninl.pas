@@ -2258,9 +2258,18 @@ implementation
                 begin
                   { the parser has already made sure the expression is valid }
 
-                  { there could be a procvar, which is 2*sizeof(pointer), while we }
-                  { must only check the first pointer -> can't just convert to an  }
-                  { add node in all cases                                          }
+                  { in case of a complex procvar, only check the "code" pointer }
+                  if (tcallparanode(left).left.resultdef.typ=procvardef) and
+                     not tprocvardef(tcallparanode(left).left.resultdef).is_addressonly then
+                    begin
+                      inserttypeconv_explicit(tcallparanode(left).left,search_system_type('TMETHOD').typedef);
+                      tcallparanode(left).left:=csubscriptnode.create(tsym(tabstractrecorddef(tcallparanode(left).left.resultdef).symtable.find('CODE')),tcallparanode(left).left);
+                      tcallparanode(left).get_paratype;
+                    end;
+
+                  { converting to an add node is tricky because of differences
+                    in procvar handling between FPC and Delphi handling, so
+                    handle specially }
                   set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
                   resultdef:=booltype;
                 end;

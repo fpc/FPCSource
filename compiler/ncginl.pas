@@ -640,9 +640,7 @@ implementation
     procedure tcginlinenode.second_assigned;
       begin
         secondpass(tcallparanode(left).left);
-        { force left to be an OS_ADDR, since in case of method procvars }
-        { the size is 2*OS_ADDR (JM)                                    }
-        cg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,OS_ADDR,OC_NE,0,tcallparanode(left).left.location,current_procinfo.CurrTrueLabel);
+        cg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),OC_NE,0,tcallparanode(left).left.location,current_procinfo.CurrTrueLabel);
         cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
         location_reset(location,LOC_JUMP,OS_NO);
       end;
