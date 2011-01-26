@@ -12,7 +12,7 @@ type
 
 implementation
 
-procedure TList.Add(item: _T);
+procedure TList<_T>.Add(item: _T);
 begin
   data:=item;
 end;

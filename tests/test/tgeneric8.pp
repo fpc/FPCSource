@@ -17,7 +17,7 @@ type
      procedure Add(item: _T);
    end;
 
-procedure TList.Add(item: _T);
+procedure TList<_T>.Add(item: _T);
 var
   newitem : PListItem;
 begin
@@ -28,13 +28,13 @@ begin
 end;
 
 
-function TList.GetFirst : TIterator; inline;
+function TList<_T>.GetFirst : TIterator; inline;
   begin
     result:=first;
   end;
 
 
-function TList.GetNext(i : TIterator) : TIterator; inline;
+function TList<_T>.GetNext(i : TIterator) : TIterator; inline;
   begin
     result:=i^.next;
   end;

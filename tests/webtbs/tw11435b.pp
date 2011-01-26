@@ -12,7 +12,7 @@ type
 
 implementation
 
-function gCBla.add( item: _T) : integer;
+function gCBla<_T>.add( item: _T) : integer;
 begin
   result := 0;
 end;

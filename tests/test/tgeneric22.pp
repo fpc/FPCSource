@@ -4,33 +4,33 @@ type
   generic TGListItem<T> = class(TObject)
   public var
     FValue: T;
-    FNext: TGListItem;
+    FNext: specialize TGListItem<T>;
     procedure SetValue(Value: T);
     function GetValue: T;
-    procedure Assign(Source: TGListItem);
-    function Merge(Other: TGListItem): TGListItem;
+    procedure Assign(Source: specialize TGListItem<T>);
+    function Merge(Other: specialize TGListItem<T>): specialize TGListItem<T>;
   end;
 
-procedure TGListItem.SetValue(Value: T);
+procedure TGListItem<T>.SetValue(Value: T);
 begin
   FValue := Value;
 end;
 
-function TGListItem.GetValue: T;
+function TGListItem<T>.GetValue: T;
 begin
   Result := FValue;
 end;
 
-procedure TGListItem.Assign(Source: TGListItem);
+procedure TGListItem<T>.Assign(Source: specialize TGListItem<T>);
 begin
   FNext := Source;
 end;
 
-function TGListItem.Merge(Other: TGListItem): TGListItem;
+function TGListItem<T>.Merge(Other: specialize TGListItem<T>): specialize TGListItem<T>;
 var
-  Temp: TGListItem;
+  Temp: specialize TGListItem<T>;
 begin
-  Temp := TGListItem.Create;
+  Temp := specialize TGListItem<T>.Create;
   Temp.SetValue(FNext.GetValue + Other.FNext.GetValue);
   Result := Temp;
 end;

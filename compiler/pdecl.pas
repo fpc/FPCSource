@@ -91,7 +91,7 @@ implementation
         if orgname='' then
          internalerror(9584582);
         hp:=nil;
-        p:=comp_expr(true,false);
+        p:=comp_expr(true,[]);
         storetokenpos:=current_tokenpos;
         current_tokenpos:=filepos;
         case p.nodetype of
@@ -394,7 +394,7 @@ implementation
         end;
 
       var
-         typename,orgtypename : TIDString;
+         typename,orgtypename,tmp : TIDString;
          newtype  : ttypesym;
          sym      : tsym;
          srsymtable : TSymtable;
@@ -442,6 +442,10 @@ implementation
                consume(_LSHARPBRACKET);
                generictypelist:=parse_generic_parameters;
                consume(_RSHARPBRACKET);
+               { modify the type name }
+               tmp:=generate_generic_id_modifier(generictypelist.Count);
+               typename:=typename+tmp;
+               orgtypename:=orgtypename+tmp;
              end;
 
            consume(_EQ);
@@ -735,7 +739,7 @@ implementation
              _EQ:
                 begin
                    consume(_EQ);
-                   p:=comp_expr(true,false);
+                   p:=comp_expr(true,[]);
                    storetokenpos:=current_tokenpos;
                    current_tokenpos:=filepos;
                    sym:=nil;

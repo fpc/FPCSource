@@ -30,14 +30,21 @@ interface
       node,ncal,
       tokens,globtype,globals,constexp;
 
+    type
+      TExprOption=(
+        eoTypeOnly,    { search only type names }
+        eoSpecialize   { do specialization      }
+      );
+      TExprOptions = set of TExprOption;
+
     { reads a whole expression }
     function expr(dotypecheck:boolean) : tnode;
 
     { reads an expression without assignements and .. }
-    function comp_expr(accept_equal,typeonly:boolean):tnode;
+    function comp_expr(accept_equal:boolean;options:TExprOptions):tnode;
 
     { reads a single factor }
-    function factor(getaddr,typeonly:boolean) : tnode;
+    function factor(getaddr:boolean;options:TExprOptions) : tnode;
 
     procedure string_dec(var def: tdef; allowtypedef: boolean);
 
@@ -53,7 +60,7 @@ implementation
 
     uses
        { common }
-       cutils,
+       cutils,cclasses,
        { global }
        verbose,
        systems,widestr,
@@ -79,7 +86,7 @@ implementation
     const
       highest_precedence = oppower;
 
-    function sub_expr(pred_level:Toperator_precedence;accept_equal,typeonly:boolean):tnode;forward;
+    function sub_expr(pred_level:Toperator_precedence;accept_equal:boolean;options:TExprOptions):tnode;forward;
 
     const
        { true, if the inherited call is anonymous }
@@ -101,7 +108,7 @@ implementation
               if not(allowtypedef) then
                 Message(parser_e_no_local_para_def);
               consume(_LECKKLAMMER);
-              p:=comp_expr(true,false);
+              p:=comp_expr(true,[]);
               if not is_constintnode(p) then
                 begin
                   Message(parser_e_illegal_expression);
@@ -172,12 +179,12 @@ implementation
                else
                  begin
                    named_args_allowed:=true;
-                   p1:=comp_expr(true,false);
+                   p1:=comp_expr(true,[]);
                    named_args_allowed:=false;
                    if found_arg_name then
                      begin
                        argname:=p1;
-                       p1:=comp_expr(true,false);
+                       p1:=comp_expr(true,[]);
                        p2:=ccallparanode.create(p1,p2);
                        tcallparanode(p2).parametername:=argname;
                      end
@@ -188,19 +195,19 @@ implementation
              end
            else
              begin
-               p1:=comp_expr(true,false);
+               p1:=comp_expr(true,[]);
                p2:=ccallparanode.create(p1,p2);
              end;
            { it's for the str(l:5,s); }
            if __colon and (token=_COLON) then
              begin
                consume(_COLON);
-               p1:=comp_expr(true,false);
+               p1:=comp_expr(true,[]);
                p2:=ccallparanode.create(p1,p2);
                include(tcallparanode(p2).callparaflags,cpf_is_colon_para);
                if try_to_consume(_COLON) then
                  begin
-                   p1:=comp_expr(true,false);
+                   p1:=comp_expr(true,[]);
                    p2:=ccallparanode.create(p1,p2);
                    include(tcallparanode(p2).callparaflags,cpf_is_colon_para);
                  end
@@ -282,7 +289,7 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr(true,[]);
               consume(_RKLAMMER);
               p1:=geninlinenode(in_ord_x,false,p1);
               statement_syssym := p1;
@@ -296,7 +303,7 @@ implementation
                     begin
                       if not(try_to_consume(_RKLAMMER)) then
                         begin
-                          p1:=comp_expr(true,false);
+                          p1:=comp_expr(true,[]);
                           consume(_RKLAMMER);
                           if (not assigned(current_procinfo) or
                               is_void(current_procinfo.procdef.returndef)) then
@@ -360,7 +367,7 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr(true,[]);
               consume(_RKLAMMER);
               if p1.nodetype=typen then
                 ttypenode(p1).allowed:=true;
@@ -386,7 +393,7 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr(true,[]);
               consume(_RKLAMMER);
               if (p1.nodetype<>typen) and
                  (
@@ -431,7 +438,7 @@ implementation
                 begin
                   consume(_LKLAMMER);
                   in_args:=true;
-                  p1:=comp_expr(true,false);
+                  p1:=comp_expr(true,[]);
                   { When reading a class type it is parsed as loadvmtaddrn,
                     typeinfo only needs the type so we remove the loadvmtaddrn }
                   if p1.nodetype=loadvmtaddrn then
@@ -465,7 +472,7 @@ implementation
               err:=false;
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr(true,[]);
               p2:=ccallparanode.create(p1,nil);
               p2:=geninlinenode(in_unaligned_x,false,p2);
               consume(_RKLAMMER);
@@ -477,7 +484,7 @@ implementation
               err:=false;
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr(true,[]);
               { When reading a class type it is parsed as loadvmtaddrn,
                 typeinfo only needs the type so we remove the loadvmtaddrn }
               if p1.nodetype=loadvmtaddrn then
@@ -533,7 +540,7 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr(true,[]);
               p1:=caddrnode.create(p1);
               consume(_RKLAMMER);
               statement_syssym:=p1;
@@ -543,7 +550,7 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr(true,[]);
               p1:=caddrnode.create(p1);
               do_typecheckpass(p1);
               { Ofs() returns a cardinal/qword, not a pointer }
@@ -556,7 +563,7 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr(true,[]);
               p1:=geninlinenode(in_seg_x,false,p1);
               consume(_RKLAMMER);
               statement_syssym:=p1;
@@ -567,7 +574,7 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr(true,[]);
               p2:=geninlinenode(l,false,p1);
               consume(_RKLAMMER);
               statement_syssym:=p2;
@@ -578,7 +585,7 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr(true,[]);
               p2:=geninlinenode(l,false,p1);
               consume(_RKLAMMER);
               statement_syssym:=p2;
@@ -589,9 +596,9 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr(true,[]);
               if try_to_consume(_COMMA) then
-                p2:=ccallparanode.create(comp_expr(true,false),nil)
+                p2:=ccallparanode.create(comp_expr(true,[]),nil)
               else
                 p2:=nil;
               p2:=ccallparanode.create(p1,p2);
@@ -606,9 +613,9 @@ implementation
                   message(parser_e_illegal_slice);
                   consume(_LKLAMMER);
                   in_args:=true;
-                  comp_expr(true,false).free;
+                  comp_expr(true,[]).free;
                   if try_to_consume(_COMMA) then
-                    comp_expr(true,false).free;
+                    comp_expr(true,[]).free;
                   statement_syssym:=cerrornode.create;
                   consume(_RKLAMMER);
                 end
@@ -616,10 +623,10 @@ implementation
                 begin
                   consume(_LKLAMMER);
                   in_args:=true;
-                  p1:=comp_expr(true,false);
+                  p1:=comp_expr(true,[]);
                   Consume(_COMMA);
                   if not(codegenerror) then
-                    p2:=ccallparanode.create(comp_expr(true,false),nil)
+                    p2:=ccallparanode.create(comp_expr(true,[]),nil)
                   else
                     p2:=cerrornode.create;
                   p2:=ccallparanode.create(p1,p2);
@@ -651,7 +658,7 @@ implementation
                 type checking }
               p2:=nil;
               repeat
-                p1:=comp_expr(true,false);
+                p1:=comp_expr(true,[]);
                 if p2<>nil then
                   p2:=caddnode.create(addn,p2,p1)
                 else
@@ -697,7 +704,7 @@ implementation
                   consume(_LKLAMMER);
                   in_args:=true;
                   { don't turn procsyms into calls (getaddr = true) }
-                  p1:=factor(true,false);
+                  p1:=factor(true,[]);
                   p2:=geninlinenode(l,false,p1);
                   consume(_RKLAMMER);
                   statement_syssym:=p2;
@@ -712,7 +719,7 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr(true,[]);
               p2:=geninlinenode(l,false,p1);
               consume(_RKLAMMER);
               statement_syssym:=p2;
@@ -746,11 +753,11 @@ implementation
             Begin
               consume(_LKLAMMER);
               in_args := true;
-              p1:= ccallparanode.create(comp_expr(true,false), nil);
+              p1:= ccallparanode.create(comp_expr(true,[]), nil);
               consume(_COMMA);
-              p2 := ccallparanode.create(comp_expr(true,false),p1);
+              p2 := ccallparanode.create(comp_expr(true,[]),p1);
               if try_to_consume(_COMMA) then
-                p2 := ccallparanode.create(comp_expr(true,false),p2);
+                p2 := ccallparanode.create(comp_expr(true,[]),p2);
               consume(_RKLAMMER);
               p2 := geninlinenode(l,false,p2);
               statement_syssym := p2;
@@ -761,9 +768,9 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr(true,[]);
               consume(_COMMA);
-              p2:=comp_expr(true,false);
+              p2:=comp_expr(true,[]);
               statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,nil)));
               consume(_RKLAMMER);
             end;
@@ -773,11 +780,11 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr(true,[]);
               consume(_COMMA);
-              p2:=comp_expr(true,false);
+              p2:=comp_expr(true,[]);
               consume(_COMMA);
-              paras:=comp_expr(true,false);
+              paras:=comp_expr(true,[]);
               statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,ccallparanode.create(paras,nil))));
               consume(_RKLAMMER);
             end;
@@ -786,9 +793,9 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr(true,[]);
               if try_to_consume(_COMMA) then
-                 p2:=comp_expr(true,false)
+                 p2:=comp_expr(true,[])
               else
                begin
                  { then insert an empty string }
@@ -1093,7 +1100,7 @@ implementation
                          { read the expression }
                          if propsym.propdef.typ=procvardef then
                            getprocvardef:=tprocvardef(propsym.propdef);
-                         p2:=comp_expr(true,false);
+                         p2:=comp_expr(true,[]);
                          if assigned(getprocvardef) then
                            handle_procvar(getprocvardef,p2);
                          tcallnode(p1).left:=ccallparanode.create(p2,tcallnode(p1).left);
@@ -1109,7 +1116,7 @@ implementation
                          include(p1.flags,nf_isproperty);
                          consume(_ASSIGNMENT);
                          { read the expression }
-                         p2:=comp_expr(true,false);
+                         p2:=comp_expr(true,[]);
                          p1:=cassignmentnode.create(p1,p2);
                       end
                     else
@@ -1121,8 +1128,8 @@ implementation
                 end
               else
                 begin
-                   p1:=cerrornode.create;
-                   Message(parser_e_no_procedure_to_access_property);
+                  p1:=cerrornode.create;
+                  Message(parser_e_no_procedure_to_access_property);
                 end;
            end
          else
@@ -1240,7 +1247,7 @@ implementation
                      p1.free;
                      if try_to_consume(_LKLAMMER) then
                       begin
-                        p1:=comp_expr(true,false);
+                        p1:=comp_expr(true,[]);
                         consume(_RKLAMMER);
                         p1:=ctypeconvnode.create_explicit(p1,ttypesym(sym).typedef);
                       end
@@ -1318,9 +1325,43 @@ implementation
         end;
       end;
 
+    function get_generic_id_modifier:TIDString;
+      var
+        savedstate:tscannerstate;
+        typeparamcount:integer;
+      begin
+        { this functions test the token stream that it contains a valid
+          <TypeParam1, TypeParam2> sequence and if it so it returns that
+          sequence mask like <,> for the given example. if the sequence
+          is not valid the return value is an empty string }
+        result:='';
+        { to safely search the token stream we need to save it state and restore
+          it later }
+        savedstate:=current_scanner.savestate;
+        try
+          { sequnce must start with '<' symbol which under different conditions
+            maps either to _LSHARPBRACKET or to _LT token }
+          if not (try_to_consume(_LSHARPBRACKET) or try_to_consume(_LT)) then
+            exit;
+          typeparamcount:=0;
+          repeat
+            inc(typeparamcount);
+            { stop sequnce search if token is suspicious }
+            while not (token in ([_RSHARPBRACKET,_GT,_COMMA,_EOF] + endtokens)) do
+              consume(token);
+          until not try_to_consume(_COMMA);
+          { sequnce must finish with '>' symbol wich similar maps to 2 tokens }
+          if not (try_to_consume(_RSHARPBRACKET) or try_to_consume(_GT)) then
+            exit;
+          result:=generate_generic_id_modifier(typeparamcount);
+        finally
+          current_scanner.restorestate(savedstate);
+        end;
+      end;
+
   {$maxfpuregisters 0}
 
-    function factor(getaddr,typeonly:boolean) : tnode;
+    function factor(getaddr:boolean;options:TExprOptions) : tnode;
 
          {---------------------------------------------
                          Factor_read_id
@@ -1332,13 +1373,16 @@ implementation
            srsymtable : TSymtable;
            hdef  : tdef;
            orgstoredpattern,
-           storedpattern : string;
+           storedpattern, generic_id_modifier : string;
            callflags: tcallnodeflags;
            t : ttoken;
            unit_found : boolean;
+           structdef : tabstractrecorddef;
+           typeparams: TFPObjectList;
          begin
            { allow post fix operators }
            again:=true;
+           typeparams:=nil;
 
            { first check for identifier }
            if token<>_ID then
@@ -1349,17 +1393,65 @@ implementation
              end
            else
              begin
-               if typeonly then
-                 searchsym_type(pattern,srsym,srsymtable)
-               else
-                 searchsym(pattern,srsym,srsymtable);
-
-               { handle unit specification like System.Writeln }
-               unit_found:=try_consume_unitsym(srsym,srsymtable,t);
                storedpattern:=pattern;
                orgstoredpattern:=orgpattern;
-               consume(t);
+               consume(_ID);
+               if eoTypeOnly in options then
+                 begin
+                   { searching a generic }
+                   if (eoSpecialize in options) or
+                      ((m_delphi in current_settings.modeswitches) and  (token=_LSHARPBRACKET)) then
+                     begin
+                       typeparams:=TFPObjectList.Create(true);
+                       consume(_LSHARPBRACKET);
+                       repeat
+                         typeparams.add(factor(false,[eoTypeOnly]));
+                       until not try_to_consume(_COMMA);
+                       consume(_RSHARPBRACKET);
+                       generic_id_modifier:=generate_generic_id_modifier(typeparams.count);
+                       { modify patterns }
+                       storedpattern:=storedpattern+generic_id_modifier;
+                       orgstoredpattern:=orgstoredpattern+generic_id_modifier;
+                     end;
+                   searchsym_type(storedpattern,srsym,srsymtable);
+                 end
+               else
+                 begin
+                   srsym:=nil;
+                   { this can be a generic }
+                   if (eoSpecialize in options) or
+                      ((token=_LT) and (m_delphi in current_settings.modeswitches)) then
+                     begin
+                       generic_id_modifier:=get_generic_id_modifier;
+                       if generic_id_modifier<>'' then
+                         begin
+                           searchsym(storedpattern+generic_id_modifier,srsym,srsymtable);
+                           if assigned(srsym) then
+                             begin
+                               typeparams:=TFPObjectList.Create(true);
+                               consume(_LT);
+                               repeat
+                                 typeparams.add(factor(false,[eoTypeOnly]));
+                               until not try_to_consume(_COMMA);
+                               consume(_GT);
+                               { modify patterns }
+                               storedpattern:=storedpattern+generic_id_modifier;
+                               orgstoredpattern:=orgstoredpattern+generic_id_modifier;
+                             end;
+                         end;
+                     end;
+                   if not assigned(srsym) then
+                     searchsym(storedpattern,srsym,srsymtable);
+                 end;
 
+               { handle unit specification like System.Writeln }
+               unit_found:=try_consume_unitsym(srsym,srsymtable,t,false);
+               if unit_found then
+                 begin
+                   storedpattern:=pattern;
+                   orgstoredpattern:=orgpattern;
+                   consume(t);
+                 end;
                { named parameter support }
                found_arg_name:=false;
 
@@ -1370,6 +1462,7 @@ implementation
                     found_arg_name:=true;
                     p1:=cstringconstnode.createstr(storedpattern);
                     consume(_ASSIGNMENT);
+                    typeparams.free;
                     exit;
                   end;
                { if nothing found give error and return errorsym }
@@ -1475,18 +1568,33 @@ implementation
                      end
                     else
                      begin
+                       if hdef.typ=errordef then
+                         begin
+                           structdef:=current_structdef;
+                           while assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
+                             begin
+                               if (structdef.objname^=storedpattern) then
+                                 begin
+                                   hdef:=structdef;
+                                   if assigned(typeparams) then
+                                     generate_specialization(hdef,typeparams,false);
+                                   p1:=ctypenode.create(hdef);
+                                   typeparams.free;
+                                   exit;
+                                 end;
+                               structdef:=tabstractrecorddef(structdef.owner.defowner);
+                             end;
+                         end;
                        { We need to know if this unit uses Variants }
                        if (hdef=cvarianttype) and
                           not(cs_compilesystem in current_settings.moduleswitches) then
                          current_module.flags:=current_module.flags or uf_uses_variants;
                        { if we get a generic then check that it is not an inline specialization }
-                       if (df_generic in hdef.defoptions) and
-                          (token=_LT) and
-                          (m_delphi in current_settings.modeswitches) then
-                          generate_specialization(hdef,false);
+                       if assigned(typeparams) then
+                          generate_specialization(hdef,typeparams,false);
                        if try_to_consume(_LKLAMMER) then
                         begin
-                          p1:=comp_expr(true,false);
+                          p1:=comp_expr(true,[]);
                           consume(_RKLAMMER);
                           p1:=ctypeconvnode.create_explicit(p1,hdef);
                         end
@@ -1687,6 +1795,7 @@ implementation
                   end;
               end; { end case }
             end;
+            typeparams.free;
          end;
 
          {---------------------------------------------
@@ -1711,10 +1820,10 @@ implementation
               { nested array constructors are not allowed, see also tests/webtbs/tw17213.pp }
               old_allow_array_constructor:=allow_array_constructor;
               allow_array_constructor:=false;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr(true,[]);
               if try_to_consume(_POINTPOINT) then
                 begin
-                  p2:=comp_expr(true,false);
+                  p2:=comp_expr(true,[]);
                   p1:=carrayconstructorrangenode.create(p1,p2);
                 end;
                { insert at the end of the tree, to get the correct order }
@@ -1752,14 +1861,14 @@ implementation
                 else if try_to_consume(_LECKKLAMMER) then
                   begin
                     repeat
-                      comp_expr(true,false);
+                      comp_expr(true,[]);
                     until not try_to_consume(_COMMA);
                     consume(_RECKKLAMMER);
                   end
                 else if try_to_consume(_LKLAMMER) then
                   begin
                     repeat
-                      comp_expr(true,false);
+                      comp_expr(true,[]);
                     until not try_to_consume(_COMMA);
                     consume(_RKLAMMER);
                   end
@@ -1790,7 +1899,7 @@ implementation
 
             countindices:=0;
             repeat
-              p4:=comp_expr(true,false);
+              p4:=comp_expr(true,[]);
 
               addstatement(newstatement,cassignmentnode.create(
                 ctemprefnode.create_offset(temp,countindices*s32inttype.size),p4));
@@ -1806,7 +1915,7 @@ implementation
             if token=_ASSIGNMENT then
               begin
                 consume(_ASSIGNMENT);
-                p4:=comp_expr(true,false);
+                p4:=comp_expr(true,[]);
 
                 { create call to fpc_vararray_put }
                 paras:=ccallparanode.create(cordconstnode.create
@@ -1937,10 +2046,10 @@ implementation
                                  if (tpointerdef(p1.resultdef).pointeddef.typ=arraydef) and
                                     (m_autoderef in current_settings.modeswitches) then
                                    p1:=cderefnode.create(p1);
-                                 p2:=comp_expr(true,false);
+                                 p2:=comp_expr(true,[]);
                                  { Support Pbytevar[0..9] which returns array [0..9].}
                                  if try_to_consume(_POINTPOINT) then
-                                   p2:=crangenode.create(p2,comp_expr(true,false));
+                                   p2:=crangenode.create(p2,comp_expr(true,[]));
                                  p1:=cvecnode.create(p1,p2);
                               end;
                             variantdef:
@@ -1951,15 +2060,15 @@ implementation
                               end;
                             stringdef :
                               begin
-                                p2:=comp_expr(true,false);
+                                p2:=comp_expr(true,[]);
                                 { Support string[0..9] which returns array [0..9] of char.}
                                 if try_to_consume(_POINTPOINT) then
-                                  p2:=crangenode.create(p2,comp_expr(true,false));
+                                  p2:=crangenode.create(p2,comp_expr(true,[]));
                                 p1:=cvecnode.create(p1,p2);
                               end;
                             arraydef:
                               begin
-                                p2:=comp_expr(true,false);
+                                p2:=comp_expr(true,[]);
                                 { support SEG:OFS for go32v2 Mem[] }
                                 if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
                                    (p1.nodetype=loadn) and
@@ -1973,11 +2082,11 @@ implementation
                                     if try_to_consume(_COLON) then
                                      begin
                                        p3:=caddnode.create(muln,cordconstnode.create($10,s32inttype,false),p2);
-                                       p2:=comp_expr(true,false);
+                                       p2:=comp_expr(true,[]);
                                        p2:=caddnode.create(addn,p2,p3);
                                        if try_to_consume(_POINTPOINT) then
                                          { Support mem[$a000:$0000..$07ff] which returns array [0..$7ff] of memtype.}
-                                         p2:=crangenode.create(p2,caddnode.create(addn,comp_expr(true,false),p3.getcopy));
+                                         p2:=crangenode.create(p2,caddnode.create(addn,comp_expr(true,[]),p3.getcopy));
                                        p1:=cvecnode.create(p1,p2);
                                        include(tvecnode(p1).flags,nf_memseg);
                                        include(tvecnode(p1).flags,nf_memindex);
@@ -1986,7 +2095,7 @@ implementation
                                      begin
                                        if try_to_consume(_POINTPOINT) then
                                          { Support mem[$80000000..$80000002] which returns array [0..2] of memtype.}
-                                         p2:=crangenode.create(p2,comp_expr(true,false));
+                                         p2:=crangenode.create(p2,comp_expr(true,[]));
                                        p1:=cvecnode.create(p1,p2);
                                        include(tvecnode(p1).flags,nf_memindex);
                                      end;
@@ -1995,7 +2104,7 @@ implementation
                                   begin
                                     if try_to_consume(_POINTPOINT) then
                                       { Support arrayvar[0..9] which returns array [0..9] of arraytype.}
-                                      p2:=crangenode.create(p2,comp_expr(true,false));
+                                      p2:=crangenode.create(p2,comp_expr(true,[]));
                                     p1:=cvecnode.create(p1,p2);
                                   end;
                               end;
@@ -2005,7 +2114,7 @@ implementation
                                   Message(parser_e_invalid_qualifier);
                                 p1.destroy;
                                 p1:=cerrornode.create;
-                                comp_expr(true,false);
+                                comp_expr(true,[]);
                                 again:=false;
                               end;
                           end;
@@ -2096,7 +2205,7 @@ implementation
                                  begin
                                    consume(_ASSIGNMENT);
                                    { read the expression }
-                                   p3:=comp_expr(true,false);
+                                   p3:=comp_expr(true,[]);
                                    { concat value parameter too }
                                    p2:=ccallparanode.create(p3,p2);
                                    p1:=translate_disp_call(p1,p2,dct_propput,dispatchstring,0,voidtype);
@@ -2216,7 +2325,7 @@ implementation
                          begin
                            if try_to_consume(_LKLAMMER) then
                              begin
-                               p1:=comp_expr(true,false);
+                               p1:=comp_expr(true,[]);
                                consume(_RKLAMMER);
                                p1:=ctypeconvnode.create_explicit(p1,p1.resultdef);
                              end
@@ -2277,7 +2386,7 @@ implementation
          filepos    : tfileposinfo;
          again,
          updatefpos,
-         nodechanged  : boolean;
+         nodechanged : boolean;
       begin
         { can't keep a copy of p1 and compare pointers afterwards, because
           p1 may be freed and reallocated in the same place!  }
@@ -2319,7 +2428,7 @@ implementation
                 begin
                   consume(_RETURN);
                   if not(token in [_SEMICOLON,_ELSE,_END]) then
-                    p1 := cexitnode.create(comp_expr(true,false))
+                    p1 := cexitnode.create(comp_expr(true,[]))
                   else
                     p1 := cexitnode.create(nil);
                 end;
@@ -2506,7 +2615,7 @@ implementation
                  { STRING can be also a type cast }
                  if try_to_consume(_LKLAMMER) then
                   begin
-                    p1:=comp_expr(true,false);
+                    p1:=comp_expr(true,[]);
                     consume(_RKLAMMER);
                     p1:=ctypeconvnode.create_explicit(p1,hdef);
                     { handle postfix operators here e.g. string(a)[10] }
@@ -2524,7 +2633,7 @@ implementation
                  { FILE can be also a type cast }
                  if try_to_consume(_LKLAMMER) then
                   begin
-                    p1:=comp_expr(true,false);
+                    p1:=comp_expr(true,[]);
                     consume(_RKLAMMER);
                     p1:=ctypeconvnode.create_explicit(p1,hdef);
                     { handle postfix operators here e.g. string(a)[10] }
@@ -2568,7 +2677,7 @@ implementation
                  { support both @<x> and @(<x>) }
                  if try_to_consume(_LKLAMMER) then
                   begin
-                    p1:=factor(true,false);
+                    p1:=factor(true,[]);
                     if token in [_CARET,_POINT,_LECKKLAMMER] then
                      begin
                        again:=true;
@@ -2578,7 +2687,7 @@ implementation
                     consume(_RKLAMMER);
                   end
                  else
-                  p1:=factor(true,false);
+                  p1:=factor(true,[]);
                  if token in [_CARET,_POINT,_LECKKLAMMER] then
                   begin
                     again:=true;
@@ -2600,7 +2709,7 @@ implementation
              _LKLAMMER :
                begin
                  consume(_LKLAMMER);
-                 p1:=comp_expr(true,false);
+                 p1:=comp_expr(true,[]);
                  consume(_RKLAMMER);
                  { it's not a good solution     }
                  { but (a+b)^ makes some problems  }
@@ -2621,7 +2730,7 @@ implementation
              _PLUS :
                begin
                  consume(_PLUS);
-                 p1:=factor(false,false);
+                 p1:=factor(false,[]);
                  p1:=cunaryplusnode.create(p1);
                end;
 
@@ -2633,7 +2742,7 @@ implementation
                       { ugly hack, but necessary to be able to parse }
                       { -9223372036854775808 as int64 (JM)           }
                       pattern := '-'+pattern;
-                      p1:=sub_expr(oppower,false,false);
+                      p1:=sub_expr(oppower,false,[]);
                       {  -1 ** 4 should be - (1 ** 4) and not
                          (-1) ** 4
                          This was the reason of tw0869.pp test failure PM }
@@ -2656,7 +2765,7 @@ implementation
                     end
                  else
                    begin
-                     p1:=sub_expr(oppower,false,false);
+                     p1:=sub_expr(oppower,false,[]);
                      p1:=cunaryminusnode.create(p1);
                    end;
                end;
@@ -2664,7 +2773,7 @@ implementation
              _OP_NOT :
                begin
                  consume(_OP_NOT);
-                 p1:=factor(false,false);
+                 p1:=factor(false,[]);
                  p1:=cnotnode.create(p1);
                end;
 
@@ -2702,7 +2811,7 @@ implementation
                }
                consume(_OBJCPROTOCOL);
                consume(_LKLAMMER);
-               p1:=factor(false,false);
+               p1:=factor(false,[]);
                consume(_RKLAMMER);
                p1:=cinlinenode.create(in_objc_protocol_x,false,p1);
              end;
@@ -2753,7 +2862,7 @@ implementation
            _OP_AS,_OP_IS,_OP_AND,_AMPERSAND,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR],
           [_STARSTAR] );
 
-    function sub_expr(pred_level:Toperator_precedence;accept_equal,typeonly:boolean):tnode;
+    function sub_expr(pred_level:Toperator_precedence;accept_equal:boolean;options:TExprOptions):tnode;
     {Reads a subexpression while the operators are of the current precedence
      level, or any higher level. Replaces the old term, simpl_expr and
      simpl2_expr.}
@@ -2763,9 +2872,9 @@ implementation
         filepos : tfileposinfo;
       begin
         if pred_level=highest_precedence then
-          p1:=factor(false,typeonly)
+          p1:=factor(false,options)
         else
-          p1:=sub_expr(succ(pred_level),true,typeonly);
+          p1:=sub_expr(succ(pred_level),true,options);
         repeat
           if (token in operator_levels[pred_level]) and
              ((token<>_EQ) or accept_equal) then
@@ -2774,9 +2883,9 @@ implementation
              filepos:=current_tokenpos;
              consume(token);
              if pred_level=highest_precedence then
-               p2:=factor(false,false)
+               p2:=factor(false,[])
              else
-               p2:=sub_expr(succ(pred_level),true,typeonly);
+               p2:=sub_expr(succ(pred_level),true,options);
              case oldt of
                _PLUS :
                  p1:=caddnode.create(addn,p1,p2);
@@ -2846,14 +2955,14 @@ implementation
       end;
 
 
-    function comp_expr(accept_equal,typeonly:boolean):tnode;
+    function comp_expr(accept_equal:boolean;options:TExprOptions):tnode;
       var
          oldafterassignment : boolean;
          p1 : tnode;
       begin
          oldafterassignment:=afterassignment;
          afterassignment:=true;
-         p1:=sub_expr(opcompare,accept_equal,typeonly);
+         p1:=sub_expr(opcompare,accept_equal,options);
          { get the resultdef for this expression }
          if not assigned(p1.resultdef) then
           do_typecheckpass(p1);
@@ -2872,7 +2981,7 @@ implementation
 
       begin
          oldafterassignment:=afterassignment;
-         p1:=sub_expr(opcompare,true,false);
+         p1:=sub_expr(opcompare,true,[]);
          { get the resultdef for this expression }
          if not assigned(p1.resultdef) and
             dotypecheck then
@@ -2885,7 +2994,7 @@ implementation
            _POINTPOINT :
              begin
                 consume(_POINTPOINT);
-                p2:=sub_expr(opcompare,true,false);
+                p2:=sub_expr(opcompare,true,[]);
                 p1:=crangenode.create(p1,p2);
              end;
            _ASSIGNMENT :
@@ -2893,7 +3002,7 @@ implementation
                 consume(_ASSIGNMENT);
                 if (p1.resultdef.typ=procvardef) then
                   getprocvardef:=tprocvardef(p1.resultdef);
-                p2:=sub_expr(opcompare,true,false);
+                p2:=sub_expr(opcompare,true,[]);
                 if assigned(getprocvardef) then
                   handle_procvar(getprocvardef,p2);
                 getprocvardef:=nil;
@@ -2902,25 +3011,25 @@ implementation
            _PLUSASN :
              begin
                consume(_PLUSASN);
-               p2:=sub_expr(opcompare,true,false);
+               p2:=sub_expr(opcompare,true,[]);
                p1:=gen_c_style_operator(addn,p1,p2);
             end;
           _MINUSASN :
             begin
                consume(_MINUSASN);
-               p2:=sub_expr(opcompare,true,false);
+               p2:=sub_expr(opcompare,true,[]);
                p1:=gen_c_style_operator(subn,p1,p2);
             end;
           _STARASN :
             begin
                consume(_STARASN  );
-               p2:=sub_expr(opcompare,true,false);
+               p2:=sub_expr(opcompare,true,[]);
                p1:=gen_c_style_operator(muln,p1,p2);
             end;
           _SLASHASN :
             begin
                consume(_SLASHASN  );
-               p2:=sub_expr(opcompare,true,false);
+               p2:=sub_expr(opcompare,true,[]);
                p1:=gen_c_style_operator(slashn,p1,p2);
             end;
           else
@@ -2943,7 +3052,7 @@ implementation
       p:tnode;
     begin
       result:=0;
-      p:=comp_expr(true,false);
+      p:=comp_expr(true,[]);
       if not codegenerror then
        begin
          if (p.nodetype<>ordconstn) or
@@ -2963,7 +3072,7 @@ implementation
       p:tnode;
     begin
       get_stringconst:='';
-      p:=comp_expr(true,false);
+      p:=comp_expr(true,[]);
       if p.nodetype<>stringconstn then
         begin
           if (p.nodetype=ordconstn) and is_char(p.resultdef) then

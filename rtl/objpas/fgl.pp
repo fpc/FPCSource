@@ -124,9 +124,9 @@ type
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
     function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
-{$ifndef VER2_4}
-    procedure Assign(Source: TFPGList);
-{$endif VER2_4}
+{$ifndef OldSyntax}
+    procedure Assign(Source: specialize TFPGList<T>);
+{$endif OldSyntax}
     function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
     property Items[Index: Integer]: T read Get write Put; default;
@@ -159,9 +159,9 @@ type
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
     function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
-{$ifndef VER2_4}
-    procedure Assign(Source: TFPGObjectList);
-{$endif VER2_4}
+{$ifndef OldSyntax}
+    procedure Assign(Source: specialize TFPGObjectList<T>);
+{$endif OldSyntax}
     function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
     property Items[Index: Integer]: T read Get write Put; default;
@@ -194,9 +194,9 @@ type
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
     function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
-{$ifndef VER2_4}
-    procedure Assign(Source: TFPGInterfacedObjectList);
-{$endif VER2_4}
+{$ifndef OldSyntax}
+    procedure Assign(Source: specialize TFPGInterfacedObjectList<T>);
+{$endif OldSyntax}
     function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
     property Items[Index: Integer]: T read Get write Put; default;
@@ -694,19 +694,19 @@ end;
 {*             TFPGListEnumerator                                           *}
 {****************************************************************************}
 
-function TFPGListEnumerator.GetCurrent: T;
+function TFPGListEnumerator{$ifndef OldSyntax}<T>{$endif}.GetCurrent: T;
 begin
   Result := T(FList.Items[FPosition]^);
 end;
 
-constructor TFPGListEnumerator.Create(AList: TFPSList);
+constructor TFPGListEnumerator{$ifndef OldSyntax}<T>{$endif}.Create(AList: TFPSList);
 begin
   inherited Create;
   FList := AList;
   FPosition := -1;
 end;
 
-function TFPGListEnumerator.MoveNext: Boolean;
+function TFPGListEnumerator{$ifndef OldSyntax}<T>{$endif}.MoveNext: Boolean;
 begin
   inc(FPosition);
   Result := FPosition < FList.Count;
@@ -716,47 +716,47 @@ end;
 {*                TFPGList                                                  *}
 {****************************************************************************}
 
-constructor TFPGList.Create;
+constructor TFPGList{$ifndef OldSyntax}<T>{$endif}.Create;
 begin
   inherited Create(sizeof(T));
 end;
 
-procedure TFPGList.CopyItem(Src, Dest: Pointer);
+procedure TFPGList{$ifndef OldSyntax}<T>{$endif}.CopyItem(Src, Dest: Pointer);
 begin
   T(Dest^) := T(Src^);
 end;
 
-procedure TFPGList.Deref(Item: Pointer);
+procedure TFPGList{$ifndef OldSyntax}<T>{$endif}.Deref(Item: Pointer);
 begin
   Finalize(T(Item^));
 end;
 
-function TFPGList.Get(Index: Integer): T;
+function TFPGList{$ifndef OldSyntax}<T>{$endif}.Get(Index: Integer): T;
 begin
   Result := T(inherited Get(Index)^);
 end;
 
-function TFPGList.GetList: PTypeList;
+function TFPGList{$ifndef OldSyntax}<T>{$endif}.GetList: PTypeList;
 begin
   Result := PTypeList(FList);
 end;
 
-function TFPGList.ItemPtrCompare(Item1, Item2: Pointer): Integer;
+function TFPGList{$ifndef OldSyntax}<T>{$endif}.ItemPtrCompare(Item1, Item2: Pointer): Integer;
 begin
   Result := FOnCompare(T(Item1^), T(Item2^));
 end;
 
-procedure TFPGList.Put(Index: Integer; const Item: T);
+procedure TFPGList{$ifndef OldSyntax}<T>{$endif}.Put(Index: Integer; const Item: T);
 begin
   inherited Put(Index, @Item);
 end;
 
-function TFPGList.Add(const Item: T): Integer;
+function TFPGList{$ifndef OldSyntax}<T>{$endif}.Add(const Item: T): Integer;
 begin
   Result := inherited Add(@Item);
 end;
 
-function TFPGList.Extract(const Item: T): T;
+function TFPGList{$ifndef OldSyntax}<T>{$endif}.Extract(const Item: T): T;
 var
   ResPtr: Pointer;
 begin
@@ -767,17 +767,17 @@ begin
     FillByte(Result, sizeof(T), 0);
 end;
 
-function TFPGList.First: T;
+function TFPGList{$ifndef OldSyntax}<T>{$endif}.First: T;
 begin
   Result := T(inherited First^);
 end;
 
-function TFPGList.GetEnumerator: TFPGListEnumeratorSpec;
+function TFPGList{$ifndef OldSyntax}<T>{$endif}.GetEnumerator: TFPGListEnumeratorSpec;
 begin
   Result := TFPGListEnumeratorSpec.Create(Self);
 end;
 
-function TFPGList.IndexOf(const Item: T): Integer;
+function TFPGList{$ifndef OldSyntax}<T>{$endif}.IndexOf(const Item: T): Integer;
 begin
   Result := 0;
   {$info TODO: fix inlining to work! InternalItems[Result]^}
@@ -787,18 +787,18 @@ begin
     Result := -1;
 end;
 
-procedure TFPGList.Insert(Index: Integer; const Item: T);
+procedure TFPGList{$ifndef OldSyntax}<T>{$endif}.Insert(Index: Integer; const Item: T);
 begin
   T(inherited Insert(Index)^) := Item;
 end;
 
-function TFPGList.Last: T;
+function TFPGList{$ifndef OldSyntax}<T>{$endif}.Last: T;
 begin
   Result := T(inherited Last^);
 end;
 
-{$ifndef VER2_4}
-procedure TFPGList.Assign(Source: TFPGList);
+{$ifndef OldSyntax}
+procedure TFPGList<T>.Assign(Source: specialize TFPGList<T>);
 var
   i: Integer;
 begin
@@ -806,16 +806,16 @@ begin
   for I := 0 to Source.Count - 1 do
     Add(Source[i]);
 end;
-{$endif VER2_4}
+{$endif OldSyntax}
 
-function TFPGList.Remove(const Item: T): Integer;
+function TFPGList{$ifndef OldSyntax}<T>{$endif}.Remove(const Item: T): Integer;
 begin
   Result := IndexOf(Item);
   if Result >= 0 then
     Delete(Result);
 end;
 
-procedure TFPGList.Sort(Compare: TCompareFunc);
+procedure TFPGList{$ifndef OldSyntax}<T>{$endif}.Sort(Compare: TCompareFunc);
 begin
   FOnCompare := Compare;
   inherited Sort(@ItemPtrCompare);
@@ -826,49 +826,49 @@ end;
 {*                TFPGObjectList                                            *}
 {****************************************************************************}
 
-constructor TFPGObjectList.Create(FreeObjects: Boolean);
+constructor TFPGObjectList{$ifndef OldSyntax}<T>{$endif}.Create(FreeObjects: Boolean);
 begin
   inherited Create;
   FFreeObjects := FreeObjects;
 end;
 
-procedure TFPGObjectList.CopyItem(Src, Dest: Pointer);
+procedure TFPGObjectList{$ifndef OldSyntax}<T>{$endif}.CopyItem(Src, Dest: Pointer);
 begin
   T(Dest^) := T(Src^);
 end;
 
-procedure TFPGObjectList.Deref(Item: Pointer);
+procedure TFPGObjectList{$ifndef OldSyntax}<T>{$endif}.Deref(Item: Pointer);
 begin
   if FFreeObjects then
     T(Item^).Free;
 end;
 
-function TFPGObjectList.Get(Index: Integer): T;
+function TFPGObjectList{$ifndef OldSyntax}<T>{$endif}.Get(Index: Integer): T;
 begin
   Result := T(inherited Get(Index)^);
 end;
 
-function TFPGObjectList.GetList: PTypeList;
+function TFPGObjectList{$ifndef OldSyntax}<T>{$endif}.GetList: PTypeList;
 begin
   Result := PTypeList(FList);
 end;
 
-function TFPGObjectList.ItemPtrCompare(Item1, Item2: Pointer): Integer;
+function TFPGObjectList{$ifndef OldSyntax}<T>{$endif}.ItemPtrCompare(Item1, Item2: Pointer): Integer;
 begin
   Result := FOnCompare(T(Item1^), T(Item2^));
 end;
 
-procedure TFPGObjectList.Put(Index: Integer; const Item: T);
+procedure TFPGObjectList{$ifndef OldSyntax}<T>{$endif}.Put(Index: Integer; const Item: T);
 begin
   inherited Put(Index, @Item);
 end;
 
-function TFPGObjectList.Add(const Item: T): Integer;
+function TFPGObjectList{$ifndef OldSyntax}<T>{$endif}.Add(const Item: T): Integer;
 begin
   Result := inherited Add(@Item);
 end;
 
-function TFPGObjectList.Extract(const Item: T): T;
+function TFPGObjectList{$ifndef OldSyntax}<T>{$endif}.Extract(const Item: T): T;
 var
   ResPtr: Pointer;
 begin
@@ -879,17 +879,17 @@ begin
     FillByte(Result, sizeof(T), 0);
 end;
 
-function TFPGObjectList.First: T;
+function TFPGObjectList{$ifndef OldSyntax}<T>{$endif}.First: T;
 begin
   Result := T(inherited First^);
 end;
 
-function TFPGObjectList.GetEnumerator: TFPGListEnumeratorSpec;
+function TFPGObjectList{$ifndef OldSyntax}<T>{$endif}.GetEnumerator: TFPGListEnumeratorSpec;
 begin
   Result := TFPGListEnumeratorSpec.Create(Self);
 end;
 
-function TFPGObjectList.IndexOf(const Item: T): Integer;
+function TFPGObjectList{$ifndef OldSyntax}<T>{$endif}.IndexOf(const Item: T): Integer;
 begin
   Result := 0;
   {$info TODO: fix inlining to work! InternalItems[Result]^}
@@ -899,18 +899,18 @@ begin
     Result := -1;
 end;
 
-procedure TFPGObjectList.Insert(Index: Integer; const Item: T);
+procedure TFPGObjectList{$ifndef OldSyntax}<T>{$endif}.Insert(Index: Integer; const Item: T);
 begin
   T(inherited Insert(Index)^) := Item;
 end;
 
-function TFPGObjectList.Last: T;
+function TFPGObjectList{$ifndef OldSyntax}<T>{$endif}.Last: T;
 begin
   Result := T(inherited Last^);
 end;
 
-{$ifndef VER2_4}
-procedure TFPGObjectList.Assign(Source: TFPGObjectList);
+{$ifndef OldSyntax}
+procedure TFPGObjectList<T>.Assign(Source: specialize TFPGObjectList<T>);
 var
   i: Integer;
 begin
@@ -918,16 +918,16 @@ begin
   for I := 0 to Source.Count - 1 do
     Add(Source[i]);
 end;
-{$endif VER2_4}
+{$endif OldSyntax}
 
-function TFPGObjectList.Remove(const Item: T): Integer;
+function TFPGObjectList{$ifndef OldSyntax}<T>{$endif}.Remove(const Item: T): Integer;
 begin
   Result := IndexOf(Item);
   if Result >= 0 then
     Delete(Result);
 end;
 
-procedure TFPGObjectList.Sort(Compare: TCompareFunc);
+procedure TFPGObjectList{$ifndef OldSyntax}<T>{$endif}.Sort(Compare: TCompareFunc);
 begin
   FOnCompare := Compare;
   inherited Sort(@ItemPtrCompare);
@@ -938,12 +938,12 @@ end;
 {*                TFPGInterfacedObjectList                                  *}
 {****************************************************************************}
 
-constructor TFPGInterfacedObjectList.Create;
+constructor TFPGInterfacedObjectList{$ifndef OldSyntax}<T>{$endif}.Create;
 begin
   inherited Create;
 end;
 
-procedure TFPGInterfacedObjectList.CopyItem(Src, Dest: Pointer);
+procedure TFPGInterfacedObjectList{$ifndef OldSyntax}<T>{$endif}.CopyItem(Src, Dest: Pointer);
 begin
   if Assigned(Pointer(Dest^)) then
     T(Dest^)._Release;
@@ -952,38 +952,38 @@ begin
     T(Dest^)._AddRef;
 end;
 
-procedure TFPGInterfacedObjectList.Deref(Item: Pointer);
+procedure TFPGInterfacedObjectList{$ifndef OldSyntax}<T>{$endif}.Deref(Item: Pointer);
 begin
   if Assigned(Pointer(Item^)) then
     T(Item^)._Release;
 end;
 
-function TFPGInterfacedObjectList.Get(Index: Integer): T;
+function TFPGInterfacedObjectList{$ifndef OldSyntax}<T>{$endif}.Get(Index: Integer): T;
 begin
   Result := T(inherited Get(Index)^);
 end;
 
-function TFPGInterfacedObjectList.GetList: PTypeList;
+function TFPGInterfacedObjectList{$ifndef OldSyntax}<T>{$endif}.GetList: PTypeList;
 begin
   Result := PTypeList(FList);
 end;
 
-function TFPGInterfacedObjectList.ItemPtrCompare(Item1, Item2: Pointer): Integer;
+function TFPGInterfacedObjectList{$ifndef OldSyntax}<T>{$endif}.ItemPtrCompare(Item1, Item2: Pointer): Integer;
 begin
   Result := FOnCompare(T(Item1^), T(Item2^));
 end;
 
-procedure TFPGInterfacedObjectList.Put(Index: Integer; const Item: T);
+procedure TFPGInterfacedObjectList{$ifndef OldSyntax}<T>{$endif}.Put(Index: Integer; const Item: T);
 begin
   inherited Put(Index, @Item);
 end;
 
-function TFPGInterfacedObjectList.Add(const Item: T): Integer;
+function TFPGInterfacedObjectList{$ifndef OldSyntax}<T>{$endif}.Add(const Item: T): Integer;
 begin
   Result := inherited Add(@Item);
 end;
 
-function TFPGInterfacedObjectList.Extract(const Item: T): T;
+function TFPGInterfacedObjectList{$ifndef OldSyntax}<T>{$endif}.Extract(const Item: T): T;
 var
   ResPtr: Pointer;
 begin
@@ -994,17 +994,17 @@ begin
     FillByte(Result, sizeof(T), 0);
 end;
 
-function TFPGInterfacedObjectList.First: T;
+function TFPGInterfacedObjectList{$ifndef OldSyntax}<T>{$endif}.First: T;
 begin
   Result := T(inherited First^);
 end;
 
-function TFPGInterfacedObjectList.GetEnumerator: TFPGListEnumeratorSpec;
+function TFPGInterfacedObjectList{$ifndef OldSyntax}<T>{$endif}.GetEnumerator: TFPGListEnumeratorSpec;
 begin
   Result := TFPGListEnumeratorSpec.Create(Self);
 end;
 
-function TFPGInterfacedObjectList.IndexOf(const Item: T): Integer;
+function TFPGInterfacedObjectList{$ifndef OldSyntax}<T>{$endif}.IndexOf(const Item: T): Integer;
 begin
   Result := 0;
   {$info TODO: fix inlining to work! InternalItems[Result]^}
@@ -1014,18 +1014,18 @@ begin
     Result := -1;
 end;
 
-procedure TFPGInterfacedObjectList.Insert(Index: Integer; const Item: T);
+procedure TFPGInterfacedObjectList{$ifndef OldSyntax}<T>{$endif}.Insert(Index: Integer; const Item: T);
 begin
   T(inherited Insert(Index)^) := Item;
 end;
 
-function TFPGInterfacedObjectList.Last: T;
+function TFPGInterfacedObjectList{$ifndef OldSyntax}<T>{$endif}.Last: T;
 begin
   Result := T(inherited Last^);
 end;
 
-{$ifndef VER2_4}
-procedure TFPGInterfacedObjectList.Assign(Source: TFPGInterfacedObjectList);
+{$ifndef OldSyntax}
+procedure TFPGInterfacedObjectList<T>.Assign(Source: specialize TFPGInterfacedObjectList<T>);
 var
   i: Integer;
 begin
@@ -1033,16 +1033,16 @@ begin
   for I := 0 to Source.Count - 1 do
     Add(Source[i]);
 end;
-{$endif VER2_4}
+{$endif OldSyntax}
 
-function TFPGInterfacedObjectList.Remove(const Item: T): Integer;
+function TFPGInterfacedObjectList{$ifndef OldSyntax}<T>{$endif}.Remove(const Item: T): Integer;
 begin
   Result := IndexOf(Item);
   if Result >= 0 then
     Delete(Result);
 end;
 
-procedure TFPGInterfacedObjectList.Sort(Compare: TCompareFunc);
+procedure TFPGInterfacedObjectList{$ifndef OldSyntax}<T>{$endif}.Sort(Compare: TCompareFunc);
 begin
   FOnCompare := Compare;
   inherited Sort(@ItemPtrCompare);
@@ -1283,49 +1283,49 @@ end;
                              TFPGMap
  ****************************************************************************}
 
-constructor TFPGMap.Create;
+constructor TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.Create;
 begin
   inherited Create(SizeOf(TKey), SizeOf(TData));
 end;
 
-procedure TFPGMap.CopyItem(Src, Dest: Pointer);
+procedure TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.CopyItem(Src, Dest: Pointer);
 begin
   CopyKey(Src, Dest);
   CopyData(PByte(Src)+KeySize, PByte(Dest)+KeySize);
 end;
 
-procedure TFPGMap.CopyKey(Src, Dest: Pointer);
+procedure TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.CopyKey(Src, Dest: Pointer);
 begin
   TKey(Dest^) := TKey(Src^);
 end;
 
-procedure TFPGMap.CopyData(Src, Dest: Pointer);
+procedure TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.CopyData(Src, Dest: Pointer);
 begin
   TData(Dest^) := TData(Src^);
 end;
 
-procedure TFPGMap.Deref(Item: Pointer);
+procedure TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.Deref(Item: Pointer);
 begin
   Finalize(TKey(Item^));
   Finalize(TData(Pointer(PByte(Item)+KeySize)^));
 end;
 
-function TFPGMap.GetKey(Index: Integer): TKey;
+function TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.GetKey(Index: Integer): TKey;
 begin
   Result := TKey(inherited GetKey(Index)^);
 end;
 
-function TFPGMap.GetData(Index: Integer): TData;
+function TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.GetData(Index: Integer): TData;
 begin
   Result := TData(inherited GetData(Index)^);
 end;
 
-function TFPGMap.GetKeyData(const AKey: TKey): TData;
+function TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.GetKeyData(const AKey: TKey): TData;
 begin
   Result := TData(inherited GetKeyData(@AKey)^);
 end;
 
-function TFPGMap.KeyCompare(Key1, Key2: Pointer): Integer;
+function TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.KeyCompare(Key1, Key2: Pointer): Integer;
 begin
   if PKey(Key1)^ < PKey(Key2)^ then
     Result := -1
@@ -1335,7 +1335,7 @@ begin
     Result := 0;
 end;
 
-{function TFPGMap.DataCompare(Data1, Data2: Pointer): Integer;
+{function TFPGMap<TKey, TData>.DataCompare(Data1, Data2: Pointer): Integer;
 begin
   if PData(Data1)^ < PData(Data2)^ then
     Result := -1
@@ -1345,17 +1345,17 @@ begin
     Result := 0;
 end;}
 
-function TFPGMap.KeyCustomCompare(Key1, Key2: Pointer): Integer;
+function TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.KeyCustomCompare(Key1, Key2: Pointer): Integer;
 begin
   Result := FOnKeyCompare(TKey(Key1^), TKey(Key2^));
 end;
 
-function TFPGMap.DataCustomCompare(Data1, Data2: Pointer): Integer;
+function TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.DataCustomCompare(Data1, Data2: Pointer): Integer;
 begin
   Result := FOnDataCompare(TData(Data1^), TData(Data2^));
 end;
 
-procedure TFPGMap.SetOnKeyCompare(NewCompare: TKeyCompareFunc);
+procedure TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.SetOnKeyCompare(NewCompare: TKeyCompareFunc);
 begin
   FOnKeyCompare := NewCompare;
   if NewCompare <> nil then
@@ -1364,7 +1364,7 @@ begin
     OnKeyPtrCompare := @KeyCompare;
 end;
 
-procedure TFPGMap.SetOnDataCompare(NewCompare: TDataCompareFunc);
+procedure TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.SetOnDataCompare(NewCompare: TDataCompareFunc);
 begin
   FOnDataCompare := NewCompare;
   if NewCompare <> nil then
@@ -1373,64 +1373,64 @@ begin
     OnDataPtrCompare := nil;
 end;
 
-procedure TFPGMap.InitOnPtrCompare;
+procedure TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.InitOnPtrCompare;
 begin
   SetOnKeyCompare(nil);
   SetOnDataCompare(nil);
 end;
 
-procedure TFPGMap.PutKey(Index: Integer; const NewKey: TKey);
+procedure TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.PutKey(Index: Integer; const NewKey: TKey);
 begin
   inherited PutKey(Index, @NewKey);
 end;
 
-procedure TFPGMap.PutData(Index: Integer; const NewData: TData);
+procedure TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.PutData(Index: Integer; const NewData: TData);
 begin
   inherited PutData(Index, @NewData);
 end;
 
-procedure TFPGMap.PutKeyData(const AKey: TKey; const NewData: TData);
+procedure TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.PutKeyData(const AKey: TKey; const NewData: TData);
 begin
   inherited PutKeyData(@AKey, @NewData);
 end;
 
-function TFPGMap.Add(const AKey: TKey): Integer;
+function TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.Add(const AKey: TKey): Integer;
 begin
   Result := inherited Add(@AKey);
 end;
 
-function TFPGMap.Add(const AKey: TKey; const AData: TData): Integer;
+function TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.Add(const AKey: TKey; const AData: TData): Integer;
 begin
   Result := inherited Add(@AKey, @AData);
 end;
 
-function TFPGMap.Find(const AKey: TKey; out Index: Integer): Boolean;
+function TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.Find(const AKey: TKey; out Index: Integer): Boolean;
 begin
   Result := inherited Find(@AKey, Index);
 end;
 
-function TFPGMap.IndexOf(const AKey: TKey): Integer;
+function TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.IndexOf(const AKey: TKey): Integer;
 begin
   Result := inherited IndexOf(@AKey);
 end;
 
-function TFPGMap.IndexOfData(const AData: TData): Integer;
+function TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.IndexOfData(const AData: TData): Integer;
 begin
   { TODO: loop ? }
   Result := inherited IndexOfData(@AData);
 end;
 
-procedure TFPGMap.InsertKey(Index: Integer; const AKey: TKey);
+procedure TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.InsertKey(Index: Integer; const AKey: TKey);
 begin
   inherited InsertKey(Index, @AKey);
 end;
 
-procedure TFPGMap.InsertKeyData(Index: Integer; const AKey: TKey; const AData: TData);
+procedure TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.InsertKeyData(Index: Integer; const AKey: TKey; const AData: TData);
 begin
   inherited InsertKeyData(Index, @AKey, @AData);
 end;
 
-function TFPGMap.Remove(const AKey: TKey): Integer;
+function TFPGMap{$ifndef OldSyntax}<TKey, TData>{$endif}.Remove(const AKey: TKey): Integer;
 begin
   Result := inherited Remove(@AKey);
 end;
@@ -1439,23 +1439,23 @@ end;
                              TFPGMapInterfacedObjectData
  ****************************************************************************}
 
-constructor TFPGMapInterfacedObjectData.Create;
+constructor TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.Create;
 begin
   inherited Create(SizeOf(TKey), SizeOf(TData));
 end;
 
-procedure TFPGMapInterfacedObjectData.CopyItem(Src, Dest: Pointer);
+procedure TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.CopyItem(Src, Dest: Pointer);
 begin
   CopyKey(Src, Dest);
   CopyData(PByte(Src)+KeySize, PByte(Dest)+KeySize);
 end;
 
-procedure TFPGMapInterfacedObjectData.CopyKey(Src, Dest: Pointer);
+procedure TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.CopyKey(Src, Dest: Pointer);
 begin
   TKey(Dest^) := TKey(Src^);
 end;
 
-procedure TFPGMapInterfacedObjectData.CopyData(Src, Dest: Pointer);
+procedure TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.CopyData(Src, Dest: Pointer);
 begin
   if Assigned(Pointer(Dest^)) then
     TData(Dest^)._Release;
@@ -1464,29 +1464,29 @@ begin
     TData(Dest^)._AddRef;
 end;
 
-procedure TFPGMapInterfacedObjectData.Deref(Item: Pointer);
+procedure TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.Deref(Item: Pointer);
 begin
   Finalize(TKey(Item^));
   if Assigned(PPointer(PByte(Item)+KeySize)^) then
     TData(Pointer(PByte(Item)+KeySize)^)._Release;
 end;
 
-function TFPGMapInterfacedObjectData.GetKey(Index: Integer): TKey;
+function TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.GetKey(Index: Integer): TKey;
 begin
   Result := TKey(inherited GetKey(Index)^);
 end;
 
-function TFPGMapInterfacedObjectData.GetData(Index: Integer): TData;
+function TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.GetData(Index: Integer): TData;
 begin
   Result := TData(inherited GetData(Index)^);
 end;
 
-function TFPGMapInterfacedObjectData.GetKeyData(const AKey: TKey): TData;
+function TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.GetKeyData(const AKey: TKey): TData;
 begin
   Result := TData(inherited GetKeyData(@AKey)^);
 end;
 
-function TFPGMapInterfacedObjectData.KeyCompare(Key1, Key2: Pointer): Integer;
+function TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.KeyCompare(Key1, Key2: Pointer): Integer;
 begin
   if PKey(Key1)^ < PKey(Key2)^ then
     Result := -1
@@ -1496,7 +1496,7 @@ begin
     Result := 0;
 end;
 
-{function TFPGMapInterfacedObjectData.DataCompare(Data1, Data2: Pointer): Integer;
+{function TFPGMapInterfacedObjectData<TKey, TData>.DataCompare(Data1, Data2: Pointer): Integer;
 begin
   if PData(Data1)^ < PData(Data2)^ then
     Result := -1
@@ -1506,17 +1506,17 @@ begin
     Result := 0;
 end;}
 
-function TFPGMapInterfacedObjectData.KeyCustomCompare(Key1, Key2: Pointer): Integer;
+function TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.KeyCustomCompare(Key1, Key2: Pointer): Integer;
 begin
   Result := FOnKeyCompare(TKey(Key1^), TKey(Key2^));
 end;
 
-function TFPGMapInterfacedObjectData.DataCustomCompare(Data1, Data2: Pointer): Integer;
+function TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.DataCustomCompare(Data1, Data2: Pointer): Integer;
 begin
   Result := FOnDataCompare(TData(Data1^), TData(Data2^));
 end;
 
-procedure TFPGMapInterfacedObjectData.SetOnKeyCompare(NewCompare: TKeyCompareFunc);
+procedure TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.SetOnKeyCompare(NewCompare: TKeyCompareFunc);
 begin
   FOnKeyCompare := NewCompare;
   if NewCompare <> nil then
@@ -1525,7 +1525,7 @@ begin
     OnKeyPtrCompare := @KeyCompare;
 end;
 
-procedure TFPGMapInterfacedObjectData.SetOnDataCompare(NewCompare: TDataCompareFunc);
+procedure TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.SetOnDataCompare(NewCompare: TDataCompareFunc);
 begin
   FOnDataCompare := NewCompare;
   if NewCompare <> nil then
@@ -1534,64 +1534,64 @@ begin
     OnDataPtrCompare := nil;
 end;
 
-procedure TFPGMapInterfacedObjectData.InitOnPtrCompare;
+procedure TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.InitOnPtrCompare;
 begin
   SetOnKeyCompare(nil);
   SetOnDataCompare(nil);
 end;
 
-procedure TFPGMapInterfacedObjectData.PutKey(Index: Integer; const NewKey: TKey);
+procedure TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.PutKey(Index: Integer; const NewKey: TKey);
 begin
   inherited PutKey(Index, @NewKey);
 end;
 
-procedure TFPGMapInterfacedObjectData.PutData(Index: Integer; const NewData: TData);
+procedure TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.PutData(Index: Integer; const NewData: TData);
 begin
   inherited PutData(Index, @NewData);
 end;
 
-procedure TFPGMapInterfacedObjectData.PutKeyData(const AKey: TKey; const NewData: TData);
+procedure TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.PutKeyData(const AKey: TKey; const NewData: TData);
 begin
   inherited PutKeyData(@AKey, @NewData);
 end;
 
-function TFPGMapInterfacedObjectData.Add(const AKey: TKey): Integer;
+function TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.Add(const AKey: TKey): Integer;
 begin
   Result := inherited Add(@AKey);
 end;
 
-function TFPGMapInterfacedObjectData.Add(const AKey: TKey; const AData: TData): Integer;
+function TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.Add(const AKey: TKey; const AData: TData): Integer;
 begin
   Result := inherited Add(@AKey, @AData);
 end;
 
-function TFPGMapInterfacedObjectData.Find(const AKey: TKey; out Index: Integer): Boolean;
+function TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.Find(const AKey: TKey; out Index: Integer): Boolean;
 begin
   Result := inherited Find(@AKey, Index);
 end;
 
-function TFPGMapInterfacedObjectData.IndexOf(const AKey: TKey): Integer;
+function TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.IndexOf(const AKey: TKey): Integer;
 begin
   Result := inherited IndexOf(@AKey);
 end;
 
-function TFPGMapInterfacedObjectData.IndexOfData(const AData: TData): Integer;
+function TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.IndexOfData(const AData: TData): Integer;
 begin
   { TODO: loop ? }
   Result := inherited IndexOfData(@AData);
 end;
 
-procedure TFPGMapInterfacedObjectData.InsertKey(Index: Integer; const AKey: TKey);
+procedure TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.InsertKey(Index: Integer; const AKey: TKey);
 begin
   inherited InsertKey(Index, @AKey);
 end;
 
-procedure TFPGMapInterfacedObjectData.InsertKeyData(Index: Integer; const AKey: TKey; const AData: TData);
+procedure TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.InsertKeyData(Index: Integer; const AKey: TKey; const AData: TData);
 begin
   inherited InsertKeyData(Index, @AKey, @AData);
 end;
 
-function TFPGMapInterfacedObjectData.Remove(const AKey: TKey): Integer;
+function TFPGMapInterfacedObjectData{$ifndef OldSyntax}<TKey, TData>{$endif}.Remove(const AKey: TKey): Integer;
 begin
   Result := inherited Remove(@AKey);
 end;

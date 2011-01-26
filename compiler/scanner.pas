@@ -74,6 +74,22 @@ interface
          constructor Create(atoken: ttoken;asettings:tsettings;atokenbuf:tdynamicarray;anext:treplaystack);
        end;
 
+       tscannerstate = record
+         token: ttoken;
+         idtoken: ttoken;
+         settings: tsettings;
+         orgpattern: string;
+         pattern: string;
+         lasttokenpos: longint;
+         current_filepos: tfileposinfo;
+         current_tokenpos: tfileposinfo;
+         line_no: longint;
+         lastlinepos: longint;
+         bufstart: longint;
+         inputpos: longint;
+         c: char;
+       end;
+
        tcompile_time_predicate = function(var valuedescr: String) : Boolean;
 
        tspecialgenerictoken = (ST_LOADSETTINGS,ST_LINE,ST_COLUMN,ST_FILEINDEX);
@@ -181,6 +197,9 @@ interface
           function  readpreproc:ttoken;
           function  asmgetcharstart : char;
           function  asmgetchar:char;
+          { state save restore }
+          function savestate:tscannerstate;
+          procedure restorestate(state:tscannerstate);
        end;
 
 {$ifdef PREPROCWRITE}
@@ -4318,6 +4337,44 @@ exit_label:
          until false;
       end;
 
+    function tscannerfile.savestate:tscannerstate;
+      begin
+        result.settings:=current_settings;
+        result.token:=token;
+        result.idtoken:=idtoken;
+        result.pattern:=pattern;
+        result.orgpattern:=orgpattern;
+        result.lasttokenpos:=lasttokenpos;
+        result.current_filepos:=current_filepos;
+        result.current_tokenpos:=current_tokenpos;
+        result.line_no:=line_no;
+        result.lastlinepos:=lastlinepos;
+        result.bufstart:=inputfile.bufstart;
+        result.inputpos:=inputpointer-inputbuffer;
+        result.c:=c;
+      end;
+
+    procedure tscannerfile.restorestate(state:tscannerstate);
+      begin
+        current_settings:=state.settings;
+        token:=state.token;
+        idtoken:=state.idtoken;
+        pattern:=state.pattern;
+        orgpattern:=state.orgpattern;
+        lasttokenpos:=state.lasttokenpos;
+        current_filepos:=state.current_filepos;
+        current_tokenpos:=state.current_tokenpos;
+        line_no:=state.line_no;
+        lastlinepos:=state.lastlinepos;
+        c:=state.c;
+        if inputfile.bufstart<>state.bufstart then
+          begin
+            inputfile.seekbuf(state.bufstart);
+            inputfile.readbuf;
+            inputbuffer:=inputfile.buf;
+          end;
+        inputpointer:=inputbuffer+state.inputpos;
+      end;
 
 {*****************************************************************************
                                    Helpers

@@ -9,12 +9,12 @@ type
      procedure Assign(Source: specialize TList<_T>);
    end;
 
-procedure TList.Add(item: _T);
+procedure TList<_T>.Add(item: _T);
 begin
   data:=item;
 end;
 
-procedure TList.Assign(Source: specialize TList<_T>);
+procedure TList<_T>.Assign(Source: specialize TList<_T>);
 begin
   data:=Source.data;
 end;

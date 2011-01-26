@@ -28,33 +28,33 @@ type
     procedure SetV(v: TTNode.T);
   end;
 
-constructor TNode.Create;
+constructor TNode<T>.Create;
 begin
 end;
 
-destructor TNode.Destroy;
+destructor TNode<T>.Destroy;
 begin
   inherited Destroy;
 end;
 
-constructor TContainer.Create;
+constructor TContainer<T>.Create;
 begin
   Data:=TTNode.Create;
 end;
 
-destructor TContainer.Destroy;
+destructor TContainer<T>.Destroy;
 begin
   Data.Free;
         inherited Destroy;
 end;
 
-function TContainer.GetAddr: TTNode.PT;
+function TContainer<T>.GetAddr: TTNode.PT;
 begin
         result := @Data.Data;
 end;
 
 
-procedure TContainer.SetV(v: TTNode.T);
+procedure TContainer<T>.SetV(v: TTNode.T);
 begin
   Data.Data:=v;
 end;

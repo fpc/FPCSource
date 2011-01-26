@@ -8,7 +8,7 @@ type
     function some_func(): integer;
   end;
 
-function GList.some_func(): integer;
+function GList<_T>.some_func(): integer;
 begin
   i := -1;
   Result := -1;

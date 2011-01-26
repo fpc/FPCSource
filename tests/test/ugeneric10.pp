@@ -18,12 +18,12 @@ type
 
 implementation
 
-procedure TList.Add(item: _T);
+procedure TList<_T>.Add(item: _T);
 begin
   data:=item;
 end;
 
-procedure TList.Sort(compare: TCompareFunc);
+procedure TList<_T>.Sort(compare: TCompareFunc);
 begin
   if compare(data, 20) <= 0 then
     halt(1);

@@ -19,12 +19,12 @@ begin
   halt(1);
 end;
 
-procedure TList.Add(item: _T);
+procedure TList<_T>.Add(item: _T);
 begin
   data:=item;
 end;
 
-procedure TList.Test;
+procedure TList<_T>.Test;
 begin
   if data <> 10 then
     halt(1);

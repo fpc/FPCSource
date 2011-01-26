@@ -16,11 +16,11 @@ type
 
   TTNodeString = specialize TNode<String>;
 
-constructor TNode.Create;
+constructor TNode<T>.Create;
 begin
 end;
 
-destructor TNode.Destroy;
+destructor TNode<T>.Destroy;
 begin
   inherited Destroy;
 end;

@@ -6,7 +6,7 @@ type
 
   tc1 = specialize tc<string>;
 
-procedure tc.p(data : T);
+procedure tc<T>.p(data : T);
   begin
     readln(data);
     writeln(data);

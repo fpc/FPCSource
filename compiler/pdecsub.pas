@@ -902,75 +902,43 @@ implementation
 
         function consume_generic_type_parameter:boolean;
           var
-            i:integer;
-            ok:boolean;
+            typeparamcount:integer;
             sym:tsym;
+            foundname,realname:TIDString;
           begin
-            result:=not assigned(astruct)and(m_delphi in current_settings.modeswitches);
-            if result then
+            result:=not assigned(astruct);
+            if result and (token=_LT) then
               begin
-                { a generic type parameter? }
-                srsym:=search_object_name(sp,false);
+                consume(_LT);
+                { a generic type parameter }
+                typeparamcount:=0;
+                foundname:='';
+                repeat
+                  if (token=_ID)  then
+                    begin
+                      inc(typeparamcount);
+                      foundname:=foundname+pattern+',';
+                    end;
+                  consume(_ID);
+                until not try_to_consume(_COMMA);
+                consume(_GT);
+                srsym:=search_object_name(sp+generate_generic_id_modifier(typeparamcount),false);
                 if (srsym.typ=typesym) and
                    (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
-                begin
-                  astruct:=tabstractrecorddef(ttypesym(srsym).typedef);
-                  if (df_generic in astruct.defoptions) and try_to_consume(_LT) then
-                    begin
-                      ok:=true;
-                      i:=0;
-                      repeat
-                        if ok and (token=_ID)  then
-                          begin
-                            ok:=false;
-                            while i<astruct.symtable.SymList.Count-1 do
-                              begin
-                                sym:=tsym(astruct.symtable.SymList[i]);
-                                if sp_generic_para in sym.symoptions then
-                                  begin
-                                    ok:=sym.Name=pattern;
-                                    inc(i);
-                                    break;
-                                  end;
-                                inc(i);
-                              end;
-                            if not ok then
-                              Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
-                          end;
-                        consume(_ID);
-                      until not try_to_consume(_COMMA);
-                      if ok then
-                        while i<astruct.symtable.SymList.Count-1 do
-                          begin
-                            sym:=tsym(astruct.symtable.SymList[i]);
-                            if sp_generic_para in sym.symoptions then
-                              begin
-                                Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
-                                break;
-                              end;
-                            inc(i);
-                          end;
-                      consume(_GT);
-                    end
-                  else
-                  if (df_generic in astruct.defoptions) and (token=_POINT) then
-                    begin
+                  begin
+                    astruct:=tabstractrecorddef(ttypesym(srsym).typedef);
+                    realname:='';
+                    for typeparamcount := 0 to astruct.symtable.SymList.Count-1 do
+                      begin
+                        sym:=tsym(astruct.symtable.SymList[typeparamcount]);
+                        if sp_generic_para in sym.symoptions then
+                          realname:=realname+sym.Name+',';
+                      end;
+                    if foundname<>realname then
                       Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
-                    end
-                  else
-                    begin
-                      { not a method. routine name just accidentally match some structure name }
-                      astruct:=nil;
-                      if try_to_consume(_LT) then
-                        begin
-                          Message(type_e_type_parameters_are_not_allowed_here);
-                          repeat
-                            consume(_ID);
-                          until not try_to_consume(_COMMA);
-                          consume(_GT);
-                        end;
-                    end;
-                end;
+                  end
+                else
+                  Message(type_e_type_parameters_are_not_allowed_here);
               end;
           end;
 
@@ -1707,7 +1675,7 @@ var pt:Tnode;
 begin
   if pd.typ<>procdef then
     internalerror(200604301);
-  pt:=comp_expr(true,false);
+  pt:=comp_expr(true,[]);
   if is_constintnode(pt) then
     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
       message(parser_e_range_check_error)
@@ -1769,7 +1737,7 @@ begin
       if paracnt<>1 then
         Message(parser_e_ill_msg_param);
     end;
-  pt:=comp_expr(true,false);
+  pt:=comp_expr(true,[]);
   { message is 1-character long }
   if is_constcharnode(pt) then
     begin

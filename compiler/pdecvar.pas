@@ -177,7 +177,7 @@ implementation
                          if def.typ=arraydef then
                           begin
                             idx:=0;
-                            p:=comp_expr(true,false);
+                            p:=comp_expr(true,[]);
                             if (not codegenerror) then
                              begin
                                if (p.nodetype=ordconstn) then
@@ -279,7 +279,7 @@ implementation
 
               if try_to_consume(_DISPID) then
                 begin
-                  pt:=comp_expr(true,false);
+                  pt:=comp_expr(true,[]);
                   if is_constintnode(pt) then
                     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
                       message(parser_e_range_check_error)
@@ -454,7 +454,7 @@ implementation
               if (idtoken=_INDEX) then
                 begin
                    consume(_INDEX);
-                   pt:=comp_expr(true,false);
+                   pt:=comp_expr(true,[]);
                    { Only allow enum and integer indexes. Convert all integer
                      values to s32int to be compatible with delphi, because the
                      procedure matching requires equal parameters }
@@ -723,14 +723,14 @@ implementation
                 begin
                   Message(parser_e_property_cant_have_a_default_value);
                   { Error recovery }
-                  pt:=comp_expr(true,false);
+                  pt:=comp_expr(true,[]);
                   pt.free;
                 end
               else
                 begin
                   { Get the result of the default, the firstpass is
                     needed to support values like -1 }
-                  pt:=comp_expr(true,false);
+                  pt:=comp_expr(true,[]);
                   if (p.propdef.typ=setdef) and
                      (pt.nodetype=arrayconstructorn) then
                     begin
@@ -1674,11 +1674,11 @@ implementation
               symtablestack.push(UnionSymtable);
               repeat
                 repeat
-                  pt:=comp_expr(true,false);
+                  pt:=comp_expr(true,[]);
                   if not(pt.nodetype=ordconstn) then
                     Message(parser_e_illegal_expression);
                   if try_to_consume(_POINTPOINT) then
-                    pt:=crangenode.create(pt,comp_expr(true,false));
+                    pt:=crangenode.create(pt,comp_expr(true,[]));
                   pt.free;
                   if token=_COMMA then
                     consume(_COMMA)

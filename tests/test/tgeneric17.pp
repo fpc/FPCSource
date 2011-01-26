@@ -3,11 +3,11 @@
 type
   generic TGListItem<T> = class(TObject)
   public
-    FNext: TGListItem;
-    procedure Assign(Source: TGListItem);
+    FNext: specialize TGListItem<T>;
+    procedure Assign(Source: specialize TGListItem<T>);
   end;
 
-procedure TGListItem.Assign(Source: TGListItem);
+procedure TGListItem<T>.Assign(Source: specialize TGListItem<T>);
 begin
   FNext := Source;
 end;

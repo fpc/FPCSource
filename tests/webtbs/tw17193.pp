@@ -18,7 +18,7 @@ type
   
   S = specialize G2<Integer>;
 
-procedure G2.P;
+procedure G2<T>.P;
 begin
 end;
 

@@ -71,7 +71,7 @@ implementation
          ex,if_a,else_a : tnode;
       begin
          consume(_IF);
-         ex:=comp_expr(true,false);
+         ex:=comp_expr(true,[]);
          consume(_THEN);
          if token<>_ELSE then
            if_a:=statement
@@ -125,7 +125,7 @@ implementation
          casenode : tcasenode;
       begin
          consume(_CASE);
-         caseexpr:=comp_expr(true,false);
+         caseexpr:=comp_expr(true,[]);
          { determines result type }
          do_typecheckpass(caseexpr);
          { variants must be accepted, but first they must be converted to integer }
@@ -300,7 +300,7 @@ implementation
          consume(_UNTIL);
 
          first:=cblocknode.create(first);
-         p_e:=comp_expr(true,false);
+         p_e:=comp_expr(true,[]);
          result:=cwhilerepeatnode.create(p_e,first,false,true);
       end;
 
@@ -312,7 +312,7 @@ implementation
 
       begin
          consume(_WHILE);
-         p_e:=comp_expr(true,false);
+         p_e:=comp_expr(true,[]);
          consume(_DO);
          p_a:=statement;
          result:=cwhilerepeatnode.create(p_e,p_a,true,false);
@@ -424,7 +424,7 @@ implementation
              else
                MessagePos(hloopvar.fileinfo,type_e_illegal_count_var);
 
-             hfrom:=comp_expr(true,false);
+             hfrom:=comp_expr(true,[]);
 
              if try_to_consume(_DOWNTO) then
                backward:=true
@@ -434,7 +434,7 @@ implementation
                  backward:=false;
                end;
 
-             hto:=comp_expr(true,false);
+             hto:=comp_expr(true,[]);
              consume(_DO);
 
              { Check if the constants fit in the range }
@@ -471,7 +471,7 @@ implementation
             var
               expr: tnode;
             begin
-              expr:=comp_expr(true,false);
+              expr:=comp_expr(true,[]);
 
               consume(_DO);
 
@@ -490,7 +490,7 @@ implementation
          { parse loop header }
          consume(_FOR);
 
-         hloopvar:=factor(false,false);
+         hloopvar:=factor(false,[]);
          valid_for_loopvar(hloopvar,true);
 
          if try_to_consume(_ASSIGNMENT) then
@@ -533,7 +533,7 @@ implementation
 
 
       begin
-         p:=comp_expr(true,false);
+         p:=comp_expr(true,[]);
          do_typecheckpass(p);
 
          if (p.nodetype=vecn) and
@@ -725,12 +725,12 @@ implementation
          if not(token in endtokens) then
            begin
               { object }
-              pobj:=comp_expr(true,false);
+              pobj:=comp_expr(true,[]);
               if try_to_consume(_AT) then
                 begin
-                   paddr:=comp_expr(true,false);
+                   paddr:=comp_expr(true,[]);
                    if try_to_consume(_COMMA) then
-                     pframe:=comp_expr(true,false);
+                     pframe:=comp_expr(true,[]);
                 end;
            end
          else

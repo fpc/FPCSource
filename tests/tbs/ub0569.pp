@@ -14,26 +14,26 @@ unit ub0569;
 
   implementation
 
-    function TGen.getstring : string;
+    function TGen<T>.getstring : string;
       begin
         result:='Free Pascal';
       end;
 
 
-    function TGen.getwidestring : widestring;
+    function TGen<T>.getwidestring : widestring;
       begin
         { force widestring }
         result:='Free Pascal'#1234;
       end;
 
 
-    function TGen.getint : int64;
+    function TGen<T>.getint : int64;
       begin
         result:=1234123412341234;
       end;
 
 
-    function TGen.getreal : real;
+    function TGen<T>.getreal : real;
       begin
         result:=333.0;
       end;

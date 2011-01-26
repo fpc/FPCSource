@@ -19,7 +19,7 @@ implementation
 
 { TG2 }
 
-destructor TG2.Destroy;
+destructor TG2<T>.Destroy;
 begin
   inherited Destroy;
 end;

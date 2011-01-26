@@ -21,7 +21,7 @@ begin
 end;
 
 
-procedure TList.Fill;
+procedure TList<_T>.Fill;
 begin
   LocalFill;
   data:=globaldata;

@@ -19,7 +19,7 @@ begin
   Result := 1;
 end;
 
-procedure TGTest.DoSomething;
+procedure TGTest<T>.DoSomething;
 begin
   data := Foo;
 end;

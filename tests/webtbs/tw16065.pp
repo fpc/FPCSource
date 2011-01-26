@@ -8,9 +8,9 @@ type
 
   TSpec = specialize TGen<Integer>;
 
-function TGen.Check(ASource: TObject): Boolean;
+function TGen<_T>.Check(ASource: TObject): Boolean;
 begin
-  Result := (ASource is TGen)   // this line breaks the compiler...
+  Result := (ASource is specialize TGen<_T>)   // this line breaks the compiler...
   and (ASource is ClassType);   // ...it should be equivelent to this line
 end;
 

@@ -7,7 +7,7 @@ type
     procedure Add(const AKey: TK; const AData: TD);
   end;
 
-procedure TMap.Add(const AKey: TK; const AData: TD);
+procedure TMap<TK, TD>.Add(const AKey: TK; const AData: TD);
 begin
   Key := AKey;
   Data := AData;

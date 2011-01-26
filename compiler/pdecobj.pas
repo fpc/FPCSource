@@ -328,7 +328,7 @@ implementation
         p : tnode;
         valid : boolean;
       begin
-        p:=comp_expr(true,false);
+        p:=comp_expr(true,[]);
         if p.nodetype=stringconstn then
           begin
             stringdispose(current_objectdef.iidstr);

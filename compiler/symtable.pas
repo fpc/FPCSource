@@ -206,6 +206,7 @@ interface
 {*** Misc ***}
     function  FullTypeName(def,otherdef:tdef):string;
     function generate_nested_name(symtable:tsymtable;delimiter:string):string;
+    function generate_generic_id_modifier(const typeparamcount:integer):string;
     procedure incompatibletypes(def1,def2:tdef);
     procedure hidesym(sym:TSymEntry);
     procedure duplicatesym(var hashedid:THashedIDString;dupsym,origsym:TSymEntry);
@@ -1700,6 +1701,15 @@ implementation
           end;
       end;
 
+    function generate_generic_id_modifier(const typeparamcount:integer):string;
+      begin
+        SetLength(Result,typeparamcount+1);
+        if typeparamcount>1 then
+          FillChar(Result[2],typeparamcount-1,',');
+        Result[1]:='<';
+        Result[typeparamcount+1]:='>';
+      end;
+
     procedure incompatibletypes(def1,def2:tdef);
       begin
         { When there is an errordef there is already an error message show }
@@ -2003,7 +2013,7 @@ implementation
       end;
 
 
-    function searchsym_in_module(pm:pointer;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
+    function searchsym_in_module(pm:pointer;const s:TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
         pmod : tmodule;
       begin

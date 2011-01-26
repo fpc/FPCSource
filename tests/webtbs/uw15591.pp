@@ -14,7 +14,7 @@ type
 
 implementation
 
-function GSmartArray.Length() :Integer;
+function GSmartArray<TSomeType>.Length() :Integer;
 begin
   Result := System.Length(fItems);
 end;

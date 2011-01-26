@@ -13,7 +13,7 @@ unit ugeneric7;
   implementation
 
 {$R-}
-    procedure tgeneric.test;
+    procedure tgeneric<t>.test;
       var
         l : longint;
       begin

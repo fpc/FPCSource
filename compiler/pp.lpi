@@ -25,7 +25,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="-n @\home\florian\bin\fpc.cfg \home\florian\fpc\tests\test\cg\tsar1.pp"/>
+        <CommandLineParams Value="-B  -MObjFPC -Scghi -O1 -gl -vewnhi -l -Fic:\programming\mytest\fpctest\extended_records\operators\lib\i86-win32 -FuC:\programming\mytest\fpctest\generics\bootstrap\ -Fu. -FUc:\programming\mytest\fpctest\extended_records\operators\lib\i386-win32\ -oextended_records1.exe C:\programming\mytest\fpctest\generics\bootstrap\project1.lpr"/>
         <LaunchingApplication PathPlusParams="\usr\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
@@ -78,7 +78,7 @@
       <CompilerMessages>
         <UseMsgFile Value="True"/>
       </CompilerMessages>
-      <CustomOptions Value="-di386"/>
+      <CustomOptions Value="-di386 -godwarfsets"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>

@@ -9,12 +9,12 @@ type
     function Two: T;
   end;
 
-procedure TGenTest1.One(const a: T);
+procedure TGenTest1<T>.One(const a: T);
 begin
 
 end;
 
-function TGenTest1.Two: T; // fails here
+function TGenTest1<T>.Two: T; // fails here
 begin
 end;
 

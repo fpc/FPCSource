@@ -36,7 +36,7 @@ var
 
 { TAdvStack }
 
-procedure TAdvStack.Clear;
+procedure TAdvStack<T>.Clear;
 begin
   Writeln('new clear');
   Idx:=Idx or 1;
@@ -52,12 +52,12 @@ end;
 
 { TStack }
 
-procedure TStack.Clear;
+procedure TStack<T>.Clear;
 begin
   Writeln('old clear');
 end;
 
-destructor TStack.Destroy;
+destructor TStack<T>.Destroy;
 begin
   Writeln('old destroy');
   Clear;

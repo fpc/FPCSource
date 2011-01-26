@@ -76,7 +76,7 @@ implementation
         storepos : tfileposinfo;
       begin
         consume(_LKLAMMER);
-        p:=comp_expr(true,false);
+        p:=comp_expr(true,[]);
         { calc return type }
         if is_new then
           begin
@@ -161,7 +161,7 @@ implementation
               begin
                  Message1(type_e_pointer_type_expected,p.resultdef.typename);
                  p.free;
-                 p:=factor(false,false);
+                 p:=factor(false,[]);
                  p.free;
                  consume(_RKLAMMER);
                  new_dispose_statement:=cerrornode.create;
@@ -172,7 +172,7 @@ implementation
               begin
                  Message(parser_e_pointer_to_class_expected);
                  p.free;
-                 new_dispose_statement:=factor(false,false);
+                 new_dispose_statement:=factor(false,[]);
                  consume_all_until(_RKLAMMER);
                  consume(_RKLAMMER);
                  exit;
@@ -182,7 +182,7 @@ implementation
             if is_class(classh) then
               begin
                  Message(parser_e_no_new_or_dispose_for_classes);
-                 new_dispose_statement:=factor(false,false);
+                 new_dispose_statement:=factor(false,[]);
                  consume_all_until(_RKLAMMER);
                  consume(_RKLAMMER);
                  exit;
@@ -353,7 +353,7 @@ implementation
         again  : boolean; { dummy for do_proc_call }
       begin
         consume(_LKLAMMER);
-        p1:=factor(false,false);
+        p1:=factor(false,[]);
         if p1.nodetype<>typen then
          begin
            Message(type_e_type_id_expected);

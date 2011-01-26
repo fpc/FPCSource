@@ -12,7 +12,7 @@ type
   end;
 	    
 var
-  b : Testclass.TList;
+  b : Testclass<T>.TList;
 	      
 	    
 implementation

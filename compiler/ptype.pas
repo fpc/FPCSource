@@ -40,9 +40,6 @@ interface
 
     procedure resolve_forward_types;
 
-    { reads a type identifier }
-    procedure id_type(var def : tdef;isforwarddef:boolean);
-
     { reads a string, file type or a type identifier }
     procedure single_type(var def:tdef;options:TSingleTypeOptions);
 
@@ -50,12 +47,12 @@ interface
     procedure read_named_type(var def:tdef;const name : TIDString;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
 
     { reads any type declaration }
-    procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
+    procedure read_anon_type(var def:tdef;parseprocvardir:boolean);
 
     { generate persistent type information like VMT, RTTI and inittables }
     procedure write_persistent_type_info(st:tsymtable);
 
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean);
+    procedure generate_specialization(var tt:tdef;typeparams:TFPObjectList;parse_class_parent:boolean);
 
 implementation
 
@@ -146,14 +143,13 @@ implementation
       end;
 
 
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean);
+    procedure generate_specialization(var tt:tdef;typeparams:TFPObjectList;parse_class_parent:boolean);
       var
         st  : TSymtable;
         srsym : tsym;
         pt2 : tnode;
-        first,
         err : boolean;
-        i   : longint;
+        i,j : longint;
         sym : tsym;
         genericdef : tstoreddef;
         generictype : ttypesym;
@@ -192,25 +188,12 @@ implementation
             onlyparsepara:=true;
           end;
 
-        { Only parse the parameters for recovery or
-          for recording in genericbuf }
         if onlyparsepara then
-          begin
-            consume(_LSHARPBRACKET);
-            repeat
-              pt2:=factor(false,true);
-              pt2.free;
-            until not try_to_consume(_COMMA);
-            consume(_RSHARPBRACKET);
-            exit;
-          end;
+          exit;
 
-        if not try_to_consume(_LT) then
-          consume(_LSHARPBRACKET);
         { Parse generic parameters, for each undefineddef in the symtable of
           the genericdef we need to have a new def }
         err:=false;
-        first:=true;
         generictypelist:=TFPObjectList.create(false);
         case genericdef.typ of
           procdef:
@@ -230,16 +213,13 @@ implementation
         if not assigned(genericdef.typesym) then
           internalerror(200710173);
         specializename:=genericdef.typesym.realname;
+        j:=0;
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
             if (sp_generic_para in sym.symoptions) then
               begin
-                if not first then
-                  consume(_COMMA)
-                else
-                  first:=false;
-                pt2:=factor(false,true);
+                pt2:=tnode(typeparams[j]);
                 if pt2.nodetype=typen then
                   begin
                     if df_generic in pt2.resultdef.defoptions then
@@ -256,13 +236,10 @@ implementation
                     Message(type_e_type_id_expected);
                     err:=true;
                   end;
-                pt2.free;
+                inc(j);
               end;
           end;
         uspecializename:=upper(specializename);
-        { force correct error location if too much type parameters are passed }
-        if not (token in [_RSHARPBRACKET,_GT]) then
-          consume(_RSHARPBRACKET);
 
         { Special case if we are referencing the current defined object }
         if assigned(current_structdef) and
@@ -384,12 +361,9 @@ implementation
           end;
 
         generictypelist.free;
-        if not try_to_consume(_GT) then
-          consume(_RSHARPBRACKET);
       end;
 
-
-    procedure id_type(var def : tdef;isforwarddef:boolean);
+    procedure id_type(var def:tdef;options:TSingleTypeOptions;dospecialize:boolean;out typeparams:TFPObjectList);
     { reads a type definition }
     { to a appropriating tdef, s gets the name of   }
     { the type to allow name mangling          }
@@ -398,21 +372,43 @@ implementation
         pos : tfileposinfo;
         srsym : tsym;
         srsymtable : TSymtable;
-        s,sorg : TIDString;
+        s,sorg,generic_id_modifier : TIDString;
         t : ttoken;
         structdef : tabstractrecorddef;
       begin
          s:=pattern;
          sorg:=orgpattern;
+         consume(_ID);
          pos:=current_tokenpos;
+         { searching a generic ? }
+         if dospecialize or
+            ((m_delphi in current_settings.modeswitches) and
+             ([stoAllowSpecialization,stoAllowTypeDef]*options<>[]) and
+             (token in [_LSHARPBRACKET,_LT])
+            ) then
+           begin
+             typeparams:=TFPObjectList.Create(true);
+             if not try_to_consume(_LSHARPBRACKET) then
+               consume(_LT);
+             repeat
+               typeparams.add(factor(false,[eoTypeOnly]));
+             until not try_to_consume(_COMMA);
+             if not try_to_consume(_RSHARPBRACKET) then
+               consume(_GT);
+             generic_id_modifier:=generate_generic_id_modifier(typeparams.count);
+             { modify patterns }
+             s:=s+generic_id_modifier;
+             sorg:=sorg+generic_id_modifier;
+           end
+         else
+           typeparams:=nil;
          { use of current parsed object:
            classes, objects, records can be used also in themself }
          structdef:=current_structdef;
          while assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
            begin
-             if (structdef.objname^=pattern) then
+             if (structdef.objname^=s) then
                begin
-                 consume(_ID);
                  def:=structdef;
                  exit;
                end;
@@ -421,8 +417,9 @@ implementation
          { Use the special searchsym_type that search only types }
          searchsym_type(s,srsym,srsymtable);
          { handle unit specification like System.Writeln }
-         is_unit_specific:=try_consume_unitsym(srsym,srsymtable,t);
-         consume(t);
+         is_unit_specific:=try_consume_unitsym(srsym,srsymtable,t,false);
+         if is_unit_specific then
+           consume(t);
          { Types are first defined with an error def before assigning
            the real type so check if it's an errordef. if so then
            give an error. Only check for typesyms in the current symbol
@@ -436,7 +433,7 @@ implementation
             exit;
           end;
          { are we parsing a possible forward def ? }
-         if isforwarddef and
+         if (stoIsForwardDef in options) and
             not(is_unit_specific) then
            begin
              def:=tforwarddef.create(sorg,pos);
@@ -469,11 +466,12 @@ implementation
 
     procedure single_type(var def:tdef;options:TSingleTypeOptions);
        var
-         t2 : tdef;
-         dospecialize,
-         again : boolean;
+         t2: tdef;
+         dospecialize,again: boolean;
+         typeparams: TFPObjectList;
        begin
          dospecialize:=false;
+         typeparams:=nil;
          repeat
            again:=false;
              case token of
@@ -518,7 +516,7 @@ implementation
                      end
                    else
                      begin
-                       id_type(def,stoIsForwardDef in options);
+                       id_type(def,options,dospecialize,typeparams);
                        { handle types inside classes, e.g. TNode.TLongint }
                        while (token=_POINT) do
                          begin
@@ -531,7 +529,7 @@ implementation
                               begin
                                 symtablestack.push(tabstractrecorddef(def).symtable);
                                 consume(_POINT);
-                                id_type(t2,stoIsForwardDef in options);
+                                id_type(t2,options,dospecialize,typeparams);
                                 symtablestack.pop(tabstractrecorddef(def).symtable);
                                 def:=t2;
                               end
@@ -548,11 +546,8 @@ implementation
                  end;
             end;
         until not again;
-        if ([stoAllowSpecialization,stoAllowTypeDef] * options <> []) and
-           (m_delphi in current_settings.modeswitches) then
-          dospecialize:=token=_LSHARPBRACKET;
-        if dospecialize then
-          generate_specialization(def,stoParseClassParent in options)
+        if assigned(typeparams) then
+          generate_specialization(def,typeparams,stoParseClassParent in options)
         else
           begin
             if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
@@ -574,6 +569,7 @@ implementation
                 def:=generrordef
               end
           end;
+        typeparams.free;
       end;
 
     procedure parse_record_members;
@@ -933,40 +929,24 @@ implementation
         defpos,storepos : tfileposinfo;
 
         procedure expr_type;
+        const
+          expr_options:array[boolean]of TExprOptions=([eoTypeOnly],[eoTypeOnly,eoSpecialize]);
         var
            pt1,pt2 : tnode;
            lv,hv   : TConstExprInt;
            old_block_type : tblock_type;
-           dospecialize : boolean;
-           structdef: tabstractrecorddef;
+           options: TExprOptions;
         begin
            old_block_type:=block_type;
-           dospecialize:=false;
-           { use of current parsed object:
-             classes, objects, records can be used also in themself }
-           if (token=_ID) then
-             begin
-               structdef:=current_structdef;
-               while assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
-                 begin
-                   if (structdef.objname^=pattern) then
-                     begin
-                       consume(_ID);
-                       def:=structdef;
-                       exit;
-                     end;
-                   structdef:=tabstractrecorddef(structdef.owner.defowner);
-                 end;
-             end;
            { Generate a specialization in FPC mode? }
-           dospecialize:=not(m_delphi in current_settings.modeswitches) and try_to_consume(_SPECIALIZE);
+           options:=expr_options[not(m_delphi in current_settings.modeswitches) and try_to_consume(_SPECIALIZE)];
            { we can't accept a equal in type }
-           pt1:=comp_expr(false,true);
-           if not dospecialize and
+           pt1:=comp_expr(false,options);
+           if not (eoSpecialize in options) and
               try_to_consume(_POINTPOINT) then
              begin
                { get high value of range }
-               pt2:=comp_expr(false,false);
+               pt2:=comp_expr(false,[]);
                { make both the same type or give an error. This is not
                  done when both are integer values, because typecasting
                  between -3200..3200 will result in a signed-unsigned
@@ -1015,32 +995,24 @@ implementation
                if (pt1.nodetype=typen) then
                  begin
                    def:=ttypenode(pt1).resultdef;
-                   { Delphi mode specialization? }
-                   if (m_delphi in current_settings.modeswitches) then
-                     dospecialize:=token=_LSHARPBRACKET;
-                   if dospecialize then
-                     generate_specialization(def,false)
-                   else
+                   if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
                      begin
-                       if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
-                         begin
-                           def:=current_specializedef
-                         end
-                       else if (def=current_genericdef) then
-                         begin
-                           def:=current_genericdef
-                         end
-                       else if (df_generic in def.defoptions) then
-                         begin
-                           Message(parser_e_no_generics_as_types);
-                           def:=generrordef;
-                         end
-                       else if is_objccategory(def) then
-                         begin
-                           Message(parser_e_no_category_as_types);
-                           def:=generrordef
-                         end
-                     end;
+                       def:=current_specializedef
+                     end
+                   else if (def=current_genericdef) then
+                     begin
+                       def:=current_genericdef
+                     end
+                   else if (df_generic in def.defoptions) then
+                     begin
+                       Message(parser_e_no_generics_as_types);
+                       def:=generrordef;
+                     end
+                   else if is_objccategory(def) then
+                     begin
+                       Message(parser_e_no_category_as_types);
+                       def:=generrordef
+                     end
                  end
                else
                  Message(sym_e_error_in_type_def);
@@ -1411,7 +1383,7 @@ implementation
                     begin
                        oldlocalswitches:=current_settings.localswitches;
                        include(current_settings.localswitches,cs_allow_enum_calc);
-                       p:=comp_expr(true,false);
+                       p:=comp_expr(true,[]);
                        current_settings.localswitches:=oldlocalswitches;
                        if (p.nodetype=ordconstn) then
                         begin
@@ -1616,7 +1588,7 @@ implementation
       end;
 
 
-    procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
+    procedure read_anon_type(var def:tdef;parseprocvardir:boolean);
       begin
         read_named_type(def,'',nil,nil,parseprocvardir);
       end;

@@ -12,7 +12,7 @@ type
 var
   err : boolean;
 
-procedure TList.Add(item: _T);
+procedure TList<_T>.Add(item: _T);
 var
   i : integer;
   p : pointer;

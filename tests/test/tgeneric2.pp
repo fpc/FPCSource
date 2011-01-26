@@ -8,7 +8,7 @@ type
      procedure Add(item: _T);
    end;
 
-procedure TList.Add(item: _T);
+procedure TList<_T>.Add(item: _T);
 var
   i : integer;
 begin

@@ -16,7 +16,7 @@ type
 
 implementation
 
-procedure TGenericType.P;
+procedure TGenericType<TParamType>.P;
 begin
   F := FDefault; // <====== unit1.pas(21,16) Fatal: Internal error 200108121
 end;
