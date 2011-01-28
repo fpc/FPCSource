@@ -162,6 +162,10 @@ reg32,reg32              \x27\x01\x01                   ARM7
 
 [COScc]
 
+[CPS]
+[CPSID]
+[CPSIE]
+
 [DVFcc]
 
 [EORcc]

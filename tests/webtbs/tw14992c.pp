@@ -1,7 +1,9 @@
 { %target=win32,wince,win64 }
 { %opt=-gh }
 {$AppType CONSOLE}
-uses Windows;
+uses
+  popuperr,
+  Windows;
 {$C+}
 
 

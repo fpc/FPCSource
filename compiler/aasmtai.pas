@@ -179,6 +179,7 @@ interface
        ,top_regset
        ,top_shifterop
        ,top_conditioncode
+       ,top_modeflags
 {$endif arm}
 {$ifdef m68k}
        { m68k only }
@@ -214,7 +215,8 @@ interface
       {$ifdef arm}
           top_regset : (regset:^tcpuregisterset; regtyp: tregistertype; subreg: tsubregister);
           top_shifterop : (shifterop : pshifterop);
-          top_conditioncode: (cc: TAsmCond);
+          top_conditioncode : (cc : TAsmCond);
+          top_modeflags : (modeflags : tcpumodeflags);
       {$endif arm}
       {$ifdef m68k}
           top_regset : (regset:^tcpuregisterset);

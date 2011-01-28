@@ -220,8 +220,14 @@ interface
        end;
        tcallparanodeclass = class of tcallparanode;
 
+       tdispcalltype = (
+         dct_method,
+         dct_propget,
+         dct_propput
+       );
+
     function reverseparameters(p: tcallparanode): tcallparanode;
-    function translate_disp_call(selfnode,parametersnode,putvalue : tnode;const methodname : ansistring;dispid : longint;resultdef : tdef) : tnode;
+    function translate_disp_call(selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;dispid : longint;resultdef : tdef) : tnode;
 
     var
       ccallnode : tcallnodeclass = tcallnode;
@@ -273,7 +279,7 @@ implementation
         reverseparameters:=hp1;
       end;
 
-    function translate_disp_call(selfnode,parametersnode,putvalue : tnode; const methodname : ansistring;dispid : longint;resultdef : tdef) : tnode;
+    function translate_disp_call(selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;dispid : longint;resultdef : tdef) : tnode;
       const
         DISPATCH_METHOD = $1;
         DISPATCH_PROPERTYGET = $2;
@@ -281,8 +287,8 @@ implementation
         DISPATCH_PROPERTYPUTREF = $8;
         DISPATCH_CONSTRUCT = $4000;
 
-        calltypes: array[Boolean] of byte = (
-          DISPATCH_METHOD, DISPATCH_PROPERTYPUT
+        calltypes: array[tdispcalltype] of byte = (
+          DISPATCH_METHOD, DISPATCH_PROPERTYGET, DISPATCH_PROPERTYPUT
         );
       var
         statements : tstatementnode;
@@ -421,7 +427,7 @@ implementation
           calldescnode.appendbyte(restype);
         end;
 
-        calldescnode.appendbyte(calltypes[assigned(putvalue)]);
+        calldescnode.appendbyte(calltypes[calltype]);
         calldescnode.appendbyte(paracount);
         calldescnode.appendbyte(namedparacount);
 
@@ -1172,20 +1178,24 @@ implementation
           callcleanupblock.derefimpl;
         if assigned(funcretnode) then
           funcretnode.derefimpl;
-        { Connect parasyms }
-        pt:=tcallparanode(left);
-        while assigned(pt) and
-              (cpf_varargs_para in pt.callparaflags) do
-          pt:=tcallparanode(pt.right);
-        for i:=procdefinition.paras.count-1 downto 0 do
+        { generic method has no procdefinition }
+        if assigned(procdefinition) then
           begin
-            if not assigned(pt) then
-              internalerror(200311077);
-            pt.parasym:=tparavarsym(procdefinition.paras[i]);
-            pt:=tcallparanode(pt.right);
+            { Connect parasyms }
+            pt:=tcallparanode(left);
+            while assigned(pt) and
+                  (cpf_varargs_para in pt.callparaflags) do
+              pt:=tcallparanode(pt.right);
+            for i:=procdefinition.paras.count-1 downto 0 do
+              begin
+                if not assigned(pt) then
+                  internalerror(200311077);
+                pt.parasym:=tparavarsym(procdefinition.paras[i]);
+                pt:=tcallparanode(pt.right);
+              end;
+            if assigned(pt) then
+              internalerror(200311078);
           end;
-        if assigned(pt) then
-          internalerror(200311078);
       end;
 
 
@@ -2591,6 +2601,7 @@ implementation
         is_const : boolean;
         statements : tstatementnode;
         converted_result_data : ttempcreatenode;
+        calltype: tdispcalltype;
       label
         errorexit;
       begin
@@ -2984,6 +2995,12 @@ implementation
          { dispinterface methode invoke? }
          if assigned(methodpointer) and is_dispinterface(methodpointer.resultdef) then
            begin
+             case procdefinition.proctypeoption of
+               potype_propgetter: calltype:=dct_propget;
+               potype_propsetter: calltype:=dct_propput;
+             else
+               calltype:=dct_method;
+             end;
              { if the result is used, we've to insert a call to convert the type to be on the "safe side" }
              if (cnf_return_value_used in callnodeflags) and not is_void(procdefinition.returndef) then
                begin
@@ -2991,13 +3008,13 @@ implementation
                  converted_result_data:=ctempcreatenode.create(procdefinition.returndef,sizeof(procdefinition.returndef),tt_persistent,true);
                  addstatement(statements,converted_result_data);
                  addstatement(statements,cassignmentnode.create(ctemprefnode.create(converted_result_data),
-                   ctypeconvnode.create_internal(translate_disp_call(methodpointer,parameters,nil,'',tprocdef(procdefinition).dispid,procdefinition.returndef),
+                   ctypeconvnode.create_internal(translate_disp_call(methodpointer,parameters,calltype,'',tprocdef(procdefinition).dispid,procdefinition.returndef),
                    procdefinition.returndef)));
                  addstatement(statements,ctempdeletenode.create_normal_temp(converted_result_data));
                  addstatement(statements,ctemprefnode.create(converted_result_data));
                end
              else
-               result:=translate_disp_call(methodpointer,parameters,nil,'',tprocdef(procdefinition).dispid,voidtype);
+               result:=translate_disp_call(methodpointer,parameters,calltype,'',tprocdef(procdefinition).dispid,voidtype);
 
              { don't free reused nodes }
              methodpointer:=nil;

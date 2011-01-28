@@ -487,6 +487,7 @@ begin
   fSections.Add('.text',SHT_PROGBITS,SHF_ALLOC or SHF_EXECINSTR,aStream.Position,0,4);
   fSections.Add('.data',SHT_PROGBITS,SHF_ALLOC or SHF_WRITE,aStream.Position,0,4);
   fSections.Add('.bss', SHT_NOBITS,SHF_ALLOC or SHF_WRITE,aStream.Position,0,4);
+  fSections.Add('.note.GNU-stack', SHT_PROGBITS,0,aStream.Position,0,1);
 end;
 
 procedure TAbstractElfSubWriter.WriteStrTab(aStream: TStream);

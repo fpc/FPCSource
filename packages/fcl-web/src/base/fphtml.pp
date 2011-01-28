@@ -145,6 +145,8 @@ type
 
   TForeachContentProducerProc = procedure(const AContentProducer: THTMLContentProducer) of object;
 
+  { IHTMLContentProducerContainer }
+
   IHTMLContentProducerContainer = interface
    ['{8B4D8AE0-4873-49BF-B677-D03C8A02CDA5}']
     procedure AddContentProducer(AContentProducer: THTMLContentProducer);
@@ -152,6 +154,8 @@ type
     function ExchangeContentProducers(Child1, Child2: THTMLContentProducer) : boolean;
     function MoveContentProducer(MoveElement, MoveBeforeElement: THTMLContentProducer) : boolean;
     procedure ForeachContentProducer(AForeachChildsProc: TForeachContentProducerProc; Recursive: boolean);
+
+    function ProduceContent : string;
   end;
 
   { THTMLContentProducer }
@@ -739,6 +743,7 @@ begin
   ChildIndex2:=GetContentProducerList.IndexOf(MoveBeforeElement);
   if (ChildIndex2=-1) then
     Exit;
+  if ChildIndex2>ChildIndex1 then dec(ChildIndex2);
   GetContentProducerList.Move(ChildIndex1,ChildIndex2);
   result := true;
 end;

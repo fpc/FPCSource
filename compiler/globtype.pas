@@ -297,8 +297,16 @@ interface
        );
 
        { currently parsed block type }
-       tblock_type = (bt_none,
-         bt_general,bt_type,bt_const,bt_const_type,bt_var,bt_var_type,bt_except,bt_body
+       tblock_type = (
+         bt_none,        { not assigned                              }
+         bt_general,     { default                                   }
+         bt_type,        { type section                              }
+         bt_const,       { const section                             }
+         bt_const_type,  { const part of type. e.g.: ": Integer = 1" }
+         bt_var,         { variable declaration                      }
+         bt_var_type,    { type of variable                          }
+         bt_except,      { except section                            }
+         bt_body         { procedure body                            }
        );
 
        { Temp types }

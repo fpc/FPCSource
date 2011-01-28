@@ -29,22 +29,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{$L mmx_clr}
-{$L mmx_main}
-{$L mmxp2_32}
-{$L mmxp_32}
-
-procedure ConvertMMX(hci: PHermesConverterInterface); cdecl; external name ExternalAsmPrefix+'ConvertMMX';
-
-procedure ClearMMX_32(hci: PHermesClearInterface); cdecl; external name ExternalAsmPrefix+'ClearMMX_32';
-procedure ClearMMX_24(hci: PHermesClearInterface); cdecl; external name ExternalAsmPrefix+'ClearMMX_24';
-procedure ClearMMX_16(hci: PHermesClearInterface); cdecl; external name ExternalAsmPrefix+'ClearMMX_16';
-procedure ClearMMX_8(hci: PHermesClearInterface); cdecl; external name ExternalAsmPrefix+'ClearMMX_8';
-
-procedure ConvertMMXpII32_24RGB888(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertMMXpII32_24RGB888';
-procedure ConvertMMXpII32_16RGB565(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertMMXpII32_16RGB565';
-procedure ConvertMMXpII32_16BGR565(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertMMXpII32_16BGR565';
-procedure ConvertMMXpII32_16RGB555(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertMMXpII32_16RGB555';
-procedure ConvertMMXpII32_16BGR555(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertMMXpII32_16BGR555';
-
-procedure ConvertMMXp32_16RGB555(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertMMXp32_16RGB555';
+{$I mmx_main.inc}
+{$I mmx_clr.inc}
+{$I mmxp2_32.inc}
+{$I mmxp_32.inc}

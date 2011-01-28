@@ -184,7 +184,7 @@ implementation
            if t^._low=t^._high then
              begin
                 if t^._low-last=0 then
-                  cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
+                  cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,hregister,blocklabel(t^.blockid))
                 else
                   gensub(longint(int64(t^._low-last)));
                 tcgppc(cg).a_jmp_cond(current_asmdata.CurrAsmList,OC_EQ,blocklabel(t^.blockid));

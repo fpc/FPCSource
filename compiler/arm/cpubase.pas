@@ -203,6 +203,9 @@ unit cpubase;
         shiftimm : byte;
       end;
 
+      tcpumodeflag = (mfA, mfI, mfF);
+      tcpumodeflags = set of tcpumodeflag;
+
 {*****************************************************************************
                                  Constants
 *****************************************************************************}

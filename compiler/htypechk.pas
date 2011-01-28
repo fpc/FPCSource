@@ -426,22 +426,39 @@ implementation
                   begin
                     eq:=compare_defs_ext(ld,pf.returndef,nothingn,conv,pd,[cdo_explicit]);
                     result:=
-                      (eq=te_incompatible) and
-                      { don't allow overloading assigning to custom shortstring
-                        types, because we also don't want to differentiate based
-                        on different shortstring types (e.g.,
-                        "operator :=(const v: variant) res: shorstring" also
-                        has to work for assigning a variant to a string[80])
-                      }
-                      (not is_shortstring(pf.returndef) or
-                       (tstringdef(pf.returndef).len=255));
+                      (eq=te_exact) or
+                      (
+                        (eq=te_incompatible) and
+                        { don't allow overloading assigning to custom shortstring
+                          types, because we also don't want to differentiate based
+                          on different shortstring types (e.g.,
+                          "operator :=(const v: variant) res: shorstring" also
+                          has to work for assigning a variant to a string[80])
+                        }
+                        (not is_shortstring(pf.returndef) or
+                         (tstringdef(pf.returndef).len=255))
+                      );
                   end
                 else
                 { enumerator is a special case too }
                 if optoken=_OP_ENUMERATOR then
                   begin
                     result:=
-                      is_class_or_interface_or_object(pf.returndef);
+                      is_class_or_interface_or_object(pf.returndef) or
+                      is_record(pf.returndef);
+                    if result then
+                      begin
+                        if not assigned(tabstractrecorddef(pf.returndef).search_enumerator_move) then
+                          begin
+                            Message1(sym_e_no_enumerator_move, pf.returndef.typename);
+                            result:=false;
+                          end;
+                        if not assigned(tabstractrecorddef(pf.returndef).search_enumerator_current) then
+                          begin
+                            Message1(sym_e_no_enumerator_current,pf.returndef.typename);
+                            result:=false;
+                          end;
+                      end;
                   end
                 else
                   begin

@@ -71,6 +71,9 @@ begin
       AddInclude('schematron.inc');
     end;
 
+  T:=P.Targets.AddUnit('xmlxsdparser.pas');
+  T.ResourceStrings := True;
+
   T:=P.Targets.AddUnit('xmlxsd.pas');
   T.ResourceStrings := True;
 

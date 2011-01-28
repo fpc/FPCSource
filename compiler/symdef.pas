@@ -186,9 +186,13 @@ interface
           destructor destroy; override;
           procedure check_forwards; virtual;
           function find_procdef_bytype(pt:tproctypeoption): tprocdef;
-          function  GetSymtable(t:tGetSymtable):TSymtable;override;
+          function GetSymtable(t:tGetSymtable):TSymtable;override;
           function is_packed:boolean;
           function RttiName: string;
+          { enumerator support }
+          function search_enumerator_get: tprocdef; virtual;
+          function search_enumerator_move: tprocdef; virtual;
+          function search_enumerator_current: tsym; virtual;
        end;
 
        trecorddef = class(tabstractrecorddef)
@@ -322,9 +326,9 @@ interface
           { dispinterface support }
           function get_next_dispid: longint;
           { enumerator support }
-          function search_enumerator_get: tprocdef;
-          function search_enumerator_move: tprocdef;
-          function search_enumerator_current: tsym;
+          function search_enumerator_get: tprocdef; override;
+          function search_enumerator_move: tprocdef; override;
+          function search_enumerator_current: tsym; override;
           { WPO }
           procedure register_created_object_type;override;
           procedure register_maybe_created_object_type;
@@ -714,6 +718,8 @@ interface
        class_tobject : tobjectdef;
        { pointer to the ancestor of all COM interfaces }
        interface_iunknown : tobjectdef;
+       { pointer to the ancestor of all dispinterfaces }
+       interface_idispatch : tobjectdef;
        { pointer to the TGUID type
          of all interfaces         }
        rec_tguid : trecorddef;
@@ -775,6 +781,7 @@ interface
 
     { should be in the types unit, but the types unit uses the node stuff :( }
     function is_interfacecom(def: tdef): boolean;
+    function is_interfacecom_or_dispinterface(def: tdef): boolean;
     function is_interfacecorba(def: tdef): boolean;
     function is_interface(def: tdef): boolean;
     function is_dispinterface(def: tdef): boolean;
@@ -2687,6 +2694,101 @@ implementation
         until tmp=nil;
       end;
 
+    function tabstractrecorddef.search_enumerator_get: tprocdef;
+      var
+        sym : tsym;
+        i : integer;
+        pd : tprocdef;
+        hashedid : THashedIDString;
+      begin
+        result:=nil;
+        hashedid.id:='GETENUMERATOR';
+        sym:=tsym(symtable.FindWithHash(hashedid));
+        if assigned(sym) and (sym.typ=procsym) then
+          begin
+            for i := 0 to Tprocsym(sym).ProcdefList.Count - 1 do
+            begin
+              pd := tprocdef(Tprocsym(sym).ProcdefList[i]);
+              if (pd.proctypeoption = potype_function) and
+                 (is_class_or_interface_or_object(pd.returndef) or is_record(pd.returndef)) and
+                 (pd.visibility >= vis_public) then
+              begin
+                result:=pd;
+                exit;
+              end;
+            end;
+          end;
+      end;
+
+    function tabstractrecorddef.search_enumerator_move: tprocdef;
+      var
+        sym : tsym;
+        i : integer;
+        pd : tprocdef;
+        hashedid : THashedIDString;
+      begin
+        result:=nil;
+        // first search for po_enumerator_movenext method modifier
+        // then search for public function MoveNext: Boolean
+        for i:=0 to symtable.SymList.Count-1 do
+          begin
+            sym:=TSym(symtable.SymList[i]);
+            if (sym.typ=procsym) then
+            begin
+              pd:=Tprocsym(sym).find_procdef_byoptions([po_enumerator_movenext]);
+              if assigned(pd) then
+                begin
+                  result:=pd;
+                  exit;
+                end;
+            end;
+          end;
+        hashedid.id:='MOVENEXT';
+        sym:=tsym(symtable.FindWithHash(hashedid));
+        if assigned(sym) and (sym.typ=procsym) then
+          begin
+            for i:=0 to Tprocsym(sym).ProcdefList.Count-1 do
+            begin
+              pd := tprocdef(Tprocsym(sym).ProcdefList[i]);
+              if (pd.proctypeoption = potype_function) and
+                 is_boolean(pd.returndef) and
+                 (pd.minparacount = 0) and
+                 (pd.visibility >= vis_public) then
+              begin
+                result:=pd;
+                exit;
+              end;
+            end;
+          end;
+      end;
+
+    function tabstractrecorddef.search_enumerator_current: tsym;
+      var
+        sym: tsym;
+        i: integer;
+        hashedid : THashedIDString;
+      begin
+        result:=nil;
+        // first search for ppo_enumerator_current property modifier
+        // then search for public property Current
+        for i:=0 to symtable.SymList.Count-1 do
+          begin
+            sym:=TSym(symtable.SymList[i]);
+            if (sym.typ=propertysym) and (ppo_enumerator_current in tpropertysym(sym).propoptions) then
+            begin
+              result:=sym;
+              exit;
+            end;
+          end;
+        hashedid.id:='CURRENT';
+        sym:=tsym(symtable.FindWithHash(hashedid));
+        if assigned(sym) and (sym.typ=propertysym) and
+           (sym.visibility >= vis_public) and not tpropertysym(sym).propaccesslist[palt_read].empty then
+          begin
+            result:=sym;
+            exit;
+          end;
+      end;
 
 {***************************************************************************
                                   trecorddef
@@ -4145,9 +4247,12 @@ implementation
             (objname^='TOBJECT') then
            class_tobject:=self;
          if (childof=nil) and
-            (objecttype=odt_interfacecom) and
-            (objname^='IUNKNOWN') then
-           interface_iunknown:=self;
+            (objecttype=odt_interfacecom) then
+            if (objname^='IUNKNOWN') then
+              interface_iunknown:=self
+            else
+            if (objname^='IDISPATCH') then
+              interface_idispatch:=self;
          if (childof=nil) and
             (objecttype=odt_objcclass) and
             (objname^='PROTOCOL') then
@@ -4669,7 +4774,7 @@ implementation
         odt_objcclass,
         odt_objcprotocol:
           vmtmethodoffset:=0;
-        odt_interfacecom,odt_interfacecorba:
+        odt_interfacecom,odt_interfacecorba,odt_dispinterface:
           vmtmethodoffset:=index*sizeof(pint);
         else
 {$ifdef WITHDMT}
@@ -4692,9 +4797,9 @@ implementation
     function tobjectdef.needs_inittable : boolean;
       begin
          case objecttype of
-            odt_dispinterface,
             odt_class :
               needs_inittable:=false;
+            odt_dispinterface,
             odt_interfacecom:
               needs_inittable:=true;
             odt_interfacecorba:
@@ -4852,7 +4957,7 @@ implementation
                 begin
                   pd := tprocdef(Tprocsym(sym).ProcdefList[i]);
                   if (pd.proctypeoption = potype_function) and
-                     is_class_or_interface_or_object(pd.returndef) and
+                     (is_class_or_interface_or_object(pd.returndef) or is_record(pd.returndef)) and
                      (pd.visibility >= vis_public) then
                   begin
                     result:=pd;
@@ -5386,6 +5491,14 @@ implementation
           assigned(def) and
           (def.typ=objectdef) and
           (tobjectdef(def).objecttype=odt_interfacecom);
+      end;
+
+    function is_interfacecom_or_dispinterface(def: tdef): boolean;
+      begin
+        is_interfacecom_or_dispinterface:=
+          assigned(def) and
+          (def.typ=objectdef) and
+          (tobjectdef(def).objecttype in [odt_interfacecom,odt_dispinterface]);
       end;
 
     function is_interfacecorba(def: tdef): boolean;

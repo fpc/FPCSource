@@ -656,7 +656,7 @@ implementation
                 else
                   begin
                     block_type:=bt_var_type;
-                    single_type(hdef,[]);
+                    single_type(hdef,[stoAllowSpecialization]);
                     block_type:=bt_var;
                   end;
 
@@ -916,9 +916,8 @@ implementation
                    (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
                 begin
                   astruct:=tabstractrecorddef(ttypesym(srsym).typedef);
-                  if (df_generic in astruct.defoptions) then
+                  if (df_generic in astruct.defoptions) and try_to_consume(_LT) then
                     begin
-                      consume(_LT);
                       ok:=true;
                       i:=0;
                       repeat
@@ -955,13 +954,22 @@ implementation
                       consume(_GT);
                     end
                   else
-                  if try_to_consume(_LT) then
+                  if (df_generic in astruct.defoptions) and (token=_POINT) then
                     begin
-                      Message(type_e_type_parameters_are_not_allowed_here);
-                      repeat
-                        consume(_ID);
-                      until not try_to_consume(_COMMA);
-                      consume(_GT);
+                      Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
+                    end
+                  else
+                    begin
+                      { not a method. routine name just accidentally match some structure name }
+                      astruct:=nil;
+                      if try_to_consume(_LT) then
+                        begin
+                          Message(type_e_type_parameters_are_not_allowed_here);
+                          repeat
+                            consume(_ID);
+                          until not try_to_consume(_COMMA);
+                          consume(_GT);
+                        end;
                     end;
                 end;
               end;
@@ -1272,7 +1280,7 @@ implementation
                 if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
                   current_specializedef:=current_structdef;
               end;
-            single_type(pd.returndef,[]);
+            single_type(pd.returndef,[stoAllowSpecialization]);
 
             if is_dispinterface(pd.struct) and not is_automatable(pd.returndef) then
               Message1(type_e_not_automatable,pd.returndef.typename);
@@ -1436,7 +1444,10 @@ implementation
                   else
                    begin
                      read_returndef(pd);
-                     if (po_classmethod in pd.procoptions) then
+                     { check that class operators have either return type of structure or }
+                     { at least one argument of that type                                 }
+                     if (po_classmethod in pd.procoptions) and
+                        (pd.returndef <> pd.struct) then
                        begin
                          found:=false;
                          for i := 0 to pd.parast.SymList.Count - 1 do
@@ -1453,7 +1464,8 @@ implementation
                          (torddef(pd.returndef).ordtype<>pasbool)) then
                         Message(parser_e_comparative_operator_return_boolean);
                      if (optoken in [_ASSIGNMENT,_OP_EXPLICIT]) and
-                        equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) then
+                        equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) and
+                        (pd.returndef.typ<>undefineddef) and (tparavarsym(pd.parast.SymList[0]).vardef.typ<>undefineddef) then
                        message(parser_e_no_such_assignment)
                      else if not isoperatoracceptable(pd,optoken) then
                        Message(parser_e_overload_impossible);
@@ -2473,7 +2485,7 @@ const
       mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
     ),(
       idtok:_ENUMERATOR;
-      pd_flags : [pd_interface,pd_object];
+      pd_flags : [pd_interface,pd_object,pd_record];
       handler  : @pd_enumerator;
       pocall   : pocall_none;
       pooption : [];

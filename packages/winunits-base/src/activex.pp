@@ -3841,6 +3841,7 @@ type
   function  SysAllocStringLen(psz: pointer; len:dword): Integer; stdcall; external oleaut32dll name 'SysAllocStringLen';
   procedure SysFreeString(bstr:pointer); stdcall; external oleaut32dll name 'SysFreeString';
   function  SysStringLen(bstr:pointer):UINT; stdcall; external oleaut32dll name 'SysStringLen';
+  function  SysStringByteLen(bstr:pointer):UINT; stdcall; external oleaut32dll name 'SysStringByteLen';
   function  SysReAllocString(var bstr:pointer;psz: pointer): Integer; stdcall; external oleaut32dll name 'SysReAllocString';
   function  SysReAllocStringLen(var bstr:pointer;psz: pointer; len:dword): Integer; stdcall; external oleaut32dll name 'SysReAllocStringLen';
 

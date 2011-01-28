@@ -41,6 +41,10 @@ Type
 
 
 Type
+  {$ifdef UNIX}
+  TProcessForkEvent = procedure;
+  {$endif UNIX}
+
   TProcess = Class (TComponent)
   Private
     FProcessOptions : TProcessOptions;
@@ -58,6 +62,9 @@ Type
     FEnvironment : Tstrings;
     FShowWindow : TShowWindowOptions;
     FInherithandles : Boolean;
+    {$ifdef UNIX}
+    FForkEvent : TProcessForkEvent;
+    {$endif UNIX}
     FProcessPriority : TProcessPriority;
     dwXCountchars,
     dwXSize,
@@ -113,6 +120,9 @@ Type
     Property Stderr : TinputPipeStream  Read FStderrStream;
     Property ExitStatus : Integer Read GetExitStatus;
     Property InheritHandles : Boolean Read FInheritHandles Write FInheritHandles;
+    {$ifdef UNIX}
+    property OnForkEvent : TProcessForkEvent Read FForkEvent Write FForkEvent;
+    {$endif UNIX}
   Published
     Property Active : Boolean Read GetRunning Write SetActive;
     Property ApplicationName : String Read FApplicationName Write SetApplicationName;
@@ -163,6 +173,9 @@ begin
   FProcessPriority:=ppNormal;
   FShowWindow:=swoNone;
   FInheritHandles:=True;
+  {$ifdef UNIX}
+  FForkEvent:=nil;
+  {$endif UNIX}
   FEnvironment:=TStringList.Create;
 end;
 

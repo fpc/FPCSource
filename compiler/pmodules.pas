@@ -1360,8 +1360,8 @@ implementation
          maybeloadvariantsunit;
 
          { generate wrappers for interfaces }
-         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.globalsymtable);
-         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable);
+         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.globalsymtable,false);
+         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable,false);
 
          { generate pic helpers to load eip if necessary }
          gen_pic_helpers(current_asmdata.asmlists[al_procedures]);
@@ -2333,7 +2333,7 @@ implementation
          MaybeGenerateObjectiveCImageInfo(nil,current_module.localsymtable);
 
          { generate wrappers for interfaces }
-         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable);
+         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable,false);
 
          { generate imports }
          if current_module.ImportLibraryList.Count>0 then

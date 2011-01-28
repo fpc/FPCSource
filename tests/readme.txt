@@ -126,13 +126,14 @@ TEST_FPC_VERSION       defaults to version of TEST_FPC
 TEST_CCOMPILER         defaults to installed gcc compiler, but only
                        if driver and test full-targets are the same.
 TEST_VERBOSE           let dotest be more verbose, only useful for debugging
+TEST_BENCH             display compilation/execution time of each test
 TEST_DELTEMP           delete temporary executable/object/ppu file,
                        default is off
 TEST_TIMEOUT           use timeout wrapper for (remote) execution
 V                      print dotest commandline
 TEST_ABI               test a certain abi, this influences where the
                        c object files are taken from: TEST_ABI=eabi
-                       takes the c*.o files from 
+                       takes the c*.o files from
                        test/cg/obj/linux/arm-eabi
 
   (Please add more test options if needed)

@@ -812,9 +812,9 @@ implementation
             pd:=tprocdef(ProcdefList[i]);
             if (pd.owner.symtabletype=staticsymtable) and not pd.owner.iscurrentunit then
               continue;
-            if not is_class_or_interface_or_object(pd.returndef) then
+            if not (is_class_or_interface_or_object(pd.returndef) or is_record(pd.returndef)) then
               continue;
-            current := tpropertysym(tobjectdef(pd.returndef).search_enumerator_current);
+            current := tpropertysym(tabstractrecorddef(pd.returndef).search_enumerator_current);
             if (current = nil) then
               continue;
             // compare current result def with the todef

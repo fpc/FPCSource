@@ -861,22 +861,25 @@ implementation
                 // search for operator first
                 pd:=search_enumerator_operator(expr.resultdef, hloopvar.resultdef);
                 // if there is no operator then search for class/object enumerator method
-                if (pd=nil) and (expr.resultdef.typ=objectdef) then
+                if (pd=nil) and (expr.resultdef.typ in [objectdef,recorddef]) then
                   begin
-                    { first search using the class helper hierarchy }
-                    if search_last_objectpascal_classhelper(tobjectdef(expr.resultdef),classhelper) then
+                    { first search using the class helper hierarchy if it's a
+                      class }
+                    if (expr.resultdef.typ=objectdef) and
+                        search_last_objectpascal_classhelper(tobjectdef(expr.resultdef),classhelper) then
                       repeat
                         pd:=classhelper.search_enumerator_get;
                         classhelper:=classhelper.helperparent;
                       until (pd<>nil) or (classhelper=nil);
-                    { not found in class helper, so search in the class itself }
+                    { we didn't found a class helper, so search in the
+                      class/record/object itself }
                     if pd=nil then
-                      pd:=tobjectdef(expr.resultdef).search_enumerator_get;
+                      pd:=tabstractrecorddef(expr.resultdef).search_enumerator_get;
                   end;
                 if pd<>nil then
                   begin
                     // seach movenext and current symbols
-                    movenext:=tobjectdef(pd.returndef).search_enumerator_move;
+                    movenext:=tabstractrecorddef(pd.returndef).search_enumerator_move;
                     if movenext = nil then
                       begin
                         result:=cerrornode.create;
@@ -886,7 +889,7 @@ implementation
                       end
                     else
                       begin
-                        current:=tpropertysym(tobjectdef(pd.returndef).search_enumerator_current);
+                        current:=tpropertysym(tabstractrecorddef(pd.returndef).search_enumerator_current);
                         if current = nil then
                           begin
                             result:=cerrornode.create;

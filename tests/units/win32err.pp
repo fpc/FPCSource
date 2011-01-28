@@ -20,16 +20,17 @@ interface
 
 implementation
 
-{$ifdef win32}
+{ mswindows is defined for win32 and win64 targets }
+{$ifdef mswindows}
 uses
   windows;
-{$endif win32}
+{$endif mswindows}
 
 begin
-{$ifdef win32}
+{$ifdef mswindows}
   SetErrorMode(
     SEM_FAILCRITICALERRORS or
     SEM_NOGPFAULTERRORBOX or
     SEM_NOOPENFILEERRORBOX);
-{$endif win32}
+{$endif mswindows}
 end.

@@ -2297,9 +2297,7 @@ implementation
       end;
 
 
-    function search_assignment_operator(from_def,to_def:Tdef;explicit:boolean):Tprocdef;
-      const
-        op_token:array[boolean] of ttoken=(_ASSIGNMENT,_OP_EXPLICIT);
+    function search_specific_assignment_operator(assignment_type:ttoken;from_def,to_def:Tdef):Tprocdef;
       var
         sym : Tprocsym;
         hashedid : THashedIDString;
@@ -2309,7 +2307,7 @@ implementation
         bestpd : tprocdef;
         stackitem : psymtablestackitem;
       begin
-        hashedid.id:=overloaded_names[op_token[explicit]];
+        hashedid.id:=overloaded_names[assignment_type];
         besteq:=te_incompatible;
         bestpd:=nil;
         stackitem:=symtablestack.stack;
@@ -2334,6 +2332,31 @@ implementation
             stackitem:=stackitem^.next;
           end;
         result:=bestpd;
+      end;
+
+
+    function search_assignment_operator(from_def,to_def:Tdef;explicit:boolean):Tprocdef;
+      begin
+        { search record/object symtable first for a suitable operator }
+        if from_def.typ in [recorddef,objectdef] then
+          symtablestack.push(tabstractrecorddef(from_def).symtable);
+        if to_def.typ in [recorddef,objectdef] then
+          symtablestack.push(tabstractrecorddef(to_def).symtable);
+
+        { if type conversion is explicit then search first for explicit
+          operator overload and if not found then use implicit operator }
+        if explicit then
+          result:=search_specific_assignment_operator(_OP_EXPLICIT,from_def,to_def)
+        else
+          result:=nil;
+        if result=nil then
+          result:=search_specific_assignment_operator(_ASSIGNMENT,from_def,to_def);
+
+        { restore symtable stack }
+        if to_def.typ in [recorddef,objectdef] then
+          symtablestack.pop(tabstractrecorddef(to_def).symtable);
+        if from_def.typ in [recorddef,objectdef] then
+          symtablestack.pop(tabstractrecorddef(from_def).symtable);
       end;
 
 
@@ -2905,6 +2928,7 @@ implementation
        { set some global vars to nil, might be important for the ide }
        class_tobject:=nil;
        interface_iunknown:=nil;
+       interface_idispatch:=nil;
        rec_tguid:=nil;
        dupnr:=0;
      end;

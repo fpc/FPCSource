@@ -1,8 +1,9 @@
 { %needlibrary }
 
-program loadmodule; 
+program loadmodule;
 
 uses
+  popuperr,
   dynlibs;
 
 const
@@ -19,7 +20,7 @@ const
   {$endif windows}
 
 var
-  hdl: TLibHandle; 
+  hdl: TLibHandle;
 begin
   hdl := loadlibrary(libname);
   if (hdl=nilhandle) then

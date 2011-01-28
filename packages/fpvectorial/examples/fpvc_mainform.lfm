@@ -7,12 +7,12 @@ object formVectorialConverter: TformVectorialConverter
   Caption = 'FP Vectorial Converter'
   ClientHeight = 439
   ClientWidth = 240
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 8
-    Height = 17
+    Height = 18
     Top = 112
-    Width = 160
+    Width = 172
     Caption = 'Location of the Input file:'
     ParentColor = False
   end
@@ -30,7 +30,7 @@ object formVectorialConverter: TformVectorialConverter
   end
   object editInput: TFileNameEdit
     Left = 8
-    Height = 22
+    Height = 25
     Top = 128
     Width = 192
     DialogOptions = []
@@ -43,15 +43,15 @@ object formVectorialConverter: TformVectorialConverter
   end
   object Label3: TLabel
     Left = 8
-    Height = 17
+    Height = 18
     Top = 152
-    Width = 173
+    Width = 184
     Caption = 'Full path of the Output file:'
     ParentColor = False
   end
   object editOutput: TFileNameEdit
     Left = 8
-    Height = 22
+    Height = 25
     Top = 168
     Width = 192
     DialogOptions = []

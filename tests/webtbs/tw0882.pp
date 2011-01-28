@@ -18,7 +18,8 @@ BEGIN
         bb0^[0] := 1;
         bb0^[1] := 2;
        {$T+}
-        bw:=word(Addr(bb0^[mr.i1])^);
+        // Addr return untyped pointer, @ typed
+        bw:=word((@bb0^[mr.i1])^);
         if bw <> 1 then
           halt(1);
        {$T-}

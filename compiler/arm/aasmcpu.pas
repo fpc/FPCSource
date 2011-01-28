@@ -163,6 +163,7 @@ uses
          procedure loadshifterop(opidx:longint;const so:tshifterop);
          procedure loadregset(opidx:longint; regsetregtype: tregistertype; regsetsubregtype: tsubregister; const s:tcpuregisterset);
          procedure loadconditioncode(opidx:longint;const cond:tasmcond);
+         procedure loadmodeflags(opidx:longint;const flags:tcpumodeflags);
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -186,6 +187,10 @@ uses
 
          { ITxxx }
          constructor op_cond(op: tasmop; cond: tasmcond);
+
+         { CPSxx }
+         constructor op_modeflags(op: tasmop; flags: tcpumodeflags);
+         constructor op_modeflags_const(op: tasmop; flags: tcpumodeflags; a: aint);
 
          { *M*LL }
          constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
@@ -328,6 +333,17 @@ implementation
          end;
       end;
 
+    procedure taicpu.loadmodeflags(opidx: longint; const flags: tcpumodeflags);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+         begin
+           if typ<>top_modeflags then
+             clearop(opidx);
+           modeflags:=flags;
+           typ:=top_modeflags;
+         end;
+      end;
 
 {*****************************************************************************
                                  taicpu Constructors
@@ -446,6 +462,21 @@ implementation
         inherited create(op);
         ops:=0;
         condition := cond;
+      end;
+
+    constructor taicpu.op_modeflags(op: tasmop; flags: tcpumodeflags);
+      begin
+        inherited create(op);
+        ops := 1;
+        loadmodeflags(0,flags);
+      end;
+
+    constructor taicpu.op_modeflags_const(op: tasmop; flags: tcpumodeflags; a: aint);
+      begin
+        inherited create(op);
+        ops := 2;
+        loadmodeflags(0,flags);
+        loadconst(1,a);
       end;
 
 

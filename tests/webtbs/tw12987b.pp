@@ -1,5 +1,9 @@
 { %target=win32,win64,wince,os2 }
 { %needlibrary }
+
+uses
+  popuperr;
+
 procedure test;external 'tw12987a' name 'test';
 
 function ThreadTest(p : pointer) : PtrInt;

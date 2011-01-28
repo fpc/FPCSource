@@ -87,6 +87,9 @@ type
   EBase64DecodingException = class(Exception)
   end;
 
+function EncodeStringBase64(const s:string):String;
+function DecodeStringBase64(const s:string):String;
+
 implementation
 
 uses
@@ -420,5 +423,52 @@ begin
   raise EStreamError.Create('Invalid stream operation');
 end;
 
+function DecodeStringBase64(const s:string):String;
+
+var 
+  Instream, 
+  Outstream : TStringStream;
+  Decoder   : TBase64DecodingStream;
+begin
+  Instream:=TStringStream.Create(s);
+  try
+    Outstream:=TStringStream.Create('');
+    try 
+      Decoder:=TBase64DecodingStream.Create(Instream,bdmMIME);
+      try
+         Outstream.CopyFrom(Decoder,Decoder.Size);
+         Outstream.Position:=0;
+         Result:=Outstream.ReadString(Outstream.Size);
+      finally
+        Decoder.Free;
+        end;
+    finally 
+     Outstream.Free;
+     end;
+  finally 
+    Instream.Free;
+    end;
+end;
+
+function EncodeStringBase64(const s:string):String;
+
+var
+  Outstream : TStringStream;
+  Encoder   : TBase64EncodingStream;
+begin
+  Outstream:=TStringStream.Create('');
+  try
+    Encoder:=TBase64EncodingStream.create(outstream);
+    try 
+      Encoder.Write(s[1],Length(s));
+    finally 
+      Encoder.Free;
+      end;
+    Outstream.Position:=0;
+    Result:=Outstream.ReadString(Outstream.Size);
+  finally
+    Outstream.free;
+    end;
+end;
 
 end.

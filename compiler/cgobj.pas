@@ -3473,7 +3473,7 @@ implementation
          cgpara2.init;
          paramanager.getintparaloc(pocall_default,1,cgpara1);
          paramanager.getintparaloc(pocall_default,2,cgpara2);
-         if is_interfacecom(t) then
+         if is_interfacecom_or_dispinterface(t) then
            incrfunc:='FPC_INTF_INCR_REF'
          else if is_ansistring(t) then
            incrfunc:='FPC_ANSISTR_INCR_REF'
@@ -3529,7 +3529,7 @@ implementation
         paramanager.getintparaloc(pocall_default,1,cgpara1);
         paramanager.getintparaloc(pocall_default,2,cgpara2);
         needrtti:=false;
-        if is_interfacecom(t) then
+        if is_interfacecom_or_dispinterface(t) then
           decrfunc:='FPC_INTF_DECR_REF'
         else if is_ansistring(t) then
           decrfunc:='FPC_ANSISTR_DECR_REF'
@@ -3593,7 +3593,7 @@ implementation
          if is_ansistring(t) or
             is_widestring(t) or
             is_unicodestring(t) or
-            is_interfacecom(t) or
+            is_interfacecom_or_dispinterface(t) or
             is_dynamic_array(t) then
            a_load_const_ref(list,OS_ADDR,0,ref)
          else
@@ -3624,7 +3624,7 @@ implementation
          if is_ansistring(t) or
             is_widestring(t) or
             is_unicodestring(t) or
-            is_interfacecom(t) then
+            is_interfacecom_or_dispinterface(t) then
             begin
               g_decrrefcount(list,t,ref);
               a_load_const_ref(list,OS_ADDR,0,ref);

@@ -51,6 +51,10 @@ ifeq ($(ARCH),arm)
 CPU_UNITS=lpc21x4 at91sam7x256 stellaris stm32f103
 endif
 
+ifeq ($(ARCH),i386)
+CPU_UNITS=multiboot
+endif
+
 # Paths
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph

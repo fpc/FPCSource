@@ -239,7 +239,9 @@ type
     potype_procedure,
     potype_function,
     potype_class_constructor, { class constructor }
-    potype_class_destructor   { class destructor  }
+    potype_class_destructor,  { class destructor  }
+    potype_propgetter,        { Dispinterface property accessors }
+    potype_propsetter
   );
   tproctypeoptions=set of tproctypeoption;
 
@@ -389,8 +391,8 @@ type
     ppo_hasparameters,
     ppo_implements,
     ppo_enumerator_current,
-    ppo_dispid_read,
-    ppo_dispid_write
+    ppo_dispid_read,              { no longer used }
+    ppo_dispid_write              { no longer used }
   );
   tpropertyoptions=set of tpropertyoption;
 

@@ -20,10 +20,11 @@ interface
 
 implementation
 
-{$ifdef win32}
+{ mswindows is defined for win32 and win64 targets }
+{$ifdef mswindows}
 uses
   windows;
-{$endif win32}
+{$endif mswindows}
 
 {$IFDEF OS2}
 function _DosError (Error: longint): longint; cdecl;
@@ -31,12 +32,12 @@ function _DosError (Error: longint): longint; cdecl;
 {$ENDIF OS2}
 
 begin
-{$ifdef win32}
+{$ifdef mswindows}
   SetErrorMode(
     SEM_FAILCRITICALERRORS or
     SEM_NOGPFAULTERRORBOX or
     SEM_NOOPENFILEERRORBOX);
-{$endif win32}
+{$endif mswindows}
 {$IFDEF OS2}
   if os_Mode = osOS2 then _DosError (0);
 {$ENDIF OS2}

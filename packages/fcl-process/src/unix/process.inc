@@ -360,6 +360,8 @@ begin
                 safefpdup2(fd,1);
                 safefpdup2(fd,2);
               end;
+            if Assigned(FForkEvent) then
+              FForkEvent;
             if (poRunSuspended in Options) then
               sigraise(SIGSTOP);
             if FEnv<>Nil then

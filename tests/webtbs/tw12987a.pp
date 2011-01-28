@@ -2,6 +2,8 @@
 { %norun }
 library tw12987a;
 
+uses
+  popuperr;
 
 procedure test;
   var

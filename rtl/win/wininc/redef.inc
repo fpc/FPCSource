@@ -571,7 +571,7 @@ function GetPrivateProfileSectionNames(lpszReturnBuffer: LPTSTR; nSize: DWORD; l
 function GetPrivateProfileStructA(lpszSection, lpszKey: LPCSTR; lpStruct: LPVOID; uSizeStruct: UINT; szFile: LPCSTR): BOOL; external 'kernel32' name 'GetPrivateProfileStructA';
 function GetPrivateProfileStructW(lpszSection, lpszKey: LPCWSTR; lpStruct: LPVOID; uSizeStruct: UINT; szFile: LPCWSTR): BOOL; external 'kernel32' name 'GetPrivateProfileStructW';
 function GetPrivateProfileStruct(lpszSection, lpszKey: LPCTSTR; lpStruct: LPVOID; uSizeStruct: UINT; szFile: LPCTSTR): BOOL; external 'kernel32' name 'GetPrivateProfileStructA';
-function GetProcessAffinityMask(hProcess: THandle; var lpProcessAffinityMask, lpSystemAffinityMask: DWORD): BOOL; external 'kernel32' name 'GetProcessAffinityMask';
+function GetProcessAffinityMask(hProcess: THandle; var lpProcessAffinityMask, lpSystemAffinityMask: DWORD_PTR): BOOL; external 'kernel32' name 'GetProcessAffinityMask';
 function GetProcessHeaps(NumberOfHeaps: DWORD; var ProcessHeaps: THandle): DWORD;external 'kernel32' name 'GetProcessHeaps';
 {$ifndef NO_SMART_LINK}
 function GetProcessPriorityBoost(hThread: THandle; var DisablePriorityBoost: Bool): BOOL;external 'kernel32' name 'GetProcessPriorityBoost';

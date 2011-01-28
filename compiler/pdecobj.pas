@@ -306,7 +306,7 @@ implementation
         while try_to_consume(_COMMA) do
           begin
              { use single_type instead of id_type for specialize support }
-             single_type(hdef,[stoAllowTypeDef,stoParseClassParent]);
+             single_type(hdef,[stoAllowSpecialization,stoParseClassParent]);
              if (hdef.typ<>objectdef) then
                begin
                   if intf then
@@ -462,7 +462,7 @@ implementation
             if not is_objectpascal_classhelper(current_structdef) then
               consume(_LKLAMMER);
             { use single_type instead of id_type for specialize support }
-            single_type(hdef,[stoAllowTypeDef, stoParseClassParent]);
+            single_type(hdef,[stoAllowSpecialization, stoParseClassParent]);
             if (not assigned(hdef)) or
                (hdef.typ<>objectdef) then
               begin
@@ -566,6 +566,8 @@ implementation
               odt_interfacecom:
                 if current_objectdef<>interface_iunknown then
                   childof:=interface_iunknown;
+              odt_dispinterface:
+                childof:=interface_idispatch;
               odt_objcclass:
                 CGMessage(parser_h_no_objc_parent);
             end;
@@ -837,20 +839,18 @@ implementation
             _CLASS:
               begin
                 is_classdef:=false;
-                { read class method }
-                if try_to_consume(_CLASS) then
-                 begin
-                   { class modifier is only allowed for procedures, functions, }
-                   { constructors, destructors, fields and properties          }
-                   if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR]) then
-                     Message(parser_e_procedure_or_function_expected);
+                { read class method/field/property }
+                consume(_CLASS);
+                { class modifier is only allowed for procedures, functions, }
+                { constructors, destructors, fields and properties          }
+                if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR]) then
+                  Message(parser_e_procedure_or_function_expected);
 
-                   if is_interface(current_structdef) then
-                     Message(parser_e_no_static_method_in_interfaces)
-                   else
-                     { class methods are also allowed for Objective-C protocols }
-                     is_classdef:=true;
-                 end;
+                if is_interface(current_structdef) then
+                  Message(parser_e_no_static_method_in_interfaces)
+                else
+                  { class methods are also allowed for Objective-C protocols }
+                  is_classdef:=true;
               end;
             _PROCEDURE,
             _FUNCTION:
@@ -1072,7 +1072,10 @@ implementation
                 case current_objectdef.objecttype of
                   odt_interfacecom :
                     if (current_structdef.objname^='IUNKNOWN') then
-                      interface_iunknown:=current_objectdef;
+                      interface_iunknown:=current_objectdef
+                    else
+                    if (current_structdef.objname^='IDISPATCH') then
+                      interface_idispatch:=current_objectdef;
                   odt_class :
                     if (current_structdef.objname^='TOBJECT') then
                       class_tobject:=current_objectdef;

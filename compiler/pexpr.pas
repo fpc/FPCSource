@@ -535,8 +535,6 @@ implementation
               in_args:=true;
               p1:=comp_expr(true,false);
               p1:=caddrnode.create(p1);
-              if cs_typed_addresses in current_settings.localswitches then
-                include(p1.flags,nf_typedaddr);
               consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
@@ -1016,6 +1014,36 @@ implementation
       end;
 
 
+    { checks whether sym is a static field and if so, translates the access
+      to the appropriate node tree }
+    function handle_staticfield_access(sym: tsym; nested: boolean; var p1: tnode): boolean;
+      var
+        static_name: shortstring;
+        srsymtable: tsymtable;
+      begin
+        result:=false;
+        { generate access code }
+        if (sp_static in sym.symoptions) then
+          begin
+            result:=true;
+            if not nested then
+              static_name:=lower(sym.owner.name^)+'_'+sym.name
+            else
+             static_name:=lower(generate_nested_name(sym.owner,'_'))+'_'+sym.name;
+            if sym.owner.defowner.typ=objectdef then
+              searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable)
+            else
+              searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
+            if assigned(sym) then
+              check_hints(sym,sym.symoptions,sym.deprecatedmsg);
+            p1.free;
+            p1:=nil;
+            { static syms are always stored as absolutevarsym to handle scope and storage properly }
+            propaccesslist_to_node(p1,nil,tabsolutevarsym(sym).ref);
+          end;
+      end;
+
+
     { the following procedure handles the access to a property symbol }
     procedure handle_propertysym(propsym : tpropertysym;st : TSymtable;var p1 : tnode);
       var
@@ -1024,11 +1052,7 @@ implementation
          membercall : boolean;
          callflags  : tcallnodeflags;
          propaccesslist : tpropaccesslist;
-         static_name : shortstring;
          sym: tsym;
-         srsymtable : tsymtable;
-         statements : tstatementnode;
-         converted_result_data : ttempcreatenode;
       begin
          { property parameters? read them only if the property really }
          { has parameters                                             }
@@ -1080,21 +1104,7 @@ implementation
                      fieldvarsym :
                        begin
                          { generate access code }
-                         if (sp_static in sym.symoptions) then
-                           begin
-                             static_name:=lower(sym.owner.name^)+'_'+sym.name;
-                             if sym.owner.defowner.typ=objectdef then
-                               searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable)
-                             else
-                               searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
-                             if assigned(sym) then
-                               check_hints(sym,sym.symoptions,sym.deprecatedmsg);
-                             p1.free;
-                             p1:=nil;
-                             { static syms are always stored as absolutevarsym to handle scope and storage properly }
-                             propaccesslist_to_node(p1,nil,tabsolutevarsym(sym).ref);
-                           end
-                         else
+                         if not handle_staticfield_access(sym,false,p1) then
                            propaccesslist_to_node(p1,st,propaccesslist);
                          include(p1.flags,nf_isproperty);
                          consume(_ASSIGNMENT);
@@ -1108,16 +1118,6 @@ implementation
                         Message(parser_e_no_procedure_to_access_property);
                       end;
                   end;
-                end
-              else
-              if (ppo_dispid_write in propsym.propoptions) then
-                begin
-                  consume(_ASSIGNMENT);
-                  p2:=comp_expr(true,false);
-                  { concat value parameter too }
-                  p2:=ccallparanode.create(p2,nil);
-                  { passing p3 here is only for information purposes }
-                  p1:=translate_disp_call(p1,p2,p2,'',propsym.dispid,voidtype);
                 end
               else
                 begin
@@ -1134,21 +1134,7 @@ implementation
                      fieldvarsym :
                        begin
                          { generate access code }
-                         if (sp_static in sym.symoptions) then
-                           begin
-                             static_name:=lower(sym.owner.name^)+'_'+sym.name;
-                             if sym.owner.defowner.typ=objectdef then
-                               searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable)
-                             else
-                               searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
-                             if assigned(sym) then
-                               check_hints(sym,sym.symoptions,sym.deprecatedmsg);
-                             p1.free;
-                             p1:=nil;
-                             { static syms are always stored as absolutevarsym to handle scope and storage properly }
-                             propaccesslist_to_node(p1,nil,tabsolutevarsym(sym).ref);
-                           end
-                         else
+                         if not handle_staticfield_access(sym,false,p1) then
                            propaccesslist_to_node(p1,st,propaccesslist);
                          include(p1.flags,nf_isproperty);
                        end;
@@ -1171,19 +1157,6 @@ implementation
                   end;
                 end
               else
-              if (ppo_dispid_read in propsym.propoptions) then
-                begin
-                  p2:=internalstatements(statements);
-                  converted_result_data:=ctempcreatenode.create(propsym.propdef,sizeof(propsym.propdef),tt_persistent,true);
-                  addstatement(statements,converted_result_data);
-                  addstatement(statements,cassignmentnode.create(ctemprefnode.create(converted_result_data),
-                    ctypeconvnode.create_internal(translate_disp_call(p1,nil,nil,'',propsym.dispid,propsym.propdef),
-                    propsym.propdef)));
-                  addstatement(statements,ctempdeletenode.create_normal_temp(converted_result_data));
-                  addstatement(statements,ctemprefnode.create(converted_result_data));
-                  p1:=p2;
-                end
-              else
                 begin
                    { error, no function to read property }
                    p1:=cerrornode.create;
@@ -1199,9 +1172,7 @@ implementation
     { the ID token has to be consumed before calling this function }
     procedure do_member_read(structh:tabstractrecorddef;getaddr:boolean;sym:tsym;var p1:tnode;var again:boolean;callflags:tcallnodeflags);
       var
-         static_name : string;
          isclassref  : boolean;
-         srsymtable  : TSymtable;
       begin
          if sym=nil then
            begin
@@ -1244,21 +1215,7 @@ implementation
                    end;
                  fieldvarsym:
                    begin
-                      if (sp_static in sym.symoptions) then
-                        begin
-                          static_name:=lower(generate_nested_name(sym.owner,'_'))+'_'+sym.name;
-                          if sym.Owner.defowner.typ=objectdef then
-                            searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable)
-                          else
-                            searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
-                          if assigned(sym) then
-                            check_hints(sym,sym.symoptions,sym.deprecatedmsg);
-                          p1.free;
-                          p1:=nil;
-                          { static syms are always stored as absolutevarsym to handle scope and storage properly }
-                          propaccesslist_to_node(p1,nil,tabsolutevarsym(sym).ref);
-                        end
-                      else
+                      if not handle_staticfield_access(sym,true,p1) then
                         begin
                           if isclassref then
                             if assigned(p1) and
@@ -1949,7 +1906,8 @@ implementation
 
                _LECKKLAMMER:
                   begin
-                    if is_class_or_interface_or_object(p1.resultdef) then
+                    if is_class_or_interface_or_object(p1.resultdef) or
+                      is_dispinterface(p1.resultdef) then
                       begin
                         { default property }
                         protsym:=search_default_property(tobjectdef(p1.resultdef));
@@ -2141,16 +2099,15 @@ implementation
                                    p3:=comp_expr(true,false);
                                    { concat value parameter too }
                                    p2:=ccallparanode.create(p3,p2);
-                                   { passing p3 here is only for information purposes }
-                                   p1:=translate_disp_call(p1,p2,p3,dispatchstring,0,voidtype);
+                                   p1:=translate_disp_call(p1,p2,dct_propput,dispatchstring,0,voidtype);
                                  end
                                else
                                { this is only an approximation
                                  setting useresult if not necessary is only a waste of time, no more, no less (FK) }
                                if afterassignment or in_args or (token<>_SEMICOLON) then
-                                 p1:=translate_disp_call(p1,p2,nil,dispatchstring,0,cvarianttype)
+                                 p1:=translate_disp_call(p1,p2,dct_method,dispatchstring,0,cvarianttype)
                                else
-                                 p1:=translate_disp_call(p1,p2,nil,dispatchstring,0,voidtype);
+                                 p1:=translate_disp_call(p1,p2,dct_method,dispatchstring,0,voidtype);
                              end
                            else { Error }
                              Consume(_ID);
@@ -2383,7 +2340,7 @@ implementation
                       hclassdef:=hclassdef.childof;
                     { if inherited; only then we need the method with
                       the same name }
-                    if token in endtokens then
+                    if token <> _ID then
                      begin
                        hs:=current_procinfo.procdef.procsym.name;
                        hsorg:=current_procinfo.procdef.procsym.realname;

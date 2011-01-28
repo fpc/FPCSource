@@ -29,54 +29,12 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{$L x8616lut}
-{$L x86_clr}
-{$L x86_main}
-{$L x86p_16}
-{$L x86p_32}
-{$L x86p_cpy}
-{$L x86p_i8}
-{$L x86p_s32}
-{$L x86pscpy}
-
-procedure ConvertX86(hci: PHermesConverterInterface); cdecl; external name ExternalAsmPrefix+'ConvertX86';
-procedure ConvertX86Stretch(hci: PHermesConverterInterface); cdecl; external name ExternalAsmPrefix+'ConvertX86Stretch';
-procedure ClearX86_32(hci: PHermesClearInterface); cdecl; external name ExternalAsmPrefix+'ClearX86_32';
-procedure ClearX86_24(hci: PHermesClearInterface); cdecl; external name ExternalAsmPrefix+'ClearX86_24';
-procedure ClearX86_16(hci: PHermesClearInterface); cdecl; external name ExternalAsmPrefix+'ClearX86_16';
-procedure ClearX86_8(hci: PHermesClearInterface); cdecl; external name ExternalAsmPrefix+'ClearX86_8';
-
-function Hermes_X86_CPU: Integer; cdecl; external name ExternalAsmPrefix+'Hermes_X86_CPU';
-
-procedure ConvertX86p32_32BGR888(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p32_32BGR888';
-procedure ConvertX86p32_32RGBA888(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p32_32RGBA888';
-procedure ConvertX86p32_32BGRA888(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p32_32BGRA888';
-procedure ConvertX86p32_24RGB888(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p32_24RGB888';
-procedure ConvertX86p32_24BGR888(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p32_24BGR888';
-procedure ConvertX86p32_16RGB565(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p32_16RGB565';
-procedure ConvertX86p32_16BGR565(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p32_16BGR565';
-procedure ConvertX86p32_16RGB555(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p32_16RGB555';
-procedure ConvertX86p32_16BGR555(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p32_16BGR555';
-procedure ConvertX86p32_8RGB332(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p32_8RGB332';
-
-procedure ConvertX86p32_16RGB565_S(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p32_16RGB565_S';
-
-procedure ConvertX86p16_32RGB888(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p16_32RGB888';
-procedure ConvertX86p16_32BGR888(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p16_32BGR888';
-procedure ConvertX86p16_32RGBA888(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p16_32RGBA888';
-procedure ConvertX86p16_32BGRA888(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p16_32BGRA888';
-procedure ConvertX86p16_24RGB888(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p16_24RGB888';
-procedure ConvertX86p16_24BGR888(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p16_24BGR888';
-procedure ConvertX86p16_16BGR565(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p16_16BGR565';
-procedure ConvertX86p16_16RGB555(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p16_16RGB555';
-procedure ConvertX86p16_16BGR555(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p16_16BGR555';
-procedure ConvertX86p16_8RGB332(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86p16_8RGB332';
-
-procedure CopyX86p_4byte(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'CopyX86p_4byte';
-procedure CopyX86p_3byte(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'CopyX86p_3byte';
-procedure CopyX86p_2byte(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'CopyX86p_2byte';
-procedure CopyX86p_1byte(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'CopyX86p_1byte';
-
-procedure ConvertX86pI8_32(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86pI8_32';
-procedure ConvertX86pI8_24(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86pI8_24';
-procedure ConvertX86pI8_16(CONVERT_PARAMETERS); cdecl; external name ExternalAsmPrefix+'ConvertX86pI8_16';
+{$I x8616lut.inc}
+{$I x86_clr.inc}
+{$I x86_main.inc}
+{$I x86p_16.inc}
+{$I x86p_32.inc}
+{$I x86p_cpy.inc}
+{$I x86p_i8.inc}
+{$I x86p_s32.inc}
+{$I x86pscpy.inc}

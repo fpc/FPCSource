@@ -3,12 +3,8 @@ program fpvectorialconverter;
 {$mode objfpc}{$H+}
 
 uses
-  {$IFDEF UNIX}{$IFDEF UseCThreads}
-  cthreads,
-  {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, fpvc_mainform
-  { you can add units after this };
+  Forms, fpvc_mainform;
 
 {$R *.res}
 

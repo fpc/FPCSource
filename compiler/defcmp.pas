@@ -29,7 +29,7 @@ interface
        cclasses,
        globtype,globals,
        node,
-       symconst,symtype,symbase,symdef;
+       symconst,symtype,symdef;
 
      type
        { if acp is cp_all the var const or nothing are considered equal }
@@ -1445,7 +1445,7 @@ implementation
              begin
                { interface -> guid }
                if (def_to=rec_tguid) and
-                  (is_interfacecom(def_from) or is_dispinterface(def_from)) then
+                  (is_interfacecom_or_dispinterface(def_from)) then
                 begin
                   doconv:=tc_intf_2_guid;
                   eq:=te_convert_l1;
@@ -1487,19 +1487,7 @@ implementation
             )
            ) then
           begin
-            { search record/object symtable first for a sutable operator }
-            if def_from.typ in [recorddef,objectdef] then
-              symtablestack.push(tabstractrecorddef(def_from).symtable);
-            { if type conversion is explicit then search first for explicit 
-              operator overload and if not found then use implicit operator }
-            if cdo_explicit in cdoptions then
-              operatorpd:=search_assignment_operator(def_from,def_to,true)
-            else
-              operatorpd:=nil;
-            if operatorpd=nil then
-              operatorpd:=search_assignment_operator(def_from,def_to,false);
-            if def_from.typ in [recorddef,objectdef] then
-              symtablestack.pop(tabstractrecorddef(def_from).symtable);
+            operatorpd:=search_assignment_operator(def_from,def_to,cdo_explicit in cdoptions);
             if assigned(operatorpd) then
              eq:=te_convert_operator;
           end;

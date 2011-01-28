@@ -4,7 +4,8 @@ program prog;
 {$mode objfpc}
 
 uses
- dynlibs;
+  popuperr,
+  dynlibs;
 
 // this function is exported from the EXE
 function exetest: longint; {public name 'exetest';}
@@ -42,7 +43,7 @@ begin
     end;
   pointer(dllf):= getprocaddress(lh, 'dllf'); // get function from dll
 
-  // call function in dll, which calls function in exe, and then prints 
+  // call function in dll, which calls function in exe, and then prints
   // a result number 5
   if (dllf()<>5) then
     halt(1);

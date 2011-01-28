@@ -1170,9 +1170,7 @@ Var
   // removes negative sign in case when result is zero eg. -0.00
   var
     i: PtrInt;
-    S: String;
     TS: Char;
-    B: Boolean;
     StartPos: PtrInt;
   begin
     Result := False;
@@ -1181,7 +1179,6 @@ Var
     else
       StartPos := 2;
     TS := FormatSettings.ThousandSeparator;
-    S := '';
     for i := StartPos to length(AValue) do
     begin
       Result := (AValue[i] in ['0', DS, 'E', '+', TS]);
@@ -1432,7 +1429,7 @@ Begin
         End
         Else
         Begin
-          Case NegCurrFormat Of
+          Case FormatSettings.NegCurrFormat Of
             0: Result := '(' + FormatSettings.CurrencyString + Result + ')';
             1: Result := '-' + FormatSettings.CurrencyString + Result;
             2: Result := FormatSettings.CurrencyString + '-' + Result;
@@ -2901,7 +2898,7 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
       while (Length(s) > n) and (s[n] = ' ')  do
         inc(n);
       while (Length(s) >= n) and
-            (s[n] in ['0'..'9', '+', '-', DecimalSeparator, 'e', 'E']) do
+            (s[n] in ['0'..'9', '+', '-', FormatSettings.DecimalSeparator, 'e', 'E']) do
         begin
           s1 := s1+s[n];
           inc(n);

@@ -30,7 +30,12 @@ interface
        symtype,symdef,symbase;
 
     type
-      TSingleTypeOption=(stoIsForwardDef,stoAllowTypeDef,stoParseClassParent);
+      TSingleTypeOption=(
+        stoIsForwardDef,          { foward declaration         }
+        stoAllowTypeDef,          { allow type definitions     }
+        stoAllowSpecialization,   { allow type specialization  }
+        stoParseClassParent       { parse of parent class type }
+      );
       TSingleTypeOptions=set of TSingleTypeOption;
 
     procedure resolve_forward_types;
@@ -401,8 +406,7 @@ implementation
          sorg:=orgpattern;
          pos:=current_tokenpos;
          { use of current parsed object:
-            - classes can be used also in classes
-            - objects can be parameters }
+           classes, objects, records can be used also in themself }
          structdef:=current_structdef;
          while assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
            begin
@@ -414,7 +418,7 @@ implementation
                end;
              structdef:=tabstractrecorddef(structdef.owner.defowner);
            end;
-         { Use the special searchsym_type that ignores records and parameters }
+         { Use the special searchsym_type that search only types }
          searchsym_type(s,srsym,srsymtable);
          { handle unit specification like System.Writeln }
          is_unit_specific:=try_consume_unitsym(srsym,srsymtable,t);
@@ -497,7 +501,7 @@ implementation
                  begin
                    if try_to_consume(_SPECIALIZE) then
                      begin
-                       if not(stoAllowTypeDef in options) then
+                       if ([stoAllowSpecialization,stoAllowTypeDef] * options = []) then
                          begin
                            Message(parser_e_no_local_para_def);
 
@@ -544,7 +548,8 @@ implementation
                  end;
             end;
         until not again;
-        if (stoAllowTypeDef in options)and(m_delphi in current_settings.modeswitches) then
+        if ([stoAllowSpecialization,stoAllowTypeDef] * options <> []) and
+           (m_delphi in current_settings.modeswitches) then
           dospecialize:=token=_LSHARPBRACKET;
         if dospecialize then
           generate_specialization(def,stoParseClassParent in options)
@@ -753,17 +758,15 @@ implementation
             _CLASS:
               begin
                 is_classdef:=false;
-                { read class method }
-                if try_to_consume(_CLASS) then
-                 begin
-                   { class modifier is only allowed for procedures, functions, }
-                   { constructors, destructors, fields and properties          }
-                   if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR,_OPERATOR]) and
-                      not((token=_ID) and (idtoken=_OPERATOR)) then
-                     Message(parser_e_procedure_or_function_expected);
+                { read class method/field/property }
+                consume(_CLASS);
+                { class modifier is only allowed for procedures, functions, }
+                { constructors, destructors, fields and properties          }
+                if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR,_OPERATOR]) and
+                   not((token=_ID) and (idtoken=_OPERATOR)) then
+                  Message(parser_e_procedure_or_function_expected);
 
-                   is_classdef:=true;
-                 end;
+                is_classdef:=true;
               end;
             _PROCEDURE,
             _FUNCTION:
@@ -940,8 +943,7 @@ implementation
            old_block_type:=block_type;
            dospecialize:=false;
            { use of current parsed object:
-              - classes can be used also in classes
-              - objects can be parameters }
+             classes, objects, records can be used also in themself }
            if (token=_ID) then
              begin
                structdef:=current_structdef;
