@@ -8,24 +8,6 @@ version=2.5.1
 
 [target]
 units=hermes
-loaders_i386_linux=mmx_clr mmx_main mmxp2_32 mmxp_32 \
-             x8616lut x86_clr x86_main x86p_16 x86p_32 x86p_cpy \
-             x86p_i8 x86p_s32 x86pscpy
-loaders_i386_win32=mmx_clr mmx_main mmxp2_32 mmxp_32 \
-             x8616lut x86_clr x86_main x86p_16 x86p_32 x86p_cpy \
-             x86p_i8 x86p_s32 x86pscpy
-loaders_i386_go32v2=mmx_clr mmx_main mmxp2_32 mmxp_32 \
-             x8616lut x86_clr x86_main x86p_16 x86p_32 x86p_cpy \
-             x86p_i8 x86p_s32 x86pscpy
-loaders_i386_freebsd=mmx_clr mmx_main mmxp2_32 mmxp_32 \
-             x8616lut x86_clr x86_main x86p_16 x86p_32 x86p_cpy \
-             x86p_i8 x86p_s32 x86pscpy
-loaders_i386_haiku=mmx_clr mmx_main mmxp2_32 mmxp_32 \
-             x8616lut x86_clr x86_main x86p_16 x86p_32 x86p_cpy \
-             x86p_i8 x86p_s32 x86pscpy
-loaders_i386_beos=mmx_clr mmx_main mmxp2_32 mmxp_32 \
-             x8616lut x86_clr x86_main x86p_16 x86p_32 x86p_cpy \
-             x86p_i8 x86p_s32 x86pscpy
 
 [compiler]
 options_i386_linux=-dI386_ASSEMBLER
@@ -48,41 +30,3 @@ fpcdir=../..
 
 [rules]
 .NOTPARALLEL:
-mmx_clr$(OEXT): src/$(CPU_TARGET)/mmx_clr.as
-        $(AS) --32 -o $(UNITTARGETDIRPREFIX)mmx_clr$(OEXT) src/$(CPU_TARGET)/mmx_clr.as
-
-mmx_main$(OEXT): src/$(CPU_TARGET)/mmx_main.as
-        $(AS) --32 -o $(UNITTARGETDIRPREFIX)mmx_main$(OEXT) src/$(CPU_TARGET)/mmx_main.as
-
-mmxp2_32$(OEXT): src/$(CPU_TARGET)/mmxp2_32.as
-        $(AS) --32 -o $(UNITTARGETDIRPREFIX)mmxp2_32$(OEXT) src/$(CPU_TARGET)/mmxp2_32.as
-
-mmxp_32$(OEXT): src/$(CPU_TARGET)/mmxp_32.as
-        $(AS) --32 -o $(UNITTARGETDIRPREFIX)mmxp_32$(OEXT) src/$(CPU_TARGET)/mmxp_32.as
-
-x8616lut$(OEXT): src/$(CPU_TARGET)/x8616lut.as
-        $(AS) --32 -o $(UNITTARGETDIRPREFIX)x8616lut$(OEXT) src/$(CPU_TARGET)/x8616lut.as
-
-x86_clr$(OEXT): src/$(CPU_TARGET)/x86_clr.as
-        $(AS) --32 -o $(UNITTARGETDIRPREFIX)x86_clr$(OEXT) src/$(CPU_TARGET)/x86_clr.as
-
-x86_main$(OEXT): src/$(CPU_TARGET)/x86_main.as
-        $(AS) --32 -o $(UNITTARGETDIRPREFIX)x86_main$(OEXT) src/$(CPU_TARGET)/x86_main.as
-
-x86p_16$(OEXT): src/$(CPU_TARGET)/x86p_16.as
-        $(AS) --32 -o $(UNITTARGETDIRPREFIX)x86p_16$(OEXT) src/$(CPU_TARGET)/x86p_16.as
-
-x86p_32$(OEXT): src/$(CPU_TARGET)/x86p_32.as
-        $(AS) --32 -o $(UNITTARGETDIRPREFIX)x86p_32$(OEXT) src/$(CPU_TARGET)/x86p_32.as
-
-x86p_cpy$(OEXT): src/$(CPU_TARGET)/x86p_cpy.as
-        $(AS) --32 -o $(UNITTARGETDIRPREFIX)x86p_cpy$(OEXT) src/$(CPU_TARGET)/x86p_cpy.as
-
-x86p_i8$(OEXT): src/$(CPU_TARGET)/x86p_i8.as
-        $(AS) --32 -o $(UNITTARGETDIRPREFIX)x86p_i8$(OEXT) src/$(CPU_TARGET)/x86p_i8.as
-
-x86p_s32$(OEXT): src/$(CPU_TARGET)/x86p_s32.as
-        $(AS) --32 -o $(UNITTARGETDIRPREFIX)x86p_s32$(OEXT) src/$(CPU_TARGET)/x86p_s32.as
-
-x86pscpy$(OEXT): src/$(CPU_TARGET)/x86pscpy.as
-        $(AS) --32 -o $(UNITTARGETDIRPREFIX)x86pscpy$(OEXT) src/$(CPU_TARGET)/x86pscpy.as
