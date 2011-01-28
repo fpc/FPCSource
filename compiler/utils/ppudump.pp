@@ -846,10 +846,37 @@ type
   );
   tdefoptions=set of tdefoption;
 
+  tobjectoption=(oo_none,
+    oo_is_forward,         { the class is only a forward declared yet }
+    oo_is_abstract,        { the class is abstract - only descendants can be used }
+    oo_is_sealed,          { the class is sealed - can't have descendants }
+    oo_has_virtual,        { the object/class has virtual methods }
+    oo_has_private,
+    oo_has_protected,
+    oo_has_strictprivate,
+    oo_has_strictprotected,
+    oo_has_constructor,    { the object/class has a constructor }
+    oo_has_destructor,     { the object/class has a destructor }
+    oo_has_vmt,            { the object/class has a vmt }
+    oo_has_msgstr,
+    oo_has_msgint,
+    oo_can_have_published,{ the class has rtti, i.e. you can publish properties }
+    oo_has_default_property,
+    oo_has_valid_guid,
+    oo_has_enumerator_movenext,
+    oo_has_enumerator_current,
+    oo_is_external,       { the class is externally implemented (objcclass, cppclass) }
+    oo_is_anonymous,      { the class is only formally defined in this module (objcclass x = class; external;) }
+    oo_is_classhelper,    { objcclasses that represent categories, and Delpi-style class helpers, are marked like this }
+    oo_has_class_constructor, { the object/class has a class constructor }
+    oo_has_class_destructor   { the object/class has a class destructor  }
+  );
+  tobjectoptions=set of tobjectoption;
 
 var
   { needed during tobjectdef parsing... }
   current_defoptions : tdefoptions;
+  current_objectoptions : tobjectoptions;
 
 procedure readcommondef(const s:string; out defoptions: tdefoptions);
 type
@@ -1401,32 +1428,6 @@ end;
 
 procedure readobjectdefoptions;
 type
-  tobjectoption=(oo_none,
-    oo_is_forward,         { the class is only a forward declared yet }
-    oo_is_abstract,        { the class is abstract - only descendants can be used }
-    oo_is_sealed,          { the class is sealed - can't have descendants }
-    oo_has_virtual,        { the object/class has virtual methods }
-    oo_has_private,
-    oo_has_protected,
-    oo_has_strictprivate,
-    oo_has_strictprotected,
-    oo_has_constructor,    { the object/class has a constructor }
-    oo_has_destructor,     { the object/class has a destructor }
-    oo_has_vmt,            { the object/class has a vmt }
-    oo_has_msgstr,
-    oo_has_msgint,
-    oo_can_have_published,{ the class has rtti, i.e. you can publish properties }
-    oo_has_default_property,
-    oo_has_valid_guid,
-    oo_has_enumerator_movenext,
-    oo_has_enumerator_current,
-    oo_is_external,       { the class is externally implemented (objcclass, cppclass) }
-    oo_is_anonymous,      { the class is only formally defined in this module (objcclass x = class; external;) }
-    oo_is_classhelper,    { objcclasses that represent categories, and Delpi-style class helpers, are marked like this }
-    oo_has_class_constructor, { the object/class has a class constructor }
-    oo_has_class_destructor   { the object/class has a class destructor  }
-  );
-  tobjectoptions=set of tobjectoption;
   tsymopt=record
     mask : tobjectoption;
     str  : string[30];
@@ -1458,16 +1459,15 @@ const
      (mask:oo_has_class_destructor; str:'HasClassDestructor')
   );
 var
-  symoptions : tobjectoptions;
   i      : longint;
   first  : boolean;
 begin
-  ppufile.getsmallset(symoptions);
-  if symoptions<>[] then
+  ppufile.getsmallset(current_objectoptions);
+  if current_objectoptions<>[] then
    begin
      first:=true;
      for i:=1 to high(symopt) do
-      if (symopt[i].mask in symoptions) then
+      if (symopt[i].mask in current_objectoptions) then
        begin
          if first then
            first:=false
@@ -1901,7 +1901,8 @@ type
     odt_cppclass,
     odt_dispinterface,
     odt_objcclass,
-    odt_objcprotocol
+    odt_objcprotocol,
+    odt_classhelper
   );
   tvarianttype = (
     vt_normalvariant,vt_olevariant
@@ -2131,6 +2132,7 @@ begin
                odt_dispinterface  : writeln('dispinterface');
                odt_objcclass      : writeln('objcclass');
                odt_objcprotocol   : writeln('objcprotocol');
+               odt_classhelper    : writeln('class helper');
                else                 writeln('!! Warning: Invalid object type ',b);
              end;
              writeln(space,'    External name : ',getstring);
@@ -2148,6 +2150,13 @@ begin
                   for j:=1to 16 do
                    getbyte;
                   writeln(space,'       IID String : ',getstring);
+               end;
+
+             if (tobjecttyp(b)=odt_classhelper) or
+                 (oo_is_classhelper in current_objectoptions) then
+               begin
+                 write(space,'    Helper parent : ');
+                 readderef('');
                end;
 
              l:=getlongint;
