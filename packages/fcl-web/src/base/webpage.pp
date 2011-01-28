@@ -264,9 +264,9 @@ end;
 
 destructor TWebPage.Destroy;
 begin
+  inherited Destroy;
   if assigned(FContentProducers) then
     FreeAndNil(FContentProducers);
-  inherited Destroy;
 end;
 
 function TWebPage.ContentProducerCount: integer;
