@@ -229,7 +229,8 @@ interface
     function  search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef;explicit:boolean):Tprocdef;
     function  search_enumerator_operator(from_def,to_def:Tdef):Tprocdef;
-    function  search_objectpascal_class_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
+    function  search_last_objectpascal_classhelper(pd : tobjectdef;out odef : tobjectdef):boolean;
+    function  search_objectpascal_class_helper(pd,contextclassh : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
     function  search_class_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
     function  search_objc_method(const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
     {Looks for macro s (must be given in upper case) in the macrosymbolstack, }
@@ -2139,7 +2140,7 @@ implementation
           class }
         if is_class(classh) then
           begin
-            result:=search_objectpascal_class_helper(classh,s,srsym,srsymtable);
+            result:=search_objectpascal_class_helper(classh,contextclassh,s,srsym,srsymtable);
             if result then
               exit;
           end;
@@ -2405,51 +2406,52 @@ implementation
           end;
       end;
 
-    function search_objectpascal_class_helper(pd : tobjectdef;const s: string; out srsym: tsym; out srsymtable: tsymtable):boolean;
+    function search_last_objectpascal_classhelper(pd : tobjectdef;out odef : tobjectdef):boolean;
+      var
+        stackitem : psymtablestackitem;
+        i : integer;
+        srsymtable : tsymtable;
+      begin
+        result:=false;
+        stackitem:=symtablestack.stack;
+        while assigned(stackitem) do
+          begin
+            srsymtable:=stackitem^.symtable;
+            if srsymtable.symtabletype in [staticsymtable,globalsymtable] then
+              begin
+                { we need to search from last to first }
+                for i:=srsymtable.symlist.count-1 downto 0 do
+                  begin
+                    if not (srsymtable.symlist[i] is ttypesym) then
+                      continue;
+                    if not is_objectpascal_classhelper(ttypesym(srsymtable.symlist[i]).typedef) then
+                      continue;
+                    odef:=tobjectdef(ttypesym(srsymtable.symlist[i]).typedef);
+                    { does the class helper extend the correct class? }
+                    result:=odef.childof=pd;
+                    if result then
+                      exit
+                    else
+                      odef:=nil;
+                  end;
+              end;
+            stackitem:=stackitem^.next;
+          end;
+      end;
 
-      function find_last_classhelper(out odef : tobjectdef):boolean;
-        { uses "pd" of parent function }
-        var
-          stackitem : psymtablestackitem;
-          i : integer;
-        begin
-          result:=false;
-          stackitem:=symtablestack.stack;
-          while assigned(stackitem) do
-            begin
-              srsymtable:=stackitem^.symtable;
-              if srsymtable.symtabletype in [staticsymtable,globalsymtable] then
-                begin
-                  { we need to search from last to first }
-                  for i:=srsymtable.symlist.count-1 downto 0 do
-                    begin
-                      if not (srsymtable.symlist[i] is ttypesym) then
-                        continue;
-                      if not is_objectpascal_classhelper(ttypesym(srsymtable.symlist[i]).typedef) then
-                        continue;
-                      odef:=tobjectdef(ttypesym(srsymtable.symlist[i]).typedef);
-                      { does the class helper extend the correct class? }
-                      result:=odef.childof=pd;
-                      if result then
-                        exit
-                      else
-                        odef:=nil;
-                    end;
-                end;
-              stackitem:=stackitem^.next;
-            end;
-        end;
+    function search_objectpascal_class_helper(pd,contextclassh : tobjectdef;const s: string; out srsym: tsym; out srsymtable: tsymtable):boolean;
 
       var
         hashedid  : THashedIDString;
         classh : tobjectdef;
-        i: integer;
+        i : integer;
+        pdef : tprocdef;
       begin
         result:=false;
 
         { if there is no class helper for the class then there is no need to
           search further }
-        if not find_last_classhelper(classh) then
+        if not search_last_objectpascal_classhelper(pd,classh) then
           exit;
 
         hashedid.id:=s;
@@ -2467,6 +2469,9 @@ implementation
                 end;
               for i:=0 to tprocsym(srsym).procdeflist.count-1 do
                 begin
+                  pdef:=tprocdef(tprocsym(srsym).procdeflist[i]);
+                  if not is_visible_for_object(pdef.owner,pdef.visibility,contextclassh) then
+                    continue;
                   { we need to know if a procedure references symbols
                     in the static symtable, because then it can't be
                     inlined from outside this unit }
