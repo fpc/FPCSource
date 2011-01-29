@@ -379,12 +379,15 @@ implementation
 
             case location.loc of
               LOC_REGISTER :
+                begin
 {$ifndef cpu64bitalu}
-                if location.size in [OS_64,OS_S64] then
-                  cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,location.register64,funcretnode.location)
-                else
+                  if location.size in [OS_64,OS_S64] then
+                    cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,location.register64,funcretnode.location)
+                  else
 {$endif}
-                  cg.a_load_reg_loc(current_asmdata.CurrAsmList,location.size,location.register,funcretnode.location);
+                    cg.a_load_reg_loc(current_asmdata.CurrAsmList,location.size,location.register,funcretnode.location);
+                  location_free(current_asmdata.CurrAsmList,location);
+                end;
               LOC_REFERENCE:
                 begin
                   case funcretnode.location.loc of
@@ -395,6 +398,7 @@ implementation
                     else
                       internalerror(200802121);
                   end;
+                  location_freetemp(current_asmdata.CurrAsmList,location);
                 end;
               else
                 internalerror(200709085);
