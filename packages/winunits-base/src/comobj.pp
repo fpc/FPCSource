@@ -1385,7 +1385,7 @@ HKCR
                        { Codegen always passes a pointer to variant,
                          *unlike* Delphi which pushes the entire TVarData }
                         Arguments[i]:=PVarData(PPointer(Params)^)^;
-                        inc(PVarData(Params));
+                        inc(PPointer(Params));
                       end;
                     varCurrency,
                     varDouble,

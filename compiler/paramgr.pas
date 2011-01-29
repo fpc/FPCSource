@@ -163,7 +163,7 @@ implementation
            (def.typ=stringdef) or
            ((def.typ=procvardef) and not tprocvardef(def).is_addressonly) or
            { interfaces are also passed by reference to be compatible with delphi and COM }
-           ((def.typ=objectdef) and (is_object(def) or is_interface(def))) or
+           ((def.typ=objectdef) and (is_object(def) or is_interface(def) or is_dispinterface(def))) or
            (def.typ=variantdef) or
            ((def.typ=setdef) and not is_smallset(def));
       end;
