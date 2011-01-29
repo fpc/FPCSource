@@ -7,7 +7,7 @@ uses
 
 // A literal casted to Wide/UnicodeString is expected to be of type vtWideString.
 const
-  expected: array[0..3] of integer = (vtAnsiString, vtWideString, vtWideString, vtWideString);
+  expected: array[0..3] of integer = (vtAnsiString, vtWideString, vtUnicodeString, vtWideString);
 
 procedure variantfunc(vars: array of const);
 var
