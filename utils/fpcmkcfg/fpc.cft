@@ -122,9 +122,6 @@
 #-Fr%basepath%/msg/errord.msg
 #-Fr%basepath%/msg/errorr.msg
 
-# path to the gcclib
-#-Fl%basepath%/lib
-
 #IFDEF FPCAPACHE_1_13
 -Fu%basepath%/units/$FPCTARGET/httpd13/
 #ELSE
@@ -140,6 +137,9 @@
 -Fu%basepath%/units/$FPCTARGET/*
 -Fu%basepath%/units/$FPCTARGET/rtl
 
+# path to the gcclib
+%gcclibpath%
+
 # searchpath for libraries
 #-Fl%basepath%/lib
 #-Fl/lib;/usr/lib
@@ -147,9 +147,13 @@
 # searchpath for tools
 -FD%basepath%/bin/$FPCTARGET
 
+%NEEDCROSSBINUTILSIFDEF%
+
 # binutils prefix for cross compiling
 #IFDEF FPC_CROSSCOMPILING
+#IFDEF NEEDCROSSBINUTILS
   -XP$FPCTARGET-
+#ENDIF
 #ENDIF
 
 

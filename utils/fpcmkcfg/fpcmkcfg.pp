@@ -16,7 +16,7 @@
  **********************************************************************}
 program fpcmkcfg;
 
-uses usubst,SysUtils,Classes;
+uses SysUtils,Classes,fpTemplate, process;
 
 {
   The inc files must be built from a template with the data2inc
@@ -24,16 +24,25 @@ uses usubst,SysUtils,Classes;
   data2inc -b -s fpc.cft fpccfg.inc DefaultConfig
   data2inc -b -s fpinc.ini fpini.inc fpini
   data2inc -b -s fpinc.cfg fpcfg.inc fpcfg
+  data2inc -b -s fppkg.cfg fppkg.inc fppkg
+  data2inc -b -s default.cft default.inc fppkg_default
 }
 
 {$i fpccfg.inc}
 {$i fpini.inc}
 {$i fpcfg.inc}
+{$i fppkg.inc}
+{$i default.inc}
 
 Const
   BuildVersion={$I %FPCVERSION%};
   BuildTarget={$I %FPCTARGET%};
   BuildOSTarget={$I %FPCTARGETOS%};
+{$ifdef unix}
+  ExeExt = '';
+{$else unix}
+  ExeExt = '.exe';
+{$endif unix}
 
 
 Resourcestring
@@ -44,30 +53,185 @@ Resourcestring
   SUsage40  = '  -d name=value define name=value pair.';
   SUsage50  = '  -h            show this help and exit.';
   SUsage60  = '  -u name       remove name from list of name/value pairs.';
-  SUsage70  = '  -l filename   read name/value pairs from filename';
+//  SUsage70  = '  -l filename   read name/value pairs from filename';
+  SUsage70  = '  -m            show builtin macros and exit.';
   SUsage80  = '  -b            show builtin template and exit.';
   SUsage90  = '  -v            be verbose.';
   Susage100 = '  -0            use built in fpc.cfg template (default)';
   Susage110 = '  -1            use built in fp.cfg template';
   Susage120 = '  -2            use built in fp.ini template';
+  Susage130 = '  -3            use built in fppkg.cfg template';
+  Susage140 = '  -4            use built in fppkg default compiler template';
   SErrUnknownOption   = 'Error: Unknown option.';
   SErrArgExpected     = 'Error: Option "%s" requires an argument.';
+  SErrIncompletePair  = 'Error: Incomplete name-value pair "%s".';
   SErrNoSuchFile      = 'Error: File "%s" does not exist.';
   SErrBackupFailed    = 'Error: Backup of file "%s" to "%s" failed.';
   SErrDelBackupFailed = 'Error: Delete of old backup file "%s" failed.';
   SWarnIgnoringFile   = 'Warning: Ignoring non-existent file: ';
-  SWarnIgnoringPair   = 'Warning: ignoring wrong name/value pair: ';
-  SStats              = 'Replaced %d placeholders in %d lines.';
-  SSubstInLine        = 'Replaced %s placeholders in line %d.';
+  SWarnIgnoringPair   = 'Warning: Ignoring wrong name/value pair: ';
+  SWarngccNotFound    = 'Warning: Could not find gcc. Unable to determine the gcclib path.';
 
 
 Var
   Verbose : Boolean;
   SkipBackup : Boolean;
-  List,Cfg : TStringList;
+  Cfg : TStringList;
+  TemplateParser: TTemplateParser;
   TemplateFileName,
   OutputFileName : String;
   IDEBuildin : Integer;
+
+function GetDefaultLocalRepository: string;
+
+begin
+{$IFDEF Unix}
+  result := '{UserDir}.fppkg'+PathDelim;
+{$ELSE Unix}
+  result := '{AppConfigDir}';
+{$ENDIF Unix}
+end;
+
+function GetDefaultNeedCrossBinutilsIfdef: string;
+
+begin
+  result := '';
+  // On Darwin there is never a need for a crossbinutils prefix
+  if SameText(BuildOSTarget,'Darwin') then
+    result := '#IFNDEF ' + BuildOSTarget + LineEnding +
+              '#DEFINE NEEDCROSSBINUTILS' + LineEnding +
+              '#ENDIF'
+  else if (BuildTarget = 'i386') or (BuildTarget = 'x86_64') then
+    begin
+    // Cross-binutils are not needed to compile for i386 on an x86_64 system
+    result := '#IFNDEF CPUI386' + LineEnding +
+              '#IFNDEF CPUAMD64' + LineEnding +
+              '#DEFINE NEEDCROSSBINUTILS' + LineEnding +
+              '#ENDIF' + LineEnding +
+              '#ENDIF' + LineEnding +
+              LineEnding +
+              '#IFNDEF ' + BuildOSTarget + LineEnding +
+              '#DEFINE NEEDCROSSBINUTILS' + LineEnding +
+              '#ENDIF';
+    end
+  else
+    result := '#DEFINE NEEDCROSSBINUTILS';
+end;
+
+function GetDefaultGCCDir: string;
+
+var GccExecutable: string;
+
+  function GetGccExecutable: string;
+  begin
+    if GccExecutable='' then
+      begin
+      GccExecutable := ExeSearch('gcc'+ExeExt,GetEnvironmentVariable('PATH'));
+      if GccExecutable='' then
+        begin
+        Writeln(StdErr,SWarngccNotFound);
+        GccExecutable:='-';
+        end;
+      end;
+    if GccExecutable = '-' then
+      result := ''
+    else
+      result := GccExecutable;
+  end;
+
+  function ExecuteProc(const CommandLine: string; ReadStdErr: boolean) : string;
+
+  const BufSize=2048;
+
+  var S: TProcess;
+      buf: array[0..BufSize-1] of byte;
+      count: integer;
+
+  begin
+    S:=TProcess.Create(Nil);
+    try
+      S.Commandline:=CommandLine;
+      S.Options:=[poUsePipes,poWaitOnExit];
+      S.execute;
+      Count:=s.output.read(buf,BufSize);
+      if (count=0) and ReadStdErr then
+        Count:=s.Stderr.read(buf,BufSize);
+      setlength(result,count);
+      move(buf[0],result[1],count);
+    finally
+      S.Free;
+    end;
+  end;
+
+  function Get4thWord(const AString: string): string;
+  var p: pchar;
+      spacecount: integer;
+      StartWord: pchar;
+  begin
+    if length(AString)>6 then
+      begin
+      p := @AString[1];
+      spacecount:=0;
+      StartWord:=nil;
+      while (not (p^ in [#0,#10,#13])) and ((p^<>' ') or (StartWord=nil)) do
+        begin
+        if p^=' ' then
+          begin
+          inc(spacecount);
+          if spacecount=3 then StartWord:=p+1;
+          end;
+        inc(p);
+        end;
+      if StartWord<>nil then
+        begin
+        SetLength(result,p-StartWord);
+        move(StartWord^,result[1],p-StartWord);
+        end
+      else
+        result := '';
+      end;
+  end;
+
+  function GetGccDirArch(const ACpuType, GCCParams: string) : string;
+  var ExecResult: string;
+      libgccFilename: string;
+      gccDir: string;
+  begin
+    ExecResult:=ExecuteProc(GetGccExecutable+' -v '+GCCParams, True);
+    libgccFilename:=Get4thWord(ExecResult);
+    if libgccFilename='' then
+      libgccFilename:=ExecuteProc(GetGccExecutable+' --print-libgcc-file-name '+GCCParams, False);
+    gccDir := ExtractFileDir(libgccFilename);
+    if gccDir='' then
+      result := ''
+    else if ACpuType = '' then
+      result := '-Fl'+gccDir
+    else
+      result := '#ifdef ' + ACpuType + LineEnding + '-Fl' + gccDir + LineEnding + '#endif';
+  end;
+
+begin
+  result := '';
+  GccExecutable:='';
+  if sametext(BuildOSTarget,'Freebsd') or sametext(BuildOSTarget,'Openbsd') then
+    result := '-Fl/usr/local/lib'
+  else if sametext(BuildOSTarget,'Netbsd') then
+    result := '-Fl/usr/pkg/lib'
+  else if sametext(BuildOSTarget,'Linux') then
+    begin
+    if (BuildTarget = 'i386') or (BuildTarget = 'x86_64') then
+      result := GetGccDirArch('cpui386','-m32') + LineEnding +
+                GetGccDirArch('cpux86_64','-m64')
+    else if (BuildTarget = 'powerpc') or (BuildTarget = 'powerpc64') then
+      result := GetGccDirArch('cpupowerpc','-m32') + LineEnding +
+                GetGccDirArch('cpupowerpc64','-m64')
+    end
+  else if sametext(BuildOSTarget,'Darwin') then
+    result := GetGccDirArch('cpupowerpc','-arch ppc') + LineEnding +
+              GetGccDirArch('cpupowerpc64','-arch ppc64') + LineEnding +
+              GetGccDirArch('cpui386','-arch i386') + LineEnding +
+              GetGccDirArch('cpux86_64','-arch x86_64');
+end;
 
 
 procedure Init;
@@ -75,13 +239,21 @@ procedure Init;
 begin
   Verbose:=False;
   IDEBuildIn:=0;
-  List:=TStringList.Create;
-  AddToList(List,'FPCVERSION',BuildVersion);
-  AddToList(List,'FPCTARGET',BuildTarget);
-  AddToList(List,'FPCTARGETOS',BuildOSTarget);
-  AddToList(List,'PWD',GetCurrentDir);
-  AddToList(List,'BUILDDATE',DateToStr(Date));
-  AddToList(List,'BUILDTIME',TimeToStr(Time));
+
+  TemplateParser := TTemplateParser.Create;
+  TemplateParser.StartDelimiter:='%';
+  TemplateParser.EndDelimiter:='%';
+  TemplateParser.Values['FPCVERSION'] := BuildVersion;
+  TemplateParser.Values['FPCTARGET'] := BuildTarget;
+  TemplateParser.Values['FPCTARGETOS'] := BuildOSTarget;
+  TemplateParser.Values['PWD'] := GetCurrentDir;
+  TemplateParser.Values['BUILDDATE'] := DateToStr(Date);
+  TemplateParser.Values['BUILDTIME'] := TimeToStr(Time);
+
+  TemplateParser.Values['LOCALREPOSITORY'] := GetDefaultLocalRepository;
+  TemplateParser.Values['NEEDCROSSBINUTILSIFDEF'] := GetDefaultNeedCrossBinutilsIfdef;
+  TemplateParser.Values['GCCLIBPATH'] := GetDefaultGCCDIR;
+
   Cfg:=TStringList.Create;
   Cfg.Text:=StrPas(Addr(DefaultConfig[0][1]));
 end;
@@ -89,8 +261,8 @@ end;
 Procedure Done;
 
 begin
-  FreeAndNil(List);
   FreeAndNil(Cfg);
+  FreeAndNil(TemplateParser);
 end;
 
 Procedure Usage;
@@ -109,6 +281,8 @@ begin
   Writeln(SUsage100);
   Writeln(SUsage110);
   Writeln(SUsage120);
+  Writeln(SUsage130);
+  Writeln(SUsage140);
   Halt(1);
 end;
 
@@ -131,6 +305,17 @@ begin
 end;
 
 
+Procedure ShowBuiltInMacros;
+
+Var
+  I : Integer;
+
+begin
+  For I:=0 to TemplateParser.ValueCount-1 do
+    Writeln(TemplateParser.NamesByIndex[I]+'='+TemplateParser.ValuesByIndex[I]);
+end;
+
+
 Procedure ProcessCommandline;
 
 Var
@@ -149,6 +334,22 @@ Var
     Result:=ParamStr(I);
   end;
 
+  procedure AddPair(const Value: String);
+  var P: integer;
+      N,V: String;
+  begin
+    P:=Pos('=',Value);
+    If p=0 then
+      begin
+      Writeln(StdErr,Format(SErrIncompletePair,[Value]));
+      Halt(1);
+      end;
+    V:=Value;
+    N:=Copy(V,1,P-1);
+    Delete(V,1,P);
+    TemplateParser.Values[N] := V;
+  end;
+
 begin
   I:=1;
   While( I<=ParamCount) do
@@ -164,14 +365,20 @@ begin
               ShowBuiltin;
               halt(0);
               end;
+        'm' : begin
+              ShowBuiltinMacros;
+              halt(0);
+              end;
         't' : TemplateFileName:=GetOptArg;
-        'd' : AddPair(List,GetOptArg);
-        'u' : AddPair(List,GetOptArg+'=');
+        'd' : AddPair(GetOptArg);
+        'u' : TemplateParser.Values[GetOptArg]:='';
         'o' : OutputFileName:=GetoptArg;
         's' : SkipBackup:=True;
         '0' : IDEBuildin:=0;
         '1' : IDEBuildin:=1;
         '2' : IDEBuildin:=2;
+        '3' : IDEBuildin:=3;
+        '4' : IDEBuildin:=4;
       else
         UnknownOption(S);
       end;
@@ -185,7 +392,7 @@ begin
       Halt(1);
       end;
     Cfg.LoadFromFile(TemplateFileName);
-    AddToList(List,'TEMPLATEFILE',TemplateFileName);
+    TemplateParser.Values['TEMPLATEFILE'] := TemplateFileName;
     end
   else
     begin
@@ -194,9 +401,13 @@ begin
            Cfg.Text:=StrPas(Addr(fpcfg[0][1]));
         2:
            Cfg.Text:=StrPas(Addr(fpini[0][1]));
+        3:
+           Cfg.Text:=StrPas(Addr(fppkg[0][1]));
+        4:
+           Cfg.Text:=StrPas(Addr(fppkg_default[0][1]));
       end;
 
-      AddToList(List,'TEMPLATEFILE','builtin');
+    TemplateParser.Values['TEMPLATEFILE'] := 'builtin';
     end;
 end;
 
@@ -206,7 +417,7 @@ Procedure CreateFile;
 Var
   Fout : Text;
   S,BFN : String;
-  I,RCount : INteger;
+  I : Integer;
 
 begin
   If (OutputFileName<>'')
@@ -228,15 +439,12 @@ begin
   Assign(Fout,OutputFileName);
   Rewrite(FOut);
   Try
-    RCount:=0;
     For I:=0 to Cfg.Count-1 do
       begin
       S:=Cfg[i];
-      Inc(RCount,DoSubstitutions(List,S));
+      S := TemplateParser.ParseString(S);
       Writeln(FOut,S);
       end;
-    If Verbose then
-      Writeln(StdErr,Format(SStats,[RCount,Cfg.Count]));
   Finally
     Close(Fout);
   end;
