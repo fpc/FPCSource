@@ -69,6 +69,7 @@ type
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
     property ContentProducerList: TFPList read GetContentProducerList;
   public
+    destructor Destroy; override;
     function ContentProducerCount: integer;
 
     function ProduceContent : string;
@@ -244,6 +245,13 @@ begin
   if (Root=Self) then
     for I:=0 to ContentProducerCount-1 do
       Proc(ContentProducers[i]);
+end;
+
+destructor TWebPage.Destroy;
+begin
+  inherited Destroy;
+  if assigned(FContentProducers) then
+    FreeAndNil(FContentProducers);
 end;
 
 function TWebPage.ContentProducerCount: integer;

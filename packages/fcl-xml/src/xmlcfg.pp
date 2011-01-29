@@ -351,7 +351,7 @@ begin
       if not (s[i] in AllowedChars) then
       begin
         EscapingNecessary := True;
-	exit;
+        break;
       end;
   end;
 

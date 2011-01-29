@@ -2706,7 +2706,7 @@
     opcode  : A_LJMP;
     ops     : 1;
     optypes : (ot_regmem or ot_bits16 or ot_bits32 or ot_bits64,ot_none,ot_none);
-    code    : #192#208#1#255#132;
+    code    : #192#208#1#255#133;
     flags   : if_8086
   ),
   (

@@ -2770,6 +2770,8 @@ function Load_GL_ARB_fragment_program: Boolean;
 const
      GL_TEXT_FRAGMENT_SHADER_ATI = $8200;
 
+function Load_GL_ATI_text_fragment_shader: Boolean;
+
 {***** GL_ARB_vertex_buffer_object *****}
 const
      GL_BUFFER_SIZE_ARB = $8764;
@@ -2816,9 +2818,7 @@ var
      glUnmapBufferARB : function (target :GLenum) :GLboolean; extdecl;
      glGetBufferParameterivARB:procedure(target:GLenum; pname:GLenum; params:PGLint); extdecl;
      glGetBufferPointervARB : procedure(target: GLenum; pname:GLenum; params: PPGLvoid); extdecl;
-     function Load_GL_ARB_vertex_buffer_object : boolean;
-
-function Load_GL_ATI_text_fragment_shader: Boolean;
+function Load_GL_ARB_vertex_buffer_object : boolean;
 
 //***** GL_APPLE_client_storage *****//
 const
@@ -8451,6 +8451,8 @@ begin
       if not Assigned(glIsBufferARB) then Exit;
       glBufferDataARB := wglGetProcAddress('glBufferDataARB');
       if not Assigned(glBufferDataARB) then Exit;
+      glBufferSubDataARB := wglGetProcAddress('glBufferSubDataARB');
+      if not Assigned(glBufferSubDataARB) then Exit;
       glGetBufferSubDataARB := wglGetProcAddress('glGetBufferSubDataARB');
       if not Assigned(glGetBufferSubDataARB) then Exit;
       glMapBufferARB := wglGetProcAddress('glMapBufferARB');

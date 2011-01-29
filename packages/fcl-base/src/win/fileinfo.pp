@@ -110,6 +110,7 @@ var struSize : Dword;
 begin
   ts := TStringList.Create;
   try
+    ts.add('Comments');
     ts.add('CompanyName');
     ts.add('FileDescription');
     ts.add('FileVersion');

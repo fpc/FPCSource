@@ -219,17 +219,17 @@ end;
 function TComServer.CountObject(Created: Boolean): Integer;
 begin
   if Created then
-    InterLockedIncrement(fCountObject)
+    Result:=InterLockedIncrement(fCountObject)
   else
-    InterLockedDecrement(fCountObject);
+    Result:=InterLockedDecrement(fCountObject);
 end;
 
 function TComServer.CountFactory(Created: Boolean): Integer;
 begin
   if Created then
-    InterLockedIncrement(fCountFactory)
+    Result:=InterLockedIncrement(fCountFactory)
   else
-    InterLockedDecrement(fCountFactory);
+    Result:=InterLockedDecrement(fCountFactory);
 end;
 
 function TComServer.GetHelpFileName: string;

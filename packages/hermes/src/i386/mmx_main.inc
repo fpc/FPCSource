@@ -1,6 +1,7 @@
 {
-    This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2010 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    x86 format converters for HERMES
+    Some routines Copyright (c) 1998 Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
+    Most routines are (c) Glenn Fiedler (ptc@gaffer.org), used with permission
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -29,12 +30,54 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{$I x8616lut.inc}
-{$I x86_clr.inc}
-{$I x86_main.inc}
-{$I x86p_16.inc}
-{$I x86p_32.inc}
-{$I x86p_cpy.inc}
-{$I x86p_i8.inc}
-{$I x86p_s32.inc}
-{$I x86pscpy.inc}
+label
+  _MMXRETURN;
+
+{ _ConvertMMX:
+ [ESP+8] ConverterInfo*
+ --------------------------------------------------------------------------
+ ConverterInfo (ebp+..)
+   0: void *s_pixels
+   4: int s_width
+   8: int s_height
+  12: int s_add
+  16: void *d_pixels
+  20: int d_width
+  24: int d_height
+  28: int d_add
+  32: void (*converter_function)()
+  36: int32 *lookup
+}
+procedure ConvertMMX(hci: PHermesConverterInterface); cdecl; assembler;
+label
+  y_loop, endconvert;
+asm
+        movl 8(%ebp),%eax
+
+        cmpl $0,4(%eax)
+        je endconvert
+
+        pushl %ebp
+        movl %eax,%ebp
+
+        movl (%ebp),%esi
+        movl 16(%ebp),%edi
+
+y_loop:
+        movl 4(%ebp),%ecx
+
+        jmp *32(%ebp)
+
+_MMXRETURN:
+        addl 12(%ebp),%esi
+        addl 28(%ebp),%edi
+
+        decl 8(%ebp)
+        jnz y_loop
+
+
+        popl %ebp
+
+endconvert:
+        emms
+end;

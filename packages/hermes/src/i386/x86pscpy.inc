@@ -1,6 +1,7 @@
 {
-    This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2010 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    x86 format converters for HERMES
+    Some routines Copyright (c) 1998 Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
+    Some routines are (c) Glenn Fiedler (ptc@gaffer.org), used with permission
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -29,12 +30,31 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{$I x8616lut.inc}
-{$I x86_clr.inc}
-{$I x86_main.inc}
-{$I x86p_16.inc}
-{$I x86p_32.inc}
-{$I x86p_cpy.inc}
-{$I x86p_i8.inc}
-{$I x86p_s32.inc}
-{$I x86pscpy.inc}
+{ _Copy*
+ Paramters:
+   ESI = source
+   EDI = dest
+   ECX = amount (NOT 0!!! (the _ConvertX86 routine checks for that though))
+ Destroys:
+   EAX, EBX, EDX
+}
+
+procedure CopyX86p_4byte_S(CONVERT_PARAMETERS); cdecl; nostackframe; assembler;
+asm
+        jmp _X86RETURN_S
+end;
+
+procedure CopyX86p_3byte_S(CONVERT_PARAMETERS); cdecl; nostackframe; assembler;
+asm
+        jmp _X86RETURN_S
+end;
+
+procedure CopyX86p_2byte_S(CONVERT_PARAMETERS); cdecl; nostackframe; assembler;
+asm
+        jmp _X86RETURN_S
+end;
+
+procedure CopyX86p_1byte_S(CONVERT_PARAMETERS); cdecl; nostackframe; assembler;
+asm
+        jmp _X86RETURN_S
+end;
