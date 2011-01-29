@@ -189,14 +189,17 @@ begin
       if Not HaveFPMake then
         Error(SErrMissingFPMake);
       AddOption('-n');
-      for i:=1 to FPMKUnitDepCount do
+      AddOption('-dCOMPILED_BY_FPPKG');
+      for i:=0 to high(FPMKUnitDeps) do
         begin
-          if FPMKUnitDepAvailable[i] then
+          if FPMKUnitDeps[i].available then
             begin
               if CheckUnitDir(FPMKUnitDeps[i].package,DepDir) then
                 AddOption(maybequoted('-Fu'+DepDir))
               else
                 Error(SErrMissingInstallPackage,[FPMKUnitDeps[i].package]);
+              if FPMKUnitDeps[i].def<>'' then
+                AddOption('-d'+FPMKUnitDeps[i].def);
             end
           else
             begin

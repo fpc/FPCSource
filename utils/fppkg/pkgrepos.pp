@@ -215,6 +215,7 @@ begin
     // Read fpunits.conf
     V:=L.Values['version'];
     APackage.Version.AsString:=V;
+    APackage.IsFPMakeAddIn:=Upcase(L.Values['FPMakeAddIn'])='Y';
     V:=L.Values['checksum'];
     if V<>'' then
       APackage.Checksum:=StrToInt(V)
@@ -286,6 +287,15 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
     end;
   end;
 
+  Procedure AddFPMakeAddIn(APackage: TFPPackage);
+  begin
+    Log(vlDebug,SLogFoundFPMakeAddin,[APackage.Name]);
+    setlength(FPMKUnitDeps,length(FPMKUnitDeps)+1);
+    FPMKUnitDeps[high(FPMKUnitDeps)].package:=APackage.Name;
+    FPMKUnitDeps[high(FPMKUnitDeps)].reqver:=APackage.Version.AsString;
+    FPMKUnitDeps[high(FPMKUnitDeps)].def:='HAS_PACKAGE_'+APackage.Name;
+  end;
+
   function CheckUnitDir(const AUnitDir:string; const Local: boolean):boolean;
   var
     SR : TSearchRec;
@@ -305,7 +315,9 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
               if FileExistsLog(UF) then
                 begin
                   P:=AddInstalledPackage(SR.Name,UF,Local);
-                  LoadUnitConfigFromFile(P,UF)
+                  LoadUnitConfigFromFile(P,UF);
+                  if P.IsFPMakeAddIn then
+                    AddFPMakeAddIn(P);
                 end
               else
                 begin
@@ -390,14 +402,14 @@ var
   ReqVer : TFPVersion;
 begin
   // Reset availability
-  for i:=1 to FPMKUnitDepCount do
-    FPMKUnitDepAvailable[i]:=false;
+  for i:=0 to high(FPMKUnitDeps) do
+    FPMKUnitDeps[i].available:=false;
   // Not version check needed in Recovery mode, we always need to use
   // the internal bootstrap procedure
   if GlobalOptions.RecoveryMode then
     exit;
   // Check for fpmkunit dependencies
-  for i:=1 to FPMKUnitDepCount do
+  for i:=0 to high(FPMKUnitDeps) do
     begin
       P:=InstalledRepository.FindPackage(FPMKUnitDeps[i].package);
       if P<>nil then
@@ -411,7 +423,7 @@ begin
           ReqVer.AsString:=FPMKUnitDeps[i].ReqVer;
           Log(vlDebug,SLogFPMKUnitDepVersion,[P.Name,ReqVer.AsString,P.Version.AsString,AvailVerStr]);
           if ReqVer.CompareVersion(P.Version)<=0 then
-            FPMKUnitDepAvailable[i]:=true
+            FPMKUnitDeps[i].available:=true
           else
             Log(vlDebug,SLogFPMKUnitDepTooOld,[FPMKUnitDeps[i].package]);
         end

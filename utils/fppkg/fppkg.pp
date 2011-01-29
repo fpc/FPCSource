@@ -333,7 +333,10 @@ begin
       // It's a command or target.
         begin
           if HasAction then
-            ParaPackages.Add(Paramstr(i))
+            begin
+              if FirstPass then
+                ParaPackages.Add(Paramstr(i))
+            end
           else
             begin
               ParaAction:=Paramstr(i);

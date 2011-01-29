@@ -71,6 +71,7 @@ Resourcestring
   SLogLoadingPackagesFile    = 'Loading available packages from "%s"';
   SLogLoadingMirrorsFile     = 'Loading available mirrors from "%s"';
   SLogFindInstalledPackages  = 'Finding installed packages in "%s"';
+  SLogFoundFPMakeAddin       = 'Found FPMake-AddIn "%s"';
   SLogSavingStatusFile       = 'Saving local status to "%s"';
   SLogFPMKUnitDepVersion     = 'Checking for %s %s, installed %s, available %s';
   SLogFPMKUnitDepTooOld      = 'Minimum version of %s is not installed, using internal fpmkunit with limited functionality';

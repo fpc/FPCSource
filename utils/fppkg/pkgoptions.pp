@@ -276,6 +276,8 @@ end;
 
 
 Procedure TGlobalOptions.InitGlobalDefaults;
+var
+  i: Integer;
 begin
   FConfigVersion:=CurrentConfigVersion;
   // Retrieve Local fppkg directory
@@ -314,6 +316,10 @@ begin
   FInstallGlobal:=False;
   FRecoveryMode:=False;
   FAllowBroken:=False;
+
+  SetLength(FPMKUnitDeps,FPMKUnitDepDefaultCount);
+  for i := 0 to FPMKUnitDepDefaultCount-1 do
+    FPMKUnitDeps[i]:=FPMKUnitDepsDefaults[i];
 end;
 
 
