@@ -57,12 +57,12 @@ unit optcse;
       procinfo,
       nbas,nld,ninl,ncal,ncnv,nadd,
       pass_1,
-      symconst,symtype,symdef,
+      symconst,symtype,symdef,symsym,
       defutil,
       optbase;
 
     const
-      cseinvariant : set of tnodetype = [loadn,addn,muln,subn,divn,slashn,modn,andn,orn,xorn,notn,vecn,
+      cseinvariant : set of tnodetype = [addn,muln,subn,divn,slashn,modn,andn,orn,xorn,notn,vecn,
         derefn,equaln,unequaln,ltn,gtn,lten,gten,typeconvn,subscriptn,
         inn,symdifn,shrn,shln,ordconstn,realconstn,unaryminusn,pointerconstn,stringconstn,setconstn,
         isn,asn,starstarn,nothingn,temprefn,loadparentfpn {,callparan}];
@@ -71,7 +71,11 @@ unit optcse;
       begin
         if (n.nodetype in cseinvariant) or
           ((n.nodetype=inlinen) and
-            (tinlinenode(n).inlinenumber in [in_assigned_x])
+           (tinlinenode(n).inlinenumber in [in_assigned_x])
+          ) or
+          ((n.nodetype=loadn) and
+            not((tloadnode(n).symtableentry.typ in [staticvarsym,localvarsym,paravarsym]) and
+                (vo_volatile in tabstractvarsym(tloadnode(n).symtableentry).varoptions))
           ) then
           result:=fen_true
         else
