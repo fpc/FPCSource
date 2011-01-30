@@ -131,6 +131,7 @@ const
   ibmoduleoptions   = 85;
 
   ibmainname       = 90;
+  ibsymtableoptions = 91;
   { target-specific things }
   iblinkotherframeworks = 100;
 

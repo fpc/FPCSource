@@ -426,6 +426,51 @@ end;
                              Read Routines
 ****************************************************************************}
 
+procedure readsymtableoptions(const s: string);
+type
+  tsymtableoption = (
+    sto_has_classhelper    { contains at least one class
+                             helper symbol }
+  );
+  tsymtableoptions = set of tsymtableoption;
+  tsymtblopt=record
+    mask : tsymtableoption;
+    str  : string[30];
+  end;
+const
+  symtblopts=1;
+  symtblopt : array[1..symtblopts] of tsymtblopt=(
+     (mask:sto_has_classhelper;   str:'Has class helper')
+  );
+var
+  options : tsymtableoptions;
+  first : boolean;
+  i : integer;
+begin
+  if ppufile.readentry<>ibsymtableoptions then
+    exit;
+  ppufile.getsmallset(options);
+  if space<>'' then
+   writeln(space,'------ ',s,' ------');
+  write(space,'Symtable options: ');
+  if options<>[] then
+   begin
+     first:=true;
+     for i:=1 to symtblopts do
+      if (symtblopt[i].mask in options) then
+       begin
+         if first then
+           first:=false
+         else
+           write(', ');
+         write(symtblopt[i].str);
+       end;
+   end
+  else
+   write('none');
+  writeln;
+end;
+
 Procedure ReadLinkContainer(const prefix:string);
 {
   Read a serie of strings and write to the screen starting every line
@@ -1977,6 +2022,7 @@ begin
              writeln(space,'            Range : ',getaint,' to ',getaint);
              write  (space,'          Options : ');
              readarraydefoptions;
+             readsymtableoptions('symbols');
              readdefinitions('symbols');
              readsymbols('symbols');
            end;
@@ -2038,11 +2084,13 @@ begin
               Writeln('!! Entry has more information stored');
              space:='    '+space;
              { parast }
+             readsymtableoptions('parast');
              readdefinitions('parast');
              readsymbols('parast');
              { localst }
              if (po_has_inlininginfo in procoptions) then
               begin
+                readsymtableoptions('localst');
                 readdefinitions('localst');
                 readsymbols('localst');
               end;
@@ -2060,6 +2108,7 @@ begin
               Writeln('!! Entry has more information stored');
              space:='    '+space;
              { parast }
+             readsymtableoptions('parast');
              readdefinitions('parast');
              readsymbols('parast');
              delete(space,1,4);
@@ -2110,6 +2159,7 @@ begin
               Writeln('!! Entry has more information stored');
              {read the record definitions and symbols}
              space:='    '+space;
+             readsymtableoptions('fields');
              readdefinitions('fields');
              readsymbols('fields');
              Delete(space,1,4);
@@ -2192,6 +2242,7 @@ begin
                begin
                  {read the record definitions and symbols}
                  space:='    '+space;
+                 readsymtableoptions('fields');
                  readdefinitions('fields');
                  readsymbols('fields');
                  Delete(space,1,4);
@@ -2236,6 +2287,7 @@ begin
              else
                begin
                  space:='    '+space;
+                 readsymtableoptions('elements');
                  readdefinitions('elements');
                  readsymbols('elements');
                  delete(space,1,4);
@@ -2543,6 +2595,10 @@ begin
    end
   else
    ppufile.skipuntilentry(ibendinterface);
+  Writeln;
+  Writeln('Interface symtable');
+  Writeln('----------------------');
+  readsymtableoptions('interface');
 {read the definitions}
   if (verbose and v_defs)<>0 then
    begin
@@ -2578,6 +2634,7 @@ begin
     end;
   if boolean(ppufile.getbyte) then
     begin
+      readsymtableoptions('interface macro');
       {skip the definition section for macros (since they are never used) }
       ppufile.skipuntilentry(ibenddefs);
       {read the macro symbols}
@@ -2600,6 +2657,10 @@ begin
   else
    ppufile.skipuntilentry(ibendimplementation);
   {read the static symtable}
+  Writeln;
+  Writeln('Implementation symtable');
+  Writeln('----------------------');
+  readsymtableoptions('implementation');
   if (ppufile.header.flags and uf_local_symtable)<>0 then
    begin
      if (verbose and v_defs)<>0 then

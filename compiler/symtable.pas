@@ -350,6 +350,11 @@ implementation
 
     procedure tstoredsymtable.ppuload(ppufile:tcompilerppufile);
       begin
+        { load the table's flags }
+        if ppufile.readentry<>ibsymtableoptions then
+          Message(unit_f_ppu_read_error);
+        ppufile.getsmallset(tableoptions);
+
         { load definitions }
         loaddefs(ppufile);
 
@@ -360,6 +365,10 @@ implementation
 
     procedure tstoredsymtable.ppuwrite(ppufile:tcompilerppufile);
       begin
+         { write the table's flags }
+         ppufile.putsmallset(tableoptions);
+         ppufile.writeentry(ibsymtableoptions);
+
          { write definitions }
          writedefs(ppufile);
 
@@ -1270,10 +1279,7 @@ implementation
          oldtyp:=ppufile.entrytyp;
          ppufile.entrytyp:=subentryid;
 
-         { write definitions }
-         writedefs(ppufile);
-         { write symbols }
-         writesyms(ppufile);
+         inherited ppuwrite(ppufile);
 
          ppufile.entrytyp:=oldtyp;
       end;
@@ -2440,7 +2446,9 @@ implementation
         while assigned(stackitem) do
           begin
             srsymtable:=stackitem^.symtable;
-            if srsymtable.symtabletype in [staticsymtable,globalsymtable] then
+            { only check symtables that contain a class helper }
+            if (srsymtable.symtabletype in [staticsymtable,globalsymtable]) and
+                (sto_has_classhelper in srsymtable.tableoptions) then
               begin
                 { we need to search from last to first }
                 for i:=srsymtable.symlist.count-1 downto 0 do

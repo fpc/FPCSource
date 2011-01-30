@@ -97,6 +97,7 @@ interface
           refcount  : smallint;
           currentvisibility : tvisibility;
           currentlyoptional : boolean;
+          tableoptions : tsymtableoptions;
           { level of symtable, used for nested procedures }
           symtablelevel : byte;
           symtabletype  : TSymtabletype;

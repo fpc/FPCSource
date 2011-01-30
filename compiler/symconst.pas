@@ -455,6 +455,12 @@ type
                              in array                        }
   );
 
+  { options for symtables }
+  tsymtableoption = (
+    sto_has_classhelper    { contains at least one class
+                             helper symbol }
+  );
+  tsymtableoptions = set of tsymtableoption;
 
   { definition contains the informations about a type }
   tdeftyp = (abstractdef,
