@@ -1764,12 +1764,15 @@ implementation
                    forward (or interface) declaration then we need to generate
                    a stub that calls the external routine }
                  if (not pd.forwarddef) and
-                    (pd.hasforward) and
+                    (pd.hasforward)
+                    { it is unclear to me what's the use of the following condition,
+                      so commented out, see also issue #18371 (FK)
+                    and
                     not(
                         assigned(pd.import_dll) and
                         (target_info.system in [system_i386_wdosx,
                                                 system_arm_wince,system_i386_wince])
-                       ) then
+                       ) } then
                    begin
                      s:=proc_get_importname(pd);
                      if s<>'' then
