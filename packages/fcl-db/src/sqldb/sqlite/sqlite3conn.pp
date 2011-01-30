@@ -312,7 +312,7 @@ Type
   end;
   
 Const
-  FieldMapCount = 19;
+  FieldMapCount = 20;
   FieldMap : Array [1..FieldMapCount] of TFieldMap = (
    (n:'INT'; t: ftInteger),
    (n:'LARGEINT'; t:ftlargeInt),
@@ -332,6 +332,7 @@ Const
    (n:'NUMERIC'; t: ftBCD),
    (n:'DECIMAL'; t: ftBCD),
    (n:'TEXT'; t: ftmemo),
+   (n:'CLOB'; t: ftmemo),
    (n:'BLOB'; t: ftBlob)
 { Template:
   (n:''; t: ft)

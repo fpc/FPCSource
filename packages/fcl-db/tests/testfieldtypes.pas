@@ -96,6 +96,9 @@ type
     procedure TestClearUpdateableStatus;
     procedure TestReadOnlyParseSQL; // bug 9254
     procedure TestGetTables;
+
+    // Test SQL-field type recognition
+    procedure TestSQLClob;
   end;
 
 implementation
@@ -1577,6 +1580,28 @@ begin
     finally
       TableNames.Free;
       end;
+    end;
+end;
+
+procedure TTestFieldTypes.TestSQLClob;
+var
+  i          : byte;
+begin
+  CreateTableWithFieldType(ftMemo,'CLOB');
+  TestFieldDeclaration(ftMemo,0);
+
+  for i := 0 to testValuesCount-1 do
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + QuotedStr(testStringValues[i]) + ')');
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    Open;
+    for i := 0 to testValuesCount-1 do
+      begin
+      AssertEquals(testStringValues[i],fields[0].AsString);
+      Next;
+      end;
+    close;
     end;
 end;
 
