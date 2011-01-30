@@ -298,7 +298,6 @@ implementation
         calldescnode : tdataconstnode;
         resultvalue : tnode;
         para : tcallparanode;
-        currargpos,
         namedparacount,
         paracount : longint;
         assignmenttype,
@@ -308,7 +307,6 @@ implementation
         restype: byte;
 
         names : ansistring;
-        dispintfinvoke,
         variantdispatch : boolean;
 
       function is_byref_para(out assign_type: tdef): boolean;
@@ -351,8 +349,6 @@ implementation
 
       begin
         variantdispatch:=selfnode.resultdef.typ=variantdef;
-        dispintfinvoke:=not(variantdispatch);
-
         result:=internalstatements(statements);
 
         useresult := assigned(resultdef) and not is_void(resultdef);
@@ -415,7 +411,7 @@ implementation
 
         calldescnode:=cdataconstnode.create;
 
-        if dispintfinvoke then
+        if not variantdispatch then  { generate a tdispdesc record }
         begin
           { dispid  }
           calldescnode.append(dispid,sizeof(dispid));
@@ -433,7 +429,6 @@ implementation
 
         { build up parameters and description }
         para:=tcallparanode(parametersnode);
-        currargpos:=0;
         paramssize:=0;
         names := '';
         while assigned(para) do
@@ -482,7 +477,6 @@ implementation
             calldescnode.appendbyte(restype);
 
             para.left:=nil;
-            inc(currargpos);
             para:=tcallparanode(para.nextpara);
           end;
 
