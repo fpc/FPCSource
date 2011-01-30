@@ -428,11 +428,11 @@ begin
       if (arr[0]=#0) Then
         i := 0
       else
-      begin  
+      begin
         i:=IndexChar(arr,high(arr)+1,#0);
         if i = -1 then
           i := high(arr)+1;
-      end;    
+      end;
     end
   else
     i := high(arr)+1;
@@ -937,6 +937,16 @@ begin
   fpc_shortstr_enum(ordinal,len,typinfo,ord2strindex,ss);
   s:=ss;
 end;
+
+
+procedure fpc_ansistr_bool(b : boolean;len:sizeint;out s:ansistring);[public,alias:'FPC_ANSISTR_BOOL'];compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+var
+  ss:shortstring;
+begin
+  fpc_shortstr_bool(b,len,ss);
+  s:=ss;
+end;
+
 
 function fpc_val_enum_ansistr(str2ordindex:pointer;const s:ansistring;out code:valsint):longint; [public, alias:'FPC_VAL_ENUM_ANSISTR']; compilerproc;
 
