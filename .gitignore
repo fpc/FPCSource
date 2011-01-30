@@ -7744,14 +7744,6 @@ utils/h2pas/*.s
 utils/h2pas/Package.fpc
 utils/h2pas/fpcmade.*
 utils/h2pas/units
-utils/kalyptus/*.bak
-utils/kalyptus/*.exe
-utils/kalyptus/*.o
-utils/kalyptus/*.ppu
-utils/kalyptus/*.s
-utils/kalyptus/Package.fpc
-utils/kalyptus/fpcmade.*
-utils/kalyptus/units
 utils/mksymbian/*.bak
 utils/mksymbian/*.exe
 utils/mksymbian/*.o
