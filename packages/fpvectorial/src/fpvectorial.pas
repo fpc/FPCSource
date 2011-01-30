@@ -139,6 +139,7 @@ type
   TvCircularArc = class(TvEntity)
   public
     CenterX, CenterY, CenterZ, Radius: Double;
+    {@@ The Angle is measured in degrees in relation to the positive X axis }
     StartAngle, EndAngle: Double;
   end;
 
@@ -151,7 +152,7 @@ type
   public
     // Mandatory fields
     CenterX, CenterY, CenterZ, MajorHalfAxis, MinorHalfAxis: Double;
-    {@@ The Angle is measured in radians in relation to the positive X axis }
+    {@@ The Angle is measured in degrees in relation to the positive X axis }
     Angle: Double;
     // Calculated fields
     BoundingRect: TRect;
