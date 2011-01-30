@@ -364,9 +364,16 @@ begin
       ft1:=FieldMap[fi].t;
       break;
       end;
-    // Empty field types are allowed and used in calculated columns (aggregates)
-    // and by pragma-statements
-    if FD='' then ft1 := ftString;
+    // In case of an empty fieldtype (FD='', which is allowed and used in calculated
+    // columns (aggregates) and by pragma-statements) or an unknown fieldtype,
+    // use the field's affinity:
+    if ft1=ftUnknown then
+      case TStorageType(sqlite3_column_type(st,i)) of
+        stInteger: ft1:=ftLargeInt;
+        stFloat:   ft1:=ftFloat;
+        stBlob:    ft1:=ftBlob;
+        else       ft1:=ftString;
+      end;
     // handle some specials.
     size1:=0;
     case ft1 of
