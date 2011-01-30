@@ -204,6 +204,11 @@ begin
         OS_32 : opsize:=S_IL;
         OS_64 : opsize:=S_IQ;
       end;
+    end
+  else
+    begin
+      if size=OS_64 then
+        opsize:=S_Q;
     end;
 end;
 
@@ -233,7 +238,7 @@ begin
          not(opr.ref.refaddr in [addr_pic,addr_pic_no_got]) then
         begin
           if (opr.ref.symbol.name <> '_GLOBAL_OFFSET_TABLE_') then
-            begin 
+            begin
               message(asmr_e_need_pic_ref);
               result:=false;
             end

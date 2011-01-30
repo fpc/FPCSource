@@ -1768,7 +1768,14 @@ Unit Rax86int;
                                 Message1(sym_e_unknown_id,expr);
                               expr:='';
                             end;
-                         end;
+                          { indexed access to variable? }
+                          if actasmtoken=AS_LBRACKET then
+                            begin
+                              { ... then the operand size is not known anymore }
+                              oper.size:=OS_NO;
+                              BuildReference(oper);
+                            end;
+                        end;
                      end;
                  end;
               end;
