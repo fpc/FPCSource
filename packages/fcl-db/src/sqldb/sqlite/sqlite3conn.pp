@@ -181,10 +181,11 @@ begin
                 do1:= P.asfloat;
                 checkerror(sqlite3_bind_double(fstatement,I,do1));
                 end;
-        ftstring: begin
-                  str1:= p.asstring;
-                  checkerror(sqlite3_bind_text(fstatement,I,pcharstr(str1), length(str1),@freebindstring));
-                  end;
+        ftstring,
+        ftmemo: begin // According to SQLite documentation, CLOB's (ftMemo) have the Text affinity
+                str1:= p.asstring;
+                checkerror(sqlite3_bind_text(fstatement,I,pcharstr(str1), length(str1),@freebindstring));
+                end;
         ftblob: begin
                 str1:= P.asstring;
                 checkerror(sqlite3_bind_blob(fstatement,I,pcharstr(str1), length(str1),@freebindstring));
