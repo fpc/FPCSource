@@ -15,5 +15,5 @@ var
   f: TFoo;
 begin
   f := TFoo.Create;
-  f.Test;
+  f.Test1;
 end.
