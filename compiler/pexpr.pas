@@ -2767,7 +2767,8 @@ implementation
         else
           p1:=sub_expr(succ(pred_level),true,typeonly);
         repeat
-          if (token in operator_levels[pred_level]) and
+          if (token in [NOTOKEN..last_operator]) and
+             (token in operator_levels[pred_level]) and
              ((token<>_EQ) or accept_equal) then
            begin
              oldt:=token;
