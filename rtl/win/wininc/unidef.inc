@@ -162,6 +162,7 @@ function GetDefaultCommConfig(lpszName:LPCWSTR; lpCC:LPCOMMCONFIG; lpdwSize:LPDW
 function SetDefaultCommConfig(lpszName:LPCWSTR; lpCC:LPCOMMCONFIG; dwSize:DWORD):WINBOOL; external 'kernel32' name 'SetDefaultCommConfigW';
 function GetComputerName(lpBuffer:LPWSTR; nSize:LPDWORD):WINBOOL; external 'kernel32' name 'GetComputerNameW';
 function SetComputerName(lpComputerName:LPCWSTR):WINBOOL; external 'kernel32' name 'SetComputerNameW';
+function GetCPInfoEx(Codepage:UINT; dwFlags:DWORD; CPinfoEx:LPCPINFOEX):BOOL; external 'kernel32' name 'GetCPInfoExW';
 function GetUserName(lpBuffer:LPWSTR; nSize:LPDWORD):WINBOOL; external 'advapi32' name 'GetUserNameW';
 function wvsprintf(_para1:LPWSTR; _para2:LPCWSTR; arglist:va_list):longint; external 'user32' name 'wvsprintfW';
 function wsprintf(_para1:LPWSTR; _para2:LPCWSTR; const args:array of const):longint;cdecl; external 'user32' name 'wsprintfW';
