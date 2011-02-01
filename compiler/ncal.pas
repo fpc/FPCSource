@@ -335,7 +335,7 @@ implementation
           if is_unicodestring(sourcedef) then
             result:=varUStrArg
           else
-          if is_interface(sourcedef) then
+          if is_interfacecom_or_dispinterface(sourcedef) then
             begin
               { distinct IDispatch and IUnknown interfaces }
               if tobjectdef(sourcedef).is_related(tobjectdef(search_system_type('IDISPATCH').typedef)) then
@@ -363,17 +363,17 @@ implementation
         para:=tcallparanode(parametersnode);
         paracount:=0;
         namedparacount:=0;
-        paramssize:=0;
         while assigned(para) do
           begin
             typecheckpass(para.left);
 
-            { skip non parameters }
-            if para.left.nodetype=nothingn then
-            begin
-              para:=tcallparanode(para.nextpara);
-              continue;
-            end;
+            { skip hidden dispinterface parameters like $self, $result,
+              but count skipped variantdispatch parameters. }
+            if (not variantdispatch) and (para.left.nodetype=nothingn) then
+              begin
+                para:=tcallparanode(para.nextpara);
+                continue;
+              end;
             inc(paracount);
             if assigned(para.parametername) then
               inc(namedparacount);
@@ -395,18 +395,14 @@ implementation
               inserttypeconv_internal(para.left,cwidestringtype)
 
             { skip this check if we've already typecasted to automatable type }
-            else if not is_automatable(para.left.resultdef) then
+            else if (para.left.nodetype<>nothingn) and (not is_automatable(para.left.resultdef)) then
               CGMessagePos1(para.left.fileinfo,type_e_not_automatable,para.left.resultdef.typename);
-
-            { we've to know the parameter size to allocate the temp. space }
-            is_byref_para(assignmenttype);
-            inc(paramssize,max(voidpointertype.size,assignmenttype.size));
 
             para:=tcallparanode(para.nextpara);
           end;
 
-        { allocate space }
-        params:=ctempcreatenode.create(voidtype,paramssize,tt_persistent,true);
+        { create a temp to store parameter values }
+        params:=ctempcreatenode.create(voidtype,0,tt_persistent,true);
         addstatement(statements,params);
 
         calldescnode:=cdataconstnode.create;
@@ -433,9 +429,12 @@ implementation
         names := '';
         while assigned(para) do
           begin
-            { skip non parameters }
+            { Skipped parameters are actually (varType=varError, vError=DISP_E_PARAMNOTFOUND).
+              Generate only varType here, the value will be added by RTL. }
             if para.left.nodetype=nothingn then
             begin
+              if variantdispatch then
+                calldescnode.appendbyte(varError);
               para:=tcallparanode(para.nextpara);
               continue;
             end;
@@ -479,6 +478,9 @@ implementation
             para.left:=nil;
             para:=tcallparanode(para.nextpara);
           end;
+
+        { Set final size for parameter block }
+        params.size:=paramssize;
 
         { old argument list skeleton isn't needed anymore }
         parametersnode.free;

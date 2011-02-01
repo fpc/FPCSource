@@ -1093,6 +1093,13 @@ HKCR
 {$endif DEBUG_COMDISPATCH}
               { get plain type }
               CurrType:=CallDesc^.ArgTypes[i] and $3f;
+              { a skipped parameter? Don't increment Params pointer if so. }
+              if CurrType=varError then
+                begin
+                  Arguments[i].vType:=varError;
+                  Arguments[i].vError:=DISP_E_PARAMNOTFOUND;
+                  continue;
+                end;
               { by reference? }
               if (CallDesc^.ArgTypes[i] and $80)<>0 then
                 begin
