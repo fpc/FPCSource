@@ -92,11 +92,14 @@ type
   published
     property Options: TSqliteOptions read FOptions write SetOptions;
   end;
- 
+  
+Var
+  SQLiteLibraryName : String = sqlite3lib; 
+   
 implementation
 
 uses
-  dbconst, sysutils, typinfo, dateutils;
+  dbconst, sysutils, dateutils;
  
 type
 
@@ -187,7 +190,7 @@ begin
                 checkerror(sqlite3_bind_blob(fstatement,I,pcharstr(str1), length(str1),@freebindstring));
                 end; 
       else 
-        databaseerror('Parameter type '+getenumname(typeinfo(tfieldtype),ord(P.datatype))+' not supported.');
+        DatabaseErrorFmt(SUnsupportedParameter, [Fieldtypenames[P.DataType], Self]);
       end; { Case }
     end;   
 end;
@@ -574,7 +577,7 @@ var
 begin
   if Length(databasename)=0 then
     DatabaseError(SErrNoDatabaseName,self);
-  initialisesqlite;
+  InitializeSqlite(SQLiteLibraryName);
   str1:= databasename;
   checkerror(sqlite3_open(pchar(str1),@fhandle));
 end;
@@ -719,6 +722,7 @@ var
 
 begin
   PKFields:=TStringList.Create;
+  PKFields.Delimiter:=';';
   IXFields:=TStringList.Create;
   IXFields.Delimiter:=';';
 
@@ -747,6 +751,9 @@ begin
 
     IndexDefs.Add(IndexName, IXFields.DelimitedText, IndexOptions);
     end;
+
+  if PKFields.Count > 0 then //in special case for INTEGER PRIMARY KEY column, unique index is not created
+    IndexDefs.Add('$PRIMARY_KEY$', PKFields.DelimitedText, [ixPrimary,ixUnique]);
 
   PKFields.Free;
   IXFields.Free;
