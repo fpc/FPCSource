@@ -25,6 +25,8 @@ Type
 
 Const
   NilHandle = 0;
+// these are for easier crossplatform construction of dll names in dynloading libs.
+  SharedSuffix = 'dll';
 
 {$else}
 
@@ -34,13 +36,13 @@ Const
 
 Uses windows;
 
-Function LoadLibrary(Name : AnsiString) : TlibHandle;
+Function LoadLibrary(const Name : AnsiString) : TlibHandle;
 
 begin
   Result:=Windows.LoadLibrary(PChar(Name));
 end;
 
-Function GetProcedureAddress(Lib : TLibHandle; ProcName : AnsiString) : Pointer;
+Function GetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;
 
 begin
   Result:=Windows.GetProcAddress(Lib,PChar(ProcName));

@@ -33,35 +33,19 @@ interface
   ---------------------------------------------------------------------}
 
 
-Function SafeLoadLibrary(Name : AnsiString) : TLibHandle;
-Function LoadLibrary(Name : AnsiString) : TLibHandle;
-Function GetProcedureAddress(Lib : TlibHandle; ProcName : AnsiString) : Pointer;
+Function SafeLoadLibrary(const Name : AnsiString) : TLibHandle;
+Function LoadLibrary(const Name : AnsiString) : TLibHandle;
+Function GetProcedureAddress(Lib : TlibHandle; const ProcName : AnsiString) : Pointer;
 Function UnloadLibrary(Lib : TLibHandle) : Boolean;
 
 // Kylix/Delphi compability
 
 Function FreeLibrary(Lib : TLibHandle) : Boolean;
-Function GetProcAddress(Lib : TlibHandle; ProcName : AnsiString) : Pointer;
+Function GetProcAddress(Lib : TlibHandle; const ProcName : AnsiString) : Pointer;
 
 Type
   HModule = TLibHandle; 
 
-// these are for easier crossplatform construction of dll names in dynloading libs.
-Const
- {$ifdef Windows}
-  SharedSuffix  = 'dll';
- {$else}
-   {$ifdef Darwin}
-     SharedSuffix = 'dylib';
-   {$else}
-     {$ifdef OS2}
-       SharedSuffix = 'dll';
-     {$else}
-       SharedSuffix = 'so';  
-     {$endif}
-   {$endif}
- {$endif}      
-      
 Implementation
 
 { ---------------------------------------------------------------------
@@ -76,13 +60,13 @@ begin
   Result:=UnloadLibrary(lib);
 end;
 
-Function GetProcAddress(Lib : TlibHandle; ProcName : AnsiString) : Pointer;
+Function GetProcAddress(Lib : TlibHandle; const ProcName : AnsiString) : Pointer;
 
 begin
   Result:=GetProcedureAddress(Lib,Procname);
 end;
 
-Function SafeLoadLibrary(Name : AnsiString) : TLibHandle;
+Function SafeLoadLibrary(const Name : AnsiString) : TLibHandle;
 
 {$ifdef i386}
  var w : word;
