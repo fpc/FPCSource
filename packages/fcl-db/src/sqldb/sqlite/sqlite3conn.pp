@@ -577,7 +577,7 @@ var
 begin
   if Length(databasename)=0 then
     DatabaseError(SErrNoDatabaseName,self);
-  InitializeSqlite(SQLiteLibraryName);
+  InitialiseSqlite(SQLiteLibraryName);
   str1:= databasename;
   checkerror(sqlite3_open(pchar(str1),@fhandle));
 end;
