@@ -499,6 +499,7 @@ type
     function GetDataSize: Integer; override;
   public
     constructor Create(aOwner: TComponent); override;
+    procedure SetFieldType(AValue: TFieldType); override;
     property Value: WideString read GetAsWideString write SetAsWideString;
   end;
 
