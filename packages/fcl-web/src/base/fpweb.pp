@@ -449,7 +449,12 @@ begin
   InitSession(AResponse);
   If Assigned(FOnRequest) then
     FOnRequest(Self,ARequest,AResponse,B);
-  If Not B then
+  If B then
+    begin
+    if not AResponse.ContentSent then
+      AResponse.SendContent;
+    end
+  else
     if FTemplate.HasContent then
       GetTemplateContent(ARequest,AResponse)
     else
@@ -460,6 +465,7 @@ begin
       If Not B then
         Raise EFPWebError.Create(SErrRequestNotHandled);
       end;
+      
   DoAfterResponse(AResponse);
   UpdateSession(AResponse);
   FRequest := Nil;
