@@ -1045,7 +1045,8 @@ begin
     end
   else
     begin
-      size := (size+(sizeof(tmemchunk_var_hdr)+(blocksize-1))) and sizemask;
+      if size < high(ptruint)-((sizeof(tmemchunk_var_hdr)+(blocksize-1))) then
+        size := (size+(sizeof(tmemchunk_var_hdr)+(blocksize-1))) and sizemask;
       result := sysgetmem_var(size);
     end;
 
