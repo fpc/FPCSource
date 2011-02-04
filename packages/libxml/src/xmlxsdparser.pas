@@ -24,10 +24,15 @@ resourcestring
   SXsdParserError = 'parsing "%s" as "%s" failed';
 
 type
+{$IFDEF MSWINDOWS}
+  PBoolean = System.PBoolean;
+  // PBoolean is redefined by windows unit, so redefine it here again!
+{$ENDIF}
+
   TXsdTimezoneType = (
-    tzUNKNOWN,
-    tzLOCAL,
-    tzUTC
+    tzUnknown,
+    tzLocal,
+    tzUtc
   );
 
   PXsdTimezone = ^TXsdTimezone;
@@ -422,7 +427,7 @@ begin
   case GetTimeZoneInformation(TZInfo) of
     1: Offset := -TZInfo.Bias - TZInfo.StandardBias;
     2: Offset := -TZInfo.Bias - TZInfo.DaylightBias;
-    else Result.Kind := tz;
+    else Result.Kind := tzUnknown;
   end;
 {$ENDIF}
   Result.Hour := Offset div 60;
