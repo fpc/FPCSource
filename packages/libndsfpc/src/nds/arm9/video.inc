@@ -1,43 +1,3 @@
-(*
-  $Id: video.inc 25 2007-12-10 21:06:46Z p4p3r0 $
-  ------------------------------------------------------------------------------
-  	Copyright (C) 2005
-  		Jason Rogers (dovoto)
-  		Dave Murphy (WinterMute)
-  	
-  	This software is provided 'as-is', without any express or implied
-  	warranty.  In no event will the authors be held liable for any
-  	damages arising from the use of this software.
-  	
-  	Permission is granted to anyone to use this software for any
-  	purpose, including commercial applications, and to alter it and
-  	redistribute it freely, subject to the following restrictions:
-  	
-  	1.	The origin of this software must not be misrepresented; you
-  		must not claim that you wrote the original software. If you use
-  		this software in a product, an acknowledgment in the product
-  		documentation would be appreciated but is not required.
-  	
-  	2.	Altered source versions must be plainly marked as such, and
-  		must not be misrepresented as being the original software.
-  	
-  	3.	This notice may not be removed or altered from any source
-  		distribution.
-  ------------------------------------------------------------------------------
-    
-    
-  Conversion by Legolas (http://itaprogaming.free.fr) for freepascal compiler
-  (http://www.freepascal.org)
-   
-  Copyright (C) 2006  Francesco Lombardi
-  Check http://sourceforge.net/projects/libndsfpc for updates
-   
-  ------------------------------------------------------------------------------
-
-  $Log$
-
-*)
-
 {$ifndef ARM9}
   {$error Video is only available on the ARM9}
 {$endif ARM9}
@@ -89,6 +49,7 @@ const
   VRAM_B_CR		: pcuint8 = pointer($04000241);
   VRAM_C_CR		: pcuint8 = pointer($04000242);
   VRAM_D_CR		: pcuint8 = pointer($04000243);
+  VRAM_EFG_CR	: pcuint8 = pointer($04000244);
   VRAM_E_CR		: pcuint8 = pointer($04000244);
   VRAM_F_CR		: pcuint8 = pointer($04000245);
   VRAM_G_CR		: pcuint8 = pointer($04000246);
@@ -261,9 +222,12 @@ var
   VRAM_G_EXT_PALETTE : P_ext_palette absolute VRAM_G;
   VRAM_H_EXT_PALETTE : P_ext_palette absolute VRAM_H;
 
-function vramSetMainBanks(a: VRAM_A_TYPE; b: VRAM_B_TYPE; c: VRAM_C_TYPE; d: VRAM_D_TYPE): cuint32; cdecl; external;
+function vramSetPrimaryBanks(a: VRAM_A_TYPE; b: VRAM_B_TYPE; c: VRAM_C_TYPE; d: VRAM_D_TYPE): cuint32; cdecl; external; 
+function vramSetMainBanks(a: VRAM_A_TYPE; b: VRAM_B_TYPE; c: VRAM_C_TYPE; d: VRAM_D_TYPE): cuint32; cdecl; external; deprecated;
 function vramDefault(): cuint32; cdecl; external;
-procedure vramRestoreMainBanks(vramTemp: cuint32); cdecl; external;
+procedure vramRestorePrimaryBanks(vramTemp: cuint32); cdecl; external;
+procedure vramRestoreMainBanks(vramTemp: cuint32); cdecl; external; deprecated;
+procedure vramRestoreBanks_EFG(vramTemp: cuint32); cdecl; external;
 
 procedure vramSetBankA(a: VRAM_A_TYPE); inline;
 procedure vramSetBankB(b: VRAM_B_TYPE); inline;
@@ -426,13 +390,32 @@ const
   DCAP_ENABLE    = (1 shl 31);
 
 function DCAP_MODE(n: cint): cint; inline;   
-function DCAP_DST(n: cint): cint; inline;    
+function DCAP_SRC_ADDR(n: cint): cint; inline;    
 function DCAP_SRC(n: cint): cint; inline;    
+function DCAP_SRC_A(n: cint): cint;
+function DCAP_SRC_B(n: cint): cint;
 function DCAP_SIZE(n: cint): cint; inline;   
 function DCAP_OFFSET(n: cint): cint; inline; 
 function DCAP_BANK(n: cint): cint; inline;   
 function DCAP_B(n: cint): cint; inline;      
 function DCAP_A(n: cint): cint; inline;      
+
+const
+  DCAP_MODE_A           = 0;
+  DCAP_MODE_B           = 1;
+  DCAP_MODE_BLEND       = 2;
+  DCAP_SRC_A_COMPOSITED = 0;
+  DCAP_SRC_A_3DONLY     = 1;
+  DCAP_SRC_B_VRAM       = 0;
+  DCAP_SRC_B_DISPFIFO   = 1;
+  DCAP_SIZE_128x128     = 0;
+  DCAP_SIZE_256x64      = 1;
+  DCAP_SIZE_256x128     = 2;
+  DCAP_SIZE_256x192     = 3;
+  DCAP_BANK_VRAM_A      = 0;
+  DCAP_BANK_VRAM_B      = 1;
+  DCAP_BANK_VRAM_C      = 1;
+  DCAP_BANK_VRAM_D      = 2;
 
 const
   GFX_CONTROL           : pcuint16 = pointer($04000060);
@@ -599,14 +582,24 @@ begin
   DCAP_MODE := (((n) and 3) shl 29);
 end;
 
-function DCAP_DST(n: cint): cint; inline;    
+function DCAP_SRC_ADDR(n: cint): cint; inline;    
 begin
-  DCAP_DST := (((n) and 3) shl 26);
+  DCAP_SRC_ADDR := (((n) and 3) shl 26);
 end;
 
 function DCAP_SRC(n: cint): cint; inline;    
 begin
   DCAP_SRC := (((n) and 3) shl 24);
+end;
+
+function DCAP_SRC_A(n: cint): cint;
+begin
+  DCAP_SRC_A := (((n) and 1) shl 24);
+end;
+
+function DCAP_SRC_B(n: cint): cint;
+begin
+  DCAP_SRC_B := (((n) and 1) shl 25);
 end;
 
 function DCAP_SIZE(n: cint): cint; inline;   

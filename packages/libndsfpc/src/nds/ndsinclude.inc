@@ -40,12 +40,16 @@
   {$include arm9/sprite.inc}
   {$include arm9/decompress.inc}
   {$include arm9/ndsmotion.inc}
+  {$include arm9/guitarGrip.inc}
+  {$include arm9/paddle.inc}
+  {$include arm9/piano.inc}
 {$endif ARM9}
 
 {$ifdef ARM7}
   {$include arm7/audio.inc}
   {$include arm7/clock.inc}
   {$include arm7/input.inc}
+  {$include arm7/i2c.inc}
   {$include arm7/serial.inc}
   {$include arm7/touch.inc}
 {$endif ARM7}

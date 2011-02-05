@@ -34,6 +34,10 @@ begin
   decompress(@drunkenlogoBitmap, BG_GFX,  LZ77Vram);
 
   while true do
+  begin
     swiWaitForVBlank();
-
+    ScanKeys();
+    if (keysDown() and KEY_START) <> 0 then 
+      break;
+  end;
 end.

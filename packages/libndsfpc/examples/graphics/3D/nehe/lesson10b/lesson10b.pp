@@ -72,7 +72,7 @@ begin
   glRotatef32i(lookupdown, (1 shl 12),          0, 0);
   glRotatef32i( sceneroty,          0, (1 shl 12), 0);
 
-  glTranslate3f32(xtrans, ytrans, ztrans);
+  glTranslatef32(xtrans, ytrans, ztrans);
   glBindTexture(GL_TEXTURE_2D, texture[0]);
 
   numtriangles := sector1.numtriangles;
@@ -182,6 +182,9 @@ begin
   result := true;
 end;
 
+var
+  held: integer;
+
 begin
   MyFile := pchar(@World_txt);
 
@@ -236,25 +239,25 @@ begin
   begin
     //these little button functions are pretty handy
     scanKeys();
+    held := keysHeld();
 
+    if (held and KEY_A) <> 0 then lookupdown := lookupdown - 1;
 
-    if (keysHeld() and KEY_A) <> 0 then lookupdown := lookupdown - 1;
+    if (held and KEY_B) <> 0 then lookupdown := lookupdown + 1;
 
-    if (keysHeld() and KEY_B) <> 0 then lookupdown := lookupdown + 1;
-
-    if (keysHeld() and KEY_LEFT) <> 0 then
+    if (held and KEY_LEFT) <> 0 then
     begin
       heading := heading + 64;
       yrot := heading;
     end;
 
-    if (keysHeld() and KEY_RIGHT) <> 0 then
+    if (held and KEY_RIGHT) <> 0 then
     begin
       heading := heading - 64;
       yrot := heading;
     end;
 
-    if (keysHeld() and KEY_DOWN) <> 0 then
+    if (held and KEY_DOWN) <> 0 then
     begin
 
       xpos := xpos + sinLerp(heading) div 20;
@@ -265,7 +268,7 @@ begin
       walkbias := sinLerp(walkbiasangle) div 20;
     end;
 
-    if (keysHeld() and KEY_UP) <> 0 then
+    if (held and KEY_UP) <> 0 then
     begin
       xpos := xpos - sinLerp(heading) div 20;
       zpos := zpos - cosLerp(heading) div 20;

@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=Watch
+dirs=RealTimeClock timercallback stopwatch
 
 [require]
 packages=libndsfpc
