@@ -14,8 +14,8 @@ uses
 {$linklib gba}
 
 {$linklib c}
-{$linklib g}
 {$linklib gcc}
+{$linklib g}
 {$linklib sysbase}
 
 {$define GBA_INTERFACE}
