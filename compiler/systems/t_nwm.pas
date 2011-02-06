@@ -523,7 +523,7 @@ begin
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$TMPOBJ',maybequoted(outputexedir+tmpLinkFileName));
   Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
-  success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
+  success:=DoExec(BinStr,CmdStr,true,false);
 
   { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
@@ -537,7 +537,7 @@ begin
     SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
     Replace(cmdstr,'$RES',maybequoted(outputexedir+'n'+Info.ResName));
     Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
-    success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
+    success:=DoExec(BinStr,CmdStr,true,false);
     if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     begin
       DeleteFile(outputexedir+'n'+Info.ResName);
