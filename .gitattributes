@@ -7166,6 +7166,7 @@ rtl/netware/dos.pp svneol=native#text/plain
 rtl/netware/dplsv386.imp -text
 rtl/netware/dsapi.imp -text
 rtl/netware/dsevent.imp -text
+rtl/netware/dynlibs.inc svneol=native#text/plain
 rtl/netware/errno.inc svneol=native#text/plain
 rtl/netware/initc.pp svneol=native#text/plain
 rtl/netware/keyboard.pp svneol=native#text/plain

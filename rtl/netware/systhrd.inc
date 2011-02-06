@@ -390,6 +390,63 @@ begin
   _SaveThreadDataAreaPtr     (newPtr);
 end;
 
+function intBasicEventCreate(EventAttributes : Pointer;
+AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
+begin
+  {$WARNING TODO! intBasicEventCreate}
+end;
+
+procedure intbasiceventdestroy(state:peventstate);
+begin
+  {$WARNING TODO! intbasiceventdestroy}
+end;
+
+procedure intbasiceventResetEvent(state:peventstate);
+begin
+  {$WARNING TODO! intbasiceventResetEvent}
+end;
+
+procedure intbasiceventSetEvent(state:peventstate);
+begin
+  {$WARNING TODO! intbasiceventSetEvent}
+end;
+
+function intbasiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+begin
+  {$WARNING TODO! intbasiceventWaitFor}
+end;
+
+function intRTLEventCreate: PRTLEvent;
+begin
+  {$WARNING TODO! intRTLEventCreate}
+end;
+
+procedure intRTLEventDestroy(AEvent: PRTLEvent);
+begin
+  {$WARNING TODO! intRTLEventDestroy}
+end;
+
+procedure intRTLEventSetEvent(AEvent: PRTLEvent);
+begin
+  {$WARNING TODO! intRTLEventSetEvent}
+end;
+
+procedure intRTLEventResetEvent(AEvent: PRTLEvent);
+begin
+  {$WARNING TODO! intRTLEventResetEvent}
+end;
+
+procedure intRTLEventWaitFor(AEvent: PRTLEvent);
+begin
+{$WARNING TODO! intRTLEventWaitFor}
+end;
+
+procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
+begin
+  {$WARNING TODO! intRTLEventWaitForTimeout}
+end;
+
+
 
 
 Var
@@ -420,11 +477,17 @@ begin
     RelocateThreadVar      :=@SysRelocateThreadVar;
     AllocateThreadVars     :=@SysAllocateThreadVars;
     ReleaseThreadVars      :=@SysReleaseThreadVars;
-    BasicEventCreate       :=@NoBasicEventCreate;
-    basiceventdestroy      :=@Nobasiceventdestroy;
-    basiceventResetEvent   :=@NobasiceventResetEvent;
-    basiceventSetEvent     :=@NobasiceventSetEvent;
-    basiceventWaitFor      :=@NobasiceventWaitFor;
+    BasicEventCreate       :=@intBasicEventCreate;
+    basiceventdestroy      :=@intbasiceventdestroy;
+    basiceventResetEvent   :=@intbasiceventResetEvent;
+    basiceventSetEvent     :=@intbasiceventSetEvent;
+    basiceventWaitFor      :=@intbasiceventWaitFor;
+    RTLEventCreate         :=@intRTLEventCreate;
+    RTLEventDestroy        :=@intRTLEventDestroy;
+    RTLEventSetEvent       :=@intRTLEventSetEvent;
+    RTLEventResetEvent     :=@intRTLEventResetEvent;
+    RTLEventWaitFor        :=@intRTLEventWaitFor;
+    RTLEventWaitForTimeout :=@intRTLEventWaitForTimeout;
     end;
   SetThreadManager(NWThreadManager);
   NWSysSetThreadFunctions (@SysCloseAllRemainingSemaphores,
