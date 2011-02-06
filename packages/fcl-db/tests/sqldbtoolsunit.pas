@@ -42,7 +42,7 @@ const MySQLdbTypes = [mysql40,mysql41,mysql50];
           '',
           'CHAR(10)',
           '',
-          '',
+          'BIGINT',
           '',
           '',
           '',

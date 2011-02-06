@@ -1,6 +1,7 @@
 unit TestFieldTypes;
 
 {$mode objfpc}{$H+}
+{$modeswitch nestedprocvars}
 
 interface
 
@@ -9,10 +10,10 @@ uses
   db;
 
 type
-
-
   TParamProc = procedure(AParam:TParam; i : integer);
   TFieldProc = procedure(AField:TField; i : integer);
+  TGetSQLTextProc = function(const i: integer) : string; { is nested;}
+  TCheckFieldValueProc = procedure(AField:TField; i : integer) is nested;
 
   { TTestFieldTypes }
 
@@ -20,6 +21,9 @@ type
   private
     procedure CreateTableWithFieldType(ADatatype : TFieldType; ASQLTypeDecl : string);
     procedure TestFieldDeclaration(ADatatype: TFieldType; ADataSize: integer);
+    procedure TestSQLFieldType(ADatatype: TFieldType; ASQLTypeDecl: string;
+      ADataSize: integer; AGetSQLTextProc: TGetSQLTextProc;
+      ACheckFieldValueProc: TCheckFieldValueProc);
     procedure TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuescount : integer; Cross : boolean = false);
     procedure TestSetBlobAsParam(asWhat : integer);
   protected
@@ -99,6 +103,7 @@ type
 
     // Test SQL-field type recognition
     procedure TestSQLClob;
+    procedure TestSQLLargeint;
   end;
 
 implementation
@@ -1583,27 +1588,62 @@ begin
     end;
 end;
 
-procedure TTestFieldTypes.TestSQLClob;
+procedure TTestFieldTypes.TestSQLFieldType(ADatatype : TFieldType; ASQLTypeDecl : string; ADataSize: integer; AGetSQLTextProc: TGetSQLTextProc; ACheckFieldValueProc: TCheckFieldValueProc);
 var
   i          : byte;
+  s: string;
 begin
-  CreateTableWithFieldType(ftMemo,'CLOB');
-  TestFieldDeclaration(ftMemo,0);
+  CreateTableWithFieldType(ADatatype,ASQLTypeDecl);
+  TestFieldDeclaration(ADatatype,ADataSize);
 
   for i := 0 to testValuesCount-1 do
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + QuotedStr(testStringValues[i]) + ')');
+    begin
+    s := AGetSQLTextProc(i);
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + s + ')');
+    end;
 
   with TSQLDBConnector(DBConnector).Query do
     begin
     Open;
     for i := 0 to testValuesCount-1 do
       begin
-      AssertEquals(testStringValues[i],fields[0].AsString);
+      ACheckFieldValueProc(fields[0],i);
       Next;
       end;
     close;
     end;
 end;
+
+// Placed here, as long as bug 18702 is not solved
+function TestSQLClob_GetSQLText(const a: integer) : string;
+begin
+  result := QuotedStr(testStringValues[a]);
+end;
+
+procedure TTestFieldTypes.TestSQLClob;
+  procedure CheckFieldValue(AField:TField; a : integer);
+  begin
+    AssertEquals(testStringValues[a],AField.AsString);
+  end;
+begin
+  TestSQLFieldType(ftMemo, 'CLOB', 0, @TestSQLClob_GetSQLText, @CheckFieldValue);
+end;
+
+// Placed here, as long as bug 18702 is not solved
+function TestSQLLargeInt_GetSQLText(const a: integer) : string;
+begin
+  result := IntToStr(testLargeIntValues[a]);
+end;
+
+procedure TTestFieldTypes.TestSQLLargeint;
+  procedure CheckFieldValue(AField:TField; a : integer);
+  begin
+    AssertEquals(testLargeIntValues[a],AField.AsLargeInt);
+  end;
+begin
+  TestSQLFieldType(ftLargeint, 'LARGEINT', 8, @TestSQLLargeint_GetSQLText, @CheckFieldValue);
+end;
+
 
 procedure TTestFieldTypes.TestUpdateIndexDefs;
 var ds : TSQLQuery;
