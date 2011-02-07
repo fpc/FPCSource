@@ -482,29 +482,23 @@ implementation
                   isn't allowed }
                 case current_objectdef.objecttype of
                    odt_class:
-                     if is_objectpascal_classhelper(childof) then
-                       { a class helper is not allowed as parent or extended
-                         class
-                       }
-                       Message(parser_e_classhelper_not_allowed_here)
+                     if not(is_class(childof)) then
+                       begin
+                          if is_interface(childof) then
+                            begin
+                               { we insert the interface after the child
+                                 is set, see below
+                               }
+                               intfchildof:=childof;
+                               childof:=class_tobject;
+                            end
+                          else
+                            Message(parser_e_mix_of_classes_and_objects);
+                       end
                      else
-                       if not(is_class(childof)) then
-                         begin
-                            if is_interface(childof) then
-                              begin
-                                 { we insert the interface after the child
-                                   is set, see below
-                                 }
-                                 intfchildof:=childof;
-                                 childof:=class_tobject;
-                              end
-                            else
-                              Message(parser_e_mix_of_classes_and_objects);
-                         end
-                       else
-                         if (oo_is_sealed in childof.objectoptions) and
-                             not is_objectpascal_classhelper(current_structdef) then
-                           Message1(parser_e_sealed_descendant,childof.typename);
+                       if (oo_is_sealed in childof.objectoptions) and
+                           not is_objectpascal_classhelper(current_structdef) then
+                         Message1(parser_e_sealed_descendant,childof.typename);
                    odt_interfacecorba,
                    odt_interfacecom:
                      begin

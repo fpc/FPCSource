@@ -4148,24 +4148,13 @@ implementation
 ***************************************************************************}
 
    constructor tobjectdef.create(ot:tobjecttyp;const n:string;c:tobjectdef);
-
-       procedure update_unit_symtable_options;
-         var
-           st: tsymtable;
-         begin
-           st:=owner;
-           while not(st.symtabletype in [globalsymtable,staticsymtable]) do
-             st:=st.defowner.owner;
-           if objecttype in [odt_classhelper,odt_objccategory] then
-             include(st.tableoptions,sto_has_classhelper);
-         end;
-
      begin
         inherited create(n,objectdef);
         fcurrent_dispid:=0;
         objecttype:=ot;
         childof:=nil;
-        update_unit_symtable_options;
+        if objecttype in [odt_classhelper] then
+          owner.includeoption(sto_has_classhelper);
         symtable:=tObjectSymtable.create(self,n,current_settings.packrecords);
         { create space for vmt !! }
         vmtentries:=TFPList.Create;

@@ -1488,7 +1488,12 @@ implementation
                         begin
                           p1:=comp_expr(true,false);
                           consume(_RKLAMMER);
-                          p1:=ctypeconvnode.create_explicit(p1,hdef);
+                          { type casts to class helpers aren't allowed }
+                          if is_objectpascal_classhelper(hdef) then
+                            Message(parser_e_no_category_as_types)
+                            { recovery by not creating a conversion node }
+                          else
+                            p1:=ctypeconvnode.create_explicit(p1,hdef);
                         end
                        else { not LKLAMMER }
                         if (token=_POINT) and
@@ -1534,6 +1539,12 @@ implementation
                           if is_class(hdef) or
                              is_objcclass(hdef) then
                            begin
+                             if is_objectpascal_classhelper(hdef) then
+                               begin
+                                 Message(parser_e_no_category_as_types);
+                                 { for recovery we use the extended class }
+                                 hdef:=tobjectdef(hdef).childof;
+                               end;
                              if getaddr and (token=_POINT) then
                               begin
                                 consume(_POINT);

@@ -395,8 +395,7 @@ const
   parser_e_cant_use_type_parameters_here=03304;
   parser_e_classhelper_id_expected=03305;
   parser_e_classhelper_must_extend_subclass=03306;
-  parser_e_classhelper_not_allowed_here=03307;
-  parser_e_not_allowed_in_classhelper=03308;
+  parser_e_not_allowed_in_classhelper=03307;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -886,9 +885,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 58949;
+  MsgTxtSize = 58938;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,88,309,99,84,54,111,22,202,63,
+    24,88,308,99,84,54,111,22,202,63,
     49,20,1,1,1,1,1,1,1,1
   );

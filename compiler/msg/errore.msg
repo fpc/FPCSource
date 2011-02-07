@@ -368,7 +368,7 @@ scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN dire
 #
 # Parser
 #
-# 03308 is the last used one
+# 03307 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1264,9 +1264,12 @@ parser_e_objc_message_name_changed=03275_E_Message name "$1" in inherited class 
 parser_e_no_objc_unique=03276_E_It is not yet possible to make unique copies of Objective-C types
 % Duplicating an Objective-C type using \var{type x = type y;} is not yet supported. You may be able to
 % obtain the desired effect using \var{type x = objcclass(y) end;} instead.
-parser_e_no_category_as_types=03277_E_Objective-C categories cannot be used as types
-% It is not possible to declare a variable as an instance of an Objective-C category. A
-% category adds methods to the scope of an existing class, but does not define a type by itself.
+parser_e_no_category_as_types=03277_E_Objective-C categories and Object Pascal class helpers cannot be used as types
+% It is not possible to declare a variable as an instance of an Objective-C
+% category or an Object Pascal class helper. A category/class helper adds
+% methods to the scope of an existing class, but does not define a type by
+% itself. An exception of this rule is when inheriting an Object Pascal class
+% helper from another class helper.
 parser_e_no_category_override=03278_E_Categories do not override, but replace methods. Use "reintroduce" instead.
 parser_e_must_use_reintroduce_objc=03279_E_Replaced methods can only be reintroduced in Objective-C, add "reintroduce" (replaced method defined in $1).
 parser_h_should_use_reintroduce_objc=03280_H_Replaced methods can only be reintroduced in Objective-C, add "reintroduce" (replaced method defined in $1).
@@ -1370,10 +1373,7 @@ parser_e_classhelper_id_expected=03305_E_Class helper identifier expected
 parser_e_classhelper_must_extend_subclass=03306_E_Derived class helper must extend a subclass of the class extended by the parent class helper
 % When a class helper inherits from another class helper the extended class must
 % extend either the same class as the parent class helper or a subclass of it
-parser_e_classhelper_not_allowed_here=03307_E_A class helper is not allowed here
-% A class helper can only be referenced when inheriting from it. All other uses
-% (like variable type, field type, parameter type, with clause) are disallowed.
-parser_e_not_allowed_in_classhelper=03308_E_"$1" is not allowed in class helpers
+parser_e_not_allowed_in_classhelper=03307_E_"$1" is not allowed in class helpers
 % Some directives and specifiers like "virtual", "dynamic", "published" aren't
 % allowed inside class helpers in mode ObjFPC (they are ignored in mode Delphi).
 % \end{description}

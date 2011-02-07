@@ -568,7 +568,7 @@ implementation
                 Message(parser_e_no_generics_as_types);
                 def:=generrordef;
               end
-            else if is_objccategory(def) then
+            else if is_classhelper(def) then
               begin
                 Message(parser_e_no_category_as_types);
                 def:=generrordef
@@ -1035,7 +1035,7 @@ implementation
                            Message(parser_e_no_generics_as_types);
                            def:=generrordef;
                          end
-                       else if is_objccategory(def) then
+                       else if is_classhelper(def) then
                          begin
                            Message(parser_e_no_category_as_types);
                            def:=generrordef
