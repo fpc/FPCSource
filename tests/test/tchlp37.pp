@@ -16,7 +16,7 @@ type
   end;
 
   TFooBarHelper = class helper(TFooHelper) for TFoo
-    property AccessTest: Integer read Test;
+    function AccessTest: Integer;
   end;
 
 function TFoo.Test: Integer;
@@ -27,6 +27,11 @@ end;
 function TFooHelper.Test: Integer;
 begin
   Result := 2;
+end;
+
+function TFooBarHelper.AccessTest: Integer;
+begin
+  Result := Test;
 end;
 
 var
