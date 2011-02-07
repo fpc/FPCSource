@@ -104,6 +104,9 @@ uses
 {$ifdef wdosx}
   ,i_wdosx
 {$endif wdosx}
+{$ifdef wii}
+  ,i_wii
+{$endif wii}
 {$ifdef win32}
   ,i_win
 {$endif win32}

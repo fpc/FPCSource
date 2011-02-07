@@ -6610,6 +6610,7 @@ rtl/nativent/fpcmade.*
 rtl/nativent/units
 rtl/nds/backup
 rtl/nds/parcheggio
+rtl/nds_new
 rtl/netbsd/*.bak
 rtl/netbsd/*.exe
 rtl/netbsd/*.o
@@ -6866,6 +6867,13 @@ rtl/watcom/*.ppu
 rtl/watcom/*.s
 rtl/watcom/fpcmade.*
 rtl/watcom/units
+rtl/wii/*.bak
+rtl/wii/*.exe
+rtl/wii/*.o
+rtl/wii/*.ppu
+rtl/wii/*.s
+rtl/wii/fpcmade.*
+rtl/wii/units
 rtl/win/*.bak
 rtl/win/*.exe
 rtl/win/*.o

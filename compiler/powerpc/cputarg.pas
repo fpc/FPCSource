@@ -50,6 +50,9 @@ implementation
     {$ifndef NOTARGETAMIGA}
       ,t_amiga
     {$endif}
+    {$ifndef NOTARGETWII}
+      ,t_wii
+    {$endif}
 
 {**************************************
              Assemblers
