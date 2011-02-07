@@ -185,10 +185,10 @@ type
     function copy: id; message 'copy';
     function mutableCopy: id; message 'mutableCopy';
 
-    class function copyWithZone(_zone: NSZonePtr): id; message 'copyWithZone:';
-    class function copyWithZone_(_zone: NSZonePtr): id; message 'copyWithZone:';
-    class function mutableCopyWithZone(_zone: NSZonePtr): id; message 'mutableCopyWithZone:';
-    class function mutableCopyWithZone_(_zone: NSZonePtr): id; message 'mutableCopyWithZone:';
+    class function classCopyWithZone(_zone: NSZonePtr): id; message 'copyWithZone:';
+    class function classCopyWithZone_(_zone: NSZonePtr): id; message 'copyWithZone:';
+    class function classMutableCopyWithZone(_zone: NSZonePtr): id; message 'mutableCopyWithZone:';
+    class function classMutableCopyWithZone_(_zone: NSZonePtr): id; message 'mutableCopyWithZone:';
 
     { "class" prefix to method name to avoid name collision with NSObjectProtocol }
     class function classSuperclass: pobjc_class; message 'superclass';

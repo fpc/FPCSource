@@ -110,7 +110,7 @@ begin
 			glPushMatrix(); // save the state of the modelview matrix while making the first pass
 				// draw the scene for displaying
 				
-				glTranslate3f32(floattof32(2.9),floattof32(0),floattof32(0)); // translate the modelview matrix to the drawing location
+				glTranslatef32(floattof32(2.9),floattof32(0),floattof32(0)); // translate the modelview matrix to the drawing location
 				if (clicked = clCone) then
 					glPolyFmt(POLY_ALPHA(31) or POLY_CULL_BACK or POLY_FORMAT_LIGHT0 or POLY_ID(1)) // set a poly ID for outlining
 				else
@@ -119,7 +119,7 @@ begin
 				glCallList((@cone_bin)); // draw a green cone from a predefined packed command list
 
 				
-				glTranslate3f32(floattof32(-3),floattof32(1.8),floattof32(2)); // translate the modelview matrix to the drawing location
+				glTranslatef32(floattof32(-3),floattof32(1.8),floattof32(2)); // translate the modelview matrix to the drawing location
 				if (clicked = clCylinder) then
 					glPolyFmt(POLY_ALPHA(31) or POLY_CULL_BACK or POLY_FORMAT_LIGHT0 or POLY_ID(1)) // set a poly ID for outlining
 				else
@@ -128,7 +128,7 @@ begin
         glCallList((@cylinder_bin)); // draw a blue cylinder from a predefined packed command list
 
 
-				glTranslate3f32(floattof32(0.5),floattof32(-2.6),floattof32(-4)); // translate the modelview matrix to the drawing location
+				glTranslatef32(floattof32(0.5),floattof32(-2.6),floattof32(-4)); // translate the modelview matrix to the drawing location
 				if(clicked = clSphere) then
 					glPolyFmt(POLY_ALPHA(31) or POLY_CULL_BACK or POLY_FORMAT_LIGHT0 or POLY_ID(1)) // set a poly ID for outlining
 				else
@@ -153,17 +153,17 @@ begin
 				
 				glMatrixMode(GL_MODELVIEW); // switch back to modifying the modelview matrix for drawing
 				
-				glTranslate3f32(floattof32(2.9),floattof32(0),floattof32(0)); // translate the modelview matrix to the drawing location
+				glTranslatef32(floattof32(2.9),floattof32(0),floattof32(0)); // translate the modelview matrix to the drawing location
 				startCheck();
 				glCallList((@cone_bin)); // draw a cone from a predefined packed command list
 				endCheck(clCone);
 
-				glTranslate3f32(floattof32(-3),floattof32(1.8),floattof32(2)); // translate the modelview matrix to the drawing location
+				glTranslatef32(floattof32(-3),floattof32(1.8),floattof32(2)); // translate the modelview matrix to the drawing location
 				startCheck();
 				glCallList((@cylinder_bin)); // draw a cylinder from a predefined packed command list
 				endCheck(clCylinder);
 
-				glTranslate3f32(floattof32(0.5),floattof32(-2.6),floattof32(-4)); // translate the modelview matrix to the drawing location
+				glTranslatef32(floattof32(0.5),floattof32(-2.6),floattof32(-4)); // translate the modelview matrix to the drawing location
 				startCheck();
 				glCallList((@sphere_bin)); // draw a sphere from a predefined packed command list
 				endCheck(clSphere);

@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) objpas macpas iso7185 strings \
       dateutils strutils convutils \
       charset ucomplex variants \
       rtlconsts math varutils freebidi utf8bidi \
-      mouse video keyboard cmem sockets \
+      mouse video keyboard cmem dynlibs sockets \
       aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes
 rsts=math varutils variants typinfo classes dateutils sysconst convutils rtlconsts
 implicitunits=exeinfo
@@ -29,6 +29,7 @@ fpcpackage=y
 [default]
 fpcdir=../..
 target=netware
+cpu=i386
 
 [compiler]
 includedir=$(INC) $(PROCINC)

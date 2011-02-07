@@ -83,7 +83,7 @@ begin
           DISPLAY_BG1_ACTIVE );
 
 	//vram banks are somewhat complex
-	vramSetMainBanks(VRAM_A_LCD, VRAM_B_LCD, VRAM_C_SUB_BG, VRAM_D_SUB_SPRITE);
+	vramSetPrimaryBanks(VRAM_A_LCD, VRAM_B_LCD, VRAM_C_SUB_BG, VRAM_D_SUB_SPRITE);
 
   //load our ball pcx file into an image
   loadPCX(pcuint8(ball_pcx), @ball);

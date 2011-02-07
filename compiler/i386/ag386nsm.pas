@@ -391,8 +391,7 @@ interface
                   if o.ref^.offset>0 then
                    asmwrite('+');
                   asmwrite(tostr(o.ref^.offset));
-
-                  end;
+                end;
             end;
           else
             internalerror(10001);
@@ -1183,7 +1182,7 @@ interface
             labelprefix : '..@';
             comment : '; ';
           );
-          
+
        as_i386_nasmhaiku_info : tasminfo =
           (
             id           : as_i386_nasmhaiku;

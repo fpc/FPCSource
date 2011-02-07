@@ -423,7 +423,8 @@ type
     { Objective-C message selector parameter }
     vo_is_msgsel,
     { first field of variant part of a record }
-    vo_is_first_field
+    vo_is_first_field,
+    vo_volatile
   );
   tvaroptions=set of tvaroption;
 

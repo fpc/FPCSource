@@ -1,4 +1,4 @@
-program watch;
+program realtimeclock;
 
 {$mode objfpc}
 

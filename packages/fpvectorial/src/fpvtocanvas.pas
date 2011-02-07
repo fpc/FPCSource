@@ -4,17 +4,28 @@ unit fpvtocanvas;
 
 interface
 
+{.$define USE_LCL_CANVAS}
+
 uses
-  Classes, SysUtils,
+  Classes, SysUtils, Math,
+  {$ifdef USE_LCL_CANVAS}
+  Graphics, LCLIntf,
+  {$else}
   fpcanvas,
+  {$endif}
   fpvectorial;
 
-procedure DrawFPVectorialToCanvas(ASource: TvVectorialDocument; ADest: TFPCustomCanvas;
+procedure DrawFPVectorialToCanvas(ASource: TvVectorialDocument;
+  {$ifdef USE_LCL_CANVAS}
+  ADest: TCanvas;
+  {$else}
+  ADest: TFPCustomCanvas;
+  {$endif}
   ADestX: Integer = 0; ADestY: Integer = 0; AMulX: Double = 1.0; AMulY: Double = 1.0);
 
 implementation
 
-{function Rotate2DPoint(P,Fix :TPoint; alpha:double): TPoint;
+function Rotate2DPoint(P,Fix :TPoint; alpha:double): TPoint;
 var
   sinus, cosinus : Extended;
 begin
@@ -23,31 +34,46 @@ begin
   P.y := P.y - Fix.y;
   result.x := Round(p.x*cosinus + p.y*sinus)  +  fix.x ;
   result.y := Round(-p.x*sinus + p.y*cosinus) +  Fix.y;
-end;}
+end;
 
-procedure DrawRotatedEllipse(ADest: TFPCustomCanvas; CurEllipse: TvEllipse);
-{var
+procedure DrawRotatedEllipse(
+  {$ifdef USE_LCL_CANVAS}
+  ADest: TCanvas;
+  {$else}
+  ADest: TFPCustomCanvas;
+  {$endif}
+  CurEllipse: TvEllipse;
+  ADestX: Integer = 0; ADestY: Integer = 0; AMulX: Double = 1.0; AMulY: Double = 1.0);
+var
   PointList: array[0..6] of TPoint;
   f: TPoint;
-  dk: Integer;}
+  dk, x1, x2, y1, y2: Integer;
 begin
-{  dk := Round(0.654 * Abs(y2-y1));
-  f.x := CurEllipse.CenterX;
-  f.y := CurEllipse.CenterY - 1;
-  PointList[0] := Rotate2DPoint(Point(x1, f.y), f, Alpha) ;  // Startpoint
-  PointList[1] := Rotate2DPoint(Point(x1,  f.y - dk), f, Alpha);
+  {$ifdef USE_LCL_CANVAS}
+  CurEllipse.CalculateBoundingRectangle();
+  x1 := CurEllipse.BoundingRect.Left;
+  x2 := CurEllipse.BoundingRect.Right;
+  y1 := CurEllipse.BoundingRect.Top;
+  y2 := CurEllipse.BoundingRect.Bottom;
+
+  dk := Round(0.654 * Abs(y2-y1));
+  f.x := Round(CurEllipse.CenterX);
+  f.y := Round(CurEllipse.CenterY - 1);
+  PointList[0] := Rotate2DPoint(Point(x1, f.y), f, CurEllipse.Angle) ;  // Startpoint
+  PointList[1] := Rotate2DPoint(Point(x1,  f.y - dk), f, CurEllipse.Angle);
   //Controlpoint of Startpoint first part
-  PointList[2] := Rotate2DPoint(Point(x2- 1,  f.y - dk), f, Alpha);
+  PointList[2] := Rotate2DPoint(Point(x2- 1,  f.y - dk), f, CurEllipse.Angle);
   //Controlpoint of secondpoint first part
-  PointList[3] := Rotate2DPoint(Point(x2 -1 , f.y), f, Alpha);
+  PointList[3] := Rotate2DPoint(Point(x2 -1 , f.y), f, CurEllipse.Angle);
   // Firstpoint of secondpart
-  PointList[4] := Rotate2DPoint(Point(x2-1 , f.y + dk), f, Alpha);
+  PointList[4] := Rotate2DPoint(Point(x2-1 , f.y + dk), f, CurEllipse.Angle);
   // Controllpoint of secondpart firstpoint
-  PointList[5] := Rotate2DPoint(Point(x1, f.y +  dk), f, Alpha);
+  PointList[5] := Rotate2DPoint(Point(x1, f.y +  dk), f, CurEllipse.Angle);
   // Conrollpoint of secondpart endpoint
   PointList[6] := PointList[0];   // Endpoint of
    // Back to the startpoint
-  PolyBezier(canvas.handle, Pointlist[0], 7);}
+  ADest.PolyBezier(Pointlist[0]);
+  {$endif}
 end;
 
 {@@
@@ -64,7 +90,12 @@ end;
 
   DrawFPVectorialToCanvas(ASource, ADest, 0, ASource.Height, 1.0, -1.0);
 }
-procedure DrawFPVectorialToCanvas(ASource: TvVectorialDocument; ADest: TFPCustomCanvas;
+procedure DrawFPVectorialToCanvas(ASource: TvVectorialDocument;
+  {$ifdef USE_LCL_CANVAS}
+  ADest: TCanvas;
+  {$else}
+  ADest: TFPCustomCanvas;
+  {$endif}
   ADestX: Integer = 0; ADestY: Integer = 0; AMulX: Double = 1.0; AMulY: Double = 1.0);
 var
   i, j, k: Integer;
@@ -76,11 +107,13 @@ var
   CurX, CurY: Integer; // Not modified by ADestX, etc
   CurveLength: Integer;
   t: Double;
+  // For text
+  CurText: TvText;
   // For entities
   CurEntity: TvEntity;
   CurCircle: TvCircle;
   CurEllipse: TvEllipse;
-  CurCircularArc: TvCircularArc;
+  CurArc: TvCircularArc;
 begin
   {$ifdef FPVECTORIALDEBUG}
   WriteLn(':>DrawFPVectorialToCanvas');
@@ -91,6 +124,7 @@ begin
 
   ADest.MoveTo(ADestX, ADestY);
 
+  // Draws all paths
   for i := 0 to ASource.PathCount - 1 do
   begin
     //WriteLn('i = ', i);
@@ -141,6 +175,7 @@ begin
     end;
   end;
 
+  // Draws all entities
   for i := 0 to ASource.GetEntityCount - 1 do
   begin
     CurEntity := ASource.GetEntity(i);
@@ -161,9 +196,29 @@ begin
     end
     else if CurEntity is TvCircularArc then
     begin
-      CurCircularArc := CurEntity as TvCircularArc;
-//      ADest.Arc(ADest, CurEllipse);
+      CurArc := CurEntity as TvCircularArc;
+      {$ifdef USE_LCL_CANVAS}
+      // Arc(ALeft, ATop, ARight, ABottom, Angle16Deg, Angle16DegLength: Integer);
+      ADest.Arc(
+        Round(ADestX + AmulX * (CurArc.CenterX - CurArc.Radius)),
+        Round(ADestY + AmulY * (CurArc.CenterY - CurArc.Radius)),
+        Round(ADestX + AmulX * (CurArc.CenterX + CurArc.Radius)),
+        Round(ADestY + AmulY * (CurArc.CenterY + CurArc.Radius)),
+        Round(16*CurArc.StartAngle),
+        Round(16*CurArc.EndAngle - CurArc.StartAngle)
+        );
+      {$endif}
     end;
+  end;
+
+  // Draws all text
+  for i := 0 to ASource.GetTextCount - 1 do
+  begin
+    CurText := ASource.GetText(i);
+    ADest.Font.Height := Round(AmulY * CurText.FontSize);
+    ADest.Pen.Style := psSolid;
+    ADest.Pen.Color := clBlack;
+    ADest.TextOut(Round(CurText.X), Round(CurText.Y), CurText.Value);
   end;
 
   {$ifdef FPVECTORIALDEBUG}

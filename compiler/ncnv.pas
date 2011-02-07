@@ -187,8 +187,14 @@ interface
           procedure second_nothing; virtual;abstract;
        end;
        ttypeconvnodeclass = class of ttypeconvnode;
+       
+       { common functionality of as-nodes and is-nodes }
+       tasisnode = class(tbinarynode)
+         public
+          function pass_typecheck:tnode;override;
+       end;
 
-       tasnode = class(tbinarynode)
+       tasnode = class(tasisnode)
           { as nodes cannot be translated directly into call nodes bcause:
 
             When using -CR, explicit class typecasts are replaced with as-nodes to perform
@@ -203,17 +209,15 @@ interface
           call: tnode;
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
-          function pass_typecheck:tnode;override;
           function dogetcopy: tnode;override;
           function docompare(p: tnode): boolean; override;
           destructor destroy; override;
        end;
        tasnodeclass = class of tasnode;
 
-       tisnode = class(tbinarynode)
+       tisnode = class(tasisnode)
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
-          function pass_typecheck:tnode;override;
           procedure pass_generate_code;override;
        end;
        tisnodeclass = class of tisnode;
@@ -3303,6 +3307,100 @@ implementation
          tprocedureofobject(r)();
       end;
 
+{*****************************************************************************
+                                TASNODE
+*****************************************************************************}
+
+    function tasisnode.pass_typecheck: tnode;
+      var
+        hp : tnode;
+      begin
+        result:=nil;
+        typecheckpass(right);
+        typecheckpass(left);
+
+        set_varstate(right,vs_read,[vsf_must_be_valid]);
+        set_varstate(left,vs_read,[vsf_must_be_valid]);
+
+        if codegenerror then
+          exit;
+
+        if (right.resultdef.typ=classrefdef) then
+          begin
+            { left maybe an interface reference }
+            if is_interfacecom(left.resultdef) then
+              begin
+                { relation checks are not possible }
+              end
+            { or left must be a class }
+            else if is_class(left.resultdef) then
+              begin
+                { the operands must be related }
+                if (not(tobjectdef(left.resultdef).is_related(
+                   tobjectdef(tclassrefdef(right.resultdef).pointeddef)))) and
+                   (not(tobjectdef(tclassrefdef(right.resultdef).pointeddef).is_related(
+                   tobjectdef(left.resultdef)))) then
+                  CGMessage2(type_e_classes_not_related,
+                     FullTypeName(left.resultdef,tclassrefdef(right.resultdef).pointeddef),
+                     FullTypeName(tclassrefdef(right.resultdef).pointeddef,left.resultdef));
+              end
+            else
+              CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
+            case nodetype of
+              isn:
+                resultdef:=booltype;
+              asn:
+                resultdef:=tclassrefdef(right.resultdef).pointeddef;
+            end;
+          end
+        else if is_interface(right.resultdef) or is_dispinterface(right.resultdef) then
+          begin
+            { left is a class }
+            if not(is_class(left.resultdef) or
+                   is_interfacecom(left.resultdef)) then
+              CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
+
+            case nodetype of
+              isn:
+                resultdef:=booltype;
+              asn:
+                resultdef:=right.resultdef;
+            end;
+
+            { load the GUID of the interface }
+            if (right.nodetype=typen) then
+              begin
+                if tobjectdef(right.resultdef).objecttype=odt_interfacecorba then
+                  begin
+                    if assigned(tobjectdef(right.resultdef).iidstr) then
+                      begin
+                        hp:=cstringconstnode.createstr(tobjectdef(right.resultdef).iidstr^);
+                        tstringconstnode(hp).changestringtype(cshortstringtype);
+                        right.free;
+                        right:=hp;
+                      end
+                    else
+                      internalerror(201006131);
+                  end
+                else
+                  begin
+                    if assigned(tobjectdef(right.resultdef).iidguid) then
+                      begin
+                        if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
+                          CGMessage1(type_interface_has_no_guid,tobjectdef(right.resultdef).typename);
+                        hp:=cguidconstnode.create(tobjectdef(right.resultdef).iidguid^);
+                        right.free;
+                        right:=hp;
+                      end
+                    else
+                      internalerror(201006132);
+                  end;
+                typecheckpass(right);
+              end;
+          end
+        else
+          CGMessage1(type_e_class_or_interface_type_expected,right.resultdef.typename);
+      end;
 
 {*****************************************************************************
                                 TISNODE
@@ -3312,90 +3410,6 @@ implementation
 
       begin
          inherited create(isn,l,r);
-      end;
-
-
-    function tisnode.pass_typecheck:tnode;
-      var
-        hp : tnode;
-      begin
-         result:=nil;
-         typecheckpass(right);
-         typecheckpass(left);
-
-         set_varstate(right,vs_read,[vsf_must_be_valid]);
-         set_varstate(left,vs_read,[vsf_must_be_valid]);
-
-         if codegenerror then
-           exit;
-
-         if (right.resultdef.typ=classrefdef) then
-          begin
-            { left maybe an interface reference }
-            if is_interfacecom(left.resultdef) then
-             begin
-               { relation checks are not possible }
-             end
-            else
-
-            { or left must be a class }
-            if is_class(left.resultdef) then
-             begin
-               { the operands must be related }
-               if (not(tobjectdef(left.resultdef).is_related(
-                  tobjectdef(tclassrefdef(right.resultdef).pointeddef)))) and
-                  (not(tobjectdef(tclassrefdef(right.resultdef).pointeddef).is_related(
-                  tobjectdef(left.resultdef)))) then
-                 CGMessage2(type_e_classes_not_related,
-                    FullTypeName(left.resultdef,tclassrefdef(right.resultdef).pointeddef),
-                    FullTypeName(tclassrefdef(right.resultdef).pointeddef,left.resultdef));
-             end
-            else
-             CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
-            resultdef:=booltype;
-          end
-         else if is_interface(right.resultdef) or is_dispinterface(right.resultdef) then
-          begin
-            { left is a class }
-            if not(is_class(left.resultdef) or
-                   is_interfacecom(left.resultdef)) then
-              CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
-
-            resultdef:=booltype;
-
-            { load the GUID of the interface }
-            if (right.nodetype=typen) then
-             begin
-               if tobjectdef(right.resultdef).objecttype=odt_interfacecorba then
-                 begin
-                   if assigned(tobjectdef(right.resultdef).iidstr) then
-                     begin
-                       hp:=cstringconstnode.createstr(tobjectdef(right.resultdef).iidstr^);
-                       tstringconstnode(hp).changestringtype(cshortstringtype);
-                       right.free;
-                       right:=hp;
-                     end
-                   else
-                     internalerror(201006131);
-                 end
-               else
-                 begin
-                   if assigned(tobjectdef(right.resultdef).iidguid) then
-                     begin
-                       if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
-                         CGMessage1(type_interface_has_no_guid,tobjectdef(right.resultdef).typename);
-                       hp:=cguidconstnode.create(tobjectdef(right.resultdef).iidguid^);
-                       right.free;
-                       right:=hp;
-                     end
-                   else
-                     internalerror(201006132);
-                 end;
-               typecheckpass(right);
-             end;
-          end
-         else
-          CGMessage1(type_e_class_or_interface_type_expected,right.resultdef.typename);
       end;
 
     function tisnode.pass_1 : tnode;
@@ -3459,90 +3473,6 @@ implementation
       begin
         call.free;
         inherited destroy;
-      end;
-
-
-    function tasnode.pass_typecheck:tnode;
-      var
-        hp : tnode;
-      begin
-         result:=nil;
-         typecheckpass(right);
-         typecheckpass(left);
-
-         set_varstate(right,vs_read,[vsf_must_be_valid]);
-         set_varstate(left,vs_read,[vsf_must_be_valid]);
-
-         if codegenerror then
-           exit;
-
-         if (right.resultdef.typ=classrefdef) then
-          begin
-            { left maybe an interface reference }
-            if is_interfacecom(left.resultdef) then
-             begin
-               { relation checks are not possible }
-             end
-            else
-
-            { or left must be a class }
-            if is_class(left.resultdef) then
-             begin
-               { the operands must be related }
-               if (not(tobjectdef(left.resultdef).is_related(
-                  tobjectdef(tclassrefdef(right.resultdef).pointeddef)))) and
-                  (not(tobjectdef(tclassrefdef(right.resultdef).pointeddef).is_related(
-                  tobjectdef(left.resultdef)))) then
-                 CGMessage2(type_e_classes_not_related,
-                    FullTypeName(left.resultdef,tclassrefdef(right.resultdef).pointeddef),
-                    FullTypeName(tclassrefdef(right.resultdef).pointeddef,left.resultdef));
-             end
-            else
-             CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
-            resultdef:=tclassrefdef(right.resultdef).pointeddef;
-          end
-         else if is_interface(right.resultdef) or is_dispinterface(right.resultdef) then
-          begin
-            { left is a class }
-            if not(is_class(left.resultdef) or
-                   is_interfacecom(left.resultdef)) then
-              CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
-
-            resultdef:=right.resultdef;
-
-            { load the GUID of the interface }
-            if (right.nodetype=typen) then
-             begin
-               if tobjectdef(right.resultdef).objecttype=odt_interfacecorba then
-                 begin
-                   if assigned(tobjectdef(right.resultdef).iidstr) then
-                     begin
-                       hp:=cstringconstnode.createstr(tobjectdef(right.resultdef).iidstr^);
-                       tstringconstnode(hp).changestringtype(cshortstringtype);
-                       right.free;
-                       right:=hp;
-                     end
-                   else
-                     internalerror(200902081);
-                 end
-               else
-                 begin
-                   if assigned(tobjectdef(right.resultdef).iidguid) then
-                     begin
-                       if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
-                         CGMessage1(type_interface_has_no_guid,tobjectdef(right.resultdef).typename);
-                       hp:=cguidconstnode.create(tobjectdef(right.resultdef).iidguid^);
-                       right.free;
-                       right:=hp;
-                     end
-                   else
-                     internalerror(200206282);
-                 end;
-               typecheckpass(right);
-             end;
-          end
-         else
-          CGMessage1(type_e_class_or_interface_type_expected,right.resultdef.typename);
       end;
 
 

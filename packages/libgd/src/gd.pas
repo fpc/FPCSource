@@ -42,6 +42,18 @@ uses
     gdlib = 'libgd.'+sharedsuffix;
     clib = 'libc.'+sharedsuffix;
 {$ENDIF}
+{$IFDEF NETWARE}
+  {$DEFINE EXTDECL := cdecl}
+  const
+    gdlib = 'libgd.nlm';
+    clib = 'clib.nlm';
+{$ENDIF}
+{$IFDEF NETWLIBC}
+  {$DEFINE EXTDECL := cdecl}
+  const
+    gdlib = 'libgd.nlm';
+    clib = 'libc.nlm';
+{$ENDIF}
 {$IFDEF WINDOWS}
   {$DEFINE EXTDECL := stdcall}
   const

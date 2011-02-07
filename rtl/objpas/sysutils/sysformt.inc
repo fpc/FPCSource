@@ -311,6 +311,9 @@ begin
                   if CheckArg(vtAnsiString,false) then
                     hs:=ansistring(Args[doarg].VAnsiString)
                 else
+                  if CheckArg(vtUnicodeString,false) then
+                    hs:=UnicodeString(Args[doarg].VUnicodeString)
+                else
                   if CheckArg(vtVariant,true) then
                     hs:=Args[doarg].VVariant^;
                 Index:=Length(hs);

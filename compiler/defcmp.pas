@@ -156,8 +156,8 @@ implementation
            uvoid,
            u8bit,u16bit,u32bit,u64bit,
            s8bit,s16bit,s32bit,s64bit,
-           bool8bit,bool16bit,bool32bit,bool64bit,
-           uchar,uwidechar }
+           pasbool, bool8bit,bool16bit,bool32bit,bool64bit,
+           uchar,uwidechar,scurrency }
 
       type
         tbasedef=(bvoid,bchar,bint,bbool);
@@ -886,7 +886,9 @@ implementation
                        end;
                      objectdef :
                        begin
-                          if is_interface(def_from) then
+                         { corbainterfaces not accepted, until we have
+                           runtime support for them in Variants (sergei) }
+                          if is_interfacecom_or_dispinterface(def_from) then
                             begin
                                doconv:=tc_interface_2_variant;
                                eq:=te_convert_l1;
@@ -1328,8 +1330,10 @@ implementation
                        eq:=te_convert_l1;
                        doconv:=tc_equal;
                      end
-                   else if (def_from.typ=variantdef) and is_interface(def_to) then
+                   else if (def_from.typ=variantdef) and is_interfacecom_or_dispinterface(def_to) then
                      begin
+                     { corbainterfaces not accepted, until we have
+                       runtime support for them in Variants (sergei) }
                        doconv:=tc_variant_2_interface;
                        eq:=te_convert_l2;
                      end

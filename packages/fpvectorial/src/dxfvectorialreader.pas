@@ -66,8 +66,13 @@ type
 
   TvDXFVectorialReader = class(TvCustomVectorialReader)
   private
+    FPointSeparator: TFormatSettings;
+    // HEADER data
+    ANGBASE: Double;
+    ANGDIR: Integer;
     //
     function  SeparateString(AString: string; ASeparator: Char): T10Strings;
+    procedure ReadHEADER(ATokens: TDXFTokens; AData: TvVectorialDocument);
     procedure ReadENTITIES(ATokens: TDXFTokens; AData: TvVectorialDocument);
     procedure ReadENTITIES_LINE(ATokens: TDXFTokens; AData: TvVectorialDocument);
     procedure ReadENTITIES_ARC(ATokens: TDXFTokens; AData: TvVectorialDocument);
@@ -85,12 +90,24 @@ type
 
 implementation
 
+{$ifndef Windows}
 {$define FPVECTORIALDEBUG}
+{$endif}
 
 const
+  // Items in the HEADER section
+
+  // $ACADVER
+  DXF_AUTOCAD_R10         = 'AC1006'; // 1988
+  DXF_AUTOCAD_R11_and_R12 = 'AC1009'; // 1990
+  DXF_AUTOCAD_R13         = 'AC1012'; // 1994
+  DXF_AUTOCAD_R14         = 'AC1009'; // 1997  http://www.autodesk.com/techpubs/autocad/acadr14/dxf/index.htm
+  DXF_AUTOCAD_2000        = 'AC1500'; // 1999  http://www.autodesk.com/techpubs/autocad/acad2000/dxf/
+
   // Group Codes for ENTITIES
   DXF_ENTITIES_TYPE = 0;
   DXF_ENTITIES_HANDLE = 5;
+  DXF_ENTITIES_LINETYPE_NAME = 6;
   DXF_ENTITIES_APPLICATION_GROUP = 102;
   DXF_ENTITIES_AcDbEntity = 100;
   DXF_ENTITIES_MODEL_OR_PAPER_SPACE = 67; // default=0=model, 1=paper
@@ -306,6 +323,33 @@ begin
   end;
 end;
 
+procedure TvDXFVectorialReader.ReadHEADER(ATokens: TDXFTokens;
+  AData: TvVectorialDocument);
+var
+  i: Integer;
+  CurToken: TDXFToken;
+begin
+  i := 0;
+  while i < ATokens.Count do
+  begin
+    CurToken := TDXFToken(ATokens.Items[i]);
+    if CurToken.StrValue = '$ANGBASE' then
+    begin
+      CurToken := TDXFToken(ATokens.Items[i+1]);
+      ANGBASE := StrToFloat(CurToken.StrValue, FPointSeparator);
+      Inc(i);
+    end
+    else if CurToken.StrValue = '$ANGDIR' then
+    begin
+      CurToken := TDXFToken(ATokens.Items[i+1]);
+      ANGDIR := StrToInt(CurToken.StrValue);
+      Inc(i);
+    end;
+
+    Inc(i);
+  end;
+end;
+
 procedure TvDXFVectorialReader.ReadENTITIES(ATokens: TDXFTokens; AData: TvVectorialDocument);
 var
   i: Integer;
@@ -314,7 +358,8 @@ begin
   for i := 0 to ATokens.Count - 1 do
   begin
     CurToken := TDXFToken(ATokens.Items[i]);
-    if CurToken.StrValue = 'CIRCLE' then ReadENTITIES_CIRCLE(CurToken.Childs, AData)
+    if CurToken.StrValue = 'ARC' then ReadENTITIES_ARC(CurToken.Childs, AData)
+    else if CurToken.StrValue = 'CIRCLE' then ReadENTITIES_CIRCLE(CurToken.Childs, AData)
     else if CurToken.StrValue = 'ELLIPSE' then ReadENTITIES_ELLIPSE(CurToken.Childs, AData)
     else if CurToken.StrValue = 'LINE' then ReadENTITIES_LINE(CurToken.Childs, AData)
     else if CurToken.StrValue = 'TEXT' then
@@ -346,10 +391,10 @@ begin
     CurToken := TDXFToken(ATokens.Items[i]);
 
     // Avoid an exception by previously checking if the conversion can be made
-    if (CurToken.GroupCode = DXF_ENTITIES_HANDLE) or
-      (CurToken.GroupCode = DXF_ENTITIES_AcDbEntity) then Continue;
-
-    CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue));
+    if CurToken.GroupCode in [10, 20, 30, 11, 21, 31] then
+    begin
+      CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue), FPointSeparator);
+    end;
 
     case CurToken.GroupCode of
       10: LineStartX := CurToken.FloatValue;
@@ -377,8 +422,8 @@ end;
 20, 30 DXF: Y and Z values of center point (in OCS)
 40 Radius
 100 Subclass marker (AcDbArc)
-50 Start angle
-51 End angle
+50 Start angle (degrees)
+51 End angle (degrees)
 210 Extrusion direction. (optional; default = 0, 0, 1) DXF: X value; APP: 3D vector
 220, 230 DXF: Y and Z values of extrusion direction (optional)
 }
@@ -402,16 +447,18 @@ begin
     CurToken := TDXFToken(ATokens.Items[i]);
 
     // Avoid an exception by previously checking if the conversion can be made
-    if (CurToken.GroupCode = DXF_ENTITIES_HANDLE) or
-      (CurToken.GroupCode = DXF_ENTITIES_AcDbEntity) then Continue;
-
-    CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue));
+    if CurToken.GroupCode in [10, 20, 30, 40, 50, 51] then
+    begin
+      CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue), FPointSeparator);
+    end;
 
     case CurToken.GroupCode of
       10: CenterX := CurToken.FloatValue;
       20: CenterY := CurToken.FloatValue;
       30: CenterZ := CurToken.FloatValue;
       40: Radius := CurToken.FloatValue;
+      50: StartAngle := CurToken.FloatValue;
+      51: EndAngle := CurToken.FloatValue;
     end;
   end;
 
@@ -446,10 +493,10 @@ begin
     CurToken := TDXFToken(ATokens.Items[i]);
 
     // Avoid an exception by previously checking if the conversion can be made
-    if (CurToken.GroupCode = DXF_ENTITIES_HANDLE) or
-      (CurToken.GroupCode = DXF_ENTITIES_AcDbEntity) then Continue;
-
-    CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue));
+    if CurToken.GroupCode in [10, 20, 30, 40] then
+    begin
+      CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue), FPointSeparator);
+    end;
 
     case CurToken.GroupCode of
       10: CircleCenterX := CurToken.FloatValue;
@@ -488,17 +535,16 @@ begin
     CurToken := TDXFToken(ATokens.Items[i]);
 
     // Avoid an exception by previously checking if the conversion can be made
-    if (CurToken.GroupCode = DXF_ENTITIES_HANDLE) or
-      (CurToken.GroupCode = DXF_ENTITIES_AcDbEntity) then Continue;
-
-    CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue));
+    if CurToken.GroupCode in [10, 20, 30] then
+    begin
+      CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue), FPointSeparator);
+    end;
 
     case CurToken.GroupCode of
       10: CenterX := CurToken.FloatValue;
       20: CenterY := CurToken.FloatValue;
       30: CenterZ := CurToken.FloatValue;
     end;
-
   end;
 
   //
@@ -542,8 +588,11 @@ procedure TvDXFVectorialReader.ReadENTITIES_TEXT(ATokens: TDXFTokens;
 var
   CurToken: TDXFToken;
   i: Integer;
-  PosX, PosY, PosZ: Double;
-  Str: string;
+  PosX: Double = 0.0;
+  PosY: Double = 0.0;
+  PosZ: Double = 0.0;
+  FontSize: Double = 10.0;
+  Str: string = '';
 begin
   for i := 0 to ATokens.Count - 1 do
   begin
@@ -551,23 +600,22 @@ begin
     CurToken := TDXFToken(ATokens.Items[i]);
 
     // Avoid an exception by previously checking if the conversion can be made
-    if (CurToken.GroupCode = DXF_ENTITIES_HANDLE) or
-      (CurToken.GroupCode = 1) or
-      (CurToken.GroupCode = DXF_ENTITIES_AcDbEntity) then Continue;
-
-    CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue));
+    if CurToken.GroupCode in [10, 20, 30, 40] then
+    begin
+      CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue), FPointSeparator);
+    end;
 
     case CurToken.GroupCode of
       1:  Str := CurToken.StrValue;
       10: PosX := CurToken.FloatValue;
       20: PosY := CurToken.FloatValue;
       30: PosZ := CurToken.FloatValue;
+      40: FontSize := CurToken.FloatValue;
     end;
-
   end;
 
   //
-//  AData.AddEllipse(CenterX, CenterY, CenterZ, MajorHalfAxis, MinorHalfAxis, Angle);
+  AData.AddText(PosX, PosY, PosZ, '', Round(FontSize), Str);
 end;
 
 function TvDXFVectorialReader.GetCoordinateValue(AStr: shortstring): Double;
@@ -582,6 +630,14 @@ end;
 constructor TvDXFVectorialReader.Create;
 begin
   inherited Create;
+
+  FPointSeparator := DefaultFormatSettings;
+  FPointSeparator.DecimalSeparator := '.';
+  FPointSeparator.ThousandSeparator := '#';// disable the thousand separator
+
+  // Default HEADER data
+  ANGBASE := 0.0; // Starts pointing to the right / east
+  ANGDIR := 0; // counter-clock wise
 
   Tokenizer := TDXFTokenizer.Create;
 end;
@@ -610,7 +666,9 @@ begin
     CurToken := TDXFToken(Tokenizer.Tokens.Items[i]);
     CurTokenFirstChild := TDXFToken(CurToken.Childs.Items[0]);
 
-    if CurTokenFirstChild.StrValue = 'ENTITIES' then
+    if CurTokenFirstChild.StrValue = 'HEADER' then
+      ReadHEADER(CurToken.Childs, AData)
+    else if CurTokenFirstChild.StrValue = 'ENTITIES' then
       ReadENTITIES(CurToken.Childs, AData);
   end;
 end;

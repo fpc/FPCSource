@@ -367,58 +367,60 @@
 *****************************************************************************}
 
    const
-      vtInteger    = 0;
-      vtBoolean    = 1;
-      vtChar       = 2;
-{$ifndef FPUNONE}
-      vtExtended   = 3;
-{$endif}
-      vtString     = 4;
-      vtPointer    = 5;
-      vtPChar      = 6;
-      vtObject     = 7;
-      vtClass      = 8;
-      vtWideChar   = 9;
-      vtPWideChar  = 10;
-      vtAnsiString = 11;
-      vtCurrency   = 12;
-      vtVariant    = 13;
-      vtInterface  = 14;
-      vtWideString = 15;
-      vtInt64      = 16;
-      vtQWord      = 17;
+      vtInteger       = 0;
+      vtBoolean       = 1;
+      vtChar          = 2;
+{$ifndef FPUNONE}     
+      vtExtended      = 3;
+{$endif}              
+      vtString        = 4;
+      vtPointer       = 5;
+      vtPChar         = 6;
+      vtObject        = 7;
+      vtClass         = 8;
+      vtWideChar      = 9;
+      vtPWideChar     = 10;
+      vtAnsiString    = 11;
+      vtCurrency      = 12;
+      vtVariant       = 13;
+      vtInterface     = 14;
+      vtWideString    = 15;
+      vtInt64         = 16;
+      vtQWord         = 17;
+      vtUnicodeString = 18;
 
    type
       PVarRec = ^TVarRec;
       TVarRec = record
          case VType : sizeint of
-{$ifdef ENDIAN_BIG}
-           vtInteger    : ({$IFDEF CPU64}integerdummy1 : Longint;{$ENDIF CPU64}VInteger: Longint);
-           vtBoolean    : ({$IFDEF CPU64}booldummy : Longint;{$ENDIF CPU64}booldummy1,booldummy2,booldummy3: byte; VBoolean: Boolean);
-           vtChar       : ({$IFDEF CPU64}chardummy : Longint;{$ENDIF CPU64}chardummy1,chardummy2,chardummy3: byte; VChar: Char);
-           vtWideChar   : ({$IFDEF CPU64}widechardummy : Longint;{$ENDIF CPU64}wchardummy1,VWideChar: WideChar);
-{$else ENDIAN_BIG}
-           vtInteger    : (VInteger: Longint);
-           vtBoolean    : (VBoolean: Boolean);
-           vtChar       : (VChar: Char);
-           vtWideChar   : (VWideChar: WideChar);
-{$endif ENDIAN_BIG}
-{$ifndef FPUNONE}
-           vtExtended   : (VExtended: PExtended);
-{$endif}
-           vtString     : (VString: PShortString);
-           vtPointer    : (VPointer: Pointer);
-           vtPChar      : (VPChar: PChar);
-           vtObject     : (VObject: TObject);
-           vtClass      : (VClass: TClass);
-           vtPWideChar  : (VPWideChar: PWideChar);
-           vtAnsiString : (VAnsiString: Pointer);
-           vtCurrency   : (VCurrency: PCurrency);
-           vtVariant    : (VVariant: PVariant);
-           vtInterface  : (VInterface: Pointer);
-           vtWideString : (VWideString: Pointer);
-           vtInt64      : (VInt64: PInt64);
-           vtQWord      : (VQWord: PQWord);
+{$ifdef ENDIAN_BIG}        
+           vtInteger       : ({$IFDEF CPU64}integerdummy1 : Longint;{$ENDIF CPU64}VInteger: Longint);
+           vtBoolean       : ({$IFDEF CPU64}booldummy : Longint;{$ENDIF CPU64}booldummy1,booldummy2,booldummy3: byte; VBoolean: Boolean);
+           vtChar          : ({$IFDEF CPU64}chardummy : Longint;{$ENDIF CPU64}chardummy1,chardummy2,chardummy3: byte; VChar: Char);
+           vtWideChar      : ({$IFDEF CPU64}widechardummy : Longint;{$ENDIF CPU64}wchardummy1,VWideChar: WideChar);
+{$else ENDIAN_BIG}         
+           vtInteger       : (VInteger: Longint);
+           vtBoolean       : (VBoolean: Boolean);
+           vtChar          : (VChar: Char);
+           vtWideChar      : (VWideChar: WideChar);
+{$endif ENDIAN_BIG}        
+{$ifndef FPUNONE}          
+           vtExtended      : (VExtended: PExtended);
+{$endif}                   
+           vtString        : (VString: PShortString);
+           vtPointer       : (VPointer: Pointer);
+           vtPChar         : (VPChar: PChar);
+           vtObject        : (VObject: TObject);
+           vtClass         : (VClass: TClass);
+           vtPWideChar     : (VPWideChar: PWideChar);
+           vtAnsiString    : (VAnsiString: Pointer);
+           vtCurrency      : (VCurrency: PCurrency);
+           vtVariant       : (VVariant: PVariant);
+           vtInterface     : (VInterface: Pointer);
+           vtWideString    : (VWideString: Pointer);
+           vtInt64         : (VInt64: PInt64);
+           vtUnicodeString : (VUnicodeString: Pointer);
+           vtQWord         : (VQWord: PQWord);
        end;
 
   var

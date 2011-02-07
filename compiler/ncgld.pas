@@ -974,26 +974,27 @@ implementation
 *****************************************************************************}
 
       const
-        vtInteger    = 0;
-        vtBoolean    = 1;
-        vtChar       = 2;
-        vtExtended   = 3;
-        vtString     = 4;
-        vtPointer    = 5;
-        vtPChar      = 6;
-        vtObject     = 7;
-        vtClass      = 8;
-        vtWideChar   = 9;
-        vtPWideChar  = 10;
-        vtAnsiString32 = 11;
-        vtCurrency   = 12;
-        vtVariant    = 13;
-        vtInterface  = 14;
-        vtWideString = 15;
-        vtInt64      = 16;
-        vtQWord      = 17;
-        vtAnsiString16 = 18;
-        vtAnsiString64 = 19;
+        vtInteger       = 0;
+        vtBoolean       = 1;
+        vtChar          = 2;
+        vtExtended      = 3;
+        vtString        = 4;
+        vtPointer       = 5;
+        vtPChar         = 6;
+        vtObject        = 7;
+        vtClass         = 8;
+        vtWideChar      = 9;
+        vtPWideChar     = 10;
+        vtAnsiString32  = 11;
+        vtCurrency      = 12;
+        vtVariant       = 13;
+        vtInterface     = 14;
+        vtWideString    = 15;
+        vtInt64         = 16;
+        vtQWord         = 17;
+        vtUnicodeString = 18;
+        vtAnsiString16  = 19;
+        vtAnsiString64  = 20;
 
     procedure tcgarrayconstructornode.pass_generate_code;
       var
@@ -1151,9 +1152,15 @@ implementation
                            freetemp:=false;
                          end
                        else
-                        if is_widestring(lt) or is_unicodestring(lt) then
+                        if is_widestring(lt) then
                          begin
                            vtype:=vtWideString;
+                           freetemp:=false;
+                         end
+                       else
+                        if is_unicodestring(lt) then
+                         begin
+                           vtype:=vtUnicodeString;
                            freetemp:=false;
                          end;
                      end;

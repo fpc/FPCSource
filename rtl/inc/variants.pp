@@ -4029,6 +4029,8 @@ begin
       end
       else
         case arg_type of
+          varError:
+            arg_data^.vError:=VAR_PARAMNOTFOUND;
           varVariant:
             begin
               arg_data^ := PVarData(PPointer(arg_ptr)^)^;

@@ -41,7 +41,7 @@ begin
     gfx := nil;
     size := SpriteSize_32x32;
     format := SpriteColorFormat_256Color;
-    rotationIndex := -1;
+    rotationIndex := 0;
     paletteAlpha := 0;
     x := 20;
     y := 80;
@@ -52,7 +52,7 @@ begin
     gfx := nil;
     size := SpriteSize_32x32;
     format := SpriteColorFormat_16Color;
-    rotationIndex := -1;
+    rotationIndex := 0;
     paletteAlpha := 1;
     x := 20;
     y := 136;

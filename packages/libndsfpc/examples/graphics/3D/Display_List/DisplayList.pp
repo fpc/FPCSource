@@ -61,7 +61,7 @@ begin
     glPushMatrix();
 
     //move it away from the camera
-    glTranslate3f32(0, 0, floattof32(-1.0));
+    glTranslatef32(0, 0, floattof32(-1.0));
 
     glRotateX(rotateX);
     glRotateY(rotateY);

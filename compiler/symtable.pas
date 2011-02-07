@@ -772,7 +772,7 @@ implementation
       begin
          if b_needs_init_final then
            exit;
-         { don't check static symbols - they can be present in structures only and 
+         { don't check static symbols - they can be present in structures only and
            always have a reference to a symbol defined on unit level }
          if sp_static in tsym(sym).symoptions then
            exit;
@@ -1924,7 +1924,7 @@ implementation
                        (srsymtable.defowner.typ in [recorddef,objectdef]) and
                        (srsymtable.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
                        (srsymtable.defowner.owner.iscurrentunit) then
-                      contextstructdef:=tobjectdef(srsymtable.defowner)
+                      contextstructdef:=tabstractrecorddef(srsymtable.defowner)
                     else
                       contextstructdef:=current_structdef;
                     if not (srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or
@@ -1988,7 +1988,7 @@ implementation
             else
               begin
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
-                if assigned(srsym) and 
+                if assigned(srsym) and
                    not(srsym.typ in [fieldvarsym,paravarsym,propertysym,procsym,labelsym]) and
                    (not (srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or is_visible_for_object(srsym,current_structdef)) then
                   begin

@@ -1441,8 +1441,11 @@ implementation
          tempdef: tdef;
          is_first_type: boolean;
 {$endif powerpc or powerpc64}
-         sl       : tpropaccesslist;
+         sl: tpropaccesslist;
+         old_block_type: tblock_type;
       begin
+         old_block_type:=block_type;
+         block_type:=bt_var;
          recst:=tabstractrecordsymtable(symtablestack.top);
 {$if defined(powerpc) or defined(powerpc64)}
          is_first_type:=true;
@@ -1471,6 +1474,10 @@ implementation
                  end;
                consume(_ID);
              until not try_to_consume(_COMMA);
+             if m_delphi in current_settings.modeswitches then
+               block_type:=bt_var_type
+             else
+               block_type:=old_block_type;
              consume(_COLON);
 
              { Don't search for types where they can't be:
@@ -1484,6 +1491,7 @@ implementation
                  symtablestack.pop(recst);
                end;
              read_anon_type(hdef,false);
+             block_type:=bt_var;
              { allow only static fields reference to struct where they are declared }
              if not (vd_class in options) and
                (is_object(hdef) or is_record(hdef)) and
@@ -1630,6 +1638,10 @@ implementation
            end;
           recstlist.free;
 
+         if m_delphi in current_settings.modeswitches then
+           block_type:=bt_var_type
+         else
+           block_type:=old_block_type;
          { Check for Case }
          if (vd_record in options) and
             try_to_consume(_CASE) then
@@ -1650,6 +1662,7 @@ implementation
                   symtablestack.top.insert(fieldvs);
                 end;
               read_anon_type(casetype,true);
+              block_type:=bt_var;
               if assigned(fieldvs) then
                 begin
                   fieldvs.vardef:=casetype;
@@ -1685,6 +1698,10 @@ implementation
                   else
                     break;
                 until false;
+                if m_delphi in current_settings.modeswitches then
+                  block_type:=bt_var_type
+                else
+                  block_type:=old_block_type;
                 consume(_COLON);
                 { read the vars }
                 consume(_LKLAMMER);
@@ -1750,6 +1767,7 @@ implementation
 {$ifdef powerpc}
          is_first_type := false;
 {$endif powerpc}
+         block_type:=old_block_type;
       end;
 
 end.

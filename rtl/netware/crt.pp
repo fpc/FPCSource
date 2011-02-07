@@ -292,7 +292,7 @@ End;
 
 
 
-Function WhereY: Btcrtcoordyte;
+Function WhereY: tcrtcoord;
 {
   Return current Y-position of cursor.
 }

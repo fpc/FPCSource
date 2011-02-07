@@ -150,15 +150,6 @@ implementation
       begin
         result := cerrornode.create;
 
-        { make sure we got at least two parameters (if we got only one, }
-        { this parameter may not be encapsulated in a callparan)        }
-        if not assigned(left) or
-           (left.nodetype <> callparan) then
-          begin
-            CGMessage1(parser_e_wrong_parameter_size,'Str');
-            exit;
-          end;
-
         { get destination string }
         dest := tcallparanode(left);
 
@@ -173,6 +164,16 @@ implementation
            (cpf_is_colon_para in tcallparanode(dest).callparaflags) then
           begin
             CGMessage1(parser_e_wrong_parameter_size,'Str');
+            exit;
+          end;
+
+        { in case we are in a generic definition, we cannot
+          do all checks, the parameters might be type parameters }
+        if df_generic in current_procinfo.procdef.defoptions then
+          begin
+            result.Free;
+            result:=nil;
+            resultdef:=voidtype;
             exit;
           end;
 
@@ -313,6 +314,8 @@ implementation
             scurrency,
             s64bit:
               procname := procname + 'int64';
+            pasbool,bool8bit,bool16bit,bool32bit,bool64bit:
+              procname := procname + 'bool';
 {$endif}
             else
               procname := procname + 'sint';
@@ -1142,6 +1145,16 @@ implementation
            CGMessage1(parser_e_wrong_parameter_size,'Val');
            exit;
          end;
+
+         { in case we are in a generic definition, we cannot
+           do all checks, the parameters might be type parameters }
+         if df_generic in current_procinfo.procdef.defoptions then
+           begin
+             result.Free;
+             result:=nil;
+             resultdef:=voidtype;
+             exit;
+           end;
 
         { reverse parameters for easier processing }
         left := reverseparameters(tcallparanode(left));

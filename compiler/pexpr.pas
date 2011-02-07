@@ -1869,6 +1869,7 @@ implementation
             stack space }
           dispatchstring : ansistring;
           nodechanged    : boolean;
+          calltype: tdispcalltype;
         label
           skipreckklammercheck;
         begin
@@ -2091,14 +2092,25 @@ implementation
                        variantdef:
                          begin
                            { dispatch call? }
+                           { lhs := v.ident[parameters] -> property get
+                             lhs := v.ident(parameters) -> method call
+                             v.ident[parameters] := rhs -> property put
+                             v.ident(parameters) := rhs -> also property put }
                            if token=_ID then
                              begin
                                dispatchstring:=orgpattern;
                                consume(_ID);
+                               calltype:=dct_method;
                                if try_to_consume(_LKLAMMER) then
                                  begin
                                    p2:=parse_paras(false,true,_RKLAMMER);
                                    consume(_RKLAMMER);
+                                 end
+                               else if try_to_consume(_LECKKLAMMER) then
+                                 begin
+                                   p2:=parse_paras(false,true,_RECKKLAMMER);
+                                   consume(_RECKKLAMMER);
+                                   calltype:=dct_propget;
                                  end
                                else
                                  p2:=nil;
@@ -2116,9 +2128,9 @@ implementation
                                { this is only an approximation
                                  setting useresult if not necessary is only a waste of time, no more, no less (FK) }
                                if afterassignment or in_args or (token<>_SEMICOLON) then
-                                 p1:=translate_disp_call(p1,p2,dct_method,dispatchstring,0,cvarianttype)
+                                 p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,cvarianttype)
                                else
-                                 p1:=translate_disp_call(p1,p2,dct_method,dispatchstring,0,voidtype);
+                                 p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,voidtype);
                              end
                            else { Error }
                              Consume(_ID);
@@ -2778,7 +2790,8 @@ implementation
         else
           p1:=sub_expr(succ(pred_level),true,typeonly);
         repeat
-          if (token in operator_levels[pred_level]) and
+          if (token in [NOTOKEN..last_operator]) and
+             (token in operator_levels[pred_level]) and
              ((token<>_EQ) or accept_equal) then
            begin
              oldt:=token;
