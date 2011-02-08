@@ -1222,6 +1222,7 @@ var
   end;
 
 begin
+  result := -1;
   try
     M := TMemoryStream.Create;
     BytesRead := 0;
@@ -1242,6 +1243,7 @@ begin
     // read last part
     repeat
     until ReadFromStream = 0;
+    result := P.ExitStatus;
   finally
     P.Free;
     M.Free;
