@@ -37,9 +37,11 @@ type
   private
     FScriptFileReferences: TStringList;
     FScripts: TFPObjectList;
+    FStyleSheetReferences: TContainerStylesheets;
   protected
     function GetScriptFileReferences: TStringList; override;
     function GetScripts: TFPObjectList; override;
+    function GetStyleSheetReferences: TContainerStylesheets; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -47,6 +49,7 @@ type
     function GetUrl(ParamNames, ParamValues, KeepParams: array of string; Action: string = ''): string; override;
     procedure BindJavascriptCallstackToElement(AComponent: TComponent; AnElement: THtmlCustomElement; AnEvent: string); override;
     procedure AddScriptFileReference(AScriptFile: String); override;
+    procedure AddStylesheetReference(Ahref, Amedia: String); override;
     function DefaultMessageBoxHandler(Sender: TObject; AText: String; Buttons: TWebButtons; ALoaded: string = ''): string; override;
     function CreateNewScript: TStringList; override;
     procedure FreeScript(var AScript: TStringList); override;
@@ -364,6 +367,11 @@ begin
   Result:=FScripts;
 end;
 
+function TStandardWebController.GetStyleSheetReferences: TContainerStylesheets;
+begin
+  Result:=FStyleSheetReferences;
+end;
+
 function TStandardWebController.CreateNewScript: TStringList;
 begin
   Result:=TStringList.Create;
@@ -407,6 +415,7 @@ end;
 constructor TStandardWebController.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FStyleSheetReferences := TContainerStylesheets.Create(TContainerStylesheet);
   FScriptFileReferences := TStringList.Create;
   // For some reason the Duplicates property does not work when sorted is true,
   // But we don't want a sorted list so do a manual check in AddScriptFileReference
@@ -418,6 +427,7 @@ destructor TStandardWebController.Destroy;
 begin
   FScriptFileReferences.Free;
   FScripts.Free;
+  FStyleSheetReferences.Free;
   inherited Destroy;
 end;
 
@@ -521,6 +531,15 @@ procedure TStandardWebController.AddScriptFileReference(AScriptFile: String);
 begin
   if FScriptFileReferences.IndexOf(AScriptFile)=-1 then
     FScriptFileReferences.Add(AScriptFile);
+end;
+
+procedure TStandardWebController.AddStylesheetReference(Ahref, Amedia: String);
+begin
+  with FStyleSheetReferences.Add do
+    begin
+    href:=Ahref;
+    media:=Amedia;
+    end;
 end;
 
 end.
