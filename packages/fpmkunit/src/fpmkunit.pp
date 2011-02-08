@@ -1232,7 +1232,7 @@ begin
     if Verbose then
       P.CommandLine := Path + ' ' + ComLine
     else
-      P.CommandLine := Path + ' -vq ' + ComLine;
+      P.CommandLine := Path + ' -viq ' + ComLine;
 
     P.Options := [poUsePipes];
 
@@ -3406,6 +3406,7 @@ end;
 procedure TBuildEngine.ExecuteCommand(const Cmd,Args : String; IgnoreError : Boolean = False);
 Var
   E : Integer;
+  cmdLine: string;
 begin
   Log(vlInfo,SInfoExecutingCommand,[Cmd,Args]);
   if ListMode then
@@ -3415,7 +3416,13 @@ begin
       // We should check cmd for spaces, and move all after first space to args.
       E:=ExecuteFPC(Verbose, cmd, args);
       If (E<>0) and (not IgnoreError) then
-        Error(SErrExternalCommandFailed,[Cmd,E]);
+        begin
+          if trim(Args)<>'' then
+            cmdLine := cmd + ' ' + trim(args)
+          else
+            cmdline := cmd;
+          Error(SErrExternalCommandFailed,[cmdLine,E]);
+        end;
     end;
 end;
 
