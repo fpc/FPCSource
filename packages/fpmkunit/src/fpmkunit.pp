@@ -1038,7 +1038,8 @@ ResourceString
   SWarnDepUnitNotFound     = 'Warning: Dependency on unit %s is not supported for %s';
   SWarnTargetDependsOnPackage = 'Warning: Target %s of package %s depends on another package (%s). These kind of dependencies are not processed';
   SWarnDependOnOtherPlatformPackage = 'Warning: Package %s depends on package %s which is not available for the %s platform';
-  SWarnDone               = 'Done';
+  SWarnStartBuildingPackage = 'Start building package %s';
+  SWarnBuildingPackagecomplete = '[%3.0f%%] Built target %s';
 
   SInfoCompilingPackage   = 'Compiling package %s';
   SInfoPackageAlreadyProcessed = 'Package %s is already processed';
@@ -3345,7 +3346,6 @@ procedure TCustomInstaller.Compile(Force: Boolean);
 begin
   FBuildEngine.ForceCompile:=Force;
   FBuildEngine.Compile(Packages);
-  Log(vlWarning,SWarnDone);
 end;
 
 
@@ -4886,11 +4886,12 @@ begin
   For I:=0 to Packages.Count-1 do
     begin
       P:=Packages.PackageItems[i];
+      log(vlWarning,SWarnStartBuildingPackage,[P.Name]);
       If PackageOK(P) then
         MaybeCompile(P);
 
       //show compile progress
-      writeln('[', (I + 1)/Packages.Count * 100:3:0, '%] Built target ', P.Name);
+      log(vlWarning,SWarnBuildingPackagecomplete,[(I + 1)/Packages.Count * 100, P.Name]);
     end;
   If Assigned(AfterCompile) then
     AfterCompile(Self);
@@ -4909,6 +4910,7 @@ begin
       P:=Packages.PackageItems[i];
       If PackageOK(P) then
         Install(P);
+      log(vlWarning, 'Installation package ' + P.Name + ' succeeded');
     end;
   If Assigned(AfterInstall) then
     AfterInstall(Self);
