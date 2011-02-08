@@ -1011,7 +1011,7 @@ ResourceString
   SErrNoPackagesDefined = 'No action possible: No packages were defined.';
   SErrInstaller         = 'The installer encountered the following error:';
   SErrDepUnknownTarget  = 'Unknown target for unit "%s" in dependencies for %s in package %s';
-  SErrExternalCommandFailed = 'External command "%s" failed with exit code %d';
+  SErrExternalCommandFailed = 'External command "%s" failed with exit code %d. Console output:'+LineEnding+'%s';
   SErrCreatingDirectory = 'Failed to create directory "%s"';
   SErrDeletingFile      = 'Failed to delete file "%s"';
   SErrMovingFile        = 'Failed to move file "%s" to "%s"';
@@ -1145,9 +1145,8 @@ Const
                                 Helpers
 ****************************************************************************}
 
-function ExecuteFPC(Verbose: boolean; const Path: string; const ComLine: string): integer;
+function ExecuteFPC(Verbose: boolean; const Path: string; const ComLine: string; ConsoleOutput: TMemoryStream): integer;
 var
-  M: TMemoryStream;
   P: TProcess;
   BytesRead: longint;
 
@@ -1172,20 +1171,20 @@ var
     snum: string;
   begin
     // make sure we have room
-    M.SetSize(BytesRead + READ_BYTES);
+    ConsoleOutput.SetSize(BytesRead + READ_BYTES);
 
     // try reading it
-    n := P.Output.Read((M.Memory + BytesRead)^, READ_BYTES);
+    n := P.Output.Read((ConsoleOutput.Memory + BytesRead)^, READ_BYTES);
     if n > 0 then
     begin
       Inc(BytesRead, n);
 
       sLine := '';
-      BuffPos := M.Position;
+      BuffPos := ConsoleOutput.Position;
 
       //read lines from the stream
       repeat
-        M.Read(ch,1);
+        ConsoleOutput.Read(ch,1);
 
         if ch in [#10, #13] then
         begin
@@ -1203,14 +1202,14 @@ var
             end;
 
           sLine := '';
-          BuffPos := M.Position;
+          BuffPos := ConsoleOutput.Position;
         end
         else
           sLine := sLine + ch;
 
-      until M.Position = M.Size;
+      until ConsoleOutput.Position = ConsoleOutput.Size;
 
-      M.Position := BuffPos;
+      ConsoleOutput.Position := BuffPos;
     end
     else
     begin
@@ -1223,12 +1222,9 @@ var
 
 begin
   result := -1;
+  BytesRead := 0;
+  P := TProcess.Create(nil);
   try
-    M := TMemoryStream.Create;
-    BytesRead := 0;
-
-    P := TProcess.Create(nil);
-
     if Verbose then
       P.CommandLine := Path + ' ' + ComLine
     else
@@ -1243,11 +1239,84 @@ begin
     // read last part
     repeat
     until ReadFromStream = 0;
+    ConsoleOutput.SetSize(BytesRead);
+
     result := P.ExitStatus;
   finally
     P.Free;
-    M.Free;
   end;
+end;
+
+function ParsecompilerOutput(M: TMemoryStream; Verbose: boolean): string;
+type
+  TParseCompilerOutputState = (cosBeginOfLine, cosSearchColon, cosParseNumber, cosOther);
+
+var
+  presult: pchar;
+  state: TParseCompilerOutputState;
+  ch: char;
+  eolchar: char;
+begin
+  m.Seek(0, soBeginning);
+  setlength(Result,M.Size);
+
+  if verbose then
+    begin
+      m.Read(Result[1],M.Size);
+      Exit;
+    end;
+
+  presult := @Result[1];
+  eolchar := RightStr(LineEnding,1)[1];
+  m.Seek(0,soBeginning);
+  state := cosBeginOfLine;
+  while m.Position<m.Size do
+    begin
+      ch := char(m.ReadByte);
+      case state of
+        cosBeginOfLine:
+          begin
+            if ch='(' then
+              state := cosParseNumber
+            else if ch=' ' then
+              begin
+                presult^ := ch;
+                inc(presult);
+              end
+            else
+              begin
+                presult^ := ch;
+                inc(presult);
+                state := cosSearchColon;
+              end;
+          end;
+        cosParseNumber:
+          begin
+            if ch=')' then
+              begin
+              state := cosOther;
+              // Omit the space behind the number
+              ch := char(m.ReadByte);
+              assert(ch=' ');
+              end;
+          end;
+        cosOther:
+          begin
+            presult^ := ch;
+            inc(presult);
+            if ch=eolchar then
+              state := cosBeginOfLine;
+          end;
+        cosSearchColon:
+          begin
+            presult^ := ch;
+            inc(presult);
+            if (ch=':') or (ch=eolchar) then
+              state := cosBeginOfLine;
+          end;
+      end;
+    end;
+  setlength(Result,presult-@result[1]);
 end;
 
 Function QuoteXML(S : String) : string;
@@ -3407,6 +3476,8 @@ procedure TBuildEngine.ExecuteCommand(const Cmd,Args : String; IgnoreError : Boo
 Var
   E : Integer;
   cmdLine: string;
+  ConsoleOutput: TMemoryStream;
+  s: string;
 begin
   Log(vlInfo,SInfoExecutingCommand,[Cmd,Args]);
   if ListMode then
@@ -3414,15 +3485,21 @@ begin
   else
     begin
       // We should check cmd for spaces, and move all after first space to args.
-      E:=ExecuteFPC(Verbose, cmd, args);
-      If (E<>0) and (not IgnoreError) then
-        begin
-          if trim(Args)<>'' then
-            cmdLine := cmd + ' ' + trim(args)
-          else
-            cmdline := cmd;
-          Error(SErrExternalCommandFailed,[cmdLine,E]);
-        end;
+      ConsoleOutput := TMemoryStream.Create;
+      try
+        E:=ExecuteFPC(Verbose, cmd, args, ConsoleOutput);
+        If (E<>0) and (not IgnoreError) then
+          begin
+            if trim(Args)<>'' then
+              cmdLine := cmd + ' ' + trim(args)
+            else
+              cmdline := cmd;
+            s := ParsecompilerOutput(ConsoleOutput,Verbose);
+            Error(SErrExternalCommandFailed,[cmdLine,E,s]);
+          end;
+      finally
+        ConsoleOutput.Free;
+      end;
     end;
 end;
 
