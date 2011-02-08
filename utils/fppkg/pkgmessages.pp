@@ -109,6 +109,7 @@ Resourcestring
   SDbgPackageDependencyOtherTarget  = 'Dependency on package %s is not for %s';
   SDbgObsoleteDependency     = 'Obsolete dependency found on package %s';
 
+  SWarnReinstallDependent    = 'Re-install packages which are dependent on just installed packages';
 
 implementation
 

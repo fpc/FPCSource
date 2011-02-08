@@ -389,6 +389,7 @@ begin
     FindBrokenPackages(SL);
     if SL.Count=0 then
       break;
+    pkgglobals.Log(vlProgres,SWarnReinstallDependent);
     for i:=0 to SL.Count-1 do
       begin
         ExecuteAction(SL[i],'build');
