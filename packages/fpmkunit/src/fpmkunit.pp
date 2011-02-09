@@ -985,6 +985,8 @@ Procedure SplitCommand(Const Cmd : String; Var Exe,Options : String);
 Procedure AddCustomFpmakeCommandlineOption(const ACommandLineOption, HelpMessage : string);
 Function GetCustomFpmakeCommandlineOptionValue(const ACommandLineOption : string) : string;
 
+procedure SearchFiles(const AFileName: string; Recursive: boolean; var List: TStrings);
+
 Implementation
 
 uses typinfo, rtlconsts;
@@ -1040,6 +1042,8 @@ ResourceString
   SWarnDependOnOtherPlatformPackage = 'Warning: Package %s depends on package %s which is not available for the %s platform';
   SWarnStartBuildingPackage = 'Start building package %s';
   SWarnBuildingPackagecomplete = '[%3.0f%%] Built target %s';
+  SWarnInstallationPackagecomplete = 'Installation package %s succeeded';
+  SWarnCleanPackagecomplete = 'Clean of package %s completed';
 
   SInfoCompilingPackage   = 'Compiling package %s';
   SInfoPackageAlreadyProcessed = 'Package %s is already processed';
@@ -4910,7 +4914,7 @@ begin
       P:=Packages.PackageItems[i];
       If PackageOK(P) then
         Install(P);
-      log(vlWarning, 'Installation package ' + P.Name + ' succeeded');
+      log(vlWarning, SWarnInstallationPackagecomplete, [P.Name]);
     end;
   If Assigned(AfterInstall) then
     AfterInstall(Self);
@@ -4966,6 +4970,7 @@ begin
     P:=Packages.PackageItems[i];
     If PackageOK(P) then
       Clean(P);
+    log(vlWarning, SWarnCleanPackagecomplete, [P.Name]);
     end;
   If Assigned(AfterClean) then
     AfterClean(Self);
