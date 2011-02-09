@@ -356,7 +356,6 @@ type
   TDOMNamedNodeMap = class(TObject)
   protected
     FOwner: TDOMNode;
-    FNodeType: Integer;
     FList: TFPList;
     function GetItem(index: LongWord): TDOMNode;
     function GetLength: LongWord;
@@ -365,7 +364,7 @@ type
     function InternalRemove(const name: DOMString): TDOMNode;
     function ValidateInsert(arg: TDOMNode): Integer; virtual;
   public
-    constructor Create(AOwner: TDOMNode; ANodeType: Integer);
+    constructor Create(AOwner: TDOMNode);
     destructor Destroy; override;
 
     function GetNamedItem(const name: DOMString): TDOMNode;
@@ -1650,11 +1649,10 @@ end;
 //   NamedNodeMap
 // -------------------------------------------------------
 
-constructor TDOMNamedNodeMap.Create(AOwner: TDOMNode; ANodeType: Integer);
+constructor TDOMNamedNodeMap.Create(AOwner: TDOMNode);
 begin
   inherited Create;
   FOwner := AOwner;
-  FNodeType := ANodeType;
   FList := TFPList.Create;
 end;
 
@@ -1728,9 +1726,10 @@ begin
   if nfReadOnly in FOwner.FFlags then
     Result := NO_MODIFICATION_ALLOWED_ERR
   else if arg.FOwnerDocument <> FOwner.FOwnerDocument then
-    Result := WRONG_DOCUMENT_ERR
-  else if arg.NodeType <> FNodeType then
-    Result := HIERARCHY_REQUEST_ERR;
+    Result := WRONG_DOCUMENT_ERR;
+{ Note: Since Entity and Notation maps are always read-only, and the AttributeMap
+  overrides this method and does its own check for correct arg.NodeType, there's
+  no point in checking NodeType here. }
 end;
 
 function TDOMNamedNodeMap.SetNamedItem(arg: TDOMNode): TDOMNode;
@@ -2367,6 +2366,7 @@ begin
   Include(Result.FFlags, nfSpecified);
 end;
 
+{deprecated}
 function TDOMDocument.CreateAttributeDef(Buf: DOMPChar; Length: Integer): TDOMAttrDef;
 begin
 // not using custom allocation here
@@ -2907,7 +2907,7 @@ end;
 function TDOMElement.GetAttributes: TDOMNamedNodeMap;
 begin
   if FAttributes=nil then
-    FAttributes := TAttributeMap.Create(Self, ATTRIBUTE_NODE);
+    FAttributes := TAttributeMap.Create(Self);
   Result := FAttributes;
 end;
 
@@ -3189,14 +3189,14 @@ end;
 function TDOMDocumentType.GetEntities: TDOMNamedNodeMap;
 begin
   if FEntities = nil then
-    FEntities := TDOMNamedNodeMap.Create(Self, ENTITY_NODE);
+    FEntities := TDOMNamedNodeMap.Create(Self);
   Result := FEntities;
 end;
 
 function TDOMDocumentType.GetNotations: TDOMNamedNodeMap;
 begin
   if FNotations = nil then
-    FNotations := TDOMNamedNodeMap.Create(Self, NOTATION_NODE);
+    FNotations := TDOMNamedNodeMap.Create(Self);
   Result := FNotations;
 end;
 
@@ -3302,7 +3302,7 @@ begin
   FNodeValue := AValue;
 end;
 
-{ TDOMAttrDef }
+{ TDOMAttrDef (DEPRECATED) }
 
 function TDOMAttrDef.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
 begin
