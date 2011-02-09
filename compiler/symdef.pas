@@ -4475,7 +4475,17 @@ implementation
             psym:=tprocsym.create(nname);
             { avoid warning about this symbol being unused }
             psym.IncRefCount;
-            st.insert(psym,true);
+            { don't check for duplicates:
+               a) we checked above
+               b) in case we are in the implementation section of a unit, this
+                  will also check for this symbol in the interface section
+                  (since you normally cannot have symbols with the same name
+                   both interface and implementation), and it's possible to
+                   have class helpers for the same class in the interface and
+                   in the implementation, and they cannot be merged since only
+                   the once in the interface must be saved to the ppu/visible
+                   from other units }
+            st.insert(psym,false);
           end
         else if (psym.typ<>procsym) then
           internalerror(2009111501);
