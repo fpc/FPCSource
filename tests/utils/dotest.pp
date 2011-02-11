@@ -296,7 +296,7 @@ begin
   while (j>0) and (Hstr[j]<>'.') do
    dec(j);
   if j=0 then
-   j:=255;
+   j:=length(Hstr);
   if Ext<>'' then
    ForceExtension:=Copy(Hstr,1,j-1)+'.'+Ext
   else
@@ -804,7 +804,7 @@ var
   TestRemoteExe,
   TestExe  : string;
   LocalFile, RemoteFile: string;
-  LocalPath: string;
+  LocalPath, LTarget : string;
   execcmd,
   pref     : string;
   execres  : boolean;
@@ -843,8 +843,16 @@ label
 begin
   RunExecutable:=false;
   execres:=true;
-  { when remote testing, leave extension away }
-  if (RemoteAddr='') or (rcpprog='pscp') then
+  { when remote testing, leave extension away,
+    but not for go32v2, win32 or win64 as cygwin ssh
+    will remove the .exe in that case }
+  LTarget := lowercase(CompilerTarget);
+
+  if (RemoteAddr='') or
+     (rcpprog='pscp') or
+     (LTarget='go32v2') or
+     (LTarget='win32') or
+     (LTarget='win64') then
     TestExe:=OutputFileName(PPFile[current],ExeExt)
   else
     TestExe:=OutputFileName(PPFile[current],'');
@@ -912,9 +920,8 @@ begin
       else
         execcmd:='';
       execcmd:=execcmd+RemotePara+' '+RemoteAddr+' '+rquote+
-         'chmod 755 '+TestRemoteExe+' ; ';
-       //  ' ; cd '+RemotePath+' ;'; incompatible with directory
-       // present on TestRemoteExe
+         'chmod 755 '+TestRemoteExe+
+          ' ; cd '+RemotePath+' ; ';
       if UseTimeout then
       begin
         execcmd:=execcmd+'timeout -9 ';
@@ -923,8 +930,10 @@ begin
         str(Config.Timeout,s);
         execcmd:=execcmd+s;
       end;
+      { as we moved to RemotePath, if path is not absolute
+        we need to use ./execfilename only }
       if not isabsolute(TestRemoteExe) then
-        execcmd:=execcmd+' ./'+TestRemoteExe
+        execcmd:=execcmd+' ./'+SplitFileName(TestRemoteExe)
       else
         execcmd:=execcmd+' '+TestRemoteExe;
       execcmd:=execcmd+' ; echo "TestExitCode: $?"';
@@ -1130,7 +1139,7 @@ begin
              if j>0 then
                begin
                  CompilerCPU:=Copy(Para,1,j-1);
-                 CompilerTarget:=Copy(Para,j+1,255);
+                 CompilerTarget:=Copy(Para,j+1,length(para));
                end
              else
                CompilerTarget:=Para
