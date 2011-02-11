@@ -1588,6 +1588,7 @@ packages/cocoaint/utils/uikit-skel/src/UndefinedTypes.inc svneol=native#text/pla
 packages/cocoaint/utils/uikit-skel/src/foundation/Foundation.inc svneol=native#text/plain
 packages/cocoaint/utils/uikit-skel/src/iPhoneAll.pas svneol=native#text/plain
 packages/cocoaint/utils/uikit-skel/src/opengles/OpenGLES.inc svneol=native#text/plain
+packages/cocoaint/utils/uikit-skel/src/patches/NSObjCRuntime.patch svneol=native#text/plain
 packages/cocoaint/utils/uikit-skel/src/quartzcore/QuartzCore.inc svneol=native#text/plain
 packages/cocoaint/utils/uikit-skel/src/uikit/UIKit.inc svneol=native#text/plain
 packages/dbus/Makefile svneol=native#text/plain
