@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSCachedImageRep.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -49,10 +49,10 @@
     _cache: Pointer; {garbage collector: __strong }
     
   public
-    function initWithWindow_rect(win: NSWindow; rect: NSRect): id; message 'initWithWindow:rect:';
-    function initWithSize_depth_separate_alpha(size_: NSSize; depth: NSWindowDepth; flag: Boolean; alpha: Boolean): id; message 'initWithSize:depth:separate:alpha:';
-    function window: NSWindow; message 'window';
-    function rect: NSRect; message 'rect';
+    function initWithWindow_rect(win: NSWindow; rect_: NSRect): id; message 'initWithWindow:rect:'; deprecated 'in Mac OS X 10.6 and later';
+    function initWithSize_depth_separate_alpha(size_: NSSize; depth: NSWindowDepth; flag: Boolean; alpha: Boolean): id; message 'initWithSize:depth:separate:alpha:'; deprecated 'in Mac OS X 10.6 and later';
+    function window: NSWindow; message 'window'; deprecated 'in Mac OS X 10.6 and later';
+    function rect: NSRect; message 'rect'; deprecated 'in Mac OS X 10.6 and later';
   end;
 
 {$endif}

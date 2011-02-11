@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPrinter.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -101,7 +101,7 @@ type
     function isColor: Boolean; message 'isColor'; deprecated 'in Mac OS X 10.2 and later';
     function isFontAvailable(faceName: NSString): Boolean; message 'isFontAvailable:'; deprecated 'in Mac OS X 10.2 and later';
     function isOutputStackInReverseOrder: Boolean; message 'isOutputStackInReverseOrder'; deprecated 'in Mac OS X 10.2 and later';
-    class function printerWithName_domain_includeUnavailable(name_: NSString; domain: NSString; flag: Boolean): NSPrinter; message 'printerWithName:domain:includeUnavailable:'; deprecated 'in Mac OS X 10.2 and later';
+    class function printerWithName_domain_includeUnavailable(name_: NSString; domain_: NSString; flag: Boolean): NSPrinter; message 'printerWithName:domain:includeUnavailable:'; deprecated 'in Mac OS X 10.2 and later';
     function domain: NSString; message 'domain'; deprecated 'in Mac OS X 10.2 and later';
     function host: NSString; message 'host'; deprecated 'in Mac OS X 10.2 and later';
     function note: NSString; message 'note'; deprecated 'in Mac OS X 10.2 and later';

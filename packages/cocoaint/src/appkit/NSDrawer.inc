@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDrawer.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -95,8 +95,8 @@ var
     function contentView: NSView; message 'contentView';
     procedure setPreferredEdge(edge_: NSRectEdge); message 'setPreferredEdge:';
     function preferredEdge: NSRectEdge; message 'preferredEdge';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: NSDrawerDelegateProtocol); message 'setDelegate:';
+    function delegate: NSDrawerDelegateProtocol; message 'delegate';
     procedure open; message 'open';
     procedure openOnEdge(edge_: NSRectEdge); message 'openOnEdge:';
     procedure close; message 'close';

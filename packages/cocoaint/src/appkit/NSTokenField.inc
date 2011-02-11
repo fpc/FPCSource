@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTokenField.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -46,8 +46,8 @@
   NSTokenField = objcclass external (NSTextField)
     
   public
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: NSTokenFieldDelegateProtocol); message 'setDelegate:';
+    function delegate: NSTokenFieldDelegateProtocol; message 'delegate';
     procedure setTokenStyle(style: NSTokenStyle); message 'setTokenStyle:';
     function tokenStyle: NSTokenStyle; message 'tokenStyle';
     procedure setCompletionDelay(delay: NSTimeInterval); message 'setCompletionDelay:';

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSComboBox.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -78,10 +78,10 @@ var
     function numberOfItems: NSInteger; message 'numberOfItems';
     function completes: Boolean; message 'completes';
     procedure setCompletes(completes_: Boolean); message 'setCompletes:';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function dataSource: id; message 'dataSource';
-    procedure setDataSource(aSource: id); message 'setDataSource:';
+    function delegate: NSComboBoxDelegateProtocol; message 'delegate';
+    procedure setDelegate(anObject: NSComboBoxDelegateProtocol); message 'setDelegate:';
+    function dataSource: NSComboBoxDataSourceProtocol; message 'dataSource';
+    procedure setDataSource(aSource: NSComboBoxDataSourceProtocol); message 'setDataSource:';
     procedure addItemWithObjectValue(object_: id); message 'addItemWithObjectValue:';
     procedure addItemsWithObjectValues(objects: NSArray); message 'addItemsWithObjectValues:';
     procedure insertItemWithObjectValue_atIndex(object_: id; index: NSInteger); message 'insertItemWithObjectValue:atIndex:';

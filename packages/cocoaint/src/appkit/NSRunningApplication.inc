@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSRunningApplication.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -96,10 +96,10 @@ type
     _appReserved: id;
     
   public
-    function terminated: Boolean; message 'terminated';
-    function finishedLaunching: Boolean; message 'finishedLaunching';
-    function hidden: Boolean; message 'hidden';
-    function active: Boolean; message 'active';
+    function isTerminated: Boolean; message 'isTerminated';
+    function isFinishedLaunching: Boolean; message 'isFinishedLaunching';
+    function isHidden: Boolean; message 'isHidden';
+    function isActive: Boolean; message 'isActive';
     function activationPolicy: NSApplicationActivationPolicy; message 'activationPolicy';
     function localizedName: NSString; message 'localizedName';
     function bundleIdentifier: NSString; message 'bundleIdentifier';

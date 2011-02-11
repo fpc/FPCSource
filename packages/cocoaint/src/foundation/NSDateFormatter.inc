@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSDateFormatter.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -74,7 +74,7 @@ type
     function stringFromDate(date: NSDate): NSString; message 'stringFromDate:';
     function dateFromString(string_: NSString): NSDate; message 'dateFromString:';
     class function localizedStringFromDate_dateStyle_timeStyle(date: NSDate; dstyle: NSDateFormatterStyle; tstyle: NSDateFormatterStyle): NSString; message 'localizedStringFromDate:dateStyle:timeStyle:';
-    class function dateFormatFromTemplate_options_locale(tmplate: NSString; opts: NSUInteger; locale: NSLocale): NSString; message 'dateFormatFromTemplate:options:locale:';
+    class function dateFormatFromTemplate_options_locale(tmplate: NSString; opts: NSUInteger; locale_: NSLocale): NSString; message 'dateFormatFromTemplate:options:locale:';
     function dateFormat: NSString; message 'dateFormat';
     function dateStyle: NSDateFormatterStyle; message 'dateStyle';
     procedure setDateStyle(style: NSDateFormatterStyle); message 'setDateStyle:';

@@ -4,25 +4,26 @@
 set -e
 
 # change
-SDKBASEPATH=/Developer/Platforms/iPhoneOS.Platform/Developer/SDKs/iPhoneOS3.2.sdk
+SDKBASEPATH=/Developer/Platforms/iPhoneOS.Platform/Developer/SDKs/iPhoneOS4.2.sdk
 
-if [ $? -ne 0 ]; then
+if [ $# -ne 0 ]; then
   SDKBASEPATH="$1"
-fi;
+fi
 
 if [ ! -d "$SDKBASEPATH" ]; then
   echo iOS SDK base path \"$SDKBASEPATH\"
   echo not found, specify it as the first parameter to this script.
   echo Note that this parser version has only been verified to work with the
-  echo iOS SDK 3.2
+  echo iOS SDK 4.2
   echo
   exit 1
 fi
 
 # convert uikit and related framework headers
 php parser.php -objp -all -frameworks=foundation,quartzcore,opengles,uikit -root=`pwd`/uikit-skel/src -framework_path="$SDKBASEPATH"/System/Library/Frameworks
+
 # correct some translations the automatic translation cannot handle
-patch -p0 < patches/uikit.patch
+patch -p0 < patches/uikit-4.2.patch
 # rename badly named unit and include file
 sed -e 's/AnonClassDefinitionsQuartzcore/AnonClassDefinitionsUikit/' < uikit-skel/src/AnonClassDefinitionsQuartzcore.pas > uikit-skel/src/AnonClassDefinitionsUikit.pas
 mv uikit-skel/src/quartzcore/AnonIncludeClassDefinitionsQuartzcore.inc uikit-skel/src/uikit/AnonIncludeClassDefinitionsUikit.inc

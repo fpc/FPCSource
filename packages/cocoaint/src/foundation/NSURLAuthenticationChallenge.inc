@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLAuthenticationChallenge.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -48,14 +48,14 @@
     _internal: NSURLAuthenticationChallengeInternal;
     
   public
-    function initWithProtectionSpace_proposedCredential_previousFailureCount_failureResponse_error_sender(space: NSURLProtectionSpace; credential: NSURLCredential; previousFailureCount_: NSInteger; response: NSURLResponse; error_: NSError; sender_: id): id; message 'initWithProtectionSpace:proposedCredential:previousFailureCount:failureResponse:error:sender:';
-    function initWithAuthenticationChallenge_sender(challenge: NSURLAuthenticationChallenge; sender_: id): id; message 'initWithAuthenticationChallenge:sender:';
+    function initWithProtectionSpace_proposedCredential_previousFailureCount_failureResponse_error_sender(space: NSURLProtectionSpace; credential: NSURLCredential; previousFailureCount_: NSInteger; response: NSURLResponse; error_: NSError; sender_: NSURLAuthenticationChallengeSenderProtocol): id; message 'initWithProtectionSpace:proposedCredential:previousFailureCount:failureResponse:error:sender:';
+    function initWithAuthenticationChallenge_sender(challenge: NSURLAuthenticationChallenge; sender_: NSURLAuthenticationChallengeSenderProtocol): id; message 'initWithAuthenticationChallenge:sender:';
     function protectionSpace: NSURLProtectionSpace; message 'protectionSpace';
     function proposedCredential: NSURLCredential; message 'proposedCredential';
     function previousFailureCount: NSInteger; message 'previousFailureCount';
     function failureResponse: NSURLResponse; message 'failureResponse';
     function error: NSError; message 'error';
-    function sender: id; message 'sender';
+    function sender: NSURLAuthenticationChallengeSenderProtocol; message 'sender';
   end;
 
 {$endif}

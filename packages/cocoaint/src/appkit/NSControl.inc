@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSControl.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -96,7 +96,7 @@ var
     procedure setFont(fontObj: NSFont); message 'setFont:';
     procedure setFormatter(newFormatter: NSFormatter); message 'setFormatter:';
     function formatter: id; message 'formatter';
-    procedure setObjectValue(obj: id); message 'setObjectValue:';
+    procedure setObjectValue(obj: NSCopyingProtocol); message 'setObjectValue:';
     procedure setStringValue(aString: NSString); message 'setStringValue:';
     procedure setIntValue(anInt: cint); message 'setIntValue:';
     procedure setFloatValue(aFloat: single); message 'setFloatValue:';

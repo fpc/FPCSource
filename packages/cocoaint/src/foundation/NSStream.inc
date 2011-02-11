@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSStream.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -102,8 +102,8 @@ var
   public
     procedure open; message 'open';
     procedure close; message 'close';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
+    function delegate: NSStreamDelegateProtocol; message 'delegate';
+    procedure setDelegate(delegate_: NSStreamDelegateProtocol); message 'setDelegate:';
     function propertyForKey(key: NSString): id; message 'propertyForKey:';
     function setProperty_forKey(property_: id; key: NSString): Boolean; message 'setProperty:forKey:';
     procedure scheduleInRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'scheduleInRunLoop:forMode:';

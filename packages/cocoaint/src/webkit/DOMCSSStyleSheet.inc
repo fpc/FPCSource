@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCSSStyleSheet.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -56,7 +56,7 @@
 
 { DOMCSSStyleSheetDeprecatedCategory }
   DOMCSSStyleSheetDeprecatedCategory = objccategory external (DOMCSSStyleSheet)
-    function insertRule(rule: NSString; index: cuint): cuint; message 'insertRule:rule:';
+    function insertRule(rule: NSString; index: cuint): cuint; message 'insertRule:rule:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

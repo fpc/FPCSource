@@ -1,5 +1,5 @@
 { Parsed from Coredata.framework NSManagedObject.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
 
 
 {$ifdef TYPES}

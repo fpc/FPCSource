@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDocument.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -173,7 +173,7 @@ type
     class function isNativeType(type_: NSString): Boolean; message 'isNativeType:';
     function writableTypesForSaveOperation(saveOperation: NSSaveOperationType): NSArray; message 'writableTypesForSaveOperation:';
     function fileNameExtensionForType_saveOperation(typeName: NSString; saveOperation: NSSaveOperationType): NSString; message 'fileNameExtensionForType:saveOperation:';
-    function validateUserInterfaceItem(anItem: id): Boolean; message 'validateUserInterfaceItem:';
+    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): Boolean; message 'validateUserInterfaceItem:';
 
     { Adopted Protocols }
   end;
@@ -181,7 +181,7 @@ type
 { NSDeprecated_NSDocumentCategory }
   NSDeprecated_NSDocumentCategory = objccategory external name 'NSDeprecated' (NSDocument)
     function dataRepresentationOfType(type_: NSString): NSData; message 'dataRepresentationOfType:'; deprecated 'in Mac OS X 10.4 and later';
-    function fileAttributesToWriteToFile_ofType_saveOperation(fullDocumentPath: NSString; documentTypeName: NSString; saveOperationType: NSSaveOperationType): NSDictionary; message 'fileAttributesToWriteToFile:ofType:saveOperation:';
+    function fileAttributesToWriteToFile_ofType_saveOperation(fullDocumentPath: NSString; documentTypeName: NSString; saveOperationType: NSSaveOperationType): NSDictionary; message 'fileAttributesToWriteToFile:ofType:saveOperation:'; deprecated 'in Mac OS X 10.4 and later';
     function fileName: NSString; message 'fileName'; deprecated 'in Mac OS X 10.4 and later';
     function fileWrapperRepresentationOfType(type_: NSString): NSFileWrapper; message 'fileWrapperRepresentationOfType:'; deprecated 'in Mac OS X 10.4 and later';
     function initWithContentsOfFile_ofType(absolutePath: NSString; typeName: NSString): id; message 'initWithContentsOfFile:ofType:'; deprecated 'in Mac OS X 10.4 and later';

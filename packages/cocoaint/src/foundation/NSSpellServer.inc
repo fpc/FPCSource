@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSSpellServer.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -70,8 +70,8 @@ var
     _reservedSpellServer2: Pointer;
     
   public
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: NSSpellServerDelegateProtocol); message 'setDelegate:';
+    function delegate: NSSpellServerDelegateProtocol; message 'delegate';
     function registerLanguage_byVendor(language: NSString; vendor: NSString): Boolean; message 'registerLanguage:byVendor:';
     function isWordInUserDictionaries_caseSensitive(word: NSString; flag: Boolean): Boolean; message 'isWordInUserDictionaries:caseSensitive:';
     procedure run; message 'run';

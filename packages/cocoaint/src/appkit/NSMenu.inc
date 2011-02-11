@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMenu.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -103,7 +103,7 @@ var
     procedure setTitle(aString: NSString); message 'setTitle:';
     function title: NSString; message 'title';
     class procedure popUpContextMenu_withEvent_forView(menu: NSMenu; event: NSEvent; view: NSView); message 'popUpContextMenu:withEvent:forView:';
-    class procedure popUpContextMenu_withEvent_forView_withFont(menu: NSMenu; event: NSEvent; view: NSView; font: NSFont); message 'popUpContextMenu:withEvent:forView:withFont:';
+    class procedure popUpContextMenu_withEvent_forView_withFont(menu: NSMenu; event: NSEvent; view: NSView; font_: NSFont); message 'popUpContextMenu:withEvent:forView:withFont:';
     function popUpMenuPositioningItem_atLocation_inView(item: NSMenuItem; location: NSPoint; view: NSView): Boolean; message 'popUpMenuPositioningItem:atLocation:inView:';
     class procedure setMenuBarVisible(visible: Boolean); message 'setMenuBarVisible:';
     class function menuBarVisible: Boolean; message 'menuBarVisible';
@@ -132,8 +132,8 @@ var
     function performKeyEquivalent(theEvent: NSEvent): Boolean; message 'performKeyEquivalent:';
     procedure itemChanged(item: NSMenuItem); message 'itemChanged:';
     procedure performActionForItemAtIndex(index: NSInteger); message 'performActionForItemAtIndex:';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: NSMenuDelegateProtocol); message 'setDelegate:';
+    function delegate: NSMenuDelegateProtocol; message 'delegate';
     function menuBarHeight: CGFloat; message 'menuBarHeight';
     procedure cancelTracking; message 'cancelTracking';
     procedure cancelTrackingWithoutAnimation; message 'cancelTrackingWithoutAnimation';

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSpeechRecognizer.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -51,8 +51,8 @@
     function init: id; message 'init';
     procedure startListening; message 'startListening';
     procedure stopListening; message 'stopListening';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
+    function delegate: NSSpeechRecognizerDelegateProtocol; message 'delegate';
+    procedure setDelegate(anObject: NSSpeechRecognizerDelegateProtocol); message 'setDelegate:';
     function commands: NSArray; message 'commands';
     procedure setCommands(commands_: NSArray); message 'setCommands:';
     function displayedCommandsTitle: NSString; message 'displayedCommandsTitle';

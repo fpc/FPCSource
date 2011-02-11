@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAccessibility.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -321,9 +321,9 @@ var
   NSAccessibilityRatingIndicatorSubrole: NSString; cvar; external;
   NSAccessibilityContentListSubrole: NSString; cvar; external;
   NSAccessibilityDefinitionListSubrole: NSString; cvar; external;
-  NSAccessibilitySortButtonRole: NSString; cvar; external;
-  NSAccessibilityHorizontialUnitsAttribute_BUT_DEPRECATED: NSString; cvar; external;
-  NSAccessibilityHorizontialUnitDescriptionAttribute_BUT_DEPRECATED: NSString; cvar; external;
+  NSAccessibilitySortButtonRole: NSString deprecated 'in Mac OS X 10.6 and later'; cvar; external;
+  NSAccessibilityHorizontialUnitsAttribute: NSString deprecated 'in Mac OS X 10.6 and later'; cvar; external;
+  NSAccessibilityHorizontialUnitDescriptionAttribute: NSString deprecated 'in Mac OS X 10.6 and later'; cvar; external;
 
 {$endif}
 {$endif}

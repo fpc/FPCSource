@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextView.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -182,7 +182,7 @@ var
     function dragSelectionWithEvent_offset_slideBack(event: NSEvent; mouseOffset: NSSize; slideBack: Boolean): Boolean; message 'dragSelectionWithEvent:offset:slideBack:';
     function dragImageForSelectionWithEvent_origin(event: NSEvent; origin: NSPointPointer): NSImage; message 'dragImageForSelectionWithEvent:origin:';
     function acceptableDragTypes: NSArray; message 'acceptableDragTypes';
-    function dragOperationForDraggingInfo_type(dragInfo: id; type_: NSString): NSDragOperation; message 'dragOperationForDraggingInfo:type:';
+    function dragOperationForDraggingInfo_type(dragInfo: NSDraggingInfoProtocol; type_: NSString): NSDragOperation; message 'dragOperationForDraggingInfo:type:';
     procedure cleanUpAfterDragOperation; message 'cleanUpAfterDragOperation';
   end;
 
@@ -243,8 +243,8 @@ var
     function allowsImageEditing: Boolean; message 'allowsImageEditing';
     procedure setAllowsImageEditing(flag: Boolean); message 'setAllowsImageEditing:';
     procedure showFindIndicatorForRange(charRange: NSRange); message 'showFindIndicatorForRange:';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
+    function delegate: NSTextViewDelegateProtocol; message 'delegate';
+    procedure setDelegate(anObject: NSTextViewDelegateProtocol); message 'setDelegate:';
     function isEditable: Boolean; message 'isEditable';
     procedure setEditable(flag: Boolean); message 'setEditable:';
     function isSelectable: Boolean; message 'isSelectable';
@@ -317,11 +317,11 @@ var
 { NSTextViewDelegate Protocol }
   NSTextViewDelegateProtocol = objcprotocol external name 'NSTextViewDelegate'
     function textView_clickedOnLink_atIndex(textView: NSTextView; link: id; charIndex: NSUInteger): Boolean; message 'textView:clickedOnLink:atIndex:';
-    procedure textView_clickedOnCell_inRect_atIndex(textView: NSTextView; cell: id; cellFrame: NSRect; charIndex: NSUInteger); message 'textView:clickedOnCell:inRect:atIndex:';
-    procedure textView_doubleClickedOnCell_inRect_atIndex(textView: NSTextView; cell: id; cellFrame: NSRect; charIndex: NSUInteger); message 'textView:doubleClickedOnCell:inRect:atIndex:';
-    procedure textView_draggedCell_inRect_event_atIndex(view: NSTextView; cell: id; rect: NSRect; event: NSEvent; charIndex: NSUInteger); message 'textView:draggedCell:inRect:event:atIndex:';
-    function textView_writablePasteboardTypesForCell_atIndex(view: NSTextView; cell: id; charIndex: NSUInteger): NSArray; message 'textView:writablePasteboardTypesForCell:atIndex:';
-    function textView_writeCell_atIndex_toPasteboard_type(view: NSTextView; cell: id; charIndex: NSUInteger; pboard: NSPasteboard; type_: NSString): Boolean; message 'textView:writeCell:atIndex:toPasteboard:type:';
+    procedure textView_clickedOnCell_inRect_atIndex(textView: NSTextView; cell: NSTextAttachmentCellProtocol; cellFrame: NSRect; charIndex: NSUInteger); message 'textView:clickedOnCell:inRect:atIndex:';
+    procedure textView_doubleClickedOnCell_inRect_atIndex(textView: NSTextView; cell: NSTextAttachmentCellProtocol; cellFrame: NSRect; charIndex: NSUInteger); message 'textView:doubleClickedOnCell:inRect:atIndex:';
+    procedure textView_draggedCell_inRect_event_atIndex(view: NSTextView; cell: NSTextAttachmentCellProtocol; rect: NSRect; event: NSEvent; charIndex: NSUInteger); message 'textView:draggedCell:inRect:event:atIndex:';
+    function textView_writablePasteboardTypesForCell_atIndex(view: NSTextView; cell: NSTextAttachmentCellProtocol; charIndex: NSUInteger): NSArray; message 'textView:writablePasteboardTypesForCell:atIndex:';
+    function textView_writeCell_atIndex_toPasteboard_type(view: NSTextView; cell: NSTextAttachmentCellProtocol; charIndex: NSUInteger; pboard: NSPasteboard; type_: NSString): Boolean; message 'textView:writeCell:atIndex:toPasteboard:type:';
     function textView_willChangeSelectionFromCharacterRange_toCharacterRange(textView: NSTextView; oldSelectedCharRange: NSRange; newSelectedCharRange: NSRange): NSRange; message 'textView:willChangeSelectionFromCharacterRange:toCharacterRange:';
     function textView_willChangeSelectionFromCharacterRanges_toCharacterRanges(textView: NSTextView; oldSelectedCharRanges: NSArray; newSelectedCharRanges: NSArray): NSArray; message 'textView:willChangeSelectionFromCharacterRanges:toCharacterRanges:';
     function textView_shouldChangeTextInRanges_replacementStrings(textView: NSTextView; affectedRanges: NSArray; replacementStrings: NSArray): Boolean; message 'textView:shouldChangeTextInRanges:replacementStrings:';
@@ -337,9 +337,9 @@ var
     function textView_willCheckTextInRange_options_types(view: NSTextView; range: NSRange; options: NSDictionary; checkingTypes: NSTextCheckingTypesPtr): NSDictionary; message 'textView:willCheckTextInRange:options:types:';
     function textView_didCheckTextInRange_types_options_results_orthography_wordCount(view: NSTextView; range: NSRange; checkingTypes: NSTextCheckingTypes; options: NSDictionary; results: NSArray; orthography: NSOrthography; wordCount: NSInteger): NSArray; message 'textView:didCheckTextInRange:types:options:results:orthography:wordCount:';
     function textView_clickedOnLink(textView: NSTextView; link: id): Boolean; message 'textView:clickedOnLink:';
-    procedure textView_clickedOnCell_inRect(textView: NSTextView; cell: id; cellFrame: NSRect); message 'textView:clickedOnCell:inRect:';
-    procedure textView_doubleClickedOnCell_inRect(textView: NSTextView; cell: id; cellFrame: NSRect); message 'textView:doubleClickedOnCell:inRect:';
-    procedure textView_draggedCell_inRect_event(view: NSTextView; cell: id; rect: NSRect; event: NSEvent); message 'textView:draggedCell:inRect:event:';
+    procedure textView_clickedOnCell_inRect(textView: NSTextView; cell: NSTextAttachmentCellProtocol; cellFrame: NSRect); message 'textView:clickedOnCell:inRect:';
+    procedure textView_doubleClickedOnCell_inRect(textView: NSTextView; cell: NSTextAttachmentCellProtocol; cellFrame: NSRect); message 'textView:doubleClickedOnCell:inRect:';
+    procedure textView_draggedCell_inRect_event(view: NSTextView; cell: NSTextAttachmentCellProtocol; rect: NSRect; event: NSEvent); message 'textView:draggedCell:inRect:event:';
     function undoManagerForTextView(view: NSTextView): NSUndoManager; message 'undoManagerForTextView:';
   end;
 {$endif}

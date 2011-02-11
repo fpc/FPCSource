@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSGlyphGenerator.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -53,7 +53,7 @@ const
   NSGlyphGenerator = objcclass external (NSObject)
     
   public
-    procedure generateGlyphsForGlyphStorage_desiredNumberOfCharacters_glyphIndex_characterIndex(glyphStorage: id; nChars: NSUInteger; glyphIndex: NSUIntegerPtr; charIndex: NSUIntegerPtr); message 'generateGlyphsForGlyphStorage:desiredNumberOfCharacters:glyphIndex:characterIndex:';
+    procedure generateGlyphsForGlyphStorage_desiredNumberOfCharacters_glyphIndex_characterIndex(glyphStorage: NSGlyphStorageProtocol; nChars: NSUInteger; glyphIndex: NSUIntegerPtr; charIndex: NSUIntegerPtr); message 'generateGlyphsForGlyphStorage:desiredNumberOfCharacters:glyphIndex:characterIndex:';
     class function sharedGlyphGenerator: id; message 'sharedGlyphGenerator';
   end;
 

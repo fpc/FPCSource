@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMNamedNodeMap.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -57,8 +57,8 @@
 
 { DOMNamedNodeMapDeprecatedCategory }
   DOMNamedNodeMapDeprecatedCategory = objccategory external (DOMNamedNodeMap)
-    function getNamedItemNS(namespaceURI: NSString; localName: NSString): DOMNode; message 'getNamedItemNS:namespaceURI:';
-    function removeNamedItemNS(namespaceURI: NSString; localName: NSString): DOMNode; message 'removeNamedItemNS:namespaceURI:';
+    function getNamedItemNS(namespaceURI: NSString; localName: NSString): DOMNode; message 'getNamedItemNS:namespaceURI:'; deprecated 'in_webkit_version_3 and later';
+    function removeNamedItemNS(namespaceURI: NSString; localName: NSString): DOMNode; message 'removeNamedItemNS:namespaceURI:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAnimation.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -138,8 +138,8 @@ var
     procedure setAnimationCurve(curve: NSAnimationCurve); message 'setAnimationCurve:';
     function animationCurve: NSAnimationCurve; message 'animationCurve';
     function currentValue: single; message 'currentValue';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(delegate_: NSAnimationDelegateProtocol); message 'setDelegate:';
+    function delegate: NSAnimationDelegateProtocol; message 'delegate';
     function progressMarks: NSArray; message 'progressMarks';
     procedure setProgressMarks(progressMarks_: NSArray); message 'setProgressMarks:';
     procedure addProgressMark(progressMark: NSAnimationProgress); message 'addProgressMark:';

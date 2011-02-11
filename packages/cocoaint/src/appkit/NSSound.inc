@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSound.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -70,8 +70,8 @@ var
     function resume: Boolean; message 'resume';
     function stop: Boolean; message 'stop';
     function isPlaying: Boolean; message 'isPlaying';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(aDelegate: id); message 'setDelegate:';
+    function delegate: NSSoundDelegateProtocol; message 'delegate';
+    procedure setDelegate(aDelegate: NSSoundDelegateProtocol); message 'setDelegate:';
     function duration: NSTimeInterval; message 'duration';
     procedure setVolume(volume_: single); message 'setVolume:';
     function volume: single; message 'volume';

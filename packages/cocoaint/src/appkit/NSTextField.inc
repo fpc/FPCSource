@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextField.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -64,8 +64,8 @@
     function isSelectable: Boolean; message 'isSelectable';
     procedure setSelectable(flag: Boolean); message 'setSelectable:';
     procedure selectText(sender: id); message 'selectText:';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
+    function delegate: NSTextFieldDelegateProtocol; message 'delegate';
+    procedure setDelegate(anObject: NSTextFieldDelegateProtocol); message 'setDelegate:';
     function textShouldBeginEditing(textObject: NSText): Boolean; message 'textShouldBeginEditing:';
     function textShouldEndEditing(textObject: NSText): Boolean; message 'textShouldEndEditing:';
     procedure textDidBeginEditing(notification: NSNotification); message 'textDidBeginEditing:';
@@ -76,7 +76,7 @@
     function bezelStyle: NSTextFieldBezelStyle; message 'bezelStyle';
 
     { Adopted Protocols }
-    function validateUserInterfaceItem(anItem: id): Boolean;
+    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): Boolean;
   end;
 
 { NSKeyboardUI_NSTextFieldCategory }

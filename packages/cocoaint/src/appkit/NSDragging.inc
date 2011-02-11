@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDragging.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -59,13 +59,13 @@ const
 
 { NSDraggingDestinationCategory }
   NSDraggingDestinationCategory = objccategory external (NSObject)
-    function draggingEntered(sender: id): NSDragOperation; message 'draggingEntered:';
-    function draggingUpdated(sender: id): NSDragOperation; message 'draggingUpdated:';
-    procedure draggingExited(sender: id); message 'draggingExited:';
-    function prepareForDragOperation(sender: id): Boolean; message 'prepareForDragOperation:';
-    function performDragOperation(sender: id): Boolean; message 'performDragOperation:';
-    procedure concludeDragOperation(sender: id); message 'concludeDragOperation:';
-    procedure draggingEnded(sender: id); message 'draggingEnded:';
+    function draggingEntered(sender: NSDraggingInfoProtocol): NSDragOperation; message 'draggingEntered:';
+    function draggingUpdated(sender: NSDraggingInfoProtocol): NSDragOperation; message 'draggingUpdated:';
+    procedure draggingExited(sender: NSDraggingInfoProtocol); message 'draggingExited:';
+    function prepareForDragOperation(sender: NSDraggingInfoProtocol): Boolean; message 'prepareForDragOperation:';
+    function performDragOperation(sender: NSDraggingInfoProtocol): Boolean; message 'performDragOperation:';
+    procedure concludeDragOperation(sender: NSDraggingInfoProtocol); message 'concludeDragOperation:';
+    procedure draggingEnded(sender: NSDraggingInfoProtocol); message 'draggingEnded:';
     function wantsPeriodicDraggingUpdates: Boolean; message 'wantsPeriodicDraggingUpdates';
   end;
 

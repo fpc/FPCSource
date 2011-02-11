@@ -74,3 +74,8 @@
 {$include UIVideoEditorController.inc}
 {$include UIWebView.inc}
 {$include UIWindow.inc}
+
+{$ifdef IOS_SDK_4_2_OR_HIGHER}
+{$include UIActionSheet.inc}
+{$include UILocalNotification.inc}
+{$endif}

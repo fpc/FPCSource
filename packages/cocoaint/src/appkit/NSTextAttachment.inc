@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextAttachment.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -92,8 +92,8 @@ const
     function initWithFileWrapper(fileWrapper_: NSFileWrapper): id; message 'initWithFileWrapper:';
     procedure setFileWrapper(fileWrapper_: NSFileWrapper); message 'setFileWrapper:';
     function fileWrapper: NSFileWrapper; message 'fileWrapper';
-    function attachmentCell: id; message 'attachmentCell';
-    procedure setAttachmentCell(cell: id); message 'setAttachmentCell:';
+    function attachmentCell: NSTextAttachmentCellProtocol; message 'attachmentCell';
+    procedure setAttachmentCell(cell: NSTextAttachmentCellProtocol); message 'setAttachmentCell:';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);

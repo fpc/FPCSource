@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTypesetter.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -103,7 +103,7 @@ type
     procedure setHardInvalidation_forGlyphRange(flag: Boolean; glyphRange: NSRange); message 'setHardInvalidation:forGlyphRange:';
     procedure layoutGlyphsInLayoutManager_startingAtGlyphIndex_maxNumberOfLineFragments_nextGlyphIndex(layoutManager_: NSLayoutManager; startGlyphIndex: NSUInteger; maxNumLines: NSUInteger; nextGlyph: NSUIntegerPtr); message 'layoutGlyphsInLayoutManager:startingAtGlyphIndex:maxNumberOfLineFragments:nextGlyphIndex:';
     function layoutCharactersInRange_forLayoutManager_maximumNumberOfLineFragments(characterRange: NSRange; layoutManager_: NSLayoutManager; maxNumLines: NSUInteger): NSRange; message 'layoutCharactersInRange:forLayoutManager:maximumNumberOfLineFragments:';
-    class function printingAdjustmentInLayoutManager_forNominallySpacedGlyphRange_packedGlyphs_count(layoutMgr: NSLayoutManager; nominallySpacedGlyphsRange: NSRange; packedGlyphs: PChar; packedGlyphsCount: NSUInteger): NSSize; message 'printingAdjustmentInLayoutManager:forNominallySpacedGlyphRange:packedGlyphs:count:';
+    class function printingAdjustmentInLayoutManager_forNominallySpacedGlyphRange_packedGlyphs_count(layoutMgr: NSLayoutManager; nominallySpacedGlyphsRange: NSRange; packedGlyphs: PByte; packedGlyphsCount: NSUInteger): NSSize; message 'printingAdjustmentInLayoutManager:forNominallySpacedGlyphRange:packedGlyphs:count:';
     function baselineOffsetInLayoutManager_glyphIndex(layoutMgr: NSLayoutManager; glyphIndex: NSUInteger): CGFloat; message 'baselineOffsetInLayoutManager:glyphIndex:';
     class function sharedSystemTypesetter: id; message 'sharedSystemTypesetter';
     class function sharedSystemTypesetterForBehavior(theBehavior: NSTypesetterBehavior): id; message 'sharedSystemTypesetterForBehavior:';

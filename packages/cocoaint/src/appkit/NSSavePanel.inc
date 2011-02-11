@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSavePanel.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -118,8 +118,8 @@ __SPFlagsPtr = ^__SPFlags;
     procedure setAllowsOtherFileTypes(flag: Boolean); message 'setAllowsOtherFileTypes:';
     function accessoryView: NSView; message 'accessoryView';
     procedure setAccessoryView(view: NSView); message 'setAccessoryView:';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
+    function delegate: NSOpenSavePanelDelegateProtocol; message 'delegate';
+    procedure setDelegate(delegate_: NSOpenSavePanelDelegateProtocol); message 'setDelegate:';
     function isExpanded: Boolean; message 'isExpanded';
     function canCreateDirectories: Boolean; message 'canCreateDirectories';
     procedure setCanCreateDirectories(flag: Boolean); message 'setCanCreateDirectories:';

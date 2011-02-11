@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAttributedString.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -240,10 +240,10 @@ var
 
 { NSDeprecatedKitAdditionsCategory }
   NSDeprecatedKitAdditionsCategory = objccategory external (NSAttributedString)
-    class function textFileTypes: NSArray; message 'textFileTypes';
-    class function textPasteboardTypes: NSArray; message 'textPasteboardTypes';
-    class function textUnfilteredFileTypes: NSArray; message 'textUnfilteredFileTypes';
-    class function textUnfilteredPasteboardTypes: NSArray; message 'textUnfilteredPasteboardTypes';
+    class function textFileTypes: NSArray; message 'textFileTypes'; deprecated 'in Mac OS X 10.5 and later';
+    class function textPasteboardTypes: NSArray; message 'textPasteboardTypes'; deprecated 'in Mac OS X 10.5 and later';
+    class function textUnfilteredFileTypes: NSArray; message 'textUnfilteredFileTypes'; deprecated 'in Mac OS X 10.5 and later';
+    class function textUnfilteredPasteboardTypes: NSArray; message 'textUnfilteredPasteboardTypes'; deprecated 'in Mac OS X 10.5 and later';
   end;
 
 { NSMutableAttributedStringKitAdditionsCategory }

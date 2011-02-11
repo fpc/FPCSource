@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMUIEvent.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -59,7 +59,7 @@
 
 { DOMUIEventDeprecatedCategory }
   DOMUIEventDeprecatedCategory = objccategory external (DOMUIEvent)
-    procedure initUIEvent(type__: NSString; canBubble: Boolean; cancelable_: Boolean; view_: DOMAbstractView; detail_: cint); message 'initUIEvent:type:canBubble:cancelable:view:';
+    procedure initUIEvent(type__: NSString; canBubble: Boolean; cancelable_: Boolean; view_: DOMAbstractView; detail_: cint); message 'initUIEvent:type:canBubble:cancelable:view:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

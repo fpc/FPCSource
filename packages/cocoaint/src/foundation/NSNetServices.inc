@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSNetServices.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -83,8 +83,8 @@ var
   public
     function initWithDomain_type_name_port(domain_: NSString; type__: NSString; name_: NSString; port_: cint): id; message 'initWithDomain:type:name:port:';
     function initWithDomain_type_name(domain_: NSString; type__: NSString; name_: NSString): id; message 'initWithDomain:type:name:';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
+    function delegate: NSNetServiceDelegateProtocol; message 'delegate';
+    procedure setDelegate(delegate_: NSNetServiceDelegateProtocol); message 'setDelegate:';
     procedure scheduleInRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'scheduleInRunLoop:forMode:';
     procedure removeFromRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'removeFromRunLoop:forMode:';
     function domain: NSString; message 'domain';
@@ -116,8 +116,8 @@ var
     
   public
     function init: id; message 'init';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
+    function delegate: NSNetServiceBrowserDelegateProtocol; message 'delegate';
+    procedure setDelegate(delegate_: NSNetServiceBrowserDelegateProtocol); message 'setDelegate:';
     procedure scheduleInRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'scheduleInRunLoop:forMode:';
     procedure removeFromRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'removeFromRunLoop:forMode:';
     procedure searchForBrowsableDomains; message 'searchForBrowsableDomains';

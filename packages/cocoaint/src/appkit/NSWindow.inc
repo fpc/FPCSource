@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSWindow.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -262,8 +262,8 @@ var
     function isExcludedFromWindowsMenu: Boolean; message 'isExcludedFromWindowsMenu';
     procedure setContentView(aView: NSView); message 'setContentView:';
     function contentView: id; message 'contentView';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: NSWindowDelegateProtocol); message 'setDelegate:';
+    function delegate: NSWindowDelegateProtocol; message 'delegate';
     function windowNumber: NSInteger; message 'windowNumber';
     function styleMask: NSUInteger; message 'styleMask';
     procedure setStyleMask(styleMask_: NSUInteger); message 'setStyleMask:';
@@ -411,7 +411,8 @@ var
     procedure setCanBecomeVisibleWithoutLogin(flag: Boolean); message 'setCanBecomeVisibleWithoutLogin:';
     procedure setCollectionBehavior(behavior: NSWindowCollectionBehavior); message 'setCollectionBehavior:';
     function collectionBehavior: NSWindowCollectionBehavior; message 'collectionBehavior';
-    procedure setCanBeVisibleOnAllSpaces(flag_BUT_DEPRECATED: Boolean); message 'setCanBeVisibleOnAllSpaces:';
+    function canBeVisibleOnAllSpaces: Boolean; message 'canBeVisibleOnAllSpaces'; deprecated 'in Mac OS X 10.5 and later';
+    procedure setCanBeVisibleOnAllSpaces(flag: Boolean); message 'setCanBeVisibleOnAllSpaces:'; deprecated 'in Mac OS X 10.5 and later';
     function isOnActiveSpace: Boolean; message 'isOnActiveSpace';
     function stringWithSavedFrame: NSString; message 'stringWithSavedFrame';
     procedure setFrameFromString(string_: NSString); message 'setFrameFromString:';
@@ -458,7 +459,7 @@ var
     procedure setParentWindow(window: NSWindow); message 'setParentWindow:';
     function graphicsContext: NSGraphicsContext; message 'graphicsContext';
     function userSpaceScaleFactor: CGFloat; message 'userSpaceScaleFactor';
-    procedure setColorSpace(colorSpace: NSColorSpace); message 'setColorSpace:';
+    procedure setColorSpace(colorSpace_: NSColorSpace); message 'setColorSpace:';
     function colorSpace: NSColorSpace; message 'colorSpace';
     class function windowNumbersWithOptions(options: NSWindowNumberListOptions): NSArray; message 'windowNumbersWithOptions:';
     class function windowNumberAtPoint_belowWindowWithWindowNumber(point: NSPoint; windowNumber_: NSInteger): NSInteger; message 'windowNumberAtPoint:belowWindowWithWindowNumber:';

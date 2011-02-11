@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSString.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -242,7 +242,7 @@ var
     class function stringWithFormat(firstKey: id): id; varargs; message 'stringWithFormat:';
     class function localizedStringWithFormat(firstKey: id): id; varargs; message 'localizedStringWithFormat:';
     function initWithCString_encoding(nullTerminatedCString: PChar; encoding: NSStringEncoding): id; message 'initWithCString:encoding:';
-    class function stringWithCString_encoding(cString: PChar; enc: NSStringEncoding): id; message 'stringWithCString:encoding:';
+    class function stringWithCString_encoding(cString_: PChar; enc: NSStringEncoding): id; message 'stringWithCString:encoding:';
     function initWithContentsOfURL_encoding_error(url: NSURL; enc: NSStringEncoding; error: NSErrorPointer): id; message 'initWithContentsOfURL:encoding:error:';
     function initWithContentsOfFile_encoding_error(path: NSString; enc: NSStringEncoding; error: NSErrorPointer): id; message 'initWithContentsOfFile:encoding:error:';
     class function stringWithContentsOfURL_encoding_error(url: NSURL; enc: NSStringEncoding; error: NSErrorPointer): id; message 'stringWithContentsOfURL:encoding:error:';

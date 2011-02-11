@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSBrowser.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -167,8 +167,8 @@ var
     procedure setCellClass(factoryId: Pobjc_class); message 'setCellClass:';
     procedure setCellPrototype(aCell: NSCell); message 'setCellPrototype:';
     function cellPrototype: id; message 'cellPrototype';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: NSBrowserDelegateProtocol); message 'setDelegate:';
+    function delegate: NSBrowserDelegateProtocol; message 'delegate';
     procedure setReusesColumns(flag: Boolean); message 'setReusesColumns:';
     function reusesColumns: Boolean; message 'reusesColumns';
     procedure setHasHorizontalScroller(flag: Boolean); message 'setHasHorizontalScroller:';
@@ -249,7 +249,7 @@ var
     function getRow_column_forPoint(row: NSIntegerPtr; column: NSIntegerPtr; point: NSPoint): Boolean; message 'getRow:column:forPoint:';
     function columnWidthForColumnContentWidth(columnContentWidth: CGFloat): CGFloat; message 'columnWidthForColumnContentWidth:';
     function columnContentWidthForColumnWidth(columnWidth: CGFloat): CGFloat; message 'columnContentWidthForColumnWidth:';
-    procedure setColumnResizingType(columnResizingType: NSBrowserColumnResizingType); message 'setColumnResizingType:';
+    procedure setColumnResizingType(columnResizingType_: NSBrowserColumnResizingType); message 'setColumnResizingType:';
     function columnResizingType: NSBrowserColumnResizingType; message 'columnResizingType';
     procedure setPrefersAllColumnUserResizing(prefersAllColumnResizing: Boolean); message 'setPrefersAllColumnUserResizing:';
     function prefersAllColumnUserResizing: Boolean; message 'prefersAllColumnUserResizing';
@@ -316,8 +316,8 @@ var
     function browser_namesOfPromisedFilesDroppedAtDestination_forDraggedRowsWithIndexes_inColumn(browser: NSBrowser; dropDestination: NSURL; rowIndexes: NSIndexSet; column: NSInteger): NSArray; message 'browser:namesOfPromisedFilesDroppedAtDestination:forDraggedRowsWithIndexes:inColumn:';
     function browser_canDragRowsWithIndexes_inColumn_withEvent(browser: NSBrowser; rowIndexes: NSIndexSet; column: NSInteger; event: NSEvent): Boolean; message 'browser:canDragRowsWithIndexes:inColumn:withEvent:';
     function browser_draggingImageForRowsWithIndexes_inColumn_withEvent_offset(browser: NSBrowser; rowIndexes: NSIndexSet; column: NSInteger; event: NSEvent; dragImageOffset: NSPointPointer): NSImage; message 'browser:draggingImageForRowsWithIndexes:inColumn:withEvent:offset:';
-    function browser_validateDrop_proposedRow_column_dropOperation(browser: NSBrowser; info: id; row: NSIntegerPtr; column: NSIntegerPtr; dropOperation: NSBrowserDropOperationPtr): NSDragOperation; message 'browser:validateDrop:proposedRow:column:dropOperation:';
-    function browser_acceptDrop_atRow_column_dropOperation(browser: NSBrowser; info: id; row: NSInteger; column: NSInteger; dropOperation: NSBrowserDropOperation): Boolean; message 'browser:acceptDrop:atRow:column:dropOperation:';
+    function browser_validateDrop_proposedRow_column_dropOperation(browser: NSBrowser; info: NSDraggingInfoProtocol; row: NSIntegerPtr; column: NSIntegerPtr; dropOperation: NSBrowserDropOperationPtr): NSDragOperation; message 'browser:validateDrop:proposedRow:column:dropOperation:';
+    function browser_acceptDrop_atRow_column_dropOperation(browser: NSBrowser; info: NSDraggingInfoProtocol; row: NSInteger; column: NSInteger; dropOperation: NSBrowserDropOperation): Boolean; message 'browser:acceptDrop:atRow:column:dropOperation:';
     function browser_typeSelectStringForRow_inColumn(browser: NSBrowser; row: NSInteger; column: NSInteger): NSString; message 'browser:typeSelectStringForRow:inColumn:';
     function browser_shouldTypeSelectForEvent_withCurrentSearchString(browser: NSBrowser; event: NSEvent; searchString: NSString): Boolean; message 'browser:shouldTypeSelectForEvent:withCurrentSearchString:';
     function browser_nextTypeSelectMatchFromRow_toRow_inColumn_forString(browser: NSBrowser; startRow: NSInteger; endRow: NSInteger; column: NSInteger; searchString: NSString): NSInteger; message 'browser:nextTypeSelectMatchFromRow:toRow:inColumn:forString:';

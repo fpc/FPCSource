@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSFont.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -71,23 +71,23 @@ function NSConvertGlyphsToPackedGlyphs(glBuf: NSGlyphPtr; count: NSInteger; pack
 var
   NSAntialiasThresholdChangedNotification: NSString; cvar; external;
   NSFontSetChangedNotification: NSString; cvar; external;
-  NSAFMFamilyName: NSString; cvar; external;
-  NSAFMFontName: NSString; cvar; external;
-  NSAFMFormatVersion: NSString; cvar; external;
-  NSAFMFullName: NSString; cvar; external;
-  NSAFMNotice: NSString; cvar; external;
-  NSAFMVersion: NSString; cvar; external;
-  NSAFMWeight: NSString; cvar; external;
-  NSAFMEncodingScheme: NSString; cvar; external;
-  NSAFMCharacterSet: NSString; cvar; external;
-  NSAFMCapHeight: NSString; cvar; external;
-  NSAFMXHeight: NSString; cvar; external;
-  NSAFMAscender: NSString; cvar; external;
-  NSAFMDescender: NSString; cvar; external;
-  NSAFMUnderlinePosition: NSString; cvar; external;
-  NSAFMUnderlineThickness: NSString; cvar; external;
-  NSAFMItalicAngle: NSString; cvar; external;
-  NSAFMMappingScheme: NSString; cvar; external;
+  NSAFMFamilyName: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
+  NSAFMFontName: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
+  NSAFMFormatVersion: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
+  NSAFMFullName: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
+  NSAFMNotice: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
+  NSAFMVersion: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
+  NSAFMWeight: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
+  NSAFMEncodingScheme: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
+  NSAFMCharacterSet: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
+  NSAFMCapHeight: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
+  NSAFMXHeight: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
+  NSAFMAscender: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
+  NSAFMDescender: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
+  NSAFMUnderlinePosition: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
+  NSAFMUnderlineThickness: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
+  NSAFMItalicAngle: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
+  NSAFMMappingScheme: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
 
 {$endif}
 {$endif}

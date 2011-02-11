@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSpeechSynthesizer.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -127,8 +127,8 @@ var
     procedure stopSpeakingAtBoundary(boundary: NSSpeechBoundary); message 'stopSpeakingAtBoundary:';
     procedure pauseSpeakingAtBoundary(boundary: NSSpeechBoundary); message 'pauseSpeakingAtBoundary:';
     procedure continueSpeaking; message 'continueSpeaking';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
+    function delegate: NSSpeechSynthesizerDelegateProtocol; message 'delegate';
+    procedure setDelegate(anObject: NSSpeechSynthesizerDelegateProtocol); message 'setDelegate:';
     function voice: NSString; message 'voice';
     function setVoice(voice_: NSString): Boolean; message 'setVoice:';
     function rate: single; message 'rate';

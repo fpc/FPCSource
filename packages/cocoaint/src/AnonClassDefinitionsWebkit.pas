@@ -204,6 +204,7 @@ type
   DOMCSSStyleDeclaration = objcclass external;
   DOMElement = objcclass external;
   DOMAttr = objcclass external;
+  DOMBlob = objcclass external;
   DOMCDATASection = objcclass external;
   DOMCharacterData = objcclass external;
   DOMComment = objcclass external;

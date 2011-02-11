@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCSSPrimitiveValue.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -87,8 +87,8 @@ const
 
 { DOMCSSPrimitiveValueDeprecatedCategory }
   DOMCSSPrimitiveValueDeprecatedCategory = objccategory external (DOMCSSPrimitiveValue)
-    procedure setFloatValue(unitType: cushort; floatValue: single); message 'setFloatValue:unitType:';
-    procedure setStringValue(stringType: cushort; stringValue: NSString); message 'setStringValue:stringType:';
+    procedure setFloatValue(unitType: cushort; floatValue: single); message 'setFloatValue:unitType:'; deprecated 'in_webkit_version_3 and later';
+    procedure setStringValue(stringType: cushort; stringValue: NSString); message 'setStringValue:stringType:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

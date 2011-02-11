@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTableColumn.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -94,7 +94,7 @@ const
     procedure sizeToFit; message 'sizeToFit';
     procedure setSortDescriptorPrototype(sortDescriptor: NSSortDescriptor); message 'setSortDescriptorPrototype:';
     function sortDescriptorPrototype: NSSortDescriptor; message 'sortDescriptorPrototype';
-    procedure setResizingMask(resizingMask: NSUInteger); message 'setResizingMask:';
+    procedure setResizingMask(resizingMask_: NSUInteger); message 'setResizingMask:';
     function resizingMask: NSUInteger; message 'resizingMask';
     procedure setHeaderToolTip(string_: NSString); message 'setHeaderToolTip:';
     function headerToolTip: NSString; message 'headerToolTip';

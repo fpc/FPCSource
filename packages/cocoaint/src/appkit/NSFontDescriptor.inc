@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSFontDescriptor.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -75,7 +75,7 @@ var
   NSFontTraitsAttribute: NSString; cvar; external;
   NSFontFixedAdvanceAttribute: NSString; cvar; external;
   NSFontFeatureSettingsAttribute: NSString; cvar; external;
-  NSFontColorAttribute: NSString; cvar; external;
+  NSFontColorAttribute: NSString deprecated 'in Mac OS X 10.4 and later'; cvar; external;
   NSFontSymbolicTrait: NSString; cvar; external;
   NSFontWeightTrait: NSString; cvar; external;
   NSFontWidthTrait: NSString; cvar; external;

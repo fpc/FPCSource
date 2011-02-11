@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTokenFieldCell.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -93,8 +93,8 @@ type
     procedure setTokenizingCharacterSet(characterSet: NSCharacterSet); message 'setTokenizingCharacterSet:';
     function tokenizingCharacterSet: NSCharacterSet; message 'tokenizingCharacterSet';
     class function defaultTokenizingCharacterSet: NSCharacterSet; message 'defaultTokenizingCharacterSet';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: NSTokenFieldCellDelegateProtocol); message 'setDelegate:';
+    function delegate: NSTokenFieldCellDelegateProtocol; message 'delegate';
   end;
 
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMImplementation.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -54,10 +54,10 @@
 
 { DOMImplementationDeprecatedCategory }
   DOMImplementationDeprecatedCategory = objccategory external (DOMImplementation)
-    function hasFeature(feature: NSString; version_: NSString): Boolean; message 'hasFeature:feature:';
-    function createDocumentType(qualifiedName: NSString; publicId: NSString; systemId: NSString): DOMDocumentType; message 'createDocumentType:qualifiedName:publicId:';
-    function createDocument(namespaceURI: NSString; qualifiedName: NSString; doctype: DOMDocumentType): DOMDocument; message 'createDocument:namespaceURI:qualifiedName:';
-    function createCSSStyleSheet(title: NSString; media: NSString): DOMCSSStyleSheet; message 'createCSSStyleSheet:title:';
+    function hasFeature(feature: NSString; version_: NSString): Boolean; message 'hasFeature:feature:'; deprecated 'in_webkit_version_3 and later';
+    function createDocumentType(qualifiedName: NSString; publicId: NSString; systemId: NSString): DOMDocumentType; message 'createDocumentType:qualifiedName:publicId:'; deprecated 'in_webkit_version_3 and later';
+    function createDocument(namespaceURI: NSString; qualifiedName: NSString; doctype: DOMDocumentType): DOMDocument; message 'createDocument:namespaceURI:qualifiedName:'; deprecated 'in_webkit_version_3 and later';
+    function createCSSStyleSheet(title: NSString; media: NSString): DOMCSSStyleSheet; message 'createCSSStyleSheet:title:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

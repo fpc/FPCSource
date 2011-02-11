@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPathControl.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -63,8 +63,8 @@
     procedure setPathComponentCells(cells: NSArray); message 'setPathComponentCells:';
     procedure setBackgroundColor(color: NSColor); message 'setBackgroundColor:';
     function backgroundColor: NSColor; message 'backgroundColor';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
+    function delegate: NSPathControlDelegateProtocol; message 'delegate';
+    procedure setDelegate(delegate_: NSPathControlDelegateProtocol); message 'setDelegate:';
     procedure setDraggingSourceOperationMask_forLocal(mask: NSDragOperation; isLocal: Boolean); message 'setDraggingSourceOperationMask:forLocal:';
     procedure setMenu(menu_: NSMenu); message 'setMenu:';
     function menu: NSMenu; message 'menu';
@@ -79,8 +79,8 @@
 { NSPathControlDelegate Protocol }
   NSPathControlDelegateProtocol = objcprotocol external name 'NSPathControlDelegate'
     function pathControl_shouldDragPathComponentCell_withPasteboard(pathControl: NSPathControl; pathComponentCell: NSPathComponentCell; pasteboard: NSPasteboard): Boolean; message 'pathControl:shouldDragPathComponentCell:withPasteboard:';
-    function pathControl_validateDrop(pathControl: NSPathControl; info: id): NSDragOperation; message 'pathControl:validateDrop:';
-    function pathControl_acceptDrop(pathControl: NSPathControl; info: id): Boolean; message 'pathControl:acceptDrop:';
+    function pathControl_validateDrop(pathControl: NSPathControl; info: NSDraggingInfoProtocol): NSDragOperation; message 'pathControl:validateDrop:';
+    function pathControl_acceptDrop(pathControl: NSPathControl; info: NSDraggingInfoProtocol): Boolean; message 'pathControl:acceptDrop:';
     procedure pathControl_willDisplayOpenPanel(pathControl: NSPathControl; openPanel: NSOpenPanel); message 'pathControl:willDisplayOpenPanel:';
     procedure pathControl_willPopUpMenu(pathControl: NSPathControl; menu: NSMenu); message 'pathControl:willPopUpMenu:';
   end;

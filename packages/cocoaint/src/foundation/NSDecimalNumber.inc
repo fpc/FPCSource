@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSDecimalNumber.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -87,21 +87,21 @@ var
     class function maximumDecimalNumber: NSDecimalNumber; message 'maximumDecimalNumber';
     class function notANumber: NSDecimalNumber; message 'notANumber';
     function decimalNumberByAdding(decimalNumber: NSDecimalNumber): NSDecimalNumber; message 'decimalNumberByAdding:';
-    function decimalNumberByAdding_withBehavior(decimalNumber: NSDecimalNumber; behavior: id): NSDecimalNumber; message 'decimalNumberByAdding:withBehavior:';
+    function decimalNumberByAdding_withBehavior(decimalNumber: NSDecimalNumber; behavior: NSDecimalNumberBehaviorsProtocol): NSDecimalNumber; message 'decimalNumberByAdding:withBehavior:';
     function decimalNumberBySubtracting(decimalNumber: NSDecimalNumber): NSDecimalNumber; message 'decimalNumberBySubtracting:';
-    function decimalNumberBySubtracting_withBehavior(decimalNumber: NSDecimalNumber; behavior: id): NSDecimalNumber; message 'decimalNumberBySubtracting:withBehavior:';
+    function decimalNumberBySubtracting_withBehavior(decimalNumber: NSDecimalNumber; behavior: NSDecimalNumberBehaviorsProtocol): NSDecimalNumber; message 'decimalNumberBySubtracting:withBehavior:';
     function decimalNumberByMultiplyingBy(decimalNumber: NSDecimalNumber): NSDecimalNumber; message 'decimalNumberByMultiplyingBy:';
-    function decimalNumberByMultiplyingBy_withBehavior(decimalNumber: NSDecimalNumber; behavior: id): NSDecimalNumber; message 'decimalNumberByMultiplyingBy:withBehavior:';
+    function decimalNumberByMultiplyingBy_withBehavior(decimalNumber: NSDecimalNumber; behavior: NSDecimalNumberBehaviorsProtocol): NSDecimalNumber; message 'decimalNumberByMultiplyingBy:withBehavior:';
     function decimalNumberByDividingBy(decimalNumber: NSDecimalNumber): NSDecimalNumber; message 'decimalNumberByDividingBy:';
-    function decimalNumberByDividingBy_withBehavior(decimalNumber: NSDecimalNumber; behavior: id): NSDecimalNumber; message 'decimalNumberByDividingBy:withBehavior:';
+    function decimalNumberByDividingBy_withBehavior(decimalNumber: NSDecimalNumber; behavior: NSDecimalNumberBehaviorsProtocol): NSDecimalNumber; message 'decimalNumberByDividingBy:withBehavior:';
     function decimalNumberByRaisingToPower(power: NSUInteger): NSDecimalNumber; message 'decimalNumberByRaisingToPower:';
-    function decimalNumberByRaisingToPower_withBehavior(power: NSUInteger; behavior: id): NSDecimalNumber; message 'decimalNumberByRaisingToPower:withBehavior:';
+    function decimalNumberByRaisingToPower_withBehavior(power: NSUInteger; behavior: NSDecimalNumberBehaviorsProtocol): NSDecimalNumber; message 'decimalNumberByRaisingToPower:withBehavior:';
     function decimalNumberByMultiplyingByPowerOf10(power: cshort): NSDecimalNumber; message 'decimalNumberByMultiplyingByPowerOf10:';
-    function decimalNumberByMultiplyingByPowerOf10_withBehavior(power: cshort; behavior: id): NSDecimalNumber; message 'decimalNumberByMultiplyingByPowerOf10:withBehavior:';
-    function decimalNumberByRoundingAccordingToBehavior(behavior: id): NSDecimalNumber; message 'decimalNumberByRoundingAccordingToBehavior:';
+    function decimalNumberByMultiplyingByPowerOf10_withBehavior(power: cshort; behavior: NSDecimalNumberBehaviorsProtocol): NSDecimalNumber; message 'decimalNumberByMultiplyingByPowerOf10:withBehavior:';
+    function decimalNumberByRoundingAccordingToBehavior(behavior: NSDecimalNumberBehaviorsProtocol): NSDecimalNumber; message 'decimalNumberByRoundingAccordingToBehavior:';
     function compare(decimalNumber: NSNumber): NSComparisonResult; message 'compare:';
-    class procedure setDefaultBehavior(behavior: id); message 'setDefaultBehavior:';
-    class function defaultBehavior: id; message 'defaultBehavior';
+    class procedure setDefaultBehavior(behavior: NSDecimalNumberBehaviorsProtocol); message 'setDefaultBehavior:';
+    class function defaultBehavior: NSDecimalNumberBehaviorsProtocol; message 'defaultBehavior';
     function objCType: PChar; message 'objCType';
     function doubleValue: double; message 'doubleValue';
   end;

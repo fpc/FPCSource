@@ -172,7 +172,8 @@ class ObjectivePParserBase {
 	// Categories to ignore
 	// NSURLLoading is deprecated in 10.4 and later, and causes problems
 	// when parsing the iPhoneOS foundation
-	var $ignore_categories = array("NSURLLoading");
+	var $ignore_categories = array("NSURLLoading",
+																	);
 	
 	// Methods to ignore
 	var $ignore_methods = array(	"observationInfo",
@@ -224,28 +225,31 @@ class ObjectivePParserBase {
 								);
 	
 		// These macros are used to suggest which version of a framework the symbol is available in	but removed to assist the parser			
-		var $version_macros = array(	"[[:space:]]*DEPRECATED_IN_.*_VERSION_[0-9]+_[0-9]+_AND_LATER[[:space:]]*",
-																	"[[:space:]]*AVAILABLE_.*_VERSION_[0-9]+_[0-9]+_AND_LATER_BUT_DEPRECATED_IN_.*_VERSION_[0-9]+_[0-9]+[[:space:]]*",
-																	"[[:space:]]*AVAILABLE_.*_VERSION_[0-9]+_[0-9]+_AND_LATER[[:space:]]*",
-																	"[[:space:]]*AVAILABLE_.*_VERSION_[0-9]+_[0-9]+[[:space:]]*",
+		var $version_macros = array(	"[[:space:]]*DEPRECATED_IN_[^(]*_VERSION_[0-9]+_[0-9]+_AND_LATER[[:space:]]*",
+																	"[[:space:]]*AVAILABLE_[^(]*_VERSION_[0-9]+_[0-9]+_AND_LATER_BUT_DEPRECATED_IN_[^(]*_VERSION_[0-9]+_[0-9]+[[:space:]]*",
+																	"[[:space:]]*AVAILABLE_[^(]*_VERSION_[0-9]+_[0-9]+_AND_LATER_BUT_DEPRECATED[[:space:]]*",
+																	"[[:space:]]*AVAILABLE_[^(]*_VERSION_[0-9]+_[0-9]+_AND_LATER[[:space:]]*",
+																	"[[:space:]]*AVAILABLE_[^(]*_VERSION_[0-9]+_[0-9]+[[:space:]]*",
 																	"[[:space:]]*.*_VERSION_MAX_ALLOWED[[:space:]]*",
-																	"[[:space:]]__OSX_AVAILABLE.*\([^)]+\)",
-																	"[[:space:]]*UIKIT_CLASS_AVAILABLE\(.*\)[[:space:]]*",
-																	"[[:space:]]*__OSX_AVAILABLE_STARTING\(.*\)[[:space:]]*",
+																	"[[:space:]]__OSX_AVAILABLE[^(]*\([^;)]+\)[[:space:]]*",
+																	"[[:space:]]*UIKIT_CLASS_AVAILABLE\([^;]*\)[[:space:]]*",
+																	"[[:space:]]*NS_AVAILABLE[^(]*\([^;]*\)[[:space:]]*",
+																	"[[:space:]]*NS_DEPRECATED[^(]*\([^;]*\)[[:space:]]*",
+																	"[[:space:]]WEBKIT_OBJC_METHOD_ANNOTATION\([^;]*\)[[:space:]]*",
 																	);
 								
 																		
 	/**
 	 * COMMON REGULAR EXPRESIONS
 	 */
-	var $regex_objc_method_params = "^(-|\+)[[:space:]]*\(([^)]*)\)[[:space:]]*([a-zA-Z0-9]+):(.*);";
-	var $regex_objc_method_no_params = "^(-|\+)[[:space:]]*\(([^)]*)\)[[:space:]]*([a-zA-Z0-9]+);";
-	var $regex_objc_method_partial = "^(-|\+)[[:space:]]*\(([^)]*)\)[[:space:]]*([a-zA-Z0-9]+):(.*)";
-	var $regex_objc_method_terminate = "(.*);[[:space:]]*$";
+	var $pregex_objc_method_params = "!^(-|\+)\s*\(([^)]*)\)\s*(\w+):([^;]*)\s*[^:;]*;!";
+	var $pregex_objc_method_no_params = "!^(-|\+)\s*\(([^)]*)\)\s*(\w+)\s*[^:;]*;!";
+	var $pregex_objc_method_partial = "!^(-|\+)\s*\(([^)]*)\)\s*(\w+):([^;]*)!";
+	var $pregex_objc_method_terminate = "!([^;]*);\s*$!";
 	var $regex_objc_category = "^@interface ([a-zA-Z]+)[[:space:]]*\(([a-zA-Z]+)\)";
-	var $regex_objc_class = "^@interface ([a-zA-Z]+)[[:space:]]*:[[:space:]]*([a-zA-Z]+)[[:space:]]*(<(.*)>)*";
+	var $regex_objc_class = "^@interface ([a-zA-Z]+)[[:space:]]*:[[:space:]]*([a-zA-Z0-9_]+)[[:space:]]*(<(.*)>)*";
 	var $regex_objc_class_no_super = "^@interface ([a-zA-Z]+)[[:space:]]*<(.*)>[[:space:]]*";
-	var $regex_objc_protocol = "^@protocol ([a-zA-Z]+)";
+	var $regex_objc_protocol = "^@protocol ([a-zA-Z0-9_]+)";
 	var $regex_procedure_type = "^[[:space:]]*(void|IBAction)+[[:space:]]*$";
 	var $regex_scope_compiler_directive = "^\s*@(private|protected|public)(;*)+\s*$";
 	var $regex_objc_property_attributes = "^@property[[:space:]]*\(([^)]*)\)[[:space:]]*([a-zA-Z_0-9]+)[[:space:]]*(\*)*[[:space:]]*(.*);";

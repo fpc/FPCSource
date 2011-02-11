@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAlert.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -110,8 +110,8 @@ type
     function helpAnchor: NSString; message 'helpAnchor';
     procedure setAlertStyle(style: NSAlertStyle); message 'setAlertStyle:';
     function alertStyle: NSAlertStyle; message 'alertStyle';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(delegate_: NSAlertDelegateProtocol); message 'setDelegate:';
+    function delegate: NSAlertDelegateProtocol; message 'delegate';
     procedure setShowsSuppressionButton(flag: Boolean); message 'setShowsSuppressionButton:';
     function showsSuppressionButton: Boolean; message 'showsSuppressionButton';
     function suppressionButton: NSButton; message 'suppressionButton';

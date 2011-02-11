@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMEventTarget.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:20 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -40,11 +40,11 @@
   
 { DOMEventTarget Protocol }
   DOMEventTargetProtocol = objcprotocol external name 'DOMEventTarget'
-    procedure addEventListener_listener_useCapture(type_: NSString; listener: id; useCapture: Boolean); message 'addEventListener:listener:useCapture:';
-    procedure removeEventListener_listener_useCapture(type_: NSString; listener: id; useCapture: Boolean); message 'removeEventListener:listener:useCapture:';
+    procedure addEventListener_listener_useCapture(type_: NSString; listener: DOMEventListenerProtocol; useCapture: Boolean); message 'addEventListener:listener:useCapture:';
+    procedure removeEventListener_listener_useCapture(type_: NSString; listener: DOMEventListenerProtocol; useCapture: Boolean); message 'removeEventListener:listener:useCapture:';
     function dispatchEvent(event: DOMEvent): Boolean; message 'dispatchEvent:';
-    procedure addEventListener(type_: NSString; listener: id; useCapture: Boolean); message 'addEventListener:type:listener:';
-    procedure removeEventListener(type_: NSString; listener: id; useCapture: Boolean); message 'removeEventListener:type:listener:';
+    procedure addEventListener(type_: NSString; listener: DOMEventListenerProtocol; useCapture: Boolean); message 'addEventListener:type:listener:'; deprecated 'in_webkit_version_3 and later';
+    procedure removeEventListener(type_: NSString; listener: DOMEventListenerProtocol; useCapture: Boolean); message 'removeEventListener:type:listener:'; deprecated 'in_webkit_version_3 and later';
   end;
 {$endif}
 {$endif}

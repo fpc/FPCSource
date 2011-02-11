@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMatrix.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -231,8 +231,8 @@ __MFlagsPtr = ^__MFlags;
     function performKeyEquivalent(theEvent: NSEvent): Boolean; message 'performKeyEquivalent:';
     function sendAction: Boolean; message 'sendAction';
     procedure sendDoubleAction; message 'sendDoubleAction';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
+    function delegate: NSMatrixDelegateProtocol; message 'delegate';
+    procedure setDelegate(anObject: NSMatrixDelegateProtocol); message 'setDelegate:';
     function textShouldBeginEditing(textObject: NSText): Boolean; message 'textShouldBeginEditing:';
     function textShouldEndEditing(textObject: NSText): Boolean; message 'textShouldEndEditing:';
     procedure textDidBeginEditing(notification: NSNotification); message 'textDidBeginEditing:';
@@ -246,7 +246,7 @@ __MFlagsPtr = ^__MFlags;
     function toolTipForCell(cell_: NSCell): NSString; message 'toolTipForCell:';
 
     { Adopted Protocols }
-    function validateUserInterfaceItem(anItem: id): Boolean;
+    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): Boolean;
   end;
 
 { NSKeyboardUI_NSMatrixCategory }

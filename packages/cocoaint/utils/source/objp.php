@@ -411,21 +411,22 @@ class ObjectivePParser extends ObjectivePParserBase {
 		// replace inout paramaters
 		$type = istr_replace_word("inout", "", $type);
 		$type = istr_replace_word("out", "", $type);
-		$type_clean = trim($type, "* ");
+		
+		// Translate protocol which type conforms to (id <NSURLHandleClient>)
+		$type = preg_replace("!id\s*<([^,>]*)>!", "$1Protocol", $type);
+		// Remove other protocol types
+		$type = trim(eregi_replace("<[^>]*>", "", $type));
 		
 		// Replace types before cleaning
 		$type = $this->ReplaceObjcType($type);
 		
-		// Remove protocol which type conforms to (id <NSURLHandleClient>)
-		$type = eregi_replace("<.*>", "", $type);
-		
 		// Remove array brackets (NSUInteger[])p
-		$type = eregi_replace("\[[0-9]*\]", "", $type);
+		$type = trim(eregi_replace("\[[0-9]*\]", "", $type));
 		
 		// var params to non-object types (NSRange *)
 		if (ereg("([a-zA-Z0-9_]+)[[:space:]]*[*]+$", $type, $captures)) { 
 			if (!in_array($captures[1], $this->cocoa_classes)) {
-				$type = $this->ReplaceReferenceParameterType($type_clean);
+				$type = $this->ReplaceReferenceParameterType(trim($type,"* "));
 				//$modifiers = "var ";
 			}
 		} 
@@ -433,7 +434,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 		// Handle NS*** pointers (NSError **)
 		if (ereg("(NS[a-zA-Z0-9_]+)[[:space:]]*\*\*$", $type, $captures)) { 
 			if (in_array($captures[1], $this->cocoa_classes)) {
-				$type = "$type_clean$this->class_pointer_suffix";
+				$type = trim($type,"* ")."$this->class_pointer_suffix";
 			}
 		}
 		
@@ -986,6 +987,9 @@ class ObjectivePParser extends ObjectivePParserBase {
 			$params_with_modifiers = str_replace_word("SEL", $this->sel_string, $params_with_modifiers);
 		}
 
+	  // detect blocks (not yet supported)
+		$has_blocks = strpos("$return_type $params_with_modifiers","^");
+
 		// make method templates
 		if ($kind != "function") {
 			if ($variable_arguments) $modifier .= " varargs;";
@@ -1024,6 +1028,8 @@ class ObjectivePParser extends ObjectivePParserBase {
 		$struct["class"] = $class;
 		$struct["name"] = $name;
 		$struct["kind"] = $kind;
+		if ($has_blocks === false) $struct["blocks_disable_comment"] = "";
+		else $struct["blocks_disable_comment"] = "// ";
 
 		if ($struct["param_array"] != null) $struct["has_params"] = true;
 
@@ -1411,7 +1417,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 		if ($class["methods"]) {
 			foreach ($class["methods"] as $method) {
 				if ($method["comment"]) $this->PrintOutput(2, $method["comment"]);
-				$this->PrintOutput(2, $method["def"]." message '".$method["objc_method"]."';".$method["deprecated"]);
+				$this->PrintOutput(2, $method["blocks_disable_comment"].$method["def"]." message '".$method["objc_method"]."';".$method["deprecated"]);
 			}
 		}
 		
@@ -1424,7 +1430,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 			foreach ($class["protocols"] as $name) {
 				if ($this->dump["protocols"][$name]) {
 					foreach ($this->dump["protocols"][$name] as $method) {
-						if (!$this->ClassContainsMethod($class, $method)) $this->PrintOutput(2, $method["def"]);
+						if (!$this->ClassContainsMethod($class, $method)) $this->PrintOutput(2, $method["blocks_disable_comment"].$method["def"]);
 					}
 				}
 			}
@@ -1453,7 +1459,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 		if ($category["methods"]) {
 			foreach ($category["methods"] as $method) {
 				if ($method["comment"]) $this->PrintOutput(2, $method["comment"]);
-				$this->PrintOutput(2, $method["def"]." message '".$method["objc_method"]."';".$method["deprecated"]);
+				$this->PrintOutput(2, $method["blocks_disable_comment"].$method["def"]." message '".$method["objc_method"]."';".$method["deprecated"]);
 			}
 		} 
 
@@ -1593,7 +1599,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 				if ($protocol["methods"]) {
 					foreach ($protocol["methods"] as $name => $method) {
 						if ($method["comment"]) $this->PrintOutput(2, $method["comment"]);
-						$this->PrintOutput(2, $method["def"]." message '".$method["objc_method"]."';".$method["deprecated"]);
+						$this->PrintOutput(2, $method["blocks_disable_comment"].$method["def"]." message '".$method["objc_method"]."';".$method["deprecated"]);
 					}
 				}
 				
@@ -1771,7 +1777,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 					if (count($class["methods"]) > 0) {
 						$this->PrintOutput(0, "");
 						foreach ($class["methods"] as $method) {
-							$this->PrintOutput(2, $method["def"]);
+							$this->PrintOutput(2, $method["blocks_disable_comment"].$method["def"]);
 						}
 					}
 
@@ -1783,7 +1789,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 
 							if ($category["methods"]) {
 								foreach ($category["methods"] as $method) {
-									$this->PrintOutput(2, $method["def"]);
+									$this->PrintOutput(2, $method["blocks_disable_comment"].$method["def"]);
 								}
 							}	
 						}
@@ -2046,18 +2052,18 @@ class ObjectivePParser extends ObjectivePParserBase {
 					if ($method_fragment) $method_fragment .= " ".trim($line, " 	");
 					
 					// found method fragment termination
-					if (($method_fragment) && (eregi($this->regex_objc_method_terminate, $line))) {
+					if (($method_fragment) && (preg_match($this->pregex_objc_method_terminate, $line))) {
 						$line = $method_fragment;
 						$method_fragment = null;
 					}
 					
 					// found method
 					$method = null;
-					if (eregi($this->regex_objc_method_params, $line, $captures)) {
+					if (preg_match($this->pregex_objc_method_params, $line, $captures)) {
 						$method = $this->ConvertObjcMethodToPascal($current_category, $line, $captures, array(), true, "");						
-					} elseif (eregi($this->regex_objc_method_no_params, $line, $captures)) {
+					} elseif (preg_match($this->pregex_objc_method_no_params, $line, $captures)) {
 						$method = $this->ConvertObjcMethodToPascal($current_category, $line, $captures, array(), false, "");	
-					} elseif (eregi($this->regex_objc_method_partial, $line, $captures)) {
+					} elseif (preg_match($this->pregex_objc_method_partial, $line, $captures)) {
 						$method_fragment = $line;
 					}
 					
@@ -2101,19 +2107,19 @@ class ObjectivePParser extends ObjectivePParserBase {
 			if ($method_fragment) $method_fragment .= " ".trim($line, " 	");
 			
 			// found method fragment termination
-			if (($method_fragment) && (eregi($this->regex_objc_method_terminate, $line))) {
+			if (($method_fragment) && (preg_match($this->pregex_objc_method_terminate, $line))) {
 				$line = $method_fragment;
 				$method_fragment = null;
 			}
 			
 			// found method
-			if (eregi($this->regex_objc_method_params, $line, $captures)) {
+			if (preg_match($this->pregex_objc_method_params, $line, $captures)) {
 				$method = $this->ConvertObjcMethodToPascal($current, $line, $captures, $protected_keywords, true, "");
 				$this->current_class["protected_keywords"][] = strtolower($method["name"]);
-			} elseif (eregi($this->regex_objc_method_no_params, $line, $captures)) {
+			} elseif (preg_match($this->pregex_objc_method_no_params, $line, $captures)) {
 				$method = $this->ConvertObjcMethodToPascal($current, $line, $captures, $protected_keywords, false, "");
 				$this->current_class["protected_keywords"][] = strtolower($method["name"]);
-			} elseif (eregi($this->regex_objc_method_partial, $line, $captures)) {
+			} elseif (preg_match($this->pregex_objc_method_partial, $line, $captures)) {
 				$method_fragment = $line;
 			}
 			
@@ -2127,7 +2133,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 	 */
 	
 	function ParseNormalField($line, $protected_keywords, &$field_bitpacked, &$bitpacked_real_type, &$this_class_field_names) {
-		if (preg_match("!^\s*([^-{}*@+,<;:]*struct[^-*@+,<;:]+|[^-{}*@+,<;:]+)\b\s*(?:<([^>]*)>)?([*]*)\s*(\w+)((?:\s*,\s*[^:;[]+)*)?\s*(:[0-9]+)?\s*(\[.*\])?\s*(?:__attribute__\(\(([^)]*)\)\))?\s*;!", $line, $captures)) { // regular field
+		if (preg_match("!^\s*([^-{}*@+,<;:]*struct[^-*@+,<;:]+|[^-{}*@+,<;:]+)\b\s*(?:<([^>]*)>)?\s*([*]*)\s*(\w+)((?:\s*,\s*[^:;[]+)*)?\s*(:[0-9]+)?\s*(\[.*\])?\s*(?:__attribute__\(\(([^)]*)\)\))?\s*;!", $line, $captures)) { // regular field
 					// captures[1]: type name (may be multiple words, and may not be complete
 					//              in case of an anonymous bitfield without a name)
 					//              Curly braces are only allowed in case of structs
@@ -2920,11 +2926,11 @@ class ObjectivePParser extends ObjectivePParserBase {
 					
 					// found method
 					$method = null;
-					if (eregi($this->regex_objc_method_params, $line, $captures)) {
+					if (preg_match($this->pregex_objc_method_params, $line, $captures)) {
 						$method = $this->ConvertObjcMethodToPascal($current_protocol, $line, $captures, array(), true, $deprecatedmods);	
-					} elseif (eregi($this->regex_objc_method_no_params, $line, $captures)) {
+					} elseif (preg_match($this->pregex_objc_method_no_params, $line, $captures)) {
 						$method = $this->ConvertObjcMethodToPascal($current_protocol, $line, $captures, array(), false, $deprecatedmods);
-					} elseif (eregi($this->regex_objc_method_partial, $line, $captures)) {
+					} elseif (preg_match($this->pregex_objc_method_partial, $line, $captures)) {
 						$method_fragment = $line;
 					}
 
@@ -3021,18 +3027,18 @@ class ObjectivePParser extends ObjectivePParserBase {
 					if ($method_fragment) $method_fragment .= " ".trim($line);
 					
 					// found method fragment termination
-					if (($method_fragment) && (eregi($this->regex_objc_method_terminate, $line))) {
+					if (($method_fragment) && (preg_match($this->pregex_objc_method_terminate, $line))) {
 						$line = $method_fragment;
 						$method_fragment = null;
 					}
 					
 					// found method
 					$method = null;
-					if (eregi($this->regex_objc_method_params, $line, $captures)) {
+					if (preg_match($this->pregex_objc_method_params, $line, $captures)) {
 						$method = $this->ConvertObjcMethodToPascal($current_category, $line, $captures, $this->GetProtectedKeywords($this->current_class), true, $deprecatedmods);						
-					} elseif (eregi($this->regex_objc_method_no_params, $line, $captures)) {
+					} elseif (preg_match($this->pregex_objc_method_no_params, $line, $captures)) {
 						$method = $this->ConvertObjcMethodToPascal($current_category, $line, $captures, $this->GetProtectedKeywords($this->current_class), false, $deprecatedmods);	
-					} elseif (eregi($this->regex_objc_method_partial, $line, $captures)) {
+					} elseif (preg_match($this->pregex_objc_method_partial, $line, $captures)) {
 						$method_fragment = $line;
 					}
 					
@@ -3098,7 +3104,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 
 		// property has attributes
 		if (count($parts) == 5) {
-			$property["parameters"] = explode(",", $parts[1]);
+			$property["parameters"] = preg_split("/\s*,\s*/", $parts[1]);
 			$attributes = $parts[1];
 			$type = $parts[2];
 			$pointertype = $parts[3];
@@ -3317,26 +3323,26 @@ class ObjectivePParser extends ObjectivePParserBase {
 					if ($method_fragment) $method_fragment .= " ".trim($line, " 	");
 					
 					// found method fragment termination
-					if (($method_fragment) && (eregi($this->regex_objc_method_terminate, $line))) {
+					if (($method_fragment) && (preg_match($this->pregex_objc_method_terminate, $line))) {
 						$line = $method_fragment;
 						$method_fragment = null;
 					}
 					
 					// found method
-					if (eregi($this->regex_objc_method_params, $line, $captures)) {
+					if (preg_match($this->pregex_objc_method_params, $line, $captures)) {
 						$method = $this->ConvertObjcMethodToPascal($current, $line, $captures, $this->GetProtectedKeywords($this->current_class), true, $deprecatedmods);						
 						if ($this->AddMethodToClass($method, $this->dump[$file_name]["classes"][$current])) {
 							//if ($this->comment_terminated) $method["comment"] = $this->InsertCurrentComment();
 							$this->dump[$file_name]["classes"][$current]["methods"][] = $method;
 						}
 						
-					} elseif (eregi($this->regex_objc_method_no_params, $line, $captures)) {
+					} elseif (preg_match($this->pregex_objc_method_no_params, $line, $captures)) {
 						$method = $this->ConvertObjcMethodToPascal($current, $line, $captures, $this->GetProtectedKeywords($this->current_class), false, $deprecatedmods);
 						if ($this->AddMethodToClass($method, $this->dump[$file_name]["classes"][$current])) {
 							//if ($this->comment_terminated) $method["comment"] = $this->InsertCurrentComment();
 							$this->dump[$file_name]["classes"][$current]["methods"][] = $method;
 						}
-					} elseif (eregi($this->regex_objc_method_partial, $line, $captures)) {
+					} elseif (preg_match($this->pregex_objc_method_partial, $line, $captures)) {
 						$method_fragment = $line;
 					}
 									
@@ -3554,6 +3560,8 @@ class ObjectivePParser extends ObjectivePParserBase {
 			
 			// remove external class macros
 			$line = eregi_replace("^[A-Z0-9]+_EXTERN_CLASS[[:space:]]+", "", $line);
+			// remove version macro's (some can appear before a class)
+			$line = $this->RemoveVersionMacros($line, $dummy_deprecated_mods);
 			
 			// classes
 			if (eregi($this->regex_objc_class, $line, $captures)) {

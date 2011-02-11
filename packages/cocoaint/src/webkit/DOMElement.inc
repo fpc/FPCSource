@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMElement.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:19 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -97,13 +97,13 @@
 
 { DOMElementDeprecatedCategory }
   DOMElementDeprecatedCategory = objccategory external (DOMElement)
-    procedure setAttribute(name: NSString; value: NSString); message 'setAttribute:name:';
-    function getAttributeNS(namespaceURI_: NSString; localName_: NSString): NSString; message 'getAttributeNS:namespaceURI:';
-    procedure setAttributeNS(namespaceURI_: NSString; qualifiedName: NSString; value: NSString); message 'setAttributeNS:namespaceURI:qualifiedName:';
-    procedure removeAttributeNS(namespaceURI_: NSString; localName_: NSString); message 'removeAttributeNS:namespaceURI:';
-    function getElementsByTagNameNS(namespaceURI_: NSString; localName_: NSString): DOMNodeList; message 'getElementsByTagNameNS:namespaceURI:';
-    function getAttributeNodeNS(namespaceURI_: NSString; localName_: NSString): DOMAttr; message 'getAttributeNodeNS:namespaceURI:';
-    function hasAttributeNS(namespaceURI_: NSString; localName_: NSString): Boolean; message 'hasAttributeNS:namespaceURI:';
+    procedure setAttribute(name: NSString; value: NSString); message 'setAttribute:name:'; deprecated 'in_webkit_version_3 and later';
+    function getAttributeNS(namespaceURI_: NSString; localName_: NSString): NSString; message 'getAttributeNS:namespaceURI:'; deprecated 'in_webkit_version_3 and later';
+    procedure setAttributeNS(namespaceURI_: NSString; qualifiedName: NSString; value: NSString); message 'setAttributeNS:namespaceURI:qualifiedName:'; deprecated 'in_webkit_version_3 and later';
+    procedure removeAttributeNS(namespaceURI_: NSString; localName_: NSString); message 'removeAttributeNS:namespaceURI:'; deprecated 'in_webkit_version_3 and later';
+    function getElementsByTagNameNS(namespaceURI_: NSString; localName_: NSString): DOMNodeList; message 'getElementsByTagNameNS:namespaceURI:'; deprecated 'in_webkit_version_3 and later';
+    function getAttributeNodeNS(namespaceURI_: NSString; localName_: NSString): DOMAttr; message 'getAttributeNodeNS:namespaceURI:'; deprecated 'in_webkit_version_3 and later';
+    function hasAttributeNS(namespaceURI_: NSString; localName_: NSString): Boolean; message 'hasAttributeNS:namespaceURI:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

@@ -3,6 +3,7 @@
 {$include WebScriptObject.inc}
 {$include DOMObject.inc}
 {$include DOMNode.inc}
+{$include DOMBlob.inc}
 
 {$include DOMCharacterData.inc}
 {$include DOMText.inc}

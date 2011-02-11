@@ -19,12 +19,16 @@
 	// converts "STR_XX_YY_ZZ" to "Str Xx Yy Zz"
 	function DeprecatedMacroToDirective($str) {
 		// AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 etc
-		if (preg_match("!DEPRECATED_(IN_.*VERSION_.*)_AND_LATER!", $str, $matches)) {
+		if (preg_match("!DEPRECATED_(IN_.*VERSION_[0-9]*(?:_[0-9]*)?)!", $str, $matches)) {
 			$str = strtolower($matches[1]);
 			// cleanup
 			$str = preg_replace("!in_mac_os_x_version_!", "in Mac OS X ", $str);
 			$str = preg_replace("!([0-9])_([0-9])!e", '\1.\2', $str);
 			return " deprecated '" . $str . " and later'";
+		// AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED
+		} elseif (preg_match("!MAC_OS_X_VERSION_([0-9]*(?:_[0-9]*)?)(?:_AND_LATER)?_BUT_DEPRECATED!", $str, $matches)) {
+			$str = preg_replace("!_!", ".", $matches[1]);
+			return " deprecated 'in Mac OS X " . $str . " and later'";
 		// NS_DEPRECATED(__MAC_10_1,__MAC_10_6,__IPHONE_NA,__IPHONE_NA),
 		// __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_1,__MAC_10_6,__IPHONE_NA,__IPHONE_NA,
 		// NS_DEPRECATED_IPHONE(__IPHONE_2_0,__IPHONE_2_0),

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDocumentController.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -70,7 +70,7 @@
     function makeDocumentWithContentsOfURL_ofType_error(absoluteURL: NSURL; typeName: NSString; outError: NSErrorPointer): id; message 'makeDocumentWithContentsOfURL:ofType:error:';
     function reopenDocumentForURL_withContentsOfURL_error(absoluteDocumentURL: NSURL; absoluteDocumentContentsURL: NSURL; outError: NSErrorPointer): Boolean; message 'reopenDocumentForURL:withContentsOfURL:error:';
     function makeDocumentForURL_withContentsOfURL_ofType_error(absoluteDocumentURL: NSURL; absoluteDocumentContentsURL: NSURL; typeName: NSString; outError: NSErrorPointer): id; message 'makeDocumentForURL:withContentsOfURL:ofType:error:';
-    procedure setAutosavingDelay(autosavingDelay: NSTimeInterval); message 'setAutosavingDelay:';
+    procedure setAutosavingDelay(autosavingDelay_: NSTimeInterval); message 'setAutosavingDelay:';
     function autosavingDelay: NSTimeInterval; message 'autosavingDelay';
     procedure saveAllDocuments(sender: id); message 'saveAllDocuments:';
     function hasEditedDocuments: Boolean; message 'hasEditedDocuments';
@@ -89,7 +89,7 @@
     function documentClassNames: NSArray; message 'documentClassNames';
     function documentClassForType(typeName: NSString): Pobjc_class; message 'documentClassForType:';
     function displayNameForType(typeName: NSString): NSString; message 'displayNameForType:';
-    function validateUserInterfaceItem(anItem: id): Boolean; message 'validateUserInterfaceItem:';
+    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): Boolean; message 'validateUserInterfaceItem:';
 
     { Adopted Protocols }
     procedure encodeWithCoder(aCoder: NSCoder);

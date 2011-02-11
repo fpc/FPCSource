@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSKeyedArchiver.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -76,8 +76,8 @@ var
     class function archivedDataWithRootObject(rootObject: id): NSData; message 'archivedDataWithRootObject:';
     class function archiveRootObject_toFile(rootObject: id; path: NSString): Boolean; message 'archiveRootObject:toFile:';
     function initForWritingWithMutableData(data: NSMutableData): id; message 'initForWritingWithMutableData:';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(delegate_: NSKeyedArchiverDelegateProtocol); message 'setDelegate:';
+    function delegate: NSKeyedArchiverDelegateProtocol; message 'delegate';
     procedure setOutputFormat(format: NSPropertyListFormat); message 'setOutputFormat:';
     function outputFormat: NSPropertyListFormat; message 'outputFormat';
     procedure finishEncoding; message 'finishEncoding';
@@ -118,8 +118,8 @@ var
     class function unarchiveObjectWithData(data: NSData): id; message 'unarchiveObjectWithData:';
     class function unarchiveObjectWithFile(path: NSString): id; message 'unarchiveObjectWithFile:';
     function initForReadingWithData(data: NSData): id; message 'initForReadingWithData:';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(delegate_: NSKeyedUnarchiverDelegateProtocol); message 'setDelegate:';
+    function delegate: NSKeyedUnarchiverDelegateProtocol; message 'delegate';
     procedure finishDecoding; message 'finishDecoding';
     class procedure setClass_forClassName(cls: Pobjc_class; codedName: NSString); message 'setClass:forClassName:';
     class function classForClassName(codedName: NSString): Pobjc_class; message 'classForClassName:';

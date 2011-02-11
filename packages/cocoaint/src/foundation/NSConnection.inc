@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSConnection.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -108,8 +108,8 @@ var
     procedure setRootObject(anObject: id); message 'setRootObject:';
     function rootObject: id; message 'rootObject';
     function rootProxy: NSDistantObject; message 'rootProxy';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: NSConnectionDelegateProtocol); message 'setDelegate:';
+    function delegate: NSConnectionDelegateProtocol; message 'delegate';
     procedure setIndependentConversationQueueing(yorn: Boolean); message 'setIndependentConversationQueueing:';
     function independentConversationQueueing: Boolean; message 'independentConversationQueueing';
     function isValid: Boolean; message 'isValid';

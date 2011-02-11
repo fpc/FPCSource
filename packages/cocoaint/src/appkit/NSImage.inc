@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSImage.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -201,9 +201,9 @@ var
     procedure lockFocus; message 'lockFocus';
     procedure lockFocusFlipped(flipped: Boolean); message 'lockFocusFlipped:';
     procedure unlockFocus; message 'unlockFocus';
-    function bestRepresentationForDevice(deviceDescription: NSDictionary): NSImageRep; message 'bestRepresentationForDevice:';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    function bestRepresentationForDevice(deviceDescription: NSDictionary): NSImageRep; message 'bestRepresentationForDevice:'; deprecated 'in Mac OS X 10.6 and later';
+    procedure setDelegate(anObject: NSImageDelegateProtocol); message 'setDelegate:';
+    function delegate: NSImageDelegateProtocol; message 'delegate';
     class function imageUnfilteredFileTypes: NSArray; message 'imageUnfilteredFileTypes';
     class function imageUnfilteredPasteboardTypes: NSArray; message 'imageUnfilteredPasteboardTypes';
     class function imageFileTypes: NSArray; message 'imageFileTypes';

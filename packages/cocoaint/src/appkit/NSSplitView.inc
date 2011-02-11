@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSplitView.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -71,8 +71,8 @@ var
     function dividerStyle: NSSplitViewDividerStyle; message 'dividerStyle';
     procedure setAutosaveName(autosaveName_: NSString); message 'setAutosaveName:';
     function autosaveName: NSString; message 'autosaveName';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(delegate_: NSSplitViewDelegateProtocol); message 'setDelegate:';
+    function delegate: NSSplitViewDelegateProtocol; message 'delegate';
     procedure drawDividerInRect(rect: NSRect); message 'drawDividerInRect:';
     function dividerColor: NSColor; message 'dividerColor';
     function dividerThickness: CGFloat; message 'dividerThickness';

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSMetadata.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -72,8 +72,8 @@ var
     
   public
     function init: id; message 'init';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
+    function delegate: NSMetadataQueryDelegateProtocol; message 'delegate';
+    procedure setDelegate(delegate_: NSMetadataQueryDelegateProtocol); message 'setDelegate:';
     function predicate: NSPredicate; message 'predicate';
     procedure setPredicate(predicate_: NSPredicate); message 'setPredicate:';
     function sortDescriptors: NSArray; message 'sortDescriptors';

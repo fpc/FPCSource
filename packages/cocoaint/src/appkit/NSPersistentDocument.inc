@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPersistentDocument.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -65,7 +65,7 @@
 
 { NSDeprecated_NSPersistentDocumentCategory }
   NSDeprecated_NSPersistentDocumentCategory = objccategory external name 'NSDeprecated' (NSPersistentDocument)
-    function configurePersistentStoreCoordinatorForURL_ofType_error(url: NSURL; fileType_: NSString; error: NSErrorPointer): Boolean; message 'configurePersistentStoreCoordinatorForURL:ofType:error:';
+    function configurePersistentStoreCoordinatorForURL_ofType_error(url: NSURL; fileType_: NSString; error: NSErrorPointer): Boolean; message 'configurePersistentStoreCoordinatorForURL:ofType:error:'; deprecated 'in Mac OS X 10.5 and later';
   end;
 
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSCell.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -273,7 +273,7 @@ var
     procedure setFormatter(newFormatter: NSFormatter); message 'setFormatter:';
     function formatter: id; message 'formatter';
     function objectValue: id; message 'objectValue';
-    procedure setObjectValue(obj: id); message 'setObjectValue:';
+    procedure setObjectValue(obj: NSCopyingProtocol); message 'setObjectValue:';
     function hasValidObjectValue: Boolean; message 'hasValidObjectValue';
     function stringValue: NSString; message 'stringValue';
     procedure setStringValue(aString: NSString); message 'setStringValue:';

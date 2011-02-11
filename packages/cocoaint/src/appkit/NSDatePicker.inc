@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDatePicker.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -75,8 +75,8 @@
     procedure setMinDate(date: NSDate); message 'setMinDate:';
     function maxDate: NSDate; message 'maxDate';
     procedure setMaxDate(date: NSDate); message 'setMaxDate:';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
+    function delegate: NSDatePickerCellDelegateProtocol; message 'delegate';
+    procedure setDelegate(anObject: NSDatePickerCellDelegateProtocol); message 'setDelegate:';
   end;
 
 {$endif}

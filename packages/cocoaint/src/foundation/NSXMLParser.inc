@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSXMLParser.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
+{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
 
 
 {$ifdef TYPES}
@@ -160,8 +160,8 @@ var
   public
     function initWithContentsOfURL(url: NSURL): id; message 'initWithContentsOfURL:';
     function initWithData(data: NSData): id; message 'initWithData:';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
+    function delegate: NSXMLParserDelegateProtocol; message 'delegate';
+    procedure setDelegate(delegate_: NSXMLParserDelegateProtocol); message 'setDelegate:';
     procedure setShouldProcessNamespaces(shouldProcessNamespaces_: Boolean); message 'setShouldProcessNamespaces:';
     procedure setShouldReportNamespacePrefixes(shouldReportNamespacePrefixes_: Boolean); message 'setShouldReportNamespacePrefixes:';
     procedure setShouldResolveExternalEntities(shouldResolveExternalEntities_: Boolean); message 'setShouldResolveExternalEntities:';
