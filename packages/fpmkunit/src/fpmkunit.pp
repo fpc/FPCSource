@@ -1212,7 +1212,7 @@ var
         else
           sLine := sLine + ch;
 
-      until ConsoleOutput.Position = ConsoleOutput.Size;
+      until ConsoleOutput.Position >= BytesRead;
 
       ConsoleOutput.Position := BuffPos;
     end
