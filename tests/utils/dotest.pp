@@ -296,7 +296,7 @@ begin
   while (j>0) and (Hstr[j]<>'.') do
    dec(j);
   if j=0 then
-   j:=length(Hstr);
+   j:=length(Hstr)+1;
   if Ext<>'' then
    ForceExtension:=Copy(Hstr,1,j-1)+'.'+Ext
   else
