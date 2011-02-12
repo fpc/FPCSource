@@ -1402,6 +1402,7 @@ packages/cocoaint/src/webkit/CarbonUtils.inc svneol=native#text/plain
 packages/cocoaint/src/webkit/DOM.inc svneol=native#text/plain
 packages/cocoaint/src/webkit/DOMAbstractView.inc svneol=native#text/plain
 packages/cocoaint/src/webkit/DOMAttr.inc svneol=native#text/plain
+packages/cocoaint/src/webkit/DOMBlob.inc svneol=native#text/plain
 packages/cocoaint/src/webkit/DOMCDATASection.inc svneol=native#text/plain
 packages/cocoaint/src/webkit/DOMCSS.inc svneol=native#text/plain
 packages/cocoaint/src/webkit/DOMCSSCharsetRule.inc svneol=native#text/plain
