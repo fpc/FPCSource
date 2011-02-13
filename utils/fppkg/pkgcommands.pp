@@ -371,8 +371,13 @@ begin
   if assigned(MissingDependency) then
     Error(SErrNoPackageAvailable,[MissingDependency.PackageName,MissingDependency.MinVersion.AsString]);
   // Install needed updates
-  for i:=0 to L.Count-1 do
-    ExecuteAction(L[i],'install');
+  if L.Count > 0 then
+    begin
+      pkgglobals.Log(vlProgres,SProgrInstallDependencies);
+      for i:=0 to L.Count-1 do
+        ExecuteAction(L[i],'install');
+      pkgglobals.Log(vlProgres,SProgrDependenciesInstalled);
+    end;
   FreeAndNil(L);
   if FreeManifest then
     FreeAndNil(P);
@@ -389,7 +394,7 @@ begin
     FindBrokenPackages(SL);
     if SL.Count=0 then
       break;
-    pkgglobals.Log(vlProgres,SWarnReinstallDependent);
+    pkgglobals.Log(vlProgres,SProgrReinstallDependent);
     for i:=0 to SL.Count-1 do
       begin
         ExecuteAction(SL[i],'build');
