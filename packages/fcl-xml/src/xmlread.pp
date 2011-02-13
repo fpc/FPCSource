@@ -187,6 +187,8 @@ type
     FSystemID: WideString;
     FCharCount: Cardinal;
     FStartNesting: Integer;
+    FXMLVersion: TXMLVersion;
+    FXMLEncoding: WideString;
     function GetSystemID: WideString;
   protected
     function Reload: Boolean; virtual;
@@ -345,7 +347,7 @@ type
     procedure CallErrorHandler(E: EXMLReadError);
     function  FindOrCreateElDef: TElementDecl;
     function  SkipUntilSeq(const Delim: TSetOfChar; c1: WideChar; c2: WideChar = #0): Boolean;
-    procedure CheckMaxChars;
+    procedure CheckMaxChars(ToAdd: Cardinal);
     function AllocNodeData(AIndex: Integer): PNodeData;
     function AllocAttributeData(AName: PHashItem): PNodeData;
     function AllocAttributeValueChunk(APrev: PNodeData): PNodeData;
@@ -779,10 +781,7 @@ begin
     else if rslt < 0 then
       DecodingError('Invalid character in input stream')
     else
-    begin
-      Inc(FCharCount, rslt);
-      FReader.CheckMaxChars;
-    end;
+      FReader.CheckMaxChars(rslt);
   until False;
 
   FBufEnd^ := #0;
@@ -1102,11 +1101,12 @@ begin
   E.Free;
 end;
 
-procedure TXMLReader.CheckMaxChars;
+procedure TXMLReader.CheckMaxChars(ToAdd: Cardinal);
 var
   src: TXMLCharSource;
   total: Cardinal;
 begin
+  Inc(FSource.FCharCount, ToAdd);
   if FMaxChars = 0 then
     Exit;
   src := FSource;
@@ -1331,6 +1331,9 @@ begin
   FCursorStack[0] := doc;
   NSPrepare;
   Initialize(ASource);
+  if FSource.FXMLVersion <> xmlVersionUnknown then
+    TDOMTopNodeEx(TDOMNode(doc)).FXMLVersion := FSource.FXMLVersion;
+  TDOMTopNodeEx(TDOMNode(doc)).FXMLEncoding := FSource.FXMLEncoding;
   ParseContent;
 
   if FState < rsRoot then
@@ -1357,6 +1360,11 @@ begin
   // See comment in EntityCheck()
   if FDocType = nil then
     FDocType := TDOMDocumentTypeEx(doc.DocType);
+  if AOwner is TDOMEntity then
+  begin
+    TDOMTopNodeEx(AOwner).FXMLVersion := FSource.FXMLVersion;
+    TDOMTopNodeEx(AOwner).FXMLEncoding := FSource.FXMLEncoding;
+  end;
   ParseContent;
 end;
 
@@ -1751,8 +1759,7 @@ begin
     end;
   end;
   // at this point we know the charcount of the entity being included
-  Inc(FSource.FCharCount, Result.FCharCount - cnt);
-  CheckMaxChars;
+  CheckMaxChars(Result.FCharCount - cnt);
 end;
 
 procedure TXMLReader.StartPE;
@@ -1776,8 +1783,7 @@ begin
     FDTDProcessed := FStandalone;
     Exit;
   end;
-  Inc(FSource.FCharCount, PEnt.FCharCount);
-  CheckMaxChars;
+  CheckMaxChars(PEnt.FCharCount);
 
   PEnt.FBetweenDecls := not FInsideDecl;
   ContextPush(PEnt);
@@ -1953,18 +1959,11 @@ const
 
 procedure TXMLReader.ParseXmlOrTextDecl(TextDecl: Boolean);
 var
-  TmpStr: WideString;
-  Ver: TXMLVersion;
   Delim: WideChar;
   buf: array[0..31] of WideChar;
   I: Integer;
-  node: TDOMNode;
 begin
   SkipS(True);
-  if TextDecl then
-    node := TDOMNode(FSource.FEntity)
-  else
-    node := doc;
   // [24] VersionInfo: optional in TextDecl, required in XmlDecl
   if (not TextDecl) or (FSource.FBuf^ = 'v') then
   begin
@@ -1983,12 +1982,10 @@ begin
       FatalError('Illegal version number', -1);
 
     ExpectChar(Delim);
-    Ver := vers[buf[2] = '1'];
+    FSource.FXMLVersion := vers[buf[2] = '1'];
 
-    if TextDecl and (Ver = xmlVersion11) and not FXML11 then
+    if TextDecl and (FSource.FXMLVersion = xmlVersion11) and not FXML11 then
       FatalError('XML 1.0 document cannot invoke XML 1.1 entities', -1);
-    if Assigned(node) then  { it is nil for external DTD subset }
-      TDOMTopNodeEx(node).FXMLVersion := Ver;
 
     if TextDecl or (FSource.FBuf^ <> '?') then
       SkipS(True);
@@ -2012,13 +2009,9 @@ begin
     if not CheckForChar(Delim) then
       FatalError('Illegal encoding name', i);
 
-    SetString(TmpStr, buf, i);
-    if not FSource.SetEncoding(TmpStr) then  // <-- Wide2Ansi conversion here
-      FatalError('Encoding ''%s'' is not supported', [TmpStr], i+1);
-    // getting here means that specified encoding is supported
-    // TODO: maybe assign the 'preferred' encoding name?
-    if Assigned(node) then
-      TDOMTopNodeEx(node).FXMLEncoding := TmpStr;
+    SetString(FSource.FXMLEncoding, buf, i);
+    if not FSource.SetEncoding(FSource.FXMLEncoding) then  // <-- Wide2Ansi conversion here
+      FatalError('Encoding ''%s'' is not supported', [FSource.FXMLEncoding], i+1);
 
     if FSource.FBuf^ <> '?' then
       SkipS(not TextDecl);
@@ -2041,7 +2034,7 @@ begin
   ExpectString('?>');
   { Switch to 1.1 rules only after declaration is parsed completely. This is to
     ensure that NEL and LSEP within declaration are rejected (rmt-056, rmt-057) }
-  if Ver = xmlVersion11 then
+  if FSource.FXMLVersion = xmlVersion11 then
     FXML11 := True;
 end;
 
