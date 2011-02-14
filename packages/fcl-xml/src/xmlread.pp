@@ -151,7 +151,6 @@ const
     '#', '@', '$', '_', '%'];
 
 type
-  TDOMNotationEx = class(TDOMNotation);
   TDOMDocumentTypeEx = class(TDOMDocumentType);
   TDOMTopNodeEx = class(TDOMNode_TopLevel);
 
@@ -159,18 +158,7 @@ type
 
   TLocation = xmlutils.TLocation;
 
-  TDOMEntityEx = class(TDOMEntity)
-  protected
-    FExternallyDeclared: Boolean;
-    FPrefetched: Boolean;
-    FResolved: Boolean;
-    FOnStack: Boolean;
-    FBetweenDecls: Boolean;
-    FIsPE: Boolean;
-    FReplacementText: DOMString;
-    FStartLocation: TLocation;
-    FCharCount: Cardinal;
-  end;
+  TDOMEntityEx = class(TDOMEntity);
 
   TXMLReader = class;
 
@@ -180,7 +168,7 @@ type
     FBufEnd: PWideChar;
     FReader: TXMLReader;
     FParent: TXMLCharSource;
-    FEntity: TObject;   // weak reference
+    FEntity: TEntityDecl;
     FLineNo: Integer;
     LFPos: PWideChar;
     FXML11Rules: Boolean;
@@ -294,20 +282,18 @@ type
     FTokenStart: TLocation;
     FStandalone: Boolean;          // property of Doc ?
     FNamePages: PByteArray;
-    FDocType: TDOMDocumentTypeEx;  // a shortcut
+    FDocType: TDTDModel;
     FPEMap: THashTable;
-    FGEMap: THashTable;
     FForwardRefs: TFPList;
     FCurrContentType: TElementContentType;
     FSaViolation: Boolean;
     FDTDStartPos: PWideChar;
     FIntSubset: TWideCharBuf;
     FAttrTag: Cardinal;
-    FOwnsDoctype: Boolean;
     FDTDProcessed: Boolean;
     FToken: TXMLToken;
     FNext: TXMLToken;
-    FCurrEntity: TDOMEntityEx;
+    FCurrEntity: TEntityDecl;
     FIDMap: THashTable;
 
     FNSHelper: TNSSupport;
@@ -332,8 +318,8 @@ type
     procedure SkipQuote(out Delim: WideChar; required: Boolean = True);
     procedure Initialize(ASource: TXMLCharSource);
     procedure NSPrepare;
-    procedure EntityToSource(AEntity: TDOMEntityEx; out Src: TXMLCharSource);
-    function ContextPush(AEntity: TDOMEntityEx): Boolean;
+    procedure EntityToSource(AEntity: TEntityDecl; out Src: TXMLCharSource);
+    function ContextPush(AEntity: TEntityDecl): Boolean;
     function ContextPop(Forced: Boolean = False): Boolean;
     procedure XML11_BuildTables;
     function ParseQuantity: TCPQuant;
@@ -403,9 +389,10 @@ type
     procedure ParseContent;                                             // [43]
     function  Read: Boolean;
     function  ResolvePredefined: Boolean;
-    function  EntityCheck(NoExternals: Boolean = False): TDOMEntityEx;
-    procedure AppendReference(cur: TDOMNode; AEntity: TDOMEntityEx);
-    function PrefetchEntity(AEntity: TDOMEntityEx): Boolean;
+    function  EntityCheck(NoExternals: Boolean = False): TEntityDecl;
+    procedure LoadEntity(AEntity: TEntityDecl);
+    procedure AppendReference(cur: TDOMNode; AEntity: TEntityDecl);
+    function PrefetchEntity(AEntity: TEntityDecl): Boolean;
     procedure StartPE;
     function  ParseRef(var ToFill: TWideCharBuf): Boolean;              // [67]
     function  ParseExternalID(out SysID, PubID: WideString;             // [75]
@@ -1086,7 +1073,7 @@ begin
   begin
     sysid := FSource.FSystemID;
     if (sysid = '') and Assigned(FSource.FEntity) then
-      sysid := TDOMEntityEx(FSource.FEntity).FURI;
+      sysid := FSource.FEntity.FURI;
     E := EXMLReadError.CreateFmt('In ''%s'' (line %d pos %d): %s', [sysid, ErrPos.Line, ErrPos.LinePos, descr]);
   end
   else
@@ -1285,12 +1272,10 @@ begin
     while ContextPop(True) do;     // clean input stack
   FSource.Free;
   FPEMap.Free;
-  FGEMap.Free;
   ClearForwardRefs;
   FNsAttHash.Free;
   FNSHelper.Free;
-  if FOwnsDoctype then
-    FDocType.Free;
+  FDocType.Release;
   FIDMap.Free;
   FForwardRefs.Free;
   FAttrChunks.Free;
@@ -1347,6 +1332,8 @@ begin
 end;
 
 procedure TXMLReader.ProcessFragment(ASource: TXMLCharSource; AOwner: TDOMNode);
+var
+  DoctypeNode: TDOMDocumentTypeEx;
 begin
   doc := AOwner.OwnerDocument;
   FNameTable := doc.Names;
@@ -1359,7 +1346,11 @@ begin
   Initialize(ASource);
   // See comment in EntityCheck()
   if FDocType = nil then
-    FDocType := TDOMDocumentTypeEx(doc.DocType);
+  begin
+    DoctypeNode := TDOMDocumentTypeEx(doc.DocType);
+    if Assigned(DoctypeNode) then
+      FDocType := DocTypeNode.FModel.Reference;
+  end;
   if AOwner is TDOMEntity then
   begin
     TDOMTopNodeEx(AOwner).FXMLVersion := FSource.FXMLVersion;
@@ -1564,7 +1555,7 @@ function TXMLReader.ExpectAttValue(AttrData: PNodeData; NonCDATA: Boolean): Bool
 var
   wc: WideChar;
   Delim: WideChar;
-  ent: TDOMEntityEx;
+  ent: TEntityDecl;
   start: TObject;
   curr: PNodeData;
   StartPos: Integer;
@@ -1641,14 +1632,14 @@ end;
 const
   PrefixChar: array[Boolean] of string = ('', '%');
 
-procedure TXMLReader.EntityToSource(AEntity: TDOMEntityEx; out Src: TXMLCharSource);
+procedure TXMLReader.EntityToSource(AEntity: TEntityDecl; out Src: TXMLCharSource);
 begin
   if AEntity.FOnStack then
     FatalError('Entity ''%s%s'' recursively references itself', [PrefixChar[AEntity.FIsPE], AEntity.FName]);
 
-  if (AEntity.SystemID <> '') and not AEntity.FPrefetched then
+  if (AEntity.FSystemID <> '') and not AEntity.FPrefetched then
   begin
-    if not ResolveEntity(AEntity.SystemID, AEntity.PublicID, AEntity.FURI, Src) then
+    if not ResolveEntity(AEntity.FSystemID, AEntity.FPublicID, AEntity.FURI, Src) then
     begin
       // TODO: a detailed message like SysErrorMessage(GetLastError) would be great here
       ValidationError('Unable to resolve external entity ''%s''', [AEntity.FName]);
@@ -1662,7 +1653,7 @@ begin
     Src.FLineNo := AEntity.FStartLocation.Line;
     Src.LFPos := Src.FBuf - AEntity.FStartLocation.LinePos;
     // needed in case of prefetched external PE
-    if AEntity.SystemID <> '' then
+    if AEntity.FSystemID <> '' then
       Src.SystemID := AEntity.FURI;
   end;
 
@@ -1670,7 +1661,7 @@ begin
   Src.FEntity := AEntity;
 end;
 
-function TXMLReader.ContextPush(AEntity: TDOMEntityEx): Boolean;
+function TXMLReader.ContextPush(AEntity: TEntityDecl): Boolean;
 var
   Src: TXMLCharSource;
 begin
@@ -1692,10 +1683,10 @@ begin
     Error := False;
     if Assigned(FSource.FEntity) then
     begin
-      TDOMEntityEx(FSource.FEntity).FOnStack := False;
-      TDOMEntityEx(FSource.FEntity).FCharCount := FSource.FCharCount;
+      FSource.FEntity.FOnStack := False;
+      FSource.FEntity.FCharCount := FSource.FCharCount;
 // [28a] PE that was started between MarkupDecls may not end inside MarkupDecl
-      Error := TDOMEntityEx(FSource.FEntity).FBetweenDecls and FInsideDecl;
+      Error := FSource.FEntity.FBetweenDecls and FInsideDecl;
     end;
     FSource.Free;
     FSource := Src;
@@ -1705,35 +1696,33 @@ begin
   end;
 end;
 
-function TXMLReader.EntityCheck(NoExternals: Boolean): TDOMEntityEx;
+function TXMLReader.EntityCheck(NoExternals: Boolean): TEntityDecl;
 var
   RefName: WideString;
   cnt: Integer;
-  InnerReader: TXMLReader;
-  Src: TXMLCharSource;
 begin
   Result := nil;
   SetString(RefName, FName.Buffer, FName.Length);
   cnt := FName.Length+2;
 
   if Assigned(FDocType) then
-    Result := FDocType.Entities.GetNamedItem(RefName) as TDOMEntityEx;
+    Result := FDocType.Entities.Get(FName.Buffer, FName.Length) as TEntityDecl;
 
   if Result = nil then
   begin
-    if FStandalone or (FDocType = nil) or not (FHavePERefs or (FDocType.SystemID <> '')) then
+    if FStandalone or (FDocType = nil) or not (FHavePERefs or (FDocType.FSystemID <> '')) then
       FatalError('Reference to undefined entity ''%s''', [RefName], cnt)
     else
       ValidationError('Undefined entity ''%s'' referenced', [RefName], cnt);
     Exit;
   end;
 
-  if FStandalone and Result.FExternallyDeclared then
+  if FStandalone and Result.ExternallyDeclared then
     FatalError('Standalone constraint violation', cnt);
-  if Result.NotationName <> '' then
+  if Result.FNotationName <> '' then
     FatalError('Reference to unparsed entity ''%s''', [RefName], cnt);
 
-  if NoExternals and (Result.SystemID <> '') then
+  if NoExternals and (Result.FSystemID <> '') then
     FatalError('External entity reference is not allowed in attribute value', cnt);
 
   if not Result.FResolved then
@@ -1742,33 +1731,21 @@ begin
     // However, care must be taken to properly pass the DTD to InnerReader.
     // We now have doc.DocumentType=nil while DTD is being parsed,
     // which can break parsing 2+ level entities in default attribute values.
-    InnerReader := TXMLReader.Create(FCtrl);
-    try
-      InnerReader.FAttrTag := FAttrTag;
-      InnerReader.FDocType := FDocType;
-      EntityToSource(Result, Src);
-      Result.SetReadOnly(False);
-      if Assigned(Src) then
-        InnerReader.ProcessFragment(Src, Result);
-      Result.FResolved := True;
-    finally
-      FAttrTag := InnerReader.FAttrTag;
-      InnerReader.Free;
-      Result.FOnStack := False;
-      Result.SetReadOnly(True);
-    end;
+
+    LoadEntity(Result);
   end;
   // at this point we know the charcount of the entity being included
-  CheckMaxChars(Result.FCharCount - cnt);
+  if Result.FCharCount >= cnt then
+    CheckMaxChars(Result.FCharCount - cnt);
 end;
 
 procedure TXMLReader.StartPE;
 var
-  PEnt: TDOMEntityEx;
+  PEnt: TEntityDecl;
 begin
   PEnt := nil;
   if Assigned(FPEMap) then
-    PEnt := FPEMap.Get(FName.Buffer, FName.Length) as TDOMEntityEx;
+    PEnt := FPEMap.Get(FName.Buffer, FName.Length) as TEntityDecl;
   if PEnt = nil then
   begin
     ValidationErrorWithName('Undefined parameter entity ''%s'' referenced', FName.Length+2);
@@ -1778,7 +1755,7 @@ begin
   end;
 
   { cache an external PE so it's only fetched once }
-  if (PEnt.SystemID <> '') and (not PEnt.FPrefetched) and (not PrefetchEntity(PEnt)) then
+  if (PEnt.FSystemID <> '') and (not PEnt.FPrefetched) and (not PrefetchEntity(PEnt)) then
   begin
     FDTDProcessed := FStandalone;
     Exit;
@@ -1790,7 +1767,7 @@ begin
   FHavePERefs := True;
 end;
 
-function TXMLReader.PrefetchEntity(AEntity: TDOMEntityEx): Boolean;
+function TXMLReader.PrefetchEntity(AEntity: TEntityDecl): Boolean;
 begin
   Result := ContextPush(AEntity);
   if Result then
@@ -2069,9 +2046,8 @@ begin
   ExpectString('DOCTYPE');
   SkipS(True);
 
-  FDocType := TDOMDocumentTypeEx(TDOMDocumentType.Create(doc));
+  FDocType := TDTDModel.Create(FNameTable);
   FDTDProcessed := True;    // assume success
-  FOwnsDoctype := True;
   FState := rsDTD;
 
   FDocType.FName := ExpectName;
@@ -2097,9 +2073,9 @@ begin
   end;
   ExpectChar('>');
 
-  if (FDocType.SystemID <> '') then
+  if (FDocType.FSystemID <> '') then
   begin
-    if ResolveEntity(FDocType.SystemID, FDocType.PublicID, FSource.SystemID, Src) then
+    if ResolveEntity(FDocType.FSystemID, FDocType.FPublicID, FSource.SystemID, Src) then
     begin
       Initialize(Src);
       try
@@ -2116,7 +2092,6 @@ begin
     end;
   end;
   ValidateDTD;
-  FDocType.SetReadOnly(True);
   FState := rsAfterDTD;
 end;
 
@@ -2460,7 +2435,7 @@ end;
 procedure TXMLReader.ParseEntityDecl;        // [70]
 var
   IsPE, Exists: Boolean;
-  Entity: TDOMEntityEx;
+  Entity: TEntityDecl;
   Map: THashTable;
   Item: PHashItem;
 begin
@@ -2475,18 +2450,13 @@ begin
     Map := FPEMap;
   end
   else
-  begin
-    if FGEMap = nil then
-      FGEMap := THashTable.Create(64, False);
-    Map := FGEMap;
-  end;
+    Map := FDocType.Entities;
 
-  Entity := TDOMEntityEx.Create(Doc);
-  Entity.SetReadOnly(True);
+  Entity := TEntityDecl.Create;
   try
-    Entity.FExternallyDeclared := FSource.DTDSubsetType <> dsInternal;
+    Entity.ExternallyDeclared := FSource.DTDSubsetType <> dsInternal;
     Entity.FIsPE := IsPE;
-    Entity.FName := ExpectName;
+    CheckName;
     CheckNCName;
     Item := Map.FindOrAdd(FName.Buffer, FName.Length, Exists);
     ExpectWhitespace;
@@ -2531,8 +2501,7 @@ begin
   if FDTDProcessed and not Exists then
   begin
     Item^.Data := Entity;
-    if not IsPE then
-      FDocType.Entities.SetNamedItem(Entity);
+    Entity.FName := Item^.Key;
   end
   else
     Entity.Free;
@@ -2654,22 +2623,53 @@ procedure TXMLReader.ProcessDTD(ASource: TXMLCharSource);
 begin
   doc := TXMLDocument.Create;
   FNameTable := doc.Names;
-  FDocType := TDOMDocumentTypeEx.Create(doc);
+  FDocType := TDTDModel.Create(FNameTable);
   // TODO: DTD labeled version 1.1 will be rejected - must set FXML11 flag
-  doc.AppendChild(FDocType);
+  doc.AppendChild(TDOMDocumentType.Create(doc, FDocType));
   NSPrepare;
   Initialize(ASource);
   ParseMarkupDecl;
 end;
 
-procedure TXMLReader.AppendReference(cur: TDOMNode; AEntity: TDOMEntityEx);
+
+procedure TXMLReader.LoadEntity(AEntity: TEntityDecl);
+var
+  InnerReader: TXMLReader;
+  Src: TXMLCharSource;
+  Ent: TDOMEntityEx;
+  DoctypeNode: TDOMDocumentType;
+begin
+  DoctypeNode := doc.DocType;
+  if DoctypeNode = nil then
+    Exit;
+  Ent := TDOMEntityEx(DocTypeNode.Entities.GetNamedItem(AEntity.FName));
+  if Ent = nil then
+    Exit;
+  InnerReader := TXMLReader.Create(FCtrl);
+  try
+    InnerReader.FAttrTag := FAttrTag;
+    InnerReader.FDocType := FDocType.Reference;
+    EntityToSource(AEntity, Src);
+    Ent.SetReadOnly(False);
+    if Assigned(Src) then
+      InnerReader.ProcessFragment(Src, Ent);
+    AEntity.FResolved := True;
+  finally
+    FAttrTag := InnerReader.FAttrTag;
+    InnerReader.Free;
+    AEntity.FOnStack := False;
+    Ent.SetReadOnly(True);
+  end;
+end;
+
+procedure TXMLReader.AppendReference(cur: TDOMNode; AEntity: TEntityDecl);
 var
   s: WideString;
 begin
   if AEntity = nil then
     SetString(s, FName.Buffer, FName.Length)
   else
-    s := AEntity.nodeName;
+    s := AEntity.FName;
   cur.AppendChild(doc.CreateEntityReference(s));
 end;
 
@@ -2768,10 +2768,9 @@ begin
       xtEndElement:
         DoEndElement;
       xtDoctype:
-        if not FCanonical then
         begin
-          doc.AppendChild(FDocType);
-          FOwnsDoctype := False;
+          if not FCanonical then
+            doc.AppendChild(TDOMDocumentType.Create(doc, FDocType));
         end;
     end;
   end;
@@ -3378,7 +3377,7 @@ end;
 procedure TXMLReader.ValidateAttrValue(AttrDef: TAttributeDef; attrData: PNodeData);
 var
   L, StartPos, EndPos: Integer;
-  Entity: TDOMEntity;
+  Entity: TEntityDecl;
 begin
   L := Length(attrData^.FValueStr);
   case AttrDef.DataType of
@@ -3407,11 +3406,8 @@ begin
         EndPos := StartPos;
         while (EndPos <= L) and (attrData^.FValueStr[EndPos] <> #32) do
           Inc(EndPos);
-        if Assigned(FGEMap) then
-          Entity := TDOMEntity(FGEMap.Get(@attrData^.FValueStr[StartPos], EndPos-StartPos))
-        else
-          Entity := nil;
-        if (Entity = nil) or (Entity.NotationName = '') then
+        Entity := TEntityDecl(FDocType.Entities.Get(@attrData^.FValueStr[StartPos], EndPos-StartPos));
+        if (Entity = nil) or (Entity.FNotationName = '') then
           ValidationError('Attribute ''%s'' type mismatch', [attrData^.FQName^.Key], -1);
         StartPos := EndPos + 1;
       end;
@@ -3423,7 +3419,7 @@ procedure TXMLReader.ValidateRoot;
 begin
   if Assigned(FDocType) then
   begin
-    if not BufEquals(FName, FDocType.Name) then
+    if not BufEquals(FName, FDocType.FName) then
       ValidationError('Root element name does not match DTD', [], FName.Length);
   end
   else
@@ -3437,7 +3433,7 @@ begin
   if FValidate then
     for I := 0 to FForwardRefs.Count-1 do
       with PForwardRef(FForwardRefs[I])^ do
-        if FDocType.Notations.GetNamedItem(Value) = nil then
+        if FDocType.Notations.Get(PWideChar(Value), Length(Value)) = nil then
           DoErrorPos(esError, Format('Notation ''%s'' is not declared', [Value]), Loc);
   ClearForwardRefs;
 end;
@@ -3503,15 +3499,17 @@ end;
 
 procedure TXMLReader.DoNotationDecl(const aName, aPubID, aSysID: WideString);
 var
-  Notation: TDOMNotationEx;
+  Notation: TNotationDecl;
+  Entry: PHashItem;
 begin
-  if FDocType.Notations.GetNamedItem(aName) = nil then
+  Entry := FDocType.Notations.FindOrAdd(PWideChar(aName), Length(aName));
+  if Entry^.Data = nil then
   begin
-    Notation := TDOMNotationEx(TDOMNotation.Create(doc));
+    Notation := TNotationDecl.Create;
     Notation.FName := aName;
     Notation.FPublicID := aPubID;
     Notation.FSystemID := aSysID;
-    FDocType.Notations.SetNamedItem(Notation);
+    Entry^.Data := Notation;
   end
   else
     ValidationError('Duplicate notation declaration: ''%s''', [aName]);
