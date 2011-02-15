@@ -55,6 +55,9 @@ procedure swiUnpackBits(source: pcuint8; destination: pcuint32; params: PUnpackS
 procedure swiDecompressLZSSWram(source, destination: pointer); cdecl; external;
 function swiDecompressLZSSVram(source, destination: pointer; toGetSize: cuint32; stream: PDecompressionStream): cint; cdecl; external;
 
+function swiDecompressLZSSVramNTR(source, destination: pointer; toGetSize: cuint32; stream: PDecompressionStream): cint; cdecl; external;
+function swiDecompressLZSSVramTWL(source, destination: pointer; toGetSize: cuint32; stream: PDecompressionStream): cint; cdecl; external;
+
 function swiDecompressHuffman(source, destination: pointer; toGetSize: cuint32; stream: PDecompressionStream): cint; cdecl; external;
 
 procedure swiDecompressRLEWram(source, destination: pointer); cdecl; external;

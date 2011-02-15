@@ -97,6 +97,9 @@ procedure irqDisableAUX(irq: cuint32); cdecl; external;
 
 procedure swiIntrWait(waitForSet: cuint32; flags: cuint32); cdecl; external;
 procedure swiWaitForVBlank(); cdecl; external;
+
+function setPowerButtonCB(CB: TVoidFn): TVoidFn; cdecl; external;
+
 function enterCriticalSection(): cint; inline;
 procedure leaveCriticalSection(oldIME: cint); inline;
 {$endif NDS_INTERFACE}
