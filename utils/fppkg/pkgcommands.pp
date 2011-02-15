@@ -227,6 +227,8 @@ end;
 
 
 procedure TCommandBuild.Execute;
+var
+  P: TFPPackage;
 begin
   if PackageName<>'' then
     begin
@@ -245,7 +247,12 @@ begin
       else
         begin
           ExecuteAction(PackageName,'installdependencies');
-          ExecuteAction(PackageName,'unzip');
+          // Check if the package is not installed but being recompiled because of changed
+          // dependencies while the original source is still available.
+          P := AvailableRepository.FindPackage(PackageName);
+          if not (assigned(P) and P.RecompileBroken and (P.SourcePath<>'')) then
+            // The package is not available locally, download and unzip it.
+            ExecuteAction(PackageName,'unzip');
         end;
     end;
   ExecuteAction(PackageName,'fpmakebuild');
@@ -275,10 +282,26 @@ begin
       P:=InstalledRepository.FindPackage(S);
       if not assigned(P) then
         P:=InstalledRepository.AddPackage(S);
-      if IsSuperUser or GlobalOptions.InstallGlobal then
-        UFN:=CompilerOptions.GlobalUnitDir
+      if P.RecompileBroken then
+        begin
+          // If the package is recompiled, the installation-location is dependent on where
+          // the package was installed originally.
+          if P.InstalledLocally then
+            UFN:=CompilerOptions.LocalUnitDir
+          else
+            UFN:=CompilerOptions.GlobalUnitDir;
+          // Setting RecompileBroken to false is in a strict sense not needed. But it is better
+          // to clean this temporary flag, to avoid problems with changes in the future
+          P.RecompileBroken := false;
+          AvailableRepository.FindPackage(P.Name).RecompileBroken:=false;
+        end
       else
-        UFN:=CompilerOptions.LocalUnitDir;
+        begin
+          if (IsSuperUser or GlobalOptions.InstallGlobal) then
+            UFN:=CompilerOptions.GlobalUnitDir
+          else
+            UFN:=CompilerOptions.LocalUnitDir;
+        end;
       UFN:=IncludeTrailingPathDelimiter(UFN)+S+PathDelim+UnitConfigFileName;
       LoadUnitConfigFromFile(P,UFN);
     end
@@ -352,7 +375,7 @@ begin
             end
           else
             begin
-              if PackageIsBroken(InstalledP) then
+              if PackageIsBroken(InstalledP, True) then
                 begin
                   status:='Broken, recompiling';
                   L.Add(D.PackageName);

@@ -869,6 +869,7 @@ Type
     FRunMode: TRunMode;
     FListMode : Boolean;
     FLogLevels : TVerboseLevels;
+    FFPMakeOptionsString: string;
   Protected
     Procedure Log(Level : TVerboseLevel; Const Msg : String);
     Procedure CreatePackages; virtual;
@@ -891,6 +892,7 @@ Type
     Destructor destroy; override;
     Function AddPackage(Const AName : String) : TPackage;
     Function Run : Boolean;
+    Property FPMakeOptionsString: string read FFPMakeOptionsString;
     //files in package
     Property Packages : TPackages Read GetPackages;
     Property RunMode : TRunMode Read FRunMode;
@@ -1145,6 +1147,8 @@ Const
   KeyNeedLibC = 'NeedLibC';
   KeyDepends  = 'Depends';
   KeyAddIn    = 'FPMakeAddIn';
+  KeySourcePath = 'SourcePath';
+  KeyFPMakeOptions = 'FPMakeOptions';
 
 {****************************************************************************
                                 Helpers
@@ -2553,6 +2557,9 @@ begin
         Values[KeyChecksum]:=IntToStr(DateTimeToFileDate(Now));
         Values[KeyCPU]:=CPUToString(ACPU);
         Values[KeyOS]:=OSToString(AOS);
+        //Installer;
+        Values[KeySourcePath]:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(Installer.BuildEngine.FStartDir)+Directory);
+        Values[KeyFPMakeOptions]:=trim(Installer.FPMakeOptionsString);
         Deps:='';
         for i:=0 to Dependencies.Count-1 do
           begin
@@ -3130,12 +3137,13 @@ end;
 
 procedure TCustomInstaller.AnalyzeOptions;
 
-  Function CheckOption(Index : Integer;const Short,Long : String): Boolean;
+  Function CheckOption(Index : Integer;const Short,Long : String; AddToOptionString: boolean = true): Boolean;
   var
     O : String;
   begin
     O:=Paramstr(Index);
     Result:=(O='-'+short) or (O='--'+long) or (copy(O,1,Length(Long)+3)=('--'+long+'='));
+    if AddToOptionString and Result then FFPMakeOptionsString := FFPMakeOptionsString+' '+O;
   end;
 
   Function CheckCustomOption(Index : Integer; out CustOptName: string): Boolean;
@@ -3154,6 +3162,7 @@ procedure TCustomInstaller.AnalyzeOptions;
     O:=copy(O,3,i-3);
     CustOptName:=O;
     Result:=CustomFpmakeCommandlineOptions.IndexOfName(O)>-1;
+    if Result then FFPMakeOptionsString := FFPMakeOptionsString+' '+Paramstr(Index);
   end;
 
 
@@ -3220,9 +3229,9 @@ begin
   While (I<ParamCount) do
     begin
     Inc(I);
-    if CheckOption(I,'v','verbose') then
+    if CheckOption(I,'v','verbose',false) then
       FLogLevels:=AllMessages
-    else if CheckOption(I,'d','debug') then
+    else if CheckOption(I,'d','debug',false) then
       FLogLevels:=AllMessages+[vlDebug]
     else if CheckCommand(I,'m','compile') then
       FRunMode:=rmCompile
