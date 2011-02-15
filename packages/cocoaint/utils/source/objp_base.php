@@ -172,15 +172,15 @@ class ObjectivePParserBase {
 	// Categories to ignore
 	// NSURLLoading is deprecated in 10.4 and later, and causes problems
 	// when parsing the iPhoneOS foundation
-	var $ignore_categories = array("NSURLLoading",
-																	);
+	var $ignore_categories = array("NSURLLoading");
 	
 	// Methods to ignore
 	var $ignore_methods = array(	"observationInfo",
 																);
 
-  // methods to rename to particular alternatives
+ 	// methods to rename to particular alternatives
 	var $replace_instance_methods = array ( "class" => "_class", );
+	
 	var $replace_class_methods = array ("respondsToSelector" => "classRespondsToSelector",
 												"isEqual" => "classIsEqual",
 												"hash" => "classHash",
@@ -206,10 +206,10 @@ class ObjectivePParserBase {
 									);
 	
 	var $skip_blocks = array(	//"^#if __LP64__.*"=>"^#(else|endif)+",
-								"^#if __BLOCKS__"=>"^#(else|endif)+",
-								"^#if NS_BLOCKS_AVAILABLE"=>"^#(else|endif)+",
-								"^#ifndef CGFLOAT_DEFINED"=>"^#(else|endif)+",
-								);
+													"^#if __BLOCKS__"=>"^#(else|endif)+",
+													"^#if NS_BLOCKS_AVAILABLE"=>"^#(else|endif)+",
+													"^#ifndef CGFLOAT_DEFINED"=>"^#(else|endif)+",
+													);
 								
 	var $macro_blocks = array(	"^#if \(__LP64__\)"=>"\$ifdef cpu64",
 								"^#if __LP64__.*"=>"\$ifdef cpu64",

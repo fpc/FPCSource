@@ -1539,6 +1539,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 			$this->PrintOutput(0, "{\$endif}");
 		}
 
+		// print class/protocol forward declarations
 		if (($header["classes"]) || ($header["protocols"])) {
 			$this->PrintOutput(0, "");
 			$this->PrintOutput(0, "{\$ifdef FORWARD}");
@@ -1561,6 +1562,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 			$this->PrintOutput(0, "{\$endif}");
 		}
 
+		// print classes
 		if ($header["classes"]) {
 			$this->PrintOutput(0, "");
 			$this->PrintOutput(0, "{\$ifdef CLASSES}");
@@ -1582,13 +1584,12 @@ class ObjectivePParser extends ObjectivePParserBase {
 			$this->PrintOutput(0, "{\$endif}");
 		}
 
-
+		// print protocols
 		if ($header["protocols"]) {
 			$this->PrintOutput(0, "{\$ifdef PROTOCOLS}");
 			$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_P}");
 			$this->PrintOutput(0, "{\$define $macro"."_PAS_P}");
 
-			
 			foreach ($header["protocols"] as $protocol) {
 				$this->PrintOutput(1, "");
 				$this->PrintOutput(0, "{ ".$protocol["name"]." Protocol }");
@@ -1946,9 +1947,10 @@ class ObjectivePParser extends ObjectivePParserBase {
 		$this->PrintOutput(0, "");
 		$this->PrintOutput(0, "type");
 
-    foreach ($all_classes as $class)
-			$this->PrintOutput(1, $class." = objcclass external;");
-
+    	foreach ($all_classes as $class) {
+    		$this->PrintOutput(1, $class." = objcclass external;");
+    	}
+			
 		$this->PrintOutput(0, "");
 		$this->PrintOutput(0, "implementation");
 		$this->PrintOutput(0, "");
