@@ -110,6 +110,22 @@ type
     Procedure Execute;override;
   end;
 
+  { TCommandListSettings }
+
+  TCommandListSettings = Class(TPackagehandler)
+  Public
+    Procedure Execute;override;
+  end;
+
+{ TCommandListSettings }
+
+procedure TCommandListSettings.Execute;
+begin
+  GlobalOptions.LogValues(vlProgres);
+  CompilerOptions.LogValues(vlProgres,'');
+  FPMakeCompilerOptions.LogValues(vlProgres,'fpmake-building ');
+end;
+
 
 procedure TCommandAddConfig.Execute;
 begin
@@ -441,4 +457,5 @@ initialization
   RegisterPkgHandler('archive',TCommandArchive);
   RegisterPkgHandler('installdependencies',TCommandInstallDependencies);
   RegisterPkgHandler('fixbroken',TCommandFixBroken);
+  RegisterPkgHandler('listsettings',TCommandListSettings);
 end.
