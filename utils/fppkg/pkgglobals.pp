@@ -118,11 +118,7 @@ end;
 
 function FPPkgGetApplicationName:string;
 begin
-{$ifdef unix}
   result:='fppkg';
-{$else}
-  result:='Packages'
-{$endif}
 end;
 
 
