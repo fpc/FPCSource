@@ -3,6 +3,7 @@
 // Includes
 require_once("utilities.php");
 require_once("objp_base.php");
+require_once("docset.php");
 
 // Constants
 define("CAST_HANDLE", true);
@@ -335,6 +336,28 @@ class ObjectivePParser extends ObjectivePParserBase {
 	}
 			
 	/**
+	 * DOCSETS UTILITIES
+	 */
+	
+	function FindDocumentationForMethod ($class, $name) {
+		if ($this->docset) {
+			$doc = $this->docset[$class][$name];
+			
+			if ($doc) return "{ $doc }";
+		}
+	}
+	
+	function FindDocumentationForType ($name) {
+		if ($this->docset) {
+			foreach ($this->docset as $class) {
+				foreach ($class as $type => $text) {
+					if ($type == $name) return "{ $text }";
+				}
+			}
+		}
+	}
+
+	/**
 	 * ADDING LANGUAGE STRUCTURE UTILITIES
 	 */
 	
@@ -342,7 +365,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 	function AddMethodToClass (&$method, &$class) {
 		
 		// ignore methods
-//		if (in_array($method["name"], $this->ignore_methods)) return false;
+		if (in_array($method["name"], $this->ignore_methods)) return false;
 		
 		// add comment to the method
 		$method["comment"] = $this->InsertCurrentComment();
@@ -1417,6 +1440,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 		if ($class["methods"]) {
 			foreach ($class["methods"] as $method) {
 				if ($method["comment"]) $this->PrintOutput(2, $method["comment"]);
+				if ($method["documentation"]) $this->PrintOutput(2, $method["documentation"]);
 				$this->PrintOutput(2, $method["blocks_disable_comment"].$method["def"]." message '".$method["objc_method"]."';".$method["deprecated"]);
 			}
 		}
@@ -1482,9 +1506,9 @@ class ObjectivePParser extends ObjectivePParserBase {
 
 		$this->PrintOutput(0, "{ Parsed from ".ucfirst($header["framework"]).".framework ".$header["name"]." }");
 
-		$date = @date("D M j G:i:s T Y");
-		$this->PrintOutput(0, "{ Version: $version - $date }");
-		$this->PrintOutput(0, "");
+		//$date = @date("D M j G:i:s T Y");
+		//$this->PrintOutput(0, "{ Version: $version - $date }");
+		//$this->PrintOutput(0, "");
 
 		$macro = strtoupper(substr($header["name"], 0, (strripos($header["name"], "."))));
 		
@@ -1598,7 +1622,13 @@ class ObjectivePParser extends ObjectivePParserBase {
 
 				// print methods
 				if ($protocol["methods"]) {
+				  $section="";
 					foreach ($protocol["methods"] as $name => $method) {
+						// print the required/optional section
+						if ($method["section"] != $section) {
+							$section = $method["section"];
+							$this->PrintOutput(1, $section);
+						}
 						if ($method["comment"]) $this->PrintOutput(2, $method["comment"]);
 						$this->PrintOutput(2, $method["blocks_disable_comment"].$method["def"]." message '".$method["objc_method"]."';".$method["deprecated"]);
 					}
@@ -2868,11 +2898,12 @@ class ObjectivePParser extends ObjectivePParserBase {
 			
 		//print_r($this->dump[$file_name]["types"]);
 	}	
-	
+		
 	// Parse all protocols in a header
 	function ParseHeaderProtocols ($file) {
 			$contents = file_get_contents($file);
 			$file_name = substr($file, (strripos($file, "/")) + 1, strlen($file));
+			$section = null;
 			
 			// reset comments from previous parsing sections
 			$this->ResetComment();
@@ -2901,13 +2932,22 @@ class ObjectivePParser extends ObjectivePParserBase {
 					// remove comments
 					$line = $this->RemoveComments($line);
 					
+					// found @optional/@required section
+					if (eregi("^[[:space:]]*@(optional|required)+", $line, $captures)) {
+						$section = $captures[1];
+					}
+					
 					// found property
 					if ($this->LineHasProperty($line, $captures)) {
 							$properties = $this->ParseClassProperty($current_protocol, $captures, $deprecatedmods);
 							
 							foreach ($properties as $property) {
+								
 								if ($property["setter"]) {
 									$property["setter"]["comment"] = $this->InsertCurrentComment();
+									$property["setter"]["section"] = $section;
+									$property["setter"]["documentation"] = $this->FindDocumentationForMethod($current_protocol, $property["setter"]["property"]);
+									
 									$this->current_header["protocols"][$current_protocol]["methods"][$property["setter"]["objc_method"]] = $property["setter"];
 							
 									// append to master list of protocols
@@ -2916,6 +2956,9 @@ class ObjectivePParser extends ObjectivePParserBase {
 							
 								if ($property["getter"]) {
 									$property["getter"]["comment"] = $this->InsertCurrentComment();
+									$property["getter"]["section"] = $section;
+									$property["getter"]["documentation"] = $this->FindDocumentationForMethod($current_protocol, $property["getter"]["property"]);
+
 									$this->current_header["protocols"][$current_protocol]["methods"][$property["getter"]["objc_method"]] = $property["getter"];
 							
 									// append to master list of protocols
@@ -2937,10 +2980,16 @@ class ObjectivePParser extends ObjectivePParserBase {
 					}
 
 					// append to classes
-					if (($method) /* && (!in_array($method["name"], $this->ignore_methods))*/ ) {
+					if (($method)  && (!in_array($method["name"], $this->ignore_methods)) ) {
 						
 						// add comment to the method
 						$method["comment"] = $this->InsertCurrentComment();
+						
+						// add optional/required section to the method
+						$method["section"] = $section;
+
+						// add documentation for method
+						$method["documentation"] = $this->FindDocumentationForMethod($current_protocol, $method["objc_method"]);
 						
 						$this->current_header["protocols"][$current_protocol]["methods"][$method["objc_method"]] = $method;
 						
@@ -2959,6 +3008,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 				if ((eregi($this->regex_objc_protocol, $line, $captures)) && (!eregi(".*;$", $line))) {
 						$got_protocol = true;
 						$current_protocol = $captures[1];
+						
 						print("+ Protocol $current_protocol\n");
 						
 						if ($this->comment_terminated) $this->current_header["protocols"][$current_protocol]["comment"] = $this->InsertCurrentComment();
@@ -3106,6 +3156,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 
 		// property has attributes
 		if (count($parts) == 5) {
+			//$property["parameters"] = explode(",", $parts[1]);
 			$property["parameters"] = preg_split("/\s*,\s*/", $parts[1]);
 			$attributes = $parts[1];
 			$type = $parts[2];
@@ -3139,7 +3190,10 @@ class ObjectivePParser extends ObjectivePParserBase {
 		foreach ($property_list as $property_name) {
 			
 			// property name
-			if (eregi("([a-zA-Z0-9_]+)[[:space:]]*$", $property_name, $captures)) $property["name"] = ucwords($captures[1]);
+			if (eregi("([a-zA-Z0-9_]+)[[:space:]]*$", $property_name, $captures)) {
+				$property["name"] = ucwords($captures[1]);
+				$property["name_raw"] = $captures[1];
+			}
 
 			// property type
 			$type = $this->ConvertReturnType($type,$pointertype);
@@ -3164,7 +3218,8 @@ class ObjectivePParser extends ObjectivePParserBase {
 				$method["setter"]["class"] = $class;
 				$method["setter"]["name"] = $name;
 				$method["setter"]["kind"] = "procedure";
-				$method["setter"]["deprecated"]=$deprecatedmods;
+				$method["setter"]["deprecated"] = $deprecatedmods;
+				$method["setter"]["property"] = $property["name_raw"];
 				//$method["setter"]["comment"] = $this->InsertCurrentComment();
 			}
 
@@ -3184,7 +3239,8 @@ class ObjectivePParser extends ObjectivePParserBase {
 			$method["getter"]["class"] = $class;
 			$method["getter"]["name"] = $name;
 			$method["getter"]["kind"] = "function";
-			$method["getter"]["deprecated"]=$deprecatedmods;
+			$method["getter"]["deprecated"] = $deprecatedmods;
+			$method["getter"]["property"] = $property["name_raw"];
 			//$method["getter"]["comment"] = $this->InsertCurrentComment();
 			
 			// append to array of methods
@@ -3195,7 +3251,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 		//print_r($methods);
 		return $methods;
 	}
-	
+		
 	// Parse header classes and methods
 	function ParseHeaderClasses ($file) {
 			$contents = file_get_contents($file);
@@ -3333,6 +3389,10 @@ class ObjectivePParser extends ObjectivePParserBase {
 					// found method
 					if (preg_match($this->pregex_objc_method_params, $line, $captures)) {
 						$method = $this->ConvertObjcMethodToPascal($current, $line, $captures, $this->GetProtectedKeywords($this->current_class), true, $deprecatedmods);						
+						
+						// add documentation for method
+						$method["documentation"] = $this->FindDocumentationForMethod($current, $method["objc_method"]);
+						
 						if ($this->AddMethodToClass($method, $this->dump[$file_name]["classes"][$current])) {
 							//if ($this->comment_terminated) $method["comment"] = $this->InsertCurrentComment();
 							$this->dump[$file_name]["classes"][$current]["methods"][] = $method;
@@ -3340,6 +3400,10 @@ class ObjectivePParser extends ObjectivePParserBase {
 						
 					} elseif (preg_match($this->pregex_objc_method_no_params, $line, $captures)) {
 						$method = $this->ConvertObjcMethodToPascal($current, $line, $captures, $this->GetProtectedKeywords($this->current_class), false, $deprecatedmods);
+						
+						// add documentation for method
+						$method["documentation"] = $this->FindDocumentationForMethod($current, $method["objc_method"]);
+
 						if ($this->AddMethodToClass($method, $this->dump[$file_name]["classes"][$current])) {
 							//if ($this->comment_terminated) $method["comment"] = $this->InsertCurrentComment();
 							$this->dump[$file_name]["classes"][$current]["methods"][] = $method;
@@ -3472,8 +3536,20 @@ class ObjectivePParser extends ObjectivePParserBase {
 			
 			print("+ Parsed $file_name\n");
 	}
+	
+	// Parses the docset at $path for the current framework
+	function ParseFrameworkDocset ($path) {
+		$name = basename($path);
+
+		$parser = new DocSetParser($path);
+		if ($parser->parse_directory($this->docset_paths[$name])) {
+			$this->docset = $parser->methods;
+			print("+ Parsed documentation for $name.\n");
+		}
+		
+	}		
 			
-	// Parse all AppKit and Foundation framework headers
+	// Parse all headers assigned in $this->frameworks
 	function ParseAllFrameworks ($ignore_files, $parse_only) {
 		
 		foreach ($this->frameworks as $framework_name => $framework_info) {
@@ -3484,11 +3560,15 @@ class ObjectivePParser extends ObjectivePParserBase {
 			// set the current framework being parsed
 			$this->framework = $framework_name;
 
+			// get the root file path
 			if ($this->out != "/") {
 				$path = $this->root.$this->out."/".$framework_info["root"];
 			} else {
 				$path = $this->root.$framework_info["root"];
 			}
+			
+			// Parse the framework docset
+			if ($this->parse_docsets) $this->ParseFrameworkDocset($framework_info["docset"]);
 			
 			// Load the header if found
 			if (file_exists($path)) {
@@ -3651,6 +3731,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 				$this->frameworks[(string) $framework->name]["replace_types"] = $framework->replace_types;
 				$this->frameworks[(string) $framework->name]["ignore_lines"] = $framework->ignore_lines;
 				$this->frameworks[(string) $framework->name]["ignore_comments"] = $framework->ignore_comments;
+				$this->frameworks[(string) $framework->name]["docset"] = (string)$framework->docset;
 				$this->frameworks[(string) $framework->name]["enabled"] = false;
 				$this->frameworks[(string) $framework->name]["print"] = true;
 		}

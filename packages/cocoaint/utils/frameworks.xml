@@ -8,10 +8,10 @@
 	<framework>
 		<name>foundation</name>
 		<root>/foundation/Foundation.inc</root>
-		<bridge>/bridgesupport/foundation.xml</bridge>
 		<headers>/System/Library/Frameworks/Foundation.framework/Headers</headers>
 		<include_pattern>{[$]+include (.*).inc}</include_pattern>
 		<header_pattern>^(.*)\.h</header_pattern>
+		<docset>/Developer/Documentation/DocSets/com.apple.adc.documentation.AppleSnowLeopard.CoreReference.docset</docset>
 		<!-- ignore_lines accepts regular expressions --> 
 		<ignore_lines>
 			<line>#define NS_BLOCKS_AVAILABLE [0-9]+</line>
@@ -19,7 +19,6 @@
 			<line>FOUNDATION_EXPORT void NSLogv(NSString *format, va_list args) NS_FORMAT_FUNCTION(1,0);</line>
 			<line>FOUNDATION_EXPORT void NSLog(NSString *format, ...) __attribute__((format(__NSString__, 1, 2)));</line>
       <line>FOUNDATION_EXPORT void NSLogv(NSString *format, va_list args);</line>
-
 		</ignore_lines>
 		<ignore_comments>
 			<line>^[[:space:]]*NS.*\.h</line>
@@ -32,10 +31,10 @@
 	<framework>
 		<name>appkit</name>
 		<root>/appkit/AppKit.inc</root>
-		<bridge>/bridgesupport/appkit.xml</bridge>
 		<headers>/System/Library/Frameworks/AppKit.framework/Headers</headers>
 		<include_pattern>{[$]+include (.*).inc}</include_pattern>
 		<header_pattern>^(.*)\.h</header_pattern>
+		<docset>/Developer/Documentation/DocSets/com.apple.adc.documentation.AppleSnowLeopard.CoreReference.docset</docset>
 		<ignore_comments>
 			<line>^[[:space:]]*NS.*\.h</line>
 			<line>MAC_OS_X_VERSION_MAX_ALLOWED</line>
@@ -47,8 +46,8 @@
 	<framework>
 		<name>uikit</name>
 		<root>/uikit/UIKit.inc</root>
-		<bridge></bridge>
 		<headers>/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.2.sdk/System/Library/Frameworks/UIKit.framework/Headers</headers>
+		<docset>/Developer/Platforms/iPhoneOS.platform/Developer/Documentation/DocSets/com.apple.adc.documentation.AppleiOS4_2.iOSLibrary.docset</docset>
 		<include_pattern>{[$]+include (UI.*).inc}</include_pattern>
 		<header_pattern>^UI(.*)\.h</header_pattern>
 		<external_macro>UIKIT_EXTERN</external_macro>
@@ -57,7 +56,6 @@
 	<framework>
 		<name>opengles</name>
 		<root>/opengles/OpenGLES.inc</root>
-		<bridge></bridge>
 		<headers>/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.2.sdk/System/Library/Frameworks/OpenGLES.framework/Headers</headers>
 		<include_pattern>{[$]+include (EAGL.*).inc}</include_pattern>
 		<header_pattern>^EAGL(.*)\.h</header_pattern>
@@ -67,7 +65,6 @@
 	<framework>
 		<name>webkit</name>
 		<root>/webkit/WebKit.inc</root>
-		<bridge>/bridgesupport/webkit.xml</bridge>
 		<headers>/System/Library/Frameworks/WebKit.framework/Headers</headers>
 		<include_pattern>{[$]+include (.*).inc}</include_pattern>
 		<header_pattern>^(.*)\.h</header_pattern>
@@ -123,7 +120,7 @@
 		<!-- No spaces! -->
 		<ignore_types>SomeQuartzPointer,AnotherQuartzPointer</ignore_types>
 		<!-- Ignore these methods (Pascal names, no spaces) -->
-		<ignore_methods>render_toIOSurface_bounds_colorSpace,reclaimResources</ignore_methods>
+		<ignore_methods></ignore_methods>
 		<replace_types>
 		</replace_types>
 	</framework>

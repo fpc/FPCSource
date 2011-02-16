@@ -1,6 +1,6 @@
 <?php
 
-$version = "2.1.5";
+$version = "2.1.6";
 
 require("source/objp.php");
 
@@ -66,7 +66,11 @@ function HandleCommandLineOptions ($argv) {
 			case 'comments':
 				$options[$key] = true;
 				break;
-				
+			
+			case 'docsets':
+				$options[$key] = true;
+				break;
+
 			case 'merge':
 				$options[$key] = true;
 				break;
@@ -181,6 +185,7 @@ $parser = new ObjectivePParser($root_path, "", $options["frameworks"],  $options
 // ??? These should be accessors
 $parser->parse_comments = $options["comments"];
 $parser->merge_headers = $options["merge"];
+$parser->parse_docsets = $options["docsets"];
 
 // Process single headers
 if ($options["header"] && !$options["all"]) {

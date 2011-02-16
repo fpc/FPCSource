@@ -29,7 +29,8 @@ class ObjectivePParserBase {
 	var $delegate_methods = array();				// Delegate methods and types from GEN_BRIDGE_METADATA XML data
 	var $delegate_method_names = array();			// Delegate method name array
 	var $type_encodings = array();					// Master listing of type encodings for each method in the frameworks
-	
+	var $docset;										// Current parsed docset for the framework (-all only)
+
 	// Comments Builder
 	var $comment_eol;
 	var $comment_terminated;
@@ -68,7 +69,8 @@ class ObjectivePParserBase {
 	var $comment_padding_left = " ";						// Padding applied to the left side of all comments
 	var $comment_padding_right = " ";						// Padding applied to the right side of all comments
 	var $varargs_param_name = "firstKey";					// The name of the first parameter for methods using varargs
-
+	var $parse_docsets = false;									// Parses docsets for symbol documentation
+	
 	// array of all known framework classes (both regular and anonymous)
 	var $cocoa_classes = array("Protocol");
 	
@@ -175,8 +177,7 @@ class ObjectivePParserBase {
 	var $ignore_categories = array("NSURLLoading");
 	
 	// Methods to ignore
-	var $ignore_methods = array(	"observationInfo",
-																);
+	var $ignore_methods = array();
 
  	// methods to rename to particular alternatives
 	var $replace_instance_methods = array ( "class" => "_class", );
@@ -237,7 +238,12 @@ class ObjectivePParserBase {
 																	"[[:space:]]*NS_DEPRECATED[^(]*\([^;]*\)[[:space:]]*",
 																	"[[:space:]]WEBKIT_OBJC_METHOD_ANNOTATION\([^;]*\)[[:space:]]*",
 																	);
-								
+	
+	// Subpats to search for docsets							
+	var $docset_paths = array(	"com.apple.adc.documentation.AppleSnowLeopard.CoreReference.docset" => array("/Cocoa/Reference"),
+															"com.apple.adc.documentation.AppleiOS4_2.iOSLibrary.docset" => array("/UIKit/Reference"),
+															);
+	
 																		
 	/**
 	 * COMMON REGULAR EXPRESIONS
