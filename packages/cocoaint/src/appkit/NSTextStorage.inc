@@ -95,6 +95,7 @@ var
   
 { NSTextStorageDelegate Protocol }
   NSTextStorageDelegateProtocol = objcprotocol external name 'NSTextStorageDelegate'
+  optional
     procedure textStorageWillProcessEditing(notification: NSNotification); message 'textStorageWillProcessEditing:';
     procedure textStorageDidProcessEditing(notification: NSNotification); message 'textStorageDidProcessEditing:';
   end;

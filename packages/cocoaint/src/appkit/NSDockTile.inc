@@ -84,7 +84,9 @@ const
   
 { NSDockTilePlugIn Protocol }
   NSDockTilePlugInProtocol = objcprotocol external name 'NSDockTilePlugIn'
+  required
     procedure setDockTile(dockTile: NSDockTile); message 'setDockTile:';
+  optional
     function dockMenu: NSMenu; message 'dockMenu';
   end;
 {$endif}

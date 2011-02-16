@@ -121,6 +121,7 @@ type
   
 { NSPathCellDelegate Protocol }
   NSPathCellDelegateProtocol = objcprotocol external name 'NSPathCellDelegate'
+  optional
     procedure pathCell_willDisplayOpenPanel(pathCell: NSPathCell; openPanel: NSOpenPanel); message 'pathCell:willDisplayOpenPanel:';
     procedure pathCell_willPopUpMenu(pathCell: NSPathCell; menu: NSMenu); message 'pathCell:willPopUpMenu:';
   end;

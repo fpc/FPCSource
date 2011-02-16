@@ -64,6 +64,7 @@
   
 { NSTokenFieldDelegate Protocol }
   NSTokenFieldDelegateProtocol = objcprotocol external name 'NSTokenFieldDelegate'
+  optional
     function tokenField_completionsForSubstring_indexOfToken_indexOfSelectedItem(tokenField: NSTokenField; substring: NSString; tokenIndex: NSInteger; selectedIndex: NSIntegerPtr): NSArray; message 'tokenField:completionsForSubstring:indexOfToken:indexOfSelectedItem:';
     function tokenField_shouldAddObjects_atIndex(tokenField: NSTokenField; tokens: NSArray; index: NSUInteger): NSArray; message 'tokenField:shouldAddObjects:atIndex:';
     function tokenField_displayStringForRepresentedObject(tokenField: NSTokenField; representedObject: id): NSString; message 'tokenField:displayStringForRepresentedObject:';

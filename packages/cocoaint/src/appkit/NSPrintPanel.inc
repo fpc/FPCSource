@@ -123,6 +123,7 @@ var
 { NSPrintPanelAccessorizing Protocol }
   NSPrintPanelAccessorizingProtocol = objcprotocol external name 'NSPrintPanelAccessorizing'
     function localizedSummaryItems: NSArray; message 'localizedSummaryItems';
+  optional
     function keyPathsForValuesAffectingPreview: NSSet; message 'keyPathsForValuesAffectingPreview';
   end;
 {$endif}

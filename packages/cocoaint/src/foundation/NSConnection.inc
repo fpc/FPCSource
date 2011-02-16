@@ -149,6 +149,7 @@ var
   
 { NSConnectionDelegate Protocol }
   NSConnectionDelegateProtocol = objcprotocol external name 'NSConnectionDelegate'
+  optional
     function makeNewConnection_sender(conn: NSConnection; ancestor: NSConnection): Boolean; message 'makeNewConnection:sender:';
     function connection_shouldMakeNewConnection(ancestor: NSConnection; conn: NSConnection): Boolean; message 'connection:shouldMakeNewConnection:';
     function authenticationDataForComponents(components: NSArray): NSData; message 'authenticationDataForComponents:';

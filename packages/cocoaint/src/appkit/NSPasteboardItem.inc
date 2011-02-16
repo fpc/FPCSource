@@ -77,7 +77,9 @@
   
 { NSPasteboardItemDataProvider Protocol }
   NSPasteboardItemDataProviderProtocol = objcprotocol external name 'NSPasteboardItemDataProvider'
+  required
     procedure pasteboard_item_provideDataForType(pasteboard: NSPasteboard; item: NSPasteboardItem; type_: NSString); message 'pasteboard:item:provideDataForType:';
+  optional
     procedure pasteboardFinishedWithDataProvider(pasteboard: NSPasteboard); message 'pasteboardFinishedWithDataProvider:';
   end;
 {$endif}

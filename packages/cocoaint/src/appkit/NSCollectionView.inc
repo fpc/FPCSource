@@ -171,6 +171,7 @@ const
   
 { NSCollectionViewDelegate Protocol }
   NSCollectionViewDelegateProtocol = objcprotocol external name 'NSCollectionViewDelegate'
+  optional
     function collectionView_canDragItemsAtIndexes_withEvent(collectionView: NSCollectionView; indexes: NSIndexSet; event: NSEvent): Boolean; message 'collectionView:canDragItemsAtIndexes:withEvent:';
     function collectionView_writeItemsAtIndexes_toPasteboard(collectionView: NSCollectionView; indexes: NSIndexSet; pasteboard: NSPasteboard): Boolean; message 'collectionView:writeItemsAtIndexes:toPasteboard:';
     function collectionView_namesOfPromisedFilesDroppedAtDestination_forDraggedItemsAtIndexes(collectionView: NSCollectionView; dropURL: NSURL; indexes: NSIndexSet): NSArray; message 'collectionView:namesOfPromisedFilesDroppedAtDestination:forDraggedItemsAtIndexes:';

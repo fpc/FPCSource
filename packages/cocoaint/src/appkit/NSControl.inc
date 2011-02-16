@@ -160,6 +160,7 @@ var
   
 { NSControlTextEditingDelegate Protocol }
   NSControlTextEditingDelegateProtocol = objcprotocol external name 'NSControlTextEditingDelegate'
+  optional
     function control_textShouldBeginEditing(control: NSControl; fieldEditor: NSText): Boolean; message 'control:textShouldBeginEditing:';
     function control_textShouldEndEditing(control: NSControl; fieldEditor: NSText): Boolean; message 'control:textShouldEndEditing:';
     function control_didFailToFormatString_errorDescription(control: NSControl; string_: NSString; error: NSString): Boolean; message 'control:didFailToFormatString:errorDescription:';

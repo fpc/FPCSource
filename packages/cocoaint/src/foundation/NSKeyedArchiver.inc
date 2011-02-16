@@ -152,6 +152,7 @@ var
   
 { NSKeyedArchiverDelegate Protocol }
   NSKeyedArchiverDelegateProtocol = objcprotocol external name 'NSKeyedArchiverDelegate'
+  optional
     function archiver_willEncodeObject(archiver: NSKeyedArchiver; object_: id): id; message 'archiver:willEncodeObject:';
     procedure archiver_didEncodeObject(archiver: NSKeyedArchiver; object_: id); message 'archiver:didEncodeObject:';
     procedure archiver_willReplaceObject_withObject(archiver: NSKeyedArchiver; object_: id; newObject: id); message 'archiver:willReplaceObject:withObject:';
@@ -161,6 +162,7 @@ var
   
 { NSKeyedUnarchiverDelegate Protocol }
   NSKeyedUnarchiverDelegateProtocol = objcprotocol external name 'NSKeyedUnarchiverDelegate'
+  optional
     function unarchiver_cannotDecodeObjectOfClassName_originalClasses(unarchiver: NSKeyedUnarchiver; name: NSString; classNames: NSArray): Pobjc_class; message 'unarchiver:cannotDecodeObjectOfClassName:originalClasses:';
     function unarchiver_didDecodeObject(unarchiver: NSKeyedUnarchiver; object_: id): id; message 'unarchiver:didDecodeObject:';
     procedure unarchiver_willReplaceObject_withObject(unarchiver: NSKeyedUnarchiver; object_: id; newObject: id); message 'unarchiver:willReplaceObject:withObject:';

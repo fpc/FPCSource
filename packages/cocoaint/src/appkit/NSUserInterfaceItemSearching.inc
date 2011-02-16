@@ -52,7 +52,9 @@
   
 { NSUserInterfaceItemSearching Protocol }
   NSUserInterfaceItemSearchingProtocol = objcprotocol external name 'NSUserInterfaceItemSearching'
+  required
     function localizedTitlesForItem(item: id): NSArray; message 'localizedTitlesForItem:';
+  optional
     procedure performActionForItem(item: id); message 'performActionForItem:';
     procedure showAllHelpTopicsForSearchString(searchString: NSString); message 'showAllHelpTopicsForSearchString:';
   end;

@@ -195,6 +195,7 @@ var
   
 { NSMenuDelegate Protocol }
   NSMenuDelegateProtocol = objcprotocol external name 'NSMenuDelegate'
+  optional
     procedure menuNeedsUpdate(menu: NSMenu); message 'menuNeedsUpdate:';
     function numberOfItemsInMenu(menu: NSMenu): NSInteger; message 'numberOfItemsInMenu:';
     function menu_updateItem_atIndex_shouldCancel(menu: NSMenu; item: NSMenuItem; index: NSInteger; shouldCancel: Boolean): Boolean; message 'menu:updateItem:atIndex:shouldCancel:';

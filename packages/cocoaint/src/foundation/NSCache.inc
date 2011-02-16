@@ -73,6 +73,7 @@
   
 { NSCacheDelegate Protocol }
   NSCacheDelegateProtocol = objcprotocol external name 'NSCacheDelegate'
+  optional
     procedure cache_willEvictObject(cache: NSCache; obj: id); message 'cache:willEvictObject:';
   end;
 {$endif}

@@ -141,6 +141,7 @@ type
   
 { NSDatePickerCellDelegate Protocol }
   NSDatePickerCellDelegateProtocol = objcprotocol external name 'NSDatePickerCellDelegate'
+  optional
     procedure datePickerCell_validateProposedDateValue_timeInterval(aDatePickerCell: NSDatePickerCell; proposedDateValue: NSDatePointer; proposedTimeInterval: NSTimeIntervalPtr); message 'datePickerCell:validateProposedDateValue:timeInterval:';
   end;
 {$endif}

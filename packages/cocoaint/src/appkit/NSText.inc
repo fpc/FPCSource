@@ -185,6 +185,7 @@ var
   
 { NSTextDelegate Protocol }
   NSTextDelegateProtocol = objcprotocol external name 'NSTextDelegate'
+  optional
     function textShouldBeginEditing(textObject: NSText): Boolean; message 'textShouldBeginEditing:';
     function textShouldEndEditing(textObject: NSText): Boolean; message 'textShouldEndEditing:';
     procedure textDidBeginEditing(notification: NSNotification); message 'textDidBeginEditing:';

@@ -259,6 +259,7 @@ var
   
 { NSImageDelegate Protocol }
   NSImageDelegateProtocol = objcprotocol external name 'NSImageDelegate'
+  optional
     function imageDidNotDraw_inRect(sender: id; aRect: NSRect): NSImage; message 'imageDidNotDraw:inRect:';
     procedure image_willLoadRepresentation(image: NSImage; rep: NSImageRep); message 'image:willLoadRepresentation:';
     procedure image_didLoadRepresentationHeader(image: NSImage; rep: NSImageRep); message 'image:didLoadRepresentationHeader:';

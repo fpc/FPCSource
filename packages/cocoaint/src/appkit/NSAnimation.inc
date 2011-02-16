@@ -189,6 +189,7 @@ var
   
 { NSAnimationDelegate Protocol }
   NSAnimationDelegateProtocol = objcprotocol external name 'NSAnimationDelegate'
+  optional
     function animationShouldStart(animation: NSAnimation): Boolean; message 'animationShouldStart:';
     procedure animationDidStop(animation: NSAnimation); message 'animationDidStop:';
     procedure animationDidEnd(animation: NSAnimation); message 'animationDidEnd:';
@@ -198,6 +199,7 @@ var
   
 { NSAnimatablePropertyContainer Protocol }
   NSAnimatablePropertyContainerProtocol = objcprotocol external name 'NSAnimatablePropertyContainer'
+  optional
     function animator: id; message 'animator';
     function animations: NSDictionary; message 'animations';
     procedure setAnimations(dict: NSDictionary); message 'setAnimations:';

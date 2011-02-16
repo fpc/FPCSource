@@ -150,6 +150,7 @@ var
   
 { NSMetadataQueryDelegate Protocol }
   NSMetadataQueryDelegateProtocol = objcprotocol external name 'NSMetadataQueryDelegate'
+  optional
     function metadataQuery_replacementObjectForResultObject(query: NSMetadataQuery; result_: NSMetadataItem): id; message 'metadataQuery:replacementObjectForResultObject:';
     function metadataQuery_replacementValueForAttribute_value(query: NSMetadataQuery; attrName: NSString; attrValue: id): id; message 'metadataQuery:replacementValueForAttribute:value:';
   end;

@@ -173,6 +173,7 @@ function NSExtraRefCount(object_: id): NSUInteger; cdecl; external;
   
 { NSDiscardableContent Protocol }
   NSDiscardableContentProtocol = objcprotocol external name 'NSDiscardableContent'
+  required
     function beginContentAccess: Boolean; message 'beginContentAccess';
     procedure endContentAccess; message 'endContentAccess';
     procedure discardContentIfPossible; message 'discardContentIfPossible';

@@ -126,6 +126,7 @@ var
   
 { NSDrawerDelegate Protocol }
   NSDrawerDelegateProtocol = objcprotocol external name 'NSDrawerDelegate'
+  optional
     function drawerShouldOpen(sender: NSDrawer): Boolean; message 'drawerShouldOpen:';
     function drawerShouldClose(sender: NSDrawer): Boolean; message 'drawerShouldClose:';
     function drawerWillResizeContents_toSize(sender: NSDrawer; contentSize: NSSize): NSSize; message 'drawerWillResizeContents:toSize:';

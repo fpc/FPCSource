@@ -351,6 +351,7 @@ var
   
 { NSApplicationDelegate Protocol }
   NSApplicationDelegateProtocol = objcprotocol external name 'NSApplicationDelegate'
+  optional
     function applicationShouldTerminate(sender: NSApplication): NSApplicationTerminateReply; message 'applicationShouldTerminate:';
     function application_openFile(sender: NSApplication; filename: NSString): Boolean; message 'application:openFile:';
     procedure application_openFiles(sender: NSApplication; filenames: NSArray); message 'application:openFiles:';

@@ -101,6 +101,7 @@ var
   
 { NSComboBoxDataSource Protocol }
   NSComboBoxDataSourceProtocol = objcprotocol external name 'NSComboBoxDataSource'
+  optional
     function numberOfItemsInComboBox(aComboBox: NSComboBox): NSInteger; message 'numberOfItemsInComboBox:';
     function comboBox_objectValueForItemAtIndex(aComboBox: NSComboBox; index: NSInteger): id; message 'comboBox:objectValueForItemAtIndex:';
     function comboBox_indexOfItemWithStringValue(aComboBox: NSComboBox; string_: NSString): NSUInteger; message 'comboBox:indexOfItemWithStringValue:';
@@ -109,6 +110,7 @@ var
   
 { NSComboBoxDelegate Protocol }
   NSComboBoxDelegateProtocol = objcprotocol external name 'NSComboBoxDelegate'
+  optional
     procedure comboBoxWillPopUp(notification: NSNotification); message 'comboBoxWillPopUp:';
     procedure comboBoxWillDismiss(notification: NSNotification); message 'comboBoxWillDismiss:';
     procedure comboBoxSelectionDidChange(notification: NSNotification); message 'comboBoxSelectionDidChange:';

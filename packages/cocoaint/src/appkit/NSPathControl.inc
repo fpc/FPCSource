@@ -76,6 +76,7 @@
   
 { NSPathControlDelegate Protocol }
   NSPathControlDelegateProtocol = objcprotocol external name 'NSPathControlDelegate'
+  optional
     function pathControl_shouldDragPathComponentCell_withPasteboard(pathControl: NSPathControl; pathComponentCell: NSPathComponentCell; pasteboard: NSPasteboard): Boolean; message 'pathControl:shouldDragPathComponentCell:withPasteboard:';
     function pathControl_validateDrop(pathControl: NSPathControl; info: NSDraggingInfoProtocol): NSDragOperation; message 'pathControl:validateDrop:';
     function pathControl_acceptDrop(pathControl: NSPathControl; info: NSDraggingInfoProtocol): Boolean; message 'pathControl:acceptDrop:';

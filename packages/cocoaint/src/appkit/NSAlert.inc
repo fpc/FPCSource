@@ -130,6 +130,7 @@ type
   
 { NSAlertDelegate Protocol }
   NSAlertDelegateProtocol = objcprotocol external name 'NSAlertDelegate'
+  optional
     function alertShowHelp(alert: NSAlert): Boolean; message 'alertShowHelp:';
   end;
 {$endif}

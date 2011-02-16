@@ -307,6 +307,7 @@ type
   
 { NSLayoutManagerDelegate Protocol }
   NSLayoutManagerDelegateProtocol = objcprotocol external name 'NSLayoutManagerDelegate'
+  optional
     procedure layoutManagerDidInvalidateLayout(sender: NSLayoutManager); message 'layoutManagerDidInvalidateLayout:';
     procedure layoutManager_didCompleteLayoutForTextContainer_atEnd(layoutManager: NSLayoutManager; textContainer: NSTextContainer; layoutFinishedFlag: Boolean); message 'layoutManager:didCompleteLayoutForTextContainer:atEnd:';
     function layoutManager_shouldUseTemporaryAttributes_forDrawingToScreen_atCharacterIndex_effectiveRange(layoutManager: NSLayoutManager; attrs: NSDictionary; toScreen: Boolean; charIndex: NSUInteger; effectiveCharRange: NSRangePointer): NSDictionary; message 'layoutManager:shouldUseTemporaryAttributes:forDrawingToScreen:atCharacterIndex:effectiveRange:';

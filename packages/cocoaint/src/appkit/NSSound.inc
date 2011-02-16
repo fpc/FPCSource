@@ -102,6 +102,7 @@ var
   
 { NSSoundDelegate Protocol }
   NSSoundDelegateProtocol = objcprotocol external name 'NSSoundDelegate'
+  optional
     procedure sound_didFinishPlaying(sound: NSSound; aBool: Boolean); message 'sound:didFinishPlaying:';
   end;
 {$endif}

@@ -83,6 +83,7 @@ var
   
 { NSSpellServerDelegate Protocol }
   NSSpellServerDelegateProtocol = objcprotocol external name 'NSSpellServerDelegate'
+  optional
     function spellServer_findMisspelledWordInString_language_wordCount_countOnly(sender: NSSpellServer; stringToCheck: NSString; language: NSString; wordCount: NSIntegerPtr; countOnly: Boolean): NSRange; message 'spellServer:findMisspelledWordInString:language:wordCount:countOnly:';
     function spellServer_suggestGuessesForWord_inLanguage(sender: NSSpellServer; word: NSString; language: NSString): NSArray; message 'spellServer:suggestGuessesForWord:inLanguage:';
     procedure spellServer_didLearnWord_inLanguage(sender: NSSpellServer; word: NSString; language: NSString); message 'spellServer:didLearnWord:inLanguage:';

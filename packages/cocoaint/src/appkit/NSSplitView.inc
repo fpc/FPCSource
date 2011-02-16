@@ -95,6 +95,7 @@ var
   
 { NSSplitViewDelegate Protocol }
   NSSplitViewDelegateProtocol = objcprotocol external name 'NSSplitViewDelegate'
+  optional
     function splitView_canCollapseSubview(splitView: NSSplitView; subview: NSView): Boolean; message 'splitView:canCollapseSubview:';
     function splitView_shouldCollapseSubview_forDoubleClickOnDividerAtIndex(splitView: NSSplitView; subview: NSView; dividerIndex: NSInteger): Boolean; message 'splitView:shouldCollapseSubview:forDoubleClickOnDividerAtIndex:';
     function splitView_constrainMinCoordinate_ofSubviewAt(splitView: NSSplitView; proposedMinimumPosition: CGFloat; dividerIndex: NSInteger): CGFloat; message 'splitView:constrainMinCoordinate:ofSubviewAt:';

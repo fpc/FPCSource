@@ -512,6 +512,7 @@ var
   
 { NSWindowDelegate Protocol }
   NSWindowDelegateProtocol = objcprotocol external name 'NSWindowDelegate'
+  optional
     function windowShouldClose(sender: id): Boolean; message 'windowShouldClose:';
     function windowWillReturnFieldEditor_toObject(sender: NSWindow; client: id): id; message 'windowWillReturnFieldEditor:toObject:';
     function windowWillResize_toSize(sender: NSWindow; frameSize: NSSize): NSSize; message 'windowWillResize:toSize:';

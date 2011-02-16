@@ -153,6 +153,7 @@ var
   
 { NSSpeechSynthesizerDelegate Protocol }
   NSSpeechSynthesizerDelegateProtocol = objcprotocol external name 'NSSpeechSynthesizerDelegate'
+  optional
     procedure speechSynthesizer_didFinishSpeaking(sender: NSSpeechSynthesizer; finishedSpeaking: Boolean); message 'speechSynthesizer:didFinishSpeaking:';
     procedure speechSynthesizer_willSpeakWord_ofString(sender: NSSpeechSynthesizer; characterRange: NSRange; string_: NSString); message 'speechSynthesizer:willSpeakWord:ofString:';
     procedure speechSynthesizer_willSpeakPhoneme(sender: NSSpeechSynthesizer; phonemeOpcode: cshort); message 'speechSynthesizer:willSpeakPhoneme:';

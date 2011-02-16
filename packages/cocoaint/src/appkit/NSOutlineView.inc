@@ -209,6 +209,7 @@ var
   
 { NSOutlineViewDataSource Protocol }
   NSOutlineViewDataSourceProtocol = objcprotocol external name 'NSOutlineViewDataSource'
+  optional
     function outlineView_child_ofItem(outlineView: NSOutlineView; index: NSInteger; item: id): id; message 'outlineView:child:ofItem:';
     function outlineView_isItemExpandable(outlineView: NSOutlineView; item: id): Boolean; message 'outlineView:isItemExpandable:';
     function outlineView_numberOfChildrenOfItem(outlineView: NSOutlineView; item: id): NSInteger; message 'outlineView:numberOfChildrenOfItem:';
@@ -225,6 +226,7 @@ var
   
 { NSOutlineViewDelegate Protocol }
   NSOutlineViewDelegateProtocol = objcprotocol external name 'NSOutlineViewDelegate'
+  optional
     procedure outlineView_willDisplayCell_forTableColumn_item(outlineView: NSOutlineView; cell: id; tableColumn: NSTableColumn; item: id); message 'outlineView:willDisplayCell:forTableColumn:item:';
     function outlineView_shouldEditTableColumn_item(outlineView: NSOutlineView; tableColumn: NSTableColumn; item: id): Boolean; message 'outlineView:shouldEditTableColumn:item:';
     function selectionShouldChangeInOutlineView(outlineView: NSOutlineView): Boolean; message 'selectionShouldChangeInOutlineView:';

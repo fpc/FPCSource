@@ -69,6 +69,7 @@
   
 { NSSpeechRecognizerDelegate Protocol }
   NSSpeechRecognizerDelegateProtocol = objcprotocol external name 'NSSpeechRecognizerDelegate'
+  optional
     procedure speechRecognizer_didRecognizeCommand(sender: NSSpeechRecognizer; command: id); message 'speechRecognizer:didRecognizeCommand:';
   end;
 {$endif}

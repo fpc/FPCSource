@@ -314,6 +314,7 @@ var
   
 { NSTextViewDelegate Protocol }
   NSTextViewDelegateProtocol = objcprotocol external name 'NSTextViewDelegate'
+  optional
     function textView_clickedOnLink_atIndex(textView: NSTextView; link: id; charIndex: NSUInteger): Boolean; message 'textView:clickedOnLink:atIndex:';
     procedure textView_clickedOnCell_inRect_atIndex(textView: NSTextView; cell: NSTextAttachmentCellProtocol; cellFrame: NSRect; charIndex: NSUInteger); message 'textView:clickedOnCell:inRect:atIndex:';
     procedure textView_doubleClickedOnCell_inRect_atIndex(textView: NSTextView; cell: NSTextAttachmentCellProtocol; cellFrame: NSRect; charIndex: NSUInteger); message 'textView:doubleClickedOnCell:inRect:atIndex:';

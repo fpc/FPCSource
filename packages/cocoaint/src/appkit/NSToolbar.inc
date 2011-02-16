@@ -154,6 +154,7 @@ var
   
 { NSToolbarDelegate Protocol }
   NSToolbarDelegateProtocol = objcprotocol external name 'NSToolbarDelegate'
+  optional
     function toolbar_itemForItemIdentifier_willBeInsertedIntoToolbar(toolbar: NSToolbar; itemIdentifier: NSString; flag: Boolean): NSToolbarItem; message 'toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:';
     function toolbarDefaultItemIdentifiers(toolbar: NSToolbar): NSArray; message 'toolbarDefaultItemIdentifiers:';
     function toolbarAllowedItemIdentifiers(toolbar: NSToolbar): NSArray; message 'toolbarAllowedItemIdentifiers:';

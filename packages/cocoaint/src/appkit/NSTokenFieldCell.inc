@@ -103,6 +103,7 @@ type
   
 { NSTokenFieldCellDelegate Protocol }
   NSTokenFieldCellDelegateProtocol = objcprotocol external name 'NSTokenFieldCellDelegate'
+  optional
     function tokenFieldCell_completionsForSubstring_indexOfToken_indexOfSelectedItem(tokenFieldCell: NSTokenFieldCell; substring: NSString; tokenIndex: NSInteger; selectedIndex: NSIntegerPtr): NSArray; message 'tokenFieldCell:completionsForSubstring:indexOfToken:indexOfSelectedItem:';
     function tokenFieldCell_shouldAddObjects_atIndex(tokenFieldCell: NSTokenFieldCell; tokens: NSArray; index: NSUInteger): NSArray; message 'tokenFieldCell:shouldAddObjects:atIndex:';
     function tokenFieldCell_displayStringForRepresentedObject(tokenFieldCell: NSTokenFieldCell; representedObject: id): NSString; message 'tokenFieldCell:displayStringForRepresentedObject:';

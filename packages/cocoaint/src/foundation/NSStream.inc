@@ -162,6 +162,7 @@ var
   
 { NSStreamDelegate Protocol }
   NSStreamDelegateProtocol = objcprotocol external name 'NSStreamDelegate'
+  optional
     procedure stream_handleEvent(aStream: NSStream; eventCode: NSStreamEvent); message 'stream:handleEvent:';
   end;
 {$endif}

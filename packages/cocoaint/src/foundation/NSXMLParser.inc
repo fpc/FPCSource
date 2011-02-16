@@ -187,6 +187,7 @@ var
   
 { NSXMLParserDelegate Protocol }
   NSXMLParserDelegateProtocol = objcprotocol external name 'NSXMLParserDelegate'
+  optional
     procedure parserDidStartDocument(parser: NSXMLParser); message 'parserDidStartDocument:';
     procedure parserDidEndDocument(parser: NSXMLParser); message 'parserDidEndDocument:';
     procedure parser_foundNotationDeclarationWithName_publicID_systemID(parser: NSXMLParser; name: NSString; publicID: NSString; systemID: NSString); message 'parser:foundNotationDeclarationWithName:publicID:systemID:';

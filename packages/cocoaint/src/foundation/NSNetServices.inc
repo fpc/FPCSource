@@ -143,6 +143,7 @@ var
   
 { NSNetServiceDelegate Protocol }
   NSNetServiceDelegateProtocol = objcprotocol external name 'NSNetServiceDelegate'
+  optional
     procedure netServiceWillPublish(sender: NSNetService); message 'netServiceWillPublish:';
     procedure netServiceDidPublish(sender: NSNetService); message 'netServiceDidPublish:';
     procedure netService_didNotPublish(sender: NSNetService; errorDict: NSDictionary); message 'netService:didNotPublish:';
@@ -155,6 +156,7 @@ var
   
 { NSNetServiceBrowserDelegate Protocol }
   NSNetServiceBrowserDelegateProtocol = objcprotocol external name 'NSNetServiceBrowserDelegate'
+  optional
     procedure netServiceBrowserWillSearch(aNetServiceBrowser: NSNetServiceBrowser); message 'netServiceBrowserWillSearch:';
     procedure netServiceBrowserDidStopSearch(aNetServiceBrowser: NSNetServiceBrowser); message 'netServiceBrowserDidStopSearch:';
     procedure netServiceBrowser_didNotSearch(aNetServiceBrowser: NSNetServiceBrowser; errorDict: NSDictionary); message 'netServiceBrowser:didNotSearch:';

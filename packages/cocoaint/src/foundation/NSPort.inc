@@ -155,11 +155,13 @@ var
   
 { NSPortDelegate Protocol }
   NSPortDelegateProtocol = objcprotocol external name 'NSPortDelegate'
+  optional
     procedure handlePortMessage(message: NSPortMessage); message 'handlePortMessage:';
   end;
   
 { NSMachPortDelegate Protocol }
   NSMachPortDelegateProtocol = objcprotocol external name 'NSMachPortDelegate'
+  optional
     procedure handleMachMessage(msg: Pointer); message 'handleMachMessage:';
   end;
 {$endif}

@@ -172,6 +172,7 @@ __SPFlagsPtr = ^__SPFlags;
   
 { NSOpenSavePanelDelegate Protocol }
   NSOpenSavePanelDelegateProtocol = objcprotocol external name 'NSOpenSavePanelDelegate'
+  optional
     function panel_shouldEnableURL(sender: id; url: NSURL): Boolean; message 'panel:shouldEnableURL:';
     function panel_validateURL_error(sender: id; url: NSURL; outError: NSErrorPointer): Boolean; message 'panel:validateURL:error:';
     procedure panel_didChangeToDirectoryURL(sender: id; url: NSURL); message 'panel:didChangeToDirectoryURL:';

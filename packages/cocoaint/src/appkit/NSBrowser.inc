@@ -289,6 +289,7 @@ var
   
 { NSBrowserDelegate Protocol }
   NSBrowserDelegateProtocol = objcprotocol external name 'NSBrowserDelegate'
+  optional
     function browser_numberOfRowsInColumn(sender: NSBrowser; column: NSInteger): NSInteger; message 'browser:numberOfRowsInColumn:';
     procedure browser_createRowsForColumn_inMatrix(sender: NSBrowser; column: NSInteger; matrix: NSMatrix); message 'browser:createRowsForColumn:inMatrix:';
     function browser_numberOfChildrenOfItem(browser: NSBrowser; item: id): NSInteger; message 'browser:numberOfChildrenOfItem:';
