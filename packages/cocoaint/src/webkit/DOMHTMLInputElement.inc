@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMHTMLInputElement.h }
-{ Version: 2.1.5 - Fri Feb 11 21:46:20 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMHTMLINPUTELEMENT_PAS_T}

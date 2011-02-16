@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSValue.h }
-{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSVALUE_PAS_T}

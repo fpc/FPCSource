@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSAppleEventManager.h }
-{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSAPPLEEVENTMANAGER_PAS_T}

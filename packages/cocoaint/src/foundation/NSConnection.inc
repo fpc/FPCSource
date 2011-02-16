@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSConnection.h }
-{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSCONNECTION_PAS_T}

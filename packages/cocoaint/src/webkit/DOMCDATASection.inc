@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMCDATASection.h }
-{ Version: 2.1.5 - Fri Feb 11 21:46:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMCDATASECTION_PAS_T}

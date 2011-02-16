@@ -1,6 +1,4 @@
 { Parsed from Quartzcore.framework CIPlugIn.h }
-{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef CIPLUGIN_PAS_T}

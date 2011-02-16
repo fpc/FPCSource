@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSException.h }
-{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSEXCEPTION_PAS_T}

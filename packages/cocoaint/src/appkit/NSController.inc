@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSController.h }
-{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSCONTROLLER_PAS_T}

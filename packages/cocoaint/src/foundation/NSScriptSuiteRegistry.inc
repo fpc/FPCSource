@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSScriptSuiteRegistry.h }
-{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSSCRIPTSUITEREGISTRY_PAS_T}

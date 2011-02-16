@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSFormatter.h }
-{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSFORMATTER_PAS_T}

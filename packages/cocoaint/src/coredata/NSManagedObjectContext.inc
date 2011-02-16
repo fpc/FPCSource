@@ -1,6 +1,4 @@
 { Parsed from Coredata.framework NSManagedObjectContext.h }
-{ Version: 2.1.5 - Fri Feb 11 21:46:37 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSMANAGEDOBJECTCONTEXT_PAS_T}

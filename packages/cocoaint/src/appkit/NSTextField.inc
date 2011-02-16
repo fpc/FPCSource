@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSTextField.h }
-{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSTEXTFIELD_PAS_T}

@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSClipView.h }
-{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSCLIPVIEW_PAS_T}

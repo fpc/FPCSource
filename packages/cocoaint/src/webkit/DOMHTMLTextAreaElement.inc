@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMHTMLTextAreaElement.h }
-{ Version: 2.1.5 - Fri Feb 11 21:46:20 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMHTMLTEXTAREAELEMENT_PAS_T}

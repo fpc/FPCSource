@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSTableColumn.h }
-{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSTABLECOLUMN_PAS_T}

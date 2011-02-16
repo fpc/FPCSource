@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework WebArchive.h }
-{ Version: 2.1.5 - Fri Feb 11 21:46:20 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef WEBARCHIVE_PAS_T}

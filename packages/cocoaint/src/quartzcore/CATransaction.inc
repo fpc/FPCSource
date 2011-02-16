@@ -1,6 +1,4 @@
 { Parsed from Quartzcore.framework CATransaction.h }
-{ Version: 2.1.5 - Fri Feb 11 21:45:56 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef CATRANSACTION_PAS_T}

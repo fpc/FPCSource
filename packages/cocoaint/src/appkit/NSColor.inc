@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSColor.h }
-{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSCOLOR_PAS_T}

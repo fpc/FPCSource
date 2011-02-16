@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSSlider.h }
-{ Version: 2.1.5 - Fri Feb 11 21:45:55 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSSLIDER_PAS_T}

@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMCounter.h }
-{ Version: 2.1.5 - Fri Feb 11 21:46:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMCOUNTER_PAS_T}
