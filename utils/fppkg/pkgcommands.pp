@@ -320,6 +320,8 @@ begin
         end;
       UFN:=IncludeTrailingPathDelimiter(UFN)+S+PathDelim+UnitConfigFileName;
       LoadUnitConfigFromFile(P,UFN);
+      if P.IsFPMakeAddIn then
+        AddFPMakeAddIn(P);
     end
   else
     ExecuteAction(PackageName,'fpmakeinstall');

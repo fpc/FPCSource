@@ -15,6 +15,7 @@ procedure LoadLocalAvailableRepository;
 procedure LoadUnitConfigFromFile(APackage:TFPPackage;const AFileName: String);
 function LoadManifestFromFile(const AManifestFN:string):TFPPackage;
 procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boolean=true);
+Procedure AddFPMakeAddIn(APackage: TFPPackage);
 function  PackageIsBroken(APackage:TFPPackage; MarkForReInstall: boolean):boolean;
 function  FindBrokenPackages(SL:TStrings):Boolean;
 procedure CheckFPMakeDependencies;
@@ -289,15 +290,6 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
     end;
   end;
 
-  Procedure AddFPMakeAddIn(APackage: TFPPackage);
-  begin
-    Log(vlDebug,SLogFoundFPMakeAddin,[APackage.Name]);
-    setlength(FPMKUnitDeps,length(FPMKUnitDeps)+1);
-    FPMKUnitDeps[high(FPMKUnitDeps)].package:=APackage.Name;
-    FPMKUnitDeps[high(FPMKUnitDeps)].reqver:=APackage.Version.AsString;
-    FPMKUnitDeps[high(FPMKUnitDeps)].def:='HAS_PACKAGE_'+APackage.Name;
-  end;
-
   function CheckUnitDir(const AUnitDir:string; const Local: boolean):boolean;
   var
     SR : TSearchRec;
@@ -346,6 +338,17 @@ begin
     CheckUnitDir(ACompilerOptions.GlobalUnitDir, False);
   if ACompilerOptions.LocalUnitDir<>'' then
     CheckUnitDir(ACompilerOptions.LocalUnitDir, True);
+end;
+
+
+Procedure AddFPMakeAddIn(APackage: TFPPackage);
+begin
+  Log(vlDebug,SLogFoundFPMakeAddin,[APackage.Name]);
+  setlength(FPMKUnitDeps,length(FPMKUnitDeps)+1);
+  FPMKUnitDeps[high(FPMKUnitDeps)].package:=APackage.Name;
+  FPMKUnitDeps[high(FPMKUnitDeps)].reqver:=APackage.Version.AsString;
+  FPMKUnitDeps[high(FPMKUnitDeps)].def:='HAS_PACKAGE_'+APackage.Name;
+  FPMKUnitDeps[high(FPMKUnitDeps)].available:=true;
 end;
 
 
