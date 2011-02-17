@@ -423,6 +423,13 @@ begin
   FOptionParser := TTemplateParser.Create;
   FOptionParser.Values['AppConfigDir'] := GetAppConfigDir(false);
   FOptionParser.Values['UserDir'] := GetUserDir;
+  {$ifdef unix}
+  FLocalInstallDir:='{LocalPrefix}'+'lib'+PathDelim+'fpc'+PathDelim+'{CompilerVersion}'+PathDelim;
+  FGlobalInstallDir:='{GlobalPrefix}'+'lib'+PathDelim+'fpc'+PathDelim+'{CompilerVersion}'+PathDelim;
+  {$else unix}
+  FLocalInstallDir:='{LocalPrefix}';
+  FGlobalInstallDir:='{GlobalPrefix}';
+  {$endif}
 end;
 
 destructor TCompilerOptions.Destroy;
@@ -467,7 +474,10 @@ begin
   Case Index of
     1 : FCompiler:=AValue;
     2 : StringToCPUOS(AValue,FCompilerCPU,FCompilerOS);
-    3 : FCompilerVersion:=AValue;
+    3 : begin
+          FCompilerVersion:=AValue;
+          FOptionParser.Values['CompilerVersion'] := FCompilerVersion;
+        end;
     4 : FGlobalInstallDir:=FixPath(AValue);
     5 : FLocalInstallDir:=FixPath(AValue);
     6 : begin
@@ -531,14 +541,7 @@ end;
 function TCompilerOptions.LocalUnitDir:string;
 var ALocalInstallDir: string;
 begin
-  if LocalInstallDir<>'' then
-    ALocalInstallDir:=LocalInstallDir
-  else if LocalPrefix<>'' then
-{$ifdef unix}
-    ALocalInstallDir:=LocalPrefix+'lib'+PathDelim+'fpc'+PathDelim+FCompilerVersion+PathDelim;
-{$else unix}
-    ALocalInstallDir:=LocalPrefix;
-{$endif}
+  ALocalInstallDir:=LocalInstallDir;
 
   if ALocalInstallDir<>'' then
     result:=ALocalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
@@ -550,14 +553,7 @@ end;
 function TCompilerOptions.GlobalUnitDir:string;
 var AGlobalInstallDir: string;
 begin
-  if GlobalInstallDir<>'' then
-    AGlobalInstallDir:=GlobalInstallDir
-  else if GlobalPrefix<>'' then
-{$ifdef unix}
-    AGlobalInstallDir:=GlobalPrefix+'lib'+PathDelim+'fpc'+PathDelim+FCompilerVersion+PathDelim;
-{$else unix}
-    AGlobalInstallDir:=GlobalPrefix;
-{$endif}
+  AGlobalInstallDir:=GlobalInstallDir;
 
   if AGlobalInstallDir<>'' then
     result:=AGlobalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
@@ -573,7 +569,8 @@ end;
 
 
 procedure TCompilerOptions.InitCompilerDefaults;
-
+var
+  ACompilerVersion: string;
 begin
   FConfigVersion:=CurrentConfigVersion;
   if fcompiler = '' then
@@ -581,7 +578,8 @@ begin
   if FCompiler='' then
     Raise EPackagerError.Create(SErrMissingFPC);
   // Detect compiler version/target from -i option
-  GetCompilerInfo(FCompiler,'-iVTPTO',FCompilerVersion,FCompilerCPU,FCompilerOS);
+  GetCompilerInfo(FCompiler,'-iVTPTO',ACompilerVersion,FCompilerCPU,FCompilerOS);
+  CompilerVersion := ACompilerVersion;
   // Temporary hack to workaround bug in fpc.exe that doesn't support spaces
   // We retrieve the real binary
   if FCompilerVersion='2.2.0' then
@@ -645,7 +643,7 @@ begin
         FCompiler:=ReadString(SDefaults,KeyCompiler,FCompiler);
         FCompilerOS:=StringToOS(ReadString(SDefaults,KeyCompilerOS,OSToString(CompilerOS)));
         FCompilerCPU:=StringToCPU(ReadString(SDefaults,KeyCompilerCPU,CPUtoString(CompilerCPU)));
-        FCompilerVersion:=ReadString(SDefaults,KeyCompilerVersion,FCompilerVersion);
+        CompilerVersion:=ReadString(SDefaults,KeyCompilerVersion,FCompilerVersion);
       end;
   finally
     Ini.Free;
