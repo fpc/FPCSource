@@ -571,6 +571,7 @@ end;
 procedure TCompilerOptions.InitCompilerDefaults;
 var
   ACompilerVersion: string;
+  fpcdir: string;
 begin
   FConfigVersion:=CurrentConfigVersion;
   if fcompiler = '' then
@@ -599,7 +600,7 @@ begin
   if not(DirectoryExists(FGlobalPrefix+PathDelim+'units')) and
      not(DirectoryExists(FGlobalPrefix+PathDelim+'rtl')) then
     FGlobalPrefix:=FGlobalPrefix+'..'+PathDelim;
-  FGlobalPrefix:=ExpandFileName(FGlobalInstallDir);
+  FGlobalPrefix:=ExpandFileName(FGlobalPrefix);
 {$endif unix}
 
   Log(vlDebug,SLogDetectedPrefix,['global',FGlobalPrefix]);
@@ -610,12 +611,15 @@ begin
       Log(vlDebug,SLogDetectedPrefix,['local',FLocalPrefix]);
     end;
 
-  FGlobalInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
+  fpcdir:=FixPath(GetEnvironmentVariable('FPCDIR'));
 {$ifndef Unix}
-  FGlobalInstallDir:=ExpandFileName(FGlobalInstallDir);
+  fpcdir:=ExpandFileName(fpcdir);
 {$endif unix}
-  if FGlobalInstallDir<>'' then
-    Log(vlDebug,SLogFPCDirEnv,[FGlobalInstallDir]);
+  if fpcdir<>'' then
+    begin
+    Log(vlDebug,SLogFPCDirEnv,[fpcdir]);
+    FGlobalInstallDir:=fpcdir;
+    end;
 end;
 
 
