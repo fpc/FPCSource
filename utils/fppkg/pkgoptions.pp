@@ -689,7 +689,7 @@ begin
   Log(ALogLevel,SLogCompilerCfgLocalPrefix,[FLocalPrefix,LocalPrefix]);
   Log(ALogLevel,SLogCompilerCfgGlobalInstallDir,[FGlobalInstallDir,GlobalInstallDir]);
   Log(ALogLevel,SLogCompilerCfgLocalInstallDir,[FLocalInstallDir,LocalInstallDir]);
-  Log(ALogLevel,SLogCompilerCfgOptions,[Options.Text]);
+  Log(ALogLevel,SLogCompilerCfgOptions,[Options.DelimitedText]);
 end;
 
 
