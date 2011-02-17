@@ -293,7 +293,10 @@ begin
   else
     FLocalRepository:='{UserDir}.fppkg/';
 {$else}
-  FLocalRepository:=IncludeTrailingPathDelimiter(GetAppConfigDir(IsSuperUser));
+  if IsSuperUser then
+    FLocalRepository:=IncludeTrailingPathDelimiter(GetAppConfigDir(true))
+  else
+    FLocalRepository:='{AppConfigDir}';
 {$endif}
   UpdateLocalRepositoryOption;
   // Directories
@@ -612,11 +615,11 @@ begin
     end;
 
   fpcdir:=FixPath(GetEnvironmentVariable('FPCDIR'));
-{$ifndef Unix}
-  fpcdir:=ExpandFileName(fpcdir);
-{$endif unix}
   if fpcdir<>'' then
     begin
+    {$ifndef Unix}
+    fpcdir:=ExpandFileName(fpcdir);
+    {$endif unix}
     Log(vlDebug,SLogFPCDirEnv,[fpcdir]);
     FGlobalInstallDir:=fpcdir;
     end;
