@@ -1042,9 +1042,9 @@ ResourceString
   SWarnDepUnitNotFound     = 'Warning: Dependency on unit %s is not supported for %s';
   SWarnTargetDependsOnPackage = 'Warning: Target %s of package %s depends on another package (%s). These kind of dependencies are not processed';
   SWarnDependOnOtherPlatformPackage = 'Warning: Package %s depends on package %s which is not available for the %s platform';
-  SWarnStartBuildingPackage = 'Start building package %s';
+  SWarnStartBuildingPackage = 'Start building package %s for target %s.';
   SWarnBuildingPackagecomplete = '[%3.0f%%] Built target %s';
-  SWarnInstallationPackagecomplete = 'Installation package %s succeeded';
+  SWarnInstallationPackagecomplete = 'Installation package %s for target %s succeeded';
   SWarnCleanPackagecomplete = 'Clean of package %s completed';
 
   SInfoCompilingPackage   = 'Compiling package %s';
@@ -4899,7 +4899,7 @@ begin
   For I:=0 to Packages.Count-1 do
     begin
       P:=Packages.PackageItems[i];
-      log(vlWarning,SWarnStartBuildingPackage,[P.Name]);
+      log(vlWarning,SWarnStartBuildingPackage,[P.Name, Defaults.Target]);
       If PackageOK(P) then
         MaybeCompile(P);
 
@@ -4923,7 +4923,7 @@ begin
       P:=Packages.PackageItems[i];
       If PackageOK(P) then
         Install(P);
-      log(vlWarning, SWarnInstallationPackagecomplete, [P.Name]);
+      log(vlWarning, SWarnInstallationPackagecomplete, [P.Name, Defaults.Target]);
     end;
   If Assigned(AfterInstall) then
     AfterInstall(Self);
