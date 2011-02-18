@@ -154,7 +154,7 @@ type
   TDOMDocumentTypeEx = class(TDOMDocumentType);
   TDOMTopNodeEx = class(TDOMNode_TopLevel);
 
-  TDTDSubsetType = (dsNone, dsInternal, dsExternal);
+  TXMLSourceKind = (skNone, skInternalSubset, skManualPop);
 
   TLocation = xmlutils.TLocation;
 
@@ -181,7 +181,7 @@ type
   protected
     function Reload: Boolean; virtual;
   public
-    DTDSubsetType: TDTDSubsetType;
+    Kind: TXMLSourceKind;
     constructor Create(const AData: WideString);
     procedure NextChar;
     procedure NewLine; virtual;
@@ -263,7 +263,7 @@ type
 
   TXMLToken = (xtNone, xtEOF, xtText, xtWhitespace, xtElement, xtEndElement,
     xtCDSect, xtComment, xtPI, xtDoctype, xtEntity, xtEntityEnd, xtPopElement,
-    xtPopEmptyElement, xtPushElement);
+    xtPopEmptyElement, xtPushElement, xtPushEntity, xtPopEntity);
 
   TLiteralType = (ltPlain, ltPubid, ltEntity);
 
@@ -385,13 +385,16 @@ type
     procedure ParseEndTag;                                              // [42]
     procedure DoStartElement;
     procedure DoEndElement;
+    procedure HandleEntityStart;
+    procedure HandleEntityEnd;
+    procedure ResolveEntity;
+    procedure DoStartEntity;
     procedure ParseAttribute(ElDef: TElementDecl);
     procedure ParseContent;                                             // [43]
     function  Read: Boolean;
     function  ResolvePredefined: Boolean;
     function  EntityCheck(NoExternals: Boolean = False): TEntityDecl;
     procedure LoadEntity(AEntity: TEntityDecl);
-    procedure AppendReference(cur: TDOMNode; AEntity: TEntityDecl);
     function PrefetchEntity(AEntity: TEntityDecl): Boolean;
     procedure StartPE;
     function  ParseRef(var ToFill: TWideCharBuf): Boolean;              // [67]
@@ -404,7 +407,7 @@ type
     procedure ExpectChoiceOrSeq(CP: TContentParticle);
     procedure ParseElementDecl;
     procedure ParseNotationDecl;
-    function ResolveEntity(const ASystemID, APublicID, ABaseURI: WideString; out Source: TXMLCharSource): Boolean;
+    function ResolveResource(const ASystemID, APublicID, ABaseURI: WideString; out Source: TXMLCharSource): Boolean;
     procedure ProcessDefaultAttributes(ElDef: TElementDecl);
     procedure ProcessNamespaceAtts;
     function AddBinding(attrData: PNodeData): Boolean;
@@ -423,6 +426,7 @@ type
     procedure DoComment(ch: PWideChar; Count: Integer);
     procedure DoCDSect(ch: PWideChar; Count: Integer);
     procedure DoNotationDecl(const aName, aPubID, aSysID: WideString);
+    procedure DoEntityReference;
   public
     doc: TDOMDocument;
     constructor Create; overload;
@@ -552,7 +556,7 @@ begin
   ADoc := nil;
   with TXMLReader.Create(Self) do
   try
-    if ResolveEntity(URI, '', '', Src) then
+    if ResolveResource(URI, '', '', Src) then
       ProcessXML(Src)
     else
       DoErrorPos(esFatal, 'The specified URI could not be resolved', NullLocation);
@@ -731,7 +735,7 @@ var
   r, inLeft: Cardinal;
   rslt: Integer;
 begin
-  if DTDSubsetType = dsInternal then
+  if Kind = skInternalSubset then
     FReader.DTDReloadHook;
   Remainder := FBufEnd - FBuf;
   if Remainder > 0 then
@@ -968,7 +972,7 @@ begin
     else if SrcIn.FStringData <> '' then
       SrcOut := TXMLStreamInputSource.Create(TStringStream.Create(SrcIn.FStringData), True)
     else if (SrcIn.SystemID <> '') then
-      ResolveEntity(SrcIn.SystemID, SrcIn.PublicID, SrcIn.BaseURI, SrcOut);
+      ResolveResource(SrcIn.SystemID, SrcIn.PublicID, SrcIn.BaseURI, SrcOut);
   end;
   if (SrcOut = nil) and (FSource = nil) then
     DoErrorPos(esFatal, 'No input source specified', NullLocation);
@@ -980,7 +984,7 @@ begin
   Loc.LinePos := FSource.FBuf-FSource.LFPos;
 end;
 
-function TXMLReader.ResolveEntity(const ASystemID, APublicID, ABaseURI: WideString; out Source: TXMLCharSource): Boolean;
+function TXMLReader.ResolveResource(const ASystemID, APublicID, ABaseURI: WideString; out Source: TXMLCharSource): Boolean;
 var
   AbsSysID: WideString;
   Filename: string;
@@ -1133,7 +1137,7 @@ begin
     end
     else if FSource.FBuf^ = '%' then
     begin
-      if (FState <> rsDTD) or ((FSource.DTDSubsetType = dsInternal) and FInsideDecl) then
+      if (FState <> rsDTD) or ((FSource.Kind = skInternalSubset) and FInsideDecl) then
         Break;
 // This is the only case where look-ahead is needed
       if FSource.FBuf > FSource.FBufEnd-2 then
@@ -1639,7 +1643,7 @@ begin
 
   if (AEntity.FSystemID <> '') and not AEntity.FPrefetched then
   begin
-    if not ResolveEntity(AEntity.FSystemID, AEntity.FPublicID, AEntity.FURI, Src) then
+    if not ResolveResource(AEntity.FSystemID, AEntity.FPublicID, AEntity.FURI, Src) then
     begin
       // TODO: a detailed message like SysErrorMessage(GetLastError) would be great here
       ValidationError('Unable to resolve external entity ''%s''', [AEntity.FName]);
@@ -1676,7 +1680,7 @@ var
   Src: TXMLCharSource;
   Error: Boolean;
 begin
-  Result := Assigned(FSource.FParent) and (Forced or (FSource.DTDSubsetType = dsNone));
+  Result := Assigned(FSource.FParent) and (Forced or (FSource.Kind = skNone));
   if Result then
   begin
     Src := FSource.FParent;
@@ -1813,7 +1817,7 @@ begin
       FSource.NextChar;
       CheckName;
       ExpectChar(';');
-      if FSource.DTDSubsetType = dsInternal then
+      if FSource.Kind = skInternalSubset then
         FatalError('PE reference not allowed here in internal subset', FName.Length+2);
       StartPE;
     end
@@ -2058,7 +2062,7 @@ begin
   if CheckForChar('[') then
   begin
     BufAllocate(FIntSubset, 256);
-    FSource.DTDSubsetType := dsInternal;
+    FSource.Kind := skInternalSubset;
     try
       FDTDStartPos := FSource.FBuf;
       ParseMarkupDecl;
@@ -2066,7 +2070,7 @@ begin
       SetString(FDocType.FInternalSubset, FIntSubset.Buffer, FIntSubset.Length);
     finally
       FreeMem(FIntSubset.Buffer);
-      FSource.DTDSubsetType := dsNone;
+      FSource.Kind := skNone;
     end;
     ExpectChar(']');
     SkipS;
@@ -2075,11 +2079,11 @@ begin
 
   if (FDocType.FSystemID <> '') then
   begin
-    if ResolveEntity(FDocType.FSystemID, FDocType.FPublicID, FSource.SystemID, Src) then
+    if ResolveResource(FDocType.FSystemID, FDocType.FPublicID, FSource.SystemID, Src) then
     begin
       Initialize(Src);
       try
-        Src.DTDSubsetType := dsExternal;
+        Src.Kind := skManualPop;
         ParseMarkupDecl;
       finally
         ContextPop(True);
@@ -2091,8 +2095,8 @@ begin
       FDTDProcessed := FStandalone;
     end;
   end;
-  ValidateDTD;
   FState := rsAfterDTD;
+  FCurrNode^.FNodeType := ntDocumentType;
 end;
 
 procedure TXMLReader.ExpectEq;   // [25]
@@ -2205,7 +2209,7 @@ begin
   if ElDef.ContentType <> ctUndeclared then
     ValidationErrorWithName('Duplicate declaration of element ''%s''', FName.Length);
 
-  ExtDecl := FSource.DTDSubsetType <> dsInternal;
+  ExtDecl := FSource.Kind <> skInternalSubset;
 
   ExpectWhitespace;
   if FSource.Matches('EMPTY') then
@@ -2318,7 +2322,7 @@ begin
     attrName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
     AttDef := TAttributeDef.Create(attrName, FColonPos);
     try
-      AttDef.ExternallyDeclared := FSource.DTDSubsetType <> dsInternal;
+      AttDef.ExternallyDeclared := FSource.Kind <> skInternalSubset;
 // In case of duplicate declaration of the same attribute, we must discard it,
 // not modifying ElDef, and suppressing certain validation errors.
       DiscardIt := (not FDTDProcessed) or Assigned(ElDef.GetAttrDef(attrName));
@@ -2454,7 +2458,7 @@ begin
 
   Entity := TEntityDecl.Create;
   try
-    Entity.ExternallyDeclared := FSource.DTDSubsetType <> dsInternal;
+    Entity.ExternallyDeclared := FSource.Kind <> skInternalSubset;
     Entity.FIsPE := IsPE;
     CheckName;
     CheckNCName;
@@ -2547,7 +2551,7 @@ begin
         ParseComment(True)
       else if CheckForChar('[') then
       begin
-        if FSource.DTDSubsetType = dsInternal then
+        if FSource.Kind = skInternalSubset then
           FatalError('Conditional sections are not allowed in internal subset', 1);
 
         SkipWhitespace;
@@ -2613,7 +2617,7 @@ begin
   until False;
   if IncludeLevel > 0 then
     DoErrorPos(esFatal, 'INCLUDE section is not closed', IncludeLoc);
-  if (FSource.DTDSubsetType = dsInternal) and (FSource.FBuf^ = ']') then
+  if (FSource.Kind = skInternalSubset) and (FSource.FBuf^ = ']') then
     Exit;
   if FSource.FBuf^ <> #0 then
     FatalError('Illegal character in DTD');
@@ -2662,15 +2666,62 @@ begin
   end;
 end;
 
-procedure TXMLReader.AppendReference(cur: TDOMNode; AEntity: TEntityDecl);
-var
-  s: WideString;
+procedure TXMLReader.DoEntityReference;
 begin
-  if AEntity = nil then
-    SetString(s, FName.Buffer, FName.Length)
+  FCursorStack[FNesting].AppendChild(doc.CreateEntityReference(FCurrNode^.FQName^.Key));
+end;
+
+procedure TXMLReader.HandleEntityStart;
+begin
+  { FNesting+1 is available due to overallocation in AllocNodeData() }
+  FCurrNode := @FNodeStack[FNesting+1];
+  FCurrNode^.FNodeType := ntEntityReference;
+  FCurrNode^.FQName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
+  FCurrNode^.FValueStart := nil;
+  FCurrNode^.FValueLength := 0;
+end;
+
+procedure TXMLReader.HandleEntityEnd;
+begin
+  FValidators[FNesting-1] := FValidators[FNesting];
+  FCursorStack[FNesting-1] := FCursorStack[FNesting];
+  ContextPop(True);
+  PopVC;
+  FCurrNode := @FNodeStack[FNesting+1];
+  FCurrNode^.FNodeType := ntEndEntity;
+  // TODO: other properties of FCurrNode
+end;
+
+procedure TXMLReader.ResolveEntity;
+begin
+  if FCurrNode^.FNodeType <> ntEntityReference then
+    raise EInvalidOperation.Create('Wrong node type');
+
+  {... here must actually call EntityCheck, but it's called in main loop}
+
+  FNext := xtPushEntity;
+end;
+
+procedure TXMLReader.DoStartEntity;
+var
+  src: TXMLCharSource;
+begin
+  PushVC(nil);
+  if Assigned(FCurrEntity) then
+    ContextPush(FCurrEntity)
   else
-    s := AEntity.FName;
-  cur.AppendChild(doc.CreateEntityReference(s));
+  begin
+  // Undefined entity -- use a dummy inputsource, in order to get a matching EndEntity event
+    src := TXMLCharSource.Create('');
+    src.Kind := skManualPop;
+    Initialize(src);
+  end;
+
+  { Compensate for an extra entry in node stack }
+  FValidators[FNesting] := FValidators[FNesting-1];
+  FCursorStack[FNesting] := FCursorStack[FNesting-1];
+  UpdateConstraints;
+  FNext := xtText;
 end;
 
 procedure TXMLReader.DoStartElement;
@@ -2754,24 +2805,27 @@ begin
   FNext := xtText;
   while Read do
   begin
-    case FToken of
-      xtText, xtWhitespace:
+    case FCurrNode^.FNodeType of
+      ntText, ntWhitespace:
         DoText(FValue.Buffer, FValue.Length, FToken = xtWhitespace);
-      xtCDSect:
+      ntCDATA:
         DoCDSect(FValue.Buffer, FValue.Length);
-      xtPI:
+      ntProcessingInstruction:
         CreatePINode;
-      xtComment:
+      ntComment:
         DoComment(FCurrNode^.FValueStart, FCurrNode^.FValueLength);
-      xtElement:
+      ntElement:
         DoStartElement;
-      xtEndElement:
+      ntEndElement:
         DoEndElement;
-      xtDoctype:
+      ntDocumentType:
         begin
+          ValidateDTD;
           if not FCanonical then
             doc.AppendChild(TDOMDocumentType.Create(doc, FDocType));
         end;
+      ntEntityReference:
+        DoEntityReference;
     end;
   end;
 end;
@@ -2806,8 +2860,9 @@ begin
     if FNamespaces then
       FNSHelper.EndElement;
     PopVC;
-    FNext := xtText;
-  end;
+  end
+  else if FNext = xtPushEntity then
+    DoStartEntity;
 
   InCDATA := (FNext = xtCDSect);
   StoreLocation(FTokenStart);
@@ -2868,8 +2923,16 @@ begin
         FatalError('Unterminated CDATA section', -1);
       if FNesting > FSource.FStartNesting then
         FatalError('End-tag is missing for ''%s''', [FNodeStack[FNesting].FQName^.Key]);
-      if ContextPop then Continue;
-      tok := xtEOF;
+
+      if Assigned(FSource.FParent) then
+      begin
+        if FExpandEntities and ContextPop then
+          Continue
+        else
+          tok := xtEntityEnd;
+      end
+      else
+        tok := xtEOF;
     end
     else if wc = '>' then
     begin
@@ -2935,7 +2998,8 @@ begin
   FNext := xtText;
 
   case tok of
-    xtEntity:     AppendReference(FCursorStack[FNesting], FCurrEntity);
+    xtEntity:     HandleEntityStart;
+    xtEntityEnd:  HandleEntityEnd;
     xtElement:    ParseStartTag;
     xtEndElement: ParseEndTag;
     xtPI:         ParsePI;
@@ -3634,6 +3698,7 @@ begin
   if FNesting > 0 then Dec(FNesting);
   FCurrNode := @FNodeStack[FNesting];
   UpdateConstraints;
+  FNext := xtText;
 end;
 
 procedure TXMLReader.UpdateConstraints;
