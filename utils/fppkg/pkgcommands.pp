@@ -117,6 +117,9 @@ type
     Procedure Execute;override;
   end;
 
+var
+  DependenciesDepth: integer;
+
 { TCommandListSettings }
 
 procedure TCommandListSettings.Execute;
@@ -414,10 +417,16 @@ begin
   // Install needed updates
   if L.Count > 0 then
     begin
-      pkgglobals.Log(vlProgres,SProgrInstallDependencies);
+      if DependenciesDepth=0 then
+        pkgglobals.Log(vlProgres,SProgrInstallDependencies);
+      inc(DependenciesDepth);
+
       for i:=0 to L.Count-1 do
         ExecuteAction(L[i],'install');
-      pkgglobals.Log(vlProgres,SProgrDependenciesInstalled);
+
+      dec(DependenciesDepth);
+      if DependenciesDepth=0 then
+        pkgglobals.Log(vlProgres,SProgrDependenciesInstalled);
     end;
   FreeAndNil(L);
   if FreeManifest then
@@ -447,6 +456,7 @@ end;
 
 
 initialization
+  DependenciesDepth:=0;
   RegisterPkgHandler('update',TCommandUpdate);
   RegisterPkgHandler('list',TCommandListPackages);
   RegisterPkgHandler('scan',TCommandScanPackages);
