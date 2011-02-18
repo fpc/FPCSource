@@ -113,6 +113,7 @@ Resourcestring
   SProgrReinstallDependent   = 'Re-install packages which are dependent on just installed packages';
   SProgrInstallDependencies  = 'Install dependencies';
   SProgrDependenciesInstalled= 'Dependencies installed';
+  SProgrDownloadPackage      = 'Downloading package %s version %s';
 
 implementation
 
