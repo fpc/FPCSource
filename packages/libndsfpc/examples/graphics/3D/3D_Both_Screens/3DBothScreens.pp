@@ -104,6 +104,7 @@ procedure initSubSprites();
 var
   x: integer;
   y: integer;
+  id: integer;
   offset: pcuint16;
 begin
   oamInit(oamSub, SpriteMapping_Bmp_2D_256, false);
@@ -115,9 +116,13 @@ begin
   for y := 0 to 2 do
     for x := 0 to 3 do
     begin
-      offset := pcuint16(@SPRITE_GFX_SUB[(x * 64) + (y * 64 * 256)]);
-      oamSet(oamSub, x + y * 4, x * 64, y * 64, 0, 15, SpriteSize_64x64, 
-			SpriteColorFormat_Bmp, offset, -1, false,false,false,false,false);
+//      offset := pcuint16(@SPRITE_GFX_SUB[(x * 64) + (y * 64 * 256)]);
+//      oamSet(oamSub, x + y * 4, x * 64, y * 64, 0, 15, SpriteSize_64x64, 
+//      SpriteColorFormat_Bmp, offset, -1, false,false,false,false,false);
+      oamSub.oamMemory[id].attribute[0] := ATTR0_BMP or ATTR0_SQUARE or (64 * y);
+      oamSub.oamMemory[id].attribute[1] := ATTR1_SIZE_64 or (64 * x);
+      oamSub.oamMemory[id].attribute[2] := ATTR2_ALPHA(1) or (8 * 32 * y) or (8 * x);
+      inc(id);
     end;
  
   swiWaitForVBlank();

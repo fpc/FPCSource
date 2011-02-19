@@ -187,7 +187,7 @@ begin
 { OS specific startup }
 
 { Set up signals handlers }
-  fpc_cpucodeinit;
+//  fpc_cpucodeinit;
 
 { Setup heap }
   InitHeap;

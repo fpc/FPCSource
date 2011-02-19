@@ -7,12 +7,14 @@ program Lesson10;
 
 {$L build/Mud.pcx.o}
 {$L build/World.txt.o}
+{$L build/drunkenlogo.pcx.o}
 
 uses
   ctypes, nds9;
 
 {$include inc/Mud.pcx.inc}
 {$include inc/World.txt.inc}
+{$include inc/drunkenlogo.pcx.inc}
 
 const
   piover180: cfloat = 0.0174532925;
@@ -47,10 +49,17 @@ type
   end;
   SECTOR = tagSECTOR;
 
+  TCubeRot = record
+    x, y, z: cfloat;
+  end;
+
 var
   sector1: SECTOR;        // Our Model Goes Here:
   Myfile: pchar;
+  cuberot: TCubeRot;
 
+procedure ShadowDemo(); forward;
+  
 function DrawGLScene(): boolean;
 var
   x_m, y_m, z_m:  cfloat;
@@ -104,6 +113,7 @@ begin
       glTexCoord2f(u_m,v_m); glVertex3f(x_m,y_m,z_m);
     glEnd();
   end;
+  ShadowDemo();
   DrawGLScene := true;                    // Everything Went OK
 end;
 
@@ -184,25 +194,125 @@ function LoadGLTextures(): boolean;
 var
   pcx: sImage;
 begin
+  glGenTextures(2, @texture[0]);
+
   //load our texture
   loadPCX(pcuint8(Mud_pcx), @pcx);
 
   image8to16(@pcx);
 
-  glGenTextures(1, @texture[0]);
   glBindTexture(0, texture[0]);
   glTexImage2D(0, 0, GL_RGB, TEXTURE_SIZE_128 , TEXTURE_SIZE_128, 0, TEXGEN_TEXCOORD or GL_TEXTURE_WRAP_S or GL_TEXTURE_WRAP_T, pcx.image.data8);
+
+  imageDestroy(@pcx);
+
+  loadPCX(pcuint8(drunkenlogo_pcx), @pcx);
+  image8to16(@pcx);
+  glBindTexture(0, texture[1]);
+  glTexImage2D(0, 0, GL_RGB, TEXTURE_SIZE_128, TEXTURE_SIZE_128, 0, TEXGEN_TEXCOORD, pcx.image.data8);
 
   imageDestroy(@pcx);
 
   result := true;
 end;
 
+procedure TransformCube();
+begin
+  glRotatef(cubeRot.x, 1.0, 0.0, 0.0);
+  glRotatef(cubeRot.y, 0.0, 1.0, 0.0);
+  glRotatef(cubeRot.z, 0.0, 0.0, 1.0);
+end;
+
+procedure EmitCube();
+begin
+  glPushMatrix();
+  glScalef(0.03, 0.03, 0.03);	
+  
+  glRotatef(cubeRot.x, 1.0, 0.0, 0.0);
+  glRotatef(cubeRot.y, 0.0, 1.0, 0.0);
+  glRotatef(cubeRot.z, 0.0, 0.0, 1.0);
+  
+  glBegin(GL_QUADS);
+    // Front Face
+    glTexCoord2f(0.0, 0.0); glVertex3f(-1.0, -1.0,  1.0);
+    glTexCoord2f(1.0, 0.0); glVertex3f( 1.0, -1.0,  1.0);
+    glTexCoord2f(1.0, 1.0); glVertex3f( 1.0,  1.0,  1.0);
+    glTexCoord2f(0.0, 1.0); glVertex3f(-1.0,  1.0,  1.0);
+    // Back Face
+    glTexCoord2f(1.0, 0.0); glVertex3f(-1.0, -1.0, -1.0);
+    glTexCoord2f(1.0, 1.0); glVertex3f(-1.0,  1.0, -1.0);
+    glTexCoord2f(0.0, 1.0); glVertex3f( 1.0,  1.0, -1.0);
+    glTexCoord2f(0.0, 0.0); glVertex3f( 1.0, -1.0, -1.0);
+    // Top Face
+    glTexCoord2f(0.0, 1.0); glVertex3f(-1.0,  1.0, -1.0);
+    glTexCoord2f(0.0, 0.0); glVertex3f(-1.0,  1.0,  1.0);
+    glTexCoord2f(1.0, 0.0); glVertex3f( 1.0,  1.0,  1.0);
+    glTexCoord2f(1.0, 1.0); glVertex3f( 1.0,  1.0, -1.0);
+    // Bottom Face
+    glTexCoord2f(1.0, 1.0); glVertex3f(-1.0, -1.0, -1.0);
+    glTexCoord2f(0.0, 1.0); glVertex3f( 1.0, -1.0, -1.0);
+    glTexCoord2f(0.0, 0.0); glVertex3f( 1.0, -1.0,  1.0);
+    glTexCoord2f(1.0, 0.0); glVertex3f(-1.0, -1.0,  1.0);
+    // Right face
+    glTexCoord2f(1.0, 0.0); glVertex3f( 1.0, -1.0, -1.0);
+    glTexCoord2f(1.0, 1.0); glVertex3f( 1.0,  1.0, -1.0);
+    glTexCoord2f(0.0, 1.0); glVertex3f( 1.0,  1.0,  1.0);
+    glTexCoord2f(0.0, 0.0); glVertex3f( 1.0, -1.0,  1.0);
+    // Left Face
+    glTexCoord2f(0.0, 0.0); glVertex3f(-1.0, -1.0, -1.0);
+    glTexCoord2f(1.0, 0.0); glVertex3f(-1.0, -1.0,  1.0);
+    glTexCoord2f(1.0, 1.0); glVertex3f(-1.0,  1.0,  1.0);
+    glTexCoord2f(0.0, 1.0); glVertex3f(-1.0,  1.0, -1.0);
+  glEnd();
+  glPopMatrix(1);
+end;
+
+procedure ShadowDemo();
+begin
+  cubeRot.y := cubeRot.y + 0.8;
+  
+  //draw the actual cube
+  glPushMatrix();
+  glTranslatef(0.0, 0.4, -0.4); //draw the cube up in the air
+  TransformCube();
+  glBindTexture(GL_TEXTURE_2D, texture[1]);
+  EmitCube();
+  glPopMatrix(1);
+  
+  //draw the shadow:
+  begin
+    //draw the cube shadow on the ground
+    glPushMatrix();
+    glTranslatef(0.0, 0.0, -0.4);
+    TransformCube();
+    
+    //use no texture. set shadow color: we'll use green just to show that it is possible
+    glBindTexture(0, 0);
+    glColor(RGB15(0, 8, 0));
+    
+    //1st shadow pass
+    //be sure to use opaque here
+    glPolyFmt(POLY_SHADOW or POLY_CULL_FRONT or POLY_ALPHA(31));
+    EmitCube();
+    
+    //2nd shadow pass
+    //be sure to use a different polyID here (shadow with polyID 0 can't be cast on surface with polyID 0)
+    //we set the fog bit here because we want the shadow to be fogged later. i think it may be buggy but it looks better.
+    glPolyFmt(POLY_SHADOW or POLY_CULL_BACK or POLY_ALPHA(15) or POLY_ID(1) or POLY_FOG);
+    EmitCube();
+    
+    //reset poly attribute
+    glPolyFmt(POLY_ALPHA(31) or POLY_CULL_NONE or POLY_FORMAT_LIGHT0 or POLY_FOG);
+    
+    glPopMatrix(1);
+  end;
+end;
+
 var
   thisXY: touchPosition;
   lastXY: touchPosition;
   dx, dy: cint16;
-
+  i: integer;
 begin
   MyFile := pchar(@World_txt);
   // Setup the Main screen for 3D
@@ -220,6 +330,9 @@ begin
   // enable antialiasing
   glEnable(GL_ANTIALIAS);
 
+  // enable alpha blending for shadow demo
+  glEnable(GL_BLEND);
+
   // setup the rear plane
   glClearColor(0,0,0,31); // BG must be opaque for AA to work
   glClearPolyID(63); // BG must have a unique polygon ID for AA to work
@@ -235,7 +348,7 @@ begin
   glLoadIdentity();
   gluPerspective(70, 256.0 / 192.0, 0.1, 100);
 
-  glLight(0, RGB15(31,31,31) , 0,         floattov10(-1.0),    0);
+  glLight(0, RGB15(31,31,31) , 0, floattov10(-1.0), 0);
 
   //need to set up some material properties since DS does not have them set by default
   glMaterialf(GL_AMBIENT, RGB15(16,16,16));
@@ -247,11 +360,24 @@ begin
   glMaterialShinyness();
 
   //ds specific, several attributes can be set here
-  glPolyFmt(POLY_ALPHA(31) or POLY_CULL_NONE or POLY_FORMAT_LIGHT0);
+  glPolyFmt(POLY_ALPHA(31) or POLY_CULL_NONE or POLY_FORMAT_LIGHT0 or POLY_FOG);
 
   // Set the current matrix to be the model matrix
   glMatrixMode(GL_MODELVIEW);
 
+  //setup demo fog parameters
+  //these parameters are somewhat arbitrary, and designed to illustrate fog in just this one case.
+  //you will certainly need to tweak them for your own use.
+  //be sure to have set the POLY_FOG bit on any material you want to be fogged.
+  glEnable(GL_FOG);
+  glFogShift(2);
+  glFogColor(0, 0, 0, 0);
+
+  for i := 0 to 31 do
+    glFogDensity(i, i * 4);
+
+  glFogDensity(31, 127);
+  glFogOffset($6000);
 
   while true do
   begin
@@ -298,7 +424,6 @@ begin
 
       walkbias := tsin(walkbiasangle) / 20.0;
     end;
-
 
     glColor3f(1,1,1);
 
