@@ -1,9 +1,9 @@
 #
-#   Makefile.fpc for BFD library
+#   Makefile.fpc for LUA library
 #
 
 [package]
-name=bfd
+name=lua
 version=2.4.3
 
 [target]

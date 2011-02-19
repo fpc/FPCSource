@@ -163,6 +163,7 @@ function GetDefaultCommConfig(lpszName:LPCSTR; lpCC:LPCOMMCONFIG; lpdwSize:LPDWO
 function SetDefaultCommConfig(lpszName:LPCSTR; lpCC:LPCOMMCONFIG; dwSize:DWORD):WINBOOL; external 'kernel32' name 'SetDefaultCommConfigA';
 function GetComputerName(lpBuffer:LPSTR; nSize:LPDWORD):WINBOOL; external 'kernel32' name 'GetComputerNameA';
 function SetComputerName(lpComputerName:LPCSTR):WINBOOL; external 'kernel32' name 'SetComputerNameA';
+function GetCPInfoEx(Codepage:UINT; dwFlags:DWORD; CPInfoEx:LPCPINFOEX):WINBOOL; external 'kernel32' name 'GetCPInfoExA';
 function GetUserName(lpBuffer:LPSTR; nSize:LPDWORD):WINBOOL; external 'advapi32' name 'GetUserNameA';
 function wvsprintf(_para1:LPSTR; _para2:LPCSTR; arglist:va_list):longint; external 'user32' name 'wvsprintfA';
 function LoadKeyboardLayout(pwszKLID:LPCSTR; Flags:UINT):HKL; external 'user32' name 'LoadKeyboardLayoutA';

@@ -1205,6 +1205,12 @@ begin
   SetDataType(ftWideString);
 end;
 
+procedure TWideStringField.SetFieldType(AValue: TFieldType);
+begin
+  if avalue in [ftWideString, ftFixedWideChar] then
+    SetDataType(AValue);
+end;
+
 function TWideStringField.GetValue(var aValue: WideString): Boolean;
 var
   FixBuffer : array[0..dsMaxStringSize div 2] of WideChar;

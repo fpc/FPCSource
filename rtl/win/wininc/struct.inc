@@ -1498,6 +1498,46 @@ Const
      Tcpinfo = CPINFO;
      Pcpinfo = ^CPINFO;
 
+     CPINFOEXA = record
+        MaxCharSize    : UINT;
+        DefaultChar    : array[0..(MAX_DEFAULTCHAR)-1] of BYTE;
+        LeadByte       : array[0..(MAX_LEADBYTES)-1] of BYTE;
+        DefaultUnicode : WCHAR;
+        CodePage       : UINT;
+        CodePageName   : array[0..(MAX_PATH)-1] of CHAR;
+      end;
+     LPCPINFOEXA = ^CPINFOEXA;
+     _cpinfoexA  = CPINFOEXA;
+     TcpinfoexA  = CPINFOEXA;
+     PcpinfoexA  = ^CPINFOEXA;
+
+     CPINFOEXW = record
+        MaxCharSize    : UINT;
+        DefaultChar    : array[0..(MAX_DEFAULTCHAR)-1] of BYTE;
+        LeadByte       : array[0..(MAX_LEADBYTES)-1] of BYTE;
+        DefaultUnicode : WCHAR;
+        CodePage       : UINT;
+        CodePageName   : array[0..(MAX_PATH)-1] of WCHAR;
+     end;
+     LPCPINFOEXW = ^CPINFOEXW;
+     _cpinfoexW  = CPINFOEXW;
+     TcpinfoexW  = CPINFOEXW;
+     PcpinfoexW  = ^CPINFOEXW;
+
+{$ifndef UNICODE}
+     CPINFOEX   = CPINFOEXA;
+     LPCPINFOEX = ^CPINFOEXA;
+     _cpinfoex  = CPINFOEXA;
+     Tcpinfoex  = CPINFOEXA;
+     Pcpinfoex  = ^CPINFOEXA;
+{$ELSE}
+     CPINFOEX   = CPINFOEXW;
+     LPCPINFOEX = ^CPINFOEXW;
+     _cpinfoex  = CPINFOEXW;
+     Tcpinfoex  = CPINFOEXW;
+     Pcpinfoex  = ^CPINFOEXW;
+{$ENDIF}
+
      CPLINFO = record
           idIcon : longint;
           idName : longint;

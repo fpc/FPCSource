@@ -483,6 +483,13 @@ function GetConsoleCursorInfo(hConsoleOutput: THandle; var lpConsoleCursorInfo: 
 function GetConsoleMode(hConsoleHandle: THandle; var lpMode: DWORD): BOOL; external 'kernel32' name 'GetConsoleMode';
 function GetConsoleScreenBufferInfo(hConsoleOutput: THandle; var lpConsoleScreenBufferInfo: TConsoleScreenBufferInfo): BOOL; external 'kernel32' name 'GetConsoleScreenBufferInfo';
 function GetCPInfo(CodePage: UINT; var lpCPInfo: TCPInfo): BOOL;external 'kernel32' name 'GetCPInfo';
+function GetCPInfoExA(Codepage:UINT; dwFlags:DWORD; var CPInfoEx:TCPINFOEXA):WINBOOL; external 'kernel32' name 'GetCPInfoExA';
+function GetCPInfoExW(Codepage:UINT; dwFlags:DWORD; var CPinfoEx:TCPINFOEXW):WINBOOL; external 'kernel32' name 'GetCPInfoExW';
+{$ifndef UNICODE}
+function GetCPInfoEx(Codepage:UINT; dwFlags:DWORD; var CPInfoEx:TCPINFOEX):WINBOOL; external 'kernel32' name 'GetCPInfoExA';
+{$ELSE}
+function GetCPInfoEx(Codepage:UINT; dwFlags:DWORD; var CPinfoEx:TCPINFOEX):WINBOOL; external 'kernel32' name 'GetCPInfoExW';
+{$ENDIF}
 //function GetCurrentHwProfile(var lpHwProfileInfo: THWProfileInfo): BOOL;external 'advapi32' name 'GetCurrentHwProfileA';
 //function GetCurrentHwProfileA(var lpHwProfileInfo: THWProfileInfoA): BOOL;external 'advapi32' name 'GetCurrentHwProfileA';
 //function GetCurrentHwProfileW(var lpHwProfileInfo: THWProfileInfoW): BOOL;external 'advapi32' name 'GetCurrentHwProfileW';

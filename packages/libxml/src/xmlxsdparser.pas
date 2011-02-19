@@ -13,6 +13,8 @@ unit xmlxsdparser;
 interface
 
 uses
+  {$IFDEF MSWINDOWS}windows,{$ENDIF}
+  {$IFDEF UNIX}unixutil,{$ENDIF}
   sysutils,
   dateutils,
   math,
@@ -22,10 +24,15 @@ resourcestring
   SXsdParserError = 'parsing "%s" as "%s" failed';
 
 type
+{$IFDEF MSWINDOWS}
+  PBoolean = System.PBoolean;
+  // PBoolean is redefined by windows unit, so redefine it here again!
+{$ENDIF}
+
   TXsdTimezoneType = (
     tzUnknown,
-    tzUTC,
-    tzUser
+    tzLocal,
+    tzUtc
   );
 
   PXsdTimezone = ^TXsdTimezone;
@@ -33,13 +40,11 @@ type
     Kind   : TXsdTimezoneType;
     Hour   : Longint;  // +/- [00..23]
     Minute : Longword; // [00..59]
-    Convert: Boolean;  // you have to initialize this field allways!!!
   end;
 
 const
-  TIMEZONE_UTC: TXsdTimezone = (Kind:tzUTC;Hour:0;Minute:0;Convert:False);
-  TIMEZONE_UNKNOWN: TXsdTimezone = (Kind:tzUnknown;Hour:0;Minute:0;Convert:False);
-  CONVERT_TO_TIMEZONE_UTC: TXsdTimezone = (Kind:tzUTC;Hour:0;Minute:0;Convert:True);
+  TIMEZONE_UTC: TXsdTimezone = (Kind:tzUTC;Hour:0;Minute:0);
+
 
 { Format functions }
 function xsdFormatBase64(Value: TStream): Utf8String;
@@ -64,9 +69,11 @@ function xsdFormatUnsignedLong(Value: QWord): Utf8String;
 function xsdFormatEnum(enum: array of Utf8String; Value: Integer): Utf8String;
 
 { DateTime functions }
-procedure xsdTimeConvertTo(var Hour, Minute, Second, Milliseconds: Longword; const Current, Target: TXsdTimezone);
-procedure xsdDateConvertTo(var Year, Month, Day: Longword; const Current, Target: TXsdTimezone);
-procedure xsdDateTimeConvertTo(var Year, Month, Day, Hour, Minute, Second, Milliseconds: Longword; const Current, Target: TXsdTimezone);
+function xsdNowUTC: TDateTime;
+function xsdGetLocalTimezone: TXsdTimezone;
+function xsdTimezoneUtcOffsetMinutes(const Timezone: TXsdTimezone): Longint;
+function xsdDateTimeToUTC(const DateTime: TDateTime; const Current: TXsdTimezone): TDateTime;
+function xsdDateTimeConvert(const DateTime: TDateTime; const Current, Target: TXsdTimezone): TDateTime;
 
 { Parse functions }
 function xsdTryParseBase64(Chars: PChar; Len: Integer; const Value: TStream): Boolean;
@@ -279,7 +286,7 @@ begin
     case Timezone^.Kind of
       tzUTC:
         Result := Result + 'Z';
-      tzUser:
+      tzLOCAL:
         begin
           if Timezone^.Hour >= 0 then
             Result := Result + '+'
@@ -308,7 +315,7 @@ begin
     case Timezone^.Kind of
       tzUTC:
         Result := Result + 'Z';
-      tzUser:
+      tzLOCAL:
         begin
           if Timezone^.Hour >= 0 then
             Result := Result + '+'
@@ -400,19 +407,50 @@ begin
   Result := enum[Value];
 end;
 
-procedure xsdTimeConvertTo(var Hour, Minute, Second, Milliseconds: Longword; const Current, Target: TXsdTimezone);
+function xsdNowUTC: TDateTime;
 begin
-  {$warning xsdTimeConvertTo: not implemented}
+  Result := xsdDateTimeToUTC(Now, xsdGetLocalTimezone);
 end;
 
-procedure xsdDateConvertTo(var Year, Month, Day: Longword; const Current, Target: TXsdTimezone);
+function xsdGetLocalTimezone: TXsdTimezone;
+var
+  Offset: Integer;
+{$IFDEF MSWINDOWS}
+  TZInfo: TTimeZoneInformation;
+{$ENDIF}
 begin
-  {$warning xsdDateConvertTo: not implemented}
+  Result.Kind := tzLOCAL;
+{$IFDEF UNIX}
+  Offset := Tzseconds div 60;
+{$ENDIF}
+{$IFDEF MSWINDOWS}
+  case GetTimeZoneInformation(TZInfo) of
+    1: Offset := -TZInfo.Bias - TZInfo.StandardBias;
+    2: Offset := -TZInfo.Bias - TZInfo.DaylightBias;
+    else Result.Kind := tzUnknown;
+  end;
+{$ENDIF}
+  Result.Hour := Offset div 60;
+  Result.Minute := abs(Offset) mod 60;
 end;
 
-procedure xsdDateTimeConvertTo(var Year, Month, Day, Hour, Minute, Second, Milliseconds: Longword; const Current, Target: TXsdTimezone);
+function xsdTimezoneUtcOffsetMinutes(const Timezone: TXsdTimezone): Longint;
 begin
-  {$warning xsdDateTimeConvertTo: not implemented}
+  case Timezone.Kind of
+    tzUTC: Result := 0;
+    tzLOCAL : Result := 60*Timezone.Hour + Timezone.Minute;
+    else raise Exception.Create('can''t get offset of unknown timezone');
+  end;
+end;
+
+function xsdDateTimeToUTC(const DateTime: TDateTime; const Current: TXsdTimezone): TDateTime;
+begin
+  Result := xsdDateTimeConvert(DateTime, Current, TIMEZONE_UTC);
+end;
+
+function xsdDateTimeConvert(const DateTime: TDateTime; const Current, Target: TXsdTimezone): TDateTime;
+begin
+  Result := IncMinute(DateTime, xsdTimezoneUtcOffsetMinutes(Target) - xsdTimezoneUtcOffsetMinutes(Current));
 end;
 
 function __parseNonNegativeInteger(var P: PChar; const L: PChar; out Value: QWord): Boolean;
@@ -561,6 +599,7 @@ begin
     { allow '+' or '-' }
     if (P < L) and (P^ in ['+','-']) then
     begin
+      T.Kind := tzLOCAL;
       N := P^ = '-';
       Inc(P);
 
@@ -594,7 +633,7 @@ begin
 
       { unknown }
       begin
-        T.Kind := tzUnknown;
+        T.Kind := tzUNKNOWN;
         T.Hour := 0;
         T.Minute := 0;
       end;
@@ -1078,12 +1117,7 @@ begin
 
   { assign Timezone if requested }
   if Result and Assigned(Timezone) then
-  begin
-    if Timezone^.Convert then
-      xsdDateConvertTo(Year, Month, Day, T, Timezone^)
-    else
-      Timezone^ := T;
-  end;
+    Timezone^ := T;
 end;
 
 function xsdTryParseDate(Chars: PChar; Len: Integer; out Value: TDateTime; Timezone: PXsdTimezone): Boolean;
@@ -1116,12 +1150,7 @@ begin
 
   { assign Timezone if requested }
   if Result and Assigned(Timezone) then
-  begin
-    if Timezone^.Convert then
-      xsdTimeConvertTo(Hour, Minute, Second, Milliseconds, T, Timezone^)
-    else
-      Timezone^ := T;
-  end;
+    Timezone^ := T;
 end;
 
 function xsdTryParseTime(Chars: PChar; Len: Integer; out Value: TDateTime; Timezone: PXsdTimezone): Boolean;
@@ -1165,12 +1194,7 @@ begin
 
   { assign Timezone if requested }
   if Result and Assigned(Timezone) then
-  begin
-    if Timezone^.Convert then
-      xsdDateTimeConvertTo(Year, Month, Day, Hour, Minute, Second, Milliseconds, T, Timezone^)
-    else
-      Timezone^ := T;
-  end;
+    Timezone^ := T;
 end;
 
 function xsdTryParseDateTime(Chars: PChar; Len: Integer; out Value: TDateTime; Timezone: PXsdTimezone): Boolean;

@@ -34,6 +34,7 @@ type
 
 { Node creation functions }
 function xsdNewChildBase64(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: TStream): xmlNodePtr;
+function xsdNewChildCData(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Utf8String): xmlNodePtr;
 function xsdNewChildString(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Utf8String): xmlNodePtr;
 function xsdNewChildBoolean(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Boolean; UseWords: Boolean = False): xmlNodePtr;
 function xsdNewChildDate(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Year, Month, Day: Longword; BC: Boolean = False; Timezone: PXsdTimezone = nil): xmlNodePtr;
@@ -255,6 +256,13 @@ var
 begin
   Tmp := xsdFormatBase64(Value);
   Result := xmlNewChild(parent, ns, name, PChar(Tmp));
+end;
+
+function xsdNewChildCData(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Utf8String): xmlNodePtr;
+begin
+  Result := xmlNewNode(ns, name);
+  xmlAddChild(Result, xmlNewCDataBlock(parent^.doc, PChar(Value), Length(Value)));
+  xmlAddChild(parent, Result);
 end;
 
 function xsdNewChildString(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Utf8String): xmlNodePtr;
