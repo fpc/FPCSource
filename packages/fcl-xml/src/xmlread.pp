@@ -291,6 +291,7 @@ type
     FIntSubset: TWideCharBuf;
     FAttrTag: Cardinal;
     FDTDProcessed: Boolean;
+    FFragmentMode: Boolean;
     FToken: TXMLToken;
     FNext: TXMLToken;
     FCurrEntity: TEntityDecl;
@@ -1318,6 +1319,7 @@ begin
   FNesting := 0;
   FCurrNode := @FNodeStack[0];
   FCursorStack[0] := doc;
+  FFragmentMode := False;
   NSPrepare;
   Initialize(ASource);
   if FSource.FXMLVersion <> xmlVersionUnknown then
@@ -1345,6 +1347,7 @@ begin
   FNesting := 0;
   FCurrNode := @FNodeStack[0];
   FCursorStack[0] := AOwner as TDOMNode_WithChildren;
+  FFragmentMode := True;
   FXML11 := doc.InheritsFrom(TXMLDocument) and (TXMLDocument(doc).XMLVersion = '1.1');
   NSPrepare;
   Initialize(ASource);
@@ -3131,9 +3134,6 @@ end;
 
 procedure TXMLReader.DoEndElement;
 begin
-  if (FNesting = 1) and (FCursorStack[0] = doc) then
-    FState := rsEpilog;
-
   if FValidate and FValidators[FNesting].Incomplete then
     ValidationError('Element ''%s'' is missing required sub-elements', [FNodeStack[FNesting].FQName^.Key], -1);
 end;
@@ -3695,6 +3695,8 @@ end;
 
 procedure TXMLReader.PopVC;
 begin
+  if (FNesting = 1) and (not FFragmentMode) then
+    FState := rsEpilog;
   if FNesting > 0 then Dec(FNesting);
   FCurrNode := @FNodeStack[FNesting];
   UpdateConstraints;
