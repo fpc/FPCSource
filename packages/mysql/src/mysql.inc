@@ -1555,7 +1555,6 @@ uses
 {$endif}
 
 {$IFDEF LinkDynamically}
-{$info bla}
 Function InitialiseMysql(Const LibraryName : String; argc:cint = -1; argv:PPchar = nil; groups:PPchar = nil) : Integer;
 Function InitialiseMysql(argc:cint = -1; argv:PPchar = nil; groups:PPchar = nil) : Integer;
 Procedure ReleaseMysql;
