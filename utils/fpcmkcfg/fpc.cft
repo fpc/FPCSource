@@ -122,6 +122,11 @@
 #-Fr%basepath%/msg/errord.msg
 #-Fr%basepath%/msg/errorr.msg
 
+# searchpath for units and other system dependent things
+-Fu%basepath%/units/$FPCTARGET/
+-Fu%basepath%/units/$FPCTARGET/*
+-Fu%basepath%/units/$FPCTARGET/rtl
+
 #IFDEF FPCAPACHE_1_13
 -Fu%basepath%/units/$FPCTARGET/httpd13/
 #ELSE
@@ -131,11 +136,6 @@
 -Fu%basepath%/units/$FPCTARGET/httpd22
 #ENDIF
 #ENDIF
-
-# searchpath for units and other system dependent things
--Fu%basepath%/units/$FPCTARGET/
--Fu%basepath%/units/$FPCTARGET/*
--Fu%basepath%/units/$FPCTARGET/rtl
 
 # path to the gcclib
 %gcclibpath%
