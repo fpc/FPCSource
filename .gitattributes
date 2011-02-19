@@ -3444,6 +3444,15 @@ packages/libndsfpc/examples/filesystem/libfat/access_file/test1.txt svneol=nativ
 packages/libndsfpc/examples/filesystem/libfat/libfatdir/Makefile svneol=native#text/plain
 packages/libndsfpc/examples/filesystem/libfat/libfatdir/Makefile.fpc svneol=native#text/plain
 packages/libndsfpc/examples/filesystem/libfat/libfatdir/libfatdir.pp svneol=native#text/plain
+packages/libndsfpc/examples/filesystem/nitrofs/Makefile svneol=native#text/plain
+packages/libndsfpc/examples/filesystem/nitrofs/Makefile.fpc svneol=native#text/plain
+packages/libndsfpc/examples/filesystem/nitrofs/nitrodir/Makefile svneol=native#text/plain
+packages/libndsfpc/examples/filesystem/nitrofs/nitrodir/Makefile.fpc svneol=native#text/plain
+packages/libndsfpc/examples/filesystem/nitrofs/nitrodir/nitrodir.pp svneol=native#text/plain
+packages/libndsfpc/examples/filesystem/nitrofs/nitrodir/nitrofiles/dir1/test.txt svneol=native#text/plain
+packages/libndsfpc/examples/filesystem/nitrofs/nitrodir/nitrofiles/dir2/subdir1/subsubdir1/file2.txt svneol=native#text/plain
+packages/libndsfpc/examples/filesystem/nitrofs/nitrodir/nitrofiles/dir2/subdir1/test2.txt svneol=native#text/plain
+packages/libndsfpc/examples/filesystem/nitrofs/nitrodir/nitrofiles/file1.txt svneol=native#text/plain
 packages/libndsfpc/examples/graphics/3D/3D_Both_Screens/3DBothScreens.pp svneol=native#text/plain
 packages/libndsfpc/examples/graphics/3D/3D_Both_Screens/Makefile svneol=native#text/plain
 packages/libndsfpc/examples/graphics/3D/3D_Both_Screens/Makefile.fpc svneol=native#text/plain
@@ -3475,6 +3484,9 @@ packages/libndsfpc/examples/graphics/3D/Paletted_Cube/Makefile svneol=native#tex
 packages/libndsfpc/examples/graphics/3D/Paletted_Cube/Makefile.fpc svneol=native#text/plain
 packages/libndsfpc/examples/graphics/3D/Paletted_Cube/PalettedCube.pp svneol=native#text/plain
 packages/libndsfpc/examples/graphics/3D/Paletted_Cube/data/texture.bin -text svneol=unset#application/octet-stream
+packages/libndsfpc/examples/graphics/3D/Paletted_Cube/data/texture10_COMP_pal.bin -text
+packages/libndsfpc/examples/graphics/3D/Paletted_Cube/data/texture10_COMP_tex.bin -text
+packages/libndsfpc/examples/graphics/3D/Paletted_Cube/data/texture10_COMP_texExt.bin -text
 packages/libndsfpc/examples/graphics/3D/Paletted_Cube/data/texture1_RGB16_pal.bin -text svneol=unset#application/octet-stream
 packages/libndsfpc/examples/graphics/3D/Paletted_Cube/data/texture1_RGB16_tex.bin -text
 packages/libndsfpc/examples/graphics/3D/Paletted_Cube/data/texture2_RGB16_pal.bin -text

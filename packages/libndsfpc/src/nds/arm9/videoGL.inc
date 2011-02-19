@@ -26,8 +26,8 @@ const
 type
   fixed12d3 = cuint16 ;
 
-function int_to_12d3(n: cint): fixed12d3; inline;
-function float_to_12d3(n: cfloat): fixed12d3; inline;
+function intto12d3(n: cint): fixed12d3; inline;
+function floatto12d3(n: cfloat): fixed12d3; inline;
 
 const
   GL_MAX_DEPTH     = $7FFF;
@@ -228,18 +228,87 @@ const
 	GL_TRANS_MANUALSORT: GLFLUSH_ENUM = (1 shl 0);
 	GL_WBUFFERING      : GLFLUSH_ENUM = (1 shl 1); 
 
+
+(*-----------------------------------------
+Structures specific to allocating and 
+deallocating video RAM in videoGL
+-----------------------------------------*)
+
+
+type 
+  ps_SingleBlock = ^s_SingleBlock; 
+  s_SingleBlock = packed record
+    indexOut: cuint32;
+    AddrSet: pcuint8;
+    node: array [0..3] of ps_SingleBlock; // 0-1 ~ prev/next memory block, 2-3 ~ prev/next empty/alloc block
+    blockSize: cuint32;
+  end;
+
+  s_vramBlock = packed record
+    startAddr: pcuint8;
+    endAddr: pcuint8;
+    firstBlock: ps_SingleBlock;
+    firstEmpty: ps_SingleBlock;
+    firstAlloc: ps_SingleBlock;
+    
+    lastExamined: ps_SingleBlock;
+    lastExaminedAddr: pcuint8;
+    lastExaminedSize: cuint32;
+    
+    blockPtrs: DynamicArray;
+    deallocBlocks: DynamicArray;
+    
+    blockCount: cuint32;
+    deallocCount: cuint32;
+  end;
+  ps_vramBlock = ^s_vramBlock;
+  
+
+  gl_texture_data = packed record
+    vramAddr: pointer;			// Address to the texture loaded into VRAM
+    texIndex: cuint32;		// The index in the Memory Block
+    texIndexExt: cuint32;		// The secondary index in the Memory block (only for GL_COMPRESSED textures)
+    palIndex: cint;			// The palette index 
+    texFormat: cuint32;		// Specifications of how the texture is displayed
+    texSize: cuint32;			// The size (in blocks) of the texture
+  end;
+  pgl_texture_data = ^gl_texture_data;
+  
+  gl_palette_data = packed record
+    vramAddr: pointer;			// Address to the palette loaded into VRAM
+    palIndex: cuint32;		// The index in the Memory Block
+    addr: cuint16;			// The offset address for texture palettes in VRAM
+    palSize: cuint16;			// The length of the palette
+    connectCount: cuint32;	// The number of textures currently using this palette
+  end;
+  pgl_palette_data = ^gl_palette_data;
+
+
+
+
 type
   gl_hidden_globals = record
     matrixMode: GL_MATRIX_MODE_ENUM; // holds the current Matrix Mode
+
+    vramBlocks: array [0..1] of ps_vramBlock;		// Two classe instances, one for textures, and one for palettes
+    
+    // texture globals
+    texturePtrs: DynamicArray;		// Pointers to each individual texture
+    palettePtrs: DynamicArray;		// Pointers to each individual palette
+    
+    deallocTex: DynamicArray;		// Preserves deleted texture names for later use with glGenTextures
+    deallocPal: DynamicArray;		// Preserves deleted palette names
+    deallocTexSize: cuint32;			// Preserved number of deleted texture names
+    deallocPalSize: cuint32;			// Preserved number of deleted palette names
+    
+    activeTexture: cint;				// The current active texture name
+    activePalette: cint;				// The current active palette name
+    texCount: cint;
+    palCount: cint;
+
     // holds the current state of the clear color register
     clearColor: cuint32; // state of clear color register
-    // texture globals
-    textures: array [0..MAX_TEXTURES-1] of cuint32;
-    texturePtrs: DynamicArray;
-    activeTexture: cuint32;
-    nextBlock: pcuint32;
-    nextPBlock: cuint32;
-    nameCount: cint;
+    isActive: cuint8;		// Has this been called before?
   end;
   TGLHiddenGlobals = gl_hidden_globals;
   PGLHiddenGlobals = ^gl_hidden_globals;
@@ -281,14 +350,20 @@ function FIFO_VIEWPORT(): cuint8; inline;
 
 procedure glRotatef32i(angle: cint; x, y, z: cint32); cdecl; external;
 function glTexImage2D(target, empty1: cint; _type: GL_TEXTURE_TYPE_ENUM; sizeX, sizeY, empty2, param: cint; texture: pointer): cint; cdecl; external;
-procedure glTexLoadPal(const pal: pcuint16; count: cuint16; addr: cuint32); cdecl; external;
-function gluTexLoadPal(const pal: pcuint16; count: cuint16; format: cuint8): cint; cdecl; external;
-procedure glTexParameter(sizeX, sizeY: cuint8; const addr: pcuint32; mode: GL_TEXTURE_TYPE_ENUM; param: GL_TEXTURE_PARAM_ENUM); cdecl; external;
+
+procedure glColorTableEXT(target, empty1: cint; width: cuint16; empty2, empty3: cint; const table: pcuint16); cdecl; external;
+procedure glAssignColorTable(target, name: cint); cdecl; external;
+
+//procedure glTexLoadPal(const pal: pcuint16; count: cuint16; addr: cuint32); cdecl; external;
+//function gluTexLoadPal(const pal: pcuint16; count: cuint16; format: cuint8): cint; cdecl; external;
+
+procedure glTexParameter(target, param: cint); cdecl; external;
 function glGetTexParameter(): cuint32; cdecl; external;
 function glGetTexturePointer(name: cint): pointer; cdecl; external;
 procedure glBindTexture(target, name: cint); cdecl; external;
-procedure glColorTable(format: cuint8; addr: cuint32); cdecl; external;
+//procedure glColorTable(format: cuint8; addr: cuint32); cdecl; external;
 function glGenTextures(n: cint; names: pcint): cint; cdecl; external;
+function glDeleteTextures(n: cint; names: pcint): cint; cdecl; external;
 procedure glResetTextures(); cdecl; external;
 procedure glTexCoord2f32(u, v: cint32); cdecl; external;
 procedure glMaterialf(mode: GL_MATERIALS_ENUM; color: rgb); cdecl; external;
@@ -372,14 +447,14 @@ procedure glTexCoord2f(s, t: cfloat); inline;
 
 
 {$ifdef NDS_IMPLEMENTATION}
-function int_to_12d3(n: cint): fixed12d3; inline;
+function intto12d3(n: cint): fixed12d3; inline;
 begin
-  int_to_12d3 := fixed12d3(n shl 3);
+  intto12d3 := fixed12d3(n shl 3);
 end;
 
-function float_to_12d3(n: cfloat): fixed12d3; inline;
+function floatto12d3(n: cfloat): fixed12d3; inline;
 begin
-  float_to_12d3 := fixed12d3(trunc( n  * (1 shl 3)));
+  floatto12d3 := fixed12d3(trunc( n  * (1 shl 3)));
 end;
 
 function inttof32(n: cint): cint32; inline;
@@ -1142,11 +1217,15 @@ end;
 procedure glTexCoord2f(s, t: cfloat); inline;
 var
   x, y: cint;
+  tex: pgl_texture_data;
 begin
-  x := ((glGlob^.textures[glGlob^.activeTexture]) shr 20) and 7;
-  y := ((glGlob^.textures[glGlob^.activeTexture]) shr 23) and 7;
-
-  glTexCoord2t16(floattot16(s*(8 shl x)), floattot16(t*(8 shl y)));
+  tex := pgl_texture_data(DynamicArrayGet(@(glGlob^.texturePtrs), glGlob^.activeTexture));
+  if tex <> nil then
+  begin
+    x := (tex^.texFormat shr 20) and 7;
+    y := (tex^.texFormat shr 23) and 7;
+    glTexCoord2t16(floattot16(s*(8 shl x)), floattot16(t*(8 shl y)));
+  end;
 end;
 
 procedure gluPickMatrix(x, y, width, height: cint32; const viewport: TArr4ofInt); inline;
@@ -1289,6 +1368,8 @@ begin
 end;
 
 procedure glGetInt(param: GL_GET_ENUM; var i: cint); inline;
+var
+  tex: pgl_texture_data; 
 begin
   case param of
     GL_GET_POLYGON_RAM_COUNT:
@@ -1296,9 +1377,17 @@ begin
     GL_GET_VERTEX_RAM_COUNT:
       i := GFX_VERTEX_RAM_USAGE^;
     GL_GET_TEXTURE_WIDTH:
-      i := 8 shl (((glGlob^.textures[glGlob^.activeTexture]) shr 20) and 7);
+      begin 
+        tex := pgl_texture_data(DynamicArrayGet(@(glGlob^.texturePtrs), glGlob^.activeTexture));
+        if tex <> nil then
+          i := 8 shl ((tex^.texFormat shr 20) and 7);			
+      end;
     GL_GET_TEXTURE_HEIGHT:
-      i := 8 shl (((glGlob^.textures[glGlob^.activeTexture]) shr 23) and 7);
+      begin
+        tex := pgl_texture_data(DynamicArrayGet(@(glGlob^.texturePtrs), glGlob^.activeTexture));
+        if tex <> nil then
+          i := 8 shl ((tex^.texFormat shr 23 ) and 7);
+      end;      
   end;
 end;
 
