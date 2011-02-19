@@ -11,7 +11,7 @@
 
 unit ibase60dyn;
 
-{$DEFINE LOAD_DYNAMICALLY}
+{$DEFINE LinkDynamically}
 
 {$i ibase60.inc}
 

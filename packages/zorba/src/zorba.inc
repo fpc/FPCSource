@@ -21,7 +21,7 @@
 interface
 
 uses
-  ctypes, dynlibs, xqc;
+  Sysutils,ctypes, dynlibs, xqc;
 
 {$IFDEF UNIX}
   {$DEFINE extdecl:=cdecl}
@@ -74,40 +74,70 @@ function TryInitializeZorba(const LibraryName: string = ''): Integer;
 function ReleaseZorba: Integer;
 
 var
-  ZorbaLibrary: TLibHandler;
+  ZorbaLibraryHandle: TLibHandle;
 {$ENDIF LOAD_DYNAMICALLY}
 
 implementation
 
 {$IFDEF LOAD_DYNAMICALLY}
-const
-  zorba_symbols: array[0..6] of TLibSymbol = (
-    (pvar:@create_simple_store; name:'create_simple_store'; weak:false),
-    (pvar:@shutdown_simple_store; name:'shutdown_simple_store'; weak:false),
-    (pvar:@zorba_implementation; name:'zorba_implementation'; weak:false),
-    (pvar:@Zorba_CompilerHints_default; name:'Zorba_CompilerHints_default'; weak:false),
-    (pvar:@Zorba_SerializerOptions_default; name:'Zorba_SerializerOptions_default'; weak:false),
-    (pvar:@Zorba_SerializerOptions_free; name:'Zorba_SerializerOptions_free'; weak:false),
-    (pvar:@Zorba_SerializerOptions_set; name:'Zorba_SerializerOptions_set'; weak:false)
-  );
 
-function TryInitializeZorba(const LibraryName: string): Integer;
+ResourceString
+  SErrDefaultsFailed = 'Can not load default Zorba clients ("%s" or "%s"). Check your installation.';
+  SErrLoadFailed     = 'Can not load Zorba client library "%s". Check your installation.';
+  SErrAlreadyLoaded  = 'Zorba interface already initialized from library %s.';
+
+var
+  RefCount : integer;
+  LoadedLibrary : String;
+
+Function TryInitializeZorba(Const LibraryName : String) : integer;
+
 begin
-  Result := TryInitializeLibrary(ZorbaLibrary, LibraryName);
+  Result := 0;
+  if (RefCount=0) then
+    begin
+    ZorbaLibraryHandle:=LoadLibrary(LibraryName);
+    if (ZorbaLibraryHandle=nilhandle) then
+      Exit;
+    inc(RefCount);
+    LoadedLibrary:=LibraryName;    
+    pointer(create_simple_store)   :=GetProcedureAddress(ZorbaLibraryHandle,'create_simple_store');
+    pointer(shutdown_simple_store) :=GetProcedureAddress(ZorbaLibraryHandle,'shutdown_simple_store');
+    pointer(zorba_implementation)  :=GetProcedureAddress(ZorbaLibraryHandle,'zorba_implementation');
+    pointer(Zorba_CompilerHints_default)    :=GetProcedureAddress(ZorbaLibraryHandle,'Zorba_CompilerHints_default');
+    pointer(Zorba_SerializerOptions_default):=GetProcedureAddress(ZorbaLibraryHandle,'Zorba_SerializerOptions_default');
+    pointer(Zorba_SerializerOptions_free)   :=GetProcedureAddress(ZorbaLibraryHandle,'Zorba_SerializerOptions_free');
+    pointer(Zorba_SerializerOptions_set)    :=GetProcedureAddress(ZorbaLibraryHandle,'Zorba_SerializerOptions_set');
+   end
+  else
+    inc(RefCount);
+  Result := RefCount;
 end;
 
 function InitializeZorba(const LibraryName: String): Integer;
 begin
-  Result := InitializeLibrary(ZorbaLibrary, LibraryName);
+  Result := TryInitializeZorba( LibraryName);
+  If Result = 0 then
+    Raise EInOutError.CreateFmt(SErrLoadFailed,[LibraryName])
+  else If (LibraryName<>LoadedLibrary) then
+    begin
+      Dec(RefCount);
+      Result := RefCount;
+      Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
+    end;
 end;
 
 function ReleaseZorba: Integer;
 begin
-  Result := ReleaseLibrary(ZorbaLibrary);
+ if RefCount>1 then
+    Dec(RefCount)
+  else if UnloadLibrary(ZorbaLibraryHandle) then
+    begin
+      Dec(RefCount);
+      ZorbaLibraryHandle := NilHandle;
+      LoadedLibrary:='';
+    end;
 end;
 
-initialization
-  ZorbaLibrary := LibraryHandler('zorba', [zorbalib,zorbavlib], @zorba_symbols, Length(zorba_symbols));
 {$ENDIF}
-
 end.
