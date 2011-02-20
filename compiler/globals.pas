@@ -719,6 +719,10 @@ implementation
 ****************************************************************************}
 
      procedure DefaultReplacements(var s:ansistring);
+       var
+         envstr: string;
+         envvalue: pchar;
+         i: integer;
        begin
          { Replace some macros }
          Replace(s,'$FPCVERSION',version_string);
@@ -730,6 +734,29 @@ implementation
            Replace(s,'$FPCTARGET',target_os_string)
          else
            Replace(s,'$FPCTARGET',target_full_string);
+         { Replace environment variables between dollar signs }
+         i := pos('$',s);
+         while i>0 do
+          begin
+            envstr:=copy(s,i+1,length(s)-i);
+            i:=pos('$',envstr);
+            if i>0 then
+             begin
+               envstr := copy(envstr,1,i-1);
+               envvalue := GetEnvPChar(envstr);
+               if assigned(envvalue) then
+                 begin
+                 Replace(s,'$'+envstr+'$',envvalue);
+                 // Look if there is another env.var in the string
+                 i:=pos('$',s);
+                 end
+               else
+                 // if the env.var is not set, do not replace the env.variable
+                 // and stop looking for more env.var within the string
+                 i := 0;
+              FreeEnvPChar(envvalue);
+             end;
+          end;
        end;
 
 
