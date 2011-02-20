@@ -568,7 +568,8 @@ implementation
                 Message(parser_e_no_generics_as_types);
                 def:=generrordef;
               end
-            else if is_classhelper(def) then
+            else if is_classhelper(def) and
+                not (stoParseClassParent in options) then
               begin
                 Message(parser_e_no_category_as_types);
                 def:=generrordef
@@ -1498,12 +1499,12 @@ implementation
                       _CLASS :
                         begin
                           consume(_CLASS);
-                          def:=object_dec(odt_class,name,genericdef,genericlist,nil);
+                          def:=object_dec(odt_class,name,genericdef,genericlist,nil,ht_none);
                         end;
                       _OBJECT :
                         begin
                           consume(_OBJECT);
-                          def:=object_dec(odt_object,name,genericdef,genericlist,nil);
+                          def:=object_dec(odt_object,name,genericdef,genericlist,nil,ht_none);
                         end;
                       else
                         def:=record_dec(name,genericdef,genericlist);
@@ -1518,7 +1519,7 @@ implementation
                 if not(m_class in current_settings.modeswitches) then
                   Message(parser_f_need_objfpc_or_delphi_mode);
                 consume(token);
-                def:=object_dec(odt_dispinterface,name,genericdef,genericlist,nil);
+                def:=object_dec(odt_dispinterface,name,genericdef,genericlist,nil,ht_none);
               end;
             _CLASS :
               begin
@@ -1548,15 +1549,15 @@ implementation
                 if (idtoken=_HELPER) then
                   begin
                     consume(_HELPER);
-                    def:=object_dec(odt_classhelper,name,genericdef,genericlist,nil);
+                    def:=object_dec(odt_helper,name,genericdef,genericlist,nil,ht_class);
                   end
                 else
-                  def:=object_dec(odt_class,name,genericdef,genericlist,nil);
+                  def:=object_dec(odt_class,name,genericdef,genericlist,nil,ht_none);
               end;
             _CPPCLASS :
               begin
                 consume(token);
-                def:=object_dec(odt_cppclass,name,genericdef,genericlist,nil);
+                def:=object_dec(odt_cppclass,name,genericdef,genericlist,nil,ht_none);
               end;
             _OBJCCLASS :
               begin
@@ -1564,7 +1565,7 @@ implementation
                   Message(parser_f_need_objc);
 
                 consume(token);
-                def:=object_dec(odt_objcclass,name,genericdef,genericlist,nil);
+                def:=object_dec(odt_objcclass,name,genericdef,genericlist,nil,ht_none);
               end;
             _INTERFACE :
               begin
@@ -1574,9 +1575,9 @@ implementation
                   Message(parser_f_need_objfpc_or_delphi_mode);
                 consume(token);
                 if current_settings.interfacetype=it_interfacecom then
-                  def:=object_dec(odt_interfacecom,name,genericdef,genericlist,nil)
+                  def:=object_dec(odt_interfacecom,name,genericdef,genericlist,nil,ht_none)
                 else {it_interfacecorba}
-                  def:=object_dec(odt_interfacecorba,name,genericdef,genericlist,nil);
+                  def:=object_dec(odt_interfacecorba,name,genericdef,genericlist,nil,ht_none);
               end;
             _OBJCPROTOCOL :
                begin
@@ -1584,7 +1585,7 @@ implementation
                   Message(parser_f_need_objc);
 
                 consume(token);
-                def:=object_dec(odt_objcprotocol,name,genericdef,genericlist,nil);
+                def:=object_dec(odt_objcprotocol,name,genericdef,genericlist,nil,ht_none);
                end;
             _OBJCCATEGORY :
                begin
@@ -1592,12 +1593,12 @@ implementation
                   Message(parser_f_need_objc);
 
                 consume(token);
-                def:=object_dec(odt_objccategory,name,genericdef,genericlist,nil);
+                def:=object_dec(odt_objccategory,name,genericdef,genericlist,nil,ht_none);
                end;
             _OBJECT :
               begin
                 consume(token);
-                def:=object_dec(odt_object,name,genericdef,genericlist,nil);
+                def:=object_dec(odt_object,name,genericdef,genericlist,nil,ht_none);
               end;
             _PROCEDURE,
             _FUNCTION:

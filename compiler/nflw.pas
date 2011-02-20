@@ -866,10 +866,10 @@ implementation
                     { first search using the class helper hierarchy if it's a
                       class }
                     if (expr.resultdef.typ=objectdef) and
-                        search_last_objectpascal_classhelper(tobjectdef(expr.resultdef),classhelper) then
+                        search_last_objectpascal_helper(tobjectdef(expr.resultdef),classhelper) then
                       repeat
                         pd:=classhelper.search_enumerator_get;
-                        classhelper:=classhelper.helperparent;
+                        classhelper:=classhelper.childof;
                       until (pd<>nil) or (classhelper=nil);
                     { we didn't found a class helper, so search in the
                       class/record/object itself }

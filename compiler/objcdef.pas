@@ -374,13 +374,14 @@ implementation
             encodedstr:=encodedstr+'^?';
           objectdef :
             case tobjectdef(def).objecttype of
+              odt_helper,
               odt_class,
               odt_object,
               odt_cppclass:
                 begin
                   newstate:=recordinfostate;
                   { implicit pointer for classes }
-                  if (tobjectdef(def).objecttype=odt_class) then
+                  if (tobjectdef(def).objecttype in [odt_class,odt_helper]) then
                     begin
                       encodedstr:=encodedstr+'^';
                       { make all classes opaque, so even if they contain a
@@ -593,13 +594,14 @@ implementation
             ;
           objectdef :
             case tobjectdef(def).objecttype of
+              odt_helper,
               odt_class,
               odt_object,
               odt_cppclass:
                 begin
                   newstate:=recordinfostate;
                   { implicit pointer for classes }
-                  if (tobjectdef(def).objecttype=odt_class) then
+                  if (tobjectdef(def).objecttype in [odt_class,odt_helper]) then
                     begin
                       { make all classes opaque, so even if they contain a
                         reference-counted field there is no problem. Since a

@@ -302,6 +302,8 @@ implementation
                if vo_is_self in tabstractvarsym(symtableentry).varoptions then
                  begin
                    resultdef:=tprocdef(symtableentry.owner.defowner).struct;
+                   if is_objectpascal_helper(resultdef) then
+                     resultdef:=tobjectdef(resultdef).extendeddef;
                    if (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) or
                       (po_staticmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
                      resultdef:=tclassrefdef.create(resultdef)

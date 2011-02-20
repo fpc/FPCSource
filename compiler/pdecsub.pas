@@ -245,6 +245,7 @@ implementation
         storepos : tfileposinfo;
         vs       : tparavarsym;
         hdef     : tdef;
+        selfdef  : tabstractrecorddef;
         vsp      : tvarspez;
         aliasvs  : tabsolutevarsym;
         sl       : tpropaccesslist;
@@ -302,18 +303,24 @@ implementation
                    pd.parast.insert(vs);
                  end;
 
+                { for helpers the type of Self is equivalent to the extended
+                  type or equal to an instance of it }
+                if is_objectpascal_helper(tprocdef(pd).struct) then
+                  selfdef:=tobjectdef(tprocdef(pd).struct).extendeddef
+                else
+                  selfdef:=tprocdef(pd).struct;
                 { Generate self variable, for classes we need
                   to use the generic voidpointer to be compatible with
                   methodpointers }
                 vsp:=vs_value;
                 if (po_staticmethod in pd.procoptions) or
                    (po_classmethod in pd.procoptions) then
-                  hdef:=tclassrefdef.create(tprocdef(pd).struct)
+                  hdef:=tclassrefdef.create(selfdef)
                 else
                   begin
-                    if is_object(tprocdef(pd).struct) or is_record(tprocdef(pd).struct) then
+                    if is_object(selfdef) or is_record(selfdef) then
                       vsp:=vs_var;
-                    hdef:=tprocdef(pd).struct;
+                    hdef:=selfdef;
                   end;
                 vs:=tparavarsym.create('$self',paranr_self,vsp,hdef,[vo_is_self,vo_is_hidden_para]);
                 pd.parast.insert(vs);
@@ -1621,6 +1628,9 @@ procedure pd_abstract(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200304269);
+  if is_objectpascal_helper(tprocdef(pd).struct) and
+      (m_objfpc in current_settings.modeswitches) then
+    Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_ABSTRACT].str);
   if assigned(tprocdef(pd).struct) and
     (oo_is_sealed in tprocdef(pd).struct.objectoptions) then
     Message(parser_e_sealed_class_cannot_have_abstract_methods)
@@ -1637,6 +1647,9 @@ procedure pd_final(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200910170);
+  if is_objectpascal_helper(tprocdef(pd).struct) and
+      (m_objfpc in current_settings.modeswitches) then
+    Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_FINAL].str);
   if (po_virtualmethod in pd.procoptions) then
     include(pd.procoptions,po_finalmethod)
   else
@@ -1682,7 +1695,7 @@ begin
   if (pd.proctypeoption=potype_constructor) and
      is_object(tprocdef(pd).struct) then
     Message(parser_e_constructor_cannot_be_not_virtual);
-  if is_objectpascal_classhelper(tprocdef(pd).struct) and
+  if is_objectpascal_helper(tprocdef(pd).struct) and
       (m_objfpc in current_settings.modeswitches) then
     Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_VIRTUAL].str);
 {$ifdef WITHDMT}
@@ -1734,9 +1747,11 @@ procedure pd_override(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(2003042611);
-  if is_objectpascal_classhelper(tprocdef(pd).struct) and
-      (m_objfpc in current_settings.modeswitches) then
-    Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_OVERRIDE].str)
+  if is_objectpascal_helper(tprocdef(pd).struct) then
+    begin
+      if m_objfpc in current_settings.modeswitches then
+        Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_OVERRIDE].str)
+    end
   else if not(is_class_or_interface_or_objc(tprocdef(pd).struct)) then
     Message(parser_e_no_object_override)
   else if is_objccategory(tprocdef(pd).struct) then
@@ -1761,12 +1776,15 @@ var
 begin
   if pd.typ<>procdef then
     internalerror(2003042613);
-  if not is_class(tprocdef(pd).struct) and
-     not is_objc_class_or_protocol(tprocdef(pd).struct) then
-    Message(parser_e_msg_only_for_classes);
-  if is_objectpascal_classhelper(tprocdef(pd).struct) and
-      (m_objfpc in current_settings.modeswitches) then
-    Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_MESSAGE].str);
+  if is_objectpascal_helper(tprocdef(pd).struct) then
+    begin
+      if m_objfpc in current_settings.modeswitches then
+        Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_MESSAGE].str);
+    end
+  else
+    if not is_class(tprocdef(pd).struct) and
+       not is_objc_class_or_protocol(tprocdef(pd).struct) then
+      Message(parser_e_msg_only_for_classes);
   if ([po_msgstr,po_msgint]*pd.procoptions)<>[] then
     Message(parser_e_multiple_messages);
   { check parameter type }
@@ -1795,7 +1813,8 @@ begin
     end
   else
    if is_constintnode(pt) and
-      is_class(tprocdef(pd).struct) then
+      (is_class(tprocdef(pd).struct) or
+      is_objectpascal_helper(tprocdef(pd).struct)) then
     begin
       include(pd.procoptions,po_msgint);
       if (Tordconstnode(pt).value<int64(low(Tprocdef(pd).messageinf.i))) or
@@ -1819,12 +1838,15 @@ procedure pd_reintroduce(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200401211);
-  if not(is_class_or_interface_or_object(tprocdef(pd).struct)) and
-     not(is_objccategory(tprocdef(pd).struct)) then
-    Message(parser_e_no_object_reintroduce);
-  if is_objectpascal_classhelper(tprocdef(pd).struct) and
-      (m_objfpc in current_settings.modeswitches) then
-    Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_REINTRODUCE].str);
+  if is_objectpascal_helper(tprocdef(pd).struct) then
+    begin
+      if m_objfpc in current_settings.modeswitches then
+        Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_REINTRODUCE].str);
+    end
+  else
+    if not(is_class_or_interface_or_object(tprocdef(pd).struct)) and
+       not(is_objccategory(tprocdef(pd).struct)) then
+      Message(parser_e_no_object_reintroduce);
 end;
 
 
@@ -2104,7 +2126,7 @@ const
    (
     (
       idtok:_ABSTRACT;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord,pd_nothelper];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord];
       handler  : @pd_abstract;
       pocall   : pocall_none;
       pooption : [po_abstractmethod];
@@ -2639,7 +2661,7 @@ const
             exit;
 
            { check if method and directive not for record/class helper }
-           if is_objectpascal_classhelper(tprocdef(pd).struct) and
+           if is_objectpascal_helper(tprocdef(pd).struct) and
              (pd_nothelper in proc_direcdata[p].pd_flags) then
             exit;
 

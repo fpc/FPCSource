@@ -1031,7 +1031,7 @@ implementation
             else
              static_name:=lower(generate_nested_name(sym.owner,'_'))+'_'+sym.name;
             if sym.owner.defowner.typ=objectdef then
-              searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable)
+              searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable,true)
             else
               searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
             if assigned(sym) then
@@ -1489,7 +1489,7 @@ implementation
                           p1:=comp_expr(true,false);
                           consume(_RKLAMMER);
                           { type casts to class helpers aren't allowed }
-                          if is_objectpascal_classhelper(hdef) then
+                          if is_objectpascal_helper(hdef) then
                             Message(parser_e_no_category_as_types)
                             { recovery by not creating a conversion node }
                           else
@@ -1508,7 +1508,7 @@ implementation
                              begin
                                p1:=ctypenode.create(hdef);
                                { search also in inherited methods }
-                               searchsym_in_class(tobjectdef(hdef),tobjectdef(current_structdef),pattern,srsym,srsymtable);
+                               searchsym_in_class(tobjectdef(hdef),tobjectdef(current_structdef),pattern,srsym,srsymtable,true);
                                if assigned(srsym) then
                                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                consume(_ID);
@@ -1535,16 +1535,17 @@ implementation
                          end
                        else
                         begin
+                          { TClassHelper.Something is not allowed }
+                          if is_objectpascal_helper(hdef) then
+                            begin
+                              Message(parser_e_no_category_as_types);
+                              { for recovery we use the extended class }
+                              hdef:=tobjectdef(hdef).extendeddef;
+                            end;
                           { class reference ? }
                           if is_class(hdef) or
                              is_objcclass(hdef) then
                            begin
-                             if is_objectpascal_classhelper(hdef) then
-                               begin
-                                 Message(parser_e_no_category_as_types);
-                                 { for recovery we use the extended class }
-                                 hdef:=tobjectdef(hdef).childof;
-                               end;
                              if getaddr and (token=_POINT) then
                               begin
                                 consume(_POINT);
@@ -2140,7 +2141,7 @@ implementation
                            if token=_ID then
                              begin
                                structh:=tobjectdef(tclassrefdef(p1.resultdef).pointeddef);
-                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable);
+                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,true);
                                if assigned(srsym) then
                                  begin
                                    check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
@@ -2164,7 +2165,7 @@ implementation
                            if token=_ID then
                              begin
                                structh:=tobjectdef(p1.resultdef);
-                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable);
+                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,true);
                                if assigned(srsym) then
                                  begin
                                     check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
@@ -2354,7 +2355,16 @@ implementation
                     assigned(current_structdef) and
                     (current_structdef.typ=objectdef) then
                   begin
-                    hclassdef:=tobjectdef(current_structdef).childof;
+                    { In Object Pascal helpers "inherited" always calls a
+                      method of the extended class }
+                    if is_objectpascal_helper(current_structdef) then
+                      begin
+                        if not is_class(tobjectdef(current_structdef).extendeddef) then
+                          Internalerror(2011021701);
+                        hclassdef:=tobjectdef(tobjectdef(current_structdef).extendeddef);
+                      end
+                    else
+                      hclassdef:=tobjectdef(current_structdef).childof;
                     { Objective-C categories *replace* methods in the class
                       they extend, or add methods to it. So calling an
                       inherited method always calls the method inherited from
@@ -2378,7 +2388,8 @@ implementation
                         if (po_msgstr in pd.procoptions) then
                           searchsym_in_class_by_msgstr(hclassdef,pd.messageinf.str^,srsym,srsymtable)
                        else
-                         searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable);
+                         { disable search for helpers }
+                         searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable,false);
                      end
                     else
                      begin
@@ -2386,7 +2397,8 @@ implementation
                        hsorg:=orgpattern;
                        consume(_ID);
                        anon_inherited:=false;
-                       searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable);
+                       { disable search for helpers }
+                       searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable,false);
                      end;
                     if assigned(srsym) then
                      begin
@@ -2420,7 +2432,7 @@ implementation
                           if (po_msgint in pd.procoptions) or
                              (po_msgstr in pd.procoptions) then
                             begin
-                              searchsym_in_class(hclassdef,hclassdef,'DEFAULTHANDLER',srsym,srsymtable);
+                              searchsym_in_class(hclassdef,hclassdef,'DEFAULTHANDLER',srsym,srsymtable,true);
                               if not assigned(srsym) or
                                  (srsym.typ<>procsym) then
                                 internalerror(200303171);

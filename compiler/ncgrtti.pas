@@ -920,7 +920,9 @@ implementation
                 recorddef_rtti(trecorddef(def));
             end;
           objectdef :
-            objectdef_rtti(tobjectdef(def));
+            // TODO : check whether Delphi generates RTTI for helpers
+            if not is_objectpascal_helper(def) then
+              objectdef_rtti(tobjectdef(def));
           else
             unknown_rtti(tstoreddef(def));
         end;

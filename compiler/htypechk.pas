@@ -67,12 +67,12 @@ interface
         FParaNode   : tnode;
         FParaLength : smallint;
         FAllowVariant : boolean;
-        procedure collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList);
+        procedure collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList;searchhelpers:boolean);
         procedure collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall,explicitunit: boolean);
-        procedure create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit:boolean);
+        procedure create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers:boolean);
         function  proc_add(st:tsymtable;pd:tprocdef;objcidcall: boolean):pcandidate;
       public
-        constructor create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit:boolean);
+        constructor create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers:boolean);
         constructor create_operator(op:ttoken;ppn:tnode);
         destructor destroy;override;
         procedure list(all:boolean);
@@ -1758,7 +1758,7 @@ implementation
                            TCallCandidates
 ****************************************************************************}
 
-    constructor tcallcandidates.create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit:boolean);
+    constructor tcallcandidates.create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers:boolean);
       begin
         if not assigned(sym) then
           internalerror(200411015);
@@ -1766,7 +1766,7 @@ implementation
         FProcsym:=sym;
         FProcsymtable:=st;
         FParanode:=ppn;
-        create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit);
+        create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers);
       end;
 
 
@@ -1776,7 +1776,7 @@ implementation
         FProcsym:=nil;
         FProcsymtable:=nil;
         FParanode:=ppn;
-        create_candidate_list(false,false,false,false);
+        create_candidate_list(false,false,false,false,false);
       end;
 
 
@@ -1795,19 +1795,63 @@ implementation
       end;
 
 
-    procedure tcallcandidates.collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList);
+    procedure tcallcandidates.collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList;searchhelpers:boolean);
+
+      function processprocsym(srsym:tprocsym):boolean;
+        var
+          j  : integer;
+          pd : tprocdef;
+        begin
+          { Store first procsym found }
+          if not assigned(FProcsym) then
+            FProcsym:=srsym;
+          { add all definitions }
+          result:=false;
+          for j:=0 to srsym.ProcdefList.Count-1 do
+            begin
+              pd:=tprocdef(srsym.ProcdefList[j]);
+              if po_overload in pd.procoptions then
+                result:=true;
+              ProcdefOverloadList.Add(srsym.ProcdefList[j]);
+            end;
+        end;
+
       var
-        j          : integer;
-        pd         : tprocdef;
         srsym      : tsym;
         hashedid   : THashedIDString;
         hasoverload : boolean;
+        helperdef  : tobjectdef;
       begin
         if FOperator=NOTOKEN then
           hashedid.id:=FProcsym.name
         else
           hashedid.id:=overloaded_names[FOperator];
         hasoverload:=false;
+        { first search for potential symbols in the class helpers (this is
+          disabled in an inherited call if the method is available in the
+          extended class) }
+        if is_class(structdef) then
+          if search_last_objectpascal_helper(tobjectdef(structdef), helperdef) and searchhelpers then
+            begin
+              srsym:=nil;
+              while assigned(helperdef) do
+                begin
+                  srsym:=tsym(helperdef.symtable.FindWithHash(hashedid));
+                  if assigned(srsym) and
+                      { Delphi allows hiding a property by a procedure with the same name }
+                      (srsym.typ=procsym) then
+                    begin
+                      hasoverload := processprocsym(tprocsym(srsym));
+                      { when there is no explicit overload we stop searching }
+                      if not hasoverload then
+                        break;
+                    end;
+                  helperdef:=helperdef.childof;
+                end;
+              if not hasoverload and assigned(srsym) then
+                exit;
+            end;
+        { now search in the class and its parents or the record }
         while assigned(structdef) do
          begin
            srsym:=tprocsym(structdef.symtable.FindWithHash(hashedid));
@@ -1815,18 +1859,7 @@ implementation
               { Delphi allows hiding a property by a procedure with the same name }
               (srsym.typ=procsym) then
              begin
-               { Store first procsym found }
-               if not assigned(FProcsym) then
-                 FProcsym:=tprocsym(srsym);
-               { add all definitions }
-               hasoverload:=false;
-               for j:=0 to tprocsym(srsym).ProcdefList.Count-1 do
-                 begin
-                   pd:=tprocdef(tprocsym(srsym).ProcdefList[j]);
-                   if po_overload in pd.procoptions then
-                     hasoverload:=true;
-                   ProcdefOverloadList.Add(tprocsym(srsym).ProcdefList[j]);
-                 end;
+               hasoverload:=processprocsym(tprocsym(srsym));
                { when there is no explicit overload we stop searching }
                if not hasoverload then
                  break;
@@ -1911,7 +1944,7 @@ implementation
       end;
 
 
-    procedure tcallcandidates.create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit:boolean);
+    procedure tcallcandidates.create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers:boolean);
       var
         j     : integer;
         pd    : tprocdef;
@@ -1929,7 +1962,7 @@ implementation
         if not objcidcall and
            (FOperator=NOTOKEN) and
            (FProcsym.owner.symtabletype in [objectsymtable,recordsymtable]) then
-          collect_overloads_in_struct(tabstractrecorddef(FProcsym.owner.defowner),ProcdefOverloadList)
+          collect_overloads_in_struct(tabstractrecorddef(FProcsym.owner.defowner),ProcdefOverloadList,searchhelpers)
         else
         if (FOperator<>NOTOKEN) then
           begin
@@ -1939,7 +1972,7 @@ implementation
             while assigned(pt) do
               begin
                 if (pt.resultdef.typ=recorddef) then
-                  collect_overloads_in_struct(tabstractrecorddef(pt.resultdef),ProcdefOverloadList);
+                  collect_overloads_in_struct(tabstractrecorddef(pt.resultdef),ProcdefOverloadList,searchhelpers);
                 pt:=tcallparanode(pt.right);
               end;
             collect_overloads_in_units(ProcdefOverloadList,objcidcall,explicitunit);

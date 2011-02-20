@@ -259,12 +259,9 @@ interface
           childof        : tobjectdef;
           childofderef   : tderef;
 
-          { for Object Pascal class helpers: the parent class helper is only
-            used to extend the scope of a used class helper by another class
-            helper for the same extended class or a superclass (which is defined
-            by childof }
-          helperparent   : tobjectdef;
-          helperparentderef: tderef;
+          { for Object Pascal helpers }
+          extendeddef   : tabstractrecorddef;
+          extendeddefderef: tderef;
           { for C++ classes: name of the library this class is imported from }
           import_lib,
           { for Objective-C: protocols and classes can have the same name there }
@@ -322,7 +319,6 @@ interface
           procedure set_parent(c : tobjectdef);
           function find_destructor: tprocdef;
           function implements_any_interfaces: boolean;
-          procedure finish_classhelper;
           { dispinterface support }
           function get_next_dispid: longint;
           { enumerator support }
@@ -788,7 +784,7 @@ interface
     function is_object(def: tdef): boolean;
     function is_class(def: tdef): boolean;
     function is_cppclass(def: tdef): boolean;
-    function is_objectpascal_classhelper(def: tdef): boolean;
+    function is_objectpascal_helper(def: tdef): boolean;
     function is_objcclass(def: tdef): boolean;
     function is_objcclassref(def: tdef): boolean;
     function is_objcprotocol(def: tdef): boolean;
@@ -4153,7 +4149,7 @@ implementation
         fcurrent_dispid:=0;
         objecttype:=ot;
         childof:=nil;
-        if objecttype in [odt_classhelper] then
+        if objecttype=odt_helper then
           owner.includeoption(sto_has_classhelper);
         symtable:=tObjectSymtable.create(self,n,current_settings.packrecords);
         { create space for vmt !! }
@@ -4163,7 +4159,7 @@ implementation
         if objecttype in [odt_interfacecorba,odt_interfacecom,odt_dispinterface] then
           prepareguid;
         { setup implemented interfaces }
-        if objecttype in [odt_class,odt_objcclass,odt_objcprotocol,odt_classhelper] then
+        if objecttype in [odt_class,odt_objcclass,odt_objcprotocol] then
           ImplementedInterfaces:=TFPObjectList.Create(true)
         else
           ImplementedInterfaces:=nil;
@@ -4205,8 +4201,8 @@ implementation
               iidstr:=stringdup(ppufile.getstring);
            end;
 
-         if oo_is_classhelper in objectoptions then
-           ppufile.getderef(helperparentderef);
+         if objecttype=odt_helper then
+           ppufile.getderef(extendeddefderef);
 
          vmtentries:=TFPList.Create;
          vmtentries.count:=ppufile.getlongint;
@@ -4369,8 +4365,8 @@ implementation
               ppufile.putguid(iidguid^);
               ppufile.putstring(iidstr^);
            end;
-         if oo_is_classhelper in objectoptions then
-           ppufile.putderef(helperparentderef);
+         if objecttype=odt_helper then
+           ppufile.putderef(extendeddefderef);
 
          ppufile.putlongint(vmtentries.count);
          for i:=0 to vmtentries.count-1 do
@@ -4429,8 +4425,8 @@ implementation
          else
            tstoredsymtable(symtable).buildderef;
 
-         if oo_is_classhelper in objectoptions then
-           helperparentderef.build(helperparent);
+         if objecttype=odt_helper then
+           extendeddefderef.build(extendeddef);
 
          for i:=0 to vmtentries.count-1 do
            begin
@@ -4460,8 +4456,8 @@ implementation
            end
          else
            tstoredsymtable(symtable).deref;
-         if oo_is_classhelper in objectoptions then
-           helperparent:=tobjectdef(helperparentderef.resolve);
+         if objecttype=odt_helper then
+           extendeddef:=tobjectdef(extendeddefderef.resolve);
          for i:=0 to vmtentries.count-1 do
            begin
              vmtentry:=pvmtentry(vmtentries[i]);
@@ -4743,14 +4739,9 @@ implementation
           (assigned(childof) and childof.implements_any_interfaces);
       end;
 
-    procedure tobjectdef.finish_classhelper;
-      begin
-        self.symtable.DefList.foreachcall(@create_class_helper_for_procdef,nil);
-      end;
-
     function tobjectdef.size : aint;
       begin
-        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol] then
+        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper] then
           result:=sizeof(pint)
         else
           result:=tObjectSymtable(symtable).datasize;
@@ -4759,7 +4750,7 @@ implementation
 
     function tobjectdef.alignment:shortint;
       begin
-        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol] then
+        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper] then
           alignment:=sizeof(pint)
         else
           alignment:=tObjectSymtable(symtable).recordalignment;
@@ -4773,6 +4764,7 @@ implementation
         odt_class:
           { the +2*sizeof(pint) is size and -size }
           vmtmethodoffset:=(index+10)*sizeof(pint)+2*sizeof(pint);
+        odt_helper,
         odt_objcclass,
         odt_objcprotocol:
           vmtmethodoffset:=0;
@@ -4799,6 +4791,7 @@ implementation
     function tobjectdef.needs_inittable : boolean;
       begin
          case objecttype of
+            odt_helper,
             odt_class :
               needs_inittable:=false;
             odt_dispinterface,
@@ -5472,16 +5465,12 @@ implementation
       end;
 
 
-    function is_objectpascal_classhelper(def: tdef): boolean;
+    function is_objectpascal_helper(def: tdef): boolean;
       begin
         result:=
           assigned(def) and
           (def.typ=objectdef) and
-          { if used as a forward type }
-          ((tobjectdef(def).objecttype=odt_classhelper) or
-          { if used as after it has been resolved }
-           ((tobjectdef(def).objecttype=odt_class) and
-            (oo_is_classhelper in tobjectdef(def).objectoptions)));
+          (tobjectdef(def).objecttype=odt_helper);
       end;
 
 
@@ -5537,7 +5526,7 @@ implementation
     function is_classhelper(def: tdef): boolean;
       begin
          result:=
-           is_objectpascal_classhelper(def) or
+           is_objectpascal_helper(def) or
            is_objccategory(def);
       end;
 

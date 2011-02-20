@@ -329,7 +329,13 @@ type
     odt_objcclass,
     odt_objcprotocol,
     odt_objccategory, { note that these are changed into odt_class afterwards }
-    odt_classhelper
+    odt_helper
+  );
+
+  { defines the type of the extended "structure"; only used for parsing }
+  thelpertype=(ht_none,
+    ht_class,
+    ht_record
   );
 
   { Variations in interfaces implementation }

@@ -30,7 +30,7 @@ interface
       globtype,symconst,symtype,symdef;
 
     { parses a object declaration }
-    function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tobjectdef;
+    function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
 
     function class_constructor_head:tprocdef;
     function class_destructor_head:tprocdef;
@@ -118,8 +118,8 @@ implementation
       var
         p : tpropertysym;
       begin
-        { check for a class or record }
-        if not((is_class_or_interface_or_dispinterface(current_structdef) or is_record(current_structdef)) or
+        { check for a class, record or helper }
+        if not((is_class_or_interface_or_dispinterface(current_structdef) or is_record(current_structdef) or is_objectpascal_helper(current_structdef)) or
            (not(m_tp7 in current_settings.modeswitches) and (is_object(current_structdef)))) then
           Message(parser_e_syntax_error);
         consume(_PROPERTY);
@@ -422,6 +422,7 @@ implementation
             get_cpp_class_external_status(current_objectdef);
           odt_objcclass,odt_objcprotocol,odt_objccategory:
             get_objc_class_or_protocol_external_status(current_objectdef);
+          odt_helper: ; // nothing
         end;
       end;
 
@@ -436,31 +437,11 @@ implementation
         intfchildof:=nil;
         hasparentdefined:=false;
 
-        { the "parent" of a class helper is not really treated as its parent;
-          it's only used to extend the searched scope }
-        if is_objectpascal_classhelper(current_structdef) then
-          begin
-            if try_to_consume(_LKLAMMER) then
-              begin
-                { TODO : check what these flags mean }
-                single_type(hdef,[stoAllowTypeDef, stoParseClassParent]);
-                if not is_objectpascal_classhelper(hdef) then
-                  begin
-                    Message(parser_e_classhelper_id_expected);
-                    hdef:=nil;
-                  end;
-                current_objectdef.helperparent:=tobjectdef(hdef);
-                consume(_RKLAMMER);
-              end;
-            consume(_FOR);
-          end;
-
         { reads the parent class }
         if (token=_LKLAMMER) or
-           is_classhelper(current_structdef) then
+           is_objccategory(current_structdef) then
           begin
-            if not is_objectpascal_classhelper(current_structdef) then
-              consume(_LKLAMMER);
+            consume(_LKLAMMER);
             { use single_type instead of id_type for specialize support }
             single_type(hdef,[stoAllowSpecialization, stoParseClassParent]);
             if (not assigned(hdef)) or
@@ -470,10 +451,7 @@ implementation
                   Message1(type_e_class_type_expected,hdef.typename)
                 else if is_objccategory(current_structdef) then
                   { a category must specify the class to extend }
-                  Message(type_e_objcclass_type_expected)
-                else if is_objectpascal_classhelper(current_objectdef) then
-                  { a class helper must specify the class to extend }
-                  Message(type_e_class_type_expected);
+                  Message(type_e_objcclass_type_expected);
               end
             else
               begin
@@ -496,8 +474,7 @@ implementation
                             Message(parser_e_mix_of_classes_and_objects);
                        end
                      else
-                       if (oo_is_sealed in childof.objectoptions) and
-                           not is_objectpascal_classhelper(current_structdef) then
+                       if oo_is_sealed in childof.objectoptions then
                          Message1(parser_e_sealed_descendant,childof.typename);
                    odt_interfacecorba,
                    odt_interfacecom:
@@ -545,6 +522,12 @@ implementation
                          Message1(parser_e_sealed_descendant,childof.typename);
                    odt_dispinterface:
                      Message(parser_e_dispinterface_cant_have_parent);
+                   odt_helper:
+                     if not is_objectpascal_helper(childof) then
+                       begin
+                         Message(type_e_helper_type_expected);
+                         childof:=nil;
+                       end;
                 end;
               end;
             hasparentdefined:=true;
@@ -584,8 +567,7 @@ implementation
         { remove forward flag, is resolved }
         exclude(current_structdef.objectoptions,oo_is_forward);
 
-        if hasparentdefined and
-            not is_objectpascal_classhelper(current_structdef) then
+        if hasparentdefined then
           begin
             if current_objectdef.objecttype in [odt_class,odt_objcclass,odt_objcprotocol] then
               begin
@@ -600,6 +582,62 @@ implementation
           end;
       end;
 
+    procedure parse_extended_class(helpertype:thelpertype);
+      var
+        hdef: tdef;
+      begin
+        if not is_objectpascal_helper(current_structdef) then
+          Internalerror(2011021103);
+        if helpertype=ht_none then
+          Internalerror(2011021001);
+
+        consume(_FOR);
+        single_type(hdef,[stoAllowTypeDef,stoParseClassParent]);
+        if (not assigned(hdef)) or
+           not (hdef.typ in [objectdef,recorddef]) then
+          begin
+            if helpertype=ht_class then
+              Message1(type_e_class_type_expected,hdef.typename)
+            else
+            if helpertype=ht_record then
+              Message1(type_e_record_type_expected,hdef.typename);
+          end
+        else
+          begin
+            case helpertype of
+              ht_class:
+                begin
+                  if not is_class(hdef) then
+                    Message1(type_e_class_type_expected,hdef.typename);
+                  { a class helper must extend the same class or a subclass
+                    of the class extended by the parent class helper }
+                  if assigned(current_objectdef.childof) then
+                    begin
+                      if not is_class(current_objectdef.childof.extendeddef) then
+                        Internalerror(2011021101);
+                      if not hdef.is_related(current_objectdef.childof.extendeddef) then
+                        Message1(type_e_class_helper_must_extend_subclass,current_objectdef.childof.extendeddef.typename);
+                    end;
+                end;
+              ht_record:
+                begin
+                  if not is_record(hdef) then
+                    Message1(type_e_record_type_expected,hdef.typename);
+                  { a record helper must extend the same record as the
+                    parent helper }
+                  if assigned(current_objectdef.childof) then
+                    begin
+                      if not is_record(current_objectdef.childof.extendeddef) then
+                        Internalerror(2011021102);
+                      if hdef<>current_objectdef.childof.extendeddef then
+                        Message1(type_e_record_helper_must_extend_same_record,current_objectdef.childof.extendeddef.typename);
+                    end;
+                end;
+            end;
+
+            current_objectdef.extendeddef:=tabstractrecorddef(hdef);
+          end;
+      end;
 
     procedure parse_guid;
       begin
@@ -675,14 +713,14 @@ implementation
           case token of
             _TYPE :
               begin
-                if not(current_objectdef.objecttype in [odt_class,odt_object]) then
+                if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper]) then
                   Message(parser_e_type_var_const_only_in_records_and_classes);
                 consume(_TYPE);
                 object_member_blocktype:=bt_type;
               end;
             _VAR :
               begin
-                if not(current_objectdef.objecttype in [odt_class,odt_object]) then
+                if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper]) then
                   Message(parser_e_type_var_const_only_in_records_and_classes);
                 consume(_VAR);
                 fields_allowed:=true;
@@ -692,7 +730,7 @@ implementation
               end;
             _CONST:
               begin
-                if not(current_objectdef.objecttype in [odt_class,odt_object]) then
+                if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper]) then
                   Message(parser_e_type_var_const_only_in_records_and_classes);
                 consume(_CONST);
                 object_member_blocktype:=bt_const;
@@ -801,7 +839,7 @@ implementation
                           begin
                             if is_interface(current_structdef) or
                                is_objc_protocol_or_category(current_structdef) or
-                               is_objectpascal_classhelper(current_structdef) then
+                               is_objectpascal_helper(current_structdef) then
                               Message(parser_e_no_vars_in_interfaces);
 
                             if (current_structdef.symtable.currentvisibility=vis_published) and
@@ -876,13 +914,6 @@ implementation
                     { has no m_class                                    }
                     if (m_mac in current_settings.modeswitches) then
                       include(pd.procoptions,po_virtualmethod);
-
-                    { for class helpers virtual, final, override make no sense,
-                      so they are rejected in mode ObjFPC (in pdecsub) and
-                      ignored in mode Delphi (here)
-                    }
-                    if is_objectpascal_classhelper(current_structdef) then
-                      pd.procoptions:=pd.procoptions-[po_virtualmethod,po_finalmethod,po_overridingmethod];
 
                     handle_calling_convention(pd);
 
@@ -965,7 +996,7 @@ implementation
                   Message(parser_e_no_con_des_in_interfaces);
 
                 { (class) destructors are not allowed in class helpers }
-                if is_objectpascal_classhelper(current_structdef) then
+                if is_objectpascal_helper(current_structdef) then
                   Message(parser_e_no_destructor_in_records);
 
                 if not is_classdef and (current_structdef.symtable.currentvisibility<>vis_public) then
@@ -1014,7 +1045,7 @@ implementation
       end;
 
 
-    function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tobjectdef;
+    function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
       var
         old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
@@ -1122,16 +1153,12 @@ implementation
                 include(current_structdef.objectoptions,oo_is_classhelper);
               end;
 
-            { change classhelpers into Object Pascal style class helpers }
-            if (objecttype=odt_classhelper) then
-              begin
-                current_objectdef.objecttype:=odt_class;
-                include(current_objectdef.objectoptions,oo_is_classhelper);
-              end;
+            { include the class helper flag for Object Pascal helpers }
+            if (objecttype=odt_helper) then
+              include(current_objectdef.objectoptions,oo_is_classhelper);
 
             { parse list of options (abstract / sealed) }
-            if not(objecttype in [odt_objcclass,odt_objcprotocol,odt_objccategory]) and
-                not is_objectpascal_classhelper(current_objectdef) then
+            if not(objecttype in [odt_objcclass,odt_objcprotocol,odt_objccategory]) then
               parse_object_options;
 
             symtablestack.push(current_structdef.symtable);
@@ -1140,6 +1167,10 @@ implementation
 
             { parse list of parent classes }
             parse_parent_classes;
+
+            { parse extended type for helpers }
+            if is_objectpascal_helper(current_structdef) then
+              parse_extended_class(helpertype);
 
             { parse optional GUID for interfaces }
             parse_guid;

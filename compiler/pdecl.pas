@@ -500,7 +500,7 @@ implementation
                     end;
                     consume(token);
                     { we can ignore the result, the definition is modified }
-                    object_dec(objecttype,orgtypename,nil,nil,tobjectdef(ttypesym(sym).typedef));
+                    object_dec(objecttype,orgtypename,nil,nil,tobjectdef(ttypesym(sym).typedef),ht_none);
                     newtype:=ttypesym(sym);
                     hdef:=newtype.typedef;
                   end
@@ -630,9 +630,6 @@ implementation
 
                     if is_cppclass(hdef) then
                       tobjectdef(hdef).finish_cpp_data;
-
-                    if is_objectpascal_classhelper(hdef) then
-                      tobjectdef(hdef).finish_classhelper;
                   end;
                 recorddef :
                   begin
