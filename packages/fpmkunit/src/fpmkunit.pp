@@ -27,6 +27,14 @@ unit fpmkunit;
 
 Interface
 
+{$IFDEF OS2}
+ {$DEFINE NO_UNIT_PROCESS}
+{$ENDIF OS2}
+
+{$IFDEF GO32V2}
+ {$DEFINE NO_UNIT_PROCESS}
+{$ENDIF GO32V2}
+
 {$ifndef NO_UNIT_PROCESS}
   {$define HAS_UNIT_PROCESS}
 {$endif NO_UNIT_PROCESS}
