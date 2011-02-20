@@ -1,9 +1,10 @@
-{ %NORUN } { or fail? }
+{ %NORUN }
 
+{ method modifiers of the extended class are completly irrelevant }
 program tchlp53;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
 type

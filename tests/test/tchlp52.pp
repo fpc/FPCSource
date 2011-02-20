@@ -3,7 +3,9 @@
 { class helpers may not be referenced in any way - test 7 }
 program tchlp52;
 
-{$mode objfpc}
+{$ifdef fpc}
+  {$mode objfpc}
+{$endif}
 
 type
   TObjectHelper = class helper for TObject

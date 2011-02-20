@@ -1,6 +1,8 @@
 unit uchlp51a;
 
-{$mode objfpc}{$H+}
+{$ifdef fpc}
+  {$mode objfpc}{$H+}
+{$endif}
 
 interface
 

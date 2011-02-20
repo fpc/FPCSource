@@ -1,3 +1,5 @@
+{ the extended type is searched first for a inherited method even if it's
+  defined as "override" }
 program tchlp43;
 
 {$ifdef fpc}
@@ -38,10 +40,12 @@ end;
 
 var
   f: TFoo;
+  res: Integer;
 begin
   f := TFoo.Create;
   res := f.Test(True);
-  if res <> 2 then
+  Writeln('f.Test: ', res);
+  if res <> 1 then
     Halt(1);
   Writeln('ok');
 end.

@@ -1,6 +1,6 @@
 { %FAIL }
 
-{ access to methods must adhere to visibility rules }
+{ access to methods must adhere to visibility rules (here: strict private) }
 program tchlp45;
 
 {$ifdef fpc}

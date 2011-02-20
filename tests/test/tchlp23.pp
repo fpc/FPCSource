@@ -1,7 +1,11 @@
-{ in mode ObjFPC overloading is enabled by default }
+{ %NORUN }
+
+{ overloading needs to be enabled explicitly }
 program tchlp23;
 
-{$mode objfpc}
+{$ifdef fpc}
+  {$mode objfpc}
+{$endif}
 
 type
   TFoo = class
@@ -9,7 +13,7 @@ type
   end;
 
   TFooHelper = class helper for TFoo
-    procedure Test;
+    procedure Test; overload;
   end;
 
 procedure TFoo.Test(const aTest: String);

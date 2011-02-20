@@ -1,6 +1,8 @@
 unit uchlp50; 
 
-{$mode objfpc}{$H+}
+{$ifdef fpc}
+  {$mode objfpc}{$H+}
+{$endif}
 
 interface
 
@@ -23,7 +25,7 @@ begin
   Result := 1;
 end;
 
-function TFooHelper.Test: Integer;
+function TFooHelper2.Test: Integer;
 begin
   Result := 2;
 end;

@@ -1,4 +1,4 @@
-{ the parent of a class helper has higher priority than the extended class when
+{ the extended class has higher priority than the parent class when
   searching for symbols }
 program tchlp39;
 
@@ -33,7 +33,7 @@ end;
 function TFooSubHelper.Test(aRecurse: Boolean): Integer;
 begin
   if aRecurse then
-    Result := Test(False)
+    Result := inherited Test(False)
   else
     Result := 3;
 end;
@@ -45,7 +45,7 @@ begin
   f := TFoo.Create;
   res := f.Test(True);
   Writeln('f.Test: ', res);
-  if res <> 2 then
+  if res <> 1 then
     Halt(1);
   Writeln('ok');
 end.

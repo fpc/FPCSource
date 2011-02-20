@@ -20,7 +20,7 @@ type
 
   end;
 
-  TFooHelper = class helper(TFooHelper) for TFoo
+  TFooHelper = class helper(TBarHelper) for TFoo
   end;
 
 procedure TBarHelper.Test;

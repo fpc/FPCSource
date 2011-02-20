@@ -1,6 +1,11 @@
 { tests virtual methods inside class helpers }
 program tchlp35;
 
+{$ifdef fpc}
+  {$mode delphi}
+{$endif}
+{$apptype console}
+
 uses
   uchlp35;
 
