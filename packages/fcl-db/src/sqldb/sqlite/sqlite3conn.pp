@@ -99,7 +99,7 @@ Var
 implementation
 
 uses
-  dbconst, sysutils, dateutils;
+  dbconst, sysutils, dateutils,FmtBCD;
  
 type
 
@@ -395,6 +395,8 @@ begin
                   System.Delete(FD,1,fi);
                   fi:=pos(')',FD);
                   size1:=StrToIntDef(trim(copy(FD,1,fi-1)),255);
+                  if size1>4 then
+                    ft1 := ftFMTBcd;
                   end
                 else size1 := 4;
                 end;
@@ -507,6 +509,7 @@ begin
     ftBoolean  : pwordbool(buffer)^ := sqlite3_column_int(st,fnum)<>0;
     ftLargeInt : PInt64(buffer)^:= sqlite3_column_int64(st,fnum);
     ftBCD      : PCurrency(buffer)^:= FloattoCurr(sqlite3_column_double(st,fnum));
+    ftFmtBCD   : PBCD(buffer)^ := DoubleToBCD(sqlite3_column_double(st,fnum));
     ftFloat,
     ftCurrency : pdouble(buffer)^:= sqlite3_column_double(st,fnum);
     ftDateTime,

@@ -549,7 +549,7 @@ procedure RegisterDatapacketReader(ADatapacketReaderClass : TDatapacketReaderCla
 
 implementation
 
-uses variants, dbconst;
+uses variants, dbconst, FmtBCD;
 
 Type TDatapacketReaderRegistration = record
                                        ReaderClass : TDatapacketReaderClass;
@@ -654,6 +654,18 @@ begin
   if PDouble(subValue)^ < PDouble(aValue)^ then
     result := -1
   else if PDouble(subValue)^  > PDouble(aValue)^ then
+    result := 1
+  else
+    result := 0;
+end;
+
+function DBCompareBCD(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+begin
+  // A simple subtraction doesn't work, since it could be that the result
+  // doesn't fit into a LargeInt
+  if PBCD(subValue)^ < PBCD(aValue)^ then
+    result := -1
+  else if PBCD(subValue)^  > PBCD(aValue)^ then
     result := 1
   else
     result := 0;
@@ -1503,6 +1515,7 @@ begin
     ftDateTime, ftDate, ftTime : ACompareRec.Comparefunc :=
       @DBCompareDouble;
     ftLargeint : ACompareRec.Comparefunc := @DBCompareLargeInt;
+    ftFmtBCD : ACompareRec.Comparefunc := @DBCompareBCD;
   else
     DatabaseErrorFmt(SErrIndexBasedOnInvField, [AField.FieldName,Fieldtypenames[AField.DataType]]);
   end;
@@ -1638,6 +1651,7 @@ begin
       ftword     : result := sizeof(longint);
     ftBoolean    : result := sizeof(wordbool);
     ftBCD        : result := sizeof(currency);
+    ftFmtBCD     : result := sizeof(TBCD);
     ftFloat,
       ftCurrency : result := sizeof(double);
     ftLargeInt   : result := sizeof(largeint);

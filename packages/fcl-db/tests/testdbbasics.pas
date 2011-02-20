@@ -27,6 +27,11 @@ type
     procedure TearDown; override;
   published
     procedure TestCancelUpdDelete1;
+
+
+    procedure TestSupportfmtBCDFields;
+
+
     procedure TestCancelUpdDelete2;
     procedure TestAppendInsertRecord;
     procedure TestBookmarks;
@@ -56,6 +61,7 @@ type
     procedure TestSupportDateFields;
     procedure TestSupportCurrencyFields;
     procedure TestSupportBCDFields;
+    //    procedure TestSupportfmtBCDFields;
     procedure TestSupportFixedStringFields;
 
     procedure TestAppendOnEmptyDataset;
@@ -1942,6 +1948,24 @@ var i          : byte;
 
 begin
   TestfieldDefinition(ftBCD,8,ds,Fld);
+
+  for i := 0 to testValuesCount-1 do
+    begin
+    AssertEquals(CurrToStr(testCurrencyValues[i]),Fld.AsString);
+    AssertEquals(testCurrencyValues[i],Fld.AsCurrency);
+    AssertEquals(testCurrencyValues[i],Fld.AsFloat);
+    ds.Next;
+    end;
+  ds.close;
+end;
+
+procedure TTestDBBasics.TestSupportfmtBCDFields;
+var i          : byte;
+    ds         : TDataset;
+    Fld        : TField;
+
+begin
+  TestfieldDefinition(ftFMTBcd,8,ds,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
