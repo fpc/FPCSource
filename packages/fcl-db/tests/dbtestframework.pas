@@ -18,10 +18,9 @@ uses
   SdfDSToolsUnit,
 // Units wich contains the tests
   testbasics,
-  testdbbasics,
   testfieldtypes,
   TestDatasources,
-  //  testdbbasics,
+  testdbbasics,
   TestBufDatasetStreams;
 
 var

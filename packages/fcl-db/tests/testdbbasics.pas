@@ -27,11 +27,6 @@ type
     procedure TearDown; override;
   published
     procedure TestCancelUpdDelete1;
-
-
-    procedure TestSupportfmtBCDFields;
-
-
     procedure TestCancelUpdDelete2;
     procedure TestAppendInsertRecord;
     procedure TestBookmarks;
@@ -61,7 +56,7 @@ type
     procedure TestSupportDateFields;
     procedure TestSupportCurrencyFields;
     procedure TestSupportBCDFields;
-    //    procedure TestSupportfmtBCDFields;
+    procedure TestSupportfmtBCDFields;
     procedure TestSupportFixedStringFields;
 
     procedure TestAppendOnEmptyDataset;
@@ -151,7 +146,7 @@ type
 
 implementation
 
-uses bufdataset, variants, strutils, sqldb;
+uses bufdataset, variants, strutils, sqldb, FmtBCD;
 
 type THackDataLink=class(TdataLink);
 
@@ -1965,13 +1960,13 @@ var i          : byte;
     Fld        : TField;
 
 begin
-  TestfieldDefinition(ftFMTBcd,8,ds,Fld);
+  TestfieldDefinition(ftFMTBcd,sizeof(TBCD),ds,Fld);
 
   for i := 0 to testValuesCount-1 do
     begin
-    AssertEquals(CurrToStr(testCurrencyValues[i]),Fld.AsString);
-    AssertEquals(testCurrencyValues[i],Fld.AsCurrency);
-    AssertEquals(testCurrencyValues[i],Fld.AsFloat);
+    AssertEquals(testFmtBCDValues[i],Fld.AsString);
+    AssertEquals(testFmtBCDValues[i],Fld.AsBCD);
+    AssertEquals(StrToFloat(testFmtBCDValues[i]),Fld.AsFloat);
     ds.Next;
     end;
   ds.close;

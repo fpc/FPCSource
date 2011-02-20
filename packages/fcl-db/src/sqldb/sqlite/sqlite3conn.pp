@@ -491,6 +491,9 @@ var
  i64: int64;
  int1,int2: integer;
  str1: string;
+ bcd: tBCD;
+ StoreDecimalPoint: tDecimalPoint;
+ bcdstr: FmtBCDStringtype;
  ar1,ar2: TStringArray;
  st    : psqlite3_stmt;
 
@@ -509,7 +512,6 @@ begin
     ftBoolean  : pwordbool(buffer)^ := sqlite3_column_int(st,fnum)<>0;
     ftLargeInt : PInt64(buffer)^:= sqlite3_column_int64(st,fnum);
     ftBCD      : PCurrency(buffer)^:= FloattoCurr(sqlite3_column_double(st,fnum));
-    ftFmtBCD   : PBCD(buffer)^ := DoubleToBCD(sqlite3_column_double(st,fnum));
     ftFloat,
     ftCurrency : pdouble(buffer)^:= sqlite3_column_double(st,fnum);
     ftDateTime,
@@ -528,6 +530,27 @@ begin
                 int1:=FieldDef.Size;
               if int1 > 0 then 
                  move(sqlite3_column_text(st,fnum)^,buffer^,int1);
+              end;
+    ftFmtBCD: begin
+              int1:= sqlite3_column_bytes(st,fnum);
+              if int1>255 then
+                int1:=255;
+              if int1 > 0 then
+                begin
+                SetLength(bcdstr,int1);
+                move(sqlite3_column_text(st,fnum)^,bcdstr[1],int1);
+                StoreDecimalPoint:=FmtBCD.DecimalPoint;
+                // sqlite always uses the point as decimal-point
+                FmtBCD.DecimalPoint:=DecimalPoint_is_Point;
+                if not TryStrToBCD(bcdstr,bcd) then
+                  // sqlite does the same, if the value can't be interpreted as a
+                  // number in sqlite3_column_int, return 0
+                  bcd := 0;
+                FmtBCD.DecimalPoint:=StoreDecimalPoint;
+                end
+              else
+                bcd := 0;
+              pBCD(buffer)^:= bcd;
               end;
     ftMemo,
     ftBlob: CreateBlob:=True;
