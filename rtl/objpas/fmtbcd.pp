@@ -1728,7 +1728,10 @@ IMPLEMENTATION
             then begin
 {$ifndef use_ansistring}
               Inc ( l );
-              result[1] := '0';
+              if Neg then
+                result[2] := '0'
+              else
+                result[1] := '0'
 {$else}
               result := result + '0';
 {$endif}
