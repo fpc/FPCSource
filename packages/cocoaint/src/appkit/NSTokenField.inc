@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSTokenField.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSTOKENFIELD_PAS_T}
@@ -46,8 +44,8 @@
   NSTokenField = objcclass external (NSTextField)
     
   public
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: NSTokenFieldDelegateProtocol); message 'setDelegate:';
+    function delegate: NSTokenFieldDelegateProtocol; message 'delegate';
     procedure setTokenStyle(style: NSTokenStyle); message 'setTokenStyle:';
     function tokenStyle: NSTokenStyle; message 'tokenStyle';
     procedure setCompletionDelay(delay: NSTimeInterval); message 'setCompletionDelay:';
@@ -66,6 +64,7 @@
   
 { NSTokenFieldDelegate Protocol }
   NSTokenFieldDelegateProtocol = objcprotocol external name 'NSTokenFieldDelegate'
+  optional
     function tokenField_completionsForSubstring_indexOfToken_indexOfSelectedItem(tokenField: NSTokenField; substring: NSString; tokenIndex: NSInteger; selectedIndex: NSIntegerPtr): NSArray; message 'tokenField:completionsForSubstring:indexOfToken:indexOfSelectedItem:';
     function tokenField_shouldAddObjects_atIndex(tokenField: NSTokenField; tokens: NSArray; index: NSUInteger): NSArray; message 'tokenField:shouldAddObjects:atIndex:';
     function tokenField_displayStringForRepresentedObject(tokenField: NSTokenField; representedObject: id): NSString; message 'tokenField:displayStringForRepresentedObject:';

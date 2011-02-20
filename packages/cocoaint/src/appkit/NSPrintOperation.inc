@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSPrintOperation.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSPRINTOPERATION_PAS_T}
@@ -103,8 +101,8 @@ var
   NSDeprecated_NSPrintOperationCategory = objccategory external name 'NSDeprecated' (NSPrintOperation)
     procedure setAccessoryView(view_: NSView); message 'setAccessoryView:'; deprecated 'in Mac OS X 10.5 and later';
     function accessoryView: NSView; message 'accessoryView'; deprecated 'in Mac OS X 10.5 and later';
-    procedure setJobStyleHint(hint: NSString); message 'setJobStyleHint:';
-    function jobStyleHint: NSString; message 'jobStyleHint';
+    procedure setJobStyleHint(hint: NSString); message 'setJobStyleHint:'; deprecated 'in Mac OS X 10.5 and later';
+    function jobStyleHint: NSString; message 'jobStyleHint'; deprecated 'in Mac OS X 10.5 and later';
     procedure setShowPanels(flag: Boolean); message 'setShowPanels:'; deprecated 'in Mac OS X 10.4 and later';
     function showPanels: Boolean; message 'showPanels'; deprecated 'in Mac OS X 10.4 and later';
   end;

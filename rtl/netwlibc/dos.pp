@@ -97,7 +97,7 @@ end;
 
 procedure getdate(var year,month,mday,wday : word);
 var
-  t  : TTime;
+  t  : TTime_t;
   tm : Ttm;
 begin
   time(t); localtime_r(t,tm);
@@ -118,7 +118,7 @@ end;
 
 procedure gettime(var hour,minute,second,sec100 : word);
 var
-  t  : TTime;
+  t  : TTime_t;
   tm : Ttm;
 begin
   time(t); localtime_r(t,tm);
@@ -215,9 +215,9 @@ end;
 ******************************************************************************}
 
 function getvolnum (drive : byte) : longint;
-var dir : STRING[255];
+{var dir : STRING[255];
     P,PS,
-    V   : LONGINT;
+    V   : LONGINT;}
 begin
   {if drive = 0 then
   begin  // get volume name from current directory (i.e. SERVER-NAME/VOL2:TEST)
@@ -274,17 +274,17 @@ end;
 
 
 function disksize(drive : byte) : int64;
-VAR Buf                 : ARRAY [0..255] OF CHAR;
+{VAR Buf                 : ARRAY [0..255] OF CHAR;
     TotalBlocks         : WORD;
     SectorsPerBlock     : WORD;
     availableBlocks     : WORD;
     totalDirectorySlots : WORD;
     availableDirSlots   : WORD;
     volumeisRemovable   : WORD;
-    volumeNumber        : LONGINT;
+    volumeNumber        : LONGINT;}
 begin
-  volumeNumber := getvolnum (drive);
   (*
+  volumeNumber := getvolnum (drive);
   if volumeNumber >= 0 then
   begin
     {i think thats not the right function but for others i need a connection handle}

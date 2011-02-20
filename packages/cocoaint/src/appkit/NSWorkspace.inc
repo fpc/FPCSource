@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSWorkspace.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSWORKSPACE_PAS_T}

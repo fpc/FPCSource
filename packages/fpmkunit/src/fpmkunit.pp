@@ -869,6 +869,7 @@ Type
     FRunMode: TRunMode;
     FListMode : Boolean;
     FLogLevels : TVerboseLevels;
+    FFPMakeOptionsString: string;
   Protected
     Procedure Log(Level : TVerboseLevel; Const Msg : String);
     Procedure CreatePackages; virtual;
@@ -891,6 +892,7 @@ Type
     Destructor destroy; override;
     Function AddPackage(Const AName : String) : TPackage;
     Function Run : Boolean;
+    Property FPMakeOptionsString: string read FFPMakeOptionsString;
     //files in package
     Property Packages : TPackages Read GetPackages;
     Property RunMode : TRunMode Read FRunMode;
@@ -985,6 +987,8 @@ Procedure SplitCommand(Const Cmd : String; Var Exe,Options : String);
 Procedure AddCustomFpmakeCommandlineOption(const ACommandLineOption, HelpMessage : string);
 Function GetCustomFpmakeCommandlineOptionValue(const ACommandLineOption : string) : string;
 
+procedure SearchFiles(const AFileName: string; Recursive: boolean; var List: TStrings);
+
 Implementation
 
 uses typinfo, rtlconsts;
@@ -1011,7 +1015,7 @@ ResourceString
   SErrNoPackagesDefined = 'No action possible: No packages were defined.';
   SErrInstaller         = 'The installer encountered the following error:';
   SErrDepUnknownTarget  = 'Unknown target for unit "%s" in dependencies for %s in package %s';
-  SErrExternalCommandFailed = 'External command "%s" failed with exit code %d';
+  SErrExternalCommandFailed = 'External command "%s" failed with exit code %d. Console output:'+LineEnding+'%s';
   SErrCreatingDirectory = 'Failed to create directory "%s"';
   SErrDeletingFile      = 'Failed to delete file "%s"';
   SErrMovingFile        = 'Failed to move file "%s" to "%s"';
@@ -1038,7 +1042,10 @@ ResourceString
   SWarnDepUnitNotFound     = 'Warning: Dependency on unit %s is not supported for %s';
   SWarnTargetDependsOnPackage = 'Warning: Target %s of package %s depends on another package (%s). These kind of dependencies are not processed';
   SWarnDependOnOtherPlatformPackage = 'Warning: Package %s depends on package %s which is not available for the %s platform';
-  SWarnDone               = 'Done';
+  SWarnStartBuildingPackage = 'Start building package %s for target %s.';
+  SWarnBuildingPackagecomplete = '[%3.0f%%] Built target %s';
+  SWarnInstallationPackagecomplete = 'Installation package %s for target %s succeeded';
+  SWarnCleanPackagecomplete = 'Clean of package %s completed';
 
   SInfoCompilingPackage   = 'Compiling package %s';
   SInfoPackageAlreadyProcessed = 'Package %s is already processed';
@@ -1140,14 +1147,15 @@ Const
   KeyNeedLibC = 'NeedLibC';
   KeyDepends  = 'Depends';
   KeyAddIn    = 'FPMakeAddIn';
+  KeySourcePath = 'SourcePath';
+  KeyFPMakeOptions = 'FPMakeOptions';
 
 {****************************************************************************
                                 Helpers
 ****************************************************************************}
 
-function ExecuteFPC(Verbose: boolean; const Path: string; const ComLine: string): integer;
+function ExecuteFPC(Verbose: boolean; const Path: string; const ComLine: string; ConsoleOutput: TMemoryStream): integer;
 var
-  M: TMemoryStream;
   P: TProcess;
   BytesRead: longint;
 
@@ -1172,20 +1180,20 @@ var
     snum: string;
   begin
     // make sure we have room
-    M.SetSize(BytesRead + READ_BYTES);
+    ConsoleOutput.SetSize(BytesRead + READ_BYTES);
 
     // try reading it
-    n := P.Output.Read((M.Memory + BytesRead)^, READ_BYTES);
+    n := P.Output.Read((ConsoleOutput.Memory + BytesRead)^, READ_BYTES);
     if n > 0 then
     begin
       Inc(BytesRead, n);
 
       sLine := '';
-      BuffPos := M.Position;
+      BuffPos := ConsoleOutput.Position;
 
       //read lines from the stream
       repeat
-        M.Read(ch,1);
+        ConsoleOutput.Read(ch,1);
 
         if ch in [#10, #13] then
         begin
@@ -1203,14 +1211,14 @@ var
             end;
 
           sLine := '';
-          BuffPos := M.Position;
+          BuffPos := ConsoleOutput.Position;
         end
         else
           sLine := sLine + ch;
 
-      until M.Position = M.Size;
+      until ConsoleOutput.Position >= BytesRead;
 
-      M.Position := BuffPos;
+      ConsoleOutput.Position := BuffPos;
     end
     else
     begin
@@ -1222,16 +1230,14 @@ var
   end;
 
 begin
+  result := -1;
+  BytesRead := 0;
+  P := TProcess.Create(nil);
   try
-    M := TMemoryStream.Create;
-    BytesRead := 0;
-
-    P := TProcess.Create(nil);
-
     if Verbose then
       P.CommandLine := Path + ' ' + ComLine
     else
-      P.CommandLine := Path + ' -vq ' + ComLine;
+      P.CommandLine := Path + ' -viq ' + ComLine;
 
     P.Options := [poUsePipes];
 
@@ -1242,10 +1248,84 @@ begin
     // read last part
     repeat
     until ReadFromStream = 0;
+    ConsoleOutput.SetSize(BytesRead);
+
+    result := P.ExitStatus;
   finally
     P.Free;
-    M.Free;
   end;
+end;
+
+function ParsecompilerOutput(M: TMemoryStream; Verbose: boolean): string;
+type
+  TParseCompilerOutputState = (cosBeginOfLine, cosSearchColon, cosParseNumber, cosOther);
+
+var
+  presult: pchar;
+  state: TParseCompilerOutputState;
+  ch: char;
+  eolchar: char;
+begin
+  m.Seek(0, soBeginning);
+  setlength(Result,M.Size);
+
+  if verbose then
+    begin
+      m.Read(Result[1],M.Size);
+      Exit;
+    end;
+
+  presult := @Result[1];
+  eolchar := RightStr(LineEnding,1)[1];
+  m.Seek(0,soBeginning);
+  state := cosBeginOfLine;
+  while m.Position<m.Size do
+    begin
+      ch := char(m.ReadByte);
+      case state of
+        cosBeginOfLine:
+          begin
+            if ch='(' then
+              state := cosParseNumber
+            else if ch=' ' then
+              begin
+                presult^ := ch;
+                inc(presult);
+              end
+            else
+              begin
+                presult^ := ch;
+                inc(presult);
+                state := cosSearchColon;
+              end;
+          end;
+        cosParseNumber:
+          begin
+            if ch=')' then
+              begin
+              state := cosOther;
+              // Omit the space behind the number
+              ch := char(m.ReadByte);
+              assert(ch=' ');
+              end;
+          end;
+        cosOther:
+          begin
+            presult^ := ch;
+            inc(presult);
+            if ch=eolchar then
+              state := cosBeginOfLine;
+          end;
+        cosSearchColon:
+          begin
+            presult^ := ch;
+            inc(presult);
+            if (ch=':') or (ch=eolchar) then
+              state := cosBeginOfLine;
+          end;
+      end;
+    end;
+  setlength(Result,presult-@result[1]);
 end;
 
 Function QuoteXML(S : String) : string;
@@ -2477,6 +2557,9 @@ begin
         Values[KeyChecksum]:=IntToStr(DateTimeToFileDate(Now));
         Values[KeyCPU]:=CPUToString(ACPU);
         Values[KeyOS]:=OSToString(AOS);
+        //Installer;
+        Values[KeySourcePath]:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(Installer.BuildEngine.FStartDir)+Directory);
+        Values[KeyFPMakeOptions]:=trim(Installer.FPMakeOptionsString);
         Deps:='';
         for i:=0 to Dependencies.Count-1 do
           begin
@@ -3054,12 +3137,13 @@ end;
 
 procedure TCustomInstaller.AnalyzeOptions;
 
-  Function CheckOption(Index : Integer;const Short,Long : String): Boolean;
+  Function CheckOption(Index : Integer;const Short,Long : String; AddToOptionString: boolean = true): Boolean;
   var
     O : String;
   begin
     O:=Paramstr(Index);
     Result:=(O='-'+short) or (O='--'+long) or (copy(O,1,Length(Long)+3)=('--'+long+'='));
+    if AddToOptionString and Result then FFPMakeOptionsString := FFPMakeOptionsString+' '+O;
   end;
 
   Function CheckCustomOption(Index : Integer; out CustOptName: string): Boolean;
@@ -3078,6 +3162,7 @@ procedure TCustomInstaller.AnalyzeOptions;
     O:=copy(O,3,i-3);
     CustOptName:=O;
     Result:=CustomFpmakeCommandlineOptions.IndexOfName(O)>-1;
+    if Result then FFPMakeOptionsString := FFPMakeOptionsString+' '+Paramstr(Index);
   end;
 
 
@@ -3144,9 +3229,9 @@ begin
   While (I<ParamCount) do
     begin
     Inc(I);
-    if CheckOption(I,'v','verbose') then
+    if CheckOption(I,'v','verbose',false) then
       FLogLevels:=AllMessages
-    else if CheckOption(I,'d','debug') then
+    else if CheckOption(I,'d','debug',false) then
       FLogLevels:=AllMessages+[vlDebug]
     else if CheckCommand(I,'m','compile') then
       FRunMode:=rmCompile
@@ -3274,7 +3359,6 @@ procedure TCustomInstaller.Compile(Force: Boolean);
 begin
   FBuildEngine.ForceCompile:=Force;
   FBuildEngine.Compile(Packages);
-  Log(vlWarning,SWarnDone);
 end;
 
 
@@ -3404,6 +3488,9 @@ end;
 procedure TBuildEngine.ExecuteCommand(const Cmd,Args : String; IgnoreError : Boolean = False);
 Var
   E : Integer;
+  cmdLine: string;
+  ConsoleOutput: TMemoryStream;
+  s: string;
 begin
   Log(vlInfo,SInfoExecutingCommand,[Cmd,Args]);
   if ListMode then
@@ -3411,9 +3498,21 @@ begin
   else
     begin
       // We should check cmd for spaces, and move all after first space to args.
-      E:=ExecuteFPC(Verbose, cmd, args);
-      If (E<>0) and (not IgnoreError) then
-        Error(SErrExternalCommandFailed,[Cmd,E]);
+      ConsoleOutput := TMemoryStream.Create;
+      try
+        E:=ExecuteFPC(Verbose, cmd, args, ConsoleOutput);
+        If (E<>0) and (not IgnoreError) then
+          begin
+            if trim(Args)<>'' then
+              cmdLine := cmd + ' ' + trim(args)
+            else
+              cmdline := cmd;
+            s := ParsecompilerOutput(ConsoleOutput,Verbose);
+            Error(SErrExternalCommandFailed,[cmdLine,E,s]);
+          end;
+      finally
+        ConsoleOutput.Free;
+      end;
     end;
 end;
 
@@ -4800,11 +4899,12 @@ begin
   For I:=0 to Packages.Count-1 do
     begin
       P:=Packages.PackageItems[i];
+      log(vlWarning,SWarnStartBuildingPackage,[P.Name, Defaults.Target]);
       If PackageOK(P) then
         MaybeCompile(P);
 
       //show compile progress
-      writeln('[', (I + 1)/Packages.Count * 100:3:0, '%] Built target ', P.Name);
+      log(vlWarning,SWarnBuildingPackagecomplete,[(I + 1)/Packages.Count * 100, P.Name]);
     end;
   If Assigned(AfterCompile) then
     AfterCompile(Self);
@@ -4823,6 +4923,7 @@ begin
       P:=Packages.PackageItems[i];
       If PackageOK(P) then
         Install(P);
+      log(vlWarning, SWarnInstallationPackagecomplete, [P.Name, Defaults.Target]);
     end;
   If Assigned(AfterInstall) then
     AfterInstall(Self);
@@ -4878,6 +4979,7 @@ begin
     P:=Packages.PackageItems[i];
     If PackageOK(P) then
       Clean(P);
+    log(vlWarning, SWarnCleanPackagecomplete, [P.Name]);
     end;
   If Assigned(AfterClean) then
     AfterClean(Self);

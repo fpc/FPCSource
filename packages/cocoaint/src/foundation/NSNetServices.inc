@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSNetServices.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSNETSERVICES_PAS_T}
@@ -83,8 +81,8 @@ var
   public
     function initWithDomain_type_name_port(domain_: NSString; type__: NSString; name_: NSString; port_: cint): id; message 'initWithDomain:type:name:port:';
     function initWithDomain_type_name(domain_: NSString; type__: NSString; name_: NSString): id; message 'initWithDomain:type:name:';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
+    function delegate: NSNetServiceDelegateProtocol; message 'delegate';
+    procedure setDelegate(delegate_: NSNetServiceDelegateProtocol); message 'setDelegate:';
     procedure scheduleInRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'scheduleInRunLoop:forMode:';
     procedure removeFromRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'removeFromRunLoop:forMode:';
     function domain: NSString; message 'domain';
@@ -116,8 +114,8 @@ var
     
   public
     function init: id; message 'init';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
+    function delegate: NSNetServiceBrowserDelegateProtocol; message 'delegate';
+    procedure setDelegate(delegate_: NSNetServiceBrowserDelegateProtocol); message 'setDelegate:';
     procedure scheduleInRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'scheduleInRunLoop:forMode:';
     procedure removeFromRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'removeFromRunLoop:forMode:';
     procedure searchForBrowsableDomains; message 'searchForBrowsableDomains';
@@ -145,6 +143,7 @@ var
   
 { NSNetServiceDelegate Protocol }
   NSNetServiceDelegateProtocol = objcprotocol external name 'NSNetServiceDelegate'
+  optional
     procedure netServiceWillPublish(sender: NSNetService); message 'netServiceWillPublish:';
     procedure netServiceDidPublish(sender: NSNetService); message 'netServiceDidPublish:';
     procedure netService_didNotPublish(sender: NSNetService; errorDict: NSDictionary); message 'netService:didNotPublish:';
@@ -157,6 +156,7 @@ var
   
 { NSNetServiceBrowserDelegate Protocol }
   NSNetServiceBrowserDelegateProtocol = objcprotocol external name 'NSNetServiceBrowserDelegate'
+  optional
     procedure netServiceBrowserWillSearch(aNetServiceBrowser: NSNetServiceBrowser); message 'netServiceBrowserWillSearch:';
     procedure netServiceBrowserDidStopSearch(aNetServiceBrowser: NSNetServiceBrowser); message 'netServiceBrowserDidStopSearch:';
     procedure netServiceBrowser_didNotSearch(aNetServiceBrowser: NSNetServiceBrowser; errorDict: NSDictionary); message 'netServiceBrowser:didNotSearch:';

@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSLayoutManager.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSLAYOUTMANAGER_PAS_T}
@@ -164,8 +162,8 @@ type
     procedure setGlyphGenerator(glyphGenerator_: NSGlyphGenerator); message 'setGlyphGenerator:';
     function typesetter: NSTypesetter; message 'typesetter';
     procedure setTypesetter(typesetter_: NSTypesetter); message 'setTypesetter:';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
+    function delegate: NSLayoutManagerDelegateProtocol; message 'delegate';
+    procedure setDelegate(delegate_: NSLayoutManagerDelegateProtocol); message 'setDelegate:';
     function textContainers: NSArray; message 'textContainers';
     procedure addTextContainer(container: NSTextContainer); message 'addTextContainer:';
     procedure insertTextContainer_atIndex(container: NSTextContainer; index: NSUInteger); message 'insertTextContainer:atIndex:';
@@ -309,6 +307,7 @@ type
   
 { NSLayoutManagerDelegate Protocol }
   NSLayoutManagerDelegateProtocol = objcprotocol external name 'NSLayoutManagerDelegate'
+  optional
     procedure layoutManagerDidInvalidateLayout(sender: NSLayoutManager); message 'layoutManagerDidInvalidateLayout:';
     procedure layoutManager_didCompleteLayoutForTextContainer_atEnd(layoutManager: NSLayoutManager; textContainer: NSTextContainer; layoutFinishedFlag: Boolean); message 'layoutManager:didCompleteLayoutForTextContainer:atEnd:';
     function layoutManager_shouldUseTemporaryAttributes_forDrawingToScreen_atCharacterIndex_effectiveRange(layoutManager: NSLayoutManager; attrs: NSDictionary; toScreen: Boolean; charIndex: NSUInteger; effectiveCharRange: NSRangePointer): NSDictionary; message 'layoutManager:shouldUseTemporaryAttributes:forDrawingToScreen:atCharacterIndex:effectiveRange:';

@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMHTMLSelectElement.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMHTMLSELECTELEMENT_PAS_T}
@@ -72,7 +70,7 @@
 
 { DOMHTMLSelectElementDeprecatedCategory }
   DOMHTMLSelectElementDeprecatedCategory = objccategory external (DOMHTMLSelectElement)
-    procedure add(element: DOMHTMLElement; before: DOMHTMLElement); message 'add:element:';
+    procedure add(element: DOMHTMLElement; before: DOMHTMLElement); message 'add:element:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

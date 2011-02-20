@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSButton.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSBUTTON_PAS_T}
@@ -72,7 +70,7 @@
     function performKeyEquivalent(key: NSEvent): Boolean; message 'performKeyEquivalent:';
 
     { Adopted Protocols }
-    function validateUserInterfaceItem(anItem: id): Boolean;
+    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): Boolean;
   end;
 
 { NSKeyboardUI_NSButtonCategory }

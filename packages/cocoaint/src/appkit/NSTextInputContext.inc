@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSTextInputContext.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSTEXTINPUTCONTEXT_PAS_T}
@@ -84,7 +82,7 @@ var
     
   public
     class function currentInputContext: NSTextInputContext; message 'currentInputContext';
-    function initWithClient(theClient: id): id; message 'initWithClient:';
+    function initWithClient(theClient: NSTextInputClientProtocol): id; message 'initWithClient:';
     function client: id; message 'client';
     procedure setAcceptsGlyphInfo (newValue: Boolean); message 'setAcceptsGlyphInfo:';
     function acceptsGlyphInfo: Boolean; message 'acceptsGlyphInfo';

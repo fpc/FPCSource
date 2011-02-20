@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSTableView.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSTABLEVIEW_PAS_T}
@@ -171,10 +169,10 @@ var
     _reserved: id;
     
   public
-    procedure setDataSource(aSource: id); message 'setDataSource:';
-    function dataSource: id; message 'dataSource';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDataSource(aSource: NSTableViewDataSourceProtocol); message 'setDataSource:';
+    function dataSource: NSTableViewDataSourceProtocol; message 'dataSource';
+    procedure setDelegate(delegate_: NSTableViewDelegateProtocol); message 'setDelegate:';
+    function delegate: NSTableViewDelegateProtocol; message 'delegate';
     procedure setHeaderView(headerView_: NSTableHeaderView); message 'setHeaderView:';
     function headerView: NSTableHeaderView; message 'headerView';
     procedure setCornerView(cornerView_: NSView); message 'setCornerView:';
@@ -286,13 +284,13 @@ var
     procedure drawBackgroundInClipRect(clipRect: NSRect); message 'drawBackgroundInClipRect:';
 
     { Adopted Protocols }
-    function validateUserInterfaceItem(anItem: id): Boolean;
+    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): Boolean;
     function textView_clickedOnLink_atIndex(textView: NSTextView; link: id; charIndex: NSUInteger): Boolean;
-    procedure textView_clickedOnCell_inRect_atIndex(textView: NSTextView; cell: id; cellFrame: NSRect; charIndex: NSUInteger);
-    procedure textView_doubleClickedOnCell_inRect_atIndex(textView: NSTextView; cell: id; cellFrame: NSRect; charIndex: NSUInteger);
-    procedure textView_draggedCell_inRect_event_atIndex(view: NSTextView; cell: id; rect: NSRect; event: NSEvent; charIndex: NSUInteger);
-    function textView_writablePasteboardTypesForCell_atIndex(view: NSTextView; cell: id; charIndex: NSUInteger): NSArray;
-    function textView_writeCell_atIndex_toPasteboard_type(view: NSTextView; cell: id; charIndex: NSUInteger; pboard: NSPasteboard; type_: NSString): Boolean;
+    procedure textView_clickedOnCell_inRect_atIndex(textView: NSTextView; cell: NSTextAttachmentCellProtocol; cellFrame: NSRect; charIndex: NSUInteger);
+    procedure textView_doubleClickedOnCell_inRect_atIndex(textView: NSTextView; cell: NSTextAttachmentCellProtocol; cellFrame: NSRect; charIndex: NSUInteger);
+    procedure textView_draggedCell_inRect_event_atIndex(view: NSTextView; cell: NSTextAttachmentCellProtocol; rect: NSRect; event: NSEvent; charIndex: NSUInteger);
+    function textView_writablePasteboardTypesForCell_atIndex(view: NSTextView; cell: NSTextAttachmentCellProtocol; charIndex: NSUInteger): NSArray;
+    function textView_writeCell_atIndex_toPasteboard_type(view: NSTextView; cell: NSTextAttachmentCellProtocol; charIndex: NSUInteger; pboard: NSPasteboard; type_: NSString): Boolean;
     function textView_willChangeSelectionFromCharacterRange_toCharacterRange(textView: NSTextView; oldSelectedCharRange: NSRange; newSelectedCharRange: NSRange): NSRange;
     function textView_willChangeSelectionFromCharacterRanges_toCharacterRanges(textView: NSTextView; oldSelectedCharRanges: NSArray; newSelectedCharRanges: NSArray): NSArray;
     function textView_shouldChangeTextInRanges_replacementStrings(textView: NSTextView; affectedRanges: NSArray; replacementStrings: NSArray): Boolean;
@@ -308,9 +306,9 @@ var
     function textView_willCheckTextInRange_options_types(view: NSTextView; range: NSRange; options: NSDictionary; checkingTypes: NSTextCheckingTypesPtr): NSDictionary;
     function textView_didCheckTextInRange_types_options_results_orthography_wordCount(view: NSTextView; range: NSRange; checkingTypes: NSTextCheckingTypes; options: NSDictionary; results: NSArray; orthography: NSOrthography; wordCount: NSInteger): NSArray;
     function textView_clickedOnLink(textView: NSTextView; link: id): Boolean;
-    procedure textView_clickedOnCell_inRect(textView: NSTextView; cell: id; cellFrame: NSRect);
-    procedure textView_doubleClickedOnCell_inRect(textView: NSTextView; cell: id; cellFrame: NSRect);
-    procedure textView_draggedCell_inRect_event(view: NSTextView; cell: id; rect: NSRect; event: NSEvent);
+    procedure textView_clickedOnCell_inRect(textView: NSTextView; cell: NSTextAttachmentCellProtocol; cellFrame: NSRect);
+    procedure textView_doubleClickedOnCell_inRect(textView: NSTextView; cell: NSTextAttachmentCellProtocol; cellFrame: NSRect);
+    procedure textView_draggedCell_inRect_event(view: NSTextView; cell: NSTextAttachmentCellProtocol; rect: NSRect; event: NSEvent);
     function undoManagerForTextView(view: NSTextView): NSUndoManager;
   end;
 
@@ -341,6 +339,7 @@ var
   
 { NSTableViewDelegate Protocol }
   NSTableViewDelegateProtocol = objcprotocol external name 'NSTableViewDelegate'
+  optional
     procedure tableView_willDisplayCell_forTableColumn_row(tableView: NSTableView; cell: id; tableColumn: NSTableColumn; row: NSInteger); message 'tableView:willDisplayCell:forTableColumn:row:';
     function tableView_shouldEditTableColumn_row(tableView: NSTableView; tableColumn: NSTableColumn; row: NSInteger): Boolean; message 'tableView:shouldEditTableColumn:row:';
     function selectionShouldChangeInTableView(tableView: NSTableView): Boolean; message 'selectionShouldChangeInTableView:';
@@ -369,13 +368,14 @@ var
   
 { NSTableViewDataSource Protocol }
   NSTableViewDataSourceProtocol = objcprotocol external name 'NSTableViewDataSource'
+  optional
     function numberOfRowsInTableView(tableView: NSTableView): NSInteger; message 'numberOfRowsInTableView:';
     function tableView_objectValueForTableColumn_row(tableView: NSTableView; tableColumn: NSTableColumn; row: NSInteger): id; message 'tableView:objectValueForTableColumn:row:';
     procedure tableView_setObjectValue_forTableColumn_row(tableView: NSTableView; object_: id; tableColumn: NSTableColumn; row: NSInteger); message 'tableView:setObjectValue:forTableColumn:row:';
     procedure tableView_sortDescriptorsDidChange(tableView: NSTableView; oldDescriptors: NSArray); message 'tableView:sortDescriptorsDidChange:';
     function tableView_writeRowsWithIndexes_toPasteboard(tableView: NSTableView; rowIndexes: NSIndexSet; pboard: NSPasteboard): Boolean; message 'tableView:writeRowsWithIndexes:toPasteboard:';
-    function tableView_validateDrop_proposedRow_proposedDropOperation(tableView: NSTableView; info: id; row: NSInteger; dropOperation: NSTableViewDropOperation): NSDragOperation; message 'tableView:validateDrop:proposedRow:proposedDropOperation:';
-    function tableView_acceptDrop_row_dropOperation(tableView: NSTableView; info: id; row: NSInteger; dropOperation: NSTableViewDropOperation): Boolean; message 'tableView:acceptDrop:row:dropOperation:';
+    function tableView_validateDrop_proposedRow_proposedDropOperation(tableView: NSTableView; info: NSDraggingInfoProtocol; row: NSInteger; dropOperation: NSTableViewDropOperation): NSDragOperation; message 'tableView:validateDrop:proposedRow:proposedDropOperation:';
+    function tableView_acceptDrop_row_dropOperation(tableView: NSTableView; info: NSDraggingInfoProtocol; row: NSInteger; dropOperation: NSTableViewDropOperation): Boolean; message 'tableView:acceptDrop:row:dropOperation:';
     function tableView_namesOfPromisedFilesDroppedAtDestination_forDraggedRowsWithIndexes(tableView: NSTableView; dropDestination: NSURL; indexSet: NSIndexSet): NSArray; message 'tableView:namesOfPromisedFilesDroppedAtDestination:forDraggedRowsWithIndexes:';
   end;
 {$endif}

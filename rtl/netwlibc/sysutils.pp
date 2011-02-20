@@ -508,7 +508,7 @@ end;
                               Misc Functions
 ****************************************************************************}
 
-procedure Beep;
+procedure SysBeep;
 begin
   RingBell;
 end;
@@ -519,7 +519,7 @@ end;
 ****************************************************************************}
 
 Procedure GetLocalTime(var SystemTime: TSystemTime);
-var t : TTime;
+var t : TTime_t;
     tm: Ttm;
 begin
   libc.time(t);

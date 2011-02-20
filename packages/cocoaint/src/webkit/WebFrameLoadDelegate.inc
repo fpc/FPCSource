@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework WebFrameLoadDelegate.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef WEBFRAMELOADDELEGATE_PAS_T}
@@ -53,7 +51,7 @@
     procedure webView_didCancelClientRedirectForFrame(sender: WebView; frame: WebFrame); message 'webView:didCancelClientRedirectForFrame:';
     procedure webView_willCloseFrame(sender: WebView; frame: WebFrame); message 'webView:willCloseFrame:';
     procedure webView_didClearWindowObject_forFrame(webView_: WebView; windowObject: WebScriptObject; frame: WebFrame); message 'webView:didClearWindowObject:forFrame:';
-    procedure webView_windowScriptObjectAvailable(webView_: WebView; windowScriptObject: WebScriptObject); message 'webView:windowScriptObjectAvailable:';
+    procedure webView_windowScriptObjectAvailable(webView_: WebView; windowScriptObject: WebScriptObject); message 'webView:windowScriptObjectAvailable:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

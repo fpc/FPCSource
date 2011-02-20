@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSTextContainer.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSTEXTCONTAINER_PAS_T}

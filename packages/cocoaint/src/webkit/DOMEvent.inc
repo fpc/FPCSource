@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMEvent.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMEVENT_PAS_T}
@@ -71,7 +69,7 @@ const
 
 { DOMEventDeprecatedCategory }
   DOMEventDeprecatedCategory = objccategory external (DOMEvent)
-    procedure initEvent(eventTypeArg: NSString; canBubbleArg: Boolean; cancelableArg: Boolean); message 'initEvent:eventTypeArg:canBubbleArg:';
+    procedure initEvent(eventTypeArg: NSString; canBubbleArg: Boolean; cancelableArg: Boolean); message 'initEvent:eventTypeArg:canBubbleArg:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

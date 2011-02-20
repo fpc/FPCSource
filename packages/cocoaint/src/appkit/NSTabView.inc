@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSTabView.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSTABVIEW_PAS_T}
@@ -134,8 +132,8 @@ type
     procedure addTabViewItem(tabViewItem: NSTabViewItem); message 'addTabViewItem:';
     procedure insertTabViewItem_atIndex(tabViewItem: NSTabViewItem; index: NSInteger); message 'insertTabViewItem:atIndex:';
     procedure removeTabViewItem(tabViewItem: NSTabViewItem); message 'removeTabViewItem:';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: NSTabViewDelegateProtocol); message 'setDelegate:';
+    function delegate: NSTabViewDelegateProtocol; message 'delegate';
     function tabViewItemAtPoint(point: NSPoint): NSTabViewItem; message 'tabViewItemAtPoint:';
     function contentRect: NSRect; message 'contentRect';
     function numberOfTabViewItems: NSInteger; message 'numberOfTabViewItems';
@@ -152,6 +150,7 @@ type
   
 { NSTabViewDelegate Protocol }
   NSTabViewDelegateProtocol = objcprotocol external name 'NSTabViewDelegate'
+  optional
     function tabView_shouldSelectTabViewItem(tabView: NSTabView; tabViewItem: NSTabViewItem): Boolean; message 'tabView:shouldSelectTabViewItem:';
     procedure tabView_willSelectTabViewItem(tabView: NSTabView; tabViewItem: NSTabViewItem); message 'tabView:willSelectTabViewItem:';
     procedure tabView_didSelectTabViewItem(tabView: NSTabView; tabViewItem: NSTabViewItem); message 'tabView:didSelectTabViewItem:';

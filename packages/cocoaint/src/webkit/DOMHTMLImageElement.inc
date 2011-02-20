@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMHTMLImageElement.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMHTMLIMAGEELEMENT_PAS_T}

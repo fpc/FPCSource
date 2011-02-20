@@ -4,7 +4,7 @@
 
 unit mysql41dyn;
 
-{$DEFINE LOAD_DYNAMICALLY}
+{$DEFINE LinkDynamically}
 {$DEFINE MYSQL41}
 
 {$i mysql.inc}

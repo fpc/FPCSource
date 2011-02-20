@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMHTMLFrameElement.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMHTMLFRAMEELEMENT_PAS_T}

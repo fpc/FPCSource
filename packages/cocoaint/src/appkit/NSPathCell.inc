@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSPathCell.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSPATHCELL_PAS_T}
@@ -83,11 +81,11 @@ type
     procedure setPathStyle(style: NSPathStyle); message 'setPathStyle:';
     function URL: NSURL; message 'URL';
     procedure setURL(url_: NSURL); message 'setURL:';
-    procedure setObjectValue(obj: id); message 'setObjectValue:';
+    procedure setObjectValue(obj: NSCopyingProtocol); message 'setObjectValue:';
     function allowedTypes: NSArray; message 'allowedTypes';
     procedure setAllowedTypes(allowedTypes_: NSArray); message 'setAllowedTypes:';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(value: id); message 'setDelegate:';
+    function delegate: NSPathCellDelegateProtocol; message 'delegate';
+    procedure setDelegate(value: NSPathCellDelegateProtocol); message 'setDelegate:';
     class function pathComponentCellClass: Pobjc_class; message 'pathComponentCellClass';
     function pathComponentCells: NSArray; message 'pathComponentCells';
     procedure setPathComponentCells(cells: NSArray); message 'setPathComponentCells:';
@@ -123,6 +121,7 @@ type
   
 { NSPathCellDelegate Protocol }
   NSPathCellDelegateProtocol = objcprotocol external name 'NSPathCellDelegate'
+  optional
     procedure pathCell_willDisplayOpenPanel(pathCell: NSPathCell; openPanel: NSOpenPanel); message 'pathCell:willDisplayOpenPanel:';
     procedure pathCell_willPopUpMenu(pathCell: NSPathCell; menu: NSMenu); message 'pathCell:willPopUpMenu:';
   end;

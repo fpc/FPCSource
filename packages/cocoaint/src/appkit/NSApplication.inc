@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSApplication.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSAPPLICATION_PAS_T}
@@ -221,8 +219,8 @@ var
     
   public
     class function sharedApplication: NSApplication; message 'sharedApplication';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: NSApplicationDelegateProtocol); message 'setDelegate:';
+    function delegate: NSApplicationDelegateProtocol; message 'delegate';
     function context: NSGraphicsContext; message 'context';
     procedure hide(sender: id); message 'hide:';
     procedure unhide(sender: id); message 'unhide:';
@@ -266,7 +264,7 @@ var
     procedure updateWindows; message 'updateWindows';
     procedure setMainMenu(aMenu: NSMenu); message 'setMainMenu:';
     function mainMenu: NSMenu; message 'mainMenu';
-    procedure setHelpMenu(helpMenu: NSMenu); message 'setHelpMenu:';
+    procedure setHelpMenu(helpMenu_: NSMenu); message 'setHelpMenu:';
     function helpMenu: NSMenu; message 'helpMenu';
     procedure setApplicationIconImage(image: NSImage); message 'setApplicationIconImage:';
     function applicationIconImage: NSImage; message 'applicationIconImage';
@@ -288,7 +286,7 @@ var
     function currentSystemPresentationOptions: NSApplicationPresentationOptions; message 'currentSystemPresentationOptions';
 
     { Adopted Protocols }
-    function validateUserInterfaceItem(anItem: id): Boolean;
+    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): Boolean;
   end;
 
 { NSWindowsMenuCategory }
@@ -342,7 +340,7 @@ var
   NSDeprecated_NSApplicationCategory = objccategory external name 'NSDeprecated' (NSApplication)
     function runModalForWindow_relativeToWindow(theWindow: NSWindow; docWindow: NSWindow): NSInteger; message 'runModalForWindow:relativeToWindow:'; deprecated 'in Mac OS X 10 and later';
     function beginModalSessionForWindow_relativeToWindow(theWindow: NSWindow; docWindow: NSWindow): NSModalSession; message 'beginModalSessionForWindow:relativeToWindow:'; deprecated 'in Mac OS X 10 and later';
-    procedure application_printFiles(sender: NSApplication; filenames: NSArray); message 'application:printFiles:';
+    procedure application_printFiles(sender: NSApplication; filenames: NSArray); message 'application:printFiles:'; deprecated 'in Mac OS X 10.4 and later';
   end;
 
 {$endif}
@@ -353,6 +351,7 @@ var
   
 { NSApplicationDelegate Protocol }
   NSApplicationDelegateProtocol = objcprotocol external name 'NSApplicationDelegate'
+  optional
     function applicationShouldTerminate(sender: NSApplication): NSApplicationTerminateReply; message 'applicationShouldTerminate:';
     function application_openFile(sender: NSApplication; filename: NSString): Boolean; message 'application:openFile:';
     procedure application_openFiles(sender: NSApplication; filenames: NSArray); message 'application:openFiles:';

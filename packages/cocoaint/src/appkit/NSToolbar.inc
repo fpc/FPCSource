@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSToolbar.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSTOOLBAR_PAS_T}
@@ -122,8 +120,8 @@ var
     function initWithIdentifier(identifier_: NSString): id; message 'initWithIdentifier:';
     procedure insertItemWithItemIdentifier_atIndex(itemIdentifier: NSString; index: NSInteger); message 'insertItemWithItemIdentifier:atIndex:';
     procedure removeItemAtIndex(index: NSInteger); message 'removeItemAtIndex:';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(delegate_: NSToolbarDelegateProtocol); message 'setDelegate:';
+    function delegate: NSToolbarDelegateProtocol; message 'delegate';
     procedure setVisible(shown: Boolean); message 'setVisible:';
     function isVisible: Boolean; message 'isVisible';
     procedure runCustomizationPalette(sender: id); message 'runCustomizationPalette:';
@@ -156,6 +154,7 @@ var
   
 { NSToolbarDelegate Protocol }
   NSToolbarDelegateProtocol = objcprotocol external name 'NSToolbarDelegate'
+  optional
     function toolbar_itemForItemIdentifier_willBeInsertedIntoToolbar(toolbar: NSToolbar; itemIdentifier: NSString; flag: Boolean): NSToolbarItem; message 'toolbar:itemForItemIdentifier:willBeInsertedIntoToolbar:';
     function toolbarDefaultItemIdentifiers(toolbar: NSToolbar): NSArray; message 'toolbarDefaultItemIdentifiers:';
     function toolbarAllowedItemIdentifiers(toolbar: NSToolbar): NSArray; message 'toolbarAllowedItemIdentifiers:';

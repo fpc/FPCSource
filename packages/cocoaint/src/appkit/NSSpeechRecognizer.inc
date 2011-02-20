@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSSpeechRecognizer.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSSPEECHRECOGNIZER_PAS_T}
@@ -51,8 +49,8 @@
     function init: id; message 'init';
     procedure startListening; message 'startListening';
     procedure stopListening; message 'stopListening';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
+    function delegate: NSSpeechRecognizerDelegateProtocol; message 'delegate';
+    procedure setDelegate(anObject: NSSpeechRecognizerDelegateProtocol); message 'setDelegate:';
     function commands: NSArray; message 'commands';
     procedure setCommands(commands_: NSArray); message 'setCommands:';
     function displayedCommandsTitle: NSString; message 'displayedCommandsTitle';
@@ -71,6 +69,7 @@
   
 { NSSpeechRecognizerDelegate Protocol }
   NSSpeechRecognizerDelegateProtocol = objcprotocol external name 'NSSpeechRecognizerDelegate'
+  optional
     procedure speechRecognizer_didRecognizeCommand(sender: NSSpeechRecognizer; command: id); message 'speechRecognizer:didRecognizeCommand:';
   end;
 {$endif}

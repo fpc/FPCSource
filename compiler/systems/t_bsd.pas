@@ -159,7 +159,15 @@ begin
                On 64bit systems, page zero is 4GB by default, so no problems
                there.
              }
-             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -pagezero_size 0x10000 -multiply_defined suppress -L. -o $EXE `cat $RES`';
+             { In case of valgrind, don't do that, because it cannot deal with
+               a custom pagezero size -- in general, this should not cause any
+               problems because the resources are added at the end and most
+               programs with problems that require Valgrind will have more
+               than 60KB of data (first 4KB of address space is always invalid)
+             }
+               ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
+             if not(cs_gdb_valgrind in current_settings.globalswitches) then
+               ExeCmd[1]:=ExeCmd[1]+' -pagezero_size 0x10000';
 {$else ndef cpu64bitaddr}
              ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
 {$endif ndef cpu64bitaddr}

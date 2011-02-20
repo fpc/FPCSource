@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSPort.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSPORT_PAS_T}
@@ -76,8 +74,8 @@ var
     class function port: NSPort; message 'port';
     procedure invalidate; message 'invalidate';
     function isValid: Boolean; message 'isValid';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: NSPortDelegateProtocol); message 'setDelegate:';
+    function delegate: NSPortDelegateProtocol; message 'delegate';
     procedure scheduleInRunLoop_forMode(runLoop: NSRunLoop; mode: NSString); message 'scheduleInRunLoop:forMode:';
     procedure removeFromRunLoop_forMode(runLoop: NSRunLoop; mode: NSString); message 'removeFromRunLoop:forMode:';
     function reservedSpaceLength: NSUInteger; message 'reservedSpaceLength';
@@ -103,8 +101,8 @@ var
   public
     class function portWithMachPort(machPort_: cuint32): NSPort; message 'portWithMachPort:';
     function initWithMachPort(machPort_: cuint32): id; message 'initWithMachPort:';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: NSMachPortDelegateProtocol); message 'setDelegate:';
+    function delegate: NSMachPortDelegateProtocol; message 'delegate';
     class function portWithMachPort_options(machPort_: cuint32; f: NSUInteger): NSPort; message 'portWithMachPort:options:';
     function initWithMachPort_options(machPort_: cuint32; f: NSUInteger): id; message 'initWithMachPort:options:';
     function machPort: cuint32; message 'machPort';
@@ -157,11 +155,13 @@ var
   
 { NSPortDelegate Protocol }
   NSPortDelegateProtocol = objcprotocol external name 'NSPortDelegate'
+  optional
     procedure handlePortMessage(message: NSPortMessage); message 'handlePortMessage:';
   end;
   
 { NSMachPortDelegate Protocol }
   NSMachPortDelegateProtocol = objcprotocol external name 'NSMachPortDelegate'
+  optional
     procedure handleMachMessage(msg: Pointer); message 'handleMachMessage:';
   end;
 {$endif}

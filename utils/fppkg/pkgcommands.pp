@@ -110,6 +110,25 @@ type
     Procedure Execute;override;
   end;
 
+  { TCommandListSettings }
+
+  TCommandListSettings = Class(TPackagehandler)
+  Public
+    Procedure Execute;override;
+  end;
+
+var
+  DependenciesDepth: integer;
+
+{ TCommandListSettings }
+
+procedure TCommandListSettings.Execute;
+begin
+  GlobalOptions.LogValues(vlProgres);
+  CompilerOptions.LogValues(vlProgres,'');
+  FPMakeCompilerOptions.LogValues(vlProgres,'fpmake-building ');
+end;
+
 
 procedure TCommandAddConfig.Execute;
 begin
@@ -227,6 +246,8 @@ end;
 
 
 procedure TCommandBuild.Execute;
+var
+  P: TFPPackage;
 begin
   if PackageName<>'' then
     begin
@@ -245,7 +266,12 @@ begin
       else
         begin
           ExecuteAction(PackageName,'installdependencies');
-          ExecuteAction(PackageName,'unzip');
+          // Check if the package is not installed but being recompiled because of changed
+          // dependencies while the original source is still available.
+          P := AvailableRepository.FindPackage(PackageName);
+          if not (assigned(P) and P.RecompileBroken and (P.SourcePath<>'')) then
+            // The package is not available locally, download and unzip it.
+            ExecuteAction(PackageName,'unzip');
         end;
     end;
   ExecuteAction(PackageName,'fpmakebuild');
@@ -275,12 +301,30 @@ begin
       P:=InstalledRepository.FindPackage(S);
       if not assigned(P) then
         P:=InstalledRepository.AddPackage(S);
-      if IsSuperUser or GlobalOptions.InstallGlobal then
-        UFN:=CompilerOptions.GlobalUnitDir
+      if P.RecompileBroken then
+        begin
+          // If the package is recompiled, the installation-location is dependent on where
+          // the package was installed originally.
+          if P.InstalledLocally then
+            UFN:=CompilerOptions.LocalUnitDir
+          else
+            UFN:=CompilerOptions.GlobalUnitDir;
+          // Setting RecompileBroken to false is in a strict sense not needed. But it is better
+          // to clean this temporary flag, to avoid problems with changes in the future
+          P.RecompileBroken := false;
+          AvailableRepository.FindPackage(P.Name).RecompileBroken:=false;
+        end
       else
-        UFN:=CompilerOptions.LocalUnitDir;
+        begin
+          if (IsSuperUser or GlobalOptions.InstallGlobal) then
+            UFN:=CompilerOptions.GlobalUnitDir
+          else
+            UFN:=CompilerOptions.LocalUnitDir;
+        end;
       UFN:=IncludeTrailingPathDelimiter(UFN)+S+PathDelim+UnitConfigFileName;
       LoadUnitConfigFromFile(P,UFN);
+      if P.IsFPMakeAddIn then
+        AddFPMakeAddIn(P);
     end
   else
     ExecuteAction(PackageName,'fpmakeinstall');
@@ -352,7 +396,7 @@ begin
             end
           else
             begin
-              if PackageIsBroken(InstalledP) then
+              if PackageIsBroken(InstalledP, True) then
                 begin
                   status:='Broken, recompiling';
                   L.Add(D.PackageName);
@@ -371,8 +415,19 @@ begin
   if assigned(MissingDependency) then
     Error(SErrNoPackageAvailable,[MissingDependency.PackageName,MissingDependency.MinVersion.AsString]);
   // Install needed updates
-  for i:=0 to L.Count-1 do
-    ExecuteAction(L[i],'install');
+  if L.Count > 0 then
+    begin
+      if DependenciesDepth=0 then
+        pkgglobals.Log(vlProgres,SProgrInstallDependencies);
+      inc(DependenciesDepth);
+
+      for i:=0 to L.Count-1 do
+        ExecuteAction(L[i],'install');
+
+      dec(DependenciesDepth);
+      if DependenciesDepth=0 then
+        pkgglobals.Log(vlProgres,SProgrDependenciesInstalled);
+    end;
   FreeAndNil(L);
   if FreeManifest then
     FreeAndNil(P);
@@ -389,6 +444,7 @@ begin
     FindBrokenPackages(SL);
     if SL.Count=0 then
       break;
+    pkgglobals.Log(vlProgres,SProgrReinstallDependent);
     for i:=0 to SL.Count-1 do
       begin
         ExecuteAction(SL[i],'build');
@@ -400,6 +456,7 @@ end;
 
 
 initialization
+  DependenciesDepth:=0;
   RegisterPkgHandler('update',TCommandUpdate);
   RegisterPkgHandler('list',TCommandListPackages);
   RegisterPkgHandler('scan',TCommandScanPackages);
@@ -412,4 +469,5 @@ initialization
   RegisterPkgHandler('archive',TCommandArchive);
   RegisterPkgHandler('installdependencies',TCommandInstallDependencies);
   RegisterPkgHandler('fixbroken',TCommandFixBroken);
+  RegisterPkgHandler('listsettings',TCommandListSettings);
 end.

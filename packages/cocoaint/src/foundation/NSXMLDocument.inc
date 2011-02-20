@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSXMLDocument.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSXMLDOCUMENT_PAS_T}

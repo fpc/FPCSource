@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework WebHistoryItem.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef WEBHISTORYITEM_PAS_T}

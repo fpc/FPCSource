@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSDrawer.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSDRAWER_PAS_T}
@@ -95,8 +93,8 @@ var
     function contentView: NSView; message 'contentView';
     procedure setPreferredEdge(edge_: NSRectEdge); message 'setPreferredEdge:';
     function preferredEdge: NSRectEdge; message 'preferredEdge';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: NSDrawerDelegateProtocol); message 'setDelegate:';
+    function delegate: NSDrawerDelegateProtocol; message 'delegate';
     procedure open; message 'open';
     procedure openOnEdge(edge_: NSRectEdge); message 'openOnEdge:';
     procedure close; message 'close';
@@ -128,6 +126,7 @@ var
   
 { NSDrawerDelegate Protocol }
   NSDrawerDelegateProtocol = objcprotocol external name 'NSDrawerDelegate'
+  optional
     function drawerShouldOpen(sender: NSDrawer): Boolean; message 'drawerShouldOpen:';
     function drawerShouldClose(sender: NSDrawer): Boolean; message 'drawerShouldClose:';
     function drawerWillResizeContents_toSize(sender: NSDrawer; contentSize: NSSize): NSSize; message 'drawerWillResizeContents:toSize:';

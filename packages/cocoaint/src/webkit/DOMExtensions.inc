@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMExtensions.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMEXTENSIONS_PAS_T}
@@ -40,10 +38,13 @@
 
 { DOMNodeExtensionsCategory }
   DOMNodeExtensionsCategory = objccategory external (DOMNode)
+    function boundingBox: NSRect; message 'boundingBox';
+    function lineBoxRects: NSArray; message 'lineBoxRects';
   end;
 
 { DOMElementAppKitExtensionsCategory }
   DOMElementAppKitExtensionsCategory = objccategory external (DOMElement)
+    function image: NSImage; message 'image';
   end;
 
 { DOMHTMLDocumentExtensionsCategory }

@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSMovie.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSMOVIE_PAS_T}
@@ -59,7 +57,7 @@
     
   public
     function initWithMovie(movie: Pointer): id; message 'initWithMovie:'; deprecated 'in Mac OS X 10.5 and later';
-    function initWithURL_byReference(url: NSURL; byRef: Boolean): id; message 'initWithURL:byReference:'; deprecated 'in Mac OS X 10.5 and later';
+    function initWithURL_byReference(url_: NSURL; byRef: Boolean): id; message 'initWithURL:byReference:'; deprecated 'in Mac OS X 10.5 and later';
     function initWithPasteboard(pasteboard: NSPasteboard): id; message 'initWithPasteboard:'; deprecated 'in Mac OS X 10.5 and later';
     function QTMovie_: Pointer; message 'QTMovie'; deprecated 'in Mac OS X 10.5 and later';
     function URL: NSURL; message 'URL'; deprecated 'in Mac OS X 10.5 and later';

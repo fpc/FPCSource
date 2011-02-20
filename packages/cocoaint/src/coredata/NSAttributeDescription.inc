@@ -1,6 +1,4 @@
 { Parsed from Coredata.framework NSAttributeDescription.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSATTRIBUTEDESCRIPTION_PAS_T}

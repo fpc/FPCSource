@@ -1,6 +1,4 @@
 { Parsed from Quartzcore.framework CALayer.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef CALAYER_PAS_T}
@@ -215,8 +213,8 @@ var
     procedure layoutSublayers; message 'layoutSublayers';
     procedure resizeSublayersWithOldSize(size: CGSize); message 'resizeSublayersWithOldSize:';
     procedure resizeWithOldSuperlayerSize(size: CGSize); message 'resizeWithOldSuperlayerSize:';
-    class function defaultActionForKey(event: NSString): id; message 'defaultActionForKey:';
-    function actionForKey(event: NSString): id; message 'actionForKey:';
+    class function defaultActionForKey(event: NSString): CAActionProtocol; message 'defaultActionForKey:';
+    function actionForKey(event: NSString): CAActionProtocol; message 'actionForKey:';
     procedure setActions (newValue: NSDictionary); message 'setActions:';
     function actions: NSDictionary; message 'actions';
     procedure addAnimation_forKey(anim: CAAnimation; key: NSString); message 'addAnimation:forKey:';
@@ -263,7 +261,7 @@ var
   CALayerDelegateCategory = objccategory external (NSObject)
     procedure displayLayer(layer: CALayer); message 'displayLayer:';
     procedure drawLayer_inContext(layer: CALayer; ctx: CGContextRef); message 'drawLayer:inContext:';
-    function actionForLayer_forKey(layer: CALayer; event: NSString): id; message 'actionForLayer:forKey:';
+    function actionForLayer_forKey(layer: CALayer; event: NSString): CAActionProtocol; message 'actionForLayer:forKey:';
   end;
 
 {$endif}

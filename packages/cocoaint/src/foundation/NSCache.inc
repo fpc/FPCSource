@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSCache.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSCACHE_PAS_T}
@@ -75,6 +73,7 @@
   
 { NSCacheDelegate Protocol }
   NSCacheDelegateProtocol = objcprotocol external name 'NSCacheDelegate'
+  optional
     procedure cache_willEvictObject(cache: NSCache; obj: id); message 'cache:willEvictObject:';
   end;
 {$endif}

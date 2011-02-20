@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSRulerMarker.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSRULERMARKER_PAS_T}
@@ -75,8 +73,8 @@
     function isMovable: Boolean; message 'isMovable';
     function isRemovable: Boolean; message 'isRemovable';
     function isDragging: Boolean; message 'isDragging';
-    procedure setRepresentedObject(representedObject_: id); message 'setRepresentedObject:';
-    function representedObject: id; message 'representedObject';
+    procedure setRepresentedObject(representedObject_: NSCopyingProtocol); message 'setRepresentedObject:';
+    function representedObject: NSCopyingProtocol; message 'representedObject';
     function imageRectInRuler: NSRect; message 'imageRectInRuler';
     function thicknessRequiredInRuler: CGFloat; message 'thicknessRequiredInRuler';
     procedure drawRect(rect: NSRect); message 'drawRect:';

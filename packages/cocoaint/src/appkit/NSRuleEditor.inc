@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSRuleEditor.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSRULEEDITOR_PAS_T}
@@ -123,8 +121,8 @@ var
     _ruleReserved2: id;
     
   public
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(delegate_: NSRuleEditorDelegateProtocol); message 'setDelegate:';
+    function delegate: NSRuleEditorDelegateProtocol; message 'delegate';
     procedure setFormattingStringsFilename(stringsFilename: NSString); message 'setFormattingStringsFilename:';
     function formattingStringsFilename: NSString; message 'formattingStringsFilename';
     procedure setFormattingDictionary(dictionary: NSDictionary); message 'setFormattingDictionary:';
@@ -175,9 +173,11 @@ var
   
 { NSRuleEditorDelegate Protocol }
   NSRuleEditorDelegateProtocol = objcprotocol external name 'NSRuleEditorDelegate'
+  required
     function ruleEditor_numberOfChildrenForCriterion_withRowType(editor: NSRuleEditor; criterion: id; rowType: NSRuleEditorRowType): NSInteger; message 'ruleEditor:numberOfChildrenForCriterion:withRowType:';
     function ruleEditor_child_forCriterion_withRowType(editor: NSRuleEditor; index: NSInteger; criterion: id; rowType: NSRuleEditorRowType): id; message 'ruleEditor:child:forCriterion:withRowType:';
     function ruleEditor_displayValueForCriterion_inRow(editor: NSRuleEditor; criterion: id; row: NSInteger): id; message 'ruleEditor:displayValueForCriterion:inRow:';
+  optional
     function ruleEditor_predicatePartsForCriterion_withDisplayValue_inRow(editor: NSRuleEditor; criterion: id; value: id; row: NSInteger): NSDictionary; message 'ruleEditor:predicatePartsForCriterion:withDisplayValue:inRow:';
     procedure ruleEditorRowsDidChange(notification: NSNotification); message 'ruleEditorRowsDidChange:';
   end;

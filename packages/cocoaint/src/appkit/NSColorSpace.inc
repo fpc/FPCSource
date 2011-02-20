@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSColorSpace.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSCOLORSPACE_PAS_T}
@@ -83,7 +81,7 @@ type
     function ICCProfileData: NSData; message 'ICCProfileData';
     function initWithColorSyncProfile(prof: Pointer): id; message 'initWithColorSyncProfile:';
     function colorSyncProfile: Pointer; message 'colorSyncProfile';
-    function initWithCGColorSpace(cgColorSpace: CGColorSpaceRef): id; message 'initWithCGColorSpace:';
+    function initWithCGColorSpace(cgColorSpace_: CGColorSpaceRef): id; message 'initWithCGColorSpace:';
     function CGColorSpace: CGColorSpaceRef; message 'CGColorSpace';
     function numberOfColorComponents: NSInteger; message 'numberOfColorComponents';
     function colorSpaceModel: NSColorSpaceModel; message 'colorSpaceModel';

@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMCSSStyleDeclaration.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMCSSSTYLEDECLARATION_PAS_T}
@@ -61,7 +59,7 @@
 
 { DOMCSSStyleDeclarationDeprecatedCategory }
   DOMCSSStyleDeclarationDeprecatedCategory = objccategory external (DOMCSSStyleDeclaration)
-    procedure setProperty(propertyName: NSString; value: NSString; priority: NSString); message 'setProperty:propertyName:value:';
+    procedure setProperty(propertyName: NSString; value: NSString; priority: NSString); message 'setProperty:propertyName:value:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMMutationEvent.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMMUTATIONEVENT_PAS_T}
@@ -62,7 +60,7 @@ const
 
 { DOMMutationEventDeprecatedCategory }
   DOMMutationEventDeprecatedCategory = objccategory external (DOMMutationEvent)
-    procedure initMutationEvent(type__: NSString; canBubble: Boolean; cancelable_: Boolean; relatedNode_: DOMNode; prevValue_: NSString; newValue_: NSString; attrName_: NSString; attrChange_: cushort); message 'initMutationEvent:type:canBubble:cancelable:relatedNode:prevValue:newValue:attrName:';
+    procedure initMutationEvent(type__: NSString; canBubble: Boolean; cancelable_: Boolean; relatedNode_: DOMNode; prevValue_: NSString; newValue_: NSString; attrName_: NSString; attrChange_: cushort); message 'initMutationEvent:type:canBubble:cancelable:relatedNode:prevValue:newValue:attrName:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

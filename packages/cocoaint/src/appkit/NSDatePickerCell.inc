@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSDatePickerCell.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSDATEPICKERCELL_PAS_T}
@@ -131,8 +129,8 @@ type
     procedure setMinDate(date: NSDate); message 'setMinDate:';
     function maxDate: NSDate; message 'maxDate';
     procedure setMaxDate(date: NSDate); message 'setMaxDate:';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
+    function delegate: NSDatePickerCellDelegateProtocol; message 'delegate';
+    procedure setDelegate(anObject: NSDatePickerCellDelegateProtocol); message 'setDelegate:';
   end;
 
 {$endif}
@@ -143,6 +141,7 @@ type
   
 { NSDatePickerCellDelegate Protocol }
   NSDatePickerCellDelegateProtocol = objcprotocol external name 'NSDatePickerCellDelegate'
+  optional
     procedure datePickerCell_validateProposedDateValue_timeInterval(aDatePickerCell: NSDatePickerCell; proposedDateValue: NSDatePointer; proposedTimeInterval: NSTimeIntervalPtr); message 'datePickerCell:validateProposedDateValue:timeInterval:';
   end;
 {$endif}

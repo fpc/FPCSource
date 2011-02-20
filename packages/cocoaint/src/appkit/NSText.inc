@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSText.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSTEXT_PAS_T}
@@ -112,8 +110,8 @@ var
     function RTFDFromRange(range: NSRange): NSData; message 'RTFDFromRange:';
     function writeRTFDToFile_atomically(path: NSString; flag: Boolean): Boolean; message 'writeRTFDToFile:atomically:';
     function readRTFDFromFile(path: NSString): Boolean; message 'readRTFDFromFile:';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
+    function delegate: NSTextDelegateProtocol; message 'delegate';
+    procedure setDelegate(anObject: NSTextDelegateProtocol); message 'setDelegate:';
     function isEditable: Boolean; message 'isEditable';
     procedure setEditable(flag: Boolean); message 'setEditable:';
     function isSelectable: Boolean; message 'isSelectable';
@@ -187,6 +185,7 @@ var
   
 { NSTextDelegate Protocol }
   NSTextDelegateProtocol = objcprotocol external name 'NSTextDelegate'
+  optional
     function textShouldBeginEditing(textObject: NSText): Boolean; message 'textShouldBeginEditing:';
     function textShouldEndEditing(textObject: NSText): Boolean; message 'textShouldEndEditing:';
     procedure textDidBeginEditing(notification: NSNotification); message 'textDidBeginEditing:';

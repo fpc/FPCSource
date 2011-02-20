@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSURLHandle.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSURLHANDLE_PAS_T}
@@ -82,8 +80,8 @@ var
     class function URLHandleClassForURL(anURL: NSURL): Pobjc_class; message 'URLHandleClassForURL:'; deprecated 'in Mac OS X 10.4 and later';
     function status: NSURLHandleStatus; message 'status'; deprecated 'in Mac OS X 10.4 and later';
     function failureReason: NSString; message 'failureReason'; deprecated 'in Mac OS X 10.4 and later';
-    procedure addClient(client: id); message 'addClient:'; deprecated 'in Mac OS X 10.4 and later';
-    procedure removeClient(client: id); message 'removeClient:'; deprecated 'in Mac OS X 10.4 and later';
+    procedure addClient(client: NSURLHandleClientProtocol); message 'addClient:'; deprecated 'in Mac OS X 10.4 and later';
+    procedure removeClient(client: NSURLHandleClientProtocol); message 'removeClient:'; deprecated 'in Mac OS X 10.4 and later';
     procedure loadInBackground; message 'loadInBackground'; deprecated 'in Mac OS X 10.4 and later';
     procedure cancelLoadInBackground; message 'cancelLoadInBackground'; deprecated 'in Mac OS X 10.4 and later';
     function resourceData: NSData; message 'resourceData'; deprecated 'in Mac OS X 10.4 and later';

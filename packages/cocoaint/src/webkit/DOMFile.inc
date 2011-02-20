@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMFile.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMFILE_PAS_T}
@@ -42,9 +40,10 @@
 {$define DOMFILE_PAS_C}
 
 { DOMFile }
-  DOMFile = objcclass external (DOMObject)
+  DOMFile = objcclass external (DOMBlob)
     
   public
+    function name: NSString; message 'name';
     function fileName: NSString; message 'fileName';
     function fileSize: cuint; message 'fileSize';
   end;

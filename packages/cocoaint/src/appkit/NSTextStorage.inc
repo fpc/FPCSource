@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSTextStorage.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSTEXTSTORAGE_PAS_T}
@@ -85,8 +83,8 @@ var
     function editedMask: NSUInteger; message 'editedMask';
     function editedRange: NSRange; message 'editedRange';
     function changeInLength: NSInteger; message 'changeInLength';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(delegate_: NSTextStorageDelegateProtocol); message 'setDelegate:';
+    function delegate: NSTextStorageDelegateProtocol; message 'delegate';
   end;
 
 {$endif}
@@ -97,6 +95,7 @@ var
   
 { NSTextStorageDelegate Protocol }
   NSTextStorageDelegateProtocol = objcprotocol external name 'NSTextStorageDelegate'
+  optional
     procedure textStorageWillProcessEditing(notification: NSNotification); message 'textStorageWillProcessEditing:';
     procedure textStorageDidProcessEditing(notification: NSNotification); message 'textStorageDidProcessEditing:';
   end;

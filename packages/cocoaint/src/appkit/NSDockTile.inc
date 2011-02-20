@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSDockTile.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSDOCKTILE_PAS_T}
@@ -86,7 +84,9 @@ const
   
 { NSDockTilePlugIn Protocol }
   NSDockTilePlugInProtocol = objcprotocol external name 'NSDockTilePlugIn'
+  required
     procedure setDockTile(dockTile: NSDockTile); message 'setDockTile:';
+  optional
     function dockMenu: NSMenu; message 'dockMenu';
   end;
 {$endif}

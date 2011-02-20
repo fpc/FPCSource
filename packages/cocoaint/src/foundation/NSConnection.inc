@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSConnection.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSCONNECTION_PAS_T}
@@ -108,8 +106,8 @@ var
     procedure setRootObject(anObject: id); message 'setRootObject:';
     function rootObject: id; message 'rootObject';
     function rootProxy: NSDistantObject; message 'rootProxy';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: NSConnectionDelegateProtocol); message 'setDelegate:';
+    function delegate: NSConnectionDelegateProtocol; message 'delegate';
     procedure setIndependentConversationQueueing(yorn: Boolean); message 'setIndependentConversationQueueing:';
     function independentConversationQueueing: Boolean; message 'independentConversationQueueing';
     function isValid: Boolean; message 'isValid';
@@ -151,6 +149,7 @@ var
   
 { NSConnectionDelegate Protocol }
   NSConnectionDelegateProtocol = objcprotocol external name 'NSConnectionDelegate'
+  optional
     function makeNewConnection_sender(conn: NSConnection; ancestor: NSConnection): Boolean; message 'makeNewConnection:sender:';
     function connection_shouldMakeNewConnection(ancestor: NSConnection; conn: NSConnection): Boolean; message 'connection:shouldMakeNewConnection:';
     function authenticationDataForComponents(components: NSArray): NSData; message 'authenticationDataForComponents:';

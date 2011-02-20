@@ -17,45 +17,34 @@
 {*****************************************************************************
                            Directory Handling
 *****************************************************************************}
-procedure mkdir(const s : string);[IOCheck];
-var S2 : STRING;
-    Res: LONGINT;
+Procedure MkDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_MKDIR'];
+var Res: LONGINT;
 BEGIN
-  S2 := S;
-  IF Length (S2) = 255 THEN DEC (BYTE(S2[0]));
-  S2 := S2 + #0;
-  Res := FpMkdir (@S2[1],S_IRWXU);
+  Res := FpMkdir (s,S_IRWXU);
   if Res = 0 then
     InOutRes:=0
   else
     SetFileError (Res);
 end;
 
-procedure rmdir(const s : string);[IOCheck];
-VAR S2 : STRING;
-    Res: LONGINT;
-BEGIN
-  S2 := S;
-  IF Length (S2) = 255 THEN DEC (BYTE(S2[0]));
-  S2 := S2 + #0;
-  Res := FpRmdir (@S2[1]);
-  IF Res = 0 THEN
+procedure RmDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_RMDIR'];
+var Res: longint;
+begin
+  Res := FpRmdir (s);
+  if Res = 0 then
     InOutRes:=0
-  ELSE
+  else
     SetFileError (Res);
 end;
 
-procedure chdir(const s : string);[IOCheck];
-VAR S2 : STRING;
-    Res: LONGINT;
+
+procedure ChDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
+var Res: longint;
 begin
-  S2 := S;
-  IF Length (S2) = 255 THEN DEC (BYTE(S2[0]));
-  S2 := S2 + #0;
-  Res := FpChdir (@S2[1]);
-  IF Res = 0 THEN
+  Res := FpChdir (s);
+  if Res = 0 then
     InOutRes:=0
-  ELSE
+  else
     SetFileError (Res);
 end;
 

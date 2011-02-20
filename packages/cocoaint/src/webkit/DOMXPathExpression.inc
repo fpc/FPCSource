@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMXPathExpression.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMXPATHEXPRESSION_PAS_T}
@@ -50,7 +48,7 @@
 
 { DOMXPathExpressionDeprecatedCategory }
   DOMXPathExpressionDeprecatedCategory = objccategory external (DOMXPathExpression)
-    function evaluate(contextNode: DOMNode; type_: cushort; inResult_BUT_DEPRECATED: DOMXPathResult): DOMXPathResult; message 'evaluate:contextNode:type:';
+    function evaluate(contextNode: DOMNode; type_: cushort; inResult: DOMXPathResult): DOMXPathResult; message 'evaluate:contextNode:type:';
   end;
 
 {$endif}

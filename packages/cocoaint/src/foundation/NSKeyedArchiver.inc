@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSKeyedArchiver.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSKEYEDARCHIVER_PAS_T}
@@ -76,8 +74,8 @@ var
     class function archivedDataWithRootObject(rootObject: id): NSData; message 'archivedDataWithRootObject:';
     class function archiveRootObject_toFile(rootObject: id; path: NSString): Boolean; message 'archiveRootObject:toFile:';
     function initForWritingWithMutableData(data: NSMutableData): id; message 'initForWritingWithMutableData:';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(delegate_: NSKeyedArchiverDelegateProtocol); message 'setDelegate:';
+    function delegate: NSKeyedArchiverDelegateProtocol; message 'delegate';
     procedure setOutputFormat(format: NSPropertyListFormat); message 'setOutputFormat:';
     function outputFormat: NSPropertyListFormat; message 'outputFormat';
     procedure finishEncoding; message 'finishEncoding';
@@ -118,8 +116,8 @@ var
     class function unarchiveObjectWithData(data: NSData): id; message 'unarchiveObjectWithData:';
     class function unarchiveObjectWithFile(path: NSString): id; message 'unarchiveObjectWithFile:';
     function initForReadingWithData(data: NSData): id; message 'initForReadingWithData:';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(delegate_: NSKeyedUnarchiverDelegateProtocol); message 'setDelegate:';
+    function delegate: NSKeyedUnarchiverDelegateProtocol; message 'delegate';
     procedure finishDecoding; message 'finishDecoding';
     class procedure setClass_forClassName(cls: Pobjc_class; codedName: NSString); message 'setClass:forClassName:';
     class function classForClassName(codedName: NSString): Pobjc_class; message 'classForClassName:';
@@ -154,6 +152,7 @@ var
   
 { NSKeyedArchiverDelegate Protocol }
   NSKeyedArchiverDelegateProtocol = objcprotocol external name 'NSKeyedArchiverDelegate'
+  optional
     function archiver_willEncodeObject(archiver: NSKeyedArchiver; object_: id): id; message 'archiver:willEncodeObject:';
     procedure archiver_didEncodeObject(archiver: NSKeyedArchiver; object_: id); message 'archiver:didEncodeObject:';
     procedure archiver_willReplaceObject_withObject(archiver: NSKeyedArchiver; object_: id; newObject: id); message 'archiver:willReplaceObject:withObject:';
@@ -163,6 +162,7 @@ var
   
 { NSKeyedUnarchiverDelegate Protocol }
   NSKeyedUnarchiverDelegateProtocol = objcprotocol external name 'NSKeyedUnarchiverDelegate'
+  optional
     function unarchiver_cannotDecodeObjectOfClassName_originalClasses(unarchiver: NSKeyedUnarchiver; name: NSString; classNames: NSArray): Pobjc_class; message 'unarchiver:cannotDecodeObjectOfClassName:originalClasses:';
     function unarchiver_didDecodeObject(unarchiver: NSKeyedUnarchiver; object_: id): id; message 'unarchiver:didDecodeObject:';
     procedure unarchiver_willReplaceObject_withObject(unarchiver: NSKeyedUnarchiver; object_: id; newObject: id); message 'unarchiver:willReplaceObject:withObject:';

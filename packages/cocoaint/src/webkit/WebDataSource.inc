@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework WebDataSource.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef WEBDATASOURCE_PAS_T}
@@ -49,7 +47,7 @@
   public
     function initWithRequest(request_: NSURLRequest): id; message 'initWithRequest:';
     function data: NSData; message 'data';
-    function representation: id; message 'representation';
+    function representation: WebDocumentRepresentationProtocol; message 'representation';
     function webFrame: WebFrame; message 'webFrame';
     function initialRequest: NSURLRequest; message 'initialRequest';
     function request: NSMutableURLRequest; message 'request';

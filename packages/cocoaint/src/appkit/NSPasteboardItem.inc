@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSPasteboardItem.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSPASTEBOARDITEM_PAS_T}
@@ -54,7 +52,7 @@
   public
     function types: NSArray; message 'types';
     function availableTypeFromArray(types_: NSArray): NSString; message 'availableTypeFromArray:';
-    function setDataProvider_forTypes(dataProvider: id; types_: NSArray): Boolean; message 'setDataProvider:forTypes:';
+    function setDataProvider_forTypes(dataProvider: NSPasteboardItemDataProviderProtocol; types_: NSArray): Boolean; message 'setDataProvider:forTypes:';
     function setData_forType(data: NSData; type_: NSString): Boolean; message 'setData:forType:';
     function setString_forType(string_: NSString; type_: NSString): Boolean; message 'setString:forType:';
     function setPropertyList_forType(propertyList: id; type_: NSString): Boolean; message 'setPropertyList:forType:';
@@ -79,7 +77,9 @@
   
 { NSPasteboardItemDataProvider Protocol }
   NSPasteboardItemDataProviderProtocol = objcprotocol external name 'NSPasteboardItemDataProvider'
+  required
     procedure pasteboard_item_provideDataForType(pasteboard: NSPasteboard; item: NSPasteboardItem; type_: NSString); message 'pasteboard:item:provideDataForType:';
+  optional
     procedure pasteboardFinishedWithDataProvider(pasteboard: NSPasteboard); message 'pasteboardFinishedWithDataProvider:';
   end;
 {$endif}

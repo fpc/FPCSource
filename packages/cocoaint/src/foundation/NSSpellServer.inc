@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSSpellServer.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSSPELLSERVER_PAS_T}
@@ -70,8 +68,8 @@ var
     _reservedSpellServer2: Pointer;
     
   public
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: NSSpellServerDelegateProtocol); message 'setDelegate:';
+    function delegate: NSSpellServerDelegateProtocol; message 'delegate';
     function registerLanguage_byVendor(language: NSString; vendor: NSString): Boolean; message 'registerLanguage:byVendor:';
     function isWordInUserDictionaries_caseSensitive(word: NSString; flag: Boolean): Boolean; message 'isWordInUserDictionaries:caseSensitive:';
     procedure run; message 'run';
@@ -85,6 +83,7 @@ var
   
 { NSSpellServerDelegate Protocol }
   NSSpellServerDelegateProtocol = objcprotocol external name 'NSSpellServerDelegate'
+  optional
     function spellServer_findMisspelledWordInString_language_wordCount_countOnly(sender: NSSpellServer; stringToCheck: NSString; language: NSString; wordCount: NSIntegerPtr; countOnly: Boolean): NSRange; message 'spellServer:findMisspelledWordInString:language:wordCount:countOnly:';
     function spellServer_suggestGuessesForWord_inLanguage(sender: NSSpellServer; word: NSString; language: NSString): NSArray; message 'spellServer:suggestGuessesForWord:inLanguage:';
     procedure spellServer_didLearnWord_inLanguage(sender: NSSpellServer; word: NSString; language: NSString); message 'spellServer:didLearnWord:inLanguage:';

@@ -63,6 +63,28 @@ type
     property WebController: TWebController read GetWebController;
   end;
 
+  { TContainerStylesheet }
+
+  TContainerStylesheet = class(TCollectionItem)
+  private
+    Fhref: string;
+    Fmedia: string;
+  published
+    property href: string read Fhref write Fhref;
+    property media: string read Fmedia write Fmedia;
+  end;
+
+  { TContainerStylesheets }
+
+  TContainerStylesheets = class(TCollection)
+  private
+    function GetItem(Index: integer): TContainerStylesheet;
+    procedure SetItem(Index: integer; const AValue: TContainerStylesheet);
+  public
+    function Add: TContainerStylesheet;
+    property Items[Index: integer]: TContainerStylesheet read GetItem write SetItem;
+  end;
+
   { TWebController }
 
   TWebController = class(TComponent)
@@ -77,12 +99,14 @@ type
   protected
     function GetScriptFileReferences: TStringList; virtual; abstract;
     function GetCurrentJavaScriptStack: TJavaScriptStack; virtual;
+    function GetStyleSheetReferences: TContainerStylesheets; virtual; abstract;
     function GetScripts: TFPObjectList; virtual; abstract;
     function GetRequest: TRequest;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure AddScriptFileReference(AScriptFile: String); virtual; abstract;
+    procedure AddStylesheetReference(Ahref, Amedia: String); virtual; abstract;
     function CreateNewJavascriptStack: TJavaScriptStack; virtual; abstract;
     function InitializeJavaScriptStack: TJavaScriptStack;
     procedure FreeJavascriptStack; virtual;
@@ -100,6 +124,7 @@ type
     function AddrelativeLinkPrefix(AnURL: string): string;
     procedure FreeScript(var AScript: TStringList); virtual; abstract;
     property ScriptFileReferences: TStringList read GetScriptFileReferences;
+    property StyleSheetReferences: TContainerStylesheets read GetStyleSheetReferences;
     property Scripts: TFPObjectList read GetScripts;
     property CurrentJavaScriptStack: TJavaScriptStack read GetCurrentJavaScriptStack;
     property MessageBoxHandler: TMessageBoxHandler read FMessageBoxHandler write FMessageBoxHandler;
@@ -454,6 +479,24 @@ Uses
 resourcestring
   SErrRequestNotHandled = 'Web request was not handled by actions.';
   SErrNoContentProduced = 'The content producer "%s" didn''t produce any content.';
+
+{ TcontainerStylesheets }
+
+function TcontainerStylesheets.GetItem(Index: integer): TContainerStylesheet;
+begin
+  result := TContainerStylesheet(Inherited GetItem(Index));
+end;
+
+procedure TcontainerStylesheets.SetItem(Index: integer; const AValue: TContainerStylesheet);
+begin
+  inherited SetItem(Index, AValue);
+end;
+
+function TcontainerStylesheets.Add: TContainerStylesheet;
+begin
+  result := inherited Add as TContainerStylesheet;
+end;
+
 
 { TJavaScriptStack }
 

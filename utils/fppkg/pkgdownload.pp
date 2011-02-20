@@ -169,6 +169,7 @@ begin
   with DownloaderClass.Create(nil) do
     try
       Log(vlCommands,SLogDownloading,[PackageRemoteArchive(P),PackageLocalArchive(P)]);
+      pkgglobals.Log(vlProgres,SProgrDownloadPackage,[P.Name, P.Version.AsString]);
       Download(PackageRemoteArchive(P),PackageLocalArchive(P));
     finally
       Free;

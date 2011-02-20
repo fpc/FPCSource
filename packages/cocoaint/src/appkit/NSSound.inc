@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSSound.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSSOUND_PAS_T}
@@ -70,8 +68,8 @@ var
     function resume: Boolean; message 'resume';
     function stop: Boolean; message 'stop';
     function isPlaying: Boolean; message 'isPlaying';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(aDelegate: id); message 'setDelegate:';
+    function delegate: NSSoundDelegateProtocol; message 'delegate';
+    procedure setDelegate(aDelegate: NSSoundDelegateProtocol); message 'setDelegate:';
     function duration: NSTimeInterval; message 'duration';
     procedure setVolume(volume_: single); message 'setVolume:';
     function volume: single; message 'volume';
@@ -104,6 +102,7 @@ var
   
 { NSSoundDelegate Protocol }
   NSSoundDelegateProtocol = objcprotocol external name 'NSSoundDelegate'
+  optional
     procedure sound_didFinishPlaying(sound: NSSound; aBool: Boolean); message 'sound:didFinishPlaying:';
   end;
 {$endif}

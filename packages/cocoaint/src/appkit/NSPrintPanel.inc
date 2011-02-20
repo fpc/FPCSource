@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSPrintPanel.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSPRINTPANEL_PAS_T}
@@ -110,7 +108,7 @@ var
 
 { NSDeprecated_NSPrintPanelCategory }
   NSDeprecated_NSPrintPanelCategory = objccategory external name 'NSDeprecated' (NSPrintPanel)
-    procedure setAccessoryView(accessoryView: NSView); message 'setAccessoryView:'; deprecated 'in Mac OS X 10.5 and later';
+    procedure setAccessoryView(accessoryView_: NSView); message 'setAccessoryView:'; deprecated 'in Mac OS X 10.5 and later';
     function accessoryView: NSView; message 'accessoryView'; deprecated 'in Mac OS X 10.5 and later';
     procedure updateFromPrintInfo; message 'updateFromPrintInfo'; deprecated 'in Mac OS X 10.5 and later';
     procedure finalWritePrintInfo; message 'finalWritePrintInfo'; deprecated 'in Mac OS X 10.5 and later';
@@ -125,6 +123,7 @@ var
 { NSPrintPanelAccessorizing Protocol }
   NSPrintPanelAccessorizingProtocol = objcprotocol external name 'NSPrintPanelAccessorizing'
     function localizedSummaryItems: NSArray; message 'localizedSummaryItems';
+  optional
     function keyPathsForValuesAffectingPreview: NSSet; message 'keyPathsForValuesAffectingPreview';
   end;
 {$endif}

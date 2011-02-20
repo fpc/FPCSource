@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSTokenFieldCell.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSTOKENFIELDCELL_PAS_T}
@@ -93,8 +91,8 @@ type
     procedure setTokenizingCharacterSet(characterSet: NSCharacterSet); message 'setTokenizingCharacterSet:';
     function tokenizingCharacterSet: NSCharacterSet; message 'tokenizingCharacterSet';
     class function defaultTokenizingCharacterSet: NSCharacterSet; message 'defaultTokenizingCharacterSet';
-    procedure setDelegate(anObject: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(anObject: NSTokenFieldCellDelegateProtocol); message 'setDelegate:';
+    function delegate: NSTokenFieldCellDelegateProtocol; message 'delegate';
   end;
 
 {$endif}
@@ -105,6 +103,7 @@ type
   
 { NSTokenFieldCellDelegate Protocol }
   NSTokenFieldCellDelegateProtocol = objcprotocol external name 'NSTokenFieldCellDelegate'
+  optional
     function tokenFieldCell_completionsForSubstring_indexOfToken_indexOfSelectedItem(tokenFieldCell: NSTokenFieldCell; substring: NSString; tokenIndex: NSInteger; selectedIndex: NSIntegerPtr): NSArray; message 'tokenFieldCell:completionsForSubstring:indexOfToken:indexOfSelectedItem:';
     function tokenFieldCell_shouldAddObjects_atIndex(tokenFieldCell: NSTokenFieldCell; tokens: NSArray; index: NSUInteger): NSArray; message 'tokenFieldCell:shouldAddObjects:atIndex:';
     function tokenFieldCell_displayStringForRepresentedObject(tokenFieldCell: NSTokenFieldCell; representedObject: id): NSString; message 'tokenFieldCell:displayStringForRepresentedObject:';

@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSMetadata.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSMETADATA_PAS_T}
@@ -72,8 +70,8 @@ var
     
   public
     function init: id; message 'init';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
+    function delegate: NSMetadataQueryDelegateProtocol; message 'delegate';
+    procedure setDelegate(delegate_: NSMetadataQueryDelegateProtocol); message 'setDelegate:';
     function predicate: NSPredicate; message 'predicate';
     procedure setPredicate(predicate_: NSPredicate); message 'setPredicate:';
     function sortDescriptors: NSArray; message 'sortDescriptors';
@@ -152,6 +150,7 @@ var
   
 { NSMetadataQueryDelegate Protocol }
   NSMetadataQueryDelegateProtocol = objcprotocol external name 'NSMetadataQueryDelegate'
+  optional
     function metadataQuery_replacementObjectForResultObject(query: NSMetadataQuery; result_: NSMetadataItem): id; message 'metadataQuery:replacementObjectForResultObject:';
     function metadataQuery_replacementValueForAttribute_value(query: NSMetadataQuery; attrName: NSString; attrValue: id): id; message 'metadataQuery:replacementValueForAttribute:value:';
   end;

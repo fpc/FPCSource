@@ -29,7 +29,8 @@ class ObjectivePParserBase {
 	var $delegate_methods = array();				// Delegate methods and types from GEN_BRIDGE_METADATA XML data
 	var $delegate_method_names = array();			// Delegate method name array
 	var $type_encodings = array();					// Master listing of type encodings for each method in the frameworks
-	
+	var $docset;										// Current parsed docset for the framework (-all only)
+
 	// Comments Builder
 	var $comment_eol;
 	var $comment_terminated;
@@ -68,7 +69,8 @@ class ObjectivePParserBase {
 	var $comment_padding_left = " ";						// Padding applied to the left side of all comments
 	var $comment_padding_right = " ";						// Padding applied to the right side of all comments
 	var $varargs_param_name = "firstKey";					// The name of the first parameter for methods using varargs
-
+	var $parse_docsets = false;									// Parses docsets for symbol documentation
+	
 	// array of all known framework classes (both regular and anonymous)
 	var $cocoa_classes = array("Protocol");
 	
@@ -175,11 +177,11 @@ class ObjectivePParserBase {
 	var $ignore_categories = array("NSURLLoading");
 	
 	// Methods to ignore
-	var $ignore_methods = array(	"observationInfo",
-																);
+	var $ignore_methods = array();
 
-  // methods to rename to particular alternatives
+ 	// methods to rename to particular alternatives
 	var $replace_instance_methods = array ( "class" => "_class", );
+	
 	var $replace_class_methods = array ("respondsToSelector" => "classRespondsToSelector",
 												"isEqual" => "classIsEqual",
 												"hash" => "classHash",
@@ -205,10 +207,10 @@ class ObjectivePParserBase {
 									);
 	
 	var $skip_blocks = array(	//"^#if __LP64__.*"=>"^#(else|endif)+",
-								"^#if __BLOCKS__"=>"^#(else|endif)+",
-								"^#if NS_BLOCKS_AVAILABLE"=>"^#(else|endif)+",
-								"^#ifndef CGFLOAT_DEFINED"=>"^#(else|endif)+",
-								);
+													"^#if __BLOCKS__"=>"^#(else|endif)+",
+													"^#if NS_BLOCKS_AVAILABLE"=>"^#(else|endif)+",
+													"^#ifndef CGFLOAT_DEFINED"=>"^#(else|endif)+",
+													);
 								
 	var $macro_blocks = array(	"^#if \(__LP64__\)"=>"\$ifdef cpu64",
 								"^#if __LP64__.*"=>"\$ifdef cpu64",
@@ -224,28 +226,36 @@ class ObjectivePParserBase {
 								);
 	
 		// These macros are used to suggest which version of a framework the symbol is available in	but removed to assist the parser			
-		var $version_macros = array(	"[[:space:]]*DEPRECATED_IN_.*_VERSION_[0-9]+_[0-9]+_AND_LATER[[:space:]]*",
-																	"[[:space:]]*AVAILABLE_.*_VERSION_[0-9]+_[0-9]+_AND_LATER_BUT_DEPRECATED_IN_.*_VERSION_[0-9]+_[0-9]+[[:space:]]*",
-																	"[[:space:]]*AVAILABLE_.*_VERSION_[0-9]+_[0-9]+_AND_LATER[[:space:]]*",
-																	"[[:space:]]*AVAILABLE_.*_VERSION_[0-9]+_[0-9]+[[:space:]]*",
+		var $version_macros = array(	"[[:space:]]*DEPRECATED_IN_[^(]*_VERSION_[0-9]+_[0-9]+_AND_LATER[[:space:]]*",
+																	"[[:space:]]*AVAILABLE_[^(]*_VERSION_[0-9]+_[0-9]+_AND_LATER_BUT_DEPRECATED_IN_[^(]*_VERSION_[0-9]+_[0-9]+[[:space:]]*",
+																	"[[:space:]]*AVAILABLE_[^(]*_VERSION_[0-9]+_[0-9]+_AND_LATER_BUT_DEPRECATED[[:space:]]*",
+																	"[[:space:]]*AVAILABLE_[^(]*_VERSION_[0-9]+_[0-9]+_AND_LATER[[:space:]]*",
+																	"[[:space:]]*AVAILABLE_[^(]*_VERSION_[0-9]+_[0-9]+[[:space:]]*",
 																	"[[:space:]]*.*_VERSION_MAX_ALLOWED[[:space:]]*",
-																	"[[:space:]]__OSX_AVAILABLE.*\([^)]+\)",
-																	"[[:space:]]*UIKIT_CLASS_AVAILABLE\(.*\)[[:space:]]*",
-																	"[[:space:]]*__OSX_AVAILABLE_STARTING\(.*\)[[:space:]]*",
+																	"[[:space:]]__OSX_AVAILABLE[^(]*\([^;)]+\)[[:space:]]*",
+																	"[[:space:]]*UIKIT_CLASS_AVAILABLE\([^;]*\)[[:space:]]*",
+																	"[[:space:]]*NS_AVAILABLE[^(]*\([^;]*\)[[:space:]]*",
+																	"[[:space:]]*NS_DEPRECATED[^(]*\([^;]*\)[[:space:]]*",
+																	"[[:space:]]WEBKIT_OBJC_METHOD_ANNOTATION\([^;]*\)[[:space:]]*",
 																	);
-								
+	
+	// Subpats to search for docsets							
+	var $docset_paths = array(	"com.apple.adc.documentation.AppleSnowLeopard.CoreReference.docset" => array("/Cocoa/Reference"),
+															"com.apple.adc.documentation.AppleiOS4_2.iOSLibrary.docset" => array("/UIKit/Reference"),
+															);
+	
 																		
 	/**
 	 * COMMON REGULAR EXPRESIONS
 	 */
-	var $regex_objc_method_params = "^(-|\+)[[:space:]]*\(([^)]*)\)[[:space:]]*([a-zA-Z0-9]+):(.*);";
-	var $regex_objc_method_no_params = "^(-|\+)[[:space:]]*\(([^)]*)\)[[:space:]]*([a-zA-Z0-9]+);";
-	var $regex_objc_method_partial = "^(-|\+)[[:space:]]*\(([^)]*)\)[[:space:]]*([a-zA-Z0-9]+):(.*)";
-	var $regex_objc_method_terminate = "(.*);[[:space:]]*$";
+	var $pregex_objc_method_params = "!^(-|\+)\s*\(([^)]*)\)\s*(\w+):([^;]*)\s*[^:;]*;!";
+	var $pregex_objc_method_no_params = "!^(-|\+)\s*\(([^)]*)\)\s*(\w+)\s*[^:;]*;!";
+	var $pregex_objc_method_partial = "!^(-|\+)\s*\(([^)]*)\)\s*(\w+):([^;]*)!";
+	var $pregex_objc_method_terminate = "!([^;]*);\s*$!";
 	var $regex_objc_category = "^@interface ([a-zA-Z]+)[[:space:]]*\(([a-zA-Z]+)\)";
-	var $regex_objc_class = "^@interface ([a-zA-Z]+)[[:space:]]*:[[:space:]]*([a-zA-Z]+)[[:space:]]*(<(.*)>)*";
+	var $regex_objc_class = "^@interface ([a-zA-Z]+)[[:space:]]*:[[:space:]]*([a-zA-Z0-9_]+)[[:space:]]*(<(.*)>)*";
 	var $regex_objc_class_no_super = "^@interface ([a-zA-Z]+)[[:space:]]*<(.*)>[[:space:]]*";
-	var $regex_objc_protocol = "^@protocol ([a-zA-Z]+)";
+	var $regex_objc_protocol = "^@protocol ([a-zA-Z0-9_]+)";
 	var $regex_procedure_type = "^[[:space:]]*(void|IBAction)+[[:space:]]*$";
 	var $regex_scope_compiler_directive = "^\s*@(private|protected|public)(;*)+\s*$";
 	var $regex_objc_property_attributes = "^@property[[:space:]]*\(([^)]*)\)[[:space:]]*([a-zA-Z_0-9]+)[[:space:]]*(\*)*[[:space:]]*(.*);";

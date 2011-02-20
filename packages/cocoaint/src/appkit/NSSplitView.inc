@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSSplitView.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSSPLITVIEW_PAS_T}
@@ -71,8 +69,8 @@ var
     function dividerStyle: NSSplitViewDividerStyle; message 'dividerStyle';
     procedure setAutosaveName(autosaveName_: NSString); message 'setAutosaveName:';
     function autosaveName: NSString; message 'autosaveName';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(delegate_: NSSplitViewDelegateProtocol); message 'setDelegate:';
+    function delegate: NSSplitViewDelegateProtocol; message 'delegate';
     procedure drawDividerInRect(rect: NSRect); message 'drawDividerInRect:';
     function dividerColor: NSColor; message 'dividerColor';
     function dividerThickness: CGFloat; message 'dividerThickness';
@@ -97,6 +95,7 @@ var
   
 { NSSplitViewDelegate Protocol }
   NSSplitViewDelegateProtocol = objcprotocol external name 'NSSplitViewDelegate'
+  optional
     function splitView_canCollapseSubview(splitView: NSSplitView; subview: NSView): Boolean; message 'splitView:canCollapseSubview:';
     function splitView_shouldCollapseSubview_forDoubleClickOnDividerAtIndex(splitView: NSSplitView; subview: NSView; dividerIndex: NSInteger): Boolean; message 'splitView:shouldCollapseSubview:forDoubleClickOnDividerAtIndex:';
     function splitView_constrainMinCoordinate_ofSubviewAt(splitView: NSSplitView; proposedMinimumPosition: CGFloat; dividerIndex: NSInteger): CGFloat; message 'splitView:constrainMinCoordinate:ofSubviewAt:';

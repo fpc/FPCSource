@@ -195,7 +195,7 @@ begin
           if FPMKUnitDeps[i].available then
             begin
               if CheckUnitDir(FPMKUnitDeps[i].package,DepDir) then
-                AddOption(maybequoted('-Fu'+DepDir))
+                AddOption('-Fu'+DepDir)
               else
                 Error(SErrMissingInstallPackage,[FPMKUnitDeps[i].package]);
               if FPMKUnitDeps[i].def<>'' then
@@ -295,32 +295,42 @@ begin
   { Maybe compile fpmake executable? }
   ExecuteAction(PackageName,'compilefpmake');
   { Create options }
-  AddOption('--nofpccfg');
   if vlDebug in LogLevels then
     AddOption('--debug')
   else if vlInfo in LogLevels then
     AddOption('--verbose');
-  AddOption('--compiler='+CompilerOptions.Compiler);
-  AddOption('--cpu='+CPUToString(CompilerOptions.CompilerCPU));
-  AddOption('--os='+OSToString(CompilerOptions.CompilerOS));
-  if CompilerOptions.HasOptions then
-    AddOption('--options='+CompilerOptions.Options.DelimitedText);
-  if IsSuperUser or GlobalOptions.InstallGlobal then
+  if P.RecompileBroken and
+     (P.FPMakeOptionsString<>'') then // Check for a empty FPMakeOptionString for packages being installed with an old fpmkunit
     begin
-      CondAddOption('--prefix',CompilerOptions.GlobalPrefix);
-      CondAddOption('--baseinstalldir',CompilerOptions.GlobalInstallDir);
+      // When the package is being reinstalled because of broken dependencies, use the same fpmake-options
+      // as were used to compile the package in the first place.
+      OOptions:=P.FPMakeOptionsString;
     end
   else
     begin
-      CondAddOption('--prefix',CompilerOptions.LocalPrefix);
-      CondAddOption('--baseinstalldir',CompilerOptions.LocalInstallDir);
-    end;
-  CondAddOption('--localunitdir',CompilerOptions.LocalUnitDir);
-  CondAddOption('--globalunitdir',CompilerOptions.GlobalUnitDir);
-  if GlobalOptions.CustomFPMakeOptions<>'' then
-    begin
-    AddOption('--ignoreinvalidoption');
-    AddOption(GlobalOptions.CustomFPMakeOptions);
+      AddOption('--nofpccfg');
+      AddOption('--compiler='+CompilerOptions.Compiler);
+      AddOption('--cpu='+CPUToString(CompilerOptions.CompilerCPU));
+      AddOption('--os='+OSToString(CompilerOptions.CompilerOS));
+      if CompilerOptions.HasOptions then
+        AddOption('--options='+CompilerOptions.Options.DelimitedText);
+      if IsSuperUser or GlobalOptions.InstallGlobal then
+        begin
+          CondAddOption('--prefix',CompilerOptions.GlobalPrefix);
+          CondAddOption('--baseinstalldir',CompilerOptions.GlobalInstallDir);
+        end
+      else
+        begin
+          CondAddOption('--prefix',CompilerOptions.LocalPrefix);
+          CondAddOption('--baseinstalldir',CompilerOptions.LocalInstallDir);
+        end;
+      CondAddOption('--localunitdir',CompilerOptions.LocalUnitDir);
+      CondAddOption('--globalunitdir',CompilerOptions.GlobalUnitDir);
+      if GlobalOptions.CustomFPMakeOptions<>'' then
+        begin
+        AddOption('--ignoreinvalidoption');
+        AddOption(GlobalOptions.CustomFPMakeOptions);
+        end;
     end;
   { Run FPMake }
   FPMakeBin:='fpmake'+ExeExt;

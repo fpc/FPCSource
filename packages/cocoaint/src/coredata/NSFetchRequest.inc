@@ -1,6 +1,4 @@
 { Parsed from Coredata.framework NSFetchRequest.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSFETCHREQUEST_PAS_T}

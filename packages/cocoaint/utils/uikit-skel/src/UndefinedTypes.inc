@@ -65,5 +65,5 @@ type
   __NSAppleEventManagerSuspensionPtr = Pointer;
 
   { does not really exist, is in inactive part of ifdef }
-  NSURLHandleClientProtocol = objcprotocol
-  end; external;
+  NSURLHandleClientProtocol = objcprotocol external
+  end;

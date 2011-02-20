@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSXMLParser.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSXMLPARSER_PAS_T}
@@ -160,8 +158,8 @@ var
   public
     function initWithContentsOfURL(url: NSURL): id; message 'initWithContentsOfURL:';
     function initWithData(data: NSData): id; message 'initWithData:';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
+    function delegate: NSXMLParserDelegateProtocol; message 'delegate';
+    procedure setDelegate(delegate_: NSXMLParserDelegateProtocol); message 'setDelegate:';
     procedure setShouldProcessNamespaces(shouldProcessNamespaces_: Boolean); message 'setShouldProcessNamespaces:';
     procedure setShouldReportNamespacePrefixes(shouldReportNamespacePrefixes_: Boolean); message 'setShouldReportNamespacePrefixes:';
     procedure setShouldResolveExternalEntities(shouldResolveExternalEntities_: Boolean); message 'setShouldResolveExternalEntities:';
@@ -189,6 +187,7 @@ var
   
 { NSXMLParserDelegate Protocol }
   NSXMLParserDelegateProtocol = objcprotocol external name 'NSXMLParserDelegate'
+  optional
     procedure parserDidStartDocument(parser: NSXMLParser); message 'parserDidStartDocument:';
     procedure parserDidEndDocument(parser: NSXMLParser); message 'parserDidEndDocument:';
     procedure parser_foundNotationDeclarationWithName_publicID_systemID(parser: NSXMLParser; name: NSString; publicID: NSString; systemID: NSString); message 'parser:foundNotationDeclarationWithName:publicID:systemID:';

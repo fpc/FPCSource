@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSPrintInfo.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSPRINTINFO_PAS_T}
@@ -116,7 +114,7 @@ var
     procedure setPaperName(name: NSString); message 'setPaperName:';
     procedure setPaperSize(size: NSSize); message 'setPaperSize:';
     procedure setOrientation(orientation_: NSPrintingOrientation); message 'setOrientation:';
-    procedure setScalingFactor(scalingFactor: CGFloat); message 'setScalingFactor:';
+    procedure setScalingFactor(scalingFactor_: CGFloat); message 'setScalingFactor:';
     function paperName: NSString; message 'paperName';
     function paperSize: NSSize; message 'paperSize';
     function orientation: NSPrintingOrientation; message 'orientation';

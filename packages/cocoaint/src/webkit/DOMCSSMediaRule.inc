@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMCSSMediaRule.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMCSSMEDIARULE_PAS_T}
@@ -53,7 +51,7 @@
 
 { DOMCSSMediaRuleDeprecatedCategory }
   DOMCSSMediaRuleDeprecatedCategory = objccategory external (DOMCSSMediaRule)
-    function insertRule(rule: NSString; index: cuint): cuint; message 'insertRule:rule:';
+    function insertRule(rule: NSString; index: cuint): cuint; message 'insertRule:rule:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework WebScriptObject.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef WEBSCRIPTOBJECT_PAS_T}
@@ -51,6 +49,7 @@
     
   public
     class function throwException(exceptionMessage: NSString): Boolean; message 'throwException:';
+    function JSObject: JSObjectRef; message 'JSObject';
     function callWebScriptMethod_withArguments(name: NSString; arguments: NSArray): id; message 'callWebScriptMethod:withArguments:';
     function evaluateWebScript(script: NSString): id; message 'evaluateWebScript:';
     procedure removeWebScriptKey(name: NSString); message 'removeWebScriptKey:';

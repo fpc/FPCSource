@@ -108,6 +108,7 @@ Type
     procedure ShowRequestException(R: TResponse; E: Exception); virtual;
     Function GetEmail : String; virtual;
     Function GetAdministrator : String; virtual;
+    property Terminated: boolean read FTerminated;
   Public
     constructor Create(AOwner: TComponent); override;
     Procedure Run; virtual;

@@ -113,8 +113,100 @@ type
     property NeedsDefaultPass: Boolean read FNeedsDefaultPass;
   end;
 
+  TEntityDecl = class(TDTDObject)
+  public
+    FName: WideString;   // TODO: change to PHashItem
+    FInputEncoding: WideString;
+    FXMLEncoding: WideString;
+    FPublicID: WideString;
+    FSystemID: WideString;
+    FNotationName: WideString;
+    FURI: WideString;
+    FReplacementText: WideString;
+    FXMLVersion: TXMLVersion;
+    FPrefetched: Boolean;
+    FResolved: Boolean;
+    FOnStack: Boolean;
+    FBetweenDecls: Boolean;
+    FIsPE: Boolean;
+    FStartLocation: TLocation;
+    FCharCount: Cardinal;
+  end;
+
+  TNotationDecl = class(TDTDObject)
+  public
+    FName: WideString;
+    FPublicID: WideString;
+    FSystemID: WideString;
+  end;
+
+  TDTDModel = class
+  private
+    FRefCount: Integer;
+    FNameTable: THashTable;
+    FEntities: THashTable;
+    FNotations: THashTable;
+    function GetEntities: THashTable;
+    function GetNotations: THashTable;
+  public
+    FName: WideString;
+    FSystemID: WideString;
+    FPublicID: WideString;
+    FInternalSubset: WideString;
+    constructor Create(aNameTable: THashTable);
+    destructor Destroy; override;
+    function Reference: TDTDModel;
+    procedure Release;
+    property Entities: THashTable read GetEntities;
+    property Notations: THashTable read GetNotations;
+  end;
 
 implementation
+
+{ TDTDModel }
+
+function TDTDModel.GetEntities: THashTable;
+begin
+  if FEntities = nil then
+    FEntities := THashTable.Create(256, True);
+  Result := FEntities;
+end;
+
+function TDTDModel.GetNotations: THashTable;
+begin
+  if FNotations = nil then
+    FNotations := THashTable.Create(256, True);
+  Result := FNotations;
+end;
+
+constructor TDTDModel.Create(aNameTable: THashTable);
+begin
+  FNameTable := aNameTable;
+  FRefCount := 1;
+end;
+
+destructor TDTDModel.Destroy;
+begin
+  FEntities.Free;
+  FNotations.Free;
+  inherited Destroy;
+end;
+
+function TDTDModel.Reference: TDTDModel;
+begin
+  Inc(FRefCount);
+  Result := Self;
+end;
+
+procedure TDTDModel.Release;
+begin
+  if Assigned(Self) then
+  begin
+    Dec(FRefCount);
+    if FRefCount = 0 then
+      self.Destroy;
+  end;
+end;
 
 { TContentParticle }
 

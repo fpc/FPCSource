@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMOverflowEvent.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMOVERFLOWEVENT_PAS_T}

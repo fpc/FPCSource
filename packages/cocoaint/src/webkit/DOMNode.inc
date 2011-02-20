@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMNode.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMNODE_PAS_T}
@@ -105,18 +103,18 @@ const
     function compareDocumentPosition(other: DOMNode): cushort; message 'compareDocumentPosition:';
 
     { Adopted Protocols }
-    procedure addEventListener_listener_useCapture(type_: NSString; listener: id; useCapture: Boolean);
-    procedure removeEventListener_listener_useCapture(type_: NSString; listener: id; useCapture: Boolean);
+    procedure addEventListener_listener_useCapture(type_: NSString; listener: DOMEventListenerProtocol; useCapture: Boolean);
+    procedure removeEventListener_listener_useCapture(type_: NSString; listener: DOMEventListenerProtocol; useCapture: Boolean);
     function dispatchEvent(event: DOMEvent): Boolean;
-    procedure addEventListener(type_: NSString; listener: id; useCapture: Boolean);
-    procedure removeEventListener(type_: NSString; listener: id; useCapture: Boolean);
+    procedure addEventListener(type_: NSString; listener: DOMEventListenerProtocol; useCapture: Boolean);
+    procedure removeEventListener(type_: NSString; listener: DOMEventListenerProtocol; useCapture: Boolean);
   end;
 
 { DOMNodeDeprecatedCategory }
   DOMNodeDeprecatedCategory = objccategory external (DOMNode)
-    function insertBefore(newChild: DOMNode; refChild: DOMNode): DOMNode; message 'insertBefore:newChild:';
-    function replaceChild(newChild: DOMNode; oldChild: DOMNode): DOMNode; message 'replaceChild:newChild:';
-    function isSupported(feature: NSString; version_: NSString): Boolean; message 'isSupported:feature:';
+    function insertBefore(newChild: DOMNode; refChild: DOMNode): DOMNode; message 'insertBefore:newChild:'; deprecated 'in_webkit_version_3 and later';
+    function replaceChild(newChild: DOMNode; oldChild: DOMNode): DOMNode; message 'replaceChild:newChild:'; deprecated 'in_webkit_version_3 and later';
+    function isSupported(feature: NSString; version_: NSString): Boolean; message 'isSupported:feature:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

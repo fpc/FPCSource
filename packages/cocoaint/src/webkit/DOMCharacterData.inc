@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMCharacterData.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMCHARACTERDATA_PAS_T}
@@ -57,10 +55,10 @@
 
 { DOMCharacterDataDeprecatedCategory }
   DOMCharacterDataDeprecatedCategory = objccategory external (DOMCharacterData)
-    function substringData(offset: cuint; length_: cuint): NSString; message 'substringData:offset:';
-    procedure insertData(offset: cuint; data_: NSString); message 'insertData:offset:';
-    procedure deleteData(offset: cuint; length_: cuint); message 'deleteData:offset:';
-    procedure replaceData(offset: cuint; length_: cuint; data_: NSString); message 'replaceData:offset:length:';
+    function substringData(offset: cuint; length_: cuint): NSString; message 'substringData:offset:'; deprecated 'in_webkit_version_3 and later';
+    procedure insertData(offset: cuint; data_: NSString); message 'insertData:offset:'; deprecated 'in_webkit_version_3 and later';
+    procedure deleteData(offset: cuint; length_: cuint); message 'deleteData:offset:'; deprecated 'in_webkit_version_3 and later';
+    procedure replaceData(offset: cuint; length_: cuint; data_: NSString); message 'replaceData:offset:length:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

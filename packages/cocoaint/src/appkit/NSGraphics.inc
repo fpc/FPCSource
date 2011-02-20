@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSGraphics.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSGRAPHICS_PAS_T}
@@ -156,8 +154,8 @@ var
   NSNamedColorSpace: NSString; cvar; external;
   NSPatternColorSpace: NSString; cvar; external;
   NSCustomColorSpace: NSString; cvar; external;
-  NSCalibratedBlackColorSpace: NSString; cvar; external;
-  NSDeviceBlackColorSpace: NSString; cvar; external;
+  NSCalibratedBlackColorSpace: NSString deprecated 'in Mac OS X 10.6 and later'; cvar; external;
+  NSDeviceBlackColorSpace: NSString deprecated 'in Mac OS X 10.6 and later'; cvar; external;
   NSDeviceResolution: NSString; cvar; external;
   NSDeviceColorSpaceName: NSString; cvar; external;
   NSDeviceBitsPerSample: NSString; cvar; external;

@@ -21,7 +21,7 @@ echo `pwd`/cocoa-skel/src.
 echo If you wish to compile them, execute the following commands:
 echo cp ../Makefile cocoa-skel
 echo cd cocoa-skel
-echo make OPT="-O2 -ap"
+echo make OPT=\"-O2 -ap\"
 echo
 echo The compiled files can be installed afterwards using \"make install\"
 echo if required. If another compiler binary than the default one has to

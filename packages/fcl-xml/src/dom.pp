@@ -245,7 +245,7 @@ type
     function RemoveChild(OldChild: TDOMNode): TDOMNode;
     function AppendChild(NewChild: TDOMNode): TDOMNode;
     function HasChildNodes: Boolean; virtual;
-    function CloneNode(deep: Boolean): TDOMNode; overload;
+    function CloneNode(deep: Boolean): TDOMNode; overload; virtual;
 
     // DOM level 2
     function IsSupported(const Feature, Version: DOMString): Boolean;
@@ -356,7 +356,6 @@ type
   TDOMNamedNodeMap = class(TObject)
   protected
     FOwner: TDOMNode;
-    FNodeType: Integer;
     FList: TFPList;
     function GetItem(index: LongWord): TDOMNode;
     function GetLength: LongWord;
@@ -365,7 +364,7 @@ type
     function InternalRemove(const name: DOMString): TDOMNode;
     function ValidateInsert(arg: TDOMNode): Integer; virtual;
   public
-    constructor Create(AOwner: TDOMNode; ANodeType: Integer);
+    constructor Create(AOwner: TDOMNode);
     destructor Destroy; override;
 
     function GetNamedItem(const name: DOMString): TDOMNode;
@@ -499,9 +498,10 @@ type
     property documentURI: DOMString read FURI write FURI;
     property XMLVersion: DOMString read GetXMLVersion write SetXMLVersion;
     // Extensions to DOM interface:
-    constructor Create;
+    constructor Create; virtual;
     destructor Destroy; override;
     function AddID(Attr: TDOMAttr): Boolean; deprecated;
+    function CloneNode(deep: Boolean): TDOMNode; overload; override;
     property Names: THashTable read FNames;
     property IDs: THashTable read FIDList write FIDList;
   end;
@@ -513,7 +513,7 @@ type
     // These fields are extensions to the DOM interface:
     StylesheetType, StylesheetHRef: DOMString;
 
-    constructor Create;
+    constructor Create; override;
     function CreateCDATASection(const data: DOMString): TDOMCDATASection; override;
     function CreateProcessingInstruction(const target, data: DOMString):
       TDOMProcessingInstruction; override;
@@ -665,24 +665,25 @@ type
 
   TDOMDocumentType = class(TDOMNode)
   protected
-    FName: DOMString;
-    FPublicID: DOMString;
-    FSystemID: DOMString;
-    FInternalSubset: DOMString;
+    FModel: TDTDModel;
     FEntities, FNotations: TDOMNamedNodeMap;
     function GetEntities: TDOMNamedNodeMap;
     function GetNotations: TDOMNamedNodeMap;
     function GetNodeType: Integer; override;
     function GetNodeName: DOMString; override;
+    function GetPublicID: DOMString;
+    function GetSystemID: DOMString;
+    function GetInternalSubset: DOMString;
   public
+    constructor Create(aOwner: TDOMDocument; aModel: TDTDModel);
     destructor Destroy; override;
-    property Name: DOMString read FName;
+    property Name: DOMString read GetNodeName;
     property Entities: TDOMNamedNodeMap read GetEntities;
     property Notations: TDOMNamedNodeMap read GetNotations;
   // Introduced in DOM Level 2:
-    property PublicID: DOMString read FPublicID;
-    property SystemID: DOMString read FSystemID;
-    property InternalSubset: DOMString read FInternalSubset;
+    property PublicID: DOMString read GetPublicID;
+    property SystemID: DOMString read GetSystemID;
+    property InternalSubset: DOMString read GetInternalSubset;
   end;
 
 
@@ -692,14 +693,15 @@ type
 
   TDOMNotation = class(TDOMNode)
   protected
-    FName: DOMString;
-    FPublicID, FSystemID: DOMString;
+    FDecl: TNotationDecl;
     function GetNodeType: Integer; override;
     function GetNodeName: DOMString; override;
+    function GetPublicID: DOMString;
+    function GetSystemID: DOMString;
   public
     function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
-    property PublicID: DOMString read FPublicID;
-    property SystemID: DOMString read FSystemID;
+    property PublicID: DOMString read GetPublicID;
+    property SystemID: DOMString read GetSystemID;
   end;
 
 
@@ -709,15 +711,17 @@ type
 
   TDOMEntity = class(TDOMNode_TopLevel)
   protected
-    FName: DOMString;
-    FPublicID, FSystemID, FNotationName: DOMString;
+    FDecl: TEntityDecl;
     function GetNodeType: Integer; override;
     function GetNodeName: DOMString; override;
+    function GetPublicID: DOMString;
+    function GetSystemID: DOMString;
+    function GetNotationName: DOMString;
   public
     function CloneNode(deep: Boolean; aCloneOwner: TDOMDocument): TDOMNode; override;
-    property PublicID: DOMString read FPublicID;
-    property SystemID: DOMString read FSystemID;
-    property NotationName: DOMString read FNotationName;
+    property PublicID: DOMString read GetPublicID;
+    property SystemID: DOMString read GetSystemID;
+    property NotationName: DOMString read GetNotationName;
     property XMLVersion: DOMString read GetXMLVersion;
   end;
 
@@ -1650,11 +1654,10 @@ end;
 //   NamedNodeMap
 // -------------------------------------------------------
 
-constructor TDOMNamedNodeMap.Create(AOwner: TDOMNode; ANodeType: Integer);
+constructor TDOMNamedNodeMap.Create(AOwner: TDOMNode);
 begin
   inherited Create;
   FOwner := AOwner;
-  FNodeType := ANodeType;
   FList := TFPList.Create;
 end;
 
@@ -1728,9 +1731,10 @@ begin
   if nfReadOnly in FOwner.FFlags then
     Result := NO_MODIFICATION_ALLOWED_ERR
   else if arg.FOwnerDocument <> FOwner.FOwnerDocument then
-    Result := WRONG_DOCUMENT_ERR
-  else if arg.NodeType <> FNodeType then
-    Result := HIERARCHY_REQUEST_ERR;
+    Result := WRONG_DOCUMENT_ERR;
+{ Note: Since Entity and Notation maps are always read-only, and the AttributeMap
+  overrides this method and does its own check for correct arg.NodeType, there's
+  no point in checking NodeType here. }
 end;
 
 function TDOMNamedNodeMap.SetNamedItem(arg: TDOMNode): TDOMNode;
@@ -2089,16 +2093,18 @@ function TDOMImplementation.CreateDocumentType(const QualifiedName, PublicID,
   SystemID: DOMString): TDOMDocumentType;
 var
   res: Integer;
+  model: TDTDModel;
 begin
   res := CheckQName(QualifiedName, -1, False);
   if res < 0 then
     raise EDOMError.Create(-res, 'Implementation.CreateDocumentType');
-  Result := TDOMDocumentType.Create(nil);
-  Result.FName := QualifiedName;
-
+  model := TDTDModel.Create(nil); // !!nowhere to get nametable from at this time
+  model.FName := QualifiedName;
   // DOM does not restrict PublicID without SystemID (unlike XML spec)
-  Result.FPublicID := PublicID;
-  Result.FSystemID := SystemID;
+  model.FPublicID := PublicID;
+  model.FSystemID := SystemID;
+  Result := TDOMDocumentType.Create(nil, model);
+  model.Release;                  // now Result remains a sole owner of model
 end;
 
 function TDOMImplementation.CreateDocument(const NamespaceURI,
@@ -2157,6 +2163,33 @@ begin
   FreeMem(FPools);
   FNames.Free;           // free the nametable after inherited has destroyed the children
                          // (because children reference the nametable)
+end;
+
+function TDOMDocument.CloneNode(deep: Boolean): TDOMNode;
+type
+  TDOMDocumentClass = class of TDOMDocument;
+var
+  Clone: TDOMDocument;
+  node, doctypenode: TDOMNode;
+begin
+  Clone := TDOMDocumentClass(ClassType).Create;
+  Clone.FInputEncoding := FInputEncoding;
+  Clone.FXMLEncoding := FXMLEncoding;
+  Clone.FXMLVersion := FXMLVersion;
+  Clone.FURI := FURI;
+  if deep then
+  begin
+    node := FirstChild;
+    doctypenode := DocType;
+    while Assigned(node) do
+    begin
+      {TODO: now just skip doctype, a better solution is to be found.}
+      if node <> doctypenode then
+        Clone.InternalAppend(node.CloneNode(True, Clone));
+      node := node.NextSibling;
+    end;
+  end;
+  Result := Clone;
 end;
 
 function TDOMDocument.Alloc(AClass: TDOMNodeClass): TDOMNode;
@@ -2367,6 +2400,7 @@ begin
   Include(Result.FFlags, nfSpecified);
 end;
 
+{deprecated}
 function TDOMDocument.CreateAttributeDef(Buf: DOMPChar; Length: Integer): TDOMAttrDef;
 begin
 // not using custom allocation here
@@ -2907,7 +2941,7 @@ end;
 function TDOMElement.GetAttributes: TDOMNamedNodeMap;
 begin
   if FAttributes=nil then
-    FAttributes := TAttributeMap.Create(Self, ATTRIBUTE_NODE);
+    FAttributes := TAttributeMap.Create(Self);
   Result := FAttributes;
 end;
 
@@ -3176,11 +3210,60 @@ end;
 
 function TDOMDocumentType.GetNodeName: DOMString;
 begin
-  Result := FName;
+  Result := FModel.FName;
+end;
+
+function TDOMDocumentType.GetPublicID: DOMString;
+begin
+  Result := FModel.FPublicID;
+end;
+
+function TDOMDocumentType.GetSystemID: DOMString;
+begin
+  Result := FModel.FSystemID;
+end;
+
+function TDOMDocumentType.GetInternalSubset: DOMString;
+begin
+  Result := FModel.FInternalSubset;
+end;
+
+function ConvertEntity(Entry: PHashItem; arg: Pointer): Boolean;
+var
+  this: TDOMDocumentType absolute arg;
+  node: TDOMEntity;
+begin
+  node := TDOMEntity.Create(this.ownerDocument);
+  node.FDecl := TEntityDecl(Entry^.Data);
+  node.SetReadOnly(True);
+  this.Entities.SetNamedItem(node);
+  Result := True;
+end;
+
+function ConvertNotation(Entry: PHashItem; arg: Pointer): Boolean;
+var
+  this: TDOMDocumentType absolute arg;
+  node: TDOMNotation;
+begin
+  node := TDOMNotation.Create(this.ownerDocument);
+  node.FDecl := TNotationDecl(Entry^.Data);
+  node.SetReadOnly(True);
+  this.Notations.SetNamedItem(node);
+  Result := True;
+end;
+
+constructor TDOMDocumentType.Create(aOwner: TDOMDocument; aModel: TDTDModel);
+begin
+  inherited Create(aOwner);
+  FModel := aModel.Reference;
+  FModel.Entities.ForEach(@ConvertEntity, Self);
+  FModel.Notations.ForEach(@ConvertNotation, Self);
+  SetReadOnly(True);
 end;
 
 destructor TDOMDocumentType.Destroy;
 begin
+  FModel.Release;
   FEntities.Free;
   FNotations.Free;
   inherited Destroy;
@@ -3189,14 +3272,14 @@ end;
 function TDOMDocumentType.GetEntities: TDOMNamedNodeMap;
 begin
   if FEntities = nil then
-    FEntities := TDOMNamedNodeMap.Create(Self, ENTITY_NODE);
+    FEntities := TDOMNamedNodeMap.Create(Self);
   Result := FEntities;
 end;
 
 function TDOMDocumentType.GetNotations: TDOMNamedNodeMap;
 begin
   if FNotations = nil then
-    FNotations := TDOMNamedNodeMap.Create(Self, NOTATION_NODE);
+    FNotations := TDOMNamedNodeMap.Create(Self);
   Result := FNotations;
 end;
 
@@ -3211,16 +3294,24 @@ end;
 
 function TDOMNotation.GetNodeName: DOMString;
 begin
-  Result := FName;
+  Result := FDecl.FName;
+end;
+
+function TDOMNotation.GetPublicID: DOMString;
+begin
+  Result := FDecl.FPublicID;
+end;
+
+function TDOMNotation.GetSystemID: DOMString;
+begin
+  Result := FDecl.FSystemID;
 end;
 
 function TDOMNotation.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
 begin
   Result := ACloneOwner.Alloc(TDOMNotation);
   TDOMNotation(Result).Create(ACloneOwner);
-  TDOMNotation(Result).FName := FName;
-  TDOMNotation(Result).FPublicID := PublicID;
-  TDOMNotation(Result).FSystemID := SystemID;
+  TDOMNotation(Result).FDecl := FDecl;
   // notation cannot have children, ignore Deep
 end;
 
@@ -3236,17 +3327,29 @@ end;
 
 function TDOMEntity.GetNodeName: DOMString;
 begin
-  Result := FName;
+  Result := FDecl.FName;
+end;
+
+function TDOMEntity.GetPublicID: DOMString;
+begin
+  Result := FDecl.FPublicID;
+end;
+
+function TDOMEntity.GetSystemID: DOMString;
+begin
+  Result := FDecl.FSystemID;
+end;
+
+function TDOMEntity.GetNotationName: DOMString;
+begin
+  Result := FDecl.FNotationName;
 end;
 
 function TDOMEntity.CloneNode(deep: Boolean; aCloneOwner: TDOMDocument): TDOMNode;
 begin
   Result := aCloneOwner.Alloc(TDOMEntity);
   TDOMEntity(Result).Create(aCloneOwner);
-  TDOMEntity(Result).FName := FName;
-  TDOMEntity(Result).FSystemID := FSystemID;
-  TDOMEntity(Result).FPublicID := FPublicID;
-  TDOMEntity(Result).FNotationName := FNotationName;
+  TDOMEntity(Result).FDecl := FDecl;
   if deep then
     CloneChildren(Result, aCloneOwner);
   Result.SetReadOnly(True);
@@ -3302,7 +3405,7 @@ begin
   FNodeValue := AValue;
 end;
 
-{ TDOMAttrDef }
+{ TDOMAttrDef (DEPRECATED) }
 
 function TDOMAttrDef.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
 begin

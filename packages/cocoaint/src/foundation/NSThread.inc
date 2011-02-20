@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSThread.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSTHREAD_PAS_T}

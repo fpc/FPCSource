@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSSavePanel.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSSAVEPANEL_PAS_T}
@@ -118,8 +116,8 @@ __SPFlagsPtr = ^__SPFlags;
     procedure setAllowsOtherFileTypes(flag: Boolean); message 'setAllowsOtherFileTypes:';
     function accessoryView: NSView; message 'accessoryView';
     procedure setAccessoryView(view: NSView); message 'setAccessoryView:';
-    function delegate: id; message 'delegate';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
+    function delegate: NSOpenSavePanelDelegateProtocol; message 'delegate';
+    procedure setDelegate(delegate_: NSOpenSavePanelDelegateProtocol); message 'setDelegate:';
     function isExpanded: Boolean; message 'isExpanded';
     function canCreateDirectories: Boolean; message 'canCreateDirectories';
     procedure setCanCreateDirectories(flag: Boolean); message 'setCanCreateDirectories:';
@@ -174,6 +172,7 @@ __SPFlagsPtr = ^__SPFlags;
   
 { NSOpenSavePanelDelegate Protocol }
   NSOpenSavePanelDelegateProtocol = objcprotocol external name 'NSOpenSavePanelDelegate'
+  optional
     function panel_shouldEnableURL(sender: id; url: NSURL): Boolean; message 'panel:shouldEnableURL:';
     function panel_validateURL_error(sender: id; url: NSURL; outError: NSErrorPointer): Boolean; message 'panel:validateURL:error:';
     procedure panel_didChangeToDirectoryURL(sender: id; url: NSURL); message 'panel:didChangeToDirectoryURL:';

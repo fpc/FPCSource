@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSProgressIndicator.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSPROGRESSINDICATOR_PAS_T}
@@ -131,9 +129,9 @@ const
 
 { NSProgressIndicatorDeprecatedCategory }
   NSProgressIndicatorDeprecatedCategory = objccategory external (NSProgressIndicator)
-    function animationDelay: NSTimeInterval; message 'animationDelay';
-    procedure setAnimationDelay(delay: NSTimeInterval); message 'setAnimationDelay:';
-    procedure animate(sender: id); message 'animate:';
+    function animationDelay: NSTimeInterval; message 'animationDelay'; deprecated 'in Mac OS X 10.6 and later';
+    procedure setAnimationDelay(delay: NSTimeInterval); message 'setAnimationDelay:'; deprecated 'in Mac OS X 10.6 and later';
+    procedure animate(sender: id); message 'animate:'; deprecated 'in Mac OS X 10.6 and later';
   end;
 
 {$endif}

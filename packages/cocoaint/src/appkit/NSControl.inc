@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSControl.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSCONTROL_PAS_T}
@@ -96,7 +94,7 @@ var
     procedure setFont(fontObj: NSFont); message 'setFont:';
     procedure setFormatter(newFormatter: NSFormatter); message 'setFormatter:';
     function formatter: id; message 'formatter';
-    procedure setObjectValue(obj: id); message 'setObjectValue:';
+    procedure setObjectValue(obj: NSCopyingProtocol); message 'setObjectValue:';
     procedure setStringValue(aString: NSString); message 'setStringValue:';
     procedure setIntValue(anInt: cint); message 'setIntValue:';
     procedure setFloatValue(aFloat: single); message 'setFloatValue:';
@@ -162,6 +160,7 @@ var
   
 { NSControlTextEditingDelegate Protocol }
   NSControlTextEditingDelegateProtocol = objcprotocol external name 'NSControlTextEditingDelegate'
+  optional
     function control_textShouldBeginEditing(control: NSControl; fieldEditor: NSText): Boolean; message 'control:textShouldBeginEditing:';
     function control_textShouldEndEditing(control: NSControl; fieldEditor: NSText): Boolean; message 'control:textShouldEndEditing:';
     function control_didFailToFormatString_errorDescription(control: NSControl; string_: NSString; error: NSString): Boolean; message 'control:didFailToFormatString:errorDescription:';

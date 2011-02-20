@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSObjectController.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSOBJECTCONTROLLER_PAS_T}
@@ -87,7 +85,7 @@
     function canAdd: Boolean; message 'canAdd';
     procedure remove(sender: id); message 'remove:';
     function canRemove: Boolean; message 'canRemove';
-    function validateUserInterfaceItem(item: id): Boolean; message 'validateUserInterfaceItem:';
+    function validateUserInterfaceItem(item: NSValidatedUserInterfaceItemProtocol): Boolean; message 'validateUserInterfaceItem:';
   end;
 
 { NSManagedControllerCategory }

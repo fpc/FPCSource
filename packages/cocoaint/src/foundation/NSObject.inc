@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSObject.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSOBJECT_PAS_T}
@@ -175,6 +173,7 @@ function NSExtraRefCount(object_: id): NSUInteger; cdecl; external;
   
 { NSDiscardableContent Protocol }
   NSDiscardableContentProtocol = objcprotocol external name 'NSDiscardableContent'
+  required
     function beginContentAccess: Boolean; message 'beginContentAccess';
     procedure endContentAccess; message 'endContentAccess';
     procedure discardContentIfPossible; message 'discardContentIfPossible';

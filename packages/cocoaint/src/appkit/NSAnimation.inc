@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSAnimation.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSANIMATION_PAS_T}
@@ -138,8 +136,8 @@ var
     procedure setAnimationCurve(curve: NSAnimationCurve); message 'setAnimationCurve:';
     function animationCurve: NSAnimationCurve; message 'animationCurve';
     function currentValue: single; message 'currentValue';
-    procedure setDelegate(delegate_: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(delegate_: NSAnimationDelegateProtocol); message 'setDelegate:';
+    function delegate: NSAnimationDelegateProtocol; message 'delegate';
     function progressMarks: NSArray; message 'progressMarks';
     procedure setProgressMarks(progressMarks_: NSArray); message 'setProgressMarks:';
     procedure addProgressMark(progressMark: NSAnimationProgress); message 'addProgressMark:';
@@ -191,6 +189,7 @@ var
   
 { NSAnimationDelegate Protocol }
   NSAnimationDelegateProtocol = objcprotocol external name 'NSAnimationDelegate'
+  optional
     function animationShouldStart(animation: NSAnimation): Boolean; message 'animationShouldStart:';
     procedure animationDidStop(animation: NSAnimation); message 'animationDidStop:';
     procedure animationDidEnd(animation: NSAnimation); message 'animationDidEnd:';
@@ -200,6 +199,7 @@ var
   
 { NSAnimatablePropertyContainer Protocol }
   NSAnimatablePropertyContainerProtocol = objcprotocol external name 'NSAnimatablePropertyContainer'
+  optional
     function animator: id; message 'animator';
     function animations: NSDictionary; message 'animations';
     procedure setAnimations(dict: NSDictionary); message 'setAnimations:';

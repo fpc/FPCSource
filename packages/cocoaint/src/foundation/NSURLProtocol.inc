@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSURLProtocol.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSURLPROTOCOL_PAS_T}
@@ -48,8 +46,8 @@
     _internal: NSURLProtocolInternal;
     
   public
-    function initWithRequest_cachedResponse_client(request_: NSURLRequest; cachedResponse_: NSCachedURLResponse; client_: id): id; message 'initWithRequest:cachedResponse:client:';
-    function client: id; message 'client';
+    function initWithRequest_cachedResponse_client(request_: NSURLRequest; cachedResponse_: NSCachedURLResponse; client_: NSURLProtocolClientProtocol): id; message 'initWithRequest:cachedResponse:client:';
+    function client: NSURLProtocolClientProtocol; message 'client';
     function request: NSURLRequest; message 'request';
     function cachedResponse: NSCachedURLResponse; message 'cachedResponse';
     class function canInitWithRequest(request_: NSURLRequest): Boolean; message 'canInitWithRequest:';

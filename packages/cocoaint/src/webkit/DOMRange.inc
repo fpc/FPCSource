@@ -1,6 +1,4 @@
 { Parsed from Webkit.framework DOMRange.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:41 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef DOMRANGE_PAS_T}
@@ -91,9 +89,9 @@ const
 
 { DOMRangeDeprecatedCategory }
   DOMRangeDeprecatedCategory = objccategory external (DOMRange)
-    procedure setStart(refNode: DOMNode; offset: cint); message 'setStart:refNode:';
-    procedure setEnd(refNode: DOMNode; offset: cint); message 'setEnd:refNode:';
-    function compareBoundaryPoints(how: cushort; sourceRange: DOMRange): cshort; message 'compareBoundaryPoints:how:';
+    procedure setStart(refNode: DOMNode; offset: cint); message 'setStart:refNode:'; deprecated 'in_webkit_version_3 and later';
+    procedure setEnd(refNode: DOMNode; offset: cint); message 'setEnd:refNode:'; deprecated 'in_webkit_version_3 and later';
+    function compareBoundaryPoints(how: cushort; sourceRange: DOMRange): cshort; message 'compareBoundaryPoints:how:'; deprecated 'in_webkit_version_3 and later';
   end;
 
 {$endif}

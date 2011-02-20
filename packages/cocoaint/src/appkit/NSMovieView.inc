@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSMovieView.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSMOVIEVIEW_PAS_T}
@@ -84,7 +82,7 @@ __MVFlagsPtr = ^__MVFlags;
     _fReserved3: culong;
     
   public
-    procedure setMovie(movie: NSMovie); message 'setMovie:'; deprecated 'in Mac OS X 10.5 and later';
+    procedure setMovie(movie_: NSMovie); message 'setMovie:'; deprecated 'in Mac OS X 10.5 and later';
     function movie: NSMovie; message 'movie'; deprecated 'in Mac OS X 10.5 and later';
     function movieController: Pointer; message 'movieController'; deprecated 'in Mac OS X 10.5 and later';
     function movieRect: NSRect; message 'movieRect'; deprecated 'in Mac OS X 10.5 and later';
@@ -96,9 +94,9 @@ __MVFlagsPtr = ^__MVFlags;
     procedure gotoEnd(sender: id); message 'gotoEnd:'; deprecated 'in Mac OS X 10.5 and later';
     procedure stepForward(sender: id); message 'stepForward:'; deprecated 'in Mac OS X 10.5 and later';
     procedure stepBack(sender: id); message 'stepBack:'; deprecated 'in Mac OS X 10.5 and later';
-    procedure setRate(rate: single); message 'setRate:'; deprecated 'in Mac OS X 10.5 and later';
+    procedure setRate(rate_: single); message 'setRate:'; deprecated 'in Mac OS X 10.5 and later';
     function rate: single; message 'rate'; deprecated 'in Mac OS X 10.5 and later';
-    procedure setVolume(volume: single); message 'setVolume:'; deprecated 'in Mac OS X 10.5 and later';
+    procedure setVolume(volume_: single); message 'setVolume:'; deprecated 'in Mac OS X 10.5 and later';
     function volume: single; message 'volume'; deprecated 'in Mac OS X 10.5 and later';
     procedure setMuted(mute: Boolean); message 'setMuted:'; deprecated 'in Mac OS X 10.5 and later';
     function isMuted: Boolean; message 'isMuted'; deprecated 'in Mac OS X 10.5 and later';
@@ -117,12 +115,12 @@ __MVFlagsPtr = ^__MVFlags;
     procedure cut(sender: id); message 'cut:'; deprecated 'in Mac OS X 10.5 and later';
     procedure copy_(sender: id); message 'copy:'; deprecated 'in Mac OS X 10.5 and later';
     procedure paste(sender: id); message 'paste:'; deprecated 'in Mac OS X 10.5 and later';
-    procedure delete(sender: id); message 'delete:';
+    procedure delete(sender: id); message 'delete:'; deprecated 'in Mac OS X 10.5 and later';
     procedure selectAll(sender: id); message 'selectAll:'; deprecated 'in Mac OS X 10.5 and later';
     procedure clear(sender: id); message 'clear:'; deprecated 'in Mac OS X 10.5 and later';
 
     { Adopted Protocols }
-    function validateUserInterfaceItem(anItem: id): Boolean;
+    function validateUserInterfaceItem(anItem: NSValidatedUserInterfaceItemProtocol): Boolean;
   end;
 
 {$endif}

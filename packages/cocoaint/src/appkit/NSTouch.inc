@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSTouch.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSTOUCH_PAS_T}

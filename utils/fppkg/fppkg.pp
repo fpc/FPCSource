@@ -107,7 +107,7 @@ begin
   else
     pkgglobals.Log(vlDebug,SLogLoadingGlobalConfig,[cfgfile]);
   // Log configuration
-  GlobalOptions.LogValues;
+  GlobalOptions.LogValues(vlDebug);
 end;
 
 
@@ -146,7 +146,7 @@ begin
         Error(SErrMissingCompilerConfig,[S]);
     end;
   // Log compiler configuration
-  CompilerOptions.LogValues('');
+  CompilerOptions.LogValues(vlDebug,'');
   // Load FPMake compiler config, this is normally the same config as above
   S:=GlobalOptions.CompilerConfigDir+GlobalOptions.FPMakeCompilerConfig;
   FPMakeCompilerOptions.UpdateLocalRepositoryOption;
@@ -160,7 +160,7 @@ begin
   else
     Error(SErrMissingCompilerConfig,[S]);
   // Log compiler configuration
-  FPMakeCompilerOptions.LogValues('fpmake-building ');
+  FPMakeCompilerOptions.LogValues(vlDebug,'fpmake-building ');
 end;
 
 
@@ -195,6 +195,7 @@ begin
   Writeln('  download          Download package');
   Writeln('  convertmk         Convert Makefile.fpc to fpmake.pp');
   Writeln('  fixbroken         Recompile all (broken) packages with changed dependencies');
+  Writeln('  listsettings      Show the values for all fppkg settings');
 //  Writeln('  addconfig          Add a compiler configuration for the supplied compiler');
   Halt(0);
 end;

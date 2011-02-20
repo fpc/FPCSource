@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSPasteboard.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:19 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSPASTEBOARD_PAS_T}
@@ -189,14 +187,19 @@ var
   
 { NSPasteboardWriting Protocol }
   NSPasteboardWritingProtocol = objcprotocol external name 'NSPasteboardWriting'
+  required
     function writableTypesForPasteboard(pasteboard: NSPasteboard): NSArray; message 'writableTypesForPasteboard:';
+  optional
     function writingOptionsForType_pasteboard(type_: NSString; pasteboard: NSPasteboard): NSPasteboardWritingOptions; message 'writingOptionsForType:pasteboard:';
+  required
     function pasteboardPropertyListForType(type_: NSString): id; message 'pasteboardPropertyListForType:';
   end;
   
 { NSPasteboardReading Protocol }
   NSPasteboardReadingProtocol = objcprotocol external name 'NSPasteboardReading'
+  required
     class function readableTypesForPasteboard(pasteboard: NSPasteboard): NSArray; message 'readableTypesForPasteboard:';
+  optional
     class function readingOptionsForType_pasteboard(type_: NSString; pasteboard: NSPasteboard): NSPasteboardReadingOptions; message 'readingOptionsForType:pasteboard:';
     function initWithPasteboardPropertyList_ofType(propertyList: id; type_: NSString): id; message 'initWithPasteboardPropertyList:ofType:';
   end;

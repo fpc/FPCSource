@@ -812,8 +812,12 @@ begin
         Result:=TMemoryStream.Create;
         V2:=Value;
         if (Field.DataType=ftGraphic) then
+          begin
           Result.WriteAnsiString('bmp');
-        Result.WriteBuffer(V2^,D-SizeOf(TGraphicHeader));
+          Result.WriteBuffer(V2^,D-SizeOf(TGraphicHeader));
+          end
+        else
+          Result.WriteBuffer(V2^,D);
         Result.Position:=0;
         FDoc^.free(FDoc,Value);
         end;

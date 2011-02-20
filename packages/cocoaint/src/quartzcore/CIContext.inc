@@ -1,6 +1,4 @@
 { Parsed from Quartzcore.framework CIContext.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef CICONTEXT_PAS_T}
@@ -54,7 +52,7 @@ var
     
   public
     class function contextWithCGLContext_pixelFormat_colorSpace_options(ctx: CGLContextObj; pf: CGLPixelFormatObj; cs: CGColorSpaceRef; dict: NSDictionary): CIContext; message 'contextWithCGLContext:pixelFormat:colorSpace:options:';
-    class function contextWithCGLContext_pixelFormat_options(ctx: CGLContextObj; pf: CGLPixelFormatObj; dict: NSDictionary): CIContext; message 'contextWithCGLContext:pixelFormat:options:';
+    class function contextWithCGLContext_pixelFormat_options(ctx: CGLContextObj; pf: CGLPixelFormatObj; dict: NSDictionary): CIContext; message 'contextWithCGLContext:pixelFormat:options:'; deprecated 'in Mac OS X 10.6 and later';
     class function contextWithCGContext_options(ctx: CGContextRef; dict: NSDictionary): CIContext; message 'contextWithCGContext:options:';
     procedure drawImage_atPoint_fromRect(im: CIImage; p: CGPoint; src: CGRect); message 'drawImage:atPoint:fromRect:';
     procedure drawImage_inRect_fromRect(im: CIImage; dest: CGRect; src: CGRect); message 'drawImage:inRect:fromRect:';

@@ -1,6 +1,4 @@
 { Parsed from Foundation.framework NSObjCRuntime.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:57 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSOBJCRUNTIME_PAS_T}
@@ -54,9 +52,18 @@ const
   NSFoundationVersionNumber10_5_4 = 677.19;
   NSFoundationVersionNumber10_5_5 = 677.21;
   NSFoundationVersionNumber10_5_6 = 677.22;
+  NSFoundationVersionNumber10_5_7 = 677.24;
+  NSFoundationVersionNumber10_5_8 = 677.26;
+  NSFoundationVersionNumber10_6 = 751.00;
+  NSFoundationVersionNumber10_6_1 = 751.00;
+  NSFoundationVersionNumber10_6_2 = 751.14;
+  NSFoundationVersionNumber10_6_3 = 751.21;
   NSFoundationVersionNumber_iPhoneOS_2_0 = 678.24;
   NSFoundationVersionNumber_iPhoneOS_2_1 = 678.26;
   NSFoundationVersionNumber_iPhoneOS_2_2 = 678.29;
+  NSFoundationVersionNumber_iPhoneOS_3_0 = 678.47;
+  NSFoundationVersionNumber_iPhoneOS_3_1 = 678.51;
+  NSFoundationVersionNumber_iPhoneOS_3_2 = 678.60;
   NSINTEGER_DEFINED = 1;
 
 { Types }

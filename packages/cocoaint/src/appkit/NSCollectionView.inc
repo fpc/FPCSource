@@ -1,6 +1,4 @@
 { Parsed from Appkit.framework NSCollectionView.h }
-{ Version: 2.1.4 - Sun Jan 2 15:08:20 CET 2011 }
-
 
 {$ifdef TYPES}
 {$ifndef NSCOLLECTIONVIEW_PAS_T}
@@ -135,8 +133,8 @@ const
         _reserved: array[0..15] of Pointer;
     
   public
-    procedure setDelegate(aDelegate: id); message 'setDelegate:';
-    function delegate: id; message 'delegate';
+    procedure setDelegate(aDelegate: NSCollectionViewDelegateProtocol); message 'setDelegate:';
+    function delegate: NSCollectionViewDelegateProtocol; message 'delegate';
     function isFirstResponder: Boolean; message 'isFirstResponder';
     procedure setContent(content_: NSArray); message 'setContent:';
     function content: NSArray; message 'content';
@@ -173,12 +171,13 @@ const
   
 { NSCollectionViewDelegate Protocol }
   NSCollectionViewDelegateProtocol = objcprotocol external name 'NSCollectionViewDelegate'
+  optional
     function collectionView_canDragItemsAtIndexes_withEvent(collectionView: NSCollectionView; indexes: NSIndexSet; event: NSEvent): Boolean; message 'collectionView:canDragItemsAtIndexes:withEvent:';
     function collectionView_writeItemsAtIndexes_toPasteboard(collectionView: NSCollectionView; indexes: NSIndexSet; pasteboard: NSPasteboard): Boolean; message 'collectionView:writeItemsAtIndexes:toPasteboard:';
     function collectionView_namesOfPromisedFilesDroppedAtDestination_forDraggedItemsAtIndexes(collectionView: NSCollectionView; dropURL: NSURL; indexes: NSIndexSet): NSArray; message 'collectionView:namesOfPromisedFilesDroppedAtDestination:forDraggedItemsAtIndexes:';
     function collectionView_draggingImageForItemsAtIndexes_withEvent_offset(collectionView: NSCollectionView; indexes: NSIndexSet; event: NSEvent; dragImageOffset: NSPointPointer): NSImage; message 'collectionView:draggingImageForItemsAtIndexes:withEvent:offset:';
-    function collectionView_validateDrop_proposedIndex_dropOperation(collectionView: NSCollectionView; draggingInfo: id; proposedDropIndex: NSIntegerPtr; proposedDropOperation: NSCollectionViewDropOperationPtr): NSDragOperation; message 'collectionView:validateDrop:proposedIndex:dropOperation:';
-    function collectionView_acceptDrop_index_dropOperation(collectionView: NSCollectionView; draggingInfo: id; index: NSInteger; dropOperation: NSCollectionViewDropOperation): Boolean; message 'collectionView:acceptDrop:index:dropOperation:';
+    function collectionView_validateDrop_proposedIndex_dropOperation(collectionView: NSCollectionView; draggingInfo: NSDraggingInfoProtocol; proposedDropIndex: NSIntegerPtr; proposedDropOperation: NSCollectionViewDropOperationPtr): NSDragOperation; message 'collectionView:validateDrop:proposedIndex:dropOperation:';
+    function collectionView_acceptDrop_index_dropOperation(collectionView: NSCollectionView; draggingInfo: NSDraggingInfoProtocol; index: NSInteger; dropOperation: NSCollectionViewDropOperation): Boolean; message 'collectionView:acceptDrop:index:dropOperation:';
   end;
 {$endif}
 {$endif}

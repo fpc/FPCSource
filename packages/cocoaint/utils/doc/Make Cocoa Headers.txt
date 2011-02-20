@@ -1,0 +1,2 @@
+1) cd to the directory which contains parser.php
+2) php parser.php -cocoa -root="/Developer/ObjectivePascal"
