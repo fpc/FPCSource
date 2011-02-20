@@ -357,7 +357,9 @@ type
 
     procedure DoError(Severity: TErrorSeverity; const descr: string; LineOffs: Integer=0);
     procedure DoErrorPos(Severity: TErrorSeverity; const descr: string;
-      const ErrPos: TLocation);
+      const ErrPos: TLocation); overload;
+    procedure DoErrorPos(Severity: TErrorSeverity; const descr: string;
+      const args: array of const; const ErrPos: TLocation); overload;
     procedure FatalError(const descr: String; LineOffs: Integer=0); overload;
     procedure FatalError(const descr: string; const args: array of const; LineOffs: Integer=0); overload;
     procedure FatalError(Expected: WideChar); overload;
@@ -385,7 +387,6 @@ type
     procedure ParseStartTag;                                            // [39]
     procedure ParseEndTag;                                              // [42]
     procedure DoStartElement;
-    procedure DoEndElement;
     procedure HandleEntityStart;
     procedure HandleEntityEnd;
     procedure ResolveEntity;
@@ -417,7 +418,7 @@ type
     procedure PopVC;
     procedure UpdateConstraints;
     procedure ValidateDTD;
-    procedure ValidateRoot;
+    procedure ValidateCurrentNode;
     procedure ValidationError(const Msg: string; const args: array of const; LineOffs: Integer = -1);
     procedure ValidationErrorWithName(const Msg: string; LineOffs: Integer = -1);
     procedure DTDReloadHook;
@@ -1067,6 +1068,12 @@ begin
   end
   else
     DoErrorPos(Severity, descr, FTokenStart);
+end;
+
+procedure TXMLReader.DoErrorPos(Severity: TErrorSeverity; const descr: string;
+  const args: array of const; const ErrPos: TLocation);
+begin
+  DoErrorPos(Severity, Format(descr, args), ErrPos);
 end;
 
 procedure TXMLReader.DoErrorPos(Severity: TErrorSeverity; const descr: string; const ErrPos: TLocation);
@@ -1931,8 +1938,6 @@ begin
   SetString(NameStr, FName.Buffer, FName.Length);
   SetString(ValueStr, FValue.Buffer, FValue.Length);
   // SAX: ContentHandler.ProcessingInstruction(Name, Value);
-  if FCurrContentType = ctEmpty then
-    ValidationError('Processing instructions are not allowed within EMPTY elements', []);
 
   PINode := Doc.CreateProcessingInstruction(NameStr, ValueStr);
   FCursorStack[FNesting].InternalAppend(PINode);
@@ -2383,7 +2388,7 @@ begin
               if not AttDef.AddEnumToken(FName.Buffer, FName.Length) then
                 ValidationError('Duplicate token in NOTATION attribute declaration',[], FName.Length);
 
-              if not DiscardIt then
+              if (not DiscardIt) and FValidate then
                 AddForwardRef(FName.Buffer, FName.Length);
               SkipWhitespace;
             until not CheckForChar('|');
@@ -2494,7 +2499,8 @@ begin
           ExpectWhitespace;
           StoreLocation(FTokenStart);
           Entity.FNotationName := ExpectName;
-          AddForwardRef(FName.Buffer, FName.Length);
+          if FValidate then
+            AddForwardRef(FName.Buffer, FName.Length);
           // SAX: DTDHandler.UnparsedEntityDecl(...);
         end;
       end;
@@ -2669,6 +2675,67 @@ begin
   end;
 end;
 
+procedure TXMLReader.ValidateCurrentNode;
+var
+  ElDef: TElementDecl;
+begin
+  case FCurrNode^.FNodeType of
+    ntElement:
+      begin
+        { TODO: pushing *validation* context must be moved here }
+        if (FNesting = 1) and (not FFragmentMode) then
+        begin
+          if Assigned(FDocType) then
+          begin
+            if FDocType.FName <> FCurrNode^.FQName^.Key then
+              DoErrorPos(esError, 'Root element name does not match DTD', FCurrNode^.FLoc);
+          end
+          else
+            DoErrorPos(esError, 'Missing DTD', FCurrNode^.FLoc);
+        end;
+        ElDef := TElementDecl(FCurrNode^.FQName^.Data);
+        if (ElDef = nil) or (ElDef.ContentType = ctUndeclared) then
+          DoErrorPos(esError, 'Using undeclared element ''%s''',[FCurrNode^.FQName^.Key], FCurrNode^.FLoc);
+
+        if not FValidators[FNesting-1].IsElementAllowed(ElDef) then
+          DoErrorPos(esError, 'Element ''%s'' is not allowed in this context',[FCurrNode^.FQName^.Key], FCurrNode^.FLoc);
+      end;
+
+    ntEndElement:
+      begin
+        if FValidators[FNesting].Incomplete then
+          ValidationError('Element ''%s'' is missing required sub-elements', [FCurrNode^.FQName^.Key], -1);
+      end;
+
+    ntText, ntWhitespace:
+      case FCurrContentType of
+        ctChildren:
+          if FCurrNode^.FNodeType = ntText then
+            ValidationError('Character data is not allowed in element-only content',[])
+          else
+            if FSaViolation then
+              StandaloneError(-1);
+        ctEmpty:
+          ValidationError('Character data is not allowed in EMPTY elements', []);
+      end;
+
+    ntCDATA:
+      if FCurrContentType = ctChildren then
+        ValidationError('CDATA sections are not allowed in element-only content',[]);
+
+    ntProcessingInstruction:
+      if FCurrContentType = ctEmpty then
+        ValidationError('Processing instructions are not allowed within EMPTY elements', []);
+
+    ntComment:
+      if FCurrContentType = ctEmpty then
+        ValidationError('Comments are not allowed within EMPTY elements', []);
+
+    ntDocumentType:
+      ValidateDTD;
+  end;
+end;
+
 procedure TXMLReader.DoEntityReference;
 begin
   FCursorStack[FNesting].AppendChild(doc.CreateEntityReference(FCurrNode^.FQName^.Key));
@@ -2799,8 +2866,8 @@ const
   );
 
   textNodeTypes: array[Boolean] of TXMLNodeType = (
-    ntText,
-    ntWhitespace
+    ntWhitespace,
+    ntText
   );
 
 procedure TXMLReader.ParseContent;
@@ -2808,9 +2875,11 @@ begin
   FNext := xtText;
   while Read do
   begin
+    if FValidate then
+      ValidateCurrentNode;
     case FCurrNode^.FNodeType of
       ntText, ntWhitespace:
-        DoText(FValue.Buffer, FValue.Length, FToken = xtWhitespace);
+        DoText(FValue.Buffer, FValue.Length, FCurrNode^.FNodeType = ntWhitespace);
       ntCDATA:
         DoCDSect(FValue.Buffer, FValue.Length);
       ntProcessingInstruction:
@@ -2820,10 +2889,9 @@ begin
       ntElement:
         DoStartElement;
       ntEndElement:
-        DoEndElement;
+        ;
       ntDocumentType:
         begin
-          ValidateDTD;
           if not FCanonical then
             doc.AppendChild(TDOMDocumentType.Create(doc, FDocType));
         end;
@@ -3039,25 +3107,18 @@ begin
     FatalError('Only one top-level element allowed', FName.Length)
   else if FState < rsRoot then
   begin
-    if FValidate then
-      ValidateRoot;
+    // dispose notation refs from DTD, if any
+    ClearForwardRefs;
     FState := rsRoot;
   end;
 
   // we're about to process a new set of attributes
   Inc(FAttrTag);
 
-  // Remember the hash entry, we'll need it often
+  // Get hash entry for element name
   ElName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
-
   // Find declaration for this element
   ElDef := TElementDecl(ElName^.Data);
-  if (ElDef = nil) or (ElDef.ContentType = ctUndeclared) then
-    ValidationError('Using undeclared element ''%s''',[ElName^.Key], FName.Length);
-
-  // Check if new element is allowed in current context
-  if FValidate and not FValidators[FNesting].IsElementAllowed(ElDef) then
-    ValidationError('Element ''%s'' is not allowed in this context',[ElName^.Key], FName.Length);
 
   IsEmpty := False;
   FAttrCount := 0;
@@ -3068,7 +3129,7 @@ begin
   FCurrNode^.FQName := ElName;
   FCurrNode^.FNodeType := ntElement;
   FCurrNode^.FColonPos := FColonPos;
-  FCurrNode^.FLoc := FTokenStart;
+  StoreLocation(FCurrNode^.FLoc);
   Dec(FCurrNode^.FLoc.LinePos, FName.Length);
 
   if FNamespaces then
@@ -3102,7 +3163,8 @@ begin
   if FNamespaces then
   begin
     { Assign namespace URIs to prefixed attrs }
-    ProcessNamespaceAtts;
+    if FPrefixedAttrs <> 0 then
+      ProcessNamespaceAtts;
     { Expand the element name }
     if Assigned(FCurrNode^.FPrefix) then
     begin
@@ -3130,12 +3192,6 @@ begin
   end
   else
     FNext := xtPopEmptyElement;
-end;
-
-procedure TXMLReader.DoEndElement;
-begin
-  if FValidate and FValidators[FNesting].Incomplete then
-    ValidationError('Element ''%s'' is missing required sub-elements', [FNodeStack[FNesting].FQName^.Key], -1);
 end;
 
 procedure TXMLReader.ParseEndTag;     // [42]
@@ -3274,7 +3330,7 @@ begin
   for I := 0 to FForwardRefs.Count-1 do
     with PForwardRef(FForwardRefs.List^[I])^ do
       if (FIDMap = nil) or (FIDMap.Find(PWideChar(Value), Length(Value)) = nil) then
-        DoErrorPos(esError, Format('The ID ''%s'' does not match any element', [Value]), Loc);
+        DoErrorPos(esError, 'The ID ''%s'' does not match any element', [Value], Loc);
   ClearForwardRefs;
 end;
 
@@ -3360,9 +3416,6 @@ var
   attrData: PNodeData;
   b: TBinding;
 begin
-  if FPrefixedAttrs = 0 then
-    Exit;
-
   FNsAttHash.Init(FPrefixedAttrs);
   for I := 1 to FAttrCount do
   begin
@@ -3479,27 +3532,14 @@ begin
   end;
 end;
 
-procedure TXMLReader.ValidateRoot;
-begin
-  if Assigned(FDocType) then
-  begin
-    if not BufEquals(FName, FDocType.FName) then
-      ValidationError('Root element name does not match DTD', [], FName.Length);
-  end
-  else
-    ValidationError('Missing DTD', [], FName.Length);
-end;
-
 procedure TXMLReader.ValidateDTD;
 var
   I: Integer;
 begin
-  if FValidate then
-    for I := 0 to FForwardRefs.Count-1 do
-      with PForwardRef(FForwardRefs[I])^ do
-        if FDocType.Notations.Get(PWideChar(Value), Length(Value)) = nil then
-          DoErrorPos(esError, Format('Notation ''%s'' is not declared', [Value]), Loc);
-  ClearForwardRefs;
+  for I := 0 to FForwardRefs.Count-1 do
+    with PForwardRef(FForwardRefs[I])^ do
+      if FDocType.Notations.Get(PWideChar(Value), Length(Value)) = nil then
+        DoErrorPos(esError, 'Notation ''%s'' is not declared', [Value], Loc);
 end;
 
 procedure TXMLReader.DoText(ch: PWideChar; Count: Integer; Whitespace: Boolean);
@@ -3515,19 +3555,6 @@ begin
   if (Whitespace and (not FPreserveWhitespace)) or (Count = 0) then
     Exit;
 
-  // Validating filter part
-  case FCurrContentType of
-    ctChildren:
-      if not Whitespace then
-        ValidationError('Character data is not allowed in element-only content',[])
-      else
-        if FSaViolation then
-          StandaloneError(-1);
-    ctEmpty:
-      ValidationError('Character data is not allowed in EMPTY elements', []);
-  end;
-
-  // Document builder part
   TextNode := Doc.CreateTextNodeBuf(ch, Count, Whitespace and (FCurrContentType = ctChildren));
   FCursorStack[FNesting].InternalAppend(TextNode);
 end;
@@ -3536,11 +3563,6 @@ procedure TXMLReader.DoComment(ch: PWideChar; Count: Integer);
 var
   Node: TDOMComment;
 begin
-  // validation filter part
-  if FCurrContentType = ctEmpty then
-    ValidationError('Comments are not allowed within EMPTY elements', []);
-
-  // DOM builder part
   if (not FIgnoreComments) and (FState <> rsDTD) then
   begin
     Node := Doc.CreateCommentBuf(ch, Count);
@@ -3553,9 +3575,6 @@ var
   s: WideString;
 begin
   Assert(not FCDSectionsAsText, 'Should not be called when CDSectionsAsText=True');
-
-  if FCurrContentType = ctChildren then
-    ValidationError('CDATA sections are not allowed in element-only content',[]);
 
   SetString(s, ch, Count);
   FCursorStack[FNesting].InternalAppend(doc.CreateCDATASection(s));
