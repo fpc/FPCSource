@@ -1162,6 +1162,7 @@ Const
                                 Helpers
 ****************************************************************************}
 
+{$ifdef HAS_UNIT_PROCESS}
 function ExecuteFPC(Verbose: boolean; const Path: string; const ComLine: string; ConsoleOutput: TMemoryStream): integer;
 var
   P: TProcess;
@@ -1263,6 +1264,7 @@ begin
     P.Free;
   end;
 end;
+{$endif HAS_UNIT_PROCESS}
 
 function ParsecompilerOutput(M: TMemoryStream; Verbose: boolean): string;
 type
@@ -3508,7 +3510,11 @@ begin
       // We should check cmd for spaces, and move all after first space to args.
       ConsoleOutput := TMemoryStream.Create;
       try
+        {$ifdef HAS_UNIT_PROCESS}
         E:=ExecuteFPC(Verbose, cmd, args, ConsoleOutput);
+        {$else}
+        E:=ExecuteProcess(cmd,args);
+        {$endif}
         If (E<>0) and (not IgnoreError) then
           begin
             if trim(Args)<>'' then
