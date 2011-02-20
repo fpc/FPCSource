@@ -94,11 +94,11 @@ program install;
 
   const
      installerversion='2.5.1';
-     installercopyright='Copyright (c) 1993-2009 Florian Klaempfl';
+     installercopyright='Copyright (c) 1993-2011 Florian Klaempfl';
 
 
-     maxpacks=30;
-     maxpackages=29;
+     maxpacks=20;
+     maxpackages=40;
      maxdefcfgs=1024;
 
      HTMLIndexExt = '.htx';
