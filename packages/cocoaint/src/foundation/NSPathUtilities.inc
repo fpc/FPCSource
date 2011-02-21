@@ -8,15 +8,15 @@
 
 const
   NSApplicationDirectory = 1;
-  NSDemoApplicationDirectory = 0;
-  NSDeveloperApplicationDirectory = 1;
-  NSAdminApplicationDirectory = 2;
-  NSLibraryDirectory = 3;
-  NSDeveloperDirectory = 4;
-  NSUserDirectory = 5;
-  NSDocumentationDirectory = 6;
-  NSDocumentDirectory = 7;
-  NSCoreServiceDirectory = 8;
+  NSDemoApplicationDirectory = 2;
+  NSDeveloperApplicationDirectory = 3;
+  NSAdminApplicationDirectory = 4;
+  NSLibraryDirectory = 5;
+  NSDeveloperDirectory = 6;
+  NSUserDirectory = 7;
+  NSDocumentationDirectory = 8;
+  NSDocumentDirectory = 9;
+  NSCoreServiceDirectory = 10;
   NSAutosavedInformationDirectory = 11;
   NSDesktopDirectory = 12;
   NSCachesDirectory = 13;

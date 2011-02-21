@@ -8,13 +8,13 @@
 
 const
   NSEqualToComparison = 0;
-  NSLessThanOrEqualToComparison = 0;
-  NSLessThanComparison = 1;
-  NSGreaterThanOrEqualToComparison = 2;
-  NSGreaterThanComparison = 3;
-  NSBeginsWithComparison = 4;
-  NSEndsWithComparison = 5;
-  NSContainsComparison = 6;
+  NSLessThanOrEqualToComparison = 1;
+  NSLessThanComparison = 2;
+  NSGreaterThanOrEqualToComparison = 3;
+  NSGreaterThanComparison = 4;
+  NSBeginsWithComparison = 5;
+  NSEndsWithComparison = 6;
+  NSContainsComparison = 7;
 
 { Types }
 type

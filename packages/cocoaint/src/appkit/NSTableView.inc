@@ -12,11 +12,11 @@ const
 
 const
   NSTableViewNoColumnAutoresizing = 0;
-  NSTableViewUniformColumnAutoresizingStyle = 0;
-  NSTableViewSequentialColumnAutoresizingStyle = 1;
-  NSTableViewReverseSequentialColumnAutoresizingStyle = 2;
-  NSTableViewLastColumnOnlyAutoresizingStyle = 3;
-  NSTableViewFirstColumnOnlyAutoresizingStyle = 4;
+  NSTableViewUniformColumnAutoresizingStyle = 1;
+  NSTableViewSequentialColumnAutoresizingStyle = 2;
+  NSTableViewReverseSequentialColumnAutoresizingStyle = 3;
+  NSTableViewLastColumnOnlyAutoresizingStyle = 4;
+  NSTableViewFirstColumnOnlyAutoresizingStyle = 5;
 
 const
   NSTableViewGridNone = 0;

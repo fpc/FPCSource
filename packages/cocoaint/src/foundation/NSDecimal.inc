@@ -14,10 +14,10 @@ const
 
 const
   NSCalculationNoError = 0;
-  NSCalculationLossOfPrecision = 0;
-  NSCalculationUnderflow = 1;
-  NSCalculationOverflow = 2;
-  NSCalculationDivideByZero = 3;
+  NSCalculationLossOfPrecision = 1;
+  NSCalculationUnderflow = 2;
+  NSCalculationOverflow = 3;
+  NSCalculationDivideByZero = 4;
 
 { Types }
 type

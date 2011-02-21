@@ -8,8 +8,8 @@
 
 const
   NSNotPredicateType = 0;
-  NSAndPredicateType = 0;
-  NSOrPredicateType = 1;
+  NSAndPredicateType = 1;
+  NSOrPredicateType = 2;
 
 { Types }
 type

@@ -8,9 +8,9 @@
 
 const
   NSURLHandleNotLoaded = 0;
-  NSURLHandleLoadSucceeded = 0;
-  NSURLHandleLoadInProgress = 1;
-  NSURLHandleLoadFailed = 2;
+  NSURLHandleLoadSucceeded = 1;
+  NSURLHandleLoadInProgress = 2;
+  NSURLHandleLoadFailed = 3;
 
 { Types }
 type

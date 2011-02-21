@@ -2458,8 +2458,10 @@ class ObjectivePParser extends ObjectivePParserBase {
 		} elseif (ereg("^[[:space:]]*[,]*[[:space:]]*([a-zA-Z0-9_]+)[[:space:]]*=[[:space:]]*[(]*([0-9-]+)[)]*[,]*[[:space:]]*$", $line, $captures)) { // integer value
 			$captures[2] = trim($captures[2], ", ");
 			$this->dump[$file_name]["types"]["enums"][$block_count][] = $captures[1]." = ".$captures[2].";".$this->AppendEOLComment();
+			$auto_increment = $captures[2] + 1;
 		} elseif (ereg("^[[:space:]]*[,]*[[:space:]]*([a-zA-Z0-9_]+)[[:space:]]*=[[:space:]]*[(]*([0-9]+[xX]+[a-fA-F0-9]+)[)]*", $line, $captures)) { // hexadecimal value
 			$captures[2] = trim($captures[2], ", ");
+			$auto_increment = $captures[2] + 1;
 			$captures[2] = eregi_replace("^0x", "$", $captures[2]);
 			$this->dump[$file_name]["types"]["enums"][$block_count][] = $captures[1]." = ".$captures[2].";".$this->AppendEOLComment();
 		} elseif (ereg("^[[:space:]]*[,]*[[:space:]]*([a-zA-Z0-9_]+)[[:space:]]*=[[:space:]]*([a-zA-Z0-9]+[[:space:]]*<<[[:space:]]*[a-zA-Z0-9]+)", $line, $captures)) { // << shl value, no ()
@@ -2470,6 +2472,9 @@ class ObjectivePParser extends ObjectivePParserBase {
 			$captures[2] = ereg_replace("([[:space:]])shl([[:space:]]+)([0-9]+)[UL]+", "\\1shl\\2\\3", $captures[2]);
 
 			$this->dump[$file_name]["types"]["enums"][$block_count][] = $captures[1]." = ".$captures[2].";".$this->AppendEOLComment();
+			$operands = preg_split("/\s*shl\s*/", $captures[2]);
+			$auto_increment = ($operands[0] << $operands[1]) + 1;
+			
 		} elseif (ereg("^[[:space:]]*[,]*[[:space:]]*([a-zA-Z0-9_]+)[[:space:]]*=[[:space:]]*\(([a-zA-Z0-9]+[[:space:]]*<<[[:space:]]*[a-zA-Z0-9]+)\)", $line, $captures)) { // << shl value
 			$captures[2] = trim($captures[2], ", ");
 			$captures[2] = ereg_replace("[[:space:]]?<<[[:space:]]?", " shl ", $captures[2]);
@@ -2479,6 +2484,9 @@ class ObjectivePParser extends ObjectivePParserBase {
 			$captures[2] = ereg_replace("([[:space:]])shl([[:space:]]+)([0-9]+)[UL]+", "\\1shl\\2\\3", $captures[2]);
 
 			$this->dump[$file_name]["types"]["enums"][$block_count][] = $captures[1]." = ".$captures[2].";".$this->AppendEOLComment();
+			
+			$operands = preg_split("/\s*shl\s*/", $captures[2]);
+			$auto_increment = ($operands[0] << $operands[1]) + 1;
 		} elseif (ereg("^[[:space:]]*[,]*[[:space:]]*([a-zA-Z0-9_]+)[[:space:]]*[,}]*[[:space:]]*$", $line, $captures)) { // non-value
 			
 			// omit lines which started nested structures.
@@ -2657,7 +2665,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 								
 				// parse enum fields
 				if (($got_enum) || ($got_named_enum)) {
-					// print($line."\n");
+					// print($line.", auto_inc = $auto_increment\n");
 					
 					$this->ParseEnumFields($line, $file_name, &$block_count, &$auto_increment);
 

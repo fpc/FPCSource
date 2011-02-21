@@ -61,8 +61,8 @@ const
 
 const
   NSDirectSelection = 0;
-  NSSelectingNext = 0;
-  NSSelectingPrevious = 1;
+  NSSelectingNext = 1;
+  NSSelectingPrevious = 2;
 
 const
   NSWindowCloseButton = 0;
