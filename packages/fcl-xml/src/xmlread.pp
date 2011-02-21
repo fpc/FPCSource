@@ -292,7 +292,6 @@ type
     FAttrTag: Cardinal;
     FDTDProcessed: Boolean;
     FFragmentMode: Boolean;
-    FToken: TXMLToken;
     FNext: TXMLToken;
     FCurrEntity: TEntityDecl;
     FIDMap: THashTable;
@@ -336,7 +335,7 @@ type
     function  SkipUntilSeq(const Delim: TSetOfChar; c1: WideChar; c2: WideChar = #0): Boolean;
     procedure CheckMaxChars(ToAdd: Cardinal);
     function AllocNodeData(AIndex: Integer): PNodeData;
-    function AllocAttributeData(AName: PHashItem): PNodeData;
+    function AllocAttributeData: PNodeData;
     function AllocAttributeValueChunk(APrev: PNodeData): PNodeData;
     procedure CleanupAttribute(aNode: PNodeData);
     procedure CleanupAttributes;
@@ -376,7 +375,7 @@ type
     function  ExpectName: WideString;                                   // [5]
     function ParseLiteral(var ToFill: TWideCharBuf; aType: TLiteralType;
       Required: Boolean): Boolean;
-    function ExpectAttValue(attrData: PNodeData; NonCDATA: Boolean): Boolean; // [10]
+    procedure ExpectAttValue(attrData: PNodeData; NonCDATA: Boolean);   // [10]
     procedure ParseComment(discard: Boolean);                           // [15]
     procedure ParsePI;                                                  // [16]
     procedure CreatePINode;
@@ -1563,9 +1562,9 @@ const
 { Parse attribute literal, producing plain string value in AttrData.FValueStr.
   If entity references are encountered and FExpandEntities=False, also builds
   a node chain starting from AttrData.FNext. Node chain is built only for the
-  first level. If NonCDATA=True, additionally normalizes whitespace in string value.
-  Returns True if value actually needed normalization }
-function TXMLReader.ExpectAttValue(AttrData: PNodeData; NonCDATA: Boolean): Boolean;
+  first level. If NonCDATA=True, additionally normalizes whitespace in string value. }
+
+procedure TXMLReader.ExpectAttValue(AttrData: PNodeData; NonCDATA: Boolean);
 var
   wc: WideChar;
   Delim: WideChar;
@@ -1637,9 +1636,9 @@ begin
     end;
   end;
   if nonCDATA then
-    BufNormalize(FValue, Result)
+    BufNormalize(FValue, attrData^.FDenormalized)
   else
-    Result := False;
+    attrData^.FDenormalized := False;
   SetString(attrData^.FValueStr, FValue.Buffer, FValue.Length);
 end;
 
@@ -2678,6 +2677,9 @@ end;
 procedure TXMLReader.ValidateCurrentNode;
 var
   ElDef: TElementDecl;
+  AttDef: TAttributeDef;
+  attr: PNodeData;
+  i: Integer;
 begin
   case FCurrNode^.FNodeType of
     ntElement:
@@ -2699,6 +2701,32 @@ begin
 
         if not FValidators[FNesting-1].IsElementAllowed(ElDef) then
           DoErrorPos(esError, 'Element ''%s'' is not allowed in this context',[FCurrNode^.FQName^.Key], FCurrNode^.FLoc);
+
+        { Validate attributes }
+        for i := 1 to FAttrCount do
+        begin
+          attr := @FNodeStack[FNesting+i];
+          AttDef := TAttributeDef(attr^.FTypeInfo);
+          if AttDef = nil then
+            DoErrorPos(esError, 'Using undeclared attribute ''%s'' on element ''%s''',
+              [attr^.FQName^.Key, FCurrNode^.FQName^.Key], attr^.FLoc)
+          else if ((AttDef.DataType <> dtCdata) or (AttDef.Default = adFixed)) then
+          begin
+            if FStandalone and AttDef.ExternallyDeclared then
+              { TODO: perhaps should use different and more descriptive messages }
+              if attr^.FDenormalized then
+                DoErrorPos(esError, 'Standalone constraint violation', attr^.FLoc2)
+              else if i > FSpecifiedAttrs then
+                DoError(esError, 'Standalone constraint violation');
+
+            // TODO: what about normalization of AttDef.Value? (Currently it IS normalized)
+            if (AttDef.Default = adFixed) and (AttDef.Data^.FValueStr <> attr^.FValueStr) then
+              DoErrorPos(esError, 'Value of attribute ''%s'' does not match its #FIXED default',[attr^.FQName^.Key], attr^.FLoc2);
+            if not ValidateAttrSyntax(AttDef, attr^.FValueStr) then
+              DoErrorPos(esError, 'Attribute ''%s'' type mismatch', [attr^.FQName^.Key], attr^.FLoc2);
+            ValidateAttrValue(AttDef, attr);
+          end;
+        end;
       end;
 
     ntEndElement:
@@ -2911,7 +2939,6 @@ begin
   if FNext = xtPopEmptyElement then
   begin
     FNext := xtPopElement;
-    FToken := xtEndElement;
     FCurrNode^.FNodeType := ntEndElement;
     if FAttrCleanupFlag then
       CleanupAttributes;
@@ -3020,7 +3047,6 @@ begin
         if FCDSectionsAsText then
           Continue;
         SetNodeInfoWithValue(ntCDATA);
-        FToken := xtCDSect;
         FNext := xtText;
         Result := True;
         Exit;
@@ -3055,7 +3081,6 @@ begin
     if FValue.Length <> 0 then
     begin
       SetNodeInfoWithValue(textNodeTypes[nonWs]);
-      if nonWs then FToken := xtText else FToken := xtWhitespace;
       FNext := tok;
       Result := True;
       Exit;
@@ -3065,7 +3090,6 @@ begin
   else   // not (FNext in [xtText, xtCDSect])
     tok := FNext;
 
-  FToken := tok;
   FNext := xtText;
 
   case tok of
@@ -3170,10 +3194,7 @@ begin
     begin
       b := TBinding(FCurrNode^.FPrefix^.Data);
       if not (Assigned(b) and (b.uri <> '')) then
-      begin
-        FTokenStart := FCurrNode^.FLoc;
-        FatalError('Unbound element name prefix "%s"', [FCurrNode^.FPrefix^.Key],-1);
-      end;
+        DoErrorPos(esFatal, 'Unbound element name prefix "%s"', [FCurrNode^.FPrefix^.Key],FCurrNode^.FLoc);
       FCurrNode^.FNsUri := FNameTable.FindOrAdd(PWideChar(b.uri), Length(b.uri));
     end
     else
@@ -3226,22 +3247,11 @@ var
   attrData: PNodeData;
   AttDef: TAttributeDef;
   i: Integer;
-  normalized: Boolean;
-
-procedure CheckValue;
-begin
-  // TODO: what about normalization of AttDef.Value? (Currently it IS normalized)
-  if (AttDef.Default = adFixed) and (AttDef.Data^.FValueStr <> attrData^.FValueStr) then
-    ValidationError('Value of attribute ''%s'' does not match its #FIXED default',[attrData^.FQName^.Key], -1);
-  if not ValidateAttrSyntax(AttDef, attrData^.FValueStr) then
-    ValidationError('Attribute ''%s'' type mismatch', [attrData^.FQName^.Key], -1);
-  ValidateAttrValue(AttDef, attrData);
-end;
-
 begin
   CheckName;
   attrName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
-  attrData := AllocAttributeData(attrName);
+  attrData := AllocAttributeData;
+  attrData^.FQName := attrName;
   attrData^.FColonPos := FColonPos;
   StoreLocation(attrData^.FLoc);
   Dec(attrData^.FLoc.LinePos, FName.Length);
@@ -3250,10 +3260,7 @@ begin
   if Assigned(ElDef) then
   begin
     AttDef := ElDef.GetAttrDef(attrName);
-    if AttDef = nil then
-      ValidationError('Using undeclared attribute ''%s'' on element ''%s''',
-        [attrName^.Key, FNodeStack[FNesting].FQName^.Key], FName.Length)
-    else
+    if Assigned(AttDef) then
       AttDef.Tag := FAttrTag;  // indicates that this one is specified
   end
   else
@@ -3284,15 +3291,9 @@ begin
   end;
 
   ExpectEq;
-  normalized := ExpectAttValue(attrData, Assigned(AttDef) and (AttDef.DataType <> dtCDATA));
+  ExpectAttValue(attrData, Assigned(AttDef) and (AttDef.DataType <> dtCDATA));
+  attrData^.FLoc2 := FTokenStart;
 
-  if Assigned(AttDef) and ((AttDef.DataType <> dtCdata) or (AttDef.Default = adFixed)) then
-  begin
-    if normalized and FStandalone and AttDef.ExternallyDeclared then
-      StandaloneError(-1);
-
-    CheckValue;
-  end;
   if Assigned(attrData^.FNsUri) then
   begin
     if (not AddBinding(attrData)) and FCanonical then
@@ -3348,9 +3349,7 @@ begin
     begin
       case AttDef.Default of
         adDefault, adFixed: begin
-          if FStandalone and AttDef.ExternallyDeclared then
-            StandaloneError;
-          attrData := AllocAttributeData(nil);
+          attrData := AllocAttributeData;
           attrData^ := AttDef.Data^;
           if FCanonical then
             attrData^.FIsDefault := False;
@@ -3396,13 +3395,13 @@ begin
    (nsUri = FStduri_xmlns) then
   begin
     if (Pfx = FStdPrefix_xml) or (Pfx = FStdPrefix_xmlns) then
-      FatalError('Illegal usage of reserved prefix ''%s''', [Pfx^.Key])
+      DoErrorPos(esFatal, 'Illegal usage of reserved prefix ''%s''', [Pfx^.Key], attrData^.FLoc)
     else
-      FatalError('Illegal usage of reserved namespace URI ''%s''', [attrData^.FValueStr]);
+      DoErrorPos(esFatal, 'Illegal usage of reserved namespace URI ''%s''', [attrData^.FValueStr], attrData^.FLoc2);
   end;
 
   if (attrData^.FValueStr = '') and not (FXML11 or (Pfx^.Key = '')) then
-    FatalError('Illegal undefining of namespace');  { position - ? }
+    DoErrorPos(esFatal, 'Illegal undefining of namespace', attrData^.FLoc2);
 
   Result := (Pfx^.Data = nil) or (TBinding(Pfx^.Data).uri <> attrData^.FValueStr);
   if Result then
@@ -3426,10 +3425,7 @@ begin
     Pfx := attrData^.FPrefix;
     b := TBinding(Pfx^.Data);
     if not (Assigned(b) and (b.uri <> '')) then
-    begin
-      FTokenStart := attrData^.FLoc;
-      FatalError('Unbound attribute name prefix "%s"', [Pfx^.Key], -1);
-    end;
+      DoErrorPos(esFatal, 'Unbound attribute name prefix "%s"', [Pfx^.Key], attrData^.FLoc);
 
     { detect duplicates }
     J := attrData^.FColonPos+1;
@@ -3500,7 +3496,7 @@ begin
   case AttrDef.DataType of
     dtId: begin
       if not AddID(attrData) then
-        ValidationError('The ID ''%s'' is not unique', [attrData^.FValueStr], -1);
+        DoErrorPos(esError, 'The ID ''%s'' is not unique', [attrData^.FValueStr], attrData^.FLoc2);
     end;
 
     dtIdRef, dtIdRefs: begin
@@ -3610,11 +3606,10 @@ begin
     aNodeData^.FIDEntry := e;
 end;
 
-function TXMLReader.AllocAttributeData(AName: PHashItem): PNodeData;
+function TXMLReader.AllocAttributeData: PNodeData;
 begin
   Result := AllocNodeData(FNesting + FAttrCount + 1);
   Result^.FNodeType := ntAttribute;
-  Result^.FQName := AName;
   Result^.FPrefix := nil;
   Result^.FNsUri := nil;
   Result^.FIDEntry := nil;

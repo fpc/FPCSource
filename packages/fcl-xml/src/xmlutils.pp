@@ -158,6 +158,7 @@ type
     FValueStart: PWideChar;
     FValueLength: Integer;
     FIsDefault: Boolean;
+    FDenormalized: Boolean;        // Whether attribute value changes by normalization
   end;
 
 { TNSSupport provides tracking of prefix-uri pairs and namespace fixup for writer }
