@@ -93,12 +93,11 @@ program install;
      WHTMLScn,insthelp;
 
   const
-     installerversion='2.2.0';
-     installercopyright='Copyright (c) 1993-2008 Florian Klaempfl';
+     installerversion='2.4.4';
+     installercopyright='Copyright (c) 1993-2011 Florian Klaempfl';
 
-
-     maxpacks=30;
-     maxpackages=29;
+     maxpacks=20;
+     maxpackages=40;
      maxdefcfgs=1024;
 
      HTMLIndexExt = '.htx';

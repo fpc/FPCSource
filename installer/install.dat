@@ -5,8 +5,8 @@
 #
 # Warning: no package should contain more than 16 files
 
-title=Free Pascal Compiler 2.4.3
-version=2.4.3
+title=Free Pascal Compiler 2.4.4
+version=2.4.4
 
 #
 # General
@@ -87,6 +87,10 @@ package=usymbolicdos.zip[usymbdos.zip],Symbolic (unit for parsing and evaluating
 package=ufcl-resdos.zip[ufcledos.zip],Free Component Library (FCL)-resources
 # Dos 30
 package=ubzip2dos.zip[ubz2dos.zip],Units for bzip2 decompression
+# Dos 31
+package=ufcl-jsdos.zip[ufcjsdos.zip],Free Component Library (FCL)-Javascript support
+# Dos 32
+package=uhermesdos.zip[uhermdos.zip],Port of Hermes graphics library
 
 #
 # Win32 packages
@@ -144,6 +148,8 @@ package=units-oggvorbis.i386-win32.zip,OGG Vorbis interface units
 package=units-openal.i386-win32.zip,OpenAL interface units
 # Win32 22
 package=units-openssl.i386-win32.zip,OpenSSL interface units
+# Win32 23
+package=units-hermes.i386-win32.zip,Port of Hermes graphics library
 
 #
 # Win32 packages 2nd part
@@ -208,6 +214,8 @@ package=units-symbolic.i386-win32.zip,Symbolic (unit for parsing and evaluating 
 package=units-fcl-res.i386-win32.zip,Free Component Library (FCL)-resources
 # Win32-2 29
 package=units-bzip2.i386-win32.zip,Units for bzip2 decompression
+# Win32-2 30
+package=units-fcl-js.i386-win32.zip,Free Component Library (FCL)-Javascript support
 
 
 #
@@ -262,6 +270,8 @@ package=ufcl-registryos2.zip[ufclros2.zip],Free Component Library (FCL)-registry
 package=ufcl-xmlos2.zip[ufclxos2.zip],Free Component Library (FCL)-XML
 # OS/2 20
 #package=ufcl-webos2.zip[ufclwos2.zip],Free Component Library (FCL)-Web
+# OS/2 21
+package=uhermesos2.zip[uhermos2.zip],Port of Hermes graphics library
 
 #
 # OS/2 packages 2nd part
@@ -316,6 +326,8 @@ package=usymbolicos2.zip[usymbos2.zip],Symbolic (unit for parsing and evaluating
 package=ufcl-resos2.zip[ufcleos2.zip],Free Component Library (FCL)-resources
 # OS/2-2 24
 package=ubzip2os2.zip[ubz2os2.zip],Units for bzip2 decompression
+# OS/2-2 25
+package=ufcl-jsos2.zip[ufcjsos2.zip],Free Component Library (FCL)-Javascript support
 
 
 
@@ -372,6 +384,8 @@ package=ufcl-registryemx.zip[ufclremx.zip],Free Component Library (FCL)-registry
 package=ufcl-xmlemx.zip[ufclxemx.zip],Free Component Library (FCL)-XML
 # EMX 20
 #package=ufcl-webemx.zip[ufclwemx.zip],Free Component Library (FCL)-Web
+# EMX 21
+package=uhermesemx.zip[uhermemx.zip],Port of Hermes graphics library
 
 #
 # EMX packages 2nd part
@@ -426,6 +440,8 @@ package=usymbolicemx.zip[usymbemx.zip],Symbolic (unit for parsing and evaluating
 package=ufcl-resemx.zip[ufcleemx.zip],Free Component Library (FCL)-resources
 # EMX-2 24
 package=ubzip2emx.zip[ubz2emx.zip],Units for bzip2 decompression
+# EMX-2 25
+package=ufcl-jsemx.zip[ufcjsemx.zip],Free Component Library (FCL)-Javascript support
 
 
 #
@@ -481,6 +497,8 @@ package=units-gdbint.source.zip[ugdbsrc.zip],GDB interface units
 package=units-postgres.source.zip[upgrsrc.zip],PostGreSQL interface units
 # Source 16
 package=units-graph.source.zip[ugrphsrc.zip],Unit Graph
+# Source 17
+package=units-hermes.source.zip[uhermsrc.zip],Port of Hermes graphics library
 
 #
 # Source packages 2nd part
@@ -538,6 +556,8 @@ package=units-symbolic.source.zip[usymbsrc.zip],Symbolic (unit for parsing and e
 package=units-fcl-res.source.zip[ufclesrc.zip],Free Component Library (FCL)-resources
 # Source-2 25
 package=units-bzip2.source.zip[ubz2src.zip],Units for bzip2 decompression
+# Source-2 26
+package=fcl-js.source.zip[ufcjssrc.zip],Free Component Library (FCL)-Javascript support
 
 
 #
