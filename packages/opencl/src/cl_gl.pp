@@ -49,7 +49,7 @@ const
   CL_GL_MIPMAP_LEVEL        = $2005;
 
 function clCreateFromGLBuffer(context: cl_context; falgs: cl_mem_flags;
-  bufobj: GLuint; var errcode_ret: Integer
+  bufobj: GLuint; var errcode_ret: cl_int
   ): cl_mem; cdecl; external name 'clCreateFromGLBuffer';
 
 function clCreateFromGLTexture2D(context: cl_context;
