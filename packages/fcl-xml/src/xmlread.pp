@@ -254,7 +254,6 @@ type
   end;
 
   TNodeDataDynArray = array of TNodeData;
-  TDOMNodeDynArray = array of TDOMNode_WithChildren;
   TValidatorDynArray = array of TElementValidator;
 
   TXMLReadState = (rsProlog, rsDTD, rsAfterDTD, rsRoot, rsEpilog);
@@ -348,7 +347,6 @@ type
     FPrefixedAttrs: Integer;
     FSpecifiedAttrs: Integer;
     FNodeStack: TNodeDataDynArray;
-    FCursorStack: TDOMNodeDynArray;
     FValidators: TValidatorDynArray;
     FAttrChunks: TFPList;
     FFreeAttrChunk: PNodeData;
@@ -378,20 +376,20 @@ type
     procedure ExpectAttValue(attrData: PNodeData; NonCDATA: Boolean);   // [10]
     procedure ParseComment(discard: Boolean);                           // [15]
     procedure ParsePI;                                                  // [16]
-    procedure CreatePINode;
+    function CreatePINode: TDOMNode;
     procedure ParseXmlOrTextDecl(TextDecl: Boolean);
     procedure ExpectEq;
     procedure ParseDoctypeDecl;                                         // [28]
     procedure ParseMarkupDecl;                                          // [29]
     procedure ParseStartTag;                                            // [39]
     procedure ParseEndTag;                                              // [42]
-    procedure DoStartElement;
+    function DoStartElement: TDOMElement;
     procedure HandleEntityStart;
     procedure HandleEntityEnd;
     procedure ResolveEntity;
     procedure DoStartEntity;
     procedure ParseAttribute(ElDef: TElementDecl);
-    procedure ParseContent;                                             // [43]
+    procedure ParseContent(parent: TDOMNode_WithChildren);              // [43]
     function  Read: Boolean;
     function  ResolvePredefined: Boolean;
     function  EntityCheck(NoExternals: Boolean = False): TEntityDecl;
@@ -422,12 +420,8 @@ type
     procedure ValidationErrorWithName(const Msg: string; LineOffs: Integer = -1);
     procedure DTDReloadHook;
     procedure ConvertSource(SrcIn: TXMLInputSource; out SrcOut: TXMLCharSource);
-    // Some SAX-alike stuff (at a very early stage)
-    procedure DoText(ch: PWideChar; Count: Integer; Whitespace: Boolean=False);
-    procedure DoComment(ch: PWideChar; Count: Integer);
-    procedure DoCDSect(ch: PWideChar; Count: Integer);
+    function DoCDSect(ch: PWideChar; Count: Integer): TDOMNode;
     procedure DoNotationDecl(const aName, aPubID, aSysID: WideString);
-    procedure DoEntityReference;
   public
     doc: TDOMDocument;
     constructor Create; overload;
@@ -1248,7 +1242,6 @@ begin
   FNamePages := @NamePages;
   SetLength(FNodeStack, 16);
   SetLength(FValidators, 16);
-  SetLength(FCursorStack, 16);
 end;
 
 constructor TXMLReader.Create(AParser: TDOMParser);
@@ -1324,14 +1317,14 @@ begin
   FState := rsProlog;
   FNesting := 0;
   FCurrNode := @FNodeStack[0];
-  FCursorStack[0] := doc;
   FFragmentMode := False;
   NSPrepare;
   Initialize(ASource);
   if FSource.FXMLVersion <> xmlVersionUnknown then
     TDOMTopNodeEx(TDOMNode(doc)).FXMLVersion := FSource.FXMLVersion;
   TDOMTopNodeEx(TDOMNode(doc)).FXMLEncoding := FSource.FXMLEncoding;
-  ParseContent;
+  FNext := xtText;
+  ParseContent(doc);
 
   if FState < rsRoot then
     FatalError('Root element is missing');
@@ -1352,7 +1345,6 @@ begin
   FState := rsRoot;
   FNesting := 0;
   FCurrNode := @FNodeStack[0];
-  FCursorStack[0] := AOwner as TDOMNode_WithChildren;
   FFragmentMode := True;
   FXML11 := doc.InheritsFrom(TXMLDocument) and (TXMLDocument(doc).XMLVersion = '1.1');
   NSPrepare;
@@ -1369,7 +1361,8 @@ begin
     TDOMTopNodeEx(AOwner).FXMLVersion := FSource.FXMLVersion;
     TDOMTopNodeEx(AOwner).FXMLEncoding := FSource.FXMLEncoding;
   end;
-  ParseContent;
+  FNext := xtText;
+  ParseContent(aOwner as TDOMNode_WithChildren);
 end;
 
 function TXMLReader.CheckName(aFlags: TCheckNameFlags): Boolean;
@@ -1929,17 +1922,13 @@ begin
     FNameTable.FindOrAdd(FName.Buffer, FName.Length));
 end;
 
-procedure TXMLReader.CreatePINode;
+function TXMLReader.CreatePINode: TDOMNode;
 var
   NameStr, ValueStr: WideString;
-  PINode: TDOMProcessingInstruction;
 begin
   SetString(NameStr, FName.Buffer, FName.Length);
   SetString(ValueStr, FValue.Buffer, FValue.Length);
-  // SAX: ContentHandler.ProcessingInstruction(Name, Value);
-
-  PINode := Doc.CreateProcessingInstruction(NameStr, ValueStr);
-  FCursorStack[FNesting].InternalAppend(PINode);
+  result := Doc.CreateProcessingInstruction(NameStr, ValueStr);
 end;
 
 const
@@ -2550,7 +2539,7 @@ begin
     if FSource.FBuf^ = '?' then
     begin
       ParsePI;
-      CreatePINode;
+      doc.AppendChild(CreatePINode);
     end
     else
     begin
@@ -2764,11 +2753,6 @@ begin
   end;
 end;
 
-procedure TXMLReader.DoEntityReference;
-begin
-  FCursorStack[FNesting].AppendChild(doc.CreateEntityReference(FCurrNode^.FQName^.Key));
-end;
-
 procedure TXMLReader.HandleEntityStart;
 begin
   { FNesting+1 is available due to overallocation in AllocNodeData() }
@@ -2782,7 +2766,6 @@ end;
 procedure TXMLReader.HandleEntityEnd;
 begin
   FValidators[FNesting-1] := FValidators[FNesting];
-  FCursorStack[FNesting-1] := FCursorStack[FNesting];
   ContextPop(True);
   PopVC;
   FCurrNode := @FNodeStack[FNesting+1];
@@ -2817,31 +2800,27 @@ begin
 
   { Compensate for an extra entry in node stack }
   FValidators[FNesting] := FValidators[FNesting-1];
-  FCursorStack[FNesting] := FCursorStack[FNesting-1];
   UpdateConstraints;
   FNext := xtText;
 end;
 
-procedure TXMLReader.DoStartElement;
+function TXMLReader.DoStartElement: TDOMElement;
 var
-  NewElem: TDOMElement;
   Attr: TDOMAttr;
   i: Integer;
 begin
   with FCurrNode^.FQName^ do
-    NewElem := doc.CreateElementBuf(PWideChar(Key), Length(Key));
-  FCursorStack[FNesting-1].InternalAppend(NewElem);
-  FCursorStack[FNesting] := NewElem;
+    Result := doc.CreateElementBuf(PWideChar(Key), Length(Key));
   if Assigned(FCurrNode^.FNsUri) then
-    NewElem.SetNSI(FCurrNode^.FNsUri^.Key, FCurrNode^.FColonPos+1);
+    Result.SetNSI(FCurrNode^.FNsUri^.Key, FCurrNode^.FColonPos+1);
 
   for i := 1 to FAttrCount do
   begin
     Attr := LoadAttribute(doc, @FNodeStack[FNesting+i]);
-    NewElem.SetAttributeNode(Attr);
+    Result.SetAttributeNode(Attr);
     // Attach element to ID map entry if necessary
     if Assigned(FNodeStack[FNesting+i].FIDEntry) then
-      FNodeStack[FNesting+i].FIDEntry^.Data := NewElem;
+      FNodeStack[FNesting+i].FIDEntry^.Data := Result;
   end;
 end;
 
@@ -2898,33 +2877,57 @@ const
     ntText
   );
 
-procedure TXMLReader.ParseContent;
+procedure TXMLReader.ParseContent(parent: TDOMNode_WithChildren);
+var
+  cursor: TDOMNode_WithChildren;
+  element: TDOMElement;
 begin
-  FNext := xtText;
+  cursor := parent;
   while Read do
   begin
     if FValidate then
       ValidateCurrentNode;
+
     case FCurrNode^.FNodeType of
-      ntText, ntWhitespace:
-        DoText(FValue.Buffer, FValue.Length, FCurrNode^.FNodeType = ntWhitespace);
+      ntText:
+        cursor.InternalAppend(doc.CreateTextNodeBuf(FValue.Buffer, FValue.Length, False));
+
+      ntWhitespace:
+        if FPreserveWhitespace then
+          cursor.InternalAppend(doc.CreateTextNodeBuf(FValue.Buffer, FValue.Length, FCurrContentType = ctChildren))
+        else
+          Continue;
+
       ntCDATA:
-        DoCDSect(FValue.Buffer, FValue.Length);
+        cursor.InternalAppend(DoCDSect(FValue.Buffer, FValue.Length));
+
       ntProcessingInstruction:
-        CreatePINode;
+        cursor.InternalAppend(CreatePINode);
+
       ntComment:
-        DoComment(FCurrNode^.FValueStart, FCurrNode^.FValueLength);
+        if FIgnoreComments then
+          Continue
+        else
+          cursor.InternalAppend(doc.CreateCommentBuf(FCurrNode^.FValueStart, FCurrNode^.FValueLength));
       ntElement:
-        DoStartElement;
-      ntEndElement:
-        ;
-      ntDocumentType:
         begin
-          if not FCanonical then
-            doc.AppendChild(TDOMDocumentType.Create(doc, FDocType));
+          element := DoStartElement;
+          cursor.InternalAppend(element);
+          cursor := element;
+          Continue;
         end;
+
+      ntEndElement:
+          cursor := TDOMNode_WithChildren(cursor.ParentNode);
+
+      ntDocumentType:
+        if FCanonical then
+          Continue
+        else
+          cursor.InternalAppend(TDOMDocumentType.Create(doc, FDocType));
+
       ntEntityReference:
-        DoEntityReference;
+        cursor.InternalAppend(doc.CreateEntityReference(FCurrNode^.FQName^.Key));
     end;
   end;
 end;
@@ -3080,6 +3083,12 @@ begin
     end;
     if FValue.Length <> 0 then
     begin
+      if FState <> rsRoot then
+        if nonWs then
+          FatalError('Illegal at document level', -1)
+        else
+          Break;
+
       SetNodeInfoWithValue(textNodeTypes[nonWs]);
       FNext := tok;
       Result := True;
@@ -3538,42 +3547,15 @@ begin
         DoErrorPos(esError, 'Notation ''%s'' is not declared', [Value], Loc);
 end;
 
-procedure TXMLReader.DoText(ch: PWideChar; Count: Integer; Whitespace: Boolean);
-var
-  TextNode: TDOMText;
-begin
-  if FState <> rsRoot then
-    if not Whitespace then
-      FatalError('Illegal at document level', -1)
-    else
-      Exit;  
 
-  if (Whitespace and (not FPreserveWhitespace)) or (Count = 0) then
-    Exit;
-
-  TextNode := Doc.CreateTextNodeBuf(ch, Count, Whitespace and (FCurrContentType = ctChildren));
-  FCursorStack[FNesting].InternalAppend(TextNode);
-end;
-
-procedure TXMLReader.DoComment(ch: PWideChar; Count: Integer);
-var
-  Node: TDOMComment;
-begin
-  if (not FIgnoreComments) and (FState <> rsDTD) then
-  begin
-    Node := Doc.CreateCommentBuf(ch, Count);
-    FCursorStack[FNesting].InternalAppend(Node);
-  end;
-end;
-
-procedure TXMLReader.DoCDSect(ch: PWideChar; Count: Integer);
+function TXMLReader.DoCDSect(ch: PWideChar; Count: Integer): TDOMNode;
 var
   s: WideString;
 begin
   Assert(not FCDSectionsAsText, 'Should not be called when CDSectionsAsText=True');
 
   SetString(s, ch, Count);
-  FCursorStack[FNesting].InternalAppend(doc.CreateCDATASection(s));
+  result := doc.CreateCDATASection(s);
 end;
 
 procedure TXMLReader.DoNotationDecl(const aName, aPubID, aSysID: WideString);
@@ -3695,9 +3677,8 @@ begin
   FCurrNode^.FNsUri := nil;
   FCurrNode^.FIDEntry := nil;
 
-  if FNesting >= Length(FCursorStack) then
+  if FNesting >= Length(FValidators) then
   begin
-    SetLength(FCursorStack, FNesting * 2);
     SetLength(FValidators, FNesting * 2);
   end;
 
