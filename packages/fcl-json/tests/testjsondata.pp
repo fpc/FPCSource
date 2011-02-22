@@ -194,6 +194,7 @@ type
     procedure TestExtract;
     Procedure TestNonExistingAccessError;
     Procedure TestFormat;
+    Procedure TestFind;
   end;
 
 
@@ -1965,6 +1966,41 @@ begin
     AssertEquals('Format 1','{'+sLineBreak+#9'x : 1,'+sLineBreak+#9'y : 2,'+sLineBreak+#9's : {'+sLineBreak+#9#9'w : 10,'+sLineBreak+#9#9'h : 20'+sLineBreak+#9'}'+sLineBreak+'}',O.FormatJSON([foUseTabChar,foDoNotQuoteMembers],1));
   finally
     O.Free;
+  end;
+end;
+
+procedure TTestObject.TestFind;
+
+Const
+  A = 'A';
+  S = 'A string';
+  B = 'a';
+  S2 = 'Another string';
+  C = 'c';
+  S3 = 'Yet Another string';
+
+Var
+  J : TJSONObject;
+
+begin
+  J:=TJSONObject.Create([A,S,B,S2,C,S3]);
+  try
+    TestJSONType(J,jtObject);
+    TestIsNull(J,False);
+    TestItemCount(J,3);
+    TestJSONType(J[A],jtString);
+    TestJSONType(J[B],jtString);
+    TestJSON(J,'{ "A" : "'+S+'", "a" : "'+S2+'", "c" : "'+S3+'" }');
+    AssertEquals('Nonexisting, case sensitive',-1,J.IndexOfName('D'));
+    AssertEquals('Nonexisting, case insensitive',-1,J.IndexOfName('D',True));
+    AssertEquals('1 Existing , case sensitive',0,J.IndexOfName(A));
+    AssertEquals('2 Existing exact match, case insensitive',0,J.IndexOfName(A,true));
+    AssertEquals('3 Existing , case sensitive',1,J.IndexOfName(B));
+    AssertEquals('4 Existing exact match, case insensitive',1,J.IndexOfName(B,true));
+    AssertEquals('5 Existing , case sensitive again',2,J.IndexOfName(C));
+    AssertEquals('6 Existing case-insensitive match, case insensitive',2,J.IndexOfName(Uppercase(C),true));
+  finally
+    FreeAndNil(J);
   end;
 end;
 
