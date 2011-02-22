@@ -1586,6 +1586,7 @@ packages/cocoaint/utils/parser.php svneol=native#text/plain
 packages/cocoaint/utils/patches/cocoa-coredata-webkit.patch svneol=native#text/plain
 packages/cocoaint/utils/patches/uikit-3.2.patch svneol=native#text/plain
 packages/cocoaint/utils/patches/uikit-4.2.patch svneol=native#text/plain
+packages/cocoaint/utils/source/docset.php svneol=native#text/plain
 packages/cocoaint/utils/source/objp.php svneol=native#text/plain
 packages/cocoaint/utils/source/objp_base.php svneol=native#text/plain
 packages/cocoaint/utils/source/utilities.php svneol=native#text/plain
