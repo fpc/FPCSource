@@ -81,24 +81,25 @@ Resourcestring
   SLogPackageChecksumChanged = 'Package %s needs to be rebuild, dependency %s is modified';
   SLogCheckBrokenDependenvies= 'Checking for broken dependencies';
 
-  SLogGlobalCfgHeader        = 'Using global configuration:';
-  SLogGlobalCfgRemoteMirrorsURL = ' RemoteMirrorsURL: "%s"';
-  SLogGlobalCfgRemoteRepository = ' RemoteRepository: "%s"';
-  SLogGlobalCfgLocalRepository = ' LocalRepository: "%s"';
-  SLogGlobalCfgBuildDir      = ' BuildDir: "%s"';
-  SLogGlobalCfgArchivesDir   = ' ArchivesDir: "%s"';
-  SLogGlobalCfgCompilerConfigDir = ' CompilerConfigDir: "%s"';
+  SLogGlobalCfgHeader                = 'Using global configuration from file "%s":';
+  SLogGlobalCfgRemoteMirrorsURL      = ' RemoteMirrorsURL:      %s';
+  SLogGlobalCfgRemoteRepository      = ' RemoteRepository:      %s';
+  SLogGlobalCfgLocalRepository       = ' LocalRepository:       "%s" -> "%s"';
+  SLogGlobalCfgBuildDir              = ' BuildDir:              "%s" -> "%s"';
+  SLogGlobalCfgArchivesDir           = ' ArchivesDir:           "%s" -> "%s"';
+  SLogGlobalCfgCompilerConfigDir     = ' CompilerConfigDir:     "%s" -> "%s"';
   SLogGlobalCfgDefaultCompilerConfig = ' DefaultCompilerConfig: "%s"';
-  SLogGlobalCfgFPMakeCompilerConfig = ' FPMakeCompilerConfig: "%s"';
-  SLogGlobalCfgDownloader    = ' Downloader: "%s"';
-  SLogCompilerCfgHeader      = 'Using %scompiler configuration:';
-  SLogCompilerCfgCompiler    = ' Compiler: "%s"';
-  SLogCompilerCfgTarget      = ' Target: "%s"';
-  SLogCompilerCfgVersion     = ' Version: "%s"';
-  SLogCompilerCfgGlobalInstallDir = ' GlobalInstallDir: "%s"';
-  SLogCompilerCfgLocalInstallDir = ' LocalInstallDir: "%s"';
-  SLogCompilerCfgGlobalPrefix = ' GlobalPrefix: "%s"';
-  SLogCompilerCfgLocalPrefix = ' LocalPrefix: "%s"';
+  SLogGlobalCfgFPMakeCompilerConfig  = ' FPMakeCompilerConfig:  "%s"';
+  SLogGlobalCfgDownloader            = ' Downloader:            %s';
+  SLogCompilerCfgHeader           = 'Using %scompiler configuration file "%s":';
+  SLogCompilerCfgCompiler         = ' Compiler:         "%s"';
+  SLogCompilerCfgTarget           = ' Target:           %s';
+  SLogCompilerCfgOptions          = ' Options:          "%s"';
+  SLogCompilerCfgVersion          = ' Version:          %s';
+  SLogCompilerCfgGlobalInstallDir = ' GlobalInstallDir: "%s" -> "%S"';
+  SLogCompilerCfgLocalInstallDir  = ' LocalInstallDir:  "%s" -> "%s"';
+  SLogCompilerCfgGlobalPrefix     = ' GlobalPrefix:     "%s" -> "%s"';
+  SLogCompilerCfgLocalPrefix      = ' LocalPrefix:      "%s" -> "%s"';
 
   SDbgFound                  = 'Found';
   SDbgNotFound               = 'Not Found';
@@ -112,6 +113,7 @@ Resourcestring
   SProgrReinstallDependent   = 'Re-install packages which are dependent on just installed packages';
   SProgrInstallDependencies  = 'Install dependencies';
   SProgrDependenciesInstalled= 'Dependencies installed';
+  SProgrDownloadPackage      = 'Downloading package %s version %s';
 
 implementation
 

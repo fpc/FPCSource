@@ -195,7 +195,7 @@ begin
           if FPMKUnitDeps[i].available then
             begin
               if CheckUnitDir(FPMKUnitDeps[i].package,DepDir) then
-                AddOption(maybequoted('-Fu'+DepDir))
+                AddOption('-Fu'+DepDir)
               else
                 Error(SErrMissingInstallPackage,[FPMKUnitDeps[i].package]);
               if FPMKUnitDeps[i].def<>'' then

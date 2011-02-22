@@ -110,6 +110,25 @@ type
     Procedure Execute;override;
   end;
 
+  { TCommandListSettings }
+
+  TCommandListSettings = Class(TPackagehandler)
+  Public
+    Procedure Execute;override;
+  end;
+
+var
+  DependenciesDepth: integer;
+
+{ TCommandListSettings }
+
+procedure TCommandListSettings.Execute;
+begin
+  GlobalOptions.LogValues(vlProgres);
+  CompilerOptions.LogValues(vlProgres,'');
+  FPMakeCompilerOptions.LogValues(vlProgres,'fpmake-building ');
+end;
+
 
 procedure TCommandAddConfig.Execute;
 begin
@@ -304,6 +323,8 @@ begin
         end;
       UFN:=IncludeTrailingPathDelimiter(UFN)+S+PathDelim+UnitConfigFileName;
       LoadUnitConfigFromFile(P,UFN);
+      if P.IsFPMakeAddIn then
+        AddFPMakeAddIn(P);
     end
   else
     ExecuteAction(PackageName,'fpmakeinstall');
@@ -396,10 +417,16 @@ begin
   // Install needed updates
   if L.Count > 0 then
     begin
-      pkgglobals.Log(vlProgres,SProgrInstallDependencies);
+      if DependenciesDepth=0 then
+        pkgglobals.Log(vlProgres,SProgrInstallDependencies);
+      inc(DependenciesDepth);
+
       for i:=0 to L.Count-1 do
         ExecuteAction(L[i],'install');
-      pkgglobals.Log(vlProgres,SProgrDependenciesInstalled);
+
+      dec(DependenciesDepth);
+      if DependenciesDepth=0 then
+        pkgglobals.Log(vlProgres,SProgrDependenciesInstalled);
     end;
   FreeAndNil(L);
   if FreeManifest then
@@ -429,6 +456,7 @@ end;
 
 
 initialization
+  DependenciesDepth:=0;
   RegisterPkgHandler('update',TCommandUpdate);
   RegisterPkgHandler('list',TCommandListPackages);
   RegisterPkgHandler('scan',TCommandScanPackages);
@@ -441,4 +469,5 @@ initialization
   RegisterPkgHandler('archive',TCommandArchive);
   RegisterPkgHandler('installdependencies',TCommandInstallDependencies);
   RegisterPkgHandler('fixbroken',TCommandFixBroken);
+  RegisterPkgHandler('listsettings',TCommandListSettings);
 end.
