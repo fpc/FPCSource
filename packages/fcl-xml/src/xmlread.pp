@@ -249,6 +249,8 @@ type
     FElementDef: TElementDecl;
     FCurCP: TContentParticle;
     FFailed: Boolean;
+    FSaViolation: Boolean;
+    FContentType: TElementContentType;       // =ctAny when FElementDef is nil
     function IsElementAllowed(Def: TElementDecl): Boolean;
     function Incomplete: Boolean;
   end;
@@ -284,8 +286,6 @@ type
     FDocType: TDTDModel;
     FPEMap: THashTable;
     FForwardRefs: TFPList;
-    FCurrContentType: TElementContentType;
-    FSaViolation: Boolean;
     FDTDStartPos: PWideChar;
     FIntSubset: TWideCharBuf;
     FAttrTag: Cardinal;
@@ -347,6 +347,7 @@ type
     FPrefixedAttrs: Integer;
     FSpecifiedAttrs: Integer;
     FNodeStack: TNodeDataDynArray;
+    FValidatorNesting: Integer;
     FValidators: TValidatorDynArray;
     FAttrChunks: TFPList;
     FFreeAttrChunk: PNodeData;
@@ -413,7 +414,6 @@ type
 
     procedure PushVC(aElDef: TElementDecl);
     procedure PopVC;
-    procedure UpdateConstraints;
     procedure ValidateDTD;
     procedure ValidateCurrentNode;
     procedure ValidationError(const Msg: string; const args: array of const; LineOffs: Integer = -1);
@@ -1316,6 +1316,7 @@ begin
   FNameTable := doc.Names;
   FState := rsProlog;
   FNesting := 0;
+  FValidatorNesting := 0;
   FCurrNode := @FNodeStack[0];
   FFragmentMode := False;
   NSPrepare;
@@ -1344,6 +1345,7 @@ begin
   FNameTable := doc.Names;
   FState := rsRoot;
   FNesting := 0;
+  FValidatorNesting := 0;
   FCurrNode := @FNodeStack[0];
   FFragmentMode := True;
   FXML11 := doc.InheritsFrom(TXMLDocument) and (TXMLDocument(doc).XMLVersion = '1.1');
@@ -2673,7 +2675,6 @@ begin
   case FCurrNode^.FNodeType of
     ntElement:
       begin
-        { TODO: pushing *validation* context must be moved here }
         if (FNesting = 1) and (not FFragmentMode) then
         begin
           if Assigned(FDocType) then
@@ -2688,8 +2689,10 @@ begin
         if (ElDef = nil) or (ElDef.ContentType = ctUndeclared) then
           DoErrorPos(esError, 'Using undeclared element ''%s''',[FCurrNode^.FQName^.Key], FCurrNode^.FLoc);
 
-        if not FValidators[FNesting-1].IsElementAllowed(ElDef) then
+        if not FValidators[FValidatorNesting].IsElementAllowed(ElDef) then
           DoErrorPos(esError, 'Element ''%s'' is not allowed in this context',[FCurrNode^.FQName^.Key], FCurrNode^.FLoc);
+
+        PushVC(ElDef);
 
         { Validate attributes }
         for i := 1 to FAttrCount do
@@ -2720,32 +2723,37 @@ begin
 
     ntEndElement:
       begin
-        if FValidators[FNesting].Incomplete then
+        if FValidators[FValidatorNesting].Incomplete then
           ValidationError('Element ''%s'' is missing required sub-elements', [FCurrNode^.FQName^.Key], -1);
+        if FValidatorNesting > 0 then
+          Dec(FValidatorNesting);
       end;
 
-    ntText, ntWhitespace:
-      case FCurrContentType of
+    ntText, ntSignificantWhitespace:
+      case FValidators[FValidatorNesting].FContentType of
         ctChildren:
           if FCurrNode^.FNodeType = ntText then
             ValidationError('Character data is not allowed in element-only content',[])
           else
-            if FSaViolation then
+          begin
+            if FValidators[FValidatorNesting].FSaViolation then
               StandaloneError(-1);
+            FCurrNode^.FNodeType := ntWhitespace;
+          end;
         ctEmpty:
           ValidationError('Character data is not allowed in EMPTY elements', []);
       end;
 
     ntCDATA:
-      if FCurrContentType = ctChildren then
+      if FValidators[FValidatorNesting].FContentType = ctChildren then
         ValidationError('CDATA sections are not allowed in element-only content',[]);
 
     ntProcessingInstruction:
-      if FCurrContentType = ctEmpty then
+      if FValidators[FValidatorNesting].FContentType = ctEmpty then
         ValidationError('Processing instructions are not allowed within EMPTY elements', []);
 
     ntComment:
-      if FCurrContentType = ctEmpty then
+      if FValidators[FValidatorNesting].FContentType = ctEmpty then
         ValidationError('Comments are not allowed within EMPTY elements', []);
 
     ntDocumentType:
@@ -2765,12 +2773,12 @@ end;
 
 procedure TXMLReader.HandleEntityEnd;
 begin
-  FValidators[FNesting-1] := FValidators[FNesting];
   ContextPop(True);
-  PopVC;
+  if FNesting > 0 then Dec(FNesting);
   FCurrNode := @FNodeStack[FNesting+1];
   FCurrNode^.FNodeType := ntEndEntity;
   // TODO: other properties of FCurrNode
+  FNext := xtText;
 end;
 
 procedure TXMLReader.ResolveEntity;
@@ -2787,7 +2795,8 @@ procedure TXMLReader.DoStartEntity;
 var
   src: TXMLCharSource;
 begin
-  PushVC(nil);
+  Inc(FNesting);
+  FCurrNode := AllocNodeData(FNesting);
   if Assigned(FCurrEntity) then
     ContextPush(FCurrEntity)
   else
@@ -2797,10 +2806,6 @@ begin
     src.Kind := skManualPop;
     Initialize(src);
   end;
-
-  { Compensate for an extra entry in node stack }
-  FValidators[FNesting] := FValidators[FNesting-1];
-  UpdateConstraints;
   FNext := xtText;
 end;
 
@@ -2873,7 +2878,7 @@ const
   );
 
   textNodeTypes: array[Boolean] of TXMLNodeType = (
-    ntWhitespace,
+    ntSignificantWhitespace,
     ntText
   );
 
@@ -2892,9 +2897,9 @@ begin
       ntText:
         cursor.InternalAppend(doc.CreateTextNodeBuf(FValue.Buffer, FValue.Length, False));
 
-      ntWhitespace:
+      ntWhitespace, ntSignificantWhitespace:
         if FPreserveWhitespace then
-          cursor.InternalAppend(doc.CreateTextNodeBuf(FValue.Buffer, FValue.Length, FCurrContentType = ctChildren))
+          cursor.InternalAppend(doc.CreateTextNodeBuf(FValue.Buffer, FValue.Length, FCurrNode^.FNodeType = ntWhitespace))
         else
           Continue;
 
@@ -3062,7 +3067,7 @@ begin
       if FState <> rsRoot then
         FatalError('Illegal at document level');
 
-      if FCurrContentType = ctEmpty then
+      if FValidators[FValidatorNesting].FContentType = ctEmpty then
         ValidationError('References are illegal in EMPTY elements', []);
 
       if ParseRef(FValue) or ResolvePredefined then
@@ -3157,8 +3162,9 @@ begin
   FAttrCount := 0;
   FPrefixedAttrs := 0;
   FSpecifiedAttrs := 0;
-  PushVC(ElDef);           // this increases FNesting
 
+  Inc(FNesting);
+  FCurrNode := AllocNodeData(FNesting);
   FCurrNode^.FQName := ElName;
   FCurrNode^.FNodeType := ntElement;
   FCurrNode^.FColonPos := FColonPos;
@@ -3592,9 +3598,6 @@ function TXMLReader.AllocAttributeData: PNodeData;
 begin
   Result := AllocNodeData(FNesting + FAttrCount + 1);
   Result^.FNodeType := ntAttribute;
-  Result^.FPrefix := nil;
-  Result^.FNsUri := nil;
-  Result^.FIDEntry := nil;
   Result^.FIsDefault := False;
   Inc(FAttrCount);
 end;
@@ -3606,6 +3609,9 @@ begin
     SetLength(FNodeStack, AIndex * 2 + 2);
 
   Result := @FNodeStack[AIndex];
+  Result^.FPrefix := nil;
+  Result^.FNsUri := nil;
+  Result^.FIDEntry := nil;
 end;
 
 function TXMLReader.AllocAttributeValueChunk(APrev: PNodeData): PNodeData;
@@ -3671,21 +3677,23 @@ end;
 
 procedure TXMLReader.PushVC(aElDef: TElementDecl);
 begin
-  Inc(FNesting);
-  FCurrNode := AllocNodeData(FNesting);
-  FCurrNode^.FPrefix := nil;
-  FCurrNode^.FNsUri := nil;
-  FCurrNode^.FIDEntry := nil;
+  Inc(FValidatorNesting);
+  if FValidatorNesting >= Length(FValidators) then
+    SetLength(FValidators, FValidatorNesting * 2);
 
-  if FNesting >= Length(FValidators) then
+  with FValidators[FValidatorNesting] do
   begin
-    SetLength(FValidators, FNesting * 2);
+    FElementDef := aElDef;
+    FCurCP := nil;
+    FFailed := False;
+    FContentType := ctAny;
+    FSaViolation := False;
+    if Assigned(aElDef) then
+    begin
+      FContentType := aElDef.ContentType;
+      FSaViolation := FStandalone and aElDef.ExternallyDeclared;
+    end;
   end;
-
-  FValidators[FNesting].FElementDef := aElDef;
-  FValidators[FNesting].FCurCP := nil;
-  FValidators[FNesting].FFailed := False;
-  UpdateConstraints;
 end;
 
 procedure TXMLReader.PopVC;
@@ -3694,22 +3702,7 @@ begin
     FState := rsEpilog;
   if FNesting > 0 then Dec(FNesting);
   FCurrNode := @FNodeStack[FNesting];
-  UpdateConstraints;
   FNext := xtText;
-end;
-
-procedure TXMLReader.UpdateConstraints;
-begin
-  if FValidate and Assigned(FValidators[FNesting].FElementDef) then
-  begin
-    FCurrContentType := FValidators[FNesting].FElementDef.ContentType;
-    FSaViolation := FStandalone and (FValidators[FNesting].FElementDef.ExternallyDeclared);
-  end
-  else
-  begin
-    FCurrContentType := ctAny;
-    FSaViolation := False;
-  end;
 end;
 
 { TElementValidator }
