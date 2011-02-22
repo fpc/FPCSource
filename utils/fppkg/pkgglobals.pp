@@ -52,11 +52,11 @@ Const
   );
 
 Type
-  TLogLevel = (vlError,vlWarning,vlInfo,vlCommands,vlDebug);
+  TLogLevel = (vlError,vlWarning,vlInfo,vlCommands,vlDebug,vlProgres);
   TLogLevels = Set of TLogLevel;
 
 const
-  DefaultLogLevels = [vlError,vlWarning];
+  DefaultLogLevels = [vlError,vlWarning, vlProgres];
   AllLogLevels = [vlError,vlWarning,vlCommands,vlInfo];
 
 type

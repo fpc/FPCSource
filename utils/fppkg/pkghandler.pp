@@ -57,6 +57,7 @@ uses
 var
   PkgHandlerList  : TFPHashList;
   ExecutedActions : TFPHashList;
+  CurrentDir      : string;
 
 procedure RegisterPkgHandler(const AAction:string;pkghandlerclass:TPackageHandlerClass);
 begin
@@ -106,9 +107,22 @@ end;
 function PackageBuildPath(APackage:TFPPackage):String;
 begin
   if APackage.Name=CurrentDirPackageName then
-    Result:='.'
+    begin
+      // It could be that to resolve some dependencies, the current directory changes. The first time
+      // PackageBuildPath is called the dependencies are not resolved yet, so store the current directory
+      // for later calls.
+      if CurrentDir='' then
+        begin
+          Result:='.';
+          CurrentDir := SysUtils.GetCurrentDir;
+        end
+      else
+        Result:=CurrentDir;
+    end
   else if APackage.Name=CmdLinePackageName then
     Result:=GlobalOptions.BuildDir+ChangeFileExt(ExtractFileName(APackage.LocalFileName),'')
+  else if (APackage.RecompileBroken) and (APackage.SourcePath<>'') then
+    Result:=APackage.SourcePath
   else
     Result:=GlobalOptions.BuildDir+APackage.Name;
 end;

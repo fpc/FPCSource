@@ -109,6 +109,9 @@ Resourcestring
   SDbgPackageDependencyOtherTarget  = 'Dependency on package %s is not for %s';
   SDbgObsoleteDependency     = 'Obsolete dependency found on package %s';
 
+  SProgrReinstallDependent   = 'Re-install packages which are dependent on just installed packages';
+  SProgrInstallDependencies  = 'Install dependencies';
+  SProgrDependenciesInstalled= 'Dependencies installed';
 
 implementation
 
