@@ -321,6 +321,7 @@ Procedure ProcessCommandline;
 Var
   I : Integer;
   S : String;
+  ShowBuiltinCommand : boolean;
 
   Function GetOptArg : String;
 
@@ -361,10 +362,7 @@ begin
       case S[2] of
         'v' : Verbose:=True;
         'h' : Usage;
-        'b' : begin
-              ShowBuiltin;
-              halt(0);
-              end;
+        'b' : ShowBuiltinCommand := true;
         'm' : begin
               ShowBuiltinMacros;
               halt(0);
@@ -408,6 +406,11 @@ begin
       end;
 
     TemplateParser.Values['TEMPLATEFILE'] := 'builtin';
+    end;
+  if ShowBuiltinCommand then
+    begin
+    ShowBuiltIn;
+    halt(0);
     end;
 end;
 

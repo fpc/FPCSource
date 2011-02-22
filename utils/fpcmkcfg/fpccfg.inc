@@ -135,20 +135,20 @@ const DefaultConfig : array[0..23,1..240] of char=(
   '#-Fr%basepath%/msg/errord.msg'#010+
   '#-Fr%basepath%/msg/errorr.msg'#010+
   #010+
+  '# searchpath for units and other system dependent things'#010+
+  '-Fu%basepath%/units/$FPCTARGET/'#010+
+  '-Fu%basepath%/units/$FPCTARGET/*'#010+
+  '-Fu%basepath%/units/$FPCTARGET/rtl',#010+
+  #010+
   '#IFDEF FPCAPACHE_1_13'#010+
   '-Fu%basepath%/units/$FPCTARGET/httpd13/'#010+
   '#ELSE'#010+
   '#IFDEF FPCAPACHE_2_0'#010+
   '-Fu%basepath%/units/$FPCTARGET/httpd20'#010+
   '#ELSE'#010+
-  '-Fu%basepath%/units/$F','PCTARGET/httpd22'#010+
+  '-Fu%basepath%/units/$FPCTARGET/httpd22'#010+
   '#ENDIF'#010+
   '#ENDIF'#010+
-  #010+
-  '# searchpath for units and other system dependent things'#010+
-  '-Fu%basepath%/units/$FPCTARGET/'#010+
-  '-Fu%basepath%/units/$FPCTARGET/*'#010+
-  '-Fu%basepath%/units/$FPCTARGET/rtl'#010+
   #010+
   '# path to the gcclib'#010+
   '%gcclibpath%'#010+
