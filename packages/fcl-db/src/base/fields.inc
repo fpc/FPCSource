@@ -2444,8 +2444,7 @@ function TFMTBCDField.GetAsVariant: Variant;
 var bcd: TBCD;
 begin
   If GetData(@bcd) then
-    Result := BCDToDouble(bcd)//remove when complete variant support in fmtbcd.pp will be implemented
-    //Result := VarFMTBcdCreate(bcd) //later invalid variant type cast ?
+    Result := VarFMTBcdCreate(bcd)
   else
     Result := Null;
 end;
@@ -2546,11 +2545,8 @@ begin
 end;
 
 procedure TFMTBCDField.SetVarValue(const AValue: Variant);
-var E:double;
 begin
-  E:=AValue;
-  SetAsBCD(DoubleToBCD(E));//remove when VarToBCD in fmtbcd.pp will be implemented
-  //SetAsBCD(VarToBCD(AValue));
+  SetAsBCD(VarToBCD(AValue));
 end;
 
 procedure TFMTBCDField.SetAsFloat(AValue: Double);
