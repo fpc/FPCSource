@@ -1,5 +1,36 @@
-.file   "androidprt0.as"
+.file   "dllprt0.as"
 .text
+        .globl  _startlib
+        .type   _startlib,#function
+_startlib:
+        .globl  FPC_SHARED_LIB_START
+        .type   FPC_SHARED_LIB_START,#function
+FPC_SHARED_LIB_START:
+        /* Clear the frame pointer since this is the outermost frame */
+        mov fp, #0
+        ldmia sp!, {a2}
+
+        /* pop argc off the stack and save a pointer to argv */
+        ldr ip,=operatingsystem_parameter_argc
+        ldr a3,=operatingsystem_parameter_argv
+        str a2,[ip]
+
+        /* calc envp */
+        add a2,a2,#1
+        add a2,sp,a2,lsl #2
+        ldr ip,=operatingsystem_parameter_envp
+
+        str sp,[a3]
+        str a2,[ip]
+
+        /* save initial stackpointer */
+        ldr ip,=__stklen
+        str sp,[ip]
+        /* align sp again to 8 byte boundary, needed by eabi */
+        sub sp,sp,#4
+
+        /* let the libc call main and exit with its return code */
+        bl PASCALMAIN
 
         .globl  _haltproc
         .type   _haltproc,#function
@@ -32,3 +63,4 @@ operatingsystem_parameters:
 .bss
 
         .comm __stkptr,4
+
