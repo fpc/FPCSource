@@ -27,6 +27,14 @@ unit fpmkunit;
 
 Interface
 
+{$IFDEF OS2}
+ {$DEFINE NO_UNIT_PROCESS}
+{$ENDIF OS2}
+
+{$IFDEF GO32V2}
+ {$DEFINE NO_UNIT_PROCESS}
+{$ENDIF GO32V2}
+
 {$ifndef NO_UNIT_PROCESS}
   {$define HAS_UNIT_PROCESS}
 {$endif NO_UNIT_PROCESS}
@@ -1154,6 +1162,7 @@ Const
                                 Helpers
 ****************************************************************************}
 
+{$ifdef HAS_UNIT_PROCESS}
 function ExecuteFPC(Verbose: boolean; const Path: string; const ComLine: string; ConsoleOutput: TMemoryStream): integer;
 var
   P: TProcess;
@@ -1255,6 +1264,7 @@ begin
     P.Free;
   end;
 end;
+{$endif HAS_UNIT_PROCESS}
 
 function ParsecompilerOutput(M: TMemoryStream; Verbose: boolean): string;
 type
@@ -3500,7 +3510,11 @@ begin
       // We should check cmd for spaces, and move all after first space to args.
       ConsoleOutput := TMemoryStream.Create;
       try
+        {$ifdef HAS_UNIT_PROCESS}
         E:=ExecuteFPC(Verbose, cmd, args, ConsoleOutput);
+        {$else}
+        E:=ExecuteProcess(cmd,args);
+        {$endif}
         If (E<>0) and (not IgnoreError) then
           begin
             if trim(Args)<>'' then
