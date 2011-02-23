@@ -6,31 +6,38 @@ _startlib:
         .globl  FPC_SHARED_LIB_START
         .type   FPC_SHARED_LIB_START,#function
 FPC_SHARED_LIB_START:
-        /* Clear the frame pointer since this is the outermost frame */
-        mov fp, #0
-        ldmia sp!, {a2}
+        mov ip, sp
+        push {fp, ip, lr, pc}
+        sub fp, ip, #4
+        sub sp, sp, #40
 
-        /* pop argc off the stack and save a pointer to argv */
-        ldr ip,=operatingsystem_parameter_argc
-        ldr a3,=operatingsystem_parameter_argv
-        str a2,[ip]
+        /* load argc */
+        mov a1, ip
 
-        /* calc envp */
-        add a2,a2,#1
-        add a2,sp,a2,lsl #2
-        ldr ip,=operatingsystem_parameter_envp
+        /* load and save a copy of argc  */
+        ldr a2, [a1]
+        ldr ip, =operatingsystem_parameter_argc
+        str a2, [ip]
 
-        str sp,[a3]
-        str a2,[ip]
+        /* calc argv and store */
+        add a1, a1, #4
+        ldr ip, =operatingsystem_parameter_argv
+        str a1, [ip]
+
+        /* calc envp and store */
+        add a2, a2, #1
+        add a2, a1, a2, lsl #2
+
+        ldr ip, =operatingsystem_parameter_envp
+        str a2, [ip]
 
         /* save initial stackpointer */
-        ldr ip,=__stklen
-        str sp,[ip]
-        /* align sp again to 8 byte boundary, needed by eabi */
-        sub sp,sp,#4
+        ldr ip, =__stklen
+        str sp, [ip]
 
-        /* let the libc call main and exit with its return code */
+        /* call main and exit normally */
         bl PASCALMAIN
+        ldmdb fp, {fp, sp, pc}
 
         .globl  _haltproc
         .type   _haltproc,#function
