@@ -49,6 +49,9 @@ function malloc(size: integer): pointer; cdecl; external;
 function realloc(ptr: pointer; size: integer): pointer; cdecl; external;
 procedure free(ptr: pointer); cdecl; external;
 function memcpy(dest: pointer; src: pointer; n: integer): pointer; cdecl; external;
+function memalign(alignment: integer; size: integer): pointer; cdecl; external;
+function memset(s: pointer; c: longint; n: integer): pointer; cdecl; external;
+
 
 function gmtime(timer: ptime_t): ptm; cdecl; external;
 function time(timer: ptime_t): time_t; cdecl; external;

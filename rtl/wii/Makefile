@@ -280,190 +280,190 @@ endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),powerpc-gamecube)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings sysutils classes math typinfo varutils fmtbcd ctypes charset ucomplex getopts matrix variants types rtlconsts sysconst dateutil lineinfo fgl varutils cmem
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)
@@ -2138,14 +2138,6 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-prt07$(OEXT) : prt07.as
-	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt07$(OEXT) prt07.as
-prt09$(OEXT) : prt09.as
-	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt09$(OEXT) prt09.as
-cprt07$(OEXT) : cprt07.as
-	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt07$(OEXT) cprt07.as
-cprt09$(OEXT) : cprt09.as
-	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt09$(OEXT) cprt09.as
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
 	$(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
@@ -2211,3 +2203,4 @@ tinygl$(PPUEXT): tinygl.pp exec$(PPUEXT)
 get9$(PPUEXT): get9.pas exec$(PPUEXT)
 muihelper$(PPUEXT): muihelper.pas intuition$(PPUEXT) mui$(PPUEXT) doslib$(PPUEXT) utility$(PPUEXT)
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
