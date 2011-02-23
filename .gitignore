@@ -4319,6 +4319,9 @@ packages/libndsfpc/tests/build-stamp.*
 packages/libndsfpc/tests/fpcmade.*
 packages/libndsfpc/tests/units
 packages/libndsfpc/units
+packages/libogcfpc/examples/devices/network/sockettest/data
+packages/libogcfpc/examples/devices/usbgecko/gdbstub/data
+packages/libogcfpc/examples/devices/usbkeyboard/basic_stdin/data
 packages/libpng/*.bak
 packages/libpng/*.exe
 packages/libpng/*.o
