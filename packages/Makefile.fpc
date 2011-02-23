@@ -64,6 +64,7 @@ dirs_palmos=palmunits
 dirs_go32v2=fv graph unzip gdbint
 dirs_amiga=amunits
 dirs_morphos=fv opengl sdl
+dirs_wii=libogcfpc
 
 [install]
 fpcpackage=y
