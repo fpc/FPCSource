@@ -281,7 +281,7 @@ type
     FEntityValue: TWideCharBuf;
     FName: TWideCharBuf;
     FTokenStart: TLocation;
-    FStandalone: Boolean;          // property of Doc ?
+    FStandalone: Boolean;
     FNamePages: PByteArray;
     FDocType: TDTDModel;
     FPEMap: THashTable;
@@ -404,7 +404,7 @@ type
     procedure BadPENesting(S: TErrorSeverity = esError);
     procedure ParseEntityDecl;
     procedure ParseAttlistDecl;
-    procedure ExpectChoiceOrSeq(CP: TContentParticle);
+    procedure ExpectChoiceOrSeq(CP: TContentParticle; MustEndIn: TObject);
     procedure ParseElementDecl;
     procedure ParseNotationDecl;
     function ResolveResource(const ASystemID, APublicID, ABaseURI: WideString; out Source: TXMLCharSource): Boolean;
@@ -1348,10 +1348,11 @@ begin
   FValidatorNesting := 0;
   FCurrNode := @FNodeStack[0];
   FFragmentMode := True;
-  FXML11 := doc.InheritsFrom(TXMLDocument) and (TXMLDocument(doc).XMLVersion = '1.1');
+  FXML11 := doc.XMLVersion = '1.1';
   NSPrepare;
   Initialize(ASource);
-  // See comment in EntityCheck()
+  { Get doctype from the owner's document, but only if it is not already assigned
+   (It is set directly when parsing children of an Entity, see LoadEntity procedure) }
   if FDocType = nil then
   begin
     DoctypeNode := TDOMDocumentTypeEx(doc.DocType);
@@ -1734,14 +1735,8 @@ begin
     FatalError('External entity reference is not allowed in attribute value', cnt);
 
   if not Result.FResolved then
-  begin
-    // To build children of the entity itself, we must parse it "out of context"
-    // However, care must be taken to properly pass the DTD to InnerReader.
-    // We now have doc.DocumentType=nil while DTD is being parsed,
-    // which can break parsing 2+ level entities in default attribute values.
-
     LoadEntity(Result);
-  end;
+
   // at this point we know the charcount of the entity being included
   if Result.FCharCount >= cnt then
     CheckMaxChars(Result.FCharCount - cnt);
@@ -2148,10 +2143,9 @@ begin
   end;
 end;
 
-procedure TXMLReader.ExpectChoiceOrSeq(CP: TContentParticle);                  // [49], [50]
+procedure TXMLReader.ExpectChoiceOrSeq(CP: TContentParticle; MustEndIn: TObject);     // [49], [50]
 var
   Delim: WideChar;
-  CurrentEntity: TObject;
   CurrentCP: TContentParticle;
 begin
   Delim := #0;
@@ -2159,13 +2153,7 @@ begin
     CurrentCP := CP.Add;
     SkipWhitespace;
     if CheckForChar('(') then
-    begin
-      CurrentEntity := FSource.FEntity;
-      ExpectChoiceOrSeq(CurrentCP);
-      if CurrentEntity <> FSource.FEntity then
-        BadPENesting;
-      FSource.NextChar;
-    end
+      ExpectChoiceOrSeq(CurrentCP, FSource.FEntity)
     else
       CurrentCP.Def := FindOrCreateElDef;
 
@@ -2185,6 +2173,10 @@ begin
         FatalError(Delim);
     FSource.NextChar; // skip delimiter
   until False;
+  if MustEndIn <> FSource.FEntity then
+    BadPENesting;
+  FSource.NextChar;
+
   if Delim = '|' then
     CP.CPType := ctChoice
   else
@@ -2249,10 +2241,7 @@ begin
       else       // Children section [47]
       begin
         Typ := ctChildren;
-        ExpectChoiceOrSeq(CP);
-        if CurrentEntity <> FSource.FEntity then
-          BadPENesting;
-        FSource.NextChar;
+        ExpectChoiceOrSeq(CP, CurrentEntity);
         CP.CPQuant := ParseQuantity;
       end;
     except
@@ -2899,9 +2888,7 @@ begin
 
       ntWhitespace, ntSignificantWhitespace:
         if FPreserveWhitespace then
-          cursor.InternalAppend(doc.CreateTextNodeBuf(FValue.Buffer, FValue.Length, FCurrNode^.FNodeType = ntWhitespace))
-        else
-          Continue;
+          cursor.InternalAppend(doc.CreateTextNodeBuf(FValue.Buffer, FValue.Length, FCurrNode^.FNodeType = ntWhitespace));
 
       ntCDATA:
         cursor.InternalAppend(DoCDSect(FValue.Buffer, FValue.Length));
@@ -2910,25 +2897,21 @@ begin
         cursor.InternalAppend(CreatePINode);
 
       ntComment:
-        if FIgnoreComments then
-          Continue
-        else
+        if not FIgnoreComments then
           cursor.InternalAppend(doc.CreateCommentBuf(FCurrNode^.FValueStart, FCurrNode^.FValueLength));
+
       ntElement:
         begin
           element := DoStartElement;
           cursor.InternalAppend(element);
           cursor := element;
-          Continue;
         end;
 
       ntEndElement:
           cursor := TDOMNode_WithChildren(cursor.ParentNode);
 
       ntDocumentType:
-        if FCanonical then
-          Continue
-        else
+        if not FCanonical then
           cursor.InternalAppend(TDOMDocumentType.Create(doc, FDocType));
 
       ntEntityReference:
