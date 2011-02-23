@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='libcurl';
 {$endif ALLPACKAGES}
-    P.Version:='2.4.3';
+    P.Version:='2.4.4rc1';
 
     P.Author := 'Library: Daniel Stenberg, header: Free Pascal development team';
     P.License := 'Library: MIT, header: LGPL with modification, ';

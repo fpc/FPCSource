@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='graph';
 {$endif ALLPACKAGES}
-    P.Version:='2.4.3';
+    P.Version:='2.4.4rc1';
     P.Author := 'FPC team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

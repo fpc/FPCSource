@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='libndsfpc';
 {$endif ALLPACKAGES}
-    P.Version:='2.4.3';
+    P.Version:='2.4.4rc1';
     P.SourcePath.Add('src');
 //    P.Dependencies.Add('x11');
 

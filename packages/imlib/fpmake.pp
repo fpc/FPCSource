@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='imlib';
 {$endif ALLPACKAGES}
-    P.Version:='2.4.3';
+    P.Version:='2.4.4rc1';
 
     P.Author := 'Library: Carsten Haitzler, header: ?';
     P.License := 'Library: LGPL 2 or later, header: LGPL with modification';

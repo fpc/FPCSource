@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-async';
 {$endif ALLPACKAGES}
-    P.Version:='2.4.3';
+    P.Version:='2.4.4rc1';
 
     P.Author := 'Mostly Sebastian Guenther';
     P.License := 'LGPL with modification, ';
