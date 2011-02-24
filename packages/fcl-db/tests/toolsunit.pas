@@ -157,6 +157,35 @@ const
     '1900-01-01'
   );
 
+  testTimeValues : Array[0..testValuesCount-1] of string = (
+    '10:45:12:000',
+    '00:00:00:000',
+    '24:00:00:000',
+    '33:25:15:000',
+    '04:59:16:000',
+    '05:45:59:000',
+    '16:35:42:000',
+    '14:45:52:000',
+    '12:45:12:000',
+    '18:45:22:000',
+    '19:45:12:000',
+    '14:45:14:000',
+    '16:45:12:000',
+    '11:45:12:000',
+    '15:35:12:000',
+    '16:45:12:000',
+    '13:55:12:000',
+    '13:46:12:000',
+    '15:35:12:000',
+    '17:25:12:000',
+    '19:45:12:000',
+    '10:54:12:000',
+    '12:25:12:000',
+    '20:15:12:000',
+    '12:25:12:000'
+  );
+
+
 var dbtype,
     dbconnectorname,
     dbconnectorparams,
@@ -256,6 +285,7 @@ begin
   if DBConnectorRefCount>0 then exit;
   testValues[ftString] := testStringValues;
   testValues[ftFixedChar] := testStringValues;
+  testValues[ftTime] := testTimeValues;
   testValues[ftFMTBcd] := testFmtBCDValues;
   for i := 0 to testValuesCount-1 do
     begin

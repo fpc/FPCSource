@@ -54,6 +54,7 @@ type
     procedure TestSupportFloatFields;
     procedure TestSupportLargeIntFields;
     procedure TestSupportDateFields;
+    procedure TestSupportTimeFields;
     procedure TestSupportCurrencyFields;
     procedure TestSupportBCDFields;
     procedure TestSupportfmtBCDFields;
@@ -1912,6 +1913,31 @@ begin
   for i := 0 to testValuesCount-1 do
     begin
     AssertEquals(testDateValues[i],FormatDateTime('yyyy/mm/dd',Fld.AsDateTime));
+    ds.Next;
+    end;
+  ds.close;
+end;
+
+procedure TTestDBBasics.TestSupportTimeFields;
+var i          : byte;
+    ds         : TDataset;
+    Fld        : TField;
+    s          : string;
+    millisecond: word;
+    second     : word;
+    minute     : word;
+    hour       : word;
+begin
+  TestfieldDefinition(ftTime,8,ds,Fld);
+
+  for i := 0 to testValuesCount-1 do
+    begin
+    // Format the datetime in the format hh:nn:ss:zzz, where the hours can be bigger then 23.
+    DecodeTime(fld.AsDateTime,hour,minute,second,millisecond);
+    hour := hour + (trunc(Fld.AsDateTime) * 24);
+    s := Format('%.2d',[hour]) + ':' + format('%.2d',[minute]) + ':' + format('%.2d',[second]) + ':' + format('%.3d',[millisecond]);
+
+    AssertEquals(testTimeValues[i],s);
     ds.Next;
     end;
   ds.close;
