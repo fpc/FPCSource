@@ -162,6 +162,7 @@ Const
 //       syscall_nr_adjtime       = 140    SunOS Specific
       syscall_nr_getpeername      = 141 ; // Common
 //       syscall_nr_gethostid     = 142    SunOS Specific
+      syscall_nr_futex            = 142 ; // gethostid under SunOS
       syscall_nr_gettid           = 143 ; // ENOSYS under SunOS
       syscall_nr_getrlimit        = 144 ; // Common
       syscall_nr_setrlimit        = 145 ; // Common
