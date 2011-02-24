@@ -77,9 +77,9 @@ function ExpandEnvironmentStringsW(lpSrc:LPCWSTR; lpDst:LPWSTR; nSize:DWORD):DWO
 procedure OutputDebugStringW(lpOutputString:LPCWSTR); external 'kernel32' name 'OutputDebugStringW';
 function FindResourceW(hModule:HINST; lpName:LPCWSTR; lpType:LPCWSTR):HRSRC; external 'kernel32' name 'FindResourceW';
 function FindResourceExW(hModule:HINST; lpType:LPCWSTR; lpName:LPCWSTR; wLanguage:WORD):HRSRC; external 'kernel32' name 'FindResourceExW';
-function EnumResourceTypesW(hModule:HINST; lpEnumFunc:ENUMRESTYPEPROC; lParam:LONG):WINBOOL; external 'kernel32' name 'EnumResourceTypesW';
-function EnumResourceNamesW(hModule:HINST; lpType:LPCWSTR; lpEnumFunc:ENUMRESNAMEPROC; lParam:LONG):WINBOOL; external 'kernel32' name 'EnumResourceNamesW';
-function EnumResourceLanguagesW(hModule:HINST; lpType:LPCWSTR; lpName:LPCWSTR; lpEnumFunc:ENUMRESLANGPROC; lParam:LONG):WINBOOL; external 'kernel32' name 'EnumResourceLanguagesW';
+function EnumResourceTypesW(hModule:HINST; lpEnumFunc:ENUMRESTYPEPROC; lParam:LONG_PTR):WINBOOL; external 'kernel32' name 'EnumResourceTypesW';
+function EnumResourceNamesW(hModule:HINST; lpType:LPCWSTR; lpEnumFunc:ENUMRESNAMEPROC; lParam:LONG_PTR):WINBOOL; external 'kernel32' name 'EnumResourceNamesW';
+function EnumResourceLanguagesW(hModule:HINST; lpType:LPCWSTR; lpName:LPCWSTR; lpEnumFunc:ENUMRESLANGPROC; lParam:LONG_PTR):WINBOOL; external 'kernel32' name 'EnumResourceLanguagesW';
 function BeginUpdateResourceW(pFileName:LPCWSTR; bDeleteExistingResources:WINBOOL):HANDLE; external 'kernel32' name 'BeginUpdateResourceW';
 function UpdateResourceW(hUpdate:HANDLE; lpType:LPCWSTR; lpName:LPCWSTR; wLanguage:WORD; lpData:LPVOID;cbData:DWORD):WINBOOL; external 'kernel32' name 'UpdateResourceW';
 function EndUpdateResourceW(hUpdate:HANDLE; fDiscard:WINBOOL):WINBOOL; external 'kernel32' name 'EndUpdateResourceW';

@@ -585,11 +585,11 @@
 
      PROC = FARPROC;
 
-     ENUMRESTYPEPROC = function (_para1:HANDLE; _para2:LPTSTR; _para3:LONG):WINBOOL;stdcall;
+     ENUMRESTYPEPROC = function (hModule:HANDLE; lpszType:LPTSTR; lParam:LONG_PTR):WINBOOL;stdcall;
 
-     ENUMRESNAMEPROC = function (_para1:HANDLE; _para2:LPCTSTR; _para3:LPTSTR; _para4:LONG):WINBOOL;stdcall;
+     ENUMRESNAMEPROC = function (hModule:HANDLE; lpszType:LPCTSTR; lpszName:LPTSTR; lParam:LONG_PTR):WINBOOL;stdcall;
 
-     ENUMRESLANGPROC = function (_para1:HANDLE; _para2:LPCTSTR; _para3:LPCTSTR; _para4:WORD; _para5:LONG):WINBOOL;stdcall;
+     ENUMRESLANGPROC = function (hModule:HANDLE; lpszType:LPCTSTR; lpszName:LPCTSTR; wIDLanguage:WORD; lParam:LONG_PTR):WINBOOL;stdcall;
 
      DESKTOPENUMPROC = FARPROC;
 
