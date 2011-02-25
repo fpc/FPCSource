@@ -37,7 +37,6 @@
 
 {$include ogc/lwp_messages.inc}
 {$include ogc/lwp_mutex.inc}
-{ $include ogc/lwp_queue.inc}
 {$include ogc/lwp_sema.inc}
 {$include ogc/lwp_stack.inc}
 {$include ogc/lwp_states.inc}
@@ -63,11 +62,13 @@
 {$include ogc/video_types.inc}
 {$include ogc/texconv.inc}
 
-{$ifdef HW_RVL}
-  { $include ogc/machine/asm.inc}
-  { $include ogc/machine/processor.inc}
-  { $include ogc/machine/spinlock.inc}
+{$include sdcard/card_buf.inc}
+{$include sdcard/card_cmn.inc}
+{$include sdcard/card_io.inc}
+{$include sdcard/wiisd_io.inc}
 
+
+{$ifdef HW_RVL}
   {$include ogc/ipc.inc}
   {$include ogc/es.inc}
   {$include ogc/stm.inc}
