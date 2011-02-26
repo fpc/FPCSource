@@ -73,6 +73,8 @@ uses
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
+    function setcondition(i : taicpu;c : tasmcond) : taicpu;
+
 implementation
 
 {*****************************************************************************
@@ -225,6 +227,8 @@ implementation
         case getregtype(r) of
           R_INTREGISTER :
             result:=taicpu.op_ref_reg(A_LD,ref,r);
+          R_ADDRESSREGISTER :
+            result:=taicpu.op_ref_reg(A_LD,ref,r);
           else
             internalerror(200401041);
         end;
@@ -235,6 +239,8 @@ implementation
       begin
         case getregtype(r) of
           R_INTREGISTER :
+            result:=taicpu.op_reg_ref(A_ST,r,ref);
+          R_ADDRESSREGISTER :
             result:=taicpu.op_reg_ref(A_ST,r,ref);
           else
             internalerror(200401041);
@@ -250,6 +256,14 @@ implementation
     procedure DoneAsm;
       begin
       end;
+
+
+    function setcondition(i : taicpu;c : tasmcond) : taicpu;
+      begin
+        i.condition:=c;
+        result:=i;
+      end;
+
 
 begin
   cai_cpu:=taicpu;

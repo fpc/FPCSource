@@ -97,7 +97,7 @@ unit cpubase;
 
       { Integer Super registers first and last }
       first_int_supreg = RS_R0;
-      first_int_imreg = $10;
+      first_int_imreg = $20;
 
       { Float Super register first and last }
       first_fpu_supreg    = RS_INVALID;
@@ -107,8 +107,7 @@ unit cpubase;
       first_mm_supreg    = RS_INVALID;
       first_mm_imreg     = RS_INVALID;
 
-{ TODO: Calculate bsstart}
-      regnumber_count_bsstart = 64;
+      regnumber_count_bsstart = 32;
 
       regnumber_table : array[tregisterindex] of tregister = (
         {$i ravrnum.inc}
@@ -373,8 +372,10 @@ unit cpubase;
         case getregtype(reg) of
           R_INTREGISTER :
             reg_cgsize:=OS_8;
+          R_ADDRESSREGISTER :
+            reg_cgsize:=OS_16;
           else
-            internalerror(2011021903);
+            internalerror(2011021905);
           end;
         end;
 
