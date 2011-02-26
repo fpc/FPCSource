@@ -39,10 +39,10 @@ interface
         'or','ori','eor','com','neg','sbr','cbr','inc','dec','tst','clr',
         'ser','mul','muls','fmul','fmuls','fmulsu','rjmp','ijmp',
         'eijmp','jmp','rcall','icall','eicall','call','ret','reti','cpse',
-        'cp','cpc','cpi','sb','br','mov','movw','ldi','lds','ld','ldd',
+        'cp','cpc','cpi','sbic','sbis','br','mov','movw','ldi','lds','ld','ldd',
         'sts','st','std','lpm','elpm','spm','in','out','push','pop',
         'lsl','lsr','rol','ror','asr','swap','bset','bclr','sbi','cbi',
-        'bst','bld','s','c','brak','nop','sleep','wdr');
+        'bst','bld','s','cli','brak','nop','sleep','wdr');
 
     function gas_regnum_search(const s:string):Tregister;
     function gas_regname(r:Tregister):string;

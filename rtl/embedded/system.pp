@@ -79,6 +79,7 @@ function get_cmdline:Pchar;
 property cmdline:Pchar read get_cmdline;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
+{$ifndef FPUNONE}
 {$ifdef FPC_HAS_FEATURE_SOFTFPU}
 
 {$define fpc_softfpu_interface}
@@ -86,6 +87,7 @@ property cmdline:Pchar read get_cmdline;
 {$undef fpc_softfpu_interface}
 
 {$endif FPC_HAS_FEATURE_SOFTFPU}
+{$endif FPUNONE}
 
 {*****************************************************************************}
                                  implementation
@@ -95,11 +97,13 @@ property cmdline:Pchar read get_cmdline;
 
 const calculated_cmdline:Pchar=nil;
 
+{$ifndef FPUNONE}
 {$ifdef FPC_HAS_FEATURE_SOFTFPU}
 
 {$define fpc_softfpu_implementation}
 {$i softfpu.pp}
 {$undef fpc_softfpu_implementation}
+{$endif FPUNONE}
 
 { we get these functions and types from the softfpu code }
 {$define FPC_SYSTEM_HAS_float64}

@@ -136,7 +136,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
-          function  getsize : aint;
+          function  getsize : asizeint;
           function  getpackedbitsize : longint;
           function  is_regvar(refpara: boolean):boolean;
           procedure trigger_notifications(what:Tnotification_flag);
@@ -153,7 +153,7 @@ interface
       end;
 
       tfieldvarsym = class(tabstractvarsym)
-          fieldoffset   : aint;   { offset in record/object }
+          fieldoffset   : asizeint;   { offset in record/object }
           objcoffsetmangledname: pshortstring; { mangled name of offset, calculated as needed }
           constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -246,7 +246,7 @@ interface
           constructor create(const n : string);
           destructor  destroy;override;
           constructor ppuload(ppufile:tcompilerppufile);
-          function  getsize : aint;
+          function  getsize : asizeint;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
@@ -950,7 +950,7 @@ implementation
       end;
 
 
-    function tpropertysym.getsize : aint;
+    function tpropertysym.getsize : asizeint;
       begin
          getsize:=0;
       end;
@@ -1043,7 +1043,7 @@ implementation
       end;
 
 
-    function tabstractvarsym.getsize : aint;
+    function tabstractvarsym.getsize : asizeint;
       begin
         if assigned(vardef) and
            ((vardef.typ<>arraydef) or

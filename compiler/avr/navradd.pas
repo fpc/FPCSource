@@ -70,22 +70,22 @@ interface
                 if nf_swapped in flags then
                   case NodeType of
                     ltn:
-                      GetResFlags:=F_GT;
+                      GetResFlags:=F_NotPossible;
                     lten:
                       GetResFlags:=F_GE;
                     gtn:
                       GetResFlags:=F_LT;
                     gten:
-                      GetResFlags:=F_LE;
+                      GetResFlags:=F_NotPossible;
                   end
                 else
                   case NodeType of
                     ltn:
                       GetResFlags:=F_LT;
                     lten:
-                      GetResFlags:=F_LE;
+                      GetResFlags:=F_NotPossible;
                     gtn:
-                      GetResFlags:=F_GT;
+                      GetResFlags:=F_NotPossible;
                     gten:
                       GetResFlags:=F_GE;
                   end;
@@ -95,22 +95,22 @@ interface
                 if nf_swapped in Flags then
                   case NodeType of
                     ltn:
-                      GetResFlags:=F_HI;
+                      GetResFlags:=F_NotPossible;
                     lten:
                       GetResFlags:=F_CS;
                     gtn:
                       GetResFlags:=F_CC;
                     gten:
-                      GetResFlags:=F_LS;
+                      GetResFlags:=F_NotPossible;
                   end
                 else
                   case NodeType of
                     ltn:
                       GetResFlags:=F_CC;
                     lten:
-                      GetResFlags:=F_LS;
+                      GetResFlags:=F_NotPossible;
                     gtn:
-                      GetResFlags:=F_HI;
+                      GetResFlags:=F_NotPossible;
                     gten:
                       GetResFlags:=F_CS;
                   end;
@@ -172,6 +172,9 @@ interface
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
+
+        if getresflags(unsigned)=F_NotPossible then
+          swapleftright;
 
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,right.location.register));
         tmpreg1:=left.location.register;

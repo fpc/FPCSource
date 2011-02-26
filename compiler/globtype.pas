@@ -70,10 +70,24 @@ interface
      Const
        AIntBits = 16;
 {$endif cpu16bitalu}
+{$ifdef cpu8bitalu}
+       AWord = Byte;
+       AInt = Shortint;
+
+     Const
+       AIntBits = 8;
+{$endif cpu8bitalu}
 
      Type
        PAWord = ^AWord;
        PAInt = ^AInt;
+
+       { target cpu specific type used to store data sizes }
+       ASizeInt = PInt;
+       ASizeUInt = PUInt;
+
+       { type used for handling constants etc. in the code generator }
+       TCGInt = Int64;
 
        { This must be an ordinal type with the same size as a pointer
          Note: Must be unsigned! Otherwise, ugly code like

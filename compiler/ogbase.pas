@@ -1505,8 +1505,13 @@ implementation
         { sections }
         FExeSectionList:=TFPHashObjectList.Create(true);
         FImageBase:=0;
+{$ifdef cpu16bitaddr}
+        SectionMemAlign:=$10;
+        SectionDataAlign:=$10;
+{$else cpu16bitaddr}
         SectionMemAlign:=$1000;
         SectionDataAlign:=$200;
+{$endif cpu16bitaddr}
         FCExeSection:=TExeSection;
         FCObjData:=TObjData;
       end;

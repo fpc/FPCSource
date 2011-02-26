@@ -43,10 +43,6 @@ unit agavrgas;
      end;
 
 
-    const
-      gas_shiftmode2str : array[tshiftmode] of string[3] = (
-        '','lsl','lsr','asr','ror','rrx');
-
   implementation
 
     uses
@@ -88,8 +84,6 @@ unit agavrgas;
 
             if assigned(symbol) then
               begin
-                if (base<>NR_NO) and not(is_pc(base)) then
-                  internalerror(200309011);
                 s:=symbol.name;
                 if offset<0 then
                   s:=s+tostr(offset)
@@ -105,9 +99,6 @@ unit agavrgas;
         getreferencestring:=s;
       end;
 
-
-    const
-      shiftmode2str: array[tshiftmode] of string[3] = ('','lsl','lsr','asr','ror','rrx');
 
     function getopstr(const o:toper) : string;
       var
