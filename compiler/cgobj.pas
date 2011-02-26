@@ -3866,7 +3866,7 @@ implementation
            a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,reg,oklabel);
            cgpara1.init;
            paramanager.getintparaloc(pocall_default,1,cgpara1);
-           a_load_const_cgpara(list,OS_INT,210,cgpara1);
+           a_load_const_cgpara(list,OS_INT,aint(210),cgpara1);
            paramanager.freecgpara(list,cgpara1);
            a_call_name(list,'FPC_HANDLEERROR',false);
            a_label(list,oklabel);

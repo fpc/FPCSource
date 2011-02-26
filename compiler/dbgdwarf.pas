@@ -1701,10 +1701,10 @@ implementation
 
     procedure TDebugInfoDwarf.appenddef_string(list:TAsmList;def:tstringdef);
 
-      procedure addnormalstringdef(const name: shortstring; lendef: tdef; maxlen: aword);
+      procedure addnormalstringdef(const name: shortstring; lendef: tdef; maxlen: asizeuint);
         var
           { maxlen can be > high(int64) }
-          slen : aword;
+          slen : asizeuint;
           arr : tasmlabel;
         begin
           { fix length of openshortstring }
@@ -1782,9 +1782,13 @@ implementation
               }
 {$ifdef cpu64bitaddr}
               addnormalstringdef('LongString',u64inttype,qword(1024*1024));
-{$else cpu64bitaddr}
-              addnormalstringdef('LongString',u32inttype,cardinal(1024*1024));
 {$endif cpu64bitaddr}
+{$ifdef cpu32bitaddr}
+              addnormalstringdef('LongString',u32inttype,cardinal(1024*1024));
+{$endif cpu32bitaddr}
+{$ifdef cpu16bitaddr}
+              addnormalstringdef('LongString',u16inttype,cardinal(1024));
+{$endif cpu16bitaddr}
            end;
          st_ansistring:
            begin
@@ -2453,7 +2457,7 @@ implementation
       var
         bitoffset,
         fieldoffset,
-        fieldnatsize: aint;
+        fieldnatsize: asizeint;
       begin
         if (sp_static in sym.symoptions) or
            (sym.visibility=vis_hidden) then

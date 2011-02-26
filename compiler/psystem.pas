@@ -217,18 +217,26 @@ implementation
         ptruinttype:=u64inttype;
         ptrsinttype:=s64inttype;
 {$endif cpu64bitaddr}
-{$ifdef cpu32bit}
-        uinttype:=u32inttype;
-        sinttype:=s32inttype;
+{$ifdef cpu32bitaddr}
         ptruinttype:=u32inttype;
         ptrsinttype:=s32inttype;
-{$endif cpu32bit}
-{$ifdef cpu16bit}
-        uinttype:=u16inttype;
-        sinttype:=s16inttype;
+{$endif cpu32bitaddr}
+{$ifdef cpu32bitalu}
+        uinttype:=u32inttype;
+        sinttype:=s32inttype;
+{$endif cpu32bitalu}
+{$ifdef cpu16bitaddr}
         ptruinttype:=u16inttype;
         ptrsinttype:=s16inttype;
-{$endif cpu16bit}
+{$endif cpu16bitaddr}
+{$ifdef cpu16bitalu}
+        uinttype:=u16inttype;
+        sinttype:=s16inttype;
+{$endif cpu16bitalu}
+{$ifdef cpu8bitalu}
+        uinttype:=u8inttype;
+        sinttype:=s8inttype;
+{$endif cpu8bitalu}
         { some other definitions }
         voidpointertype:=tpointerdef.create(voidtype);
         charpointertype:=tpointerdef.create(cchartype);

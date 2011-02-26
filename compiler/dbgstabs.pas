@@ -354,7 +354,7 @@ implementation
     procedure TDebugInfoStabs.field_add_stabstr(p:TObject;arg:pointer);
       var
         spec    : string[3];
-        varsize : aint;
+        varsize : asizeint;
         newss   : ansistring;
         ss      : pansistring absolute arg;
       begin
@@ -379,8 +379,13 @@ implementation
                 varsize:=tfieldvarsym(p).vardef.size;
                 { open arrays made overflows !! }
                 { how can a record/object/class contain an open array? (JM) }
+{$ifdef cpu16bitaddr}
+                if varsize>$fff then
+                  varsize:=$fff;
+{$else cpu16bitaddr}
                 if varsize>$fffffff then
                   varsize:=$fffffff;
+{$endif cpu16bitaddr}
                 newss:=def_stabstr_evaluate(nil,'$1:$2,$3,$4;',[GetSymName(tfieldvarsym(p)),
                                      spec+def_stab_number(tfieldvarsym(p).vardef),
                                      tostr(TConstExprInt(tfieldvarsym(p).fieldoffset)*8),tostr(varsize*8)])

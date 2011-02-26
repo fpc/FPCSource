@@ -829,7 +829,7 @@ implementation
         var
           n : tnode;
           i : longint;
-          len : aint;
+          len : asizeint;
           ch  : array[0..1] of char;
           ca  : pbyte;
           int_const: tai_const;
