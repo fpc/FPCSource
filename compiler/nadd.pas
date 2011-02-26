@@ -2578,6 +2578,7 @@ implementation
                     expectloc:=LOC_JUMP;
                end
 {$endif cpu64bitaddr}
+{$ifndef cpuneedsmulhelper}
              { is there a cardinal? }
              else if (torddef(ld).ordtype=u32bit) then
                begin
@@ -2586,6 +2587,7 @@ implementation
                   else
                     expectloc:=LOC_FLAGS;
                end
+{$endif cpuneedsmulhelper}
              { generic s32bit conversion }
              else
                begin
@@ -2606,8 +2608,10 @@ implementation
                        else
                          internalerror(2011022301);
                      end;
-                     result := ccallnode.createintern(procname,ccallparanode.create(left,
-                       ccallparanode.create(right,nil)));
+                     result := ccallnode.createintern(procname,
+                       ccallparanode.create(cordconstnode.create(0,booltype,false),
+                       ccallparanode.create(right,
+                       ccallparanode.create(left,nil))));
                      left := nil;
                      right := nil;
                      firstpass(result);
