@@ -103,10 +103,6 @@ unit cgcpu;
       tcg64favr = class(tcg64f32)
         procedure a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
         procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
-        procedure a_op64_const_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64);override;
-        procedure a_op64_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);override;
-        procedure a_op64_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
-        procedure a_op64_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
       end;
 
     procedure create_codegen;
@@ -491,7 +487,7 @@ unit cgcpu;
 
            OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
              begin
-               {!!!!!!!}
+               { TODO : Shift operators }
              end;
 
            OP_AND,OP_OR,OP_XOR:
@@ -948,13 +944,13 @@ unit cgcpu;
     procedure tcgavr.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
       l : tasmlabel);
       begin
-        //!!!!! internalerror(2011021311);
+        { TODO : a_cmp_const_reg_label }
       end;
 
 
     procedure tcgavr.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
       begin
-        //!!!!!internalerror(2011021312);
+        { TODO : a_cmp_reg_reg_label }
       end;
 
 
@@ -986,7 +982,7 @@ unit cgcpu;
 
     procedure tcgavr.g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister);
       begin
-        internalerror(2011021316);
+        { TODO : implement g_flags2reg }
       end;
 
     procedure tcgavr.a_adjust_sp(list : TAsmList; value : longint);
@@ -1093,7 +1089,7 @@ unit cgcpu;
 
     procedure tcgavr.a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);
       begin
-        //!!!!
+        { TODO : a_loadaddr_ref_reg }
       end;
 
 
@@ -1150,7 +1146,7 @@ unit cgcpu;
         current_asmdata.getjumplabel(l);
         if len>16 then
           begin
-            {!!!!!!! load refs!}
+            { TODO : load refs! }
             copysize:=OS_8;
             if len<256 then
               countregsize:=OS_8
@@ -1226,7 +1222,8 @@ unit cgcpu;
       var
         ai : taicpu;
       begin
-      {!!!!!
+        { TODO : fix a_jmp_cond }
+      {
         ai:=Taicpu.Op_sym(A_BRxx,l);
         case cond of
           OC_EQ:
@@ -1261,49 +1258,19 @@ unit cgcpu;
        list.Concat(instr);
        { Notify the register allocator that we have written a move instruction so
          it can try to eliminate it. }
-       writeln(hexstr(dword(reg1),8));
-       writeln(hexstr(dword(reg2),8));
        add_move_instruction(instr);
       end;
 
 
     procedure tcg64favr.a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
       begin
-        internalerror(2011021325);
+        { TODO : a_op64_reg_reg }
       end;
 
 
     procedure tcg64favr.a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
       begin
-        a_op64_const_reg_reg(list,op,size,value,reg,reg);
-      end;
-
-
-    procedure tcg64favr.a_op64_const_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64);
-      var
-        ovloc : tlocation;
-      begin
-        a_op64_const_reg_reg_checkoverflow(list,op,size,value,regsrc,regdst,false,ovloc);
-      end;
-
-
-    procedure tcg64favr.a_op64_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);
-      var
-        ovloc : tlocation;
-      begin
-        a_op64_reg_reg_reg_checkoverflow(list,op,size,regsrc1,regsrc2,regdst,false,ovloc);
-      end;
-
-
-    procedure tcg64favr.a_op64_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
-      begin
-        internalerror(2011021326);
-      end;
-
-
-    procedure tcg64favr.a_op64_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
-      begin
-        internalerror(2011021327);
+        { TODO : a_op64_const_reg }
       end;
 
 
