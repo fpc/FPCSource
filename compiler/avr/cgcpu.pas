@@ -86,7 +86,6 @@ unit cgcpu;
         procedure g_concatcopy_internal(list : TAsmList;const source,dest : treference;len : aint;aligned : boolean);
 
         procedure g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef); override;
-        procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;ovloc : tlocation);override;
 
 //        procedure g_save_registers(list : TAsmList);override;
 //        procedure g_restore_registers(list : TAsmList);override;
@@ -113,9 +112,6 @@ unit cgcpu;
     procedure create_codegen;
 
     const
-      OpCmp2AsmCond : Array[topcmp] of TAsmCond = (C_NONE,C_EQ,C_GT,
-                           C_LT,C_GE,C_LE,C_NE,C_LS,C_CC,C_CS,C_HI);
-
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_MOV,A_ADD,A_AND,A_NONE,
                             A_NONE,A_MUL,A_MULS,A_NEG,A_COM,A_OR,
                             A_ASR,A_LSL,A_LSR,A_SUB,A_EOR,A_ROL,A_ROR);
@@ -401,6 +397,7 @@ unit cgcpu;
                  end
                else
              end;
+
            OP_SUB:
              begin
                if src<>dst then
@@ -417,6 +414,7 @@ unit cgcpu;
                      end;
                  end;
              end;
+
            OP_NEG:
              begin
                if src<>dst then
@@ -441,6 +439,7 @@ unit cgcpu;
                else
                  list.concat(taicpu.op_reg(A_NEG,dst));
              end;
+
            OP_NOT:
              begin
                for i:=1 to tcgsize2size[size] do
@@ -452,6 +451,7 @@ unit cgcpu;
                    dst:=GetNextReg(dst);
                  end;
              end;
+
            OP_MUL,OP_IMUL:
              begin
                if size in [OS_8,OS_S8] then
@@ -459,20 +459,17 @@ unit cgcpu;
                else
                  internalerror(2011022002);
              end;
+
            OP_DIV,OP_IDIV:
              { special stuff, needs separate handling inside code }
              { generator                                          }
              internalerror(2011022001);
-{!!!!
+
            OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
              begin
-               { Use ecx to load the value, that allows better coalescing }
-               getcpuregister(list,NR_ECX);
-               a_load_reg_reg(list,size,OS_32,src,NR_ECX);
-               list.concat(taicpu.op_reg_reg(Topcg2asmop[op],tcgsize2opsize[size],NR_CL,dst));
-               ungetcpuregister(list,NR_ECX);
+               {!!!!!!!}
              end;
-}
+
            OP_AND,OP_OR,OP_XOR:
              begin
                if src<>dst then
@@ -501,7 +498,7 @@ unit cgcpu;
          shift:=0;
          for i:=1 to tcgsize2size[size] do
            begin
-             list.concat(taicpu.op_reg_const(A_LDI,reg,(a and mask) shr shift));
+             list.concat(taicpu.op_reg_const(A_LDI,reg,(qword(a) and mask) shr shift));
              mask:=mask shl 8;
              inc(shift,8);
              reg:=GetNextReg(reg);
@@ -1129,6 +1126,7 @@ unit cgcpu;
         current_asmdata.getjumplabel(l);
         if len>16 then
           begin
+            {!!!!!!! load refs!}
             copysize:=OS_8;
             if len<256 then
               countregsize:=OS_8
@@ -1177,16 +1175,26 @@ unit cgcpu;
 
     procedure tcgavr.g_overflowCheck(list : TAsmList;const l : tlocation;def : tdef);
       var
-        ovloc : tlocation;
+        hl : tasmlabel;
+        ai : taicpu;
+        cond : TAsmCond;
       begin
-        ovloc.loc:=LOC_VOID;
-        g_overflowCheck_loc(list,l,def,ovloc);
-      end;
+        if not(cs_check_overflow in current_settings.localswitches) then
+         exit;
+        current_asmdata.getjumplabel(hl);
+        if not ((def.typ=pointerdef) or
+               ((def.typ=orddef) and
+                (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,pasbool]))) then
+          cond:=C_VC
+        else
+          cond:=C_CC;
+        ai:=Taicpu.Op_Sym(A_BRxx,hl);
+        ai.SetCondition(cond);
+        ai.is_jmp:=true;
+        list.concat(ai);
 
-
-    procedure tcgavr.g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;ovloc : tlocation);
-      begin
-        internalerror(2011021322);
+        a_call_name(list,'FPC_OVERFLOW',false);
+        a_label(list,hl);
       end;
 
 
@@ -1194,10 +1202,24 @@ unit cgcpu;
       var
         ai : taicpu;
       begin
+      {!!!!!
         ai:=Taicpu.Op_sym(A_BRxx,l);
-        ai.SetCondition(OpCmp2AsmCond[cond]);
+        case cond of
+          OC_EQ:
+            ai.SetCondition(C_EQ);
+          OC_GT
+          OC_LT
+          OC_GTE
+          OC_LTE
+          OC_NE
+          OC_BE
+          OC_B
+          OC_AE
+          OC_A:
+
         ai.is_jmp:=true;
         list.concat(ai);
+        }
       end;
 
 
@@ -1211,7 +1233,7 @@ unit cgcpu;
       var
          instr: taicpu;
       begin
-       instr:=taicpu.op_reg_reg(A_MOV, reg2, reg1);
+       instr:=taicpu.op_reg_reg(A_MOV,reg2,reg1);
        list.Concat(instr);
        { Notify the register allocator that we have written a move instruction so
          it can try to eliminate it. }

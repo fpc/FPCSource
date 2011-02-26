@@ -133,19 +133,19 @@ unit cpubase;
 
     type
       TAsmCond=(C_None,
-        C_EQ,C_NE,C_CS,C_CC,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
-        C_GE,C_LT,C_GT,C_LE,C_AL,C_NV
+        C_CC,C_CS,C_EQ,C_GE,C_HC,C_HS,C_ID,C_IE,C_LO,C_LT,
+        C_MI,C_NE,C_PL,C_SH,C_TC,C_TS,C_VC,C_VS
       );
 
     const
       cond2str : array[TAsmCond] of string[2]=('',
-        'eq','ne','cs','cc','mi','pl','vs','vc','hi','ls',
-        'ge','lt','gt','le','al','nv'
+        'cc','cs','eq','ge','hc','hs','id','ie','lo','lt',
+        'mi','ne','pl','sh','tc','ts','vc','vs'
       );
 
       uppercond2str : array[TAsmCond] of string[2]=('',
-        'EQ','NE','CS','CC','MI','PL','VS','VC','HI','LS',
-        'GE','LT','GT','LE','AL','NV'
+        'CC','CS','EQ','GE','HC','HS','ID','IE','LO','LT',
+        'MI','NE','PL','SH','TC','TS','VC','VS'
       );
 
 {*****************************************************************************
@@ -153,8 +153,8 @@ unit cpubase;
 *****************************************************************************}
 
     type
-      TResFlags = (F_EQ,F_NE,F_CS,F_CC,F_MI,F_PL,F_VS,F_VC,F_HI,F_LS,
-        F_GE,F_LT,F_GT,F_LE);
+      TResFlags = (F_NotPossible,F_CC,F_CS,F_EQ,F_GE,F_LO,F_LT,
+        F_NE,F_SH,F_VC,F_VS);
 
 {*****************************************************************************
                                 Operands
@@ -383,8 +383,8 @@ unit cpubase;
     procedure inverse_flags(var f: TResFlags);
       const
         inv_flags: array[TResFlags] of TResFlags =
-          (F_NE,F_EQ,F_CC,F_CS,F_PL,F_MI,F_VC,F_VS,F_LS,F_HI,
-          F_LT,F_GE,F_LE,F_GT);
+          (F_NotPossible,F_CS,F_CC,F_NE,F_LT,F_SH,F_GE,
+           F_NE,F_LO,F_VS,F_VC);
       begin
         f:=inv_flags[f];
       end;
@@ -392,10 +392,12 @@ unit cpubase;
 
     function flags_to_cond(const f: TResFlags) : TAsmCond;
       const
-        flag_2_cond: array[F_EQ..F_LE] of TAsmCond =
-          (C_EQ,C_NE,C_CS,C_CC,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
-           C_GE,C_LT,C_GT,C_LE);
+        flag_2_cond: array[F_CC..F_VS] of TAsmCond =
+          (C_CC,C_CS,C_EQ,C_GE,C_LO,C_LT,
+           C_NE,C_SH,C_VC,C_VS);
       begin
+        if f=F_NotPossible then
+          internalerror(2011022101);
         if f>high(flag_2_cond) then
           internalerror(200112301);
         result:=flag_2_cond[f];
@@ -429,9 +431,8 @@ unit cpubase;
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const
         inverse: array[TAsmCond] of TAsmCond=(C_None,
-          C_NE,C_EQ,C_CC,C_CS,C_PL,C_MI,C_VC,C_VS,C_LS,C_HI,
-          C_LT,C_GE,C_LE,C_GT,C_None,C_None
-        );
+          C_CS,C_CC,C_NE,C_LT,C_HS,C_HC,C_IE,C_ID,C_SH,C_GE,
+          C_PL,C_EQ,C_MI,C_LO,C_TS,C_TC,C_VS,C_VC);
       begin
         result := inverse[c];
       end;
