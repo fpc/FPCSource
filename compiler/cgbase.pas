@@ -86,8 +86,8 @@ interface
          {$ENDIF}
          {$ENDIF}
          {$IFDEF AVR}
-         ,lo8
-         ,hi
+         ,addr_lo8
+         ,addr_hi8
          {$ENDIF}
          );
 

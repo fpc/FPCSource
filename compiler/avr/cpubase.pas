@@ -48,10 +48,10 @@ unit cpubase;
         A_OR,A_ORI,A_EOR,A_COM,A_NEG,A_SBR,A_CBR,A_INC,A_DEC,A_TST,A_CLR,
         A_SER,A_MUL,A_MULS,A_FMUL,A_FMULS,A_FMULSU,A_RJMP,A_IJMP,
         A_EIJMP,A_JMP,A_RCALL,A_ICALL,R_EICALL,A_CALL,A_RET,A_RETI,A_CPSE,
-        A_CP,A_CPC,A_CPI,A_SBxx,A_BRxx,A_MOV,A_MOVW,A_LDI,A_LDS,A_LD,A_LDD,
+        A_CP,A_CPC,A_CPI,A_SBIC,A_SBIS,A_BRxx,A_MOV,A_MOVW,A_LDI,A_LDS,A_LD,A_LDD,
         A_STS,A_ST,A_STD,A_LPM,A_ELPM,A_SPM,A_IN,A_OUT,A_PUSH,A_POP,
         A_LSL,A_LSR,A_ROL,A_ROR,A_ASR,A_SWAP,A_BSET,A_BCLR,A_SBI,A_CBI,
-        A_BST,A_BLD,A_Sxx,A_Cxx,A_BRAK,A_NOP,A_SLEEP,A_WDR);
+        A_BST,A_BLD,A_Sxx,A_CLI,A_BRAK,A_NOP,A_SLEEP,A_WDR);
 
 
       { This should define the array of instructions as string }
@@ -63,7 +63,8 @@ unit cpubase;
       { Last value of opcode enumeration  }
       lastop  = high(tasmop);
 
-      jmp_instructions = [A_BRxx,A_SBxx,A_JMP,A_RCALL,A_ICALL,A_EIJMP,A_RJMP,A_CALL,A_RET,A_RETI,A_CPSE,A_IJMP];
+      jmp_instructions = [A_BRxx,A_SBIC,A_SBIS,A_JMP,A_RCALL,A_ICALL,A_EIJMP,
+                          A_RJMP,A_CALL,A_RET,A_RETI,A_CPSE,A_IJMP];
 
 {*****************************************************************************
                                   Registers
@@ -89,6 +90,10 @@ unit cpubase;
       NR_YHI = NR_R29;
       NR_ZLO = NR_R30;
       NR_ZHI = NR_R31;
+
+      NIO_SREG = $3f;
+      NIO_SP_LO = $3d;
+      NIO_SP_HI = $3e;
 
       { Integer Super registers first and last }
       first_int_supreg = RS_R0;
@@ -421,12 +426,6 @@ unit cpubase;
           result:=std_regname_table[p]
         else
           result:=generic_regname(r);
-      end;
-
-
-    procedure shifterop_reset(var so : tshifterop);
-      begin
-        FillChar(so,sizeof(so),0);
       end;
 
 

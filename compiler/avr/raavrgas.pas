@@ -136,16 +136,16 @@ Unit raavrgas;
 
     Procedure tavrattreader.BuildReference(oper : tavroperand);
 
-      procedure Consume_RBracket;
+      procedure Consume_RParen;
         begin
-          if actasmtoken<>AS_RBRACKET then
+          if actasmtoken<>AS_RPAREN then
            Begin
              Message(asmr_e_invalid_reference_syntax);
              RecoverConsume(true);
            end
           else
            begin
-             Consume(AS_RBRACKET);
+             Consume(AS_RPAREN);
              if not (actasmtoken in [AS_COMMA,AS_SEPARATOR,AS_END]) then
               Begin
                 Message(asmr_e_invalid_reference_syntax);
@@ -172,30 +172,22 @@ Unit raavrgas;
 
 
       begin
-        Consume(AS_LBRACKET);
+        Consume(AS_LPAREN);
         if actasmtoken=AS_REGISTER then
           begin
             oper.opr.ref.base:=actasmregister;
             Consume(AS_REGISTER);
             { can either be a register or a right parenthesis }
             { (reg)        }
-            if actasmtoken=AS_RBRACKET then
+            if actasmtoken=AS_LPAREN then
              Begin
-               Consume_RBracket;
-               oper.opr.ref.addressmode:=AM_POSTINDEXED;
-               if actasmtoken=AS_COMMA then
-                 read_index;
+               Consume_RParen;
                exit;
              end;
-            if actasmtoken=AS_COMMA then
+            if actasmtoken=AS_PLUS then
               begin
-                read_index;
-                Consume_RBracket;
-              end;
-            if actasmtoken=AS_NOT then
-              begin
-                consume(AS_NOT);
-                oper.opr.ref.addressmode:=AM_PREINDEXED;
+                consume(AS_PLUS);
+                oper.opr.ref.addressmode:=AM_POSTINCREMENT;
               end;
           end {end case }
         else
