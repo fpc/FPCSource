@@ -429,6 +429,18 @@ begin
   WStrLower(result);
 end;
 
+function RightTrimmedLength(const s: SAXString): Integer;
+begin
+  result := Length(s);
+  while IsXmlWhitespace(s[result]) do Dec(result);
+end;
+
+function TagPos(elTag: THTMLElementTag; s: SAXString): Integer;
+begin
+  WStrLower(s);
+  Result := Pos(HTMLElementProps[elTag].Name, s);
+end;
+
 procedure THTMLReader.EnterNewScannerContext(NewContext: THTMLScannerContext);
 var
   Attr: TSAXAttributes;
@@ -455,45 +467,60 @@ begin
     scTag:
       if Length(TokenText) > 0 then
       begin
-        Attr := nil;
-        if TokenText[Length(fTokenText)]='/' then  // handle xml/xhtml style empty tag
+        { ignore possibly unescaped markup in SCRIPT and STYLE }
+        if (FNesting > 0) and (FStack[FNesting-1] in [etScript,etStyle]) and
+          not (
+           (TokenText[1] = '/') and
+           (RightTrimmedLength(TokenText)=Length(HTMLElementProps[FStack[FNesting-1]].Name)+1) and
+           (TagPos(FStack[FNesting-1], TokenText) = 2)
+          )
+          and (TokenText[1] <> '!') then
         begin
-          setlength(fTokenText,length(fTokenText)-1);
-          // Do NOT combine to a single line, as Attr is an output value!
-          TagName := SplitTagString(TokenText, Attr);
-          AutoClose(TagName);
-          DoStartElement('', TagName, '', Attr);
-          DoEndElement('', TagName, '');
+          FTokenText := '<'+FTokenText+'>';
+          DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
         end
-        else if TokenText[1] = '/' then
+        else
         begin
-          Delete(FTokenText, 1, 1);
-          TagName := SplitTagString(TokenText, Attr);
-          elTag := LookupTag(TagName);
-          i := FNesting-1;
-          while (i >= 0) and (FStack[i] <> elTag) and
-            (efEndTagOptional in HTMLElementProps[FStack[i]].Flags) do
-            Dec(i);
-          if (i>=0) and (FStack[i] = elTag) then
-            while FStack[FNesting-1] <> elTag do
-            begin
-              DoEndElement('', HTMLElementProps[FStack[FNesting-1]].Name, '');
-              namePop;
-            end;
+          Attr := nil;
+          if TokenText[Length(fTokenText)]='/' then  // handle xml/xhtml style empty tag
+          begin
+            setlength(fTokenText,length(fTokenText)-1);
+            // Do NOT combine to a single line, as Attr is an output value!
+            TagName := SplitTagString(TokenText, Attr);
+            AutoClose(TagName);
+            DoStartElement('', TagName, '', Attr);
+            DoEndElement('', TagName, '');
+          end
+          else if TokenText[1] = '/' then
+          begin
+            Delete(FTokenText, 1, 1);
+            TagName := SplitTagString(TokenText, Attr);
+            elTag := LookupTag(TagName);
+            i := FNesting-1;
+            while (i >= 0) and (FStack[i] <> elTag) and
+              (efEndTagOptional in HTMLElementProps[FStack[i]].Flags) do
+              Dec(i);
+            if (i>=0) and (FStack[i] = elTag) then
+              while FStack[FNesting-1] <> elTag do
+              begin
+                DoEndElement('', HTMLElementProps[FStack[FNesting-1]].Name, '');
+                namePop;
+              end;
 
-          DoEndElement('', TagName, '');
-          namePop;
-        end
-        else if TokenText[1] <> '!' then
-        begin
-          // Do NOT combine to a single line, as Attr is an output value!
-          TagName := SplitTagString(TokenText, Attr);
-          AutoClose(TagName);
-          namePush(TagName);
-          DoStartElement('', TagName, '', Attr);
+            DoEndElement('', TagName, '');
+            namePop;
+          end
+          else if TokenText[1] <> '!' then
+          begin
+            // Do NOT combine to a single line, as Attr is an output value!
+            TagName := SplitTagString(TokenText, Attr);
+            AutoClose(TagName);
+            namePush(TagName);
+            DoStartElement('', TagName, '', Attr);
+          end;
+          if Assigned(Attr) then
+            Attr.Free;
         end;
-        if Assigned(Attr) then
-          Attr.Free;
       end;
   end;
   FScannerContext := NewContext;
