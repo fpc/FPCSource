@@ -489,7 +489,14 @@ implementation
               { load a smaller size to OS_64 }
               if l.loc=LOC_REGISTER then
                begin
+{$ifdef AVR}
+                 { on avr, we cannot change the size of a register
+                   due to the nature how register with size > OS8 are handled
+                 }
+                 hregister:=cg.getintregister(list,OS_32);
+{$else AVR}
                  hregister:=cg.makeregsize(list,l.register64.reglo,OS_32);
+{$endif AVR}
                  cg.a_load_reg_reg(list,l.size,OS_32,l.register64.reglo,hregister);
                end
               else
