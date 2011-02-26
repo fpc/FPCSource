@@ -118,6 +118,7 @@
   {$define cpuflags}
   {$define cpunofpu}
   {$define cpunodefaultint}
+  {$define cpuneedsdiv32helper}
 {$endif avr}
 
 {$ifdef mipsel}
