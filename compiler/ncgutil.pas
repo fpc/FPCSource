@@ -2448,7 +2448,7 @@ implementation
 
     procedure insertbssdata(sym : tstaticvarsym);
       var
-        l : aint;
+        l : asizeint;
         varalign : shortint;
         storefilepos : tfileposinfo;
         list : TAsmList;
