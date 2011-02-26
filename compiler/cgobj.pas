@@ -755,12 +755,12 @@ implementation
     procedure tcg.allocallcpuregisters(list:TAsmList);
       begin
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-{$ifndef i386}
+{$if not(defined(i386)) and not(defined(avr))}
         alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
 {$ifdef cpumm}
         alloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_mm(pocall_default));
 {$endif cpumm}
-{$endif i386}
+{$endif not(defined(i386)) and not(defined(avr))}
       end;
 
 
@@ -776,12 +776,12 @@ implementation
     procedure tcg.deallocallcpuregisters(list:TAsmList);
       begin
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-{$ifndef i386}
+{$if not(defined(i386)) and not(defined(avr))}
         dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
 {$ifdef cpumm}
         dealloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_mm(pocall_default));
 {$endif cpumm}
-{$endif i386}
+{$endif not(defined(i386)) and not(defined(avr))}
       end;
 
 
