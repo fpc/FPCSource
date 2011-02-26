@@ -59,8 +59,13 @@ Const
   This way we keep TP compatibility, and the TextRec definition is available
   for everyone who needs it.
 }
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 {$i filerec.inc}
+{$endif FPC_HAS_FEATURE_FILEIO}
+
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 {$i textrec.inc}
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
   {$ifdef FPC_OBJFPC_EXTENDED_IF}
@@ -75,8 +80,10 @@ Const
 Procedure HandleError (Errno : Longint); forward;
 Procedure HandleErrorFrame (Errno : longint;frame : Pointer); forward;
 
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 type
   FileFunc = Procedure(var t : TextRec);
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
 
 const
