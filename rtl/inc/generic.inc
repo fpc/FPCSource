@@ -1335,7 +1335,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_MUL_WORD}
-    function fpc_mul_word(f1,f2 : word;checkoverflow : boolean) : qword;[public,alias: 'FPC_MUL_WORD']; compilerproc;
+    function fpc_mul_word(f1,f2 : word;checkoverflow : boolean) : word;[public,alias: 'FPC_MUL_WORD']; compilerproc;
       var
         _f1,bitpos : word;
         b : byte;
@@ -1414,7 +1414,7 @@ end;
     { multiplies two dwords
       the longbool for checkoverflow avoids a misaligned stack
     }
-    function fpc_mul_dword(f1,f2 : dword;checkoverflow : boolean) : qword;[public,alias: 'FPC_MUL_DWORD']; compilerproc;
+    function fpc_mul_dword(f1,f2 : dword;checkoverflow : boolean) : dword;[public,alias: 'FPC_MUL_DWORD']; compilerproc;
       var
         _f1,bitpos : dword;
         b : byte;
