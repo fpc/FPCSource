@@ -85,6 +85,10 @@ interface
          addr_highesta     // bits 48-63, adjusted
          {$ENDIF}
          {$ENDIF}
+         {$IFDEF AVR}
+         ,lo8
+         ,hi
+         {$ENDIF}
          );
 
 

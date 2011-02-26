@@ -331,8 +331,6 @@ unit cpubase;
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
-    function is_pc(const r : tregister) : boolean;
-
     function dwarf_reg(r:tregister):byte;
     function GetHigh(const r : TRegister) : TRegister;
 
@@ -429,12 +427,6 @@ unit cpubase;
     procedure shifterop_reset(var so : tshifterop);
       begin
         FillChar(so,sizeof(so),0);
-      end;
-
-
-    function is_pc(const r : tregister) : boolean;
-      begin
-        is_pc:=(r=NR_R15);
       end;
 
 

@@ -104,7 +104,7 @@ unit cgcpu;
 
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
         procedure fixref(list : TAsmList;var ref : treference);
-        function handle_load_store(list:TAsmList;op: tasmop;reg:tregister;ref: treference):treference;
+        function normalize_ref(list:TAsmList;op: tasmop;reg:tregister;ref: treference):treference;
 
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
         procedure emit_mov(list: TAsmList;reg2: tregister; reg1: tregister);
@@ -442,51 +442,68 @@ unit cgcpu;
        end;
 
 
-    function tcgavr.handle_load_store(list:TAsmList;op: tasmop;reg:tregister;ref: treference):treference;
+    function tcgavr.normalize_ref(list:TAsmList;op: tasmop;reg:tregister;ref: treference):treference;
+      var
+        tmpreg : tregister;
+        tmpref : treference;
+        l : tasmlabel;
       begin
-        internalerror(2011021304);
+        tmpreg:=NR_NO;
+
+        Result:=ref;
+
+         if ref.addressmode<>AM_UNCHANGED then
+           internalerror(2011021701);
+
+        { Be sure to have a base register }
+        if (ref.base=NR_NO) then
+          begin
+            { only symbol+offset? }
+            if ref.index=NR_NO then
+              exit;
+            ref.base:=ref.index;
+            ref.index:=NR_NO;
+          end;
+        if assigned(ref.symbol) or (ref.offset<>0) then
+          begin
+            tmpreg:=getaddressregister(list);
+            reference_reset(tmpref,0);
+            tmpref.symbol:=ref.symbol;
+            tmpref.offset:=lo(word(ref.offset));
+            tmpref.refaddr:=addr_lo8;
+            list.concat(taicpu.op_reg_reg(A_LDI,tmpreg,tmpref);
+            tmpref.offset:=hi(word(ref.offset));
+            tmpref.refaddr:=addr_hi8;
+            list.concat(taicpu.op_reg_reg(A_LDI,GetNextReg(tmpreg),tmpref);
+            if (ref.base<>NR_NO) then
+              begin
+                list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.base);
+                list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.base));
+              end;
+            if (ref.index<>NR_NO) then
+              begin
+                list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.base);
+                list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.base));
+              end;
+            ref.base:=tmpreg;
+            ref.index:=NR_NO;
+          end
+        else if (ref.base<>NR_NO) and (ref.index<>NR_NO) then
+          begin
+            tmpreg:=getaddressregister(list);
+            list.concat(taicpu.op_reg_reg(A_MOVW,tmpreg,ref.index);
+            list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.base);
+            list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.base));
+            ref.base:=tmpreg;
+            ref.index:=NR_NO;
+          end;
+        Result:=ref;
       end;
 
 
      procedure tcgavr.a_load_reg_ref(list : TAsmList; fromsize, tosize: tcgsize; reg : tregister;const ref : treference);
        begin
          internalerror(2011021305);
-       end;
-
-
-     procedure tcgavr.a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);
-       {
-         var
-           oppostfix:toppostfix;
-           usedtmpref: treference;
-           tmpreg,tmpreg2 : tregister;
-           so : tshifterop;
-           dir : integer;
-       }
-       begin
-         internalerror(2011021306);
-         //if (TCGSize2Size[FromSize] >= TCGSize2Size[ToSize]) then
-         //  FromSize := ToSize;
-         //case FromSize of
-         //  { signed integer registers }
-         //  OS_8:
-         //    oppostfix:=PF_B;
-         //  OS_S8:
-         //    oppostfix:=PF_SB;
-         //  OS_16:
-         //    oppostfix:=PF_H;
-         //  OS_S16:
-         //    oppostfix:=PF_SH;
-         //  OS_32,
-         //  OS_S32:
-         //    oppostfix:=PF_None;
-         //  else
-         //    InternalError(200308297);
-         //end;
-         //handle_load_store(list,A_LDR,oppostfix,reg,ref);
-         //
-         //if (fromsize=OS_S8) and (tosize = OS_16) then
-         //  a_load_reg_reg(list,OS_16,OS_32,reg,reg);
        end;
 
 
