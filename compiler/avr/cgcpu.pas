@@ -1146,6 +1146,8 @@ unit cgcpu;
         current_asmdata.getjumplabel(l);
         if len>16 then
           begin
+            reference_reset(srcref,0);
+            reference_reset(dstref,0);
             { TODO : load refs! }
             copysize:=OS_8;
             if len<256 then
