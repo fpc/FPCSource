@@ -110,7 +110,7 @@ unit agavrgas;
           top_reg:
             getopstr:=gas_regname(o.reg);
           top_const:
-            getopstr:='#'+tostr(longint(o.val));
+            getopstr:=tostr(longint(o.val));
           top_ref:
             if o.ref^.refaddr=addr_full then
               begin

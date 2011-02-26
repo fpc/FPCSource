@@ -1070,12 +1070,12 @@ unit cgcpu;
               begin
                 LocalSize:=current_procinfo.calc_stackframe_size;
                 a_adjust_sp(list,LocalSize);
+                regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
 
                 for reg:=RS_R0 to RS_R31 do
                   if reg in regs then
                     list.concat(taicpu.op_reg(A_POP,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
 
-                regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
               end
             else
               { the framepointer cannot be omitted on avr because sp
