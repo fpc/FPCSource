@@ -1326,7 +1326,7 @@ end;
              HandleErrorFrame(215,get_frame);
 
            if sign then
-             fpc_mul_integer=-q3
+             fpc_mul_integer:=-q3
            else
              fpc_mul_integer:=q3;
         end;
@@ -1402,7 +1402,7 @@ end;
              HandleErrorFrame(215,get_frame);
 
            if sign then
-             fpc_mul_longint=-q3
+             fpc_mul_longint:=-q3
            else
              fpc_mul_longint:=q3;
         end;
