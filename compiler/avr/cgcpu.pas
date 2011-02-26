@@ -133,15 +133,15 @@ unit cgcpu;
             [RS_R0,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,
              RS_R10,RS_R11,RS_R12,RS_R13,RS_R14,RS_R15,RS_R16,RS_R17,RS_R18,RS_R19,
              RS_R20,RS_R21,RS_R22,RS_R23,RS_R24,RS_R25],first_int_imreg,[]);
-        rg[R_ADDRESSREGISTER]:=trgintcpu.create(R_ADDRESSREGISTER,R_SUBWHOLE,
-            [RS_R26,RS_R30],first_int_imreg,[]);
+        { rg[R_ADDRESSREGISTER]:=trgintcpu.create(R_ADDRESSREGISTER,R_SUBWHOLE,
+            [RS_R26,RS_R30],first_int_imreg,[]); }
       end;
 
 
     procedure tcgavr.done_register_allocators;
       begin
         rg[R_INTREGISTER].free;
-        rg[R_ADDRESSREGISTER].free;
+        // rg[R_ADDRESSREGISTER].free;
         inherited done_register_allocators;
       end;
 
@@ -378,6 +378,7 @@ unit cgcpu;
          tmpreg: tregister;
          i : integer;
          instr : taicpu;
+         paraloc1,paraloc2,paraloc3 : TCGPara;
       begin
          case op of
            OP_ADD:
@@ -456,6 +457,29 @@ unit cgcpu;
              begin
                if size in [OS_8,OS_S8] then
                  list.concat(taicpu.op_reg_reg(topcg2asmop[op],dst,src))
+               else if size=OS_16 then
+                 begin
+                   paraloc1.init;
+                   paraloc2.init;
+                   paraloc3.init;
+                   paramanager.getintparaloc(pocall_default,1,paraloc1);
+                   paramanager.getintparaloc(pocall_default,2,paraloc2);
+                   paramanager.getintparaloc(pocall_default,3,paraloc3);
+                   a_load_const_cgpara(list,OS_8,0,paraloc3);
+                   a_load_reg_cgpara(list,OS_16,src,paraloc2);
+                   a_load_reg_cgpara(list,OS_16,dst,paraloc1);
+                   paramanager.freecgpara(list,paraloc3);
+                   paramanager.freecgpara(list,paraloc2);
+                   paramanager.freecgpara(list,paraloc1);
+                   alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                   a_call_name(list,'FPC_MUL_WORD',false);
+                   dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                   cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
+                   cg.a_load_reg_reg(list,OS_16,OS_16,NR_FUNCTION_RESULT_REG,dst);
+                   paraloc3.done;
+                   paraloc2.done;
+                   paraloc1.done;
+                 end
                else
                  internalerror(2011022002);
              end;
@@ -924,13 +948,13 @@ unit cgcpu;
     procedure tcgavr.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
       l : tasmlabel);
       begin
-        internalerror(2011021311);
+        //!!!!! internalerror(2011021311);
       end;
 
 
     procedure tcgavr.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
       begin
-        internalerror(2011021312);
+        //!!!!!internalerror(2011021312);
       end;
 
 
@@ -1237,6 +1261,8 @@ unit cgcpu;
        list.Concat(instr);
        { Notify the register allocator that we have written a move instruction so
          it can try to eliminate it. }
+       writeln(hexstr(dword(reg1),8));
+       writeln(hexstr(dword(reg2),8));
        add_move_instruction(instr);
       end;
 
