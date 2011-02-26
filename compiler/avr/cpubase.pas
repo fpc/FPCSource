@@ -156,18 +156,7 @@ unit cpubase;
                                 Operands
 *****************************************************************************}
 
-      taddressmode = (AM_OFFSET,AM_PREINDEXED,AM_POSTINDEXED);
-      tshiftmode = (SM_None,SM_LSL,SM_LSR,SM_ASR,SM_ROR,SM_RRX);
-
-      tupdatereg = (UR_None,UR_Update);
-
-      pshifterop = ^tshifterop;
-
-      tshifterop = record
-        shiftmode : tshiftmode;
-        rs : tregister;
-        shiftimm : byte;
-      end;
+      taddressmode = (AM_UNCHANGED,AM_POSTINCREMENT,AM_PREDRECEMENT);
 
 {*****************************************************************************
                                  Constants
@@ -347,6 +336,9 @@ unit cpubase;
     function dwarf_reg(r:tregister):byte;
     function GetHigh(const r : TRegister) : TRegister;
 
+    { returns the next virtual register }
+    function GetNextReg(const r : TRegister) : TRegister;
+
   implementation
 
     uses
@@ -480,6 +472,12 @@ unit cpubase;
     function GetHigh(const r : TRegister) : TRegister;
       begin
         result:=TRegister(longint(r)+1)
+      end;
+
+
+    function GetNextReg(const r: TRegister): TRegister;
+      begin
+        result:=TRegister(longint(r)+1);
       end;
 
 end.
