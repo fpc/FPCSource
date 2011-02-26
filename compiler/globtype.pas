@@ -86,6 +86,9 @@ interface
        ASizeInt = PInt;
        ASizeUInt = PUInt;
 
+       { type used for handling constants etc. in the code generator }
+       TCGInt = Int64;
+
        { This must be an ordinal type with the same size as a pointer
          Note: Must be unsigned! Otherwise, ugly code like
          pointer(-1) will result in a pointer with the value

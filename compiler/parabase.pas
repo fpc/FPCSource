@@ -63,7 +63,7 @@ unit parabase;
 
        TCGPara = object
           Location  : PCGParalocation;
-          IntSize   : aint; { size of the total location in bytes }
+          IntSize   : tcgint; { size of the total location in bytes }
           Alignment : ShortInt;
           Size      : TCGSize;  { Size of the parameter included in all locations }
 {$ifdef powerpc}
