@@ -209,14 +209,14 @@ implementation
 
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
-        result := operand_read;
+        result:=operand_read;
         case opcode of
           A_CP,A_CPC,A_CPI :
             ;
           else
             begin
-              if opnr=ops-1 then
-                result := operand_write;
+              if (opnr=0) then
+                result:=operand_write;
             end;
         end;
       end;
@@ -226,9 +226,15 @@ implementation
       begin
         case getregtype(r) of
           R_INTREGISTER :
-            result:=taicpu.op_ref_reg(A_LD,ref,r);
+            if ref.offset<>0 then
+              result:=taicpu.op_reg_ref(A_LDD,r,ref)
+            else
+              result:=taicpu.op_reg_ref(A_LD,r,ref);
           R_ADDRESSREGISTER :
-            result:=taicpu.op_ref_reg(A_LD,ref,r);
+            if ref.offset<>0 then
+              result:=taicpu.op_reg_ref(A_LDD,r,ref)
+            else
+              result:=taicpu.op_reg_ref(A_LD,r,ref);
           else
             internalerror(200401041);
         end;
@@ -239,9 +245,15 @@ implementation
       begin
         case getregtype(r) of
           R_INTREGISTER :
-            result:=taicpu.op_reg_ref(A_ST,r,ref);
+            if ref.offset<>0 then
+              result:=taicpu.op_ref_reg(A_STD,ref,r)
+            else
+              result:=taicpu.op_ref_reg(A_ST,ref,r);
           R_ADDRESSREGISTER :
-            result:=taicpu.op_reg_ref(A_ST,r,ref);
+            if ref.offset<>0 then
+              result:=taicpu.op_ref_reg(A_STD,ref,r)
+            else
+              result:=taicpu.op_ref_reg(A_ST,ref,r);
           else
             internalerror(200401041);
         end;
