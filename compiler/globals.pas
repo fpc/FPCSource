@@ -399,8 +399,8 @@ interface
         fputype : fpu_sse64;
 {$endif x86_64}
 {$ifdef avr}
-        cputype : cpuinfo.cpu_avr;
-        optimizecputype : cpuinfo.cpu_avr;
+        cputype : cpuinfo.cpu_avr5;
+        optimizecputype : cpuinfo.cpu_avr5;
         fputype : fpu_none;
 {$endif avr}
 {$ifdef mips}
