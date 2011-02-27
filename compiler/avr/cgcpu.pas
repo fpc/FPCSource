@@ -541,13 +541,14 @@ unit cgcpu;
           end;
         if assigned(ref.symbol) or (ref.offset<>0) then
           begin
-            tmpreg:=getaddressregister(list);
+            getcpuregister(list,NR_R30);
+            getcpuregister(list,NR_R31);
+            tmpreg:=NR_R30;
             reference_reset(tmpref,0);
             tmpref.symbol:=ref.symbol;
-            tmpref.offset:=lo(word(ref.offset));
+            tmpref.offset:=ref.offset;
             tmpref.refaddr:=addr_lo8;
             list.concat(taicpu.op_reg_ref(A_LDI,tmpreg,tmpref));
-            tmpref.offset:=hi(word(ref.offset));
             tmpref.refaddr:=addr_hi8;
             list.concat(taicpu.op_reg_ref(A_LDI,GetNextReg(tmpreg),tmpref));
             if (ref.base<>NR_NO) then
@@ -560,15 +561,40 @@ unit cgcpu;
                 list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.base));
                 list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.base)));
               end;
+            ref.symbol:=nil;
+            ref.offset:=0;
             ref.base:=tmpreg;
             ref.index:=NR_NO;
           end
         else if (ref.base<>NR_NO) and (ref.index<>NR_NO) then
           begin
-            tmpreg:=getaddressregister(list);
-            list.concat(taicpu.op_reg_reg(A_MOVW,tmpreg,ref.index));
+            getcpuregister(list,NR_R30);
+            getcpuregister(list,NR_R31);
+            tmpreg:=NR_R30;
+            list.concat(taicpu.op_reg_reg(A_MOV,tmpreg,ref.index));
+            list.concat(taicpu.op_reg_reg(A_MOV,GetNextReg(tmpreg),GetNextReg(ref.index)));
             list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.base));
             list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.base)));
+            ref.base:=tmpreg;
+            ref.index:=NR_NO;
+          end
+        else if (ref.base<>NR_NO) then
+          begin
+            getcpuregister(list,NR_R30);
+            getcpuregister(list,NR_R31);
+            tmpreg:=NR_R30;
+            list.concat(taicpu.op_reg_reg(A_MOV,tmpreg,ref.base));
+            list.concat(taicpu.op_reg_reg(A_MOV,GetNextReg(tmpreg),GetNextReg(ref.base)));
+            ref.base:=tmpreg;
+            ref.index:=NR_NO;
+          end
+        else if (ref.index<>NR_NO) then
+          begin
+            getcpuregister(list,NR_R30);
+            getcpuregister(list,NR_R31);
+            tmpreg:=NR_R30;
+            list.concat(taicpu.op_reg_reg(A_MOV,tmpreg,ref.index));
+            list.concat(taicpu.op_reg_reg(A_MOV,GetNextReg(tmpreg),GetNextReg(ref.index)));
             ref.base:=tmpreg;
             ref.index:=NR_NO;
           end;
@@ -824,10 +850,10 @@ unit cgcpu;
            begin
              for i:=1 to tcgsize2size[fromsize] do
                begin
-                   if (href.base<>NR_NO) and (i<tcgsize2size[fromsize]) then
-                     href.addressmode:=AM_POSTINCREMENT
-                   else
-                     href.addressmode:=AM_UNCHANGED;
+                 if (href.base<>NR_NO) and (i<tcgsize2size[fromsize]) then
+                   href.addressmode:=AM_POSTINCREMENT
+                 else
+                   href.addressmode:=AM_UNCHANGED;
 
                  list.concat(taicpu.op_reg_ref(A_LD,reg,href));
 
