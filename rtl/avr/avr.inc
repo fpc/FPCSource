@@ -62,7 +62,7 @@ function InterLockedDecrement (var Target: longint) : longint;
     { block interrupts }
     asm
       in r0,0x3f
-      st sreg,r0
+      std sreg,r0
       cli
     end;
 
@@ -71,7 +71,7 @@ function InterLockedDecrement (var Target: longint) : longint;
 
     { release interrupts }
     asm
-      ld r0,sreg
+      ldd r0,sreg
       out 0x3f,r0
     end;
   end;
@@ -84,7 +84,7 @@ function InterLockedIncrement (var Target: longint) : longint;
     { block interrupts }
     asm
       in r0,0x3f
-      st sreg,r0
+      std sreg,r0
       cli
     end;
 
@@ -93,7 +93,7 @@ function InterLockedIncrement (var Target: longint) : longint;
 
     { release interrupts }
     asm
-      ld r0,sreg
+      ldd r0,sreg
       out 0x3f,r0
     end;
   end;
@@ -106,7 +106,7 @@ function InterLockedExchange (var Target: longint;Source : longint) : longint;
     { block interrupts }
     asm
       in r0,0x3f
-      st sreg,r0
+      std sreg,r0
       cli
     end;
 
@@ -115,7 +115,7 @@ function InterLockedExchange (var Target: longint;Source : longint) : longint;
 
     { release interrupts }
     asm
-      ld r0,sreg
+      ldd r0,sreg
       out 0x3f,r0
     end;
   end;
@@ -128,7 +128,7 @@ function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comp
     { block interrupts }
     asm
       in r0,0x3f
-      st sreg,r0
+      std sreg,r0
       cli
     end;
 
@@ -138,7 +138,7 @@ function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comp
 
     { release interrupts }
     asm
-      ld r0,sreg
+      ldd r0,sreg
       out 0x3f,r0
     end;
   end;
@@ -151,7 +151,7 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
     { block interrupts }
     asm
       in r0,0x3f
-      st sreg,r0
+      std sreg,r0
       cli
     end;
 
@@ -160,7 +160,7 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
 
     { release interrupts }
     asm
-      ld r0,sreg
+      ldd r0,sreg
       out 0x3f,r0
     end;
   end;
