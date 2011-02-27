@@ -87,8 +87,8 @@ unit cgcpu;
 
         procedure g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef); override;
 
-//        procedure g_save_registers(list : TAsmList);override;
-//        procedure g_restore_registers(list : TAsmList);override;
+        procedure g_save_registers(list : TAsmList);override;
+        procedure g_restore_registers(list : TAsmList);override;
 
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
         procedure fixref(list : TAsmList;var ref : treference);
@@ -379,9 +379,6 @@ unit cgcpu;
          case op of
            OP_ADD:
              begin
-               if src<>dst then
-                 a_load_reg_reg(list,size,size,src,dst);
-
                list.concat(taicpu.op_reg_reg(A_ADD,dst,src));
                if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
                  begin
@@ -397,9 +394,6 @@ unit cgcpu;
 
            OP_SUB:
              begin
-               if src<>dst then
-                 a_load_reg_reg(list,size,size,src,dst);
-
                list.concat(taicpu.op_reg_reg(A_SUB,dst,src));
                if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
                  begin
@@ -492,9 +486,6 @@ unit cgcpu;
 
            OP_AND,OP_OR,OP_XOR:
              begin
-               if src<>dst then
-                 a_load_reg_reg(list,size,size,src,dst);
-
                 for i:=1 to tcgsize2size[size] do
                   begin
                     list.concat(taicpu.op_reg_reg(topcg2asmop[op],dst,src));
@@ -1217,6 +1208,18 @@ unit cgcpu;
 
         a_call_name(list,'FPC_OVERFLOW',false);
         a_label(list,hl);
+      end;
+
+
+    procedure tcgavr.g_save_registers(list: TAsmList);
+      begin
+        { this is done by the entry code }
+      end;
+
+
+    procedure tcgavr.g_restore_registers(list: TAsmList);
+      begin
+        { this is done by the exit code }
       end;
 
 

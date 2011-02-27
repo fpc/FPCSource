@@ -84,17 +84,17 @@ unit cpupara;
           begin
             size:=OS_INT;
             { the four first parameters are passed into registers }
-            if nr<=4 then
+            if nr<=9 then
               begin
                 loc:=LOC_REGISTER;
-                register:=newreg(R_INTREGISTER,RS_R0+nr-1,R_SUBWHOLE);
+                register:=newreg(R_INTREGISTER,RS_R25-(nr-1)*2,R_SUBWHOLE);
               end
             else
               begin
                 { the other parameters are passed on the stack }
                 loc:=LOC_REFERENCE;
                 reference.index:=NR_STACK_POINTER_REG;
-                reference.offset:=(nr-5)*4;
+                reference.offset:=(nr-10)*2;
               end;
           end;
       end;
@@ -200,7 +200,7 @@ unit cpupara;
 
     procedure tavrparamanager.init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
       begin
-        curintreg:=RS_R0;
+        curintreg:=RS_R25;
         curfloatreg:=RS_INVALID;
         curmmreg:=RS_INVALID;
         cur_stack_offset:=0;
@@ -225,7 +225,7 @@ unit cpupara;
         begin
           { In case of po_delphi_nested_cc, the parent frame pointer
             is always passed on the stack. }
-           if (nextintreg<=RS_R3) and
+           if (nextintreg>RS_R8) and
               (not(vo_is_parentfp in hp.varoptions) or
                not(po_delphi_nested_cc in p.procoptions)) then
              begin
@@ -238,7 +238,7 @@ unit cpupara;
                paraloc^.loc:=LOC_REFERENCE;
                paraloc^.reference.index:=NR_STACK_POINTER_REG;
                paraloc^.reference.offset:=stack_offset;
-               inc(stack_offset,4);
+               dec(stack_offset,2);
             end;
         end;
 
@@ -265,7 +265,7 @@ unit cpupara;
                 paraloc:=hp.paraloc[side].add_location;
                 { hack: the paraloc must be valid, but is not actually used }
                 paraloc^.loc:=LOC_REGISTER;
-                paraloc^.register:=NR_R0;
+                paraloc^.register:=NR_R25;
                 paraloc^.size:=OS_ADDR;
                 break;
               end;
@@ -333,11 +333,11 @@ unit cpupara;
                       begin
                         { this is not abi compliant
                           why? (FK) }
-                        if nextintreg<=RS_R3 then
+                        if nextintreg>=RS_R8 then
                           begin
                             paraloc^.loc:=LOC_REGISTER;
                             paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
-                            inc(nextintreg);
+                            dec(nextintreg);
                           end
                         else
                           begin
@@ -374,7 +374,7 @@ unit cpupara;
                      if paraloc^.loc=LOC_REFERENCE then
                        begin
                          paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                         inc(paraloc^.reference.offset,4);
+                         inc(paraloc^.reference.offset,2);
                        end;
                    end;
                  dec(paralen,tcgsize2size[paraloc^.size]);
