@@ -29,13 +29,18 @@ unit agavrgas;
   interface
 
     uses
+       globtype,
        aasmtai,aasmdata,
        aggas,
        cpubase;
 
     type
+
+      { TAVRGNUAssembler }
+
       TAVRGNUAssembler=class(TGNUassembler)
         constructor create(smart: boolean); override;
+       function MakeCmdLine: TCmdStr; override;
       end;
 
      TAVRInstrWriter=class(TCPUInstrWriter)
@@ -51,6 +56,7 @@ unit agavrgas;
        assemble,
        aasmcpu,
        itcpugas,
+       cpuinfo,
        cgbase,cgutils;
 
 {****************************************************************************}
@@ -84,8 +90,33 @@ unit agavrgas;
               // if ((index<>NR_NO) or (shiftmode<>SM_None)) and ((offset<>0) or (symbol<>nil)) then
               //   internalerror(200308293);
   {$endif extdebug}
+              if index<>NR_NO then
+                internalerror(2011021701)
+              else if base<>NR_NO then
+                begin
+                  if addressmode=AM_PREDRECEMENT then
+                    s:='-'
+                  else
+                    s:='';
+                  case base of
+                    NR_R26:
+                      s:=s+'X';
+                    NR_R28:
+                      s:=s+'Y';
+                    NR_R30:
+                      s:=s+'Z';
+                    else
+                      s:=gas_regname(base);
+                  end;
+                  if addressmode=AM_POSTINCREMENT then
+                    s:=s+'+';
 
-              if assigned(symbol) or (offset<>0) then
+                  if offset>0 then
+                    s:=s+'+'+tostr(offset)
+                  else if offset<0 then
+                    s:=s+tostr(offset)
+                end
+              else if assigned(symbol) or (offset<>0) then
                 begin
                   if assigned(symbol) then
                     s:=ReplaceForbiddenChars(symbol.name)
@@ -104,12 +135,7 @@ unit agavrgas;
                     else
                       s:='('+s+')';
                   end;
-                end
-              else
-                begin
-                  s:='('+gas_regname(base)+')';
                 end;
-
             end;
           getreferencestring:=s;
         end;
@@ -129,7 +155,7 @@ unit agavrgas;
             top_ref:
               if o.ref^.refaddr=addr_full then
                 begin
-                  hs:=o.ref^.symbol.name;
+                  hs:=ReplaceForbiddenChars(o.ref^.symbol.name);
                   if o.ref^.offset>0 then
                    hs:=hs+'+'+tostr(o.ref^.offset)
                   else
@@ -161,6 +187,12 @@ unit agavrgas;
         end;
       owner.AsmWriteLn(s);
     end;
+
+
+    function TAVRGNUAssembler.MakeCmdLine: TCmdStr;
+      begin
+        result := '-mmcu='+lower(cputypestr[current_settings.cputype])+' '+inherited MakeCmdLine;
+      end;
 
 
     const
