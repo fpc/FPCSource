@@ -98,6 +98,8 @@ unit cgcpu;
         procedure emit_mov(list: TAsmList;reg2: tregister; reg1: tregister);
 
         procedure a_adjust_sp(list: TAsmList; value: longint);
+        function GetLoad(const ref : treference) : tasmop;
+        function GetStore(const ref: treference): tasmop;
       end;
 
       tcg64favr = class(tcg64f32)
@@ -423,7 +425,7 @@ unit cgcpu;
                    tmpreg:=GetNextReg(dst);
                    for i:=2 to tcgsize2size[size] do
                      begin
-                       list.concat(taicpu.op_const_reg(A_SBCI,-1,dst));
+                       list.concat(taicpu.op_reg_const(A_SBCI,dst,-1));
                        tmpreg:=GetNextReg(tmpreg);
                    end;
                  end
@@ -625,7 +627,7 @@ unit cgcpu;
                    if (href.base<>NR_NO) and (tcgsize2size[tosize]>1) then
                      href.addressmode:=AM_POSTINCREMENT;
 
-                   list.concat(taicpu.op_ref_reg(A_ST,href,reg));
+                   list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
                    for i:=2 to tcgsize2size[tosize] do
                      begin
                        if (href.offset<>0) or assigned(href.symbol) then
@@ -636,20 +638,20 @@ unit cgcpu;
                        else
                          href.addressmode:=AM_UNCHANGED;
 
-                       list.concat(taicpu.op_ref_reg(A_ST,href,NR_R1));
+                       list.concat(taicpu.op_ref_reg(GetStore(href),href,NR_R1));
                      end;
                  end;
                OS_S8:
                  begin
                    if (href.base<>NR_NO) and (tcgsize2size[tosize]>1) then
                      href.addressmode:=AM_POSTINCREMENT;
-                   list.concat(taicpu.op_ref_reg(A_ST,href,reg));
+                   list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
 
                    if tcgsize2size[tosize]>1 then
                      begin
                        tmpreg:=getintregister(list,OS_8);
                        list.concat(taicpu.op_reg(A_CLR,tmpreg));
-                       list.concat(taicpu.op_reg_const(A_SBIC,reg,7));
+                       list.concat(taicpu.op_reg_const(A_SBRC,reg,7));
                        list.concat(taicpu.op_reg(A_COM,tmpreg));
                        for i:=2 to tcgsize2size[tosize] do
                          begin
@@ -660,7 +662,7 @@ unit cgcpu;
                              href.addressmode:=AM_POSTINCREMENT
                            else
                              href.addressmode:=AM_UNCHANGED;
-                           list.concat(taicpu.op_ref_reg(A_ST,href,tmpreg));
+                           list.concat(taicpu.op_ref_reg(GetStore(href),href,tmpreg));
                          end;
                      end;
                  end;
@@ -669,7 +671,7 @@ unit cgcpu;
                    if (href.base<>NR_NO) and (tcgsize2size[tosize]>1) then
                      href.addressmode:=AM_POSTINCREMENT;
 
-                   list.concat(taicpu.op_ref_reg(A_ST,href,reg));
+                   list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
                    if (href.offset<>0) or assigned(href.symbol) then
                      inc(href.offset)
                    else if (href.base<>NR_NO) and (tcgsize2size[fromsize]>2) then
@@ -678,7 +680,7 @@ unit cgcpu;
                      href.addressmode:=AM_UNCHANGED;
 
                    reg:=GetNextReg(reg);
-                   list.concat(taicpu.op_ref_reg(A_ST,href,reg));
+                   list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
 
                    for i:=3 to tcgsize2size[tosize] do
                      begin
@@ -690,7 +692,7 @@ unit cgcpu;
                        else
                          href.addressmode:=AM_UNCHANGED;
 
-                       list.concat(taicpu.op_ref_reg(A_ST,href,NR_R1));
+                       list.concat(taicpu.op_ref_reg(GetStore(href),href,NR_R1));
                      end;
                  end;
                OS_S16:
@@ -698,7 +700,7 @@ unit cgcpu;
                    if (href.base<>NR_NO) and (tcgsize2size[tosize]>1) then
                      href.addressmode:=AM_POSTINCREMENT;
 
-                   list.concat(taicpu.op_ref_reg(A_ST,href,reg));
+                   list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
                    if (href.offset<>0) or assigned(href.symbol) then
                      inc(href.offset)
                    else if (href.base<>NR_NO) and (tcgsize2size[fromsize]>2) then
@@ -707,13 +709,13 @@ unit cgcpu;
                      href.addressmode:=AM_UNCHANGED;
 
                    reg:=GetNextReg(reg);
-                   list.concat(taicpu.op_ref_reg(A_ST,href,reg));
+                   list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
 
                    if tcgsize2size[tosize]>2 then
                      begin
                        tmpreg:=getintregister(list,OS_8);
                        list.concat(taicpu.op_reg(A_CLR,tmpreg));
-                       list.concat(taicpu.op_reg_const(A_SBIC,reg,7));
+                       list.concat(taicpu.op_reg_const(A_SBRC,reg,7));
                        list.concat(taicpu.op_reg(A_COM,tmpreg));
                        for i:=3 to tcgsize2size[tosize] do
                          begin
@@ -724,7 +726,7 @@ unit cgcpu;
                              href.addressmode:=AM_POSTINCREMENT
                            else
                              href.addressmode:=AM_UNCHANGED;
-                           list.concat(taicpu.op_ref_reg(A_ST,href,tmpreg));
+                           list.concat(taicpu.op_ref_reg(GetStore(href),href,tmpreg));
                          end;
                      end;
                  end;
@@ -741,7 +743,7 @@ unit cgcpu;
                    else
                      href.addressmode:=AM_UNCHANGED;
 
-                 list.concat(taicpu.op_ref_reg(A_ST,href,reg));
+                 list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
 
                  if (href.offset<>0) or assigned(href.symbol) then
                    inc(href.offset);
@@ -773,7 +775,7 @@ unit cgcpu;
              case fromsize of
                OS_8:
                  begin
-                   list.concat(taicpu.op_reg_ref(A_LD,reg,href));
+                   list.concat(taicpu.op_reg_ref(GetLoad(href),reg,href));
                    for i:=2 to tcgsize2size[tosize] do
                      begin
                        reg:=GetNextReg(reg);
@@ -782,14 +784,14 @@ unit cgcpu;
                  end;
                OS_S8:
                  begin
-                   list.concat(taicpu.op_reg_ref(A_LD,reg,href));
+                   list.concat(taicpu.op_reg_ref(GetLoad(href),reg,href));
                    tmpreg:=reg;
 
                    if tcgsize2size[tosize]>1 then
                      begin
                        reg:=GetNextReg(reg);
                        list.concat(taicpu.op_reg(A_CLR,reg));
-                       list.concat(taicpu.op_reg_const(A_SBIC,tmpreg,7));
+                       list.concat(taicpu.op_reg_const(A_SBRC,tmpreg,7));
                        list.concat(taicpu.op_reg(A_COM,reg));
                        tmpreg:=reg;
                        for i:=3 to tcgsize2size[tosize] do
@@ -803,14 +805,14 @@ unit cgcpu;
                  begin
                    if href.base<>NR_NO then
                      href.addressmode:=AM_POSTINCREMENT;
-                   list.concat(taicpu.op_reg_ref(A_LD,reg,href));
+                   list.concat(taicpu.op_reg_ref(GetLoad(href),reg,href));
 
                    if (href.offset<>0) or assigned(href.symbol) then
                      inc(href.offset);
                    href.addressmode:=AM_UNCHANGED;
 
                    reg:=GetNextReg(reg);
-                   list.concat(taicpu.op_reg_ref(A_LD,reg,href));
+                   list.concat(taicpu.op_reg_ref(GetLoad(href),reg,href));
 
                    for i:=3 to tcgsize2size[tosize] do
                      begin
@@ -822,18 +824,18 @@ unit cgcpu;
                  begin
                    if href.base<>NR_NO then
                      href.addressmode:=AM_POSTINCREMENT;
-                   list.concat(taicpu.op_reg_ref(A_LD,reg,href));
+                   list.concat(taicpu.op_reg_ref(GetLoad(href),reg,href));
                    if (href.offset<>0) or assigned(href.symbol) then
                      inc(href.offset);
                    href.addressmode:=AM_UNCHANGED;
 
                    reg:=GetNextReg(reg);
-                   list.concat(taicpu.op_reg_ref(A_LD,reg,href));
+                   list.concat(taicpu.op_reg_ref(GetLoad(href),reg,href));
                    tmpreg:=reg;
 
                    reg:=GetNextReg(reg);
                    list.concat(taicpu.op_reg(A_CLR,reg));
-                   list.concat(taicpu.op_reg_const(A_SBIC,tmpreg,7));
+                   list.concat(taicpu.op_reg_const(A_SBRC,tmpreg,7));
                    list.concat(taicpu.op_reg(A_COM,reg));
                    tmpreg:=reg;
                    for i:=4 to tcgsize2size[tosize] do
@@ -855,7 +857,7 @@ unit cgcpu;
                  else
                    href.addressmode:=AM_UNCHANGED;
 
-                 list.concat(taicpu.op_reg_ref(A_LD,reg,href));
+                 list.concat(taicpu.op_reg_ref(GetLoad(href),reg,href));
 
                  if (href.offset<>0) or assigned(href.symbol) then
                    inc(href.offset);
@@ -898,7 +900,7 @@ unit cgcpu;
 
                    reg2:=GetNextReg(reg2);
                    list.concat(taicpu.op_reg(A_CLR,reg2));
-                   list.concat(taicpu.op_reg_const(A_SBIC,reg1,7));
+                   list.concat(taicpu.op_reg_const(A_SBRC,reg1,7));
                    list.concat(taicpu.op_reg(A_COM,reg2));
                    tmpreg:=reg2;
                    for i:=3 to tcgsize2size[tosize] do
@@ -932,7 +934,7 @@ unit cgcpu;
 
                    reg2:=GetNextReg(reg2);
                    list.concat(taicpu.op_reg(A_CLR,reg2));
-                   list.concat(taicpu.op_reg_const(A_SBIC,reg1,7));
+                   list.concat(taicpu.op_reg_const(A_SBRC,reg1,7));
                    list.concat(taicpu.op_reg(A_COM,reg2));
                    tmpreg:=reg2;
                    for i:=4 to tcgsize2size[tosize] do
@@ -1042,6 +1044,25 @@ unit cgcpu;
             end;
         end;
       end;
+
+
+    function tcgavr.GetLoad(const ref: treference) : tasmop;
+      begin
+        if (ref.base=NR_NO) and (ref.index=NR_NO) then
+          result:=A_LDS
+        else
+          result:=A_LD;
+      end;
+
+
+    function tcgavr.GetStore(const ref: treference) : tasmop;
+      begin
+        if (ref.base=NR_NO) and (ref.index=NR_NO) then
+          result:=A_STS
+        else
+          result:=A_ST;
+      end;
+
 
     procedure tcgavr.g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);
       var
@@ -1177,8 +1198,8 @@ unit cgcpu;
             a_load_const_reg(list,countregsize,len,countreg);
             cg.a_label(list,l);
             tmpreg:=getintregister(list,copysize);
-            list.concat(taicpu.op_reg_ref(A_LD,tmpreg,srcref));
-            list.concat(taicpu.op_ref_reg(A_ST,dstref,tmpreg));
+            list.concat(taicpu.op_reg_ref(GetLoad(srcref),tmpreg,srcref));
+            list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,tmpreg));
             a_op_const_reg(list,OP_SUB,countregsize,1,countreg);
             a_jmp_flags(list,F_NE,l);
           end
@@ -1199,8 +1220,8 @@ unit cgcpu;
                 else
                   dstref.addressmode:=AM_UNCHANGED;
 
-              list.concat(taicpu.op_reg_ref(A_LD,tmpreg,srcref));
-              list.concat(taicpu.op_ref_reg(A_ST,dstref,tmpreg));
+              list.concat(taicpu.op_reg_ref(GetLoad(srcref),tmpreg,srcref));
+              list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,tmpreg));
 
               if (dstref.offset<>0) or assigned(dstref.symbol) then
                 inc(dstref.offset);
