@@ -500,7 +500,7 @@ implementation
                  cg.a_load_reg_reg(list,l.size,OS_32,l.register64.reglo,hregister);
                end
               else
-               hregister:=cg.getintregister(list,OS_INT);
+               hregister:=cg.getintregister(list,OS_32);
               { load value in low register }
               case l.loc of
 {$ifdef cpuflags}
@@ -521,7 +521,7 @@ implementation
                   cg.a_load_loc_reg(list,OS_INT,l,hregister);
               end;
               { reset hi part, take care of the signed bit of the current value }
-              hregisterhi:=cg.getintregister(list,OS_INT);
+              hregisterhi:=cg.getintregister(list,OS_32);
               if (l.size in [OS_S8,OS_S16,OS_S32]) then
                begin
                  if l.loc=LOC_CONSTANT then
@@ -554,8 +554,8 @@ implementation
                end
               else
                begin
-                 hregister:=cg.getintregister(list,OS_INT);
-                 hregisterhi:=cg.getintregister(list,OS_INT);
+                 hregister:=cg.getintregister(list,OS_32);
+                 hregisterhi:=cg.getintregister(list,OS_32);
                  const_location := false;
                end;
               hreg64.reglo:=hregister;
@@ -625,8 +625,8 @@ implementation
                         l.reference.alignment:=newalignment(l.reference.alignment,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
                       end;
 {$ifdef x86}
-                  if not (l.loc in [LOC_SUBSETREG,LOC_CSUBSETREG]) then
-                     l.size:=dst_size;
+                    if not (l.loc in [LOC_SUBSETREG,LOC_CSUBSETREG]) then
+                      l.size:=dst_size;
 {$endif x86}
                   end;
                  cg.a_load_loc_reg(list,dst_size,l,hregister);
