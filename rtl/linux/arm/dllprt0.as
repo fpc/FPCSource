@@ -9,31 +9,24 @@ FPC_SHARED_LIB_START:
         mov ip, sp
         push {fp, ip, lr, pc}
         sub fp, ip, #4
-        sub sp, sp, #40
 
-        /* load argc */
-        mov a1, ip
-
-        /* load and save a copy of argc  */
-        ldr a2, [a1]
+        /* a1 contains argc, a2 contains argv and a3 contains envp */
         ldr ip, =operatingsystem_parameter_argc
-        str a2, [ip]
-
-        /* calc argv and store */
-        add a1, a1, #4
-        ldr ip, =operatingsystem_parameter_argv
         str a1, [ip]
 
-        /* calc envp and store */
-        add a2, a2, #1
-        add a2, a1, a2, lsl #2
+        ldr ip, =operatingsystem_parameter_argv
+        str a2, [ip]
 
         ldr ip, =operatingsystem_parameter_envp
-        str a2, [ip]
+        str a3, [ip]
 
         /* save initial stackpointer */
         ldr ip, =__stklen
         str sp, [ip]
+
+        ldr ip, =TC_SYSTEM_ISLIBRARY
+        mov a1, #1
+        str a1, [ip]
 
         /* call main and exit normally */
         bl PASCALMAIN
