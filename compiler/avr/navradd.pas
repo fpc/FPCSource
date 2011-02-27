@@ -182,6 +182,11 @@ interface
 
         for i:=2 to tcgsize2size[left.location.size] do
           begin
+            if i=5 then
+              begin
+                tmpreg1:=left.location.registerhi;
+                tmpreg2:=right.location.registerhi;
+              end;
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
           end;
 
