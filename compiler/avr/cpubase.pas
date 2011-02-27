@@ -121,7 +121,7 @@ unit cpubase;
         {$i ravrdwa.inc}
       );
       { registers which may be destroyed by calls }
-      VOLATILE_INTREGISTERS = [RS_R18..RS_R27,RS_R30..RS_R31];
+      VOLATILE_INTREGISTERS = [RS_R0,RS_R1,RS_R8..RS_R27,RS_R30,RS_R31];
       VOLATILE_FPUREGISTERS = [];
 
     type
