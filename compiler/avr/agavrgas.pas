@@ -68,69 +68,81 @@ unit agavrgas;
 {                  Helper routines for Instruction Writer                    }
 {****************************************************************************}
 
-    function getreferencestring(var ref : treference) : string;
-      var
-        s : string;
-      begin
-         with ref do
-          begin
-{$ifdef extdebug}
-            // if base=NR_NO then
-            //   internalerror(200308292);
-
-            // if ((index<>NR_NO) or (shiftmode<>SM_None)) and ((offset<>0) or (symbol<>nil)) then
-            //   internalerror(200308293);
-{$endif extdebug}
-
-            if assigned(symbol) then
-              begin
-                s:=symbol.name;
-                if offset<0 then
-                  s:=s+tostr(offset)
-                else if offset>0 then
-                  s:=s+'+'+tostr(offset);
-              end
-            else
-              begin
-                s:=gas_regname(base);
-              end;
-
-          end;
-        getreferencestring:=s;
-      end;
-
-
-    function getopstr(const o:toper) : string;
-      var
-        hs : string;
-        first : boolean;
-        r : tsuperregister;
-      begin
-        case o.typ of
-          top_reg:
-            getopstr:=gas_regname(o.reg);
-          top_const:
-            getopstr:=tostr(longint(o.val));
-          top_ref:
-            if o.ref^.refaddr=addr_full then
-              begin
-                hs:=o.ref^.symbol.name;
-                if o.ref^.offset>0 then
-                 hs:=hs+'+'+tostr(o.ref^.offset)
-                else
-                 if o.ref^.offset<0 then
-                  hs:=hs+tostr(o.ref^.offset);
-                getopstr:=hs;
-              end
-            else
-              getopstr:=getreferencestring(o.ref^);
-          else
-            internalerror(2002070604);
-        end;
-      end;
-
 
     Procedure TAVRInstrWriter.WriteInstruction(hp : tai);
+
+      function getreferencestring(var ref : treference) : string;
+        var
+          s : string;
+        begin
+           with ref do
+            begin
+  {$ifdef extdebug}
+              // if base=NR_NO then
+              //   internalerror(200308292);
+
+              // if ((index<>NR_NO) or (shiftmode<>SM_None)) and ((offset<>0) or (symbol<>nil)) then
+              //   internalerror(200308293);
+  {$endif extdebug}
+
+              if assigned(symbol) or (offset<>0) then
+                begin
+                  if assigned(symbol) then
+                    s:=ReplaceForbiddenChars(symbol.name)
+                  else
+                     s:='';
+
+                  if offset<0 then
+                    s:=s+tostr(offset)
+                  else if offset>0 then
+                    s:=s+'+'+tostr(offset);
+                  case refaddr of
+                    addr_hi8:
+                      s:='hi8('+s+')';
+                    addr_lo8:
+                      s:='lo8('+s+')';
+                    else
+                      s:='('+s+')';
+                  end;
+                end
+              else
+                begin
+                  s:='('+gas_regname(base)+')';
+                end;
+
+            end;
+          getreferencestring:=s;
+        end;
+
+
+      function getopstr(const o:toper) : string;
+        var
+          hs : string;
+          first : boolean;
+          r : tsuperregister;
+        begin
+          case o.typ of
+            top_reg:
+              getopstr:=gas_regname(o.reg);
+            top_const:
+              getopstr:=tostr(longint(o.val));
+            top_ref:
+              if o.ref^.refaddr=addr_full then
+                begin
+                  hs:=o.ref^.symbol.name;
+                  if o.ref^.offset>0 then
+                   hs:=hs+'+'+tostr(o.ref^.offset)
+                  else
+                   if o.ref^.offset<0 then
+                    hs:=hs+tostr(o.ref^.offset);
+                  getopstr:=hs;
+                end
+              else
+                getopstr:=getreferencestring(o.ref^);
+            else
+              internalerror(2002070604);
+          end;
+        end;
     var op: TAsmOp;
         s: string;
         i: byte;
