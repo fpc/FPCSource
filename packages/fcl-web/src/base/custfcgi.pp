@@ -547,12 +547,14 @@ begin
         begin
         CloseSocket(socket);
         Socket:=0;
+        Terminate;
         raise Exception.CreateFmt(SBindFailed,[port,socketerror]);
         end;
       if fplisten(Socket,1)=-1 then
         begin
         CloseSocket(socket);
         Socket:=0;
+        Terminate;
         raise Exception.CreateFmt(SListenFailed,[port,socketerror]);
         end;
       end
@@ -564,7 +566,10 @@ begin
     begin
     FHandle:=fpaccept(Socket,psockaddr(@IAddress),@AddressLength);
     if FHandle=THandle(-1) then
+      begin
+      Terminate;
       raise Exception.CreateFmt(SNoInputHandle,[socketerror]);
+      end;
     end;
 
   repeat
