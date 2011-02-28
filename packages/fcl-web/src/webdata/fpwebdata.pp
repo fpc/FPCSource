@@ -1663,6 +1663,7 @@ begin
       Exit;
       end;
     end;
+  P:=Nil;
   C:=FindComponent(AProviderName);
   {$ifdef wmdebug}SendDebug(Format('Searching provider "%s" 1 : %d ',[AProvidername,Ord(Assigned(C))]));{$endif}
   If (C<>Nil) and (C is TFPCustomWebDataProvider) then
@@ -1675,7 +1676,9 @@ begin
       begin
       {$ifdef wmdebug}SendDebug(Format('Found providerdef "%s" 1 : %d ',[AProvidername,Ord(Assigned(C))]));{$endif}
       P:=WebDataProviderManager.GetProvider(ADef,Self,AContainer);
-      end;
+      end
+    else
+      P:=Nil;
     end;
   {$ifdef wmdebug}SendDebug(Format('Searching provider "%s" 2 : %d ',[AProvidername,Ord(Assigned(C))]));{$endif}
   Result:=P;
