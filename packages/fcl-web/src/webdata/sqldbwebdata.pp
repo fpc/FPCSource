@@ -44,7 +44,7 @@ Type
     Procedure DoApplyParams; override;
     Function SQLQuery : TSQLQuery;
     Function GetDataset : TDataset; override;
-    Function GetNewID : String;
+    Function GetNewID : String; virtual;
     Function IDFieldValue : String; override;
     procedure Notification(AComponent: TComponent;  Operation: TOperation); override;
     Property SelectSQL : TStrings Index 0 Read GetS Write SetS;
