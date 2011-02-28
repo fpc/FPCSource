@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=gdbstub
+dirs=#gdbstub
 
 [require]
 packages=libogcfpc
@@ -12,7 +12,7 @@ packages=libogcfpc
 fpcpackage=y
 
 [default]
-fpcdir=../../../..
+fpcdir=../../../../..
 
 [rules]
 .NOTPARALLEL:
