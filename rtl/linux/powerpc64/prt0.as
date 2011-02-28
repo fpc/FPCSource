@@ -351,14 +351,21 @@ FUNCTION_PROLOG _start
     LOAD_64BIT_VAL 8, __stkptr
     std     1,0(8)
 
-    bl      .PASCALMAIN
+    bl      PASCALMAIN
     nop
 
     /* directly jump to exit procedure, not via the function pointer */
     b       ._haltproc
 
 FUNCTION_PROLOG _haltproc
+    /* exit group call */
+    LOAD_64BIT_VAL 3, operatingsystem_result
+    lwz     3, 0(3)
+    li      0, 234
+    sc
     /* exit call */
+    LOAD_64BIT_VAL 3, operatingsystem_result
+    lwz     3, 0(3)
     li      0, 1
     sc
     b       ._haltproc
@@ -369,11 +376,23 @@ FUNCTION_PROLOG _haltproc
 __data_start:
 data_start:
 
-.text
-    .comm __stkptr, 8
+    .section ".bss"
 
-    .comm operatingsystem_parameter_argc, 4
-    .comm operatingsystem_parameter_argv, 8
-    .comm operatingsystem_parameter_envp, 8
+    .type __stkptr, @object
+    .size __stkptr, 8
+    .global __stkptr
+__stkptr:
+    .skip 8
+
+    .type operatingsystem_parameters, @object
+    .size operatingsystem_parameters, 24
+operatingsystem_parameters:
+    .skip 3 * 8
+    .global operatingsystem_parameter_argc
+    .global operatingsystem_parameter_argv
+    .global operatingsystem_parameter_envp
+    .set operatingsystem_parameter_argc, operatingsystem_parameters+0
+    .set operatingsystem_parameter_argv, operatingsystem_parameters+8
+    .set operatingsystem_parameter_envp, operatingsystem_parameters+16
 
 .section .note.GNU-stack,"",%progbits
