@@ -18,6 +18,13 @@ unit cpu;
 
   interface
 
+  {$ifdef freebsd}                 // FreeBSD 7/8 have binutils version that don't support cmpxchg16b
+			           // Unless overridebinutils is defined (for ports usage), use db instead of the instruction
+     {$ifndef overridebinutils}
+       {$define oldbinutils}
+     {$endif} 
+  {$endif}
+
     uses
       sysutils;
 
@@ -60,8 +67,11 @@ unit cpu;
         movq (%r9),%rax
         movq 8(%r9),%rdx
 
+        {$ifdef oldbinutils}
+           .byte 0xF0,0x49,0x0F,0xC7,0x08 
+        {$else}
         lock cmpxchg16b (%r8)
-
+        {$endif}
         { restore result pointer }
         popq %rcx
 
