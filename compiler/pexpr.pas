@@ -1031,7 +1031,7 @@ implementation
             else
              static_name:=lower(generate_nested_name(sym.owner,'_'))+'_'+sym.name;
             if sym.owner.defowner.typ=objectdef then
-              searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable,true)
+              searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable,hs_searchfirst)
             else
               searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
             if assigned(sym) then
@@ -1508,7 +1508,7 @@ implementation
                              begin
                                p1:=ctypenode.create(hdef);
                                { search also in inherited methods }
-                               searchsym_in_class(tobjectdef(hdef),tobjectdef(current_structdef),pattern,srsym,srsymtable,true);
+                               searchsym_in_class(tobjectdef(hdef),tobjectdef(current_structdef),pattern,srsym,srsymtable,hs_searchfirst);
                                if assigned(srsym) then
                                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                consume(_ID);
@@ -2141,7 +2141,7 @@ implementation
                            if token=_ID then
                              begin
                                structh:=tobjectdef(tclassrefdef(p1.resultdef).pointeddef);
-                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,true);
+                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,hs_searchfirst);
                                if assigned(srsym) then
                                  begin
                                    check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
@@ -2165,7 +2165,7 @@ implementation
                            if token=_ID then
                              begin
                                structh:=tobjectdef(p1.resultdef);
-                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,true);
+                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,hs_searchfirst);
                                if assigned(srsym) then
                                  begin
                                     check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
@@ -2388,8 +2388,11 @@ implementation
                         if (po_msgstr in pd.procoptions) then
                           searchsym_in_class_by_msgstr(hclassdef,pd.messageinf.str^,srsym,srsymtable)
                        else
-                         { disable search for helpers }
-                         searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable,false);
+                       { helpers have their own ways of dealing with inherited }
+                       if is_objectpascal_helper(current_structdef) then
+                         searchsym_in_helper(tobjectdef(current_structdef),tobjectdef(current_structdef),hs,srsym,srsymtable,true)
+                       else
+                         searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable,hs_nosearch);
                      end
                     else
                      begin
@@ -2397,8 +2400,11 @@ implementation
                        hsorg:=orgpattern;
                        consume(_ID);
                        anon_inherited:=false;
-                       { disable search for helpers }
-                       searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable,false);
+                       { helpers have their own ways of dealing with inherited }
+                       if is_objectpascal_helper(current_structdef) then
+                         searchsym_in_helper(tobjectdef(current_structdef),tobjectdef(current_structdef),hs,srsym,srsymtable,true)
+                       else
+                         searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable,hs_nosearch);
                      end;
                     if assigned(srsym) then
                      begin
@@ -2432,7 +2438,7 @@ implementation
                           if (po_msgint in pd.procoptions) or
                              (po_msgstr in pd.procoptions) then
                             begin
-                              searchsym_in_class(hclassdef,hclassdef,'DEFAULTHANDLER',srsym,srsymtable,true);
+                              searchsym_in_class(hclassdef,hclassdef,'DEFAULTHANDLER',srsym,srsymtable,hs_searchfirst);
                               if not assigned(srsym) or
                                  (srsym.typ<>procsym) then
                                 internalerror(200303171);
