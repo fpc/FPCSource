@@ -185,6 +185,10 @@ Type
   function kse_release(timeout: PTimeSpec): cInt; extdecl;
   function kse_switchin(tmbx: PKseThrMailBox; flags: cInt): cInt; extdecl;
 
+{$ifndef FPC_USE_LIBC}
+function fpgetfsstat(buf:pstatfs;bufsize:clong;flags:cint):cint;
+{$endif} 
+
 Const
  MAP_FILE         = $0000;  { map from file (default) }
  MAP_ANON         = $1000;  { allocated from memory, swap space }
@@ -294,6 +298,10 @@ begin
   kse_switchin:=do_SysCall(syscall_nr_kse_switchin, TSysParam(tmbx), TSysParam(flags));
 end;
 
+function fpgetfsstat(buf:pstatfs;bufsize:clong;flags:cint):cint;
+begin
+  fpgetfsstat:=do_syscall(syscall_nr_getfsstat,TSysParam(buf),TSysParam(Bufsize),TSysParam(Flags));
+end;
 {$ENDIF}
 
 end.

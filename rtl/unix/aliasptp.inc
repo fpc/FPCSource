@@ -74,6 +74,7 @@ type
     pthread_t         = UnixType.pthread_t;
 
     tstatfs  = UnixType.TStatFs;
+    pstatfs  = UnixType.PStatFs;
 
 CONST
     ARG_MAX       = UnixType.ARG_MAX;
