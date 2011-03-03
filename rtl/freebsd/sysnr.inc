@@ -230,6 +230,7 @@ syscall_nr_getdirentries                =196;
 }
 
 {More or less checked/in use FreeBSD syscalls}
+ syscall_nr_getfsstat                   = 18;
  syscall_nr_readv                       = 120;
  syscall_nr_writev                      = 121;
  syscall_nr_pread                       = 173;
