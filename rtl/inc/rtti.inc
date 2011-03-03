@@ -19,6 +19,37 @@
 type
   TRTTIProc=procedure(Data,TypeInfo:Pointer);
 
+function RTTIArraySize(typeInfo: Pointer): SizeInt;
+begin
+  typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+  result:=PSizeInt(typeInfo)[0] * PSizeInt(typeInfo)[1];
+end;
+
+function RTTIRecordSize(typeInfo: Pointer): SizeInt;
+begin
+  typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+  result:=PLongInt(typeInfo)^;
+end;
+
+function RTTISize(typeInfo: Pointer): SizeInt;
+begin
+  case PByte(typeinfo)^ of
+    tkAString,tkWString,tkUString,
+    tkInterface,tkDynarray:
+      result:=sizeof(Pointer);
+{$ifdef FPC_HAS_FEATURE_VARIANTS}
+    tkVariant:
+      result:=sizeof(TVarData);
+{$endif FPC_HAS_FEATURE_VARIANTS}
+    tkArray:
+      result:=RTTIArraySize(typeinfo);
+    tkObject,tkRecord:
+      result:=RTTIRecordSize(typeinfo);
+  else
+    result:=-1;
+  end;
+end;
+
 { if you modify this procedure, fpc_copy must be probably modified as well }
 procedure RecordRTTI(Data,TypeInfo:Pointer;rttiproc:TRTTIProc);
 {
@@ -411,5 +442,25 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : SizeInt); [Pub
        tkMethod,tkSString,tkLString,tkWChar,tkBool,tkInt64,tkQWord]) then
        for i:=0 to count-1 do
          int_finalize(data+size*i,typeinfo);
+  end;
+
+procedure fpc_addref_array(data,typeinfo: pointer; count: SizeInt); [public,alias:'FPC_ADDREF_ARRAY']; compilerproc;
+  var
+    i, size: SizeInt;
+  begin
+    size:=RTTISize(typeinfo);
+    if size>0 then
+      for i:=0 to count-1 do
+        int_addref(data+size*i,typeinfo);
+  end;
+
+procedure fpc_decref_array(data,typeinfo: pointer; count: SizeInt); [public,alias:'FPC_DECREF_ARRAY']; compilerproc;
+  var
+    i, size: SizeInt;
+  begin
+    size:=RTTISize(typeinfo);
+    if size>0 then
+      for i:=0 to count-1 do
+        int_decref(data+size*i,typeinfo);
   end;
 
