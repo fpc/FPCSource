@@ -30,6 +30,7 @@ var
   tr: trec;
 
 begin
+  HaltOnNotReleased := True;
   tr.s := 'test';
   uniquestring(tr.s);
   test1([tr.s]);
