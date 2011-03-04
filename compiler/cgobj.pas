@@ -3586,7 +3586,7 @@ implementation
       var
         cgpara1,cgpara2,cgpara3: TCGPara;
         href: TReference;
-        hreg: TRegister;
+        hreg, lenreg: TRegister;
       begin
         cgpara1.init;
         cgpara2.init;
@@ -3604,9 +3604,10 @@ implementation
             a_load_loc_reg(list,OS_INT,highloc,hreg);
           end;
         { increment, converts high(x) to length(x) }
-        a_op_const_reg(list,OP_ADD,OS_INT,1,hreg);
+        lenreg:=getintregister(list,OS_INT);
+        a_op_const_reg_reg(list,OP_ADD,OS_INT,1,hreg,lenreg);
 
-        a_load_reg_cgpara(list,OS_INT,hreg,cgpara3);
+        a_load_reg_cgpara(list,OS_INT,lenreg,cgpara3);
         a_loadaddr_ref_cgpara(list,href,cgpara2);
         a_loadaddr_ref_cgpara(list,ref,cgpara1);
         paramanager.freecgpara(list,cgpara1);
