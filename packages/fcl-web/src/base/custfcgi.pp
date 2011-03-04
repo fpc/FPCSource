@@ -60,9 +60,7 @@ Type
 
   TFCGIResponse = Class(TCGIResponse)
   private
-    FNoPadding: Boolean;
     FPO: TProtoColOptions;
-    FStripCL: Boolean;
     procedure Write_FCGIRecord(ARecord : PFCGI_Header);
   Protected
     Procedure DoSendHeaders(Headers : TStrings); override;
@@ -346,15 +344,18 @@ begin
     pl := 8-(cl mod 8);
   ARespRecord:=nil;
   Getmem(ARespRecord,8+cl+pl);
-  FillChar(ARespRecord^,8+cl+pl,0);
-  ARespRecord^.header.version:=FCGI_VERSION_1;
-  ARespRecord^.header.reqtype:=FCGI_STDOUT;
-  ARespRecord^.header.paddingLength:=pl;
-  ARespRecord^.header.contentLength:=NtoBE(cl);
-  ARespRecord^.header.requestId:=NToBE(TFCGIRequest(Request).RequestID);
-  move(str[1],ARespRecord^.ContentData,cl);
-  Write_FCGIRecord(PFCGI_Header(ARespRecord));
-  Freemem(ARespRecord);
+  try
+    FillChar(ARespRecord^,8+cl+pl,0);
+    ARespRecord^.header.version:=FCGI_VERSION_1;
+    ARespRecord^.header.reqtype:=FCGI_STDOUT;
+    ARespRecord^.header.paddingLength:=pl;
+    ARespRecord^.header.contentLength:=NtoBE(cl);
+    ARespRecord^.header.requestId:=NToBE(TFCGIRequest(Request).RequestID);
+    move(str[1],ARespRecord^.ContentData,cl);
+    Write_FCGIRecord(PFCGI_Header(ARespRecord));
+  finally
+    Freemem(ARespRecord);
+  end;
 end;
 
 procedure TFCGIResponse.DoSendContent;
@@ -392,14 +393,17 @@ begin
       pl := 8-(cl mod 8);
     ARespRecord:=Nil;
     Getmem(ARespRecord,8+cl+pl);
-    ARespRecord^.header.version:=FCGI_VERSION_1;
-    ARespRecord^.header.reqtype:=FCGI_STDOUT;
-    ARespRecord^.header.paddingLength:=pl;
-    ARespRecord^.header.contentLength:=NtoBE(cl);
-    ARespRecord^.header.requestId:=NToBE(TFCGIRequest(Request).RequestID);
-    move(Str[BS+1],ARespRecord^.ContentData,cl);
-    Write_FCGIRecord(PFCGI_Header(ARespRecord));
-    Freemem(ARespRecord);
+    try
+      ARespRecord^.header.version:=FCGI_VERSION_1;
+      ARespRecord^.header.reqtype:=FCGI_STDOUT;
+      ARespRecord^.header.paddingLength:=pl;
+      ARespRecord^.header.contentLength:=NtoBE(cl);
+      ARespRecord^.header.requestId:=NToBE(TFCGIRequest(Request).RequestID);
+      move(Str[BS+1],ARespRecord^.ContentData,cl);
+      Write_FCGIRecord(PFCGI_Header(ARespRecord));
+    finally
+      Freemem(ARespRecord);
+    end;
     Inc(BS,cl);
   Until (BS=L);
   FillChar(EndRequest,SizeOf(FCGI_EndRequestRecord),0);
@@ -452,6 +456,30 @@ begin
 end;
 
 function TFCgiHandler.Read_FCGIRecord : PFCGI_Header;
+{ $DEFINE DUMPRECORD}
+{$IFDEF DUMPRECORD}
+  Procedure DumpFCGIRecord (Var Header :FCGI_Header; ContentLength : word; PaddingLength : byte; ResRecord : Pointer);
+
+  Var
+    s : string;
+    I : Integer;
+
+  begin
+      Writeln('Dumping record ', Sizeof(Header),',',Contentlength,',',PaddingLength);
+      For I:=0 to Sizeof(Header)+ContentLength+PaddingLength-1 do
+        begin
+        Write(Format('%:3d ',[PByte(ResRecord)[i]]));
+        If PByte(ResRecord)[i]>30 then
+          S:=S+char(PByte(ResRecord)[i]);
+        if (I mod 16) = 0 then
+           begin
+           writeln('  ',S);
+           S:='';
+           end;
+        end;
+      Writeln('  ',S)
+  end;
+{$ENDIF DUMPRECORD}
 
   function ReadBytes(ReadBuf: Pointer; ByteAmount : Word) : Integer;
 
@@ -477,12 +505,11 @@ function TFCgiHandler.Read_FCGIRecord : PFCGI_Header;
   end;
 
 var Header : FCGI_Header;
-    {I,}BytesRead : integer;
+    BytesRead : integer;
     ContentLength : word;
     PaddingLength : byte;
     ResRecord : pointer;
     ReadBuf : pointer;
-    s : string;
 
 
 begin
@@ -490,32 +517,24 @@ begin
   ResRecord:=Nil;
   ReadBuf:=@Header;
   BytesRead:=ReadBytes(ReadBuf,Sizeof(Header));
-  If (BytesRead<>Sizeof(Header)) then
+  If (BytesRead=0) then
+    Exit // Connection closed gracefully.
+  else If (BytesRead<>Sizeof(Header)) then
     Raise HTTPError.CreateFmt(SErrReadingHeader,[BytesRead]);
   ContentLength:=BetoN(Header.contentLength);
   PaddingLength:=Header.paddingLength;
   Getmem(ResRecord,BytesRead+ContentLength+PaddingLength);
-  PFCGI_Header(ResRecord)^:=Header;
-  ReadBuf:=ResRecord+BytesRead;
-  BytesRead:=ReadBytes(ReadBuf,ContentLength);
-  ReadBuf:=ReadBuf+BytesRead;
-  BytesRead:=ReadBytes(ReadBuf,PaddingLength);
-  Result := ResRecord;
-{
-  Writeln('Dumping record ', Sizeof(Header),',',Contentlength,',',PaddingLength);
-  For I:=0 to Sizeof(Header)+ContentLength+PaddingLength-1 do
-    begin
-    Write(Format('%:3d ',[PByte(ResRecord)[i]]));
-    If PByte(ResRecord)[i]>30 then
-      S:=S+char(PByte(ResRecord)[i]);
-    if (I mod 16) = 0 then
-       begin
-       writeln('  ',S);
-       S:='';
-       end;
-    end;
-  Writeln('  ',S)
-}
+  try
+    PFCGI_Header(ResRecord)^:=Header;
+    ReadBuf:=ResRecord+BytesRead;
+    BytesRead:=ReadBytes(ReadBuf,ContentLength);
+    ReadBuf:=ReadBuf+BytesRead;
+    BytesRead:=ReadBytes(ReadBuf,PaddingLength);
+    Result := ResRecord;
+  except
+    FreeMem(resRecord);
+    Raise;
+  end;
 end;
 
 function TFCgiHandler.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
