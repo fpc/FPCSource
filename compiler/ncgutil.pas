@@ -1622,7 +1622,18 @@ implementation
                        else
                          trash_reference(list,href,2);
                      if needs_inittable then
-                       cg.g_initialize(list,tparavarsym(p).vardef,href);
+                       begin
+                         if is_open_array(tparavarsym(p).vardef) then
+                           begin
+                             hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                             eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
+                             if not assigned(hsym) then
+                               internalerror(201103033);
+                             cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_INITIALIZE_ARRAY');
+                           end
+                         else
+                           cg.g_initialize(list,tparavarsym(p).vardef,href);
+                       end;
                    end;
                end;
              else if do_trashing and

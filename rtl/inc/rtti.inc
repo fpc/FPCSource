@@ -423,23 +423,23 @@ begin
 end;
 
 
-procedure fpc_initialize_array(data,typeinfo : pointer;count,size : SizeInt); compilerproc;
+procedure fpc_initialize_array(data,typeinfo : pointer;count : SizeInt); [public,alias:'FPC_INITIALIZE_ARRAY'] compilerproc;
   var
-     i : SizeInt;
+     i, size : SizeInt;
   begin
-     if not(PByte(typeinfo)^ in [tkInteger,tkChar,tkEnumeration,tkFloat,tkSet,
-       tkMethod,tkSString,tkLString,tkWChar,tkBool,tkInt64,tkQWord]) then
+     size:=RTTISize(typeinfo);
+     if size>0 then
        for i:=0 to count-1 do
          int_initialize(data+size*i,typeinfo);
   end;
 
 
-procedure fpc_finalize_array(data,typeinfo : pointer;count,size : SizeInt); [Public,Alias:'FPC_FINALIZEARRAY'];  compilerproc;
+procedure fpc_finalize_array(data,typeinfo : pointer;count : SizeInt); [Public,Alias:'FPC_FINALIZE_ARRAY'];  compilerproc;
   var
-     i : SizeInt;
+     i, size: SizeInt;
   begin
-     if not(PByte(typeinfo)^ in [tkInteger,tkChar,tkEnumeration,tkFloat,tkSet,
-       tkMethod,tkSString,tkLString,tkWChar,tkBool,tkInt64,tkQWord]) then
+     size:=RTTISize(typeinfo);
+     if size>0 then
        for i:=0 to count-1 do
          int_finalize(data+size*i,typeinfo);
   end;
