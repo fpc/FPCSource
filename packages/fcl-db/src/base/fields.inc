@@ -1070,7 +1070,7 @@ function TStringField.GetDataSize: Integer;
 
 begin
   if DataType=ftFixedChar then
-    Result:=Size
+    Result:=Size+1
   else
     Result:=Size+1;
 end;
