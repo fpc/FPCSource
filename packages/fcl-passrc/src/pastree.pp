@@ -121,7 +121,7 @@ type
   end;
 
   TPasExprKind = (pekIdent, pekNumber, pekString, pekSet, pekNil, pekBoolConst, pekRange,
-     pekUnary, pekBinary, pekFuncParams, pekArrayParams, pekListOfExp);
+     pekUnary, pekBinary, pekFuncParams, pekArrayParams, pekListOfExp, pekInherited, pekSelf);
 
   TExprOpCode = (eopNone,
                  eopAdd,eopSubtract,eopMultiply,eopDivide, eopDiv,eopMod, eopPower,// arithmetic
@@ -174,6 +174,20 @@ type
   { TNilExpr }
 
   TNilExpr = class(TPasExpr)
+    constructor Create(AParent : TPasElement); overload;
+    function GetDeclaration(full : Boolean) : string; override;
+  end;
+
+  { TInheritedExpr }
+
+  TInheritedExpr = class(TPasExpr)
+    constructor Create(AParent : TPasElement); overload;
+    function GetDeclaration(full : Boolean) : string; override;
+  end;
+
+  { TSelfExpr }
+
+  TSelfExpr = class(TPasExpr)
     constructor Create(AParent : TPasElement); overload;
     function GetDeclaration(full : Boolean) : string; override;
   end;
@@ -454,6 +468,7 @@ type
     AncestorType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef
     IsPacked: Boolean;        // 12/04/04 - Dave - Added
     IsForward : Boolean;
+    IsShortDefinition: Boolean;//class(anchestor); without end
     Members: TList;     // array of TPasElement objects
     InterfaceGUID : string; // 15/06/07 - Inoussa
 
@@ -1346,6 +1361,7 @@ constructor TPasClassType.Create(const AName: string; AParent: TPasElement);
 begin
   inherited Create(AName, AParent);
   IsPacked := False;                     // 12/04/04 - Dave - Added
+  IsShortDefinition := False;
   Members := TList.Create;
   Modifiers := TStringList.Create;
   ClassVars := TList.Create;
@@ -1388,7 +1404,7 @@ var
 begin
   for i := 0 to Args.Count - 1 do
     TPasArgument(Args[i]).Release;
-  Args.Free;
+  FreeAndNil(Args);
   inherited Destroy;
 end;
 
@@ -1726,12 +1742,14 @@ begin
   Result:=TPasImplAssign.Create('', Self);
   Result.left:=left;
   Result.right:=right;
+  AddElement(Result);
 end;
 
 function TPasImplBlock.AddSimple(exp:TPasExpr):TPasImplSimple;
 begin
   Result:=TPasImplSimple.Create('', Self);
   Result.expr:=exp;
+  AddElement(Result);
 end;
 
 function TPasImplBlock.CloseOnSemicolon: boolean;
@@ -2661,12 +2679,28 @@ begin
   Fields[i].ValueExp:=Value;
 end;
 
-{ TArrayValues }
+{ TNilExpr }
 
 Function TNilExpr.GetDeclaration(Full :Boolean):AnsiString;
 begin
   Result:='Nil';
 end;
+
+{ TInheritedExpr }
+
+Function TInheritedExpr.GetDeclaration(Full :Boolean):AnsiString;
+begin
+  Result:='Inherited';
+end;
+
+{ TSelfExpr }
+
+Function TSelfExpr.GetDeclaration(Full :Boolean):AnsiString;
+begin
+  Result:='Self';
+end;
+
+{ TArrayValues }
 
 Function TArrayValues.GetDeclaration(Full: Boolean):AnsiString;
 
@@ -2710,6 +2744,20 @@ end;
 constructor TNilExpr.Create(AParent : TPasElement);
 begin
   inherited Create(AParent,pekNil, eopNone);
+end;
+
+{ TInheritedExpr }
+
+constructor TInheritedExpr.Create(AParent : TPasElement);
+begin
+  inherited Create(AParent,pekInherited, eopNone);
+end;
+
+{ TSelfExpr }
+
+constructor TSelfExpr.Create(AParent : TPasElement);
+begin
+  inherited Create(AParent,pekSelf, eopNone);
 end;
 
 { TPasLabels }
