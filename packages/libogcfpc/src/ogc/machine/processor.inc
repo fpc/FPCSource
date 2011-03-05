@@ -11,13 +11,13 @@ procedure ppchalt(); inline;
 //procedure mfpvr(); inline;
 function mfpvr(): cint32; inline;
 
-procedure mfdcr(_rn: cuint); inline;
+function mfdcr(_rn: cuint): cuint32; inline;
 procedure mtdcr(rn, val: cuint); inline;
-procedure mfmsr(); inline;
+function mfmsr(): cuint32; inline;
 procedure mtmsr(val: cuint); inline;
-procedure mfdec(); inline;
+function mfdec(): cuint32; inline;
 procedure mtdec(_val: cuint); inline;
-procedure mfspr(_rn: cuint); inline;
+function mfspr(_rn: cuint): cuint32; inline;
 procedure mtspr(_rn, _val: cuint); inline;
 
 {$define mfwpar()	:= mfspr(WPAR)}
@@ -46,12 +46,12 @@ procedure mtspr(_rn, _val: cuint); inline;
 {$define mfhid4() := mfspr(HID4)}
 {$define mthid4(_val) := mtspr(HID4,_val)}
 
-procedure __lhbrx(base, index: cuint32); inline;
+function __lhbrx(base, index: cuint32): cuint16; inline;
 //procedure __lwbrx(base,index: cuint32); inline;
 function __lwbrx(base,index: cuint32): cuint32; inline;
 procedure __sthbrx(base,index,value: cuint32); inline;
 procedure __stwbrx(base,index,value: cuint32); inline;
-procedure cntlzw(_val: cuint32); inline;
+function cntlzw(_val: cuint32): cuint32; inline;
 procedure _CPU_MSR_GET( _msr_value: cuint32 ); inline;
 procedure _CPU_MSR_SET( _msr_value: cuint32 ); inline;
 procedure _CPU_ISR_Enable(); inline;
@@ -118,13 +118,14 @@ begin
   result := _rval;
 end;
 
-procedure mfdcr(_rn: cuint); inline;
+function mfdcr(_rn: cuint): cuint32; inline;
 var
   _rval: cuint32;
 begin
   asm
   //    mfdcr r3,_rn  // unrecognized opcode?
   end;
+  result := _rval;
 end;
 
 procedure mtdcr(rn, val: cuint); inline;
@@ -134,13 +135,14 @@ begin
   end;
 end;
 
-procedure mfmsr(); inline;
+function mfmsr(): cuint32; inline;
 var
   _rval: cuint32;
 begin
   asm
     mfmsr r3
   end;
+  result := _rval;
 end;
 
 procedure mtmsr(val: cuint); inline;
@@ -150,7 +152,7 @@ begin
   end;
 end;
 
-procedure mfdec(); inline;
+function mfdec(): cuint32; inline;
 var
   _rval: cuint32;
 begin
@@ -158,6 +160,7 @@ begin
 //    mfdec r3    // unrecognized opcode?
     mfspr r3,22    // unrecognized opcode?
   end;
+  result := _rval;
 end;
 
 procedure mtdec(_val: cuint); inline;
@@ -168,13 +171,14 @@ begin
   end;
 end;
 
-procedure mfspr(_rn: cuint); inline;
+function mfspr(_rn: cuint): cuint32; inline;
 var
   _rval: cuint32 = 0;
 begin
 	asm
     mfspr r3,r4
   end;
+  result := _rval;
 end;
 
 procedure mtspr(_rn, _val: cuint); inline;
@@ -184,13 +188,14 @@ begin
   end;
 end;
 
-procedure __lhbrx(base, index: cuint32); inline;
+function __lhbrx(base, index: cuint32): cuint16; inline;
 var
   res: cuint16;
 begin
 	asm
     lhbrx	r3,r4,r5
   end;
+  result := res;
 end;
 
 //procedure __lwbrx(base,index: cuint32); inline;
@@ -218,13 +223,14 @@ begin
   end;
 end;
 
-procedure cntlzw(_val: cuint32); inline;
+function cntlzw(_val: cuint32): cuint32; inline;
 var
   _rval: cuint32;
 begin
   asm
     cntlzw r3, r4
   end;
+  result := _rval;
 end;
 
 procedure _CPU_MSR_GET( _msr_value: cuint32 ); inline;
@@ -327,7 +333,7 @@ var
   tmp: cuint16;
 begin
 	tmp := val;
-  __lhbrx(tmp,0); //??
+  result := __lhbrx(tmp,0); //??
 end;
 
 function bswap32(val: cuint32): cuint32; inline;

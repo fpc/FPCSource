@@ -265,7 +265,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_DIRS+=network usbgecko usbkeyboard
+override TARGET_DIRS+=network usbkeyboard usbgecko
 endif
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
@@ -1417,8 +1417,8 @@ fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
 ifeq ($(FULL_TARGET),powerpc-wii)
 TARGET_DIRS_NETWORK=1
-TARGET_DIRS_USBGECKO=1
 TARGET_DIRS_USBKEYBOARD=1
+TARGET_DIRS_USBGECKO=1
 endif
 ifdef TARGET_DIRS_NETWORK
 network_all:
@@ -1465,51 +1465,6 @@ network:
 	$(MAKE) -C network all
 .PHONY: network_all network_debug network_smart network_release network_units network_examples network_shared network_install network_sourceinstall network_exampleinstall network_distinstall network_zipinstall network_zipsourceinstall network_zipexampleinstall network_zipdistinstall network_clean network_distclean network_cleanall network_info network_makefiles network
 endif
-ifdef TARGET_DIRS_USBGECKO
-usbgecko_all:
-	$(MAKE) -C usbgecko all
-usbgecko_debug:
-	$(MAKE) -C usbgecko debug
-usbgecko_smart:
-	$(MAKE) -C usbgecko smart
-usbgecko_release:
-	$(MAKE) -C usbgecko release
-usbgecko_units:
-	$(MAKE) -C usbgecko units
-usbgecko_examples:
-	$(MAKE) -C usbgecko examples
-usbgecko_shared:
-	$(MAKE) -C usbgecko shared
-usbgecko_install:
-	$(MAKE) -C usbgecko install
-usbgecko_sourceinstall:
-	$(MAKE) -C usbgecko sourceinstall
-usbgecko_exampleinstall:
-	$(MAKE) -C usbgecko exampleinstall
-usbgecko_distinstall:
-	$(MAKE) -C usbgecko distinstall
-usbgecko_zipinstall:
-	$(MAKE) -C usbgecko zipinstall
-usbgecko_zipsourceinstall:
-	$(MAKE) -C usbgecko zipsourceinstall
-usbgecko_zipexampleinstall:
-	$(MAKE) -C usbgecko zipexampleinstall
-usbgecko_zipdistinstall:
-	$(MAKE) -C usbgecko zipdistinstall
-usbgecko_clean:
-	$(MAKE) -C usbgecko clean
-usbgecko_distclean:
-	$(MAKE) -C usbgecko distclean
-usbgecko_cleanall:
-	$(MAKE) -C usbgecko cleanall
-usbgecko_info:
-	$(MAKE) -C usbgecko info
-usbgecko_makefiles:
-	$(MAKE) -C usbgecko makefiles
-usbgecko:
-	$(MAKE) -C usbgecko all
-.PHONY: usbgecko_all usbgecko_debug usbgecko_smart usbgecko_release usbgecko_units usbgecko_examples usbgecko_shared usbgecko_install usbgecko_sourceinstall usbgecko_exampleinstall usbgecko_distinstall usbgecko_zipinstall usbgecko_zipsourceinstall usbgecko_zipexampleinstall usbgecko_zipdistinstall usbgecko_clean usbgecko_distclean usbgecko_cleanall usbgecko_info usbgecko_makefiles usbgecko
-endif
 ifdef TARGET_DIRS_USBKEYBOARD
 usbkeyboard_all:
 	$(MAKE) -C usbkeyboard all
@@ -1554,6 +1509,51 @@ usbkeyboard_makefiles:
 usbkeyboard:
 	$(MAKE) -C usbkeyboard all
 .PHONY: usbkeyboard_all usbkeyboard_debug usbkeyboard_smart usbkeyboard_release usbkeyboard_units usbkeyboard_examples usbkeyboard_shared usbkeyboard_install usbkeyboard_sourceinstall usbkeyboard_exampleinstall usbkeyboard_distinstall usbkeyboard_zipinstall usbkeyboard_zipsourceinstall usbkeyboard_zipexampleinstall usbkeyboard_zipdistinstall usbkeyboard_clean usbkeyboard_distclean usbkeyboard_cleanall usbkeyboard_info usbkeyboard_makefiles usbkeyboard
+endif
+ifdef TARGET_DIRS_USBGECKO
+usbgecko_all:
+	$(MAKE) -C usbgecko all
+usbgecko_debug:
+	$(MAKE) -C usbgecko debug
+usbgecko_smart:
+	$(MAKE) -C usbgecko smart
+usbgecko_release:
+	$(MAKE) -C usbgecko release
+usbgecko_units:
+	$(MAKE) -C usbgecko units
+usbgecko_examples:
+	$(MAKE) -C usbgecko examples
+usbgecko_shared:
+	$(MAKE) -C usbgecko shared
+usbgecko_install:
+	$(MAKE) -C usbgecko install
+usbgecko_sourceinstall:
+	$(MAKE) -C usbgecko sourceinstall
+usbgecko_exampleinstall:
+	$(MAKE) -C usbgecko exampleinstall
+usbgecko_distinstall:
+	$(MAKE) -C usbgecko distinstall
+usbgecko_zipinstall:
+	$(MAKE) -C usbgecko zipinstall
+usbgecko_zipsourceinstall:
+	$(MAKE) -C usbgecko zipsourceinstall
+usbgecko_zipexampleinstall:
+	$(MAKE) -C usbgecko zipexampleinstall
+usbgecko_zipdistinstall:
+	$(MAKE) -C usbgecko zipdistinstall
+usbgecko_clean:
+	$(MAKE) -C usbgecko clean
+usbgecko_distclean:
+	$(MAKE) -C usbgecko distclean
+usbgecko_cleanall:
+	$(MAKE) -C usbgecko cleanall
+usbgecko_info:
+	$(MAKE) -C usbgecko info
+usbgecko_makefiles:
+	$(MAKE) -C usbgecko makefiles
+usbgecko:
+	$(MAKE) -C usbgecko all
+.PHONY: usbgecko_all usbgecko_debug usbgecko_smart usbgecko_release usbgecko_units usbgecko_examples usbgecko_shared usbgecko_install usbgecko_sourceinstall usbgecko_exampleinstall usbgecko_distinstall usbgecko_zipinstall usbgecko_zipsourceinstall usbgecko_zipexampleinstall usbgecko_zipdistinstall usbgecko_clean usbgecko_distclean usbgecko_cleanall usbgecko_info usbgecko_makefiles usbgecko
 endif
 all: $(addsuffix _all,$(TARGET_DIRS))
 debug: $(addsuffix _debug,$(TARGET_DIRS))

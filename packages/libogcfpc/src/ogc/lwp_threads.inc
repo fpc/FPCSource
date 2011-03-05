@@ -133,9 +133,102 @@ procedure __lwp_thread_dispatchdisable(); inline;
 {$ENDIF}
 
 {$IFDEF OGC_IMPLEMENTATION}
-procedure __lwp_thread_dispatchdisable(); inline;
+function __lwp_thread_isexec(thethread: plwp_cntrl): cuint32;
 begin
-  inc(_thread_dispatch_disable_level);
+	result := 0;
+  if (thethread = _thr_executing) then result := 1;
 end;
+
+function __lwp_thread_isheir(thethread: plwp_cntrl): cuint32;
+begin
+	result := 0;
+  if (thethread = _thr_heir) then result := 1;
+end;
+
+procedure __lwp_thread_calcheir();
+begin
+	_thr_heir := plwp_cntrl(_lwp_thr_ready[__lwp_priomap_highest()].first);
+//#ifdef _LWPTHREADS_DEBUG
+//	printf("__lwp_thread_calcheir(%p)\n",_thr_heir);
+//#endif
+end;
+
+function __lwp_thread_isallocatedfp(thethread: plwp_cntrl): cuint32;
+begin
+	result := 0;
+  if (thethread = _thr_allocated_fp) then result := 1;
+end;
+
+procedure __lwp_thread_deallocatefp();
+begin
+	_thr_allocated_fp := nil;
+end;
+
+procedure __lwp_thread_dispatchinitialize();
+begin
+	_thread_dispatch_disable_level := 1;
+end;
+
+procedure __lwp_thread_dispatchenable();
+begin
+  dec(_thread_dispatch_disable_level);
+	if (_thread_dispatch_disable_level = 0) then
+		__thread_dispatch();
+end;
+
+procedure __lwp_thread_dispatchdisable();
+begin
+	inc(_thread_dispatch_disable_level);
+end;
+
+procedure __lwp_thread_dispatchunnest();
+begin
+	dec(_thread_dispatch_disable_level);
+end;
+
+procedure __lwp_thread_unblock(thethread: plwp_cntrl);
+begin
+	__lwp_thread_clearstate(thethread, LWP_STATES_BLOCKED);
+end;
+
+function __lwp_thread_getlibcreent(): pointer;
+begin
+	result := __lwp_thr_libc_reent;
+end;
+
+procedure __lwp_thread_setlibcreent(libc_reent: pointer);
+begin
+	__lwp_thr_libc_reent := libc_reent;
+end;
+
+function __lwp_thread_isswitchwant(): cbool;
+begin
+	result := cbool(_context_switch_want);
+end;
+
+function __lwp_thread_isdispatchenabled(): cbool;
+begin
+	result := (_thread_dispatch_disable_level = 0);
+end;
+
+procedure __lwp_thread_inittimeslice();
+begin
+	__lwp_wd_initialize(@_lwp_wd_timeslice, @__lwp_thread_tickle_timeslice, LWP_TIMESLICE_TIMER_ID, nil);
+end;
+
+procedure __lwp_thread_starttimeslice();
+begin
+	__lwp_wd_insert_ticks(@_lwp_wd_timeslice, millisecs_to_ticks(1));
+end;
+
+procedure __lwp_thread_stoptimeslice();
+begin
+	__lwp_wd_remove_ticks(@_lwp_wd_timeslice);
+end;
+
+//procedure __lwp_thread_dispatchdisable(); inline;
+//begin
+//  inc(_thread_dispatch_disable_level);
+//end;
 {$ENDIF}
 

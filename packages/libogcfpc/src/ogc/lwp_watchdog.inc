@@ -173,4 +173,87 @@ begin
     result := -x;
 end;
 
+
+procedure __lwp_wd_initialize(wd: pwd_cntrl; routine: wd_service_routine; id: cuint32; usr_data: pointer);
+begin
+	wd^.state := LWP_WD_INACTIVE;
+	wd^.id := id;
+	wd^.routine := routine;
+	wd^.usr_data := usr_data;
+end;
+
+function __lwp_wd_first(queue: plwp_queue): pwd_cntrl;
+begin
+	result := pwd_cntrl(@(queue^.first));
+end;
+
+function __lwp_wd_last(queue: plwp_queue): pwd_cntrl;
+begin
+	result := pwd_cntrl(@(queue^.last));
+end;
+
+function __lwp_wd_next(wd: pwd_cntrl): pwd_cntrl;
+begin
+	result := pwd_cntrl(@(wd^.node.next));
+end;
+
+function __lwp_wd_prev(wd: pwd_cntrl): pwd_cntrl;
+begin
+	result := pwd_cntrl(@(wd^.node.prev));
+end;
+
+procedure __lwp_wd_activate(wd: pwd_cntrl);
+begin
+	wd^.state := LWP_WD_ACTIVE;
+end;
+
+procedure __lwp_wd_deactivate(wd: pwd_cntrl);
+begin
+	wd^.state := LWP_WD_REMOVE;
+end;
+
+function __lwp_wd_isactive(wd: pwd_cntrl): cuint32;
+begin
+	result := 0;
+  if (wd^.state = LWP_WD_ACTIVE) then result := 1;
+end;
+
+function __lwp_wd_calc_ticks(const time: ptimespec): cuint64;
+var
+	ticks: cuint64;
+begin
+	ticks := secs_to_ticks(time^.tv_sec);
+	ticks := ticks + nanosecs_to_ticks(time^.tv_nsec);
+	result := ticks;
+end;
+
+procedure __lwp_wd_tickle_ticks();
+begin
+	__lwp_wd_tickle(@_wd_ticks_queue);
+end;
+
+procedure __lwp_wd_insert_ticks(wd: pwd_cntrl; interval: cint64);
+begin
+	wd^.start := gettime();
+	wd^.fire := (wd^.start + LWP_WD_ABS(interval));
+	__lwp_wd_insert(@_wd_ticks_queue, wd);
+end;
+
+procedure __lwp_wd_adjust_ticks(dir: cuint32; interval: cint64);
+begin
+	__lwp_wd_adjust(@_wd_ticks_queue,dir,interval);
+end;
+
+procedure __lwp_wd_remove_ticks(wd: pwd_cntrl);
+begin
+	__lwp_wd_remove(@_wd_ticks_queue,wd);
+end;
+
+procedure __lwp_wd_reset(wd: pwd_cntrl);
+begin
+	__lwp_wd_remove(@_wd_ticks_queue,wd);
+	__lwp_wd_insert(@_wd_ticks_queue,wd);
+end;
+
+
 {$ENDIF}

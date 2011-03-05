@@ -6,7 +6,7 @@ program triangle;
 {$inline on}
 
 uses
-  cmem, ctypes, gccore;
+  cmem, ctypes, gctypes, gccore;
 
 var
   framebuffer: pcuint32;

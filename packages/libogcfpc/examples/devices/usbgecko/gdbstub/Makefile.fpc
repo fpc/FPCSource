@@ -20,7 +20,7 @@ target=wii
 fpcdir=../../../../../..
 
 [compiler]
-options=-g -Xm  
+options=-g -Xm  -k--gc-sections
 
 [clean]
 files=*.elf *.o *.s *.h *.bin *.map \

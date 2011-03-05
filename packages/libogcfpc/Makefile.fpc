@@ -27,7 +27,7 @@ cpu=powerpc
 target=wii
 fpcdir=../..
 
-[require]
+[require] 
 nortl=y
 
 [shared]

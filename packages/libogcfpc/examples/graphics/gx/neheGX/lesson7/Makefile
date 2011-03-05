@@ -270,8 +270,8 @@ BUILD = build
 INC = inc
 DATA = data
 TEXTURES = textures
-TPL_FILES = $(foreach dir,textures,$(notdir $(wildcard $(dir)/*.scf)))
-BIN_FILES = $(foreach dir,data,$(notdir $(wildcard $(dir)/*)))
+SCF_FILES = $(foreach dir,textures,$(notdir $(wildcard $(dir)/*.scf)))
+TPL_FILES = $(basename $(SCF_FILES)).tpl 
 ifeq ($(FULL_TARGET),powerpc-wii)
 override TARGET_PROGRAMS+=lesson7
 endif
@@ -1643,10 +1643,12 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 .NOTPARALLEL:
-clean: dir_delete fpc_clean fpc_cleanall
-all: dir_make $(TPL_FILES) $(BIN_FILES) fpc_all 
+.PHONY: clean all
+clean: dir_delete fpc_clean fpc_cleanall    
+all: dir_make $(TPL_FILES) fpc_all 
 dir_delete:
 	@$(DELTREE) $(CURDIR)/$(BUILD) 
+	@$(DELTREE) $(CURDIR)/$(DATA) 
 	@$(DELTREE) $(CURDIR)/$(INC) 
 dir_make:
 ifneq ($(BUILD), $(CURDIR))
@@ -1658,17 +1660,16 @@ endif
 ifneq ($(DATA), $(CURDIR))
 	@$(MKDIR) $(DATA)
 endif
-$(TPL_FILES): $(wildcard %.scf) 
+$(TPL_FILES):
 	@echo 'Creating tpl file...'
-	$(GXTEXCONV) -s textures/$(@) -o $(DATA)/$(basename $(@)).tpl
-$(BIN_FILES): $(wildcard %.*)
-	@echo 'Converting $(@) file to asm...'
-	@$(BIN2S) -a 32 data/$(@) > $(BUILD)/$(@).s
-	@echo 'Creating $(@).inc include file...'
-	@echo "var" > `(echo "inc/"$(@F) | tr . .)`.inc
-	@echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end: array [0..0] of cuint8; cvar; external;" >> `(echo "inc/"$(@F) | tr . .)`.inc
-	@echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`": array [0..0] of cuint8; cvar; external;" >> `(echo "inc/"$(@F) | tr . .)`.inc
-	@echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size": cuint32; cvar; external;" >> `(echo "inc/"$(@F) | tr . .)`.inc
-	@echo 'Assembling $(@).s file...'
+	$(GXTEXCONV) -s textures/$(SCF_FILES) -o $(DATA)/$(TPL_FILES)
+	@echo $(DATA)/$(TPL_FILES)
+	@$(bin2o)  	
+define bin2o
+	@$(BIN2S) -a 32 $(DATA)/$(@) > $(BUILD)/$(@).s
 	@$(AS) -o $(BUILD)/$(@).o $(BUILD)/$(@).s
-	@echo 'Done!'
+	@echo "var" > `(echo $(INC)"/"$(@F) | tr . .)`.inc
+	@echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end: array [0..0] of cuint8; cvar; external;" >> `(echo $(INC)"/"$(@F) | tr . .)`.inc
+	@echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`": array [0..0] of cuint8; cvar; external;" >> `(echo $(INC)"/"$(@F) | tr . .)`.inc
+	@echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size": cuint32; cvar; external;" >> `(echo $(INC)"/"$(@F) | tr . .)`.inc
+endef

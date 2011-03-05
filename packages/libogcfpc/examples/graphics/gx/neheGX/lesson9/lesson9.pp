@@ -5,7 +5,7 @@ program lesson9;
 {$mode objfpc}
 
 uses
-  cmem, ctypes, gccore;
+  cmem, ctypes, gctypes, gccore;
 
 {$include inc/startex.tpl.inc}
 {$link build/startex.tpl.o}
