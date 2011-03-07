@@ -150,8 +150,10 @@ interface
 {$ifdef GDB_V700}
   {$info using gdb 7.0.x}
   {$define GDB_V7}
-  {$define GDB_BP_LOCATION_HAS_GDBARCH}
-  {$define GDB_HAS_PROGRAM_SPACE}
+  {$ifdef GDB_CVS}
+    {$define GDB_BP_LOCATION_HAS_GDBARCH}
+    {$define GDB_HAS_PROGRAM_SPACE}
+  {$endif GDB_CVS}
 {$endif def GDB_V700}
 
 {$ifdef GDB_V7}
@@ -171,11 +173,6 @@ interface
   {$define GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
   {$define GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
   {$define GDB_HAS_BP_NONE}
-
-  {$ifdef GDB_CVS}
-    {$define GDB_BP_LOCATION_HAS_GDBARCH}
-    {$define GDB_HAS_PROGRAM_SPACE}
-  {$endif GDB_CVS}
 {$endif def GDB_V7}
 
 
