@@ -543,6 +543,7 @@ begin
       begin
       FreeMem(resRecord);
       Exit // Connection closed gracefully.
+      // TODO : properly handle connection close
       end;
     ReadBuf:=ReadBuf+BytesRead;
     BytesRead:=ReadBytes(ReadBuf,PaddingLength);
@@ -550,6 +551,7 @@ begin
       begin
       FreeMem(resRecord);
       Exit // Connection closed gracefully.
+      // TODO : properly handle connection close
       end;
     Result := ResRecord;
   except
