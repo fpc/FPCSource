@@ -21,7 +21,7 @@ unit custfcgi;
 Interface
 
 uses
-  Classes,SysUtils, httpdefs,custweb, custcgi, fastcgi;
+  Classes,SysUtils, httpdefs, Sockets, custweb, custcgi, fastcgi;
 
 Type
   { TFCGIRequest }
@@ -73,6 +73,8 @@ Type
              Response : TFCgiResponse;
              end;
 
+  { TFCgiHandler }
+
   TFCgiHandler = class(TWebHandler)
   Private
     FOnUnknownRecord: TUnknownRecordEvent;
@@ -85,7 +87,9 @@ Type
     FPort: integer;
     function Read_FCGIRecord : PFCGI_Header;
   protected
-    function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
+    function  ProcessRecord(AFCGI_Record: PFCGI_Header; out ARequest: TRequest;  out AResponse: TResponse): boolean; virtual;
+    procedure SetupSocket(var IAddress: TInetSockAddr;  var AddressLength: tsocklen); virtual;
+    function  WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
     procedure EndRequest(ARequest : TRequest;AResponse : TResponse); override;
   Public
     constructor Create(AOwner: TComponent); override;
@@ -127,11 +131,11 @@ ResourceString
 
 Implementation
 
-uses
 {$ifdef CGIDEBUG}
-  dbugintf,
+uses
+  dbugintf;
 {$endif}
-  Sockets;
+
 
 {$undef nosignal}
 
@@ -537,50 +541,83 @@ begin
   end;
 end;
 
+procedure TFCgiHandler.SetupSocket(var IAddress : TInetSockAddr; Var AddressLength : tsocklen);
+
+begin
+  AddressLength:=Sizeof(IAddress);
+  Socket := fpsocket(AF_INET,SOCK_STREAM,0);
+  if Socket=-1 then
+    raise EFPWebError.CreateFmt(SNoSocket,[socketerror]);
+  IAddress.sin_family:=AF_INET;
+  IAddress.sin_port:=htons(Port);
+  if FAddress<>'' then
+    Iaddress.sin_addr := StrToHostAddr(FAddress)
+  else
+    IAddress.sin_addr.s_addr:=0;
+  if fpbind(Socket,@IAddress,AddressLength)=-1 then
+    begin
+    CloseSocket(socket);
+    Socket:=0;
+    Terminate;
+    raise Exception.CreateFmt(SBindFailed,[port,socketerror]);
+    end;
+  if fplisten(Socket,1)=-1 then
+    begin
+    CloseSocket(socket);
+    Socket:=0;
+    Terminate;
+    raise Exception.CreateFmt(SListenFailed,[port,socketerror]);
+    end;
+end;
+
+function TFCgiHandler.ProcessRecord(AFCGI_Record  : PFCGI_Header; out ARequest: TRequest; out AResponse: TResponse): boolean;
+
+var
+  ARequestID    : word;
+  ATempRequest  : TFCGIRequest;
+begin
+  Result:=False;
+  ARequestID:=BEtoN(AFCGI_Record^.requestID);
+  if AFCGI_Record^.reqtype = FCGI_BEGIN_REQUEST then
+    begin
+    if ARequestID>FRequestsAvail then
+      begin
+      inc(FRequestsAvail,10);
+      SetLength(FRequestsArray,FRequestsAvail);
+      end;
+    assert(not assigned(FRequestsArray[ARequestID].Request));
+    assert(not assigned(FRequestsArray[ARequestID].Response));
+    ATempRequest:=TFCGIRequest.Create;
+    ATempRequest.RequestID:=ARequestID;
+    ATempRequest.Handle:=FHandle;
+    ATempRequest.ProtocolOptions:=Self.Protocoloptions;
+    ATempRequest.OnUnknownRecord:=Self.OnUnknownRecord;
+    FRequestsArray[ARequestID].Request := ATempRequest;
+    end;
+  if FRequestsArray[ARequestID].Request.ProcessFCGIRecord(AFCGI_Record) then
+    begin
+    ARequest:=FRequestsArray[ARequestID].Request;
+    FRequestsArray[ARequestID].Response := TFCGIResponse.Create(ARequest);
+    FRequestsArray[ARequestID].Response.ProtocolOptions:=Self.ProtocolOptions;
+    AResponse:=FRequestsArray[ARequestID].Response;
+    Result := True;
+    end;
+end;
+
 function TFCgiHandler.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
+
 var
   IAddress      : TInetSockAddr;
   AddressLength : tsocklen;
-  ARequestID    : word;
   AFCGI_Record  : PFCGI_Header;
-  ATempRequest  : TFCGIRequest;
 
 begin
   Result := False;
-  AddressLength:=Sizeof(IAddress);
-
   if Socket=0 then
-    begin
     if Port<>0 then
-      begin
-      Socket := fpsocket(AF_INET,SOCK_STREAM,0);
-      if Socket=-1 then
-        raise EFPWebError.CreateFmt(SNoSocket,[socketerror]);
-      IAddress.sin_family:=AF_INET;
-      IAddress.sin_port:=htons(Port);
-      if FAddress<>'' then
-        Iaddress.sin_addr := StrToHostAddr(FAddress)
-      else
-        IAddress.sin_addr.s_addr:=0;
-      if fpbind(Socket,@IAddress,AddressLength)=-1 then
-        begin
-        CloseSocket(socket);
-        Socket:=0;
-        Terminate;
-        raise Exception.CreateFmt(SBindFailed,[port,socketerror]);
-        end;
-      if fplisten(Socket,1)=-1 then
-        begin
-        CloseSocket(socket);
-        Socket:=0;
-        Terminate;
-        raise Exception.CreateFmt(SListenFailed,[port,socketerror]);
-        end;
-      end
+      SetupSocket(IAddress,AddressLength)
     else
       Socket:=StdInputHandle;
-    end;
-
   if FHandle=THandle(-1) then
     begin
     FHandle:=fpaccept(Socket,psockaddr(@IAddress),@AddressLength);
@@ -590,43 +627,16 @@ begin
       raise Exception.CreateFmt(SNoInputHandle,[socketerror]);
       end;
     end;
-
   repeat
-  AFCGI_Record:=Read_FCGIRecord;
-  if assigned(AFCGI_Record) then
+    AFCGI_Record:=Read_FCGIRecord;
+    if assigned(AFCGI_Record) then
     try
-      ARequestID:=BEtoN(AFCGI_Record^.requestID);
-      if AFCGI_Record^.reqtype = FCGI_BEGIN_REQUEST then
-        begin
-        if ARequestID>FRequestsAvail then
-          begin
-          inc(FRequestsAvail,10);
-          SetLength(FRequestsArray,FRequestsAvail);
-          end;
-        assert(not assigned(FRequestsArray[ARequestID].Request));
-        assert(not assigned(FRequestsArray[ARequestID].Response));
-
-        ATempRequest:=TFCGIRequest.Create;
-        ATempRequest.RequestID:=ARequestID;
-        ATempRequest.Handle:=FHandle;
-        ATempRequest.ProtocolOptions:=Self.Protocoloptions;
-        ATempRequest.OnUnknownRecord:=Self.OnUnknownRecord;
-        FRequestsArray[ARequestID].Request := ATempRequest;
-        end;
-      if FRequestsArray[ARequestID].Request.ProcessFCGIRecord(AFCGI_Record) then
-        begin
-        ARequest:=FRequestsArray[ARequestID].Request;
-        FRequestsArray[ARequestID].Response := TFCGIResponse.Create(ARequest);
-        FRequestsArray[ARequestID].Response.ProtocolOptions:=Self.ProtocolOptions;
-        AResponse:=FRequestsArray[ARequestID].Response;
-        Result := True;
-        Break;
-        end;
+      Result:=ProcessRecord(AFCGI_Record,ARequest,AResponse);
     Finally
       FreeMem(AFCGI_Record);
       AFCGI_Record:=Nil;
     end;
-  until (1<>1);
+  until Result;
 end;
 
 { TCustomFCgiApplication }
