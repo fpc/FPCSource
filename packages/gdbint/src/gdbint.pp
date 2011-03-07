@@ -120,16 +120,28 @@ interface
   {$define GDB_HAS_BP_NONE}
 {$endif def GDB_V608}
 
+{ 7.3.x }
+{$ifdef GDB_V703}
+  {$info using gdb 7.3.x}
+  {$define GDB_V7}
+  {$define GDB_BP_LOCATION_HAS_GDBARCH}
+  {$define GDB_HAS_PROGRAM_SPACE}
+{$endif def GDB_V702}
+
 { 7.2.x }
 {$ifdef GDB_V702}
   {$info using gdb 7.2.x}
   {$define GDB_V7}
+  {$define GDB_BP_LOCATION_HAS_GDBARCH}
+  {$define GDB_HAS_PROGRAM_SPACE}
 {$endif def GDB_V702}
 
 { 7.1.x }
 {$ifdef GDB_V701}
   {$info using gdb 7.1.x}
   {$define GDB_V7}
+  {$define GDB_BP_LOCATION_HAS_GDBARCH}
+  {$define GDB_HAS_PROGRAM_SPACE}
 {$endif def GDB_V701}
 
 
