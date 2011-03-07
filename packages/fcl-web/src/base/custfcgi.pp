@@ -128,6 +128,7 @@ ResourceString
   SListenFailed     = 'Failed to listen to port %d. Socket Error: %d';
   SErrReadingSocket = 'Failed to read data from socket. Error: %d';
   SErrReadingHeader = 'Failed to read FastCGI header. Read only %d bytes';
+  SErrWritingSocket = 'Failed to write data to socket. Error: %d';
 
 Implementation
 
@@ -317,9 +318,13 @@ begin
   P:=PByte(Arecord);
   Repeat
     BytesWritten := sockets.fpsend(TFCGIRequest(Request).Handle, P, BytesToWrite, NoSignalAttr);
+    If (BytesWritten<0) then
+      begin
+      // TODO : Better checking for closed connection, EINTR
+      Raise HTTPError.CreateFmt(SErrWritingSocket,[BytesWritten]);
+      end;
     Inc(P,BytesWritten);
     Dec(BytesToWrite,BytesWritten);
-//    Assert(BytesWritten=BytesToWrite);
   until (BytesToWrite=0) or (BytesWritten=0);
 end;
 
@@ -523,6 +528,8 @@ begin
   BytesRead:=ReadBytes(ReadBuf,Sizeof(Header));
   If (BytesRead=0) then
     Exit // Connection closed gracefully.
+    // TODO : if connection closed gracefully, the request should no longer be handled.
+    // Need to discard request/response
   else If (BytesRead<>Sizeof(Header)) then
     Raise HTTPError.CreateFmt(SErrReadingHeader,[BytesRead]);
   ContentLength:=BetoN(Header.contentLength);
@@ -532,8 +539,18 @@ begin
     PFCGI_Header(ResRecord)^:=Header;
     ReadBuf:=ResRecord+BytesRead;
     BytesRead:=ReadBytes(ReadBuf,ContentLength);
+    If (BytesRead=0) then
+      begin
+      FreeMem(resRecord);
+      Exit // Connection closed gracefully.
+      end;
     ReadBuf:=ReadBuf+BytesRead;
     BytesRead:=ReadBytes(ReadBuf,PaddingLength);
+    If (BytesRead=0) then
+      begin
+      FreeMem(resRecord);
+      Exit // Connection closed gracefully.
+      end;
     Result := ResRecord;
   except
     FreeMem(resRecord);
@@ -594,7 +611,12 @@ begin
     ATempRequest.OnUnknownRecord:=Self.OnUnknownRecord;
     FRequestsArray[ARequestID].Request := ATempRequest;
     end;
-  if FRequestsArray[ARequestID].Request.ProcessFCGIRecord(AFCGI_Record) then
+  if (ARequestID>FRequestsAvail) then
+    begin
+    // TODO : ARequestID can be invalid. What to do ?
+    // in each case not try to access the array with requests.
+    end
+  else if FRequestsArray[ARequestID].Request.ProcessFCGIRecord(AFCGI_Record) then
     begin
     ARequest:=FRequestsArray[ARequestID].Request;
     FRequestsArray[ARequestID].Response := TFCGIResponse.Create(ARequest);
