@@ -29,11 +29,10 @@ unit dxfvectorialreader;
 interface
 
 uses
-  Classes, SysUtils,
+  Classes, SysUtils, Math,
   fpvectorial;
 
 type
-
   { Used by tcutils.SeparateString }
   T10Strings = array[0..9] of shortstring;
 
@@ -70,6 +69,9 @@ type
     // HEADER data
     ANGBASE: Double;
     ANGDIR: Integer;
+    INSBASE, EXTMIN, EXTMAX, LIMMIN, LIMMAX: T3DPoint;
+    // Calculated HEADER data
+    DOC_OFFSET: T3DPoint;
     //
     function  SeparateString(AString: string; ASeparator: Char): T10Strings;
     procedure ReadHEADER(ATokens: TDXFTokens; AData: TvVectorialDocument);
@@ -77,6 +79,7 @@ type
     procedure ReadENTITIES_LINE(ATokens: TDXFTokens; AData: TvVectorialDocument);
     procedure ReadENTITIES_ARC(ATokens: TDXFTokens; AData: TvVectorialDocument);
     procedure ReadENTITIES_CIRCLE(ATokens: TDXFTokens; AData: TvVectorialDocument);
+    procedure ReadENTITIES_DIMENSION(ATokens: TDXFTokens; AData: TvVectorialDocument);
     procedure ReadENTITIES_ELLIPSE(ATokens: TDXFTokens; AData: TvVectorialDocument);
     procedure ReadENTITIES_TEXT(ATokens: TDXFTokens; AData: TvVectorialDocument);
     function  GetCoordinateValue(AStr: shortstring): Double;
@@ -326,8 +329,9 @@ end;
 procedure TvDXFVectorialReader.ReadHEADER(ATokens: TDXFTokens;
   AData: TvVectorialDocument);
 var
-  i: Integer;
+  i, j: Integer;
   CurToken: TDXFToken;
+  CurField: P3DPoint;
 begin
   i := 0;
   while i < ATokens.Count do
@@ -344,9 +348,70 @@ begin
       CurToken := TDXFToken(ATokens.Items[i+1]);
       ANGDIR := StrToInt(CurToken.StrValue);
       Inc(i);
+    end
+    // This indicates the size of the document
+    else if (CurToken.StrValue = '$INSBASE') or
+      (CurToken.StrValue = '$EXTMIN') or (CurToken.StrValue = '$EXTMAX') or
+      (CurToken.StrValue = '$LIMMIN') or (CurToken.StrValue = '$LIMMAX') then
+    begin
+      if (CurToken.StrValue = '$INSBASE') then CurField := @INSBASE
+      else if (CurToken.StrValue = '$EXTMIN') then CurField := @EXTMIN
+      else if (CurToken.StrValue = '$EXTMAX') then CurField := @EXTMAX
+      else if (CurToken.StrValue = '$LIMMIN') then CurField := @LIMMIN
+      else if (CurToken.StrValue = '$LIMMAX') then CurField := @LIMMAX;
+
+      // Check the next 2 items and verify if they are the values of the size of the document
+      for j := 0 to 1 do
+      begin
+        CurToken := TDXFToken(ATokens.Items[i+1]);
+        case CurToken.GroupCode of
+        10:
+        begin;
+          CurField^.X := StrToFloat(CurToken.StrValue, FPointSeparator);
+          Inc(i);
+        end;
+        20:
+        begin
+          CurField^.Y := StrToFloat(CurToken.StrValue, FPointSeparator);
+          Inc(i);
+        end;
+        end;
+      end;
     end;
 
     Inc(i);
+  end;
+
+  // After getting all the data, we can try to make some sense out of it
+
+  // Sometimes EXTMIN comes as 10^20 and EXTMAX as -10^20, which makes no sence
+  // In these cases we need to ignore them.
+  if (EXTMIN.X > 10000000000) or (EXTMIN.X < -10000000000)
+  or (EXTMAX.X > 10000000000) or (EXTMAX.X < -10000000000) then
+  begin
+    DOC_OFFSET.X := 0;
+    DOC_OFFSET.Y := 0;
+
+    AData.Width := LIMMAX.X;
+    AData.Height := LIMMAX.Y;
+  end
+  else
+  begin
+    // The size of the document seams to be given by:
+    // DOC_SIZE = min(EXTMAX, LIMMAX) - DOC_OFFSET;
+    // if EXTMIN is <> -infinite then DOC_OFFSET = EXTMIN else DOC_OFFSET = (0, 0)
+    // We will shift the whole document so that it has only positive coordinates and
+    // DOC_OFFSET will be utilized for that
+
+    if EXTMIN.X > -100 then
+    begin
+      DOC_OFFSET.X := EXTMIN.X;
+      DOC_OFFSET.Y := EXTMIN.Y;
+    end
+    else FillChar(DOC_OFFSET, sizeof(T3DPoint), #0);
+
+    AData.Width := min(EXTMAX.X, LIMMAX.X) - DOC_OFFSET.X;
+    AData.Height := min(EXTMAX.Y, LIMMAX.Y) - DOC_OFFSET.Y;
   end;
 end;
 
@@ -360,9 +425,11 @@ begin
     CurToken := TDXFToken(ATokens.Items[i]);
     if CurToken.StrValue = 'ARC' then ReadENTITIES_ARC(CurToken.Childs, AData)
     else if CurToken.StrValue = 'CIRCLE' then ReadENTITIES_CIRCLE(CurToken.Childs, AData)
+    else if CurToken.StrValue = 'DIMENSION' then ReadENTITIES_DIMENSION(CurToken.Childs, AData)
     else if CurToken.StrValue = 'ELLIPSE' then ReadENTITIES_ELLIPSE(CurToken.Childs, AData)
     else if CurToken.StrValue = 'LINE' then ReadENTITIES_LINE(CurToken.Childs, AData)
-    else if CurToken.StrValue = 'TEXT' then
+    else if CurToken.StrValue = 'TEXT' then ReadENTITIES_TEXT(CurToken.Childs, AData)
+    else
     begin
       // ...
     end;
@@ -406,9 +473,15 @@ begin
     end;
   end;
 
+  // Position fixing for documents with negative coordinates
+  LineStartX := LineStartX - DOC_OFFSET.X;
+  LineStartY := LineStartY - DOC_OFFSET.Y;
+  LineEndX := LineEndX - DOC_OFFSET.X;
+  LineEndY := LineEndY - DOC_OFFSET.Y;
+
   // And now write it
   {$ifdef FPVECTORIALDEBUG}
-  WriteLn(Format('Adding Line from %f,%f to %f,%f', [LineStartX, LineStartY, LineEndX, LineEndY]));
+ // WriteLn(Format('Adding Line from %f,%f to %f,%f', [LineStartX, LineStartY, LineEndX, LineEndY]));
   {$endif}
   AData.StartPath(LineStartX, LineStartY);
   AData.AddLineToPath(LineEndX, LineEndY);
@@ -416,6 +489,8 @@ begin
 end;
 
 {
+Arcs are always counter-clockwise in DXF
+
 100 Subclass marker (AcDbCircle)
 39 Thickness (optional; default = 0)
 10 Center point (in OCS) DXF: X value; APP: 3D point
@@ -462,6 +537,18 @@ begin
     end;
   end;
 
+  // In DXF the EndAngle is always greater then the StartAngle.
+  // If it isn't then sum 360 to it to make sure we don't get wrong results
+  if EndAngle < StartAngle then EndAngle := EndAngle + 360;
+
+  // Position fixing for documents with negative coordinates
+  CenterX := CenterX - DOC_OFFSET.X;
+  CenterY := CenterY - DOC_OFFSET.Y;
+
+  {$ifdef FPVECTORIALDEBUG}
+  WriteLn(Format('Adding Arc Center=%f,%f Radius=%f StartAngle=%f EndAngle=%f',
+    [CenterX, CenterY, Radius, StartAngle, EndAngle]));
+  {$endif}
   AData.AddCircularArc(CenterX, CenterY, CenterZ, Radius, StartAngle, EndAngle);
 end;
 
@@ -506,8 +593,173 @@ begin
     end;
   end;
 
+  // Position fixing for documents with negative coordinates
+  CircleCenterX := CircleCenterX - DOC_OFFSET.X;
+  CircleCenterY := CircleCenterY - DOC_OFFSET.Y;
+
   AData.AddCircle(CircleCenterX, CircleCenterY,
     CircleCenterZ, CircleRadius);
+end;
+
+{
+Group codes Description
+100 Subclass marker (AcDbDimension)
+2 Name of the block that contains the entities that make up the dimension picture
+10 Definition point (in WCS) DXF: X value; APP: 3D point
+20, 30 DXF: Y and Z values of definition point (in WCS)
+11 Middle point of dimension text (in OCS) DXF: X value; APP: 3D point
+21, 31 DXF: Y and Z values of middle point of dimension text (in OCS)
+70 Dimension type.
+  Values 0-6 are integer values that represent the dimension type.
+  Values 32, 64, and 128 are bit values, which are added to the integer values
+  (value 32 is always set in R13 and later releases).
+  0 = Rotated, horizontal, or vertical; 1 = Aligned;
+  2 = Angular; 3 = Diameter; 4 = Radius;
+  5 = Angular 3 point; 6 = Ordinate;
+  32 = Indicates that the block reference (group code 2) is referenced by this dimension only.
+  64 = Ordinate type. This is a bit value (bit 7) used only with integer value 6.
+    If set, ordinate is X-type; if not set, ordinate is Y-type.
+  128 = This is a bit value (bit 8) added to the other group 70 values
+    if the dimension text has been positioned at a user-defined location
+    rather than at the default location.
+71 Attachment point:
+  1 = Top left; 2 = Top center; 3 = Top right;
+  4 = Middle left; 5 = Middle center; 6 = Middle right;
+  7 = Bottom left; 8 = Bottom center; 9 = Bottom right
+72 Dimension text line spacing style (optional):
+  1(or missing) = At least (taller characters will override)
+  2 = Exact (taller characters will not override)
+41 Dimension text line spacing factor (optional):
+  Percentage of default (3-on-5) line spacing to be applied. Valid values range from 0.25 to 4.00.
+42 Actual measurement (optional; read-only value)
+1 Dimension text explicitly entered by the user. Optional; default is the measurement.
+  If null or "<>", the dimension measurement is drawn as the text,
+  if " " (one blank space), the text is suppressed. Anything else is drawn as the text.
+53 The optional group code 53 is the rotation angle of the dimension
+  text away from its default orientation (the direction of the dimension line)  (optional).
+51 All dimension types have an optional 51 group code, which indicates the
+  horizontal direction for the dimension entity. The dimension entity determines
+  the orientation of dimension text and lines for horizontal, vertical, and
+  rotated linear dimensions.
+  This group value is the negative of the angle between the OCS X axis
+  and the UCS X axis. It is always in the XY plane of the OCS.
+210 Extrusion direction (optional; default = 0, 0, 1) DXF: X value; APP: 3D vector
+220, 230 DXF: Y and Z values of extrusion direction  (optional)
+3 Dimension style name
+
+Aligned Dimension Group Codes
+
+100 Subclass marker (AcDbAlignedDimension)
+12 Insertion point for clones of a dimension-Baseline and Continue (in OCS) DXF: X value; APP: 3D point
+22, 32 DXF: Y and Z values of insertion point for clones of a dimension-Baseline and Continue (in OCS)
+13 Definition point for linear and angular dimensions (in WCS) DXF: X value; APP: 3D point
+23, 33 DXF: Y and Z values of definition point for linear and angular dimensions (in WCS)
+14 Definition point for linear and angular dimensions (in WCS) DXF: X value; APP: 3D point
+24, 34 DXF: Y and Z values of definition point for linear and angular dimensions (in WCS)
+
+  |--text--|->10,20
+  |        |
+  |        |
+  X->14,24 X->13,23
+}
+procedure TvDXFVectorialReader.ReadENTITIES_DIMENSION(ATokens: TDXFTokens;
+  AData: TvVectorialDocument);
+var
+  CurToken: TDXFToken;
+  i: Integer;
+  // DIMENSION
+  BaseLeft, BaseRight, DimensionRight, DimensionLeft, TmpPoint: T3DPoint;
+  IsAlignedDimension: Boolean = False;
+begin
+  // Initial values
+  BaseLeft.X := 0;
+  BaseLeft.Y := 0;
+  BaseRight.X := 0;
+  BaseRight.X := 0;
+  DimensionRight.X := 0;
+  DimensionRight.Y := 0;
+  DimensionLeft.X := 0;
+  DimensionLeft.Y := 0;
+
+  for i := 0 to ATokens.Count - 1 do
+  begin
+    // Now read and process the item name
+    CurToken := TDXFToken(ATokens.Items[i]);
+
+    // Avoid an exception by previously checking if the conversion can be made
+    if CurToken.GroupCode in [10, 20, 30, 11, 21, 31, 13, 23, 33, 14, 24, 34] then
+    begin
+      CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue), FPointSeparator);
+    end;
+
+    case CurToken.GroupCode of
+      10: DimensionRight.X := CurToken.FloatValue;
+      20: DimensionRight.Y := CurToken.FloatValue;
+      30: DimensionRight.Z := CurToken.FloatValue;
+      13: BaseRight.X := CurToken.FloatValue;
+      23: BaseRight.Y := CurToken.FloatValue;
+      33: BaseRight.Z := CurToken.FloatValue;
+      14: BaseLeft.X := CurToken.FloatValue;
+      24: BaseLeft.Y := CurToken.FloatValue;
+      34: BaseLeft.Z := CurToken.FloatValue;
+      100:
+      begin
+        if CurToken.StrValue = 'AcDbAlignedDimension' then IsAlignedDimension := True;
+      end;
+    end;
+  end;
+
+  // And now write it
+  {$ifdef FPVECTORIALDEBUG}
+//  WriteLn(Format('Adding Line from %f,%f to %f,%f', [LineStartX, LineStartY, LineEndX, LineEndY]));
+  {$endif}
+  if IsAlignedDimension then
+  begin
+    // Now make sure that we actually that BaseLeft is to the left of BaseRight
+    if BaseRight.X < BaseLeft.X then
+    begin
+      TmpPoint := BaseRight;
+      BaseRight := BaseLeft;
+      BaseLeft := TmpPoint;
+    end;
+
+    // Now check if we are a horizontal or vertical dimension
+
+    // horizontal
+    //
+    //DL____ DR
+    //  |  |
+    //  |  |
+    // BL  BR
+    if DimensionRight.X = BaseRight.X then
+    begin
+      DimensionLeft.X := BaseLeft.X;
+      DimensionLeft.Y := DimensionRight.Y;
+    end
+    // vertical
+    //
+    // BL ----|DR
+    //  BR  --|DL
+    //
+    // In this case we invert then DR and DL
+    else if DimensionRight.Y = BaseLeft.Y then
+    begin
+      DimensionLeft := DimensionRight;
+      DimensionRight.Y := BaseRight.Y;
+    end
+    // vertical
+    //
+    // BL ----|DL
+    //  BR  --|DR
+    //
+    else if DimensionRight.Y = BaseRight.Y then
+    begin
+      DimensionLeft.X := DimensionRight.X;
+      DimensionLeft.Y := BaseLeft.Y;
+    end;
+
+    AData.AddAlignedDimension(BaseLeft, BaseRight, DimensionLeft, DimensionRight);
+  end;
 end;
 
 {
@@ -546,6 +798,10 @@ begin
       30: CenterZ := CurToken.FloatValue;
     end;
   end;
+
+  // Position fixing for documents with negative coordinates
+  CenterX := CenterX - DOC_OFFSET.X;
+  CenterY := CenterY - DOC_OFFSET.Y;
 
   //
   AData.AddEllipse(CenterX, CenterY, CenterZ, MajorHalfAxis, MinorHalfAxis, Angle);
@@ -613,6 +869,10 @@ begin
       40: FontSize := CurToken.FloatValue;
     end;
   end;
+
+  // Position fixing for documents with negative coordinates
+  PosX := PosX - DOC_OFFSET.X;
+  PosY := PosY - DOC_OFFSET.Y;
 
   //
   AData.AddText(PosX, PosY, PosZ, '', Round(FontSize), Str);
