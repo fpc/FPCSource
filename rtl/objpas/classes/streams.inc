@@ -1060,12 +1060,9 @@ begin
   Check(FStream.Read(@Buffer, Count, @Result));
 end;
 
-function TProxyStream.Seek(Offset: Longint; Origin: Word): Longint;
-var
-  Pos: Int64;
+function TProxyStream. Seek(const Offset: int64; Origin: TSeekOrigin): int64;
 begin
-  Check(FStream.Seek(Offset, Origin, Pos));
-  Result := Pos;
+  Check(FStream.Seek(Offset, ord(Origin), result));
 end;
 
 function TProxyStream.Write(const Buffer; Count: Longint): Longint;

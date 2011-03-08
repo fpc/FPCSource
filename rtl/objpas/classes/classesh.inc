@@ -816,7 +816,7 @@ type
     constructor Create(const Stream: IStream);
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
+    function Seek(const Offset: int64; Origin: TSeekOrigin): int64; override;
     procedure Check(err:longint); virtual;
   end;
 
