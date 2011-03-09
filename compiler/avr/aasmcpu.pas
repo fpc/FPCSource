@@ -211,11 +211,11 @@ implementation
       begin
         result:=operand_read;
         case opcode of
-          A_CP,A_CPC,A_CPI :
+          A_CP,A_CPC,A_CPI,A_PUSH :
             ;
           else
             begin
-              if (opnr=0) then
+              if opnr=0 then
                 result:=operand_write;
             end;
         end;

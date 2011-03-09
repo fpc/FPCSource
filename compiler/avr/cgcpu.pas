@@ -77,9 +77,7 @@ unit cgcpu;
         procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);override;
 
         procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : aint);override;
-        procedure g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : aint);override;
         procedure g_concatcopy_move(list : TAsmList;const source,dest : treference;len : aint);
-        procedure g_concatcopy_internal(list : TAsmList;const source,dest : treference;len : aint;aligned : boolean);
 
         procedure g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef); override;
 
@@ -1198,18 +1196,6 @@ unit cgcpu;
       end;
 
 
-    procedure tcgavr.g_concatcopy_internal(list : TAsmList;const source,dest : treference;len : aint;aligned : boolean);
-      begin
-        internalerror(2011021321);
-      end;
-
-
-    procedure tcgavr.g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : aint);
-      begin
-        g_concatcopy_internal(list,source,dest,len,false);
-      end;
-
-
     procedure tcgavr.g_concatcopy(list : TAsmList;const source,dest : treference;len : aint);
       var
         countreg,tmpreg : tregister;
@@ -1218,12 +1204,17 @@ unit cgcpu;
         l : TAsmLabel;
         i : longint;
       begin
-        current_asmdata.getjumplabel(l);
         if len>16 then
           begin
+            current_asmdata.getjumplabel(l);
+
             reference_reset(srcref,0);
             reference_reset(dstref,0);
-            { TODO : load refs! }
+            srcref.base:=NR_R30;
+            srcref.addressmode:=AM_POSTINCREMENT;
+            dstref.base:=NR_R26;
+            dstref.addressmode:=AM_POSTINCREMENT;
+
             copysize:=OS_8;
             if len<256 then
               countregsize:=OS_8
@@ -1233,12 +1224,26 @@ unit cgcpu;
               internalerror(2011022007);
             countreg:=getintregister(list,countregsize);
             a_load_const_reg(list,countregsize,len,countreg);
+            a_loadaddr_ref_reg(list,source,NR_R30);
+            tmpreg:=getaddressregister(list);
+            a_loadaddr_ref_reg(list,dest,tmpreg);
+
+            { X is used for spilling code so we can load it
+              only by a push/pop sequence, this can be
+              optimized later on by the peephole optimizer
+            }
+            list.concat(taicpu.op_reg(A_PUSH,tmpreg));
+            list.concat(taicpu.op_reg(A_PUSH,GetNextReg(tmpreg)));
+            list.concat(taicpu.op_reg(A_POP,NR_R27));
+            list.concat(taicpu.op_reg(A_POP,NR_R26));
             cg.a_label(list,l);
             tmpreg:=getintregister(list,copysize);
             list.concat(taicpu.op_reg_ref(GetLoad(srcref),tmpreg,srcref));
             list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,tmpreg));
             a_op_const_reg(list,OP_SUB,countregsize,1,countreg);
             a_jmp_flags(list,F_NE,l);
+            // keep registers alive
+            list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
           end
         else
           begin
