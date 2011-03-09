@@ -44,7 +44,7 @@ unit cpubase;
 
     type
       TAsmOp=(A_None,
-        A_ADD,A_ADC,A_ADIW,A_SUB,A_SUBI,A_SBC,A_SBCI,A_SBRC,A_SBRS,A_SBIW,A_AND,A_ANDI,
+        A_ADD,A_ADC,A_ADIW,A_SUB,A_SUBI,A_SBC,A_SBCI,A_SBRC,A_SBRS,A_CLC,A_SEC,A_SBIW,A_AND,A_ANDI,
         A_OR,A_ORI,A_EOR,A_COM,A_NEG,A_SBR,A_CBR,A_INC,A_DEC,A_TST,A_CLR,
         A_SER,A_MUL,A_MULS,A_FMUL,A_FMULS,A_FMULSU,A_RJMP,A_IJMP,
         A_EIJMP,A_JMP,A_RCALL,A_ICALL,R_EICALL,A_CALL,A_RET,A_RETI,A_CPSE,
@@ -343,6 +343,11 @@ unit cpubase;
     { returns the next virtual register }
     function GetNextReg(const r : TRegister) : TRegister;
 
+    { returns the last virtual register }
+    function GetLastReg(const r : TRegister) : TRegister;
+
+    function GetOffsetReg(const r : TRegister;ofs : shortint) : TRegister;
+
   implementation
 
     uses
@@ -469,6 +474,18 @@ unit cpubase;
     function GetNextReg(const r: TRegister): TRegister;
       begin
         result:=TRegister(longint(r)+1);
+      end;
+
+
+    function GetLastReg(const r: TRegister): TRegister;
+      begin
+        result:=TRegister(longint(r)-1);
+      end;
+
+
+    function GetOffsetReg(const r: TRegister;ofs : shortint): TRegister;
+      begin
+        result:=TRegister(longint(r)+ofs);
       end;
 
 end.
