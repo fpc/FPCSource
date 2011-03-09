@@ -50,9 +50,9 @@ const
 
 const
   NSImageScaleProportionallyDown = 0;
-  NSImageScaleAxesIndependently = 0;
-  NSImageScaleNone = 1;
-  NSImageScaleProportionallyUpOrDown = 2;
+  NSImageScaleAxesIndependently = 1;
+  NSImageScaleNone = 2;
+  NSImageScaleProportionallyUpOrDown = 3;
 
 const
   NSMixedState = -1;
@@ -85,14 +85,14 @@ const
 
 const
   NSBackgroundStyleLight = 0;
-  NSBackgroundStyleDark = 0;
-  NSBackgroundStyleRaised = 1;
-  NSBackgroundStyleLowered = 2;
+  NSBackgroundStyleDark = 1;
+  NSBackgroundStyleRaised = 2;
+  NSBackgroundStyleLowered = 3;
 
 const
   NSScaleProportionally = 0;
-  NSScaleToFit = 0;
-  NSScaleNone = 1;
+  NSScaleToFit = 1;
+  NSScaleNone = 2;
 
 { Types }
 type

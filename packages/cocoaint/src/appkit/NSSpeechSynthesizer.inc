@@ -8,8 +8,8 @@
 
 const
   NSSpeechImmediateBoundary = 0;
-  NSSpeechWordBoundary = 0;
-  NSSpeechSentenceBoundary = 1;
+  NSSpeechWordBoundary = 1;
+  NSSpeechSentenceBoundary = 2;
 
 { Types }
 type

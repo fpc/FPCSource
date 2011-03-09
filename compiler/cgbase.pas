@@ -85,6 +85,10 @@ interface
          addr_highesta     // bits 48-63, adjusted
          {$ENDIF}
          {$ENDIF}
+         {$IFDEF AVR}
+         ,addr_lo8
+         ,addr_hi8
+         {$ENDIF}
          );
 
 
@@ -327,8 +331,8 @@ interface
     {# From a constant numeric value, return the abstract code generator
        size.
     }
-    function int_cgsize(const a: aint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
-    function int_float_cgsize(const a: aint): tcgsize;
+    function int_cgsize(const a: tcgint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
+    function int_float_cgsize(const a: tcgint): tcgsize;
 
     { return the inverse condition of opcmp }
     function inverse_opcmp(opcmp: topcmp): topcmp;{$ifdef USEINLINE}inline;{$endif}
@@ -585,7 +589,7 @@ implementation
       end;
 
 
-    function int_cgsize(const a: aint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
+    function int_cgsize(const a: tcgint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
       const
         size2cgsize : array[0..8] of tcgsize = (
           OS_NO,OS_8,OS_16,OS_NO,OS_32,OS_NO,OS_NO,OS_NO,OS_64
@@ -598,7 +602,7 @@ implementation
       end;
 
 
-    function int_float_cgsize(const a: aint): tcgsize;
+    function int_float_cgsize(const a: tcgint): tcgsize;
       begin
         case a of
           4 :

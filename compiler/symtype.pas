@@ -73,8 +73,8 @@ interface
          function  mangledparaname:string;
          function  getmangledparaname:string;virtual;
          function  rtti_mangledname(rt:trttitype):string;virtual;abstract;
-         function  size:aint;virtual;abstract;
-         function  packedbitsize:aint;virtual;
+         function  size:asizeint;virtual;abstract;
+         function  packedbitsize:asizeint;virtual;
          function  alignment:shortint;virtual;abstract;
          function  getvardef:longint;virtual;abstract;
          function  getparentdef:tdef;virtual;
@@ -314,7 +314,7 @@ implementation
       end;
 
 
-    function tdef.packedbitsize:aint;
+    function tdef.packedbitsize:asizeint;
       begin
         result:=size * 8;
       end;

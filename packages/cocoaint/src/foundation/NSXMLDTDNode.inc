@@ -8,25 +8,25 @@
 
 const
   NSXMLEntityGeneralKind = 1;
-  NSXMLEntityParsedKind = 0;
-  NSXMLEntityUnparsedKind = 1;
-  NSXMLEntityParameterKind = 2;
-  NSXMLEntityPredefined = 3;
-  NSXMLAttributeCDATAKind = 4;
-  NSXMLAttributeIDKind = 5;
-  NSXMLAttributeIDRefKind = 6;
-  NSXMLAttributeIDRefsKind = 7;
-  NSXMLAttributeEntityKind = 8;
-  NSXMLAttributeEntitiesKind = 9;
-  NSXMLAttributeNMTokenKind = 10;
-  NSXMLAttributeNMTokensKind = 11;
-  NSXMLAttributeEnumerationKind = 12;
-  NSXMLAttributeNotationKind = 13;
-  NSXMLElementDeclarationUndefinedKind = 14;
-  NSXMLElementDeclarationEmptyKind = 15;
-  NSXMLElementDeclarationAnyKind = 16;
-  NSXMLElementDeclarationMixedKind = 17;
-  NSXMLElementDeclarationElementKind = 18;
+  NSXMLEntityParsedKind = 2;
+  NSXMLEntityUnparsedKind = 3;
+  NSXMLEntityParameterKind = 4;
+  NSXMLEntityPredefined = 5;
+  NSXMLAttributeCDATAKind = 6;
+  NSXMLAttributeIDKind = 7;
+  NSXMLAttributeIDRefKind = 8;
+  NSXMLAttributeIDRefsKind = 9;
+  NSXMLAttributeEntityKind = 10;
+  NSXMLAttributeEntitiesKind = 11;
+  NSXMLAttributeNMTokenKind = 12;
+  NSXMLAttributeNMTokensKind = 13;
+  NSXMLAttributeEnumerationKind = 14;
+  NSXMLAttributeNotationKind = 15;
+  NSXMLElementDeclarationUndefinedKind = 16;
+  NSXMLElementDeclarationEmptyKind = 17;
+  NSXMLElementDeclarationAnyKind = 18;
+  NSXMLElementDeclarationMixedKind = 19;
+  NSXMLElementDeclarationElementKind = 20;
 
 { Types }
 type

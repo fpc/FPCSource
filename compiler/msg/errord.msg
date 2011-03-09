@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 15850
+#   Based on errore.msg of SVN revision 16783
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2010 by the Free Pascal Development team
@@ -378,7 +378,7 @@ scanner_w_illegal_warn_identifier=02087_W_UngÅltige Bezeichner "$1" fÅr die $WAR
 #
 # Parser
 #
-# 03295 is the last used one
+# 03304 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -636,7 +636,7 @@ parser_e_void_function=03080_E_Prozeduren kînnen keinen Wert zurÅckliefern
 % In \fpc, you can specify a return value for a function when using
 % the \var{exit} statement. This error occurs when you try to do this with a
 % procedure. Procedures cannot return a value.
-parser_e_only_methods_allowed=03081_E_Konstruktoren, Destructoren und class operators mÅssen Methoden sein
+parser_e_only_methods_allowed=03081_E_Konstruktoren, Destruktoren und Klassenoperatoren mÅssen Methoden sein
 % You're declaring a procedure as destructor, constructor or class operator, when the
 % procedure isn't a class method.
 parser_e_operator_not_overloaded=03082_E_Operator besitzt kein Overload
@@ -1089,7 +1089,7 @@ parser_e_protected_or_private_expected=03214_E_Protected oder private erwartet
 parser_e_illegal_slice=03215_E_SLICE kann nicht ausserhalb der Parameterliste benutzt werden
 % \var{slice} can be used only for arguments accepting an open array parameter.
 parser_e_dispinterface_cant_have_parent=03216_E_Ein DISPINTERFACE kann keine Elternklasse haben.
-% A DISPINTERFACE is a special type of interface which can't have a parent class.
+% A DISPINTERFACE is a special type of interface which can't have a parent class. Dispinterface always derive from IDispatch type.
 parser_e_dispinterface_needs_a_guid=03217_E_Ein DISPINTERFACE benîtigt einen GUID
 % A DISPINTERFACE always needs an interface identification (a GUID).
 parser_w_overridden_methods_not_same_ret=03218_W_öberschriebene Methoden mÅssen einen entsprechenden RÅckgabetyp haben. Dieser Code kann abstÅrzen, weil er von einem Delphi Parser Bug abhÑngt (Methode "$2" wird durch "$1" Åberschrieben, die einen anderen RÅckgabetyp hat).
@@ -1117,7 +1117,7 @@ parser_e_packed_element_no_loop=03223_E_Bit packed Array-Elemente und Record-Fel
 % (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
 % be packed at the bit level. For performance reasons, they cannot be
 % used as loop variables.
-parser_e_type_var_const_only_in_records_and_classes=03224_E_VAR, TYPE und CONST sind nur innerhalb records, objects und Klassen erlaubt
+parser_e_type_var_const_only_in_records_and_classes=03224_E_VAR, TYPE und CONST sind nur innerhalb Records, Objekten und Klassen erlaubt
 % The usage of VAR, TYPE and CONST to declare new types inside an object is allowed only inside
 % records, objects and classes.
 parser_e_cant_create_generics_of_this_type=03225_E_Dieser Typ kann nicht "generic" sein
@@ -1194,7 +1194,7 @@ parser_e_field_not_allowed_here=03251_E_Felder sind nach der Definition einer Me
 % without starting a new visibility section (such as \var{public}, \var{private}, etc.). The reason is
 % that otherwise the source code can appear ambiguous to the compiler, since it is possible to use modifiers
 % such as \var{default} and \var{register} also as field names.
-parser_e_no_local_para_def=03252_E_Parameter kînnen keine lokalen Typdeklarationen enthalten. Verwende eine getrennte Typdefinition in einem "type"-Block
+parser_e_no_local_para_def=03252_E_Parameter oder Ergebnistypen kînnen keine lokalen Typdeklarationen enthalten. Verwende eine getrennte Typdefinition in einem "type"-Block
 % In Pascal, types are not considered to be identical simply because they are semantically equivalent.
 % Two variables or parameters are only considered to be of the same type if they refer to the
 % same type definition.
@@ -1258,14 +1258,16 @@ parser_e_no_objc_published=03271_E_Objective-C Klassen kînnen keinen Abschnitt p
 parser_f_need_objc=03272_F_Dieses Modul erfordert, dass der Objective-C Mode-Schalter Åbersetzt wird
 % This error indicates the use of Objective-C language features without an Objective-C mode switch
 % active. Enable one via the -M command line switch, or the {\$modeswitch x} directive.
-parser_e_must_use_override_objc=03273_E_Vererbte Methoden kînnen nur in Objective-C Åberschrieben werden, fÅge "override" hinzu.
-parser_h_should_use_override_objc=03274_H_Vererbte Methoden kînnen nur in Objective-C Åberschrieben werden, fÅge "override" hinzu
+parser_e_must_use_override_objc=03273_E_Vererbte Methoden kînnen nur in Objective-C Åberschrieben werden, fÅge "override" hinzu (Vererbte Methode ist in $1 definiert)
+parser_h_should_use_override_objc=03274_H_Vererbte Methoden kînnen nur in Objective-C Åberschrieben werden, fÅge "override" hinzu (Vererbte Methode ist in $1 definiert)
 % It is not possible to \var{reintroduce} methods in Objective-C like in Object Pascal. Methods with the same
 % name always map to the same virtual method entry. In order to make this clear in the source code,
 % the compiler always requires the \var{override} directive to be specified when implementing overriding
 % Objective-C methods in Pascal. If the implementation is external, this rule is relaxed because Objective-C
 % does not have any \var{override}-style keyword (since it's the default and only behaviour in that language),
 % which makes it hard for automated header conversion tools to include it everywhere.
+% The type in which the inherited method is defined is explicitly mentioned, because this may either
+% be an objcclass or an objccategory.
 parser_e_objc_message_name_changed=03275_E_Der Nachrichtenname "$1" in der vererbten Klasse unterscheidet sich vom Nachrichtennamen "$2" in der aktuellen Klasse
 % An overriding Objective-C method cannot have a different message name than an inherited method. The reason
 % is that these message names uniquely define the message to the Objective-C runtime, which means that
@@ -1277,8 +1279,8 @@ parser_e_no_category_as_types=03277_E_Objective-C Kategorien kînnen nicht als Ty
 % It is not possible to declare a variable as an instance of an Objective-C category. A
 % category adds methods to the scope of an existing class, but does not define a type by itself.
 parser_e_no_category_override=03278_E_Kategorien Åberschreiben Methoden nicht, sondern ersetzen sie. "reintroduce" benutzen
-parser_e_must_use_reintroduce_objc=03279_E_Ersetzte Methoden kînnen in Objective-C nur wieder eingefÅhrt werden, fÅge "reintroduce" hinzu
-parser_h_should_use_reintroduce_objc=03280_H_Ersetzte Methoden kînnen in Objective-C nur wieder eingefÅhrt werden, fÅge "reintroduce" hinzu
+parser_e_must_use_reintroduce_objc=03279_E_Ersetzte Methoden kînnen in Objective-C nur wieder eingefÅhrt werden, fÅge "reintroduce" hinzu (Ersetzte Methode ist in $1 definiert)
+parser_h_should_use_reintroduce_objc=03280_H_Ersetzte Methoden kînnen in Objective-C nur wieder eingefÅhrt werden, fÅge "reintroduce" hinzu (Ersetzte Methode ist in $1 definiert)
 % A category replaces an existing method in an Objective-C class, rather than that it overrides it.
 % Calling an inherited method from an category method will call that method in
 % the extended class' parent, not in the extended class itself. The
@@ -1286,6 +1288,8 @@ parser_h_should_use_reintroduce_objc=03280_H_Ersetzte Methoden kînnen in Objecti
 % called or referred to. This behaviour corresponds somewhat more closely to
 % \var{reintroduce} than to \var{override} (although in case of \var{reintroduce}
 % in Object Pascal, hidden methods are still reachable via inherited).
+% The type in which the inherited method is defined is explicitly mentioned, because this may either
+% be an objcclass or an objccategory.
 parser_e_implements_getter_not_default_cc=03281_E_Getter fÅr das Interface implements mÅssen die voreingestellte calling convention des Ziels benutzen
 % Interface getters are called via a helper in the run time library, and hence
 % have to use the default calling convention for the target (\var{register} on
@@ -1342,6 +1346,36 @@ parser_e_no_procvarnested_const=03296_E_Typisierte Konstanten des Typs 'procedur
 % procedural variable contains a reference to a nested procedure/function.
 % Therefore such typed constants can only be initialized with global
 % functions/procedures since these do not require a parent frame pointer.
+parser_f_no_generic_inside_generic=03297_F_Die Deklaration einer generischen Klasse innerhalb einer anderen generischen Klasse ist nicht erlaubt
+% At the moment, scanner supports recording of only one token buffer at the time
+% (guarded by internal error 200511173 in tscannerfile.startrecordtokens).
+% Since generics are implemented by recording tokens, it is not possible to
+% have declaration of generic class inside another generic class.
+parser_e_forward_protocol_declaration_must_be_resolved=03298_E_VorwÑrts-Deklarationen des ObjC-Protokolls "$1" mÅssen aufgelîst sein, bevor eine ObjC-Klasse ihr folgen kann
+% An objcprotocol must be fully defined before classes can conform to it.
+% This error occurs in the following situation:
+% \begin{verbatim}
+%  Type MyProtocol = objcprotoocl;
+%       ChildClass = Class(NSObject,MyProtocol)
+%         ...
+%       end;
+% \end{verbatim}
+% where \var{MyProtocol} is declared but not defined.
+parser_e_no_record_published=03299_E_Record -Typen kînnen keine îffentlichen Abschnitte (published sections) haben
+% Published sections can be used only inside classes.
+parser_e_no_destructor_in_records=03300_E_Destruktoren sind in Records nicht erlaubt
+% Destructor declarations aren't allowed in records.
+parser_e_class_methods_only_static_in_records=03301_E_Klassenmethoden mÅssen in Records statisch sein
+% Class methods declarations aren't allowed in records without static modifier.
+% Records have no inheritance and therefore non static class methods have no sence for them.
+parser_e_no_constructor_in_records=03302_E_Konstruktoren sind in Records nicht erlaubt
+% Constructor declarations aren't allowed in records.
+parser_e_at_least_one_argument_must_be_of_type=03303_E_Entweder das Ergebnis oder mindestens ein Parameter mÅssen vom Typ "$1" sein
+% It is required that either the result of the routine or at least one of its parameters be of the specified type.
+% For example class operators either take an instance of the structured type in which they are defined, or they return one.
+parser_e_cant_use_type_parameters_here=03304_E_Typ-Parameter kînnen initialization/finalization erfordern - Sie kînnen deshalb nicht in varianten Rekords verwendet werden
+% Type parameters may be specialized with types which (e.g. \var{ansistring}) need initialization/finalization
+% code which is implicitly generated by the compiler. 
 %
 % \end{description}
 # EndOfTeX
@@ -1349,7 +1383,7 @@ parser_e_no_procvarnested_const=03296_E_Typisierte Konstanten des Typs 'procedur
 #
 # Type Checking
 #
-# 04095 is the last used one
+# 04098 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1693,6 +1727,10 @@ type_w_procvar_univ_conflicting_para=04095_W_Erzwungener univ Parameter Typ in e
 % when \var{test} returns.
 type_e_generics_cannot_reference_itself=04096_E_Typ-Parameter bei der Spezialisation von Generics kînnen den aktuel spezialisierten Typ nicht referenzieren
 % Recursive specializations of generics like \var{Type MyType = specialize MyGeneric<MyType>;} are not possible.
+type_e_type_parameters_are_not_allowed_here=04097_E_Typ-Parameter sind fÅr nicht-generische Klassen/Record/Objekte Prozeduren und Funktionen nicht erlaubt
+% Type parameters are only allowed for methods of generic classes, records or objects
+type_e_generic_declaration_does_not_match=04098_E_Die generische Deklaration von "$1" unterscheidet sich vom der vorherigen Deklaration
+% Generic declaration does not match the previous declaration
 %
 % \end{description}
 # EndOfTeX
@@ -1700,7 +1738,7 @@ type_e_generics_cannot_reference_itself=04096_E_Typ-Parameter bei der Spezialisa
 #
 # Symtable
 #
-# 05080 is the last used one
+# 05083 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1939,6 +1977,11 @@ sym_e_objc_formal_class_not_resolved=05080_E_Die vollstÑndige Definition der for
 % of the class to be in scope.
 sym_e_interprocgoto_into_init_final_code_not_allowed=05081_E_Gotos in die 'initialization'- oder 'finalization'-Blîcke einer Unit sind nicht erlaubt
 % Gotos into initialization or finalization blockse of units are not allowed.
+sym_e_external_class_name_mismatch1=05082=E_UngÅltiger externer Name "$1" fÅr die formale Klasse "$2"
+sym_e_external_class_name_mismatch2=05083=E_Hierhin muss die vollstÑndige Klassendefinition mit externem Namen "$1"
+% When a class is declared using a formal external definition, the actual external
+% definition (if any) must specify the same external name as the formal definition
+% (since both definitions refer to the same actual class type).
 %
 % \end{description}
 # EndOfTeX
@@ -1946,7 +1989,7 @@ sym_e_interprocgoto_into_init_final_code_not_allowed=05081_E_Gotos in die 'initi
 #
 # Codegenerator
 #
-# 06050 is the last used one
+# 06052 is the last used one
 #
 % \section{Code generator messages}
 % This section lists all messages that can be displayed if the code
@@ -2083,6 +2126,9 @@ cg_e_interprocedural_goto_only_to_outer_scope_allowed=06051_E_Interprozedurale g
 % from a subroutine to the main program
 cg_e_labels_cannot_defined_outside_declaration_scope=06052_E_ Label mÅssen im selben Bereich definiert werden, in dem sie deklariert werden
 % In ISO mode, labels must be defined in the same scope as they are declared.
+cg_e_goto_across_procedures_with_exceptions_not_allowed=06053_E_Eine Prozedur, die explizite oder implizite Excpetion Frames enthÑlt, darf nicht mit einem goto verlassen werden
+% Non-local gotos might not be used to leave procedures using exceptions either implicitly or explicitly. Procedures
+% which use automated types like ansistrings or class constructurs are affected by this too.
 %
 % \end{description}
 # EndOfTeX
@@ -2090,7 +2136,7 @@ cg_e_labels_cannot_defined_outside_declaration_scope=06052_E_ Label mÅssen im se
 #
 # Assembler reader
 #
-# 07109 is the last used one
+# 07110 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starte $1 Stil Assembler Parsen
 % This informs you that an assembler block is being parsed
@@ -2343,6 +2389,9 @@ asmr_e_empty_regset=07109_E_Ein Registerset kann nicht leer sein
 % Instructions on the ARM architecture that take a register set as argument require that such a set
 % contains at least one register.
 
+asmr_w_useless_got_for_local=07110_W_@GOTPCREL ist nutzlos und bei lokalen Symbole mîglicherweise gefÑhrlich
+% The use of @GOTPCREL supposes an extra indirection that is
+% not present if the symbol is local, which might lead to wrong asembler code
 #
 # Assembler/binary writers
 #
@@ -3107,7 +3156,8 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 *g2gw_Erzeuge DWARFv2-Debug-Informationen (wie -gw2)
 *g2gw2_Erzeuge DWARFv2-Debug-Informationen
 *g2gw3_Erzeuge DWARFv3-Debug-Informationen
-**1i_Zeige alle Information Åber den Compiler
+*g2gw4_Generate DWARFv4-Debug-Informationen (experimentell)
+**1i_Zeige alle Informationen Åber den Compiler
 **2iD_Zeige Compilerdatum
 **2iV_Zeige Compilerversion
 **2iW_Zeige vollstÑndige Compilerversion
@@ -3171,6 +3221,7 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2st_Erzeuge Script um auf dem Zielsystem zu linken
 **2sr_öberspringe die Phase der "register allocation" (mit -alr benutzen)
 **1T<x>_Zielbetriebssystem::
+3*2Tdarwin_Darwin/Mac OS X
 3*2Temx_OS/2 via EMX (einschliesslich EMX/RSX extender)
 3*2Tfreebsd_FreeBSD
 3*2Tgo32v2_Version 2 des DJ Delorie DOS extender
@@ -3182,23 +3233,27 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 3*2Tos2_OS/2 / eComStation
 3*2Tsunos_SunOS/Solaris
 3*2Tsymbian_Symbian OS
+3*2Tsolaris_Solaris
 3*2Twatcom_Watcom compatible DOS extender
 3*2Twdosx_WDOSX DOS extender
 3*2Twin32_Windows 32 Bit
 3*2Twince_Windows CE
+4*2Tdarwin_Darwin/Mac OS X
+4*2Twin64_Win64 (64 bit Windows systems)
 4*2Tlinux_Linux
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
-6*2Tlinux_Linux-68k
-6*2Tmacos_Macintosh m68k (nicht unterstÅtzt)
+6*2Tlinux_Linux
 6*2Tpalmos_PalmOS
+A*2Tdarwin_Darwin/iPhoneOS/iOS
 A*2Tlinux_Linux
 A*2Twince_Windows CE
-P*2Tamiga_AmigaOS auf PowerPC
-P*2Tdarwin_Darwin und Mac OS X auf PowerPC
-P*2Tlinux_Linux auf PowerPC
-P*2Tmacos_Mac OS (classic) auf PowerPC
+P*2Tamiga_AmigaOS
+P*2Tdarwin_Darwin und Mac OS X
+P*2Tlinux_Linux
+P*2Tmacos_Mac OS (classic)
 P*2Tmorphos_MorphOS
+S*2Tsolaris_Solaris
 S*2Tlinux_Linux
 **1u<x>_Entferne die Definition fÅr das Symbol <x>
 **1U<x>_Unit-Optionen:

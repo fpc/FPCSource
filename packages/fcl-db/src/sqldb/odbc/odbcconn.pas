@@ -735,9 +735,9 @@ begin
   // TODO: finish this
   case FieldDef.DataType of
     ftWideString,ftFixedWideChar: // mapped to TWideStringField
-      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_WCHAR, buffer, FieldDef.Size, @StrLenOrInd);
+      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_WCHAR, buffer, FieldDef.Size+sizeof(WideChar), @StrLenOrInd); //buffer must contain space for the null-termination character
     ftGuid, ftFixedChar,ftString: // are mapped to a TStringField (including TGuidField)
-      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_CHAR, buffer, FieldDef.Size, @StrLenOrInd);
+      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_CHAR, buffer, FieldDef.Size+1, @StrLenOrInd);
     ftSmallint:           // mapped to TSmallintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SSHORT, buffer, SizeOf(Smallint), @StrLenOrInd);
     ftInteger,ftWord,ftAutoInc:     // mapped to TLongintField
@@ -1023,12 +1023,12 @@ begin
     // convert type
     // NOTE: I made some guesses here after I found only limited information about TFieldType; please report any problems
     case DataType of
-      SQL_CHAR:          begin FieldType:=ftFixedChar;  FieldSize:=ColumnSize+1; end;
-      SQL_VARCHAR:       begin FieldType:=ftString;     FieldSize:=ColumnSize+1; end;
+      SQL_CHAR:          begin FieldType:=ftFixedChar;  FieldSize:=ColumnSize; end;
+      SQL_VARCHAR:       begin FieldType:=ftString;     FieldSize:=ColumnSize; end;
       SQL_LONGVARCHAR:   begin FieldType:=ftMemo;       FieldSize:=BLOB_BUF_SIZE; end; // is a blob
 {$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
-      SQL_WCHAR:         begin FieldType:=ftFixedWideChar; FieldSize:=(ColumnSize+1)*sizeof(Widechar); end;
-      SQL_WVARCHAR:      begin FieldType:=ftWideString; FieldSize:=(ColumnSize+1)*sizeof(Widechar); end;
+      SQL_WCHAR:         begin FieldType:=ftFixedWideChar; FieldSize:=ColumnSize*sizeof(Widechar); end;
+      SQL_WVARCHAR:      begin FieldType:=ftWideString; FieldSize:=ColumnSize*sizeof(Widechar); end;
       SQL_WLONGVARCHAR:  begin FieldType:=ftWideMemo;   FieldSize:=BLOB_BUF_SIZE; end; // is a blob
 {$ENDIF}
       SQL_DECIMAL:       begin FieldType:=ftFloat;      FieldSize:=0; end;
@@ -1063,7 +1063,7 @@ begin
 {      SQL_INTERVAL_HOUR_TO_SECOND:  FieldType:=ftUnknown;}
 {      SQL_INTERVAL_MINUTE_TO_SECOND:FieldType:=ftUnknown;}
 {$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
-      SQL_GUID:          begin FieldType:=ftGuid;       FieldSize:=ColumnSize+1; end;
+      SQL_GUID:          begin FieldType:=ftGuid;       FieldSize:=ColumnSize; end;
 {$ENDIF}
     else
       begin FieldType:=ftUnknown; FieldSize:=ColumnSize; end

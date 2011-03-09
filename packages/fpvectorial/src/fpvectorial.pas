@@ -39,6 +39,12 @@ const
   STR_WINMETAFILE_EXTENSION = '.wmf';
 
 type
+  T3DPoint = record
+    X, Y, Z: Double;
+  end;
+
+  P3DPoint = ^T3DPoint;
+
   TSegmentType = (
     st2DLine, st2DBezier,
     st3DLine, st3DBezier, stMoveTo);
@@ -159,6 +165,17 @@ type
     procedure CalculateBoundingRectangle;
   end;
 
+  {@@
+  }
+
+  { TvAlignedDimension }
+
+  TvAlignedDimension = class(TvEntity)
+  public
+    // Mandatory fields
+    BaseLeft, BaseRight, DimensionLeft, DimensionRight: T3DPoint;
+  end;
+
 type
 
   TvCustomVectorialWriter = class;
@@ -216,6 +233,8 @@ type
     procedure AddCircle(ACenterX, ACenterY, ACenterZ, ARadius: Double);
     procedure AddCircularArc(ACenterX, ACenterY, ACenterZ, ARadius, AStartAngle, AEndAngle: Double);
     procedure AddEllipse(CenterX, CenterY, CenterZ, MajorHalfAxis, MinorHalfAxis, Angle: Double);
+    // Dimensions
+    procedure AddAlignedDimension(BaseLeft, BaseRight, DimLeft, DimRight: T3DPoint);
     { properties }
     property PathCount: Integer read GetPathCount;
     property Paths[Index: Cardinal]: TPath read GetPath;
@@ -640,6 +659,19 @@ begin
   lEllipse.MinorHalfAxis := MinorHalfAxis;
   lEllipse.Angle := Angle;
   FEntities.Add(lEllipse);
+end;
+
+procedure TvVectorialDocument.AddAlignedDimension(BaseLeft, BaseRight,
+  DimLeft, DimRight: T3DPoint);
+var
+  lDim: TvAlignedDimension;
+begin
+  lDim := TvAlignedDimension.Create;
+  lDim.BaseLeft := BaseLeft;
+  lDim.BaseRight := BaseRight;
+  lDim.DimensionLeft := DimLeft;
+  lDim.DimensionRight := DimRight;
+  FEntities.Add(lDim);
 end;
 
 {@@

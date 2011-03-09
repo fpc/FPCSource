@@ -1,0 +1,86 @@
+#
+#   Makefile.fpc for Free Pascal libogcfpc 2.x.y Examples
+#
+
+[target]
+loaders= 
+programs=lesson4
+
+[require]
+packages=libogcfpc
+tools=bin2s rmdir gxtexconv
+nortl=y
+
+[install]
+fpcpackage=y
+
+[default]
+cpu=powerpc
+target=wii
+fpcdir=../../../../../../..
+
+[compiler]
+options=-g -Xm  
+
+[clean]
+files=*.elf *.o *.s *.h *.bin *.map \
+       $(BUILD)/* \
+       $(INC)/*
+units=*
+
+[prerules]
+BUILD = build
+INC = inc
+DATA = data
+TEXTURES = textures
+TPL_FILES = $(foreach dir,textures,$(notdir $(wildcard $(dir)/*.scf)))
+BIN_FILES = $(foreach dir,data,$(notdir $(wildcard $(dir)/*)))
+
+[rules]
+.NOTPARALLEL:
+clean: dir_delete fpc_clean fpc_cleanall
+all: dir_make $(TPL_FILES) $(BIN_FILES) fpc_all 
+
+#
+# Delete temp directories
+#
+dir_delete:
+        @$(DELTREE) $(CURDIR)/$(BUILD) 
+        @$(DELTREE) $(CURDIR)/$(INC) 
+        
+#
+# Create temp directories
+#
+dir_make:
+ifneq ($(BUILD), $(CURDIR))
+        @$(MKDIR) $(BUILD)
+endif
+ifneq ($(INC), $(CURDIR))
+        @$(MKDIR) $(INC)
+endif
+ifneq ($(DATA), $(CURDIR))
+        @$(MKDIR) $(DATA)
+endif
+
+#
+# Textures processing rule
+#
+$(TPL_FILES): $(wildcard %.scf) 
+        @echo 'Creating tpl file...'
+        $(GXTEXCONV) -s textures/$(@) -o $(DATA)/$(basename $(@)).tpl
+
+	
+#
+# Binary files processing rule
+# 
+$(BIN_FILES): $(wildcard %.*)
+        @echo 'Converting $(@) file to asm...'
+        @$(BIN2S) -a 32 data/$(@) > $(BUILD)/$(@).s
+        @echo 'Creating $(@).inc include file...'
+        @echo "var" > `(echo "inc/"$(@F) | tr . .)`.inc
+        @echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end: array [0..0] of cuint8; cvar; external;" >> `(echo "inc/"$(@F) | tr . .)`.inc
+        @echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`": array [0..0] of cuint8; cvar; external;" >> `(echo "inc/"$(@F) | tr . .)`.inc
+        @echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size": cuint32; cvar; external;" >> `(echo "inc/"$(@F) | tr . .)`.inc
+        @echo 'Assembling $(@).s file...'
+        @$(AS) -o $(BUILD)/$(@).o $(BUILD)/$(@).s
+        @echo 'Done!'

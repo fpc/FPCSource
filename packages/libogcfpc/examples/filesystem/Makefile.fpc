@@ -1,0 +1,18 @@
+#
+#   Makefile.fpc for Free Pascal libogcfpc 2.x.y Examples
+#
+
+[target]
+dirs=directory
+
+[require]
+packages=libogcfpc
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
+
+[rules]
+.NOTPARALLEL:

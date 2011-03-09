@@ -112,12 +112,13 @@
 {$endif m68k}
 
 {$ifdef avr}
-  {$define cpu16bit}
+  {$define cpu8bit}
   {$define cpu16bitaddr}
-  {$define cpu16bitalu}
+  {$define cpu8bitalu}
   {$define cpuflags}
   {$define cpunofpu}
   {$define cpunodefaultint}
+  {$define cpuneedsdiv32helper}
 {$endif avr}
 
 {$ifdef mipsel}

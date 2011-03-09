@@ -21,7 +21,7 @@ unit custfcgi;
 Interface
 
 uses
-  Classes,SysUtils, httpdefs,custweb, custcgi, fastcgi;
+  Classes,SysUtils, httpdefs, Sockets, custweb, custcgi, fastcgi;
 
 Type
   { TFCGIRequest }
@@ -60,9 +60,7 @@ Type
 
   TFCGIResponse = Class(TCGIResponse)
   private
-    FNoPadding: Boolean;
     FPO: TProtoColOptions;
-    FStripCL: Boolean;
     procedure Write_FCGIRecord(ARecord : PFCGI_Header);
   Protected
     Procedure DoSendHeaders(Headers : TStrings); override;
@@ -74,6 +72,8 @@ Type
              Request : TFCgiRequest;
              Response : TFCgiResponse;
              end;
+
+  { TFCgiHandler }
 
   TFCgiHandler = class(TWebHandler)
   Private
@@ -87,7 +87,9 @@ Type
     FPort: integer;
     function Read_FCGIRecord : PFCGI_Header;
   protected
-    function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
+    function  ProcessRecord(AFCGI_Record: PFCGI_Header; out ARequest: TRequest;  out AResponse: TResponse): boolean; virtual;
+    procedure SetupSocket(var IAddress: TInetSockAddr;  var AddressLength: tsocklen); virtual;
+    function  WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
     procedure EndRequest(ARequest : TRequest;AResponse : TResponse); override;
   Public
     constructor Create(AOwner: TComponent); override;
@@ -126,14 +128,15 @@ ResourceString
   SListenFailed     = 'Failed to listen to port %d. Socket Error: %d';
   SErrReadingSocket = 'Failed to read data from socket. Error: %d';
   SErrReadingHeader = 'Failed to read FastCGI header. Read only %d bytes';
+  SErrWritingSocket = 'Failed to write data to socket. Error: %d';
 
 Implementation
 
-uses
 {$ifdef CGIDEBUG}
-  dbugintf,
+uses
+  dbugintf;
 {$endif}
-  Sockets;
+
 
 {$undef nosignal}
 
@@ -315,9 +318,13 @@ begin
   P:=PByte(Arecord);
   Repeat
     BytesWritten := sockets.fpsend(TFCGIRequest(Request).Handle, P, BytesToWrite, NoSignalAttr);
+    If (BytesWritten<0) then
+      begin
+      // TODO : Better checking for closed connection, EINTR
+      Raise HTTPError.CreateFmt(SErrWritingSocket,[BytesWritten]);
+      end;
     Inc(P,BytesWritten);
     Dec(BytesToWrite,BytesWritten);
-//    Assert(BytesWritten=BytesToWrite);
   until (BytesToWrite=0) or (BytesWritten=0);
 end;
 
@@ -346,15 +353,18 @@ begin
     pl := 8-(cl mod 8);
   ARespRecord:=nil;
   Getmem(ARespRecord,8+cl+pl);
-  FillChar(ARespRecord^,8+cl+pl,0);
-  ARespRecord^.header.version:=FCGI_VERSION_1;
-  ARespRecord^.header.reqtype:=FCGI_STDOUT;
-  ARespRecord^.header.paddingLength:=pl;
-  ARespRecord^.header.contentLength:=NtoBE(cl);
-  ARespRecord^.header.requestId:=NToBE(TFCGIRequest(Request).RequestID);
-  move(str[1],ARespRecord^.ContentData,cl);
-  Write_FCGIRecord(PFCGI_Header(ARespRecord));
-  Freemem(ARespRecord);
+  try
+    FillChar(ARespRecord^,8+cl+pl,0);
+    ARespRecord^.header.version:=FCGI_VERSION_1;
+    ARespRecord^.header.reqtype:=FCGI_STDOUT;
+    ARespRecord^.header.paddingLength:=pl;
+    ARespRecord^.header.contentLength:=NtoBE(cl);
+    ARespRecord^.header.requestId:=NToBE(TFCGIRequest(Request).RequestID);
+    move(str[1],ARespRecord^.ContentData,cl);
+    Write_FCGIRecord(PFCGI_Header(ARespRecord));
+  finally
+    Freemem(ARespRecord);
+  end;
 end;
 
 procedure TFCGIResponse.DoSendContent;
@@ -392,14 +402,17 @@ begin
       pl := 8-(cl mod 8);
     ARespRecord:=Nil;
     Getmem(ARespRecord,8+cl+pl);
-    ARespRecord^.header.version:=FCGI_VERSION_1;
-    ARespRecord^.header.reqtype:=FCGI_STDOUT;
-    ARespRecord^.header.paddingLength:=pl;
-    ARespRecord^.header.contentLength:=NtoBE(cl);
-    ARespRecord^.header.requestId:=NToBE(TFCGIRequest(Request).RequestID);
-    move(Str[BS+1],ARespRecord^.ContentData,cl);
-    Write_FCGIRecord(PFCGI_Header(ARespRecord));
-    Freemem(ARespRecord);
+    try
+      ARespRecord^.header.version:=FCGI_VERSION_1;
+      ARespRecord^.header.reqtype:=FCGI_STDOUT;
+      ARespRecord^.header.paddingLength:=pl;
+      ARespRecord^.header.contentLength:=NtoBE(cl);
+      ARespRecord^.header.requestId:=NToBE(TFCGIRequest(Request).RequestID);
+      move(Str[BS+1],ARespRecord^.ContentData,cl);
+      Write_FCGIRecord(PFCGI_Header(ARespRecord));
+    finally
+      Freemem(ARespRecord);
+    end;
     Inc(BS,cl);
   Until (BS=L);
   FillChar(EndRequest,SizeOf(FCGI_EndRequestRecord),0);
@@ -452,6 +465,30 @@ begin
 end;
 
 function TFCgiHandler.Read_FCGIRecord : PFCGI_Header;
+{ $DEFINE DUMPRECORD}
+{$IFDEF DUMPRECORD}
+  Procedure DumpFCGIRecord (Var Header :FCGI_Header; ContentLength : word; PaddingLength : byte; ResRecord : Pointer);
+
+  Var
+    s : string;
+    I : Integer;
+
+  begin
+      Writeln('Dumping record ', Sizeof(Header),',',Contentlength,',',PaddingLength);
+      For I:=0 to Sizeof(Header)+ContentLength+PaddingLength-1 do
+        begin
+        Write(Format('%:3d ',[PByte(ResRecord)[i]]));
+        If PByte(ResRecord)[i]>30 then
+          S:=S+char(PByte(ResRecord)[i]);
+        if (I mod 16) = 0 then
+           begin
+           writeln('  ',S);
+           S:='';
+           end;
+        end;
+      Writeln('  ',S)
+  end;
+{$ENDIF DUMPRECORD}
 
   function ReadBytes(ReadBuf: Pointer; ByteAmount : Word) : Integer;
 
@@ -477,12 +514,11 @@ function TFCgiHandler.Read_FCGIRecord : PFCGI_Header;
   end;
 
 var Header : FCGI_Header;
-    {I,}BytesRead : integer;
+    BytesRead : integer;
     ContentLength : word;
     PaddingLength : byte;
     ResRecord : pointer;
     ReadBuf : pointer;
-    s : string;
 
 
 begin
@@ -490,119 +526,141 @@ begin
   ResRecord:=Nil;
   ReadBuf:=@Header;
   BytesRead:=ReadBytes(ReadBuf,Sizeof(Header));
-  If (BytesRead<>Sizeof(Header)) then
+  If (BytesRead=0) then
+    Exit // Connection closed gracefully.
+    // TODO : if connection closed gracefully, the request should no longer be handled.
+    // Need to discard request/response
+  else If (BytesRead<>Sizeof(Header)) then
     Raise HTTPError.CreateFmt(SErrReadingHeader,[BytesRead]);
   ContentLength:=BetoN(Header.contentLength);
   PaddingLength:=Header.paddingLength;
   Getmem(ResRecord,BytesRead+ContentLength+PaddingLength);
-  PFCGI_Header(ResRecord)^:=Header;
-  ReadBuf:=ResRecord+BytesRead;
-  BytesRead:=ReadBytes(ReadBuf,ContentLength);
-  ReadBuf:=ReadBuf+BytesRead;
-  BytesRead:=ReadBytes(ReadBuf,PaddingLength);
-  Result := ResRecord;
-{
-  Writeln('Dumping record ', Sizeof(Header),',',Contentlength,',',PaddingLength);
-  For I:=0 to Sizeof(Header)+ContentLength+PaddingLength-1 do
+  try
+    PFCGI_Header(ResRecord)^:=Header;
+    ReadBuf:=ResRecord+BytesRead;
+    BytesRead:=ReadBytes(ReadBuf,ContentLength);
+    If (BytesRead=0) then
+      begin
+      FreeMem(resRecord);
+      Exit // Connection closed gracefully.
+      // TODO : properly handle connection close
+      end;
+    ReadBuf:=ReadBuf+BytesRead;
+    BytesRead:=ReadBytes(ReadBuf,PaddingLength);
+    If (BytesRead=0) then
+      begin
+      FreeMem(resRecord);
+      Exit // Connection closed gracefully.
+      // TODO : properly handle connection close
+      end;
+    Result := ResRecord;
+  except
+    FreeMem(resRecord);
+    Raise;
+  end;
+end;
+
+procedure TFCgiHandler.SetupSocket(var IAddress : TInetSockAddr; Var AddressLength : tsocklen);
+
+begin
+  AddressLength:=Sizeof(IAddress);
+  Socket := fpsocket(AF_INET,SOCK_STREAM,0);
+  if Socket=-1 then
+    raise EFPWebError.CreateFmt(SNoSocket,[socketerror]);
+  IAddress.sin_family:=AF_INET;
+  IAddress.sin_port:=htons(Port);
+  if FAddress<>'' then
+    Iaddress.sin_addr := StrToHostAddr(FAddress)
+  else
+    IAddress.sin_addr.s_addr:=0;
+  if fpbind(Socket,@IAddress,AddressLength)=-1 then
     begin
-    Write(Format('%:3d ',[PByte(ResRecord)[i]]));
-    If PByte(ResRecord)[i]>30 then
-      S:=S+char(PByte(ResRecord)[i]);
-    if (I mod 16) = 0 then
-       begin
-       writeln('  ',S);
-       S:='';
-       end;
+    CloseSocket(socket);
+    Socket:=0;
+    Terminate;
+    raise Exception.CreateFmt(SBindFailed,[port,socketerror]);
     end;
-  Writeln('  ',S)
-}
+  if fplisten(Socket,1)=-1 then
+    begin
+    CloseSocket(socket);
+    Socket:=0;
+    Terminate;
+    raise Exception.CreateFmt(SListenFailed,[port,socketerror]);
+    end;
+end;
+
+function TFCgiHandler.ProcessRecord(AFCGI_Record  : PFCGI_Header; out ARequest: TRequest; out AResponse: TResponse): boolean;
+
+var
+  ARequestID    : word;
+  ATempRequest  : TFCGIRequest;
+begin
+  Result:=False;
+  ARequestID:=BEtoN(AFCGI_Record^.requestID);
+  if AFCGI_Record^.reqtype = FCGI_BEGIN_REQUEST then
+    begin
+    if ARequestID>FRequestsAvail then
+      begin
+      inc(FRequestsAvail,10);
+      SetLength(FRequestsArray,FRequestsAvail);
+      end;
+    assert(not assigned(FRequestsArray[ARequestID].Request));
+    assert(not assigned(FRequestsArray[ARequestID].Response));
+    ATempRequest:=TFCGIRequest.Create;
+    ATempRequest.RequestID:=ARequestID;
+    ATempRequest.Handle:=FHandle;
+    ATempRequest.ProtocolOptions:=Self.Protocoloptions;
+    ATempRequest.OnUnknownRecord:=Self.OnUnknownRecord;
+    FRequestsArray[ARequestID].Request := ATempRequest;
+    end;
+  if (ARequestID>FRequestsAvail) then
+    begin
+    // TODO : ARequestID can be invalid. What to do ?
+    // in each case not try to access the array with requests.
+    end
+  else if FRequestsArray[ARequestID].Request.ProcessFCGIRecord(AFCGI_Record) then
+    begin
+    ARequest:=FRequestsArray[ARequestID].Request;
+    FRequestsArray[ARequestID].Response := TFCGIResponse.Create(ARequest);
+    FRequestsArray[ARequestID].Response.ProtocolOptions:=Self.ProtocolOptions;
+    AResponse:=FRequestsArray[ARequestID].Response;
+    Result := True;
+    end;
 end;
 
 function TFCgiHandler.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
+
 var
   IAddress      : TInetSockAddr;
   AddressLength : tsocklen;
-  ARequestID    : word;
   AFCGI_Record  : PFCGI_Header;
-  ATempRequest  : TFCGIRequest;
 
 begin
   Result := False;
-  AddressLength:=Sizeof(IAddress);
-
   if Socket=0 then
-    begin
     if Port<>0 then
-      begin
-      Socket := fpsocket(AF_INET,SOCK_STREAM,0);
-      if Socket=-1 then
-        raise EFPWebError.CreateFmt(SNoSocket,[socketerror]);
-      IAddress.sin_family:=AF_INET;
-      IAddress.sin_port:=htons(Port);
-      if FAddress<>'' then
-        Iaddress.sin_addr := StrToHostAddr(FAddress)
-      else
-        IAddress.sin_addr.s_addr:=0;
-      if fpbind(Socket,@IAddress,AddressLength)=-1 then
-        begin
-        CloseSocket(socket);
-        Socket:=0;
-        raise Exception.CreateFmt(SBindFailed,[port,socketerror]);
-        end;
-      if fplisten(Socket,1)=-1 then
-        begin
-        CloseSocket(socket);
-        Socket:=0;
-        raise Exception.CreateFmt(SListenFailed,[port,socketerror]);
-        end;
-      end
+      SetupSocket(IAddress,AddressLength)
     else
       Socket:=StdInputHandle;
-    end;
-
   if FHandle=THandle(-1) then
     begin
     FHandle:=fpaccept(Socket,psockaddr(@IAddress),@AddressLength);
     if FHandle=THandle(-1) then
+      begin
+      Terminate;
       raise Exception.CreateFmt(SNoInputHandle,[socketerror]);
+      end;
     end;
-
   repeat
-  AFCGI_Record:=Read_FCGIRecord;
-  if assigned(AFCGI_Record) then
+    AFCGI_Record:=Read_FCGIRecord;
+    if assigned(AFCGI_Record) then
     try
-      ARequestID:=BEtoN(AFCGI_Record^.requestID);
-      if AFCGI_Record^.reqtype = FCGI_BEGIN_REQUEST then
-        begin
-        if ARequestID>FRequestsAvail then
-          begin
-          inc(FRequestsAvail,10);
-          SetLength(FRequestsArray,FRequestsAvail);
-          end;
-        assert(not assigned(FRequestsArray[ARequestID].Request));
-        assert(not assigned(FRequestsArray[ARequestID].Response));
-
-        ATempRequest:=TFCGIRequest.Create;
-        ATempRequest.RequestID:=ARequestID;
-        ATempRequest.Handle:=FHandle;
-        ATempRequest.ProtocolOptions:=Self.Protocoloptions;
-        ATempRequest.OnUnknownRecord:=Self.OnUnknownRecord;
-        FRequestsArray[ARequestID].Request := ATempRequest;
-        end;
-      if FRequestsArray[ARequestID].Request.ProcessFCGIRecord(AFCGI_Record) then
-        begin
-        ARequest:=FRequestsArray[ARequestID].Request;
-        FRequestsArray[ARequestID].Response := TFCGIResponse.Create(ARequest);
-        FRequestsArray[ARequestID].Response.ProtocolOptions:=Self.ProtocolOptions;
-        AResponse:=FRequestsArray[ARequestID].Response;
-        Result := True;
-        Break;
-        end;
+      Result:=ProcessRecord(AFCGI_Record,ARequest,AResponse);
     Finally
       FreeMem(AFCGI_Record);
       AFCGI_Record:=Nil;
     end;
-  until (1<>1);
+  until Result;
 end;
 
 { TCustomFCgiApplication }

@@ -257,6 +257,7 @@ type
     function getint64:int64;
     function  getqword:qword;
     function getaint:aint;
+    function getasizeint:asizeint;
     function getaword:aword;
     function  getreal:ppureal;
     function  getstring:string;
@@ -715,6 +716,16 @@ begin
 {$else cpu64bitalu}
   result:=getlongint;
 {$endif cpu64bitalu}
+end;
+
+
+function tppufile.getasizeint:asizeint;
+begin
+{$ifdef cpu64bitaddr}
+  result:=getint64;
+{$else cpu64bitaddr}
+  result:=getlongint;
+{$endif cpu32bitaddr}
 end;
 
 

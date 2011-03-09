@@ -109,10 +109,7 @@ unit cpupara;
             orddef:
               getparaloc:=LOC_REGISTER;
             floatdef:
-              if (calloption in [pocall_cdecl,pocall_cppdecl,pocall_softfloat]) or (cs_fp_emulation in current_settings.moduleswitches) then
-                getparaloc:=LOC_REGISTER
-              else
-                getparaloc:=LOC_FPUREGISTER;
+              getparaloc:=LOC_REGISTER;
             enumdef:
               getparaloc:=LOC_REGISTER;
             pointerdef:

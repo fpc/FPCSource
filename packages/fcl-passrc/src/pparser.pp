@@ -766,6 +766,40 @@ begin
     tkfalse, tktrue:    x:=TBoolConstExpr.Create(Aparent,pekBoolConst, CurToken=tktrue);
     tknil:              x:=TNilExpr.Create(Aparent);
     tkSquaredBraceOpen: x:=ParseParams(AParent,pekSet);
+    tkinherited: begin
+      //inherited; inherited function
+      x:=TInheritedExpr.Create(AParent);
+      NextToken;
+      if (length(CurTokenText)>0) and (CurTokenText[1] in ['A'..'_']) then begin
+        b:=TBinaryExpr.Create(AParent,x, DoParseExpression(AParent), eopNone);
+        if not Assigned(b.right) then Exit; // error
+        x:=b;
+        UngetToken;
+      end
+       else UngetToken;
+    end;
+    tkself: begin
+      x:=TPrimitiveExpr.Create(AParent,pekString, CurTokenText); //function(self);
+      x:=TSelfExpr.Create(AParent);
+      NextToken;
+      if CurToken = tkDot then begin // self.Write(EscapeText(AText));
+        optk:=CurToken;
+        NextToken;
+        b:=TBinaryExpr.Create(AParent,x, ParseExpIdent(AParent), TokenToExprOp(optk));
+        if not Assigned(b.right) then Exit; // error
+        x:=b;
+      end
+       else UngetToken;
+    end;
+    tkAt: begin
+      // P:=@function;
+      NextToken;
+      if (length(CurTokenText)=0) or not (CurTokenText[1] in ['A'..'_']) then begin
+        UngetToken;
+        ParseExc(SParserExpectedIdentifier);
+      end;
+      x:=TPrimitiveExpr.Create(AParent,pekString, '@'+CurTokenText);
+    end;
     tkCaret: begin
       // ^A..^_ characters. See #16341
       NextToken;
@@ -2714,6 +2748,27 @@ begin
           // empty then => add dummy command
           CurBlock.AddCommand('');
         end;
+        if TPasImplIfElse(CurBlock).ElseBranch<>nil then
+        begin
+          // this and the following 3 may solve TPasImplIfElse.AddElement BUG
+          // ifs without begin end
+          // if .. then
+          //  if .. then
+          //   else
+          // else
+          CloseBlock;
+          CloseStatement(false);
+        end;
+      end else if (CurBlock is TPasImplWhileDo) then
+      begin
+        //if .. then while .. do smt else ..
+        CloseBlock;
+        UngetToken;
+      end else if (CurBlock is TPasImplRaise) then
+      begin
+        //if .. then Raise Exception else ..
+        CloseBlock;
+        UngetToken;
       end else if (CurBlock is TPasImplTryExcept) then
       begin
         CloseBlock;
@@ -2795,16 +2850,17 @@ begin
             repeat
               Expr:=ParseExpression(Parent);
               //writeln(i,'CASE value="',Expr,'" Token=',CurTokenText);
-              if CurBlock is TPasImplCaseStatement then
-                TPasImplCaseStatement(CurBlock).Expressions.Add(Expr)
-              else
-                CurBlock:=TPasImplCaseOf(CurBlock).AddCase(Expr);
               NextToken;
               if CurToken=tkDotDot then
               begin
                 Expr:=Expr+'..'+ParseExpression(Parent);
                 NextToken;
               end;
+              // do not miss '..'
+              if CurBlock is TPasImplCaseStatement then
+                TPasImplCaseStatement(CurBlock).Expressions.Add(Expr)
+              else
+                CurBlock:=TPasImplCaseOf(CurBlock).AddCase(Expr);
               //writeln(i,'CASE after value Token=',CurTokenText);
               if CurToken=tkColon then break;
               if CurToken<>tkComma then
@@ -2932,7 +2988,7 @@ begin
         begin
           // assign statement
           NextToken;
-          right:=ParseExpIdent(Parent);
+          right:=DoParseExpression(nil); // this may solve TPasImplWhileDo.AddElement BUG
           CmdElem:=CurBlock.AddAssign(left, right);
           UngetToken;
         end;
@@ -2943,7 +2999,7 @@ begin
           // label mark. todo: check mark identifier in the list of labels
           CmdElem:=CurBlock.AddLabelMark(TPrimitiveExpr(left).Value);
           left.Free;
-        end
+        end;
       else
         // simple statement (function call)
         CmdElem:=CurBlock.AddSimple(left);
@@ -3130,36 +3186,62 @@ function TPasParser.ParseClassDecl(Parent: TPasElement;
 var
   CurVisibility: TPasMemberVisibility;
 
-  procedure ProcessMethod(const MethodTypeName: String; HasReturnValue: Boolean);
+  procedure ProcessMethod(ProcType: TProcType);
   var
     Owner: TPasElement;
     Proc: TPasProcedure;
-    s: String;
+    s,Name: String;
     pt: TProcType;
+    HasReturnValue: Boolean;
+
   begin
+    HasReturnValue:=false;
     ExpectIdentifier;
-    Owner := CheckIfOverloaded(TPasClassType(Result), CurTokenString);
-    if HasReturnValue then
+    Name := CurTokenString;
+    Owner := CheckIfOverloaded(TPasClassType(Result), Name);
+    case ProcType of
+     ptFunction:
     begin
-      Proc := TPasFunction(CreateElement(TPasFunction, CurTokenString, Owner,
+         Proc := TPasFunction(CreateElement(TPasFunction, Name, Owner,
         CurVisibility));
       Proc.ProcType := Engine.CreateFunctionType('', 'Result', Proc, True,
         Scanner.CurFilename, Scanner.CurRow);
-    end else
+        HasReturnValue:=true;
+       end;
+     ptClassFunction:
     begin
-      // !!!: The following is more than ugly
-      if MethodTypeName = 'constructor' then
-        Proc := TPasConstructor(CreateElement(TPasConstructor, CurTokenString,
-          Owner, CurVisibility))
-      else if MethodTypeName = 'destructor' then
-        Proc := TPasDestructor(CreateElement(TPasDestructor, CurTokenString,
-          Owner, CurVisibility))
+         Proc := TPasClassFunction(CreateElement(TPasClassFunction, Name, Owner));
+         Proc.ProcType := Engine.CreateFunctionType('', 'Result', Proc, True,
+          Scanner.CurFilename, Scanner.CurRow);
+         HasReturnValue:=true;
+       end;
+     ptClassProcedure:
+       begin
+         Proc := TPasClassProcedure(CreateElement(TPasClassProcedure, Name, Owner));
+         Proc.ProcType := TPasProcedureType(CreateElement(TPasProcedureType, '',
+          Proc, CurVisibility));
+       end;
+     ptConstructor:
+       begin
+        Proc := TPasConstructor(CreateElement(TPasConstructor, Name,
+          Owner, CurVisibility));
+        Proc.ProcType := TPasProcedureType(CreateElement(TPasProcedureType, '',
+          Proc, CurVisibility));
+       end;
+     ptDestructor:
+       begin
+        Proc := TPasDestructor(CreateElement(TPasDestructor, Name,
+          Owner, CurVisibility));
+        Proc.ProcType := TPasProcedureType(CreateElement(TPasProcedureType, '',
+          Proc, CurVisibility));
+       end;
       else
-        Proc := TPasProcedure(CreateElement(TPasProcedure, CurTokenString,
+        Proc := TPasProcedure(CreateElement(TPasProcedure, Name,
           Owner, CurVisibility));
       Proc.ProcType := TPasProcedureType(CreateElement(TPasProcedureType, '',
         Proc, CurVisibility));
     end;
+    
     if Owner.ClassType = TPasOverloadedProc then
       TPasOverloadedProc(Owner).Overloads.Add(Proc)
     else
@@ -3302,6 +3384,8 @@ begin
     end
     else
       TPasClassType(Result).isForward:=CurToken=tkSemicolon;
+    if CurToken = tkSemicolon then
+       TPasClassType(Result).IsShortDefinition:=true;
 
     if CurToken <> tkSemicolon then
     begin
@@ -3364,13 +3448,19 @@ begin
 
             end;
           tkProcedure:
-            ProcessMethod('procedure', False);
+            ProcessMethod(ptProcedure);
           tkFunction:
-            ProcessMethod('function', True);
+            ProcessMethod(ptFunction);
           tkConstructor:
-            ProcessMethod('constructor', False);
+            ProcessMethod(ptConstructor);
           tkDestructor:
-            ProcessMethod('destructor', False);
+            ProcessMethod(ptDestructor);
+          tkclass:
+            begin
+             NextToken;
+             if CurToken = tkprocedure then ProcessMethod(ptClassProcedure)
+              else ProcessMethod(ptClassFunction);
+            end;               
           tkProperty:
             begin
               ExpectIdentifier;

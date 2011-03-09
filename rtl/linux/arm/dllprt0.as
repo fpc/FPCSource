@@ -1,5 +1,36 @@
-.file   "androidprt0.as"
+.file   "dllprt0.as"
 .text
+        .globl  _startlib
+        .type   _startlib,#function
+_startlib:
+        .globl  FPC_SHARED_LIB_START
+        .type   FPC_SHARED_LIB_START,#function
+FPC_SHARED_LIB_START:
+        mov ip, sp
+        push {fp, ip, lr, pc}
+        sub fp, ip, #4
+
+        /* a1 contains argc, a2 contains argv and a3 contains envp */
+        ldr ip, =operatingsystem_parameter_argc
+        str a1, [ip]
+
+        ldr ip, =operatingsystem_parameter_argv
+        str a2, [ip]
+
+        ldr ip, =operatingsystem_parameter_envp
+        str a3, [ip]
+
+        /* save initial stackpointer */
+        ldr ip, =__stklen
+        str sp, [ip]
+
+        ldr ip, =TC_SYSTEM_ISLIBRARY
+        mov a1, #1
+        str a1, [ip]
+
+        /* call main and exit normally */
+        bl PASCALMAIN
+        ldmdb fp, {fp, sp, pc}
 
         .globl  _haltproc
         .type   _haltproc,#function
@@ -32,3 +63,4 @@ operatingsystem_parameters:
 .bss
 
         .comm __stkptr,4
+

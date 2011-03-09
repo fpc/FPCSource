@@ -8,12 +8,12 @@
 
 const
   NSWindowsNTOperatingSystem = 1;
-  NSWindows95OperatingSystem = 0;
-  NSSolarisOperatingSystem = 1;
-  NSHPUXOperatingSystem = 2;
-  NSMACHOperatingSystem = 3;
-  NSSunOSOperatingSystem = 4;
-  NSOSF1OperatingSystem = 5;
+  NSWindows95OperatingSystem = 2;
+  NSSolarisOperatingSystem = 3;
+  NSHPUXOperatingSystem = 4;
+  NSMACHOperatingSystem = 5;
+  NSSunOSOperatingSystem = 6;
+  NSOSF1OperatingSystem = 7;
 
 {$endif}
 {$endif}

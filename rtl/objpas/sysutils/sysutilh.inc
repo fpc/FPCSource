@@ -197,7 +197,7 @@ type
    ESafecallException = class(Exception);
    ENoThreadSupport = Class(Exception);
    ENoWideStringSupport = Class(Exception);
-
+   ENotImplemented = class(Exception);
 
    { Exception handling routines }
    function ExceptObject: TObject;

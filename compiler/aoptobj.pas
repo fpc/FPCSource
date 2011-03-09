@@ -991,6 +991,7 @@ Unit AoptObj;
                         strpnew('next label reused'))));
       {$endif finaldestdebug}
                       l.increfs;
+                      tasmlabel(hp.oper[0]^.ref^.symbol).decrefs;
                       hp.oper[0]^.ref^.symbol := l;
                       if not GetFinalDestination(hp,succ(level)) then
                         exit;
@@ -1037,6 +1038,12 @@ Unit AoptObj;
                                 (hp1.typ <> ait_label) do
                             if not(hp1.typ in ([ait_label,ait_align]+skipinstr)) then
                               begin
+                                if (hp1.typ = ait_instruction) and
+                                   taicpu(hp1).is_jmp and
+                                   (taicpu(hp1).oper[0]^.typ = top_ref) and
+                                   assigned(taicpu(hp1).oper[0]^.ref^.symbol) and
+                                   (taicpu(hp1).oper[0]^.ref^.symbol is TAsmLabel) then
+                                   TAsmLabel(taicpu(hp1).oper[0]^.ref^.symbol).decrefs;
                                 asml.remove(hp1);
                                 hp1.free;
                               end
@@ -1051,6 +1058,7 @@ Unit AoptObj;
                             begin
                               hp2:=tai(hp1.next);
                               asml.remove(p);
+                              tasmlabel(taicpu(p).oper[0]^.ref^.symbol).decrefs;
                               p.free;
                               p:=hp2;
                               continue;

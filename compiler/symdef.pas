@@ -70,7 +70,7 @@ interface
           procedure buildderefimpl;override;
           procedure deref;override;
           procedure derefimpl;override;
-          function  size:aint;override;
+          function  size:asizeint;override;
           function  getvardef:longint;override;
           function  alignment:shortint;override;
           function  is_publishable : boolean;override;
@@ -83,7 +83,7 @@ interface
           { generics }
           procedure initgeneric;
        private
-          savesize  : aint;
+          savesize  : asizeuint;
        end;
 
        tfiletyp = (ft_text,ft_typed,ft_untyped);
@@ -205,7 +205,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
-          function  size:aint;override;
+          function  size:asizeint;override;
           function  alignment : shortint;override;
           function  padalignment: shortint;
           function  GetTypeName:string;override;
@@ -302,7 +302,7 @@ interface
           procedure resetvmtentries;
           procedure copyvmtentries(objdef:tobjectdef);
           function  getparentdef:tdef;override;
-          function  size : aint;override;
+          function  size : asizeint;override;
           function  alignment:shortint;override;
           function  vmtmethodoffset(index:longint):longint;
           function  members_need_inittable : boolean;
@@ -350,7 +350,7 @@ interface
 
        tarraydef = class(tstoreddef)
           lowrange,
-          highrange     : aint;
+          highrange     : asizeint;
           rangedef      : tdef;
           rangedefderef : tderef;
           arrayoptions  : tarraydefoptions;
@@ -360,11 +360,11 @@ interface
           _elementdefderef : tderef;
           procedure setelementdef(def:tdef);
        public
-          function elesize : aint;
-          function elepackedbitsize : aint;
-          function elecount : aword;
+          function elesize : asizeint;
+          function elepackedbitsize : asizeint;
+          function elecount : asizeuint;
           constructor create_from_pointer(def:tdef);
-          constructor create(l,h:aint;def:tdef);
+          constructor create(l,h:asizeint;def:tdef);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy; override;
           function getcopy : tstoreddef;override;
@@ -373,7 +373,7 @@ interface
           function  getmangledparaname : string;override;
           procedure buildderef;override;
           procedure deref;override;
-          function size : aint;override;
+          function size : asizeint;override;
           function alignment : shortint;override;
           { returns the label of the range check string }
           function needs_inittable : boolean;override;
@@ -392,7 +392,7 @@ interface
           function  GetTypeName:string;override;
           function alignment:shortint;override;
           procedure setsize;
-          function  packedbitsize: aint; override;
+          function  packedbitsize: asizeint; override;
           function getvardef : longint;override;
        end;
 
@@ -455,7 +455,7 @@ interface
           function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  GetSymtable(t:tGetSymtable):TSymtable;override;
-          function  size : aint;override;
+          function  size : asizeint;override;
           function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
           function  is_methodpointer:boolean;override;
@@ -583,10 +583,10 @@ interface
 
        tstringdef = class(tstoreddef)
           stringtype : tstringtype;
-          len        : aint;
+          len        : asizeint;
           constructor createshort(l : byte);
           constructor loadshort(ppufile:tcompilerppufile);
-          constructor createlong(l : aint);
+          constructor createlong(l : asizeint);
           constructor loadlong(ppufile:tcompilerppufile);
           constructor createansi;
           constructor loadansi(ppufile:tcompilerppufile);
@@ -609,13 +609,13 @@ interface
 
        tenumdef = class(tstoreddef)
           minval,
-          maxval    : aint;
+          maxval    : asizeint;
           has_jumps : boolean;
           basedef   : tenumdef;
           basedefderef : tderef;
           symtable  : TSymtable;
           constructor create;
-          constructor create_subrange(_basedef:tenumdef;_min,_max:aint);
+          constructor create_subrange(_basedef:tenumdef;_min,_max:asizeint);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           function getcopy : tstoreddef;override;
@@ -625,11 +625,11 @@ interface
           function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
           procedure calcsavesize;
-          function  packedbitsize: aint; override;
-          procedure setmax(_max:aint);
-          procedure setmin(_min:aint);
-          function  min:aint;
-          function  max:aint;
+          function  packedbitsize: asizeint; override;
+          procedure setmax(_max:asizeint);
+          procedure setmin(_min:asizeint);
+          function  min:asizeint;
+          function  max:asizeint;
           function  getfirstsym:tsym;
        end;
 
@@ -638,7 +638,7 @@ interface
           elementdefderef : tderef;
           setbase,
           setmax   : aword;
-          constructor create(def:tdef;low, high : aint);
+          constructor create(def:tdef;low, high : asizeint);
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1116,7 +1116,7 @@ implementation
       end;
 
 
-    function tstoreddef.size : aint;
+    function tstoreddef.size : asizeint;
       begin
          size:=savesize;
       end;
@@ -1176,7 +1176,7 @@ implementation
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
-                (recsize <= sizeof(aint));
+                (recsize <= sizeof(asizeint));
             end;
         end;
      end;
@@ -1222,7 +1222,7 @@ implementation
       end;
 
 
-    constructor tstringdef.createlong(l : aint);
+    constructor tstringdef.createlong(l : asizeint);
       begin
          inherited create(stringdef);
          stringtype:=st_longstring;
@@ -1235,7 +1235,7 @@ implementation
       begin
          inherited ppuload(stringdef,ppufile);
          stringtype:=st_longstring;
-         len:=ppufile.getaint;
+         len:=ppufile.getasizeint;
          savesize:=sizeof(pint);
       end;
 
@@ -1410,7 +1410,7 @@ implementation
       end;
 
 
-    constructor tenumdef.create_subrange(_basedef:tenumdef;_min,_max:aint);
+    constructor tenumdef.create_subrange(_basedef:tenumdef;_min,_max:asizeint);
       begin
          inherited create(enumdef);
          minval:=_min;
@@ -1486,7 +1486,7 @@ implementation
       end;
 
 
-    function tenumdef.packedbitsize: aint;
+    function tenumdef.packedbitsize: asizeint;
       var
         sizeval: tconstexprint;
         power: longint;
@@ -1509,27 +1509,27 @@ implementation
       end;
 
 
-    procedure tenumdef.setmax(_max:aint);
+    procedure tenumdef.setmax(_max:asizeint);
       begin
         maxval:=_max;
         calcsavesize;
       end;
 
 
-    procedure tenumdef.setmin(_min:aint);
+    procedure tenumdef.setmin(_min:asizeint);
       begin
         minval:=_min;
         calcsavesize;
       end;
 
 
-    function tenumdef.min:aint;
+    function tenumdef.min:asizeint;
       begin
         min:=minval;
       end;
 
 
-    function tenumdef.max:aint;
+    function tenumdef.max:asizeint;
       begin
         max:=maxval;
       end;
@@ -1656,7 +1656,7 @@ implementation
       end;
 
 
-    function torddef.packedbitsize: aint;
+    function torddef.packedbitsize: asizeint;
       var
         sizeval: tconstexprint;
         power: longint;
@@ -1928,7 +1928,8 @@ implementation
             else
               savesize:=368;
         end;
-{$else cpu64bitaddr}
+{$endif cpu64bitaddr}
+{$ifdef cpu32bitaddr}
         case filetyp of
           ft_text :
             savesize:=592{+4};
@@ -1936,7 +1937,16 @@ implementation
           ft_untyped :
             savesize:=332;
         end;
-{$endif cpu64bitaddr}
+{$endif cpu32bitaddr}
+{$ifdef cpu8bitaddr}
+        case filetyp of
+          ft_text :
+            savesize:=127;
+          ft_typed,
+          ft_untyped :
+            savesize:=127;
+        end;
+{$endif cpu8bitaddr}
       end;
 
 
@@ -2214,7 +2224,7 @@ implementation
                                    TSETDEF
 ***************************************************************************}
 
-    constructor tsetdef.create(def:tdef;low, high : aint);
+    constructor tsetdef.create(def:tdef;low, high : asizeint);
       var
         setallocbits: aint;
         packedsavesize: aint;
@@ -2343,7 +2353,7 @@ implementation
                            TARRAYDEF
 ***************************************************************************}
 
-    constructor tarraydef.create(l,h:aint;def:tdef);
+    constructor tarraydef.create(l,h:asizeint;def:tdef);
       begin
          inherited create(arraydef);
          lowrange:=l;
@@ -2423,7 +2433,7 @@ implementation
       end;
 
 
-    function tarraydef.elesize : aint;
+    function tarraydef.elesize : asizeint;
       begin
         if (ado_IsBitPacked in arrayoptions) then
           internalerror(2006080101);
@@ -2434,7 +2444,7 @@ implementation
       end;
 
 
-    function tarraydef.elepackedbitsize : aint;
+    function tarraydef.elepackedbitsize : asizeint;
       begin
         if not(ado_IsBitPacked in arrayoptions) then
           internalerror(2006080102);
@@ -2445,7 +2455,7 @@ implementation
       end;
 
 
-    function tarraydef.elecount : aword;
+    function tarraydef.elecount : asizeuint;
       var
         qhigh,qlow : qword;
       begin
@@ -2459,7 +2469,7 @@ implementation
             qhigh:=highrange;
             qlow:=qword(-lowrange);
             { prevent overflow, return 0 to indicate overflow }
-            if qhigh+qlow>qword(high(aint)-1) then
+            if qhigh+qlow>qword(high(asizeint)-1) then
               result:=0
             else
               result:=qhigh+qlow+1;
@@ -2469,10 +2479,10 @@ implementation
       end;
 
 
-    function tarraydef.size : aint;
+    function tarraydef.size : asizeint;
       var
-        cachedelecount : aword;
-        cachedelesize : aint;
+        cachedelecount : asizeuint;
+        cachedelesize : asizeint;
       begin
         if ado_IsDynamicArray in arrayoptions then
           begin
@@ -2503,17 +2513,17 @@ implementation
 
         { prevent overflow, return -1 to indicate overflow }
         { also make sure we don't need 64/128 bit arithmetic to calculate offsets }
-        if (cachedelecount > aword(high(aint))) or
-           ((high(aint) div cachedelesize) < aint(cachedelecount)) or
-           { also lowrange*elesize must be < high(aint) to prevent overflow when
+        if (cachedelecount > asizeuint(high(asizeint))) or
+           ((high(asizeint) div cachedelesize) < asizeint(cachedelecount)) or
+           { also lowrange*elesize must be < high(asizeint) to prevent overflow when
              accessing the array, see ncgmem (PFV) }
-           ((high(aint) div cachedelesize) < abs(lowrange)) then
+           ((high(asizeint) div cachedelesize) < abs(lowrange)) then
           begin
             result:=-1;
             exit;
           end;
 
-        result:=cachedelesize*aint(cachedelecount);
+        result:=cachedelesize*asizeint(cachedelecount);
         if (ado_IsBitPacked in arrayoptions) then
           { can't just add 7 and divide by 8, because that may overflow }
           result:=result div 8 + ord((result mod 8)<>0);
@@ -2908,7 +2918,7 @@ implementation
       end;
 
 
-    function trecorddef.size:aint;
+    function trecorddef.size:asizeint;
       begin
         result:=trecordsymtable(symtable).datasize;
       end;
@@ -4065,7 +4075,7 @@ implementation
       end;
 
 
-    function tprocvardef.size : aint;
+    function tprocvardef.size : asizeint;
       begin
          if ((po_methodpointer in procoptions) or
              is_nested_pd(self)) and
@@ -4749,7 +4759,7 @@ implementation
           (assigned(childof) and childof.implements_any_interfaces);
       end;
 
-    function tobjectdef.size : aint;
+    function tobjectdef.size : asizeint;
       begin
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper] then
           result:=sizeof(pint)

@@ -140,29 +140,45 @@ end;
   function TStream.CopyFrom(Source: TStream; Count: Int64): Int64;
 
     var
-       i : Int64;
-       buffer : array[0..1023] of byte;
+       Buffer: Pointer;
+       BufferSize, i: LongInt;
 
+    const
+       MaxSize = $20000;
     begin
-       CopyFrom:=0;
-       If (Count=0) then
-         begin
-         // This WILL fail for non-seekable streams...
-         Source.Position:=0;
-         Count:=Source.Size;
-         end;
-       while Count>0 do
-         begin
-         if (Count>sizeof(buffer)) then
-           i:=sizeof(Buffer)
+
+       Result:=0;
+       if Count=0 then
+         Source.Position:=0;   // This WILL fail for non-seekable streams...
+       BufferSize:=MaxSize;
+       if (Count>0) and (Count<BufferSize) then
+         BufferSize:=Count;    // do not allocate more than needed
+
+       GetMem(Buffer,BufferSize);
+       try
+         if Count=0 then
+         repeat
+           i:=Source.Read(buffer^,BufferSize);
+           if i>0 then
+             WriteBuffer(buffer^,i);
+           Inc(Result,i);
+         until i<BufferSize
          else
-           i:=Count;
-         i:=Source.Read(buffer,i);
-         i:=Write(buffer,i);
-         if i=0 then break;
-         dec(count,i);
-         CopyFrom:=CopyFrom+i;
+         while Count>0 do
+         begin
+           if Count>BufferSize then
+             i:=BufferSize
+           else
+             i:=Count;
+           Source.ReadBuffer(buffer^,i);
+           WriteBuffer(buffer^,i);
+           Dec(count,i);
+           Inc(Result,i);
          end;
+       finally
+         FreeMem(Buffer);
+       end;
+
     end;
 
   function TStream.ReadComponent(Instance: TComponent): TComponent;
@@ -1044,12 +1060,9 @@ begin
   Check(FStream.Read(@Buffer, Count, @Result));
 end;
 
-function TProxyStream.Seek(Offset: Longint; Origin: Word): Longint;
-var
-  Pos: Int64;
+function TProxyStream. Seek(const Offset: int64; Origin: TSeekOrigin): int64;
 begin
-  Check(FStream.Seek(Offset, Origin, Pos));
-  Result := Pos;
+  Check(FStream.Seek(Offset, ord(Origin), result));
 end;
 
 function TProxyStream.Write(const Buffer; Count: Longint): Longint;

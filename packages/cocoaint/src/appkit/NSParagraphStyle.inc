@@ -8,17 +8,17 @@
 
 const
   NSLeftTabStopType = 0;
-  NSRightTabStopType = 0;
-  NSCenterTabStopType = 1;
-  NSDecimalTabStopType = 2;
+  NSRightTabStopType = 1;
+  NSCenterTabStopType = 2;
+  NSDecimalTabStopType = 3;
 
 const
   NSLineBreakByWordWrapping = 0;
-  NSLineBreakByCharWrapping = 0;
-  NSLineBreakByClipping = 1;
-  NSLineBreakByTruncatingHead = 2;
-  NSLineBreakByTruncatingTail = 3;
-  NSLineBreakByTruncatingMiddle = 4;
+  NSLineBreakByCharWrapping = 1;
+  NSLineBreakByClipping = 2;
+  NSLineBreakByTruncatingHead = 3;
+  NSLineBreakByTruncatingTail = 4;
+  NSLineBreakByTruncatingMiddle = 5;
 
 { Types }
 type

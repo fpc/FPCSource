@@ -8,12 +8,12 @@
 
 const
   NSNoSpecifierError = 0;
-  NSNoTopLevelContainersSpecifierError = 0;
-  NSContainerSpecifierError = 1;
-  NSUnknownKeySpecifierError = 2;
-  NSInvalidIndexSpecifierError = 3;
-  NSInternalSpecifierError = 4;
-  NSOperationNotSupportedForKeySpecifierError = 5;
+  NSNoTopLevelContainersSpecifierError = 1;
+  NSContainerSpecifierError = 2;
+  NSUnknownKeySpecifierError = 3;
+  NSInvalidIndexSpecifierError = 4;
+  NSInternalSpecifierError = 5;
+  NSOperationNotSupportedForKeySpecifierError = 6;
 
 const
   NSPositionAfter = 0;
@@ -24,7 +24,7 @@ const
 
 const
   NSRelativeAfter = 0;
-  NSRelativeBefore = 0;
+  NSRelativeBefore = 1;
 
 const
   NSIndexSubelement = 0;

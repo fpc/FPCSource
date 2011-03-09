@@ -48,10 +48,10 @@ unit cpubase;
         A_OR,A_ORI,A_EOR,A_COM,A_NEG,A_SBR,A_CBR,A_INC,A_DEC,A_TST,A_CLR,
         A_SER,A_MUL,A_MULS,A_FMUL,A_FMULS,A_FMULSU,A_RJMP,A_IJMP,
         A_EIJMP,A_JMP,A_RCALL,A_ICALL,R_EICALL,A_CALL,A_RET,A_RETI,A_CPSE,
-        A_CP,A_CPC,A_CPI,A_SBxx,A_BRxx,A_MOV,A_MOVW,A_LDI,A_LDS,A_LD,A_LDD,
+        A_CP,A_CPC,A_CPI,A_SBIC,A_SBIS,A_BRxx,A_MOV,A_MOVW,A_LDI,A_LDS,A_LD,A_LDD,
         A_STS,A_ST,A_STD,A_LPM,A_ELPM,A_SPM,A_IN,A_OUT,A_PUSH,A_POP,
         A_LSL,A_LSR,A_ROL,A_ROR,A_ASR,A_SWAP,A_BSET,A_BCLR,A_SBI,A_CBI,
-        A_BST,A_BLD,A_Sxx,A_Cxx,A_BRAK,A_NOP,A_SLEEP,A_WDR);
+        A_BST,A_BLD,A_Sxx,A_CLI,A_BRAK,A_NOP,A_SLEEP,A_WDR);
 
 
       { This should define the array of instructions as string }
@@ -63,7 +63,8 @@ unit cpubase;
       { Last value of opcode enumeration  }
       lastop  = high(tasmop);
 
-      jmp_instructions = [A_BRxx,A_SBxx,A_JMP,A_RCALL,A_ICALL,A_EIJMP,A_RJMP,A_CALL,A_RET,A_RETI,A_CPSE,A_IJMP];
+      jmp_instructions = [A_BRxx,A_SBIC,A_SBIS,A_JMP,A_RCALL,A_ICALL,A_EIJMP,
+                          A_RJMP,A_CALL,A_RET,A_RETI,A_CPSE,A_IJMP];
 
 {*****************************************************************************
                                   Registers
@@ -90,9 +91,13 @@ unit cpubase;
       NR_ZLO = NR_R30;
       NR_ZHI = NR_R31;
 
+      NIO_SREG = $3f;
+      NIO_SP_LO = $3d;
+      NIO_SP_HI = $3e;
+
       { Integer Super registers first and last }
       first_int_supreg = RS_R0;
-      first_int_imreg = $10;
+      first_int_imreg = $20;
 
       { Float Super register first and last }
       first_fpu_supreg    = RS_INVALID;
@@ -102,8 +107,7 @@ unit cpubase;
       first_mm_supreg    = RS_INVALID;
       first_mm_imreg     = RS_INVALID;
 
-{ TODO: Calculate bsstart}
-      regnumber_count_bsstart = 64;
+      regnumber_count_bsstart = 32;
 
       regnumber_table : array[tregisterindex] of tregister = (
         {$i ravrnum.inc}
@@ -129,19 +133,19 @@ unit cpubase;
 
     type
       TAsmCond=(C_None,
-        C_EQ,C_NE,C_CS,C_CC,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
-        C_GE,C_LT,C_GT,C_LE,C_AL,C_NV
+        C_CC,C_CS,C_EQ,C_GE,C_HC,C_HS,C_ID,C_IE,C_LO,C_LT,
+        C_MI,C_NE,C_PL,C_SH,C_TC,C_TS,C_VC,C_VS
       );
 
     const
       cond2str : array[TAsmCond] of string[2]=('',
-        'eq','ne','cs','cc','mi','pl','vs','vc','hi','ls',
-        'ge','lt','gt','le','al','nv'
+        'cc','cs','eq','ge','hc','hs','id','ie','lo','lt',
+        'mi','ne','pl','sh','tc','ts','vc','vs'
       );
 
       uppercond2str : array[TAsmCond] of string[2]=('',
-        'EQ','NE','CS','CC','MI','PL','VS','VC','HI','LS',
-        'GE','LT','GT','LE','AL','NV'
+        'CC','CS','EQ','GE','HC','HS','ID','IE','LO','LT',
+        'MI','NE','PL','SH','TC','TS','VC','VS'
       );
 
 {*****************************************************************************
@@ -149,25 +153,14 @@ unit cpubase;
 *****************************************************************************}
 
     type
-      TResFlags = (F_EQ,F_NE,F_CS,F_CC,F_MI,F_PL,F_VS,F_VC,F_HI,F_LS,
-        F_GE,F_LT,F_GT,F_LE);
+      TResFlags = (F_NotPossible,F_CC,F_CS,F_EQ,F_GE,F_LO,F_LT,
+        F_NE,F_SH,F_VC,F_VS);
 
 {*****************************************************************************
                                 Operands
 *****************************************************************************}
 
-      taddressmode = (AM_OFFSET,AM_PREINDEXED,AM_POSTINDEXED);
-      tshiftmode = (SM_None,SM_LSL,SM_LSR,SM_ASR,SM_ROR,SM_RRX);
-
-      tupdatereg = (UR_None,UR_Update);
-
-      pshifterop = ^tshifterop;
-
-      tshifterop = record
-        shiftmode : tshiftmode;
-        rs : tregister;
-        shiftimm : byte;
-      end;
+      taddressmode = (AM_UNCHANGED,AM_POSTINCREMENT,AM_PREDRECEMENT);
 
 {*****************************************************************************
                                  Constants
@@ -342,10 +335,11 @@ unit cpubase;
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
-    function is_pc(const r : tregister) : boolean;
-
     function dwarf_reg(r:tregister):byte;
     function GetHigh(const r : TRegister) : TRegister;
+
+    { returns the next virtual register }
+    function GetNextReg(const r : TRegister) : TRegister;
 
   implementation
 
@@ -374,16 +368,14 @@ unit cpubase;
 
 
     function reg_cgsize(const reg: tregister): tcgsize;
-      const subreg2cgsize:array[Tsubregister] of Tcgsize =
-            (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO);
       begin
         case getregtype(reg) of
           R_INTREGISTER :
-            reg_cgsize:=OS_32;
-          R_FPUREGISTER :
-            reg_cgsize:=OS_F80;
+            reg_cgsize:=OS_8;
+          R_ADDRESSREGISTER :
+            reg_cgsize:=OS_16;
           else
-            internalerror(200303181);
+            internalerror(2011021905);
           end;
         end;
 
@@ -391,8 +383,8 @@ unit cpubase;
     procedure inverse_flags(var f: TResFlags);
       const
         inv_flags: array[TResFlags] of TResFlags =
-          (F_NE,F_EQ,F_CC,F_CS,F_PL,F_MI,F_VC,F_VS,F_LS,F_HI,
-          F_LT,F_GE,F_LE,F_GT);
+          (F_NotPossible,F_CS,F_CC,F_NE,F_LT,F_SH,F_GE,
+           F_NE,F_LO,F_VS,F_VC);
       begin
         f:=inv_flags[f];
       end;
@@ -400,10 +392,12 @@ unit cpubase;
 
     function flags_to_cond(const f: TResFlags) : TAsmCond;
       const
-        flag_2_cond: array[F_EQ..F_LE] of TAsmCond =
-          (C_EQ,C_NE,C_CS,C_CC,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
-           C_GE,C_LT,C_GT,C_LE);
+        flag_2_cond: array[F_CC..F_VS] of TAsmCond =
+          (C_CC,C_CS,C_EQ,C_GE,C_LO,C_LT,
+           C_NE,C_SH,C_VC,C_VS);
       begin
+        if f=F_NotPossible then
+          internalerror(2011022101);
         if f>high(flag_2_cond) then
           internalerror(200112301);
         result:=flag_2_cond[f];
@@ -434,24 +428,11 @@ unit cpubase;
       end;
 
 
-    procedure shifterop_reset(var so : tshifterop);
-      begin
-        FillChar(so,sizeof(so),0);
-      end;
-
-
-    function is_pc(const r : tregister) : boolean;
-      begin
-        is_pc:=(r=NR_R15);
-      end;
-
-
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const
         inverse: array[TAsmCond] of TAsmCond=(C_None,
-          C_NE,C_EQ,C_CC,C_CS,C_PL,C_MI,C_VC,C_VS,C_LS,C_HI,
-          C_LT,C_GE,C_LE,C_GT,C_None,C_None
-        );
+          C_CS,C_CC,C_NE,C_LT,C_HS,C_HC,C_IE,C_ID,C_SH,C_GE,
+          C_PL,C_EQ,C_MI,C_LO,C_TS,C_TC,C_VS,C_VC);
       begin
         result := inverse[c];
       end;
@@ -480,6 +461,12 @@ unit cpubase;
     function GetHigh(const r : TRegister) : TRegister;
       begin
         result:=TRegister(longint(r)+1)
+      end;
+
+
+    function GetNextReg(const r: TRegister): TRegister;
+      begin
+        result:=TRegister(longint(r)+1);
       end;
 
 end.

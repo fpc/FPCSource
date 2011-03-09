@@ -19,7 +19,7 @@ interface
 
 Const
 
-{$if defined(go32v2)}
+{$if defined(go32v2) or defined(wii)}
   {$define USE_STATIC_LIBC}
 {$endif}
 

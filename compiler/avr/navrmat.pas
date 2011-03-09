@@ -80,7 +80,6 @@ implementation
         helper2,
         resultreg  : tregister;
         size       : Tcgsize;
-        so : tshifterop;
        procedure genOrdConstNodeDiv;
          begin
 {

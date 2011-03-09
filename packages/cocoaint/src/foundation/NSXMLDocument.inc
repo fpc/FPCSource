@@ -8,9 +8,9 @@
 
 const
   NSXMLDocumentXMLKind = 0;
-  NSXMLDocumentXHTMLKind = 0;
-  NSXMLDocumentHTMLKind = 1;
-  NSXMLDocumentTextKind = 2;
+  NSXMLDocumentXHTMLKind = 1;
+  NSXMLDocumentHTMLKind = 2;
+  NSXMLDocumentTextKind = 3;
 
 { Types }
 type

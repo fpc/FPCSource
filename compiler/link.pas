@@ -703,7 +703,7 @@ Implementation
 
     Function TExternalLinker.MakeStaticLibrary:boolean;
 
-        function GetNextFiles(const maxCmdLength : AInt; var item : TCmdStrListItem) : TCmdStr;
+        function GetNextFiles(const maxCmdLength : Longint; var item : TCmdStrListItem) : TCmdStr;
           begin
             result := '';
             while (assigned(item) and ((length(result) + length(item.str) + 1) < maxCmdLength)) do begin

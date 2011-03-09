@@ -84,7 +84,7 @@ interface
           constructor create(const n:string;usealign:shortint);
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure alignrecord(fieldoffset:aint;varalign:shortint);
+          procedure alignrecord(fieldoffset:asizeint;varalign:shortint);
           procedure addfield(sym:tfieldvarsym;vis:tvisibility);
           procedure addalignmentpadding;
           procedure insertdef(def:TDefEntry);override;
@@ -92,14 +92,14 @@ interface
           function has_single_field(out sym:tfieldvarsym): boolean;
           function get_unit_symtable: tsymtable;
         protected
-          _datasize       : aint;
+          _datasize       : asizeint;
           { size in bits of the data in case of bitpacked record. Only important during construction, }
           { no need to save in/restore from ppu file. datasize is always (databitsize+7) div 8.       }
-          databitsize    : aint;
-          procedure setdatasize(val: aint);
+          databitsize    : asizeint;
+          procedure setdatasize(val: asizeint);
         public
           function iscurrentunit: boolean; override;
-          property datasize : aint read _datasize write setdatasize;
+          property datasize : asizeint read _datasize write setdatasize;
        end;
 
        trecordsymtable = class(tabstractrecordsymtable)
@@ -845,7 +845,7 @@ implementation
       end;
 
 
-    function field2recordalignment(fieldoffs, fieldalign: aint): aint;
+    function field2recordalignment(fieldoffs, fieldalign: asizeint): asizeint;
       begin
         { optimal alignment of the record when declaring a variable of this }
         { type is independent of the packrecords setting                    }
@@ -871,7 +871,7 @@ implementation
           result:=1;
       end;
 
-    procedure tabstractrecordsymtable.alignrecord(fieldoffset:aint;varalign:shortint);
+    procedure tabstractrecordsymtable.alignrecord(fieldoffset:asizeint;varalign:shortint);
       var
         varalignrecord: shortint;
       begin
@@ -888,7 +888,7 @@ implementation
 
     procedure tabstractrecordsymtable.addfield(sym:tfieldvarsym;vis:tvisibility);
       var
-        l      : aint;
+        l      : asizeint;
         varalignfield,
         varalign : shortint;
         vardef : tdef;
@@ -920,7 +920,7 @@ implementation
                 begin
                   databitsize:=_datasize*8;
                   sym.fieldoffset:=databitsize;
-                  if (l>high(aint) div 8) then
+                  if (l>high(asizeint) div 8) then
                     Message(sym_e_segment_too_large);
                   l:=l*8;
                 end;
@@ -930,11 +930,11 @@ implementation
               { bit packed records are limited to high(aint) bits }
               { instead of bytes to avoid double precision        }
               { arithmetic in offset calculations                 }
-              if int64(l)>high(aint)-sym.fieldoffset then
+              if int64(l)>high(asizeint)-sym.fieldoffset then
                 begin
                   Message(sym_e_segment_too_large);
-                  _datasize:=high(aint);
-                  databitsize:=high(aint);
+                  _datasize:=high(asizeint);
+                  databitsize:=high(asizeint);
                 end
               else
                 begin
@@ -990,7 +990,7 @@ implementation
         varalignfield:=used_align(varalign,current_settings.alignment.recordalignmin,fieldalignment);
 
         sym.fieldoffset:=align(_datasize,varalignfield);
-        if l>high(aint)-sym.fieldoffset then
+        if l>high(asizeint)-sym.fieldoffset then
           begin
             Message(sym_e_segment_too_large);
             _datasize:=high(aint);
@@ -1080,7 +1080,7 @@ implementation
           result:=result.defowner.owner;
       end;
 
-    procedure tabstractrecordsymtable.setdatasize(val: aint);
+    procedure tabstractrecordsymtable.setdatasize(val: asizeint);
       begin
         _datasize:=val;
         if (usefieldalignment=bit_alignment) then
@@ -1156,11 +1156,11 @@ implementation
                 else
                   begin
                     bitsize:=tfieldvarsym(sym).getsize;
-                    if (bitsize>high(aint) div 8) then
+                    if (bitsize>high(asizeint) div 8) then
                       Message(sym_e_segment_too_large);
                     bitsize:=bitsize*8;
                   end;
-                if bitsize>high(aint)-databitsize then
+                if bitsize>high(asizeint)-databitsize then
                   begin
                     Message(sym_e_segment_too_large);
                     _datasize:=high(aint);
@@ -1176,7 +1176,7 @@ implementation
               end
             else
               begin
-                if tfieldvarsym(sym).getsize>high(aint)-_datasize then
+                if tfieldvarsym(sym).getsize>high(asizeint)-_datasize then
                   begin
                     Message(sym_e_segment_too_large);
                     _datasize:=high(aint);

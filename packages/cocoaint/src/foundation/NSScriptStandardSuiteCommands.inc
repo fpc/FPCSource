@@ -8,8 +8,8 @@
 
 const
   NSSaveOptionsYes = 0;
-  NSSaveOptionsNo = 0;
-  NSSaveOptionsAsk = 1;
+  NSSaveOptionsNo = 1;
+  NSSaveOptionsAsk = 2;
 
 { Types }
 type

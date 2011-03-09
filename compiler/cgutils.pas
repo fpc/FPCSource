@@ -36,7 +36,7 @@ unit cgutils;
       { reference record, reordered for best alignment }
       preference = ^treference;
       treference = record
-         offset      : aint;
+         offset      : asizeint;
          symbol,
          relsymbol   : tasmsymbol;
 {$if defined(x86) or defined(m68k)}

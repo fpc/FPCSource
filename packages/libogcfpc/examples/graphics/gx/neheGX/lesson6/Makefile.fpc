@@ -1,0 +1,87 @@
+#
+#   Makefile.fpc for Free Pascal libogcfpc 2.x.y Examples
+#
+
+[target]
+loaders= 
+programs=lesson6
+
+[require]
+packages=libogcfpc
+tools=bin2s rmdir gxtexconv
+nortl=y
+
+[install]
+fpcpackage=y
+
+[default]
+cpu=powerpc
+target=wii
+fpcdir=../../../../../../..
+
+[compiler]
+options=-g -Xm  
+
+[clean]
+files=*.elf *.o *.s *.h *.bin *.map \
+       $(BUILD)/* \
+       $(INC)/*
+units=*
+
+[prerules]
+BUILD = build
+INC = inc
+DATA = data
+TEXTURES = textures
+SCF_FILES = $(foreach dir,textures,$(notdir $(wildcard $(dir)/*.scf)))
+TPL_FILES = $(basename $(SCF_FILES)).tpl 
+
+[rules]
+.NOTPARALLEL:
+.PHONY: clean all
+clean: dir_delete fpc_clean fpc_cleanall    
+all: dir_make $(TPL_FILES) fpc_all 
+
+#
+# Delete temp directories
+#
+dir_delete:
+        @$(DELTREE) $(CURDIR)/$(BUILD) 
+        @$(DELTREE) $(CURDIR)/$(DATA) 
+        @$(DELTREE) $(CURDIR)/$(INC) 
+        
+#
+# Create temp directories
+#
+dir_make:
+ifneq ($(BUILD), $(CURDIR))
+        @$(MKDIR) $(BUILD)
+endif
+ifneq ($(INC), $(CURDIR))
+        @$(MKDIR) $(INC)
+endif
+ifneq ($(DATA), $(CURDIR))
+        @$(MKDIR) $(DATA)
+endif
+
+#
+# Textures processing rule
+#
+$(TPL_FILES):
+        @echo 'Creating tpl file...'
+        $(GXTEXCONV) -s textures/$(SCF_FILES) -o $(DATA)/$(TPL_FILES)
+        @echo $(DATA)/$(TPL_FILES)
+        @$(bin2o)  	
+
+
+#
+# Binary files processing rule
+# 
+define bin2o
+        @$(BIN2S) -a 32 $(DATA)/$(@) > $(BUILD)/$(@).s
+        @$(AS) -o $(BUILD)/$(@).o $(BUILD)/$(@).s
+        @echo "var" > `(echo $(INC)"/"$(@F) | tr . .)`.inc
+        @echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end: array [0..0] of cuint8; cvar; external;" >> `(echo $(INC)"/"$(@F) | tr . .)`.inc
+        @echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`": array [0..0] of cuint8; cvar; external;" >> `(echo $(INC)"/"$(@F) | tr . .)`.inc
+        @echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size": cuint32; cvar; external;" >> `(echo $(INC)"/"$(@F) | tr . .)`.inc
+endef

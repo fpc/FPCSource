@@ -559,7 +559,7 @@ begin
       NewType := ftInteger;
       NewSize := 0;
       end;
-{$ifdef mysql50}
+{$if defined(mysql51) or defined(mysql50)}
     FIELD_TYPE_NEWDECIMAL,
 {$endif}
     FIELD_TYPE_DECIMAL: if ADecimals < 5 then
@@ -867,7 +867,7 @@ begin
         VL := 0;
       Move(VL, Dest^, SizeOf(LargeInt));
       end;
-{$ifdef mysql50}
+{$if defined(mysql51) or defined(mysql50)}
     FIELD_TYPE_NEWDECIMAL,
 {$endif}      
     FIELD_TYPE_DECIMAL, FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:

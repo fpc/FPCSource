@@ -171,7 +171,7 @@ implementation
       threc = record
         list   : tasmlist;
         origsym: tstaticvarsym;
-        offset:  aint;
+        offset:  asizeint;
       end;
 
     { this procedure reads typed constants }
@@ -829,7 +829,7 @@ implementation
         var
           n : tnode;
           i : longint;
-          len : aint;
+          len : asizeint;
           ch  : array[0..1] of char;
           ca  : pbyte;
           int_const: tai_const;

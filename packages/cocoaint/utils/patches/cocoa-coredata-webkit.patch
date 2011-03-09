@@ -4,7 +4,7 @@
    NSWorkspaceLaunchNewInstance = $00080000;
    NSWorkspaceLaunchAndHide = $00100000;
    NSWorkspaceLaunchAndHideOthers = $00200000;
--  NSWorkspaceLaunchAllowingClassicStartup = 0;
+-  NSWorkspaceLaunchAllowingClassicStartup = 2097153;
 +  NSWorkspaceLaunchDefault = NSWorkspaceLaunchAsync or NSWorkspaceLaunchAllowingClassicStartup;
  
  const

@@ -37,7 +37,7 @@ dirs_arm_darwin=httpd13 httpd20 httpd22 opengles objcrtl
 dirs_i386_iphonesim=httpd13 httpd20 httpd22 opengles objcrtl
 dirs_solaris=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 bfd svgalib fcl-extra \
-               imlib utmp  fpgtk xforms fftw pcap ggi  openssl gnome1 httpd13 httpd20 httpd22 numlib
+               imlib utmp  fpgtk xforms fftw pcap ggi  openssl gnome1 httpd13 httpd20 httpd22 numlib iconvenc gtk2 cairo
 dirs_netbsd=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2 librsvg bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib
@@ -64,6 +64,7 @@ dirs_palmos=palmunits
 dirs_go32v2=fv graph unzip gdbint
 dirs_amiga=amunits
 dirs_morphos=fv opengl sdl
+dirs_wii=libogcfpc
 
 [install]
 fpcpackage=y
@@ -345,11 +346,11 @@ winunits-base_smart: fcl-registry_smart fcl-base_smart
 winunits-base_debug: fcl-registry_debug fcl-base_debug
 winunits-base_release: fcl-registry_release fcl-base_release
 
-winunits-jedi_all: winunits-base_all fcl-registry fcl-base_all
-winunits-jedi_shared: winunits-base_shared fcl-registry fcl-base_shared
-winunits-jedi_smart: winunits-base_smart fcl-registry fcl-base_smart
-winunits-jedi_debug: winunits-base_debug fcl-registry fcl-base_debug
-winunits-jedi_release: winunits-base_release fcl-registry fcl-base_release
+winunits-jedi_all: winunits-base_all fcl-registry_all fcl-base_all
+winunits-jedi_shared: winunits-base_shared fcl-registry_shared fcl-base_shared
+winunits-jedi_smart: winunits-base_smart fcl-registry_smart fcl-base_smart
+winunits-jedi_debug: winunits-base_debug fcl-registry_debug fcl-base_debug
+winunits-jedi_release: winunits-base_release fcl-registry_release fcl-base_release
 
 
 xforms_all: x11_all

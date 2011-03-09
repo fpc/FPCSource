@@ -620,14 +620,12 @@ implementation
          begin
            destppn:=tcallparanode(ppn.right);
            { create call to fpc_initialize/finalize_array }
-           npara:=ccallparanode.create(cordconstnode.create
-                     (destppn.left.resultdef.size,s32inttype,true),
-                  ccallparanode.create(ctypeconvnode.create
+           npara:=ccallparanode.create(ctypeconvnode.create
                      (ppn.left,s32inttype),
                   ccallparanode.create(caddrnode.create_internal
                      (crttinode.create(tstoreddef(destppn.left.resultdef),initrtti,rdt_normal)),
                   ccallparanode.create(caddrnode.create_internal
-                     (destppn.left),nil))));
+                     (destppn.left),nil)));
            if isinit then
              newblock:=ccallnode.createintern('fpc_initialize_array',npara)
            else

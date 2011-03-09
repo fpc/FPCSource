@@ -531,7 +531,7 @@ unit cgcpu;
     procedure tcgarm.a_call_reg(list : TAsmList;reg: tregister);
       begin
         { check not really correct: should only be used for non-Thumb cpus }
-        if (current_settings.cputype<cpu_armv6) then
+        if (current_settings.cputype<cpu_armv5) then
           begin
             list.concat(taicpu.op_reg_reg(A_MOV,NR_R14,NR_PC));
             list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,reg));

@@ -27,7 +27,7 @@ const MySQLdbTypes = [mysql40,mysql41,mysql50];
           '',
           'DECIMAL(18,4)',
           'DATE',
-          'TIMESTAMP',
+          'TIME',
           'TIMESTAMP',
           '',
           '',
@@ -54,7 +54,7 @@ const MySQLdbTypes = [mysql40,mysql41,mysql50];
           '',
           '',
           'TIMESTAMP',
-          '',
+          'NUMERIC(18,6)',
           '',
           ''
         );

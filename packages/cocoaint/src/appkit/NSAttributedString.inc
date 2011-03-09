@@ -25,7 +25,7 @@ const
 
 const
   NSNoUnderlineStyle = 0;
-  NSSingleUnderlineStyle = 0;
+  NSSingleUnderlineStyle = 1;
 
 {$endif}
 {$endif}

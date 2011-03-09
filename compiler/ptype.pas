@@ -1187,8 +1187,8 @@ implementation
                                     Message(parser_e_array_lower_less_than_upper_bound);
                                     highval:=lowval;
                                   end
-                                 else if (lowval<int64(low(aint))) or
-                                         (highval > high(aint)) then
+                                 else if (lowval<int64(low(asizeint))) or
+                                         (highval>high(asizeint)) then
                                    begin
                                      Message(parser_e_array_range_out_of_bounds);
                                      lowval :=0;

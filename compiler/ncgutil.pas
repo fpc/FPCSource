@@ -1302,9 +1302,13 @@ implementation
     const
 {$ifdef cpu64bitalu}
       trashintvalues: array[0..nroftrashvalues-1] of aint = ($5555555555555555,aint($AAAAAAAAAAAAAAAA),aint($EFEFEFEFEFEFEFEF),0);
-{$else cpu64bitalu}
-      trashintvalues: array[0..nroftrashvalues-1] of aint = ($55555555,aint($AAAAAAAA),aint($EFEFEFEF),0);
 {$endif cpu64bitalu}
+{$ifdef cpu32bitalu}
+      trashintvalues: array[0..nroftrashvalues-1] of aint = ($55555555,aint($AAAAAAAA),aint($EFEFEFEF),0);
+{$endif cpu32bitalu}
+{$ifdef cpu8bitalu}
+      trashintvalues: array[0..nroftrashvalues-1] of aint = ($55,aint($AA),aint($EF),0);
+{$endif cpu8bitalu}
 
     procedure trash_reference(list: TAsmList; const ref: treference; size: aint);
       var
@@ -1557,6 +1561,8 @@ implementation
     procedure init_paras(p:TObject;arg:pointer);
       var
         href : treference;
+        hsym : tparavarsym;
+        eldef : tdef;
         tmpreg : tregister;
         list : TAsmList;
         needs_inittable,
@@ -1580,7 +1586,18 @@ implementation
                      paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
                      begin
                        location_get_data_ref(list,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
-                       cg.g_incrrefcount(list,tparavarsym(p).vardef,href);
+                       if is_open_array(tparavarsym(p).vardef) then
+                         begin
+                           { open arrays do not contain correct element count in their rtti,
+                             the actual count must be passed separately. }
+                           hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                           eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
+                           if not assigned(hsym) then
+                             internalerror(201003031);
+                           cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_ADDREF_ARRAY');
+                         end
+                       else
+                         cg.g_incrrefcount(list,tparavarsym(p).vardef,href);
                      end;
                  end;
              vs_out :
@@ -1605,7 +1622,18 @@ implementation
                        else
                          trash_reference(list,href,2);
                      if needs_inittable then
-                       cg.g_initialize(list,tparavarsym(p).vardef,href);
+                       begin
+                         if is_open_array(tparavarsym(p).vardef) then
+                           begin
+                             hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                             eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
+                             if not assigned(hsym) then
+                               internalerror(201103033);
+                             cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_INITIALIZE_ARRAY');
+                           end
+                         else
+                           cg.g_initialize(list,tparavarsym(p).vardef,href);
+                       end;
                    end;
                end;
              else if do_trashing and
@@ -1638,6 +1666,8 @@ implementation
       var
         list : TAsmList;
         href : treference;
+        hsym : tparavarsym;
+        eldef : tdef;
       begin
         if not(tsym(p).typ=paravarsym) then
           exit;
@@ -1648,7 +1678,16 @@ implementation
             begin
               include(current_procinfo.flags,pi_needs_implicit_finally);
               location_get_data_ref(list,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
-              cg.g_decrrefcount(list,tparavarsym(p).vardef,href);
+              if is_open_array(tparavarsym(p).vardef) then
+                begin
+                  hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                  eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
+                  if not assigned(hsym) then
+                    internalerror(201003032);
+                  cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_DECREF_ARRAY');
+                end
+              else
+                cg.g_decrrefcount(list,tparavarsym(p).vardef,href);
             end;
          end;
         { open arrays can contain elements requiring init/final code, so the else has been removed here }
@@ -2444,7 +2483,7 @@ implementation
 
     procedure insertbssdata(sym : tstaticvarsym);
       var
-        l : aint;
+        l : asizeint;
         varalign : shortint;
         storefilepos : tfileposinfo;
         list : TAsmList;

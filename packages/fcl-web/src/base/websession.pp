@@ -332,6 +332,7 @@ begin
       begin
 {$ifdef cgidebug}SendDebug('Getting default session');{$endif}
       FSession:=GetDefaultSession;
+      FSession.FreeNotification(Self);
       end;
     Result:=FSession
     end;
