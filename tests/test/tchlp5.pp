@@ -1,6 +1,6 @@
-{ %NORUN }
+{%FAIL}
 
-{ class destructors are allowed }
+{ class destructors are not allowed }
 program tchlp5;
 
 {$ifdef fpc}
@@ -9,13 +9,8 @@ program tchlp5;
 
 type
   TObjectHelper = class helper for TObject
-    class destructor Destroy;
+    class destructor Destroy; override;
   end;
-
-class destructor TObjectHelper.Destroy;
-begin
-
-end;
 
 begin
 

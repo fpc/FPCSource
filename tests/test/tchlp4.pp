@@ -12,11 +12,6 @@ type
     destructor Destroy; override;
   end;
 
-destructor TObjectHelper.Destroy;
-begin
-
-end;
-
 begin
 
 end.
