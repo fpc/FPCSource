@@ -177,7 +177,7 @@ interface
             begin
               if left.location.size in [OS_64,OS_S64] then
                begin
-                 hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                 hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hregister);
                  href:=left.location.reference;
                  inc(href.offset,4);
