@@ -35,6 +35,9 @@ unit cgcpu;
        cpubase,cpuinfo,node,cg64f32,rgcpu;
 
     type
+
+      { tcgavr }
+
       tcgavr = class(tcg)
         { true, if the next arithmetic operation should modify the flags }
         cgsetflags : boolean;
@@ -42,6 +45,7 @@ unit cgcpu;
         procedure done_register_allocators;override;
 
         function getintregister(list:TAsmList;size:Tcgsize):Tregister;override;
+        function getaddressregister(list:TAsmList):TRegister;override;
 
         procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const paraloc : TCGPara);override;
         procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
@@ -122,9 +126,10 @@ unit cgcpu;
       begin
         inherited init_register_allocators;
         rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
-            [RS_R0,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,
+            [RS_R8,RS_R9,
              RS_R10,RS_R11,RS_R12,RS_R13,RS_R14,RS_R15,RS_R16,RS_R17,RS_R18,RS_R19,
-             RS_R20,RS_R21,RS_R22,RS_R23,RS_R24,RS_R25],first_int_imreg,[]);
+             RS_R20,RS_R21,RS_R22,RS_R23,RS_R24,RS_R25,RS_R0,
+             RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7],first_int_imreg,[]);
         { rg[R_ADDRESSREGISTER]:=trgintcpu.create(R_ADDRESSREGISTER,R_SUBWHOLE,
             [RS_R26,RS_R30],first_int_imreg,[]); }
       end;
@@ -179,6 +184,12 @@ unit cgcpu;
           else
             internalerror(2011021330);
         end;
+      end;
+
+
+    function tcgavr.getaddressregister(list: TAsmList): TRegister;
+      begin
+       Result:=getintregister(list,OS_ADDR);
       end;
 
 
