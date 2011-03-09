@@ -389,6 +389,56 @@ implementation
       end;
 
 
+    procedure parse_nested_types(var def: tdef; isfowarddef: boolean);
+      var
+        t2: tdef;
+      begin
+        { handle types inside classes, e.g. TNode.TLongint }
+        while (token=_POINT) do
+          begin
+            if parse_generic then
+              begin
+                 consume(_POINT);
+                 consume(_ID);
+              end
+             else if is_class_or_object(def) or is_record(def) then
+               begin
+                 symtablestack.push(tabstractrecorddef(def).symtable);
+                 consume(_POINT);
+                 t2:=generrordef;
+                 id_type(t2,isfowarddef);
+                 symtablestack.pop(tabstractrecorddef(def).symtable);
+                 def:=t2;
+                 break;
+               end
+             else
+               break;
+          end;
+      end;
+
+
+    function try_parse_structdef_nested_type(out def: tdef; basedef: tabstractrecorddef; isfowarddef: boolean): boolean;
+      var
+        structdef : tabstractrecorddef;
+      begin
+         { use of current parsed object:
+           classes, objects, records can be used also in themself }
+         structdef:=basedef;
+         while assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
+           begin
+             if (structdef.objname^=pattern) then
+               begin
+                 consume(_ID);
+                 def:=structdef;
+                 parse_nested_types(def,isfowarddef);
+                 result:=true;
+                 exit;
+               end;
+             structdef:=tabstractrecorddef(structdef.owner.defowner);
+           end;
+         result:=false;
+      end;
+
     procedure id_type(var def : tdef;isforwarddef:boolean);
     { reads a type definition }
     { to a appropriating tdef, s gets the name of   }
@@ -407,17 +457,8 @@ implementation
          pos:=current_tokenpos;
          { use of current parsed object:
            classes, objects, records can be used also in themself }
-         structdef:=current_structdef;
-         while assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
-           begin
-             if (structdef.objname^=pattern) then
-               begin
-                 consume(_ID);
-                 def:=structdef;
-                 exit;
-               end;
-             structdef:=tabstractrecorddef(structdef.owner.defowner);
-           end;
+         if try_parse_structdef_nested_type(def,current_structdef,isforwarddef) then
+           exit;
          { Use the special searchsym_type that search only types }
          searchsym_type(s,srsym,srsymtable);
          { handle unit specification like System.Writeln }
@@ -519,25 +560,7 @@ implementation
                    else
                      begin
                        id_type(def,stoIsForwardDef in options);
-                       { handle types inside classes, e.g. TNode.TLongint }
-                       while (token=_POINT) do
-                         begin
-                           if parse_generic then
-                             begin
-                                consume(_POINT);
-                                consume(_ID);
-                             end
-                            else if is_class_or_object(def) or is_record(def) then
-                              begin
-                                symtablestack.push(tabstractrecorddef(def).symtable);
-                                consume(_POINT);
-                                id_type(t2,stoIsForwardDef in options);
-                                symtablestack.pop(tabstractrecorddef(def).symtable);
-                                def:=t2;
-                              end
-                            else
-                              break;
-                         end;
+                       parse_nested_types(def,stoIsForwardDef in options);
                      end;
                  end;
 
@@ -945,19 +968,8 @@ implementation
            { use of current parsed object:
              classes, objects, records can be used also in themself }
            if (token=_ID) then
-             begin
-               structdef:=current_structdef;
-               while assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
-                 begin
-                   if (tabstractrecorddef(structdef).objname^=pattern) then
-                     begin
-                       consume(_ID);
-                       def:=structdef;
-                       exit;
-                     end;
-                   structdef:=tdef(structdef.owner.defowner);
-                 end;
-             end;
+             if try_parse_structdef_nested_type(def,current_structdef,false) then
+               exit;
            { Generate a specialization in FPC mode? }
            dospecialize:=not(m_delphi in current_settings.modeswitches) and try_to_consume(_SPECIALIZE);
            { we can't accept a equal in type }
