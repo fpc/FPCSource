@@ -552,15 +552,15 @@ unit cgcpu;
           end;
         if assigned(ref.symbol) or (ref.offset<>0) then
           begin
-            getcpuregister(list,NR_R30);
-            getcpuregister(list,NR_R31);
             tmpreg:=NR_R30;
             reference_reset(tmpref,0);
             tmpref.symbol:=ref.symbol;
             tmpref.offset:=ref.offset;
             tmpref.refaddr:=addr_lo8;
+            getcpuregister(list,tmpreg);
             list.concat(taicpu.op_reg_ref(A_LDI,tmpreg,tmpref));
             tmpref.refaddr:=addr_hi8;
+            getcpuregister(list,GetNextReg(tmpreg));
             list.concat(taicpu.op_reg_ref(A_LDI,GetNextReg(tmpreg),tmpref));
             if (ref.base<>NR_NO) then
               begin
@@ -579,10 +579,10 @@ unit cgcpu;
           end
         else if (ref.base<>NR_NO) and (ref.index<>NR_NO) then
           begin
-            getcpuregister(list,NR_R30);
-            getcpuregister(list,NR_R31);
             tmpreg:=NR_R30;
+            getcpuregister(list,tmpreg);
             emit_mov(list,tmpreg,ref.index);
+            getcpuregister(list,GetNextReg(tmpreg));
             emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.index));
             list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.base));
             list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.base)));
@@ -591,20 +591,20 @@ unit cgcpu;
           end
         else if (ref.base<>NR_NO) then
           begin
-            getcpuregister(list,NR_R30);
-            getcpuregister(list,NR_R31);
             tmpreg:=NR_R30;
+            getcpuregister(list,tmpreg);
             emit_mov(list,tmpreg,ref.base);
+            getcpuregister(list,GetNextReg(tmpreg));
             emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.base));
             ref.base:=tmpreg;
             ref.index:=NR_NO;
           end
         else if (ref.index<>NR_NO) then
           begin
-            getcpuregister(list,NR_R30);
-            getcpuregister(list,NR_R31);
             tmpreg:=NR_R30;
+            getcpuregister(list,tmpreg);
             emit_mov(list,tmpreg,ref.index);
+            getcpuregister(list,GetNextReg(tmpreg));
             emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.index));
             ref.base:=tmpreg;
             ref.index:=NR_NO;
@@ -621,6 +621,7 @@ unit cgcpu;
          i : integer;
          QuickRef : Boolean;
        begin
+         QuickRef:=false;
          if not((Ref.addressmode=AM_UNCHANGED) and
                 (Ref.symbol=nil) and
                 ((Ref.base=NR_R28) or
@@ -774,6 +775,12 @@ unit cgcpu;
                  reg:=GetNextReg(reg);
                end;
            end;
+
+         if not(QuickRef) then
+           begin
+             ungetcpuregister(list,href.base);
+             ungetcpuregister(list,GetNextReg(href.base));
+           end;
        end;
 
 
@@ -786,6 +793,7 @@ unit cgcpu;
          i : integer;
          QuickRef : boolean;
        begin
+         QuickRef:=false;
          if not((Ref.addressmode=AM_UNCHANGED) and
                 (Ref.symbol=nil) and
                 ((Ref.base=NR_R28) or
@@ -901,6 +909,12 @@ unit cgcpu;
 
                  reg:=GetNextReg(reg);
                end;
+           end;
+
+         if not(QuickRef) then
+           begin
+             ungetcpuregister(list,href.base);
+             ungetcpuregister(list,GetNextReg(href.base));
            end;
        end;
 
@@ -1250,6 +1264,7 @@ unit cgcpu;
         copysize,countregsize : tcgsize;
         l : TAsmLabel;
         i : longint;
+        SrcQuickRef, DestQuickRef : Boolean;
       begin
         if len>16 then
           begin
@@ -1294,29 +1309,63 @@ unit cgcpu;
           end
         else
           begin
+            SrcQuickRef:=false;
+            DestQuickRef:=false;
+            if not((source.addressmode=AM_UNCHANGED) and
+                   (source.symbol=nil) and
+                   ((source.base=NR_R28) or
+                    (source.base=NR_R29)) and
+                    (source.Index=NR_No) and
+                    (source.Offset in [0..64-len])) and
+              not((source.Base=NR_NO) and (source.Index=NR_NO)) then
+              srcref:=normalize_ref(list,source)
+            else
+              begin
+                SrcQuickRef:=true;
+                srcref:=source;
+              end;
+
+            if not((dest.addressmode=AM_UNCHANGED) and
+                   (dest.symbol=nil) and
+                   ((dest.base=NR_R28) or
+                    (dest.base=NR_R29)) and
+                    (dest.Index=NR_No) and
+                    (dest.Offset in [0..64-len])) and
+              not((dest.Base=NR_NO) and (dest.Index=NR_NO)) then
+              dstref:=normalize_ref(list,dest)
+            else
+              begin
+                DestQuickRef:=true;
+                dstref:=dest;
+              end;
+
             for i:=1 to len do
               begin
-                srcref:=normalize_ref(list,source);
-                dstref:=normalize_ref(list,source);
                 copysize:=OS_8;
                 tmpreg:=getintregister(list,copysize);
-                if (srcref.base<>NR_NO) and (i<len) then
+
+                if not(SrcQuickRef) and (i<len) then
                   srcref.addressmode:=AM_POSTINCREMENT
                 else
                   srcref.addressmode:=AM_UNCHANGED;
-                if (dstref.base<>NR_NO) and (i<len) then
+
+                if not(DestQuickRef) and (i<len) then
                   dstref.addressmode:=AM_POSTINCREMENT
                 else
                   dstref.addressmode:=AM_UNCHANGED;
 
-              list.concat(taicpu.op_reg_ref(GetLoad(srcref),tmpreg,srcref));
-              list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,tmpreg));
+                list.concat(taicpu.op_reg_ref(GetLoad(srcref),tmpreg,srcref));
+                list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,tmpreg));
 
-              if (dstref.offset<>0) or assigned(dstref.symbol) then
-                inc(dstref.offset);
-              if (srcref.offset<>0) or assigned(srcref.symbol) then
-                inc(srcref.offset);
-
+                if SrcQuickRef then
+                  inc(srcref.offset);
+                if DestQuickRef then
+                  inc(dstref.offset);
+              end;
+            if not(SrcQuickRef) then
+              begin
+                ungetcpuregister(list,srcref.base);
+                ungetcpuregister(list,GetNextReg(srcref.base));
               end;
           end;
       end;
