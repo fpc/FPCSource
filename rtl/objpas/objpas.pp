@@ -32,10 +32,18 @@ unit objpas;
        PString = PAnsiString;
 
        { array types }
+{$ifdef CPU16}
+       IntegerArray  = array[0..$eff] of Integer;
+{$else CPU16}
        IntegerArray  = array[0..$effffff] of Integer;
+{$endif CPU16}
        TIntegerArray = IntegerArray;
        PIntegerArray = ^IntegerArray;
+{$ifdef CPU16}
+       PointerArray  = array [0..16*1024-2] of Pointer;
+{$else CPU16}
        PointerArray  = array [0..512*1024*1024-2] of Pointer;
+{$endif CPU16}
        TPointerArray = PointerArray;
        PPointerArray = ^PointerArray;
        TBoundArray = array of integer;
