@@ -592,7 +592,7 @@ implementation
           Internalerror(2011021001);
 
         consume(_FOR);
-        single_type(hdef,[stoAllowTypeDef,stoParseClassParent]);
+        single_type(hdef,[stoParseClassParent]);
         if (not assigned(hdef)) or
            not (hdef.typ in [objectdef,recorddef]) then
           begin

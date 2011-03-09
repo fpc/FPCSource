@@ -644,7 +644,8 @@ implementation
               end;
             end;
 
-           if isgeneric and not(hdef.typ in [objectdef,recorddef,arraydef,procvardef]) then
+           if isgeneric and (not(hdef.typ in [objectdef,recorddef,arraydef,procvardef])
+               or is_objectpascal_helper(hdef)) then
              message(parser_e_cant_create_generics_of_this_type);
 
            { Stop recording a generic template }

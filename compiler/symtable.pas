@@ -1819,9 +1819,16 @@ implementation
             end;
           vis_strictprotected :
             begin
-               result:=assigned(current_structdef) and
-                       (current_structdef.is_related(symownerdef) or
-                        is_owned_by(current_structdef,symownerdef));
+               result:=(
+                         assigned(current_structdef) and
+                         (current_structdef.is_related(symownerdef) or
+                         is_owned_by(current_structdef,symownerdef))
+                       ) or
+                       (
+                         { helpers can access strict protected symbols }
+                         is_objectpascal_helper(contextobjdef) and
+                         tobjectdef(contextobjdef).extendeddef.is_related(symownerdef)
+                       );
             end;
           vis_protected :
             begin
@@ -1851,7 +1858,12 @@ implementation
                         (
                           not assigned(current_structdef) and
                           (symownerdef.owner.iscurrentunit)
-                         )
+                        ) or
+                        (
+                          { helpers can access protected symbols }
+                          is_objectpascal_helper(contextobjdef) and
+                          tobjectdef(contextobjdef).extendeddef.is_related(symownerdef)
+                        )
                        )
                       );
             end;
@@ -2361,7 +2373,7 @@ implementation
                   end;
               end;
             { search in the hierarchy of the extended class }
-            found:=searchsym_in_class(tobjectdef(classh.extendeddef),tobjectdef(classh.extendeddef),s,tmpsrsym,tmpsrsymtable,hs_nosearch);
+            found:=searchsym_in_class(tobjectdef(classh.extendeddef),contextclassh,s,tmpsrsym,tmpsrsymtable,hs_nosearch);
             if not found then
               begin
                 if assigned(classh.childof) then
@@ -2389,7 +2401,7 @@ implementation
                     result:=false;
                     { search in the helper's parents first }
                     if assigned(classh.childof) then
-                      result:=searchsym_in_class(classh.childof,contextclassh,s,srsym,srsymtable,hs_nosearch);
+                      result:=searchsym_in_helper(classh.childof,contextclassh,s,srsym,srsymtable,false);
                     if not result then
                       begin
                         { we use the symbol found in one of the extended
@@ -2848,8 +2860,24 @@ implementation
    { returns the default property of a class, searches also anchestors }
      var
        _defaultprop : tpropertysym;
+       helperpd : tobjectdef;
      begin
         _defaultprop:=nil;
+        { first search in helper's hierarchy }
+        if search_last_objectpascal_helper(pd, helperpd) then
+          while assigned(helperpd) do
+            begin
+              helperpd.symtable.SymList.ForEachCall(@tstoredsymtable(helperpd.symtable).testfordefaultproperty,@_defaultprop);
+              if assigned(_defaultprop) then
+                break;
+              helperpd:=helperpd.childof;
+            end;
+        if assigned(_defaultprop) then
+          begin
+            search_default_property:=_defaultprop;
+            exit;
+          end;
+        { now search in the type's hierarchy itself }
         while assigned(pd) do
           begin
              pd.symtable.SymList.ForEachCall(@tstoredsymtable(pd.symtable).testfordefaultproperty,@_defaultprop);

@@ -261,8 +261,11 @@ implementation
         p1,p2,paras  : tnode;
         err,
         prev_in_args : boolean;
+        prev_current_syssym : byte;
       begin
         prev_in_args:=in_args;
+        prev_current_syssym:=current_syssym;
+        current_syssym:=l;
         case l of
 
           in_new_x :
@@ -822,6 +825,7 @@ implementation
 
         end;
         in_args:=prev_in_args;
+        current_syssym:=prev_current_syssym;
       end;
 
 
@@ -1535,8 +1539,10 @@ implementation
                          end
                        else
                         begin
-                          { TClassHelper.Something is not allowed }
-                          if is_objectpascal_helper(hdef) then
+                          { TClassHelper.Something is not allowed, but
+                            TypeInfo(TClassHelper) and SizeOf(TClassHelper) is }
+                          if is_objectpascal_helper(hdef) and
+                              not (current_syssym in [in_typeinfo_x,in_sizeof_x,in_bitsizeof_x]) then
                             begin
                               Message(parser_e_no_category_as_types);
                               { for recovery we use the extended class }

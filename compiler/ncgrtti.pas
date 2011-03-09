@@ -850,6 +850,7 @@ implementation
 
         begin
            case def.objecttype of
+             odt_helper,
              odt_class:
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkclass));
              odt_object:
@@ -870,7 +871,7 @@ implementation
            case rt of
              initrtti :
                begin
-                 if def.objecttype in [odt_class,odt_object] then
+                 if def.objecttype in [odt_class,odt_object,odt_helper] then
                    objectdef_rtti_fields(def)
                  else
                    objectdef_rtti_interface_init(def);
@@ -878,6 +879,7 @@ implementation
              fullrtti :
                begin
                  case def.objecttype of
+                   odt_helper,
                    odt_class:
                      objectdef_rtti_class_full(def);
                    odt_object:
@@ -920,9 +922,7 @@ implementation
                 recorddef_rtti(trecorddef(def));
             end;
           objectdef :
-            // TODO : check whether Delphi generates RTTI for helpers
-            if not is_objectpascal_helper(def) then
-              objectdef_rtti(tobjectdef(def));
+            objectdef_rtti(tobjectdef(def));
           else
             unknown_rtti(tstoreddef(def));
         end;
