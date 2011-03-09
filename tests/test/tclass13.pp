@@ -18,6 +18,16 @@ type
             FNode: TRootClass.TNode.TNode;
           end;
           en = (e1,e2);
+      TOtherNode = class
+      public
+        type
+          TNestedInOtherNode = class
+            ffield: longint;
+          end;
+      end;
+      TFinalNode = class
+        fx: TRootClass.TOtherNode.TNestedInOtherNode;
+      end;
       published
         property Test: Integer read FTest write FTest;
       end;

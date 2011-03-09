@@ -389,7 +389,7 @@ implementation
       end;
 
 
-    procedure parse_nested_types(var def: tdef; isfowarddef: boolean);
+    procedure parse_nested_types(var def: tdef; isforwarddef: boolean);
       var
         t2: tdef;
       begin
@@ -406,10 +406,9 @@ implementation
                  symtablestack.push(tabstractrecorddef(def).symtable);
                  consume(_POINT);
                  t2:=generrordef;
-                 id_type(t2,isfowarddef);
+                 id_type(t2,isforwarddef);
                  symtablestack.pop(tabstractrecorddef(def).symtable);
                  def:=t2;
-                 break;
                end
              else
                break;
