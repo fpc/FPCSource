@@ -182,6 +182,8 @@ interface
 
         for i:=2 to tcgsize2size[left.location.size] do
           begin
+            tmpreg1:=GetNextReg(tmpreg1);
+            tmpreg2:=GetNextReg(tmpreg2);
             if i=5 then
               begin
                 tmpreg1:=left.location.registerhi;

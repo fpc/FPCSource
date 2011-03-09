@@ -516,7 +516,11 @@ unit cgcpu;
          shift:=0;
          for i:=1 to tcgsize2size[size] do
            begin
-             list.concat(taicpu.op_reg_const(A_LDI,reg,(qword(a) and mask) shr shift));
+             if ((qword(a) and mask) shr shift)=0 then
+               emit_mov(list,reg,NR_R1)
+             else
+               list.concat(taicpu.op_reg_const(A_LDI,reg,(qword(a) and mask) shr shift));
+
              mask:=mask shl 8;
              inc(shift,8);
              reg:=GetNextReg(reg);
@@ -578,8 +582,8 @@ unit cgcpu;
             getcpuregister(list,NR_R30);
             getcpuregister(list,NR_R31);
             tmpreg:=NR_R30;
-            list.concat(taicpu.op_reg_reg(A_MOV,tmpreg,ref.index));
-            list.concat(taicpu.op_reg_reg(A_MOV,GetNextReg(tmpreg),GetNextReg(ref.index)));
+            emit_mov(list,tmpreg,ref.index);
+            emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.index));
             list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.base));
             list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.base)));
             ref.base:=tmpreg;
@@ -590,8 +594,8 @@ unit cgcpu;
             getcpuregister(list,NR_R30);
             getcpuregister(list,NR_R31);
             tmpreg:=NR_R30;
-            list.concat(taicpu.op_reg_reg(A_MOV,tmpreg,ref.base));
-            list.concat(taicpu.op_reg_reg(A_MOV,GetNextReg(tmpreg),GetNextReg(ref.base)));
+            emit_mov(list,tmpreg,ref.base);
+            emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.base));
             ref.base:=tmpreg;
             ref.index:=NR_NO;
           end
@@ -600,8 +604,8 @@ unit cgcpu;
             getcpuregister(list,NR_R30);
             getcpuregister(list,NR_R31);
             tmpreg:=NR_R30;
-            list.concat(taicpu.op_reg_reg(A_MOV,tmpreg,ref.index));
-            list.concat(taicpu.op_reg_reg(A_MOV,GetNextReg(tmpreg),GetNextReg(ref.index)));
+            emit_mov(list,tmpreg,ref.index);
+            emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.index));
             ref.base:=tmpreg;
             ref.index:=NR_NO;
           end;
