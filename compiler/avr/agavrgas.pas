@@ -169,6 +169,7 @@ unit agavrgas;
               internalerror(2002070604);
           end;
         end;
+
     var op: TAsmOp;
         s: string;
         i: byte;

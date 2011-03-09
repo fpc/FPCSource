@@ -34,11 +34,7 @@ unit cgcpu;
        parabase,
        cpubase,cpuinfo,node,cg64f32,rgcpu;
 
-
     type
-
-      { tcgavr }
-
       tcgavr = class(tcg)
         { true, if the next arithmetic operation should modify the flags }
         cgsetflags : boolean;
@@ -560,8 +556,8 @@ unit cgcpu;
               end;
             if (ref.index<>NR_NO) then
               begin
-                list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.base));
-                list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.base)));
+                list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.index));
+                list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.index)));
               end;
             ref.symbol:=nil;
             ref.offset:=0;
@@ -1004,6 +1000,7 @@ unit cgcpu;
         { TODO : implement g_flags2reg }
       end;
 
+
     procedure tcgavr.a_adjust_sp(list : TAsmList; value : longint);
       var
         i : integer;
@@ -1126,8 +1123,47 @@ unit cgcpu;
 
 
     procedure tcgavr.a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);
+      var
+        tmpref : treference;
       begin
-        { TODO : a_loadaddr_ref_reg }
+         if ref.addressmode<>AM_UNCHANGED then
+           internalerror(2011021701);
+
+        if assigned(ref.symbol) or (ref.offset<>0) then
+          begin
+            reference_reset(tmpref,0);
+            tmpref.symbol:=ref.symbol;
+            tmpref.offset:=ref.offset;
+            tmpref.refaddr:=addr_lo8;
+            list.concat(taicpu.op_reg_ref(A_LDI,r,tmpref));
+            tmpref.refaddr:=addr_hi8;
+            list.concat(taicpu.op_reg_ref(A_LDI,GetNextReg(r),tmpref));
+            if (ref.base<>NR_NO) then
+              begin
+                list.concat(taicpu.op_reg_reg(A_ADD,r,ref.base));
+                list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(r),GetNextReg(ref.base)));
+              end;
+            if (ref.index<>NR_NO) then
+              begin
+                list.concat(taicpu.op_reg_reg(A_ADD,r,ref.index));
+                list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(r),GetNextReg(ref.index)));
+              end;
+          end
+        else if (ref.base<>NR_NO)then
+          begin
+            emit_mov(list,r,ref.base);
+            emit_mov(list,GetNextReg(r),GetNextReg(ref.base));
+            if (ref.index<>NR_NO) then
+              begin
+                list.concat(taicpu.op_reg_reg(A_ADD,r,ref.index));
+                list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(r),GetNextReg(ref.index)));
+              end;
+          end
+        else if (ref.index<>NR_NO) then
+          begin
+            emit_mov(list,r,ref.index);
+            emit_mov(list,GetNextReg(r),GetNextReg(ref.index));
+          end;
       end;
 
 
@@ -1166,6 +1202,7 @@ unit cgcpu;
       begin
         internalerror(2011021321);
       end;
+
 
     procedure tcgavr.g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : aint);
       begin
