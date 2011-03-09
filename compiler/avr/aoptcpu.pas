@@ -40,7 +40,7 @@ Type
 Implementation
 
   uses
-    aasmbase,aasmcpu;
+    aasmbase,aasmcpu,cgbase;
 
   function CanBeCond(p : tai) : boolean;
     begin
@@ -53,7 +53,43 @@ Implementation
       next1: tai;
     begin
       result := false;
+      case p.typ of
+        ait_instruction:
+          begin
+            case taicpu(p).opcode of
+              A_MOV:
+                begin
+                  { fold
+                    mov reg2,reg0
+                    mov reg3,reg1
+                    to
+                    movw reg2,reg0
+                  }
+                  if (taicpu(p).ops=2) and
+                     (taicpu(p).oper[0]^.typ = top_reg) and
+                     (taicpu(p).oper[1]^.typ = top_reg) and
+                     getnextinstruction(p,next1) and
+                     (next1.typ = ait_instruction) and
+                     (taicpu(next1).opcode = A_MOV) and
+                     (taicpu(next1).ops=2) and
+                     (taicpu(next1).oper[0]^.typ = top_reg) and
+                     (taicpu(next1).oper[1]^.typ = top_reg) and
+                     (getsupreg(taicpu(next1).oper[0]^.reg)=getsupreg(taicpu(p).oper[0]^.reg)+1) and
+                     ((getsupreg(taicpu(p).oper[0]^.reg) mod 2)=0) and
+                     ((getsupreg(taicpu(p).oper[1]^.reg) mod 2)=0) and
+                     (getsupreg(taicpu(next1).oper[1]^.reg)=getsupreg(taicpu(p).oper[1]^.reg)+1) then
+                    begin
+                      taicpu(p).opcode:=A_MOVW;
+                      asml.remove(next1);
+                      next1.free;
+                      result := true;
+                    end;
+                end;
+            end;
+          end;
+      end;
     end;
+
 
   procedure TCpuAsmOptimizer.PeepHoleOptPass2;
     begin

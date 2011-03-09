@@ -500,7 +500,7 @@ unit cgcpu;
                     src:=GetNextReg(src);
                   end;
              end;
-          else
+           else
              internalerror(2011022004);
          end;
        end;
@@ -615,8 +615,22 @@ unit cgcpu;
          conv_done: boolean;
          tmpreg : tregister;
          i : integer;
+         QuickRef : Boolean;
        begin
-         href:=normalize_ref(list,Ref);
+         if not((Ref.addressmode=AM_UNCHANGED) and
+                (Ref.symbol=nil) and
+                ((Ref.base=NR_R28) or
+                 (Ref.base=NR_R29)) and
+                 (Ref.Index=NR_No) and
+                 (Ref.Offset in [0..64-tcgsize2size[tosize]])) and
+           not((Ref.Base=NR_NO) and (Ref.Index=NR_NO)) then
+           href:=normalize_ref(list,Ref)
+         else
+           begin
+             QuickRef:=true;
+             href:=Ref;
+           end;
+
          if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
            internalerror(2011021307);
 
@@ -629,16 +643,16 @@ unit cgcpu;
              case fromsize of
                OS_8:
                  begin
-                   if (href.base<>NR_NO) and (tcgsize2size[tosize]>1) then
+                   if not(QuickRef) and (tcgsize2size[tosize]>1) then
                      href.addressmode:=AM_POSTINCREMENT;
 
                    list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
                    for i:=2 to tcgsize2size[tosize] do
                      begin
-                       if (href.offset<>0) or assigned(href.symbol) then
+                       if QuickRef then
                          inc(href.offset);
 
-                       if (href.base<>NR_NO) and (i<tcgsize2size[fromsize]) then
+                       if not(QuickRef) and (i<tcgsize2size[fromsize]) then
                          href.addressmode:=AM_POSTINCREMENT
                        else
                          href.addressmode:=AM_UNCHANGED;
@@ -648,7 +662,7 @@ unit cgcpu;
                  end;
                OS_S8:
                  begin
-                   if (href.base<>NR_NO) and (tcgsize2size[tosize]>1) then
+                   if not(QuickRef) and (tcgsize2size[tosize]>1) then
                      href.addressmode:=AM_POSTINCREMENT;
                    list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
 
@@ -660,10 +674,10 @@ unit cgcpu;
                        list.concat(taicpu.op_reg(A_COM,tmpreg));
                        for i:=2 to tcgsize2size[tosize] do
                          begin
-                           if (href.offset<>0) or assigned(href.symbol) then
+                           if QuickRef then
                              inc(href.offset);
 
-                           if (href.base<>NR_NO) and (i<tcgsize2size[fromsize]) then
+                           if not(QuickRef) and (i<tcgsize2size[fromsize]) then
                              href.addressmode:=AM_POSTINCREMENT
                            else
                              href.addressmode:=AM_UNCHANGED;
@@ -673,13 +687,13 @@ unit cgcpu;
                  end;
                OS_16:
                  begin
-                   if (href.base<>NR_NO) and (tcgsize2size[tosize]>1) then
+                   if not(QuickRef) and (tcgsize2size[tosize]>1) then
                      href.addressmode:=AM_POSTINCREMENT;
 
                    list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
-                   if (href.offset<>0) or assigned(href.symbol) then
+                   if QuickRef then
                      inc(href.offset)
-                   else if (href.base<>NR_NO) and (tcgsize2size[fromsize]>2) then
+                   else if not(QuickRef) and (tcgsize2size[fromsize]>2) then
                      href.addressmode:=AM_POSTINCREMENT
                    else
                      href.addressmode:=AM_UNCHANGED;
@@ -689,10 +703,10 @@ unit cgcpu;
 
                    for i:=3 to tcgsize2size[tosize] do
                      begin
-                       if (href.offset<>0) or assigned(href.symbol) then
+                       if QuickRef then
                          inc(href.offset);
 
-                       if (href.base<>NR_NO) and (i<tcgsize2size[fromsize]) then
+                       if not(QuickRef) and (i<tcgsize2size[fromsize]) then
                          href.addressmode:=AM_POSTINCREMENT
                        else
                          href.addressmode:=AM_UNCHANGED;
@@ -702,13 +716,13 @@ unit cgcpu;
                  end;
                OS_S16:
                  begin
-                   if (href.base<>NR_NO) and (tcgsize2size[tosize]>1) then
+                   if not(QuickRef) and (tcgsize2size[tosize]>1) then
                      href.addressmode:=AM_POSTINCREMENT;
 
                    list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
-                   if (href.offset<>0) or assigned(href.symbol) then
+                   if QuickRef then
                      inc(href.offset)
-                   else if (href.base<>NR_NO) and (tcgsize2size[fromsize]>2) then
+                   else if not(QuickRef) and (tcgsize2size[fromsize]>2) then
                      href.addressmode:=AM_POSTINCREMENT
                    else
                      href.addressmode:=AM_UNCHANGED;
@@ -724,10 +738,10 @@ unit cgcpu;
                        list.concat(taicpu.op_reg(A_COM,tmpreg));
                        for i:=3 to tcgsize2size[tosize] do
                          begin
-                           if (href.offset<>0) or assigned(href.symbol) then
+                           if QuickRef then
                              inc(href.offset);
 
-                           if (href.base<>NR_NO) and (i<tcgsize2size[fromsize]) then
+                           if not(QuickRef) and (i<tcgsize2size[fromsize]) then
                              href.addressmode:=AM_POSTINCREMENT
                            else
                              href.addressmode:=AM_UNCHANGED;
@@ -743,14 +757,14 @@ unit cgcpu;
            begin
              for i:=1 to tcgsize2size[fromsize] do
                begin
-                   if (href.base<>NR_NO) and (i<tcgsize2size[fromsize]) then
+                   if not(QuickRef) and (i<tcgsize2size[fromsize]) then
                      href.addressmode:=AM_POSTINCREMENT
                    else
                      href.addressmode:=AM_UNCHANGED;
 
                  list.concat(taicpu.op_ref_reg(GetStore(href),href,reg));
 
-                 if (href.offset<>0) or assigned(href.symbol) then
+                 if QuickRef then
                    inc(href.offset);
 
                  reg:=GetNextReg(reg);
@@ -766,8 +780,22 @@ unit cgcpu;
          conv_done: boolean;
          tmpreg : tregister;
          i : integer;
+         QuickRef : boolean;
        begin
-         href:=normalize_ref(list,Ref);
+         if not((Ref.addressmode=AM_UNCHANGED) and
+                (Ref.symbol=nil) and
+                ((Ref.base=NR_R28) or
+                 (Ref.base=NR_R29)) and
+                 (Ref.Index=NR_No) and
+                 (Ref.Offset in [0..64-tcgsize2size[fromsize]])) and
+           not((Ref.Base=NR_NO) and (Ref.Index=NR_NO)) then
+           href:=normalize_ref(list,Ref)
+         else
+           begin
+             QuickRef:=true;
+             href:=Ref;
+           end;
+
          if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
            internalerror(2011021307);
 
@@ -808,11 +836,11 @@ unit cgcpu;
                  end;
                OS_16:
                  begin
-                   if href.base<>NR_NO then
+                   if not(QuickRef) then
                      href.addressmode:=AM_POSTINCREMENT;
                    list.concat(taicpu.op_reg_ref(GetLoad(href),reg,href));
 
-                   if (href.offset<>0) or assigned(href.symbol) then
+                   if QuickRef then
                      inc(href.offset);
                    href.addressmode:=AM_UNCHANGED;
 
@@ -827,10 +855,10 @@ unit cgcpu;
                  end;
                OS_S16:
                  begin
-                   if href.base<>NR_NO then
+                   if not(QuickRef) then
                      href.addressmode:=AM_POSTINCREMENT;
                    list.concat(taicpu.op_reg_ref(GetLoad(href),reg,href));
-                   if (href.offset<>0) or assigned(href.symbol) then
+                   if QuickRef then
                      inc(href.offset);
                    href.addressmode:=AM_UNCHANGED;
 
@@ -857,14 +885,14 @@ unit cgcpu;
            begin
              for i:=1 to tcgsize2size[fromsize] do
                begin
-                 if (href.base<>NR_NO) and (i<tcgsize2size[fromsize]) then
+                 if not(QuickRef) and (i<tcgsize2size[fromsize]) then
                    href.addressmode:=AM_POSTINCREMENT
                  else
                    href.addressmode:=AM_UNCHANGED;
 
                  list.concat(taicpu.op_reg_ref(GetLoad(href),reg,href));
 
-                 if (href.offset<>0) or assigned(href.symbol) then
+                 if QuickRef then
                    inc(href.offset);
 
                  reg:=GetNextReg(reg);
@@ -1056,6 +1084,8 @@ unit cgcpu;
       begin
         if (ref.base=NR_NO) and (ref.index=NR_NO) then
           result:=A_LDS
+        else if (ref.base<>NR_NO) and (ref.offset<>0) then
+          result:=A_LDD
         else
           result:=A_LD;
       end;
@@ -1065,6 +1095,8 @@ unit cgcpu;
       begin
         if (ref.base=NR_NO) and (ref.index=NR_NO) then
           result:=A_STS
+        else if (ref.base<>NR_NO) and (ref.offset<>0) then
+          result:=A_STD
         else
           result:=A_ST;
       end;
