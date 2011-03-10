@@ -127,6 +127,9 @@
 -Fu%basepath%/units/$FPCTARGET/*
 -Fu%basepath%/units/$FPCTARGET/rtl
 
+# searchpath for fppkg user-specific packages
+-Fu%localbasepath%/units/$FPCTARGET/*
+
 #IFDEF FPCAPACHE_1_13
 -Fu%basepath%/units/$FPCTARGET/httpd13/
 #ELSE

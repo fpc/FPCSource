@@ -92,6 +92,17 @@ begin
 {$ENDIF Unix}
 end;
 
+function GetDefaultLocalBasepath: string;
+
+begin
+{$IFDEF Unix}
+  result := '~/.fppkg'+PathDelim+'lib'+PathDelim+'fpc'+PathDelim+'$fpcversion';
+{$ELSE Unix}
+  result := '$LOCAL_APPDATA'+PathDelim+'FreePascal'+PathDelim+'fppkg';
+{$ENDIF Unix}
+end;
+
+
 function GetDefaultNeedCrossBinutilsIfdef: string;
 
 begin
@@ -251,6 +262,7 @@ begin
   TemplateParser.Values['BUILDTIME'] := TimeToStr(Time);
 
   TemplateParser.Values['LOCALREPOSITORY'] := GetDefaultLocalRepository;
+  TemplateParser.Values['LOCALBASEPATH'] := GetDefaultLocalBasepath;
   TemplateParser.Values['NEEDCROSSBINUTILSIFDEF'] := GetDefaultNeedCrossBinutilsIfdef;
   TemplateParser.Values['GCCLIBPATH'] := GetDefaultGCCDIR;
 
