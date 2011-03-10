@@ -718,7 +718,7 @@ implementation
                           Default Macro Handling
 ****************************************************************************}
 
-{$ifdef windows}
+{$ifdef mswindows}
 {
   This code is copied from sysutils.pp
 }
@@ -784,11 +784,11 @@ implementation
                Result:=IncludeTrailingPathDelimiter(StrPas(@APath[0]));
            end;
        end;
-{$endif windows}
+{$endif mswindows}
 
 
      procedure DefaultReplacements(var s:ansistring);
-       {$ifdef windows}
+       {$ifdef mswindows}
        procedure ReplaceSpecialFolder(const MacroName: string; const ID: integer);
          begin
            // Only try to receive the special folders (and thus dynamically
@@ -797,7 +797,7 @@ implementation
              Replace(s,MacroName,GetSpecialDir(ID));
          end;
 
-       {$endif windows}
+       {$endif mswindows}
        var
          envstr: string;
          envvalue: pchar;
@@ -813,7 +813,7 @@ implementation
            Replace(s,'$FPCTARGET',target_os_string)
          else
            Replace(s,'$FPCTARGET',target_full_string);
-{$ifdef windows}
+{$ifdef mswindows}
          ReplaceSpecialFolder('$LOCAL_APPDATA',CSIDL_LOCAL_APPDATA);
          ReplaceSpecialFolder('$APPDATA',CSIDL_APPDATA);
          ReplaceSpecialFolder('$COMMON_APPDATA',CSIDL_COMMON_APPDATA);
@@ -821,7 +821,7 @@ implementation
          ReplaceSpecialFolder('$PROGRAM_FILES',CSIDL_PROGRAM_FILES);
          ReplaceSpecialFolder('$PROGRAM_FILES_COMMON',CSIDL_PROGRAM_FILES_COMMON);
          ReplaceSpecialFolder('$PROFILE',CSIDL_PROFILE);
-{$endif windows}
+{$endif mswindows}
          { Replace environment variables between dollar signs }
          i := pos('$',s);
          while i>0 do
@@ -1581,10 +1581,10 @@ implementation
         features:=[low(Tfeature)..high(Tfeature)];
      end;
 
-{$ifdef windows}
+{$ifdef mswindows}
 initialization
 finalization
   if CFGDLLHandle<>0 then
     FreeLibrary(CFGDllHandle);
-{$endif windows}
+{$endif mswindows}
 end.
