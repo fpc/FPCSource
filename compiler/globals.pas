@@ -26,7 +26,7 @@ unit globals;
 interface
 
     uses
-{$ifdef win32}
+{$ifdef windows}
       windows,
 {$endif}
 {$ifdef os2}
