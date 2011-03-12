@@ -365,6 +365,7 @@ Var
 
 begin
   I:=1;
+  ShowBuiltinCommand := False;
   While( I<=ParamCount) do
     begin
     S:=Paramstr(i);
