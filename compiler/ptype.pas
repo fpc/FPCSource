@@ -40,9 +40,6 @@ interface
 
     procedure resolve_forward_types;
 
-    { reads a type identifier }
-    procedure id_type(var def : tdef;isforwarddef:boolean);
-
     { reads a string, file type or a type identifier }
     procedure single_type(var def:tdef;options:TSingleTypeOptions);
 
@@ -389,10 +386,27 @@ implementation
       end;
 
 
-    procedure parse_nested_types(var def: tdef; isforwarddef: boolean);
+    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef:boolean); forward;
+
+    { def is the outermost type in which other types have to be searched
+
+      isforward indicates whether the current definition can be a forward definition
+
+      if assigned, currentstructstack is a list of tabstractrecorddefs that, from
+      last to first, are child types of def that are not yet visible via the
+      normal symtable searching routines because they are types that are currently
+      being parsed (so using id_type on them after pushing def on the
+      symtablestack would result in errors because they'd come back as errordef)
+    }
+    procedure parse_nested_types(var def: tdef; isforwarddef: boolean; currentstructstack: tfpobjectlist);
       var
         t2: tdef;
+        structstackindex: longint;
       begin
+        if assigned(currentstructstack) then
+          structstackindex:=currentstructstack.count-1
+        else
+          structstackindex:=-1;
         { handle types inside classes, e.g. TNode.TLongint }
         while (token=_POINT) do
           begin
@@ -403,12 +417,23 @@ implementation
               end
              else if is_class_or_object(def) or is_record(def) then
                begin
-                 symtablestack.push(tabstractrecorddef(def).symtable);
                  consume(_POINT);
-                 t2:=generrordef;
-                 id_type(t2,isforwarddef);
-                 symtablestack.pop(tabstractrecorddef(def).symtable);
-                 def:=t2;
+                 if (structstackindex>=0) and
+                    (tabstractrecorddef(currentstructstack[structstackindex]).objname^=pattern) then
+                   begin
+                     def:=tdef(currentstructstack[structstackindex]);
+                     dec(structstackindex);
+                     consume(_ID);
+                   end
+                 else
+                   begin
+                     structstackindex:=-1;
+                     symtablestack.push(tabstractrecorddef(def).symtable);
+                     t2:=generrordef;
+                     id_type(t2,isforwarddef,false);
+                     symtablestack.pop(tabstractrecorddef(def).symtable);
+                     def:=t2;
+                   end;
                end
              else
                break;
@@ -419,17 +444,29 @@ implementation
     function try_parse_structdef_nested_type(out def: tdef; basedef: tabstractrecorddef; isfowarddef: boolean): boolean;
       var
         structdef : tabstractrecorddef;
+        structdefstack : tfpobjectlist;
       begin
          { use of current parsed object:
            classes, objects, records can be used also in themself }
          structdef:=basedef;
+         structdefstack:=nil;
          while assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
            begin
              if (structdef.objname^=pattern) then
                begin
                  consume(_ID);
                  def:=structdef;
-                 parse_nested_types(def,isfowarddef);
+                 { we found the top-most match, now check how far down we can
+                   follow }
+                 structdefstack:=tfpobjectlist.create(false);
+                 structdef:=basedef;
+                 while (structdef<>def) do
+                   begin
+                     structdefstack.add(structdef);
+                     structdef:=tabstractrecorddef(structdef.owner.defowner);
+                   end;
+                 parse_nested_types(def,isfowarddef,structdefstack);
+                 structdefstack.free;
                  result:=true;
                  exit;
                end;
@@ -438,7 +475,7 @@ implementation
          result:=false;
       end;
 
-    procedure id_type(var def : tdef;isforwarddef:boolean);
+    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef:boolean);
     { reads a type definition }
     { to a appropriating tdef, s gets the name of   }
     { the type to allow name mangling          }
@@ -456,7 +493,8 @@ implementation
          pos:=current_tokenpos;
          { use of current parsed object:
            classes, objects, records can be used also in themself }
-         if try_parse_structdef_nested_type(def,current_structdef,isforwarddef) then
+         if checkcurrentrecdef and
+            try_parse_structdef_nested_type(def,current_structdef,isforwarddef) then
            exit;
          { Use the special searchsym_type that search only types }
          searchsym_type(s,srsym,srsymtable);
@@ -558,8 +596,8 @@ implementation
                      end
                    else
                      begin
-                       id_type(def,stoIsForwardDef in options);
-                       parse_nested_types(def,stoIsForwardDef in options);
+                       id_type(def,stoIsForwardDef in options,true);
+                       parse_nested_types(def,stoIsForwardDef in options,nil);
                      end;
                  end;
 
