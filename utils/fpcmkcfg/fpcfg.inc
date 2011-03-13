@@ -12,6 +12,7 @@ const fpcfg : array[0..2,1..240] of char=(
   ' -Fu%basepath%\units\$fpctarget'#010+
   ' -Fu%basepath%\units\$fpctarget\*'#010+
   ' -Fu%basepath%\units\$fpctarget\rtl'#010+
+  '%GCCLIBPATH%'#010+
   ' -g-'#010+
   ' -p-'#010+
   ' -b-'#010+
@@ -23,10 +24,11 @@ const fpcfg : array[0..2,1..240] of char=(
   ' -T%fpctargetos%'#010+
   ' -Sg'#010+
   ' -Cr'#010+
-  ' -Co'#010+
-  ' -Fu%base','path%\units\$fpctarget'#010+
+  ' ','-Co'#010+
+  ' -Fu%basepath%\units\$fpctarget'#010+
   ' -Fu%basepath%\units\$fpctarget\*'#010+
   ' -Fu%basepath%\units\$fpctarget\rtl'#010+
+  '%GCCLIBPATH%'#010+
   ' -g'#010+
   ' -p-'#010+
   ' -b-'#010+
@@ -38,8 +40,9 @@ const fpcfg : array[0..2,1..240] of char=(
   ' -Sg'#010+
   ' -O2'#010+
   ' -Fu%basepath%\units\$fpctarget'#010+
-  ' -Fu%basepath%\units\$fpctarget\*'#010+
-  ' -Fu%basepat','h%\units\$fpctarget\rtl'#010+
+  ' -Fu%basepath%\units','\$fpctarget\*'#010+
+  ' -Fu%basepath%\units\$fpctarget\rtl'#010+
+  '%GCCLIBPATH%'#010+
   ' -g-'#010+
   ' -p-'#010+
   ' -b-'#010+
