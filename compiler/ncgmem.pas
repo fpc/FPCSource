@@ -699,8 +699,6 @@ implementation
       var
         paraloc1,
         paraloc2: tcgpara;
-        href: treference;
-        offsetdec: aint;
       begin
         paraloc1.init;
         paraloc2.init;
@@ -712,26 +710,9 @@ implementation
             begin
               paramanager.getintparaloc(pocall_default,1,paraloc1);
               paramanager.getintparaloc(pocall_default,2,paraloc2);
+              cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
-              href:=location.reference;
-              { Add back the offset which was subtracted to map string[1]->pchar(string)[0] }
-              { TODO: we'd better rangecheck on the original location, before offsetting it. }
-              if is_ansistring(left.resultdef) then
-                offsetdec:=1
-              else
-                offsetdec:=2;
-              if not(tf_winlikewidestring in target_info.flags) or
-                (tstringdef(left.resultdef).stringtype<>st_widestring) then
-                begin
-                  dec(href.offset,sizeof(pint)-offsetdec);
-                  cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_ADDR,href,paraloc1);
-                end
-              else
-                begin
-                  { winlike widestrings have a 4 byte length }
-                  dec(href.offset,4-offsetdec);
-                  cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
-                end;
+
               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
@@ -788,8 +769,7 @@ implementation
 
          { an ansistring needs to be dereferenced }
          if is_ansistring(left.resultdef) or
-            is_widestring(left.resultdef) or
-            is_unicodestring(left.resultdef) then
+            is_wide_or_unicode_string(left.resultdef) then
            begin
               if nf_callunique in flags then
                 internalerror(200304236);
@@ -815,18 +795,6 @@ implementation
                 else
                   internalerror(2002032218);
               end;
-
-              { check for a zero length string,
-                we can use the ansistring routine here }
-              if (cs_check_range in current_settings.localswitches) then
-                begin
-                   paramanager.getintparaloc(pocall_default,1,paraloc1);
-                   cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,location.reference.base,paraloc1);
-                   paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-                   cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                   cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_CHECKZERO',false);
-                   cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-                end;
 
               { in ansistrings/widestrings S[1] is p<w>char(S)[0] !! }
               if is_ansistring(left.resultdef) then
