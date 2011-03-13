@@ -29,10 +29,16 @@
 
 # For a debug version compile with debuginfo and all codegeneration checks on
 #IFDEF DEBUG
-  -glh
+  -gl
   -Crtoi
   #WRITE Compiling Debug Version
 #ENDIF
+
+# assembling
+#ifdef darwin
+# use pipes instead of temporary files for assembling
+-ap
+#endif
 
 # ----------------
 # Parsing switches
@@ -110,6 +116,13 @@
 # -Oo<x>     switch on optimalization x. See fpc -i for possible values
 # -OoNO<x>   switch off optimalization x. See fpc -i for possible values
 # -Op<x>     set target cpu for optimizing, see fpc -i for possible values
+
+#ifdef darwin
+#ifdef cpui386
+-Cppentiumm
+-Oppentiumm
+#endif
+#endif
 
 # -----------------------
 # Set Filenames and Paths
