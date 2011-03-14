@@ -7885,6 +7885,7 @@ rtl/win/syswin.inc svneol=native#text/plain
 rtl/win/tthread.inc svneol=native#text/plain
 rtl/win/varutils.pp svneol=native#text/plain
 rtl/win/video.pp svneol=native#text/plain
+rtl/win/windirs.pp svneol=native#text/plain
 rtl/win/winevent.pp svneol=native#text/plain
 rtl/win/wininc/Makefile svneol=native#text/plain
 rtl/win/wininc/ascdef.inc svneol=native#text/plain
