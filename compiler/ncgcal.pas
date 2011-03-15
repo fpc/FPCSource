@@ -167,7 +167,16 @@ implementation
                 is_managed_type(left.resultdef) then
                begin
                  location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false,sizeof(pint));
-                 cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
+                 if is_open_array(resultdef) then
+                   begin
+                     if third=nil then
+                       InternalError(201103063);
+                     secondpass(third);
+                     cg.g_array_rtti_helper(current_asmdata.CurrAsmList,tarraydef(resultdef).elementdef,
+                       href,third.location,'FPC_DECREF_ARRAY');
+                   end
+                 else
+                   cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
                end;
 
              paramanager.createtempparaloc(current_asmdata.CurrAsmList,aktcallnode.procdefinition.proccalloption,parasym,not followed_by_stack_tainting_call_cached,tempcgpara);
