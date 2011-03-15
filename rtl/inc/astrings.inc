@@ -1054,6 +1054,13 @@ begin
     Move (Buf^,Pointer(S)^,Len);
 end;
 
+Procedure SetString (Out S : AnsiString; Buf : PWideChar; Len : SizeInt);
+begin
+  if (Buf<>nil) and (Len>0) then
+    widestringmanager.Wide2AnsiMoveProc(Buf,S,Len)
+  else
+    SetLength(S, Len);
+end;
 
 function upcase(const s : ansistring) : ansistring;
 var
