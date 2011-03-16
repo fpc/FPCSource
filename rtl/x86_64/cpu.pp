@@ -50,6 +50,7 @@ unit cpu;
           r8  ... NewValue
           r9  ... Comperand
       }
+    {$ifdef win64}
       asm
         pushq %rbx
 
@@ -81,7 +82,30 @@ unit cpu;
 
         popq %rbx
       end;
+    {$else win64}
+    {
+      linux:
+        rdi       ... target
+        [rsi:rdx] ... NewValue
+        [rcx:r8]  ... Comperand
+        [rdx:rax] ... result
+    }
+      asm
+        pushq %rbx
 
+        movq %rsi,%rbx          // new value low
+        movq %rcx,%rax          // comperand low
+        movq %rdx,%rcx          // new value high
+        movq %r8,%rdx           // comperand high
+        {$ifdef oldbinutils}
+        .byte 0xF0,0x48,0x0F,0xC7,0x0F
+        {$else}
+        lock cmpxchg16b (%rdi)
+        {$endif}
+
+        popq %rbx
+      end;
+    {$endif win64}
 
     procedure SetupSupport;
       var
