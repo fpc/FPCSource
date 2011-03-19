@@ -478,7 +478,11 @@ implementation
       macutils,
 {$endif}
 {$ifdef mswindows}
+{$ifdef VER2_4}
+      cwindirs,
+{$else VER2_4}
       windirs,
+{$endif VER2_4}
 {$endif}
       comphook;
 
