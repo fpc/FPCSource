@@ -584,7 +584,7 @@ implementation
 
     function TElfObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       const
-        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
+        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
 {$ifdef userodata}
           '.text','.data','.data','.rodata','.bss','.threadvar',
 {$else userodata}
@@ -639,7 +639,7 @@ implementation
           '.obcj_nlcatlist',
           '.objc_protolist'
         );
-        secnames_pic : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
+        secnames_pic : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text',
           '.data.rel',
           '.data.rel',
@@ -700,30 +700,36 @@ implementation
         sep : string[3];
         secname : string;
       begin
-        if (cs_create_pic in current_settings.moduleswitches) and
-           not(target_info.system in systems_darwin) then
-          secname:=secnames_pic[atype]
+        { section type user gives the user full controll on the section name }
+        if atype=sec_user then
+          result:=aname
         else
-          secname:=secnames[atype];
-        if (atype=sec_fpc) and (Copy(aname,1,3)='res') then
           begin
-            result:=secname+'.'+aname;
-            exit;
+            if (cs_create_pic in current_settings.moduleswitches) and
+               not(target_info.system in systems_darwin) then
+              secname:=secnames_pic[atype]
+            else
+              secname:=secnames[atype];
+            if (atype=sec_fpc) and (Copy(aname,1,3)='res') then
+              begin
+                result:=secname+'.'+aname;
+                exit;
+              end;
+            if create_smartlink_sections and (aname<>'') then
+              begin
+                case aorder of
+                  secorder_begin :
+                    sep:='.b_';
+                  secorder_end :
+                    sep:='.z_';
+                  else
+                    sep:='.n_';
+                end;
+                result:=secname+sep+aname
+              end
+            else
+              result:=secname;
           end;
-        if create_smartlink_sections and (aname<>'') then
-          begin
-            case aorder of
-              secorder_begin :
-                sep:='.b_';
-              secorder_end :
-                sep:='.z_';
-              else
-                sep:='.n_';
-            end;
-            result:=secname+sep+aname
-          end
-        else
-          result:=secname;
       end;
 
 

@@ -70,6 +70,7 @@ interface
 
       secnames : array[TAsmSectiontype] of string[10] = (
         '',      {none}
+        '',      {user}
         'csect', {code}
         'csect', {data}
         'csect', {read only data}
