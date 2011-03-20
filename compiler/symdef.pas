@@ -648,6 +648,15 @@ interface
           function  is_publishable : boolean;override;
        end;
 
+       tdefawaresymtablestack = class(TSymtablestack)
+       private
+         procedure addhelpers(st: TSymtable);
+         procedure removehelpers(st: TSymtable);
+       public
+         procedure push(st: TSymtable); override;
+         procedure pop(st: TSymtable); override;
+       end;
+
     var
        current_structdef: tabstractrecorddef; { used for private functions check !! }
        current_genericdef: tstoreddef;        { used to reject declaration of generic class inside generic class }
@@ -921,6 +930,96 @@ implementation
         { add an underscore on darwin.                                              }
         if (target_info.system in systems_darwin) then
           result := '_' + result;
+      end;
+
+{****************************************************************************
+           TDEFAWARESYMTABLESTACK
+           (symtablestack descendant that does some special actions on
+           the pushed/popped symtables)
+****************************************************************************}
+
+    procedure tdefawaresymtablestack.addhelpers(st: TSymtable);
+      var
+        i: integer;
+        s: string;
+        list: TFPObjectList;
+        def: tdef;
+      begin
+        { search the symtable from first to last; the helper to use will be the
+          last one in the list }
+        for i:=0 to st.symlist.count-1 do
+          begin
+            if not (st.symlist[i] is ttypesym) then
+              continue;
+            def:=ttypesym(st.SymList[i]).typedef;
+            if is_objectpascal_helper(def) then
+              begin
+                s:=make_mangledname('',tobjectdef(def).extendeddef.symtable,'');
+                list:=TFPObjectList(current_module.extendeddefs.Find(s));
+                if not assigned(list) then
+                  begin
+                    list:=TFPObjectList.Create(false);
+                    current_module.extendeddefs.Add(s,list);
+                  end;
+                list.Add(def);
+              end
+            else
+              { add nested helpers as well }
+              if def.typ in [recorddef,objectdef] then
+                addhelpers(tabstractrecorddef(def).symtable);
+          end;
+      end;
+
+    procedure tdefawaresymtablestack.removehelpers(st: TSymtable);
+      var
+        i, j: integer;
+        tmpst: TSymtable;
+        list: TFPObjectList;
+      begin
+        for i:=current_module.extendeddefs.count-1 downto 0 do
+          begin
+            list:=TFPObjectList(current_module.extendeddefs[i]);
+            for j:=list.count-1 downto 0 do
+              begin
+                if not (list[j] is tobjectdef) then
+                  Internalerror(2011031501);
+                tmpst:=tobjectdef(list[j]).owner;
+                repeat
+                  if tmpst=st then
+                    begin
+                      list.delete(j);
+                      break;
+                    end
+                  else
+                    begin
+                      if assigned(tmpst.defowner) then
+                        tmpst:=tmpst.defowner.owner
+                      else
+                        tmpst:=nil;
+                    end;
+                until not assigned(tmpst) or (tmpst.symtabletype in [globalsymtable,staticsymtable]);
+              end;
+            if list.count=0 then
+              current_module.extendeddefs.delete(i);
+          end;
+      end;
+
+    procedure tdefawaresymtablestack.push(st: TSymtable);
+      begin
+        { nested helpers will be added as well }
+        if (st.symtabletype in [globalsymtable,staticsymtable]) and
+            (sto_has_helper in st.tableoptions) then
+          addhelpers(st);
+        inherited push(st);
+      end;
+
+    procedure tdefawaresymtablestack.pop(st: TSymtable);
+      begin
+        inherited pop(st);
+        { nested helpers will be removed as well }
+        if (st.symtabletype in [globalsymtable,staticsymtable]) and
+            (sto_has_helper in st.tableoptions) then
+          removehelpers(st);
       end;
 
 
@@ -4160,7 +4259,7 @@ implementation
         objecttype:=ot;
         childof:=nil;
         if objecttype=odt_helper then
-          owner.includeoption(sto_has_classhelper);
+          owner.includeoption(sto_has_helper);
         symtable:=tObjectSymtable.create(self,n,current_settings.packrecords);
         { create space for vmt !! }
         vmtentries:=TFPList.Create;

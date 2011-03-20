@@ -1985,6 +1985,9 @@ implementation
         hp : tdef;
         oldcurrent_filepos : tfileposinfo;
         oldsymtablestack   : tsymtablestack;
+{$ifndef useoldsearch}
+        oldextendeddefs    : TFPHashObjectList;
+{$endif}
         pu : tused_unit;
         hmodule : tmodule;
         specobj : tabstractrecorddef;
@@ -1999,7 +2002,13 @@ implementation
         { Setup symtablestack a definition time }
         specobj:=tabstractrecorddef(ttypesym(p).typedef);
         oldsymtablestack:=symtablestack;
+{$ifdef useoldsearch}
         symtablestack:=tsymtablestack.create;
+{$else}
+        oldextendeddefs:=current_module.extendeddefs;
+        current_module.extendeddefs:=TFPHashObjectList.create(true);
+        symtablestack:=tdefawaresymtablestack.create;
+{$endif}
         if not assigned(specobj.genericdef) then
           internalerror(200705151);
         hmodule:=find_module_from_symtable(specobj.genericdef.owner);
@@ -2046,6 +2055,10 @@ implementation
           end;
 
         { Restore symtablestack }
+{$ifndef useoldsearch}
+        current_module.extendeddefs.free;
+        current_module.extendeddefs:=oldextendeddefs;
+{$endif}
         symtablestack.free;
         symtablestack:=oldsymtablestack;
       end;

@@ -824,7 +824,7 @@ implementation
     function create_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
       var
         pd, movenext: tprocdef;
-        classhelper: tobjectdef;
+        helperdef: tobjectdef;
         current: tpropertysym;
         storefilepos: tfileposinfo;
       begin
@@ -866,12 +866,12 @@ implementation
                     { first search using the class helper hierarchy if it's a
                       class }
                     if (expr.resultdef.typ=objectdef) and
-                        search_last_objectpascal_helper(tobjectdef(expr.resultdef),classhelper) then
+                        search_last_objectpascal_helper(tobjectdef(expr.resultdef),nil,helperdef) then
                       repeat
-                        pd:=classhelper.search_enumerator_get;
-                        classhelper:=classhelper.childof;
-                      until (pd<>nil) or (classhelper=nil);
-                    { we didn't found a class helper, so search in the
+                        pd:=helperdef.search_enumerator_get;
+                        helperdef:=helperdef.childof;
+                      until (pd<>nil) or (helperdef=nil);
+                    { we didn't find an enumerator in a helper, so search in the
                       class/record/object itself }
                     if pd=nil then
                       pd:=tabstractrecorddef(expr.resultdef).search_enumerator_get;

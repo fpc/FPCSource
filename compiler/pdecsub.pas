@@ -1630,7 +1630,7 @@ begin
     internalerror(200304269);
   if is_objectpascal_helper(tprocdef(pd).struct) and
       (m_objfpc in current_settings.modeswitches) then
-    Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_ABSTRACT].str);
+    Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_ABSTRACT].str);
   if assigned(tprocdef(pd).struct) and
     (oo_is_sealed in tprocdef(pd).struct.objectoptions) then
     Message(parser_e_sealed_class_cannot_have_abstract_methods)
@@ -1649,7 +1649,7 @@ begin
     internalerror(200910170);
   if is_objectpascal_helper(tprocdef(pd).struct) and
       (m_objfpc in current_settings.modeswitches) then
-    Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_FINAL].str);
+    Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_FINAL].str);
   if (po_virtualmethod in pd.procoptions) then
     include(pd.procoptions,po_finalmethod)
   else
@@ -1697,7 +1697,7 @@ begin
     Message(parser_e_constructor_cannot_be_not_virtual);
   if is_objectpascal_helper(tprocdef(pd).struct) and
       (m_objfpc in current_settings.modeswitches) then
-    Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_VIRTUAL].str);
+    Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_VIRTUAL].str);
 {$ifdef WITHDMT}
   if is_object(tprocdef(pd).struct) and
      (token<>_SEMICOLON) then
@@ -1750,7 +1750,7 @@ begin
   if is_objectpascal_helper(tprocdef(pd).struct) then
     begin
       if m_objfpc in current_settings.modeswitches then
-        Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_OVERRIDE].str)
+        Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_OVERRIDE].str)
     end
   else if not(is_class_or_interface_or_objc(tprocdef(pd).struct)) then
     Message(parser_e_no_object_override)
@@ -1779,7 +1779,7 @@ begin
   if is_objectpascal_helper(tprocdef(pd).struct) then
     begin
       if m_objfpc in current_settings.modeswitches then
-        Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_MESSAGE].str);
+        Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_MESSAGE].str);
     end
   else
     if not is_class(tprocdef(pd).struct) and
@@ -1841,7 +1841,7 @@ begin
   if is_objectpascal_helper(tprocdef(pd).struct) then
     begin
       if m_objfpc in current_settings.modeswitches then
-        Message1(parser_e_not_allowed_in_classhelper, arraytokeninfo[_REINTRODUCE].str);
+        Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_REINTRODUCE].str);
     end
   else
     if not(is_class_or_interface_or_object(tprocdef(pd).struct)) and

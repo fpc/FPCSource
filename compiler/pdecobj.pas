@@ -582,7 +582,7 @@ implementation
           end;
       end;
 
-    procedure parse_extended_class(helpertype:thelpertype);
+    procedure parse_extended_type(helpertype:thelpertype);
       var
         hdef: tdef;
       begin
@@ -954,6 +954,16 @@ implementation
                 if is_objc_class_or_protocol(current_structdef) then
                   Message(parser_e_objc_no_constructor_destructor);
 
+                if is_objectpascal_helper(current_structdef) then
+                  if is_classdef then
+                    { class constructors are not allowed in class helpers }
+                    Message(parser_e_no_class_constructor_in_helpers)
+                  else
+                  if is_record(current_objectdef.extendeddef) then
+                    { as long as constructors aren't allowed in records they
+                      aren't allowed in helpers either }
+                    Message(parser_e_no_constructor_in_records);
+
                 { only 1 class constructor is allowed }
                 if is_classdef and (oo_has_class_constructor in current_structdef.objectoptions) then
                   Message1(parser_e_only_one_class_constructor_allowed, current_structdef.objrealname^);
@@ -1051,6 +1061,9 @@ implementation
         old_current_genericdef,
         old_current_specializedef: tstoreddef;
         old_parse_generic: boolean;
+        list: TFPObjectList;
+        s: String;
+        st: TSymtable;
       begin
         old_current_structdef:=current_structdef;
         old_current_genericdef:=current_genericdef;
@@ -1170,7 +1183,7 @@ implementation
 
             { parse extended type for helpers }
             if is_objectpascal_helper(current_structdef) then
-              parse_extended_class(helpertype);
+              parse_extended_type(helpertype);
 
             { parse optional GUID for interfaces }
             parse_guid;
@@ -1201,6 +1214,28 @@ implementation
           setinterfacemethodoptions
         else if is_objcclass(current_structdef) then
           setobjcclassmethodoptions;
+
+        { if this helper is defined in the implementation section of the unit
+          or inside the main project file, the extendeddefs list of the current
+          module must be updated (it will be removed when poping the symtable) }
+        if is_objectpascal_helper(current_structdef) then
+          begin
+            { the topmost symtable must be a static symtable }
+            st:=current_structdef.owner;
+            while st.symtabletype in [objectsymtable,recordsymtable] do
+              st:=st.defowner.owner;
+            if st.symtabletype=staticsymtable then
+              begin
+                s:=make_mangledname('',current_objectdef.extendeddef.symtable,'');
+                list:=TFPObjectList(current_module.extendeddefs.Find(s));
+                if not assigned(list) then
+                  begin
+                    list:=TFPObjectList.Create(false);
+                    current_module.extendeddefs.Add(s, list);
+                  end;
+                list.add(current_structdef);
+              end;
+          end;
 
         { return defined objectdef }
         result:=current_objectdef;

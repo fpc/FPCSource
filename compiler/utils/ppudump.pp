@@ -429,8 +429,7 @@ end;
 procedure readsymtableoptions(const s: string);
 type
   tsymtableoption = (
-    sto_has_classhelper    { contains at least one class
-                             helper symbol }
+    sto_has_helper         { contains at least one helper symbol }
   );
   tsymtableoptions = set of tsymtableoption;
   tsymtblopt=record
@@ -440,7 +439,7 @@ type
 const
   symtblopts=1;
   symtblopt : array[1..symtblopts] of tsymtblopt=(
-     (mask:sto_has_classhelper;   str:'Has class helper')
+     (mask:sto_has_helper;   str:'Has helper')
   );
 var
   options : tsymtableoptions;
@@ -1947,7 +1946,7 @@ type
     odt_dispinterface,
     odt_objcclass,
     odt_objcprotocol,
-    odt_classhelper
+    odt_helper
   );
   tvarianttype = (
     vt_normalvariant,vt_olevariant

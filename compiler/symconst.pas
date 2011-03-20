@@ -338,12 +338,6 @@ type
     ht_record
   );
 
-  { defines when helper methods should be searched }
-  thelpersearch=(hs_nosearch, { helper methods are not searched at all }
-    hs_searchfirst,           { search before the actual extended types symbols }
-    hs_searchlast             { search only if no symbol is found in the extended type }
-  );
-
   { Variations in interfaces implementation }
   { Beware, this data is duplicated in the compiler and rtl. }
   { Do not change the order of the fields. }
@@ -470,8 +464,7 @@ type
 
   { options for symtables }
   tsymtableoption = (
-    sto_has_classhelper    { contains at least one class
-                             helper symbol }
+    sto_has_helper         { contains at least one helper symbol }
   );
   tsymtableoptions = set of tsymtableoption;
 

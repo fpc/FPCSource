@@ -130,8 +130,8 @@ interface
          constructor create;
          destructor destroy;override;
          procedure clear;
-         procedure push(st:TSymtable);
-         procedure pop(st:TSymtable);
+         procedure push(st:TSymtable); virtual;
+         procedure pop(st:TSymtable); virtual;
          function  top:TSymtable;
        end;
 

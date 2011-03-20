@@ -220,19 +220,23 @@ interface
     function  searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_module(pm:pointer;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_named_module(const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
-    function  searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchhelper:thelpersearch):boolean;
+    function  searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchhelper:boolean):boolean;
     function  searchsym_in_record(recordh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_class_by_msgint(classh:tobjectdef;msgid:longint;out srdef : tdef;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:TSymtable):boolean;
+    { searches symbols inside of a helper's implementation }
     function  searchsym_in_helper(classh,contextclassh:tobjectdef;const s: TIDString;out srsym:tsym;out srsymtable:TSymtable;aHasInherited:boolean):boolean;
     function  search_system_type(const s: TIDString): ttypesym;
     function  search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
     function  search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef;explicit:boolean):Tprocdef;
     function  search_enumerator_operator(from_def,to_def:Tdef):Tprocdef;
-    function  search_last_objectpascal_helper(pd : tabstractrecorddef;out odef : tobjectdef):boolean;
-    function  search_objectpascal_class_helper(pd,contextclassh : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
-    function  search_class_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
+    { searches for the helper definition that's currently active for pd }
+    function  search_last_objectpascal_helper(pd,contextclassh : tabstractrecorddef;out odef : tobjectdef):boolean;
+    { searches whether the symbol s is available in the currently active }
+    { helper for pd }
+    function  search_objectpascal_helper(pd,contextclassh : tabstractrecorddef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
+    function  search_objc_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
     function  search_objc_method(const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
     {Looks for macro s (must be given in upper case) in the macrosymbolstack, }
     {and returns it if found. Returns nil otherwise.}
@@ -1919,7 +1923,7 @@ implementation
             srsymtable:=stackitem^.symtable;
             if (srsymtable.symtabletype=objectsymtable) then
               begin
-                if searchsym_in_class(tobjectdef(srsymtable.defowner),tobjectdef(srsymtable.defowner),s,srsym,srsymtable,hs_searchfirst) then
+                if searchsym_in_class(tobjectdef(srsymtable.defowner),tobjectdef(srsymtable.defowner),s,srsym,srsymtable,true) then
                   begin
                     result:=true;
                     exit;
@@ -2149,29 +2153,12 @@ implementation
       end;
 
 
-    function searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchhelper:thelpersearch):boolean;
+    function searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchhelper:boolean):boolean;
       var
         hashedid : THashedIDString;
-        exdef    : tabstractrecorddef;
         orgclass : tobjectdef;
         i        : longint;
       begin
-        { search for a class helper method first if this is an Object Pascal
-          class }
-        if is_class(classh) and (searchhelper = hs_searchfirst) then
-          begin
-            result:=search_objectpascal_class_helper(classh,contextclassh,s,srsym,srsymtable);
-            if result then
-              begin
-                { if the procsym is overloaded we need to use the "original"
-                  symbol; the helper symbol will be find when searching for
-                  overloads }
-                if (srsym.typ<>procsym) or
-                    not (sp_has_overloaded in tprocsym(srsym).symoptions) then
-                  Exit;
-              end;
-          end;
-
         orgclass:=classh;
         { in case this is a formal objcclass, first find the real definition }
         if assigned(classh) then
@@ -2182,7 +2169,9 @@ implementation
               or be a parent of contextclassh. E.g. for inherited searches the classh is the
               parent or a class helper. }
             if not (contextclassh.is_related(classh) or
-                (contextclassh.extendeddef=classh)) then
+                (assigned(contextclassh.extendeddef) and
+                (contextclassh.extendeddef.typ=objectdef) and
+                contextclassh.extendeddef.is_related(classh))) then
               internalerror(200811161);
           end;
         result:=false;
@@ -2202,7 +2191,7 @@ implementation
               end;
             for i:=0 to classh.ImplementedInterfaces.count-1 do
               begin
-                if searchsym_in_class(TImplementedInterface(classh.ImplementedInterfaces[i]).intfdef,contextclassh,s,srsym,srsymtable,hs_nosearch) then
+                if searchsym_in_class(TImplementedInterface(classh.ImplementedInterfaces[i]).intfdef,contextclassh,s,srsym,srsymtable,false) then
                   begin
                     result:=true;
                     exit;
@@ -2221,6 +2210,19 @@ implementation
           begin
             while assigned(classh) do
               begin
+                { search for a class helper method first if this is an Object
+                  Pascal class }
+                if is_class(classh) and searchhelper then
+                  begin
+                    result:=search_objectpascal_helper(classh,contextclassh,s,srsym,srsymtable);
+                    if result then
+                      { if the procsym is overloaded we need to use the
+                        "original" symbol; the helper symbol will be found when
+                        searching for overloads }
+                      if (srsym.typ<>procsym) or
+                          not (sp_has_overloaded in tprocsym(srsym).symoptions) then
+                        exit;
+                  end;
                 srsymtable:=classh.symtable;
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
                 if assigned(srsym) and
@@ -2234,11 +2236,7 @@ implementation
               end;
           end;
         if is_objcclass(orgclass) then
-          result:=search_class_helper(orgclass,s,srsym,srsymtable)
-        else
-        { this is currently not used, so maybe this can be removed again... }
-        if is_class(orgclass) and (searchhelper = hs_searchlast) then
-          result:=search_objectpascal_class_helper(orgclass,contextclassh,s,srsym,srsymtable)
+          result:=search_objc_helper(orgclass,s,srsym,srsymtable)
         else
           begin
             srsym:=nil;
@@ -2251,6 +2249,15 @@ implementation
         hashedid : THashedIDString;
       begin
         hashedid.id:=s;
+        { search for a record helper method first }
+        result:=search_objectpascal_helper(recordh,recordh,s,srsym,srsymtable);
+        if result then
+          { if the procsym is overloaded we need to use the
+            "original" symbol; the helper symbol will be found when
+            searching for overloads }
+          if (srsym.typ<>procsym) or
+              not (sp_has_overloaded in tprocsym(srsym).symoptions) then
+            exit;
         srsymtable:=recordh.symtable;
         srsym:=tsym(srsymtable.FindWithHash(hashedid));
         if assigned(srsym) and is_visible_for_object(srsym,recordh) then
@@ -2339,88 +2346,59 @@ implementation
     function searchsym_in_helper(classh,contextclassh:tobjectdef;const s: TIDString;out srsym:tsym;out srsymtable:TSymtable;aHasInherited:boolean):boolean;
       var
         hashedid      : THashedIDString;
-        tmpsrsym      : tsym;
-        tmpsrsymtable : tsymtable;
-        found         : boolean;
+        parentclassh  : tobjectdef;
       begin
         if not is_objectpascal_helper(classh) then
           Internalerror(2011030101);
         hashedid.id:=s;
-        if is_class(classh.extendeddef) then
+        { in a helper things are a bit more complex:
+          1. search the symbol in the helper (if not "inherited")
+          2. search the symbol in the extended type
+          3. search the symbol in the parent helpers
+          4. only classes: search the symbol in the parents of the extended type
+        }
+        if not aHasInherited then
           begin
-            { in a class helper things are a bit more complex:
-              1. search the symbol in the helper (if not "inherited")
-              2. search the symbol in the extended type
-              3. search the symbol in the parent helpers
-              4. search the symbol in the parents of the extended type
-              Thus we search in the hierarchy of the extended type first and
-              check whether the returned symtable (if any) belongs to the
-              extended type or one of its parents. If the latter we first
-              check whether one of the helper parents contains a suitable
-              symbol
-            }
-            if not aHasInherited then
+            { search in the helper itself }
+            srsymtable:=classh.symtable;
+            srsym:=tsym(srsymtable.FindWithHash(hashedid));
+            if assigned(srsym) and
+               is_visible_for_object(srsym,contextclassh) then
               begin
-                { search in the helper itself }
-                srsymtable:=classh.symtable;
-                srsym:=tsym(srsymtable.FindWithHash(hashedid));
-                if assigned(srsym) and
-                   is_visible_for_object(srsym,contextclassh) then
-                  begin
-                    addsymref(srsym);
-                    result:=true;
-                    exit;
-                  end;
+                addsymref(srsym);
+                result:=true;
+                exit;
               end;
-            { search in the hierarchy of the extended class }
-            found:=searchsym_in_class(tobjectdef(classh.extendeddef),contextclassh,s,tmpsrsym,tmpsrsymtable,hs_nosearch);
-            if not found then
-              begin
-                if assigned(classh.childof) then
-                  begin
-                    { the symbol isn't in the extended type's hierarchy,
-                      so search in the parents of the helper }
-                    result:=searchsym_in_class(classh.childof,contextclassh,s,srsym,srsymtable,hs_nosearch);
-                    if result and is_visible_for_object(srsym,contextclassh) then
-                      addsymref(srsym);
-                  end;
-              end
-            else
-              begin
-                if (tmpsrsymtable.defowner=classh.extendeddef) and
-                    is_visible_for_object(tmpsrsym,contextclassh) then
-                  begin
-                    { the symbol was found in the extended type }
-                    result:=true;
-                    srsym:=tmpsrsym;
-                    srsymtable:=tmpsrsymtable;
-                    exit;
-                  end
-                else
-                  begin
-                    result:=false;
-                    { search in the helper's parents first }
-                    if assigned(classh.childof) then
-                      result:=searchsym_in_helper(classh.childof,contextclassh,s,srsym,srsymtable,false);
-                    if not result then
-                      begin
-                        { we use the symbol found in one of the extended
-                          type's ancestors }
-                        result:=true;
-                        srsym:=tmpsrsym;
-                        srsymtable:=tmpsrsymtable;
-                      end;
-                    if assigned(srsym) and is_visible_for_object(srsym,contextclassh) then
-                      addsymref(srsym);
-                  end;
-              end;
-          end
-        else if is_record(classh.extendeddef) and
-            searchsym_in_record(classh.extendeddef, s, srsym, srsymtable) then
+          end;
+        { now search in the extended type itself }
+        srsymtable:=classh.extendeddef.symtable;
+        srsym:=tsym(srsymtable.FindWithHash(hashedid));
+        if assigned(srsym) and
+           is_visible_for_object(srsym,contextclassh) then
           begin
+            addsymref(srsym);
             result:=true;
             exit;
           end;
+        { now search in the parent helpers }
+        parentclassh:=classh.childof;
+        while assigned(parentclassh) do
+          begin
+            srsymtable:=parentclassh.symtable;
+            srsym:=tsym(srsymtable.FindWithHash(hashedid));
+            if assigned(srsym) and
+               is_visible_for_object(srsym,contextclassh) then
+              begin
+                addsymref(srsym);
+                result:=true;
+                exit;
+              end;
+            parentclassh:=parentclassh.childof;
+          end;
+          if is_class(classh.extendeddef) then
+            { now search in the parents of the extended class (with helpers!) }
+            result:=searchsym_in_class(tobjectdef(classh.extendeddef).childof,contextclassh,s,srsym,srsymtable,true);
+            { addsymref is already called by searchsym_in_class }
       end;
 
     function search_specific_assignment_operator(assignment_type:ttoken;from_def,to_def:Tdef):Tprocdef;
@@ -2555,12 +2533,19 @@ implementation
           end;
       end;
 
-    function search_last_objectpascal_helper(pd : tabstractrecorddef;out odef : tobjectdef):boolean;
+    function search_last_objectpascal_helper(pd,contextclassh : tabstractrecorddef;out odef : tobjectdef):boolean;
       var
+{$ifdef useoldsearch}
         stackitem : psymtablestackitem;
         i : integer;
         srsymtable : tsymtable;
+{$else}
+        s: string;
+        list: TFPObjectList;
+        i: integer;
+{$endif}
       begin
+{$ifdef useoldsearch}
         result:=false;
         stackitem:=symtablestack.stack;
         while assigned(stackitem) do
@@ -2568,7 +2553,7 @@ implementation
             srsymtable:=stackitem^.symtable;
             { only check symtables that contain a class helper }
             if (srsymtable.symtabletype in [staticsymtable,globalsymtable]) and
-                (sto_has_classhelper in srsymtable.tableoptions) then
+                (sto_has_helper in srsymtable.tableoptions) then
               begin
                 { we need to search from last to first }
                 for i:=srsymtable.symlist.count-1 downto 0 do
@@ -2588,9 +2573,27 @@ implementation
               end;
             stackitem:=stackitem^.next;
           end;
+{$else}
+        result:=false;
+        s:=make_mangledname('',pd.symtable,'');
+        list:=TFPObjectList(current_module.extendeddefs.Find(s));
+        if assigned(list) and (list.count>0) then
+          begin
+            i:=list.count-1;
+            repeat
+              odef:=tobjectdef(list[list.count-1]);
+              result:=(odef.owner.symtabletype in [staticsymtable,globalsymtable]) or
+                      is_visible_for_object(tobjectdef(list[i]).typesym,contextclassh);
+              dec(i);
+            until result or (i<0);
+            if not result then
+              { just to be sure that noone uses odef }
+              odef:=nil;
+          end;
+{$endif}
       end;
 
-    function search_objectpascal_class_helper(pd,contextclassh : tobjectdef;const s: string; out srsym: tsym; out srsymtable: tsymtable):boolean;
+    function search_objectpascal_helper(pd,contextclassh : tabstractrecorddef;const s: string; out srsym: tsym; out srsymtable: tsymtable):boolean;
 
       var
         hashedid  : THashedIDString;
@@ -2602,7 +2605,7 @@ implementation
 
         { if there is no class helper for the class then there is no need to
           search further }
-        if not search_last_objectpascal_helper(pd,classh) then
+        if not search_last_objectpascal_helper(pd,contextclassh,classh) then
           exit;
 
         hashedid.id:=s;
@@ -2629,13 +2632,7 @@ implementation
                   if assigned(current_procinfo) and
                      (srsym.owner.symtabletype=staticsymtable) then
                     include(current_procinfo.flags,pi_uses_static_symtable);
-                  { no need to keep looking. There might be other
-                    categories that extend this, a parent or child
-                    class with a method with the same name (either
-                    overriding this one, or overridden by this one),
-                    but that doesn't matter as far as the basic
-                    procsym is concerned.
-                  }
+                  { the first found method wins }
                   srsym:=tprocdef(tprocsym(srsym).procdeflist[i]).procsym;
                   srsymtable:=srsym.owner;
                   addsymref(srsym);
@@ -2644,7 +2641,7 @@ implementation
                 end;
             end;
 
-          { try the class helper parent if available }
+          { try the helper parent if available }
           classh:=classh.childof;
         until classh=nil;
 
@@ -2652,7 +2649,7 @@ implementation
         srsymtable:=nil;
       end;
 
-    function search_class_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
+    function search_objc_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
       var
         hashedid   : THashedIDString;
         stackitem  : psymtablestackitem;
@@ -2796,7 +2793,7 @@ implementation
 
         { not found, now look for class helpers }
         if is_objcclass(pd) then
-          search_class_helper(tobjectdef(orgpd),s,result,srsymtable)
+          search_objc_helper(tobjectdef(orgpd),s,result,srsymtable)
         else
           result:=nil;
       end;
@@ -2864,7 +2861,7 @@ implementation
      begin
         _defaultprop:=nil;
         { first search in helper's hierarchy }
-        if search_last_objectpascal_helper(pd, helperpd) then
+        if search_last_objectpascal_helper(pd,nil,helperpd) then
           while assigned(helperpd) do
             begin
               helperpd.symtable.SymList.ForEachCall(@tstoredsymtable(helperpd.symtable).testfordefaultproperty,@_defaultprop);

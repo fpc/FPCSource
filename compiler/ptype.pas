@@ -159,6 +159,9 @@ implementation
         generictype : ttypesym;
         generictypelist : TFPObjectList;
         oldsymtablestack   : tsymtablestack;
+{$ifndef useoldsearch}
+        oldextendeddefs    : TFPHashObjectList;
+{$endif}
         hmodule : tmodule;
         pu : tused_unit;
         uspecializename,
@@ -295,7 +298,13 @@ implementation
               to get types right, however this is not perfect, we should probably record
               the resolved symbols }
             oldsymtablestack:=symtablestack;
+{$ifdef useoldsearch}
             symtablestack:=tsymtablestack.create;
+{$else}
+            oldextendeddefs:=current_module.extendeddefs;
+            current_module.extendeddefs:=TFPHashObjectList.create(true);
+            symtablestack:=tdefawaresymtablestack.create;
+{$endif}
             if not assigned(genericdef) then
               internalerror(200705151);
             hmodule:=find_module_from_symtable(genericdef.owner);
@@ -362,6 +371,10 @@ implementation
               end;
 
             { Restore symtablestack }
+{$ifndef useoldsearch}
+            current_module.extendeddefs.free;
+            current_module.extendeddefs:=oldextendeddefs;
+{$endif}
             symtablestack.free;
             symtablestack:=oldsymtablestack;
           end
@@ -889,8 +902,6 @@ implementation
          result:=current_structdef;
          { insert in symtablestack }
          symtablestack.push(recst);
-         { parse record }
-         consume(_RECORD);
 
          { usage of specialized type inside its generic template }
          if assigned(genericdef) then
@@ -1472,7 +1483,14 @@ implementation
               end;
             _RECORD:
               begin
-                def:=record_dec(name,genericdef,genericlist);
+                consume(token);
+                if (idtoken=_HELPER) and (m_advanced_records in current_settings.modeswitches) then
+                  begin
+                    consume(_HELPER);
+                    def:=object_dec(odt_helper,name,genericdef,genericlist,nil,ht_record);
+                  end
+                else
+                  def:=record_dec(name,genericdef,genericlist);
               end;
             _PACKED,
             _BITPACKED:

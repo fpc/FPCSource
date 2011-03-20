@@ -460,7 +460,7 @@ implementation
           "overriding" method }
         if is_objcclass(_class) and
            assigned(_class.childof) and
-           search_class_helper(_class.childof,pd.procsym.name,srsym,st) then
+           search_objc_helper(_class.childof,pd.procsym.name,srsym,st) then
           begin
             overridesclasshelper:=found_category_method(st);
           end;
