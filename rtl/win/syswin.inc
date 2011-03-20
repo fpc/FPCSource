@@ -52,6 +52,9 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
          begin
            if Win32GetCurrentThreadId <> MainThreadIdWin32 then
            begin
+{$ifdef debug_collector}
+             WritelnDirect('Dll_entry: Initializing thread');
+{$endif}
              { Allocate Threadvars  }
              SysAllocateThreadVars;
 
@@ -68,8 +71,9 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
          begin
            if assigned(Dll_Thread_Detach_Hook) then
              Dll_Thread_Detach_Hook(DllParam);
-           { Release Threadvars }
-           if Win32GetCurrentThreadId<>MainThreadIdWin32 then
+           { Release Threadvars if the thread was initialized by the DLL }
+           if (Win32GetCurrentThreadId<>MainThreadIdWin32)
+               and (TlsGetValue(TLSKey) <> Nil) then
              DoneThread; { Assume everything is idempotent there }
            Dll_entry:=true; { return value is ignored }
          end;

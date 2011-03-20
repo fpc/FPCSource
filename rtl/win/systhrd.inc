@@ -49,6 +49,15 @@ function  WinResumeThread  (threadHandle : THandle) : dword; {$ifdef wince}cdecl
 function  WinCloseHandle  (threadHandle : THandle) : dword; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'CloseHandle';
 function  TerminateThread  (threadHandle : THandle; var exitCode : dword) : boolean; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'TerminateThread';
 function  WaitForSingleObject (hHandle : THandle;Milliseconds: dword): dword; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'WaitForSingleObject';
+{$ifdef wince}
+function GetCurrentThread: THandle;
+begin
+  GetCurrentThread := SH_CURTHREAD + SYS_HANDLE_BASE;
+end;
+{$else}
+function GetCurrentThread: THandle; external KernelDLL name 'GetCurrentThread';
+{$endif}
+function  DuplicateHandle (hSourceProcessHandle : THandle; hSourceHandle : THandle; hTargetProcessHandle : THandle; var lpTargetHandle : THandle; dwDesiredAccess : dword; bInheritHandle : longbool; dwOptions : dword) : longbool;{$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'DuplicateHandle';
 function  WinThreadSetPriority (threadHandle : THandle; Prio: longint): boolean; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SetThreadPriority';
 function  WinThreadGetPriority (threadHandle : THandle): LongInt; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetThreadPriority';
 {$ifndef WINCE}
@@ -76,6 +85,7 @@ CONST
    WAIT_IO_COMPLETION = $c0;
    WAIT_ABANDONED = $80;
    WAIT_FAILED = $ffffffff;
+   DUPLICATE_SAME_ACCESS = $00000002;
 
 {$ifndef SUPPORT_WIN95}
 function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
@@ -86,6 +96,243 @@ type
 var
   WinTryEnterCriticalSection : TTryEnterCriticalSection;
 {$endif SUPPORT_WIN95}
+
+{*****************************************************************************
+                         external Threads support
+*****************************************************************************}
+
+    const
+      ExternalThreadStkLen = $1000000; // some big number
+      CollectorWaitTime = 1000; // milliseconds
+
+    type
+      PExternalThreadInfo = ^TExternalThreadInfo;
+      TExternalThreadInfo = record
+        Handle: THandle; // handle of the external thread
+                         // this needs to be closed with CloseHandle at the end
+        ThreadVarArea: Pointer; // pointer to the threadvar area that was
+                                // allocated for this thread
+        Next: PExternalThreadInfo; // the next thread info of this list
+      end;
+
+    var
+      ExternalThreadsList: PExternalThreadInfo = nil; // the head of the list
+      ExternalThreadLock: TRTLCriticalSection; // this lock is used to
+                                               // serialize access to
+                                               // ExternalThreadsList
+     TerminateCollector: Boolean = False; // set this to true to terminate the
+                                           // collector thread and to disable
+                                           // the registration of new external
+                                           // threads
+      ExternalThreadsDetected: boolean = False; // this is set to true once the
+                                                // first external thread is
+                                                // detected
+      RegisterExternalLock: TRTLCriticalSection; // lock for serializing access
+                                                 // to HelperThreads... this is
+                                                 // initialized on startup to
+                                                 // eliminate potential race
+                                                 // condition
+      FakeThreadVars: Pointer = nil;  // set to non-Nil to fake a thread in
+                                      // SysRelocateThreadVar
+      FakeProtection: TRTLCriticalSection; // enter this critical section to
+                                           // secure the faking process
+
+{$define debug_collector}
+
+    procedure SysInitCriticalSection(var cs); forward;
+    procedure SysEnterCriticalSection(var cs); forward;
+    procedure SysLeaveCriticalSection(var cs); forward;
+
+{$ifdef debug_collector}
+    procedure WritelnDirect(aStr: ShortString);
+    var
+      dummy: longint;
+    begin
+      dummy := 0;
+      aStr := aStr + LineEnding;
+      WriteFile(StdOutputHandle, @aStr[1], Length(aStr), dummy, Nil);
+    end;
+{$endif}
+
+    function ExternalThreadCollector(parameter : pointer) : ptrint;
+    var
+      last, current, tmp, tmplast: PExternalThreadInfo;
+      res: LongWord;
+    begin
+{$ifdef debug_collector}
+      Writeln('Collector thread id: 0x', HexStr(Pointer(GetCurrentThreadID)));
+{$endif}
+      while not TerminateCollector do begin
+        Sleep(CollectorWaitTime);
+        { copy the list head during a lock }
+{$ifdef debug_collector}
+        Writeln('Getting list head');
+{$endif}
+        SysEnterCriticalSection(ExternalThreadLock);
+        current := ExternalThreadsList;
+{$ifdef debug_collector}
+        Writeln('Current: ', hexstr(current), ' Head: ',
+          hexstr(ExternalThreadsList));
+        Writeln('Current list: ');
+        tmp := current;
+        while (tmp <> nil) and not TerminateCollector do begin
+          Write(hexstr(tmp));
+          if tmp^.Next <> nil then
+            Write(' -> ')
+          else
+            Writeln;
+          tmp := tmp^.Next;
+        end;
+{$endif}
+        SysLeaveCriticalSection(ExternalThreadLock);
+
+        last := nil;
+        { now walk the thread list and check whether a thread terminated }
+        while (current <> nil) and not TerminateCollector do begin
+{$ifdef debug_collector}
+          Writeln('Checking thread ', hexstr(Pointer(current^.Handle)));
+{$endif}
+          res := WaitForSingleObject(current^.Handle, 0);
+          if res = WAIT_OBJECT_0 then begin
+            { now "impersonate" the terminated thread }
+{$ifdef debug_collector}
+            Writeln('Thread ', hexstr(Pointer(current^.Handle)), ' signaled; ',
+              'impersonating it');
+{$endif}
+            SysEnterCriticalSection(FakeProtection);
+            FakeThreadVars := current^.ThreadVarArea;
+            { don't use EndThread here, as it calls ExitThread and I want to
+              avoid another check for impersonation ^^ }
+            //FlushThread;
+            DoneThread;
+            FakeThreadVars := nil;
+            SysLeaveCriticalSection(FakeProtection);
+            CloseHandle(current^.Handle);
+
+{$ifdef debug_collector}
+            Writeln('Fixing pointer list');
+{$endif}
+            { fix up the list }
+            if last = nil then begin
+              { this was the list head }
+              SysEnterCriticalSection(ExternalThreadLock);
+{$ifdef debug_collector}
+              Writeln('Current: ', hexstr(current), ' Head: ',
+                hexstr(ExternalThreadsList));
+{$endif}
+              if current = ExternalThreadsList then begin
+{$ifdef debug_collector}
+                Writeln('Current item is still list head');
+{$endif}
+                { this is still the head, so keep it simple }
+                ExternalThreadsList := current^.Next
+              end else begin
+{$ifdef debug_collector}
+                Writeln('Searching current item again');
+{$endif}
+                { we need to walk the list again -.- }
+                tmplast := nil;
+                tmp := ExternalThreadsList;
+                while (tmp <> nil) and (tmp <> current) do begin
+                  tmplast := tmp;
+                  tmp := tmp^.Next;
+                end;
+                if tmp <> nil then
+                  tmplast^.Next := tmp^.Next;
+              end;
+              SysLeaveCriticalSection(ExternalThreadLock);
+            end else begin
+              { just fix up the last entry }
+{$ifdef debug_collector}
+              Writeln('Fixing last entry');
+{$endif}
+              last^.Next := current^.Next;
+            end;
+
+{$ifdef debug_collector}
+            Writeln('List fixed; freeing item');
+{$endif}
+            { the list is fixed, so free the entry }
+            tmp := current;
+            current := current^.Next;
+            LocalFree(tmp);
+          end else begin
+{$ifdef debug_collector}
+            Writeln('Thread not signaled (', res, '); moving to next item');
+{$endif}
+            last := current;
+            current := current^.Next;
+          end;
+        end;
+{$ifdef debug_collector}
+        Writeln('Complete list processed - sleeping');
+{$endif}
+      end;
+
+{$ifdef debug_collector}
+      Writeln('Freeing complete list');
+{$endif}
+      { no threads will be attached now, so we can do a shutdown without the
+        lock being enabled }
+      current := ExternalThreadsList;
+      while current <> nil do begin
+        { SB: EndThread this thread? }
+        CloseHandle(current^.Handle);
+        tmp := current;
+        current := current^.Next;
+        LocalFree(tmp);
+      end;
+      ExternalThreadsList := nil;
+
+{$ifdef debug_collector}
+      Writeln('Ending collector');
+{$endif}
+      EndThread;
+      Result := 0;
+    end;
+
+    procedure RegisterExternalThread(aThread: THandle; aDataArea: pointer);
+    var
+      entry: PExternalThreadInfo;
+    begin
+      SysEnterCriticalSection(RegisterExternalLock);
+      if not ExternalThreadsDetected then begin
+        { from now on we are running in external thread mode }
+        ExternalThreadsDetected := True;
+        SysInitCriticalSection(FakeProtection);
+        SysInitCriticalSection(ExternalThreadLock);
+        { start the collector }
+        BeginThread(@ExternalThreadCollector);
+      end;
+      SysLeaveCriticalSection(RegisterExternalLock);
+
+      { we must not use FPC's heap, because the memory would be allocated in the
+        external thread's context which is not what we want }
+      entry := Pointer(LocalAlloc(LMEM_FIXED, SizeOf(TExternalThreadInfo)));
+      if entry = nil then
+        { oh damn }
+        Exit;
+
+      if not DuplicateHandle(GetCurrentProcess, aThread, GetCurrentProcess,
+          entry^.Handle, 0, False, DUPLICATE_SAME_ACCESS) then begin
+        { oh damn 2nd }
+        LocalFree(entry);
+        Exit;
+      end;
+
+      entry^.ThreadVarArea := aDataArea;
+
+      { now prepend the entry to the list }
+      SysEnterCriticalSection(ExternalThreadLock);
+{$ifdef debug_collector}
+      WritelnDirect('Adding new entry ' + hexstr(entry) + ' (' +
+        hexstr(Pointer(entry^.Handle)) + ') to list with head ' +
+        hexstr(ExternalThreadsList));
+{$endif}
+      entry^.Next := ExternalThreadsList;
+      ExternalThreadsList := entry;
+      SysLeaveCriticalSection(ExternalThreadLock);
+    end;
 
 {*****************************************************************************
                              Threadvar support
@@ -154,7 +401,8 @@ var
       var
         dataindex : pointer;
         errorsave : dword;
-      begin	
+        usecs : Boolean;
+      begin
 {$ifdef dummy}
         { it least in the on windows 7 x64, this still doesn't not work, fs:(0x2c) is
           self referencing on this system (FK)
@@ -181,7 +429,49 @@ var
             SetLastError(errorsave);
           end;
 {$else win32}
-        errorsave:=GetLastError;
+        { once external threads have been detected we have to use the
+          FakeProtection critical section, so that only the collector will
+          access FakeThreadVars }
+        usecs := ExternalThreadsDetected and (FakeThreadVars <> Nil)
+                   and not IsLibrary;
+        if usecs then
+          SysEnterCriticalSection(FakeProtection);
+        if FakeThreadVars <> nil then begin
+{$ifdef debug_collector}
+          WritelnDirect('SysRelocateThreadVar: Impersonating thread');
+{$endif}
+          { use the faked area }
+          dataindex := FakeThreadVars
+        end else begin
+          { use our normal thread var area }
+          errorsave:=GetLastError;
+          dataindex:=TlsGetValue(tlskey);
+          if dataindex=nil then
+            begin
+              { this is a thread that was not created by FPC's RTL... so we need
+                to initalize the RTL for this thread and do some ugly
+                bookkeeping so that we can finalize the RTL at the end. }
+{$ifdef debug_collector}
+              WritelnDirect('SysRelocateThreadVar: dataindex is Nil');
+{$endif}
+              SysAllocateThreadVars;
+              dataindex:=TlsGetValue(tlskey);
+{$ifdef debug_collector}
+              WritelnDirect('SysRelocateThreadVar: Initializing external ' +
+                'thread');
+{$endif}
+              InitThread(ExternalThreadStkLen);
+              { in a DLL an external thread will be finalized by DllMain
+                called with DLL_THREAD_DETACH }
+              if not IsLibrary then
+                { attach this thread to collector thread }
+                RegisterExternalThread(GetCurrentThread, dataindex);
+            end;
+          SetLastError(errorsave);
+        end;
+        if usecs then
+          SysLeaveCriticalSection(FakeProtection);
+{        errorsave:=GetLastError;
         dataindex:=TlsGetValue(tlskey);
         if dataindex=nil then
           begin
@@ -189,7 +479,7 @@ var
             dataindex:=TlsGetValue(tlskey);
             InitThread($1000000);
           end;
-        SetLastError(errorsave);
+        SetLastError(errorsave);}
 {$endif win32}
         SysRelocateThreadvar:=DataIndex+Offset;
       end;
@@ -197,8 +487,13 @@ var
 
     procedure SysReleaseThreadVars;
       begin
-        LocalFree(TlsGetValue(tlskey));
-        TlsSetValue(tlskey, nil);
+        if ExternalThreadsDetected and (FakeThreadVars <> nil) then
+          { finally free the memory area }
+          LocalFree(FakeThreadVars)
+        else begin
+          LocalFree(TlsGetValue(tlskey));
+          TlsSetValue(tlskey, nil);
+        end;
       end;
 
 
@@ -218,16 +513,24 @@ var
       var
         ti : tthreadinfo;
       begin
-        { Allocate local thread vars, this must be the first thing,
-          because the exception management and io depends on threadvars }
-        SysAllocateThreadVars;
-
         { Copy parameter to local data }
         ti:=pthreadinfo(param)^;
-        dispose(pthreadinfo(param));
+        { In a DLL the thread was already initialized during a call to DllMain
+          with DLL_THREAD_ATTACH }
+        if not IsLibrary {and (TlsGetValue(TLSKey) = nil)} then begin
+{$ifdef debug_collector}
+          WritelnDirect('ThreadMain: Initializing thread');
+{$endif}
+          { Allocate local thread vars, this must be the first thing,
+            because the exception management and io depends on threadvars }
+          SysAllocateThreadVars;
 
-        { Initialize thread }
-        InitThread(ti.stklen);
+          dispose(pthreadinfo(param));
+
+          { Initialize thread }
+          InitThread(ti.stklen);
+        end else
+          dispose(pthreadinfo(param));
 
         { Start thread function }
 {$ifdef DEBUG_MT}
@@ -536,6 +839,7 @@ begin
   ThreadID := GetCurrentThreadID;
   if IsLibrary then
     SysInitMultithreading;
+  SysInitCriticalSection(RegisterExternalLock);
 {$IFDEF SUPPORT_WIN95}
   { Try to find TryEnterCriticalSection function }
   KernelHandle:=LoadLibrary(KernelDLL);
@@ -547,5 +851,10 @@ begin
   if not assigned(WinTryEnterCriticalSection) then
     WinTryEnterCriticalSection:=@Win95TryEnterCriticalSection;
 {$ENDIF SUPPORT_WIN95}
+end;
+
+procedure FiniSystemThreads;
+begin
+  TerminateCollector := True;
 end;
 
