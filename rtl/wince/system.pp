@@ -813,6 +813,7 @@ Procedure system_exit;
 begin
   if IsLibrary then
     exit;
+  FiniSystemThreads;
   if not IsConsole then
     begin
       Close(stderr);

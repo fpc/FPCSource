@@ -307,6 +307,7 @@ begin
     This crashes Win95 at least PM }
   if IsLibrary then
     ExitDLL(ExitCode);
+  FiniSystemThreads;
   if not IsConsole then
    begin
      Close(stderr);
