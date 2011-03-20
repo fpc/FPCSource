@@ -480,17 +480,6 @@ begin
   RemoveDirectory := RemoveDirectoryW(buf);
 end;
 
-const
-{$ifdef CPUARM}
-  UserKData = $FFFFC800;
-{$else CPUARM}
-  UserKData = $00005800;
-{$endif CPUARM}
-  SYSHANDLE_OFFSET = $004;
-  SYS_HANDLE_BASE	 = 64;
-  SH_CURTHREAD     = 1;
-  SH_CURPROC       = 2;
-
 type
   PHandle = ^THandle;
 
@@ -1113,11 +1102,6 @@ type
 
 {$ifdef CPUI386}
 {**************************** i386 Exception handling *****************************************}
-
-function GetCurrentProcess:DWORD;
-begin
-  GetCurrentProcess := SH_CURPROC+SYS_HANDLE_BASE;
-end;
 
 function ReadProcessMemory(process : dword;address : pointer;dest : pointer;size : dword;bytesread : pdword) :  longbool;
    cdecl; external 'coredll' name 'ReadProcessMemory';

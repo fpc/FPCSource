@@ -382,9 +382,6 @@ procedure Exe_entry(const info : TEntryInformation);[public,alias:'_FPC_EXE_Entr
      system_exit;
   end;
 
-function GetCurrentProcess : dword;
- stdcall;external 'kernel32' name 'GetCurrentProcess';
-
 function ReadProcessMemory(process : dword;address : pointer;dest : pointer;size : dword;bytesread : pdword) :  longbool;
  stdcall;external 'kernel32' name 'ReadProcessMemory';
 

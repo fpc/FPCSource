@@ -203,7 +203,28 @@ threadvar
 
   function Win32GetCurrentThreadId:DWORD;
     stdcall; external KernelDLL name 'GetCurrentThreadId';
+
+  function GetCurrentProcess:THANDLE;
+    stdcall;external KernelDLL name 'GetCurrentProcess';
 {$endif WINCE}
+
+{$ifdef WINCE}
+  const
+  {$ifdef CPUARM}
+    UserKData = $FFFFC800;
+  {$else CPUARM}
+    UserKData = $00005800;
+  {$endif CPUARM}
+    SYSHANDLE_OFFSET = $004;
+    SYS_HANDLE_BASE	 = 64;
+    SH_CURTHREAD     = 1;
+    SH_CURPROC       = 2;
+
+  function GetCurrentProcess:THANDLE;
+  begin
+    GetCurrentProcess := SH_CURPROC+SYS_HANDLE_BASE;
+  end;
+{$endif}
 
    { module functions }
    function GetModuleFileName(l1:longint;p:pointer;l2:longint):longint;

@@ -473,9 +473,6 @@ begin
   DLL_Entry;
 end;
 
-function GetCurrentProcess : dword;
- stdcall;external 'kernel32' name 'GetCurrentProcess';
-
 function ReadProcessMemory(process : dword;address : pointer;dest : pointer;size : dword;bytesread : pdword) :  longbool;
  stdcall;external 'kernel32' name 'ReadProcessMemory';
 
