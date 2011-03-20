@@ -270,7 +270,8 @@ implementation
 
           { check that we are not trying to override a final method }
           if (po_finalmethod in vmtpd.procoptions) and
-             hasequalpara and (po_overridingmethod in pd.procoptions) and is_class(_class) then
+             hasequalpara and (po_overridingmethod in pd.procoptions) and
+             (is_class(_class) or is_objectpascal_helper(_class)) then
             MessagePos1(pd.fileinfo,parser_e_final_can_no_be_overridden,pd.fullprocname(false))
           else
           { old definition has virtual
@@ -281,8 +282,11 @@ implementation
               (
                { new one does not have reintroduce in case of an objccategory }
                (is_objccategory(_class) and not(po_reintroduce in pd.procoptions)) or
-               { new one does not have override in case of objpas/objc class/intf/proto }
-               (is_class_or_interface_or_objc(_class) and not is_objccategory(_class) and not(po_overridingmethod in pd.procoptions))
+               { new one does not have override in case of objpas/objc class/helper/intf/proto }
+               (
+                (is_class_or_interface_or_objc(_class) or is_objectpascal_helper(_class)) and
+                not is_objccategory(_class) and not(po_overridingmethod in pd.procoptions)
+               )
               )
              ) then
             begin

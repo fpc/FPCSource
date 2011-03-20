@@ -1679,7 +1679,8 @@ begin
   { set param1 interface to self  }
   g_adjust_self_value(list, procdef, ioffset);
 
-  if po_virtualmethod in procdef.procoptions then
+  if (po_virtualmethod in procdef.procoptions) and
+      not is_objectpascal_helper(procdef.struct) then
   begin
     loadvmttor24;
     op_onr24methodaddr;

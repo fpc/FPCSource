@@ -688,6 +688,7 @@ implementation
                otherwise optimised called methods are no longer registered)
              }
              if (po_virtualmethod in procdefinition.procoptions) and
+                not is_objectpascal_helper(tprocdef(procdefinition).struct) and
                 assigned(methodpointer) and
                 (methodpointer.nodetype<>typen) and
                 (not assigned(current_procinfo) or
