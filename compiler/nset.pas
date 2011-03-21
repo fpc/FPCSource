@@ -231,6 +231,11 @@ implementation
 
          if (right.nodetype=typen) then
            begin
+             if right.resultdef.typ<>setdef then
+               begin
+                 CGMessage(sym_e_set_expected);
+                 exit;
+               end;
              { we need to create a setconstn }
              pst:=createsetconst(tsetdef(ttypenode(right).resultdef));
              t:=csetconstnode.create(pst,ttypenode(right).resultdef);
