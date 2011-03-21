@@ -24,6 +24,7 @@ const
 
 type
 
+  PPoint = ^TPoint;
   TFPCanvasException = class (Exception);
   TFPPenException = class (TFPCanvasException);
   TFPBrushException = class (TFPCanvasException);
@@ -82,11 +83,14 @@ type
   TFPCustomFont = class (TFPCanvasHelper)
   private
     FName : string;
+    FOrientation,
     FSize : integer;
   protected
     procedure DoCopyProps (From:TFPCanvasHelper); override;
     procedure SetName (AValue:string); virtual;
     procedure SetSize (AValue:integer); virtual;
+    procedure SetOrientation (AValue:integer); virtual;
+    function GetOrientation : Integer;
   public
     function CopyFont : TFPCustomFont;
     // Creates a copy of the font with all properties the same, but not allocated
@@ -99,6 +103,8 @@ type
     property Italic : boolean index 6 read GetFlags write SetFlags;
     property Underline : boolean index 7 read GetFlags write SetFlags;
     property StrikeTrough : boolean index 8 read GetFlags write SetFlags;
+    property Orientation: Integer read GetOrientation write SetOrientation default 0;
+        
   end;
   TFPCustomFontClass = class of TFPCustomFont;
 
@@ -255,6 +261,10 @@ type
     procedure DoLine (x1,y1,x2,y2:integer); virtual; abstract;
     procedure DoCopyRect (x,y:integer; canvas:TFPCustomCanvas; Const SourceRect:TRect); virtual; abstract;
     procedure DoDraw (x,y:integer; Const image:TFPCustomImage); virtual; abstract;
+    procedure DoRadialPie(x1, y1, x2, y2, StartAngle16Deg, Angle16DegLength: Integer); virtual;
+    procedure DoPolyBezier(Points: PPoint; NumPts: Integer;
+                           Filled: boolean = False;
+                           Continuous: boolean = False); virtual;
     procedure CheckHelper (AHelper:TFPCanvasHelper); virtual;
     procedure AddHelper (AHelper:TFPCanvasHelper);
   public
@@ -277,8 +287,17 @@ type
     procedure EllipseC (x,y:integer; rx,ry:longword);
     procedure Polygon (Const points:array of TPoint);
     procedure Polyline (Const points:array of TPoint);
-    procedure Rectangle (Const Bounds:TRect);
+    procedure RadialPie(x1, y1, x2, y2, StartAngle16Deg, Angle16DegLength: Integer);
+    procedure PolyBezier(Points: PPoint; NumPts: Integer;
+                         Filled: boolean = False;
+                         Continuous: boolean = False); 
+    procedure PolyBezier(const Points: array of TPoint;  
+                         Filled: boolean = False;
+                         Continuous: boolean = False);
+    procedure Rectangle (Const Bounds : TRect);
     procedure Rectangle (left,top,right,bottom:integer);
+    procedure FillRect(const ARect: TRect); 
+    procedure FillRect(X1,Y1,X2,Y2: Integer);
     // using brush
     procedure FloodFill (x,y:integer);
     procedure Clear;
