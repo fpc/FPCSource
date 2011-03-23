@@ -670,6 +670,7 @@ begin
       VarCastError(varNull, varDouble)
     else
       Result := 0
+  { TODO: performance: custom variants must be handled after standard ones }
   else if FindCustomVariantType(TVarData(v).vType, Handler) then
   begin
     VariantInit(dest);
@@ -693,6 +694,21 @@ begin
     Result := VariantToCurrency(TVarData(V));
 end;
 
+function CustomVarToLStr(const v: TVarData; out s: AnsiString): Boolean;
+var
+  handler: TCustomVariantType;
+  temp: TVarData;
+begin
+  result := FindCustomVariantType(v.vType, handler);
+  if result then
+  begin
+    VariantInit(temp);
+    handler.CastTo(temp, v, varString);
+    { out-semantic ensures that s is finalized,
+      so just copy the pointer and don't finalize the temp }
+    Pointer(s) := temp.vString;
+  end;
+end;
 
 procedure sysvartolstr (var s : AnsiString; const v : Variant);
 begin
@@ -701,7 +717,8 @@ begin
       VarCastError(varNull, varString)
     else
       s := NullAsStringValue
-  else
+  { TODO: performance: custom variants must be handled after standard ones }
+  else if not CustomVarToLStr(TVarData(v), s) then
     S := VariantToAnsiString(TVarData(V));
 end;
 

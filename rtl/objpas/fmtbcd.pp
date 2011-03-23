@@ -4006,9 +4006,14 @@ begin
   begin
     VarDataInit(v);
     try
-      v.vType:=varDouble;
-      v.vDouble:=TFMTBcdVarData(Source.vPointer).BCD;
-      VarDataCastTo(Dest, v, aVarType); //now cast Double to any requested type
+      if aVarType = varString then
+        VarDataFromStr(Dest, BCDToStr(TFMTBcdVarData(Source.vPointer).BCD))
+      else
+      begin
+        v.vType:=varDouble;
+        v.vDouble:=BCDToDouble(TFMTBcdVarData(Source.vPointer).BCD);
+        VarDataCastTo(Dest, v, aVarType); //now cast Double to any requested type
+      end;
     finally
       VarDataClear(v);
     end;
