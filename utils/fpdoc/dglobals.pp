@@ -792,7 +792,7 @@ var
        end
      else
        if cls<>result then
-         writeln(cls.name,'''s dependancy '  ,clname,' could not be resolved');
+         writeln(cls.name,'''s dependency '  ,clname,' could not be resolved');
 end;
 
 function CreateAliasType (alname,clname : string;parentclass:TPasClassType; out cl2 :TPasClassType):TPasAliasType;

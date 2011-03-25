@@ -580,7 +580,7 @@ procedure vMultMatMat_32x32( ConstVectorFloat A[32][8]; ConstVectorFloat B[32][8
 {
    -------------------------------------------------------------------------------------------------
    These routines provide optimized support for common small matrix multiplications. They use
-   the scalar floating point unit and have no dependancy on SIMD instructions. They are intended
+   the scalar floating point unit and have no dependency on SIMD instructions. They are intended
    as complements to the AltiVec-only routines above. They do not check for parameter errors.  They just do
    the multiplication as fast as possible.  Matrices are presumed to use row major storage.  Because
    these are all square, column major matrices can be multiplied by simply reversing the parameters.
