@@ -352,22 +352,24 @@ begin
     begin
     Node[SType]:=IntToStr(Ord(DataType));
     DataNode:=Node.FirstChild;
-    Result:=DataNode<>Nil;  // Bug 9879. Create child here?
-    If Result Then
-      begin 
-        Case DataType of
-          dtDWORD : DataNode.NodeValue:=IntToStr(PCardinal(@Data)^);
-          dtString : begin
-                     SetLength(S,DataSize);
-                     If (DataSize>0) then
-                       Move(Data,S[1],DataSize);
-                     DataNode.NodeValue:=S;
-                     end;
-          dtBinary : begin
-                     S:=BufToHex(Data,DataSize);
-                     DataNode.NodeValue:=S;
-                     end;
-        end;
+    // Reading <value></value> results in <value/>, i.e. no subkey exists any more. Create textnode.
+    if (DataNode=nil) then
+      begin
+      DataNode:=FDocument.CreateTextNode('');
+      Node.AppendChild(DataNode);
+      end;
+    Case DataType of
+      dtDWORD : DataNode.NodeValue:=IntToStr(PCardinal(@Data)^);
+      dtString : begin
+                 SetLength(S,DataSize);
+                 If (DataSize>0) then
+                   Move(Data,S[1],DataSize);
+                 DataNode.NodeValue:=S;
+                 end;
+      dtBinary : begin
+                 S:=BufToHex(Data,DataSize);
+                 DataNode.NodeValue:=S;
+                 end;
       end;
     end;
   If Result then
