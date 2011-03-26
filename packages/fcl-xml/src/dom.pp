@@ -2484,7 +2484,7 @@ end;
 }
 procedure TDOMDocument.NodeListDestroyed(aList: TDOMNodeList);
 begin
-  if not (nfDestroying in FFlags) then
+  if (not (nfDestroying in FFlags)) and (FNodeLists <> nil) then
     FNodeLists.RemoveData(aList);
 end;
 
