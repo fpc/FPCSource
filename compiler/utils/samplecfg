@@ -44,32 +44,15 @@ if [ -f "$FPBIN" ] ; then
   fpinifile="$HOME"/.fp/fp.ini
   fpcfgfile="$HOME"/.fp/fp.cfg
 
-# Detect if we have write permission in sysfpdirbase.
-  if [ -w "$sysfpdirbase" ] ; then
-    echo Write permission in $sysfpdirbase.
-    if ! [ -d "$sysfpdirbase2" ] ; then
-      echo Directory $sysfpdirbase2 did not exist, attempting to create it now
-      mkdir $sysfpdirbase2  >/dev/null 2>&1
-      echo Attempting to create directory $sysfpdir
-      mkdir $sysfpdir  >/dev/null 2>&1
-    elif ! [ -d "$sysfpdir" ] ; then
-      echo Directory $sysfpdir did not exist, attempting to create it now
-      mkdir $sysfpdir  >/dev/null 2>&1
-    fi
-    if [ -w "$sysfpdir" ] ; then
-      fpinifile="$sysfpdir"/fp.ini
-      fpcfgfile="$sysfpdir"/fp.cfg
-    fi
+# Detect if we have write permission in sysfpdir, or that the directory can be made
+  if ( [ -d "$sysfpdirbase" ] && [ -w "$sysfpdirbase" ] && ! [ -d "$sysfpdirbase2" ] ) ||
+     ( [ -d "$sysfpdirbase2" ] && [ -w "$sysfpdirbase2" ] && ! [ -d "$sysfpdir" ] ) ||
+     ( [ -d "$sysfpdir" ] && [ -w "$sysfpdir" ] ) ; then
+    fpinifile="$sysfpdir"/fp.ini
+    fpcfgfile="$sysfpdir"/fp.cfg
   fi
 #
-
-# When the local FP IDE configuration is used, check if the directory exists
-  if [ $fpcfgfile = "$HOME"/.fp/fp.cfg -a ! -d "$HOME"/.fp ] ; then
-    echo Directory $HOME/.fp did not exist, attempting to create it now
-    mkdir "$HOME"/.fp >/dev/null 2>&1     
-  fi
 fi
-#
 
 # set right path to FPC with $fpcversion
 FPCPATH=`dirname "$1"`/\$fpcversion
@@ -84,8 +67,8 @@ fi
 
 # Write fp.cfg
 echo Writing sample configuration file to $fpcfgfile
-fpcmkcfg -1 -d "basepath=$FPCPATH" -o $fpcfgfile
+fpcmkcfg -p -1 -d "basepath=$FPCPATH" -o $fpcfgfile
 
 # Write fp.ini
 echo Writing sample configuration file to $fpinifile
-fpcmkcfg -2 -o $fpinifile
+fpcmkcfg -p -2 -o $fpinifile
