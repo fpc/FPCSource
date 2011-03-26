@@ -29,7 +29,7 @@ build=n
 # due to overwriting each other's link.res file
 .NOTPARALLEL:
 
-fpcmkcfg$(EXEEXT): fpcmkcfg.pp fpccfg.inc fpcfg.inc fpini.inc
+fpcmkcfg$(EXEEXT): fpcmkcfg.pp fpccfg.inc fpcfg.inc fpini.inc fppkg.inc default.inc
 
 ifneq ($(DATA2INC),)
 fpccfg.inc: fpc.cft
