@@ -71,38 +71,6 @@ if [ -f "$FPBIN" ] ; then
 fi
 #
 
-if [ -f "$fpccfgfile" ] ; then
-  mv "$fpccfgfile" "$fpccfgfile.orig"  >/dev/null 2>&1
-  if [ $? = 0 ]; then
-    echo Saved old compiler config to $fpccfgfile.orig
-  else
-    echo Could not save old compiler config. Bailing out...
-    exit
-  fi
-fi
-
-if [ -f "$FPBIN" ] ; then
-  if [ -f "$fpinifile" ] ; then
-    mv "$fpinifile" "$fpinifile.orig"  >/dev/null 2>&1
-    if [ $? = 0 ]; then
-      echo Saved old fp.ini to $fpinifile.orig
-    else
-      echo Could not save old fp.ini. Bailing out...
-      exit
-    fi
-  fi
-
-  if [ -f "$fpcfgfile" ] ; then
-    mv "$fpcfgfile" "$fpcfgfile.orig"  >/dev/null 2>&1
-    if [ $? = 0 ]; then
-      echo Saved old fp.cfg to $fpcfgfile.orig
-    else
-      echo Could not save old fp.cfg. Bailing out...
-      exit
-    fi
-  fi
-fi
-
 # set right path to FPC with $fpcversion
 FPCPATH=`dirname "$1"`/\$fpcversion
 
