@@ -493,9 +493,9 @@ begin
       Halt(1);
       end
     else
-      Writeln(Format(SBackupCreated,[OutputFileName,BFN]));
+      Writeln(Format(SBackupCreated,[ExtractFileName(OutputFileName),ExtractFileName(BFN)]));
     end;
-  if not DirectoryExists(ExtractFilePath(OutputFileName)) then
+  if (OutputFileName<>'') and not DirectoryExists(ExtractFilePath(OutputFileName)) then
     begin
     if CreateDir then
       begin
