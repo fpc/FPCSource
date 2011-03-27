@@ -7,13 +7,13 @@ interface
 uses
   Classes, SysUtils, toolsunit,
   db,
-  sqldb, ibconnection, mysql40conn, mysql41conn, mysql50conn, pqconnection,odbcconn,oracleconnection,sqlite3conn;
+  sqldb, ibconnection, mysql40conn, mysql41conn, mysql50conn, mysql51conn, pqconnection,odbcconn,oracleconnection,sqlite3conn;
 
-type TSQLDBTypes = (mysql40,mysql41,mysql50,postgresql,interbase,odbc,oracle,sqlite3);
+type TSQLDBTypes = (mysql40,mysql41,mysql50,mysql51,postgresql,interbase,odbc,oracle,sqlite3);
 
 const MySQLdbTypes = [mysql40,mysql41,mysql50];
       DBTypesNames : Array [TSQLDBTypes] of String[19] =
-             ('MYSQL40','MYSQL41','MYSQL50','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3');
+             ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3');
              
       FieldtypeDefinitionsConst : Array [TFieldType] of String[15] =
         (
@@ -115,6 +115,7 @@ begin
       testStringValues[t] := TrimRight(testStringValues[t]);
     end;
   if SQLDbType = MYSQL50 then Fconnection := tMySQL50Connection.Create(nil);
+  if SQLDbType = MYSQL51 then Fconnection := tMySQL51Connection.Create(nil);
   if SQLDbType in MySQLdbTypes then
     FieldtypeDefinitions[ftLargeint] := 'BIGINT';
   if SQLDbType = sqlite3 then
