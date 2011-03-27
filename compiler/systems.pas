@@ -185,6 +185,7 @@ interface
              ,as_ggas                  { gnu assembler called "gas" instead of "as" }
              ,as_i386_nasmhaiku
              ,as_powerpc_vasm
+             ,as_i386_nlmcoff
        );
 
        tar = (ar_none

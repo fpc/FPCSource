@@ -336,6 +336,7 @@ compiler/ogelf.pas svneol=native#text/plain
 compiler/oglx.pas svneol=native#text/plain
 compiler/ogmacho.pas svneol=native#text/plain
 compiler/ogmap.pas svneol=native#text/plain
+compiler/ognlm.pas svneol=native#text/plain
 compiler/optbase.pas svneol=native#text/plain
 compiler/optcse.pas svneol=native#text/plain
 compiler/optdead.pas svneol=native#text/plain
