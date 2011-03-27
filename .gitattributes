@@ -7381,6 +7381,7 @@ rtl/netware/npackon.inc svneol=native#text/plain
 rtl/netware/nwcalls.pp svneol=native#text/plain
 rtl/netware/nwnit.pp svneol=native#text/plain
 rtl/netware/nwpre.as svneol=native#text/plain
+rtl/netware/nwpre.imp svneol=native#text/plain
 rtl/netware/nwpre.pp svneol=native#text/plain
 rtl/netware/nwprot.pp svneol=native#text/plain
 rtl/netware/nwpsrv.imp -text
