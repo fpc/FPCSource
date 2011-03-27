@@ -292,6 +292,7 @@ begin
   TemplateParser.Values['FPCVERSION'] := BuildVersion;
   TemplateParser.Values['FPCTARGET'] := BuildTarget;
   TemplateParser.Values['FPCTARGETOS'] := BuildOSTarget;
+  TemplateParser.Values['FPCBIN'] := 'fpc';
   TemplateParser.Values['PWD'] := GetCurrentDir;
   TemplateParser.Values['BUILDDATE'] := DateToStr(Date);
   TemplateParser.Values['BUILDTIME'] := TimeToStr(Time);
