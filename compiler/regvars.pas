@@ -148,7 +148,7 @@ implementation
       if (cs_opt_regvar in current_settings.optimizerswitches) and
         { we have to store regvars back to memory in this case (the nested }
         { procedures can access the variables of the parent)               }
-        (tcgprocinfo(current_procinfo).nestedprocs.count = 0) and
+        (not current_procinfo.has_nestedprocs) and
          not(pi_has_assembler_block in current_procinfo.flags) and
          not(pi_uses_exceptions in current_procinfo.flags) then
         begin
