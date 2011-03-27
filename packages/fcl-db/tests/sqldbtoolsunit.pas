@@ -116,8 +116,6 @@ begin
     end;
   if SQLDbType = MYSQL50 then Fconnection := tMySQL50Connection.Create(nil);
   if SQLDbType = MYSQL51 then Fconnection := tMySQL51Connection.Create(nil);
-  if SQLDbType in MySQLdbTypes then
-    FieldtypeDefinitions[ftLargeint] := 'BIGINT';
   if SQLDbType = sqlite3 then
     begin
     Fconnection := TSQLite3Connection.Create(nil);
@@ -135,7 +133,6 @@ begin
   if SQLDbType = INTERBASE then
     begin
     Fconnection := tIBConnection.Create(nil);
-    FieldtypeDefinitions[ftLargeint] := 'BIGINT';
     end;
   if SQLDbType = ODBC then Fconnection := tODBCConnection.Create(nil);
   if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
