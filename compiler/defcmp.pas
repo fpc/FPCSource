@@ -1260,7 +1260,9 @@ implementation
                    find_real_objcclass_definition(tobjectdef(def_to),false)) then
                  begin
                    doconv:=tc_equal;
-                   eq:=te_equal;
+                   { exact, not equal, because can change between interface
+                     and implementation }
+                   eq:=te_exact;
                  end
                { object pascal objects }
                else if (def_from.typ=objectdef) and
