@@ -819,7 +819,7 @@ procedure TField.SetData(Buffer: Pointer; NativeFormat : Boolean);
 
 begin
   If Not Assigned(FDataset) then
-    EDatabaseError.CreateFmt(SNoDataset,[FieldName]);
+    DatabaseErrorFmt(SNoDataset,[FieldName]);
   FDataSet.SetFieldData(Self,Buffer, NativeFormat);
 end;
 
