@@ -83,30 +83,44 @@ procedure TRegIniFile.WriteBool(const Section, Ident: string; Value: Boolean);
 begin
 	if not OpenKey(fPath+Section,true) then Exit;
 	try
-	 inherited WriteBool(Ident,Value);
-	finally
-	 CloseKey;
+    if not fPreferStringValues then
+  	  inherited WriteBool(Ident,Value)
+    else begin
+      if ValueExists(Ident) and (GetDataType(Ident)=rdInteger) then
+    	  inherited WriteBool(Ident,Value)
+      else
+        inherited WriteString(Ident,BoolToStr(Value));
+    end;
+  finally
+	  CloseKey;
 	end;
 end;
 
 procedure TRegIniFile.WriteInteger(const Section, Ident: string; Value: LongInt);
 begin
   if not OpenKey(fPath+Section,true) then Exit;
- try
-  inherited WriteInteger(Ident,Value);
- finally
-  CloseKey;
- end;
+  try
+    if not fPreferStringValues then
+      inherited WriteInteger(Ident,Value)
+    else begin
+      if ValueExists(Ident) and (GetDataType(Ident)=rdInteger) then
+    	  inherited WriteInteger(Ident,Value)
+      else
+        inherited WriteString(Ident,IntToStr(Value));
+    end;
+  finally
+    CloseKey;
+  end;
 end;
 
 procedure TRegIniFile.WriteString(const Section, Ident, Value: String);
 begin
-   if not OpenKey(fPath+Section,true) then Exit;
- try
+  if not OpenKey(fPath+Section,true) then Exit;
+  try
    inherited WriteString(Ident,Value);
- finally
+  finally
    CloseKey;
- end;
+  end;
 end;
 
 function TRegIniFile.ReadBool(const Section, Ident: string; Default: Boolean): Boolean;
@@ -115,7 +129,10 @@ begin
 	if not OpenKey(fPath+Section,false) then Exit;
 	try
     if ValueExists(Ident) then
-	    Result := inherited ReadBool(Ident);
+      if (not fPreferStringValues) or (GetDataType(Ident)=rdInteger) then
+  	    Result := inherited ReadBool(Ident)
+      else
+        Result := StrToBool(inherited ReadString(Ident));
 	finally
 	  CloseKey;
 	end;
@@ -127,7 +144,10 @@ begin
   if not OpenKey(fPath+Section,false) then Exit;
   try
     if ValueExists(Ident) then
-      Result := inherited ReadInteger(Ident);
+      if (not fPreferStringValues) or (GetDataType(Ident)=rdInteger) then
+        Result := inherited ReadInteger(Ident)
+      else
+        Result := StrToInt(inherited ReadString(Ident));
   finally
     CloseKey;
   end;
