@@ -92,7 +92,7 @@ Const
 function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name 'setlocale';
 function nl_langinfo(__item: cint):Pchar;cdecl;external clib name 'nl_langinfo';
 
-procedure GetFormatSettings;
+procedure GetFormatSettings(out fmts: TFormatSettings);
 
   function GetLocaleStr(item: cint): string;
   begin
@@ -231,56 +231,56 @@ begin
   setlocale(__LC_ALL,'');
   for i := 1 to 12 do
     begin
-    ShortMonthNames[i]:=GetLocaleStr(ABMON_1+i-1);
-    LongMonthNames[i]:=GetLocaleStr(MON_1+i-1);
+    fmts.ShortMonthNames[i]:=GetLocaleStr(ABMON_1+i-1);
+    fmts.LongMonthNames[i]:=GetLocaleStr(MON_1+i-1);
     end;
   for i := 1 to 7 do
     begin
-    ShortDayNames[i]:=GetLocaleStr(ABDAY_1+i-1);
-    LongDayNames[i]:=GetLocaleStr(DAY_1+i-1);
+    fmts.ShortDayNames[i]:=GetLocaleStr(ABDAY_1+i-1);
+    fmts.LongDayNames[i]:=GetLocaleStr(DAY_1+i-1);
     end;
   //Date stuff
-  ShortDateFormat := GetLocaleStr(D_FMT);
+  fmts.ShortDateFormat := GetLocaleStr(D_FMT);
  
 {$ifdef localedebug}
-  OrgFormatSettings.ShortDateFormat:=shortdateformat;
+  OrgFormatSettings.ShortDateFormat:=fmts.shortdateformat;
 {$endif}
  
-  DateSeparator := FindSeparator(ShortDateFormat, DateSeparator);
-  ShortDateFormat := TransformFormatStr(ShortDateFormat);
-  LongDateFormat := GetLocaleStr(D_T_FMT);
+  fmts.DateSeparator := FindSeparator(fmts.ShortDateFormat, fmts.DateSeparator);
+  fmts.ShortDateFormat := TransformFormatStr(fmts.ShortDateFormat);
+  fmts.LongDateFormat := GetLocaleStr(D_T_FMT);
 {$ifdef localedebug}
-  OrgFormatSettings.LongDateFormat:=longdateformat;
+  OrgFormatSettings.LongDateFormat:=fmts.longdateformat;
 {$endif}
-  LongDateFormat := TransformFormatStr(LongDateFormat);
+  fmts.LongDateFormat := TransformFormatStr(fmts.LongDateFormat);
   //Time stuff
-  TimeAMString := GetLocaleStr(AM_STR);
-  TimePMString := GetLocaleStr(PM_STR);
-  ShortTimeFormat := GetLocaleStr(T_FMT);
+  fmts.TimeAMString := GetLocaleStr(AM_STR);
+  fmts.TimePMString := GetLocaleStr(PM_STR);
+  fmts.ShortTimeFormat := GetLocaleStr(T_FMT);
 {$ifdef localedebug}
-  OrgFormatSettings.ShortTimeFormat:=shorttimeformat;
+  OrgFormatSettings.ShortTimeFormat:=fmts.shorttimeformat;
 {$endif}
-  TimeSeparator := FindSeparator(ShortTimeFormat, TimeSeparator);
-  ShortTimeFormat := TransformFormatStr(ShortTimeFormat);
-  LongTimeFormat := GetLocaleStr(T_FMT_AMPM);
+  fmts.TimeSeparator := FindSeparator(fmts.ShortTimeFormat, fmts.TimeSeparator);
+  fmts.ShortTimeFormat := TransformFormatStr(fmts.ShortTimeFormat);
+  fmts.LongTimeFormat := GetLocaleStr(T_FMT_AMPM);
 {$ifdef localedebug}
-  OrgFormatSettings.LongTimeFormat:=longtimeformat;
+  OrgFormatSettings.LongTimeFormat:=fmts.longtimeformat;
 {$endif}
 
-  if (LongTimeFormat='') then
-    LongTimeFormat:=ShortTimeFormat
+  if (fmts.LongTimeFormat='') then
+    fmts.LongTimeFormat:=fmts.ShortTimeFormat
   else
-    LongTimeFormat := TransformFormatStr(LongTimeFormat);
+    fmts.LongTimeFormat := TransformFormatStr(fmts.LongTimeFormat);
 
   {$if defined(BSD) or defined(SUNOS)}
      plocale:=localeconv;
      // for these fields there is a separate BSD derived POSIX function.
      if not assigned(plocale) then exit; // for now.
 
-     CurrencyString:=plocale^.currency_symbol; // int_CURR_SYMBOL (in latin chars)
-     if CurrencyString='' then
-        CurrencyString:=plocale^.int_curr_symbol;
-     CurrencyDecimals:=ord(plocale^.FRAC_DIGITS);
+     fmts.CurrencyString:=plocale^.currency_symbol; // int_CURR_SYMBOL (in latin chars)
+     if fmts.CurrencyString='' then
+        fmts.CurrencyString:=plocale^.int_curr_symbol;
+     fmts.CurrencyDecimals:=ord(plocale^.FRAC_DIGITS);
 {$ifdef localedebug}
   OrgFormatSettings.CurrencyString1:=plocale^.currency_symbol;
   OrgFormatSettings.CurrencyString2:=plocale^.int_curr_symbol;
@@ -288,42 +288,42 @@ begin
      prec:=ord(plocale^.P_CS_PRECEDES);
      sep:=ord(plocale^.P_SEP_BY_SPACE);
      if (prec<=1) and (sep<=1) then
-       CurrencyFormat := byte(not boolean(prec)) + sep shl 1;
+       fmts.CurrencyFormat := byte(not boolean(prec)) + sep shl 1;
      prec := ord(plocale^.N_CS_PRECEDES);
      sep := ord(plocale^.N_SEP_BY_SPACE);
      signp := ord(plocale^.N_SIGN_POSN);
      if (signp in [0..4]) and (prec in [0, 1]) and (sep in [0, 1]) then
-       NegCurrFormat := NegFormatsTable[signp, prec, sep];
+       fmts.NegCurrFormat := NegFormatsTable[signp, prec, sep];
   //Number stuff
-     ThousandSeparator:=plocale^.THOUSANDS_SEP[0];
+     fmts.ThousandSeparator:=plocale^.THOUSANDS_SEP[0];
   {$else}
    //Currency stuff
-  CurrencyString := GetLocaleStr(_NL_MONETARY_CRNCYSTR);
+  fmts.CurrencyString := GetLocaleStr(_NL_MONETARY_CRNCYSTR);
 {$ifdef localedebug}
-  OrgFormatSettings.CurrencyString1:=currencystring;
+  OrgFormatSettings.CurrencyString1:=fmts.currencystring;
   OrgFormatSettings.CurrencyString2:='';
 {$endif}
-  CurrencyString := Copy(CurrencyString, 2, Length(CurrencyString));
-  CurrencyDecimals := StrToIntDef(GetLocaleStr(__FRAC_DIGITS), CurrencyDecimals);
+  fmts.CurrencyString := Copy(fmts.CurrencyString, 2, Length(fmts.CurrencyString));
+  fmts.CurrencyDecimals := StrToIntDef(GetLocaleStr(__FRAC_DIGITS), fmts.CurrencyDecimals);
   prec := byte(GetLocaleChar(__P_CS_PRECEDES));
   sep := byte(GetLocaleChar(__P_SEP_BY_SPACE));
   if (prec<=1) and (sep<=1) then
-    CurrencyFormat := byte(not boolean(prec)) + sep shl 1;
+    fmts.CurrencyFormat := byte(not boolean(prec)) + sep shl 1;
   prec := byte(GetLocaleChar(__N_CS_PRECEDES));
   sep := byte(GetLocaleChar(__N_SEP_BY_SPACE));
   signp := byte(GetLocaleChar(__N_SIGN_POSN));
   if (signp in [0..4]) and (prec in [0, 1]) and (sep in [0, 1]) then
-    NegCurrFormat := NegFormatsTable[signp, prec, sep];
+    fmts.NegCurrFormat := NegFormatsTable[signp, prec, sep];
   //Number stuff
-  ThousandSeparator:=GetLocaleChar(__THOUSANDS_SEP);
+  fmts.ThousandSeparator:=GetLocaleChar(__THOUSANDS_SEP);
   Sep := ord(GetLocaleChar(__MON_THOUSANDS_SEP));
-  if ThousandSeparator=#0 then
-    ThousandSeparator := char(Sep);
+  if fmts.ThousandSeparator=#0 then
+    fmts.ThousandSeparator := char(Sep);
   {$endif}
-  DecimalSeparator:=GetLocaleChar(RADIXCHAR);
+  fmts.DecimalSeparator:=GetLocaleChar(RADIXCHAR);
 end;
 
 initialization
-  GetFormatSettings;
+  GetFormatSettings(DefaultFormatSettings);
 
 end.
