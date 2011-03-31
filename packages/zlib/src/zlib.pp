@@ -1212,7 +1212,7 @@ function zError(err: cint): pchar; cdecl; external libz name 'zError';
 function inflateSyncPoint(var z: z_stream): cint; cdecl; external libz name 'inflateSyncPoint';
 function get_crc_table: pointer; cdecl; external libz name 'get_crc_table';
 
-function zlibAllocMem(AppData: Pointer; Items, Size: Integer): Pointer; cdecl;
+function zlibAllocMem(AppData: Pointer; Items, Size: UInt): Pointer; cdecl;
 procedure zlibFreeMem(AppData, Block: Pointer);  cdecl;
 
 implementation
@@ -1242,7 +1242,7 @@ begin
   Result := inflateBackInit_(strm, windowBits, window, ZLIB_VERSION, sizeof(z_stream));
 end;
 
-function zlibAllocMem(AppData: Pointer; Items, Size: Integer): Pointer; cdecl;
+function zlibAllocMem(AppData: Pointer; Items, Size: UInt): Pointer; cdecl;
 
   begin
     Result := AllocMem(Items * Size);
