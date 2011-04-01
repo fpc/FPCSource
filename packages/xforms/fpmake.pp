@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='xforms';
 {$endif ALLPACKAGES}
-    P.Version:='2.4.3';
+    P.Version:='2.4.4';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
     P.Dependencies.Add('x11');

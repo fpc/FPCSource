@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='opencl';
 {$endif ALLPACKAGES}
-    P.Version:='2.4.3';
+    P.Version:='2.4.4';
     P.Author := ' Dmitry "skalogryz" Boyarintsev; Kronos group';
     P.License := 'Library: modified BSD, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

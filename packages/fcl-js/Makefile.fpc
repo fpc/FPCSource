@@ -4,7 +4,7 @@
 
 [package]
 name=fcl-js
-version=2.5.1
+version=2.4.4
 
 [target]
 units=jsbase jstree jsscanner jsparser

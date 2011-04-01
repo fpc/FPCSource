@@ -15,7 +15,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='symbolic';
 {$endif ALLPACKAGES}
-    P.Version:='2.4.3';
+    P.Version:='2.4.4';
     P.Author := 'Marco van de Voort';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

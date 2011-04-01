@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='winunits-base';
 {$endif ALLPACKAGES}
-    P.Version:='2.4.3';
+    P.Version:='2.4.4';
     P.OSes:=[win32,win64];
     P.Author := 'Florian Klaempfl, Marco van de Voort';
     P.License := 'LGPL with modification, ';
