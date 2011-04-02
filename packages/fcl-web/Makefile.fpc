@@ -28,7 +28,9 @@ FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
 
 [rules]
-fpmake: fpmake.pp
+$(COMPILER_UNITTARGETDIR):
+        $(MKDIRTREE) $(COMPILER_UNITTARGETDIR)
+fpmake: $(COMPILER_UNITTARGETDIR) fpmake.pp
 	$(FPC) fpmake.pp $(FPCOPT)
 all:	fpmake
 	./fpmake build --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
