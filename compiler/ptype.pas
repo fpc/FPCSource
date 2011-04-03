@@ -443,7 +443,7 @@ implementation
 
     function try_parse_structdef_nested_type(out def: tdef; basedef: tabstractrecorddef; isfowarddef: boolean): boolean;
       var
-        structdef : tabstractrecorddef;
+        structdef : tdef;
         structdefstack : tfpobjectlist;
       begin
          { use of current parsed object:
@@ -452,7 +452,7 @@ implementation
          structdefstack:=nil;
          while assigned(structdef) and (structdef.typ in [objectdef,recorddef]) do
            begin
-             if (structdef.objname^=pattern) then
+             if (tabstractrecorddef(structdef).objname^=pattern) then
                begin
                  consume(_ID);
                  def:=structdef;
@@ -470,7 +470,7 @@ implementation
                  result:=true;
                  exit;
                end;
-             structdef:=tabstractrecorddef(structdef.owner.defowner);
+             structdef:=tdef(tabstractrecorddef(structdef).owner.defowner);
            end;
          result:=false;
       end;
