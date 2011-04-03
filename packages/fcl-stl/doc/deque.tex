@@ -1,0 +1,81 @@
+\chapter{TDeque}
+
+Implements selfresizing array. Indexing is 0-based.
+Also implement constant time insertion from front.
+
+Usage example:
+
+\lstinputlisting[language=Pascal]{dequeexample.pp}
+
+Memory complexity:
+Uses at most 3times bigger memory than maximal array size (this is only case during reallocation).
+Normal consumption is at most twice as maximal array size.
+
+Members list:
+
+\begin{longtable}{|m{10cm}|m{5cm}|}
+\hline
+Method & Complexity guarantees \\ \hline
+\multicolumn{2}{|m{15cm}|}{Description} \\ \hline\hline
+
+\verb!Create! & O(1) \\ \hline
+\multicolumn{2}{|m{15cm}|}{Constructor. Creates empty array.} \\ \hline\hline
+
+\verb!function Size(): SizeUInt! & O(1) \\ \hline
+\multicolumn{2}{|m{15cm}|}{Returns size of array.} \\\hline\hline
+
+\verb!procedure PushBack(value: T)! &  Amortized
+O(1), some operations might take O(N) time, when array needs to be reallocated, but sequence of N
+operations takes O(N) time. \\ \hline
+\multicolumn{2}{|m{15cm}|}{Inserts at the end of array (increases size by 1)} \\\hline\hline
+
+\verb!procedure PopBack()! & O(1) \\\hline
+\multicolumn{2}{|m{15cm}|}{Removes element from the end of array (decreases size by 1). When array
+is empty, does nothing.} \\\hline\hline
+
+\verb!procedure PushFront(value: T)! &  Same as PushBack. \\ \hline
+\multicolumn{2}{|m{15cm}|}{Inserts at the beginning of array (increases size by 1)} \\\hline\hline
+
+\verb!procedure PopFront()! & O(1) \\\hline
+\multicolumn{2}{|m{15cm}|}{Removes element from the beginning of array (decreases size by 1). When array
+is empty, does nothing.} \\\hline\hline
+
+\verb!function IsEmpty(): boolean! & O(1) \\ \hline
+\multicolumn{2}{|m{15cm}|}{Returns true when array is empty} \\\hline\hline
+
+\verb!procedure Insert(position: SizeUInt; value: T)! & O(N) \\\hline
+\multicolumn{2}{|m{15cm}|}{Inserts value at position. When position is greater than size, puts value
+at the end of array.} \\\hline\hline
+
+\verb!procedure Erase(positine: SizeUInt; value: T)! & O(N) \\\hline
+\multicolumn{2}{|m{15cm}|}{Erases element from position. When position is outside of array does
+nothing.} \\\hline\hline
+
+\verb!procedure Clear! & O(1) \\\hline
+\multicolumn{2}{|m{15cm}|}{Clears array (set size to zero). But doesn't free memory used by array.}
+\\\hline\hline
+
+\verb!function Front: T! & O(1) \\\hline
+\multicolumn{2}{|m{15cm}|}{Returns first element from array.} \\\hline\hline
+
+\verb!function Back: T! & O(1) \\\hline
+\multicolumn{2}{|m{15cm}|}{Returns last element from array.} \\\hline\hline
+
+\verb!procedure Resize(num: SizeUInt)! & O(N) \\\hline
+\multicolumn{2}{|m{15cm}|}{Changes size of array to num. Doesn't guarantte anything about value of
+newly alocated elements.} \\\hline\hline
+
+\verb!procedure Reserve(num: SizeUInt)! & O(N) \\\hline
+\multicolumn{2}{|m{15cm}|}{Alocates at least num elements for array. Usefull when you want to
+pushback big number of elements and want to avoid frequent reallocation.} \\\hline\hline
+
+\verb!property item[i: SizeUInt]: T; default;! & O(1) \\\hline
+\multicolumn{2}{|m{15cm}|}{Property for accessing i-th element in array. Can be used just by square
+brackets (its default property).} \\\hline\hline
+
+\verb!property mutable[i: SizeUInt]: T;! & O(1) \\\hline
+\multicolumn{2}{|m{15cm}|}{Returns pointer to i-th element in array. Usefull when you store records.} \\\hline
+
+
+
+\end{longtable}
