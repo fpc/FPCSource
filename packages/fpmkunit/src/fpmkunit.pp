@@ -69,7 +69,7 @@ Type
     linux,go32v2,win32,os2,freebsd,beos,netbsd,
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
     palmos,macos,darwin,emx,watcom,morphos,netwlibc,
-    win64,wince,gba,nds,embedded,symbian
+    win64,wince,gba,nds,embedded,symbian,haiku
   );
   TOSes = Set of TOS;
 
@@ -114,7 +114,7 @@ Const
 
   AllOSes = [Low(TOS)..High(TOS)];
   AllCPUs = [Low(TCPU)..High(TCPU)];
-  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris];
+  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku];
   AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin];
   AllWindowsOSes  = [Win32,Win64,WinCE];
 
@@ -148,7 +148,8 @@ Const
     { gba    }  ( false, false, false, false, false, false, true,  false, false, false),
     { nds    }  ( false, false, false, false, false, false, true,  false, false, false),
     { embedded }( false, true,  true,  true,  true,  true,  true,  true,  true,  true ),
-    { symbian } ( false, true,  false, false, false, false, true,  false, false, false)
+    { symbian } ( false, true,  false, false, false, false, true,  false, false, false),
+    { haiku }   ( false, true,  false, false, false, false, false, false, false, false) 
   );
 
   // Useful
