@@ -2181,7 +2181,7 @@ begin
                odt_dispinterface  : writeln('dispinterface');
                odt_objcclass      : writeln('objcclass');
                odt_objcprotocol   : writeln('objcprotocol');
-               odt_classhelper    : writeln('class helper');
+               odt_helper         : writeln('helper');
                else                 writeln('!! Warning: Invalid object type ',b);
              end;
              writeln(space,'    External name : ',getstring);
@@ -2201,7 +2201,7 @@ begin
                   writeln(space,'       IID String : ',getstring);
                end;
 
-             if (tobjecttyp(b)=odt_classhelper) or
+             if (tobjecttyp(b)=odt_helper) or
                  (oo_is_classhelper in current_objectoptions) then
                begin
                  write(space,'    Helper parent : ');
