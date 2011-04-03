@@ -2348,6 +2348,7 @@ implementation
         hashedid      : THashedIDString;
         parentclassh  : tobjectdef;
       begin
+        result:=false;
         if not is_objectpascal_helper(classh) then
           Internalerror(2011030101);
         hashedid.id:=s;
@@ -2395,10 +2396,10 @@ implementation
               end;
             parentclassh:=parentclassh.childof;
           end;
-          if is_class(classh.extendeddef) then
-            { now search in the parents of the extended class (with helpers!) }
-            result:=searchsym_in_class(tobjectdef(classh.extendeddef).childof,contextclassh,s,srsym,srsymtable,true);
-            { addsymref is already called by searchsym_in_class }
+        if is_class(classh.extendeddef) then
+          { now search in the parents of the extended class (with helpers!) }
+          result:=searchsym_in_class(tobjectdef(classh.extendeddef).childof,contextclassh,s,srsym,srsymtable,true);
+          { addsymref is already called by searchsym_in_class }
       end;
 
     function search_specific_assignment_operator(assignment_type:ttoken;from_def,to_def:Tdef):Tprocdef;
@@ -2543,10 +2544,11 @@ implementation
         s: string;
         list: TFPObjectList;
         i: integer;
+        st: tsymtable;
 {$endif}
       begin
-{$ifdef useoldsearch}
         result:=false;
+{$ifdef useoldsearch}
         stackitem:=symtablestack.stack;
         while assigned(stackitem) do
           begin
@@ -2574,7 +2576,21 @@ implementation
             stackitem:=stackitem^.next;
           end;
 {$else}
-        result:=false;
+        { when there are no helpers active currently then we don't need to do
+          anything }
+        if current_module.extendeddefs.count=0 then
+          exit;
+        { no helpers for anonymous types }
+        if not assigned(pd.objrealname) or (pd.objrealname^='') then
+          exit;
+        { if pd is defined inside a procedure we must not use make_mangledname
+          (as a helper may not be defined in a procedure this is no problem...)}
+        st:=pd.owner;
+        while st.symtabletype in [objectsymtable,recordsymtable] do
+          st:=st.defowner.owner;
+        if st.symtabletype=localsymtable then
+          exit;
+        { the mangled name is used as the key for tmodule.extendeddefs }
         s:=make_mangledname('',pd.symtable,'');
         list:=TFPObjectList(current_module.extendeddefs.Find(s));
         if assigned(list) and (list.count>0) then
@@ -2775,6 +2791,8 @@ implementation
         { in case this is a formal objcclass, first find the real definition }
         if (oo_is_formal in pd.objectoptions) then
           pd:=find_real_objcclass_definition(tobjectdef(pd),true);
+        if search_objectpascal_helper(pd, pd, s, result, srsymtable) then
+          exit;
         hashedid.id:=s;
         orgpd:=pd;
         while assigned(pd) do

@@ -1524,8 +1524,10 @@ implementation
                           consume(_OBJECT);
                           def:=object_dec(odt_object,name,genericdef,genericlist,nil,ht_none);
                         end;
-                      else
+                      else begin
+                        consume(_RECORD);
                         def:=record_dec(name,genericdef,genericlist);
+                      end;
                     end;
                     current_settings.packrecords:=oldpackrecords;
                   end;

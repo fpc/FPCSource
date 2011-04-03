@@ -1628,8 +1628,7 @@ procedure pd_abstract(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200304269);
-  if is_objectpascal_helper(tprocdef(pd).struct) and
-      (m_objfpc in current_settings.modeswitches) then
+  if is_objectpascal_helper(tprocdef(pd).struct) then
     Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_ABSTRACT].str);
   if assigned(tprocdef(pd).struct) and
     (oo_is_sealed in tprocdef(pd).struct.objectoptions) then

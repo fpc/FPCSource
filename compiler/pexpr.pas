@@ -2361,16 +2361,13 @@ implementation
                     assigned(current_structdef) and
                     (current_structdef.typ=objectdef) then
                   begin
-                    { In Object Pascal helpers "inherited" always calls a
-                      method of the extended class }
-                    if is_objectpascal_helper(current_structdef) then
-                      begin
-                        if not is_class(tobjectdef(current_structdef).extendeddef) then
-                          Internalerror(2011021701);
-                        hclassdef:=tobjectdef(tobjectdef(current_structdef).extendeddef);
-                      end
-                    else
-                      hclassdef:=tobjectdef(current_structdef).childof;
+                    { for record helpers in mode Delphi "inherited" is not
+                      allowed }
+                    if is_objectpascal_helper(current_structdef) and
+                        (m_delphi in current_settings.modeswitches) and
+                        is_record(tobjectdef(current_structdef).extendeddef) then
+                      Message(parser_e_inherited_not_in_record);
+                    hclassdef:=tobjectdef(current_structdef).childof;
                     { Objective-C categories *replace* methods in the class
                       they extend, or add methods to it. So calling an
                       inherited method always calls the method inherited from
@@ -2420,7 +2417,25 @@ implementation
                        case srsym.typ of
                          procsym:
                            begin
-                             hdef:=hclassdef;
+                             if is_objectpascal_helper(current_structdef) then
+                               begin
+                                 { for a helper load the procdef either from the
+                                   extended type, from the parent helper or from
+                                   the extended type of the parent helper
+                                   depending on the def the found symbol belongs
+                                   to }
+                                 if (srsym.Owner.defowner.typ=objectdef) and
+                                     is_objectpascal_helper(tobjectdef(srsym.Owner.defowner)) then
+                                   if current_structdef.is_related(tdef(srsym.Owner.defowner)) and
+                                       assigned(tobjectdef(current_structdef).childof) then
+                                     hdef:=tobjectdef(current_structdef).childof
+                                   else
+                                     hdef:=tobjectdef(srsym.Owner.defowner).extendeddef
+                                 else
+                                   hdef:=tdef(srsym.Owner.defowner);
+                               end
+                             else
+                               hdef:=hclassdef;
                              if (po_classmethod in current_procinfo.procdef.procoptions) or
                                 (po_staticmethod in current_procinfo.procdef.procoptions) then
                                hdef:=tclassrefdef.create(hdef);
@@ -2469,9 +2484,14 @@ implementation
                   end
                  else
                    begin
-                      Message(parser_e_generic_methods_only_in_methods);
-                      again:=false;
-                      p1:=cerrornode.create;
+                     { in case of records we use a more clear error message }
+                     if assigned(current_structdef) and
+                         (current_structdef.typ=recorddef) then
+                       Message(parser_e_inherited_not_in_record)
+                     else
+                       Message(parser_e_generic_methods_only_in_methods);
+                     again:=false;
+                     p1:=cerrornode.create;
                    end;
                  postfixoperators(p1,again);
                end;

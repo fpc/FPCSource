@@ -915,6 +915,12 @@ implementation
                     if (m_mac in current_settings.modeswitches) then
                       include(pd.procoptions,po_virtualmethod);
 
+                    { for record helpers only static class methods are allowed }
+                    if is_objectpascal_helper(current_structdef) and
+                        is_record(current_objectdef.extendeddef) and
+                        is_classdef and not (po_staticmethod in pd.procoptions) then
+                      MessagePos(pd.fileinfo, parser_e_class_methods_only_static_in_records);
+
                     handle_calling_convention(pd);
 
                     { add definition to procsym }
@@ -1139,7 +1145,7 @@ implementation
         { set published flag in $M+ mode, it can also be inherited and will
           be added when the parent class set with tobjectdef.set_parent (PFV) }
         if (cs_generate_rtti in current_settings.localswitches) and
-           (current_objectdef.objecttype in [odt_interfacecom,odt_class]) then
+           (current_objectdef.objecttype in [odt_interfacecom,odt_class,odt_helper]) then
           include(current_structdef.objectoptions,oo_can_have_published);
 
         { Objective-C objectdefs can be "formal definitions", in which case
@@ -1179,7 +1185,15 @@ implementation
             parse_generic:=(df_generic in current_structdef.defoptions);
 
             { parse list of parent classes }
-            parse_parent_classes;
+            { for record helpers in mode Delphi this is not allowed }
+            if not (is_objectpascal_helper(current_objectdef) and
+                (m_delphi in current_settings.modeswitches) and
+                (helpertype=ht_record)) then
+              parse_parent_classes
+            else
+              { remove forward flag, is resolved (this is normally done inside
+                parse_parent_classes) }
+              exclude(current_structdef.objectoptions,oo_is_forward);
 
             { parse extended type for helpers }
             if is_objectpascal_helper(current_structdef) then

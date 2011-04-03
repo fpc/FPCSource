@@ -863,10 +863,8 @@ implementation
                 // if there is no operator then search for class/object enumerator method
                 if (pd=nil) and (expr.resultdef.typ in [objectdef,recorddef]) then
                   begin
-                    { first search using the class helper hierarchy if it's a
-                      class }
-                    if (expr.resultdef.typ=objectdef) and
-                        search_last_objectpascal_helper(tobjectdef(expr.resultdef),nil,helperdef) then
+                    { first search using the helper hierarchy }
+                    if search_last_objectpascal_helper(tabstractrecorddef(expr.resultdef),nil,helperdef) then
                       repeat
                         pd:=helperdef.search_enumerator_get;
                         helperdef:=helperdef.childof;
