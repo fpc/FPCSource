@@ -1,47 +1,33 @@
-{ a parent class helper's methods are available in a child class helper }
+{ %NORUN }
+
+{ helpers of a parent are available in a subclass as well }
 program tchlp37;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 {$apptype console}
 
 type
-  TFoo = class
-    function Test: Integer;
+  TTest = class
+
   end;
 
-  TFooHelper = class helper for TFoo
-    function Test: Integer;
+  TTestSub = class(TTest)
+
   end;
 
-  TFooBarHelper = class helper(TFooHelper) for TFoo
-    function AccessTest: Integer;
+  TTestHelper = class helper for TTest
+    procedure Test;
   end;
 
-function TFoo.Test: Integer;
+procedure TTestHelper.Test;
 begin
-  Result := 1;
-end;
 
-function TFooHelper.Test: Integer;
-begin
-  Result := 2;
-end;
-
-function TFooBarHelper.AccessTest: Integer;
-begin
-  Result := Test;
 end;
 
 var
-  f: TFoo;
-  res: Integer;
+  t: TTestSub;
 begin
-  f := TFoo.Create;
-  res := f.AccessTest;
-  Writeln(res);
-  if res <> 2 then
-    Halt(1);
-  Writeln('ok');
+  t.Test;
 end.

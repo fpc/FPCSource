@@ -1,32 +1,26 @@
-{ %FAIL }
+{ %NORUN }
 
-{ class helpers must not override virtual methods of the extended class }
+{ class helpers can access (strict) protected, public and published members -
+  here: strict protected }
 program tchlp14;
 
 {$ifdef fpc}
   {$mode delphi}
 {$endif}
 
+uses
+  uchlp12;
+
 type
-  TFoo = class
-    function Test: Integer; virtual;
+  TTestHelper = class helper for TTest
+    function AccessTest: Integer;
   end;
 
-  TFooHelper = class helper for TFoo
-    function Test: Integer; override;
-  end;
-
-function TFoo.Test: Integer;
+function TTestHelper.AccessTest: Integer;
 begin
-  Result := 1;
-end;
-
-function TFooHelper.Test: Integer;
-begin
-  Result := 2;
+  Result := Test3;
 end;
 
 begin
-
 end.
 

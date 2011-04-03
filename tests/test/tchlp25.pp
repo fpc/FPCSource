@@ -1,17 +1,23 @@
-{ %FAIL }
+{ %NORUN }
 
-{ class helpers may not contain any fields }
+{ class helpers can extend a subclass of the parent's extended class }
 program tchlp25;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
 type
   TObjectHelper = class helper for TObject
-    Test: Integer;
+  end;
+
+  TTest = class
+  end;
+
+  TTestHelper = class helper(TObjectHelper) for TTest
   end;
 
 begin
+
 end.
 

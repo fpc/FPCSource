@@ -1,20 +1,30 @@
-{ %FAIL }
+{ %NORUN }
 
-{ a class helper can only inherit from another class helper }
+{ a helper can already be accessed when implementing a class' methods }
 program tchlp34;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
 type
-  TFoo = class
-
+  TTest = class
+    procedure Test;
   end;
 
-  TObjectHelper = class helper(TFoo) for TObject
+  TTestHelper = class helper for TTest
+    procedure DoSomething;
   end;
+
+procedure TTest.Test;
+begin
+  DoSomething;
+end;
+
+procedure TTestHelper.DoSomething;
+begin
+
+end;
 
 begin
 end.
-

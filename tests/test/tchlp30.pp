@@ -1,23 +1,31 @@
-{ extensive scoping test - test 4 }
+{ %FAIL }
+
+{ helpers must not override virtual methods of the extended class }
 program tchlp30;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
-uses
-  uchlp27b, uchlp27a;
+type
+  TTest = class
+    function Test: Integer; virtual;
+  end;
 
-var
-  f: TFoo;
-  res: Integer;
+  TTestHelper = class helper for TTest
+    function Test: Integer; override;
+  end;
+
+function TTest.Test: Integer;
 begin
-  f := TFoo.Create;
-  res := f.Test;
-  Writeln('f.Test: ', res);
-  if res <> 2 then
-    Halt(1);
 
-  Writeln('ok');
+end;
+
+function TTestHelper.Test: Integer;
+begin
+
+end;
+
+begin
+
 end.
-

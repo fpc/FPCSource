@@ -1,25 +1,40 @@
 { %NORUN }
 
-{ first simple scope test for class helpers }
+{ method modifiers of the extended class are completly irrelevant }
 program tchlp10;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
 type
-  TObjectHelper = class helper for TObject
-    procedure SomeMethod;
+  TTest = class
+    procedure Test; virtual;
   end;
 
-procedure TObjectHelper.SomeMethod;
+  TTestHelper = class helper for TTest
+    procedure Test; virtual;
+  end;
+
+  TTestHelperSub = class helper(TTestHelper) for TTest
+    procedure Test; override;
+  end;
+
+procedure TTest.Test;
 begin
 
 end;
 
-var
-  o: TObject;
+procedure TTestHelper.Test;
 begin
-  o.SomeMethod;
-end.
 
+end;
+
+procedure TTestHelperSub.Test;
+begin
+
+end;
+
+begin
+
+end.

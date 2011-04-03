@@ -1,19 +1,35 @@
-{ %FAIL }
+{ %NORUN }
 
-{ access to methods must adhere to visibility rules (here: strict private) }
+{ tests whether the methods of a parent helper are usable in a derived helper }
 program tchlp45;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 {$apptype console}
 
-uses
-  uchlp45;
+type
+  TTest = class
 
-var
-  f: TFoo;
+  end;
+
+  TTestHelper = class helper for TTest
+    procedure Test;
+  end;
+
+  TTestHelperSub = class helper(TTestHelper) for TTest
+    procedure AccessTest;
+  end;
+
+procedure TTestHelper.Test;
 begin
-  f := TFoo.Create;
-  f.Test1;
+
+end;
+
+procedure TTestHelperSub.AccessTest;
+begin
+  Test;
+end;
+
+begin
 end.

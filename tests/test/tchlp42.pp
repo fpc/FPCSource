@@ -1,74 +1,51 @@
-{ a class helper may introduce a enumerator }
+{ the extended type is searched first for a inherited method even if it's
+  defined as "override" }
 program tchlp42;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 {$apptype console}
 
 type
-  TContainer = class
-    Contents: array[0..5] of Integer;
-    constructor Create;
+  TTest = class
+    function Test(aRecurse: Boolean): Integer; virtual;
   end;
 
-  TContainerEnum = class
-  private
-    fIndex: Integer;
-    fContainer: TContainer;
-  public
-    constructor Create(aContainer: TContainer);
-    function GetCurrent: Integer;
-    function MoveNext: Boolean;
-    property Current: Integer read GetCurrent;
+  TObjectHelper = class helper for TObject
+    function Test(aRecurse: Boolean): Integer; virtual;
   end;
 
-  TContainerHelper = class helper for TContainer
-    function GetEnumerator: TContainerEnum;
+  TTestHelper = class helper(TObjectHelper) for TTest
+    function Test(aRecurse: Boolean): Integer; override;
   end;
 
-{ TContainer }
-
-constructor TContainer.Create;
-var
-  i: Integer;
+function TTest.Test(aRecurse: Boolean): Integer;
 begin
-  for i := Low(Contents) to High(Contents) do
-    Contents[i] := High(Contents) - i;
+  Result := 1;
 end;
 
-{ TContainerHelper }
-
-function TContainerHelper.GetEnumerator: TContainerEnum;
+function TObjectHelper.Test(aRecurse: Boolean): Integer;
 begin
-  Result := TContainerEnum.Create(Self);
+  Result := 2;
 end;
 
-{ TContainerEnum }
-
-constructor TContainerEnum.Create(aContainer: TContainer);
+function TTestHelper.Test(aRecurse: Boolean): Integer;
 begin
-  fContainer := aContainer;
-  fIndex := Low(fContainer.Contents) - 1;
-end;
-
-function TContainerEnum.GetCurrent: Integer;
-begin
-  Result := fContainer.Contents[fIndex];
-end;
-
-function TContainerEnum.MoveNext: Boolean;
-begin
-  Inc(fIndex);
-  Result := fIndex <= High(fContainer.Contents);
+  if aRecurse then
+    Result := inherited Test(False)
+  else
+    Result := 3;
 end;
 
 var
-  cont: TContainer;
-  i: Integer;
+  t: TTest;
+  res: Integer;
 begin
-  cont := TContainer.Create;
-  for i in cont do
-    Writeln(i);
+  t := TTest.Create;
+  res := t.Test(True);
+  Writeln('t.Test: ', res);
+  if res <> 1 then
+    Halt(1);
   Writeln('ok');
 end.

@@ -1,35 +1,25 @@
-{ class helpers hide methods of the extended class }
+{ %FAIL }
+
+{ class helpers can access (strict) protected, public and published members -
+  here: strict private }
 program tchlp12;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
+uses
+  uchlp12;
+
 type
-  TFoo = class
-    function Test: Integer;
+  TTestHelper = class helper for TTest
+    function AccessTest: Integer;
   end;
 
-  TFooHelper = class helper for TFoo
-    function Test: Integer;
-  end;
-
-function TFoo.Test: Integer;
+function TTestHelper.AccessTest: Integer;
 begin
-  Result := 1;
+  Result := Test1;
 end;
 
-function TFooHelper.Test: Integer;
 begin
-  Result := 2;
-end;
-
-var
-  f: TFoo;
-begin
-  f := TFoo.Create;
-  if f.Test <> 2 then
-    Halt(1);
-  Writeln('ok');
 end.
-

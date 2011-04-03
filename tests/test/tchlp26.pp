@@ -1,23 +1,20 @@
-{ %NORUN }
+{ %FAIL }
 
-{ class helpers can extend a subclass of the parent's extended class }
+{ a class helper can only inherit from another class helper }
 program tchlp26;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
 type
-  TObjectHelperA = class helper for TObject
+  TTest = class
+
   end;
 
-  TFoo = class
-  end;
-
-  TObjectHelperB = class helper(TObjectHelperA) for TFoo
+  TObjectHelper = class helper(TTest) for TObject
   end;
 
 begin
-
 end.
 

@@ -1,22 +1,26 @@
-{ extensive scoping test - test 1 }
+{ %FAIL }
+
+{ a class helper must extend a subclass of the parent class helper }
 program tchlp27;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
-uses
-  uchlp27a, uchlp27b;
+type
+  TTest1 = class
 
-var
-  f: TFoo;
-  res: Integer;
+  end;
+
+  TTest1Helper = class helper for TTest1
+  end;
+
+  TTest2 = class
+
+  end;
+
+  TTest2Helper = class helper(TTest1Helper) for TTest2
+  end;
+
 begin
-  f := TFoo.Create;
-  res := f.Test;
-  Writeln('f.Test: ', res);
-  if res <> 2 then
-    Halt(1);
-  Writeln('ok');
 end.
-

@@ -1,25 +1,42 @@
-{%FAIL}
-
-{ message methods are not allowed in mode ObjFPC }
+{ helpers may override existing default properties }
 program tchlp7;
 
-{$mode objfpc}
+{$ifdef fpc}
+  {$mode delphi}
+{$endif}
+{$apptype console}
 
 type
-  TMessage = record
-    ID: LongWord;
+  TTest = class
+  private
+    function GetTest(aIndex: Integer): Integer;
+  public
+    property Test[Index: Integer]: Integer read GetTest; default;
   end;
 
-  TObjectHelper = class helper for TObject
-    procedure SomeMessage(var aMessage: TMessage); message 42;
+  TTestHelper = class helper for TTest
+    function GetTest(aIndex: Integer): Integer;
+    property Test[Index: Integer]: Integer read GetTest; default;
   end;
 
-procedure TObjectHelper.SomeMessage(var aMessage: TMessage);
+function TTest.GetTest(aIndex: Integer): Integer;
 begin
-
+  Result := - aIndex;
 end;
 
+function TTestHelper.GetTest(aIndex: Integer): Integer;
 begin
+  Result := aIndex;
+end;
 
+var
+  t: TTest;
+  res: Integer;
+begin
+  t := TTest.Create;
+  res := t[3];
+  Writeln('value: ', res);
+  if res <> 3 then
+    Halt(1);
+  Writeln('ok');
 end.
-

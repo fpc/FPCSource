@@ -1,51 +1,35 @@
-{ the extended type is searched first for a inherited method even if it's
-  defined as "override" }
+{ %NORUN }
+
+{ for helpers Self always refers to the extended class }
 program tchlp43;
 
 {$ifdef fpc}
-  {$mode delphi}
+  {$mode objfpc}
 {$endif}
-{$apptype console}
 
 type
-  TFoo = class
-    function Test(aRecurse: Boolean): Integer; virtual;
+  TTest = class
+    procedure DoTest(aTest: TTest);
   end;
 
-  TObjectHelper = class helper for TObject
-    function Test(aRecurse: Boolean): Integer; virtual;
+  TTestHelper = class helper for TTest
+    procedure Test;
   end;
 
-  TFooHelper = class helper(TObjectHelper) for TFoo
-    function Test(aRecurse: Boolean): Integer; override;
-  end;
-
-function TFoo.Test(aRecurse: Boolean): Integer;
+procedure TTest.DoTest(aTest: TTest);
 begin
-  Result := 1;
+
 end;
 
-function TObjectHelper.Test(aRecurse: Boolean): Integer;
+procedure TTestHelper.Test;
 begin
-  Result := 2;
-end;
-
-function TFooHelper.Test(aRecurse: Boolean): Integer;
-begin
-  if aRecurse then
-    Result := inherited Test(False)
-  else
-    Result := 3;
+  DoTest(Self);
 end;
 
 var
-  f: TFoo;
-  res: Integer;
+  t: TTest;
 begin
-  f := TFoo.Create;
-  res := f.Test(True);
-  Writeln('f.Test: ', res);
-  if res <> 1 then
-    Halt(1);
-  Writeln('ok');
+  t := TTest.Create;
+  t.Test;
 end.
+

@@ -1,30 +1,44 @@
-{ extensive scoping test - test 3 }
+{ class helpers don't hide methods of the subclasses of the extended class }
 program tchlp29;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
-uses
-  uchlp27a, uchlp27c, uchlp27b;
+type
+  TTest = class
+    function Test: Integer;
+  end;
+
+  TTestHelper = class helper for TTest
+    function Test: Integer;
+  end;
+
+  TTestSub = class(TTest)
+    function Test: Integer;
+  end;
+
+function TTest.Test: Integer;
+begin
+  Result := 1;
+end;
+
+function TTestHelper.Test: Integer;
+begin
+  Result := 2;
+end;
+
+function TTestSub.Test: Integer;
+begin
+  Result := 3;
+end;
 
 var
-  f: TFoo;
-  b: TBar;
-  res: Integer;
+  t: TTestSub;
 begin
-  f := TBar.Create;
-  res := f.Test;
-  Writeln('f.Test: ', res);
-  if res <> 2 then
+  t := TTestSub.Create;
+  if t.Test <> 3 then
     Halt(1);
-
-  b := TBar.Create;
-  res := b.Test;
-  Writeln('b.Test: ', res);
-  if res <> 3 then
-    Halt(2);
-
   Writeln('ok');
 end.
 

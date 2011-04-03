@@ -1,17 +1,26 @@
-{ %FAIL }
+{ %NORUN }
 
-{ class helpers may not be referenced in any way - test 2 }
+{ class helpers can access (strict) protected, public and published members -
+  here: published }
 program tchlp17;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
+uses
+  uchlp12;
+
 type
-  TObjectHelper = class helper for TObject
+  TTestHelper = class helper for TTest
+    function AccessTest: Integer;
   end;
 
+function TTestHelper.AccessTest: Integer;
 begin
-  with TObjectHelper.Create do ;
+  Result := Test6;
+end;
+
+begin
 end.
 

@@ -1,23 +1,20 @@
-{ %NORUN }
+{ %FAIL }
 
-{ second simple scope test for class helpers }
+{ it's forbidden for a class helper to extend a record }
 program tchlp11;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
 type
-  TObjectHelper = class helper for TObject
-    class procedure SomeMethod;
+  TTest = record
+
   end;
 
-class procedure TObjectHelper.SomeMethod;
-begin
-
-end;
+  TTestHelper = class helper for TTest
+  end;
 
 begin
-  TObject.SomeMethod;
+
 end.
-

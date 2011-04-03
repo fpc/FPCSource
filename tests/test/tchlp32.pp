@@ -1,19 +1,35 @@
 { %FAIL }
 
-{ only the last available class helper for a class must be used - test 1 }
+{ overloading needs to be enabled explicitly }
 program tchlp32;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
-uses
-  uchlp32a, uchlp32b, uchlp32c;
+type
+  TTest = class
+    procedure Test(const aTest: String);
+  end;
+
+  TTestHelper = class helper for TTest
+    procedure Test;
+  end;
+
+procedure TTest.Test(const aTest: String);
+begin
+
+end;
+
+procedure TTestHelper.Test;
+begin
+
+end;
 
 var
-  f: TFoo;
+  t: TTest;
 begin
-  f := TFoo.Create;
-  f.Method1;
+  t := TTest.Create;
+  t.Test('Foo');
 end.
 

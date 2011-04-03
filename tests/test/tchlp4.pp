@@ -1,18 +1,28 @@
-{%FAIL}
+{ %NORUN }
 
-{ destructors are not allowed }
+{ this tests that helpers can introduce class methods for classes - mode
+  ObjFPC }
 program tchlp4;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
 type
-  TObjectHelper = class helper for TObject
-    destructor Destroy; override;
+  TTest = class
+
   end;
 
+  TTestHelper = class helper for TTest
+    class procedure Test;
+  end;
+
+class procedure TTestHelper.Test;
 begin
 
+end;
+
+begin
+  TTest.Test;
 end.
 

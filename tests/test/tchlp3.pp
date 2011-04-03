@@ -1,6 +1,7 @@
-{%FAIL}
+{ %NORUN }
 
-{ forward declarations are not allowed }
+{ this tests that helpers can introduce instance methods for classes - mode
+  ObjFPC }
 program tchlp3;
 
 {$ifdef fpc}
@@ -8,12 +9,22 @@ program tchlp3;
 {$endif}
 
 type
-  TObjectHelper = class helper for TObject;
+  TTest = class
 
-  TObjectHelper = class helper for TObject
   end;
 
+  TTestHelper = class helper for TTest
+    procedure Test;
+  end;
+
+procedure TTestHelper.Test;
 begin
 
+end;
+
+var
+  t: TTest;
+begin
+  t.Test;
 end.
 

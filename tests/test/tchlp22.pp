@@ -1,35 +1,19 @@
-{ %FAIL }
+{ %NORUN }
 
-{ overloading needs to be enabled explicitly }
+{ usage of nested helpers adheres to visibility rules as well - here:
+  public }
 program tchlp22;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
-type
-  TFoo = class
-    procedure Test(const aTest: String);
-  end;
-
-  TFooHelper = class helper for TFoo
-    procedure Test;
-  end;
-
-procedure TFoo.Test(const aTest: String);
-begin
-
-end;
-
-procedure TFooHelper.Test;
-begin
-
-end;
+uses
+  uchlp18;
 
 var
-  f: TFoo;
+  t: TTest5;
 begin
-  f := TFoo.Create;
-  f.Test('Foo');
+  t.Test;
 end.
 

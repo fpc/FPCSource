@@ -1,24 +1,41 @@
-{ test whether the correct class helper is used, if two are defined for the
-  same class in a unit }
+{ without "inherited" the methods of the helper are called first }
 program tchlp50;
 
 {$ifdef fpc}
-  {$mode objfpc}{$H+}
+  {$mode delphi}
 {$endif}
 {$apptype console}
 
-uses
-  uchlp50;
+type
+  TTest = class
+    function Test(aRecurse: Boolean): Integer;
+  end;
+
+  TTestHelper = class helper for TTest
+    function Test(aRecurse: Boolean): Integer;
+  end;
+
+function TTest.Test(aRecurse: Boolean): Integer;
+begin
+  Result := 1;
+end;
+
+function TTestHelper.Test(aRecurse: Boolean): Integer;
+begin
+  if aRecurse then
+    Result := Test(False)
+  else
+    Result := 2;
+end;
 
 var
-  f: TFoo;
+  t: TTest;
   res: Integer;
 begin
-  f := TFoo.Create;
-  res := f.Test;
-  Writeln('f.Test: ', res);
+  t := TTest.Create;
+  res := t.Test(True);
+  Writeln('t.Test: ', res);
   if res <> 2 then
     Halt(1);
   Writeln('ok');
 end.
-

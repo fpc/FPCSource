@@ -1,20 +1,19 @@
 { %FAIL }
 
-{ class helpers may not be referenced in any way - test 5 }
+{ usage of nested helpers adheres to visibility rules as well - here:
+  strict protected }
 program tchlp20;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
-type
-  TObjectHelper = class helper for TObject
-  end;
+uses
+  uchlp18;
 
-  TSomeRec = record
-    helper: TObjectHelper;
-  end;
-
+var
+  t: TTest3;
 begin
+  t.Test;
 end.
 

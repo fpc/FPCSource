@@ -1,32 +1,22 @@
-{%NORUN}
+{ %FAIL }
 
-{ class helper inheritance syntax }
+{ inside a helper's declaration the methods/fields of the extended class can't
+  be accessed }
 program tchlp9;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
 type
-  TObjectHelperA = class helper for TObject
-    procedure SomeMethodA;
+  TTest = class
+    Test: Integer;
+    function GetTest: Integer;
   end;
 
-  TObjectHelperB = class helper(TObjectHelperA) for TObject
-    procedure SomeMethodB;
+  TTestHelper = class helper for TTest
+    property AccessTest: Integer read Test;
   end;
 
-procedure TObjectHelperA.SomeMethodA;
 begin
-
-end;
-
-procedure TObjectHelperB.SomeMethodB;
-begin
-
-end;
-
-begin
-
 end.
-

@@ -1,23 +1,35 @@
-{ extensive scoping test - test 5 }
+{ helpers may hide virtual methods of the extended class }
 program tchlp31;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 
-uses
-  uchlp27b, uchlp27c;
+type
+  TTest = class
+    function Test: Integer; virtual;
+  end;
+
+  TTestHelper = class helper for TTest
+    function Test: Integer;
+  end;
+
+function TTest.Test: Integer;
+begin
+  Result := 1;
+end;
+
+function TTestHelper.Test: Integer;
+begin
+  Result := 2;
+end;
 
 var
-  b: TBar;
-  res: Integer;
+  t: TTest;
 begin
-  b := TBar.Create;
-  res := b.Test;
-  Writeln('b.Test: ', res);
-  if res <> 3 then
+  t := TTest.Create;
+  if t.Test <> 2 then
     Halt(1);
-
   Writeln('ok');
 end.
 

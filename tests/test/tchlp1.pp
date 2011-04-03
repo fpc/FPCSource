@@ -1,50 +1,29 @@
-{%NORUN}
+{ %NORUN }
 
-{ checks for support of the class helper syntax in mode objfpc }
+{ this tests that helpers can introduce instance methods for classes - mode
+  Delphi }
 program tchlp1;
 
-{$mode objfpc}
+{$ifdef fpc}
+  {$mode delphi}
+{$endif}
 
 type
-  TObjectHelper = class helper for TObject
-    procedure SomePublicMethod;
-  strict private
-    procedure SomeStrictPrivateMethod;
-  private
-    procedure SomePrivateMethod;
-  strict protected
-    procedure SomeStrictProtectedMethod;
-  protected
-    procedure SomeProtectedMethod;
-  public
-    procedure SomePublicMethod2;
+  TTest = class
+
   end;
 
-procedure TObjectHelper.SomePublicMethod;
+  TTestHelper = class helper for TTest
+    procedure Test;
+  end;
+
+procedure TTestHelper.Test;
 begin
+
 end;
 
-procedure TObjectHelper.SomeStrictPrivateMethod;
+var
+  t: TTest;
 begin
-end;
-
-procedure TObjectHelper.SomePrivateMethod;
-begin
-end;
-
-procedure TObjectHelper.SomeStrictProtectedMethod;
-begin
-end;
-
-procedure TObjectHelper.SomeProtectedMethod;
-begin
-end;
-
-procedure TObjectHelper.SomePublicMethod2;
-begin
-end;
-
-begin
-
+  t.Test;
 end.
-

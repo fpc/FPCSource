@@ -1,23 +1,47 @@
-{ this tests whether a class helper introduced in the uses clause of an
-  implementation section overrides the one introduced in the interface section }
+{ methods defined in a helper have higher priority than those defined in the
+  extended type }
 program tchlp51;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 {$apptype console}
 
-uses
-  uchlp51a, uchlp51c;
+type
+  TTest = class
+    function Test: Integer;
+  end;
+
+  TTestHelper = class helper for TTest
+  private
+    function Test: Integer;
+  public
+    function AccessTest: Integer;
+  end;
+
+function TTest.Test: Integer;
+begin
+  Result := 1;
+end;
+
+function TTestHelper.Test: Integer;
+begin
+  Result := 2;
+end;
+
+function TTestHelper.AccessTest: Integer;
+begin
+  Result := Test;
+end;
 
 var
-  f: TFoo;
+  t: TTest;
   res: Integer;
 begin
-  f := TFoo.Create;
-  res := f.AccessTest;
-  Writeln('f.AccessTest: ', res);
-  if res <> 1 then
+  t := TTest.Create;
+  res := t.AccessTest;
+  Writeln('t.AccessTest: ', res);
+  if res <> 2 then
     Halt(1);
   Writeln('ok');
 end.

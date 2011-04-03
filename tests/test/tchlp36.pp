@@ -1,31 +1,48 @@
-{ %FAIL }
-
-{ a class helper must extend a subclass of the parent class helper }
+{ helper methods also influence calls to a parent's method in a derived class }
 program tchlp36;
 
 {$ifdef fpc}
   {$mode delphi}
 {$endif}
+{$apptype console}
 
 type
-  TBar = class
-
+  TTest = class
+    function Test: Integer;
   end;
 
-  TBarHelper = class helper for TBar
-    procedure Test;
+  TTestSub = class(TTest)
+    function AccessTest: Integer;
   end;
 
-  TFoo = class
-
+  TTestHelper = class helper for TTest
+    function Test: Integer;
   end;
 
-  TFooHelper = class helper(TBarHelper) for TFoo
-  end;
-
-procedure TBarHelper.Test;
+function TTest.Test: Integer;
 begin
+  Result := 1;
 end;
 
+function TTestSub.AccessTest: Integer;
 begin
+  Result := inherited Test;
+end;
+
+function TTestHelper.Test: Integer;
+begin
+  Result := 2;
+end;
+
+var
+  t: TTestSub;
+  res: Integer;
+begin
+  t := TTestSub.Create;
+  res := t.AccessTest;
+  Writeln('f.AccessTest: ', res);
+  if res <> 2 then
+    Halt(1);
+  Writeln('ok');
 end.
+

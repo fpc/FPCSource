@@ -1,4 +1,4 @@
-{ tests virtual methods inside class helpers }
+{ helper methods also influence calls to a parent's method in a derived class }
 program tchlp35;
 
 {$ifdef fpc}
@@ -6,26 +6,42 @@ program tchlp35;
 {$endif}
 {$apptype console}
 
-uses
-  uchlp35;
-
 type
-  TObjectHelperB = class helper(TObjectHelperA) for TObject
-    function VirtualTest: Integer; override;
+  TTest = class
+    function Test: Integer;
   end;
 
-function TObjectHelperB.VirtualTest: Integer;
+  TTestSub = class(TTest)
+    function AccessTest: Integer;
+  end;
+
+  TTestHelper = class helper for TTest
+    function Test: Integer;
+  end;
+
+function TTest.Test: Integer;
+begin
+  Result := 1;
+end;
+
+function TTestSub.AccessTest: Integer;
+begin
+  Result := Test;
+end;
+
+function TTestHelper.Test: Integer;
 begin
   Result := 2;
 end;
 
 var
-  o: TObject;
+  t: TTestSub;
   res: Integer;
 begin
-  o := TObject.Create;
-  res := o.Test;
+  t := TTestSub.Create;
+  res := t.AccessTest;
+  Writeln('f.AccessTest: ', res);
   if res <> 2 then
     Halt(1);
+  Writeln('ok');
 end.
-

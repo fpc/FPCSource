@@ -1,41 +1,42 @@
-{ methods of the extended class can be called using "inherited" }
+{ a helper of a parent class hides the parent's methods }
 program tchlp38;
 
 {$ifdef fpc}
-  {$mode objfpc}
+  {$mode delphi}
 {$endif}
 {$apptype console}
 
 type
-  TFoo = class
-    function Test(aRecurse: Boolean): Integer;
+  TTest = class
+    function Test: Integer;
   end;
 
-  TFooHelper = class helper for TFoo
-    function Test(aRecurse: Boolean): Integer;
+  TTestSub = class(TTest)
+
   end;
 
-function TFoo.Test(aRecurse: Boolean): Integer;
+  TTestHelper = class helper for TTest
+    function Test: Integer;
+  end;
+
+function TTest.Test: Integer;
 begin
   Result := 1;
 end;
 
-function TFooHelper.Test(aRecurse: Boolean): Integer;
+function TTestHelper.Test: Integer;
 begin
-  if aRecurse then
-    Result := inherited Test(False)
-  else
-    Result := 2;
+  Result := 2;
 end;
 
 var
-  f: TFoo;
+  t: TTestSub;
   res: Integer;
 begin
-  f := TFoo.Create;
-  res := f.Test(True);
-  Writeln('f.Test: ', res);
-  if res <> 1 then
+  t := TTestSub.Create;
+  res := t.Test;
+  Writeln('b.TestFoo: ', res);
+  if res <> 2 then
     Halt(1);
   Writeln('ok');
 end.

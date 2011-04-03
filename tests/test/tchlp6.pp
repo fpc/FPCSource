@@ -1,27 +1,34 @@
-{%NORUN}
-
-{ message methods are allowed in mode Delphi }
+{ helpers may introduce new default properties }
 program tchlp6;
 
 {$ifdef fpc}
   {$mode delphi}
 {$endif}
+{$apptype console}
 
 type
-  TMessage = record
-    ID: LongWord;
+  TTest = class
+
   end;
 
-  TObjectHelper = class helper for TObject
-    procedure SomeMessage(var aMessage: TMessage); message 42;
+  TTestHelper = class helper for TTest
+    function GetTest(aIndex: Integer): Integer;
+    property Test[Index: Integer]: Integer read GetTest; default;
   end;
 
-procedure TObjectHelper.SomeMessage(var aMessage: TMessage);
+function TTestHelper.GetTest(aIndex: Integer): Integer;
 begin
-
+  Result := aIndex;
 end;
 
+var
+  t: TTest;
+  res: Integer;
 begin
-
+  t := TTest.Create;
+  res := t[3];
+  Writeln('value: ', res);
+  if res <> 3 then
+    Halt(1);
+  Writeln('ok');
 end.
-
