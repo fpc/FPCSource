@@ -21,7 +21,7 @@ interface
 
 {$ifndef FPUNONE}
 uses
-  SysUtils, Math, Types;
+  SysUtils, Math;
 
 { ---------------------------------------------------------------------
     Various constants
@@ -440,13 +440,13 @@ end;
     Simple trimming functions.
   ---------------------------------------------------------------------}
 
-Function DateOf(const AValue: TDateTime): TDateTime;
+Function DateOf(const AValue: TDateTime): TDateTime; inline;
 begin
   Result:=Trunc(AValue);
 end;
 
 
-Function TimeOf(const AValue: TDateTime): TDateTime;
+Function TimeOf(const AValue: TDateTime): TDateTime; inline;
 begin
   Result:=Frac(Avalue);
 end;
@@ -458,24 +458,14 @@ end;
 
 
 Function IsInLeapYear(const AValue: TDateTime): Boolean;
-
-Var
-  D,Y,M : Word;
-
 begin
-  DecodeDate(AValue,Y,M,D);
-  Result:=IsLeapYear(Y);
+  Result:=IsLeapYear(YearOf(AValue));
 end;
 
 
-Function IsPM(const AValue: TDateTime): Boolean;
-
-Var
-  H,M,S,MS : Word;
-
+Function IsPM(const AValue: TDateTime): Boolean; inline;
 begin
-  DecodeTime(AValue,H,M,S,MS);
-  Result:=(H>=12);
+  Result:=(HourOf(AValue)>=12);
 end;
 
 
@@ -535,13 +525,8 @@ end;
   ---------------------------------------------------------------------}
 
 Function WeeksInYear(const AValue: TDateTime): Word;
-
-Var
-  Y,M,D : Word;
-
 begin
-  DecodeDate(AValue,Y,M,D);
-  Result:=WeeksInAYear(Y);
+  Result:=WeeksInAYear(YearOf(AValue));
 end;
 
 
@@ -559,13 +544,8 @@ end;
 
 
 Function DaysInYear(const AValue: TDateTime): Word;
-
-Var
-  Y,M,D : Word;
-
 begin
-  DecodeDate(AValue,Y,M,D);
-  Result:=DaysPerYear[IsLeapYear(Y)];
+  Result:=DaysPerYear[IsLeapYear(YearOf(AValue))];
 end;
 
 
@@ -597,27 +577,27 @@ end;
   ---------------------------------------------------------------------}
 
 
-Function Today: TDateTime;
+Function Today: TDateTime; inline;
 begin
-  Result:=Date;
+  Result:=Date();
 end;
 
 
 Function Yesterday: TDateTime;
 begin
-  Result:=Date-1;
+  Result:=Date()-1;
 end;
 
 
-Function Tomorrow: TDateTime;
+Function Tomorrow: TDateTime; 
 begin
-  Result:=Date+1;
+  Result:=Date()+1;
 end;
 
 
 Function IsToday(const AValue: TDateTime): Boolean;
 begin
-  Result:=IsSameDay(AValue,Date);
+  Result:=IsSameDay(AValue,Date());
 end;
 
 
@@ -669,7 +649,7 @@ begin
 end;
 
 
-Function WeekOf(const AValue: TDateTime): Word;
+Function WeekOf(const AValue: TDateTime): Word; inline;
 begin
   Result:=WeekOfTheYear(AValue);
 end;
@@ -711,7 +691,7 @@ Var
   H,N,MS : Word;
 
 begin
-  DecodeTime(AVAlue,H,N,Result,MS);
+  DecodeTime(AValue,H,N,Result,MS);
 end;
 
 
@@ -731,24 +711,14 @@ end;
 
 
 Function StartOfTheYear(const AValue: TDateTime): TDateTime;
-
-Var
-  Y,M,D : Word;
-
 begin
-  DecodeDate(AValue,Y,M,D);
-  Result:=EncodeDate(Y,1,1);
+  Result:=EncodeDate(YearOf(AValue),1,1);
 end;
 
 
 Function EndOfTheYear(const AValue: TDateTime): TDateTime;
-
-Var
-  Y,M,D : Word;
-
 begin
-  DecodeDate(AValue,Y,M,D);
-  Result:=EncodeDateTime(Y,12,31,23,59,59,999);
+  Result:=EncodeDateTime(YearOf(AValue),12,31,23,59,59,999);
 end;
 
 
@@ -791,7 +761,7 @@ begin
 end;
 
 
-Function StartOfAMonth(const AYear, AMonth: Word): TDateTime;
+Function StartOfAMonth(const AYear, AMonth: Word): TDateTime; inline;
 begin
   Result:=EncodeDate(AYear,AMonth,1);
 end;
@@ -827,13 +797,13 @@ begin
 end;
 
 
-Function StartOfAWeek(const AYear, AWeekOfYear: Word): TDateTime; // ADayOFWeek 1
+Function StartOfAWeek(const AYear, AWeekOfYear: Word): TDateTime; inline; // ADayOFWeek 1
 begin
   Result:=StartOfAWeek(AYear,AWeekOfYear,1)
 end;
 
 
-Function EndOfAWeek(const AYear, AWeekOfYear: Word; const ADayOfWeek: Word): TDateTime;
+Function EndOfAWeek(const AYear, AWeekOfYear: Word; const ADayOfWeek: Word): TDateTime; inline;
 begin
   Result := EndOfTheDay(EncodeDateWeek(AYear, AWeekOfYear, ADayOfWeek));
 end;
@@ -850,7 +820,7 @@ end;
     Start/End of day functions.
   ---------------------------------------------------------------------}
 
-Function StartOfTheDay(const AValue: TDateTime): TDateTime;
+Function StartOfTheDay(const AValue: TDateTime): TDateTime; inline;
 begin
   StartOfTheDay:=Trunc(Avalue);
 end;
@@ -867,7 +837,7 @@ begin
 end;
 
 
-Function StartOfADay(const AYear, AMonth, ADay: Word): TDateTime;
+Function StartOfADay(const AYear, AMonth, ADay: Word): TDateTime; inline;
 begin
   Result:=EncodeDate(AYear,AMonth,ADay);
 end;
@@ -879,7 +849,7 @@ begin
 end;
 
 
-Function EndOfADay(const AYear, AMonth, ADay: Word): TDateTime;
+Function EndOfADay(const AYear, AMonth, ADay: Word): TDateTime; inline;
 begin
   Result:=EndOfTheDay(EncodeDate(AYear,AMonth,ADay));
 end;
@@ -897,13 +867,9 @@ end;
   ---------------------------------------------------------------------}
 
 
-Function MonthOfTheYear(const AValue: TDateTime): Word;
-
-Var
-  Y,D : Word;
-
+Function MonthOfTheYear(const AValue: TDateTime): Word; inline;
 begin
-  DecodeDate(AValue,Y,Result,D);
+  Result:=MonthOf(AValue);
 end;
 
 
@@ -1116,13 +1082,9 @@ end;
   ---------------------------------------------------------------------}
 
 
-Function HourOfTheDay(const AValue: TDateTime): Word;
-
-Var
-  M,S,MS : Word;
-
+Function HourOfTheDay(const AValue: TDateTime): Word; inline;
 begin
-  DecodeTime(AValue,Result,M,S,MS);
+  Result:=HourOf(AValue);
 end;
 
 
@@ -1163,13 +1125,9 @@ end;
   ---------------------------------------------------------------------}
 
 
-Function MinuteOfTheHour(const AValue: TDateTime): Word;
-
-Var
-  H,S,MS : Word;
-
+Function MinuteOfTheHour(const AValue: TDateTime): Word; inline;
 begin
-  DecodeTime(AValue,H,Result,S,MS);
+  Result:=MinuteOf(AValue);
 end;
 
 
@@ -1199,13 +1157,9 @@ end;
   ---------------------------------------------------------------------}
 
 
-Function SecondOfTheMinute(const AValue: TDateTime): Word;
-
-Var
-  H,M,MS : Word;
-
+Function SecondOfTheMinute(const AValue: TDateTime): Word; inline;
 begin
-  DecodeTime(AValue,H,M,Result,MS);
+  Result:=SecondOf(AValue);
 end;
 
 
@@ -1223,62 +1177,58 @@ end;
     Part of second functions.
   ---------------------------------------------------------------------}
 
-Function MilliSecondOfTheSecond(const AValue: TDateTime): Word;
-
-Var
-  H,M,S : Word;
-
+Function MilliSecondOfTheSecond(const AValue: TDateTime): Word; inline;
 begin
-  DecodeTime(AValue,H,M,S,Result);
+  Result:=MilliSecondOf(AValue);
 end;
 
 { ---------------------------------------------------------------------
     Range checking functions.
   ---------------------------------------------------------------------}
 
-Function WithinPastYears(const ANow, AThen: TDateTime; const AYears: Integer): Boolean;
+Function WithinPastYears(const ANow, AThen: TDateTime; const AYears: Integer): Boolean; inline;
 begin
   Result:=YearsBetween(ANow,AThen)<=AYears;
 end;
 
 
-Function WithinPastMonths(const ANow, AThen: TDateTime; const AMonths: Integer): Boolean;
+Function WithinPastMonths(const ANow, AThen: TDateTime; const AMonths: Integer): Boolean; inline;
 begin
   Result:=MonthsBetween(ANow,AThen)<=AMonths;
 end;
 
 
-Function WithinPastWeeks(const ANow, AThen: TDateTime; const AWeeks: Integer): Boolean;
+Function WithinPastWeeks(const ANow, AThen: TDateTime; const AWeeks: Integer): Boolean; inline;
 begin
   Result:=WeeksBetween(ANow,AThen)<=AWeeks;
 end;
 
 
-Function WithinPastDays(const ANow, AThen: TDateTime; const ADays: Integer): Boolean;
+Function WithinPastDays(const ANow, AThen: TDateTime; const ADays: Integer): Boolean; inline;
 begin
   Result:=DaysBetween(ANow,AThen)<=ADays;
 end;
 
 
-Function WithinPastHours(const ANow, AThen: TDateTime; const AHours: Int64): Boolean;
+Function WithinPastHours(const ANow, AThen: TDateTime; const AHours: Int64): Boolean; inline;
 begin
   Result:=HoursBetween(ANow,AThen)<=AHours;
 end;
 
 
-Function WithinPastMinutes(const ANow, AThen: TDateTime; const AMinutes: Int64): Boolean;
+Function WithinPastMinutes(const ANow, AThen: TDateTime; const AMinutes: Int64): Boolean; inline;
 begin
   Result:=MinutesBetween(ANow,AThen)<=AMinutes;
 end;
 
 
-Function WithinPastSeconds(const ANow, AThen: TDateTime; const ASeconds: Int64): Boolean;
+Function WithinPastSeconds(const ANow, AThen: TDateTime; const ASeconds: Int64): Boolean; inline;
 begin
   Result:=SecondsBetween(ANow,Athen)<=ASeconds;
 end;
 
 
-Function WithinPastMilliSeconds(const ANow, AThen: TDateTime; const AMilliSeconds: Int64): Boolean;
+Function WithinPastMilliSeconds(const ANow, AThen: TDateTime; const AMilliSeconds: Int64): Boolean; inline;
 begin
   Result:=MilliSecondsBetween(ANow,AThen)<=AMilliSeconds;
 end;
@@ -1888,7 +1838,7 @@ begin
 end;
 
 
-Function SameDate(const A, B: TDateTime): Boolean;
+Function SameDate(const A, B: TDateTime): Boolean; inline;
 begin
   Result:=Trunc(A)=Trunc(B);
 end;

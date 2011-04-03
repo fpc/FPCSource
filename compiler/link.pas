@@ -1051,6 +1051,9 @@ Implementation
         if ErrorCount>0 then
           goto myexit;
 
+        { parse linker options specific for output format }
+        exeoutput.ParseScript (linkscript);
+
         { Create .exe sections and add .o sections }
         ParseScript_Order;
         exeoutput.RemoveUnreferencedSections;

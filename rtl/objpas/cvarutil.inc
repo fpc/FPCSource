@@ -1498,7 +1498,7 @@ Var
   i: Integer;
 
 begin
-  Writeln(F,'---> ', aName, ' at $', IntToHex(Cardinal(@VargSrc), 8), ' <----------------');
+  Writeln(F,'---> ', aName, ' at $', HexStr(@VargSrc), ' <----------------');
   with VargSrc do begin
 
     if vType and varByRef = varByRef then
@@ -1526,7 +1526,7 @@ begin
     WriteLn;
 
     if vType and varArray = varArray then begin
-      Writeln(F,'---< ', aName, ' at $', IntToHex(Cardinal(@VargSrc), 8), ' >----------------');
+      Writeln(F,'---< ', aName, ' at $', HexStr(@VargSrc), ' >----------------');
       Writeln(F);
       Exit;
     end;
@@ -1537,7 +1537,7 @@ begin
       if (vType and varByRef = varByRef) or (vType and varTypeMask = varVariant) then
         if not Assigned(vPointer) then begin
           WriteLn(F, 'nil]');
-          Writeln(F,'---< ', aName, ' at $', IntToHex(Cardinal(@VargSrc), 8), ' >----------------');
+          Writeln(F,'---< ', aName, ' at $', HexStr(@VargSrc), ' >----------------');
           Writeln(F);
           Exit;
         end;
@@ -1593,7 +1593,7 @@ begin
     end;
   end;
 
-  Writeln(F,'---< ', aName, ' at $', IntToHex(Cardinal(@VargSrc), 8), ' >----------------');
+  Writeln(F,'---< ', aName, ' at $', HexStr(@VargSrc), ' >----------------');
   Writeln(F);
 end;
 

@@ -331,8 +331,8 @@ procedure TGlobalOptions.LoadGlobalFromFile(const AFileName: String);
 Var
   Ini : TMemIniFile;
 begin
+  Ini:=TMemIniFile.Create(AFileName);
   try
-    Ini:=TMemIniFile.Create(AFileName);
     FConfigFileName:=AFileName;
     With Ini do
       begin
@@ -379,8 +379,8 @@ Var
 begin
   if FileExists(AFileName) then
     BackupFile(AFileName);
+  Ini:=TIniFile.Create(AFileName);
   try
-    Ini:=TIniFile.Create(AFileName);
     With Ini do
       begin
         WriteInteger(SDefaults,KeyConfigVersion,CurrentConfigVersion);
@@ -630,8 +630,8 @@ procedure TCompilerOptions.LoadCompilerFromFile(const AFileName: String);
 Var
   Ini : TMemIniFile;
 begin
+  Ini:=TMemIniFile.Create(AFileName);
   try
-    Ini:=TMemIniFile.Create(AFileName);
     FConfigFilename:=AFileName;
     With Ini do
       begin
@@ -664,8 +664,8 @@ Var
 begin
   if FileExists(AFileName) then
     BackupFile(AFileName);
+  Ini:=TIniFile.Create(AFileName);
   try
-    Ini:=TIniFile.Create(AFileName);
     With Ini do
       begin
         WriteInteger(SDefaults,KeyConfigVersion,CurrentConfigVersion);

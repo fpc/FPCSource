@@ -76,6 +76,7 @@ interface
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
           function  rtti_mangledname(rt:trttitype):string;override;
+          function  OwnerHierarchyName: string; override;
           function  in_currentunit: boolean;
           { regvars }
           function is_intregable : boolean;
@@ -1130,6 +1131,22 @@ implementation
           result:=make_mangledname(prefix,owner,typesym.name)
         else
           result:=make_mangledname(prefix,findunitsymtable(owner),'DEF'+tostr(DefId))
+      end;
+
+
+    function tstoreddef.OwnerHierarchyName: string;
+      var
+        tmp: tdef;
+      begin
+        tmp:=self;
+        result:='';
+        repeat
+          if tmp.owner.symtabletype in [ObjectSymtable,recordsymtable] then
+            tmp:=tdef(tmp.owner.defowner)
+          else
+            break;
+          result:=tabstractrecorddef(tmp).objrealname^+'.'+result;
+        until tmp=nil;
       end;
 
 
@@ -2788,15 +2805,7 @@ implementation
       var
         tmp: tabstractrecorddef;
       begin
-        Result:=objrealname^;
-        tmp:=self;
-        repeat
-          if tmp.owner.symtabletype in [ObjectSymtable,recordsymtable] then
-            tmp:=tabstractrecorddef(tmp.owner.defowner)
-          else
-            break;
-          Result:=tmp.objrealname^+'.'+Result;
-        until tmp=nil;
+        Result:=OwnerHierarchyName+objrealname^;
       end;
 
     function tabstractrecorddef.search_enumerator_get: tprocdef;

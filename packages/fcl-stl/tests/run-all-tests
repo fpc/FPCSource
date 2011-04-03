@@ -1,0 +1,4 @@
+#!/bin/bash
+rm *.o *.ppu ../*.o ../*.ppu testrunner
+fpc -Fu.. -gttt testrunner.pp -Sa
+./testrunner --all

@@ -2248,6 +2248,7 @@ implementation
       var
         hashedid : THashedIDString;
       begin
+        result:=false;
         hashedid.id:=s;
         { search for a record helper method first }
         result:=search_objectpascal_helper(recordh,recordh,s,srsym,srsymtable);

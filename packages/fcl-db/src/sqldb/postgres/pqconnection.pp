@@ -546,7 +546,7 @@ begin
       FPrepared := True;
       end
     else
-      statement := buf;
+      statement := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
     end;
 end;
 

@@ -397,7 +397,6 @@ implementation
          typename,orgtypename : TIDString;
          newtype  : ttypesym;
          sym      : tsym;
-         srsymtable : TSymtable;
          hdef     : tdef;
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
@@ -462,8 +461,10 @@ implementation
                current_scanner.startrecordtokens(generictokenbuf);
              end;
 
-           { is the type already defined? }
-           searchsym(typename,sym,srsymtable);
+           { is the type already defined? -- must be in the current symtable,
+             not in a nested symtable or one higher up the stack -> don't
+             use searchsym & frinds! }
+           sym:=tsym(symtablestack.top.find(typename));
            newtype:=nil;
            { found a symbol with this name? }
            if assigned(sym) then

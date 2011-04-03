@@ -280,12 +280,13 @@ implementation
 
     procedure handleImplementedProtocol(intfdef : tobjectdef);
       begin
+        intfdef:=find_real_objcclass_definition(intfdef,false);
         if not is_objcprotocol(intfdef) then
           begin
              Message1(type_e_protocol_type_expected,intfdef.typename);
              exit;
           end;
-        if (oo_is_forward in intfdef.objectoptions) then
+        if ([oo_is_forward,oo_is_formal] * intfdef.objectoptions <> []) then
           begin
              Message1(parser_e_forward_protocol_declaration_must_be_resolved,intfdef.objrealname^);
              exit;

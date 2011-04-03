@@ -26,7 +26,7 @@ unit globals;
 interface
 
     uses
-{$ifdef win32}
+{$ifdef windows}
       windows,
 {$endif}
 {$ifdef os2}
@@ -477,6 +477,13 @@ implementation
 {$ifdef macos}
       macutils,
 {$endif}
+{$ifdef mswindows}
+{$ifdef VER2_4}
+      cwindirs,
+{$else VER2_4}
+      windirs,
+{$endif VER2_4}
+{$endif}
       comphook;
 
 {****************************************************************************
@@ -718,86 +725,18 @@ implementation
                           Default Macro Handling
 ****************************************************************************}
 
-{$ifdef windows}
-{
-  This code is copied from sysutils.pp
-}
-     Type
-       PFNSHGetFolderPath = Function(Ahwnd: HWND; Csidl: Integer; Token: THandle; Flags: DWord; Path: PChar): HRESULT; stdcall;
-
-     var
-       SHGetFolderPath : PFNSHGetFolderPath = Nil;
-       CFGDLLHandle : THandle = 0;
-
-     const
-       CSIDL_PERSONAL                = $0005; { %USERPROFILE%\My Documents                                       }
-       CSIDL_APPDATA                 = $001A; { %USERPROFILE%\Application Data (roaming)                         }
-       CSIDL_LOCAL_APPDATA           = $001C; { %USERPROFILE%\Local Settings\Application Data (non roaming)      }
-       CSIDL_COMMON_APPDATA          = $0023; { %PROFILESPATH%\All Users\Application Data                        }
-       CSIDL_PROGRAM_FILES           = $0026; { %SYSTEMDRIVE%\Program Files                                      }
-       CSIDL_PROFILE                 = $0028; { %USERPROFILE%                                                    }
-       CSIDL_PROGRAM_FILES_COMMON    = $002B; { %SYSTEMDRIVE%\Program Files\Common                               }
-
-       CSIDL_FLAG_CREATE             = $8000; { (force creation of requested folder if it doesn't exist yet)     }
-
-
-     Procedure InitDLL;
-       Var
-         pathBuf: array[0..MAX_PATH-1] of char;
-         pathLength: Integer;
-       begin
-         { Load shfolder.dll using a full path, in order to prevent spoofing (Mantis #18185)
-           Don't bother loading shell32.dll because shfolder.dll itself redirects SHGetFolderPath
-           to shell32.dll whenever possible. }
-         pathLength:=GetSystemDirectory(pathBuf, MAX_PATH);
-         if (pathLength>0) and (pathLength<MAX_PATH-14) then { 14=length('\shfolder.dll'#0) }
-           begin
-             StrLCopy(@pathBuf[pathLength],'\shfolder.dll',MAX_PATH-pathLength-1);
-             CFGDLLHandle:=LoadLibrary(pathBuf);
-             if (CFGDLLHandle<>0) then
-               begin
-                 Pointer(ShGetFolderPath):=GetProcAddress(CFGDLLHandle,'SHGetFolderPathA');
-                 If @ShGetFolderPath=nil then
-                   begin
-                     FreeLibrary(CFGDLLHandle);
-                     CFGDllHandle:=0;
-                   end;
-               end;
-           end;
-         If (@ShGetFolderPath=Nil) then
-           Raise Exception.Create('Could not determine SHGetFolderPath Function');
-       end;
-
-
-     Function GetSpecialDir(ID :  Integer) : String;
-
-       Var
-         APath : Array[0..MAX_PATH] of char;
-
-       begin
-         Result:='';
-         if (CFGDLLHandle=0) then
-           InitDLL;
-         If (SHGetFolderPath<>Nil) then
-           begin
-             if SHGetFolderPath(0,ID or CSIDL_FLAG_CREATE,0,0,@APATH[0])=S_OK then
-               Result:=IncludeTrailingPathDelimiter(StrPas(@APath[0]));
-           end;
-       end;
-{$endif windows}
-
 
      procedure DefaultReplacements(var s:ansistring);
-       {$ifdef windows}
+{$ifdef mswindows}
        procedure ReplaceSpecialFolder(const MacroName: string; const ID: integer);
          begin
            // Only try to receive the special folders (and thus dynamically
            // load shfolder.dll) when that's needed.
            if pos(MacroName,s)>0 then
-             Replace(s,MacroName,GetSpecialDir(ID));
+             Replace(s,MacroName,GetWindowsSpecialDir(ID));
          end;
 
-       {$endif windows}
+{$endif mswindows}
        var
          envstr: string;
          envvalue: pchar;
@@ -813,7 +752,7 @@ implementation
            Replace(s,'$FPCTARGET',target_os_string)
          else
            Replace(s,'$FPCTARGET',target_full_string);
-{$ifdef windows}
+{$ifdef mswindows}
          ReplaceSpecialFolder('$LOCAL_APPDATA',CSIDL_LOCAL_APPDATA);
          ReplaceSpecialFolder('$APPDATA',CSIDL_APPDATA);
          ReplaceSpecialFolder('$COMMON_APPDATA',CSIDL_COMMON_APPDATA);
@@ -821,7 +760,7 @@ implementation
          ReplaceSpecialFolder('$PROGRAM_FILES',CSIDL_PROGRAM_FILES);
          ReplaceSpecialFolder('$PROGRAM_FILES_COMMON',CSIDL_PROGRAM_FILES_COMMON);
          ReplaceSpecialFolder('$PROFILE',CSIDL_PROFILE);
-{$endif windows}
+{$endif mswindows}
          { Replace environment variables between dollar signs }
          i := pos('$',s);
          while i>0 do
@@ -1581,10 +1520,4 @@ implementation
         features:=[low(Tfeature)..high(Tfeature)];
      end;
 
-{$ifdef windows}
-initialization
-finalization
-  if CFGDLLHandle<>0 then
-    FreeLibrary(CFGDllHandle);
-{$endif windows}
 end.

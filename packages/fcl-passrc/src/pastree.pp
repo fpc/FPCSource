@@ -2609,7 +2609,7 @@ Var
   I : Integer;
 
 begin
-  For I:=0 to Length(Params) do
+  For I:=0 to High(Params) do
     begin
     If (Result<>'')  then
       Result:=Result+', ';
@@ -2647,7 +2647,7 @@ Function TRecordValues.GetDeclaration(Full : Boolean):AnsiString;
 Var
   I : Integer;
 begin
-  For I:=0 to Length(Fields) do
+  For I:=0 to High(Fields) do
     begin
     If Result='' then
       Result:=Result+'; ';
@@ -2708,7 +2708,7 @@ Var
   I : Integer;
 
 begin
-  For I:=0 to Length(Values) do
+  For I:=0 to High(Values) do
     begin
     If Result='' then
       Result:=Result+', ';

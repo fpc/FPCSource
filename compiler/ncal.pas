@@ -201,6 +201,9 @@ interface
           function can_be_inlined: boolean;
 
           property nextpara : tnode read right write right;
+          { third is reused to store the parameter name (only while parsing
+            vardispatch calls, never in real node tree) and copy of 'high'
+            parameter tree when the parameter is an open array of managed type }
           property parametername : tnode read third write third;
 
           { returns whether the evaluation of this parameter involves a
@@ -620,6 +623,8 @@ implementation
          old_array_constructor:=allow_array_constructor;
          allow_array_constructor:=true;
          typecheckpass(left);
+         if assigned(third) then
+           typecheckpass(third);
          allow_array_constructor:=old_array_constructor;
          if codegenerror then
           resultdef:=generrordef
@@ -635,6 +640,8 @@ implementation
         if not assigned(left.resultdef) then
           get_paratype;
         firstpass(left);
+        if assigned(third) then
+          firstpass(third);
         expectloc:=left.expectloc;
       end;
 
@@ -2492,6 +2499,7 @@ implementation
         varargspara,
         currpara : tparavarsym;
         hiddentree : tnode;
+        paradef  : tdef;
       begin
         pt:=tcallparanode(left);
         oldppt:=pcallparanode(@left);
@@ -2527,7 +2535,19 @@ implementation
                   if not assigned(pt) or (i=0) then
                     internalerror(200304081);
                   { we need the information of the previous parameter }
-                  hiddentree:=gen_high_tree(pt.left,tparavarsym(procdefinition.paras[i-1]).vardef);
+                  paradef:=tparavarsym(procdefinition.paras[i-1]).vardef;
+                  hiddentree:=gen_high_tree(pt.left,paradef);
+                  { for open array of managed type, a copy of high parameter is
+                    necessary to properly initialize before the call }
+                  if is_open_array(paradef) and
+                    (tparavarsym(procdefinition.paras[i-1]).varspez=vs_out) and
+                     is_managed_type(tarraydef(paradef).elementdef) then
+                    begin
+                      typecheckpass(hiddentree);
+                      {this eliminates double call to fpc_dynarray_high, if any}
+                      maybe_load_in_temp(hiddentree);
+                      oldppt^.third:=hiddentree.getcopy;
+                    end;
                 end
               else
                 if vo_is_typinfo_para in currpara.varoptions then

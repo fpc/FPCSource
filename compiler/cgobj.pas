@@ -3504,6 +3504,8 @@ implementation
           end
          else
           begin
+            if is_open_array(t) then
+              InternalError(201103054);
             reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
             a_loadaddr_ref_cgpara(list,href,cgpara2);
             a_loadaddr_ref_cgpara(list,ref,cgpara1);
@@ -3569,6 +3571,8 @@ implementation
           end
          else
           begin
+            if is_open_array(t) then
+              InternalError(201103053);
             reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
             a_loadaddr_ref_cgpara(list,href,cgpara2);
             a_loadaddr_ref_cgpara(list,ref,cgpara1);
@@ -3596,18 +3600,23 @@ implementation
         paramanager.getintparaloc(pocall_default,3,cgpara3);
 
         reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
-        if highloc.loc in [LOC_REGISTER,LOC_CREGISTER] then
-          hreg:=highloc.register
+        if highloc.loc=LOC_CONSTANT then
+          a_load_const_cgpara(list,OS_INT,highloc.value+1,cgpara3)
         else
           begin
-            hreg:=getintregister(list,OS_INT);
-            a_load_loc_reg(list,OS_INT,highloc,hreg);
+            if highloc.loc in [LOC_REGISTER,LOC_CREGISTER] then
+              hreg:=highloc.register
+            else
+              begin
+                hreg:=getintregister(list,OS_INT);
+                a_load_loc_reg(list,OS_INT,highloc,hreg);
+              end;
+            { increment, converts high(x) to length(x) }
+            lenreg:=getintregister(list,OS_INT);
+            a_op_const_reg_reg(list,OP_ADD,OS_INT,1,hreg,lenreg);
+            a_load_reg_cgpara(list,OS_INT,lenreg,cgpara3);
           end;
-        { increment, converts high(x) to length(x) }
-        lenreg:=getintregister(list,OS_INT);
-        a_op_const_reg_reg(list,OP_ADD,OS_INT,1,hreg,lenreg);
 
-        a_load_reg_cgpara(list,OS_INT,lenreg,cgpara3);
         a_loadaddr_ref_cgpara(list,href,cgpara2);
         a_loadaddr_ref_cgpara(list,ref,cgpara1);
         paramanager.freecgpara(list,cgpara1);
@@ -3639,6 +3648,8 @@ implementation
            a_load_const_ref(list,OS_ADDR,0,ref)
          else
            begin
+              if is_open_array(t) then
+                InternalError(201103052);
               reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
               a_loadaddr_ref_cgpara(list,href,cgpara2);
               a_loadaddr_ref_cgpara(list,ref,cgpara1);
@@ -3672,6 +3683,8 @@ implementation
             end
          else
            begin
+              if is_open_array(t) then
+                InternalError(201103051);
               reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
               a_loadaddr_ref_cgpara(list,href,cgpara2);
               a_loadaddr_ref_cgpara(list,ref,cgpara1);

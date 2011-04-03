@@ -45,10 +45,7 @@ interface
         stackcheck_asmnode,
         init_asmnode,
         final_asmnode : tasmnode;
-        { list to store the procinfo's of the nested procedures }
-        nestedprocs : tlinkedlist;
         dfabuilder : TDFABuilder;
-        constructor create(aparent:tprocinfo);override;
         destructor  destroy;override;
         procedure printproc(pass:string);
         procedure generate_code;
@@ -555,16 +552,8 @@ implementation
                                   TCGProcInfo
 ****************************************************************************}
 
-    constructor tcgprocinfo.create(aparent:tprocinfo);
-      begin
-        inherited Create(aparent);
-        nestedprocs:=tlinkedlist.create;
-      end;
-
-
      destructor tcgprocinfo.destroy;
        begin
-         nestedprocs.free;
          if assigned(code) then
            code.free;
          inherited destroy;
@@ -794,10 +783,10 @@ implementation
 
     function tcgprocinfo.has_assembler_child : boolean;
       var
-        hp : tcgprocinfo;
+        hp : tprocinfo;
       begin
         result:=false;
-        hp:=tcgprocinfo(nestedprocs.first);
+        hp:=get_first_nestedproc;
         while assigned(hp) do
           begin
             if (hp.flags*[pi_has_assembler_block,pi_is_assembler])<>[] then
@@ -805,7 +794,7 @@ implementation
                 result:=true;
                 exit;
               end;
-            hp:=tcgprocinfo(hp.next);
+            hp:=tprocinfo(hp.next);
           end;
       end;
 
@@ -1549,7 +1538,7 @@ implementation
           { generate code for this procedure }
           pi.generate_code;
           { process nested procs }
-          hpi:=tcgprocinfo(pi.nestedprocs.first);
+          hpi:=tcgprocinfo(pi.get_first_nestedproc);
           while assigned(hpi) do
            begin
              do_generate_code(hpi);
@@ -1602,7 +1591,7 @@ implementation
         { We can't support inlining for procedures that have nested
           procedures because the nested procedures use a fixed offset
           for accessing locals in the parent procedure (PFV) }
-        if (tcgprocinfo(current_procinfo).nestedprocs.count>0) then
+        if current_procinfo.has_nestedprocs then
           begin
             if (df_generic in current_procinfo.procdef.defoptions) then
               Comment(V_Error,'Generic methods cannot have nested procedures')
@@ -1618,9 +1607,7 @@ implementation
         { When it's a nested procedure then defer the code generation,
           when back at normal function level then generate the code
           for all defered nested procedures and the current procedure }
-        if isnestedproc then
-          tcgprocinfo(current_procinfo.parent).nestedprocs.insert(current_procinfo)
-        else
+        if not isnestedproc then
           begin
             if not(df_generic in current_procinfo.procdef.defoptions) then
               do_generate_code(tcgprocinfo(current_procinfo));

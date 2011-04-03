@@ -1455,7 +1455,7 @@ implementation
                         {  e.g., "with classinstance do field := 5"), then    }
                         { let do_member_read handle it                        }
                         if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                          do_member_read(tobjectdef(hdef),getaddr,srsym,p1,again,[])
+                          do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[])
                         else
                           { otherwise it's a regular record subscript }
                           p1:=csubscriptnode.create(srsym,p1);
@@ -1516,7 +1516,7 @@ implementation
                                if assigned(srsym) then
                                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                consume(_ID);
-                               do_member_read(tobjectdef(hdef),false,srsym,p1,again,[]);
+                               do_member_read(tabstractrecorddef(hdef),false,srsym,p1,again,[]);
                              end
                            else
                             begin
@@ -1531,7 +1531,7 @@ implementation
                                 begin
                                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                       consume(_ID);
-                                      do_member_read(tobjectdef(hdef),getaddr,srsym,p1,again,[]);
+                                      do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[]);
                                 end
                               else
                                 Message1(sym_e_id_no_member,orgpattern);
@@ -1565,7 +1565,7 @@ implementation
                                  begin
                                    check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                    consume(_ID);
-                                   do_member_read(tobjectdef(hdef),getaddr,srsym,p1,again,[]);
+                                   do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[]);
                                  end
                                 else
                                  begin
@@ -1615,7 +1615,7 @@ implementation
                         { not srsymtable.symtabletype since that can be }
                         { withsymtable as well                          }
                         if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                          do_member_read(tobjectdef(hdef),getaddr,srsym,p1,again,[])
+                          do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[])
                         else
                           { no procsyms in records (yet) }
                           internalerror(2007012006);
@@ -1648,7 +1648,7 @@ implementation
                         { not srsymtable.symtabletype since that can be }
                         { withsymtable as well                          }
                         if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                          do_member_read(tobjectdef(hdef),getaddr,srsym,p1,again,[])
+                          do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[])
                         else
                           { no propertysyms in records (yet) }
                           internalerror(2009111510);

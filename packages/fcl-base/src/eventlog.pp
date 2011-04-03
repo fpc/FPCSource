@@ -29,6 +29,7 @@ Type
 
   TEventLog = Class(TComponent)
   Private
+    fAppendContent : Boolean;
     FEventIDOffset : DWord;
     FLogHandle : Pointer;
     FStream : TFileStream;
@@ -84,6 +85,7 @@ Type
     Procedure Info (const Msg : String); {$ifndef fpc }Overload;{$endif}
     Procedure Info (const Fmt : String; Args : Array of const); {$ifndef fpc }Overload;{$endif}
   Published
+    Property AppendContent : Boolean Read fAppendContent Write fAppendContent;
     Property Identification : String Read FIdentification Write SetIdentification;
     Property LogType : TLogType Read Flogtype Write SetlogType;
     Property Active : Boolean Read FActive write SetActive;
@@ -240,12 +242,19 @@ begin
 end;
 
 Procedure TEventLog.ActivateFileLog;
-
+var
+  fFileFlags : Word;
 begin
   If (FFileName='') then
     FFileName:=DefaultFileName;
   // This will raise an exception if the file cannot be opened for writing !
-  FStream:=TFileStream.Create(FFileName,fmCreate or fmShareDenyWrite);
+  if fAppendContent and FileExists(FFileName) then
+    fFileFlags := fmOpenWrite
+  else
+    fFileFlags := fmCreate;
+
+  fFileFlags := fFileFlags or fmShareDenyWrite;
+  FStream:=TFileStream.Create(FFileName,fFileFlags);
 end;
 
 Procedure TEventLog.DeActivateFileLog;

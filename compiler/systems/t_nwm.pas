@@ -97,7 +97,7 @@ implementation
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
-    import,export,link,i_nwm,ogbase
+    import,export,link,i_nwm,ogbase, ogcoff, ognlm
     {$ifdef netware} ,dos {$endif}
     ;
 
@@ -122,6 +122,15 @@ implementation
       procedure SetDefaultInfo;override;
       function  MakeExecutable:boolean;override;
     end;
+
+    TInternalLinkerNetware = class(TInternalLinker)
+        prelude : string;
+        constructor create;override;
+        procedure DefaultLinkScript;override;
+        procedure InitSysInitUnitName;override;
+        procedure ConcatEntryName; virtual;
+        Function  MakeSharedLibrary:boolean;override;
+      end;
 
 Const tmpLinkFileName = 'link~tmp._o_';
       minStackSize = 32768;
@@ -549,6 +558,379 @@ begin
 end;
 
 
+{****************************************************************************
+                            TInternalLinkerNetware
+****************************************************************************}
+
+    constructor TInternalLinkerNetware.Create;
+      begin
+        inherited Create;
+        CExeoutput:=TNLMexeoutput;
+        CObjInput:=TNLMCoffObjInput;
+      end;
+
+
+    procedure TInternalLinkerNetware.DefaultLinkScript;
+      var
+        s,s2 : TCmdStr;
+        secname,
+        secnames : string;
+        hasCopyright,
+        hasScreenname,
+        hasThreadname,
+        hasVersion,
+        hasDescription,
+        hasStacksize: boolean;
+        t : text;
+
+
+
+        procedure addLinkerOption(s : string);
+        var op : string;
+        begin
+          if s = '' then exit;
+          if s[1]  = '#' then exit;
+          LinkScript.Concat(s);
+          op := upper(GetToken(s,' '));
+          {check for options via -k that can also be specified vie
+           compiler directives in source, -k options will override
+           options in source}
+          if op = 'COPYRIGHT' then hasCopyright := true else
+          if op = 'SCREENNAME' then hasScreenname := true else
+          if op = 'THREADNAME' then hasThreadname := true else
+          if op = 'VERSION' then hasVersion := true else
+          if op = 'DESCRIPTION' then hasDescription := true else
+          if (op = 'STACK') or (op = 'STACKSIZE') then hasStacksize := true;
+        end;
+
+        { add linker scropt specified by -k@FileName }
+        procedure addLinkerOptionsFile (fileName : string);
+        var
+          t : text;
+          option : string;
+          fn : TCmdStr;
+        begin
+          fn := fileName;
+          if not sysutils.fileExists(fn) then
+            if not includesearchpath.FindFile(fileName,true,fn) then
+            begin
+              comment(v_error,'linker options file "'+fileName+'" not found');
+              exit;
+            end;
+          assign(t,fn); reset(t);
+          while not eof(t) do
+            begin
+              readln(t,option);
+              addLinkerOption(option);
+            end;
+          close(t);
+        end;
+
+        { add  linker options specified by command line parameter -k }
+        procedure addLinkerOptions;
+        var
+          s,option : string;
+          p : integer;
+        begin
+          s := ParaLinkOptions;
+          option := GetToken(s,';');
+          while option <> '' do
+          begin
+            if copy(option,1,1)='@' then
+            begin
+              delete(option,1,1);
+              addLinkerOptionsFile(option);
+            end else
+              addLinkerOption(option);
+            option := GetToken(s,';');
+          end;
+        end;
+
+        { default: nwpre but can be specified via linker options
+          bacuse this has to be the first object, we have to scan
+          linker options before adding other options }
+
+        function findPreludeInFile (fileName : string):string;
+        var
+          t : text;
+          option,s : string;
+          fn : TCmdStr;
+        begin
+          result := '';
+          fn := fileName;
+          if not sysutils.fileExists(fn) then
+            if not includesearchpath.FindFile(fileName,true,fn) then
+            begin
+              comment(v_error,'linker options file "'+fileName+'" not found');
+              exit;
+            end;
+          assign(t,fn); reset(t);
+          while not eof(t) do
+            begin
+              readln(t,option);
+              option := upper(GetToken(s,' '));
+              if option='PRELUDE' then
+                begin
+                  result := getToken(s,' ');
+                  close(t);
+                  exit;
+                end;
+            end;
+          close(t);
+        end;
+
+        function findPrelude : string;
+        var
+          s,option,keyword : string;
+          p : integer;
+        begin
+          s := ParaLinkOptions;
+          option := GetToken(s,';');
+          while option <> '' do
+          begin
+            if copy(option,1,1)='@' then
+            begin
+              delete(option,1,1);
+              result := findPreludeInFile(option);
+              if result <> '' then exit;
+            end else
+            begin
+              keyword := GetToken(option,' ');
+              if keyword = 'PRELUDE' then
+                begin
+                  result := GetToken(option,' ');
+                  exit;
+                end;
+            end;
+            option := GetToken(s,';');
+          end;
+          result := 'nwpre';
+        end;
+
+      begin
+        with LinkScript do
+          begin
+            prelude := findPrelude;  // needs to be first object, can be specified by -k"PRELUDE ObjFileName"
+            if prelude = '' then internalerror(201103271);
+            if pos ('.',prelude) = 0 then prelude := prelude + '.o';
+            s2 := FindObjectFile(prelude,'',false);
+            Comment (V_Debug,'adding init Object File '+s2);
+            Concat('READOBJECT '+MaybeQuoted(s2));
+            while not ObjectFiles.Empty do
+              begin
+                s:=ObjectFiles.GetFirst;
+                if s<>'' then
+                begin
+                  Concat('READOBJECT '+MaybeQuoted(s));
+                  Comment (V_Debug,'adding Object File '+s);
+                end;
+              end;
+            while not StaticLibFiles.Empty do
+              begin
+                s:=StaticLibFiles.GetFirst;
+                if s<>'' then
+                begin
+                  Comment (V_Debug,'adding StaticLibFile '+s);
+                  Concat('READSTATICLIBRARY '+MaybeQuoted(s));
+                end;
+              end;
+           { While not SharedLibFiles.Empty do
+              begin
+                S:=SharedLibFiles.GetFirst;
+                if FindLibraryFile(s,target_info.staticClibprefix,target_info.importlibext,s2) then
+                begin
+                  Comment (V_Debug,'adding LibraryFile '+s);
+                  Concat('READSTATICLIBRARY '+MaybeQuoted(s2));
+                end else
+                  Comment(V_Error,'Import library not found for '+S);
+              end;}
+            if IsSharedLibrary then
+              Concat('ISSHAREDLIBRARY');
+            ConcatEntryName;
+            Concat('IMAGEBASE $' + hexStr(0, SizeOf(imagebase)*2));
+            Concat('HEADER');
+            Concat('EXESECTION .text');
+            Concat('  SYMBOL __text_start__');
+            Concat('  OBJSECTION .text*');
+            Concat('  SYMBOL ___CTOR_LIST__');
+            Concat('  SYMBOL __CTOR_LIST__');
+            Concat('  LONG -1');
+            Concat('  OBJSECTION .ctor*');
+            Concat('  LONG 0');
+            Concat('  SYMBOL ___DTOR_LIST__');
+            Concat('  SYMBOL __DTOR_LIST__');
+            Concat('  LONG -1');
+            Concat('  OBJSECTION .dtor*');
+            Concat('  LONG 0');
+            Concat('  SYMBOL etext');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .data');
+            Concat('  SYMBOL __data_start__');
+            Concat('  OBJSECTION .data*');
+            Concat('  OBJSECTION .fpc*');
+            Concat('  SYMBOL edata');
+            Concat('  SYMBOL __data_end__');
+            Concat('ENDEXESECTION');
+
+            Concat('EXESECTION .bss');
+            Concat('  SYMBOL __bss_start__');
+            Concat('  OBJSECTION .bss*');
+            Concat('  SYMBOL __bss_end__');
+            Concat('ENDEXESECTION');
+
+            Concat('EXESECTION .imports');
+            Concat('  SYMBOL __imports_start__');
+            Concat('  OBJSECTION .imports*');
+            Concat('  SYMBOL __imports_end__');
+            Concat('ENDEXESECTION');
+
+            Concat('EXESECTION .modules');
+            Concat('  SYMBOL __modules_start__');
+            Concat('  OBJSECTION .modules*');
+            Concat('  SYMBOL __modules_end__');
+            Concat('ENDEXESECTION');
+
+            Concat('EXESECTION .exports');
+            Concat('  SYMBOL __exports_start__');
+            Concat('  OBJSECTION .exports*');
+            Concat('  SYMBOL __exports_end__');
+            Concat('ENDEXESECTION');
+
+            Concat('EXESECTION .reloc');
+            Concat('  SYMBOL __reloc_start__');
+            Concat('  OBJSECTION .reloc*');
+            Concat('  SYMBOL __reloc_end__');
+            Concat('ENDEXESECTION');
+
+            Concat('EXESECTION .xdc');
+            Concat('  OBJSECTION .xdc*');
+            Concat('ENDEXESECTION');
+
+            Concat('EXESECTION .custom');
+            Concat('  OBJSECTION .custom*');
+            Concat('ENDEXESECTION');
+
+            Concat('EXESECTION .messages');
+            Concat('  OBJSECTION .messages*');
+            Concat('ENDEXESECTION');
+
+            Concat('EXESECTION .help');
+            Concat('  OBJSECTION .help*');
+            Concat('ENDEXESECTION');
+
+            Concat('EXESECTION .rdata');
+            Concat('  SYMBOL ___RUNTIME_PSEUDO_RELOC_LIST__');
+            Concat('  SYMBOL __RUNTIME_PSEUDO_RELOC_LIST__');
+            Concat('  OBJSECTION .rdata_runtime_pseudo_reloc');
+            Concat('  SYMBOL ___RUNTIME_PSEUDO_RELOC_LIST_END__');
+            Concat('  SYMBOL __RUNTIME_PSEUDO_RELOC_LIST_END__');
+            Concat('  OBJSECTION .rdata*');
+            Concat('  OBJSECTION .rodata*');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .pdata');
+            Concat('  OBJSECTION .pdata');
+            Concat('ENDEXESECTION');
+            secnames:='.edata,.rsrc,.gnu_debuglink,'+
+                      '.debug_aranges,.debug_pubnames,.debug_info,.debug_abbrev,.debug_line,.debug_frame,.debug_str,.debug_loc,'+
+                      '.debug_macinfo,.debug_weaknames,.debug_funcnames,.debug_typenames,.debug_varnames,.debug_ranges';
+            repeat
+              secname:=gettoken(secnames,',');
+              if secname='' then
+                break;
+              Concat('EXESECTION '+secname);
+              Concat('  OBJSECTION '+secname+'*');
+              Concat('ENDEXESECTION');
+            until false;
+            { Can't use the generic rules, because that will add also .stabstr to .stab }
+            Concat('EXESECTION .stab');
+            Concat('  OBJSECTION .stab');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .stabstr');
+            Concat('  OBJSECTION .stabstr');
+            Concat('ENDEXESECTION');
+            Concat('STABS');
+            Concat('SYMBOLS');
+            Concat('');
+
+            hasCopyright := false;
+            hasScreenname := false;
+            hasThreadname := false;
+            hasVersion := false;
+            hasDescription := false;
+            hasStacksize := false;
+            addLinkerOptions;
+            if not hasCopyright then
+              if nwcopyright <> '' then
+                Concat('COPYRIGHT "'+nwCopyright+'"');
+            if not hasScreenname then
+              if nwscreenname <> '' then
+                Concat('SCREENNAME "'+nwscreenname+'"');
+            if not hasThreadname then
+              if nwthreadname <> '' then
+                Concat('THREADNAME "'+nwthreadname+'"');
+            if not hasVersion then
+              Concat('VERSION '+tostr(dllmajor)+' '+tostr(dllminor)+' '+tostr(dllrevision));
+            if not hasDescription then
+              if description <> '' then
+                Concat ('DESCRIPTION "'+description+'"');
+            if not hasStacksize then
+              if MaxStackSizeSetExplicity then
+              begin
+                if stacksize < minStackSize then stacksize := minStackSize;
+                Concat ('STACKSIZE '+tostr(stacksize));
+              end else
+                Concat ('STACKSIZE '+tostr(minStackSize));
+          end;
+
+        // add symbols needed by nwpre. We have not loaded the ppu,
+        // therefore we do not know the externals so read it from nwpre.imp
+        s := ChangeFileExt(prelude,'.imp');  // nwpre.imp
+        if not librarysearchpath.FindFile(s,true,s2) then
+          begin
+            comment(v_error,s+' not found');
+            exit;
+          end;
+        assign(t,s2); reset(t);
+        while not eof(t) do
+          begin
+            readln(t,s);
+            s := trimspace(s);
+            if (length(s) > 0) then
+              if copy(s,1,1) <> '#' then
+                AddImportSymbol('!clib',s,0,false);
+          end;
+        close(t);
+      end;
+
+
+    procedure TInternalLinkerNetware.InitSysInitUnitName;
+      begin
+        //if target_info.system=system_i386_netware then
+        //  GlobalInitSysInitUnitName(self);
+      end;
+
+    procedure TInternalLinkerNetware.ConcatEntryName;
+      begin
+        with LinkScript do
+          begin
+            if IsSharedLibrary then
+              begin
+                Concat('ISSHAREDLIBRARY');
+                Concat('ENTRYNAME _Prelude')
+              end
+            else
+              begin
+                Concat('ENTRYNAME _Prelude')
+              end;
+          end;
+      end;
+
+
+    Function  TInternalLinkerNetware.MakeSharedLibrary:boolean;
+    begin
+      Comment(V_Error,'Make shared library not supported for netware');
+    end;
+
 {*****************************************************************************
                                      Initialize
 *****************************************************************************}
@@ -556,6 +938,7 @@ end;
 
 initialization
   RegisterExternalLinker(system_i386_netware_info,TLinkerNetware);
+  RegisterInternalLinker(system_i386_netware_info,TInternalLinkerNetware);
   RegisterImport(system_i386_netware,TImportLibNetware);
   RegisterExport(system_i386_netware,TExportLibNetware);
   RegisterTarget(system_i386_netware_info);

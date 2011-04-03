@@ -17,6 +17,7 @@ Type
   TCustomSQLDBWebDataProvider = Class(TFPCustomWebDataProvider)
   private
     FIDFieldName: String;
+    FONGetDataset: TNotifyEvent;
     FOnGetNewID: TNewIDEvent;
     FOnGetParamValue: TGetParamValueEvent;
     FParams: TParams;
@@ -56,6 +57,7 @@ Type
     Property OnGetNewID : TNewIDEvent Read FOnGetNewID Write FOnGetNewID;
     property OnGetParameterType : TGetParamTypeEvent Read FOnGetParamType Write FOnGetParamType;
     property OnGetParameterValue : TGetParamValueEvent Read FOnGetParamValue Write FOnGetParamValue;
+    Property OnGetDataset : TNotifyEvent Read FONGetDataset Write FOnGetDataset;
     Property Params : TParams Read FParams Write SetParams;
   Public
     Constructor Create(AOwner : TComponent); override;
@@ -73,6 +75,7 @@ Type
     Property OnGetNewID;
     property OnGetParameterType;
     property OnGetParameterValue;
+    Property OnGetDataset;
     Property Options;
     Property Params;
   end;
@@ -394,6 +397,8 @@ end;
 function TCustomSQLDBWebDataProvider.GetDataset: TDataset;
 begin
 {$ifdef wmdebug}SendDebug('Get dataset: checking dataset');{$endif}
+  If Assigned(FonGetDataset) then
+    FOnGetDataset(Self);
   CheckDataset;
   FLastNewID:='';
   Result:=FQuery;

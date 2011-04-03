@@ -3123,7 +3123,7 @@ const
                 can be in a different location because of the calling convention, eg. L-R vs. R-L order (PFV) }
               (
                (compare_paras(currpd.paras,fwpd.paras,cp_none,[cpo_comparedefaultvalue,cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv])=te_exact) and
-               (fwpd.returndef=currpd.returndef)
+               (compare_defs(fwpd.returndef,currpd.returndef,nothingn)=te_exact)
               ) then
              begin
                { Check if we've found the forwarddef, if found then
@@ -3194,7 +3194,7 @@ const
                    if ((m_repeat_forward in current_settings.modeswitches) or
                        not is_bareprocdef(currpd)) and
                       ((compare_paras(currpd.paras,fwpd.paras,cp_all,paracompopt)<>te_exact) or
-                       (fwpd.returndef<>currpd.returndef)) then
+                       (compare_defs(fwpd.returndef,currpd.returndef,nothingn)<>te_exact)) then
                      begin
                        MessagePos1(currpd.fileinfo,parser_e_header_dont_match_forward,
                                    fwpd.fullprocname(false));

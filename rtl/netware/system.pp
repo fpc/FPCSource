@@ -97,6 +97,7 @@ procedure NWSysSetThreadFunctions (crs:TSysCloseAllRemainingSemaphores;
 
 function NWGetCodeStart : pointer;  // needed for lineinfo
 
+
 implementation
 { Indicate that stack checking is taken care by OS}
 {$DEFINE NO_GENERIC_STACK_CHECK}

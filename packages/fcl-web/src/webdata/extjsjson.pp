@@ -28,6 +28,8 @@ type
   { TExtJSJSONDataFormatter }
   TJSONObjectEvent = Procedure(Sender : TObject; AObject : TJSONObject) of Object;
   TJSONExceptionObjectEvent = Procedure(Sender : TObject; E : Exception; AResponse : TJSONObject) of Object;
+  TJSONObjectAllowRowEvent = Procedure(Sender : TObject; Dataset : TDataset; Var Allow : Boolean) of Object;
+  TJSONObjectAllowEvent = Procedure(Sender : TObject; AObject : TJSONObject; Var Allow : Boolean) of Object;
 
   TExtJSJSONDataFormatter = Class(TExtJSDataFormatter)
   private
@@ -37,13 +39,18 @@ type
     FAfterRowToJSON: TJSONObjectEvent;
     FAfterUpdate: TJSONObjectEvent;
     FBeforeDataToJSON: TJSONObjectEvent;
+    FBeforeDelete: TNotifyEvent;
+    FBeforeInsert: TNotifyEvent;
     FBeforeRowToJSON: TJSONObjectEvent;
+    FBeforeUpdate: TNotifyEvent;
+    FOnAllowRow: TJSONObjectAllowRowEvent;
     FOnErrorResponse: TJSONExceptionObjectEvent;
     FOnMetaDataToJSON: TJSONObjectEvent;
     FBatchResult : TJSONArray;
     Function AddIdToBatch : TJSONObject;
     procedure SendSuccess(ResponseContent: TStream; AddIDValue : Boolean = False);
   protected
+    function AllowRow(ADataset : TDataset) : Boolean; virtual;
     Procedure StartBatch(ResponseContent : TStream); override;
     Procedure NextBatchItem(ResponseContent : TStream); override;
     Procedure EndBatch(ResponseContent : TStream); override;
@@ -77,12 +84,18 @@ type
     Property BeforeDataToJSON : TJSONObjectEvent Read FBeforeDataToJSON Write FBeforeDataToJSON;
     // Called when an exception is caught and formatted.
     Property OnErrorResponse : TJSONExceptionObjectEvent Read FOnErrorResponse Write FOnErrorResponse;
+    // Called to decide whether a record is sent to the client;
+    Property OnAllowRow : TJSONObjectAllowRowEvent Read FOnAllowRow Write FOnAllowRow;
     // After a record was succesfully updated
     Property AfterUpdate : TJSONObjectEvent Read FAfterUpdate Write FAfterUpdate;
     // After a record was succesfully inserted.
     Property AfterInsert : TJSONObjectEvent Read FAfterInsert Write FAfterInsert;
     // After a record was succesfully inserted.
     Property AfterDelete : TJSONObjectEvent Read FAfterDelete Write FAfterDelete;
+    // From TCustomHTTPDataContentProducer
+    Property BeforeUpdate;
+    Property BeforeInsert;
+    Property BeforeDelete;
   end;
 
 implementation
@@ -337,9 +350,12 @@ begin
     ACount:=PageSize;
     While (not DS.EOF) and ((PageSize=0) or (ACount>0)) do
       begin
-      Inc(RCount);
-      Dec(ACount);
-      Rows.Add(RowToJSON);
+      If AllowRow(DS) then
+        begin
+        Inc(RCount);
+        Dec(ACount);
+        Rows.Add(RowToJSON);
+        end;
       DS.Next;
       end;
     If (PageSize>0) then
@@ -409,6 +425,13 @@ begin
   finally
     Resp.Free;
   end;
+end;
+
+function TExtJSJSONDataFormatter.AllowRow(ADataset: TDataset): Boolean;
+begin
+  Result:=True;
+  If Assigned(FOnAllowRow) then
+    FOnAllowRow(Self,Dataset,Result);
 end;
 
 procedure TExtJSJSONDataFormatter.StartBatch(ResponseContent: TStream);

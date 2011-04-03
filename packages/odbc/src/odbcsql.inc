@@ -20,7 +20,11 @@
 {$endif fpc}
 
 {$ifndef DYNLOADINGODBC}
+{$IFDEF WINDOWS}
+  {$linklib odbc32}
+{$ELSE}
   {$linklib odbc}
+{$endif} 
 {$endif}
 
 interface
