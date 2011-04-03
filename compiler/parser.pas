@@ -344,11 +344,7 @@ implementation
          Message1(parser_i_compiling,filename);
 
        { reset symtable }
-{$ifdef useoldsearch}
-         symtablestack:=tsymtablestack.create;
-{$else}
          symtablestack:=tdefawaresymtablestack.create;
-{$endif}
          macrosymtablestack:=TSymtablestack.create;
          systemunit:=nil;
          current_settings.defproccall:=init_settings.defproccall;

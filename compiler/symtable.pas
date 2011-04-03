@@ -2537,46 +2537,12 @@ implementation
 
     function search_last_objectpascal_helper(pd,contextclassh : tabstractrecorddef;out odef : tobjectdef):boolean;
       var
-{$ifdef useoldsearch}
-        stackitem : psymtablestackitem;
-        i : integer;
-        srsymtable : tsymtable;
-{$else}
         s: string;
         list: TFPObjectList;
         i: integer;
         st: tsymtable;
-{$endif}
       begin
         result:=false;
-{$ifdef useoldsearch}
-        stackitem:=symtablestack.stack;
-        while assigned(stackitem) do
-          begin
-            srsymtable:=stackitem^.symtable;
-            { only check symtables that contain a class helper }
-            if (srsymtable.symtabletype in [staticsymtable,globalsymtable]) and
-                (sto_has_helper in srsymtable.tableoptions) then
-              begin
-                { we need to search from last to first }
-                for i:=srsymtable.symlist.count-1 downto 0 do
-                  begin
-                    if not (srsymtable.symlist[i] is ttypesym) then
-                      continue;
-                    if not is_objectpascal_helper(ttypesym(srsymtable.symlist[i]).typedef) then
-                      continue;
-                    odef:=tobjectdef(ttypesym(srsymtable.symlist[i]).typedef);
-                    { does the class helper extend the correct class? }
-                    result:=odef.extendeddef=pd;
-                    if result then
-                      exit
-                    else
-                      odef:=nil;
-                  end;
-              end;
-            stackitem:=stackitem^.next;
-          end;
-{$else}
         { when there are no helpers active currently then we don't need to do
           anything }
         if current_module.extendeddefs.count=0 then
@@ -2607,7 +2573,6 @@ implementation
               { just to be sure that noone uses odef }
               odef:=nil;
           end;
-{$endif}
       end;
 
     function search_objectpascal_helper(pd,contextclassh : tabstractrecorddef;const s: string; out srsym: tsym; out srsymtable: tsymtable):boolean;
