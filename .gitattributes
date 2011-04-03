@@ -2318,7 +2318,6 @@ packages/fcl-stl/doc/vector.tex svneol=native#text/plain
 packages/fcl-stl/doc/vectorexample.pp svneol=native#text/plain
 packages/fcl-stl/src/garrayutils.pp svneol=native#text/plain
 packages/fcl-stl/src/gdeque.pp svneol=native#text/plain
-packages/fcl-stl/src/ghashset.pp svneol=native#text/plain
 packages/fcl-stl/src/gmap.pp svneol=native#text/plain
 packages/fcl-stl/src/gpriorityqueue.pp svneol=native#text/plain
 packages/fcl-stl/src/gqueue.pp svneol=native#text/plain
