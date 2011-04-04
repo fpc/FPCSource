@@ -827,8 +827,6 @@ begin
     Validate(Buffer);
     end;
   FDataSet.SetFieldData(Self,Buffer, NativeFormat);
-  if not (FDataSet.State in [dsCalcFields, dsFilter, dsNewValue]) then
-    DataChanged;
 end;
 
 Procedure TField.SetDataset (AValue : TDataset);
