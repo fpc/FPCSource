@@ -11,8 +11,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFDEF FPC}
 {$mode objfpc}
 {$H+}
+{$ENDIF}
 {
   TMemDataset : In-memory dataset.
   - Has possibility to copy Structure/Data from other dataset.
@@ -37,6 +39,10 @@ const
   smData      = 2;
 
 type
+  {$IFNDEF FPC}
+  ptrint = Integer;
+  {$ENDIF}
+
   MDSError=class(Exception);
 
   PRecInfo=^TMTRecInfo;
@@ -63,6 +69,9 @@ type
     FFilterBuffer: PChar;
     ffieldoffsets: PInteger;
     ffieldsizes: PInteger;
+    function GetCharPointer(p:PChar; Pos:Integer):PChar;
+    function GetIntegerPointer(p:PInteger; Pos:Integer):PInteger;
+
     procedure calcrecordlayout;
     function  MDSGetRecordOffset(ARecNo: integer): longint;
     function  MDSGetFieldOffset(FieldNo: integer): integer;
@@ -123,16 +132,16 @@ type
 
     Function  DataSize : Integer;
 
-    procedure Clear(ClearDefs : Boolean);
-    procedure Clear;
-    Procedure SaveToFile(AFileName : String);
-    Procedure SaveToFile(AFileName : String; SaveData : Boolean);
-    Procedure SaveToStream(F : TStream);
-    Procedure SaveToStream(F : TStream; SaveData : Boolean);
+    procedure Clear(ClearDefs : Boolean);{$IFNDEF FPC} overload; {$ENDIF}
+    procedure Clear;{$IFNDEF FPC} overload; {$ENDIF}
+    Procedure SaveToFile(AFileName : String);{$IFNDEF FPC} overload; {$ENDIF}
+    Procedure SaveToFile(AFileName : String; SaveData : Boolean);{$IFNDEF FPC} overload; {$ENDIF}
+    Procedure SaveToStream(F : TStream); {$IFNDEF FPC} overload; {$ENDIF}
+    Procedure SaveToStream(F : TStream; SaveData : Boolean);{$IFNDEF FPC} overload; {$ENDIF}
     Procedure LoadFromStream(F : TStream);
     Procedure LoadFromFile(AFileName : String);
-    Procedure CopyFromDataset(DataSet : TDataSet);
-    Procedure CopyFromDataset(DataSet : TDataSet; CopyData : Boolean);
+    Procedure CopyFromDataset(DataSet : TDataSet); {$IFNDEF FPC} overload; {$ENDIF}
+    Procedure CopyFromDataset(DataSet : TDataSet; CopyData : Boolean); {$IFNDEF FPC} overload; {$ENDIF}
 
     Property FileModified : Boolean Read FFileModified;
 
@@ -284,7 +293,7 @@ end;
 
 function TMemDataset.MDSGetFieldOffset(FieldNo: integer): integer;
 begin
- result:= ffieldoffsets[fieldno-1];
+ result:= getIntegerpointer(ffieldoffsets, fieldno-1)^;
 end;
 
 Procedure TMemDataset.RaiseError(Fmt : String; Args : Array of const);
@@ -706,7 +715,7 @@ begin
           not getfieldisnull(pointer(srcbuffer),I);
  if result and (buffer <> nil) then 
    begin
-   Move((SrcBuffer+ffieldoffsets[I])^, Buffer^,FFieldSizes[I]);
+   Move(getcharpointer(SrcBuffer,getintegerpointer(ffieldoffsets,I)^)^, Buffer^,GetIntegerPointer(FFieldSizes, I)^);
    end;
 end;
 
@@ -724,10 +733,10 @@ begin
    else 
      begin 
      unsetfieldisnull(pointer(destbuffer),I);
-     J:=FFieldSizes[I];
+     J:=GetIntegerPointer(FFieldSizes, I)^;
      if Field.DataType=ftString then
        Dec(J); // Do not move terminating 0, which is in the size.
-     Move(Buffer^,(DestBuffer+FFieldOffsets[I])^,J);
+     Move(Buffer^,GetCharPointer(DestBuffer, getIntegerPointer(FFieldOffsets, I)^)^,J);
      dataevent(defieldchange,ptrint(field));
      end;
    end;
@@ -843,18 +852,22 @@ begin
  // Avoid mem-leak if CreateTable is called twice
  FreeMem(ffieldoffsets);
  Freemem(ffieldsizes);
-
+ {$IFDEF FPC}
  FFieldOffsets:=getmem(Count*sizeof(integer));
  FFieldSizes:=getmem(Count*sizeof(integer));
+ {$ELSE}
+ getmem(FFieldOffsets, Count*sizeof(integer));
+ getmem(FFieldSizes, Count*sizeof(integer));
+ {$ENDIF}
  FRecSize:= (Count+7) div 8; //null mask
 {$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
  FRecSize:=Align(FRecSize,4);
 {$ENDIF}
  for i:= 0 to Count-1 do
    begin
-   ffieldoffsets[i] := frecsize;
-   ffieldsizes[i] := MDSGetbufferSize(i+1);
-   FRecSize:= FRecSize+FFieldSizes[i];
+   GetIntegerPointer(ffieldoffsets, i)^ := frecsize;
+   GetIntegerPointer(ffieldsizes,   i)^ := MDSGetbufferSize(i+1);
+   FRecSize:= FRecSize+GetIntegerPointeR(FFieldSizes, i)^;
    end;
 end;
 
@@ -986,6 +999,18 @@ begin
       l1.Free;
     end;
     end;
+end;
+
+function TMemDataset.GetCharPointer(p:PChar; Pos:Integer):PChar;
+begin
+  Result:=p;
+  inc(Result, Pos);
+end;
+
+function TMemDataset.GetIntegerPointer(p:PInteger; Pos:Integer):PInteger;
+begin
+  Result:=p;
+  inc(Result, Pos);
 end;
 
 end.
