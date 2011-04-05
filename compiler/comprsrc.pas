@@ -377,18 +377,18 @@ end;
 
 function CopyResFile(inf,outf : TCmdStr) : boolean;
 var
-  src,dst : TCFileStream;
+  src,dst : TCCustomFileStream;
 begin
   { Copy .res file to units output dir. }
   Result:=false;
-  src:=TCFileStream.Create(inf,fmOpenRead or fmShareDenyNone);
+  src:=CFileStreamClass.Create(inf,fmOpenRead or fmShareDenyNone);
   if CStreamError<>0 then
     begin
       Message1(exec_e_cant_open_resource_file, src.FileName);
       Include(current_settings.globalswitches, cs_link_nolink);
       exit;
     end;
-  dst:=TCFileStream.Create(current_module.outputpath^+outf,fmCreate);
+  dst:=CFileStreamClass.Create(current_module.outputpath^+outf,fmCreate);
   if CStreamError<>0 then
     begin
       Message1(exec_e_cant_write_resource_file, dst.FileName);
