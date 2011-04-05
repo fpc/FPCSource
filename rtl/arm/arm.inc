@@ -202,7 +202,6 @@ end;
 procedure Move_pld(const source;var dest;count:longint);assembler;nostackframe;
 asm
   pld [r0]
-  pld [r1]
   // count <=0 ?
   cmp r2,#0
 {$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
@@ -258,13 +257,11 @@ asm
   bne .Ldwordloop
 *)
   pld [r0,#32]
-  pld [r1,#32]
 .Ldwordloop:
   sub r2,r2,#4
   ldr r3,[r0],#4
   // preload
   pld [r0,#64]
-  pld [r1,#64]
   cmp r2,#4
   str r3,[r1],#4
   bcs .Ldwordloop
