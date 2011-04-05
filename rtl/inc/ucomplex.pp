@@ -344,7 +344,7 @@ Unit UComplex;
           z.re := (znum.im + znum.re * tmp) / denom;
           z.im := (-znum.re + znum.im * tmp) / denom;
        end;
-     end;    
+     end;
 
     operator / (znum : complex; r : real) z : complex;
       { division : z := znum / r }
@@ -572,7 +572,7 @@ Unit UComplex;
     {                          _________  }
     { argch(z) = -/+ ln(z + i.V 1 - z.z)  }
     begin
-       carg_ch:=-cln(z+i*csqrt(z*z-1.0));
+       carg_ch:=-cln(z+i*csqrt(1.0-z*z));
     end;
 
   function carg_sh (z : complex) : complex;
@@ -587,7 +587,7 @@ Unit UComplex;
     { hyperbolic arc tangent }
     { argth(z) = 1/2 ln((z + 1) / (1 - z)) }
     begin
-       carg_th:=cln((z+1.0)/(z-1.0))/2.0;
+       carg_th:=cln((z+1.0)/(1.0-z))/2.0;
     end;
 
   { functions to write out a complex value }
