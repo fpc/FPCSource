@@ -2557,7 +2557,9 @@ xmmreg,mem            \1\x66\301\323\2\x0F\xE3\110          WILLAMETTE,SSE2,SM
 [PEXTRW]
 (Ch_All, Ch_None, Ch_None)
 reg32,mmxreg,imm      \2\x0F\xC5\110\22               KATMAI,MMX,SB,AR2
-reg32,xmmreg,imm      \1\x66\323\2\x0F\xC5\110\26       WILLAMETTE,SSE2,SB,AR2
+reg32,xmmreg,imm      \1\x66\323\2\x0F\xC5\110\26                    SSE4
+mem32,xmmreg,imm      \1\x66\300\323\3\x0F\x3A\x15\101\26            SSE4
+
 
 [PINSRW]
 (Ch_All, Ch_None, Ch_None)
@@ -3269,7 +3271,7 @@ mem,xmmreg              \333\300\323\2\x0F\x2B\101                   SSE4,SD
 
 [MOVNTSD]
 (Ch_All, Ch_None, Ch_None)
-mem,xmmreg              \300\334\325\323\2\x0F\x2B\\101                SSE4 ;,SQ
+mem,xmmreg              \300\334\325\323\2\x0F\x2B\101                SSE4 ;,SQ
 
 [INSERTQ]
 (Ch_All, Ch_None, Ch_None)
@@ -3287,7 +3289,432 @@ xmmreg,xmmreg           \336\323\2\x0F\x79\110                        SSE4
 reg16,regmem            \320\333\301\323\2\x0F\xBD\110                386,SM,SSE4
 reg32|64,regmem         \321\333\301\323\2\x0F\xBD\110                386,SM,SSE4
 
+;*******************************************************************************
+;**********SSSE3****************************************************************
+;*******************************************************************************
+;Use SSE4, but need special flag for SSSE3 insructions set
+[PABSB]
+(Ch_All, Ch_None, Ch_None)
+mmxreg,mmxreg         \331\3\x0F\x38\x1C\110                         SSE4
+mmxreg,mem            \301\331\3\x0F\x38\x1C\110                     SSE4
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x1C\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x1C\110               SSE4
+
+[PABSW]
+(Ch_All, Ch_None, Ch_None)
+mmxreg,mmxreg         \331\3\x0F\x38\x1D\110                         SSE4
+mmxreg,mem            \301\331\3\x0F\x38\x1D\110                     SSE4
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x1D\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x1D\110               SSE4
+
+[PABSD]
+(Ch_All, Ch_None, Ch_None)
+mmxreg,mmxreg         \331\3\x0F\x38\x1E\110                         SSE4
+mmxreg,mem            \301\331\3\x0F\x38\x1E\110                     SSE4
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x1E\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x1E\110               SSE4
+
+[PALIGNR]
+(Ch_All, Ch_None, Ch_None)
+mmxreg,mmxreg,imm     \331\3\x0F\x3A\x0F\110\26                      SSE4
+mmxreg,mem,imm        \301\331\3\x0F\x3A\x0F\110\26                  SSE4
+xmmreg,xmmreg,imm     \1\x66\331\3\x0F\x3A\x0F\110\26                SSE4
+xmmreg,mem,imm        \1\x66\301\331\3\x0F\x3A\x0F\110\26            SSE4
+
+[PHADDW]
+(Ch_All, Ch_None, Ch_None)
+mmxreg,mmxreg         \331\3\x0F\x38\x01\110                         SSE4
+mmxreg,mem            \301\331\3\x0F\x38\x01\110                     SSE4
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x01\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x01\110               SSE4
+
+[PHADDD]
+(Ch_All, Ch_None, Ch_None)
+mmxreg,mmxreg         \331\3\x0F\x38\x02\110                         SSE4
+mmxreg,mem            \301\331\3\x0F\x38\x02\110                     SSE4
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x02\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x02\110               SSE4
+
+[PHADDSW]
+(Ch_All, Ch_None, Ch_None)
+mmxreg,mmxreg         \331\3\x0F\x38\x03\110                         SSE4
+mmxreg,mem            \301\331\3\x0F\x38\x03\110                     SSE4
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x03\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x03\110               SSE4
+
+[PHSUBW]
+(Ch_All, Ch_None, Ch_None)
+mmxreg,mmxreg         \331\3\x0F\x38\x05\110                         SSE4
+mmxreg,mem            \301\331\3\x0F\x38\x05\110                     SSE4
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x05\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x05\110               SSE4
+
+[PHSUBD]
+(Ch_All, Ch_None, Ch_None)
+mmxreg,mmxreg         \331\3\x0F\x38\x06\110                         SSE4
+mmxreg,mem            \301\331\3\x0F\x38\x06\110                     SSE4
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x06\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x06\110               SSE4
+
+[PHSUBSW]
+(Ch_All, Ch_None, Ch_None)
+mmxreg,mmxreg         \331\3\x0F\x38\x07\110                         SSE4
+mmxreg,mem            \301\331\3\x0F\x38\x07\110                     SSE4
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x07\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x07\110               SSE4
+
+[PMADDUBSW]
+(Ch_All, Ch_None, Ch_None)
+mmxreg,mmxreg         \331\3\x0F\x38\x04\110                         SSE4
+mmxreg,mem            \301\331\3\x0F\x38\x04\110                     SSE4
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x04\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x04\110               SSE4
+
+[PMULHRSW]
+(Ch_All, Ch_None, Ch_None)
+mmxreg,mmxreg         \331\3\x0F\x38\x0B\110                         SSE4
+mmxreg,mem            \301\331\3\x0F\x38\x0B\110                     SSE4
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x0B\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x0B\110               SSE4
+
+[PSHUFB]
+(Ch_All, Ch_None, Ch_None)
+mmxreg,mmxreg         \331\3\x0F\x38\x00\110                         SSE4
+mmxreg,mem            \301\331\3\x0F\x38\x00\110                     SSE4
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x00\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x00\110               SSE4
+
+[PSIGNB]
+(Ch_All, Ch_None, Ch_None)
+mmxreg,mmxreg         \331\3\x0F\x38\x08\110                         SSE4
+mmxreg,mem            \301\331\3\x0F\x38\x08\110                     SSE4
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x08\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x08\110               SSE4
+
+[PSIGNW]
+(Ch_All, Ch_None, Ch_None)
+mmxreg,mmxreg         \331\3\x0F\x38\x09\110                         SSE4
+mmxreg,mem            \301\331\3\x0F\x38\x09\110                     SSE4
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x09\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x09\110               SSE4
+
+[PSIGND]
+(Ch_All, Ch_None, Ch_None)
+mmxreg,mmxreg         \331\3\x0F\x38\x0A\110                         SSE4
+mmxreg,mem            \301\331\3\x0F\x38\x0A\110                     SSE4
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x0A\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x0A\110               SSE4
+;*******************************************************************************
+;**********SSE4.1***************************************************************
+;*******************************************************************************
+[BLENDPS] ;By hands delete 'or ot_signed' from i386tab.inc or x8664tab.inc
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg,imm     \1\x66\331\3\x0F\x3A\x0C\110\26          SSE4
+xmmreg,mem,imm        \1\x66\301\331\3\x0F\x3A\x0C\110\26      SSE4
+
+[BLENDPD] ;By hands delete 'or ot_signed' from i386tab.inc or x8664tab.inc 
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg,imm     \1\x66\331\2\x0F\x3A\375\1\x0D\110\26          SSE4
+xmmreg,mem,imm        \1\x66\301\331\2\x0F\x3A\375\1\x0D\110\26      SSE4
+
+[BLENDVPS]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x14\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x14\110               SSE4
+
+[BLENDVPD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x15\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x15\110               SSE4
+
+[DPPS]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg,imm     \1\x66\331\3\x0F\x3A\x40\110\26                SSE4
+xmmreg,mem,imm        \1\x66\301\331\3\x0F\x3A\x40\110\26            SSE4
+
+[DPPD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg,imm     \1\x66\331\3\x0F\x3A\x41\110\26                SSE4
+xmmreg,mem,imm        \1\x66\301\331\3\x0F\x3A\x41\110\26            SSE4
+
+[EXTRACTPS]
+(Ch_All, Ch_None, Ch_None)
+mem,xmmreg,imm       \1\x66\325\3\x0F\x3A\x17\101\26    SSE4
+reg32|64,xmmreg,imm  \1\x66\300\3\x0F\x3A\x17\101\26    SSE4
+
+[INSERTPS]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg,imm     \1\x66\331\3\x0F\x3A\x21\110\26                SSE4
+xmmreg,mem,imm        \1\x66\301\331\3\x0F\x3A\x21\110\26            SSE4
+
+[MOVNTDQA]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x2A\110               SSE4
+
+[MPSADBW]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg,imm     \1\x66\331\3\x0F\x3A\x42\110\26                SSE4
+xmmreg,mem,imm        \1\x66\301\331\3\x0F\x3A\x42\110\26            SSE4
+
+[PACKUSDW]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x2B\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x2B\110               SSE4
+
+[PBLENDVB]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x10\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x10\110               SSE4
+
+[PBLENDW]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg,imm     \1\x66\331\3\x0F\x3A\x0E\110\26                SSE4
+xmmreg,mem,imm        \1\x66\301\331\3\x0F\x3A\x0E\110\26            SSE4
+
+[PCMPEQQ]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x29\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x29\110               SSE4
+
+[PEXTRB]
+(Ch_All, Ch_None, Ch_None)
+reg32,xmmreg,imm      \1\x66\323\3\x0F\x3A\x14\101\26                SSE4
+mem8,xmmreg,imm       \1\x66\300\323\3\x0F\x3A\x14\101\26            SSE4
+
+;PEXTRW - Look is prev. implementation
+
+[PEXTRD]
+(Ch_All, Ch_None, Ch_None)
+reg32,xmmreg,imm      \1\x66\323\3\x0F\x3A\x16\101\26                SSE4
+mem32,xmmreg,imm      \1\x66\300\323\3\x0F\x3A\x16\101\26            SSE4
+
+[PEXTRQ]
+(Ch_All, Ch_None, Ch_None)
+reg64,xmmreg,imm      \1\x66\326\3\x0F\x3A\x16\101\26                SSE4
+mem64,xmmreg,imm      \1\x66\300\326\3\x0F\x3A\x16\101\26            SSE4
+
+[PHMINPOSUW]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x41\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x41\110               SSE4
+
+[PINSRB]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,reg32,imm      \1\x66\331\3\x0F\x3A\x20\110\26                SSE4
+xmmreg,mem8,imm       \1\x66\301\331\3\x0F\x3A\x20\110\26            SSE4
+
+[PINSRD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,reg32,imm      \1\x66\331\3\x0F\x3A\x22\110\26                SSE4
+xmmreg,mem32,imm      \1\x66\301\331\3\x0F\x3A\x22\110\26            SSE4
+
+[PINSRQ]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,reg64,imm      \1\x66\326\3\x0F\x3A\x22\110\26                SSE4
+xmmreg,mem64,imm      \1\x66\301\326\3\x0F\x3A\x22\110\26            SSE4
+
+[PMAXSB]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x3C\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x3C\110               SSE4
+
+[PMAXSD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x3D\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x3D\110               SSE4
+
+[PMAXUD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x3F\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x3F\110               SSE4
+
+[PMAXUW]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x3E\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x3E\110               SSE4
+
+[PMINSB]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x38\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x38\110               SSE4
+
+[PMINSD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x39\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x39\110               SSE4
+
+[PMINUW]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x3A\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x3A\110               SSE4
+
+[PMINUD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x3B\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x3B\110               SSE4
+
+[PMOVSXBW]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x20\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x20\110               SSE4
+
+[PMOVSXBD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x21\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x21\110               SSE4
+
+[PMOVSXBQ]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x22\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x22\110               SSE4
+
+[PMOVSXWD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x23\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x23\110               SSE4
+
+[PMOVSXWQ]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x24\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x24\110               SSE4
+
+[PMOVSXDQ]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x25\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x25\110               SSE4
+
+[PMOVZXBW]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x30\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x30\110               SSE4
+
+[PMOVZXBD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x31\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x31\110               SSE4
+
+[PMOVZXBQ]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x32\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x32\110               SSE4
+
+[PMOVZXWD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x33\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x33\110               SSE4
+
+[PMOVZXWQ]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x34\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x34\110               SSE4
+
+[PMOVZXDQ]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x35\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x35\110               SSE4
+
+[PMULDQ]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x28\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x28\110               SSE4
+
+[PTEST]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x17\110                   SSE4
+
+[ROUNDPS]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg,imm     \1\x66\331\3\x0F\x3A\x08\110\26                SSE4
+xmmreg,mem,imm        \1\x66\301\331\3\x0F\x3A\x08\110\26            SSE4
+
+[ROUNDPD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg,imm     \1\x66\331\3\x0F\x3A\x09\110\26                SSE4
+xmmreg,mem,imm        \1\x66\301\331\3\x0F\x3A\x09\110\26            SSE4
+
+[ROUNDSS]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg,imm     \1\x66\331\3\x0F\x3A\x0A\110\26                SSE4
+xmmreg,mem,imm        \1\x66\301\331\3\x0F\x3A\x0A\110\26            SSE4
+
+[ROUNDSD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg,imm     \1\x66\331\3\x0F\x3A\x0B\110\26                SSE4
+xmmreg,mem,imm        \1\x66\301\331\3\x0F\x3A\x0B\110\26            SSE4
+;*******************************************************************************
+;**********SSE4.2***************************************************************
+;*******************************************************************************
+[PCMPESTRI]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg,imm      \1\x66\331\3\x0F\x3A\x61\110\26               SSE4
+xmmreg,mem,imm         \1\x66\301\331\3\x0F\x3A\x61\110\26           SSE4
+[PCMPESTRM]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg,imm      \1\x66\331\3\x0F\x3A\x60\110\26               SSE4
+xmmreg,mem,imm         \1\x66\301\331\3\x0F\x3A\x60\110\26           SSE4
+[PCMPISTRI]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg,imm      \1\x66\331\3\x0F\x3A\x63\110\26               SSE4
+xmmreg,mem,imm         \1\x66\301\331\3\x0F\x3A\x63\110\26           SSE4
+[PCMPISTRM]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg,imm      \1\x66\331\3\x0F\x3A\x62\110\26               SSE4
+xmmreg,mem,imm         \1\x66\301\331\3\x0F\x3A\x62\110\26           SSE4
+[PCMPGTQ]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\x37\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\x37\110               SSE4
+;   CRC32
 [POPCNT,popcntX]
 (Ch_All, Ch_None, Ch_None)
-reg16,regmem            \320\333\301\323\2\x0F\xB8\110                386,SM,SSE4
-reg32|64,regmem         \321\333\301\323\2\x0F\xB8\110                386,SM,SSE4
+reg16,rm16             \1\xF3\301\320\2\x0F\xB8\110                  386,SM,SSE4
+reg32,rm32             \1\xF3\301\320\2\x0F\xB8\110                  386,SM,SSE4
+reg64,rm64             \1\xF3\301\320\2\x0F\xB8\110                  386,SM,SSE4
+;*******************************************************************************
+;**********AES******************************************************************
+;*******************************************************************************
+;Use SSE4, but need special flag for AES insructions set
+
+[AESENC]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\xDC\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\xDC\110               SSE4
+
+[AESENCLAST]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\xDD\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\xDD\110               SSE4
+
+[AESDEC]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\xDE\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\xDE\110               SSE4
+
+[AESDECLAST]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\xDF\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\xDF\110               SSE4
+
+[AESIMC]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg         \1\x66\331\3\x0F\x38\xDB\110                   SSE4
+xmmreg,mem            \1\x66\301\331\3\x0F\x38\xDB\110               SSE4
+
+[AESKEYGEN] ;AESKEYGENASIST
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmreg,imm     \1\x66\331\3\x0F\x3A\xDF\110\26                SSE4
+xmmreg,mem,imm        \1\x66\301\331\3\x0F\x3A\xDF\110\26            SSE4
+;*******************************************************************************
+;*******************************************************************************
+;*******************************************************************************
+[STOSQ]
+(Ch_RRAX, Ch_WMemEDI, Ch_RWRDI)
+void                   \2\x48\xAB                                    X86_64  
+
+[LODSQ]
+(Ch_WRAX, Ch_RWRSI, Ch_None)
+void                   \2\x48\xAD                                    X86_64    
+
+[CMPSQ]
+(Ch_All, Ch_None, Ch_None)
+void                   \2\x48\xA7                                    X86_64
