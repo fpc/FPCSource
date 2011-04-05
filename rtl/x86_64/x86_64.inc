@@ -72,181 +72,387 @@ asm
 .Lg_a_null:
 end ['RAX'];
 
-(*
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;
-  asm
-     { rdi destination
-       rsi source
-       rdx count
-     }
-     pushq %rbx
-     prefetcht0 (%rsi)  // for more hopefully the hw prefetch will kick in
-     movq %rdi,%rax
+procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
+{ Linux: rdi source, rsi dest, rdx count
+  win64: rcx source, rdx dest, r8 count }
+asm
+{$ifndef win64}
+    mov    %rdx, %r8
+    mov    %rsi, %rdx
+    mov    %rdi, %rcx
+{$endif win64}
 
-     movl %edi,%ecx
-     andl $7,%ecx
-     jnz  .Lbad_alignment
-.Lafter_bad_alignment:
-     movq %rdx,%rcx
-     movl $64,%ebx
-     shrq $6,%rcx
-     jz .Lhandle_tail
+    mov    %r8, %rax
+    sub    %rdx, %rcx            { rcx = src - dest }
+    jz     .Lquit                { exit if src=dest }
+    jnb    .L1                   { src>dest => forward move }
 
-.Lloop_64:
-     { no prefetch because we assume the hw prefetcher does it already
-       and we have no specific temporal hint to give. XXX or give a nta
-       hint for the source? }
-     movq (%rsi),%r11
-     movq 8(%rsi),%r8
-     movq 2*8(%rsi),%r9
-     movq 3*8(%rsi),%r10
-     movnti %r11,(%rdi)
-     movnti %r8,1*8(%rdi)
-     movnti %r9,2*8(%rdi)
-     movnti %r10,3*8(%rdi)
+    add    %rcx, %rax            { rcx is negative => r8+rcx > 0 if regions overlap }
+    jb     .Lback                { if no overlap, still do forward move }
 
-     movq 4*8(%rsi),%r11
-     movq 5*8(%rsi),%r8
-     movq 6*8(%rsi),%r9
-     movq 7*8(%rsi),%r10
-     movnti %r11,4*8(%rdi)
-     movnti %r8,5*8(%rdi)
-     movnti %r9,6*8(%rdi)
-     movnti %r10,7*8(%rdi)
+.L1:
+    cmp    $8, %r8
+    jl     .Lless8f              { signed compare, negative count not allowed }
+    test   $7, %dl
+    je     .Ldestaligned
 
-     addq %rbx,%rsi
-     addq %rbx,%rdi
-     loop .Lloop_64
+    test   $1, %dl               { align dest by moving first 1+2+4 bytes }
+    je     .L2f
+    mov    (%rcx,%rdx,1),%al
+    dec    %r8
+    mov    %al, (%rdx)
+    add    $1, %rdx
+.L2f:
+    test   $2, %dl
+    je     .L4f
+    mov    (%rcx,%rdx,1),%ax
+    sub    $2, %r8
+    mov    %ax, (%rdx)
+    add    $2, %rdx
+.L4f:
+    test   $4, %dl
+    je     .Ldestaligned
+    mov    (%rcx,%rdx,1),%eax
+    sub    $4, %r8
+    mov    %eax, (%rdx)
+    add    $4, %rdx
 
-.Lhandle_tail:
-     movl %edx,%ecx
-     andl $63,%ecx
-     shrl $3,%ecx
-     jz   .Lhandle_7
-     movl $8,%ebx
-.Lloop_8:
-     movq (%rsi),%r8
-     movnti %r8,(%rdi)
-     addq %rbx,%rdi
-     addq %rbx,%rsi
-     loop .Lloop_8
+.Ldestaligned:
+    mov    %r8, %r9
+    shr    $5, %r9
+    jne    .Lmore32
 
-.Lhandle_7:
-     movl %edx,%ecx
-     andl $7,%ecx
-     jz .Lende
-.Lloop_1:
-     movb (%rsi),%r8b
-     movb %r8b,(%rdi)
-     incq %rdi
-     incq %rsi
-     loop .Lloop_1
+.Ltail:
+    mov    %r8, %r9
+    shr    $3, %r9
+    je     .Lless8f
 
-     jmp .Lende
+    .balign 16
+.Lloop8f:                             { max. 8 iterations }
+    mov    (%rcx,%rdx,1),%rax
+    mov    %rax, (%rdx)
+    add    $8, %rdx
+    dec    %r9
+    jne    .Lloop8f
+    and    $7, %r8
 
-     { align destination }
-     { This is simpleminded. For bigger blocks it may make sense to align
-        src and dst to their aligned subset and handle the rest separately }
-.Lbad_alignment:
-     movl $8,%r9d
-     subl %ecx,%r9d
-     movl %r9d,%ecx
-     subq %r9,%rdx
-     js   .Lsmall_alignment
-     jz   .Lsmall_alignment
-.Lalign_1:
-     movb (%rsi),%r8b
-     movb %r8b,(%rdi)
-     incq %rdi
-     incq %rsi
-     loop .Lalign_1
-     jmp .Lafter_bad_alignment
-.Lsmall_alignment:
-     addq %r9,%rdx
-     jmp .Lhandle_7
+.Lless8f:
+    test   %r8, %r8
+    jle    .Lquit
 
-.Lende:
-     sfence
-     popq %rbx
-  end;
-*)
+    .balign 16
+.Lloop1f:
+    mov    (%rcx,%rdx,1),%al
+    mov    %al,(%rdx)
+    inc    %rdx
+    dec    %r8
+    jne    .Lloop1f
+.Lquit:
+    retq
 
-(*
+
+.Lmore32:
+    cmp    $0x2000, %r9          { this limit must be processor-specific (1/2 L2 cache size) }
+    jnae   .Lloop32
+    cmp    $0x1000, %rcx         { but don't bother bypassing cache if src and dest }
+    jnb    .Lntloopf             { are close to each other}
+
+    .balign 16
+.Lloop32:
+    add    $32,%rdx
+    mov    -32(%rcx,%rdx,1),%rax
+    mov    -24(%rcx,%rdx,1),%r10
+    mov    %rax,-32(%rdx)
+    mov    %r10,-24(%rdx)
+    dec    %r9
+    mov    -16(%rcx,%rdx,1),%rax
+    mov    -8(%rcx,%rdx,1),%r10
+    mov    %rax,-16(%rdx)
+    mov    %r10,-8(%rdx)
+    jne    .Lloop32
+
+    and    $0x1f, %r8
+    jmpq   .Ltail
+
+.Lntloopf:
+    mov    $32, %eax
+
+    .balign 16
+.Lpref:
+    prefetchnta (%rcx,%rdx,1)
+    prefetchnta 0x40(%rcx,%rdx,1)
+    add    $0x80, %rdx
+    dec    %eax
+    jne    .Lpref
+
+    sub    $0x1000, %rdx
+    mov    $64, %eax
+
+    .balign 16
+.Loop64:
+    add    $64, %rdx
+    mov    -64(%rcx,%rdx,1), %r9
+    mov    -56(%rcx,%rdx,1), %r10
+    movnti %r9, -64(%rdx)
+    movnti %r10, -56(%rdx)
+
+    mov    -48(%rcx,%rdx,1), %r9
+    mov    -40(%rcx,%rdx,1), %r10
+    movnti %r9, -48(%rdx)
+    movnti %r10, -40(%rdx)
+    dec    %eax
+    mov    -32(%rcx,%rdx,1), %r9
+    mov    -24(%rcx,%rdx,1), %r10
+    movnti %r9, -32(%rdx)
+    movnti %r10, -24(%rdx)
+
+    mov    -16(%rcx,%rdx,1), %r9
+    mov    -8(%rcx,%rdx,1), %r10
+    movnti %r9, -16(%rdx)
+    movnti %r10, -8(%rdx)
+    jne    .Loop64
+
+    sub    $0x1000, %r8
+    cmp    $0x1000, %r8
+    jae    .Lntloopf
+
+    mfence
+    jmpq    .Ldestaligned        { go handle remaining bytes }
+
+{ backwards move }
+.Lback:
+    add    %r8, %rdx             { points to the end of dest }
+    cmp    $8, %r8
+    jl     .Lless8b              { signed compare, negative count not allowed }
+    test   $7, %dl
+    je     .Ldestalignedb
+    test   $1, %dl
+    je     .L2b
+    dec    %rdx
+    mov    (%rcx,%rdx,1), %al
+    dec    %r8
+    mov    %al, (%rdx)
+.L2b:
+    test   $2, %dl
+    je     .L4b
+    sub    $2, %rdx
+    mov    (%rcx,%rdx,1), %ax
+    sub    $2, %r8
+    mov    %ax, (%rdx)
+.L4b:
+    test   $4, %dl
+    je     .Ldestalignedb
+    sub    $4, %rdx
+    mov    (%rcx,%rdx,1), %eax
+    sub    $4, %r8
+    mov    %eax, (%rdx)
+
+.Ldestalignedb:
+    mov    %r8, %r9
+    shr    $5, %r9
+    jne    .Lmore32b
+
+.Ltailb:
+    mov    %r8, %r9
+    shr    $3, %r9
+    je     .Lless8b
+
+.Lloop8b:
+    sub    $8, %rdx
+    mov    (%rcx,%rdx,1), %rax
+    dec    %r9
+    mov    %rax, (%rdx)
+    jne    .Lloop8b
+    and    $7, %r8
+
+.Lless8b:
+    test   %r8, %r8
+    jle    .Lquit2
+
+    .balign 16
+.Lsmallb:
+    dec   %rdx
+    mov   (%rcx,%rdx,1), %al
+    dec   %r8
+    mov   %al,(%rdx)
+    jnz   .Lsmallb
+.Lquit2:
+    retq
+
+.Lmore32b:
+    cmp   $0x2000, %r9
+    jnae  .Lloop32b
+    cmp    $0xfffffffffffff000,%rcx
+    jb     .Lntloopb
+
+    .balign 16
+.Lloop32b:
+    sub    $32, %rdx
+    mov    24(%rcx,%rdx,1), %rax
+    mov    16(%rcx,%rdx,1), %r10
+    mov    %rax, 24(%rdx)
+    mov    %r10, 16(%rdx)
+    dec    %r9
+    mov    8(%rcx,%rdx,1),%rax
+    mov    (%rcx,%rdx,1), %r10
+    mov    %rax, 8(%rdx)
+    mov    %r10, (%rdx)
+    jne    .Lloop32b
+    and    $0x1f, %r8
+    jmpq   .Ltailb
+
+
+.Lntloopb:
+    mov    $32, %eax
+
+    .balign 16
+.Lprefb:
+    sub    $0x80, %rdx
+    prefetchnta (%rcx,%rdx,1)
+    prefetchnta 0x40(%rcx,%rdx,1)
+    dec    %eax
+    jnz    .Lprefb
+
+    add    $0x1000, %rdx
+    mov    $0x40, %eax
+
+    .balign 16
+.Lloop64b:
+    sub    $64, %rdx
+    mov    56(%rcx,%rdx,1), %r9
+    mov    48(%rcx,%rdx,1), %r10
+    movnti %r9, 56(%rdx)
+    movnti %r10, 48(%rdx)
+
+    mov    40(%rcx,%rdx,1), %r9
+    mov    32(%rcx,%rdx,1), %r10
+    movnti %r9, 40(%rdx)
+    movnti %r10, 32(%rdx)
+    dec    %eax
+    mov    24(%rcx,%rdx,1), %r9
+    mov    16(%rcx,%rdx,1), %r10
+    movnti %r9, 24(%rdx)
+    movnti %r10, 16(%rdx)
+
+    mov    8(%rcx,%rdx,1), %r9
+    mov    (%rcx,%rdx,1), %r10
+    movnti %r9, 8(%rdx)
+    movnti %r10, (%rdx)
+    jne    .Lloop64b
+
+    sub    $0x1000, %r8
+    cmp    $0x1000, %r8
+    jae    .Lntloopb
+    mfence
+    jmpq   .Ldestalignedb
+end;
+
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-Procedure FillChar(var x;count:longint;value:byte);assembler;
+Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
   asm
-    { rdi   destination
-      rsi   value (char)
-      rdx   count (bytes)
-    }
-    movq %rdi,%r10
-    movq %rdx,%r11
+{ win64: rcx dest, rdx count, r8b value
+  linux: rdi dest, rsi count, rdx value }
+{$ifndef win64}
+    mov    %rdx, %r8
+    mov    %rsi, %rdx
+    mov    %rdi, %rcx
+{$endif win64}
+
+    cmp    $8, %rdx
+    jl     .Ltiny
 
     { expand byte value  }
-    movzbl %sil,%ecx
-    movabs $0x0101010101010101,%rax
-    mul    %rcx         { with rax, clobbers rdx }
+    movzbl %r8b, %r8
+    mov    $0x0101010101010101,%r9
+    imul   %r9, %r8
 
-    { align dst }
-    movl  %edi,%r9d
-    andl  $7,%r9d
-    jnz  .Lbad_alignment
-.Lafter_bad_alignment:
+    test   $7, %cl
+    je     .Laligned
 
-     movq %r11,%rcx
-     movl $64,%r8d
-     shrq $6,%rcx
-     jz  .Lhandle_tail
+    { align dest to 8 bytes }
+    test   $1, %cl
+    je     .L2
+    movb   %r8b, (%rcx)
+    add    $1, %rcx
+    sub    $1, %rdx
+.L2:
+    test   $2, %cl
+    je     .L4
+    movw   %r8w, (%rcx)
+    add    $2, %rcx
+    sub    $2, %rdx
+.L4:
+    test   $4, %cl
+    je     .Laligned
+    movl   %r8d, (%rcx)
+    add    $4, %rcx
+    sub    $4, %rdx
 
-.Lloop_64:
-     movnti  %rax,(%rdi)
-     movnti  %rax,8(%rdi)
-     movnti  %rax,16(%rdi)
-     movnti  %rax,24(%rdi)
-     movnti  %rax,32(%rdi)
-     movnti  %rax,40(%rdi)
-     movnti  %rax,48(%rdi)
-     movnti  %rax,56(%rdi)
-     addq    %r8,%rdi
-     loop    .Lloop_64
+.Laligned:
+    mov    %rdx, %rax
+    and    $0x3f, %rdx
+    shr    $6, %rax
+    jne    .Lmore64
 
-     { Handle tail in loops. The loops should be faster than hard
-        to predict jump tables. }
-.Lhandle_tail:
-     movl       %r11d,%ecx
-     andl    $56,%ecx
-     jz     .Lhandle_7
-     shrl       $3,%ecx
-.Lloop_8:
-     movnti  %rax,(%rdi)
-     addq    $8,%rdi
-     loop    .Lloop_8
-.Lhandle_7:
-     movl       %r11d,%ecx
-     andl       $7,%ecx
-     jz      .Lende
-.Lloop_1:
-     movb       %al,(%rdi)
-     addq       $1,%rdi
-     loop       .Lloop_1
+.Lless64:
+    mov    %rdx, %rax
+    and    $7, %rdx
+    shr    $3, %rax
+    je     .Ltiny
 
-     jmp .Lende
+    .balign 16
+.Lloop8:                               { max. 8 iterations }
+    mov    %r8, (%rcx)
+    add    $8, %rcx
+    dec    %rax
+    jne    .Lloop8
+.Ltiny:
+    test   %rdx, %rdx
+    jle    .Lquit
+.Lloop1:
+    movb   %r8b, (%rcx)
+    inc    %rcx
+    dec    %rdx
+    jnz    .Lloop1
+.Lquit:
+    retq
 
-.Lbad_alignment:
-     cmpq $7,%r11
-     jbe .Lhandle_7
-     movnti %rax,(%rdi) (* unaligned store *)
-     movq $8,%r8
-     subq %r9,%r8
-     addq %r8,%rdi
-     subq %r8,%r11
-     jmp .Lafter_bad_alignment
+.Lmore64:
+    cmp    $0x2000,%rax
+    jae    .Lloop64nti
 
-.Lende:
-     movq       %r10,%rax
+    .balign 16
+.Lloop64:
+    add    $64, %rcx
+    mov    %r8, -64(%rcx)
+    mov    %r8, -56(%rcx)
+    mov    %r8, -48(%rcx)
+    mov    %r8, -40(%rcx)
+    dec    %rax
+    mov    %r8, -32(%rcx)
+    mov    %r8, -24(%rcx)
+    mov    %r8, -16(%rcx)
+    mov    %r8, -8(%rcx)
+    jne    .Lloop64
+    jmp    .Lless64
+
+    .balign 16
+.Lloop64nti:
+    add    $64, %rcx
+    movnti %r8, -64(%rcx)
+    movnti %r8, -56(%rcx)
+    movnti %r8, -48(%rcx)
+    movnti %r8, -40(%rcx)
+    dec    %rax
+    movnti %r8, -32(%rcx)
+    movnti %r8, -24(%rcx)
+    movnti %r8, -16(%rcx)
+    movnti %r8, -8(%rcx)
+    jnz    .Lloop64nti
+    mfence
+    jmp    .Lless64
   end;
-*)
 
 
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
