@@ -72,6 +72,7 @@ asm
 .Lg_a_null:
 end ['RAX'];
 
+{$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
 { Linux: rdi source, rsi dest, rdx count
@@ -347,7 +348,9 @@ asm
     mfence
     jmpq   .Ldestalignedb
 end;
+{$endif FPC_SYSTEM_HAS_MOVE}
 
+{$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
   asm
@@ -453,6 +456,7 @@ Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
     mfence
     jmp    .Lless64
   end;
+{$endif FPC_SYSTEM_HAS_FILLCHAR}
 
 
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
