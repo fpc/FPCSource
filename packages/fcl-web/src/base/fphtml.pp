@@ -812,7 +812,7 @@ begin
       exit;
       end;
     end
-  else //if (owner is TDataModule) then
+  else if assigned(Owner) then //if (owner is TDataModule) then
     begin
     for i := 0 to owner.ComponentCount-1 do if owner.Components[i] is TWebController then
       begin
