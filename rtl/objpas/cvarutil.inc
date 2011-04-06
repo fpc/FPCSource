@@ -1287,6 +1287,14 @@ begin
   end; {$ENDIF}
 end;
 
+function VarDateToString(DT: TDateTime): AnsiString;
+begin
+  if Trunc(DT) = 0 then
+    Result := TimeToStr(DT)
+  else
+    Result := DateTimeToStr(DT);
+end;
+
 {--- WideString ---}
 
 Function VariantToWideString(const VargSrc : TVarData) : WideString;
@@ -1306,7 +1314,7 @@ begin
         varSingle   : Result := FloatToStr(vSingle);
         varDouble   : Result := FloatToStr(vDouble);
         varCurrency : Result := FloatToStr(vCurrency);
-        varDate     : Result := FloatToStr(vDate);
+        varDate     : Result := VarDateToString(vDate);
 {$endif}
         varBoolean  : Result := BoolToStr(vBoolean, True);
         varVariant  : Result := VariantToWideString(PVarData(vPointer)^);
@@ -1329,7 +1337,7 @@ begin
         varSingle   : Result := FloatToStr(PSingle(vPointer)^);
         varDouble   : Result := FloatToStr(PDouble(vPointer)^);
         varCurrency : Result := FloatToStr(PCurrency(vPointer)^);
-        varDate     : Result := FloatToStr(PDate(vPointer)^);
+        varDate     : Result := VarDateToString(PDate(vPointer)^);
 {$endif}
         varBoolean  : Result := BoolToStr(PWordBool(vPointer)^, True);
         varVariant  : Result := VariantToWideString(PVarData(vPointer)^);
@@ -1373,7 +1381,7 @@ begin
         varSingle   : Result := FloatToStr(vSingle);
         varDouble   : Result := FloatToStr(vDouble);
         varCurrency : Result := FloatToStr(vCurrency);
-        varDate     : Result := DateToStr(vDate);
+        varDate     : Result := VarDateToString(vDate);
 {$endif}
         varBoolean  : Result := BoolToStr(vBoolean, True);
         varVariant  : Result := VariantToAnsiString(PVarData(vPointer)^);
@@ -1396,7 +1404,7 @@ begin
         varSingle   : Result := FloatToStr(PSingle(vPointer)^);
         varDouble   : Result := FloatToStr(PDouble(vPointer)^);
         varCurrency : Result := FloatToStr(PCurrency(vPointer)^);
-        varDate     : Result := DateToStr(PDate(vPointer)^);
+        varDate     : Result := VarDateToString(PDate(vPointer)^);
 {$endif}
         varBoolean  : Result := BoolToStr(PWordBool(vPointer)^, True);
         varVariant  : Result := VariantToAnsiString(PVarData(vPointer)^);
