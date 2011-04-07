@@ -833,25 +833,19 @@ var
 begin
   s := WideString(p);
 
-  if not (TryStrToDateTime(s, Result) or
-    TryStrToDate(s, Result) or
-    TryStrToTime(s, Result)) then
+  if not TryStrToDateTime(s, Result) then
     VariantTypeMismatch(varOleStr, varDate);
 end;
 
 Function LStrToDate(p: Pointer) : TDateTime;
 begin
-  if not (TryStrToDateTime(AnsiString(p), Result) or
-    TryStrToDate(AnsiString(p), Result) or
-    TryStrToTime(AnsiString(p), Result)) then
+  if not TryStrToDateTime(AnsiString(p), Result) then
     VariantTypeMismatch(varString, varDate);
 end;
 
 Function UStrToDate(p: Pointer) : TDateTime;
 begin
-  if not (TryStrToDateTime(UnicodeString(p), Result) or
-    TryStrToDate(UnicodeString(p), Result) or
-    TryStrToTime(UnicodeString(p), Result)) then
+  if not TryStrToDateTime(UnicodeString(p), Result) then
     VariantTypeMismatch(varUString, varDate);
 end;
 
