@@ -1,6 +1,7 @@
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
+    Copyright (c) 2001-2011 by Armin Diehl.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -69,7 +70,6 @@ VAR
    ArgV   : ppchar;
    NetwareCheckFunction    : TNWCheckFunction;
    NetwareMainThreadGroupID: longint;
-   NetwareCodeStartAddress : dword;
    NetwareUnloadProc       : pointer = nil;  {like exitProc but for nlm unload only}
 
 CONST
@@ -116,26 +116,21 @@ procedure fpc_do_exit;external name 'FPC_DO_EXIT';
                          Startup
 *****************************************************************************}
 
-    function __GetBssStart : pointer; external name '__getBssStart';
-    function __getUninitializedDataSize : longint; external name '__getUninitializedDataSize';
-    //function __getDataStart : longint; external name '__getDataStart';
-    function __GetTextStart : longint; external name '__getTextStart';
 
 PROCEDURE nlm_main (_ArgC : LONGINT; _ArgV : ppchar); CDECL; [public,alias: '_nlm_main'];
 BEGIN
-  // Initialize BSS
-  if __getUninitializedDataSize > 0 then
-    fillchar (__getBssStart^,__getUninitializedDataSize,0);
-  NetwareCodeStartAddress := __GetTextStart;
+  // Initialize of BSS now done in nwpre
   ArgC := _ArgC;
   ArgV := _ArgV;
   fpc_threadvar_relocate_proc := nil;
   PASCALMAIN;
 END;
 
+var dottext : ptruint; external name '__text_start__';
+
 function NWGetCodeStart : pointer;  // needed for lineinfo
 begin
-  NWGetCodeStart := pointer(NetwareCodeStartAddress);
+  NWGetCodeStart := @dottext;
 end;
 
 
