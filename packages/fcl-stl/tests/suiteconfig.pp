@@ -19,8 +19,8 @@ unit suiteconfig;
 interface
 
 uses
-  gvectortest, gstacktest, gqueuetest, gdequetest, gsorttest,
-  gpriorityqueuetest, gsettest, gmaptest;
+  gvectortest, gstacktest, gqueuetest, gdequetest, garrayutilstest,
+  gsettest, gmaptest;
 
 implementation
 
