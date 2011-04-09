@@ -371,6 +371,9 @@ unit cgcpu;
         getcpuregister(list,NR_EDI);
         a_load_loc_reg(list,OS_INT,lenloc,NR_EDI);
         list.concat(Taicpu.op_reg(A_INC,S_L,NR_EDI));
+        { Now EDI contains (high+1). Copy it to ECX for later use. }
+        getcpuregister(list,NR_ECX);
+        list.concat(Taicpu.op_reg_reg(A_MOV,S_L,NR_EDI,NR_ECX));
         if (elesize<>1) then
          begin
            if ispowerof2(elesize, power) then
@@ -394,42 +397,21 @@ unit cgcpu;
              a_jmp_always(list,again);
 
              a_label(list,ok);
-             list.concat(Taicpu.op_reg_reg(A_SUB,S_L,NR_EDI,NR_ESP));
-             ungetcpuregister(list,NR_EDI);
-             { now reload EDI }
-             getcpuregister(list,NR_EDI);
-             a_load_loc_reg(list,OS_INT,lenloc,NR_EDI);
-             list.concat(Taicpu.op_reg(A_INC,S_L,NR_EDI));
-
-             if (elesize<>1) then
-              begin
-                if ispowerof2(elesize, power) then
-                  list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,NR_EDI))
-                else
-                  list.concat(Taicpu.op_const_reg(A_IMUL,S_L,elesize,NR_EDI));
-              end;
-          end
-        else
+          end;
 {$endif __NOWINPECOFF__}
-          list.concat(Taicpu.op_reg_reg(A_SUB,S_L,NR_EDI,NR_ESP));
+        { If we were probing pages, EDI=(size mod pagesize) and ESP is decremented
+          by (size div pagesize)*pagesize, otherwise EDI=size.
+          Either way, subtracting EDI from ESP will set ESP to desired final value. }
+        list.concat(Taicpu.op_reg_reg(A_SUB,S_L,NR_EDI,NR_ESP));
         { align stack on 4 bytes }
         list.concat(Taicpu.op_const_reg(A_AND,S_L,aint($fffffff4),NR_ESP));
         { load destination, don't use a_load_reg_reg, that will add a move instruction
           that can confuse the reg allocator }
         list.concat(Taicpu.Op_reg_reg(A_MOV,S_L,NR_ESP,NR_EDI));
 
-        { Allocate other registers }
-        getcpuregister(list,NR_ECX);
+        { Allocate ESI and load it with source }
         getcpuregister(list,NR_ESI);
-
-        { load count }
-        a_load_loc_reg(list,OS_INT,lenloc,NR_ECX);
-
-        { load source }
         a_loadaddr_ref_reg(list,ref,NR_ESI);
-
-        { scheduled .... }
-        list.concat(Taicpu.op_reg(A_INC,S_L,NR_ECX));
 
         { calculate size }
         len:=elesize;
@@ -446,7 +428,7 @@ unit cgcpu;
             len:=len shr 1;
           end;
 
-        if len<>0 then
+        if len>1 then
           begin
             if ispowerof2(len, power) then
               list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,NR_ECX))

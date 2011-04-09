@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) objpas macpas iso7185 strings \
       charset ucomplex variants \
       rtlconsts math varutils freebidi utf8bidi \
       mouse video keyboard cmem dynlibs sockets \
-      aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes
+      aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes nwpre
 rsts=math varutils variants typinfo classes dateutils sysconst convutils rtlconsts
 implicitunits=exeinfo
 
@@ -74,7 +74,8 @@ dsapi.imp dsevent.imp lib0.imp \
 locnlm32.imp ndpsrpc.imp netnlm32.imp nit.imp \
 nlmlib.imp nwpsrv3x.imp nwpsrv.imp nwsnut.imp \
 requestr.imp socklib.imp streams.imp threads.imp \
-tli.imp vollib.imp ws2_32.imp ws2nlm.imp unicode.imp
+tli.imp vollib.imp ws2_32.imp ws2nlm.imp unicode.imp \
+nwpre.imp
 
 
 [rules]
@@ -103,11 +104,11 @@ copyimpfiles:
 # Loaders
 #
 
-nwpre$(OEXT) : nwpre.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)nwpre$(OEXT) nwpre.as
+#nwpre$(OEXT) : nwpre.as
+#        $(AS) -o $(UNITTARGETDIRPREFIX)nwpre$(OEXT) nwpre.as
 
-prelude$(OEXT) : prelude.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)prelude$(OEXT) prelude.as
+#prelude$(OEXT) : prelude.as
+#        $(AS) -o $(UNITTARGETDIRPREFIX)prelude$(OEXT) prelude.as
 
 #
 # System Units (System, Objpas, Strings)
@@ -130,6 +131,8 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 #
 # System Dependent Units
 #
+
+nwpre$(PPUEXT) : nwpre.pp $(SYSTEMUNIT)$(PPUEXT)
 
 netware$(PPUEXT) : netware.pp $(SYSTEMUNIT)$(PPUEXT)
 

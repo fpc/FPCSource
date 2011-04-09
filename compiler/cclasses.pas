@@ -2208,6 +2208,9 @@ end;
     function TCmdStrListItem.GetCopy:TLinkedListItem;
       begin
         Result:=(inherited GetCopy);
+        { TLinkedListItem.GetCopy performs a "move" to copy all data -> reinit
+          the ansistring, so the refcount is properly increased }
+        Initialize(TCmdStrListItem(Result).FPStr);
         TCmdStrListItem(Result).FPStr:=FPstr;
       end;
 

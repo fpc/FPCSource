@@ -219,6 +219,7 @@ $(CPP_OBJECTS) : %.o: %.cpp
 		$(TEST_CCOMPILER) -c $(TEST_CFLAGS) $< -o $@
 		
 copyfiles: $(TEST_OUTPUTDIR)
+        -$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/cg
         -$(COPY) $(C_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
         -$(COPY) $(CPP_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
         -$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/units/system

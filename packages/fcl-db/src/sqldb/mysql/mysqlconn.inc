@@ -188,12 +188,8 @@ const
      'MYSQL_OPT_USE_REMOTE_CONNECTION','MYSQL_OPT_USE_EMBEDDED_CONNECTION',
      'MYSQL_OPT_GUESS_CONNECTION','MYSQL_SET_CLIENT_IP',
      'MYSQL_SECURE_AUTH'
-{$IFDEF MYSQL50}
+{$IFDEF MYSQL50_UP}
      ,'MYSQL_REPORT_DATA_TRUNCATION', 'MYSQL_OPT_RECONNECT'
-{$ELSE}     
-  {$IFDEF MYSQL51}
-     ,'MYSQL_REPORT_DATA_TRUNCATION', 'MYSQL_OPT_RECONNECT'
-  {$ENDIF}     
 {$ENDIF}
      );
 
@@ -559,7 +555,7 @@ begin
       NewType := ftInteger;
       NewSize := 0;
       end;
-{$if defined(mysql51) or defined(mysql50)}
+{$ifdef mysql50_up}
     FIELD_TYPE_NEWDECIMAL,
 {$endif}
     FIELD_TYPE_DECIMAL: if ADecimals < 5 then
@@ -867,7 +863,7 @@ begin
         VL := 0;
       Move(VL, Dest^, SizeOf(LargeInt));
       end;
-{$if defined(mysql51) or defined(mysql50)}
+{$ifdef mysql50_up}
     FIELD_TYPE_NEWDECIMAL,
 {$endif}      
     FIELD_TYPE_DECIMAL, FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:

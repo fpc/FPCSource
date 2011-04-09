@@ -385,6 +385,7 @@ const
   CL_DEVICE_MEM_BASE_ADDR_ALIGN               = $1019;
   CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE          = $101A;
   CL_DEVICE_SINGLE_FP_CONFIG                  = $101B;
+  CL_DEVICE_DOUBLE_FP_CONFIG                  = $1032;
   CL_DEVICE_GLOBAL_MEM_CACHE_TYPE             = $101C;
   CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE         = $101D;
   CL_DEVICE_GLOBAL_MEM_CACHE_SIZE             = $101E;
@@ -440,9 +441,9 @@ const
 
 // cl_context_info
   CL_CONTEXT_REFERENCE_COUNT                  = $1080;
-  CL_CONTEXT_NUM_DEVICES                      = $1081;
-  CL_CONTEXT_DEVICES                          = $1082;
-  CL_CONTEXT_PROPERTIES_INFO                  = $1083; // CL_CONTEXT_PROPERTIES
+  CL_CONTEXT_DEVICES                          = $1081;
+  CL_CONTEXT_PROPERTIES_INFO                  = $1082; // CL_CONTEXT_PROPERTIES
+  CL_CONTEXT_NUM_DEVICES                      = $1083;
   CL_CONTEXT_PLATFORM_INFO                    = $1084; // CL_CONTEXT_PLATFORM
 
 // cl_command_queue_info

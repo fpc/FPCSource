@@ -278,8 +278,7 @@ procedure fpc_ansistr_to_chararray(out res: array of char; const src: ansistring
 {$endif ndef FPC_STRTOCHARARRAYPROC}
 Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): SizeInt; compilerproc;
 Function fpc_AnsiStr_Compare_equal(const S1,S2 : AnsiString): SizeInt; compilerproc;
-Procedure fpc_AnsiStr_CheckZero(p : pointer); compilerproc;
-Procedure fpc_AnsiStr_CheckRange(len,index : SizeInt); compilerproc;
+Procedure fpc_AnsiStr_CheckRange(p : Pointer; index : SizeInt); compilerproc;
 Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : SizeInt); compilerproc;
 Function  fpc_ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;compilerproc;
 {$ifdef EXTRAANSISHORT}
@@ -327,8 +326,7 @@ procedure fpc_widestr_to_widechararray(out res: array of widechar; const src: Wi
 {$endif ndef FPC_STRTOCHARARRAYPROC}
 Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt; compilerproc;
 Function fpc_WideStr_Compare_equal(const S1,S2 : WideString): SizeInt; compilerproc;
-Procedure fpc_WideStr_CheckZero(p : pointer); compilerproc;
-Procedure fpc_WideStr_CheckRange(len,index : SizeInt); compilerproc;
+Procedure fpc_WideStr_CheckRange(p: Pointer; index : SizeInt); compilerproc;
 Procedure fpc_WideStr_SetLength (Var S : WideString; l : SizeInt); compilerproc;
 Function  fpc_widestr_Copy (Const S : WideString; Index,Size : SizeInt) : WideString;compilerproc;
 {$ifndef FPC_WINLIKEWIDESTRING}
@@ -413,8 +411,7 @@ procedure fpc_unicodestr_to_widechararray(out res: array of widechar; const src:
 {$endif VER2_2}
 Function fpc_UnicodeStr_Compare(const S1,S2 : UnicodeString): SizeInt; compilerproc;
 Function fpc_UnicodeStr_Compare_equal(const S1,S2 : UnicodeString): SizeInt; compilerproc;
-Procedure fpc_UnicodeStr_CheckZero(p : pointer); compilerproc;
-Procedure fpc_UnicodeStr_CheckRange(len,index : SizeInt); compilerproc;
+Procedure fpc_UnicodeStr_CheckRange(p: Pointer; index : SizeInt); compilerproc;
 Procedure fpc_UnicodeStr_SetLength (Var S : UnicodeString; l : SizeInt); compilerproc;
 Function  fpc_unicodestr_Copy (Const S : UnicodeString; Index,Size : SizeInt) : UnicodeString;compilerproc;
 function fpc_unicodestr_Unique(Var S : Pointer): Pointer; compilerproc;

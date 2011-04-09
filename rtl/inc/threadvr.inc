@@ -52,15 +52,18 @@ procedure init_all_unit_threadvars;
 var
   i : integer;
 begin
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  with PltvInitTablesTable(EntryInformation.ThreadvarTablesTable)^ do
+{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  with ThreadvarTablesTable do
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  begin
 {$ifdef DEBUG_MT}
-  WriteLn ('init_all_unit_threadvars (',
-    {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}PltvInitTablesTable(EntryInformation.{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
-      ThreadvarTablesTable{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION})^{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}.count,') units');
+    WriteLn ('init_all_unit_threadvars (',count,') units');
 {$endif}
-  for i := 1 to {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}PltvInitTablesTable(EntryInformation.{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
-    ThreadvarTablesTable{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION})^{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}.count do
-    init_unit_threadvars ({$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}PltvInitTablesTable(EntryInformation.{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
-      ThreadvarTablesTable{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION})^{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}.tables[i]);
+    for i := 1 to count do
+      init_unit_threadvars (tables[i]);
+  end;
 end;
 
 
@@ -83,14 +86,18 @@ procedure copy_all_unit_threadvars;
 var
   i : integer;
 begin
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  with PltvInitTablesTable(EntryInformation.ThreadvarTablesTable)^ do
+{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  with ThreadvarTablesTable do
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  begin
 {$ifdef DEBUG_MT}
-  WriteLn ('copy_all_unit_threadvars (',{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}PltvInitTablesTable(EntryInformation.{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
-    ThreadvarTablesTable{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION})^{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}.count,') units');
+    WriteLn ('copy_all_unit_threadvars (',count,') units');
 {$endif}
-  for i := 1 to {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}PltvInitTablesTable(EntryInformation.{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
-    ThreadvarTablesTable{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION})^{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}.count do
-    copy_unit_threadvars ({$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}PltvInitTablesTable(EntryInformation.{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
-      ThreadvarTablesTable{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION})^{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}.tables[i]);
+    for i := 1 to count do
+      copy_unit_threadvars (tables[i]);
+  end;
 end;
 
 procedure InitThreadVars(RelocProc : Pointer);

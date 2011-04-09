@@ -78,4 +78,5 @@
 {$ifdef IOS_SDK_4_2_OR_HIGHER}
 {$include UIActionSheet.inc}
 {$include UILocalNotification.inc}
+{$include UIAlertView.inc}
 {$endif}

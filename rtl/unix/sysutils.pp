@@ -524,9 +524,9 @@ Function FileAge (Const FileName : String): Longint;
 Var Info : Stat;
 
 begin
-  If  fpstat (pointer(FileName),Info)<0 then
+  If  (fpstat (pointer(FileName),Info)<0) or fpS_ISDIR(info.st_mode) then
     exit(-1)
-  else
+  else 
     Result:=UnixToWinAge(info.st_mtime);
 end;
 {$endif}

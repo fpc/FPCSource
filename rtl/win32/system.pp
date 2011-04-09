@@ -844,18 +844,6 @@ function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD;
                               Widestring
  ******************************************************************************}
 
-procedure Win32Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
-  var
-    destlen: SizeInt;
-  begin
-    // retrieve length including trailing #0
-    // not anymore, because this must also be usable for single characters
-    destlen:=WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, source, len, nil, 0, nil, nil);
-    // this will null-terminate
-    setlength(dest, destlen);
-    WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, source, len, @dest[1], destlen, nil, nil);
-  end;
-
 procedure Win32Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
   var
     destlen: SizeInt;

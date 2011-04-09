@@ -2773,7 +2773,11 @@ var
 begin
   for i:=0 to frame_size-1 do
    dispose(frames[i],done);
-  freemem(frames,sizeof(pointer)*Frame_size);
+  if assigned(frames) then
+    begin
+      freemem(frames,sizeof(pointer)*Frame_size);
+      frames:=nil;
+    end;
   frame_count:=0;
   frame_size:=0;
 end;

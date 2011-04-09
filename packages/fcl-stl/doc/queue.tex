@@ -1,0 +1,39 @@
+\chapter{TQueue}
+
+Implements queue.
+
+Usage example:
+
+\lstinputlisting[language=Pascal]{queueexample.pp}
+
+Memory complexity:
+Since underlaying structure is TDeque, memory complexity is same.
+
+Members list:
+
+\begin{longtable}{|m{10cm}|m{5cm}|}
+\hline
+Method & Complexity guarantees \\ \hline
+\multicolumn{2}{|m{15cm}|}{Description} \\ \hline\hline
+
+\verb!Create! & O(1) \\ \hline
+\multicolumn{2}{|m{15cm}|}{Constructor. Creates empty queue.} \\ \hline\hline
+
+\verb!function Size(): SizeUInt! & O(1) \\ \hline
+\multicolumn{2}{|m{15cm}|}{Returns number of elements in queue.} \\\hline\hline
+
+\verb!procedure Push(value: T)! &  Amortized
+O(1), some operations might take O(N) time, when array needs to be reallocated, but sequence of N
+operations takes O(N) time \\ \hline
+\multicolumn{2}{|m{15cm}|}{Inserts element at the back of queue.} \\\hline\hline
+
+\verb!procedure Pop()! & O(1) \\\hline
+\multicolumn{2}{|m{15cm}|}{Removes element from the beginning of queue. If queue is empty does nothing.} \\\hline\hline
+
+\verb!function IsEmpty(): boolean! & O(1) \\ \hline
+\multicolumn{2}{|m{15cm}|}{Returns true when queue is empty.} \\\hline\hline
+
+\verb!function Front: T! & O(1) \\\hline
+\multicolumn{2}{|m{15cm}|}{Returns the first element from queue.} \\\hline
+
+\end{longtable}

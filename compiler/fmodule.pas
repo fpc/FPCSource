@@ -544,7 +544,6 @@ implementation
     destructor tmodule.Destroy;
       var
         i : longint;
-        hpi : tprocinfo;
       begin
         if assigned(unitmap) then
           freemem(unitmap);
@@ -582,12 +581,7 @@ implementation
                 current_specializedef:=nil;
               end;
             { release procinfo tree }
-            while assigned(procinfo) do
-             begin
-               hpi:=tprocinfo(procinfo).parent;
-               tprocinfo(procinfo).free;
-               procinfo:=hpi;
-             end;
+            tprocinfo(procinfo).destroy_tree;
           end;
         DoneDebugInfo(self);
         used_units.free;
@@ -642,7 +636,6 @@ implementation
 
     procedure tmodule.reset;
       var
-        hpi : tprocinfo;
         i   : longint;
       begin
         if assigned(scanner) then
@@ -664,12 +657,7 @@ implementation
                 current_specializedef:=nil;
               end;
             { release procinfo tree }
-            while assigned(procinfo) do
-             begin
-               hpi:=tprocinfo(procinfo).parent;
-               tprocinfo(procinfo).free;
-               procinfo:=hpi;
-             end;
+            tprocinfo(procinfo).destroy_tree;
           end;
         if assigned(asmdata) then
           begin

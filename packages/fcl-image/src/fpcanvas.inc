@@ -402,6 +402,56 @@ begin
   FPenPos := points[high(points)];
 end;
 
+procedure TFPCustomCanvas.RadialPie(x1, y1, x2, y2, StartAngle16Deg, Angle16DegLength: Integer);
+
+begin
+  DoRadialPie(X1, y1, x2, y2, StartAngle16Deg, Angle16DegLength);
+end;
+
+procedure TFPCustomCanvas.DoRadialPie(x1, y1, x2, y2, StartAngle16Deg, Angle16DegLength: Integer);
+
+begin
+  // To be implemented
+end;
+
+procedure TFPCustomCanvas.DoPolyBezier(Points: PPoint; NumPts: Integer;
+                           Filled: boolean = False;
+                           Continuous: boolean = False);
+
+begin
+ // To be implemented
+end;
+
+procedure TFPCustomCanvas.PolyBezier(Points: PPoint; NumPts: Integer;
+                     Filled: boolean = False;
+                     Continuous: boolean = False);
+begin
+  DoPolyBezier(Points,NumPts,Filled,Continuous);
+end;
+                     
+procedure TFPCustomCanvas.PolyBezier(const Points: array of TPoint;  
+                     Filled: boolean = False;
+                     Continuous: boolean = False);
+var 
+  NPoints{, i}: integer;
+//  PointArray: ^TPoint;
+begin
+  NPoints:=High(Points)-Low(Points)+1;
+  if NPoints>0 then
+    DoPolyBezier(@Points[Low(Points)],NPoints,Filled,Continuous);
+{
+  NPoints:=High(Points)-Low(Points)+1;
+  if NPoints<=0 then exit;
+    GetMem(PointArray,SizeOf(TPoint)*NPoints);
+  try  
+    for i:=0 to NPoints-1 do
+      PointArray[i]:=Points[i+Low(Points)];
+    DoPolyBezier(PointArray, NPoints, Filled, Continuous);
+  finally
+    FreeMem(PointArray);
+  end;}
+end;
+
 procedure TFPCustomCanvas.Clear;
 var r : TRect;
 begin
@@ -500,6 +550,25 @@ begin
   Rectangle (Rect(left,top,right,bottom));
 end;
 
+procedure TFPCustomCanvas.FillRect(const ARect: TRect);
+
+begin
+  if (Brush.style <> bsClear) then
+    begin
+    if not (brush is TFPCustomDrawBrush) then
+      DoRectangleFill (ARect)
+    else 
+      with ARect do
+        TFPCustomDrawBrush(Brush).Rectangle (left,top,right,bottom);
+    end;
+end;
+
+procedure TFPCustomCanvas.FillRect(X1,Y1,X2,Y2: Integer);
+
+begin
+  FillRect (Rect(X1,Y1,X2,Y2));
+end;
+        
 procedure TFPCustomCanvas.Rectangle (const Bounds:TRect);
 var np,nb,dp,db,pb : boolean;
 begin

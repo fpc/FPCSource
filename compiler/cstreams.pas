@@ -100,23 +100,38 @@ type
     property Size: Longint read GetSize write SetSize;
   end;
 
+{ TCCustomFileStream class }
+
+  TCCustomFileStream = class(TCStream)
+  protected
+    FFileName : String;
+  public
+    constructor Create(const AFileName: string;{shortstring!} Mode: Word); virtual; abstract;
+    function EOF: boolean; virtual; abstract;
+    property FileName : String Read FFilename;
+  end;
+
 { TFileStream class }
 
-  TCFileStream = class(TCStream)
+  TCFileStream = class(TCCustomFileStream)
   Private
-    FFileName : String;
     FHandle: File;
   protected
     procedure SetSize(NewSize: Longint); override;
   public
-    constructor Create(const AFileName: string; Mode: Word);
+    constructor Create(const AFileName: string; Mode: Word); override;
     destructor Destroy; override;
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
-    property FileName : String Read FFilename;
+    function EOF: boolean; override;
   end;
 
+  TCFileStreamClass = class of TCCustomFileStream;
+var
+  CFileStreamClass: TCFileStreamClass = TCFileStream;
+
+type
 { TCustomMemoryStream abstract class }
 
   TCCustomMemoryStream = class(TCStream)
@@ -441,6 +456,11 @@ begin
   Result:=l;
 end;
 
+function TCFileStream.EOF: boolean;
+begin
+  EOF:=system.eof(FHandle);
+end;
+
 
 {****************************************************************************}
 {*                             TCustomMemoryStream                          *}
@@ -489,11 +509,11 @@ end;
 
 procedure TCCustomMemoryStream.SaveToFile(const FileName: string);
 
-Var S : TCFileStream;
+Var S : TCCustomFileStream;
 
 begin
   Try
-    S:=TCFileStream.Create (FileName,fmCreate);
+    S:=CFileStreamClass.Create (FileName,fmCreate);
     SaveToStream(S);
   finally
     S.free;
@@ -574,11 +594,11 @@ end;
 
 procedure TCMemoryStream.LoadFromFile(const FileName: string);
 
-Var S : TCFileStream;
+Var S : TCCustomFileStream;
 
 begin
   Try
-    S:=TCFileStream.Create (FileName,fmOpenRead);
+    S:=CFileStreamClass.Create (FileName,fmOpenRead);
     LoadFromStream(S);
   finally
     S.free;

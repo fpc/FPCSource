@@ -926,7 +926,7 @@ type
   private
     Res: TFPResourceHandle;
     Handle: THandle;
-    procedure Initialize(Instance: THandle; Name, ResType: PWideChar);
+    procedure Initialize(Instance: THandle; Name, ResType: PWideChar; NameIsID: Boolean);
   public
     constructor Create(Instance: THandle; const ResName: WideString; ResType: PWideChar);
     constructor CreateFromID(Instance: THandle; ResID: Integer; ResType: PWideChar);
@@ -937,7 +937,7 @@ type
   private
     Res: TFPResourceHandle;
     Handle: THandle;
-    procedure Initialize(Instance: THandle; Name, ResType: PChar);
+    procedure Initialize(Instance: THandle; Name, ResType: PChar; NameIsID: Boolean);
   public
     constructor Create(Instance: THandle; const ResName: string; ResType: PChar);
     constructor CreateFromID(Instance: THandle; ResID: Integer; ResType: PChar);

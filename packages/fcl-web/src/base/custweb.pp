@@ -557,6 +557,7 @@ end;
 
 constructor TCustomWebApplication.Create(AOwner: TComponent);
 begin
+  Inherited Create(AOwner);
   FWebHandler := InitializeWebHandler;
   FWebHandler.FOnTerminate:=@DoOnTerminate;
 end;

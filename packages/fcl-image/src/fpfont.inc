@@ -24,6 +24,17 @@ begin
   FSize := AValue;
 end;
 
+procedure TFPCustomFont.SetOrientation (AValue:integer);
+begin
+  FOrientation := AValue;
+end;
+
+function TFPCustomFont.GetOrientation : Integer;
+begin
+  Result := FOrientation;
+end;
+
+
 procedure TFPCustomFont.DoCopyProps (From:TFPCanvasHelper);
 begin
   with from as TFPCustomFont do

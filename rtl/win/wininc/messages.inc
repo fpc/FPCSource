@@ -1287,11 +1287,12 @@
     TWMQueryDragIcon    = Windows.TWMQueryDragIcon;
     TWMTimeChange       = Windows.TWMTimeChange;
     TWMUndo             = Windows.TWMUndo;
+    TWMWindowPosChanged = TWMWindowPosMsg;
+    TWMWindowPosChanging= TWMWindowPosMsg;
 
     TWMPaste            = Windows.TWMPaste;
-    TWMCut 	        = Windows.TWMCut;	
-    TWMCopy	        = Windows.TWMCopy;
-
+    TWMCut              = Windows.TWMCut;
+    TWMCopy             = Windows.TWMCopy;
 {$else}
 
 {$ifdef cpu64}
@@ -1426,7 +1427,7 @@
        FocusedWnd : HWND;
        UnUsed : WPARAM;
        Result : LRESULT;
-    End;
+    end;
 
     TWMSetCursor = record
       Msg : UINT;

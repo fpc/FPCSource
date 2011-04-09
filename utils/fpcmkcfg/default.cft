@@ -1,8 +1,7 @@
 [Defaults]
 ConfigVersion=4
-GlobalInstallDir=%basepath%
-LocalInstallDir={LocalRepository}lib/%fpcversion%/
+GlobalPrefix=%GlobalPrefix%
+LocalPrefix={LocalRepository}
 Compiler=%fpcbin%
 OS=%fpctargetos%
 CPU=%fpctarget%
-Version=%fpcversion%

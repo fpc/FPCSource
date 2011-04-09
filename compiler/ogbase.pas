@@ -482,6 +482,7 @@ interface
         procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);virtual;
         procedure GenerateDebugLink(const dbgname:string;dbgcrc:cardinal);
         function WriteExeFile(const fn:string):boolean;
+        procedure ParseScript (linkscript:TCmdStrList); virtual;
         property Writer:TObjectWriter read FWriter;
         property ExeSectionList:TFPHashObjectList read FExeSectionList;
         property ObjDataList:TFPObjectList read FObjDataList;
@@ -544,7 +545,7 @@ implementation
 
     procedure TObjSymbol.SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
       begin
-        if not(abind in [AB_GLOBAL,AB_LOCAL,AB_COMMON]) then
+        if not(abind in [AB_GLOBAL,AB_LOCAL,AB_COMMON,AB_IMPORT]) then
           internalerror(200603016);
         if not assigned(aobjsec) then
           internalerror(200603017);
@@ -1546,6 +1547,11 @@ implementation
          end
         else
          Comment(V_Fatal,'Can''t create executable '+fn);
+      end;
+
+
+    procedure TExeOutput.ParseScript (linkscript:TCmdStrList);
+      begin
       end;
 
 

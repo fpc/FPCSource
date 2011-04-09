@@ -16,7 +16,14 @@
  **********************************************************************}
 program fpcmkcfg;
 
-uses SysUtils,Classes,fpTemplate, process;
+uses
+  SysUtils,
+  Classes,
+{$ifdef unix}
+  baseunix,
+{$endif}
+  fpTemplate,
+  process;
 
 {
   The inc files must be built from a template with the data2inc
@@ -56,6 +63,8 @@ Resourcestring
 //  SUsage70  = '  -l filename   read name/value pairs from filename';
   SUsage70  = '  -m            show builtin macros and exit.';
   SUsage80  = '  -b            show builtin template and exit.';
+  SUsage84  = '  -s            skip the creation of a backup-file.';
+  SUsage87  = '  -p            force directory creation.';
   SUsage90  = '  -v            be verbose.';
   Susage100 = '  -0            use built in fpc.cfg template (default)';
   Susage110 = '  -1            use built in fp.cfg template';
@@ -66,21 +75,37 @@ Resourcestring
   SErrArgExpected     = 'Error: Option "%s" requires an argument.';
   SErrIncompletePair  = 'Error: Incomplete name-value pair "%s".';
   SErrNoSuchFile      = 'Error: File "%s" does not exist.';
+  SErrNoSuchDirectory = 'Error: Directory of file "%s" does not exists. User -p to force creation.';
   SErrBackupFailed    = 'Error: Backup of file "%s" to "%s" failed.';
   SErrDelBackupFailed = 'Error: Delete of old backup file "%s" failed.';
+  SErrCreateDirFailed = 'Error: Could not create the directory for file "%s".';
+
   SWarnIgnoringFile   = 'Warning: Ignoring non-existent file: ';
   SWarnIgnoringPair   = 'Warning: Ignoring wrong name/value pair: ';
   SWarngccNotFound    = 'Warning: Could not find gcc. Unable to determine the gcclib path.';
+
+  SBackupCreated      = 'Saved old "%s" to "%s"';
 
 
 Var
   Verbose : Boolean;
   SkipBackup : Boolean;
+  CreateDir: Boolean;
   Cfg : TStringList;
   TemplateParser: TTemplateParser;
   TemplateFileName,
   OutputFileName : String;
   IDEBuildin : Integer;
+
+function IsSuperUser:boolean;
+begin
+{$ifdef unix}
+  result:=(fpGetUID=0);
+{$else unix}
+  result:=false;
+{$endif unix}
+end;
+
 
 function GetDefaultLocalRepository: string;
 
@@ -102,6 +127,16 @@ begin
 {$ENDIF Unix}
 end;
 
+function GetDefaultCompilerConfigDir: string;
+
+begin
+{$IFDEF Unix}
+  if IsSuperUser then
+    result := '/etc/fppkg/'
+  else
+{$ENDIF}
+  result := '{LocalRepository}config/';
+end;
 
 function GetDefaultNeedCrossBinutilsIfdef: string;
 
@@ -257,12 +292,14 @@ begin
   TemplateParser.Values['FPCVERSION'] := BuildVersion;
   TemplateParser.Values['FPCTARGET'] := BuildTarget;
   TemplateParser.Values['FPCTARGETOS'] := BuildOSTarget;
+  TemplateParser.Values['FPCBIN'] := 'fpc';
   TemplateParser.Values['PWD'] := GetCurrentDir;
   TemplateParser.Values['BUILDDATE'] := DateToStr(Date);
   TemplateParser.Values['BUILDTIME'] := TimeToStr(Time);
 
   TemplateParser.Values['LOCALREPOSITORY'] := GetDefaultLocalRepository;
   TemplateParser.Values['LOCALBASEPATH'] := GetDefaultLocalBasepath;
+  TemplateParser.Values['COMPILERCONFIGDIR'] := GetDefaultCompilerConfigDir;
   TemplateParser.Values['NEEDCROSSBINUTILSIFDEF'] := GetDefaultNeedCrossBinutilsIfdef;
   TemplateParser.Values['GCCLIBPATH'] := GetDefaultGCCDIR;
 
@@ -289,6 +326,8 @@ begin
   Writeln(SUsage60);
   Writeln(SUsage70);
   Writeln(SUsage80);
+  Writeln(SUsage84);
+  Writeln(SUsage87);
   Writeln(SUsage90);
   Writeln(SUsage100);
   Writeln(SUsage110);
@@ -365,6 +404,9 @@ Var
 
 begin
   I:=1;
+  ShowBuiltinCommand := False;
+  SkipBackup := False;
+  CreateDir := False;
   While( I<=ParamCount) do
     begin
     S:=Paramstr(i);
@@ -384,6 +426,7 @@ begin
         'u' : TemplateParser.Values[GetOptArg]:='';
         'o' : OutputFileName:=GetoptArg;
         's' : SkipBackup:=True;
+        'p' : CreateDir:=True;
         '0' : IDEBuildin:=0;
         '1' : IDEBuildin:=1;
         '2' : IDEBuildin:=2;
@@ -448,6 +491,24 @@ begin
     If not RenameFile(OutputFileName,BFN) then
       begin
       Writeln(StdErr,Format(SErrBackupFailed,[OutputFileName,BFN]));
+      Halt(1);
+      end
+    else
+      Writeln(Format(SBackupCreated,[ExtractFileName(OutputFileName),ExtractFileName(BFN)]));
+    end;
+  if (OutputFileName<>'') and not DirectoryExists(ExtractFilePath(OutputFileName)) then
+    begin
+    if CreateDir then
+      begin
+      if not ForceDirectories(ExtractFilePath(OutputFileName)) then
+        begin
+        Writeln(StdErr,Format(SErrCreateDirFailed,[OutputFileName]));
+        Halt(1);
+        end;
+      end
+    else
+      begin
+      Writeln(StdErr,Format(SErrNoSuchDirectory,[OutputFileName]));
       Halt(1);
       end;
     end;

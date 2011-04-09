@@ -1,0 +1,6 @@
+#imports needed by nwpre, will be used by the
+#internal linker, ad 7 apr 2011
+  _SetupArgV_411
+  _TerminateNLM
+  _StartNLM
+  CSetB

@@ -29,16 +29,24 @@ unit cpu;
       sysutils;
 
     function InterlockedCompareExchange128Support : boolean;inline;
+    function AESSupport : boolean;inline;
+
     function InterlockedCompareExchange128(var Target: Int128Rec; NewValue: Int128Rec; Comperand: Int128Rec): Int128Rec;
 
   implementation
 
     var
+      _AESSupport,
       _InterlockedCompareExchange128Support : boolean;
 
     function InterlockedCompareExchange128Support : boolean;inline;
       begin
         result:=_InterlockedCompareExchange128Support;
+      end;
+
+    function AESSupport : boolean;inline;
+      begin
+        result:=_AESSupport;
       end;
 
 
@@ -50,6 +58,7 @@ unit cpu;
           r8  ... NewValue
           r9  ... Comperand
       }
+    {$ifdef win64}
       asm
         pushq %rbx
 
@@ -81,7 +90,30 @@ unit cpu;
 
         popq %rbx
       end;
+    {$else win64}
+    {
+      linux:
+        rdi       ... target
+        [rsi:rdx] ... NewValue
+        [rcx:r8]  ... Comperand
+        [rdx:rax] ... result
+    }
+      asm
+        pushq %rbx
 
+        movq %rsi,%rbx          // new value low
+        movq %rcx,%rax          // comperand low
+        movq %rdx,%rcx          // new value high
+        movq %r8,%rdx           // comperand high
+        {$ifdef oldbinutils}
+        .byte 0xF0,0x48,0x0F,0xC7,0x0F
+        {$else}
+        lock cmpxchg16b (%rdi)
+        {$endif}
+
+        popq %rbx
+      end;
+    {$endif win64}
 
     procedure SetupSupport;
       var
@@ -95,6 +127,7 @@ unit cpu;
            popq %rbx
         end;
         _InterlockedCompareExchange128Support:=(_ecx and $2000)<>0;
+        _AESSupport:=(_ecx and $2000000)<>0;        
       end;
 
 

@@ -358,7 +358,7 @@ var
    c:word;
    dp,mp,yp,which : Byte;
    s1:string[4];
-   values:array[1..3] of longint;
+   values:array[0..3] of longint;
    LocalTime:tsystemtime;
    YearMoreThenTwoDigits : boolean;
 begin
@@ -402,12 +402,6 @@ begin
           end;
      end;
    end;
-  if Which<>3 then
-    begin
-      FixErrorMsg(SErrIllegalDateFormatString,useformat);
-      Exit;
-    end;
-{ Get actual values }
   for i := 1 to 3 do
     values[i] := 0;
   s1 := '';
@@ -448,6 +442,11 @@ begin
          Exit;
        end;
    end ;
+   if (Which<3) and (N>Which) then
+    begin
+    FixErrorMsg(SInvalidDateFormat,s);
+    Exit;
+    end; 
   // Fill in values.
   getLocalTime(LocalTime);
   ly := LocalTime.Year;
