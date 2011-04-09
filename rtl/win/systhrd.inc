@@ -49,15 +49,10 @@ function  WinResumeThread  (threadHandle : THandle) : dword; {$ifdef wince}cdecl
 function  WinCloseHandle  (threadHandle : THandle) : dword; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'CloseHandle';
 function  TerminateThread  (threadHandle : THandle; var exitCode : dword) : boolean; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'TerminateThread';
 function  WaitForSingleObject (hHandle : THandle;Milliseconds: dword): dword; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'WaitForSingleObject';
-{$ifdef wince}
-function GetCurrentThread: THandle;
-begin
-  GetCurrentThread := SH_CURTHREAD + SYS_HANDLE_BASE;
-end;
-{$else}
+{$ifndef wince}
 function GetCurrentThread: THandle; external KernelDLL name 'GetCurrentThread';
-{$endif}
 function  DuplicateHandle (hSourceProcessHandle : THandle; hSourceHandle : THandle; hTargetProcessHandle : THandle; var lpTargetHandle : THandle; dwDesiredAccess : dword; bInheritHandle : longbool; dwOptions : dword) : longbool;{$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'DuplicateHandle';
+{$endif}
 function  WinThreadSetPriority (threadHandle : THandle; Prio: longint): boolean; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SetThreadPriority';
 function  WinThreadGetPriority (threadHandle : THandle): LongInt; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetThreadPriority';
 {$ifndef WINCE}
@@ -85,7 +80,9 @@ CONST
    WAIT_IO_COMPLETION = $c0;
    WAIT_ABANDONED = $80;
    WAIT_FAILED = $ffffffff;
+{$ifndef wince}
    DUPLICATE_SAME_ACCESS = $00000002;
+{$endif}
 
 {$ifndef SUPPORT_WIN95}
 function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
@@ -97,6 +94,7 @@ var
   WinTryEnterCriticalSection : TTryEnterCriticalSection;
 {$endif SUPPORT_WIN95}
 
+{$ifndef wince}
 {*****************************************************************************
                          external Threads support
 *****************************************************************************}
@@ -333,6 +331,7 @@ var
       ExternalThreadsList := entry;
       SysLeaveCriticalSection(ExternalThreadLock);
     end;
+{$endif}
 
 {*****************************************************************************
                              Threadvar support
@@ -401,7 +400,9 @@ var
       var
         dataindex : pointer;
         errorsave : dword;
+{$ifndef wince}
         usecs : Boolean;
+{$endif}
       begin
 {$ifdef dummy}
         { it least in the on windows 7 x64, this still doesn't not work, fs:(0x2c) is
@@ -429,6 +430,7 @@ var
             SetLastError(errorsave);
           end;
 {$else win32}
+{$ifndef wince}
         { once external threads have been detected we have to use the
           FakeProtection critical section, so that only the collector will
           access FakeThreadVars }
@@ -471,7 +473,8 @@ var
         end;
         if usecs then
           SysLeaveCriticalSection(FakeProtection);
-{        errorsave:=GetLastError;
+{$else}
+        errorsave:=GetLastError;
         dataindex:=TlsGetValue(tlskey);
         if dataindex=nil then
           begin
@@ -479,7 +482,8 @@ var
             dataindex:=TlsGetValue(tlskey);
             InitThread($1000000);
           end;
-        SetLastError(errorsave);}
+        SetLastError(errorsave);
+{$endif}
 {$endif win32}
         SysRelocateThreadvar:=DataIndex+Offset;
       end;
@@ -487,13 +491,17 @@ var
 
     procedure SysReleaseThreadVars;
       begin
+{$ifndef wince}
         if ExternalThreadsDetected and (FakeThreadVars <> nil) then
           { finally free the memory area }
           LocalFree(FakeThreadVars)
         else begin
+{$endif}
           LocalFree(TlsGetValue(tlskey));
           TlsSetValue(tlskey, nil);
+{$ifndef wince}
         end;
+{$endif}
       end;
 
 
@@ -839,7 +847,9 @@ begin
   ThreadID := GetCurrentThreadID;
   if IsLibrary then
     SysInitMultithreading;
+{$ifndef wince}
   SysInitCriticalSection(RegisterExternalLock);
+{$endif}
 {$IFDEF SUPPORT_WIN95}
   { Try to find TryEnterCriticalSection function }
   KernelHandle:=LoadLibrary(KernelDLL);
@@ -853,8 +863,10 @@ begin
 {$ENDIF SUPPORT_WIN95}
 end;
 
+{$ifndef wince}
 procedure FiniSystemThreads;
 begin
   TerminateCollector := True;
 end;
+{$endif}
 
