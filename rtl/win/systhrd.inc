@@ -293,6 +293,11 @@ var
     var
       entry: PExternalThreadInfo;
     begin
+{$ifdef debug_collector}
+      WritelnDirect('Registering new thread with data area $' +
+        hexstr(aDataArea));
+{$endif}
+
       SysEnterCriticalSection(RegisterExternalLock);
       if not ExternalThreadsDetected then begin
         { from now on we are running in external thread mode }
@@ -307,12 +312,19 @@ var
       { we must not use FPC's heap, because the memory would be allocated in the
         external thread's context which is not what we want }
       entry := Pointer(LocalAlloc(LMEM_FIXED, SizeOf(TExternalThreadInfo)));
-      if entry = nil then
+      if entry = nil then begin
+{$ifdef debug_collector}
+        WritelnDirect('Local alloc failed');
+{$endif}
         { oh damn }
         Exit;
+      end;
 
       if not DuplicateHandle(GetCurrentProcess, aThread, GetCurrentProcess,
           entry^.Handle, 0, False, DUPLICATE_SAME_ACCESS) then begin
+{$ifdef debug_collector}
+        WritelnDirect('DuplicateHandle failed');
+{$endif}
         { oh damn 2nd }
         LocalFree(entry);
         Exit;
