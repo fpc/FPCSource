@@ -845,12 +845,22 @@ begin
    case DLLreason of
      DLL_PROCESS_ATTACH :
        begin
+         MainThreadIdWin32 := Win32GetCurrentThreadId;
          PASCALMAIN;
          Dll_entry:=true;
        end;
      DLL_THREAD_ATTACH :
        begin
-{ Allocate Threadvars ?!}
+         if Win32GetCurrentThreadId <> MainThreadIdWin32 then
+         begin
+           { Allocate Threadvars  }
+           SysAllocateThreadVars;
+
+           { NS : no idea what is correct to pass here - pass dummy value for now }
+           { passing a dummy is ok, the correct value is read from the coff header of SysInstance (FK) }
+           InitThread($1000000); { Assume everything is idempotent there, as the thread could have been created with BeginThread... }
+         end;
+
          if assigned(Dll_Thread_Attach_Hook) then
            Dll_Thread_Attach_Hook(DllParam);
        end;
@@ -858,7 +868,11 @@ begin
        begin
          if assigned(Dll_Thread_Detach_Hook) then
            Dll_Thread_Detach_Hook(DllParam);
-{ Release Threadvars ?!}
+
+         { Release Threadvars if the thread was initialized by the DLL }
+         if (Win32GetCurrentThreadId<>MainThreadIdWin32)
+             and (TlsGetValue(TLSKey) <> Nil) then
+           DoneThread; { Assume everything is idempotent there }
        end;
      DLL_PROCESS_DETACH :
        begin
