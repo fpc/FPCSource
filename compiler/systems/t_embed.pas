@@ -333,6 +333,7 @@ begin
 {$ifdef AVR}
   with linkres do
     begin
+      { linker script from ld 2.19 }
       Add('ENTRY(_START)');
       Add('OUTPUT_FORMAT("elf32-avr","elf32-avr","elf32-avr")');
       Add('OUTPUT_ARCH(avr:2)');
@@ -419,7 +420,7 @@ begin
       Add('    *(.trampolines*)');
       Add('     __trampolines_end = . ;');
       Add('    /* For future tablejump instruction arrays for 3 byte pc devices.');
-      Add('       We don't relax jump/call instructions within these sections.  */');
+      Add('       We don''t relax jump/call instructions within these sections.  */');
       Add('    *(.jumptables)');
       Add('    *(.jumptables*)');
       Add('    /* For code that needs to reside in the lower 128k progmem.  */');
@@ -433,7 +434,7 @@ begin
       Add('     __dtors_end = . ;');
       Add('    KEEP(SORT(*)(.ctors))');
       Add('    KEEP(SORT(*)(.dtors))');
-      Add('    /* From this point on, we don't bother about wether the insns are');
+      Add('    /* From this point on, we don''t bother about wether the insns are');
       Add('       below or above the 16 bits boundary.  */');
       Add('    *(.init0)  /* Start here after reset.  */');
       Add('    KEEP (*(.init0))');
@@ -561,7 +562,8 @@ begin
       Add('  .debug_loc      0 : { *(.debug_loc) }');
       Add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
       Add('}');
-{$end AVR}
+{$endif AVR}
+    end;
 
   { Write and Close response }
   linkres.writetodisk;

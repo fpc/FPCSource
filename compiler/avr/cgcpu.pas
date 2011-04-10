@@ -1161,17 +1161,19 @@ unit cgcpu;
         tmpflags : TResFlags;
       begin
         current_asmdata.getjumplabel(l);
+        {
         if flags_to_cond(f) then
           begin
             tmpflags:=f;
             inverse_flags(tmpflags);
             list.concat(taicpu.op_reg(A_CLR,reg));
             a_jmp_flags(list,tmpflags,l);
-            list.concat(taicpu.op_const_reg(A_LDI,reg,1));
+            list.concat(taicpu.op_reg_const(A_LDI,reg,1));
           end
         else
-          begin;
-            list.concat(taicpu.op_const_reg(A_LDI,reg,1));
+        }
+          begin
+            list.concat(taicpu.op_reg_const(A_LDI,reg,1));
             a_jmp_flags(list,f,l);
             list.concat(taicpu.op_reg(A_CLR,reg));
           end;
