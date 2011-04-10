@@ -200,6 +200,7 @@ interface
       private
           _mangledname : pshortstring;
       public
+          section : ansistring;
           constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor create_dll(const n : string;vsp:tvarspez;def:tdef);
           constructor create_C(const n,mangled : string;vsp:tvarspez;def:tdef);
@@ -1312,6 +1313,8 @@ implementation
            _mangledname:=stringdup(ppufile.getstring)
          else
            _mangledname:=nil;
+         if vo_has_section in varoptions then
+           section:=ppufile.getansistring;
       end;
 
 
@@ -1336,6 +1339,8 @@ implementation
          inherited ppuwrite(ppufile);
          if vo_has_mangledname in varoptions then
            ppufile.putstring(_mangledname^);
+         if vo_has_section in varoptions then
+           ppufile.putansistring(section);
          ppufile.writeentry(ibstaticvarsym);
       end;
 

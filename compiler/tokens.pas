@@ -203,6 +203,7 @@ type
     _PRIVATE,
     _PROGRAM,
     _R12BASE,
+    _SECTION,
     _STDCALL,
     _SYSCALL,
     _VARARGS,
@@ -497,6 +498,7 @@ const
       (str:'PRIVATE'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'PROGRAM'       ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'R12BASE'       ;special:false;keyword:m_none;op:NOTOKEN),   { Syscall variation on MorphOS }
+      (str:'SECTION'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'STDCALL'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'SYSCALL'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'VARARGS'       ;special:false;keyword:m_none;op:NOTOKEN),

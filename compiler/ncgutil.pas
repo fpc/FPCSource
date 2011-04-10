@@ -2528,7 +2528,10 @@ implementation
             sectype:=sec_bss;
           end;
         maybe_new_object_file(list);
-        new_section(list,sectype,lower(sym.mangledname),varalign);
+        if sym.section<>'' then
+          new_section(list,sec_user,sym.section,varalign)
+        else
+         new_section(list,sectype,lower(sym.mangledname),varalign);
         if (sym.owner.symtabletype=globalsymtable) or
            create_smartlink or
            DLLSource or

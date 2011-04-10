@@ -180,6 +180,7 @@ implementation
         = ('sec_debug_frame','__debug_info','__debug_line','__debug_abbrev');
     begin
       case atype of
+        sec_user: Result:=aname;
         sec_bss:  Result:=MakeSectionName(seg_DATA, '__common');
         sec_stab: Result:='.stabs';
         sec_stabstr: Result:='.stabsstr';

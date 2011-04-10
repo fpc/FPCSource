@@ -186,6 +186,8 @@ type
     nr   : byte;
   end;
 
+  { tppufile }
+
   tppufile=class
   private
     f        : TCCustomFileStream;
@@ -260,6 +262,7 @@ type
     function getaword:aword;
     function  getreal:ppureal;
     function  getstring:string;
+    function  getansistring:ansistring;
     procedure getnormalset(var b);
     procedure getsmallset(var b);
     function  skipuntilentry(untilb:byte):boolean;
@@ -280,6 +283,7 @@ type
     procedure putaword(i:aword);
     procedure putreal(d:ppureal);
     procedure putstring(const s:string);
+    procedure putansistring(const s:ansistring);
     procedure putnormalset(const b);
     procedure putsmallset(const b);
     procedure tempclose;        // MG: not used, obsolete?
@@ -782,6 +786,22 @@ begin
 end;
 
 
+function tppufile.getansistring: ansistring;
+var
+  l : longint;
+begin
+  l:=getlongint;
+  if entryidx+l>entry.size then
+   begin
+     error:=true;
+     exit;
+   end;
+  SetLength(Result,l);
+  ReadData(result[1],l);
+  inc(entryidx,l);
+end;
+
+
 procedure tppufile.getsmallset(var b);
 var
   i : longint;
@@ -1125,6 +1145,16 @@ end;
 procedure tppufile.putstring(const s:string);
   begin
     putdata(s,length(s)+1);
+  end;
+
+
+procedure tppufile.putansistring(const s: ansistring);
+  var
+    l : longint;
+  begin
+    l:=length(s);
+    putdata(l,4);
+    putdata(s[1],l);
   end;
 
 

@@ -61,6 +61,8 @@ interface
 
     type
        TAsmSectiontype=(sec_none,
+         { this section type allows to define a user named section }
+         sec_user,
          sec_code,
          sec_data,
          { read-only, but may contain relocations }
