@@ -1,14 +1,5 @@
 { Thread management routines }
 
-type
-  PRaiseFrame = ^TRaiseFrame;
-  TRaiseFrame = record
-    NextRaise: PRaiseFrame;
-    ExceptAddr: Pointer;
-    ExceptObject: TObject;
-    ExceptionRecord: pointer; {PExceptionRecord}
-  end;
-
 constructor TThread.Create(CreateSuspended: Boolean;
                            const StackSize: SizeUInt = DefaultStackSize);
 begin
@@ -20,7 +11,7 @@ begin
   FHandle := BeginThread(nil, StackSize, @ThreadProc, pointer(self), CREATE_SUSPENDED,
                          FThreadID);
   if FHandle = TThreadID(0) then
-    raise EThread.create('Failed to create new thread, code:'+inttostr(getlasterror));
+    raise EThread.CreateFmt(SThreadCreateError, [SysErrorMessage(getlasterror)]);
 
   FFatalException := nil;
 end;

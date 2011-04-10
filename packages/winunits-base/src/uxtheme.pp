@@ -782,7 +782,7 @@ var
 
 var
   GetThemeFont: function(hTheme: HTHEME; hdc: HDC; iPartId, iStateId, iPropId: Integer;
-    var pFont: LOGFONT): HRESULT; stdcall;
+    var pFont: LOGFONTW): HRESULT; stdcall;
 {$EXTERNALSYM GetThemeFont}
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -1039,7 +1039,7 @@ var
 //----------------------------------------------------------------------------------------------------------------------
 
 var
-  GetThemeSysFont: function(hTheme: HTHEME; iFontId: Integer; var plf: LOGFONT): HRESULT; stdcall;
+  GetThemeSysFont: function(hTheme: HTHEME; iFontId: Integer; var plf: LOGFONTW): HRESULT; stdcall;
 {$EXTERNALSYM GetThemeSysFont}
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -1445,7 +1445,7 @@ type
 {$EXTERNALSYM DTTOPTS}
   PDTTOPTS = ^_DTTOPTS;
 {$EXTERNALSYM PDTTOPTS}
-  TDTOpts = DTTOPTS;
+  TDTTOpts = DTTOPTS;
 
 // if (_WIN32_WINNT >= 0x0600)
 
@@ -1736,7 +1736,7 @@ var
 implementation
 
 {$ifdef USE_SYNCOBJS}
-// we can't do this due to a circular dependancy between winunits-base and fcl-base
+// we can't do this due to a circular dependency between winunits-base and fcl-base
 uses
   SyncObjs;
 {$endif}

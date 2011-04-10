@@ -4,7 +4,7 @@ program lesson1;
 {$mode objfpc}
 
 uses
-  cmem, ctypes, gccore;
+  cmem, ctypes, gctypes, gccore;
  
 const
   DEFAULT_FIFO_SIZE = (256*1024);

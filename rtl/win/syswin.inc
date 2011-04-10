@@ -290,8 +290,11 @@ procedure InitWin32Widestrings;
       end;
 {$endif}
 
+    { Note: since WideChar=UnicodeChar and PWideChar=PUnicodeChar,
+      Wide2AnsiMoveProc is identical to Unicode2AnsiStrMoveProc. }
+
     { Widestring }
-    widestringmanager.Wide2AnsiMoveProc:=@Win32Wide2AnsiMove;
+    widestringmanager.Wide2AnsiMoveProc:=@Win32Unicode2AnsiMove;
     widestringmanager.Ansi2WideMoveProc:=@Win32Ansi2WideMove;
     widestringmanager.UpperWideStringProc:=@Win32WideUpper;
     widestringmanager.LowerWideStringProc:=@Win32WideLower;

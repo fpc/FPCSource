@@ -670,6 +670,7 @@ begin
       VarCastError(varNull, varDouble)
     else
       Result := 0
+  { TODO: performance: custom variants must be handled after standard ones }
   else if FindCustomVariantType(TVarData(v).vType, Handler) then
   begin
     VariantInit(dest);
@@ -693,6 +694,21 @@ begin
     Result := VariantToCurrency(TVarData(V));
 end;
 
+function CustomVarToLStr(const v: TVarData; out s: AnsiString): Boolean;
+var
+  handler: TCustomVariantType;
+  temp: TVarData;
+begin
+  result := FindCustomVariantType(v.vType, handler);
+  if result then
+  begin
+    VariantInit(temp);
+    handler.CastTo(temp, v, varString);
+    { out-semantic ensures that s is finalized,
+      so just copy the pointer and don't finalize the temp }
+    Pointer(s) := temp.vString;
+  end;
+end;
 
 procedure sysvartolstr (var s : AnsiString; const v : Variant);
 begin
@@ -701,7 +717,8 @@ begin
       VarCastError(varNull, varString)
     else
       s := NullAsStringValue
-  else
+  { TODO: performance: custom variants must be handled after standard ones }
+  else if not CustomVarToLStr(TVarData(v), s) then
     S := VariantToAnsiString(TVarData(V));
 end;
 
@@ -2643,7 +2660,6 @@ var
   valuevtype,
   arrayelementtype : TVarType;
   tempvar : Variant;
-  variantmanager : tvariantmanager;
 begin
   Dest:=TVarData(a);
   { get final Variant }
@@ -2686,8 +2702,7 @@ begin
         end
       else
         begin
-          GetVariantManager(variantmanager);
-          variantmanager.varcast(tempvar,value,arrayelementtype);
+          VarCast(tempvar,value,arrayelementtype);
           if arrayelementtype in [varOleStr,varDispatch,varUnknown] then
             VarResultCheck(SafeArrayPutElement(p,PVarArrayCoorArray(indices),TVarData(tempvar).vPointer))
           else
@@ -3328,17 +3343,13 @@ function VarTypeIsValidElementType(const aVarType: TVarType): Boolean;
   var
     customvarianttype : TCustomVariantType;
   begin
-    if FindCustomVariantType(aVarType,customvarianttype) then
-      Result:=true
-    else
-      begin
-        Result:=(aVarType and not(varByRef) and not(varArray)) in [varEmpty,varNull,varSmallInt,varInteger,
+    Result:=((aVarType and not(varByRef) and not(varArray)) in [varEmpty,varNull,varSmallInt,varInteger,
 {$ifndef FPUNONE}
-          varSingle,varDouble,varDate,
+      varSingle,varDouble,varDate,
 {$endif}
-          varCurrency,varOleStr,varDispatch,varError,varBoolean,
-          varVariant,varUnknown,varShortInt,varByte,varWord,varLongWord,varInt64];
-      end;
+      varCurrency,varOleStr,varDispatch,varError,varBoolean,
+      varVariant,varUnknown,varShortInt,varByte,varWord,varLongWord,varInt64]) or
+    FindCustomVariantType(aVarType,customvarianttype);
   end;
 
 
@@ -3383,7 +3394,6 @@ procedure DynArrayToVariant(var V: Variant; const DynArray: Pointer; TypeInfo: P
     dynarriter : tdynarrayiter;
     p : Pointer;
     temp : Variant;
-    variantmanager : tvariantmanager;
     dynarraybounds : tdynarraybounds;
   type
     TDynArray = array of Pointer;
@@ -3397,8 +3407,6 @@ procedure DynArrayToVariant(var V: Variant; const DynArray: Pointer; TypeInfo: P
 
     if (Dims>1) and not(DynamicArrayIsRectangular(DynArray,TypeInfo)) then
       exit;
-
-    GetVariantManager(variantmanager);
 
     { retrieve Bounds array }
     Setlength(dynarraybounds,Dims);
@@ -3466,7 +3474,7 @@ procedure DynArrayToVariant(var V: Variant; const DynArray: Pointer; TypeInfo: P
               VarClear(temp);
           end;
           dynarriter.next;
-          variantmanager.VarArrayPut(V,temp,Dims,PLongint(iter.Coords));
+          VarArrayPut(V,temp,Slice(iter.Coords^,Dims));
         until not(iter.next);
       finally
         iter.done;
@@ -3487,7 +3495,6 @@ procedure DynArrayFromVariant(var DynArray: Pointer; const V: Variant; TypeInfo:
     dynarriter : tdynarrayiter;
     temp : Variant;
     dynarrvartype : LongInt;
-    variantmanager : tvariantmanager;
     vararraybounds : PVarArrayBoundArray;
     dynarraybounds : tdynarraybounds;
     i : SizeInt;
@@ -3513,14 +3520,13 @@ procedure DynArrayFromVariant(var DynArray: Pointer; const V: Variant; TypeInfo:
           dynarraybounds[i]:=vararraybounds^[i].ElementCount;
         end;
       DynArraySetLength(DynArray,TypeInfo,VarArrayDims,PSizeInt(dynarraybounds));
-      GetVariantManager(variantmanager);
       VarArrayLock(V);
       try
         iter.init(VarArrayDims,PVarArrayBoundArray(vararraybounds));
         dynarriter.init(DynArray,TypeInfo,VarArrayDims,dynarraybounds);
         if not iter.AtEnd then
         repeat
-          temp:=variantmanager.VarArrayGet(V,VarArrayDims,PLongint(iter.Coords));
+          temp:=VarArrayGet(V,Slice(iter.Coords^,VarArrayDims));
           case dynarrvartype of
             varSmallInt:
               PSmallInt(dynarriter.data)^:=temp;

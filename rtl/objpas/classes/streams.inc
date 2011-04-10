@@ -772,49 +772,61 @@ end;
 {****************************************************************************}
 
 {$ifdef UNICODE}
-procedure TResourceStream.Initialize(Instance: THandle; Name, ResType: PWideChar);
+procedure TResourceStream.Initialize(Instance: THandle; Name, ResType: PWideChar; NameIsID: Boolean);
   begin
     Res:=FindResource(Instance, Name, ResType);
     if Res=0 then
-      raise EResNotFound.CreateFmt(SResNotFound,[Name]);
+      if NameIsID then
+        raise EResNotFound.CreateFmt(SResNotFound,[IntToStr(PtrInt(Name))])
+      else
+        raise EResNotFound.CreateFmt(SResNotFound,[Name]);
     Handle:=LoadResource(Instance,Res);
     if Handle=0 then
-      raise EResNotFound.CreateFmt(SResNotFound,[Name]);
+      if NameIsID then
+        raise EResNotFound.CreateFmt(SResNotFound,[IntToStr(PtrInt(Name))])
+      else
+        raise EResNotFound.CreateFmt(SResNotFound,[Name]);
     SetPointer(LockResource(Handle),SizeOfResource(Instance,Res));
   end;
 
 constructor TResourceStream.Create(Instance: THandle; const ResName: WideString; ResType: PWideChar);
   begin
     inherited create;
-    Initialize(Instance,PWideChar(ResName),ResType);
+    Initialize(Instance,PWideChar(ResName),ResType,False);
   end;
 constructor TResourceStream.CreateFromID(Instance: THandle; ResID: Integer; ResType: PWideChar);
   begin
     inherited create;
-    Initialize(Instance,PWideChar(ResID),ResType);
+    Initialize(Instance,PWideChar(ResID),ResType,True);
   end;
 {$else UNICODE}
 
-procedure TResourceStream.Initialize(Instance: THandle; Name, ResType: PChar);
+procedure TResourceStream.Initialize(Instance: THandle; Name, ResType: PChar; NameIsID: Boolean);
   begin
     Res:=FindResource(Instance, Name, ResType);
     if Res=0 then
-      raise EResNotFound.CreateFmt(SResNotFound,[Name]);
+      if NameIsID then
+        raise EResNotFound.CreateFmt(SResNotFound,[IntToStr(PtrInt(Name))])
+      else
+        raise EResNotFound.CreateFmt(SResNotFound,[Name]);
     Handle:=LoadResource(Instance,Res);
     if Handle=0 then
-      raise EResNotFound.CreateFmt(SResNotFound,[Name]);
+      if NameIsID then
+        raise EResNotFound.CreateFmt(SResNotFound,[IntToStr(PtrInt(Name))])
+      else
+        raise EResNotFound.CreateFmt(SResNotFound,[Name]);
     SetPointer(LockResource(Handle),SizeOfResource(Instance,Res));
   end;
 
 constructor TResourceStream.Create(Instance: THandle; const ResName: string; ResType: PChar);
   begin
     inherited create;
-    Initialize(Instance,pchar(ResName),ResType);
+    Initialize(Instance,pchar(ResName),ResType,False);
   end;
 constructor TResourceStream.CreateFromID(Instance: THandle; ResID: Integer; ResType: PChar);
   begin
     inherited create;
-    Initialize(Instance,pchar(PtrInt(ResID)),ResType);
+    Initialize(Instance,pchar(PtrInt(ResID)),ResType,True);
   end;
 {$endif UNICODE}
 
@@ -1060,12 +1072,9 @@ begin
   Check(FStream.Read(@Buffer, Count, @Result));
 end;
 
-function TProxyStream.Seek(Offset: Longint; Origin: Word): Longint;
-var
-  Pos: Int64;
+function TProxyStream. Seek(const Offset: int64; Origin: TSeekOrigin): int64;
 begin
-  Check(FStream.Seek(Offset, Origin, Pos));
-  Result := Pos;
+  Check(FStream.Seek(Offset, ord(Origin), result));
 end;
 
 function TProxyStream.Write(const Buffer; Count: Longint): Longint;

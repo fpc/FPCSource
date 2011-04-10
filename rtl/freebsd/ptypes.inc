@@ -163,16 +163,75 @@ type
     _MUTEX_TYPE_MAX
   );
 
+type
+  fsid_t  = array[0..1] of cint32;
 
 Const
-     MNAMLEN   = 88-2*sizeof(clong); // slightly machine specific.
-     MFSNamLen = 16;	
-type
-  fsid_t  = array[0..1] of cint;
+     MNAMELEN   = 88;
+     MFSNamELen = 16;	
+     STATFS_VERSION = $20030518;
+     OMNAMLEN   = 88-2*sizeof(clong); // slightly machine specific.
+     OMFSNamLen = 16;	
 
-// Kernel statfs
+// fieldnames start with f_ in headers. Probably 1.0.x simplification that somehow
+// managed to escape the unix rewrite. Make an union+ deprecate after newstatfs is stable.
 
-  TStatfs = packed record
+Type TStatFS =  {?} Record
+       case boolean of
+       0 : ( // current FreeBSD
+        version     : cuint32;        { structure version number }
+        ftype       : cuint32;        { type of filesystem }
+        fflags      : cuint64;        { copy of mount exported flags }
+        bsize       : cuint64;        { filesystem fragment size }
+        iosize      : cuint64;        { optimal transfer block size }
+        blocks      : cuint64;        { total data blocks in filesystem }
+        bfree       : cuint64;        { free blocks in filesystem }
+        bavail      : cint64;         { free blocks avail to non-superuser }
+        files       : cuint64;        { total file nodes in filesystem }
+        ffree       : cint64;         { free nodes avail to non-superuser }
+        fsyncwrites  : cuint64;        { count of sync writes since mount }
+        fasyncwrites : cuint64;        { count of async writes since mount }
+        fsyncreads   : cuint64;        { count of sync reads since mount }
+        fasyncreads  : cuint64;        { count of async reads since mount }
+        spare       : array[0..9] of cuint64;  { unused spare }
+        namemax     : cuint32;        { maximum filename length }
+        owner       : tuid;           { user that mounted the filesystem }
+        fsid        : fsid_t;                            { filesystem id }
+        charspare   : array[0..80-1] of ansichar;         { spare string space }
+        fstypename  : array[0..MFSNAMELEN-1] of ansichar; { filesystem type name }
+        mnfromname  : array[0..MNAMELEN-1]   of ansichar; { mounted filesystem }
+        mountpoint  : array[0..MNAMELEN-1]   of ansichar; { directory on which mounted }
+        );
+        1:( // union for old fieldname's sake.
+        f_version     : cuint32;        { structure version number }
+        f_type        : cuint32;        { type of filesystem }
+        f_flags       : cuint64;        { copy of mount exported flags }
+        f_bsize       : cuint64;        { filesystem fragment size }
+        f_iosize      : cuint64;        { optimal transfer block size }
+        f_blocks      : cuint64;        { total data blocks in filesystem }
+        f_bfree       : cuint64;        { free blocks in filesystem }
+        f_bavail      : cint64;         { free blocks avail to non-superuser }
+        f_files       : cuint64;        { total file nodes in filesystem }
+        f_ffree       : cint64;         { free nodes avail to non-superuser }
+        f_syncwrites  : cuint64;        { count of sync writes since mount }
+        f_asyncwrites : cuint64;        { count of async writes since mount }
+        f_syncreads   : cuint64;        { count of sync reads since mount }
+        f_asyncreads  : cuint64;        { count of async reads since mount }
+        f_spare       : array[0..9] of cuint64;  { unused spare }
+        f_namemax     : cuint32;        { maximum filename length }
+        f_owner       : tuid;           { user that mounted the filesystem }
+        f_fsid        : fsid_t;                            { filesystem id }
+        f_charspare   : array[0..80-1] of ansichar;         { spare string space }
+        f_fstypename  : array[0..MFSNAMELEN-1] of ansichar; { filesystem type name }
+        f_mntfromname : array[0..MNAMELEN-1]   of ansichar; { mounted filesystem }
+        f_mntonname   : array[0..MNAMELEN-1]   of ansichar; { directory on which mounted }
+          );
+	end;
+ 
+     PStatFS=^TStatFS;
+
+
+   TStatFS4 = packed record
     spare2,            { place holder}
     bsize,             { fundamental block size}
     iosize,            { optimal block size }
@@ -187,18 +246,19 @@ type
     fflags         : cint; {copy of mount flags}
     fsyncwrites,
     fasyncwrites   : clong;
-    fstypename     : array[0..MFSNamLen-1] of char;
-    mountpoint     : array[0..MNAMLEN-1] of char;
+    fstypename     : array[0..OMFSNamLen-1] of char;
+    mountpoint     : array[0..OMNAMLEN-1] of char;
     fsyncreads,            { count of sync reads since mount }
     fasyncreads    : clong;
     fspares1       : cshort;
-    mnfromname     : array[0..MNAMLEN-1] of char;
+    mnfromname     : array[0..OMNAMLEN-1] of char;
     fspares2       : cshort;
     fspare3        : array[0..1] of clong;
   end;
-  PStatFS=^TStatFS;
+ 
+  PStatFS4=^TStatFs4;
 
-    mbstate_t = record
+  mbstate_t = record
       case byte of
         0: (__mbstate8: array[0..127] of char);
         1: (_mbstateL: cint64); { for alignment }

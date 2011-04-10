@@ -17,6 +17,7 @@ Type
   TCustomSQLDBWebDataProvider = Class(TFPCustomWebDataProvider)
   private
     FIDFieldName: String;
+    FONGetDataset: TNotifyEvent;
     FOnGetNewID: TNewIDEvent;
     FOnGetParamValue: TGetParamValueEvent;
     FParams: TParams;
@@ -44,6 +45,7 @@ Type
     Procedure DoApplyParams; override;
     Function SQLQuery : TSQLQuery;
     Function GetDataset : TDataset; override;
+    Function DoGetNewID : String; virtual;
     Function GetNewID : String;
     Function IDFieldValue : String; override;
     procedure Notification(AComponent: TComponent;  Operation: TOperation); override;
@@ -55,6 +57,7 @@ Type
     Property OnGetNewID : TNewIDEvent Read FOnGetNewID Write FOnGetNewID;
     property OnGetParameterType : TGetParamTypeEvent Read FOnGetParamType Write FOnGetParamType;
     property OnGetParameterValue : TGetParamValueEvent Read FOnGetParamValue Write FOnGetParamValue;
+    Property OnGetDataset : TNotifyEvent Read FONGetDataset Write FOnGetDataset;
     Property Params : TParams Read FParams Write SetParams;
   Public
     Constructor Create(AOwner : TComponent); override;
@@ -72,6 +75,7 @@ Type
     Property OnGetNewID;
     property OnGetParameterType;
     property OnGetParameterValue;
+    Property OnGetDataset;
     Property Options;
     Property Params;
   end;
@@ -273,7 +277,12 @@ Var
 
 begin
   ft:=GetParamtype(P,AValue);
-  If ft<>ftUnknown then
+  If (AValue='') and (not (ft in [ftString,ftFixedChar,ftWideString,ftFixedWideChar])) then
+    begin
+    P.Clear;
+    exit;
+    end;
+  If (ft<>ftUnknown) then
     begin
     try
       case ft of
@@ -358,7 +367,10 @@ begin
     if not B then
       begin
       If (P.Name=IDFieldName) and DoNewID then
-        SetTypedParam(P,GetNewID)
+        begin
+        GetNewID;
+        SetTypedParam(P,FLastNewID)
+        end
       else If Adaptor.TryFieldValue(P.Name,S) then
         SetTypedParam(P,S)
       else If Adaptor.TryParamValue(P.Name,S) then
@@ -385,6 +397,8 @@ end;
 function TCustomSQLDBWebDataProvider.GetDataset: TDataset;
 begin
 {$ifdef wmdebug}SendDebug('Get dataset: checking dataset');{$endif}
+  If Assigned(FonGetDataset) then
+    FOnGetDataset(Self);
   CheckDataset;
   FLastNewID:='';
   Result:=FQuery;
@@ -394,12 +408,17 @@ begin
 {$ifdef wmdebug}SendDebug('Get dataset: done');{$endif}
 end;
 
-function TCustomSQLDBWebDataProvider.GetNewID: String;
-
+function TCustomSQLDBWebDataProvider.DoGetNewID: String;
 begin
   If Not Assigned(FOnGetNewID) then
     Raise EFPHTTPError.CreateFmt(SErrNoNewIDEvent,[Self.Name]);
   FOnGetNewID(Self,Result);
+end;
+
+function TCustomSQLDBWebDataProvider.GetNewID: String;
+
+begin
+  Result:=DoGetNewID;
   FLastNewID:=Result;
 end;
 

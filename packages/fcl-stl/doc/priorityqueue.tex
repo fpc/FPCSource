@@ -1,0 +1,44 @@
+\chapter{TPriorityQueue}
+
+Implements priority queue. It's container which allow insertions of elements and then retrieval of
+the biggest one.
+
+For specialization it needs two arguements. First is the type T of stored element. Second one is type
+comparator class, which should have class function \verb!c(a,b: T):boolean! which return true, when
+a is stricly less then b (or in other words, a should be poped out after b).
+
+Usage example:
+
+\lstinputlisting[language=Pascal]{priorityqueueexample.pp}
+
+Memory complexity:
+Since underlaying structure is TVector, memory complexity is same.
+
+Members list:
+
+\begin{longtable}{|m{10cm}|m{5cm}|}
+\hline
+Method & Complexity guarantees \\ \hline
+\multicolumn{2}{|m{15cm}|}{Description} \\ \hline\hline
+
+\verb!Create! & O(1) \\ \hline
+\multicolumn{2}{|m{15cm}|}{Constructor. Creates empty priority queue.} \\ \hline\hline
+
+\verb!function Size(): SizeUInt! & O(1) \\ \hline
+\multicolumn{2}{|m{15cm}|}{Returns number of elements in priority queue.} \\\hline\hline
+
+\verb!procedure Push(value: T)! &  Amortized
+O(lg N), some operations might take O(N) time, when underlaying array needs to be reallocated, but sequence of N
+operations takes O(N lg N) time. \\ \hline
+\multicolumn{2}{|m{15cm}|}{Inserts element at the back of queue.} \\\hline\hline
+
+\verb!procedure Pop()! & O(lg N) \\\hline
+\multicolumn{2}{|m{15cm}|}{Removes the biggest element from queue. If queue is empty does nothing.} \\\hline\hline
+
+\verb!function IsEmpty(): boolean! & O(1) \\ \hline
+\multicolumn{2}{|m{15cm}|}{Returns true when queue is empty.} \\\hline\hline
+
+\verb!function Top: T! & O(1) \\\hline
+\multicolumn{2}{|m{15cm}|}{Returns the biggest element from queue.} \\\hline
+
+\end{longtable}

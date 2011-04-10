@@ -657,7 +657,11 @@ end;
 destructor TIniFile.destroy;
 begin
   If FDirty and FCacheUpdates then
-    UpdateFile;
+    try
+      UpdateFile;
+    except
+      // Eat exception. Compatible to D7 behaviour, see comments to bug 19046
+    end;  
   inherited destroy;
 end;
 

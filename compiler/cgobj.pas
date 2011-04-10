@@ -451,6 +451,8 @@ unit cgobj;
 
           procedure g_incrrefcount(list : TAsmList;t: tdef; const ref: treference);
           procedure g_decrrefcount(list : TAsmList;t: tdef; const ref: treference);
+          procedure g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation;
+            const name: string);
           procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);
           procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);
 
@@ -3509,6 +3511,8 @@ implementation
           end
          else
           begin
+            if is_open_array(t) then
+              InternalError(201103054);
             reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
             a_loadaddr_ref_cgpara(list,href,cgpara2);
             a_loadaddr_ref_cgpara(list,ref,cgpara1);
@@ -3574,6 +3578,8 @@ implementation
           end
          else
           begin
+            if is_open_array(t) then
+              InternalError(201103053);
             reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
             a_loadaddr_ref_cgpara(list,href,cgpara2);
             a_loadaddr_ref_cgpara(list,ref,cgpara1);
@@ -3587,6 +3593,50 @@ implementation
         cgpara1.done;
       end;
 
+    procedure tcg.g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation; const name: string);
+      var
+        cgpara1,cgpara2,cgpara3: TCGPara;
+        href: TReference;
+        hreg, lenreg: TRegister;
+      begin
+        cgpara1.init;
+        cgpara2.init;
+        cgpara3.init;
+        paramanager.getintparaloc(pocall_default,1,cgpara1);
+        paramanager.getintparaloc(pocall_default,2,cgpara2);
+        paramanager.getintparaloc(pocall_default,3,cgpara3);
+
+        reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
+        if highloc.loc=LOC_CONSTANT then
+          a_load_const_cgpara(list,OS_INT,highloc.value+1,cgpara3)
+        else
+          begin
+            if highloc.loc in [LOC_REGISTER,LOC_CREGISTER] then
+              hreg:=highloc.register
+            else
+              begin
+                hreg:=getintregister(list,OS_INT);
+                a_load_loc_reg(list,OS_INT,highloc,hreg);
+              end;
+            { increment, converts high(x) to length(x) }
+            lenreg:=getintregister(list,OS_INT);
+            a_op_const_reg_reg(list,OP_ADD,OS_INT,1,hreg,lenreg);
+            a_load_reg_cgpara(list,OS_INT,lenreg,cgpara3);
+          end;
+
+        a_loadaddr_ref_cgpara(list,href,cgpara2);
+        a_loadaddr_ref_cgpara(list,ref,cgpara1);
+        paramanager.freecgpara(list,cgpara1);
+        paramanager.freecgpara(list,cgpara2);
+        paramanager.freecgpara(list,cgpara3);
+        allocallcpuregisters(list);
+        a_call_name(list,name,false);
+        deallocallcpuregisters(list);
+
+        cgpara3.done;
+        cgpara2.done;
+        cgpara1.done;
+      end;
 
     procedure tcg.g_initialize(list : TAsmList;t : tdef;const ref : treference);
       var
@@ -3605,6 +3655,8 @@ implementation
            a_load_const_ref(list,OS_ADDR,0,ref)
          else
            begin
+              if is_open_array(t) then
+                InternalError(201103052);
               reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
               a_loadaddr_ref_cgpara(list,href,cgpara2);
               a_loadaddr_ref_cgpara(list,ref,cgpara1);
@@ -3638,6 +3690,8 @@ implementation
             end
          else
            begin
+              if is_open_array(t) then
+                InternalError(201103051);
               reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
               a_loadaddr_ref_cgpara(list,href,cgpara2);
               a_loadaddr_ref_cgpara(list,ref,cgpara1);

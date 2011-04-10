@@ -5,7 +5,7 @@ program lesson6;
 {$mode objfpc}
 
 uses
-  cmem, ctypes, gccore;
+  cmem, ctypes, gctypes, gccore;
 
 {$include inc/NeHe.tpl.inc}
 {$link build/NeHe.tpl.o}

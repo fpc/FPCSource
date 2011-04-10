@@ -5,10 +5,9 @@ const fppkg_default : array[0..0,1..240] of char=(
 {$endif Delphi}
   '[Defaults]'#010+
   'ConfigVersion=4'#010+
-  'GlobalInstallDir=%basepath%'#010+
-  'LocalInstallDir={LocalRepository}lib/%fpcversion%/'#010+
+  'GlobalPrefix=%GlobalPrefix%'#010+
+  'LocalPrefix={LocalRepository}'#010+
   'Compiler=%fpcbin%'#010+
   'OS=%fpctargetos%'#010+
-  'CPU=%fpctarget%'#010+
-  'Version=%fpcversion%'#010
+  'CPU=%fpctarget%'#010
 );

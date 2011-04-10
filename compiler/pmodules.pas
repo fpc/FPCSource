@@ -29,7 +29,6 @@ interface
     procedure proc_package;
     procedure proc_program(islibrary : boolean);
 
-
 implementation
 
     uses
@@ -47,13 +46,8 @@ implementation
        pexports,
        objcgutl,
        wpobase,
-       scanner,pbase,pexpr,psystem,psub,pdecsub,ptype
-       ,cpuinfo
-{$ifdef i386}
-       { fix me! }
-       ,cpubase
-{$endif i386}
-       ;
+       scanner,pbase,pexpr,psystem,psub,pdecsub,ptype,
+       cpuinfo;
 
 
     procedure create_objectfile;
@@ -715,7 +709,7 @@ implementation
           end;
 
         { CPU targets with microcontroller support can add a controller specific unit }
-{$if defined(ARM)}
+{$if defined(ARM) or defined(AVR)}
         if (target_info.system in systems_embedded) and (current_settings.controllertype<>ct_none) then
           AddUnit(controllerunitstr[current_settings.controllertype]);
 {$endif ARM}
@@ -1908,11 +1902,7 @@ implementation
 
          new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
          current_asmdata.asmlists[al_procedures].concat(tai_symbol.createname_global('_DLLMainCRTStartup',AT_FUNCTION,0));
-{$ifdef i386}
-         { fix me! }
-         current_asmdata.asmlists[al_procedures].concat(Taicpu.Op_const_reg(A_MOV,S_L,1,NR_EAX));
-         current_asmdata.asmlists[al_procedures].concat(Taicpu.Op_const(A_RET,S_W,12));
-{$endif i386}
+         gen_fpc_dummy(current_asmdata.asmlists[al_procedures]);
          current_asmdata.asmlists[al_procedures].concat(tai_const.createname('_FPCDummy',0));
 
          { leave when we got an error }
@@ -2174,7 +2164,7 @@ implementation
 
          { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
          maybe_load_got;
-  
+
          { create whole program optimisation information }
          current_module.wpoinfo:=tunitwpoinfo.create;
 
@@ -2362,6 +2352,9 @@ implementation
          InsertResourceTablesTable;
          InsertWideInitsTablesTable;
          InsertMemorySizes;
+
+         if target_info.system in systems_interrupt_table then
+           InsertInterruptTable;
 
          { Insert symbol to resource info }
          InsertResourceInfo(resources_used);

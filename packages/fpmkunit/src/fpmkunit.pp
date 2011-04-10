@@ -69,7 +69,7 @@ Type
     linux,go32v2,win32,os2,freebsd,beos,netbsd,
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
     palmos,macos,darwin,emx,watcom,morphos,netwlibc,
-    win64,wince,gba,nds,embedded,symbian
+    win64,wince,gba,nds,embedded,symbian,haiku
   );
   TOSes = Set of TOS;
 
@@ -114,7 +114,7 @@ Const
 
   AllOSes = [Low(TOS)..High(TOS)];
   AllCPUs = [Low(TCPU)..High(TCPU)];
-  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris];
+  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku];
   AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin];
   AllWindowsOSes  = [Win32,Win64,WinCE];
 
@@ -148,7 +148,8 @@ Const
     { gba    }  ( false, false, false, false, false, false, true,  false, false, false),
     { nds    }  ( false, false, false, false, false, false, true,  false, false, false),
     { embedded }( false, true,  true,  true,  true,  true,  true,  true,  true,  true ),
-    { symbian } ( false, true,  false, false, false, false, true,  false, false, false)
+    { symbian } ( false, true,  false, false, false, false, true,  false, false, false),
+    { haiku }   ( false, true,  false, false, false, false, false, false, false, false) 
   );
 
   // Useful
@@ -4462,6 +4463,7 @@ end;
 function TBuildEngine.CheckExternalPackage(Const APackageName : String):TPackage;
 var
   S : String;
+  F : String;
   I : Integer;
 begin
   // Already checked?
@@ -4481,11 +4483,25 @@ begin
       Log(vldebug, SDbgExternalDependency, [APackageName,S]);
       Result.FTargetState:=tsInstalled;
       // Load unit config if it exists
-      S:=IncludeTrailingPathDelimiter(S)+UnitConfigFile;
-      if FileExists(S) then
+      F:=IncludeTrailingPathDelimiter(S)+UnitConfigFile;
+      if FileExists(F) then
         begin
-          Log(vlDebug, Format(SDbgLoading, [S]));
-          Result.LoadUnitConfigFromFile(S);
+          Log(vlDebug, Format(SDbgLoading, [F]));
+          Result.LoadUnitConfigFromFile(F);
+        end
+      else if FileExists(IncludeTrailingPathDelimiter(S)+FPMakePPFile) then
+        begin
+          // The package is not installed, but the source-path is given.
+          // It is an external package so it is impossible to compile it, so
+          // assume that it has been compiled earlier.
+          F := IncludeTrailingPathDelimiter(Result.UnitDir) + Result.GetUnitsOutputDir(Defaults.CPU,Defaults.OS);
+          // If the unit-directory does not exist, you know for sure that
+          // the package is not compiled
+          if DirectoryExists(F) then
+            begin
+              Result.UnitDir := F;
+              Result.FTargetState:=tsCompiled;
+            end;
         end;
       // Check recursive implicit dependencies
       CompileDependencies(Result);

@@ -229,17 +229,6 @@ implementation
              exit;
           end;
 
-         if (right.nodetype=typen) then
-           begin
-             { we need to create a setconstn }
-             pst:=createsetconst(tsetdef(ttypenode(right).resultdef));
-             t:=csetconstnode.create(pst,ttypenode(right).resultdef);
-             dispose(pst);
-             right.free;
-             right:=t;
-             typecheckpass(right);
-           end;
-
          typecheckpass(left);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then

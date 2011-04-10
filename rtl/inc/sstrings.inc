@@ -455,8 +455,6 @@ type
   end;
 
 var
-  p:Pstring;
-
   enum_o2s : Penum_ord_to_string;
   header:Penum_typeinfo;
   body:Penum_typedata;
@@ -1339,8 +1337,6 @@ var l,h,m:cardinal;
     sorted_array:^Tsorted_array;
     spaces:byte;
     t:shortstring;
-
-label error;
 
 begin
   {Val for numbers accepts spaces at the start, so lets do the same

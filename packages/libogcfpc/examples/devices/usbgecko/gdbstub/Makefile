@@ -283,7 +283,7 @@ override CLEAN_FILES+=*.elf *.o *.s *.h *.bin *.map $(BUILD)/* $(INC)/*
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),powerpc-wii)
-override COMPILER_OPTIONS+=-g -Xm
+override COMPILER_OPTIONS+=-g -Xm  -k--gc-sections
 endif
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)

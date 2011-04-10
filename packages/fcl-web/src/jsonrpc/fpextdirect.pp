@@ -130,6 +130,7 @@ Type
     Property DispatchOptions;
     Property APIPath;
     Property RouterPath;
+    Property CreateSession;
     Property NameSpace;
   end;
 

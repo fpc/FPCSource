@@ -26,7 +26,7 @@ unit finput;
 interface
 
     uses
-      cutils,cclasses;
+      cutils,cclasses,cstreams;
 
     const
        InputFileBufSize=32*1024+1;
@@ -91,7 +91,7 @@ interface
          function fileclose: boolean; override;
          procedure filegettime; override;
        private
-         f            : file;       { current file handle }
+         f            : TCCustomFileStream;       { current file handle }
        end;
 
        tinputfilemanager = class
@@ -457,47 +457,46 @@ uses
             exit;
           end;
         { Open file }
-        ofm:=filemode;
-        filemode:=0;
-        Assign(f,filename);
-        {$I-}
-         reset(f,1);
-        {$I+}
-        filemode:=ofm;
-        fileopen:=(ioresult=0);
+        fileopen:=false;
+        try
+          f:=CFileStreamClass.Create(filename,fmOpenRead);
+          fileopen:=true;
+        except
+        end;
       end;
 
 
     function tdosinputfile.fileseek(pos: longint): boolean;
       begin
-        {$I-}
-         seek(f,Pos);
-        {$I+}
-        fileseek:=(ioresult=0);
+        fileseek:=false;
+        try
+          f.position:=Pos;
+          fileseek:=true;
+        except
+        end;
       end;
 
 
     function tdosinputfile.fileread(var databuf; maxsize: longint): longint;
-      var
-        w : longint;
       begin
-        blockread(f,databuf,maxsize,w);
-        fileread:=w;
+        fileread:=f.Read(databuf,maxsize);
       end;
 
 
     function tdosinputfile.fileeof: boolean;
       begin
-        fileeof:=eof(f);
+        fileeof:=f.eof();
       end;
 
 
     function tdosinputfile.fileclose: boolean;
       begin
-        {$I-}
-         system.close(f);
-        {$I+}
-        fileclose:=(ioresult=0);
+        fileclose:=false;
+        try
+          f.Free;
+          fileclose:=true;
+        except
+        end;
       end;
 
 

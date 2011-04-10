@@ -1,0 +1,76 @@
+object SessionManagement: TSessionManagement
+  OnCreate = DataModuleCreate
+  OldCreateOrder = False
+  DispatchOptions = [jdoSearchRegistry, jdoSearchOwner, jdoJSONRPC1, jdoJSONRPC2, jdoNotifications]
+  APIPath = 'API'
+  RouterPath = 'router'
+  Height = 200
+  HorizontalOffset = 582
+  VerticalOffset = 455
+  Width = 295
+  object Login: TJSONRPCHandler
+    OnExecute = LoginExecute
+    Options = []
+    ParamDefs = <    
+      item
+        Name = 'UserName'
+      end    
+      item
+        Name = 'Password'
+      end>
+    left = 24
+    top = 24
+  end
+  object IBConnection1: TIBConnection
+    Connected = False
+    LoginPrompt = False
+    KeepConnection = False
+    Transaction = SQLTransaction1
+    LogEvents = []
+    left = 24
+    top = 117
+  end
+  object SQLTransaction1: TSQLTransaction
+    Active = False
+    Action = caNone
+    Database = IBConnection1
+    left = 26
+    top = 72
+  end
+  object QAuthenticate: TSQLQuery
+    AutoCalcFields = False
+    Database = IBConnection1
+    Transaction = SQLTransaction1
+    ReadOnly = False
+    SQL.Strings = (
+      'SELECT'
+      '  U_ID, U_NAME'
+      'From'
+      '  USERS'
+      'WHERE'
+      ' (U_LOGIN = :LOGIN)'
+      '  AND (U_PASSWORD=:PASSWORD);'
+      ''
+    )
+    Params = <    
+      item
+        DataType = ftUnknown
+        Name = 'LOGIN'
+        ParamType = ptUnknown
+      end    
+      item
+        DataType = ftUnknown
+        Name = 'PASSWORD'
+        ParamType = ptUnknown
+      end>
+    left = 128
+    top = 117
+  end
+  object Logout: TJSONRPCHandler
+    OnExecute = LogoutExecute
+    Options = []
+    ParamDefs = <>
+    left = 120
+    top = 16
+  end
+end

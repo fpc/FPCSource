@@ -19,85 +19,85 @@
 type
   TRTTIProc=procedure(Data,TypeInfo:Pointer);
 
+  PRecordElement=^TRecordElement;
+  TRecordElement=packed record
+    TypeInfo: Pointer;
+    Offset: Longint;
+  end;
+
+  PRecordInfo=^TRecordInfo;
+  TRecordInfo=packed record
+    Size: Longint;
+    Count: Longint;
+    { Elements: array[count] of TRecordElement }
+  end;
+
+  PArrayInfo=^TArrayInfo;
+  TArrayInfo=packed record
+    ElSize: SizeInt;
+    ElCount: SizeInt;
+    ElInfo: Pointer;
+  end;
+
+
+function RTTIArraySize(typeInfo: Pointer): SizeInt;
+begin
+  typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+  result:=PArrayInfo(typeInfo)^.ElSize * PArrayInfo(typeInfo)^.ElCount;
+end;
+
+function RTTIRecordSize(typeInfo: Pointer): SizeInt;
+begin
+  typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+  result:=PRecordInfo(typeInfo)^.Size;
+end;
+
+function RTTISize(typeInfo: Pointer): SizeInt;
+begin
+  case PByte(typeinfo)^ of
+    tkAString,tkWString,tkUString,
+    tkInterface,tkDynarray:
+      result:=sizeof(Pointer);
+{$ifdef FPC_HAS_FEATURE_VARIANTS}
+    tkVariant:
+      result:=sizeof(TVarData);
+{$endif FPC_HAS_FEATURE_VARIANTS}
+    tkArray:
+      result:=RTTIArraySize(typeinfo);
+    tkObject,tkRecord:
+      result:=RTTIRecordSize(typeinfo);
+  else
+    result:=-1;
+  end;
+end;
+
 { if you modify this procedure, fpc_copy must be probably modified as well }
 procedure RecordRTTI(Data,TypeInfo:Pointer;rttiproc:TRTTIProc);
-{
-  A record is designed as follows :
-    1    : tkrecord
-    2    : Length of name string (n);
-    3    : name string;
-    3+n  : record size;
-    7+n  : number of elements (N)
-    11+n : N times : Pointer to type info
-                     Offset in record
-}
 var
-  Temp : pbyte;
-  namelen : byte;
   count,
-  offset,
   i : longint;
-  info : pointer;
 begin
-  Temp:=PByte(TypeInfo);
-  inc(Temp);
-  { Skip Name }
-  namelen:=Temp^;
-  inc(temp,namelen+1);
-  temp:=aligntoptr(temp);
-  { Skip size }
-  inc(Temp,4);
-  { Element count }
-  Count:=PLongint(Temp)^;
-  inc(Temp,sizeof(Count));
+  typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+  Count:=PRecordInfo(typeInfo)^.Count;
+  Inc(PRecordInfo(typeInfo));
   { Process elements }
   for i:=1 to count Do
     begin
-      Info:=PPointer(Temp)^;
-      inc(Temp,sizeof(Info));
-      Offset:=PLongint(Temp)^;
-      inc(Temp,sizeof(Offset));
-      rttiproc (Data+Offset,Info);
+      rttiproc (Data+PRecordElement(typeInfo)^.Offset,PRecordElement(typeInfo)^.TypeInfo);
+      Inc(PRecordElement(typeInfo));
     end;
 end;
 
 
 { if you modify this procedure, fpc_copy must be probably modified as well }
 procedure ArrayRTTI(Data,TypeInfo:Pointer;rttiproc:TRTTIProc);
-{
-  An array is designed as follows :
-   1    : tkArray;
-   2    : length of name string (n);
-   3    : NAme string
-   3+n  : Element Size
-   7+n  : Number of elements
-   11+n : Pointer to type of elements
-}
 var
-  Temp : pbyte;
-  namelen : byte;
-  count,
-  size,
   i : SizeInt;
-  info : pointer;
 begin
-  Temp:=PByte(TypeInfo);
-  inc(Temp);
-  { Skip Name }
-  namelen:=Temp^;
-  inc(temp,namelen+1);
-  temp:=aligntoptr(temp);
-  { Element size }
-  size:=PSizeInt(Temp)^;
-  inc(Temp,sizeof(Size));
-  { Element count }
-  Count:=PSizeInt(Temp)^;
-  inc(Temp,sizeof(Count));
-  Info:=PPointer(Temp)^;
-  inc(Temp,sizeof(Info));
+  typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
   { Process elements }
-  for I:=0 to Count-1 do
-    rttiproc(Data+(I*size),Info);
+  for I:=0 to PArrayInfo(typeInfo)^.ElCount-1 do
+    rttiproc(Data+(I*PArrayInfo(typeInfo)^.ElSize),PArrayInfo(typeInfo)^.ElInfo);
 end;
 
 
@@ -268,13 +268,12 @@ Function fpc_Copy_internal (Src, Dest, TypeInfo : Pointer) : SizeInt;[external n
 
 Function fpc_Copy (Src, Dest, TypeInfo : Pointer) : SizeInt;[Public,alias : 'FPC_COPY']; compilerproc;
 var
+  ArrayInfo: PArrayInfo;
   Temp : pbyte;
-  namelen : byte;
   copiedsize,
   expectedoffset,
   count,
   offset,
-  size,
   i : SizeInt;
   info : pointer;
 begin
@@ -300,57 +299,31 @@ begin
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
     tkArray:
       begin
-        Temp:=PByte(TypeInfo);
-        inc(Temp);
-        { Skip Name }
-        namelen:=Temp^;
-        inc(temp,namelen+1);
-        temp:=aligntoptr(temp);
-
-        { Element size }
-        size:=PSizeInt(Temp)^;
-        inc(Temp,sizeof(Size));
-
-        { Element count }
-        Count:=PSizeInt(Temp)^;
-        inc(Temp,sizeof(Count));
-        Info:=PPointer(Temp)^;
-        inc(Temp,sizeof(Info));
+        ArrayInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
         { Process elements }
-        for I:=0 to Count-1 do
-          fpc_Copy_internal(Src+(I*size),Dest+(I*size),Info);
-        Result:=size*count;
+        for I:=0 to ArrayInfo^.ElCount-1 do
+          fpc_Copy_internal(Src+(I*ArrayInfo^.ElSize),Dest+(I*ArrayInfo^.ElSize),ArrayInfo^.ElInfo);
+        Result:=ArrayInfo^.ElSize*ArrayInfo^.ElCount;
       end;
 {$ifdef FPC_HAS_FEATURE_OBJECTS}
     tkobject,
 {$endif FPC_HAS_FEATURE_OBJECTS}
     tkrecord:
       begin
-        Temp:=PByte(TypeInfo);
-        inc(Temp);
-        { Skip Name }
-        namelen:=Temp^;
-        inc(temp,namelen+1);
-        temp:=aligntoptr(temp);
+        Temp:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
 
-        Result:=plongint(temp)^;
-
-        { Skip size }
-        inc(Temp,4);
-
-        { Element count }
-        Count:=PLongint(Temp)^;
-        inc(Temp,sizeof(longint));
+        Result:=PRecordInfo(Temp)^.Size;
+        Count:=PRecordInfo(Temp)^.Count;
+        Inc(PRecordInfo(Temp));
         expectedoffset:=0;
         { Process elements with rtti }
         for i:=1 to count Do
           begin
-            Info:=PPointer(Temp)^;
-            inc(Temp,sizeof(Info));
-            Offset:=PLongint(Temp)^;
+            Info:=PRecordElement(Temp)^.TypeInfo;
+            Offset:=PRecordElement(Temp)^.Offset;
+            Inc(PRecordElement(Temp));
             if Offset>expectedoffset then
               move((Src+expectedoffset)^,(Dest+expectedoffset)^,Offset-expectedoffset);
-            inc(Temp,sizeof(longint));
             copiedsize:=fpc_Copy_internal(Src+Offset,Dest+Offset,Info);
             expectedoffset:=Offset+copiedsize;
           end;
@@ -392,24 +365,44 @@ begin
 end;
 
 
-procedure fpc_initialize_array(data,typeinfo : pointer;count,size : SizeInt); compilerproc;
+procedure fpc_initialize_array(data,typeinfo : pointer;count : SizeInt); [public,alias:'FPC_INITIALIZE_ARRAY'] compilerproc;
   var
-     i : SizeInt;
+     i, size : SizeInt;
   begin
-     if not(PByte(typeinfo)^ in [tkInteger,tkChar,tkEnumeration,tkFloat,tkSet,
-       tkMethod,tkSString,tkLString,tkWChar,tkBool,tkInt64,tkQWord]) then
+     size:=RTTISize(typeinfo);
+     if size>0 then
        for i:=0 to count-1 do
          int_initialize(data+size*i,typeinfo);
   end;
 
 
-procedure fpc_finalize_array(data,typeinfo : pointer;count,size : SizeInt); [Public,Alias:'FPC_FINALIZEARRAY'];  compilerproc;
+procedure fpc_finalize_array(data,typeinfo : pointer;count : SizeInt); [Public,Alias:'FPC_FINALIZE_ARRAY'];  compilerproc;
   var
-     i : SizeInt;
+     i, size: SizeInt;
   begin
-     if not(PByte(typeinfo)^ in [tkInteger,tkChar,tkEnumeration,tkFloat,tkSet,
-       tkMethod,tkSString,tkLString,tkWChar,tkBool,tkInt64,tkQWord]) then
+     size:=RTTISize(typeinfo);
+     if size>0 then
        for i:=0 to count-1 do
          int_finalize(data+size*i,typeinfo);
+  end;
+
+procedure fpc_addref_array(data,typeinfo: pointer; count: SizeInt); [public,alias:'FPC_ADDREF_ARRAY']; compilerproc;
+  var
+    i, size: SizeInt;
+  begin
+    size:=RTTISize(typeinfo);
+    if size>0 then
+      for i:=0 to count-1 do
+        int_addref(data+size*i,typeinfo);
+  end;
+
+procedure fpc_decref_array(data,typeinfo: pointer; count: SizeInt); [public,alias:'FPC_DECREF_ARRAY']; compilerproc;
+  var
+    i, size: SizeInt;
+  begin
+    size:=RTTISize(typeinfo);
+    if size>0 then
+      for i:=0 to count-1 do
+        int_decref(data+size*i,typeinfo);
   end;
 

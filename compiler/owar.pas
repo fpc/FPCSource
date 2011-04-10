@@ -262,11 +262,11 @@ implementation
 
     procedure tarobjectwriter.writear;
       var
-        arf      : TCFileStream;
+        arf      : TCCustomFileStream;
         fixup,l,
         relocs,i : longint;
       begin
-        arf:=TCFileStream.Create(arfn,fmCreate);
+        arf:=CFileStreamClass.Create(arfn,fmCreate);
         if CStreamError<>0 then
           begin
              Message1(exec_e_cant_create_archivefile,arfn);

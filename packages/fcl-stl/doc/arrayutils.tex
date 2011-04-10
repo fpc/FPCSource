@@ -1,0 +1,47 @@
+\chapter{TArrayUtils}
+
+Set of utilities for manipulating arrays data.
+
+Takes 3 arguements for specialization. First one is type of array (can be anything, which is
+accesible by [] operator, e. g. ordinary array, vector, ...), second one is type of array element.
+
+%Usage example for sorting:
+
+%\lstinputlisting[language=Pascal]{sortingexample.pp}
+
+Members list:
+
+\begin{longtable}{|m{10cm}|m{5cm}|}
+\hline
+Method & Complexity guarantees \\ \hline
+\multicolumn{2}{|m{15cm}|}{Description} \\ \hline\hline
+
+\verb!procedure RandomShuffle(arr: TArr, size:SizeUint)! &
+O(N)\\ \hline
+\multicolumn{2}{|m{15cm}|}{Shuffles elements in array in random way} \\\hline\hline
+
+\end{longtable}\chapter{TOrderingArrayUtils}
+
+Set of utilities for manipulating arrays data.
+
+Takes 3 arguements for specialization. First one is type of array (can be anything, which is
+accesible by [] operator, e. g. ordinary array, vector, ...), second one is type of array element,
+third one is comparator class (see TPriorityQueue for definition of comparator class).
+
+Usage example for sorting:
+
+\lstinputlisting[language=Pascal]{sortingexample.pp}
+
+Members list:
+
+\begin{longtable}{|m{10cm}|m{5cm}|}
+\hline
+Method & Complexity guarantees \\ \hline
+\multicolumn{2}{|m{15cm}|}{Description} \\ \hline\hline
+
+\verb!procedure Sort(arr: TArr, size:SizeUint)! &
+O(N log N) average and worst case. Uses QuickSort, backed up by HeapSort, when QuickSort ends up in
+using too much recursion.\\ \hline
+\multicolumn{2}{|m{15cm}|}{Sort array arr, with specified size. Array indexing should be 0 based.} \\\hline\hline
+
+\end{longtable}

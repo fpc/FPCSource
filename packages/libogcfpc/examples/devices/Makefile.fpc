@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=network usbgecko usbkeyboard
+dirs=network usbkeyboard usbgecko 
 
 [require]
 packages=libogcfpc

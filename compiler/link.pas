@@ -150,7 +150,7 @@ Implementation
       begin
         result:=0;
         bufsize:=64*1024;
-	      fs:=TCFileStream.Create(fn,fmOpenRead or fmShareDenyNone);
+	      fs:=CFileStreamClass.Create(fn,fmOpenRead or fmShareDenyNone);
 	      if CStreamError<>0 then
 	        begin
 	          fs.Free;
@@ -1050,6 +1050,9 @@ Implementation
         exeoutput.FixupSymbols;
         if ErrorCount>0 then
           goto myexit;
+
+        { parse linker options specific for output format }
+        exeoutput.ParseScript (linkscript);
 
         { Create .exe sections and add .o sections }
         ParseScript_Order;

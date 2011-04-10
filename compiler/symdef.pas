@@ -76,6 +76,7 @@ interface
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
           function  rtti_mangledname(rt:trttitype):string;override;
+          function  OwnerHierarchyName: string; override;
           function  in_currentunit: boolean;
           { regvars }
           function is_intregable : boolean;
@@ -550,6 +551,8 @@ interface
           interfacedef : boolean;
           { true if the procedure has a forward declaration }
           hasforward  : boolean;
+          { interrupt vector }
+          interruptvector : longint;
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -1026,6 +1029,22 @@ implementation
           result:=make_mangledname(prefix,owner,typesym.name)
         else
           result:=make_mangledname(prefix,findunitsymtable(owner),'DEF'+tostr(DefId))
+      end;
+
+
+    function tstoreddef.OwnerHierarchyName: string;
+      var
+        tmp: tdef;
+      begin
+        tmp:=self;
+        result:='';
+        repeat
+          if tmp.owner.symtabletype in [ObjectSymtable,recordsymtable] then
+            tmp:=tdef(tmp.owner.defowner)
+          else
+            break;
+          result:=tabstractrecorddef(tmp).objrealname^+'.'+result;
+        until tmp=nil;
       end;
 
 
@@ -2684,15 +2703,7 @@ implementation
       var
         tmp: tabstractrecorddef;
       begin
-        Result:=objrealname^;
-        tmp:=self;
-        repeat
-          if tmp.owner.symtabletype in [ObjectSymtable,recordsymtable] then
-            tmp:=tabstractrecorddef(tmp.owner.defowner)
-          else
-            break;
-          Result:=tmp.objrealname^+'.'+Result;
-        until tmp=nil;
+        Result:=OwnerHierarchyName+objrealname^;
       end;
 
     function tabstractrecorddef.search_enumerator_get: tprocdef;
@@ -3322,6 +3333,7 @@ implementation
 {$ifdef i386}
           fpu_used:=maxfpuregs;
 {$endif i386}
+         interruptvector:=-1;
       end;
 
 
@@ -3360,6 +3372,8 @@ implementation
          else
            import_name:=nil;
          import_nr:=ppufile.getword;
+         if target_info.system in systems_interrupt_table then
+           interruptvector:=ppufile.getlongint;
          if (po_msgint in procoptions) then
            messageinf.i:=ppufile.getlongint;
          if (po_msgstr in procoptions) then
@@ -3496,6 +3510,8 @@ implementation
          if po_has_importname in procoptions then
            ppufile.putstring(import_name^);
          ppufile.putword(import_nr);
+         if target_info.system in systems_interrupt_table then
+           ppufile.putlongint(interruptvector);
          if (po_msgint in procoptions) then
            ppufile.putlongint(messageinf.i);
          if (po_msgstr in procoptions) then

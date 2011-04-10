@@ -48,6 +48,13 @@ const
   CL_GL_TEXTURE_TARGET      = $2004;
   CL_GL_MIPMAP_LEVEL        = $2005;
 
+  CL_GL_CONTEXT_KHR         = $2008;
+  CL_EGL_DISPLAY_KHR        = $2009;
+  CL_GLX_DISPLAY_KHR        = $200A;
+  CL_WGL_HDC_KHR            = $200B;
+  CL_CGL_SHAREGROUP_KHR     = $200C;
+
+
 function clCreateFromGLBuffer(context: cl_context; falgs: cl_mem_flags;
   bufobj: GLuint; var errcode_ret: cl_int
   ): cl_mem; cdecl; external name 'clCreateFromGLBuffer';

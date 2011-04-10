@@ -259,7 +259,7 @@ implementation
 
     function TGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       const
-        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
+        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text',
           '.data',
 { why doesn't .rodata work? (FK) }
@@ -277,7 +277,7 @@ implementation
 {$if defined(m68k)} { Amiga/m68k GNU AS doesn't seem to like .rodata (KB) }
           '.data',
 {$else}
-    '.rodata',
+          '.rodata',
 {$endif}
           '.bss',
           '.threadvar',
@@ -331,7 +331,7 @@ implementation
           '.obcj_nlcatlist',
           '.objc_protolist'
         );
-        secnames_pic : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
+        secnames_pic : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text',
           '.data.rel',
           '.data.rel',
@@ -419,6 +419,10 @@ implementation
           (target_info.system=system_i386_go32v2) then
           secname:='.data';
 
+        { section type user gives the user full controll on the section name }
+        if atype=sec_user then
+          secname:=aname;
+
         { For bss we need to set some flags that are target dependent,
           it is easier to disable it for smartlinking. It doesn't take up
           filespace }
@@ -426,6 +430,7 @@ implementation
            create_smartlink_sections and
            (aname<>'') and
            (atype<>sec_toc) and
+           (atype<>sec_user) and
            { on embedded systems every byte counts, so smartlink bss too }
            ((atype<>sec_bss) or (target_info.system in systems_embedded)) then
           begin
@@ -1513,6 +1518,7 @@ implementation
     const
 (* Translation table - replace unsupported section types with basic ones. *)
         SecXTable: array[TAsmSectionType] of TAsmSectionType = (
+         sec_none,
          sec_none,
          sec_code,
          sec_data,

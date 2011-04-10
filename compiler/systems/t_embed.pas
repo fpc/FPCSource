@@ -267,7 +267,7 @@ begin
       Add('{');
       Add('     .text :');
       Add('    {');
-      Add('    *(.init, .init.*)');
+      Add('    KEEP(*(.init, .init.*))');
       Add('    *(.text, .text.*)');
       Add('    *(.strings)');
       Add('    *(.rodata, .rodata.*)');

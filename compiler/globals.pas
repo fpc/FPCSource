@@ -26,7 +26,7 @@ unit globals;
 interface
 
     uses
-{$ifdef win32}
+{$ifdef windows}
       windows,
 {$endif}
 {$ifdef os2}
@@ -477,6 +477,13 @@ implementation
 {$ifdef macos}
       macutils,
 {$endif}
+{$ifdef mswindows}
+{$ifdef VER2_4}
+      cwindirs,
+{$else VER2_4}
+      windirs,
+{$endif VER2_4}
+{$endif}
       comphook;
 
 {****************************************************************************
@@ -718,7 +725,18 @@ implementation
                           Default Macro Handling
 ****************************************************************************}
 
+
      procedure DefaultReplacements(var s:ansistring);
+{$ifdef mswindows}
+       procedure ReplaceSpecialFolder(const MacroName: string; const ID: integer);
+         begin
+           // Only try to receive the special folders (and thus dynamically
+           // load shfolder.dll) when that's needed.
+           if pos(MacroName,s)>0 then
+             Replace(s,MacroName,GetWindowsSpecialDir(ID));
+         end;
+
+{$endif mswindows}
        var
          envstr: string;
          envvalue: pchar;
@@ -734,6 +752,15 @@ implementation
            Replace(s,'$FPCTARGET',target_os_string)
          else
            Replace(s,'$FPCTARGET',target_full_string);
+{$ifdef mswindows}
+         ReplaceSpecialFolder('$LOCAL_APPDATA',CSIDL_LOCAL_APPDATA);
+         ReplaceSpecialFolder('$APPDATA',CSIDL_APPDATA);
+         ReplaceSpecialFolder('$COMMON_APPDATA',CSIDL_COMMON_APPDATA);
+         ReplaceSpecialFolder('$PERSONAL',CSIDL_PERSONAL);
+         ReplaceSpecialFolder('$PROGRAM_FILES',CSIDL_PROGRAM_FILES);
+         ReplaceSpecialFolder('$PROGRAM_FILES_COMMON',CSIDL_PROGRAM_FILES_COMMON);
+         ReplaceSpecialFolder('$PROFILE',CSIDL_PROFILE);
+{$endif mswindows}
          { Replace environment variables between dollar signs }
          i := pos('$',s);
          while i>0 do
@@ -980,7 +1007,8 @@ implementation
          'SAFECALL',
          'STDCALL',
          'SOFTFLOAT',
-         'MWPASCAL'
+         'MWPASCAL',
+         'INTERRUPT'
         );
       var
         t  : tproccalloption;

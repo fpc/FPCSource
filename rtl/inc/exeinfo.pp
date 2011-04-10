@@ -170,38 +170,54 @@ type
 
 {$ifdef netware}
 
-const SIZE_OF_NLM_INTERNAL_FIXED_HEADER = 130;
-      SIZE_OF_NLM_INTERNAL_VERSION_HEADER = 32;
-      SIZE_OF_NLM_INTERNAL_EXTENDED_HEADER = 124;
-
-function loadNetwareNLM:boolean;
-var valid : boolean;
-    name  : string;
-    StabLength,
-    StabStrLength,
-    alignAmount,
-    hdrLength,
-    dataOffset,
-    dataLength : longint;
-
-  function getByte:byte;
+function getByte(var f:file):byte;
   begin
     BlockRead (f,getByte,1);
   end;
 
-  procedure Skip (bytes : longint);
+  procedure Skip (var f:file; bytes : longint);
   var i : longint;
   begin
-    for i := 1 to bytes do getbyte;
+    for i := 1 to bytes do getbyte(f);
   end;
+  
+  function get0String (var f:file) : string;
+  var c : char;
+  begin
+    get0String := '';
+    c := char (getbyte(f));
+    while (c <> #0) do
+    begin
+      get0String := get0String + c;
+      c := char (getbyte(f));
+    end;
+  end;
+  
+  function getint32 (var f:file): longint;
+  begin
+    blockread (F, getint32, 4);
+  end;
+
+
+const SIZE_OF_NLM_INTERNAL_FIXED_HEADER = 130;
+      SIZE_OF_NLM_INTERNAL_VERSION_HEADER = 32;
+      SIZE_OF_NLM_INTERNAL_EXTENDED_HEADER = 124;
+
+function openNetwareNLM(var e:TExeFile):boolean;
+var valid : boolean;
+    name  : string;
+    hdrLength,
+    dataOffset,
+    dataLength : longint;
+  
 
   function getLString : String;
   var Res:string;
   begin
-    blockread (F, res, 1);
+    blockread (e.F, res, 1);
     if length (res) > 0 THEN
-      blockread (F, res[1], length (res));
-    getbyte;
+      blockread (e.F, res[1], length (res));
+    getbyte(e.f);
     getLString := res;
   end;
 
@@ -210,42 +226,27 @@ var valid : boolean;
   begin
     getFixString := '';
     for I := 1 to Len do
-      getFixString := getFixString + char (getbyte);
+      getFixString := getFixString + char (getbyte(e.f));
   end;
 
-  function get0String : string;
-  var c : char;
-  begin
-    get0String := '';
-    c := char (getbyte);
-    while (c <> #0) do
-    begin
-      get0String := get0String + c;
-      c := char (getbyte);
-    end;
-  end;
 
   function getword : word;
   begin
-    blockread (F, getword, 2);
+    blockread (e.F, getword, 2);
   end;
 
-  function getint32 : longint;
-  begin
-    blockread (F, getint32, 4);
-  end;
+  
 
 begin
-  processaddress := 0;
-  LoadNetwareNLM:=false;
-  stabofs:=-1;
-  stabstrofs:=-1;
-  { read and check header }
-  Skip (SIZE_OF_NLM_INTERNAL_FIXED_HEADER);
+  e.sechdrofs := 0;
+  openNetwareNLM:=false;
+  
+  // read and check header
+  Skip (e.f,SIZE_OF_NLM_INTERNAL_FIXED_HEADER);
   getLString;  // NLM Description
-  getInt32;    // Stacksize
-  getInt32;    // Reserved
-  skip(5);     // old Thread Name
+  getInt32(e.f);    // Stacksize
+  getInt32(e.f);    // Reserved
+  skip(e.f,5);     // old Thread Name
   getLString;  // Screen Name
   getLString;  // Thread Name
   hdrLength := -1;
@@ -256,7 +257,7 @@ begin
     name := getFixString (8);
     if (name = 'VeRsIoN#') then
     begin
-      Skip (SIZE_OF_NLM_INTERNAL_VERSION_HEADER-8);
+      Skip (e.f,SIZE_OF_NLM_INTERNAL_VERSION_HEADER-8);
     end else
     if (name = 'CoPyRiGh') then
     begin
@@ -265,50 +266,50 @@ begin
     end else
     if (name = 'MeSsAgEs') then
     begin
-      skip (SIZE_OF_NLM_INTERNAL_EXTENDED_HEADER - 8);
+      skip (e.f,SIZE_OF_NLM_INTERNAL_EXTENDED_HEADER - 8);
     end else
     if (name = 'CuStHeAd') then
     begin
-      hdrLength := getInt32;
-      dataOffset := getInt32;
-      dataLength := getInt32;
-      Skip (8); // dataStamp
+      hdrLength := getInt32(e.f);
+      dataOffset := getInt32(e.f);
+      dataLength := getInt32(e.f);
+      Skip (e.f,8); // dateStamp
       Valid := false;
     end else
       Valid := false;
   until not valid;
   if (hdrLength = -1) or (dataOffset = -1) or (dataLength = -1) then
     exit;
-  (* The format of the section information is:
+
+  Seek (e.F, dataOffset);
+  e.sechdrofs := dataOffset;
+  openNetwareNLM := (e.sechdrofs > 0);
+end;
+
+function FindSectionNetwareNLM(var e:TExeFile;const asecname:string;var secofs,seclen:longint):boolean;
+var name : string;
+    alignAmount : longint;
+begin
+  seek(e.f,e.sechdrofs);
+    (* The format of the section information is:
        null terminated section name
        zeroes to adjust to 4 byte boundary
        4 byte section data file pointer
        4 byte section size *)
-  Seek (F, dataOffset);
-  stabOfs := 0;
-  stabStrOfs := 0;
   Repeat
-    Name := Get0String;
+    Name := Get0String(e.f);
     alignAmount := 4 - ((length (Name) + 1) MOD 4);
-    Skip (alignAmount);
-    if (Name = '.stab') then
+    Skip (e.f,AlignAmount);
+    if (Name = asecname) then
     begin
-      stabOfs := getInt32;
-      stabLength := getInt32;
-      stabcnt:=stabLength div sizeof(tstab);
+      secOfs := getInt32(e.f);
+      secLen := getInt32(e.f);
     end else
-    if (Name = '.stabstr') then
-    begin
-      stabStrOfs := getInt32;
-      stabStrLength := getInt32;
-    end else
-      Skip (8);
-  until (Name = '') or ((StabOfs <> 0) and (stabStrOfs <> 0));
-  Seek (F,stabOfs);
-  //if (StabOfs = 0) then __ConsolePrintf ('StabOfs = 0');
-  //if (StabStrOfs = 0) then __ConsolePrintf ('StabStrOfs = 0');
-  LoadNetwareNLM := ((stabOfs > 0) and (stabStrOfs > 0));
+      Skip(e.f,8);
+  until (Name = '') or (Name = asecname);
+  FindSectionNetwareNLM := (Name=asecname);
 end;
+
 {$endif}
 
 

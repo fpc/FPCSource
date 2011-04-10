@@ -1391,7 +1391,10 @@ begin
     begin
     with query do
       begin
-      SQL.Text:='select NAME from FPDEV where NAME=''TestName21'' limit 1';
+      if (sqlDBtype=interbase) then
+        SQL.Text:='select first 1 NAME from FPDEV where NAME=''TestName21'''
+      else
+        SQL.Text:='select NAME from FPDEV where NAME=''TestName21'' limit 1';
       Open;
       close;
       ServerFilter:='ID=21';
@@ -1626,6 +1629,8 @@ procedure TTestFieldTypes.TestSQLClob;
     AssertEquals(testStringValues[a],AField.AsString);
   end;
 begin
+  if SQLDbType=interbase then
+      Ignore('This test does not apply to Interbase/Firebird, since it does not support CLOB fields');
   TestSQLFieldType(ftMemo, 'CLOB', 0, @TestSQLClob_GetSQLText, @CheckFieldValue);
 end;
 
@@ -1641,7 +1646,10 @@ procedure TTestFieldTypes.TestSQLLargeint;
     AssertEquals(testLargeIntValues[a],AField.AsLargeInt);
   end;
 begin
-  TestSQLFieldType(ftLargeint, 'LARGEINT', 8, @TestSQLLargeint_GetSQLText, @CheckFieldValue);
+  if sqlDBType=interbase then
+    TestSQLFieldType(ftLargeint, 'BIGINT', 8, @TestSQLLargeint_GetSQLText, @CheckFieldValue)
+  else
+    TestSQLFieldType(ftLargeint, 'LARGEINT', 8, @TestSQLLargeint_GetSQLText, @CheckFieldValue);
 end;
 
 

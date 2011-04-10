@@ -1,0 +1,263 @@
+% vim: set fdm=marker:
+%% Original by Michal Forisek
+
+
+%% zakladne definicie
+\newcommand{\quoteme}[1]{\clqq#1\crqq}
+\def\todo#1{[{\color{red} TODO:} {\bf  #1}]}
+\def\fixme#1{[{\color{red} FIXME:} {\bf  #1}]}
+\def\verify#1{\todo{verify: #1}}
+
+\def\xor{\oplus}
+\def\concat{\|}
+%\def\inr{\in_{R}}
+\def\toa #1 {\overset{#1}{\rightarrow}}
+\def\inr{\overset{\$}{\leftarrow}}
+\def\assign{\leftarrow}
+\def\send{\rightarrow}
+\def\isomorph{\cong}
+\def\nsd{NSD}
+\def\union{\cup}
+\newcommand{\unit}[1]{\ensuremath{\, \mathrm{#1}}}
+\DeclareMathOperator{\dlog}{dlog}
+
+\def\compactlist{
+  \setlength{\itemsep}{1pt}
+  \setlength{\parskip}{0pt}
+  \setlength{\parsep}{0pt}
+}
+\def\mod{\,{\rm mod}\,}
+
+%%% original od Misofa:
+%% {{{
+
+\catcode`\@=11
+
+\def\R{{\cal R}}
+\def\cent{{c\kern-0.3em|\kern0.1em}}
+\def\N{{N}} % FIXME FIXME 
+
+\let\eps=\varepsilon
+
+\def\relupdown#1#2#3{\mathrel{\mathop{#1}\limits^{#2}_{#3}} }
+
+\let\then=\Rightarrow
+\let\neht=\Leftarrow
+
+\def\krok#1{\relupdown{\Longrightarrow}{}{#1}}
+\def\thenrm{\relupdown{\Longrightarrow}{}{rm}}
+
+\def\bicik{\upharpoonright}
+\def\B{{\mathbf B}}
+\def\kodTS#1{{\tt <}#1{\tt >}}
+
+\newtheorem{definicia}{Definícia}[section]
+\newtheorem{HLPpoznamka}{Poznámka}[section]
+\newtheorem{HLPpriklad}{Príklad}[section]
+\newtheorem{HLPcvicenie}[HLPpriklad]{Cvičenie}
+\newtheorem{zadanie}{Úloha}[section]
+\newenvironment{poznamka}{\begin{HLPpoznamka}\rm}{\end{HLPpoznamka}}
+\newenvironment{priklad}{\begin{HLPpriklad}\rm}{\end{HLPpriklad}}
+\newenvironment{cvicenie}{\begin{HLPcvicenie}\rm}{\end{HLPcvicenie}}
+\newtheorem{veta}{Veta}[section]
+\newtheorem{lema}[veta]{Lema}
+\newtheorem{dosledok}[veta]{Dôsledok}
+\newtheorem{teza}[veta]{Téza}
+% \newtheorem{dokaz}{Dôkaz}[section]
+
+\long\def\odsadene#1{
+\leftskip=\parindent
+\parindent=0pt
+\vskip-5pt
+
+\parskip=5pt
+#1
+\parskip=0pt
+
+\parindent=\leftskip
+\leftskip=0pt
+
+} % end \odsadene
+
+
+
+
+%%%%%%%%%%% PROSTREDIE PRE PISANIE KOMENTAROV
+
+%\newenvironment{komentar}{%
+%\vskip\baselineskip
+%\tabularx{0.95\textwidth}{|X|}
+%\sl
+%}
+%{\endtabularx
+%\vskip\baselineskip
+%}
+
+\newenvironment{komentar}{%
+\vskip\baselineskip\noindent
+\tabularx{\textwidth}{>{\hsize=.2\hsize}X>{\hsize=1.8\hsize}X}
+\sl ~ & \sl
+}
+{\endtabularx
+\vskip\baselineskip
+}
+
+%\newenvironment{komentar}{%
+%\vskip\baselineskip
+%\trivlist\vspace{-4pt}\raggedleft\item\relax\tabularx{0.9\textwidth}{X}\sl}
+%{\endtabularx\vspace{-4pt}\endtrivlist
+%\vskip\baselineskip
+%}
+
+\newenvironment{dokaz}{\trivlist
+  \item[\hskip \labelsep{\bfseries Dôkaz.}]}{\endtrivlist}
+  
+%\newenvironment{dokaz}{%
+%\vskip\baselineskip\noindent
+%\tabularx{\textwidth}{||X||}
+%\sl
+%}
+%{\endtabularx
+%\vskip\baselineskip
+%}
+
+%%%%%%%%%%% PROSTREDIE PRE MOJE ITEMIZE 
+
+\newenvironment{myitemize}{%
+\begin{itemize}
+\itemsep-3pt
+}
+{\end{itemize}
+}
+
+%%%%%%%%%%% MATICKE MAKRA
+
+\font\tenrm=csr10
+
+\def\eps{\varepsilon}
+% \def\R{{\mathbb R}}
+\def\lvec#1{\overrightarrow{#1}}
+\def\uhol{{\measuredangle}}
+\def\then{\Rightarrow}
+% \def\lg{{\rm lg}}
+\def\lg{\log_2}
+%\def\div{\mathbin{\rm div}}
+\def\div{{\rm div}}
+
+%%%%%%%%%%% PDF
+
+\newif\ifpdf
+\ifx\pdfoutput\undefined
+  \pdffalse
+\else
+  \pdfoutput=1 \pdftrue
+\fi
+
+%%%%%%%%%%% OBRAZKY 
+
+\newcommand{\myincludegraphics}[2][]{\includegraphics[#1]{images/#2}}
+
+%%%%%%%%%%% SLOVNICEK
+
+\openout2=\jobname.slo
+
+\newcommand{\definuj}[3][]{%
+\def\tmpvoid{}\def\tmpfirst{#1}%
+\ifx\tmpvoid\tmpfirst%
+  {\sl #2}\label{definicia:#2}\write2{#2 & #3 & \pageref{definicia:#2} \cr}%
+\else%
+  {\sl #2}\label{definicia:#2}\write2{#1 & #3 & \pageref{definicia:#2} \cr}%
+\fi}
+
+\newcommand{\definujsilent}[2]{%
+\label{definicia:#1}\write2{#1 & #2 & \pageref{definicia:#1} \cr}%
+}
+
+\newcommand\myglossary{
+  \immediate\closeout2 
+  %\if@twocolumn\@restonecoltrue\onecolumn\else\@restonecolfalse\fi
+  \chapter{Slovníček pojmov}
+  \begin{tabular}{|l|l|r|}
+  \hline
+  {\bfseries slovenský pojem} & {\bfseries anglický preklad} & {\bfseries str.} \\ 
+  \hline
+  \InputIfFileExists{\jobname.srs}{}{~ & ~ & ~ \\}
+  \hline
+  \end{tabular}
+  %\if@restonecol\twocolumn\fi
+}
+
+%%%%%%%%%%% UVODZOVKY
+
+\catcode`\"=13
+\def "{\begingroup\clqq\def "{\endgroup\crqq}}
+\def\dospecials{\do\ \do\\\do\{\do\}\do\$\do\&%
+  \do\#\do\^\do\^^K\do\_\do\^^A\do\%\do\~\do\"}
+
+%%%%%%%%%%% DANGER BENDS 
+
+\font\manual=manfnt % font used for the METAFONT logo, etc.
+\def\dbend{{\manual\char127}} % dangerous bend sign
+
+\newlength{\bendwidth}   \settowidth{\bendwidth}{\dbend}    \newlength{\hangwidth}
+
+\def\hangone{%
+  \hangwidth=\bendwidth%
+  \advance\hangwidth 5pt%
+  \hangindent\hangwidth%
+}
+\def\hangtwo{%
+  \hangwidth=\bendwidth%
+  \multiply\hangwidth 2%
+  \advance\hangwidth 6pt% 
+  \hangindent\hangwidth%
+}
+
+\def\medbreak{\par\ifdim\lastskip<\medskipamount \removelastskip\penalty-100\medskip\fi}
+\let\endgraf=\par
+
+\def\d@nger{\medbreak\begingroup\clubpenalty=10000
+%\def\d@nger{\begingroup\clubpenalty=10000
+%  \def\par{\endgraf\endgroup\medbreak} \noindent\hangone\hangafter=-2
+  \def\par{\endgraf\endgroup} \noindent\hangone\hangafter=-2
+  \hbox to0pt{\hskip-\hangindent\dbend\hfill}}
+\outer\def\danger{\d@nger}
+
+\def\dd@nger{\medbreak\begingroup\clubpenalty=10000
+%  \def\par{\endgraf\endgroup\medbreak} \noindent\hangtwo\hangafter=-2
+  \def\par{\endgraf\endgroup} \noindent\hangtwo\hangafter=-2
+  \hbox to0pt{\hskip-\hangindent\dbend\kern1pt\dbend\hfill}}
+\outer\def\ddanger{\dd@nger}
+
+\def\enddanger{\endgraf\endgroup} % omits the \medbreak
+\def\enddangerhop{\endgraf\endgroup\medbreak}
+
+
+
+
+\def\@nakedcite#1#2{{#1\if@tempswa , #2\fi}}
+\DeclareRobustCommand\nakedcite{%
+  \@ifnextchar [{\@tempswatrue\@nakedcitex}{\@tempswafalse\@nakedcitex[]}}
+\def\@nakedcitex[#1]#2{%
+  \let\@citea\@empty
+  \@nakedcite{\@for\@citeb:=#2\do
+    {\@citea\def\@citea{,\penalty\@m\ }%
+     \edef\@citeb{\expandafter\@firstofone\@citeb\@empty}%
+     \if@filesw\immediate\write\@auxout{\string\citation{\@citeb}}\fi
+     \@ifundefined{b@\@citeb}{\mbox{\reset@font\bfseries ?}%
+       \G@refundefinedtrue
+       \@latex@warning
+         {Citation `\@citeb' on page \thepage \space undefined}}%
+       {\hbox{\csname b@\@citeb\endcsname}} }}{#1}}
+
+\long\def\FIXME#1{
+  \begin{center}
+  \begin{minipage}{0.8\textwidth}
+  {\bf FIXME:~}\sl #1
+  \end{minipage}
+  \end{center}
+}
+
+
+\catcode`\@=12
+%% }}}

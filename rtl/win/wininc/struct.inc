@@ -5052,8 +5052,8 @@ Const
      POSVERSIONINFOW = ^OSVERSIONINFOW;
 
 
-
-
+     {$push}
+     {$packrecords 4}
 
      TEXTMETRIC = record
           tmHeight : LONG;
@@ -5113,9 +5113,9 @@ Const
      tagTEXTMETRICW = TEXTMETRICW;
      TTEXTMETRICW = TEXTMETRICW;
      PTEXTMETRICW = ^TEXTMETRICW;
+     {$PACKRECORDS C}
 
-
-     OUTLINETEXTMETRIC = record
+     OUTLINETEXTMETRICA = record
           otmSize : UINT;
           otmTextMetrics : TEXTMETRIC;
           otmFiller : BYTE;
@@ -5149,11 +5149,64 @@ Const
           otmpStyleName : PSTR;
           otmpFullName : PSTR;
        end;
-     LPOUTLINETEXTMETRIC = ^OUTLINETEXTMETRIC;
-     _OUTLINETEXTMETRIC = OUTLINETEXTMETRIC;
-     TOUTLINETEXTMETRIC = OUTLINETEXTMETRIC;
-     POUTLINETEXTMETRIC = ^OUTLINETEXTMETRIC;
+     LPOUTLINETEXTMETRICA = ^OUTLINETEXTMETRICA;
+     _OUTLINETEXTMETRICA = OUTLINETEXTMETRICA;
+     TOUTLINETEXTMETRICA = OUTLINETEXTMETRICA;
+     POUTLINETEXTMETRICA = ^OUTLINETEXTMETRICA;
 
+     OUTLINETEXTMETRICW = record
+          otmSize : UINT;
+          otmTextMetrics : TEXTMETRICW;
+          otmFiller : BYTE;
+          otmPanoseNumber : PANOSE;
+          otmfsSelection : UINT;
+          otmfsType : UINT;
+          otmsCharSlopeRise : longint;
+          otmsCharSlopeRun : longint;
+          otmItalicAngle : longint;
+          otmEMSquare : UINT;
+          otmAscent : longint;
+          otmDescent : longint;
+          otmLineGap : UINT;
+          otmsCapEmHeight : UINT;
+          otmsXHeight : UINT;
+          otmrcFontBox : RECT;
+          otmMacAscent : longint;
+          otmMacDescent : longint;
+          otmMacLineGap : UINT;
+          otmusMinimumPPEM : UINT;
+          otmptSubscriptSize : POINT;
+          otmptSubscriptOffset : POINT;
+          otmptSuperscriptSize : POINT;
+          otmptSuperscriptOffset : POINT;
+          otmsStrikeoutSize : UINT;
+          otmsStrikeoutPosition : longint;
+          otmsUnderscoreSize : longint;
+          otmsUnderscorePosition : longint;
+          otmpFamilyName : PSTR;
+          otmpFaceName : PSTR;
+          otmpStyleName : PSTR;
+          otmpFullName : PSTR;
+       end;
+     LPOUTLINETEXTMETRICW = ^OUTLINETEXTMETRICW;
+     _OUTLINETEXTMETRICW = OUTLINETEXTMETRICW;
+     TOUTLINETEXTMETRICW = OUTLINETEXTMETRICW;
+     POUTLINETEXTMETRICW = ^OUTLINETEXTMETRICW;
+
+     {$ifdef Unicode}
+     LPOUTLINETEXTMETRIC = ^OUTLINETEXTMETRICW;
+     _OUTLINETEXTMETRIC  = OUTLINETEXTMETRICW;
+     TOUTLINETEXTMETRIC  = OUTLINETEXTMETRICW;
+     POUTLINETEXTMETRIC  = ^OUTLINETEXTMETRICW;
+     OUTLINETEXTMETRIC   = OUTLINETEXTMETRICW;
+     {$else}
+     LPOUTLINETEXTMETRIC = ^OUTLINETEXTMETRICA;
+     _OUTLINETEXTMETRIC  = OUTLINETEXTMETRICA;
+     TOUTLINETEXTMETRIC  = OUTLINETEXTMETRICA;
+     POUTLINETEXTMETRIC  = ^OUTLINETEXTMETRICA;
+     OUTLINETEXTMETRIC   = OUTLINETEXTMETRICA;
+     {$endif}
+     {$POP}
      OVERLAPPED = record
           Internal : ULONG_PTR;
           InternalHigh : ULONG_PTR;
@@ -7570,15 +7623,15 @@ type
 //#endif /* WINVER >= 0x0500 */
 
 
-// Menubar information 
+// Menubar information
 type
      tagMENUBARINFO = packed record
        cbSize:DWORD;
-       rcBar:Windows.RECT; // rect of bar, popup, item 
-       _hmenu:HMENU;       // real menu handle of bar, popup 
-       hwndMenu:HWND;      // hwnd of item submenu if one 
-//    fBarFocused:1:BOOL;  // bar, popup has the focus 
-//    fFocused:1:BOOL;     // item has the focus 
+       rcBar:Windows.RECT; // rect of bar, popup, item
+       _hmenu:HMENU;       // real menu handle of bar, popup
+       hwndMenu:HWND;      // hwnd of item submenu if one
+//    fBarFocused:1:BOOL;  // bar, popup has the focus
+//    fFocused:1:BOOL;     // item has the focus
       FocusedBits:DWORD;
     end;
     MENUBARINFO = tagMENUBARINFO;

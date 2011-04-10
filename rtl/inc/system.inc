@@ -786,9 +786,11 @@ var
 begin
   { call cpu/fpu initialisation routine }
   fpc_cpuinit;
-  with {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}PInitFinalTable(EntryInformation.{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
-    InitFinalTable
-    {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION})^{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} do
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  with PInitFinalTable(EntryInformation.InitFinalTable)^ do
+{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  with InitFinalTable do
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
    begin
      for i:=1 to TableCount do
       begin
@@ -815,9 +817,11 @@ end;
 
 procedure FinalizeUnits;[public,alias:'FPC_FINALIZEUNITS'];
 begin
-  with {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}PInitFinalTable(EntryInformation.{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
-    InitFinalTable
-    {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION})^{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} do
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  with PInitFinalTable(EntryInformation.InitFinalTable)^ do
+{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  with InitFinalTable do
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
    begin
      while (InitCount>0) do
       begin

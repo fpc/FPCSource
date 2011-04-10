@@ -360,7 +360,9 @@ interface
          pocall_softfloat,
          { Metrowerks Pascal. Special case on Mac OS (X): passes all }
          { constant records by reference.                            }
-         pocall_mwpascal
+         pocall_mwpascal,
+         { Special interrupt handler for embedded systems }
+         pocall_interrupt
        );
        tproccalloptions = set of tproccalloption;
 
@@ -377,7 +379,8 @@ interface
            'SafeCall',
            'StdCall',
            'SoftFloat',
-           'MWPascal'
+           'MWPascal',
+           'Interrupt'
          );
 
        { Default calling convention }

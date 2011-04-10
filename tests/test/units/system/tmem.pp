@@ -16,9 +16,7 @@ var
   dst_arraybyte : array[1..MAX_TABLE] of byte;
   src_arraybyte : array[1..MAX_TABLE] of byte;
   dst_arrayword : array[1..MAX_TABLE] of word;
-  src_arrayword : array[1..MAX_TABLE] of word;
   dst_arraylongword : array[1..MAX_TABLE] of longword;
-  src_arratlongword : array[1..MAX_TABLE] of longword;
   i: integer;
 
 
@@ -70,6 +68,8 @@ procedure test_fillchar;
   for i := 1 to MAX_TABLE do
     dst_arraybyte[i] := DEFAULT_VALUE;
   fillchar(dst_arraybyte, -1, FILL_VALUE);
+  for i := 1 to MAX_TABLE do
+    test(dst_arraybyte[i], DEFAULT_VALUE);
   writeln('Passed!');
  end;
 
@@ -103,7 +103,7 @@ begin
     test(dst_arraybyte[i], FILL_VALUE);
   writeln('Passed!');
   { zero move count }
-  write('test move (zero count)...');
+  write('testing move (zero count)...');
   for i := 1 to MAX_TABLE do
   begin
     dst_arraybyte[i] := DEFAULT_VALUE;
@@ -114,9 +114,73 @@ begin
     test(dst_arraybyte[i], DEFAULT_VALUE);
   writeln('Passed!');
   { negative move count }
-  write('test move (negative count)...');
+  write('testing move (negative count)...');
   move(src_arraybyte,dst_arraybyte,-12);
   writeln('Passed!');
+end;
+
+
+procedure test_move_large(size: longint);
+var
+  src, dst: PLongInt;
+  i: LongInt;
+begin
+  GetMem(src, size*sizeof(LongInt));
+  GetMem(dst, size*sizeof(LongInt));
+  write('testing move of ',size,' dwords ...');
+  for i := 0 to size-1 do
+  begin
+    src[i] := i;
+    dst[i] := -1;
+  end;
+  move(src[0], dst[2], (size-4)*sizeof(LongInt));
+  test(dst[0], -1);
+  test(dst[1], -1);
+  test(dst[size-1], -1);
+  test(dst[size-2], -1);
+  for i := 2 to size-3 do
+    test(dst[i], i-2);
+  writeln('Passed!');
+
+  // repeat with source and dest swapped (maybe move in opposite direction)
+  // current implementations detect that regions don't overlap and move forward,
+  // so this test is mostly useless. But it won't harm anyway.
+  write('testing move of ',size,' dwords, opposite direction...');
+  for i := 0 to size-1 do
+  begin
+    dst[i] := i;
+    src[i] := -1;
+  end;
+  move(dst[0], src[2], (size-4)*sizeof(LongInt));
+  test(src[0], -1);
+  test(src[1], -1);
+  test(src[size-1], -1);
+  test(src[size-2], -1);
+  for i := 2 to size-3 do
+    test(src[i], i-2);
+  writeln('Passed!');
+
+  write('testing move of ',size,' dwords, overlapping forward...');
+  for i := 0 to size-1 do
+    src[i] := i;
+  move(src[0], src[100], (size-100)*sizeof(LongInt));
+  for i := 0 to 99 do
+    test(src[i], i);
+  for i := 100 to size-101 do
+    test(src[i], i-100);
+  writeln('Passed!');
+
+  write('testing move of ',size,' dwords, overlapping backward...');
+  for i := 0 to size-1 do
+    src[i] := i;
+  move(src[100], src[0], (size-100)*sizeof(LongInt));
+  for i := 0 to size-101 do
+    test(src[i], i+100);
+  for i := size-100 to size-1 do
+    test(src[i], i);
+  writeln('Passed!');
+  FreeMem(dst);
+  FreeMem(src);
 end;
 
 {$ifdef fpc}
@@ -271,6 +335,8 @@ end;
 begin
   test_fillchar;
   test_move;
+  test_move_large(500);   // 512 longints=2048 bytes
+  test_move_large(500000);
 {$ifdef fpc}
   test_fillword;
   test_filldword;

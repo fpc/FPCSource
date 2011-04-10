@@ -53,7 +53,6 @@ function fpc_dynarray_high(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNA
 { releases and finalizes the data of a dyn. array and sets p to nil }
 procedure fpc_dynarray_clear_internal(p : pointer;ti : pointer);
   var
-    elesize : sizeint;
     eletype : pdynarraytypeinfo;
   begin
      if p=nil then
@@ -64,12 +63,10 @@ procedure fpc_dynarray_clear_internal(p : pointer;ti : pointer);
 
      ti:=aligntoptr(ti);
 
-     elesize:=psizeint(ti)^;
      eletype:=pdynarraytypeinfo(pointer(pdynarraytypeinfo(pointer(ti)+sizeof(sizeint)))^);
 
      { finalize all data }
-     int_finalizearray(p+sizeof(tdynarray),eletype,pdynarray(p)^.high+1,
-                       elesize);
+     int_finalizearray(p+sizeof(tdynarray),eletype,pdynarray(p)^.high+1);
 
      { release the data }
      freemem(p);
@@ -243,7 +240,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                       begin
                           int_finalizearray(pointer(realp)+sizeof(tdynarray)+
                             elesize*dims[dimcount-1],
-                            eletype,realp^.high-dims[dimcount-1]+1,elesize);
+                            eletype,realp^.high-dims[dimcount-1]+1);
                          reallocmem(realp,size);
                       end
                     else if dims[dimcount-1]>realp^.high+1 then

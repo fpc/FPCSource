@@ -636,7 +636,8 @@ implementation
               { pocall_safecall   } 4,
               { pocall_stdcall    } 3,
               { pocall_softfloat  } 10,
-              { pocall_mwpascal   } 11
+              { pocall_mwpascal   } 11,
+              { pocall_interrupt  } 12
              );
 
            procedure write_para(parasym:tparavarsym);

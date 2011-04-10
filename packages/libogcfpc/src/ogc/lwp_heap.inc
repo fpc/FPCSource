@@ -44,20 +44,89 @@ type
   pheap_cntrl = ^heap_cntrl;
 
 
-function __lwp_heap_init(theheap: Pheap_cntrl; start_addr: pointer;
-  size, pg_size: cuint32): cuint32; cdecl; external;
-
+function __lwp_heap_init(theheap: Pheap_cntrl; start_addr: pointer; size, pg_size: cuint32): cuint32; cdecl; external;
 function __lwp_heap_allocate(theheap: Pheap_cntrl; size: cuint32): pointer; cdecl; external;
-
 function __lwp_heap_free(theheap: Pheap_cntrl; ptr: pointer): cbool; cdecl; external;
-
-function __lwp_heap_getinfo(theheap: Pheap_cntrl; theinfo: Pheap_iblock)
-  : cuint32; cdecl; external;
-
+function __lwp_heap_getinfo(theheap: Pheap_cntrl; theinfo: Pheap_iblock): cuint32; cdecl; external;
 
 //{$ifdef LIBOGC_INTERNAL}
 //{$include libogc/lwp_heap.inl}
 //{$endif}
 {$ENDIF}
 
+
+{$IFDEF OGC_IMPLEMENTATION}
+function __lwp_heap_head(theheap: pheap_cntrl): pheap_block;
+begin
+	result := theheap^.start;
+end;
+
+function __lwp_heap_tail(heap: pheap_cntrl): pheap_block;
+begin
+	result := heap^.final;
+end;
+
+function __lwp_heap_prevblock(block: pheap_block): pheap_block;
+begin
+	result := pheap_block (pcchar(block)^ - (block^.back_flag and not HEAP_BLOCK_USED));
+end;
+
+function __lwp_heap_nextblock(block: pheap_block): pheap_block;
+begin
+	result :=  pheap_block(pcchar(block)^ + (block^.front_flag and not HEAP_BLOCK_USED));
+end;
+
+function __lwp_heap_blockat(block: pheap_block; offset: cuint32): pheap_block;
+begin
+	result :=  pheap_block(pcchar(block) + offset);
+end;
+
+function __lwp_heap_usrblockat(ptr: pointer): pheap_block;
+var
+  offset: cuint32;
+begin
+	offset := (pcuint32(ptr)^ - 1);
+	result :=  __lwp_heap_blockat(ptr, -offset + (-HEAP_BLOCK_USED_OVERHEAD));
+end;
+
+function __lwp_heap_prev_blockfree(block: pheap_block): boolean;
+begin
+	result :=  (block^.back_flag and HEAP_BLOCK_USED) = 0;
+end;
+
+function __lwp_heap_blockfree(block: pheap_block): boolean;
+begin
+	result :=  (block^.front_flag and HEAP_BLOCK_USED) = 0;
+end;
+
+function __lwp_heap_blockused(block: pheap_block): boolean;
+begin
+	result :=  (block^.front_flag and HEAP_BLOCK_USED) <> 0;
+end;
+
+function __lwp_heap_blocksize(block: pheap_block): cuint32;
+begin
+	result :=  (block^.front_flag and not HEAP_BLOCK_USED);
+end;
+
+function __lwp_heap_startuser(block: pheap_block): pointer;
+begin
+	result := pointer(block^.next);
+end;
+
+function __lwp_heap_blockin(heap: pheap_cntrl; block: pheap_block): boolean;
+begin
+	result := ((cuint32(block) >= cuint32(heap^.start)) and (cuint32(block) <= cuint32(heap^.final)));
+end;
+
+function __lwp_heap_pgsize_valid(pgsize: cuint32): boolean;
+begin
+	result := (pgsize <> 0) and ((pgsize mod PPC_ALIGNMENT) = 0);
+end;
+
+function __lwp_heap_buildflag(size, flag: cuint32): cuint32;
+begin
+	result := (size or flag);
+end;
+{$ENDIF}
 

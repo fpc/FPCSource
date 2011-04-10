@@ -482,6 +482,7 @@ interface
         procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);virtual;
         procedure GenerateDebugLink(const dbgname:string;dbgcrc:cardinal);
         function WriteExeFile(const fn:string):boolean;
+        procedure ParseScript (linkscript:TCmdStrList); virtual;
         property Writer:TObjectWriter read FWriter;
         property ExeSectionList:TFPHashObjectList read FExeSectionList;
         property ObjDataList:TFPObjectList read FObjDataList;
@@ -544,7 +545,7 @@ implementation
 
     procedure TObjSymbol.SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
       begin
-        if not(abind in [AB_GLOBAL,AB_LOCAL,AB_COMMON]) then
+        if not(abind in [AB_GLOBAL,AB_LOCAL,AB_COMMON,AB_IMPORT]) then
           internalerror(200603016);
         if not assigned(aobjsec) then
           internalerror(200603017);
@@ -823,7 +824,7 @@ implementation
 
     function TObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       const
-        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
+        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           'code',
           'Data',
           'Data',
@@ -902,6 +903,7 @@ implementation
     function TObjData.sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;
       const
         secoptions : array[TAsmSectiontype] of TObjSectionOptions = ([],
+          {user} [oso_Data,oso_load,oso_write,oso_executable,oso_keep],
           {code} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
           {Data} [oso_Data,oso_load,oso_write,oso_keep],
 { TODO: Fix sec_rodata be read-only-with-relocs}
@@ -1546,6 +1548,11 @@ implementation
          end
         else
          Comment(V_Fatal,'Can''t create executable '+fn);
+      end;
+
+
+    procedure TExeOutput.ParseScript (linkscript:TCmdStrList);
+      begin
       end;
 
 

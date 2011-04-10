@@ -833,25 +833,19 @@ var
 begin
   s := WideString(p);
 
-  if not (TryStrToDateTime(s, Result) or
-    TryStrToDate(s, Result) or
-    TryStrToTime(s, Result)) then
+  if not TryStrToDateTime(s, Result) then
     VariantTypeMismatch(varOleStr, varDate);
 end;
 
 Function LStrToDate(p: Pointer) : TDateTime;
 begin
-  if not (TryStrToDateTime(AnsiString(p), Result) or
-    TryStrToDate(AnsiString(p), Result) or
-    TryStrToTime(AnsiString(p), Result)) then
+  if not TryStrToDateTime(AnsiString(p), Result) then
     VariantTypeMismatch(varString, varDate);
 end;
 
 Function UStrToDate(p: Pointer) : TDateTime;
 begin
-  if not (TryStrToDateTime(UnicodeString(p), Result) or
-    TryStrToDate(UnicodeString(p), Result) or
-    TryStrToTime(UnicodeString(p), Result)) then
+  if not TryStrToDateTime(UnicodeString(p), Result) then
     VariantTypeMismatch(varUString, varDate);
 end;
 
@@ -1287,6 +1281,14 @@ begin
   end; {$ENDIF}
 end;
 
+function VarDateToString(DT: TDateTime): AnsiString;
+begin
+  if Trunc(DT) = 0 then
+    Result := TimeToStr(DT)
+  else
+    Result := DateTimeToStr(DT);
+end;
+
 {--- WideString ---}
 
 Function VariantToWideString(const VargSrc : TVarData) : WideString;
@@ -1306,7 +1308,7 @@ begin
         varSingle   : Result := FloatToStr(vSingle);
         varDouble   : Result := FloatToStr(vDouble);
         varCurrency : Result := FloatToStr(vCurrency);
-        varDate     : Result := FloatToStr(vDate);
+        varDate     : Result := VarDateToString(vDate);
 {$endif}
         varBoolean  : Result := BoolToStr(vBoolean, True);
         varVariant  : Result := VariantToWideString(PVarData(vPointer)^);
@@ -1329,7 +1331,7 @@ begin
         varSingle   : Result := FloatToStr(PSingle(vPointer)^);
         varDouble   : Result := FloatToStr(PDouble(vPointer)^);
         varCurrency : Result := FloatToStr(PCurrency(vPointer)^);
-        varDate     : Result := FloatToStr(PDate(vPointer)^);
+        varDate     : Result := VarDateToString(PDate(vPointer)^);
 {$endif}
         varBoolean  : Result := BoolToStr(PWordBool(vPointer)^, True);
         varVariant  : Result := VariantToWideString(PVarData(vPointer)^);
@@ -1373,7 +1375,7 @@ begin
         varSingle   : Result := FloatToStr(vSingle);
         varDouble   : Result := FloatToStr(vDouble);
         varCurrency : Result := FloatToStr(vCurrency);
-        varDate     : Result := DateToStr(vDate);
+        varDate     : Result := VarDateToString(vDate);
 {$endif}
         varBoolean  : Result := BoolToStr(vBoolean, True);
         varVariant  : Result := VariantToAnsiString(PVarData(vPointer)^);
@@ -1396,7 +1398,7 @@ begin
         varSingle   : Result := FloatToStr(PSingle(vPointer)^);
         varDouble   : Result := FloatToStr(PDouble(vPointer)^);
         varCurrency : Result := FloatToStr(PCurrency(vPointer)^);
-        varDate     : Result := DateToStr(PDate(vPointer)^);
+        varDate     : Result := VarDateToString(PDate(vPointer)^);
 {$endif}
         varBoolean  : Result := BoolToStr(PWordBool(vPointer)^, True);
         varVariant  : Result := VariantToAnsiString(PVarData(vPointer)^);
@@ -1498,7 +1500,7 @@ Var
   i: Integer;
 
 begin
-  Writeln(F,'---> ', aName, ' at $', IntToHex(Cardinal(@VargSrc), 8), ' <----------------');
+  Writeln(F,'---> ', aName, ' at $', HexStr(@VargSrc), ' <----------------');
   with VargSrc do begin
 
     if vType and varByRef = varByRef then
@@ -1526,7 +1528,7 @@ begin
     WriteLn;
 
     if vType and varArray = varArray then begin
-      Writeln(F,'---< ', aName, ' at $', IntToHex(Cardinal(@VargSrc), 8), ' >----------------');
+      Writeln(F,'---< ', aName, ' at $', HexStr(@VargSrc), ' >----------------');
       Writeln(F);
       Exit;
     end;
@@ -1537,7 +1539,7 @@ begin
       if (vType and varByRef = varByRef) or (vType and varTypeMask = varVariant) then
         if not Assigned(vPointer) then begin
           WriteLn(F, 'nil]');
-          Writeln(F,'---< ', aName, ' at $', IntToHex(Cardinal(@VargSrc), 8), ' >----------------');
+          Writeln(F,'---< ', aName, ' at $', HexStr(@VargSrc), ' >----------------');
           Writeln(F);
           Exit;
         end;
@@ -1593,7 +1595,7 @@ begin
     end;
   end;
 
-  Writeln(F,'---< ', aName, ' at $', IntToHex(Cardinal(@VargSrc), 8), ' >----------------');
+  Writeln(F,'---< ', aName, ' at $', HexStr(@VargSrc), ' >----------------');
   Writeln(F);
 end;
 

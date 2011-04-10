@@ -5,7 +5,7 @@ program gxsprites;
 {$mode objfpc}
 
 uses
-  cmem, ctypes, gccore;
+  cmem, ctypes, gctypes, gccore;
 
 {$include inc/textures.tpl.inc}
 {$link build/textures.tpl.o}

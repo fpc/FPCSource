@@ -37,7 +37,7 @@ Type
     linux,go32v2,win32,os2,freebsd,beos,netbsd,
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
     palmos,macos,darwin,emx,watcom,morphos,netwlibc,
-    win64,wince,gba,nds,embedded,symbian
+    win64,wince,gba,nds,embedded,symbian,haiku
   );
   TOSes = Set of TOS;
 

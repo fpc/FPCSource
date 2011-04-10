@@ -562,9 +562,8 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$OPT',Info.ExtraOptions);
-
   Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,'.elf')))));
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);

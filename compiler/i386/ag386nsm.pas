@@ -445,7 +445,7 @@ interface
 
     procedure T386NasmAssembler.WriteSection(atype:TAsmSectiontype;const aname:string);
       const
-        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
+        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text',
           '.data',
           '.data',

@@ -819,7 +819,13 @@ procedure TField.SetData(Buffer: Pointer; NativeFormat : Boolean);
 
 begin
   If Not Assigned(FDataset) then
-    EDatabaseError.CreateFmt(SNoDataset,[FieldName]);
+    DatabaseErrorFmt(SNoDataset,[FieldName]);
+  if (FieldNo>0) and not (FDataSet.State in [dsSetKey, dsFilter]) then
+    begin
+    if ReadOnly then 
+      DatabaseErrorFmt(SReadOnlyField, [DisplayName], Self); 
+    Validate(Buffer);
+    end;
   FDataSet.SetFieldData(Self,Buffer, NativeFormat);
 end;
 
@@ -1070,7 +1076,7 @@ function TStringField.GetDataSize: Integer;
 
 begin
   if DataType=ftFixedChar then
-    Result:=Size
+    Result:=Size+1
   else
     Result:=Size+1;
 end;
@@ -2475,28 +2481,23 @@ end;
 procedure TFMTBCDField.GetText(var TheText: string; ADisplayText: Boolean);
 var
   bcd: TBCD;
-  E: double; //remove when formatBCD,BCDToStrF in fmtbcd.pp will be implemented
   fmt: String;
 begin
   if GetData(@bcd) then begin
-    E:=BCDToDouble(bcd);
     if aDisplayText or (FEditFormat='') then
       fmt := FDisplayFormat
     else
       fmt := FEditFormat;
     if fmt<>'' then
-      TheText := FormatFloat(fmt,E)
-      //TheText := FormatBCD(fmt,bcd)
+      TheText := BCDToStr(bcd)
+      //TheText := FormatBCD(fmt,bcd) //uncomment when formatBCD in fmtbcd.pp will be implemented
     else if fCurrency then begin
       if aDisplayText then
-        TheText := FloatToStrF(E, ffCurrency, FPrecision, 2{digits?})
-        //TheText := BcdToStrF(bcd, ffCurrency, FPrecision, 2{digits?})
+        TheText := BcdToStrF(bcd, ffCurrency, FPrecision, 2)
       else
-        TheText := FloatToStrF(E, ffFixed, FPrecision, 2{digits?});
-        //TheText := BcdToStrF(bcd, ffFixed, FPrecision, 2{digits?});
+        TheText := BcdToStrF(bcd, ffFixed, FPrecision, 2);
     end else
-      TheText := BcdToStr(bcd);
-      //TheText := BcdToStrF(bcd, ffGeneral, FPrecision, FSize);
+      TheText := BcdToStrF(bcd, ffGeneral, FPrecision, FSize);
   end else
     TheText := '';
 end;

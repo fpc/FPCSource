@@ -86,7 +86,7 @@ unit i_wii;
                 maxCrecordalign : 8
               );
             first_parm_offset : 8;
-            stacksize    : 32*1024*1024;
+            stacksize    : 131072;  // 128 kb 
             abi : abi_powerpc_sysv;
           );
 

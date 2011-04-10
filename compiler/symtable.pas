@@ -2199,6 +2199,7 @@ implementation
       var
         hashedid : THashedIDString;
       begin
+        result:=false;
         hashedid.id:=s;
         srsymtable:=recordh.symtable;
         srsym:=tsym(srsymtable.FindWithHash(hashedid));

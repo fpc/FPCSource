@@ -5,7 +5,7 @@ program lesson7;
 {$mode objfpc}
 
 uses
-  cmem, ctypes, gccore;
+  cmem, ctypes, gctypes, gccore;
 
 {$include inc/crate.tpl.inc}
 {$link build/crate.tpl.o}

@@ -42,15 +42,18 @@ type
   TWebController = class;
   THTMLContentProducer = class;
 
+  TJavaType = (jtOther, jtClientSideEvent);
+
   TJavaScriptStack = class(TObject)
   private
+    FJavaType: TJavaType;
     FMessageBoxHandler: TMessageBoxHandler;
     FScript: TStrings;
     FWebController: TWebController;
   protected
     function GetWebController: TWebController;
   public
-    constructor Create(const AWebController: TWebController); virtual;
+    constructor Create(const AWebController: TWebController; const AJavaType: TJavaType); virtual;
     destructor Destroy; override;
     procedure AddScriptLine(ALine: String); virtual;
     procedure MessageBox(AText: String; Buttons: TWebButtons; Loaded: string = ''); virtual;
@@ -61,6 +64,7 @@ type
     function ScriptIsEmpty: Boolean; virtual;
     function GetScript: String; virtual;
     property WebController: TWebController read GetWebController;
+    property JavaType: TJavaType read FJavaType;
   end;
 
   { TContainerStylesheet }
@@ -85,6 +89,35 @@ type
     property Items[Index: integer]: TContainerStylesheet read GetItem write SetItem;
   end;
 
+  { TJavaVariable }
+
+  TJavaVariable = class(TCollectionItem)
+  private
+    FBelongsTo: string;
+    FGetValueFunc: string;
+    FID: string;
+    FIDSuffix: string;
+    FName: string;
+  public
+    property BelongsTo: string read FBelongsTo write FBelongsTo;
+    property GetValueFunc: string read FGetValueFunc write FGetValueFunc;
+    property Name: string read FName write FName;
+    property ID: string read FID write FID;
+    property IDSuffix: string read FIDSuffix write FIDSuffix;
+  end;
+
+  { TJavaVariables }
+
+  TJavaVariables = class(TCollection)
+  private
+    function GetItem(Index: integer): TJavaVariable;
+    procedure SetItem(Index: integer; const AValue: TJavaVariable);
+  public
+    function Add: TJavaVariable;
+    property Items[Index: integer]: TJavaVariable read GetItem write SetItem;
+  end;
+
+
   { TWebController }
 
   TWebController = class(TComponent)
@@ -94,9 +127,13 @@ type
     FMessageBoxHandler: TMessageBoxHandler;
     FScriptName: string;
     FScriptStack: TFPObjectList;
+    FIterationIDs: array of string;
+    FJavaVariables: TJavaVariables;
     procedure SetBaseURL(const AValue: string);
     procedure SetScriptName(const AValue: string);
   protected
+    function GetJavaVariables: TJavaVariables;
+    function GetJavaVariablesCount: integer;
     function GetScriptFileReferences: TStringList; virtual; abstract;
     function GetCurrentJavaScriptStack: TJavaScriptStack; virtual;
     function GetStyleSheetReferences: TContainerStylesheets; virtual; abstract;
@@ -107,8 +144,8 @@ type
     destructor Destroy; override;
     procedure AddScriptFileReference(AScriptFile: String); virtual; abstract;
     procedure AddStylesheetReference(Ahref, Amedia: String); virtual; abstract;
-    function CreateNewJavascriptStack: TJavaScriptStack; virtual; abstract;
-    function InitializeJavaScriptStack: TJavaScriptStack;
+    function CreateNewJavascriptStack(AJavaType: TJavaType): TJavaScriptStack; virtual; abstract;
+    function InitializeJavaScriptStack(AJavaType: TJavaType): TJavaScriptStack;
     procedure FreeJavascriptStack; virtual;
     function HasJavascriptStack: boolean; virtual; abstract;
     function GetUrl(ParamNames, ParamValues, KeepParams: array of string; Action: string = ''): string; virtual; abstract;
@@ -117,12 +154,20 @@ type
     procedure CleanupShowRequest; virtual;
     procedure CleanupAfterRequest; virtual;
     procedure BeforeGenerateHead; virtual;
+    function AddJavaVariable(AName, ABelongsTo, AGetValueFunc, AID, AIDSuffix: string): TJavaVariable;
     procedure BindJavascriptCallstackToElement(AComponent: TComponent; AnElement: THtmlCustomElement; AnEvent: string); virtual; abstract;
     function MessageBox(AText: String; Buttons: TWebButtons; ALoaded: string = ''): string; virtual;
     function DefaultMessageBoxHandler(Sender: TObject; AText: String; Buttons: TWebButtons;  ALoaded: string = ''): string; virtual; abstract;
     function CreateNewScript: TStringList; virtual; abstract;
     function AddrelativeLinkPrefix(AnURL: string): string;
     procedure FreeScript(var AScript: TStringList); virtual; abstract;
+    procedure ShowRegisteredScript(ScriptID: integer); virtual; abstract;
+
+    function IncrementIterationLevel: integer; virtual;
+    procedure SetIterationIDSuffix(AIterationLevel: integer; IDSuffix: string); virtual;
+    function GetIterationIDSuffix: string; virtual;
+    procedure DecrementIterationLevel; virtual;
+
     property ScriptFileReferences: TStringList read GetScriptFileReferences;
     property StyleSheetReferences: TContainerStylesheets read GetStyleSheetReferences;
     property Scripts: TFPObjectList read GetScripts;
@@ -190,6 +235,7 @@ type
     FDocument: THTMLDocument;
     FElement: THTMLCustomElement;
     FWriter: THTMLWriter;
+    FIDSuffix: string;
     procedure SetDocument(const AValue: THTMLDocument);
     procedure SetWriter(const AValue: THTMLWriter);
   private
@@ -201,6 +247,8 @@ type
     procedure SetParent(const AValue: TComponent);
   Protected
     function CreateWriter (Doc : THTMLDocument) : THTMLWriter; virtual;
+    function GetIDSuffix: string; virtual;
+    procedure SetIDSuffix(const AValue: string); virtual;
   protected
     // Methods for streaming
     FAcceptChildsAtDesignTime: boolean;
@@ -211,6 +259,7 @@ type
     procedure AddEvent(var Events: TEventRecords; AServerEventID: integer; AServerEvent: THandleAjaxEvent; AJavaEventName: string; AcsCallBack: TCSAjaxEvent); virtual;
     procedure DoOnEventCS(AnEvent: TEventRecord; AJavascriptStack: TJavaScriptStack; var Handled: boolean); virtual;
     procedure SetupEvents(AHtmlElement: THtmlCustomElement); virtual;
+    function GetWebPage: TDataModule;
     function GetWebController(const ExceptIfNotAvailable: boolean = true): TWebController;
     property ContentProducerList: TFPList read GetContentProducerList;
   public
@@ -221,6 +270,7 @@ type
     property ParentElement : THTMLCustomElement read FElement write FElement;
     property Writer : THTMLWriter read FWriter write SetWriter;
     Property HTMLDocument : THTMLDocument read FDocument write SetDocument;
+    Property IDSuffix : string read GetIDSuffix write SetIDSuffix;
   public
     // for streaming
     constructor Create(AOwner: TComponent); override;
@@ -480,6 +530,23 @@ resourcestring
   SErrRequestNotHandled = 'Web request was not handled by actions.';
   SErrNoContentProduced = 'The content producer "%s" didn''t produce any content.';
 
+{ TJavaVariables }
+
+function TJavaVariables.GetItem(Index: integer): TJavaVariable;
+begin
+  result := TJavaVariable(Inherited GetItem(Index));
+end;
+
+procedure TJavaVariables.SetItem(Index: integer; const AValue: TJavaVariable);
+begin
+  inherited SetItem(Index, AValue);
+end;
+
+function TJavaVariables.Add: TJavaVariable;
+begin
+  result := inherited Add as TJavaVariable;
+end;
+
 { TcontainerStylesheets }
 
 function TcontainerStylesheets.GetItem(Index: integer): TContainerStylesheet;
@@ -505,10 +572,11 @@ begin
   result := FWebController;
 end;
 
-constructor TJavaScriptStack.Create(const AWebController: TWebController);
+constructor TJavaScriptStack.Create(const AWebController: TWebController; const AJavaType: TJavaType);
 begin
   FWebController := AWebController;
   FScript := TStringList.Create;
+  FJavaType := AJavaType;
 end;
 
 destructor TJavaScriptStack.Destroy;
@@ -589,6 +657,16 @@ end;
 function THTMLContentProducer.GetContentProducers(Index: integer): THTMLContentProducer;
 begin
   Result:=THTMLContentProducer(ContentProducerList[Index]);
+end;
+
+function THTMLContentProducer.GetIDSuffix: string;
+begin
+  result := FIDSuffix;
+end;
+
+procedure THTMLContentProducer.SetIDSuffix(const AValue: string);
+begin
+  FIDSuffix := AValue;
 end;
 
 function THTMLContentProducer.GetContentProducerList: TFPList;
@@ -679,7 +757,7 @@ begin
     wc := GetWebController(false);
     if assigned(wc) then
       begin
-      AJSClass := wc.InitializeJavaScriptStack;
+      AJSClass := wc.InitializeJavaScriptStack(jtClientSideEvent);
       try
         for i := 0 to high(Events) do
           begin
@@ -702,24 +780,44 @@ begin
     end;
 end;
 
-function THTMLContentProducer.GetWebController(const ExceptIfNotAvailable: boolean): TWebController;
-var i : integer;
+function THTMLContentProducer.GetWebPage: TDataModule;
+var
+  aowner: TComponent;
 begin
   result := nil;
-  if assigned(owner)  then
+  aowner := Owner;
+  while assigned(aowner) do
     begin
-    if (owner is TWebPage) and TWebPage(owner).HasWebController then
+    if aowner.InheritsFrom(TWebPage) then
       begin
-      result := TWebPage(owner).WebController;
+      result := TWebPage(aowner);
+      break;
+      end;
+    aowner:=aowner.Owner;
+    end;
+end;
+
+function THTMLContentProducer.GetWebController(const ExceptIfNotAvailable: boolean): TWebController;
+var
+  i : integer;
+  wp: TWebPage;
+begin
+  result := nil;
+  wp := TWebPage(GetWebPage);
+  if assigned(wp) then
+    begin
+    if wp.HasWebController then
+      begin
+      result := wp.WebController;
       exit;
-      end
-    else //if (owner is TDataModule) then
+      end;
+    end
+  else if assigned(Owner) then //if (owner is TDataModule) then
+    begin
+    for i := 0 to owner.ComponentCount-1 do if owner.Components[i] is TWebController then
       begin
-      for i := 0 to owner.ComponentCount-1 do if owner.Components[i] is TWebController then
-        begin
-        result := TWebController(Owner.Components[i]);
-        Exit;
-        end;
+      result := TWebController(Owner.Components[i]);
+      Exit;
       end;
     end;
   if ExceptIfNotAvailable then
@@ -1199,7 +1297,7 @@ begin
   FSendXMLAnswer:=true;
   FResponse:=AResponse;
   FWebController := AWebController;
-  FJavascriptCallStack:=FWebController.InitializeJavaScriptStack;
+  FJavascriptCallStack:=FWebController.InitializeJavaScriptStack(jtOther);
 end;
 
 destructor TAjaxResponse.Destroy;
@@ -1248,6 +1346,21 @@ end;
 
 { TWebController }
 
+function TWebController.GetJavaVariables: TJavaVariables;
+begin
+  if not assigned(FJavaVariables) then
+    FJavaVariables := TJavaVariables.Create(TJavaVariable);
+  Result := FJavaVariables;
+end;
+
+function TWebController.GetJavaVariablesCount: integer;
+begin
+  if assigned(FJavaVariables) then
+    result := FJavaVariables.Count
+  else
+    result := 0;
+end;
+
 procedure TWebController.SetBaseURL(const AValue: string);
 begin
   if FBaseURL=AValue then exit;
@@ -1262,7 +1375,10 @@ end;
 
 function TWebController.GetCurrentJavaScriptStack: TJavaScriptStack;
 begin
-  result := TJavaScriptStack(FScriptStack.Items[FScriptStack.Count-1]);
+  if FScriptStack.Count>0 then
+    result := TJavaScriptStack(FScriptStack.Items[FScriptStack.Count-1])
+  else
+    result := nil;
 end;
 
 procedure TWebController.InitializeAjaxRequest;
@@ -1290,6 +1406,16 @@ begin
   // do nothing
 end;
 
+function TWebController.AddJavaVariable(AName, ABelongsTo, AGetValueFunc, AID, AIDSuffix: string): TJavaVariable;
+begin
+  result := GetJavaVariables.Add;
+  result.BelongsTo := ABelongsTo;
+  result.GetValueFunc := AGetValueFunc;
+  result.Name := AName;
+  result.IDSuffix := AIDSuffix;
+  result.ID := AID;
+end;
+
 function TWebController.MessageBox(AText: String; Buttons: TWebButtons; ALoaded: string = ''): string;
 begin
   if assigned(MessageBoxHandler) then
@@ -1306,6 +1432,36 @@ begin
     result := TWebPage(Owner).Request.LocalPathPrefix + AnURL
   else
     result := AnURL;
+end;
+
+function TWebController.IncrementIterationLevel: integer;
+begin
+  result := Length(FIterationIDs)+1;
+  SetLength(FIterationIDs,Result);
+end;
+
+procedure TWebController.SetIterationIDSuffix(AIterationLevel: integer; IDSuffix: string);
+begin
+  FIterationIDs[AIterationLevel-1]:=IDSuffix;
+end;
+
+function TWebController.GetIterationIDSuffix: string;
+var
+  i: integer;
+begin
+  result := '';
+  for i := 0 to length(FIterationIDs)-1 do
+    result := result + '_' + FIterationIDs[i];
+end;
+
+procedure TWebController.DecrementIterationLevel;
+var
+  i: integer;
+begin
+  i := length(FIterationIDs);
+  if i=0 then
+    raise Exception.Create('DecrementIterationLevel can not be called more times then IncrementIterationLevel');
+  SetLength(FIterationIDs,i-1);
 end;
 
 function TWebController.GetRequest: TRequest;
@@ -1329,12 +1485,13 @@ begin
   if (Owner is TWebPage) and (TWebPage(Owner).WebController=self) then
     TWebPage(Owner).WebController := nil;
   FScriptStack.Free;
+  if assigned(FJavaVariables) then FJavaVariables.Free;
   inherited Destroy;
 end;
 
-function TWebController.InitializeJavaScriptStack: TJavaScriptStack;
+function TWebController.InitializeJavaScriptStack(AJavaType: TJavaType): TJavaScriptStack;
 begin
-  result := CreateNewJavascriptStack;
+  result := CreateNewJavascriptStack(AJavaType);
   FScriptStack.Add(result);
 end;
 

@@ -25,23 +25,23 @@
 {$include ogc/gx_struct.inc}
 
 {$include ogc/lwp.inc}
-{$include ogc/lwp_config.inc}
-{$include ogc/lwp_heap.inc}
+ {$include ogc/lwp_config.inc}
+ {$include ogc/lwp_heap.inc}
 
-{$include ogc/lwp_tqdata.inc}
-{$include ogc/lwp_objmgr.inc}
-{$include ogc/lwp_priority.inc}
-{$include ogc/lwp_watchdog.inc}
-{$include ogc/lwp_threads.inc}
+ {$include ogc/lwp_tqdata.inc}
+ {$include ogc/lwp_objmgr.inc}
+ {$include ogc/lwp_priority.inc}
+ {$include ogc/lwp_watchdog.inc}
+ {$include ogc/lwp_threads.inc}  // tradurre lwp_threads.inl
 
 
-{$include ogc/lwp_messages.inc}
-{$include ogc/lwp_mutex.inc}
-{$include ogc/lwp_sema.inc}
-{$include ogc/lwp_stack.inc}
-{$include ogc/lwp_states.inc}
-{$include ogc/lwp_threadq.inc}
-{$include ogc/lwp_wkspace.inc}
+ {$include ogc/lwp_messages.inc}
+ {$include ogc/lwp_mutex.inc}
+ {$include ogc/lwp_sema.inc}
+ {$include ogc/lwp_stack.inc}
+ {$include ogc/lwp_states.inc}
+ {$include ogc/lwp_threadq.inc}
+ {$include ogc/lwp_wkspace.inc}
 
 
 {$include ogc/gu.inc}

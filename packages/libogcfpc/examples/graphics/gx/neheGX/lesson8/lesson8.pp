@@ -5,7 +5,7 @@ program lesson8;
 {$mode objfpc}
 
 uses
-  cmem, ctypes, gccore, math;
+  cmem, ctypes, gctypes, gccore, math;
 
 {$include inc/glass.tpl.inc}
 {$link build/glass.tpl.o}

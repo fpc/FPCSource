@@ -15,8 +15,19 @@ type
         FTest: Integer;
         type
           TNode = class
+            FNode: TRootClass.TNode.TNode;
           end;
           en = (e1,e2);
+      TOtherNode = class
+      public
+        type
+          TNestedInOtherNode = class
+            ffield: longint;
+          end;
+      end;
+      TFinalNode = class
+        fx: TRootClass.TOtherNode.TNestedInOtherNode;
+      end;
       published
         property Test: Integer read FTest write FTest;
       end;
@@ -36,6 +47,7 @@ begin
   Test1 := TNode.TNode.Create;
   if Test1.ClassName <> 'TRootClass.TNode.TNode' then
     halt(2);
+  Test1.FNode:=Test1;
   Test1.Free;
 end;
 
