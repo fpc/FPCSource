@@ -46,12 +46,29 @@ begin
               writeln('indexbyte error 2 for (',i,',',j,',',k,')');
               halt(2);
             end;
+          {same for length=-1}
+          if indexbyte(b[k+4],-1,0)<>index then
+            begin
+              writeln(indexbyte(b[k+4],-1,0),' <> ',index);
+              writeln('indexbyte error 2a for (',i,',',j,',',k,')');
+              halt(22);
+            end;
+  
 
           if indexbyte(b[k+4],i,b[k+4+i-1])<>i-1 then
             begin
               writeln('indexbyte error 3 for (',i,',',j,',',k,')');
               halt(3);
             end;
+          {same for length=-1}  
+          if i<>0 then   // previous test will be no-op when i=0
+            if indexbyte(b[k+4],-1,b[k+4+i-1])<>i-1 then
+              begin
+                writeln('indexbyte error 3a for (',i,',',j,',',k,')');
+                halt(23);
+              end;
+
+
           if (i<1) then
             index:=-1
           else
@@ -62,6 +79,16 @@ begin
               writeln('indexbyte error 4 for (',i,',',j,',',k,')');
               halt(4);
             end;
+          {same for length=-1}
+          if i<>0 then  // previous test will be no-op when i=0
+            if indexbyte(b[k+4],-1,b[k+4+i shr 1])<>index then
+              begin
+                writeln(indexbyte(b[k+4],-1,b[k+4+i shr 1]),' <> ',index);
+                writeln('indexbyte error 4a for (',i,',',j,',',k,')');
+                halt(24);
+              end;
+
+
           if (i=0) then
             index:=-1
           else
@@ -69,8 +96,15 @@ begin
           if indexbyte(b[k+4],i,b[k+4])<>index then
             begin
               writeln('indexbyte error 5 for (',i,',',j,',',k,')');
-              halt(3);
+              halt(5);
             end;
+          {same for length=-1}
+          if i<>0 then
+            if indexbyte(b[k+4],-1,b[k+4])<>index then
+              begin
+                writeln('indexbyte error 5a for (',i,',',j,',',k,')');
+                halt(25);
+              end;
 
 
           if indexword(b[k+4],i shr 1,0)<>-1 then

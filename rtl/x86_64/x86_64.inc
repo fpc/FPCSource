@@ -458,7 +458,156 @@ Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
   end;
 {$endif FPC_SYSTEM_HAS_FILLCHAR}
 
+{$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
+{ based on libc/sysdeps/x86_64/memchr.S }
+{$define FPC_SYSTEM_HAS_INDEXBYTE}
+function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackframe;
+{ win64: rcx buf, rdx len, r8b word
+  linux: rdi buf, rsi len, rdx word }
+asm
+{$ifdef win64}
+    movd   %r8d, %xmm1
+{$else}
+    movd   %edx, %xmm1
+    movq   %rdi, %rcx
+    movq   %rsi, %rdx
+{$endif}
+    mov    %rcx, %rax                  { duplicate buf }
+    punpcklbw  %xmm1, %xmm1
+    and    $0xfffffffffffffff0, %rax
+    test   %rdx, %rdx
+    punpcklbw  %xmm1, %xmm1
+    jz     .L3                         { exit if len=0 }
+    orl    $0xffffffff, %r8d
+    movdqa (%rax), %xmm0               { Fetch first 16 bytes (up to 15 bytes before target) }
+    pshufd $0, %xmm1, %xmm1
+    sub    %rax, %rcx                  { rcx=misalignment }
+    pcmpeqb %xmm1, %xmm0
+    add    %rcx, %rdx                  { add misalignment to length }
+    cmovb  %r8, %rdx                   { if it overflows (happens when length=-1), set back to -1, }
+                                       {   otherwise loop will terminate too early }
+    mov    %rcx, %r9                   { and save it, will subtract back in the end }
+    shl    %cl, %r8d
+    pmovmskb %xmm0, %ecx
+    andl   %r8d, %ecx                  { mask away matches before buffer start }
+    movl   $16, %r8d
+    jnz    .L1                         { got a match within buffer -> we're done (almost) }
+    cmpq   %r8, %rdx
+    jbe    .L3
 
+    .balign 16
+.L2:
+    movdqa (%rax,%r8), %xmm0
+    lea    16(%r8), %r8
+    pcmpeqb %xmm1, %xmm0
+    pmovmskb %xmm0, %ecx
+    test   %ecx, %ecx
+    jnz    .L1
+    cmp    %r8, %rdx
+    ja     .L2
+
+.L3:
+    or    $-1, %rax
+    jmp   .Ldone
+
+.L1:
+    bsfl   %ecx, %ecx                  { compute position of the first match }
+    lea    -16(%rcx,%r8), %rax
+    cmp    %rax, %rdx
+    jbe    .L3                         { if it is after the specified length, ignore it }
+    sub    %r9, %rax
+.Ldone:
+end;
+{$endif FPC_SYSTEM_HAS_INDEXBYTE}
+
+{$ifndef FPC_SYSTEM_HAS_INDEXWORD}
+{$define FPC_SYSTEM_HAS_INDEXWORD}
+function IndexWord(Const buf;len:SizeInt;b:word):SizeInt; assembler; nostackframe;
+{ win64: rcx buf, rdx len, r8b word
+  linux: rdi buf, rsi len, rdx word }
+asm
+{$ifdef win64}
+    movd   %r8d, %xmm1
+{$else}
+    movd   %edx, %xmm1
+    movq   %rdi, %rcx
+    movq   %rsi, %rdx
+{$endif}
+    mov    %rcx, %rax                  { duplicate buf }
+    punpcklwd  %xmm1, %xmm1
+    and    $0xfffffffffffffff0, %rax
+    test   %rdx, %rdx
+    pshufd $0, %xmm1, %xmm1
+    jz     .L3                         { exit if len=0 }
+    orl    $0xffffffff, %r8d
+    test   $1, %cl                     { if buffer isn't aligned to word boundary, }
+    jnz    .Lunaligned                 { fallback to slower unaligned loop }
+
+    movdqa (%rax), %xmm0               { Fetch first 16 bytes (up to 14 bytes before target) }
+    sub    %rax, %rcx                  { rcx=misalignment }
+    pcmpeqw %xmm1, %xmm0
+
+    mov    %rcx, %r9
+    shr    $1, %r9                     { save misalignment in words }
+
+    add    %r9, %rdx                   { add misalignment to length }
+    cmovb  %r8, %rdx                   { if it overflows (happens when length=-1), set back to -1, }
+                                       {   otherwise loop will terminate too early }
+    shl    %cl, %r8d
+    pmovmskb %xmm0, %ecx
+    andl   %r8d, %ecx                  { mask away matches before buffer start }
+    movl   $8, %r8d
+    jnz    .L1                         { got a match within buffer -> we're done (almost) }
+    cmpq   %r8, %rdx
+    jbe    .L3
+
+    .balign 16
+.L2:
+    movdqa (%rax,%r8,2), %xmm0
+    lea    8(%r8), %r8
+    pcmpeqw %xmm1, %xmm0
+    pmovmskb %xmm0, %ecx
+    test   %ecx, %ecx
+    jnz    .L1
+    cmp    %r8, %rdx
+    ja     .L2
+
+.L3:
+    or    $-1, %rax
+    jmp   .Ldone
+
+.L1:
+    bsfl   %ecx, %ecx                  { compute position of the first match }
+    shr    $1, %ecx                    { in words }
+    lea    -8(%rcx,%r8), %rax
+    cmp    %rax, %rdx
+    jbe    .L3                         { if it is after the specified length, ignore it }
+    sub    %r9, %rax
+.Ldone:
+    retq
+
+{ TODO: aligned processing is still possible, but for now
+  use the simplest form }
+.Lunaligned:
+    xor    %r9, %r9
+    xor    %r8, %r8
+    mov    %rcx, %rax
+
+    .balign 16
+.L2u:
+    movdqu (%rax,%r8,2), %xmm0
+    lea    8(%r8), %r8
+    pcmpeqw %xmm1, %xmm0
+    pmovmskb %xmm0, %ecx
+    test   %ecx, %ecx
+    jnz    .L1
+    cmp    %r8, %rdx
+    ja     .L2u
+    or     $-1, %rax
+end;
+{$endif FPC_SYSTEM_HAS_INDEXWORD}
+
+{$asmmode att}
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
 { does a thread save inc/dec }
 function declocked(var l : longint) : boolean;assembler;
