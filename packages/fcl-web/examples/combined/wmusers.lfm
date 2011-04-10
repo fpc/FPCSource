@@ -1,0 +1,94 @@
+object CombinedModule: TCombinedModule
+  OnCreate = DataModuleCreate
+  OldCreateOrder = False
+  InputAdaptor = ProviderInputAdaptor
+  ContentProducer = ProviderFormatter
+  OnGetContentProducer = DataModuleGetContentProducer
+  OnGetInputAdaptor = DataModuleGetInputAdaptor
+  OnNewSession = DataModuleNewSession
+  Height = 300
+  HorizontalOffset = 635
+  VerticalOffset = 230
+  Width = 400
+  object ProviderFormatter: TExtJSJSONDataFormatter
+    AllowPageSize = False
+    BeforeDataToJSON = ProviderFormatterBeforeDataToJSON
+    BeforeUpdate = ProviderFormatterBeforeUpdate
+    BeforeInsert = ProviderFormatterBeforeInsert
+    BeforeDelete = ProviderFormatterBeforeDelete
+    left = 272
+    top = 72
+  end
+  object Users: TSQLDBWebDataProvider
+    SelectSQL.Strings = (
+      'SELECT FIRST :limit SKIP :start U_ID, U_NAME, U_LOGIN, U_PASSWORD, U_EMAIL FROM USERS'
+    )
+    UpdateSQL.Strings = (
+      'UPDATE USERS SET'
+      '  U_NAME=:U_NAME,'
+      '  U_LOGIN=:U_LOGIN,'
+      '  U_EMAIL=:U_EMAIL,'
+      '  U_PASSWORD=:U_PASSWORD'
+      'WHERE'
+      '  (U_ID=:U_ID)'
+    )
+    DeleteSQL.Strings = (
+      'DELETE FROM USERS WHERE (U_ID=:ID)'
+    )
+    InsertSQL.Strings = (
+      'INSERT INTO USERS'
+      '(U_ID, U_LOGIN, U_NAME, U_EMAIL, U_PASSWORD)'
+      'VALUES'
+      '(:U_ID, :U_LOGIN, :U_NAME, :U_EMAIL, :U_PASSWORD)'
+    )
+    Connection = IBConnection1
+    IDFieldName = 'U_ID'
+    OnGetNewID = UsersGetNewID
+    Options = []
+    Params = <    
+      item
+        DataType = ftUnknown
+        Name = 'limit'
+        ParamType = ptUnknown
+      end    
+      item
+        DataType = ftUnknown
+        Name = 'start'
+        ParamType = ptUnknown
+      end>
+    left = 32
+    top = 72
+  end
+  object IBConnection1: TIBConnection
+    Connected = False
+    LoginPrompt = False
+    KeepConnection = False
+    Transaction = SQLTransaction1
+    LogEvents = []
+    left = 32
+    top = 16
+  end
+  object QGetID: TSQLQuery
+    AutoCalcFields = False
+    Database = IBConnection1
+    Transaction = SQLTransaction1
+    ReadOnly = False
+    SQL.Strings = (
+      'SELECT GEN_ID(GEN_USERS,1) AS THEID  FROM RDB$DATABASE'
+    )
+    Params = <>
+    left = 32
+    top = 128
+  end
+  object SQLTransaction1: TSQLTransaction
+    Active = False
+    Action = caNone
+    Database = IBConnection1
+    left = 144
+    top = 16
+  end
+  object ProviderInputAdaptor: TExtJSJSonWebdataInputAdaptor
+    left = 272
+    top = 16
+  end
+end
