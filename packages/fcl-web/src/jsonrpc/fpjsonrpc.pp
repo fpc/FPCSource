@@ -357,6 +357,10 @@ resourcestring
 
 implementation
 
+{$IFDEF WMDEBUG}
+uses dbugintf;
+{$ENDIF}
+
 function CreateJSONErrorObject(Const AMessage : String; Const ACode : Integer) : TJSONObject;
 
 begin
@@ -1014,7 +1018,7 @@ Var
 
 begin
   Result:=Nil;
-  {$ifdef wmdebug}SendDebug(Format('Creating instance for %s',[Self.ProviderName]));{$endif}
+  {$ifdef wmdebug}SendDebug(Format('Creating instance for %s',[Self.HandlerMethodName]));{$endif}
   If Assigned(FDataModuleClass) then
     begin
     {$ifdef wmdebug}SendDebug(Format('Creating datamodule from class %d ',[Ord(Assigned(FDataModuleClass))]));{$endif}
