@@ -1078,8 +1078,50 @@ unit cgcpu;
 
     procedure tcgavr.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;
       cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
+      var
+        swapped : boolean;
+        tmpreg : tregister;
+        i : byte;
       begin
-        { TODO : a_cmp_reg_reg_label }
+        { swap parameters? }
+        case cmp_op of
+          OC_GT:
+            begin
+              swapped:=true;
+              cmp_op:=OC_LT;
+            end;
+          OC_LTE:
+            begin
+              swapped:=true;
+              cmp_op:=OC_GTE;
+            end;
+          OC_BE:
+            begin
+              swapped:=true;
+              cmp_op:=OC_AE;
+            end;
+          OC_A:
+            begin
+              swapped:=true;
+              cmp_op:=OC_A;
+            end;
+        end;
+        if swapped then
+          begin
+            tmpreg:=reg1;
+            reg1:=reg2;
+            reg2:=tmpreg;
+          end;
+        list.concat(taicpu.op_reg_reg(A_CP,reg1,reg2));
+
+        for i:=2 to tcgsize2size[size] do
+          begin
+            reg1:=GetNextReg(reg1);
+            reg2:=GetNextReg(reg2);
+            list.concat(taicpu.op_reg_reg(A_CPC,reg1,reg2));
+          end;
+
+        a_jmp_cond(list,cmp_op,l);
       end;
 
 
