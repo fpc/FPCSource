@@ -49,10 +49,10 @@ implementation
        wpobase,
        scanner,pbase,pexpr,psystem,psub,pdecsub,ptype
        ,cpuinfo
-{$ifdef i386}
+{$if defined(i386) or defined(ARM)}
        { fix me! }
        ,cpubase
-{$endif i386}
+{$endif defined(i386) or defined(ARM)}
        ;
 
 
@@ -469,6 +469,89 @@ implementation
         current_asmdata.asmlists[al_globals].concatlist(unitinits);
         current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('INITFINAL'));
         unitinits.free;
+      end;
+
+
+    procedure InsertInterruptTable;
+
+      procedure WriteVector(const name: string);
+        var
+          ai: taicpu;
+        begin
+{$IFDEF arm}
+          if current_settings.cputype in [cpu_armv7m, cpu_cortexm3] then
+            current_asmdata.asmlists[al_globals].concat(tai_const.Createname(name,0))
+          else
+            begin
+              ai:=taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(name));
+              ai.is_jmp:=true;
+              current_asmdata.asmlists[al_globals].concat(ai);
+            end;
+{$ENDIF arm}
+        end;
+
+      function GetInterruptTableLength: longint;
+        begin
+{$if defined(ARM)}
+          result:=interruptvectors[current_settings.controllertype];
+{$else}
+          result:=0;
+{$endif}
+        end;
+
+      var
+        hp: tused_unit;
+        sym: tsym;
+        i, i2: longint;
+        interruptTable: array of tprocdef;
+        pd: tprocdef;
+      begin
+        SetLength(interruptTable, GetInterruptTableLength);
+        FillChar(interruptTable[0], length(interruptTable)*sizeof(pointer), 0);
+
+        hp:=tused_unit(usedunits.first);
+        while assigned(hp) do
+          begin
+            for i := 0 to hp.u.symlist.Count-1 do
+              begin
+                sym:=tsym(hp.u.symlist[i]);
+                if not assigned(sym) then
+                  continue;
+                if sym.typ = procsym then
+                  begin
+                    for i2 := 0 to tprocsym(sym).ProcdefList.Count-1 do
+                      begin
+                        pd:=tprocdef(tprocsym(sym).ProcdefList[i2]);
+                        if pd.interruptvector >= 0 then
+                          begin
+                            if pd.interruptvector > high(interruptTable) then
+                              Internalerror(2011030602);
+                            if interruptTable[pd.interruptvector] <> nil then
+                              internalerror(2011030601);
+
+                            interruptTable[pd.interruptvector]:=pd;
+                            break;
+                          end;
+                      end;
+                  end;
+              end;
+            hp:=tused_unit(hp.next);
+          end;
+
+        new_section(current_asmdata.asmlists[al_globals],sec_init,'VECTORS',sizeof(pint));
+        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('VECTORS',AT_DATA,0));
+{$IFDEF arm}
+        if current_settings.cputype in [cpu_armv7m, cpu_cortexm3] then
+          current_asmdata.asmlists[al_globals].concat(tai_const.Createname('_stack_top',0)); { ARMv7-M processors have the initial stack value at address 0 }
+{$ENDIF arm}
+
+        for i:=0 to high(interruptTable) do
+          begin
+            if interruptTable[i]<>nil then
+              writeVector(interruptTable[i].mangledname)
+            else
+              writeVector('DefaultHandler'); { Default handler name }
+          end;
       end;
 
 
@@ -2362,6 +2445,9 @@ implementation
          InsertResourceTablesTable;
          InsertWideInitsTablesTable;
          InsertMemorySizes;
+
+         if target_info.system in systems_interrupt_table then
+           InsertInterruptTable;
 
          { Insert symbol to resource info }
          InsertResourceInfo(resources_used);

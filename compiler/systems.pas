@@ -449,6 +449,8 @@ interface
 
        systems_internal_sysinit = [system_i386_linux,system_i386_win32];
 
+       systems_interrupt_table = [{system_arm_embedded}];
+
        { all symbian systems }
        systems_symbian = [system_i386_symbian,system_arm_symbian];
 

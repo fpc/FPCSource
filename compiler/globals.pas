@@ -1007,7 +1007,8 @@ implementation
          'SAFECALL',
          'STDCALL',
          'SOFTFLOAT',
-         'MWPASCAL'
+         'MWPASCAL',
+         'INTERRUPT'
         );
       var
         t  : tproccalloption;
