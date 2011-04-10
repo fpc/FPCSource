@@ -104,6 +104,8 @@ interface
         procedure insertmoduleinfo;override;
         procedure insertlineinfo(list:TAsmList);override;
         procedure referencesections(list:TAsmList);override;
+
+        constructor Create;override;
       end;
 
 
@@ -800,6 +802,9 @@ implementation
       var
         ss : ansistring;
       begin
+        if not assigned(vardatadef) then
+          exit;
+
         ss:='s'+tostr(vardatadef.size);
         vardatadef.symtable.SymList.ForEachCall(@field_add_stabstr,@ss);
         ss[length(ss)]:=';';
@@ -1502,6 +1507,7 @@ implementation
         stabstypelist : TAsmList;
         storefilepos  : tfileposinfo;
         i  : longint;
+        vardatatype : ttypesym;
       begin
         storefilepos:=current_filepos;
         current_filepos:=current_module.mainfilepos;
@@ -1512,7 +1518,9 @@ implementation
         stabsvarlist:=TAsmList.create;
         stabstypelist:=TAsmList.create;
 
-        vardatadef:=trecorddef(search_system_type('TVARDATA').typedef);
+        vardatatype:=try_search_system_type('TVARDATA');
+        if assigned(vardatatype) then
+          vardatadef:=trecorddef(vardatatype.typedef);
 
         { include symbol that will be referenced from the main to be sure to
           include this debuginfo .o file }
@@ -1709,6 +1717,11 @@ implementation
           end;
       end;
 
+    constructor TDebugInfoStabs.Create;
+      begin
+        inherited Create;
+        vardatadef:=nil;
+      end;
 
     const
       dbg_stabs_info : tdbginfo =

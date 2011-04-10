@@ -225,6 +225,7 @@ interface
     function  searchsym_in_class_by_msgint(classh:tobjectdef;msgid:longint;out srdef : tdef;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  search_system_type(const s: TIDString): ttypesym;
+    function  try_search_system_type(const s: TIDString): ttypesym;
     function  search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
     function  search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef;explicit:boolean):Tprocdef;
@@ -2397,6 +2398,22 @@ implementation
            (sym.typ<>typesym) then
           cgmessage1(cg_f_unknown_system_type,s);
         result:=ttypesym(sym);
+      end;
+
+
+    function try_search_system_type(const s: TIDString): ttypesym;
+      var
+        sym : tsym;
+      begin
+        sym:=tsym(systemunit.Find(s));
+        if not assigned(sym) then
+          result:=nil
+        else
+          begin
+            if sym.typ<>typesym then
+              cgmessage1(cg_f_unknown_system_type,s);
+            result:=ttypesym(sym);
+          end;
       end;
 
 

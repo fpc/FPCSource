@@ -1000,6 +1000,8 @@ implementation
         loclist := tdynamicarray.Create(4096);
 
         AbbrevSearchTree:=AllocateNewAiSearchItem;
+
+        vardatadef := nil;
       end;
 
 
@@ -2992,6 +2994,7 @@ implementation
         i : longint;
         def: tdef;
         dbgname: string;
+        vardatatype: ttypesym;
       begin
         current_module.flags:=current_module.flags or uf_has_dwarf_debuginfo;
         storefilepos:=current_filepos;
@@ -3006,7 +3009,9 @@ implementation
             FILEREC
             TEXTREC
         }
-        vardatadef:=trecorddef(search_system_type('TVARDATA').typedef);
+        vardatatype:=try_search_system_type('TVARDATA');
+        if assigned(vardatatype) then
+          vardatadef:=trecorddef(vardatatype.typedef);
 
         { write start labels }
         new_section(current_asmdata.asmlists[al_dwarf_info],sec_debug_info,'',0);
@@ -3604,7 +3609,8 @@ implementation
     procedure TDebugInfoDwarf2.appenddef_variant(list:TAsmList;def: tvariantdef);
       begin
         { variants aren't known to dwarf2 but writting tvardata should be enough }
-        appenddef_record_named(list,trecorddef(vardatadef),'Variant');
+        if assigned(vardatadef) then
+          appenddef_record_named(list,trecorddef(vardatadef),'Variant');
       end;
 
     function TDebugInfoDwarf2.dwarf_version: Word;
