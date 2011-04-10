@@ -29,7 +29,6 @@ interface
     procedure proc_package;
     procedure proc_program(islibrary : boolean);
 
-
 implementation
 
     uses
@@ -47,13 +46,8 @@ implementation
        pexports,
        objcgutl,
        wpobase,
-       scanner,pbase,pexpr,psystem,psub,pdecsub,ptype
-       ,cpuinfo
-{$if defined(i386) or defined(ARM)}
-       { fix me! }
-       ,cpubase
-{$endif defined(i386) or defined(ARM)}
-       ;
+       scanner,pbase,pexpr,psystem,psub,pdecsub,ptype,
+       cpuinfo;
 
 
     procedure create_objectfile;
@@ -472,89 +466,6 @@ implementation
       end;
 
 
-    procedure InsertInterruptTable;
-
-      procedure WriteVector(const name: string);
-        var
-          ai: taicpu;
-        begin
-{$IFDEF arm}
-          if current_settings.cputype in [cpu_armv7m, cpu_cortexm3] then
-            current_asmdata.asmlists[al_globals].concat(tai_const.Createname(name,0))
-          else
-            begin
-              ai:=taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(name));
-              ai.is_jmp:=true;
-              current_asmdata.asmlists[al_globals].concat(ai);
-            end;
-{$ENDIF arm}
-        end;
-
-      function GetInterruptTableLength: longint;
-        begin
-{$if defined(ARM)}
-          result:=interruptvectors[current_settings.controllertype];
-{$else}
-          result:=0;
-{$endif}
-        end;
-
-      var
-        hp: tused_unit;
-        sym: tsym;
-        i, i2: longint;
-        interruptTable: array of tprocdef;
-        pd: tprocdef;
-      begin
-        SetLength(interruptTable, GetInterruptTableLength);
-        FillChar(interruptTable[0], length(interruptTable)*sizeof(pointer), 0);
-
-        hp:=tused_unit(usedunits.first);
-        while assigned(hp) do
-          begin
-            for i := 0 to hp.u.symlist.Count-1 do
-              begin
-                sym:=tsym(hp.u.symlist[i]);
-                if not assigned(sym) then
-                  continue;
-                if sym.typ = procsym then
-                  begin
-                    for i2 := 0 to tprocsym(sym).ProcdefList.Count-1 do
-                      begin
-                        pd:=tprocdef(tprocsym(sym).ProcdefList[i2]);
-                        if pd.interruptvector >= 0 then
-                          begin
-                            if pd.interruptvector > high(interruptTable) then
-                              Internalerror(2011030602);
-                            if interruptTable[pd.interruptvector] <> nil then
-                              internalerror(2011030601);
-
-                            interruptTable[pd.interruptvector]:=pd;
-                            break;
-                          end;
-                      end;
-                  end;
-              end;
-            hp:=tused_unit(hp.next);
-          end;
-
-        new_section(current_asmdata.asmlists[al_globals],sec_init,'VECTORS',sizeof(pint));
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('VECTORS',AT_DATA,0));
-{$IFDEF arm}
-        if current_settings.cputype in [cpu_armv7m, cpu_cortexm3] then
-          current_asmdata.asmlists[al_globals].concat(tai_const.Createname('_stack_top',0)); { ARMv7-M processors have the initial stack value at address 0 }
-{$ENDIF arm}
-
-        for i:=0 to high(interruptTable) do
-          begin
-            if interruptTable[i]<>nil then
-              writeVector(interruptTable[i].mangledname)
-            else
-              writeVector('DefaultHandler'); { Default handler name }
-          end;
-      end;
-
-
     procedure InsertMemorySizes;
 {$IFDEF POWERPC}
       var
@@ -798,7 +709,7 @@ implementation
           end;
 
         { CPU targets with microcontroller support can add a controller specific unit }
-{$if defined(ARM)}
+{$if defined(ARM) or defined(AVR)}
         if (target_info.system in systems_embedded) and (current_settings.controllertype<>ct_none) then
           AddUnit(controllerunitstr[current_settings.controllertype]);
 {$endif ARM}
@@ -1991,11 +1902,7 @@ implementation
 
          new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
          current_asmdata.asmlists[al_procedures].concat(tai_symbol.createname_global('_DLLMainCRTStartup',AT_FUNCTION,0));
-{$ifdef i386}
-         { fix me! }
-         current_asmdata.asmlists[al_procedures].concat(Taicpu.Op_const_reg(A_MOV,S_L,1,NR_EAX));
-         current_asmdata.asmlists[al_procedures].concat(Taicpu.Op_const(A_RET,S_W,12));
-{$endif i386}
+         gen_fpc_dummy(current_asmdata.asmlists[al_procedures]);
          current_asmdata.asmlists[al_procedures].concat(tai_const.createname('_FPCDummy',0));
 
          { leave when we got an error }
@@ -2257,7 +2164,7 @@ implementation
 
          { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
          maybe_load_got;
-  
+
          { create whole program optimisation information }
          current_module.wpoinfo:=tunitwpoinfo.create;
 
