@@ -123,6 +123,7 @@ interface
       var
         tmpreg : tregister;
       begin
+        { TODO : implement tavraddnode.second_cmpsmallset }
         {
         pass_left_right;
 

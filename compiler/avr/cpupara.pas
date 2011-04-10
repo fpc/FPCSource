@@ -207,6 +207,7 @@ unit cpupara;
       end;
 
 
+    { TODO : fix tavrparamanager.create_paraloc_info_intern }
     function tavrparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
         var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
 
@@ -408,6 +409,7 @@ unit cpupara;
       end;
 
 
+    { TODO : fix tavrparamanager.get_funcretloc }
     function  tavrparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;
       var
         retcgsize : tcgsize;

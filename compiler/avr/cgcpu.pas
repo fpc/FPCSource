@@ -591,7 +591,7 @@ unit cgcpu;
            end;
        end;
 
-
+{ TODO : support usage of ref.base register parameter }
     function tcgavr.normalize_ref(list:TAsmList;ref: treference):treference;
       var
         tmpreg : tregister;
@@ -1075,22 +1075,27 @@ unit cgcpu;
 
 
     {  comparison operations }
-    procedure tcgavr.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
-      l : tasmlabel);
+    procedure tcgavr.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;
+      cmp_op : topcmp;a : aint;reg : tregister;l : tasmlabel);
       begin
         { TODO : a_cmp_const_reg_label }
       end;
 
 
-    procedure tcgavr.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
+    procedure tcgavr.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;
+      cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
       begin
         { TODO : a_cmp_reg_reg_label }
       end;
 
 
     procedure tcgavr.a_jmp_name(list : TAsmList;const s : string);
+      var
+        ai : taicpu;
       begin
-        internalerror(2011021313);
+        ai:=taicpu.op_sym(A_JMP,current_asmdata.RefAsmSymbol(s));
+        ai.is_jmp:=true;
+        list.concat(ai);
       end;
 
 
