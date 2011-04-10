@@ -1071,8 +1071,55 @@ unit cgcpu;
     {  comparison operations }
     procedure tcgavr.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;
       cmp_op : topcmp;a : aint;reg : tregister;l : tasmlabel);
+      var
+        swapped : boolean;
+        tmpreg : tregister;
+        i : byte;
       begin
-        { TODO : a_cmp_const_reg_label }
+        if a=0 then
+          begin
+            { swap parameters? }
+            case cmp_op of
+              OC_GT:
+                begin
+                  swapped:=true;
+                  cmp_op:=OC_LT;
+                end;
+              OC_LTE:
+                begin
+                  swapped:=true;
+                  cmp_op:=OC_GTE;
+                end;
+              OC_BE:
+                begin
+                  swapped:=true;
+                  cmp_op:=OC_AE;
+                end;
+              OC_A:
+                begin
+                  swapped:=true;
+                  cmp_op:=OC_A;
+                end;
+            end;
+
+            if swapped then
+              list.concat(taicpu.op_reg_reg(A_CP,reg,NR_R1))
+            else
+              list.concat(taicpu.op_reg_reg(A_CP,NR_R1,reg));
+
+            for i:=2 to tcgsize2size[size] do
+              begin
+                reg:=GetNextReg(reg);
+                if swapped then
+                  list.concat(taicpu.op_reg_reg(A_CPC,reg,NR_R1))
+                else
+                  list.concat(taicpu.op_reg_reg(A_CPC,NR_R1,reg));
+              end;
+
+            a_jmp_cond(list,cmp_op,l);
+          end
+        else
+          inherited a_cmp_const_reg_label(list,size,cmp_op,a,reg,l);
       end;
 
 
