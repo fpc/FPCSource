@@ -473,6 +473,7 @@ type
 
   TFPWebProviderDataModule = Class(TFPCustomWebProviderDataModule)
   Published
+    Property CreateSession;
     Property InputAdaptor;
     Property ContentProducer;
     Property UseProviderManager;
