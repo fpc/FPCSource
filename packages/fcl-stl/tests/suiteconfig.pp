@@ -20,7 +20,7 @@ interface
 
 uses
   gvectortest, gstacktest, gqueuetest, gdequetest, garrayutilstest,
-  gsettest, gmaptest;
+  gsettest, gmaptest, ghashsettest, ghashmaptest;
 
 implementation
 
