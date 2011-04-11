@@ -18,7 +18,8 @@ unit fpvectorial;
 interface
 
 uses
-  Classes, SysUtils, Math;
+  Classes, SysUtils, Math,
+  fpcanvas;
 
 type
   TvVectorialFormat = (
@@ -37,6 +38,18 @@ const
   STR_SVG_EXTENSION = '.svg';
   STR_CORELDRAW_EXTENSION = '.cdr';
   STR_WINMETAFILE_EXTENSION = '.wmf';
+
+type
+  {@@ We need our own format because TFPColor is too big for our needs and TColor has no Alpha }
+  TvColor = packed record
+    Red, Green, Blue, Alpha: Byte;
+  end;
+
+const
+  FPValphaTransparent = $00;
+  FPValphaOpaque = $FF;
+
+  clvBlack: TvColor = (Red: $00; Green: $00; Blue: $00; Alpha: FPValphaOpaque);
 
 type
   T3DPoint = record
@@ -62,6 +75,10 @@ type
     // Fields for linking the list
     Previous: TPathSegment;
     Next: TPathSegment;
+    // Data fields
+    PenColor: TvColor;
+    PenStyle: TFPPenStyle;
+    PenWidth: Integer;
   end;
 
   {@@
@@ -125,12 +142,20 @@ type
     FontSize: integer;
     FontName: utf8string;
     Value: utf8string;
+    Color: TvColor;
   end;
 
   {@@
   }
   TvEntity = class
   public
+    // Pen
+    PenColor: TvColor;
+    PenStyle: TFPPenStyle;
+    PenWidth: Integer;
+    // Brush
+    BrushStyle: TFPBrushStyle;
+    BrushColor: TvColor;
   end;
 
   {@@
@@ -224,6 +249,7 @@ type
     procedure AddPath(APath: TPath);
     procedure StartPath(AX, AY: Double);
     procedure AddLineToPath(AX, AY: Double); overload;
+    procedure AddLineToPath(AX, AY: Double; AColor: TvColor); overload;
     procedure AddLineToPath(AX, AY, AZ: Double); overload;
     procedure AddBezierToPath(AX1, AY1, AX2, AY2, AX3, AY3: Double); overload;
     procedure AddBezierToPath(AX1, AY1, AZ1, AX2, AY2, AZ2, AX3, AY3, AZ3: Double); overload;
@@ -231,7 +257,7 @@ type
     procedure AddText(AX, AY, AZ: Double; FontName: string; FontSize: integer; AText: utf8string); overload;
     procedure AddText(AX, AY, AZ: Double; AStr: utf8string); overload;
     procedure AddCircle(ACenterX, ACenterY, ACenterZ, ARadius: Double);
-    procedure AddCircularArc(ACenterX, ACenterY, ACenterZ, ARadius, AStartAngle, AEndAngle: Double);
+    procedure AddCircularArc(ACenterX, ACenterY, ACenterZ, ARadius, AStartAngle, AEndAngle: Double; AColor: TvColor);
     procedure AddEllipse(CenterX, CenterY, CenterZ, MajorHalfAxis, MinorHalfAxis, Angle: Double);
     // Dimensions
     procedure AddAlignedDimension(BaseLeft, BaseRight, DimLeft, DimRight: T3DPoint);
@@ -524,6 +550,20 @@ begin
   segment.SegmentType := st2DLine;
   segment.X := AX;
   segment.Y := AY;
+  segment.PenColor := clvBlack;
+
+  AppendSegmentToTmpPath(segment);
+end;
+
+procedure TvVectorialDocument.AddLineToPath(AX, AY: Double; AColor: TvColor);
+var
+  segment: T2DSegment;
+begin
+  segment := T2DSegment.Create;
+  segment.SegmentType := st2DLine;
+  segment.X := AX;
+  segment.Y := AY;
+  segment.PenColor := AColor;
 
   AppendSegmentToTmpPath(segment);
 end;
@@ -632,7 +672,7 @@ begin
 end;
 
 procedure TvVectorialDocument.AddCircularArc(ACenterX, ACenterY, ACenterZ,
-  ARadius, AStartAngle, AEndAngle: Double);
+  ARadius, AStartAngle, AEndAngle: Double; AColor: TvColor);
 var
   lCircularArc: TvCircularArc;
 begin
@@ -643,6 +683,7 @@ begin
   lCircularArc.Radius := ARadius;
   lCircularArc.StartAngle := AStartAngle;
   lCircularArc.EndAngle := AEndAngle;
+  lCircularArc.PenColor := AColor;
   FEntities.Add(lCircularArc);
 end;
 
