@@ -15,6 +15,18 @@
 unit Graph;
 interface
 
+{
+  To be able to use standard file handles in the graph thread,
+  we need to use the system functions handling threads,
+  to ensure that thread varaibles are correctly initialized.
+  This new default setting can be overridden by defining
+  USE_WINDOWS_API_THREAD_FUNCTIONS macro.
+}
+
+{$ifndef USE_WINDOWS_API_THREAD_FUNCTIONS}
+  {$define USE_SYSTEM_BEGIN_THREAD}
+{$endif ndef USE_WINDOWS_API_THREAD_FUNCTIONS}
+
 uses
   windows;
 
@@ -142,7 +154,15 @@ var
    pal : ^rgbrec;
 //   SavePtr : pointer; { we don't use that pointer }
    MessageThreadHandle : Handle;
+{$ifdef WIN64}
+  {$ifdef USE_SYSTEM_BEGIN_THREAD}
+     MessageThreadId : Qword;
+  {$else}
+     MessageThreadId : DWord;
+  {$endif}
+{$else not WIN64}
    MessageThreadID : DWord;
+{$endif not WIN64}
 
 function GetPaletteEntry(r,g,b : word) : word;
 
@@ -1471,7 +1491,13 @@ end;
 const
    winregistered : boolean = false;
 
-function MessageHandleThread(p : pointer) : DWord;StdCall;
+   { Thread functions have different return type and calling convention
+     for system unit funcitons andfor windows API. }
+{$ifdef USE_SYSTEM_BEGIN_THREAD}
+function MessageHandleThread(p : pointer) : ptrint;
+{$else not USE_SYSTEM_BEGIN_THREAD}
+function MessageHandleThread(p : pointer) : DWord; stdcall;
+{$endif not USE_SYSTEM_BEGIN_THREAD}
 
   var
      AMessage: Msg;
@@ -1484,7 +1510,11 @@ function MessageHandleThread(p : pointer) : DWord;StdCall;
                if not(WinRegisterWithChild) then
                  begin
                     MessageBox(0, 'Window registration failed', nil, mb_Ok);
-                    ExitThread(1);
+{$ifdef USE_SYSTEM_BEGIN_THREAD}
+                    System.EndThread(1);
+{$else not USE_SYSTEM_BEGIN_THREAD}
+                    Windows.ExitThread(1);
+{$endif not USE_SYSTEM_BEGIN_THREAD}
                  end;
             end
           else
@@ -1492,7 +1522,11 @@ function MessageHandleThread(p : pointer) : DWord;StdCall;
                if not(WinRegister) then
                  begin
                     MessageBox(0, 'Window registration failed', nil, mb_Ok);
-                    ExitThread(1);
+{$ifdef USE_SYSTEM_BEGIN_THREAD}
+                    System.EndThread(1);
+{$else not USE_SYSTEM_BEGIN_THREAD}
+                    Windows.ExitThread(1);
+{$endif not USE_SYSTEM_BEGIN_THREAD}
                  end;
             end;
           winregistered:=true;
@@ -1500,7 +1534,11 @@ function MessageHandleThread(p : pointer) : DWord;StdCall;
      GraphWindow:=WinCreate;
      if longint(GraphWindow) = 0 then begin
        MessageBox(0, 'Window creation failed', nil, mb_Ok);
-       ExitThread(1);
+{$ifdef USE_SYSTEM_BEGIN_THREAD}
+       System.EndThread(1);
+{$else not USE_SYSTEM_BEGIN_THREAD}
+       Windows.ExitThread(1);
+{$endif not USE_SYSTEM_BEGIN_THREAD}
      end;
      while longint(GetMessage(@AMessage, 0, 0, 0))=longint(true) do
        begin
@@ -1528,8 +1566,17 @@ procedure InitWin32GUI16colors;
      { start graph subsystem }
      InitializeCriticalSection(graphdrawing);
      graphrunning:=false;
+     {Use system BeginThread instead of CreteThreead
+     function BeginThread(sa : Pointer;stacksize : SizeUInt;
+  ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
+  var ThreadId : TThreadID) : TThreadID;}
+{$ifdef USE_SYSTEM_BEGIN_THREAD}
+     MessageThreadHandle:=System.BeginThread(nil,0,@MessageHandleThread,
+       nil,0,MessageThreadID);
+{$else not USE_SYSTEM_BEGIN_THREAD}
      MessageThreadHandle:=CreateThread(nil,0,@MessageHandleThread,
        nil,0,MessageThreadID);
+{$endif not USE_SYSTEM_BEGIN_THREAD}
      repeat
        GetExitCodeThread(MessageThreadHandle,@threadexitcode);
      until graphrunning or (threadexitcode<>STILL_ACTIVE);
