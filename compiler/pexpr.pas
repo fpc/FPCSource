@@ -261,11 +261,8 @@ implementation
         p1,p2,paras  : tnode;
         err,
         prev_in_args : boolean;
-        prev_current_syssym : byte;
       begin
         prev_in_args:=in_args;
-        prev_current_syssym:=current_syssym;
-        current_syssym:=l;
         case l of
 
           in_new_x :
@@ -833,7 +830,6 @@ implementation
 
         end;
         in_args:=prev_in_args;
-        current_syssym:=prev_current_syssym;
       end;
 
 

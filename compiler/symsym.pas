@@ -323,8 +323,6 @@ interface
 
     var
        generrorsym : tsym;
-       current_syssym : byte = 0; { used for parsing expressions that need
-                                    special handling in the system functions }
 
 implementation
 
