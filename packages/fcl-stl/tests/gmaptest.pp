@@ -21,23 +21,23 @@ type TGMapTest = class(TTestCase)
 implementation
 
 procedure TGMapTest.MapTest;
-var it:maplli.TMSet.pnode;
+var it:maplli.TIterator;
 begin
   data[3]:=3;
   data[5]:=5;
   data[7]:=7;
-  AssertEquals('Wrong min key', 3, data.min()^.data.key);
-  AssertEquals('Wrong max key', 7, data.max()^.data.key);
-  AssertEquals('Wrong min val', 3, data.min()^.data.value);
-  AssertEquals('Wrong max val', 7, data.max()^.data.value);
+  AssertEquals('Wrong min key', 3, data.min().GetData.key);
+  AssertEquals('Wrong max key', 7, data.max().GetData.key);
+  AssertEquals('Wrong min val', 3, data.min().GetData.value);
+  AssertEquals('Wrong max val', 7, data.max().GetData.value);
 
   AssertEquals('Wrong val', 5, data[5]);
 
   data.delete(3);
-  AssertEquals('Wrong min key', 5, data.min()^.data.key);
-  AssertEquals('Wrong max key', 7, data.max()^.data.key);
-  AssertEquals('Wrong min val', 5, data.min()^.data.value);
-  AssertEquals('Wrong max val', 7, data.max()^.data.value);
+  AssertEquals('Wrong min key', 5, data.min().GetData.key);
+  AssertEquals('Wrong max key', 7, data.max().GetData.key);
+  AssertEquals('Wrong min val', 5, data.min().GetData.value);
+  AssertEquals('Wrong max val', 7, data.max().GetData.value);
 
 
   data[3]:=3;
@@ -50,28 +50,27 @@ begin
   data[17]:=42;
 
   it:=data.min;
-  AssertEquals('Wrong min', 3, it^.Data.key);
-  it:=data.next(it);
-  AssertEquals('Wrong next', 5, it^.Data.key);
-  it:=data.next(it);
-  AssertEquals('Wrong next', 7, it^.Data.key);
-  it:=data.next(it);
-  AssertEquals('Wrong next', 17, it^.Data.key);
-  it:=data.next(it);
-  if(it<>nil) then
-    AssertEquals('Last not nil', 0, 1);
+  AssertEquals('Wrong min', 3, it.Key);
+  AssertEquals('Next not true', true, it.Next);
+  AssertEquals('Wrong next', 5, it.Key);
+  AssertEquals('Wrong next value', 5, it.Value);
+  it.Value := it.Value + 17;
+  AssertEquals('Wrong value update', 22, it.Value);
+  AssertEquals('Next not true', true, it.Next);
+  AssertEquals('Wrong next', 7, it.GetData.key);
+  AssertEquals('Next not true', true, it.Next);
+  AssertEquals('Wrong next', 17, it.GetData.key);
+  AssertEquals('Next not false', false, it.Next);
 
   it:=data.max;
-  AssertEquals('Wrong max', 17, it^.Data.key);
-  it:=data.prev(it);
-  AssertEquals('Wrong prev', 7, it^.Data.key);
-  it:=data.prev(it);
-  AssertEquals('Wrong prev', 5, it^.Data.key);
-  it:=data.prev(it);
-  AssertEquals('Wrong prev', 3, it^.Data.key);
-  it:=data.prev(it);
-  if(it<>nil) then
-    AssertEquals('First not nil', 0, 1);
+  AssertEquals('Wrong max', 17, it.GetData.key);
+  AssertEquals('Prev not true', true, it.Prev);
+  AssertEquals('Wrong prev', 7, it.GetData.key);
+  AssertEquals('Prev not true', true, it.Prev);
+  AssertEquals('Wrong prev', 5, it.GetData.key);
+  AssertEquals('Prev not true', true, it.Prev);
+  AssertEquals('Wrong prev', 3, it.GetData.key);
+  AssertEquals('Prev not false', false, it.Prev);
 end;
 
 procedure TGMapTest.Setup;

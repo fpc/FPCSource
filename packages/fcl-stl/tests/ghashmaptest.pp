@@ -81,8 +81,12 @@ begin
   end;
   it:=data.Iterator;
   repeat
-    inc(x[it.GetValue.key]);
-    AssertEquals('bad value', it.GetValue.key*47, it.GetValue.value);
+    inc(x[it.Data.key]);
+    AssertEquals('bad value', it.Data.key*47, it.Data.value);
+    AssertEquals('bad value2', it.Key*47, it.Value);
+    it.Value := it.Key+23;
+    it.Value := it.Value*2;
+    AssertEquals('bad value3', it.Key*2+46, it.Value);
   until not it.next;
   for i:=0 to 1000 do begin
     AssertEquals('som not 1', 1, x[i]);

@@ -23,13 +23,19 @@ const baseFDataSize = 8;
 value in range <0,n-1> base only on arguments, n will be always power of 2}
 
 type
-  generic THashmapIterator<T, TTable>=class
+  generic THashmapIterator<TKey, TValue, T, TTable>=class
     public
     var
       Fh,Fp:SizeUInt;
       FData:TTable;
-      function Next:boolean;
-      function GetValue:T;
+      function Next:boolean;inline;
+      function GetData:T;inline;
+      function GetKey:TKey;inline;
+      function GetValue:TValue;inline;
+      procedure SetValue(value:TValue);inline;
+      property Data:T read GetData;
+      property Key:TKey read GetKey;
+      property Value:TValue read GetValue write SetValue;
   end;
 
   generic THashmap<TKey, TValue, Thash>=class
@@ -50,7 +56,7 @@ type
       procedure EnlargeTable;
     public 
     type
-      TIterator = specialize THashmapIterator<TPair, TTable>;
+      TIterator = specialize THashmapIterator<TKey, TValue, TPair, TTable>;
       constructor create;
       destructor destroy;override;
       procedure insert(key:TKey;value:TValue);inline;
@@ -58,9 +64,9 @@ type
       function size:SizeUInt;inline;
       procedure delete(key:TKey);inline;
       function IsEmpty:boolean;inline;
-      function GetValue(key:TKey):TValue;inline;
+      function GetData(key:TKey):TValue;inline;
 
-      property Items[i : TKey]: TValue read GetValue write Insert; default;
+      property Items[i : TKey]: TValue read GetData write Insert; default;
 
       function Iterator:TIterator;
   end;
@@ -132,7 +138,7 @@ begin
   exit(false);
 end;
 
-function THashmap.GetValue(key:TKey):TValue;inline;
+function THashmap.GetData(key:TKey):TValue;inline;
 var i,h,bs:longint;
 begin
   h:=Thash.hash(key,FData.size);
@@ -192,9 +198,9 @@ begin
   Next := true;
 end;
 
-function THashmapIterator.GetValue:T;
+function THashmapIterator.GetData:T;
 begin
-  GetValue:=(FData[Fh])[Fp];
+  GetData:=(FData[Fh])[Fp];
 end;
 
 function THashmap.Iterator:TIterator;
@@ -211,6 +217,21 @@ begin
   Iterator.Fh := h;
   Iterator.Fp := p;
   Iterator.FData := FData;
+end;
+
+function THashmapIterator.GetKey:TKey;inline;
+begin
+  GetKey:=((FData[Fh])[Fp]).Key;
+end;
+
+function THashmapIterator.GetValue:TValue;inline;
+begin
+  GetValue:=((FData[Fh])[Fp]).Value;
+end;
+
+procedure THashmapIterator.SetValue(value:TValue);inline;
+begin
+  ((FData[Fh]).mutable[Fp])^.Value := value;
 end;
 
 end.
