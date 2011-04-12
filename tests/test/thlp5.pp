@@ -4,7 +4,7 @@
 program thlp5;
 
 {$ifdef fpc}
-  {$modeswitch objfpc}
+  {$mode objfpc}
 {$endif}
 
 uses
