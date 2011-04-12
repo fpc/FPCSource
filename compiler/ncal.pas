@@ -3238,6 +3238,14 @@ implementation
       begin
          result:=nil;
 
+         { as pass_1 is never called on the methodpointer node, we must check
+           here that it's not a helper type }
+         if assigned(methodpointer) and
+             (methodpointer.nodetype=typen) and
+             is_objectpascal_helper(ttypenode(methodpointer).typedef) and
+             not ttypenode(methodpointer).helperallowed then
+           Message(parser_e_no_category_as_types);
+
          { convert Objective-C calls into a message call }
          if (procdefinition.typ=procdef) and
             (po_objc in tprocdef(procdefinition).procoptions) then

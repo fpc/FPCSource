@@ -407,6 +407,9 @@ implementation
                 end
               else
                begin
+                 { allow helpers for SizeOf and BitSizeOf }
+                 if p1.nodetype=typen then
+                   ttypenode(p1).helperallowed:=true;
                  if (p1.resultdef.typ=forwarddef) then
                    Message1(type_e_type_is_not_completly_defined,tforwarddef(p1.resultdef).tosymname^);
                  if (l = in_sizeof_x) or
@@ -445,7 +448,12 @@ implementation
                       p1:=p2;
                     end;
                   if p1.nodetype=typen then
+                  begin
                     ttypenode(p1).allowed:=true;
+                    { allow helpers for TypeInfo }
+                    if l=in_typeinfo_x then
+                      ttypenode(p1).helperallowed:=true;
+                  end;
     {              else
                     begin
                        p1.destroy;
@@ -1539,15 +1547,12 @@ implementation
                          end
                        else
                         begin
-                          { TClassHelper.Something is not allowed, but
-                            TypeInfo(TClassHelper) and SizeOf(TClassHelper) is }
-                          if is_objectpascal_helper(hdef) and
-                              not (current_syssym in [in_typeinfo_x,in_sizeof_x,in_bitsizeof_x]) then
-                            begin
-                              Message(parser_e_no_category_as_types);
-                              { for recovery we use the extended class }
-                              hdef:=tobjectdef(hdef).extendeddef;
-                            end;
+                          { Normally here would be the check against the usage
+                            of "TClassHelper.Something", but as that might be
+                            used inside of system symbols like sizeof and
+                            typeinfo this check is put into ttypenode.pass_1
+                            (for "TClassHelper" alone) and tcallnode.pass_1
+                            (for "TClassHelper.Something") }
                           { class reference ? }
                           if is_class(hdef) or
                              is_objcclass(hdef) then
