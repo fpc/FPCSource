@@ -2329,6 +2329,7 @@ packages/fcl-stl/src/gutil.pp svneol=native#text/plain
 packages/fcl-stl/src/gvector.pp svneol=native#text/plain
 packages/fcl-stl/tests/clean svneol=native#text/plain
 packages/fcl-stl/tests/garrayutilstest.pp svneol=native#text/plain
+packages/fcl-stl/tests/gcompositetest.pp svneol=native#text/plain
 packages/fcl-stl/tests/gdequetest.pp svneol=native#text/plain
 packages/fcl-stl/tests/ghashmaptest.pp svneol=native#text/plain
 packages/fcl-stl/tests/ghashsettest.pp svneol=native#text/plain
