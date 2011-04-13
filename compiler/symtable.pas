@@ -227,6 +227,7 @@ interface
     { searches symbols inside of a helper's implementation }
     function  searchsym_in_helper(classh,contextclassh:tobjectdef;const s: TIDString;out srsym:tsym;out srsymtable:TSymtable;aHasInherited:boolean):boolean;
     function  search_system_type(const s: TIDString): ttypesym;
+    function  try_search_system_type(const s: TIDString): ttypesym;
     function  search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
     function  search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef;explicit:boolean):Tprocdef;
@@ -2513,6 +2514,22 @@ implementation
            (sym.typ<>typesym) then
           cgmessage1(cg_f_unknown_system_type,s);
         result:=ttypesym(sym);
+      end;
+
+
+    function try_search_system_type(const s: TIDString): ttypesym;
+      var
+        sym : tsym;
+      begin
+        sym:=tsym(systemunit.Find(s));
+        if not assigned(sym) then
+          result:=nil
+        else
+          begin
+            if sym.typ<>typesym then
+              cgmessage1(cg_f_unknown_system_type,s);
+            result:=ttypesym(sym);
+          end;
       end;
 
 

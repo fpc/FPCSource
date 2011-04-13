@@ -431,7 +431,8 @@ type
     vo_is_msgsel,
     { first field of variant part of a record }
     vo_is_first_field,
-    vo_volatile
+    vo_volatile,
+    vo_has_section
   );
   tvaroptions=set of tvaroption;
 

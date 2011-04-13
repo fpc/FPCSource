@@ -1091,7 +1091,7 @@ implementation
            an error }
          if not allowed then
           Message(parser_e_no_type_not_allowed_here);
-         if not helperallowed then
+         if not helperallowed and is_objectpascal_helper(typedef) then
            Message(parser_e_no_category_as_types);
       end;
 

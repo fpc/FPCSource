@@ -27,8 +27,8 @@ type
   public
   type
     TPair=record
-      Key:TKey;
       Value:TValue;
+      Key:TKey;
     end;
     TMCompare = specialize TMapCompare<TPair, TCompare>;
     TMSet = specialize TSet<TPair, TMCompare>;

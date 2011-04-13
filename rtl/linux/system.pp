@@ -33,7 +33,7 @@ Unit System;
 
 {$I sysunixh.inc}
 
-function get_cmdline:Pchar;
+function get_cmdline:Pchar; 
 property cmdline:Pchar read get_cmdline;
 
 {$if defined(CPUARM) or defined(CPUM68K)}
@@ -179,6 +179,7 @@ begin
          found:=true;
          break;
        end;
+     found:=found or (len=0); // also quote if len=0, bug 19114
      if bufsize+len>=ARG_MAX-2 then
       AddBuf;
      if found then
@@ -186,8 +187,11 @@ begin
         buf[bufsize]:='"';
         inc(bufsize);
       end;
-     move(argv[i]^,buf[bufsize],len);
-     inc(bufsize,len);
+     if len>0 then
+       begin
+         move(argv[i]^,buf[bufsize],len);
+         inc(bufsize,len);
+       end;
      if found then
       begin
         buf[bufsize]:='"';

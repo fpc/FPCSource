@@ -97,7 +97,7 @@ implementation
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
-    import,export,link,i_nwm,ogbase, ogcoff, ognlm
+    import,export,link,i_nwm,ogbase, ogcoff, ognlm, cclasses
     {$ifdef netware} ,dos {$endif}
     ;
 
@@ -126,6 +126,7 @@ implementation
     TInternalLinkerNetware = class(TInternalLinker)
         prelude : string;
         constructor create;override;
+        destructor destroy;override;
         procedure DefaultLinkScript;override;
         procedure InitSysInitUnitName;override;
         procedure ConcatEntryName; virtual;
@@ -339,9 +340,25 @@ begin
 
   { add objectfiles, start with nwpre always }
   LinkRes.Add ('INPUT(');
-  s2 := FindObjectFile('nwpre','',false);
+  if target_info.system = system_i386_netwlibc then
+   begin
+     s2 := FindObjectFile('nwplibc','',false);
+     if s2 = '' then
+       s2 := FindObjectFile('libcpre.gcc','',false);
+   end else
+     s2 := FindObjectFile('nwpre','',false);
   Comment (V_Debug,'adding Object File '+s2);
   {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
+
+  if target_info.system = system_i386_netwlibc then
+   begin
+     if isDll then  {needed to provide main}
+       s2 := FindObjectFile('nwl_dlle','',false)
+     else
+       s2 := FindObjectFile('nwl_main','',false);
+     Comment (V_Debug,'adding Object File '+s2);
+     {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
+    end;
 
   { main objectfiles, add to linker input }
   while not ObjectFiles.Empty do
@@ -364,9 +381,20 @@ begin
   {$endif}
 
   { start and stop-procedures }
-  NLMConvLinkFile.Add ('START _Prelude');  { defined in rtl/netware/nwpre.as }
-  NLMConvLinkFile.Add ('EXIT _Stop');                             { nwpre.as }
-  NLMConvLinkFile.Add ('CHECK FPC_NW_CHECKFUNCTION');            { system.pp }
+
+  if target_info.system = system_i386_netwlibc then
+    begin
+      NLMConvLinkFile.Add ('START _LibCPrelude');
+      NLMConvLinkFile.Add ('EXIT _LibCPostlude');
+      NLMConvLinkFile.Add ('CHECK _LibCCheckUnload');
+      NLMConvLinkFile.Add ('REENTRANT');            { needed by older libc versions }
+    end else
+    begin
+      NLMConvLinkFile.Add ('START _Prelude');  { defined in rtl/netware/nwpre.as }
+      NLMConvLinkFile.Add ('EXIT _Stop');                             { nwpre.as }
+      NLMConvLinkFile.Add ('CHECK FPC_NW_CHECKFUNCTION');            { system.pp }
+    end;
+
 
   if not (cs_link_strip in current_settings.globalswitches) then
   begin
@@ -567,8 +595,18 @@ end;
         inherited Create;
         CExeoutput:=TNLMexeoutput;
         CObjInput:=TNLMCoffObjInput;
+        nlmSpecialSymbols_Segments := TFPHashList.create;
       end;
 
+    destructor TInternalLinkerNetware.destroy;
+      begin
+        if assigned(nlmSpecialSymbols_Segments) then
+          begin
+            nlmSpecialSymbols_Segments.Free;
+            nlmSpecialSymbols_Segments := nil;
+          end;
+        inherited destroy;
+      end;
 
     procedure TInternalLinkerNetware.DefaultLinkScript;
       var
@@ -704,7 +742,10 @@ end;
             end;
             option := GetToken(s,';');
           end;
-          result := 'nwpre';
+          if target_info.system = system_i386_netwlibc then
+            result := 'libcpre'
+          else
+            result := 'nwpre';
         end;
 
       begin
@@ -750,32 +791,33 @@ end;
             Concat('IMAGEBASE $' + hexStr(0, SizeOf(imagebase)*2));
             Concat('HEADER');
             Concat('EXESECTION .text');
-            Concat('  SYMBOL __text_start__');
+            Concat('  SYMBOL __text_start__');  nlmSpecialSymbols_Segments.Add('__text_start__',pointer(ptruint(Section_text)));
             Concat('  OBJSECTION .text*');
-            Concat('  SYMBOL ___CTOR_LIST__');
-            Concat('  SYMBOL __CTOR_LIST__');
+            Concat('  SYMBOL ___CTOR_LIST__');  nlmSpecialSymbols_Segments.Add('___CTOR_LIST__',pointer(ptruint(Section_text)));
+            Concat('  SYMBOL __CTOR_LIST__');   nlmSpecialSymbols_Segments.Add('__CTOR_LIST__',pointer(ptruint(Section_text)));
             Concat('  LONG -1');
             Concat('  OBJSECTION .ctor*');
             Concat('  LONG 0');
-            Concat('  SYMBOL ___DTOR_LIST__');
-            Concat('  SYMBOL __DTOR_LIST__');
+            Concat('  SYMBOL ___DTOR_LIST__');  nlmSpecialSymbols_Segments.Add('___DTOR_LIST__',pointer(ptruint(Section_text)));
+            Concat('  SYMBOL __DTOR_LIST__');   nlmSpecialSymbols_Segments.Add('__DTOR_LIST__',pointer(ptruint(Section_text)));
             Concat('  LONG -1');
             Concat('  OBJSECTION .dtor*');
             Concat('  LONG 0');
-            Concat('  SYMBOL etext');
+            Concat('  SYMBOL etext');           nlmSpecialSymbols_Segments.Add('etext',pointer(ptruint(Section_text)));
             Concat('ENDEXESECTION');
+
             Concat('EXESECTION .data');
-            Concat('  SYMBOL __data_start__');
+            Concat('  SYMBOL __data_start__');  nlmSpecialSymbols_Segments.Add('__data_start__',pointer(ptruint(Section_data)));
             Concat('  OBJSECTION .data*');
             Concat('  OBJSECTION .fpc*');
-            Concat('  SYMBOL edata');
-            Concat('  SYMBOL __data_end__');
+            Concat('  SYMBOL edata');           nlmSpecialSymbols_Segments.Add('edata',pointer(ptruint(Section_data)));
+            Concat('  SYMBOL __data_end__');    nlmSpecialSymbols_Segments.Add('__data_end__',pointer(ptruint(Section_data)));
             Concat('ENDEXESECTION');
 
             Concat('EXESECTION .bss');
-            Concat('  SYMBOL __bss_start__');
+            Concat('  SYMBOL __bss_start__');   nlmSpecialSymbols_Segments.Add('__bss_start__',pointer(ptruint(Section_data)));
             Concat('  OBJSECTION .bss*');
-            Concat('  SYMBOL __bss_end__');
+            Concat('  SYMBOL __bss_end__');     nlmSpecialSymbols_Segments.Add('__bss_end__',pointer(ptruint(Section_data)));
             Concat('ENDEXESECTION');
 
             Concat('EXESECTION .imports');
@@ -880,6 +922,8 @@ end;
                 Concat ('STACKSIZE '+tostr(stacksize));
               end else
                 Concat ('STACKSIZE '+tostr(minStackSize));
+              if target_info.system = system_i386_netwlibc then
+                Concat ('REENTRANT');            { needed by older libc versions }
           end;
 
         // add symbols needed by nwpre. We have not loaded the ppu,

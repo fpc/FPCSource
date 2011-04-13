@@ -7,7 +7,7 @@ _startlib:
         .type   FPC_SHARED_LIB_START,#function
 FPC_SHARED_LIB_START:
         mov ip, sp
-        push {fp, ip, lr, pc}
+        stmfd sp!,{fp, ip, lr, pc}
         sub fp, ip, #4
 
         /* a1 contains argc, a2 contains argv and a3 contains envp */

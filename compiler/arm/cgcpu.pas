@@ -3480,6 +3480,8 @@ unit cgcpu;
               begin
                 { restore int registers and return }
                 list.concat(taicpu.op_reg_reg(A_MOV, NR_STACK_POINTER_REG, NR_FRAME_POINTER_REG));
+                { Add 4 to SP to make it point to an "imaginary PC" which the paramanager assumes is there(for normal ARM) }
+                list.concat(taicpu.op_reg_const(A_ADD, NR_STACK_POINTER_REG, 4));
 
                 reference_reset(ref,4);
                 ref.index:=NR_STACK_POINTER_REG;

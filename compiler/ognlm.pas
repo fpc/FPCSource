@@ -289,7 +289,12 @@ const NLM_MAX_DESCRIPTION_LENGTH = 127;
          procedure ParseScript (linkscript:TCmdStrList); override;
        end;
 
-
+    var
+      {for symbols defined in linker script. To generate a fixup we
+       need to know the segment (.text,.bss or .code) of the symbol
+       Pointer in list is used as TsecType
+       Filled by TInternalLinkerNetware.DefaultLinkScript }
+      nlmSpecialSymbols_Segments : TFPHashList;
 
     type
 
@@ -346,10 +351,19 @@ type
 
 function SectionType (aName : string) : TSecType;
 var s : string;
+    seg: ptruint;
 begin
   s := copy(aName,1,5);
   if s = '.text' then result := Section_text else
     if (s = '.data') or (copy(s,1,4)='.bss') then result := Section_data else
+      if s[1] <> '.' then
+        begin
+          seg := ptruint(nlmSpecialSymbols_Segments.Find(aName));
+          if seg <> 0 then
+            result := TSecType(seg)
+          else
+            result := Section_other;
+        end else
       result := Section_other;
 end;
 
@@ -514,7 +528,8 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
     procedure TNLMexeoutput.ExeSectionList_write_Data(p:TObject;arg:pointer);
       var
         objsec : TObjSection;
-        i      : longint;
+        i,j    : longint;
+        b      : byte;
       begin
 
         with texesection(p) do
@@ -535,7 +550,8 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                     if oso_data in objsec.secoptions then
                       begin
                         if assigned(exemap) then
-                          exemap.Add(' nlm file offset $'+hexstr(objsec.DataPos,8)+': '+objsec.name);
+                          if objsec.data.size > 0 then
+                            exemap.Add('  0x'+hexstr(objsec.DataPos,8)+': '+objsec.name);
                         //writeln ('   ',objsec.name,'  size:',objsec.size,'  relocs:',objsec.ObjRelocations.count,'  DataPos:',objsec.DataPos,' MemPos:',objsec.MemPos);
                         {for j := 0 to objsec.ObjRelocations.count-1 do
                           begin
@@ -550,7 +566,14 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                           end;}
                         if not assigned(objsec.data) then
                           internalerror(200603042);
-                        FWriter.writezeros(objsec.dataalignbytes);
+                        if copy (objsec.Name,1,5) = '.text' then
+                          begin        // write NOP's instead of zero's for .text, makes disassemble possible
+                            b := $90;  // NOP
+                            if objsec.DataAlignBytes > 0 then
+                              for j := 1 to objsec.DataAlignBytes do
+                                FWriter.write(b,1);
+                          end else
+                            FWriter.writezeros(objsec.dataalignbytes);
                         //if objsec.dataalignbytes>0 then
                         //  writeln ('  ',name,'  alignbytes: ',objsec.dataalignbytes);
                         if objsec.DataPos<>FWriter.Size then
@@ -874,6 +897,11 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
         if FWriter.Size<>totalheadersize+ExeSecsListSize+headerAlignBytes then
           internalerror(201103062);
         { Section data }
+        if assigned(exemap) then
+          begin
+            exemap.Add('');
+            exemap.Add('NLM file offsets:');
+          end;
         ExeSectionList.ForEachCall(@ExeSectionList_write_data,nil);
 
         if hassymbols then
@@ -1046,7 +1074,8 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
 
                       k := objsec.MemPos + objreloc.DataOffset;
                       k := k or $40000000;
-                      // TODO: data|code
+                      // TODO: data|code if we support importing data symbols
+                      //       i do not know if this is possible with netware
                       internalobjdata.writebytes(k,sizeof(k));    // address
 
                       // the netware loader requires an offset at the import address
@@ -1169,8 +1198,11 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                     targetSectionName := '';
                     if objreloc.symbol <> nil then
                     begin
-                      //writeln ('  MemPos',objsec.MemPos,' dataOfs:',objreloc.dataoffset,' ',objsec.name,'   objreloc.symbol: ',objreloc.symbol.name,'  objreloc.symbol.objsection.name: ',objreloc.symbol.objsection.name,' ',objreloc.symbol.Typ,' ',objreloc.symbol.bind,' ',objreloc.Typ);
-                      targetSectionName := copy(objreloc.symbol.objsection.name,1,5);
+                      // writeln ('  MemPos',objsec.MemPos,' dataOfs:',objreloc.dataoffset,' ',objsec.name,'   objreloc.symbol: ',objreloc.symbol.name,'  objreloc.symbol.objsection.name: ',objreloc.symbol.objsection.name,' ',objreloc.symbol.Typ,' ',objreloc.symbol.bind,' ',objreloc.Typ);
+                      if objreloc.symbol.objsection.name[1] <> '.' then
+                        targetSectionName := objreloc.symbol.name                       // specials like __bss_start__
+                      else                                                              // dont use objsection.name because it begins with *
+                        targetSectionName := copy(objreloc.symbol.objsection.name,1,5); // all others begin with .segment, we only have to check for .text, .data or .bss
                     end else
                       internalerror(2011030603);
 

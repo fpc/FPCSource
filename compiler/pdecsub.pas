@@ -1619,9 +1619,22 @@ begin
 end;
 
 procedure pd_interrupt(pd:tabstractprocdef);
+
+var v: Tconstexprint;
+
 begin
   if pd.parast.symtablelevel>normal_function_level then
     Message(parser_e_dont_nest_interrupt);
+
+  if target_info.system in systems_interrupt_table then
+    begin
+      if token<>_SEMICOLON then
+        begin
+          pd.proccalloption:=pocall_interrupt;
+          v:=get_intconst;
+          Tprocdef(pd).interruptvector:=v.uvalue;
+        end;
+    end;
 end;
 
 procedure pd_abstract(pd:tabstractprocdef);

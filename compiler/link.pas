@@ -150,7 +150,7 @@ Implementation
       begin
         result:=0;
         bufsize:=64*1024;
-	      fs:=TCFileStream.Create(fn,fmOpenRead or fmShareDenyNone);
+	      fs:=CFileStreamClass.Create(fn,fmOpenRead or fmShareDenyNone);
 	      if CStreamError<>0 then
 	        begin
 	          fs.Free;

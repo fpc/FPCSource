@@ -31,7 +31,7 @@ uses
 type
   tobjectwriter=class
   private
-    f      : TCFileStream;
+    f      : TCCustomFileStream;
     opened : boolean;
     buf    : pchar;
     bufidx : longword;
@@ -54,7 +54,7 @@ type
 
   tobjectreader=class
   private
-    f      : TCFileStream;
+    f      : TCCustomFileStream;
     opened : boolean;
     buf    : pchar;
     ffilename : string;
@@ -108,7 +108,7 @@ end;
 function tobjectwriter.createfile(const fn:string):boolean;
 begin
   createfile:=false;
-  f:=TCFileStream.Create(fn,fmCreate);
+  f:=CFileStreamClass.Create(fn,fmCreate);
   if CStreamError<>0 then
     begin
        Message1(exec_e_cant_create_objectfile,fn);
@@ -233,7 +233,7 @@ end;
 function tobjectreader.openfile(const fn:string):boolean;
 begin
   openfile:=false;
-  f:=TCFileStream.Create(fn,fmOpenRead);
+  f:=CFileStreamClass.Create(fn,fmOpenRead);
   if CStreamError<>0 then
     begin
        Comment(V_Error,'Can''t open object file: '+fn);

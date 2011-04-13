@@ -488,7 +488,7 @@ implementation
        SymbolMaxGrow = 200*sizeof(coffsymbol);
        StrsMaxGrow   = 8192;
 
-       coffsecnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
+       coffsecnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text','.data','.data','.data','.bss','.tls',
           '.pdata',{pdata}
           '.text', {stub}
@@ -1031,22 +1031,28 @@ const pemagic : array[0..3] of byte = (
         sep     : string[3];
         secname : string;
       begin
-        secname:=coffsecnames[atype];
-        if create_smartlink_sections and
-           (aname<>'') then
-          begin
-            case aorder of
-              secorder_begin :
-                sep:='.b_';
-              secorder_end :
-                sep:='.z_';
-              else
-                sep:='.n_';
-            end;
-            result:=secname+sep+aname
-          end
+        { section type user gives the user full controll on the section name }
+        if atype=sec_user then
+          result:=aname
         else
-          result:=secname;
+          begin
+            secname:=coffsecnames[atype];
+            if create_smartlink_sections and
+               (aname<>'') then
+              begin
+                case aorder of
+                  secorder_begin :
+                    sep:='.b_';
+                  secorder_end :
+                    sep:='.z_';
+                  else
+                    sep:='.n_';
+                end;
+                result:=secname+sep+aname
+              end
+            else
+              result:=secname;
+          end;
       end;
 
 

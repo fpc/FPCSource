@@ -1042,6 +1042,17 @@ implementation
     end;
 
 
+    procedure try_consume_sectiondirective(var asection: ansistring);
+      begin
+        if idtoken=_SECTION then
+          begin
+            consume(_ID);
+            asection:=get_stringconst;
+            consume(_SEMICOLON);
+          end;
+      end;
+
+
     procedure read_var_decls(options:Tvar_dec_options);
 
         procedure read_default_value(sc : TFPObjectList);
@@ -1254,6 +1265,7 @@ implementation
          hintsymoptions  : tsymoptions;
          deprecatedmsg   : pshortstring;
          old_block_type  : tblock_type;
+         section : ansistring;
       begin
          old_block_type:=block_type;
          block_type:=bt_var;
@@ -1394,6 +1406,24 @@ implementation
                  )
                 ) then
                read_public_and_external_sc(sc);
+
+             { try to parse a section directive }
+             if (target_info.system in systems_embedded) and (idtoken=_SECTION) then
+               begin
+                 try_consume_sectiondirective(section);
+                 if section<>'' then
+                   begin
+                     for i:=0 to sc.count-1 do
+                       begin
+                         vs:=tabstractvarsym(sc[i]);
+                         if (vs.varoptions *[vo_is_external,vo_is_weak_external])<>[] then
+                           Message(parser_e_externals_no_section);
+                         if vs.typ<>staticvarsym then
+                           Message(parser_e_section_no_locals);
+                         tstaticvarsym(vs).section:=section;
+                       end;
+                   end;
+               end;
 
              { allocate normal variable (non-external and non-typed-const) staticvarsyms }
              for i:=0 to sc.count-1 do

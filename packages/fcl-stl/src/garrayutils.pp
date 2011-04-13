@@ -32,6 +32,7 @@ type
     class function Parent(a:SizeUInt):SizeUInt;inline;
   public
     class procedure Sort(var Arr: TArr; size:SizeUInt);
+    class function NextPermutation(var Arr: TArr; size:SizeUInt):boolean;
   end;
 
   generic TArrayUtils<TArr, Tvalue>=class
@@ -210,6 +211,32 @@ begin
       l:=Parent(cur-Start)+Start;
     end;
   end;
+end;
+
+class function TOrderingArrayUtils.NextPermutation(var Arr: TArr; size: SizeUInt):boolean;
+var i,f:SizeUInt; temp:TValue;
+begin
+  f := -1;
+  for i:=size-1 downto 1 do begin 
+    if (TCompare.c(arr[i-1], arr[i])) then begin
+      f := i-1;
+      break;
+    end;
+  end;
+  if f = -1 then exit(false);
+  for i:=size-1 downto 1 do begin
+    if (TCompare.c(arr[f], arr[i])) then begin
+      temp:=arr[f]; arr[f] := arr[i]; arr[i] := temp;
+      break;
+    end;
+  end;
+  i:= size-1;
+  inc(f);
+  while (i > f) do begin
+    temp:=arr[f]; arr[f] := arr[i]; arr[i] := temp;
+    dec(i); inc(f);
+  end;
+  NextPermutation := true;
 end;
 
 class procedure TArrayUtils.RandomShuffle(Arr: TArr; size: SizeUInt);

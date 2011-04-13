@@ -554,6 +554,8 @@ interface
           interfacedef : boolean;
           { true if the procedure has a forward declaration }
           hasforward  : boolean;
+          { interrupt vector }
+          interruptvector : longint;
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -3435,6 +3437,7 @@ implementation
 {$ifdef i386}
           fpu_used:=maxfpuregs;
 {$endif i386}
+         interruptvector:=-1;
       end;
 
 
@@ -3473,6 +3476,8 @@ implementation
          else
            import_name:=nil;
          import_nr:=ppufile.getword;
+         if target_info.system in systems_interrupt_table then
+           interruptvector:=ppufile.getlongint;
          if (po_msgint in procoptions) then
            messageinf.i:=ppufile.getlongint;
          if (po_msgstr in procoptions) then
@@ -3609,6 +3614,8 @@ implementation
          if po_has_importname in procoptions then
            ppufile.putstring(import_name^);
          ppufile.putword(import_nr);
+         if target_info.system in systems_interrupt_table then
+           ppufile.putlongint(interruptvector);
          if (po_msgint in procoptions) then
            ppufile.putlongint(messageinf.i);
          if (po_msgstr in procoptions) then

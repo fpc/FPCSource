@@ -564,7 +564,8 @@ implementation
                            begin
                              doconv:=tc_real_2_real;
                              { do we lose precision? }
-                             if def_to.size<def_from.size then
+                             if (def_to.size<def_from.size) or
+                               (is_currency(def_from) and (tfloatdef(def_to).floattype in [s32real,s64real])) then
                                eq:=te_convert_l2
                              else
                                eq:=te_convert_l1;

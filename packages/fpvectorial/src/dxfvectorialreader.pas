@@ -30,7 +30,7 @@ interface
 
 uses
   Classes, SysUtils, Math,
-  fpvectorial;
+  fpvectorial, fpimage;
 
 type
   { Used by tcutils.SeparateString }
@@ -48,6 +48,20 @@ type
     Childs: TDXFTokens;
     constructor Create;
     Destructor Destroy; override;
+  end;
+
+  TPolylineElement = record
+    X, Y: Double;
+    Color: TvColor;
+  end;
+
+  TSPLineElement = record
+    X, Y: Double;
+    KnotValue: Integer;
+  end;
+
+  TLWPOLYLINEElement = record
+    X, Y: Double;
   end;
 
   { TDXFTokenizer }
@@ -71,7 +85,10 @@ type
     ANGDIR: Integer;
     INSBASE, EXTMIN, EXTMAX, LIMMIN, LIMMAX: T3DPoint;
     // Calculated HEADER data
-    DOC_OFFSET: T3DPoint;
+    DOC_OFFSET: T3DPoint; // The DOC_OFFSET compensates for documents with huge coordinates
+    // For building the POLYLINE objects which is composed of multiple records
+    IsReadingPolyline: Boolean;
+    Polyline: array of TPolylineElement;
     //
     function  SeparateString(AString: string; ASeparator: Char): T10Strings;
     procedure ReadHEADER(ATokens: TDXFTokens; AData: TvVectorialDocument);
@@ -82,7 +99,16 @@ type
     procedure ReadENTITIES_DIMENSION(ATokens: TDXFTokens; AData: TvVectorialDocument);
     procedure ReadENTITIES_ELLIPSE(ATokens: TDXFTokens; AData: TvVectorialDocument);
     procedure ReadENTITIES_TEXT(ATokens: TDXFTokens; AData: TvVectorialDocument);
+    procedure ReadENTITIES_LWPOLYLINE(ATokens: TDXFTokens; AData: TvVectorialDocument);
+    procedure ReadENTITIES_SPLINE(ATokens: TDXFTokens; AData: TvVectorialDocument);
+    procedure ReadENTITIES_POLYLINE(ATokens: TDXFTokens; AData: TvVectorialDocument);
+    procedure ReadENTITIES_VERTEX(ATokens: TDXFTokens; AData: TvVectorialDocument);
+    procedure ReadENTITIES_SEQEND(ATokens: TDXFTokens; AData: TvVectorialDocument);
+    procedure ReadENTITIES_MTEXT(ATokens: TDXFTokens; AData: TvVectorialDocument);
+    procedure ReadENTITIES_POINT(ATokens: TDXFTokens; AData: TvVectorialDocument);
     function  GetCoordinateValue(AStr: shortstring): Double;
+    //
+    function DXFColorIndexToVColor(AColorIndex: Integer): TvColor;
   public
     { General reading methods }
     Tokenizer: TDXFTokenizer;
@@ -101,11 +127,17 @@ const
   // Items in the HEADER section
 
   // $ACADVER
-  DXF_AUTOCAD_R10         = 'AC1006'; // 1988
-  DXF_AUTOCAD_R11_and_R12 = 'AC1009'; // 1990
+  DXF_AUTOCAD_2010        = 'AC1024'; // AutoCAD 2011 and 2012 too
+  DXF_AUTOCAD_2007        = 'AC1021'; // AutoCAD 2008 and 2009 too
+  DXF_AUTOCAD_2004        = 'AC1018'; // AutoCAD 2005 and 2006 too
+  DXF_AUTOCAD_2000        = 'AC1015'; // 1999  In some docs it is proposed as AC1500, but in practice I found AC1015
+                                      // http://www.autodesk.com/techpubs/autocad/acad2000/dxf/
+                                      // AutoCAD 2000i and 2002 too
+  DXF_AUTOCAD_R14         = 'AC1014'; // 1997  http://www.autodesk.com/techpubs/autocad/acadr14/dxf/index.htm
   DXF_AUTOCAD_R13         = 'AC1012'; // 1994
-  DXF_AUTOCAD_R14         = 'AC1009'; // 1997  http://www.autodesk.com/techpubs/autocad/acadr14/dxf/index.htm
-  DXF_AUTOCAD_2000        = 'AC1500'; // 1999  http://www.autodesk.com/techpubs/autocad/acad2000/dxf/
+  DXF_AUTOCAD_R11_and_R12 = 'AC1009'; // 1990
+  DXF_AUTOCAD_R10         = 'AC1006'; // 1988
+  DXF_AUTOCAD_R9          = 'AC1004';
 
   // Group Codes for ENTITIES
   DXF_ENTITIES_TYPE = 0;
@@ -115,6 +147,28 @@ const
   DXF_ENTITIES_AcDbEntity = 100;
   DXF_ENTITIES_MODEL_OR_PAPER_SPACE = 67; // default=0=model, 1=paper
   DXF_ENTITIES_VISIBILITY = 60; // default=0 = Visible, 1 = Invisible
+
+  // Obtained from http://www.generalcadd.com/pdf/LivingWithAutoCAD_v4.pdf
+  // Valid for DXF up to AutoCad 2004, after that RGB is available
+  AUTOCAD_COLOR_PALETTE: array[0..15] of TvColor =
+  (
+    (Red: $00; Green: $00; Blue: $00; Alpha: FPValphaOpaque), // 0 - Black
+    (Red: $00; Green: $00; Blue: $80; Alpha: FPValphaOpaque), // 1 - Dark blue
+    (Red: $00; Green: $80; Blue: $00; Alpha: FPValphaOpaque), // 2 - Dark green
+    (Red: $00; Green: $80; Blue: $80; Alpha: FPValphaOpaque), // 3 - Dark cyan
+    (Red: $80; Green: $00; Blue: $00; Alpha: FPValphaOpaque), // 4 - Dark red
+    (Red: $80; Green: $00; Blue: $80; Alpha: FPValphaOpaque), // 5 - Dark Magenta
+    (Red: $80; Green: $80; Blue: $00; Alpha: FPValphaOpaque), // 6 - Dark
+    (Red: $c0; Green: $c0; Blue: $c0; Alpha: FPValphaOpaque), // 7 - Light Gray
+    (Red: $80; Green: $80; Blue: $80; Alpha: FPValphaOpaque), // 8 - Medium Gray
+    (Red: $00; Green: $00; Blue: $ff; Alpha: FPValphaOpaque), // 9 - Light blue
+    (Red: $00; Green: $ff; Blue: $00; Alpha: FPValphaOpaque), // 10 - Light green
+    (Red: $00; Green: $ff; Blue: $ff; Alpha: FPValphaOpaque), // 11 - Light cyan
+    (Red: $ff; Green: $00; Blue: $00; Alpha: FPValphaOpaque), // 12 - Light red
+    (Red: $ff; Green: $00; Blue: $ff; Alpha: FPValphaOpaque), // 13 - Light Magenta
+    (Red: $ff; Green: $ff; Blue: $00; Alpha: FPValphaOpaque), // 14 - Light Yellow
+    (Red: $ff; Green: $ff; Blue: $ff; Alpha: FPValphaOpaque)  // 15 - White
+  );
 
 { TDXFToken }
 
@@ -420,6 +474,8 @@ var
   i: Integer;
   CurToken: TDXFToken;
 begin
+  IsReadingPolyline := False;
+
   for i := 0 to ATokens.Count - 1 do
   begin
     CurToken := TDXFToken(ATokens.Items[i]);
@@ -429,6 +485,22 @@ begin
     else if CurToken.StrValue = 'ELLIPSE' then ReadENTITIES_ELLIPSE(CurToken.Childs, AData)
     else if CurToken.StrValue = 'LINE' then ReadENTITIES_LINE(CurToken.Childs, AData)
     else if CurToken.StrValue = 'TEXT' then ReadENTITIES_TEXT(CurToken.Childs, AData)
+    else if CurToken.StrValue = 'LWPOLYLINE' then ReadENTITIES_LWPOLYLINE(CurToken.Childs, AData)
+    else if CurToken.StrValue = 'SPLINE' then ReadENTITIES_SPLINE(CurToken.Childs, AData)
+    else if CurToken.StrValue = 'POINT' then ReadENTITIES_POINT(CurToken.Childs, AData)
+    else if CurToken.StrValue = 'MTEXT' then ReadENTITIES_MTEXT(CurToken.Childs, AData)
+    // A Polyline can have multiple child objects
+    else if CurToken.StrValue = 'POLYLINE' then
+    begin
+      IsReadingPolyline := True;
+      ReadENTITIES_POLYLINE(CurToken.Childs, AData);
+    end
+    else if CurToken.StrValue = 'VERTEX' then ReadENTITIES_VERTEX(CurToken.Childs, AData)
+    else if CurToken.StrValue = 'SEQEND' then
+    begin
+      ReadENTITIES_SEQEND(CurToken.Childs, AData);
+      IsReadingPolyline := False;
+    end
     else
     begin
       // ...
@@ -443,6 +515,7 @@ var
   // LINE
   LineStartX, LineStartY, LineStartZ: Double;
   LineEndX, LineEndY, LineEndZ: Double;
+  LLineColor: TvColor;
 begin
   // Initial values
   LineStartX := 0;
@@ -451,6 +524,7 @@ begin
   LineEndX := 0;
   LineEndY := 0;
   LineEndZ := 0;
+  LLineColor := clvBlack;
 
   for i := 0 to ATokens.Count - 1 do
   begin
@@ -458,7 +532,7 @@ begin
     CurToken := TDXFToken(ATokens.Items[i]);
 
     // Avoid an exception by previously checking if the conversion can be made
-    if CurToken.GroupCode in [10, 20, 30, 11, 21, 31] then
+    if CurToken.GroupCode in [10, 20, 30, 11, 21, 31, 62] then
     begin
       CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue), FPointSeparator);
     end;
@@ -470,6 +544,7 @@ begin
       11: LineEndX := CurToken.FloatValue;
       21: LineEndY := CurToken.FloatValue;
       31: LineEndZ := CurToken.FloatValue;
+      62: LLineColor := DXFColorIndexToVColor(Trunc(CurToken.FloatValue));
     end;
   end;
 
@@ -484,7 +559,7 @@ begin
  // WriteLn(Format('Adding Line from %f,%f to %f,%f', [LineStartX, LineStartY, LineEndX, LineEndY]));
   {$endif}
   AData.StartPath(LineStartX, LineStartY);
-  AData.AddLineToPath(LineEndX, LineEndY);
+  AData.AddLineToPath(LineEndX, LineEndY, LLineColor);
   AData.EndPath();
 end;
 
@@ -508,6 +583,7 @@ var
   CurToken: TDXFToken;
   i: Integer;
   CenterX, CenterY, CenterZ, Radius, StartAngle, EndAngle: Double;
+  LColor: TvColor;
 begin
   CenterX := 0.0;
   CenterY := 0.0;
@@ -515,6 +591,7 @@ begin
   Radius := 0.0;
   StartAngle := 0.0;
   EndAngle := 0.0;
+  LColor := clvBlack;
 
   for i := 0 to ATokens.Count - 1 do
   begin
@@ -522,7 +599,7 @@ begin
     CurToken := TDXFToken(ATokens.Items[i]);
 
     // Avoid an exception by previously checking if the conversion can be made
-    if CurToken.GroupCode in [10, 20, 30, 40, 50, 51] then
+    if CurToken.GroupCode in [10, 20, 30, 40, 50, 51, 62] then
     begin
       CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue), FPointSeparator);
     end;
@@ -534,6 +611,7 @@ begin
       40: Radius := CurToken.FloatValue;
       50: StartAngle := CurToken.FloatValue;
       51: EndAngle := CurToken.FloatValue;
+      62: LColor := DXFColorIndexToVColor(Trunc(CurToken.FloatValue));
     end;
   end;
 
@@ -549,7 +627,7 @@ begin
   WriteLn(Format('Adding Arc Center=%f,%f Radius=%f StartAngle=%f EndAngle=%f',
     [CenterX, CenterY, Radius, StartAngle, EndAngle]));
   {$endif}
-  AData.AddCircularArc(CenterX, CenterY, CenterZ, Radius, StartAngle, EndAngle);
+  AData.AddCircularArc(CenterX, CenterY, CenterZ, Radius, StartAngle, EndAngle, LColor);
 end;
 
 {
@@ -878,6 +956,270 @@ begin
   AData.AddText(PosX, PosY, PosZ, '', Round(FontSize), Str);
 end;
 
+{.$define FPVECTORIALDEBUG_LWPOLYLINE}
+procedure TvDXFVectorialReader.ReadENTITIES_LWPOLYLINE(ATokens: TDXFTokens;
+  AData: TvVectorialDocument);
+var
+  CurToken: TDXFToken;
+  i, curPoint: Integer;
+  // LINE
+  LWPolyline: array of TLWPOLYLINEElement;
+begin
+  curPoint := -1;
+
+  for i := 0 to ATokens.Count - 1 do
+  begin
+    // Now read and process the item name
+    CurToken := TDXFToken(ATokens.Items[i]);
+
+    // Avoid an exception by previously checking if the conversion can be made
+    if CurToken.GroupCode in [10, 20, 30, 11, 21, 31] then
+    begin
+      CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue), FPointSeparator);
+    end;
+
+    // Loads the coordinates
+    // With Position fixing for documents with negative coordinates
+    case CurToken.GroupCode of
+      10:
+      begin
+        // Starting a new point
+        Inc(curPoint);
+        SetLength(LWPolyline, curPoint+1);
+
+        LWPolyline[curPoint].X := CurToken.FloatValue - DOC_OFFSET.X;
+      end;
+      20: LWPolyline[curPoint].Y := CurToken.FloatValue - DOC_OFFSET.Y;
+    end;
+  end;
+
+  // And now write it
+  if curPoint >= 0 then // otherwise the polyline is empty of points
+  begin
+    AData.StartPath(LWPolyline[0].X, LWPolyline[0].Y);
+    {$ifdef FPVECTORIALDEBUG_LWPOLYLINE}
+    Write(Format('LWPOLYLINE ID=%d %f,%f', [AData.PathCount-1, LWPolyline[0].X, LWPolyline[0].Y]));
+    {$endif}
+    for i := 1 to curPoint do
+    begin
+      AData.AddLineToPath(LWPolyline[i].X, LWPolyline[i].Y);
+      {$ifdef FPVECTORIALDEBUG_LWPOLYLINE}
+       Write(Format(' %f,%f', [LWPolyline[i].X, LWPolyline[i].Y]));
+      {$endif}
+    end;
+    {$ifdef FPVECTORIALDEBUG_LWPOLYLINE}
+     WriteLn('');
+    {$endif}
+    AData.EndPath();
+  end;
+end;
+
+{.$define FPVECTORIALDEBUG_SPLINE}
+procedure TvDXFVectorialReader.ReadENTITIES_SPLINE(ATokens: TDXFTokens;
+  AData: TvVectorialDocument);
+var
+  CurToken: TDXFToken;
+  i, curPoint: Integer;
+  // LINE
+  SPLine: array of TSPLineElement;
+begin
+  curPoint := -1;
+
+  for i := 0 to ATokens.Count - 1 do
+  begin
+    // Now read and process the item name
+    CurToken := TDXFToken(ATokens.Items[i]);
+
+    // Avoid an exception by previously checking if the conversion can be made
+    if CurToken.GroupCode in [10, 20, 30, 11, 21, 31] then
+    begin
+      CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue), FPointSeparator);
+    end;
+
+    // Loads the coordinates
+    // With Position fixing for documents with negative coordinates
+    case CurToken.GroupCode of
+      10:
+      begin
+        // Starting a new point
+        Inc(curPoint);
+        SetLength(SPLine, curPoint+1);
+
+        SPLine[curPoint].X := CurToken.FloatValue - DOC_OFFSET.X;
+      end;
+      20: SPLine[curPoint].Y := CurToken.FloatValue - DOC_OFFSET.Y;
+    end;
+  end;
+
+  // And now write it
+  if curPoint >= 0 then // otherwise the polyline is empty of points
+  begin
+    AData.StartPath(SPLine[0].X, SPLine[0].Y);
+    {$ifdef FPVECTORIALDEBUG_SPLINE}
+    Write(Format('SPLINE ID=%d %f,%f', [AData.PathCount-1, SPLine[0].X, SPLine[0].Y]));
+    {$endif}
+    for i := 1 to curPoint do
+    begin
+      AData.AddLineToPath(SPLine[i].X, SPLine[i].Y);
+      {$ifdef FPVECTORIALDEBUG_SPLINE}
+       Write(Format(' %f,%f', [SPLine[i].X, SPLine[i].Y]));
+      {$endif}
+    end;
+    {$ifdef FPVECTORIALDEBUG_SPLINE}
+     WriteLn('');
+    {$endif}
+    AData.EndPath();
+  end;
+end;
+
+procedure TvDXFVectorialReader.ReadENTITIES_POLYLINE(ATokens: TDXFTokens;
+  AData: TvVectorialDocument);
+begin
+  SetLength(Polyline, 0);
+end;
+
+procedure TvDXFVectorialReader.ReadENTITIES_VERTEX(ATokens: TDXFTokens;
+  AData: TvVectorialDocument);
+var
+  CurToken: TDXFToken;
+  i, curPoint: Integer;
+begin
+  if not IsReadingPolyline then raise Exception.Create('[TvDXFVectorialReader.ReadENTITIES_VERTEX] Unexpected record: VERTEX before a POLYLINE');
+
+  curPoint := Length(Polyline);
+  SetLength(Polyline, curPoint+1);
+  Polyline[curPoint].X := 0;
+  Polyline[curPoint].Y := 0;
+  Polyline[curPoint].Color := clvBlack;
+
+  for i := 0 to ATokens.Count - 1 do
+  begin
+    // Now read and process the item name
+    CurToken := TDXFToken(ATokens.Items[i]);
+
+    // Avoid an exception by previously checking if the conversion can be made
+    if CurToken.GroupCode in [10, 20, 30, 62] then
+    begin
+      CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue), FPointSeparator);
+    end;
+
+    // Loads the coordinates
+    // With Position fixing for documents with negative coordinates
+    case CurToken.GroupCode of
+      10: Polyline[curPoint].X := CurToken.FloatValue - DOC_OFFSET.X;
+      20: Polyline[curPoint].Y := CurToken.FloatValue - DOC_OFFSET.Y;
+      62: Polyline[curPoint].Color := DXFColorIndexToVColor(Trunc(CurToken.FloatValue));
+    end;
+  end;
+end;
+
+{$define FPVECTORIALDEBUG_POLYLINE}
+procedure TvDXFVectorialReader.ReadENTITIES_SEQEND(ATokens: TDXFTokens;
+  AData: TvVectorialDocument);
+var
+  i: Integer;
+begin
+  if not IsReadingPolyline then raise Exception.Create('[TvDXFVectorialReader.ReadENTITIES_SEQEND] Unexpected record: SEQEND before a POLYLINE');
+
+  // Write the Polyline to the document
+  if Length(Polyline) >= 0 then // otherwise the polyline is empty of points
+  begin
+    AData.StartPath(Polyline[0].X, Polyline[0].Y);
+    {$ifdef FPVECTORIALDEBUG_POLYLINE}
+     Write(Format('POLYLINE %f,%f', [Polyline[0].X, Polyline[0].Y]));
+    {$endif}
+    for i := 1 to Length(Polyline)-1 do
+    begin
+      AData.AddLineToPath(Polyline[i].X, Polyline[i].Y, Polyline[i].Color);
+      {$ifdef FPVECTORIALDEBUG_POLYLINE}
+       Write(Format(' %f,%f', [Polyline[i].X, Polyline[i].Y]));
+      {$endif}
+    end;
+    {$ifdef FPVECTORIALDEBUG_POLYLINE}
+     WriteLn('');
+    {$endif}
+    AData.EndPath();
+  end;
+end;
+
+procedure TvDXFVectorialReader.ReadENTITIES_MTEXT(ATokens: TDXFTokens;
+  AData: TvVectorialDocument);
+var
+  CurToken: TDXFToken;
+  i: Integer;
+  PosX: Double = 0.0;
+  PosY: Double = 0.0;
+  PosZ: Double = 0.0;
+  FontSize: Double = 10.0;
+  Str: string = '';
+begin
+  for i := 0 to ATokens.Count - 1 do
+  begin
+    // Now read and process the item name
+    CurToken := TDXFToken(ATokens.Items[i]);
+
+    // Avoid an exception by previously checking if the conversion can be made
+    if CurToken.GroupCode in [10, 20, 30, 40] then
+    begin
+      CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue), FPointSeparator);
+    end;
+
+    case CurToken.GroupCode of
+      1:  Str := CurToken.StrValue;
+      10: PosX := CurToken.FloatValue;
+      20: PosY := CurToken.FloatValue;
+      30: PosZ := CurToken.FloatValue;
+      40: FontSize := CurToken.FloatValue;
+    end;
+  end;
+
+  // Position fixing for documents with negative coordinates
+  PosX := PosX - DOC_OFFSET.X;
+  PosY := PosY - DOC_OFFSET.Y;
+
+  //
+  AData.AddText(PosX, PosY, PosZ, '', Round(FontSize), Str);
+end;
+
+procedure TvDXFVectorialReader.ReadENTITIES_POINT(ATokens: TDXFTokens;
+  AData: TvVectorialDocument);
+var
+  CurToken: TDXFToken;
+  i: Integer;
+  CircleCenterX, CircleCenterY, CircleCenterZ, CircleRadius: Double;
+begin
+  CircleCenterX := 0.0;
+  CircleCenterY := 0.0;
+  CircleCenterZ := 0.0;
+  CircleRadius := 1.0;
+
+  for i := 0 to ATokens.Count - 1 do
+  begin
+    // Now read and process the item name
+    CurToken := TDXFToken(ATokens.Items[i]);
+
+    // Avoid an exception by previously checking if the conversion can be made
+    if CurToken.GroupCode in [10, 20, 30, 40] then
+    begin
+      CurToken.FloatValue :=  StrToFloat(Trim(CurToken.StrValue), FPointSeparator);
+    end;
+
+    case CurToken.GroupCode of
+      10: CircleCenterX := CurToken.FloatValue;
+      20: CircleCenterY := CurToken.FloatValue;
+      30: CircleCenterZ := CurToken.FloatValue;
+//      40: CircleRadius := CurToken.FloatValue;
+    end;
+  end;
+
+  // Position fixing for documents with negative coordinates
+  CircleCenterX := CircleCenterX - DOC_OFFSET.X;
+  CircleCenterY := CircleCenterY - DOC_OFFSET.Y;
+
+  AData.AddCircle(CircleCenterX, CircleCenterY,
+    CircleCenterZ, CircleRadius);
+end;
+
 function TvDXFVectorialReader.GetCoordinateValue(AStr: shortstring): Double;
 begin
   Result := 0.0;
@@ -885,6 +1227,15 @@ begin
 {  if Length(AStr) <= 1 then Exit;
 
   Result := StrToFloat(Copy(AStr, 2, Length(AStr) - 1));}
+end;
+
+function TvDXFVectorialReader.DXFColorIndexToVColor(AColorIndex: Integer
+  ): TvColor;
+begin
+  if (AColorIndex >= 0) and (AColorIndex <= 15) then
+    Result := AUTOCAD_COLOR_PALETTE[AColorIndex]
+  else
+    raise Exception.Create(Format('[TvDXFVectorialReader.DXFColorIndexToFPVColor] Invalid DXF Color Index: %d', [AColorIndex]));
 end;
 
 constructor TvDXFVectorialReader.Create;

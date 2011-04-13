@@ -1,4 +1,4 @@
 #!/bin/bash
-rm *.o *.ppu ../*.o ../*.ppu testrunner
-fpc -Fu.. -gttt testrunner.pp -Sa
+rm *.o *.ppu testrunner
+fpc -Fu../units/x86_64-linux -gttt testrunner.pp -Sa
 ./testrunner --all

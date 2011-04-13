@@ -7,7 +7,7 @@ name=fcl-stl
 version=2.5.1
 
 [target]
-units=garrayutils gdeque gmap gpriorityqueue gqueue gset gstack gutil gvector
+units=garrayutils gdeque gmap gpriorityqueue gqueue gset gstack gutil gvector ghashset ghashmap
 
 [install]
 fpcpackage=y

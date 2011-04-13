@@ -29,16 +29,24 @@ unit cpu;
       sysutils;
 
     function InterlockedCompareExchange128Support : boolean;inline;
+    function AESSupport : boolean;inline;
+
     function InterlockedCompareExchange128(var Target: Int128Rec; NewValue: Int128Rec; Comperand: Int128Rec): Int128Rec;
 
   implementation
 
     var
+      _AESSupport,
       _InterlockedCompareExchange128Support : boolean;
 
     function InterlockedCompareExchange128Support : boolean;inline;
       begin
         result:=_InterlockedCompareExchange128Support;
+      end;
+
+    function AESSupport : boolean;inline;
+      begin
+        result:=_AESSupport;
       end;
 
 
@@ -119,6 +127,7 @@ unit cpu;
            popq %rbx
         end;
         _InterlockedCompareExchange128Support:=(_ecx and $2000)<>0;
+        _AESSupport:=(_ecx and $2000000)<>0;        
       end;
 
 

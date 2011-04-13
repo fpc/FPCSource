@@ -59,7 +59,7 @@ implementation
     const
       line_length = 70;
 
-      secnames : array[TAsmSectiontype] of string[4] = ('',
+      secnames : array[TAsmSectiontype] of string[4] = ('','',
         'CODE','DATA','DATA','DATA','BSS','',
         '','','','','','',
         '','','','',
@@ -109,7 +109,7 @@ implementation
         ''
       );
 
-      secnamesml64 : array[TAsmSectiontype] of string[7] = ('',
+      secnamesml64 : array[TAsmSectiontype] of string[7] = ('','',
         '_TEXT','_DATE','_DATA','_DATA','_BSS','',
         '','','','',
         'idata$2','idata$4','idata$5','idata$6','idata$7','edata',
@@ -978,7 +978,7 @@ implementation
 
       { better do this at end of WriteTree, but then there comes a trouble with
         al_const which does not have leading ait_section and thus goes out of segment }
-        
+
       { TODO: probably ml64 needs 'closing' last section, too }
       if LastSecType <> sec_none then
         AsmWriteLn('_'+secnames[LasTSecType]+#9#9'ENDS');
