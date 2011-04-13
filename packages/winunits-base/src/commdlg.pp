@@ -17,6 +17,9 @@ unit commdlg;
 
 interface
 {$mode delphi} // interface
+{$ifndef Win64}
+  {$packrecords 1}
+{$endif}
 uses windows;
 
 Type
@@ -414,7 +417,7 @@ Type
      TDEVNAMES = DEVNAMES;
      PDEVNAMES = ^DEVNAMES;
     
-	TPRINTDLGA = packed record
+	TPRINTDLGA = record
           lStructSize : DWORD;
           hwndOwner : HWND;
           hDevMode : HANDLE;
@@ -442,7 +445,7 @@ Type
      TPDA = TPRINTDLGA;
      PPDA = ^TPRINTDLGA;
 	 	 
-     TPRINTDLGW = packed record
+     TPRINTDLGW = record
           lStructSize : DWORD;
           hwndOwner : HWND;
           hDevMode : HANDLE;
