@@ -2441,6 +2441,8 @@ implementation
                                 (po_staticmethod in current_procinfo.procdef.procoptions) then
                                hdef:=tclassrefdef.create(hdef);
                              p1:=ctypenode.create(hdef);
+                             { we need to allow helpers here }
+                             ttypenode(p1).helperallowed:=true;
                            end;
                          propertysym:
                            ;
