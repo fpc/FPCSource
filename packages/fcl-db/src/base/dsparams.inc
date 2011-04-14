@@ -595,75 +595,75 @@ end;
 
 Procedure TParam.SetAsBlob(const AValue: TBlobData);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftBlob;
 end;
 
 Procedure TParam.SetAsBoolean(AValue: Boolean);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftBoolean;
 end;
 
 Procedure TParam.SetAsCurrency(const AValue: Currency);
 begin
-  FValue:=Avalue;
+  Value:=Avalue;
   FDataType:=ftCurrency;
 end;
 
 Procedure TParam.SetAsDate(const AValue: TDateTime);
 begin
-  FValue:=Avalue;
+  Value:=Avalue;
   FDataType:=ftDate;
 end;
 
 Procedure TParam.SetAsDateTime(const AValue: TDateTime);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftDateTime;
 end;
 
 Procedure TParam.SetAsFloat(const AValue: Double);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftFloat;
 end;
 
 Procedure TParam.SetAsInteger(AValue: Longint);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftInteger;
 end;
 
 Procedure TParam.SetAsLargeInt(AValue: LargeInt);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftLargeint;
 end;
 
 Procedure TParam.SetAsMemo(const AValue: string);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftMemo;
 end;
 
 
 Procedure TParam.SetAsSmallInt(AValue: LongInt);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftSmallInt;
 end;
 
 Procedure TParam.SetAsString(const AValue: string);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   if FDataType <> ftFixedChar then
     FDataType := ftString;
 end;
 
 procedure TParam.SetAsWideString(const aValue: WideString);
 begin
-  FValue := aValue;
+  Value := aValue;
   if FDataType <> ftFixedWideChar then
     FDataType := ftWideString;
 end;
@@ -671,7 +671,7 @@ end;
 
 Procedure TParam.SetAsTime(const AValue: TDateTime);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftTime;
 end;
 
@@ -703,7 +703,7 @@ end;
 
 Procedure TParam.SetAsWord(AValue: LongInt);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftWord;
 end;
 
