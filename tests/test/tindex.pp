@@ -1,5 +1,3 @@
-const
-  err: boolean = false;
 
 var
   a, b: array[0..515] of byte;
@@ -128,6 +126,13 @@ begin
               writeln('indexword error 7 for (',i,',',j,',',k,')');
               halt(7);
             end;
+          {same for length=-1}
+          if indexword(b[k+4],-1,0)<>index then
+            begin
+              writeln(indexword(b[k+4],-1,0),' <> ',index);
+              writeln('indexword error 7a for (',i,',',j,',',k,')');
+              halt(27);
+            end;
 
           if (i=0) then
             index:=0
@@ -139,6 +144,13 @@ begin
               writeln(indexword(b[k+4],((i and not 1)+1) shr 1+1,l),' <> ',index);
               writeln('indexword error 8 for (',i,',',j,',',k,')');
               halt(8);
+            end;
+          {same for length=-1}
+          if indexword(b[k+4],-1,l)<>index then
+            begin
+              writeln(indexword(b[k+4],-1,l),' <> ',index);
+              writeln('indexword error 8a for (',i,',',j,',',k,')');
+              halt(28);
             end;
 
            l:=unaligned(pword(@(b[k+4+((i shr 2) and not 1)-2]))^);
@@ -152,6 +164,14 @@ begin
                writeln('indexword error 9 for (',i,',',j,',',k,')');
                halt(9);
              end;
+           if (i>1) and (index<>-1) then
+             if indexword(b[k+4],-1,l)<>index then
+               begin
+                 writeln(indexword(b[k+4],-1,l),' <> ',index);
+                 writeln('indexword error 9a for (',i,',',j,',',k,')');
+                 halt(29);
+               end;
+
            l:=unaligned(pword(@(b[k+4]))^);
            if (i<2) then
              index:=-1
@@ -162,6 +182,12 @@ begin
                writeln('indexword error 10 for (',i,',',j,',',k,')');
                halt(10);
              end;
+           if i>1 then
+             if indexword(b[k+4],-1,l)<>index then
+               begin
+                 writeln('indexword error 10a for (',i,',',j,',',k,')');
+                 halt(30);
+               end;
 
 
            if (unaligned(pdword(@b[k+4])^)=0) then
