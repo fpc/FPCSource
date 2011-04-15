@@ -169,7 +169,7 @@ unit cpupara;
                 windows/delphi (FK)
               }
               if ((target_info.system=system_i386_win32) and
-                 (calloption=pocall_stdcall) and
+                 (calloption in [pocall_stdcall,pocall_safecall]) and
                  (varspez=vs_const)) or
                  (calloption=pocall_register) then
                 result:=true
