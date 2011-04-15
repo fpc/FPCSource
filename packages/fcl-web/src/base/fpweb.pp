@@ -204,6 +204,7 @@ end;
 
 destructor TFPWebAction.destroy;
 begin
+  FreeandNil(FContents);
   FreeAndNil(FTemplate);
   inherited destroy;
 end;
