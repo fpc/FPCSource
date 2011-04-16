@@ -844,7 +844,8 @@ implementation
                  case p.propaccesslist[palt_read].firstsym^.sym.typ of
                    procsym :
                      begin
-                       if (po_virtualmethod in tprocdef(p.propaccesslist[palt_read].procdef).procoptions) then
+                       if (po_virtualmethod in tprocdef(p.propaccesslist[palt_read].procdef).procoptions) and
+                           not is_objectpascal_helper(tprocdef(p.propaccesslist[palt_read].procdef).struct) then
                          ImplIntf.IType:=etVirtualMethodResult
                        else
                          ImplIntf.IType:=etStaticMethodResult;

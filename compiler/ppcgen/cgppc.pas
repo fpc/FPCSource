@@ -718,7 +718,8 @@ unit cgppc;
         g_adjust_self_value(list,procdef,ioffset);
 
         { case 4 }
-        if po_virtualmethod in procdef.procoptions then
+        if (po_virtualmethod in procdef.procoptions) and
+            not is_objectpascal_helper(procdef.struct) then
           begin
             loadvmttor11;
             op_onr11methodaddr;

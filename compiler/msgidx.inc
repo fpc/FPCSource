@@ -395,6 +395,9 @@ const
   parser_e_cant_use_type_parameters_here=03304;
   parser_e_externals_no_section=03305;
   parser_e_section_no_locals=03306;
+  parser_e_not_allowed_in_helper=03307;
+  parser_e_no_class_constructor_in_helpers=03308;
+  parser_e_inherited_not_in_record=03309;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -484,6 +487,10 @@ const
   type_e_generics_cannot_reference_itself=04096;
   type_e_type_parameters_are_not_allowed_here=04097;
   type_e_generic_declaration_does_not_match=04098;
+  type_e_helper_type_expected=04099;
+  type_e_record_type_expected=04100;
+  type_e_class_helper_must_extend_subclass=04101;
+  type_e_record_helper_must_extend_same_record=04102;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -884,9 +891,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 58848;
+  MsgTxtSize = 59257;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,88,307,99,84,54,111,22,202,63,
+    24,88,310,103,84,54,111,22,202,63,
     49,20,1,1,1,1,1,1,1,1
   );

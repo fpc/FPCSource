@@ -42,7 +42,8 @@ unit typinfo;
                    tkSet,tkMethod,tkSString,tkLString,tkAString,
                    tkWString,tkVariant,tkArray,tkRecord,tkInterface,
                    tkClass,tkObject,tkWChar,tkBool,tkInt64,tkQWord,
-                   tkDynArray,tkInterfaceRaw,tkProcVar,tkUString,tkUChar);
+                   tkDynArray,tkInterfaceRaw,tkProcVar,tkUString,tkUChar,
+                   tkHelper);
 
        TOrdType  = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong);
 
@@ -149,6 +150,13 @@ unit typinfo;
                ParentInfo : PTypeInfo;
                PropCount : SmallInt;
                UnitName : ShortString
+               // here the properties follow as array of TPropInfo
+              );
+            tkHelper:
+              (HelperParent : PTypeInfo;
+               ExtendedInfo : PTypeInfo;
+               HelperProps : SmallInt;
+               HelperUnit : ShortString
                // here the properties follow as array of TPropInfo
               );
             tkMethod:

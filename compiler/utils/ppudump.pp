@@ -426,6 +426,50 @@ end;
                              Read Routines
 ****************************************************************************}
 
+procedure readsymtableoptions(const s: string);
+type
+  tsymtableoption = (
+    sto_has_helper         { contains at least one helper symbol }
+  );
+  tsymtableoptions = set of tsymtableoption;
+  tsymtblopt=record
+    mask : tsymtableoption;
+    str  : string[30];
+  end;
+const
+  symtblopts=1;
+  symtblopt : array[1..symtblopts] of tsymtblopt=(
+     (mask:sto_has_helper;   str:'Has helper')
+  );
+var
+  options : tsymtableoptions;
+  first : boolean;
+  i : integer;
+begin
+  if ppufile.readentry<>ibsymtableoptions then
+    exit;
+  ppufile.getsmallset(options);
+  if space<>'' then
+   writeln(space,'------ ',s,' ------');
+  write(space,'Symtable options: ');
+  if options<>[] then
+   begin
+     first:=true;
+     for i:=1 to symtblopts do
+      if (symtblopt[i].mask in options) then
+       begin
+         if first then
+           first:=false
+         else
+           write(', ');
+         write(symtblopt[i].str);
+       end;
+   end
+  else
+   write('none');
+  writeln;
+end;
+
 Procedure ReadLinkContainer(const prefix:string);
 {
   Read a serie of strings and write to the screen starting every line
@@ -846,10 +890,37 @@ type
   );
   tdefoptions=set of tdefoption;
 
+  tobjectoption=(oo_none,
+    oo_is_forward,         { the class is only a forward declared yet }
+    oo_is_abstract,        { the class is abstract - only descendants can be used }
+    oo_is_sealed,          { the class is sealed - can't have descendants }
+    oo_has_virtual,        { the object/class has virtual methods }
+    oo_has_private,
+    oo_has_protected,
+    oo_has_strictprivate,
+    oo_has_strictprotected,
+    oo_has_constructor,    { the object/class has a constructor }
+    oo_has_destructor,     { the object/class has a destructor }
+    oo_has_vmt,            { the object/class has a vmt }
+    oo_has_msgstr,
+    oo_has_msgint,
+    oo_can_have_published,{ the class has rtti, i.e. you can publish properties }
+    oo_has_default_property,
+    oo_has_valid_guid,
+    oo_has_enumerator_movenext,
+    oo_has_enumerator_current,
+    oo_is_external,       { the class is externally implemented (objcclass, cppclass) }
+    oo_is_anonymous,      { the class is only formally defined in this module (objcclass x = class; external;) }
+    oo_is_classhelper,    { objcclasses that represent categories, and Delpi-style class helpers, are marked like this }
+    oo_has_class_constructor, { the object/class has a class constructor }
+    oo_has_class_destructor   { the object/class has a class destructor  }
+  );
+  tobjectoptions=set of tobjectoption;
 
 var
   { needed during tobjectdef parsing... }
   current_defoptions : tdefoptions;
+  current_objectoptions : tobjectoptions;
 
 procedure readcommondef(const s:string; out defoptions: tdefoptions);
 type
@@ -1401,32 +1472,6 @@ end;
 
 procedure readobjectdefoptions;
 type
-  tobjectoption=(oo_none,
-    oo_is_forward,         { the class is only a forward declared yet }
-    oo_is_abstract,        { the class is abstract - only descendants can be used }
-    oo_is_sealed,          { the class is sealed - can't have descendants }
-    oo_has_virtual,        { the object/class has virtual methods }
-    oo_has_private,
-    oo_has_protected,
-    oo_has_strictprivate,
-    oo_has_strictprotected,
-    oo_has_constructor,    { the object/class has a constructor }
-    oo_has_destructor,     { the object/class has a destructor }
-    oo_has_vmt,            { the object/class has a vmt }
-    oo_has_msgstr,
-    oo_has_msgint,
-    oo_can_have_published,{ the class has rtti, i.e. you can publish properties }
-    oo_has_default_property,
-    oo_has_valid_guid,
-    oo_has_enumerator_movenext,
-    oo_has_enumerator_current,
-    oo_is_external,       { the class is externally implemented (objcclass, cppclass) }
-    oo_is_anonymous,      { the class is only formally defined in this module (objcclass x = class; external;) }
-    oo_is_classhelper,    { objcclasses that represent categories, and Delpi-style class helpers, are marked like this }
-    oo_has_class_constructor, { the object/class has a class constructor }
-    oo_has_class_destructor   { the object/class has a class destructor  }
-  );
-  tobjectoptions=set of tobjectoption;
   tsymopt=record
     mask : tobjectoption;
     str  : string[30];
@@ -1458,16 +1503,15 @@ const
      (mask:oo_has_class_destructor; str:'HasClassDestructor')
   );
 var
-  symoptions : tobjectoptions;
   i      : longint;
   first  : boolean;
 begin
-  ppufile.getsmallset(symoptions);
-  if symoptions<>[] then
+  ppufile.getsmallset(current_objectoptions);
+  if current_objectoptions<>[] then
    begin
      first:=true;
      for i:=1 to high(symopt) do
-      if (symopt[i].mask in symoptions) then
+      if (symopt[i].mask in current_objectoptions) then
        begin
          if first then
            first:=false
@@ -1901,7 +1945,8 @@ type
     odt_cppclass,
     odt_dispinterface,
     odt_objcclass,
-    odt_objcprotocol
+    odt_objcprotocol,
+    odt_helper
   );
   tvarianttype = (
     vt_normalvariant,vt_olevariant
@@ -1976,6 +2021,7 @@ begin
              writeln(space,'            Range : ',getaint,' to ',getaint);
              write  (space,'          Options : ');
              readarraydefoptions;
+             readsymtableoptions('symbols');
              readdefinitions('symbols');
              readsymbols('symbols');
            end;
@@ -2037,11 +2083,13 @@ begin
               Writeln('!! Entry has more information stored');
              space:='    '+space;
              { parast }
+             readsymtableoptions('parast');
              readdefinitions('parast');
              readsymbols('parast');
              { localst }
              if (po_has_inlininginfo in procoptions) then
               begin
+                readsymtableoptions('localst');
                 readdefinitions('localst');
                 readsymbols('localst');
               end;
@@ -2059,6 +2107,7 @@ begin
               Writeln('!! Entry has more information stored');
              space:='    '+space;
              { parast }
+             readsymtableoptions('parast');
              readdefinitions('parast');
              readsymbols('parast');
              delete(space,1,4);
@@ -2109,6 +2158,7 @@ begin
               Writeln('!! Entry has more information stored');
              {read the record definitions and symbols}
              space:='    '+space;
+             readsymtableoptions('fields');
              readdefinitions('fields');
              readsymbols('fields');
              Delete(space,1,4);
@@ -2131,6 +2181,7 @@ begin
                odt_dispinterface  : writeln('dispinterface');
                odt_objcclass      : writeln('objcclass');
                odt_objcprotocol   : writeln('objcprotocol');
+               odt_helper         : writeln('helper');
                else                 writeln('!! Warning: Invalid object type ',b);
              end;
              writeln(space,'    External name : ',getstring);
@@ -2148,6 +2199,13 @@ begin
                   for j:=1to 16 do
                    getbyte;
                   writeln(space,'       IID String : ',getstring);
+               end;
+
+             if (tobjecttyp(b)=odt_helper) or
+                 (oo_is_classhelper in current_objectoptions) then
+               begin
+                 write(space,'    Helper parent : ');
+                 readderef('');
                end;
 
              l:=getlongint;
@@ -2183,6 +2241,7 @@ begin
                begin
                  {read the record definitions and symbols}
                  space:='    '+space;
+                 readsymtableoptions('fields');
                  readdefinitions('fields');
                  readsymbols('fields');
                  Delete(space,1,4);
@@ -2227,6 +2286,7 @@ begin
              else
                begin
                  space:='    '+space;
+                 readsymtableoptions('elements');
                  readdefinitions('elements');
                  readsymbols('elements');
                  delete(space,1,4);
@@ -2534,6 +2594,10 @@ begin
    end
   else
    ppufile.skipuntilentry(ibendinterface);
+  Writeln;
+  Writeln('Interface symtable');
+  Writeln('----------------------');
+  readsymtableoptions('interface');
 {read the definitions}
   if (verbose and v_defs)<>0 then
    begin
@@ -2569,6 +2633,7 @@ begin
     end;
   if boolean(ppufile.getbyte) then
     begin
+      readsymtableoptions('interface macro');
       {skip the definition section for macros (since they are never used) }
       ppufile.skipuntilentry(ibenddefs);
       {read the macro symbols}
@@ -2591,6 +2656,10 @@ begin
   else
    ppufile.skipuntilentry(ibendimplementation);
   {read the static symtable}
+  Writeln;
+  Writeln('Implementation symtable');
+  Writeln('----------------------');
+  readsymtableoptions('implementation');
   if (ppufile.header.flags and uf_local_symtable)<>0 then
    begin
      if (verbose and v_defs)<>0 then

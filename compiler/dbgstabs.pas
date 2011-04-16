@@ -416,7 +416,8 @@ implementation
         if tsym(p).typ = procsym then
          begin
            pd :=tprocdef(tprocsym(p).ProcdefList[0]);
-           if (po_virtualmethod in pd.procoptions) then
+           if (po_virtualmethod in pd.procoptions) and
+               not is_objectpascal_helper(pd.struct) then
              begin
                lindex := pd.extnumber;
                {doesnt seem to be necessary

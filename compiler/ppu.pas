@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 127;
+  CurrentPPUVersion = 128;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -131,6 +131,7 @@ const
   ibmoduleoptions   = 85;
 
   ibmainname       = 90;
+  ibsymtableoptions = 91;
   { target-specific things }
   iblinkotherframeworks = 100;
 
