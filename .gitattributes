@@ -285,6 +285,7 @@ compiler/msg/errorfi.msg svneol=native#text/plain
 compiler/msg/errorhe.msg svneol=native#text/plain
 compiler/msg/errorheu.msg svneol=native#text/plain
 compiler/msg/errorid.msg svneol=native#text/plain
+compiler/msg/erroriu.msg svneol=native#text/plain
 compiler/msg/errorn.msg svneol=native#text/plain
 compiler/msg/errorpl.msg svneol=native#text/plain
 compiler/msg/errorpli.msg svneol=native#text/plain
