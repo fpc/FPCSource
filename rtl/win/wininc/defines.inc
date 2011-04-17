@@ -1696,9 +1696,10 @@
      SIF_RANGE = 1;
      SIF_DISABLENOSCROLL = 8;
   { GetStdHandle  }
-     STD_INPUT_HANDLE = HANDLE(-10);
-     STD_OUTPUT_HANDLE = HANDLE(-11);
-     STD_ERROR_HANDLE = HANDLE(-12);
+  { !!! The 3 following constants are NOT handles. They remain 32-bit on Win64. }
+     STD_INPUT_HANDLE = DWORD(-10);
+     STD_OUTPUT_HANDLE = DWORD(-11);
+     STD_ERROR_HANDLE = DWORD(-12);
 
 
 
