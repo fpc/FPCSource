@@ -371,7 +371,7 @@ Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
 // So use a different instruction for now.
 
     { expand byte value  }
-    andq   $0xffffffffffffff00, %r8
+    andq   $0xff, %r8
 {
     movzbq %r8b, %r8
 }
@@ -623,8 +623,7 @@ asm
     lea    -16(%rcx,%rax), %rax
     cmp    %rax, %rdx
     jbe    .Lnotfound_u                { if match is after the specified length, ignore it }
-    sar    $1, %eax                    { in words }
-    retq
+    sar    $1, %rax                    { in words }
 end;
 {$endif FPC_SYSTEM_HAS_INDEXWORD}
 
