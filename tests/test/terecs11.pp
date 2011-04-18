@@ -1,4 +1,4 @@
-program texrec1;
+program terecs11;
 
 {$ifdef fpc}
   {$mode delphi}

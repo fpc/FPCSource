@@ -1382,6 +1382,9 @@ parser_e_no_class_constructor_in_helpers=03308_E_Class constructors aren't allow
 parser_e_inherited_not_in_record=03309_E_The use of "inherited" is not allowed in a record
 % As records don't suppport inheritance the use of "inherited" is prohibited for
 % these as well as for record helpers (in mode "Delphi" only).
+parser_e_no_types_in_local_anonymous_records=03310_E_Type declarations are not allowed in local or anonymous records
+% Records with types must be defined globally. Types cannot be defined inside records which are defined in a
+% procedure or function or in anonymous records.
 % \end{description}
 # Type Checking
 #
