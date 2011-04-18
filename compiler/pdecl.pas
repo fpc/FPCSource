@@ -501,7 +501,7 @@ implementation
                     end;
                     consume(token);
                     { we can ignore the result, the definition is modified }
-                    object_dec(objecttype,orgtypename,nil,nil,tobjectdef(ttypesym(sym).typedef));
+                    object_dec(objecttype,orgtypename,nil,nil,tobjectdef(ttypesym(sym).typedef),ht_none);
                     newtype:=ttypesym(sym);
                     hdef:=newtype.typedef;
                   end
@@ -645,7 +645,8 @@ implementation
               end;
             end;
 
-           if isgeneric and not(hdef.typ in [objectdef,recorddef,arraydef,procvardef]) then
+           if isgeneric and (not(hdef.typ in [objectdef,recorddef,arraydef,procvardef])
+               or is_objectpascal_helper(hdef)) then
              message(parser_e_cant_create_generics_of_this_type);
 
            { Stop recording a generic template }

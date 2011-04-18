@@ -170,6 +170,7 @@ type
     _DOWNTO,
     _EXCEPT,
     _EXPORT,
+    _HELPER,
     _INLINE,
     _LEGACY,
     _NESTED,
@@ -465,6 +466,7 @@ const
       (str:'DOWNTO'        ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'EXCEPT'        ;special:false;keyword:m_except;op:NOTOKEN),
       (str:'EXPORT'        ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'HELPER'        ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'INLINE'        ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'LEGACY'        ;special:false;keyword:m_none;op:NOTOKEN),   { Syscall variation on MorphOS }
       (str:'NESTED'        ;special:false;keyword:m_none;op:NOTOKEN),

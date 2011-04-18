@@ -4003,21 +4003,16 @@ procedure TFMTBcdFactory.CastTo(var Dest: TVarData; const Source: TVarData; cons
 var v: TVarData;
 begin
   if Source.vType=VarType then
-  begin
-    VarDataInit(v);
-    try
-      if aVarType = varString then
-        VarDataFromStr(Dest, BCDToStr(TFMTBcdVarData(Source.vPointer).BCD))
-      else
-      begin
-        v.vType:=varDouble;
-        v.vDouble:=BCDToDouble(TFMTBcdVarData(Source.vPointer).BCD);
-        VarDataCastTo(Dest, v, aVarType); //now cast Double to any requested type
-      end;
-    finally
-      VarDataClear(v);
-    end;
-  end
+    if aVarType = varString then
+      VarDataFromStr(Dest, BCDToStr(TFMTBcdVarData(Source.vPointer).BCD))
+    else
+    begin
+      VarDataInit(v);
+      v.vType:=varDouble;
+      v.vDouble:=BCDToDouble(TFMTBcdVarData(Source.vPointer).BCD);
+      VarDataCastTo(Dest, v, aVarType); //now cast Double to any requested type
+      { finalizing v is not necessary here (Double is a simple type) }
+    end
   else
     inherited;
 end;

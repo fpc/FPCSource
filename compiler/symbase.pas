@@ -97,6 +97,7 @@ interface
           refcount  : smallint;
           currentvisibility : tvisibility;
           currentlyoptional : boolean;
+          tableoptions : tsymtableoptions;
           { level of symtable, used for nested procedures }
           symtablelevel : byte;
           symtabletype  : TSymtabletype;
@@ -113,6 +114,9 @@ interface
           procedure insertdef(def:TDefEntry);virtual;
           procedure deletedef(def:TDefEntry);
           function  iscurrentunit:boolean;virtual;
+          { includes the flag in this symtable and all parent symtables; if
+            it's already set the flag is not set again }
+          procedure includeoption(option:tsymtableoption);
        end;
 
        psymtablestackitem = ^TSymtablestackitem;
@@ -126,8 +130,8 @@ interface
          constructor create;
          destructor destroy;override;
          procedure clear;
-         procedure push(st:TSymtable);
-         procedure pop(st:TSymtable);
+         procedure push(st:TSymtable); virtual;
+         procedure pop(st:TSymtable); virtual;
          function  top:TSymtable;
        end;
 
@@ -260,6 +264,26 @@ implementation
     function TSymtable.iscurrentunit:boolean;
       begin
         result:=false;
+      end;
+
+    procedure TSymtable.includeoption(option: tsymtableoption);
+      var
+        st: tsymtable;
+      begin
+        if option in tableoptions then
+          exit;
+        include(tableoptions,option);
+        { iterative approach should be faster than recursion based on calls }
+        st:=self;
+        while assigned(st.defowner) do
+          begin
+            st:=st.defowner.owner;
+            { the flag is already set, so by definition it is set in the
+              owning symtables as well }
+            if option in st.tableoptions then
+              break;
+            include(st.tableoptions,option);
+          end;
       end;
 
 

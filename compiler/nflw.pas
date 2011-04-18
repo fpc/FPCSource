@@ -824,6 +824,7 @@ implementation
     function create_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
       var
         pd, movenext: tprocdef;
+        helperdef: tobjectdef;
         current: tpropertysym;
         storefilepos: tfileposinfo;
       begin
@@ -859,9 +860,20 @@ implementation
               begin
                 // search for operator first
                 pd:=search_enumerator_operator(expr.resultdef, hloopvar.resultdef);
-                // if there is no operator then search for class/object/record enumerator method
+                // if there is no operator then search for class/object enumerator method
                 if (pd=nil) and (expr.resultdef.typ in [objectdef,recorddef]) then
-                  pd:=tabstractrecorddef(expr.resultdef).search_enumerator_get;
+                  begin
+                    { first search using the helper hierarchy }
+                    if search_last_objectpascal_helper(tabstractrecorddef(expr.resultdef),nil,helperdef) then
+                      repeat
+                        pd:=helperdef.search_enumerator_get;
+                        helperdef:=helperdef.childof;
+                      until (pd<>nil) or (helperdef=nil);
+                    { we didn't find an enumerator in a helper, so search in the
+                      class/record/object itself }
+                    if pd=nil then
+                      pd:=tabstractrecorddef(expr.resultdef).search_enumerator_get;
+                  end;
                 if pd<>nil then
                   begin
                     // seach movenext and current symbols

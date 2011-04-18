@@ -824,6 +824,8 @@ var
   DefaultCustomLocaleID : LCID;   // typedef DWORD LCID;
   DefaultCustomLanguageID : Word; // typedef WORD LANGID;
 begin
+  /// workaround for Windows 7 bug, see bug report #18574
+  SetThreadLocale(GetUserDefaultLCID);
   InitInternationalGeneric;
   old8087CW:=Get8087CW;
   SysLocale.MBCS:=GetSystemMetrics(SM_DBCSENABLED)<>0;

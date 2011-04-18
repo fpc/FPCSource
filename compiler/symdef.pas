@@ -260,6 +260,9 @@ interface
           childof        : tobjectdef;
           childofderef   : tderef;
 
+          { for Object Pascal helpers }
+          extendeddef   : tabstractrecorddef;
+          extendeddefderef: tderef;
           { for C++ classes: name of the library this class is imported from }
           import_lib,
           { for Objective-C: protocols and classes can have the same name there }
@@ -648,6 +651,15 @@ interface
           function  is_publishable : boolean;override;
        end;
 
+       tdefawaresymtablestack = class(TSymtablestack)
+       private
+         procedure addhelpers(st: TSymtable);
+         procedure removehelpers(st: TSymtable);
+       public
+         procedure push(st: TSymtable); override;
+         procedure pop(st: TSymtable); override;
+       end;
+
     var
        current_structdef: tabstractrecorddef; { used for private functions check !! }
        current_genericdef: tstoreddef;        { used to reject declaration of generic class inside generic class }
@@ -784,12 +796,14 @@ interface
     function is_object(def: tdef): boolean;
     function is_class(def: tdef): boolean;
     function is_cppclass(def: tdef): boolean;
+    function is_objectpascal_helper(def: tdef): boolean;
     function is_objcclass(def: tdef): boolean;
     function is_objcclassref(def: tdef): boolean;
     function is_objcprotocol(def: tdef): boolean;
     function is_objccategory(def: tdef): boolean;
     function is_objc_class_or_protocol(def: tdef): boolean;
     function is_objc_protocol_or_category(def: tdef): boolean;
+    function is_classhelper(def: tdef): boolean;
     function is_class_or_interface(def: tdef): boolean;
     function is_class_or_interface_or_objc(def: tdef): boolean;
     function is_class_or_interface_or_object(def: tdef): boolean;
@@ -919,6 +933,96 @@ implementation
         { add an underscore on darwin.                                              }
         if (target_info.system in systems_darwin) then
           result := '_' + result;
+      end;
+
+{****************************************************************************
+           TDEFAWARESYMTABLESTACK
+           (symtablestack descendant that does some special actions on
+           the pushed/popped symtables)
+****************************************************************************}
+
+    procedure tdefawaresymtablestack.addhelpers(st: TSymtable);
+      var
+        i: integer;
+        s: string;
+        list: TFPObjectList;
+        def: tdef;
+      begin
+        { search the symtable from first to last; the helper to use will be the
+          last one in the list }
+        for i:=0 to st.symlist.count-1 do
+          begin
+            if not (st.symlist[i] is ttypesym) then
+              continue;
+            def:=ttypesym(st.SymList[i]).typedef;
+            if is_objectpascal_helper(def) then
+              begin
+                s:=make_mangledname('',tobjectdef(def).extendeddef.symtable,'');
+                list:=TFPObjectList(current_module.extendeddefs.Find(s));
+                if not assigned(list) then
+                  begin
+                    list:=TFPObjectList.Create(false);
+                    current_module.extendeddefs.Add(s,list);
+                  end;
+                list.Add(def);
+              end
+            else
+              { add nested helpers as well }
+              if def.typ in [recorddef,objectdef] then
+                addhelpers(tabstractrecorddef(def).symtable);
+          end;
+      end;
+
+    procedure tdefawaresymtablestack.removehelpers(st: TSymtable);
+      var
+        i, j: integer;
+        tmpst: TSymtable;
+        list: TFPObjectList;
+      begin
+        for i:=current_module.extendeddefs.count-1 downto 0 do
+          begin
+            list:=TFPObjectList(current_module.extendeddefs[i]);
+            for j:=list.count-1 downto 0 do
+              begin
+                if not (list[j] is tobjectdef) then
+                  Internalerror(2011031501);
+                tmpst:=tobjectdef(list[j]).owner;
+                repeat
+                  if tmpst=st then
+                    begin
+                      list.delete(j);
+                      break;
+                    end
+                  else
+                    begin
+                      if assigned(tmpst.defowner) then
+                        tmpst:=tmpst.defowner.owner
+                      else
+                        tmpst:=nil;
+                    end;
+                until not assigned(tmpst) or (tmpst.symtabletype in [globalsymtable,staticsymtable]);
+              end;
+            if list.count=0 then
+              current_module.extendeddefs.delete(i);
+          end;
+      end;
+
+    procedure tdefawaresymtablestack.push(st: TSymtable);
+      begin
+        { nested helpers will be added as well }
+        if (st.symtabletype in [globalsymtable,staticsymtable]) and
+            (sto_has_helper in st.tableoptions) then
+          addhelpers(st);
+        inherited push(st);
+      end;
+
+    procedure tdefawaresymtablestack.pop(st: TSymtable);
+      begin
+        inherited pop(st);
+        { nested helpers will be removed as well }
+        if (st.symtabletype in [globalsymtable,staticsymtable]) and
+            (sto_has_helper in st.tableoptions) then
+          removehelpers(st);
       end;
 
 
@@ -4170,6 +4274,8 @@ implementation
         fcurrent_dispid:=0;
         objecttype:=ot;
         childof:=nil;
+        if objecttype=odt_helper then
+          owner.includeoption(sto_has_helper);
         symtable:=tObjectSymtable.create(self,n,current_settings.packrecords);
         { create space for vmt !! }
         vmtentries:=TFPList.Create;
@@ -4219,6 +4325,9 @@ implementation
               ppufile.getguid(iidguid^);
               iidstr:=stringdup(ppufile.getstring);
            end;
+
+         if objecttype=odt_helper then
+           ppufile.getderef(extendeddefderef);
 
          vmtentries:=TFPList.Create;
          vmtentries.count:=ppufile.getlongint;
@@ -4381,6 +4490,8 @@ implementation
               ppufile.putguid(iidguid^);
               ppufile.putstring(iidstr^);
            end;
+         if objecttype=odt_helper then
+           ppufile.putderef(extendeddefderef);
 
          ppufile.putlongint(vmtentries.count);
          for i:=0 to vmtentries.count-1 do
@@ -4439,6 +4550,9 @@ implementation
          else
            tstoredsymtable(symtable).buildderef;
 
+         if objecttype=odt_helper then
+           extendeddefderef.build(extendeddef);
+
          for i:=0 to vmtentries.count-1 do
            begin
              vmtentry:=pvmtentry(vmtentries[i]);
@@ -4467,6 +4581,8 @@ implementation
            end
          else
            tstoredsymtable(symtable).deref;
+         if objecttype=odt_helper then
+           extendeddef:=tobjectdef(extendeddefderef.resolve);
          for i:=0 to vmtentries.count-1 do
            begin
              vmtentry:=pvmtentry(vmtentries[i]);
@@ -4760,7 +4876,7 @@ implementation
 
     function tobjectdef.size : asizeint;
       begin
-        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol] then
+        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper] then
           result:=sizeof(pint)
         else
           result:=tObjectSymtable(symtable).datasize;
@@ -4769,7 +4885,7 @@ implementation
 
     function tobjectdef.alignment:shortint;
       begin
-        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol] then
+        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper] then
           alignment:=sizeof(pint)
         else
           alignment:=tObjectSymtable(symtable).recordalignment;
@@ -4783,6 +4899,7 @@ implementation
         odt_class:
           { the +2*sizeof(pint) is size and -size }
           vmtmethodoffset:=(index+10)*sizeof(pint)+2*sizeof(pint);
+        odt_helper,
         odt_objcclass,
         odt_objcprotocol:
           vmtmethodoffset:=0;
@@ -4809,6 +4926,7 @@ implementation
     function tobjectdef.needs_inittable : boolean;
       begin
          case objecttype of
+            odt_helper,
             odt_class :
               needs_inittable:=false;
             odt_dispinterface,
@@ -5482,6 +5600,15 @@ implementation
       end;
 
 
+    function is_objectpascal_helper(def: tdef): boolean;
+      begin
+        result:=
+          assigned(def) and
+          (def.typ=objectdef) and
+          (tobjectdef(def).objecttype=odt_helper);
+      end;
+
+
     function is_objcclassref(def: tdef): boolean;
       begin
         is_objcclassref:=
@@ -5531,6 +5658,12 @@ implementation
              (oo_is_classhelper in tobjectdef(def).objectoptions)));
       end;
 
+    function is_classhelper(def: tdef): boolean;
+      begin
+         result:=
+           is_objectpascal_helper(def) or
+           is_objccategory(def);
+      end;
 
     function is_class_or_interface(def: tdef): boolean;
       begin

@@ -1392,7 +1392,8 @@ Begin
            else
              begin
                { can only get the vmtoffset of virtual methods }
-               if not(po_virtualmethod in procdef.procoptions) then
+               if not(po_virtualmethod in procdef.procoptions) or
+                   is_objectpascal_helper(procdef.struct) then
                  Message1(asmr_e_no_vmtoffset_possible,FullTypeName(procdef,nil))
                else
                  begin

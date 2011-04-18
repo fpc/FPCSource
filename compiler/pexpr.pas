@@ -404,6 +404,9 @@ implementation
                 end
               else
                begin
+                 { allow helpers for SizeOf and BitSizeOf }
+                 if p1.nodetype=typen then
+                   ttypenode(p1).helperallowed:=true;
                  if (p1.resultdef.typ=forwarddef) then
                    Message1(type_e_type_is_not_completly_defined,tforwarddef(p1.resultdef).tosymname^);
                  if (l = in_sizeof_x) or
@@ -442,7 +445,12 @@ implementation
                       p1:=p2;
                     end;
                   if p1.nodetype=typen then
+                  begin
                     ttypenode(p1).allowed:=true;
+                    { allow helpers for TypeInfo }
+                    if l=in_typeinfo_x then
+                      ttypenode(p1).helperallowed:=true;
+                  end;
     {              else
                     begin
                        p1.destroy;
@@ -1031,7 +1039,7 @@ implementation
             else
              static_name:=lower(generate_nested_name(sym.owner,'_'))+'_'+sym.name;
             if sym.owner.defowner.typ=objectdef then
-              searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable)
+              searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable,true)
             else
               searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
             if assigned(sym) then
@@ -1488,7 +1496,12 @@ implementation
                         begin
                           p1:=comp_expr(true,false);
                           consume(_RKLAMMER);
-                          p1:=ctypeconvnode.create_explicit(p1,hdef);
+                          { type casts to class helpers aren't allowed }
+                          if is_objectpascal_helper(hdef) then
+                            Message(parser_e_no_category_as_types)
+                            { recovery by not creating a conversion node }
+                          else
+                            p1:=ctypeconvnode.create_explicit(p1,hdef);
                         end
                        else { not LKLAMMER }
                         if (token=_POINT) and
@@ -1503,7 +1516,7 @@ implementation
                              begin
                                p1:=ctypenode.create(hdef);
                                { search also in inherited methods }
-                               searchsym_in_class(tobjectdef(hdef),tobjectdef(current_structdef),pattern,srsym,srsymtable);
+                               searchsym_in_class(tobjectdef(hdef),tobjectdef(current_structdef),pattern,srsym,srsymtable,true);
                                if assigned(srsym) then
                                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                consume(_ID);
@@ -1530,6 +1543,12 @@ implementation
                          end
                        else
                         begin
+                          { Normally here would be the check against the usage
+                            of "TClassHelper.Something", but as that might be
+                            used inside of system symbols like sizeof and
+                            typeinfo this check is put into ttypenode.pass_1
+                            (for "TClassHelper" alone) and tcallnode.pass_1
+                            (for "TClassHelper.Something") }
                           { class reference ? }
                           if is_class(hdef) or
                              is_objcclass(hdef) then
@@ -1908,7 +1927,7 @@ implementation
                _LECKKLAMMER:
                   begin
                     if is_class_or_interface_or_object(p1.resultdef) or
-                      is_dispinterface(p1.resultdef) then
+                      is_dispinterface(p1.resultdef) or is_record(p1.resultdef) then
                       begin
                         { default property }
                         protsym:=search_default_property(tobjectdef(p1.resultdef));
@@ -2129,7 +2148,7 @@ implementation
                            if token=_ID then
                              begin
                                structh:=tobjectdef(tclassrefdef(p1.resultdef).pointeddef);
-                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable);
+                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,true);
                                if assigned(srsym) then
                                  begin
                                    check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
@@ -2153,7 +2172,7 @@ implementation
                            if token=_ID then
                              begin
                                structh:=tobjectdef(p1.resultdef);
-                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable);
+                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,true);
                                if assigned(srsym) then
                                  begin
                                     check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
@@ -2343,6 +2362,12 @@ implementation
                     assigned(current_structdef) and
                     (current_structdef.typ=objectdef) then
                   begin
+                    { for record helpers in mode Delphi "inherited" is not
+                      allowed }
+                    if is_objectpascal_helper(current_structdef) and
+                        (m_delphi in current_settings.modeswitches) and
+                        is_record(tobjectdef(current_structdef).extendeddef) then
+                      Message(parser_e_inherited_not_in_record);
                     hclassdef:=tobjectdef(current_structdef).childof;
                     { Objective-C categories *replace* methods in the class
                       they extend, or add methods to it. So calling an
@@ -2367,7 +2392,11 @@ implementation
                         if (po_msgstr in pd.procoptions) then
                           searchsym_in_class_by_msgstr(hclassdef,pd.messageinf.str^,srsym,srsymtable)
                        else
-                         searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable);
+                       { helpers have their own ways of dealing with inherited }
+                       if is_objectpascal_helper(current_structdef) then
+                         searchsym_in_helper(tobjectdef(current_structdef),tobjectdef(current_structdef),hs,srsym,srsymtable,true)
+                       else
+                         searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable,true);
                      end
                     else
                      begin
@@ -2375,7 +2404,11 @@ implementation
                        hsorg:=orgpattern;
                        consume(_ID);
                        anon_inherited:=false;
-                       searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable);
+                       { helpers have their own ways of dealing with inherited }
+                       if is_objectpascal_helper(current_structdef) then
+                         searchsym_in_helper(tobjectdef(current_structdef),tobjectdef(current_structdef),hs,srsym,srsymtable,true)
+                       else
+                         searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable,true);
                      end;
                     if assigned(srsym) then
                      begin
@@ -2385,11 +2418,31 @@ implementation
                        case srsym.typ of
                          procsym:
                            begin
-                             hdef:=hclassdef;
+                             if is_objectpascal_helper(current_structdef) then
+                               begin
+                                 { for a helper load the procdef either from the
+                                   extended type, from the parent helper or from
+                                   the extended type of the parent helper
+                                   depending on the def the found symbol belongs
+                                   to }
+                                 if (srsym.Owner.defowner.typ=objectdef) and
+                                     is_objectpascal_helper(tobjectdef(srsym.Owner.defowner)) then
+                                   if current_structdef.is_related(tdef(srsym.Owner.defowner)) and
+                                       assigned(tobjectdef(current_structdef).childof) then
+                                     hdef:=tobjectdef(current_structdef).childof
+                                   else
+                                     hdef:=tobjectdef(srsym.Owner.defowner).extendeddef
+                                 else
+                                   hdef:=tdef(srsym.Owner.defowner);
+                               end
+                             else
+                               hdef:=hclassdef;
                              if (po_classmethod in current_procinfo.procdef.procoptions) or
                                 (po_staticmethod in current_procinfo.procdef.procoptions) then
                                hdef:=tclassrefdef.create(hdef);
                              p1:=ctypenode.create(hdef);
+                             { we need to allow helpers here }
+                             ttypenode(p1).helperallowed:=true;
                            end;
                          propertysym:
                            ;
@@ -2409,7 +2462,7 @@ implementation
                           if (po_msgint in pd.procoptions) or
                              (po_msgstr in pd.procoptions) then
                             begin
-                              searchsym_in_class(hclassdef,hclassdef,'DEFAULTHANDLER',srsym,srsymtable);
+                              searchsym_in_class(hclassdef,hclassdef,'DEFAULTHANDLER',srsym,srsymtable,true);
                               if not assigned(srsym) or
                                  (srsym.typ<>procsym) then
                                 internalerror(200303171);
@@ -2434,9 +2487,14 @@ implementation
                   end
                  else
                    begin
-                      Message(parser_e_generic_methods_only_in_methods);
-                      again:=false;
-                      p1:=cerrornode.create;
+                     { in case of records we use a more clear error message }
+                     if assigned(current_structdef) and
+                         (current_structdef.typ=recorddef) then
+                       Message(parser_e_inherited_not_in_record)
+                     else
+                       Message(parser_e_generic_methods_only_in_methods);
+                     again:=false;
+                     p1:=cerrornode.create;
                    end;
                  postfixoperators(p1,again);
                end;

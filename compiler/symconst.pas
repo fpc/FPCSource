@@ -64,7 +64,8 @@ const
   tkProcVar  = 23;
   tkUString  = 24;
   tkUChar    = 25;
-  tkFile     = 26;
+  tkHelper   = 26;
+  tkFile     = 27;
 
   otSByte     = 0;
   otUByte     = 1;
@@ -328,7 +329,14 @@ type
     odt_dispinterface,
     odt_objcclass,
     odt_objcprotocol,
-    odt_objccategory { note that these are changed into odt_class afterwards }
+    odt_objccategory, { note that these are changed into odt_class afterwards }
+    odt_helper
+  );
+
+  { defines the type of the extended "structure"; only used for parsing }
+  thelpertype=(ht_none,
+    ht_class,
+    ht_record
   );
 
   { Variations in interfaces implementation }
@@ -456,6 +464,11 @@ type
                              in array                        }
   );
 
+  { options for symtables }
+  tsymtableoption = (
+    sto_has_helper         { contains at least one helper symbol }
+  );
+  tsymtableoptions = set of tsymtableoption;
 
   { definition contains the informations about a type }
   tdeftyp = (abstractdef,

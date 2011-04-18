@@ -344,7 +344,7 @@ implementation
          Message1(parser_i_compiling,filename);
 
        { reset symtable }
-         symtablestack:=TSymtablestack.create;
+         symtablestack:=tdefawaresymtablestack.create;
          macrosymtablestack:=TSymtablestack.create;
          systemunit:=nil;
          current_settings.defproccall:=init_settings.defproccall;

@@ -44,6 +44,7 @@ Const
    tkInterfaceCorba = 22;
    tkProcVar       = 23;
    tkUString       = 24;
+   tkHelper        = 26;
 
   // all potentially managed types
   tkManagedTypes   = [tkAstring,tkWstring,tkUstring,tkArray,

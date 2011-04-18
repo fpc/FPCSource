@@ -178,6 +178,11 @@ interface
         moduleoptions: tmoduleoptions;
         deprecatedmsg: pshortstring;
 
+        { contains a list of types that are extended by helper types; the key is
+          the full name of the type and the data is a TFPObjectList of
+          tobjectdef instances (the helper defs) }
+        extendeddefs: TFPHashObjectList;
+
         {create creates a new module which name is stored in 's'. LoadedFrom
         points to the module calling it. It is nil for the first compiled
         module. This allow inheritence of all path lists. MUST pay attention
@@ -513,6 +518,7 @@ implementation
         symlist:=TFPObjectList.Create(false);
         wpoinfo:=nil;
         checkforwarddefs:=TFPObjectList.Create(false);
+        extendeddefs := TFPHashObjectList.Create(true);
         globalsymtable:=nil;
         localsymtable:=nil;
         globalmacrosymtable:=nil;
@@ -596,6 +602,7 @@ implementation
         linkotherframeworks.Free;
         stringdispose(mainname);
         FImportLibraryList.Free;
+        extendeddefs.Free;
         stringdispose(objfilename);
         stringdispose(asmfilename);
         stringdispose(ppufilename);
