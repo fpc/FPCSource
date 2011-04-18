@@ -6,43 +6,25 @@
 name=fcl-web
 version=2.5.1
 
+[target]
+dirs=src/base src/webdata src/jsonrpc
+
 [require]
-packages=rtl fpmkunit
+packages=fcl-base fcl-xml fcl-db fcl-json fcl-net fcl-process
+
+[compiler]
+options=-S2h
+
+[install]
+fpcpackage=y
 
 [default]
 fpcdir=../..
 
-[prerules]
-# If no fpmake exists and clean is called, do not try to build fpmake, it will
-# most often fail because the dependencies are cleared. So simply skip the
-# clean by replacing the command with 'echo'
-FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
-ifeq ($(FPMAKE_BIN_CLEAN),)
-FPMAKE_BIN_CLEAN=$(ECHO)
-endif
-ifdef OS_TARGET
-FPC_TARGETOPT+=--os=$(OS_TARGET)
-endif
-ifdef CPU_TARGET
-FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
-endif
-LOCALFPMAKE=.$(PATHSEP)fpmake$(EXEEXT)
-
 [rules]
-$(COMPILER_UNITTARGETDIR):
-        $(MKDIRTREE) $(COMPILER_UNITTARGETDIR)
-fpmake: $(COMPILER_UNITTARGETDIR) fpmake.pp
-	$(FPC) fpmake.pp $(FPCOPT)
-all:	fpmake
-	$(LOCALFPMAKE) build --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
-smart:	fpmake
-	$(LOCALFPMAKE) build --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o "-XX -CX"
-release:	fpmake
-	$(LOCALFPMAKE) build --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o "-dRELEASE"
-debug:	fpmake
-	$(LOCALFPMAKE) build --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o "-dDEBUG"
-clean:	
-	$(FPMAKE_BIN_CLEAN) clean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
-install:	fpmake
-	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX)
+.NOTPARALLEL:
+distclean: $(addsuffix _distclean,$(TARGET_DIRS)) fpc_distclean 
+clean: $(addsuffix _clean,$(TARGET_DIRS)) fpc_clean
+cleanall: $(addsuffix _cleanall,$(TARGET_DIRS)) fpc_cleanall
+
 

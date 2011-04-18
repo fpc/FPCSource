@@ -2347,7 +2347,7 @@ packages/fcl-stl/tests/suiteconfig.pp svneol=native#text/plain
 packages/fcl-stl/tests/testrunner.pp svneol=native#text/plain
 packages/fcl-web/Makefile svneol=native#text/plain
 packages/fcl-web/Makefile.fpc svneol=native#text/plain
-packages/fcl-web/Makefile.org svneol=native#text/plain
+packages/fcl-web/Makefile.fpm svneol=native#text/plain
 packages/fcl-web/Makefile_fpmake.fpc svneol=native#text/plain
 packages/fcl-web/examples/combined/combined.html svneol=native#text/plain
 packages/fcl-web/examples/combined/combined.ico -text
