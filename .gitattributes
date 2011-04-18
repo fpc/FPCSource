@@ -9694,6 +9694,7 @@ tests/test/tenum5.pp svneol=native#text/plain
 tests/test/tenum6.pp svneol=native#text/pascal
 tests/test/tenumerators1.pp svneol=native#text/pascal
 tests/test/terecs1.pp svneol=native#text/pascal
+tests/test/terecs10.pp svneol=native#text/pascal
 tests/test/terecs2.pp svneol=native#text/pascal
 tests/test/terecs3.pp svneol=native#text/pascal
 tests/test/terecs4.pp svneol=native#text/pascal
