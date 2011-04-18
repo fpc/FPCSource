@@ -1,4 +1,5 @@
 {$mode objfpc}
+{$ASSERTIONS ON}
 
 unit gvectortest;
 
@@ -35,6 +36,8 @@ begin
     data.pushBack(i);
   for i:=0 to 10 do
     AssertEquals('Wrong data', i, data[i]);
+
+  writeln(data[11]);
   
   AssertEquals('Wrong size', 11, data.size);
   AssertEquals('IsEmpty', false, data.IsEmpty);

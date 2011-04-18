@@ -66,7 +66,7 @@ end;
 destructor THashSet.Destroy;
 var i:SizeUInt;
 begin
-  for i:=0 to FData.size do
+  for i:=0 to FData.size-1 do
     (FData[i]).Destroy;
   FData.Destroy;
 end;

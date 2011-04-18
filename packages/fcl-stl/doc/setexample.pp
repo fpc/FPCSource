@@ -3,7 +3,7 @@ uses gset, gutil;
 type lesslli=specialize TLess<longint>;
      setlli=specialize TSet<longint, lesslli>;
 
-var data:setlli; i:longint; iterator:setlli.PNode;
+var data:setlli; i:longint; iterator:setlli.TIterator;
 
 begin
   data:=setlli.Create;
@@ -13,12 +13,15 @@ begin
 
   {Iteration through elements}
   iterator:=data.Min;
-  while iterator<>nil do begin
-    writeln(iterator^.Data);
-    iterator:=data.next(iterator);
-  end;
+  repeat
+    writeln(iterator.Data);
+  until not iterator.next;
+  {Don't forget to destroy iterator}
+  iterator.Destroy;
 
-  writeln(data.FindLess(7)^.Data);
+  iterator := data.FindLess(7);
+  writeln(iterator.Data);
+  iterator.Destroy;
 
   data.Destroy;
 end.
