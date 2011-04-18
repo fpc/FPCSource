@@ -1,72 +1,72 @@
-{
-   This file is part of the Free Pascal FCL library.
-   BSD parts (c) 2011 Vlado Boza
+  {
+     This file is part of the Free Pascal FCL library.
+     BSD parts (c) 2011 Vlado Boza
 
-   See the file COPYING.FPC, included in this distribution,
-   for details about the copyright.
+     See the file COPYING.FPC, included in this distribution,
+     for details about the copyright.
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY;without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY;without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-**********************************************************************}
-{$mode objfpc}
+  **********************************************************************}
+  {$mode objfpc}
 
-unit ghashmap;
+  unit ghashmap;
 
-interface
-uses gvector, gutil, garrayutils;
+  interface
+  uses gvector, gutil, garrayutils;
 
-const baseFDataSize = 8;
+  const baseFDataSize = 8;
 
-{Thash should have one class function hash(a:TKey, n:longint):longint which return uniformly distributed
-value in range <0,n-1> base only on arguments, n will be always power of 2}
+  {Thash should have one class function hash(a:TKey, n:longint):longint which return uniformly distributed
+  value in range <0,n-1> base only on arguments, n will be always power of 2}
 
-type
-  generic THashmapIterator<TKey, TValue, T, TTable>=class
-    public
-    var
-      Fh,Fp:SizeUInt;
-      FData:TTable;
-      function Next:boolean;inline;
-      function GetData:T;inline;
-      function GetKey:TKey;inline;
-      function GetValue:TValue;inline;
-      procedure SetValue(value:TValue);inline;
-      property Data:T read GetData;
-      property Key:TKey read GetKey;
-      property Value:TValue read GetValue write SetValue;
-  end;
+  type
+    generic THashmapIterator<TKey, TValue, T, TTable>=class
+      public
+      var
+        Fh,Fp:SizeUInt;
+        FData:TTable;
+        function Next:boolean;inline;
+        function GetData:T;inline;
+        function GetKey:TKey;inline;
+        function GetValue:TValue;inline;
+        procedure SetValue(value:TValue);inline;
+        property Data:T read GetData;
+        property Key:TKey read GetKey;
+        property Value:TValue read GetValue write SetValue;
+    end;
 
-  generic THashmap<TKey, TValue, Thash>=class
-    public
-    type
-      TPair=record
-        Value:TValue;
-        Key:TKey;
-      end;
-    var
-    private 
-    type
-      TContainer = specialize TVector<TPair>;
-      TTable = specialize TVector<TContainer>;
-    var 
-      FData:TTable;
-      FDataSize:SizeUInt; 
-      procedure EnlargeTable;
-    public 
-    type
-      TIterator = specialize THashmapIterator<TKey, TValue, TPair, TTable>;
-      constructor create;
-      destructor destroy;override;
-      procedure insert(key:TKey;value:TValue);inline;
-      function contains(key:TKey):boolean;inline;
-      function size:SizeUInt;inline;
-      procedure delete(key:TKey);inline;
-      function IsEmpty:boolean;inline;
-      function GetData(key:TKey):TValue;inline;
+    generic THashmap<TKey, TValue, Thash>=class
+      public
+      type
+        TPair=record
+          Value:TValue;
+          Key:TKey;
+        end;
+      var
+      private 
+      type
+        TContainer = specialize TVector<TPair>;
+        TTable = specialize TVector<TContainer>;
+      var 
+        FData:TTable;
+        FDataSize:SizeUInt; 
+        procedure EnlargeTable;
+      public 
+      type
+        TIterator = specialize THashmapIterator<TKey, TValue, TPair, TTable>;
+        constructor create;
+        destructor destroy;override;
+        procedure insert(key:TKey;value:TValue);inline;
+        function contains(key:TKey):boolean;inline;
+        function size:SizeUInt;inline;
+        procedure delete(key:TKey);inline;
+        function IsEmpty:boolean;inline;
+        function GetData(key:TKey):TValue;inline;
 
-      property Items[i : TKey]: TValue read GetData write Insert; default;
+        property Items[i : TKey]: TValue read GetData write Insert; default;
 
       function Iterator:TIterator;
   end;
@@ -81,7 +81,7 @@ end;
 destructor THashmap.Destroy;
 var i:SizeUInt;
 begin
-  for i:=0 to FData.size do
+  for i:=0 to FData.size-1 do
     (FData[i]).Destroy;
   FData.Destroy;
 end;
