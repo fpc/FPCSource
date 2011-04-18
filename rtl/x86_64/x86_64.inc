@@ -365,8 +365,16 @@ Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
     cmp    $8, %rdx
     jl     .Ltiny
 
+// TODO: movz?q and movs?q are not accepted by FPC asmreader, it needs fixing.
+// `movzbl' instead is accepted and generates correct code with internal assembler,
+// but breaks targets using external GAS (Mantis #19188).
+// So use a different instruction for now.
+
     { expand byte value  }
-    movzbl %r8b, %r8
+    andq   $0xffffffffffffff00, %r8
+{
+    movzbq %r8b, %r8
+}
     mov    $0x0101010101010101,%r9
     imul   %r9, %r8
 
