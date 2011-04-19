@@ -1297,8 +1297,7 @@ implementation
          include(current_procinfo.flags,pi_is_assembler);
          p:=_asm_statement;
 
-{$ifndef sparc}
-{$ifndef arm}
+{$if not(defined(sparc)) and not(defined(arm)) and not(defined(avr))}
          if (po_assembler in current_procinfo.procdef.procoptions) then
            begin
              { set the framepointer to esp for assembler functions when the
@@ -1323,8 +1322,7 @@ implementation
                  current_procinfo.framepointer:=NR_STACK_POINTER_REG;
                end;
            end;
-{$endif arm}
-{$endif sparc}
+{$endif not(defined(sparc)) and not(defined(arm)) and not(defined(avr))}
 
         { Flag the result as assigned when it is returned in a
           register.

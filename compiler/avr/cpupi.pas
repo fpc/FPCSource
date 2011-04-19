@@ -33,7 +33,6 @@ unit cpupi;
 
     type
        tavrprocinfo = class(tcgprocinfo)
-          floatregstart : aint;
           // procedure handle_body_start;override;
           // procedure after_pass1;override;
           procedure set_first_temp_offset;override;
@@ -54,26 +53,14 @@ unit cpupi;
 
     procedure tavrprocinfo.set_first_temp_offset;
       begin
-        { We allocate enough space to save all registers because we can't determine
-          the necessary space because the used registers aren't known before
-          secondpass is run. Even worse, patching
-          the local offsets after generating the code could cause trouble because
-          "shifter" constants could change to non-"shifter" constants. This
-          is especially a problem when taking the address of a local. For now,
-          this extra memory should hurt less than generating all local contants with offsets
-          >256 as non shifter constants }
         if tg.direction = -1 then
-          tg.setfirsttemp(-12-28)
+          tg.setfirsttemp(0)
         else
           tg.setfirsttemp(maxpushedparasize);
       end;
 
 
     function tavrprocinfo.calc_stackframe_size:longint;
-      var
-         firstfloatreg,lastfloatreg,
-         r : byte;
-         floatsavesize : aword;
       begin
         maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
       end;
@@ -82,3 +69,4 @@ unit cpupi;
 begin
    cprocinfo:=tavrprocinfo;
 end.
+

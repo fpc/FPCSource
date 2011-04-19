@@ -410,11 +410,16 @@ implementation
            shln: op:=OP_SHL;
            shrn: op:=OP_SHR;
          end;
+{$ifdef cpunodefaultint}
+        opsize:=left.location.size;
+{$else cpunodefaultint}
          { load left operators in a register }
          if is_signed(left.resultdef) then
            opsize:=OS_SINT
          else
            opsize:=OS_INT;
+{$endif cpunodefaultint}
+
          location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
          location_reset(location,LOC_REGISTER,opsize);
          location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);

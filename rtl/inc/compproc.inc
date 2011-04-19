@@ -580,6 +580,13 @@ function fpc_div_longint(n,z : longint) : longint; compilerproc;
 function fpc_mod_longint(n,z : longint) : longint; compilerproc;
 {$endif FPC_INCLUDE_SOFTWARE_MOD_DIV}
 
+{$ifdef FPC_INCLUDE_SOFTWARE_MUL}
+function fpc_mul_integer(f1,f2 : integer;checkoverflow : boolean) : integer; compilerproc;
+function fpc_mul_word(f1,f2 : word;checkoverflow : boolean) : word; compilerproc;
+function fpc_mul_longint(f1,f2 : longint;checkoverflow : boolean) : longint; compilerproc;
+function fpc_mul_dword(f1,f2 : dword;checkoverflow : boolean) : dword; compilerproc;
+{$endif FPC_INCLUDE_SOFTWARE_MUL}
+
 { from int64.inc }
 function fpc_div_qword(n,z : qword) : qword; compilerproc;
 function fpc_mod_qword(n,z : qword) : qword; compilerproc;

@@ -2476,6 +2476,7 @@ implementation
          rd,ld   : tdef;
          i       : longint;
          lt,rt   : tnodetype;
+         procname : string[32];
       begin
          result:=nil;
 
@@ -2577,6 +2578,7 @@ implementation
                     expectloc:=LOC_JUMP;
                end
 {$endif cpu64bitaddr}
+{$ifndef cpuneedsmulhelper}
              { is there a cardinal? }
              else if (torddef(ld).ordtype=u32bit) then
                begin
@@ -2585,9 +2587,37 @@ implementation
                   else
                     expectloc:=LOC_FLAGS;
                end
+{$endif cpuneedsmulhelper}
              { generic s32bit conversion }
              else
                begin
+{$ifdef cpuneedsmulhelper}
+                 if (nodetype=muln) and not(torddef(resultdef).ordtype in [u8bit,s8bit]) then
+                   begin
+                     result := nil;
+
+                     case torddef(resultdef).ordtype of
+                       s16bit:
+                         procname := 'fpc_mul_integer';
+                       u16bit:
+                         procname := 'fpc_mul_word';
+                       s32bit:
+                         procname := 'fpc_mul_longint';
+                       u32bit:
+                         procname := 'fpc_mul_dword';
+                       else
+                         internalerror(2011022301);
+                     end;
+                     result := ccallnode.createintern(procname,
+                       ccallparanode.create(cordconstnode.create(0,booltype,false),
+                       ccallparanode.create(right,
+                       ccallparanode.create(left,nil))));
+                     left := nil;
+                     right := nil;
+                     firstpass(result);
+                     exit;
+                   end;
+{$endif cpuneedsmulhelper}
                   if nodetype in [addn,subn,muln,andn,orn,xorn] then
                     expectloc:=LOC_REGISTER
                   else

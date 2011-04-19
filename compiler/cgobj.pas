@@ -346,7 +346,7 @@ unit cgobj;
 
           {  comparison operations }
           procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
-            l : tasmlabel);virtual; abstract;
+            l : tasmlabel); virtual;
           procedure a_cmp_const_ref_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;const ref : treference;
             l : tasmlabel); virtual;
           procedure a_cmp_const_loc_label(list: TAsmList; size: tcgsize;cmp_op: topcmp; a: aint; const loc: tlocation;
@@ -757,12 +757,12 @@ implementation
     procedure tcg.allocallcpuregisters(list:TAsmList);
       begin
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-{$ifndef i386}
+{$if not(defined(i386)) and not(defined(avr))}
         alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
 {$ifdef cpumm}
         alloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_mm(pocall_default));
 {$endif cpumm}
-{$endif i386}
+{$endif not(defined(i386)) and not(defined(avr))}
       end;
 
 
@@ -778,12 +778,12 @@ implementation
     procedure tcg.deallocallcpuregisters(list:TAsmList);
       begin
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-{$ifndef i386}
+{$if not(defined(i386)) and not(defined(avr))}
         dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
 {$ifdef cpumm}
         dealloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_mm(pocall_default));
 {$endif cpumm}
-{$endif i386}
+{$endif not(defined(i386)) and not(defined(avr))}
       end;
 
 
@@ -3055,12 +3055,21 @@ implementation
       end;
 
 
-    procedure tcg.a_cmp_const_ref_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;const ref : treference;
-     l : tasmlabel);
-
+    procedure tcg.a_cmp_const_reg_label(list: TAsmList; size: tcgsize;
+      cmp_op: topcmp; a: aint; reg: tregister; l: tasmlabel);
       var
         tmpreg: tregister;
+      begin
+        tmpreg:=getintregister(list,size);
+        a_load_const_reg(list,size,a,tmpreg);
+        a_cmp_reg_reg_label(list,size,cmp_op,tmpreg,reg,l);
+      end;
 
+
+    procedure tcg.a_cmp_const_ref_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;const ref : treference;
+      l : tasmlabel);
+      var
+        tmpreg: tregister;
       begin
         tmpreg:=getintregister(list,size);
         a_load_ref_reg(list,size,size,ref,tmpreg);
@@ -3070,10 +3079,8 @@ implementation
 
     procedure tcg.a_cmp_const_loc_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;const loc : tlocation;
       l : tasmlabel);
-
       var
         tmpreg : tregister;
-
       begin
         case loc.loc of
           LOC_REGISTER,LOC_CREGISTER:
