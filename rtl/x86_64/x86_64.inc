@@ -195,23 +195,23 @@ asm
     add    $64, %rdx
     mov    -64(%rcx,%rdx,1), %r9
     mov    -56(%rcx,%rdx,1), %r10
-    movnti %r9, -64(%rdx)
-    movnti %r10, -56(%rdx)
+    movntiq %r9, -64(%rdx)
+    movntiq %r10, -56(%rdx)
 
     mov    -48(%rcx,%rdx,1), %r9
     mov    -40(%rcx,%rdx,1), %r10
-    movnti %r9, -48(%rdx)
-    movnti %r10, -40(%rdx)
+    movntiq %r9, -48(%rdx)
+    movntiq %r10, -40(%rdx)
     dec    %eax
     mov    -32(%rcx,%rdx,1), %r9
     mov    -24(%rcx,%rdx,1), %r10
-    movnti %r9, -32(%rdx)
-    movnti %r10, -24(%rdx)
+    movntiq %r9, -32(%rdx)
+    movntiq %r10, -24(%rdx)
 
     mov    -16(%rcx,%rdx,1), %r9
     mov    -8(%rcx,%rdx,1), %r10
-    movnti %r9, -16(%rdx)
-    movnti %r10, -8(%rdx)
+    movntiq %r9, -16(%rdx)
+    movntiq %r10, -8(%rdx)
     jne    .Loop64
 
     sub    $0x1000, %r8
@@ -323,23 +323,23 @@ asm
     sub    $64, %rdx
     mov    56(%rcx,%rdx,1), %r9
     mov    48(%rcx,%rdx,1), %r10
-    movnti %r9, 56(%rdx)
-    movnti %r10, 48(%rdx)
+    movntiq %r9, 56(%rdx)
+    movntiq %r10, 48(%rdx)
 
     mov    40(%rcx,%rdx,1), %r9
     mov    32(%rcx,%rdx,1), %r10
-    movnti %r9, 40(%rdx)
-    movnti %r10, 32(%rdx)
+    movntiq %r9, 40(%rdx)
+    movntiq %r10, 32(%rdx)
     dec    %eax
     mov    24(%rcx,%rdx,1), %r9
     mov    16(%rcx,%rdx,1), %r10
-    movnti %r9, 24(%rdx)
-    movnti %r10, 16(%rdx)
+    movntiq %r9, 24(%rdx)
+    movntiq %r10, 16(%rdx)
 
     mov    8(%rcx,%rdx,1), %r9
     mov    (%rcx,%rdx,1), %r10
-    movnti %r9, 8(%rdx)
-    movnti %r10, (%rdx)
+    movntiq %r9, 8(%rdx)
+    movntiq %r10, (%rdx)
     jne    .Lloop64b
 
     sub    $0x1000, %r8
@@ -451,15 +451,15 @@ Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
     .balign 16
 .Lloop64nti:
     add    $64, %rcx
-    movnti %r8, -64(%rcx)
-    movnti %r8, -56(%rcx)
-    movnti %r8, -48(%rcx)
-    movnti %r8, -40(%rcx)
+    movntiq %r8, -64(%rcx)
+    movntiq %r8, -56(%rcx)
+    movntiq %r8, -48(%rcx)
+    movntiq %r8, -40(%rcx)
     dec    %rax
-    movnti %r8, -32(%rcx)
-    movnti %r8, -24(%rcx)
-    movnti %r8, -16(%rcx)
-    movnti %r8, -8(%rcx)
+    movntiq %r8, -32(%rcx)
+    movntiq %r8, -24(%rcx)
+    movntiq %r8, -16(%rcx)
+    movntiq %r8, -8(%rcx)
     jnz    .Lloop64nti
     mfence
     jmp    .Lless64
