@@ -2538,7 +2538,7 @@ implementation
         if sym.section<>'' then
           new_section(list,sec_user,sym.section,varalign)
         else
-         new_section(list,sectype,lower(sym.mangledname),varalign);
+          new_section(list,sectype,lower(sym.mangledname),varalign);
         if (sym.owner.symtabletype=globalsymtable) or
            create_smartlink or
            DLLSource or
@@ -3148,8 +3148,10 @@ implementation
     procedure InsertInterruptTable;
 
       procedure WriteVector(const name: string);
+{$IFDEF arm}
         var
           ai: taicpu;
+{$ENDIF arm}
         begin
 {$IFDEF arm}
           if current_settings.cputype in [cpu_armv7m, cpu_cortexm3] then

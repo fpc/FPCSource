@@ -1416,8 +1416,6 @@ begin
 end;
 
 function TFPHashList.InternalFind(AHash:LongWord;const AName:shortstring;out PrevIndex:Integer):Integer;
-var
-  HashIndex : Integer;
 begin
   prefetch(AName);
   Result:=FHashTable^[AHash and FCapacityMask];

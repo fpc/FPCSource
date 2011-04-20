@@ -2476,7 +2476,9 @@ implementation
          rd,ld   : tdef;
          i       : longint;
          lt,rt   : tnodetype;
+{$ifdef cpuneedsmulhelper}
          procname : string[32];
+{$endif cpuneedsmulhelper}
       begin
          result:=nil;
 

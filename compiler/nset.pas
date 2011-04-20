@@ -187,7 +187,6 @@ implementation
 
       var
         t : tnode;
-        pst : pconstset;
 
         function createsetconst(psd : tsetdef) : pconstset;
         var

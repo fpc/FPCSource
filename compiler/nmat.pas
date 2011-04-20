@@ -483,7 +483,9 @@ implementation
     function tshlshrnode.pass_typecheck:tnode;
       var
          t : tnode;
+{$ifdef cpunodefaultint}
          nd : tdef;
+{$endif cpunodefaultint}
       begin
          result:=nil;
          typecheckpass(left);

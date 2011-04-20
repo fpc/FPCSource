@@ -2804,8 +2804,6 @@ implementation
       end;
 
     function tabstractrecorddef.RttiName: string;
-      var
-        tmp: tabstractrecorddef;
       begin
         Result:=OwnerHierarchyName+objrealname^;
       end;
