@@ -368,7 +368,7 @@ scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN dire
 #
 # Parser
 #
-# 03309 is the last used one
+# 03310 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
