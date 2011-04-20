@@ -759,27 +759,13 @@ Implementation
 
 
     function tx86attreader.is_asmopcode(const s: string):boolean;
-      const
-        { We need first to check the long prefixes, else we get probs
-          with things like movsbl }
-        att_sizesuffixstr : array[0..9] of string[2] = (
-          '','BW','BL','WL','B','W','L','S','Q','T'
-        );
-        att_sizesuffix : array[0..9] of topsize = (
-          S_NO,S_BW,S_BL,S_WL,S_B,S_W,S_L,S_FS,S_IQ,S_FX
-        );
-        att_sizefpusuffix : array[0..9] of topsize = (
-          S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_FL,S_FS,S_IQ,S_FX
-        );
-        att_sizefpuintsuffix : array[0..9] of topsize = (
-          S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO
-        );
       var
         cond : string[4];
         cnd  : tasmcond;
         len,
         j,
-        sufidx : longint;
+        sufidx,
+        suflen : longint;
       Begin
         is_asmopcode:=FALSE;
 
@@ -790,13 +776,20 @@ Implementation
         { search for all possible suffixes }
         for sufidx:=low(att_sizesuffixstr) to high(att_sizesuffixstr) do
          begin
-           len:=length(s)-length(att_sizesuffixstr[sufidx]);
-           if copy(s,len+1,length(att_sizesuffixstr[sufidx]))=att_sizesuffixstr[sufidx] then
+           suflen:=length(att_sizesuffixstr[sufidx]);
+           len:=length(s)-suflen;
+           if copy(s,len+1,suflen)=att_sizesuffixstr[sufidx] then
             begin
               { Search opcodes }
               if len>0 then
                 begin
                   actopcode:=tasmop(PtrUInt(iasmops.Find(copy(s,1,len))));
+
+                  { two-letter suffix is allowed by just a few instructions (movsx,movzx),
+                    and it is always required whenever allowed }
+                  if (gas_needsuffix[actopcode]=attsufINTdual) xor (suflen=2) then
+                    continue;
+
                   if actopcode<>A_NONE then
                     begin
                       if gas_needsuffix[actopcode]=attsufFPU then

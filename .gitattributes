@@ -9674,6 +9674,7 @@ tests/test/tclass8.pp svneol=native#text/plain
 tests/test/tclass9.pp svneol=native#text/pascal
 tests/test/tclassinfo1.pp svneol=native#text/pascal
 tests/test/tclrprop.pp svneol=native#text/plain
+tests/test/tcmov1.pp svneol=native#text/plain
 tests/test/tcmp.pp svneol=native#text/plain
 tests/test/tcmp0.pp svneol=native#text/plain
 tests/test/tconstref1.pp svneol=native#text/pascal

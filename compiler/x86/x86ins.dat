@@ -1097,12 +1097,12 @@ void                  \326\1\xA5                      X86_64
 (Ch_All, Ch_None, Ch_None)
 void                  \324\1\xA5                      8086
 
-[MOVSX,movsX]
+[MOVSX,movsY]
 (Ch_Wop2, Ch_Rop1, Ch_None)
 reg32|64,rm16         \301\320\2\x0F\xBF\110          386
 reg16|32|64,rm8       \301\320\2\x0F\xBE\110          386
 
-[MOVZX,movzX]
+[MOVZX,movzY]
 (Ch_Wop2, Ch_Rop1, Ch_None)
 reg32|64,rm16         \301\320\2\x0F\xB7\110          386
 reg16|32|64,rm8       \301\320\2\x0F\xB6\110          386

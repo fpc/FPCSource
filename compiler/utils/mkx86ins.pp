@@ -280,6 +280,11 @@ begin
                     dec(attopcode[0]);
                     attsuffix:='attsufINT';
                   end;
+                'Y' :
+                  begin
+                    dec(attopcode[0]);
+                    attsuffix:='attsufINTdual';
+                  end;
                 'F' :
                   begin
                     dec(attopcode[0]);
