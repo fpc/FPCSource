@@ -230,7 +230,8 @@ interface
        );
 
     function reverseparameters(p: tcallparanode): tcallparanode;
-    function translate_disp_call(selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;dispid : longint;resultdef : tdef) : tnode;
+    function translate_disp_call(selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;
+      dispid : longint;resultdef : tdef) : tnode;
 
     var
       ccallnode : tcallnodeclass = tcallnode;
@@ -282,7 +283,8 @@ implementation
         reverseparameters:=hp1;
       end;
 
-    function translate_disp_call(selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;dispid : longint;resultdef : tdef) : tnode;
+    function translate_disp_call(selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;
+      dispid : longint;resultdef : tdef) : tnode;
       const
         DISPATCH_METHOD = $1;
         DISPATCH_PROPERTYGET = $2;
@@ -1318,7 +1320,6 @@ implementation
 
 
     procedure tcallnode.insertintolist(l : tnodelist);
-
       begin
       end;
 
@@ -1805,14 +1806,14 @@ implementation
               if not(cnf_dispose_call in callnodeflags) and
                  not(cnf_inherited in callnodeflags) and
                  not(cnf_member_call in callnodeflags) then
-             begin
-               if (procdefinition.proctypeoption=potype_constructor) then
-                 begin
-                   if (methodpointer.nodetype<>typen) and
-                      checklive(methodpointer.resultdef) then
-                     methodpointer.resultdef.register_created_object_type;
-                 end
-             end;
+                begin
+                  if (procdefinition.proctypeoption=potype_constructor) then
+                    begin
+                      if (methodpointer.nodetype<>typen) and
+                         checklive(methodpointer.resultdef) then
+                        methodpointer.resultdef.register_created_object_type;
+                    end
+                end;
           end;
        end;
 
@@ -2713,7 +2714,9 @@ implementation
                   { ignore possible private for properties or in delphi mode for anon. inherited (FK) }
                   ignorevisibility:=(nf_isproperty in flags) or
                                     ((m_delphi in current_settings.modeswitches) and (cnf_anon_inherited in callnodeflags));
-                  candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,ignorevisibility,not(nf_isproperty in flags),cnf_objc_id_call in callnodeflags,cnf_unit_specified in callnodeflags,callnodeflags*[cnf_anon_inherited,cnf_inherited]=[]);
+                  candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,ignorevisibility,
+                    not(nf_isproperty in flags),cnf_objc_id_call in callnodeflags,cnf_unit_specified in callnodeflags,
+                    callnodeflags*[cnf_anon_inherited,cnf_inherited]=[]);
 
                    { no procedures found? then there is something wrong
                      with the parameter size or the procedures are
@@ -2847,7 +2850,8 @@ implementation
                 { Ignore vs_hidden parameters }
                 repeat
                   inc(paraidx);
-                until (paraidx>=procdefinition.paras.count) or not(vo_is_hidden_para in tparavarsym(procdefinition.paras[paraidx]).varoptions);
+                until (paraidx>=procdefinition.paras.count) or
+                  not(vo_is_hidden_para in tparavarsym(procdefinition.paras[paraidx]).varoptions);
               end;
            end;
 
@@ -3021,10 +3025,12 @@ implementation
              if (cnf_return_value_used in callnodeflags) and not is_void(procdefinition.returndef) then
                begin
                  result:=internalstatements(statements);
-                 converted_result_data:=ctempcreatenode.create(procdefinition.returndef,sizeof(procdefinition.returndef),tt_persistent,true);
+                 converted_result_data:=ctempcreatenode.create(procdefinition.returndef,sizeof(procdefinition.returndef),
+                   tt_persistent,true);
                  addstatement(statements,converted_result_data);
                  addstatement(statements,cassignmentnode.create(ctemprefnode.create(converted_result_data),
-                   ctypeconvnode.create_internal(translate_disp_call(methodpointer,parameters,calltype,'',tprocdef(procdefinition).dispid,procdefinition.returndef),
+                   ctypeconvnode.create_internal(
+                     translate_disp_call(methodpointer,parameters,calltype,'',tprocdef(procdefinition).dispid,procdefinition.returndef),
                    procdefinition.returndef)));
                  addstatement(statements,ctempdeletenode.create_normal_temp(converted_result_data));
                  addstatement(statements,ctemprefnode.create(converted_result_data));
@@ -3120,7 +3126,8 @@ implementation
                             { parameter to be in this order so it can use   }
                             { pushes in case of no fixed stack              }
                             if (not paramanager.use_fixed_stack and
-                                (hpcurr.parasym.paraloc[callerside].location^.reference.offset>hp.parasym.paraloc[callerside].location^.reference.offset)) or
+                                (hpcurr.parasym.paraloc[callerside].location^.reference.offset>
+                                 hp.parasym.paraloc[callerside].location^.reference.offset)) or
                                (paramanager.use_fixed_stack and
                                 (node_complexity(hpcurr)<node_complexity(hp))) then
 {$else i386}
@@ -3224,7 +3231,8 @@ implementation
               begin
                 if not para.can_be_inlined then
                   begin
-                    Comment(V_lineinfo+V_Debug,'Not inlining "'+tprocdef(procdefinition).procsym.realname+'", invocation parameter contains an unsafe/unsupported construct');
+                    Comment(V_lineinfo+V_Debug,'Not inlining "'+tprocdef(procdefinition).procsym.realname+
+                      '", invocation parameter contains an unsafe/unsupported construct');
                     exclude(callnodeflags,cnf_do_inline);
                     break;
                   end;
@@ -3476,7 +3484,8 @@ implementation
           end
         else
           begin
-            tempnode :=ctempcreatenode.create(tabstractvarsym(p).vardef,tabstractvarsym(p).vardef.size,tt_persistent,tabstractvarsym(p).is_regvar(false));
+            tempnode :=ctempcreatenode.create(tabstractvarsym(p).vardef,
+              tabstractvarsym(p).vardef.size,tt_persistent,tabstractvarsym(p).is_regvar(false));
             addstatement(inlineinitstatement,tempnode);
             addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
             { inherit addr_taken flag }
@@ -3617,7 +3626,8 @@ implementation
                        (((tparavarsym(para.parasym).varregable in [vr_none,vr_addr])) and
                         (ti_may_be_in_reg in ttemprefnode(para.left).tempinfo^.flags)) then
                       begin
-                        tempnode := ctempcreatenode.create(para.parasym.vardef,para.parasym.vardef.size,tt_persistent,tparavarsym(para.parasym).is_regvar(false));
+                        tempnode := ctempcreatenode.create(para.parasym.vardef,para.parasym.vardef.size,
+                          tt_persistent,tparavarsym(para.parasym).is_regvar(false));
                         addstatement(inlineinitstatement,tempnode);
                         addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
                         addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
@@ -3668,7 +3678,7 @@ implementation
         result:=nil;
         if not assigned(funcretnode) or
            not(cnf_return_value_used in callnodeflags) then
-        exit;
+          exit;
 
         { tempcreatenode for the function result }
         hp:=tstatementnode(inlineblock.left);
@@ -3736,7 +3746,8 @@ implementation
         inlinelocals:=TFPObjectList.create(true);
 
         { inherit flags }
-        current_procinfo.flags := current_procinfo.flags + ((procdefinition as tprocdef).inlininginfo^.flags*inherited_inlining_flags);
+        current_procinfo.flags:=current_procinfo.flags+
+          ((procdefinition as tprocdef).inlininginfo^.flags*inherited_inlining_flags);
 
         { Create new code block for inlining }
         inlineblock:=internalstatements(inlineinitstatement);
