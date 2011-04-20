@@ -52,7 +52,10 @@ interface
          procedure second_char_to_char;override;
          procedure second_nothing;override;
          procedure pass_generate_code;override;
-        procedure second_int_to_bool;override;
+{$ifdef cpuflags}
+         { CPUs without flags need a specific implementation of int -> bool }
+         procedure second_int_to_bool;override;
+{$endif cpuflags}
        end;
 
        tcgasnode = class(tasnode)
@@ -135,6 +138,7 @@ interface
       end;
 
 
+{$ifdef cpuflags}
     procedure tcgtypeconvnode.second_int_to_bool;
       var
         hregister : tregister;
@@ -168,9 +172,15 @@ interface
              current_procinfo.CurrFalseLabel:=oldFalseLabel;
              exit;
           end;
-
+        { though ppc/ppc64 doesn't use the generic code, we need to ifdef here
+          because the code is included into the powerpc compilers }
+{$if defined(POWERPC) or defined(POWERPC64)}
+        resflags.cr := RS_CR0;
+        resflags.flag:=F_NE;
+{$else defined(POWERPC) or defined(POWERPC64)}
         { Load left node into flag F_NE/F_E }
         resflags:=F_NE;
+{$endif defined(POWERPC) or defined(POWERPC64)}
         case left.location.loc of
           LOC_CREFERENCE,
           LOC_REFERENCE :
@@ -195,6 +205,7 @@ interface
             end;
           LOC_REGISTER,LOC_CREGISTER :
             begin
+{$ifndef cpu64bitalu}
               if left.location.size in [OS_64,OS_S64] then
                begin
                  hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -202,6 +213,7 @@ interface
                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reghi,hregister);
                end
               else
+{$endif cpu64bitalu}
                begin
                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
                end;
@@ -230,6 +242,7 @@ interface
         current_procinfo.CurrTrueLabel:=oldTrueLabel;
         current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;
+{$endif cpuflags}
 
 
     procedure tcgtypeconvnode.second_cstring_to_pchar;
