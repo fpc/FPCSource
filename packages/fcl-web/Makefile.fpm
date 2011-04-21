@@ -9,6 +9,9 @@ version=2.5.1
 [require]
 packages=rtl fpmkunit
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..
 
@@ -27,6 +30,11 @@ ifdef CPU_TARGET
 FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
 LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
+ifdef UNIXHier
+PREFIXFPMAKE=$(INSTALL_PREFIX)
+else
+PREFIXFPMAKE=$(INSTALL_BASEDIR)
+endif
 
 [rules]
 fpmake: fpmake.pp
@@ -42,7 +50,7 @@ debug:	fpmake
 clean:	
 	$(FPMAKE_BIN_CLEAN) clean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
 install:	fpmake
-	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX)
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(PREFIXFPMAKE)
 # Normally distinstall also installs the examples, but in this case there are
 # none.
 distinstall:	install
