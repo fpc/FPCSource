@@ -26,13 +26,11 @@ endif
 ifdef CPU_TARGET
 FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
-LOCALFPMAKE=.$(PATHSEP)fpmake$(EXEEXT)
+LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
 
 [rules]
-$(COMPILER_UNITTARGETDIR):
-        $(MKDIRTREE) $(COMPILER_UNITTARGETDIR)
-fpmake: $(COMPILER_UNITTARGETDIR) fpmake.pp
-	$(FPC) fpmake.pp $(FPCOPT)
+fpmake: fpmake.pp
+	$(FPCFPMAKE) fpmake.pp
 all:	fpmake
 	$(LOCALFPMAKE) build --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
 smart:	fpmake
@@ -43,10 +41,10 @@ debug:	fpmake
 	$(LOCALFPMAKE) build --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o "-dDEBUG"
 clean:	
 	$(FPMAKE_BIN_CLEAN) clean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
-	-$(DEL) $(LOCALFPMAKE)
 install:	fpmake
 	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX)
 # Normally distinstall also installs the examples, but in this case there are
 # none.
 distinstall:	install
 distclean:	clean
+	-$(DEL) $(LOCALFPMAKE)
