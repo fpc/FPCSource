@@ -676,7 +676,7 @@
 'aesdec',
 'aesdeclast',
 'aesimc',
-'aeskeygen',
+'aeskeygenassist',
 'stosq',
 'lodsq',
 'cmpsq'

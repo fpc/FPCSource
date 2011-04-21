@@ -52,7 +52,7 @@ uses
 {$endif x86_64}
 
       { This should define the array of instructions as string }
-      op2strtable=array[tasmop] of string[11];
+      op2strtable=array[tasmop] of string[15];
 
     const
       { First value of opcode enumeration }

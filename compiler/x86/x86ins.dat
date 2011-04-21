@@ -3700,7 +3700,7 @@ xmmreg,mem            \1\x66\301\331\3\x0F\x38\xDF\110               SSE4
 xmmreg,xmmreg         \1\x66\331\3\x0F\x38\xDB\110                   SSE4
 xmmreg,mem            \1\x66\301\331\3\x0F\x38\xDB\110               SSE4
 
-[AESKEYGEN] ;AESKEYGENASIST
+[AESKEYGEN,aeskeygenassist] ;AESKEYGENASIST
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmreg,imm     \1\x66\331\3\x0F\x3A\xDF\110\26                SSE4
 xmmreg,mem,imm        \1\x66\301\331\3\x0F\x3A\xDF\110\26            SSE4
