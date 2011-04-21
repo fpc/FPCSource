@@ -87,7 +87,7 @@ type
     property UseEscaping: Boolean read FUseEscaping write FUseEscaping
       default True;
     property RootName: DOMString read FRootName write SetRootName;
-  end;
+  end deprecated;
 
 
 // ===================================================================
