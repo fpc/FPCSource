@@ -798,9 +798,13 @@ Implementation
                        actopsize:=att_sizefpuintsuffix[sufidx]
                       else
                        actopsize:=att_sizesuffix[sufidx];
-                      actasmtoken:=AS_OPCODE;
-                      is_asmopcode:=TRUE;
-                      exit;
+                      { only accept suffix from the same category that the opcode belongs to }
+                      if (actopsize<>S_NO) or (suflen=0) then
+                        begin
+                          actasmtoken:=AS_OPCODE;
+                          is_asmopcode:=TRUE;
+                          exit;
+                        end;
                     end;
                 end;
               { not found, check condition opcodes }
@@ -822,10 +826,14 @@ Implementation
                             actopsize:=att_sizefpuintsuffix[sufidx]
                            else
                             actopsize:=att_sizesuffix[sufidx];
-                           actcondition:=cnd;
-                           actasmtoken:=AS_OPCODE;
-                           is_asmopcode:=TRUE;
-                           exit;
+                           { only accept suffix from the same category that the opcode belongs to }
+                           if (actopsize<>S_NO) or (suflen=0) then
+                             begin
+                               actcondition:=cnd;
+                               actasmtoken:=AS_OPCODE;
+                               is_asmopcode:=TRUE;
+                               exit;
+                             end;
                          end;
                      end;
                   end;

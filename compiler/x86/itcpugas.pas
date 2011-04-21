@@ -60,10 +60,10 @@ interface
        '','BW','BL','WL','BQ','WQ',{'LQ',}'B','W','L','S','Q','T'
      );
      att_sizesuffix : array[0..11] of topsize = (
-       S_NO,S_BW,S_BL,S_WL,S_BQ,S_WQ,{S_LQ,}S_B,S_W,S_L,S_FS,S_IQ,S_FX
+       S_NO,S_BW,S_BL,S_WL,S_BQ,S_WQ,{S_LQ,}S_B,S_W,S_L,S_NO,S_Q,S_NO
      );
      att_sizefpusuffix : array[0..11] of topsize = (
-       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_FL,S_FS,S_IQ,S_FX
+       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_FL,S_FS,S_NO,S_FX
      );
      att_sizefpuintsuffix : array[0..11] of topsize = (
        S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,{S_NO,}S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO
@@ -83,10 +83,10 @@ interface
        '','BW','BL','WL','B','W','L','S','Q','T'
      );
      att_sizesuffix : array[0..9] of topsize = (
-       S_NO,S_BW,S_BL,S_WL,S_B,S_W,S_L,S_FS,S_IQ,S_FX
+       S_NO,S_BW,S_BL,S_WL,S_B,S_W,S_L,S_NO,S_NO,S_NO
      );
      att_sizefpusuffix : array[0..9] of topsize = (
-       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_FL,S_FS,S_IQ,S_FX
+       S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_FL,S_FS,S_NO,S_FX
      );
      att_sizefpuintsuffix : array[0..9] of topsize = (
        S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO
