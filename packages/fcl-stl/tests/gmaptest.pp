@@ -56,6 +56,8 @@ begin
   AssertEquals('Wrong next value', 5, it.Value);
   it.Value := it.Value + 17;
   AssertEquals('Wrong value update', 22, it.Value);
+  it.MutableValue^:= 444;
+  AssertEquals('Wrong mutable value update', 444, it.Value);
   AssertEquals('Next not true', true, it.Next);
   AssertEquals('Wrong next', 7, it.GetData.key);
   AssertEquals('Next not true', true, it.Next);

@@ -87,6 +87,8 @@ begin
     it.Value := it.Key+23;
     it.Value := it.Value*2;
     AssertEquals('bad value3', it.Key*2+46, it.Value);
+    it.MutableValue^ := 222;
+    AssertEquals('bad value4', 222, it.Value);
   until not it.next;
   for i:=0 to 1000 do begin
     AssertEquals('som not 1', 1, x[i]);

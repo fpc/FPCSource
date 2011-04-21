@@ -27,15 +27,18 @@ type
     public
     type PNode=^TNode;
     var FNode:PNode;
+    type PValue=^TValue;
     function GetData:TPair;inline;
     function GetKey:TKey;inline;
     function GetValue:TValue;inline;
+    function GetMutable:PValue;inline;
     procedure SetValue(value:TValue);inline;
     function Next:boolean;inline;
     function Prev:boolean;inline;
     property Data:TPair read GetData;
     property Key:TKey read GetKey;
     property Value:TValue read GetValue write SetValue;
+    property MutableValue:PValue read GetMutable;
   end;
 
   generic TMap<TKey, TValue, TCompare>=class
@@ -225,6 +228,11 @@ end;
 function TMapIterator.GetValue:TValue;inline;
 begin
   GetValue:=FNode^.Data.Value;
+end;
+
+function TMapIterator.GetMutable:PValue;inline;
+begin
+  GetMutable:=@(FNode^.Data.Value);
 end;
 
 procedure TMapIterator.SetValue(value:TValue);inline;
