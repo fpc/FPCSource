@@ -12577,6 +12577,17 @@ utils/h2pas/scan.pas svneol=native#text/plain
 utils/h2pas/testit.h -text
 utils/h2pas/yylex.cod -text
 utils/h2pas/yyparse.cod -text
+utils/instantfpc/Makefile svneol=native#text/plain
+utils/instantfpc/Makefile.fpc svneol=native#text/plain
+utils/instantfpc/README.txt svneol=native#text/plain
+utils/instantfpc/examples/envvars.pas svneol=native#text/plain
+utils/instantfpc/examples/exitcode.pas svneol=native#text/plain
+utils/instantfpc/examples/getworkingdirectory.pas svneol=native#text/plain
+utils/instantfpc/examples/helloworld.pas svneol=native#text/plain
+utils/instantfpc/examples/writeparameters.pas svneol=native#text/plain
+utils/instantfpc/instantfpc.lpi svneol=native#text/plain
+utils/instantfpc/instantfpc.pas svneol=native#text/plain
+utils/instantfpc/instantfptools.pas svneol=native#text/plain
 utils/mksymbian/Makefile svneol=native#text/plain
 utils/mksymbian/Makefile.fpc svneol=native#text/plain
 utils/mksymbian/cfgfile.pas svneol=native#text/plain
