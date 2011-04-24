@@ -2521,4 +2521,4 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 .NOTPARALLEL:
-fpdoc$(EXEEXT): instantfpc.pp instantfptools.pp
+fpdoc$(EXEEXT): instantfpc.pas instantfptools.pas

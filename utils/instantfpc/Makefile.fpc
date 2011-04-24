@@ -23,5 +23,5 @@ units=instantfptools
 
 [rules]
 .NOTPARALLEL:
-fpdoc$(EXEEXT): instantfpc.pp instantfptools.pp
+fpdoc$(EXEEXT): instantfpc.pas instantfptools.pas
 
