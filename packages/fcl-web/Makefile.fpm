@@ -38,7 +38,7 @@ endif
 
 [rules]
 fpmake: fpmake.pp
-	$(FPCFPMAKE) fpmake.pp
+	$(FPCFPMAKE) fpmake.pp $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR))
 all:	fpmake
 	$(LOCALFPMAKE) build --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
 smart:	fpmake
