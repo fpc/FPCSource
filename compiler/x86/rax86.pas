@@ -296,11 +296,13 @@ begin
               OPR_LOCAL,
               OPR_REFERENCE :
                 begin
-                  if i=2 then
-                   operand2:=1
+                  { for 3-operand opcodes, operand #1 (in ATT order) is always an immediate,
+                    don't consider it. }
+                  if i=ops then
+                    operand2:=i-1
                   else
-                   operand2:=2;
-                  if operand2<ops then
+                    operand2:=i+1;
+                  if operand2>0 then
                    begin
                      { Only allow register as operand to take the size from }
                      if operands[operand2].opr.typ=OPR_REGISTER then
