@@ -90,6 +90,8 @@ Type
     FRequestsAvail : integer;
     FHandle : THandle;
     Socket: longint;
+    FIAddress      : TInetSockAddr;
+    FAddressLength : tsocklen;
     FAddress: string;
     FTimeOut,
     FPort: integer;
@@ -678,20 +680,18 @@ end;
 function TFCgiHandler.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
 
 var
-  IAddress      : TInetSockAddr;
-  AddressLength : tsocklen;
   AFCGI_Record  : PFCGI_Header;
 
 begin
   Result := False;
   if Socket=0 then
     if Port<>0 then
-      SetupSocket(IAddress,AddressLength)
+      SetupSocket(FIAddress,FAddressLength)
     else
       Socket:=StdInputHandle;
   if FHandle=THandle(-1) then
     begin
-    FHandle:=fpaccept(Socket,psockaddr(@IAddress),@AddressLength);
+    FHandle:=fpaccept(Socket,psockaddr(@FIAddress),@FAddressLength);
     if FHandle=THandle(-1) then
       begin
       Terminate;
