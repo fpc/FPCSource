@@ -365,8 +365,7 @@ implementation
                    constsetlo:=tenumdef(def).min;
                  { for constant set elements, delphi allows the usage of elements of enumerations which
                    have value>255 if there is no element with a value > 255 used }
-                 if (maybetruncenumrange) and
-                    (m_delphi in current_settings.modeswitches) then
+                 if (maybetruncenumrange) then
                    begin
                     if constsethi>255 then
                       constsethi:=255;
