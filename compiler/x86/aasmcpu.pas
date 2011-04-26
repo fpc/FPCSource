@@ -77,7 +77,9 @@ interface
       OT_REG32     = $00201004;
       OT_REG64     = $00201008;
       OT_XMMREG    = $00201010;  { Katmai registers  }
+      OT_XMMRM     = $00200010;
       OT_MMXREG    = $00201020;  { MMX registers  }
+      OT_MMXRM     = $00200020;
       OT_MEMORY    = $00204000;  { register number in 'basereg'  }
       OT_MEM8      = $00204001;
       OT_MEM16     = $00204002;
@@ -1276,30 +1278,27 @@ implementation
         LastInsOffset:=-1;
       end;
 
+    const
+      segprefixes: array[NR_CS..NR_GS] of Byte=(
+      //cs   ds   es   ss   fs   gs
+        $2E, $3E, $26, $36, $64, $65
+      );
 
     procedure taicpu.Pass2(objdata:TObjData);
-      var
-        c : longint;
       begin
         { error in pass1 ? }
         if insentry=nil then
          exit;
         current_filepos:=fileinfo;
         { Segment override }
-        if (segprefix<>NR_NO) then
+        if (segprefix>=NR_CS) and (segprefix<=NR_GS) then
          begin
-           case segprefix of
-             NR_CS : c:=$2e;
-             NR_DS : c:=$3e;
-             NR_ES : c:=$26;
-             NR_FS : c:=$64;
-             NR_GS : c:=$65;
-             NR_SS : c:=$36;
-           end;
-           objdata.writebytes(c,1);
+           objdata.writebytes(segprefixes[segprefix],1);
            { fix the offset for GenNode }
            inc(InsOffset);
-         end;
+         end
+        else if segprefix<>NR_NO then
+          InternalError(201001071);
         { Generate the instruction }
         GenCode(objdata);
       end;
