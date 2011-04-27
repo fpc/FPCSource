@@ -321,7 +321,7 @@ type
   // protected
     property SchemaType : TSchemaType read FSchemaType default stNoSchema;
     property Transaction;
-    property ReadOnly : Boolean read FReadOnly write SetReadOnly;
+    property ReadOnly : Boolean read FReadOnly write SetReadOnly default false;
     property SQL : TStringlist read FSQL write SetSQL;
     property UpdateSQL : TStringlist read FUpdateSQL write SetUpdateSQL;
     property InsertSQL : TStringlist read FInsertSQL write SetInsertSQL;
@@ -342,7 +342,9 @@ type
   public
     property SchemaType;
   Published
+    property MaxIndexesCount;
    // TDataset stuff
+    property FieldDefs;
     Property Active;
     Property AutoCalcFields;
     Property Filter;
