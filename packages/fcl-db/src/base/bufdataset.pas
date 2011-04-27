@@ -541,7 +541,35 @@ type
 
   TBufDataset = class(TCustomBufDataset)
   published
+    property MaxIndexesCount default 2;
+    // TDataset stuff
     property FieldDefs;
+    Property Active;
+    Property AutoCalcFields;
+    Property Filter;
+    Property Filtered;
+    Property AfterCancel;
+    Property AfterClose;
+    Property AfterDelete;
+    Property AfterEdit;
+    Property AfterInsert;
+    Property AfterOpen;
+    Property AfterPost;
+    Property AfterScroll;
+    Property BeforeCancel;
+    Property BeforeClose;
+    Property BeforeDelete;
+    Property BeforeEdit;
+    Property BeforeInsert;
+    Property BeforeOpen;
+    Property BeforePost;
+    Property BeforeScroll;
+    Property OnCalcFields;
+    Property OnDeleteError;
+    Property OnEditError;
+    Property OnFilterRecord;
+    Property OnNewRecord;
+    Property OnPostError;
   end;
 
 
