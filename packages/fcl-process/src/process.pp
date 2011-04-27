@@ -45,11 +45,14 @@ Type
   TProcessForkEvent = procedure;
   {$endif UNIX}
 
+  { TProcess }
+
   TProcess = Class (TComponent)
   Private
     FProcessOptions : TProcessOptions;
     FStartupOptions : TStartupOptions;
     FProcessID : Integer;
+    FTerminalProgram: String;
     FThreadID : Integer;
     FProcessHandle : Thandle;
     FThreadHandle : Thandle;
@@ -60,6 +63,8 @@ Type
     FCurrentDirectory : String;
     FDesktop : String;
     FEnvironment : Tstrings;
+    FExecutable : String;
+    FParameters : TStrings;
     FShowWindow : TShowWindowOptions;
     FInherithandles : Boolean;
     {$ifdef UNIX}
@@ -72,10 +77,13 @@ Type
     dwx,
     dwYcountChars,
     dwy : Cardinal;
+    FXTermProgram: String;
     Procedure FreeStreams;
     Function  GetExitStatus : Integer;
     Function  GetRunning : Boolean;
     Function  GetWindowRect : TRect;
+    procedure SetCommandLine(const AValue: String);
+    procedure SetParameters(const AValue: TStrings);
     Procedure SetWindowRect (Value : TRect);
     Procedure SetShowWindow (Value : TShowWindowOptions);
     Procedure SetWindowColumns (Value : Cardinal);
@@ -88,6 +96,7 @@ Type
     procedure SetProcessOptions(const Value: TProcessOptions);
     procedure SetActive(const Value: Boolean);
     procedure SetEnvironment(const Value: TStrings);
+    Procedure ConvertCommandLine;
     function  PeekExitStatus: Boolean;
   Protected
     FRunning : Boolean;
@@ -98,6 +107,7 @@ Type
     procedure CloseProcessHandles; virtual;
     Procedure CreateStreams(InHandle,OutHandle,ErrHandle : Longint);virtual;
     procedure FreeStream(var AStream: THandleStream);
+    procedure Loaded; override;
   Public
     Constructor Create (AOwner : TComponent);override;
     Destructor Destroy; override;
@@ -125,8 +135,10 @@ Type
     {$endif UNIX}
   Published
     Property Active : Boolean Read GetRunning Write SetActive;
-    Property ApplicationName : String Read FApplicationName Write SetApplicationName;
-    Property CommandLine : String Read FCommandLine Write FCommandLine;
+    Property ApplicationName : String Read FApplicationName Write SetApplicationName; deprecated;
+    Property CommandLine : String Read FCommandLine Write SetCommandLine ; deprecated;
+    Property Executable : String Read FExecutable Write FExecutable;
+    Property Parameters : TStrings Read FParameters Write SetParameters;
     Property ConsoleTitle : String Read FConsoleTitle Write FConsoleTitle;
     Property CurrentDirectory : String Read FCurrentDirectory Write FCurrentDirectory;
     Property Desktop : String Read FDesktop Write FDesktop;
@@ -143,9 +155,17 @@ Type
     Property WindowTop : Cardinal Read dwY Write SetWindowTop ;
     Property WindowWidth : Cardinal Read dwXSize Write SetWindowWidth;
     Property FillAttribute : Cardinal read FFillAttribute Write FFillAttribute;
+    Property XTermProgram : String Read FXTermProgram Write FXTermProgram;
   end;
 
   EProcess = Class(Exception);
+
+{$ifdef unix}
+Var
+  TryTerminals : Array of string;
+  XTermProgram : String;
+  Function DetectXTerm : String;
+{$endif unix}
 
 implementation
 
@@ -162,8 +182,67 @@ uses
 {$endif UNIX}
 
 Resourcestring
-  SNoCommandLine = 'Cannot execute empty command-line';
-  SErrNoSuchProgram = 'Executable not found: "%s"';
+  SNoCommandLine        = 'Cannot execute empty command-line';
+  SErrNoSuchProgram     = 'Executable not found: "%s"';
+  SErrNoTerminalProgram = 'Could not detect X-Terminal program';
+
+Procedure CommandToList(S : String; List : TStrings);
+
+  Function GetNextWord : String;
+
+  Const
+    WhiteSpace = [' ',#8,#10];
+    Literals = ['"',''''];
+
+  Var
+    Wstart,wend : Integer;
+    InLiteral : Boolean;
+    LastLiteral : char;
+
+  begin
+    WStart:=1;
+    While (WStart<=Length(S)) and (S[WStart] in WhiteSpace) do
+      Inc(WStart);
+    WEnd:=WStart;
+    InLiteral:=False;
+    LastLiteral:=#0;
+    While (Wend<=Length(S)) and (Not (S[Wend] in WhiteSpace) or InLiteral) do
+      begin
+      if S[Wend] in Literals then
+        If InLiteral then
+          InLiteral:=Not (S[Wend]=LastLiteral)
+        else
+          begin
+          InLiteral:=True;
+          LastLiteral:=S[Wend];
+          end;
+       inc(wend);
+       end;
+
+     Result:=Copy(S,WStart,WEnd-WStart);
+
+     if  (Length(Result) > 0)
+     and (Result[1] = Result[Length(Result)]) // if 1st char = last char and..
+     and (Result[1] in Literals) then // it's one of the literals, then
+       Result:=Copy(Result, 2, Length(Result) - 2); //delete the 2 (but not others in it)
+
+     While (WEnd<=Length(S)) and (S[Wend] in WhiteSpace) do
+       inc(Wend);
+     Delete(S,1,WEnd-1);
+
+  end;
+
+Var
+  W : String;
+
+begin
+  While Length(S)>0 do
+    begin
+    W:=GetNextWord;
+    If (W<>'') then
+      List.Add(W);
+    end;
+end;
 
 {$i process.inc}
 
@@ -177,11 +256,13 @@ begin
   FForkEvent:=nil;
   {$endif UNIX}
   FEnvironment:=TStringList.Create;
+  FParameters:=TStringList.Create;
 end;
 
 Destructor TProcess.Destroy;
 
 begin
+  FParameters.Free;
   FEnvironment.Free;
   FreeStreams;
   CloseProcessHandles;
@@ -229,6 +310,13 @@ begin
   if AStream = nil then exit;
   FileClose(AStream.Handle);
   FreeAndNil(AStream);
+end;
+
+procedure TProcess.Loaded;
+begin
+  inherited Loaded;
+  If (csDesigning in ComponentState) and (CommandLine<>'') then
+    ConvertCommandLine;
 end;
 
 procedure TProcess.CloseInput;
@@ -297,6 +385,20 @@ begin
     end;
 end;
 
+procedure TProcess.SetCommandLine(const AValue: String);
+begin
+  if FCommandLine=AValue then exit;
+  FCommandLine:=AValue;
+  If Not (csLoading in ComponentState) then
+    ConvertCommandLine;
+end;
+
+procedure TProcess.SetParameters(const AValue: TStrings);
+begin
+  if FParameters=AValue then exit;
+  FParameters:=AValue;
+end;
+
 Procedure TProcess.SetWindowRect (Value : Trect);
 begin
   Include(FStartupOptions,suoUseSize);
@@ -348,6 +450,17 @@ end;
 procedure TProcess.SetEnvironment(const Value: TStrings);
 begin
   FEnvironment.Assign(Value);
+end;
+
+procedure TProcess.ConvertCommandLine;
+begin
+  FParameters.Clear;
+  CommandToList(CommandLine,FParameters);
+  If FParameters.Count>0 then
+    begin
+    Executable:=FParameters[0];
+    FParameters.Delete(0);
+    end;
 end;
 
 end.

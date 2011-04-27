@@ -155,9 +155,19 @@ begin
     end;
 end;
 
+Function MaybeQuote(Const S : String) : String;
+
+begin
+  If (Pos(' ',S)<>0) then
+    Result:='"'+S+'"'
+  else
+     Result:=S;
+end;
+
 
 Procedure TProcess.Execute;
 Var
+  i : Integer;
   PName,PDir,PCommandLine : PChar;
   FEnv: pointer;
   FCreationFlags : Cardinal;
@@ -166,27 +176,35 @@ Var
   FProcessInformation : TProcessInformation;
   FStartupInfo : STARTUPINFO;
   HI,HO,HE : THandle;
+  Cmd : String;
+  
 begin
   FInheritHandles:=True;
   PName:=Nil;
   PCommandLine:=Nil;
   PDir:=Nil;
     
+  if (FApplicationName='') and (FCommandLine='') and (FExecutable='') then
+    Raise EProcess.Create(SNoCommandline);
   if (FApplicationName='') then
     begin
-      If (FCommandLine='') then
-        Raise EProcess.Create(SNoCommandline);
-      PCommandLine:=Pchar(FCommandLine)
+    PCommandLine:=Pchar(FCommandLine)
     end
   else
     begin
-      PName:=Pchar(FApplicationName);
-      If (FCommandLine='') then
-        PCommandLine:=Pchar(FApplicationName)
-      else
-        PCommandLine:=Pchar(FCommandLine)
-    end;
-
+    PName:=Pchar(FApplicationName);
+    If (FCommandLine<>'') then
+      PCommandLine:=Pchar(FCommandLine)
+    else if (Fexecutable='') then
+      PCommandLine:=Pchar(FApplicationName)
+    else
+      begin
+      Cmd:=MaybeQuote(Executable);
+      For I:=0 to Parameters.Count-1 do
+        Cmd:=Cmd+' '+MaybeQuote(Parameters[i]);
+      PCommandLine:=PChar(Cmd);
+      end;  
+    end;   
   If FCurrentDirectory<>'' then
     PDir:=Pchar(FCurrentDirectory);
   if FEnvironment.Count<>0 then
