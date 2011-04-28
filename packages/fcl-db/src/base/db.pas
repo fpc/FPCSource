@@ -553,7 +553,7 @@ type
     property MaxValue: Longint read FMaxValue write SetMaxValue default 0;
     property MinValue: Longint read FMinValue write SetMinValue default 0;
   end;
-  TIntegerField = TLongintField;
+  TIntegerField = Class(TLongintField);
 
 { TLargeintField }
 
