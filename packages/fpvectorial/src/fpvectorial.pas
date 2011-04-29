@@ -38,6 +38,7 @@ const
   STR_SVG_EXTENSION = '.svg';
   STR_CORELDRAW_EXTENSION = '.cdr';
   STR_WINMETAFILE_EXTENSION = '.wmf';
+  STR_AUTOCAD_EXCHANGE_EXTENSION = '.dxf';
 
 type
   {@@ We need our own format because TFPColor is too big for our needs and TColor has no Alpha }
@@ -144,7 +145,6 @@ type
     Brush: TvBrush;
     constructor Create();
     procedure Assign(APath: TPath);
-    function Count(): TPathSegment;
     procedure PrepareForSequentialReading;
     function Next(): TPathSegment;
   end;
@@ -243,7 +243,8 @@ type
     procedure WriteToFile(AFileName: string; AFormat: TvVectorialFormat);
     procedure WriteToStream(AStream: TStream; AFormat: TvVectorialFormat);
     procedure WriteToStrings(AStrings: TStrings; AFormat: TvVectorialFormat);
-    procedure ReadFromFile(AFileName: string; AFormat: TvVectorialFormat);
+    procedure ReadFromFile(AFileName: string; AFormat: TvVectorialFormat); overload;
+    procedure ReadFromFile(AFileName: string); overload;
     procedure ReadFromStream(AStream: TStream; AFormat: TvVectorialFormat);
     procedure ReadFromStrings(AStrings: TStrings; AFormat: TvVectorialFormat);
     class function GetFormatFromExtension(AFileName: string): TvVectorialFormat;
@@ -261,7 +262,9 @@ type
     procedure RemoveAllTexts;
     { Data writing methods }
     procedure AddPath(APath: TPath);
-    procedure StartPath(AX, AY: Double);
+    procedure StartPath(AX, AY: Double); overload;
+    procedure StartPath(); overload;
+    procedure AddMoveToPath(AX, AY: Double);
     procedure AddLineToPath(AX, AY: Double); overload;
     procedure AddLineToPath(AX, AY: Double; AColor: TvColor); overload;
     procedure AddLineToPath(AX, AY, AZ: Double); overload;
@@ -551,6 +554,23 @@ begin
   FTmpPath.PointsEnd := segment;
 end;
 
+procedure TvVectorialDocument.StartPath();
+begin
+  ClearTmpPath();
+end;
+
+procedure TvVectorialDocument.AddMoveToPath(AX, AY: Double);
+var
+  segment: T2DSegment;
+begin
+  segment := T2DSegment.Create;
+  segment.SegmentType := stMoveTo;
+  segment.X := AX;
+  segment.Y := AY;
+
+  AppendSegmentToTmpPath(segment);
+end;
+
 {@@
   Adds one more point to the end of a Path being
   writing in multiple steps.
@@ -824,8 +844,17 @@ procedure TvVectorialDocument.AppendSegmentToTmpPath(ASegment: TPathSegment);
 var
   L: Integer;
 begin
+  // Check if we are the first segment in the tmp path
   if FTmpPath.PointsEnd = nil then
-    Exception.Create('[TvVectorialDocument.AppendSegmentToTmpPath]' + Str_Error_Nil_Path);
+  begin
+    if FTmpPath.Len <> 0 then
+      Exception.Create('[TvVectorialDocument.AppendSegmentToTmpPath]' + Str_Error_Nil_Path);
+
+    FTmpPath.Points := ASegment;
+    FTmpPath.PointsEnd := ASegment;
+    FTmpPath.Len := 1;
+    Exit;
+  end;
 
   L := FTmpPath.Len;
   Inc(FTmpPath.Len);
@@ -902,6 +931,22 @@ begin
   finally
     AReader.Free;
   end;
+end;
+
+{@@
+  Reads the document from a file.  A variant that auto-detects the format from the extension.
+}
+procedure TvVectorialDocument.ReadFromFile(AFileName: string);
+var
+  lExt: string;
+begin
+  lExt := ExtractFileExt(AFileName);
+  if lExt = STR_PDF_EXTENSION then ReadFromFile(AFileName, vfPDF)
+  else if lExt = STR_POSTSCRIPT_EXTENSION then ReadFromFile(AFileName, vfPostScript)
+  else if lExt = STR_SVG_EXTENSION then ReadFromFile(AFileName, vfSVG)
+  else if lExt = STR_CORELDRAW_EXTENSION then ReadFromFile(AFileName, vfCorelDrawCDR)
+  else if lExt = STR_WINMETAFILE_EXTENSION then ReadFromFile(AFileName, vfWindowsMetafileWMF)
+  else if lExt = STR_AUTOCAD_EXCHANGE_EXTENSION then ReadFromFile(AFileName, vfDXF);
 end;
 
 {@@
@@ -1132,11 +1177,6 @@ begin
   CurPoint := APath.CurPoint;
   Pen := APath.Pen;
   Brush := APath.Brush;
-end;
-
-function TPath.Count(): TPathSegment;
-begin
-
 end;
 
 procedure TPath.PrepareForSequentialReading;

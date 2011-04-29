@@ -2598,6 +2598,7 @@ packages/fpvectorial/src/pdfvectorialreader.pas svneol=native#text/pascal
 packages/fpvectorial/src/pdfvrlexico.pas svneol=native#text/pascal
 packages/fpvectorial/src/pdfvrsemantico.pas svneol=native#text/pascal
 packages/fpvectorial/src/pdfvrsintatico.pas svneol=native#text/pascal
+packages/fpvectorial/src/svgvectorialreader.pas svneol=native#text/pascal
 packages/fpvectorial/src/svgvectorialwriter.pas svneol=native#text/pascal
 packages/fuse/Makefile svneol=native#text/plain
 packages/fuse/Makefile.fpc svneol=native#text/plain
