@@ -2593,6 +2593,7 @@ packages/fpvectorial/src/dxfvectorialreader.pas svneol=native#text/pascal
 packages/fpvectorial/src/fpvectbuildunit.pas svneol=native#text/pascal
 packages/fpvectorial/src/fpvectorial.pas svneol=native#text/pascal
 packages/fpvectorial/src/fpvtocanvas.pas svneol=native#text/pascal
+packages/fpvectorial/src/fpvutils.pas svneol=native#text/pascal
 packages/fpvectorial/src/pdfvectorialreader.pas svneol=native#text/pascal
 packages/fpvectorial/src/pdfvrlexico.pas svneol=native#text/pascal
 packages/fpvectorial/src/pdfvrsemantico.pas svneol=native#text/pascal
