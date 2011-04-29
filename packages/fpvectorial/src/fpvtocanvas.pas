@@ -42,14 +42,6 @@ begin
 end;
 {$endif}
 
-function VColorToFPColor(AVColor: TvColor): TFPColor; inline;
-begin
-  Result.Red := AVColor.Red;
-  Result.Green := AVColor.Green;
-  Result.Blue := AVColor.Blue;
-  Result.Alpha := AVColor.Alpha;
-end;
-
 function Rotate2DPoint(P,Fix :TPoint; alpha:double): TPoint;
 var
   sinus, cosinus : Extended;
