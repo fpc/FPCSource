@@ -13,7 +13,7 @@ unit svgvectorialwriter;
 interface
 
 uses
-  Classes, SysUtils, math, fpvectorial;
+  Classes, SysUtils, math, fpvectorial, fpvutils;
 
 type
   { TvSVGVectorialWriter }
@@ -24,6 +24,7 @@ type
     procedure WriteDocumentSize(AStrings: TStrings; AData: TvVectorialDocument);
     procedure WriteDocumentName(AStrings: TStrings; AData: TvVectorialDocument);
     procedure WritePaths(AStrings: TStrings; AData: TvVectorialDocument);
+    procedure WritePath(AIndex: Integer; APath: TPath; AStrings: TStrings; AData: TvVectorialDocument);
     procedure WriteTexts(AStrings: TStrings; AData: TvVectorialDocument);
     procedure ConvertFPVCoordinatesToSVGCoordinates(
       const AData: TvVectorialDocument;
@@ -60,6 +61,19 @@ begin
   AStrings.Add('  sodipodi:docname="New document 1">');
 end;
 
+procedure TvSVGVectorialWriter.WritePaths(AStrings: TStrings; AData: TvVectorialDocument);
+var
+  i: Integer;
+  lPath: TPath;
+begin
+  for i := 0 to AData.GetPathCount() - 1 do
+  begin
+    lPath := AData.GetPath(i);
+    lPath.PrepareForSequentialReading;
+    WritePath(i ,lPath, AStrings, AData);
+  end;
+end;
+
 {@@
   SVG Coordinate system measures things only in pixels, so that we have to
   hardcode a DPI value for the screen, which is usually 72.
@@ -74,90 +88,98 @@ end;
   SVG uses commas "," to separate the X,Y coordinates, so it always uses points
   "." as decimal separators and uses no thousand separators
 }
-procedure TvSVGVectorialWriter.WritePaths(AStrings: TStrings; AData: TvVectorialDocument);
+procedure TvSVGVectorialWriter.WritePath(AIndex: Integer; APath: TPath; AStrings: TStrings;
+  AData: TvVectorialDocument);
 var
-  i, j: Integer;
+  j: Integer;
   PathStr: string;
-  lPath: TPath;
   PtX, PtY, OldPtX, OldPtY: double;
   BezierCP1X, BezierCP1Y, BezierCP2X, BezierCP2Y: double;
   segment: TPathSegment;
   l2DSegment: T2DSegment absolute segment;
   l2DBSegment: T2DBezierSegment absolute segment;
+  // Pen properties
+  lPenWidth: Integer;
+  lPenColor: string;
 begin
-  for i := 0 to AData.GetPathCount() - 1 do
+  OldPtX := 0;
+  OldPtY := 0;
+  PathStr := '';
+
+  APath.PrepareForSequentialReading();
+
+  for j := 0 to APath.Len - 1 do
   begin
-    OldPtX := 0;
-    OldPtY := 0;
+    segment := TPathSegment(APath.Next());
 
-    PathStr := '';
-    lPath := AData.GetPath(i);
-    lPath.PrepareForSequentialReading;
+    if (segment.SegmentType <> st2DLine)
+      and (segment.SegmentType <> stMoveTo)
+      and (segment.SegmentType <> st2DBezier)
+      then Break; // unsupported line type
 
-    for j := 0 to lPath.Len - 1 do
+    // Coordinate conversion from fpvectorial to SVG
+    ConvertFPVCoordinatesToSVGCoordinates(
+      AData, l2DSegment.X, l2DSegment.Y, PtX, PtY);
+    PtX := PtX - OldPtX;
+    PtY := PtY - OldPtY;
+
+    if (segment.SegmentType = stMoveTo) then
     begin
-      segment := TPathSegment(lPath.Next());
-
-      if (segment.SegmentType <> st2DLine)
-        and (segment.SegmentType <> stMoveTo)
-        and (segment.SegmentType <> st2DBezier)
-        then Break; // unsupported line type
-
-      // Coordinate conversion from fpvectorial to SVG
+      PathStr := PathStr + 'm '
+        + FloatToStr(PtX, FPointSeparator) + ','
+        + FloatToStr(PtY, FPointSeparator) + ' ';
+    end
+    else if (segment.SegmentType = st2DLine) then
+    begin
+      PathStr := PathStr + 'l '
+        + FloatToStr(PtX, FPointSeparator) + ','
+        + FloatToStr(PtY, FPointSeparator) + ' ';
+    end
+    else if (segment.SegmentType = st2DBezier) then
+    begin
+      // Converts all coordinates to absolute values
       ConvertFPVCoordinatesToSVGCoordinates(
-        AData, l2DSegment.X, l2DSegment.Y, PtX, PtY);
-      PtX := PtX - OldPtX;
-      PtY := PtY - OldPtY;
+        AData, l2DBSegment.X2, l2DBSegment.Y2, BezierCP1X, BezierCP1Y);
+      ConvertFPVCoordinatesToSVGCoordinates(
+        AData, l2DBSegment.X3, l2DBSegment.Y3, BezierCP2X, BezierCP2Y);
 
-      if (segment.SegmentType = stMoveTo) then
-      begin
-        PathStr := PathStr + 'm '
-          + FloatToStr(PtX, FPointSeparator) + ','
-          + FloatToStr(PtY, FPointSeparator) + ' ';
-      end
-      else if (segment.SegmentType = st2DLine) then
-      begin
-        PathStr := PathStr + 'l '
-          + FloatToStr(PtX, FPointSeparator) + ','
-          + FloatToStr(PtY, FPointSeparator) + ' ';
-      end
-      else if (segment.SegmentType = st2DBezier) then
-      begin
-        // Converts all coordinates to absolute values
-        ConvertFPVCoordinatesToSVGCoordinates(
-          AData, l2DBSegment.X2, l2DBSegment.Y2, BezierCP1X, BezierCP1Y);
-        ConvertFPVCoordinatesToSVGCoordinates(
-          AData, l2DBSegment.X3, l2DBSegment.Y3, BezierCP2X, BezierCP2Y);
+      // Transforms them into values relative to the initial point
+      BezierCP1X := BezierCP1X - OldPtX;
+      BezierCP1Y := BezierCP1Y - OldPtY;
+      BezierCP2X := BezierCP2X - OldPtX;
+      BezierCP2Y := BezierCP2Y - OldPtY;
 
-        // Transforms them into values relative to the initial point
-        BezierCP1X := BezierCP1X - OldPtX;
-        BezierCP1Y := BezierCP1Y - OldPtY;
-        BezierCP2X := BezierCP2X - OldPtX;
-        BezierCP2Y := BezierCP2Y - OldPtY;
+      // PtX and PtY already contains the destination point
 
-        // PtX and PtY already contains the destination point
-
-        // Now render our 2D cubic bezier
-        PathStr := PathStr + 'c '
-          + FloatToStr(BezierCP1X, FPointSeparator) + ','
-          + FloatToStr(BezierCP1Y, FPointSeparator) + ' '
-          + FloatToStr(BezierCP2X, FPointSeparator) + ','
-          + FloatToStr(BezierCP2Y, FPointSeparator) + ' '
-          + FloatToStr(PtX, FPointSeparator) + ','
-          + FloatToStr(PtY, FPointSeparator) + ' '
-          ;
-      end;
-
-      // Store the current position for future points
-      OldPtX := OldPtX + PtX;
-      OldPtY := OldPtY + PtY;
+      // Now render our 2D cubic bezier
+      PathStr := PathStr + 'c '
+        + FloatToStr(BezierCP1X, FPointSeparator) + ','
+        + FloatToStr(BezierCP1Y, FPointSeparator) + ' '
+        + FloatToStr(BezierCP2X, FPointSeparator) + ','
+        + FloatToStr(BezierCP2Y, FPointSeparator) + ' '
+        + FloatToStr(PtX, FPointSeparator) + ','
+        + FloatToStr(PtY, FPointSeparator) + ' '
+        ;
     end;
 
-    AStrings.Add('  <path');
-    AStrings.Add('    style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"');
-    AStrings.Add('    d="' + PathStr + '"');
-    AStrings.Add('  id="path' + IntToStr(i) + '" />');
+    // Store the current position for future points
+    OldPtX := OldPtX + PtX;
+    OldPtY := OldPtY + PtY;
   end;
+
+  // Get the Pen Width
+  if APath.Pen.Width >= 1 then lPenWidth := APath.Pen.Width
+  else lPenWidth := 1;
+
+  // Get the Pen Color
+  lPenColor := VColorToRGBHexString(APath.Pen.Color);
+
+  AStrings.Add('  <path');
+  AStrings.Add(Format('    style="fill:none;stroke:#%s;stroke-width:%dpx;'
+   + 'stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"',
+   [lPenColor, lPenWidth]));
+  AStrings.Add('    d="' + PathStr + '"');
+  AStrings.Add('  id="path' + IntToStr(AIndex) + '" />');
 end;
 
 procedure TvSVGVectorialWriter.ConvertFPVCoordinatesToSVGCoordinates(

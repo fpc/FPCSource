@@ -4,7 +4,7 @@ unit fpvtocanvas;
 
 interface
 
-{.$define USE_LCL_CANVAS}
+{$define USE_LCL_CANVAS}
 
 uses
   Classes, SysUtils, Math,
@@ -115,7 +115,7 @@ end;
 
   DrawFPVectorialToCanvas(ASource, ADest, 0, ASource.Height, 1.0, -1.0);
 }
-{$define FPVECTORIAL_TOCANVAS_DEBUG}
+{.$define FPVECTORIAL_TOCANVAS_DEBUG}
 procedure DrawFPVectorialToCanvas(ASource: TvVectorialDocument;
   {$ifdef USE_LCL_CANVAS}ADest: TCanvas;{$else}ADest: TFPCustomCanvas;{$endif}
   ADestX: Integer = 0; ADestY: Integer = 0; AMulX: Double = 1.0; AMulY: Double = 1.0);
@@ -187,11 +187,18 @@ begin
         Write(Format(' M%d,%d', [CoordToCanvasX(Cur2DSegment.X), CoordToCanvasY(Cur2DSegment.Y)]));
         {$endif}
       end;
-      st2DLine, st3DLine:
+      st2DLineWithPen:
       begin
-        {$ifdef USE_LCL_CANVAS}ADest.Pen.Color := VColorToTColor(Cur2DSegment.PenColor);{$endif}
+        {$ifdef USE_LCL_CANVAS}ADest.Pen.Color := VColorToTColor(T2DSegmentWithPen(Cur2DSegment).Pen.Color);{$endif}
         ADest.LineTo(CoordToCanvasX(Cur2DSegment.X), CoordToCanvasY(Cur2DSegment.Y));
         {$ifdef USE_LCL_CANVAS}ADest.Pen.Color := clBlack;{$endif}
+        {$ifdef FPVECTORIAL_TOCANVAS_DEBUG}
+        Write(Format(' L%d,%d', [CoordToCanvasX(Cur2DSegment.X), CoordToCanvasY(Cur2DSegment.Y)]));
+        {$endif}
+      end;
+      st2DLine, st3DLine:
+      begin
+        ADest.LineTo(CoordToCanvasX(Cur2DSegment.X), CoordToCanvasY(Cur2DSegment.Y));
         {$ifdef FPVECTORIAL_TOCANVAS_DEBUG}
         Write(Format(' L%d,%d', [CoordToCanvasX(Cur2DSegment.X), CoordToCanvasY(Cur2DSegment.Y)]));
         {$endif}
@@ -321,7 +328,7 @@ begin
       WriteLn(Format('Drawing Arc Center=%f,%f Radius=%f StartAngle=%f AngleLength=%f',
         [CurArc.CenterX, CurArc.CenterY, CurArc.Radius, IntStartAngle/16, IntAngleLength/16]));
       {$endif}
-      ADest.Pen.Color := {$ifdef USE_LCL_CANVAS}VColorToTColor(CurArc.PenColor);{$else}VColorToFPColor(CurArc.PenColor);{$endif}
+      ADest.Pen.Color := {$ifdef USE_LCL_CANVAS}VColorToTColor(CurArc.Pen.Color);{$else}VColorToFPColor(CurArc.Pen.Color);{$endif}
       ADest.Arc(
         BoundsLeft, BoundsTop, BoundsRight, BoundsBottom,
         IntStartAngle, IntAngleLength
