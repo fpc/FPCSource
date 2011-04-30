@@ -2422,6 +2422,9 @@ implementation
                  else
                    linker.MakeExecutable;
 
+                 { Delete main module object file }
+                 if not(cs_link_nolink in current_settings.globalswitches) then
+                   DeleteFile(pshortstring2pchar(main_module.objfilename));
                  { collect all necessary information for whole-program optimization }
                  wpoinfomanager.extractwpoinfofromprogram;
                end;
