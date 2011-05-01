@@ -747,6 +747,7 @@ implementation
            AddIniSection('fpcdetect');
            AddIniSection('fpcdircheckenv');
            AddIniSection('fpcdirdetect');
+           AddIniSection('fpmakefpcdetect');
            { Package }
            AddVariable('package_name');
            AddVariable('package_version');
