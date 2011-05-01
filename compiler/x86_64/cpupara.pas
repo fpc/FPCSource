@@ -827,7 +827,16 @@ unit cpupara;
         else
           begin
             retcgsize:=def_cgsize(def);
-            result.intsize:=def.size;
+            { integer sizes < 32 bit have to be sign/zero extended to 32 bit on
+              the callee side (caller can expect those bits are valid) }
+            if (side=calleeside) and
+               (retcgsize in [OS_8,OS_S8,OS_16,OS_S16]) then
+              begin
+                retcgsize:=OS_S32;
+                result.intsize:=4;
+              end
+            else
+              result.intsize:=def.size;
           end;
         result.size:=retcgsize;
         { Return is passed as var parameter }
@@ -973,13 +982,21 @@ unit cpupara;
                 loc[1]:=X86_64_INTEGER_CLASS;
                 loc[2]:=X86_64_NO_CLASS;
                 paracgsize:=OS_ADDR;
-                paralen:=sizeof(aint);
+                paralen:=sizeof(pint);
               end
             else
               begin
                 getvalueparaloc(hp.varspez,hp.vardef,loc[1],loc[2]);
                 paralen:=push_size(hp.varspez,hp.vardef,p.proccalloption);
                 paracgsize:=def_cgsize(hp.vardef);
+                { integer sizes < 32 bit have to be sign/zero extended to 32 bit
+                  on the caller side }
+                if (side=callerside) and
+                   (paracgsize in [OS_8,OS_S8,OS_16,OS_S16]) then
+                  begin
+                    paracgsize:=OS_S32;
+                    paralen:=4;
+                  end;
               end;
 
             { cheat for now, we should copy the value to an mm reg as well (FK) }

@@ -543,6 +543,8 @@ var
   s14 : struct14;
   s15 : struct15;
   s31 : struct31;
+  
+  c: cardinal;
 
 begin
   randseed := 30;
@@ -584,7 +586,9 @@ begin
   fill(sa33, sizeof(sa33));
 
 
-  verify(pass1(s1,1), check1(s1), 1);
+  { check that the upper bits of the parameter are cleared when required }
+  c:=$f070d001;
+  verify(pass1(s1,c), check1(s1), 1);
   verify(pass2(s2,2), check2(s2), 2);
   verify(pass3(s3,3), check3(s3), 3);
   verify(pass4(s4,4), check4(s4), 4);
