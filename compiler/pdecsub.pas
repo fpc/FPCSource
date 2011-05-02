@@ -812,6 +812,7 @@ implementation
         old_current_genericdef,
         old_current_specializedef: tstoreddef;
         lasttoken,lastidtoken: ttoken;
+        def : tdef;
 
         procedure parse_operator_name;
          begin
@@ -910,75 +911,109 @@ implementation
 
         function consume_generic_type_parameter:boolean;
           var
-            i:integer;
-            ok:boolean;
+            i,
+            j,
+            declidx,
+            idx : integer;
+            found : boolean;
             sym:tsym;
+            genparalistdecl : TFPHashList;
           begin
             result:=not assigned(astruct)and(m_delphi in current_settings.modeswitches);
             if result then
               begin
-                { a generic type parameter? }
+                { is this an overloaded typesym? }
                 srsym:=search_object_name(sp,false);
                 if (srsym.typ=typesym) and
-                   (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
-                begin
-                  astruct:=tabstractrecorddef(ttypesym(srsym).typedef);
-                  if (df_generic in astruct.defoptions) and try_to_consume(_LT) then
-                    begin
-                      ok:=true;
-                      i:=0;
-                      repeat
-                        if ok and (token=_ID)  then
+                    (ttypesym(srsym).gendeflist.Count>0) then
+                  begin
+                    { parse all parameters first so we can check whether we have
+                      the correct generic def available }
+                    genparalistdecl:=TFPHashList.Create;
+                    if try_to_consume(_LT) then
+                      begin
+                        { start with 1, so Find can return Nil (= 0) }
+                        idx:=1;
+                        repeat
+                          if token=_ID then
+                            begin
+                              genparalistdecl.Add(pattern, Pointer(PtrInt(idx)));
+                              consume(_ID);
+                              inc(idx);
+                            end
+                          else
+                            begin
+                              message2(scan_f_syn_expected,arraytokeninfo[_ID].str,arraytokeninfo[token].str);
+                              if token<>_COMMA then
+                                consume(token);
+                            end;
+                        until not try_to_consume(_COMMA);
+                        if not try_to_consume(_GT) then
+                          consume(_RSHARPBRACKET);
+                      end
+                    else
+                      begin
+                        { no generic }
+                        srsym:=nil;
+                        exit;
+                      end;
+
+                    { now search the matching generic definition }
+                    found:=false;
+                    for i:=0 to ttypesym(srsym).gendeflist.Count-1 do
+                      begin
+                        def:=tdef(ttypesym(srsym).gendeflist[i]);
+                        { for now generic overloads are only allowed for records
+                          and objects; later they'll also be allowed for
+                          procedures and functions }
+                        if not (def.typ in [objectdef,recorddef]) then
+                          continue;
+                        st:=def.getsymtable(gs_record);
+                        if not assigned(st) then
+                          InternalError(2011042901);
+                        idx:=1;
+                        { check whether the generic parameters of the def have the
+                          same count and order as the ones just scanned, if so
+                          "found" is true }
+                        for j:=0 to st.SymList.Count-1 do
                           begin
-                            ok:=false;
-                            while i<astruct.symtable.SymList.Count-1 do
-                              begin
-                                sym:=tsym(astruct.symtable.SymList[i]);
-                                if sp_generic_para in sym.symoptions then
-                                  begin
-                                    ok:=sym.Name=pattern;
-                                    inc(i);
-                                    break;
-                                  end;
-                                inc(i);
-                              end;
-                            if not ok then
-                              Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
-                          end;
-                        consume(_ID);
-                      until not try_to_consume(_COMMA);
-                      if ok then
-                        while i<astruct.symtable.SymList.Count-1 do
-                          begin
-                            sym:=tsym(astruct.symtable.SymList[i]);
+                            sym:=tsym(st.SymList[j]);
                             if sp_generic_para in sym.symoptions then
                               begin
-                                Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
-                                break;
+                                if not (sym.typ=typesym) then
+                                  internalerror(2011290402);
+                                { too many parameters }
+                                if idx>genparalistdecl.Count then
+                                  break;
+                                declidx:=PtrInt(genparalistdecl.Find(sym.prettyname));
+                                { does the parameters' index match the current
+                                  index value? }
+                                if (declidx=0) or (declidx<>idx) then
+                                  break;
+                                inc(idx);
                               end;
-                            inc(i);
+                            if (j=st.SymList.Count-1) and (idx=genparalistdecl.Count+1) then
+                              found:=true;
                           end;
-                      consume(_GT);
-                    end
-                  else
-                  if (df_generic in astruct.defoptions) and (token=_POINT) then
-                    begin
-                      Message1(type_e_generic_declaration_does_not_match,astruct.RttiName);
-                    end
-                  else
-                    begin
-                      { not a method. routine name just accidentally match some structure name }
-                      astruct:=nil;
-                      if try_to_consume(_LT) then
-                        begin
-                          Message(type_e_type_parameters_are_not_allowed_here);
-                          repeat
-                            consume(_ID);
-                          until not try_to_consume(_COMMA);
-                          consume(_GT);
-                        end;
-                    end;
-                end;
+
+                        { the first found matching generic def wins }
+                        if found then
+                          break;
+                      end;
+
+                    genparalistdecl.free;
+
+                    if not found then
+                      begin
+                        { TODO : print a nicer typename that contains the parsed
+                                 generic types }
+                        Message1(type_e_generic_declaration_does_not_match,sp);
+                        srsym:=nil;
+                        def:=nil;
+                        exit;
+                      end;
+
+                  end;
               end;
           end;
 
@@ -1028,15 +1063,32 @@ implementation
            repeat
              searchagain:=false;
              if not assigned(astruct) then
-               srsym:=search_object_name(sp,true);
+               begin
+                 if not assigned(def) then
+                   begin
+                     srsym:=search_object_name(sp,true);
+                     { in non-Delphi modes we can directly use the generic def if one
+                       exists }
+                     if (srsym.typ=typesym) then
+                       if (ttypesym(srsym).gendeflist.Count>0) and
+                           not (m_delphi in current_settings.modeswitches) then
+                         def:=tdef(ttypesym(srsym).gendeflist[0])
+                       else
+                         def:=ttypesym(srsym).typedef
+                     else
+                       def:=nil;
+                   end;
+               end
+             else
+               def:=astruct;
              { consume proc name }
              procstartfilepos:=current_tokenpos;
              consume_proc_name;
              { qualifier is class name ? }
              if (srsym.typ=typesym) and
-                (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
+                (def.typ in [objectdef,recorddef]) then
               begin
-                astruct:=tabstractrecorddef(ttypesym(srsym).typedef);
+                astruct:=tabstractrecorddef(def);
                 if (token<>_POINT) then
                   if (potype in [potype_class_constructor,potype_class_destructor]) then
                     sp:=lower(sp)
