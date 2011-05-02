@@ -1381,7 +1381,16 @@ implementation
                     exit;
                   end;
                { if nothing found give error and return errorsym }
-               if assigned(srsym) then
+               if assigned(srsym) and
+                   not (
+                     { in case of an overloaded generic symbol we need to
+                       generate an error if the non-generic symbol is still
+                       undefined and we're not doing a specialization }
+                     typeonly and (srsym.typ=typesym) and
+                     (ttypesym(srsym).typedef.typ=undefineddef) and
+                     (ttypesym(srsym).gendeflist.Count>0) and
+                     not (token in [_LT, _LSHARPBRACKET])
+                   ) then
                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg)
                else
                  begin

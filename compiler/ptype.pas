@@ -148,12 +148,17 @@ implementation
         st  : TSymtable;
         srsym : tsym;
         pt2 : tnode;
+        found,
         first,
         err : boolean;
-        i   : longint;
+        i,
+        j,
+        gencount : longint;
         sym : tsym;
         genericdef : tstoreddef;
+        genericsym,
         generictype : ttypesym;
+        genericdeflist : TFPObjectList;
         generictypelist : TFPObjectList;
         oldsymtablestack   : tsymtablestack;
         oldextendeddefs    : TFPHashObjectList;
@@ -165,14 +170,21 @@ implementation
         onlyparsepara : boolean;
         specializest : tsymtable;
         item: psymtablestackitem;
+        def : tdef;
       begin
         { retrieve generic def that we are going to replace }
         genericdef:=tstoreddef(tt);
         tt:=nil;
         onlyparsepara:=false;
 
-        if not(df_generic in genericdef.defoptions) then
+        if not assigned(genericdef.typesym) or
+            (genericdef.typesym.typ<>typesym) then
+           internalerror(2011042701);
+
+        genericsym:=ttypesym(genericdef.typesym);
+        if genericsym.gendeflist.Count=0 then
           begin
+            { TODO : search for other generics with the same name }
             Message(parser_e_special_onlygenerics);
             tt:=generrordef;
             onlyparsepara:=true;
@@ -205,62 +217,109 @@ implementation
 
         if not try_to_consume(_LT) then
           consume(_LSHARPBRACKET);
-        { Parse generic parameters, for each undefineddef in the symtable of
-          the genericdef we need to have a new def }
-        err:=false;
-        first:=true;
+
         generictypelist:=TFPObjectList.create(false);
-        case genericdef.typ of
-          procdef:
-            st:=genericdef.GetSymtable(gs_para);
-          objectdef,
-          recorddef:
-            st:=genericdef.GetSymtable(gs_record);
-          arraydef:
-            st:=tarraydef(genericdef).symtable;
-          procvardef:
-            st:=genericdef.GetSymtable(gs_para);
-          else
-            internalerror(200511182);
-        end;
+        genericdeflist:=TFPObjectList.Create(false);
 
         { Parse type parameters }
         if not assigned(genericdef.typesym) then
           internalerror(200710173);
-        specializename:=genericdef.typesym.realname;
+        err:=false;
+        first:=true;
+        specializename:='';
+        while not (token in [_GT,_RSHARPBRACKET]) do
+          begin
+            if not first then
+              consume(_COMMA)
+            else
+              first:=false;
+            pt2:=factor(false,true);
+            if pt2.nodetype=typen then
+              begin
+                if df_generic in pt2.resultdef.defoptions then
+                  Message(parser_e_no_generics_as_params);
+                genericdeflist.Add(pt2.resultdef);
+                if not assigned(pt2.resultdef.typesym) then
+                  message(type_e_generics_cannot_reference_itself)
+                else
+                  specializename:=specializename+'$'+pt2.resultdef.typesym.realname;
+              end
+            else
+              begin
+                Message(type_e_type_id_expected);
+                err:=true;
+              end;
+            pt2.free;
+          end;
+
+        if err then
+          begin
+            try_to_consume(_RSHARPBRACKET);
+            exit;
+          end;
+
+        { check whether we have a generic with the correct amount of params }
+        found:=false;
+        for i:=0 to genericsym.gendeflist.Count-1 do begin
+          def:=tdef(genericsym.gendeflist[i]);
+          { select the symtable containing the params }
+          case def.typ of
+            procdef:
+              st:=def.GetSymtable(gs_para);
+            objectdef,
+            recorddef:
+              st:=def.GetSymtable(gs_record);
+            arraydef:
+              st:=tarraydef(def).symtable;
+            procvardef:
+              st:=def.GetSymtable(gs_para);
+            else
+              internalerror(200511182);
+          end;
+
+          gencount:=0;
+          for j:=0 to st.SymList.Count-1 do
+            begin
+              if sp_generic_para in tsym(st.SymList[j]).symoptions then
+                inc(gencount);
+            end;
+
+          if gencount=genericdeflist.count then
+            begin
+              found:=true;
+              break;
+            end;
+        end;
+
+        if not found then
+          begin
+            identifier_not_found(genericdef.typename);
+            tt:=generrordef;
+            exit;
+          end;
+
+        { we've found the correct def, so use it }
+        genericdef:=tstoreddef(def);
+
+        { build the new type's name }
+        specializename:=genericdef.typesym.realname+specializename;
+        uspecializename:=upper(specializename);
+
+        { build the list containing the types for the generic params }
+        gencount:=0;
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
-            if (sp_generic_para in sym.symoptions) then
+            if sp_generic_para in sym.symoptions then
               begin
-                if not first then
-                  consume(_COMMA)
-                else
-                  first:=false;
-                pt2:=factor(false,true);
-                if pt2.nodetype=typen then
-                  begin
-                    if df_generic in pt2.resultdef.defoptions then
-                      Message(parser_e_no_generics_as_params);
-                    generictype:=ttypesym.create(sym.realname,pt2.resultdef);
-                    generictypelist.add(generictype);
-                    if not assigned(pt2.resultdef.typesym) then
-                      message(type_e_generics_cannot_reference_itself)
-                    else
-                      specializename:=specializename+'$'+pt2.resultdef.typesym.realname;
-                  end
-                else
-                  begin
-                    Message(type_e_type_id_expected);
-                    err:=true;
-                  end;
-                pt2.free;
+                if gencount=genericdeflist.Count then
+                  internalerror(2011042702);
+                generictype:=ttypesym.create(sym.realname,tdef(genericdeflist[gencount]));
+                generictypelist.add(generictype);
+                inc(gencount);
               end;
           end;
-        uspecializename:=upper(specializename);
-        { force correct error location if too much type parameters are passed }
-        if not (token in [_RSHARPBRACKET,_GT]) then
-          consume(_RSHARPBRACKET);
+
 
         { Special case if we are referencing the current defined object }
         if assigned(current_structdef) and
@@ -385,13 +444,14 @@ implementation
             tundefineddef.create;
           end;
 
+        genericdeflist.free;
         generictypelist.free;
         if not try_to_consume(_GT) then
           consume(_RSHARPBRACKET);
       end;
 
 
-    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef:boolean); forward;
+    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms:boolean); forward;
 
     { def is the outermost type in which other types have to be searched
 
@@ -435,7 +495,7 @@ implementation
                      structstackindex:=-1;
                      symtablestack.push(tabstractrecorddef(def).symtable);
                      t2:=generrordef;
-                     id_type(t2,isforwarddef,false);
+                     id_type(t2,isforwarddef,false,false);
                      symtablestack.pop(tabstractrecorddef(def).symtable);
                      def:=t2;
                    end;
@@ -480,7 +540,7 @@ implementation
          result:=false;
       end;
 
-    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef:boolean);
+    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms:boolean);
     { reads a type definition }
     { to a appropriating tdef, s gets the name of   }
     { the type to allow name mangling          }
@@ -511,7 +571,9 @@ implementation
            table as forwarddef are not resolved directly }
          if assigned(srsym) and
             (srsym.typ=typesym) and
-            (ttypesym(srsym).typedef.typ=errordef) then
+            (ttypesym(srsym).typedef.typ=errordef) and
+            (not allowgenericsyms or
+            (ttypesym(srsym).gendeflist.Count=0)) then
           begin
             Message1(type_e_type_is_not_completly_defined,ttypesym(srsym).realname);
             def:=generrordef;
@@ -538,8 +600,11 @@ implementation
             def:=generrordef;
             exit;
           end;
-         { Give an error when referring to an errordef }
-         if (ttypesym(srsym).typedef.typ=errordef) then
+         { Give an error when referring to an errordef that does not have
+           generic overloads }
+         if (ttypesym(srsym).typedef.typ=errordef) and
+            (not allowgenericsyms or
+            (ttypesym(srsym).gendeflist.Count=0)) then
           begin
             Message(sym_e_error_in_type_def);
             def:=generrordef;
@@ -600,7 +665,7 @@ implementation
                      end
                    else
                      begin
-                       id_type(def,stoIsForwardDef in options,true);
+                       id_type(def,stoIsForwardDef in options,true,true);
                        parse_nested_types(def,stoIsForwardDef in options,nil);
                      end;
                  end;
