@@ -1381,6 +1381,7 @@ implementation
                     exit;
                   end;
                { if nothing found give error and return errorsym }
+               { TODO : adjust this check for inline specializations }
                if assigned(srsym) and
                    not (
                      { in case of an overloaded generic symbol we need to
@@ -2871,6 +2872,7 @@ implementation
                _GT :
                  p1:=caddnode.create(gtn,p1,p2);
                _LT :
+                 { TODO : hook in here for inline specialization }
                  p1:=caddnode.create(ltn,p1,p2);
                _GTE :
                  p1:=caddnode.create(gten,p1,p2);
