@@ -408,6 +408,7 @@ implementation
          generictypelist : TFPObjectList;
          generictokenbuf : tdynamicarray;
          vmtbuilder : TVMTBuilder;
+         i : integer;
       begin
          old_block_type:=block_type;
          { save unit container of forward declarations -
@@ -471,6 +472,18 @@ implementation
             begin
               if (sym.typ=typesym) then
                begin
+                 if isgeneric then
+                   begin
+                     { overloading types is only allowed in mode Delphi }
+                     if not (m_delphi in current_settings.modeswitches) then
+                       Message1(sym_e_duplicate_id,orgtypename);
+                     for i:=0 to ttypesym(sym).gendeflist.Count-1 do
+                       { TODO : check whether the count of one of the defs is
+                                the same as that of the current declaration and
+                                print an error if so }
+                       ;
+                   end
+                 else
                  if ((token=_CLASS) or
                      (token=_INTERFACE) or
                      (token=_DISPINTERFACE) or
@@ -506,7 +519,12 @@ implementation
                     hdef:=newtype.typedef;
                   end
                  else
-                  message1(parser_h_type_redef,orgtypename);
+                 if not (m_delphi in current_settings.modeswitches) and
+                     (ttypesym(sym).typedef.typ=undefineddef) and
+                     (ttypesym(sym).gendeflist.Count>0) then
+                   message1(sym_e_duplicate_id,orgtypename)
+                 else
+                   message1(parser_h_type_redef,orgtypename);
                end;
             end;
            { no old type reused ? Then insert this new type }
@@ -517,9 +535,30 @@ implementation
                 will give an error (PFV) }
               hdef:=generrordef;
               storetokenpos:=current_tokenpos;
-              newtype:=ttypesym.create(orgtypename,hdef);
-              newtype.visibility:=symtablestack.top.currentvisibility;
-              symtablestack.top.insert(newtype);
+              if isgeneric then
+                begin
+                  if assigned(sym) then
+                    newtype:=ttypesym(sym)
+                  else
+                    begin
+                      { add the symbol with a undefineddef, so typesym can point
+                        to this symbol }
+                      newtype:=ttypesym.create(orgtypename,tundefineddef.create);
+                      newtype.typedef.typesym:=newtype;
+                      newtype.visibility:=symtablestack.top.currentvisibility;
+                      symtablestack.top.insert(newtype);
+                      newtype.typedef.owner:=newtype.owner;
+                    end;
+                end
+              else
+                if assigned(sym) then
+                  newtype:=ttypesym(sym)
+                else
+                  begin
+                    newtype:=ttypesym.create(orgtypename,hdef);
+                    newtype.visibility:=symtablestack.top.currentvisibility;
+                    symtablestack.top.insert(newtype);
+                  end;
               current_tokenpos:=defpos;
               current_tokenpos:=storetokenpos;
               { read the type definition }
@@ -554,7 +593,11 @@ implementation
                   if not assigned(hdef.typesym) then
                     hdef.typesym:=newtype;
                 end;
-              newtype.typedef:=hdef;
+              if isgeneric then begin
+                newtype.Owner.includeoption(sto_has_generic);
+                newtype.gendeflist.Add(hdef)
+              end else
+                newtype.typedef:=hdef;
               { KAZ: handle TGUID declaration in system unit }
               if (cs_compilesystem in current_settings.moduleswitches) and not assigned(rec_tguid) and
                  (typename='TGUID') and { name: TGUID and size=16 bytes that is 128 bits }
