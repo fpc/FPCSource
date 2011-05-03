@@ -1524,6 +1524,7 @@ function DateTimeToDateStruct( b:TDateTime):SQL_DATE_STRUCT;
 procedure DateTime2TimeStampStruct( var Value:SQL_TIMESTAMP_STRUCT; b:TDateTime);
 Function TimeStampStructToDateTime( B :  PSQL_TIMESTAMP_STRUCT) : TDateTime;
 Function TimeStructToDateTime (B : PSQL_TIME_STRUCT) : TDateTime;
+function DateTimeToTimeStruct(b: TDateTime) : SQL_TIME_STRUCT;
 
 
 {$IFDEF DYNLOADINGODBC}
@@ -1721,5 +1722,13 @@ begin
     end;
 end;
 
-
+function DateTimeToTimeStruct(b: TDateTime) : SQL_TIME_STRUCT;
+var
+  w1, w2, w3, w4: Word;
+begin
+  DecodeTime(b, w1, w2, w3, w4);
+  Result.Hour:=w1 + Trunc(b)*24;
+  Result.Minute:=w2;
+  Result.Second:=w3;
+end;
 
