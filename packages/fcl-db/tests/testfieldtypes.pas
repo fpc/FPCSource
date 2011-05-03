@@ -87,6 +87,7 @@ type
     procedure TestFixedStringParamQuery;
     procedure TestDateParamQuery;
     procedure TestIntParamQuery;
+    procedure TestTimeParamQuery;
     procedure TestFloatParamQuery;
     procedure TestBCDParamQuery;
     procedure TestAggregates;
@@ -731,6 +732,11 @@ begin
   TestXXParamQuery(ftInteger,'INT',testIntValuesCount);
 end;
 
+procedure TTestFieldTypes.TestTimeParamQuery;
+begin
+  TestXXParamQuery(ftTime,FieldtypeDefinitionsConst[ftTime],testValuesCount);
+end;
+
 procedure TTestFieldTypes.TestFloatParamQuery;
 
 begin
@@ -791,6 +797,7 @@ begin
         ftBCD    : Params.ParamByName('field1').AsCurrency:= testBCDValues[i];
         ftFixedChar,
         ftString : Params.ParamByName('field1').AsString  := testStringValues[i];
+        ftTime   : Params.ParamByName('field1').AsTime  := TimeStringToDateTime(testTimeValues[i]);
         ftDate   : if cross then
                      Params.ParamByName('field1').AsString:= testDateValues[i]
                    else
@@ -815,6 +822,7 @@ begin
         ftBCD    : AssertEquals(testBCDValues[i],FieldByName('FIELD1').AsCurrency);
         ftFixedChar : AssertEquals(PadRight(testStringValues[i],10),FieldByName('FIELD1').AsString);
         ftString : AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString);
+        ftTime   : AssertEquals(testTimeValues[i],DateTimeToTimeString(FieldByName('FIELD1').AsDateTime));
         ftdate   : AssertEquals(testDateValues[i],FormatDateTime('yyyy/mm/dd',FieldByName('FIELD1').AsDateTime));
       else
         AssertTrue('no test for paramtype available',False);

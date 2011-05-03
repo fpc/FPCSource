@@ -202,6 +202,9 @@ var dbtype,
 procedure InitialiseDBConnector;
 procedure FreeDBConnector;
 
+function DateTimeToTimeString(d: tdatetime) : string;
+function TimeStringToDateTime(d: String): TDateTime;
+
 implementation
 
 uses
@@ -317,6 +320,40 @@ begin
   if DBConnectorRefCount=0 then
     FreeAndNil(DBConnector);
 end;
+
+function DateTimeToTimeString(d: tdatetime): string;
+var
+  millisecond: word;
+  second     : word;
+  minute     : word;
+  hour       : word;
+begin
+  // Format the datetime in the format hh:nn:ss:zzz, where the hours can be bigger then 23.
+  DecodeTime(d,hour,minute,second,millisecond);
+  hour := hour + (trunc(d) * 24);
+  result := Format('%.2d',[hour]) + ':' + format('%.2d',[minute]) + ':' + format('%.2d',[second]) + ':' + format('%.3d',[millisecond]);
+end;
+
+function TimeStringToDateTime(d: String): TDateTime;
+var
+  millisecond: word;
+  second     : word;
+  minute     : word;
+  hour       : word;
+  days       : word;
+begin
+  // Convert the string in the format hh:nn:ss:zzz to a datetime.
+  hour := strtoint(copy(d,1,2));
+  minute := strtoint(copy(d,4,2));
+  second := strtoint(copy(d,7,2));
+  millisecond := strtoint(copy(d,10,3));
+
+  days := hour div 24;
+  hour := hour mod 24;
+
+  result := ComposeDateTime(days,EncodeTime(hour,minute,second,millisecond));
+end;
+
 
 { TTestDataLink }
 

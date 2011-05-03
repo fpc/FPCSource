@@ -309,6 +309,7 @@ var
   StrVal: string;
   FloatVal: cdouble;
   DateVal: SQL_DATE_STRUCT;
+  TimeVal: SQL_TIME_STRUCT;
   TimeStampVal: SQL_TIMESTAMP_STRUCT;
   BoolVal: byte;
   ColumnSize, BufferLength, StrLenOrInd: SQLINTEGER;
@@ -398,6 +399,15 @@ begin
           Size:=SizeOf(DateVal);
           CType:=SQL_C_TYPE_DATE;
           SqlType:=SQL_TYPE_DATE;
+          ColumnSize:=Size;
+        end;
+      ftTime:
+        begin
+          TimeVal:=DateTimeToTimeStruct(AParams[ParamIndex].AsTime);
+          PVal:=@TimeVal;
+          Size:=SizeOf(TimeVal);
+          CType:=SQL_C_TYPE_TIME;
+          SqlType:=SQL_TYPE_TIME;
           ColumnSize:=Size;
         end;
       ftDateTime:
