@@ -371,7 +371,7 @@ implementation
            (m_delphi in current_settings.modeswitches) then
           dospecialize:=token=_LSHARPBRACKET;
         if dospecialize then
-          generate_specialization(def,stoParseClassParent in options)
+          generate_specialization(def,stoParseClassParent in options,nil)
         else
           begin
             if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
@@ -831,7 +831,7 @@ implementation
                    if (m_delphi in current_settings.modeswitches) then
                      dospecialize:=token=_LSHARPBRACKET;
                    if dospecialize then
-                     generate_specialization(def,false)
+                     generate_specialization(def,false,nil)
                    else
                      begin
                        if assigned(current_specializedef) and (def=current_specializedef.genericdef) then

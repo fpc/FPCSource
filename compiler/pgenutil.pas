@@ -32,7 +32,7 @@ uses
   { symtable }
   symtype,symdef;
 
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean);
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;parsedtype:tdef);
     function parse_generic_parameters:TFPObjectList;
     procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
 
@@ -54,7 +54,7 @@ uses
   pbase,pexpr,pdecsub,ptype;
 
 
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean);
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;parsedtype:tdef);
       var
         st  : TSymtable;
         srsym : tsym;
@@ -126,7 +126,7 @@ uses
             exit;
           end;
 
-        if not try_to_consume(_LT) then
+        if not assigned(parsedtype) and not try_to_consume(_LT) then
           consume(_LSHARPBRACKET);
 
         generictypelist:=TFPObjectList.create(false);
@@ -136,8 +136,17 @@ uses
         if not assigned(genericdef.typesym) then
           internalerror(200710173);
         err:=false;
-        first:=true;
-        specializename:='';
+        { if parsedtype is set, then the first type identifer was already parsed
+          (happens in inline specializations) and thus we only need to parse
+          the remaining types and do as if the first one was already given }
+        first:=not assigned(parsedtype);
+        if assigned(parsedtype) then
+          begin
+            genericdeflist.Add(parsedtype);
+            specializename:='$'+parsedtype.typesym.realname;
+          end
+        else
+          specializename:='';
         while not (token in [_GT,_RSHARPBRACKET]) do
           begin
             if not first then
