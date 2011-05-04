@@ -27,19 +27,24 @@ unit pgenutil;
 interface
 
 uses
-  symtype;
+  { common }
+  cclasses,
+  { symtable }
+  symtype,symdef;
 
     procedure generate_specialization(var tt:tdef;parse_class_parent:boolean);
+    function parse_generic_parameters:TFPObjectList;
+    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
 
 implementation
 
 uses
   { common }
-  cclasses,cutils,
+  cutils,
   { global }
   globals,tokens,verbose,
   { symtable }
-  symconst,symbase,symdef,symsym,symtable,
+  symconst,symbase,symsym,symtable,
   { modules }
   fmodule,
   { pass 1 }
@@ -355,6 +360,53 @@ uses
         if not try_to_consume(_GT) then
           consume(_RSHARPBRACKET);
       end;
+
+
+    function parse_generic_parameters:TFPObjectList;
+      var
+        generictype : ttypesym;
+      begin
+        result:=TFPObjectList.Create(false);
+        repeat
+          if token=_ID then
+            begin
+              generictype:=ttypesym.create(orgpattern,cundefinedtype);
+              include(generictype.symoptions,sp_generic_para);
+              result.add(generictype);
+            end;
+          consume(_ID);
+        until not try_to_consume(_COMMA) ;
+      end;
+
+
+    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:TFPObjectList);
+      var
+        i: longint;
+        generictype: ttypesym;
+        st: tsymtable;
+      begin
+        def.genericdef:=genericdef;
+        if not assigned(genericlist) then
+          exit;
+
+        case def.typ of
+          recorddef,objectdef: st:=tabstractrecorddef(def).symtable;
+          arraydef: st:=tarraydef(def).symtable;
+          procvardef,procdef: st:=tabstractprocdef(def).parast;
+          else
+            internalerror(201101020);
+        end;
+
+        for i:=0 to genericlist.count-1 do
+          begin
+            generictype:=ttypesym(genericlist[i]);
+            if generictype.typedef.typ=undefineddef then
+              include(def.defoptions,df_generic)
+            else
+              include(def.defoptions,df_specialization);
+            st.insert(generictype);
+          end;
+       end;
 
 
 end.

@@ -46,7 +46,7 @@ implementation
       symbase,symsym,symtable,
       node,nld,nmem,ncon,ncnv,ncal,
       fmodule,scanner,
-      pbase,pexpr,pdecsub,pdecvar,ptype,pdecl,ppu
+      pbase,pexpr,pdecsub,pdecvar,ptype,pdecl,pgenutil,ppu
       ;
 
     const
