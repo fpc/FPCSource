@@ -66,7 +66,7 @@ implementation
        nmat,nadd,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,
        { parser }
        scanner,
-       pbase,pinline,ptype,
+       pbase,pinline,ptype,pgenutil,
        { codegen }
        cgbase,procinfo,cpuinfo
        ;
