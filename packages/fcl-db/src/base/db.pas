@@ -1685,7 +1685,7 @@ type
     property Active: Boolean read FActive;
     property ActiveRecord: Integer read GetActiveRecord write SetActiveRecord;
     property BOF: Boolean read GetBOF;
-    property BufferCount: Integer read FBufferCount write SetBufferCount;
+    property BufferCount: Integer read GetBufferCount write SetBufferCount;
     property DataSet: TDataSet read GetDataSet;
     property DataSource: TDataSource read FDataSource write SetDataSource;
     property DataSourceFixed: Boolean read FDataSourceFixed write FDataSourceFixed;
