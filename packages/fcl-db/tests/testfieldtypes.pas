@@ -237,9 +237,6 @@ end;
 
 procedure TTestFieldTypes.TestLargeRecordSize;
 
-var
-  i          : byte;
-
 begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (plant varchar(8192),sampling_type varchar(8192),area varchar(8192), area_description varchar(8192), batch varchar(8192), sampling_datetime timestamp, status varchar(8192), batch_commentary varchar(8192))');
 
@@ -417,7 +414,7 @@ begin
     Open;
     for i := 0 to testDateValuesCount-1 do
       begin
-      AssertEquals(testDateValues[i],FormatDateTime('yyyy/mm/dd',fields[0].AsDateTime));
+      AssertEquals(testDateValues[i],FormatDateTime('yyyy/mm/dd', fields[0].AsDateTime, DBConnector.FormatSettings));
       Next;
       end;
     close;
@@ -594,9 +591,9 @@ begin
     for i := 0 to corrTestValueCount-1 do
       begin
       if length(testValues[i]) < 12 then
-        AssertEquals(testValues[i],FormatDateTime('yyyy/mm/dd',fields[0].AsDateTime))
+        AssertEquals(testValues[i],FormatDateTime('yyyy/mm/dd', fields[0].AsDateTime, DBConnector.FormatSettings))
       else
-        AssertEquals(testValues[i],FormatDateTime('yyyy/mm/dd hh:mm:ss',fields[0].AsDateTime));
+        AssertEquals(testValues[i],FormatDateTime('yyyy/mm/dd hh:mm:ss', fields[0].AsDateTime, DBConnector.FormatSettings));
       Next;
       end;
     close;
@@ -782,8 +779,6 @@ begin
     sql.clear;
     sql.append('insert into FPDEV2 (ID,FIELD1) values (:id,:field1)');
 
-    ShortDateFormat := 'yyyy-mm-dd';
-
     // There is no Param.AsFixedChar, so the datatype has to be set manually
     if ADatatype=ftFixedChar then
       Params.ParamByName('field1').DataType := ftFixedChar;
@@ -801,7 +796,7 @@ begin
         ftDate   : if cross then
                      Params.ParamByName('field1').AsString:= testDateValues[i]
                    else
-                     Params.ParamByName('field1').AsDateTime:= StrToDate(testDateValues[i]);
+                     Params.ParamByName('field1').AsDateTime:= StrToDate(testDateValues[i],'yyyy/mm/dd','-');
       else
         AssertTrue('no test for paramtype available',False);
       end;
@@ -823,7 +818,7 @@ begin
         ftFixedChar : AssertEquals(PadRight(testStringValues[i],10),FieldByName('FIELD1').AsString);
         ftString : AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString);
         ftTime   : AssertEquals(testTimeValues[i],DateTimeToTimeString(FieldByName('FIELD1').AsDateTime));
-        ftdate   : AssertEquals(testDateValues[i],FormatDateTime('yyyy/mm/dd',FieldByName('FIELD1').AsDateTime));
+        ftdate   : AssertEquals(testDateValues[i],FormatDateTime('yyyy/mm/dd',FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
       else
         AssertTrue('no test for paramtype available',False);
       end;
@@ -836,7 +831,6 @@ end;
 
 procedure TTestFieldTypes.TestSetBlobAsParam(asWhat: integer);
 var
-  i             : byte;
   ASQL          : TSQLQuery;
 
 begin

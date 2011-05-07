@@ -18,6 +18,7 @@ type
   TDBConnector = class(TPersistent)
      private
        FChangedDatasets : array[0..MaxDataSet] of boolean;
+       FFormatSettings: TFormatSettings;
        FUsedDatasets : TFPList;
        FChangedFieldDataset : boolean;
      protected
@@ -60,6 +61,7 @@ type
        procedure StartTest;
        procedure StopTest;
        property TestUniDirectional: boolean read GetTestUniDirectional write SetTestUniDirectional;
+       property FormatSettings: TFormatSettings read FFormatSettings;
      end;
 
   { TDBBasicsTestSetup }
@@ -217,6 +219,9 @@ begin
   CreateFieldDataset;
   CreateNDatasets;
   FUsedDatasets := TFPList.Create;
+  FFormatSettings.DecimalSeparator:='.';
+  FFormatSettings.DateSeparator:='-';
+  FFormatSettings.TimeSeparator:=':';
 end;
 
 destructor TDBConnector.destroy;
@@ -303,7 +308,7 @@ begin
     testValues[ftCurrency,i] := CurrToStr(testCurrencyValues[i]);
     // DecimalSeparator:='.';
     testValues[ftBCD,i] := CurrToStr(testCurrencyValues[i]);
-    testValues[ftDate,i] := DateToStr(StrToDate(testDateValues[i], 'yyyy/mm/dd', '-'));
+    testValues[ftDate,i] := testDateValues[i];
     end;
 
   if dbconnectorname = '' then raise Exception.Create('There is no db-connector specified');

@@ -1912,7 +1912,7 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    AssertEquals(testDateValues[i],FormatDateTime('yyyy/mm/dd',Fld.AsDateTime));
+    AssertEquals(testDateValues[i], FormatDateTime('yyyy/mm/dd', Fld.AsDateTime, DBConnector.FormatSettings));
     ds.Next;
     end;
   ds.close;
