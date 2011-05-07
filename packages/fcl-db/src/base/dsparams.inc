@@ -855,15 +855,15 @@ begin
     begin
 
     if (Field.DataType = ftString) and TStringField(Field).FixedChar then
-      DataType := ftFixedChar
+      FDataType := ftFixedChar
     else if (Field.DataType = ftMemo) and (Field.Size > 255) then
-      DataType := ftString
+      FDataType := ftString
     else if (Field.DataType = ftWideString) and TWideStringField(Field).FixedChar then
-      DataType := ftFixedWideChar
+      FDataType := ftFixedWideChar
     else if (Field.DataType = ftWideMemo) and (Field.Size > 255) then
-      DataType := ftWideString
+      FDataType := ftWideString
     else
-      DataType := Field.DataType;
+      FDataType := Field.DataType;
 
     if VarIsNull(AValue) then
       Clear
