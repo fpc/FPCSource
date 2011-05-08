@@ -114,6 +114,12 @@ begin
     for t := 0 to testValuesCount-1 do
       testStringValues[t] := TrimRight(testStringValues[t]);
     end;
+  if SQLDbType in [odbc,mysql40,mysql41,mysql50,mysql51] then
+    begin
+    // Some DB's do not support milliseconds in time-fields.
+    for t := 0 to testValuesCount-1 do
+      testTimeValues[t] := copy(testTimeValues[t],1,8)+'.000';
+    end;
   if SQLDbType = MYSQL50 then Fconnection := tMySQL50Connection.Create(nil);
   if SQLDbType = MYSQL51 then Fconnection := tMySQL51Connection.Create(nil);
   if SQLDbType = sqlite3 then

@@ -447,18 +447,19 @@ end;
 Function ParseSQLiteTime(S : ShortString; Interval: boolean) : TDateTime;
 
 Var
-  Hour, Min, Sec : Integer;
+  Hour, Min, Sec, MSec : Integer;
 
 begin
   Result:=0;
   If TryStrToInt(NextWord(S,':'),Hour) then
     if TryStrToInt(NextWord(S,':'),Min) then
-      if TryStrToInt(NextWord(S,':'),Sec) then
+      if TryStrToInt(NextWord(S,'.'),Sec) then
         begin
+        MSec:=StrToIntDef(S,0);
         if Interval then
-          Result:=EncodeTimeInterval(Hour,Min,Sec,0)
+          Result:=EncodeTimeInterval(Hour,Min,Sec,MSec)
         else
-          Result:=EncodeTime(Hour,Min,Sec,0);
+          Result:=EncodeTime(Hour,Min,Sec,MSec);
         end;
 end;
 
