@@ -781,7 +781,7 @@ begin
     Result := 0
   else
     Result := EncodeDate(EY, EM, ED);
-  Result := ComposeDateTime(Result,EncodeTime(EH, EN, ES, 0);
+  Result := ComposeDateTime(Result,EncodeTime(EH, EN, ES, 0));
 end;
 
 function InternalStrToTime(S: string): TDateTime;
