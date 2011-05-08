@@ -776,6 +776,9 @@ begin
     end;
     ftDateTime:           // mapped to TDateTimeField
     begin
+      // Seems like not all ODBC-drivers (mysql on Linux) set the fractional part. Initialize
+      // it's value to avoid 'random' data.
+      ODBCTimeStampStruct.Fraction:=0;
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_TYPE_TIMESTAMP, @ODBCTimeStampStruct, SizeOf(SQL_TIMESTAMP_STRUCT), @StrLenOrInd);
       if StrLenOrInd<>SQL_NULL_DATA then
       begin
