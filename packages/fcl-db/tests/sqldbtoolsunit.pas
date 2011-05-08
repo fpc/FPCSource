@@ -114,6 +114,13 @@ begin
     for t := 0 to testValuesCount-1 do
       testStringValues[t] := TrimRight(testStringValues[t]);
     end;
+  if SQLDbType in [mysql41,mysql50,mysql51] then
+    begin
+    // Use 'DATETIME' for datetime-fields in stead of timestamp, because
+    // mysql's timestamps are only valid in the range 1970-2038.
+    // Downside is that fields defined as 'TIMESTAMP' aren't tested
+    FieldtypeDefinitions[ftDateTime] := 'DATETIME';
+    end;
   if SQLDbType in [odbc,mysql40,mysql41,mysql50,mysql51] then
     begin
     // Some DB's do not support milliseconds in time-fields.
