@@ -548,7 +548,7 @@ Implementation
             end
            else
              Message1(exec_i_assembling_pipe,AsmFileName);
-           POpen(outfile,FindAssembler+' '+MakeCmdLine,'W');
+           POpen(outfile,maybequoted(FindAssembler)+' '+MakeCmdLine,'W');
          end
         else
 {$endif}
