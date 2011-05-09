@@ -333,7 +333,7 @@ var
   minute     : word;
   hour       : word;
 begin
-  // Format the datetime in the format hh:nn:ss:zzz, where the hours can be bigger then 23.
+  // Format the datetime in the format hh:nn:ss.zzz, where the hours can be bigger then 23.
   DecodeTime(d,hour,minute,second,millisecond);
   hour := hour + (trunc(d) * 24);
   result := Format('%.2d',[hour]) + ':' + format('%.2d',[minute]) + ':' + format('%.2d',[second]) + '.' + format('%.3d',[millisecond]);
@@ -347,7 +347,7 @@ var
   hour       : word;
   days       : word;
 begin
-  // Convert the string in the format hh:nn:ss:zzz to a datetime.
+  // Convert the string in the format hh:nn:ss.zzz to a datetime.
   hour := strtoint(copy(d,1,2));
   minute := strtoint(copy(d,4,2));
   second := strtoint(copy(d,7,2));
