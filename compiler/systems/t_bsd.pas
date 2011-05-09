@@ -243,6 +243,7 @@ begin
             result:='/usr/lib/dylib1.o'
         end;
     end;
+  result:=maybequoted(result);
 end;    
 
 
@@ -320,7 +321,7 @@ begin
      (sysrootpath<>'') then
     begin
       LinkRes.Add('-syslibroot');
-      LinkRes.Add(sysrootpath);
+      LinkRes.Add(maybequoted(sysrootpath));
     end;
 
   if (not isdll) or
