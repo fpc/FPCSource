@@ -321,7 +321,7 @@ begin
      (sysrootpath<>'') then
     begin
       LinkRes.Add('-syslibroot');
-      LinkRes.Add(maybequoted(sysrootpath));
+      LinkRes.Add(sysrootpath);
     end;
 
   if (not isdll) or
