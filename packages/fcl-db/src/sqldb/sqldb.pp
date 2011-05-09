@@ -497,6 +497,18 @@ implementation
 
 uses dbconst, strutils;
 
+function TimeIntervalToString(Time: TDateTime): string;
+var
+  millisecond: word;
+  second     : word;
+  minute     : word;
+  hour       : word;
+begin
+  DecodeTime(Time,hour,minute,second,millisecond);
+  hour := hour + (trunc(Time) * 24);
+  result := Format('%.2d',[hour]) + ':' + format('%.2d',[minute]) + ':' + format('%.2d',[second]) + '.' + format('%.3d',[millisecond]);
+end;
+
 { TSQLConnection }
 
 function TSQLConnection.StrToStatementType(s : string) : TStatementType;
@@ -667,7 +679,8 @@ begin
   else case field.DataType of
     ftString   : Result := '''' + field.asstring + '''';
     ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Field.AsDateTime) + '''';
-    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:mm:ss',Field.AsDateTime) + ''''
+    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:mm:ss',Field.AsDateTime) + '''';
+    ftTime     : Result := QuotedStr(TimeIntervalToString(Field.AsDateTime));
   else
     Result := field.asstring;
   end; {case}
@@ -680,6 +693,7 @@ begin
     ftString   : Result := '''' + param.asstring + '''';
     ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Param.AsDateTime) + '''';
     ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:mm:ss',Param.AsDateTime) + '''';
+    ftTime     : Result := QuotedStr(TimeIntervalToString(Param.AsDateTime));
     ftFloat    : Result := '''' + FloatToStr(Param.AsFloat, FSQLServerFormatSettings) + ''''
   else
     Result := Param.asstring;
