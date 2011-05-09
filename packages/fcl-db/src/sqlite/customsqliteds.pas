@@ -1320,6 +1320,8 @@ begin
 
   if Field.FieldNo >= 0 then
   begin
+    if State in [dsEdit, dsInsert] then
+      Field.Validate(Buffer);
     FieldOffset := Field.FieldNo - 1;
     EditItem := FCacheItem;
   end
