@@ -336,7 +336,7 @@ begin
   // Format the datetime in the format hh:nn:ss.zzz, where the hours can be bigger then 23.
   DecodeTime(d,hour,minute,second,millisecond);
   hour := hour + (trunc(d) * 24);
-  result := Format('%.2d',[hour]) + ':' + format('%.2d',[minute]) + ':' + format('%.2d',[second]) + '.' + format('%.3d',[millisecond]);
+  result := Format('%.2d:%.2d:%.2d:%.3d',[hour,minute,second,millisecond]);
 end;
 
 function TimeStringToDateTime(d: String): TDateTime;
