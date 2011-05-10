@@ -240,7 +240,8 @@ type
     { Base methods }
     constructor Create;
     destructor Destroy; override;
-    procedure WriteToFile(AFileName: string; AFormat: TvVectorialFormat);
+    procedure WriteToFile(AFileName: string; AFormat: TvVectorialFormat); overload;
+    procedure WriteToFile(AFileName: string); overload;
     procedure WriteToStream(AStream: TStream; AFormat: TvVectorialFormat);
     procedure WriteToStrings(AStrings: TStrings; AFormat: TvVectorialFormat);
     procedure ReadFromFile(AFileName: string; AFormat: TvVectorialFormat); overload;
@@ -883,6 +884,14 @@ begin
   end;
 end;
 
+procedure TvVectorialDocument.WriteToFile(AFileName: string);
+var
+  lFormat: TvVectorialFormat;
+begin
+  lFormat := GetFormatFromExtension(ExtractFileExt(AFileName));
+  WriteToFile(AFileName, lFormat);
+end;
+
 {@@
   Writes the document to a stream
 }
@@ -938,15 +947,10 @@ end;
 }
 procedure TvVectorialDocument.ReadFromFile(AFileName: string);
 var
-  lExt: string;
+  lFormat: TvVectorialFormat;
 begin
-  lExt := ExtractFileExt(AFileName);
-  if lExt = STR_PDF_EXTENSION then ReadFromFile(AFileName, vfPDF)
-  else if lExt = STR_POSTSCRIPT_EXTENSION then ReadFromFile(AFileName, vfPostScript)
-  else if lExt = STR_SVG_EXTENSION then ReadFromFile(AFileName, vfSVG)
-  else if lExt = STR_CORELDRAW_EXTENSION then ReadFromFile(AFileName, vfCorelDrawCDR)
-  else if lExt = STR_WINMETAFILE_EXTENSION then ReadFromFile(AFileName, vfWindowsMetafileWMF)
-  else if lExt = STR_AUTOCAD_EXCHANGE_EXTENSION then ReadFromFile(AFileName, vfDXF);
+  lFormat := GetFormatFromExtension(ExtractFileExt(AFileName));
+  ReadFromFile(AFileName, lFormat);
 end;
 
 {@@
@@ -995,6 +999,7 @@ begin
   else if AnsiCompareText(lExt, STR_SVG_EXTENSION) = 0 then Result := vfSVG
   else if AnsiCompareText(lExt, STR_CORELDRAW_EXTENSION) = 0 then Result := vfCorelDrawCDR
   else if AnsiCompareText(lExt, STR_WINMETAFILE_EXTENSION) = 0 then Result := vfWindowsMetafileWMF
+  else if AnsiCompareText(lExt, STR_AUTOCAD_EXCHANGE_EXTENSION) = 0 then Result := vfDXF
   else
     raise Exception.Create('TvVectorialDocument.GetFormatFromExtension: The extension (' + lExt + ') doesn''t match any supported formats.');
 end;
