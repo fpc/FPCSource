@@ -1130,6 +1130,7 @@ type
     Function GetAsMemo: string;
     Function GetAsString: string;
     Function GetAsVariant: Variant;
+    Function GetAsFMTBCD: TBCD;
     Function GetDisplayName: string; override;
     Function GetIsNull: Boolean;
     Function IsEqual(AValue: TParam): Boolean;
@@ -1147,6 +1148,7 @@ type
     Procedure SetAsTime(const AValue: TDateTime);
     Procedure SetAsVariant(const AValue: Variant);
     Procedure SetAsWord(AValue: LongInt);
+    Procedure SetAsFMTBCD(const AValue: TBCD);
     Procedure SetDataType(AValue: TFieldType);
     Procedure SetText(const AValue: string);
     function GetAsWideString: WideString;
@@ -1179,6 +1181,7 @@ type
     Property AsString : string read GetAsString write SetAsString;
     Property AsTime : TDateTime read GetAsDateTime write SetAsTime;
     Property AsWord : LongInt read GetAsInteger write SetAsWord;
+    Property AsFMTBCD: TBCD read GetAsFMTBCD write SetAsFMTBCD;
     Property Bound : Boolean read FBound write FBound;
     Property Dataset : TDataset Read GetDataset;
     Property IsNull : Boolean read GetIsNull;

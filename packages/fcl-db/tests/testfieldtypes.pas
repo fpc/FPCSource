@@ -88,6 +88,7 @@ type
     procedure TestDateParamQuery;
     procedure TestIntParamQuery;
     procedure TestTimeParamQuery;
+    procedure TestFmtBCDParamQuery;
     procedure TestFloatParamQuery;
     procedure TestBCDParamQuery;
     procedure TestAggregates;
@@ -109,7 +110,7 @@ type
 
 implementation
 
-uses sqldbtoolsunit,toolsunit, variants, sqldb, bufdataset, strutils, dbconst;
+uses sqldbtoolsunit,toolsunit, variants, sqldb, bufdataset, strutils, dbconst, FmtBCD;
 
 Type HackedDataset = class(TDataset);
 
@@ -729,6 +730,11 @@ begin
   TestXXParamQuery(ftInteger,'INT',testIntValuesCount);
 end;
 
+procedure TTestFieldTypes.TestFmtBCDParamQuery;
+begin
+  TestXXParamQuery(ftFMTBcd,FieldtypeDefinitionsConst[ftFMTBcd],testValuesCount);
+end;
+
 procedure TTestFieldTypes.TestTimeParamQuery;
 begin
   TestXXParamQuery(ftTime,FieldtypeDefinitionsConst[ftTime],testValuesCount);
@@ -797,6 +803,7 @@ begin
                      Params.ParamByName('field1').AsString:= testDateValues[i]
                    else
                      Params.ParamByName('field1').AsDateTime:= StrToDate(testDateValues[i],'yyyy/mm/dd','-');
+        ftFMTBcd : Params.ParamByName('field1').AsFMTBCD:= StrToBCD(testFmtBCDValues[i]{,DBConnector.FormatSettings})
       else
         AssertTrue('no test for paramtype available',False);
       end;
@@ -819,6 +826,7 @@ begin
         ftString : AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString);
         ftTime   : AssertEquals(testTimeValues[i],DateTimeToTimeString(FieldByName('FIELD1').AsDateTime));
         ftdate   : AssertEquals(testDateValues[i],FormatDateTime('yyyy/mm/dd',FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
+        ftFMTBcd : AssertEquals(testFmtBCDValues[i],BCDToStr(FieldByName('FIELD1').AsBCD{,DBConnector.FormatSettings}))
       else
         AssertTrue('no test for paramtype available',False);
       end;

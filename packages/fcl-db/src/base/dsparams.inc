@@ -569,6 +569,14 @@ begin
     Result:=FValue;
 end;
 
+function TParam.GetAsFMTBCD: TBCD;
+begin
+  If IsNull then
+    Result:=0
+  else
+    Result:=VarToBCD(FValue);
+end;
+
 Function TParam.GetDisplayName: string;
 begin
   if (FName<>'') then
@@ -697,7 +705,10 @@ begin
                       FDataType:=ftString;
       varInt64    : FDataType:=ftLargeInt;
     else
-      FDataType:=ftUnknown;
+      if VarIsFmtBCD(Value) then
+        FDataType:=ftFmtBCD
+      else
+        FDataType:=ftUnknown;
     end;
 end;
 
@@ -707,6 +718,11 @@ begin
   FDataType:=ftWord;
 end;
 
+procedure TParam.SetAsFMTBCD(const AValue: TBCD);
+begin
+  FValue:=VarFmtBCDCreate(AValue);
+  FDataType:=ftFMTBcd;
+end;
 
 Procedure TParam.SetDataType(AValue: TFieldType);
 
@@ -804,6 +820,7 @@ begin
       ftDateTime : Field.AsDateTime:=AsDateTime;
       ftBytes,
       ftVarBytes : ; // Todo.
+      ftFmtBCD   : Field.AsBCD:=AsFMTBCD;
     else
       If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then
         DatabaseErrorFmt(SBadParamFieldType, [Name], DataSet);
@@ -841,6 +858,7 @@ begin
       ftDateTime : AsDateTime:=Field.AsDateTime;
       ftBytes,
       ftVarBytes : ; // Todo.
+      ftFmtBCD   : AsFMTBCD:=Field.AsBCD;
     else
       If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then
         DatabaseErrorFmt(SBadParamFieldType, [Name], DataSet);
@@ -938,6 +956,7 @@ begin
         end;
         end;
       end;
+    ftFmtBCD   : PBCD(Buffer)^:=AsFMTBCD;
   else
     If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then
       DatabaseErrorFmt(SBadParamFieldType, [Name], DataSet);
@@ -976,6 +995,7 @@ begin
     ftDataSet,
     ftReference,
     ftCursor   : Result:=0;
+    ftFmtBCD   : Result:=SizeOf(TBCD);
   else
     DatabaseErrorFmt(SBadParamFieldType,[Name],DataSet);
   end;
@@ -1057,6 +1077,7 @@ begin
     ftGraphic..ftTypedBinary,
     ftOraBlob,
     ftOraClob  : SetBlobData(Buffer, StrLen(PChar(Buffer)));
+    ftFmtBCD   : AsFMTBCD:=PBCD(Buffer)^;
   else
     DatabaseErrorFmt(SBadParamFieldType,[Name],DataSet);
   end;

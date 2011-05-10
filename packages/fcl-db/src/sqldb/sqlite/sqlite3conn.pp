@@ -181,6 +181,7 @@ begin
                 do1:= P.asfloat;
                 checkerror(sqlite3_bind_double(fstatement,I,do1));
                 end;
+        ftFMTBcd,
         ftstring,
         ftmemo: begin // According to SQLite documentation, CLOB's (ftMemo) have the Text affinity
                 str1:= p.asstring;
