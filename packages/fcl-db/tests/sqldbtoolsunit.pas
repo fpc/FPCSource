@@ -121,7 +121,7 @@ begin
     // Downside is that fields defined as 'TIMESTAMP' aren't tested
     FieldtypeDefinitions[ftDateTime] := 'DATETIME';
     end;
-  if SQLDbType in [odbc,mysql40,mysql41,mysql50,mysql51] then
+  if SQLDbType in [odbc,mysql40,mysql41,mysql50,mysql51,interbase] then
     begin
     // Some DB's do not support milliseconds in time-fields.
     for t := 0 to testValuesCount-1 do
@@ -146,6 +146,13 @@ begin
   if SQLDbType = INTERBASE then
     begin
     Fconnection := tIBConnection.Create(nil);
+    // Firebird does not support time = 24:00:00
+    testTimeValues[2]:='23:00:00.000';
+    end;
+  if SQLDbType in [postgresql,interbase] then
+    begin
+    // Some db's do not support times > 24:00:00
+    testTimeValues[3]:='13:25:15.000';
     end;
   if SQLDbType = ODBC then Fconnection := tODBCConnection.Create(nil);
   if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
