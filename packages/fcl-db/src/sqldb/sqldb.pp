@@ -506,7 +506,7 @@ var
 begin
   DecodeTime(Time,hour,minute,second,millisecond);
   hour := hour + (trunc(Time) * 24);
-  result := Format('%.2d:%.2d:%.2d:%.3d',[hour,minute,second,millisecond]);
+  result := Format('%.2d:%.2d:%.2d.%.3d',[hour,minute,second,millisecond]);
 end;
 
 { TSQLConnection }
