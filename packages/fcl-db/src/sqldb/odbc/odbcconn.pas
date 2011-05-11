@@ -962,10 +962,11 @@ begin
   ODBCCursor.FBlobStreams.Clear;
 {$ENDIF}
 
-  ODBCCheckResult(
-    SQLFreeStmt(ODBCCursor.FSTMTHandle, SQL_CLOSE),
-    SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not close ODBC statement cursor.'
-  );
+  if ODBCCursor.FSTMTHandle <> SQL_NULL_HSTMT then
+    ODBCCheckResult(
+      SQLFreeStmt(ODBCCursor.FSTMTHandle, SQL_CLOSE),
+      SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not close ODBC statement cursor.'
+    );
 end;
 
 procedure TODBCConnection.AddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs);

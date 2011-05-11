@@ -65,6 +65,7 @@ type
     procedure TestDeleteAllInsertXML;
 
     procedure TestFileNameProperty;
+    procedure TestCloseDatasetNoConnection; // bug 17623
   end;
 
 implementation
@@ -396,6 +397,26 @@ begin
   CompareDatasets(ds,LoadDs);
   ds.close;
   LoadDs.close;
+end;
+
+procedure TTestBufDatasetStreams.TestCloseDatasetNoConnection;
+var SaveDs: TCustomBufDataset;
+    LoadDs: TCustomBufDataset;
+    Conn: TSQLConnection;
+begin
+  SaveDs := DBConnector.GetNDataset(true,15) as TSQLQuery;
+  SaveDs.Open;
+  SaveDs.SaveToFile('Basics.xml',dfXML);
+  SaveDs.Close;
+
+  Conn := TSQLConnectionClass(TSQLDBConnector(DBConnector).Connection.ClassType).Create(nil);
+  LoadDs := TSQLQuery.Create(nil);
+  LoadDs.DataBase:=Conn;
+  LoadDs.LoadFromFile('Basics.xml');
+  LoadDs.Next;
+  LoadDs.Close;
+  LoadDs.Free;
+  Conn.Free;
 end;
 
 procedure TTestBufDatasetStreams.TestSimpleEditApplUpd;
