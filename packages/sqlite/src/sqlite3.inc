@@ -3263,7 +3263,7 @@ const
 ** If the [unprotected sqlite3_value] object returned by
 ** [sqlite3_column_value()] is used in any other way, including calls
 ** to routines like 
-** [sqlite3_value_cint()], [sqlite3_value_text()], or [sqlite3_value_bytes()],
+** [sqlite3_value_int()], [sqlite3_value_text()], or [sqlite3_value_bytes()],
 ** then the behavior is undefined.
 **
 ** These routines attempt to convert the value where appropriate.  For
@@ -3735,11 +3735,11 @@ type
 **          [protected sqlite3_value] object V cinto a floating point value and
 **          returns a copy of that value.
 **
-** {F15115} The [sqlite3_value_cint(V)] interface converts the
+** {F15115} The [sqlite3_value_int(V)] interface converts the
 **          [protected sqlite3_value] object V cinto a 64-bit signed INTEGER and
 **          returns the lower 32 bits of that INTEGER.
 **
-** {F15118} The [sqlite3_value_cint64(V)] interface converts the
+** {F15118} The [sqlite3_value_int64(V)] interface converts the
 **          [protected sqlite3_value] object V cinto a 64-bit signed INTEGER and
 **          returns a copy of that INTEGER.
 **
@@ -3779,8 +3779,8 @@ type
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_bytes{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_bytes16{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_double{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cdouble; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_cint{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_cint64{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): sqlite3_int64; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_int{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_int64{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): sqlite3_int64; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_text{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): pchar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_text16{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): pwidechar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_text16le{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): pwidechar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
@@ -5821,8 +5821,8 @@ begin
   pointer(sqlite3_value_bytes) := GetProcedureAddress(LibHandle,'sqlite3_value_bytes');
   pointer(sqlite3_value_bytes16) := GetProcedureAddress(LibHandle,'sqlite3_value_bytes16');
   pointer(sqlite3_value_double) := GetProcedureAddress(LibHandle,'sqlite3_value_double');
-  pointer(sqlite3_value_cint) := GetProcedureAddress(LibHandle,'sqlite3_value_cint');
-  pointer(sqlite3_value_cint64) := GetProcedureAddress(LibHandle,'sqlite3_value_cint64');
+  pointer(sqlite3_value_int) := GetProcedureAddress(LibHandle,'sqlite3_value_int');
+  pointer(sqlite3_value_int64) := GetProcedureAddress(LibHandle,'sqlite3_value_int64');
   pointer(sqlite3_value_text) := GetProcedureAddress(LibHandle,'sqlite3_value_text');
   pointer(sqlite3_value_text16) := GetProcedureAddress(LibHandle,'sqlite3_value_text16');
   pointer(sqlite3_value_text16le) := GetProcedureAddress(LibHandle,'sqlite3_value_text16le');
