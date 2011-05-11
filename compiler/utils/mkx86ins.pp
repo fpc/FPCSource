@@ -198,7 +198,7 @@ var
    infile,insfile : text;
    { instruction fields }
    skip : boolean;
-   last,
+   literalcount,
    ops    : longint;
    intopcode,
    attopcode,
@@ -360,24 +360,29 @@ begin
         { codes }
         skipspace;
         j:=0;
-        last:=0;
+        literalcount:=0;
         if s[i] in ['\','0'..'9'] then
           begin
              while not(s[i] in [' ',#9]) do
                begin
                  code:=readnumber;
                  { for some codes we want also to change the optypes, but not
-                   if the last byte was a 1 then this byte belongs to a direct
-                   copy }
-                 if last<>1 then
-                  begin
-                    case code of
-                      12,13,14 :
-                        optypes[code-11]:=optypes[code-11]+' or ot_signed';
-                    end;
-                  end;
+                   if the code belongs to a literal sequence }
+                 if (literalcount=0) and (code>=1) and (code<=3) then
+                   literalcount:=code
+                 else
+                   begin
+                     if literalcount>0 then
+                       dec(literalcount)
+                     else
+                       begin
+                         case code of
+                           12,13,14 :
+                             optypes[code-11]:=optypes[code-11]+' or ot_signed';
+                         end;
+                       end;
+                   end;
                  codes:=codes+'#'+tostr(code);
-                 last:=code;
                  inc(j);
                end;
           end

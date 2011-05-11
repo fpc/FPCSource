@@ -50,7 +50,7 @@ rm8,imm               \300\323\1\x80\202\21           8086,SB
 (Ch_Mop2, Ch_Rop1, Ch_WFlags)
 regmem,reg16|32|64    \300\320\1\x01\101              8086,SM
 reg16|32|64,regmem    \301\320\1\x03\110              8086,SM
-rm8,reg8              \300\323\17\101                 8086
+rm8,reg8              \300\323\1\x00\101              8086
 reg8,rm8              \301\323\1\x02\110              8086,SM
 rm16|32|64,imm8       \300\320\1\x83\200\15           8086
 reg_eax|64,imm        \320\1\x05\41                   386,SD
@@ -936,7 +936,7 @@ mem|near              \300\320\1\xFF\204              8086
 
 [LLDT,lldtX]
 (Ch_None, Ch_None, Ch_None)
-rm16                  \300\1\x0F\17\202               286,PROT,PRIV
+rm16                  \300\2\x0F\x00\202              286,PROT,PRIV
 
 [LMSW,lmswX]
 (Ch_None, Ch_None, Ch_None)
@@ -1006,7 +1006,7 @@ reg16|32|64,mem       \301\320\2\x0F\xB2\110          386
 
 [LTR,ltrX]
 (Ch_None, Ch_None, Ch_None)
-rm16                  \300\1\x0F\17\203               286,PROT,PRIV
+rm16                  \300\2\x0F\x00\203              286,PROT,PRIV
 
 [MONITOR]
 (Ch_None, Ch_None, Ch_None)
@@ -1941,8 +1941,8 @@ mem                   \300\2\x0F\x01\201              286
 
 [SLDT,sldtX]
 (Ch_Wop1, Ch_None, Ch_None)
-mem                   \300\1\x0F\17\200               286
-reg16|32|64           \320\1\x0F\17\200               286
+mem                   \300\2\x0F\x00\200              286
+reg16|32|64           \320\2\x0F\x00\200              286
 
 [SMI]
 (Ch_All, Ch_None, Ch_None)
@@ -1986,8 +1986,8 @@ void                  \324\1\xAB                      8086
 
 [STR,strX]
 (Ch_Wop1, Ch_None, Ch_None)
-mem                   \300\1\x0F\17\201               286,PROT
-reg16|32|64           \320\1\x0F\17\201               286,PROT
+mem                   \300\2\x0F\x00\201              286,PROT
+reg16|32|64           \320\2\x0F\x00\201              286,PROT
 
 [SUB,subX]
 (Ch_Mop2, Ch_Rop1, Ch_WFlags)
@@ -2064,15 +2064,15 @@ reg8,rm8              \301\323\2\x0F\x12\110              386,UNDOC
 
 [VERR,verrX]
 (Ch_WFlags, Ch_None, Ch_None)
-mem                   \300\1\x0F\17\204               286,PROT
-mem16                 \300\1\x0F\17\204               286,PROT
-reg16                 \300\1\x0F\17\204               286,PROT
+mem                   \300\2\x0F\x00\204              286,PROT
+mem16                 \300\2\x0F\x00\204              286,PROT
+reg16                 \300\2\x0F\x00\204              286,PROT
 
 [VERW]
 (Ch_WFlags, Ch_None, Ch_None)
-mem                   \300\1\x0F\17\205               286,PROT
-mem16                 \300\1\x0F\17\205               286,PROT
-reg16                 \300\1\x0F\17\205               286,PROT
+mem                   \300\2\x0F\x00\205              286,PROT
+mem16                 \300\2\x0F\x00\205              286,PROT
+reg16                 \300\2\x0F\x00\205              286,PROT
 
 [WAIT]
 (Ch_None, Ch_None, Ch_None)
@@ -3407,12 +3407,12 @@ xmmreg,mem            \1\x66\301\331\3\x0F\x38\x0A\110               SSE4
 ;*******************************************************************************
 ;**********SSE4.1***************************************************************
 ;*******************************************************************************
-[BLENDPS] ;By hands delete 'or ot_signed' from i386tab.inc or x8664tab.inc
+[BLENDPS]
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmreg,imm     \1\x66\331\3\x0F\x3A\x0C\110\26          SSE4
 xmmreg,mem,imm        \1\x66\301\331\3\x0F\x3A\x0C\110\26      SSE4
 
-[BLENDPD] ;By hands delete 'or ot_signed' from i386tab.inc or x8664tab.inc 
+[BLENDPD]
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmreg,imm     \1\x66\331\2\x0F\x3A\375\1\x0D\110\26          SSE4
 xmmreg,mem,imm        \1\x66\301\331\2\x0F\x3A\375\1\x0D\110\26      SSE4
