@@ -333,6 +333,7 @@
 'sbb',
 'scasb',
 'scasd',
+'scasq',
 'scasw',
 'segcs',
 'segds',
@@ -676,7 +677,7 @@
 'aesdec',
 'aesdeclast',
 'aesimc',
-'aeskeygen',
+'aeskeygenassist',
 'stosq',
 'lodsq',
 'cmpsq'

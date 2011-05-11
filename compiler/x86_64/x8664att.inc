@@ -333,6 +333,7 @@
 'sbb',
 'scasb',
 'scasl',
+'scasq',
 'scasw',
 'cs',
 'ds',

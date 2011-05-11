@@ -16,21 +16,21 @@ void                  void                            none
 
 [AAA]
 (Ch_MEAX, Ch_WFlags, Ch_None)
-void                  \1\x37                          8086
+void                  \1\x37                          8086,NOX86_64
 
 [AAD,aadX]
 (Ch_MEAX, Ch_WFlags, Ch_None)
-void                  \2\xD5\x0A                      8086
-imm                   \1\xD5\24                       8086,SB
+void                  \2\xD5\x0A                      8086,NOX86_64
+imm                   \1\xD5\24                       8086,SB,NOX86_64
 
 [AAM,aamX]
 (Ch_MEAX, Ch_WFlags, Ch_None)
-void                  \2\xD4\x0A                      8086
-imm                   \1\xD4\24                       8086,SB
+void                  \2\xD4\x0A                      8086,NOX86_64
+imm                   \1\xD4\24                       8086,SB,NOX86_64
 
 [AAS]
 (Ch_MEAX, Ch_WFlags, Ch_None)
-void                  \1\x3F                          8086
+void                  \1\x3F                          8086,NOX86_64
 
 [ADC,adcX]
 (Ch_Mop2, Ch_Rop1, Ch_RWFlags)
@@ -76,12 +76,12 @@ rm8,imm               \300\323\1\x80\204\21           8086,SB
 
 [ARPL,arplX]
 (Ch_WFlags, Ch_None, Ch_None)
-reg16,reg16           \300\1\x63\101                  286,PROT
-mem,reg16             \300\1\x63\101                  286,PROT,SM
+reg16,reg16           \300\1\x63\101                  286,PROT,NOX86_64
+mem,reg16             \300\1\x63\101                  286,PROT,SM,NOX86_64
 
 [BOUND,boundX]
 (Ch_Rop1, Ch_None, Ch_None)
-reg16|32|64,mem       \301\320\1\x62\110              186
+reg16|32,mem          \301\320\1\x62\110              186,NOX86_64
 
 [BSF,bsfX]
 (Ch_Wop2, Ch_WFlags, Ch_Rop1)
@@ -121,14 +121,14 @@ rm16|32|64,imm        \300\320\2\x0F\xBA\205\25       386,SB
 imm                   \320\1\xE8\64                   8086
 rm16|32|64            \300\320\1\xFF\202              8086
 imm|near              \320\1\xE8\64                   8086
-imm|far               \320\1\x9A\34\37                8086,ND
+imm|far               \320\1\x9A\34\37                8086,ND,NOX86_64
 mem|near              \300\320\1\xFF\202              8086
 mem|far               \300\320\1\xFF\203              8086
-imm:imm               \327\1\x9A\35\30                8086
-imm16:imm             \324\1\x9A\31\30                8086
-imm:imm16             \324\1\x9A\31\30                8086
-imm32:imm             \325\1\x9A\41\30                386
-imm:imm32             \325\1\x9A\41\30                386
+imm:imm               \327\1\x9A\35\30                8086,NOX86_64
+imm16:imm             \324\1\x9A\31\30                8086,NOX86_64
+imm:imm16             \324\1\x9A\31\30                8086,NOX86_64
+imm32:imm             \325\1\x9A\41\30                386,NOX86_64
+imm:imm32             \325\1\x9A\41\30                386,NOX86_64
 
 [CBW,cbtw]
 (Ch_MEAX, Ch_None, Ch_None)
@@ -217,15 +217,15 @@ void                  \325\1\x98                      386
 
 [DAA]
 (Ch_MEAX, Ch_None, Ch_None)
-void                  \1\x27                          8086
+void                  \1\x27                          8086,NOX86_64
 
 [DAS]
 (Ch_MEAX, Ch_None, Ch_None)
-void                  \1\x2F                          8086
+void                  \1\x2F                          8086,NOX86_64
 
 [DEC,decX]
 (Ch_Mop1, Ch_WFlags, Ch_None)
-reg16|32|64           \320\10\x48                     8086,NOX86_64
+reg16|32              \320\10\x48                     8086,NOX86_64
 rm16|32|64            \300\320\1\xFF\201              8086
 rm8                   \300\323\1\xFE\201              8086
 
@@ -793,7 +793,7 @@ reg_ax|32|64,reg_dx   \320\1\xED                      8086
 
 [INC,incX]
 (Ch_Mop1, Ch_WFlags, Ch_None)
-reg16|32|64           \320\10\x40                     8086,NOX86_64
+reg16|32              \320\10\x40                     8086,NOX86_64
 rm16|32|64            \300\320\1\xFF\200              8086
 rm8                   \300\323\1\xFE\200              8086
 
@@ -831,7 +831,7 @@ void                  \1\xCC                          8086
 
 [INTO]
 (Ch_All, Ch_None, Ch_None)
-void                  \1\xCE                          8086
+void                  \1\xCE                          8086,NOX86_64
 
 [INVD]
 (Ch_All, Ch_None, Ch_None)
@@ -873,13 +873,14 @@ imm16|32|64           \320\1\xE9\64                   8086,PASS2
 rm16|32|64            \300\320\1\xFF\204              8086
 imm|short             \1\xEB\50                       8086,PASS2
 imm|near              \320\1\xE9\64                   8086,ND,PASS2
-imm|far               \320\1\xEA\34\37                8086,ND,PASS2
+imm|far               \320\1\xEA\34\37                8086,ND,PASS2,NOX86_64
 mem|near              \300\320\1\xFF\204              8086
 mem|far               \300\320\1\xFF\205              8086
-imm:imm               \327\1\xEA\35\30                8086
-imm:imm16             \324\1\xEA\31\30                8086
-imm:imm32             \325\1\xEA\41\30                386
+imm:imm               \327\1\xEA\35\30                8086,NOX86_64
+imm:imm16             \324\1\xEA\31\30                8086,NOX86_64
+imm:imm32             \325\1\xEA\41\30                386,NOX86_64
 
+; SAHF/LAHF are valid in x86_64 only if CPUID.80000001h:ECX.0=1
 [LAHF]
 (Ch_WEAX, Ch_RFlags, Ch_None)
 void                  \1\x9F                          8086
@@ -897,7 +898,7 @@ mem|far               \300\320\1\xFF\203              8086
 
 [LDS,ldsX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
-reg16|32,mem          \301\320\1\xC5\110              8086
+reg16|32,mem          \301\320\1\xC5\110              8086,NOX86_64
 
 [LEA,leaX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
@@ -910,7 +911,7 @@ void                  \1\xC9                          186
 
 [LES,lesX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
-reg16|32,mem          \301\320\1\xC4\110              8086
+reg16|32,mem          \301\320\1\xC4\110              8086,NOX86_64
 
 [LFS,lfsX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
@@ -1463,7 +1464,7 @@ mmxreg,mem            \301\2\x0F\x58\110              PENT,MMX,SM,CYRIX
 reg16|32|64           \320\10\x58\335                 8086
 rm16|32|64            \300\320\1\x8F\200\335          8086
 reg_cs                \1\x0F                          8086,UNDOC,ND
-reg_dess              \4                              8086
+reg_dess              \4                              8086,NOX86_64
 reg_fsgs              \1\x0F\5\335                    386
 
 [POPA,popaX]
@@ -1827,9 +1828,10 @@ mem80                 \300\2\x0F\x7B\200              486,CYRIX,SMM
 (Ch_All, Ch_None, Ch_None)
 void                  \2\x0F\xAA                      PENT,SMM
 
+; SAHF/LAHF are valid in x86_64 only if CPUID.80000001h:ECX.0=1
 [SAHF]
 (Ch_WFlags, Ch_REAX, Ch_None)
-void                  \1\x9E                          8086,NOX86_64
+void                  \1\x9E                          8086
 
 [SAL,salX]
 (Ch_Mop2, Ch_Rop1, Ch_RWFlags)
@@ -1842,7 +1844,7 @@ rm8,imm               \300\323\1\xC0\204\25           186,ND,SB
 
 [SALC]
 (Ch_WEAX, Ch_RFLAGS, Ch_None)
-void                  \1\xD6                          8086,UNDOC
+void                  \1\xD6                          8086,UNDOC,NOX86_64
 
 [SAR,sarX]
 (Ch_Mop2, Ch_Rop1, Ch_WFlags)
@@ -1874,6 +1876,10 @@ void                  \332\1\xAE                      8086
 [SCASD,scasl]
 (Ch_All, Ch_None, Ch_None)
 void                  \332\325\1\xAF                  386
+
+[SCASQ]
+(Ch_All, Ch_None, Ch_None)
+void                  \332\326\1\xAF                  X86_64
 
 [SCASW]
 (Ch_All, Ch_None, Ch_None)
@@ -3700,7 +3706,7 @@ xmmreg,mem            \1\x66\301\331\3\x0F\x38\xDF\110               SSE4
 xmmreg,xmmreg         \1\x66\331\3\x0F\x38\xDB\110                   SSE4
 xmmreg,mem            \1\x66\301\331\3\x0F\x38\xDB\110               SSE4
 
-[AESKEYGEN,aeskeygenassist] ;AESKEYGENASIST
+[AESKEYGENASSIST]
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmreg,imm     \1\x66\331\3\x0F\x3A\xDF\110\26                SSE4
 xmmreg,mem,imm        \1\x66\301\331\3\x0F\x3A\xDF\110\26            SSE4
