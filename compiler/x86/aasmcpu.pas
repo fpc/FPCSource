@@ -323,6 +323,11 @@ implementation
        IF_SVM    = $00100000;
        { SSE4 instructions  }
        IF_SSE4   = $00200000;
+       { TODO: These flags were added to make x86ins.dat more readable.
+         Values must be reassigned to make any other use of them. }
+       IF_SSSE3  = $00200000;
+       IF_SSE41  = $00200000;
+       IF_SSE42  = $00200000;
 
        IF_8086   = $00000000;  { 8086 instruction  }
        IF_186    = $01000000;  { 186+ instruction  }
@@ -906,7 +911,6 @@ implementation
         modrm : byte;
         sib   : byte;
 {$ifdef x86_64}
-        rex_present : boolean;
         rex   : byte;
 {$endif x86_64}
       end;
@@ -1373,17 +1377,13 @@ implementation
               ((getregtype(input.reg)=R_MMREGISTER) and
               (getsupreg(input.reg)>=RS_XMM8)) then
               begin
-                output.rex_present:=true;
                 output.rex:=output.rex or $41;
-                inc(output.size,1);
               end
             else if (getregtype(input.reg)=R_INTREGISTER) and
               (getsubreg(input.reg)=R_SUBL) and
               (getsupreg(input.reg) in [RS_RDI,RS_RSI,RS_RBP,RS_RSP]) then
               begin
-                output.rex_present:=true;
                 output.rex:=output.rex or $40;
-                inc(output.size,1);
               end;
 
             process_ea:=true;
@@ -1434,7 +1434,6 @@ implementation
              ((getregtype(br)=R_MMREGISTER) and
              (getsupreg(br)>=RS_XMM8)) then
              begin
-               output.rex_present:=true;
                output.rex:=output.rex or $41;
              end;
 
@@ -1443,7 +1442,6 @@ implementation
              ((getregtype(ir)=R_MMREGISTER) and
              (getsupreg(ir)>=RS_XMM8)) then
              begin
-               output.rex_present:=true;
                output.rex:=output.rex or $42;
              end;
 
@@ -1528,7 +1526,7 @@ implementation
               output.sib:=(scalefactor shl 6) or (index shl 3) or base;
             end;
          end;
-        output.size:=1+ord(output.sib_present)+ord(output.rex_present)+output.bytes;
+        output.size:=1+ord(output.sib_present)+output.bytes;
         process_ea:=true;
       end;
 
@@ -1683,11 +1681,13 @@ implementation
         c     : byte;
         len     : shortint;
         ea_data : ea;
+        omit_rexw : boolean;
       begin
         len:=0;
         codes:=@p^.code[0];
 {$ifdef x86_64}
         rex:=0;
+        omit_rexw:=false;
 {$endif x86_64}
         repeat
           c:=ord(codes^);
@@ -1708,17 +1708,12 @@ implementation
                   ((getregtype(oper[c-8]^.reg)=R_MMREGISTER) and
                   (getsupreg(oper[c-8]^.reg)>=RS_XMM8)) then
                   begin
-                    if rex=0 then
-                      inc(len);
                     rex:=rex or $41;
                   end
                 else if (getregtype(oper[c-8]^.reg)=R_INTREGISTER) and
                   (getsubreg(oper[c-8]^.reg)=R_SUBL) and
                   (getsupreg(oper[c-8]^.reg) in [RS_RDI,RS_RSI,RS_RBP,RS_RSP]) then
                   begin
-                    if rex=0 then
-                      inc(len);
-
                     rex:=rex or $40;
                   end;
 {$endif x86_64}
@@ -1737,7 +1732,6 @@ implementation
                 else
                   inc(len);
               end;
-            15,
             12,13,14,
             16,17,18,
             20,21,22,
@@ -1769,42 +1763,41 @@ implementation
 {$ifdef x86_64}
                   OT_BITS64:
                     begin
-                      if rex=0 then
-                        inc(len);
                       rex:=rex or $48;
                     end;
 {$endif x86_64}
                 end;
               end;
-            200,
+            200 :
+{$ifndef x86_64}
+              inc(len);
+{$else x86_64}
+              { every insentry with code 0310 must be marked with NOX86_64 }
+              InternalError(2011051301);
+{$endif x86_64}
+            201 :
+{$ifdef x86_64}
+              inc(len)
+{$endif x86_64}
+              ;
             212 :
               inc(len);
             214 :
               begin
 {$ifdef x86_64}
-                if rex=0 then
-                  inc(len);
                 rex:=rex or $48;
 {$endif x86_64}
               end;
-            201,
             202,
             211,
             213,
             215,
             217,218: ;
-            219,220 :
+            219,220,241 :
               inc(len);
             221:
 {$ifdef x86_64}
-              { remove rex competely? }
-              if rex=$48 then
-                begin
-                  rex:=0;
-                  dec(len);
-                end
-              else
-                rex:=rex and $f7
+              omit_rexw:=true
 {$endif x86_64}
               ;
             64..191 :
@@ -1819,18 +1812,12 @@ implementation
                           ((getregtype(oper[c and 7]^.reg)=R_MMREGISTER) and
                           (getsupreg(oper[c and 7]^.reg)>=RS_XMM8)) then
                           begin
-                            if rex=0 then
-                              inc(len);
-
                             rex:=rex or $44;
                           end
                         else if (getregtype(oper[c and 7]^.reg)=R_INTREGISTER) and
                           (getsubreg(oper[c and 7]^.reg)=R_SUBL) and
                           (getsupreg(oper[c and 7]^.reg) in [RS_RDI,RS_RSI,RS_RBP,RS_RSP]) then
                           begin
-                            if rex=0 then
-                              inc(len);
-
                             rex:=rex or $40;
                           end;
                       end;
@@ -1842,9 +1829,6 @@ implementation
                 else
                   inc(len,ea_data.size);
 {$ifdef x86_64}
-                { did we already create include a rex into the length calculation? }
-                if (rex<>0) and (ea_data.rex<>0) then
-                  dec(len);
                 rex:=rex or ea_data.rex;
 {$endif x86_64}
 
@@ -1853,6 +1837,17 @@ implementation
              InternalError(200603141);
           end;
         until false;
+{$ifdef x86_64}
+        if omit_rexw then
+          begin
+            if rex=$48 then    { remove rex entirely? }
+              rex:=0
+            else
+              rex:=rex and $F7;
+          end;
+        if rex<>0 then
+          Inc(len);
+{$endif}
         calcsize:=len;
       end;
 
@@ -1894,7 +1889,7 @@ implementation
        *                 the memory reference in operand x.
        * \310          - indicates fixed 16-bit address size, i.e. optional 0x67.
        * \311          - indicates fixed 32-bit address size, i.e. optional 0x67.
-       * \312          - indicates fixed 64-bit address size, i.e. optional 0x48.
+       * \312          - (disassembler only) invalid with non-default address size.
        * \320,\321,\322 - might be an 0x66 or 0x48 byte, depending on the operand
        *                 size of operand x.
        * \323          - insert x86_64 REX at this position.
@@ -1907,8 +1902,10 @@ implementation
        * \331          - instruction not valid with REP prefix.  Hint for
        *                 disassembler only; for SSE instructions.
        * \332	       - disassemble a rep (0xF3 byte) prefix as repe not rep.
-       * \333          - REP prefix (0xF3 byte); for SSE instructions.  Not encoded
+       * \333          - 0xF3 prefix optionally followed by REX; for SSE instructions
+       * \334          - 0xF2 prefix optionally followed by REX; for SSE instructions
        * \335          - removes rex size prefix, i.e. rex.w must be the last opcode
+       * \361          - 0x66 prefix optionally followed by REX; for SSE instructions
       }
 
       var
@@ -2091,11 +2088,6 @@ implementation
                 inc(codes);
                 objdata.writebytes(bytes,1);
               end;
-            15 :
-              begin
-                bytes[0]:=0;
-                objdata.writebytes(bytes,1);
-              end;
             12,13,14 :
               begin
                 getvalsym(c-12);
@@ -2196,11 +2188,24 @@ implementation
                    objdata.writebytes(bytes,1);
                  end;
               end;
-            200 :
+            200 :   { fixed 16-bit addr }
+{$ifndef x86_64}
               begin
                 bytes[0]:=$67;
                 objdata.writebytes(bytes,1);
               end;
+{$else x86_64}
+              { every insentry having code 0310 must be marked with NOX86_64 }
+              InternalError(2011051302);
+{$endif}
+            201 :   { fixed 32-bit addr }
+{$ifdef x86_64}
+              begin
+                bytes[0]:=$67;
+                objdata.writebytes(bytes,1);
+              end
+{$endif x86_64}
+               ;
             208,209,210 :
               begin
                 case oper[c-208]^.ot and OT_SIZE_MASK of
@@ -2225,7 +2230,7 @@ implementation
                 maybewriterex;
 {$endif x86_64}
               end;
-            212 :
+            212, 241 :
               begin
                 bytes[0]:=$66;
                 objdata.writebytes(bytes,1);
@@ -2253,10 +2258,12 @@ implementation
               begin
                 bytes[0]:=$f2;
                 objdata.writebytes(bytes,1);
+{$ifdef x86_64}
+                maybewriterex;
+{$endif x86_64}
               end;
             221:
               ;
-            201,
             202,
             215,
             217,218 :

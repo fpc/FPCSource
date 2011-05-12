@@ -855,12 +855,11 @@ void                  \324\1\xCF                      8086
 
 [JCXZ]
 (Ch_RECX, Ch_None, Ch_None)
-imm                   \2\x67\xE3\50                   8086,NOX86_64
+imm                   \310\1\xE3\50                   8086,NOX86_64
 
 [JECXZ]
 (Ch_RECX, Ch_None, Ch_None)
-imm                   \1\xE3\50                       386,NOX86_64
-imm                   \2\x67\xE3\50                   X86_64
+imm                   \311\1\xE3\50                   386
 
 [JRCXZ]
 (Ch_RECX, Ch_None, Ch_None)
@@ -970,31 +969,31 @@ void                  \324\1\xAD                      8086
 [LOOP]
 (Ch_RWECX, Ch_None, Ch_None)
 imm                   \312\1\xE2\50                   8086
-imm,reg_cx            \310\1\xE2\50                   8086
+imm,reg_cx            \310\1\xE2\50                   8086,NOX86_64
 imm,reg_ecx|64        \311\1\xE2\50                   386
 
 [LOOPE]
 (Ch_RWECX, Ch_RFlags, Ch_None)
 imm                   \312\1\xE1\50                   8086
-imm,reg_cx            \310\1\xE1\50                   8086
+imm,reg_cx            \310\1\xE1\50                   8086,NOX86_64
 imm,reg_ecx|64        \311\1\xE1\50                   386
 
 [LOOPNE]
 (Ch_RWECX, Ch_RFlags, Ch_None)
 imm                   \312\1\xE0\50                   8086
-imm,reg_cx            \310\1\xE0\50                   8086
+imm,reg_cx            \310\1\xE0\50                   8086,NOX86_64
 imm,reg_ecx|64        \311\1\xE0\50                   386
 
 [LOOPNZ]
 (Ch_RWECX, Ch_RFlags, Ch_None)
 imm                   \312\1\xE0\50                   8086
-imm,reg_cx            \310\1\xE0\50                   8086
+imm,reg_cx            \310\1\xE0\50                   8086,NOX86_64
 imm,reg_ecx|64        \311\1\xE0\50                   386
 
 [LOOPZ]
 (Ch_RWECX, Ch_RFlags, Ch_None)
 imm                   \312\1\xE1\50                   8086
-imm,reg_cx            \310\1\xE1\50                   8086
+imm,reg_cx            \310\1\xE1\50                   8086,NOX86_64
 imm,reg_ecx|64        \311\1\xE1\50                   386
 
 [LSL,lslX]
@@ -1482,7 +1481,7 @@ void                  \324\1\x61                      186,NOX86_64
 [POPF]
 (Ch_RWESP, Ch_WFlags, Ch_None)
 void                  \327\1\x9D                      186,NOX86_64
-void                  \2\x48\x9D                      X86_64
+void                  \326\1\x9D                      X86_64
 
 [POPFD,popfl]
 (Ch_RWESP, Ch_WFlags, Ch_None)
@@ -1495,7 +1494,7 @@ void                  \1\x9D                          X86_64
 
 [POPFQ]
 (Ch_RWESP, Ch_WFlags, Ch_None)
-void                  \2\x48\x9D                      X86_64
+void                  \326\1\x9D                      X86_64
 
 [POR]
 (Ch_All, Ch_None, Ch_None)
@@ -1720,7 +1719,7 @@ void                  \324\1\x9C                      186
 
 [PUSHFQ]
 (Ch_RWESP, Ch_RFlags, Ch_None)
-void                  \2\x48\x9C                      X86_64
+void                  \326\1\x9C                      X86_64
 
 [PXOR]
 (Ch_Mop2, Ch_Rop1, Ch_None)
@@ -3715,12 +3714,12 @@ xmmreg,mem,imm        \1\x66\301\331\3\x0F\x3A\xDF\110\26            SSE4
 ;*******************************************************************************
 [STOSQ]
 (Ch_RRAX, Ch_WMemEDI, Ch_RWRDI)
-void                   \2\x48\xAB                                    X86_64  
+void                   \326\1\xAB                                    X86_64
 
 [LODSQ]
 (Ch_WRAX, Ch_RWRSI, Ch_None)
-void                   \2\x48\xAD                                    X86_64    
+void                   \326\1\xAD                                    X86_64
 
 [CMPSQ]
 (Ch_All, Ch_None, Ch_None)
-void                   \2\x48\xA7                                    X86_64
+void                   \326\1\xA7                                    X86_64
