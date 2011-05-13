@@ -24,11 +24,9 @@ rsts=fprepos fpxmlrep pkgmessages
 
 
 [compiler]
-unitdir=lnet
-includedir=lnet/sys
+sourcedir=src
+includedir=src
 
-[clean]
-units=lcommon lcontrolstack levents ltelnet lftp lhttp lhttputil lnet lstrbuffer
 
 [install]
 fpcpackage=y
