@@ -47,6 +47,13 @@ type
     FSVGPathTokenizer: TSVGPathTokenizer;
     procedure ReadPathFromNode(APath: TDOMNode; AData: TvVectorialDocument);
     procedure ReadPathFromString(AStr: string; AData: TvVectorialDocument);
+    function  StringWithUnitToFloat(AStr: string): Single;
+    procedure ConvertSVGCoordinatesToFPVCoordinates(
+      const AData: TvVectorialDocument;
+      const ASrcX, ASrcY: Float; var ADestX, ADestY: Float);
+    procedure ConvertSVGDeltaToFPVDelta(
+      const AData: TvVectorialDocument;
+      const ASrcX, ASrcY: Float; var ADestX, ADestY: Float);
   public
     { General reading methods }
     constructor Create; override;
@@ -101,7 +108,6 @@ begin
   begin
     lToken.TokenType := sttFloatValue;
     lToken.Value := StrToFloat(AStr, FPointSeparator);
-    lToken.Value := lToken.Value * FLOAT_MILIMETERS_PER_PIXEL;
   end;
 
   Tokens.Add(lToken);
@@ -211,7 +217,8 @@ procedure TvSVGVectorialReader.ReadPathFromString(AStr: string;
   AData: TvVectorialDocument);
 var
   i: Integer;
-  X, Y, CurX, CurY: Float;
+  X, Y, X2, Y2, X3, Y3: Float;
+  CurX, CurY: Float;
 begin
   FSVGPathTokenizer.Tokens.Clear;
   FSVGPathTokenizer.TokenizePathString(AStr);
@@ -225,6 +232,7 @@ begin
     begin
       CurX := FSVGPathTokenizer.Tokens.Items[i+1].Value;
       CurY := FSVGPathTokenizer.Tokens.Items[i+2].Value;
+      ConvertSVGCoordinatesToFPVCoordinates(AData, CurX, CurY, CurX, CurY);
 
       AData.AddMoveToPath(CurX, CurY);
 
@@ -234,6 +242,7 @@ begin
     begin
       X := FSVGPathTokenizer.Tokens.Items[i+1].Value;
       Y := FSVGPathTokenizer.Tokens.Items[i+2].Value;
+      ConvertSVGDeltaToFPVDelta(AData, X, Y, X, Y);
 
       // LineTo uses relative coordenates in SVG
       CurX := CurX + X;
@@ -243,11 +252,63 @@ begin
 
       Inc(i, 3);
     end
+    else if FSVGPathTokenizer.Tokens.Items[i].TokenType = sttBezierTo then
+    begin
+      X2 := FSVGPathTokenizer.Tokens.Items[i+1].Value;
+      Y2 := FSVGPathTokenizer.Tokens.Items[i+2].Value;
+      X3 := FSVGPathTokenizer.Tokens.Items[i+3].Value;
+      Y3 := FSVGPathTokenizer.Tokens.Items[i+4].Value;
+      X := FSVGPathTokenizer.Tokens.Items[i+5].Value;
+      Y := FSVGPathTokenizer.Tokens.Items[i+6].Value;
+
+      ConvertSVGDeltaToFPVDelta(AData, X2, Y2, X2, Y2);
+      ConvertSVGDeltaToFPVDelta(AData, X3, Y3, X3, Y3);
+      ConvertSVGDeltaToFPVDelta(AData, X, Y, X, Y);
+
+      AData.AddBezierToPath(X2 + CurX, Y2 + CurY, X3 + CurX, Y3 + CurY, X + CurX, Y + CurY);
+
+      // BezierTo uses relative coordenates in SVG
+      CurX := CurX + X;
+      CurY := CurY + Y;
+
+      Inc(i, 7);
+    end
     else
     begin
       Inc(i);
     end;
   end;
+end;
+
+function TvSVGVectorialReader.StringWithUnitToFloat(AStr: string): Single;
+var
+  UnitStr, ValueStr: string;
+  Len: Integer;
+begin
+  // Check the unit
+  Len := Length(AStr);
+  UnitStr := Copy(AStr, Len-1, 2);
+  if UnitStr = 'mm' then
+  begin
+    ValueStr := Copy(AStr, 1, Len-2);
+    Result := StrToInt(ValueStr);
+  end;
+end;
+
+procedure TvSVGVectorialReader.ConvertSVGCoordinatesToFPVCoordinates(
+  const AData: TvVectorialDocument; const ASrcX, ASrcY: Float;
+  var ADestX,ADestY: Float);
+begin
+  ADestX := ASrcX * FLOAT_MILIMETERS_PER_PIXEL;
+  ADestY := AData.Height - ASrcY * FLOAT_MILIMETERS_PER_PIXEL;
+end;
+
+procedure TvSVGVectorialReader.ConvertSVGDeltaToFPVDelta(
+  const AData: TvVectorialDocument; const ASrcX, ASrcY: Float; var ADestX,
+  ADestY: Float);
+begin
+  ADestX := ASrcX * FLOAT_MILIMETERS_PER_PIXEL;
+  ADestY := - ASrcY * FLOAT_MILIMETERS_PER_PIXEL;
 end;
 
 constructor TvSVGVectorialReader.Create;
@@ -277,6 +338,10 @@ begin
   try
     // Read in xml file from the stream
     ReadXMLFile(Doc, AStream);
+
+    // Read the properties of the <svg> tag
+    AData.Width := StringWithUnitToFloat(Doc.DocumentElement.GetAttribute('width'));
+    AData.Height := StringWithUnitToFloat(Doc.DocumentElement.GetAttribute('height'));
 
     // Now process the elements inside the first layer
     lFirstLayer := Doc.DocumentElement.FirstChild;
