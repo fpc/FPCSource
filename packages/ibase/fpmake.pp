@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='ibase';
 {$endif ALLPACKAGES}
-    P.Version:='2.4.3';
+    P.Version:='2.4.5';
     P.Author := 'Library: (Codegear?), header: ?';
     P.License := 'Library: Interbase License, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

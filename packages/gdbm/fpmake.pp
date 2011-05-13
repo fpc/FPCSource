@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='gdbm';
 {$endif ALLPACKAGES}
-    P.Version:='2.4.3';
+    P.Version:='2.4.5';
     P.Author := 'Library: GNU, header: Michael van Canneyt';
     P.License := 'Library: GPL2 (or later?), header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

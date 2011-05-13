@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fpgtk';
 {$endif ALLPACKAGES}
-    P.Version:='2.4.3';
+    P.Version:='2.4.5';
     P.Author := 'Luk Vandelaer & Sebastian Guenther (?)';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

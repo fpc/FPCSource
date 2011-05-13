@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fastcgi';
 {$endif ALLPACKAGES}
-    P.Version:='2.4.3';
+    P.Version:='2.4.5';
 
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';

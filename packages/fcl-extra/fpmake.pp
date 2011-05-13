@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-extra';
 {$endif ALLPACKAGES}
-    P.Version:='2.4.3';
+    P.Version:='2.4.5';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('winunits-jedi',[Win32,Win64]);
     P.Dependencies.Add('winunits-base',[Win32,Win64]);

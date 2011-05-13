@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='nvapi';
 {$endif ALLPACKAGES}
-    P.Version:='2.4.0';
+    P.Version:='2.4.5';
     P.Author := 'NVidia, Andreas Hausladen, Dmitry "skalogryz" Boyarintsev';
     P.License := 'NVidia license';
     P.HomepageURL := 'nvidia.com';

@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='httpd22';
 {$endif ALLPACKAGES}
-    P.Version:='2.4.3';
+    P.Version:='2.4.5';
     P.Author := 'Library: Apache Foundation, header: Felipe Monteiro de Carvalho';
     P.License := 'Library: Apache License 2, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

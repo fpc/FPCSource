@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='libsee';
 {$endif ALLPACKAGES}
-    P.Version:='2.5.1';
+    P.Version:='2.4.5';
     P.Author := 'David Leonard';
     P.License := 'BSD style';
     P.HomepageURL := 'http://www.adaptive-enterprises.com.au/~d/software/see/';

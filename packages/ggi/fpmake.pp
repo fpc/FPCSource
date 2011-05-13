@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='ggi';
 {$endif ALLPACKAGES}
-    P.Version:='2.4.3';
+    P.Version:='2.4.5';
     P.Author := 'Library: ?, header: Sebastian Guenther';
     P.License := 'Library: ?, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
