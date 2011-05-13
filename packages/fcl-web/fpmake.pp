@@ -82,12 +82,18 @@ begin
         end;
     T:=P.Targets.AddUnit('httpdefs.pp');
     T.ResourceStrings:=true;
-    T:=P.Targets.AddUnit('websession.pp');
+    T:=P.Targets.AddUnit('iniwebsession.pp');
     T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('fphttp');
           AddUnit('httpdefs');
+        end;
+    T:=P.Targets.AddUnit('websession.pp');
+    T.ResourceStrings:=true;
+      with T.Dependencies do
+        begin
+          AddUnit('iniwebsession');
         end;
     T:=P.Targets.AddUnit('webutil.pp');
       with T.Dependencies do
