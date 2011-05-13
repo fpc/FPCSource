@@ -339,7 +339,7 @@ begin
         FConfigVersion:=ReadInteger(SDefaults,KeyConfigVersion,0);
         if (FConfigVersion<>CurrentConfigVersion) then
           begin
-            Log(vlDebug,SLogUpgradingConfig,[AFileName]);
+            log(vlDebug,SLogUpgradingConfig,[AFileName]);
             FSaveInifileChanges:=true;
             if FConfigVersion<1 then
               begin
@@ -404,16 +404,16 @@ end;
 
 procedure TGlobalOptions.LogValues(ALogLevel: TLogLevel);
 begin
-  Log(ALogLevel,SLogGlobalCfgHeader,[FConfigFilename]);
-  Log(ALogLevel,SLogGlobalCfgRemoteMirrorsURL,[FRemoteMirrorsURL]);
-  Log(ALogLevel,SLogGlobalCfgRemoteRepository,[FRemoteRepository]);
-  Log(ALogLevel,SLogGlobalCfgLocalRepository,[FLocalRepository,LocalRepository]);
-  Log(ALogLevel,SLogGlobalCfgBuildDir,[FBuildDir,BuildDir]);
-  Log(ALogLevel,SLogGlobalCfgArchivesDir,[FArchivesDir,ArchivesDir]);
-  Log(ALogLevel,SLogGlobalCfgCompilerConfigDir,[FCompilerConfigDir,CompilerConfigDir]);
-  Log(ALogLevel,SLogGlobalCfgDefaultCompilerConfig,[FDefaultCompilerConfig]);
-  Log(ALogLevel,SLogGlobalCfgFPMakeCompilerConfig,[FPMakeCompilerConfig]);
-  Log(ALogLevel,SLogGlobalCfgDownloader,[FDownloader]);
+  log(ALogLevel,SLogGlobalCfgHeader,[FConfigFilename]);
+  log(ALogLevel,SLogGlobalCfgRemoteMirrorsURL,[FRemoteMirrorsURL]);
+  log(ALogLevel,SLogGlobalCfgRemoteRepository,[FRemoteRepository]);
+  log(ALogLevel,SLogGlobalCfgLocalRepository,[FLocalRepository,LocalRepository]);
+  log(ALogLevel,SLogGlobalCfgBuildDir,[FBuildDir,BuildDir]);
+  log(ALogLevel,SLogGlobalCfgArchivesDir,[FArchivesDir,ArchivesDir]);
+  log(ALogLevel,SLogGlobalCfgCompilerConfigDir,[FCompilerConfigDir,CompilerConfigDir]);
+  log(ALogLevel,SLogGlobalCfgDefaultCompilerConfig,[FDefaultCompilerConfig]);
+  log(ALogLevel,SLogGlobalCfgFPMakeCompilerConfig,[FPMakeCompilerConfig]);
+  log(ALogLevel,SLogGlobalCfgDownloader,[FDownloader]);
 end;
 
 
@@ -588,7 +588,7 @@ begin
   // We retrieve the real binary
   if FCompilerVersion='2.2.0' then
     FCompiler:=GetCompilerInfo(FCompiler,'-PB');
-  Log(vlDebug,SLogDetectedCompiler,[FCompiler,FCompilerVersion,MakeTargetString(FCompilerCPU,FCompilerOS)]);
+  log(vlDebug,SLogDetectedCompiler,[FCompiler,FCompilerVersion,MakeTargetString(FCompilerCPU,FCompilerOS)]);
 
   // Use the same algorithm as the compiler, see options.pas
   // Except that the prefix is extracted and GlobalInstallDir is set using
@@ -606,12 +606,12 @@ begin
   FGlobalPrefix:=ExpandFileName(FGlobalPrefix);
 {$endif unix}
 
-  Log(vlDebug,SLogDetectedPrefix,['global',FGlobalPrefix]);
+  log(vlDebug,SLogDetectedPrefix,['global',FGlobalPrefix]);
   // User writable install directory
   if not IsSuperUser then
     begin
       FLocalPrefix:= '{LocalRepository}';
-      Log(vlDebug,SLogDetectedPrefix,['local',FLocalPrefix]);
+      log(vlDebug,SLogDetectedPrefix,['local',FLocalPrefix]);
     end;
 
   fpcdir:=FixPath(GetEnvironmentVariable('FPCDIR'));
@@ -620,7 +620,7 @@ begin
     {$ifndef Unix}
     fpcdir:=ExpandFileName(fpcdir);
     {$endif unix}
-    Log(vlDebug,SLogFPCDirEnv,[fpcdir]);
+    log(vlDebug,SLogFPCDirEnv,[fpcdir]);
     FGlobalInstallDir:=fpcdir;
     end;
 end;
@@ -638,7 +638,7 @@ begin
         FConfigVersion:=ReadInteger(SDefaults,KeyConfigVersion,0);
         if (FConfigVersion<>CurrentConfigVersion) then
           begin
-            Log(vlDebug,SLogUpgradingConfig,[AFileName]);
+            log(vlDebug,SLogUpgradingConfig,[AFileName]);
             FSaveInifileChanges:=true;
             if (FConfigVersion>CurrentConfigVersion) then
               Error(SErrUnsupportedConfigVersion,[AFileName]);
@@ -688,15 +688,15 @@ end;
 
 procedure TCompilerOptions.LogValues(ALogLevel: TLogLevel; const ACfgName:string);
 begin
-  Log(ALogLevel,SLogCompilerCfgHeader,[ACfgName,FConfigFilename]);
-  Log(ALogLevel,SLogCompilerCfgCompiler,[FCompiler]);
-  Log(ALogLevel,SLogCompilerCfgTarget,[MakeTargetString(CompilerCPU,CompilerOS)]);
-  Log(ALogLevel,SLogCompilerCfgVersion,[FCompilerVersion]);
-  Log(ALogLevel,SLogCompilerCfgGlobalPrefix,[FGlobalPrefix,GlobalPrefix]);
-  Log(ALogLevel,SLogCompilerCfgLocalPrefix,[FLocalPrefix,LocalPrefix]);
-  Log(ALogLevel,SLogCompilerCfgGlobalInstallDir,[FGlobalInstallDir,GlobalInstallDir]);
-  Log(ALogLevel,SLogCompilerCfgLocalInstallDir,[FLocalInstallDir,LocalInstallDir]);
-  Log(ALogLevel,SLogCompilerCfgOptions,[Options.DelimitedText]);
+  log(ALogLevel,SLogCompilerCfgHeader,[ACfgName,FConfigFilename]);
+  log(ALogLevel,SLogCompilerCfgCompiler,[FCompiler]);
+  log(ALogLevel,SLogCompilerCfgTarget,[MakeTargetString(CompilerCPU,CompilerOS)]);
+  log(ALogLevel,SLogCompilerCfgVersion,[FCompilerVersion]);
+  log(ALogLevel,SLogCompilerCfgGlobalPrefix,[FGlobalPrefix,GlobalPrefix]);
+  log(ALogLevel,SLogCompilerCfgLocalPrefix,[FLocalPrefix,LocalPrefix]);
+  log(ALogLevel,SLogCompilerCfgGlobalInstallDir,[FGlobalInstallDir,GlobalInstallDir]);
+  log(ALogLevel,SLogCompilerCfgLocalInstallDir,[FLocalInstallDir,LocalInstallDir]);
+  log(ALogLevel,SLogCompilerCfgOptions,[Options.DelimitedText]);
 end;
 
 

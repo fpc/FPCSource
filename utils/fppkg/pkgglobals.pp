@@ -54,6 +54,7 @@ Const
 Type
   TLogLevel = (vlError,vlWarning,vlInfo,vlCommands,vlDebug,vlProgres);
   TLogLevels = Set of TLogLevel;
+  TLogProc = procedure(Level:TLogLevel;Const Msg: String);
 
 const
   DefaultLogLevels = [vlError,vlWarning, vlProgres];
@@ -61,14 +62,15 @@ const
 
 type
   EPackagerError = class(Exception);
+  TPkgErrorProc = Procedure(Const Msg : String);
 
 // Logging
 Function StringToLogLevels (S : String) : TLogLevels;
 Function LogLevelsToString (V : TLogLevels): String;
-Procedure Log(Level: TLogLevel;Msg : String);
-Procedure Log(Level: TLogLevel;Fmt : String; const Args : array of const);
-Procedure Error(Msg : String);
-Procedure Error(Fmt : String; const Args : array of const);
+Procedure log(Level:TLogLevel; Const Fmt:String; const Args:array of const);
+Procedure log(Level:TLogLevel; Const Msg:String);
+Procedure Error(Const Fmt : String; const Args : array of const);
+Procedure Error(Const Msg : String);
 
 // Utils
 function maybequoted(const s:string):string;
@@ -85,7 +87,8 @@ function IsSuperUser:boolean;
 var
   LogLevels : TLogLevels;
   FPMKUnitDeps : array of TFPMKUnitDep;
-
+  LogHandler: TLogProc;
+  ErrorHandler: TPkgErrorProc;
 
 Implementation
 
@@ -142,7 +145,7 @@ begin
 end;
 
 
-procedure Log(Level:TLogLevel;Msg: String);
+procedure LogCmd(Level:TLogLevel; Const Msg: String);
 var
   Prefix : string;
 begin
@@ -165,21 +168,30 @@ begin
 end;
 
 
-Procedure Log(Level:TLogLevel; Fmt:String; const Args:array of const);
-begin
-  Log(Level,Format(Fmt,Args));
-end;
-
-
-procedure Error(Msg: String);
+procedure ErrorCmd(Const Msg: String);
 begin
   Raise EPackagerError.Create(Msg);
 end;
 
 
-procedure Error(Fmt: String; const Args: array of const);
+Procedure log(Level:TLogLevel; Const Msg : String);
 begin
-  Raise EPackagerError.CreateFmt(Fmt,Args);
+  Loghandler(level,Msg)
+end;
+
+Procedure log(Level:TLogLevel; Const Fmt:String; const Args:array of const);
+begin
+  LogHandler(Level,Format(Fmt,Args));
+end;
+
+Procedure Error(Const Msg : String);
+begin
+  ErrorHandler(Msg)
+end;
+
+procedure Error(Const Fmt: String; const Args: array of const);
+begin
+  ErrorHandler(Format(Fmt, Args));
 end;
 
 
@@ -240,9 +252,9 @@ Function DirectoryExistsLog(const ADir:string):Boolean;
 begin
   result:=SysUtils.DirectoryExists(ADir);
   if result then
-    Log(vlDebug,SDbgDirectoryExists,[ADir,SDbgFound])
+    log(vlDebug,SDbgDirectoryExists,[ADir,SDbgFound])
   else
-    Log(vlDebug,SDbgDirectoryExists,[ADir,SDbgNotFound]);
+    log(vlDebug,SDbgDirectoryExists,[ADir,SDbgNotFound]);
 end;
 
 
@@ -250,9 +262,9 @@ Function FileExistsLog(const AFileName:string):Boolean;
 begin
   result:=SysUtils.FileExists(AFileName);
   if result then
-    Log(vlDebug,SDbgFileExists,[AFileName,SDbgFound])
+    log(vlDebug,SDbgFileExists,[AFileName,SDbgFound])
   else
-    Log(vlDebug,SDbgFileExists,[AFileName,SDbgNotFound]);
+    log(vlDebug,SDbgFileExists,[AFileName,SDbgNotFound]);
 end;
 
 
@@ -261,7 +273,7 @@ Var
   BFN : String;
 begin
   BFN:=AFileName+'.bak';
-  Log(vlDebug,SDbgBackupFile,[BFN]);
+  log(vlDebug,SDbgBackupFile,[BFN]);
   If not RenameFile(AFileName,BFN) then
     Error(SErrBackupFailed,[AFileName,BFN]);
 end;
@@ -384,5 +396,7 @@ end;
 initialization
   OnGetVendorName:=@FPPkgGetVendorName;
   OnGetApplicationName:=@FPPkgGetApplicationName;
+  LogHandler := @LogCmd;
+  ErrorHandler := @ErrorCmd;
 
 end.
