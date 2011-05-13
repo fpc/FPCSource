@@ -2472,6 +2472,7 @@ packages/fcl-web/src/base/fphtml.pp svneol=native#text/plain
 packages/fcl-web/src/base/fphttp.pp svneol=native#text/plain
 packages/fcl-web/src/base/fpweb.pp svneol=native#text/plain
 packages/fcl-web/src/base/httpdefs.pp svneol=native#text/plain
+packages/fcl-web/src/base/iniwebsession.pp svneol=native#text/plain
 packages/fcl-web/src/base/webpage.pp svneol=native#text/plain
 packages/fcl-web/src/base/websession.pp svneol=native#text/plain
 packages/fcl-web/src/base/webutil.pp svneol=native#text/plain
