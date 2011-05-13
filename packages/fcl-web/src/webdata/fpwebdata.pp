@@ -5,7 +5,7 @@ unit fpwebdata;
 interface
 
 uses
-  Classes, SysUtils, httpdefs, fphttp, db, websession;
+  Classes, SysUtils, httpdefs, fphttp, db;
 
 
 type

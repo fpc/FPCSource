@@ -1700,6 +1700,7 @@ Var
 begin
   CreateGUID(G);
   Result:=GuiDToString(G);
+  Result:=Copy(Result,2,36);
 end;
 
 constructor TCustomSession.Create(AOwner: TComponent);

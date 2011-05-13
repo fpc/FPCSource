@@ -617,7 +617,8 @@ end;
 
 function __dummythread(p: pointer): ptrint;
 begin
-//empty
+  sleep(1000);
+  Result:=0;
 end;
 
 { TCustomApacheApplication }
@@ -739,8 +740,6 @@ end;
 
 Initialization
   BeginThread(@__dummythread);//crash prevention for simultaneous requests
-  sleep(300);
-
   InitApache;
   
 Finalization
