@@ -271,6 +271,9 @@ Type
   ValUInt = Word;
 {$endif CPU16}
 
+  NativeInt  = PtrInt;
+  NativeUint = PtrUint;
+
 { Zero - terminated strings }
   PChar               = ^Char;
   PPChar              = ^PChar;
