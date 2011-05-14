@@ -1283,7 +1283,7 @@ var
   SearchResult: longint;
 begin
   result := true;
-  SearchResult := FindFirst(IncludeTrailingPathDelimiter(directory)+'*.*', faAnyFile, searchRec);
+  SearchResult := FindFirst(IncludeTrailingPathDelimiter(directory)+AllFilesMask, faAnyFile+faSymLink, searchRec);
   try
     while SearchResult=0 do
       begin
