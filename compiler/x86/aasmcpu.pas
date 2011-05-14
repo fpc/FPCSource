@@ -46,83 +46,126 @@ interface
     { Operand types }
       OT_NONE      = $00000000;
 
-      OT_BITS8     = $00000001;  { size, and other attributes, of the operand  }
+      { Bits 0..7: sizes }
+      OT_BITS8     = $00000001;
       OT_BITS16    = $00000002;
       OT_BITS32    = $00000004;
-      OT_BITS64    = $00000008;  { FPU only  }
-      OT_BITS80    = $00000010;
-
-      OT_SIZE_MASK = $0000001F;  { all the size attributes  }
-      OT_NON_SIZE  = longint(not OT_SIZE_MASK);
-
+      OT_BITS64    = $00000008;  { x86_64 and FPU }
+      OT_BITS80    = $00000010;  { FPU only  }
       OT_FAR       = $00000020;  { this means 16:16 or 16:32, like in CALL/JMP }
       OT_NEAR      = $00000040;
       OT_SHORT     = $00000080;
-      OT_SIGNED    = $00000100;  { the operand need to be signed -128-127 }
-      OT_TO        = $00000200;  { operand is followed by a colon  }
-                                 { reverse effect in FADD, FSUB &c  }
-      OT_COLON     = $00000400;
 
+      { TODO: FAR/NEAR/SHORT are sizes too, they should be included into size mask,
+        but this requires adjusting the opcode table }
+      OT_SIZE_MASK = $0000001F;  { all the size attributes  }
+      OT_NON_SIZE  = longint(not OT_SIZE_MASK);
+
+      { Bits 8..11: modifiers }
+      OT_SIGNED    = $00000100;  { the operand need to be signed -128-127 }
+      OT_TO        = $00000200;  { reverse effect in FADD, FSUB &c  }
+      OT_COLON     = $00000400;  { operand is followed by a colon  }
+      OT_MODIFIER_MASK = $00000F00;
+
+      { Bits 12..15: type of operand }
       OT_REGISTER  = $00001000;
       OT_IMMEDIATE = $00002000;
-      OT_IMM8      = $00002001;
-      OT_IMM16     = $00002002;
-      OT_IMM32     = $00002004;
-      OT_IMM64     = $00002008;
-      OT_IMM80     = $00002010;
-      OT_REGMEM    = $00200000;  { for r/m, ie EA, operands  }
-      OT_REGNORM   = $00201000;  { 'normal' reg, qualifies as EA  }
-      OT_REG8      = $00201001;
-      OT_REG16     = $00201002;
-      OT_REG32     = $00201004;
-      OT_REG64     = $00201008;
-      OT_XMMREG    = $00201010;  { Katmai registers  }
-      OT_XMMRM     = $00200010;
-      OT_MMXREG    = $00201020;  { MMX registers  }
-      OT_MMXRM     = $00200020;
-      OT_MEMORY    = $00204000;  { register number in 'basereg'  }
-      OT_MEM8      = $00204001;
-      OT_MEM16     = $00204002;
-      OT_MEM32     = $00204004;
-      OT_MEM64     = $00204008;
-      OT_MEM80     = $00204010;
-      OT_FPUREG    = $01000000;  { floating point stack registers  }
-      OT_FPU0      = $01000800;  { FPU stack register zero  }
-      OT_REG_SMASK = $00070000;  { special register operands: these may be treated differently  }
-                                 { a mask for the following  }
-      OT_REG_ACCUM = $00211000;  { FUNCTION_RETURN_REG: AL, AX or EAX  }
-      OT_REG_AL    = $00211001;    { REG_ACCUM | BITSxx  }
-      OT_REG_AX    = $00211002;    { ditto  }
-      OT_REG_EAX   = $00211004;    { and again  }
+      OT_MEMORY    = $0000C000;  { always includes 'OT_REGMEM' bit as well }
+      OT_REGMEM    = $00008000;  { for r/m, ie EA, operands  }
+      OT_TYPE_MASK = OT_REGISTER or OT_IMMEDIATE or OT_MEMORY or OT_REGMEM;
+
+      OT_REGNORM   = OT_REGISTER or OT_REGMEM;  { 'normal' reg, qualifies as EA  }
+
+      { Bits 20..22, 24..26: register classes
+        otf_* consts are not used alone, only to build other constants. }
+      otf_reg_cdt  = $00100000;
+      otf_reg_gpr  = $00200000;
+      otf_reg_sreg = $00400000;
+      otf_reg_fpu  = $01000000;
+      otf_reg_mmx  = $02000000;
+      otf_reg_xmm  = $04000000;
+      { Bits 16..19: subclasses, meaning depends on classes field }
+      otf_sub0     = $00010000;
+      otf_sub1     = $00020000;
+      otf_sub2     = $00040000;
+      otf_sub3     = $00080000;
+      OT_REG_SMASK = otf_sub0 or otf_sub1 or otf_sub2 or otf_sub3;
+
+      { register class 0: CRx, DRx and TRx }
+      OT_REG_CDT   = OT_REGISTER or otf_reg_cdt or OT_BITS32;
+      OT_REG_CREG  = OT_REG_CDT or otf_sub0;  { CRn  }
+      OT_REG_DREG  = OT_REG_CDT or otf_sub1;  { DRn  }
+      OT_REG_TREG  = OT_REG_CDT or otf_sub2;  { TRn  }
+      OT_REG_CR4   = OT_REG_CDT or otf_sub3;  { CR4 (Pentium only)  }
+
+      { register class 1: general-purpose registers }
+      OT_REG_GPR   = OT_REGNORM or otf_reg_gpr;
+      OT_RM_GPR    = OT_REGMEM or otf_reg_gpr;
+      OT_REG8      = OT_REG_GPR or OT_BITS8;  { 8-bit GPR }
+      OT_REG16     = OT_REG_GPR or OT_BITS16;
+      OT_REG32     = OT_REG_GPR or OT_BITS32;
+      OT_REG64     = OT_REG_GPR or OT_BITS64;
+
+      { GPR subclass 0: accumulator: AL, AX, EAX or RAX }
+      OT_REG_ACCUM = OT_REG_GPR or otf_sub0;
+      OT_REG_AL    = OT_REG_ACCUM or OT_BITS8;
+      OT_REG_AX    = OT_REG_ACCUM or OT_BITS16;
+      OT_REG_EAX   = OT_REG_ACCUM or OT_BITS32;
 {$ifdef x86_64}
-      OT_REG_RAX   = $00211008;
+      OT_REG_RAX   = OT_REG_ACCUM or OT_BITS64;
 {$endif x86_64}
-      OT_REG_COUNT = $00221000;  { counter: CL, CX or ECX  }
-      OT_REG_CL    = $00221001;    { REG_COUNT | BITSxx  }
-      OT_REG_CX    = $00221002;    { ditto  }
-      OT_REG_ECX   = $00221004;    { another one  }
+      { GPR subclass 1: counter: CL, CX, ECX or RCX }
+      OT_REG_COUNT = OT_REG_GPR or otf_sub1;
+      OT_REG_CL    = OT_REG_COUNT or OT_BITS8;
+      OT_REG_CX    = OT_REG_COUNT or OT_BITS16;
+      OT_REG_ECX   = OT_REG_COUNT or OT_BITS32;
 {$ifdef x86_64}
-      OT_REG_RCX   = $00221008;
+      OT_REG_RCX   = OT_REG_COUNT or OT_BITS64;
 {$endif x86_64}
-      OT_REG_DX    = $00241002;
-      OT_REG_EDX   = $00241004;
+      { GPR subclass 2: data register: DL, DX, EDX or RDX }
+      OT_REG_DX    = OT_REG_GPR or otf_sub2 or OT_BITS16;
+      OT_REG_EDX   = OT_REG_GPR or otf_sub2 or OT_BITS32;
 
-      OT_REG_SREG  = $00081002;  { any segment register  }
-      OT_REG_CS    = $01081002;  { CS  }
-      OT_REG_DESS  = $02081002;  { DS, ES, SS (non-CS 86 registers)  }
-      OT_REG_FSGS  = $04081002;  { FS, GS (386 extended registers)  }
+      { register class 2: Segment registers }
+      OT_REG_SREG  = OT_REGISTER or otf_reg_sreg or OT_BITS16;
+      OT_REG_CS    = OT_REG_SREG or otf_sub0;  { CS  }
+      OT_REG_DESS  = OT_REG_SREG or otf_sub1;  { DS, ES, SS (non-CS 86 registers)  }
+      OT_REG_FSGS  = OT_REG_SREG or otf_sub2;  { FS, GS (386 extended registers)  }
 
-      OT_REG_CDT   = $00101004;  { CRn, DRn and TRn  }
-      OT_REG_CREG  = $08101004;  { CRn  }
-      OT_REG_CR4   = $08101404;  { CR4 (Pentium only)  }
-      OT_REG_DREG  = $10101004;  { DRn  }
-      OT_REG_TREG  = $20101004;  { TRn  }
+      { register class 3: FPU registers }
+      OT_FPUREG    = OT_REGISTER or otf_reg_fpu;
+      OT_FPU0      = OT_FPUREG or otf_sub0;    { FPU stack register zero  }
 
-      OT_MEM_OFFS  = $00604000;  { special type of EA  }
-                                 { simple [address] offset  }
-      OT_ONENESS   = $00800000;  { special type of immediate operand  }
-                                 { so UNITY == IMMEDIATE | ONENESS  }
-      OT_UNITY     = $00802000;  { for shift/rotate instructions  }
+      { register class 4: MMX (both reg and r/m) }
+      OT_MMXREG    = OT_REGNORM or otf_reg_mmx;
+      OT_MMXRM     = OT_REGMEM or otf_reg_mmx;
+
+      { register class 5: XMM (both reg and r/m) }
+      OT_XMMREG    = OT_REGNORM or otf_reg_xmm;
+      OT_XMMRM     = OT_REGMEM or otf_reg_xmm;
+
+      { Memory operands }
+      OT_MEM8      = OT_MEMORY or OT_BITS8;
+      OT_MEM16     = OT_MEMORY or OT_BITS16;
+      OT_MEM32     = OT_MEMORY or OT_BITS32;
+      OT_MEM64     = OT_MEMORY or OT_BITS64;
+      OT_MEM80     = OT_MEMORY or OT_BITS80;
+
+      OT_MEM_OFFS  = OT_MEMORY or otf_sub0;  { special type of EA  }
+                                             { simple [address] offset  }
+
+      { Matches any type of r/m operand }
+      OT_MEMORY_ANY = OT_MEMORY or OT_RM_GPR or OT_XMMRM or OT_MMXRM;
+
+      { Immediate operands }
+      OT_IMM8      = OT_IMMEDIATE or OT_BITS8;
+      OT_IMM16     = OT_IMMEDIATE or OT_BITS16;
+      OT_IMM32     = OT_IMMEDIATE or OT_BITS32;
+      OT_IMM64     = OT_IMMEDIATE or OT_BITS64;
+      OT_IMM80     = OT_IMMEDIATE or OT_BITS80;
+
+      OT_ONENESS   = otf_sub0;  { special type of immediate operand  }
+      OT_UNITY     = OT_IMMEDIATE or OT_ONENESS;  { for shift/rotate instructions  }
 
       { Size of the instruction table converted by nasmconv.pas }
 {$ifdef x86_64}
@@ -956,9 +999,9 @@ implementation
                     begin
                       { create ot field }
                       if (ot and OT_SIZE_MASK)=0 then
-                        ot:=OT_MEMORY or opsize_2_type[i,opsize]
+                        ot:=OT_MEMORY_ANY or opsize_2_type[i,opsize]
                       else
-                        ot:=OT_MEMORY or (ot and OT_SIZE_MASK);
+                        ot:=OT_MEMORY_ANY or (ot and OT_SIZE_MASK);
                       if (ref^.base=NR_NO) and (ref^.index=NR_NO) then
                         ot:=ot or OT_MEM_OFFS;
                       { fix scalefactor }
@@ -1865,9 +1908,6 @@ implementation
        *                 to the register value of operand 0, 1 or 2
        * \13           - a literal byte follows in the code stream, to be added
        *                 to the condition code value of the instruction.
-       * \17           - encodes the literal byte 0. (Some compilers don't take
-       *                 kindly to a zero byte in the _middle_ of a compile time
-       *                 string constant, so I had to put this hack in.)
        * \14, \15, \16 - a signed byte immediate operand, from operand 0, 1 or 2
        * \20, \21, \22 - a byte immediate operand, from operand 0, 1 or 2
        * \24, \25, \26 - an unsigned byte immediate operand, from operand 0, 1 or 2
