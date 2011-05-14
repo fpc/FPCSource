@@ -6485,7 +6485,7 @@
   (
     opcode  : A_PSADBW;
     ops     : 2;
-    optypes : (ot_xmmreg,ot_xmmreg,ot_none);
+    optypes : (ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#2#15#246#72;
     flags   : if_willamette or if_sse2 or if_sm
   ),
