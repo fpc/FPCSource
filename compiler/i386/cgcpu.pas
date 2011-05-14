@@ -40,16 +40,16 @@ unit cgcpu;
 
         { passing parameter using push instead of mov }
         procedure a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
-        procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);override;
+        procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const cgpara : tcgpara);override;
         procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
 
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
-        procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);override;
+        procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);override;
         procedure g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);override;
 
         procedure g_exception_reason_save(list : TAsmList; const href : treference);override;
-        procedure g_exception_reason_save_const(list : TAsmList; const href : treference; a: aint);override;
+        procedure g_exception_reason_save_const(list : TAsmList; const href : treference; a: tcgint);override;
         procedure g_exception_reason_load(list : TAsmList; const href : treference);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
         procedure g_maybe_got_init(list: TAsmList); override;
@@ -63,7 +63,7 @@ unit cgcpu;
       private
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       end;
-      
+
     procedure create_codegen;
 
   implementation
@@ -125,7 +125,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);
+    procedure tcg386.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const cgpara : tcgpara);
       var
         pushsize : tcgsize;
       begin
@@ -145,7 +145,7 @@ unit cgcpu;
 
     procedure tcg386.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);
 
-        procedure pushdata(paraloc:pcgparalocation;ofs:aint);
+        procedure pushdata(paraloc:pcgparalocation;ofs:tcgint);
         var
           pushsize : tcgsize;
           tmpreg   : tregister;
@@ -184,7 +184,7 @@ unit cgcpu;
         end;
 
       var
-        len : aint;
+        len : tcgint;
         href : treference;
       begin
         { cgpara.size=OS_NO requires a copy on the stack }
@@ -353,7 +353,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);
+    procedure tcg386.g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);
       var
         power,len  : longint;
         opsize : topsize;
@@ -471,7 +471,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.g_exception_reason_save_const(list : TAsmList;const href : treference; a: aint);
+    procedure tcg386.g_exception_reason_save_const(list : TAsmList;const href : treference; a: tcgint);
       begin
         if not paramanager.use_fixed_stack then
           list.concat(Taicpu.op_const(A_PUSH,tcgsize2opsize[OS_INT],a))
@@ -781,8 +781,8 @@ unit cgcpu;
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
-              cg.a_op_const_reg(list,op,OS_32,aint(lo(value)),reg.reglo);
-              cg.a_op_const_reg(list,op,OS_32,aint(hi(value)),reg.reghi);
+              cg.a_op_const_reg(list,op,OS_32,tcgint(lo(value)),reg.reglo);
+              cg.a_op_const_reg(list,op,OS_32,tcgint(hi(value)),reg.reghi);
             end;
           OP_ADD, OP_SUB:
             begin
@@ -807,9 +807,9 @@ unit cgcpu;
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
-              cg.a_op_const_ref(list,op,OS_32,aint(lo(value)),tempref);
+              cg.a_op_const_ref(list,op,OS_32,tcgint(lo(value)),tempref);
               inc(tempref.offset,4);
-              cg.a_op_const_ref(list,op,OS_32,aint(hi(value)),tempref);
+              cg.a_op_const_ref(list,op,OS_32,tcgint(hi(value)),tempref);
             end;
           OP_ADD, OP_SUB:
             begin
@@ -829,5 +829,5 @@ unit cgcpu;
         cg := tcg386.create;
         cg64 := tcg64f386.create;
       end;
-      
+
 end.
