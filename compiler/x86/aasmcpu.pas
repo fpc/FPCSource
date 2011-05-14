@@ -2080,6 +2080,9 @@ implementation
               break;
             1,2,3 :
               begin
+{$ifdef x86_64}
+                maybewriterex;
+{$endif x86_64}
                 objdata.writebytes(codes^,c);
                 inc(codes,c);
               end;
@@ -2118,6 +2121,9 @@ implementation
               end;
             8,9,10 :
               begin
+{$ifdef x86_64}
+                maybewriterex;
+{$endif x86_64}
                 bytes[0]:=ord(codes^)+regval(oper[c-8]^.reg);
                 inc(codes);
                 objdata.writebytes(bytes,1);
@@ -2259,30 +2265,18 @@ implementation
                       Message(asmw_e_64bit_not_supported);
 {$endif x86_64}
                 end;
-{$ifdef x86_64}
-                maybewriterex;
-{$endif x86_64}
               end;
             211,
-            213 :
-              begin
-{$ifdef x86_64}
-                maybewriterex;
-{$endif x86_64}
-              end;
+            213 : {no action needed};
+
             212, 241 :
               begin
                 bytes[0]:=$66;
                 objdata.writebytes(bytes,1);
-{$ifdef x86_64}
-                maybewriterex;
-{$endif x86_64}
               end;
             214 :
               begin
-{$ifdef x86_64}
-                maybewriterex;
-{$else x86_64}
+{$ifndef x86_64}
                 Message(asmw_e_64bit_not_supported);
 {$endif x86_64}
               end;
@@ -2290,17 +2284,11 @@ implementation
               begin
                 bytes[0]:=$f3;
                 objdata.writebytes(bytes,1);
-{$ifdef x86_64}
-                maybewriterex;
-{$endif x86_64}
               end;
             220 :
               begin
                 bytes[0]:=$f2;
                 objdata.writebytes(bytes,1);
-{$ifdef x86_64}
-                maybewriterex;
-{$endif x86_64}
               end;
             221:
               ;
@@ -2309,11 +2297,7 @@ implementation
             217,218 :
               begin
                 { these are dissambler hints or 32 bit prefixes which
-                  are not needed
-                  It's useful to write rex :) (FK) }
-{$ifdef x86_64}
-                maybewriterex;
-{$endif x86_64}
+                  are not needed }
               end;
             31,
             48,49,50 :
