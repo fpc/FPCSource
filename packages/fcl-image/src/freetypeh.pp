@@ -223,6 +223,22 @@ type
     contours : ^smallint;
     flags : integer;
   end;
+  PFT_Outline = ^FT_Outline;
+
+  FT_Outline_MoveToFunc = function(const to_: PFT_Vector; user: Pointer): integer;
+  FT_Outline_LineToFunc = function(const to_: PFT_Vector; user: Pointer): integer;
+  FT_Outline_ConicToFunc = function(const control, to_: PFT_Vector; user: Pointer): integer;
+  FT_Outline_CubicToFunc = function(const control1, control2, to_: PFT_Vector; user: Pointer): integer;
+
+  FT_Outline_Funcs = record
+    move_to: FT_Outline_MoveToFunc;
+    line_to: FT_Outline_LineToFunc;
+    conic_to: FT_Outline_ConicToFunc;
+    cubic_to: FT_Outline_CubicToFunc;
+    shift: integer;
+    delta: FT_Pos;
+  end;
+  PFT_Outline_Funcs = ^FT_Outline_Funcs;
 
   FT_Size_Metrics = record
     x_ppem : FT_UShort;
@@ -338,25 +354,39 @@ type
     outline : FT_Outline;
   end;
 
+//Base Interface
+function FT_Done_Face(face: PFT_Face): integer; cdecl; external freetypedll Name 'FT_Done_Face';
+function FT_Done_FreeType(alibrary: PFT_Library): integer; cdecl; external freetypedll Name 'FT_Done_FreeType';
+function FT_Get_Char_Index(face: PFT_Face; charcode: FT_ULong): FT_UInt; cdecl; external freetypedll Name 'FT_Get_Char_Index';
+function FT_Get_Kerning(face: PFT_Face; left_glyph, right_glyph, kern_mode: FT_UInt; out akerning: FT_Vector): integer; cdecl; external freetypedll Name 'FT_Get_Kerning';
+function FT_Init_FreeType(var alibrary: PFT_Library): integer; cdecl; external freetypedll Name 'FT_Init_FreeType';
+function FT_IS_SCALABLE(face: PFT_Face): boolean;
+function FT_Load_Char(face: PFT_Face; charcode: FT_ULong; load_flags: longint): integer; cdecl; external freetypedll Name 'FT_Load_Char';
+function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: longint): integer; cdecl; external freetypedll Name 'FT_Load_Glyph';
+function FT_New_Face(alibrary: PFT_Library; filepathname: PChar; face_index: integer; var aface: PFT_Face): integer; cdecl; external freetypedll Name 'FT_New_Face';
+function FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer; cdecl; external freetypedll Name 'FT_Set_Char_Size';
+function FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer; cdecl; external freetypedll Name 'FT_Set_Pixel_Sizes';
+procedure FT_Set_Transform(face: PFT_Face; matrix: PFT_Matrix; delta: PFT_Vector); cdecl; external freetypedll Name 'FT_Set_Transform';
 
-function FT_Init_FreeType(var alibrary:PFT_Library) : integer; cdecl; external freetypedll name 'FT_Init_FreeType';
-function FT_Done_FreeType(alibrary:PFT_Library) : integer; cdecl; external freetypedll name 'FT_Done_FreeType';
-procedure FT_Library_Version(alibrary:PFT_Library; var amajor,aminor,apatch:integer); cdecl; external freetypedll name 'FT_Library_Version';
+//Outline Processing
+function FT_Outline_Decompose(outline: PFT_Outline; const func_interface: PFT_Outline_Funcs; user: Pointer): integer; cdecl; external freetypedll Name 'FT_Outline_Decompose';
 
-function FT_New_Face(alibrary:PFT_Library; filepathname:pchar; face_index:integer; var aface:PFT_Face):integer; cdecl; external freetypedll name 'FT_New_Face';
-function FT_Set_Pixel_Sizes(face:PFT_Face; pixel_width,pixel_height:FT_UInt) : integer; cdecl; external freetypedll name 'FT_Set_Pixel_Sizes';
-function FT_Set_Char_Size(face:PFT_Face; char_width,char_height:FT_F26dot6;horz_res, vert_res:FT_UInt) : integer; cdecl; external freetypedll name 'FT_Set_Char_Size';
-function FT_Get_Char_Index(face:PFT_Face; charcode:FT_ULong):FT_UInt; cdecl; external freetypedll name 'FT_Get_Char_Index';
-function FT_Load_Glyph(face:PFT_Face; glyph_index:FT_UInt ;load_flags:longint):integer; cdecl; external freetypedll name 'FT_Load_Glyph';
-function FT_Get_Kerning(face:PFT_Face; left_glyph, right_glyph, kern_mode:FT_UInt; out akerning:FT_Vector) : integer; cdecl; external freetypedll name 'FT_Get_Kerning';
+//FreeType Version
+procedure FT_Library_Version(alibrary: PFT_Library; var amajor, aminor, apatch: integer); cdecl; external freetypedll Name 'FT_Library_Version';
 
-function FT_Get_Glyph(slot:PFT_GlyphSlot; out aglyph:PFT_Glyph) : integer; cdecl; external freetypedll name 'FT_Get_Glyph';
-function FT_Glyph_Transform(glyph:PFT_Glyph; matrix:PFT_Matrix; delta:PFT_Vector) : integer; cdecl; external freetypedll name 'FT_Glyph_Transform';
-function FT_Glyph_Copy(source:PFT_Glyph; out target:PFT_Glyph): integer; cdecl; external freetypedll name 'FT_Glyph_Copy';
-procedure FT_Glyph_Get_CBox(glyph:PFT_Glyph;bbox_mode:FT_UInt;var acbox:FT_BBox); cdecl; external freetypedll name 'FT_Glyph_Get_CBox';
-function FT_Glyph_To_Bitmap(var the_glyph:PFT_Glyph;render_mode:FT_Render_Mode;origin:PFT_Vector; destroy:FT_Bool):integer; cdecl; external freetypedll name 'FT_Glyph_To_Bitmap';
-procedure FT_Done_Glyph (glyph:PFT_Glyph); cdecl; external freetypedll name 'FT_Done_Glyph';
+//Glyph Management
+function FT_Get_Glyph(slot: PFT_GlyphSlot; out aglyph: PFT_Glyph): integer; cdecl; external freetypedll Name 'FT_Get_Glyph';
+function FT_Glyph_Copy(Source: PFT_Glyph; out target: PFT_Glyph): integer; cdecl; external freetypedll Name 'FT_Glyph_Copy';
+function FT_Glyph_To_Bitmap(var the_glyph: PFT_Glyph; render_mode: FT_Render_Mode; origin: PFT_Vector; Destroy: FT_Bool): integer; cdecl; external freetypedll Name 'FT_Glyph_To_Bitmap';
+function FT_Glyph_Transform(glyph: PFT_Glyph; matrix: PFT_Matrix; delta: PFT_Vector): integer; cdecl; external freetypedll Name 'FT_Glyph_Transform';
+procedure FT_Done_Glyph(glyph: PFT_Glyph); cdecl; external freetypedll Name 'FT_Done_Glyph';
+procedure FT_Glyph_Get_CBox(glyph: PFT_Glyph; bbox_mode: FT_UInt; var acbox: FT_BBox); cdecl; external freetypedll Name 'FT_Glyph_Get_CBox';
 
 implementation
+
+function FT_IS_SCALABLE(face: PFT_Face): boolean;
+begin
+  Result := (face^.face_flags and FT_FACE_FLAG_SCALABLE) = 1;
+end;
 
 end.
