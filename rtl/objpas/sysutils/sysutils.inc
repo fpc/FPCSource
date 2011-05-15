@@ -379,7 +379,7 @@ begin
     S:=SAssertionFailed
   else
     S:=Msg;
-  Raise EAssertionFailed.Createfmt(SAssertError,[S,Fn,LineNo]) at Pointer(theAddr);
+  Raise EAssertionFailed.Createfmt(SAssertError,[S,Fn,LineNo]) at get_caller_addr(theAddr), get_caller_frame(theAddr);
 end;
 
 {$ifdef STACKCHECK_WAS_ON}
