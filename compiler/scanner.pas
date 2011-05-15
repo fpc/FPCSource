@@ -1684,8 +1684,8 @@ In case not, the value returned can be arbitrary.
         foundfile : TCmdStr;
         path,
         name,
-        args,
         hs    : tpathstr;
+        args  : string;
         hp    : tinputfile;
         found : boolean;
       begin

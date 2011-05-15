@@ -118,7 +118,7 @@ uses
 {$endif nativent}
   ,globtype;
 
-function Compile(const cmd:string):longint;
+function Compile(const cmd:TCmdStr):longint;
 
 implementation
 
@@ -163,7 +163,7 @@ begin
 end;
 
 
-procedure InitCompiler(const cmd:string);
+procedure InitCompiler(const cmd:TCmdStr);
 begin
   if CompilerInited then
    DoneCompiler;
@@ -197,7 +197,7 @@ begin
 end;
 
 
-function Compile(const cmd:string):longint;
+function Compile(const cmd:TCmdStr):longint;
 
 {$maxfpuregisters 0}
 

@@ -32,7 +32,7 @@ interface
          executed from the FPC application. In some circomstances, this can be more
          than 255 characters. That's why using Ansi Strings}
        TCmdStr = AnsiString;
-       TPathStr = String;
+       TPathStr = AnsiString;
 
        { Integer type corresponding to pointer size }
 {$ifdef cpu64bitaddr}

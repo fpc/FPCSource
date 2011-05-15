@@ -1402,7 +1402,7 @@ implementation
 
    procedure get_exepath;
      var
-	   localExepath : TCmdStr;
+       localExepath : TCmdStr;
        exeName:TCmdStr;
 {$ifdef need_path_search}
        hs1 : TPathStr;
