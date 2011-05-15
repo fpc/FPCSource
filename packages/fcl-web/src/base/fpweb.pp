@@ -127,7 +127,7 @@ Type
     Property AfterResponse : TResponseEvent Read FAfterResponse Write FAfterResponse;
     Property OnGetAction : TGetActionEvent Read GetOnGetAction Write SetOnGetAction;
     Property DefActionWhenUnknown : Boolean read GetDefActionWhenUnknown write SetDefActionWhenUnknown default true;
-    Property Template : TFPTemplate Read FTemplate Write SetTemplate;
+    Property ModuleTemplate : TFPTemplate Read FTemplate Write SetTemplate;
     Property OnGetParam : TGetParamEvent Read FOnGetParam Write FOnGetParam;
     Property OnTemplateContent : TGetParamEvent Read FOnGetParam Write FOnGetParam;
     Property Request: TRequest Read FRequest;

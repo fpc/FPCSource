@@ -175,6 +175,7 @@ type
     FHTTPXRequestedWith: String;
     FFields : THttpFields;
     FQueryFields: TStrings;
+    FURL : String;
     function GetSetField(AIndex: Integer): String;
     function GetSetFieldName(AIndex: Integer): String;
     procedure SetCookieFields(const AValue: TStrings);
@@ -624,6 +625,7 @@ begin
   else
     case Index of
       0  : Result:=FHTTPVersion;
+      32 : Result:=FURL;
       36 : Result:=FHTTPXRequestedWith;
     else
       Result := '';
@@ -654,6 +656,7 @@ begin
       28 : ; // Property RemoteHost : String Index 28 read  GetFieldValue Write SetFieldValue;
       29 : ; // Property ScriptName : String Index 29 read  GetFieldValue Write SetFieldValue;
       30 : ; // Property ServerPort : Word Read GetServerPort; // Index 30
+      32 : FURL:=Value;
       36 : FHTTPXRequestedWith:=Value;
     end;
 end;
