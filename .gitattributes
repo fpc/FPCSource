@@ -1656,10 +1656,12 @@ packages/fcl-base/examples/crittest.pp svneol=native#text/plain
 packages/fcl-base/examples/daemon.txt svneol=native#text/plain
 packages/fcl-base/examples/dbugsrv.pp svneol=native#text/plain
 packages/fcl-base/examples/debugtest.pp svneol=native#text/plain
+packages/fcl-base/examples/decodeascii85.pp svneol=native#text/plain
 packages/fcl-base/examples/doecho.pp svneol=native#text/plain
 packages/fcl-base/examples/dparser.pp svneol=native#text/plain
 packages/fcl-base/examples/dsockcli.pp svneol=native#text/plain
 packages/fcl-base/examples/dsocksvr.pp svneol=native#text/plain
+packages/fcl-base/examples/encodeascii85.pp svneol=native#text/plain
 packages/fcl-base/examples/fpdoc.dtd -text
 packages/fcl-base/examples/fpexprpars.txt svneol=native#text/plain
 packages/fcl-base/examples/fstream.pp svneol=native#text/plain
