@@ -47,7 +47,7 @@ unit cgcpu;
         function getintregister(list:TAsmList;size:Tcgsize):Tregister;override;
         function getaddressregister(list:TAsmList):TRegister;override;
 
-        procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const paraloc : TCGPara);override;
+        procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const paraloc : TCGPara);override;
         procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
 
@@ -55,17 +55,17 @@ unit cgcpu;
         procedure a_call_reg(list : TAsmList;reg: tregister);override;
         procedure a_call_ref(list : TAsmList;ref: treference);override;
 
-        procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: aint; reg: TRegister); override;
+        procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
 
         { move instructions }
-        procedure a_load_const_reg(list : TAsmList; size: tcgsize; a : aint;reg : tregister);override;
+        procedure a_load_const_reg(list : TAsmList; size: tcgsize; a : tcgint;reg : tregister);override;
         procedure a_load_reg_ref(list : TAsmList; fromsize, tosize: tcgsize; reg : tregister;const ref : treference);override;
         procedure a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);override;
         procedure a_load_reg_reg(list : TAsmList; fromsize, tosize : tcgsize;reg1,reg2 : tregister);override;
 
         {  comparison operations }
-        procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
+        procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
           l : tasmlabel);override;
         procedure a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
 
@@ -80,8 +80,8 @@ unit cgcpu;
 
         procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);override;
 
-        procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : aint);override;
-        procedure g_concatcopy_move(list : TAsmList;const source,dest : treference;len : aint);
+        procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);override;
+        procedure g_concatcopy_move(list : TAsmList;const source,dest : treference;len : tcgint);
 
         procedure g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef); override;
 
@@ -194,7 +194,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgavr.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const paraloc : TCGPara);
+    procedure tcgavr.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const paraloc : TCGPara);
       var
         ref: treference;
       begin
@@ -220,7 +220,7 @@ unit cgcpu;
       var
         tmpref, ref: treference;
         location: pcgparalocation;
-        sizeleft: aint;
+        sizeleft: tcgint;
       begin
         location := paraloc.location;
         tmpref := r;
@@ -323,7 +323,7 @@ unit cgcpu;
       end;
 
 
-     procedure tcgavr.a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: aint; reg: TRegister);
+     procedure tcgavr.a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister);
        var
          mask : qword;
          shift : byte;
@@ -571,7 +571,7 @@ unit cgcpu;
        end;
 
 
-     procedure tcgavr.a_load_const_reg(list : TAsmList; size: tcgsize; a : aint;reg : tregister);
+     procedure tcgavr.a_load_const_reg(list : TAsmList; size: tcgsize; a : tcgint;reg : tregister);
        var
          mask : qword;
          shift : byte;
@@ -1070,7 +1070,7 @@ unit cgcpu;
 
     {  comparison operations }
     procedure tcgavr.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;
-      cmp_op : topcmp;a : aint;reg : tregister;l : tasmlabel);
+      cmp_op : topcmp;a : tcgint;reg : tregister;l : tasmlabel);
       var
         swapped : boolean;
         tmpreg : tregister;
@@ -1404,7 +1404,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgavr.g_concatcopy_move(list : TAsmList;const source,dest : treference;len : aint);
+    procedure tcgavr.g_concatcopy_move(list : TAsmList;const source,dest : treference;len : tcgint);
       var
         paraloc1,paraloc2,paraloc3 : TCGPara;
       begin
@@ -1429,7 +1429,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgavr.g_concatcopy(list : TAsmList;const source,dest : treference;len : aint);
+    procedure tcgavr.g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);
       var
         countreg,tmpreg : tregister;
         srcref,dstref : treference;
