@@ -141,6 +141,7 @@ begin
         begin
           AddUnit('httpdefs');
         end;
+    T:=P.Targets.AddUnit('fphttpclient.pp');
     T:=P.Targets.AddUnit('fpwebdata.pp');
     T.ResourceStrings:=true;
     With T.Dependencies do
