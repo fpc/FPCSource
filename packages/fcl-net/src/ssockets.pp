@@ -451,9 +451,9 @@ end;
 Procedure TInetServer.Bind;
 
 begin
-  Faddr.family := AF_INET;
-  Faddr.port := ShortHostToNet(FPort);
-  Faddr.addr := LongWord(StrToNetAddr(FHost));
+  Faddr.sin_family := AF_INET;
+  Faddr.sin_port := ShortHostToNet(FPort);
+  Faddr.sin_addr.s_addr := LongWord(StrToNetAddr(FHost));
   if  Sockets.fpBind(FSocket, @FAddr, Sizeof(FAddr))<>0 then
     raise ESocketError.Create(seBindFailed, [IntToStr(FPort)]);
   FBound:=True;
@@ -566,7 +566,6 @@ end;
 Procedure TInetSocket.DoConnect(ASocket : Longint);
 
 Var
-  TheHost: THostResolver;
   A : THostAddr;
   addr: TInetSockAddr;
 
@@ -581,9 +580,9 @@ begin
       finally
         free;
       end;
-  addr.family := AF_INET;
-  addr.port := ShortHostToNet(FPort);
-  addr.addr := HostToNet(a.s_addr);
+  addr.sin_family := AF_INET;
+  addr.sin_port := ShortHostToNet(FPort);
+  addr.sin_addr.s_addr := HostToNet(a.s_addr);
 
   If  Sockets.fpConnect(ASocket, @addr, sizeof(addr))<>0 then
     raise ESocketError.Create(seConnectFailed, [Format('%s:%d',[FHost, FPort])]);
