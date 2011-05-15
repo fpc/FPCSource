@@ -8,12 +8,12 @@ version=2.5.1
 
 [target]
 units=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb \
-      webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate
-rsts=fpcgi fphtml fpweb websession cgiapp
+      webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver
+rsts=fpcgi fphtml fpweb websession cgiapp fphttpserver
 
 # these units are listed separately because they don't work for
 # darwin (which does support the rest of fcl-web)
-units_beos=custfcgi fpfcgi
+units_beos=custfcgi fpfcgi 
 units_haiku=custfcgi fpfcgi
 units_freebsd=custfcgi fpfcgi
 units_solaris=custfcgi fpfcgi
