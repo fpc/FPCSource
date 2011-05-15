@@ -143,6 +143,8 @@ type
   end;
 {$endif}
 
+  { TInetSocket }
+
   TInetSocket = Class(TSocketStream)
   Private
     FHost : String;
@@ -152,7 +154,6 @@ type
   Public
     Constructor Create(ASocket : longint); Override; Overload;
     Constructor Create(const AHost: String; APort: Word); Overload;
-    Destructor destroy; override;
     Property Host : String Read FHost;
     Property Port : Word Read FPort;
   end;
@@ -576,7 +577,7 @@ begin
       try
         If Not NameLookup(FHost) then
           raise ESocketError.Create(seHostNotFound, [FHost]);
-        A:=HostAddress;
+        A:=NetHostAddress;
       finally
         free;
       end;
