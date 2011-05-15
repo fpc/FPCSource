@@ -28,7 +28,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
       While (ChPos<=Len) and
             (Fmt[ChPos]<='9') and (Fmt[ChPos]>='0') do inc(ChPos);
       If ChPos>len then
-        DoFormatError(feInvalidFormat);
+        DoFormatError(feInvalidFormat,Fmt);
       If Fmt[ChPos]='*' then
         begin
 
@@ -41,7 +41,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
         end;
 
         If (ChPos>OldPos) or (ArgN>High(Args)) then
-          DoFormatError(feInvalidFormat);
+          DoFormatError(feInvalidFormat,Fmt);
 
         ArgPos:=ArgN+1;
 
@@ -50,7 +50,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
           vtInt64: Value := Args[ArgN].VInt64^;
           vtQWord: Value := Args[ArgN].VQWord^;
         else
-          DoFormatError(feInvalidFormat);
+          DoFormatError(feInvalidFormat,Fmt);
         end;
         Inc(ChPos);
         end
@@ -60,7 +60,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
           begin
           Val (Copy(Fmt,OldPos,ChPos-OldPos),value,code);
           // This should never happen !!
-          If Code>0 then DoFormatError (feInvalidFormat);
+          If Code>0 then DoFormatError (feInvalidFormat,Fmt);
           end
         else
           Value:=-1;
@@ -76,7 +76,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
         value:=0; // Delphi undocumented behaviour, assume 0, #11099
       If Fmt[ChPos]=':' then
         begin
-        If Value=-1 then DoFormatError(feMissingArgument);
+        If Value=-1 then DoFormatError(feMissingArgument,fmt);
         Index:=Value;
         Value:=-1;
         Inc(ChPos);
@@ -202,7 +202,7 @@ begin
   If (Doarg>High(Args)) or (Args[Doarg].Vtype<>AT) then
    begin
      if err then
-      DoFormatError(feInvalidArgindex);
+      DoFormatError(feInvalidArgindex,Fmt);
      dec(ArgPos);
      exit;
    end;

@@ -896,19 +896,18 @@ end;
 {$endif}
 
 
-Procedure DoFormatError (ErrCode : Longint);
+Procedure DoFormatError (ErrCode : Longint;const fmt:ansistring);
 Var
   S : String;
 begin
   //!! must be changed to contain format string...
-  S:='';
+  S:=fmt;
   Case ErrCode of
    feInvalidFormat : raise EConvertError.Createfmt(SInvalidFormat,[s]);
    feMissingArgument : raise EConvertError.Createfmt(SArgumentMissing,[s]);
    feInvalidArgIndex : raise EConvertError.Createfmt(SInvalidArgIndex,[s]);
  end;
 end;
-
 
 { we've no templates, but with includes we can simulate this :) }
 
