@@ -1363,12 +1363,21 @@ begin
                            exclude(init_settings.globalswitches,cs_support_exceptions)
                          else
                            include(init_settings.globalswitches,cs_support_exceptions);
+                       'y' :
+                         If UnsetBool(More, j) then
+                           exclude(init_settings.localswitches,cs_typed_addresses)
+                         else
+                           include(init_settings.localswitches,cs_typed_addresses);
                        '-' :
                          begin
-                           init_settings.globalswitches:=init_settings.globalswitches - [cs_constructor_name,cs_support_exceptions];
-                           init_settings.localswitches:=init_settings.localswitches - [cs_do_assertion, cs_do_inline, cs_ansistrings];
+                           init_settings.globalswitches:=init_settings.globalswitches - [cs_constructor_name,cs_support_exceptions,
+                                                                                         cs_support_vectors,cs_load_fpcylix_unit];
+
+                           init_settings.localswitches:=init_settings.localswitches - [cs_do_assertion,cs_do_inline, cs_ansistrings,
+                                                                                       cs_typed_addresses];
+
                            init_settings.moduleswitches:=init_settings.moduleswitches - [cs_support_c_operators, cs_support_goto,
-                                                                     cs_support_macro];
+                                                                                         cs_support_macro];
                          end;
                        else
                          IllegalPara(opt);

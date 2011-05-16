@@ -1266,41 +1266,42 @@ const msgtxt : array[0..000247,1..240] of char=(
   '**2So_Same as -Mtp'#010+
   '**2Ss_Constructor name must be init (destructor must be done)'#010+
   '**2Sx_Enable exception keywords (default in Delphi/ObjFPC modes)'#010+
-  '**1s_Do not call assembler and linker'#010+
-  '**2sh_Generate scri','pt to link on host'#010+
+  '**2Sy_@<pointer> returns a typed pointer, same as $T+'#010+
+  '**1','s_Do not call assembler and linker'#010+
+  '**2sh_Generate script to link on host'#010+
   '**2st_Generate script to link on target'#010+
   '**2sr_Skip register allocation phase (use with -alr)'#010+
   '**1T<x>_Target operating system:'#010+
   '3*2Tdarwin_Darwin/Mac OS X'#010+
-  '3*2Temx_OS/2 via EMX (including EMX/RSX extender)'#010+
-  '3*2Tfreebsd_FreeBS','D'#010+
+  '3*2Temx_OS/2 v','ia EMX (including EMX/RSX extender)'#010+
+  '3*2Tfreebsd_FreeBSD'#010+
   '3*2Tgo32v2_Version 2 of DJ Delorie DOS extender'#010+
   '3*2Tiphonesim_ iPhoneSimulator from iOS SDK 3.2+ (older versions: -Tda'+
   'rwin)'#010+
   '3*2Tlinux_Linux'#010+
   '3*2Tnetbsd_NetBSD'#010+
-  '3*2Tnetware_Novell Netware Module (clib)'#010+
-  '3*2Tnetwlibc_Novell Netware Module (lib','c)'#010+
+  '3*2Tnetware_Novell Netware',' Module (clib)'#010+
+  '3*2Tnetwlibc_Novell Netware Module (libc)'#010+
   '3*2Topenbsd_OpenBSD'#010+
   '3*2Tos2_OS/2 / eComStation'#010+
   '3*2Tsunos_SunOS/Solaris'#010+
   '3*2Tsymbian_Symbian OS'#010+
   '3*2Tsolaris_Solaris'#010+
   '3*2Twatcom_Watcom compatible DOS extender'#010+
-  '3*2Twdosx_WDOSX DOS extender'#010+
+  '3*2Twdosx_WDOSX DOS extende','r'#010+
   '3*2Twin32_Windows 32 Bit'#010+
   '3*2Twince_Windows CE'#010+
-  '4*2Tda','rwin_Darwin/Mac OS X'#010+
+  '4*2Tdarwin_Darwin/Mac OS X'#010+
   '4*2Tlinux_Linux'#010+
   '4*2Twin64_Win64 (64 bit Windows systems)'#010+
   '6*2Tamiga_Commodore Amiga'#010+
   '6*2Tatari_Atari ST/STe/TT'#010+
   '6*2Tlinux_Linux'#010+
   '6*2Tpalmos_PalmOS'#010+
-  'A*2Tdarwin_Darwin/iPhoneOS/iOS'#010+
+  'A*2Tdarwin_Darwin/iPho','neOS/iOS'#010+
   'A*2Tlinux_Linux'#010+
   'A*2Twince_Windows CE'#010+
-  'P*2Tamig','a_AmigaOS'#010+
+  'P*2Tamiga_AmigaOS'#010+
   'P*2Tdarwin_Darwin/Mac OS X'#010+
   'P*2Tlinux_Linux'#010+
   'P*2Tmacos_Mac OS (classic)'#010+
@@ -1308,84 +1309,84 @@ const msgtxt : array[0..000247,1..240] of char=(
   'S*2Tsolaris_Solaris'#010+
   'S*2Tlinux_Linux'#010+
   '**1u<x>_Undefines the symbol <x>'#010+
-  '**1U_Unit options:'#010+
-  '**2Un_Do not check where the unit name matches the f','ile name'#010+
+  '**1U_Unit options',':'#010+
+  '**2Un_Do not check where the unit name matches the file name'#010+
   '**2Ur_Generate release unit files (never automatically recompiled)'#010+
   '**2Us_Compile a system unit'#010+
   '**1v<x>_Be verbose. <x> is a combination of the following letters:'#010+
-  '**2*_e : Show errors (default)       0 : Show nothing (except errors)',
-  #010+
+  '**2*_e : Show e','rrors (default)       0 : Show nothing (except errors'+
+  ')'#010+
   '**2*_w : Show warnings               u : Show unit info'#010+
   '**2*_n : Show notes                  t : Show tried/used files'#010+
   '**2*_h : Show hints                  c : Show conditionals'#010+
-  '**2*_i : Show general info           d : Show debug info'#010+
-  '**2*','_l : Show linenumbers            r : Rhide/GCC compatibility mod'+
-  'e'#010+
+  '**2*_i ',': Show general info           d : Show debug info'#010+
+  '**2*_l : Show linenumbers            r : Rhide/GCC compatibility mode'#010+
   '**2*_s : Show time stamps            q : Show message numbers'#010+
-  '**2*_a : Show everything             x : Executable info (Win32 only)'#010+
-  '**2*_b : Write file names messages   p : W','rite tree.log with parse t'+
-  'ree'#010+
+  '**2*_a : Show everything             x : Executable info (','Win32 only'+
+  ')'#010+
+  '**2*_b : Write file names messages   p : Write tree.log with parse tre'+
+  'e'#010+
   '**2*_    with full path              v : Write fpcdebug.txt with'#010+
   '**2*_                                    lots of debugging info'#010+
-  '**2*_m<x>,<y> : Don'#039't show messages numbered <x> and <y>'#010+
-  '3*1W<x>_Target-specific ','options (targets)'#010+
+  '**2*_m<x>,<y> : Don'#039't show ','messages numbered <x> and <y>'#010+
+  '3*1W<x>_Target-specific options (targets)'#010+
   'A*1W<x>_Target-specific options (targets)'#010+
   'P*1W<x>_Target-specific options (targets)'#010+
   'p*1W<x>_Target-specific options (targets)'#010+
-  '3*2Wb_Create a bundle instead of a library (Darwin)'#010+
-  'P*2Wb_Create a bundle instead of a library (','Darwin)'#010+
+  '3*2Wb_Create a bundle instead of a library',' (Darwin)'#010+
+  'P*2Wb_Create a bundle instead of a library (Darwin)'#010+
   'p*2Wb_Create a bundle instead of a library (Darwin)'#010+
   '3*2WB_Create a relocatable image (Windows)'#010+
   'A*2WB_Create a relocatable image (Windows, Symbian)'#010+
-  '3*2WC_Specify console type application (EMX, OS/2, Windows)'#010+
-  'A*2WC_Specify console typ','e application (Windows)'#010+
+  '3*2WC_Specify console type appl','ication (EMX, OS/2, Windows)'#010+
+  'A*2WC_Specify console type application (Windows)'#010+
   'P*2WC_Specify console type application (Classic Mac OS)'#010+
   '3*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)'#010+
-  'A*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)'#010+
-  '3*2We_Use external resources (Darwin',')'#010+
+  'A*2WD_Use DEFFILE to export functions of DLL',' or EXE (Windows)'#010+
+  '3*2We_Use external resources (Darwin)'#010+
   '4*2We_Use external resources (Darwin)'#010+
   'A*2We_Use external resources (Darwin)'#010+
   'P*2We_Use external resources (Darwin)'#010+
   'p*2We_Use external resources (Darwin)'#010+
-  '3*2WF_Specify full-screen type application (EMX, OS/2)'#010+
-  '3*2WG_Specify graphic type appl','ication (EMX, OS/2, Windows)'#010+
+  '3*2WF_Specify full-screen type a','pplication (EMX, OS/2)'#010+
+  '3*2WG_Specify graphic type application (EMX, OS/2, Windows)'#010+
   'A*2WG_Specify graphic type application (Windows)'#010+
   'P*2WG_Specify graphic type application (Classic Mac OS)'#010+
   '3*2Wi_Use internal resources (Darwin)'#010+
-  'P*2Wi_Use internal resources (Darwin)'#010+
-  'p*2Wi_Use internal resources (','Darwin)'#010+
+  'P*2Wi_Use inte','rnal resources (Darwin)'#010+
+  'p*2Wi_Use internal resources (Darwin)'#010+
   '3*2WN_Do not generate relocation code, needed for debugging (Windows)'#010+
   'A*2WN_Do not generate relocation code, needed for debugging (Windows)'#010+
-  '3*2WR_Generate relocation code (Windows)'#010+
+  '3*2WR_Generate relocation code (Window','s)'#010+
   'A*2WR_Generate relocation code (Windows)'#010+
-  'P*2WT_Spec','ify MPW tool type application (Classic Mac OS)'#010+
+  'P*2WT_Specify MPW tool type application (Classic Mac OS)'#010+
   '3*2WX_Enable executable stack (Linux)'#010+
   'A*2WX_Enable executable stack (Linux)'#010+
   'p*2WX_Enable executable stack (Linux)'#010+
-  'P*2WX_Enable executable stack (Linux)'#010+
+  'P*2WX_Enable executable s','tack (Linux)'#010+
   '**1X_Executable options:'#010+
-  '**2Xc_Pass --sha','red/-dynamic to the linker (BeOS, Darwin, FreeBSD, L'+
-  'inux)'#010+
+  '**2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Lin'+
+  'ux)'#010+
   '**2Xd_Do not use standard library search path (needed for cross compil'+
   'e)'#010+
   '**2Xe_Use external linker'#010+
-  '**2Xg_Create debuginfo in a separate file and add a debuglink section '+
-  'to executable',#010+
+  '**2Xg_Create debuginfo in a s','eparate file and add a debuglink sectio'+
+  'n to executable'#010+
   '**2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)'#010+
   '**2Xi_Use internal linker'#010+
   '**2Xm_Generate link map'#010+
   '**2XM<x>_Set the name of the '#039'main'#039' program routine (default i'+
-  's '#039'main'#039')'#010+
-  '**2XP<x>_Prepend the binutils names with the pref','ix <x>'#010+
+  's '#039'ma','in'#039')'#010+
+  '**2XP<x>_Prepend the binutils names with the prefix <x>'#010+
   '**2Xr<x>_Set the linker'#039's rlink-path to <x> (needed for cross comp'+
   'ile, see the ld manual for more information) (BeOS, Linux)'#010+
-  '**2XR<x>_Prepend <x> to all linker search paths (BeOS, Darwin, FreeBSD'+
-  ', Linux, Mac OS, Solaris)'#010+
-  '**2Xs_Strip ','all symbols from executable'#010+
+  '**2XR<x>_Prepend <x> to all linker search paths (BeOS,',' Darwin, FreeB'+
+  'SD, Linux, Mac OS, Solaris)'#010+
+  '**2Xs_Strip all symbols from executable'#010+
   '**2XS_Try to link units statically (default, defines FPC_LINK_STATIC)'#010+
   '**2Xt_Link with static libraries (-static is passed to linker)'#010+
-  '**2XX_Try to smartlink units             (defines FPC_LINK_SMART)'#010+
+  '**2XX_Try to smartlink un','its             (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
-  '**1?_Sh','ow this help'#010+
+  '**1?_Show this help'#010+
   '**1h_Shows this help without waiting'
 );
