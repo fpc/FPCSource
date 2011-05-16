@@ -162,7 +162,6 @@ interface
       OT_IMM16     = OT_IMMEDIATE or OT_BITS16;
       OT_IMM32     = OT_IMMEDIATE or OT_BITS32;
       OT_IMM64     = OT_IMMEDIATE or OT_BITS64;
-      OT_IMM80     = OT_IMMEDIATE or OT_BITS80;
 
       OT_ONENESS   = otf_sub0;  { special type of immediate operand  }
       OT_UNITY     = OT_IMMEDIATE or OT_ONENESS;  { for shift/rotate instructions  }
@@ -341,6 +340,7 @@ implementation
        IF_AR1    = $00000040;  { SB, SW, SD applies to argument 1  }
        IF_AR2    = $00000060;  { SB, SW, SD applies to argument 2  }
        IF_ARMASK = $00000060;  { mask for unsized argument spec  }
+       IF_ARSHIFT = 5;         { LSB of IF_ARMASK }
        IF_PRIV   = $00000100;  { it's a privileged instruction  }
        IF_SMM    = $00000200;  { it's only valid in SMM  }
        IF_PROT   = $00000400;  { it's protected mode only  }
@@ -1150,15 +1150,10 @@ implementation
               asize:=OT_BITS32;
             if (insflags and IF_ARMASK)<>0 then
              begin
-               siz[0]:=0;
-               siz[1]:=0;
-               siz[2]:=0;
-               if (insflags and IF_AR0)<>0 then
-                siz[0]:=asize
-               else if (insflags and IF_AR1)<>0 then
-                siz[1]:=asize
-               else if (insflags and IF_AR2)<>0 then
-                siz[2]:=asize;
+               siz[0]:=-1;
+               siz[1]:=-1;
+               siz[2]:=-1;
+               siz[((insflags and IF_ARMASK) shr IF_ARSHIFT)-1]:=asize;
              end
             else
              begin
@@ -1397,6 +1392,28 @@ implementation
 
 
 {$ifdef x86_64}
+    function rexbits(r: tregister): byte;
+      begin
+        result:=0;
+        case getregtype(r) of
+          R_INTREGISTER:
+            if (getsupreg(r)>=RS_R8) then
+          { Either B,X or R bits can be set, depending on register role in instruction.
+            Set all three bits here, caller will discard unnecessary ones. }
+              result:=result or $47
+            else if (getsubreg(r)=R_SUBL) and
+              (getsupreg(r) in [RS_RDI,RS_RSI,RS_RBP,RS_RSP]) then
+              result:=result or $40
+            else if (getsubreg(r)=R_SUBH) then
+          { Not an actual REX bit, used to detect incompatible usage of
+            AH/BH/CH/DH }
+              result:=result or $80;
+          R_MMREGISTER:
+            if getsupreg(r)>=RS_XMM8 then
+              result:=result or $47;
+        end;
+      end;
+
     function process_ea(const input:toper;out output:ea;rfield:longint):boolean;
       var
         sym   : tasmsymbol;
@@ -1414,21 +1431,7 @@ implementation
             rv:=regval(input.reg);
             output.modrm:=$c0 or (rfield shl 3) or rv;
             output.size:=1;
-
-            if ((getregtype(input.reg)=R_INTREGISTER) and
-              (getsupreg(input.reg)>=RS_R8)) or
-              ((getregtype(input.reg)=R_MMREGISTER) and
-              (getsupreg(input.reg)>=RS_XMM8)) then
-              begin
-                output.rex:=output.rex or $41;
-              end
-            else if (getregtype(input.reg)=R_INTREGISTER) and
-              (getsubreg(input.reg)=R_SUBL) and
-              (getsupreg(input.reg) in [RS_RDI,RS_RSI,RS_RBP,RS_RSP]) then
-              begin
-                output.rex:=output.rex or $40;
-              end;
-
+            output.rex:=output.rex or (rexbits(input.reg) and $F1);
             process_ea:=true;
 
             exit;
@@ -1472,22 +1475,7 @@ implementation
            if (ir=NR_ESP) or ((s<>1) and (s<>2) and (s<>4) and (s<>8) and (ir<>NR_NO)) then
             exit;
 
-           if ((getregtype(br)=R_INTREGISTER) and
-             (getsupreg(br)>=RS_R8)) or
-             ((getregtype(br)=R_MMREGISTER) and
-             (getsupreg(br)>=RS_XMM8)) then
-             begin
-               output.rex:=output.rex or $41;
-             end;
-
-           if ((getregtype(ir)=R_INTREGISTER) and
-             (getsupreg(ir)>=RS_R8)) or
-             ((getregtype(ir)=R_MMREGISTER) and
-             (getsupreg(ir)>=RS_XMM8)) then
-             begin
-               output.rex:=output.rex or $42;
-             end;
-
+           output.rex:=output.rex or (rexbits(br) and $F1) or (rexbits(ir) and $F2);
            process_ea:=true;
 
 
@@ -1746,19 +1734,7 @@ implementation
             8,9,10 :
               begin
 {$ifdef x86_64}
-                if ((getregtype(oper[c-8]^.reg)=R_INTREGISTER) and
-                  (getsupreg(oper[c-8]^.reg)>=RS_R8)) or
-                  ((getregtype(oper[c-8]^.reg)=R_MMREGISTER) and
-                  (getsupreg(oper[c-8]^.reg)>=RS_XMM8)) then
-                  begin
-                    rex:=rex or $41;
-                  end
-                else if (getregtype(oper[c-8]^.reg)=R_INTREGISTER) and
-                  (getsubreg(oper[c-8]^.reg)=R_SUBL) and
-                  (getsupreg(oper[c-8]^.reg) in [RS_RDI,RS_RSI,RS_RBP,RS_RSP]) then
-                  begin
-                    rex:=rex or $40;
-                  end;
+                rex:=rex or (rexbits(oper[c-8]^.reg) and $F1);
 {$endif x86_64}
                 inc(codes);
                 inc(len);
@@ -1850,19 +1826,7 @@ implementation
                   begin
                     if (oper[c and 7]^.typ=top_reg) then
                       begin
-                        if ((getregtype(oper[c and 7]^.reg)=R_INTREGISTER) and
-                          (getsupreg(oper[c and 7]^.reg)>=RS_R8)) or
-                          ((getregtype(oper[c and 7]^.reg)=R_MMREGISTER) and
-                          (getsupreg(oper[c and 7]^.reg)>=RS_XMM8)) then
-                          begin
-                            rex:=rex or $44;
-                          end
-                        else if (getregtype(oper[c and 7]^.reg)=R_INTREGISTER) and
-                          (getsubreg(oper[c and 7]^.reg)=R_SUBL) and
-                          (getsupreg(oper[c and 7]^.reg) in [RS_RDI,RS_RSI,RS_RBP,RS_RSP]) then
-                          begin
-                            rex:=rex or $40;
-                          end;
+                        rex:=rex or (rexbits(oper[c and 7]^.reg) and $F4);
                       end;
                   end;
 
@@ -1881,6 +1845,9 @@ implementation
           end;
         until false;
 {$ifdef x86_64}
+        if ((rex and $80)<>0) and ((rex and $4F)<>0) then
+          Message(asmw_e_bad_reg_with_rex);
+        rex:=rex and $4F;      { reset extra bits in upper nibble }
         if omit_rexw then
           begin
             if rex=$48 then    { remove rex entirely? }
@@ -1932,7 +1899,6 @@ implementation
        * \312          - (disassembler only) invalid with non-default address size.
        * \320,\321,\322 - might be an 0x66 or 0x48 byte, depending on the operand
        *                 size of operand x.
-       * \323          - insert x86_64 REX at this position.
        * \324          - indicates fixed 16-bit operand size, i.e. optional 0x66.
        * \325          - indicates fixed 32-bit operand size, i.e. optional 0x66.
        * \326          - indicates fixed 64-bit operand size, i.e. optional 0x48.
@@ -1942,10 +1908,10 @@ implementation
        * \331          - instruction not valid with REP prefix.  Hint for
        *                 disassembler only; for SSE instructions.
        * \332	       - disassemble a rep (0xF3 byte) prefix as repe not rep.
-       * \333          - 0xF3 prefix optionally followed by REX; for SSE instructions
-       * \334          - 0xF2 prefix optionally followed by REX; for SSE instructions
-       * \335          - removes rex size prefix, i.e. rex.w must be the last opcode
-       * \361          - 0x66 prefix optionally followed by REX; for SSE instructions
+       * \333          - 0xF3 prefix for SSE instructions
+       * \334          - 0xF2 prefix for SSE instructions
+       * \335          - Indicates 64-bit operand size with REX.W not necessary
+       * \361          - 0x66 prefix for SSE instructions
       }
 
       var
@@ -2164,7 +2130,7 @@ implementation
                 else
                  objdata.writebytes(currval,1);
               end;
-            24,25,26 :
+            24,25,26 :     // 030..032
               begin
                 getvalsym(c-24);
                 if (currval<-65536) or (currval>65535) then
@@ -2174,7 +2140,9 @@ implementation
                 else
                  objdata.writebytes(currval,2);
               end;
-            28,29,30 :
+            28,29,30 :     // 034..036
+              { !!! These are intended (and used in opcode table) to select depending
+                    on address size, *not* operand size. Works by coincidence only. }
               begin
                 getvalsym(c-28);
                 if opsize=S_Q then
@@ -2192,7 +2160,7 @@ implementation
                       objdata.writebytes(currval,4);
                   end
               end;
-            32,33,34 :
+            32,33,34 :    // 040..042
               begin
                 getvalsym(c-32);
                 if assigned(currsym) then
@@ -2200,7 +2168,7 @@ implementation
                 else
                  objdata.writebytes(currval,4);
               end;
-            40,41,42 :
+            40,41,42 :   // 050..052 - byte relative operand
               begin
                 getvalsym(c-40);
                 data:=currval-insend;
@@ -2210,7 +2178,7 @@ implementation
                  Message1(asmw_e_short_jmp_out_of_range,tostr(data));
                 objdata.writebytes(data,1);
               end;
-            52,53,54 :
+            52,53,54 :  // 064..066 - select between 16/32 address mode, but we support only 32
               begin
                 getvalsym(c-52);
                 if assigned(currsym) then
@@ -2218,7 +2186,7 @@ implementation
                 else
                  objdata_writereloc(currval-insend,4,nil,currabsreloc32)
               end;
-            56,57,58 :
+            56,57,58 :  // 070..072 - long relative operand
               begin
                 getvalsym(c-56);
                 if assigned(currsym) then
@@ -2377,15 +2345,17 @@ implementation
                            if oper[opidx]^.ref^.base=NR_RIP then
                              begin
                                currabsreloc:=RELOC_RELATIVE;
-                               { Adjust reloc value depending of immediate operand size }
-                               case Ord(codes^) of
-                                 12,13,14,16,17,18,20,21,22:
-                                   Dec(currval, 1);
-                                 24,25,26:
-                                   Dec(currval, 2);
-                                 32,33,34:
-                                   Dec(currval, 4);
-                               end;
+                               { Adjust reloc value depending of immediate operand size,
+                                 but not if offset is specified by literal constant }
+                               if Assigned(currsym) then
+                                 case Ord(codes^) of
+                                   12,13,14,16,17,18,20,21,22:
+                                     Dec(currval, 1);
+                                   24,25,26:
+                                     Dec(currval, 2);
+                                   32,33,34:
+                                     Dec(currval, 4);
+                                 end;
                              end
                            else
 {$endif x86_64}
