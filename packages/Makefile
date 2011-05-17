@@ -9726,11 +9726,19 @@ cocoaint_smart: univint_smart
 cocoaint_release: univint_release
 cocoaint_shared: univint_shared
 endif
+ifneq ($(findstring $(OS_TARGET),beos haiku freebsd darwin iphonesim solaris netbsd openbsd linux),)
 fppkg_all: fcl-base_all fcl-xml_all fcl-process_all fcl-net_all paszlib_all libcurl_all
 fppkg_debug: fcl-base_debug fcl-xml_debug fcl-process_debug fcl-net_debug paszlib_debug libcurl_debug
 fppkg_smart: fcl-base_smart fcl-xml_smart fcl-process_smart fcl-net_smart paszlib_smart libcurl_smart
 fppkg_release: fcl-base_release fcl-xml_release fcl-process_release fcl-net_release paszlib_release libcurl_release
 fppkg_shared: fcl-base_shared fcl-xml_shared fcl-process_shared fcl-net_shared paszlib_shared libcurl_shared
+else
+fppkg_all: fcl-base_all fcl-xml_all fcl-process_all fcl-net_all paszlib_all
+fppkg_debug: fcl-base_debug fcl-xml_debug fcl-process_debug fcl-net_debug paszlib_debug
+fppkg_smart: fcl-base_smart fcl-xml_smart fcl-process_smart fcl-net_smart paszlib_smart
+fppkg_release: fcl-base_release fcl-xml_release fcl-process_release fcl-net_release paszlib_release
+fppkg_shared: fcl-base_shared fcl-xml_shared fcl-process_shared fcl-net_shared paszlib_shared
+endif
 fcl-xml_all: fcl-base_all
 fcl-xml_debug: fcl-base_debug
 fcl-xml_smart: fcl-base_smart
