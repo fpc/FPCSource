@@ -1930,7 +1930,7 @@ implementation
                       is_dispinterface(p1.resultdef) or is_record(p1.resultdef) then
                       begin
                         { default property }
-                        protsym:=search_default_property(tobjectdef(p1.resultdef));
+                        protsym:=search_default_property(tabstractrecorddef(p1.resultdef));
                         if not(assigned(protsym)) then
                           begin
                              p1.destroy;

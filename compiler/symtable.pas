@@ -247,7 +247,7 @@ interface
     function  defined_macro(const s : string):boolean;
 
 {*** Object Helpers ***}
-    function search_default_property(pd : tobjectdef) : tpropertysym;
+    function search_default_property(pd : tabstractrecorddef) : tpropertysym;
     function find_real_objcclass_definition(pd: tobjectdef; erroronfailure: boolean): tobjectdef;
 
 {*** Macro Helpers ***}
@@ -2854,7 +2854,7 @@ implementation
                               Object Helpers
 ****************************************************************************}
 
-   function search_default_property(pd : tobjectdef) : tpropertysym;
+   function search_default_property(pd : tabstractrecorddef) : tpropertysym;
    { returns the default property of a class, searches also anchestors }
      var
        _defaultprop : tpropertysym;
@@ -2881,7 +2881,10 @@ implementation
              pd.symtable.SymList.ForEachCall(@tstoredsymtable(pd.symtable).testfordefaultproperty,@_defaultprop);
              if assigned(_defaultprop) then
                break;
-             pd:=pd.childof;
+             if (pd.typ=objectdef) then
+               pd:=tobjectdef(pd).childof
+             else
+               break;
           end;
         search_default_property:=_defaultprop;
      end;
