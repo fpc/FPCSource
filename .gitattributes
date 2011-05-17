@@ -2588,6 +2588,7 @@ packages/fppkg/src/fprepos.pp svneol=native#text/plain
 packages/fppkg/src/fpxmlrep.pp svneol=native#text/plain
 packages/fppkg/src/pkgcommands.pp svneol=native#text/plain
 packages/fppkg/src/pkgdownload.pp svneol=native#text/plain
+packages/fppkg/src/pkgfphttp.pp svneol=native#text/plain
 packages/fppkg/src/pkgfpmake.pp svneol=native#text/plain
 packages/fppkg/src/pkgglobals.pp svneol=native#text/plain
 packages/fppkg/src/pkghandler.pp svneol=native#text/plain

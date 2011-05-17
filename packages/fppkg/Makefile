@@ -267,31 +267,31 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(F
 override PACKAGE_NAME=fppkg
 override PACKAGE_VERSION=2.5.1
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
@@ -306,7 +306,7 @@ ifeq ($(FULL_TARGET),i386-wdosx)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
@@ -318,7 +318,7 @@ ifeq ($(FULL_TARGET),i386-netwlibc)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
@@ -330,16 +330,16 @@ ifeq ($(FULL_TARGET),i386-nativent)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
@@ -357,10 +357,10 @@ ifeq ($(FULL_TARGET),m68k-embedded)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
@@ -369,7 +369,7 @@ ifeq ($(FULL_TARGET),powerpc-macos)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
@@ -381,46 +381,46 @@ ifeq ($(FULL_TARGET),powerpc-wii)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
@@ -435,10 +435,10 @@ ifeq ($(FULL_TARGET),arm-symbian)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
@@ -447,13 +447,13 @@ ifeq ($(FULL_TARGET),avr-embedded)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
 override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget
+override TARGET_UNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos  pkgwget pkgfphttp
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_RSTS+=fprepos fpxmlrep pkgmessages
@@ -1829,7 +1829,7 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl fcl-base fcl-xml fcl-process fcl-net paszlib libcurl
+override REQUIRE_PACKAGES=rtl fcl-base fcl-xml fcl-process fcl-net paszlib libcurl fcl-web
 ifeq ($(FULL_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FCL-BASE=1
@@ -1842,6 +1842,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_RTL=1
@@ -1854,6 +1866,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
@@ -1866,6 +1883,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
@@ -1878,6 +1907,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1891,6 +1925,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 REQUIRE_PACKAGES_RTL=1
@@ -1904,6 +1950,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
 REQUIRE_PACKAGES_RTL=1
@@ -1917,6 +1975,13 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1929,6 +1994,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 REQUIRE_PACKAGES_RTL=1
@@ -1941,6 +2018,12 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 REQUIRE_PACKAGES_RTL=1
@@ -1953,6 +2036,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
@@ -1965,6 +2053,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1977,6 +2070,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 REQUIRE_PACKAGES_RTL=1
@@ -1989,6 +2094,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -2003,6 +2113,17 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 REQUIRE_PACKAGES_RTL=1
@@ -2015,6 +2136,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 REQUIRE_PACKAGES_RTL=1
@@ -2027,6 +2153,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_RTL=1
@@ -2039,6 +2170,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 REQUIRE_PACKAGES_RTL=1
@@ -2051,6 +2187,17 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2063,6 +2210,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
 REQUIRE_PACKAGES_RTL=1
@@ -2075,6 +2227,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
 REQUIRE_PACKAGES_RTL=1
@@ -2087,6 +2244,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
 REQUIRE_PACKAGES_RTL=1
@@ -2101,6 +2263,17 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2114,6 +2287,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 REQUIRE_PACKAGES_RTL=1
@@ -2127,6 +2312,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -2139,6 +2336,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 REQUIRE_PACKAGES_RTL=1
@@ -2151,6 +2360,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
@@ -2163,6 +2377,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -2175,6 +2394,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_RTL=1
@@ -2187,6 +2418,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2199,6 +2435,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2212,6 +2453,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -2224,6 +2477,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 REQUIRE_PACKAGES_RTL=1
@@ -2236,6 +2501,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 REQUIRE_PACKAGES_RTL=1
@@ -2248,6 +2518,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -2262,6 +2537,17 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_RTL=1
@@ -2274,6 +2560,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2286,6 +2577,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
 REQUIRE_PACKAGES_RTL=1
@@ -2298,6 +2594,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2311,6 +2612,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -2323,6 +2636,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 REQUIRE_PACKAGES_RTL=1
@@ -2335,6 +2660,12 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2347,6 +2678,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2360,6 +2696,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 REQUIRE_PACKAGES_RTL=1
@@ -2373,6 +2721,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
 REQUIRE_PACKAGES_RTL=1
@@ -2385,6 +2745,12 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -2399,6 +2765,17 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
@@ -2411,6 +2788,15 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2423,6 +2809,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2436,6 +2827,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 REQUIRE_PACKAGES_RTL=1
@@ -2448,6 +2851,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -2462,6 +2870,17 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 REQUIRE_PACKAGES_RTL=1
@@ -2474,6 +2893,17 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 REQUIRE_PACKAGES_RTL=1
@@ -2486,6 +2916,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
 REQUIRE_PACKAGES_RTL=1
@@ -2498,6 +2933,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2510,6 +2950,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
 REQUIRE_PACKAGES_RTL=1
@@ -2522,6 +2967,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2535,6 +2985,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -2549,6 +3011,17 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2561,6 +3034,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2573,6 +3051,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2586,6 +3069,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2598,6 +3093,11 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -2611,6 +3111,18 @@ REQUIRE_PACKAGES_FCL-NET=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FCL-DB=1
+REQUIRE_PACKAGES_FCL-JSON=1
+REQUIRE_PACKAGES_FCL-WEB=1
+REQUIRE_PACKAGES_IBASE=1
+REQUIRE_PACKAGES_POSTGRES=1
+REQUIRE_PACKAGES_MYSQL=1
+REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_ORACLE=1
+REQUIRE_PACKAGES_SQLITE=1
+REQUIRE_PACKAGES_PXLIB=1
+REQUIRE_PACKAGES_HTTPD22=1
+REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
@@ -2896,6 +3408,318 @@ endif
 endif
 ifdef UNITDIR_LIBCURL
 override COMPILER_UNITDIR+=$(UNITDIR_LIBCURL)
+endif
+endif
+ifdef REQUIRE_PACKAGES_FCL-DB
+PACKAGEDIR_FCL-DB:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-db/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_FCL-DB),)
+ifneq ($(wildcard $(PACKAGEDIR_FCL-DB)/units/$(TARGETSUFFIX)),)
+UNITDIR_FCL-DB=$(PACKAGEDIR_FCL-DB)/units/$(TARGETSUFFIX)
+else
+UNITDIR_FCL-DB=$(PACKAGEDIR_FCL-DB)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_FCL-DB)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_FCL-DB) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_FCL-DB)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_FCL-DB=
+UNITDIR_FCL-DB:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl-db/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_FCL-DB),)
+UNITDIR_FCL-DB:=$(firstword $(UNITDIR_FCL-DB))
+else
+UNITDIR_FCL-DB=
+endif
+endif
+ifdef UNITDIR_FCL-DB
+override COMPILER_UNITDIR+=$(UNITDIR_FCL-DB)
+endif
+endif
+ifdef REQUIRE_PACKAGES_FCL-JSON
+PACKAGEDIR_FCL-JSON:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-json/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_FCL-JSON),)
+ifneq ($(wildcard $(PACKAGEDIR_FCL-JSON)/units/$(TARGETSUFFIX)),)
+UNITDIR_FCL-JSON=$(PACKAGEDIR_FCL-JSON)/units/$(TARGETSUFFIX)
+else
+UNITDIR_FCL-JSON=$(PACKAGEDIR_FCL-JSON)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_FCL-JSON)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_FCL-JSON) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_FCL-JSON)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_FCL-JSON=
+UNITDIR_FCL-JSON:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl-json/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_FCL-JSON),)
+UNITDIR_FCL-JSON:=$(firstword $(UNITDIR_FCL-JSON))
+else
+UNITDIR_FCL-JSON=
+endif
+endif
+ifdef UNITDIR_FCL-JSON
+override COMPILER_UNITDIR+=$(UNITDIR_FCL-JSON)
+endif
+endif
+ifdef REQUIRE_PACKAGES_FCL-WEB
+PACKAGEDIR_FCL-WEB:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-web/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_FCL-WEB),)
+ifneq ($(wildcard $(PACKAGEDIR_FCL-WEB)/units/$(TARGETSUFFIX)),)
+UNITDIR_FCL-WEB=$(PACKAGEDIR_FCL-WEB)/units/$(TARGETSUFFIX)
+else
+UNITDIR_FCL-WEB=$(PACKAGEDIR_FCL-WEB)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_FCL-WEB)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_FCL-WEB) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_FCL-WEB)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_FCL-WEB=
+UNITDIR_FCL-WEB:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl-web/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_FCL-WEB),)
+UNITDIR_FCL-WEB:=$(firstword $(UNITDIR_FCL-WEB))
+else
+UNITDIR_FCL-WEB=
+endif
+endif
+ifdef UNITDIR_FCL-WEB
+override COMPILER_UNITDIR+=$(UNITDIR_FCL-WEB)
+endif
+endif
+ifdef REQUIRE_PACKAGES_IBASE
+PACKAGEDIR_IBASE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /ibase/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_IBASE),)
+ifneq ($(wildcard $(PACKAGEDIR_IBASE)/units/$(TARGETSUFFIX)),)
+UNITDIR_IBASE=$(PACKAGEDIR_IBASE)/units/$(TARGETSUFFIX)
+else
+UNITDIR_IBASE=$(PACKAGEDIR_IBASE)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_IBASE)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_IBASE) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_IBASE)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_IBASE=
+UNITDIR_IBASE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /ibase/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_IBASE),)
+UNITDIR_IBASE:=$(firstword $(UNITDIR_IBASE))
+else
+UNITDIR_IBASE=
+endif
+endif
+ifdef UNITDIR_IBASE
+override COMPILER_UNITDIR+=$(UNITDIR_IBASE)
+endif
+endif
+ifdef REQUIRE_PACKAGES_POSTGRES
+PACKAGEDIR_POSTGRES:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /postgres/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_POSTGRES),)
+ifneq ($(wildcard $(PACKAGEDIR_POSTGRES)/units/$(TARGETSUFFIX)),)
+UNITDIR_POSTGRES=$(PACKAGEDIR_POSTGRES)/units/$(TARGETSUFFIX)
+else
+UNITDIR_POSTGRES=$(PACKAGEDIR_POSTGRES)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_POSTGRES)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_POSTGRES) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_POSTGRES)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_POSTGRES=
+UNITDIR_POSTGRES:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /postgres/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_POSTGRES),)
+UNITDIR_POSTGRES:=$(firstword $(UNITDIR_POSTGRES))
+else
+UNITDIR_POSTGRES=
+endif
+endif
+ifdef UNITDIR_POSTGRES
+override COMPILER_UNITDIR+=$(UNITDIR_POSTGRES)
+endif
+endif
+ifdef REQUIRE_PACKAGES_MYSQL
+PACKAGEDIR_MYSQL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /mysql/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_MYSQL),)
+ifneq ($(wildcard $(PACKAGEDIR_MYSQL)/units/$(TARGETSUFFIX)),)
+UNITDIR_MYSQL=$(PACKAGEDIR_MYSQL)/units/$(TARGETSUFFIX)
+else
+UNITDIR_MYSQL=$(PACKAGEDIR_MYSQL)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_MYSQL)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_MYSQL) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_MYSQL)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_MYSQL=
+UNITDIR_MYSQL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /mysql/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_MYSQL),)
+UNITDIR_MYSQL:=$(firstword $(UNITDIR_MYSQL))
+else
+UNITDIR_MYSQL=
+endif
+endif
+ifdef UNITDIR_MYSQL
+override COMPILER_UNITDIR+=$(UNITDIR_MYSQL)
+endif
+endif
+ifdef REQUIRE_PACKAGES_ODBC
+PACKAGEDIR_ODBC:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /odbc/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_ODBC),)
+ifneq ($(wildcard $(PACKAGEDIR_ODBC)/units/$(TARGETSUFFIX)),)
+UNITDIR_ODBC=$(PACKAGEDIR_ODBC)/units/$(TARGETSUFFIX)
+else
+UNITDIR_ODBC=$(PACKAGEDIR_ODBC)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_ODBC)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_ODBC) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_ODBC)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_ODBC=
+UNITDIR_ODBC:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /odbc/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_ODBC),)
+UNITDIR_ODBC:=$(firstword $(UNITDIR_ODBC))
+else
+UNITDIR_ODBC=
+endif
+endif
+ifdef UNITDIR_ODBC
+override COMPILER_UNITDIR+=$(UNITDIR_ODBC)
+endif
+endif
+ifdef REQUIRE_PACKAGES_ORACLE
+PACKAGEDIR_ORACLE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /oracle/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_ORACLE),)
+ifneq ($(wildcard $(PACKAGEDIR_ORACLE)/units/$(TARGETSUFFIX)),)
+UNITDIR_ORACLE=$(PACKAGEDIR_ORACLE)/units/$(TARGETSUFFIX)
+else
+UNITDIR_ORACLE=$(PACKAGEDIR_ORACLE)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_ORACLE)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_ORACLE) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_ORACLE)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_ORACLE=
+UNITDIR_ORACLE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /oracle/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_ORACLE),)
+UNITDIR_ORACLE:=$(firstword $(UNITDIR_ORACLE))
+else
+UNITDIR_ORACLE=
+endif
+endif
+ifdef UNITDIR_ORACLE
+override COMPILER_UNITDIR+=$(UNITDIR_ORACLE)
+endif
+endif
+ifdef REQUIRE_PACKAGES_SQLITE
+PACKAGEDIR_SQLITE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /sqlite/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_SQLITE),)
+ifneq ($(wildcard $(PACKAGEDIR_SQLITE)/units/$(TARGETSUFFIX)),)
+UNITDIR_SQLITE=$(PACKAGEDIR_SQLITE)/units/$(TARGETSUFFIX)
+else
+UNITDIR_SQLITE=$(PACKAGEDIR_SQLITE)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_SQLITE)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_SQLITE) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_SQLITE)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_SQLITE=
+UNITDIR_SQLITE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /sqlite/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_SQLITE),)
+UNITDIR_SQLITE:=$(firstword $(UNITDIR_SQLITE))
+else
+UNITDIR_SQLITE=
+endif
+endif
+ifdef UNITDIR_SQLITE
+override COMPILER_UNITDIR+=$(UNITDIR_SQLITE)
+endif
+endif
+ifdef REQUIRE_PACKAGES_PXLIB
+PACKAGEDIR_PXLIB:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /pxlib/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_PXLIB),)
+ifneq ($(wildcard $(PACKAGEDIR_PXLIB)/units/$(TARGETSUFFIX)),)
+UNITDIR_PXLIB=$(PACKAGEDIR_PXLIB)/units/$(TARGETSUFFIX)
+else
+UNITDIR_PXLIB=$(PACKAGEDIR_PXLIB)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_PXLIB)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_PXLIB) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_PXLIB)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_PXLIB=
+UNITDIR_PXLIB:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /pxlib/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_PXLIB),)
+UNITDIR_PXLIB:=$(firstword $(UNITDIR_PXLIB))
+else
+UNITDIR_PXLIB=
+endif
+endif
+ifdef UNITDIR_PXLIB
+override COMPILER_UNITDIR+=$(UNITDIR_PXLIB)
+endif
+endif
+ifdef REQUIRE_PACKAGES_HTTPD22
+PACKAGEDIR_HTTPD22:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /httpd22/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_HTTPD22),)
+ifneq ($(wildcard $(PACKAGEDIR_HTTPD22)/units/$(TARGETSUFFIX)),)
+UNITDIR_HTTPD22=$(PACKAGEDIR_HTTPD22)/units/$(TARGETSUFFIX)
+else
+UNITDIR_HTTPD22=$(PACKAGEDIR_HTTPD22)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_HTTPD22)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_HTTPD22) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_HTTPD22)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_HTTPD22=
+UNITDIR_HTTPD22:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /httpd22/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_HTTPD22),)
+UNITDIR_HTTPD22:=$(firstword $(UNITDIR_HTTPD22))
+else
+UNITDIR_HTTPD22=
+endif
+endif
+ifdef UNITDIR_HTTPD22
+override COMPILER_UNITDIR+=$(UNITDIR_HTTPD22)
+endif
+endif
+ifdef REQUIRE_PACKAGES_FASTCGI
+PACKAGEDIR_FASTCGI:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fastcgi/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_FASTCGI),)
+ifneq ($(wildcard $(PACKAGEDIR_FASTCGI)/units/$(TARGETSUFFIX)),)
+UNITDIR_FASTCGI=$(PACKAGEDIR_FASTCGI)/units/$(TARGETSUFFIX)
+else
+UNITDIR_FASTCGI=$(PACKAGEDIR_FASTCGI)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_FASTCGI)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_FASTCGI) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_FASTCGI)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_FASTCGI=
+UNITDIR_FASTCGI:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fastcgi/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_FASTCGI),)
+UNITDIR_FASTCGI:=$(firstword $(UNITDIR_FASTCGI))
+else
+UNITDIR_FASTCGI=
+endif
+endif
+ifdef UNITDIR_FASTCGI
+override COMPILER_UNITDIR+=$(UNITDIR_FASTCGI)
 endif
 endif
 ifdef REQUIRE_PACKAGES_UNIVINT

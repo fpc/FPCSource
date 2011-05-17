@@ -8,18 +8,18 @@ version=2.5.1
 
 [target]
 units=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
-units_linux=pkgwget  
-units_beos=pkgwget 
-units_haiku=pkgwget
-units_freebsd=pkgwget 
-units_netbsd=pkgwget
-nits_openbsd=pkgwget
-units_darwin=pkgwget 
-units_iphonesim=pkgwget 
-units_solaris=pkgwget 
-units_win32=pkgwget 
-units_win64=pkgwget 
-units_wince=pkgwget 
+units_linux=pkgwget pkgfphttp 
+units_beos=pkgwget pkgfphttp
+units_haiku=pkgwget pkgfphttp
+units_freebsd=pkgwget pkgfphttp
+units_netbsd=pkgwget pkgfphttp
+nits_openbsd=pkgwget pkgfphttp
+units_darwin=pkgwget pkgfphttp
+units_iphonesim=pkgwget pkgfphttp
+units_solaris=pkgwget pkgfphttp
+units_win32=pkgwget pkgfphttp
+units_win64=pkgwget pkgfphttp
+units_wince=pkgwget pkgfphttp
 rsts=fprepos fpxmlrep pkgmessages
 
 
@@ -35,7 +35,7 @@ fpcpackage=y
 fpcdir=../..
 
 [require]
-packages=fcl-base fcl-xml fcl-process fcl-net paszlib libcurl
+packages=fcl-base fcl-xml fcl-process fcl-net paszlib libcurl fcl-web
 tools=data2inc
 packages_darwin=univint
 packages_iphonesim=univint
