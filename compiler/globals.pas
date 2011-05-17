@@ -68,9 +68,9 @@ interface
          [m_gpc,m_all,m_tp_procvar];
 {$endif}
        macmodeswitches =
-         [m_mac,m_all,m_cvar_support,m_mac_procvar,m_nested_procvars,m_non_local_goto];
+         [m_mac,m_all,m_cvar_support,m_mac_procvar,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus];
        isomodeswitches =
-         [m_iso,m_all,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto];
+         [m_iso,m_all,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus];
 
        { maximum nesting of routines }
        maxnesting = 32;

@@ -2698,7 +2698,7 @@ implementation
              _MINUS :
                begin
                  consume(_MINUS);
-                 if (token = _INTCONST) then
+                 if (token = _INTCONST) and not(m_isolike_unary_minus in current_settings.modeswitches) then
                     begin
                       { ugly hack, but necessary to be able to parse }
                       { -9223372036854775808 as int64 (JM)           }
@@ -2726,7 +2726,11 @@ implementation
                     end
                  else
                    begin
-                     p1:=sub_expr(oppower,false,false);
+                     if m_isolike_unary_minus in current_settings.modeswitches then
+                       p1:=sub_expr(opmultiply,false,false)
+                     else
+                       p1:=sub_expr(oppower,false,false);
+
                      p1:=cunaryminusnode.create(p1);
                    end;
                end;
