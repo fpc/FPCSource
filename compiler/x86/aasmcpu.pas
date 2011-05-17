@@ -1769,7 +1769,8 @@ implementation
               end;
             32,33,34,
             52,53,54,
-            56,57,58 :
+            56,57,58,
+            172,173,174 :
               inc(len,4);
             192,193,194 :
               if NeedAddrPrefix(c-192) then
@@ -1819,7 +1820,7 @@ implementation
               omit_rexw:=true
 {$endif x86_64}
               ;
-            64..191 :
+            64..151 :
               begin
 {$ifdef x86_64}
                  if (c<127) then
@@ -1892,6 +1893,7 @@ implementation
        *                 field the register value of operand b.
        * \2ab          - a ModRM, calculated on EA in operand a, with the spare
        *                 field equal to digit b.
+       * \254,\255,\256 - a signed 32-bit immediate to be extended to 64 bits
        * \300,\301,\302 - might be an 0x67, depending on the address size of
        *                 the memory reference in operand x.
        * \310          - indicates fixed 16-bit address size, i.e. optional 0x67.
@@ -2194,6 +2196,17 @@ implementation
                 else
                  objdata_writereloc(currval-insend,4,nil,currabsreloc32)
               end;
+            172,173,174 :  // 0254..0256 - dword implicitly sign-extended to 64-bit (x86_64 only)
+              begin
+                getvalsym(c-172);
+                if (currval<low(longint)) or (currval>high(longint)) then
+                  Message2(asmw_e_value_exceeds_bounds,'signed dword',tostr(currval));
+
+                if assigned(currsym) then
+                  objdata_writereloc(currval,4,currsym,currabsreloc32)
+                else
+                  objdata.writebytes(currval,4);
+              end;
             192,193,194 :
               begin
                 if NeedAddrPrefix(c-192) then
@@ -2279,9 +2292,9 @@ implementation
                 if (rex<>0) and not(rexwritten) then
                   internalerror(200603191);
 {$endif x86_64}
-                if (c>=64) and (c<=191) then
+                if (c>=64) and (c<=151) then  // 0100..0227
                  begin
-                   if (c<127) then
+                   if (c<127) then            // 0177
                     begin
                       if (oper[c and 7]^.typ=top_reg) then
                         rfield:=regval(oper[c and 7]^.reg)
@@ -2353,7 +2366,7 @@ implementation
                                      Dec(currval, 1);
                                    24,25,26:
                                      Dec(currval, 2);
-                                   32,33,34:
+                                   32,33,34,172,173,174:
                                      Dec(currval, 4);
                                  end;
                              end
