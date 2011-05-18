@@ -3189,7 +3189,7 @@
     opcode  : A_MOVQ;
     ops     : 2;
     optypes : (ot_xmmrm,ot_xmmreg,ot_none);
-    code    : #241#2#15#214#72;
+    code    : #241#2#15#214#65;
     flags   : if_willamette or if_sse2
   ),
   (
