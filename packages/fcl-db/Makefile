@@ -306,7 +306,7 @@ ifeq ($(FULL_TARGET),i386-wdosx)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
@@ -369,7 +369,7 @@ ifeq ($(FULL_TARGET),powerpc-macos)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
@@ -399,7 +399,7 @@ ifeq ($(FULL_TARGET),x86_64-solaris)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/export src/datadict src/codegen
@@ -414,7 +414,7 @@ ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict src/codegen
@@ -435,7 +435,7 @@ ifeq ($(FULL_TARGET),powerpc64-linux)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/export src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql
@@ -2835,6 +2835,7 @@ TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 TARGET_DIRS_SRC/SDF=1
@@ -3020,6 +3021,7 @@ TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 TARGET_DIRS_SRC/SDF=1
@@ -3119,6 +3121,7 @@ TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 TARGET_DIRS_SRC/SDF=1
@@ -3168,6 +3171,7 @@ TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 TARGET_DIRS_SRC/SDF=1
@@ -3232,6 +3236,7 @@ TARGET_DIRS_SRC/DBASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
+TARGET_DIRS_SRC/CODEGEN=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 TARGET_DIRS_SRC/SDF=1
