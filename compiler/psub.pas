@@ -1986,6 +1986,10 @@ implementation
 
         { Setup symtablestack a definition time }
         specobj:=tabstractrecorddef(ttypesym(p).typedef);
+
+        if not (is_class(specobj) or is_object(specobj)) then
+          exit;
+
         oldsymtablestack:=symtablestack;
         oldextendeddefs:=current_module.extendeddefs;
         current_module.extendeddefs:=TFPHashObjectList.create(true);
@@ -2009,31 +2013,28 @@ implementation
           symtablestack.push(hmodule.localsymtable);
 
         { procedure definitions for classes or objects }
-        if is_class_or_object(specobj) or is_record(specobj) then
+        for i:=0 to specobj.symtable.DefList.Count-1 do
           begin
-            for i:=0 to specobj.symtable.DefList.Count-1 do
-              begin
-                hp:=tdef(specobj.symtable.DefList[i]);
-                if hp.typ=procdef then
+            hp:=tdef(specobj.symtable.DefList[i]);
+            if hp.typ=procdef then
+             begin
+               if assigned(tprocdef(hp).genericdef) and
+                 (tprocdef(hp).genericdef.typ=procdef) and
+                 assigned(tprocdef(tprocdef(hp).genericdef).generictokenbuf) then
                  begin
-                   if assigned(tprocdef(hp).genericdef) and
-                     (tprocdef(hp).genericdef.typ=procdef) and
-                     assigned(tprocdef(tprocdef(hp).genericdef).generictokenbuf) then
-                     begin
-                       oldcurrent_filepos:=current_filepos;
-                       current_filepos:=tprocdef(tprocdef(hp).genericdef).fileinfo;
-                       { use the index the module got from the current compilation process }
-                       current_filepos.moduleindex:=hmodule.unit_index;
-                       current_tokenpos:=current_filepos;
-                       current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf);
-                       read_proc_body(nil,tprocdef(hp));
-                       current_filepos:=oldcurrent_filepos;
-                     end
-                   else
-                     MessagePos1(tprocdef(hp).fileinfo,sym_e_forward_not_resolved,tprocdef(hp).fullprocname(false));
-                 end;
+                   oldcurrent_filepos:=current_filepos;
+                   current_filepos:=tprocdef(tprocdef(hp).genericdef).fileinfo;
+                   { use the index the module got from the current compilation process }
+                   current_filepos.moduleindex:=hmodule.unit_index;
+                   current_tokenpos:=current_filepos;
+                   current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf);
+                   read_proc_body(nil,tprocdef(hp));
+                   current_filepos:=oldcurrent_filepos;
+                 end
+               else
+                 MessagePos1(tprocdef(hp).fileinfo,sym_e_forward_not_resolved,tprocdef(hp).fullprocname(false));
              end;
-          end;
+         end;
 
         { Restore symtablestack }
         current_module.extendeddefs.free;
