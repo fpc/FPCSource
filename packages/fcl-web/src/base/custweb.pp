@@ -77,6 +77,7 @@ Type
   TGetModuleEvent = Procedure (Sender : TObject; ARequest : TRequest;
                                Var ModuleClass : TCustomHTTPModuleClass) of object;
   TOnShowRequestException = procedure(AResponse: TResponse; AnException: Exception; var handled: boolean);
+  TLogEvent = Procedure (EventType: TEventType; const Msg: String) of object;
 
   { TWebHandler }
 
@@ -97,6 +98,7 @@ Type
     FRedirectOnErrorURL : String;
     FTitle: string;
     FOnTerminate : TNotifyEvent;
+    FOnLog : TLogEvent;
   protected
     procedure Terminate;
     Function GetModuleName(Arequest : TRequest) : string;
@@ -112,6 +114,7 @@ Type
   Public
     constructor Create(AOwner: TComponent); override;
     Procedure Run; virtual;
+    Procedure Log(EventType : TEventType; Const Msg : String);
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse);
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual;
     Property HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
@@ -239,6 +242,12 @@ begin
     if assigned(OnIdle) then
       OnIdle(Self);
     end;
+end;
+
+procedure TWebHandler.Log(EventType: TEventType; const Msg: String);
+begin
+  If Assigned(FOnLog) then
+    FOnLog(EventType,Msg);
 end;
 
 procedure TWebHandler.ShowRequestException(R: TResponse; E: Exception);
@@ -460,7 +469,14 @@ end;
 function TCustomWebApplication.GetEventLog: TEventLog;
 begin
   if not assigned(FEventLog) then
-    FEventLog := TEventLog.Create(self);
+    begin
+    FEventLog := TEventLog.Create(Nil);
+    FEventLog.Name:=Self.Name+'Logger';
+    FEventLog.Identification:=Title;
+    FEventLog.RegisterMessageFile(ParamStr(0));
+    FEventLog.LogType:=ltSystem;
+    FEventLog.Active:=True;
+    end;
   Result := FEventLog;
 end;
 
@@ -560,6 +576,7 @@ begin
   Inherited Create(AOwner);
   FWebHandler := InitializeWebHandler;
   FWebHandler.FOnTerminate:=@DoOnTerminate;
+  FWebHandler.FOnLog:=@Log;
 end;
 
 procedure TCustomWebApplication.DoOnTerminate(Sender : TObject);
