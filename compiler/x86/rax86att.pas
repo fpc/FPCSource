@@ -42,6 +42,9 @@ Interface
       procedure MaybeGetPICModifier(var oper: tx86operand);
     end;
 
+    Tx86attInstruction = class(Tx86Instruction)
+      procedure FixupOpcode;override;
+    end;
 
 Implementation
 
@@ -62,6 +65,37 @@ Implementation
       rabase,rautils,
       cgbase
       ;
+
+    { Tx86attInstruction }
+
+    procedure Tx86attInstruction.FixupOpcode;
+      begin
+        if (OpOrder=op_intel) then
+          SwapOperands;
+
+        case opcode of
+          A_MOVQ:
+            begin
+              { May be either real 'movq' or a generic 'mov' with 'q' suffix. Convert to mov
+                if source is a constant, or if neither operand is an mmx/xmm register }
+{$ifdef x86_64}
+              if (ops=2) and
+                (
+                  (operands[1].opr.typ=OPR_CONSTANT) or not
+                    (
+                      ((operands[1].opr.typ=OPR_REGISTER) and
+                        (getregtype(operands[1].opr.reg) in [R_MMXREGISTER,R_MMREGISTER])) or
+                      ((operands[2].opr.typ=OPR_REGISTER) and
+                        (getregtype(operands[2].opr.reg) in [R_MMXREGISTER,R_MMREGISTER]))
+                    )
+                ) then
+                opcode:=A_MOV;
+{$endif x86_64}
+            end;
+        end;
+      end;
+
+    { Tx86attReader }
 
     procedure tx86attreader.handlepercent;
       var
@@ -848,12 +882,13 @@ Implementation
       var
         instr : Tx86Instruction;
       begin
-        instr:=Tx86Instruction.Create(Tx86Operand);
+        instr:=Tx86attInstruction.Create(Tx86Operand);
         instr.OpOrder:=op_att;
         BuildOpcode(instr);
         instr.AddReferenceSizes;
         instr.SetInstructionOpsize;
         instr.CheckOperandSizes;
+        instr.FixupOpcode;
         instr.ConcatInstruction(curlist);
         instr.Free;
       end;

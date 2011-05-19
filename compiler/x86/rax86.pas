@@ -57,6 +57,8 @@ type
     procedure CheckOperandSizes;
     procedure CheckNonCommutativeOpcodes;
     procedure SwapOperands;
+    { Additional actions required by specific reader }
+    procedure FixupOpcode;virtual;
     { opcode adding }
     function ConcatInstruction(p : TAsmList) : tai;override;
   end;
@@ -535,6 +537,11 @@ begin
         opcode:=A_FDIVRP;
 end;
 
+procedure Tx86Instruction.FixupOpcode;
+begin
+  { does nothing by default }
+end;
+
 {*****************************************************************************
                               opcode Adding
 *****************************************************************************}
@@ -622,18 +629,6 @@ begin
         else
           siz:=S_FAR;
     end;
-
-{$ifdef x86_64}
-  { Convert movq with at least one general registers or constant to a mov instruction }
-  if (opcode=A_MOVQ) and
-     (ops=2) and
-     (
-      (operands[1].opr.typ=OPR_REGISTER) or
-      (operands[2].opr.typ=OPR_REGISTER) or
-      (operands[1].opr.typ=OPR_CONSTANT)
-     ) then
-     opcode:=A_MOV;
-{$endif x86_64}
 
    { GNU AS interprets FDIV without operand differently
      for version 2.9.1 and 2.10
