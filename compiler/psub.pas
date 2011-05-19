@@ -1987,7 +1987,7 @@ implementation
         { Setup symtablestack a definition time }
         specobj:=tabstractrecorddef(ttypesym(p).typedef);
 
-        if not (is_class(specobj) or is_object(specobj)) then
+        if not (is_class_or_object(specobj) or is_record(specobj)) then
           exit;
 
         oldsymtablestack:=symtablestack;
