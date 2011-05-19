@@ -449,7 +449,6 @@ begin
     finally
       Res.Free;
     end;
-    AResponse.SendResponse;
     end
   else
     JSONRPCError(SErrInvalidPath);
