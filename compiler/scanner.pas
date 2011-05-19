@@ -78,6 +78,8 @@ interface
 
        tspecialgenerictoken = (ST_LOADSETTINGS,ST_LINE,ST_COLUMN,ST_FILEINDEX);
 
+       { tscannerfile }
+
        tscannerfile = class
        private
          procedure do_gettokenpos(out tokenpos: longint; out filepos: tfileposinfo);
@@ -85,6 +87,8 @@ interface
          procedure setnexttoken;
          procedure savetokenpos;
          procedure restoretokenpos;
+         procedure writetoken(t: ttoken);
+         function readtoken : ttoken;
        public
           inputfile    : tinputfile;  { current inputfile list }
           inputfilecount : longint;
@@ -2057,6 +2061,20 @@ In case not, the value returned can be arbitrary.
       end;
 
 
+    procedure tscannerfile.writetoken(t : ttoken);
+      var
+        b : byte;
+      begin
+        if ord(t)>$7f then
+          begin
+            b:=(ord(t) shr 8) or $80;
+            recordtokenbuf.write(b,1);
+          end;
+        b:=ord(t) and $ff;
+        recordtokenbuf.write(b,1);
+      end;
+
+
     procedure tscannerfile.recordtoken;
       var
         t : ttoken;
@@ -2071,7 +2089,7 @@ In case not, the value returned can be arbitrary.
           begin
             { use a special token to record it }
             s:=ST_LOADSETTINGS;
-            recordtokenbuf.write(t,SizeOf(t));
+            writetoken(t);
             recordtokenbuf.write(s,1);
             recordtokenbuf.write(current_settings,sizeof(current_settings));
             last_settings:=current_settings;
@@ -2081,7 +2099,7 @@ In case not, the value returned can be arbitrary.
         if current_tokenpos.line<>last_filepos.line then
           begin
             s:=ST_LINE;
-            recordtokenbuf.write(t,SizeOf(t));
+            writetoken(t);
             recordtokenbuf.write(s,1);
             recordtokenbuf.write(current_tokenpos.line,sizeof(current_tokenpos.line));
             last_filepos.line:=current_tokenpos.line;
@@ -2089,7 +2107,7 @@ In case not, the value returned can be arbitrary.
         if current_tokenpos.column<>last_filepos.column then
           begin
             s:=ST_COLUMN;
-            recordtokenbuf.write(t,SizeOf(t));
+            writetoken(t);
             recordtokenbuf.write(s,1);
             recordtokenbuf.write(current_tokenpos.column,sizeof(current_tokenpos.column));
             last_filepos.column:=current_tokenpos.column;
@@ -2097,15 +2115,15 @@ In case not, the value returned can be arbitrary.
         if current_tokenpos.fileindex<>last_filepos.fileindex then
           begin
             s:=ST_FILEINDEX;
-            recordtokenbuf.write(t,SizeOf(t));
+            writetoken(t);
             recordtokenbuf.write(s,1);
             recordtokenbuf.write(current_tokenpos.fileindex,sizeof(current_tokenpos.fileindex));
             last_filepos.fileindex:=current_tokenpos.fileindex;
           end;
 
-        recordtokenbuf.write(token,SizeOf(token));
+        writetoken(token);
         if token<>_GENERICSPECIALTOKEN then
-          recordtokenbuf.write(idtoken,SizeOf(idtoken));
+          writetoken(idtoken);
         case token of
           _CWCHAR,
           _CWSTRING :
@@ -2160,6 +2178,21 @@ In case not, the value returned can be arbitrary.
       end;
 
 
+    function tscannerfile.readtoken: ttoken;
+      var
+        b,b2 : byte;
+      begin
+        replaytokenbuf.read(b,1);
+        if (b and $80)<>0 then
+          begin
+            replaytokenbuf.read(b2,1);
+            result:=ttoken(((b and $7f) shl 8) or b2);
+          end
+        else
+          result:=ttoken(b);
+      end;
+
+
     procedure tscannerfile.replaytoken;
       var
         wlen : sizeint;
@@ -2184,9 +2217,9 @@ In case not, the value returned can be arbitrary.
           end;
         repeat
           { load token from the buffer }
-          replaytokenbuf.read(token,SizeOf(token));
+          token:=readtoken;
           if token<>_GENERICSPECIALTOKEN then
-            replaytokenbuf.read(idtoken,SizeOf(idtoken))
+            idtoken:=readtoken
           else
             idtoken:=_NOID;
           case token of
