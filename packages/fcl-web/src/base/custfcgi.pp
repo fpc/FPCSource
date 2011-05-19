@@ -49,8 +49,10 @@ Type
     FRequestID : Word;
     FCGIParams : TSTrings;
     FUR: TUnknownRecordEvent;
+    FLog : TLogEvent;
     procedure GetNameValuePairsFromContentRecord(const ARecord : PFCGI_ContentRecord; NameValueList : TStrings);
   Protected
+    Procedure Log(EventType : TEventType; Const Msg : String);
     Function GetFieldValue(Index : Integer) : String; override;
     procedure ReadContent; override;
   Public
@@ -68,8 +70,8 @@ Type
   TFCGIResponse = Class(TCGIResponse)
   private
     FPO: TProtoColOptions;
-    procedure Write_FCGIRecord(ARecord : PFCGI_Header);
   Protected
+    procedure Write_FCGIRecord(ARecord : PFCGI_Header); virtual;
     Procedure DoSendHeaders(Headers : TStrings); override;
     Procedure DoSendContent; override;
     Property ProtocolOptions : TProtoColOptions Read FPO Write FPO;
@@ -178,7 +180,10 @@ var cl,rcl : Integer;
 begin
   Result := False;
   case AFCGIRecord^.reqtype of
-    FCGI_BEGIN_REQUEST : FKeepConnectionAfterRequest := (PFCGI_BeginRequestRecord(AFCGIRecord)^.body.flags and FCGI_KEEP_CONN) = FCGI_KEEP_CONN;
+    FCGI_BEGIN_REQUEST :
+         begin
+         FKeepConnectionAfterRequest := (PFCGI_BeginRequestRecord(AFCGIRecord)^.body.flags and FCGI_KEEP_CONN) = FCGI_KEEP_CONN;
+         end;
     FCGI_PARAMS :       begin
                         if AFCGIRecord^.contentLength=0 then
                           Result := False
@@ -257,6 +262,12 @@ begin
     Value:=GetString(ValueLength);
     NameValueList.Add(Name+'='+Value);
     end;
+end;
+
+procedure TFCGIRequest.Log(EventType: TEventType; const Msg: String);
+begin
+  If Assigned(FLog) then
+    FLog(EventType,Msg);
 end;
 
 
@@ -660,6 +671,7 @@ begin
     ATempRequest.Handle:=FHandle;
     ATempRequest.ProtocolOptions:=Self.Protocoloptions;
     ATempRequest.OnUnknownRecord:=Self.OnUnknownRecord;
+    ATempRequest.FLog:=@Log;
     FRequestsArray[ARequestID].Request := ATempRequest;
     end;
   if (ARequestID>FRequestsAvail) then
@@ -684,6 +696,8 @@ var
 
 begin
   Result := False;
+  AResponse:=Nil;
+  ARequest:=Nil;
   if Socket=0 then
     if Port<>0 then
       SetupSocket(FIAddress,FAddressLength)
@@ -706,7 +720,6 @@ begin
           OnIdle(Self);
       end;
     AFCGI_Record:=Read_FCGIRecord;
-
     if assigned(AFCGI_Record) then
     try
       Result:=ProcessRecord(AFCGI_Record,ARequest,AResponse);
