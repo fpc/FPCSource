@@ -41,6 +41,15 @@ Var
 Function GetDefaultSession : TCustomSession;
 
 implementation
+type
+
+  { TWebSessionFactory }
+
+  TWebSessionFactory = Class(TIniSessionFactory)
+  Protected
+    Function DoCreateSession(ARequest : TRequest) : TCustomSession; override;
+  end;
+
 
 Function GetDefaultSession : TCustomSession;
 
@@ -73,8 +82,21 @@ begin
 {$ifdef cgidebug}SendMethodExit('GetDefaultSession');{$endif}
 end;
 
+{ TWebSessionFactory }
+
+function TWebSessionFactory.DoCreateSession(ARequest: TRequest
+  ): TCustomSession;
+begin
+  Result:=Nil;
+  if Assigned(OnGetDefaultSession) then
+    OnGetDefaultSession(Result);
+  if Result=Nil then
+  Result:=inherited DoCreateSession(ARequest);
+end;
+
 
 initialization
   IniWebSessionClass:=TFPWebSession;
+  SessionFactoryClass:=TWebSessionFactory;
 end.
 
