@@ -2104,7 +2104,7 @@ In case not, the value returned can be arbitrary.
           end;
 
         recordtokenbuf.write(token,SizeOf(token));
-        if token=_ID then
+        if token<>_GENERICSPECIALTOKEN then
           recordtokenbuf.write(idtoken,SizeOf(idtoken));
         case token of
           _CWCHAR,
@@ -2185,7 +2185,7 @@ In case not, the value returned can be arbitrary.
         repeat
           { load token from the buffer }
           replaytokenbuf.read(token,SizeOf(token));
-          if token=_ID then
+          if token<>_GENERICSPECIALTOKEN then
             replaytokenbuf.read(idtoken,SizeOf(idtoken))
           else
             idtoken:=_NOID;
