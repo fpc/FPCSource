@@ -86,6 +86,7 @@ Type
 
   TFCgiHandler = class(TWebHandler)
   Private
+    FLingerTimeOut: integer;
     FOnUnknownRecord: TUnknownRecordEvent;
     FPO: TProtoColOptions;
     FRequestsArray : Array of TReqResp;
@@ -108,6 +109,7 @@ Type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     property Port: integer read FPort write FPort;
+    property LingerTimeOut : integer read FLingerTimeOut write FLingerTimeOut;
     property Address: string read FAddress write FAddress;
     Property ProtocolOptions : TProtoColOptions Read FPO Write FPO;
     Property OnUnknownRecord : TUnknownRecordEvent Read FOnUnknownRecord Write FOnUnknownRecord;
@@ -120,9 +122,11 @@ Type
   private
     function GetAddress: string;
     function GetFPO: TProtoColOptions;
+    function GetLingerTimeOut: integer;
     function GetOnUnknownRecord: TUnknownRecordEvent;
     function GetPort: integer;
     procedure SetAddress(const AValue: string);
+    procedure SetLingerTimeOut(const AValue: integer);
     procedure SetOnUnknownRecord(const AValue: TUnknownRecordEvent);
     procedure SetPort(const AValue: integer);
     procedure SetPO(const AValue: TProtoColOptions);
@@ -130,6 +134,7 @@ Type
     function InitializeWebHandler: TWebHandler; override;
   Public
     property Port: integer read GetPort write SetPort;
+    property LingerTimeOut : integer read GetLingerTimeOut write SetLingerTimeOut;
     property Address: string read GetAddress write SetAddress;
     Property ProtocolOptions : TProtoColOptions Read GetFPO Write SetPO;
     Property OnUnknownRecord : TUnknownRecordEvent Read GetOnUnknownRecord Write SetOnUnknownRecord;
@@ -183,6 +188,8 @@ begin
     FCGI_BEGIN_REQUEST :
          begin
          FKeepConnectionAfterRequest := (PFCGI_BeginRequestRecord(AFCGIRecord)^.body.flags and FCGI_KEEP_CONN) = FCGI_KEEP_CONN;
+         With PFCGI_BeginRequestRecord(AFCGIRecord)^.body do
+           log(etDebug,Format('Begin request body role & flags: %d %d',[Beton(Role),Flags]));
          end;
     FCGI_PARAMS :       begin
                         if AFCGIRecord^.contentLength=0 then
@@ -472,6 +479,10 @@ begin
 end;
 
 procedure TFCgiHandler.EndRequest(ARequest: TRequest; AResponse: TResponse);
+
+Var
+  i : Integer;
+
 begin
   with FRequestsArray[TFCGIRequest(ARequest).RequestID] do
     begin
@@ -479,8 +490,10 @@ begin
     Assert(AResponse=Response);
     if (not TFCGIRequest(ARequest).KeepConnectionAfterRequest) then
       begin
-      fpshutdown(FHandle,SHUT_RDWR);
-      CloseSocket(FHandle);
+      i:=fpshutdown(FHandle,SHUT_RDWR);
+//      Log(etDebug,Format('Shutting down socket: %d ',[i]));
+      i:=CloseSocket(FHandle);
+//      Log(etDebug,Format('Closing socket %d',[i]));
       FHandle := THandle(-1);
       end;
     Request := Nil;
@@ -587,6 +600,10 @@ end;
 
 procedure TFCgiHandler.SetupSocket(var IAddress : TInetSockAddr; Var AddressLength : tsocklen);
 
+Var
+  L : Linger;
+  ll,lr : integer;
+
 begin
   AddressLength:=Sizeof(IAddress);
   Socket := fpsocket(AF_INET,SOCK_STREAM,0);
@@ -610,7 +627,22 @@ begin
     Terminate;
     raise Exception.CreateFmt(SBindFailed,[port,socketerror]);
     end;
-  if fplisten(Socket,1)=-1 then
+  if (FLingerTimeout>0) then
+    begin
+    ll:=SizeOf(l);
+    if getsockopt(Socket,SOL_SOCKET,SO_LINGER,@l,ll)=0 then
+      begin
+//      Log(etDebug,Format('Socket linger : %d, %d',[L.l_linger,L.l_onoff]));
+      if (L.l_onoff=0) then
+        begin
+        l.l_onoff:=1;
+        l.l_linger:=1;
+        lr:=setsockopt(Socket,SOL_SOCKET,SO_LINGER,@l,ll);
+//        Log(etDebug,Format('Set socket linger (%d, %d) : %d',[L.l_linger,L.l_onoff,lr]));
+        end;
+      end;
+    end;
+  if fplisten(Socket,10)=-1 then
     begin
     CloseSocket(socket);
     Socket:=0;
@@ -742,6 +774,11 @@ begin
   result := TFCgiHandler(WebHandler).ProtocolOptions;
 end;
 
+function TCustomFCgiApplication.GetLingerTimeOut: integer;
+begin
+  Result:=TFCgiHandler(WebHandler).LingerTimeOut;
+end;
+
 function TCustomFCgiApplication.GetOnUnknownRecord: TUnknownRecordEvent;
 begin
   result := TFCgiHandler(WebHandler).OnUnknownRecord;
@@ -755,6 +792,11 @@ end;
 procedure TCustomFCgiApplication.SetAddress(const AValue: string);
 begin
   TFCgiHandler(WebHandler).Address := AValue;
+end;
+
+procedure TCustomFCgiApplication.SetLingerTimeOut(const AValue: integer);
+begin
+  TFCgiHandler(WebHandler).LingerTimeOut:=AValue;
 end;
 
 procedure TCustomFCgiApplication.SetOnUnknownRecord(const AValue: TUnknownRecordEvent);
