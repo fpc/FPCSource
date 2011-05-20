@@ -2080,6 +2080,7 @@ In case not, the value returned can be arbitrary.
         t : ttoken;
         s : tspecialgenerictoken;
         len : sizeint;
+        b : byte;
       begin
         if not assigned(recordtokenbuf) then
           internalerror(200511176);
@@ -2108,8 +2109,17 @@ In case not, the value returned can be arbitrary.
           begin
             s:=ST_COLUMN;
             writetoken(t);
-            recordtokenbuf.write(s,1);
-            recordtokenbuf.write(current_tokenpos.column,sizeof(current_tokenpos.column));
+            { can the column be written packed? }
+            if current_tokenpos.column<$80 then
+              begin
+                b:=$80 or current_tokenpos.column;
+                recordtokenbuf.write(b,1);
+              end
+            else
+              begin
+                recordtokenbuf.write(s,1);
+                recordtokenbuf.write(current_tokenpos.column,sizeof(current_tokenpos.column));
+              end;
             last_filepos.column:=current_tokenpos.column;
           end;
         if current_tokenpos.fileindex<>last_filepos.fileindex then
@@ -2258,45 +2268,57 @@ In case not, the value returned can be arbitrary.
             _GENERICSPECIALTOKEN:
               begin
                 replaytokenbuf.read(specialtoken,1);
-                case specialtoken of
-                  ST_LOADSETTINGS:
-                    replaytokenbuf.read(current_settings,sizeof(current_settings));
-                  ST_LINE:
-                    begin
-                      replaytokenbuf.read(current_tokenpos.line,sizeof(current_tokenpos.line));
-
-                      { don't generate invalid line info if no sources are available for the current module }
-                      if not(get_module(current_filepos.moduleindex).sources_avail) then
-                        current_tokenpos.line:=0;
-
-                      current_filepos:=current_tokenpos;
-                    end;
-                  ST_COLUMN:
-                    begin
-                      replaytokenbuf.read(current_tokenpos.column,sizeof(current_tokenpos.column));
+                { packed column? }
+                if (ord(specialtoken) and $80)<>0 then
+                  begin
+                      current_tokenpos.column:=ord(specialtoken) and $7f;
 
                       { don't generate invalid line info if no sources are available for the current module }
                       if not(get_module(current_filepos.moduleindex).sources_avail) then
                         current_tokenpos.column:=0;
 
                       current_filepos:=current_tokenpos;
-                    end;
-                  ST_FILEINDEX:
-                    begin
-                      replaytokenbuf.read(current_tokenpos.fileindex,sizeof(current_tokenpos.fileindex));
+                  end
+                else
+                  case specialtoken of
+                    ST_LOADSETTINGS:
+                      replaytokenbuf.read(current_settings,sizeof(current_settings));
+                    ST_LINE:
+                      begin
+                        replaytokenbuf.read(current_tokenpos.line,sizeof(current_tokenpos.line));
 
-                      { don't generate invalid line info if no sources are available for the current module }
-                      if not(get_module(current_filepos.moduleindex).sources_avail) then
-                        begin
-                          current_tokenpos.column:=0;
+                        { don't generate invalid line info if no sources are available for the current module }
+                        if not(get_module(current_filepos.moduleindex).sources_avail) then
                           current_tokenpos.line:=0;
-                        end;
 
-                      current_filepos:=current_tokenpos;
-                    end;
-                  else
-                    internalerror(2006103010);
-                end;
+                        current_filepos:=current_tokenpos;
+                      end;
+                    ST_COLUMN:
+                      begin
+                        replaytokenbuf.read(current_tokenpos.column,sizeof(current_tokenpos.column));
+
+                        { don't generate invalid line info if no sources are available for the current module }
+                        if not(get_module(current_filepos.moduleindex).sources_avail) then
+                          current_tokenpos.column:=0;
+
+                        current_filepos:=current_tokenpos;
+                      end;
+                    ST_FILEINDEX:
+                      begin
+                        replaytokenbuf.read(current_tokenpos.fileindex,sizeof(current_tokenpos.fileindex));
+
+                        { don't generate invalid line info if no sources are available for the current module }
+                        if not(get_module(current_filepos.moduleindex).sources_avail) then
+                          begin
+                            current_tokenpos.column:=0;
+                            current_tokenpos.line:=0;
+                          end;
+
+                        current_filepos:=current_tokenpos;
+                      end;
+                    else
+                      internalerror(2006103010);
+                  end;
                 continue;
               end;
           end;

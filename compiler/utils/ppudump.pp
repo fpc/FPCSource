@@ -1081,32 +1081,38 @@ begin
               end;
             _GENERICSPECIALTOKEN:
               begin
-                case tspecialgenerictoken(tokenbuf[i]) of
-                  ST_LOADSETTINGS:
-                    begin
-                      inc(i);
-                      write('Settings');
-                      inc(i,sizeof(tsettings));
-                    end;
-                  ST_LINE:
-                    begin
-                      inc(i);
-                      write('Line: ',pdword(@tokenbuf[i])^);
-                      inc(i,4);
-                    end;
-                  ST_COLUMN:
-                    begin
-                      inc(i);
-                      write('Col: ',pword(@tokenbuf[i])^);
-                      inc(i,2);
-                    end;
-                  ST_FILEINDEX:
-                    begin
-                      inc(i);
-                      write('File: ',pword(@tokenbuf[i])^);
-                      inc(i,2);
-                    end;
-                end;
+                if (tokenbuf[i] and $80)<>0 then
+                  begin
+                    write('Col: ',tokenbuf[i] and $7f);
+                    inc(i);
+                  end
+                else
+                  case tspecialgenerictoken(tokenbuf[i]) of
+                    ST_LOADSETTINGS:
+                      begin
+                        inc(i);
+                        write('Settings');
+                        inc(i,sizeof(tsettings));
+                      end;
+                    ST_LINE:
+                      begin
+                        inc(i);
+                        write('Line: ',pdword(@tokenbuf[i])^);
+                        inc(i,4);
+                      end;
+                    ST_COLUMN:
+                      begin
+                        inc(i);
+                        write('Col: ',pword(@tokenbuf[i])^);
+                        inc(i,2);
+                      end;
+                    ST_FILEINDEX:
+                      begin
+                        inc(i);
+                        write('File: ',pword(@tokenbuf[i])^);
+                        inc(i,2);
+                      end;
+                  end;
               {
                 replaytokenbuf.read(specialtoken,1);
                 case specialtoken of
@@ -2143,7 +2149,7 @@ begin
              readcommondef('WideString definition',defoptions);
              writeln(space,'           Length : ',getlongint);
            end;
-         
+
          ibunicodestringdef :
            begin
              readcommondef('UnicodeString definition',defoptions);
