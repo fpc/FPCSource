@@ -130,6 +130,7 @@ Type
     Property Administrator : String Read GetAdministrator Write FAdministrator;
     property OnShowRequestException: TOnShowRequestException read FOnShowRequestException write FOnShowRequestException;
     property OnIdle: TNotifyEvent read FOnIdle write FOnIdle;
+    Property OnLog : TLogEvent Read FOnLog Write FOnLog;
   end;
 
   TCustomWebApplication = Class(TCustomApplication)
