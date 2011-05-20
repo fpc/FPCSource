@@ -156,11 +156,39 @@ asm
     psadbw (%r8), %xmm0
 end;
 
+procedure tmovd; assembler; nostackframe;
+asm
+    movd  0x12345678(%rip), %xmm0
+    movd  %xmm0, 0x12345678(%rip)
+    movd  %eax, %xmm0
+    movd  %xmm0, %eax
+
+{ same for MMX registers }
+    movd  0x12345678(%rip), %mm0
+    movd  %mm0, 0x12345678(%rip)
+    movd  %eax, %mm0
+    movd  %mm0, %eax
+end;
+
+procedure tmovq; assembler; nostackframe;
+asm
+    movq  0x12345678(%rip), %xmm0
+    movq  %xmm0, 0x12345678(%rip)
+    movq  %xmm1, %xmm0
+    movq  %rax, %xmm0
+    movq  %xmm0, %rax
+
+{ same for MMX registers }
+    movq  0x12345678(%rip), %mm0
+    movq  %mm0, 0x12345678(%rip)
+    movq  %mm1, %mm0
+    movq  %rax, %mm0
+    movq  %mm0, %rax
+end;
+
 // Here are some more tough nuts to crack...
 procedure test2; assembler; nostackframe;
 asm
-//    movq      %xmm1,0x12345678(%rip)    { converted to mov, invalid combination of opcode and operands }
-//    movq      0x12345678(%rip),%xmm1
 //    cmpsd     $0x10,%xmm7,%xmm6         { unrecognized opcode }
 //    cmpsd     $0x10,(%rax),%xmm7
 //    movsd     (%rax),%xmm8              { unrecognized opcode }
@@ -221,16 +249,46 @@ const
     $58,$00,$F3,$41,$0F,$58,$00,$66,$41,$0F,$E4,$00,$66,$41,$0F,
     $F6,$00,$C3);
 
+ tmovq_expected: array[0..54] of byte = (
+    $F3,$0F,$7E,$05,$78,$56,$34,$12,
+    $66,$0F,$D6,$05,$78,$56,$34,$12,
+    $F3,$0F,$7E,$C1,
+    $66,$48,$0F,$6E,$C0,
+    $66,$48,$0F,$7E,$C0,
+    $0F,$6F,$05,$78,$56,$34,$12,
+    $0F,$7F,$05,$78,$56,$34,$12,
+    $0F,$6F,$C1,
+    $48,$0F,$6E,$C0,
+    $48,$0F,$7E,$C0
+  );
+
+  tmovd_expected: array[0..43] of byte = (
+    $66,$0F,$6E,$05,$78,$56,$34,$12,
+    $66,$0F,$7E,$05,$78,$56,$34,$12,
+    $66,$0F,$6E,$C0,
+    $66,$0F,$7E,$C0,
+    $0F,$6E,$05,$78,$56,$34,$12,
+    $0F,$7E,$05,$78,$56,$34,$12,
+    $0F,$6E,$C0,
+    $0F,$7E,$C0
+  );
+
+
+procedure check(const id: string; const expected: array of byte; p: pointer);
 var
   i : longint;
-
-
 begin
-  for i:=0 to high(test_expected) do
-    if test_expected[i]<>pbyte(@test)[i] then
+  for i:=0 to high(expected) do
+    if expected[i]<>pbyte(p)[i] then
       begin
-        writeln('mismatch at offset $',hexstr(i,4), ', expected=$',hexstr(test_expected[i],2),' actual=$',hexstr(pbyte(@test)[i],2));
+        writeln(id, ' mismatch at offset $',hexstr(i,4), ', expected=$',hexstr(expected[i],2),' actual=$',hexstr(pbyte(p)[i],2));
         halt(1);
       end;
+end;
+
+begin
+  check('generic', test_expected, @test);
+  check('movq', tmovq_expected, @tmovq);
+  check('movd', tmovd_expected, @tmovd);
   writeln('ok');
 end.

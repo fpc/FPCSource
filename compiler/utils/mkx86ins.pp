@@ -59,12 +59,12 @@ function formatop(s:string;allowsizeonly:boolean):string;
      replacetab : array[1..replaces,1..2] of string[32]=(
        (':',' or ot_colon'),
        ('reg','regnorm'),
-       ('regmem','regmem'),
-       ('rm8','regmem or ot_bits8'),
-       ('rm16','regmem or ot_bits16'),
-       ('rm32','regmem or ot_bits32'),
-       ('rm64','regmem or ot_bits64'),
-       ('rm80','regmem or ot_bits80'),
+       ('regmem','rm_gpr'),
+       ('rm8','rm_gpr or ot_bits8'),
+       ('rm16','rm_gpr or ot_bits16'),
+       ('rm32','rm_gpr or ot_bits32'),
+       ('rm64','rm_gpr or ot_bits64'),
+       ('rm80','rm_gpr or ot_bits80'),
        ('mem8','memory or ot_bits8'),
        ('mem16','memory or ot_bits16'),
        ('mem32','memory or ot_bits32'),
@@ -445,5 +445,5 @@ begin
    writeln(nopfile,insns,';');
    close(nopfile);
    closeinc(propfile);
-   writeln(insns,' nodes procesed (maxinfolen=',maxinfolen,')');
+   writeln(insns,' nodes processed (maxinfolen=',maxinfolen,')');
 end.

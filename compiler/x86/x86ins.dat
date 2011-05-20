@@ -1063,23 +1063,21 @@ reg_treg,reg64        \2\x0F\x26\110                  386,PRIV,X86_64
 
 [MOVD,movd]
 (Ch_Rop1, Ch_Wop2, Ch_None)
-mmxreg,mem            \2\x0F\x6E\110                  PENT,MMX,SD
-mmxreg,reg32          \2\x0F\x6E\110                  PENT,MMX
-mem,mmxreg            \2\x0F\x7E\101                  PENT,MMX,SD
-reg32,mmxreg          \2\x0F\x7E\101                  PENT,MMX
-xmmreg,reg32          \361\2\x0F\x6E\110              WILLAMETTE,SSE2
-reg32,xmmreg          \361\2\x0F\x7E\101              WILLAMETTE,SSE2
-mem,xmmreg            \361\325\2\x0F\x7E\101          WILLAMETTE,SSE2
-xmmreg,mem            \361\325\2\x0F\x6E\110          WILLAMETTE,SSE2
+mmxreg,rm32           \2\x0F\x6E\110                  PENT,MMX,SD
+rm32,mmxreg           \2\x0F\x7E\101                  PENT,MMX,SD
+xmmreg,rm32           \361\2\x0F\x6E\110              WILLAMETTE,SSE2
+rm32,xmmreg           \361\2\x0F\x7E\101              WILLAMETTE,SSE2
 
 [MOVQ,movq]
 (Ch_Rop1, Ch_Wop2, Ch_None)
 mmxreg,mmxrm          \2\x0F\x6F\110                  PENT,MMX,SM
 mmxrm,mmxreg          \2\x0F\x7F\101                  PENT,MMX,SM
+mmxreg,rm64           \326\2\x0F\x6E\110              X86_64,MMX
+rm64,mmxreg           \326\2\x0F\x7E\101              X86_64,MMX
 xmmreg,xmmrm          \333\2\x0F\x7E\110              WILLAMETTE,SSE2
 xmmrm,xmmreg          \361\2\x0F\xD6\101              WILLAMETTE,SSE2
-xmmreg,reg64          \361\326\2\x0F\x6E\110          WILLAMETTE,SSE2
-reg64,xmmreg          \361\326\2\x0F\x7E\101          WILLAMETTE,SSE2
+xmmreg,reg64          \361\326\2\x0F\x6E\110          WILLAMETTE,SSE2,X86_64
+reg64,xmmreg          \361\326\2\x0F\x7E\101          WILLAMETTE,SSE2,X86_64
 
 [MOVSB]
 (Ch_All, Ch_None, Ch_None)
@@ -1089,10 +1087,8 @@ void                  \1\xA4                          8086
 ; Ch_All isn't correct for the sse move, but how can it be solved? (FK)
 (Ch_All, Ch_None, Ch_None)
 void                  \325\1\xA5                      386
-xmmreg,xmmreg         \334\2\x0F\x10\110              WILLAMETTE,SSE2
-xmmreg,xmmreg         \334\2\x0F\x11\110              WILLAMETTE,SSE2
-mem,xmmreg            \334\2\x0F\x11\101              WILLAMETTE,SSE2
-xmmreg,mem            \334\2\x0F\x10\110              WILLAMETTE,SSE2
+xmmreg,xmmrm          \334\2\x0F\x10\110              WILLAMETTE,SSE2
+xmmrm,xmmreg          \334\2\x0F\x11\101              WILLAMETTE,SSE2
 
 [MOVSQ]
 (Ch_All, Ch_None, Ch_None)
@@ -3029,10 +3025,6 @@ mem                   \326\2\x0F\xC7\201              X86_64
 ;
 ; SSE4a (AMD Barcelona CPUs, n/a on Intel)
 ;
-
-
-; note: \333=F3h, \334=F2h, \336=66h, \325=no REX.W=1 for qword, \375=unsigned
-
 [MOVNTSS]
 (Ch_All, Ch_None, Ch_None)
 mem,xmmreg              \333\2\x0F\x2B\101                        SSE4,SD
@@ -3045,11 +3037,11 @@ mem,xmmreg              \334\325\2\x0F\x2B\101                SSE4 ;,SQ
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmreg           \334\2\x0F\x79\110                        SSE4
 ; four operands are not possible yet
-; xmmreg,xmmreg,imm,imm   \110\334\76\2\x0F\x78\77\375\22\375\23          SSE4,SB
+; xmmreg,xmmreg,imm,imm   \334\2\x0F\x78\110\26\27          SSE4,SB
 
 [EXTRQ]
 (Ch_All, Ch_None, Ch_None)
-xmmreg,imm,imm          \361\2\x0F\x78\200\375\21\375\22          SSE4,SB
+xmmreg,imm,imm          \361\2\x0F\x78\200\25\26                  SSE4,SB
 xmmreg,xmmreg           \361\2\x0F\x79\110                        SSE4
 
 [LZCNT,lzcntX]
