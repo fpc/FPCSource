@@ -141,13 +141,44 @@ begin
      end;
 end;
 
+{ The handles that are to be passed to the child process must be
+  inheritable. On the other hand, only non-inheritable handles
+  allow the sending of EOF when the write-end is closed. This
+  function is used to duplicate the child process's ends of the
+  handles into inheritable ones, leaving the parent-side handles
+  non-inheritable.
+}
+function DuplicateHandleFP(var handle: THandle): Boolean;
+
+var
+  oldHandle: THandle;
+begin
+  oldHandle := handle;
+  Result := DuplicateHandle
+  ( GetCurrentProcess(),
+    oldHandle,
+    GetCurrentProcess(),
+    @handle,
+    0,
+    true,
+    DUPLICATE_SAME_ACCESS
+  );
+  if Result then
+    Result := CloseHandle(oldHandle);
+end;
+
+
 Procedure CreatePipes(Var HI,HO,HE : Thandle; Var SI : TStartupInfo; CE : Boolean);
 
 begin
   CreatePipeHandles(SI.hStdInput,HI);
+  DuplicateHandleFP(SI.hStdInput);
   CreatePipeHandles(HO,Si.hStdOutput);
-  if CE then
-    CreatePipeHandles(HE,SI.hStdError)
+  DuplicateHandleFP(   Si.hStdOutput);
+  if CE then begin
+    CreatePipeHandles(HE,SI.hStdError);
+    DuplicateHandleFP(   SI.hStdError);
+    end
   else
     begin
     SI.hStdError:=SI.hStdOutput;
@@ -286,6 +317,3 @@ Procedure TProcess.SetShowWindow (Value : TShowWindowOptions);
 begin
   FShowWindow:=Value;
 end;
-
-
-
