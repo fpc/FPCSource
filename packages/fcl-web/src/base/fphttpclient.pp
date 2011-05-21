@@ -46,6 +46,9 @@ Type
     function CheckContentLength: Integer;
     procedure SetRequestHeaders(const AValue: TStrings);
   protected
+    Function IndexOfHeader(Const AHeader : String) : Integer;
+    // Add header, replacing an existing one if it exists.
+    Procedure AddHeader(Const AHeader,AValue : String);
     // Parse response status line. Saves status text and protocol, returns numerical code. Exception if invalid line.
     Function ParseStatusLine(AStatusLine : String) : Integer;
     // Construct server URL for use in request line.
@@ -79,6 +82,24 @@ Type
     Procedure Get(Const AURL : String; const LocalFileName : String);
     Procedure Get(Const AURL : String; Response : TStrings);
     Function Get(Const AURL : String) : String;
+    // Simple post
+    // Post URL, and Requestbody. Return response in Stream, File, TstringList or String;
+    procedure Post(const URL: string; const Response: TStream);
+    procedure Post(const URL: string; Response : TStrings);
+    procedure Post(const URL: string; const LocalFileName: String);
+    function Post(const URL: string) : String;
+    // Post Form data (www-urlencoded).
+    // Formdata in string (urlencoded) or TStrings (plain text) format.
+    // Form data will be inserted in the requestbody.
+    // Return response in Stream, File, TStringList or String;
+    Procedure FormPost(const URL, FormData: string; const Response: TStream);
+    Procedure FormPost(const URL : string; FormData:  TStrings; const Response: TStream);
+    Procedure FormPost(const URL, FormData: string; const Response: TStrings);
+    Procedure FormPost(const URL : string; FormData:  TStrings; const Response: TStrings);
+    function FormPost(const URL, FormData: string): String;
+    function FormPost(const URL: string; FormData : TStrings): String;
+    // Post a file
+    Procedure FileFormPost(const AURL, AFieldName, AFileName: string; const Response: TStream);
   Protected
     // Before request properties.
     // Additional headers for request. Host; and Authentication are automatically added.
@@ -97,6 +118,7 @@ Type
     // After request, HTTP response status text of the server.
     Property ResponseStatusText : String Read FResponseStatusText;
   end;
+
   TFPHTTPClient = Class(TFPCustomHTTPClient)
   Public
     Property RequestHeaders;
@@ -108,6 +130,9 @@ Type
     Property ResponseStatusText;
   end;
   EHTTPClient = Class(Exception);
+
+Function EncodeURLElement(S : String) : String;
+Function DecodeURLElement(Const S : String) : String;
 
 implementation
 
@@ -121,12 +146,114 @@ resourcestring
 Const
   CRLF = #13#10;
 
+function EncodeURLElement(S: String): String;
+
+Const
+  NotAllowed = [ ';', '/', '?', ':', '@', '=', '&', '#', '+', '_', '<', '>',
+                 '"', '%', '{', '}', '|', '\', '^', '~', '[', ']', '`' ];
+
+var
+  i, o, l : Integer;
+  h: string[2];
+  P : PChar;
+  c: AnsiChar;
+begin
+  l:=Length(S);
+  If (l=0) then Exit;
+  SetLength(Result,l*3);
+  P:=Pchar(Result);
+  for I:=1 to L do
+    begin
+    C:=S[i];
+    O:=Ord(c);
+    if (O<=$20) or (O>=$7F) or (c in NotAllowed) then
+      begin
+      P^ := '%';
+      Inc(P);
+      h := IntToHex(Ord(c), 2);
+      p^ := h[1];
+      Inc(P);
+      p^ := h[2];
+      Inc(P);
+      end
+    else
+      begin
+      P^ := c;
+      Inc(p);
+      end;
+    end;
+  SetLength(Result,P-PChar(Result));
+end;
+
+function DecodeURLElement(Const S: AnsiString): AnsiString;
+
+var
+  i,l,o : Integer;
+  c: AnsiChar;
+  p : pchar;
+  h : string;
+
+begin
+  l := Length(S);
+  if l=0 then exit;
+  SetLength(Result, l);
+  P:=PChar(Result);
+  i:=1;
+  While (I<=L) do
+    begin
+    c := S[i];
+    if (c<>'%') then
+      begin
+      P^:=c;
+      Inc(P);
+      end
+    else if (I<L-1) then
+      begin
+      H:='$'+Copy(S,I+1,2);
+      o:=StrToIntDef(H,-1);
+      If (O>=0) and (O<=255) then
+        begin
+        P^:=char(O);
+        Inc(P);
+        Inc(I,2);
+        end;
+      end;
+    Inc(i);
+  end;
+  SetLength(Result, P-Pchar(Result));
+end;
+
 { TFPCustomHTTPClient }
 
 procedure TFPCustomHTTPClient.SetRequestHeaders(const AValue: TStrings);
 begin
   if FRequestHeaders=AValue then exit;
   FRequestHeaders.Assign(AValue);
+end;
+
+function TFPCustomHTTPClient.IndexOfHeader(const AHeader: String): Integer;
+Var
+  L : Integer;
+  H : String;
+begin
+  H:=LowerCase(Aheader);
+  l:=Length(AHeader);
+  Result:=Requestheaders.Count-1;
+  While (Result>=0) and ((LowerCase(Copy(RequestHeaders[Result],1,l)))<>h) do
+    Dec(Result);
+end;
+
+procedure TFPCustomHTTPClient.AddHeader(const AHeader, AValue: String);
+
+Var
+  I,J,L : Integer;
+  H : String;
+
+begin
+  j:=IndexOfHeader(Aheader);
+  if (J<>-1) then
+    RequestHeaders.Delete(j);
+  RequestHeaders.Add(AHeader+': '+Avalue);
 end;
 
 Function TFPCustomHTTPClient.GetServerURL(URI : TURI) : String;
@@ -141,6 +268,8 @@ begin
   If (D[Length(D)]<>'/') then
     D:=D+'/';
   Result:=D+URI.Document;
+  if (URI.Params<>'') then
+    Result:=Result+'?'+URI.Params;
 end;
 
 procedure TFPCustomHTTPClient.ConnectToServer(Const AHost : String; APort : Integer);
@@ -177,6 +306,8 @@ begin
   If (URI.Port<>0) then
     S:=S+':'+IntToStr(URI.Port);
   S:=S+CRLF;
+  If Assigned(RequestBody) and (IndexOfHeader('Content-length')=-1) then
+    AddHeader('Content-length',IntToStr(RequestBody.Size));
   For I:=0 to FRequestHeaders.Count-1 do
     begin
     l:=FRequestHeaders[i];
@@ -450,6 +581,152 @@ begin
     Result:=SS.Datastring;
   finally
     SS.Free;
+  end;
+end;
+
+procedure TFPCustomHTTPClient.Post(const URL: string; const Response: TStream);
+begin
+  DoMethod('POST',URL,Response,[]);
+end;
+
+procedure TFPCustomHTTPClient.Post(const URL: string; Response: TStrings);
+begin
+  Response.Text:=Post(URL);
+end;
+
+procedure TFPCustomHTTPClient.Post(const URL: string;
+  const LocalFileName: String);
+
+Var
+  F : TFileStream;
+
+begin
+  F:=TFileStream.Create(LocalFileName,fmCreate);
+  try
+    Post(URL,F);
+  finally
+    F.Free;
+  end;
+end;
+
+function TFPCustomHTTPClient.Post(const URL: string): String;
+Var
+  SS : TStringStream;
+begin
+  SS:=TStringStream.Create('');
+  try
+    Post(URL,SS);
+    Result:=SS.Datastring;
+  finally
+    SS.Free;
+  end;
+end;
+
+procedure TFPCustomHTTPClient.FormPost(const URL, FormData: string;
+  const Response: TStream);
+
+Var
+  S : TStringStream;
+
+begin
+  RequestBody:=TStringStream.Create(FormData);
+  try
+    AddHeader('Content-Type','application/x-www-form-urlencoded');
+    Post(URL,Response);
+  finally
+    RequestBody.Free;
+    RequestBody:=Nil;
+  end;
+end;
+
+procedure TFPCustomHTTPClient.FormPost(const URL: string; FormData: TStrings;
+  const Response: TStream);
+
+Var
+  I : Integer;
+  S,N,V : String;
+
+begin
+  For I:=0 to FormData.Count-1 do
+    begin
+    If (S<>'') then
+      S:=S+'&';
+    FormData.GetNameValue(i,n,v);
+    S:=S+EncodeURLElement(N)+'='+EncodeURLElement(V);
+    end;
+  FormPost(URL,S,Response);
+end;
+
+procedure TFPCustomHTTPClient.FormPost(const URL, FormData: string;
+  const Response: TStrings);
+begin
+  Response.Text:=FormPost(URL,FormData);
+end;
+
+procedure TFPCustomHTTPClient.FormPost(const URL: string; FormData: TStrings;
+  const Response: TStrings);
+begin
+  Response.Text:=FormPost(URL,FormData);
+end;
+
+function TFPCustomHTTPClient.FormPost(const URL, FormData: string): String;
+Var
+  SS : TStringStream;
+begin
+  SS:=TStringStream.Create('');
+  try
+    FormPost(URL,FormData,SS);
+    Result:=SS.Datastring;
+  finally
+    SS.Free;
+  end;
+end;
+
+function TFPCustomHTTPClient.FormPost(const URL: string; FormData: TStrings
+  ): String;
+Var
+  SS : TStringStream;
+begin
+  SS:=TStringStream.Create('');
+  try
+    FormPost(URL,FormData,SS);
+    Result:=SS.Datastring;
+  finally
+    SS.Free;
+  end;
+end;
+
+procedure TFPCustomHTTPClient.FileFormPost(const AURL, AFieldName, AFileName: string; const Response: TStream);
+
+Var
+  S, Sep : string;
+  SS : TStringStream;
+  F : TFileStream;
+  DS : TBase64EncodingStream;
+
+begin
+  Sep:=Format('%.8x_multipart_boundary',[Random($ffffff)]);
+  AddHeader('Content-type','multipart/form-data; boundary='+Sep);
+  S:='--'+Sep+CRLF;
+  s:=s+Format('content-disposition: form-data; name="%s"; filename="%s"'+CRLF,[AFieldName,AFileName]);
+  s:=s+'Content-Type: Application/octet-string'+CRLF+CRLF;
+  SS:=TStringStream.Create(s);
+  try
+    SS.Seek(0,soFromEnd);
+    F:=TFileStream.Create(AFileName,fmOpenRead);
+    try
+      SS.CopyFrom(F,F.Size);
+    finally
+      F.Free;
+    end;
+    S:=CRLF+'--'+Sep+'--'+CRLF;
+    SS.WriteBuffer(S[1],Length(S));
+    SS.Position:=0;
+    RequestBody:=SS;
+    Post(AURL,Response);
+  finally
+   RequestBody:=Nil;
+   SS.Free;
   end;
 end;
 
