@@ -10,9 +10,10 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <Title Value="HTTP Client application demo"/>
+      <Title Value="Form post example"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
+      <Icon Value="0"/>
     </General>
     <i18n>
       <EnableI18N LFM="False"/>
@@ -36,9 +37,9 @@
     </RunParams>
     <Units Count="1">
       <Unit0>
-        <Filename Value="httpget.pas"/>
+        <Filename Value="httppost.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="httpget"/>
+        <UnitName Value="httppost"/>
       </Unit0>
     </Units>
   </ProjectOptions>
@@ -47,6 +48,11 @@
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
     </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <UseAnsiStrings Value="False"/>
+      </SyntaxOptions>
+    </Parsing>
     <Other>
       <CompilerMessages>
         <UseMsgFile Value="True"/>
