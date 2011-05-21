@@ -630,14 +630,14 @@ begin
   if (FLingerTimeout>0) then
     begin
     ll:=SizeOf(l);
-    if getsockopt(Socket,SOL_SOCKET,SO_LINGER,@l,ll)=0 then
+    if fpgetsockopt(Socket,SOL_SOCKET,SO_LINGER,@l,@ll)=0 then
       begin
 //      Log(etDebug,Format('Socket linger : %d, %d',[L.l_linger,L.l_onoff]));
       if (L.l_onoff=0) then
         begin
         l.l_onoff:=1;
         l.l_linger:=1;
-        lr:=setsockopt(Socket,SOL_SOCKET,SO_LINGER,@l,ll);
+        lr:=fpsetsockopt(Socket,SOL_SOCKET,SO_LINGER,@l,ll);
 //        Log(etDebug,Format('Set socket linger (%d, %d) : %d',[L.l_linger,L.l_onoff,lr]));
         end;
       end;
