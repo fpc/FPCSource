@@ -35,7 +35,9 @@ Type
   TFPHTTPConnectionRequest = Class(TRequest)
   private
     FConnection: TFPHTTPConnection;
+    
   protected
+    procedure SetContent(AValue : String);
     Property Connection : TFPHTTPConnection Read FConnection;
   end;
 
@@ -208,6 +210,32 @@ begin
   end;
 end;
 
+procedure TFPHTTPConnectionRequest.SetContent(AValue : String);
+
+begin
+  FContent:=Avalue;
+  FContentRead:=true;
+end;
+(*
+Procedure TFPHTTPConnectionRequest.SetFieldValue(Index : Integer; Value : String);
+
+begin
+  if Index=35 then
+    FContent:=Value
+  else
+    Inherited (Index,Value);
+end;
+
+Function TFPHTTPConnectionRequest.GetFieldValue(Index : Integer) : String;
+
+begin
+  if Index=35 then
+    Result:=FContent
+  else
+    Result:=Inherited GetFieldValue(Index);
+end;
+*)
+
 procedure TFPHTTPConnectionResponse.DoSendHeaders(Headers: TStrings);
 
 Var
@@ -269,6 +297,7 @@ begin
         Delete(FBuffer,1,1);
         Done:=True;
         end;
+      CheckLF:=False;  
       end;
     if not Done then
       begin
@@ -360,9 +389,14 @@ begin
     SetLength(S,L);
     P:=Length(FBuffer);
     if (P>0) then
-      Move(FBuffer[1],S,P);
+      begin
+      Move(FBuffer[1],S[1],P);
+      L:=L-P;
+      end;
     P:=P+1;
-    Repeat
+    R:=1;
+    While (L<>0) and (R>0) do
+      begin
       R:=FSocket.Read(S[p],L);
       If R<0 then
         Raise EHTTPServer.Create(SErrReadingSocket);
@@ -371,9 +405,9 @@ begin
         P:=P+R;
         L:=L-R;
         end;
-    until (L=0) or (R=0);
+      end;  
     end;
-  ARequest.Content:=S;
+  ARequest.SetContent(S);
 end;
 
 function TFPHTTPConnection.ReadRequestHeaders: TFPHTTPConnectionRequest;
@@ -417,7 +451,9 @@ begin
   try
     // Read content, if any
     If Req.ContentLength>0 then
+      begin
       ReadRequestContent(Req);
+      end;
     // Create Response
     Resp:= TFPHTTPConnectionResponse.Create(Req);
     try
