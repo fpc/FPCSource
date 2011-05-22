@@ -576,7 +576,7 @@ begin
       try
         If Not NameLookup(FHost) then
           raise ESocketError.Create(seHostNotFound, [FHost]);
-        A:=NetHostAddress;
+        A:=HostAddress;
       finally
         free;
       end;

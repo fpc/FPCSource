@@ -325,7 +325,9 @@ begin
     begin
     Result:=GetHostByName(S,H);
     if not Result then
-      Result:=ResolveHostByName(S,H);
+      Result:=ResolveHostByName(S,H)
+    else
+      H.Addr:=HostToNet(H.Addr);    
     If Result then
       SaveHostEntry(@H);
     end;
