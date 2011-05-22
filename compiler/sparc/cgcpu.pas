@@ -494,14 +494,14 @@ implementation
         if (a=0) then
           list.concat(taicpu.op_reg(A_CLR,reg))
         { sethi allows to set the upper 22 bit, so we'll take full advantage of it }
-        else if (a and aint($1fff))=0 then
-          list.concat(taicpu.op_const_reg(A_SETHI,a shr 10,reg))
+        else if (aint(a) and aint($1fff))=0 then
+          list.concat(taicpu.op_const_reg(A_SETHI,aint(a) shr 10,reg))
         else if (a>=simm13lo) and (a<=simm13hi) then
           list.concat(taicpu.op_const_reg(A_MOV,a,reg))
         else
           begin
-            list.concat(taicpu.op_const_reg(A_SETHI,a shr 10,reg));
-            list.concat(taicpu.op_reg_const_reg(A_OR,reg,a and aint($3ff),reg));
+            list.concat(taicpu.op_const_reg(A_SETHI,aint(a) shr 10,reg));
+            list.concat(taicpu.op_reg_const_reg(A_OR,reg,aint(a) and aint($3ff),reg));
           end;
       end;
 
