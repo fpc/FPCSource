@@ -34,6 +34,7 @@ Type
   { TFPCustomHTTPClient }
   TFPCustomHTTPClient = Class(TComponent)
   private
+    FCookies: TStrings;
     FHTTPVersion: String;
     FRequestBody: TStream;
     FRequestHeaders: TStrings;
@@ -44,11 +45,10 @@ Type
     FSocket : TInetSocket;
     FBuffer : Ansistring;
     function CheckContentLength: Integer;
+    function GetCookies: TStrings;
+    procedure SetCookies(const AValue: TStrings);
     procedure SetRequestHeaders(const AValue: TStrings);
   protected
-    Function IndexOfHeader(Const AHeader : String) : Integer;
-    // Add header, replacing an existing one if it exists.
-    Procedure AddHeader(Const AHeader,AValue : String);
     // Parse response status line. Saves status text and protocol, returns numerical code. Exception if invalid line.
     Function ParseStatusLine(AStatusLine : String) : Integer;
     // Construct server URL for use in request line.
@@ -75,6 +75,13 @@ Type
   Public
     Constructor Create(AOwner: TComponent); override;
     Destructor Destroy; override;
+    // Request Header management
+    // Return index of header, -1 if not present.
+    Function IndexOfHeader(Const AHeader : String) : Integer;
+    // Add header, replacing an existing one if it exists.
+    Procedure AddHeader(Const AHeader,AValue : String);
+    // Return header value, empty if not present.
+    Function GetHeader(Const AHeader : String) : String;
     // General-purpose call.
     Procedure HTTPMethod(Const AMethod,AURL : String; Stream : TStream; Const AllowedResponseCodes : Array of Integer); virtual;
     // Execute GET on server, store result in Stream, File, StringList or string
@@ -104,6 +111,9 @@ Type
     // Before request properties.
     // Additional headers for request. Host; and Authentication are automatically added.
     Property RequestHeaders : TStrings Read FRequestHeaders Write SetRequestHeaders;
+    // Cookies. Set before request to send cookies to server.
+    // After request the property is filled with the cookies sent by the server.
+    Property Cookies : TStrings Read GetCookies Write SetCookies;
     // Optional body to send (mainly in POST request)
     Property RequestBody : TStream read FRequestBody Write FRequestBody;
     // used HTTP version when constructing the request.
@@ -128,6 +138,7 @@ Type
     Property ServerHTTPVersion;
     Property ResponseStatusCode;
     Property ResponseStatusText;
+    Property Cookies;
   end;
   EHTTPClient = Class(Exception);
 
@@ -256,6 +267,20 @@ begin
   RequestHeaders.Add(AHeader+': '+Avalue);
 end;
 
+function TFPCustomHTTPClient.GetHeader(const AHeader: String): String;
+
+Var
+  I : Integer;
+
+begin
+  I:=indexOfHeader(AHeader);
+  Result:=RequestHeaders[i];
+  I:=Pos(':',Result);
+  if (I=0) then
+    I:=Length(Result);
+  Delete(Result,1,I);
+end;
+
 Function TFPCustomHTTPClient.GetServerURL(URI : TURI) : String;
 
 Var
@@ -312,6 +337,18 @@ begin
     begin
     l:=FRequestHeaders[i];
     If AllowHeader(L) then
+      S:=S+L+CRLF;
+    end;
+  if Assigned(FCookies) then
+    begin
+    L:='Cookie:';
+    For I:=0 to FCookies.Count-1 do
+      begin
+      If (I>0) then
+        L:=L+'; ';
+      L:=L+FCookies[i];
+      end;
+    if AllowHeader(L) then
       S:=S+L+CRLF;
     end;
   S:=S+CRLF;
@@ -421,16 +458,44 @@ end;
 
 Function TFPCustomHTTPClient.ReadResponseHeaders : Integer;
 
+  Procedure DoCookies(S : String);
+
+  Var
+    P : Integer;
+    C : String;
+
+  begin
+    If Assigned(FCookies) then
+      FCookies.Clear;
+    P:=Pos(':',S);
+    Delete(S,1,P);
+    Repeat
+      P:=Pos(';',S);
+      If (P=0) then
+        P:=Length(S)+1;
+      C:=Trim(Copy(S,1,P-1));
+      Cookies.Add(C);
+      Delete(S,1,P);
+    Until (S='');
+  end;
+
+Const
+  SetCookie = 'set-cookie';
+
 Var
   StatusLine,S : String;
+
 begin
   StatusLine:=ReadString;
   Result:=ParseStatusLine(StatusLine);
-
   Repeat
     S:=ReadString;
     if (S<>'') then
+      begin
       ResponseHeaders.Add(S);
+      If (LowerCase(Copy(S,1,Length(SetCookie)))=SetCookie) then
+        DoCookies(S);
+      end
   Until (S='');
 end;
 
@@ -473,6 +538,19 @@ begin
       end;
     Inc(I);
     end;
+end;
+
+function TFPCustomHTTPClient.GetCookies: TStrings;
+begin
+  If (FCookies=Nil) then
+    FCookies:=TStringList.Create;
+  Result:=FCookies;
+end;
+
+procedure TFPCustomHTTPClient.SetCookies(const AValue: TStrings);
+begin
+  if GetCookies=AValue then exit;
+  GetCookies.Assign(AValue);
 end;
 
 procedure TFPCustomHTTPClient.ReadResponse(Stream: TStream; Const AllowedResponseCodes : Array of Integer);
