@@ -48,6 +48,7 @@ uses
   { modules }
   fmodule,
   { pass 1 }
+  htypechk,
   node,nobj,
   { parser }
   scanner,
@@ -332,9 +333,12 @@ uses
                 tt.typesym:=srsym;
 
                 case tt.typ of
-                  { Build VMT indexes for classes }
+                  { Build VMT indexes for classes and read hint directives }
                   objectdef:
                     begin
+                      try_consume_hintdirective(srsym.symoptions,srsym.deprecatedmsg);
+                      consume(_SEMICOLON);
+
                       vmtbuilder:=TVMTBuilder.Create(tobjectdef(tt));
                       vmtbuilder.generate_vmt;
                       vmtbuilder.free;
@@ -351,6 +355,12 @@ uses
                       handle_calling_convention(tprocvardef(tt));
                       if try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg) then
                         consume(_SEMICOLON);
+                    end;
+                  else
+                    { parse hint directives for records and arrays }
+                    begin
+                      try_consume_hintdirective(srsym.symoptions,srsym.deprecatedmsg);
+                      consume(_SEMICOLON);
                     end;
                 end;
                 { Consume the semicolon if it is also recorded }
@@ -384,7 +394,12 @@ uses
         genericdeflist.free;
         generictypelist.free;
         if not try_to_consume(_GT) then
-          consume(_RSHARPBRACKET);
+          consume(_RSHARPBRACKET)
+        else
+          if assigned(srsym) then
+            { check the hints of the found generic symbol (this way we are
+              behind the closing ">") }
+            check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
       end;
 
 

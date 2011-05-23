@@ -1913,14 +1913,12 @@ implementation
                     exit;
                   end;
 
-               { check hints if it is the final symbol that is used (e.g. in
-                 case of generics only the dummy symbol or the non-generic one
-                 is found here }
-               { TODO : correct this check }
+               { check hints, but only if it isn't a potential generic symbol;
+                 that is checked in sub_expr if it isn't a generic }
                if assigned(srsym) and
                    not (
-                     typeonly and (srsym.typ=typesym) and
-                     (ttypesym(srsym).typedef.typ=undefineddef) and
+                     (srsym.typ=typesym) and
+                     (ttypesym(srsym).typedef.typ in [recorddef,objectdef,arraydef,procvardef,undefineddef]) and
                      not (sp_generic_para in srsym.symoptions) and
                      (token in [_LT, _LSHARPBRACKET])
                    ) then
@@ -2838,6 +2836,32 @@ implementation
     {Reads a subexpression while the operators are of the current precedence
      level, or any higher level. Replaces the old term, simpl_expr and
      simpl2_expr.}
+
+      function istypenode(n:tnode):boolean;inline;
+      { Checks whether the given node is a type node or a VMT node containing a
+        typenode. This is used in the code for inline specializations in the
+        _LT branch below }
+        begin
+          result:=assigned(n) and
+                    (
+                      (n.nodetype=typen) or
+                      (
+                        (n.nodetype=loadvmtaddrn) and
+                        (tloadvmtaddrnode(n).left.nodetype=typen)
+                      )
+                    );
+        end;
+
+      function gettypedef(n:tnode):tdef;inline;
+      { This returns the typedef that belongs to the given typenode or
+        loadvmtaddrnode. n must not be Nil! }
+        begin
+          if n.nodetype=typen then
+            result:=ttypenode(n).typedef
+          else
+            result:=ttypenode(tloadvmtaddrnode(n).left).typedef;
+        end;
+
       var
         p1,p2   : tnode;
         oldt    : Ttoken;
@@ -2878,57 +2902,57 @@ implementation
                _LT :
                  begin
                    isgeneric:=false;
-                   if (
-                         { the left node needs to be a type node }
-                         (p1.nodetype=typen) or
-                         (
-                           (p1.nodetype=loadvmtaddrn) and
-                           (tloadvmtaddrnode(p1).left.nodetype=typen)
-                         )
-                       ) and
-                       (
-                         { the right node needs to be a type node }
-                         (p2.nodetype=typen) or
-                         (
-                           (p2.nodetype=loadvmtaddrn) and
-                           (tloadvmtaddrnode(p2).left.nodetype=typen)
-                         )
-                       ) and
+                   if istypenode(p1) and istypenode(p2) and
                        (m_delphi in current_settings.modeswitches) and
                        (token in [_GT,_RSHARPBRACKET,_COMMA]) then
                      begin
                        { this is an inline specialization }
 
-                       { retrive the def of the left node }
-                       if p1.nodetype=typen then
-                         gendef:=ttypenode(p1).typedef
-                       else
-                         gendef:=ttypenode(tloadvmtaddrnode(p1).left).typedef;
-
-                       { retrieve the right node }
-                       if p2.nodetype=typen then
-                         parseddef:=ttypenode(p2).typedef
-                       else
-                         parseddef:=ttypenode(tloadvmtaddrnode(p2).left).typedef;
+                       { retrieve the defs of two nodes }
+                       gendef:=gettypedef(p1);
+                       parseddef:=gettypedef(p2);
 
                        if gendef.typesym.typ<>typesym then
                          Internalerror(2011050301);
                        if parseddef.typesym.typ<>typesym then
                          Internalerror(2011051001);
 
+                       { check the hints for parseddef }
+                       check_hints(parseddef.typesym,parseddef.typesym.symoptions,parseddef.typesym.deprecatedmsg);
+
                        { generate the specialization }
                        generate_specialization(gendef,false,parseddef);
-                       isgeneric:=gendef<>generrordef;
+                       isgeneric:=true;
                      end;
 
                    if not isgeneric then
-                     p1:=caddnode.create(ltn,p1,p2)
+                     begin
+                       { for potential generic types that are followed by a "<"
+                         the hints are not checked }
+                       if istypenode(p1) then
+                         begin
+                           gendef:=gettypedef(p1);
+                           if gendef.typ in [objectdef,recorddef,arraydef,procvardef] then
+                             check_hints(gendef.typesym,gendef.typesym.symoptions,gendef.typesym.deprecatedmsg);
+                         end;
+                       if istypenode(p2) and
+                           (token in [_LT, _LSHARPBRACKET]) then
+                         begin
+                           gendef:=gettypedef(p2);
+                           if gendef.typ in [objectdef,recorddef,arraydef,procvardef] then
+                             check_hints(gendef.typesym,gendef.typesym.symoptions,gendef.typesym.deprecatedmsg);
+                         end;
+
+                       { create the comparison node for "<" }
+                       p1:=caddnode.create(ltn,p1,p2)
+                     end
                    else
                      begin
                        { we don't need the old left and right nodes anymore }
                        p1.Free;
                        p2.Free;
-                       { in case of a class this is always a classrefdef }
+                       { in case of a class or a record the specialized generic
+                         is always a classrefdef }
                        if is_class_or_interface_or_object(gendef) or
                            is_record(gendef) then
                          gendef:=tclassrefdef.create(gendef);
