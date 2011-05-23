@@ -2369,7 +2369,7 @@
   (
     opcode  : A_IN;
     ops     : 2;
-    optypes : (ot_reg_ax or ot_bits32 or ot_bits64,ot_immediate,ot_none);
+    optypes : (ot_reg_ax or ot_bits32,ot_immediate,ot_none);
     code    : #208#1#229#21;
     flags   : if_8086 or if_sb
   ),
@@ -2383,7 +2383,7 @@
   (
     opcode  : A_IN;
     ops     : 2;
-    optypes : (ot_reg_ax or ot_bits32 or ot_bits64,ot_reg_dx,ot_none);
+    optypes : (ot_reg_ax or ot_bits32,ot_reg_dx,ot_none);
     code    : #208#1#237;
     flags   : if_8086
   ),
@@ -2530,7 +2530,7 @@
   (
     opcode  : A_JMP;
     ops     : 1;
-    optypes : (ot_immediate or ot_bits16 or ot_bits32 or ot_bits64,ot_none,ot_none);
+    optypes : (ot_immediate or ot_bits16 or ot_bits32,ot_none,ot_none);
     code    : #208#1#233#52;
     flags   : if_8086 or if_pass2
   ),

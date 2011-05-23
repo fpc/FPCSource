@@ -792,12 +792,13 @@ reg16,imm8            \324\1\x6B\100\15               286
 reg16,imm             \324\1\x69\100\31               286,SW
 rm8                   \1\xF6\205                      8086
 
+; 64-bit variant does not exist
 [IN,inX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
 reg_al,imm            \1\xE4\25                       8086,SB
-reg_ax|32|64,imm      \320\1\xE5\25                   8086,SB
+reg_ax|32,imm         \320\1\xE5\25                   8086,SB
 reg_al,reg_dx         \1\xEC                          8086
-reg_ax|32|64,reg_dx   \320\1\xED                      8086
+reg_ax|32,reg_dx      \320\1\xED                      8086
 
 [INC,incX]
 (Ch_Mop1, Ch_WFlags, Ch_None)
@@ -876,7 +877,7 @@ imm                   \1\xE3\50                       X86_64
 [JMP,jmpX]
 (Ch_ROp1, Ch_None, Ch_None)
 imm8                  \1\xEB\50                       8086,PASS2
-imm16|32|64           \320\1\xE9\64                   8086,PASS2
+imm16|32              \320\1\xE9\64                   8086,PASS2
 rm16|32|64            \320\1\xFF\204                  8086
 imm|short             \1\xEB\50                       8086,PASS2
 imm|near              \320\1\xE9\64                   8086,ND,PASS2

@@ -172,7 +172,7 @@ interface
 {$else x86_64}
       instabentries = {$i i386nop.inc}
 {$endif x86_64}
-      maxinfolen    = 11;
+      maxinfolen    = 8;
       MaxInsChanges = 3; { Max things a instruction can change }
 
     type
@@ -2358,17 +2358,10 @@ implementation
                            if oper[opidx]^.ref^.base=NR_RIP then
                              begin
                                currabsreloc:=RELOC_RELATIVE;
-                               { Adjust reloc value depending of immediate operand size,
-                                 but not if offset is specified by literal constant }
+                               { Adjust reloc value by number of bytes following the displacement,
+                                 but not if displacement is specified by literal constant }
                                if Assigned(currsym) then
-                                 case Ord(codes^) of
-                                   12,13,14,16,17,18,20,21,22:
-                                     Dec(currval, 1);
-                                   24,25,26:
-                                     Dec(currval, 2);
-                                   32,33,34,172,173,174:
-                                     Dec(currval, 4);
-                                 end;
+                                 Dec(currval,InsEnd-objdata.CurrObjSec.Size-ea_data.bytes);
                              end
                            else
 {$endif x86_64}
