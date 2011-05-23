@@ -107,11 +107,34 @@ uses
         if onlyparsepara then
           begin
             consume(_LSHARPBRACKET);
+            gencount:=0;
             repeat
               pt2:=factor(false,true);
               pt2.free;
+              inc(gencount);
             until not try_to_consume(_COMMA);
             consume(_RSHARPBRACKET);
+            if parse_generic and parse_class_parent then
+              begin
+                if df_generic in genericdef.defoptions then
+                  { this happens in non-Delphi modes }
+                  tt:=genericdef
+                else
+                  begin
+                    { find the corresponding generic symbol so that any checks
+                      done on the returned def will be handled correctly }
+                    str(gencount,countstr);
+                    genname:=ttypesym(genericdef.typesym).realname+'$'+countstr;
+                    ugenname:=upper(genname);
+                    if not searchsym(ugenname,srsym,st) or
+                        (srsym.typ<>typesym) then
+                      begin
+                        identifier_not_found(genname);
+                        exit;
+                      end;
+                    tt:=ttypesym(srsym).typedef;
+                  end;
+              end;
             exit;
           end;
 
