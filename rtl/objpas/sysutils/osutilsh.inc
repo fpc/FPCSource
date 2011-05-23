@@ -54,6 +54,7 @@ Type
 
 Type
   TEventType = (etCustom,etInfo,etWarning,etError,etDebug);
+  TEventTypes = Set of TEventType;
 
 Var
   OnGetVendorName      : TGetVendorNameEvent;
