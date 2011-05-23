@@ -1916,6 +1916,7 @@ implementation
                { check hints if it is the final symbol that is used (e.g. in
                  case of generics only the dummy symbol or the non-generic one
                  is found here }
+               { TODO : correct this check }
                if assigned(srsym) and
                    not (
                      typeonly and (srsym.typ=typesym) and
