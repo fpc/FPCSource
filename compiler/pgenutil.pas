@@ -59,13 +59,10 @@ uses
         st  : TSymtable;
         srsym : tsym;
         pt2 : tnode;
-        found,
         first,
         err : boolean;
         i,
-        j,
         gencount : longint;
-        sym : tsym;
         genericdef : tstoreddef;
         genericsym,
         generictype : ttypesym;
@@ -76,12 +73,11 @@ uses
         hmodule : tmodule;
         pu : tused_unit;
         uspecializename,
-        specializename : string;
+        countstr,genname,ugenname,specializename : string;
         vmtbuilder : TVMTBuilder;
         onlyparsepara : boolean;
         specializest : tsymtable;
         item: psymtablestackitem;
-        def : tdef;
       begin
         { retrieve generic def that we are going to replace }
         genericdef:=tstoreddef(tt);
@@ -93,13 +89,6 @@ uses
            internalerror(2011042701);
 
         genericsym:=ttypesym(genericdef.typesym);
-        if genericsym.gendeflist.Count=0 then
-          begin
-            { TODO : search for other generics with the same name }
-            Message(parser_e_special_onlygenerics);
-            tt:=generrordef;
-            onlyparsepara:=true;
-          end;
 
         { only need to record the tokens, then we don't know the type yet  ... }
         if parse_generic then
@@ -178,63 +167,68 @@ uses
             exit;
           end;
 
-        { check whether we have a generic with the correct amount of params }
-        found:=false;
-        for i:=0 to genericsym.gendeflist.Count-1 do begin
-          def:=tdef(genericsym.gendeflist[i]);
-          { select the symtable containing the params }
-          case def.typ of
-            procdef:
-              st:=def.GetSymtable(gs_para);
-            objectdef,
-            recorddef:
-              st:=def.GetSymtable(gs_record);
-            arraydef:
-              st:=tarraydef(def).symtable;
-            procvardef:
-              st:=def.GetSymtable(gs_para);
-            else
-              internalerror(200511182);
-          end;
-
-          gencount:=0;
-          for j:=0 to st.SymList.Count-1 do
-            begin
-              if sp_generic_para in tsym(st.SymList[j]).symoptions then
-                inc(gencount);
-            end;
-
-          if gencount=genericdeflist.count then
-            begin
-              found:=true;
-              break;
-            end;
-        end;
-
-        if not found then
+        { search a generic with the given count of params }
+        countstr:='';
+        str(genericdeflist.Count,countstr);
+        { use the name of the symbol as procvars return a user friendly version
+          of the name }
+        genname:=ttypesym(genericdef.typesym).realname;
+        { in case of non-Delphi mode the type name could already be a generic
+          def (but maybe the wrong one) }
+        if df_generic in genericdef.defoptions then
           begin
-            identifier_not_found(genericdef.typename);
-            tt:=generrordef;
+            { remove the type count suffix from the generic's name }
+            for i:=Length(genname) downto 1 do
+              if genname[i]='$' then
+                begin
+                  genname:=copy(genname,1,i-1);
+                  break;
+                end;
+          end;
+        genname:=genname+'$'+countstr;
+        ugenname:=upper(genname);
+
+        if not searchsym(ugenname,srsym,st)
+            or (srsym.typ<>typesym) then
+          begin
+            identifier_not_found(genname);
+            genericdeflist.Free;
+            generictypelist.Free;
             exit;
           end;
 
-        { we've found the correct def, so use it }
-        genericdef:=tstoreddef(def);
+        { we've found the correct def }
+        genericdef:=tstoreddef(ttypesym(srsym).typedef);
 
         { build the new type's name }
-        specializename:=genericdef.typesym.realname+specializename;
+        specializename:=genname+specializename;
         uspecializename:=upper(specializename);
+
+        { select the symtable containing the params }
+        case genericdef.typ of
+          procdef:
+            st:=genericdef.GetSymtable(gs_para);
+          objectdef,
+          recorddef:
+            st:=genericdef.GetSymtable(gs_record);
+          arraydef:
+            st:=tarraydef(genericdef).symtable;
+          procvardef:
+            st:=genericdef.GetSymtable(gs_para);
+          else
+            internalerror(200511182);
+        end;
 
         { build the list containing the types for the generic params }
         gencount:=0;
         for i:=0 to st.SymList.Count-1 do
           begin
-            sym:=tsym(st.SymList[i]);
-            if sp_generic_para in sym.symoptions then
+            srsym:=tsym(st.SymList[i]);
+            if sp_generic_para in srsym.symoptions then
               begin
                 if gencount=genericdeflist.Count then
                   internalerror(2011042702);
-                generictype:=ttypesym.create(sym.realname,tdef(genericdeflist[gencount]));
+                generictype:=ttypesym.create(srsym.realname,tdef(genericdeflist[gencount]));
                 generictypelist.add(generictype);
                 inc(gencount);
               end;

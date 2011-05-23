@@ -1912,20 +1912,21 @@ implementation
                     consume(_ASSIGNMENT);
                     exit;
                   end;
-               { if nothing found give error and return errorsym }
-               { TODO : adjust this check for inline specializations }
+
+               { check hints if it is the final symbol that is used (e.g. in
+                 case of generics only the dummy symbol or the non-generic one
+                 is found here }
                if assigned(srsym) and
                    not (
-                     { in case of an overloaded generic symbol we need to
-                       generate an error if the non-generic symbol is still
-                       undefined and we're not doing a specialization }
                      typeonly and (srsym.typ=typesym) and
                      (ttypesym(srsym).typedef.typ=undefineddef) and
-                     (ttypesym(srsym).gendeflist.Count>0) and
-                     not (token in [_LT, _LSHARPBRACKET])
+                     not (sp_generic_para in srsym.symoptions) and
+                     (token in [_LT, _LSHARPBRACKET])
                    ) then
-                 check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg)
-               else
+                 check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+
+               { if nothing found give error and return errorsym }
+               if not assigned(srsym) then
                  begin
                    identifier_not_found(orgstoredpattern);
                    srsym:=generrorsym;
@@ -2842,7 +2843,7 @@ implementation
         filepos : tfileposinfo;
         again,
         isgeneric : boolean;
-        def : tdef;
+        gendef,parseddef : tdef;
       begin
         if pred_level=highest_precedence then
           p1:=factor(false,typeonly)
@@ -2876,24 +2877,47 @@ implementation
                _LT :
                  begin
                    isgeneric:=false;
-                   if (p1.nodetype=typen) and (p2.nodetype=typen) and
+                   if (
+                         { the left node needs to be a type node }
+                         (p1.nodetype=typen) or
+                         (
+                           (p1.nodetype=loadvmtaddrn) and
+                           (tloadvmtaddrnode(p1).left.nodetype=typen)
+                         )
+                       ) and
+                       (
+                         { the right node needs to be a type node }
+                         (p2.nodetype=typen) or
+                         (
+                           (p2.nodetype=loadvmtaddrn) and
+                           (tloadvmtaddrnode(p2).left.nodetype=typen)
+                         )
+                       ) and
                        (m_delphi in current_settings.modeswitches) and
                        (token in [_GT,_RSHARPBRACKET,_COMMA]) then
                      begin
                        { this is an inline specialization }
-                       if ttypenode(p1).typedef.typesym.typ<>typesym then
-                         Internalerror(2011050301);
-                       { TODO : search for other generics with the same name
-                                in other units (if no unit identifier is
-                                given...) }
-                       if ttypesym(ttypenode(p1).typedef.typesym).gendeflist.Count>0 then
-                         begin
-                           def:=ttypenode(p1).typedef;
-                           generate_specialization(def,false,ttypenode(p2).typedef);
-                           isgeneric:=def<>generrordef;
-                         end
+
+                       { retrive the def of the left node }
+                       if p1.nodetype=typen then
+                         gendef:=ttypenode(p1).typedef
                        else
-                         ;
+                         gendef:=ttypenode(tloadvmtaddrnode(p1).left).typedef;
+
+                       { retrieve the right node }
+                       if p2.nodetype=typen then
+                         parseddef:=ttypenode(p2).typedef
+                       else
+                         parseddef:=ttypenode(tloadvmtaddrnode(p2).left).typedef;
+
+                       if gendef.typesym.typ<>typesym then
+                         Internalerror(2011050301);
+                       if parseddef.typesym.typ<>typesym then
+                         Internalerror(2011051001);
+
+                       { generate the specialization }
+                       generate_specialization(gendef,false,parseddef);
+                       isgeneric:=gendef<>generrordef;
                      end;
 
                    if not isgeneric then
@@ -2904,9 +2928,10 @@ implementation
                        p1.Free;
                        p2.Free;
                        { in case of a class this is always a classrefdef }
-                       if is_class_or_interface_or_object(def) or is_record(def) then
-                         def:=tclassrefdef.create(def);
-                       p1:=ctypenode.create(def);
+                       if is_class_or_interface_or_object(gendef) or
+                           is_record(gendef) then
+                         gendef:=tclassrefdef.create(gendef);
+                       p1:=ctypenode.create(gendef);
                        again:=true;
                        { parse postfix operators }
                        if postfixoperators(p1,again,false) then

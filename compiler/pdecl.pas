@@ -345,7 +345,8 @@ implementation
         end;
 
       var
-         typename,orgtypename : TIDString;
+         typename,orgtypename,
+         gentypename,genorgtypename : TIDString;
          newtype  : ttypesym;
          sym      : tsym;
          hdef     : tdef;
@@ -360,6 +361,7 @@ implementation
          generictokenbuf : tdynamicarray;
          vmtbuilder : TVMTBuilder;
          i : integer;
+         s : shortstring;
       begin
          old_block_type:=block_type;
          { save unit container of forward declarations -
@@ -393,7 +395,17 @@ implementation
                consume(_LSHARPBRACKET);
                generictypelist:=parse_generic_parameters;
                consume(_RSHARPBRACKET);
+
+               str(generictypelist.Count,s);
+               gentypename:=typename+'$'+s;
+               genorgtypename:=orgtypename+'$'+s;
+             end
+           else
+             begin
+               gentypename:=typename;
+               genorgtypename:=orgtypename;
              end;
+
 
            consume(_EQ);
 
@@ -416,25 +428,19 @@ implementation
            { is the type already defined? -- must be in the current symtable,
              not in a nested symtable or one higher up the stack -> don't
              use searchsym & frinds! }
-           sym:=tsym(symtablestack.top.find(typename));
+           sym:=tsym(symtablestack.top.find(gentypename));
            newtype:=nil;
            { found a symbol with this name? }
            if assigned(sym) then
             begin
-              if (sym.typ=typesym) then
+              if (sym.typ=typesym) and
+                 { this should not be a symbol that was created by a generic
+                   that was declared earlier }
+                 not (
+                   (ttypesym(sym).typedef.typ=undefineddef) and
+                   not (sp_generic_para in sym.symoptions)
+                 ) then
                begin
-                 if isgeneric then
-                   begin
-                     { overloading types is only allowed in mode Delphi }
-                     if not (m_delphi in current_settings.modeswitches) then
-                       Message1(sym_e_duplicate_id,orgtypename);
-                     for i:=0 to ttypesym(sym).gendeflist.Count-1 do
-                       { TODO : check whether the count of one of the defs is
-                                the same as that of the current declaration and
-                                print an error if so }
-                       ;
-                   end
-                 else
                  if ((token=_CLASS) or
                      (token=_INTERFACE) or
                      (token=_DISPINTERFACE) or
@@ -465,17 +471,12 @@ implementation
                     end;
                     consume(token);
                     { we can ignore the result, the definition is modified }
-                    object_dec(objecttype,orgtypename,nil,nil,tobjectdef(ttypesym(sym).typedef),ht_none);
+                    object_dec(objecttype,genorgtypename,nil,nil,tobjectdef(ttypesym(sym).typedef),ht_none);
                     newtype:=ttypesym(sym);
                     hdef:=newtype.typedef;
                   end
                  else
-                 if not (m_delphi in current_settings.modeswitches) and
-                     (ttypesym(sym).typedef.typ=undefineddef) and
-                     (ttypesym(sym).gendeflist.Count>0) then
-                   message1(sym_e_duplicate_id,orgtypename)
-                 else
-                   message1(parser_h_type_redef,orgtypename);
+                   message1(parser_h_type_redef,genorgtypename);
                end;
             end;
            { no old type reused ? Then insert this new type }
@@ -488,32 +489,45 @@ implementation
               storetokenpos:=current_tokenpos;
               if isgeneric then
                 begin
-                  if assigned(sym) then
-                    newtype:=ttypesym(sym)
-                  else
+                  { for generics we need to check whether a non-generic type
+                    already exists and if not we need to insert a symbol with
+                    the non-generic name (available in (org)typename) that is a
+                    undefineddef, so that inline specializations can be used }
+                  sym:=tsym(symtablestack.top.Find(typename));
+                  if not assigned(sym) then
                     begin
-                      { add the symbol with a undefineddef, so typesym can point
-                        to this symbol }
-                      newtype:=ttypesym.create(orgtypename,tundefineddef.create);
-                      newtype.typedef.typesym:=newtype;
-                      newtype.visibility:=symtablestack.top.currentvisibility;
-                      symtablestack.top.insert(newtype);
-                      newtype.typedef.owner:=newtype.owner;
-                    end;
+                      sym:=ttypesym.create(orgtypename,tundefineddef.create);
+                      ttypesym(sym).typedef.typesym:=sym;
+                      sym.visibility:=symtablestack.top.currentvisibility;
+                      symtablestack.top.insert(sym);
+                      ttypesym(sym).typedef.owner:=sym.owner;
+                    end
+                  else
+                    { this is not allowed in non-Delphi modes }
+                    if not (m_delphi in current_settings.modeswitches) then
+                      Message1(sym_e_duplicate_id,genorgtypename);
                 end
               else
-                if assigned(sym) then
-                  newtype:=ttypesym(sym)
-                else
+                if assigned(sym) and (sym.typ=typesym) and
+                    (ttypesym(sym).typedef.typ=undefineddef) and
+                    not (sp_generic_para in sym.symoptions) then
                   begin
-                    newtype:=ttypesym.create(orgtypename,hdef);
-                    newtype.visibility:=symtablestack.top.currentvisibility;
-                    symtablestack.top.insert(newtype);
+                    { this is a symbol that was added by an earlier generic
+                      declaration, reuse it }
+                    newtype:=ttypesym(sym);
+                    newtype.typedef:=hdef;
                   end;
+              { insert a newtype if we don't reuse an existing symbol }
+              if not assigned(newtype) then
+                begin
+                  newtype:=ttypesym.create(genorgtypename,hdef);
+                  newtype.visibility:=symtablestack.top.currentvisibility;
+                  symtablestack.top.insert(newtype);
+                end;
               current_tokenpos:=defpos;
               current_tokenpos:=storetokenpos;
               { read the type definition }
-              read_named_type(hdef,orgtypename,nil,generictypelist,false);
+              read_named_type(hdef,genorgtypename,nil,generictypelist,false);
               { update the definition of the type }
               if assigned(hdef) then
                 begin
@@ -532,8 +546,8 @@ implementation
                           begin
                             stringdispose(objname);
                             stringdispose(objrealname);
-                            objrealname:=stringdup(orgtypename);
-                            objname:=stringdup(upper(orgtypename));
+                            objrealname:=stringdup(genorgtypename);
+                            objname:=stringdup(upper(genorgtypename));
                           end;
 
                       include(hdef.defoptions,df_unique);
@@ -544,14 +558,18 @@ implementation
                   if not assigned(hdef.typesym) then
                     hdef.typesym:=newtype;
                 end;
-              if isgeneric then begin
-                newtype.Owner.includeoption(sto_has_generic);
-                newtype.gendeflist.Add(hdef)
-              end else
-                newtype.typedef:=hdef;
+              { in non-Delphi modes we need a reference to the generic def
+                without the generic suffix, so it can be found easily when
+                parsing method implementations }
+              if isgeneric and assigned(sym) and
+                  not (m_delphi in current_settings.modeswitches) and
+                  (ttypesym(sym).typedef.typ=undefineddef) then
+                  { TODO : check whether the undefined def needs to be freed }
+                ttypesym(sym).typedef:=hdef;
+              newtype.typedef:=hdef;
               { KAZ: handle TGUID declaration in system unit }
               if (cs_compilesystem in current_settings.moduleswitches) and not assigned(rec_tguid) and
-                 (typename='TGUID') and { name: TGUID and size=16 bytes that is 128 bits }
+                 (gentypename='TGUID') and { name: TGUID and size=16 bytes that is 128 bits }
                  assigned(hdef) and (hdef.typ=recorddef) and (hdef.size=16) then
                 rec_tguid:=trecorddef(hdef);
             end;

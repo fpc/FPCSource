@@ -812,7 +812,6 @@ implementation
         old_current_genericdef,
         old_current_specializedef: tstoreddef;
         lasttoken,lastidtoken: ttoken;
-        def : tdef;
 
         procedure parse_operator_name;
          begin
@@ -911,108 +910,60 @@ implementation
 
         function consume_generic_type_parameter:boolean;
           var
-            i,
-            j,
-            declidx,
             idx : integer;
-            found : boolean;
-            sym:tsym;
             genparalistdecl : TFPHashList;
+            genname : tidstring;
+            s : shortstring;
           begin
             result:=not assigned(astruct)and(m_delphi in current_settings.modeswitches);
             if result then
               begin
-                { is this an overloaded typesym? }
-                srsym:=search_object_name(sp,false);
-                if (srsym.typ=typesym) and
-                    (ttypesym(srsym).gendeflist.Count>0) then
+                { parse all parameters first so we can check whether we have
+                  the correct generic def available }
+                genparalistdecl:=TFPHashList.Create;
+                if try_to_consume(_LT) then
                   begin
-                    { parse all parameters first so we can check whether we have
-                      the correct generic def available }
-                    genparalistdecl:=TFPHashList.Create;
-                    if try_to_consume(_LT) then
-                      begin
-                        { start with 1, so Find can return Nil (= 0) }
-                        idx:=1;
-                        repeat
-                          if token=_ID then
-                            begin
-                              genparalistdecl.Add(pattern, Pointer(PtrInt(idx)));
-                              consume(_ID);
-                              inc(idx);
-                            end
-                          else
-                            begin
-                              message2(scan_f_syn_expected,arraytokeninfo[_ID].str,arraytokeninfo[token].str);
-                              if token<>_COMMA then
-                                consume(token);
-                            end;
-                        until not try_to_consume(_COMMA);
-                        if not try_to_consume(_GT) then
-                          consume(_RSHARPBRACKET);
-                      end
-                    else
-                      begin
-                        { no generic }
-                        srsym:=nil;
-                        exit;
-                      end;
+                    { start with 1, so Find can return Nil (= 0) }
+                    idx:=1;
+                    repeat
+                      if token=_ID then
+                        begin
+                          genparalistdecl.Add(pattern, Pointer(PtrInt(idx)));
+                          consume(_ID);
+                          inc(idx);
+                        end
+                      else
+                        begin
+                          message2(scan_f_syn_expected,arraytokeninfo[_ID].str,arraytokeninfo[token].str);
+                          if token<>_COMMA then
+                            consume(token);
+                        end;
+                    until not try_to_consume(_COMMA);
+                    if not try_to_consume(_GT) then
+                      consume(_RSHARPBRACKET);
+                  end
+                else
+                  begin
+                    { no generic }
+                    srsym:=nil;
+                    exit;
+                  end;
 
-                    { now search the matching generic definition }
-                    found:=false;
-                    for i:=0 to ttypesym(srsym).gendeflist.Count-1 do
-                      begin
-                        def:=tdef(ttypesym(srsym).gendeflist[i]);
-                        { for now generic overloads are only allowed for records
-                          and objects; later they'll also be allowed for
-                          procedures and functions }
-                        if not (def.typ in [objectdef,recorddef]) then
-                          continue;
-                        st:=def.getsymtable(gs_record);
-                        if not assigned(st) then
-                          InternalError(2011042901);
-                        idx:=1;
-                        { check whether the generic parameters of the def have the
-                          same count and order as the ones just scanned, if so
-                          "found" is true }
-                        for j:=0 to st.SymList.Count-1 do
-                          begin
-                            sym:=tsym(st.SymList[j]);
-                            if sp_generic_para in sym.symoptions then
-                              begin
-                                if not (sym.typ=typesym) then
-                                  internalerror(2011290402);
-                                { too many parameters }
-                                if idx>genparalistdecl.Count then
-                                  break;
-                                declidx:=PtrInt(genparalistdecl.Find(sym.prettyname));
-                                { does the parameters' index match the current
-                                  index value? }
-                                if (declidx=0) or (declidx<>idx) then
-                                  break;
-                                inc(idx);
-                              end;
-                            if (j=st.SymList.Count-1) and (idx=genparalistdecl.Count+1) then
-                              found:=true;
-                          end;
+                s:='';
+                str(genparalistdecl.count,s);
+                genname:=sp+'$'+s;
 
-                        { the first found matching generic def wins }
-                        if found then
-                          break;
-                      end;
+                genparalistdecl.free;
 
-                    genparalistdecl.free;
+                srsym:=search_object_name(genname,false);
 
-                    if not found then
-                      begin
-                        { TODO : print a nicer typename that contains the parsed
-                                 generic types }
-                        Message1(type_e_generic_declaration_does_not_match,sp);
-                        srsym:=nil;
-                        def:=nil;
-                        exit;
-                      end;
-
+                if not assigned(srsym) then
+                  begin
+                    { TODO : print a nicer typename that contains the parsed
+                             generic types }
+                    Message1(type_e_generic_declaration_does_not_match,genname);
+                    srsym:=nil;
+                    exit;
                   end;
               end;
           end;
@@ -1056,40 +1007,23 @@ implementation
          end;
 
         { method  ? }
-        def:=nil;
+        srsym:=nil;
         if (consume_generic_type_parameter or not assigned(astruct)) and
            (symtablestack.top.symtablelevel=main_program_level) and
            try_to_consume(_POINT) then
          begin
            repeat
              searchagain:=false;
-             if not assigned(astruct) then
-               begin
-                 if not assigned(def) then
-                   begin
-                     srsym:=search_object_name(sp,true);
-                     { in non-Delphi modes we can directly use the generic def if one
-                       exists }
-                     if (srsym.typ=typesym) then
-                       if (ttypesym(srsym).gendeflist.Count>0) and
-                           not (m_delphi in current_settings.modeswitches) then
-                         def:=tdef(ttypesym(srsym).gendeflist[0])
-                       else
-                         def:=ttypesym(srsym).typedef
-                     else
-                       def:=nil;
-                   end;
-               end
-             else
-               def:=astruct;
+             if not assigned(astruct) and not assigned(srsym) then
+               srsym:=search_object_name(sp,true);
              { consume proc name }
              procstartfilepos:=current_tokenpos;
              consume_proc_name;
              { qualifier is class name ? }
              if (srsym.typ=typesym) and
-                (def.typ in [objectdef,recorddef]) then
+                (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
               begin
-                astruct:=tabstractrecorddef(def);
+                astruct:=tabstractrecorddef(ttypesym(srsym).typedef);
                 if (token<>_POINT) then
                   if (potype in [potype_class_constructor,potype_class_destructor]) then
                     sp:=lower(sp)
