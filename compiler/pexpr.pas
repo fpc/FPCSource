@@ -2298,6 +2298,539 @@ implementation
          end;
 
 
+         {---------------------------------------------
+                        PostFixOperators
+         ---------------------------------------------}
+
+      { returns whether or not p1 has been changed }
+      function postfixoperators(var p1:tnode;var again:boolean): boolean;
+
+        { tries to avoid syntax errors after invalid qualifiers }
+        procedure recoverconsume_postfixops;
+          begin
+            repeat
+              if not try_to_consume(_CARET) then
+                if try_to_consume(_POINT) then
+                  try_to_consume(_ID)
+                else if try_to_consume(_LECKKLAMMER) then
+                  begin
+                    repeat
+                      comp_expr(true,false);
+                    until not try_to_consume(_COMMA);
+                    consume(_RECKKLAMMER);
+                  end
+                else if try_to_consume(_LKLAMMER) then
+                  begin
+                    repeat
+                      comp_expr(true,false);
+                    until not try_to_consume(_COMMA);
+                    consume(_RKLAMMER);
+                  end
+                else
+                  break;
+            until false;
+          end;
+
+
+        procedure handle_variantarray;
+          var
+            p4 : tnode;
+            newstatement : tstatementnode;
+            tempresultvariant,
+            temp    : ttempcreatenode;
+            paras : tcallparanode;
+            newblock : tnode;
+            countindices : aint;
+          begin
+            { create statements with call initialize the arguments and
+              call fpc_dynarr_setlength }
+            newblock:=internalstatements(newstatement);
+
+            { get temp for array of indicies,
+              we set the real size later }
+            temp:=ctempcreatenode.create(s32inttype,4,tt_persistent,false);
+            addstatement(newstatement,temp);
+
+            countindices:=0;
+            repeat
+              p4:=comp_expr(true,false);
+
+              addstatement(newstatement,cassignmentnode.create(
+                ctemprefnode.create_offset(temp,countindices*s32inttype.size),p4));
+               inc(countindices);
+            until not try_to_consume(_COMMA);
+
+            { set real size }
+            temp.size:=countindices*s32inttype.size;
+
+            consume(_RECKKLAMMER);
+
+            { we need only a write access if a := follows }
+            if token=_ASSIGNMENT then
+              begin
+                consume(_ASSIGNMENT);
+                p4:=comp_expr(true,false);
+
+                { create call to fpc_vararray_put }
+                paras:=ccallparanode.create(cordconstnode.create
+                      (countindices,s32inttype,true),
+                   ccallparanode.create(caddrnode.create_internal
+                  (ctemprefnode.create(temp)),
+                   ccallparanode.create(ctypeconvnode.create_internal(p4,cvarianttype),
+                   ccallparanode.create(ctypeconvnode.create_internal(p1,cvarianttype)
+                     ,nil))));
+
+                addstatement(newstatement,ccallnode.createintern('fpc_vararray_put',paras));
+                addstatement(newstatement,ctempdeletenode.create(temp));
+              end
+            else
+              begin
+                { create temp for result }
+                tempresultvariant:=ctempcreatenode.create(cvarianttype,cvarianttype.size,tt_persistent,true);
+                addstatement(newstatement,tempresultvariant);
+
+                { create call to fpc_vararray_get }
+                paras:=ccallparanode.create(cordconstnode.create
+                      (countindices,s32inttype,true),
+                   ccallparanode.create(caddrnode.create_internal
+                  (ctemprefnode.create(temp)),
+                   ccallparanode.create(p1,
+                   ccallparanode.create(
+                       ctemprefnode.create(tempresultvariant)
+                     ,nil))));
+
+                addstatement(newstatement,ccallnode.createintern('fpc_vararray_get',paras));
+                addstatement(newstatement,ctempdeletenode.create(temp));
+                { the last statement should return the value as
+                  location and type, this is done be referencing the
+                  temp and converting it first from a persistent temp to
+                  normal temp }
+                addstatement(newstatement,ctempdeletenode.create_normal_temp(tempresultvariant));
+                addstatement(newstatement,ctemprefnode.create(tempresultvariant));
+              end;
+            p1:=newblock;
+          end;
+
+        var
+          protsym  : tpropertysym;
+          p2,p3  : tnode;
+          srsym  : tsym;
+          srsymtable : TSymtable;
+          structh    : tabstractrecorddef;
+          { shouldn't be used that often, so the extra overhead is ok to save
+            stack space }
+          dispatchstring : ansistring;
+          nodechanged    : boolean;
+          calltype: tdispcalltype;
+        label
+          skipreckklammercheck;
+        begin
+          result:=false;
+          again:=true;
+          while again do
+           begin
+             { we need the resultdef }
+             do_typecheckpass_changed(p1,nodechanged);
+             result:=result or nodechanged;
+
+             if codegenerror then
+              begin
+                recoverconsume_postfixops;
+                exit;
+              end;
+             { handle token }
+             case token of
+               _CARET:
+                  begin
+                    consume(_CARET);
+
+                    { support tp/mac procvar^ if the procvar returns a
+                      pointer type }
+                    if ((m_tp_procvar in current_settings.modeswitches) or
+                        (m_mac_procvar in current_settings.modeswitches)) and
+                       (p1.resultdef.typ=procvardef) and
+                       (tprocvardef(p1.resultdef).returndef.typ=pointerdef) then
+                      begin
+                        p1:=ccallnode.create_procvar(nil,p1);
+                        typecheckpass(p1);
+                      end;
+
+                    if (p1.resultdef.typ<>pointerdef) then
+                      begin
+                         { ^ as binary operator is a problem!!!! (FK) }
+                         again:=false;
+                         Message(parser_e_invalid_qualifier);
+                         recoverconsume_postfixops;
+                         p1.destroy;
+                         p1:=cerrornode.create;
+                      end
+                    else
+                      p1:=cderefnode.create(p1);
+                  end;
+
+               _LECKKLAMMER:
+                  begin
+                    if is_class_or_interface_or_object(p1.resultdef) or
+                      is_dispinterface(p1.resultdef) or is_record(p1.resultdef) then
+                      begin
+                        { default property }
+                        protsym:=search_default_property(tabstractrecorddef(p1.resultdef));
+                        if not(assigned(protsym)) then
+                          begin
+                             p1.destroy;
+                             p1:=cerrornode.create;
+                             again:=false;
+                             message(parser_e_no_default_property_available);
+                          end
+                        else
+                          begin
+                            { The property symbol is referenced indirect }
+                            protsym.IncRefCount;
+                            handle_propertysym(protsym,protsym.owner,p1);
+                          end;
+                      end
+                    else
+                      begin
+                        consume(_LECKKLAMMER);
+                        repeat
+                          { in all of the cases below, p1 is changed }
+                          case p1.resultdef.typ of
+                            pointerdef:
+                              begin
+                                 { support delphi autoderef }
+                                 if (tpointerdef(p1.resultdef).pointeddef.typ=arraydef) and
+                                    (m_autoderef in current_settings.modeswitches) then
+                                   p1:=cderefnode.create(p1);
+                                 p2:=comp_expr(true,false);
+                                 { Support Pbytevar[0..9] which returns array [0..9].}
+                                 if try_to_consume(_POINTPOINT) then
+                                   p2:=crangenode.create(p2,comp_expr(true,false));
+                                 p1:=cvecnode.create(p1,p2);
+                              end;
+                            variantdef:
+                              begin
+                                handle_variantarray;
+                                { the RECKKLAMMER is already read }
+                                goto skipreckklammercheck;
+                              end;
+                            stringdef :
+                              begin
+                                p2:=comp_expr(true,false);
+                                { Support string[0..9] which returns array [0..9] of char.}
+                                if try_to_consume(_POINTPOINT) then
+                                  p2:=crangenode.create(p2,comp_expr(true,false));
+                                p1:=cvecnode.create(p1,p2);
+                              end;
+                            arraydef:
+                              begin
+                                p2:=comp_expr(true,false);
+                                { support SEG:OFS for go32v2 Mem[] }
+                                if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
+                                   (p1.nodetype=loadn) and
+                                   assigned(tloadnode(p1).symtableentry) and
+                                   assigned(tloadnode(p1).symtableentry.owner.name) and
+                                   (tloadnode(p1).symtableentry.owner.name^='SYSTEM') and
+                                   ((tloadnode(p1).symtableentry.name='MEM') or
+                                    (tloadnode(p1).symtableentry.name='MEMW') or
+                                    (tloadnode(p1).symtableentry.name='MEML')) then
+                                  begin
+                                    if try_to_consume(_COLON) then
+                                     begin
+                                       p3:=caddnode.create(muln,cordconstnode.create($10,s32inttype,false),p2);
+                                       p2:=comp_expr(true,false);
+                                       p2:=caddnode.create(addn,p2,p3);
+                                       if try_to_consume(_POINTPOINT) then
+                                         { Support mem[$a000:$0000..$07ff] which returns array [0..$7ff] of memtype.}
+                                         p2:=crangenode.create(p2,caddnode.create(addn,comp_expr(true,false),p3.getcopy));
+                                       p1:=cvecnode.create(p1,p2);
+                                       include(tvecnode(p1).flags,nf_memseg);
+                                       include(tvecnode(p1).flags,nf_memindex);
+                                     end
+                                    else
+                                     begin
+                                       if try_to_consume(_POINTPOINT) then
+                                         { Support mem[$80000000..$80000002] which returns array [0..2] of memtype.}
+                                         p2:=crangenode.create(p2,comp_expr(true,false));
+                                       p1:=cvecnode.create(p1,p2);
+                                       include(tvecnode(p1).flags,nf_memindex);
+                                     end;
+                                  end
+                                else
+                                  begin
+                                    if try_to_consume(_POINTPOINT) then
+                                      { Support arrayvar[0..9] which returns array [0..9] of arraytype.}
+                                      p2:=crangenode.create(p2,comp_expr(true,false));
+                                    p1:=cvecnode.create(p1,p2);
+                                  end;
+                              end;
+                            else
+                              begin
+                                if p1.resultdef.typ<>undefineddef then
+                                  Message(parser_e_invalid_qualifier);
+                                p1.destroy;
+                                p1:=cerrornode.create;
+                                comp_expr(true,false);
+                                again:=false;
+                              end;
+                          end;
+                          do_typecheckpass(p1);
+                        until not try_to_consume(_COMMA);
+                        consume(_RECKKLAMMER);
+                        { handle_variantarray eats the RECKKLAMMER and jumps here }
+                      skipreckklammercheck:
+                      end;
+                  end;
+
+               _POINT :
+                  begin
+                    consume(_POINT);
+                    if (p1.resultdef.typ=pointerdef) and
+                       (m_autoderef in current_settings.modeswitches) and
+                       { don't auto-deref objc.id, because then the code
+                         below for supporting id.anyobjcmethod isn't triggered }
+                       (p1.resultdef<>objc_idtype) then
+                      begin
+                        p1:=cderefnode.create(p1);
+                        do_typecheckpass(p1);
+                      end;
+                    { procvar.<something> can never mean anything so always
+                      try to call it in case it returns a record/object/... }
+                    maybe_call_procvar(p1,false);
+
+                    case p1.resultdef.typ of
+                      recorddef:
+                        begin
+                          if token=_ID then
+                            begin
+                              structh:=tabstractrecorddef(p1.resultdef);
+                              searchsym_in_record(structh,pattern,srsym,srsymtable);
+                              if assigned(srsym) then
+                                begin
+                                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                                  consume(_ID);
+                                  do_member_read(structh,getaddr,srsym,p1,again,[]);
+                                end
+                              else
+                                begin
+                                  Message1(sym_e_id_no_member,orgpattern);
+                                  p1.destroy;
+                                  p1:=cerrornode.create;
+                                  { try to clean up }
+                                  consume(_ID);
+                                end;
+                            end
+                          else
+                          consume(_ID);
+                        end;
+                      enumdef:
+                        begin
+                          if token=_ID then
+                            begin
+                              srsym:=tsym(tenumdef(p1.resultdef).symtable.Find(pattern));
+                              p1.destroy;
+                              if assigned(srsym) and (srsym.typ=enumsym) then
+                                begin
+                                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                                  p1:=genenumnode(tenumsym(srsym));
+                                end
+                              else
+                                begin
+                                  Message1(sym_e_id_no_member,orgpattern);
+                                  p1:=cerrornode.create;
+                                end;
+                            end;
+                          consume(_ID);
+                        end;
+                       variantdef:
+                         begin
+                           { dispatch call? }
+                           { lhs := v.ident[parameters] -> property get
+                             lhs := v.ident(parameters) -> method call
+                             v.ident[parameters] := rhs -> property put
+                             v.ident(parameters) := rhs -> also property put }
+                           if token=_ID then
+                             begin
+                               dispatchstring:=orgpattern;
+                               consume(_ID);
+                               calltype:=dct_method;
+                               if try_to_consume(_LKLAMMER) then
+                                 begin
+                                   p2:=parse_paras(false,true,_RKLAMMER);
+                                   consume(_RKLAMMER);
+                                 end
+                               else if try_to_consume(_LECKKLAMMER) then
+                                 begin
+                                   p2:=parse_paras(false,true,_RECKKLAMMER);
+                                   consume(_RECKKLAMMER);
+                                   calltype:=dct_propget;
+                                 end
+                               else
+                                 p2:=nil;
+                               { property setter? }
+                               if (token=_ASSIGNMENT) and not(afterassignment) then
+                                 begin
+                                   consume(_ASSIGNMENT);
+                                   { read the expression }
+                                   p3:=comp_expr(true,false);
+                                   { concat value parameter too }
+                                   p2:=ccallparanode.create(p3,p2);
+                                   p1:=translate_disp_call(p1,p2,dct_propput,dispatchstring,0,voidtype);
+                                 end
+                               else
+                               { this is only an approximation
+                                 setting useresult if not necessary is only a waste of time, no more, no less (FK) }
+                               if afterassignment or in_args or (token<>_SEMICOLON) then
+                                 p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,cvarianttype)
+                               else
+                                 p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,voidtype);
+                             end
+                           else { Error }
+                             Consume(_ID);
+                          end;
+                       classrefdef:
+                         begin
+                           if token=_ID then
+                             begin
+                               structh:=tobjectdef(tclassrefdef(p1.resultdef).pointeddef);
+                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,true);
+                               if assigned(srsym) then
+                                 begin
+                                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                                   consume(_ID);
+                                   do_member_read(structh,getaddr,srsym,p1,again,[]);
+                                 end
+                               else
+                                 begin
+                                   Message1(sym_e_id_no_member,orgpattern);
+                                   p1.destroy;
+                                   p1:=cerrornode.create;
+                                   { try to clean up }
+                                   consume(_ID);
+                                 end;
+                             end
+                           else { Error }
+                             Consume(_ID);
+                         end;
+                       objectdef:
+                         begin
+                           if token=_ID then
+                             begin
+                               structh:=tobjectdef(p1.resultdef);
+                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,true);
+                               if assigned(srsym) then
+                                 begin
+                                    check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                                    consume(_ID);
+                                    do_member_read(structh,getaddr,srsym,p1,again,[]);
+                                 end
+                               else
+                                 begin
+                                    Message1(sym_e_id_no_member,orgpattern);
+                                    p1.destroy;
+                                    p1:=cerrornode.create;
+                                    { try to clean up }
+                                    consume(_ID);
+                                 end;
+                             end
+                           else { Error }
+                             Consume(_ID);
+                         end;
+                       pointerdef:
+                         begin
+                           if (p1.resultdef=objc_idtype) then
+                             begin
+                               { objc's id type can be used to call any
+                                 Objective-C method of any Objective-C class
+                                 type that's currently in scope }
+                               if search_objc_method(pattern,srsym,srsymtable) then
+                                 begin
+                                   consume(_ID);
+                                   do_proc_call(srsym,srsymtable,nil,
+                                     (getaddr and not(token in [_CARET,_POINT])),
+                                     again,p1,[cnf_objc_id_call]);
+                                   { we need to know which procedure is called }
+                                   do_typecheckpass(p1);
+                                 end
+                               else
+                                 begin
+                                   consume(_ID);
+                                   Message(parser_e_methode_id_expected);
+                                 end;
+                             end
+                           else
+                             begin
+                               Message(parser_e_invalid_qualifier);
+                               if tpointerdef(p1.resultdef).pointeddef.typ in [recorddef,objectdef,classrefdef] then
+                                 Message(parser_h_maybe_deref_caret_missing);
+                             end
+                         end;
+                       else
+                         begin
+                           if p1.resultdef.typ<>undefineddef then
+                             Message(parser_e_invalid_qualifier);
+                           p1.destroy;
+                           p1:=cerrornode.create;
+                           { Error }
+                           consume(_ID);
+                         end;
+                    end;
+                  end;
+
+               else
+                 begin
+                   { is this a procedure variable ? }
+                   if assigned(p1.resultdef) and
+                      (p1.resultdef.typ=procvardef) then
+                     begin
+                       { Typenode for typecasting or expecting a procvar }
+                       if (p1.nodetype=typen) or
+                          (
+                           assigned(getprocvardef) and
+                           equal_defs(p1.resultdef,getprocvardef)
+                          ) then
+                         begin
+                           if try_to_consume(_LKLAMMER) then
+                             begin
+                               p1:=comp_expr(true,false);
+                               consume(_RKLAMMER);
+                               p1:=ctypeconvnode.create_explicit(p1,p1.resultdef);
+                             end
+                           else
+                             again:=false
+                         end
+                       else
+                         begin
+                           if try_to_consume(_LKLAMMER) then
+                             begin
+                               p2:=parse_paras(false,false,_RKLAMMER);
+                               consume(_RKLAMMER);
+                               p1:=ccallnode.create_procvar(p2,p1);
+                               { proc():= is never possible }
+                               if token=_ASSIGNMENT then
+                                 begin
+                                   Message(parser_e_illegal_expression);
+                                   p1.free;
+                                   p1:=cerrornode.create;
+                                   again:=false;
+                                 end;
+                             end
+                           else
+                             again:=false;
+                         end;
+                     end
+                   else
+                     again:=false;
+                  end;
+             end;
+
+             { we only try again if p1 was changed }
+             if again or
+                (p1.nodetype=errorn) then
+               result:=true;
+           end; { while again }
+        end;
+
+
       {---------------------------------------------
                       Factor (Main)
       ---------------------------------------------}
@@ -2709,7 +3242,7 @@ implementation
              _MINUS :
                begin
                  consume(_MINUS);
-                 if (token = _INTCONST) then
+                 if (token = _INTCONST) and not(m_isolike_unary_minus in current_settings.modeswitches) then
                     begin
                       { ugly hack, but necessary to be able to parse }
                       { -9223372036854775808 as int64 (JM)           }
@@ -2737,7 +3270,11 @@ implementation
                     end
                  else
                    begin
-                     p1:=sub_expr(oppower,false,false);
+                     if m_isolike_unary_minus in current_settings.modeswitches then
+                       p1:=sub_expr(opmultiply,false,false)
+                     else
+                       p1:=sub_expr(oppower,false,false);
+
                      p1:=cunaryminusnode.create(p1);
                    end;
                end;

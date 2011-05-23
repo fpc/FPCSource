@@ -4,7 +4,7 @@
 #
 
 [target]
-dirs=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes
+dirs=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes fppkg
 dirs_linux_i386=libc unixutil graph pxlib bzip2
 dirs_i386_linux=graph
 dirs_x86_64_linux=graph
@@ -74,6 +74,10 @@ fpcsubdir=packages
 fpcdir=..
 
 [rules]
+fpmkunit_bootstrap:
+ifdef CROSSCOMPILE
+	$(MAKE) -C fpmkunit bootstrap
+endif
 fpmkunit_all: fcl-base_all fcl-process_all paszlib_all
 fpmkunit_debug: fcl-base_debug fcl-process_debug paszlib_debug
 fpmkunit_smart: fcl-base_smart fcl-process_smart paszlib_smart
@@ -122,6 +126,20 @@ cocoaint_debug: univint_debug
 cocoaint_smart: univint_smart
 cocoaint_release: univint_release
 cocoaint_shared: univint_shared
+endif
+
+ifneq ($(findstring $(OS_TARGET),beos haiku freebsd darwin iphonesim solaris netbsd openbsd linux),)
+fppkg_all: fcl-base_all fcl-xml_all fcl-process_all fcl-net_all paszlib_all libcurl_all
+fppkg_debug: fcl-base_debug fcl-xml_debug fcl-process_debug fcl-net_debug paszlib_debug libcurl_debug
+fppkg_smart: fcl-base_smart fcl-xml_smart fcl-process_smart fcl-net_smart paszlib_smart libcurl_smart
+fppkg_release: fcl-base_release fcl-xml_release fcl-process_release fcl-net_release paszlib_release libcurl_release
+fppkg_shared: fcl-base_shared fcl-xml_shared fcl-process_shared fcl-net_shared paszlib_shared libcurl_shared
+else
+fppkg_all: fcl-base_all fcl-xml_all fcl-process_all fcl-net_all paszlib_all
+fppkg_debug: fcl-base_debug fcl-xml_debug fcl-process_debug fcl-net_debug paszlib_debug
+fppkg_smart: fcl-base_smart fcl-xml_smart fcl-process_smart fcl-net_smart paszlib_smart
+fppkg_release: fcl-base_release fcl-xml_release fcl-process_release fcl-net_release paszlib_release
+fppkg_shared: fcl-base_shared fcl-xml_shared fcl-process_shared fcl-net_shared paszlib_shared
 endif
 
 fcl-xml_all: fcl-base_all
@@ -174,11 +192,11 @@ fcl-net_release: fcl-passrc_release fcl-xml_release fcl-async_release
 fcl-net_shared: fcl-passrc_shared fcl-xml_shared fcl-async_shared
 endif
 
-fcl-web_all: fcl-db_all fcl-xml_all fcl-process_all httpd22_all fastcgi_all fcl-net_all fcl-json_all
-fcl-web_debug: fcl-db_debug fcl-xml_debug fcl-process_debug httpd22_debug fastcgi_debug fcl-net_debug fcl-json_debug
-fcl-web_smart: fcl-db_smart fcl-xml_smart fcl-process_smart httpd22_smart fastcgi_smart fcl-net_smart fcl-json_smart
-fcl-web_release: fcl-db_release fcl-xml_release fcl-process_release httpd22_release fastcgi_release fcl-net_release fcl-json_release
-fcl-web_shared: fcl-db_shared fcl-xml_shared fcl-process_shared httpd22_shared fastcgi_shared fcl-net_shared fcl-json_shared
+fcl-web_all: fpmkunit_bootstrap fcl-db_all fcl-xml_all fcl-process_all httpd22_all fastcgi_all fcl-net_all fcl-json_all
+fcl-web_debug: fpmkunit_bootstrap fcl-db_debug fcl-xml_debug fcl-process_debug httpd22_debug fastcgi_debug fcl-net_debug fcl-json_debug
+fcl-web_smart: fpmkunit_bootstrap fcl-db_smart fcl-xml_smart fcl-process_smart httpd22_smart fastcgi_smart fcl-net_smart fcl-json_smart
+fcl-web_release: fpmkunit_bootstrap fcl-db_release fcl-xml_release fcl-process_release httpd22_release fastcgi_release fcl-net_release fcl-json_release
+fcl-web_shared: fpmkunit_bootstrap fcl-db_shared fcl-xml_shared fcl-process_shared httpd22_shared fastcgi_shared fcl-net_shared fcl-json_shared
 
 ifneq ($(findstring $(OS_TARGET),linux freebsd openbsd netbsd win32 beos haiku),)
 fcl-db_all: fcl-xml_all mysql_all ibase_all oracle_all odbc_all postgres_all sqlite_all pxlib_all
@@ -390,3 +408,9 @@ opencl_debug:  opengl_debug
 opencl_smart:  opengl_smart
 opencl_release:  opengl_release
 opencl_shared:  opengl_shared
+
+fppkg_all:  fcl-web_all
+fppkg_debug:  fcl-web_debug
+fppkg_smart:  fcl-web_smart
+fppkg_release:  fcl-web_release
+fppkg_shared:  fcl-web_shared

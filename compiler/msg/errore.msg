@@ -368,7 +368,7 @@ scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN dire
 #
 # Parser
 #
-# 03309 is the last used one
+# 03310 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -2405,7 +2405,7 @@ asmr_w_useless_got_for_local=07110_W_@GOTPCREL is useless and potentially danger
 #
 # Assembler/binary writers
 #
-# 08020 is the last used one
+# 08022 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
 % With smartlinking enabled, there are too many assembler
@@ -2432,6 +2432,11 @@ asmw_e_first_defined_label=08018_E_Asm: First defined here
 asmw_e_invalid_register=08019_E_Asm: Invalid register $1
 asmw_e_16bit_32bit_not_supported=08020_E_Asm: 16 or 32 Bit references not supported
 asmw_e_64bit_not_supported=08021_E_Asm: 64 Bit operands not supported
+asmw_e_bad_reg_with_rex=08022_E_Asm: AH,BH,CH or DH cannot be used in an instruction requiring REX prefix
+% x86_64 only: instruction encoding of this platform does not allow using
+% 8086 high byte registers (AH,BH,CH or DH) together with REX prefix in a single instruction.
+% The REX prefix is required whenever the instruction operand size is 64 bits, or
+% when it uses one of extended x86_64 registers (R8-R15 or XMM8-XMM15).
 
 #
 # Executing linker/assembler
@@ -3221,6 +3226,7 @@ S*2Aas_Assemble using GNU AS
 **2So_Same as -Mtp
 **2Ss_Constructor name must be init (destructor must be done)
 **2Sx_Enable exception keywords (default in Delphi/ObjFPC modes)
+**2Sy_@<pointer> returns a typed pointer, same as $T+
 **1s_Do not call assembler and linker
 **2sh_Generate script to link on host
 **2st_Generate script to link on target

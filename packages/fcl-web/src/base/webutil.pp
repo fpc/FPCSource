@@ -88,6 +88,17 @@ begin
         end;
       Add('</TABLE><P>');
       end;
+    If (ContentFields.Count>0) then
+      begin
+      Add('<H1>Form post variables: ('+IntToStr(ContentFields.Count)+') </H1>');
+      Add('<TABLE BORDER="1"><TR><TD>Name</TD><TD>Value</TD></TR>');
+      For I:=0 to ContentFields.Count-1 do
+        begin
+        ContentFields.GetNameValue(i,N,V);
+        AddNV(N,V);
+        end;
+      Add('</TABLE><P>');
+      end;
     If Environment then
       begin
       Add('<H1>Environment variables: ('+IntToStr(GetEnvironmentVariableCount)+') </H1>');

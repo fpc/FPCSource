@@ -38,11 +38,23 @@ const
   STR_SVG_EXTENSION = '.svg';
   STR_CORELDRAW_EXTENSION = '.cdr';
   STR_WINMETAFILE_EXTENSION = '.wmf';
+  STR_AUTOCAD_EXCHANGE_EXTENSION = '.dxf';
 
 type
   {@@ We need our own format because TFPColor is too big for our needs and TColor has no Alpha }
   TvColor = packed record
     Red, Green, Blue, Alpha: Byte;
+  end;
+
+  TvPen = record
+    Color: TvColor;
+    Style: TFPPenStyle;
+    Width: Integer;
+  end;
+
+  TvBrush = record
+    Color: TvColor;
+    Style: TFPBrushStyle;
   end;
 
 const
@@ -59,7 +71,7 @@ type
   P3DPoint = ^T3DPoint;
 
   TSegmentType = (
-    st2DLine, st2DBezier,
+    st2DLine, st2DLineWithPen, st2DBezier,
     st3DLine, st3DBezier, stMoveTo);
 
   {@@
@@ -75,10 +87,6 @@ type
     // Fields for linking the list
     Previous: TPathSegment;
     Next: TPathSegment;
-    // Data fields
-    PenColor: TvColor;
-    PenStyle: TFPPenStyle;
-    PenWidth: Integer;
   end;
 
   {@@
@@ -91,6 +99,11 @@ type
   T2DSegment = class(TPathSegment)
   public
     X, Y: Double;
+  end;
+
+  T2DSegmentWithPen = class(T2DSegment)
+  public
+    Pen: TvPen;
   end;
 
   {@@
@@ -124,8 +137,14 @@ type
     Points: TPathSegment; // Beginning of the double-linked list
     PointsEnd: TPathSegment; // End of the double-linked list
     CurPoint: TPathSegment; // Used in PrepareForSequentialReading and Next
+    {@@ The global Pen for the entire path. This Pen might be overriden by
+        individual elements of the polyline. }
+    Pen: TvPen;
+    {@@ Sets a Brush to paint the inner area inside the path.
+        There is no inner area if Brush.Style = bsClear, which is the default. }
+    Brush: TvBrush;
+    constructor Create();
     procedure Assign(APath: TPath);
-    function Count(): TPathSegment;
     procedure PrepareForSequentialReading;
     function Next(): TPathSegment;
   end;
@@ -139,23 +158,18 @@ type
   TvText = class
   public
     X, Y, Z: Double; // Z is ignored in 2D formats
+    Value: utf8string;
+    FontColor: TvColor;
     FontSize: integer;
     FontName: utf8string;
-    Value: utf8string;
-    Color: TvColor;
   end;
 
   {@@
   }
   TvEntity = class
   public
-    // Pen
-    PenColor: TvColor;
-    PenStyle: TFPPenStyle;
-    PenWidth: Integer;
-    // Brush
-    BrushStyle: TFPBrushStyle;
-    BrushColor: TvColor;
+    Pen: TvPen;
+    Brush: TvBrush;
   end;
 
   {@@
@@ -226,10 +240,12 @@ type
     { Base methods }
     constructor Create;
     destructor Destroy; override;
-    procedure WriteToFile(AFileName: string; AFormat: TvVectorialFormat);
+    procedure WriteToFile(AFileName: string; AFormat: TvVectorialFormat); overload;
+    procedure WriteToFile(AFileName: string); overload;
     procedure WriteToStream(AStream: TStream; AFormat: TvVectorialFormat);
     procedure WriteToStrings(AStrings: TStrings; AFormat: TvVectorialFormat);
-    procedure ReadFromFile(AFileName: string; AFormat: TvVectorialFormat);
+    procedure ReadFromFile(AFileName: string; AFormat: TvVectorialFormat); overload;
+    procedure ReadFromFile(AFileName: string); overload;
     procedure ReadFromStream(AStream: TStream; AFormat: TvVectorialFormat);
     procedure ReadFromStrings(AStrings: TStrings; AFormat: TvVectorialFormat);
     class function GetFormatFromExtension(AFileName: string): TvVectorialFormat;
@@ -247,12 +263,19 @@ type
     procedure RemoveAllTexts;
     { Data writing methods }
     procedure AddPath(APath: TPath);
-    procedure StartPath(AX, AY: Double);
+    procedure StartPath(AX, AY: Double); overload;
+    procedure StartPath(); overload;
+    procedure AddMoveToPath(AX, AY: Double);
     procedure AddLineToPath(AX, AY: Double); overload;
     procedure AddLineToPath(AX, AY: Double; AColor: TvColor); overload;
     procedure AddLineToPath(AX, AY, AZ: Double); overload;
     procedure AddBezierToPath(AX1, AY1, AX2, AY2, AX3, AY3: Double); overload;
     procedure AddBezierToPath(AX1, AY1, AZ1, AX2, AY2, AZ2, AX3, AY3, AZ3: Double); overload;
+    procedure SetBrushColor(AColor: TvColor);
+    procedure SetBrushStyle(AStyle: TFPBrushStyle);
+    procedure SetPenColor(AColor: TvColor);
+    procedure SetPenStyle(AStyle: TFPPenStyle);
+    procedure SetPenWidth(AWidth: Integer);
     procedure EndPath();
     procedure AddText(AX, AY, AZ: Double; FontName: string; FontSize: integer; AText: utf8string); overload;
     procedure AddText(AX, AY, AZ: Double; AStr: utf8string); overload;
@@ -532,6 +555,23 @@ begin
   FTmpPath.PointsEnd := segment;
 end;
 
+procedure TvVectorialDocument.StartPath();
+begin
+  ClearTmpPath();
+end;
+
+procedure TvVectorialDocument.AddMoveToPath(AX, AY: Double);
+var
+  segment: T2DSegment;
+begin
+  segment := T2DSegment.Create;
+  segment.SegmentType := stMoveTo;
+  segment.X := AX;
+  segment.Y := AY;
+
+  AppendSegmentToTmpPath(segment);
+end;
+
 {@@
   Adds one more point to the end of a Path being
   writing in multiple steps.
@@ -550,20 +590,19 @@ begin
   segment.SegmentType := st2DLine;
   segment.X := AX;
   segment.Y := AY;
-  segment.PenColor := clvBlack;
 
   AppendSegmentToTmpPath(segment);
 end;
 
 procedure TvVectorialDocument.AddLineToPath(AX, AY: Double; AColor: TvColor);
 var
-  segment: T2DSegment;
+  segment: T2DSegmentWithPen;
 begin
-  segment := T2DSegment.Create;
-  segment.SegmentType := st2DLine;
+  segment := T2DSegmentWithPen.Create;
+  segment.SegmentType := st2DLineWithPen;
   segment.X := AX;
   segment.Y := AY;
-  segment.PenColor := AColor;
+  segment.Pen.Color := AColor;
 
   AppendSegmentToTmpPath(segment);
 end;
@@ -621,6 +660,31 @@ begin
   segment.Z3 := AZ2;
 
   AppendSegmentToTmpPath(segment);
+end;
+
+procedure TvVectorialDocument.SetBrushColor(AColor: TvColor);
+begin
+  FTmPPath.Brush.Color := AColor;
+end;
+
+procedure TvVectorialDocument.SetBrushStyle(AStyle: TFPBrushStyle);
+begin
+  FTmPPath.Brush.Style := AStyle;
+end;
+
+procedure TvVectorialDocument.SetPenColor(AColor: TvColor);
+begin
+  FTmPPath.Pen.Color := AColor;
+end;
+
+procedure TvVectorialDocument.SetPenStyle(AStyle: TFPPenStyle);
+begin
+  FTmPPath.Pen.Style := AStyle;
+end;
+
+procedure TvVectorialDocument.SetPenWidth(AWidth: Integer);
+begin
+  FTmPPath.Pen.Width := AWidth;
 end;
 
 {@@
@@ -683,7 +747,7 @@ begin
   lCircularArc.Radius := ARadius;
   lCircularArc.StartAngle := AStartAngle;
   lCircularArc.EndAngle := AEndAngle;
-  lCircularArc.PenColor := AColor;
+  lCircularArc.Pen.Color := AColor;
   FEntities.Add(lCircularArc);
 end;
 
@@ -728,12 +792,13 @@ begin
   for i := 0 to Length(GvVectorialFormats) - 1 do
     if GvVectorialFormats[i].Format = AFormat then
     begin
-      Result := GvVectorialFormats[i].WriterClass.Create;
+      if GvVectorialFormats[i].WriterClass <> nil then
+        Result := GvVectorialFormats[i].WriterClass.Create;
 
       Break;
     end;
 
-  if Result = nil then raise Exception.Create('Unsuported vector graphics format.');
+  if Result = nil then raise Exception.Create('Unsupported vector graphics format.');
 end;
 
 {@@
@@ -749,12 +814,13 @@ begin
   for i := 0 to Length(GvVectorialFormats) - 1 do
     if GvVectorialFormats[i].Format = AFormat then
     begin
-      Result := GvVectorialFormats[i].ReaderClass.Create;
+      if GvVectorialFormats[i].ReaderClass <> nil then
+        Result := GvVectorialFormats[i].ReaderClass.Create;
 
       Break;
     end;
 
-  if Result = nil then raise Exception.Create('Unsuported vector graphics format.');
+  if Result = nil then raise Exception.Create('Unsupported vector graphics format.');
 end;
 
 procedure TvVectorialDocument.ClearTmpPath();
@@ -779,8 +845,17 @@ procedure TvVectorialDocument.AppendSegmentToTmpPath(ASegment: TPathSegment);
 var
   L: Integer;
 begin
+  // Check if we are the first segment in the tmp path
   if FTmpPath.PointsEnd = nil then
-    Exception.Create('[TvVectorialDocument.AppendSegmentToTmpPath]' + Str_Error_Nil_Path);
+  begin
+    if FTmpPath.Len <> 0 then
+      Exception.Create('[TvVectorialDocument.AppendSegmentToTmpPath]' + Str_Error_Nil_Path);
+
+    FTmpPath.Points := ASegment;
+    FTmpPath.PointsEnd := ASegment;
+    FTmpPath.Len := 1;
+    Exit;
+  end;
 
   L := FTmpPath.Len;
   Inc(FTmpPath.Len);
@@ -807,6 +882,14 @@ begin
   finally
     AWriter.Free;
   end;
+end;
+
+procedure TvVectorialDocument.WriteToFile(AFileName: string);
+var
+  lFormat: TvVectorialFormat;
+begin
+  lFormat := GetFormatFromExtension(ExtractFileExt(AFileName));
+  WriteToFile(AFileName, lFormat);
 end;
 
 {@@
@@ -860,6 +943,17 @@ begin
 end;
 
 {@@
+  Reads the document from a file.  A variant that auto-detects the format from the extension.
+}
+procedure TvVectorialDocument.ReadFromFile(AFileName: string);
+var
+  lFormat: TvVectorialFormat;
+begin
+  lFormat := GetFormatFromExtension(ExtractFileExt(AFileName));
+  ReadFromFile(AFileName, lFormat);
+end;
+
+{@@
   Reads the document from a stream.
 
   Any current contents will be removed.
@@ -905,6 +999,7 @@ begin
   else if AnsiCompareText(lExt, STR_SVG_EXTENSION) = 0 then Result := vfSVG
   else if AnsiCompareText(lExt, STR_CORELDRAW_EXTENSION) = 0 then Result := vfCorelDrawCDR
   else if AnsiCompareText(lExt, STR_WINMETAFILE_EXTENSION) = 0 then Result := vfWindowsMetafileWMF
+  else if AnsiCompareText(lExt, STR_AUTOCAD_EXCHANGE_EXTENSION) = 0 then Result := vfDXF
   else
     raise Exception.Create('TvVectorialDocument.GetFormatFromExtension: The extension (' + lExt + ') doesn''t match any supported formats.');
 end;
@@ -1073,17 +1168,20 @@ end;
 
 { TPath }
 
+constructor TPath.Create();
+begin
+  Brush.Style := bsClear;
+  inherited Create();
+end;
+
 procedure TPath.Assign(APath: TPath);
 begin
   Len := APath.Len;
   Points := APath.Points;
   PointsEnd := APath.PointsEnd;
   CurPoint := APath.CurPoint;
-end;
-
-function TPath.Count(): TPathSegment;
-begin
-
+  Pen := APath.Pen;
+  Brush := APath.Brush;
 end;
 
 procedure TPath.PrepareForSequentialReading;

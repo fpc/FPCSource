@@ -571,6 +571,7 @@ Var
   I : Integer;
 
 begin
+  Avalue:='';
   Result:=False;
   if CheckData then
     begin

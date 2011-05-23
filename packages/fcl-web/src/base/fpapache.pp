@@ -125,6 +125,7 @@ Type
     procedure SetPriority(const AValue: THandlerPriority);
   public
     function InitializeWebHandler: TWebHandler; override;
+    Procedure Initialize;
     procedure ShowException(E: Exception); override;
     Function ProcessRequest(P : PRequest_Rec) : Integer; virtual;
     Function AllowRequest(P : PRequest_Rec) : Boolean; virtual;
@@ -617,7 +618,8 @@ end;
 
 function __dummythread(p: pointer): ptrint;
 begin
-//empty
+  sleep(1000);
+  Result:=0;
 end;
 
 { TCustomApacheApplication }
@@ -717,6 +719,11 @@ begin
   Result:=TApacheHandler.Create(self);
 end;
 
+procedure TCustomApacheApplication.Initialize;
+begin
+  TApacheHandler(WebHandler).Initialize;
+end;
+
 procedure TCustomApacheApplication.ShowException(E: Exception);
 begin
   ap_log_error(pchar(TApacheHandler(WebHandler).ModuleName),0,APLOG_ERR,0,Nil,'module: %s',[Pchar(E.Message)]);
@@ -739,8 +746,6 @@ end;
 
 Initialization
   BeginThread(@__dummythread);//crash prevention for simultaneous requests
-  sleep(300);
-
   InitApache;
   
 Finalization

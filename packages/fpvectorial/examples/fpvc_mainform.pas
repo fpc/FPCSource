@@ -59,7 +59,7 @@ begin
 
   Vec := TvVectorialDocument.Create;
   try
-    Vec.ReadFromFile(editInput.FileName, vfPDF);
+    Vec.ReadFromFile(editInput.FileName);
     imagePreview.Canvas.Brush.Color := clWhite;
     imagePreview.Canvas.FillRect(0, 0, imagePreview.Width, imagePreview.Height);
     DrawFPVectorialToCanvas(Vec, imagePreview.Canvas);
@@ -76,7 +76,6 @@ end;
 procedure TformVectorialConverter.buttonConvertClick(Sender: TObject);
 var
   Vec: TvVectorialDocument;
-  lFormat: TvVectorialFormat;
 begin
   // First check the in input
   if not CheckInput() then Exit;
@@ -84,10 +83,8 @@ begin
   // Now convert
   Vec := TvVectorialDocument.Create;
   try
-    lFormat := TvVectorialDocument.GetFormatFromExtension(editInput.FileName);
-    Vec.ReadFromFile(editInput.FileName, lFormat);
-    lFormat := TvVectorialDocument.GetFormatFromExtension(editOutPut.FileName);
-    Vec.WriteToFile(editOutPut.FileName, lFormat);
+    Vec.ReadFromFile(editInput.FileName);
+    Vec.WriteToFile(editOutPut.FileName);
   finally
     Vec.Free;
   end;

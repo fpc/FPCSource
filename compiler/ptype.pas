@@ -761,7 +761,6 @@ implementation
            lv,hv   : TConstExprInt;
            old_block_type : tblock_type;
            dospecialize : boolean;
-           structdef: tdef;
         begin
            old_block_type:=block_type;
            dospecialize:=false;

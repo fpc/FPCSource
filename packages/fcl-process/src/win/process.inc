@@ -141,13 +141,44 @@ begin
      end;
 end;
 
+{ The handles that are to be passed to the child process must be
+  inheritable. On the other hand, only non-inheritable handles
+  allow the sending of EOF when the write-end is closed. This
+  function is used to duplicate the child process's ends of the
+  handles into inheritable ones, leaving the parent-side handles
+  non-inheritable.
+}
+function DuplicateHandleFP(var handle: THandle): Boolean;
+
+var
+  oldHandle: THandle;
+begin
+  oldHandle := handle;
+  Result := DuplicateHandle
+  ( GetCurrentProcess(),
+    oldHandle,
+    GetCurrentProcess(),
+    @handle,
+    0,
+    true,
+    DUPLICATE_SAME_ACCESS
+  );
+  if Result then
+    Result := CloseHandle(oldHandle);
+end;
+
+
 Procedure CreatePipes(Var HI,HO,HE : Thandle; Var SI : TStartupInfo; CE : Boolean);
 
 begin
   CreatePipeHandles(SI.hStdInput,HI);
+  DuplicateHandleFP(SI.hStdInput);
   CreatePipeHandles(HO,Si.hStdOutput);
-  if CE then
-    CreatePipeHandles(HE,SI.hStdError)
+  DuplicateHandleFP(   Si.hStdOutput);
+  if CE then begin
+    CreatePipeHandles(HE,SI.hStdError);
+    DuplicateHandleFP(   SI.hStdError);
+    end
   else
     begin
     SI.hStdError:=SI.hStdOutput;
@@ -155,9 +186,19 @@ begin
     end;
 end;
 
+Function MaybeQuote(Const S : String) : String;
+
+begin
+  If (Pos(' ',S)<>0) then
+    Result:='"'+S+'"'
+  else
+     Result:=S;
+end;
+
 
 Procedure TProcess.Execute;
 Var
+  i : Integer;
   PName,PDir,PCommandLine : PChar;
   FEnv: pointer;
   FCreationFlags : Cardinal;
@@ -166,27 +207,35 @@ Var
   FProcessInformation : TProcessInformation;
   FStartupInfo : STARTUPINFO;
   HI,HO,HE : THandle;
+  Cmd : String;
+  
 begin
   FInheritHandles:=True;
   PName:=Nil;
   PCommandLine:=Nil;
   PDir:=Nil;
     
+  if (FApplicationName='') and (FCommandLine='') and (FExecutable='') then
+    Raise EProcess.Create(SNoCommandline);
   if (FApplicationName='') then
     begin
-      If (FCommandLine='') then
-        Raise EProcess.Create(SNoCommandline);
-      PCommandLine:=Pchar(FCommandLine)
+    PCommandLine:=Pchar(FCommandLine)
     end
   else
     begin
-      PName:=Pchar(FApplicationName);
-      If (FCommandLine='') then
-        PCommandLine:=Pchar(FApplicationName)
-      else
-        PCommandLine:=Pchar(FCommandLine)
-    end;
-
+    PName:=Pchar(FApplicationName);
+    If (FCommandLine<>'') then
+      PCommandLine:=Pchar(FCommandLine)
+    else if (Fexecutable='') then
+      PCommandLine:=Pchar(FApplicationName)
+    else
+      begin
+      Cmd:=MaybeQuote(Executable);
+      For I:=0 to Parameters.Count-1 do
+        Cmd:=Cmd+' '+MaybeQuote(Parameters[i]);
+      PCommandLine:=PChar(Cmd);
+      end;  
+    end;   
   If FCurrentDirectory<>'' then
     PDir:=Pchar(FCurrentDirectory);
   if FEnvironment.Count<>0 then
@@ -268,6 +317,3 @@ Procedure TProcess.SetShowWindow (Value : TShowWindowOptions);
 begin
   FShowWindow:=Value;
 end;
-
-
-

@@ -120,25 +120,36 @@ interface
 
 
     procedure tavraddnode.second_cmpsmallset;
+
+      procedure gencmp(tmpreg1,tmpreg2 : tregister);
+        var
+          i : byte;
+        begin
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,tmpreg2));
+          for i:=2 to tcgsize2size[left.location.size] do
+            begin
+              tmpreg1:=GetNextReg(tmpreg1);
+              tmpreg2:=GetNextReg(tmpreg2);
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
+            end;
+        end;
+
       var
         tmpreg : tregister;
       begin
-        {
         pass_left_right;
-
         location_reset(location,LOC_FLAGS,OS_NO);
-
         force_reg_left_right(false,false);
 
         case nodetype of
           equaln:
             begin
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register,right.location.register));
+              gencmp(left.location.register,right.location.register);
               location.resflags:=F_EQ;
             end;
           unequaln:
             begin
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register,right.location.register));
+              gencmp(left.location.register,right.location.register);
               location.resflags:=F_NE;
             end;
           lten,
@@ -150,14 +161,14 @@ interface
                   (nodetype = gten)) then
                 swapleftright;
               tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_AND,tmpreg,left.location.register,right.location.register));
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,tmpreg,right.location.register));
+              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,location.size,
+                left.location.register,right.location.register,tmpreg);
+              gencmp(tmpreg,right.location.register);
               location.resflags:=F_EQ;
             end;
           else
             internalerror(2004012401);
         end;
-        }
       end;
 
 
@@ -182,6 +193,13 @@ interface
 
         for i:=2 to tcgsize2size[left.location.size] do
           begin
+            tmpreg1:=GetNextReg(tmpreg1);
+            tmpreg2:=GetNextReg(tmpreg2);
+            if i=5 then
+              begin
+                tmpreg1:=left.location.registerhi;
+                tmpreg2:=right.location.registerhi;
+              end;
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
           end;
 

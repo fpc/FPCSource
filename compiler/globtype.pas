@@ -32,7 +32,7 @@ interface
          executed from the FPC application. In some circomstances, this can be more
          than 255 characters. That's why using Ansi Strings}
        TCmdStr = AnsiString;
-       TPathStr = String;
+       TPathStr = AnsiString;
 
        { Integer type corresponding to pointer size }
 {$ifdef cpu64bitaddr}
@@ -287,7 +287,8 @@ interface
          m_objectivec2,         { support interfacing with Objective-C (2.0) }
          m_nested_procvars,     { support nested procedural variables }
          m_non_local_goto,      { support non local gotos (like iso pascal) }
-         m_advanced_records     { advanced record syntax with visibility sections, methods and properties }
+         m_advanced_records,    { advanced record syntax with visibility sections, methods and properties }
+         m_isolike_unary_minus  { unary minus like in iso pascal: same precedence level as binary minus/plus }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -418,7 +419,8 @@ interface
          'OBJECTIVEC2',
          'NESTEDPROCVARS',
          'NONLOCALGOTO',
-         'ADVANCEDRECORDS');
+         'ADVANCEDRECORDS',
+         'ISOUNARYMINUS');
 
 
      type

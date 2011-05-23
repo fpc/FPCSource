@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 128;
+  CurrentPPUVersion = 130;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -413,7 +413,6 @@ end;
 
 function tppufile.openfile:boolean;
 var
-  ofmode : byte;
   i      : integer;
 begin
   openfile:=false;
@@ -1189,8 +1188,8 @@ procedure tppufile.tempclose;
 
 
 function tppufile.tempopen:boolean;
-  var
-    ofm : byte;
+  //var
+  //  ofm : byte;
   begin
     tempopen:=false;
     if not closed or not tempclosed then

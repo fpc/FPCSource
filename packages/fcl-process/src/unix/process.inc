@@ -75,64 +75,70 @@ begin
 end;
 
 
-Procedure CommandToList(S : String; List : TStrings);
 
-  Function GetNextWord : String;
+Function DetectXterm : String;
 
-  Const
-    WhiteSpace = [' ',#8,#10];
-    Literals = ['"',''''];
-
-  Var
-    Wstart,wend : Integer;
-    InLiteral : Boolean;
-    LastLiteral : char;
+  Function TestTerminal(S : String) : Boolean;
 
   begin
-    WStart:=1;
-    While (WStart<=Length(S)) and (S[WStart] in WhiteSpace) do
-      Inc(WStart);
-    WEnd:=WStart;
-    InLiteral:=False;
-    LastLiteral:=#0;
-    While (Wend<=Length(S)) and (Not (S[Wend] in WhiteSpace) or InLiteral) do
-      begin
-      if S[Wend] in Literals then
-        If InLiteral then
-          InLiteral:=Not (S[Wend]=LastLiteral)
-        else
-          begin
-          InLiteral:=True;
-          LastLiteral:=S[Wend];
-          end;
-       inc(wend);
-       end;
-
-     Result:=Copy(S,WStart,WEnd-WStart);
-
-     if  (Length(Result) > 0)
-     and (Result[1] = Result[Length(Result)]) // if 1st char = last char and..
-     and (Result[1] in Literals) then // it's one of the literals, then
-       Result:=Copy(Result, 2, Length(Result) - 2); //delete the 2 (but not others in it)
-
-     While (WEnd<=Length(S)) and (S[Wend] in WhiteSpace) do
-       inc(Wend);
-     Delete(S,1,WEnd-1);
-
+    Result:=FileSearch(s,GetEnvironmentVariable('PATH'),False)<>'';
   end;
 
+  Function TestTerminals(Terminals : Array of String) : Boolean;
+
+  Var
+    I : integer;
+  begin
+    I:=Low(Terminals);
+    Result:=False;
+    While (Not Result) and (I<=High(Terminals)) do
+      begin
+      Result:=TestTerminal(Terminals[i]);
+      If Result then
+        XTermProgram:=Terminals[i];
+      end;
+  end;
+
+Const
+  Konsole   = 'konsole';
+  GNomeTerm = 'gnome-terminal';
+  DefaultTerminals : Array [1..5] of string
+                   = ('x-terminal-emulator','xterm','aterm','wterm','rxvt');
+
 Var
-  W : String;
+  D :String;
 
 begin
-  While Length(S)>0 do
+  If (XTermProgram='') then
     begin
-    W:=GetNextWord;
-    If (W<>'') then
-      List.Add(W);
+    // try predefined
+    If Length(TryTerminals)>0 then
+      TestTerminals(TryTerminals);
+    // try session-specific terminal
+    if (XTermProgram='') then
+      begin
+      D:=LowerCase(GetEnvironmentVariable('DESKTOP_SESSION'));
+      If (D='kde') then
+        begin
+        TestTerminal('konsole');
+        end
+      else if (D='gnome') then
+        begin
+        TestTerminal('gnome-terminal');
+        end
+      else if (D='windowmaker') then
+        begin
+        If not TestTerminal('aterm') then
+          TestTerminal('wterm');
+        end;
+      end;
+    if (XTermProgram='') then
+      TestTerminals(DefaultTerminals)
     end;
+  Result:=XTermProgram;
+  If (Result='') then
+    Raise EProcess.Create(SErrNoTerminalProgram);
 end;
-
 
 Function MakeCommand(P : TProcess) : PPchar;
 
@@ -151,22 +157,23 @@ Var
   G : String;
   
 begin
-  if (P.ApplicationName='') then
-    begin
-    If (P.CommandLine='') then
-      Raise EProcess.Create(SNoCommandline);
-    Cmd:=P.CommandLine;
-    end
-  else
-    begin
-    If (P.CommandLine='') then
-      Cmd:=P.ApplicationName
-    else
-      Cmd:=P.CommandLine;
-    end;
+  If (P.ApplicationName='') and (P.CommandLine='') and (P.Executable='') then
+    Raise EProcess.Create(SNoCommandline);
   S:=TStringList.Create;
   try
-    CommandToList(Cmd,S);
+    if (P.ApplicationName='') and (P.CommandLine='') then
+      begin
+      S.Assign(P.Parameters);
+      S.Insert(0,P.Executable);
+      end
+    else
+      begin
+      If (P.CommandLine='') then
+        Cmd:=P.ApplicationName
+      else
+        Cmd:=P.CommandLine;
+      CommandToList(Cmd,S);
+      end;
     if poNewConsole in P.Options then
       begin
       {$ifdef haiku}
@@ -190,7 +197,10 @@ begin
         S.Insert(0,Format('%dx%d',[P.dwXCountChars,P.dwYCountChars]));
         S.Insert(0,'-geometry');
         end;
-      S.Insert(0,'xterm');
+      If (P.XTermProgram<>'') then
+        S.Insert(0,P.XTermProgram)
+      else
+        S.Insert(0,DetectXterm);
       {$endif}
       end;
     {$ifndef haiku}

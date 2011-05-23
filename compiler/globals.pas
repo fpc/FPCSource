@@ -68,9 +68,9 @@ interface
          [m_gpc,m_all,m_tp_procvar];
 {$endif}
        macmodeswitches =
-         [m_mac,m_all,m_cvar_support,m_mac_procvar,m_nested_procvars,m_non_local_goto];
+         [m_mac,m_all,m_cvar_support,m_mac_procvar,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus];
        isomodeswitches =
-         [m_iso,m_all,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto];
+         [m_iso,m_all,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus];
 
        { maximum nesting of routines }
        maxnesting = 32;
@@ -399,8 +399,8 @@ interface
         fputype : fpu_sse64;
 {$endif x86_64}
 {$ifdef avr}
-        cputype : cpuinfo.cpu_avr;
-        optimizecputype : cpuinfo.cpu_avr;
+        cputype : cpuinfo.cpu_avr5;
+        optimizecputype : cpuinfo.cpu_avr5;
         fputype : fpu_none;
 {$endif avr}
 {$ifdef mips}
@@ -1402,7 +1402,7 @@ implementation
 
    procedure get_exepath;
      var
-	   localExepath : TCmdStr;
+       localExepath : TCmdStr;
        exeName:TCmdStr;
 {$ifdef need_path_search}
        hs1 : TPathStr;

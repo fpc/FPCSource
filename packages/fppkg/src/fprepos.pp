@@ -111,9 +111,11 @@ type
   TFPPackage = Class(TStreamCollectionItem)
   private
     FAuthor: String;
+    FCategory: String;
     FDescription: String;
     FEmail: String;
     FFPMakeOptionsString: string;
+    FKeywords: String;
     FRecompileBroken: boolean;
     FSourcePath: string;
     FInstalledLocally: boolean;
@@ -123,6 +125,7 @@ type
     FHomepageURL: String;
     FDownloadURL: String;
     FFileName: String;
+    FSupport: String;
     FUnusedVersion: TFPVersion;
     FVersion: TFPVersion;
     FDependencies : TFPDependencies;
@@ -153,6 +156,9 @@ type
     Property Version : TFPVersion Read FVersion Write SetVersion;
     Property License : String Read FLicense Write FLicense;
     Property Description : String Read FDescription Write FDescription;
+    Property Support : String Read FSupport Write FSupport;
+    Property Keywords : String Read FKeywords Write FKeywords;
+    Property Category : String Read FCategory Write FCategory;
     Property HomepageURL : String Read FHomepageURL Write FHomepageURL;
     Property DownloadURL : String Read FDownloadURL Write FDownloadURL;
     Property FileName : String Read GetFileName Write FFileName;

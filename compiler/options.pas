@@ -52,15 +52,15 @@ Type
     procedure WriteInfo;
     procedure WriteHelpPages;
     procedure WriteQuickInfo;
-    procedure IllegalPara(const opt:string);
-    procedure UnsupportedPara(const opt:string);
-    procedure IgnoredPara(const opt:string);
+    procedure IllegalPara(const opt:TCmdStr);
+    procedure UnsupportedPara(const opt:TCmdStr);
+    procedure IgnoredPara(const opt:TCmdStr);
     function  Unsetbool(var Opts:TCmdStr; Pos: Longint):boolean;
-    procedure interpret_option(const opt :string;ispara:boolean);
-    procedure Interpret_envvar(const envname : string);
-    procedure Interpret_file(const filename : string);
+    procedure interpret_option(const opt :TCmdStr;ispara:boolean);
+    procedure Interpret_envvar(const envname : TCmdStr);
+    procedure Interpret_file(const filename : TPathStr);
     procedure Read_Parameters;
-    procedure parsecmd(cmd:string);
+    procedure parsecmd(cmd:TCmdStr);
     procedure TargetOptions(def:boolean);
     procedure CheckOptionsCompatibility;
     procedure ForceStaticLinking;
@@ -71,7 +71,7 @@ Type
 var
   coption : TOptionClass;
 
-procedure read_arguments(cmd:string);
+procedure read_arguments(cmd:TCmdStr);
 
 
 implementation
@@ -440,7 +440,7 @@ begin
 end;
 
 
-procedure Toption.IllegalPara(const opt:string);
+procedure Toption.IllegalPara(const opt:TCmdStr);
 begin
   Message1(option_illegal_para,opt);
   Message(option_help_pages_para);
@@ -448,14 +448,14 @@ begin
 end;
 
 
-procedure toption.UnsupportedPara(const opt: string);
+procedure toption.UnsupportedPara(const opt: TCmdStr);
 begin
   Message1(option_unsupported_target,opt);
   StopOptions(1);
 end;
 
 
-procedure toption.IgnoredPara(const opt: string);
+procedure toption.IgnoredPara(const opt: TCmdStr);
 begin
   Message1(option_ignored_target,opt);
 end;
@@ -488,7 +488,7 @@ begin
 end;
 
 
-procedure TOption.interpret_option(const opt:string;ispara:boolean);
+procedure TOption.interpret_option(const opt:TCmdStr;ispara:boolean);
 var
   code : integer;
   c    : char;
@@ -517,7 +517,7 @@ begin
   case opt[1] of
     '-' :
       begin
-         more:=Copy(opt,3,255);
+         more:=Copy(opt,3,2147483647);
          if firstpass then
            Message1(option_interpreting_firstpass_option,opt)
          else
@@ -1363,12 +1363,21 @@ begin
                            exclude(init_settings.globalswitches,cs_support_exceptions)
                          else
                            include(init_settings.globalswitches,cs_support_exceptions);
+                       'y' :
+                         If UnsetBool(More, j) then
+                           exclude(init_settings.localswitches,cs_typed_addresses)
+                         else
+                           include(init_settings.localswitches,cs_typed_addresses);
                        '-' :
                          begin
-                           init_settings.globalswitches:=init_settings.globalswitches - [cs_constructor_name,cs_support_exceptions];
-                           init_settings.localswitches:=init_settings.localswitches - [cs_do_assertion, cs_do_inline, cs_ansistrings];
+                           init_settings.globalswitches:=init_settings.globalswitches - [cs_constructor_name,cs_support_exceptions,
+                                                                                         cs_support_vectors,cs_load_fpcylix_unit];
+
+                           init_settings.localswitches:=init_settings.localswitches - [cs_do_assertion,cs_do_inline, cs_ansistrings,
+                                                                                       cs_typed_addresses];
+
                            init_settings.moduleswitches:=init_settings.moduleswitches - [cs_support_c_operators, cs_support_goto,
-                                                                     cs_support_macro];
+                                                                                         cs_support_macro];
                          end;
                        else
                          IllegalPara(opt);
@@ -1769,9 +1778,9 @@ begin
 end;
 
 
-procedure Toption.Interpret_file(const filename : string);
+procedure Toption.Interpret_file(const filename : TPathStr);
 
-  procedure RemoveSep(var fn:string);
+  procedure RemoveSep(var fn:TPathStr);
   var
     i : longint;
   begin
@@ -1785,7 +1794,7 @@ procedure Toption.Interpret_file(const filename : string);
     fn:=copy(fn,1,i);
   end;
 
-  function GetName(var fn:string):string;
+  function GetName(var fn:TPathStr):TPathStr;
   var
     i : longint;
   begin
@@ -1801,7 +1810,7 @@ const
 var
   f     : text;
   s, tmp,
-  opts  : string;
+  opts  : TCmdStr;
   skip  : array[0..maxlevel] of boolean;
   line,
   level : longint;
@@ -1954,14 +1963,14 @@ begin
 end;
 
 
-procedure Toption.Interpret_envvar(const envname : string);
+procedure Toption.Interpret_envvar(const envname : TCmdStr);
 var
   argstart,
   env,
   pc     : pchar;
   arglen : longint;
   quote  : set of char;
-  hs     : string;
+  hs     : TCmdStr;
 begin
   Message1(option_using_env,envname);
   env:=GetEnvPChar(envname);
@@ -2013,14 +2022,14 @@ end;
 
 procedure toption.read_parameters;
 var
-  opts       : string;
+  opts       : TCmdStr;
   paramindex : longint;
 begin
   paramindex:=0;
   while paramindex<paramcount do
    begin
      inc(paramindex);
-     opts:=system.paramstr(paramindex);
+     opts:=objpas.paramstr(paramindex);
      case opts[1] of
        '@' :
          if not firstpass then
@@ -2043,10 +2052,10 @@ begin
 end;
 
 
-procedure toption.parsecmd(cmd:string);
+procedure toption.parsecmd(cmd:TCmdStr);
 var
   i,ps  : longint;
-  opts  : string;
+  opts  : TCmdStr;
 begin
   while (cmd<>'') do
    begin
@@ -2054,7 +2063,7 @@ begin
       delete(cmd,1,1);
      i:=pos(' ',cmd);
      if i=0 then
-      i:=256;
+       i:=2147483647;
      opts:=Copy(cmd,1,i-1);
      Delete(cmd,1,i);
      case opts[1] of
@@ -2351,7 +2360,7 @@ begin
 end;
 
 
-procedure read_arguments(cmd:string);
+procedure read_arguments(cmd:TCmdStr);
 var
   env: ansistring;
   i : tfeature;

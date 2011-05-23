@@ -567,6 +567,7 @@ implementation
          otlabel,hlabel,oflabel : tasmlabel;
          href : treference;
          releaseright : boolean;
+         alignmentrequirement,
          len : aint;
          r : tregister;
          oldflowcontrol : tflowcontrol;
@@ -777,13 +778,17 @@ implementation
 { TODO: HACK: unaligned test, maybe remove all unaligned locations (array of char) from the compiler}
                             { Use unaligned copy when the offset is not aligned }
                             len:=left.resultdef.size;
-                            if (right.location.reference.offset mod sizeof(aint)<>0) or
-                              (left.location.reference.offset mod sizeof(aint)<>0) or
-                              (right.resultdef.alignment<sizeof(aint)) or
+
+                            { data smaller than an aint has less alignment requirements }
+                            alignmentrequirement:=min(len,sizeof(aint));
+
+                            if (right.location.reference.offset mod alignmentrequirement<>0) or
+                              (left.location.reference.offset mod alignmentrequirement<>0) or
+                              (right.resultdef.alignment<alignmentrequirement) or
                               ((right.location.reference.alignment<>0) and
-                               (right.location.reference.alignment<sizeof(aint))) or
+                               (right.location.reference.alignment<alignmentrequirement)) or
                               ((left.location.reference.alignment<>0) and
-                               (left.location.reference.alignment<sizeof(aint))) then
+                               (left.location.reference.alignment<alignmentrequirement)) then
                               cg.g_concatcopy_unaligned(current_asmdata.CurrAsmList,right.location.reference,left.location.reference,len)
                             else
                               cg.g_concatcopy(current_asmdata.CurrAsmList,right.location.reference,left.location.reference,len);

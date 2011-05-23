@@ -1288,6 +1288,164 @@ end;
 ****************************************************************************}
 
 {****************************************************************************
+                          Software multiplication
+****************************************************************************}
+
+{$ifndef FPC_SYSTEM_HAS_MUL_INTEGER}
+    function fpc_mul_integer(f1,f2 : integer;checkoverflow : boolean) : integer;[public,alias: 'FPC_MUL_INTEGER']; compilerproc;
+      var
+        sign : boolean;
+        q1,q2,q3 : word;
+      begin
+        begin
+           sign:=false;
+           if f1<0 then
+             begin
+                sign:=not(sign);
+                q1:=word(-f1);
+             end
+           else
+             q1:=f1;
+           if f2<0 then
+             begin
+                sign:=not(sign);
+                q2:=word(-f2);
+             end
+           else
+             q2:=f2;
+           { the q1*q2 is coded as call to mulqword }
+           q3:=q1*q2;
+
+           if checkoverflow and (q1 <> 0) and (q2 <>0) and
+           ((q1>q3) or (q2>q3) or
+             { the bit 63 can be only set if we have $8000 }
+             { and sign is true                            }
+             (q3 shr 15<>0) and
+              ((q3<>word(word(1) shl 15)) or not(sign))
+             ) then
+             HandleErrorFrame(215,get_frame);
+
+           if sign then
+             fpc_mul_integer:=-q3
+           else
+             fpc_mul_integer:=q3;
+        end;
+      end;
+{$endif FPC_SYSTEM_HAS_MUL_INTEGER}
+
+
+{$ifndef FPC_SYSTEM_HAS_MUL_WORD}
+    function fpc_mul_word(f1,f2 : word;checkoverflow : boolean) : word;[public,alias: 'FPC_MUL_WORD']; compilerproc;
+      var
+        _f1,bitpos : word;
+        b : byte;
+        f1overflowed : boolean;
+      begin
+        fpc_mul_word:=0;
+        bitpos:=1;
+        f1overflowed:=false;
+
+        for b:=0 to 15 do
+          begin
+            if (f2 and bitpos)<>0 then
+              begin
+                _f1:=fpc_mul_word;
+                fpc_mul_word:=fpc_mul_word+f1;
+
+                { if one of the operands is greater than the result an
+                  overflow occurs                                      }
+                if checkoverflow and (f1overflowed or ((_f1<>0) and (f1<>0) and
+                  ((_f1>fpc_mul_word) or (f1>fpc_mul_word)))) then
+                  HandleErrorFrame(215,get_frame);
+              end;
+            { when bootstrapping, we forget about overflow checking for qword :) }
+            f1overflowed:=f1overflowed or ((f1 and (1 shl 15))<>0);
+            f1:=f1 shl 1;
+            bitpos:=bitpos shl 1;
+          end;
+      end;
+{$endif FPC_SYSTEM_HAS_MUL_WORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_MUL_LONGINT}
+    function fpc_mul_longint(f1,f2 : longint;checkoverflow : boolean) : longint;[public,alias: 'FPC_MUL_LONGINT']; compilerproc;
+      var
+        sign : boolean;
+        q1,q2,q3 : dword;
+      begin
+        begin
+           sign:=false;
+           if f1<0 then
+             begin
+                sign:=not(sign);
+                q1:=dword(-f1);
+             end
+           else
+             q1:=f1;
+           if f2<0 then
+             begin
+                sign:=not(sign);
+                q2:=dword(-f2);
+             end
+           else
+             q2:=f2;
+           { the q1*q2 is coded as call to mulqword }
+           q3:=q1*q2;
+
+           if checkoverflow and (q1 <> 0) and (q2 <>0) and
+           ((q1>q3) or (q2>q3) or
+             { the bit 31 can be only set if we have $8000 0000 }
+             { and sign is true                                 }
+             (q3 shr 15<>0) and
+              ((q3<>dword(dword(1) shl 31)) or not(sign))
+             ) then
+             HandleErrorFrame(215,get_frame);
+
+           if sign then
+             fpc_mul_longint:=-q3
+           else
+             fpc_mul_longint:=q3;
+        end;
+      end;
+{$endif FPC_SYSTEM_HAS_MUL_INTEGER}
+
+
+{$ifndef FPC_SYSTEM_HAS_MUL_DWORD}
+    { multiplies two dwords
+      the longbool for checkoverflow avoids a misaligned stack
+    }
+    function fpc_mul_dword(f1,f2 : dword;checkoverflow : boolean) : dword;[public,alias: 'FPC_MUL_DWORD']; compilerproc;
+      var
+        _f1,bitpos : dword;
+        b : byte;
+        f1overflowed : boolean;
+      begin
+        fpc_mul_dword:=0;
+        bitpos:=1;
+        f1overflowed:=false;
+
+        for b:=0 to 31 do
+          begin
+            if (f2 and bitpos)<>0 then
+              begin
+                _f1:=fpc_mul_dword;
+                fpc_mul_dword:=fpc_mul_dword+f1;
+
+                { if one of the operands is greater than the result an
+                  overflow occurs                                      }
+                if checkoverflow and (f1overflowed or ((_f1<>0) and (f1<>0) and
+                  ((_f1>fpc_mul_dword) or (f1>fpc_mul_dword)))) then
+                  HandleErrorFrame(215,get_frame);
+              end;
+            { when bootstrapping, we forget about overflow checking for qword :) }
+            f1overflowed:=f1overflowed or ((f1 and (1 shl 31))<>0);
+            f1:=f1 shl 1;
+            bitpos:=bitpos shl 1;
+          end;
+      end;
+{$endif FPC_SYSTEM_HAS_MUL_DWORD}
+
+{****************************************************************************
                           Software longint/dword division
 ****************************************************************************}
 {$ifdef FPC_INCLUDE_SOFTWARE_MOD_DIV}

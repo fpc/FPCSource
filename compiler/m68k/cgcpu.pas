@@ -44,15 +44,15 @@ unit cgcpu;
         procedure done_register_allocators;override;
 
         procedure a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
-        procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);override;
+        procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const cgpara : tcgpara);override;
         procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg : tregister);override;
 
-        procedure a_load_const_reg(list : TAsmList;size : tcgsize;a : aint;register : tregister);override;
-        procedure a_load_const_ref(list : TAsmList; tosize: tcgsize; a : aint;const ref : treference);override;
+        procedure a_load_const_reg(list : TAsmList;size : tcgsize;a : tcgint;register : tregister);override;
+        procedure a_load_const_ref(list : TAsmList; tosize: tcgsize; a : tcgint;const ref : treference);override;
 
         procedure a_load_reg_ref(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);override;
         procedure a_load_reg_reg(list : TAsmList;fromsize,tosize : tcgsize;reg1,reg2 : tregister);override;
@@ -69,27 +69,27 @@ unit cgcpu;
         procedure a_loadmm_reg_ref(list: TAsmList;fromsize,tosize : tcgsize; reg: tregister; const ref: treference;shuffle : pmmshuffle); override;
         procedure a_loadmm_reg_cgpara(list: TAsmList; size: tcgsize; reg: tregister;const locpara : TCGPara;shuffle : pmmshuffle); override;
 
-        procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tcgsize; a: aint; reg: TRegister); override;
-//        procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: aint; const ref: TReference); override;
+        procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tcgsize; a: tcgint; reg: TRegister); override;
+//        procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); override;
 
-        procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
+        procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
           l : tasmlabel);override;
         procedure a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
         procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
         procedure a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel); override;
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister); override;
 
-        procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : aint);override;
+        procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);override;
         { generates overflow checking code for a node }
         procedure g_overflowcheck(list: TAsmList; const l:tlocation; def:tdef); override;
-        procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);override;
+        procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);override;
 
         procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
 
 //        procedure g_restore_frame_pointer(list : TAsmList);override;
-//        procedure g_return_from_proc(list : TAsmList;parasize : aint);override;
+//        procedure g_return_from_proc(list : TAsmList;parasize : tcgint);override;
         procedure g_restore_registers(list:TAsmList);override;
         procedure g_save_registers(list:TAsmList);override;
 
@@ -265,7 +265,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg68k.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);
+    procedure tcg68k.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : tcgint;const cgpara : tcgpara);
       var
         pushsize : tcgsize;
         ref : treference;
@@ -292,7 +292,7 @@ unit cgcpu;
 
     procedure tcg68k.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);
 
-        procedure pushdata(paraloc:pcgparalocation;ofs:aint);
+        procedure pushdata(paraloc:pcgparalocation;ofs:tcgint);
         var
           pushsize : tcgsize;
           tmpreg   : tregister;
@@ -304,7 +304,7 @@ unit cgcpu;
 { TODO: FIX ME!!! this also triggers location bug }
           {if (paraloc^.loc<>LOC_REFERENCE) or
              (paraloc^.reference.index<>NR_STACK_POINTER_REG) or
-             (tcgsize2size[paraloc^.size]>sizeof(aint)) then
+             (tcgsize2size[paraloc^.size]>sizeof(tcgint)) then
             internalerror(200501162);}
 
           { Pushes are needed in reverse order, add the size of the
@@ -335,7 +335,7 @@ unit cgcpu;
         end;
 
       var
-        len : aint;
+        len : tcgint;
         href : treference;
       begin
 {$ifdef DEBUG_CHARLIE}
@@ -490,7 +490,7 @@ unit cgcpu;
 
 
 
-    procedure tcg68k.a_load_const_reg(list : TAsmList;size : tcgsize;a : aint;register : tregister);
+    procedure tcg68k.a_load_const_reg(list : TAsmList;size : tcgsize;a : tcgint;register : tregister);
       begin
 {$ifdef DEBUG_CHARLIE}
 //        writeln('a_load_const_reg');
@@ -512,7 +512,7 @@ unit cgcpu;
          end;
       end;
 
-    procedure tcg68k.a_load_const_ref(list : TAsmList; tosize: tcgsize; a : aint;const ref : treference);
+    procedure tcg68k.a_load_const_ref(list : TAsmList; tosize: tcgsize; a : tcgint;const ref : treference);
       begin
 {$ifdef DEBUG_CHARLIE}
         list.concat(tai_comment.create(strpnew('a_load_const_ref')));
@@ -664,7 +664,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg68k.a_op_const_reg(list : TAsmList; Op: TOpCG; size: tcgsize; a: aint; reg: TRegister);
+    procedure tcg68k.a_op_const_reg(list : TAsmList; Op: TOpCG; size: tcgsize; a: tcgint; reg: TRegister);
       var
        scratch_reg : tregister;
        scratch_reg2: tregister;
@@ -817,7 +817,7 @@ unit cgcpu;
       end;
 
 {
-    procedure tcg68k.a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: aint; const ref: TReference);
+    procedure tcg68k.a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference);
       var
         opcode: tasmop;
       begin
@@ -1045,7 +1045,7 @@ unit cgcpu;
 
 
 
-    procedure tcg68k.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
+    procedure tcg68k.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
             l : tasmlabel);
       var
        hregister : tregister;
@@ -1158,7 +1158,7 @@ unit cgcpu;
 
 
 
-    procedure tcg68k.g_concatcopy(list : TAsmList;const source,dest : treference;len : aint);
+    procedure tcg68k.g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);
 
      var
          helpsize : longint;
@@ -1294,7 +1294,7 @@ unit cgcpu;
       begin
       end;
 
-    procedure tcg68k.g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);
+    procedure tcg68k.g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);
       begin
       end;
 
@@ -1359,7 +1359,7 @@ unit cgcpu;
     procedure tcg68k.g_proc_exit(list : TAsmList; parasize: longint; nostackframe: boolean);
       var
 //        r,hregister : TRegister;
-        localsize: aint;
+        localsize: tcgint;
         spr : TRegister;
         fpr : TRegister;
         ref : TReference;
@@ -1740,8 +1740,8 @@ unit cgcpu;
         end;
     end; { end case }
   end;
-  
-  
+
+
 procedure create_codegen;
   begin
     cg := tcg68k.create;

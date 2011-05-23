@@ -321,7 +321,7 @@ type
   // protected
     property SchemaType : TSchemaType read FSchemaType default stNoSchema;
     property Transaction;
-    property ReadOnly : Boolean read FReadOnly write SetReadOnly;
+    property ReadOnly : Boolean read FReadOnly write SetReadOnly default false;
     property SQL : TStringlist read FSQL write SetSQL;
     property UpdateSQL : TStringlist read FUpdateSQL write SetUpdateSQL;
     property InsertSQL : TStringlist read FInsertSQL write SetInsertSQL;
@@ -342,7 +342,9 @@ type
   public
     property SchemaType;
   Published
+    property MaxIndexesCount;
    // TDataset stuff
+    property FieldDefs;
     Property Active;
     Property AutoCalcFields;
     Property Filter;
@@ -494,6 +496,18 @@ Procedure GetConnectionList(List : TSTrings);
 implementation
 
 uses dbconst, strutils;
+
+function TimeIntervalToString(Time: TDateTime): string;
+var
+  millisecond: word;
+  second     : word;
+  minute     : word;
+  hour       : word;
+begin
+  DecodeTime(Time,hour,minute,second,millisecond);
+  hour := hour + (trunc(Time) * 24);
+  result := Format('%.2d:%.2d:%.2d.%.3d',[hour,minute,second,millisecond]);
+end;
 
 { TSQLConnection }
 
@@ -665,7 +679,8 @@ begin
   else case field.DataType of
     ftString   : Result := '''' + field.asstring + '''';
     ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Field.AsDateTime) + '''';
-    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:mm:ss',Field.AsDateTime) + ''''
+    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:mm:ss',Field.AsDateTime) + '''';
+    ftTime     : Result := QuotedStr(TimeIntervalToString(Field.AsDateTime));
   else
     Result := field.asstring;
   end; {case}
@@ -678,6 +693,7 @@ begin
     ftString   : Result := '''' + param.asstring + '''';
     ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Param.AsDateTime) + '''';
     ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:mm:ss',Param.AsDateTime) + '''';
+    ftTime     : Result := QuotedStr(TimeIntervalToString(Param.AsDateTime));
     ftFloat    : Result := '''' + FloatToStr(Param.AsFloat, FSQLServerFormatSettings) + ''''
   else
     Result := Param.asstring;

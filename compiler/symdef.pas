@@ -2804,8 +2804,6 @@ implementation
       end;
 
     function tabstractrecorddef.RttiName: string;
-      var
-        tmp: tabstractrecorddef;
       begin
         Result:=OwnerHierarchyName+objrealname^;
       end;
@@ -4433,6 +4431,7 @@ implementation
           tobjectdef(result).import_lib:=stringdup(import_lib^);
         tobjectdef(result).objectoptions:=objectoptions;
         include(tobjectdef(result).defoptions,df_copied_def);
+        tobjectdef(result).extendeddef:=extendeddef;
         tobjectdef(result).vmt_offset:=vmt_offset;
         if assigned(iidguid) then
           begin

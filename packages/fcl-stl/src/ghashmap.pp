@@ -25,6 +25,7 @@
   type
     generic THashmapIterator<TKey, TValue, T, TTable>=class
       public
+      type PValue=^TValue;
       var
         Fh,Fp:SizeUInt;
         FData:TTable;
@@ -32,10 +33,12 @@
         function GetData:T;inline;
         function GetKey:TKey;inline;
         function GetValue:TValue;inline;
+        function GetMutable:PValue;inline;
         procedure SetValue(value:TValue);inline;
         property Data:T read GetData;
         property Key:TKey read GetKey;
         property Value:TValue read GetValue write SetValue;
+        property MutableValue:PValue read GetMutable;
     end;
 
     generic THashmap<TKey, TValue, Thash>=class
@@ -164,7 +167,7 @@ begin
   inc(FDataSize);
   (FData[h]).pushback(pair);
 
-  if (FDataSize > 2*FData.size) then
+  if (FDataSize > 5*FData.size) then
     EnlargeTable;
 end;
 
@@ -227,6 +230,11 @@ end;
 function THashmapIterator.GetValue:TValue;inline;
 begin
   GetValue:=((FData[Fh])[Fp]).Value;
+end;
+
+function THashmapIterator.GetMutable:PValue;inline;
+begin
+  GetMutable:=@((FData[Fh]).Mutable[Fp]^.Value);
 end;
 
 procedure THashmapIterator.SetValue(value:TValue);inline;

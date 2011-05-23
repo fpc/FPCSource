@@ -82,12 +82,18 @@ begin
         end;
     T:=P.Targets.AddUnit('httpdefs.pp');
     T.ResourceStrings:=true;
-    T:=P.Targets.AddUnit('websession.pp');
+    T:=P.Targets.AddUnit('iniwebsession.pp');
     T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('fphttp');
           AddUnit('httpdefs');
+        end;
+    T:=P.Targets.AddUnit('websession.pp');
+    T.ResourceStrings:=true;
+      with T.Dependencies do
+        begin
+          AddUnit('iniwebsession');
         end;
     T:=P.Targets.AddUnit('webutil.pp');
       with T.Dependencies do
@@ -123,12 +129,21 @@ begin
         ResourceStrings:=true;
       end;
     T:=P.Targets.AddUnit('fcgigate.pp');
+    T.ResourceStrings:=true;
     With T.Dependencies do
       begin
       AddUnit('httpdefs');
       AddUnit('custcgi');
       end;
+    T:=P.Targets.AddUnit('fphttpserver.pp');
+    T.ResourceStrings:=true;
+      with T.Dependencies do
+        begin
+          AddUnit('httpdefs');
+        end;
+    T:=P.Targets.AddUnit('fphttpclient.pp');
     T:=P.Targets.AddUnit('fpwebdata.pp');
+    T.ResourceStrings:=true;
     With T.Dependencies do
       begin
       AddUnit('httpdefs');
@@ -136,12 +151,14 @@ begin
       AddUnit('websession');
       end;
     T:=P.Targets.AddUnit('sqldbwebdata.pp');
+    T.ResourceStrings:=true;
     With T.Dependencies do
       begin
       AddUnit('fpwebdata');
       AddUnit('fphttp');
       end;
     T:=P.Targets.AddUnit('fpextjs.pp');
+    T.ResourceStrings:=true;
     With T.Dependencies do
       begin
       AddUnit('fpwebdata');
@@ -149,13 +166,15 @@ begin
       AddUnit('fphttp');
       end;
     T:=P.Targets.AddUnit('extjsxml.pp');
+    T.ResourceStrings:=true;
     With T.Dependencies do
       begin
       AddUnit('fpwebdata');
       AddUnit('httpdefs');
       AddUnit('fpextjs');
       end;
-    T:=P.Targets.AddUnit('extjsjson.pp'); 
+    T:=P.Targets.AddUnit('extjsjson.pp');
+    T.ResourceStrings:=true;
     With T.Dependencies do
       begin
       AddUnit('fpwebdata');
@@ -163,12 +182,14 @@ begin
       AddUnit('fpextjs');
       end;
     T:=P.Targets.AddUnit('fpjsonrpc.pp');
+    T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('webjsonrpc.pp');
     With T.Dependencies do
       begin
       AddUnit('fpjsonrpc');
       end;
     T:=P.Targets.AddUnit('fpextdirect.pp');
+    T.ResourceStrings:=true;
     With T.Dependencies do
       begin
       AddUnit('fpjsonrpc');

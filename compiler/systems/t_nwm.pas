@@ -668,7 +668,6 @@ end;
         procedure addLinkerOptions;
         var
           s,option : string;
-          p : integer;
         begin
           s := ParaLinkOptions;
           option := GetToken(s,';');
@@ -720,7 +719,6 @@ end;
         function findPrelude : string;
         var
           s,option,keyword : string;
-          p : integer;
         begin
           s := ParaLinkOptions;
           option := GetToken(s,';');

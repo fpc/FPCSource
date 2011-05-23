@@ -359,6 +359,7 @@ Type
     Procedure RemoveController(AController : TDaemonController); virtual;
     Function GetEventLog: TEventLog; virtual;
     Procedure DoRun; override;
+    procedure DoLog(EventType: TEventType; const Msg: String); override;
     Property SysData : TObject Read FSysData Write FSysData;
   Public
     destructor Destroy; override;
@@ -370,7 +371,6 @@ Type
     procedure UnInstallDaemons;
     procedure ShowHelp;
     procedure CreateForm(InstanceClass: TComponentClass; var Reference); virtual;
-    procedure Log(EventType: TEventType; const Msg: String); override;
     Property  OnRun : TNotifyEvent Read FOnRun Write FOnRun;
     Property EventLog : TEventLog Read GetEventLog;
     Property GUIMainLoop : TGuiLoopEvent Read FGUIMainLoop Write FGuiMainLoop;
@@ -412,7 +412,7 @@ Resourcestring
   SHelpUnInstall                = 'To uninstall the service';
   SHelpRun                      = 'To run the service';
 
-{ $define svcdebug}
+{$define svcdebug}
 
 {$ifdef svcdebug}
 Procedure DebugLog(Msg : String);
@@ -520,8 +520,12 @@ end;
 
 function Application: TCustomDaemonApplication;
 begin
+ {$ifdef svcdebug}Debuglog('Application');{$endif}
   If (AppInstance=Nil) then
+    begin
+    {$ifdef svcdebug}Debuglog('Application creating instance');{$endif}
     CreateDaemonApplication;
+    end;
   Result:=AppInstance;
 end;
 
@@ -722,12 +726,39 @@ Var
   DD : TDaemonDef;
   
 begin
-  If (Args=Nil) then
-    Exit;
-  SN:=StrPas(Args^);
-  DD:=FMapper.DaemonDefs.FindDaemonDef(SN);
+ {$ifdef svcdebug}DebugLog('Application.Main');{$endif svcdebug}
+  If (Argc=0) then
+    begin
+    {$ifdef svcdebug}DebugLog('Using Default daemon');{$endif svcdebug}
+    if FMapper.DaemonDefs.Count=1 then
+      DD:=FMapper.DaemonDefs[0]
+    else
+      DD:=Nil
+    end
+  else
+    begin
+    {$ifdef svcdebug}DebugLog('Application.Main 2 : '+IntToStr(Argc));{$endif svcdebug}
+    DD:=Nil;
+    SN:='';
+    If (Args<>Nil) then
+      begin
+      If (Args^<>Nil) then
+        SN:=StrPas(Args^)
+      else
+        SN:='';
+      end;
+    {$ifdef svcdebug}DebugLog('Looking for daemon '+SN);{$endif svcdebug}
+    DD:=FMapper.DaemonDefs.FindDaemonDef(SN);
+    end;
   If (DD<>Nil) then
+    begin
+    {$ifdef svcdebug}DebugLog('Found daemon '+SN);{$endif svcdebug}
     DD.Instance.Controller.Main(Argc,Args);
+    end
+  else
+    begin
+  {$ifdef svcdebug}DebugLog('Did not fin daemon '+SN);{$endif svcdebug}
+    end;
 end;
 
 
@@ -848,7 +879,7 @@ begin
   end;
 end;
 
-procedure TCustomDaemonApplication.Log(EventType: TEventType; const Msg: String);
+procedure TCustomDaemonApplication.DoLog(EventType: TEventType; const Msg: String);
 begin
   EventLog.Log(EventType,Msg);
 end;
@@ -884,8 +915,9 @@ begin
   if not assigned(FEventLog) then
     begin
     FEventLog:=TEventlog.Create(Self);
-    FEventLog.RaiseExceptionOnError:=true;
+    FEventLog.RaiseExceptionOnError:=False;
     FEventLog.RegisterMessageFile('');
+    FEventLog.Active:=True;
     end;
   result := FEventLog;
 end;
@@ -1190,6 +1222,7 @@ Var
   S : String;
 
 begin
+ {$ifdef svcdebug}DebugLog('Handling control code '+IntToStr(ACode));{$endif svcdebug}
   CS:=FDaemon.Status;
   Try
     OK:=True;

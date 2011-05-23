@@ -965,10 +965,28 @@ var
   first  : boolean;
   tokenbufsize : longint;
   tokenbuf : pbyte;
+  idtoken,
   token : ttoken;
   len : sizeint;
   wstring : widestring;
   astring : ansistring;
+
+  function readtoken: ttoken;
+    var
+      b,b2 : byte;
+    begin
+      b:=tokenbuf[i];
+      inc(i);
+      if (b and $80)<>0 then
+        begin
+          b2:=tokenbuf[i];
+          inc(i);
+          result:=ttoken(((b and $7f) shl 8) or b2);
+        end
+      else
+        result:=ttoken(b);
+    end;
+
 begin
   writeln(space,'** Definition Id ',ppufile.getlongint,' **');
   writeln(space,s);
@@ -996,7 +1014,7 @@ begin
   if defstates<>[] then
     begin
       first:=true;
-      for i:=1to high(defstate) do
+      for i:=1 to high(defstate) do
        if (defstate[i].mask in defstates) then
         begin
           if first then
@@ -1018,10 +1036,12 @@ begin
       write(space,' Tokens: ');
       while i<tokenbufsize do
         begin
-          token:=ptoken(@tokenbuf[i])^;
+          token:=readtoken;
           if token<>_GENERICSPECIALTOKEN then
-            write(arraytokeninfo[token].str);
-          inc(i,SizeOf(token));
+            begin
+              write(arraytokeninfo[token].str);
+              idtoken:=readtoken;
+            end;
           case token of
             _CWCHAR,
             _CWSTRING :
@@ -1051,7 +1071,6 @@ begin
               end;
             _ID :
               begin
-                inc(i,SizeOf(ttoken)); // idtoken
                 write(' ',pshortstring(@tokenbuf[i])^);
                 inc(i,tokenbuf[i]+1);
               {
@@ -1062,32 +1081,38 @@ begin
               end;
             _GENERICSPECIALTOKEN:
               begin
-                case tspecialgenerictoken(tokenbuf[i]) of
-                  ST_LOADSETTINGS:
-                    begin
-                      inc(i);
-                      write('Settings');
-                      inc(i,sizeof(tsettings));
-                    end;
-                  ST_LINE:
-                    begin
-                      inc(i);
-                      write('Line: ',pdword(@tokenbuf[i])^);
-                      inc(i,4);
-                    end;
-                  ST_COLUMN:
-                    begin
-                      inc(i);
-                      write('Col: ',pword(@tokenbuf[i])^);
-                      inc(i,2);
-                    end;
-                  ST_FILEINDEX:
-                    begin
-                      inc(i);
-                      write('File: ',pword(@tokenbuf[i])^);
-                      inc(i,2);
-                    end;
-                end;
+                if (tokenbuf[i] and $80)<>0 then
+                  begin
+                    write('Col: ',tokenbuf[i] and $7f);
+                    inc(i);
+                  end
+                else
+                  case tspecialgenerictoken(tokenbuf[i]) of
+                    ST_LOADSETTINGS:
+                      begin
+                        inc(i);
+                        write('Settings');
+                        inc(i,sizeof(tsettings));
+                      end;
+                    ST_LINE:
+                      begin
+                        inc(i);
+                        write('Line: ',pdword(@tokenbuf[i])^);
+                        inc(i,4);
+                      end;
+                    ST_COLUMN:
+                      begin
+                        inc(i);
+                        write('Col: ',pword(@tokenbuf[i])^);
+                        inc(i,2);
+                      end;
+                    ST_FILEINDEX:
+                      begin
+                        inc(i);
+                        write('File: ',pword(@tokenbuf[i])^);
+                        inc(i,2);
+                      end;
+                  end;
               {
                 replaytokenbuf.read(specialtoken,1);
                 case specialtoken of
@@ -2124,7 +2149,7 @@ begin
              readcommondef('WideString definition',defoptions);
              writeln(space,'           Length : ',getlongint);
            end;
-         
+
          ibunicodestringdef :
            begin
              readcommondef('UnicodeString definition',defoptions);

@@ -44,7 +44,7 @@ unit cpubase;
 
     type
       TAsmOp=(A_None,
-        A_ADD,A_ADC,A_ADIW,A_SUB,A_SUBI,A_SBC,A_SBCI,A_SBIW,A_AND,A_ANDI,
+        A_ADD,A_ADC,A_ADIW,A_SUB,A_SUBI,A_SBC,A_SBCI,A_SBRC,A_SBRS,A_CLC,A_SEC,A_SBIW,A_AND,A_ANDI,
         A_OR,A_ORI,A_EOR,A_COM,A_NEG,A_SBR,A_CBR,A_INC,A_DEC,A_TST,A_CLR,
         A_SER,A_MUL,A_MULS,A_FMUL,A_FMULS,A_FMULSU,A_RJMP,A_IJMP,
         A_EIJMP,A_JMP,A_RCALL,A_ICALL,R_EICALL,A_CALL,A_RET,A_RETI,A_CPSE,
@@ -121,7 +121,7 @@ unit cpubase;
         {$i ravrdwa.inc}
       );
       { registers which may be destroyed by calls }
-      VOLATILE_INTREGISTERS = [RS_R18..RS_R27,RS_R30..RS_R31];
+      VOLATILE_INTREGISTERS = [RS_R0,RS_R1,RS_R8..RS_R27,RS_R30,RS_R31];
       VOLATILE_FPUREGISTERS = [];
 
     type
@@ -259,8 +259,8 @@ unit cpubase;
       NR_STACK_POINTER_REG = NR_R13;
       RS_STACK_POINTER_REG = RS_R13;
       { Frame pointer register }
-      RS_FRAME_POINTER_REG = RS_R11;
-      NR_FRAME_POINTER_REG = NR_R11;
+      RS_FRAME_POINTER_REG = RS_R28;
+      NR_FRAME_POINTER_REG = NR_R28;
       { Register for addressing absolute data in a position independant way,
         such as in PIC code. The exact meaning is ABI specific. For
         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
@@ -306,8 +306,10 @@ unit cpubase;
         This value can be deduced from the CALLED_USED_REGISTERS array in the
         GCC source.
       }
-      saved_standard_registers : array[0..6] of tsuperregister =
-        (RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,RS_R10);
+      { on avr, gen_entry/gen_exit code saves/restores registers, so
+        we don't need this array }
+      saved_standard_registers : array[0..0] of tsuperregister =
+        (RS_INVALID);
       { Required parameter alignment when calling a routine declared as
         stdcall and cdecl. The alignment value should be the one defined
         by GCC or the target ABI.
@@ -340,6 +342,11 @@ unit cpubase;
 
     { returns the next virtual register }
     function GetNextReg(const r : TRegister) : TRegister;
+
+    { returns the last virtual register }
+    function GetLastReg(const r : TRegister) : TRegister;
+
+    function GetOffsetReg(const r : TRegister;ofs : shortint) : TRegister;
 
   implementation
 
@@ -467,6 +474,18 @@ unit cpubase;
     function GetNextReg(const r: TRegister): TRegister;
       begin
         result:=TRegister(longint(r)+1);
+      end;
+
+
+    function GetLastReg(const r: TRegister): TRegister;
+      begin
+        result:=TRegister(longint(r)-1);
+      end;
+
+
+    function GetOffsetReg(const r: TRegister;ofs : shortint): TRegister;
+      begin
+        result:=TRegister(longint(r)+ofs);
       end;
 
 end.

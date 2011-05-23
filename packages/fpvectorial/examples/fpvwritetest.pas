@@ -22,7 +22,7 @@ program fpvwritetest;
 {$mode objfpc}{$H+}
 
 uses
-  fpvectorial, svgvectorialwriter;
+  fpvectorial, svgvectorialwriter, fpvutils;
 
 const
   cFormat = vfSVG;
@@ -134,6 +134,51 @@ begin
     Vec.AddText(20, 20, 0, '20, 20 Mówić, cześć, Włosku, Parabéns.');
     Vec.AddText(30, 30, 0, '30, 30 森林，是一个高密');
     Vec.WriteToFile('multi_test_1' + cExtension, cFormat);
+
+    // pen_test_1     Tests the properties of the Pen
+    Vec.Clear;
+    Vec.StartPath(0, 20);
+    Vec.AddLineToPath(30, 30);
+    Vec.SetPenWidth(10);
+    Vec.EndPath();
+    Vec.StartPath(0, 0);
+    Vec.AddLineToPath(100, 0);
+    Vec.AddLineToPath(100, 100);
+    Vec.AddLineToPath(0, 100);
+    Vec.AddLineToPath(0, 0);
+    Vec.SetPenWidth(10);
+    Vec.EndPath();
+    Vec.StartPath(0, 0);
+    Vec.AddLineToPath(10, 10);
+    Vec.AddBezierToPath(10, 20, 20, 20, 20, 10);
+    Vec.AddLineToPath(30, 0);
+    Vec.SetPenWidth(10);
+    Vec.EndPath();
+    Vec.WriteToFile('pen_test_1' + cExtension, cFormat);
+
+    // pen_test_2     Tests the properties of the Pen
+    Vec.Clear;
+    Vec.StartPath(0, 20);
+    Vec.AddLineToPath(30, 30);
+    Vec.SetPenWidth(10);
+    Vec.SetPenColor(RGBToVColor(255, 0, 0));
+    Vec.EndPath();
+    Vec.StartPath(0, 0);
+    Vec.AddLineToPath(100, 0);
+    Vec.AddLineToPath(100, 100);
+    Vec.AddLineToPath(0, 100);
+    Vec.AddLineToPath(0, 0);
+    Vec.SetPenWidth(10);
+    Vec.SetPenColor(RGBToVColor(0, 255, 0));
+    Vec.EndPath();
+    Vec.StartPath(0, 0);
+    Vec.AddLineToPath(10, 10);
+    Vec.AddBezierToPath(10, 20, 20, 20, 20, 10);
+    Vec.AddLineToPath(30, 0);
+    Vec.SetPenWidth(10);
+    Vec.SetPenColor(RGBToVColor(0, 0, 255));
+    Vec.EndPath();
+    Vec.WriteToFile('pen_test_2' + cExtension, cFormat);
   finally
     Vec.Free;
   end;

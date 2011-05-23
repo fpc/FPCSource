@@ -69,7 +69,7 @@ begin
    aw:=-4;
    bw:=45;
    asm
-     fildw aw
+     filds aw
      fstpl a
    end;
    if a<>-4.0 then

@@ -87,28 +87,80 @@ unit rgcpu;
       end;
 
 
-
     procedure trgcpu.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+      var
+        helpins  : tai;
+        tmpref   : treference;
+        helplist : TAsmList;
+        hreg     : tregister;
       begin
-        inherited do_spill_read(list,pos,spilltemp,tempreg);
+        if abs(spilltemp.offset)>63 then
+          begin
+            helplist:=TAsmList.create;
+
+            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R26,lo(word(spilltemp.offset))));
+            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R27,hi(word(spilltemp.offset))));
+            helplist.concat(taicpu.op_reg_reg(A_ADD,NR_R26,spilltemp.base));
+            helplist.concat(taicpu.op_reg_reg(A_ADC,NR_R27,GetNextReg(spilltemp.base)));
+
+            reference_reset_base(tmpref,NR_R26,0,1);
+            helpins:=spilling_create_load(tmpref,tempreg);
+            helplist.concat(helpins);
+            list.insertlistafter(pos,helplist);
+            helplist.free;
+          end
+        else
+          inherited do_spill_read(list,pos,spilltemp,tempreg);
       end;
 
 
     procedure trgcpu.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+      var
+        tmpref   : treference;
+        helplist : TAsmList;
+        hreg     : tregister;
       begin
-        inherited do_spill_written(list,pos,spilltemp,tempreg);
-      end;
+        if abs(spilltemp.offset)>63 then
+          begin
+            helplist:=TAsmList.create;
+
+            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R26,lo(word(spilltemp.offset))));
+            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R27,hi(word(spilltemp.offset))));
+            helplist.concat(taicpu.op_reg_reg(A_ADD,NR_R26,spilltemp.base));
+            helplist.concat(taicpu.op_reg_reg(A_ADC,NR_R27,GetNextReg(spilltemp.base)));
+
+            reference_reset_base(tmpref,NR_R26,0,1);
+            helplist.concat(spilling_create_store(tempreg,tmpref));
+            list.insertlistafter(pos,helplist);
+            helplist.free;
+          end
+        else
+          inherited do_spill_written(list,pos,spilltemp,tempreg);
+    end;
 
 
     procedure trgintcpu.add_cpu_interferences(p : tai);
       var
-        r : tregister;
+        r : tsuperregister;
       begin
         if p.typ=ait_instruction then
           begin
             case taicpu(p).opcode of
-              A_LD:
-                ;
+              A_CPI,
+              A_ANDI,
+              A_ORI,
+              A_SUBI,
+              A_SBCI,
+              A_LDI:
+                for r:=RS_R0 to RS_R15 do
+                  add_edge(r,GetSupReg(taicpu(p).oper[0]^.reg));
+              A_MULS:
+                begin
+                  for r:=RS_R0 to RS_R15 do
+                    add_edge(r,GetSupReg(taicpu(p).oper[0]^.reg));
+                  for r:=RS_R0 to RS_R15 do
+                    add_edge(r,GetSupReg(taicpu(p).oper[1]^.reg));
+                end;
             end;
           end;
       end;

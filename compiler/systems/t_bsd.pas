@@ -243,6 +243,7 @@ begin
             result:='/usr/lib/dylib1.o'
         end;
     end;
+  result:=maybequoted(result);
 end;    
 
 

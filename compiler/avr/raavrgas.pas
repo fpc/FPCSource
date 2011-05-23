@@ -333,13 +333,6 @@ Unit raavrgas;
               BuildReference(oper);
             end;
 
-          AS_HASH: { Constant expression  }
-            Begin
-              Consume(AS_HASH);
-              BuildConstantOperand(oper);
-            end;
-
-          (*
           AS_INTNUM,
           AS_MINUS,
           AS_PLUS:
@@ -348,16 +341,18 @@ Unit raavrgas;
               { This must absolutely be followed by (  }
               oper.InitRef;
               oper.opr.ref.offset:=BuildConstExpression(True,False);
-              if actasmtoken<>AS_LPAREN then
+
+              { absolute memory addresss? }
+              if actopcode in [A_LDS,A_STS] then
+                BuildReference(oper)
+              else
                 begin
                   ofs:=oper.opr.ref.offset;
                   BuildConstantOperand(oper);
                   inc(oper.opr.val,ofs);
-                end
-              else
-                BuildReference(oper);
+                end;
             end;
-          *)
+
           AS_ID: { A constant expression, or a Variable ref.  }
             Begin
               { Local Label ? }

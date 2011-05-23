@@ -90,7 +90,10 @@ begin
       Log(vlDebug,'Already executed or executing action '+FullActionName);
       exit;
     end;
-  ExecutedActions.Add(FullActionName,Pointer(PtrUInt(1)));
+
+  if AAction <> 'laz_list' then    //do not cache list action
+    ExecutedActions.Add(FullActionName,Pointer(PtrUInt(1)));
+
   // Create action handler class
   pkghandlerclass:=GetPkgHandler(AAction);
   With pkghandlerclass.Create(nil,APackageName) do
@@ -207,7 +210,7 @@ end;
 
 Procedure TPackageHandler.Log(Level:TLogLevel; Fmt:String; const Args:array of const);
 begin
-  pkgglobals.Log(Level,PackageLogPrefix+Fmt,Args);
+  pkgglobals.log(Level,PackageLogPrefix+Fmt,Args);
 end;
 
 

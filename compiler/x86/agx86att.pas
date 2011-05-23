@@ -260,7 +260,7 @@ interface
                  else if taicpu(hp).oper[1]^.typ = top_ref then
                    need_second_mov:=true
                  else
-                   internalerror(2010090211);
+                   internalerror(20100902);
                end;
            end;
         owner.AsmWrite(#9);

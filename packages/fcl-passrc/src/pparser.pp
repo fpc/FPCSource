@@ -951,7 +951,7 @@ begin
         // CEP assumes that it's array or record, because the expression
         // starts with "(". After the first part is parsed, the CEP meets "-"
         // that assures, it's not an array expression. The CEP should give the
-        // first partback to the expression parser, to get the correct
+        // first part back to the expression parser, to get the correct
         // token tree according to the operations priority.
         //
         // quite ugly. type information is required for CEP to work clean
@@ -1151,6 +1151,11 @@ begin
     else
       // Binary expression!  ((128 div sizeof(longint)) - 3);       ;
       Result:=DoParseExpression(AParent,x);
+      if CurToken<>tkBraceClose then ParseExc(SParserExpectedCommaRBracket);
+      NextToken;
+      if CurToken <> tkSemicolon then // the continue of expresion
+        Result:=DoParseExpression(AParent,Result);
+      Exit;
     end;
     if CurToken<>tkBraceClose then ParseExc(SParserExpectedCommaRBracket);
     NextToken;

@@ -72,6 +72,12 @@ asm
 .Lg_a_null:
 end ['RAX'];
 
+// The following assembler procedures are disabled for FreeBSD due to
+// multiple issues with its old GNU assembler (Mantis #19188).
+// Even after fixing them, it can be enabled only for the trunk version,
+// otherwise bootstrapping won't be possible.
+{$ifndef freebsd}
+
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
@@ -626,6 +632,8 @@ asm
     sar    $1, %rax                    { in words }
 end;
 {$endif FPC_SYSTEM_HAS_INDEXWORD}
+
+{$endif freebsd}
 
 {$asmmode att}
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}

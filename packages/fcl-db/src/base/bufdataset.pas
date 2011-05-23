@@ -528,7 +528,7 @@ type
     function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint; override;
 
     property ChangeCount : Integer read GetChangeCount;
-    property MaxIndexesCount : Integer read FMaxIndexesCount write SetMaxIndexesCount;
+    property MaxIndexesCount : Integer read FMaxIndexesCount write SetMaxIndexesCount default 2;
   published
     property FileName : string read FFileName write FFileName;
     property PacketRecords : Integer read FPacketRecords write SetPacketRecords default 10;
@@ -541,7 +541,35 @@ type
 
   TBufDataset = class(TCustomBufDataset)
   published
+    property MaxIndexesCount;
+    // TDataset stuff
     property FieldDefs;
+    Property Active;
+    Property AutoCalcFields;
+    Property Filter;
+    Property Filtered;
+    Property AfterCancel;
+    Property AfterClose;
+    Property AfterDelete;
+    Property AfterEdit;
+    Property AfterInsert;
+    Property AfterOpen;
+    Property AfterPost;
+    Property AfterScroll;
+    Property BeforeCancel;
+    Property BeforeClose;
+    Property BeforeDelete;
+    Property BeforeEdit;
+    Property BeforeInsert;
+    Property BeforeOpen;
+    Property BeforePost;
+    Property BeforeScroll;
+    Property OnCalcFields;
+    Property OnDeleteError;
+    Property OnEditError;
+    Property OnFilterRecord;
+    Property OnNewRecord;
+    Property OnPostError;
   end;
 
 
