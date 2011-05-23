@@ -125,6 +125,7 @@ Type
     procedure SetPriority(const AValue: THandlerPriority);
   public
     function InitializeWebHandler: TWebHandler; override;
+    Procedure Initialize;
     procedure ShowException(E: Exception); override;
     Function ProcessRequest(P : PRequest_Rec) : Integer; virtual;
     Function AllowRequest(P : PRequest_Rec) : Boolean; virtual;
@@ -716,6 +717,11 @@ end;
 function TCustomApacheApplication.InitializeWebHandler: TWebHandler;
 begin
   Result:=TApacheHandler.Create(self);
+end;
+
+procedure TCustomApacheApplication.Initialize;
+begin
+  TApacheHandler(WebHandler).Initialize;
 end;
 
 procedure TCustomApacheApplication.ShowException(E: Exception);
