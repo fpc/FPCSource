@@ -1285,6 +1285,107 @@ implementation
            end;
       end;
 
+    function handle_factor_typenode(hdef:tdef;getaddr:boolean;var again:boolean):tnode;
+      var
+        srsym : tsym;
+        srsymtable : tsymtable;
+      begin
+         if try_to_consume(_LKLAMMER) then
+          begin
+            result:=comp_expr(true,false);
+            consume(_RKLAMMER);
+            { type casts to class helpers aren't allowed }
+            if is_objectpascal_helper(hdef) then
+              Message(parser_e_no_category_as_types)
+              { recovery by not creating a conversion node }
+            else
+              result:=ctypeconvnode.create_explicit(result,hdef);
+          end
+         else { not LKLAMMER }
+          if (token=_POINT) and
+             (is_object(hdef) or is_record(hdef)) then
+           begin
+             consume(_POINT);
+             { handles calling methods declared in parent objects
+               using "parentobject.methodname()" }
+             if assigned(current_structdef) and
+                not(getaddr) and
+                current_structdef.is_related(hdef) then
+               begin
+                 result:=ctypenode.create(hdef);
+                 { search also in inherited methods }
+                 searchsym_in_class(tobjectdef(hdef),tobjectdef(current_structdef),pattern,srsym,srsymtable,true);
+                 if assigned(srsym) then
+                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                 consume(_ID);
+                 do_member_read(tabstractrecorddef(hdef),false,srsym,result,again,[]);
+               end
+             else
+              begin
+                { handles:
+                    * @TObject.Load
+                    * static methods and variables }
+                result:=ctypenode.create(hdef);
+                { TP allows also @TMenu.Load if Load is only }
+                { defined in an anchestor class              }
+                srsym:=search_struct_member(tabstractrecorddef(hdef),pattern);
+                if assigned(srsym) then
+                  begin
+                    check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                        consume(_ID);
+                        do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[]);
+                  end
+                else
+                  Message1(sym_e_id_no_member,orgpattern);
+              end;
+           end
+         else
+          begin
+            { Normally here would be the check against the usage
+              of "TClassHelper.Something", but as that might be
+              used inside of system symbols like sizeof and
+              typeinfo this check is put into ttypenode.pass_1
+              (for "TClassHelper" alone) and tcallnode.pass_1
+              (for "TClassHelper.Something") }
+            { class reference ? }
+            if is_class(hdef) or
+               is_objcclass(hdef) then
+             begin
+               if getaddr and (token=_POINT) then
+                begin
+                  consume(_POINT);
+                  { allows @Object.Method }
+                  { also allows static methods and variables }
+                  result:=ctypenode.create(hdef);
+                  { TP allows also @TMenu.Load if Load is only }
+                  { defined in an anchestor class              }
+                  srsym:=search_struct_member(tobjectdef(hdef),pattern);
+                  if assigned(srsym) then
+                   begin
+                     check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                     consume(_ID);
+                     do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[]);
+                   end
+                  else
+                   begin
+                     Message1(sym_e_id_no_member,orgpattern);
+                     consume(_ID);
+                   end;
+                end
+               else
+                begin
+                  result:=ctypenode.create(hdef);
+                  { For a type block we simply return only
+                    the type. For all other blocks we return
+                    a loadvmt node }
+                  if not(block_type in [bt_type,bt_const_type,bt_var_type]) then
+                    result:=cloadvmtaddrnode.create(result);
+                end;
+             end
+            else
+             result:=ctypenode.create(hdef);
+          end;
+      end;
 
 {****************************************************************************
                                Factor
@@ -2029,101 +2130,7 @@ implementation
                        if (hdef=cvarianttype) and
                           not(cs_compilesystem in current_settings.moduleswitches) then
                          current_module.flags:=current_module.flags or uf_uses_variants;
-                       if try_to_consume(_LKLAMMER) then
-                        begin
-                          p1:=comp_expr(true,false);
-                          consume(_RKLAMMER);
-                          { type casts to class helpers aren't allowed }
-                          if is_objectpascal_helper(hdef) then
-                            Message(parser_e_no_category_as_types)
-                            { recovery by not creating a conversion node }
-                          else
-                            p1:=ctypeconvnode.create_explicit(p1,hdef);
-                        end
-                       else { not LKLAMMER }
-                        if (token=_POINT) and
-                           (is_object(hdef) or is_record(hdef)) then
-                         begin
-                           consume(_POINT);
-                           { handles calling methods declared in parent objects
-                             using "parentobject.methodname()" }
-                           if assigned(current_structdef) and
-                              not(getaddr) and
-                              current_structdef.is_related(hdef) then
-                             begin
-                               p1:=ctypenode.create(hdef);
-                               { search also in inherited methods }
-                               searchsym_in_class(tobjectdef(hdef),tobjectdef(current_structdef),pattern,srsym,srsymtable,true);
-                               if assigned(srsym) then
-                                 check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
-                               consume(_ID);
-                               do_member_read(tabstractrecorddef(hdef),false,srsym,p1,again,[]);
-                             end
-                           else
-                            begin
-                              { handles:
-                                  * @TObject.Load
-                                  * static methods and variables }
-                              p1:=ctypenode.create(hdef);
-                              { TP allows also @TMenu.Load if Load is only }
-                              { defined in an anchestor class              }
-                              srsym:=search_struct_member(tabstractrecorddef(hdef),pattern);
-                              if assigned(srsym) then
-                                begin
-                                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
-                                      consume(_ID);
-                                      do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[]);
-                                end
-                              else
-                                Message1(sym_e_id_no_member,orgpattern);
-                            end;
-                         end
-                       else
-                        begin
-                          { Normally here would be the check against the usage
-                            of "TClassHelper.Something", but as that might be
-                            used inside of system symbols like sizeof and
-                            typeinfo this check is put into ttypenode.pass_1
-                            (for "TClassHelper" alone) and tcallnode.pass_1
-                            (for "TClassHelper.Something") }
-                          { class reference ? }
-                          if is_class(hdef) or
-                             is_objcclass(hdef) then
-                           begin
-                             if getaddr and (token=_POINT) then
-                              begin
-                                consume(_POINT);
-                                { allows @Object.Method }
-                                { also allows static methods and variables }
-                                p1:=ctypenode.create(hdef);
-                                { TP allows also @TMenu.Load if Load is only }
-                                { defined in an anchestor class              }
-                                srsym:=search_struct_member(tobjectdef(hdef),pattern);
-                                if assigned(srsym) then
-                                 begin
-                                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
-                                   consume(_ID);
-                                   do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[]);
-                                 end
-                                else
-                                 begin
-                                   Message1(sym_e_id_no_member,orgpattern);
-                                   consume(_ID);
-                                 end;
-                              end
-                             else
-                              begin
-                                p1:=ctypenode.create(hdef);
-                                { For a type block we simply return only
-                                  the type. For all other blocks we return
-                                  a loadvmt node }
-                                if not(block_type in [bt_type,bt_const_type,bt_var_type]) then
-                                  p1:=cloadvmtaddrnode.create(p1);
-                              end;
-                           end
-                          else
-                           p1:=ctypenode.create(hdef);
-                        end;
+                       p1:=handle_factor_typenode(hdef,getaddr,again);
                      end;
                   end;
 
@@ -2951,8 +2958,9 @@ implementation
                        if is_class_or_interface_or_object(gendef) or
                            is_record(gendef) then
                          gendef:=tclassrefdef.create(gendef);
-                       p1:=ctypenode.create(gendef);
-                       again:=true;
+                       again:=false;
+                       { handle potential typecasts, etc }
+                       p1:=handle_factor_typenode(gendef,false,again);
                        { parse postfix operators }
                        if postfixoperators(p1,again,false) then
                          if assigned(p1) then
