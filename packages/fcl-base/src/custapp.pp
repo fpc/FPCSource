@@ -22,9 +22,13 @@ uses SysUtils,Classes;
 
 Type
   TExceptionEvent = Procedure (Sender : TObject; E : Exception) Of Object;
+  TEventLogTypes = Set of TEventType;
+
+  { TCustomApplication }
 
   TCustomApplication = Class(TComponent)
   Private
+    FEventLogFilter: TEventLogTypes;
     FOnException: TExceptionEvent;
     FTerminated : Boolean;
     FHelpFile,
@@ -79,6 +83,7 @@ Type
     Property OptionChar : Char Read FoptionChar Write FOptionChar;
     Property CaseSensitiveOptions : Boolean Read FCaseSensitiveOptions Write FCaseSensitiveOptions;
     Property StopOnException : Boolean Read FStopOnException Write FStopOnException;
+    Property EventLogFilter : TEventLogTypes Read FEventLogFilter Write FEventLogFilter;
   end;
 
 var CustomApplication : TCustomApplication = nil;
