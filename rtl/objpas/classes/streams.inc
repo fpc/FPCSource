@@ -476,8 +476,8 @@ constructor TFileStream.Create(const AFileName: string; Mode: Word);
 
 begin
   FFileName:=AFileName;
-  If Mode=fmcreate then
-    FHandle:=FileCreate(AFileName)
+  If (Mode and fmCreate) > 0 then
+    FHandle:=FileCreate(AFileName,Mode)
   else
     FHAndle:=FileOpen(AFileName,Mode);
 
@@ -493,8 +493,8 @@ constructor TFileStream.Create(const AFileName: string; Mode: Word; Rights: Card
 
 begin
   FFileName:=AFileName;
-  If Mode=fmcreate then
-    FHandle:=FileCreate(AFileName,Rights)
+  If (Mode and fmCreate) > 0 then
+    FHandle:=FileCreate(AFileName,Mode,Rights)
   else
     FHAndle:=FileOpen(AFileName,Mode);
 

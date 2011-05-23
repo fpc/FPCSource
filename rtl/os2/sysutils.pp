@@ -510,9 +510,14 @@ Begin
     FileCreate:=feInvalidHandle;
 End;
 
-function FileCreate (const FileName: string; Mode: integer): THandle;
+function FileCreate (const FileName: string; Rights: integer): THandle;
 begin
  FileCreate := FileCreate(FileName);
+end;
+
+function FileCreate (const FileName: string; ShareMode : Integer; Rights: integer): THandle;
+begin
+  FileCreate := FileCreate(FileName);
 end;
 
 

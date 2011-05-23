@@ -430,7 +430,12 @@ asm
 end {['eax', 'ebx', 'ecx', 'edx']};
 
 
-function FileCreate (const FileName: string; Mode: integer): longint;
+function FileCreate (const FileName: string; Rights: integer): longint;
+begin
+  FileCreate:=FileCreate(FileName);
+end;
+
+function FileCreate (const FileName: string; ShareMode : integer; Rights: integer): longint;
 begin
   FileCreate:=FileCreate(FileName);
 end;

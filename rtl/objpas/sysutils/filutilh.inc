@@ -73,7 +73,8 @@ Const
 
 Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
 Function FileCreate (Const FileName : String) : THandle;
-Function FileCreate (Const FileName : String; Mode : Integer) : THandle;
+Function FileCreate (Const FileName : String; Rights : Integer) : THandle;
+Function FileCreate (Const FileName : String; ShareMode : Integer; Rights : Integer) : THandle;
 Function FileRead (Handle : THandle; out Buffer; Count : longint) : Longint;
 Function FileWrite (Handle : THandle; const Buffer; Count : Longint) : Longint;
 Function FileSeek (Handle : THandle; FOffset, Origin: Longint) : Longint;

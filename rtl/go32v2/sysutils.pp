@@ -130,7 +130,13 @@ begin
 end;
 
 
-Function FileCreate (Const FileName : String; Mode:longint) : Longint;
+Function FileCreate (Const FileName : String; ShareMode:longint; Rights : longint) : Longint;
+begin
+  FileCreate:=FileCreate(FileName);
+end;
+
+
+Function FileCreate (Const FileName : String; Rights:longint) : Longint;
 begin
   FileCreate:=FileCreate(FileName);
 end;

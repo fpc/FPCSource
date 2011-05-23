@@ -165,7 +165,13 @@ begin
 end;
 
 
-Function FileCreate (Const FileName : String; Mode:longint) : THandle;
+Function FileCreate (Const FileName : String; Rights:longint) : THandle;
+begin
+  FileCreate:=FileCreate(FileName);
+end;
+
+
+Function FileCreate (Const FileName : String; ShareMode:longint; Rights:longint) : THandle;
 begin
   FileCreate:=FileCreate(FileName);
 end;

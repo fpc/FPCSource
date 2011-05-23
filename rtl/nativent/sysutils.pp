@@ -87,7 +87,13 @@ begin
 end;
 
 
-function FileCreate(const FileName : String; Mode: longint) : THandle;
+function FileCreate(const FileName : String; Rights: longint) : THandle;
+begin
+  FileCreate := FileCreate(FileName);
+end;
+
+
+function FileCreate(const FileName : String; ShareMode : longint; Rights: longint) : THandle;
 begin
   FileCreate := FileCreate(FileName);
 end;
