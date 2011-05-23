@@ -2029,11 +2029,6 @@ implementation
                        if (hdef=cvarianttype) and
                           not(cs_compilesystem in current_settings.moduleswitches) then
                          current_module.flags:=current_module.flags or uf_uses_variants;
-                       { if we get a generic then check that it is not an inline specialization }
-                       if (df_generic in hdef.defoptions) and
-                          (token=_LT) and
-                          (m_delphi in current_settings.modeswitches) then
-                          generate_specialization(hdef,false,nil);
                        if try_to_consume(_LKLAMMER) then
                         begin
                           p1:=comp_expr(true,false);
