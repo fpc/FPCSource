@@ -1056,6 +1056,7 @@ implementation
          end;
 
         { method  ? }
+        def:=nil;
         if (consume_generic_type_parameter or not assigned(astruct)) and
            (symtablestack.top.symtablelevel=main_program_level) and
            try_to_consume(_POINT) then
