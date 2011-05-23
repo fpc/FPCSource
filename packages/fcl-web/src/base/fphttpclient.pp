@@ -555,6 +555,16 @@ end;
 
 procedure TFPCustomHTTPClient.ReadResponse(Stream: TStream; Const AllowedResponseCodes : Array of Integer);
 
+  Function Transfer(LB : Integer) : Integer;
+
+  begin
+    Result:=FSocket.Read(FBuffer[1],LB);
+    If Result<0 then
+      Raise EHTTPClient.Create(SErrReadingSocket);
+    if (Result>0) then
+      Stream.Write(FBuffer[1],Result);
+  end;
+
 Var
   L,LB,R : Integer;
   ResponseOK : Boolean;
@@ -567,19 +577,25 @@ begin
   LB:=Length(FBuffer);
   If (LB>0) then
     Stream.WriteBuffer(FBuffer[1],LB);
-  // Now write the rest, if any.
+  // Now read the rest, if any.
+  SetLength(FBuffer,ReadBuflen);
   L:=CheckContentLength;
   If (L>LB) then
-    Stream.CopyFrom(FSocket,L-LB)
+    begin
+    // We cannot use copyfrom, it uses ReadBuffer, and this is dangerous with sockets
+    L:=L-LB;
+    Repeat
+      LB:=ReadBufLen;
+      If (LB>L) then
+        LB:=L;
+      R:=Transfer(LB);
+      L:=L-R;
+    until (L=0) or (R=0);
+    end
   else if L<0 then
     // No content-length, so we read till no more data available.
     Repeat
-      SetLength(FBuffer,ReadBufLen);
-      R:=FSocket.Read(FBuffer[1],ReadBufLen);
-      If R<0 then
-        Raise EHTTPClient.Create(SErrReadingSocket);
-      if (R>0) then
-        Stream.Write(FBuffer[1],R);
+      R:=Transfer(ReadBufLen);
     until (R=0);
 end;
 
