@@ -235,12 +235,12 @@ end;
 
 Function FileCreate (Const FileName : String) : THandle;
 begin
-  FileCreate:=FileCreate(FileName, fmShareExclusive);
+  FileCreate:=FileCreate(FileName, fmShareExclusive, 0);
 end;
 
 Function FileCreate (Const FileName : String; Rights:longint) : THandle;
 begin
-  FileCreate:=FileCreate(FileName, Mode, 0);
+  FileCreate:=FileCreate(FileName, fmShareExclusive, Rights);
 end;
 
 Function FileCreate (Const FileName : String; ShareMode : Integer; Rights : Integer) : THandle;
