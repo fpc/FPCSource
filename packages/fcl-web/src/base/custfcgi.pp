@@ -188,8 +188,8 @@ begin
     FCGI_BEGIN_REQUEST :
          begin
          FKeepConnectionAfterRequest := (PFCGI_BeginRequestRecord(AFCGIRecord)^.body.flags and FCGI_KEEP_CONN) = FCGI_KEEP_CONN;
-         With PFCGI_BeginRequestRecord(AFCGIRecord)^.body do
-           log(etDebug,Format('Begin request body role & flags: %d %d',[Beton(Role),Flags]));
+//         With PFCGI_BeginRequestRecord(AFCGIRecord)^.body do
+//           log(etDebug,Format('Begin request body role & flags: %d %d',[Beton(Role),Flags]));
          end;
     FCGI_PARAMS :       begin
                         if AFCGIRecord^.contentLength=0 then
