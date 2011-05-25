@@ -217,25 +217,20 @@ begin
     
   if (FApplicationName='') and (FCommandLine='') and (FExecutable='') then
     Raise EProcess.Create(SNoCommandline);
-  if (FApplicationName='') then
-    begin
-    PCommandLine:=Pchar(FCommandLine)
-    end
-  else
+  if (FApplicationName<>'') then
     begin
     PName:=Pchar(FApplicationName);
-    If (FCommandLine<>'') then
-      PCommandLine:=Pchar(FCommandLine)
-    else if (Fexecutable='') then
-      PCommandLine:=Pchar(FApplicationName)
-    else
-      begin
-      Cmd:=MaybeQuote(Executable);
-      For I:=0 to Parameters.Count-1 do
-        Cmd:=Cmd+' '+MaybeQuote(Parameters[i]);
-      PCommandLine:=PChar(Cmd);
-      end;  
-    end;   
+    PCommandLine:=Pchar(FCommandLine);
+    end
+  else If (FCommandLine<>'') then
+    PCommandLine:=Pchar(FCommandLine)
+  else if (Fexecutable<>'') then
+    begin
+    Cmd:=MaybeQuote(Executable);
+    For I:=0 to Parameters.Count-1 do
+      Cmd:=Cmd+' '+MaybeQuote(Parameters[i]);
+    PCommandLine:=PChar(Cmd);
+    end;
   If FCurrentDirectory<>'' then
     PDir:=Pchar(FCurrentDirectory);
   if FEnvironment.Count<>0 then
