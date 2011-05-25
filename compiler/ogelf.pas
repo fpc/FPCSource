@@ -768,8 +768,12 @@ implementation
                  inc(data,symaddr-len-CurrObjSec.Size)
                else
                  begin
+{$ifndef x86_64}
                    CurrObjSec.addsectionreloc(CurrObjSec.Size,p.objsection,reltype);
                    inc(data,symaddr);
+{$else x86_64}
+                   CurrObjSec.addsymreloc(CurrObjSec.Size,p,reltype);
+{$endif}
                  end;
              end
            else
@@ -887,12 +891,23 @@ implementation
                { Symbol }
                if assigned(objreloc.symbol) then
                  begin
-                   if objreloc.symbol.symidx=-1 then
+{$ifdef x86_64}
+                   if (objreloc.symbol.bind=AB_LOCAL) and
+                     (objreloc.typ in [RELOC_RELATIVE,RELOC_ABSOLUTE,RELOC_ABSOLUTE32]) then
                      begin
-                       writeln(objreloc.symbol.Name);
-                       internalerror(200603012);
-                     end;
-                   relsym:=objreloc.symbol.symidx;
+                       inc(rel.addend,objreloc.symbol.address);
+                       relsym:=objreloc.symbol.objsection.secsymidx;
+                     end
+                   else
+{$endif}
+                     begin
+                       if objreloc.symbol.symidx=-1 then
+                         begin
+                           writeln(objreloc.symbol.Name);
+                           internalerror(200603012);
+                         end;
+                       relsym:=objreloc.symbol.symidx;
+                     end
                  end
                else
                  begin
