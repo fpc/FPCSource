@@ -19,14 +19,14 @@ interface
 
 uses
   Custapp, Classes, SysUtils, eventlog, rtlconsts;
-  
+
 Type
   TCustomDaemon = Class;
   TDaemonController = Class;
 
   TDaemonEvent = procedure(Sender: TCustomDaemon) of object;
   TDaemonOKEvent = procedure(Sender: TCustomDaemon; var OK: Boolean) of object;
-  
+
   TDaemonOption = (doAllowStop,doAllowPause,doInteractive);
   TDaemonOptions = Set of TDaemonOption;
 
@@ -412,7 +412,7 @@ Resourcestring
   SHelpUnInstall                = 'To uninstall the service';
   SHelpRun                      = 'To run the service';
 
-{$define svcdebug}
+{ $define svcdebug}
 
 {$ifdef svcdebug}
 Procedure DebugLog(Msg : String);
@@ -852,11 +852,14 @@ end;
 
 procedure TCustomDaemonApplication.ShowHelp;
 begin
-  writeln(Format(SHelpUsage,[ParamStr(0)]));
-  writeln(SHelpCommand);
-  writeln('  -i --install   '+SHelpInstall);
-  writeln('  -u --uninstall '+SHelpUnInstall);
-  writeln('  -r --run       '+SHelpRun);
+  if IsConsole then
+    begin
+    writeln(Format(SHelpUsage,[ParamStr(0)]));
+    writeln(SHelpCommand);
+    writeln('  -i --install   '+SHelpInstall);
+    writeln('  -u --uninstall '+SHelpUnInstall);
+    writeln('  -r --run       '+SHelpRun);
+	end
 end;
 
 procedure TCustomDaemonApplication.CreateForm(InstanceClass: TComponentClass;

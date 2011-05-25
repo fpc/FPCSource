@@ -237,7 +237,6 @@ begin
     PDeps:=GetDependencies(Dependencies);
     end;
   Try
-    flush(output);
     SV:=CreateService(SM, PChar(N), PChar(DN), SERVICE_ALL_ACCESS, ST, STT, ES,
                       PChar(E), PChar(LG), PIDTag, PDeps, PN, PP);
     If (SV=0) then
