@@ -403,10 +403,14 @@ asm
  mov ecx, Mode
  mov edx, FileName
 {$ENDIF REGCALL}
-(* DenyAll if sharing not specified. *)
- test ecx, 112
- jnz @FOpen1
- or ecx, 16
+(* DenyNone if sharing not specified. *)
+ mov eax, ecx
+ xor eax, 112
+ jz @FOpenDefSharing
+ cmp eax, 64
+ jbe FOpen1
+@FOpenDefSharing:
+ or ecx, 64
 @FOpen1:
  mov eax, 7F2Bh
  call syscall
@@ -415,30 +419,42 @@ asm
 end {['eax', 'ebx', 'ecx', 'edx']};
 
 
-function FileCreate (const FileName: string): longint; assembler;
-asm
- push ebx
-{$IFDEF REGCALL}
- mov edx, eax
-{$ELSE REGCALL}
- mov edx, FileName
-{$ENDIF REGCALL}
- mov eax, 7F2Bh
- mov ecx, ofReadWrite or faCreate or doDenyRW   (* Sharing to DenyAll *)
- call syscall
- pop ebx
-end {['eax', 'ebx', 'ecx', 'edx']};
+function FileCreate (const FileName: string): longint;
+begin
+  FileCreate := FileCreate (FileName, ofReadWrite or faCreate or doDenyRW, 777);
+                                                       (* Sharing to DenyAll *)
+end;
 
 
 function FileCreate (const FileName: string; Rights: integer): longint;
 begin
-  FileCreate:=FileCreate(FileName);
+  FileCreate := FileCreate (FileName, ofReadWrite or faCreate or doDenyRW,
+                                              Rights); (* Sharing to DenyAll *)
 end;
 
-function FileCreate (const FileName: string; ShareMode : integer; Rights: integer): longint;
-begin
-  FileCreate:=FileCreate(FileName);
-end;
+function FileCreate (const FileName: string; ShareMode: integer; Rights: integer): longint; assembler;
+asm
+ push ebx
+{$IFDEF REGCALL}
+ mov ecx, edx
+ mov edx, eax
+{$ELSE REGCALL}
+ mov ecx, ShareMode
+ mov edx, FileName
+{$ENDIF REGCALL}
+ and ecx, 112
+ or ecx, ecx
+ jz @FCDefSharing
+ cmp ecx, 64
+ jbe @FCSharingOK
+@FCDefSharing:
+ mov ecx, doDenyRW   (* Sharing to DenyAll *)
+@FCSharingOK:
+ or ecx, ofReadWrite or faCreate
+ mov eax, 7F2Bh
+ call syscall
+ pop ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 
 function FileRead (Handle: longint; Out Buffer; Count: longint): longint;
