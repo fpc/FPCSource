@@ -78,26 +78,6 @@ interface
           result:=generic_regname(r);
       end;
 
-
-   function fixline(s:string):string;
-   {
-     return s with all leading and ending spaces and tabs removed
-   }
-     var
-       i,j,k : longint;
-     begin
-       i:=length(s);
-       while (i>0) and (s[i] in [#9,' ']) do
-        dec(i);
-       j:=1;
-       while (j<i) and (s[j] in [#9,' ']) do
-        inc(j);
-       for k:=j to i do
-        if s[k] in [#0..#31,#127..#255] then
-         s[k]:='.';
-       fixline:=Copy(s,j,i-j+1);
-     end;
-
     function single2str(d : single) : string;
       var
          hs : string;
@@ -521,7 +501,6 @@ interface
     var
       s : string;
       hp       : tai;
-      hp1      : tailineinfo;
       counter,
       lines,
       i,j,l    : longint;
@@ -546,55 +525,15 @@ interface
       hp:=tai(p.first);
       while assigned(hp) do
        begin
-
+         prefetch(pointer(hp.next)^);
          if not(hp.typ in SkipLineInfo) then
-           begin
-             hp1:=hp as tailineinfo;
-             current_filepos:=hp1.fileinfo;
-             if do_line and (InlineLevel=0) then
-              begin
-              { load infile }
-                if lastfileinfo.fileindex<>hp1.fileinfo.fileindex then
-                 begin
-                   infile:=current_module.sourcefiles.get_file(hp1.fileinfo.fileindex);
-                   if assigned(infile) then
-                    begin
-                      { open only if needed !! }
-                      if (cs_asm_source in current_settings.globalswitches) then
-                       infile.open;
-                    end;
-                   { avoid unnecessary reopens of the same file !! }
-                   lastfileinfo.fileindex:=hp1.fileinfo.fileindex;
-                   { be sure to change line !! }
-                   lastfileinfo.line:=-1;
-                 end;
-              { write source }
-                if (cs_asm_source in current_settings.globalswitches) and
-                   assigned(infile) then
-                 begin
-                   if (infile<>lastinfile) then
-                     begin
-                       AsmWriteLn(target_asm.comment+'['+infile.name^+']');
-                       if assigned(lastinfile) then
-                         lastinfile.close;
-                     end;
-                   if (hp1.fileinfo.line<>lastfileinfo.line) and
-                      ((hp1.fileinfo.line<infile.maxlinebuf) or (InlineLevel>0)) then
-                     begin
-                       if (hp1.fileinfo.line<>0) and
-                          ((infile.linebuf^[hp1.fileinfo.line]>=0) or (InlineLevel>0)) then
-                         AsmWriteLn(target_asm.comment+'['+tostr(hp1.fileinfo.line)+'] '+
-                           fixline(infile.GetLineStr(hp1.fileinfo.line)));
-                       { set it to a negative value !
-                       to make that is has been read already !! PM }
-                       if (infile.linebuf^[hp1.fileinfo.line]>=0) then
-                         infile.linebuf^[hp1.fileinfo.line]:=-infile.linebuf^[hp1.fileinfo.line]-1;
-                     end;
-                 end;
-                lastfileinfo:=hp1.fileinfo;
-                lastinfile:=infile;
-              end;
-           end;
+          begin
+            current_filepos:=tailineinfo(hp).fileinfo;
+            { no line info for inlined code }
+            if do_line and (inlinelevel=0) then
+              WriteSourceLine(hp as tailineinfo);
+          end;
+
          case hp.typ of
            ait_comment :
              Begin
@@ -613,16 +552,7 @@ interface
            ait_tempalloc :
              begin
                if (cs_asm_tempalloc in current_settings.globalswitches) then
-                 begin
-{$ifdef EXTDEBUG}
-                   if assigned(tai_tempalloc(hp).problem) then
-                     AsmWriteLn(target_asm.comment+tai_tempalloc(hp).problem^+' ('+tostr(tai_tempalloc(hp).temppos)+','+
-                       tostr(tai_tempalloc(hp).tempsize)+')')
-                   else
-{$endif EXTDEBUG}
-                     AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
-                       tostr(tai_tempalloc(hp).tempsize)+tempallocstr[tai_tempalloc(hp).allocation]);
-                 end;
+                 WriteTempalloc(tai_tempalloc(hp));
              end;
 
            ait_section :
