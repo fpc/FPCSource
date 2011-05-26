@@ -1,3 +1,4 @@
+{ %OPT=-Cg }
 
 {$mode objfpc}
 unit ulib2a;
