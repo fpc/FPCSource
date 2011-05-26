@@ -477,7 +477,7 @@ constructor TFileStream.Create(const AFileName: string; Mode: Word);
 begin
   FFileName:=AFileName;
   If (Mode and fmCreate) > 0 then
-    FHandle:=FileCreate(AFileName,Mode)
+    FHandle:=FileCreate(AFileName,Mode,438)
   else
     FHAndle:=FileOpen(AFileName,Mode);
 
