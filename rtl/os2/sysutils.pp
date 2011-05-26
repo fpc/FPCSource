@@ -487,7 +487,8 @@ Var
   Rc, Action: cardinal;
 begin
 (* DenyNone if sharing not specified. *)
-  if Mode and 112 = 0 then Mode:=Mode or 64;
+  if (Mode and 112 = 0) or (Mode and 112 > 64) then
+   Mode := Mode or 64;
   Rc:=Sys_DosOpenL(PChar (FileName), Handle, Action, 0, 0, 1, Mode, nil);
   If Rc=0 then
     FileOpen:=Handle
@@ -514,8 +515,9 @@ var
   RC, Action: cardinal;
 begin
   ShareMode := ShareMode and 112;
-  if ShareMode = 0 then
-   ShareMode := doDenyRW; (* Sharing mode of 0 would be rejected by OS/2 *)
+  (* Sharing to DenyAll as default in case of values not allowed by OS/2. *)
+  if (ShareMode = 0) or (ShareMode > 64) then
+   ShareMode := doDenyRW;
   RC := Sys_DosOpenL (PChar (FileName), Handle, Action, 0, 0, $12,
                                     faCreate or ofReadWrite or ShareMode, nil);
   if RC = 0 then
