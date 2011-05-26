@@ -497,28 +497,32 @@ begin
 end;
 
 function FileCreate (const FileName: string): THandle;
-Const
-  Mode = ofReadWrite or faCreate or doDenyRW;   (* Sharing to DenyAll *)
-Var
-  Handle: THandle;
-  RC, Action: cardinal;
-Begin
-  RC:=Sys_DosOpenL(PChar (FileName), Handle, Action, 0, 0, $12, Mode, Nil);
-  If RC=0 then
-    FileCreate:=Handle
-  else
-    FileCreate:=feInvalidHandle;
-End;
+begin
+  FileCreate := FileCreate (FileName, doDenyRW, 777); (* Sharing to DenyAll *)
+end;
 
 function FileCreate (const FileName: string; Rights: integer): THandle;
 begin
- FileCreate := FileCreate(FileName);
+  FileCreate := FileCreate (FileName, doDenyRW, Rights);
+                                      (* Sharing to DenyAll *)
 end;
 
-function FileCreate (const FileName: string; ShareMode : Integer; Rights: integer): THandle;
+function FileCreate (const FileName: string; ShareMode: integer;
+                                                     Rights: integer): THandle;
+var
+  Handle: THandle;
+  RC, Action: cardinal;
 begin
-  FileCreate := FileCreate(FileName);
-end;
+  ShareMode := ShareMode and 112;
+  if ShareMode = 0 then
+   ShareMode := doDenyRW; (* Sharing mode of 0 would be rejected by OS/2 *)
+  RC := Sys_DosOpenL (PChar (FileName), Handle, Action, 0, 0, $12,
+                                    faCreate or ofReadWrite or ShareMode, nil);
+  if RC = 0 then
+   FileCreate := Handle
+  else
+   FileCreate := feInvalidHandle;
+End;
 
 
 function FileRead (Handle: THandle; Out Buffer; Count: longint): longint;
