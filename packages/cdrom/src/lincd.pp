@@ -708,8 +708,15 @@ procedure set_sense_key(var a : Trequest_sense; __sense_key : Tu8);
 { ---------------------------------------------------------------------
     Utility functions
   ---------------------------------------------------------------------}
+type
+  TCDSearchRec = record
+    Name: String;
+    i,j: Integer;
+  end;
 
 Function IsCDDevice(Device : String) : Boolean;
+Function FindFirstCD(var ACDSearchRec: TCDSearchRec): Boolean;
+Function FindNextCD(var ACDSearchRec: TCDSearchRec): Boolean;
 Function DetectCd : String;
 
 implementation
@@ -1098,6 +1105,61 @@ Const
   '/dev/sr?',
   '/dev/optcd');
 
+function FindFirstCD(var ACDSearchRec: TCDSearchRec): Boolean;
+begin
+  Result := False;
+  With ACDSearchRec do
+  begin
+    I := 1;
+    J := 0;
+    Name := '';
+  end;
+  Result := FindNextCD(ACDSearchRec);
+end;
+
+function FindNextCD(var ACDSearchRec: TCDSearchRec): Boolean;
+var
+  L: integer;
+  S: String;
+  FoundDev: String;
+begin
+
+  Result := False;
+  FoundDev := '';
+  with ACDSearchRec do
+  begin
+    While (FoundDev='') and (I<NrDevices) do
+    begin
+      S:=Devices[i];
+      L:=Length(S);
+      If S[l]='?' then
+      begin
+        S:=Copy(S,1,L-1);
+        if j >= 3 then
+          j := 0;
+        while (j <= 3) and (Length(FoundDev)=0) do
+        begin
+          If IsCdDevice(S+Chr(Ord('0')+J)) then
+            FoundDev:=S+Chr(Ord('0')+J)
+          else If IsCdDevice(S+Chr(Ord('a')+J)) then
+            FoundDev:=S+Chr(Ord('a')+J);
+          Inc(j);
+        end;
+        if J >= 3 then
+          Inc(i);
+      end
+      else
+      begin
+        If IsCdDevice(S) then
+          FoundDev:=S;
+        Inc(i);
+      end;
+    end;
+  end;
+  Result := Length(FoundDev) > 0;
+  ACDSearchRec.Name:=FoundDev;
+end;
+
 Function DetectCD : String;
 
 Var
@@ -1163,7 +1225,9 @@ begin
   If fpStat(Device,info)<>0 then
     exit;
   DeviceMajor:=info.st_rdev shr 8;
+  {$ifdef debug}
   Writeln('Device major : ',DeviceMajor);
+  {$endif}
   If DeviceMajor in [IDE0_MAJOR,IDE1_MAJOR,IDE2_MAJOR,IDE3_MAJOR] then
     Result:=TestCDRomIOCTL(Device)
   else 

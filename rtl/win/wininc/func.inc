@@ -134,7 +134,7 @@ function GetExitCodeThread(hThread:HANDLE; lpExitCode:LPDWORD):WINBOOL; external
 function GetThreadSelectorEntry(hThread:HANDLE; dwSelector:DWORD; lpSelectorEntry:LPLDT_ENTRY):WINBOOL; external 'kernel32' name 'GetThreadSelectorEntry';
 function GetLastError:DWORD; external 'kernel32' name 'GetLastError';
 procedure SetLastError(dwErrCode:DWORD); external 'kernel32' name 'SetLastError';
-function CreateIoCompletionPort(FileHandle:HANDLE; ExistingCompletionPort:HANDLE; CompletionKey:DWORD; NumberOfConcurrentThreads:DWORD):HANDLE; external 'kernel32' name 'CreateIoCompletionPort';
+function CreateIoCompletionPort(FileHandle:HANDLE; ExistingCompletionPort:HANDLE; CompletionKey:ULONG_PTR; NumberOfConcurrentThreads:DWORD):HANDLE; external 'kernel32' name 'CreateIoCompletionPort';
 function SetErrorMode(uMode:UINT):UINT; external 'kernel32' name 'SetErrorMode';
 function ReadProcessMemory(hProcess:HANDLE; lpBaseAddress:LPCVOID; lpBuffer:LPVOID; nSize:DWORD; lpNumberOfBytesRead:LPDWORD):WINBOOL; external 'kernel32' name 'ReadProcessMemory';
 function WriteProcessMemory(hProcess:HANDLE; lpBaseAddress:LPVOID; lpBuffer:LPVOID; nSize:DWORD; lpNumberOfBytesWritten:LPDWORD):WINBOOL; external 'kernel32' name 'WriteProcessMemory';
