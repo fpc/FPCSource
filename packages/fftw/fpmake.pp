@@ -20,7 +20,7 @@ begin
 
     P.Version:='2.4.5';
     P.Author := 'Library: Matteo Frigo and Steven G. Johnson, header: Daniel Mantione';
-    P.License := 'Library: MIT, header: LGPL with modification, ';
+    P.License := 'Library: GPL or commercial, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data';
