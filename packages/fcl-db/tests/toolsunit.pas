@@ -7,7 +7,7 @@ unit ToolsUnit;
 interface
 
 uses
-  Classes, SysUtils, DB, testdecorator;
+  Classes, SysUtils, DB, testdecorator, FmtBCD;
   
 Const MaxDataSet = 35;
   
@@ -95,6 +95,7 @@ const
   testValuesCount = 25;
   testFloatValues : Array[0..testValuesCount-1] of double = (-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,0.123456,-0.123456,4.35,12.434E7,9.876e-5,123.45678,2.4,3.2,0.4,23);
   testCurrencyValues : Array[0..testValuesCount-1] of currency = (-100,-65.5,-54.34,-43.34,-2.50,-0.2,45.40,0.3,45.4,127,128,255,256,45,0.3,45.4,127,128,255,256,45,1234.56,43.23,43.43,99.88);
+  testFmtBCDValues : Array[0..testValuesCount-1] of string = ('-100','-65.5','-54.3333','-43.3334','-2.5','-0.234567','45.4','0.3','45.414585','127','128','255','256','45','0.3','45.4','127','128','255','256','45','1234.56789','43.23','43.500001','99.88');
   testIntValues : Array[0..testValuesCount-1] of integer = (-maxInt,-maxInt+1,-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,MaxInt-1,MaxInt,100,130,150,-150,-132,234);
   testSmallIntValues : Array[0..testValuesCount-1] of smallint = (-maxSmallint,-maxSmallint+1,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint-1,100,110,120,130,150,-150,-132,234,231,42);
   testLargeIntValues : Array[0..testValuesCount-1] of LargeInt = ( -$7fffffffffffffff,-$7ffffffffffffffe,-maxInt-1,-maxInt+1,-maxSmallint,-maxSmallint+1,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint-1,maxSmallint+1,MaxInt-1,MaxInt,$7fffffffffffffff-1,$7fffffffffffffff,235253244);
@@ -155,6 +156,35 @@ const
     '1997-11-29',
     '1900-01-01'
   );
+
+  testTimeValues : Array[0..testValuesCount-1] of string = (
+    '10:45:12:000',
+    '00:00:00:000',
+    '24:00:00:000',
+    '33:25:15:000',
+    '04:59:16:000',
+    '05:45:59:000',
+    '16:35:42:000',
+    '14:45:52:000',
+    '12:45:12:000',
+    '18:45:22:000',
+    '19:45:12:000',
+    '14:45:14:000',
+    '16:45:12:000',
+    '11:45:12:000',
+    '15:35:12:000',
+    '16:45:12:000',
+    '13:55:12:000',
+    '13:46:12:000',
+    '15:35:12:000',
+    '17:25:12:000',
+    '19:45:12:000',
+    '10:54:12:000',
+    '12:25:12:000',
+    '20:15:12:000',
+    '12:25:12:000'
+  );
+
 
 var dbtype,
     dbconnectorname,
@@ -255,6 +285,8 @@ begin
   if DBConnectorRefCount>0 then exit;
   testValues[ftString] := testStringValues;
   testValues[ftFixedChar] := testStringValues;
+  testValues[ftTime] := testTimeValues;
+  testValues[ftFMTBcd] := testFmtBCDValues;
   for i := 0 to testValuesCount-1 do
     begin
     testValues[ftFloat,i] := FloatToStr(testFloatValues[i]);

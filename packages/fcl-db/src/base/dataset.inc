@@ -901,8 +901,7 @@ begin
           if Required then Attributes := attributes + [faRequired];
           if ReadOnly then Attributes := attributes + [faReadOnly];
           if DataType = ftBCD then precision := (fields[i] as TBCDField).Precision
-          // this must change if TFMTBcdfield is implemented
-          else if DataType = ftFMTBcd then precision := (fields[i] as TBCDField).Precision;
+          else if DataType = ftFMTBcd then precision := (fields[i] as TFMTBCDField).Precision;
           end;
         end;
     finally

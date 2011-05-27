@@ -20,7 +20,11 @@
 {$endif fpc}
 
 {$ifndef DYNLOADINGODBC}
+{$IFDEF WINDOWS}
+  {$linklib odbc32}
+{$ELSE}
   {$linklib odbc}
+{$endif} 
 {$endif}
 
 interface
@@ -1711,7 +1715,10 @@ end;
 Function TimeStructToDateTime (B : PSQL_TIME_STRUCT) : TDateTime;
 begin
   With B^ do
-    Result:=EncodeTime(Hour,Minute,Second,0);
+    begin
+      // TryEncodeTime can not be used, because it doesn't supports times with more then 24 hours.
+      Result:=TDateTime(cardinal(Hour)*3600000+cardinal(Minute)*60000+cardinal(Second)*1000)/MSecsPerDay;
+    end;
 end;
 
 

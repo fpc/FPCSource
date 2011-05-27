@@ -546,7 +546,7 @@ begin
       FPrepared := True;
       end
     else
-      statement := buf;
+      statement := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
     end;
 end;
 
@@ -561,10 +561,11 @@ begin
       res := pqexec(tr.PGConn,pchar('deallocate prepst'+nr));
       if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
         begin
+          pqclear(res);
+          DatabaseError(SErrPrepareFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self)
+        end
+      else
         pqclear(res);
-        DatabaseError(SErrPrepareFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self)
-        end;
-      pqclear(res);
       end;
     FPrepared := False;
     end;
@@ -641,9 +642,12 @@ begin
         s := Statement;
       res := pqexec(tr.PGConn,pchar(s));
       if (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
-        pqclear(res);
+        begin
+          pqclear(res); 
+          res:=nil;
+        end;
       end;
-    if not (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
+    if assigned(res) and not (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
       begin
       s := PQerrorMessage(tr.PGConn);
       pqclear(res);

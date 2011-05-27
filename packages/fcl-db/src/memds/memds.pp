@@ -300,6 +300,7 @@ begin
  dt1:= FieldDefs.Items[FieldNo-1].Datatype;
  case dt1 of
   ftString:   result:=FieldDefs.Items[FieldNo-1].Size+1;
+  ftFixedChar:result:=FieldDefs.Items[FieldNo-1].Size+1;
   ftBoolean:  result:=SizeOf(Wordbool);
   ftFloat:    result:=SizeOf(Double);
   ftLargeInt: result:=SizeOf(int64);
@@ -964,6 +965,7 @@ begin
                 ftInteger  : F1.AsInteger:=F2.AsInteger;
                 ftDate     : F1.AsDateTime:=F2.AsDateTime;
                 ftTime     : F1.AsDateTime:=F2.AsDateTime;
+                ftDateTime : F1.AsDateTime:=F2.AsDateTime;
               end;
               end;
             Try
