@@ -25,7 +25,7 @@ uses
 {$ifdef unix}
   BaseUnix, TermIO,
 {$else}
-  winsock2,
+  winsock2, windows,
 {$endif}
   Sockets, custweb, custcgi, fastcgi;
 
@@ -40,6 +40,8 @@ Type
   TProtocolOptions = Set of TProtocolOption;
 
   TUnknownRecordEvent = Procedure (ARequest : TFCGIRequest; AFCGIRecord: PFCGI_Header) Of Object;
+  TFastCGIReadEvent = Function (AHandle : THandle; Var ABuf; ACount : Integer) : Integer of Object;
+  TFastCGIWriteEvent = Function (AHandle : THandle; Const ABuf; ACount : Integer) : Integer of Object;
 
   TFCGIRequest = Class(TCGIRequest)
   Private
@@ -70,6 +72,7 @@ Type
   TFCGIResponse = Class(TCGIResponse)
   private
     FPO: TProtoColOptions;
+    FOnWrite : TFastCGIWriteEvent;
   Protected
     procedure Write_FCGIRecord(ARecord : PFCGI_Header); virtual;
     Procedure DoSendHeaders(Headers : TStrings); override;
@@ -98,9 +101,16 @@ Type
     FAddress: string;
     FTimeOut,
     FPort: integer;
+{$ifdef windows}
+    FIsWinPipe: Boolean;
+{$endif}
+    function AcceptConnection: Integer;
+    procedure CloseConnection;
     function Read_FCGIRecord : PFCGI_Header;
     function DataAvailable : Boolean;
   protected
+    Function DoFastCGIRead(AHandle : THandle; Var ABuf; ACount : Integer) : Integer; virtual;
+    Function DoFastCGIWrite(AHandle : THandle; Const ABuf; ACount : Integer) : Integer; virtual;
     function  ProcessRecord(AFCGI_Record: PFCGI_Header; out ARequest: TRequest;  out AResponse: TResponse): boolean; virtual;
     procedure SetupSocket(var IAddress: TInetSockAddr;  var AddressLength: tsocklen); virtual;
     function  WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
@@ -348,7 +358,7 @@ begin
   BytesToWrite := BEtoN(ARecord^.contentLength) + ARecord^.paddingLength+sizeof(FCGI_Header);
   P:=PByte(Arecord);
   Repeat
-    BytesWritten := sockets.fpsend(TFCGIRequest(Request).Handle, P, BytesToWrite, NoSignalAttr);
+    BytesWritten:=FOnWrite(TFCGIRequest(Request).Handle, P^, BytesToWrite);
     If (BytesWritten<0) then
       begin
       // TODO : Better checking for closed connection, EINTR
@@ -478,10 +488,37 @@ begin
   inherited Destroy;
 end;
 
-procedure TFCgiHandler.EndRequest(ARequest: TRequest; AResponse: TResponse);
-
+procedure TFCgiHandler.CloseConnection;
 Var
   i : Integer;
+begin
+{$ifdef windows}
+  if FIsWinPipe then
+    begin
+    if not FlushFileBuffers(FHandle) then
+      begin
+      I:=GetLastError;
+//      Log(etError,Format('Failed to flush file buffers: %d ',[i]));
+      end;
+    if not DisconnectNamedPipe(FHandle) then
+      begin
+      I:=GetLastError;
+//      Log(etError,Format('Failed to disconnect named pipe: %d ',[i]));
+      end
+    end
+  else
+{$endif}
+    begin
+    i:=fpshutdown(FHandle,SHUT_RDWR);
+//      Log(etError,Format('Shutting down socket: %d ',[i]));
+    i:=CloseSocket(FHandle);
+//      Log(etError,Format('Closing socket %d',[i]));
+    end;
+  FHandle := THandle(-1);
+end;
+
+procedure TFCgiHandler.EndRequest(ARequest: TRequest; AResponse: TResponse);
+
 
 begin
   with FRequestsArray[TFCGIRequest(ARequest).RequestID] do
@@ -489,13 +526,7 @@ begin
     Assert(ARequest=Request);
     Assert(AResponse=Response);
     if (not TFCGIRequest(ARequest).KeepConnectionAfterRequest) then
-      begin
-      i:=fpshutdown(FHandle,SHUT_RDWR);
-//      Log(etDebug,Format('Shutting down socket: %d ',[i]));
-      i:=CloseSocket(FHandle);
-//      Log(etDebug,Format('Closing socket %d',[i]));
-      FHandle := THandle(-1);
-      end;
+      CloseConnection;
     Request := Nil;
     Response := Nil;
     end;
@@ -539,7 +570,7 @@ function TFCgiHandler.Read_FCGIRecord : PFCGI_Header;
     P:=ReadBuf;
     if (ByteAmount=0) then exit;
     Repeat
-      Count:=sockets.fpRecv(FHandle, P, ByteAmount, NoSignalAttr);
+      Count:=DoFastCGIRead(FHandle,P^,ByteAmount);
       If (Count>0) then
         begin
         Dec(ByteAmount,Count);
@@ -681,6 +712,27 @@ begin
 end;
 {$endif}
 
+function TFCgiHandler.DoFastCGIRead(AHandle: THandle; var ABuf; ACount: Integer): Integer;
+begin
+{$ifdef windows}
+  if FIsWinPipe then
+    Result:=FileRead(FHandle,ABuf,ACount)
+  else
+{$endif}
+    Result:=sockets.fpRecv(FHandle, @Abuf, ACount, NoSignalAttr);
+end;
+
+function TFCgiHandler.DoFastCGIWrite(AHandle: THandle; const ABuf;
+  ACount: Integer): Integer;
+begin
+  {$ifdef windows}
+  if FIsWinPipe then
+    Result := FileWrite(AHandle, ABuf, ACount)
+  else
+  {$endif windows}
+    Result := sockets.fpsend(AHandle, @ABuf, ACount, NoSignalAttr);
+end;
+
 function TFCgiHandler.ProcessRecord(AFCGI_Record  : PFCGI_Header; out ARequest: TRequest; out AResponse: TResponse): boolean;
 
 var
@@ -716,9 +768,43 @@ begin
     ARequest:=FRequestsArray[ARequestID].Request;
     FRequestsArray[ARequestID].Response := TFCGIResponse.Create(ARequest);
     FRequestsArray[ARequestID].Response.ProtocolOptions:=Self.ProtocolOptions;
+    FRequestsArray[ARequestID].Response.FOnWrite:=@DoFastCGIWrite;
     AResponse:=FRequestsArray[ARequestID].Response;
     Result := True;
     end;
+end;
+
+function TFCgiHandler.AcceptConnection : Integer;
+
+Var
+  B : BOOL;
+{$ifdef windows}
+  pipeMode : DWORD = PIPE_READMODE_BYTE or PIPE_WAIT;
+  i : integer;
+{$endif}
+
+begin
+{$ifndef windows}
+  Result:=fpaccept(Socket,psockaddr(@FIAddress),@FAddressLength);
+{$else}
+  if Not fIsWinPipe then
+    Result:=fpaccept(Socket,psockaddr(@FIAddress),@FAddressLength);
+  If FIsWinPipe or ((Result<0) and (socketerror=10038)) then
+    begin
+    B:=ConnectNamedPipe(Socket,Nil);
+    if B or (GetLastError=ERROR_PIPE_CONNECTED) then
+       begin
+       Result:=Socket;
+       if Not FIsWinPipe then // First time, set handle state
+         if not SetNamedPipeHandleState(Result,@PipeMode,Nil,Nil) then
+           begin
+           I:=GetLastError;
+//           Log(etError,'Setting named pipe handle state failed : '+intToStr(i));
+           end;
+       FIsWinPipe:=True;
+       end;
+    end;
+{$endif}
 end;
 
 function TFCgiHandler.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
@@ -736,13 +822,11 @@ begin
     else
       Socket:=StdInputHandle;
   if FHandle=THandle(-1) then
+    FHandle:=AcceptConnection;
+  if FHandle=THandle(-1) then
     begin
-    FHandle:=fpaccept(Socket,psockaddr(@FIAddress),@FAddressLength);
-    if FHandle=THandle(-1) then
-      begin
-      Terminate;
-      raise Exception.CreateFmt(SNoInputHandle,[socketerror]);
-      end;
+    Terminate;
+    raise Exception.CreateFmt(SNoInputHandle,[socketerror]);
     end;
   repeat
     If (poUseSelect in ProtocolOptions) then
