@@ -130,8 +130,9 @@ type
   ---------------------------------------------------------------------}
   TRegIniFile = class(TRegistry)
   private
-    fFileName: String;
-    fPath    : String;
+    fFileName          : String;
+    fPath              : String;
+    fPreferStringValues: Boolean;
   public
     constructor Create(const FN: string); overload;
     constructor Create(const FN: string;aaccess:longword); overload;
@@ -150,6 +151,8 @@ type
     procedure DeleteKey(const Section, Ident: String);
 
     property FileName: String read fFileName;
+    property PreferStringValues: Boolean read fPreferStringValues
+                write fPreferStringValues;
   end;
 
 { ---------------------------------------------------------------------

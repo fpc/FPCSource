@@ -19,6 +19,7 @@ type
   protected
   published
     procedure TestSimpleWinRegistry;
+    procedure TestDoubleWrite;
   end;
 
 implementation
@@ -37,13 +38,47 @@ begin
 
   // use a hopefully non existing key
   AssertFalse(Registry.KeyExists('FPC1234'));
-
+{$ifdef windows}
   AssertTrue(Registry.KeyExists('SOFTWARE'));
-
-  // Registry.OpenKey('FPC', False);
-  // Result:=Registry.ReadString('VALUE1');
+{$endif}  
 
   Registry.Free;
+end;
+
+procedure TTestBasics.TestDoubleWrite;
+
+{$ifndef windows}
+Var
+  FN : String;
+{$endif}
+
+begin
+{$ifndef windows}
+  FN:=includetrailingpathdelimiter(GetAppConfigDir(False))+'reg.xml';
+  if FileExists(FN) then
+    AssertTrue(DeleteFile(FN));
+{$endif}
+  with TRegistry.Create do
+    try
+      OpenKey('test', true);
+      WriteString('LAYOUT', '');
+      CloseKey;
+    finally
+      Free;
+    end;
+  with TRegistry.Create do
+    try
+      OpenKey('test', true);
+      WriteString('LAYOUT', '');
+      CloseKey;
+    finally
+      Free;
+    end;
+{$ifndef windows}
+  FN:=includetrailingpathdelimiter(GetAppConfigDir(False))+'reg.xml';
+  if FileExists(FN) then
+    AssertTrue(DeleteFile(FN));
+{$endif}
 end;
 
 initialization
