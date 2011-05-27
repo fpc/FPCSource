@@ -776,9 +776,9 @@ end;
 
 function TFCgiHandler.AcceptConnection : Integer;
 
+{$ifdef windows}
 Var
   B : BOOL;
-{$ifdef windows}
   pipeMode : DWORD = PIPE_READMODE_BYTE or PIPE_WAIT;
   i : integer;
 {$endif}
