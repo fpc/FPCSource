@@ -295,8 +295,8 @@ implementation
         end;
         telf64reloc=packed record
           address : qword;
-          info    : qword; { bit 0-7: type, 8-31: symbol }
-          addend  : qword;
+          info    : qword; { bit 0-31: type, 32-63: symbol }
+          addend  : int64; { signed! }
         end;
         telf64symbol=packed record
           st_name  : longint;
@@ -768,12 +768,8 @@ implementation
                  inc(data,symaddr-len-CurrObjSec.Size)
                else
                  begin
-{$ifndef x86_64}
                    CurrObjSec.addsectionreloc(CurrObjSec.Size,p.objsection,reltype);
                    inc(data,symaddr);
-{$else x86_64}
-                   CurrObjSec.addsymreloc(CurrObjSec.Size,p,reltype);
-{$endif}
                  end;
              end
            else
@@ -814,6 +810,8 @@ implementation
         relsym,
         reltyp   : longint;
         relocsect : TObjSection;
+        tmp: aint;
+        asize: longint;
       begin
         with elf32data do
          begin
@@ -865,7 +863,7 @@ implementation
                    begin
                      reltyp:=R_X86_64_PC32;
                      { length of the relocated location is handled here }
-                     rel.addend:=qword(-4);
+                     rel.addend:=-4;
                    end;
                  RELOC_ABSOLUTE :
                    reltyp:=R_X86_64_64;
@@ -875,39 +873,51 @@ implementation
                    begin
                      reltyp:=R_X86_64_GOTPCREL;
                      { length of the relocated location is handled here }
-                     rel.addend:=qword(-4);
+                     rel.addend:=-4;
                    end;
                  RELOC_PLT32 :
                    begin
                      reltyp:=R_X86_64_PLT32;
                      { length of the relocated location is handled here }
-                     rel.addend:=qword(-4);
+                     rel.addend:=-4;
                    end;
 {$endif x86_64}
                  else
                    internalerror(200602261);
                end;
 
+{ This handles ELF 'rela'-styled relocations, which are currently used only for x86_64,
+  but can be used other targets, too. }
+{$ifdef x86_64}
+               s.Data.Seek(objreloc.dataoffset);
+               if objreloc.typ=RELOC_ABSOLUTE then
+                 begin
+                   asize:=8;
+                   s.Data.Read(tmp,8);
+                   rel.addend:=rel.addend+tmp;
+                 end
+               else
+                 begin
+                   asize:=4;
+                   s.Data.Read(tmp,4);
+                   rel.addend:=rel.addend+longint(tmp);
+                 end;
+
+               { and zero the data member out }
+               tmp:=0;
+               s.Data.Seek(objreloc.dataoffset);
+               s.Data.Write(tmp,asize);
+{$endif}
+
                { Symbol }
                if assigned(objreloc.symbol) then
                  begin
-{$ifdef x86_64}
-                   if (objreloc.symbol.bind=AB_LOCAL) and
-                     (objreloc.typ in [RELOC_RELATIVE,RELOC_ABSOLUTE,RELOC_ABSOLUTE32]) then
+                   if objreloc.symbol.symidx=-1 then
                      begin
-                       inc(rel.addend,objreloc.symbol.address);
-                       relsym:=objreloc.symbol.objsection.secsymidx;
-                     end
-                   else
-{$endif}
-                     begin
-                       if objreloc.symbol.symidx=-1 then
-                         begin
-                           writeln(objreloc.symbol.Name);
-                           internalerror(200603012);
-                         end;
-                       relsym:=objreloc.symbol.symidx;
-                     end
+                       writeln(objreloc.symbol.Name);
+                       internalerror(200603012);
+                     end;
+                   relsym:=objreloc.symbol.symidx;
                  end
                else
                  begin
