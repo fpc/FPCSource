@@ -1002,7 +1002,7 @@ Type
                             dwFlags: DWORD;
                             dwLoops: DWORD;
                             lpNext: PWAVEHDR;
-                            reserved: DWORD;
+                            reserved: DWORD_PTR;
           End;
  WAVEHDR = _wavehdr;
  TWAVEHDR=  WAVEHDR;
@@ -2437,9 +2437,9 @@ Function mmioSendMessage(x1: HMMIO; x2: UINT; x3: LPARAM; x4: LPARAM): LRESULT;s
 Function mmioDescend(x1: HMMIO; x2: LPMMCKINFO; x3: PMMCKINFO; x4: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'mmioDescend';
 Function mmioAscend(x1: HMMIO; x2: LPMMCKINFO; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'mmioAscend';
 Function mmioCreateChunk(x1: HMMIO; x2: LPMMCKINFO; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'mmioCreateChunk';
-Function mciSendCommandA(x1: MCIDEVICEID; x2: UINT; x3: DWORD; x4: DWORD): MCIERROR;stdcall; external 'winmm.dll' name 'mciSendCommandA';
-Function mciSendCommandW(x1: MCIDEVICEID; x2: UINT; x3: DWORD; x4: DWORD): MCIERROR;stdcall; external 'winmm.dll' name 'mciSendCommandW';
-Function mciSendCommand(x1: MCIDEVICEID; x2: UINT; x3: DWORD; x4: DWORD): MCIERROR;stdcall; external 'winmm.dll' name
+Function mciSendCommandA(x1: MCIDEVICEID; x2: UINT; x3: DWORD_PTR; x4: DWORD_PTR): MCIERROR;stdcall; external 'winmm.dll' name 'mciSendCommandA';
+Function mciSendCommandW(x1: MCIDEVICEID; x2: UINT; x3: DWORD_PTR; x4: DWORD_PTR): MCIERROR;stdcall; external 'winmm.dll' name 'mciSendCommandW';
+Function mciSendCommand(x1: MCIDEVICEID; x2: UINT; x3: DWORD_PTR; x4: DWORD_PTR): MCIERROR;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'mciSendCommandW' {$else}'mciSendCommandA' {$endif};
 Function mciSendStringA(x1: LPCSTR; x2: LPSTR; x3: UINT; x4: HWND): MCIERROR;stdcall; external 'winmm.dll' name 'mciSendStringA';
 Function mciSendStringW(x1: LPCWSTR; x2: LPWSTR; x3: UINT; x4: HWND): MCIERROR;stdcall; external 'winmm.dll' name 'mciSendStringW';
@@ -2478,7 +2478,7 @@ Function waveOutGetErrorTextA(x1: MMRESULT; x2: LPSTR; x3: UINT): MMRESULT;stdca
 Function waveOutGetErrorTextW(x1: MMRESULT; x2: LPWSTR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'waveOutGetErrorTextW';
 Function waveOutGetErrorText(x1: MMRESULT; x2: PChar; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'waveOutGetErrorTextW' {$else}'waveOutGetErrorTextA' {$endif};
-Function waveOutOpen(x1: LPHWAVEOUT; x2: UINT; x3: LPCWAVEFORMATEX; x4: DWORD; x5: DWORD;
+Function waveOutOpen(x1: LPHWAVEOUT; x2: UINT; x3: LPCWAVEFORMATEX; x4: DWORD_PTR; x5: DWORD_PTR;
                      x6: DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'waveOutOpen';
 Function waveOutClose(x1: HWAVEOUT): MMRESULT;stdcall; external 'winmm.dll' name 'waveOutClose';
 Function waveOutPrepareHeader(x1: HWAVEOUT; x2: LPWAVEHDR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'waveOutPrepareHeader';
@@ -2504,7 +2504,7 @@ Function waveInGetErrorTextA(x1: MMRESULT; x2: LPSTR; x3: UINT): MMRESULT;stdcal
 Function waveInGetErrorTextW(x1: MMRESULT; x2: LPWSTR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'waveInGetErrorTextW';
 Function waveInGetErrorText(x1: MMRESULT; x2: PChar; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'waveInGetErrorTextW' {$else}'waveInGetErrorTextA' {$endif};
-Function waveInOpen(x1: LPHWAVEIN; x2: UINT; x3: LPCWAVEFORMATEX; x4: DWORD; x5: DWORD; x6                    : DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'waveInOpen';
+Function waveInOpen(x1: LPHWAVEIN; x2: UINT; x3: LPCWAVEFORMATEX; x4: DWORD_PTR; x5: DWORD_PTR; x6 : DWORD): MMRESULT;stdcall; external 'winmm.dll' name 'waveInOpen';
 Function waveInClose(x1: HWAVEIN): MMRESULT;stdcall; external 'winmm.dll' name 'waveInClose';
 Function waveInPrepareHeader(x1: HWAVEIN; x2: LPWAVEHDR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'waveInPrepareHeader';
 Function waveInUnprepareHeader(x1: HWAVEIN; x2: LPWAVEHDR; x3: UINT): MMRESULT;stdcall; external 'winmm.dll' name 'waveInUnprepareHeader';

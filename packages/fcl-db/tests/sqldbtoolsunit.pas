@@ -11,7 +11,7 @@ uses
 
 type TSQLDBTypes = (mysql40,mysql41,mysql50,postgresql,interbase,odbc,oracle,sqlite3);
 
-const MySQLdbTypes = [mysql40,mysql41,mysql50];
+const MySQLdbTypes = [mysql40,mysql41,mysql50,mysql51];
       DBTypesNames : Array [TSQLDBTypes] of String[19] =
              ('MYSQL40','MYSQL41','MYSQL50','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3');
              
