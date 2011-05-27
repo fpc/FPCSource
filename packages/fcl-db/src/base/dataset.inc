@@ -2305,3 +2305,132 @@ begin
   FDataSources.Remove(ADataSource);
 end;
 
+{------------------------------------------------------------------------------}
+{ IProviderSupport methods}
+
+procedure TDataset.PSEndTransaction(Commit: Boolean);
+begin
+  DatabaseError('Provider support not available', Self);
+end;
+
+procedure TDataset.PSExecute;
+begin
+  DatabaseError('Provider support not available', Self);
+end;
+
+function TDataset.PSExecuteStatement(const ASQL: string; AParams: TParams;
+  ResultSet: Pointer): Integer;
+begin
+  Result := 0;
+  DatabaseError('Provider support not available', Self);
+end;
+
+procedure TDataset.PSGetAttributes(List: TList);
+begin
+  DatabaseError('Provider support not available', Self);
+end;
+
+function TDataset.PSGetCommandText: string;
+begin
+  Result := '';
+  DatabaseError('Provider support not available', Self);
+end;
+
+function TDataset.PSGetCommandType: TPSCommandType;
+begin
+  Result := ctUnknown;
+  DatabaseError('Provider support not available', Self);
+end;
+
+function TDataset.PSGetDefaultOrder: TIndexDef;
+begin
+  Result := nil;
+  //DatabaseError('Provider support not available', Self);
+end;
+
+function TDataset.PSGetIndexDefs(IndexTypes: TIndexOptions): TIndexDefs;
+begin
+  Result := nil;
+  DatabaseError('Provider support not available', Self);
+end;
+
+function TDataset.PSGetKeyFields: string;
+begin
+  Result := '';
+  DatabaseError('Provider support not available', Self);
+end;
+
+function TDataset.PSGetParams: TParams;
+begin
+  Result := nil;
+  DatabaseError('Provider support not available', Self);
+end;
+
+function TDataset.PSGetQuoteChar: string;
+begin
+  Result := '';
+  DatabaseError('Provider support not available', Self);
+end;
+
+function TDataset.PSGetTableName: string;
+begin
+  Result := '';
+  DatabaseError('Provider support not available', Self);
+end;
+
+function TDataset.PSGetUpdateException(E: Exception; Prev: EUpdateError
+  ): EUpdateError;
+begin
+  if Prev <> nil then
+    Result := EUpdateError.Create(E.Message, '', 0, Prev.ErrorCode, E)
+  else
+    Result := EUpdateError.Create(E.Message, '', 0, 0, E)
+end;
+
+function TDataset.PSInTransaction: Boolean;
+begin
+  Result := False;
+  DatabaseError('Provider support not available', Self);
+end;
+
+function TDataset.PSIsSQLBased: Boolean;
+begin
+  Result := False;
+  DatabaseError('Provider support not available', Self);
+end;
+
+function TDataset.PSIsSQLSupported: Boolean;
+begin
+  Result := False;
+  DatabaseError('Provider support not available', Self);
+end;
+
+procedure TDataset.PSReset;
+begin
+  //DatabaseError('Provider support not available', Self);
+end;
+
+procedure TDataset.PSSetCommandText(const CommandText: string);
+begin
+  DatabaseError('Provider support not available', Self);
+end;
+
+procedure TDataset.PSSetParams(AParams: TParams);
+begin
+  DatabaseError('Provider support not available', Self);
+end;
+
+procedure TDataset.PSStartTransaction;
+begin
+  DatabaseError('Provider support not available', Self);
+end;
+
+function TDataset.PSUpdateRecord(UpdateKind: TUpdateKind; Delta: TDataSet
+  ): Boolean;
+begin
+  Result := False;
+  DatabaseError('Provider support not available', Self);
+end;
+
+{------------------------------------------------------------------------------}
+
