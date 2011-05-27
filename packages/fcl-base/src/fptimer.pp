@@ -254,7 +254,7 @@ Procedure TFPThreadedTimerDriver.StartTimer;
 begin
   FThread:=TFPTimerThread.CreateTimerThread(Self);
   FThread.OnTerminate:=@DoNilTimer;
-  FThread.Resume;
+  FThread.Start;
 end;
 
 Procedure TFPThreadedTimerDriver.StopTimer;

@@ -229,13 +229,13 @@ Var
       L:=P^;
       for j:=0 to 7 do
         begin
-          if odd(L)
-          then
+        if x < FWidth then
+          if odd(L) then
             Img.Colors[x,Row]:=colBlack
           else
             Img.Colors[x,Row]:=colWhite;
-          L:=L shr 1;
-          dec(x);
+        L:=L shr 1;
+        dec(x);
         end;
       Inc(P);
       Inc(x,16);

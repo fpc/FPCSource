@@ -1718,7 +1718,7 @@ IMPLEMENTATION
             then begin
 {$ifndef use_ansistring}
               Inc ( l );
-              result[1] := '-';
+              result[l] := '-';
 {$else}
               result := result + '-';
 {$endif}
@@ -1727,10 +1727,7 @@ IMPLEMENTATION
             then begin
 {$ifndef use_ansistring}
               Inc ( l );
-              if Neg then
-                result[2] := '0'
-              else
-                result[1] := '0'
+              result[l] := '0';
 {$else}
               result := result + '0';
 {$endif}

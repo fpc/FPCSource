@@ -698,7 +698,7 @@ begin
     Pargs:=StringsToPcharList(Args);
     end;
   Try
-    If not jwawinsvc.StartService(SHandle,Argc,PArgs^) then
+    If not jwawinsvc.StartService(SHandle,Argc,Pchar(PArgs)) then
       RaiseLastOSError;
   Finally
     If (PArgs<>Nil) then

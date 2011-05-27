@@ -2455,8 +2455,8 @@ TYPE
     IConnectionPoint = Interface (IUnknown)
        ['{B196B286-BAB4-101A-B69C-00AA00341D07}']
        Function GetConnectionInterface(out piid : TIID):HResult;StdCall;
-       Function GetConnectionPointContainer(CPC : IConnectionPointContainer):HResult;StdCall;
-       Function Advise(unkSink : IUnknown;Out dwCookie : DWord):HResult;StdCall;
+       Function GetConnectionPointContainer(out CPC : IConnectionPointContainer):HResult;StdCall;
+       Function Advise(Const unkSink : IUnknown;Out dwCookie : DWord):HResult;StdCall;
        Function UnAdvise(dwCookie : DWord):HResult;StdCall;
        Function EnumConnection(out pEnum : IEnumConnections):HResult;stdCall;
       End;

@@ -60,7 +60,7 @@ type
     BufCnt  : QWord;
     Buffer  : array[0..63] of Byte;
     case Integer of
-      0: (Length   : PtrUInt);
+      0: (Length   : QWord);
       1: (Checksum : array[0..15] of Byte);
   end;
 
