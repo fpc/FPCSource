@@ -1736,7 +1736,7 @@ var
 implementation
 
 {$ifdef USE_SYNCOBJS}
-// we can't do this due to a circular dependancy between winunits-base and fcl-base
+// we can't do this due to a circular dependency between winunits-base and fcl-base
 uses
   SyncObjs;
 {$endif}
