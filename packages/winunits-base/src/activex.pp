@@ -1683,7 +1683,7 @@ TYPE
      end;
    VERSIONEDSTREAM = tagVersionedStream;
    TVERSIONEDSTREAM = tagVersionedStream;
-   LPVERSIONEDSTREAM = tagVersionedStream;
+   LPVERSIONEDSTREAM = ^tagVersionedStream;
    PVERSIONEDSTREAM = ^TagVersionedStream;
 
 
@@ -1853,7 +1853,8 @@ TYPE
    IPropertyStorage    = Interface;
    IEnumSTATPROPSETSTG = interface;
 
-   TPROPVARIANT = record
+   { size of this record must be 16, i.e. match Variant }
+   TPROPVARIANT = packed record
           vt : VARTYPE;
           wReserved1 : PROPVAR_PAD1;
           wReserved2 : PROPVAR_PAD2;

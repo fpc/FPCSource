@@ -28,6 +28,7 @@ units=
 units_linux=$(GRAPH_UNIT) $(GGIGRAPH_UNIT) ptcgraph ptccrt
 units_freebsd=graph $(GGIGRAPH_UNIT)
 units_win32=graph wincrt winmouse
+units_win64=graph wincrt winmouse
 units_go32v2=graph
 units_amiga=graph
 units_i386_linux=sdlgraph
@@ -92,8 +93,13 @@ endif
 include src/inc/makefile.inc
 GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES)) $(UNIXINCDEPS)
 
+ifeq ($(OS_TARGET),win64)
+graph$(PPUEXT) : src/win32/graph.pp $(GRAPHINCDEPS)
+        $(COMPILER) -I$(GRAPHDIR) src/win32/graph.pp
+else
 graph$(PPUEXT) : graph.pp $(GRAPHINCDEPS)
         $(COMPILER) -I$(GRAPHDIR) $(GRAPHUNIT_DIR)/graph.pp
+endif
 
 ggigraph$(PPUEXT) : $(UNIXINC)/ggigraph.pp $(GRAPHINCDEPS)
         $(COMPILER) -I$(GRAPHDIR) $(UNIXINC)/ggigraph.pp
