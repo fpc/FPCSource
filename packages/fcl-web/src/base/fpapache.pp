@@ -129,6 +129,7 @@ Type
     procedure ShowException(E: Exception); override;
     Function ProcessRequest(P : PRequest_Rec) : Integer; virtual;
     Function AllowRequest(P : PRequest_Rec) : Boolean; virtual;
+    Procedure SetModuleRecord(Var ModuleRecord : Module);
     Property HandlerPriority : THandlerPriority Read GetPriority Write SetPriority default hpMiddle;
     Property BeforeModules : TStrings Read GetBeforeModules Write SetBeforeModules;
     Property AfterModules : TStrings Read GetAfterModules Write SetAfterModules;
@@ -735,6 +736,11 @@ end;
 function TCustomApacheApplication.AllowRequest(P: PRequest_Rec): Boolean;
 begin
   result := TApacheHandler(WebHandler).AllowRequest(p);
+end;
+
+procedure TCustomApacheApplication.SetModuleRecord(var ModuleRecord: Module);
+begin
+  TApacheHandler(WebHandler).SetModuleRecord(ModuleRecord);
 end;
 
 Initialization

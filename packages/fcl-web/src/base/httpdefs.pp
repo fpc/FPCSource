@@ -1270,7 +1270,8 @@ begin
       FI:=TFormItem(L[i]);
       FI.Process;
       If (FI.Name='') then
-        Raise Exception.CreateFmt('Invalid multipart encoding: %s',[FI.Data]);
+        Fi.Name:='DummyFileItem'+IntToStr(i);
+        //Raise Exception.CreateFmt('Invalid multipart encoding: %s',[FI.Data]);
 {$ifdef CGIDEBUG}
       With FI Do
         begin

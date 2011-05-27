@@ -132,6 +132,9 @@ type
   TCustomHTTPDataContentProducer = Class(THTTPContentProducer)
   Private
     FAllowPageSize: Boolean;
+    FBeforeDelete: TNotifyEvent;
+    FBeforeInsert: TNotifyEvent;
+    FBeforeUpdate: TNotifyEvent;
     FDataProvider: TFPCustomWebDataProvider;
     FMetadata: Boolean;
     FOnTranscode: TOnTranscodeEvent;
@@ -159,6 +162,12 @@ type
     Procedure DoExceptionToStream(E : Exception; ResponseContent : TStream); virtual; abstract;
     procedure Notification(AComponent: TComponent; Operation: TOperation);override;
     Property Dataset: TDataset Read GetDataSet;
+    // Before a record is about to be updated
+    Property BeforeUpdate : TNotifyEvent Read FBeforeUpdate Write FBeforeUpdate;
+    // Before a record is about to be inserted
+    Property BeforeInsert : TNotifyEvent Read FBeforeInsert Write FBeforeInsert;
+    // Before a record is about to be deleted
+    Property BeforeDelete : TNotifyEvent Read FBeforeDelete Write FBeforeDelete;
   Public
     Constructor Create(AOwner : TComponent); override;
     Property Adaptor : TCustomWebDataInputAdaptor Read FAdaptor Write SetAdaptor;
@@ -464,6 +473,7 @@ type
 
   TFPWebProviderDataModule = Class(TFPCustomWebProviderDataModule)
   Published
+    Property CreateSession;
     Property InputAdaptor;
     Property ContentProducer;
     Property UseProviderManager;
@@ -975,17 +985,23 @@ end;
 procedure TCustomHTTPDataContentProducer.DoUpdateRecord(ResponseContent: TStream);
 begin
   {$ifdef wmdebug}SendDebug('DoUpdateRecord: Updating record');{$endif}
+  If Assigned(FBeforeUpdate) then
+    FBeforeUpdate(Self);
   Provider.Update;
   {$ifdef wmdebug}SendDebug('DoUpdateRecord: Updated record');{$endif}
 end;
 
 procedure TCustomHTTPDataContentProducer.DoInsertRecord(ResponseContent: TStream);
 begin
+  If Assigned(FBeforeInsert) then
+    FBeforeInsert(Self);
   Provider.Insert;
 end;
 
 procedure TCustomHTTPDataContentProducer.DoDeleteRecord(ResponseContent: TStream);
 begin
+  If Assigned(FBeforeDelete) then
+    FBeforeDelete(Self);
   Provider.Delete;
 end;
 

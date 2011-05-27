@@ -1,0 +1,20 @@
+<html>
+<head>
+<title>ExtJS application demo</title>
+<link rel="stylesheet" type="text/css" href="/ext/resources/css/ext-all.css"/>
+<script src="/ext/adapter/ext/ext-base.js"></script>
+<script src="/ext/ext-all-debug.js"></script>
+<script src="combined.cgi/Login/API"></script>
+<script src="login.js"></script>
+<script>
+Ext.onReady(function() {  
+  // API is registered under FPWeb by default.
+  Ext.Direct.addProvider(FPWeb);
+  fpWeb.login=new fpWeb.LoginForm({});
+  fpWeb.login.show();
+});
+</script>
+</head>
+<body>
+</body>
+</html>

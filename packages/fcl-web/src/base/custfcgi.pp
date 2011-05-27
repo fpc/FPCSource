@@ -21,7 +21,13 @@ unit custfcgi;
 Interface
 
 uses
-  Classes,SysUtils, httpdefs, Sockets, custweb, custcgi, fastcgi;
+  Classes,SysUtils, httpdefs, 
+{$ifdef unix}
+  BaseUnix, TermIO,
+{$else}
+  winsock2,
+{$endif}
+  Sockets, custweb, custcgi, fastcgi;
 
 Type
   { TFCGIRequest }
@@ -29,7 +35,8 @@ Type
   TFCGIRequest = Class;
   TFCGIResponse = Class;
 
-  TProtocolOption = (poNoPadding,poStripContentLength, poFailonUnknownRecord );
+  TProtocolOption = (poNoPadding,poStripContentLength, poFailonUnknownRecord,
+                     poReuseAddress, poUseSelect );
   TProtocolOptions = Set of TProtocolOption;
 
   TUnknownRecordEvent = Procedure (ARequest : TFCGIRequest; AFCGIRecord: PFCGI_Header) Of Object;
@@ -83,9 +90,13 @@ Type
     FRequestsAvail : integer;
     FHandle : THandle;
     Socket: longint;
+    FIAddress      : TInetSockAddr;
+    FAddressLength : tsocklen;
     FAddress: string;
+    FTimeOut,
     FPort: integer;
     function Read_FCGIRecord : PFCGI_Header;
+    function DataAvailable : Boolean;
   protected
     function  ProcessRecord(AFCGI_Record: PFCGI_Header; out ARequest: TRequest;  out AResponse: TResponse): boolean; virtual;
     procedure SetupSocket(var IAddress: TInetSockAddr;  var AddressLength: tsocklen); virtual;
@@ -98,6 +109,7 @@ Type
     property Address: string read FAddress write FAddress;
     Property ProtocolOptions : TProtoColOptions Read FPO Write FPO;
     Property OnUnknownRecord : TUnknownRecordEvent Read FOnUnknownRecord Write FOnUnknownRecord;
+    Property TimeOut : Integer Read FTimeOut Write FTimeOut;
   end;
 
   { TCustomFCgiApplication }
@@ -136,6 +148,7 @@ Implementation
 uses
   dbugintf;
 {$endif}
+ 
 
 
 {$undef nosignal}
@@ -433,6 +446,7 @@ begin
   FRequestsAvail:=5;
   SetLength(FRequestsArray,FRequestsAvail);
   FHandle := THandle(-1);
+  FTimeOut:=50;
 end;
 
 destructor TFCgiHandler.Destroy;
@@ -539,7 +553,7 @@ begin
     PFCGI_Header(ResRecord)^:=Header;
     ReadBuf:=ResRecord+BytesRead;
     BytesRead:=ReadBytes(ReadBuf,ContentLength);
-    If (BytesRead=0) then
+    If (BytesRead=0) and (ContentLength>0) then
       begin
       FreeMem(resRecord);
       Exit // Connection closed gracefully.
@@ -547,7 +561,7 @@ begin
       end;
     ReadBuf:=ReadBuf+BytesRead;
     BytesRead:=ReadBytes(ReadBuf,PaddingLength);
-    If (BytesRead=0) then
+    If (BytesRead=0) and (PaddingLength>0) then
       begin
       FreeMem(resRecord);
       Exit // Connection closed gracefully.
@@ -573,6 +587,11 @@ begin
     Iaddress.sin_addr := StrToHostAddr(FAddress)
   else
     IAddress.sin_addr.s_addr:=0;
+    {$IFDEF Unix}
+    // remedy socket port locking on Posix platforms
+    If (poReuseAddress in ProtocolOptions) then
+      fpSetSockOpt(Socket, SOL_SOCKET, SO_REUSEADDR, @IAddress, SizeOf(IAddress));
+    {$ENDIF}
   if fpbind(Socket,@IAddress,AddressLength)=-1 then
     begin
     CloseSocket(socket);
@@ -588,6 +607,36 @@ begin
     raise Exception.CreateFmt(SListenFailed,[port,socketerror]);
     end;
 end;
+
+{$ifdef unix}
+function TFCgiHandler.DataAvailable: Boolean;
+
+var
+  FDS: TFDSet;
+  TimeV: TTimeVal;
+
+begin
+  fpFD_Zero(FDS);
+  fpFD_Set(FHandle, FDS);
+  TimeV.tv_usec := (Timeout mod 1000) * 1000;
+  TimeV.tv_sec := Timeout div 1000;
+  Result := fpSelect(FHandle + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
+end;
+{$else}
+function TFCgiHandler.DataAvailable: Boolean;
+
+var
+  FDS: TFDSet;
+  TimeV: TTimeVal;
+
+begin
+  FD_Zero(FDS);
+  FD_Set(FHandle, FDS);
+  TimeV.tv_usec := (Timeout mod 1000) * 1000;
+  TimeV.tv_sec := Timeout div 1000;
+  Result := Select(FHandle + 1, @FDS, @FDS, @FDS, @TimeV) <> 0;
+end;
+{$endif}
 
 function TFCgiHandler.ProcessRecord(AFCGI_Record  : PFCGI_Header; out ARequest: TRequest; out AResponse: TResponse): boolean;
 
@@ -631,20 +680,18 @@ end;
 function TFCgiHandler.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
 
 var
-  IAddress      : TInetSockAddr;
-  AddressLength : tsocklen;
   AFCGI_Record  : PFCGI_Header;
 
 begin
   Result := False;
   if Socket=0 then
     if Port<>0 then
-      SetupSocket(IAddress,AddressLength)
+      SetupSocket(FIAddress,FAddressLength)
     else
       Socket:=StdInputHandle;
   if FHandle=THandle(-1) then
     begin
-    FHandle:=fpaccept(Socket,psockaddr(@IAddress),@AddressLength);
+    FHandle:=fpaccept(Socket,psockaddr(@FIAddress),@FAddressLength);
     if FHandle=THandle(-1) then
       begin
       Terminate;
@@ -652,7 +699,14 @@ begin
       end;
     end;
   repeat
+    If (poUseSelect in ProtocolOptions) then
+      begin
+      While Not DataAvailable do
+        If (OnIdle<>Nil) then
+          OnIdle(Self);
+      end;
     AFCGI_Record:=Read_FCGIRecord;
+
     if assigned(AFCGI_Record) then
     try
       Result:=ProcessRecord(AFCGI_Record,ARequest,AResponse);
