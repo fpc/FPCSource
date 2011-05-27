@@ -1216,8 +1216,8 @@ IMPLEMENTATION
                                 end;
 { find out language-specific ? }
         DecimalPoint_is_System: begin
-                                 dp := DecimalSeparator;
-                                 dc := ThousandSeparator;
+                                 dp := DefaultFormatSettings.DecimalSeparator;
+                                 dc := DefaultFormatSettings.ThousandSeparator;
                                 end;
        end;
      end;
@@ -1417,7 +1417,7 @@ IMPLEMENTATION
                end;
 
     begin
-      result := False;
+      result := True;
       FillChar ( lvars, SizeOf ( lvars ), #0 );
       BCD := NullBCD;
       lav := Length ( aValue );
@@ -1468,31 +1468,31 @@ IMPLEMENTATION
                         '.': if ch = dp
                                then begin
                                  if inife <> inint
-                                   then result := True
+                                   then result := False
                                    else inife := infrac;
                                 end;
                         'e',
                         'E': if inife = inexp
-                               then result := True
+                               then result := False
                                else inife := inexp;
                         '+',
                         '-': if ( inife = inexp ) AND ( fp[inexp] = 0 )
                                then pse := i
-                               else result := True;
+                               else result := False;
                         else begin
-                          result := True;
+                          result := False;
                           errp := i;
                          end;
                        end;
                      end;
-                  if result
+                  if not result
                     then begin
-                      result := False;
+                      result := True;
                       for i := errp TO lav do
                         if aValue[i] <> ' '
-                          then result := True;
+                          then result := False;
                      end;
-                  if result
+                  if not result
                     then EXIT;
 
                   if ps <> 0
@@ -1503,15 +1503,15 @@ IMPLEMENTATION
                     then begin
                       exp := 0;
                       for i := fp[inexp] TO lp[inexp] do
-                        if NOT result
+                        if result
                           then
                             if aValue[i] <> dc
                               then begin
                                 exp := exp * 10 + ( Ord ( aValue[i] ) - Ord ( '0' ) );
                                 if exp > 999
-                                  then result := True;
+                                  then result := False;
                                end;
-                      if result
+                      if not result
                         then EXIT;
 
                       if pse <> 0
@@ -1545,16 +1545,16 @@ IMPLEMENTATION
                                 Dec ( p );
                                 Singles[p] := Ord ( aValue[i] ) - Ord ( '0' );
                                end
-                              else result := True;
+                              else result := False;
                            end;
-                  if result
+                  if not result
                     then EXIT;
 
                   FDig := p;
                   if LDig < 0
                     then LDig := 0;
                   Plac := LDig;
-                  result := NOT pack_BCD ( bh, BCD );
+                  result := pack_BCD ( bh, BCD );
                  end;
              end;
      end;
@@ -1565,7 +1565,7 @@ IMPLEMENTATION
       BCD : tBCD;
 
     begin
-      if TryStrToBCD ( aValue, BCD )
+      if not TryStrToBCD ( aValue, BCD )
         then begin
           RAISE eBCDOverflowException.create ( 'in StrToBCD' );
          end
@@ -1727,7 +1727,10 @@ IMPLEMENTATION
             then begin
 {$ifndef use_ansistring}
               Inc ( l );
-              result[1] := '0';
+              if Neg then
+                result[2] := '0'
+              else
+                result[1] := '0'
 {$else}
               result := result + '0';
 {$endif}

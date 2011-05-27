@@ -510,22 +510,22 @@ end;
 
 function StrToDate(const S: ShortString; separator : char): TDateTime;
 begin
-    result := StrToDate(@S[1],Length(s),ShortDateFormat,separator)
+    result := StrToDate(@S[1],Length(s),DefaultFormatSettings.ShortDateFormat,separator)
 end;
 
 function StrToDate(const S: ShortString): TDateTime;
 begin
-    result := StrToDate(@S[1],Length(s),ShortDateFormat,#0);
+    result := StrToDate(@S[1],Length(s),DefaultFormatSettings.ShortDateFormat,#0);
 end;
 
 function StrToDate(const S: AnsiString; separator : char): TDateTime;
 begin
-    result := StrToDate(@S[1],Length(s),ShortDateFormat,separator)
+    result := StrToDate(@S[1],Length(s),DefaultFormatSettings.ShortDateFormat,separator)
 end;
 
 function StrToDate(const S: AnsiString): TDateTime;
 begin
-    result := StrToDate(@S[1],Length(s),ShortDateFormat,#0);
+    result := StrToDate(@S[1],Length(s),DefaultFormatSettings.ShortDateFormat,#0);
 end;
 
 {   StrToTime converts the string S to a TDateTime value
@@ -736,7 +736,7 @@ function StrToDateTime(const s: string): TDateTime;
 var
   I: integer;
 begin
-  I:=Pos(TimeSeparator,S);
+  I:=Pos(DefaultFormatSettings.TimeSeparator,S);
   If (I>0) then
     begin
     While (I>0) and (S[I]<>' ') do
@@ -754,7 +754,7 @@ function StrToDateTime(const s: AnsiString; const UseFormat : TFormatSettings): 
 var
   I: integer;
 begin
-  I:=Pos(TimeSeparator,S);
+  I:=Pos(UseFormat.TimeSeparator,S);
   If (I>0) then
     begin
     While (I>0) and (S[I]<>' ') do
@@ -773,7 +773,7 @@ function StrToDateTime(const s: ShortString; const UseFormat : TFormatSettings):
 var
   I: integer;
 begin
-  I:=Pos(TimeSeparator,S);
+  I:=Pos(UseFormat.TimeSeparator,S);
   If (I>0) then
     begin
     While (I>0) and (S[I]<>' ') do
@@ -1196,19 +1196,19 @@ end;
 
 function TryStrToDate(const S: ShortString; out Value: TDateTime; separator : char): Boolean;
 begin
-  Result:=TryStrToDate(S,Value,ShortDateFormat,Separator);
+  Result:=TryStrToDate(S,Value,DefaultFormatSettings.ShortDateFormat,Separator);
 end;
 
 
 function TryStrToDate(const S: AnsiString; out Value: TDateTime): Boolean;
 begin
-  Result:=TryStrToDate(S,Value,ShortDateFormat,#0);
+  Result:=TryStrToDate(S,Value,DefaultFormatSettings.ShortDateFormat,#0);
 end;
 
 function TryStrToDate(const S: AnsiString; out Value: TDateTime; separator : char): Boolean;
 
 begin
-  Result:=TryStrToDate(S,Value,ShortDateFormat,Separator);
+  Result:=TryStrToDate(S,Value,DefaultFormatSettings.ShortDateFormat,Separator);
 end;
 
 function TryStrToDate(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;

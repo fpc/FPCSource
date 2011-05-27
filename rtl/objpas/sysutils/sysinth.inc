@@ -78,6 +78,8 @@ var
     LongDayNames:  ('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday');
     TwoDigitYearCenturyWindow: 50;
   );
+
+  FormatSettings : TFormatSettings absolute DefaultFormatSettings;
 { ---------------------------------------------------------------------
     Date formatting settings
   ---------------------------------------------------------------------}
@@ -85,41 +87,41 @@ var
 Var
 
    { Character to be put between date, month and year }
-   DateSeparator: char absolute DefaultFormatSettings.DateSeparator;
+   DateSeparator: char absolute DefaultFormatSettings.DateSeparator deprecated;
 
    { Format used for short date notation }
-   ShortDateFormat: string absolute DefaultFormatSettings.ShortDateFormat;
+   ShortDateFormat: string absolute DefaultFormatSettings.ShortDateFormat deprecated;
 
    { Format used for long date notation }
-   LongDateFormat: string absolute DefaultFormatSettings.LongDateFormat;
+   LongDateFormat: string absolute DefaultFormatSettings.LongDateFormat deprecated;
 
 
    { Short names of months. }
-   ShortMonthNames: TMonthNameArray absolute DefaultFormatSettings.ShortMonthNames;
+   ShortMonthNames: TMonthNameArray absolute DefaultFormatSettings.ShortMonthNames deprecated;
 
    { Long names of months. }
-   LongMonthNames: TMonthNameArray absolute DefaultFormatSettings.LongMonthNames;
+   LongMonthNames: TMonthNameArray absolute DefaultFormatSettings.LongMonthNames deprecated;
 
    { Short names of days }
-   ShortDayNames: TWeekNameArray absolute DefaultFormatSettings.ShortDayNames;
+   ShortDayNames: TWeekNameArray absolute DefaultFormatSettings.ShortDayNames deprecated;
 
    { Full names of days }
-   LongDayNames: TWeekNameArray absolute DefaultFormatSettings.LongDayNames;
+   LongDayNames: TWeekNameArray absolute DefaultFormatSettings.LongDayNames deprecated;
 
    { Format used for short time notation }
-   ShortTimeFormat: string absolute DefaultFormatSettings.ShortTimeFormat;
+   ShortTimeFormat: string absolute DefaultFormatSettings.ShortTimeFormat deprecated;
 
    { Format used for long time notation }
-   LongTimeFormat: string absolute DefaultFormatSettings.LongTimeFormat;
+   LongTimeFormat: string absolute DefaultFormatSettings.LongTimeFormat deprecated;
 
    { Character to be put between hours and minutes }
-   TimeSeparator: char absolute DefaultFormatSettings.TimeSeparator;
+   TimeSeparator: char absolute DefaultFormatSettings.TimeSeparator deprecated;
 
    { String to indicate AM time when using 12 hour clock. }
-   TimeAMString: string absolute DefaultFormatSettings.TimeAMString;
+   TimeAMString: string absolute DefaultFormatSettings.TimeAMString deprecated;
 
    { String to indicate PM time when using 12 hour clock. }
-   TimePMString: string absolute DefaultFormatSettings.TimePMString;
+   TimePMString: string absolute DefaultFormatSettings.TimePMString deprecated;
 
 
 
@@ -129,13 +131,13 @@ Var
 
 
   { Character that comes between integer and fractional part of a number }
-  DecimalSeparator : Char absolute DefaultFormatSettings.DecimalSeparator; 
+  DecimalSeparator : Char absolute DefaultFormatSettings.DecimalSeparator deprecated;
 
   { Character that is put every 3 numbers in a currency }
-  ThousandSeparator : Char absolute DefaultFormatSettings.ThousandSeparator;
+  ThousandSeparator : Char absolute DefaultFormatSettings.ThousandSeparator deprecated;
 
   { Number of decimals to use when formatting a currency.  }
-  CurrencyDecimals : Byte absolute DefaultFormatSettings.CurrencyDecimals;
+  CurrencyDecimals : Byte absolute DefaultFormatSettings.CurrencyDecimals deprecated;
 
   { Format to use when formatting currency :
     0 = $1
@@ -144,7 +146,7 @@ Var
     3 = 1 $
     4 = Currency string replaces decimal indicator. e.g. 1$50
    }
-  CurrencyFormat : Byte absolute DefaultFormatSettings.CurrencyFormat;
+  CurrencyFormat : Byte absolute DefaultFormatSettings.CurrencyFormat deprecated;
 
   { Same as above, only for negative currencies:
     0 = ($1)
@@ -159,12 +161,12 @@ Var
     9 = -$ 1
     10 = $ 1-
    }
-  NegCurrFormat : Byte absolute DefaultFormatSettings.NegCurrFormat;
+  NegCurrFormat : Byte absolute DefaultFormatSettings.NegCurrFormat deprecated;
 
   { Currency notation. Default is $ for dollars. }
-  CurrencyString : String absolute DefaultFormatSettings.CurrencyString;
+  CurrencyString : String absolute DefaultFormatSettings.CurrencyString deprecated;
 
-  ListSeparator: Char absolute DefaultFormatSettings.ListSeparator;
+  ListSeparator: Char absolute DefaultFormatSettings.ListSeparator deprecated;
 
 type
   TSysLocale = record

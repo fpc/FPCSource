@@ -1946,12 +1946,12 @@ Var
 begin
   DecodeDateTime(ABasedate,Y,M,D,H,N,S,MS);
   Msg:=DoField(AYear,Y,'????');
-  Msg:=Msg+DateSeparator+DoField(AMonth,M,'??');
-  Msg:=Msg+DateSeparator+DoField(ADay,D,'??');
+  Msg:=Msg+DefaultFormatSettings.DateSeparator+DoField(AMonth,M,'??');
+  Msg:=Msg+DefaultFormatSettings.DateSeparator+DoField(ADay,D,'??');
   Msg:=Msg+' '+DoField(AHour,H,'??');
-  Msg:=Msg+TimeSeparator+DoField(AMinute,N,'??');
-  Msg:=Msg+TimeSeparator+Dofield(ASecond,S,'??');
-  Msg:=Msg+DecimalSeparator+DoField(AMilliSecond,MS,'???');
+  Msg:=Msg+DefaultFormatSettings.TimeSeparator+DoField(AMinute,N,'??');
+  Msg:=Msg+DefaultFormatSettings.TimeSeparator+Dofield(ASecond,S,'??');
+  Msg:=Msg+DefaultFormatSettings.DecimalSeparator+DoField(AMilliSecond,MS,'???');
   Raise EConvertError.CreateFmt(SErrInvalidTimeStamp,[Msg]);
 end;
 
