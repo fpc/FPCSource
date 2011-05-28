@@ -270,10 +270,9 @@ begin
     R.SendContent;
     Exit;
     end;
-  If not R.HeadersSent then
+  If (not R.HeadersSent) then
     begin
     R.ContentType:='text/html';
-    R.SendHeaders;
     end;
   If (R.ContentType='text/html') then
     begin
