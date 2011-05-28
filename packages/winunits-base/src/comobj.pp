@@ -1353,7 +1353,7 @@ HKCR
         preallocateddata : array[0..15] of TVarData;
         Arguments : PVarData;
         CurrType, i : byte;
-        dispidNamed: dispid;
+        dispidNamed: TDispID;
       begin
         { use preallocated space, i.e. can we avoid a getmem call? }
         if desc^.calldesc.argcount<=Length(preallocateddata) then
