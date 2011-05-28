@@ -309,6 +309,7 @@ var
   StrVal: string;
   FloatVal: cdouble;
   DateVal: SQL_DATE_STRUCT;
+  TimeVal: SQL_TIME_STRUCT;
   TimeStampVal: SQL_TIMESTAMP_STRUCT;
   BoolVal: byte;
   ColumnSize, BufferLength, StrLenOrInd: SQLINTEGER;
@@ -398,6 +399,15 @@ begin
           Size:=SizeOf(DateVal);
           CType:=SQL_C_TYPE_DATE;
           SqlType:=SQL_TYPE_DATE;
+          ColumnSize:=Size;
+        end;
+      ftTime:
+        begin
+          TimeVal:=DateTimeToTimeStruct(AParams[ParamIndex].AsTime);
+          PVal:=@TimeVal;
+          Size:=SizeOf(TimeVal);
+          CType:=SQL_C_TYPE_TIME;
+          SqlType:=SQL_TYPE_TIME;
           ColumnSize:=Size;
         end;
       ftDateTime:
@@ -766,6 +776,9 @@ begin
     end;
     ftDateTime:           // mapped to TDateTimeField
     begin
+      // Seems like not all ODBC-drivers (mysql on Linux) set the fractional part. Initialize
+      // it's value to avoid 'random' data.
+      ODBCTimeStampStruct.Fraction:=0;
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_TYPE_TIMESTAMP, @ODBCTimeStampStruct, SizeOf(SQL_TIMESTAMP_STRUCT), @StrLenOrInd);
       if StrLenOrInd<>SQL_NULL_DATA then
       begin
@@ -949,10 +962,11 @@ begin
   ODBCCursor.FBlobStreams.Clear;
 {$ENDIF}
 
-  ODBCCheckResult(
-    SQLFreeStmt(ODBCCursor.FSTMTHandle, SQL_CLOSE),
-    SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not close ODBC statement cursor.'
-  );
+  if ODBCCursor.FSTMTHandle <> SQL_NULL_HSTMT then
+    ODBCCheckResult(
+      SQLFreeStmt(ODBCCursor.FSTMTHandle, SQL_CLOSE),
+      SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not close ODBC statement cursor.'
+    );
 end;
 
 procedure TODBCConnection.AddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs);

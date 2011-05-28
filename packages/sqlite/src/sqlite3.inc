@@ -3263,7 +3263,7 @@ const
 ** If the [unprotected sqlite3_value] object returned by
 ** [sqlite3_column_value()] is used in any other way, including calls
 ** to routines like 
-** [sqlite3_value_cint()], [sqlite3_value_text()], or [sqlite3_value_bytes()],
+** [sqlite3_value_int()], [sqlite3_value_text()], or [sqlite3_value_bytes()],
 ** then the behavior is undefined.
 **
 ** These routines attempt to convert the value where appropriate.  For
@@ -3735,11 +3735,11 @@ type
 **          [protected sqlite3_value] object V cinto a floating point value and
 **          returns a copy of that value.
 **
-** {F15115} The [sqlite3_value_cint(V)] interface converts the
+** {F15115} The [sqlite3_value_int(V)] interface converts the
 **          [protected sqlite3_value] object V cinto a 64-bit signed INTEGER and
 **          returns the lower 32 bits of that INTEGER.
 **
-** {F15118} The [sqlite3_value_cint64(V)] interface converts the
+** {F15118} The [sqlite3_value_int64(V)] interface converts the
 **          [protected sqlite3_value] object V cinto a 64-bit signed INTEGER and
 **          returns a copy of that INTEGER.
 **

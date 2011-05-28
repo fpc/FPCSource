@@ -181,6 +181,7 @@ begin
                 do1:= P.asfloat;
                 checkerror(sqlite3_bind_double(fstatement,I,do1));
                 end;
+        ftFMTBcd,
         ftstring,
         ftmemo: begin // According to SQLite documentation, CLOB's (ftMemo) have the Text affinity
                 str1:= p.asstring;
@@ -444,17 +445,23 @@ begin
         Result:=EncodeDate(Year,Month,Day);
 end;
 
-Function ParseSQLiteTime(S : ShortString) : TDateTime;
+Function ParseSQLiteTime(S : ShortString; Interval: boolean) : TDateTime;
 
 Var
-  Hour, Min, Sec : Integer;
+  Hour, Min, Sec, MSec : Integer;
 
 begin
   Result:=0;
   If TryStrToInt(NextWord(S,':'),Hour) then
     if TryStrToInt(NextWord(S,':'),Min) then
-      if TryStrToInt(NextWord(S,':'),Sec) then
-        Result:=EncodeTime(Hour,Min,Sec,0);
+      if TryStrToInt(NextWord(S,'.'),Sec) then
+        begin
+        MSec:=StrToIntDef(S,0);
+        if Interval then
+          Result:=EncodeTimeInterval(Hour,Min,Sec,MSec)
+        else
+          Result:=EncodeTime(Hour,Min,Sec,MSec);
+        end;
 end;
 
 Function ParseSQLiteDateTime(S : String) : TDateTime;
@@ -480,7 +487,7 @@ begin
     else if (Pos(':',S)<>0) then
       TS:=S;
     end;
-  Result:=ComposeDateTime(ParseSQLiteDate(DS),ParseSQLiteTime(TS));
+  Result:=ComposeDateTime(ParseSQLiteDate(DS),ParseSQLiteTime(TS,False));
 end;
 function TSQLite3Connection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
 
@@ -520,7 +527,11 @@ begin
                begin
                setlength(str1,sqlite3_column_bytes(st,fnum));
                move(sqlite3_column_text(st,fnum)^,str1[1],length(str1));
-               PDateTime(Buffer)^:=ParseSqliteDateTime(str1)
+               case FieldDef.datatype of
+                 ftDateTime: PDateTime(Buffer)^:=ParseSqliteDateTime(str1);
+                 ftDate    : PDateTime(Buffer)^:=ParseSqliteDate(str1);
+                 ftTime    : PDateTime(Buffer)^:=ParseSQLiteTime(str1,true);
+               end; {case}
                end
              else
                Pdatetime(buffer)^:= sqlite3_column_double(st,fnum);

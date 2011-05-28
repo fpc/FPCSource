@@ -175,7 +175,11 @@ Type
 
 implementation
 
-uses dbconst,ctypes,strutils;
+uses
+  dbconst,
+  ctypes,
+  strutils,
+  dateutils;
 
 const
   Mysql_Option_Names : array[mysql_option] of string = ('MYSQL_OPT_CONNECT_TIMEOUT','MYSQL_OPT_COMPRESS',
@@ -777,7 +781,7 @@ begin
     Result := 0
   else
     Result := EncodeDate(EY, EM, ED);
-  Result := Result + EncodeTime(EH, EN, ES, 0);
+  Result := ComposeDateTime(Result,EncodeTime(EH, EN, ES, 0));
 end;
 
 function InternalStrToTime(S: string): TDateTime;
@@ -789,7 +793,7 @@ begin
   EH := StrToInt(Copy(S, 1, 2));
   EM := StrToInt(Copy(S, 4, 2));
   ES := StrToInt(Copy(S, 7, 2));
-  Result := EncodeTime(EH, EM, ES, 0);
+  Result := EncodeTimeInterval(EH, EM, ES, 0);
 end;
 
 function InternalStrToTimeStamp(S: string): TDateTime;
