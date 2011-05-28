@@ -98,10 +98,10 @@ interface
                         ti_addr_taken,ti_executeinitialisation);
        ttempinfoflags = set of ttempinfoflag;
 
-const
+     const
        tempinfostoreflags = [ti_may_be_in_reg,ti_addr_taken];
 
-type
+     type
        { to allow access to the location by temp references even after the temp has }
        { already been disposed and to make sure the coherency between temps and     }
        { temp references is kept after a getcopy                                    }

@@ -1406,7 +1406,7 @@ unit cgx86;
                      end
                    end
             else
-              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],a,reg));
+              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],aint(a),reg));
           OP_SHL,OP_SHR,OP_SAR,OP_ROL,OP_ROR:
             begin
 {$ifdef x86_64}
