@@ -630,7 +630,9 @@ end;
 procedure TSessionHTTPModule.DoneSession;
 begin
   // Session manager may or may not destroy the session.
-  SessionFactory.DoneSession(FSession);
+  // Check if we actually have
+  if Assigned(FSession) then
+    SessionFactory.DoneSession(FSession);
   // In each case, our reference is no longer valid.
   FSession:=Nil;
 end;
@@ -638,8 +640,7 @@ end;
 destructor TSessionHTTPModule.destroy;
 begin
   // Prevent memory leaks.
-  If Assigned(FSession) then
-    DoneSession;
+  DoneSession;
   inherited destroy;
 end;
 
