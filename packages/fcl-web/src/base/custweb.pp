@@ -376,8 +376,11 @@ begin
   If (Result='') then
     begin
     S:=ARequest.PathInfo;
-    If (Length(S)>0) and (S[1]='/') then
-      Delete(S,1,1);
+    If (Length(S)>0) and (S[1]='/') then  
+      Delete(S,1,1);                      //Delete the leading '/' if exists
+    I:=Length(S);
+    If (I>0) and (S[I]='/') then
+      Delete(S,I,1);                      //Delete the trailing '/' if exists
     I:=Pos('/',S);
     if (I>0) then
       Result:=ARequest.GetNextPathInfo;
