@@ -46,7 +46,7 @@ type
     tkUnknown
     );
 
-  EScannerError       = class(Exception);
+  EScannerError       = class(EParserError);
 
 
   { TJSONScanner }

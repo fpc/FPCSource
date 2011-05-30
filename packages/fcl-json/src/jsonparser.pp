@@ -48,7 +48,7 @@ Type
     Property Strict : Boolean Read FStrict Write SetStrict;
   end;
   
-  EJSONParser = Class(Exception);
+  EJSONParser = Class(EParserError);
   
 implementation
 
