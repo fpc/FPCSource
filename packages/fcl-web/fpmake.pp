@@ -90,7 +90,6 @@ begin
           AddUnit('httpdefs');
         end;
     T:=P.Targets.AddUnit('websession.pp');
-    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('iniwebsession');
