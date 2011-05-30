@@ -430,8 +430,7 @@ constructor TFPMemoryImage.Create (AWidth,AHeight:integer);
 begin
   Fdata := nil;
   inherited create (AWidth,AHeight);
-{Default behavior is to use palette as suggested by Michael}
-  SetUsePalette(True);
+  SetUsePalette(False);
 end;
 
 destructor TFPMemoryImage.Destroy;
