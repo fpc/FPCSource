@@ -48,7 +48,7 @@ Type
     Property Strict : Boolean Read FStrict Write SetStrict;
   end;
   
-  EJSONScanner = Class(Exception);
+  EJSONParser = Class(Exception);
   
 implementation
 
@@ -246,7 +246,7 @@ Var
 begin
   S:=Format(Msg,[CurrentTokenString]);
   S:=Format('Error at line %d, Pos %d:',[FScanner.CurRow,FSCanner.CurColumn])+S;
-  Raise EJSONScanner.Create(S);
+  Raise EJSONParser.Create(S);
 end;
 
 constructor TJSONParser.Create(Source: TStream);
