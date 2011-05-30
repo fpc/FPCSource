@@ -310,6 +310,7 @@ begin
   try
     MC:=Nil;
     M:=NIL;
+    MI:=Nil;
     If (OnGetModule<>Nil) then
       OnGetModule(Self,ARequest,MC);
     If (MC=Nil) then
@@ -322,7 +323,7 @@ begin
       end;
     M:=FindModule(MC); // Check if a module exists already
     If (M=Nil) then
-      if Mi.SkipStreaming then
+      if assigned(MI) and Mi.SkipStreaming then
         M:=MC.CreateNew(Self)
       else
         M:=MC.Create(Self);
