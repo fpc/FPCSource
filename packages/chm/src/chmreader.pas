@@ -1570,7 +1570,7 @@ AChm: TChmReader;
 AIndex: Integer;
 begin
   if not FileExists(AFileName) then exit;
-  AStream := TFileStream.Create(AFileName, fmOpenRead, fmShareDenyWrite);
+  AStream := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
   AChm := TChmReader.Create(AStream, True);
   AIndex := AddObject(AFileName, AChm);
   fLastChm := AChm;
