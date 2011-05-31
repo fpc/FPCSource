@@ -50,6 +50,16 @@ begin
   FPsigsuspend:= do_syscall(syscall_nr_sigsuspend,TSysParam(@sigmask));
 end;
 
+function fpsigtimedwait(const sigset:TSigSet;info:Psiginfo;timeout:Ptimespec):cint;
+
+begin
+  FpSigTimedWait:=do_syscall(syscall_nr_sigtimedwait,
+                             Tsysparam(@sigset),
+                             Tsysparam(info),
+                             Tsysparam(timeout));
+end;
+
+
 Type // implementation side for now. Should move to BSD unit.
   ITimerVal= Record
               It_Interval,
