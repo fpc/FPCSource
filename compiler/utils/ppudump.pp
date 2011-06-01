@@ -338,7 +338,7 @@ type
     str  : string[30];
   end;
 const
-  flagopts=17;
+  flagopts=23;
   flagopt : array[1..flagopts] of tflagopt=(
     (mask: $1    ;str:'init'),
     (mask: $2    ;str:'final'),
@@ -356,9 +356,15 @@ const
     (mask: $2000  ;str:'release'),
     (mask: $4000  ;str:'local_threadvars'),
     (mask: $8000  ;str:'fpu_emulation_on'),
-    (mask: $10000  ;str:'has_debug_info'),
+    (mask: $210000  ;str:'has_debug_info'),
+    (mask: $10000  ;str:'stabs_debug_info'),
+    (mask: $200000  ;str:'dwarf_debug_info'),
     (mask: $20000  ;str:'local_symtable'),
-    (mask: $40000  ;str:'uses_variants')
+    (mask: $40000  ;str:'uses_variants'),
+    (mask: $80000  ;str:'has_resourcefiles'),
+    (mask: $100000  ;str:'has_exports'),
+    (mask: $400000  ;str:'has_wideinits'),
+    (mask: $800000  ;str:'has_classinits')
   );
 var
   i : longint;
