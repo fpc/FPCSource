@@ -2463,7 +2463,7 @@ implementation
                   fname:='int64_to_'
                 else
                   { we can't do better currently }
-                  fname:='int64_to_';
+                  fname:='qword_to_';
               end
             else
               { other integers are supposed to be 32 bit }
