@@ -418,6 +418,7 @@ Function int32_to_float32( a: int32): float32rec; compilerproc;
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*}
 Function int64_to_float64( a: int64 ): float64; compilerproc;
+Function qword_to_float64( a: qword ): float64; compilerproc;
 
 {*----------------------------------------------------------------------------
 | Returns the result of converting the 64-bit two's complement integer `a'
@@ -425,6 +426,7 @@ Function int64_to_float64( a: int64 ): float64; compilerproc;
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*}
 Function int64_to_float32( a: int64 ): float32rec; compilerproc;
+Function qword_to_float32( a: qword ): float32rec; compilerproc;
 
 
 {$ifdef FPC_SOFTFLOAT_FLOAT128}
@@ -1576,7 +1578,7 @@ var
  shiftcount : int8;
 Begin
     shiftCount := 0;
-    if ( a <  (bits64(1)  shl 32 )) then
+    if ( a <  bits64(bits64(1)  shl 32 )) then
         shiftCount := shiftcount + 32
     else
         a := a shr 32;
@@ -5343,6 +5345,90 @@ Begin
       end;
 End;
 
+{*----------------------------------------------------------------------------
+| Returns the result of converting the 64-bit two's complement integer `a'
+| to the single-precision floating-point format.  The conversion is performed
+| according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+| Unisgned version.
+*----------------------------------------------------------------------------*}
+function qword_to_float32( a: qword ): float32rec; compilerproc;
+var
+    zSign : flag;
+    absA : uint64;
+    shiftCount: int8;
+    zSig : bits32;
+    intval : int64rec;
+Begin
+    if ( a = 0 ) then
+      begin
+       qword_to_float32.float32 := 0;
+       exit;
+      end;
+    zSign := flag(FALSE);
+    absA := a;
+    shiftCount := countLeadingZeros64( absA ) - 40;
+    if ( 0 <= shiftCount ) then
+      begin
+        qword_to_float32.float32:= packFloat32( zSign, $95 - shiftCount, absA shl shiftCount );
+      end
+    else
+       begin
+        shiftCount := shiftCount + 7;
+        if ( shiftCount < 0 ) then
+          begin
+            intval.low := int64rec(AbsA).low;
+            intval.high := int64rec(AbsA).high;
+            shift64RightJamming( intval.low, intval.high, - shiftCount,
+               intval.low, intval.high);
+            int64rec(absA).low := intval.low;
+            int64rec(absA).high := intval.high;
+          end
+        else
+            absA := absA shl shiftCount;
+        qword_to_float32.float32:=roundAndPackFloat32( zSign, $9C - shiftCount, absA );
+      end;
+End;
+
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the 64-bit two's complement integer `a'
+| to the double-precision floating-point format.  The conversion is performed
+| according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+function qword_to_float64( a: qword ): float64;
+{$ifdef fpc}[public,Alias:'QWORD_TO_FLOAT64'];compilerproc;{$endif}
+var
+ zSign : flag;
+ float_result : float64;
+ intval : int64rec;
+ AbsA : bits64;
+ shiftcount : int8;
+ zSig0, zSig1 : bits32;
+Begin
+    if ( a = 0 ) then
+      Begin
+       packFloat64( 0, 0, 0, 0, result );
+       exit;
+      end;
+    zSign := flag(FALSE);
+    AbsA := a;
+    shiftCount := countLeadingZeros64( absA ) - 11;
+    if ( 0 <= shiftCount ) then
+      Begin
+        absA := absA shl shiftcount;
+        zSig0:=int64rec(absA).high;
+        zSig1:=int64rec(absA).low;
+      End
+    else
+      Begin
+        shift64Right( int64rec(absA).high, int64rec(absA).low,
+                      - shiftCount, zSig0, zSig1 );
+      End;
+    packFloat64( zSign, $432 - shiftCount, zSig0, zSig1, float_result );
+    qword_to_float64:= float_result;
+End;
+
+
 
 {*----------------------------------------------------------------------------
 | Returns the result of converting the 64-bit two's complement integer `a'
@@ -5378,7 +5464,8 @@ Begin
       End
     else
       Begin
-        shift64Right( absA, 0, - shiftCount, zSig0, zSig1 );
+        shift64Right( int64rec(absA).high, int64rec(absA).low,
+                      - shiftCount, zSig0, zSig1 );
       End;
     packFloat64( zSign, $432 - shiftCount, zSig0, zSig1, float_result );
     int64_to_float64:= float_result;
