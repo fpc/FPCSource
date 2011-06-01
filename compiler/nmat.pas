@@ -558,11 +558,18 @@ implementation
         procname: string[31];
       begin
         result := nil;
+        { Normally already done below, but called again,
+          just in case it is called directly }
+        firstpass(left);
         { otherwise create a call to a helper }
-        if nodetype = shln then
-          procname := 'fpc_shl_int64'
+        if is_signed(left.resultdef) then
+          procname:='int64'
         else
-          procname := 'fpc_shr_int64';
+          procname:='qword';
+        if nodetype = shln then
+          procname := 'fpc_shl_'+procname
+        else
+          procname := 'fpc_shr_'+procname;
         { this order of parameters works at least for the arm,
           however it should work for any calling conventions (FK) }
         result := ccallnode.createintern(procname,ccallparanode.create(right,
