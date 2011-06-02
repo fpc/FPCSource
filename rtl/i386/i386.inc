@@ -204,33 +204,28 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-Procedure FillChar(var x;count:SizeInt;value:byte);assembler;
-{$ifndef regcall}
-var
-  saveedi: longint;
-{$endif}
+Procedure FillChar(var x;count:SizeInt;value:byte);assembler; nostackframe;
 asm
-        {A push is prefered over a local variable because a local
-         variable causes the compiler to generate a stackframe.}
+        cmpl    $22,%edx          { empirically determined value on a Core 2 Duo Conroe }
+        jg      .LFillFull
+        orl     %edx,%edx
+        jle     .LFillZero
+
+.LFillLoop:
+        movb    %cl,(%eax)
+        incl    %eax
+        decl    %edx
+        jne     .LFillLoop
+.LFillZero:
+        ret
+
+.LFillFull:
         cld
-{$ifdef REGCALL}
         push    %edi
         movl    %eax,%edi
         movzbl  %cl,%eax
         movl    %edx,%ecx
-{$else}
-        movl    %edi, saveedi
-        movl    x,%edi
-        movl    count,%ecx
-        movzbl  value,%eax
-        movl    %ecx,%edx
-{$endif}
-{ check for zero or negative count }
-        or      %ecx,%ecx
-        jle     .LFillEnd
-        cmpl    $7,%ecx
-        jl      .LFill1
-        imul    $0x01010101,%eax { Expand al into a 4 subbytes of eax}
+        imul    $0x01010101,%eax  { Expand al into a 4 subbytes of eax}
         shrl    $2,%ecx
         andl    $3,%edx
         rep
@@ -240,11 +235,7 @@ asm
         rep
         stosb
 .LFillEnd:
-{$ifdef REGCALL}
         pop %edi
-{$else}
-        movl   saveedi,%edi
-{$endif}
 end;
 {$endif FPC_SYSTEM_HAS_FILLCHAR}
 
