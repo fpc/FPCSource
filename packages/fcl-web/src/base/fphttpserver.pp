@@ -35,7 +35,6 @@ Type
   TFPHTTPConnectionRequest = Class(TRequest)
   private
     FConnection: TFPHTTPConnection;
-    
   protected
     procedure SetContent(AValue : String);
     Property Connection : TFPHTTPConnection Read FConnection;

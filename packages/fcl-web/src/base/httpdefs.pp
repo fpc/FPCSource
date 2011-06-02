@@ -175,7 +175,6 @@ type
     FHTTPXRequestedWith: String;
     FFields : THttpFields;
     FQueryFields: TStrings;
-    FURL : String;
     function GetSetField(AIndex: Integer): String;
     function GetSetFieldName(AIndex: Integer): String;
     procedure SetCookieFields(const AValue: TStrings);
@@ -278,6 +277,7 @@ type
     FContent : String;
     procedure ReadContent; virtual;
     Function GetFieldValue(AIndex : Integer) : String; override;
+    Procedure SetFieldValue(Index : Integer; Value : String); override;
     Procedure ProcessMultiPart(Stream : TStream; Const Boundary : String;SL:TStrings); virtual;
     Procedure ProcessQueryString(Const FQueryString : String; SL:TStrings); virtual;
     procedure ProcessURLEncoded(Stream : TStream;SL:TStrings); virtual;
@@ -625,7 +625,6 @@ begin
   else
     case Index of
       0  : Result:=FHTTPVersion;
-      32 : Result:=FURL;
       36 : Result:=FHTTPXRequestedWith;
     else
       Result := '';
@@ -656,7 +655,6 @@ begin
       28 : ; // Property RemoteHost : String Index 28 read  GetFieldValue Write SetFieldValue;
       29 : ; // Property ScriptName : String Index 29 read  GetFieldValue Write SetFieldValue;
       30 : ; // Property ServerPort : Word Read GetServerPort; // Index 30
-      32 : FURL:=Value;
       36 : FHTTPXRequestedWith:=Value;
     end;
 end;
@@ -1006,14 +1004,27 @@ end;
 
 function TRequest.GetFieldValue(AIndex: integer): String;
 begin
-  if AIndex = 35 then // Content
-    begin
-    If Not FContentRead then
-      ReadContent;
-    Result:=FContent;
-    end
+  Case AIndex of
+    31 : Result:=FCommand;
+    32 : Result:=FURI;
+    35 : begin
+         If Not FContentRead then
+           ReadContent;
+         Result:=FContent;
+         end
   else
     Result:=inherited GetFieldValue(AIndex);
+  end;
+end;
+
+procedure TRequest.SetFieldValue(Index: Integer; Value: String);
+begin
+  Case Index of
+    31 : FCommand:=Value;
+    32 : FURI:=Value;
+  else
+    inherited SetFieldValue(Index, Value);
+  end
 end;
 
 function TRequest.GetFirstHeaderLine: String;
