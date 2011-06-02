@@ -23,7 +23,6 @@ begin
     P.Dependencies.Add('fcl-json');
     P.Dependencies.Add('fcl-net');
     P.Dependencies.Add('fcl-process');
-    P.Dependencies.Add('fcl-web');
     P.Dependencies.Add('fastcgi');
     P.Dependencies.Add('httpd22');
     // (Temporary) indirect dependencies, not detected by fpcmake:
