@@ -421,56 +421,71 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
-function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt; assembler;
-var
-  saveesi,saveedi : longint;
+function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
-        movl    %edi,saveedi
-        movl    %esi,saveesi
+        cmpl    $57,%ecx          { empirically determined value on a Core 2 Duo Conroe }
+        jg      .LCmpbyteFull
+        testl   %ecx,%ecx
+        je      .LCmpbyteZero
+
+        pushl   %ebx
+.LCmpbyteLoop:
+        movb    (%eax),%bl
+        cmpb    (%edx),%bl
+        leal    1(%eax),%eax
+        leal    1(%edx),%edx
+        jne     .LCmpbyteExitFast
+        decl    %ecx
+        jne     .LCmpbyteLoop
+.LCmpbyteExitFast:
+        movzbl  -1(%edx),%ecx     { Compare last position }
+        movzbl  %bl,%eax
+        subl    %ecx,%eax
+        popl    %ebx
+        ret
+
+.LCmpbyteZero:
+        movl    $0,%eax
+        ret
+
+.LCmpbyteFull:
+        pushl   %esi
+        pushl   %edi
         cld
-{$ifdef REGCALL}
         movl    %eax,%edi
         movl    %edx,%esi
         movl    %ecx,%eax
-{$else}
-        movl    buf2,%esi       { Load params}
-        movl    buf1,%edi
-        movl    len,%eax
-{$endif}
-        testl   %eax,%eax       {We address -1(%esi), so we have to deal with len=0}
-        je      .LCmpbyteExit
-        cmpl    $7,%eax         {<7 not worth aligning and go through all trouble}
-        jl      .LCmpbyte2
+
         movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx            { calc bytes to align   (%edi and 3) xor 3= -%edi and 3}
+        negl    %ecx            { calc bytes to align   (%edi and 3) xor 3= -%edi and 3 }
         andl    $3,%ecx
-        subl    %ecx,%eax       { Subtract from number of bytes to go}
+        subl    %ecx,%eax       { Subtract from number of bytes to go }
         orl     %ecx,%ecx
         rep
-        cmpsb                   {The actual 32-bit Aligning}
+        cmpsb                   { The actual 32-bit Aligning }
         jne     .LCmpbyte3
-        movl    %eax,%ecx       {bytes to do, divide by 4}
-        andl    $3,%eax         {remainder}
-        shrl    $2,%ecx         {The actual division}
-        orl     %ecx,%ecx       {Sets zero flag if ecx=0 -> no cmp}
+        movl    %eax,%ecx       { bytes to do, divide by 4 }
+        andl    $3,%eax         { remainder }
+        shrl    $2,%ecx         {  The actual division }
+        orl     %ecx,%ecx       { Sets zero flag if ecx=0 -> no cmp }
         rep
         cmpsl
-        je      .LCmpbyte2       { All equal? then to the left over bytes}
-        movl    $4,%eax         { Not equal. Rescan the last 4 bytes bytewise}
+        je      .LCmpbyte2      { All equal? then to the left over bytes }
+        movl    $4,%eax         { Not equal. Rescan the last 4 bytes bytewise }
         subl    %eax,%esi
         subl    %eax,%edi
 .LCmpbyte2:
-        movl    %eax,%ecx       {bytes still to (re)scan}
-        orl     %eax,%eax       {prevent disaster in case %eax=0}
+        movl    %eax,%ecx       { bytes still to (re)scan }
+        orl     %eax,%eax       { prevent disaster in case %eax=0 }
         rep
         cmpsb
 .LCmpbyte3:
         movzbl  -1(%esi),%ecx
-        movzbl  -1(%edi),%eax      // Compare failing (or equal) position
+        movzbl  -1(%edi),%eax   { Compare failing (or equal) position }
         subl    %ecx,%eax
 .LCmpbyteExit:
-        movl    saveedi,%edi
-        movl    saveesi,%esi
+        popl    %edi
+        popl    %esi
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREBYTE}
 
