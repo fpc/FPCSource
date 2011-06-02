@@ -837,11 +837,12 @@ end;
 {****************************************************************************
                               Misc Functions
 ****************************************************************************}
+procedure sysbeep;
 
-procedure Beep;
 begin
-end;
+  // Maybe implement later on ?
 
+end;
 
 {****************************************************************************
                               Locale Functions
@@ -1076,6 +1077,7 @@ end;
 Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
+  OnBeep:=@SysBeep;
 Finalization
   DoneExceptions;
 end.

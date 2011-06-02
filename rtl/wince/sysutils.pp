@@ -467,7 +467,7 @@ end;
                               Misc Functions
 ****************************************************************************}
 
-procedure Beep;
+procedure SysBeep;
 begin
   MessageBeep(0);
 end;
@@ -953,6 +953,7 @@ Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;
+  OnBeep:=@SysBeep;
   SysConfigDir:='\Windows';
 
 Finalization

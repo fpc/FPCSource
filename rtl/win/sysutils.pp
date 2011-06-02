@@ -589,7 +589,7 @@ end;
                               Misc Functions
 ****************************************************************************}
 
-procedure Beep;
+procedure sysbeep;
 begin
   MessageBeep(0);
 end;
@@ -1258,6 +1258,7 @@ Initialization
   InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;
   InitSysConfigDir;
+  OnBeep:=@SysBeep;
 Finalization
   DoneExceptions;
 end.
