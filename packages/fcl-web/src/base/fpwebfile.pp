@@ -85,12 +85,10 @@ Function TFPCustomFileModule.GetRequestFileName(Const ARequest : TRequest) : Str
 begin
   Result:=ARequest.PathInfo;
   If (Result='') then
-    begin
     Result:=ARequest.URI;
-    sb;
-    If (BaseURL<>'') and (Pos(BaseURL,Result)=1) then
-      Delete(Result,1,Length(BaseURL));
-    end;
+  sb;
+  If (BaseURL<>'') and (Pos(BaseURL,Result)=1) then
+    Delete(Result,1,Length(BaseURL));
   sb;
 end;
 
