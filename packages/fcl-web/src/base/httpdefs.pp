@@ -265,6 +265,7 @@ type
     FCommand: String;
     FCommandLine: String;
     FHandleGetOnPost: Boolean;
+    FPathInfo,
     FURI: String;
     FFiles : TUploadedFiles;
     FReturnedPathInfo : String;
@@ -1005,6 +1006,7 @@ end;
 function TRequest.GetFieldValue(AIndex: integer): String;
 begin
   Case AIndex of
+    25 : Result:=FPathInfo;
     31 : Result:=FCommand;
     32 : Result:=FURI;
     35 : begin
@@ -1020,6 +1022,7 @@ end;
 procedure TRequest.SetFieldValue(Index: Integer; Value: String);
 begin
   Case Index of
+    25 : FPathInfo:=Value;
     31 : FCommand:=Value;
     32 : FURI:=Value;
   else
