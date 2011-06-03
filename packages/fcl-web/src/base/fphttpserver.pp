@@ -368,6 +368,7 @@ Var
 begin
   Request.Method:=GetNextWord(AStartLine);
   Request.URL:=GetNextWord(AStartLine);
+  Request.PathInfo:=Request.URL;
   S:=GetNextWord(AStartLine);
   If (Pos('HTTP/',S)<>1) then
     Raise Exception.Create(SErrMissingProtocol);
