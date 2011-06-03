@@ -481,30 +481,44 @@ end;
 {$endif FPC_SYSTEM_HAS_COMPAREBYTE}
 
 
-
 {$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
 {$define FPC_SYSTEM_HAS_COMPAREWORD}
-function CompareWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler;
-var
-  saveesi,saveedi,saveebx : longint;
+function CompareWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
-        movl    %edi,saveedi
-        movl    %esi,saveesi
-        movl    %ebx,saveebx
+        cmpl    $32,%ecx          { empirical average value, on a Athlon XP the
+                                    break even is at 14, on a Core 2 Duo > 100 }
+        jg      .LCmpWordFull
+        testl   %ecx,%ecx
+        je      .LCmpWordZero
+
+        pushl   %ebx
+.LCmpWordLoop:
+        movw    (%eax),%bx
+        cmpw    (%edx),%bx
+        leal    2(%eax),%eax
+        leal    2(%edx),%edx
+        jne     .LCmpWordExitFast
+        decl    %ecx
+        jne     .LCmpWordLoop
+.LCmpWordExitFast:
+        movzwl  -2(%edx),%ecx     { Compare last position }
+        movzwl  %bx,%eax
+        subl    %ecx,%eax
+        popl    %ebx
+        ret
+
+.LCmpWordZero:
+        movl    $0,%eax
+        ret
+
+.LCmpWordFull:
+        pushl   %esi
+        pushl   %edi
+        pushl   %ebx
         cld
-{$ifdef REGCALL}
         movl    %eax,%edi
         movl    %edx,%esi
         movl    %ecx,%eax
-{$else}
-        movl    buf2,%esi       { Load params}
-        movl    buf1,%edi
-        movl    len,%eax
-{$endif}
-        testl   %eax,%eax       {We address -2(%esi), so we have to deal with len=0}
-        je      .LCmpwordExit
-        cmpl    $5,%eax         {<5 (3 bytes align + 4 bytes cmpsl = 4 words}
-        jl      .LCmpword2      { not worth aligning and go through all trouble}
         movl    (%edi),%ebx     // Compare alignment bytes.
         cmpl    (%esi),%ebx
         jne     .LCmpword2      // Aligning will go wrong already. Max 2 words will be scanned Branch NOW
@@ -543,35 +557,55 @@ asm
         movzwl  -2(%edi),%eax    // Compare failing (or equal) position
         subl    %ecx,%eax        // calculate end result.
 .LCmpwordExit:
-        movl    saveedi,%edi
-        movl    saveesi,%esi
-        movl    saveebx,%ebx
+        popl    %ebx
+        popl    %edi
+        popl    %esi
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
 {$define FPC_SYSTEM_HAS_COMPAREDWORD}
-function CompareDWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler;
-var
-  saveesi,saveedi,saveebx : longint;
+function CompareDWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
-        movl    %edi,saveedi
-        movl    %esi,saveesi
+        cmpl    $32,%ecx          { empirical average value, on a Athlon XP the
+                                    break even is at 12, on a Core 2 Duo > 100 }
+        jg      .LCmpDWordFull
+        testl   %ecx,%ecx
+        je      .LCmpDWordZero
+
+        pushl   %ebx
+.LCmpDWordLoop:
+        movl    (%eax),%ebx
+        cmpl    (%edx),%ebx
+        leal    4(%eax),%eax
+        leal    4(%edx),%edx
+        jne     .LCmpDWordExitFast
+        decl    %ecx
+        jne     .LCmpDWordLoop
+.LCmpDWordExitFast:
+        xorl    %eax,%eax
+        movl    -4(%edx),%edx       // Compare failing (or equal) position
+        subl    %edx,%ebx           // calculate end result.
+        setb    %dl
+        seta    %cl
+        addb    %cl,%al
+        subb    %dl,%al
+        movsbl  %al,%eax
+
+        popl    %ebx
+        ret
+
+.LCmpDWordZero:
+        movl    $0,%eax
+        ret
+
+.LCmpDWordFull:
+        pushl   %esi
+        pushl   %edi
         cld
-{$ifdef REGCALL}
         movl    %eax,%edi
         movl    %edx,%esi
-        movl    %ecx,%eax
-{$else}
-        movl    buf2,%esi       { Load params}
-        movl    buf1,%edi
-        movl    len,%eax
-        movl    %eax,%ecx
-{$endif}
-        testl   %eax,%eax
-        je      .LCmpDwordExit
-        movl    %eax,%ecx
         xorl    %eax,%eax
         rep                     { Compare entire DWords}
         cmpsl
@@ -583,8 +617,8 @@ asm
         subb    %dl,%al
         movsbl  %al,%eax
 .LCmpDwordExit:
-        movl    saveedi,%edi
-        movl    saveesi,%esi
+        popl    %edi
+        popl    %esi
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREDWORD}
 
