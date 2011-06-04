@@ -29,8 +29,6 @@ Type
     FSessionStarted : Boolean;
     FCached: Boolean;
     FIniFile : TMemInifile;
-    FSessionCookie: String;
-    FSessionCookiePath: String;
     FSessionDir: String;
     FTerminated :Boolean;
     SID : String;
@@ -42,9 +40,7 @@ Type
     Function GetSessionVariable(VarName : String) : String; override;
     procedure SetSessionVariable(VarName : String; const AValue: String); override;
     Property Cached : Boolean Read FCached Write FCached;
-    property SessionCookie : String Read FSessionCookie Write FSessionCookie;
     Property SessionDir : String Read FSessionDir Write FSessionDir;
-    Property SessionCookiePath : String Read FSessionCookiePath write FSessionCookiePath;
   Public
     Destructor Destroy; override;
     Procedure Terminate; override;
@@ -98,8 +94,6 @@ Const
   KeyStart   = 'Start';         // Start time of session
   KeyLast    = 'Last';          // Last seen time of session
   KeyTimeOut = 'Timeout';       // Timeout in seconds;
-
-  SFPWebSession = 'FPWebSession'; // Cookie name for session.
 
 resourcestring
   SErrSessionTerminated = 'No web session active: Session was terminated';
@@ -297,7 +291,6 @@ begin
   FTerminated := False;
   // If a exception occured during a prior request FIniFile is still not freed
   if assigned(FIniFile) then FreeIniFile;
-
   If (SessionCookie='') then
     SessionCookie:=SFPWebSession;
   S:=ARequest.CookieFields.Values[SessionCookie];
@@ -353,7 +346,7 @@ begin
       C.Name:=SessionCookie;
       end;
     C.Value:=SID;
-    C.Path:=FSessionCookiePath;
+    C.Path:=SessionCookiePath;
     end
   else If FTerminated then
     begin

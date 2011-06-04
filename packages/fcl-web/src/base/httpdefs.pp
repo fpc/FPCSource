@@ -32,6 +32,9 @@ interface
 uses Classes,Sysutils;
 
 const
+  DefaultTimeOut = 15;
+  SFPWebSession  = 'FPWebSession'; // Cookie name for session.
+
   fieldAccept          = 'Accept';
   fieldAcceptCharset   = 'Accept-Charset';
   fieldAcceptEncoding  = 'Accept-Encoding';
@@ -355,9 +358,16 @@ type
 
   TCustomSession = Class(TComponent)
   Private
+    FSessionCookie: String;
+    FSessionCookiePath: String;
     FTimeOut: Integer;
   Protected
+    // Can be overridden to provide custom behaviour.
+    procedure SetSessionCookie(const AValue: String); virtual;
+    procedure SetSessionCookiePath(const AValue: String); virtual;
+    // When called, generates a new GUID. Override to retrieve GUID from cookie/URL/...
     Function GetSessionID : String; virtual;
+    // These must be overridden to actually store/retrieve variables.
     Function GetSessionVariable(VarName : String) : String; Virtual; abstract;
     procedure SetSessionVariable(VarName : String; const AValue: String);Virtual;abstract;
   Public
@@ -368,10 +378,19 @@ type
     Procedure InitResponse(AResponse : TResponse); virtual;
     // Update response from session (typically, change cookie to response and write session data).
     Procedure UpdateResponse(AResponse : TResponse); virtual; Abstract;
+    // Remove variable from list of variables.
     Procedure RemoveVariable(VariableName : String); virtual; abstract;
+    // Terminate session
     Procedure Terminate; virtual; abstract;
-    Property TimeOutMinutes : Integer Read FTimeOut Write FTimeOut;
+    // Session timeout in minutes
+    Property TimeOutMinutes : Integer Read FTimeOut Write FTimeOut default 15;
+    // ID of this session.
     Property SessionID : String Read GetSessionID;
+    // Name of cookie used when tracing session. (may or may not be used)
+    property SessionCookie : String Read FSessionCookie Write SetSessionCookie;
+    // Path of cookie used when tracing session. (may or may not be used)
+    Property SessionCookiePath : String Read FSessionCookiePath write SetSessionCookiePath;
+    // Variables, tracked in session.
     Property Variables[VarName : String] : String Read GetSessionVariable Write SetSessionVariable;
   end;
 
@@ -1709,6 +1728,16 @@ end;
 { TCustomSession }
 
 
+procedure TCustomSession.SetSessionCookie(const AValue: String);
+begin
+  FSessionCookie:=AValue;
+end;
+
+procedure TCustomSession.SetSessionCookiePath(const AValue: String);
+begin
+  FSessionCookiePath:=AValue;
+end;
+
 function TCustomSession.GetSessionID: String;
 
 Var
@@ -1722,7 +1751,7 @@ end;
 
 constructor TCustomSession.Create(AOwner: TComponent);
 begin
-  FTimeOut:=15;
+  FTimeOut:=DefaultTimeOut;
   inherited Create(AOwner);
 end;
 
@@ -1731,7 +1760,8 @@ begin
   // do nothing
 end;
 
-procedure TCustomSession.InitSession(ARequest: TRequest; OnNewSession,OnExpired : TNotifyEvent);
+procedure TCustomSession.InitSession(ARequest: TRequest; OnNewSession,
+  OnExpired: TNotifyEvent);
 begin
   // Do nothing
 end;
