@@ -364,6 +364,9 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 % name will be used.
 scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN directive
 % Identifier is not known by a \var{\{\$WARN\}} compiler directive.
+scanner_e_illegal_alignment_directive=02088_E_Illegal alignment directive
+% The alignment directive is not valid. Either the alignment type is not known or the alignment
+% value is not a power of two.
 % \end{description}
 #
 # Parser

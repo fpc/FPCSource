@@ -1160,7 +1160,7 @@ implementation
           else { Error }
            UpdateAlignmentStr:=false;
         until false;
-        UpdateAlignment(a,b);
+        Result:=Result and UpdateAlignment(a,b);
       end;
 
 

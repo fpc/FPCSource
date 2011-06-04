@@ -505,7 +505,7 @@ interface
 
     procedure set_source_info(const ti : tsysteminfo);
 
-    procedure UpdateAlignment(var d:talignmentinfo;const s:talignmentinfo);
+    function UpdateAlignment(var d:talignmentinfo;const s:talignmentinfo) : boolean;
 
     procedure RegisterTarget(const r:tsysteminfo);
     procedure RegisterRes(const r:tresinfo; rcf : TAbstractResourceFileClass);
@@ -697,19 +697,26 @@ begin
 end;
 
 
-procedure UpdateAlignment(var d:talignmentinfo;const s:talignmentinfo);
+function UpdateAlignment(var d:talignmentinfo;const s:talignmentinfo) : boolean;
 begin
+  result:=true;
   with d do
    begin
+     if (s.procalign in [1,2,4,8,16,32,64,128]) or (s.procalign=256) then
+       procalign:=s.procalign
+     else
+       result:=false;
+     if (s.loopalign in [1,2,4,8,16,32,64,128]) or (s.loopalign=256) then
+       loopalign:=s.loopalign
+     else
+       result:=false;
+     if (s.jumpalign in [1,2,4,8,16,32,64,128]) or (s.jumpalign=256) then
+       jumpalign:=s.jumpalign
+     else
+       result:=false;
      { general update rules:
        minimum: if higher then update
        maximum: if lower then update or if undefined then update }
-     if s.procalign>procalign then
-      procalign:=s.procalign;
-     if s.loopalign>loopalign then
-      loopalign:=s.loopalign;
-     if s.jumpalign>jumpalign then
-      jumpalign:=s.jumpalign;
      if s.constalignmin>constalignmin then
       constalignmin:=s.constalignmin;
      if (constalignmax=0) or
