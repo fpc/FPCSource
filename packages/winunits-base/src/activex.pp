@@ -2529,7 +2529,7 @@ TYPE
        Function GetConnectionPointContainer(out CPC : IConnectionPointContainer):HResult;StdCall;
        Function Advise(Const unkSink : IUnknown;Out dwCookie : DWord):HResult;StdCall;
        Function UnAdvise(dwCookie : DWord):HResult;StdCall;
-       Function EnumConnection(out pEnum : IEnumConnections):HResult;stdCall;
+       Function EnumConnections(out pEnum : IEnumConnections):HResult;StdCall;
       End;
 
     IConnectionPointContainer = Interface (IUnknown)
