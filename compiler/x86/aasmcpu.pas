@@ -1767,14 +1767,15 @@ implementation
                 else
                   inc(len,4);
               end;
+            36,37,38:
+              inc(len,sizeof(pint));
+            44,45,46:
+              inc(len,8);
             32,33,34,
             52,53,54,
             56,57,58,
             172,173,174 :
               inc(len,4);
-            192,193,194 :
-              if NeedAddrPrefix(c-192) then
-               inc(len);
             208,209,210 :
               begin
                 case (oper[c-208]^.ot and OT_SIZE_MASK) of
@@ -1884,7 +1885,10 @@ implementation
        *                 assembly mode or the address-size override on the operand
        * \37           - a word constant, from the _segment_ part of operand 0
        * \40, \41, \42 - a long immediate operand, from operand 0, 1 or 2
+       * \44, \45, \46 - select between \3[012], \4[012] or \5[456] depending
+                         on the address size of instruction
        * \50, \51, \52 - a byte relative operand, from operand 0, 1 or 2
+       * \54, \55, \56 - a qword immediate, from operand 0, 1 or 2
        * \60, \61, \62 - a word relative operand, from operand 0, 1 or 2
        * \64, \65, \66 - select between \6[012] and \7[012] depending on 16/32 bit
        *                 assembly mode or the address-size override on the operand
@@ -2170,6 +2174,21 @@ implementation
                 else
                  objdata.writebytes(currval,4);
               end;
+            36,37,38 :   // 044..046 - select between word/dword/qword depending on
+              begin      // address size (we support only default address sizes).
+                getvalsym(c-36);
+{$ifdef x86_64}
+                if assigned(currsym) then
+                  objdata_writereloc(currval,8,currsym,currabsreloc)
+                else
+                  objdata.writebytes(currval,8);
+{$else x86_64}
+                if assigned(currsym) then
+                  objdata_writereloc(currval,4,currsym,currabsreloc32)
+                else
+                  objdata.writebytes(currval,4);
+{$endif x86_64}
+              end;
             40,41,42 :   // 050..052 - byte relative operand
               begin
                 getvalsym(c-40);
@@ -2179,6 +2198,14 @@ implementation
                 if (data>127) or (data<-128) then
                  Message1(asmw_e_short_jmp_out_of_range,tostr(data));
                 objdata.writebytes(data,1);
+              end;
+            44,45,46:   // 054..056 - qword immediate operand
+              begin
+                getvalsym(c-44);
+                if assigned(currsym) then
+                  objdata_writereloc(currval,8,currsym,currabsreloc)
+                else
+                  objdata.writebytes(currval,8);
               end;
             52,53,54 :  // 064..066 - select between 16/32 address mode, but we support only 32
               begin
@@ -2206,14 +2233,6 @@ implementation
                   objdata_writereloc(currval,4,currsym,currabsreloc32)
                 else
                   objdata.writebytes(currval,4);
-              end;
-            192,193,194 :
-              begin
-                if NeedAddrPrefix(c-192) then
-                 begin
-                   bytes[0]:=$67;
-                   objdata.writebytes(bytes,1);
-                 end;
               end;
             200 :   { fixed 16-bit addr }
 {$ifndef x86_64}

@@ -2761,9 +2761,51 @@
   (
     opcode  : A_MOV;
     ops     : 2;
+    optypes : (ot_mem_offs,ot_reg_ax,ot_none);
+    code    : #212#1#163#36;
+    flags   : if_8086 or if_sm
+  ),
+  (
+    opcode  : A_MOV;
+    ops     : 2;
+    optypes : (ot_mem_offs,ot_reg_eax,ot_none);
+    code    : #213#1#163#36;
+    flags   : if_386 or if_sm
+  ),
+  (
+    opcode  : A_MOV;
+    ops     : 2;
+    optypes : (ot_mem_offs,ot_reg_rax,ot_none);
+    code    : #214#1#163#36;
+    flags   : if_x86_64 or if_sm
+  ),
+  (
+    opcode  : A_MOV;
+    ops     : 2;
     optypes : (ot_rm_gpr,ot_reg16 or ot_bits32 or ot_bits64,ot_none);
     code    : #208#1#137#65;
     flags   : if_8086 or if_sm
+  ),
+  (
+    opcode  : A_MOV;
+    ops     : 2;
+    optypes : (ot_reg_ax,ot_mem_offs,ot_none);
+    code    : #212#1#161#37;
+    flags   : if_8086 or if_sm
+  ),
+  (
+    opcode  : A_MOV;
+    ops     : 2;
+    optypes : (ot_reg_eax,ot_mem_offs,ot_none);
+    code    : #213#1#161#37;
+    flags   : if_386 or if_sm
+  ),
+  (
+    opcode  : A_MOV;
+    ops     : 2;
+    optypes : (ot_reg_rax,ot_mem_offs,ot_none);
+    code    : #214#1#161#37;
+    flags   : if_x86_64 or if_sm
   ),
   (
     opcode  : A_MOV;
@@ -2775,9 +2817,16 @@
   (
     opcode  : A_MOV;
     ops     : 2;
-    optypes : (ot_reg32 or ot_bits64,ot_immediate,ot_none);
-    code    : #208#8#184#29;
+    optypes : (ot_reg32,ot_immediate,ot_none);
+    code    : #213#8#184#33;
     flags   : if_386 or if_sd
+  ),
+  (
+    opcode  : A_MOV;
+    ops     : 2;
+    optypes : (ot_reg64,ot_immediate,ot_none);
+    code    : #214#8#184#45;
+    flags   : if_x86_64 or if_sm
   ),
   (
     opcode  : A_MOV;
@@ -2810,9 +2859,23 @@
   (
     opcode  : A_MOV;
     ops     : 2;
+    optypes : (ot_mem_offs,ot_reg_al,ot_none);
+    code    : #1#162#36;
+    flags   : if_8086 or if_sm
+  ),
+  (
+    opcode  : A_MOV;
+    ops     : 2;
     optypes : (ot_rm_gpr or ot_bits8,ot_reg8,ot_none);
     code    : #1#136#65;
     flags   : if_8086
+  ),
+  (
+    opcode  : A_MOV;
+    ops     : 2;
+    optypes : (ot_reg_al,ot_mem_offs,ot_none);
+    code    : #1#160#37;
+    flags   : if_8086 or if_sm
   ),
   (
     opcode  : A_MOV;
@@ -7563,8 +7626,36 @@
   (
     opcode  : A_MOVABS;
     ops     : 2;
-    optypes : (ot_reg32,ot_immediate,ot_none);
-    code    : #213#8#184#33;
+    optypes : (ot_reg_al,ot_mem_offs,ot_none);
+    code    : #1#160#37;
+    flags   : if_x86_64 or if_sm
+  ),
+  (
+    opcode  : A_MOVABS;
+    ops     : 2;
+    optypes : (ot_reg_ax or ot_bits32 or ot_bits64,ot_mem_offs,ot_none);
+    code    : #208#1#161#37;
+    flags   : if_x86_64 or if_sm
+  ),
+  (
+    opcode  : A_MOVABS;
+    ops     : 2;
+    optypes : (ot_mem_offs,ot_reg_al,ot_none);
+    code    : #1#162#36;
+    flags   : if_x86_64 or if_sm
+  ),
+  (
+    opcode  : A_MOVABS;
+    ops     : 2;
+    optypes : (ot_mem_offs,ot_reg_ax or ot_bits32 or ot_bits64,ot_none);
+    code    : #209#163#36;
+    flags   : if_x86_64 or if_sm
+  ),
+  (
+    opcode  : A_MOVABS;
+    ops     : 2;
+    optypes : (ot_reg64,ot_immediate,ot_none);
+    code    : #214#8#184#45;
     flags   : if_x86_64
   ),
   (
