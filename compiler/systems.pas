@@ -711,15 +711,15 @@ begin
    begin
      if (s.procalign in [1,2,4,8,16,32,64,128]) or (s.procalign=256) then
        procalign:=s.procalign
-     else
+     else if s.procalign<>0 then
        result:=false;
      if (s.loopalign in [1,2,4,8,16,32,64,128]) or (s.loopalign=256) then
        loopalign:=s.loopalign
-     else
+     else if s.loopalign<>0 then
        result:=false;
      if (s.jumpalign in [1,2,4,8,16,32,64,128]) or (s.jumpalign=256) then
        jumpalign:=s.jumpalign
-     else
+     else if s.jumpalign<>0 then
        result:=false;
      { general update rules:
        minimum: if higher then update
