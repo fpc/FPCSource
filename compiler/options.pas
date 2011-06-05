@@ -1477,7 +1477,7 @@ begin
                       begin
                         if target_info.system in systems_darwin then
                           begin
-                            if not UnsetBool(More, j) then
+                            if UnsetBool(More, j) then
                               apptype:=app_cui
                             else
                               apptype:=app_bundle
