@@ -1118,6 +1118,7 @@ end;
 Function TCustomHTMLModule.CreateDocument : THTMLDocument;
 
 begin
+  Result:=Nil;
   If Assigned(FOnCreateDocument) then
     FOnCreateDocument(Self,Result);
   If (Result=Nil) then
@@ -1132,12 +1133,13 @@ end;
 
 procedure TCustomHTMLModule.SetActions(const AValue: THTMLContentActions);
 begin
-
+  FActions.Assign(AValue);
 end;
 
 Function TCustomHTMLModule.CreateWriter(ADocument : THTMLDocument) : THTMLWriter;
 
 begin
+  Result:=Nil;
   If Assigned(FOnCreateWriter) then
     FOnCreateWriter(Self,ADocument,Result);
   if (Result=Nil) then

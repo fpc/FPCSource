@@ -679,6 +679,7 @@ begin
         end
       else
         begin
+        B:=0;
         While (I.Read(B,1)>0) do
           M.Write(B,1)
         end;
@@ -763,7 +764,7 @@ var
     aLenSep := Length(aSepStr);
   end;
 
-  function NextToken(var aToken : String; var aSepChar : Char) : Boolean;
+  function NextToken(var aToken : String; out aSepChar : Char) : Boolean;
 
   var
     i : Integer;

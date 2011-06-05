@@ -125,7 +125,7 @@ Type
     procedure SetPriority(const AValue: THandlerPriority);
   public
     function InitializeWebHandler: TWebHandler; override;
-    Procedure Initialize;
+    Procedure Initialize;override;
     procedure ShowException(E: Exception); override;
     Function ProcessRequest(P : PRequest_Rec) : Integer; virtual;
     Function AllowRequest(P : PRequest_Rec) : Boolean; virtual;
@@ -277,7 +277,9 @@ end;
 
 function TApacheHandler.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
 begin
-  // Do nothing. Requests are triggered by Apache
+  Result:=False;
+  ARequest:=Nil;
+  AResponse:=Nil;
 end;
 
 function TApacheHandler.AllowRequest(P: PRequest_Rec): Boolean;
@@ -454,7 +456,6 @@ function TApacheRequest.GetFieldValue(Index: Integer): String;
   end;
 
 var
-  P : Pchar;
   FN : String;
   I : Integer;
   
@@ -728,6 +729,7 @@ end;
 
 procedure TCustomApacheApplication.Initialize;
 begin
+  Inherited;
   TApacheHandler(WebHandler).Initialize;
 end;
 

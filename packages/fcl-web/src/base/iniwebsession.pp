@@ -190,10 +190,11 @@ begin
       Repeat
         if (Info.Attr and faDirectory=0) then
           begin
-          Ini:=TMeminiFile.Create(SessionDir+Info.Name);
+          FN:=SessionDir+Info.Name;
+          Ini:=TMeminiFile.Create(FN);
           try
             If SessionExpired(Ini) then
-              DeleteSessionFile(SessionDir+Info.Name);
+              DeleteSessionFile(FN);
           finally
             Ini.Free;
           end;
@@ -278,8 +279,6 @@ end;
 procedure TIniWebSession.InitSession(ARequest: TRequest; OnNewSession,OnExpired: TNotifyEvent);
 
 Var
-  L,D   : TDateTime;
-  T   : Integer;
   S : String;
 
 begin

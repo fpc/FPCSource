@@ -309,6 +309,7 @@ begin
     else
       begin
       FContent:='';
+      B:=0;
       While (I.Read(B,1)>0) do
         FContent:=FContent + chr(B);
       end;
@@ -407,7 +408,7 @@ end;
 
 function TCustomCGIApplication.GetResponse: TCGIResponse;
 begin
-
+  Result:=TCgiHandler(WebHandler).Response;
 end;
 
 function TCustomCGIApplication.InitializeWebHandler: TWebHandler;

@@ -128,7 +128,7 @@ type
 
 implementation
 
-uses rtlconsts, typinfo, XMLWrite, strutils;
+uses typinfo, strutils;
 
 var RegisteredScriptList : TStrings;
 

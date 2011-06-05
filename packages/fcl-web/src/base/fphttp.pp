@@ -63,10 +63,11 @@ Type
   Protected
     procedure SetContentProducer(const AValue: THTTPContentProducer);virtual;
     Function  GetDisplayName : String; override;
-    Function  GetNamePath : String; override;
     Procedure SetDisplayName(const AValue : String); override;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean);
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean); virtual;
+  Public
+    Function  GetNamePath : String; override;
   published
     Property Name : String Read GetDisplayName Write SetDisplayName;
     Property ContentProducer : THTTPContentProducer Read FContentproducer Write SetContentProducer;
@@ -317,7 +318,7 @@ end;
 
 procedure RegisterHTTPModule(ModuleClass: TCustomHTTPModuleClass; SkipStreaming : Boolean = False);
 begin
-  RegisterHTTPModule(ModuleClass.ClassName,ModuleClass);
+  RegisterHTTPModule(ModuleClass.ClassName,ModuleClass,SkipStreaming);
 end;
 
 procedure RegisterHTTPModule(const ModuleName: String;

@@ -511,7 +511,7 @@ begin
     I:=Low(AllowedResponseCodes);
     While (Not Result) and (I<=High(AllowedResponseCodes)) do
       begin
-      Result:=(AllowedResponseCodes[i]=FResponseStatusCode);
+      Result:=(AllowedResponseCodes[i]=ACode);
       Inc(I);
       end
     end;
@@ -741,6 +741,7 @@ Var
   S,N,V : String;
 
 begin
+  S:='';
   For I:=0 to FormData.Count-1 do
     begin
     If (S<>'') then

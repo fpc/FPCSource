@@ -274,11 +274,11 @@ type
     FReturnedPathInfo : String;
     FLocalPathPrefix : string;
     function GetLocalPathPrefix: string;
-    procedure ParseFirstHeaderLine(const line: String);override;
     function GetFirstHeaderLine: String;
   Protected
     FContentRead : Boolean;
     FContent : String;
+    procedure ParseFirstHeaderLine(const line: String);override;
     procedure ReadContent; virtual;
     Function GetFieldValue(AIndex : Integer) : String; override;
     Procedure SetFieldValue(Index : Integer; Value : String); override;
@@ -330,7 +330,7 @@ type
     Procedure DoSendContent; virtual; abstract;
     Procedure CollectHeaders(Headers : TStrings); virtual;
   public
-    constructor Create(ARequest : TRequest);
+    constructor Create(ARequest : TRequest); overload;
     destructor destroy; override;
     Procedure SendContent;
     Procedure SendHeaders;
@@ -1095,7 +1095,7 @@ var
     aLenSep := Length(aSepStr);
   end;
 
-  function NextToken(var aToken : String; out aSepChar : Char) : Boolean;
+  function NextToken(out aToken : String; out aSepChar : Char) : Boolean;
 
   var
     i : Integer;
@@ -1222,7 +1222,6 @@ procedure TRequest.InitPostVars;
 Var
   M  : TCapacityStream;
   Cl : Integer;
-  B  : Byte;
   CT : String;
 
 begin
@@ -1252,7 +1251,7 @@ begin
 {$ifdef CGIDEBUG}
   SendMethodExit('InitPostVars');
 {$endif}
-end;
+        end;
 
 procedure TRequest.InitGetVars;
 Var

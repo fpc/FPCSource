@@ -218,7 +218,9 @@ end;
 function TFPHTTPServerHandler.WaitForRequest(out ARequest: TRequest;
   out AResponse: TResponse): boolean;
 begin
-  // Result:=inherited WaitForRequest(ARequest, AResponse);
+  Result:=False;
+  ARequest:=Nil;
+  AResponse:=Nil;
 end;
 
 function TFPHTTPServerHandler.CreateServer: TEmbeddedHttpServer;

@@ -23,7 +23,7 @@ Interface
 uses
   Classes,SysUtils, httpdefs, 
 {$ifdef unix}
-  BaseUnix, TermIO,
+  BaseUnix,
 {$else}
   winsock2, windows,
 {$endif}
@@ -498,12 +498,12 @@ begin
     if not FlushFileBuffers(FHandle) then
       begin
       I:=GetLastError;
-//      Log(etError,Format('Failed to flush file buffers: %d ',[i]));
+      Log(etError,Format('Failed to flush file buffers: %d ',[i]));
       end;
     if not DisconnectNamedPipe(FHandle) then
       begin
       I:=GetLastError;
-//      Log(etError,Format('Failed to disconnect named pipe: %d ',[i]));
+      Log(etError,Format('Failed to disconnect named pipe: %d ',[i]));
       end
     end
   else
@@ -669,7 +669,8 @@ begin
         l.l_onoff:=1;
         l.l_linger:=1;
         lr:=fpsetsockopt(Socket,SOL_SOCKET,SO_LINGER,@l,ll);
-//        Log(etDebug,Format('Set socket linger (%d, %d) : %d',[L.l_linger,L.l_onoff,lr]));
+        if (lr<>0) then
+          Log(etError,Format('Set socket linger failed : %d',[lr]));
         end;
       end;
     end;
@@ -716,10 +717,10 @@ function TFCgiHandler.DoFastCGIRead(AHandle: THandle; var ABuf; ACount: Integer)
 begin
 {$ifdef windows}
   if FIsWinPipe then
-    Result:=FileRead(FHandle,ABuf,ACount)
+    Result:=FileRead(AHandle,ABuf,ACount)
   else
 {$endif}
-    Result:=sockets.fpRecv(FHandle, @Abuf, ACount, NoSignalAttr);
+    Result:=sockets.fpRecv(AHandle, @Abuf, ACount, NoSignalAttr);
 end;
 
 function TFCgiHandler.DoFastCGIWrite(AHandle: THandle; const ABuf;
@@ -799,7 +800,7 @@ begin
          if not SetNamedPipeHandleState(Result,@PipeMode,Nil,Nil) then
            begin
            I:=GetLastError;
-//           Log(etError,'Setting named pipe handle state failed : '+intToStr(i));
+           Log(etError,'Setting named pipe handle state failed : '+intToStr(i));
            end;
        FIsWinPipe:=True;
        end;
