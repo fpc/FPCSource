@@ -116,6 +116,18 @@ procedure fpc_cpuinit;
   end;
 
 
+function fpc_geteipasebx : pointer; [public, alias: 'fpc_geteipasebx'];assembler; nostackframe;
+asm
+  movl    (%esp),%ebx
+end;
+
+
+function fpc_geteipasecx : pointer; [public, alias: 'fpc_geteipasecx'];assembler; nostackframe;
+asm
+  movl    (%esp),%ecx
+end;
+
+
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
 

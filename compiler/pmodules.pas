@@ -1357,9 +1357,6 @@ implementation
          gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.globalsymtable,false);
          gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable,false);
 
-         { generate pic helpers to load eip if necessary }
-         gen_pic_helpers(current_asmdata.asmlists[al_procedures]);
-
          { generate rtti/init tables }
          write_persistent_type_info(current_module.globalsymtable);
          write_persistent_type_info(current_module.localsymtable);
@@ -2312,9 +2309,6 @@ implementation
 {$endif arm}
 
          InsertThreadvars;
-
-         { generate pic helpers to load eip if necessary }
-         gen_pic_helpers(current_asmdata.asmlists[al_procedures]);
 
          { generate rtti/init tables }
          write_persistent_type_info(current_module.localsymtable);
