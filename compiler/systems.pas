@@ -408,6 +408,7 @@ interface
 
        { all real windows systems, no cripple ones like wince, wdosx et. al. }
        systems_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64];
+
        { all windows systems }
        systems_all_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64,
                              system_arm_wince,system_i386_wince];
@@ -421,12 +422,6 @@ interface
        systems_solaris = [system_sparc_solaris, system_i386_solaris,
 			  system_x86_64_solaris];
 
-       { systems supporting Objective-C }
-       systems_objc_supported = systems_darwin;
-
-       { systems using the non-fragile Objective-C ABI }
-       systems_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_darwin,system_i386_iphonesim];
-
        { all embedded systems }
        systems_embedded = [system_i386_embedded,system_m68k_embedded,
                            system_alpha_embedded,system_powerpc_embedded,
@@ -434,6 +429,24 @@ interface
                            system_iA64_embedded,system_x86_64_embedded,
                            system_mips_embedded,system_arm_embedded,
                            system_powerpc64_embedded];
+
+       { all symbian systems }
+       systems_symbian = [system_i386_symbian,system_arm_symbian];
+
+       { all classic Mac OS targets }
+       systems_macos = [system_m68k_Mac,system_powerpc_Macos];
+
+       { all OS/2 targets }
+       systems_os2 = [system_i386_OS2,system_i386_emx];
+
+       { all native nt systems }
+       systems_nativent = [system_i386_nativent];
+
+       { systems supporting Objective-C }
+       systems_objc_supported = systems_darwin;
+
+       { systems using the non-fragile Objective-C ABI }
+       systems_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_darwin,system_i386_iphonesim];
 
        { all systems supporting exports from programs or units }
        systems_unit_program_exports = [system_i386_win32,
@@ -450,12 +463,6 @@ interface
        systems_internal_sysinit = [system_i386_linux,system_i386_win32];
 
        systems_interrupt_table = [{system_arm_embedded}];
-
-       { all symbian systems }
-       systems_symbian = [system_i386_symbian,system_arm_symbian];
-
-       { all native nt systems }
-       systems_nativent = [system_i386_nativent];
 
        { all systems for which istack must be at a 16 byte boundary
          when calling a function }
