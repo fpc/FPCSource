@@ -103,12 +103,9 @@ Function TParams.CreateParam(FldType: TFieldType; const ParamName: string;
 
 begin
   Result:=Add as TParam;
-  With Result do
-    begin
-    Name:=ParamName;
-    DataType:=FldType;
-    ParamType:=ParamType;
-    end;
+  Result.Name:=ParamName;
+  Result.DataType:=FldType;
+  Result.ParamType:=ParamType;
 end;
 
 Function TParams.FindParam(const Value: string): TParam;
