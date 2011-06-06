@@ -648,7 +648,7 @@ End;
 | which are stored at the locations pointed to by `z0Ptr' and `z1Ptr'.
 *----------------------------------------------------------------------------*}
 
-procedure shift128Right(a0: bits64; a1: bits64; count: int16; var z0Ptr: bits64; z1Ptr : bits64);
+procedure shift128Right(a0: bits64; a1: bits64; count: int16; var z0Ptr: bits64; var z1Ptr : bits64);
 var
     z0, z1: bits64;
     negCount: int8;
