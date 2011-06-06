@@ -36,12 +36,6 @@
 
 procedure PASCALMAIN; external name 'PASCALMAIN';
 
-function fpc_geteipasebx : pointer; compilerproc; nostackframe; assembler;
-asm  
-  movl (%esp),%ebx  
-  ret  
-end;
-
 {******************************************************************************
                           Process start/halt
  ******************************************************************************}
