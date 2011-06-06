@@ -1188,25 +1188,19 @@ procedure tppufile.tempclose;
 
 
 function tppufile.tempopen:boolean;
-  //var
-  //  ofm : byte;
   begin
     tempopen:=false;
     if not closed or not tempclosed then
      exit;
-    // MG: not sure, if this is correct
-
-    f.Position:=0;
-    (*
-    ofm:=filemode;
-    filemode:=0;
-    {$I-}
-     reset(f,1);
-    {$I+}
-    filemode:=ofm;
-    if ioresult<>0 then
-     exit;
-    *)
+   { MG: not sure, if this is correct
+     f.position:=0;
+       No, f was freed in tempclose above, we need to
+       recreate it.  PM 2011/06/06 }
+    try
+      f:=CFileStreamClass.Create(fname,fmOpenRead);
+    except
+      exit;
+    end;
     closed:=false;
     tempclosed:=false;
 
