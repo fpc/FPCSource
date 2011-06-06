@@ -12,7 +12,6 @@ function GetRemoteRepositoryURL(const AFileName:string):string;
 
 procedure LoadLocalAvailableMirrors;
 procedure LoadLocalAvailableRepository;
-procedure LoadUnitConfigFromFile(APackage:TFPPackage;const AFileName: String);
 function LoadManifestFromFile(const AManifestFN:string):TFPPackage;
 procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boolean=true);
 Procedure AddFPMakeAddIn(APackage: TFPPackage);
@@ -29,6 +28,8 @@ procedure ListRemoteRepository;
 procedure RebuildRemoteRepository;
 procedure SaveRemoteRepository;
 
+procedure SetDefaultRepositoryClass(ARepositoryClass: TFPRepositoryClass);
+
 var
   AvailableMirrors    : TFPMirrors;
   AvailableRepository,
@@ -43,12 +44,30 @@ uses
   pkgglobals,
   pkgmessages;
 
-{*****************************************************************************
-                           Mirror Selection
-*****************************************************************************}
+resourcestring
+  SErrRepositoryClassAlreadyAssigned = 'Default repository class is already assigned.';
 
 var
   CurrentRemoteRepositoryURL : String;
+  RepositoryClass : TFPRepositoryClass;
+
+procedure SetDefaultRepositoryClass(ARepositoryClass: TFPRepositoryClass);
+begin
+  if assigned(RepositoryClass) then
+    raise exception.Create(SErrRepositoryClassAlreadyAssigned);
+  RepositoryClass:=ARepositoryClass;
+end;
+
+function GetDefaultRepositoryClass: TFPRepositoryClass;
+begin
+  if not assigned(RepositoryClass) then
+    SetDefaultRepositoryClass(TFPRepository);
+  result := RepositoryClass;
+end;
+
+{*****************************************************************************
+                           Mirror Selection
+*****************************************************************************}
 
 procedure LoadLocalAvailableMirrors;
 var
@@ -142,32 +161,6 @@ end;
                            Local Repository
 *****************************************************************************}
 
-procedure ReadIniFile(Const AFileName: String;L:TStrings);
-Var
-  F : TFileStream;
-  Line : String;
-  I,P,PC : Integer;
-begin
-  F:=TFileStream.Create(AFileName,fmOpenRead);
-  Try
-    L.LoadFromStream(F);
-    // Fix lines.
-    For I:=L.Count-1 downto 0 do
-      begin
-        Line:=L[I];
-        P:=Pos('=',Line);
-        PC:=Pos(';',Line);  // Comment line.
-        If (P=0) or ((PC<>0) and (PC<P)) then
-          L.Delete(I)
-        else
-          L[i]:=Trim(System.Copy(Line,1,P-1)+'='+Trim(System.Copy(Line,P+1,Length(Line)-P)));
-      end;
-  Finally
-    F.Free;
-  end;
-end;
-
-
 function LoadManifestFromFile(const AManifestFN:string):TFPPackage;
 var
   X : TFPXMLRepositoryHandler;
@@ -196,64 +189,6 @@ begin
   finally
     X.Free;
     NewPackages.Free;
-  end;
-end;
-
-
-procedure LoadUnitConfigFromFile(APackage:TFPPackage;const AFileName: String);
-Var
-  L,DepSL : TStrings;
-  DepName,
-  V : String;
-  DepChecksum : Cardinal;
-  i,j,k : integer;
-  D : TFPDependency;
-begin
-  L:=TStringList.Create;
-  Try
-    ReadIniFile(AFileName,L);
-{$warning TODO Maybe check also CPU-OS}
-    // Read fpunits.conf
-    V:=L.Values['version'];
-    APackage.Version.AsString:=V;
-    APackage.IsFPMakeAddIn:=Upcase(L.Values['FPMakeAddIn'])='Y';
-    APackage.SourcePath:=L.Values['SourcePath'];
-    APackage.FPMakeOptionsString:=L.Values['FPMakeOptions'];
-    V:=L.Values['checksum'];
-    if V<>'' then
-      APackage.Checksum:=StrToInt(V)
-    else
-      APackage.Checksum:=$ffffffff;
-    // Load dependencies
-    V:=L.Values['depends'];
-    DepSL:=TStringList.Create;
-    DepSL.CommaText:=V;
-    for i:=0 to DepSL.Count-1 do
-      begin
-        DepName:=DepSL[i];
-        k:=Pos('|',DepName);
-        if k>0 then
-          begin
-            DepChecksum:=StrToInt(Copy(DepName,k+1,Length(DepName)-k));
-            DepName:=Copy(DepName,1,k-1);
-          end
-        else
-          DepChecksum:=$ffffffff;
-        D:=nil;
-        for j:=0 to APackage.Dependencies.Count-1 do
-          begin
-            D:=APackage.Dependencies[j];
-            if D.PackageName=DepName then
-              break;
-            D:=nil;
-          end;
-        if not assigned(D) then
-          D:=APackage.AddDependency(DepName,'');
-        D.RequireChecksum:=DepChecksum;
-      end;
-    DepSL.Free;
-  Finally
-    L.Free;
   end;
 end;
 
@@ -309,7 +244,7 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
               if FileExistsLog(UF) then
                 begin
                   P:=AddInstalledPackage(SR.Name,UF,Local);
-                  LoadUnitConfigFromFile(P,UF);
+                  P.LoadUnitConfigFromFile(UF);
                   if P.IsFPMakeAddIn then
                     AddFPMakeAddIn(P);
                 end
@@ -331,7 +266,7 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
 begin
   if assigned(InstalledRepository) then
     InstalledRepository.Free;
-  InstalledRepository:=TFPRepository.Create(nil);
+  InstalledRepository:=GetDefaultRepositoryClass.Create(nil);
   // First scan the global directory
   // The local directory will overwrite the versions
   if ACompilerOptions.GlobalUnitDir<>'' then
@@ -475,7 +410,7 @@ var
 begin
   if assigned(AvailableRepository) then
     AvailableRepository.Free;
-  AvailableRepository:=TFPRepository.Create(Nil);
+  AvailableRepository:=GetDefaultRepositoryClass.Create(Nil);
   // Repository
   S:=GlobalOptions.LocalPackagesFile;
   log(vlDebug,SLogLoadingPackagesFile,[S]);
@@ -673,7 +608,7 @@ var
 begin
   if assigned(InstalledRepository) then
     InstalledRepository.Free;
-  InstalledRepository:=TFPRepository.Create(Nil);
+  InstalledRepository:=GetDefaultRepositoryClass.Create(Nil);
   try
     ManifestSL:=TStringList.Create;
     ManifestSL.Add(ManifestFileName);

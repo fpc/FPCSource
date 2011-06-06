@@ -573,6 +573,7 @@ Type
   Protected
     procedure SetName(const AValue: String);override;
     procedure LoadUnitConfigFromFile(Const AFileName: String);
+    procedure SaveUnitConfigToStringList(Const AStringList: TStrings;ACPU:TCPU;AOS:TOS); virtual;
     procedure SaveUnitConfigToFile(Const AFileName: String;ACPU:TCPU;AOS:TOS);
   Public
     constructor Create(ACollection: TCollection); override;
@@ -2579,54 +2580,59 @@ begin
   end;
 end;
 
-
-procedure TPackage.SaveUnitConfigToFile(Const AFileName: String;ACPU:TCPU;AOS:TOS);
+procedure TPackage.SaveUnitConfigToStringList(const AStringList: TStrings; ACPU: TCPU; AOS: TOS);
 Var
-  F : TFileStream;
-  L : TStringList;
   Deps : String;
   i : integer;
   D : TDependency;
   p : TPackage;
 begin
+  with AStringList do
+    begin
+      Values[KeyName]:=Name;
+      Values[KeyVersion]:=Version;
+      // TODO Generate checksum based on PPUs
+      Values[KeyChecksum]:=IntToStr(DateTimeToFileDate(Now));
+      Values[KeyCPU]:=CPUToString(ACPU);
+      Values[KeyOS]:=OSToString(AOS);
+      //Installer;
+      Values[KeySourcePath]:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(Installer.BuildEngine.FStartDir)+Directory);
+      Values[KeyFPMakeOptions]:=trim(Installer.FPMakeOptionsString);
+      Deps:='';
+      for i:=0 to Dependencies.Count-1 do
+        begin
+          D:=Dependencies[i];
+          if (ACPU in D.CPUs) and (AOS in D.OSes) then
+            begin
+              if Deps<>'' then
+                Deps:=Deps+',';
+              Deps:=Deps+D.Value;
+              P:=TPackage(D.Target);
+              if assigned(P) and (P.InstalledChecksum<>$ffffffff) then
+                Deps:=Deps+'|'+IntToStr(P.InstalledChecksum);
+            end;
+        end;
+      Values[KeyDepends]:=Deps;
+      if NeedLibC then
+        Values[KeyNeedLibC]:='Y'
+      else
+        Values[KeyNeedLibC]:='N';
+      if IsFPMakeAddIn then
+        Values[KeyAddIn]:='Y'
+      else
+        Values[KeyAddIn]:='N';
+    end;
+end;
+
+procedure TPackage.SaveUnitConfigToFile(Const AFileName: String;ACPU:TCPU;AOS:TOS);
+Var
+  F : TFileStream;
+  L : TStringList;
+begin
   F:=TFileStream.Create(AFileName,fmCreate);
   L:=TStringList.Create;
   try
-    With L do
-      begin
-        Values[KeyName]:=Name;
-        Values[KeyVersion]:=Version;
-        // TODO Generate checksum based on PPUs
-        Values[KeyChecksum]:=IntToStr(DateTimeToFileDate(Now));
-        Values[KeyCPU]:=CPUToString(ACPU);
-        Values[KeyOS]:=OSToString(AOS);
-        //Installer;
-        Values[KeySourcePath]:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(Installer.BuildEngine.FStartDir)+Directory);
-        Values[KeyFPMakeOptions]:=trim(Installer.FPMakeOptionsString);
-        Deps:='';
-        for i:=0 to Dependencies.Count-1 do
-          begin
-            D:=Dependencies[i];
-            if (ACPU in D.CPUs) and (AOS in D.OSes) then
-              begin
-                if Deps<>'' then
-                  Deps:=Deps+',';
-                Deps:=Deps+D.Value;
-                P:=TPackage(D.Target);
-                if assigned(P) and (P.InstalledChecksum<>$ffffffff) then
-                  Deps:=Deps+'|'+IntToStr(P.InstalledChecksum);
-              end;
-          end;
-        Values[KeyDepends]:=Deps;
-        if NeedLibC then
-          Values[KeyNeedLibC]:='Y'
-        else
-          Values[KeyNeedLibC]:='N';
-        if IsFPMakeAddIn then
-          Values[KeyAddIn]:='Y'
-        else
-          Values[KeyAddIn]:='N';
-      end;
+    SaveUnitConfigToStringList(L,ACPU,AOS);
     L.SaveToStream(F);
   Finally
     L.Free;
