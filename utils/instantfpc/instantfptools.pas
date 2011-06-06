@@ -2,10 +2,21 @@ unit InstantFPTools;
 
 {$mode objfpc}{$H+}
 
+{$define UseFpExecV}
+
+{$ifdef MSWINDOWS}
+  {$undef UseFpExecV}
+  {$define HASEXEEXT}
+{$endif MSWINDOWS}
+{$ifdef go32v2}
+  {$undef UseFpExecV}
+  {$define HASEXEEXT}
+{$endif go32v2}
+
 interface
 
 uses
-  {$IFNDEF MSWINDOWS}
+  {$IFDEF UseFpExecV}
   Unix,
   {$ENDIF}
   Classes, SysUtils, Process;
@@ -200,7 +211,7 @@ begin
     if (p<>'') and (p[1]='-') then
       Result:=p; // copy compile params from the script
   end;
-  AddParam('-o'+OutputFilename {$IFDEF MSWINDOWS} + '.exe' {$ENDIF},Result);
+  AddParam('-o'+OutputFilename {$IFDEF HASEXEEXT} + '.exe' {$ENDIF},Result);
   AddParam(SrcFilename,Result);
 end;
 
@@ -216,7 +227,7 @@ begin
     end;
     inc(p);
   end;
-  {$IFDEF MSWINDOWS}
+  {$IFNDEF UseFpExecV}
     Inc(p); //lose the first command-line argument with the the script filename
     Halt(ExecuteProcess(Filename,[p^]));
   {$ELSE}
