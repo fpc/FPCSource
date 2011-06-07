@@ -1181,6 +1181,7 @@ procedure tppufile.tempclose;
      begin
        closepos:=f.Position;
        f.Free;
+       f:=nil;
        closed:=true;
        tempclosed:=true;
      end;
