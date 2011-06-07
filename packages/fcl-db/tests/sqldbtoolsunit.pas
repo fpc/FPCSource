@@ -125,7 +125,10 @@ begin
     begin
     // Some DB's do not support milliseconds in time-fields.
     for t := 0 to testValuesCount-1 do
+      begin
       testTimeValues[t] := copy(testTimeValues[t],1,8)+'.000';
+      testValues[ftTime,t] := copy(testTimeValues[t],1,8)+'.000';
+      end;
     end;
   if SQLDbType = MYSQL50 then Fconnection := tMySQL50Connection.Create(nil);
   if SQLDbType = MYSQL51 then Fconnection := tMySQL51Connection.Create(nil);
@@ -148,11 +151,13 @@ begin
     Fconnection := tIBConnection.Create(nil);
     // Firebird does not support time = 24:00:00
     testTimeValues[2]:='23:00:00.000';
+    testValues[ftTime,2]:='23:00:00.000';
     end;
   if SQLDbType in [postgresql,interbase] then
     begin
     // Some db's do not support times > 24:00:00
     testTimeValues[3]:='13:25:15.000';
+    testValues[ftTime,3]:='13:25:15.000';
     end;
   if SQLDbType = ODBC then Fconnection := tODBCConnection.Create(nil);
   if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
