@@ -113,10 +113,12 @@ begin
       end;
     with P.Targets.AddUnit('fpfcgi.pp') do
       begin
+        OSes:=AllOses-[wince];
         Dependencies.AddUnit('custfcgi');
       end;
     with P.Targets.AddUnit('custfcgi.pp') do
       begin
+        OSes:=AllOses-[wince];
         Dependencies.AddUnit('httpdefs');
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
