@@ -249,7 +249,9 @@ Implementation
         Found:=FindFile(s,'.'+source_info.DirSep,false,founddll);
         if (not found) then
          Found:=librarysearchpath.FindFile(s,false,founddll);
-        if (not found) then
+
+        { when cross compiling, it is pretty useless to search windir etc. for dlls }
+        if (not found) and (source_info.system=target_info.system) then
          begin
            sysdir:=FixPath(GetEnvironmentVariable('windir'),false);
            Found:=FindFile(s,sysdir+';'+sysdir+'system'+source_info.DirSep+';'+sysdir+'system32'+source_info.DirSep,false,founddll);
