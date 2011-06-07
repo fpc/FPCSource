@@ -927,7 +927,7 @@ ifeq ($(FULL_TARGET),i386-netwlibc)
 override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src  src/win src/dummy
+override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src  src/dummy
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src
@@ -1029,7 +1029,7 @@ ifeq ($(FULL_TARGET),arm-darwin)
 override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src  src/unix
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src  src/win src/dummy
+override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src  src/dummy
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src
