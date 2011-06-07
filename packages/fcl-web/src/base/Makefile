@@ -348,7 +348,7 @@ ifeq ($(FULL_TARGET),i386-netwlibc)
 override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
@@ -450,7 +450,7 @@ ifeq ($(FULL_TARGET),arm-darwin)
 override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile  custfcgi fpfcgi
+override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver fphttpclient custhttpapp fphttpapp fpwebfile
