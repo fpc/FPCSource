@@ -47,6 +47,7 @@ includedir_qnx=src/unix
 includedir_beos=src/unix
 includedir_haiku=src/unix
 includedir_emx=src/os2 src/dummy
+includedir_go32v2=src/go32v2 src/dummy
 includedir_win32=src/win
 includedir_win64=src/win
 includedir_wince=src/win src/dummy
