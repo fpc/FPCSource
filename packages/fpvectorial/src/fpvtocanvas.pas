@@ -171,6 +171,7 @@ begin
 
     // Set the path Pen and Brush options
     ADest.Pen.Style := CurPath.Pen.Style;
+    ADest.Pen.Width := CurPath.Pen.Width;
     ADest.Brush.Style := CurPath.Brush.Style;
     {$ifdef USE_LCL_CANVAS}
     ADest.Pen.Color := VColorToTColor(CurPath.Pen.Color);

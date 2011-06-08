@@ -884,6 +884,7 @@ begin
   FTmpPath.Brush.Style := bsClear;
   FTmpPath.Pen.Color := clvBlack;
   FTmpPath.Pen.Style := psSolid;
+  FTmpPath.Pen.Width := 1;
 end;
 
 procedure TvVectorialDocument.AppendSegmentToTmpPath(ASegment: TPathSegment);

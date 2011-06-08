@@ -15,7 +15,7 @@ interface
 
 uses
   Classes, SysUtils, Math,
-  fpvectorial, fpimage;
+  fpvectorial, fpimage, fpvutils;
 
 type
   TPSTokenType = (ttComment, ttFloat);
@@ -32,7 +32,13 @@ type
   TCommentToken = class(TPSToken)
   end;
 
-  TPostScriptScannerState = (ssSearchingToken, ssInComment);
+  TDefinitionToken = class(TPSToken)
+  end;
+
+  TExpressionToken = class(TPSToken)
+  end;
+
+  TPostScriptScannerState = (ssSearchingToken, ssInComment, ssInDefinition, ssInExpressionElement);
 
   { TPSTokenizer }
 
@@ -44,9 +50,9 @@ type
     procedure ReadFromStream(AStream: TStream);
     procedure DebugOut();
     function IsValidPostScriptChar(AChar: Byte): Boolean;
+    function IsPostScriptSpace(AChar: Byte): Boolean;
+    function IsEndOfLine(ACurChar: Byte; AStream: TStream): Boolean;
   end;
-
-  { TvEPSFVectorialReader }
 
   { TvEPSVectorialReader }
 
@@ -87,8 +93,13 @@ procedure TPSTokenizer.ReadFromStream(AStream: TStream);
 var
   i: Integer;
   CurChar: Char;
+  CurLine: Integer = 1;
   State: TPostScriptScannerState = ssSearchingToken;
   CommentToken: TCommentToken;
+  DefinitionToken: TDefinitionToken;
+  ExpressionToken: TExpressionToken;
+  Len: Integer;
+  lIsEndOfLine: Boolean;
 begin
   while AStream.Position < AStream.Size do
   begin
@@ -96,41 +107,71 @@ begin
     if not IsValidPostScriptChar(Byte(CurChar)) then
       raise Exception.Create('[TPSTokenizer.ReadFromStream] Invalid char: ' + IntToHex(Byte(CurChar), 2));
 
+    lIsEndOfLine := IsEndOfLine(Byte(CurChar), AStream);
+    if lIsEndOfLine then Inc(CurLine);
+
     case State of
       { Searching for a token }
       ssSearchingToken:
       begin
-        case CurChar of
-          '%':
-          begin
-            CommentToken := TCommentToken.Create;
-            State := ssInComment;
-          end;
-        end;
-
+        if CurChar = '%' then
+        begin
+          CommentToken := TCommentToken.Create;
+          State := ssInComment;
+        end
+        else if CurChar = '/' then
+        begin
+          DefinitionToken := TDefinitionToken.Create;
+          State := ssInDefinition;
+        end
+        else if CurChar in ['a'..'z'] + ['A'..'Z'] + ['0'..'9'] then
+        begin
+          ExpressionToken := TExpressionToken.Create;
+          State := ssInExpressionElement;
+        end
+        else if lIsEndOfLine then Continue
+        else
+          raise Exception.Create(Format('[TPSTokenizer.ReadFromStream] Unexpected char while searching for token: $%s in Line %d',
+           [IntToHex(Byte(CurChar), 2), CurLine]));
       end;
 
       { Passing by comments }
       ssInComment:
       begin
         CommentToken.StrValue := CommentToken.StrValue + CurChar;
-
-        case CurChar of
-          #13:
-          begin
-            // Check if this is a Windows-style #13#10 line end marker by getting one more char
-            if AStream.ReadByte() <> 10 then AStream.Seek(-1, soFromCurrent); // Go back if it wasnt a #13#10
-
-            Tokens.Add(CommentToken);
-            State := ssSearchingToken;
-          end;
-          #10:
-          begin
-            Tokens.Add(CommentToken);
-            State := ssSearchingToken;
-          end;
-        end; // case
+        if lIsEndOfLine then
+        begin
+          Tokens.Add(CommentToken);
+          State := ssSearchingToken;
+        end;
       end; // ssInComment
+
+      // Dictionary definitions end in "def"
+      ssInDefinition:
+      begin
+        DefinitionToken.StrValue := DefinitionToken.StrValue + CurChar;
+        Len := Length(DefinitionToken.StrValue);
+        if Len >= 3 then
+        begin
+          if (DefinitionToken.StrValue[Len-2] = 'd') and (DefinitionToken.StrValue[Len-1] = 'e') and (DefinitionToken.StrValue[Len] = 'f') then
+          begin
+            Tokens.Add(DefinitionToken);
+            State := ssSearchingToken;
+          end;
+        end;
+      end;
+
+      // Goes until a space comes
+      ssInExpressionElement:
+      begin
+        if IsPostScriptSpace(Byte(CurChar)) then
+        begin
+          Tokens.Add(ExpressionToken);
+          State := ssSearchingToken;
+        end
+        else
+          ExpressionToken.StrValue := ExpressionToken.StrValue + CurChar;
+      end;
 
     end; // case
   end; // while
@@ -148,6 +189,14 @@ begin
     if Token is TCommentToken then
     begin
       WriteLn(Format('TCommentToken StrValue=%s', [Token.StrValue]));
+    end
+    else if Token is TDefinitionToken then
+    begin
+      WriteLn(Format('TDefinitionToken StrValue=%s', [Token.StrValue]));
+    end
+    else if Token is TExpressionToken then
+    begin
+      WriteLn(Format('TExpressionToken StrValue=%s', [Token.StrValue]));
     end;
   end;
 end;
@@ -167,6 +216,32 @@ Plus the following white spaces
 function TPSTokenizer.IsValidPostScriptChar(AChar: Byte): Boolean;
 begin
   Result := ((AChar > 32) and (AChar < 127)) or (AChar in [0, 9, 10, 12, 13, 32]);
+end;
+
+function TPSTokenizer.IsPostScriptSpace(AChar: Byte): Boolean;
+begin
+  Result := AChar in [0, 9, 10, 12, 13, 32];
+end;
+
+function TPSTokenizer.IsEndOfLine(ACurChar: Byte; AStream: TStream): Boolean;
+var
+  HasNextChar: Boolean = False;
+  NextChar: Byte;
+begin
+  Result := False;
+
+  if ACurChar = 13 then
+  begin
+    if AStream.Position < AStream.Size then
+    begin
+      HasNextChar := True;
+      NextChar := AStream.ReadByte();
+      if NextChar <> 10 then AStream.Seek(-1, soFromCurrent); // Go back if it wasnt a #13#10
+      Exit(True);
+    end;
+  end;
+
+  if ACurChar = 10 then Result := True;
 end;
 
 {$ifndef Windows}

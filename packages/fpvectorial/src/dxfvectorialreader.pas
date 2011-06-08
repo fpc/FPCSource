@@ -30,12 +30,9 @@ interface
 
 uses
   Classes, SysUtils, Math,
-  fpvectorial, fpimage;
+  fpvectorial, fpimage, fpvutils;
 
 type
-  { Used by tcutils.SeparateString }
-  T10Strings = array[0..9] of shortstring;
-
   TDXFToken = class;
 
   TDXFTokens = TFPList;// TDXFToken;
@@ -90,7 +87,6 @@ type
     IsReadingPolyline: Boolean;
     Polyline: array of TPolylineElement;
     //
-    function  SeparateString(AString: string; ASeparator: Char): T10Strings;
     procedure ReadHEADER(ATokens: TDXFTokens; AData: TvVectorialDocument);
     procedure ReadENTITIES(ATokens: TDXFTokens; AData: TvVectorialDocument);
     procedure ReadENTITIES_LINE(ATokens: TDXFTokens; AData: TvVectorialDocument);
@@ -346,39 +342,6 @@ begin
 end;
 
 { TvDXFVectorialReader }
-
-{@@
-  Reads a string and separates it in substring
-  using ASeparator to delimite them.
-
-  Limits:
-
-  Number of substrings: 10 (indexed 0 to 9)
-  Length of each substring: 255 (they are shortstrings)
-}
-function TvDXFVectorialReader.SeparateString(AString: string; ASeparator: Char): T10Strings;
-var
-  i, CurrentPart: Integer;
-begin
-  CurrentPart := 0;
-
-  { Clears the result }
-  for i := 0 to 9 do Result[i] := '';
-
-  { Iterates througth the string, filling strings }
-  for i := 1 to Length(AString) do
-  begin
-    if Copy(AString, i, 1) = ASeparator then
-    begin
-      Inc(CurrentPart);
-
-      { Verifies if the string capacity wasn't exceeded }
-      if CurrentPart > 9 then Exit;
-    end
-    else
-      Result[CurrentPart] := Result[CurrentPart] + Copy(AString, i, 1);
-  end;
-end;
 
 procedure TvDXFVectorialReader.ReadHEADER(ATokens: TDXFTokens;
   AData: TvVectorialDocument);
