@@ -115,7 +115,7 @@ procedure fpc_cpuinit;
       Default8087CW:=Get8087CW;
   end;
 
-
+{$ifndef darwin}
 function fpc_geteipasebx : pointer; [public, alias: 'fpc_geteipasebx'];assembler; nostackframe;
 asm
   movl    (%esp),%ebx
@@ -126,7 +126,7 @@ function fpc_geteipasecx : pointer; [public, alias: 'fpc_geteipasecx'];assembler
 asm
   movl    (%esp),%ecx
 end;
-
+{$endif}
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
