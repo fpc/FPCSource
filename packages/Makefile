@@ -9817,8 +9817,10 @@ opencl_debug:  opengl_debug
 opencl_smart:  opengl_smart
 opencl_release:  opengl_release
 opencl_shared:  opengl_shared
+ifeq ($(findstring $(OS_TARGET),go32v2),)
 fppkg_all:  fcl-web_all
 fppkg_debug:  fcl-web_debug
 fppkg_smart:  fcl-web_smart
 fppkg_release:  fcl-web_release
 fppkg_shared:  fcl-web_shared
+endif
