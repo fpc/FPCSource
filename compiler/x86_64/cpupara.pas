@@ -1234,10 +1234,7 @@ unit cpupara;
       begin
         intparareg:=0;
         mmparareg:=0;
-        if target_info.system=system_x86_64_win64 then
-          parasize:=4*8
-        else
-          parasize:=0;
+        parasize:=0;
         create_paraloc_info_intern(p,side,p.paras,intparareg,mmparareg,parasize,false);
         { Create Function result paraloc }
         create_funcretloc_info(p,side);
