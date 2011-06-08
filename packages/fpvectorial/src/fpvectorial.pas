@@ -24,9 +24,11 @@ uses
 type
   TvVectorialFormat = (
     { Multi-purpose document formats }
-    vfPDF, vfPostScript, vfSVG, vfCorelDrawCDR, vfWindowsMetafileWMF,
+    vfPDF, vfSVG, vfCorelDrawCDR, vfWindowsMetafileWMF,
     { CAD formats }
     vfDXF,
+    { Printing formats }
+    vfPostScript, vfEncapsulatedPostScript,
     { GCode formats }
     vfGCodeAvisoCNCPrototipoV5, vfGCodeAvisoCNCPrototipoV6);
 
@@ -39,6 +41,7 @@ const
   STR_CORELDRAW_EXTENSION = '.cdr';
   STR_WINMETAFILE_EXTENSION = '.wmf';
   STR_AUTOCAD_EXCHANGE_EXTENSION = '.dxf';
+  STR_ENCAPSULATEDPOSTSCRIPT_EXTENSION = '.eps';
 
 type
   {@@ We need our own format because TFPColor is too big for our needs and TColor has no Alpha }
@@ -62,6 +65,7 @@ const
   FPValphaOpaque = $FF;
 
   clvBlack: TvColor = (Red: $00; Green: $00; Blue: $00; Alpha: FPValphaOpaque);
+  clvBlue: TvColor = (Red: $00; Green: $00; Blue: $FF; Alpha: FPValphaOpaque);
 
 type
   T3DPoint = record
@@ -149,6 +153,18 @@ type
     function Next(): TPathSegment;
   end;
 
+  TvFont = record
+    Color: TvColor;
+    Size: integer;
+    Name: utf8string;
+    {@@
+      Font orientation is measured in degrees and uses the
+      same direction as the LCL TFont.orientation, which is counter-clockwise.
+      Zero is the normal, horizontal, orientation.
+    }
+    Orientation: Double;
+  end;
+
   {@@
     TvText represents a text in memory.
 
@@ -159,17 +175,19 @@ type
   public
     X, Y, Z: Double; // Z is ignored in 2D formats
     Value: utf8string;
-    FontColor: TvColor;
-    FontSize: integer;
-    FontName: utf8string;
+    Font: TvFont;
   end;
 
   {@@
   }
+
+  { TvEntity }
+
   TvEntity = class
   public
     Pen: TvPen;
     Brush: TvBrush;
+    constructor Create; virtual;
   end;
 
   {@@
@@ -205,6 +223,11 @@ type
   end;
 
   {@@
+   DimensionLeft ---text--- DimensionRight
+                 |        |
+                 |        | BaseRight
+                 |
+                 | BaseLeft
   }
 
   { TvAlignedDimension }
@@ -340,6 +363,7 @@ procedure RegisterVectorialReader(
 procedure RegisterVectorialWriter(
   AWriterClass: TvVectorialWriterClass;
   AFormat: TvVectorialFormat);
+function Make2DPoint(AX, AY: Double): T3DPoint;
 
 implementation
 
@@ -428,6 +452,23 @@ begin
     GvVectorialFormats[len].WriterRegistered := True;
     GvVectorialFormats[len].Format := AFormat;
   end;
+end;
+
+function Make2DPoint(AX, AY: Double): T3DPoint;
+begin
+  Result.X := AX;
+  Result.Y := AY;
+  Result.Z := 0;
+end;
+
+{ TvEntity }
+
+constructor TvEntity.Create;
+begin
+  Pen.Style := psSolid;
+  Pen.Color := clvBlack;
+  Brush.Style := bsClear;
+  Brush.Color := clvBlue;
 end;
 
 { TvEllipse }
@@ -713,8 +754,8 @@ begin
   lText.X := AX;
   lText.Y := AY;
   lText.Z := AZ;
-  lText.FontName := FontName;
-  lText.FontSize := FontSize;
+  lText.Font.Name := FontName;
+  lText.Font.Size := FontSize;
   FTexts.Add(lText);
 end;
 
@@ -839,6 +880,10 @@ begin
   FTmpPath.Points := nil;
   FTmpPath.PointsEnd := nil;
   FTmpPath.Len := 0;
+  FTmpPath.Brush.Color := clvBlue;
+  FTmpPath.Brush.Style := bsClear;
+  FTmpPath.Pen.Color := clvBlack;
+  FTmpPath.Pen.Style := psSolid;
 end;
 
 procedure TvVectorialDocument.AppendSegmentToTmpPath(ASegment: TPathSegment);
@@ -1000,6 +1045,7 @@ begin
   else if AnsiCompareText(lExt, STR_CORELDRAW_EXTENSION) = 0 then Result := vfCorelDrawCDR
   else if AnsiCompareText(lExt, STR_WINMETAFILE_EXTENSION) = 0 then Result := vfWindowsMetafileWMF
   else if AnsiCompareText(lExt, STR_AUTOCAD_EXCHANGE_EXTENSION) = 0 then Result := vfDXF
+  else if AnsiCompareText(lExt, STR_ENCAPSULATEDPOSTSCRIPT_EXTENSION) = 0 then Result := vfEncapsulatedPostScript
   else
     raise Exception.Create('TvVectorialDocument.GetFormatFromExtension: The extension (' + lExt + ') doesn''t match any supported formats.');
 end;

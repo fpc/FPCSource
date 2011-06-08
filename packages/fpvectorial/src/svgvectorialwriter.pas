@@ -243,7 +243,7 @@ begin
         AData, lText.X, lText.Y, PtX, PtY);
 
     TextStr := lText.Value;
-    FontSize:= ceil(lText.FontSize / FLOAT_MILIMETERS_PER_PIXEL);
+    FontSize:= ceil(lText.Font.Size / FLOAT_MILIMETERS_PER_PIXEL);
     SVGFontFamily := 'Arial, sans-serif';//lText.FontName;
 
     AStrings.Add('  <text ');
