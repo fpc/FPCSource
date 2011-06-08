@@ -4,10 +4,10 @@ unit InstantFPTools;
 
 {$define UseFpExecV}
 
-{$ifdef MSWINDOWS}
+{$ifdef WINDOWS}
   {$undef UseFpExecV}
   {$define HASEXEEXT}
-{$endif MSWINDOWS}
+{$endif WINDOWS}
 {$ifdef go32v2}
   {$undef UseFpExecV}
   {$define HASEXEEXT}
