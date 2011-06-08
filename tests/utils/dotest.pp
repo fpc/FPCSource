@@ -44,14 +44,15 @@ const
   ObjExt='o';
   PPUExt='ppu';
 {$ifdef UNIX}
-  ExeExt='';
+  SrcExeExt='';
 {$else UNIX}
 {$ifdef MACOS}
-  ExeExt='';
+  SrcExeExt='';
 {$else MACOS}
-  ExeExt='exe';
+  SrcExeExt='.exe';
 {$endif MACOS}
 {$endif UNIX}
+  ExeExt : string = '';
   DefaultTimeout=60;
 
 var
@@ -82,7 +83,7 @@ const
   DoKnown : boolean = false;
   DoAll : boolean = false;
   DoUsual : boolean = true;
-  TargetDir : string = '';
+  { TargetDir : string = ''; unused }
   BenchmarkInfo : boolean = false;
   ExtraCompilerOpts : string = '';
   DelExecutable : TDelExecutables = [];
@@ -109,16 +110,39 @@ var
 begin
   LTarget := lowercase(CompilerTarget);
   TargetHasDosStyleDirectories :=
+    (LTarget='emx') or
     (LTarget='go32v2') or
-    (LTarget='win32') or
-    (LTarget='win64') or
+    (LTarget='nativent') or
+    (LTarget='os2') or
+    (LTarget='symbian') or
     (LTarget='watcom') or
-    (LTarget='os2');
+    (LTarget='wdosx') or
+    (LTarget='win32') or
+    (LTarget='win64');
   TargetAmigaLike:=
     (LTarget='amiga') or
     (LTarget='morphos');
   TargetIsMacOS:=
     (LTarget='macos');
+  { Set ExeExt for CompilerTarget.
+    This list has been set up 2011-06 using the information in
+    compiler/system/i_XXX.pas units.
+    We should update this list when adding new targets PM }
+  if (TargetHasDosStyleDirectories) then
+    ExeExt:='.exe'
+  else if LTarget='atari' then
+    ExeExt:='.tpp'
+  else if LTarget='gba' then
+    ExeExt:='.gba'
+  else if LTarget='nds' then
+    ExeExt:='.bin'
+  else if (LTarget='netware') or (LTarget='netwlibc') then
+    ExeExt:='.nlm'
+  else if LTarget='wii' then
+    ExeExt:='.dol'
+  else if LTarget='wince' then
+    ExeExt:='.exe';
+
 end;
 
 { extracted from rtl/macos/macutils.inc }
@@ -298,7 +322,12 @@ begin
   if j=0 then
    j:=length(Hstr)+1;
   if Ext<>'' then
-   ForceExtension:=Copy(Hstr,1,j-1)+'.'+Ext
+   begin
+     if Ext[1]='.' then
+       ForceExtension:=Copy(Hstr,1,j-1)+Ext
+     else
+       ForceExtension:=Copy(Hstr,1,j-1)+'.'+Ext
+   end
   else
    ForceExtension:=Copy(Hstr,1,j-1);
 end;
@@ -804,7 +833,7 @@ var
   TestRemoteExe,
   TestExe  : string;
   LocalFile, RemoteFile: string;
-  LocalPath, LTarget : string;
+  LocalPath: string;
   execcmd,
   pref     : string;
   execres  : boolean;
@@ -843,19 +872,9 @@ label
 begin
   RunExecutable:=false;
   execres:=true;
-  { when remote testing, leave extension away,
-    but not for go32v2, win32 or win64 as cygwin ssh
-    will remove the .exe in that case }
-  LTarget := lowercase(CompilerTarget);
 
-  if (RemoteAddr='') or
-     (rcpprog='pscp') or
-     (LTarget='go32v2') or
-     (LTarget='win32') or
-     (LTarget='win64') then
-    TestExe:=OutputFileName(PPFile[current],ExeExt)
-  else
-    TestExe:=OutputFileName(PPFile[current],'');
+  TestExe:=OutputFileName(PPFile[current],ExeExt);
+
   if EmulatorName<>'' then
     begin
       { Get full name out log file, because we change the directory during
@@ -1039,15 +1058,15 @@ end;
 
 procedure getargs;
 var
-  ch   : char;
   para : string;
-  i,j  : longint;
+  i  : longint;
 
   procedure helpscreen;
   begin
     writeln('dotest [Options] <File>');
     writeln;
     writeln('Options can be:');
+    writeln('  !ENV_NAME     parse environment variable ENV_NAME for options');
     writeln('  -A            include ALL tests');
     writeln('  -B            delete executable before remote upload');
     writeln('  -C<compiler>  set compiler to use');
@@ -1072,104 +1091,136 @@ var
     halt(1);
   end;
 
+  procedure interpret_option (arg : string);
+  var
+    ch : char;
+    j : longint;
+  begin
+    ch:=Upcase(para[2]);
+    delete(para,1,2);
+    case ch of
+     'A' :
+       begin
+         DoGraph:=true;
+         DoInteractive:=true;
+         DoKnown:=true;
+         DoAll:=true;
+       end;
+
+     'B' : Include(DelExecutable,deBefore);
+
+     'C' : CompilerBin:=Para;
+
+     'D' : BenchMarkInfo:=true;
+
+     'E' : DoExecute:=true;
+
+     'G' : begin
+             DoGraph:=true;
+             if para='-' then
+               DoUsual:=false;
+           end;
+
+     'I' : begin
+             DoInteractive:=true;
+             if para='-' then
+               DoUsual:=false;
+           end;
+
+     'K' : begin
+             DoKnown:=true;
+             if para='-' then
+               DoUsual:=false;
+           end;
+
+     'M' : EmulatorName:=Para;
+
+     'O' : UseTimeout:=true;
+
+     'P' : RemotePath:=Para;
+
+     'R' : RemoteAddr:=Para;
+
+     'S' :
+       begin
+         rshprog:='ssh';
+         rcpprog:='scp';
+       end;
+
+     'T' :
+       begin
+         j:=Pos('-',Para);
+         if j>0 then
+           begin
+             CompilerCPU:=Copy(Para,1,j-1);
+             CompilerTarget:=Copy(Para,j+1,length(para));
+           end
+         else
+           CompilerTarget:=Para
+       end;
+
+     'U' :
+       RemotePara:=RemotePara+' '+Para;
+
+     'V' : DoVerbose:=true;
+
+     'W' :
+       begin
+         rshprog:='plink';
+         rcpprog:='pscp';
+         rquote:='"';
+       end;
+
+     'X' : UseComSpec:=false;
+
+     'Y' : ExtraCompilerOpts:= ExtraCompilerOpts +' '+ Para;
+
+     'Z' : Include(DelExecutable,deAfter);
+    end;
+ end;
+
+ procedure interpret_env(arg : string);
+ var
+   para : string;
+   pspace : longint;
+ begin
+   { Get rid of leading '!' }
+   delete(arg,1,1);
+   arg:=getenv(arg);
+   while (length(arg)>0) do
+     begin
+       while (length(arg)>0) and (arg[1]=' ') do
+         delete(arg,1,1);
+       pspace:=pos(' ',arg);
+       if pspace=0 then
+         pspace:=length(arg)+1;
+       para:=copy(arg,1,pspace-1);
+       if (length(para)>0) and (para[1]='-') then
+         interpret_option (para)
+       else
+         begin
+           PPFile.Insert(current,ForceExtension(Para,'pp'));
+           inc(current);
+         end;
+       delete(arg,1,pspace);
+     end;
+ end;
+
 begin
-  if exeext<>'' then
-    CompilerBin:='ppc386.'+exeext
-  else
-    CompilerBin:='ppc386';
+  CompilerBin:='ppc386'+srcexeext;
   for i:=1 to paramcount do
    begin
      para:=Paramstr(i);
      if (para[1]='-') then
-      begin
-        ch:=Upcase(para[2]);
-        delete(para,1,2);
-        case ch of
-         'A' :
-           begin
-             DoGraph:=true;
-             DoInteractive:=true;
-             DoKnown:=true;
-             DoAll:=true;
-           end;
-
-         'B' : Include(DelExecutable,deBefore);
-
-         'C' : CompilerBin:=Para;
-
-         'D' : BenchMarkInfo:=true;
-
-         'E' : DoExecute:=true;
-
-         'G' : begin
-                 DoGraph:=true;
-                 if para='-' then
-                   DoUsual:=false;
-               end;
-
-         'I' : begin
-                 DoInteractive:=true;
-                 if para='-' then
-                   DoUsual:=false;
-               end;
-
-         'K' : begin
-                 DoKnown:=true;
-                 if para='-' then
-                   DoUsual:=false;
-               end;
-
-         'M' : EmulatorName:=Para;
-
-         'O' : UseTimeout:=true;
-
-         'P' : RemotePath:=Para;
-
-         'R' : RemoteAddr:=Para;
-
-         'S' :
-           begin
-             rshprog:='ssh';
-             rcpprog:='scp';
-           end;
-
-         'T' :
-           begin
-             j:=Pos('-',Para);
-             if j>0 then
-               begin
-                 CompilerCPU:=Copy(Para,1,j-1);
-                 CompilerTarget:=Copy(Para,j+1,length(para));
-               end
-             else
-               CompilerTarget:=Para
-           end;
-
-         'U' :
-           RemotePara:=RemotePara+' '+Para;
-
-         'V' : DoVerbose:=true;
-
-         'W' :
-           begin
-             rshprog:='plink';
-             rcpprog:='pscp';
-             rquote:='"';
-           end;
-
-         'X' : UseComSpec:=false;
-
-         'Y' : ExtraCompilerOpts:= ExtraCompilerOpts +' '+ Para;
-
-         'Z' : Include(DelExecutable,deAfter);
-        end;
-     end
-    else
-     begin
-       PPFile.Insert(current,ForceExtension(Para,'pp'));
-       inc(current);
-     end;
-    end;
+      interpret_option(para)
+     else if (para[1]='!') then
+       interpret_env(para)
+     else
+       begin
+         PPFile.Insert(current,ForceExtension(Para,'pp'));
+         inc(current);
+       end;
+   end;
   if current=0 then
     HelpScreen;
   { disable graph,interactive when running remote }
