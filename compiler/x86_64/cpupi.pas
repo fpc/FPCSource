@@ -42,7 +42,6 @@ implementation
 
     uses
       systems,
-      globtype,
       globals,
       cutils,
       symconst,
@@ -55,8 +54,7 @@ implementation
           begin
             if not(po_assembler in procdef.procoptions) and
               (tg.direction > 0) then
-            { the spilling area is needed only for non-leaf procedures }
-              tg.setfirsttemp(tg.direction*maxpushedparasize+(4*8*ord(pi_do_call in flags)));
+              tg.setfirsttemp(tg.direction*maxpushedparasize+4*8);
           end
         else
           tg.setfirsttemp(tg.direction*maxpushedparasize);
@@ -77,13 +75,7 @@ implementation
         { RSP should be aligned on 16 bytes }
         result:=Align(tg.direction*tg.lasttemp+maxpushedparasize,16);
         if target_info.system=system_x86_64_win64 then
-          begin
-          { case tg.direction>0 is handled above in set_first_temp_offset
-            (tg.setfirsttemp also sets tg.lasttemp, therefore the 32 byte
-             spilling area is already included in result) }
-            if (tg.direction<0) and (pi_do_call in flags) then
-              inc(result,4*8);
-          end;
+          inc(result,4*8);
       end;
 
 
