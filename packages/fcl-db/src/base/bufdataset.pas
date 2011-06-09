@@ -1811,13 +1811,12 @@ begin
     currbuff := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer;
     end
   else
-    begin
     CurrBuff := GetCurrentBuffer;
-    if not assigned(CurrBuff) then
-      begin
-      result := false;
-      exit;
-      end;
+
+  if not assigned(CurrBuff) then
+    begin
+    result := false;
+    exit;
     end;
 
   If Field.Fieldno > 0 then // If = 0, then calculated field or something similar
