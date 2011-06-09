@@ -1803,29 +1803,18 @@ begin
   if state = dsOldValue then
     begin
     if not GetActiveRecordUpdateBuffer then
-      begin
-      // There is no old value available
-      result := false;
-      exit;
-      end;
-    currbuff := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer;
+      Exit; // There is no old value available
+    CurrBuff := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer;
     end
   else
     CurrBuff := GetCurrentBuffer;
 
-  if not assigned(CurrBuff) then
-    begin
-    result := false;
-    exit;
-    end;
+  if not assigned(CurrBuff) then Exit;
 
   If Field.Fieldno > 0 then // If = 0, then calculated field or something similar
     begin
-    if GetFieldIsnull(pbyte(CurrBuff),Field.Fieldno-1) then
-      begin
-      result := false;
-      exit;
-      end;
+    if GetFieldIsNull(pbyte(CurrBuff),Field.FieldNo-1) then
+      Exit;
     if assigned(buffer) then
       begin
       inc(CurrBuff,FFieldBufPositions[Field.FieldNo-1]);
