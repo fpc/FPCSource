@@ -896,10 +896,20 @@ Begin
 
 {$if defined(MSWINDOWS) or defined(OS2)}
   { finally release the heap if possible, especially
-    important for DLLs }
-  for i:=0 to argc do
-    sysfreemem(argv[i]);
-  sysfreemem(argv);
+    important for DLLs.
+    Reset the array to nil, and finally also argv itself to
+    avoid double freeing problem in case this function gets called twice. }
+  if assigned(argv) then
+    begin
+      for i:=0 to argc-1 do
+        if assigned(argv[i]) then
+          begin
+            sysfreemem(argv[i]);
+            argv[i]:=nil;
+          end;
+      sysfreemem(argv);
+      argv:=nil;
+    end;
 {$endif}
 {$ifdef LINUX}
   {sysfreemem already checks for nil}
