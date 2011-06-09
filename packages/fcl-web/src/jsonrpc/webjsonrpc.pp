@@ -6,7 +6,7 @@ unit webjsonrpc;
 interface
 
 uses
-  Classes, SysUtils, fpjson, fpjsonrpc, httpdefs, fphttp, jsonparser, websession;
+  Classes, SysUtils, fpjson, fpjsonrpc, httpdefs, fphttp, jsonparser;
 
 Type
 { ---------------------------------------------------------------------

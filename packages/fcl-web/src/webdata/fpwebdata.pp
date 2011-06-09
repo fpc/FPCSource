@@ -5,7 +5,7 @@ unit fpwebdata;
 interface
 
 uses
-  Classes, SysUtils, httpdefs, fphttp, db, websession;
+  Classes, SysUtils, httpdefs, fphttp, db;
 
 
 type
@@ -17,10 +17,12 @@ type
   TWebDataAction = (wdaUnknown,wdaRead,wdaUpdate,wdaInsert,wdaDelete);
 
   { TCustomWebdataInputAdaptor }
+  TTransCodeEvent = Procedure (Sender : TObject; Var S : String);
 
   TCustomWebdataInputAdaptor = class(TComponent)
   private
     FAction: TWebDataAction;
+    FOntransCode: TTransCodeEvent;
     FRequest: TRequest;
     FBatchCount : Integer;
     FRequestPathInfo : String;
@@ -39,6 +41,7 @@ type
     Function GetFieldValue(Const AFieldName : String) : String;
     Property Request : TRequest Read FRequest Write SetRequest;
     Property Action : TWebDataAction Read GetAction Write FAction;
+    Property OnTransCode : TTransCodeEvent Read FOntransCode Write FOnTransCode;
   end;
   TCustomWebdataInputAdaptorClass = Class of TCustomWebdataInputAdaptor;
 
@@ -605,6 +608,8 @@ begin
   Result:=(I<>-1);
   If Result then
     L.GetNameValue(I,N,AValue);
+  If (AValue<>'') and Assigned(FOnTranscode) then
+    FOnTransCode(Self,Avalue);
 end;
 
 function TCustomWebdataInputAdaptor.TryFieldValue(const AFieldName: String;

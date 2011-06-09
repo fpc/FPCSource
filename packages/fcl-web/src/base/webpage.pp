@@ -61,6 +61,8 @@ type
     function CreateNewScript: TStringList; override;
     procedure ShowRegisteredScript(ScriptID: integer); override;
     procedure FreeScript(var AScript: TStringList); override;
+  published
+    property OnGetURL;
   end;
 
   { TWebPage }
@@ -89,7 +91,6 @@ type
     procedure DoHandleAjaxRequest(ARequest: TRequest; AnAjaxResponse: TAjaxResponse; var Handled: boolean); virtual;
     procedure DoBeforeRequest(ARequest: TRequest); virtual;
     procedure DoBeforeShowPage(ARequest: TRequest); virtual;
-    property WebModule: TFPWebModule read FWebModule;
     procedure DoCleanupAfterRequest(const AContentProducer: THTMLContentProducer);
     procedure SetRequest(ARequest: TRequest); virtual;
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
@@ -114,6 +115,7 @@ type
     property ContentProducers[Index: integer]: THTMLContentProducer read GetContentProducer;
     property HasWebController: boolean read GetHasWebController;
     property WebController: TWebController read GetWebController write FWebController;
+    property WebModule: TFPWebModule read FWebModule;
   published
     property BeforeRequest: TRequestEvent read FBeforeRequest write FBeforeRequest;
     property BeforeShowPage: TRequestEvent read FBeforeShowPage write FBeforeShowPage;
@@ -263,7 +265,7 @@ begin
               AComponent:=self;
               while (i > 0) and (assigned(AComponent)) do
                 begin
-                AComponent := FindComponent(copy(CompName,1,i-1));
+                AComponent := AComponent.FindComponent(copy(CompName,1,i-1));
                 CompName := copy(compname,i+1,length(compname)-i);
                 i := pos('$',CompName);
                 end;
@@ -277,6 +279,7 @@ begin
                 if ASuffixID<>'' then
                   begin
                   SetIdSuffixes(THTMLContentProducer(AComponent));
+                  webcontroller.ResetIterationLevel;
                   end;
                 THTMLContentProducer(AComponent).HandleAjaxRequest(ARequest, AnAjaxResponse);
                 end;
@@ -611,7 +614,9 @@ begin
 
   p := copy(qs,1,length(qs)-1);
   if p <> '' then
-    result := result + ConnectChar + p
+    result := result + ConnectChar + p;
+  if assigned(OnGetURL) then
+    OnGetURL(ParamNames, ParamValues, KeepParams, Action, Result);
 end;
 
 procedure TStandardWebController.BindJavascriptCallstackToElement(AComponent: TComponent; AnElement: THtmlCustomElement; AnEvent: string);

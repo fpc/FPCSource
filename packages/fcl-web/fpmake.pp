@@ -126,6 +126,13 @@ begin
       AddUnit('httpdefs');
       AddUnit('custcgi');
       end;
+    T:=P.Targets.AddUnit('fphttpserver.pp');
+    T.ResourceStrings:=true;
+      with T.Dependencies do
+        begin
+          AddUnit('httpdefs');
+        end;
+    T:=P.Targets.AddUnit('fphttpclient.pp');
     T:=P.Targets.AddUnit('fpwebdata.pp');
     With T.Dependencies do
       begin

@@ -77,6 +77,7 @@ Type
   TGetModuleEvent = Procedure (Sender : TObject; ARequest : TRequest;
                                Var ModuleClass : TCustomHTTPModuleClass) of object;
   TOnShowRequestException = procedure(AResponse: TResponse; AnException: Exception; var handled: boolean);
+  TLogEvent = Procedure (EventType: TEventType; const Msg: String) of object;
 
   { TWebHandler }
 
@@ -97,6 +98,7 @@ Type
     FRedirectOnErrorURL : String;
     FTitle: string;
     FOnTerminate : TNotifyEvent;
+    FOnLog : TLogEvent;
   protected
     procedure Terminate;
     Function GetModuleName(Arequest : TRequest) : string;
@@ -112,6 +114,7 @@ Type
   Public
     constructor Create(AOwner: TComponent); override;
     Procedure Run; virtual;
+    Procedure Log(EventType : TEventType; Const Msg : String);
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse);
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual;
     Property HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
@@ -127,6 +130,7 @@ Type
     Property Administrator : String Read GetAdministrator Write FAdministrator;
     property OnShowRequestException: TOnShowRequestException read FOnShowRequestException write FOnShowRequestException;
     property OnIdle: TNotifyEvent read FOnIdle write FOnIdle;
+    Property OnLog : TLogEvent Read FOnLog Write FOnLog;
   end;
 
   TCustomWebApplication = Class(TCustomApplication)
@@ -241,6 +245,12 @@ begin
     end;
 end;
 
+procedure TWebHandler.Log(EventType: TEventType; const Msg: String);
+begin
+  If Assigned(FOnLog) then
+    FOnLog(EventType,Msg);
+end;
+
 procedure TWebHandler.ShowRequestException(R: TResponse; E: Exception);
 Var
  S : TStrings;
@@ -260,10 +270,11 @@ begin
     R.SendContent;
     Exit;
     end;
-  If not R.HeadersSent then
+  If (not R.HeadersSent) then
     begin
+    R.Code:=500;
+    R.CodeText:='Application error '+E.ClassName;
     R.ContentType:='text/html';
-    R.SendHeaders;
     end;
   If (R.ContentType='text/html') then
     begin
@@ -299,6 +310,7 @@ begin
   try
     MC:=Nil;
     M:=NIL;
+    MI:=Nil;
     If (OnGetModule<>Nil) then
       OnGetModule(Self,ARequest,MC);
     If (MC=Nil) then
@@ -311,7 +323,7 @@ begin
       end;
     M:=FindModule(MC); // Check if a module exists already
     If (M=Nil) then
-      if Mi.SkipStreaming then
+      if assigned(MI) and Mi.SkipStreaming then
         M:=MC.CreateNew(Self)
       else
         M:=MC.Create(Self);
@@ -365,8 +377,11 @@ begin
   If (Result='') then
     begin
     S:=ARequest.PathInfo;
-    If (Length(S)>0) and (S[1]='/') then
-      Delete(S,1,1);
+    If (Length(S)>0) and (S[1]='/') then  
+      Delete(S,1,1);                      //Delete the leading '/' if exists
+    I:=Length(S);
+    If (I>0) and (S[I]='/') then
+      Delete(S,I,1);                      //Delete the trailing '/' if exists
     I:=Pos('/',S);
     if (I>0) then
       Result:=ARequest.GetNextPathInfo;
@@ -460,7 +475,14 @@ end;
 function TCustomWebApplication.GetEventLog: TEventLog;
 begin
   if not assigned(FEventLog) then
-    FEventLog := TEventLog.Create(self);
+    begin
+    FEventLog := TEventLog.Create(Nil);
+    FEventLog.Name:=Self.Name+'Logger';
+    FEventLog.Identification:=Title;
+    FEventLog.RegisterMessageFile(ParamStr(0));
+    FEventLog.LogType:=ltSystem;
+    FEventLog.Active:=True;
+    end;
   Result := FEventLog;
 end;
 
@@ -560,6 +582,7 @@ begin
   Inherited Create(AOwner);
   FWebHandler := InitializeWebHandler;
   FWebHandler.FOnTerminate:=@DoOnTerminate;
+  FWebHandler.FOnLog:=@Log;
 end;
 
 procedure TCustomWebApplication.DoOnTerminate(Sender : TObject);
