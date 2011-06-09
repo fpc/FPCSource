@@ -172,6 +172,8 @@ begin
   else
     S:=IniWebSessionClass.Create(Nil);
   S.SessionDir:=SessionDir;
+  S.SessionCookie:=SessionCookie;
+  S.SessionCookiePath:=SessionCookiePath;
   S.Cached:=Cached;
   Result:=S;
 end;
