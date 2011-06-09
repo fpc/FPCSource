@@ -96,6 +96,7 @@ Software IEC/IEEE floating-point types.
 }
 TYPE
   float32 = longword;
+{$define FPC_SYSTEM_HAS_float32}
   { we use here a record in the function header because
     the record allows bitwise conversion to single }
   float32rec = record
@@ -164,6 +165,9 @@ TYPE
     low : qword;
   end;
 {$endif}
+
+{$define FPC_SYSTEM_HAS_float64}
+
 
 {*
 -------------------------------------------------------------------------------
