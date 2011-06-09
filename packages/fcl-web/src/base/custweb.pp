@@ -162,6 +162,7 @@ Type
   protected
     Procedure DoRun; override;
     function InitializeWebHandler: TWebHandler; virtual; abstract;
+    Procedure DoLog(EventType: TEventType; const Msg: String); override;
     procedure SetTitle(const AValue: string); override;
     property WebHandler: TWebHandler read FWebHandler write FWebHandler;
   Public
@@ -169,7 +170,6 @@ Type
     destructor Destroy; override;
     Procedure CreateForm(AClass : TComponentClass; out Reference);
     Procedure Initialize; override;
-    Procedure Log(EventType: TEventType; const Msg: String); override;
     procedure Terminate; override;
     Property HandleGetOnPost : Boolean Read GetHandleGetOnPost Write SetHandleGetOnPost;
     Property RedirectOnError : boolean Read GetRedirectOnError Write SetRedirectOnError;
@@ -609,7 +609,7 @@ begin
   Inherited;
 end;
 
-procedure TCustomWebApplication.Log(EventType: TEventType; const Msg: String);
+procedure TCustomWebApplication.DoLog(EventType: TEventType; const Msg: String);
 begin
   EventLog.log(EventType,Msg);
 end;
