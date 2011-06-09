@@ -975,6 +975,8 @@ begin
       isc_decode_sql_time(PISC_TIME(CurrBuff), @CTime);
     SQL_TIMESTAMP :
       isc_decode_timestamp(PISC_TIMESTAMP(CurrBuff), @CTime);
+  else
+    Raise EIBDatabaseError.CreateFmt('Invalid parameter type for date Decode : %d',[(AType and not 1)]);
   end;
 
   STime.Year        := CTime.tm_year + 1900;
@@ -1010,6 +1012,8 @@ begin
       isc_encode_sql_time(@CTime, PISC_TIME(CurrBuff));
     SQL_TIMESTAMP :
       isc_encode_timestamp(@CTime, PISC_TIMESTAMP(CurrBuff));
+  else
+    Raise EIBDatabaseError.CreateFmt('Invalid parameter type for date encode : %d',[(AType and not 1)]);
   end;
 end;
 
@@ -1157,6 +1161,8 @@ begin
         Ext := Dbl;
         Move(Ext, CurrBuff^, 10);
       end;
+  else
+    Raise EIBDatabaseError.CreateFmt('Invalid float size for float encode : %d',[Size]);
   end;
 end;
 
@@ -1181,6 +1187,8 @@ begin
         Move(CurrBuff^, Ext, 10);
         Dbl := double(Ext);
       end;
+  else
+    Raise EIBDatabaseError.CreateFmt('Invalid float size for float Decode : %d',[Size]);
   end;
   Move(Dbl, Buffer^, 8);
 end;
