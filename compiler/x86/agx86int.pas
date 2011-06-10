@@ -110,7 +110,7 @@ implementation
       );
 
       secnamesml64 : array[TAsmSectiontype] of string[7] = ('','',
-        '_TEXT','_DATE','_DATA','_DATA','_BSS','',
+        '_TEXT','_DATA','_DATA','_DATA','_BSS','',
         '','','','',
         'idata$2','idata$4','idata$5','idata$6','idata$7','edata',
         '',
@@ -249,6 +249,12 @@ implementation
                AsmWrite('+')
               else
                first:=false;
+{$ifdef x86_64}
+              { ml64 needs [$+foo] instead of [rip+foo] }
+              if (base=NR_RIP) and (target_asm.id=as_x86_64_masm) then
+               AsmWrite('$')
+              else
+{$endif x86_64}
                AsmWrite(masm_regname(base));
             end;
            if (index<>NR_NO) then
@@ -287,7 +293,7 @@ implementation
             AsmWrite(tostr(o.val));
           top_ref :
             begin
-              if o.ref^.refaddr=addr_no then
+              if o.ref^.refaddr in [addr_no,addr_pic,addr_pic_no_got] then
                 begin
                   if ((opcode <> A_LGS) and (opcode <> A_LSS) and
                       (opcode <> A_LFS) and (opcode <> A_LDS) and
@@ -425,9 +431,6 @@ implementation
     end;
 
     procedure tx86IntelAssembler.WriteTree(p:TAsmList);
-    const
-      regallocstr : array[tregalloctype] of string[10]=(' allocated',' released',' sync',' resized');
-      tempallocstr : array[boolean] of string[10]=(' released',' allocated');
     var
       s,
       prefix,
@@ -913,9 +916,13 @@ implementation
       { better do this at end of WriteTree, but then there comes a trouble with
         al_const which does not have leading ait_section and thus goes out of segment }
 
-      { TODO: probably ml64 needs 'closing' last section, too }
       if LastSecType <> sec_none then
-        AsmWriteLn('_'+secnames[LasTSecType]+#9#9'ENDS');
+        begin
+          if target_asm.id=as_x86_64_masm then
+            AsmWriteLn(secnamesml64[LasTSecType]+#9#9'ENDS')
+          else
+            AsmWriteLn('_'+secnames[LasTSecType]+#9#9'ENDS');
+        end;
       LastSecType := sec_none;
 
       AsmWriteLn(#9'END');
