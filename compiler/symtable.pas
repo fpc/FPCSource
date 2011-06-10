@@ -2911,8 +2911,7 @@ implementation
              else
                initialmacrosymtable.insert(mac);
            end;
-         if not mac.defined then
-           Message1(parser_c_macro_defined,mac.name);
+         Message1(parser_c_macro_defined,mac.name);
          mac.defined:=true;
       end;
 
@@ -2993,8 +2992,7 @@ implementation
            {If not found, then it's already undefined.}
          else
            begin
-             if mac.defined then
-               Message1(parser_c_macro_undefined,mac.name);
+             Message1(parser_c_macro_undefined,mac.name);
              mac.defined:=false;
              mac.is_compiler_var:=false;
              { delete old definition }

@@ -2448,6 +2448,9 @@ begin
     end;
   option.firstpass:=false;
 
+  { redefine target options so all defines are written even if no -Txxx is passed on the command line }
+  Option.TargetOptions(true);
+
 { target is set here, for wince the default app type is gui }
   if target_info.system in systems_wince then
     apptype:=app_gui;
