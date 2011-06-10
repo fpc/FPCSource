@@ -42,6 +42,7 @@ implementation
 
     uses
       systems,
+      globtype,
       globals,
       cutils,
       symconst,
@@ -52,9 +53,15 @@ implementation
       begin
         if target_info.system=system_x86_64_win64 then
           begin
+            { Fixes the case when there are calls done by low-level means
+              (cg.a_call_name) but no child callnode }
+            if (pi_do_call in flags) then
+              allocate_push_parasize(32);
+
             if not(po_assembler in procdef.procoptions) and
               (tg.direction > 0) then
-              tg.setfirsttemp(tg.direction*maxpushedparasize+4*8);
+            { maxpushedparasize already contains 32 bytes of spilling area }
+              tg.setfirsttemp(tg.direction*maxpushedparasize);
           end
         else
           tg.setfirsttemp(tg.direction*maxpushedparasize);
@@ -72,10 +79,15 @@ implementation
     function tx86_64procinfo.calc_stackframe_size:longint;
       begin
         maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,16));
-        { RSP should be aligned on 16 bytes }
-        result:=Align(tg.direction*tg.lasttemp+maxpushedparasize,16);
-        if target_info.system=system_x86_64_win64 then
-          inc(result,4*8);
+        { Note 1: when tg.direction>0, tg.lasttemp is already offset by maxpushedparasize
+                  (because tg.setfirsttemp also sets lasttemp)
+          Note 2: Align to 8 bytes here. The final 16-byte alignment is handled in
+                  tcgx86.g_proc_entry, which considers saved rbp and the misalignment
+                  caused by the call itself. }
+        if (tg.direction>0) then
+          result:=Align(tg.lasttemp,8)
+        else
+          result:=Align(tg.direction*tg.lasttemp+maxpushedparasize,8);
       end;
 
 
