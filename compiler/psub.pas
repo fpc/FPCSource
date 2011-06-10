@@ -162,6 +162,8 @@ implementation
 
 
     function block(islibrary : boolean) : tnode;
+      var
+        oldfilepos: tfileposinfo;
       begin
          { parse const,types and vars }
          read_declarations(islibrary);
@@ -240,7 +242,14 @@ implementation
             begin
                block:=statement_block(_BEGIN);
                if current_procinfo.procdef.localst.symtabletype=localsymtable then
-                 current_procinfo.procdef.localst.SymList.ForEachCall(@initializevars,block);
+                 begin
+                   { initialization of local variables with their initial
+                     values: part of function entry }
+                   oldfilepos:=current_filepos;
+                   current_filepos:=current_procinfo.entrypos;
+                   current_procinfo.procdef.localst.SymList.ForEachCall(@initializevars,block);
+                   current_filepos:=oldfilepos;
+                 end;
             end;
       end;
 
