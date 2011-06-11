@@ -1672,7 +1672,7 @@ type_w_pointer_to_signed=04082_W_Converting pointers to signed integers may resu
 % For example both \windows and \linux allow pointers in the range \$0000000 to \$bfffffff.
 % If you convert pointers to signed types, this can cause overflow and range check errors,
 % but also \$80000000 < \$7fffffff. This can cause random errors in code like "if p>q".
-type_interface_has_no_guid=04083_E_Interface type $1 has no valid GUID
+type_e_interface_has_no_guid=04083_E_Interface type $1 has no valid GUID
 % When applying the as-operator to an interface or class, the desired interface (i.e. the right operand of the
 % as-operator) must have a valid GUID.
 type_e_invalid_objc_selector_name=04084_E_Invalid selector name "$1"
@@ -1993,8 +1993,8 @@ sym_e_objc_formal_class_not_resolved=05080_E_No complete definition of the forma
 % of the class to be in scope.
 sym_e_interprocgoto_into_init_final_code_not_allowed=05081_E_Gotos into initialization or finalization blocks of units are not allowed
 % Gotos into initialization or finalization blockse of units are not allowed.
-sym_e_external_class_name_mismatch1=05082=E_Invalid external name "$1" for formal class "$2"
-sym_e_external_class_name_mismatch2=05083=E_Complete class definition with external name "$1" here
+sym_e_external_class_name_mismatch1=05082_E_Invalid external name "$1" for formal class "$2"
+sym_e_external_class_name_mismatch2=05083_E_Complete class definition with external name "$1" here
 % When a class is declared using a formal external definition, the actual external
 % definition (if any) must specify the same external name as the formal definition
 % (since both definitions refer to the same actual class type).
@@ -2299,7 +2299,7 @@ asmr_w_id_supposed_external=07072_W_Identifier $1 supposed external
 % problems at link time if the symbol is not defined anywhere.
 asmr_e_string_not_allowed_as_const=07073_E_Strings not allowed as constants
 % Character strings are not allowed as constants.
-asmr_e_no_var_type_specified=07074_No type of variable specified
+asmr_e_no_var_type_specified=07074_E_No type of variable specified
 % The syntax expects a type idenfitifer after the dot, but
 % none was found.
 asmr_w_assembler_code_not_returned_to_text=07075_E_assembler code not returned to text section

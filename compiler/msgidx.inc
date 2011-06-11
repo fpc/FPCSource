@@ -473,7 +473,7 @@ const
   type_h_convert_sub_operands_to_prevent_overflow=04080;
   type_h_convert_mul_operands_to_prevent_overflow=04081;
   type_w_pointer_to_signed=04082;
-  type_interface_has_no_guid=04083;
+  type_e_interface_has_no_guid=04083;
   type_e_invalid_objc_selector_name=04084;
   type_e_expected_objc_method_but_got=04085;
   type_e_expected_objc_method=04086;
@@ -894,7 +894,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 60248;
+  MsgTxtSize = 60250;
 
   MsgIdxMax : array[1..20] of longint=(
     24,89,311,103,84,54,111,23,202,63,
