@@ -2198,6 +2198,7 @@ packages/fcl-process/src/dummy/simpleipc.inc svneol=native#text/plain
 packages/fcl-process/src/os2/pipes.inc svneol=native#text/plain
 packages/fcl-process/src/os2/simpleipc.inc svneol=native#text/plain
 packages/fcl-process/src/pipes.pp svneol=native#text/plain
+packages/fcl-process/src/pipesipc.pp svneol=native#text/plain
 packages/fcl-process/src/process.pp svneol=native#text/plain
 packages/fcl-process/src/process.txt svneol=native#text/plain
 packages/fcl-process/src/simpleipc.pp svneol=native#text/plain

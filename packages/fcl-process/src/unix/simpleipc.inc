@@ -14,7 +14,20 @@
 
  **********************************************************************}
 
+{$ifdef ipcunit}
+unit pipesipc;
+
+interface
+
+uses sysutils, classes, simpleipc, baseunix;
+
+{$else}
+
 uses baseunix;
+
+{$endif}
+
+
 
 ResourceString
   SErrFailedToCreatePipe = 'Failed to create named pipe: %s';
@@ -39,6 +52,11 @@ Type
     Property Stream : TFileStream Read FStream;
   end;
 
+{$ifdef ipcunit}
+implementation
+{$endif}
+
+
 
 constructor TPipeClientComm.Create(AOWner: TSimpleIPCClient);
 
@@ -58,7 +76,7 @@ end;
 procedure TPipeClientComm.Connect;
 begin
   If Not ServerRunning then
-    Owner.DoError(SErrServerNotActive,[Owner.ServerID]);
+    DoError(SErrServerNotActive,[Owner.ServerID]);
   // Use the sharedenynone line to allow more then one client 
   // communicating with one server at the same time
   // see also mantis 15219
@@ -130,7 +148,7 @@ procedure TPipeServerComm.StartServer;
 begin
   If not FileExists(FFileName) then
     If (fpmkFifo(FFileName,438)<>0) then
-      Owner.DoError(SErrFailedToCreatePipe,[FFileName]);
+      DoError(SErrFailedToCreatePipe,[FFileName]);
   FStream:=TFileStream.Create(FFileName,fmOpenReadWrite+fmShareDenyNone);
 end;
 
@@ -138,7 +156,7 @@ procedure TPipeServerComm.StopServer;
 begin
   FreeAndNil(FStream);
   if Not DeleteFile(FFileName) then
-    Owner.DoError(SErrFailedtoRemovePipe,[FFileName]);
+    DoError(SErrFailedtoRemovePipe,[FFileName]);
 end;
 
 function TPipeServerComm.PeekMessage(TimeOut: Integer): Boolean;
@@ -157,18 +175,19 @@ procedure TPipeServerComm.ReadMessage;
 Var
   L,P,Count : Integer;
   Hdr : TMsgHeader;
-
+  M : TStream;
 begin
   FStream.ReadBuffer(Hdr,SizeOf(Hdr));
-  Owner.FMsgType:=Hdr.MsgType;
+  SetMsgType(Hdr.MsgType);
   Count:=Hdr.MsgLen;
+  M:=MsgData;
   if count > 0 then
     begin
-    Owner.FMsgData.Seek(0,soFrombeginning);
-    Owner.FMsgData.CopyFrom(FStream,Count);
+    M.Seek(0,soFrombeginning);
+    M.CopyFrom(FStream,Count);
     end
   else
-    Owner.FMsgData.Size := 0;
+    M.Size := 0;
 end;
 
 function TPipeServerComm.GetInstanceID: String;
@@ -179,7 +198,7 @@ end;
 { ---------------------------------------------------------------------
     Set TSimpleIPCClient / TSimpleIPCServer defaults.
   ---------------------------------------------------------------------}
-
+{$ifndef ipcunit}
 Function TSimpleIPCServer.CommClass : TIPCServerCommClass;
 
 begin
@@ -196,3 +215,7 @@ begin
   else
     Result:=TPipeClientComm;
 end;
+
+{$else ipcunit}
+end.
+{$endif}
