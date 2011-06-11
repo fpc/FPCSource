@@ -18,7 +18,7 @@
   { variant error codes }
   {$i varerror.inc}
 
-    Function FileSearch (Const Name, DirList : String; ImplicitCurrentDir : Boolean = True) : String;
+    Function FileSearch (Const Name, DirList : String; Options : TFileSearchoptions = []) : String;
     Var
       I : longint;
       Temp : String;
@@ -27,7 +27,7 @@
       Result:=Name;
       temp:=SetDirSeparators(DirList);
       // Start with checking the file in the current directory
-      If ImplicitCurrentDir and (Result <> '') and FileExists(Result) Then
+      If (sfoImplicitCurrentDir in Options) and (Result <> '') and FileExists(Result) Then
         exit;
       while True do begin
         If Temp = '' then
@@ -44,21 +44,42 @@
             Temp:='';
           end;
         If Result<>'' then
-          Result:=IncludeTrailingPathDelimiter(Result)+name;
+          begin
+          If (sfoStripQuotes in Options) and (Result[1]='"') and (Result[Length(Result)]='"') then
+            Result:=Copy(Result,2,Length(Result)-2);
+          if (Result<>'') then
+            Result:=IncludeTrailingPathDelimiter(Result)+name;
+          end;
         If (Result <> '') and FileExists(Result) Then
           exit;
       end;
       result:='';
     end;
 
-    Function ExeSearch (Const Name, DirList : String) : String;
+    Function FileSearch (Const Name, DirList : String; ImplicitCurrentDir : Boolean) : String;
 
     begin
+      if ImplicitCurrentDir then
+        Result:=FileSearch(Name,DirList,[sfoImplicitCurrentDir])
+      else  
+        Result:=FileSearch(Name,DirList,[]);
+    end;
+    
+    Function ExeSearch (Const Name : String; Const DirList : String ='' ) : String;
+    
+    Var
+      D : String;
+      O : TFileSearchOptions;
+    begin
+      D:=DirList;
+      if (D='') then
+        D:=GetEnvironmentVariable('PATH');
     {$ifdef unix}
-      Result := FileSearch(Name, DirList, False);
+      O:=[];
     {$else unix}
-      Result := FileSearch(Name, DirList, True);
+      O:=(sfoImplicitCurrentDir,sfoStripQuotes);
     {$endif unix}
+      Result := FileSearch(Name, D, False);
     end;
 
   {$ifndef OS_FILEISREADONLY}
