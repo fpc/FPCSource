@@ -289,7 +289,7 @@ endif
 endif
 override PACKAGE_NAME=fcl-web
 override PACKAGE_VERSION=2.5.1
-FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
+FPMAKE_BIN_CLEAN=$(wildcard .$(PATHSEP)fpmake$(SRCEXEEXT))
 ifeq ($(FPMAKE_BIN_CLEAN),)
 FPMAKE_BIN_CLEAN=$(ECHO)
 endif
