@@ -77,7 +77,7 @@
     {$ifdef unix}
       O:=[];
     {$else unix}
-      O:=(sfoImplicitCurrentDir,sfoStripQuotes);
+      O:=[sfoImplicitCurrentDir,sfoStripQuotes];
     {$endif unix}
       Result := FileSearch(Name, D, False);
     end;
