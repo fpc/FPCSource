@@ -294,7 +294,7 @@ begin
   begin
     for I := 0 to FPathCount-1 do
       FElement := DoFindNode(FPathStack[I], FDummy, Flags - [pfHasValue]);
-    FPathDirty := False;      
+    if Assigned(FElement) then FPathDirty := False;
   end;
   Result := DoFindNode(APath, Ident, Flags);
 end;
