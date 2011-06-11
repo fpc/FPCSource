@@ -1304,12 +1304,27 @@ begin
     exit(CompareWord(S1[1],S2[1],MaxI));
 end;
 
+{$ifdef VER2_4}
+// obsolete but needed for bootstrapping with 2.4
+Procedure fpc_UnicodeStr_CheckZero(p : pointer);[Public,Alias : 'FPC_UNICODESTR_CHECKZERO']; compilerproc;
+begin
+  if p=nil then
+    HandleErrorFrame(201,get_frame);
+end;
 
+Procedure fpc_UnicodeStr_CheckRange(len,index : SizeInt);[Public,Alias : 'FPC_UNICODESTR_RANGECHECK']; compilerproc;
+begin
+  if (index>len div 2) or (Index<1) then
+    HandleErrorFrame(201,get_frame);
+end;
+
+{$else VER2_4}
 Procedure fpc_UnicodeStr_CheckRange(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_UNICODESTR_RANGECHECK']; compilerproc;
 begin
   if (p=nil) or (index>PUnicodeRec(p-UnicodeFirstOff)^.len div 2) or (Index<1) then
     HandleErrorFrame(201,get_frame);
 end;
+{$endif VER2_4}
 
 Procedure fpc_UnicodeStr_SetLength(Var S : UnicodeString; l : SizeInt);[Public,Alias : 'FPC_UNICODESTR_SETLENGTH']; compilerproc;
 {
