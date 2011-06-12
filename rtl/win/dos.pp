@@ -94,7 +94,6 @@ type
    end;
 
 var
-   versioninfo : OSVERSIONINFO;
    kernel32dll : THandle;
 
 {******************************************************************************
@@ -817,41 +816,17 @@ begin
 end;
 
 
-function FreeLibrary(hLibModule : THandle) : longbool;
-  stdcall; external 'kernel32' name 'FreeLibrary';
+function GetModuleHandle(p : PChar) : PtrUInt;
+  stdcall; external 'kernel32' name 'GetModuleHandleA';
 function GetVersionEx(var VersionInformation:OSVERSIONINFO) : longbool;
   stdcall; external 'kernel32' name 'GetVersionExA';
-function LoadLibrary(lpLibFileName : pchar):THandle;
-  stdcall; external 'kernel32' name 'LoadLibraryA';
 function GetProcAddress(hModule : THandle;lpProcName : pchar) : pointer;
   stdcall; external 'kernel32' name 'GetProcAddress';
 
-var
-   oldexitproc : pointer;
-
-procedure dosexitproc;
-
-  begin
-     exitproc:=oldexitproc;
-     if kernel32dll<>0 then
-       FreeLibrary(kernel32dll);
-  end;
 
 begin
-   oldexitproc:=exitproc;
-   exitproc:=@dosexitproc;
-   versioninfo.dwOSVersionInfoSize:=sizeof(versioninfo);
-   GetVersionEx(versioninfo);
-   kernel32dll:=0;
    GetDiskFreeSpaceEx:=nil;
-{$ifndef win64}
-   if ((versioninfo.dwPlatformId=VER_PLATFORM_WIN32_WINDOWS) and
-     (versioninfo.dwBuildNUmber>=1000)) or
-     (versioninfo.dwPlatformId=VER_PLATFORM_WIN32_NT) then
-{$endif win64}
-     begin
-        kernel32dll:=LoadLibrary('kernel32');
-        if kernel32dll<>0 then
-          GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
-     end;
+   kernel32dll:=GetModuleHandle('kernel32');
+   if kernel32dll<>0 then
+     GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
 end.
