@@ -6,8 +6,7 @@ unit windirs;
 interface
 
 uses
-  windows,
-  strings;
+  windows;
 
 Const
   CSIDL_PROGRAMS                = $0002; { %SYSTEMDRIVE%\Program Files                                      }
