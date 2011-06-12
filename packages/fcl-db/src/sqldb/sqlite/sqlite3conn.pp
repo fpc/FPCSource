@@ -395,11 +395,11 @@ begin
                   begin
                   System.Delete(FD,1,fi);
                   fi:=pos(')',FD);
-                  size1:=StrToIntDef(trim(copy(FD,1,fi-1)),255);
+                  size1:=StrToIntDef(trim(copy(FD,1,fi-1)), 0);
                   if size1>4 then
                     ft1 := ftFMTBcd;
                   end
-                else size1 := 4;
+                else size1 := 0;
                 end;
       ftUnknown : DatabaseError('Unknown record type: '+FN);
     end; // Case
@@ -499,7 +499,6 @@ var
  int1,int2: integer;
  str1: string;
  bcd: tBCD;
- StoreDecimalPoint: tDecimalPoint;
  bcdstr: FmtBCDStringtype;
  ar1,ar2: TStringArray;
  st    : psqlite3_stmt;
@@ -544,20 +543,15 @@ begin
               end;
     ftFmtBCD: begin
               int1:= sqlite3_column_bytes(st,fnum);
-              if int1>255 then
-                int1:=255;
-              if int1 > 0 then
+              if (int1 > 0) and (int1 <= MAXFMTBcdFractionSize) then
                 begin
                 SetLength(bcdstr,int1);
                 move(sqlite3_column_text(st,fnum)^,bcdstr[1],int1);
-                StoreDecimalPoint:=FmtBCD.DecimalPoint;
                 // sqlite always uses the point as decimal-point
-                FmtBCD.DecimalPoint:=DecimalPoint_is_Point;
-                if not TryStrToBCD(bcdstr,bcd) then
+                if not TryStrToBCD(bcdstr,bcd,FSQLFormatSettings) then
                   // sqlite does the same, if the value can't be interpreted as a
                   // number in sqlite3_column_int, return 0
                   bcd := 0;
-                FmtBCD.DecimalPoint:=StoreDecimalPoint;
                 end
               else
                 bcd := 0;
@@ -753,7 +747,6 @@ var
   IndexName: string;
   IndexOptions: TIndexOptions;
   PKFields, IXFields: TStrings;
-  l: boolean;
 
   function CheckPKFields:boolean;
   var i: integer;
