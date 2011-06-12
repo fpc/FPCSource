@@ -96,11 +96,12 @@ type
     FCharSet             : string;
     FRole                : String;
 
-    FSQLServerFormatSettings : TFormatSettings;
+
     function GetPort: cardinal;
     procedure Setport(const AValue: cardinal);
   protected
     FConnOptions         : TConnOptions;
+    FSQLFormatSettings : TFormatSettings;
     procedure GetDBInfo(const ASchemaType : TSchemaType; const ASchemaObjectName, AReturnField : string; AList: TStrings);
     procedure SetTransaction(Value : TSQLTransaction);virtual;
     function StrToStatementType(s : string) : TStatementType; virtual;
@@ -497,6 +498,29 @@ implementation
 
 uses dbconst, strutils;
 
+var InitialSQLFormatSettings : TFormatSettings = (
+  CurrencyFormat: 1;
+  NegCurrFormat: 5;
+  ThousandSeparator: #0;
+  DecimalSeparator: '.';
+  CurrencyDecimals: 2;
+  DateSeparator: '-';
+  TimeSeparator: ':';
+  ListSeparator: ' ';
+  CurrencyString: '$';
+  ShortDateFormat: 'yyyy-mm-dd';
+  LongDateFormat: '';
+  TimeAMString: '';
+  TimePMString: '';
+  ShortTimeFormat: 'hh:nn:ss';
+  LongTimeFormat: 'hh:nn:ss';
+  ShortMonthNames: ('','','','','','','','','','','','');
+  LongMonthNames: ('','','','','','','','','','','','');
+  ShortDayNames: ('','','','','','','');
+  LongDayNames: ('','','','','','','');
+  TwoDigitYearCenturyWindow: 50;
+);
+
 function TimeIntervalToString(Time: TDateTime): string;
 var
   millisecond: word;
@@ -649,10 +673,11 @@ begin
   Result := -1;
 end;
 
+
 constructor TSQLConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FSQLServerFormatSettings.DecimalSeparator:='.';
+  FSQLFormatSettings:=InitialSQLFormatSettings;
   FFieldNameQuoteChars:=DoubleQuotes;
 end;
 
@@ -678,8 +703,8 @@ begin
   if (not assigned(field)) or field.IsNull then Result := 'Null'
   else case field.DataType of
     ftString   : Result := '''' + field.asstring + '''';
-    ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Field.AsDateTime) + '''';
-    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:mm:ss',Field.AsDateTime) + '''';
+    ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Field.AsDateTime,FSqlFormatSettings) + '''';
+    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss',Field.AsDateTime,FSqlFormatSettings) + '''';
     ftTime     : Result := QuotedStr(TimeIntervalToString(Field.AsDateTime));
   else
     Result := field.asstring;
@@ -690,11 +715,16 @@ function TSQLConnection.GetAsSQLText(Param: TParam) : string;
 begin
   if (not assigned(param)) or param.IsNull then Result := 'Null'
   else case param.DataType of
-    ftString   : Result := '''' + param.asstring + '''';
-    ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Param.AsDateTime) + '''';
-    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:mm:ss',Param.AsDateTime) + '''';
+    ftMemo,
+    ftFixedChar,
+    ftString   : Result := QuotedStr(Param.AsString);
+    ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Param.AsDateTime,FSQLFormatSettings) + '''';
     ftTime     : Result := QuotedStr(TimeIntervalToString(Param.AsDateTime));
-    ftFloat    : Result := '''' + FloatToStr(Param.AsFloat, FSQLServerFormatSettings) + ''''
+    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss', Param.AsDateTime, FSQLFormatSettings) + '''';
+    ftCurrency,
+    ftBcd,
+    ftFloat    : Result := FloatToStr(Param.AsFloat, FSQLFormatSettings);
+    ftFMTBcd   : Result := stringreplace(Param.AsString, DefaultFormatSettings.DecimalSeparator, FSQLFormatSettings.DecimalSeparator, []);
   else
     Result := Param.asstring;
   end; {case}
