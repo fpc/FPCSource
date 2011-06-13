@@ -5,7 +5,7 @@ unit wmusers;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LResources, HTTPDefs, websession, fpHTTP, fpWeb,
+  Classes, SysUtils, HTTPDefs, websession, fpHTTP, fpWeb,
   dbf, db, fpwebdata, extjsjson, extjsxml;
 
 type
@@ -36,6 +36,8 @@ var
 
 implementation
 
+{$R *.lfm}
+
 { TFPWebProviderDataModule1 }
 
 procedure TFPWebProviderDataModule1.DataModuleGetInputAdaptor(Sender: TObject;
@@ -61,8 +63,6 @@ begin
 end;
 
 initialization
-  {$I wmusers.lrs}
-
   RegisterHTTPModule('Provider', TFPWebProviderDataModule1);
 end.
 

@@ -5,7 +5,7 @@ unit wmusers;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LResources, HTTPDefs, websession, fpHTTP, fpWeb, 
+  Classes, SysUtils, HTTPDefs, websession, fpHTTP, fpWeb, 
   db, dbf, fpwebdata, extjsjson, extjsxml;
 
 type
@@ -31,6 +31,8 @@ var
   FPWebProviderDataModule2: TFPWebProviderDataModule2; 
 
 implementation
+
+{$R *.lfm}
 
 Type
 
@@ -77,8 +79,6 @@ begin
 end;
 
 initialization
-  {$I wmusers.lrs}
-
   RegisterHTTPModule('Provider', TFPWebProviderDataModule2);
   WebDataProviderManager.RegisterProvider('AName',TDBFWebDataProvider);
 end.

@@ -8,8 +8,10 @@ uses
 // {$R *.res}
 
 
+{$R *.res}
+
 begin
-  Application.Title:='FPC JSON-RPC demo';
+  Application.Title:='FPC JSON-RPC demo ';
   Application.Initialize;
   Application.Run;
 end.

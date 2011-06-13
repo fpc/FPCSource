@@ -5,7 +5,7 @@ unit wmjsonusers;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LResources, HTTPDefs, websession, fpHTTP, fpWeb, 
+  Classes, SysUtils, HTTPDefs, websession, fpHTTP, fpWeb, 
     fpwebdata, extjsjson;
 
 type
@@ -26,9 +26,9 @@ var
 
 implementation
 
-initialization
-  {$I wmjsonusers.lrs}
+{$R *.lfm}
 
+initialization
   RegisterHTTPModule('JSONProvider', TFPWebProviderDataModule1);
 end.
 

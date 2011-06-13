@@ -8,6 +8,8 @@ uses
 
 {$IFDEF WINDOWS}{$R extgrid.rc}{$ENDIF}
 
+{$R *.res}
+
 begin
   Application.Title:='SQLDBWebDataProvider demo using ExtJS';
   Application.Initialize;

@@ -5,8 +5,7 @@ unit dmusers;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LResources, db, dbf,
-  fpwebdata;
+  Classes, SysUtils, db, dbf, fpwebdata;
 
 type
 
@@ -28,12 +27,12 @@ var
 
 implementation
 
-uses dbugintf;
+{$R *.lfm}
+
 { TDataModule1 }
 
 procedure TDataModule1.DataModuleCreate(Sender: TObject);
 begin
-  senddebug('Creating datamodule 1 '+InTToStr(Ord(WebDataProviderManager.Registering)));
   If not WebDataProviderManager.Registering then
     begin
     DBF1.TableName:=ExtractFilePath(ParamStr(0))+'users.dbf';
@@ -45,7 +44,6 @@ begin
 end;
 
 initialization
-  {$I dmusers.lrs}
   WebDataProviderManager.RegisterDatamodule(TDataModule1)
 
 end.
