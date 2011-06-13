@@ -132,7 +132,9 @@ procedure jpeg_save_markers (cinfo : j_decompress_ptr;
 procedure jpeg_set_marker_processor (cinfo : j_decompress_ptr;
                                      marker_code : int;
                                      routine : jpeg_marker_parser_method);
-
+Var
+  on_unknown_marker : function (cinfo : j_decompress_ptr) : int; far;
+  
 implementation
 
 uses
@@ -2321,18 +2323,25 @@ begin
 
       M_DNL:            { Ignore DNL ... perhaps the wrong thing }
         if not skip_variable(cinfo) then
-        begin
-          read_markers := JPEG_SUSPENDED;
-          exit;
-        end;
+          begin
+            read_markers := JPEG_SUSPENDED;
+            exit;
+          end;
 
       else                      { must be DHP, EXP, JPGn, or RESn }
-        { For now, we treat the reserved markers as fatal errors since they are
-          likely to be used to signal incompatible JPEG Part 3 extensions.
-          Once the JPEG 3 version-number marker is well defined, this code
-          ought to change! }
-        ERREXIT1(j_common_ptr(cinfo) , JERR_UNKNOWN_MARKER,
-          cinfo^.unread_marker);
+        if (@on_unknown_marker<>nil) then
+          begin
+          read_markers:=on_unknown_marker(cinfo);
+          exit;
+          end
+        else if not skip_variable(cinfo) then
+          begin
+          read_markers := JPEG_SUSPENDED;
+          exit;
+          end;
+        { // This is the previous code.
+          ERREXIT1(j_common_ptr(cinfo) , JERR_UNKNOWN_MARKER,cinfo^.unread_marker);
+        }  
     end; { end of case }
     { Successfully processed marker, so reset state variable }
     cinfo^.unread_marker := 0;
