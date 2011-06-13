@@ -18,7 +18,7 @@
   { variant error codes }
   {$i varerror.inc}
 
-    Function FileSearch (Const Name, DirList : String; Options : TFileSearchoptions = []) : String;
+    Function FileSearch (Const Name, DirList : String; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : String;
     Var
       I : longint;
       Temp : String;
