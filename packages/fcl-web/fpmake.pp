@@ -26,7 +26,7 @@ begin
     P.Dependencies.Add('fastcgi');
     P.Dependencies.Add('httpd22');
     // (Temporary) indirect dependencies, not detected by fpcmake:
-    P.Dependencies.Add('univint',[MacOSX]);
+    P.Dependencies.Add('univint',[MacOSX,iphonesim]);
 
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';
