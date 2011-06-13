@@ -2100,6 +2100,7 @@ writeln;
               bhr.Singles[FDig] := ue MOD 10;
               ue := ue DIV 10;
              end;
+          bhr.neg := bh1.Neg XOR bh2.Neg;
           bhr.Plac := LDig;
           bhr.FDig := FDig;
           if LDig > high ( bhr.Singles )
