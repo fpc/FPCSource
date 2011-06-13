@@ -494,11 +494,7 @@ Procedure UnRegisterConnection(ConnectionName : String);
 Function GetConnectionDef(ConnectorName : String) : TConnectionDef;
 Procedure GetConnectionList(List : TSTrings);
 
-implementation
-
-uses dbconst, strutils;
-
-var InitialSQLFormatSettings : TFormatSettings = (
+var DefaultSQLFormatSettings : TFormatSettings = (
   CurrencyFormat: 1;
   NegCurrFormat: 5;
   ThousandSeparator: #0;
@@ -520,6 +516,11 @@ var InitialSQLFormatSettings : TFormatSettings = (
   LongDayNames: ('','','','','','','');
   TwoDigitYearCenturyWindow: 50;
 );
+
+implementation
+
+uses dbconst, strutils;
+
 
 function TimeIntervalToString(Time: TDateTime): string;
 var
@@ -677,7 +678,7 @@ end;
 constructor TSQLConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FSQLFormatSettings:=InitialSQLFormatSettings;
+  FSQLFormatSettings:=DefaultSQLFormatSettings;
   FFieldNameQuoteChars:=DoubleQuotes;
 end;
 
