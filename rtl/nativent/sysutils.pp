@@ -673,7 +673,7 @@ end;
                               Initialization code
 ****************************************************************************}
 
-function wstrlen(p: PWideChar): LongInt; external name 'FPC_PWIDECHAR_LENGTH';
+function wstrlen(p: PWideChar): SizeInt; external name 'FPC_PWIDECHAR_LENGTH';
 
 function GetEnvironmentVariable(const EnvVar: String): String;
 var

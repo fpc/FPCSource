@@ -67,8 +67,8 @@ function fpc_pchar_to_shortstr(p:pchar):shortstring; compilerproc;
 procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar); compilerproc;
 {$endif FPC_STRTOSHORTSTRINGPROC}
 
-function fpc_pchar_length(p:pchar):longint; compilerproc;
-function fpc_pwidechar_length(p:pwidechar):longint; compilerproc;
+function fpc_pchar_length(p:pchar):sizeint; compilerproc;
+function fpc_pwidechar_length(p:pwidechar):sizeint; compilerproc;
 
 {$ifndef FPC_STRTOSHORTSTRINGPROC}
 function fpc_chararray_to_shortstr(const arr: array of char; zerobased: boolean = true):shortstring; compilerproc;

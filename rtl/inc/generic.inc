@@ -1243,8 +1243,8 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
-function fpc_pchar_length(p:pchar):longint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
-var i : longint;
+function fpc_pchar_length(p:pchar):sizeint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
+var i : sizeint;
 begin
   i:=0;
   if assigned(p) then
@@ -1257,11 +1257,13 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PWIDECHAR_LENGTH}
 
-function fpc_pwidechar_length(p:pwidechar):longint;[public,alias:'FPC_PWIDECHAR_LENGTH']; compilerproc;
-var i : longint;
+function fpc_pwidechar_length(p:pwidechar):sizeint;[public,alias:'FPC_PWIDECHAR_LENGTH']; compilerproc;
+var i : sizeint;
 begin
   i:=0;
-  while p[i]<>#0 do inc(i);
+  if assigned(p) then
+    while p[i]<>#0 do
+      inc(i);
   exit(i);
 end;
 
