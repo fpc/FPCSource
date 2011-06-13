@@ -37,7 +37,7 @@ interface
 
     const
        { maximum of aasmoutput lists there will be }
-       maxoutputlists = 20;
+       maxoutputlists = ord(high(tasmlisttype))+1;
        { buffer size for writing the .s file }
        AsmOutSize=32768*4;
 
