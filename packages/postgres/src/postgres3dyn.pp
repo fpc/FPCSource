@@ -209,7 +209,7 @@ var
 { Get encoding id from environment variable PGCLIENTENCODING  }
   PQenv2encoding: function :longint;cdecl;
 
-Procedure InitialisePostgres3;
+Procedure InitialisePostgres3(libpath:string=pqlib);
 Procedure ReleasePostgres3;
 
 function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : pchar) : ppgconn;
@@ -220,17 +220,17 @@ implementation
 
 var RefCount : integer;
 
-Procedure InitialisePostgres3;
+Procedure InitialisePostgres3(libpath:string=pqlib);
 
 begin
   inc(RefCount);
   if RefCount = 1 then
     begin
-    Postgres3LibraryHandle := loadlibrary(pqlib);
+    Postgres3LibraryHandle := loadlibrary(libpath);
     if Postgres3LibraryHandle = nilhandle then
       begin
       RefCount := 0;
-      Raise EInOutError.Create('Can not load PosgreSQL client. Is it installed? ('+pqlib+')');
+      Raise EInOutError.Create('Can not load PosgreSQL client. Is it installed? ('+libpath+')');
       end;
 
     pointer(PQconnectStart) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectStart');
