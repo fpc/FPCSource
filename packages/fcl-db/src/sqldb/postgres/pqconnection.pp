@@ -578,11 +578,12 @@ end;
 procedure TPQConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;AParams : TParams);
 
 var ar  : array of pchar;
-    l,i   : integer;
+    l,i : integer;
     s   : string;
     lengths,formats : array of integer;
     ParamNames,
     ParamValues : array of string;
+    cash: int64;
 
 begin
   with cursor as TPQCursor do
@@ -607,13 +608,19 @@ begin
               s := FormatDateTime('hh:nn:ss', AParams[i].AsDateTime);
             ftFloat, ftBCD:
               Str(AParams[i].AsFloat, s);
+           ftCurrency:
+              begin
+                cash:=NtoBE(round(AParams[i].AsFloat*100));
+                setlength(s, sizeof(cash));
+                Move(cash, s[1], sizeof(cash));
+              end
             else
               s := AParams[i].AsString;
           end; {case}
           GetMem(ar[i],length(s)+1);
           StrMove(PChar(ar[i]),Pchar(s),Length(S)+1);
           lengths[i]:=Length(s);
-          if (AParams[i].DataType in [ftBlob,ftGraphic]) then
+          if (AParams[i].DataType in [ftBlob,ftGraphic,ftCurrency]) then
             Formats[i]:=1
           else
             Formats[i]:=0;  
