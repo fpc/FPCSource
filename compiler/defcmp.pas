@@ -536,7 +536,12 @@ implementation
                           (s64currencytype.typ = floatdef))) then
                        begin
                          doconv:=tc_int_2_real;
-                         eq:=te_convert_l4;
+
+                         { prefer single over others }
+                         if is_single(def_to) then
+                           eq:=te_convert_l3
+                         else
+                           eq:=te_convert_l4;
                        end
                      else if is_currency(def_from)
                              { and (s64currencytype.typ = orddef)) } then
