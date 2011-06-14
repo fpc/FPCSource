@@ -5420,14 +5420,17 @@ implementation
     function TImplementedInterface.getcopy:TImplementedInterface;
       begin
         Result:=TImplementedInterface.Create(nil);
-        {$warning: this is completely wrong on so many levels...}
         { 1) the procdefs list will be freed once for each copy
           2) since the procdefs list owns its elements, those will also be freed for each copy
           3) idem for the name mappings
         }
+        { warning: this is completely wrong on so many levels...
         Move(pointer(self)^,pointer(result)^,InstanceSize);
+        We need to make clean copies of the different fields
+        this is not implemented yet, and thus we generate an internal
+        error instead PM 2011-06-14 }
+        internalerror(2011061401);
       end;
-
 
 {****************************************************************************
                                 TFORWARDDEF
