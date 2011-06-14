@@ -971,6 +971,7 @@ end;
     Function  TInternalLinkerNetware.MakeSharedLibrary:boolean;
     begin
       Comment(V_Error,'Make shared library not supported for netware');
+      MakeSharedLibrary := false;
     end;
 
 {*****************************************************************************
