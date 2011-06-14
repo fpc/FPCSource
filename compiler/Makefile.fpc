@@ -584,10 +584,10 @@ else
 # ppc3/ppcXXX = native (skipped for cross installation)
 #
 
+cycle: override FPC=
 cycle:
 # ppc (source native)
 # Clear detected compiler binary, because it can be existing crosscompiler binary, but we need native compiler here
-override FPC=
         $(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
         $(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) EXENAME=$(TEMPNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
 # ppcross<ARCH> (source native)
