@@ -236,7 +236,7 @@ unit cgcpu;
                             (cs_create_pic in current_settings.moduleswitches)) then
                           begin
                             tmpreg:=getaddressregister(list);
-                            a_loadaddr_ref_reg(list,tmpref,tmpreg);
+                            a_loadaddr_ref_reg(list,r,tmpreg);
                             list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
                           end
                         else if cs_create_pic in current_settings.moduleswitches then
