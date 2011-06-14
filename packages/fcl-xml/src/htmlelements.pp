@@ -18,7 +18,7 @@ unit htmlelements;
 interface
 
 uses
-  Classes, SysUtils, DOM, HtmlDefs;
+  Classes, SysUtils, DOM, HtmlDefs, strutils;
 
 type
 
@@ -135,22 +135,14 @@ implementation
 
 function EscapeHTML ( const S : String ) : String;
 begin
-  Result := StringReplace(s,      '&', '&amp;',  [rfReplaceAll]);
-  Result := StringReplace(Result, '<', '&lt;',   [rfReplaceAll]);
-  Result := StringReplace(Result, '>', '&gt;',   [rfReplaceAll]);
-  Result := StringReplace(Result, '"', '&quot;', [rfReplaceAll]);
-  Result := StringReplace(Result, #39, '&#39;',  [rfReplaceAll]); // ' - &apos; does not work on ie :(
+  // &apos; does not work on all versions of ie, so do not use it.
+  Result := StringsReplace(s,['&','<','>','"',#39],['&amp;','&lt;','&gt;','&quot;','&#39;'],[rfReplaceAll]);
 end;
 
 function UnescapeHTML ( const S : String ) : String;
 begin
-  Result := StringReplace(s,      '&lt;',   '<', [rfReplaceAll]);
-  Result := StringReplace(Result, '&gt;',   '>', [rfReplaceAll]);
-  Result := StringReplace(Result, '&quot;', '"', [rfReplaceAll]);
-  Result := StringReplace(Result, '&#39;',  #39, [rfReplaceAll]); // '
-  Result := StringReplace(Result, '&apos;', #39, [rfReplaceAll]); // '
-  Result := StringReplace(Result, '&amp;',  '&', [rfReplaceAll]);
-end; 
+  Result := StringsReplace(result,['&amp;','&lt;','&gt;','&quot;','&apos;','&#39;'],['&','<','>','"',#39,#39],[rfReplaceAll]);
+end;
 
 
 { THtmlCustomElement }
