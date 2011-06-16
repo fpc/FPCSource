@@ -723,7 +723,7 @@ begin
     ftTime     : Result := QuotedStr(TimeIntervalToString(Param.AsDateTime));
     ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:nn:ss', Param.AsDateTime, FSQLFormatSettings) + '''';
     ftCurrency,
-    ftBcd,
+    ftBcd      : Result := CurrToStr(Param.AsCurrency, FSQLFormatSettings);
     ftFloat    : Result := FloatToStr(Param.AsFloat, FSQLFormatSettings);
     ftFMTBcd   : Result := stringreplace(Param.AsString, DefaultFormatSettings.DecimalSeparator, FSQLFormatSettings.DecimalSeparator, []);
   else
