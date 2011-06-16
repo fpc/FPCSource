@@ -13,7 +13,7 @@ unit svgvectorialwriter;
 interface
 
 uses
-  Classes, SysUtils, math, fpvectorial, fpvutils;
+  Classes, SysUtils, math, fpvectorial, fpvutils, fpcanvas;
 
 type
   { TvSVGVectorialWriter }
@@ -101,6 +101,8 @@ var
   // Pen properties
   lPenWidth: Integer;
   lPenColor: string;
+  // Brush properties
+  lFillColor: string;
 begin
   OldPtX := 0;
   OldPtY := 0;
@@ -171,13 +173,19 @@ begin
   if APath.Pen.Width >= 1 then lPenWidth := APath.Pen.Width
   else lPenWidth := 1;
 
-  // Get the Pen Color
-  lPenColor := VColorToRGBHexString(APath.Pen.Color);
+  // Get the Pen Color and Style
+  if APath.Pen.Style = psClear then lPenColor := 'none'
+  else lPenColor := '#' + FPColorToRGBHexString(APath.Pen.Color);
 
+  // Get the Brush color and style
+  if APath.Brush.Style = bsClear then lFillColor := 'none'
+  else lFillColor := '#' + FPColorToRGBHexString(APath.Brush.Color);
+
+  // Now effectively write the path
   AStrings.Add('  <path');
-  AStrings.Add(Format('    style="fill:none;stroke:#%s;stroke-width:%dpx;'
+  AStrings.Add(Format('    style="fill:%s;stroke:%s;stroke-width:%dpx;'
    + 'stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"',
-   [lPenColor, lPenWidth]));
+   [lFillColor, lPenColor, lPenWidth]));
   AStrings.Add('    d="' + PathStr + '"');
   AStrings.Add('  id="path' + IntToStr(AIndex) + '" />');
 end;

@@ -19,7 +19,7 @@ interface
 
 uses
   Classes, SysUtils, Math,
-  fpcanvas;
+  fpcanvas, fpimage;
 
 type
   TvVectorialFormat = (
@@ -44,28 +44,20 @@ const
   STR_ENCAPSULATEDPOSTSCRIPT_EXTENSION = '.eps';
 
 type
-  {@@ We need our own format because TFPColor is too big for our needs and TColor has no Alpha }
-  TvColor = packed record
-    Red, Green, Blue, Alpha: Byte;
-  end;
-
   TvPen = record
-    Color: TvColor;
+    Color: TFPColor;
     Style: TFPPenStyle;
     Width: Integer;
   end;
 
   TvBrush = record
-    Color: TvColor;
+    Color: TFPColor;
     Style: TFPBrushStyle;
   end;
 
 const
   FPValphaTransparent = $00;
   FPValphaOpaque = $FF;
-
-  clvBlack: TvColor = (Red: $00; Green: $00; Blue: $00; Alpha: FPValphaOpaque);
-  clvBlue: TvColor = (Red: $00; Green: $00; Blue: $FF; Alpha: FPValphaOpaque);
 
 type
   T3DPoint = record
@@ -154,7 +146,7 @@ type
   end;
 
   TvFont = record
-    Color: TvColor;
+    Color: TFPColor;
     Size: integer;
     Name: utf8string;
     {@@
@@ -290,21 +282,21 @@ type
     procedure StartPath(); overload;
     procedure AddMoveToPath(AX, AY: Double);
     procedure AddLineToPath(AX, AY: Double); overload;
-    procedure AddLineToPath(AX, AY: Double; AColor: TvColor); overload;
+    procedure AddLineToPath(AX, AY: Double; AColor: TFPColor); overload;
     procedure AddLineToPath(AX, AY, AZ: Double); overload;
     procedure GetCurrenPathPenPos(var AX, AY: Double);
     procedure AddBezierToPath(AX1, AY1, AX2, AY2, AX3, AY3: Double); overload;
     procedure AddBezierToPath(AX1, AY1, AZ1, AX2, AY2, AZ2, AX3, AY3, AZ3: Double); overload;
-    procedure SetBrushColor(AColor: TvColor);
+    procedure SetBrushColor(AColor: TFPColor);
     procedure SetBrushStyle(AStyle: TFPBrushStyle);
-    procedure SetPenColor(AColor: TvColor);
+    procedure SetPenColor(AColor: TFPColor);
     procedure SetPenStyle(AStyle: TFPPenStyle);
     procedure SetPenWidth(AWidth: Integer);
     procedure EndPath();
     procedure AddText(AX, AY, AZ: Double; FontName: string; FontSize: integer; AText: utf8string); overload;
     procedure AddText(AX, AY, AZ: Double; AStr: utf8string); overload;
     procedure AddCircle(ACenterX, ACenterY, ACenterZ, ARadius: Double);
-    procedure AddCircularArc(ACenterX, ACenterY, ACenterZ, ARadius, AStartAngle, AEndAngle: Double; AColor: TvColor);
+    procedure AddCircularArc(ACenterX, ACenterY, ACenterZ, ARadius, AStartAngle, AEndAngle: Double; AColor: TFPColor);
     procedure AddEllipse(CenterX, CenterY, CenterZ, MajorHalfAxis, MinorHalfAxis, Angle: Double);
     // Dimensions
     procedure AddAlignedDimension(BaseLeft, BaseRight, DimLeft, DimRight: T3DPoint);
@@ -467,9 +459,9 @@ end;
 constructor TvEntity.Create;
 begin
   Pen.Style := psSolid;
-  Pen.Color := clvBlack;
+  Pen.Color := colBlack;
   Brush.Style := bsClear;
-  Brush.Color := clvBlue;
+  Brush.Color := colBlue;
 end;
 
 { TvEllipse }
@@ -636,7 +628,7 @@ begin
   AppendSegmentToTmpPath(segment);
 end;
 
-procedure TvVectorialDocument.AddLineToPath(AX, AY: Double; AColor: TvColor);
+procedure TvVectorialDocument.AddLineToPath(AX, AY: Double; AColor: TFPColor);
 var
   segment: T2DSegmentWithPen;
 begin
@@ -716,7 +708,7 @@ begin
   AppendSegmentToTmpPath(segment);
 end;
 
-procedure TvVectorialDocument.SetBrushColor(AColor: TvColor);
+procedure TvVectorialDocument.SetBrushColor(AColor: TFPColor);
 begin
   FTmPPath.Brush.Color := AColor;
 end;
@@ -726,7 +718,7 @@ begin
   FTmPPath.Brush.Style := AStyle;
 end;
 
-procedure TvVectorialDocument.SetPenColor(AColor: TvColor);
+procedure TvVectorialDocument.SetPenColor(AColor: TFPColor);
 begin
   FTmPPath.Pen.Color := AColor;
 end;
@@ -790,7 +782,7 @@ begin
 end;
 
 procedure TvVectorialDocument.AddCircularArc(ACenterX, ACenterY, ACenterZ,
-  ARadius, AStartAngle, AEndAngle: Double; AColor: TvColor);
+  ARadius, AStartAngle, AEndAngle: Double; AColor: TFPColor);
 var
   lCircularArc: TvCircularArc;
 begin
@@ -893,9 +885,9 @@ begin
   FTmpPath.Points := nil;
   FTmpPath.PointsEnd := nil;
   FTmpPath.Len := 0;
-  FTmpPath.Brush.Color := clvBlue;
+  FTmpPath.Brush.Color := colBlue;
   FTmpPath.Brush.Style := bsClear;
-  FTmpPath.Pen.Color := clvBlack;
+  FTmpPath.Pen.Color := colBlack;
   FTmpPath.Pen.Style := psSolid;
   FTmpPath.Pen.Width := 1;
 end;

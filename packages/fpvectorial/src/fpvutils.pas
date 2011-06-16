@@ -25,32 +25,29 @@ type
   T10Strings = array[0..9] of shortstring;
 
 // Color Conversion routines
-function VColorToFPColor(AVColor: TvColor): TFPColor; inline;
-function VColorToRGBHexString(AVColor: TvColor): string;
-function RGBToVColor(AR, AG, AB: Byte): TvColor; inline;
-function  SeparateString(AString: string; ASeparator: Char): T10Strings;
+function FPColorToRGBHexString(AColor: TFPColor): string;
+function RGBToFPColor(AR, AG, AB: byte): TFPColor; inline;
+function SeparateString(AString: string; ASeparator: char): T10Strings;
 
 implementation
 
-function VColorToFPColor(AVColor: TvColor): TFPColor; inline;
+function FPColorToRGBHexString(AColor: TFPColor): string;
 begin
-  Result.Red := AVColor.Red;
-  Result.Green := AVColor.Green;
-  Result.Blue := AVColor.Blue;
-  Result.Alpha := AVColor.Alpha;
+  Result := Format('%.2x%.2x%.2x', [AColor.Red shr 8, AColor.Green shr 8, AColor.Blue shr 8]);
 end;
 
-function VColorToRGBHexString(AVColor: TvColor): string;
+function RGBToFPColor(AR, AG, AB: byte): TFPColor; inline;
 begin
-  Result := Format('%.2x%.2x%.2x', [AVColor.Red, AVColor.Green, AVColor.Blue]);
-end;
+  if AR > $100 then Result.Red := (AR shl 8) + $FF
+  else Result.Red := AR shl 8;
 
-function RGBToVColor(AR, AG, AB: Byte): TvColor; inline;
-begin
-  Result.Red := AR;
-  Result.Green := AG;
-  Result.Blue := AB;
-  Result.Alpha := 255;
+  if AR > $100 then Result.Green := (AG shl 8) + $FF
+  else Result.Green := AG shl 8;
+
+  if AR > $100 then Result.Blue := (AB shl 8) + $FF
+  else Result.Blue := AB shl 8;
+
+  Result.Alpha := $FFFF;
 end;
 
 {@@
@@ -62,14 +59,15 @@ end;
   Number of substrings: 10 (indexed 0 to 9)
   Length of each substring: 255 (they are shortstrings)
 }
-function SeparateString(AString: string; ASeparator: Char): T10Strings;
+function SeparateString(AString: string; ASeparator: char): T10Strings;
 var
-  i, CurrentPart: Integer;
+  i, CurrentPart: integer;
 begin
   CurrentPart := 0;
 
   { Clears the result }
-  for i := 0 to 9 do Result[i] := '';
+  for i := 0 to 9 do
+    Result[i] := '';
 
   { Iterates througth the string, filling strings }
   for i := 1 to Length(AString) do
@@ -79,7 +77,8 @@ begin
       Inc(CurrentPart);
 
       { Verifies if the string capacity wasn't exceeded }
-      if CurrentPart > 9 then Exit;
+      if CurrentPart > 9 then
+        Exit;
     end
     else
       Result[CurrentPart] := Result[CurrentPart] + Copy(AString, i, 1);

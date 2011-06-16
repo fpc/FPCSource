@@ -49,7 +49,7 @@ type
 
   TPolylineElement = record
     X, Y: Double;
-    Color: TvColor;
+    Color: TFPColor;
   end;
 
   TSPLineElement = record
@@ -104,7 +104,7 @@ type
     procedure ReadENTITIES_POINT(ATokens: TDXFTokens; AData: TvVectorialDocument);
     function  GetCoordinateValue(AStr: shortstring): Double;
     //
-    function DXFColorIndexToVColor(AColorIndex: Integer): TvColor;
+    function DXFColorIndexToFPColor(AColorIndex: Integer): TFPColor;
   public
     { General reading methods }
     Tokenizer: TDXFTokenizer;
@@ -146,24 +146,24 @@ const
 
   // Obtained from http://www.generalcadd.com/pdf/LivingWithAutoCAD_v4.pdf
   // Valid for DXF up to AutoCad 2004, after that RGB is available
-  AUTOCAD_COLOR_PALETTE: array[0..15] of TvColor =
+  AUTOCAD_COLOR_PALETTE: array[0..15] of TFPColor =
   (
-    (Red: $00; Green: $00; Blue: $00; Alpha: FPValphaOpaque), // 0 - Black
-    (Red: $00; Green: $00; Blue: $80; Alpha: FPValphaOpaque), // 1 - Dark blue
-    (Red: $00; Green: $80; Blue: $00; Alpha: FPValphaOpaque), // 2 - Dark green
-    (Red: $00; Green: $80; Blue: $80; Alpha: FPValphaOpaque), // 3 - Dark cyan
-    (Red: $80; Green: $00; Blue: $00; Alpha: FPValphaOpaque), // 4 - Dark red
-    (Red: $80; Green: $00; Blue: $80; Alpha: FPValphaOpaque), // 5 - Dark Magenta
-    (Red: $80; Green: $80; Blue: $00; Alpha: FPValphaOpaque), // 6 - Dark
-    (Red: $c0; Green: $c0; Blue: $c0; Alpha: FPValphaOpaque), // 7 - Light Gray
-    (Red: $80; Green: $80; Blue: $80; Alpha: FPValphaOpaque), // 8 - Medium Gray
-    (Red: $00; Green: $00; Blue: $ff; Alpha: FPValphaOpaque), // 9 - Light blue
-    (Red: $00; Green: $ff; Blue: $00; Alpha: FPValphaOpaque), // 10 - Light green
-    (Red: $00; Green: $ff; Blue: $ff; Alpha: FPValphaOpaque), // 11 - Light cyan
-    (Red: $ff; Green: $00; Blue: $00; Alpha: FPValphaOpaque), // 12 - Light red
-    (Red: $ff; Green: $00; Blue: $ff; Alpha: FPValphaOpaque), // 13 - Light Magenta
-    (Red: $ff; Green: $ff; Blue: $00; Alpha: FPValphaOpaque), // 14 - Light Yellow
-    (Red: $ff; Green: $ff; Blue: $ff; Alpha: FPValphaOpaque)  // 15 - White
+    (Red: $0000; Green: $0000; Blue: $0000; Alpha: FPValphaOpaque), // 0 - Black
+    (Red: $0000; Green: $0000; Blue: $8080; Alpha: FPValphaOpaque), // 1 - Dark blue
+    (Red: $0000; Green: $8080; Blue: $0000; Alpha: FPValphaOpaque), // 2 - Dark green
+    (Red: $0000; Green: $8080; Blue: $8080; Alpha: FPValphaOpaque), // 3 - Dark cyan
+    (Red: $8080; Green: $0000; Blue: $0000; Alpha: FPValphaOpaque), // 4 - Dark red
+    (Red: $8080; Green: $0000; Blue: $8080; Alpha: FPValphaOpaque), // 5 - Dark Magenta
+    (Red: $8080; Green: $8080; Blue: $0000; Alpha: FPValphaOpaque), // 6 - Dark
+    (Red: $c0c0; Green: $c0c0; Blue: $c0c0; Alpha: FPValphaOpaque), // 7 - Light Gray
+    (Red: $8080; Green: $8080; Blue: $8080; Alpha: FPValphaOpaque), // 8 - Medium Gray
+    (Red: $0000; Green: $0000; Blue: $ffff; Alpha: FPValphaOpaque), // 9 - Light blue
+    (Red: $0000; Green: $ffff; Blue: $0000; Alpha: FPValphaOpaque), // 10 - Light green
+    (Red: $0000; Green: $ffff; Blue: $ffff; Alpha: FPValphaOpaque), // 11 - Light cyan
+    (Red: $ffff; Green: $0000; Blue: $0000; Alpha: FPValphaOpaque), // 12 - Light red
+    (Red: $ffff; Green: $0000; Blue: $ffff; Alpha: FPValphaOpaque), // 13 - Light Magenta
+    (Red: $ffff; Green: $ffff; Blue: $0000; Alpha: FPValphaOpaque), // 14 - Light Yellow
+    (Red: $ffff; Green: $ffff; Blue: $ffff; Alpha: FPValphaOpaque)  // 15 - White
   );
 
 { TDXFToken }
@@ -478,7 +478,7 @@ var
   // LINE
   LineStartX, LineStartY, LineStartZ: Double;
   LineEndX, LineEndY, LineEndZ: Double;
-  LLineColor: TvColor;
+  LLineColor: TFPColor;
 begin
   // Initial values
   LineStartX := 0;
@@ -487,7 +487,7 @@ begin
   LineEndX := 0;
   LineEndY := 0;
   LineEndZ := 0;
-  LLineColor := clvBlack;
+  LLineColor := colBlack;
 
   for i := 0 to ATokens.Count - 1 do
   begin
@@ -507,7 +507,7 @@ begin
       11: LineEndX := CurToken.FloatValue;
       21: LineEndY := CurToken.FloatValue;
       31: LineEndZ := CurToken.FloatValue;
-      62: LLineColor := DXFColorIndexToVColor(Trunc(CurToken.FloatValue));
+      62: LLineColor := DXFColorIndexToFPColor(Trunc(CurToken.FloatValue));
     end;
   end;
 
@@ -546,7 +546,7 @@ var
   CurToken: TDXFToken;
   i: Integer;
   CenterX, CenterY, CenterZ, Radius, StartAngle, EndAngle: Double;
-  LColor: TvColor;
+  LColor: TFPColor;
 begin
   CenterX := 0.0;
   CenterY := 0.0;
@@ -554,7 +554,7 @@ begin
   Radius := 0.0;
   StartAngle := 0.0;
   EndAngle := 0.0;
-  LColor := clvBlack;
+  LColor := colBlack;
 
   for i := 0 to ATokens.Count - 1 do
   begin
@@ -574,7 +574,7 @@ begin
       40: Radius := CurToken.FloatValue;
       50: StartAngle := CurToken.FloatValue;
       51: EndAngle := CurToken.FloatValue;
-      62: LColor := DXFColorIndexToVColor(Trunc(CurToken.FloatValue));
+      62: LColor := DXFColorIndexToFPColor(Trunc(CurToken.FloatValue));
     end;
   end;
 
@@ -1053,7 +1053,7 @@ begin
   SetLength(Polyline, curPoint+1);
   Polyline[curPoint].X := 0;
   Polyline[curPoint].Y := 0;
-  Polyline[curPoint].Color := clvBlack;
+  Polyline[curPoint].Color := colBlack;
 
   for i := 0 to ATokens.Count - 1 do
   begin
@@ -1071,7 +1071,7 @@ begin
     case CurToken.GroupCode of
       10: Polyline[curPoint].X := CurToken.FloatValue - DOC_OFFSET.X;
       20: Polyline[curPoint].Y := CurToken.FloatValue - DOC_OFFSET.Y;
-      62: Polyline[curPoint].Color := DXFColorIndexToVColor(Trunc(CurToken.FloatValue));
+      62: Polyline[curPoint].Color := DXFColorIndexToFPColor(Trunc(CurToken.FloatValue));
     end;
   end;
 end;
@@ -1192,8 +1192,7 @@ begin
   Result := StrToFloat(Copy(AStr, 2, Length(AStr) - 1));}
 end;
 
-function TvDXFVectorialReader.DXFColorIndexToVColor(AColorIndex: Integer
-  ): TvColor;
+function TvDXFVectorialReader.DXFColorIndexToFPColor(AColorIndex: Integer): TFPColor;
 begin
   if (AColorIndex >= 0) and (AColorIndex <= 15) then
     Result := AUTOCAD_COLOR_PALETTE[AColorIndex]

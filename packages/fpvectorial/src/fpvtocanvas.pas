@@ -35,18 +35,6 @@ implementation
 {$define FPVECTORIALDEBUG}
 {$endif}
 
-{$ifdef USE_LCL_CANVAS}
-function VColorToTColor(AVColor: TvColor): TColor; inline;
-begin
-  Result := RGBToColor(AVColor.Red, AVColor.Green, AVColor.Blue);
-end;
-{$endif}
-
-function VColorToFPColor(AVColor: TvColor): TFPColor; inline;
-begin
-  Result := FPColor(AVColor.Red*$100, AVColor.Green*$100, AVColor.Blue*$100);
-end;
-
 function Rotate2DPoint(P,Fix :TPoint; alpha:double): TPoint;
 var
   sinus, cosinus : Extended;
@@ -173,13 +161,8 @@ begin
     ADest.Pen.Style := CurPath.Pen.Style;
     ADest.Pen.Width := CurPath.Pen.Width;
     ADest.Brush.Style := CurPath.Brush.Style;
-    {$ifdef USE_LCL_CANVAS}
-    ADest.Pen.Color := VColorToTColor(CurPath.Pen.Color);
-    ADest.Brush.Color := VColorToTColor(CurPath.Brush.Color);
-    {$else}
-    ADest.Pen.FPColor := VColorToFPColor(CurPath.Pen.Color);
-    ADest.Brush.FPColor := VColorToFPColor(CurPath.Brush.Color);
-    {$endif}
+    ADest.Pen.FPColor := CurPath.Pen.Color;
+    ADest.Brush.FPColor := CurPath.Brush.Color;
 
     {$ifdef FPVECTORIAL_TOCANVAS_DEBUG}
     Write(Format('[Path] ID=%d', [i]));
@@ -201,15 +184,12 @@ begin
       // This element can override temporarely the Pen
       st2DLineWithPen:
       begin
-        {$ifdef USE_LCL_CANVAS}
-          ADest.Pen.Color := VColorToTColor(T2DSegmentWithPen(Cur2DSegment).Pen.Color);
-        {$endif}
+        ADest.Pen.FPColor := T2DSegmentWithPen(Cur2DSegment).Pen.Color;
 
         ADest.LineTo(CoordToCanvasX(Cur2DSegment.X), CoordToCanvasY(Cur2DSegment.Y));
 
-        {$ifdef USE_LCL_CANVAS}
-          ADest.Pen.Color := VColorToTColor(CurPath.Pen.Color);
-        {$endif}
+        ADest.Pen.FPColor := CurPath.Pen.Color;
+
         {$ifdef FPVECTORIAL_TOCANVAS_DEBUG}
         Write(Format(' L%d,%d', [CoordToCanvasX(Cur2DSegment.X), CoordToCanvasY(Cur2DSegment.Y)]));
         {$endif}
@@ -285,13 +265,8 @@ begin
 
     ADest.Brush.Style := CurEntity.Brush.Style;
     ADest.Pen.Style := CurEntity.Pen.Style;
-    {$ifdef USE_LCL_CANVAS}
-    ADest.Pen.Color := VColorToTColor(CurEntity.Pen.Color);
-    ADest.Brush.Color := VColorToTColor(CurEntity.Brush.Color);
-    {$else}
-    ADest.Pen.FPColor := VColorToFPColor(CurEntity.Pen.Color);
-    ADest.Brush.FPColor := VColorToFPColor(CurEntity.Brush.Color);
-    {$endif}
+    ADest.Pen.FPColor := CurEntity.Pen.Color;
+    ADest.Brush.FPColor := CurEntity.Brush.Color;
 
     if CurEntity is TvCircle then
     begin
@@ -355,7 +330,7 @@ begin
       WriteLn(Format('Drawing Arc Center=%f,%f Radius=%f StartAngle=%f AngleLength=%f',
         [CurArc.CenterX, CurArc.CenterY, CurArc.Radius, IntStartAngle/16, IntAngleLength/16]));
       {$endif}
-      ADest.Pen.Color := {$ifdef USE_LCL_CANVAS}VColorToTColor(CurArc.Pen.Color);{$else}VColorToFPColor(CurArc.Pen.Color);{$endif}
+      ADest.Pen.FPColor := CurArc.Pen.Color;
       ADest.Arc(
         BoundsLeft, BoundsTop, BoundsRight, BoundsBottom,
         IntStartAngle, IntAngleLength
