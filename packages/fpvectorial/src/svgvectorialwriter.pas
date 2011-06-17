@@ -23,9 +23,9 @@ type
     FPointSeparator, FCommaSeparator: TFormatSettings;
     procedure WriteDocumentSize(AStrings: TStrings; AData: TvVectorialDocument);
     procedure WriteDocumentName(AStrings: TStrings; AData: TvVectorialDocument);
-    procedure WritePaths(AStrings: TStrings; AData: TvVectorialDocument);
     procedure WritePath(AIndex: Integer; APath: TPath; AStrings: TStrings; AData: TvVectorialDocument);
-    procedure WriteTexts(AStrings: TStrings; AData: TvVectorialDocument);
+    procedure WriteText(AStrings: TStrings; lText: TvText; AData: TvVectorialDocument);
+    procedure WriteEntities(AStrings: TStrings; AData: TvVectorialDocument);
     procedure ConvertFPVCoordinatesToSVGCoordinates(
       const AData: TvVectorialDocument;
       const ASrcX, ASrcY: Double; var ADestX, ADestY: double);
@@ -59,19 +59,6 @@ end;
 procedure TvSVGVectorialWriter.WriteDocumentName(AStrings: TStrings; AData: TvVectorialDocument);
 begin
   AStrings.Add('  sodipodi:docname="New document 1">');
-end;
-
-procedure TvSVGVectorialWriter.WritePaths(AStrings: TStrings; AData: TvVectorialDocument);
-var
-  i: Integer;
-  lPath: TPath;
-begin
-  for i := 0 to AData.GetPathCount() - 1 do
-  begin
-    lPath := AData.GetPath(i);
-    lPath.PrepareForSequentialReading;
-    WritePath(i ,lPath, AStrings, AData);
-  end;
 end;
 
 {@@
@@ -227,43 +214,52 @@ begin
 
   // Now data
   AStrings.Add('  <g id="layer1">');
-  WritePaths(AStrings, AData);
-  WriteTexts(AStrings, AData);
+  WriteEntities(AStrings, AData);
   AStrings.Add('  </g>');
 
   // finalization
   AStrings.Add('</svg>');
 end;
 
-procedure TvSVGVectorialWriter.WriteTexts(AStrings: TStrings; AData: TvVectorialDocument);
+procedure TvSVGVectorialWriter.WriteText(AStrings: TStrings; lText: TvText; AData: TvVectorialDocument);
 var
   i, j, FontSize: Integer;
   TextStr, FontName, SVGFontFamily: string;
-  lText: TvText;
   PtX, PtY: double;
 begin
-  for i := 0 to AData.GetTextCount() - 1 do
-  begin
-    TextStr := '';
-    lText := AData.GetText(i);
+  TextStr := '';
 
-    ConvertFPVCoordinatesToSVGCoordinates(
-        AData, lText.X, lText.Y, PtX, PtY);
+  ConvertFPVCoordinatesToSVGCoordinates(
+      AData, lText.X, lText.Y, PtX, PtY);
 
-    TextStr := lText.Value;
-    FontSize:= ceil(lText.Font.Size / FLOAT_MILIMETERS_PER_PIXEL);
-    SVGFontFamily := 'Arial, sans-serif';//lText.FontName;
+  TextStr := lText.Value;
+  FontSize:= ceil(lText.Font.Size / FLOAT_MILIMETERS_PER_PIXEL);
+  SVGFontFamily := 'Arial, sans-serif';//lText.FontName;
 
-    AStrings.Add('  <text ');
-    AStrings.Add('    x="' + FloatToStr(PtX, FPointSeparator) + '"');
-    AStrings.Add('    y="' + FloatToStr(PtY, FPointSeparator) + '"');
+  AStrings.Add('  <text ');
+  AStrings.Add('    x="' + FloatToStr(PtX, FPointSeparator) + '"');
+  AStrings.Add('    y="' + FloatToStr(PtY, FPointSeparator) + '"');
 //    AStrings.Add('    font-size="' + IntToStr(FontSize) + '"'); Doesn't seam to work, we need to use the tspan
-    AStrings.Add('    font-family="' + SVGFontFamily + '">');
-    AStrings.Add('    <tspan ');
-    AStrings.Add('      style="font-size:' + IntToStr(FontSize) + '" ');
+  AStrings.Add('    font-family="' + SVGFontFamily + '">');
+  AStrings.Add('    <tspan ');
+  AStrings.Add('      style="font-size:' + IntToStr(FontSize) + '" ');
 //    AStrings.Add('      id="tspan2828" ');
-    AStrings.Add('    >');
-    AStrings.Add(TextStr + '</tspan></text>');
+  AStrings.Add('    >');
+  AStrings.Add(TextStr + '</tspan></text>');
+end;
+
+procedure TvSVGVectorialWriter.WriteEntities(AStrings: TStrings;
+  AData: TvVectorialDocument);
+var
+  lEntity: TvEntity;
+  i: Integer;
+begin
+  for i := 0 to AData.GetEntitiesCount() - 1 do
+  begin
+    lEntity := AData.GetEntity(i);
+
+    if lEntity is TPath then WritePath(i, TPath(lEntity), AStrings, AData)
+    else if lEntity is TvText then WriteText(AStrings, TvText(lEntity), AData);
   end;
 end;
 

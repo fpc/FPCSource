@@ -148,22 +148,22 @@ const
   // Valid for DXF up to AutoCad 2004, after that RGB is available
   AUTOCAD_COLOR_PALETTE: array[0..15] of TFPColor =
   (
-    (Red: $0000; Green: $0000; Blue: $0000; Alpha: FPValphaOpaque), // 0 - Black
-    (Red: $0000; Green: $0000; Blue: $8080; Alpha: FPValphaOpaque), // 1 - Dark blue
-    (Red: $0000; Green: $8080; Blue: $0000; Alpha: FPValphaOpaque), // 2 - Dark green
-    (Red: $0000; Green: $8080; Blue: $8080; Alpha: FPValphaOpaque), // 3 - Dark cyan
-    (Red: $8080; Green: $0000; Blue: $0000; Alpha: FPValphaOpaque), // 4 - Dark red
-    (Red: $8080; Green: $0000; Blue: $8080; Alpha: FPValphaOpaque), // 5 - Dark Magenta
-    (Red: $8080; Green: $8080; Blue: $0000; Alpha: FPValphaOpaque), // 6 - Dark
-    (Red: $c0c0; Green: $c0c0; Blue: $c0c0; Alpha: FPValphaOpaque), // 7 - Light Gray
-    (Red: $8080; Green: $8080; Blue: $8080; Alpha: FPValphaOpaque), // 8 - Medium Gray
-    (Red: $0000; Green: $0000; Blue: $ffff; Alpha: FPValphaOpaque), // 9 - Light blue
-    (Red: $0000; Green: $ffff; Blue: $0000; Alpha: FPValphaOpaque), // 10 - Light green
-    (Red: $0000; Green: $ffff; Blue: $ffff; Alpha: FPValphaOpaque), // 11 - Light cyan
-    (Red: $ffff; Green: $0000; Blue: $0000; Alpha: FPValphaOpaque), // 12 - Light red
-    (Red: $ffff; Green: $0000; Blue: $ffff; Alpha: FPValphaOpaque), // 13 - Light Magenta
-    (Red: $ffff; Green: $ffff; Blue: $0000; Alpha: FPValphaOpaque), // 14 - Light Yellow
-    (Red: $ffff; Green: $ffff; Blue: $ffff; Alpha: FPValphaOpaque)  // 15 - White
+    (Red: $0000; Green: $0000; Blue: $0000; Alpha: alphaOpaque), // 0 - Black
+    (Red: $0000; Green: $0000; Blue: $8080; Alpha: alphaOpaque), // 1 - Dark blue
+    (Red: $0000; Green: $8080; Blue: $0000; Alpha: alphaOpaque), // 2 - Dark green
+    (Red: $0000; Green: $8080; Blue: $8080; Alpha: alphaOpaque), // 3 - Dark cyan
+    (Red: $8080; Green: $0000; Blue: $0000; Alpha: alphaOpaque), // 4 - Dark red
+    (Red: $8080; Green: $0000; Blue: $8080; Alpha: alphaOpaque), // 5 - Dark Magenta
+    (Red: $8080; Green: $8080; Blue: $0000; Alpha: alphaOpaque), // 6 - Dark
+    (Red: $c0c0; Green: $c0c0; Blue: $c0c0; Alpha: alphaOpaque), // 7 - Light Gray
+    (Red: $8080; Green: $8080; Blue: $8080; Alpha: alphaOpaque), // 8 - Medium Gray
+    (Red: $0000; Green: $0000; Blue: $ffff; Alpha: alphaOpaque), // 9 - Light blue
+    (Red: $0000; Green: $ffff; Blue: $0000; Alpha: alphaOpaque), // 10 - Light green
+    (Red: $0000; Green: $ffff; Blue: $ffff; Alpha: alphaOpaque), // 11 - Light cyan
+    (Red: $ffff; Green: $0000; Blue: $0000; Alpha: alphaOpaque), // 12 - Light red
+    (Red: $ffff; Green: $0000; Blue: $ffff; Alpha: alphaOpaque), // 13 - Light Magenta
+    (Red: $ffff; Green: $ffff; Blue: $0000; Alpha: alphaOpaque), // 14 - Light Yellow
+    (Red: $ffff; Green: $ffff; Blue: $ffff; Alpha: alphaOpaque)  // 15 - White
   );
 
 { TDXFToken }

@@ -44,6 +44,8 @@ const
   STR_ENCAPSULATEDPOSTSCRIPT_EXTENSION = '.eps';
 
 type
+  { Pen, Brush and Font }
+
   TvPen = record
     Color: TFPColor;
     Style: TFPPenStyle;
@@ -55,11 +57,20 @@ type
     Style: TFPBrushStyle;
   end;
 
-const
-  FPValphaTransparent = $00;
-  FPValphaOpaque = $FF;
+  TvFont = record
+    Color: TFPColor;
+    Size: integer;
+    Name: utf8string;
+    {@@
+      Font orientation is measured in degrees and uses the
+      same direction as the LCL TFont.orientation, which is counter-clockwise.
+      Zero is the normal, horizontal, orientation.
+    }
+    Orientation: Double;
+  end;
 
-type
+  { Coordinates and polyline segments }
+
   T3DPoint = record
     X, Y, Z: Double;
   end;
@@ -128,33 +139,32 @@ type
     X3, Y3, Z3: Double;
   end;
 
-  TPath = class
+  { Now all elements }
+
+  {@@
+    All elements should derive from TvEntity, regardless of whatever properties
+    they might contain.
+  }
+
+  TvEntity = class
+  public
+    {@@ The global Pen for the entire entity. In the case of paths, individual
+        elements might be able to override this setting. }
+    Pen: TvPen;
+    {@@ The global Brush for the entire entity. In the case of paths, individual
+        elements might be able to override this setting. }
+    Brush: TvBrush;
+    constructor Create; virtual;
+  end;
+
+  TPath = class(TvEntity)
     Len: Integer;
     Points: TPathSegment; // Beginning of the double-linked list
     PointsEnd: TPathSegment; // End of the double-linked list
     CurPoint: TPathSegment; // Used in PrepareForSequentialReading and Next
-    {@@ The global Pen for the entire path. This Pen might be overriden by
-        individual elements of the polyline. }
-    Pen: TvPen;
-    {@@ Sets a Brush to paint the inner area inside the path.
-        There is no inner area if Brush.Style = bsClear, which is the default. }
-    Brush: TvBrush;
-    constructor Create();
-    procedure Assign(APath: TPath);
+    procedure Assign(ASource: TPath);
     procedure PrepareForSequentialReading;
     function Next(): TPathSegment;
-  end;
-
-  TvFont = record
-    Color: TFPColor;
-    Size: integer;
-    Name: utf8string;
-    {@@
-      Font orientation is measured in degrees and uses the
-      same direction as the LCL TFont.orientation, which is counter-clockwise.
-      Zero is the normal, horizontal, orientation.
-    }
-    Orientation: Double;
   end;
 
   {@@
@@ -163,23 +173,11 @@ type
     At the moment fonts are unsupported, only simple texts
     up to 255 chars are supported.
   }
-  TvText = class
+  TvText = class(TvEntity)
   public
     X, Y, Z: Double; // Z is ignored in 2D formats
     Value: utf8string;
     Font: TvFont;
-  end;
-
-  {@@
-  }
-
-  { TvEntity }
-
-  TvEntity = class
-  public
-    Pen: TvPen;
-    Brush: TvBrush;
-    constructor Create; virtual;
   end;
 
   {@@
@@ -200,9 +198,6 @@ type
 
   {@@
   }
-
-  { TvEllipse }
-
   TvEllipse = class(TvEntity)
   public
     // Mandatory fields
@@ -215,6 +210,8 @@ type
   end;
 
   {@@
+   The brush has no effect in this class
+
    DimensionLeft ---text--- DimensionRight
                  |        |
                  |        | BaseRight
@@ -239,8 +236,6 @@ type
 
   TvVectorialDocument = class
   private
-    FPaths: TFPList;
-    FTexts: TFPList;
     FEntities: TFPList;
     FTmpPath: TPath;
     FTmpText: TvText;
@@ -255,6 +250,8 @@ type
     { Base methods }
     constructor Create;
     destructor Destroy; override;
+    procedure Assign(ASource: TvVectorialDocument);
+    procedure AssignTo(ADest: TvVectorialDocument);
     procedure WriteToFile(AFileName: string; AFormat: TvVectorialFormat); overload;
     procedure WriteToFile(AFileName: string); overload;
     procedure WriteToStream(AStream: TStream; AFormat: TvVectorialFormat);
@@ -268,16 +265,13 @@ type
     { Data reading methods }
     function  GetPath(ANum: Cardinal): TPath;
     function  GetPathCount: Integer;
-    function  GetText(ANum: Cardinal): TvText;
-    function  GetTextCount: Integer;
     function  GetEntity(ANum: Cardinal): TvEntity;
-    function  GetEntityCount: Integer;
+    function  GetEntitiesCount: Integer;
     { Data removing methods }
     procedure Clear;
-    procedure RemoveAllPaths;
-    procedure RemoveAllTexts;
     { Data writing methods }
-    procedure AddPath(APath: TPath);
+    procedure AddEntity(AEntity: TvEntity);
+    procedure AddPathCopyMem(APath: TPath);
     procedure StartPath(AX, AY: Double); overload;
     procedure StartPath(); overload;
     procedure AddMoveToPath(AX, AY: Double);
@@ -517,8 +511,6 @@ constructor TvVectorialDocument.Create;
 begin
   inherited Create;
 
-  FPaths := TFPList.Create;
-  FTexts := TFPList.Create;
   FEntities := TFPList.Create;
   FTmpPath := TPath.Create;
 end;
@@ -530,40 +522,35 @@ destructor TvVectorialDocument.Destroy;
 begin
   Clear;
 
-  FPaths.Free;
-  FTexts.Free;
   FEntities.Free;
 
   inherited Destroy;
 end;
 
-{@@
-  Clears the list of Vectors and releases their memory.
-}
-procedure TvVectorialDocument.RemoveAllPaths;
+procedure TvVectorialDocument.Assign(ASource: TvVectorialDocument);
+var
+  i: Integer;
 begin
-//  FPaths.ForEachCall(RemoveCallback, nil);
-  FPaths.Clear;
+  Clear;
+
+  for i := 0 to ASource.GetEntitiesCount - 1 do
+    Self.AddEntity(ASource.GetEntity(i));
 end;
 
-procedure TvVectorialDocument.RemoveAllTexts;
+procedure TvVectorialDocument.AssignTo(ADest: TvVectorialDocument);
 begin
-//  FTexts.ForEachCall(RemoveCallback, nil);
-  FTexts.Clear;
+  ADest.Assign(Self);
 end;
 
-procedure TvVectorialDocument.AddPath(APath: TPath);
+procedure TvVectorialDocument.AddPathCopyMem(APath: TPath);
 var
   lPath: TPath;
   Len: Integer;
 begin
   lPath := TPath.Create;
   lPath.Assign(APath);
-  FPaths.Add(Pointer(lPath));
+  AddEntity(lPath);
   //WriteLn(':>TvVectorialDocument.AddPath 1 Len = ', Len);
-  //WriteLn(':>TvVectorialDocument.AddPath 2');
-  //WriteLn(':>TvVectorialDocument.AddPath 3');
-  //WriteLn(':>TvVectorialDocument.AddPath 4');
 end;
 
 {@@
@@ -746,7 +733,7 @@ end;
 procedure TvVectorialDocument.EndPath();
 begin
   if FTmPPath.Len = 0 then Exit;
-  AddPath(FTmPPath);
+  AddPathCopyMem(FTmPPath);
   ClearTmpPath();
 end;
 
@@ -761,7 +748,7 @@ begin
   lText.Z := AZ;
   lText.Font.Name := FontName;
   lText.Font.Size := FontSize;
-  FTexts.Add(lText);
+  AddEntity(lText);
 end;
 
 procedure TvVectorialDocument.AddText(AX, AY, AZ: Double; AStr: utf8string);
@@ -778,7 +765,7 @@ begin
   lCircle.CenterY := ACenterY;
   lCircle.CenterZ := ACenterZ;
   lCircle.Radius := ARadius;
-  FEntities.Add(lCircle);
+  AddEntity(lCircle);
 end;
 
 procedure TvVectorialDocument.AddCircularArc(ACenterX, ACenterY, ACenterZ,
@@ -794,7 +781,7 @@ begin
   lCircularArc.StartAngle := AStartAngle;
   lCircularArc.EndAngle := AEndAngle;
   lCircularArc.Pen.Color := AColor;
-  FEntities.Add(lCircularArc);
+  AddEntity(lCircularArc);
 end;
 
 procedure TvVectorialDocument.AddEllipse(CenterX, CenterY, CenterZ,
@@ -809,7 +796,15 @@ begin
   lEllipse.MajorHalfAxis := MajorHalfAxis;
   lEllipse.MinorHalfAxis := MinorHalfAxis;
   lEllipse.Angle := Angle;
-  FEntities.Add(lEllipse);
+  AddEntity(lEllipse);
+end;
+
+{@@
+  Don't free the passed TvText because it will be added directly to the list
+}
+procedure TvVectorialDocument.AddEntity(AEntity: TvEntity);
+begin
+  FEntities.Add(Pointer(AEntity));
 end;
 
 procedure TvVectorialDocument.AddAlignedDimension(BaseLeft, BaseRight,
@@ -822,7 +817,7 @@ begin
   lDim.BaseRight := BaseRight;
   lDim.DimensionLeft := DimLeft;
   lDim.DimensionRight := DimRight;
-  FEntities.Add(lDim);
+  AddEntity(lDim);
 end;
 
 {@@
@@ -1062,31 +1057,32 @@ begin
 end;
 
 function TvVectorialDocument.GetPath(ANum: Cardinal): TPath;
+var
+  i: Integer;
+  Index: Integer = - 1;
 begin
-  if ANum >= FPaths.Count then raise Exception.Create('TvVectorialDocument.GetPath: Path number out of bounds');
+  Result := nil;
 
-  if FPaths.Items[ANum] = nil then raise Exception.Create('TvVectorialDocument.GetPath: Invalid Path number');
+  if ANum >= FEntities.Count then raise Exception.Create('TvVectorialDocument.GetPath: Path number out of bounds');
 
-  Result := TPath(FPaths.Items[ANum]);
+  for i := 0 to FEntities.Count - 1 do
+  begin
+    if TvEntity(FEntities.Items[i]) is TPath then
+    begin
+      Inc(Index);
+      if Index = ANum then Result := TPath(FEntities.Items[i]);
+    end;
+  end;
 end;
 
 function TvVectorialDocument.GetPathCount: Integer;
+var
+  i: Integer;
 begin
-  Result := FPaths.Count;
-end;
+  Result := 0;
 
-function TvVectorialDocument.GetText(ANum: Cardinal): TvText;
-begin
-  if ANum >= FTexts.Count then raise Exception.Create('TvVectorialDocument.GetText: Text number out of bounds');
-
-  if FTexts.Items[ANum] = nil then raise Exception.Create('TvVectorialDocument.GetText: Invalid Text number');
-
-  Result := TvText(FTexts.Items[ANum]);
-end;
-
-function TvVectorialDocument.GetTextCount: Integer;
-begin
-  Result := FTexts.Count;
+  for i := 0 to FEntities.Count - 1 do
+    if TvEntity(FEntities.Items[i]) is TPath then Inc(Result);
 end;
 
 function TvVectorialDocument.GetEntity(ANum: Cardinal): TvEntity;
@@ -1098,7 +1094,7 @@ begin
   Result := TvEntity(FEntities.Items[ANum]);
 end;
 
-function TvVectorialDocument.GetEntityCount: Integer;
+function TvVectorialDocument.GetEntitiesCount: Integer;
 begin
   Result := FEntities.Count;
 end;
@@ -1108,8 +1104,7 @@ end;
 }
 procedure TvVectorialDocument.Clear;
 begin
-  RemoveAllPaths();
-  RemoveAllTexts();
+  FEntities.Clear();
 end;
 
 { TvCustomVectorialReader }
@@ -1220,20 +1215,14 @@ end;
 
 { TPath }
 
-constructor TPath.Create();
+procedure TPath.Assign(ASource: TPath);
 begin
-  Brush.Style := bsClear;
-  inherited Create();
-end;
-
-procedure TPath.Assign(APath: TPath);
-begin
-  Len := APath.Len;
-  Points := APath.Points;
-  PointsEnd := APath.PointsEnd;
-  CurPoint := APath.CurPoint;
-  Pen := APath.Pen;
-  Brush := APath.Brush;
+  Len := ASource.Len;
+  Points := ASource.Points;
+  PointsEnd := ASource.PointsEnd;
+  CurPoint := ASource.CurPoint;
+  Pen := ASource.Pen;
+  Brush := ASource.Brush;
 end;
 
 procedure TPath.PrepareForSequentialReading;
