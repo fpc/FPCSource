@@ -233,6 +233,7 @@ function pango_font_family_get_type:GType; cdecl; external pangolib;
 procedure pango_font_family_list_faces(family:PPangoFontFamily;
                      faces:PPPPangoFontFace; n_faces:Plongint); cdecl; external pangolib;
 function pango_font_family_get_name(family:PPangoFontFamily):Pchar; cdecl; external pangolib;
+function pango_font_family_is_monospace(family:PPangoFontFamily):gboolean; cdecl; external pangolib;
 
 {$ifdef PANGO_ENABLE_BACKEND}
 function PANGO_FONT_FAMILY_CLASS(klass : pointer) : PPangoFontFamilyClass;
