@@ -111,7 +111,6 @@ implementation
 
     function tmoddivnode.simplify(forinline : boolean):tnode;
       var
-        t : tnode;
         rv,lv : tconstexprint;
       begin
         result:=nil;
@@ -143,12 +142,10 @@ implementation
 
             case nodetype of
               modn:
-                t:=create_simplified_ord_const(lv mod rv,resultdef,forinline);
+                result:=create_simplified_ord_const(lv mod rv,resultdef,forinline);
               divn:
-                t:=create_simplified_ord_const(lv div rv,resultdef,forinline);
+                result:=create_simplified_ord_const(lv div rv,resultdef,forinline);
             end;
-            result:=t;
-            exit;
          end;
       end;
 
@@ -460,8 +457,6 @@ implementation
  ****************************************************************************}
 
     function tshlshrnode.simplify(forinline : boolean):tnode;
-      var
-        t : tnode;
       begin
         result:=nil;
         { constant folding }
@@ -469,12 +464,10 @@ implementation
           begin
              case nodetype of
                 shrn:
-                  t:=create_simplified_ord_const(tordconstnode(left).value shr tordconstnode(right).value,resultdef,forinline);
+                  result:=create_simplified_ord_const(tordconstnode(left).value shr tordconstnode(right).value,resultdef,forinline);
                 shln:
-                  t:=create_simplified_ord_const(tordconstnode(left).value shl tordconstnode(right).value,resultdef,forinline);
+                  result:=create_simplified_ord_const(tordconstnode(left).value shl tordconstnode(right).value,resultdef,forinline);
              end;
-             result:=t;
-             exit;
           end;
 
       end;
