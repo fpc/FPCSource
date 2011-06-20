@@ -517,6 +517,7 @@ compiler/symsym.pas svneol=native#text/plain
 compiler/symtable.pas svneol=native#text/plain
 compiler/symtype.pas svneol=native#text/plain
 compiler/symutil.pas svneol=native#text/plain
+compiler/systems.inc svneol=native#text/plain
 compiler/systems.pas svneol=native#text/plain
 compiler/systems/i_amiga.pas svneol=native#text/plain
 compiler/systems/i_atari.pas svneol=native#text/plain
