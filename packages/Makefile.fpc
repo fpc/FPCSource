@@ -4,7 +4,7 @@
 #
 
 [target]
-dirs=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes fppkg
+dirs=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json fcl-js fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2 hermes fppkg fpvectorial
 dirs_linux_i386=libc unixutil graph pxlib bzip2
 dirs_i386_linux=graph
 dirs_x86_64_linux=graph
@@ -165,6 +165,12 @@ fcl-image_debug: fcl-base_debug paszlib_debug pasjpeg_debug
 fcl-image_smart: fcl-base_smart paszlib_smart pasjpeg_smart
 fcl-image_release: fcl-base_release paszlib_release pasjpeg_release
 fcl-image_shared: fcl-base_shared paszlib_shared pasjpeg_shared
+
+fpvectorial_all: fcl-image_all  
+fpvectorial_debug: fcl-image_debug  
+fpvectorial_smart: fcl-image_smart  
+fpvectorial_release: fcl-image_release 
+fpvectorial_shared: fcl-image_shared  
 
 fcl-fpcunit_all: fcl-xml_all paszlib_all
 fcl-fpcunit_debug: fcl-xml_debug paszlib_debug
