@@ -23,9 +23,15 @@ begin
   p(a);
   if a <> 1 then
     halt(1);
+  a:=0;
   p2(a);
   if a <> 2 then
-    halt(2);
+    begin
+      if a=1 then
+        writeln('Error: Calling tlib1a library p function again instead ',
+          'of tlib1a2 p function.');
+      halt(2);
+    end;
 
   writeln('ok');
 end.
