@@ -97,7 +97,7 @@ type
   end;
   PDIR_ITER = ^DIR_ITER;
 
-  stat = packed record
+  stat = record
     st_dev: longint;
     st_ino: longword;
     st_mode : longword;
