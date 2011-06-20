@@ -25,10 +25,13 @@ program ppudump;
 
 uses
   { do NOT add symconst or globtype to make merging easier }
+  { do include symconst and globtype now before splitting 2.5 PM 2011-06-15 }
   SysUtils,
   constexp,
+  symconst,
   ppu,
   globals,
+  globtype,
   tokens;
 
 const
@@ -46,164 +49,31 @@ const
 //  v_browser        = $20;
   v_all            = $ff;
 
-type
-  tprocinfoflag=(
-    { procedure has at least one assembler block }
-    pi_has_assembler_block,
-    { procedure does a call }
-    pi_do_call,
-    { procedure has a try statement = no register optimization }
-    pi_uses_exceptions,
-    { procedure is declared as @var(assembler), don't optimize}
-    pi_is_assembler,
-    { procedure contains data which needs to be finalized }
-    pi_needs_implicit_finally,
-    { procedure has the implicit try..finally generated }
-    pi_has_implicit_finally,
-    { procedure uses fpu}
-    pi_uses_fpu,
-    { procedure uses GOT for PIC code }
-    pi_needs_got,
-    { references var/proc/type/const in static symtable,
-      i.e. not allowed for inlining from other units }
-    pi_uses_static_symtable,
-    { set if the procedure has to push parameters onto the stack }
-    pi_has_stackparameter,
-    { set if the procedure has at least one got }
-    pi_has_label,
-    { calls itself recursive }
-    pi_is_recursive,
-    { stack frame optimization not possible (only on x86 probably) }
-    pi_needs_stackframe,
-    { set if the procedure has at least one register saved on the stack }
-    pi_has_saved_regs,
-    { dfa was generated for this proc }
-    pi_dfaavailable
-  );
-  tprocinfoflags=set of tprocinfoflag;
+{$i systems.inc }
 
-  tspecialgenerictoken = (ST_LOADSETTINGS,ST_LINE,ST_COLUMN,ST_FILEINDEX);
-
-  { Copied from systems.pas }
-  tsystemcpu=
-  (
-        cpu_no,                       { 0 }
-        cpu_i386,                     { 1 }
-        cpu_m68k,                     { 2 }
-        cpu_alpha,                    { 3 }
-        cpu_powerpc,                  { 4 }
-        cpu_sparc,                    { 5 }
-        cpu_vm,                       { 6 }
-        cpu_iA64,                     { 7 }
-        cpu_x86_64,                   { 8 }
-        cpu_mips,                     { 9 }
-        cpu_arm,                      { 10 }
-        cpu_powerpc64,                { 11 }
-        cpu_avr                       { 12 }
-  );
-
-var
-  ppufile     : tppufile;
-  space       : string;
-  verbose     : longint;
-  derefdata   : pbyte;
-  derefdatalen : longint;
-
-{****************************************************************************
-                          Helper Routines
-****************************************************************************}
-
-const has_errors : boolean = false;
-Procedure Error(const S : string);
-Begin
-   Writeln(S);
-   has_errors:=true;
-End;
-
-
-function ToStr(w:longint):String;
-begin
-  Str(w,ToStr);
-end;
-
-Function Target2Str(w:longint):string;
-type
-  { taken from systems.pas }
-  ttarget =
-  (
-        target_none,               { 0 }
-        obsolete_target_i386_GO32V1,{ 1 }
-        target_i386_GO32V2,        { 2 }
-        target_i386_linux,         { 3 }
-        target_i386_OS2,           { 4 }
-        target_i386_Win32,         { 5 }
-        target_i386_freebsd,       { 6 }
-        target_m68k_Amiga,         { 7 }
-        target_m68k_Atari,         { 8 }
-        target_m68k_Mac,           { 9 }
-        target_m68k_linux,         { 10 }
-        target_m68k_PalmOS,        { 11 }
-        target_alpha_linux,        { 12 }
-        target_powerpc_linux,      { 13 }
-        target_powerpc_macos,      { 14 }
-        target_i386_solaris,       { 15 }
-        target_i386_beos,          { 16 }
-        target_i386_netbsd,        { 17 }
-        target_m68k_netbsd,        { 18 }
-        target_i386_Netware,       { 19 }
-        target_i386_qnx,           { 20 }
-        target_i386_wdosx,         { 21 }
-        target_sparc_solaris,      { 22 }
-        target_sparc_linux,        { 23 }
-        target_i386_openbsd,       { 24 }
-        target_m68k_openbsd,       { 25 }
-        target_x86_64_linux,       { 26 }
-        target_powerpc_darwin,     { 27 }
-        target_i386_emx,           { 28 }
-        target_powerpc_netbsd,     { 29 }
-        target_powerpc_openbsd,    { 30 }
-        target_arm_linux,          { 31 }
-        target_i386_watcom,        { 32 }
-        target_powerpc_MorphOS,    { 33 }
-        target_x86_64_freebsd,     { 34 }
-        target_i386_netwlibc,      { 35 }
-        target_powerpc_Amiga,      { 36 }
-        target_x86_64_win64,       { 37 }
-        target_arm_wince,          { 38 }
-        target_ia64_win64,         { 39 }
-        target_i386_wince,         { 40 }
-        target_x86_6432_linux,     { 41 }
-        target_arm_gba,            { 42 }
-        target_powerpc64_linux,    { 43 }
-        target_i386_darwin,        { 44 }
-        target_arm_palmos,         { 45 }
-        target_powerpc64_darwin,   { 46 }
-        target_arm_nds,            { 47 }
-        target_i386_embedded,      { 48 }
-        target_m68k_embedded,      { 49 }
-        target_alpha_embedded,     { 50 }
-        target_powerpc_embedded,   { 51 }
-        target_sparc_embedded,     { 52 }
-        target_vm_embedded,        { 53 }
-        target_iA64_embedded,      { 54 }
-        target_x86_64_embedded,    { 55 }
-        target_mips_embedded,      { 56 }
-        target_arm_embedded,       { 57 }
-        target_powerpc64_embedded, { 58 }
-        target_i386_symbian,       { 59 }
-        target_arm_symbian,        { 60 }
-        target_x86_64_darwin,      { 61 }
-        target_avr_embedded,       { 62 }
-        target_i386_haiku,         { 63 }
-        target_arm_darwin,         { 64 }
-        target_x86_64_solaris,     { 65 }
-        target_mips_linux,         { 66 }
-        target_mipsel_linux,       { 67 }
-        target_i386_nativent,      { 68 }
-        target_i386_iphonesim      { 69 }
-  );
+{ List of all supported cpus }
 const
-  Targets : array[ttarget] of string[18]=(
+  CpuTxt : array[tsystemcpu] of string[9]=
+    (
+    {  0 } 'none',
+    {  1 } 'i386',
+    {  2 } 'm68k',
+    {  3 } 'alpha',
+    {  4 } 'powerpc',
+    {  5 } 'sparc',
+    {  6 } 'vis',
+    {  7 } 'ia64',
+    {  8 } 'x86_64',
+    {  9 } 'mips',
+    { 10 } 'arm',
+    { 11 } 'powerpc64',
+    { 12 } 'avr',
+    { 13 } 'mipsel'
+    );
+
+{ List of all supported system-cpu couples }
+const
+  Targets : array[tsystem] of string[18]=(
   { 0 }   'none',
   { 1 }   'GO32V1 (obsolete)',
   { 2 }   'GO32V2',
@@ -273,21 +143,49 @@ const
   { 66 }  'Linux-MIPS',
   { 67 }  'Linux-MIPSel',
   { 68 }  'NativeNT-i386',
-  { 69 }  'iPhoneSim-i386'
+  { 69 }  'iPhoneSim-i386',
+  { 70 }  'Wii-powerpc'
   );
+
+type
+
+  tspecialgenerictoken = (ST_LOADSETTINGS,ST_LINE,ST_COLUMN,ST_FILEINDEX);
+
+
+var
+  ppufile     : tppufile;
+  space       : string;
+  verbose     : longint;
+  derefdata   : pbyte;
+  derefdatalen : longint;
+
+{****************************************************************************
+                          Helper Routines
+****************************************************************************}
+
+const has_errors : boolean = false;
+Procedure Error(const S : string);
+Begin
+   Writeln(S);
+   has_errors:=true;
+End;
+
+
+function ToStr(w:longint):String;
 begin
-  if w<=ord(high(ttarget)) then
-    Target2Str:=Targets[ttarget(w)]
+  Str(w,ToStr);
+end;
+
+Function Target2Str(w:longint):string;
+begin
+  if w<=ord(high(tsystem)) then
+    Target2Str:=Targets[tsystem(w)]
   else
     Target2Str:='<!! Unknown target value '+tostr(w)+'>';
 end;
 
 
 Function Cpu2Str(w:longint):string;
-const
-  CpuTxt : array[tsystemcpu] of string[9]=
-    ('none','i386','m68k','alpha','powerpc','sparc','vis','ia64',
-     'x86_64','mips','arm','powerpc64','avr');
 begin
   if w<=ord(high(tsystemcpu)) then
     Cpu2Str:=CpuTxt[tsystemcpu(w)]
@@ -298,20 +196,23 @@ end;
 
 Function Varspez2Str(w:longint):string;
 const
-  varspezstr : array[0..4] of string[6]=('Value','Const','Var','Out','Hidden');
+  { in symconst unit
+    tvarspez = (vs_value,vs_const,vs_var,vs_out,vs_constref); }
+  varspezstr : array[tvarspez] of string[6]=('Value','Const','Var','Out','Hidden');
 begin
   if w<=ord(high(varspezstr)) then
-    Varspez2Str:=varspezstr[w]
+    Varspez2Str:=varspezstr[tvarspez(w)]
   else
     Varspez2Str:='<!! Unknown varspez value '+tostr(w)+'>';
 end;
 
 Function VarRegable2Str(w:longint):string;
+  { tvarregable type is defined in symconst unit }
 const
-  varregableStr : array[0..4] of string[6]=('None','IntReg','FPUReg','MMReg','Addr');
+  varregableStr : array[tvarregable] of string[6]=('None','IntReg','FPUReg','MMReg','Addr');
 begin
   if w<=ord(high(varregablestr)) then
-    Varregable2Str:=varregablestr[w]
+    Varregable2Str:=varregablestr[tvarregable(w)]
   else
     Varregable2Str:='<!! Unknown regable value '+tostr(w)+'>';
 end;
@@ -319,13 +220,15 @@ end;
 
 Function Visibility2Str(w:longint):string;
 const
-  visibilityName : array[0..6] of string[16] = (
+  { tvisibility type is defined in symconst unit }
+
+  visibilityName : array[tvisibility] of string[16] = (
     'hidden','strict private','private','strict protected','protected',
     'public','published'
   );
 begin
   if w<=ord(high(visibilityName)) then
-    result:=visibilityName[w]
+    result:=visibilityName[tvisibility(w)]
   else
     result:='<!! Unknown visibility value '+tostr(w)+'>';
 end;
@@ -434,16 +337,12 @@ end;
 
 procedure readsymtableoptions(const s: string);
 type
-  tsymtableoption = (
-    sto_has_helper         { contains at least one helper symbol }
-  );
-  tsymtableoptions = set of tsymtableoption;
   tsymtblopt=record
     mask : tsymtableoption;
     str  : string[30];
   end;
 const
-  symtblopts=1;
+  symtblopts=ord(high(tsymtableoption))  + 1;
   symtblopt : array[1..symtblopts] of tsymtblopt=(
      (mask:sto_has_helper;   str:'Has helper')
   );
@@ -482,13 +381,13 @@ Procedure ReadLinkContainer(const prefix:string);
   with prefix
 }
   function maskstr(m:longint):string;
+    { link options are in globtype unit
   const
-    { link options }
     link_none    = $0;
     link_always  = $1;
     link_static  = $2;
     link_smart   = $4;
-    link_shared  = $8;
+    link_shared  = $8; }
   var
     s : string;
   begin
@@ -602,8 +501,20 @@ end;
 Procedure ReadAsmSymbols;
 type
   { Copied from aasmbase.pas }
-  TAsmsymbind=(AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL);
-  TAsmsymtype=(AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL);
+  TAsmsymbind=(
+    AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL,AB_WEAK_EXTERNAL,
+    { global in the current program/library, but not visible outside it }
+    AB_PRIVATE_EXTERN,AB_LAZY,AB_IMPORT);
+
+  TAsmsymtype=(
+    AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL,
+    {
+      the address of this code label is taken somewhere in the code
+      so it must be taken care of it when creating pic
+    }
+    AT_ADDR
+    );
+
 var
   s,
   bindstr,
@@ -624,6 +535,14 @@ begin
          bindstr:='Local';
        AB_GLOBAL :
          bindstr:='Global';
+       AB_WEAK_EXTERNAL :
+         bindstr:='Weak external';
+       AB_PRIVATE_EXTERN :
+         bindstr:='Private extern';
+       AB_LAZY :
+         bindstr:='Lazy';
+       AB_IMPORT :
+         bindstr:='Import';
        else
          bindstr:='<Error !!>'
      end;
@@ -636,6 +555,8 @@ begin
          typestr:='Section';
        AT_LABEL :
          typestr:='Label';
+       AT_ADDR :
+         typestr:='Label (with address taken)';
        else
          typestr:='<Error !!>'
      end;
@@ -763,17 +684,10 @@ end;
 
 
 procedure readpropaccesslist(const s:string);
-type
-  tsltype = (sl_none,
-    sl_load,
-    sl_call,
-    sl_subscript,
-    sl_vec,
-    sl_typeconv,
-    sl_absolutetype
-  );
+{ type tsltype is in symconst unit }
 const
-  slstr : array[tsltype] of string[12] = ('',
+  slstr : array[tsltype] of string[12] = (
+    '',
     'load',
     'call',
     'subscript',
@@ -810,27 +724,13 @@ end;
 
 procedure readsymoptions(space : string);
 type
-  { symbol options }
-  tsymoption=(sp_none,
-    sp_static,
-    sp_hint_deprecated,
-    sp_hint_platform,
-    sp_hint_library,
-    sp_hint_unimplemented,
-    sp_hint_experimental,
-    sp_has_overloaded,
-    sp_internal,  { internal symbol, not reported as unused }
-    sp_implicitrename,
-    sp_generic_para,
-    sp_has_deprecated_msg
-  );
-  tsymoptions=set of tsymoption;
   tsymopt=record
     mask : tsymoption;
     str  : string[30];
   end;
 const
-  symopts=11;
+  symopts=ord(high(tsymoption)) - ord(low(tsymoption));
+  { sp_none = 0 corresponds to nothing }
   symopt : array[1..symopts] of tsymopt=(
      (mask:sp_static;             str:'Static'),
      (mask:sp_hint_deprecated;    str:'Hint Deprecated'),
@@ -882,47 +782,6 @@ end;
 
 
 
-type
-  { flags for a definition }
-  tdefoption=(df_none,
-    { type is unique, i.e. declared with type = type <tdef>; }
-    df_unique,
-    { type is a generic }
-    df_generic,
-    { type is a specialization of a generic type }
-    df_specialization,
-    { def has been copied from another def so symtable is not owned }
-    df_copied_def
-  );
-  tdefoptions=set of tdefoption;
-
-  tobjectoption=(oo_none,
-    oo_is_forward,         { the class is only a forward declared yet }
-    oo_is_abstract,        { the class is abstract - only descendants can be used }
-    oo_is_sealed,          { the class is sealed - can't have descendants }
-    oo_has_virtual,        { the object/class has virtual methods }
-    oo_has_private,
-    oo_has_protected,
-    oo_has_strictprivate,
-    oo_has_strictprotected,
-    oo_has_constructor,    { the object/class has a constructor }
-    oo_has_destructor,     { the object/class has a destructor }
-    oo_has_vmt,            { the object/class has a vmt }
-    oo_has_msgstr,
-    oo_has_msgint,
-    oo_can_have_published,{ the class has rtti, i.e. you can publish properties }
-    oo_has_default_property,
-    oo_has_valid_guid,
-    oo_has_enumerator_movenext,
-    oo_has_enumerator_current,
-    oo_is_external,       { the class is externally implemented (objcclass, cppclass) }
-    oo_is_anonymous,      { the class is only formally defined in this module (objcclass x = class; external;) }
-    oo_is_classhelper,    { objcclasses that represent categories, and Delpi-style class helpers, are marked like this }
-    oo_has_class_constructor, { the object/class has a class constructor }
-    oo_has_class_destructor   { the object/class has a class destructor  }
-  );
-  tobjectoptions=set of tobjectoption;
-
 var
   { needed during tobjectdef parsing... }
   current_defoptions : tdefoptions;
@@ -930,16 +789,6 @@ var
 
 procedure readcommondef(const s:string; out defoptions: tdefoptions);
 type
-  tdefstate=(ds_none,
-    ds_vmt_written,
-    ds_rtti_table_used,
-    ds_init_table_used,
-    ds_rtti_table_written,
-    ds_init_table_written,
-    ds_dwarf_dbg_info_used,
-    ds_dwarf_dbg_info_written
-  );
-  tdefstates=set of tdefstate;
   tdefopt=record
     mask : tdefoption;
     str  : string[30];
@@ -1150,122 +999,9 @@ end;
 
 
 { Read abstract procdef and return if inline procdef }
-type
-  tproccalloption=(pocall_none,
-    { procedure uses C styled calling }
-    pocall_cdecl,
-    { C++ calling conventions }
-    pocall_cppdecl,
-    { Far16 for OS/2 }
-    pocall_far16,
-    { Old style FPC default calling }
-    pocall_oldfpccall,
-    { Procedure has compiler magic}
-    pocall_internproc,
-    { procedure is a system call, applies e.g. to MorphOS and PalmOS }
-    pocall_syscall,
-    { pascal standard left to right }
-    pocall_pascal,
-    { procedure uses register (fastcall) calling }
-    pocall_register,
-    { safe call calling conventions }
-    pocall_safecall,
-    { procedure uses stdcall call }
-    pocall_stdcall,
-    { Special calling convention for cpus without a floating point
-      unit. Floating point numbers are passed in integer registers
-      instead of floating point registers. Depending on the other
-      available calling conventions available for the cpu
-      this replaces either pocall_fastcall or pocall_stdcall.
-    }
-    pocall_softfloat,
-    { Metrowerks Pascal. Special case on Mac OS (X): passes all }
-    { constant records by reference.                            }
-    pocall_mwpascal
-  );
-  tproccalloptions = set of tproccalloption;
-  tproctypeoption=(potype_none,
-    potype_proginit,     { Program initialization }
-    potype_unitinit,     { unit initialization }
-    potype_unitfinalize, { unit finalization }
-    potype_constructor,  { Procedure is a constructor }
-    potype_destructor,   { Procedure is a destructor }
-    potype_operator,     { Procedure defines an operator }
-    potype_procedure,
-    potype_function,
-    potype_class_constructor, { class constructor }
-    potype_class_destructor   { class destructor  }
-  );
-  tproctypeoptions=set of tproctypeoption;
-  tprocoption=(po_none,
-    po_classmethod,       { class method }
-    po_virtualmethod,     { Procedure is a virtual method }
-    po_abstractmethod,    { Procedure is an abstract method }
-    po_finalmethod,       { Procedure is a final method }
-    po_staticmethod,      { static method }
-    po_overridingmethod,  { method with override directive }
-    po_methodpointer,     { method pointer, only in procvardef, also used for 'with object do' }
-    po_interrupt,         { Procedure is an interrupt handler }
-    po_iocheck,           { IO checking should be done after a call to the procedure }
-    po_assembler,         { Procedure is written in assembler }
-    po_msgstr,            { method for string message handling }
-    po_msgint,            { method for int message handling }
-    po_exports,           { Procedure has export directive (needed for OS/2) }
-    po_external,          { Procedure is external (in other object or lib)}
-    po_overload,          { procedure is declared with overload directive }
-    po_varargs,           { printf like arguments }
-    po_internconst,       { procedure has constant evaluator intern }
-    { flag that only the address of a method is returned and not a full methodpointer }
-    po_addressonly,
-    { procedure is exported }
-    po_public,
-    { calling convention is specified explicitly }
-    po_hascallingconvention,
-    { reintroduce flag }
-    po_reintroduce,
-    { location of parameters is given explicitly as it is necessary for some syscall
-      conventions like that one of MorphOS }
-    po_explicitparaloc,
-    { no stackframe will be generated, used by lowlevel assembler like get_frame }
-    po_nostackframe,
-    po_has_mangledname,
-    po_has_public_name,
-    po_forward,
-    po_global,
-    po_has_inlininginfo,
-    { The different kind of syscalls on MorphOS }
-    po_syscall_legacy,
-    po_syscall_sysv,
-    po_syscall_basesysv,
-    po_syscall_sysvbase,
-    po_syscall_r12base,
-    { Procedure can be inlined }
-    po_inline,
-    { Procedure is used for internal compiler calls }
-    po_compilerproc,
-    { importing }
-    po_has_importdll,
-    po_has_importname,
-    po_kylixlocal,
-    po_dispid,
-    { weakly linked (i.e., may or may not exist at run time) }
-    po_weakexternal,
-    { Objective-C method }
-    po_objc,
-    { enumerator support }
-    po_enumerator_movenext,
-    { optional Objective-C protocol method }
-    po_optional,
-    { nested procedure that uses Delphi-style calling convention for passing
-      the frame pointer (pushed on the stack, always the last parameter,
-      removed by the caller). Required for nested procvar compatibility,
-      because such procvars can hold both regular and nested procedures
-      (when calling a regular procedure using the above convention, it will
-       simply not see the frame pointer parameter, and since the caller cleans
-       up the stack will also remain balanced) }
-    po_delphi_nested_cc
-  );
-  tprocoptions=set of tprocoption;
+{ type tproccalloption is in globtype unit }
+{ type tproctypeoption is in globtype unit }
+{ type tprocoption is in globtype unit }
 
 procedure read_abstract_proc_def(var proccalloption:tproccalloption;var procoptions:tprocoptions);
 type
@@ -1282,20 +1018,7 @@ type
     str  : string[30];
   end;
 const
-  proccalloptionStr : array[tproccalloption] of string[14]=('',
-     'CDecl',
-     'CPPDecl',
-     'Far16',
-     'OldFPCCall',
-     'InternProc',
-     'SysCall',
-     'Pascal',
-     'Register',
-     'SafeCall',
-     'StdCall',
-     'SoftFloat',
-     'MWPascal'
-   );
+  {proccalloptionStr  is also in globtype unit }
   proctypeopt : array[1..ord(high(tproctypeoption))] of tproctypeopt=(
      (mask:potype_proginit;          str:'ProgInit'),
      (mask:potype_unitinit;          str:'UnitInit'),
@@ -1306,7 +1029,10 @@ const
      (mask:potype_procedure;         str:'Procedure'),
      (mask:potype_function;          str:'Function'),
      (mask:potype_class_constructor; str:'Class Constructor'),
-     (mask:potype_class_destructor;  str:'Class Destructor')
+     (mask:potype_class_destructor;  str:'Class Destructor'),
+     { Dispinterface property accessors }
+     (mask:potype_propgetter;        str:'Property Getter'),
+     (mask:potype_propsetter;        str:'Property Setter')
   );
   procopt : array[1..ord(high(tprocoption))] of tprocopt=(
      (mask:po_classmethod;     str:'ClassMethod'),
@@ -1402,43 +1128,9 @@ begin
 end;
 
 
-type
-  tvaroption=(vo_none,
-    vo_is_external,
-    vo_is_dll_var,
-    vo_is_thread_var,
-    vo_has_local_copy,
-    vo_is_const,  { variable is declared as const (parameter) and can't be written to }
-    vo_is_public,
-    vo_is_high_para,
-    vo_is_funcret,
-    vo_is_self,
-    vo_is_vmt,
-    vo_is_result,  { special result variable }
-    vo_is_parentfp,
-    vo_is_loop_counter, { used to detect assignments to loop counter }
-    vo_is_hidden_para,
-    vo_has_explicit_paraloc,
-    vo_is_syscall_lib,
-    vo_has_mangledname,
-    vo_is_typed_const,
-    vo_is_range_check,
-    vo_is_overflow_check,
-    vo_is_typinfo_para,
-    vo_is_weak_external,
-    vo_is_msgsel,
-    vo_is_first_field
-  );
-  tvaroptions=set of tvaroption;
+{ type tvaroption is in unit symconst }
   { register variable }
-  tvarregable=(vr_none,
-    vr_intreg,
-    vr_fpureg,
-    vr_mmreg,
-    { does not mean "needs address register", but "if it's a parameter which is }
-    { passed by reference, then its address can be put in a register            }
-    vr_addr
-  );
+{ type tvarregable is in unit symconst }
 procedure readabstractvarsym(const s:string;var varoptions:tvaroptions);
 type
   tvaropt=record
@@ -1470,7 +1162,9 @@ const
      (mask:vo_is_typinfo_para; str:'TypeInfo'),
      (mask:vo_is_msgsel;str:'MsgSel'),
      (mask:vo_is_weak_external;str:'WeakExternal'),
-     (mask:vo_is_first_field;str:'IsFirstField')
+     (mask:vo_is_first_field;str:'IsFirstField'),
+     (mask:vo_volatile;str:'Volatile'),
+     (mask:vo_has_section;str:'HasSection')
   );
 var
   i : longint;
@@ -1495,6 +1189,8 @@ begin
          else
            write(', ');
          write(varopt[i].str);
+         if varopt[i].mask = vo_has_section then
+           writeln('Section name:',ppufile.getansistring);
        end;
      writeln;
    end;
@@ -1528,7 +1224,7 @@ const
      (mask:oo_has_enumerator_movenext; str:'HasEnumeratorMoveNext'),
      (mask:oo_has_enumerator_current;  str:'HasEnumeratorCurrent'),
      (mask:oo_is_external;        str:'External'),
-     (mask:oo_is_anonymous;       str:'Anonymous'),
+     (mask:oo_is_formal;          str:'Formal'),
      (mask:oo_is_classhelper;     str:'Class Helper/Category'),
      (mask:oo_has_class_constructor; str:'HasClassConstructor'),
      (mask:oo_has_class_destructor; str:'HasClassDestructor')
@@ -1556,18 +1252,8 @@ end;
 
 
 procedure readarraydefoptions;
+{ type tarraydefoption is in unit symconst }
 type
-  tarraydefoption=(ado_none,
-    ado_IsConvertedPointer,
-    ado_IsDynamicArray,
-    ado_IsVariant,
-    ado_IsConstructor,
-    ado_IsArrayOfConst,
-    ado_IsConstString,
-    ado_IsBitPacked
-  );
-  tarraydefoptions=set of tarraydefoption;
-
   tsymopt=record
     mask : tarraydefoption;
     str  : string[30];
@@ -1958,30 +1644,17 @@ end;
 ****************************************************************************}
 
 procedure readdefinitions(const s:string);
-type
-  tordtype = (
+{ type tordtype is in symconst unit }
+{
     uvoid,
     u8bit,u16bit,u32bit,u64bit,
     s8bit,s16bit,s32bit,s64bit,
     bool8bit,bool16bit,bool32bit,bool64bit,
     uchar,uwidechar,scurrency
-  );
-  tobjecttyp = (odt_none,
-    odt_class,
-    odt_object,
-    odt_interfacecom,
-    odt_interfacecom_property,
-    odt_interfacecom_function,
-    odt_interfacecorba,
-    odt_cppclass,
-    odt_dispinterface,
-    odt_objcclass,
-    odt_objcprotocol,
-    odt_helper
-  );
-  tvarianttype = (
-    vt_normalvariant,vt_olevariant
-  );
+  ); }
+
+{ type tobjecttyp is in symconst unit }
+{ type tvarianttype is in symconst unit }
 var
   b : byte;
   l,j : longint;
@@ -2377,6 +2050,7 @@ end;
 
 procedure readmoduleoptions(space : string);
 type
+{ tmoduleoption type is in unit fmodule }
   tmoduleoption = (mo_none,
     mo_hint_deprecated,
     mo_hint_platform,
@@ -2391,7 +2065,7 @@ type
     str  : string[30];
   end;
 const
-  moduleopts=6;
+  moduleopts=ord(high(tmoduleoption));
   moduleopt : array[1..moduleopts] of tmoduleopt=(
      (mask:mo_hint_deprecated;    str:'Hint Deprecated'),
      (mask:mo_hint_platform;      str:'Hint Platform'),

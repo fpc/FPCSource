@@ -146,6 +146,7 @@ compiler/fpccrc.pas svneol=native#text/plain
 compiler/fpcdefs.inc svneol=native#text/plain
 compiler/fppu.pas svneol=native#text/plain
 compiler/gendef.pas svneol=native#text/plain
+compiler/generic/cpuinfo.pas svneol=native#text/plain
 compiler/globals.pas svneol=native#text/plain
 compiler/globtype.pas svneol=native#text/plain
 compiler/html/i386/readme.txt svneol=native#text/plain

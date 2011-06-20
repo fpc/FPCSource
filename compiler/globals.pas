@@ -236,6 +236,8 @@ interface
        autoloadunits      : string;
 
        { linking }
+       usegnubinutils : boolean;
+       forceforwardslash : boolean;
        usewindowapi  : boolean;
        description   : string;
        SetPEFlagsSetExplicity,
@@ -363,51 +365,60 @@ interface
         packrecords     : 0;
         maxfpuregisters : 0;
 
-{$ifdef i386}
+{ Note: GENERIC_CPU is sued together with generic subdirectory to
+  be able to compile some of the units without any real CPU.
+  This is used to generate a CPU independant PPUDUMP utility. PM }
+{$ifdef GENERIC_CPU}
+        cputype : cpu_none;
+        optimizecputype : cpu_none;
+        fputype : fpu_none;
+{$else not GENERIC_CPU}
+  {$ifdef i386}
         cputype : cpu_Pentium;
         optimizecputype : cpu_Pentium3;
         fputype : fpu_x87;
-{$endif i386}
-{$ifdef m68k}
+  {$endif i386}
+  {$ifdef m68k}
         cputype : cpu_MC68020;
         optimizecputype : cpu_MC68020;
         fputype : fpu_soft;
-{$endif m68k}
-{$ifdef powerpc}
+  {$endif m68k}
+  {$ifdef powerpc}
         cputype : cpu_PPC604;
         optimizecputype : cpu_ppc7400;
         fputype : fpu_standard;
-{$endif powerpc}
-{$ifdef POWERPC64}
+  {$endif powerpc}
+  {$ifdef POWERPC64}
         cputype : cpu_PPC970;
         optimizecputype : cpu_ppc970;
         fputype : fpu_standard;
-{$endif POWERPC64}
-{$ifdef sparc}
+  {$endif POWERPC64}
+  {$ifdef sparc}
         cputype : cpu_SPARC_V8;
         optimizecputype : cpu_SPARC_V8;
         fputype : fpu_hard;
-{$endif sparc}
-{$ifdef arm}
+  {$endif sparc}
+  {$ifdef arm}
         cputype : cpu_armv3;
         optimizecputype : cpu_armv3;
         fputype : fpu_fpa;
-{$endif arm}
-{$ifdef x86_64}
+  {$endif arm}
+  {$ifdef x86_64}
         cputype : cpu_athlon64;
         optimizecputype : cpu_athlon64;
         fputype : fpu_sse64;
-{$endif x86_64}
-{$ifdef avr}
+  {$endif x86_64}
+  {$ifdef avr}
         cputype : cpuinfo.cpu_avr5;
         optimizecputype : cpuinfo.cpu_avr5;
         fputype : fpu_none;
-{$endif avr}
-{$ifdef mips}
+  {$endif avr}
+  {$ifdef mips}
         cputype : cpu_mips32;
         optimizecputype : cpu_mips32;
         fputype : fpu_mips2;
-{$endif mips}
+  {$endif mips}
+{$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
         interfacetype : it_interfacecom;
         defproccall : pocall_default;

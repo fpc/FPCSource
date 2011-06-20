@@ -40,7 +40,7 @@ ppufiles$(EXEEXT): ppufiles.pp ppu$(PPUEXT)
 
 
 ppudump$(EXEEXT): ppudump.pp ppu$(PPUEXT)
-        $(COMPILER) ppudump.pp -Fu../$(CPU_TARGET) -Fi..
+        $(COMPILER) ppudump.pp -Fu../generic -dGENERIC_CPU -Fi..
 
 ppumove$(EXEEXT): ppumove.pp ppu$(PPUEXT)
 
