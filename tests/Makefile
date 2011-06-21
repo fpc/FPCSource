@@ -1711,6 +1711,7 @@ clean:
 distclean: clean fpc_distclean
 	$(DELTREE) output
 	$(MAKE) -C utils distclean
+	$(MAKE) -C units distclean
 	-$(DEL) testprep-stamp.*
 .PHONY: all full digest onlyknown onlygraph onlyinteractive
 digest : utils

@@ -17,7 +17,11 @@ targetdir=$(TARGETSUFFIX)
 fpcdir=../..
 
 [rules]
-.PHONY: rtl extra fpcunit packages all clean cleanrtl clean_ctest
+.PHONY: rtl extra fpcunit packages all clean distclean clean_ctest
+.PHONY: cleanrtl distcleanrtl
+.PHONY: cleanfpcunit distcleanfpcunit
+.PHONY: cleanpackages distcleanpackages
+
 
 #############################
 # RTL
@@ -35,6 +39,9 @@ cleanrtl:
         $(DELTREE) $(COMPILER_TARGETDIR)
         $(DELTREE) $(DUMMYINSTALLDIR)
         -$(DEL) rtl-stamp.$(FULL_TARGET)
+
+distcleanrtl: cleanrtl
+	$(MAKE) -C ../../rtl clean
 
 rtl : rtl-stamp.$(FULL_TARGET)
 
@@ -57,6 +64,9 @@ cleanfpcunit:
         $(DELTREE) $(DUMMYINSTALLDIR)
         -$(DEL) fpcunit-stamp.$(FULL_TARGET)
 
+distcleanfpcunit: cleanfpcunit
+	$(MAKE) -C $(FPCUNITDIR)/.. clean
+
 fpcunit : fpcunit-stamp.$(FULL_TARGET)
 
 
@@ -77,6 +87,9 @@ cleanpackages:
         $(DELTREE) $(COMPILER_TARGETDIR)
         $(DELTREE) $(DUMMYINSTALLDIR)
         -$(DEL) packages-stamp.$(FULL_TARGET)
+
+distcleanpackages: cleanpackages
+	$(MAKE) -C ../../packages clean
 
 packages : packages-stamp.$(FULL_TARGET)
 
@@ -129,6 +142,8 @@ all : rtl fpcunit packages extra
 endif
 
 clean : cleanrtl cleanall cleanfpcunit cleanpackages
+
+distclean : clean distcleanrtl distcleanfpcunit distcleanpackages
 
 clean_ctest :
         -$(DEL) ../test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o
