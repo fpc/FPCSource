@@ -1019,6 +1019,31 @@ implementation
             Concat('  OBJSECTION .bss*');
             Concat('  SYMBOL __bss_end__');
             Concat('ENDEXESECTION');
+            Concat('EXESECTION .tls');
+            Concat('  SYMBOL __tls_start__');
+            Concat('  OBJSECTION .tls*');
+            Concat('  SYMBOL __tls_end__');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .CRT');
+            Concat('  SYMBOL ___crt_xc_start__');
+            Concat('  OBJSECTION .CRT$XC*');{  /* C initialization */');}
+            Concat('  SYMBOL ___crt_xc_end__');
+            Concat('  SYMBOL ___crt_xi_start__');
+            Concat('  OBJSECTION .CRT$XI*');{  /* C++ initialization */');}
+            Concat('  SYMBOL ___crt_xi_end__');
+            Concat('  SYMBOL ___crt_xl_start__');
+            Concat('  OBJSECTION .CRT$XL*'); {  /* TLS callbacks */'); }
+            { In GNU ld, this is defined in the TLS Directory support code }
+            Concat('  PROVIDE(___crt_xl_end__)');
+            { Add a nil pointer as last element }
+            Concat('  LONG 0');
+            Concat('  SYMBOL ___crt_xp_start__');
+            Concat('  OBJSECTION SORT(.CRT$XP*'); {  /* Pre-termination */');}
+            Concat('  SYMBOL ___crt_xp_end__');
+            Concat('  SYMBOL ___crt_xt_start__');
+            Concat('  OBJSECTION SORT(.CRT$XT*');{  /* Termination */');}
+            Concat('  SYMBOL ___crt_xt_end__');
+            Concat('ENDEXESECTION');
             Concat('EXESECTION .idata');
             Concat('  OBJSECTION .idata$2*');
             Concat('  OBJSECTION .idata$3*');
@@ -1286,6 +1311,7 @@ implementation
             Add('    ___crt_xl_start__ = . ;');
             Add('    *(SORT(.CRT$XL*))  /* TLS callbacks */');
             Add('    /* ___crt_xl_end__ is defined in the TLS Directory support code */');
+            Add('    PROVIDE (___crt_xl_end__ = .);');
             Add('    ___crt_xp_start__ = . ;');
             Add('    *(SORT(.CRT$XP*))  /* Pre-termination */');
             Add('    ___crt_xp_end__ = . ;');

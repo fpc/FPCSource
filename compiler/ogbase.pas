@@ -413,6 +413,7 @@ interface
         FCurrExeSec       : TExeSection;
         FExeSectionList   : TFPHashObjectList;
         Fzeronr           : longint;
+        Fvaluesnr         : longint;
         { Symbols }
         FExeSymbolList    : TFPHashObjectList;
         FUnresolvedExeSymbols : TFPObjectList;
@@ -450,6 +451,7 @@ interface
         procedure Load_Start;virtual;
         procedure Load_EntryName(const aname:string);virtual;
         procedure Load_Symbol(const aname:string);virtual;
+        procedure Load_ProvideSymbol(const aname:string);virtual;
         procedure Load_IsSharedLibrary;
         procedure Load_ImageBase(const avalue:string);
         procedure Order_Start;virtual;
@@ -457,7 +459,9 @@ interface
         procedure Order_ExeSection(const aname:string);virtual;
         procedure Order_Align(const avalue:string);virtual;
         procedure Order_Zeros(const avalue:string);virtual;
+        procedure Order_Values(bytesize : aword; const avalue:string);virtual;
         procedure Order_Symbol(const aname:string);virtual;
+        procedure Order_ProvideSymbol(const aname:string);virtual;
         procedure Order_EndExeSection;virtual;
         procedure Order_ObjSection(const aname:string);virtual;
         procedure MemPos_Start;virtual;
@@ -549,9 +553,15 @@ implementation
           internalerror(200603016);
         if not assigned(aobjsec) then
           internalerror(200603017);
-        if (bind in [AB_EXTERNAL,AB_LAZY]) then
+        if (bind in [AB_EXTERNAL,AB_LAZY]) or
+          { Put all COMMON to GLOBAL in step 3 of
+            TExeOutput.ResolveSymbols }
+           ((abind=AB_GLOBAL) and (bind=AB_COMMON)) then
           begin
-            bind:=abind;
+            { Do not change the AB_TYPE of common symbols yet }
+            { This will be done in FixupSymbols }
+            if (pass<>0) or (bind<>AB_COMMON) then
+              bind:=abind;
             typ:=atyp;
           end
         else
@@ -1620,6 +1630,15 @@ implementation
         internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_FUNCTION);
       end;
 
+    procedure TExeOutput.Load_ProvideSymbol(const aname:string);
+      begin
+        if assigned(ExeSymbolList.Find(aname)) then
+          exit;
+        internalObjData.createsection('*'+aname,0,[]);
+        // Use AB_COMMON to avoid muliple defined complaints
+        internalObjData.SymbolDefine(aname,AB_COMMON,AT_DATA);
+      end;
+
 
     procedure TExeOutput.Order_Start;
       begin
@@ -1700,6 +1719,19 @@ implementation
         CurrExeSec.AddObjSection(ObjSection);
       end;
 
+    procedure TExeOutput.Order_ProvideSymbol(const aname:string);
+      var
+        ObjSection : TObjSection;
+      begin
+        ObjSection:=internalObjData.findsection('*'+aname);
+        if not assigned(ObjSection) then
+          internalerror(200603041);
+        { Only include this section if the symbol doesn't
+          exist otherwisee }
+        if not assigned(ExeSymbolList.Find(aname)) then
+          CurrExeSec.AddObjSection(ObjSection);
+      end;
+
 
     procedure TExeOutput.Order_Align(const avalue:string);
       var
@@ -1737,6 +1769,86 @@ implementation
         inc(Fzeronr);
         objsec:=internalObjData.createsection('*zeros'+tostr(Fzeronr),0,CurrExeSec.SecOptions+[oso_Data,oso_keep]);
         internalObjData.writebytes(zeros,len);
+        CurrExeSec.AddObjSection(objsec);
+      end;
+
+    procedure TExeOutput.Order_Values(bytesize : aword; const avalue:string);
+      const
+        MAXVAL = 128;
+      var
+        bytevalues : array[0..MAXVAL-1] of byte;
+        twobytevalues : array[0..MAXVAL-1] of word;
+        fourbytevalues : array[0..MAXVAL-1] of dword;
+        eightbytevalues : array[0..MAXVAL-1] of qword;
+        allvals, oneval : string;
+        len, commapos : longint;
+        indexpos, code  : integer;
+        anumval : qword;
+        signedval : int64;
+        objsec : TObjSection;
+      begin
+        indexpos:=0;
+        allvals:=avalue;
+        repeat
+          commapos:=pos(',',allvals);
+          if commapos>0 then
+            begin
+              oneval:=trim(copy(allvals,1,commapos-1));
+              allvals:=copy(allvals,commapos+1,length(allvals));
+            end
+          else
+            begin
+              oneval:=trim(allvals);
+              allvals:='';
+            end;
+          if oneval<>'' then
+            begin
+              if oneval[1]='-' then
+                val(oneval,signedval,code)
+              else
+                val(oneval,anumval,code);
+              if code<>0 then
+                Comment(V_Error,'Invalid number '+avalue)
+              else if (indexpos<MAXVAL) then
+                begin
+                  anumval:=qword(signedval);
+                  if source_info.endian<>target_info.endian then
+                    swapendian(anumval);
+                  { No range checking here }
+
+                  if bytesize=1 then
+                    bytevalues[indexpos]:=byte(anumval)
+                  else if bytesize=2 then
+                    twobytevalues[indexpos]:=word(anumval)
+                  else if bytesize=4 then
+                    fourbytevalues[indexpos]:=dword(anumval)
+                  else if bytesize=8 then
+                    eightbytevalues[indexpos]:=anumval;
+                  inc(indexpos);
+                end;
+            end;
+        until allvals='';
+        if indexpos=0 then
+          begin
+            Comment(V_Error,'Invalid number '+avalue);
+            exit;
+          end;
+        if indexpos=MAXVAL then
+          begin
+            Comment(V_Error,'Too many values '+avalue);
+            internalerror(200602254);
+          end;
+        len:=bytesize*indexpos;
+        inc(Fvaluesnr);
+        objsec:=internalObjData.createsection('*values'+tostr(Fvaluesnr),0,CurrExeSec.SecOptions+[oso_Data,oso_keep]);
+        if bytesize=1 then
+          internalObjData.writebytes(bytevalues,len)
+        else if bytesize=2 then
+          internalObjData.writebytes(twobytevalues,len)
+        else if bytesize=4 then
+          internalObjData.writebytes(fourbytevalues,len)
+        else if bytesize=8 then
+          internalObjData.writebytes(eightbytevalues,len);
         CurrExeSec.AddObjSection(objsec);
       end;
 

@@ -93,6 +93,7 @@ interface
          FImportLibraryList : TFPHashObjectList;
          procedure Load_ReadObject(const para:TCmdStr);
          procedure Load_ReadStaticLibrary(const para:TCmdStr);
+         procedure ParseScript_Handle;
          procedure ParseScript_Load;
          procedure ParseScript_Order;
          procedure ParseScript_MemPos;
@@ -371,6 +372,7 @@ Implementation
                    mask:=mask or link_static;
                end;
               { smart linking ? }
+
               if (cs_link_smart in current_settings.globalswitches) then
                begin
                  if (flags and uf_smart_linked)=0 then
@@ -882,6 +884,47 @@ Implementation
       end;
 
 
+    procedure TInternalLinker.ParseScript_Handle;
+      var
+        s,
+        para,
+        keyword : String;
+        hp : TCmdStrListItem;
+      begin
+        exeoutput.Load_Start;
+        hp:=TCmdStrListItem(linkscript.first);
+        while assigned(hp) do
+          begin
+            s:=hp.str;
+            if (s='') or (s[1]='#') then
+              continue;
+            keyword:=Upper(GetToken(s,' '));
+            para:=GetToken(s,' ');
+            if Trim(s)<>'' then
+              Comment(V_Warning,'Unknown part "'+s+'" in "'+hp.str+'" internal linker script');
+            if (keyword<>'SYMBOL') and
+               (keyword<>'PROVIDE') and
+               (keyword<>'ZEROES') and
+               (keyword<>'BYTE') and
+               (keyword<>'WORD') and
+               (keyword<>'LONG') and
+               (keyword<>'QUAD') and
+               (keyword<>'ENTRYNAME') and
+               (keyword<>'ISSHAREDLIBRARY') and
+               (keyword<>'IMAGEBASE') and
+               (keyword<>'READOBJECT') and
+               (keyword<>'READSTATICLIBRARY') and
+               (keyword<>'EXESECTION') and
+               (keyword<>'ENDEXESECTION') and
+               (keyword<>'OBJSECTION') and
+               (keyword<>'HEADER')
+               then
+              Comment(V_Warning,'Unknown keyword "'+keyword+'" in "'+hp.str
+                +'" internal linker script');
+            hp:=TCmdStrListItem(hp.next);
+          end;
+      end;
+
     procedure TInternalLinker.ParseScript_Load;
       var
         s,
@@ -900,6 +943,8 @@ Implementation
             para:=GetToken(s,' ');
             if keyword='SYMBOL' then
               ExeOutput.Load_Symbol(para)
+            else if keyword='PROVIDE' then
+              ExeOutput.Load_ProvideSymbol(para)
             else if keyword='ENTRYNAME' then
               ExeOutput.Load_EntryName(para)
             else if keyword='ISSHAREDLIBRARY' then
@@ -939,8 +984,18 @@ Implementation
               ExeOutput.Order_ObjSection(para)
             else if keyword='ZEROS' then
               ExeOutput.Order_Zeros(para)
+            else if keyword='BYTE' then
+              ExeOutput.Order_Values(1,para)
+            else if keyword='WORD' then
+              ExeOutput.Order_Values(2,para)
+            else if keyword='LONG' then
+              ExeOutput.Order_Values(4,para)
+            else if keyword='QUAD' then
+              ExeOutput.Order_Values(8,para)
             else if keyword='SYMBOL' then
-              ExeOutput.Order_Symbol(para);
+              ExeOutput.Order_Symbol(para)
+            else if keyword='PROVIDE' then
+              ExeOutput.Order_ProvideSymbol(para);
             hp:=TCmdStrListItem(hp.next);
           end;
         exeoutput.Order_End;
