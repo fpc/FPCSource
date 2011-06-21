@@ -204,6 +204,12 @@ fcl-web_smart: fpmkunit_bootstrap fcl-db_smart fcl-xml_smart fcl-process_smart h
 fcl-web_release: fpmkunit_bootstrap fcl-db_release fcl-xml_release fcl-process_release httpd22_release fastcgi_release fcl-net_release fcl-json_release
 fcl-web_shared: fpmkunit_bootstrap fcl-db_shared fcl-xml_shared fcl-process_shared httpd22_shared fastcgi_shared fcl-net_shared fcl-json_shared
 
+fastcgi_all: fpmkunit_bootstrap
+fastcgi_debug: fpmkunit_bootstrap
+fastcgi_smart: fpmkunit_bootstrap
+fastcgi_release: fpmkunit_bootstrap
+fastcgi_shared: fpmkunit_bootstrap
+
 ifneq ($(findstring $(OS_TARGET),linux freebsd openbsd netbsd win32 beos haiku),)
 fcl-db_all: fcl-xml_all mysql_all ibase_all oracle_all odbc_all postgres_all sqlite_all pxlib_all
 fcl-db_debug: fcl-xml_debug mysql_debug ibase_debug oracle_debug odbc_debug postgres_debug sqlite_debug pxlib_debug
