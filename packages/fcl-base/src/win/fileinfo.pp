@@ -150,6 +150,7 @@ begin
   ts := TStringList.Create;
   try
     ts.Assign(FmyExtraVersionStrings);
+    ts.add('Comments');
     ts.add('CompanyName');
     ts.add('FileDescription');
     ts.add('FileVersion');
@@ -229,7 +230,7 @@ begin
     begin
     V:=FmyVersionCategories[i];
     if (V=S) and ((transid=0) or (transid=dword(pointer(FmyVersionCategories.Objects[i])))) then
-      Result:=V;
+      Result:=FmyVersionStrings[i];
     inc(I);
     end;
 end;
