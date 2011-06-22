@@ -1609,7 +1609,7 @@ implementation
                     eq:=te_convert_l2
                   else
                     if equal_defs(def_from,tarraydef(def_to).elementdef) then
-                      eq:=te_convert_l2;
+                      eq:=te_convert_l3;
                 end;
             end;
           pointerdef :

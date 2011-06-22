@@ -664,7 +664,9 @@ implementation
                   equal_defs(def_from,tarraydef(def_to).elementdef) then
                 begin
                   doconv:=tc_equal;
-                  eq:=te_convert_l1;
+                  { also update in htypechk.pas/var_para_allowed if changed
+                    here }
+                  eq:=te_convert_l3;
                 end
                else
                 begin
