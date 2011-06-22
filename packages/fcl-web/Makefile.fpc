@@ -35,13 +35,13 @@ LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
 fpmake: fpmake.pp
 	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR))
 all:	fpmake
-	$(LOCALFPMAKE) build --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
 smart:	fpmake
-	$(LOCALFPMAKE) build --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o "-XX -CX"
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o "-XX -CX"
 release:	fpmake
-	$(LOCALFPMAKE) build --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o "-dRELEASE"
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o "-dRELEASE"
 debug:	fpmake
-	$(LOCALFPMAKE) build --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o "-dDEBUG"
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o "-dDEBUG"
 clean:	
 	$(FPMAKE_BIN_CLEAN) clean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
 install:	fpmake
