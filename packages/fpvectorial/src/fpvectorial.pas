@@ -227,6 +227,23 @@ type
     BaseLeft, BaseRight, DimensionLeft, DimensionRight: T3DPoint;
   end;
 
+  {@@
+   Vectorial images can contain raster images inside them and this entity
+   represents this.
+
+   If the Width and Height differ from the same data in the image, then
+   the raster image will be stretched.
+
+   Note that TFPCustomImage does not implement a storage, so the property
+   RasterImage should be filled with either a FPImage.TFPMemoryImage or with
+   a TLazIntfImage. The property RasterImage might be nil.
+  }
+  TvRasterImage = class(TvEntity)
+  public
+    RasterImage: TFPCustomImage;
+    Top, Left, Width, Height: Double;
+  end;
+
 type
 
   TvCustomVectorialWriter = class;
