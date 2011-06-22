@@ -4,7 +4,7 @@ interface
 Uses
    avisocncgcodereader,avisocncgcodewriter,avisozlib,fpvectorial,
    fpvtocanvas,pdfvectorialreader,pdfvrlexico,pdfvrsemantico,pdfvrsintatico,
-   svgvectorialwriter,cdrvectorialreader;
+   svgvectorialwriter,cdrvectorialreader,epsvectorialreader;
 
 implementation
 end.

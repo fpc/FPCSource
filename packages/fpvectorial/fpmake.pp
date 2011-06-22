@@ -38,7 +38,8 @@ begin
     T:=P.Targets.AddImplicitUnit('pdfvectorialreader'); 
     T:=P.Targets.AddImplicitUnit('pdfvrlexico'); 
     T:=P.Targets.AddImplicitUnit('pdfvrsemantico');
-    T:=P.Targets.AddImplicitUnit('pdfvrsintaticoa');
+    T:=P.Targets.AddImplicitUnit('epsvectorialreader');
+    T:=P.Targets.AddImplicitUnit('fpvutils');
 
     // Build unit depending on all implicit units
     TBuild:=P.Targets.AddUnit('fpvectbuildunit.pas');
