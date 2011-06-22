@@ -116,7 +116,7 @@ implementation
       type
         tfloatkey = record
           value: bestreal;
-          aitype: taitype;
+          typ: tfloattype;
           swapped: boolean;
         end;
 
@@ -145,7 +145,7 @@ implementation
             { there may be gap between record fields, zero it out }
             fillchar(key,sizeof(key),0);
             key.value:=value_real;
-            key.aitype:=realait;
+            key.typ:=tfloatdef(resultdef).floattype;
 {$ifdef ARM}
             key.swapped:=hiloswapped;
 {$endif ARM}
