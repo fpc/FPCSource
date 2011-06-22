@@ -1290,7 +1290,7 @@ begin
    EntryCount      := NtoLE(TOC.ReadDWord);
    TOPICSOffset    := NtoLE(TOC.ReadDWord);
 
-   if EntryCount <> 0 then
+   if EntryCount = 0 then
      begin
        Toc.Free;
        Exit;
