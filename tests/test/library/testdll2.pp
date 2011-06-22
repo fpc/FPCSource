@@ -1,5 +1,6 @@
 { %target=win32,win64 }
 { %needlibrary }
+{ %norun }
 { %neededafter }
 {
   Copyright (c) 1998 by Pierre Muller
