@@ -1,9 +1,17 @@
+{ %target=win32,win64 }
+{ %needlibrary }
 {
-  Copyright (c) 1998 by Pierre Muller
 
-  Win32 DLL usage example. It needs testdll.pp
+  Win32 DLL usage example. It needs testdll2.pp
+  This test checksq the windows abality to
+  export a function in an executable.
+
+  Here procedure TestExeProc is exported
+  and is imported by testdll2 DLL.
+
 }
-program tdllexe;
+
+program ttdllexe;
 
 uses
   Windows;

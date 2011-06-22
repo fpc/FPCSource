@@ -1,5 +1,6 @@
-{ %target=win32,win64,wince }
+{ %target=win32,win64 }
 { %needlibrary }
+
 
 uses
   ulib2a, ulib2b;

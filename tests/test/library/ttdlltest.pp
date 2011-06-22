@@ -1,9 +1,15 @@
+{ %target=win32,win64 }
+{ %needlibrary }
 {
-  Copyright (c) 1998 by Pierre Muller
 
-  Win32 DLL usage example. It needs testdll.pp
+  Win32 DLL usage example. It needs testdll.pp DLL
+
+  The use of threads creates RTE problems with compilers
+  up to 2.4.4 release at least.
+
 }
-program tdlltest;
+
+program ttdlltest;
 
 uses
   Windows;

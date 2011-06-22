@@ -1,6 +1,6 @@
-{ %skiptarget=go32v2 }
+{ %target=win32,win64 }
 { %norun }
-{$goto on}
+{ %neededafter }
 library tlib1a2;
 
   procedure p(var a : dword);

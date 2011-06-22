@@ -1,4 +1,4 @@
-{ %target=win32,win64,wince }
+{ %target=win32,win64 }
 { %needlibrary }
 
 { Checks that the two functions with the same exported name 'p'
