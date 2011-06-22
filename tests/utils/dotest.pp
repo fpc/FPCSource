@@ -101,50 +101,6 @@ const
   TargetAmigaLike : boolean = false;
   TargetIsMacOS : boolean = false;
 
-{ Set the three constants above according to
-  the current target }
-
-procedure SetTargetDirectoriesStyle;
-var
-  LTarget : string;
-begin
-  LTarget := lowercase(CompilerTarget);
-  TargetHasDosStyleDirectories :=
-    (LTarget='emx') or
-    (LTarget='go32v2') or
-    (LTarget='nativent') or
-    (LTarget='os2') or
-    (LTarget='symbian') or
-    (LTarget='watcom') or
-    (LTarget='wdosx') or
-    (LTarget='win32') or
-    (LTarget='win64');
-  TargetAmigaLike:=
-    (LTarget='amiga') or
-    (LTarget='morphos');
-  TargetIsMacOS:=
-    (LTarget='macos');
-  { Set ExeExt for CompilerTarget.
-    This list has been set up 2011-06 using the information in
-    compiler/system/i_XXX.pas units.
-    We should update this list when adding new targets PM }
-  if (TargetHasDosStyleDirectories) then
-    ExeExt:='.exe'
-  else if LTarget='atari' then
-    ExeExt:='.tpp'
-  else if LTarget='gba' then
-    ExeExt:='.gba'
-  else if LTarget='nds' then
-    ExeExt:='.bin'
-  else if (LTarget='netware') or (LTarget='netwlibc') then
-    ExeExt:='.nlm'
-  else if LTarget='wii' then
-    ExeExt:='.dol'
-  else if LTarget='wince' then
-    ExeExt:='.exe';
-
-end;
-
 { extracted from rtl/macos/macutils.inc }
 
 function IsMacFullPath (const path: string): Boolean;
@@ -577,6 +533,52 @@ begin
   CompilerFullTarget:=CompilerCPU+'-'+CompilerTarget;
 end;
 
+{ Set the three constants above according to
+  the current target }
+
+procedure SetTargetDirectoriesStyle;
+var
+  LTarget : string;
+  res : boolean;
+begin
+  { Call this first to ensure that CompilerTarget is not empty }
+  res:=GetCompilerTarget;
+  LTarget := lowercase(CompilerTarget);
+  TargetHasDosStyleDirectories :=
+    (LTarget='emx') or
+    (LTarget='go32v2') or
+    (LTarget='nativent') or
+    (LTarget='os2') or
+    (LTarget='symbian') or
+    (LTarget='watcom') or
+    (LTarget='wdosx') or
+    (LTarget='win32') or
+    (LTarget='win64');
+  TargetAmigaLike:=
+    (LTarget='amiga') or
+    (LTarget='morphos');
+  TargetIsMacOS:=
+    (LTarget='macos');
+  { Set ExeExt for CompilerTarget.
+    This list has been set up 2011-06 using the information in
+    compiler/system/i_XXX.pas units.
+    We should update this list when adding new targets PM }
+  if (TargetHasDosStyleDirectories) then
+    ExeExt:='.exe'
+  else if LTarget='atari' then
+    ExeExt:='.tpp'
+  else if LTarget='gba' then
+    ExeExt:='.gba'
+  else if LTarget='nds' then
+    ExeExt:='.bin'
+  else if (LTarget='netware') or (LTarget='netwlibc') then
+    ExeExt:='.nlm'
+  else if LTarget='wii' then
+    ExeExt:='.dol'
+  else if LTarget='wince' then
+    ExeExt:='.exe';
+end;
+
 
 function OutputFileName(Const s,ext:String):String;
 begin
@@ -843,20 +845,29 @@ var
   function ExecuteRemote(const prog,args:string):boolean;
     var
       Trials : longint;
+      Res : boolean;
     begin
       Verbose(V_Debug,'RemoteExecuting '+Prog+' '+args);
       StartTicks:=GetMicroSTicks;
-      ExecuteRemote:=false;
+      Res:=false;
       Trials:=0;
-      While (Trials<MaxTrials) and not ExecuteRemote do
+      While (Trials<MaxTrials) and not Res do
         begin
           inc(Trials);
-          ExecuteRemote:=ExecuteRedir(prog,args,'',EXELogFile,'stdout');
+          Res:=ExecuteRedir(prog,args,'',EXELogFile,'stdout');
+          if not Res then
+            Verbose(V_Debug,'Call to '+prog+' failed: '+
+              'IOStatus='+ToStr(IOStatus)+
+              ' RedirErrorOut='+ToStr(RedirErrorOut)+
+              ' RedirErrorIn='+ToStr(RedirErrorIn)+
+              ' RedirErrorError='+ToStr(RedirErrorError)+
+              ' ExecuteResult='+ToStr(ExecuteResult));
         end;
 
       if Trials>1 then
         Verbose(V_Debug,'Done in '+tostr(trials)+' trials');
       EndTicks:=GetMicroSTicks;
+      ExecuteRemote:=res;
     end;
 
   function ExecuteEmulated(const prog,args:string):boolean;
