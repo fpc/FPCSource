@@ -14,7 +14,7 @@ library testdll2;
 { This library cannot be called from any other program
   as it loads EXE exported symbols }
 
-procedure TestExeProc; external 'tdllexe.exe' name 'TestExeProc';
+procedure TestExeProc; external 'ttdllexe.exe' name 'TestExeProc';
 
 
 var
