@@ -847,31 +847,11 @@ Procedure FinalizeHeap;forward;
 {$endif HAS_MEMORYMANAGER}
 {$endif FPC_HAS_FEATURE_HEAP}
 
-
-Procedure InternalExit;
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+procedure SysFlushStdIO;
 var
-  current_exit : Procedure;
-{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   pstdout : ^Text;
-{$endif}
-{$if defined(MSWINDOWS) or defined(OS2)}
-  i : longint;
-{$endif}
-Begin
-{$ifdef SYSTEMDEBUG}
-  writeln('InternalExit');
-{$endif SYSTEMDEBUG}
-  while exitProc<>nil Do
-   Begin
-     InOutRes:=0;
-     current_exit:=tProcedure(exitProc);
-     exitProc:=nil;
-     current_exit();
-   End;
-  { Finalize units }
-  FinalizeUnits;
-
-{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+begin
   { Show runtime error and exit }
   pstdout:=@stdout;
   If erroraddr<>nil Then
@@ -892,6 +872,32 @@ Begin
     Flush(pstdout^);
   if Textrec(StdErr).Mode=fmOutput then
     Flush(StdErr);
+end;
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
+
+
+Procedure InternalExit;
+var
+  current_exit : Procedure;
+{$if defined(MSWINDOWS) or defined(OS2)}
+  i : longint;
+{$endif}
+Begin
+{$ifdef SYSTEMDEBUG}
+  writeln('InternalExit');
+{$endif SYSTEMDEBUG}
+  while exitProc<>nil Do
+   Begin
+     InOutRes:=0;
+     current_exit:=tProcedure(exitProc);
+     exitProc:=nil;
+     current_exit();
+   End;
+  { Finalize units }
+  FinalizeUnits;
+
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+  SysFlushStdIO;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 
 {$if defined(MSWINDOWS) or defined(OS2)}

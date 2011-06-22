@@ -67,6 +67,10 @@ Var
 {$endif HAS_MEMORYMANAGER}
         if MemoryManager.DoneThread <> nil then
           MemoryManager.DoneThread();
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+        { Open all stdio fds again }
+        SysFlushStdio;
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
         CurrentTM.ReleaseThreadVars;
       end;
 
