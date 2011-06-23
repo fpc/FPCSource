@@ -2868,7 +2868,19 @@ implementation
            begin
              if assigned(left) then
               begin
-                { ptr and settextbuf needs two args }
+                { convert types to those of the prototype, this is required by functions like ror, rol, sar
+                  some use however a dummy type (Typedfile) so this would break them }
+                if not(tprocdef(procdefinition).extnumber in [fpc_in_Reset_TypedFile,fpc_in_Rewrite_TypedFile]) then
+                  begin
+                    { bind parasyms to the callparanodes and insert hidden parameters }
+                    bind_parasym;
+
+                    { insert type conversions for parameters }
+                    if assigned(left) then
+                      tcallparanode(left).insert_typeconv;
+                  end;
+
+                { ptr and settextbuf need two args }
                 if assigned(tcallparanode(left).right) then
                  begin
                    hpt:=geninlinenode(tprocdef(procdefinition).extnumber,is_const,left);
