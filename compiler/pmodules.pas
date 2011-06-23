@@ -1749,7 +1749,7 @@ implementation
         hp:=texported_item(current_module._exports.first);
         while assigned(hp) do
           begin
-            current_module.AddExternalImport(current_module.realmodulename^,hp.name^,hp.index,hp.is_var,false);
+            current_module.AddExternalImport(current_module.realmodulename^,hp.name^,hp.name^,hp.index,hp.is_var,false);
             hp:=texported_item(hp.next);
           end;
       end;

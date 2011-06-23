@@ -1764,7 +1764,7 @@ implementation
             ExtName:=current_module.dllscannerinputlist.NameOfIndex(i);
             if (ExtName=funcname) then
               begin
-                current_module.AddExternalImport(dllname,funcname,0,false,false);
+                current_module.AddExternalImport(dllname,funcname,funcname,0,false,false);
                 importfound:=true;
                 current_module.dllscannerinputlist.Delete(i);
                 exit;

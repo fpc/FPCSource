@@ -397,7 +397,7 @@ interface
         FIsVar  : boolean;
         FMangledName : string;
       public
-        constructor create(AList:TFPHashObjectList;const AName:string;AOrdNr:longint;AIsVar:boolean);
+        constructor create(AList:TFPHashObjectList;const AName,AMangledName:string;AOrdNr:longint;AIsVar:boolean);
         property OrdNr: longint read FOrdNr;
         property MangledName: string read FMangledName;
         property IsVar: boolean read FIsVar;
@@ -1477,12 +1477,13 @@ implementation
                                 TImportSymbol
 ****************************************************************************}
 
-    constructor TImportSymbol.create(AList:TFPHashObjectList;const AName:string;AOrdNr:longint;AIsVar:boolean);
+    constructor TImportSymbol.create(AList:TFPHashObjectList;
+            const AName,AMangledName:string;AOrdNr:longint;AIsVar:boolean);
       begin
         inherited Create(AList, AName);
         FOrdNr:=AOrdNr;
         FIsVar:=AIsVar;
-        FMangledName:=AName;
+        FMangledName:=AMangledName;
         { Replace ? and @ in import name, since GNU AS does not allow these characters in symbol names. }
         { This allows to import VC++ mangled names from DLLs. }
         if target_info.system in systems_all_windows then

@@ -63,7 +63,7 @@ interface
          Procedure AddStaticCLibrary(const S : TCmdStr);
          Procedure AddSharedCLibrary(S : TCmdStr);
          Procedure AddFramework(S : TCmdStr);
-         procedure AddImportSymbol(const libname,symname:TCmdStr;OrdNr: longint;isvar:boolean);virtual;
+         procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);virtual;
          Procedure InitSysInitUnitName;virtual;
          Function  MakeExecutable:boolean;virtual;
          Function  MakeSharedLibrary:boolean;virtual;
@@ -113,7 +113,7 @@ interface
          Destructor Destroy;override;
          Function  MakeExecutable:boolean;override;
          Function  MakeSharedLibrary:boolean;override;
-         procedure AddImportSymbol(const libname,symname:TCmdStr;OrdNr: longint;isvar:boolean);override;
+         procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);override;
        end;
 
     var
@@ -435,14 +435,15 @@ Implementation
                for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
                  begin
                    ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
-                   AddImportSymbol(ImportLibrary.Name,ImportSymbol.Name,ImportSymbol.OrdNr,ImportSymbol.IsVar);
+                   AddImportSymbol(ImportLibrary.Name,ImportSymbol.Name,
+                     ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
                  end;
              end;
          end;
       end;
 
 
-    procedure TLinker.AddImportSymbol(const libname,symname:TCmdStr;OrdNr: longint;isvar:boolean);
+    procedure TLinker.AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
       begin
       end;
 
@@ -520,7 +521,7 @@ Implementation
       end;
 
 
-    procedure AddImportSymbol(const libname,symname:TCmdStr;OrdNr: longint;isvar:boolean);
+    procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
       begin
       end;
 
@@ -833,7 +834,7 @@ Implementation
       end;
 
 
-    procedure TInternalLinker.AddImportSymbol(const libname,symname:TCmdStr;OrdNr: longint;isvar:boolean);
+    procedure TInternalLinker.AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
       var
         ImportLibrary : TImportLibrary;
         ImportSymbol  : TFPHashObject;
@@ -843,7 +844,7 @@ Implementation
           ImportLibrary:=TImportLibrary.Create(ImportLibraryList,libname);
         ImportSymbol:=TFPHashObject(ImportLibrary.ImportSymbolList.Find(symname));
         if not assigned(ImportSymbol) then
-          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,OrdNr,isvar);
+          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,symmangledname,OrdNr,isvar);
       end;
 
 

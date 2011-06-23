@@ -154,6 +154,7 @@ type
 
 var
   ppufile     : tppufile;
+  ppuversion  : dword;
   space       : string;
   verbose     : longint;
   derefdata   : pbyte;
@@ -170,6 +171,11 @@ Begin
    has_errors:=true;
 End;
 
+function Unknown(const st : string; val :longint) : string;
+Begin
+  Unknown:='<!! Unknown'+st+' value '+tostr(val)+'>';
+  has_errors:=true;
+end;
 
 function ToStr(w:longint):String;
 begin
@@ -181,7 +187,7 @@ begin
   if w<=ord(high(tsystem)) then
     Target2Str:=Targets[tsystem(w)]
   else
-    Target2Str:='<!! Unknown target value '+tostr(w)+'>';
+    Target2Str:=Unknown('target',w);
 end;
 
 
@@ -190,7 +196,7 @@ begin
   if w<=ord(high(tsystemcpu)) then
     Cpu2Str:=CpuTxt[tsystemcpu(w)]
   else
-    Cpu2Str:='<!! Unknown cpu value '+tostr(w)+'>';
+    Cpu2Str:=Unknown('cpu',w);
 end;
 
 
@@ -203,7 +209,7 @@ begin
   if w<=ord(high(varspezstr)) then
     Varspez2Str:=varspezstr[tvarspez(w)]
   else
-    Varspez2Str:='<!! Unknown varspez value '+tostr(w)+'>';
+    Varspez2Str:=Unknown('varspez',w);
 end;
 
 Function VarRegable2Str(w:longint):string;
@@ -214,7 +220,7 @@ begin
   if w<=ord(high(varregablestr)) then
     Varregable2Str:=varregablestr[tvarregable(w)]
   else
-    Varregable2Str:='<!! Unknown regable value '+tostr(w)+'>';
+    Varregable2Str:=Unknown('regable',w);
 end;
 
 
@@ -230,7 +236,7 @@ begin
   if w<=ord(high(visibilityName)) then
     result:=visibilityName[tvisibility(w)]
   else
-    result:='<!! Unknown visibility value '+tostr(w)+'>';
+    result:=Unknown('visibility',w);
 end;
 
 
@@ -270,13 +276,14 @@ const
     (mask: $800000  ;str:'has_classinits')
   );
 var
-  i : longint;
+  i,ntflags : longint;
   first  : boolean;
   s : string;
 begin
   s:='';
   if flags<>0 then
    begin
+     ntflags:=flags;
      first:=true;
      for i:=1to flagopts do
       if (flags and flagopt[i].mask)<>0 then
@@ -286,10 +293,16 @@ begin
          else
            s:=s+', ';
          s:=s+flagopt[i].str;
+         ntflags:=ntflags and (not flagopt[i].mask);
        end;
    end
   else
    s:='none';
+  if ntflags<>0 then
+    begin
+      s:=s+' unknown '+hexstr(ntflags,8);
+      has_errors:=true;
+    end;
   PPUFlags2Str:=s;
 end;
 
@@ -459,6 +472,7 @@ var
   j,
   extsymcnt   : longint;
   extsymname  : string;
+  extsymmangledname  : string;
   extsymordnr : longint;
   extsymisvar : boolean;
 begin
@@ -470,9 +484,14 @@ begin
       for j:=0 to extsymcnt-1 do
         begin
           extsymname:=ppufile.getstring;
+          if ppuversion>130 then
+            extsymmangledname:=ppufile.getstring
+          else
+            extsymmangledname:=extsymname;
           extsymordnr:=ppufile.getlongint;
           extsymisvar:=ppufile.getbyte<>0;
-          writeln(' ',extsymname,' (OrdNr: ',extsymordnr,' IsVar: ',extsymisvar,')');
+          writeln(' ',extsymname,' as ',extsymmangledname,
+            '(OrdNr: ',extsymordnr,' IsVar: ',extsymisvar,')');
         end;
     end;
 end;
@@ -2261,8 +2280,10 @@ begin
      exit;
    end;
 { Check PPU Version }
-  Writeln('Analyzing ',filename,' (v',ppufile.GetPPUVersion,')');
-  if ppufile.GetPPUVersion<16 then
+  ppuversion:=ppufile.GetPPUVersion;
+
+  Writeln('Analyzing ',filename,' (v',PPUVersion,')');
+  if PPUVersion<16 then
    begin
      writeln(Filename,' : Old PPU Formats (<v16) are not supported, Skipping');
      exit;

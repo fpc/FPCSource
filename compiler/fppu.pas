@@ -634,6 +634,7 @@ var
               begin
                 ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
                 ppufile.putstring(ImportSymbol.Name);
+                ppufile.putstring(ImportSymbol.MangledName);
                 ppufile.putlongint(ImportSymbol.OrdNr);
                 ppufile.putbyte(byte(ImportSymbol.IsVar));
               end;
@@ -894,6 +895,7 @@ var
         extsymcnt   : longint;
         ImportLibrary  : TImportLibrary;
         extsymname  : string;
+        extsymmangledname : string;
         extsymordnr : longint;
         extsymisvar : boolean;
       begin
@@ -904,9 +906,11 @@ var
             for j:=0 to extsymcnt-1 do
               begin
                 extsymname:=ppufile.getstring;
+                extsymmangledname:=ppufile.getstring;
                 extsymordnr:=ppufile.getlongint;
                 extsymisvar:=(ppufile.getbyte<>0);
-                TImportSymbol.Create(ImportLibrary.ImportSymbolList,extsymname,extsymordnr,extsymisvar);
+                TImportSymbol.Create(ImportLibrary.ImportSymbolList,extsymname,
+                  extsymmangledname,extsymordnr,extsymisvar);
               end;
           end;
       end;

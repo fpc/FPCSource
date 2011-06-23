@@ -926,7 +926,7 @@ implementation
       is_weak_external,
       is_public_var  : boolean;
       dll_name,
-      C_name      : string;
+      C_name,mangledname      : string;
     begin
       { only allowed for one var }
       { only allow external and public on global symbols }
@@ -1016,6 +1016,7 @@ implementation
           inc(vs.refs);
         end;
 
+      mangledname:=C_name;
       { now we can insert it in the import lib if its a dll, or
         add it to the externals }
       if is_external_var then
@@ -1031,14 +1032,20 @@ implementation
             end;
           vs.varregable := vr_none;
           if is_dll then
-            current_module.AddExternalImport(dll_name,C_Name,0,true,false)
+            begin
+              if target_info.system in (systems_all_windows + systems_nativent +
+                                       [system_i386_emx, system_i386_os2]) then
+                mangledname:='_$dll$'+ExtractFileName(dll_name)+'$'+C_name;
+
+              current_module.AddExternalImport(dll_name,C_Name,mangledname,0,true,false);
+            end
           else
             if tf_has_dllscanner in target_info.flags then
               current_module.dllscannerinputlist.Add(vs.mangledname,vs);
         end;
 
       { Set the assembler name }
-      tstaticvarsym(vs).set_mangledname(C_Name);
+      tstaticvarsym(vs).set_mangledname(mangledname);
     end;
 
 
