@@ -91,8 +91,7 @@ begin
       exit;
     end;
 
-  if AAction <> 'laz_list' then    //do not cache list action
-    ExecutedActions.Add(FullActionName,Pointer(PtrUInt(1)));
+  ExecutedActions.Add(FullActionName,Pointer(PtrUInt(1)));
 
   // Create action handler class
   pkghandlerclass:=GetPkgHandler(AAction);
