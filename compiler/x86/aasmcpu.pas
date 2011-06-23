@@ -2226,8 +2226,12 @@ implementation
             172,173,174 :  // 0254..0256 - dword implicitly sign-extended to 64-bit (x86_64 only)
               begin
                 getvalsym(c-172);
+{$ifdef x86_64}
+                { for i386 as aint type is longint the
+                  following test is useless }
                 if (currval<low(longint)) or (currval>high(longint)) then
                   Message2(asmw_e_value_exceeds_bounds,'signed dword',tostr(currval));
+{$endif x86_64}
 
                 if assigned(currsym) then
                   objdata_writereloc(currval,4,currsym,currabsreloc32)
