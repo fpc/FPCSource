@@ -32,12 +32,11 @@ interface
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
-
 implementation
 
-uses 
-  dos, sysconst;
-
+uses
+  sysconst;
+    
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -46,8 +45,17 @@ uses
                               File Functions
 ****************************************************************************}
 function FileOpen(const FileName: string; Mode: Integer): LongInt;
+var
+  NDSFlags: longint;
 begin
-  result := -1;
+  NDSFlags := 0;
+
+  case (Mode and (fmOpenRead or fmOpenWrite or fmOpenReadWrite)) of
+    fmOpenRead : NDSFlags := NDSFlags or O_RdOnly;
+    fmOpenWrite : NDSFlags := NDSFlags or O_WrOnly;
+    fmOpenReadWrite : NDSFlags := NDSFlags or O_RdWr;
+  end;
+  FileOpen := fpopen(pchar(FileName), NDSFlags);
 end;
 
 
@@ -65,65 +73,69 @@ end;
 
 function FileCreate(const FileName: string) : LongInt;
 begin
-  result := -1;
+  FileCreate:=fpopen(pointer(FileName), O_RdWr or O_Creat or O_Trunc);
 end;
 
 
 function FileCreate(const FileName: string; Rights: integer): LongInt;
 begin
-  result := -1;
+  FileCreate:=fpOpen(pointer(FileName),O_RdWr or O_Creat or O_Trunc,Rights);
 end;
 
 
 function FileCreate(const FileName: string; ShareMode : Integer; Rights: integer): LongInt;
 begin
-  result := -1;
+  result := FileCreate(FileName, Rights);
 end;
 
 
 function FileRead(Handle: LongInt; Out Buffer; Count: LongInt): LongInt;
 begin
-  result := -1;
+  FileRead := fpRead(Handle, Buffer, Count);
 end;
 
 
 function FileWrite(Handle: LongInt; const Buffer; Count: LongInt): LongInt;
 begin
-  result := -1;
+  FileWrite := fpWrite(Handle, @Buffer, Count);
 end;
 
 
 function FileSeek(Handle, FOffset, Origin: LongInt) : LongInt;
 begin
-  result := -1;
+  result := longint(FileSeek(Handle, int64(FOffset), Origin));
 end;
 
 function FileSeek(Handle: LongInt; FOffset: Int64; Origin: Longint): Int64;
 begin
-  result := -1;
+  FileSeek := fplSeek(Handle, FOffset, Origin);
 end;
 
 
 procedure FileClose(Handle: LongInt);
 begin
+  fpclose(Handle);
 end;
 
 
 function FileTruncate(Handle: THandle; Size: Int64): Boolean;
 begin
-  result := false;
+  if Size > high (longint) then
+    FileTruncate := false
+  else
+    FileTruncate:=(fpchsize(Handle,Size) = 0);
 end;
 
 
 function DeleteFile(const FileName: string) : Boolean;
 begin
-  result := false;
+  Result := fpUnLink(pointer(FileName))>= 0;
 end;
 
 
 function RenameFile(const OldName, NewName: string): Boolean;
 begin
-  result := false;
+  RenameFile := FpRename(pointer(OldNAme), pointer(NewName)) >= 0;
 end;
 
 
@@ -131,14 +143,19 @@ end;
 
 
 Function FileAge (Const FileName : String): Longint;
+var 
+  info: Stat;
 begin
-  result := -1;
+  if (fpstat(pointer(FileName), Info) < 0) or S_ISDIR(info.st_mode) then
+    exit(-1)
+  else 
+    Result := (info.st_mtime);
 end;
 
 
 Function FileExists (Const FileName : String) : Boolean;
-Begin
-  result := false;
+begin
+  FileExists := fpAccess(pointer(filename), F_OK) = 0;
 end;
 
 
@@ -156,11 +173,16 @@ end;
 
 Procedure FindClose (Var F : TSearchrec);
 begin
+
 end;
 
 Function FileGetAttr (Const FileName : String) : Longint;
+Var Info : TStat;
 begin
-  result := -1;
+  If Fpstat(pchar(FileName), Info) <> 0 then
+    Result := -1
+  Else
+    Result := (Info.st_mode shr 16) and $ffff;
 end;
 
 
