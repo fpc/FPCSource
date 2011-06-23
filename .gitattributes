@@ -10369,6 +10369,7 @@ tests/test/trox1.pp svneol=native#text/plain
 tests/test/trox2.pp svneol=native#text/plain
 tests/test/trox3.pp svneol=native#text/pascal
 tests/test/trox4.pp svneol=native#text/pascal
+tests/test/trox5.pp svneol=native#text/pascal
 tests/test/trstr1.pp svneol=native#text/plain
 tests/test/trstr2.pp svneol=native#text/plain
 tests/test/trstr3.pp svneol=native#text/plain
