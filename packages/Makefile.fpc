@@ -78,11 +78,11 @@ fpmkunit_bootstrap:
 ifdef CROSSCOMPILE
 	$(MAKE) -C fpmkunit bootstrap
 endif
-fpmkunit_all: fcl-base_all fcl-process_all paszlib_all
-fpmkunit_debug: fcl-base_debug fcl-process_debug paszlib_debug
-fpmkunit_smart: fcl-base_smart fcl-process_smart paszlib_smart
-fpmkunit_release: fcl-base_release fcl-process_release paszlib_release
-fpmkunit_shared: fcl-base_shared fcl-process_shared paszlib_shared
+fpmkunit_all: fpmkunit_bootstrap fcl-base_all fcl-process_all paszlib_all
+fpmkunit_debug: fpmkunit_bootstrap fcl-base_debug fcl-process_debug paszlib_debug
+fpmkunit_smart: fpmkunit_bootstrap fcl-base_smart fcl-process_smart paszlib_smart
+fpmkunit_release: fpmkunit_bootstrap fcl-base_release fcl-process_release paszlib_release
+fpmkunit_shared: fpmkunit_bootstrap fcl-base_shared fcl-process_shared paszlib_shared
 
 ifneq ($(findstring $(OS_TARGET),darwin iphonesim),)
 fcl-base_all: univint_all paszlib_all
@@ -198,17 +198,17 @@ fcl-net_release: fcl-passrc_release fcl-xml_release fcl-async_release
 fcl-net_shared: fcl-passrc_shared fcl-xml_shared fcl-async_shared
 endif
 
-fcl-web_all: fpmkunit_bootstrap fcl-db_all fcl-xml_all fcl-process_all httpd22_all fastcgi_all fcl-net_all fcl-json_all
-fcl-web_debug: fpmkunit_bootstrap fcl-db_debug fcl-xml_debug fcl-process_debug httpd22_debug fastcgi_debug fcl-net_debug fcl-json_debug
-fcl-web_smart: fpmkunit_bootstrap fcl-db_smart fcl-xml_smart fcl-process_smart httpd22_smart fastcgi_smart fcl-net_smart fcl-json_smart
-fcl-web_release: fpmkunit_bootstrap fcl-db_release fcl-xml_release fcl-process_release httpd22_release fastcgi_release fcl-net_release fcl-json_release
-fcl-web_shared: fpmkunit_bootstrap fcl-db_shared fcl-xml_shared fcl-process_shared httpd22_shared fastcgi_shared fcl-net_shared fcl-json_shared
+fcl-web_all: fpmkunit_all fcl-db_all fcl-xml_all fcl-process_all httpd22_all fastcgi_all fcl-net_all fcl-json_all
+fcl-web_debug: fpmkunit_debug fcl-db_debug fcl-xml_debug fcl-process_debug httpd22_debug fastcgi_debug fcl-net_debug fcl-json_debug
+fcl-web_smart: fpmkunit_smart fcl-db_smart fcl-xml_smart fcl-process_smart httpd22_smart fastcgi_smart fcl-net_smart fcl-json_smart
+fcl-web_release: fpmkunit_release fcl-db_release fcl-xml_release fcl-process_release httpd22_release fastcgi_release fcl-net_release fcl-json_release
+fcl-web_shared: fpmkunit_shared fcl-db_shared fcl-xml_shared fcl-process_shared httpd22_shared fastcgi_shared fcl-net_shared fcl-json_shared
 
-fastcgi_all: fpmkunit_bootstrap
-fastcgi_debug: fpmkunit_bootstrap
-fastcgi_smart: fpmkunit_bootstrap
-fastcgi_release: fpmkunit_bootstrap
-fastcgi_shared: fpmkunit_bootstrap
+fastcgi_all: fpmkunit_all
+fastcgi_debug: fpmkunit_debug
+fastcgi_smart: fpmkunit_smart
+fastcgi_release: fpmkunit_release
+fastcgi_shared: fpmkunit_shared
 
 ifneq ($(findstring $(OS_TARGET),linux freebsd openbsd netbsd win32 beos haiku),)
 fcl-db_all: fcl-xml_all mysql_all ibase_all oracle_all odbc_all postgres_all sqlite_all pxlib_all
