@@ -726,6 +726,7 @@ begin
                           taicpu(hp1).loadConst(0,taicpu(p).oper[0]^.val and taicpu(hp1).oper[0]^.val);
                           asml.remove(p);
                           p.free;
+                          p:=hp1;
                         end
                       else
     {change "and x, reg; jxx" to "test x, reg", if reg is deallocated before the
