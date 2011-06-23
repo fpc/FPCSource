@@ -118,6 +118,8 @@ Const
   AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim];
   AllWindowsOSes  = [Win32,Win64,WinCE];
 
+  AllSmartLinkLibraryOSes = [Linux]; // OSes that use .a library files for smart-linking
+
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
   OSCPUSupported : array[TOS,TCpu] of boolean = (
     { os          none   i386    m68k  ppc    sparc  x86_64 arm    ppc64  avr    armeb}
@@ -399,6 +401,7 @@ Type
   Protected
     Function GetSourceFileName : String; virtual;
     Function GetUnitFileName : String; virtual;
+    function GetUnitLibFileName: String; virtual;
     Function GetObjectFileName : String; virtual;
     Function GetRSTFileName : String; Virtual;
     Function GetProgramFileName(AOS : TOS) : String; Virtual;
@@ -422,6 +425,7 @@ Type
     Property Options : TStrings Read GetOptions Write SetOptions;
     Property SourceFileName: String Read GetSourceFileName ;
     Property UnitFileName : String Read GetUnitFileName;
+    Property UnitLibFileName : String Read GetUnitLibFileName;
     Property ObjectFileName : String Read GetObjectFileName;
     Property RSTFileName : String Read GetRSTFileName;
     Property FPCTarget : String Read FFPCTarget Write FFPCTarget;
@@ -5251,6 +5255,11 @@ begin
   Result:=FOptions;
 end;
 
+function TTarget.GetUnitLibFileName: String;
+begin
+  Result:='libp'+Name+LibExt;
+end;
+
 procedure TTarget.SetOptions(const AValue: TStrings);
 begin
   If (AValue=Nil) or (AValue.Count=0) then
@@ -5330,7 +5339,11 @@ begin
     exit;
   List.Add(APrefixU + ObjectFileName);
   If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit, ttCleanOnlyUnit]) then
-    List.Add(APrefixU + UnitFileName)
+    begin
+      List.Add(APrefixU + UnitFileName);
+      if (AOS in AllSmartLinkLibraryOSes) and FileExists(APrefixU + UnitLibFileName) then
+        List.Add(APrefixU + UnitLibFileName);
+    end
   else If (TargetType in [ttProgram,ttExampleProgram]) then
     List.Add(APrefixB + GetProgramFileName(AOS));
   If ResourceStrings then
@@ -5346,7 +5359,11 @@ begin
   If Not (TargetType in [ttProgram,ttExampleProgram]) then
     List.Add(APrefixU + ObjectFileName);
   If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit]) then
-    List.Add(APrefixU + UnitFileName)
+    begin
+    List.Add(APrefixU + UnitFileName);
+    if (AOS in AllSmartLinkLibraryOSes) and FileExists(APrefixU + UnitLibFileName) then
+      List.Add(APrefixU + UnitLibFileName);
+    end
   else If (TargetType in [ttProgram,ttExampleProgram]) then
     List.Add(APrefixB + GetProgramFileName(AOS));
   If ResourceStrings then
