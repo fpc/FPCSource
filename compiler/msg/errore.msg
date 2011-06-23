@@ -1754,7 +1754,7 @@ type_e_record_helper_must_extend_same_record=04102_E_Derived record helper must 
 #
 # Symtable
 #
-# 05080 is the last used one
+# 05084 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1998,6 +1998,12 @@ sym_e_external_class_name_mismatch2=05083_E_Complete class definition with exter
 % When a class is declared using a formal external definition, the actual external
 % definition (if any) must specify the same external name as the formal definition
 % (since both definitions refer to the same actual class type).
+sym_w_library_overload=05084_W_Possible library conflict: symbol "$1" from library "$2" also found in library "$3"
+% Some OS do not have library specific namespaces, for those
+% OS, the function declared as "external 'libname' name 'funcname'",
+% the 'libname' part is only a hint, funcname might also be loaded
+% by another library. This warning appears if 'funcname' is used twice
+% with two different library names.
 %
 % \end{description}
 #
