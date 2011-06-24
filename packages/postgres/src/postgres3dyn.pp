@@ -218,7 +218,13 @@ var Postgres3LibraryHandle : TLibHandle;
 
 implementation
 
-var RefCount : integer;
+resourcestring
+  SErrLoadFailed     = 'Can not load PostgreSQL client library "%s". Check your installation.';
+  SErrAlreadyLoaded  = 'PostgreSQL interface already initialized from library %s.';
+
+var
+  RefCount : integer;
+  LoadedLibrary : String;
 
 Procedure InitialisePostgres3(libpath:string=pqlib);
 
@@ -230,9 +236,10 @@ begin
     if Postgres3LibraryHandle = nilhandle then
       begin
       RefCount := 0;
-      Raise EInOutError.Create('Can not load PosgreSQL client. Is it installed? ('+libpath+')');
+      Raise EInOutError.CreateFmt(SErrLoadFailed,[libpath]);
       end;
 
+    LoadedLibrary:=libpath;
     pointer(PQconnectStart) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectStart');
     pointer(PQconnectPoll) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectPoll');
     pointer(PQconnectdb) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectdb');
@@ -336,7 +343,13 @@ begin
     pointer(PQenv2encoding) := GetProcedureAddress(Postgres3LibraryHandle,'PQenv2encoding');
 
     InitialiseDllist;
-    end;
+    end
+  else
+    if (libpath<>pqlib) and (LoadedLibrary<>libpath) then
+      begin
+      Dec(RefCount);
+      Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
+      end;
 end;
 
 Procedure ReleasePostgres3;
