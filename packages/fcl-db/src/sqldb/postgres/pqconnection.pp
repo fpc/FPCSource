@@ -608,9 +608,9 @@ begin
               s := FormatDateTime('hh:nn:ss', AParams[i].AsDateTime);
             ftFloat, ftBCD:
               Str(AParams[i].AsFloat, s);
-           ftCurrency:
+            ftCurrency:
               begin
-                cash:=NtoBE(round(AParams[i].AsFloat*100));
+                cash:=NtoBE(round(AParams[i].AsCurrency*100));
                 setlength(s, sizeof(cash));
                 Move(cash, s[1], sizeof(cash));
               end
