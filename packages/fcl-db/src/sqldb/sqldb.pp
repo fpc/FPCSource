@@ -494,7 +494,7 @@ Procedure UnRegisterConnection(ConnectionName : String);
 Function GetConnectionDef(ConnectorName : String) : TConnectionDef;
 Procedure GetConnectionList(List : TSTrings);
 
-var DefaultSQLFormatSettings : TFormatSettings = (
+const DefaultSQLFormatSettings : TFormatSettings = (
   CurrencyFormat: 1;
   NegCurrFormat: 5;
   ThousandSeparator: #0;
