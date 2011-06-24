@@ -95,6 +95,7 @@ const
   rquote : char = '''';
   UseTimeout : boolean = false;
   emulatorname : string = '';
+  TargetCanCompileLibraries : boolean = true;
 
 { Constants used in IsAbsolute function }
   TargetHasDosStyleDirectories : boolean = false;
@@ -577,6 +578,19 @@ begin
     ExeExt:='.dol'
   else if LTarget='wince' then
     ExeExt:='.exe';
+end;
+
+procedure SetTargetCanCompileLibraries;
+var
+  LTarget : string;
+  res : boolean;
+begin
+  { Call this first to ensure that CompilerTarget is not empty }
+  res:=GetCompilerTarget;
+  LTarget := lowercase(CompilerTarget);
+  { Feel free to add other targets here }
+  if (LTarget='go32v2') then
+    TargetCanCompileLibraries:=false;
 end;
 
 
@@ -1437,7 +1451,7 @@ begin
    begin
      if Config.SkipTarget<>'' then
       begin
-        Verbose(V_Debug,'Skip compiler target: '+Config.NeedTarget);
+        Verbose(V_Debug,'Skip compiler target: '+Config.SkipTarget);
         if IsInList(CompilerTarget,Config.SkipTarget) then
          begin
            { avoid a second attempt by writing to elg file }
@@ -1446,6 +1460,18 @@ begin
            Verbose(V_Warning,'Compiler target "'+CompilerTarget+'" is in list "'+Config.SkipTarget+'"');
            Res:=false;
          end;
+      end;
+   end;
+
+  if Res then
+   begin
+     { Use known bug, to avoid adding a new entry for this PM 2011-06-24 }
+     if Config.NeedLibrary and not TargetCanCompileLibraries then
+      begin
+        AddLog(EXELogFile,skipping_known_bug+PPFileInfo[current]);
+        AddLog(ResLogFile,skipping_known_bug+PPFileInfo[current]);
+        Verbose(V_Warning,'Compiler target "'+CompilerTarget+'" does not support library compilation');
+        Res:=false;
       end;
    end;
 
@@ -1500,6 +1526,7 @@ begin
   PPFileInfo.Capacity:=10;
   GetArgs;
   SetTargetDirectoriesStyle;
+  SetTargetCanCompileLibraries;
   Verbose(V_Debug,'Found '+ToStr(PPFile.Count)+' tests to run');
   if current>0 then
     for current:=0 to PPFile.Count-1 do
