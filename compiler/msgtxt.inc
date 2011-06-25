@@ -489,9 +489,6 @@ const msgtxt : array[0..000251,1..240] of char=(
   '03309_E_The use of "inherited" is not allowed in a record'#000+
   '03310_E_Type declarations are not allowed in local or anonymou','s reco'+
   'rds'#000+
-  '03307_E_"$1" ','is not allowed in helper types'#000+
-  '03308_E_Class constructors aren'#039't allowed in helpers'#000+
-  '03309_E_The use of "inherited" is not allowed in a record'#000+
   '04000_E_Type mismatch'#000+
   '04001_E_Incompatible types: got "$1" expected "$2"'#000+
   '04002_E_Type mismatch between "$1" and "$2"'#000+
@@ -609,26 +606,26 @@ const msgtxt : array[0..000251,1..240] of char=(
   '05002_E_Duplicate identifier "$1"'#000+
   '0','5003_H_Identifier already defined in $1 at line $2'#000+
   '05004_E_Unknown identifier "$1"'#000+
-  '05005_E_Forward declarati','on not solved "$1"'#000+
+  '05005_E_Forward declaration not solved "$1"'#000+
   '05007_E_Error in type definition'#000+
   '05009_E_Forward type not resolved "$1"'#000+
   '05010_E_Only static variables can be used',' in static methods or outsi'+
   'de methods'#000+
   '05012_F_record or class type expected'#000+
-  '05013_E_Instances of classes or ','objects with an abstract method are '+
-  'not allowed'#000+
+  '05013_E_Instances of classes or objects with an abstract method are no'+
+  't allowed'#000+
   '05014_W_Label not defined "$1"'#000+
   '05015_E_Label used but not defined "$1"'#000+
   '05016_E_Illeg','al label declaration'#000+
   '05017_E_GOTO and LABEL are not supported (use switch -Sg)'#000+
   '05018_E_Label not found'#000+
-  '05019','_E_identifier isn'#039't a label'#000+
+  '05019_E_identifier isn'#039't a label'#000+
   '05020_E_label already defined'#000+
   '05021_E_illegal type declaration of set elements'#000+
   '05022_E_Forward class def','inition not resolved "$1"'#000+
   '05023_H_Unit "$1" not used in $2'#000+
   '05024_H_Parameter "$1" not used'#000+
-  '05025_N_Local var','iable "$1" not used'#000+
+  '05025_N_Local variable "$1" not used'#000+
   '05026_H_Value parameter "$1" is assigned but never used'#000+
   '05027_N_Local variable "$1" is assigned but never used'#000+
   '0','5028_H_Local $1 "$2" is not used'#000+
@@ -644,7 +641,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '0503','8_E_identifier idents no member "$1"'#000+
   '05039_H_Found declaration: $1'#000+
   '05040_E_Data element too large'#000+
-  '05042_E_No',' matching implementation for interface method "$1" found'#000+
+  '05042_E_No matching implementation for interface method "$1" found'#000+
   '05043_W_Symbol "$1" is deprecated'#000+
   '05044_W_Symbol "$1" is not portable'#000+
   '05055','_W_Symbol "$1" is not implemented'#000+
@@ -669,7 +666,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '05073_N_Private property',' "$1.$2" never used'#000+
   '05074_W_Unit "$1" is deprecated'#000+
   '05075_W_Unit "$1" is deprecated: "$2"'#000+
-  '05076_W_Unit "$1" ','is not portable'#000+
+  '05076_W_Unit "$1" is not portable'#000+
   '05077_W_Unit "$1" is belongs to a library'#000+
   '05078_W_Unit "$1" is not implemented'#000+
   '05079_W_Unit "$1" is experimental'#000+
@@ -682,7 +679,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '05084_W_Possible library conflict: symbol "$1" from library "$2" also '+
   'found in library "$3"'#000+
   '06009_E_Parameter list size exceeds 65535 bytes'#000+
-  '06012_E_File types',' must be var parameters'#000+
+  '06012_E_File types must be var parameters'#000+
   '06013_E_The use ','of a far pointer isn'#039't allowed there'#000+
   '06015_E_EXPORT declared functions can'#039't be called'#000+
   '06016_W_Possible illegal call of constructor or destructor'#000+
@@ -699,7 +696,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '06037_E_Constructors or destructors cannot be called inside a '#039'wit'+
   'h'#039' clause'#000+
   '06038_E_Cannot call message handler methods directly'#000+
-  '06039_E_Jum','p in or outside of an exception block'#000+
+  '06039_E_Jump in or outside of an exception block'#000+
   '06','040_E_Control flow statements aren'#039't allowed in a finally bloc'+
   'k'#000+
   '06041_W_Parameters size exceeds limit for certain cpu'#039's'#000+
@@ -710,7 +707,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '06046_F_Unknown compilerproc "$1". Check if you use the correct run ti'+
   'me library.'#000+
   '06047_F_Cannot find system type "$1". Check if you use the correct run'+
-  ' ','time library.'#000+
+  ' time library.'#000+
   '06048_H_Inherited call to ','abstract method ignored'#000+
   '06049_E_Goto label "$1" not defined or optimized away'#000+
   '06050_F_Cannot find type "$1" in unit "$2". Check if you use the corre'+
@@ -725,25 +722,25 @@ const msgtxt : array[0..000251,1..240] of char=(
   '07004_E_Error building record offset'#000+
   '07005_E_OFFSET used without identifier'#000+
   '07006_E_TYPE used without identifier'#000+
-  '07007_E_Cannot use local variabl','e or parameters here'#000+
+  '07007_E_Cannot use local variable or parameters here'#000+
   '07008_E_need to use',' OFFSET here'#000+
   '07009_E_need to use $ here'#000+
   '07010_E_Cannot use multiple relocatable symbols'#000+
   '07011_E_Relocatable symbol can only be added'#000+
   '07012_E_Invalid constant expression'#000+
-  '07013_E_Relocatable symbol is n','ot allowed'#000+
+  '07013_E_Relocatable symbol is not allowed'#000+
   '07014_E_Invalid reference syn','tax'#000+
   '07015_E_You cannot reach $1 from that code'#000+
   '07016_E_Local symbols/labels aren'#039't allowed as references'#000+
   '07017_E_Invalid base and index register usage'#000+
   '07018_W_Possible error in object field handling'#000+
-  '0','7019_E_Wrong scale factor specified'#000+
+  '07019_E_Wrong scale factor specified'#000+
   '0702','0_E_Multiple index register usage'#000+
   '07021_E_Invalid operand type'#000+
   '07022_E_Invalid string as opcode operand: $1'#000+
   '07023_W_@CODE and @DATA not supported'#000+
   '07024_E_Null label references are not allowed'#000+
-  '07025_E_','Divide by zero in asm evaluator'#000+
+  '07025_E_Divide by zero in asm evaluator'#000+
   '07026_E_','Illegal expression'#000+
   '07027_E_escape sequence ignored: $1'#000+
   '07028_E_Invalid symbol reference'#000+
@@ -754,7 +751,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '07033_E_Unsupported symbol type for operand'#000+
   '07034_E_Constant value out of bounds'#000+
   '07035_E_Error converting decimal $1'#000+
-  '07036_E_Error converting',' octal $1'#000+
+  '07036_E_Error converting octal $1'#000+
   '07037_E_Error converting binar','y $1'#000+
   '07038_E_Error converting hexadecimal $1'#000+
   '07039_H_$1 translated to $2'#000+
@@ -776,7 +773,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '07055_E_Invalid combination of prefix and opcode: $1'#000+
   '07056_E_Invalid combination of override and opcode: $1'#000+
   '07057_E_Too many operands on line'#000+
-  '07058_W_NEAR ign','ored'#000+
+  '07058_W_NEAR ignored'#000+
   '07059_W_FAR ignored'#000+
   '07060_E_Duplica','te local symbol $1'#000+
   '07061_E_Undefined local symbol $1'#000+
@@ -784,7 +781,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '07063_E_Invalid register name'#000+
   '07064_E_Invalid floating point register name'#000+
   '07066_W_Modulo not supported'#000+
-  '07067_E','_Invalid floating point constant $1'#000+
+  '07067_E_Invalid floating point constant $1'#000+
   '0706','8_E_Invalid floating point expression'#000+
   '07069_E_Wrong symbol type'#000+
   '07070_E_Cannot index a local var or parameter with a register'#000+
@@ -811,7 +808,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '07093_W_ALIGN not supported'#000+
   '07094_E_Inc and Dec cannot be together'#000+
   '07095_E_Invalid reglist for movem'#000+
-  '07096_E_Reglist invalid',' for opcode'#000+
+  '07096_E_Reglist invalid for opcode'#000+
   '07097_E_Higher cpu mode re','quired ($1)'#000+
   '07098_W_No size specified and unable to determine the size of the oper'+
   'ands, using DWORD as default'#000+
@@ -839,18 +836,18 @@ const msgtxt : array[0..000251,1..240] of char=(
   '08002_F_Comp not supported'#000+
   '08003_F_Direct not support for binary writers'#000+
   '08004_E_Allocating of data is only allowed in bss section'#000+
-  '08005','_F_No binary writer selected'#000+
+  '08005_F_No binary writer selected'#000+
   '08006_E_A','sm: Opcode $1 not in table'#000+
   '08007_E_Asm: $1 invalid combination of opcode and operands'#000+
   '08008_E_Asm: 16 Bit references not supported'#000+
   '08009_E_Asm: Invalid effective address'#000+
-  '08010_E_Asm: Immediate or refere','nce expected'#000+
+  '08010_E_Asm: Immediate or reference expected'#000+
   '08011_E_Asm: $1 value exc','eeds bounds $2'#000+
   '08012_E_Asm: Short jump is out of range $1'#000+
   '08013_E_Asm: Undefined label $1'#000+
   '08014_E_Asm: Comp type not supported for this target'#000+
   '08015_E_Asm: Extended type not supported for this target'#000+
-  '08','016_E_Asm: Duplicate label $1'#000+
+  '08016_E_Asm: Duplicate label $1'#000+
   '08017_E_','Asm: Redefined label $1'#000+
   '08018_E_Asm: First defined here'#000+
   '08019_E_Asm: Invalid register $1'#000+
@@ -883,8 +880,8 @@ const msgtxt : array[0..000251,1..240] of char=(
   '09021_E_resource compiler "$1" not found, switching to exter','nal mode'+
   #000+
   '09022_I_Compiling resource $1'#000+
-  '09023','_T_unit $1 can'#039't be statically linked, switching to smart l'+
-  'inking'#000+
+  '09023_T_unit $1 can'#039't be statically linked, switching to smart lin'+
+  'king'#000+
   '09024_T_unit $1 can'#039't be smart linked, switching to static linking'+
   #000+
   '09025_T_unit $1 can'#039't be shared linked, switching to static lin','k'+
@@ -901,7 +898,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '09129_F_Can'#039't open executable $1'#000+
   '09130_X_Size of Code: $1 bytes'#000+
   '09131_X_Size of i','nitialized data: $1 bytes'#000+
-  '09132_X_Size of un','initialized data: $1 bytes'#000+
+  '09132_X_Size of uninitialized data: $1 bytes'#000+
   '09133_X_Stack space reserved: $1 bytes'#000+
   '09134_X_Stack space committed: $1 bytes'#000+
   '09200_F_Executable image size is too big for $1 target.'#000+
@@ -916,14 +913,14 @@ const msgtxt : array[0..000251,1..240] of char=(
   '10006_U_PPU File too short'#000+
   '10007_U_PPU Invalid Header (no PPU at th','e begin)'#000+
   '10008_U_PPU Invalid Version $1'#000+
-  '1000','9_U_PPU is compiled for another processor'#000+
+  '10009_U_PPU is compiled for another processor'#000+
   '10010_U_PPU is compiled for another target'#000+
   '10011_U_PPU Source: $1'#000+
   '10012_U_Writing $1'#000+
   '10013_F_Can'#039't Write PPU-File'#000+
   '10014_F_Error reading PPU-File'#000+
   '10015_F_u','nexpected end of PPU-File'#000+
-  '10016_F_Invalid PP','U-File entry: $1'#000+
+  '10016_F_Invalid PPU-File entry: $1'#000+
   '10017_F_PPU Dbx count problem'#000+
   '10018_E_Illegal unit name: $1'#000+
   '10019_F_Too much units'#000+
@@ -935,7 +932,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '10025_W_Compiling the system unit requires the -Us switch'#000+
   '10026_F_There were $1 errors compiling module, stopping'#000,
   '10027_U_Load from $1 ($2) unit $3'#000+
-  '10028_U_Re','compiling $1, checksum changed for $2'#000+
+  '10028_U_Recompiling $1, checksum changed for $2'#000+
   '10029_U_Recompiling $1, source found only'#000+
   '10030_U_Recompiling unit, static lib is older than ppufile'#000+
   '10031_U_Recompiling unit, shared lib is older than ppufil','e'#000+
@@ -950,20 +947,20 @@ const msgtxt : array[0..000251,1..240] of char=(
   '10042_U_Trying to use a unit which was compiled with a different FPU m'+
   'ode'#000+
   '10043_U_Loading interface u','nits from $1'#000+
-  '10044_U_Loading implementation ','units from $1'#000+
+  '10044_U_Loading implementation units from $1'#000+
   '10045_U_Interface CRC changed for unit $1'#000+
   '10046_U_Implementation CRC changed for unit $1'#000+
   '10047_U_Finished compiling unit $1'#000+
   '10048_U_Adding dependency: $1 depends on $2'#000+
   '10049_U_No rel','oad, is caller: $1'#000+
-  '10050_U_No reload, alread','y in second compile: $1'#000+
+  '10050_U_No reload, already in second compile: $1'#000+
   '10051_U_Flag for reload: $1'#000+
   '10052_U_Forced reloading'#000+
   '10053_U_Previous state of $1: $2'#000+
   '10054_U_Already compiling $1, setting second compile'#000+
   '10055_U_Loading unit $1'#000+
   '10056_U_F','inished loading unit $1'#000+
-  '10057_U_Registering ','new unit $1'#000+
+  '10057_U_Registering new unit $1'#000+
   '10058_U_Re-resolving unit $1'#000+
   '10059_U_Skipping re-resolving unit $1, still loading used units'#000+
   '10060_U_Unloading resource unit $1 (not needed)'#000+
@@ -972,8 +969,8 @@ const msgtxt : array[0..000251,1..240] of char=(
   'e wpo feedback input file for this compilation invocation'#000+
   '10062_U_Indirect interface (objects/classes) CRC changed for unit $1'#000+
   '11000_O_$1 [option','s] <inputfile> [options]'#000+
-  '11001_W_Only one so','urce file supported, changing source file to comp'+
-  'ile from "$1" into "$2"'#000+
+  '11001_W_Only one source file supported, changing source file to compil'+
+  'e from "$1" into "$2"'#000+
   '11002_W_DEF file can be created only for OS/2'#000+
   '11003_E_nested response files are not supported'#000+
   '11004_F_No source file name i','n command line'#000+
@@ -984,8 +981,8 @@ const msgtxt : array[0..000251,1..240] of char=(
   '11009_F_Unable to open file $1'#000+
   '11010_D_Reading further options from $1'#000+
   '11011_W_Target is ','already set to: $1'#000+
-  '11012_W_Shared libs not s','upported on DOS platform, reverting to stat'+
-  'ic'#000+
+  '11012_W_Shared libs not supported on DOS platform, reverting to static'+
+  #000+
   '11013_F_In options file $1 at line $2 too many \var{\#IF(N)DEFs} encou'+
   'ntered'#000+
   '11014_F_In options file $1 at line $2 unexpected \var{\#ENDIFs} encoun'+
@@ -1001,7 +998,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '11022_W_"$1" assembler use forced'#000+
   '11026_T_Reading options from file $1'#000+
   '11027_','T_Reading options from environment $1'#000+
-  '11028_','D_Handling option "$1"'#000+
+  '11028_D_Handling option "$1"'#000+
   '11029_O_*** press enter ***'#000+
   '11030_H_Start of reading config file $1'#000+
   '11031_H_End of reading config file $1'#000+
@@ -1068,7 +1065,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '11023_Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPC'+
   'CPU'#010+
   'Copyright (c) 199','3-2011 by Florian Klaempfl and others'#000+
-  '11024_','Free Pascal Compiler version $FPCVERSION'#010+
+  '11024_Free Pascal Compiler version $FPCVERSION'#010+
   #010+
   'Compiler Date      : $FPCDATE'#010+
   'Compiler CPU Target: $FPCCPU'#010+
@@ -1080,7 +1077,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '  $INSTRUCTIONSETS'#010+
   #010+
   'Supported',' FPU instruction sets:'#010+
-  '  $FPUINSTRUCTIONSETS',#010+
+  '  $FPUINSTRUCTIONSETS'#010+
   #010+
   'Supported ABI targets:'#010+
   '  $ABITARGETS'#010+
@@ -1095,7 +1092,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   'Supported Microcontroller types:'#010+
   '  $CONTROLLERTY','PES'#010+
   #010+
-  'This program comes under the GNU Genera','l Public Licence'#010+
+  'This program comes under the GNU General Public Licence'#010+
   'For more information read COPYING.FPC'#010+
   #010+
   'Report bugs, suggestions, etc. to:'#010+
@@ -1119,13 +1116,13 @@ const msgtxt : array[0..000251,1..240] of char=(
   '3*2Anasmwin32_Win32 object file using Nasm'#010+
   '3*2Anasmwdosx_Win32/WDOSX object file using Nasm'#010+
   '3*2Awasm_O','bj file using Wasm (Watcom)'#010+
-  '3*2Anasmobj_Obj ','file using Nasm'#010+
+  '3*2Anasmobj_Obj file using Nasm'#010+
   '3*2Amasm_Obj file using Masm (Microsoft)'#010+
   '3*2Atasm_Obj file using Tasm (Borland)'#010+
   '3*2Aelf_ELF (Linux) using internal writer'#010+
   '3*2Acoff_COFF (Go32v2) using internal writer'#010+
   '3*2Apecoff_PE','-COFF (Win32) using internal writer'#010+
-  '4*2Aas_A','ssemble using GNU AS'#010+
+  '4*2Aas_Assemble using GNU AS'#010+
   '6*2Aas_Unix o-file using GNU AS'#010+
   '6*2Agas_GNU Motorola assembler'#010+
   '6*2Amit_MIT Syntax (old GAS)'#010+
@@ -1133,7 +1130,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   'A*2Aas_Assemble using GNU AS'#010+
   'P*2Aas_Assemble us','ing GNU AS'#010+
   'S*2Aas_Assemble using GNU AS'#010+
-  '**1b','_Generate browser info'#010+
+  '**1b_Generate browser info'#010+
   '**2bl_Generate local symbol info'#010+
   '**1B_Build all modules'#010+
   '**1C<x>_Code generation options:'#010+
@@ -1151,19 +1148,19 @@ const msgtxt : array[0..000251,1..240] of char=(
   '**2Ci_IO-checking'#010+
   '**2Cn_Omit linking stage'#010+
   '**2Co_Check ove','rflow of integer operations'#010+
-  '**2CO_Check for ','possible overflow of integer operations'#010+
+  '**2CO_Check for possible overflow of integer operations'#010+
   '**2Cp<x>_Select instruction set, see fpc -i for possible values'#010+
   '**2CP<x>=<y>_ packing settings'#010+
   '**3CPPACKSET=<y>_ <y> set allocation: 0, 1 or DEFAULT or NORM','AL, 2, '+
   '4 and 8'#010+
   '**2Cr_Range checking'#010+
-  '**2CR_Ve','rify object method call validity'#010+
+  '**2CR_Verify object method call validity'#010+
   '**2Cs<n>_Set stack checking size to <n>'#010+
   '**2Ct_Stack checking (for testing only, see manual)'#010+
   '**2CX_Create also smartlinked library'#010+
   '**1d<x>_Defines the symbol <x>'#010+
   '**','1D_Generate a DEF file'#010+
-  '**2Dd<x>_Set descript','ion to <x>'#010+
+  '**2Dd<x>_Set description to <x>'#010+
   '**2Dv<x>_Set DLL version to <x>'#010+
   '*O2Dw_PM application'#010+
   '**1e<x>_Set path to executable'#010+
@@ -1177,7 +1174,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '**2Fd_Disable the compiler'#039's internal directory cache'#010+
   '**2FD<x>_Set the directory where to search for compiler utiliti','es'#010+
   '**2Fe<x>_Redirect error output to <x>'#010+
-  '**2','Ff<x>_Add <x> to framework path (Darwin only)'#010+
+  '**2Ff<x>_Add <x> to framework path (Darwin only)'#010+
   '**2FE<x>_Set exe/unit output path to <x>'#010+
   '**2Fi<x>_Add <x> to include path'#010+
   '**2Fl<x>_Add <x> to library path'#010+
@@ -1194,7 +1191,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   'om <x>'#010+
   '*g1g_Generate debug information (default format for target)'#010+
   '*g2gc_Generate ch','ecks for pointers'#010+
-  '*g2gh_Use heaptrace unit (','for memory leak/corruption debugging)'#010+
+  '*g2gh_Use heaptrace unit (for memory leak/corruption debugging)'#010+
   '*g2gl_Use line info unit (show more info with backtraces)'#010+
   '*g2go<x>_Set debug information options'#010+
   '*g3godwarfsets_ Enable DWARF '#039'set'#039' type debug information (br',
@@ -1218,7 +1215,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '**2iSO_Return compiler OS'#010+
   '**2iSP_Return compiler host proc','essor'#010+
   '**2iTO_Return target OS'#010+
-  '**2iTP_Return ','target processor'#010+
+  '**2iTP_Return target processor'#010+
   '**1I<x>_Add <x> to include path'#010+
   '**1k<x>_Pass <x> to the linker'#010+
   '**1l_Write logo'#010+
@@ -1231,13 +1228,13 @@ const msgtxt : array[0..000251,1..240] of char=(
   '**1n_Do not read the default config files'#010+
   '**1N<x>_Node tree optimizations'#010+
   '**2Nu_Unroll loop','s'#010+
-  '**1o<x>_Change the name of the executable ','produced to <x>'#010+
+  '**1o<x>_Change the name of the executable produced to <x>'#010+
   '**1O<x>_Optimizations:'#010+
   '**2O-_Disable optimizations'#010+
   '**2O1_Level 1 optimizations (quick and debugger friendly)'#010+
   '**2O2_Level 2 optimizations (-O1 + quick optimizations)'#010+
   '**2O3_Level 3 o','ptimizations (-O2 + slow optimizations)'#010+
-  '**2O','a<x>=<y>_Set alignment'#010+
+  '**2Oa<x>=<y>_Set alignment'#010+
   '**2Oo[NO]<x>_Enable or disable optimizations, see fpc -i for possible '+
   'values'#010+
   '**2Op<x>_Set target cpu for optimizing, see fpc -i for possible values'+
@@ -1255,7 +1252,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '6*2RMOT_Read motorola style assembler'#010+
   '**1S<x>_Syntax options:'#010+
   '**2S2','_Same as -Mobjfpc'#010+
-  '**2Sc_Support operators li','ke C (*=,+=,/= and -=)'#010+
+  '**2Sc_Support operators like C (*=,+=,/= and -=)'#010+
   '**2Sa_Turn on assertions'#010+
   '**2Sd_Same as -Mdelphi'#010+
   '**2Se<x>_Error options. <x> is a combination of the following:'#010+
@@ -1272,27 +1269,27 @@ const msgtxt : array[0..000251,1..240] of char=(
   '**3SIcorba_CORBA compatible interface'#010+
   '**2Sm_Support macros like C ','(global)'#010+
   '**2So_Same as -Mtp'#010+
-  '**2Ss_Constructo','r name must be init (destructor must be done)'#010+
+  '**2Ss_Constructor name must be init (destructor must be done)'#010+
   '**2Sx_Enable exception keywords (default in Delphi/ObjFPC modes)'#010+
   '**2Sy_@<pointer> returns a typed pointer, same as $T+'#010+
   '**1s_Do not call assembler and ','linker'#010+
   '**2sh_Generate script to link on host'#010+
   '**2st_Generate script to link on target'#010+
-  '**2sr_Skip re','gister allocation phase (use with -alr)'#010+
+  '**2sr_Skip register allocation phase (use with -alr)'#010+
   '**1T<x>_Target operating system:'#010+
   '3*2Tdarwin_Darwin/Mac OS X'#010+
   '3*2Temx_OS/2 via EMX (including EMX/RSX ex','tender)'#010+
   '3*2Tfreebsd_FreeBSD'#010+
   '3*2Tgo32v2_Version 2 of DJ Delorie DOS extender'#010+
-  '3*2Tiphonesim_ iPhoneS','imulator from iOS SDK 3.2+ (older versions: -T'+
-  'darwin)'#010+
+  '3*2Tiphonesim_ iPhoneSimulator from iOS SDK 3.2+ (older versions: -Tda'+
+  'rwin)'#010+
   '3*2Tlinux_Linux'#010+
   '3*2Tnetbsd_NetBSD'#010+
   '3*2Tnetware_Novell Netware Module (clib)'#010+
   '3*2Tnetwlibc_','Novell Netware Module (libc)'#010+
   '3*2Topenbsd_OpenBSD'#010+
   '3*2Tos2_OS/2 / eComStation'#010+
-  '3*2Tsunos_SunOS/Solari','s'#010+
+  '3*2Tsunos_SunOS/Solaris'#010+
   '3*2Tsymbian_Symbian OS'#010+
   '3*2Tsolaris_Solaris'#010+
   '3*2Twatcom_Watcom compatible DOS extender'#010+
@@ -1301,7 +1298,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '3','*2Twince_Windows CE'#010+
   '4*2Tdarwin_Darwin/Mac OS X'#010+
   '4*2Tlinux_Linux'#010+
-  '4*2Twin64_Win64 (64 bit Windows sys','tems)'#010+
+  '4*2Twin64_Win64 (64 bit Windows systems)'#010+
   '6*2Tamiga_Commodore Amiga'#010+
   '6*2Tatari_Atari ST/STe/TT'#010+
   '6*2Tlinux_Linux'#010+
@@ -1312,7 +1309,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   'P*2Tamiga_AmigaOS'#010+
   'P*2Tdarwin_Darwin/Mac OS X'#010+
   'P*2Tlinux_Linux'#010+
-  'P*2Tmacos_Mac OS (c','lassic)'#010+
+  'P*2Tmacos_Mac OS (classic)'#010+
   'P*2Tmorphos_MorphOS'#010+
   'S*2Tsolaris_Solaris'#010+
   'S*2Tlinux_Linux'#010+
@@ -1325,7 +1322,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '**2*_e : Show errors (default)       0 : Sh','ow nothing (except errors'+
   ')'#010+
   '**2*_w : Show warnings               u : Show unit info'#010+
-  '**2*_n : Show n','otes                  t : Show tried/used files'#010+
+  '**2*_n : Show notes                  t : Show tried/used files'#010+
   '**2*_h : Show hints                  c : Show conditionals'#010+
   '**2*_i : Show general info         ','  d : Show debug info'#010+
   '**2*_l : Show linenumbers            r : Rhide/GCC compatibility mode'#010+
@@ -1360,7 +1357,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   'A*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)'#010+
   '3*2We_Use external resources (Darwin)'#010+
   '4*2We_Use',' external resources (Darwin)'#010+
-  'A*2We_Use external resources (Da','rwin)'#010+
+  'A*2We_Use external resources (Darwin)'#010+
   'P*2We_Use external resources (Darwin)'#010+
   'p*2We_Use external resources (Darwin)'#010+
   '3*2WF_Specify full-screen type application (EMX, OS/2)'#010+
@@ -1394,7 +1391,7 @@ const msgtxt : array[0..000251,1..240] of char=(
   '**2Xg_Create debuginfo in a se','parate file and add a debuglink sectio'+
   'n to executable'#010+
   '**2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)'#010+
-  '**2','Xi_Use internal linker'#010+
+  '**2Xi_Use internal linker'#010+
   '**2Xm_Generate link map'#010+
   '**2XM<x>_Set the name of the '#039'main'#039' program routine (default i'+
   's '#039'mai','n'#039')'#010+
