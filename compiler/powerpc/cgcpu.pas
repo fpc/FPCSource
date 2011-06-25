@@ -40,16 +40,16 @@ unit cgcpu;
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg: tregister); override;
 
-        procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: aint; reg: TRegister); override;
+        procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
 
         procedure a_op_const_reg_reg(list: TAsmList; op: TOpCg;
-          size: tcgsize; a: aint; src, dst: tregister); override;
+          size: tcgsize; a: tcgint; src, dst: tregister); override;
         procedure a_op_reg_reg_reg(list: TAsmList; op: TOpCg;
           size: tcgsize; src1, src2, dst: tregister); override;
 
         { move instructions }
-        procedure a_load_const_reg(list : TAsmList; size: tcgsize; a : aint;reg : tregister);override;
+        procedure a_load_const_reg(list : TAsmList; size: tcgsize; a : tcgint;reg : tregister);override;
         procedure a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);override;
         procedure a_load_reg_reg(list : TAsmList; fromsize, tosize : tcgsize;reg1,reg2 : tregister);override;
 
@@ -58,7 +58,7 @@ unit cgcpu;
         procedure a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize: tcgsize; const fromsreg, tosreg: tsubsetregister); override;
 
         {  comparison operations }
-        procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
+        procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
           l : tasmlabel);override;
         procedure a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
 
@@ -73,7 +73,7 @@ unit cgcpu;
         procedure g_save_registers(list:TAsmList); override;
         procedure g_restore_registers(list:TAsmList); override;
 
-        procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : aint);override;
+        procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);override;
 
         { find out whether a is of the form 11..00..11b or 00..11...00. If }
         { that's the case, we can use rlwinm to do an AND operation        }
@@ -86,7 +86,7 @@ unit cgcpu;
         (* NOT IN USE: *)
         procedure g_stackframe_entry_mac(list : TAsmList;localsize : longint);
         (* NOT IN USE: *)
-        procedure g_return_from_proc_mac(list : TAsmList;parasize : aint);
+        procedure g_return_from_proc_mac(list : TAsmList;parasize : tcgint);
 
         { clear out potential overflow bits from 8 or 16 bit operations  }
         { the upper 24/16 bits of a register after an operation          }
@@ -230,7 +230,7 @@ const
 
 {********************** load instructions ********************}
 
-     procedure tcgppc.a_load_const_reg(list : TAsmList; size: TCGSize; a : aint; reg : TRegister);
+     procedure tcgppc.a_load_const_reg(list : TAsmList; size: TCGSize; a : tcgint; reg : TRegister);
 
        begin
           if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
@@ -386,7 +386,7 @@ const
          end;
 
 
-     procedure tcgppc.a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: aint; reg: TRegister);
+     procedure tcgppc.a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister);
 
        begin
          a_op_const_reg_reg(list,op,size,a,reg,reg);
@@ -411,7 +411,7 @@ const
 
 
     procedure tcgppc.a_op_const_reg_reg(list: TAsmList; op: TOpCg;
-                       size: tcgsize; a: aint; src, dst: tregister);
+                       size: tcgsize; a: tcgint; src, dst: tregister);
       var
         l1,l2: longint;
         oplo, ophi: tasmop;
@@ -584,14 +584,14 @@ const
 	    begin
 	      if (not (size in [OS_32, OS_S32])) then begin
 	        internalerror(2008091307);
-	      end;    
+	      end;
 	      list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM, dst, src, a and 31, 0, 31));
 	    end;
 	  OP_ROR:
 	    begin
 	      if (not (size in [OS_32, OS_S32])) then begin
 		internalerror(2008091308);
-	      end;    
+	      end;
 	      list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM, dst, src, (32 - a) and 31, 0, 31));
 	    end
           else
@@ -656,7 +656,7 @@ const
 
 {*************** compare instructructions ****************}
 
-      procedure tcgppc.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
+      procedure tcgppc.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
         l : tasmlabel);
 
         var
@@ -1006,7 +1006,7 @@ const
          regcounter,firstregfpu,firstregint: TsuperRegister;
          href : treference;
          usesfpr,usesgpr,genret : boolean;
-         localsize: aint;
+         localsize: tcgint;
       begin
         { AltiVec context restore, not yet implemented !!! }
 
@@ -1129,7 +1129,7 @@ const
      var regcounter,firstregfpu,firstreggpr: TSuperRegister;
          usesfpr,usesgpr: boolean;
          href : treference;
-         offset: aint;
+         offset: tcgint;
          regcounter2, firstfpureg: Tsuperregister;
     begin
       usesfpr:=false;
@@ -1369,7 +1369,7 @@ const
           end;
       end;
 
-    procedure tcgppc.g_return_from_proc_mac(list : TAsmList;parasize : aint);
+    procedure tcgppc.g_return_from_proc_mac(list : TAsmList;parasize : tcgint);
  (* NOT IN USE *)
 
       var
@@ -1426,7 +1426,7 @@ const
     maxmoveunit = 4;
 {$endif use8byteconcatcopy}
 
-    procedure tcgppc.g_concatcopy(list : TAsmList;const source,dest : treference;len : aint);
+    procedure tcgppc.g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);
 
       var
         countreg: TRegister;
@@ -1742,8 +1742,8 @@ const
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
-              cg.a_op_const_reg_reg(list,op,OS_32,aint(value),regsrc.reglo,regdst.reglo);
-              cg.a_op_const_reg_reg(list,op,OS_32,aint(value shr 32),regsrc.reghi,
+              cg.a_op_const_reg_reg(list,op,OS_32,tcgint(value),regsrc.reglo,regdst.reglo);
+              cg.a_op_const_reg_reg(list,op,OS_32,tcgint(value shr 32),regsrc.reghi,
                 regdst.reghi);
             end;
           OP_ADD, OP_SUB:
@@ -1771,7 +1771,7 @@ const
                   else if ((value shr 32) = 0) then
                     begin
                       tmpreg := tcgppc(cg).rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
-                      cg.a_load_const_reg(list,OS_32,aint(value),tmpreg);
+                      cg.a_load_const_reg(list,OS_32,tcgint(value),tmpreg);
                       list.concat(taicpu.op_reg_reg_reg(ops[issub,2],
                         regdst.reglo,regsrc.reglo,tmpreg));
                       list.concat(taicpu.op_reg_reg(ops[issub,3],
@@ -1788,7 +1788,7 @@ const
               else
                 begin
                   cg.a_load_reg_reg(list,OS_INT,OS_INT,regsrc.reglo,regdst.reglo);
-                  cg.a_op_const_reg_reg(list,op,OS_32,aint(value shr 32),regsrc.reghi,
+                  cg.a_op_const_reg_reg(list,op,OS_32,tcgint(value shr 32),regsrc.reghi,
                     regdst.reghi);
                 end;
             end;
@@ -1803,5 +1803,5 @@ const
         cg := tcgppc.create;
         cg64 :=tcg64fppc.create;
       end;
-      
+
 end.

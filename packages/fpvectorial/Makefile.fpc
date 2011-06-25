@@ -15,7 +15,7 @@ units=fpvectbuildunit
 exampledirs=
 implicitunits= avisocncgcodereader avisocncgcodewriter avisozlib fpvectorial \
 	       fpvtocanvas  pdfvectorialreader pdfvrlexico pdfvrsemantico \
-	       pdfvrsintatico cdrvectorialreader svgvectorialwriter
+	       pdfvrsintatico cdrvectorialreader svgvectorialwriter epsvectorialreader fpvutils
 
 [compiler]
 includedir=src

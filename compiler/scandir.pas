@@ -1330,7 +1330,8 @@ unit scandir;
       begin
         current_scanner.skipspace;
         s:=current_scanner.readcomment;
-        UpdateAlignmentStr(s,current_settings.alignment);
+        if not(UpdateAlignmentStr(s,current_settings.alignment)) then
+          message(scanner_e_illegal_alignment_directive);
       end;
 
     procedure dir_codepage;

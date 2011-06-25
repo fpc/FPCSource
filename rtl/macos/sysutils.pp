@@ -93,7 +93,23 @@ begin
 end;
 
 
-Function FileCreate (Const FileName : String;Mode : Longint) : Longint;
+Function FileCreate (Const FileName : String;Rights : Longint) : Longint;
+
+Var LinuxFlags : longint;
+
+BEGIN
+  (* TODO fix
+  LinuxFlags:=0;
+  Case (Mode and 3) of
+    0 : LinuxFlags:=LinuxFlags or Open_RdOnly;
+    1 : LinuxFlags:=LinuxFlags or Open_WrOnly;
+    2 : LinuxFlags:=LinuxFlags or Open_RdWr;
+  end;
+  FileCreate:=fdOpen(FileName,LinuxFlags or Open_Creat or Open_Trunc);
+  *)
+end;
+
+Function FileCreate (Const FileName : String;ShareMode : Longint; Rights : Longint) : Longint;
 
 Var LinuxFlags : longint;
 

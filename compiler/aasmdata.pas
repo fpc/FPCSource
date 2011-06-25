@@ -71,8 +71,8 @@ interface
         al_end
       );
 
-      { Type of constant 'pools'. Currently contains only string types,
-        but may be extended with reals, sets, etc. }
+      { Type of constant 'pools'. Mostly for string types, but usable for
+        floating point and large set constants, too. }
       
       TConstPoolType = (
          sp_invalid,
@@ -87,7 +87,9 @@ interface
          sp_objcclassnames,
          sp_objcvarnames,
          sp_objcvartypes,
-         sp_objcprotocolrefs
+         sp_objcprotocolrefs,
+         sp_varsets,
+         sp_floats
       );
       
     const

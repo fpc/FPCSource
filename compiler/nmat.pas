@@ -111,7 +111,6 @@ implementation
 
     function tmoddivnode.simplify(forinline : boolean):tnode;
       var
-        t : tnode;
         rv,lv : tconstexprint;
       begin
         result:=nil;
@@ -143,12 +142,10 @@ implementation
 
             case nodetype of
               modn:
-                t:=create_simplified_ord_const(lv mod rv,resultdef,forinline);
+                result:=create_simplified_ord_const(lv mod rv,resultdef,forinline);
               divn:
-                t:=create_simplified_ord_const(lv div rv,resultdef,forinline);
+                result:=create_simplified_ord_const(lv div rv,resultdef,forinline);
             end;
-            result:=t;
-            exit;
          end;
       end;
 
@@ -460,8 +457,6 @@ implementation
  ****************************************************************************}
 
     function tshlshrnode.simplify(forinline : boolean):tnode;
-      var
-        t : tnode;
       begin
         result:=nil;
         { constant folding }
@@ -469,12 +464,10 @@ implementation
           begin
              case nodetype of
                 shrn:
-                  t:=create_simplified_ord_const(tordconstnode(left).value shr tordconstnode(right).value,resultdef,forinline);
+                  result:=create_simplified_ord_const(tordconstnode(left).value shr tordconstnode(right).value,resultdef,forinline);
                 shln:
-                  t:=create_simplified_ord_const(tordconstnode(left).value shl tordconstnode(right).value,resultdef,forinline);
+                  result:=create_simplified_ord_const(tordconstnode(left).value shl tordconstnode(right).value,resultdef,forinline);
              end;
-             result:=t;
-             exit;
           end;
 
       end;
@@ -483,6 +476,9 @@ implementation
     function tshlshrnode.pass_typecheck:tnode;
       var
          t : tnode;
+{$ifdef cpunodefaultint}
+         nd : tdef;
+{$endif cpunodefaultint}
       begin
          result:=nil;
          typecheckpass(left);
@@ -508,6 +504,14 @@ implementation
               exit;
            end;
 
+{$ifdef cpunodefaultint}
+         { for small cpus we use the smallest common type }
+         if (left.resultdef.typ=orddef) and (right.resultdef.typ=orddef) then
+           nd:=get_common_intdef(torddef(left.resultdef),torddef(right.resultdef),false)
+         else
+           nd:=s32inttype;
+{$endif cpunodefaultint}
+
          { calculations for ordinals < 32 bit have to be done in
            32 bit for backwards compatibility. That way 'shl 33' is
            the same as 'shl 1'. It's ugly but compatible with delphi/tp/gcc }
@@ -516,12 +520,26 @@ implementation
            begin
              { keep singness of orignal type }
              if is_signed(left.resultdef) then
+{$ifdef cpunodefaultint}
+               inserttypeconv(left,nd)
+{$else cpunodefaultint}
                inserttypeconv(left,s32inttype)
+{$endif cpunodefaultint}
              else
-               inserttypeconv(left,u32inttype);
+               begin
+{$ifdef cpunodefaultint}
+                 inserttypeconv(left,nd)
+{$else cpunodefaultint}
+                 inserttypeconv(left,u32inttype);
+{$endif cpunodefaultint}
+               end
            end;
 
+{$ifdef cpunodefaultint}
+         inserttypeconv(right,nd);
+{$else cpunodefaultint}
          inserttypeconv(right,sinttype);
+{$endif cpunodefaultint}
 
          resultdef:=left.resultdef;
       end;
@@ -533,11 +551,18 @@ implementation
         procname: string[31];
       begin
         result := nil;
+        { Normally already done below, but called again,
+          just in case it is called directly }
+        firstpass(left);
         { otherwise create a call to a helper }
-        if nodetype = shln then
-          procname := 'fpc_shl_int64'
+        if is_signed(left.resultdef) then
+          procname:='int64'
         else
-          procname := 'fpc_shr_int64';
+          procname:='qword';
+        if nodetype = shln then
+          procname := 'fpc_shl_'+procname
+        else
+          procname := 'fpc_shr_'+procname;
         { this order of parameters works at least for the arm,
           however it should work for any calling conventions (FK) }
         result := ccallnode.createintern(procname,ccallparanode.create(right,

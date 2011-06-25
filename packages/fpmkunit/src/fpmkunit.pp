@@ -69,7 +69,7 @@ Type
     linux,go32v2,win32,os2,freebsd,beos,netbsd,
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
     palmos,macos,darwin,emx,watcom,morphos,netwlibc,
-    win64,wince,gba,nds,embedded,symbian,haiku
+    win64,wince,gba,nds,embedded,symbian,haiku,iphonesim
   );
   TOSes = Set of TOS;
 
@@ -114,9 +114,11 @@ Const
 
   AllOSes = [Low(TOS)..High(TOS)];
   AllCPUs = [Low(TCPU)..High(TCPU)];
-  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku];
-  AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin];
+  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim];
+  AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim];
   AllWindowsOSes  = [Win32,Win64,WinCE];
+
+  AllSmartLinkLibraryOSes = [Linux]; // OSes that use .a library files for smart-linking
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
   OSCPUSupported : array[TOS,TCpu] of boolean = (
@@ -149,7 +151,8 @@ Const
     { nds    }  ( false, false, false, false, false, false, true,  false, false, false),
     { embedded }( false, true,  true,  true,  true,  true,  true,  true,  true,  true ),
     { symbian } ( false, true,  false, false, false, false, true,  false, false, false),
-    { haiku }   ( false, true,  false, false, false, false, false, false, false, false) 
+    { haiku }   ( false, true,  false, false, false, false, false, false, false, false),
+    { iphonesim}( false, true,  false, false, false, false, false, false, false, false)
   );
 
   // Useful
@@ -398,6 +401,7 @@ Type
   Protected
     Function GetSourceFileName : String; virtual;
     Function GetUnitFileName : String; virtual;
+    function GetUnitLibFileName: String; virtual;
     Function GetObjectFileName : String; virtual;
     Function GetRSTFileName : String; Virtual;
     Function GetProgramFileName(AOS : TOS) : String; Virtual;
@@ -421,6 +425,7 @@ Type
     Property Options : TStrings Read GetOptions Write SetOptions;
     Property SourceFileName: String Read GetSourceFileName ;
     Property UnitFileName : String Read GetUnitFileName;
+    Property UnitLibFileName : String Read GetUnitLibFileName;
     Property ObjectFileName : String Read GetObjectFileName;
     Property RSTFileName : String Read GetRSTFileName;
     Property FPCTarget : String Read FFPCTarget Write FFPCTarget;
@@ -572,6 +577,7 @@ Type
   Protected
     procedure SetName(const AValue: String);override;
     procedure LoadUnitConfigFromFile(Const AFileName: String);
+    procedure SaveUnitConfigToStringList(Const AStringList: TStrings;ACPU:TCPU;AOS:TOS); virtual;
     procedure SaveUnitConfigToFile(Const AFileName: String;ACPU:TCPU;AOS:TOS);
   Public
     constructor Create(ACollection: TCollection); override;
@@ -668,6 +674,7 @@ Type
     FBinInstallDir,
     FDocInstallDir,
     FExamplesInstallDir : String;
+    FRemoveDir: String;
     FRemove: String;
     FTarget: String;
     FUnixPaths: Boolean;
@@ -726,6 +733,7 @@ Type
     Property Copy : String Read FCopy Write FCopy;             // copy $(FILES) to $(DEST)
     Property Move : String Read FMove Write FMove;             // Move $(FILES) to $(DEST)
     Property Remove : String Read FRemove Write FRemove;       // Delete $(FILES)
+    Property RemoveDir : String Read FRemoveDir Write FRemoveDir;       // Delete $(FILES)
     Property MkDir : String Read FMkDir write FMkDir;          // Make $(DIRECTORY)
     Property Archive : String Read FArchive Write FArchive;    // zip $(ARCHIVE) $(FILESORDIRS)
     // Misc
@@ -781,6 +789,7 @@ Type
     Procedure SysCopyFile(Const Src,Dest : String); virtual;
     Procedure SysMoveFile(Const Src,Dest : String); virtual;
     Procedure SysDeleteFile(Const AFileName : String); virtual;
+    Procedure SysDeleteDirectory(Const ADirectoryName : String); virtual;
     Procedure SysArchiveFiles(List : TStrings; Const AFileName : String); virtual;
     procedure LogIndent;
     procedure LogUnIndent;
@@ -794,6 +803,7 @@ Type
     Procedure LogSearchPath(const ASearchPathName:string;Path:TConditionalStrings; ACPU:TCPU;AOS:TOS);
     Function FindFileInPath(Path:TConditionalStrings; AFileName:String; var FoundPath:String;ACPU:TCPU;AOS:TOS):Boolean;
 
+    procedure GetDirectoriesFromFilelist(const AFileList, ADirectoryList: TStringList);
     //package commands
     Procedure ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true);
     function  GetUnitDir(APackage:TPackage):String;
@@ -813,6 +823,7 @@ Type
     Procedure CmdDeleteFiles(List : TStrings);
     Procedure CmdArchiveFiles(List : TStrings; Const ArchiveFile : String);
     Procedure CmdRenameFile(SourceName, DestName : String);
+    Procedure CmdRemoveDirs(List: TStrings);
     Procedure ExecuteCommands(Commands : TCommands; At : TCommandAt);
     // Dependency commands
     Function  DependencyOK(ADependency : TDependency) : Boolean;
@@ -1027,6 +1038,7 @@ ResourceString
   SErrExternalCommandFailed = 'External command "%s" failed with exit code %d. Console output:'+LineEnding+'%s';
   SErrCreatingDirectory = 'Failed to create directory "%s"';
   SErrDeletingFile      = 'Failed to delete file "%s"';
+  SErrRemovingDirectory = 'Failed to remove directory "%s"';
   SErrMovingFile        = 'Failed to move file "%s" to "%s"';
   SErrCopyingFile       = 'Failed to copy file "%s" to "%s"';
   SErrChangeDirFailed   = 'Failed to enter directory "%s"';
@@ -1097,6 +1109,8 @@ ResourceString
   SDbgEnterDir              = 'Entering directory "%s"';
   SDbgPackageChecksumChanged = 'Dependent package %s is modified';
   SDbgFileDoesNotExist      = 'File "%s" does not exist';
+  SDbgDirectoryDoesNotExist = 'Directory "%s" does not exist';
+  SDbgDirectoryNotEmpty     = 'Directory "%s" is not empty. Will not remove';
 
   // Help messages for usage
   SValue              = 'Value';
@@ -1135,6 +1149,7 @@ Const
   KeyMkDir    = 'MkDir';
   KeyMove     = 'Move';
   KeyRemove   = 'Remove';
+  KeyRemoveDir= 'RemoveDir';
   KeyOptions  = 'Options';
   KeyCPU      = 'CPU';
   KeyOS       = 'OS';
@@ -1266,6 +1281,28 @@ begin
   end;
 end;
 {$endif HAS_UNIT_PROCESS}
+
+function IsDirectoryEmpty(const directory : string) : boolean;
+var
+  searchRec: TSearchRec;
+  SearchResult: longint;
+begin
+  result := true;
+  SearchResult := FindFirst(IncludeTrailingPathDelimiter(directory)+AllFilesMask, faAnyFile+faSymLink, searchRec);
+  try
+    while SearchResult=0 do
+      begin
+        if (searchRec.Name<>'.') and (searchRec.Name<>'..') then
+           begin
+             result := false;
+             break;
+           end;
+        SearchResult := FindNext(searchRec);
+      end;
+  finally
+    FindClose(searchRec);
+  end;
+end;
 
 function ParsecompilerOutput(M: TMemoryStream; Verbose: boolean): string;
 type
@@ -2547,54 +2584,59 @@ begin
   end;
 end;
 
-
-procedure TPackage.SaveUnitConfigToFile(Const AFileName: String;ACPU:TCPU;AOS:TOS);
+procedure TPackage.SaveUnitConfigToStringList(const AStringList: TStrings; ACPU: TCPU; AOS: TOS);
 Var
-  F : TFileStream;
-  L : TStringList;
   Deps : String;
   i : integer;
   D : TDependency;
   p : TPackage;
 begin
+  with AStringList do
+    begin
+      Values[KeyName]:=Name;
+      Values[KeyVersion]:=Version;
+      // TODO Generate checksum based on PPUs
+      Values[KeyChecksum]:=IntToStr(DateTimeToFileDate(Now));
+      Values[KeyCPU]:=CPUToString(ACPU);
+      Values[KeyOS]:=OSToString(AOS);
+      //Installer;
+      Values[KeySourcePath]:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(Installer.BuildEngine.FStartDir)+Directory);
+      Values[KeyFPMakeOptions]:=trim(Installer.FPMakeOptionsString);
+      Deps:='';
+      for i:=0 to Dependencies.Count-1 do
+        begin
+          D:=Dependencies[i];
+          if (ACPU in D.CPUs) and (AOS in D.OSes) then
+            begin
+              if Deps<>'' then
+                Deps:=Deps+',';
+              Deps:=Deps+D.Value;
+              P:=TPackage(D.Target);
+              if assigned(P) and (P.InstalledChecksum<>$ffffffff) then
+                Deps:=Deps+'|'+IntToStr(P.InstalledChecksum);
+            end;
+        end;
+      Values[KeyDepends]:=Deps;
+      if NeedLibC then
+        Values[KeyNeedLibC]:='Y'
+      else
+        Values[KeyNeedLibC]:='N';
+      if IsFPMakeAddIn then
+        Values[KeyAddIn]:='Y'
+      else
+        Values[KeyAddIn]:='N';
+    end;
+end;
+
+procedure TPackage.SaveUnitConfigToFile(Const AFileName: String;ACPU:TCPU;AOS:TOS);
+Var
+  F : TFileStream;
+  L : TStringList;
+begin
   F:=TFileStream.Create(AFileName,fmCreate);
   L:=TStringList.Create;
   try
-    With L do
-      begin
-        Values[KeyName]:=Name;
-        Values[KeyVersion]:=Version;
-        // TODO Generate checksum based on PPUs
-        Values[KeyChecksum]:=IntToStr(DateTimeToFileDate(Now));
-        Values[KeyCPU]:=CPUToString(ACPU);
-        Values[KeyOS]:=OSToString(AOS);
-        //Installer;
-        Values[KeySourcePath]:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(Installer.BuildEngine.FStartDir)+Directory);
-        Values[KeyFPMakeOptions]:=trim(Installer.FPMakeOptionsString);
-        Deps:='';
-        for i:=0 to Dependencies.Count-1 do
-          begin
-            D:=Dependencies[i];
-            if (ACPU in D.CPUs) and (AOS in D.OSes) then
-              begin
-                if Deps<>'' then
-                  Deps:=Deps+',';
-                Deps:=Deps+D.Value;
-                P:=TPackage(D.Target);
-                if assigned(P) and (P.InstalledChecksum<>$ffffffff) then
-                  Deps:=Deps+'|'+IntToStr(P.InstalledChecksum);
-              end;
-          end;
-        Values[KeyDepends]:=Deps;
-        if NeedLibC then
-          Values[KeyNeedLibC]:='Y'
-        else
-          Values[KeyNeedLibC]:='N';
-        if IsFPMakeAddIn then
-          Values[KeyAddIn]:='Y'
-        else
-          Values[KeyAddIn]:='N';
-      end;
+    SaveUnitConfigToStringList(L,ACPU,AOS);
     L.SaveToStream(F);
   Finally
     L.Free;
@@ -2968,6 +3010,7 @@ begin
       Values[KeyDocInstallDir]:=FDocInstallDir;
       Values[KeyExamplesInstallDir]:=FExamplesInstallDir;
       Values[KeyRemove]:=FRemove;
+      Values[KeyRemoveDir]:=FRemoveDir;
       Values[KeyTarget]:=FTarget;
       if FNoFPCCfg then
         Values[KeyNoFPCCfg]:='Y';
@@ -3007,6 +3050,7 @@ begin
       FMkDir:=Values[KeyMkDir];
       FMove:=Values[KeyMove];
       FRemove:=Values[KeyRemove];
+      FRemoveDir:=Values[KeyRemoveDir];
       Options:=OptionsToStringList(Values[KeyOptions]);
       Line:=Values[KeyCPU];
       If (Line<>'') then
@@ -3616,6 +3660,16 @@ begin
     Error(SErrDeletingFile,[AFileName]);
 end;
 
+procedure TBuildEngine.SysDeleteDirectory(const ADirectoryName: String);
+begin
+  if not DirectoryExists(ADirectoryName) then
+    Log(vldebug,SDbgDirectoryDoesNotExist,[ADirectoryName])
+  else if not IsDirectoryEmpty(ADirectoryName) then
+    Log(vldebug,SDbgDirectoryNotEmpty,[ADirectoryName])
+  else If Not RemoveDir(ADirectoryName) then
+    Error(SErrRemovingDirectory,[ADirectoryName]);
+end;
+
 
 procedure TBuildEngine.SysArchiveFiles(List: TStrings;Const AFileName: String);
 begin
@@ -3777,6 +3831,21 @@ begin
     SysMoveFile(SourceName,DestName);
 end;
 
+procedure TBuildEngine.CmdRemoveDirs(List: TStrings);
+Var
+  Args : String;
+  I : Integer;
+begin
+  If (Defaults.RemoveDir<>'') then
+    begin
+      Args:=FileListToString(List,'');
+      ExecuteCommand(Defaults.RemoveDir,Args);
+    end
+  else
+    For I:=0 to List.Count-1 do
+      SysDeleteDirectory(List[i]);
+end;
+
 Function TBuildEngine.FileNewer(const Src,Dest : String) : Boolean;
 
 Var
@@ -3869,6 +3938,16 @@ begin
         end;
     end;
   FoundPath:='';
+end;
+
+procedure TBuildEngine.GetDirectoriesFromFilelist(const AFileList, ADirectoryList: TStringList);
+var
+  i: integer;
+begin
+  ADirectoryList.Sorted:=true;
+  ADirectoryList.Duplicates:=dupIgnore;
+  for i := 0 to AFileList.Count-1 do
+    ADirectoryList.Add(ExtractFileDir(AFileList.Strings[i]));
 end;
 
 
@@ -4872,6 +4951,7 @@ end;
 procedure TBuildEngine.Clean(APackage: TPackage);
 Var
   List : TStringList;
+  DirectoryList : TStringList;
 begin
   Log(vlInfo,SInfoCleaningPackage,[APackage.Name]);
   try
@@ -4882,7 +4962,30 @@ begin
     try
       APackage.GetCleanFiles(List,Defaults.CPU,Defaults.OS);
       if (List.Count>0) then
+        begin
         CmdDeleteFiles(List);
+        DirectoryList := TStringList.Create;
+        try
+          GetDirectoriesFromFilelist(List,DirectoryList);
+          CmdRemoveDirs(DirectoryList);
+
+          DirectoryList.Clear;
+          if DirectoryExists(APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)) then
+            DirectoryList.Add(APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS));
+          if DirectoryExists(APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)) then
+            DirectoryList.Add(APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS));
+          CmdRemoveDirs(DirectoryList);
+
+          DirectoryList.Clear;
+          if DirectoryExists(ExtractFileDir(APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS))) then
+            DirectoryList.Add(ExtractFileDir(APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)));
+          if DirectoryExists(ExtractFileDir(APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS))) then
+            DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)));
+          CmdRemoveDirs(DirectoryList);
+        finally
+          DirectoryList.Free;
+        end;
+        end;
     Finally
       List.Free;
     end;
@@ -5152,6 +5255,11 @@ begin
   Result:=FOptions;
 end;
 
+function TTarget.GetUnitLibFileName: String;
+begin
+  Result:='libp'+Name+LibExt;
+end;
+
 procedure TTarget.SetOptions(const AValue: TStrings);
 begin
   If (AValue=Nil) or (AValue.Count=0) then
@@ -5231,7 +5339,11 @@ begin
     exit;
   List.Add(APrefixU + ObjectFileName);
   If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit, ttCleanOnlyUnit]) then
-    List.Add(APrefixU + UnitFileName)
+    begin
+      List.Add(APrefixU + UnitFileName);
+      if (AOS in AllSmartLinkLibraryOSes) and FileExists(APrefixU + UnitLibFileName) then
+        List.Add(APrefixU + UnitLibFileName);
+    end
   else If (TargetType in [ttProgram,ttExampleProgram]) then
     List.Add(APrefixB + GetProgramFileName(AOS));
   If ResourceStrings then
@@ -5247,7 +5359,11 @@ begin
   If Not (TargetType in [ttProgram,ttExampleProgram]) then
     List.Add(APrefixU + ObjectFileName);
   If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit]) then
-    List.Add(APrefixU + UnitFileName)
+    begin
+    List.Add(APrefixU + UnitFileName);
+    if (AOS in AllSmartLinkLibraryOSes) and FileExists(APrefixU + UnitLibFileName) then
+      List.Add(APrefixU + UnitLibFileName);
+    end
   else If (TargetType in [ttProgram,ttExampleProgram]) then
     List.Add(APrefixB + GetProgramFileName(AOS));
   If ResourceStrings then

@@ -159,8 +159,6 @@ interface
 
     function getprocalign : shortint;
 
-    procedure gen_pic_helpers(list : TAsmList);
-
     procedure gen_fpc_dummy(list : TAsmList);
 
     procedure InsertInterruptTable;
@@ -493,11 +491,18 @@ implementation
               { load a smaller size to OS_64 }
               if l.loc=LOC_REGISTER then
                begin
+{$ifdef AVR}
+                 { on avr, we cannot change the size of a register
+                   due to the nature how register with size > OS8 are handled
+                 }
+                 hregister:=cg.getintregister(list,OS_32);
+{$else AVR}
                  hregister:=cg.makeregsize(list,l.register64.reglo,OS_32);
+{$endif AVR}
                  cg.a_load_reg_reg(list,l.size,OS_32,l.register64.reglo,hregister);
                end
               else
-               hregister:=cg.getintregister(list,OS_INT);
+               hregister:=cg.getintregister(list,OS_32);
               { load value in low register }
               case l.loc of
 {$ifdef cpuflags}
@@ -518,7 +523,7 @@ implementation
                   cg.a_load_loc_reg(list,OS_INT,l,hregister);
               end;
               { reset hi part, take care of the signed bit of the current value }
-              hregisterhi:=cg.getintregister(list,OS_INT);
+              hregisterhi:=cg.getintregister(list,OS_32);
               if (l.size in [OS_S8,OS_S16,OS_S32]) then
                begin
                  if l.loc=LOC_CONSTANT then
@@ -551,8 +556,8 @@ implementation
                end
               else
                begin
-                 hregister:=cg.getintregister(list,OS_INT);
-                 hregisterhi:=cg.getintregister(list,OS_INT);
+                 hregister:=cg.getintregister(list,OS_32);
+                 hregisterhi:=cg.getintregister(list,OS_32);
                  const_location := false;
                end;
               hreg64.reglo:=hregister;
@@ -622,8 +627,8 @@ implementation
                         l.reference.alignment:=newalignment(l.reference.alignment,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
                       end;
 {$ifdef x86}
-                  if not (l.loc in [LOC_SUBSETREG,LOC_CSUBSETREG]) then
-                     l.size:=dst_size;
+                    if not (l.loc in [LOC_SUBSETREG,LOC_CSUBSETREG]) then
+                      l.size:=dst_size;
 {$endif x86}
                   end;
                  cg.a_load_loc_reg(list,dst_size,l,hregister);
@@ -2531,7 +2536,7 @@ implementation
         if sym.section<>'' then
           new_section(list,sec_user,sym.section,varalign)
         else
-         new_section(list,sectype,lower(sym.mangledname),varalign);
+          new_section(list,sectype,lower(sym.mangledname),varalign);
         if (sym.owner.symtabletype=globalsymtable) or
            create_smartlink or
            DLLSource or
@@ -3098,36 +3103,6 @@ implementation
       end;
 
 
-    procedure gen_pic_helpers(list : TAsmList);
-{$ifdef i386}
-      var
-        href : treference;
-{$endif i386}
-      begin
-        { if other cpus require such helpers as well, it can be solved more cleanly }
-{$ifdef i386}
-        if current_module.requires_ebx_pic_helper then
-          begin
-            new_section(list,sec_code,'fpc_geteipasebx',0);
-            list.concat(tai_symbol.Createname('fpc_geteipasebx',AT_FUNCTION,getprocalign));
-            reference_reset(href,sizeof(pint));
-            href.base:=NR_ESP;
-            list.concat(taicpu.op_ref_reg(A_MOV,S_L,href,NR_EBX));
-            list.concat(taicpu.op_none(A_RET,S_NO));
-          end;
-        if current_module.requires_ecx_pic_helper then
-          begin
-            new_section(list,sec_code,'fpc_geteipasecx',0);
-            list.concat(tai_symbol.Createname('fpc_geteipasecx',AT_FUNCTION,getprocalign));
-            reference_reset(href,sizeof(pint));
-            href.base:=NR_ESP;
-            list.concat(taicpu.op_ref_reg(A_MOV,S_L,href,NR_ECX));
-            list.concat(taicpu.op_none(A_RET,S_NO));
-          end;
-{$endif i386}
-      end;
-
-
     procedure gen_fpc_dummy(list : TAsmList);
       begin
 {$ifdef i386}
@@ -3141,8 +3116,10 @@ implementation
     procedure InsertInterruptTable;
 
       procedure WriteVector(const name: string);
+{$IFDEF arm}
         var
           ai: taicpu;
+{$ENDIF arm}
         begin
 {$IFDEF arm}
           if current_settings.cputype in [cpu_armv7m, cpu_cortexm3] then

@@ -63,10 +63,11 @@ Type
   Protected
     procedure SetContentProducer(const AValue: THTTPContentProducer);virtual;
     Function  GetDisplayName : String; override;
-    Function  GetNamePath : String; override;
     Procedure SetDisplayName(const AValue : String); override;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean);
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean); virtual;
+  Public
+    Function  GetNamePath : String; override;
   published
     Property Name : String Read GetDisplayName Write SetDisplayName;
     Property ContentProducer : THTTPContentProducer Read FContentproducer Write SetContentProducer;
@@ -112,8 +113,69 @@ Type
     property Kind: TWebModuleKind read FWebModuleKind write FWebModuleKind default wkPooled;
     Property BaseURL : String Read FBaseURL Write FBaseURL;
   end;
-  
   TCustomHTTPModuleClass = Class of TCustomHTTPModule;
+
+  { TSessionHTTPModule }
+
+  TSessionHTTPModule = Class(TCustomHTTPModule)
+  Private
+    FCreateSession : Boolean;
+    FOnNewSession: TNotifyEvent;
+    FOnSessionExpired: TNotifyEvent;
+    FSession: TCustomSession;
+    FSessionRequest : TRequest;
+    function GetSession: TCustomSession;
+    procedure SetSession(const AValue: TCustomSession);
+  Protected
+    Procedure CheckSession(ARequest : TRequest);
+    Procedure InitSession(AResponse : TResponse);
+    Procedure UpdateSession(AResponse : TResponse);
+    Procedure DoneSession; virtual;
+  Public
+    destructor destroy; override;
+    Procedure Notification(AComponent : TComponent;Operation : TOperation); override;
+    Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
+    Property CreateSession : Boolean Read FCreateSession Write FCreateSession;
+    Property Session : TCustomSession Read GetSession Write SetSession;
+    Property OnNewSession : TNotifyEvent Read FOnNewSession Write FOnNewSession;
+    Property OnSessionExpired : TNotifyEvent Read FOnSessionExpired Write FOnSessionExpired;
+  end;
+  TSessionHTTPModuleClass = Class of TSessionHTTPModule;
+
+  EWebSessionError = Class(HTTPError);
+
+  { TSessionFactory }
+
+  TSessionFactory = Class(TComponent)
+  private
+    FSessionCookie: String;
+    FSessionCookiePath: String;
+    FTimeOut: Integer;
+    FCleanupInterval: Integer;
+    FDoneCount: Integer;
+  protected
+    // Override in descendants
+    Function DoCreateSession(ARequest : TRequest) : TCustomSession; virtual; abstract;
+    Procedure DoDoneSession(Var ASession : TCustomSession); virtual; abstract;
+    Procedure DoCleanupSessions; virtual; abstract;
+    Property DoneCount : Integer Read FDoneCount;
+  Public
+    Function CreateSession(ARequest : TRequest) : TCustomSession;
+    Procedure DoneSession(Var ASession : TCustomSession);
+    Procedure CleanupSessions;
+    // Number of requests before sweeping sessions for stale sessions.
+    // Default 1000. Set to 0 to disable.
+    // Note that for cgi programs, this will never happen, since the count is reset to 0
+    // with each invocation. It takes a special factory to handle that, or a value of 1.
+    Property CleanupInterval : Integer read FCleanupInterval Write FCleanUpInterval;
+    // Default timeout for sessions, in minutes.
+    Property DefaultTimeOutMinutes : Integer Read FTimeOut Write FTimeOut;
+    // Default session cookie.
+    property SessionCookie : String Read FSessionCookie Write FSessionCookie;
+    // Default session cookie path
+    Property SessionCookiePath : String Read FSessionCookiePath write FSessionCookiePath;
+  end;
+  TSessionFactoryClass = Class of TSessionFactory;
 
   { TModuleItem }
 
@@ -148,7 +210,10 @@ Procedure RegisterHTTPModule(Const ModuleName : String; ModuleClass : TCustomHTT
 
 Var
   ModuleFactory : TModuleFactory;
-  
+  SessionFactoryClass : TSessionFactoryClass = nil;
+
+Function SessionFactory : TSessionFactory;
+
 Resourcestring
   SErrNosuchModule = 'No such module registered: "%s"';
   SErrNoSuchAction = 'No action found for action: "%s"';
@@ -156,13 +221,59 @@ Resourcestring
   SErrNoDefaultAction = 'No action name and no default action';
   SErrInvActNoDefaultAction = 'Invalid action name and no default action';
   SErrRequestNotHandled = 'Web request was not handled by actions.';
-
+  SErrNoSessionFactoryClass = 'No session manager class available. Include iniwebsession unit and recompile.';
+  SErrNoSessionOutsideRequest = 'Default session not available outside handlerequest';
 Implementation
 
 {$ifdef cgidebug}
 uses dbugintf;
 {$endif}
 
+Var
+  GSM : TSessionFactory;
+
+Function SessionFactory : TSessionFactory;
+
+begin
+  if GSM=Nil then
+    begin
+    if (SessionFactoryClass=Nil) then
+      Raise EFPHTTPError.Create(SErrNoSessionFactoryClass);
+    GSM:=SessionFactoryClass.Create(Nil)
+    end;
+  Result:=GSM;
+end;
+
+{ TSessionFactory }
+
+function TSessionFactory.CreateSession(ARequest: TRequest): TCustomSession;
+begin
+  Result:=DoCreateSession(ARequest);
+  if Assigned(Result) then
+    begin
+    if (FTimeOut<>0) then
+      Result.TimeoutMinutes:=FTimeOut;
+    Result.SessionCookie:=Self.SessionCookie;
+    Result.SessionCookiePath:=Self.SessionCookiePath;
+    end;
+end;
+
+procedure TSessionFactory.DoneSession(var ASession: TCustomSession);
+begin
+  DoDoneSession(ASession);
+  if (FCleanupInterval>0) then
+    begin
+    Inc(FDoneCount);
+    If (FDoneCount>=FCleanupInterval) then
+      CleanupSessions;
+    end;
+end;
+
+procedure TSessionFactory.CleanupSessions;
+begin
+  FDoneCount:=0;
+  DoCleanupSessions;
+end;
 
 { TModuleFactory }
 
@@ -207,7 +318,7 @@ end;
 
 procedure RegisterHTTPModule(ModuleClass: TCustomHTTPModuleClass; SkipStreaming : Boolean = False);
 begin
-  RegisterHTTPModule(ModuleClass.ClassName,ModuleClass);
+  RegisterHTTPModule(ModuleClass.ClassName,ModuleClass,SkipStreaming);
 end;
 
 procedure RegisterHTTPModule(const ModuleName: String;
@@ -464,9 +575,108 @@ begin
     Dec(Result);
 end;
 
+function TSessionHTTPModule.GetSession: TCustomSession;
+begin
+{$ifdef cgidebug}SendMethodEnter('SessionHTTPModule.GetSession');{$endif}
+  If (csDesigning in ComponentState) then
+    begin
+{$ifdef cgidebug}SendDebug('Sending session');{$endif}
+    Result:=FSession
+    end
+  else
+    begin
+    If (FSession=Nil) then
+      begin
+{$ifdef cgidebug}SendDebug('Getting default session');{$endif}
+      if (FSessionRequest=Nil) then
+        Raise EFPHTTPError.Create(SErrNoSessionOutsideRequest);
+      FSession:=SessionFactory.CreateSession(FSessionRequest);
+      FSession.FreeNotification(Self);
+      end;
+    Result:=FSession
+    end;
+{$ifdef cgidebug}SendMethodExit('SessionHTTPModule.GetSession');{$endif}
+end;
+
+procedure TSessionHTTPModule.SetSession(const AValue: TCustomSession);
+
+begin
+  if FSession<>AValue then
+    begin
+    If Assigned(FSession) then
+      FSession.RemoveFreeNotification(Self);
+    FSession:=AValue;
+    If Assigned(FSession) then
+      FSession.FreeNotification(Self);
+    end;
+end;
+
+procedure TSessionHTTPModule.CheckSession(ARequest : TRequest);
+
+begin
+{$ifdef cgidebug}SendMethodEnter('SessionHTTPModule('+Name+').CheckSession');{$endif}
+  If CreateSession then
+    begin
+    If (FSession=Nil) then
+      FSession:=SessionFactory.CreateSession(ARequest);
+    if Assigned(FSession) then
+      FSession.InitSession(ARequest,FOnNewSession,FOnSessionExpired);
+    end;
+{$ifdef cgidebug}SendMethodExit('SessionHTTPModule('+Name+').CheckSession');{$endif}
+end;
+
+procedure TSessionHTTPModule.InitSession(AResponse: TResponse);
+begin
+{$ifdef cgidebug}SendMethodEnter('SessionHTTPModule('+Name+').InitSession');{$endif}
+  If CreateSession and Assigned(FSession) then
+    FSession.InitResponse(AResponse);
+{$ifdef cgidebug}SendMethodExit('SessionHTTPModule('+Name+').InitSession');{$endif}
+end;
+
+procedure TSessionHTTPModule.UpdateSession(AResponse: TResponse);
+begin
+  If CreateSession And Assigned(FSession) then
+    FSession.UpdateResponse(AResponse);
+end;
+
+procedure TSessionHTTPModule.DoneSession;
+begin
+  // Session manager may or may not destroy the session.
+  // Check if we actually have
+  if Assigned(FSession) then
+    SessionFactory.DoneSession(FSession);
+  // In each case, our reference is no longer valid.
+  FSession:=Nil;
+end;
+
+destructor TSessionHTTPModule.destroy;
+begin
+  // Prevent memory leaks.
+  DoneSession;
+  inherited destroy;
+end;
+
+procedure TSessionHTTPModule.Notification(AComponent: TComponent;
+  Operation: TOperation);
+begin
+{$ifdef cgidebug}SendMethodEnter('SessionHTTPModule('+Name+').Notification');{$endif}
+  inherited Notification(AComponent, Operation);
+  If (Operation=opRemove) then
+    if (AComponent=FSession) Then
+      FSession:=Nil;
+{$ifdef cgidebug}SendMethodExit('SessionHTTPModule('+Name+').Notification');{$endif}
+end;
+
+procedure TSessionHTTPModule.HandleRequest(ARequest: TRequest;
+  AResponse: TResponse);
+begin
+  FSessionRequest:=ARequest;
+end;
+
 Initialization
   ModuleFactory:=TModuleFactory.Create(TModuleItem);
 
 Finalization
   FreeAndNil(ModuleFactory);
+  FreeAndNil(GSM);
 end.

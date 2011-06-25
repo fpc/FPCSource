@@ -9020,7 +9020,7 @@ asm
         MOV     EAX, FS:[024]   // was zero        
 {$endif cpu386}
 {$ifdef cpux86_64}
-        movq     RAX, GS:[48]
+        mov     RAX, GS:[48]
 {$endif cpux86_64}
 end;
 {$ENDIF JWA_INCLUDEMODE}

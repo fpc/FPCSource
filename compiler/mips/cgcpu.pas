@@ -44,10 +44,10 @@ type
     procedure make_simple_ref_fpu(list: tasmlist; var ref: treference);
     procedure handle_load_store(list: tasmlist; isstore: boolean; op: tasmop; reg: tregister; ref: treference);
     procedure handle_load_store_fpu(list: tasmlist; isstore: boolean; op: tasmop; reg: tregister; ref: treference);
-    procedure handle_reg_const_reg(list: tasmlist; op: Tasmop; src: tregister; a: aint; dst: tregister);
+    procedure handle_reg_const_reg(list: tasmlist; op: Tasmop; src: tregister; a: tcgint; dst: tregister);
 
     { parameter }
-    procedure a_load_const_cgpara(list: tasmlist; size: tcgsize; a: aint; const paraloc: TCGPara); override;
+    procedure a_load_const_cgpara(list: tasmlist; size: tcgsize; a: tcgint; const paraloc: TCGPara); override;
     procedure a_load_ref_cgpara(list: tasmlist; sz: tcgsize; const r: TReference; const paraloc: TCGPara); override;
     procedure a_loadaddr_ref_cgpara(list: tasmlist; const r: TReference; const paraloc: TCGPara); override;
     procedure a_loadfpu_reg_cgpara(list: tasmlist; size: tcgsize; const r: tregister; const paraloc: TCGPara); override;
@@ -55,15 +55,15 @@ type
     procedure a_call_name(list: tasmlist; const s: string; weak : boolean); override;
     procedure a_call_reg(list: tasmlist; Reg: TRegister); override;
     { General purpose instructions }
-    procedure a_op_const_reg(list: tasmlist; Op: TOpCG; size: tcgsize; a: aint; reg: TRegister); override;
+    procedure a_op_const_reg(list: tasmlist; Op: TOpCG; size: tcgsize; a: tcgint; reg: TRegister); override;
     procedure a_op_reg_reg(list: tasmlist; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
-    procedure a_op_const_reg_reg(list: tasmlist; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister); override;
+    procedure a_op_const_reg_reg(list: tasmlist; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister); override;
     procedure a_op_reg_reg_reg(list: tasmlist; op: TOpCg; size: tcgsize; src1, src2, dst: tregister); override;
-    procedure a_op_const_reg_reg_checkoverflow(list: tasmlist; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister; setflags: boolean; var ovloc: tlocation); override;
+    procedure a_op_const_reg_reg_checkoverflow(list: tasmlist; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister; setflags: boolean; var ovloc: tlocation); override;
     procedure a_op_reg_reg_reg_checkoverflow(list: tasmlist; op: TOpCg; size: tcgsize; src1, src2, dst: tregister; setflags: boolean; var ovloc: tlocation); override;
     { move instructions }
-    procedure a_load_const_reg(list: tasmlist; size: tcgsize; a: aint; reg: tregister); override;
-    procedure a_load_const_ref(list: tasmlist; size: tcgsize; a: aint; const ref: TReference); override;
+    procedure a_load_const_reg(list: tasmlist; size: tcgsize; a: tcgint; reg: tregister); override;
+    procedure a_load_const_ref(list: tasmlist; size: tcgsize; a: tcgint; const ref: TReference); override;
     procedure a_load_reg_ref(list: tasmlist; FromSize, ToSize: TCgSize; reg: TRegister; const ref: TReference); override;
     procedure a_load_ref_reg(list: tasmlist; FromSize, ToSize: TCgSize; const ref: TReference; reg: tregister); override;
     procedure a_load_reg_reg(list: tasmlist; FromSize, ToSize: TCgSize; reg1, reg2: tregister); override;
@@ -73,7 +73,7 @@ type
     procedure a_loadfpu_ref_reg(list: tasmlist; fromsize, tosize: tcgsize; const ref: TReference; reg: tregister); override;
     procedure a_loadfpu_reg_ref(list: tasmlist; fromsize, tosize: tcgsize; reg: tregister; const ref: TReference); override;
     { comparison operations }
-    procedure a_cmp_const_reg_label(list: tasmlist; size: tcgsize; cmp_op: topcmp; a: aint; reg: tregister; l: tasmlabel); override;
+    procedure a_cmp_const_reg_label(list: tasmlist; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel); override;
     procedure a_cmp_reg_reg_label(list: tasmlist; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel); override;
     procedure a_jmp_always(List: tasmlist; l: TAsmLabel); override;
     procedure a_jmp_name(list: tasmlist; const s: string); override;
@@ -82,9 +82,9 @@ type
     procedure g_overflowCheck_loc(List: tasmlist; const Loc: TLocation; def: TDef; ovloc: tlocation); override;
     procedure g_proc_entry(list: tasmlist; localsize: longint; nostackframe: boolean); override;
     procedure g_proc_exit(list: tasmlist; parasize: longint; nostackframe: boolean); override;
-    procedure g_concatcopy(list: tasmlist; const Source, dest: treference; len: aint); override;
-    procedure g_concatcopy_unaligned(list: tasmlist; const Source, dest: treference; len: aint); override;
-    procedure g_concatcopy_move(list: tasmlist; const Source, dest: treference; len: aint);
+    procedure g_concatcopy(list: tasmlist; const Source, dest: treference; len: tcgint); override;
+    procedure g_concatcopy_unaligned(list: tasmlist; const Source, dest: treference; len: tcgint); override;
+    procedure g_concatcopy_move(list: tasmlist; const Source, dest: treference; len: tcgint);
     procedure g_intf_wrapper(list: tasmlist; procdef: tprocdef; const labelname: string; ioffset: longint); override;
   end;
 
@@ -474,7 +474,7 @@ begin
 end;
 
 
-procedure TCgMPSel.handle_reg_const_reg(list: tasmlist; op: Tasmop; src: tregister; a: aint; dst: tregister);
+procedure TCgMPSel.handle_reg_const_reg(list: tasmlist; op: Tasmop; src: tregister; a: tcgint; dst: tregister);
 var
   tmpreg: tregister;
 begin
@@ -540,7 +540,7 @@ begin
 end;
 
 
-procedure TCgMPSel.a_load_const_cgpara(list: tasmlist; size: tcgsize; a: aint; const paraloc: TCGPara);
+procedure TCgMPSel.a_load_const_cgpara(list: tasmlist; size: tcgsize; a: tcgint; const paraloc: TCGPara);
 var
   Ref: TReference;
 begin
@@ -680,7 +680,7 @@ end;
 
 {********************** load instructions ********************}
 
-procedure TCgMPSel.a_load_const_reg(list: tasmlist; size: TCGSize; a: aint; reg: TRegister);
+procedure TCgMPSel.a_load_const_reg(list: tasmlist; size: TCGSize; a: tcgint; reg: TRegister);
 begin
   if (a = 0) then
     list.concat(taicpu.op_reg_reg(A_MOVE, reg, NR_R0))
@@ -698,7 +698,7 @@ begin
 end;
 
 
-procedure TCgMPSel.a_load_const_ref(list: tasmlist; size: tcgsize; a: aint; const ref: TReference);
+procedure TCgMPSel.a_load_const_ref(list: tasmlist; size: tcgsize; a: tcgint; const ref: TReference);
 begin
   if a = 0 then
     a_load_reg_ref(list, size, size, NR_R0, ref)
@@ -962,7 +962,7 @@ begin
   end;
 end;
 
-procedure TCgMPSel.a_op_const_reg(list: tasmlist; Op: TOpCG; size: tcgsize; a: aint; reg: TRegister);
+procedure TCgMPSel.a_op_const_reg(list: tasmlist; Op: TOpCG; size: tcgsize; a: tcgint; reg: TRegister);
 var
   power: longint;
   tmpreg1: tregister;
@@ -1048,7 +1048,7 @@ begin
 end;
 
 
-procedure TCgMPSel.a_op_const_reg_reg(list: tasmlist; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister);
+procedure TCgMPSel.a_op_const_reg_reg(list: tasmlist; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister);
 var
   power: longint;
   tmpreg1: tregister;
@@ -1103,7 +1103,7 @@ begin
 end;
 
 
-procedure TCgMPSel.a_op_const_reg_reg_checkoverflow(list: tasmlist; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
+procedure TCgMPSel.a_op_const_reg_reg_checkoverflow(list: tasmlist; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
 var
   tmpreg1: tregister;
 begin
@@ -1220,7 +1220,7 @@ end;
 
 {*************** compare instructructions ****************}
 
-procedure TCgMPSel.a_cmp_const_reg_label(list: tasmlist; size: tcgsize; cmp_op: topcmp; a: aint; reg: tregister; l: tasmlabel);
+procedure TCgMPSel.a_cmp_const_reg_label(list: tasmlist; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
 var
   tmpreg: tregister;
 begin
@@ -1461,7 +1461,7 @@ end;
 
 { ************* concatcopy ************ }
 
-procedure TCgMPSel.g_concatcopy_move(list: tasmlist; const Source, dest: treference; len: aint);
+procedure TCgMPSel.g_concatcopy_move(list: tasmlist; const Source, dest: treference; len: tcgint);
 var
   paraloc1, paraloc2, paraloc3: TCGPara;
 begin
@@ -1488,7 +1488,7 @@ begin
 end;
 
 
-procedure TCgMPSel.g_concatcopy(list: tasmlist; const Source, dest: treference; len: aint);
+procedure TCgMPSel.g_concatcopy(list: tasmlist; const Source, dest: treference; len: tcgint);
 var
   tmpreg1, hreg, countreg: TRegister;
   src, dst: TReference;
@@ -1575,7 +1575,7 @@ begin
 end;
 
 
-procedure TCgMPSel.g_concatcopy_unaligned(list: tasmlist; const Source, dest: treference; len: aint);
+procedure TCgMPSel.g_concatcopy_unaligned(list: tasmlist; const Source, dest: treference; len: tcgint);
 var
   src, dst: TReference;
   tmpreg1, countreg: TRegister;
@@ -1667,7 +1667,7 @@ begin
     Internalerror(200109191);
 
   make_global := False;
-  if (not current_module.is_unit) or
+  if (not current_module.is_unit) or create_smartlink or
     (procdef.owner.defowner.owner.symtabletype = globalsymtable) then
     make_global := True;
 

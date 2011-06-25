@@ -208,8 +208,8 @@ interface
 {$ifndef cpu64bitalu}
             if location.size in [OS_64,OS_S64] then
               begin
-                location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
               end
             else
 {$endif}

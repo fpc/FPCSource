@@ -88,9 +88,11 @@ const
 { Maximum value for windowBits in deflateInit2 and inflateInit2 }
 const
 {$IFDEF TP}
-  MAX_WBITS = 14; { 32K LZ77 window }
+  MAX_WBITS = 14; { 16K LZ77 window }
+  maxzbaseint = maxint;
 {$ELSE}
   MAX_WBITS = 15; { 32K LZ77 window }
+  maxzbaseint = maxlongint;
 {$ENDIF}
 
 { default windowBits for decompression. MAX_WBITS is for compression only }
@@ -102,10 +104,10 @@ type  Pbytearray=^Tbytearray;
       Pwordarray=^Twordarray;
       Pcardinalarray=^Tcardinalarray;
 
-      Tbytearray = array [0..maxint div sizeof(byte)-1] of byte;
-      Twordarray = array [0..maxint div sizeof(word)-1] of word;
-      Tintegerarray = array [0..maxint div sizeof(integer)-1] of integer;
-      Tcardinalarray = array [0..maxint div sizeof(cardinal)-1] of cardinal;
+      Tbytearray = array [0..maxzbaseint div sizeof(byte)-1] of byte;
+      Twordarray = array [0..maxzbaseint div sizeof(word)-1] of word;
+      Tintegerarray = array [0..maxzbaseint div sizeof(integer)-1] of integer;
+      Tcardinalarray = array [0..maxzbaseint div sizeof(cardinal)-1] of cardinal;
 
 
 { The memory requirements for deflate are (in bytes):
@@ -136,7 +138,7 @@ type
   End;
 
 type
-  huft_field = Array[0..(maxint div SizeOf(inflate_huft))-1] of inflate_huft;
+  huft_field = Array[0..(maxzbaseint div SizeOf(inflate_huft))-1] of inflate_huft;
   huft_ptr = ^huft_field;
 type
   ppInflate_huft = ^pInflate_huft;

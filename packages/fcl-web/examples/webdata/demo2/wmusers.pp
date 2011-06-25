@@ -5,7 +5,7 @@ unit wmusers;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LResources, fpwebdata, extjsjson, extjsxml,
+  Classes, SysUtils, fpwebdata, extjsjson, extjsxml,
   HTTPDefs, websession, fpHTTP, fpWeb, dbf, db;
 
 type
@@ -33,6 +33,8 @@ var
   FPWebModule1: TFPWebModule1; 
 
 implementation
+
+{$R *.lfm}
 
 uses dbugintf;
 
@@ -80,7 +82,6 @@ begin
 end;
 
 initialization
-  {$I wmusers.lrs}
   RegisterHTTPModule('Provider', TFPWebModule1);
 end.
 

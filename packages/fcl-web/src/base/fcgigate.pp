@@ -482,6 +482,7 @@ Procedure TFastCGIGatewayHandler.ProcessUnknownRecord(Const Rec : PFCGI_Header; 
 begin
 {$IFDEF CGIGDEBUG}SendMethodEnter('ProcessUnknownRecord');{$ENDIF}
 {$IFDEF CGIGDEBUG}SendDebugFMT('Unknown record encountered : %d',[Rec^.ReqType]);{$ENDIF}
+  EOR:=False;
   // Do nothing.
 {$IFDEF CGIGDEBUG}SendMethodEnter('ProcessUnknownRecord');{$ENDIF}
 end;

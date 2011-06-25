@@ -536,7 +536,12 @@ implementation
                           (s64currencytype.typ = floatdef))) then
                        begin
                          doconv:=tc_int_2_real;
-                         eq:=te_convert_l4;
+
+                         { prefer single over others }
+                         if is_single(def_to) then
+                           eq:=te_convert_l3
+                         else
+                           eq:=te_convert_l4;
                        end
                      else if is_currency(def_from)
                              { and (s64currencytype.typ = orddef)) } then
@@ -659,7 +664,9 @@ implementation
                   equal_defs(def_from,tarraydef(def_to).elementdef) then
                 begin
                   doconv:=tc_equal;
-                  eq:=te_convert_l1;
+                  { also update in htypechk.pas/var_para_allowed if changed
+                    here }
+                  eq:=te_convert_l3;
                 end
                else
                 begin

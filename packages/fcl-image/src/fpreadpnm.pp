@@ -19,7 +19,7 @@ The PNM (Portable aNyMaps) is a generic name for :
   PBM : Portable BitMaps,
   PGM : Portable GrayMaps,
   PPM : Portable PixMaps.
-There is no file format associated  with PNM itself.}
+There is normally no file format associated  with PNM itself.}
 
 {$mode objfpc}{$h+}
 unit FPReadPNM;
@@ -85,7 +85,7 @@ begin
     repeat
       Inc(s[0]);
       ReadBuffer(s[Length(s)+1],1)
-    until s[Length(s)+1] in WhiteSpaces;
+    until (s[0]=#7) or (s[Length(s)+1] in WhiteSpaces);
   Result:=StrToInt(s);
 end;
 
@@ -112,10 +112,10 @@ begin
   If (FWidth<=0) or (FHeight<=0) or (FMaxVal<=0) then
     Raise Exception.Create('Invalid PNM header data');
   case FBitMapType of
-    1: FBitPP := SizeOf(Word);
+    1: FBitPP := 1;                  // 1bit PP (text)
     2: FBitPP := 8 * SizeOf(Word);   // Grayscale (text)
     3: FBitPP := 8 * SizeOf(Word)*3; // RGB (text)
-    4: FBitPP := 1; // 1bit PP (row)
+    4: FBitPP := 1;            // 1bit PP (raw)
     5: If (FMaxval>255) then   // Grayscale (raw);
          FBitPP:= 8 * 2
        else
@@ -136,7 +136,7 @@ var
 begin
   ReadHeader(Stream);
   Img.SetSize(FWidth,FHeight);
-  FScanLineSize:=(FBitPP*FWidth+7) shr 3;  // (bits/line +7)
+  FScanLineSize:=FBitPP*((FWidth+7)shr 3);
   GetMem(FScanLine,FScanLineSize);
   try
     for Row:=0 to img.Height-1 do
@@ -153,18 +153,21 @@ procedure TFPReaderPNM.ReadScanLine(Row : Integer; Stream:TStream);
 
 Var
   P : PWord;
-  I,j : Integer;
+  I,j,bitsLeft : Integer;
+  PB: PByte;
 
 begin
   Case FBitmapType of
     1 : begin
-        P:=PWord(FScanLine);
+        PB:=FScanLine;
         For I:=0 to ((FWidth+7)shr 3)-1 do
           begin
-            P^:=0;
-            for j:=0 to 7 do
-              P^:=(P^ shr 1)or ReadInteger(Stream);
-            Inc(P);
+            PB^:=0;
+            bitsLeft := FWidth-(I shl 3)-1;
+            if bitsLeft > 7 then bitsLeft := 7;
+            for j:=0 to bitsLeft do
+              PB^:=PB^ or (ReadInteger(Stream) shl (7-j));
+            Inc(PB);
           end;
         end;
     2 : begin
@@ -219,26 +222,26 @@ Var
 
   Var
     P : PByte;
-    I,j,x : Integer;
+    I,j,x,bitsLeft : Integer;
 
   begin
     P:=PByte(FScanLine);
-    x:=7;
     For I:=0 to ((FWidth+7)shr 3)-1 do
       begin
       L:=P^;
-      for j:=0 to 7 do
+      x := I shl 3;
+      bitsLeft := FWidth-x-1;
+      if bitsLeft > 7 then bitsLeft := 7;
+      for j:=0 to bitsLeft do
         begin
-          if odd(L)
-          then
+          if L and $80 <> 0 then
             Img.Colors[x,Row]:=colBlack
           else
             Img.Colors[x,Row]:=colWhite;
-          L:=L shr 1;
-          dec(x);
+          L:=L shl 1;
+          inc(x);
         end;
       Inc(P);
-      Inc(x,16);
       end;
   end;
 
@@ -324,7 +327,7 @@ begin
   C.Alpha:=AlphaOpaque;
   Scale := FMaxVal*(FMaxVal+1) + FMaxVal;
   Case FBitmapType of
-    1 : ;
+    1 : ByteBnWScanLine;
     2 : WordGrayScanline;
     3 : WordRGBScanline;
     4 : ByteBnWScanLine;
@@ -340,5 +343,7 @@ begin
 end;
 
 initialization
-  ImageHandlers.RegisterImageReader ('PNM Format', 'PNM;PGM;PBM', TFPReaderPNM);
+
+  ImageHandlers.RegisterImageReader ('Netpbm format', 'PNM;PGM;PBM;PPM', TFPReaderPNM);
+
 end.

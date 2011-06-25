@@ -115,6 +115,18 @@ procedure fpc_cpuinit;
       Default8087CW:=Get8087CW;
   end;
 
+{$ifndef darwin}
+function fpc_geteipasebx : pointer; [public, alias: 'fpc_geteipasebx'];assembler; nostackframe;
+asm
+  movl    (%esp),%ebx
+end;
+
+
+function fpc_geteipasecx : pointer; [public, alias: 'fpc_geteipasecx'];assembler; nostackframe;
+asm
+  movl    (%esp),%ecx
+end;
+{$endif}
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
@@ -204,33 +216,28 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-Procedure FillChar(var x;count:SizeInt;value:byte);assembler;
-{$ifndef regcall}
-var
-  saveedi: longint;
-{$endif}
+Procedure FillChar(var x;count:SizeInt;value:byte);assembler; nostackframe;
 asm
-        {A push is prefered over a local variable because a local
-         variable causes the compiler to generate a stackframe.}
+        cmpl    $22,%edx          { empirically determined value on a Core 2 Duo Conroe }
+        jg      .LFillFull
+        orl     %edx,%edx
+        jle     .LFillZero
+
+.LFillLoop:
+        movb    %cl,(%eax)
+        incl    %eax
+        decl    %edx
+        jne     .LFillLoop
+.LFillZero:
+        ret
+
+.LFillFull:
         cld
-{$ifdef REGCALL}
         push    %edi
         movl    %eax,%edi
         movzbl  %cl,%eax
         movl    %edx,%ecx
-{$else}
-        movl    %edi, saveedi
-        movl    x,%edi
-        movl    count,%ecx
-        movzbl  value,%eax
-        movl    %ecx,%edx
-{$endif}
-{ check for zero or negative count }
-        or      %ecx,%ecx
-        jle     .LFillEnd
-        cmpl    $7,%ecx
-        jl      .LFill1
-        imul    $0x01010101,%eax { Expand al into a 4 subbytes of eax}
+        imul    $0x01010101,%eax  { Expand al into a 4 subbytes of eax}
         shrl    $2,%ecx
         andl    $3,%edx
         rep
@@ -240,11 +247,7 @@ asm
         rep
         stosb
 .LFillEnd:
-{$ifdef REGCALL}
         pop %edi
-{$else}
-        movl   saveedi,%edi
-{$endif}
 end;
 {$endif FPC_SYSTEM_HAS_FILLCHAR}
 
@@ -421,84 +424,113 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
-function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt; assembler;
-var
-  saveesi,saveedi : longint;
+function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
-        movl    %edi,saveedi
-        movl    %esi,saveesi
+        cmpl    $57,%ecx          { empirically determined value on a Core 2 Duo Conroe }
+        jg      .LCmpbyteFull
+        testl   %ecx,%ecx
+        je      .LCmpbyteZero
+
+        pushl   %ebx
+.LCmpbyteLoop:
+        movb    (%eax),%bl
+        cmpb    (%edx),%bl
+        leal    1(%eax),%eax
+        leal    1(%edx),%edx
+        jne     .LCmpbyteExitFast
+        decl    %ecx
+        jne     .LCmpbyteLoop
+.LCmpbyteExitFast:
+        movzbl  -1(%edx),%ecx     { Compare last position }
+        movzbl  %bl,%eax
+        subl    %ecx,%eax
+        popl    %ebx
+        ret
+
+.LCmpbyteZero:
+        movl    $0,%eax
+        ret
+
+.LCmpbyteFull:
+        pushl   %esi
+        pushl   %edi
         cld
-{$ifdef REGCALL}
         movl    %eax,%edi
         movl    %edx,%esi
         movl    %ecx,%eax
-{$else}
-        movl    buf2,%esi       { Load params}
-        movl    buf1,%edi
-        movl    len,%eax
-{$endif}
-        testl   %eax,%eax       {We address -1(%esi), so we have to deal with len=0}
-        je      .LCmpbyteExit
-        cmpl    $7,%eax         {<7 not worth aligning and go through all trouble}
-        jl      .LCmpbyte2
+
         movl    %edi,%ecx       { Align on 32bits }
-        negl    %ecx            { calc bytes to align   (%edi and 3) xor 3= -%edi and 3}
+        negl    %ecx            { calc bytes to align   (%edi and 3) xor 3= -%edi and 3 }
         andl    $3,%ecx
-        subl    %ecx,%eax       { Subtract from number of bytes to go}
+        subl    %ecx,%eax       { Subtract from number of bytes to go }
         orl     %ecx,%ecx
         rep
-        cmpsb                   {The actual 32-bit Aligning}
+        cmpsb                   { The actual 32-bit Aligning }
         jne     .LCmpbyte3
-        movl    %eax,%ecx       {bytes to do, divide by 4}
-        andl    $3,%eax         {remainder}
-        shrl    $2,%ecx         {The actual division}
-        orl     %ecx,%ecx       {Sets zero flag if ecx=0 -> no cmp}
+        movl    %eax,%ecx       { bytes to do, divide by 4 }
+        andl    $3,%eax         { remainder }
+        shrl    $2,%ecx         {  The actual division }
+        orl     %ecx,%ecx       { Sets zero flag if ecx=0 -> no cmp }
         rep
         cmpsl
-        je      .LCmpbyte2       { All equal? then to the left over bytes}
-        movl    $4,%eax         { Not equal. Rescan the last 4 bytes bytewise}
+        je      .LCmpbyte2      { All equal? then to the left over bytes }
+        movl    $4,%eax         { Not equal. Rescan the last 4 bytes bytewise }
         subl    %eax,%esi
         subl    %eax,%edi
 .LCmpbyte2:
-        movl    %eax,%ecx       {bytes still to (re)scan}
-        orl     %eax,%eax       {prevent disaster in case %eax=0}
+        movl    %eax,%ecx       { bytes still to (re)scan }
+        orl     %eax,%eax       { prevent disaster in case %eax=0 }
         rep
         cmpsb
 .LCmpbyte3:
         movzbl  -1(%esi),%ecx
-        movzbl  -1(%edi),%eax      // Compare failing (or equal) position
+        movzbl  -1(%edi),%eax   { Compare failing (or equal) position }
         subl    %ecx,%eax
 .LCmpbyteExit:
-        movl    saveedi,%edi
-        movl    saveesi,%esi
+        popl    %edi
+        popl    %esi
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREBYTE}
 
 
-
 {$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
 {$define FPC_SYSTEM_HAS_COMPAREWORD}
-function CompareWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler;
-var
-  saveesi,saveedi,saveebx : longint;
+function CompareWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
-        movl    %edi,saveedi
-        movl    %esi,saveesi
-        movl    %ebx,saveebx
+        cmpl    $32,%ecx          { empirical average value, on a Athlon XP the
+                                    break even is at 14, on a Core 2 Duo > 100 }
+        jg      .LCmpWordFull
+        testl   %ecx,%ecx
+        je      .LCmpWordZero
+
+        pushl   %ebx
+.LCmpWordLoop:
+        movw    (%eax),%bx
+        cmpw    (%edx),%bx
+        leal    2(%eax),%eax
+        leal    2(%edx),%edx
+        jne     .LCmpWordExitFast
+        decl    %ecx
+        jne     .LCmpWordLoop
+.LCmpWordExitFast:
+        movzwl  -2(%edx),%ecx     { Compare last position }
+        movzwl  %bx,%eax
+        subl    %ecx,%eax
+        popl    %ebx
+        ret
+
+.LCmpWordZero:
+        movl    $0,%eax
+        ret
+
+.LCmpWordFull:
+        pushl   %esi
+        pushl   %edi
+        pushl   %ebx
         cld
-{$ifdef REGCALL}
         movl    %eax,%edi
         movl    %edx,%esi
         movl    %ecx,%eax
-{$else}
-        movl    buf2,%esi       { Load params}
-        movl    buf1,%edi
-        movl    len,%eax
-{$endif}
-        testl   %eax,%eax       {We address -2(%esi), so we have to deal with len=0}
-        je      .LCmpwordExit
-        cmpl    $5,%eax         {<5 (3 bytes align + 4 bytes cmpsl = 4 words}
-        jl      .LCmpword2      { not worth aligning and go through all trouble}
         movl    (%edi),%ebx     // Compare alignment bytes.
         cmpl    (%esi),%ebx
         jne     .LCmpword2      // Aligning will go wrong already. Max 2 words will be scanned Branch NOW
@@ -537,35 +569,55 @@ asm
         movzwl  -2(%edi),%eax    // Compare failing (or equal) position
         subl    %ecx,%eax        // calculate end result.
 .LCmpwordExit:
-        movl    saveedi,%edi
-        movl    saveesi,%esi
-        movl    saveebx,%ebx
+        popl    %ebx
+        popl    %edi
+        popl    %esi
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
 {$define FPC_SYSTEM_HAS_COMPAREDWORD}
-function CompareDWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler;
-var
-  saveesi,saveedi,saveebx : longint;
+function CompareDWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
-        movl    %edi,saveedi
-        movl    %esi,saveesi
+        cmpl    $32,%ecx          { empirical average value, on a Athlon XP the
+                                    break even is at 12, on a Core 2 Duo > 100 }
+        jg      .LCmpDWordFull
+        testl   %ecx,%ecx
+        je      .LCmpDWordZero
+
+        pushl   %ebx
+.LCmpDWordLoop:
+        movl    (%eax),%ebx
+        cmpl    (%edx),%ebx
+        leal    4(%eax),%eax
+        leal    4(%edx),%edx
+        jne     .LCmpDWordExitFast
+        decl    %ecx
+        jne     .LCmpDWordLoop
+.LCmpDWordExitFast:
+        xorl    %eax,%eax
+        movl    -4(%edx),%edx       // Compare failing (or equal) position
+        subl    %edx,%ebx           // calculate end result.
+        setb    %dl
+        seta    %cl
+        addb    %cl,%al
+        subb    %dl,%al
+        movsbl  %al,%eax
+
+        popl    %ebx
+        ret
+
+.LCmpDWordZero:
+        movl    $0,%eax
+        ret
+
+.LCmpDWordFull:
+        pushl   %esi
+        pushl   %edi
         cld
-{$ifdef REGCALL}
         movl    %eax,%edi
         movl    %edx,%esi
-        movl    %ecx,%eax
-{$else}
-        movl    buf2,%esi       { Load params}
-        movl    buf1,%edi
-        movl    len,%eax
-        movl    %eax,%ecx
-{$endif}
-        testl   %eax,%eax
-        je      .LCmpDwordExit
-        movl    %eax,%ecx
         xorl    %eax,%eax
         rep                     { Compare entire DWords}
         cmpsl
@@ -577,8 +629,8 @@ asm
         subb    %dl,%al
         movsbl  %al,%eax
 .LCmpDwordExit:
-        movl    saveedi,%edi
-        movl    saveesi,%esi
+        popl    %edi
+        popl    %esi
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREDWORD}
 
@@ -1092,7 +1144,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
-function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
+function fpc_pchar_length(p:pchar):sizeint;assembler;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
 
 var
   saveedi : longint;

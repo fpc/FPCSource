@@ -1178,10 +1178,16 @@ implementation
               get_exception_temps(current_asmdata.CurrAsmList,destroytemps);
               new_exception(current_asmdata.CurrAsmList,destroytemps,doobjectdestroyandreraise);
 
+              { except block needs line info }
+              current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
+
               { here we don't have to reset flowcontrol           }
               { the default and on flowcontrols are handled equal }
               secondpass(t1);
               exceptflowcontrol:=flowcontrol;
+
+              { don't generate line info for internal cleanup }
+              current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
 
               cg.a_label(current_asmdata.CurrAsmList,doobjectdestroyandreraise);
 

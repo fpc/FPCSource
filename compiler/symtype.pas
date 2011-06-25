@@ -954,11 +954,8 @@ implementation
         {$if sizeof(TConstPtrUInt)=8}
           putint64(int64(v));
         {$else}
-        {$if sizeof(TConstPtrUInt)=4}
           putlongint(longint(v));
-        {$else}
-          internalerror(2002082601);
-        {$endif} {$endif}
+        {$endif}
       end;
 
 

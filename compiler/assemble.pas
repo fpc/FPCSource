@@ -37,7 +37,7 @@ interface
 
     const
        { maximum of aasmoutput lists there will be }
-       maxoutputlists = 20;
+       maxoutputlists = ord(high(tasmlisttype))+1;
        { buffer size for writing the .s file }
        AsmOutSize=32768*4;
 
@@ -81,6 +81,8 @@ interface
         lastinfile   : tinputfile;
       {last section type written}
         lastsectype : TAsmSectionType;
+        procedure WriteSourceLine(hp: tailineinfo);
+        procedure WriteTempalloc(hp: tai_tempalloc);
       public
         {# Returns the complete path and executable name of the assembler
            program.
@@ -189,6 +191,24 @@ Implementation
     var
       CAssembler : array[tasm] of TAssemblerClass;
 
+    function fixline(s:string):string;
+     {
+       return s with all leading and ending spaces and tabs removed
+     }
+      var
+        i,j,k : integer;
+      begin
+        i:=length(s);
+        while (i>0) and (s[i] in [#9,' ']) do
+          dec(i);
+        j:=1;
+        while (j<i) and (s[j] in [#9,' ']) do
+          inc(j);
+        for k:=j to i do
+          if s[k] in [#0..#31,#127..#255] then
+            s[k]:='.';
+        fixline:=Copy(s,j,i-j+1);
+      end;
 
 {*****************************************************************************
                                    TAssembler
@@ -250,7 +270,7 @@ Implementation
     Function DoPipe:boolean;
       begin
         DoPipe:=(cs_asm_pipe in current_settings.globalswitches) and
-                (([cs_asm_leave,cs_link_on_target] * current_settings.globalswitches) = []) and
+                (([cs_asm_extern,cs_asm_leave,cs_link_on_target] * current_settings.globalswitches) = []) and
                 ((target_asm.id in [as_gas,as_ggas,as_darwin]));
       end;
 
@@ -548,7 +568,7 @@ Implementation
             end
            else
              Message1(exec_i_assembling_pipe,AsmFileName);
-           POpen(outfile,FindAssembler+' '+MakeCmdLine,'W');
+           POpen(outfile,maybequoted(FindAssembler)+' '+MakeCmdLine,'W');
          end
         else
 {$endif}
@@ -603,6 +623,61 @@ Implementation
          end;
       end;
 
+    procedure TExternalAssembler.WriteSourceLine(hp: tailineinfo);
+      begin
+        { load infile }
+        if lastfileinfo.fileindex<>hp.fileinfo.fileindex then
+          begin
+            infile:=current_module.sourcefiles.get_file(hp.fileinfo.fileindex);
+            if assigned(infile) then
+              begin
+                { open only if needed !! }
+                if (cs_asm_source in current_settings.globalswitches) then
+                  infile.open;
+              end;
+            { avoid unnecessary reopens of the same file !! }
+            lastfileinfo.fileindex:=hp.fileinfo.fileindex;
+            { be sure to change line !! }
+            lastfileinfo.line:=-1;
+          end;
+        { write source }
+        if (cs_asm_source in current_settings.globalswitches) and
+          assigned(infile) then
+          begin
+            if (infile<>lastinfile) then
+              begin
+                AsmWriteLn(target_asm.comment+'['+infile.name^+']');
+                if assigned(lastinfile) then
+                  lastinfile.close;
+              end;
+            if (hp.fileinfo.line<>lastfileinfo.line) and
+              (hp.fileinfo.line<infile.maxlinebuf) then
+              begin
+                if (hp.fileinfo.line<>0) and
+                  (infile.linebuf^[hp.fileinfo.line]>=0) then
+                  AsmWriteLn(target_asm.comment+'['+tostr(hp.fileinfo.line)+'] '+
+                  fixline(infile.GetLineStr(hp.fileinfo.line)));
+                { set it to a negative value !
+                  to make that is has been read already !! PM }
+                if (infile.linebuf^[hp.fileinfo.line]>=0) then
+                  infile.linebuf^[hp.fileinfo.line]:=-infile.linebuf^[hp.fileinfo.line]-1;
+              end;
+          end;
+        lastfileinfo:=hp.fileinfo;
+        lastinfile:=infile;
+      end;
+
+    procedure TExternalAssembler.WriteTempalloc(hp: tai_tempalloc);
+      begin
+{$ifdef EXTDEBUG}
+        if assigned(hp.problem) then
+          AsmWriteLn(target_asm.comment+'Temp '+tostr(hp.temppos)+','+
+          tostr(hp.tempsize)+' '+hp.problem^)
+        else
+{$endif EXTDEBUG}
+          AsmWriteLn(target_asm.comment+'Temp '+tostr(hp.temppos)+','+
+            tostr(hp.tempsize)+' '+tempallocstr[hp.allocation]);
+      end;
 
     procedure TExternalAssembler.WriteTree(p:TAsmList);
       begin

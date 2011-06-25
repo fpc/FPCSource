@@ -41,6 +41,7 @@ type
       FDatalineLength : longword;
       ZData : TMemoryStream;  // holds uncompressed data until all blocks are written
       Compressor : TCompressionStream; // compresses the data
+      FCompressionLevel : TCompressionLevel;
       procedure WriteChunk;
       function GetColorPixel (x,y:longword) : TColorData;
       function GetPalettePixel (x,y:longword) : TColorData;
@@ -94,6 +95,7 @@ type
       property CompressedText : boolean read FCompressedText write FCompressedText;
       property WordSized : boolean read FWordSized write FWordSized;
       property UseAlpha : boolean read FUseAlpha write FUseAlpha;
+      property CompressionLevel : TCompressionLevel read FCompressionLevel write FCompressionLevel;
   end;
 
 implementation
@@ -108,6 +110,7 @@ begin
   FCompressedText := True;
   FWordSized := True;
   FUseAlpha := False;
+  FCompressionLevel:=clDefault;
 end;
 
 destructor TFPWriterPNG.destroy;
@@ -565,7 +568,7 @@ begin
   GetMem (FCurrentLine, FDatalineLength);
   fillchar (FCurrentLine^,FDatalineLength,0);
   ZData := TMemoryStream.Create;
-  Compressor := TCompressionStream.Create (clMax,ZData);
+  Compressor := TCompressionStream.Create (FCompressionLevel,ZData);
   FGetPixel := DecideGetPixel;
 end;
 

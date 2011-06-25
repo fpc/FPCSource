@@ -107,6 +107,7 @@ const
   scan_e_illegal_minfpconstprec=02085;
   scan_w_multiple_main_name_overrides=02086;
   scanner_w_illegal_warn_identifier=02087;
+  scanner_e_illegal_alignment_directive=02088;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -398,6 +399,7 @@ const
   parser_e_not_allowed_in_helper=03307;
   parser_e_no_class_constructor_in_helpers=03308;
   parser_e_inherited_not_in_record=03309;
+  parser_e_no_types_in_local_anonymous_records=03310;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -471,7 +473,7 @@ const
   type_h_convert_sub_operands_to_prevent_overflow=04080;
   type_h_convert_mul_operands_to_prevent_overflow=04081;
   type_w_pointer_to_signed=04082;
-  type_interface_has_no_guid=04083;
+  type_e_interface_has_no_guid=04083;
   type_e_invalid_objc_selector_name=04084;
   type_e_expected_objc_method_but_got=04085;
   type_e_expected_objc_method=04086;
@@ -561,6 +563,7 @@ const
   sym_e_interprocgoto_into_init_final_code_not_allowed=05081;
   sym_e_external_class_name_mismatch1=05082;
   sym_e_external_class_name_mismatch2=05083;
+  sym_w_library_overload=05084;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -720,6 +723,7 @@ const
   asmw_e_invalid_register=08019;
   asmw_e_16bit_32bit_not_supported=08020;
   asmw_e_64bit_not_supported=08021;
+  asmw_e_bad_reg_with_rex=08022;
   exec_w_source_os_redefined=09000;
   exec_i_assembling_pipe=09001;
   exec_d_cant_create_asmfile=09002;
@@ -891,9 +895,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 59257;
+  MsgTxtSize = 60342;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,88,310,103,84,54,111,22,202,63,
+    24,89,311,103,85,54,111,23,202,63,
     49,20,1,1,1,1,1,1,1,1
   );

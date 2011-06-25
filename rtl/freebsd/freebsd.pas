@@ -202,9 +202,14 @@ Const
  MAP_NOSYNC       = $0800; { page to but do not sync underlying file}
  MAP_NOCORE       = $20000;{ dont include these pages in a coredump}
 
+
+function kernproc_getgenvalue(pid:pid_t;kernproc_variable:cint;var s:ansistring):cint;
+function kernproc_getargs(pid:pid_t;var fn:ansistring):cint;
+function kernproc_getpath(pid:pid_t;var fn:ansistring):cint;
+
 implementation
 
-Uses
+Uses Sysctl,
 {$ifndef FPC_USE_LIBC}  SysCall; {$else} InitC; {$endif}
 
 {$IFNDEF FPC_USE_LIBC}
@@ -303,5 +308,35 @@ begin
   fpgetfsstat:=do_syscall(syscall_nr_getfsstat,TSysParam(buf),TSysParam(Bufsize),TSysParam(Flags));
 end;
 {$ENDIF}
+
+function kernproc_getgenvalue(pid:pid_t;kernproc_variable:cint;var s:ansistring):cint;
+
+var mib: array[0..3] of cint;
+    argv_len : size_t;
+    ret:cint;
+Begin
+  mib[0]:=CTL_KERN;
+  mib[1]:=kern_proc;
+  Mib[2]:=kernproc_variable;
+  Mib[3]:=pid;
+  setlength(s,arg_max);
+  argv_len:=ARG_MAX;
+  ret:=fpsysctl(@mib, high(mib)+1, @s[1], @argv_len, NIL, 0);
+  if ret<>-1 then
+    setlength(s,argv_len)
+   else
+    setlength(s,0);
+  kernproc_getgenvalue:=ret;
+end;
+
+function kernproc_getargs(pid:pid_t;var fn:ansistring):cint;
+begin
+  kernproc_getargs:=kernproc_getgenvalue(pid,KERN_PROC_ARGS,fn);
+end;
+
+function kernproc_getpath(pid:pid_t;var fn:ansistring):cint;
+begin
+  kernproc_getpath:=kernproc_getgenvalue(pid,KERN_PROC_PATHNAME,fn);
+end;
 
 end.

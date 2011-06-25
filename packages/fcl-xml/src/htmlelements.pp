@@ -18,7 +18,7 @@ unit htmlelements;
 interface
 
 uses
-  Classes, SysUtils, DOM, HtmlDefs;
+  Classes, SysUtils, DOM, HtmlDefs, strutils;
 
 type
 
@@ -128,7 +128,21 @@ type
     procedure WriteToStream (const aStream : TStream);  override;
   end;
 
+function EscapeHTML(const s : String) : String;
+function UnescapeHTML(const s : String) : String;
+
 implementation
+
+function EscapeHTML ( const S : String ) : String;
+begin
+  // &apos; does not work on all versions of ie, so do not use it.
+  Result := StringsReplace(s,['&','<','>','"',#39],['&amp;','&lt;','&gt;','&quot;','&#39;'],[rfReplaceAll]);
+end;
+
+function UnescapeHTML ( const S : String ) : String;
+begin
+  Result := StringsReplace(result,['&amp;','&lt;','&gt;','&quot;','&apos;','&#39;'],['&','<','>','"',#39,#39],[rfReplaceAll]);
+end;
 
 
 { THtmlCustomElement }
@@ -201,8 +215,7 @@ end;
 
 function THtmlCustomElement.EscapeString(s: string): string;
 begin
-  result := s;
-  //TODO: Needs to convert all the special signs to their html names ("<" has to be "&lt;" etc.)
+  result := EscapeHTML(s);
 end;
 
 constructor THtmlCustomElement.create(AOwner: TDOMDocument);

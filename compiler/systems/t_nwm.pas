@@ -668,7 +668,6 @@ end;
         procedure addLinkerOptions;
         var
           s,option : string;
-          p : integer;
         begin
           s := ParaLinkOptions;
           option := GetToken(s,';');
@@ -720,7 +719,6 @@ end;
         function findPrelude : string;
         var
           s,option,keyword : string;
-          p : integer;
         begin
           s := ParaLinkOptions;
           option := GetToken(s,';');
@@ -941,7 +939,7 @@ end;
             s := trimspace(s);
             if (length(s) > 0) then
               if copy(s,1,1) <> '#' then
-                AddImportSymbol('!clib',s,0,false);
+                AddImportSymbol('!clib',s,s,0,false);
           end;
         close(t);
       end;
@@ -973,6 +971,7 @@ end;
     Function  TInternalLinkerNetware.MakeSharedLibrary:boolean;
     begin
       Comment(V_Error,'Make shared library not supported for netware');
+      MakeSharedLibrary := false;
     end;
 
 {*****************************************************************************

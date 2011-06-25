@@ -70,7 +70,7 @@ interface
       paraprintnodetree : byte;
 
     type
-      tmsgqueueevent = procedure(s:string;v,w:longint) of object;
+      tmsgqueueevent = procedure(const s:TMsgStr;v,w:longint) of object;
 
     const
       msgfilename : string = '';
@@ -88,25 +88,25 @@ interface
     procedure Comment(l:longint;s:ansistring);
     function  MessagePchar(w:longint):pchar;
     procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
-    procedure Message1(w:longint;const s1:string;onqueue:tmsgqueueevent=nil);
-    procedure Message2(w:longint;const s1,s2:string;onqueue:tmsgqueueevent=nil);
-    procedure Message3(w:longint;const s1,s2,s3:string;onqueue:tmsgqueueevent=nil);
-    procedure Message4(w:longint;const s1,s2,s3,s4:string;onqueue:tmsgqueueevent=nil);
+    procedure Message1(w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
+    procedure Message2(w:longint;const s1,s2:TMsgStr;onqueue:tmsgqueueevent=nil);
+    procedure Message3(w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
+    procedure Message4(w:longint;const s1,s2,s3,s4:TMsgStr;onqueue:tmsgqueueevent=nil);
     procedure MessagePos(const pos:tfileposinfo;w:longint;onqueue:tmsgqueueevent=nil);
-    procedure MessagePos1(const pos:tfileposinfo;w:longint;const s1:string;onqueue:tmsgqueueevent=nil);
-    procedure MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:string;onqueue:tmsgqueueevent=nil);
-    procedure MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:string;onqueue:tmsgqueueevent=nil);
-    procedure MessagePos4(const pos:tfileposinfo;w:longint;const s1,s2,s3,s4:string;onqueue:tmsgqueueevent=nil);
+    procedure MessagePos1(const pos:tfileposinfo;w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
+    procedure MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:TMsgStr;onqueue:tmsgqueueevent=nil);
+    procedure MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
+    procedure MessagePos4(const pos:tfileposinfo;w:longint;const s1,s2,s3,s4:TMsgStr;onqueue:tmsgqueueevent=nil);
 
     { message calls with codegenerror support }
     procedure cgmessage(t : longint);
-    procedure cgmessage1(t : longint;const s : string);
-    procedure cgmessage2(t : longint;const s1,s2 : string);
-    procedure cgmessage3(t : longint;const s1,s2,s3 : string);
+    procedure cgmessage1(t : longint;const s : TMsgStr);
+    procedure cgmessage2(t : longint;const s1,s2 : TMsgStr);
+    procedure cgmessage3(t : longint;const s1,s2,s3 : TMsgStr);
     procedure CGMessagePos(const pos:tfileposinfo;t:longint);
-    procedure CGMessagePos1(const pos:tfileposinfo;t:longint;const s1:string);
-    procedure CGMessagePos2(const pos:tfileposinfo;t:longint;const s1,s2:string);
-    procedure CGMessagePos3(const pos:tfileposinfo;t:longint;const s1,s2,s3:string);
+    procedure CGMessagePos1(const pos:tfileposinfo;t:longint;const s1:TMsgStr);
+    procedure CGMessagePos2(const pos:tfileposinfo;t:longint;const s1,s2:TMsgStr);
+    procedure CGMessagePos3(const pos:tfileposinfo;t:longint;const s1,s2,s3:TMsgStr);
 
     procedure FlushOutput;
 
@@ -697,7 +697,7 @@ implementation
       end;
 
 
-    procedure Message1(w:longint;const s1:string;onqueue:tmsgqueueevent=nil);
+    procedure Message1(w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
 
       begin
         MaybeLoadMessageFile;
@@ -705,21 +705,21 @@ implementation
       end;
 
 
-    procedure Message2(w:longint;const s1,s2:string;onqueue:tmsgqueueevent=nil);
+    procedure Message2(w:longint;const s1,s2:TMsgStr;onqueue:tmsgqueueevent=nil);
       begin
         MaybeLoadMessageFile;
         Msg2Comment(msg^.Get(w,[s1,s2]),w,onqueue);
       end;
 
 
-    procedure Message3(w:longint;const s1,s2,s3:string;onqueue:tmsgqueueevent=nil);
+    procedure Message3(w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
       begin
         MaybeLoadMessageFile;
         Msg2Comment(msg^.Get(w,[s1,s2,s3]),w,onqueue);
       end;
 
 
-    procedure Message4(w:longint;const s1,s2,s3,s4:string;onqueue:tmsgqueueevent=nil);
+    procedure Message4(w:longint;const s1,s2,s3,s4:TMsgStr;onqueue:tmsgqueueevent=nil);
       begin
         MaybeLoadMessageFile;
         Msg2Comment(msg^.Get(w,[s1,s2,s3,s4]),w,onqueue);
@@ -738,7 +738,7 @@ implementation
       end;
 
 
-    procedure MessagePos1(const pos:tfileposinfo;w:longint;const s1:string;onqueue:tmsgqueueevent=nil);
+    procedure MessagePos1(const pos:tfileposinfo;w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
       var
         oldpos : tfileposinfo;
       begin
@@ -750,7 +750,7 @@ implementation
       end;
 
 
-    procedure MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:string;onqueue:tmsgqueueevent=nil);
+    procedure MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:TMsgStr;onqueue:tmsgqueueevent=nil);
       var
         oldpos : tfileposinfo;
       begin
@@ -762,7 +762,7 @@ implementation
       end;
 
 
-    procedure MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:string;onqueue:tmsgqueueevent=nil);
+    procedure MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
       var
         oldpos : tfileposinfo;
       begin
@@ -774,7 +774,7 @@ implementation
       end;
 
 
-    procedure MessagePos4(const pos:tfileposinfo;w:longint;const s1,s2,s3,s4:string;onqueue:tmsgqueueevent=nil);
+    procedure MessagePos4(const pos:tfileposinfo;w:longint;const s1,s2,s3,s4:TMsgStr;onqueue:tmsgqueueevent=nil);
       var
         oldpos : tfileposinfo;
       begin
@@ -802,7 +802,7 @@ implementation
            end;
       end;
 
-    procedure cgmessage1(t : longint;const s : string);
+    procedure cgmessage1(t : longint;const s : TMsgStr);
       var
          olderrorcount : longint;
       begin
@@ -814,7 +814,7 @@ implementation
            end;
       end;
 
-    procedure cgmessage2(t : longint;const s1,s2 : string);
+    procedure cgmessage2(t : longint;const s1,s2 : TMsgStr);
       var
          olderrorcount : longint;
       begin
@@ -826,7 +826,7 @@ implementation
            end;
       end;
 
-    procedure cgmessage3(t : longint;const s1,s2,s3 : string);
+    procedure cgmessage3(t : longint;const s1,s2,s3 : TMsgStr);
       var
          olderrorcount : longint;
       begin
@@ -851,7 +851,7 @@ implementation
            end;
       end;
 
-    procedure cgmessagepos1(const pos:tfileposinfo;t : longint;const s1 : string);
+    procedure cgmessagepos1(const pos:tfileposinfo;t : longint;const s1 : TMsgStr);
       var
          olderrorcount : longint;
       begin
@@ -863,7 +863,7 @@ implementation
            end;
       end;
 
-    procedure cgmessagepos2(const pos:tfileposinfo;t : longint;const s1,s2 : string);
+    procedure cgmessagepos2(const pos:tfileposinfo;t : longint;const s1,s2 : TMsgStr);
       var
          olderrorcount : longint;
       begin
@@ -875,7 +875,7 @@ implementation
            end;
       end;
 
-    procedure cgmessagepos3(const pos:tfileposinfo;t : longint;const s1,s2,s3 : string);
+    procedure cgmessagepos3(const pos:tfileposinfo;t : longint;const s1,s2,s3 : TMsgStr);
       var
          olderrorcount : longint;
       begin

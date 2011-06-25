@@ -22,9 +22,13 @@ uses SysUtils,Classes;
 
 Type
   TExceptionEvent = Procedure (Sender : TObject; E : Exception) Of Object;
+  TEventLogTypes = Set of TEventType;
+
+  { TCustomApplication }
 
   TCustomApplication = Class(TComponent)
   Private
+    FEventLogFilter: TEventLogTypes;
     FOnException: TExceptionEvent;
     FTerminated : Boolean;
     FHelpFile,
@@ -42,6 +46,7 @@ Type
     Procedure DoRun; Virtual;
     Function GetParams(Index : Integer) : String;virtual;
     function GetParamCount: Integer;Virtual;
+    Procedure DoLog(EventType : TEventType; const Msg : String);  virtual;
   Public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -63,7 +68,7 @@ Type
     Function CheckOptions(Const ShortOptions : String; Const LongOpts : String) : String;
     Procedure GetEnvironmentList(List : TStrings;NamesOnly : Boolean);
     Procedure GetEnvironmentList(List : TStrings);
-    Procedure Log(EventType : TEventType; const Msg : String); virtual;
+    Procedure Log(EventType : TEventType; const Msg : String);
     // Delphi properties
     property ExeName: string read GetExeName;
     property HelpFile: string read FHelpFile write FHelpFile;
@@ -79,6 +84,7 @@ Type
     Property OptionChar : Char Read FoptionChar Write FOptionChar;
     Property CaseSensitiveOptions : Boolean Read FCaseSensitiveOptions Write FCaseSensitiveOptions;
     Property StopOnException : Boolean Read FStopOnException Write FStopOnException;
+    Property EventLogFilter : TEventLogTypes Read FEventLogFilter Write FEventLogFilter;
   end;
 
 var CustomApplication : TCustomApplication = nil;
@@ -223,10 +229,17 @@ begin
   // Do nothing. Override in descendent classes.
 end;
 
+Procedure TCustomApplication.DoLog(EventType : TEventType; const Msg : String);
+
+begin
+  // Do nothing, override in descendants
+end;
+
 Procedure TCustomApplication.Log(EventType : TEventType; const Msg : String);
 
 begin
-  // Do nothing. Override in descendent classes.
+  If (FEventLogFilter=[]) or (EventType in FEventLogFilter) then
+    DoLog(EventType,Msg);
 end;
 
 constructor TCustomApplication.Create(AOwner: TComponent);

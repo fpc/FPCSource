@@ -28,6 +28,16 @@
 
 {$define USEEXCEPT}
 
+{ This fake CPU is used to allow incorporation of globtype unit
+  into utils/ppudump without any CPU specific code PM }
+{$ifdef generic_cpu}
+  {$define cpu32bit}
+  {$define cpu32bitaddr}
+  {$define cpu32bitalu}
+  {$define cpuflags}
+  {$define cpuextended}
+{$endif generic_cpu}
+
 {$ifdef cpuarm}
   {$packrecords c}
 {$endif cpuarm}
@@ -119,6 +129,7 @@
   {$define cpunofpu}
   {$define cpunodefaultint}
   {$define cpuneedsdiv32helper}
+  {$define cpuneedsmulhelper}
 {$endif avr}
 
 {$ifdef mipsel}

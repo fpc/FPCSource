@@ -38,7 +38,6 @@ Type
     Constructor Create;
     Destructor Destroy;override;
     Procedure LoadGlobalDefaults;
-    Procedure LoadCompilerDefaults;
     Procedure ProcessCommandLine(FirstPass: boolean);
     Procedure DoRun; Override;
   end;
@@ -52,8 +51,6 @@ procedure TMakeTool.LoadGlobalDefaults;
 var
   i : integer;
   cfgfile : String;
-  GeneratedConfig,
-  UseGlobalConfig : boolean;
 begin
   // Default verbosity
   LogLevels:=DefaultLogLevels;
@@ -63,51 +60,12 @@ begin
         LogLevels:=AllLogLevels+[vlDebug];
         break;
       end;
-  GeneratedConfig:=false;
-  UseGlobalConfig:=false;
   // First try config file from command line
   if HasOption('C','config-file') then
-    begin
-      cfgfile:=GetOptionValue('C','config-file');
-      if not FileExists(cfgfile) then
-        Error(SErrNoSuchFile,[cfgfile]);
-    end
+    cfgfile:=GetOptionValue('C','config-file')
   else
-    begin
-      // Now try if a local config-file exists
-      cfgfile:=GetAppConfigFile(False,False);
-      if not FileExists(cfgfile) then
-        begin
-          // If not, try to find a global configuration file
-          cfgfile:=GetAppConfigFile(True,False);
-          if FileExists(cfgfile) then
-            UseGlobalConfig := true
-          else
-            begin
-              // Create a new configuration file
-              if not IsSuperUser then // Make a local, not global, configuration file
-                cfgfile:=GetAppConfigFile(False,False);
-              ForceDirectories(ExtractFilePath(cfgfile));
-              GlobalOptions.SaveGlobalToFile(cfgfile);
-              GeneratedConfig:=true;
-            end;
-        end;
-    end;
-  // Load file or create new default configuration
-  if not GeneratedConfig then
-    begin
-      GlobalOptions.LoadGlobalFromFile(cfgfile);
-      if GlobalOptions.SaveInifileChanges and (not UseGlobalConfig or IsSuperUser) then
-        GlobalOptions.SaveGlobalToFile(cfgfile);
-    end;
-  GlobalOptions.CompilerConfig:=GlobalOptions.DefaultCompilerConfig;
-  // Tracing of what we've done above, need to be done after the verbosity is set
-  if GeneratedConfig then
-    pkgglobals.Log(vlDebug,SLogGeneratingGlobalConfig,[cfgfile])
-  else
-    pkgglobals.Log(vlDebug,SLogLoadingGlobalConfig,[cfgfile]);
-  // Log configuration
-  GlobalOptions.LogValues(vlDebug);
+    cfgfile:='';
+  pkgoptions.LoadGlobalDefaults(cfgfile);
 end;
 
 
@@ -116,51 +74,6 @@ begin
   ForceDirectories(GlobalOptions.BuildDir);
   ForceDirectories(GlobalOptions.ArchivesDir);
   ForceDirectories(GlobalOptions.CompilerConfigDir);
-end;
-
-
-procedure TMakeTool.LoadCompilerDefaults;
-var
-  S : String;
-begin
-  // Load default compiler config
-  S:=GlobalOptions.CompilerConfigDir+GlobalOptions.CompilerConfig;
-  CompilerOptions.UpdateLocalRepositoryOption;
-  if FileExists(S) then
-    begin
-      pkgglobals.Log(vlDebug,SLogLoadingCompilerConfig,[S]);
-      CompilerOptions.LoadCompilerFromFile(S)
-    end
-  else
-    begin
-      // Generate a default configuration if it doesn't exists
-      if GlobalOptions.CompilerConfig='default' then
-        begin
-          pkgglobals.Log(vlDebug,SLogGeneratingCompilerConfig,[S]);
-          CompilerOptions.InitCompilerDefaults;
-          CompilerOptions.SaveCompilerToFile(S);
-          if CompilerOptions.SaveInifileChanges then
-            CompilerOptions.SaveCompilerToFile(S);
-        end
-      else
-        Error(SErrMissingCompilerConfig,[S]);
-    end;
-  // Log compiler configuration
-  CompilerOptions.LogValues(vlDebug,'');
-  // Load FPMake compiler config, this is normally the same config as above
-  S:=GlobalOptions.CompilerConfigDir+GlobalOptions.FPMakeCompilerConfig;
-  FPMakeCompilerOptions.UpdateLocalRepositoryOption;
-  if FileExists(S) then
-    begin
-      pkgglobals.Log(vlDebug,SLogLoadingFPMakeCompilerConfig,[S]);
-      FPMakeCompilerOptions.LoadCompilerFromFile(S);
-      if FPMakeCompilerOptions.SaveInifileChanges then
-        FPMakeCompilerOptions.SaveCompilerToFile(S);
-    end
-  else
-    Error(SErrMissingCompilerConfig,[S]);
-  // Log compiler configuration
-  FPMakeCompilerOptions.LogValues(vlDebug,'fpmake-building ');
 end;
 
 

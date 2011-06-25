@@ -35,9 +35,10 @@ unit fppu;
 interface
 
     uses
-       cutils,cclasses,
-       globtype,globals,finput,fmodule,
-       symbase,ppu,symtype;
+      cmsgs,verbose,
+      cutils,cclasses,
+      globtype,globals,finput,fmodule,
+      symbase,ppu,symtype;
 
     type
 
@@ -77,7 +78,7 @@ interface
           procedure load_implementation;
           procedure load_usedunits;
           procedure printcomments;
-          procedure queuecomment(s:string;v,w:longint);
+          procedure queuecomment(const s:TMsgStr;v,w:longint);
           procedure writesourcefiles;
           procedure writeusedunit(intf:boolean);
           procedure writelinkcontainer(var p:tlinkcontainer;id:byte;strippath:boolean);
@@ -108,7 +109,7 @@ implementation
 uses
   SysUtils,
   cfileutl,
-  verbose,systems,version,
+  systems,version,
   symtable, symsym,
   wpoinfo,
   scanner,
@@ -155,7 +156,7 @@ var
         inherited reset;
       end;
 
-    procedure tppumodule.queuecomment(s:string;v,w:longint);
+    procedure tppumodule.queuecomment(const s:TMsgStr;v,w:longint);
     begin
       if comments = nil then
         comments := TCmdStrList.create;
@@ -633,6 +634,7 @@ var
               begin
                 ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
                 ppufile.putstring(ImportSymbol.Name);
+                ppufile.putstring(ImportSymbol.MangledName);
                 ppufile.putlongint(ImportSymbol.OrdNr);
                 ppufile.putbyte(byte(ImportSymbol.IsVar));
               end;
@@ -893,6 +895,7 @@ var
         extsymcnt   : longint;
         ImportLibrary  : TImportLibrary;
         extsymname  : string;
+        extsymmangledname : string;
         extsymordnr : longint;
         extsymisvar : boolean;
       begin
@@ -903,9 +906,11 @@ var
             for j:=0 to extsymcnt-1 do
               begin
                 extsymname:=ppufile.getstring;
+                extsymmangledname:=ppufile.getstring;
                 extsymordnr:=ppufile.getlongint;
                 extsymisvar:=(ppufile.getbyte<>0);
-                TImportSymbol.Create(ImportLibrary.ImportSymbolList,extsymname,extsymordnr,extsymisvar);
+                TImportSymbol.Create(ImportLibrary.ImportSymbolList,extsymname,
+                  extsymmangledname,extsymordnr,extsymisvar);
               end;
           end;
       end;
@@ -1397,7 +1402,7 @@ var
             localsymtable:=tstaticsymtable.create(modulename^,moduleid);
             tstaticsymtable(localsymtable).ppuload(ppufile);
           end;
-          
+
         { we can now derefence all pointers to the implementation parts }
         tstoredsymtable(globalsymtable).derefimpl;
         if assigned(localsymtable) then

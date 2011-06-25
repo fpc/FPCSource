@@ -79,12 +79,9 @@ var DataSize : longword;
     DataOffset : longword;
     RawData : TResourceDataStream;
 begin
-  try
-    aStream.ReadBuffer(DataSize,4);
-  except
-    on e : EReadError do
-      raise EResourceReaderEOSReachedException.Create('');
-  end;
+  Result:=Nil;
+  if aStream.Read(DataSize,4)<>4 then 
+    exit;
   try
     aStream.ReadBuffer(HeaderSize,4);
     {$IFDEF ENDIAN_BIG}
@@ -194,10 +191,9 @@ var aRes : TAbstractResource;
 begin
   if not CheckMagic(aStream) then
     raise EResourceReaderWrongFormatException.Create('');
-  try
-    while true do
-    begin
-      aRes:=ReadResourceHeader(aStream);
+  Repeat
+    aRes:=ReadResourceHeader(aStream);
+    if (aRes<>Nil) then
       try
         aResources.Add(aRes);
       except
@@ -207,10 +203,7 @@ begin
           raise;
         end;
       end;
-    end;
-  except
-    on e : EResourceReaderEOSReachedException do ;
-  end;
+  Until (aRes=Nil);
 end;
 
 function TResResourceReader.CheckMagic(aStream: TStream): boolean;

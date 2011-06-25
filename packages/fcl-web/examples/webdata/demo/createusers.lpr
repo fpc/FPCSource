@@ -127,6 +127,8 @@ var
 
 {$IFDEF WINDOWS}{$R createusers.rc}{$ENDIF}
 
+{$R *.res}
+
 begin
   Application:=TMyApplication.Create(nil);
   Application.Title:='My Application';

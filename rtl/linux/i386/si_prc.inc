@@ -36,18 +36,16 @@
 
 procedure PASCALMAIN; external name 'PASCALMAIN';
 
-function fpc_geteipasebx : pointer; compilerproc; nostackframe; assembler;
-asm  
-  movl (%esp),%ebx  
-  ret  
-end;
-
 {******************************************************************************
                           Process start/halt
  ******************************************************************************}
 
 var
   dlexitproc: pointer;
+
+{$ifdef FPC_PIC}
+function fpc_geteipasebxlocal : pointer; [external name 'fpc_geteipasebx'];
+{$endif}
 
 procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
 asm
@@ -63,7 +61,7 @@ asm
         pushl %ebx
         pushl %ecx
 	
-	call fpc_geteipasebx
+	call fpc_geteipasebxlocal
         addl  $_GLOBAL_OFFSET_TABLE_,%ebx
 
 	movl  dlexitproc@GOT(%ebx),%ecx
@@ -92,7 +90,7 @@ asm
   { Save initial stackpointer }
   {$ifdef FPC_PIC}
         pushl %ebx
-        call  fpc_geteipasebx
+        call  fpc_geteipasebxlocal
         addl  $_GLOBAL_OFFSET_TABLE_,%ebx
 	movl  initialstkptr@GOT(%ebx),%ebx
   	movl  %esp,(%ebx)
@@ -110,7 +108,7 @@ asm
 
 .Lhaltproc:
   {$ifdef FPC_PIC}
-        call  fpc_geteipasebx
+        call  fpc_geteipasebxlocal
         addl  $_GLOBAL_OFFSET_TABLE_,%ebx
 	movl  dlexitproc@GOT(%ebx),%eax
 	movl  (%eax),%eax
@@ -124,7 +122,7 @@ asm
   movl    syscall_nr_exit_group,%eax
 
 {$ifdef FPC_PIC}
-  call    fpc_geteipasebx
+  call    fpc_geteipasebxlocal
   addl    $_GLOBAL_OFFSET_TABLE_,%ebx
   movl    ExitCode@GOT(%ebx),%ebx
  {$if sizeof(ExitCode)=2}
@@ -144,7 +142,7 @@ asm
   movl    syscall_nr_exit,%eax
 
 {$ifdef FPC_PIC}
-  call    fpc_geteipasebx
+  call    fpc_geteipasebxlocal
   addl    $_GLOBAL_OFFSET_TABLE_,%ebx
   movl    ExitCode@GOT(%ebx),%ebx
  {$if sizeof(ExitCode)=2}

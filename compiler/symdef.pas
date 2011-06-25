@@ -2804,8 +2804,6 @@ implementation
       end;
 
     function tabstractrecorddef.RttiName: string;
-      var
-        tmp: tabstractrecorddef;
       begin
         Result:=OwnerHierarchyName+objrealname^;
       end;
@@ -4433,6 +4431,7 @@ implementation
           tobjectdef(result).import_lib:=stringdup(import_lib^);
         tobjectdef(result).objectoptions:=objectoptions;
         include(tobjectdef(result).defoptions,df_copied_def);
+        tobjectdef(result).extendeddef:=extendeddef;
         tobjectdef(result).vmt_offset:=vmt_offset;
         if assigned(iidguid) then
           begin
@@ -5276,7 +5275,7 @@ implementation
               begin
                 { copied from psub.read_proc }
                 if assigned(tobjectdef(pd.struct).import_lib) then
-                   current_module.AddExternalImport(tobjectdef(pd.struct).import_lib^,pd.mangledname,0,false,false)
+                   current_module.AddExternalImport(tobjectdef(pd.struct).import_lib^,pd.mangledname,pd.mangledname,0,false,false)
                  else
                    begin
                      { add import name to external list for DLL scanning }
@@ -5421,14 +5420,17 @@ implementation
     function TImplementedInterface.getcopy:TImplementedInterface;
       begin
         Result:=TImplementedInterface.Create(nil);
-        {$warning: this is completely wrong on so many levels...}
         { 1) the procdefs list will be freed once for each copy
           2) since the procdefs list owns its elements, those will also be freed for each copy
           3) idem for the name mappings
         }
+        { warning: this is completely wrong on so many levels...
         Move(pointer(self)^,pointer(result)^,InstanceSize);
+        We need to make clean copies of the different fields
+        this is not implemented yet, and thus we generate an internal
+        error instead PM 2011-06-14 }
+        internalerror(2011061401);
       end;
-
 
 {****************************************************************************
                                 TFORWARDDEF

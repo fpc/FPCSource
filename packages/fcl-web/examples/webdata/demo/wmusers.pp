@@ -5,7 +5,7 @@ unit wmusers;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LResources, HTTPDefs, websession, fpHTTP, fpWeb,
+  Classes, SysUtils, HTTPDefs, websession, fpHTTP, fpWeb,
   db, dbf, fpwebdata, fpextjs,extjsjson,extjsxml;
 
 type
@@ -36,6 +36,9 @@ Var
   ResponseFileName : String; // Set to non empty to write request responses to a file.
 
 implementation
+
+{$R *.lfm}
+
 {$define wmdebug}
 
 {$ifdef wmdebug}
@@ -294,8 +297,6 @@ begin
 end;
 
 initialization
-  {$I wmusers.lrs}
-
   RegisterHTTPModule('Provider', TFPWebModule1);
 end.
 

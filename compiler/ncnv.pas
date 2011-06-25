@@ -187,7 +187,7 @@ interface
           procedure second_nothing; virtual;abstract;
        end;
        ttypeconvnodeclass = class of ttypeconvnode;
-       
+
        { common functionality of as-nodes and is-nodes }
        tasisnode = class(tbinarynode)
          public
@@ -365,8 +365,7 @@ implementation
                    constsetlo:=tenumdef(def).min;
                  { for constant set elements, delphi allows the usage of elements of enumerations which
                    have value>255 if there is no element with a value > 255 used }
-                 if (maybetruncenumrange) and
-                    (m_delphi in current_settings.modeswitches) then
+                 if (maybetruncenumrange) then
                    begin
                     if constsethi>255 then
                       constsethi:=255;
@@ -1378,7 +1377,7 @@ implementation
         if assigned(tobjectdef(left.resultdef).iidstr) then
           begin
             if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
-              CGMessage1(type_interface_has_no_guid,tobjectdef(left.resultdef).typename);
+              CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
             result:=cstringconstnode.createstr(tobjectdef(left.resultdef).iidstr^);
             tstringconstnode(result).changestringtype(cshortstringtype);
           end;
@@ -1390,7 +1389,7 @@ implementation
         if assigned(tobjectdef(left.resultdef).iidguid) then
           begin
             if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
-              CGMessage1(type_interface_has_no_guid,tobjectdef(left.resultdef).typename);
+              CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
             result:=cguidconstnode.create(tobjectdef(left.resultdef).iidguid^);
           end;
       end;
@@ -1798,7 +1797,7 @@ implementation
               te_convert_operator :
                 begin
                   include(current_procinfo.flags,pi_do_call);
-                  aprocdef.procsym.IncRefCountBy(1);
+                  addsymref(aprocdef.procsym);
                   hp:=ccallnode.create(ccallparanode.create(left,nil),Tprocsym(aprocdef.procsym),nil,nil,[]);
                   { tell explicitly which def we must use !! (PM) }
                   tcallnode(hp).procdefinition:=aprocdef;
@@ -2464,7 +2463,7 @@ implementation
                   fname:='int64_to_'
                 else
                   { we can't do better currently }
-                  fname:='int64_to_';
+                  fname:='qword_to_';
               end
             else
               { other integers are supposed to be 32 bit }
@@ -3387,7 +3386,7 @@ implementation
                     if assigned(tobjectdef(right.resultdef).iidguid) then
                       begin
                         if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
-                          CGMessage1(type_interface_has_no_guid,tobjectdef(right.resultdef).typename);
+                          CGMessage1(type_e_interface_has_no_guid,tobjectdef(right.resultdef).typename);
                         hp:=cguidconstnode.create(tobjectdef(right.resultdef).iidguid^);
                         right.free;
                         right:=hp;

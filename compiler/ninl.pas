@@ -1521,6 +1521,74 @@ implementation
         end;
 
 
+      function handle_const_rox : tnode;
+        var
+          vl,vl2    : TConstExprInt;
+          bits,shift: integer;
+          def : tdef;
+        begin
+          result:=nil;
+          if (left.nodetype=ordconstn) or ((left.nodetype=callparan) and (tcallparanode(left).left.nodetype=ordconstn)) then
+            begin
+              if (left.nodetype=callparan) and
+                 assigned(tcallparanode(left).right) then
+                begin
+                  if (tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn) then
+                    begin
+                      def:=tcallparanode(tcallparanode(left).right).left.resultdef;
+                      vl:=tordconstnode(tcallparanode(left).left).value;
+                      vl2:=tordconstnode(tcallparanode(tcallparanode(left).right).left).value;
+                    end
+                  else
+                    exit;
+                end
+              else
+                begin
+                  def:=left.resultdef;
+                  vl:=1;
+                  vl2:=tordconstnode(left).value;
+                end;
+
+              bits:=def.size*8;
+              shift:=vl.svalue and (bits-1);
+{$push}
+{$r-,q-}
+              if shift=0 then
+                result:=cordconstnode.create(vl2.svalue,def,false)
+              else
+                case inlinenumber of
+                  in_ror_x,in_ror_x_y:
+                    case def.size of
+                      1:
+                        result:=cordconstnode.create(RorByte(Byte(vl2.svalue),shift),def,false);
+                      2:
+                        result:=cordconstnode.create(RorWord(Word(vl2.svalue),shift),def,false);
+                      4:
+                        result:=cordconstnode.create(RorDWord(DWord(vl2.svalue),shift),def,false);
+                      8:
+                        result:=cordconstnode.create(RorQWord(QWord(vl2.svalue),shift),def,false);
+                      else
+                        internalerror(2011061903);
+                    end;
+                  in_rol_x,in_rol_x_y:
+                    case def.size of
+                      1:
+                        result:=cordconstnode.create(RolByte(Byte(vl2.svalue),shift),def,false);
+                      2:
+                        result:=cordconstnode.create(RolWord(Word(vl2.svalue),shift),def,false);
+                      4:
+                        result:=cordconstnode.create(RolDWord(DWord(vl2.svalue),shift),def,false);
+                      8:
+                        result:=cordconstnode.create(RolQWord(QWord(vl2.svalue),shift),def,false);
+                      else
+                        internalerror(2011061902);
+                    end;
+                  else
+                    internalerror(2011061901);
+                  end;
+            end;
+        end;
+
       var
         hp        : tnode;
         vl,vl2    : TConstExprInt;
@@ -1931,6 +1999,11 @@ implementation
                 begin
                   result:=handle_const_sar;
                 end;
+              in_rol_x,
+              in_rol_x_y,
+              in_ror_x,
+              in_ror_x_y :
+                result:=handle_const_rox;
             end;
           end;
       end;
@@ -2621,8 +2694,8 @@ implementation
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                   resultdef:=left.resultdef;
                 end;
-              in_rol_x_x,
-              in_ror_x_x,
+              in_rol_x_y,
+              in_ror_x_y,
               in_sar_x_y:
                 begin
                   set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
@@ -3040,9 +3113,9 @@ implementation
              expectloc:=tcallparanode(left).left.expectloc;
            end;
          in_rol_x,
-         in_rol_x_x,
+         in_rol_x_y,
          in_ror_x,
-         in_ror_x_x,
+         in_ror_x_y,
          in_sar_x,
          in_sar_x_y,
          in_bsf_x,

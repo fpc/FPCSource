@@ -43,12 +43,13 @@ Unit rax64att;
       var
         instr : Tx86Instruction;
       begin
-        instr:=Tx86Instruction.Create(Tx86Operand);
+        instr:=Tx86attInstruction.Create(Tx86Operand);
         instr.OpOrder:=op_att;
         BuildOpcode(instr);
         instr.AddReferenceSizes;
         instr.SetInstructionOpsize;
         instr.CheckOperandSizes;
+        instr.FixupOpcode;
         instr.ConcatInstruction(curlist);
         instr.Free;
       end;

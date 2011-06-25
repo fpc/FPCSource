@@ -60,8 +60,13 @@ Const
   This way we keep TP compatibility, and the TextRec definition is available
   for everyone who needs it.
 }
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 {$i filerec.inc}
+{$endif FPC_HAS_FEATURE_FILEIO}
+
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 {$i textrec.inc}
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
   {$ifdef FPC_OBJFPC_EXTENDED_IF}
@@ -76,8 +81,10 @@ Const
 Procedure HandleError (Errno : Longint); forward;
 Procedure HandleErrorFrame (Errno : longint;frame : Pointer); forward;
 
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 type
   FileFunc = Procedure(var t : TextRec);
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
 
 const
@@ -840,31 +847,11 @@ Procedure FinalizeHeap;forward;
 {$endif HAS_MEMORYMANAGER}
 {$endif FPC_HAS_FEATURE_HEAP}
 
-
-Procedure InternalExit;
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+procedure SysFlushStdIO;
 var
-  current_exit : Procedure;
-{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   pstdout : ^Text;
-{$endif}
-{$if defined(MSWINDOWS) or defined(OS2)}
-  i : longint;
-{$endif}
-Begin
-{$ifdef SYSTEMDEBUG}
-  writeln('InternalExit');
-{$endif SYSTEMDEBUG}
-  while exitProc<>nil Do
-   Begin
-     InOutRes:=0;
-     current_exit:=tProcedure(exitProc);
-     exitProc:=nil;
-     current_exit();
-   End;
-  { Finalize units }
-  FinalizeUnits;
-
-{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+begin
   { Show runtime error and exit }
   pstdout:=@stdout;
   If erroraddr<>nil Then
@@ -885,14 +872,50 @@ Begin
     Flush(pstdout^);
   if Textrec(StdErr).Mode=fmOutput then
     Flush(StdErr);
+end;
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
+
+
+Procedure InternalExit;
+var
+  current_exit : Procedure;
+{$if defined(MSWINDOWS) or defined(OS2)}
+  i : longint;
+{$endif}
+Begin
+{$ifdef SYSTEMDEBUG}
+  writeln('InternalExit');
+{$endif SYSTEMDEBUG}
+  while exitProc<>nil Do
+   Begin
+     InOutRes:=0;
+     current_exit:=tProcedure(exitProc);
+     exitProc:=nil;
+     current_exit();
+   End;
+  { Finalize units }
+  FinalizeUnits;
+
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+  SysFlushStdIO;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 
 {$if defined(MSWINDOWS) or defined(OS2)}
   { finally release the heap if possible, especially
-    important for DLLs }
-  for i:=0 to argc do
-    sysfreemem(argv[i]);
-  sysfreemem(argv);
+    important for DLLs.
+    Reset the array to nil, and finally also argv itself to
+    avoid double freeing problem in case this function gets called twice. }
+  if assigned(argv) then
+    begin
+      for i:=0 to argc-1 do
+        if assigned(argv[i]) then
+          begin
+            sysfreemem(argv[i]);
+            argv[i]:=nil;
+          end;
+      sysfreemem(argv);
+      argv:=nil;
+    end;
 {$endif}
 {$ifdef LINUX}
   {sysfreemem already checks for nil}

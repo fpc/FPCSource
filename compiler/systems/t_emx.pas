@@ -279,7 +279,7 @@ begin
 end;
 
 
-procedure AddImport(const module:string;index:longint;const name:string);
+procedure AddImport(const module:string;index:longint;const name,mangledname:string);
 {func       = Name of function to import.
  module     = Name of DLL to import from.
  index      = Index of function in DLL. Use 0 to import by name.
@@ -290,7 +290,7 @@ var tmp1,tmp2,tmp3:string;
     func : string;
 begin
     aout_init;
-    func:='';
+    func:=mangledname;
     tmp2:=func;
     if profile_flag and not (copy(func,1,4)='_16_') then
         begin
@@ -353,7 +353,8 @@ end;
             for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
               begin
                 ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
-                AddImport(ImportLibrary.Name,ImportSymbol.OrdNr,ImportSymbol.Name);
+                AddImport(ImportLibrary.Name,ImportSymbol.OrdNr,
+                  ImportSymbol.Name,ImportSymbol.MangledName);
               end;
             close(out_file);
          end;

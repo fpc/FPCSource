@@ -33,6 +33,7 @@ const
 
 type
   ppchar=^pchar;
+  TMsgStr = AnsiString;
 
   TArrayOfPChar = array[0..1000] of pchar;
   PArrayOfPChar = ^TArrayOfPChar;
@@ -60,7 +61,7 @@ type
     procedure CreateIdx;
     function  GetPChar(nr:longint):pchar;
     function  ClearVerbosity(nr:longint):boolean;
-    function  Get(nr:longint;const args:array of string):ansistring;
+    function  Get(nr:longint;const args:array of TMsgStr):ansistring;
   end;
 
 { this will read a line until #10 or #0 and also increase p }
@@ -74,11 +75,11 @@ uses
   cutils;
 
 
-function MsgReplace(const s:string;const args:array of string):ansistring;
+function MsgReplace(const s:TMsgStr;const args:array of TMsgStr):ansistring;
 var
   last,
   i  : longint;
-  hs : ansistring;
+  hs : TMsgStr;
 
 begin
   if s='' then
@@ -169,7 +170,7 @@ var
   s,s1    : string;
   buf     : pointer;
 
-  procedure err(const msgstr:string);
+  procedure err(const msgstr:TMsgStr);
   begin
     writeln('*** PPC, file ',fn,', error in line ',line,': ',msgstr);
     error:=true;
@@ -367,7 +368,7 @@ var
   i  : longint;
 begin
   i:=0;
-  while not(p^ in [#0,#10]) and (i<255) do
+  while not(p^ in [#0,#10]) and (i<256) do
    begin
      inc(i);
      GetMsgLine[i]:=p^;
@@ -402,7 +403,7 @@ begin
   result:=true;
 end;
 
-function TMessage.Get(nr:longint;const args:array of string):ansistring;
+function TMessage.Get(nr:longint;const args:array of TMsgStr):ansistring;
 var
   hp : pchar;
 begin

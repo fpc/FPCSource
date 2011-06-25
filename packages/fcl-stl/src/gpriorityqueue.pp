@@ -28,7 +28,7 @@ type
   var
     FData:TContainer;
     
-    procedure PushUp(position:SizeUInt);
+    procedure PushUp();
     function Left(a:SizeUInt):SizeUInt;inline;
     function Right(a:SizeUInt):SizeUInt;inline;
     procedure Heapify(position:SizeUInt);
@@ -79,9 +79,10 @@ begin
   end;
 end;
 
-procedure TPriorityQueue.PushUp(position:SizeUInt);
-var np:SizeUInt; temp:T;
+procedure TPriorityQueue.PushUp();
+var position,np:SizeUInt; temp:T;
 begin
+  position:=FData.Size-1;
   while(position>0) do
   begin
     np := Parent(position);
@@ -99,7 +100,7 @@ end;
 procedure TPriorityQueue.Push(value:T);inline;
 begin
   FData.PushBack(value);
-  PushUp(FData.Size-1);
+  PushUp();
 end;
 
 function TPriorityQueue.Left(a:SizeUInt):SizeUInt;inline;

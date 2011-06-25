@@ -446,8 +446,6 @@ uses
  ****************************************************************************}
 
     function tdosinputfile.fileopen(const filename: string): boolean;
-      var
-        ofm : byte;
       begin
         { Check if file exists, this will also check if it is
           a real file and not a directory }

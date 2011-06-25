@@ -83,6 +83,7 @@ Resourcestring
   SWarnIgnoringFile   = 'Warning: Ignoring non-existent file: ';
   SWarnIgnoringPair   = 'Warning: Ignoring wrong name/value pair: ';
   SWarngccNotFound    = 'Warning: Could not find gcc. Unable to determine the gcclib path.';
+  SWarnCouldNotExecute= 'Warning: Could not execute command ''%s''';
 
   SBackupCreated      = 'Saved old "%s" to "%s"';
 
@@ -194,16 +195,21 @@ var GccExecutable: string;
       count: integer;
 
   begin
+    result := '';
     S:=TProcess.Create(Nil);
     try
       S.Commandline:=CommandLine;
       S.Options:=[poUsePipes,poWaitOnExit];
-      S.execute;
-      Count:=s.output.read(buf,BufSize);
-      if (count=0) and ReadStdErr then
-        Count:=s.Stderr.read(buf,BufSize);
-      setlength(result,count);
-      move(buf[0],result[1],count);
+      try
+        S.execute;
+        Count:=s.output.read(buf,BufSize);
+        if (count=0) and ReadStdErr then
+          Count:=s.Stderr.read(buf,BufSize);
+        setlength(result,count);
+        move(buf[0],result[1],count);
+      except
+        Writeln(StdErr,Format(SWarnCouldNotExecute,[CommandLine]));
+      end;
     finally
       S.Free;
     end;
@@ -243,11 +249,17 @@ var GccExecutable: string;
       libgccFilename: string;
       gccDir: string;
   begin
-    ExecResult:=ExecuteProc(GetGccExecutable+' -v '+GCCParams, True);
-    libgccFilename:=Get4thWord(ExecResult);
-    if libgccFilename='' then
-      libgccFilename:=ExecuteProc(GetGccExecutable+' --print-libgcc-file-name '+GCCParams, False);
-    gccDir := ExtractFileDir(libgccFilename);
+    if FileExists(GetGccExecutable) then
+      begin
+      ExecResult:=ExecuteProc(GetGccExecutable+' -v '+GCCParams, True);
+      libgccFilename:=Get4thWord(ExecResult);
+      if libgccFilename='' then
+        libgccFilename:=ExecuteProc(GetGccExecutable+' --print-libgcc-file-name '+GCCParams, False);
+      gccDir := ExtractFileDir(libgccFilename);
+      end
+    else
+      gccDir := '';
+
     if gccDir='' then
       result := ''
     else if ACpuType = '' then

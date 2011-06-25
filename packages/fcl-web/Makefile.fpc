@@ -9,6 +9,9 @@ version=2.5.1
 [require]
 packages=rtl fpmkunit
 
+[install]
+fpcpackage=y
+
 [default]
 fpcdir=../..
 
@@ -16,7 +19,7 @@ fpcdir=../..
 # If no fpmake exists and clean is called, do not try to build fpmake, it will
 # most often fail because the dependencies are cleared. So simply skip the
 # clean by replacing the command with 'echo'
-FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
+FPMAKE_BIN_CLEAN=$(wildcard .$(PATHSEP)fpmake$(SRCEXEEXT))
 ifeq ($(FPMAKE_BIN_CLEAN),)
 FPMAKE_BIN_CLEAN=$(ECHO)
 endif
@@ -26,23 +29,30 @@ endif
 ifdef CPU_TARGET
 FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
-LOCALFPMAKE=.$(PATHSEP)fpmake$(EXEEXT)
+LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
 
 [rules]
-$(COMPILER_UNITTARGETDIR):
-        $(MKDIRTREE) $(COMPILER_UNITTARGETDIR)
-fpmake: $(COMPILER_UNITTARGETDIR) fpmake.pp
-	$(FPC) fpmake.pp $(FPCOPT)
+fpmake: fpmake.pp
+	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR))
 all:	fpmake
-	$(LOCALFPMAKE) build --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
 smart:	fpmake
-	$(LOCALFPMAKE) build --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o "-XX -CX"
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o "-XX -CX"
 release:	fpmake
-	$(LOCALFPMAKE) build --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o "-dRELEASE"
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o "-dRELEASE"
 debug:	fpmake
-	$(LOCALFPMAKE) build --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o "-dDEBUG"
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o "-dDEBUG"
 clean:	
 	$(FPMAKE_BIN_CLEAN) clean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
 install:	fpmake
+ifdef UNIXHier
 	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX)
+else
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_BASEDIR)
+endif
 
+# Normally distinstall also installs the examples, but in this case there are
+# none.
+distinstall:	install
+distclean:	clean
+	-$(DEL) $(LOCALFPMAKE)

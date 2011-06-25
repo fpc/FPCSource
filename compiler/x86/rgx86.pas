@@ -191,6 +191,7 @@ implementation
                         { Some instructions don't allow memory references
                           for destination }
                         case instr.opcode of
+                          A_CMOVcc,
                           A_MOVZX,
                           A_MOVSX,
                           A_MULSS,

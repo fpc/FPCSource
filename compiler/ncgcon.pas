@@ -109,10 +109,22 @@ implementation
       const
         floattype2ait:array[tfloattype] of taitype=
           (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_real_80bit,ait_comp_64bit,ait_comp_64bit,ait_real_128bit);
+
+      { Since the value is stored always as bestreal, we share a single pool
+        between all float types. This requires type and hiloswapped flag to
+        be matched along with the value }
+      type
+        tfloatkey = record
+          value: bestreal;
+          typ: tfloattype;
+          swapped: boolean;
+        end;
+
       var
-         hp1 : tai;
          lastlabel : tasmlabel;
          realait : taitype;
+         entry : PHashSetItem;
+         key: tfloatkey;
 {$ifdef ARM}
          hiloswapped : boolean;
 {$endif ARM}
@@ -127,44 +139,25 @@ implementation
         { const already used ? }
         if not assigned(lab_real) then
           begin
-             { tries to find an old entry }
-             hp1:=tai(current_asmdata.asmlists[al_typedconsts].first);
-             while assigned(hp1) do
-               begin
-                  if hp1.typ=ait_label then
-                    lastlabel:=tai_label(hp1).labsym
-                  else
-                    begin
-                       if (hp1.typ=realait) and (lastlabel<>nil) then
-                         begin
-                            if is_number_float(value_real) and
-                              (
-                               ((realait=ait_real_32bit) and (tai_real_32bit(hp1).value=value_real) and is_number_float(tai_real_32bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_real_32bit(hp1).value))) or
-                               ((realait=ait_real_64bit) and
+            if current_asmdata.ConstPools[sp_floats] = nil then
+              current_asmdata.ConstPools[sp_floats] := THashSet.Create(64, True, False);
+
+            { there may be gap between record fields, zero it out }
+            fillchar(key,sizeof(key),0);
+            key.value:=value_real;
+            key.typ:=tfloatdef(resultdef).floattype;
 {$ifdef ARM}
-                                 ((tai_real_64bit(hp1).formatoptions=fo_hiloswapped)=hiloswapped) and
+            key.swapped:=hiloswapped;
 {$endif ARM}
-                                 (tai_real_64bit(hp1).value=value_real) and is_number_float(tai_real_64bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_real_64bit(hp1).value))) or
-                               ((realait=ait_real_80bit) and (tai_real_80bit(hp1).value=value_real) and (tai_real_80bit(hp1).savesize=resultdef.size) and is_number_float(tai_real_80bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_real_80bit(hp1).value))) or
-{$ifdef cpufloat128}
-                               ((realait=ait_real_128bit) and (tai_real_128bit(hp1).value=value_real) and is_number_float(tai_real_128bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_real_128bit(hp1).value))) or
-{$endif cpufloat128}
-                               ((realait=ait_comp_64bit) and (tai_comp_64bit(hp1).value=value_real) and is_number_float(tai_comp_64bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_comp_64bit(hp1).value)))
-                              ) then
-                              begin
-                                { found! }
-                                lab_real:=lastlabel;
-                                break;
-                              end;
-                         end;
-                       lastlabel:=nil;
-                    end;
-                  hp1:=tai(hp1.next);
-               end;
+            entry := current_asmdata.ConstPools[sp_floats].FindOrAdd(@key, sizeof(key));
+
+            lab_real := TAsmLabel(entry^.Data);  // is it needed anymore?
+
              { :-(, we must generate a new entry }
              if not assigned(lab_real) then
                begin
                   current_asmdata.getdatalabel(lastlabel);
+                  entry^.Data:=lastlabel;
                   lab_real:=lastlabel;
                   maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
                   new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(resultdef.alignment));
@@ -412,76 +405,27 @@ implementation
 
         procedure varsetconst;
         var
-           hp1         : tai;
            lastlabel   : tasmlabel;
            i           : longint;
-           neededtyp   : taiconst_type;
+           entry       : PHashSetItem;
         begin
           location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(8));
-          neededtyp:=aitconst_8bit;
           lastlabel:=nil;
           { const already used ? }
           if not assigned(lab_set) then
             begin
-              { tries to found an old entry }
-              hp1:=tai(current_asmdata.asmlists[al_typedconsts].first);
-              while assigned(hp1) do
-                begin
-                   if hp1.typ=ait_label then
-                     lastlabel:=tai_label(hp1).labsym
-                   else
-                     begin
-                       if (lastlabel<>nil) and
-                         (hp1.typ=ait_const) and
-                         (tai_const(hp1).consttype=neededtyp) then
-                         begin
-                           if (tai_const(hp1).consttype=aitconst_8bit) then
-                            begin
-                              { compare normal set }
-                              i:=0;
-                              while assigned(hp1) and (i<32) do
-                               begin
-                                 if (source_info.endian=target_info.endian) then
-                                   begin
-                                     if tai_const(hp1).value<>Psetbytes(value_set)^[i ] then
-                                       break
-                                   end
-                                 else if tai_const(hp1).value<>reverse_byte(Psetbytes(value_set)^[i]) then
-                                   break;
-                                 inc(i);
-                                 hp1:=tai(hp1.next);
-                               end;
-                              if i=32 then
-                               begin
-                                 { found! }
-                                 lab_set:=lastlabel;
-                                 break;
-                               end;
-                              { leave when the end of consts is reached, so no
-                                hp1.next is done }
-                              if not assigned(hp1) then
-                               break;
-                            end
-                           else
-                            begin
-                              { compare small set }
-                              if paint(value_set)^=tai_const(hp1).value then
-                               begin
-                                 { found! }
-                                 lab_set:=lastlabel;
-                                 break;
-                               end;
-                            end;
-                         end;
-                       lastlabel:=nil;
-                     end;
-                   hp1:=tai(hp1.next);
-                 end;
+              if current_asmdata.ConstPools[sp_varsets] = nil then
+                current_asmdata.ConstPools[sp_varsets] := THashSet.Create(64, True, False);
+              entry := current_asmdata.ConstPools[sp_varsets].FindOrAdd(value_set, 32);
+
+              lab_set := TAsmLabel(entry^.Data);  // is it needed anymore?
+
                { :-(, we must generate a new entry }
-               if not assigned(lab_set) then
+               if not assigned(entry^.Data) then
                  begin
                    current_asmdata.getdatalabel(lastlabel);
                    lab_set:=lastlabel;
+                   entry^.Data:=lastlabel;
                    maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
                    new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(8));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));

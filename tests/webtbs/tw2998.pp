@@ -12,7 +12,7 @@ uses
 type
         vector4 = array[0..3] of single;
 
-{$codealign varmax 16}
+{$codealign varmax=16}
 var
         a,b,c :vector4;
 begin

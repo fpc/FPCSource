@@ -44,9 +44,9 @@ interface
         { sparc special, needed by cg64 }
         procedure make_simple_ref(list:TAsmList;var ref: treference);
         procedure handle_load_store(list:TAsmList;isstore:boolean;op: tasmop;reg:tregister;ref: treference);
-        procedure handle_reg_const_reg(list:TAsmList;op:Tasmop;src:tregister;a:aint;dst:tregister);
+        procedure handle_reg_const_reg(list:TAsmList;op:Tasmop;src:tregister;a:tcgint;dst:tregister);
         { parameter }
-        procedure a_load_const_cgpara(list:TAsmList;size:tcgsize;a:aint;const paraloc:TCGPara);override;
+        procedure a_load_const_cgpara(list:TAsmList;size:tcgsize;a:tcgint;const paraloc:TCGPara);override;
         procedure a_load_ref_cgpara(list:TAsmList;sz:tcgsize;const r:TReference;const paraloc:TCGPara);override;
         procedure a_loadaddr_ref_cgpara(list:TAsmList;const r:TReference;const paraloc:TCGPara);override;
         procedure a_loadfpu_reg_cgpara(list : TAsmList;size : tcgsize;const r : tregister;const paraloc : TCGPara);override;
@@ -55,15 +55,15 @@ interface
         procedure a_call_reg(list:TAsmList;Reg:TRegister);override;
         { General purpose instructions }
         procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
-        procedure a_op_const_reg(list:TAsmList;Op:TOpCG;size:tcgsize;a:aint;reg:TRegister);override;
+        procedure a_op_const_reg(list:TAsmList;Op:TOpCG;size:tcgsize;a:tcgint;reg:TRegister);override;
         procedure a_op_reg_reg(list:TAsmList;Op:TOpCG;size:TCGSize;src, dst:TRegister);override;
-        procedure a_op_const_reg_reg(list:TAsmList;op:TOpCg;size:tcgsize;a:aint;src, dst:tregister);override;
+        procedure a_op_const_reg_reg(list:TAsmList;op:TOpCg;size:tcgsize;a:tcgint;src, dst:tregister);override;
         procedure a_op_reg_reg_reg(list:TAsmList;op:TOpCg;size:tcgsize;src1, src2, dst:tregister);override;
-        procedure a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);override;
+        procedure a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);override;
         procedure a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation);override;
         { move instructions }
-        procedure a_load_const_reg(list:TAsmList;size:tcgsize;a:aint;reg:tregister);override;
-        procedure a_load_const_ref(list:TAsmList;size:tcgsize;a:aint;const ref:TReference);override;
+        procedure a_load_const_reg(list:TAsmList;size:tcgsize;a:tcgint;reg:tregister);override;
+        procedure a_load_const_ref(list:TAsmList;size:tcgsize;a:tcgint;const ref:TReference);override;
         procedure a_load_reg_ref(list:TAsmList;FromSize,ToSize:TCgSize;reg:TRegister;const ref:TReference);override;
         procedure a_load_ref_reg(list:TAsmList;FromSize,ToSize:TCgSize;const ref:TReference;reg:tregister);override;
         procedure a_load_reg_reg(list:TAsmList;FromSize,ToSize:TCgSize;reg1,reg2:tregister);override;
@@ -73,7 +73,7 @@ interface
         procedure a_loadfpu_ref_reg(list:TAsmList;fromsize,tosize:tcgsize;const ref:TReference;reg:tregister);override;
         procedure a_loadfpu_reg_ref(list:TAsmList;fromsize,tosize:tcgsize;reg:tregister;const ref:TReference);override;
         { comparison operations }
-        procedure a_cmp_const_reg_label(list:TAsmList;size:tcgsize;cmp_op:topcmp;a:aint;reg:tregister;l:tasmlabel);override;
+        procedure a_cmp_const_reg_label(list:TAsmList;size:tcgsize;cmp_op:topcmp;a:tcgint;reg:tregister;l:tasmlabel);override;
         procedure a_cmp_reg_reg_label(list:TAsmList;size:tcgsize;cmp_op:topcmp;reg1,reg2:tregister;l:tasmlabel);override;
         procedure a_jmp_always(List:TAsmList;l:TAsmLabel);override;
         procedure a_jmp_name(list : TAsmList;const s : string);override;
@@ -86,9 +86,9 @@ interface
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
         procedure g_restore_registers(list:TAsmList);override;
         procedure g_save_registers(list : TAsmList);override;
-        procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : aint);override;
-        procedure g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : aint);override;
-        procedure g_concatcopy_move(list : TAsmList;const source,dest : treference;len : aint);
+        procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);override;
+        procedure g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : tcgint);override;
+        procedure g_concatcopy_move(list : TAsmList;const source,dest : treference;len : tcgint);
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
        private
         g1_used : boolean;
@@ -108,7 +108,7 @@ interface
         procedure a_op64_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
         procedure a_op64_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
       end;
-      
+
     procedure create_codegen;
 
     const
@@ -245,7 +245,7 @@ implementation
       end;
 
 
-    procedure tcgsparc.handle_reg_const_reg(list:TAsmList;op:Tasmop;src:tregister;a:aint;dst:tregister);
+    procedure tcgsparc.handle_reg_const_reg(list:TAsmList;op:Tasmop;src:tregister;a:tcgint;dst:tregister);
       var
         tmpreg : tregister;
       begin
@@ -258,7 +258,7 @@ implementation
               begin
                 tmpreg:=NR_G1;
                 g1_used:=true;
-              end;   
+              end;
             a_load_const_reg(list,OS_INT,a,tmpreg);
             list.concat(taicpu.op_reg_reg_reg(op,src,tmpreg,dst));
             if tmpreg=NR_G1 then
@@ -322,7 +322,7 @@ implementation
       end;
 
 
-    procedure TCgSparc.a_load_const_cgpara(list:TAsmList;size:tcgsize;a:aint;const paraloc:TCGPara);
+    procedure TCgSparc.a_load_const_cgpara(list:TAsmList;size:tcgsize;a:tcgint;const paraloc:TCGPara);
       var
         Ref:TReference;
       begin
@@ -375,7 +375,7 @@ implementation
                     begin
                       tmpreg:=NR_G1;
                       g1_used:=true;
-                    end;   
+                    end;
                   a_load_ref_reg(list,sz,sz,r,tmpreg);
                   a_load_reg_ref(list,sz,sz,tmpreg,ref);
                   if tmpreg=NR_G1 then
@@ -487,26 +487,26 @@ implementation
 
     {********************** load instructions ********************}
 
-    procedure TCgSparc.a_load_const_reg(list : TAsmList;size : TCGSize;a : aint;reg : TRegister);
+    procedure TCgSparc.a_load_const_reg(list : TAsmList;size : TCGSize;a : tcgint;reg : TRegister);
       begin
         { we don't use the set instruction here because it could be evalutated to two
           instructions which would cause problems with the delay slot (FK) }
         if (a=0) then
           list.concat(taicpu.op_reg(A_CLR,reg))
         { sethi allows to set the upper 22 bit, so we'll take full advantage of it }
-        else if (a and aint($1fff))=0 then
-          list.concat(taicpu.op_const_reg(A_SETHI,a shr 10,reg))
+        else if (aint(a) and aint($1fff))=0 then
+          list.concat(taicpu.op_const_reg(A_SETHI,aint(a) shr 10,reg))
         else if (a>=simm13lo) and (a<=simm13hi) then
           list.concat(taicpu.op_const_reg(A_MOV,a,reg))
         else
           begin
-            list.concat(taicpu.op_const_reg(A_SETHI,a shr 10,reg));
-            list.concat(taicpu.op_reg_const_reg(A_OR,reg,a and aint($3ff),reg));
+            list.concat(taicpu.op_const_reg(A_SETHI,aint(a) shr 10,reg));
+            list.concat(taicpu.op_reg_const_reg(A_OR,reg,aint(a) and aint($3ff),reg));
           end;
       end;
 
 
-    procedure TCgSparc.a_load_const_ref(list : TAsmList;size : tcgsize;a : aint;const ref : TReference);
+    procedure TCgSparc.a_load_const_ref(list : TAsmList;size : tcgsize;a : tcgint;const ref : TReference);
       begin
         if a=0 then
           a_load_reg_ref(list,size,size,NR_G0,ref)
@@ -795,7 +795,7 @@ implementation
       end;
 
 
-    procedure TCgSparc.a_op_const_reg(list:TAsmList;Op:TOpCG;size:tcgsize;a:aint;reg:TRegister);
+    procedure TCgSparc.a_op_const_reg(list:TAsmList;Op:TOpCG;size:tcgsize;a:tcgint;reg:TRegister);
       begin
         if Op in [OP_NEG,OP_NOT] then
           internalerror(200306011);
@@ -833,7 +833,7 @@ implementation
       end;
 
 
-    procedure TCgSparc.a_op_const_reg_reg(list:TAsmList;op:TOpCg;size:tcgsize;a:aint;src, dst:tregister);
+    procedure TCgSparc.a_op_const_reg_reg(list:TAsmList;op:TOpCg;size:tcgsize;a:tcgint;src, dst:tregister);
       var
         power : longInt;
       begin
@@ -870,7 +870,7 @@ implementation
       end;
 
 
-    procedure tcgsparc.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);
+    procedure tcgsparc.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);
       var
         power : longInt;
         tmpreg1,tmpreg2 : tregister;
@@ -955,7 +955,7 @@ implementation
 
   {*************** compare instructructions ****************}
 
-    procedure TCgSparc.a_cmp_const_reg_label(list:TAsmList;size:tcgsize;cmp_op:topcmp;a:aint;reg:tregister;l:tasmlabel);
+    procedure TCgSparc.a_cmp_const_reg_label(list:TAsmList;size:tcgsize;cmp_op:topcmp;a:tcgint;reg:tregister;l:tasmlabel);
       begin
         if (a=0) then
           list.concat(taicpu.op_reg_reg_reg(A_SUBcc,reg,NR_G0,NR_G0))
@@ -1166,7 +1166,7 @@ implementation
 
     { ************* concatcopy ************ }
 
-    procedure tcgsparc.g_concatcopy_move(list : TAsmList;const source,dest : treference;len : aint);
+    procedure tcgsparc.g_concatcopy_move(list : TAsmList;const source,dest : treference;len : tcgint);
       var
         paraloc1,paraloc2,paraloc3 : TCGPara;
       begin
@@ -1193,7 +1193,7 @@ implementation
       end;
 
 
-    procedure TCgSparc.g_concatcopy(list:TAsmList;const source,dest:treference;len:aint);
+    procedure TCgSparc.g_concatcopy(list:TAsmList;const source,dest:treference;len:tcgint);
       var
         tmpreg1,
         hreg,
@@ -1286,7 +1286,7 @@ implementation
       end;
 
 
-    procedure tcgsparc.g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : aint);
+    procedure tcgsparc.g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : tcgint);
       var
         src, dst: TReference;
         tmpreg1,
@@ -1363,7 +1363,7 @@ implementation
           Internalerror(200109191);
 
         make_global:=false;
-        if (not current_module.is_unit) or
+        if (not current_module.is_unit) or create_smartlink or
            (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
           make_global:=true;
 
@@ -1383,7 +1383,7 @@ implementation
             { mov  0(%rdi),%rax ; load vmt}
             reference_reset_base(href,NR_O0,0,sizeof(pint));
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_G1);
-            g1_used:=true; 
+            g1_used:=true;
             { jmp *vmtoffs(%eax) ; method offs }
             reference_reset_base(href,NR_G1,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
             list.concat(taicpu.op_ref_reg(A_LD,href,NR_G1));
@@ -1524,8 +1524,8 @@ implementation
             internalerror(200306017);
         end;
         get_64bit_ops(op,op1,op2,false);
-        tcgsparc(cg).handle_reg_const_reg(list,op1,regdst.reglo,aint(lo(value)),regdst.reglo);
-        tcgsparc(cg).handle_reg_const_reg(list,op2,regdst.reghi,aint(hi(value)),regdst.reghi);
+        tcgsparc(cg).handle_reg_const_reg(list,op1,regdst.reglo,tcgint(lo(value)),regdst.reglo);
+        tcgsparc(cg).handle_reg_const_reg(list,op2,regdst.reghi,tcgint(hi(value)),regdst.reghi);
       end;
 
 
@@ -1555,8 +1555,8 @@ implementation
             internalerror(200306017);
         end;
         get_64bit_ops(op,op1,op2,setflags);
-        tcgsparc(cg).handle_reg_const_reg(list,op1,regsrc.reglo,aint(lo(value)),regdst.reglo);
-        tcgsparc(cg).handle_reg_const_reg(list,op2,regsrc.reghi,aint(hi(value)),regdst.reghi);
+        tcgsparc(cg).handle_reg_const_reg(list,op1,regsrc.reglo,tcgint(lo(value)),regdst.reglo);
+        tcgsparc(cg).handle_reg_const_reg(list,op2,regsrc.reghi,tcgint(hi(value)),regdst.reghi);
       end;
 
 
@@ -1580,5 +1580,5 @@ implementation
         cg:=TCgSparc.Create;
         cg64:=TCg64Sparc.Create;
       end;
-      
+
 end.

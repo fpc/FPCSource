@@ -1296,7 +1296,7 @@ Type
      PSHCOLUMNINFO = ^SHCOLUMNINFO;
      SHCOLUMNINFO = record
           scid : SHCOLUMNID;                                                { OUT the unique identifier of this column}
-          vt : VARTYPE;                                                     { OUT the native type of the data return}
+          vt : TVarType;                                                    { OUT the native type of the data return}
           fmt : DWORD;                                                      { OUT this listview format (LVCFMT_LEFT}
           cChars : UINT;                                                    { OUT the default width of the column,}
           csFlags : DWORD;                                                  { OUT SHCOLSTATE flags }

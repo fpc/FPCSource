@@ -52,7 +52,7 @@ interface
         FDirectoryEntries : TFPHashList;
         FCached : Boolean;
         procedure FreeDirectoryEntries;
-        function GetItemAttr(const AName: TCmdStr): byte;
+        function GetItemAttr(const AName: TCmdStr): longint;
         function TryUseCache: boolean;
         procedure ForceUseCache;
         procedure Reload;
@@ -236,7 +236,7 @@ end;
       end;
 
 
-    function TCachedDirectory.GetItemAttr(const AName: TCmdStr): byte;
+    function TCachedDirectory.GetItemAttr(const AName: TCmdStr): longint;
       var
         entry: PCachedDirectoryEntry;
       begin
@@ -523,8 +523,8 @@ end;
         if (length(s)>0) and (s[1] in AllowDirectorySeparators) then
           result:=true;
 {$elseif defined(amiga) or defined(morphos)}
-        (* An Amiga path is absolute, if it has a volume/device name in it (contains ":"), 
-           otherwise it's always a relative path, no matter if it starts with a directory 
+        (* An Amiga path is absolute, if it has a volume/device name in it (contains ":"),
+           otherwise it's always a relative path, no matter if it starts with a directory
            separator or not. (KB) *)
         if (length(s)>0) and (Pos(':',s) <> 0) then
           result:=true;

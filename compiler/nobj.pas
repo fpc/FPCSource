@@ -1161,8 +1161,7 @@ implementation
                (pd.visibility=vis_published) then
               begin
                 current_asmdata.getdatalabel(l);
-
-                current_asmdata.asmlists[al_typedconsts].concat(cai_align.create(const_align(sizeof(pint))));
+                new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l.name,const_align(sizeof(pint)));
                 current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l));
                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(length(tsym(p).realname)));
                 current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create(tsym(p).realname));

@@ -1,4 +1,4 @@
-{ %TARGET=win32,win64,wince}
+{ %TARGET=win32,win64,wince,linux}
 program tsafecall2;
 
 {$mode objfpc}{$H+}

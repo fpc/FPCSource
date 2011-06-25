@@ -32,8 +32,30 @@ Type
    { possible supported processors for this target }
    tcputype =
       (cpu_none,
-       cpu_avr
+       cpu_avr1,
+       cpu_avr2,
+       cpu_avr25,
+       cpu_avr3,
+       cpu_avr31,
+       cpu_avr35,
+       cpu_avr4,
+       cpu_avr5,
+       cpu_avr51,
+       cpu_avr6
       );
+
+   tcpuflags =
+      (AVR_HAVE_JMP_CALL,
+       AVR_HAVE_MOVW,
+       AVR_HAVE_LPMX,
+       AVR_HAVE_MUL,
+       AVR_HAVE_RAMPZ,
+       AVR_HAVE_ELPM,
+       AVR_HAVE_ELPMX,
+       AVR_2_BYTE_PC,
+       AVR_3_BYTE_PC
+      );
+
    tfputype =
      (fpu_none,
       fpu_soft,
@@ -72,7 +94,16 @@ Const
    ];
 
    cputypestr : array[tcputype] of string[5] = ('',
-     'AVR'
+     'AVR1',
+     'AVR2',
+     'AVR25',
+     'AVR3',
+     'AVR31',
+     'AVR35',
+     'AVR4',
+     'AVR5',
+     'AVR51',
+     'AVR6'
    );
 
    fputypestr : array[tfputype] of string[6] = (
@@ -111,6 +142,20 @@ Const
    level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches + 
      [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
+
+   cpu_capabilities : array[tcputype] of set of tcpuflags =
+     ( { cpu_none } [],
+       { cpu_avr1 } [],
+       { cpu_avr2 } [],
+       { cpu_avr25 } [],
+       { cpu_avr3 } [],
+       { cpu_avr31 } [],
+       { cpu_avr35 } [],
+       { cpu_avr4 } [],
+       { cpu_avr5 } [],
+       { cpu_avr51 } [],
+       { cpu_avr6 } []
+     );
 
 Implementation
 

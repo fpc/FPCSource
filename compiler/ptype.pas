@@ -491,7 +491,6 @@ implementation
         srsymtable : TSymtable;
         s,sorg : TIDString;
         t : ttoken;
-        structdef : tabstractrecorddef;
       begin
          s:=pattern;
          sorg:=orgpattern;
@@ -684,6 +683,11 @@ implementation
               begin
                 consume(_TYPE);
                 member_blocktype:=bt_type;
+
+                { local and anonymous records can not have inner types. skip top record symtable }
+                if (current_structdef.objname^='') or 
+                   not(symtablestack.stack^.next^.symtable.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]) then
+                  Message(parser_e_no_types_in_local_anonymous_records);
               end;
             _VAR :
               begin
@@ -1002,7 +1006,6 @@ implementation
            lv,hv   : TConstExprInt;
            old_block_type : tblock_type;
            dospecialize : boolean;
-           structdef: tdef;
         begin
            old_block_type:=block_type;
            dospecialize:=false;

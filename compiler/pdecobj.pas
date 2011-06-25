@@ -1082,7 +1082,7 @@ implementation
         current_specializedef:=nil;
 
         { objects and class types can't be declared local }
-        if not(symtablestack.top.symtabletype in [globalsymtable,staticsymtable,objectsymtable]) and
+        if not(symtablestack.top.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]) and
            not assigned(genericlist) then
           Message(parser_e_no_local_objects);
 

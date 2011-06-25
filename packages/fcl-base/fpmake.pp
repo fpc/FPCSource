@@ -105,6 +105,8 @@ begin
     // Windows units
     T:=P.Targets.AddUnit('fileinfo.pp',AllWindowsOSes);
 
+    T:=P.Targets.addUnit('fpmimetypes');
+    
     // Additional sources
     P.Sources.AddSrcFiles('src/win/fclel.*');
 

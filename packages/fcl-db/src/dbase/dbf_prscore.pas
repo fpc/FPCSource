@@ -2277,6 +2277,9 @@ initialization
     // Functions - name, description, param types, min params, result type, Func addr
     Add(TFunction.Create('STR',       '',      'FII', 1, etString, FuncFloatToStr, ''));
     Add(TFunction.Create('STR',       '',      'III', 1, etString, FuncIntToStr, ''));
+    {$ifdef SUPPORT_INT64}
+     Add(TFunction.Create('STR', '', 'LII', 1, etString, FuncInt64ToStr, ''));
+    {$endif}
     Add(TFunction.Create('DTOS',      '',      'D',   1, etString, FuncDateToStr, ''));
     Add(TFunction.Create('SUBSTR',    'SUBS',  'SII', 3, etString, FuncSubString, ''));
     Add(TFunction.Create('UPPERCASE', 'UPPER', 'S',   1, etString, FuncUppercase, ''));

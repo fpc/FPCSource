@@ -184,7 +184,7 @@ implementation
              paranr:=paranr_result_leftright
            else
 {$elseif defined(x86) or defined(arm)}
-           if (target_info.system in systems_all_windows) and
+           if (tf_safecall_exceptions in target_info.flags) and
               (pd.proccalloption = pocall_safecall)  then
              paranr:=paranr_result_leftright
            else
@@ -2756,7 +2756,7 @@ const
                     if target_info.system in (systems_all_windows + systems_nativent +
                                        [system_i386_emx, system_i386_os2]) then
                    { cprefix is not used in DLL imports under Windows or OS/2 }
-                      result:=pd.import_name^
+                      result:='_$dll$'+ExtractFileName(pd.import_dll^)+'$'+pd.import_name^
                     else
                       result:=maybe_cprefix(pd.import_name^);
                   end

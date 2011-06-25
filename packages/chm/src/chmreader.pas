@@ -1205,7 +1205,8 @@ begin
     begin
       sitemap.free;
       Result:=AbortAndTryTextual;
-    end;
+    end
+  else Index.Free;
 end;
 
 function TChmReader.GetTOCSitemap(ForceXML:boolean=false): TChmSiteMap;
@@ -1281,7 +1282,7 @@ begin
      Exit;
    end;
 
-   // Binary Toc Exists
+     // Binary Toc Exists
    Result := TChmSiteMap.Create(stTOC);
 
    EntryInfoOffset := NtoLE(TOC.ReadDWord);
@@ -1289,10 +1290,17 @@ begin
    EntryCount      := NtoLE(TOC.ReadDWord);
    TOPICSOffset    := NtoLE(TOC.ReadDWord);
 
+   if EntryCount = 0 then
+     begin
+       Toc.Free;
+       Exit;
+     end;
+
    NextItem := EntryInfoOffset;
    repeat
      NextItem := AddTOCItem(Toc, NextItem, Result.Items);
    until NextItem = 0;
+   TOC.Free;
 end;
 
 function TChmReader.HasContextList: Boolean;
@@ -1570,7 +1578,7 @@ AChm: TChmReader;
 AIndex: Integer;
 begin
   if not FileExists(AFileName) then exit;
-  AStream := TFileStream.Create(AFileName, fmOpenRead, fmShareDenyWrite);
+  AStream := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
   AChm := TChmReader.Create(AStream, True);
   AIndex := AddObject(AFileName, AChm);
   fLastChm := AChm;

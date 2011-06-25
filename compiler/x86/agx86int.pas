@@ -110,7 +110,7 @@ implementation
       );
 
       secnamesml64 : array[TAsmSectiontype] of string[7] = ('','',
-        '_TEXT','_DATE','_DATA','_DATA','_BSS','',
+        '_TEXT','_DATA','_DATA','_DATA','_BSS','',
         '','','','',
         'idata$2','idata$4','idata$5','idata$6','idata$7','edata',
         '',
@@ -221,26 +221,6 @@ implementation
       end;
 
 
-   function fixline(s:string):string;
-   {
-     return s with all leading and ending spaces and tabs removed
-   }
-     var
-       i,j,k : longint;
-     begin
-       i:=length(s);
-       while (i>0) and (s[i] in [#9,' ']) do
-        dec(i);
-       j:=1;
-       while (j<i) and (s[j] in [#9,' ']) do
-        inc(j);
-       for k:=j to i do
-        if s[k] in [#0..#31,#127..#255] then
-         s[k]:='.';
-       fixline:=Copy(s,j,i-j+1);
-     end;
-
-
 {****************************************************************************
                                tx86IntelAssembler
  ****************************************************************************}
@@ -269,6 +249,12 @@ implementation
                AsmWrite('+')
               else
                first:=false;
+{$ifdef x86_64}
+              { ml64 needs [$+foo] instead of [rip+foo] }
+              if (base=NR_RIP) and (target_asm.id=as_x86_64_masm) then
+               AsmWrite('$')
+              else
+{$endif x86_64}
                AsmWrite(masm_regname(base));
             end;
            if (index<>NR_NO) then
@@ -307,7 +293,7 @@ implementation
             AsmWrite(tostr(o.val));
           top_ref :
             begin
-              if o.ref^.refaddr=addr_no then
+              if o.ref^.refaddr in [addr_no,addr_pic,addr_pic_no_got] then
                 begin
                   if ((opcode <> A_LGS) and (opcode <> A_LSS) and
                       (opcode <> A_LFS) and (opcode <> A_LDS) and
@@ -445,15 +431,11 @@ implementation
     end;
 
     procedure tx86IntelAssembler.WriteTree(p:TAsmList);
-    const
-      regallocstr : array[tregalloctype] of string[10]=(' allocated',' released',' sync',' resized');
-      tempallocstr : array[boolean] of string[10]=(' released',' allocated');
     var
       s,
       prefix,
       suffix   : string;
       hp       : tai;
-      hp1      : tailineinfo;
       counter,
       lines,
       InlineLevel : longint;
@@ -473,52 +455,16 @@ implementation
       hp:=tai(p.first);
       while assigned(hp) do
        begin
-         if do_line and not(hp.typ in SkipLineInfo) and
-            not DoNotSplitLine and (InlineLevel=0) then
-           begin
-              hp1:=hp as tailineinfo;
-           { load infile }
-             if lastfileinfo.fileindex<>hp1.fileinfo.fileindex then
-              begin
-                infile:=current_module.sourcefiles.get_file(hp1.fileinfo.fileindex);
-                if assigned(infile) then
-                 begin
-                   { open only if needed !! }
-                   if (cs_asm_source in current_settings.globalswitches) then
-                    infile.open;
-                 end;
-                { avoid unnecessary reopens of the same file !! }
-                lastfileinfo.fileindex:=hp1.fileinfo.fileindex;
-                { be sure to change line !! }
-                lastfileinfo.line:=-1;
-              end;
-           { write source }
-             if (cs_asm_source in current_settings.globalswitches) and
-                assigned(infile) then
-              begin
-                if (infile<>lastinfile) then
-                  begin
-                    AsmWriteLn(target_asm.comment+'['+infile.name^+']');
-                    if assigned(lastinfile) then
-                      lastinfile.close;
-                  end;
-                if (hp1.fileinfo.line<>lastfileinfo.line) and
-                   ((hp1.fileinfo.line<infile.maxlinebuf) or (InlineLevel>0)) then
-                  begin
-                    if (hp1.fileinfo.line<>0) and
-                       ((infile.linebuf^[hp1.fileinfo.line]>=0) or (InlineLevel>0)) then
-                      AsmWriteLn(target_asm.comment+'['+tostr(hp1.fileinfo.line)+'] '+
-                        fixline(infile.GetLineStr(hp1.fileinfo.line)));
-                    { set it to a negative value !
-                    to make that is has been read already !! PM }
-                    if (infile.linebuf^[hp1.fileinfo.line]>=0) then
-                      infile.linebuf^[hp1.fileinfo.line]:=-infile.linebuf^[hp1.fileinfo.line]-1;
-                  end;
-              end;
-             lastfileinfo:=hp1.fileinfo;
-             lastinfile:=infile;
-           end;
+         prefetch(pointer(hp.next)^);
+         if not(hp.typ in SkipLineInfo) then
+          begin
+            current_filepos:=tailineinfo(hp).fileinfo;
+            { no line info for inlined code }
+            if do_line and (inlinelevel=0) and not DoNotSplitLine then
+              WriteSourceLine(hp as tailineinfo);
+          end;
          DoNotSplitLine:=false;
+
          case hp.typ of
            ait_comment :
              Begin
@@ -537,16 +483,7 @@ implementation
            ait_tempalloc :
              begin
                if (cs_asm_tempalloc in current_settings.globalswitches) then
-                 begin
-{$ifdef EXTDEBUG}
-                   if assigned(tai_tempalloc(hp).problem) then
-                     AsmWriteLn(target_asm.comment+tai_tempalloc(hp).problem^+' ('+tostr(tai_tempalloc(hp).temppos)+','+
-                       tostr(tai_tempalloc(hp).tempsize)+')')
-                   else
-{$endif EXTDEBUG}
-                     AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
-                       tostr(tai_tempalloc(hp).tempsize)+tempallocstr[tai_tempalloc(hp).allocation]);
-                 end;
+                 WriteTempalloc(tai_tempalloc(hp));
              end;
 
            ait_section :
@@ -979,9 +916,13 @@ implementation
       { better do this at end of WriteTree, but then there comes a trouble with
         al_const which does not have leading ait_section and thus goes out of segment }
 
-      { TODO: probably ml64 needs 'closing' last section, too }
       if LastSecType <> sec_none then
-        AsmWriteLn('_'+secnames[LasTSecType]+#9#9'ENDS');
+        begin
+          if target_asm.id=as_x86_64_masm then
+            AsmWriteLn(secnamesml64[LasTSecType]+#9#9'ENDS')
+          else
+            AsmWriteLn('_'+secnames[LasTSecType]+#9#9'ENDS');
+        end;
       LastSecType := sec_none;
 
       AsmWriteLn(#9'END');

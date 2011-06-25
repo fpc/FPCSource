@@ -18,10 +18,150 @@
 {$asmmode gas}
 
 Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
-begin
-end;
+  begin
+  end;
+
 
 procedure fpc_cpuinit;
-begin
-  SysInitFPU;
-end;
+  begin
+    SysInitFPU;
+  end;
+
+
+
+{$IFNDEF INTERNAL_BACKTRACE}
+{$define FPC_SYSTEM_HAS_GET_FRAME}
+function get_frame:pointer;assembler;nostackframe;
+  asm
+  end;
+{$ENDIF not INTERNAL_BACKTRACE}
+
+
+{$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
+function get_caller_addr(framebp:pointer):pointer;assembler;
+  asm
+  end;
+
+
+{$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
+function get_caller_frame(framebp:pointer):pointer;assembler;
+  asm
+  end;
+
+
+{$define FPC_SYSTEM_HAS_SPTR}
+Function Sptr : pointer;assembler;
+  asm
+  end;
+
+
+function InterLockedDecrement (var Target: longint) : longint;
+  var
+    sreg : byte;
+  begin
+    { block interrupts }
+    asm
+      in r0,0x3f
+      std sreg,r0
+      cli
+    end;
+
+    dec(Target);
+    Result:=Target;
+
+    { release interrupts }
+    asm
+      ldd r0,sreg
+      out 0x3f,r0
+    end;
+  end;
+
+
+function InterLockedIncrement (var Target: longint) : longint;
+  var
+    sreg : byte;
+  begin
+    { block interrupts }
+    asm
+      in r0,0x3f
+      std sreg,r0
+      cli
+    end;
+
+    inc(Target);
+    Result:=Target;
+
+    { release interrupts }
+    asm
+      ldd r0,sreg
+      out 0x3f,r0
+    end;
+  end;
+
+
+function InterLockedExchange (var Target: longint;Source : longint) : longint;
+  var
+    sreg : byte;
+  begin
+    { block interrupts }
+    asm
+      in r0,0x3f
+      std sreg,r0
+      cli
+    end;
+
+    Result:=Target;
+    Target:=Source;
+
+    { release interrupts }
+    asm
+      ldd r0,sreg
+      out 0x3f,r0
+    end;
+  end;
+
+
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
+  var
+    sreg : byte;
+  begin
+    { block interrupts }
+    asm
+      in r0,0x3f
+      std sreg,r0
+      cli
+    end;
+
+    Result:=Target;
+    if Target=Comperand then
+      Target:=NewValue;
+
+    { release interrupts }
+    asm
+      ldd r0,sreg
+      out 0x3f,r0
+    end;
+  end;
+
+
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
+  var
+    sreg : byte;
+  begin
+    { block interrupts }
+    asm
+      in r0,0x3f
+      std sreg,r0
+      cli
+    end;
+
+    Result:=Target;
+    inc(Target,Source);
+
+    { release interrupts }
+    asm
+      ldd r0,sreg
+      out 0x3f,r0
+    end;
+  end;
+

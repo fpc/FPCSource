@@ -127,7 +127,7 @@ const term_codes_ansi:Ttermcodes=
          #$1B#$5B#$48,                                      {cursor_home}
          #$1B'[?25h'#$1B'[?0c',                             {cursor_normal}
          #$1B'[?0c',                                        {cursor visible, underline}
-         #$1B'[?17;0;127c',                                 {cursor visible, block}
+         #$1B'[?6c',                                        {cursor visible, block}
          #$1B'[?1c',                                        {cursor_invisible}
          nil,                                               {enter_ca_mode}
          nil,                                               {exit_ca_mode}

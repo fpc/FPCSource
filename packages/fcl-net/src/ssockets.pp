@@ -44,6 +44,7 @@ type
   Private
     FSocketInitialized : Boolean;
     FSocketOptions : TSocketOptions;
+    FLastError : integer;
     Procedure GetSockOptions;
     Procedure SetSocketOptions(Value : TSocketOptions);
     function GetLocalAddress: TSockAddr;
@@ -58,6 +59,7 @@ type
                                             Write SetSocketOptions;
     property LocalAddress: TSockAddr read GetLocalAddress;
     property RemoteAddress: TSockAddr read GetRemoteAddress;
+    Property LastError : Integer Read FLastError;
   end;
 
   TConnectEvent = Procedure (Sender : TObject; Data : TSocketStream) Of Object;
@@ -86,6 +88,7 @@ type
     Function  Accept: Longint;Virtual;Abstract;
     Function  SockToStream (ASocket : Longint) : TSocketStream;Virtual;Abstract;
     Procedure Close; Virtual;
+    function GetConnection: TSocketStream;
   Public
     Constructor Create(ASocket : Longint);
     Destructor Destroy; Override;
@@ -139,6 +142,8 @@ type
     Property FileName : String Read FFileName;
   end;
 {$endif}
+
+  { TInetSocket }
 
   TInetSocket = Class(TSocketStream)
   Private
@@ -255,6 +260,10 @@ Var
 begin
   Flags:=0;
   Result:=fprecv(handle,@Buffer,count,flags);
+  If Result<0 then
+    FLastError:=SocketError
+  else
+    FLastError:=0;
 end;
 
 Function TSocketStream.Write (Const Buffer; Count : Longint) :Longint;
@@ -265,6 +274,10 @@ Var
 begin
   Flags:=0;
   Result:=fpsend(handle,@Buffer,count,flags);
+  If Result<0 then
+    FLastError:=SocketError
+  else
+    FlastError:=0;
 end;
 
 function TSocketStream.GetLocalAddress: TSockAddr;
@@ -295,12 +308,14 @@ Constructor TSocketServer.Create(ASocket : Longint);
 begin
   FSocket:=ASocket;
   FQueueSize :=5;
+  FMaxConnections:=-1;
 end;
 
 Destructor TSocketServer.Destroy;
 
 begin
   Close;
+  Inherited;
 end;
 
 Procedure TSocketServer.Close;
@@ -324,11 +339,27 @@ begin
     Raise ESocketError.Create(seListenFailed,[FSocket,SocketError]);
 end;
 
+Function TSocketServer.GetConnection : TSocketStream;
+
+var
+  NewSocket : longint;
+
+begin
+  Result:=Nil;
+  NewSocket:=Accept;
+  If NewSocket>=0 then
+    begin
+    If FAccepting and DoConnectQuery(NewSocket) Then
+      Result:=SockToStream(NewSocket)
+    else
+      CloseSocket(NewSocket);
+    end
+end;
+
 Procedure TSocketServer.StartAccepting;
 
 Var
- NoConnections,
- NewSocket : longint;
+ NoConnections : Integer;
  Stream : TSocketStream;
 
 begin
@@ -338,34 +369,22 @@ begin
   Repeat
     Repeat
       Try
-        NewSocket:=Accept;
-        If NewSocket>=0 then
+        Stream:=GetConnection;
+        if Assigned(Stream) then
           begin
           Inc (NoConnections);
-          If FAccepting and DoConnectQuery(NewSocket) Then
-            begin
-            Stream:=SockToStream(NewSocket);
-            DoConnect(Stream);
-            end
-          else
-            begin
-            CloseSocket(NewSocket);
-            NewSocket:=-1;
-            end;          
-          end
+          DoConnect(Stream);
+          end;
       except
         On E : ESocketError do
-        begin
+          begin
           If E.Code=seAcceptWouldBlock then
-            begin
-            DoOnIdle;
-            NewSocket:=-1;
-            end
+            DoOnIdle
           else
             Raise;
-        end;
+          end;
        end;
-    Until (NewSocket>=0) or (Not NonBlocking);
+    Until (Stream<>Nil) or (Not NonBlocking);
   Until Not (FAccepting) or ((FMaxConnections<>-1) and (NoConnections>=FMaxConnections));
 end;
 
@@ -432,9 +451,9 @@ end;
 Procedure TInetServer.Bind;
 
 begin
-  Faddr.family := AF_INET;
-  Faddr.port := ShortHostToNet(FPort);
-  Faddr.addr := LongWord(StrToNetAddr(FHost));
+  Faddr.sin_family := AF_INET;
+  Faddr.sin_port := ShortHostToNet(FPort);
+  Faddr.sin_addr.s_addr := LongWord(StrToNetAddr(FHost));
   if  Sockets.fpBind(FSocket, @FAddr, Sizeof(FAddr))<>0 then
     raise ESocketError.Create(seBindFailed, [IntToStr(FPort)]);
   FBound:=True;
@@ -547,7 +566,6 @@ end;
 Procedure TInetSocket.DoConnect(ASocket : Longint);
 
 Var
-  TheHost: THostResolver;
   A : THostAddr;
   addr: TInetSockAddr;
 
@@ -562,9 +580,9 @@ begin
       finally
         free;
       end;
-  addr.family := AF_INET;
-  addr.port := ShortHostToNet(FPort);
-  addr.addr := HostToNet(a.s_addr);
+  addr.sin_family := AF_INET;
+  addr.sin_port := ShortHostToNet(FPort);
+  addr.sin_addr.s_addr := HostToNet(a.s_addr);
 
   If  Sockets.fpConnect(ASocket, @addr, sizeof(addr))<>0 then
     raise ESocketError.Create(seConnectFailed, [Format('%s:%d',[FHost, FPort])]);

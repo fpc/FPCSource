@@ -139,6 +139,22 @@ Const
         KERN_PROC_UID           = 5;    {  by effective uid }
         KERN_PROC_RUID          = 6;    {  by real uid }
         KERN_PROC_ARGS          = 7;    {  get/set arguments/proctitle }
+ 	KERN_PROC_PROC          = 8;    {  only return procs }
+        KERN_PROC_SV_NAME       = 9;    {  get syscall vector name }
+        KERN_PROC_RGID          = 10;   {  by real group id }
+        KERN_PROC_GID           = 11;   {  by effective group id }
+        KERN_PROC_PATHNAME      = 12;   {  path to executable }
+        KERN_PROC_OVMMAP        = 13;   {  Old VM map entries for process }
+        KERN_PROC_OFILEDESC     = 14;   {  Old file descriptors for process }
+        KERN_PROC_KSTACK        = 15;   {  Kernel stacks for process }
+        KERN_PROC_INC_THREAD    = $10;  {
+                                         * modifier for pid, pgrp, tty,
+                                         * uid, ruid, gid, rgid and proc
+                                         * This effectively uses 16-31
+                                         }
+        KERN_PROC_VMMAP         = 32;   { VM map entries for process }
+        KERN_PROC_FILEDESC      = 33;   { File descriptors for process }
+        KERN_PROC_GROUPS        = 34;   { process groups }
 
 {
  * KERN_IPC identifiers

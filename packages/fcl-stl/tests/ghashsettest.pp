@@ -80,7 +80,7 @@ begin
   end;
   it:=data.Iterator;
   repeat
-    inc(x[it.GetValue]);
+    inc(x[it.Data]);
   until not it.next;
   for i:=0 to 1000 do begin
     AssertEquals('som not 1', 1, x[i]);

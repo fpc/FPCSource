@@ -289,6 +289,7 @@ Type
     Function AddFileEntry(Const ADiskFileName : String): TZipFileEntry;
     Function AddFileEntry(Const ADiskFileName, AArchiveFileName : String): TZipFileEntry;
     Function AddFileEntry(Const AStream : TSTream; Const AArchiveFileName : String): TZipFileEntry;
+    Procedure AddFileEntries(Const List : TStrings);
     Property Entries[AIndex : Integer] : TZipFileEntry Read GetZ Write SetZ; default;
   end;
 
@@ -343,7 +344,8 @@ Type
     Property OnStartFile : TOnStartFileEvent Read FOnStartFile Write FOnStartFile;
     Property OnEndFile : TOnEndOfFileEvent Read FOnEndOfFile Write FOnEndOfFile;
     Property FileName : String Read FFileName Write SetFileName;
-    Property Files : TStrings Read FFiles;
+    // Deprecated. Use Entries.AddFileEntry(FileName) or Entries.AddFileEntries(List) instead.
+    Property Files : TStrings Read FFiles; deprecated;
     Property InMemSize : Integer Read FInMemSize Write FInMemSize;
     Property Entries : TZipFileEntries Read FEntries Write SetEntries;
   end;
@@ -1434,6 +1436,9 @@ Begin
     end;
   finally
     FZipping:=False;
+    // Remove entries that have been added by CheckEntries from Files.
+    For I:=0 to FFiles.Count-1 do
+      FEntries.Delete(FEntries.Count-1);
   end;
 end;
 
@@ -1510,14 +1515,8 @@ Var
   I : Integer;
 
 begin
-  If (FFiles.Count>0) and (FEntries.Count=0) then
-    begin
-    FEntries.Clear;
-    For I:=0 to FFiles.Count-1 do
-      begin
-      FEntries.AddFileEntry(FFiles[i]);
-      end;
-    end;
+  For I:=0 to FFiles.Count-1 do
+    FEntries.AddFileEntry(FFiles[i]);
   Result:=FEntries.Count;
 end;
 
@@ -2063,6 +2062,15 @@ begin
   Result.ArchiveFileName:=AArchiveFileName;
 end;
 
+Procedure TZipFileEntries.AddFileEntries(Const List : TStrings);
+
+Var
+  I : integer;
+  
+begin
+  For I:=0 to List.Count-1 do
+    AddFileEntry(List[i]);
+end;
 { TFullZipFileEntries }
 
 function TFullZipFileEntries.GetFZ(AIndex : Integer): TFullZipFileEntry;

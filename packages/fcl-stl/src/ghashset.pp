@@ -29,8 +29,9 @@ type
       Fh,Fp:SizeUInt;
       FData:TTable;
       function Next:boolean;
-      function GetValue:T;
-  end;
+      function GetData:T;
+      property Data:T read GetData;
+ end;
 
   generic THashSet<T, Thash>=class
     private 
@@ -65,7 +66,7 @@ end;
 destructor THashSet.Destroy;
 var i:SizeUInt;
 begin
-  for i:=0 to FData.size do
+  for i:=0 to FData.size-1 do
     (FData[i]).Destroy;
   FData.Destroy;
 end;
@@ -162,9 +163,9 @@ begin
   Next := true;
 end;
 
-function THashSetIterator.GetValue:T;
+function THashSetIterator.GetData:T;
 begin
-  GetValue:=(FData[Fh])[Fp];
+  GetData:=(FData[Fh])[Fp];
 end;
 
 function THashSet.Iterator:TIterator;

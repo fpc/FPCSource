@@ -124,6 +124,11 @@ the one of the project.
   {$IFDEF FPC}
     {$UNDEF JWA_INCLUDE_JWAADSTLB}
     {$UNDEF JWA_INCLUDE_SETUP_API}
+    {$IFDEF CPU64}
+       // Dynamic linking code contains assembler blocks, which are specific
+       // to i386 and stdcall calling convention.
+       {$UNDEF DYNAMIC_LINK}
+    {$ENDIF}
   {$ENDIF FPC}
 {$ENDIF PACKAGE_CONDITIONS}
 

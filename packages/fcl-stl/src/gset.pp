@@ -20,6 +20,16 @@ const RED=true;
 const BLACK=false;
 
 type
+  generic TSetIterator<T, TNode>=class
+    public
+    type PNode=^TNode;
+    var FNode:PNode;
+    function GetData:T;
+    function Next:boolean;
+    function Prev:boolean;
+    property Data:T read GetData;
+  end;
+
   generic TSet<T, TCompare>=class
   public
   type 
@@ -30,6 +40,7 @@ type
       Parent:PNode;
       Color:boolean;
     end;
+    TIterator=specialize TSetIterator<T, Node>;
   var
   private
     FBase:PNode;
@@ -48,24 +59,31 @@ type
     function MoveRedRight(nod:PNode):PNode;inline;
     function DeleteMin(nod:PNode):PNode;
     function Delete(value:T; nod:PNode):PNode;
-    function Min(nod:PNode):PNode;inline;
-    
+    function Min(nod:PNode):PNode;inline; 
   public
-    function Find(value:T):PNode;inline;
-    function FindLess(value:T):PNode;inline;
-    function FindLessEqual(value:T):PNode;inline;
-    function FindGreater(value:T):PNode;inline;
-    function FindGreaterEqual(value:T):PNode;inline;
-    function Insert(value:T):PNode;inline;
-    function Min:PNode;inline;
-    function Max:PNode;inline;
-    function Next(x:PNode):PNode;inline;
-    function Prev(x:PNode):PNode;inline;
+    function Find(value:T):TIterator;inline;
+    function FindLess(value:T):TIterator;inline;
+    function FindLessEqual(value:T):TIterator;inline;
+    function FindGreater(value:T):TIterator;inline;
+    function FindGreaterEqual(value:T):TIterator;inline;
+    function InsertAndGetIterator(value:T):TIterator;inline;
+    procedure Insert(value:T);inline;
+    function Min:TIterator;inline;
+    function Max:TIterator;inline;
     procedure Delete(value:T);inline;
     public constructor Create;
     public destructor Destroy;override;
     function Size:SizeUInt;
     function IsEmpty:boolean;
+
+    function NFind(value:T):PNode;inline;
+    function NFindLess(value:T):PNode;inline;
+    function NFindLessEqual(value:T):PNode;inline;
+    function NFindGreater(value:T):PNode;inline;
+    function NFindGreaterEqual(value:T):PNode;inline;
+    function NInsert(value:T):PNode;inline;
+    function NMin:PNode;inline;
+    function NMax:PNode;inline;
   end;
 
 implementation
@@ -242,19 +260,41 @@ begin
 end;
 
 
-function TSet.Find(value:T):PNode;inline;
+function TSet.Find(value:T):TIterator;inline;
+var ret:TIterator; x:PNode;
+begin
+  x := NFind(value);
+  if x = nil then exit(nil);
+  ret := TIterator.create;
+  ret.FNode := x;
+  Find := ret;
+end;
+
+function TSet.NFind(value:T):PNode;inline;
 var x:PNode;
 begin
   x:=FBase;
   while(x <> nil) do begin
     if(TCompare.c(value,x^.Data)) then x:=x^.Left
     else if(TCompare.c(x^.Data,value)) then x:=x^.Right
-    else exit(x);
+    else begin
+      exit(x);
+    end;
   end;
   exit(nil);
 end;
 
-function TSet.FindLess(value:T):PNode;inline;
+function TSet.FindLess(value:T):TIterator;inline;
+var ret:TIterator; x:PNode;
+begin
+  x := NFindLess(value);
+  if x = nil then exit(nil);
+  ret := TIterator.create;
+  ret.FNode := x;
+  FindLess := ret;
+end;
+
+function TSet.NFindLess(value:T):PNode;inline;
 var x,cur:PNode;
 begin
   x:=nil;
@@ -267,10 +307,20 @@ begin
     end else
       cur:=cur^.left;
   end;
-  FindLess:=x;
+  NFindLess := x;
 end;
 
-function TSet.FindLessEqual(value:T):PNode;inline;
+function TSet.FindLessEqual(value:T):TIterator;inline;
+var ret:TIterator; x:PNode;
+begin
+  x := NFindLessEqual(value);
+  if x = nil then exit(nil);
+  ret := TIterator.create;
+  ret.FNode := x;
+  FindLessEqual := ret;
+end;
+
+function TSet.NFindLessEqual(value:T):PNode;inline;
 var x,cur:PNode;
 begin
   x:=nil;
@@ -283,10 +333,20 @@ begin
     end else
       cur:=cur^.left;
   end;
-  FindLessEqual:=x;
+  NFindLessEqual := x
 end;
 
-function TSet.FindGreater(value:T):PNode;inline;
+function TSet.FindGreater(value:T):TIterator;inline;
+var ret:TIterator; x:PNode;
+begin
+  x := NFindGreater(value);
+  if x = nil then exit(nil);
+  ret := TIterator.create;
+  ret.FNode := x;
+  FindGreater := ret;
+end;
+
+function TSet.NFindGreater(value:T):PNode;inline;
 var x,cur:PNode;
 begin
   x:=nil;
@@ -299,10 +359,20 @@ begin
     end else
       cur:=cur^.right;
   end;
-  FindGreater:=x;
+  NFindGreater := x;
 end;
 
-function TSet.FindGreaterEqual(value:T):PNode;inline;
+function TSet.FindGreaterEqual(value:T):TIterator;inline;
+var ret:TIterator; x:PNode;
+begin
+  x := NFindGreaterEqual(value);
+  if x = nil then exit(nil);
+  ret := TIterator.create;
+  ret.FNode := x;
+  FindGreaterEqual := ret;
+end;
+
+function TSet.NFindGreaterEqual(value:T):PNode;inline;
 var x,cur:PNode;
 begin
   x:=nil;
@@ -315,15 +385,32 @@ begin
     end else
       cur:=cur^.right;
   end;
-  FindGreaterEqual:=x;
+  NFindGreaterEqual := x;
 end;
 
-function TSet.Insert(value:T):PNode;inline;
+procedure TSet.Insert(value:T);inline;
 var position:PNode;
 begin
   FBase:=Insert(value, FBase, position);
   FBase^.Color:=BLACK;
-  Insert:=position;
+end;
+
+function TSet.NInsert(value:T):PNode;inline;
+var position:PNode;
+begin
+  FBase:=Insert(value, FBase, position);
+  FBase^.Color:=BLACK;
+  NInsert := position;
+end;
+
+function TSet.InsertAndGetIterator(value:T):TIterator;inline;
+var position:PNode; ret:TIterator;
+begin
+  FBase:=Insert(value, FBase, position);
+  FBase^.Color:=BLACK;
+  ret := TIterator.create;
+  ret.FNode := position;
+  InsertAndGetIterator := ret;
 end;
 
 function TSet.Insert(value:T; nod:PNode; var position:PNode):PNode;
@@ -367,57 +454,93 @@ begin
   exit(temp);
 end;
 
-function TSet.Min:PNode;inline;
+function TSet.NMin:PNode;inline;
+var nod:PNode;
 begin
   if FBase=nil then exit(nil);
-  Min:=Min(FBase);
+  nod:=Min(FBase);
+  if (nod = nil) then exit(nil);
+  NMin := nod;
 end;
 
-function TSet.Max:PNode;inline;
-var temp:PNode;
+function TSet.Min:TIterator;inline;
+var nod:PNode;
+    ret:TIterator;
+begin
+  nod:=NMin;
+  if (nod = nil) then exit(nil);
+  ret := TIterator.create;
+  ret.FNode := nod;
+  Min := ret;
+end;
+
+function TSet.NMax:PNode;inline;
+var temp:PNode; 
 begin
   if FBase=nil then exit(nil);
   temp:=FBase;
   while(temp^.Right<>nil) do temp:=temp^.Right;
-  exit(temp);
+  
+  NMax := temp;
 end;
 
-function TSet.Next(x:PNode):PNode;inline;
+function TSet.Max:TIterator;inline;
+var temp:PNode; ret:TIterator;
+begin
+  if FBase=nil then exit(nil);
+  temp:=FBase;
+  while(temp^.Right<>nil) do temp:=temp^.Right;
+  
+  ret := TIterator.create;
+  ret.FNode := temp;
+  Max := ret;
+end;
+
+function TSetIterator.GetData:T;
+begin
+  GetData:= FNode^.Data;
+end;
+
+function TSetIterator.Next:boolean;
 var temp:PNode;
 begin
-  if(x=nil) then exit(nil);
-  if(x^.Right<>nil) then begin
-    temp:=x^.Right;
+  if(FNode=nil) then exit(false);
+  if(FNode^.Right<>nil) then begin
+    temp:=FNode^.Right;
     while(temp^.Left<>nil) do temp:=temp^.Left;
   end
   else begin
-    temp:=x;
+    temp:=FNode;
     while(true) do begin
       if(temp^.Parent=nil) then begin temp:=temp^.Parent; break; end;
       if(temp^.Parent^.Left=temp) then begin temp:=temp^.Parent; break; end;
       temp:=temp^.Parent;
     end;
   end;
-  exit(temp);
+  if (temp = nil) then exit(false);
+  FNode:=temp;
+  Next:=true;
 end;
 
-function TSet.Prev(x:PNode):PNode;inline;
+function TSetIterator.Prev:boolean;
 var temp:PNode;
 begin
-  if(x=nil) then exit(nil);
-  if(x^.Left<>nil) then begin
-    temp:=x^.Left;
+  if(FNode=nil) then exit(false);
+  if(FNode^.Left<>nil) then begin
+    temp:=FNode^.Left;
     while(temp^.Right<>nil) do temp:=temp^.Right;
   end
   else begin
-    temp:=x;
+    temp:=FNode;
     while(true) do begin
       if(temp^.Parent=nil) then begin temp:=temp^.Parent; break; end;
       if(temp^.Parent^.Right=temp) then begin temp:=temp^.Parent; break; end;
       temp:=temp^.Parent;
     end;
   end;
-  exit(temp);
+  if (temp = nil) then exit(false);
+  FNode:=temp;
+  Prev:=true;
 end;
 
 end.

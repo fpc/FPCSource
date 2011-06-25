@@ -478,6 +478,8 @@ implementation
             end;
           { write unit name }
           write_string(current_module.realmodulename^);
+          { write zero which is required by RTL }
+          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(0));
         end;
 
         procedure orddef_rtti(def:torddef);

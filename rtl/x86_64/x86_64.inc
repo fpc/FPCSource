@@ -72,6 +72,12 @@ asm
 .Lg_a_null:
 end ['RAX'];
 
+// The following assembler procedures are disabled for FreeBSD due to
+// multiple issues with its old GNU assembler (Mantis #19188).
+// Even after fixing them, it can be enabled only for the trunk version,
+// otherwise bootstrapping won't be possible.
+{$ifndef freebsd}
+
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
@@ -365,8 +371,16 @@ Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
     cmp    $8, %rdx
     jl     .Ltiny
 
+// TODO: movz?q and movs?q are not accepted by FPC asmreader, it needs fixing.
+// `movzbl' instead is accepted and generates correct code with internal assembler,
+// but breaks targets using external GAS (Mantis #19188).
+// So use a different instruction for now.
+
     { expand byte value  }
-    movzbl %r8b, %r8
+    andq   $0xff, %r8
+{
+    movzbq %r8b, %r8
+}
     mov    $0x0101010101010101,%r9
     imul   %r9, %r8
 
@@ -459,7 +473,6 @@ Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
 {$endif FPC_SYSTEM_HAS_FILLCHAR}
 
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
-{ based on libc/sysdeps/x86_64/memchr.S }
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
 function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt; assembler; nostackframe;
 { win64: rcx buf, rdx len, r8b word
@@ -472,51 +485,45 @@ asm
     movq   %rdi, %rcx
     movq   %rsi, %rdx
 {$endif}
-    mov    %rcx, %rax                  { duplicate buf }
+    mov    %rcx, %r8
     punpcklbw  %xmm1, %xmm1
-    and    $0xfffffffffffffff0, %rax
+    and    $-0x10, %rcx                { highest aligned address before buf }
     test   %rdx, %rdx
     punpcklbw  %xmm1, %xmm1
-    jz     .L3                         { exit if len=0 }
-    orl    $0xffffffff, %r8d
-    movdqa (%rax), %xmm0               { Fetch first 16 bytes (up to 15 bytes before target) }
+    jz     .Lnotfound                  { exit if len=0 }
+    add    $16, %rcx                   { first aligned address after buf }
     pshufd $0, %xmm1, %xmm1
-    sub    %rax, %rcx                  { rcx=misalignment }
-    pcmpeqb %xmm1, %xmm0
-    add    %rcx, %rdx                  { add misalignment to length }
-    cmovb  %r8, %rdx                   { if it overflows (happens when length=-1), set back to -1, }
-                                       {   otherwise loop will terminate too early }
-    mov    %rcx, %r9                   { and save it, will subtract back in the end }
-    shl    %cl, %r8d
-    pmovmskb %xmm0, %ecx
-    andl   %r8d, %ecx                  { mask away matches before buffer start }
-    movl   $16, %r8d
-    jnz    .L1                         { got a match within buffer -> we're done (almost) }
-    cmpq   %r8, %rdx
-    jbe    .L3
+    movdqa -16(%rcx), %xmm0            { Fetch first 16 bytes (up to 15 bytes before target) }
+    sub    %r8, %rcx                   { rcx=number of valid bytes, r8=original ptr }
+
+    pcmpeqb %xmm1, %xmm0               { compare with pattern and get bitmask }
+    pmovmskb %xmm0, %eax
+
+    shl    %cl, %eax                   { shift valid bits into high word }
+    and    $0xffff0000, %eax           { clear low word containing invalid bits }
+    shr    %cl, %eax                   { shift back }
+    jmp   .Lcontinue
 
     .balign 16
-.L2:
-    movdqa (%rax,%r8), %xmm0
-    lea    16(%r8), %r8
+.Lloop:
+    movdqa (%r8,%rcx), %xmm0           { r8 and rcx may have any values, }
+    add    $16, %rcx                   { but their sum is evenly divisible by 16. }
     pcmpeqb %xmm1, %xmm0
-    pmovmskb %xmm0, %ecx
-    test   %ecx, %ecx
-    jnz    .L1
-    cmp    %r8, %rdx
-    ja     .L2
+    pmovmskb %xmm0, %eax
+.Lcontinue:
+    test   %eax, %eax
+    jnz    .Lmatch
+    cmp    %rcx, %rdx
+    ja     .Lloop
+.Lnotfound:
+    or     $-1, %rax
+    retq
 
-.L3:
-    or    $-1, %rax
-    jmp   .Ldone
-
-.L1:
-    bsfl   %ecx, %ecx                  { compute position of the first match }
-    lea    -16(%rcx,%r8), %rax
-    cmp    %rax, %rdx
-    jbe    .L3                         { if it is after the specified length, ignore it }
-    sub    %r9, %rax
-.Ldone:
+.Lmatch:
+    bsf    %eax, %eax
+    lea    -16(%rcx,%rax), %rax
+    cmp    %rax, %rdx                  { check against the buffer length }
+    jbe    .Lnotfound
 end;
 {$endif FPC_SYSTEM_HAS_INDEXBYTE}
 
@@ -533,79 +540,100 @@ asm
     movq   %rdi, %rcx
     movq   %rsi, %rdx
 {$endif}
-    mov    %rcx, %rax                  { duplicate buf }
+    mov    %rcx, %r8
     punpcklwd  %xmm1, %xmm1
-    and    $0xfffffffffffffff0, %rax
+    and    $-0x10, %rcx
     test   %rdx, %rdx
     pshufd $0, %xmm1, %xmm1
-    jz     .L3                         { exit if len=0 }
-    orl    $0xffffffff, %r8d
-    test   $1, %cl                     { if buffer isn't aligned to word boundary, }
-    jnz    .Lunaligned                 { fallback to slower unaligned loop }
+    jz     .Lnotfound                  { exit if len=0 }
+    add    $16, %rcx
+    movdqa -16(%rcx), %xmm0            { Fetch first 16 bytes (up to 14 bytes before target) }
+    sub    %r8, %rcx                   { rcx=number of valid bytes }
 
-    movdqa (%rax), %xmm0               { Fetch first 16 bytes (up to 14 bytes before target) }
-    sub    %rax, %rcx                  { rcx=misalignment }
-    pcmpeqw %xmm1, %xmm0
+    test   $1, %r8b                    { if buffer isn't aligned to word boundary, }
+    jnz    .Lunaligned                 { use a different algorithm }
 
-    mov    %rcx, %r9
-    shr    $1, %r9                     { save misalignment in words }
+    pcmpeqw  %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
 
-    add    %r9, %rdx                   { add misalignment to length }
-    cmovb  %r8, %rdx                   { if it overflows (happens when length=-1), set back to -1, }
-                                       {   otherwise loop will terminate too early }
-    shl    %cl, %r8d
-    pmovmskb %xmm0, %ecx
-    andl   %r8d, %ecx                  { mask away matches before buffer start }
-    movl   $8, %r8d
-    jnz    .L1                         { got a match within buffer -> we're done (almost) }
-    cmpq   %r8, %rdx
-    jbe    .L3
+    shl    %cl, %eax
+    and    $0xffff0000, %eax
+    shr    %cl, %eax
+    shr    $1, %ecx                    { bytes->words }
+    jmp    .Lcontinue
 
     .balign 16
-.L2:
-    movdqa (%rax,%r8,2), %xmm0
-    lea    8(%r8), %r8
-    pcmpeqw %xmm1, %xmm0
-    pmovmskb %xmm0, %ecx
-    test   %ecx, %ecx
-    jnz    .L1
-    cmp    %r8, %rdx
-    ja     .L2
+.Lloop:
+    movdqa (%r8,%rcx,2), %xmm0
+    add    $8, %rcx
+    pcmpeqw  %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
+.Lcontinue:
+    test   %eax, %eax
+    jnz    .Lmatch
+    cmp    %rcx, %rdx
+    ja     .Lloop
 
-.L3:
+.Lnotfound:
     or    $-1, %rax
-    jmp   .Ldone
-
-.L1:
-    bsfl   %ecx, %ecx                  { compute position of the first match }
-    shr    $1, %ecx                    { in words }
-    lea    -8(%rcx,%r8), %rax
-    cmp    %rax, %rdx
-    jbe    .L3                         { if it is after the specified length, ignore it }
-    sub    %r9, %rax
-.Ldone:
     retq
 
-{ TODO: aligned processing is still possible, but for now
-  use the simplest form }
+.Lmatch:
+    bsf    %eax, %eax
+    shr    $1, %eax                    { in words }
+    lea    -8(%rcx,%rax), %rax
+    cmp    %rax, %rdx
+    jbe    .Lnotfound                  { if match is after the specified length, ignore it }
+    retq
+
 .Lunaligned:
-    xor    %r9, %r9
-    xor    %r8, %r8
-    mov    %rcx, %rax
+    movdqa  %xmm1, %xmm2               { (mis)align the pattern (in this particular case: }
+    psllw   $8, %xmm1                  {   swap bytes of each word of pattern) }
+    psrlw   $8, %xmm2
+    por     %xmm2, %xmm1
+
+    pcmpeqb  %xmm1, %xmm0
+    pmovmskb %xmm0, %eax
+
+    shl    %cl, %eax
+    and    $0xffff0000, %eax
+    shr    %cl, %eax
+
+    add    %rdx, %rdx                  { length words -> bytes }
+    xor    %r10d, %r10d                { nothing to merge yet }
+    jmp    .Lcontinue_u
 
     .balign 16
-.L2u:
-    movdqu (%rax,%r8,2), %xmm0
-    lea    8(%r8), %r8
-    pcmpeqw %xmm1, %xmm0
-    pmovmskb %xmm0, %ecx
-    test   %ecx, %ecx
-    jnz    .L1
-    cmp    %r8, %rdx
-    ja     .L2u
+.Lloop_u:
+    movdqa (%r8,%rcx), %xmm0
+    add    $16, %rcx
+    pcmpeqb %xmm1, %xmm0               { compare by bytes }
+    shr    $16, %r10d                  { bit 16 shifts into 0 }
+    pmovmskb %xmm0, %eax
+.Lcontinue_u:
+    shl    $1, %eax                    { 15:0 -> 16:1 }
+    or     %r10d, %eax                 { merge bit 0 from previous round }
+    mov    %eax, %r10d
+    shr    $1, %eax                    { now AND together adjacent pairs of bits }
+    and    %r10d, %eax
+    and    $0x5555, %eax               { also reset odd bits }
+    jnz    .Lmatch_u
+    cmpq   %rcx, %rdx
+    ja     .Lloop_u
+
+.Lnotfound_u:
     or     $-1, %rax
+    retq
+.Lmatch_u:
+    bsf    %eax, %eax
+    lea    -16(%rcx,%rax), %rax
+    cmp    %rax, %rdx
+    jbe    .Lnotfound_u                { if match is after the specified length, ignore it }
+    sar    $1, %rax                    { in words }
 end;
 {$endif FPC_SYSTEM_HAS_INDEXWORD}
+
+{$endif freebsd}
 
 {$asmmode att}
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}

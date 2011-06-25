@@ -521,13 +521,14 @@ implementation
 
         procedure AddPackage(const pack,prefix:string);
         var
-          packdirvar,unitdirvar : string;
+          packdirvar,unitdirvar,unitfpmakedirvar : string;
           fpcmadedirvar : string;
         begin
           FOutput.Add('ifdef '+Prefix+VarName(pack));
           { create needed variables }
           packdirvar:='PACKAGEDIR_'+VarName(pack);
           unitdirvar:='UNITDIR_'+VarName(pack);
+          unitfpmakedirvar:='UNITDIR_FPMAKE_'+VarName(pack);
           { Search packagedir by looking for Makefile.fpc }
           FOutput.Add(packdirvar+':=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /'+pack+'/Makefile.fpc,$(PACKAGESDIR))))))');
           FOutput.Add('ifneq ($('+packdirvar+'),)');
@@ -537,6 +538,19 @@ implementation
           FOutput.Add('else');
           FOutput.Add(unitdirvar+'=$('+packdirvar+')');
           FOutput.Add('endif');
+
+          FOutput.Add('ifneq ($(wildcard $('+packdirvar+')/units/$(SOURCESUFFIX)),)');
+          FOutput.Add(unitfpmakedirvar+'=$('+packdirvar+')/units/$(SOURCESUFFIX)');
+          FOutput.Add('else');
+
+          FOutput.Add('ifneq ($(wildcard $('+packdirvar+')/units_bs/$(SOURCESUFFIX)),)');
+          FOutput.Add(unitfpmakedirvar+'=$('+packdirvar+')/units_bs/$(SOURCESUFFIX)');
+          FOutput.Add('else');
+          FOutput.Add(unitfpmakedirvar+'=$('+packdirvar+')');
+          FOutput.Add('endif');
+
+          FOutput.Add('endif');
+
           FOutput.Add('ifdef CHECKDEPEND');
           { rtl needs special handling for FPCMADE }
           if pack='rtl' then
@@ -561,6 +575,11 @@ implementation
           FOutput.Add('ifdef '+unitdirvar);
           FOutput.Add('override COMPILER_UNITDIR+=$('+unitdirvar+')');
           FOutput.Add('endif');
+
+          FOutput.Add('ifdef '+unitfpmakedirvar);
+          FOutput.Add('override COMPILER_FPMAKE_UNITDIR+=$('+unitfpmakedirvar+')');
+          FOutput.Add('endif');
+
           { endif for package }
           FOutput.Add('endif');
         end;
@@ -728,6 +747,7 @@ implementation
            AddIniSection('fpcdetect');
            AddIniSection('fpcdircheckenv');
            AddIniSection('fpcdirdetect');
+           AddIniSection('fpmakefpcdetect');
            { Package }
            AddVariable('package_name');
            AddVariable('package_version');

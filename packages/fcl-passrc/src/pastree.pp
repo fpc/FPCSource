@@ -125,7 +125,7 @@ type
 
   TExprOpCode = (eopNone,
                  eopAdd,eopSubtract,eopMultiply,eopDivide, eopDiv,eopMod, eopPower,// arithmetic
-                 eopShr,eopSHl, // bit operations
+                 eopShr,eopShl, // bit operations
                  eopNot,eopAnd,eopOr,eopXor, // logical/bit
                  eopEqual, eopNotEqual,  // Logical
                  eopLessThan,eopGreaterThan, eopLessthanEqual,eopGreaterThanEqual, // ordering
@@ -2038,6 +2038,8 @@ Const
  Seps : Array[Boolean] of Char = ('=',':');
 
 begin
+  if (Value = '') and Assigned(Expr) then
+    Value := Expr.GetDeclaration(full);
   If Assigned(VarType) then
     begin
     If VarType.Name='' then
@@ -2506,7 +2508,7 @@ end;
 
 constructor TPasExpr.Create(AParent : TPasElement; AKind: TPasExprKind; AOpCode: TexprOpcode);
 begin
-  Create(ClassName, AParent);
+  inherited Create(ClassName, AParent);
   Kind:=AKind;
   OpCode:=AOpCode;
 end;
@@ -2567,16 +2569,45 @@ end;
 { TBinaryExpr }
 
 function TBinaryExpr.GetDeclaration(Full : Boolean):AnsiString;
-
+  function OpLevel(op: TPasExpr): Integer;
+  begin
+    case op.OpCode of
+      eopNot,eopAddress:
+        Result := 4;
+      eopMultiply, eopDivide, eopDiv, eopMod, eopAnd, eopShl,
+      eopShr, eopAs, eopPower:
+        Result := 3;
+      eopAdd, eopSubtract, eopOr, eopXor:
+        Result := 2;
+      eopEqual, eopNotEqual, eopLessThan, eopLessthanEqual, eopGreaterThan,
+      eopGreaterThanEqual, eopIn, eopIs:
+        Result := 1;
+    else
+      Result := 5; // Numbers and Identifiers
+    end;
+  end;
+var op: string;
 begin
   If Kind=pekRange then
     Result:='..'
   else
     Result:=' '+OpcodeStrings[Opcode]+' ';
   If Assigned(Left) then
-    Result:=Left.GetDeclaration(Full)+Result;
+  begin
+    op := Left.GetDeclaration(Full);
+    if OpLevel(Left) < OpLevel(Self) then
+      Result := '(' + op + ')' + Result
+    else
+      Result := op + Result;
+  end;
   If Assigned(Right) then
-    Result:=Result +Right.GetDeclaration(Full);
+  begin
+    op := Right.GetDeclaration(Full);
+    if (OpLevel(Right) < 5) and (OpLevel(Right) >= OpLevel(Self)) then
+      Result := Result + '(' + op + ')'
+    else
+      Result := Result + op;
+  end;
 end;
 
 
@@ -2609,13 +2640,17 @@ Var
   I : Integer;
 
 begin
+  Result := '';
   For I:=0 to High(Params) do
     begin
     If (Result<>'')  then
       Result:=Result+', ';
     Result:=Result+Params[I].GetDeclaration(Full);  
-    end;  
-  Result:='('+Result+')';
+    end;
+  if Kind = pekSet then
+    Result := '[' + Result + ']'
+  else
+    Result := '(' + Result + ')';
 end;
 
 procedure TParamsExpr.AddParam(xp:TPasExpr);
@@ -2647,9 +2682,10 @@ Function TRecordValues.GetDeclaration(Full : Boolean):AnsiString;
 Var
   I : Integer;
 begin
+  Result := '';
   For I:=0 to High(Fields) do
     begin
-    If Result='' then
+    If Result<>'' then
       Result:=Result+'; ';
     Result:=Result+Fields[I].Name+': '+Fields[i].ValueExp.getDeclaration(Full);
     end;
@@ -2708,9 +2744,10 @@ Var
   I : Integer;
 
 begin
+  Result := '';
   For I:=0 to High(Values) do
     begin
-    If Result='' then
+    If Result<>'' then
       Result:=Result+', ';
     Result:=Result+Values[i].getDeclaration(Full);
     end;

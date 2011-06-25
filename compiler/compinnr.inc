@@ -73,9 +73,9 @@ const
    in_readstr_x         = 63;
    in_abs_long          = 64;
    in_ror_x             = 65;
-   in_ror_x_x           = 66;
+   in_ror_x_y           = 66;
    in_rol_x             = 67;
-   in_rol_x_x           = 68;
+   in_rol_x_y           = 68;
    in_objc_selector_x   = 69;
    in_objc_protocol_x   = 70;
    in_objc_encode_x     = 71;

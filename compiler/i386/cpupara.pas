@@ -169,7 +169,7 @@ unit cpupara;
                 windows/delphi (FK)
               }
               if ((target_info.system=system_i386_win32) and
-                 (calloption=pocall_stdcall) and
+                 (calloption in [pocall_stdcall,pocall_safecall]) and
                  (varspez=vs_const)) or
                  (calloption=pocall_register) then
                 result:=true
@@ -350,7 +350,18 @@ unit cpupara;
         else
           begin
             retcgsize:=def_cgsize(def);
-            result.intsize:=def.size;
+            { darwin/x86 requires that results < sizeof(aint) are sign/ }
+            { zero extended to sizeof(aint)                             }
+            if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
+               (side=calleeside) and
+               (result.intsize>0) and
+               (result.intsize<sizeof(aint)) then
+              begin
+                result.intsize:=sizeof(aint);
+                retcgsize:=OS_SINT;
+              end
+            else
+              result.intsize:=def.size;
           end;
         result.size:=retcgsize;
         { Return is passed as var parameter }
@@ -456,7 +467,7 @@ unit cpupara;
                    (paralen < sizeof(aint)) then
                   begin
                     paralen := sizeof(aint);
-                    paracgsize:=OS_INT;
+                    paracgsize:=OS_SINT;
                   end
                 else
                   paracgsize:=def_cgsize(hp.vardef);

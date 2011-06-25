@@ -103,12 +103,9 @@ Function TParams.CreateParam(FldType: TFieldType; const ParamName: string;
 
 begin
   Result:=Add as TParam;
-  With Result do
-    begin
-    Name:=ParamName;
-    DataType:=FldType;
-    ParamType:=ParamType;
-    end;
+  Result.Name:=ParamName;
+  Result.DataType:=FldType;
+  Result.ParamType:=ParamType;
 end;
 
 Function TParams.FindParam(const Value: string): TParam;
@@ -569,6 +566,14 @@ begin
     Result:=FValue;
 end;
 
+function TParam.GetAsFMTBCD: TBCD;
+begin
+  If IsNull then
+    Result:=0
+  else
+    Result:=VarToBCD(FValue);
+end;
+
 Function TParam.GetDisplayName: string;
 begin
   if (FName<>'') then
@@ -595,75 +600,75 @@ end;
 
 Procedure TParam.SetAsBlob(const AValue: TBlobData);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftBlob;
 end;
 
 Procedure TParam.SetAsBoolean(AValue: Boolean);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftBoolean;
 end;
 
 Procedure TParam.SetAsCurrency(const AValue: Currency);
 begin
-  FValue:=Avalue;
+  Value:=Avalue;
   FDataType:=ftCurrency;
 end;
 
 Procedure TParam.SetAsDate(const AValue: TDateTime);
 begin
-  FValue:=Avalue;
+  Value:=Avalue;
   FDataType:=ftDate;
 end;
 
 Procedure TParam.SetAsDateTime(const AValue: TDateTime);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftDateTime;
 end;
 
 Procedure TParam.SetAsFloat(const AValue: Double);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftFloat;
 end;
 
 Procedure TParam.SetAsInteger(AValue: Longint);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftInteger;
 end;
 
 Procedure TParam.SetAsLargeInt(AValue: LargeInt);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftLargeint;
 end;
 
 Procedure TParam.SetAsMemo(const AValue: string);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftMemo;
 end;
 
 
 Procedure TParam.SetAsSmallInt(AValue: LongInt);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftSmallInt;
 end;
 
 Procedure TParam.SetAsString(const AValue: string);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   if FDataType <> ftFixedChar then
     FDataType := ftString;
 end;
 
 procedure TParam.SetAsWideString(const aValue: WideString);
 begin
-  FValue := aValue;
+  Value := aValue;
   if FDataType <> ftFixedWideChar then
     FDataType := ftWideString;
 end;
@@ -671,7 +676,7 @@ end;
 
 Procedure TParam.SetAsTime(const AValue: TDateTime);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftTime;
 end;
 
@@ -697,16 +702,24 @@ begin
                       FDataType:=ftString;
       varInt64    : FDataType:=ftLargeInt;
     else
-      FDataType:=ftUnknown;
+      if VarIsFmtBCD(Value) then
+        FDataType:=ftFmtBCD
+      else
+        FDataType:=ftUnknown;
     end;
 end;
 
 Procedure TParam.SetAsWord(AValue: LongInt);
 begin
-  FValue:=AValue;
+  Value:=AValue;
   FDataType:=ftWord;
 end;
 
+procedure TParam.SetAsFMTBCD(const AValue: TBCD);
+begin
+  FValue:=VarFmtBCDCreate(AValue);
+  FDataType:=ftFMTBcd;
+end;
 
 Procedure TParam.SetDataType(AValue: TFieldType);
 
@@ -804,6 +817,7 @@ begin
       ftDateTime : Field.AsDateTime:=AsDateTime;
       ftBytes,
       ftVarBytes : ; // Todo.
+      ftFmtBCD   : Field.AsBCD:=AsFMTBCD;
     else
       If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then
         DatabaseErrorFmt(SBadParamFieldType, [Name], DataSet);
@@ -841,6 +855,7 @@ begin
       ftDateTime : AsDateTime:=Field.AsDateTime;
       ftBytes,
       ftVarBytes : ; // Todo.
+      ftFmtBCD   : AsFMTBCD:=Field.AsBCD;
     else
       If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then
         DatabaseErrorFmt(SBadParamFieldType, [Name], DataSet);
@@ -855,15 +870,15 @@ begin
     begin
 
     if (Field.DataType = ftString) and TStringField(Field).FixedChar then
-      DataType := ftFixedChar
+      FDataType := ftFixedChar
     else if (Field.DataType = ftMemo) and (Field.Size > 255) then
-      DataType := ftString
+      FDataType := ftString
     else if (Field.DataType = ftWideString) and TWideStringField(Field).FixedChar then
-      DataType := ftFixedWideChar
+      FDataType := ftFixedWideChar
     else if (Field.DataType = ftWideMemo) and (Field.Size > 255) then
-      DataType := ftWideString
+      FDataType := ftWideString
     else
-      DataType := Field.DataType;
+      FDataType := Field.DataType;
 
     if VarIsNull(AValue) then
       Clear
@@ -938,6 +953,7 @@ begin
         end;
         end;
       end;
+    ftFmtBCD   : PBCD(Buffer)^:=AsFMTBCD;
   else
     If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then
       DatabaseErrorFmt(SBadParamFieldType, [Name], DataSet);
@@ -976,6 +992,7 @@ begin
     ftDataSet,
     ftReference,
     ftCursor   : Result:=0;
+    ftFmtBCD   : Result:=SizeOf(TBCD);
   else
     DatabaseErrorFmt(SBadParamFieldType,[Name],DataSet);
   end;
@@ -1057,6 +1074,7 @@ begin
     ftGraphic..ftTypedBinary,
     ftOraBlob,
     ftOraClob  : SetBlobData(Buffer, StrLen(PChar(Buffer)));
+    ftFmtBCD   : AsFMTBCD:=PBCD(Buffer)^;
   else
     DatabaseErrorFmt(SBadParamFieldType,[Name],DataSet);
   end;

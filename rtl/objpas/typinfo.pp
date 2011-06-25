@@ -349,6 +349,11 @@ function GetInterfaceProp(Instance: TObject; PropInfo: PPropInfo): IInterface;
 procedure SetInterfaceProp(Instance: TObject; const PropName: string; const Value: IInterface);
 procedure SetInterfaceProp(Instance: TObject; PropInfo: PPropInfo; const Value: IInterface);
 
+function GetRawInterfaceProp(Instance: TObject; const PropName: string): Pointer;
+function GetRawInterfaceProp(Instance: TObject; PropInfo: PPropInfo): Pointer;
+procedure SetRawInterfaceProp(Instance: TObject; const PropName: string; const Value: Pointer);
+procedure SetRawInterfaceProp(Instance: TObject; PropInfo: PPropInfo; const Value: Pointer);
+
 // Auxiliary routines, which may be useful
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
 Function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
@@ -1261,6 +1266,68 @@ begin
             end;
         end;
       end;
+    tkInterfaceRaw:
+      Raise Exception.Create('Cannot set RAW interface from IUnknown interface');
+  end;
+end;
+
+{ ---------------------------------------------------------------------
+    RAW (Corba) Interface wrapprers
+  ---------------------------------------------------------------------}
+
+
+function GetRawInterfaceProp(Instance: TObject; const PropName: string): Pointer;
+
+begin
+  Result:=GetRawInterfaceProp(Instance,FindPropInfo(Instance,PropName));
+end;
+
+function GetRawInterfaceProp(Instance: TObject; PropInfo: PPropInfo): Pointer;
+
+begin
+{$ifdef cpu64}
+  Result:=Pointer(GetInt64Prop(Instance,PropInfo));
+{$else cpu64}
+  Result:=Pointer(PtrInt(GetOrdProp(Instance,PropInfo)));
+{$endif cpu64}
+end;
+
+procedure SetRawInterfaceProp(Instance: TObject; const PropName: string; const Value: Pointer);
+
+begin
+  SetRawInterfaceProp(Instance,FindPropInfo(Instance,PropName),Value);
+end;
+
+procedure SetRawInterfaceProp(Instance: TObject; PropInfo: PPropInfo; const Value: Pointer);
+type
+  TSetPointerProcIndex=procedure(index:longint;const i:Pointer) of object;
+  TSetPointerProc=procedure(i:Pointer) of object;
+var
+  AMethod : TMethod;
+begin
+  case Propinfo^.PropType^.Kind of
+    tkInterfaceRaw:
+      begin
+        case (PropInfo^.PropProcs shr 2) and 3 of
+          ptField:
+            PPointer(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
+          ptstatic,
+          ptvirtual :
+            begin
+              if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
+                AMethod.Code:=PropInfo^.SetProc
+              else
+                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+              AMethod.Data:=Instance;
+              if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+                TSetPointerProcIndex(AMethod)(PropInfo^.Index,Value)
+              else
+                TSetPointerProc(AMethod)(Value);
+            end;
+        end;
+      end;
+    tkInterface:
+      Raise Exception.Create('Cannot set interface from RAW interface');
   end;
 end;
 

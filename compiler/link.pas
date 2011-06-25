@@ -63,7 +63,7 @@ interface
          Procedure AddStaticCLibrary(const S : TCmdStr);
          Procedure AddSharedCLibrary(S : TCmdStr);
          Procedure AddFramework(S : TCmdStr);
-         procedure AddImportSymbol(const libname,symname:TCmdStr;OrdNr: longint;isvar:boolean);virtual;
+         procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);virtual;
          Procedure InitSysInitUnitName;virtual;
          Function  MakeExecutable:boolean;virtual;
          Function  MakeSharedLibrary:boolean;virtual;
@@ -93,6 +93,7 @@ interface
          FImportLibraryList : TFPHashObjectList;
          procedure Load_ReadObject(const para:TCmdStr);
          procedure Load_ReadStaticLibrary(const para:TCmdStr);
+         procedure ParseScript_Handle;
          procedure ParseScript_Load;
          procedure ParseScript_Order;
          procedure ParseScript_MemPos;
@@ -112,7 +113,7 @@ interface
          Destructor Destroy;override;
          Function  MakeExecutable:boolean;override;
          Function  MakeSharedLibrary:boolean;override;
-         procedure AddImportSymbol(const libname,symname:TCmdStr;OrdNr: longint;isvar:boolean);override;
+         procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);override;
        end;
 
     var
@@ -249,7 +250,9 @@ Implementation
         Found:=FindFile(s,'.'+source_info.DirSep,false,founddll);
         if (not found) then
          Found:=librarysearchpath.FindFile(s,false,founddll);
-        if (not found) then
+
+        { when cross compiling, it is pretty useless to search windir etc. for dlls }
+        if (not found) and (source_info.system=target_info.system) then
          begin
            sysdir:=FixPath(GetEnvironmentVariable('windir'),false);
            Found:=FindFile(s,sysdir+';'+sysdir+'system'+source_info.DirSep+';'+sysdir+'system32'+source_info.DirSep,false,founddll);
@@ -369,6 +372,7 @@ Implementation
                    mask:=mask or link_static;
                end;
               { smart linking ? }
+
               if (cs_link_smart in current_settings.globalswitches) then
                begin
                  if (flags and uf_smart_linked)=0 then
@@ -431,14 +435,15 @@ Implementation
                for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
                  begin
                    ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
-                   AddImportSymbol(ImportLibrary.Name,ImportSymbol.Name,ImportSymbol.OrdNr,ImportSymbol.IsVar);
+                   AddImportSymbol(ImportLibrary.Name,ImportSymbol.Name,
+                     ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
                  end;
              end;
          end;
       end;
 
 
-    procedure TLinker.AddImportSymbol(const libname,symname:TCmdStr;OrdNr: longint;isvar:boolean);
+    procedure TLinker.AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
       begin
       end;
 
@@ -516,7 +521,7 @@ Implementation
       end;
 
 
-    procedure AddImportSymbol(const libname,symname:TCmdStr;OrdNr: longint;isvar:boolean);
+    procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
       begin
       end;
 
@@ -829,7 +834,7 @@ Implementation
       end;
 
 
-    procedure TInternalLinker.AddImportSymbol(const libname,symname:TCmdStr;OrdNr: longint;isvar:boolean);
+    procedure TInternalLinker.AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);
       var
         ImportLibrary : TImportLibrary;
         ImportSymbol  : TFPHashObject;
@@ -839,7 +844,7 @@ Implementation
           ImportLibrary:=TImportLibrary.Create(ImportLibraryList,libname);
         ImportSymbol:=TFPHashObject(ImportLibrary.ImportSymbolList.Find(symname));
         if not assigned(ImportSymbol) then
-          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,OrdNr,isvar);
+          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,symmangledname,OrdNr,isvar);
       end;
 
 
@@ -880,6 +885,47 @@ Implementation
       end;
 
 
+    procedure TInternalLinker.ParseScript_Handle;
+      var
+        s,
+        para,
+        keyword : String;
+        hp : TCmdStrListItem;
+      begin
+        exeoutput.Load_Start;
+        hp:=TCmdStrListItem(linkscript.first);
+        while assigned(hp) do
+          begin
+            s:=hp.str;
+            if (s='') or (s[1]='#') then
+              continue;
+            keyword:=Upper(GetToken(s,' '));
+            para:=GetToken(s,' ');
+            if Trim(s)<>'' then
+              Comment(V_Warning,'Unknown part "'+s+'" in "'+hp.str+'" internal linker script');
+            if (keyword<>'SYMBOL') and
+               (keyword<>'PROVIDE') and
+               (keyword<>'ZEROES') and
+               (keyword<>'BYTE') and
+               (keyword<>'WORD') and
+               (keyword<>'LONG') and
+               (keyword<>'QUAD') and
+               (keyword<>'ENTRYNAME') and
+               (keyword<>'ISSHAREDLIBRARY') and
+               (keyword<>'IMAGEBASE') and
+               (keyword<>'READOBJECT') and
+               (keyword<>'READSTATICLIBRARY') and
+               (keyword<>'EXESECTION') and
+               (keyword<>'ENDEXESECTION') and
+               (keyword<>'OBJSECTION') and
+               (keyword<>'HEADER')
+               then
+              Comment(V_Warning,'Unknown keyword "'+keyword+'" in "'+hp.str
+                +'" internal linker script');
+            hp:=TCmdStrListItem(hp.next);
+          end;
+      end;
+
     procedure TInternalLinker.ParseScript_Load;
       var
         s,
@@ -898,6 +944,8 @@ Implementation
             para:=GetToken(s,' ');
             if keyword='SYMBOL' then
               ExeOutput.Load_Symbol(para)
+            else if keyword='PROVIDE' then
+              ExeOutput.Load_ProvideSymbol(para)
             else if keyword='ENTRYNAME' then
               ExeOutput.Load_EntryName(para)
             else if keyword='ISSHAREDLIBRARY' then
@@ -937,8 +985,18 @@ Implementation
               ExeOutput.Order_ObjSection(para)
             else if keyword='ZEROS' then
               ExeOutput.Order_Zeros(para)
+            else if keyword='BYTE' then
+              ExeOutput.Order_Values(1,para)
+            else if keyword='WORD' then
+              ExeOutput.Order_Values(2,para)
+            else if keyword='LONG' then
+              ExeOutput.Order_Values(4,para)
+            else if keyword='QUAD' then
+              ExeOutput.Order_Values(8,para)
             else if keyword='SYMBOL' then
-              ExeOutput.Order_Symbol(para);
+              ExeOutput.Order_Symbol(para)
+            else if keyword='PROVIDE' then
+              ExeOutput.Order_ProvideSymbol(para);
             hp:=TCmdStrListItem(hp.next);
           end;
         exeoutput.Order_End;

@@ -110,7 +110,7 @@ end;
 
 function libc_pchar_length(p:pchar):size_t; cdecl; external 'c' name 'strlen';
 
-function fpc_pchar_length(p:pchar):longint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
+function fpc_pchar_length(p:pchar):sizeint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
 begin
   if assigned(p) then
     fpc_pchar_length:=libc_pchar_length(p)
