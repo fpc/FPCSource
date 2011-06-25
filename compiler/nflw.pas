@@ -1070,7 +1070,8 @@ implementation
          if codegenerror then
            exit;
 
-         if not is_boolean(left.resultdef) then
+         if not(is_boolean(left.resultdef)) and
+           not(is_typeparam(left.resultdef)) then
            begin
              if left.resultdef.typ=variantdef then
                inserttypeconv(left,booltype)
@@ -1382,7 +1383,8 @@ implementation
          if codegenerror then
            exit;
 
-         if not is_boolean(left.resultdef) then
+         if not(is_boolean(left.resultdef)) and
+           not(is_typeparam(left.resultdef)) then
            begin
              if left.resultdef.typ=variantdef then
                inserttypeconv(left,booltype)
@@ -1569,10 +1571,17 @@ implementation
 
 
     function texitnode.pass_typecheck:tnode;
+      var
+        newstatement : tstatementnode;
       begin
         result:=nil;
         if assigned(left) then
-          typecheckpass(left);
+          begin
+             result:=internalstatements(newstatement);
+             addstatement(newstatement,left);
+             left:=nil;
+             addstatement(newstatement,self.getcopy);
+          end;
         resultdef:=voidtype;
       end;
 
@@ -1582,11 +1591,7 @@ implementation
          result:=nil;
          expectloc:=LOC_VOID;
          if assigned(left) then
-           begin
-              firstpass(left);
-              if codegenerror then
-               exit;
-           end;
+           internalerror(2011052801);
       end;
 
 

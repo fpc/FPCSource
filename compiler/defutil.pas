@@ -265,6 +265,9 @@ interface
         or not }
     function is_nested_pd(def: tabstractprocdef): boolean;{$ifdef USEINLINE}inline;{$endif}
 
+    { # returns whether def is a type parameter of a generic }
+    function is_typeparam(def : tdef) : boolean;{$ifdef USEINLINE}inline;{$endif}
+
 implementation
 
     uses
@@ -1142,4 +1145,8 @@ implementation
       end;
 
 
+    function is_typeparam(def : tdef) : boolean;{$ifdef USEINLINE}inline;{$endif}
+      begin
+        result:=(def.typ=undefineddef);
+      end;
 end.
