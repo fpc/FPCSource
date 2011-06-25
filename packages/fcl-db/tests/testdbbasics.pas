@@ -85,6 +85,8 @@ type
     procedure TestRequired;
     procedure TestExceptionLocateClosed;    // bug 13938
     procedure TestCanModifySpecialFields;
+
+    procedure TestOldValue;
   end;
 
   { TTestBufDatasetDBBasics }
@@ -578,6 +580,16 @@ end;
 procedure TTestDBBasics.TearDown;
 begin
   DBConnector.StopTest;
+end;
+
+procedure TTestDBBasics.TestOldValue;
+var v : variant;
+    bufds: TCustomBufDataset;
+begin
+  bufds := DBConnector.GetNDataset(0) as TCustomBufDataset;
+  bufds.Open;
+  bufds.InsertRecord([0,'name']);
+  v := VarToStr(bufds.fields[1].OldValue);
 end;
 
 procedure TTestBufDatasetDBBasics.TestClosedIndexFieldNames;
