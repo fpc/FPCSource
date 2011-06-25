@@ -237,7 +237,7 @@ interface
                            system_sparc_embedded,system_vm_embedded,
                            system_iA64_embedded,system_x86_64_embedded,
                            system_mips_embedded,system_arm_embedded,
-                           system_powerpc64_embedded];
+                           system_powerpc64_embedded,system_avr32_embedded];
 
        { all symbian systems }
        systems_symbian = [system_i386_symbian,system_arm_symbian];
@@ -271,7 +271,7 @@ interface
 
        systems_internal_sysinit = [system_i386_linux,system_i386_win32];
 
-       systems_interrupt_table = [{system_arm_embedded}];
+       systems_interrupt_table = [{system_arm_embedded,system_avr32_embedded}];
 
        { all systems for which istack must be at a 16 byte boundary
          when calling a function }
@@ -286,7 +286,7 @@ interface
 
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
-             'mips','arm', 'powerpc64', 'avr', 'mipsel');
+             'mips','arm', 'powerpc64', 'avr', 'mipsel', 'avr32');
 
        abi2str : array[tabi] of string[10] =
          ('DEFAULT','SYSV','AIX','EABI','ARMEB');
@@ -825,6 +825,10 @@ begin
 {$ifdef avr}
   default_target(system_avr_embedded);
 {$endif avr}
+
+{$ifdef avr32}
+  default_target(system_avr32_embedded);
+{$endif avr32}
 
 {$ifdef mips}
 {$ifdef mipsel}

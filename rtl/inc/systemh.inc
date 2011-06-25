@@ -238,6 +238,27 @@ Type
   FarPointer = Pointer;
 {$endif CPUARM}
 
+{$ifdef CPUAVR32}
+  {$define DEFAULT_DOUBLE}
+
+  {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
+  {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+  {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+
+  {$ifndef FPUNONE}
+    ValReal = Real;
+  {$endif}
+  
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+  
+  { map comp to int64, but this doesn't mean we compile the comp support in! }
+  Comp = Int64;
+  PComp = ^Comp;
+
+  FarPointer = Pointer;
+{$endif CPUAVR32} 
+
 {$ifdef CPU64}
   SizeInt = Int64;
   SizeUInt = QWord;

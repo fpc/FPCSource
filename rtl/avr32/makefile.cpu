@@ -1,0 +1,6 @@
+#
+# Here we set processor dependent include file names.
+#
+
+CPUNAMES=avr32 math set
+CPUINCNAMES=$(addsuffix .inc,$(CPUNAMES))

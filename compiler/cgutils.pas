@@ -56,6 +56,11 @@ unit cgutils;
 {$ifdef avr}
          addressmode : taddressmode;
 {$endif avr}
+{$ifdef avr32}
+         symboldata  : tlinkedlistitem;
+         addressmode : taddressmode;
+         indexselector : tregisterselector;
+{$endif avr32}
 {$ifdef m68k}
          { indexed increment and decrement mode }
          { (An)+ and -(An)                      }

@@ -1868,7 +1868,7 @@ implementation
         paraloc  : pcgparalocation;
         href     : treference;
         sizeleft : aint;
-{$if defined(sparc) or defined(arm)}
+{$if defined(sparc) or defined(arm) or defined(avr32)}
         tempref  : treference;
 {$endif sparc}
 {$ifndef cpu64bitalu}
@@ -1975,8 +1975,8 @@ implementation
           LOC_FPUREGISTER,
           LOC_CFPUREGISTER :
             begin
-{$if defined(sparc) or defined(arm)}
-              { Arm and Sparc passes floats in int registers, when loading to fpu register
+{$if defined(sparc) or defined(arm) or defined(avr32)}
+              { Arm, Avr32 and Sparc passes floats in int registers, when loading to fpu register
                 we need a temp }
               sizeleft := TCGSize2Size[destloc.size];
               tg.GetTemp(list,sizeleft,sizeleft,tt_normal,tempref);
@@ -3116,10 +3116,10 @@ implementation
     procedure InsertInterruptTable;
 
       procedure WriteVector(const name: string);
-{$IFDEF arm}
+{$IF defined(arm) or defined(avr32)}
         var
           ai: taicpu;
-{$ENDIF arm}
+{$ENDIF}
         begin
 {$IFDEF arm}
           if current_settings.cputype in [cpu_armv7m, cpu_cortexm3] then
@@ -3131,11 +3131,16 @@ implementation
               current_asmdata.asmlists[al_globals].concat(ai);
             end;
 {$ENDIF arm}
+{$IFDEF avr32}
+          ai:=taicpu.op_sym(A_RJMP,current_asmdata.RefAsmSymbol(name));
+          ai.is_jmp:=true;
+          current_asmdata.asmlists[al_globals].concat(ai);
+{$ENDIF avr32}
         end;
 
       function GetInterruptTableLength: longint;
         begin
-{$if defined(ARM)}
+{$if defined(ARM) or defined(AVR32)}
           result:=interruptvectors[current_settings.controllertype];
 {$else}
           result:=0;

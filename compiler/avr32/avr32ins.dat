@@ -1,0 +1,290 @@
+;
+; Table of assembler instructions for Free Pascal
+; adapted from Netwide Assembler by Florian Klaempfl
+;
+;
+; The Netwide Assembler is copyright (C) 1996 Simon Tatham and
+; Julian Hall. All rights reserved. The software is
+; redistributable under the licence given in the file "Licence"
+; distributed in the NASM archive.
+;
+; Format of file: first field is operands, second field is \encodingformat\needed bytes.starting from lsb
+; Encodingformat follows the indexes from the AVR32 architecture manual version 32000B–AVR32–11/07 
+; Third field is architecture version
+
+[NONE]
+void                    void                            none
+
+[ABS]
+reg32                   \2\x4                           1
+[ACR]
+reg32                   \2\x0                           1
+[ADC]
+reg32,reg32,reg32       \20\x4                          1
+[ADD]
+reg32,reg32             \1\0                            1
+reg32,reg32,shifterop   \19\0                           1 
+;[ADDcc]
+;reg32,reg32,reg32       \                               2
+[ADDABS]
+reg32,reg32,reg32       \20\xE4                         1
+[CP]
+[CPC]
+reg32,reg32             \27\3                           1
+reg32                   \2\2                            1
+[MAX]
+reg32,reg32,reg32       \20\xC4                         1
+[MIN]
+reg32,reg32,reg32       \20\xD4                         1
+[NEG]
+reg32                   \2\3                            1
+[RSUB]
+reg32,reg32             \1\2                            1
+reg32,reg32,imm8        \23\1                           1
+;[RSUBcc]
+;reg32,imm8              \10\xD                          1
+[SBC]
+reg32,reg32,reg32       \20\x14                         1
+[SCR]
+reg32,imm5              \11\xD                          1
+[SUB]
+reg32,reg32             \1\1                            1
+reg32,reg32,shifterop   \19\1                           1
+reg32,imm8              \4\0                            1
+reg32,imm21             \30\1                           1
+reg32,reg32,imm16       \32\xC                          1
+;[SUBcc]
+;reg32,imm8
+;reg32,reg32,reg32
+[TBNZ]
+reg32                   \2\xE                           1
+
+; MULTIPLY
+[DIVS]
+reg32,reg32,reg32       \20\xC0                         1
+[DIVU]
+reg32,reg32,reg32       \20\xD0                         1
+[MAC]
+reg32,reg32,reg32       \20\x34                         1
+[MACS]
+reg32,reg32,reg32       \20\x54                         1
+[MACU]
+reg32,reg32,reg32       \20\x74                         1
+[MUL]
+reg32,reg32             \1\xB3                          1
+reg32,reg32,reg32       \20\x24                         1
+reg32,reg32,imm8        \23\0                           1
+[MULS]
+reg32,reg32,reg32       \20\x44                         1
+[MULU]
+reg32,reg32,reg32       \20\x64                         1
+
+; DSP
+[ADDHH]
+[MACHH]
+[MACWH]
+[MULHH]
+[MULWH]
+[MULNHH]
+[MULNWH]
+[SATADD]
+[SATSUB]
+[SATRNDS]
+[SATRNDU]
+[SATS]
+[SATU]
+[SUBHH]
+[MULSATHH]
+[MULSATRNDHH]
+[MULSATRNDWH]
+[MULSATWH]
+[MACSATHH]
+
+; LOGIC
+[AND]
+reg32,reg32             \1\x6                           1
+reg32,reg32,shifterop   \49\0                           1
+;[ANDcc]
+;reg32,reg32,reg32       \1\x6                           1
+[ANDN]
+reg32,reg32             \1\x8                           1
+[ANDH]
+reg32,imm16             \47\2                           1
+reg32,imm16,coh         \47\3                           1
+[ANDL]
+reg32,imm16             \47\0                           1
+reg32,imm16,coh         \47\1                           1
+[COM]
+reg32                   \2\xB                           1
+[EOR]
+reg32,reg32             \1\5                            1
+reg32,reg32,shifterop   \49\x20                         1
+;[EORcc]
+;reg32,reg32,reg         \
+[EORH]
+reg32,imm16             \28\0\xE1                       1
+[EORL]
+reg32,imm16             \28\0\xC1                       1
+[OR]
+reg32,reg32             \1\4                            1
+reg32,reg32,shifterop   \49\x80                         1
+;[ORcc]
+;reg32,reg32,reg32
+[ORH]
+reg32,imm16             \28\0\xA1                       1
+[ORL]
+reg32,imm16             \28\0\x81                       1
+[TST]
+reg32,reg32             \1\x7                           1
+
+; BIT
+[BFEXTS]
+reg32,reg32,imm5,imm5   \25\x2C                         1
+[BFEXTU]
+reg32,reg32,imm5,imm5   \25\x30                         1
+[BFINS]
+reg32,reg32,imm5,imm5   \25\x34                         1
+[BLD]
+reg32,imm5              \42\6                           1
+[BREV]
+reg32                   \2\x49                          1
+[BST]
+reg32,imm5              \42\7                           1
+[CASTS]
+
+[CASTU]
+[CBR]
+[CLZ]
+[SBR]
+[SWAP]
+
+; SHIFT
+[ASR]
+[LSL]
+[LSR]
+[ROL]
+[ROR]
+
+; CONTROL
+[BRcc]
+[RJMP]
+[ACALL]
+[ICALL]
+[MCALL]
+[RCALL]
+[SCALL]
+[RETcc]
+[RETD]
+[RETE]
+[RETS]
+
+; DATA
+[MOVcc]
+[MOVH]
+
+[LDcc]
+[LDINS]
+[LDSWP]
+[LDDPC]
+[LDDSP]
+[STcc]
+[STCOND]
+[STDSP]
+[STHH]
+[STSWP]
+[XCHG]
+
+; MULTIPLE DATA
+[LDM]
+[LDMTS]
+[POPM]
+[PUSHM]
+[STM]
+[STMTS]
+
+[BREAKPOINT]
+[CACHE]
+[CSRF]
+[CSRFCZ]
+[FRS]
+[MFDR]
+[MFSR]
+[MTDR]
+[MTSR]
+[MUSFR]
+[MUSTR]
+[NOP]
+[PREF]
+[SLEEP]
+[SRcc]
+[SSRF]
+[SYNC]
+[TLBR]
+[TLBS]
+[TLBW]
+
+; COPROCESSOR
+[COP]
+[LDC]
+[LDC0]
+[LDCM]
+[MVCR]
+[MVRC]
+[STC]
+[STC0]
+[STCM]
+
+; SIMD
+[PABS]
+[PACKSH]
+[PACKW]
+[PADD]
+[PADDH]
+[PADDS]
+[PADDSUB]
+[PADDSUBH]
+[PADDSUBS]
+[PADDX]
+[PADDXH]
+[PADDXS]
+[PASR]
+[PAVG]
+[PLSL]
+[PLSR]
+[PMAX]
+[PMIN]
+[PSAD]
+[PSUB]
+[PSUBADD]
+[PSUBADDH]
+[PSUBADDS]
+[PSUBH]
+[PSUBS]
+[PSUBX]
+[PSUBXH]
+[PSUBXS]
+[PUNPCK]
+
+[MEMC]
+[MEMS]
+[MEMT]
+
+; FPU
+[FMAC]
+[FNMAC]
+[FMSC]
+[FNMSC]
+[FMUL]
+[FNMUL]
+[FADD]
+[FSUB]
+
+[FCASTRS]
+[FCASTSW]
+[FCASTUW]
+
+[FCP]
+[FCHK]
+
+[FRCPA]
+[FRSQRTA]

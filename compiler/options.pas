@@ -181,9 +181,9 @@ var
   opt : toptimizerswitch;
   wpopt: twpoptimizerswitch;
   abi : tabi;
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(avr32)}
   controllertype : tcontrollertype;
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(avr32)}
 begin
   p:=MessagePchar(option_info);
   while assigned(p) do
@@ -278,7 +278,7 @@ begin
       end
      else if pos('$CONTROLLERTYPES',s)>0 then
       begin
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(avr32)}
         for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
           begin
 {           currently all whole program optimizations are platform-independent
@@ -294,8 +294,8 @@ begin
                   end;
               end;
           end
-{$else defined(arm) or defined(avr)}
-{$endif defined(arm) or defined(avr)}
+{$else defined(arm) or defined(avr) or defined(avr32)}
+{$endif defined(arm) or defined(avr) or defined(avr32)}
       end
      else
       Comment(V_Normal,s);
@@ -1600,7 +1600,7 @@ begin
                       end;
                     'p':
                       begin
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(avr32)}
                         if (target_info.system in systems_embedded) then
                           begin
                             s:=upper(copy(more,j+1,length(more)-j));
@@ -1609,7 +1609,7 @@ begin
                             break;
                           end
                         else
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(avr32)}
                           IllegalPara(opt);
                       end;
                     'R':
@@ -2600,6 +2600,12 @@ begin
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
 {$endif avr}
+{$ifdef avr32}
+  def_system_macro('CPUAVR32');
+  def_system_macro('CPU32');
+  def_system_macro('FPC_CURRENCY_IS_INT64');
+  def_system_macro('FPC_COMP_IS_INT64');
+{$endif avr32}
 
   { read configuration file }
   if (not disable_configfile) and
@@ -2802,14 +2808,15 @@ begin
     arm/darwin if fpu type not explicitly set }
   if not(option.FPUSetExplicitly) and
      ((target_info.system in [system_arm_wince,system_arm_gba,system_m68k_amiga,
-         system_m68k_linux,system_arm_nds,system_arm_embedded,system_arm_darwin])
+         system_m68k_linux,system_arm_nds,system_arm_embedded,system_arm_darwin,
+         system_avr32_embedded])
 {$ifdef arm}
       or (target_info.abi=abi_eabi)
 {$endif arm}
      )
-{$ifdef arm}
+{$if defined(arm) or defined(avr32)}
      or (init_settings.fputype=fpu_soft)
-{$endif arm}
+{$endif defined(arm) or defined(avr32)}
   then
     begin
 {$ifdef cpufpemu}

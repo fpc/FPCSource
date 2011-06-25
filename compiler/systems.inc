@@ -47,7 +47,8 @@
              cpu_arm,                      { 10 }
              cpu_powerpc64,                { 11 }
              cpu_avr,                      { 12 }
-             cpu_mipsel                    { 13 }
+             cpu_mipsel,                   { 13 }
+             cpu_avr32                     { 14 }
        );
 
        tasmmode= (asmmode_none
@@ -64,6 +65,7 @@
             ,asmmode_x86_64_intel
             ,asmmode_x86_64_att
             ,asmmode_avr_gas
+            ,asmmode_avr32_gas
        );
 
      (* IMPORTANT NOTE:
@@ -146,7 +148,8 @@
              system_mipsel_linux,       { 67 }
              system_i386_nativent,      { 68 }
              system_i386_iphonesim,     { 69 }
-             system_powerpc_wii         { 70 }
+             system_powerpc_wii,        { 70 }
+             system_avr32_embedded      { 71 }
        );
 
      type

@@ -32,7 +32,7 @@ fpcdir=..
 unexport FPC_VERSION FPC_COMPILERINFO
 
 # Which platforms are ready for inclusion in the cycle
-CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr
+CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr avr32
 
 # All supported targets used for clean
 ALLTARGETS=$(CYCLETARGETS)
@@ -70,6 +70,9 @@ PPC_TARGET=mips
 endif
 ifdef MIPSEL
 PPC_TARGET=mipsel
+endif
+ifdef AVR32
+PPC_TARGET=avr32
 endif
 
 # Default is to generate a compiler for the same
@@ -153,6 +156,9 @@ CPUSUF=mips
 endif
 ifeq ($(CPC_TARGET),mipsel)
 CPUSUF=mipsel
+endif
+ifeq ($(CPC_TARGET),avr32)
+CPUSUF=avr32
 endif
 
 # Do not define the default -d$(CPU_TARGET) because that
@@ -404,7 +410,11 @@ insdatarm : arm/armins.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmins.pp
         cd arm && ../utils/mkarmins$(SRCEXEEXT)
 
-insdat: insdatx86 insdatarm
+insdatavr32 : avr32/avr32ins.dat
+	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkavr32ins.pp
+        cd avr32 && ../utils/mkavr32ins$(SRCEXEEXT)
+
+insdat: insdatx86 insdatarm insdatavr32
 
 regdatarm : arm/armreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmreg.pp

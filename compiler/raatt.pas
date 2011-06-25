@@ -55,7 +55,7 @@ unit raatt;
         AS_DATA,AS_TEXT,AS_INIT,AS_FINI,AS_END,
         {------------------ Assembler Operators  --------------------}
         AS_TYPE,AS_SIZEOF,AS_VMTOFFSET,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
-        AS_LO,AS_HI);
+        AS_LO,AS_HI,AS_MINUSMINUS,AS_PLUSPLUS);
 
         tasmkeyword = string[10];
 
@@ -75,7 +75,7 @@ unit raatt;
         '.align','.balign','.p2align','.ascii',
         '.asciz','.lcomm','.comm','.single','.double','.tfloat','.tcfloat',
         '.data','.text','.init','.fini','END',
-        'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','lo','hi');
+        'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','lo','hi','--','++');
 
     type
        tattreader = class(tasmreader)
@@ -277,6 +277,31 @@ unit raatt;
                end
            end;
 {$endif ARM}
+{$if defined(AVR32)}
+           { AVR32 instructions can have a .** postfix to indicate operand size
+           }
+           case c of
+             '.':
+               begin
+                 actasmpattern:=actasmpattern+c;
+                 c:=current_scanner.asmgetchar;
+
+                 if upcase(c) in ['U','S','B','W','H','D'] then
+                   begin
+                     if upcase(c) in ['U','S'] then
+                       begin
+                         actasmpattern:=actasmpattern+c;
+                         c:=current_scanner.asmgetchar;
+                       end;
+                     actasmpattern:=actasmpattern+c;
+                     c:=current_scanner.asmgetchar;
+
+                   end
+                 else
+                   internalerror(2011012103);
+               end
+           end;
+{$endif AVR32}
            { Opcode ? }
            If is_asmopcode(upper(actasmpattern)) then
             Begin
@@ -685,6 +710,11 @@ unit raatt;
                begin
                  actasmtoken:=AS_PLUS;
                  c:=current_scanner.asmgetchar;
+                 if c='+' then
+                   begin
+                     actasmtoken:=AS_PLUSPLUS;
+                     c:=current_scanner.asmgetchar;
+                   end;
                  exit;
                end;
 
@@ -692,6 +722,11 @@ unit raatt;
                begin
                  actasmtoken:=AS_MINUS;
                  c:=current_scanner.asmgetchar;
+                 if c='-' then
+                   begin
+                     actasmtoken:=AS_MINUSMINUS;
+                     c:=current_scanner.asmgetchar;
+                   end;
                  exit;
                end;
 

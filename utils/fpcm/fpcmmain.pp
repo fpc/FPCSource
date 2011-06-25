@@ -63,7 +63,7 @@ interface
 
     type
       TCpu=(
-        c_i386,c_m68k,c_powerpc,c_sparc,c_x86_64,c_arm,c_powerpc64,c_avr,c_armeb,c_armel,c_mips,c_mipsel,c_mips64,c_mips64el
+        c_i386,c_m68k,c_powerpc,c_sparc,c_x86_64,c_arm,c_powerpc64,c_avr,c_armeb,c_armel,c_mips,c_mipsel,c_mips64,c_mips64el,c_avr32
       );
 
       TOS=(
@@ -78,15 +78,15 @@ interface
 
     const
       CpuStr : array[TCpu] of string=(
-        'i386','m68k','powerpc','sparc','x86_64','arm','powerpc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el'
+        'i386','m68k','powerpc','sparc','x86_64','arm','powerpc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'avr32'
       );
 
       CpuSuffix : array[TCpu] of string=(
-        '_i386','_m68k','_powerpc','_sparc','_x86_64','_arm','_powerpc64','avr','_armeb', '_armel', '_mips', '_mipsel', '_mips64', '_mips64el'
+        '_i386','_m68k','_powerpc','_sparc','_x86_64','_arm','_powerpc64','avr','_armeb', '_armel', '_mips', '_mipsel', '_mips64', '_mips64el', '_avr32'
       );
 
       ppcSuffix : array[TCpu] of string=(
-        '386','m68k','ppc','sparc','x86_64','arm','ppc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el'
+        '386','m68k','ppc','sparc','x86_64','arm','ppc64','avr','armeb', 'armel', 'mips', 'mipsel', 'mips64', 'mips64el', 'avr32'
       );
 
       OSStr : array[TOS] of string=(
@@ -107,38 +107,38 @@ interface
 
       { This table is kept OS,Cpu because it is easier to maintain (PFV) }
       OSCpuPossible : array[TOS,TCpu] of boolean = (
-        { os          i386    m68k  ppc    sparc  x86_64 arm    ppc64  avr    armeb  armel  mips   mipsel mips64 misp64el}
-        { linux }   ( true,  true,  true,  true,  true,  true,  true,  false, true,  false, false, true,  false, false),
-        { go32v2 }  ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
-        { win32 }   ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
-        { os2 }     ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
-        { freebsd } ( true,  true,  false, false, true,  false, false, false, false, false, false, false, false, false),
-        { beos }    ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
-        { haiku }   ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
-        { netbsd }  ( true,  true,  true,  true,  false, false, false, false, false, false, false, false, false, false),
-        { amiga }   ( false, true,  true,  false, false, false, false, false, false, false, false, false, false, false),
-        { atari }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
-        { solaris } ( true,  false, false, true,  true,  false, false, false, false, false, false, false, false, false),
-        { qnx }     ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
-        { netware } ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
-        { openbsd } ( true,  true,  false, false, false, false, false, false, false, false, false, false, false, false),
-        { wdosx }   ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
-        { palmos }  ( false, true,  false, false, false, true,  false, false, false, false, false, false, false, false),
-        { macos }   ( false, false, true,  false, false, false, false, false, false, false, false, false, false, false),
-        { darwin }  ( true,  false, true,  false, true,  true,  true,  false, false, false, false, false, false, false),
-        { emx }     ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
-        { watcom }  ( true,  false, false, false ,false, false, false, false, false, false, false, false, false, false),
-        { morphos } ( false, false, true,  false ,false, false, false, false, false, false, false, false, false, false),
-        { netwlibc }( true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
-        { win64   } ( false, false, false, false, true,  false, false, false, false, false, false, false, false, false),
-        { wince    }( true,  false, false, false, false, true,  false, false, false, false, false, false, false, false),
-        { gba    }  ( false, false, false, false, false, true,  false, false, false, false, false, false, false, false),
-        { nds    }  ( false, false, false, false, false, true,  false, false, false, false, false, false, false, false),
-        { embedded }( true,  true,  true,  true,  true,  true,  true,  true,  true , false, false, false, false, false),
-        { symbian } ( true,  false, false, false, false, true,  false, false, false, false, false, false, false, false),
-        { nativent }( true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
-        { iphonesim }( true,  false, false, false, false, false, false, false, false, false, false, false, false, false),        
-        { wii }     ( false, false, true,  false, false, false, false, false, false, false, false, false, false, false)        
+        { os          i386    m68k  ppc    sparc  x86_64 arm    ppc64  avr    armeb  armel  mips   mipsel mips64 misp64el avr32}
+        { linux }   ( true,  true,  true,  true,  true,  true,  true,  false, true,  false, false, true,  false, false,   false),
+        { go32v2 }  ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false),
+        { win32 }   ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false),
+        { os2 }     ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false),
+        { freebsd } ( true,  true,  false, false, true,  false, false, false, false, false, false, false, false, false,   false),
+        { beos }    ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false),
+        { haiku }   ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false),
+        { netbsd }  ( true,  true,  true,  true,  false, false, false, false, false, false, false, false, false, false,   false),
+        { amiga }   ( false, true,  true,  false, false, false, false, false, false, false, false, false, false, false,   false),
+        { atari }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false),
+        { solaris } ( true,  false, false, true,  true,  false, false, false, false, false, false, false, false, false,   false),
+        { qnx }     ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false),
+        { netware } ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false),
+        { openbsd } ( true,  true,  false, false, false, false, false, false, false, false, false, false, false, false,   false),
+        { wdosx }   ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false),
+        { palmos }  ( false, true,  false, false, false, true,  false, false, false, false, false, false, false, false,   false),
+        { macos }   ( false, false, true,  false, false, false, false, false, false, false, false, false, false, false,   false),
+        { darwin }  ( true,  false, true,  false, true,  true,  true,  false, false, false, false, false, false, false,   false),
+        { emx }     ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false),
+        { watcom }  ( true,  false, false, false ,false, false, false, false, false, false, false, false, false, false,   false),
+        { morphos } ( false, false, true,  false ,false, false, false, false, false, false, false, false, false, false,   false),
+        { netwlibc }( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false),
+        { win64   } ( false, false, false, false, true,  false, false, false, false, false, false, false, false, false,   false),
+        { wince    }( true,  false, false, false, false, true,  false, false, false, false, false, false, false, false,   false),
+        { gba    }  ( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false),
+        { nds    }  ( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false),
+        { embedded }( true,  true,  true,  true,  true,  true,  true,  true,  true , false, false, false, false, false,   true ),
+        { symbian } ( true,  false, false, false, false, true,  false, false, false, false, false, false, false, false,   false),
+        { nativent }( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false),
+        { iphonesim }( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,  false),
+        { wii }     ( false, false, true,  false, false, false, false, false, false, false, false, false, false, false,   false)
       );
 
     type

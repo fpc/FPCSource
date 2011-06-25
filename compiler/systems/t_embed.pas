@@ -79,10 +79,13 @@ Var
   linklibc : boolean;
   found1,
   found2   : boolean;
+{$ifdef AVR32}
+  flashsize,ramsize: longword;
+{$endif AVR32}
 begin
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
-{$if defined(ARM) or defined(i386) or defined(AVR)}
+{$if defined(ARM) or defined(i386) or defined(AVR) or defined(AVR32)}
   prtobj:='';
 {$else}
   prtobj:='prt0';
@@ -565,6 +568,137 @@ begin
     end;
 {$endif AVR}
 
+{$ifdef AVR32}
+  case current_settings.controllertype of
+    ct_none:
+      ;
+    ct_at32uc3l016:
+      begin
+        flashsize:=16;
+        ramsize:=8;
+      end;
+    ct_at32uc3l032:
+      begin
+        flashsize:=32;
+        ramsize:=16;
+      end;
+    ct_at32uc3l064:
+      begin
+        flashsize:=64;
+        ramsize:=16;
+      end;
+    ct_at32uc3b1256:
+      begin
+        flashsize:=256;
+        ramsize:=32;
+      end;
+    else
+      internalerror(200902011);
+  end;
+
+
+  if current_settings.controllertype<>ct_none then
+    begin
+      with linkres do
+        begin
+          Add('ENTRY(_START)');
+          Add('MEMORY');
+          Add('{');
+          Add(Format('    flash : ORIGIN = 0x80000000, LENGTH = %DK',[flashsize]));
+          Add(Format('    ram : ORIGIN = 0, LENGTH = %DK',[ramsize]));
+          Add('}');
+          Add(format('_stack_top = 0x%X;',[ramsize*1024-4]));
+        end;
+    end;
+
+  with linkres do
+    begin
+      Add('SECTIONS');
+      Add('{');
+      Add('  .rel.init      : { *(.rel.init)		}');
+      Add('  .rela.init     : { *(.rela.init)	}');
+      Add('  .rel.text      :');
+      Add('    {');
+      Add('      *(.rel.text)');
+      Add('      *(.rel.text.*)');
+      Add('      *(.rel.gnu.linkonce.t*)');
+      Add('    }');
+      Add('  .rela.text     :');
+      Add('    {');
+      Add('      *(.rela.text)');
+      Add('      *(.rela.text.*)');
+      Add('      *(.rela.gnu.linkonce.t*)');
+      Add('    }');
+      Add('  .rel.fini      : { *(.rel.fini)		}');
+      Add('  .rela.fini     : { *(.rela.fini)	}');
+      Add('  .rel.rodata    :');
+      Add('    {');
+      Add('      *(.rel.rodata)');
+      Add('      *(.rel.rodata.*)');
+      Add('      *(.rel.gnu.linkonce.r*)');
+      Add('    }');
+      Add('  .rela.rodata   :');
+      Add('    {');
+      Add('      *(.rela.rodata)');
+      Add('      *(.rela.rodata.*)');
+      Add('      *(.rela.gnu.linkonce.r*)');
+      Add('    }');
+      Add('  .rel.data      :');
+      Add('    {');
+      Add('      *(.rel.data)');
+      Add('      *(.rel.data.*)');
+      Add('      *(.rel.gnu.linkonce.d*)');
+      Add('    }');
+      Add('  .rela.data     :');
+      Add('    {');
+      Add('      *(.rela.data)');
+      Add('      *(.rela.data.*)');
+      Add('      *(.rela.gnu.linkonce.d*)');
+      Add('    }');
+      Add('  .rel.ctors     : { *(.rel.ctors)	}');
+      Add('  .rela.ctors    : { *(.rela.ctors)	}');
+      Add('  .rel.dtors     : { *(.rel.dtors)	}');
+      Add('  .rela.dtors    : { *(.rela.dtors)	}');
+      Add('  .rel.got       : { *(.rel.got)		}');
+      Add('  .rela.got      : { *(.rela.got)		} >flash');
+      Add('  .rel.bss       : { *(.rel.bss)		}');
+      Add('  .rela.bss      : { *(.rela.bss)		}');
+      Add('  .rel.plt       : { *(.rel.plt)		}');
+      Add('  .rela.plt      : { *(.rela.plt)		}');
+      Add('     .text :');
+      Add('    {');
+      Add('    KEEP(*(.init))');
+      Add('    KEEP(*(.init.*))');
+      Add('    *(.text)');
+      Add('    *(.text.*)');
+      Add('    *(.strings)');
+      Add('    *(.rodata)');
+      Add('    *(.rodata.*)');
+      Add('    *(.comment)');
+      Add('    _etext = .;');
+      Add('    } >flash =0xd703d703');
+      Add('    .data :');
+      Add('    {');
+      Add('    _data = .;');
+      Add('    *(.data)');
+      Add('    *(.data.*)');
+      Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+      Add('    _edata = .;');
+      Add('    } >ram AT >flash');
+      Add('    .bss :');
+      Add('    {');
+      Add('    _bss_start = .;');
+      Add('    *(.bss)');
+      Add('    *(.bss.*)');
+      Add('    *(COMMON)');
+      Add('    } >ram');
+      Add('. = ALIGN(4);');
+      Add('_bss_end = . ;');
+      Add('}');
+      Add('_end = .;');
+    end;
+{$endif AVR32}
+
   { Write and Close response }
   linkres.writetodisk;
   linkres.free;
@@ -655,4 +789,9 @@ initialization
   RegisterExternalLinker(system_i386_embedded_info,TlinkerEmbedded);
   RegisterTarget(system_i386_embedded_info);
 {$endif i386}
+
+{$ifdef avr32}
+  RegisterExternalLinker(system_avr32_embedded_info,TlinkerEmbedded);
+  RegisterTarget(system_avr32_embedded_info);
+{$endif avr32}
 end.

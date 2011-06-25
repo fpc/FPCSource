@@ -784,6 +784,9 @@ interface
 {$ifdef AVR}
        pbestrealtype : ^tdef = @s64floattype;
 {$endif AVR}
+{$ifdef AVR32}
+       pbestrealtype : ^tdef = @s64floattype;
+{$endif AVR32}
 
     function make_mangledname(const typeprefix:string;st:TSymtable;const suffix:string):string;
 

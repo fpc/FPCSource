@@ -140,9 +140,9 @@ interface
          disabledircache : boolean;
 
         { CPU targets with microcontroller support can add a controller specific unit }
-{$if defined(ARM) or defined(AVR)}
+{$if defined(ARM) or defined(AVR) or defined(AVR32)}
         controllertype   : tcontrollertype;
-{$endif defined(ARM) or defined(AVR)}
+{$endif defined(ARM) or defined(AVR) or defined(AVR32)}
        end;
 
     const
@@ -413,6 +413,11 @@ interface
         optimizecputype : cpuinfo.cpu_avr5;
         fputype : fpu_none;
   {$endif avr}
+  {$ifdef avr32}
+        cputype : cpuinfo.cpu_avr32a;
+        optimizecputype : cpuinfo.cpu_avr32a;
+        fputype : fpu_none;
+  {$endif avr32}
   {$ifdef mips}
         cputype : cpu_mips32;
         optimizecputype : cpu_mips32;
@@ -459,9 +464,9 @@ interface
     function Setabitype(const s:string;var a:tabi):boolean;
     function Setcputype(const s:string;var a:tcputype):boolean;
     function SetFpuType(const s:string;var a:tfputype):boolean;
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(avr32)}
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(avr32)}
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
     function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
     function UpdateWpoStr(s: string; var a: twpoptimizerswitches): boolean;
@@ -1094,7 +1099,7 @@ implementation
       end;
 
 
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(avr32)}
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
       var
         t  : tcontrollertype;
@@ -1110,7 +1115,7 @@ implementation
               break;
             end;
       end;
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(avr32)}
 
 
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;

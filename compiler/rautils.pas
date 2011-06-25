@@ -65,7 +65,7 @@ Function SearchLabel(const s: string; var hl: tasmlabel;emit:boolean): boolean;
 
 type
   TOprType=(OPR_NONE,OPR_CONSTANT,OPR_SYMBOL,OPR_LOCAL,
-            OPR_REFERENCE,OPR_REGISTER,OPR_REGLIST,OPR_COND,OPR_REGSET,OPR_SHIFTEROP,OPR_MODEFLAGS);
+            OPR_REFERENCE,OPR_REGISTER,OPR_REGLIST,OPR_COND,OPR_REGSET,OPR_SHIFTEROP,OPR_MODEFLAGS,OPR_COH,OPR_REGISTERSELECTOR);
 
   TOprRec = record
     case typ:TOprType of
@@ -90,6 +90,12 @@ type
       OPR_COND      : (cc : tasmcond);
       OPR_MODEFLAGS : (flags : tcpumodeflags);
 {$endif arm}
+{$ifdef avr32}
+      OPR_REGSET    : (regset : tcpuregisterset; regtype: tregistertype; subreg: tsubregister);
+      OPR_SHIFTEROP : (shifterop : tshifterop);
+      OPR_COH       : ();
+      OPR_REGISTERSELECTOR : (topreg : tregister; selector : tregisterselector);
+{$endif avr32}
   end;
 
   TOperand = class
@@ -1071,6 +1077,16 @@ end;
               OPR_MODEFLAGS:
                 ai.loadmodeflags(i-1,flags);
 {$endif ARM}
+{$ifdef AVR32}
+              OPR_REGSET:
+                ai.loadregset(i-1,regtype,subreg,regset);
+              OPR_SHIFTEROP:
+                ai.loadshifterop(i-1,shifterop);
+              OPR_COH:
+                ai.loadCOH(i-1);
+              OPR_REGISTERSELECTOR:
+                ai.loadregisterselector(i-1,topreg,selector);
+{$endif AVR32}
               { ignore wrong operand }
               OPR_NONE:
                 ;
