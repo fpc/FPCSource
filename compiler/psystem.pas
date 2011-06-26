@@ -297,6 +297,9 @@ implementation
 
         addtype('OpenString',openshortstringtype);
         addtype('Boolean',pasbool8type);
+        addtype('Boolean16',pasbool16type);
+        addtype('Boolean32',pasbool32type);
+        addtype('Boolean64',pasbool64type);
         addtype('ByteBool',bool8type);
         addtype('WordBool',bool16type);
         addtype('LongBool',bool32type);
@@ -337,10 +340,13 @@ implementation
         addtype('$unicodestring',cunicodestringtype);
         addtype('$openshortstring',openshortstringtype);
         addtype('$boolean',pasbool8type);
-        addtype('$boolean8',bool8type);
-        addtype('$boolean16',bool16type);
-        addtype('$boolean32',bool32type);
-        addtype('$boolean64',bool64type);
+        addtype('$boolean16',pasbool16type);
+        addtype('$boolean32',pasbool32type);
+        addtype('$boolean64',pasbool64type);
+        addtype('$bytebool',bool8type);
+        addtype('$wordbool',bool16type);
+        addtype('$longbool',bool32type);
+        addtype('$qwordbool',bool64type);
         addtype('$void_pointer',voidpointertype);
         addtype('$char_pointer',charpointertype);
         addtype('$widechar_pointer',widecharpointertype);
@@ -442,10 +448,13 @@ implementation
           end;
         loadtype('s64currency',s64currencytype);
         loadtype('boolean',pasbool8type);
-        loadtype('boolean8',pasbool8type);
         loadtype('boolean16',pasbool16type);
         loadtype('boolean32',pasbool32type);
         loadtype('boolean64',pasbool64type);
+        loadtype('bytebool',bool8type);
+        loadtype('wordbool',bool16type);
+        loadtype('longbool',bool32type);
+        loadtype('qwordbool',bool64type);
         loadtype('void_pointer',voidpointertype);
         loadtype('char_pointer',charpointertype);
         loadtype('widechar_pointer',widecharpointertype);
