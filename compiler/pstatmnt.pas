@@ -516,19 +516,36 @@ implementation
          hp,
          refnode  : tnode;
          hdef : tdef;
+         extendeddef : tabstractrecorddef;
+         helperdef : tobjectdef;
          hasimplicitderef : boolean;
          withsymtablelist : TFPObjectList;
 
          procedure pushobjchild(withdef,obj:tobjectdef);
+         var
+           parenthelperdef : tobjectdef;
          begin
            if not assigned(obj) then
              exit;
            pushobjchild(withdef,obj.childof);
+           { we need to look for helpers that were defined for the parent
+             class as well }
+           search_last_objectpascal_helper(obj,current_structdef,parenthelperdef);
+           { push the symtables of the helper's parents in reverse order }
+           if assigned(parenthelperdef) then
+             pushobjchild(withdef,parenthelperdef.childof);
            { keep the original tobjectdef as owner, because that is used for
              visibility of the symtable }
            st:=twithsymtable.create(withdef,obj.symtable.SymList,refnode.getcopy);
            symtablestack.push(st);
            withsymtablelist.add(st);
+           { push the symtable of the helper }
+           if assigned(parenthelperdef) then
+             begin
+               st:=twithsymtable.create(withdef,parenthelperdef.symtable.SymList,refnode.getcopy);
+               symtablestack.push(st);
+               withsymtablelist.add(st);
+             end;
          end;
 
 
@@ -625,12 +642,25 @@ implementation
                 typecheckpass(refnode);
               end;
 
+            { do we have a helper for this type? }
+            if p.resultdef.typ=classrefdef then
+              extendeddef:=tobjectdef(tclassrefdef(p.resultdef).pointeddef)
+            else
+              extendeddef:=tabstractrecorddef(p.resultdef);
+            search_last_objectpascal_helper(extendeddef,current_structdef,helperdef);
+            { Note: the symtable of the helper is pushed after the following
+                    "case", the symtables of the helper's parents are passed in
+                    the "case" branches }
+
             withsymtablelist:=TFPObjectList.create(true);
             case p.resultdef.typ of
               objectdef :
                 begin
                    { push symtables of all parents in reverse order }
                    pushobjchild(tobjectdef(p.resultdef),tobjectdef(p.resultdef).childof);
+                   { push symtables of all parents of the helper in reverse order }
+                   if assigned(helperdef) then
+                     pushobjchild(helperdef,helperdef.childof);
                    { push object symtable }
                    st:=twithsymtable.Create(tobjectdef(p.resultdef),tobjectdef(p.resultdef).symtable.SymList,refnode);
                    symtablestack.push(st);
@@ -640,6 +670,9 @@ implementation
                 begin
                    { push symtables of all parents in reverse order }
                    pushobjchild(tobjectdef(tclassrefdef(p.resultdef).pointeddef),tobjectdef(tclassrefdef(p.resultdef).pointeddef).childof);
+                   { push symtables of all parents of the helper in reverse order }
+                   if assigned(helperdef) then
+                     pushobjchild(helperdef,helperdef.childof);
                    { push object symtable }
                    st:=twithsymtable.Create(tobjectdef(tclassrefdef(p.resultdef).pointeddef),tobjectdef(tclassrefdef(p.resultdef).pointeddef).symtable.SymList,refnode);
                    symtablestack.push(st);
@@ -647,6 +680,10 @@ implementation
                 end;
               recorddef :
                 begin
+                   { push symtables of all parents of the helper in reverse order }
+                   if assigned(helperdef) then
+                     pushobjchild(helperdef,helperdef.childof);
+                   { push record symtable }
                    st:=twithsymtable.create(trecorddef(p.resultdef),trecorddef(p.resultdef).symtable.SymList,refnode);
                    symtablestack.push(st);
                    withsymtablelist.add(st);
@@ -654,6 +691,14 @@ implementation
               else
                 internalerror(200601271);
             end;
+
+            { push helper symtable }
+            if assigned(helperdef) then
+              begin
+                st:=twithsymtable.Create(helperdef,helperdef.symtable.SymList,refnode.getcopy);
+                symtablestack.push(st);
+                withsymtablelist.add(st);
+              end;
 
             if try_to_consume(_COMMA) then
               p:=_with_statement()
