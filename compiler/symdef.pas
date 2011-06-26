@@ -677,7 +677,10 @@ interface
        voidtype,                  { Void (procedure) }
        cchartype,                 { Char }
        cwidechartype,             { WideChar }
-       booltype,                  { boolean type }
+       pasbool8type,              { boolean type }
+       pasbool16type,
+       pasbool32type,
+       pasbool64type,
        bool8type,
        bool16type,
        bool32type,
@@ -1766,7 +1769,8 @@ implementation
           0,
           1,2,4,8,
           1,2,4,8,
-          1,1,2,4,8,
+          1,2,4,8,
+          1,2,4,8,
           1,2,8
         );
       begin
@@ -1815,7 +1819,8 @@ implementation
           varUndefined,
           varbyte,varword,varlongword,varqword,
           varshortint,varsmallint,varinteger,varint64,
-          varboolean,varboolean,varboolean,varUndefined,varUndefined,
+          varboolean,varboolean,varboolean,varboolean,
+          varboolean,varboolean,varUndefined,varUndefined,
           varUndefined,varUndefined,varCurrency);
       begin
         result:=basetype2vardef[ordtype];
@@ -1844,7 +1849,8 @@ implementation
           'untyped',
           'Byte','Word','DWord','QWord',
           'ShortInt','SmallInt','LongInt','Int64',
-          'Boolean','ByteBool','WordBool','LongBool','QWordBool',
+          'Boolean','Boolean16','Boolean32','Boolean64',
+          'ByteBool','WordBool','LongBool','QWordBool',
           'Char','WideChar','Currency');
 
       begin
@@ -3929,7 +3935,8 @@ implementation
              'v',
              'h','t','j','y',
              'a','s','i','x',
-             'b','b','b','b','b',
+             'b','b','b','b',
+             'b','b','b','b',
              'c','w','x');
 
            floattype2str : array[tfloattype] of string[1] = (

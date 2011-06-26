@@ -154,7 +154,10 @@ implementation
         s32inttype:=torddef.create(s32bit,int64(low(longint)),int64(high(longint)));
         u64inttype:=torddef.create(u64bit,low(qword),high(qword));
         s64inttype:=torddef.create(s64bit,low(int64),high(int64));
-        booltype:=torddef.create(pasbool,0,1);
+        pasbool8type:=torddef.create(pasbool8,0,1);
+        pasbool16type:=torddef.create(pasbool16,0,1);
+        pasbool32type:=torddef.create(pasbool32,0,1);
+        pasbool64type:=torddef.create(pasbool64,0,1);
         bool8type:=torddef.create(bool8bit,low(int64),high(int64));
         bool16type:=torddef.create(bool16bit,low(int64),high(int64));
         bool32type:=torddef.create(bool32bit,low(int64),high(int64));
@@ -293,7 +296,7 @@ implementation
         addtype('UnicodeString',cunicodestringtype);
 
         addtype('OpenString',openshortstringtype);
-        addtype('Boolean',booltype);
+        addtype('Boolean',pasbool8type);
         addtype('ByteBool',bool8type);
         addtype('WordBool',bool16type);
         addtype('LongBool',bool32type);
@@ -333,7 +336,7 @@ implementation
         addtype('$widestring',cwidestringtype);
         addtype('$unicodestring',cunicodestringtype);
         addtype('$openshortstring',openshortstringtype);
-        addtype('$boolean',booltype);
+        addtype('$boolean',pasbool8type);
         addtype('$boolean8',bool8type);
         addtype('$boolean16',bool16type);
         addtype('$boolean32',bool32type);
@@ -438,11 +441,11 @@ implementation
             loadtype('sc80real',sc80floattype);
           end;
         loadtype('s64currency',s64currencytype);
-        loadtype('boolean',booltype);
-        loadtype('boolean8',bool8type);
-        loadtype('boolean16',bool16type);
-        loadtype('boolean32',bool32type);
-        loadtype('boolean64',bool64type);
+        loadtype('boolean',pasbool8type);
+        loadtype('boolean8',pasbool8type);
+        loadtype('boolean16',pasbool16type);
+        loadtype('boolean32',pasbool32type);
+        loadtype('boolean64',pasbool64type);
         loadtype('void_pointer',voidpointertype);
         loadtype('char_pointer',charpointertype);
         loadtype('widechar_pointer',widecharpointertype);
