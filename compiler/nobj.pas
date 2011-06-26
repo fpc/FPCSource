@@ -266,7 +266,7 @@ implementation
             end;
 
           { compare parameter types only, no specifiers yet }
-          hasequalpara:=(compare_paras(vmtpd.paras,pd.paras,cp_none,[cpo_ignoreuniv])>=te_equal);
+          hasequalpara:=(compare_paras(vmtpd.paras,pd.paras,cp_none,[cpo_ignoreuniv,cpo_ignorehidden])>=te_equal);
 
           { check that we are not trying to override a final method }
           if (po_finalmethod in vmtpd.procoptions) and
@@ -352,7 +352,7 @@ implementation
 
                   { All parameter specifiers and some procedure the flags have to match
                     except abstract and override }
-                  if (compare_paras(vmtpd.paras,pd.paras,cp_all,[cpo_ignoreuniv])<te_equal) or
+                  if (compare_paras(vmtpd.paras,pd.paras,cp_all,[cpo_ignoreuniv,cpo_ignorehidden])<te_equal) or
                      (vmtpd.proccalloption<>pd.proccalloption) or
                      (vmtpd.proctypeoption<>pd.proctypeoption) or
                      ((vmtpd.procoptions*po_comp)<>(pd.procoptions*po_comp)) then
