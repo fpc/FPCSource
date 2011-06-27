@@ -123,7 +123,7 @@ begin
   if Size > high (longint) then
     FileTruncate := false
   else
-    FileTruncate:=(fpchsize(Handle,Size) = 0);
+    FileTruncate:=(ftruncate(Handle,Size) = 0);
 end;
 
 

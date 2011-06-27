@@ -216,7 +216,6 @@ function FpWrite(fildes:longint; buf:pointer; nbytes:dword):longint;cdecl;extern
 function FpWrite(fildes:longint; var buf; nbytes:dword):longint;cdecl;external name 'write';
 function fplseek(fildes:longint; offset:longint; whence:longint):longint;cdecl;external name 'lseek';
 function FpClose(fildes:longint):longint;cdecl;external name 'close';
-function FpChsize(fildes:longint; size:dword):longint;cdecl;external name 'chsize';
 function FpUnlink(path:Pchar):longint;cdecl;external name 'unlink';
 function FpRename(para1: Pchar; para2: Pchar): longint; cdecl; external name 'rename';
 function Fpstat(path:Pchar; buf:Pstat):longint;cdecl;external name 'stat';
