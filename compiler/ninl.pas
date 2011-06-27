@@ -314,7 +314,8 @@ implementation
             scurrency,
             s64bit:
               procname := procname + 'int64';
-            pasbool,bool8bit,bool16bit,bool32bit,bool64bit:
+            pasbool8,pasbool16,pasbool32,pasbool64,
+            bool8bit,bool16bit,bool32bit,bool64bit:
               procname := procname + 'bool';
 {$endif}
             else
@@ -511,7 +512,10 @@ implementation
                       readfunctype:=s64currencytype;
                       is_real:=true;
                     end;
-                  pasbool,
+                  pasbool8,
+                  pasbool16,
+                  pasbool32,
+                  pasbool64,
                   bool8bit,
                   bool16bit,
                   bool32bit,
@@ -524,7 +528,7 @@ implementation
                     else
                       begin
                         name := procprefixes[do_read]+'boolean';
-                        readfunctype:=booltype;
+                        readfunctype:=pasbool8type;
                       end
                   else
                     begin
@@ -746,7 +750,7 @@ implementation
                   { zero-based                                       }
                   if para.left.resultdef.typ=arraydef then
                     para := ccallparanode.create(cordconstnode.create(
-                      ord(tarraydef(para.left.resultdef).lowrange=0),booltype,false),para);
+                      ord(tarraydef(para.left.resultdef).lowrange=0),pasbool8type,false),para);
                   { create the call statement }
                   addstatement(Tstatementnode(newstatement),
                     ccallnode.createintern(name,para));
@@ -1635,7 +1639,7 @@ implementation
                    else
                      hp:=create_simplified_ord_const(sqr(vl.uvalue),resultdef,forinline);
                  in_const_odd :
-                   hp:=cordconstnode.create(qword(odd(int64(vl))),booltype,true);
+                   hp:=cordconstnode.create(qword(odd(int64(vl))),pasbool8type,true);
                  in_const_swap_word :
                    hp:=cordconstnode.create((vl and $ff) shl 8+(vl shr 8),left.resultdef,true);
                  in_const_swap_long :
@@ -1691,17 +1695,30 @@ implementation
                     orddef :
                       begin
                         case torddef(left.resultdef).ordtype of
-                          pasbool,
+                          pasbool8,
                           uchar:
                             begin
                               { change to byte() }
                               result:=ctypeconvnode.create_internal(left,u8inttype);
                               left:=nil;
                             end;
+                          pasbool16,
                           uwidechar :
                             begin
                               { change to word() }
                               result:=ctypeconvnode.create_internal(left,u16inttype);
+                              left:=nil;
+                            end;
+                          pasbool32 :
+                            begin
+                              { change to dword() }
+                              result:=ctypeconvnode.create_internal(left,u32inttype);
+                              left:=nil;
+                            end;
+                          pasbool64 :
+                            begin
+                              { change to qword() }
+                              result:=ctypeconvnode.create_internal(left,u64inttype);
                               left:=nil;
                             end;
                           bool8bit:
@@ -2357,7 +2374,7 @@ implementation
                     in procvar handling between FPC and Delphi handling, so
                     handle specially }
                   set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
-                  resultdef:=booltype;
+                  resultdef:=pasbool8type;
                 end;
 
               in_ofs_x :

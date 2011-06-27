@@ -334,17 +334,17 @@ implementation
                  else
                    t:=cordconstnode.create(lv and rv,resultdef,true);
                ltn :
-                 t:=cordconstnode.create(ord(lv<rv),booltype,true);
+                 t:=cordconstnode.create(ord(lv<rv),pasbool8type,true);
                lten :
-                 t:=cordconstnode.create(ord(lv<=rv),booltype,true);
+                 t:=cordconstnode.create(ord(lv<=rv),pasbool8type,true);
                gtn :
-                 t:=cordconstnode.create(ord(lv>rv),booltype,true);
+                 t:=cordconstnode.create(ord(lv>rv),pasbool8type,true);
                gten :
-                 t:=cordconstnode.create(ord(lv>=rv),booltype,true);
+                 t:=cordconstnode.create(ord(lv>=rv),pasbool8type,true);
                equaln :
-                 t:=cordconstnode.create(ord(lv=rv),booltype,true);
+                 t:=cordconstnode.create(ord(lv=rv),pasbool8type,true);
                unequaln :
-                 t:=cordconstnode.create(ord(lv<>rv),booltype,true);
+                 t:=cordconstnode.create(ord(lv<>rv),pasbool8type,true);
                slashn :
                  begin
                    { int/int becomes a real }
@@ -387,30 +387,30 @@ implementation
                 case nodetype of
                  ltn:
                    if lv<low then
-                     t:=Cordconstnode.create(1,booltype,true)
+                     t:=Cordconstnode.create(1,pasbool8type,true)
                    else if lv>=high then
-                     t:=Cordconstnode.create(0,booltype,true);
+                     t:=Cordconstnode.create(0,pasbool8type,true);
                  lten:
                    if lv<=low then
-                     t:=Cordconstnode.create(1,booltype,true)
+                     t:=Cordconstnode.create(1,pasbool8type,true)
                    else if lv>high then
-                     t:=Cordconstnode.create(0,booltype,true);
+                     t:=Cordconstnode.create(0,pasbool8type,true);
                  gtn:
                    if lv<=low then
-                     t:=Cordconstnode.create(0,booltype,true)
+                     t:=Cordconstnode.create(0,pasbool8type,true)
                    else if lv>high then
-                     t:=Cordconstnode.create(1,booltype,true);
+                     t:=Cordconstnode.create(1,pasbool8type,true);
                  gten :
                    if lv<low then
-                     t:=Cordconstnode.create(0,booltype,true)
+                     t:=Cordconstnode.create(0,pasbool8type,true)
                    else if lv>=high then
-                     t:=Cordconstnode.create(1,booltype,true);
+                     t:=Cordconstnode.create(1,pasbool8type,true);
                  equaln:
                    if (lv<low) or (lv>high) then
-                     t:=Cordconstnode.create(0,booltype,true);
+                     t:=Cordconstnode.create(0,pasbool8type,true);
                  unequaln:
                    if (lv<low) or (lv>high) then
-                     t:=Cordconstnode.create(1,booltype,true);
+                     t:=Cordconstnode.create(1,pasbool8type,true);
                 end;
               if t<>nil then
                 begin
@@ -436,30 +436,30 @@ implementation
                 case nodetype of
                  ltn:
                    if high<rv then
-                     t:=Cordconstnode.create(1,booltype,true)
+                     t:=Cordconstnode.create(1,pasbool8type,true)
                    else if low>=rv then
-                     t:=Cordconstnode.create(0,booltype,true);
+                     t:=Cordconstnode.create(0,pasbool8type,true);
                  lten:
                    if high<=rv then
-                     t:=Cordconstnode.create(1,booltype,true)
+                     t:=Cordconstnode.create(1,pasbool8type,true)
                    else if low>rv then
-                     t:=Cordconstnode.create(0,booltype,true);
+                     t:=Cordconstnode.create(0,pasbool8type,true);
                  gtn:
                    if high<=rv then
-                     t:=Cordconstnode.create(0,booltype,true)
+                     t:=Cordconstnode.create(0,pasbool8type,true)
                    else if low>rv then
-                     t:=Cordconstnode.create(1,booltype,true);
+                     t:=Cordconstnode.create(1,pasbool8type,true);
                  gten:
                    if high<rv then
-                     t:=Cordconstnode.create(0,booltype,true)
+                     t:=Cordconstnode.create(0,pasbool8type,true)
                    else if low>=rv then
-                     t:=Cordconstnode.create(1,booltype,true);
+                     t:=Cordconstnode.create(1,pasbool8type,true);
                  equaln:
                    if (rv<low) or (rv>high) then
-                     t:=Cordconstnode.create(0,booltype,true);
+                     t:=Cordconstnode.create(0,pasbool8type,true);
                  unequaln:
                    if (rv<low) or (rv>high) then
-                     t:=Cordconstnode.create(1,booltype,true);
+                     t:=Cordconstnode.create(1,pasbool8type,true);
                 end;
               if t<>nil then
                 begin
@@ -563,17 +563,17 @@ implementation
                 slashn :
                   t:=crealconstnode.create(lvd/rvd,resultrealdef);
                 ltn :
-                  t:=cordconstnode.create(ord(lvd<rvd),booltype,true);
+                  t:=cordconstnode.create(ord(lvd<rvd),pasbool8type,true);
                 lten :
-                  t:=cordconstnode.create(ord(lvd<=rvd),booltype,true);
+                  t:=cordconstnode.create(ord(lvd<=rvd),pasbool8type,true);
                 gtn :
-                  t:=cordconstnode.create(ord(lvd>rvd),booltype,true);
+                  t:=cordconstnode.create(ord(lvd>rvd),pasbool8type,true);
                 gten :
-                  t:=cordconstnode.create(ord(lvd>=rvd),booltype,true);
+                  t:=cordconstnode.create(ord(lvd>=rvd),pasbool8type,true);
                 equaln :
-                  t:=cordconstnode.create(ord(lvd=rvd),booltype,true);
+                  t:=cordconstnode.create(ord(lvd=rvd),pasbool8type,true);
                 unequaln :
-                  t:=cordconstnode.create(ord(lvd<>rvd),booltype,true);
+                  t:=cordconstnode.create(ord(lvd<>rvd),pasbool8type,true);
                 else
                   internalerror(2008022102);
              end;
@@ -602,17 +602,17 @@ implementation
                      t:=cstringconstnode.createwstr(ws1);
                   end;
                 ltn :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<0),booltype,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<0),pasbool8type,true);
                 lten :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<=0),booltype,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<=0),pasbool8type,true);
                 gtn :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>0),booltype,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>0),pasbool8type,true);
                 gten :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>=0),booltype,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>=0),pasbool8type,true);
                 equaln :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)=0),booltype,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)=0),pasbool8type,true);
                 unequaln :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<>0),booltype,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<>0),pasbool8type,true);
                 else
                   internalerror(2008022103);
              end;
@@ -676,17 +676,17 @@ implementation
                     tstringconstnode(t).changestringtype(resultdef);
                   end;
                 ltn :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<0),booltype,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<0),pasbool8type,true);
                 lten :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<=0),booltype,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<=0),pasbool8type,true);
                 gtn :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>0),booltype,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>0),pasbool8type,true);
                 gten :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>=0),booltype,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>=0),pasbool8type,true);
                 equaln :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)=0),booltype,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)=0),pasbool8type,true);
                 unequaln :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<>0),booltype,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<>0),pasbool8type,true);
                 else
                   internalerror(2008022104);
              end;
@@ -724,22 +724,22 @@ implementation
                unequaln :
                   begin
                     b:=tsetconstnode(right).value_set^ <> tsetconstnode(left).value_set^;
-                    t:=cordconstnode.create(byte(b),booltype,true);
+                    t:=cordconstnode.create(byte(b),pasbool8type,true);
                   end;
                equaln :
                   begin
                     b:=tsetconstnode(right).value_set^ = tsetconstnode(left).value_set^;
-                    t:=cordconstnode.create(byte(b),booltype,true);
+                    t:=cordconstnode.create(byte(b),pasbool8type,true);
                   end;
                lten :
                   begin
                     b:=tsetconstnode(left).value_set^ <= tsetconstnode(right).value_set^;
-                    t:=cordconstnode.create(byte(b),booltype,true);
+                    t:=cordconstnode.create(byte(b),pasbool8type,true);
                   end;
                gten :
                   begin
                     b:=tsetconstnode(left).value_set^ >= tsetconstnode(right).value_set^;
-                    t:=cordconstnode.create(byte(b),booltype,true);
+                    t:=cordconstnode.create(byte(b),pasbool8type,true);
                   end;
                 else
                   internalerror(2008022105);
@@ -1027,12 +1027,12 @@ implementation
                 begin
                   if not is_boolean(ld) then
                     begin
-                      inserttypeconv(left,booltype);
+                      inserttypeconv(left,pasbool8type);
                       ld := left.resultdef;
                     end;
                   if not is_boolean(rd) then
                     begin
-                      inserttypeconv(right,booltype);
+                      inserttypeconv(right,pasbool8type);
                       rd := right.resultdef;
                     end;
                 end;
@@ -1857,7 +1857,7 @@ implementation
           begin
              case nodetype of
                 ltn,lten,gtn,gten,equaln,unequaln :
-                  resultdef:=booltype;
+                  resultdef:=pasbool8type;
                 slashn :
                   resultdef:=resultrealdef;
                 addn:
@@ -2327,7 +2327,7 @@ implementation
 
         { otherwise, create the parameters for the helper }
         right := ccallparanode.create(
-          cordconstnode.create(ord(cs_check_overflow in current_settings.localswitches),booltype,true),
+          cordconstnode.create(ord(cs_check_overflow in current_settings.localswitches),pasbool8type,true),
           ccallparanode.create(right,ccallparanode.create(left,nil)));
         left := nil;
         { only qword needs the unsigned code, the
@@ -2457,7 +2457,7 @@ implementation
         if not(target_info.system in systems_wince) then
           begin
             if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
-              resultdef:=booltype;
+              resultdef:=pasbool8type;
             result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
                 ctypeconvnode.create_internal(right,fdef),
                 ccallparanode.create(
@@ -2618,7 +2618,7 @@ implementation
                          internalerror(2011022301);
                      end;
                      result := ccallnode.createintern(procname,
-                       ccallparanode.create(cordconstnode.create(0,booltype,false),
+                       ccallparanode.create(cordconstnode.create(0,pasbool8type,false),
                        ccallparanode.create(right,
                        ccallparanode.create(left,nil))));
                      left := nil;

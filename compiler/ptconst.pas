@@ -196,7 +196,7 @@ implementation
            if is_cbool(def) then
              inserttypeconv(n,def);
            case def.ordtype of
-              pasbool,
+              pasbool8,
               bool8bit :
                 begin
                    if is_constboolnode(n) then
@@ -204,6 +204,7 @@ implementation
                    else
                      do_error;
                 end;
+              pasbool16,
               bool16bit :
                 begin
                    if is_constboolnode(n) then
@@ -211,6 +212,7 @@ implementation
                    else
                      do_error;
                 end;
+              pasbool32,
               bool32bit :
                 begin
                    if is_constboolnode(n) then
@@ -218,6 +220,7 @@ implementation
                    else
                      do_error;
                 end;
+              pasbool64,
               bool64bit :
                 begin
                    if is_constboolnode(n) then

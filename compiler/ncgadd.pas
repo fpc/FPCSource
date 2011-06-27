@@ -463,15 +463,30 @@ interface
               else
                  internalerror(200203247);
             end;
-
-            if right.location.loc <> LOC_CONSTANT then
-              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,cgop,location.size,
-                 left.location.register,right.location.register,
-                 location.register)
+{$ifndef cpu64bitalu}
+            if right.location.size in [OS_64,OS_S64] then
+              begin
+                if right.location.loc <> LOC_CONSTANT then
+                  cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,cgop,location.size,
+                     left.location.register64,right.location.register64,
+                     location.register64)
+                else
+                  cg64.a_op64_const_reg_reg(current_asmdata.CurrAsmList,cgop,location.size,
+                     right.location.value,left.location.register64,
+                     location.register64);
+              end
             else
-              cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,cgop,location.size,
-                 right.location.value,left.location.register,
-                 location.register);
+{$endif cpu64bitalu}
+              begin
+                if right.location.loc <> LOC_CONSTANT then
+                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,cgop,location.size,
+                     left.location.register,right.location.register,
+                     location.register)
+                else
+                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,cgop,location.size,
+                     right.location.value,left.location.register,
+                     location.register);
+              end;
          end;
       end;
 

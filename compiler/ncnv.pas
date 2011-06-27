@@ -913,7 +913,7 @@ implementation
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern('fpc_'+chartype+'array_to_shortstr',
               ccallparanode.create(cordconstnode.create(
-                ord(tarraydef(left.resultdef).lowrange=0),booltype,false),
+                ord(tarraydef(left.resultdef).lowrange=0),pasbool8type,false),
               ccallparanode.create(left,ccallparanode.create(
               ctemprefnode.create(restemp),nil)))));
             addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
@@ -924,7 +924,7 @@ implementation
           result:=ccallnode.createinternres(
             'fpc_'+chartype+'array_to_'+tstringdef(resultdef).stringtypname,
             ccallparanode.create(cordconstnode.create(
-               ord(tarraydef(left.resultdef).lowrange=0),booltype,false),
+               ord(tarraydef(left.resultdef).lowrange=0),pasbool8type,false),
              ccallparanode.create(left,nil)),resultdef);
         left:=nil;
       end;
@@ -3347,7 +3347,7 @@ implementation
               CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
             case nodetype of
               isn:
-                resultdef:=booltype;
+                resultdef:=pasbool8type;
               asn:
                 resultdef:=tclassrefdef(right.resultdef).pointeddef;
             end;
@@ -3361,7 +3361,7 @@ implementation
 
             case nodetype of
               isn:
-                resultdef:=booltype;
+                resultdef:=pasbool8type;
               asn:
                 resultdef:=right.resultdef;
             end;

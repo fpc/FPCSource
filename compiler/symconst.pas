@@ -210,7 +210,8 @@ type
     uvoid,
     u8bit,u16bit,u32bit,u64bit,
     s8bit,s16bit,s32bit,s64bit,
-    pasbool,bool8bit,bool16bit,bool32bit,bool64bit,
+    pasbool8,pasbool16,pasbool32,pasbool64,
+    bool8bit,bool16bit,bool32bit,bool64bit,
     uchar,uwidechar,scurrency
   );
 
