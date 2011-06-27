@@ -41,11 +41,15 @@ var
   BytesRead: integer;
 begin
   BytesRead := FStream.Read(FBuf^, ParseBufSize);
+  if BytesRead = 0 then
+  begin
+    FEofReached := True;
+    Exit;
+  end;
   FBuf[BytesRead] := #0;
   Inc(FDeltaPos, BytesRead);
   FPos := 0;
   FBufLen := BytesRead;
-  FEofReached:=BytesRead = 0;
 end;
 
 procedure TParser.CheckLoadBuffer; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
@@ -110,10 +114,7 @@ begin
     CheckLoadBuffer;
     if fBuf[fPos]=#10 then inc(fPos); //CR LF
   end
-  else begin
-    inc(fPos); //LF
-    CheckLoadBuffer;
-  end;
+  else inc(fPos); //LF
   inc(fSourceLine);
   fDeltaPos:=-(fPos-1);
 end;
@@ -131,7 +132,6 @@ begin
   begin
     bom[i]:=fBuf[fPos];
     inc(fPos);
-    CheckLoadBuffer;
     inc(i);
   end;
   if (bom<>(#$EF+#$BB+#$BF)) then
@@ -140,16 +140,15 @@ end;
 
 procedure TParser.SkipSpaces;
 begin
-  while fBuf[fPos] in [' ',#9] do begin
+  while fBuf[fPos] in [' ',#9] do
     inc(fPos);
-    CheckLoadBuffer;
-  end;
 end;
 
 procedure TParser.SkipWhitespace;
 begin
   while true do
   begin
+    CheckLoadBuffer;
     case fBuf[fPos] of
       ' ',#9  : SkipSpaces;
       #10,#13 : HandleNewLine
@@ -206,7 +205,6 @@ begin
   begin
     fFloatType:=fBuf[fPos];
     inc(fPos);
-    CheckLoadBuffer;
     fToken:=toFloat;
   end
   else fFloatType:=#0;
