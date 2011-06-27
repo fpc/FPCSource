@@ -780,7 +780,8 @@ var
   // This should be a pointer, because the ORIGINAL variables must
   // be modified.
   VSQLVar: ^XSQLVAR;
-
+  d : double;
+  
 begin
 {$R-}
   with cursor as TIBCursor do for SQLVarNr := 0 to High(ParamBinding){AParams.count-1} do
@@ -843,7 +844,10 @@ begin
             if VSQLVar^.sqlscale = 0 then
               li := AParams[ParNr].AsLargeInt
             else if AParams[ParNr].DataType = ftFMTBcd then
-              li := Round(AParams[ParNr].AsFMTBCD * IntPower(10, -VSQLVar^.sqlscale))
+              begin
+              d:=AParams[ParNr].AsFMTBCD * IntPower(10, -VSQLVar^.sqlscale);
+              li := Round(d)
+              end
             else
               li := Round(AParams[ParNr].AsCurrency * IntPower(10, -VSQLVar^.sqlscale));
             Move(li, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
