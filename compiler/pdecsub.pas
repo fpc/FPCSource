@@ -82,7 +82,7 @@ implementation
        cutils,cclasses,
        { global }
        globtype,globals,verbose,constexp,
-       systems,
+       systems,fpccrc,
        cpuinfo,
        { symtable }
        symbase,symtable,defutil,defcmp,paramgr,cpupara,
@@ -2727,6 +2727,11 @@ const
              result:=target_info.Cprefix+s;
          end;
 
+       var
+         crc : cardinal;
+         i : longint;
+         use_crc : boolean;
+         dllname : string;
       begin
         result:='';
         if not(po_external in pd.procoptions) then
@@ -2755,8 +2760,28 @@ const
                   begin
                     if target_info.system in (systems_all_windows + systems_nativent +
                                        [system_i386_emx, system_i386_os2]) then
-                   { cprefix is not used in DLL imports under Windows or OS/2 }
-                      result:='_$dll$'+ExtractFileName(pd.import_dll^)+'$'+pd.import_name^
+                      begin
+                        dllname:=lower(ExtractFileName(pd.import_dll^));
+                        { Remove .dll suffix if present }
+                        if copy(dllname,length(dllname)-3,length(dllname))='.dll' then
+                          dllname:=copy(dllname,1,length(dllname)-4);
+                        use_crc:=false;
+                        for i:=1 to length(dllname) do
+                          if not (dllname[i] in ['a'..'z','A'..'Z','_','0'..'9']) then
+                            begin
+                              use_crc:=true;
+                              break;
+                            end;
+
+                        if use_crc and (length(dllname) > 0) then
+                          begin
+                            crc:=0;
+                            crc:=UpdateCrc32(crc,dllname[1],length(dllname));
+                            result:='_$dll$crc$'+hexstr(crc,8)+'$'+pd.import_name^;
+                          end
+                        else
+                          result:='_$dll$'+dllname+'$'+pd.import_name^;
+                      end
                     else
                       result:=maybe_cprefix(pd.import_name^);
                   end
