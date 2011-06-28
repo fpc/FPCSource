@@ -1206,6 +1206,7 @@ unit scandir;
         ident : string;
         state : string;
         msgstate : tmsgstate;
+        i : integer;
       begin
         current_scanner.skipspace;
         ident:=current_scanner.readid;
@@ -1213,6 +1214,7 @@ unit scandir;
         state:=current_scanner.readid;
 
         { support both delphi and fpc switches }
+        { use local ms_on/off/error tmsgstate values }
         if (state='ON') or (state='+') then
           msgstate:=ms_on
         else
@@ -1275,7 +1277,11 @@ unit scandir;
         if ident='ZERO_NIL_COMPAT' then
           recordpendingmessagestate(type_w_zero_to_nil, msgstate)
         else
-          Message1(scanner_w_illegal_warn_identifier,ident);
+          begin
+            i:=0;
+            if not ChangeMessageVerbosity(ident,i,msgstate) then
+              Message1(scanner_w_illegal_warn_identifier,ident);
+          end;
       end;
 
     procedure dir_warning;

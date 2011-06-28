@@ -517,10 +517,32 @@ interface
     type
       { a message state }
       tmsgstate = (
-        ms_on,    // turn on output
-        ms_off,   // turn off output
-        ms_error  // cast to error
+        ms_on := 1,
+        ms_off := 2,
+        ms_error := 3,
+
+        ms_on_global := $11,    // turn on output
+        ms_off_global := $22,   // turn off output
+        ms_error_global := $33  // cast to error
       );
+    const
+      { Mask for current value of message state }
+      ms_local_mask = $0f;
+      { Mask for global value of message state
+        that needs to be restored when changing units }
+      ms_global_mask = $f0;
+      { Shift used to convert global to local message state }
+      ms_shift = 4;
+
+    type
+      pmessagestaterecord = ^tmessagestaterecord;
+      tmessagestaterecord = record
+        next : pmessagestaterecord;
+        value : longint;
+        state : tmsgstate;
+      end;
+
+
 
 implementation
 

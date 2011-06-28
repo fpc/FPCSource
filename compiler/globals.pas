@@ -138,6 +138,7 @@ interface
          minfpconstprec  : tfloattype;
 
          disabledircache : boolean;
+         pmessage : pmessagestaterecord;
 
         { CPU targets with microcontroller support can add a controller specific unit }
 {$if defined(ARM) or defined(AVR)}
@@ -176,11 +177,13 @@ interface
         property items[I:longint]:TLinkRec read getlinkrec; default;
       end;
 
+
       tpendingstate = record
         nextverbositystr : shortstring;
         nextlocalswitches : tlocalswitches;
         nextverbosityfullswitch: longint;
         nextcallingstr : shortstring;
+        nextmessagerecord : pmessagestaterecord;
         verbosityfullswitched,
         localswitcheschanged : boolean;
       end;
@@ -426,6 +429,7 @@ interface
         minfpconstprec : s32real;
 
         disabledircache : false;
+        pmessage : nil;
 {$if defined(ARM)}
         controllertype : ct_none;
 {$endif defined(ARM)}
