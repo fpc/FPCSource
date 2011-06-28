@@ -792,7 +792,9 @@ begin
 {$ifndef windows}
   Result:=fpaccept(Socket,psockaddr(@FIAddress),@FAddressLength);
 {$else}
+  {$ifdef windowspipe}
   if Not fIsWinPipe then
+  {$endif}
     Result:=fpaccept(Socket,psockaddr(@FIAddress),@FAddressLength);
   {$ifdef windowspipe}
   If FIsWinPipe or ((Result<0) and (socketerror=10038)) then
