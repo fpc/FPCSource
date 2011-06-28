@@ -44,12 +44,14 @@ uses
 const
 {$ifdef Unix}
   GDBExeName : String = 'gdbpas';
+  GDBAltExeName = 'gdb';
   GDBIniName = '.gdbinit';
   DefaultCompilerName = 'ppc386';
   PathSep=':';
   DirSep = '/';
 {$else}
   GDBExeName : String = 'gdbpas.exe';
+  GDBAltExeName = 'gdb.exe';
   GDBIniName = 'gdb.ini';
   DefaultCompilerName = 'ppc386.exe';
   PathSep=';';
@@ -61,6 +63,17 @@ const
   { special tests in specific directories   PM     }
   FpcGDBIniName = 'gdb.fpc';
   GDBIniTempName : string = 'gdb4fpc.ini';
+
+
+{ Dos/Windows GDB still need forward slashes }
+procedure AdaptToGDB(var filename : string);
+var
+  i : longint;
+begin
+  for i:=1 to length(filename) do
+    if filename[i]='\' then
+      filename[i]:='/';
+end;
 
 var
    fpcgdbini : text;
@@ -144,6 +157,11 @@ begin
   {$endif}
 
   GDBExeName:=fsearch(GDBExeName,Dir+PathSep+GetEnv('PATH'));
+  if GDBExeName='' then
+    GDBExeName:=fsearch(GDBAltExeName,Dir+PathSep+GetEnv('PATH'));
+
+  AdaptToGDB(CompilerName);
+  AdaptToGDB(GDBIniTempName);
   {$ifdef EXTDEBUG}
   Writeln(stderr,'Starting ',GDBExeName,
 {$ifdef win32}
