@@ -1805,27 +1805,34 @@ implementation
           if oneval<>'' then
             begin
               if oneval[1]='-' then
-                val(oneval,signedval,code)
+                begin
+                  val(oneval,signedval,code);
+                  anumval:=qword(signedval);
+                end
               else
                 val(oneval,anumval,code);
               if code<>0 then
                 Comment(V_Error,'Invalid number '+avalue)
-              else if (indexpos<MAXVAL) then
+              else
                 begin
-                  anumval:=qword(signedval);
-                  if source_info.endian<>target_info.endian then
-                    swapendian(anumval);
-                  { No range checking here }
+                  if (indexpos<MAXVAL) then
+                    begin
+                      if source_info.endian<>target_info.endian then
+                        swapendian(anumval);
+                      { No range checking here }
 
-                  if bytesize=1 then
-                    bytevalues[indexpos]:=byte(anumval)
-                  else if bytesize=2 then
-                    twobytevalues[indexpos]:=word(anumval)
-                  else if bytesize=4 then
-                    fourbytevalues[indexpos]:=dword(anumval)
-                  else if bytesize=8 then
-                    eightbytevalues[indexpos]:=anumval;
-                  inc(indexpos);
+                      if bytesize=1 then
+                        bytevalues[indexpos]:=byte(anumval)
+                      else if bytesize=2 then
+                        twobytevalues[indexpos]:=word(anumval)
+                      else if bytesize=4 then
+                        fourbytevalues[indexpos]:=dword(anumval)
+                      else if bytesize=8 then
+                        eightbytevalues[indexpos]:=anumval;
+                      inc(indexpos);
+                    end
+                  else
+                    Comment(V_Error,'Buffer overrun in Order_values');
                 end;
             end;
         until allvals='';
