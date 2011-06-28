@@ -1035,7 +1035,7 @@ implementation
             begin
               if target_info.system in (systems_all_windows + systems_nativent +
                                        [system_i386_emx, system_i386_os2]) then
-                mangledname:='_$dll$'+ExtractFileName(dll_name)+'$'+C_name;
+                mangledname:=make_dllmangledname(dll_name,C_name,0,pocall_none);
 
               current_module.AddExternalImport(dll_name,C_Name,mangledname,0,true,false);
             end

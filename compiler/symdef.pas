@@ -789,6 +789,8 @@ interface
 {$endif AVR}
 
     function make_mangledname(const typeprefix:string;st:TSymtable;const suffix:string):string;
+    function make_dllmangledname(const dllname,importname:string;
+                                 import_nr : word; pco : tproccalloption):string;
 
     { should be in the types unit, but the types unit uses the node stuff :( }
     function is_interfacecom(def: tdef): boolean;
@@ -936,6 +938,68 @@ implementation
         { add an underscore on darwin.                                              }
         if (target_info.system in systems_darwin) then
           result := '_' + result;
+      end;
+
+    function make_dllmangledname(const dllname,importname:string;import_nr : word; pco : tproccalloption):string;
+       var
+         crc : cardinal;
+         i : longint;
+         use_crc : boolean;
+         dllprefix : string;
+      begin
+        if (target_info.system in (systems_all_windows + systems_nativent +
+                           [system_i386_emx, system_i386_os2]))
+            and (dllname <> '') then
+          begin
+            dllprefix:=lower(ExtractFileName(dllname));
+            { Remove .dll suffix if present }
+            if copy(dllprefix,length(dllprefix)-3,length(dllprefix))='.dll' then
+              dllprefix:=copy(dllprefix,1,length(dllprefix)-4);
+            use_crc:=false;
+            for i:=1 to length(dllprefix) do
+              if not (dllprefix[i] in ['a'..'z','A'..'Z','_','0'..'9']) then
+                begin
+                  use_crc:=true;
+                  break;
+                end;
+            if use_crc then
+              begin
+                crc:=0;
+                crc:=UpdateCrc32(crc,dllprefix[1],length(dllprefix));
+                dllprefix:='_$dll$crc$'+hexstr(crc,8)+'$';
+              end
+            else
+              dllprefix:='_$dll$'+dllprefix+'$';
+
+            if importname<>'' then
+              result:=dllname+importname
+            else
+              result:=dllname+'_index_'+tostr(import_nr);
+            { Replace ? and @ in import name, since GNU AS does not allow these characters in symbol names. }
+            { This allows to import VC++ mangled names from DLLs. }
+            { Do not perform replacement, if external symbol is not imported from DLL. }
+            if (dllname<>'') then
+              begin
+                Replace(result,'?','__q$$');
+    {$ifdef arm}
+                { @ symbol is not allowed in ARM assembler only }
+                Replace(result,'@','__a$$');
+    {$endif arm}
+             end;
+          end
+        else
+          begin
+            if importname<>'' then
+             begin
+               if not(pco in [pocall_cdecl,pocall_cppdecl]) then
+                 result:=importname
+               else
+                 result:=target_info.Cprefix+importname;
+             end
+            else
+              result:='_index_'+tostr(import_nr);
+          end;
+
       end;
 
 {****************************************************************************

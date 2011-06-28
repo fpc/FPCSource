@@ -2718,20 +2718,9 @@ const
 
 
     function proc_get_importname(pd:tprocdef):string;
+      var
+        dllname, importname : string;
 
-       function maybe_cprefix(const s:string):string;
-         begin
-           if not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
-             result:=s
-           else
-             result:=target_info.Cprefix+s;
-         end;
-
-       var
-         crc : cardinal;
-         i : longint;
-         use_crc : boolean;
-         dllname : string;
       begin
         result:='';
         if not(po_external in pd.procoptions) then
@@ -2740,56 +2729,15 @@ const
         if assigned(pd.import_name) or (pd.import_nr<>0) then
           begin
             if assigned(pd.import_dll) then
-              begin
-                { If we are not using direct dll linking under win32 then imports
-                  need to use the normal name since two functions can refer to the
-                  same DLL function. This is also needed for compatability
-                  with Delphi and TP7 }
-(*
-                case target_info.system of
-                  system_i386_emx,
-                  system_i386_os2 :
-                    begin
-                      { keep normal mangledname }
-                      if not (Assigned (PD.Import_Name)) then
-                       Result := PD.MangledName;
-                    end;
-                  else
-*)
-                if assigned(pd.import_name) then
-                  begin
-                    if target_info.system in (systems_all_windows + systems_nativent +
-                                       [system_i386_emx, system_i386_os2]) then
-                      begin
-                        dllname:=lower(ExtractFileName(pd.import_dll^));
-                        { Remove .dll suffix if present }
-                        if copy(dllname,length(dllname)-3,length(dllname))='.dll' then
-                          dllname:=copy(dllname,1,length(dllname)-4);
-                        use_crc:=false;
-                        for i:=1 to length(dllname) do
-                          if not (dllname[i] in ['a'..'z','A'..'Z','_','0'..'9']) then
-                            begin
-                              use_crc:=true;
-                              break;
-                            end;
-
-                        if use_crc and (length(dllname) > 0) then
-                          begin
-                            crc:=0;
-                            crc:=UpdateCrc32(crc,dllname[1],length(dllname));
-                            result:='_$dll$crc$'+hexstr(crc,8)+'$'+pd.import_name^;
-                          end
-                        else
-                          result:='_$dll$'+dllname+'$'+pd.import_name^;
-                      end
-                    else
-                      result:=maybe_cprefix(pd.import_name^);
-                  end
-                else
-                  result:=ExtractFileName(pd.import_dll^)+'_index_'+tostr(pd.import_nr);
-              end
+              dllname:=pd.import_dll^
             else
-              result:=maybe_cprefix(pd.import_name^);
+              dllname:='';
+            if assigned(pd.import_name) then
+              importname:=pd.import_name^
+            else
+              importname:='';
+            proc_get_importname:=make_dllmangledname(dllname,
+              importname,pd.import_nr,pd.proccalloption);
           end
         else
           begin
@@ -2836,17 +2784,6 @@ const
                     s:=proc_get_importname(pd);
                     if s<>'' then
                       begin
-                        { Replace ? and @ in import name, since GNU AS does not allow these characters in symbol names. }
-                        { This allows to import VC++ mangled names from DLLs. }
-                        { Do not perform replacement, if external symbol is not imported from DLL. }
-                        if (target_info.system in systems_all_windows) and (pd.import_dll<>nil) then
-                          begin
-                            Replace(s,'?','__q$$');
-{$ifdef arm}
-                            { @ symbol is not allowed in ARM assembler only }
-                            Replace(s,'@','__a$$');
-{$endif arm}
-                          end;
                         pd.setmangledname(s);
                       end;
                   end;
