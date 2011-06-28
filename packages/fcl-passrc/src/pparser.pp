@@ -3524,18 +3524,18 @@ var
       Move(Start^, s[1], l)
     else
       exit;
-    if s[1] = '-' then
+    if (s[1] = '-') and (length(s)>1) then
     begin
       case s[2] of
         'd': // -d define
           Scanner.Defines.Append(UpperCase(Copy(s, 3, Length(s))));
         'F': // -F
-          if s[3] = 'i' then // -Fi include path
+          if (length(s)>2) and (s[3] = 'i') then // -Fi include path
             FileResolver.AddIncludePath(Copy(s, 4, Length(s)));
         'I': // -I include path
           FileResolver.AddIncludePath(Copy(s, 3, Length(s)));
         'S': // -S mode
-          if s[3]='d' then
+          if  (length(s)>2) and (s[3]='d') then
             begin // -Sd mode delphi
               include(Scanner.Options,po_delphi);
               include(Parser.Options,po_delphi);
