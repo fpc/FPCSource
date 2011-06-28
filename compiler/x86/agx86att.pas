@@ -249,6 +249,7 @@ interface
            (taicpu(hp).oper[0]^.typ = top_const) then
            begin
              val := taicpu(hp).oper[0]^.val;
+{$ifdef x86_64}
 	     if (val > int64($7fffffff)) and (val < int64($100000000)) then
                begin
                  owner.AsmWrite(target_asm.comment);
@@ -262,6 +263,7 @@ interface
                  else
                    internalerror(20100902);
                end;
+{$endif x86_64}
            end;
         owner.AsmWrite(#9);
         { movsd should not be translated to movsl when there
