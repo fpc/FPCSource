@@ -20,6 +20,10 @@ unit custfcgi;
 
 Interface
 
+{$if defined(win32) or defined(win64)}
+{$define windowspipe}
+{$ifend}
+
 uses
   Classes,SysUtils, httpdefs, 
 {$ifdef unix}
@@ -101,7 +105,7 @@ Type
     FAddress: string;
     FTimeOut,
     FPort: integer;
-{$ifdef windows}
+{$ifdef windowspipe}
     FIsWinPipe: Boolean;
 {$endif}
     function AcceptConnection: Integer;
@@ -492,7 +496,7 @@ procedure TFCgiHandler.CloseConnection;
 Var
   i : Integer;
 begin
-{$ifdef windows}
+{$ifdef windowspipe}
   if FIsWinPipe then
     begin
     if not FlushFileBuffers(FHandle) then
@@ -715,7 +719,7 @@ end;
 
 function TFCgiHandler.DoFastCGIRead(AHandle: THandle; var ABuf; ACount: Integer): Integer;
 begin
-{$ifdef windows}
+{$ifdef windowspipe}
   if FIsWinPipe then
     Result:=FileRead(AHandle,ABuf,ACount)
   else
@@ -726,7 +730,7 @@ end;
 function TFCgiHandler.DoFastCGIWrite(AHandle: THandle; const ABuf;
   ACount: Integer): Integer;
 begin
-  {$ifdef windows}
+  {$ifdef windowspipe}
   if FIsWinPipe then
     Result := FileWrite(AHandle, ABuf, ACount)
   else
@@ -790,6 +794,7 @@ begin
 {$else}
   if Not fIsWinPipe then
     Result:=fpaccept(Socket,psockaddr(@FIAddress),@FAddressLength);
+  {$ifdef windowspipe}
   If FIsWinPipe or ((Result<0) and (socketerror=10038)) then
     begin
     B:=ConnectNamedPipe(Socket,Nil);
@@ -805,6 +810,7 @@ begin
        FIsWinPipe:=True;
        end;
     end;
+   {$endif}
 {$endif}
 end;
 
