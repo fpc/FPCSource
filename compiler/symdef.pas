@@ -3544,8 +3544,10 @@ implementation
          else
            import_name:=nil;
          import_nr:=ppufile.getword;
+{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if target_info.system in systems_interrupt_table then
            interruptvector:=ppufile.getlongint;
+{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if (po_msgint in procoptions) then
            messageinf.i:=ppufile.getlongint;
          if (po_msgstr in procoptions) then
@@ -3682,8 +3684,10 @@ implementation
          if po_has_importname in procoptions then
            ppufile.putstring(import_name^);
          ppufile.putword(import_nr);
+{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if target_info.system in systems_interrupt_table then
            ppufile.putlongint(interruptvector);
+{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if (po_msgint in procoptions) then
            ppufile.putlongint(messageinf.i);
          if (po_msgstr in procoptions) then

@@ -2347,8 +2347,10 @@ implementation
          InsertWideInitsTablesTable;
          InsertMemorySizes;
 
+{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if target_info.system in systems_interrupt_table then
            InsertInterruptTable;
+{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 
          { Insert symbol to resource info }
          InsertResourceInfo(resources_used);

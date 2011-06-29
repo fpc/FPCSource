@@ -1626,6 +1626,7 @@ begin
   if pd.parast.symtablelevel>normal_function_level then
     Message(parser_e_dont_nest_interrupt);
 
+{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
   if target_info.system in systems_interrupt_table then
     begin
       if token<>_SEMICOLON then
@@ -1635,6 +1636,7 @@ begin
           Tprocdef(pd).interruptvector:=v.uvalue;
         end;
     end;
+{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 end;
 
 procedure pd_abstract(pd:tabstractprocdef);
