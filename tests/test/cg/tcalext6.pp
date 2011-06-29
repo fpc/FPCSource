@@ -1,7 +1,7 @@
-{ Tests passing of different records by value to C methods. 
+{ Tests passing of different records by value to C methods.
  One type of these records has one field which is a simple array of bytes,
  the other consists of a few fields of atomic size.
- 
+
  Note that it does not only test a single field of these records, but all
  by comparing the sum of the field values with the sum returned by the
  C function.
@@ -19,6 +19,14 @@ program calext6;
 {$linklib gcc}
 {$endif}
 
+{$ifdef VER2_4}
+uses
+  ctypes;
+
+type
+  cextended = clongdouble;
+{$endif VER2_4}
+
 type
   int8_t = shortint;
   pint8_t = ^int8_t;
@@ -28,6 +36,70 @@ type
 
 var
   success : boolean;
+{$ifdef x86_64}
+  {$define UseStackCheck}
+  {$asmmode att}
+  {$define USE_ASM}
+{$endif x86_64}
+{$ifdef i386}
+  {$define UseStackCheck}
+  {$asmmode att}
+  {$define USE_ASM}
+{$endif i386}
+{$ifdef HAS_GETFRAME}
+  {$define UseStackCheck}
+{$endif HAS_GETFRAME}
+
+{$ifdef UseStackCheck}
+var
+  stackval : pointer;
+
+procedure SetStack;
+var
+  newval : pointer;
+begin
+{$ifdef USE_ASM}
+  asm
+{$ifdef i386}
+    movl %esp,newval
+{$endif i386}
+{$ifdef x86_64}
+    movl %rsp,newval
+{$endif x86_64}
+  end;
+{$endif USE_ASM}
+{$ifdef HAS_GETFRAME}
+  newval:=GetFrame;
+{$endif HAS_GETFRAME}
+  stackval:=newval;
+end;
+
+procedure CheckStack;
+var
+  newval : pointer;
+begin
+{$ifdef USE_ASM}
+  asm
+{$ifdef i386}
+    movl %esp, newval
+{$endif i386}
+{$ifdef x86_64}
+    movl %rsp,newval
+{$endif x86_64}
+  end;
+{$endif USE_ASM}
+{$ifdef HAS_GETFRAME}
+  newval:=GetFrame;
+{$endif HAS_GETFRAME}
+  if newval<>stackval then
+    begin
+      Writeln('Stack value changed: 0x',
+        hexstr(ptruint(stackval),2*sizeof(ptruint)),
+        ' to 0x',hexstr(ptruint(newval),2*sizeof(ptruint)));
+      Stackval:=newval;
+    end;
+end;
+{$endif UseStackCheck}
 
 {$packrecords c}
 
@@ -60,7 +132,7 @@ type
     v2 : single;
     v3 : single;
   end;
-  
+
   struct7 = record
     v1 : single;
     v2 : int32_t;
@@ -105,8 +177,8 @@ type
     v2 : int32_t;
     v3 : int16_t;
   end;
-  
-  struct15 = record 
+
+  struct15 = record
     v1 : double;
     v2 : int32_t;
     v3 : single;
@@ -330,7 +402,7 @@ var
   s16, s16a: struct16;
   s17, s17a: struct17;
   s31, s31a: struct31;
-  
+
   ss: single;
 
 begin
@@ -340,51 +412,51 @@ begin
   s1.v:=2.0;
 
   s2.v:=3.0;
-  
+
   s3.v1:=4.5;
   s3.v2:=5.125;
-  
+
   s4.v1:=6.175;
   s4.v2:=7.5;
-  
+
   s5.v1:=8.075;
   s5.v2:=9.000125;
-  
+
   s6.v1:=10.25;
   s6.v2:=11.5;
   s6.v3:=12.125;
-  
+
   s7.v1:=13.5;
   s7.v2:=14;
   s7.v3:=15.0625;
-  
+
   s8.d:=16.000575;
-  
+
   s9.v1:=$123456789012345;
   s9.v2:=17.0;
-  
+
   s10.v1:=$234567890123456;
   s10.v2:=-12399;
   s10.v3:=18.0;
-  
+
   s11.v1:=$345678901234567;
   s11.v2:=19.0;
-  
+
   s12.v1:=$456789012345678;
   s12.v2:=20.0;
   s12.v3:=21.0;
-  
+
   s13.v1:=22.0;
   s13.v2:=$567890123456789;
-  
+
   s14.v1:=23.0;
   s14.v2:=$19283774;
   s14.v3:=12356;
-  
+
   s15.v1:=24.0;
   s15.v2:=$28195647;
   s15.v3:=25.0;
-  
+
   s16.v1:=26.5;
   s16.v2:=27.75;
   s16.v3:=28.25;
@@ -392,121 +464,430 @@ begin
 
   s17.v1:=31.25;
   s17.v2:=32.125;
-  
+
   s31.v1:=32.625;
   s31.v2:=33.5;
 
+{$ifdef UseStackCheck}
+  SetStack;
+{$endif UseStackCheck}
   verify(pass1(s1,1), check1(s1), 1);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass2(s2,2), check2(s2), 2);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass3(s3,3), check3(s3), 3);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass4(s4,4), check4(s4), 4);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass5(s5,5), check5(s5), 5);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass6(s6,6), check6(s6), 6);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass7(s7,7), check7(s7), 7);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass8(s8,8), check8(s8), 8);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass9(s9,9), check9(s9), 9);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass10(s10,10), check10(s10), 10);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass11(s11,11), check11(s11), 11);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass12(s12,12), check12(s12), 12);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass13(s13,13), check13(s13), 13);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass14(s14,14), check14(s14), 14);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass15(s15,15), check15(s15), 15);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass16(s16,16), check16(s16), 16);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass17(s17,17), check17(s17), 17);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
   verify(pass31(s31,31,ss), check31(s31), 31);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(ss,s31.v2,32);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
 {$endif}
 
   verify(check1(pass1a(1,s1)), check1(s1), 41);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check2(pass2a(2,s2)), check2(s2), 42);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check3(pass3a(3,s3)), check3(s3), 43);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check4(pass4a(4,s4)), check4(s4), 44);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check5(pass5a(5,s5)), check5(s5), 45);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check6(pass6a(6,s6)), check6(s6), 46);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check7(pass7a(7,s7)), check7(s7), 47);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check8(pass8a(8,s8)), check8(s8), 48);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check9(pass9a(9,s9)), check9(s9), 49);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check10(pass10a(10,s10)), check10(s10), 50);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check11(pass11a(11,s11)), check11(s11), 51);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check12(pass12a(12,s12)), check12(s12), 52);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check13(pass13a(13,s13)), check13(s13), 53);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check14(pass14a(14,s14)), check14(s14), 54);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check15(pass15a(15,s15)), check15(s15), 55);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check16(pass16a(16,s16)), check16(s16), 56);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check17(pass17a(17,s17)), check17(s17), 57);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
   verify(check31(pass31a(31,s31)), check31(s31), 71);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
 {$endif}
 
   verify(pass1a(1,s1).v, s1.v, 81);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass2a(2,s2).v, s2.v, 82);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass3a(3,s3).v1, s3.v1, 83);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass3a(3,s3).v2, s3.v2, 103);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass4a(4,s4).v1, s4.v1, 84);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass5a(5,s5).v1, s5.v1, 85);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass6a(6,s6).v1, s6.v1, 86);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass7a(7,s7).v1, s7.v1, 87);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass7a(7,s7).v2, s7.v2, 107);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass8a(8,s8).d, s8.d, 88);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass9a(9,s9).v1, s9.v1, 89);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass10a(10,s10).v1, s10.v1, 90);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass10a(10,s10).v2, s10.v2, 90);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass11a(11,s11).v1, s11.v1, 91);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass12a(12,s12).v1, s12.v1, 92);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass13a(13,s13).v1, s13.v1, 93);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass14a(14,s14).v1, s14.v1, 94);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass15a(15,s15).v1, s15.v1, 95);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass16a(16,s16).v1, s16.v1, 96);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(pass17a(17,s17).v1, s17.v1, 97);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
   verify(pass31a(31,s31).v1, s31.v1, 101);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
 {$endif}
 
   s1a:=pass1a(1,s1);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check1(s1a), check1(s1), 111);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s2a:=pass2a(2,s2);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check2(s2a), check2(s2), 112);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s3a:=pass3a(3,s3);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check3(s3a), check3(s3), 113);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s3a:=pass3a(3,s3);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check3(s3a), check3(s3), 114);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s4a:=pass4a(4,s4);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check4(s4a), check4(s4), 115);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s5a:=pass5a(5,s5);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check5(s5a), check5(s5), 116);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s6a:=pass6a(6,s6);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check6(s6a), check6(s6), 117);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s7a:=pass7a(7,s7);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check7(s7a), check7(s7), 118);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s7a:=pass7a(7,s7);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check7(s7a), check7(s7), 119);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s8a:=pass8a(8,s8);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check8(s8a), check8(s8), 120);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s9a:=pass9a(9,s9);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check9(s9a), check9(s9), 121);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s10a:=pass10a(10,s10);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check10(s10a), check10(s10), 122);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s10a:=pass10a(10,s10);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check10(s10a), check10(s10), 123);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s11a:=pass11a(11,s11);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check11(s11a), check11(s11), 124);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s12a:=pass12a(12,s12);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check12(s12a), check12(s12), 125);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s13a:=pass13a(13,s13);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check13(s13a), check13(s13), 126);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s14a:=pass14a(14,s14);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check14(s14a), check14(s14), 127);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s15a:=pass15a(15,s15);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check15(s15a), check15(s15), 128);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s16a:=pass16a(16,s16);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check16(s16a), check16(s16), 129);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   s17a:=pass17a(17,s17);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check17(s17a), check17(s17), 130);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
   s31a:=pass31a(31,s31);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(check31(s31a), check31(s31), 131);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
   verify(s31.v2,s31a.v2,132);
+{$ifdef UseStackCheck}
+  CheckStack;
+{$endif UseStackCheck}
 {$endif}
 
 {$endif ndef nofloat}
