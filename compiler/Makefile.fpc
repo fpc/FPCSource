@@ -436,7 +436,8 @@ revision :
 # ECHOREDIR sometimes does not remove double quotes
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
              $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
-             $(wildcard $(CPC_TARGET)/*.pas) $(wildcard $(CPC_TARGET)/*.inc)
+             $(wildcard $(CPC_TARGET)/*.pas) $(wildcard $(CPC_TARGET)/*.inc) \
+             $(COMPILER_UNITTARGETDIR) $(COMPILER_TARGETDIR)
 ifneq ($(REVSTR),)
 ifdef USEZIPWRAPPER
 ifneq ($(ECHOREDIR),echo)
