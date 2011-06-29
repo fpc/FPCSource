@@ -346,8 +346,10 @@ procedure flushpendingswitchesstate;
           begin
             pstate^.next:=current_settings.pmessage;
             current_settings.pmessage:=fstate;
-          end;
-        pstate:=pstate^.next;
+            pstate:=nil;
+          end
+        else
+          pstate:=pstate^.next;
         pendingstate.nextmessagerecord:=nil;
       end;
     { process pending calling convention changes (calling x) }
