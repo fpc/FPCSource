@@ -898,17 +898,19 @@ implementation
           operation on a float and int are also handled }
 {$ifdef x86}
         { use extended as default real type only when the x87 fpu is used }
-{$ifdef i386}
+  {$ifdef i386}
         if not(current_settings.fputype=fpu_x87) then
-{$endif i386}
-{$ifdef x86_64}
-        { x86-64 has no x87 only mode, so use always double as default }
-        if true then
-{$endif x86_6}
           resultrealdef:=s64floattype
         else
-{$endif x86}
           resultrealdef:=pbestrealtype^;
+  {$endif i386}
+  {$ifdef x86_64}
+        { x86-64 has no x87 only mode, so use always double as default }
+        resultrealdef:=s64floattype;
+  {$endif x86_6}
+{$else not x86}
+        resultrealdef:=pbestrealtype^;
+{$endif not x86}
 
         if (right.resultdef.typ=floatdef) or (left.resultdef.typ=floatdef) then
          begin
