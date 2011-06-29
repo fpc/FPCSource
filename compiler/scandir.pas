@@ -35,6 +35,7 @@ unit scandir;
       tsavedswitchesstate = record
         localsw: tlocalswitches;
         verbosity: longint;
+        pmessage : pmessagestaterecord;
       end;
 
     type
@@ -944,6 +945,9 @@ unit scandir;
       Dec(switchesstatestackpos);
       recordpendinglocalfullswitch(switchesstatestack[switchesstatestackpos].localsw);
       recordpendingverbosityfullswitch(switchesstatestack[switchesstatestackpos].verbosity);
+      pendingstate.nextmessagerecord:=switchesstatestack[switchesstatestackpos].pmessage;
+      RestoreLocalVerbosity(nil);
+      flushpendingswitchesstate;
     end;
 
     procedure dir_pointermath;
@@ -970,6 +974,7 @@ unit scandir;
       flushpendingswitchesstate;
 
       switchesstatestack[switchesstatestackpos].localsw:= current_settings.localswitches;
+      switchesstatestack[switchesstatestackpos].pmessage:= current_settings.pmessage;
       switchesstatestack[switchesstatestackpos].verbosity:=status.verbosity;
       Inc(switchesstatestackpos);
     end;
