@@ -972,9 +972,9 @@ implementation
               dllprefix:='_$dll$'+dllprefix+'$';
 
             if importname<>'' then
-              result:=dllname+importname
+              result:=dllprefix+importname
             else
-              result:=dllname+'_index_'+tostr(import_nr);
+              result:=dllprefix+'_index_'+tostr(import_nr);
             { Replace ? and @ in import name, since GNU AS does not allow these characters in symbol names. }
             { This allows to import VC++ mangled names from DLLs. }
             { Do not perform replacement, if external symbol is not imported from DLL. }
