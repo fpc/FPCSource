@@ -121,6 +121,7 @@ interface
          debugswitches   : tdebugswitches;
          { 0: old behaviour for sets <=256 elements
            >0: round to this size }
+         pmessage : pmessagestaterecord;
          setalloc,
          packenum        : shortint;
 
@@ -138,7 +139,6 @@ interface
          minfpconstprec  : tfloattype;
 
          disabledircache : boolean;
-         pmessage : pmessagestaterecord;
 
         { CPU targets with microcontroller support can add a controller specific unit }
 {$if defined(ARM) or defined(AVR)}
@@ -361,6 +361,7 @@ interface
         genwpoptimizerswitches : [];
         dowpoptimizerswitches : [];
         debugswitches : [];
+        pmessage : nil;
 
         setalloc : 0;
         packenum : 4;
@@ -429,7 +430,6 @@ interface
         minfpconstprec : s32real;
 
         disabledircache : false;
-        pmessage : nil;
 {$if defined(ARM)}
         controllertype : ct_none;
 {$endif defined(ARM)}
