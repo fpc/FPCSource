@@ -2560,6 +2560,7 @@ implementation
         st: tsymtable;
       begin
         result:=false;
+        odef:=nil;
         { when there are no helpers active currently then we don't need to do
           anything }
         if current_module.extendeddefs.count=0 then
@@ -2586,10 +2587,10 @@ implementation
                       is_visible_for_object(tobjectdef(list[i]).typesym,contextclassh);
               dec(i);
             until result or (i<0);
+            if not result then
+              { just to be sure that noone uses odef }
+              odef:=nil;
           end;
-        if not result then
-          { just to be sure that noone uses odef }
-          odef:=nil;
       end;
 
     function search_objectpascal_helper(pd,contextclassh : tabstractrecorddef;const s: string; out srsym: tsym; out srsymtable: tsymtable):boolean;
