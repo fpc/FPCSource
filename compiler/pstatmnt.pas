@@ -530,7 +530,8 @@ implementation
            pushobjchild(withdef,obj.childof);
            { we need to look for helpers that were defined for the parent
              class as well }
-           search_last_objectpascal_helper(obj,current_structdef,parenthelperdef);
+           if not search_last_objectpascal_helper(obj,current_structdef,parenthelperdef) then
+             parenthelperdef:=nil;
            { push the symtables of the helper's parents in reverse order }
            if assigned(parenthelperdef) then
              pushobjchild(withdef,parenthelperdef.childof);
@@ -647,7 +648,8 @@ implementation
               extendeddef:=tobjectdef(tclassrefdef(p.resultdef).pointeddef)
             else
               extendeddef:=tabstractrecorddef(p.resultdef);
-            search_last_objectpascal_helper(extendeddef,current_structdef,helperdef);
+            if not search_last_objectpascal_helper(extendeddef,current_structdef,helperdef) then
+              helperdef:=nil;
             { Note: the symtable of the helper is pushed after the following
                     "case", the symtables of the helper's parents are passed in
                     the "case" branches }
