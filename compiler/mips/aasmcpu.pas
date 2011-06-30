@@ -28,7 +28,7 @@ interface
 uses
   cclasses,
   globtype, globals, verbose,
-  aasmbase, aasmtai,
+  aasmbase, aasmsym, aasmtai,
   cgbase, cgutils, cpubase, cpuinfo;
 
 const
@@ -38,7 +38,7 @@ const
   O_MOV_DEST   = 1;
 
 type
-  taicpu = class(tai_cpu_abstract)
+  taicpu = class(tai_cpu_abstract_sym)
     delayslot_annulled: boolean;   { conditinal opcode with ,a }
     constructor op_none(op: tasmop);
 
