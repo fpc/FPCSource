@@ -1638,6 +1638,7 @@ implementation
     function tcallnode.gen_self_tree:tnode;
       var
         selftree : tnode;
+        selfdef  : tabstractrecorddef;
       begin
         selftree:=nil;
 
@@ -1685,7 +1686,13 @@ implementation
             begin
               if (procdefinition.typ<>procdef) then
                 internalerror(200305062);
-              if (oo_has_vmt in tprocdef(procdefinition).struct.objectoptions) then
+              { if the method belongs to a helper then we need to use the
+                extended type for references to Self }
+              if is_objectpascal_helper(tprocdef(procdefinition).struct) then
+                selfdef:=tobjectdef(tprocdef(procdefinition).struct).extendeddef
+              else
+                selfdef:=tprocdef(procdefinition).struct;
+              if (oo_has_vmt in selfdef.objectoptions) then
                 begin
                   { we only need the vmt, loading self is not required and there is no
                     need to check for typen, because that will always get the

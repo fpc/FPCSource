@@ -922,7 +922,7 @@ implementation
                       internalerror(200610011);
                     def.dwarf_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym)));
                     def.dwarf_ref_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBGREF',def.owner,symname(def.typesym)));
-                    if is_class_or_interface_or_dispinterface(def) then
+                    if is_class_or_interface_or_dispinterface(def) or is_objectpascal_helper(def) then
                       tobjectdef(def).dwarf_struct_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym)));
                     def.dbg_state:=dbg_state_written;
                   end
@@ -936,7 +936,7 @@ implementation
                       begin
                         def.dwarf_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym)),AB_GLOBAL,AT_DATA);
                         def.dwarf_ref_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBGREF',def.owner,symname(def.typesym)),AB_GLOBAL,AT_DATA);
-                        if is_class_or_interface_or_dispinterface(def) then
+                        if is_class_or_interface_or_dispinterface(def) or is_objectpascal_helper(def) then
                           tobjectdef(def).dwarf_struct_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym)),AB_GLOBAL,AT_DATA);
                         include(def.defstates,ds_dwarf_dbg_info_written);
                       end
@@ -3541,6 +3541,7 @@ implementation
           odt_interfacecom,
           odt_interfacecorba,
           odt_dispinterface,
+          odt_helper,
           odt_class:
             begin
               { implicit pointer }
@@ -3948,6 +3949,7 @@ implementation
               dostruct(DW_TAG_interface_type);
               doparent(true);
             end;
+          odt_helper,
           odt_class:
             begin
               //dostruct(DW_TAG_class_type);

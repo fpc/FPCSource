@@ -2560,6 +2560,7 @@ implementation
         st: tsymtable;
       begin
         result:=false;
+        odef:=nil;
         { when there are no helpers active currently then we don't need to do
           anything }
         if current_module.extendeddefs.count=0 then
