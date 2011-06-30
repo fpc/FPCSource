@@ -1032,9 +1032,9 @@ implementation
             Concat('  SYMBOL __bss_end__');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .tls');
-            Concat('  SYMBOL __tls_start__');
+            Concat('  SYMBOL ___tls_start__');
             Concat('  OBJSECTION .tls*');
-            Concat('  SYMBOL __tls_end__');
+            Concat('  SYMBOL ___tls_end__');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .CRT');
             Concat('  SYMBOL ___crt_xc_start__');
@@ -1046,7 +1046,7 @@ implementation
             Concat('  SYMBOL ___crt_xl_start__');
             Concat('  OBJSECTION .CRT$XL*'); {  /* TLS callbacks */'); }
             { In GNU ld, this is defined in the TLS Directory support code }
-            Concat('  PROVIDE(___crt_xl_end__)');
+            Concat('  PROVIDE (___crt_xl_end__)');
             { Add a nil pointer as last element }
             Concat('  LONG 0');
 {$ifdef x86_64}
