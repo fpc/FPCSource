@@ -36,19 +36,16 @@ type
 
 var
   success : boolean;
-{$ifdef x86_64}
-  {$define UseStackCheck}
-  {$asmmode att}
-  {$define USE_ASM}
-{$endif x86_64}
-{$ifdef i386}
-  {$define UseStackCheck}
-  {$asmmode att}
-  {$define USE_ASM}
-{$endif i386}
-{$ifdef HAS_GETFRAME}
-  {$define UseStackCheck}
-{$endif HAS_GETFRAME}
+  {$ifdef CPUx86_64}
+    {$define HAS_GET_FRAME}
+  {$endif CPUx86_64}
+  {$ifdef CPUi386}
+    {$define HAS_GET_FRAME}
+    {$define TestFPUStack}
+  {$endif CPUi386}
+  {$ifdef HAS_GET_FRAME}
+    {$define UseStackCheck}
+  {$endif HAS_GET_FRAME}
 
 {$ifdef UseStackCheck}
 var
@@ -58,19 +55,9 @@ procedure SetStack;
 var
   newval : pointer;
 begin
-{$ifdef USE_ASM}
-  asm
-{$ifdef i386}
-    movl %esp,newval
-{$endif i386}
-{$ifdef x86_64}
-    movl %rsp,newval
-{$endif x86_64}
-  end;
-{$endif USE_ASM}
-{$ifdef HAS_GETFRAME}
-  newval:=GetFrame;
-{$endif HAS_GETFRAME}
+{$ifdef HAS_GET_FRAME}
+  newval:=Get_Frame;
+{$endif HAS_GET_FRAME}
   stackval:=newval;
 end;
 
@@ -78,19 +65,9 @@ procedure CheckStack;
 var
   newval : pointer;
 begin
-{$ifdef USE_ASM}
-  asm
-{$ifdef i386}
-    movl %esp, newval
-{$endif i386}
-{$ifdef x86_64}
-    movl %rsp,newval
-{$endif x86_64}
-  end;
-{$endif USE_ASM}
-{$ifdef HAS_GETFRAME}
-  newval:=GetFrame;
-{$endif HAS_GETFRAME}
+{$ifdef HAS_GET_FRAME}
+  newval:=Get_Frame;
+{$endif HAS_GET_FRAME}
   if newval<>stackval then
     begin
       Writeln('Stack value changed: 0x',
@@ -384,6 +361,9 @@ function pass31a(b: byte; s : struct31) : struct31; cdecl; external;
 
 procedure dotest;
 var
+  {$ifdef TestFPUStack }
+  i : longint;
+  {$endif TestFPUStack }
   s1, s1a: struct1;
   s2, s2a: struct2;
   s3, s3a: struct3;
@@ -712,6 +692,9 @@ begin
 {$endif UseStackCheck}
 {$endif}
 
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s1a:=pass1a(1,s1);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -720,6 +703,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s2a:=pass2a(2,s2);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -728,6 +714,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s3a:=pass3a(3,s3);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -736,6 +725,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s3a:=pass3a(3,s3);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -744,6 +736,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s4a:=pass4a(4,s4);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -752,6 +747,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s5a:=pass5a(5,s5);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -760,6 +758,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s6a:=pass6a(6,s6);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -768,6 +769,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s7a:=pass7a(7,s7);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -776,6 +780,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s7a:=pass7a(7,s7);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -784,6 +791,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s8a:=pass8a(8,s8);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -792,6 +802,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s9a:=pass9a(9,s9);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -800,6 +813,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s10a:=pass10a(10,s10);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -808,6 +824,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s10a:=pass10a(10,s10);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -819,6 +838,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s11a:=pass11a(11,s11);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -827,6 +849,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s12a:=pass12a(12,s12);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -835,6 +860,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s13a:=pass13a(13,s13);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -843,6 +871,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s14a:=pass14a(14,s14);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -851,6 +882,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s15a:=pass15a(15,s15);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -859,6 +893,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s16a:=pass16a(16,s16);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -867,6 +904,9 @@ begin
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s17a:=pass17a(17,s17);
 {$ifdef UseStackCheck}
   CheckStack;
@@ -876,6 +916,9 @@ begin
   CheckStack;
 {$endif UseStackCheck}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
+  {$ifdef TestFPUStack }
+  for i:=1 to 12 do
+  {$endif TestFPUStack }
   s31a:=pass31a(31,s31);
 {$ifdef UseStackCheck}
   CheckStack;
