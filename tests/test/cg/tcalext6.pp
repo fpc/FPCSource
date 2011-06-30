@@ -36,7 +36,6 @@ type
 
 var
   success : boolean;
-{$ifndef FPC_PIC}
 {$ifdef x86_64}
   {$define UseStackCheck}
   {$asmmode att}
@@ -47,7 +46,6 @@ var
   {$asmmode att}
   {$define USE_ASM}
 {$endif i386}
-{$endif}
 {$ifdef HAS_GETFRAME}
   {$define UseStackCheck}
 {$endif HAS_GETFRAME}
