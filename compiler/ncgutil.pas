@@ -2533,7 +2533,7 @@ implementation
             sectype:=sec_bss;
           end;
         maybe_new_object_file(list);
-        if sym.section<>'' then
+        if vo_has_section in sym.varoptions then
           new_section(list,sec_user,sym.section,varalign)
         else
           new_section(list,sectype,lower(sym.mangledname),varalign);
