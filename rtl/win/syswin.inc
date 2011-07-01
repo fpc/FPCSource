@@ -163,9 +163,9 @@ procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer
 
 const
   FreePascal_TLS_callback : pointer = @Exec_Tls_callback;
-    public name '.section .CRT$XLFPC __FPC_tls_callbacks';
+    public name '__FPC_tls_callbacks' section '.CRT$XLFPC';
   FreePascal_end_of_TLS_callback : pointer = nil;
-    public name '.section .CRT$XLZZZ __FPC_end_of_tls_callbacks';
+    public name '__FPC_end_of_tls_callbacks' section '.CRT$XLZZZ';
 var
   tls_callbacks : pointer; external name '___crt_xl_start__';
   tls_data_start : pointer; external name '___tls_start__';
