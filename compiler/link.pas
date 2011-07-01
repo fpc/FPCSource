@@ -99,6 +99,7 @@ interface
          procedure ParseScript_Handle;
          procedure ParseScript_PostCheck;
          procedure ParseScript_Load;
+         function  ParsePara(const para : string) : string;
          procedure ParseScript_Order;
          procedure ParseScript_MemPos;
          procedure ParseScript_DataPos;
@@ -971,6 +972,18 @@ Implementation
           end;
       end;
 
+    function  TInternalLinker.ParsePara(const para : string) : string;
+      var
+        res : string;
+      begin
+        res:=trim(para);
+        { Remove enclosing braces }
+        if (length(res)>0) and (res[1]='(') and
+           (res[length(res)]=')') then
+          res:=trim(copy(res,2,length(res)-2));
+        result:=res;
+      end;
+
     procedure TInternalLinker.ParseScript_Load;
       var
         s,
@@ -994,7 +1007,7 @@ Implementation
               end;
             handled:=true;
             keyword:=Upper(GetToken(s,' '));
-            para:=GetToken(s,' ');
+            para:=ParsePara(GetToken(s,' '));
             if keyword='SYMBOL' then
               ExeOutput.Load_Symbol(para)
             else if keyword='PROVIDE' then
@@ -1040,7 +1053,8 @@ Implementation
               continue;
             handled:=true;
             keyword:=Upper(GetToken(s,' '));
-            para:=GetToken(s,' ');
+            para:=ParsePara(GetToken(s,' '));
+
             if keyword='EXESECTION' then
               ExeOutput.Order_ExeSection(para)
             else if keyword='ENDEXESECTION' then
@@ -1091,7 +1105,7 @@ Implementation
               continue;
             handled:=true;
             keyword:=Upper(GetToken(s,' '));
-            para:=GetToken(s,' ');
+            para:=ParsePara(GetToken(s,' '));
             if keyword='EXESECTION' then
               ExeOutput.MemPos_ExeSection(para)
             else if keyword='ENDEXESECTION' then
@@ -1127,7 +1141,7 @@ Implementation
               continue;
             handled:=true;
             keyword:=Upper(GetToken(s,' '));
-            para:=GetToken(s,' ');
+            para:=ParsePara(GetToken(s,' '));
             if keyword='EXESECTION' then
               ExeOutput.DataPos_ExeSection(para)
             else if keyword='ENDEXESECTION' then
