@@ -430,9 +430,9 @@ interface
         minfpconstprec : s32real;
 
         disabledircache : false;
-{$if defined(ARM)}
+{$if defined(ARM) or defined(AVR)}
         controllertype : ct_none;
-{$endif defined(ARM)}
+{$endif defined(ARM) or defined(AVR)}
       );
 
     var
