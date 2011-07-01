@@ -484,6 +484,14 @@ implementation
          aux     : byte;
        end;
 
+       { This is defined in rtl/win/sysos.inc source }
+       tlsdirectory=packed record
+         data_start, data_end : PUInt;
+         index_pointer, callbacks_pointer : PUInt;
+         zero_fill_size : dword;
+         flags : dword;
+       end;
+
      const
        SymbolMaxGrow = 200*sizeof(coffsymbol);
        StrsMaxGrow   = 8192;
@@ -1017,6 +1025,8 @@ const pemagic : array[0..3] of byte = (
         createsection(sec_code);
         createsection(sec_data);
         createsection(sec_bss);
+        if tf_section_threadvars in target_info.flags then
+          createsection(sec_threadvar);
       end;
 
 
@@ -2222,7 +2232,9 @@ const pemagic : array[0..3] of byte = (
         textExeSec,
         dataExeSec,
         bssExeSec,
-        idataExeSec : TExeSection;
+        idataExeSec,
+        tlsExeSec : TExeSection;
+        tlsdir : TlsDirectory;
         hassymbols,
         writeDbgStrings : boolean;
 
@@ -2238,6 +2250,31 @@ const pemagic : array[0..3] of byte = (
            end;
         end;
 
+        procedure UpdateTlsDataDir;
+        var
+          {callbacksection : TExeSection;}
+          tlsexesymbol: TExeSymbol;
+          tlssymbol: TObjSymbol;
+        begin
+          { according to GNU ld,
+            the callback routines should be placed into .CRT$XL*
+            sections, and the thread local variables in .tls
+            __tls_start__ and __tls_end__ symbols
+            should be used for the initialized part,
+            which we do not support yet. }
+          { For now, we only pass the address of the __tls_used
+            asm symbol into PE_DATADIR_TLS with the correct
+            size of this table (different for win32/win64 }
+          tlsexesymbol:=texesymbol(ExeSymbolList.Find(
+            target_info.Cprefix+'_tls_used'));
+          if assigned(tlsexesymbol) then
+            begin
+              tlssymbol:=tlsexesymbol.ObjSymbol;
+              peoptheader.DataDirectory[PE_DATADIR_TLS].vaddr:=tlssymbol.address;
+              peoptheader.DataDirectory[PE_DATADIR_TLS].size:=Sizeof(tlsdirectory);
+           end;
+        end;
+
       begin
         result:=false;
         FCoffSyms:=TDynamicArray.Create(SymbolMaxGrow);
@@ -2245,6 +2282,7 @@ const pemagic : array[0..3] of byte = (
         textExeSec:=FindExeSection('.text');
         dataExeSec:=FindExeSection('.data');
         bssExeSec:=FindExeSection('.bss');
+        tlsExeSec:=FindExeSection('.tls');
         if not assigned(TextExeSec) or
            not assigned(DataExeSec) then
           internalerror(200602231);
@@ -2353,6 +2391,7 @@ const pemagic : array[0..3] of byte = (
             peoptheader.SizeOfHeapCommit:=$1000;
             peoptheader.NumberOfRvaAndSizes:=PE_DATADIR_ENTRIES;
             UpdateDataDir('.idata',PE_DATADIR_IDATA);
+            UpdateTlsDataDir;
             UpdateDataDir('.edata',PE_DATADIR_EDATA);
             UpdateDataDir('.rsrc',PE_DATADIR_RSRC);
             UpdateDataDir('.pdata',PE_DATADIR_PDATA);
