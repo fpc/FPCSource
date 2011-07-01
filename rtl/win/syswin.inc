@@ -52,6 +52,8 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
          begin
            if Win32GetCurrentThreadId <> MainThreadIdWin32 then
            begin
+             { Initialize multithreading if not done }
+             SysInitMultithreading;
              { Allocate Threadvars  }
              SysAllocateThreadVars;
 
@@ -76,8 +78,8 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
        DLL_PROCESS_DETACH :
          begin
            Dll_entry:=true; { return value is ignored }
-		   if MainThreadIDWin32=0 then // already been here.
-		     exit;
+	   if MainThreadIDWin32=0 then // already been here.
+	     exit;
            If SetJmp(DLLBuf) = 0 then
              FPC_Do_Exit;
            if assigned(Dll_Process_Detach_Hook) then
@@ -86,7 +88,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
            DoneThread;
            { Free TLS resources used by ThreadVars }
            SysFiniMultiThreading;
-		   MainThreadIDWin32:=0;
+           MainThreadIDWin32:=0;
          end;
      end;
   end;
