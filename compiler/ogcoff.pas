@@ -2255,6 +2255,8 @@ const pemagic : array[0..3] of byte = (
           {callbacksection : TExeSection;}
           tlsexesymbol: TExeSymbol;
           tlssymbol: TObjSymbol;
+          callbackexesymbol: TExeSymbol;
+          callbacksymbol: TObjSymbol;
         begin
           { according to GNU ld,
             the callback routines should be placed into .CRT$XL*
@@ -2272,6 +2274,18 @@ const pemagic : array[0..3] of byte = (
               tlssymbol:=tlsexesymbol.ObjSymbol;
               peoptheader.DataDirectory[PE_DATADIR_TLS].vaddr:=tlssymbol.address;
               peoptheader.DataDirectory[PE_DATADIR_TLS].size:=Sizeof(tlsdirectory);
+              if IsSharedLibrary then
+                begin
+                  { Here we should reset __FPC_tls_callbacks value to nil }
+                  callbackexesymbol:=texesymbol(ExeSymbolList.Find(
+                                        '__FPC_tls_callbacks'));
+                  if assigned (callbackexesymbol) then
+                    begin
+                      callbacksymbol:=callbackexesymbol.ObjSymbol;
+
+                    end;
+                end;
+
            end;
         end;
 
