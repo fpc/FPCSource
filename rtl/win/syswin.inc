@@ -180,11 +180,18 @@ const
   _tls_used : TTlsDirectory = (
     data_start : @tls_data_start;
     data_end : @tls_data_end;
-    index_pointer : nil;
+    index_pointer : @tls_index;
     callbacks_pointer : @tls_callbacks;
     zero_fill_size : 0;
     flags : 0;
-  ); public name '__tls_used';
+  ); public name
+  { This should be the same name as in mingw/tlsup.c code }
+{$ifdef win32}
+  '__tls_used';
+{$else }
+  '_tls_used';
+{$endif not win32}
+
 {$endif FPC_USE_TLS_DIRECTORY}
 
 
