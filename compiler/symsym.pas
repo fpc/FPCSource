@@ -1366,8 +1366,33 @@ implementation
 
 
     procedure tstaticvarsym.set_mangledname(const s:string);
+{$ifdef FPC_USE_TLS_DIRECTORY}
+     { TLS directory requires some labels in specific sections
+       I implemented this by allowing '.section sec_name mangled_name'
+       for name 'xxxx'; specifier PM 2011-07-01 }
+      var
+        newmangledname : string;
+        p : longint;
+{$endif FPC_USE_TLS_DIRECTORY}
       begin
         stringdispose(_mangledname);
+{$ifdef FPC_USE_TLS_DIRECTORY}
+        if copy(s,1,length('.section '))='.section ' then
+           begin
+             newmangledname:=copy(s,length('.section ')+1,length(s));
+             p:=pos(' ',newmangledname);
+             if p<2 then
+               Comment(V_Error,'Invalid C var name '+s)
+             else
+               begin
+                 section:=copy(newmangledname,1,p-1);
+                 include(varoptions,vo_has_section);
+                 newmangledname:=copy(newmangledname,p+1,length(newmangledname));
+                 set_mangledname(newmangledname);
+               end;
+           end
+         else
+{$endif FPC_USE_TLS_DIRECTORY}
       {$ifdef compress}
         _mangledname:=stringdup(minilzw_encode(s));
       {$else}
