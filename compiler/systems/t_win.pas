@@ -1011,6 +1011,8 @@ implementation
             Concat('  SYMBOL __data_start__');
             Concat('  OBJSECTION .data*');
             Concat('  OBJSECTION .fpc*');
+            Concat('  PROVIDE '+target_info.Cprefix+'_tls_index');
+            Concat('  LONG 0');
             Concat('  SYMBOL edata');
             Concat('  SYMBOL __data_end__');
             Concat('ENDEXESECTION');
@@ -1046,17 +1048,17 @@ implementation
             Concat('  SYMBOL ___crt_xl_start__');
             Concat('  OBJSECTION .CRT$XL*'); {  /* TLS callbacks */'); }
             { In GNU ld, this is defined in the TLS Directory support code }
-            Concat('  PROVIDE (___crt_xl_end__)');
+            Concat('  PROVIDE ___crt_xl_end__');
             { Add a nil pointer as last element }
             Concat('  LONG 0');
 {$ifdef x86_64}
             Concat('  LONG 0');
 {$endif x86_64}
             Concat('  SYMBOL ___crt_xp_start__');
-            Concat('  OBJSECTION SORT(.CRT$XP*'); {  /* Pre-termination */');}
+            Concat('  OBJSECTION .CRT$XP*'); {  /* Pre-termination */');}
             Concat('  SYMBOL ___crt_xp_end__');
             Concat('  SYMBOL ___crt_xt_start__');
-            Concat('  OBJSECTION SORT(.CRT$XT*');{  /* Termination */');}
+            Concat('  OBJSECTION .CRT$XT*');{  /* Termination */');}
             Concat('  SYMBOL ___crt_xt_end__');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .idata');
@@ -1293,6 +1295,8 @@ implementation
             Add('    *(.data2)');
             Add('    *(SORT(.data$*))');
             Add('    *(.jcr)');
+            Add('    PROVIDE ('+target_info.Cprefix+'_tls_index = .);');
+            Add('    LONG (0);');
             Add('    __data_end__ = . ;');
             Add('    *(.data_cygwin_nocopy)');
             Add('  }');
