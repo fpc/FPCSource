@@ -1483,7 +1483,10 @@ implementation
 
         { only now add items based on the symbolname, because it may }
         { have been modified by the directives parsed above          }
-        new_section(list,cursectype,lower(sym.mangledname),const_align(sym.vardef.alignment));
+        if vo_has_section in sym.varoptions then
+          new_section(list,sec_user,sym.section,const_align(sym.vardef.alignment))
+        else
+          new_section(list,cursectype,lower(sym.mangledname),const_align(sym.vardef.alignment));
         if (sym.owner.symtabletype=globalsymtable) or
            create_smartlink or
            (assigned(current_procinfo) and
