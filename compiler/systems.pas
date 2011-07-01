@@ -239,6 +239,15 @@ interface
                            system_mips_embedded,system_arm_embedded,
                            system_powerpc64_embedded];
 
+       { all systems that allow section directive }
+       systems_allow_section = systems_embedded;
+
+       systems_allow_section_no_semicolon = systems_allow_section
+{$ifdef TEST_TLS_DIRECTORY}
+       + systems_windows
+{$endif TEST_TLS_DIRECTORY}
+       ;
+
        { all symbian systems }
        systems_symbian = [system_i386_symbian,system_arm_symbian];
 

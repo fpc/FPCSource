@@ -1437,6 +1437,7 @@ implementation
         storefilepos : tfileposinfo;
         cursectype   : TAsmSectionType;
         hrec         : threc;
+        section : ansistring;
       begin
         { mark the staticvarsym as typedconst }
         include(sym.varoptions,vo_is_typed_const);
@@ -1480,6 +1481,23 @@ implementation
             )
            ) then
           read_public_and_external(sym);
+
+         { try to parse a section directive }
+        if not in_structure and (target_info.system in systems_allow_section) and
+          (symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) and
+           (idtoken=_SECTION) then
+               begin
+                 try_consume_sectiondirective(section);
+                 if section<>'' then
+                   begin
+                     if (sym.varoptions *[vo_is_external,vo_is_weak_external])<>[] then
+                       Message(parser_e_externals_no_section);
+                     if sym.typ<>staticvarsym then
+                       Message(parser_e_section_no_locals);
+                     tstaticvarsym(sym).section:=section;
+                     include(sym.varoptions, vo_has_section);
+                   end;
+               end;
 
         { only now add items based on the symbolname, because it may }
         { have been modified by the directives parsed above          }
