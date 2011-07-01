@@ -19,6 +19,7 @@ interface
 
 {$ifdef FPC_HEAPTRC_EXTRA}
   {$define EXTRA}
+  {$inline off}
 {$endif FPC_HEAPTRC_EXTRA}
 
 {$checkpointer off}
