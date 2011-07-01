@@ -921,7 +921,11 @@ implementation
 { TODO: Fix sec_rodata_norel be read-only/constant}
           {roData_norel} [oso_Data,oso_load,oso_write,oso_keep],
           {bss} [oso_load,oso_write,oso_keep],
-          {threadvar} [oso_load,oso_write],
+          {threadvar} [oso_load,oso_write
+{$ifdef FPC_USE_TLS_DIRECTORY}
+                       ,oso_keep
+{$endif FPC_USE_TLS_DIRECTORY}
+          ],
           {pdata} [oso_load,oso_readonly,oso_keep],
           {stub} [oso_Data,oso_load,oso_readonly,oso_executable],
           {data_nonlazy}  [oso_Data,oso_load,oso_write],
