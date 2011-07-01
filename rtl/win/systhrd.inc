@@ -113,14 +113,21 @@ var
     procedure SysAllocateThreadVars;
       var
         dataindex : pointer;
+        errorsave : dword;
       begin
         { we've to allocate the memory from system  }
         { because the FPC heap management uses      }
         { exceptions which use threadvars but       }
         { these aren't allocated yet ...            }
         { allocate room on the heap for the thread vars }
-        dataindex:=pointer(LocalAlloc(LMEM_FIXED or LMEM_ZEROINIT,threadvarblocksize));
-        TlsSetValue(tlskey,dataindex);
+        errorsave:=GetLastError;
+        dataindex:=TlsGetValue(tlskey);
+        if dataindex=nil then
+          begin
+            dataindex:=pointer(LocalAlloc(LMEM_FIXED or LMEM_ZEROINIT,threadvarblocksize));
+            TlsSetValue(tlskey,dataindex);
+          end;
+        SetLastError(errorsave);
       end;
 
     function SysRelocateThreadvar(offset : dword) : pointer; forward;
@@ -154,7 +161,7 @@ var
       var
         dataindex : pointer;
         errorsave : dword;
-      begin	
+      begin
 {$ifdef dummy}
         { it least in the on windows 7 x64, this still doesn't not work, fs:(0x2c) is
           self referencing on this system (FK)
