@@ -100,6 +100,94 @@ Procedure ExitDLL(Exitcode : longint);
     LongJmp(DLLBuf,1);
   end;
 
+{$ifdef FPC_USE_TLS_DIRECTORY}
+{ Process TLS callback function }
+{ This is only useful for executables
+  for DLLs, DLL_Entry gets called. PM }
+const
+   Thread_count : longint = 0;
+
+procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer);
+  stdcall; [public,alias:'_FPC_Tls_Callback'];
+  begin
+     if IsLibrary then
+       Exit;
+     case reason of
+       DLL_PROCESS_ATTACH :
+         begin
+           MainThreadIdWin32 := Win32GetCurrentThreadId;
+         end;
+       DLL_THREAD_ATTACH :
+         begin
+           inclocked(Thread_count);
+           if Win32GetCurrentThreadId <> MainThreadIdWin32 then
+           begin
+             { Initialize multithreading if not done }
+             SysInitMultithreading;
+             { Allocate Threadvars  }
+             SysAllocateThreadVars;
+
+             { NS : no idea what is correct to pass here - pass dummy value for now }
+             { passing a dummy is ok, the correct value is read from the coff header of SysInstance (FK) }
+             InitThread($1000000); { Assume everything is idempotent there, as the thread could have been created with BeginThread... }
+           end;
+
+           if assigned(Dll_Thread_Attach_Hook) then
+             Dll_Thread_Attach_Hook(DllParam);
+        end;
+       DLL_THREAD_DETACH :
+         begin
+           declocked(Thread_count);
+           if assigned(Dll_Thread_Detach_Hook) then
+             Dll_Thread_Detach_Hook(DllParam);
+           { Release Threadvars }
+           if Win32GetCurrentThreadId<>MainThreadIdWin32 then
+             DoneThread; { Assume everything is idempotent there }
+         end;
+       DLL_PROCESS_DETACH :
+         begin
+	   if MainThreadIDWin32=0 then // already been here.
+             exit;
+           If SetJmp(DLLBuf) = 0 then
+             FPC_Do_Exit;
+           if assigned(Dll_Process_Detach_Hook) then
+             Dll_Process_Detach_Hook(DllParam);
+
+           DoneThread;
+           { Free TLS resources used by ThreadVars }
+           SysFiniMultiThreading;
+           MainThreadIDWin32:=0;
+         end;
+     end;
+  end;
+
+const
+  FreePascal_TLS_callback : pointer = @Exec_Tls_callback;
+    public name '.section .CRT$XLFPC __FPC_tls_callbacks';
+  FreePascal_end_of_TLS_callback : pointer = nil;
+    public name '.section .CRT$XLZZZ __FPC_end_of_tls_callbacks';
+var
+  tls_callbacks : pointer; external name '___crt_xl_start__';
+  tls_data_start : pointer; external name '___tls_start__';
+  tls_data_end : pointer; external name '___tls_end__';
+{$ifdef win32}
+  tls_index : dword; external name '__tls_index';
+{$else not win32}
+  tls_index : dword; external name '_tls_index';
+{$endif not win32}
+
+const
+  _tls_used : TTlsDirectory = (
+    data_start : @tls_data_start;
+    data_end : @tls_data_end;
+    index_pointer : nil;
+    callbacks_pointer : @tls_callbacks;
+    zero_fill_size : 0;
+    flags : 0;
+  ); public name '__tls_used';
+{$endif FPC_USE_TLS_DIRECTORY}
+
+
 {****************************************************************************
                     Error Message writing using messageboxes
 ****************************************************************************}
