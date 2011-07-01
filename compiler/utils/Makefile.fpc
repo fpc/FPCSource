@@ -34,15 +34,33 @@ build=n
 # due to overwriting each other's link.res file
 .NOTPARALLEL:
 
-ppu$(PPUEXT): ppu.pas
+ifndef NOCPUDEF
+ppu$(PPUEXT): ../ppu.pas
+	$(MAKE) ppu$(PPUEXT) NOCPUDEF=1
+
+ppudump$(EXEEXT): ppudump.pp ppu$(PPUEXT)
+	$(MAKE) ppudump$(EXEEXT) NOCPUDEF=1
 
 ppufiles$(EXEEXT): ppufiles.pp ppu$(PPUEXT)
+	$(MAKE) ppufiles$(EXEEXT) NOCPUDEF=1
 
+ppumove$(EXEEXT): ppumove.pp ppu$(PPUEXT)
+	$(MAKE) ppumove$(EXEEXT) NOCPUDEF=1
+
+else
+ppu$(PPUEXT): ../ppu.pas
+        $(COMPILER) ../ppu.pas -Fu../generic -dGENERIC_CPU -Fi..
 
 ppudump$(EXEEXT): ppudump.pp ppu$(PPUEXT)
         $(COMPILER) ppudump.pp -Fu../generic -dGENERIC_CPU -Fi..
 
+ppufiles$(EXEEXT): ppufiles.pp ppu$(PPUEXT)
+        $(COMPILER) ppufiles.pp -Fu../generic -dGENERIC_CPU -Fi..
+
 ppumove$(EXEEXT): ppumove.pp ppu$(PPUEXT)
+        $(COMPILER) ppumove.pp -Fu../generic -dGENERIC_CPU -Fi..
+
+endif
 
 msg2inc$(EXEEXT): $(COMPILER_UNITTARGETDIR) msg2inc.pp
 
