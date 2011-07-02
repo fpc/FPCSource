@@ -349,6 +349,16 @@ end;
 
 procedure TCustomSQLDBWebDataProvider.ApplySQLParams(AQuery : TSQLQuery; DoNewID : Boolean = False);
 
+  function TryAdaptor (const aName: string; P: TParam) : boolean;
+  var S : string;
+  begin
+    result := Adaptor.TryFieldValue(aName,S);
+    if not result then
+      result := Adaptor.TryParamValue(aName,S);
+    if result then
+      SetTypedParam(P,S);
+  end;
+
 var
   I: Integer;
   P : TParam;
@@ -366,16 +376,20 @@ begin
       FOnGetParamValue(Self,P,B);
     if not B then
       begin
-      If (P.Name=IDFieldName) and DoNewID then
+      If (P.Name=IDFieldName) then
         begin
-        GetNewID;
-        SetTypedParam(P,FLastNewID)
+        if DoNewID then
+          begin
+          GetNewID;
+          SetTypedParam(P,FLastNewID)
+          end
+        else
+          begin
+          if not TryAdaptor (P.Name, P) then
+            TryAdaptor('ID', P);
+          end;
         end
-      else If Adaptor.TryFieldValue(P.Name,S) then
-        SetTypedParam(P,S)
-      else If Adaptor.TryParamValue(P.Name,S) then
-        SetTypedParam(P,S)
-      else
+      else if not TryAdaptor (P.Name, P) then
         P.Clear;
       end;
     end;
