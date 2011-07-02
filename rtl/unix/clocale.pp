@@ -248,7 +248,7 @@ begin
  
   fmts.DateSeparator := FindSeparator(fmts.ShortDateFormat, fmts.DateSeparator);
   fmts.ShortDateFormat := TransformFormatStr(fmts.ShortDateFormat);
-  fmts.LongDateFormat := GetLocaleStr(D_T_FMT);
+  fmts.LongDateFormat := GetLocaleStr(D_FMT);
 {$ifdef localedebug}
   OrgFormatSettings.LongDateFormat:=fmts.longdateformat;
 {$endif}
