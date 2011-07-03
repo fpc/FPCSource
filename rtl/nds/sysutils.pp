@@ -55,7 +55,7 @@ begin
     fmOpenWrite : NDSFlags := NDSFlags or O_WrOnly;
     fmOpenReadWrite : NDSFlags := NDSFlags or O_RdWr;
   end;
-  FileOpen := fpopen(pchar(FileName), NDSFlags);
+  FileOpen := _open(pchar(FileName), NDSFlags);
 end;
 
 
@@ -73,13 +73,13 @@ end;
 
 function FileCreate(const FileName: string) : LongInt;
 begin
-  FileCreate:=fpopen(pointer(FileName), O_RdWr or O_Creat or O_Trunc);
+  FileCreate:=_open(pointer(FileName), O_RdWr or O_Creat or O_Trunc);
 end;
 
 
 function FileCreate(const FileName: string; Rights: integer): LongInt;
 begin
-  FileCreate:=fpOpen(pointer(FileName),O_RdWr or O_Creat or O_Trunc,Rights);
+  FileCreate:=_Open(pointer(FileName),O_RdWr or O_Creat or O_Trunc,Rights);
 end;
 
 
@@ -91,13 +91,13 @@ end;
 
 function FileRead(Handle: LongInt; Out Buffer; Count: LongInt): LongInt;
 begin
-  FileRead := fpRead(Handle, Buffer, Count);
+  FileRead := _Read(Handle, Buffer, Count);
 end;
 
 
 function FileWrite(Handle: LongInt; const Buffer; Count: LongInt): LongInt;
 begin
-  FileWrite := fpWrite(Handle, @Buffer, Count);
+  FileWrite := _Write(Handle, @Buffer, Count);
 end;
 
 
@@ -108,13 +108,13 @@ end;
 
 function FileSeek(Handle: LongInt; FOffset: Int64; Origin: Longint): Int64;
 begin
-  FileSeek := fplSeek(Handle, FOffset, Origin);
+  FileSeek := _lSeek(Handle, FOffset, Origin);
 end;
 
 
 procedure FileClose(Handle: LongInt);
 begin
-  fpclose(Handle);
+  _close(Handle);
 end;
 
 
@@ -123,19 +123,19 @@ begin
   if Size > high (longint) then
     FileTruncate := false
   else
-    FileTruncate:=(ftruncate(Handle,Size) = 0);
+    FileTruncate:=(_truncate(Handle,Size) = 0);
 end;
 
 
 function DeleteFile(const FileName: string) : Boolean;
 begin
-  Result := fpUnLink(pointer(FileName))>= 0;
+  Result := _UnLink(pointer(FileName))>= 0;
 end;
 
 
 function RenameFile(const OldName, NewName: string): Boolean;
 begin
-  RenameFile := FpRename(pointer(OldNAme), pointer(NewName)) >= 0;
+  RenameFile := _Rename(pointer(OldNAme), pointer(NewName)) >= 0;
 end;
 
 
@@ -146,7 +146,7 @@ Function FileAge (Const FileName : String): Longint;
 var 
   info: Stat;
 begin
-  if (fpstat(pointer(FileName), Info) < 0) or S_ISDIR(info.st_mode) then
+  if (_stat(pchar(FileName), Info) < 0) or S_ISDIR(info.st_mode) then
     exit(-1)
   else 
     Result := (info.st_mtime);
@@ -155,7 +155,7 @@ end;
 
 Function FileExists (Const FileName : String) : Boolean;
 begin
-  FileExists := fpAccess(pointer(filename), F_OK) = 0;
+  FileExists := _Access(pointer(filename), F_OK) = 0;
 end;
 
 
@@ -179,7 +179,7 @@ end;
 Function FileGetAttr (Const FileName : String) : Longint;
 Var Info : TStat;
 begin
-  If Fpstat(pchar(FileName), Info) <> 0 then
+  If _stat(pchar(FileName), Info) <> 0 then
     Result := -1
   Else
     Result := (Info.st_mode shr 16) and $ffff;
