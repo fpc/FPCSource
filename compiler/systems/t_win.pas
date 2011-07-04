@@ -1656,7 +1656,8 @@ implementation
              cmdstr:=cmdstr+' --version '+dllversion;
            cmdstr:=cmdstr+' --input '+maybequoted(fn);
            cmdstr:=cmdstr+' --stack '+tostr(stacksize);
-           DoExec(FindUtil(utilsprefix+'postw32'),cmdstr,false,false);
+           if target_info.system in [system_i386_win32, system_i386_wdosx] then
+             DoExec(FindUtil(utilsprefix+'postw32'),cmdstr,false,false);
            postprocessexecutable:=true;
            exit;
          end;
