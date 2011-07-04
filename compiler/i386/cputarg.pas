@@ -92,7 +92,7 @@ implementation
       ,agx86att
     {$endif}
     {$ifndef NOAG386NSM}
-      ,ag386nsm
+      ,agx86nsm
     {$endif}
     {$ifndef NOAG386INT}
       ,agx86int
