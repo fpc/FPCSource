@@ -3099,6 +3099,11 @@ option_help_pages=11025_[
 3*2Acoff_COFF (Go32v2) using internal writer
 3*2Apecoff_PE-COFF (Win32) using internal writer
 4*2Aas_Assemble using GNU AS
+4*2Agas_Assemble using GNU GAS
+4*2Agas-darwin_Assemble darwin Mach-O64 using GNU GAS
+4*2Amasm_Win64 object file using ml64 (Microsoft)
+4*2Apecoff_PE-COFF (Win64) using internal writer
+4*2Aelf_ELF (Linux-64bit) using internal writer
 6*2Aas_Unix o-file using GNU AS
 6*2Agas_GNU Motorola assembler
 6*2Amit_MIT Syntax (old GAS)
