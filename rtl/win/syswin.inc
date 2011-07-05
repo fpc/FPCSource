@@ -50,17 +50,14 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
          end;
        DLL_THREAD_ATTACH :
          begin
-           if Win32GetCurrentThreadId <> MainThreadIdWin32 then
-           begin
-             { Initialize multithreading if not done }
-             SysInitMultithreading;
-             { Allocate Threadvars  }
-             SysAllocateThreadVars;
+           { SysInitMultithreading must not be called here,
+             see comments in exec_tls_callback below }
+           { Allocate Threadvars  }
+           SysAllocateThreadVars;
 
-             { NS : no idea what is correct to pass here - pass dummy value for now }
-             { passing a dummy is ok, the correct value is read from the coff header of SysInstance (FK) }
-             InitThread($1000000); { Assume everything is idempotent there, as the thread could have been created with BeginThread... }
-           end;
+           { NS : no idea what is correct to pass here - pass dummy value for now }
+           { passing a dummy is ok, the correct value is read from the coff header of SysInstance (FK) }
+           InitThread($1000000); { Assume everything is idempotent there, as the thread could have been created with BeginThread... }
 
            if assigned(Dll_Thread_Attach_Hook) then
              Dll_Thread_Attach_Hook(DllParam);
@@ -71,7 +68,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
            if assigned(Dll_Thread_Detach_Hook) then
              Dll_Thread_Detach_Hook(DllParam);
            { Release Threadvars }
-           if Win32GetCurrentThreadId<>MainThreadIdWin32 then
+           if TlsGetValue(TLSKey)<>nil then
              DoneThread; { Assume everything is idempotent there }
            Dll_entry:=true; { return value is ignored }
          end;
@@ -104,8 +101,6 @@ Procedure ExitDLL(Exitcode : longint);
 { Process TLS callback function }
 { This is only useful for executables
   for DLLs, DLL_Entry gets called. PM }
-const
-   Thread_count : longint = 0;
 
 procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer);
   stdcall; [public,alias:'_FPC_Tls_Callback'];
@@ -115,48 +110,35 @@ procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer
      case reason of
        DLL_PROCESS_ATTACH :
          begin
-           MainThreadIdWin32 := Win32GetCurrentThreadId;
          end;
        DLL_THREAD_ATTACH :
          begin
-           inclocked(Thread_count);
-           if Win32GetCurrentThreadId <> MainThreadIdWin32 then
-           begin
-             { Initialize multithreading if not done }
-             SysInitMultithreading;
-             { Allocate Threadvars  }
-             SysAllocateThreadVars;
+         {  !!! SysInitMultithreading must NOT be called here. Windows guarantees that
+            the main thread invokes PROCESS_ATTACH, not THREAD_ATTACH. So this always
+            executes in non-main thread. SysInitMultithreading() here will cause
+            initial threadvars to be copied to TLS of non-main thread, and threadvars
+            of the main thread will be reinitialized upon the next access with zeroes,
+            ending up in a delayed failure which is very hard to debug.
+            Fortunately this nasty scenario can happen only when the first non-main thread
+            was created outside of RTL (Sergei).
+         }
+           { Allocate Threadvars  }
+           SysAllocateThreadVars;
 
-             { NS : no idea what is correct to pass here - pass dummy value for now }
-             { passing a dummy is ok, the correct value is read from the coff header of SysInstance (FK) }
-             InitThread($1000000); { Assume everything is idempotent there, as the thread could have been created with BeginThread... }
-           end;
-
-           if assigned(Dll_Thread_Attach_Hook) then
-             Dll_Thread_Attach_Hook(DllParam);
-        end;
+           { NS : no idea what is correct to pass here - pass dummy value for now }
+           { passing a dummy is ok, the correct value is read from the coff header of SysInstance (FK) }
+           InitThread($1000000); { Assume everything is idempotent there, as the thread could have been created with BeginThread... }
+         end;
        DLL_THREAD_DETACH :
          begin
-           declocked(Thread_count);
-           if assigned(Dll_Thread_Detach_Hook) then
-             Dll_Thread_Detach_Hook(DllParam);
-           { Release Threadvars }
-           if Win32GetCurrentThreadId<>MainThreadIdWin32 then
+           if TlsGetValue(TLSKey)<>nil then
              DoneThread; { Assume everything is idempotent there }
          end;
        DLL_PROCESS_DETACH :
          begin
-	   if MainThreadIDWin32=0 then // already been here.
-             exit;
-           If SetJmp(DLLBuf) = 0 then
-             FPC_Do_Exit;
-           if assigned(Dll_Process_Detach_Hook) then
-             Dll_Process_Detach_Hook(DllParam);
-
            DoneThread;
            { Free TLS resources used by ThreadVars }
            SysFiniMultiThreading;
-           MainThreadIDWin32:=0;
          end;
      end;
   end;

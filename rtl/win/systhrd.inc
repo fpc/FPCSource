@@ -225,16 +225,17 @@ var
       var
         ti : tthreadinfo;
       begin
-        { Allocate local thread vars, this must be the first thing,
-          because the exception management and io depends on threadvars }
-        SysAllocateThreadVars;
-
         { Copy parameter to local data }
         ti:=pthreadinfo(param)^;
-        dispose(pthreadinfo(param));
 
+        { Allocate local thread vars, this must be the first thing,
+          because the exception management and io depends on threadvars }
+{$ifndef FPC_USE_TLS_DIRECTORY}
+        SysAllocateThreadVars;
         { Initialize thread }
         InitThread(ti.stklen);
+{$endif}
+        dispose(pthreadinfo(param));
 
         { Start thread function }
 {$ifdef DEBUG_MT}
@@ -541,7 +542,9 @@ begin
     end;
   SetThreadManager(WinThreadManager);
   ThreadID := GetCurrentThreadID;
+{$ifndef FPC_USE_TLS_DIRECTORY}
   if IsLibrary then
+{$endif}
     SysInitMultithreading;
 {$IFDEF SUPPORT_WIN95}
   { Try to find TryEnterCriticalSection function }
