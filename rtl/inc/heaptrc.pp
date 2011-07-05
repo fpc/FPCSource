@@ -1350,7 +1350,7 @@ begin
     must be initialized already here
   }
   if IsMultithread then
-    initcriticalsection(todo_lock);
+    TraceRelocateHeap;
 end;
 
 procedure TraceExit;
