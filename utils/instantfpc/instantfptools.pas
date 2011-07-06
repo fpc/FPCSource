@@ -49,7 +49,7 @@ begin
   // avoid name clashes
   Ext:=lowercase(ExtractFileExt(Filename));
   if (Ext<>'') and (Ext<>'.pas') and (Ext<>'.pp') and (Ext<>'.p')
-  and (Ext<>'.lpr') and (Ext<>'.txt') and (Ext<>'.sh')
+  and (Ext<>'.lpr') and (Ext<>'.txt') and (Ext<>'.sh') and (Ext<>'.cgi')
   then begin
     writeln('invalid source extension ',Ext);
     Halt(1);
