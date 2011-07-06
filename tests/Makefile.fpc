@@ -327,8 +327,9 @@ endif
 
 
 ifdef USEENV
-override DOTESTENV=$(DOTESTOPT)
+override DOTESTENV:=$(DOTESTOPT)
 override DOTESTOPT=!DOTESTENV
+export DOTESTENV
 endif
 
 ################################
