@@ -36,6 +36,8 @@ var
   CacheFilename: String;
   OutputFilename: String;
   ExeExt: String;
+  E : String;
+  
 begin
   Filename:='';
   { For example:
@@ -105,7 +107,8 @@ begin
 
     // check cache
     CacheFilename:=CacheDir+ExtractFileName(Filename);
-    if ExtractFileExt(CacheFileName)='' then
+    E:=LowerCase(ExtractFileExt(CacheFileName));
+    if (E<>'.pp') and (E<>'.pas') and (E<>'.lpr') then
       CacheFileName:=CacheFileName+'.pas';
     ExeExt:='';
     OutputFilename:=CacheDir+ChangeFileExt(ExtractFileName(Filename),ExeExt);
