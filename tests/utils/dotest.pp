@@ -1082,9 +1082,6 @@ end;
 
 
 procedure getargs;
-var
-  para : string;
-  i  : longint;
 
   procedure helpscreen;
   begin
@@ -1116,11 +1113,12 @@ var
     halt(1);
   end;
 
-  procedure interpret_option (arg : string);
+  procedure interpret_option (para : string);
   var
     ch : char;
     j : longint;
   begin
+   Verbose(V_Debug,'Interpreting  option"'+para+'"');
     ch:=Upcase(para[2]);
     delete(para,1,2);
     case ch of
@@ -1209,9 +1207,11 @@ var
    para : string;
    pspace : longint;
  begin
+   Verbose(V_Debug,'Interpreting environment option"'+arg+'"');
    { Get rid of leading '!' }
    delete(arg,1,1);
    arg:=getenv(arg);
+   Verbose(V_Debug,'Environment value is "'+arg+'"');
    while (length(arg)>0) do
      begin
        while (length(arg)>0) and (arg[1]=' ') do
@@ -1231,18 +1231,22 @@ var
      end;
  end;
 
+var
+  param : string;
+  i  : longint;
+
 begin
   CompilerBin:='ppc386'+srcexeext;
   for i:=1 to paramcount do
    begin
-     para:=Paramstr(i);
-     if (para[1]='-') then
-      interpret_option(para)
-     else if (para[1]='!') then
-       interpret_env(para)
+     param:=Paramstr(i);
+     if (param[1]='-') then
+      interpret_option(param)
+     else if (param[1]='!') then
+       interpret_env(param)
      else
        begin
-         PPFile.Insert(current,ForceExtension(Para,'pp'));
+         PPFile.Insert(current,ForceExtension(Param,'pp'));
          inc(current);
        end;
    end;
