@@ -990,6 +990,6 @@ begin
     when smartlinking is on }
   _tls_used.Index_pointer:=@FreePascal_TLS_callback;
   _tls_used.Index_pointer:=@FreePascal_end_of_TLS_callback;
-  _tls_used.Index_pointer:=@tls_index;
+  _tls_used.Index_pointer:=@_tls_index;
 {$endif FPC_USE_TLS_DIRECTORY}
 end.
