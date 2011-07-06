@@ -22,7 +22,7 @@ end;
 
 var
   h: array[0..1] of THandle;
-  id1, id2: DWORD;
+  id1, id2: TThreadID;
   p : pointer;
 begin
   IsMultiThread:=True;
