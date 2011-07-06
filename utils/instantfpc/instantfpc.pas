@@ -105,6 +105,8 @@ begin
 
     // check cache
     CacheFilename:=CacheDir+ExtractFileName(Filename);
+    if ExtractFileExt(CacheFileName)='' then
+      CacheFileName:=CacheFileName+'.pas';
     ExeExt:='';
     OutputFilename:=CacheDir+ChangeFileExt(ExtractFileName(Filename),ExeExt);
     if not IsCacheValid(Src,CacheFilename,OutputFilename) then begin
