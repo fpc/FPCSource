@@ -108,9 +108,9 @@ procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer
      if IsLibrary then
        Exit;
      case reason of
-       DLL_PROCESS_ATTACH :
-         begin
-         end;
+       { For executables, DLL_PROCESS_ATTACH is called *before* the entry point,
+         and DLL_PROCESS_DETACH is called *after* RTL shuts down and calls ExitProcess.
+         It isn't a good idea to handle resources of the main thread at these points. }
        DLL_THREAD_ATTACH :
          begin
          {  !!! SysInitMultithreading must NOT be called here. Windows guarantees that
@@ -134,12 +134,6 @@ procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer
            if TlsGetValue(TLSKey)<>nil then
              DoneThread; { Assume everything is idempotent there }
          end;
-       DLL_PROCESS_DETACH :
-         begin
-           DoneThread;
-           { Free TLS resources used by ThreadVars }
-           SysFiniMultiThreading;
-         end;
      end;
   end;
 
@@ -152,27 +146,18 @@ var
   tls_callbacks : pointer; external name '___crt_xl_start__';
   tls_data_start : pointer; external name '___tls_start__';
   tls_data_end : pointer; external name '___tls_end__';
-{$ifdef win32}
-  tls_index : dword; external name '__tls_index';
-{$else not win32}
-  tls_index : dword; external name '_tls_index';
-{$endif not win32}
+
+  _tls_index : dword; cvar; external;
 
 const
   _tls_used : TTlsDirectory = (
     data_start : @tls_data_start;
     data_end : @tls_data_end;
-    index_pointer : @tls_index;
+    index_pointer : @_tls_index;
     callbacks_pointer : @tls_callbacks;
     zero_fill_size : 0;
     flags : 0;
-  ); public name
-  { This should be the same name as in mingw/tlsup.c code }
-{$ifdef win32}
-  '__tls_used';
-{$else }
-  '_tls_used';
-{$endif not win32}
+  ); cvar; public;
 
 {$endif FPC_USE_TLS_DIRECTORY}
 
