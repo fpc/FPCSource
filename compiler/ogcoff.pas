@@ -2108,14 +2108,12 @@ const pemagic : array[0..3] of byte = (
               sechdr.vsize:=mempos;
 
             { sechdr.dataSize is size of initilized data. Must be zero for sections that
-              do not contain one. In Windows, must be rounded up to FileAlignment
-             (so it can be greater than VirtualSize) }
+              do not contain one.
+              TODO: In Windows it must be rounded up to FileAlignment
+              (so it can be greater than VirtualSize) }
             if (oso_data in SecOptions) then
               begin
-                if win32 then
-                  sechdr.dataSize:=Align(Size,SectionDataAlign)
-                else
-                  sechdr.dataSize:=Size;
+                sechdr.dataSize:=Size;
                 if (Size>0) then
                   sechdr.datapos:=datapos;
               end;
