@@ -301,6 +301,47 @@ implementation
     fpccrc,
     cutils;
 
+{$ifdef GENERIC_CPU}
+{ We need to use the correct size of aint and pint for
+  the target CPU }
+const
+  CpuAddrBitSize : array[tsystemcpu] of longint =
+    (
+    {  0 } 32 {'none'},
+    {  1 } 32 {'i386'},
+    {  2 } 32 {'m68k'},
+    {  3 } 32 {'alpha'},
+    {  4 } 32 {'powerpc'},
+    {  5 } 32 {'sparc'},
+    {  6 } 32 {'vis'},
+    {  7 } 64 {'ia64'},
+    {  8 } 64 {'x86_64'},
+    {  9 } 32 {'mips'},
+    { 10 } 32 {'arm'},
+    { 11 } 64 {'powerpc64'},
+    { 12 } 16 {'avr'},
+    { 13 } 32 {'mipsel'}
+    );
+  CpuAluBitSize : array[tsystemcpu] of longint =
+    (
+    {  0 } 32 {'none'},
+    {  1 } 32 {'i386'},
+    {  2 } 32 {'m68k'},
+    {  3 } 32 {'alpha'},
+    {  4 } 32 {'powerpc'},
+    {  5 } 32 {'sparc'},
+    {  6 } 32 {'vis'},
+    {  7 } 64 {'ia64'},
+    {  8 } 64 {'x86_64'},
+    {  9 } 32 {'mips'},
+    { 10 } 32 {'arm'},
+    { 11 } 64 {'powerpc64'},
+    { 12 }  8 {'avr'},
+    { 13 } 32 {'mipsel'}
+    );
+{$endif GENERIC_CPU}
+
+
 
 function swapendian_ppureal(d:ppureal):ppureal;
 
@@ -707,31 +748,62 @@ end;
 
 function tppufile.getaint:aint;
 begin
+{$ifdef generic_cpu}
+  if CpuAluBitSize[tsystemcpu(header.cpu)]=64 then
+    result:=getint64
+  else if CpuAluBitSize[tsystemcpu(header.cpu)]=32 then
+    result:=getlongint
+  else if CpuAluBitSize[tsystemcpu(header.cpu)]=16 then
+    result:=smallint(getword)
+  else if CpuAluBitSize[tsystemcpu(header.cpu)]=8 then
+    result:=shortint(getbyte);
+{$else not generic_cpu}
 {$ifdef cpu64bitalu}
   result:=getint64;
 {$else cpu64bitalu}
   result:=getlongint;
 {$endif cpu64bitalu}
+{$endif not generic_cpu}
 end;
 
 
 function tppufile.getasizeint:asizeint;
 begin
+{$ifdef generic_cpu}
+  if CpuAddrBitSize[tsystemcpu(header.cpu)]=64 then
+    result:=getint64
+  else if CpuAddrBitSize[tsystemcpu(header.cpu)]=32 then
+    result:=getlongint
+  else if CpuAddrBitSize[tsystemcpu(header.cpu)]=16 then
+    result:=smallint(getword);
+{$else not generic_cpu}
 {$ifdef cpu64bitaddr}
   result:=getint64;
 {$else cpu64bitaddr}
   result:=getlongint;
 {$endif cpu32bitaddr}
+{$endif not generic_cpu}
 end;
 
 
 function tppufile.getaword:aword;
 begin
+{$ifdef generic_cpu}
+  if CpuAluBitSize[tsystemcpu(header.cpu)]=64 then
+    result:=getqword
+  else if CpuAluBitSize[tsystemcpu(header.cpu)]=32 then
+    result:=getdword
+  else if CpuAluBitSize[tsystemcpu(header.cpu)]=16 then
+    result:=getword
+  else if CpuAluBitSize[tsystemcpu(header.cpu)]=8 then
+    result:=getbyte;
+{$else not generic_cpu}
 {$ifdef cpu64bitalu}
   result:=getqword;
 {$else cpu64bitalu}
   result:=getdword;
 {$endif cpu64bitalu}
+{$endif not generic_cpu}
 end;
 
 
