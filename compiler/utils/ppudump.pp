@@ -23,6 +23,7 @@ program ppudump;
 {$mode objfpc}
 {$H+}
 
+{$define IN_PPUDUMP}
 uses
   { do NOT add symconst or globtype to make merging easier }
   { do include symconst and globtype now before splitting 2.5 PM 2011-06-15 }
@@ -530,6 +531,16 @@ begin
   ppufile.getdata(derefdata^,derefdatalen);
 end;
 
+Procedure FreeDerefdata;
+begin
+  if assigned(derefdata) then
+    begin
+      FreeMem(derefdata);
+      derefdata:=nil;
+      derefdatalen:=0;
+    end;
+end;
+
 
 Procedure ReadWpoFileInfo;
 begin
@@ -656,12 +667,6 @@ end;
 
 
 procedure readderef(const derefspace: string);
-type
-  tdereftype = (deref_nil,
-    deref_unit,
-    deref_symid,
-    deref_defid
-  );
 var
   b : tdereftype;
   first : boolean;
@@ -1444,6 +1449,7 @@ var
   startnewline : boolean;
   i,j,len : longint;
   guid : tguid;
+  realvalue : extended;
   tempbuf : array[0..127] of char;
   pw : pcompilerwidestring;
   varoptions : tvaroptions;
@@ -1516,7 +1522,18 @@ begin
                    freemem(pc,len+1);
                  end;
                constreal :
-                 writeln(space,'        Value : ',getreal);
+                 begin
+                   if entryleft=sizeof(extended) then
+                     realvalue:=getrealsize(sizeof(extended))
+                   else if entryleft=sizeof(double) then
+                     realvalue:=getrealsize(sizeof(double))
+                   else
+                     begin
+                       realvalue:=0.0;
+                       has_errors:=true;
+                     end;
+                   writeln(space,'        Value : ',realvalue);
+                 end;
                constset :
                  begin
                    write (space,'      Set Type : ');
@@ -2490,6 +2507,7 @@ begin
       ppufile.skipuntilentry(ibendsyms);
    end;
   ReadCreatedObjTypes;
+  FreeDerefdata;
 {shutdown ppufile}
   ppufile.closefile;
   ppufile.free;
