@@ -3723,8 +3723,10 @@ ppulogs : $(PPULOGLIST)
 rtlppulogs : $(RTLPPULOGLIST)
 vpath %.ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
 vpath %.log-ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
-%.log-ppu : %.ppu
+%.log-ppu : %.ppu ./utils/ppudump$(EXEEXT)
 	.$(PATHSEP)utils$(PATHSEP)ppudump -VA -M $< > $@
+./utils/ppudump$(EXEEXT):
+	$(MAKE) -C $(COMPILERUTILSDIR) ppudump$(EXEEXT)
 ppuinfo :
 	echo PPU list is "$(PPULIST)"
 	echo PPULOG list is "$(PPULOGLIST)"
