@@ -718,7 +718,7 @@ RTLPPUDIR=../rtl/units/$(FULL_TARGET)
 RTLPPULIST=$(wildcard $(RTLPPUDIR)/*.ppu)
 RTLPPULOGLIST=$(subst .ppu,.log-ppu,$(RTLPPULIST))
 
-.PHONY : ppulogs cleanppulogs rtlppulogs cleanrtlppulogs
+.PHONY : ppulogs cleanppulogs rtlppulogs cleanrtlppulogs testppudump
 
 ppulogs : $(PPULOGLIST)
 
@@ -743,6 +743,9 @@ cleanppulogs :
 
 cleanrtlppulogs :
 	-$(RMPROG) $(RTLPPULOGLIST)
+
+testppudump :
+	$(MAKE) cleanrtlppulogs cleanppulogs ppulogs rtlppulogs
 
 #####################################################################
 # local user configurable file

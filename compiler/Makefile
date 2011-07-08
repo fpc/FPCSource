@@ -3718,7 +3718,7 @@ PPULOGLIST=$(subst .ppu,.log-ppu,$(PPULIST))
 RTLPPUDIR=../rtl/units/$(FULL_TARGET)
 RTLPPULIST=$(wildcard $(RTLPPUDIR)/*.ppu)
 RTLPPULOGLIST=$(subst .ppu,.log-ppu,$(RTLPPULIST))
-.PHONY : ppulogs cleanppulogs rtlppulogs cleanrtlppulogs
+.PHONY : ppulogs cleanppulogs rtlppulogs cleanrtlppulogs testppudump
 ppulogs : $(PPULOGLIST)
 rtlppulogs : $(RTLPPULOGLIST)
 vpath %.ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
@@ -3734,6 +3734,8 @@ cleanppulogs :
 	-$(RMPROG) $(PPULOGLIST)
 cleanrtlppulogs :
 	-$(RMPROG) $(RTLPPULOGLIST)
+testppudump :
+	$(MAKE) cleanrtlppulogs cleanppulogs ppulogs rtlppulogs
 localmake:=$(strip $(wildcard makefile.loc))
 ifdef localmake
 include ./$(localmake)
