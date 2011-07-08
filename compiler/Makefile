@@ -3711,6 +3711,27 @@ rtlclean:
 	$(MAKE) -C $(PACKAGEDIR_RTL) clean
 rtlinstall:
 	$(MAKE) -C $(PACKAGEDIR_RTL) install
+PPUDIR=$(COMPILER_UNITTARGETDIR)
+ALLPPUDIR=$(CPU_TARGET)/units/*
+PPULIST=$(wildcard $(PPUDIR)/*.ppu)
+PPULOGLIST=$(subst .ppu,.log-ppu,$(PPULIST))
+RTLPPUDIR=../rtl/units/$(FULL_TARGET)
+RTLPPULIST=$(wildcard $(RTLPPUDIR)/*.ppu)
+RTLPPULOGLIST=$(subst .ppu,.log-ppu,$(RTLPPULIST))
+.PHONY : ppulogs cleanppulogs rtlppulogs cleanrtlppulogs
+ppulogs : $(PPULOGLIST)
+rtlppulogs : $(RTLPPULOGLIST)
+vpath %.ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
+vpath %.log-ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
+%.log-ppu : %.ppu
+	.$(PATHSEP)utils$(PATHSEP)ppudump -VA -M $< > $@
+ppuinfo :
+	echo PPU list is "$(PPULIST)"
+	echo PPULOG list is "$(PPULOGLIST)"
+cleanppulogs :
+	-$(RMPROG) $(PPULOGLIST)
+cleanrtlppulogs :
+	-$(RMPROG) $(RTLPPULOGLIST)
 localmake:=$(strip $(wildcard makefile.loc))
 ifdef localmake
 include ./$(localmake)
