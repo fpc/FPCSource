@@ -1932,25 +1932,25 @@ begin
          ibwidestringdef :
            begin
              readcommondef('WideString definition',defoptions);
-             writeln(space,'           Length : ',getlongint);
+             writeln(space,'           Length : ',getaint);
            end;
 
          ibunicodestringdef :
            begin
              readcommondef('UnicodeString definition',defoptions);
-             writeln(space,'           Length : ',getlongint);
+             writeln(space,'           Length : ',getaint);
            end;
 
          ibansistringdef :
            begin
              readcommondef('AnsiString definition',defoptions);
-             writeln(space,'           Length : ',getlongint);
+             writeln(space,'           Length : ',getaint);
            end;
 
          iblongstringdef :
            begin
              readcommondef('Longstring definition',defoptions);
-             writeln(space,'           Length : ',getlongint);
+             writeln(space,'           Length : ',getaint);
            end;
 
          ibrecorddef :
