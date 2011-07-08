@@ -1508,7 +1508,7 @@ begin
                  begin
                    write  (space,'  PointerType : ');
                    readderef('');
-                   writeln(space,'        Value : ',getlongint)
+                   writeln(space,'        Value : ',getaint)
                  end;
                conststring,
                constresourcestring :
