@@ -118,7 +118,7 @@ unit cgcpu;
        globals,verbose,systems,cutils,
        fmodule,
        symconst,symsym,
-       tgobj,
+       tgobj,rgobj,
        procinfo,cpupi,
        paramgr;
 
@@ -594,6 +594,14 @@ unit cgcpu;
 
 
     function tcgavr.normalize_ref(list:TAsmList;ref: treference;tmpreg : tregister) : treference;
+
+      procedure maybegetcpuregister(list:tasmlist;reg : tregister);
+        begin
+          { allocate the register only, if a cpu register is passed }
+          if getsupreg(reg)<first_int_imreg then
+            getcpuregister(list,reg);
+        end;
+
       var
         tmpref : treference;
         l : tasmlabel;
@@ -618,10 +626,10 @@ unit cgcpu;
             tmpref.symbol:=ref.symbol;
             tmpref.offset:=ref.offset;
             tmpref.refaddr:=addr_lo8;
-            getcpuregister(list,tmpreg);
+            maybegetcpuregister(list,tmpreg);
             list.concat(taicpu.op_reg_ref(A_LDI,tmpreg,tmpref));
             tmpref.refaddr:=addr_hi8;
-            getcpuregister(list,GetNextReg(tmpreg));
+            maybegetcpuregister(list,GetNextReg(tmpreg));
             list.concat(taicpu.op_reg_ref(A_LDI,GetNextReg(tmpreg),tmpref));
             if (ref.base<>NR_NO) then
               begin
@@ -640,9 +648,9 @@ unit cgcpu;
           end
         else if (ref.base<>NR_NO) and (ref.index<>NR_NO) then
           begin
-            getcpuregister(list,tmpreg);
+            maybegetcpuregister(list,tmpreg);
             emit_mov(list,tmpreg,ref.index);
-            getcpuregister(list,GetNextReg(tmpreg));
+            maybegetcpuregister(list,GetNextReg(tmpreg));
             emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.index));
             list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.base));
             list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.base)));
@@ -651,18 +659,18 @@ unit cgcpu;
           end
         else if (ref.base<>NR_NO) then
           begin
-            getcpuregister(list,tmpreg);
+            maybegetcpuregister(list,tmpreg);
             emit_mov(list,tmpreg,ref.base);
-            getcpuregister(list,GetNextReg(tmpreg));
+            maybegetcpuregister(list,GetNextReg(tmpreg));
             emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.base));
             ref.base:=tmpreg;
             ref.index:=NR_NO;
           end
         else if (ref.index<>NR_NO) then
           begin
-            getcpuregister(list,tmpreg);
+            maybegetcpuregister(list,tmpreg);
             emit_mov(list,tmpreg,ref.index);
-            getcpuregister(list,GetNextReg(tmpreg));
+            maybegetcpuregister(list,GetNextReg(tmpreg));
             emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.index));
             ref.base:=tmpreg;
             ref.index:=NR_NO;
@@ -1486,7 +1494,7 @@ unit cgcpu;
                    (source.symbol=nil) and
                    ((source.base=NR_R28) or
                     (source.base=NR_R29)) and
-                    (source.Index=NR_No) and
+                    (source.Index=NR_NO) and
                     (source.Offset in [0..64-len])) and
               not((source.Base=NR_NO) and (source.Index=NR_NO)) then
               srcref:=normalize_ref(list,source,NR_R30)
@@ -1517,6 +1525,7 @@ unit cgcpu;
                     list.concat(taicpu.op_reg(A_PUSH,GetNextReg(tmpreg)));
                     list.concat(taicpu.op_reg(A_POP,NR_R27));
                     list.concat(taicpu.op_reg(A_POP,NR_R26));
+                    dstref.base:=NR_R26;
                   end
                 else
                   dstref:=normalize_ref(list,dest,NR_R30);
