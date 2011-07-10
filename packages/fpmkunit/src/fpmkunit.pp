@@ -4125,7 +4125,7 @@ begin
               else
                 APackage.FTargetState:=tsCompiled;
             end
-          else
+          else if not (APackage.FTargetState in [tsCompiled, tsNoCompile]) then
             begin
               APackage.FTargetState:=tsInstalled;
             end;
