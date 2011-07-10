@@ -34,7 +34,7 @@ interface
         r_shared,
         r_install,r_sourceinstall,r_exampleinstall,r_distinstall,
         r_zipinstall,r_zipsourceinstall,r_zipexampleinstall,r_zipdistinstall,
-        r_clean,r_distclean,r_cleanall,
+        r_clean,r_distclean,r_cleanall,r_fpmakeclean,
         r_info,r_makefiles
       );
 
@@ -46,7 +46,7 @@ interface
         'shared',
         'install','sourceinstall','exampleinstall','distinstall',
         'zipinstall','zipsourceinstall','zipexampleinstall','zipdistinstall',
-        'clean','distclean','cleanall',
+        'clean','distclean','cleanall','fpmakeclean',
         'info','makefiles'
       );
 
@@ -56,7 +56,7 @@ interface
         sec_shared,
         sec_install,sec_install,sec_install,sec_distinstall,
         sec_zipinstall,sec_zipinstall,sec_zipinstall,sec_zipinstall,
-        sec_clean,sec_clean,sec_clean,
+        sec_clean,sec_clean,sec_clean,sec_clean,
         sec_info,sec_makefile
       );
 

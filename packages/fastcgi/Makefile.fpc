@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for FastCGI
+#   Makefile.fpc for running fpmake
 #
 
 [package]
@@ -55,4 +55,5 @@ endif
 # none.
 distinstall:	install
 distclean:	clean
+fpmakeclean:	clean
 	-$(DEL) $(LOCALFPMAKE)
