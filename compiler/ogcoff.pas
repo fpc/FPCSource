@@ -235,7 +235,7 @@ interface
          procedure ExeSectionList_write_data(p:TObject;arg:pointer);
        protected
          function writedata:boolean;override;
-         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList);override;
+         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
        public
          constructor createcoff(awin32:boolean);
          procedure MemPos_Header;override;
@@ -2518,9 +2518,12 @@ const pemagic : array[0..3] of byte = (
         Result:=CompareStr(I1.Name,I2.Name);
       end;
 
-    procedure TCoffexeoutput.Order_ObjSectionList(ObjSectionList: TFPObjectList);
+    procedure TCoffexeoutput.Order_ObjSectionList(ObjSectionList: TFPObjectList;const aPattern:string);
       begin
-        if CurrExeSec.Name = '.idata' then
+        { Sort sections having '$' in the name, that's how PECOFF documentation
+          tells to handle them. However, look for '$' in the pattern, not in section
+          names, because the latter often get superfluous '$' due to mangling. }
+        if Pos('$',aPattern)>0 then
           ObjSectionList.Sort(@IdataObjSectionCompare);
       end;
 

@@ -439,7 +439,7 @@ interface
         function  writeData:boolean;virtual;abstract;
         property CExeSection:TExeSectionClass read FCExeSection write FCExeSection;
         property CObjData:TObjDataClass read FCObjData write FCObjData;
-        procedure Order_ObjSectionList(ObjSectionList : TFPObjectList);virtual;
+        procedure Order_ObjSectionList(ObjSectionList : TFPObjectList; const aPattern:string);virtual;
       public
         CurrDataPos  : aword;
         MaxMemPos    : qword;
@@ -1599,7 +1599,7 @@ implementation
 
     procedure TExeOutput.Load_EntryName(const aname:string);
       begin
-        EntryName:=aname;
+        FEntryName:=aname;
       end;
 
 
@@ -1698,7 +1698,7 @@ implementation
               end;
           end;
         { Order list if needed }
-        Order_ObjSectionList(TmpObjSectionList);
+        Order_ObjSectionList(TmpObjSectionList,aname);
         { Add the (ordered) list to the current ExeSection }
         for i:=0 to TmpObjSectionList.Count-1 do
           begin
@@ -1709,7 +1709,7 @@ implementation
       end;
 
 
-    procedure TExeOutput.Order_ObjSectionList(ObjSectionList : TFPObjectList);
+    procedure TExeOutput.Order_ObjSectionList(ObjSectionList : TFPObjectList; const aPattern:string);
       begin
       end;
 
