@@ -147,6 +147,8 @@ Type
 
   TSessionFactory = Class(TComponent)
   private
+    FSessionCookie: String;
+    FSessionCookiePath: String;
     FTimeOut: Integer;
     FCleanupInterval: Integer;
     FDoneCount: Integer;
@@ -167,6 +169,10 @@ Type
     Property CleanupInterval : Integer read FCleanupInterval Write FCleanUpInterval;
     // Default timeout for sessions, in minutes.
     Property DefaultTimeOutMinutes : Integer Read FTimeOut Write FTimeOut;
+    // Default session cookie.
+    property SessionCookie : String Read FSessionCookie Write FSessionCookie;
+    // Default session cookie path
+    Property SessionCookiePath : String Read FSessionCookiePath write FSessionCookiePath;
   end;
   TSessionFactoryClass = Class of TSessionFactory;
 
@@ -242,8 +248,13 @@ end;
 function TSessionFactory.CreateSession(ARequest: TRequest): TCustomSession;
 begin
   Result:=DoCreateSession(ARequest);
-  if (FTimeOut<>0) and Assigned(Result) then
-    Result.TimeoutMinutes:=FTimeOut;
+  if Assigned(Result) then
+    begin
+    if (FTimeOut<>0) then
+      Result.TimeoutMinutes:=FTimeOut;
+    Result.SessionCookie:=Self.SessionCookie;
+    Result.SessionCookiePath:=Self.SessionCookiePath;
+    end;
 end;
 
 procedure TSessionFactory.DoneSession(var ASession: TCustomSession);

@@ -8,6 +8,8 @@ uses
 
 {$IFDEF WINDOWS}{$R extgrid.rc}{$ENDIF}
 
+{$R *.res}
+
 begin
   Application.Initialize;
   Application.Run;

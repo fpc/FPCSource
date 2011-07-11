@@ -570,6 +570,7 @@ Var
   ResponseOK : Boolean;
 
 begin
+  SetLength(FBuffer,0);
   FResponseStatusCode:=ReadResponseHeaders;
   if not CheckResponseCode(FResponseStatusCode,AllowedResponseCodes) then
     Raise EHTTPClient.CreateFmt(SErrUnexpectedResponse,[ResponseStatusCode]);

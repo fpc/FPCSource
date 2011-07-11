@@ -128,7 +128,29 @@ type
     procedure WriteToStream (const aStream : TStream);  override;
   end;
 
+function EscapeHTML(const s : String) : String;
+function UnescapeHTML(const s : String) : String;
+
 implementation
+
+function EscapeHTML ( const S : String ) : String;
+begin
+  Result := StringReplace(s,      '&', '&amp;',  [rfReplaceAll]);
+  Result := StringReplace(Result, '<', '&lt;',   [rfReplaceAll]);
+  Result := StringReplace(Result, '>', '&gt;',   [rfReplaceAll]);
+  Result := StringReplace(Result, '"', '&quot;', [rfReplaceAll]);
+  Result := StringReplace(Result, #39, '&#39;',  [rfReplaceAll]); // ' - &apos; does not work on ie :(
+end;
+
+function UnescapeHTML ( const S : String ) : String;
+begin
+  Result := StringReplace(s,      '&lt;',   '<', [rfReplaceAll]);
+  Result := StringReplace(Result, '&gt;',   '>', [rfReplaceAll]);
+  Result := StringReplace(Result, '&quot;', '"', [rfReplaceAll]);
+  Result := StringReplace(Result, '&#39;',  #39, [rfReplaceAll]); // '
+  Result := StringReplace(Result, '&apos;', #39, [rfReplaceAll]); // '
+  Result := StringReplace(Result, '&amp;',  '&', [rfReplaceAll]);
+end; 
 
 
 { THtmlCustomElement }
@@ -201,8 +223,7 @@ end;
 
 function THtmlCustomElement.EscapeString(s: string): string;
 begin
-  result := s;
-  //TODO: Needs to convert all the special signs to their html names ("<" has to be "&lt;" etc.)
+  result := EscapeHTML(s);
 end;
 
 constructor THtmlCustomElement.create(AOwner: TDOMDocument);

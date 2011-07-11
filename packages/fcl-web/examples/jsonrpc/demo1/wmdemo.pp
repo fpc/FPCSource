@@ -5,7 +5,7 @@ unit wmdemo;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LResources, HTTPDefs, websession, fpHTTP, fpWeb; 
+  Classes, SysUtils, HTTPDefs, websession, fpHTTP, fpWeb; 
 
 type
 
@@ -37,6 +37,8 @@ var
   FPWebModule1: TFPWebModule1; 
 
 implementation
+
+{$R *.lfm}
 
 Uses fpjson,jsonparser,fpjsonrpc,webjsonrpc, fpextdirect;
 
@@ -376,8 +378,6 @@ begin
 end;
 
 initialization
-  {$I wmdemo.lrs}
-
   RegisterHTTPModule('echo', TFPWebModule1);
 end.
 

@@ -1,0 +1,29 @@
+object FPWebModule1: TFPWebModule1
+  OnCreate = DataModuleCreate
+  OldCreateOrder = False
+  Actions = <  
+    item
+      Name = 'login'
+      Default = True
+      OnRequest = loginRequest
+      Template.AllowTagParams = False
+    end  
+    item
+      Name = 'logout'
+      Default = False
+      OnRequest = logoutRequest
+      Template.AllowTagParams = False
+    end  
+    item
+      Name = 'someaction'
+      Default = False
+      OnRequest = someactionRequest
+      Template.AllowTagParams = False
+    end>
+  AfterResponse = DataModuleAfterResponse
+  CreateSession = True
+  Height = 202
+  HorizontalOffset = 207
+  VerticalOffset = 166
+  Width = 173
+end

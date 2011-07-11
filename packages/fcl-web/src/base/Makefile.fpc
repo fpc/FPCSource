@@ -9,7 +9,7 @@ version=2.4.5
 [target]
 units=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb \
       webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver \
-      fphttpclient
+      fphttpclient custhttpapp fphttpapp fpwebfile
 rsts=fpcgi fphtml fpweb websession cgiapp fphttpserver fphttpclient
 
 # these units are listed separately because they don't work for

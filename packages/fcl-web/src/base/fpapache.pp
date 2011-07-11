@@ -463,11 +463,9 @@ begin
   If (Index in [1..NoHTTPFields]) then
     begin
     FN:=HTTPFieldNames[Index];
-    P:=apr_table_get(FRequest^.headers_in,pchar(FN));
-    If (P<>Nil) then
-      Result:=StrPas(P);
+    Result:=MaybeP(apr_table_get(FRequest^.headers_in,pchar(FN)));
     end;
-  if (Result='') then
+  if (Result='') and Assigned(FRequest) then
     case Index of
       0  : Result:=MaybeP(FRequest^.protocol); // ProtocolVersion
       7  : Result:=MaybeP(FRequest^.content_encoding); //ContentEncoding
@@ -480,8 +478,9 @@ begin
            If (FRequest^.Connection<>Nil) then
              begin
              Result:=MaybeP(ap_get_remote_host(FRequest^.Connection,
-                                   FRequest^.Per_Dir_Config,
-                                   REMOTE_HOST,Nil));
+                            FRequest^.per_dir_config,
+//                            nil,
+                            REMOTE_NAME,@i));
              end;                   
       29 : begin // ScriptName
            Result:=MaybeP(FRequest^.unparsed_uri);

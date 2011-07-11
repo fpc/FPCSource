@@ -35,7 +35,6 @@ Type
   TFPHTTPConnectionRequest = Class(TRequest)
   private
     FConnection: TFPHTTPConnection;
-    
   protected
     procedure SetContent(AValue : String);
     Property Connection : TFPHTTPConnection Read FConnection;
@@ -369,6 +368,7 @@ Var
 begin
   Request.Method:=GetNextWord(AStartLine);
   Request.URL:=GetNextWord(AStartLine);
+  Request.PathInfo:=Request.URL;
   S:=GetNextWord(AStartLine);
   If (Pos('HTTP/',S)<>1) then
     Raise Exception.Create(SErrMissingProtocol);

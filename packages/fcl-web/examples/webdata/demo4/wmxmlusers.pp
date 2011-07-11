@@ -5,7 +5,7 @@ unit wmxmlusers;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LResources, HTTPDefs, websession, fpHTTP, fpWeb, 
+  Classes, SysUtils, HTTPDefs, websession, fpHTTP, fpWeb, 
     fpwebdata, extjsxml;
 
 type
@@ -26,9 +26,9 @@ var
 
 implementation
 
-initialization
-  {$I wmxmlusers.lrs}
+{$R *.lfm}
 
+initialization
   RegisterHTTPModule('XMLProvider', TFPWebProviderDataModule2);
 end.
 

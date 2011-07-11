@@ -32,6 +32,9 @@ interface
 uses Classes,Sysutils;
 
 const
+  DefaultTimeOut = 15;
+  SFPWebSession  = 'FPWebSession'; // Cookie name for session.
+
   fieldAccept          = 'Accept';
   fieldAcceptCharset   = 'Accept-Charset';
   fieldAcceptEncoding  = 'Accept-Encoding';
@@ -175,7 +178,6 @@ type
     FHTTPXRequestedWith: String;
     FFields : THttpFields;
     FQueryFields: TStrings;
-    FURL : String;
     function GetSetField(AIndex: Integer): String;
     function GetSetFieldName(AIndex: Integer): String;
     procedure SetCookieFields(const AValue: TStrings);
@@ -266,6 +268,7 @@ type
     FCommand: String;
     FCommandLine: String;
     FHandleGetOnPost: Boolean;
+    FPathInfo,
     FURI: String;
     FFiles : TUploadedFiles;
     FReturnedPathInfo : String;
@@ -278,6 +281,7 @@ type
     FContent : String;
     procedure ReadContent; virtual;
     Function GetFieldValue(AIndex : Integer) : String; override;
+    Procedure SetFieldValue(Index : Integer; Value : String); override;
     Procedure ProcessMultiPart(Stream : TStream; Const Boundary : String;SL:TStrings); virtual;
     Procedure ProcessQueryString(Const FQueryString : String; SL:TStrings); virtual;
     procedure ProcessURLEncoded(Stream : TStream;SL:TStrings); virtual;
@@ -354,9 +358,16 @@ type
 
   TCustomSession = Class(TComponent)
   Private
+    FSessionCookie: String;
+    FSessionCookiePath: String;
     FTimeOut: Integer;
   Protected
+    // Can be overridden to provide custom behaviour.
+    procedure SetSessionCookie(const AValue: String); virtual;
+    procedure SetSessionCookiePath(const AValue: String); virtual;
+    // When called, generates a new GUID. Override to retrieve GUID from cookie/URL/...
     Function GetSessionID : String; virtual;
+    // These must be overridden to actually store/retrieve variables.
     Function GetSessionVariable(VarName : String) : String; Virtual; abstract;
     procedure SetSessionVariable(VarName : String; const AValue: String);Virtual;abstract;
   Public
@@ -367,10 +378,19 @@ type
     Procedure InitResponse(AResponse : TResponse); virtual;
     // Update response from session (typically, change cookie to response and write session data).
     Procedure UpdateResponse(AResponse : TResponse); virtual; Abstract;
+    // Remove variable from list of variables.
     Procedure RemoveVariable(VariableName : String); virtual; abstract;
+    // Terminate session
     Procedure Terminate; virtual; abstract;
-    Property TimeOutMinutes : Integer Read FTimeOut Write FTimeOut;
+    // Session timeout in minutes
+    Property TimeOutMinutes : Integer Read FTimeOut Write FTimeOut default 15;
+    // ID of this session.
     Property SessionID : String Read GetSessionID;
+    // Name of cookie used when tracing session. (may or may not be used)
+    property SessionCookie : String Read FSessionCookie Write SetSessionCookie;
+    // Path of cookie used when tracing session. (may or may not be used)
+    Property SessionCookiePath : String Read FSessionCookiePath write SetSessionCookiePath;
+    // Variables, tracked in session.
     Property Variables[VarName : String] : String Read GetSessionVariable Write SetSessionVariable;
   end;
 
@@ -625,7 +645,6 @@ begin
   else
     case Index of
       0  : Result:=FHTTPVersion;
-      32 : Result:=FURL;
       36 : Result:=FHTTPXRequestedWith;
     else
       Result := '';
@@ -656,7 +675,6 @@ begin
       28 : ; // Property RemoteHost : String Index 28 read  GetFieldValue Write SetFieldValue;
       29 : ; // Property ScriptName : String Index 29 read  GetFieldValue Write SetFieldValue;
       30 : ; // Property ServerPort : Word Read GetServerPort; // Index 30
-      32 : FURL:=Value;
       36 : FHTTPXRequestedWith:=Value;
     end;
 end;
@@ -1006,14 +1024,29 @@ end;
 
 function TRequest.GetFieldValue(AIndex: integer): String;
 begin
-  if AIndex = 35 then // Content
-    begin
-    If Not FContentRead then
-      ReadContent;
-    Result:=FContent;
-    end
+  Case AIndex of
+    25 : Result:=FPathInfo;
+    31 : Result:=FCommand;
+    32 : Result:=FURI;
+    35 : begin
+         If Not FContentRead then
+           ReadContent;
+         Result:=FContent;
+         end
   else
     Result:=inherited GetFieldValue(AIndex);
+  end;
+end;
+
+procedure TRequest.SetFieldValue(Index: Integer; Value: String);
+begin
+  Case Index of
+    25 : FPathInfo:=Value;
+    31 : FCommand:=Value;
+    32 : FURI:=Value;
+  else
+    inherited SetFieldValue(Index, Value);
+  end
 end;
 
 function TRequest.GetFirstHeaderLine: String;
@@ -1695,6 +1728,16 @@ end;
 { TCustomSession }
 
 
+procedure TCustomSession.SetSessionCookie(const AValue: String);
+begin
+  FSessionCookie:=AValue;
+end;
+
+procedure TCustomSession.SetSessionCookiePath(const AValue: String);
+begin
+  FSessionCookiePath:=AValue;
+end;
+
 function TCustomSession.GetSessionID: String;
 
 Var
@@ -1708,7 +1751,7 @@ end;
 
 constructor TCustomSession.Create(AOwner: TComponent);
 begin
-  FTimeOut:=15;
+  FTimeOut:=DefaultTimeOut;
   inherited Create(AOwner);
 end;
 
@@ -1717,7 +1760,8 @@ begin
   // do nothing
 end;
 
-procedure TCustomSession.InitSession(ARequest: TRequest; OnNewSession,OnExpired : TNotifyEvent);
+procedure TCustomSession.InitSession(ARequest: TRequest; OnNewSession,
+  OnExpired: TNotifyEvent);
 begin
   // Do nothing
 end;

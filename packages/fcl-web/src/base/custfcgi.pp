@@ -789,15 +789,18 @@ Var
 
 begin
 {$ifndef windows}
-  Result:=fpaccept(Socket,psockaddr(@FIAddress),@FAddressLength);
+  repeat
+    Result:=fpaccept(Socket,nil,nil);
+  until ((result<>-1) or (SocketError<>ESysEINTR)) and not Terminated;
 {$else}
-  {$ifdef windowspipe}
+{$ifndef windowspipe}
+  Result:=fpaccept(Socket,Nil,nil);
+{$else windowspipe}
   if Not fIsWinPipe then
-  {$endif}
-    Result:=fpaccept(Socket,psockaddr(@FIAddress),@FAddressLength);
-  {$ifdef windowspipe}
+    Result:=fpaccept(Socket,Nil,Nil);
   If FIsWinPipe or ((Result<0) and (socketerror=10038)) then
     begin
+    Result:=-1;
     B:=ConnectNamedPipe(Socket,Nil);
     if B or (GetLastError=ERROR_PIPE_CONNECTED) then
        begin
@@ -811,7 +814,7 @@ begin
        FIsWinPipe:=True;
        end;
     end;
-   {$endif}
+{$endif}
 {$endif}
 end;
 
@@ -819,6 +822,7 @@ function TFCgiHandler.WaitForRequest(out ARequest: TRequest; out AResponse: TRes
 
 var
   AFCGI_Record  : PFCGI_Header;
+
 
 begin
   Result := False;
@@ -833,8 +837,11 @@ begin
     FHandle:=AcceptConnection;
   if FHandle=THandle(-1) then
     begin
-    Terminate;
-    raise Exception.CreateFmt(SNoInputHandle,[socketerror]);
+    if not terminated then
+      begin
+      Terminate;
+      raise Exception.CreateFmt(SNoInputHandle,[socketerror]);
+      end
     end;
   repeat
     If (poUseSelect in ProtocolOptions) then
