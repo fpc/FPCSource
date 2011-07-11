@@ -209,7 +209,7 @@ var
 { Get encoding id from environment variable PGCLIENTENCODING  }
   PQenv2encoding: function :longint;cdecl;
 
-Procedure InitialisePostgres3;
+Procedure InitialisePostgres3(libpath:string=pqlib);
 Procedure ReleasePostgres3;
 
 function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : pchar) : ppgconn;
@@ -218,21 +218,28 @@ var Postgres3LibraryHandle : TLibHandle;
 
 implementation
 
-var RefCount : integer;
+resourcestring
+  SErrLoadFailed     = 'Can not load PostgreSQL client library "%s". Check your installation.';
+  SErrAlreadyLoaded  = 'PostgreSQL interface already initialized from library %s.';
 
-Procedure InitialisePostgres3;
+var
+  RefCount : integer;
+  LoadedLibrary : String;
+
+Procedure InitialisePostgres3(libpath:string=pqlib);
 
 begin
   inc(RefCount);
   if RefCount = 1 then
     begin
-    Postgres3LibraryHandle := loadlibrary(pqlib);
+    Postgres3LibraryHandle := loadlibrary(libpath);
     if Postgres3LibraryHandle = nilhandle then
       begin
       RefCount := 0;
-      Raise EInOutError.Create('Can not load PosgreSQL client. Is it installed? ('+pqlib+')');
+      Raise EInOutError.CreateFmt(SErrLoadFailed,[libpath]);
       end;
 
+    LoadedLibrary:=libpath;
     pointer(PQconnectStart) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectStart');
     pointer(PQconnectPoll) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectPoll');
     pointer(PQconnectdb) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectdb');
@@ -336,7 +343,13 @@ begin
     pointer(PQenv2encoding) := GetProcedureAddress(Postgres3LibraryHandle,'PQenv2encoding');
 
     InitialiseDllist;
-    end;
+    end
+  else
+    if (libpath<>pqlib) and (LoadedLibrary<>libpath) then
+      begin
+      Dec(RefCount);
+      Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
+      end;
 end;
 
 Procedure ReleasePostgres3;

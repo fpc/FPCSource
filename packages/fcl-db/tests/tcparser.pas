@@ -831,9 +831,24 @@ type
     procedure Test2RolesToUser;
   end;
 
+  { TTestGlobalParser }
+
+  TTestGlobalParser = Class(TTestSQLParser)
+  published
+    procedure TestEmpty;
+  end;
+
 implementation
 
 uses typinfo;
+
+{ TTestGlobalParser }
+
+procedure TTestGlobalParser.TestEmpty;
+begin
+  CreateParser('');
+  AssertNull('Empty statement returns nil',Parser.Parse);
+end;
 
 { --------------------------------------------------------------------
   TTestParser
@@ -7991,6 +8006,7 @@ initialization
                  TTestCreateTriggerParser,
                  TTestDeclareExternalFunctionParser,
                  TTestGrantParser,
-                 TTestRevokeParser]);
+                 TTestRevokeParser,
+                 TTestGlobalParser]);
 end.
 

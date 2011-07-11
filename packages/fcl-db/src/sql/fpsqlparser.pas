@@ -3758,6 +3758,10 @@ end;
 
 function TSQLParser.Parse: TSQLElement;
 begin
+  if CurrentToken=tsqlEOF then begin
+    Result:=nil;
+    Exit;
+  end;
   GetNextToken;
   Case CurrentToken of
     tsqlSelect : Result:=ParseSelectStatement(Nil,[]);
@@ -3775,6 +3779,7 @@ begin
     tsqlDeclare : Result:=ParseDeclareStatement(Nil);
     tsqlGrant : Result:=ParseGrantStatement(Nil);
     tsqlRevoke : Result:=ParseRevokeStatement(Nil);
+    tsqlEOF : Result:=nil;
   else
     UnexpectedToken;
   end;
