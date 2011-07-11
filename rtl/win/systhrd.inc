@@ -162,32 +162,6 @@ var
         dataindex : pointer;
         errorsave : dword;
       begin
-{$ifdef dummy}
-        { it least in the on windows 7 x64, this still doesn't not work, fs:(0x2c) is
-          self referencing on this system (FK)
-          MVC: It also does not work on Windows Vista 32-bit, Home Premium, SP 1. Results in a crash}
-        asm
-          movl TLSKey,%edx
-          movl %fs:(0x2c),%eax
-          orl  %eax,%eax
-          jnz  .LAddressInEAX
-          { this works on Windows 7, but I don't know if it works on other OSes (FK) }
-          movl %fs:(0x18),%eax
-          movl 0xe10(%eax,%edx,4),%eax
-          jmp  .LToDataIndex
-          .LAddressInEAX:
-           movl (%eax,%edx,4),%eax
-          .LToDataIndex:
-          movl %eax,dataindex
-        end;
-        if DataIndex=nil then
-          begin
-            errorsave:=GetLastError;
-            SysAllocateThreadVars;
-            DataIndex:=TlsGetValue(tlskey);
-            SetLastError(errorsave);
-          end;
-{$else win32}
         errorsave:=GetLastError;
         dataindex:=TlsGetValue(tlskey);
         if dataindex=nil then
@@ -197,7 +171,6 @@ var
             InitThread($1000000);
           end;
         SetLastError(errorsave);
-{$endif win32}
         SysRelocateThreadvar:=DataIndex+Offset;
       end;
 
@@ -548,12 +521,9 @@ begin
     SysInitMultithreading;
 {$IFDEF SUPPORT_WIN95}
   { Try to find TryEnterCriticalSection function }
-  KernelHandle:=LoadLibrary(KernelDLL);
+  KernelHandle:=GetModuleHandle(KernelDLL);
   if KernelHandle<>0 then
-    begin
-      WinTryEnterCriticalSection:=TTryEnterCriticalSection(GetProcAddress(KernelHandle,'TryEnterCriticalSection'));
-      FreeLibrary(KernelHandle);
-    end;
+    WinTryEnterCriticalSection:=TTryEnterCriticalSection(GetProcAddress(KernelHandle,'TryEnterCriticalSection'));
   if not assigned(WinTryEnterCriticalSection) then
     WinTryEnterCriticalSection:=@Win95TryEnterCriticalSection;
 {$ENDIF SUPPORT_WIN95}
