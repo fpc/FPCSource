@@ -47,6 +47,11 @@ begin
         begin
           AddUnit('ncurses');
         end;
+    T:=P.Targets.AddUnit('form.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('ncurses');
+        end;
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('t2menu.pp');

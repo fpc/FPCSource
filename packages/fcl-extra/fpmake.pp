@@ -18,9 +18,10 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.Dependencies.Add('fcl-base');
+    P.OSes:=AllWindowsOSes+AllUnixOSes;
     P.Dependencies.Add('winunits-jedi',[Win32,Win64]);
     P.Dependencies.Add('winunits-base',[Win32,Win64]);
-    P.Dependencies.Add('univint',[darwin]);
+    P.Dependencies.Add('univint',[darwin,iPhoneSim]);
 
     P.Author := '<various>';
     P.License := 'LGPL with modification, ';

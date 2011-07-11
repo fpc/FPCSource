@@ -28,6 +28,7 @@ begin
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('pastree.pp');
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('paswrite.pp');
       with T.Dependencies do
         begin
@@ -39,7 +40,9 @@ begin
           AddUnit('pastree');
           AddUnit('pscanner');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('pscanner.pp');
+    T.ResourceStrings := True;
 
 {$ifndef ALLPACKAGES}
     Run;

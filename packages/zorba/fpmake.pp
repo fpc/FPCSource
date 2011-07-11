@@ -33,6 +33,7 @@ begin
           AddInclude('zorba.inc');
           AddInclude('zorba_options.inc');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('zorba.pas');
       with T.Dependencies do
         begin

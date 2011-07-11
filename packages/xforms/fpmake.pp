@@ -26,8 +26,8 @@ begin
         begin
           AddInclude('cursorfont.inc');
         end;
+    T:=P.Targets.AddProgram('fd2pascal.pp');
 
-    
     P.Sources.AddSrc('README.txt');
 
     P.ExamplePath.Add('examples/');

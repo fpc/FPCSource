@@ -21,6 +21,7 @@ begin
 
     T:=P.Targets.AddUnit('regexpr.pp');
     T:=P.Targets.AddUnit('regex.pp');
+    T.ResourceStrings := True;
 
     P.ExamplePath.Add('tests');
     P.Targets.AddExampleProgram('testreg1.pp');

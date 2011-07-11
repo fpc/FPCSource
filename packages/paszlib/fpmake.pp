@@ -44,6 +44,7 @@ begin
       T.Dependencies.AddUnit('ziputils');
     T:=P.Targets.AddUnit('zipper.pp');
       T.Dependencies.AddUnit('paszlib');
+    T.ResourceStrings := True;
     T:=P.Targets.AddImplicitUnit('adler.pas');
       T.Dependencies.AddInclude('zconf.inc');
     T:=P.Targets.AddImplicitUnit('gzio.pas');
@@ -54,12 +55,14 @@ begin
     T:=P.Targets.AddImplicitUnit('infutil.pas');
     T:=P.Targets.AddImplicitUnit('trees.pas');
     T:=P.Targets.AddImplicitUnit('zbase.pas');
+    T.ResourceStrings := True;
     T:=P.Targets.AddImplicitUnit('zcompres.pas');
     T:=P.Targets.AddImplicitUnit('zdeflate.pas');
     T:=P.Targets.AddImplicitUnit('zinflate.pas');
     T:=P.Targets.AddImplicitUnit('zuncompr.pas');
     T:=P.Targets.AddImplicitUnit('ziputils.pas');
     T:=P.Targets.AddImplicitUnit('zstream.pp');
+    T.ResourceStrings := True;
     T:=P.Targets.AddExampleProgram('examples/example.pas');
     T:=P.Targets.AddExampleProgram('examples/minigzip.pas');
     T:=P.Targets.AddExampleProgram('examples/miniunz.pas');

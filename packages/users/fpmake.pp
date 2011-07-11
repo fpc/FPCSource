@@ -37,6 +37,7 @@ begin
           AddUnit('shadow',[linux]);
           AddUnit('grp');
         end;
+    T.ResourceStrings := true;
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testpass.pp');
