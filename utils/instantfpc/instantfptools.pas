@@ -4,10 +4,10 @@ unit InstantFPTools;
 
 {$define UseFpExecV}
 
-{$ifdef MSWINDOWS}
+{$ifdef WINDOWS}
   {$undef UseFpExecV}
   {$define HASEXEEXT}
-{$endif MSWINDOWS}
+{$endif WINDOWS}
 {$ifdef go32v2}
   {$undef UseFpExecV}
   {$define HASEXEEXT}
@@ -24,15 +24,21 @@ uses
 procedure CheckSourceName(const Filename: string);
 procedure CommentShebang(Src: TStringList);
 function GetCacheDir: string;
+procedure SetCacheDir(AValue : string);
 function IsCacheValid(Src: TStringList;
                       const CachedSrcFile, CachedExeFile: string): boolean;
 procedure Compile(const CacheFilename, OutputFilename: string);
 function GetCompiler: string;
+procedure SetCompiler(AValue : string); 
 function GetCompilerParameters(const SrcFilename, OutputFilename: string): string;
 procedure Run(const Filename: string);
 
 implementation
 
+Var
+  CmdCacheDir : String;
+  CmdCompiler : String;
+  
 procedure AddParam(p: string; var Line: string);
 begin
   if p='' then exit;
@@ -49,7 +55,7 @@ begin
   // avoid name clashes
   Ext:=lowercase(ExtractFileExt(Filename));
   if (Ext<>'') and (Ext<>'.pas') and (Ext<>'.pp') and (Ext<>'.p')
-  and (Ext<>'.lpr') and (Ext<>'.txt') and (Ext<>'.sh')
+  and (Ext<>'.lpr') and (Ext<>'.txt') and (Ext<>'.sh') and (Ext<>'.cgi')
   then begin
     writeln('invalid source extension ',Ext);
     Halt(1);
@@ -71,14 +77,26 @@ begin
   Src[0]:=copy(Line,1,i-1)+'//'+copy(Line,i,length(Line));
 end;
 
+
+procedure SetCacheDir(AValue : string);
+
+begin
+  CmdCacheDir:=AValue;
+end;
+
 function GetCacheDir: string;
 begin
-  Result:=GetEnvironmentVariable('INSTANTFPCCACHE');
-  if Result='' then begin
-    Result:=GetEnvironmentVariable('HOME');
-    if Result<>'' then
-      Result:=IncludeTrailingPathDelimiter(Result)+'.cache'+PathDelim+'instantfpc';
-  end;
+  Result:=CmdCacheDir;
+  if (Result='') then 
+    begin
+    Result:=GetEnvironmentVariable('INSTANTFPCCACHE');
+    if Result='' then 
+      begin
+      Result:=GetEnvironmentVariable('HOME');
+      if Result<>'' then
+        Result:=IncludeTrailingPathDelimiter(Result)+'.cache'+PathDelim+'instantfpc';
+      end;
+    end;  
   if Result='' then begin
     writeln('missing environment variable: HOME or INSTANTFPCCACHE');
     Halt(1);
@@ -113,9 +131,14 @@ begin
   {$ENDIF}
 end;
 
+procedure SetCompiler(AValue : string); 
+
+begin
+  CmdCompiler:=AValue;
+end;
+
 function GetCompiler: string;
-const
-  CompilerParam = '--compiler=';
+
 var
   Path: String;
   p: Integer;
@@ -124,28 +147,28 @@ var
   CompFile: String;
   i: Integer;
   Param: String;
+  
 begin
-  for i:=1 to Paramcount do begin
-    Param:=ParamStr(i);
-    if (Param='') or (Param[1]<>'-') then break;
-    if copy(Param,1,length(CompilerParam))=CompilerParam then begin
-      CompFile:=copy(Param,length(CompilerParam)+1,length(Param));
-      Result:=ExpandFileName(CompFile);
-      if not FileExists(Result) then begin
-        writeln('Error: '+CompFile+' not found, check the ',CompilerParam,' parameter.');
-        Halt(1);
+  Result:=CmdCompiler;
+  if (Result<>'') then
+    begin
+    Result:=ExpandFileName(Result);
+    if not FileExists(Result) then 
+      begin
+      writeln('Error: '+Result+' not found, check the --compiler parameter.');
+      Halt(1);
       end;
-      exit;
+    exit;
     end;
-  end;
 
   {$IFDEF Windows}
   CompFile:='fpc.exe';
   {$ELSE}
   CompFile:='fpc';
   {$ENDIF}
+  Result:=ExeSearch(CompFile);
   Path:=GetEnvironmentVariable('PATH');
-  if PATH<>'' then begin
+{  if PATH<>'' then begin
     p:=1;
     while p<=length(Path) do begin
       StartPos:=p;
@@ -158,8 +181,12 @@ begin
       inc(p);
     end;
   end;
-  writeln('Error: '+CompFile+' not found in PATH');
-  Halt(1);
+}
+  if (Result='') then
+    begin
+    writeln('Error: '+CompFile+' not found in PATH');
+    Halt(1);
+    end;
 end;
 
 procedure Compile(const CacheFilename, OutputFilename: string);
@@ -204,13 +231,17 @@ function GetCompilerParameters(const SrcFilename, OutputFilename: string): strin
 }
 var
   p: String;
+  i : integer;
 begin
   Result:='';
-  if (Paramcount>0) then begin
-    p:=ParamStr(1);
-    if (p<>'') and (p[1]='-') then
-      Result:=p; // copy compile params from the script
-  end;
+  I:=1;
+  While (I<=ParamCount) and (Copy(ParamStr(i),1,1)='-') do
+    begin
+    p:=ParamStr(i);
+    if (Copy(p,1,1)='-') and (copy(p,1,2)<>'--') then
+      AddParam(P,Result);
+    inc(I);  
+    end;
   AddParam('-o'+OutputFilename {$IFDEF HASEXEEXT} + '.exe' {$ENDIF},Result);
   AddParam(SrcFilename,Result);
 end;
