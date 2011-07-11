@@ -946,5 +946,7 @@ Begin
 End; {mdtdtr}
 
 Begin
+ {$ifdef fixate_random}
   randseed := 12345
+ {$endif}
 End.

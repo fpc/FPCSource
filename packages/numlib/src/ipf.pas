@@ -578,7 +578,7 @@ begin
     begin
       q:=1/h^[i-1]; b^[i-2]:=py^[i]*q-py^[i-1]*(p+q)+py^[i-2]*p; p:=q
     end;
-  slegpb(n-1, 1, {2,} t^[0], b^[0], pd2s^[1], ca, term);
+  slegpb(n-1, 1, {2,} t^[1], b^[0], pd2s^[1], ca, term);
   freemem(h, n*s);
   freemem(b, (n-1)*s);
   freemem(t, 2*(n-1)*s);

@@ -167,7 +167,7 @@ const
   MSG_NOTIFICATION = $0100;           { Notification, not data }
   MSG_XPG4_2       = $8000;	      { Private: XPG4.2 flag }
   MSG_MAXIOVLEN    =    16;
-  
+ 
      TCP_NODELAY = $01;
   { set maximum segment size  }
      TCP_MAXSEG = $02;
@@ -183,3 +183,223 @@ const
      TCP_KEEPALIVE_ABORT_THRESHOLD = $17;
      TCP_CORK = $18;
 
+//from /usr/include/netinet/in.h
+
+    IPPROTO_IP = 0;    
+  { Hop by hop header for IPv6  }
+    IPPROTO_HOPOPTS = 0;    
+  { control message protocol  }
+    IPPROTO_ICMP = 1;    
+  { group control protocol  }
+    IPPROTO_IGMP = 2;    
+  { gateway^2 (deprecated)  }
+    IPPROTO_GGP = 3;    
+  { IP in IP encapsulation  }
+    IPPROTO_ENCAP = 4;    
+  { tcp  }
+    IPPROTO_TCP = 6;    
+  { exterior gateway protocol  }
+    IPPROTO_EGP = 8;    
+  { pup  }
+    IPPROTO_PUP = 12;    
+  { user datagram protocol  }
+    IPPROTO_UDP = 17;    
+  { xns idp  }
+    IPPROTO_IDP = 22;    
+  { IPv6 encapsulated in IP  }
+    IPPROTO_IPV6 = 41;    
+  { Routing header for IPv6  }
+    IPPROTO_ROUTING = 43;    
+  { Fragment header for IPv6  }
+    IPPROTO_FRAGMENT = 44;    
+  { rsvp  }
+    IPPROTO_RSVP = 46;    
+  { IPsec Encap. Sec. Payload  }
+    IPPROTO_ESP = 50;    
+  { IPsec Authentication Hdr.  }
+    IPPROTO_AH = 51;    
+  { ICMP for IPv6  }
+    IPPROTO_ICMPV6 = 58;    
+  { No next header for IPv6  }
+    IPPROTO_NONE = 59;    
+  { Destination options  }
+    IPPROTO_DSTOPTS = 60;    
+  { "hello" routing protocol  }
+    IPPROTO_HELLO = 63;    
+  { UNOFFICIAL net disk proto  }
+    IPPROTO_ND = 77;    
+  { ISO clnp  }
+    IPPROTO_EON = 80;    
+  { OSPF  }
+    IPPROTO_OSPF = 89;    
+  { PIM routing protocol  }
+    IPPROTO_PIM = 103;    
+  { Stream Control  }
+    IPPROTO_SCTP = 132;    
+  { Transmission Protocol  }
+  { raw IP packet  }
+    IPPROTO_RAW = 255;    
+    IPPROTO_MAX = 256;    
+
+    
+  { set/get IP per-packet options    }
+    IP_OPTIONS = 1;    
+  { int; header is included with data (raw)  }
+    IP_HDRINCL = 2;    
+  { int; IP type of service and precedence  }
+    IP_TOS = 3;    
+
+  { int; IP time to live  }
+    IP_TTL = 4;    
+  { int; receive all IP options w/datagram  }
+    IP_RECVOPTS = $5;    
+  { int; receive IP options for response  }
+    IP_RECVRETOPTS = $6;    
+  { int; receive IP dst addr w/datagram  }
+    IP_RECVDSTADDR = $7;    
+  { ip_opts; set/get IP per-packet options  }
+    IP_RETOPTS = $8;    
+  { int; receive the inbound interface index  }
+    IP_RECVIF = $9;    
+  { sockaddr_dl; get source link layer address  }
+    IP_RECVSLLA = $a;    
+  { uint8_t; get TTL for inbound packet  }
+    IP_RECVTTL = $b;    
+  { set/get IP multicast interface   }
+    IP_MULTICAST_IF = $10;    
+  { set/get IP multicast timetolive  }
+    IP_MULTICAST_TTL = $11;    
+  { set/get IP multicast loopback    }
+    IP_MULTICAST_LOOP = $12;    
+  { add	an IP group membership	    }
+    IP_ADD_MEMBERSHIP = $13;    
+  { drop an IP group membership	    }
+    IP_DROP_MEMBERSHIP = $14;    
+  { block   mcast pkts from source   }
+    IP_BLOCK_SOURCE = $15;    
+  { unblock mcast pkts from source   }
+    IP_UNBLOCK_SOURCE = $16;    
+  { add  mcast group/source pair	    }
+    IP_ADD_SOURCE_MEMBERSHIP = $17;    
+  { drop mcast group/source pair	    }
+    IP_DROP_SOURCE_MEMBERSHIP = $18;    
+  { send directly to next hop	    }
+    IP_NEXTHOP = $19;    
+  {
+   * IP_PKTINFO and IP_RECVPKTINFO have same value. Size of argument passed in
+   * is used to differentiate b/w the two.
+    }
+  { specify src address and/or index  }
+    IP_PKTINFO = $1a;    
+  { recv dest/matched addr and index  }
+    IP_RECVPKTINFO = $1a;    
+    {
+     * IPv6 options
+      }
+    { hop limit value for unicast  }
+      IPV6_UNICAST_HOPS = $5;      
+    { packets.  }
+    { argument type: uint_t  }
+    { outgoing interface for  }
+      IPV6_MULTICAST_IF = $6;      
+    { multicast packets.  }
+    { argument type: struct in6_addr  }
+    { hop limit value to use for  }
+      IPV6_MULTICAST_HOPS = $7;      
+    { multicast packets.  }
+    { argument type: uint_t  }
+    { enable/disable delivery of  }
+      IPV6_MULTICAST_LOOP = $8;      
+    { multicast packets on same socket.  }
+    { argument type: uint_t  }
+    { join an IPv6 multicast group.  }
+      IPV6_JOIN_GROUP = $9;      
+    { argument type: struct ipv6_mreq  }
+    { leave an IPv6 multicast group  }
+      IPV6_LEAVE_GROUP = $a;      
+    { argument type: struct ipv6_mreq  }
+    {
+     * IPV6_ADD_MEMBERSHIP and IPV6_DROP_MEMBERSHIP are being kept
+     * for backward compatibility. They have the same meaning as IPV6_JOIN_GROUP
+     * and IPV6_LEAVE_GROUP respectively.
+      }
+    { join an IPv6 multicast group.  }
+      IPV6_ADD_MEMBERSHIP = $9;      
+    { argument type: struct ipv6_mreq  }
+    { leave an IPv6 multicast group  }
+      IPV6_DROP_MEMBERSHIP = $a;      
+    { argument type: struct ipv6_mreq  }
+    { addr plus interface index  }
+      IPV6_PKTINFO = $b;      
+    { arg type: "struct in6_pktingo" -  }
+    { hoplimit for datagram  }
+      IPV6_HOPLIMIT = $c;      
+    { next hop address   }
+      IPV6_NEXTHOP = $d;      
+    { hop by hop options  }
+      IPV6_HOPOPTS = $e;      
+    { destination options - after  }
+      IPV6_DSTOPTS = $f;      
+    { the routing header  }
+    { routing header   }
+      IPV6_RTHDR = $10;      
+    { destination options - before  }
+      IPV6_RTHDRDSTOPTS = $11;      
+    { the routing header  }
+    { enable/disable IPV6_PKTINFO  }
+      IPV6_RECVPKTINFO = $12;      
+    { enable/disable IPV6_HOPLIMIT  }
+      IPV6_RECVHOPLIMIT = $13;      
+    { enable/disable IPV6_HOPOPTS  }
+      IPV6_RECVHOPOPTS = $14;      
+    {
+     * This options exists for backwards compatability and should no longer be
+     * used.  Use IPV6_RECVDSTOPTS instead.
+      }
+      _OLD_IPV6_RECVDSTOPTS = $15;      
+    { enable/disable IPV6_RTHDR  }
+      IPV6_RECVRTHDR = $16;      
+    {
+     * enable/disable IPV6_RTHDRDSTOPTS.  Now obsolete.  IPV6_RECVDSTOPTS enables
+     * the receipt of both headers.
+      }
+      IPV6_RECVRTHDRDSTOPTS = $17;      
+    { Control checksum on raw sockets  }
+      IPV6_CHECKSUM = $18;      
+    { enable/disable IPV6_CLASS  }
+      IPV6_RECVTCLASS = $19;      
+    { send packets with minimum MTU  }
+      IPV6_USE_MIN_MTU = $20;      
+    { don't fragment packets  }
+      IPV6_DONTFRAG = $21;      
+    { Used to set IPSEC options  }
+      IPV6_SEC_OPT = $22;      
+    { Control socket's src addr select  }
+      IPV6_SRC_PREFERENCES = $23;      
+    { receive PMTU info  }
+      IPV6_RECVPATHMTU = $24;      
+    { get the PMTU  }
+      IPV6_PATHMTU = $25;      
+    { traffic class  }
+      IPV6_TCLASS = $26;      
+    { v6 only socket option  }
+      IPV6_V6ONLY = $27;      
+    {
+     * enable/disable receipt of both both IPV6_DSTOPTS headers.
+      }
+      IPV6_RECVDSTOPTS = $28;      
+    {
+     * protocol-independent multicast membership options.
+      }
+    { join group for all sources  }
+      MCAST_JOIN_GROUP = $29;      
+    { leave group  }
+      MCAST_LEAVE_GROUP = $2a;      
+    { block specified source  }
+      MCAST_BLOCK_SOURCE = $2b;      
+    { unblock specified source  }
+      MCAST_UNBLOCK_SOURCE = $2c;      
+    { join group for specified source  }
+      MCAST_JOIN_SOURCE_GROUP = $2d;      
+    { leave source/group pair  }
+      MCAST_LEAVE_SOURCE_GROUP = $2e;      

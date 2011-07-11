@@ -31,7 +31,7 @@ procedure DrawFPVTextToCanvas(ASource: TvVectorialDocument; CurText: TvText;
 implementation
 
 {$ifndef Windows}
-{$define FPVECTORIALDEBUG}
+{.$define FPVECTORIAL_TOCANVAS_DEBUG}
 {$endif}
 
 function Rotate2DPoint(P,Fix :TPoint; alpha:double): TPoint;
@@ -112,6 +112,10 @@ begin
 
   for i := 0 to ASource.GetEntitiesCount - 1 do
   begin
+    {$ifdef FPVECTORIAL_TOCANVAS_DEBUG}
+    Write(Format('[Path] ID=%d', [i]));
+    {$endif}
+
     CurEntity := ASource.GetEntity(i);
 
     if CurEntity is TPath then DrawFPVPathToCanvas(ASource, TPath(CurEntity), ADest, ADestX, ADestY, AMulX, AMulY)
@@ -119,7 +123,7 @@ begin
     else DrawFPVEntityToCanvas(ASource, CurEntity, ADest, ADestX, ADestY, AMulX, AMulY);
   end;
 
-  {$ifdef FPVECTORIALDEBUG}
+  {$ifdef FPVECTORIAL_TOCANVAS_DEBUG}
   WriteLn(':<DrawFPVectorialToCanvas');
   {$endif}
 end;
@@ -140,7 +144,8 @@ procedure DrawFPVPathToCanvas(ASource: TvVectorialDocument; CurPath: TPath;
 
 var
   j, k: Integer;
-  PosX, PosY: Integer; // Not modified by ADestX, etc
+  PosX, PosY: Double; // Not modified by ADestX, etc
+  CoordX, CoordY: Integer;
   CurSegment: TPathSegment;
   Cur2DSegment: T2DSegment absolute CurSegment;
   Cur2DBSegment: T2DBezierSegment absolute CurSegment;
@@ -164,10 +169,6 @@ begin
   ADest.Pen.FPColor := CurPath.Pen.Color;
   ADest.Brush.FPColor := CurPath.Brush.Color;
 
-  {$ifdef FPVECTORIAL_TOCANVAS_DEBUG}
-  Write(Format('[Path] ID=%d', [i]));
-  {$endif}
-
   for j := 0 to CurPath.Len - 1 do
   begin
     //WriteLn('j = ', j);
@@ -176,9 +177,13 @@ begin
     case CurSegment.SegmentType of
     stMoveTo:
     begin
-      ADest.MoveTo(CoordToCanvasX(Cur2DSegment.X), CoordToCanvasY(Cur2DSegment.Y));
+      CoordX := CoordToCanvasX(Cur2DSegment.X);
+      CoordY := CoordToCanvasY(Cur2DSegment.Y);
+      ADest.MoveTo(CoordX, CoordY);
+      PosX := Cur2DSegment.X;
+      PosY := Cur2DSegment.Y;
       {$ifdef FPVECTORIAL_TOCANVAS_DEBUG}
-      Write(Format(' M%d,%d', [CoordToCanvasX(Cur2DSegment.X), CoordToCanvasY(Cur2DSegment.Y)]));
+      Write(Format(' M%d,%d', [CoordY, CoordY]));
       {$endif}
     end;
     // This element can override temporarely the Pen
@@ -186,7 +191,11 @@ begin
     begin
       ADest.Pen.FPColor := T2DSegmentWithPen(Cur2DSegment).Pen.Color;
 
-      ADest.LineTo(CoordToCanvasX(Cur2DSegment.X), CoordToCanvasY(Cur2DSegment.Y));
+      CoordX := CoordToCanvasX(Cur2DSegment.X);
+      CoordY := CoordToCanvasY(Cur2DSegment.Y);
+      ADest.LineTo(CoordX, CoordY);
+      PosX := Cur2DSegment.X;
+      PosY := Cur2DSegment.Y;
 
       ADest.Pen.FPColor := CurPath.Pen.Color;
 
@@ -196,9 +205,13 @@ begin
     end;
     st2DLine, st3DLine:
     begin
-      ADest.LineTo(CoordToCanvasX(Cur2DSegment.X), CoordToCanvasY(Cur2DSegment.Y));
+      CoordX := CoordToCanvasX(Cur2DSegment.X);
+      CoordY := CoordToCanvasY(Cur2DSegment.Y);
+      ADest.LineTo(CoordX, CoordY);
+      PosX := Cur2DSegment.X;
+      PosY := Cur2DSegment.Y;
       {$ifdef FPVECTORIAL_TOCANVAS_DEBUG}
-      Write(Format(' L%d,%d', [CoordToCanvasX(Cur2DSegment.X), CoordToCanvasY(Cur2DSegment.Y)]));
+      Write(Format(' L%d,%d', [CoordX, CoordY]));
       {$endif}
     end;
     { To draw a bezier we need to divide the interval in parts and make
@@ -206,8 +219,8 @@ begin
     st2DBezier, st3DBezier:
     begin
       CurveLength :=
-        Round(sqrt(sqr(Cur2DBSegment.X3 - PosX) + sqr(Cur2DBSegment.Y3 - PosY))) +
-        Round(sqrt(sqr(Cur2DBSegment.X2 - Cur2DBSegment.X3) + sqr(Cur2DBSegment.Y2 - Cur2DBSegment.Y3))) +
+        Round(sqrt(sqr(Cur2DBSegment.X2 - PosX) + sqr(Cur2DBSegment.Y2 - PosY))) +
+        Round(sqrt(sqr(Cur2DBSegment.X3 - Cur2DBSegment.X2) + sqr(Cur2DBSegment.Y3 - Cur2DBSegment.Y2))) +
         Round(sqrt(sqr(Cur2DBSegment.X - Cur2DBSegment.X3) + sqr(Cur2DBSegment.Y - Cur2DBSegment.Y3)));
 
       for k := 1 to CurveLength do
@@ -215,10 +228,23 @@ begin
         t := k / CurveLength;
         CurX := Round(sqr(1 - t) * (1 - t) * PosX + 3 * t * sqr(1 - t) * Cur2DBSegment.X2 + 3 * t * t * (1 - t) * Cur2DBSegment.X3 + t * t * t * Cur2DBSegment.X);
         CurY := Round(sqr(1 - t) * (1 - t) * PosY + 3 * t * sqr(1 - t) * Cur2DBSegment.Y2 + 3 * t * t * (1 - t) * Cur2DBSegment.Y3 + t * t * t * Cur2DBSegment.Y);
-        ADest.LineTo(CoordToCanvasX(CurX), CoordToCanvasY(CurY));
+        CoordX := CoordToCanvasX(CurX);
+        CoordY := CoordToCanvasY(CurY);
+        ADest.LineTo(CoordX, CoordY);
+//        {$ifdef FPVECTORIAL_TOCANVAS_DEBUG}
+//        Write(Format(' CL%d,%d', [CoordX, CoordY]));
+//        {$endif}
       end;
-      PosX := Round(Cur2DBSegment.X);
-      PosY := Round(Cur2DBSegment.Y);
+      PosX := Cur2DSegment.X;
+      PosY := Cur2DSegment.Y;
+
+      {$ifdef FPVECTORIAL_TOCANVAS_DEBUG}
+      Write(Format(' ***C%d,%d %d,%d %d,%d %d,%d',
+        [CoordToCanvasX(PosX), CoordToCanvasY(PosY),
+         CoordToCanvasX(Cur2DBSegment.X2), CoordToCanvasY(Cur2DBSegment.Y2),
+         CoordToCanvasX(Cur2DBSegment.X3), CoordToCanvasY(Cur2DBSegment.Y3),
+         CoordToCanvasX(Cur2DBSegment.X), CoordToCanvasY(Cur2DBSegment.Y)]));
+      {$endif}
     end;
     end;
   end;
