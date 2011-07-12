@@ -100,7 +100,7 @@ Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
 Function DeleteFile (Const FileName : String) : Boolean;
 Function RenameFile (Const OldName, NewName : String) : Boolean;
 
-Function FileSearch (Const Name, DirList : String; Options : TFileSearchoptions = []) : String;
+Function FileSearch (Const Name, DirList : String; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : String;
 Function FileSearch (Const Name, DirList : String; ImplicitCurrentDir : Boolean) : String;
 Function ExeSearch  (Const Name : String; Const DirList : String = '') : String;
 Function FileIsReadOnly(const FileName: String): Boolean;
