@@ -102,7 +102,7 @@ Type
 
   TLogEvent = Procedure (Level : TVerboseLevel; Const Msg : String) of Object;
 
-  TRunMode = (rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmManifest);
+  TRunMode = (rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmDistClean,rmManifest);
 
 Const
   // Aliases
@@ -854,7 +854,8 @@ Type
     Procedure Install(APackage : TPackage);
     Procedure Archive(APackage : TPackage);
     Procedure Manifest(APackage : TPackage);
-    Procedure Clean(APackage : TPackage);
+    Procedure Clean(APackage : TPackage; AllTargets: boolean);
+    Procedure Clean(APackage : TPackage; ACPU:TCPU; AOS : TOS);
     Procedure CompileDependencies(APackage : TPackage);
     Function  CheckExternalPackage(Const APackageName : String):TPackage;
     procedure CreateOutputDir(APackage: TPackage);
@@ -863,7 +864,7 @@ Type
     Procedure Install(Packages : TPackages);
     Procedure Archive(Packages : TPackages);
     procedure Manifest(Packages: TPackages);
-    Procedure Clean(Packages : TPackages);
+    Procedure Clean(Packages : TPackages; AllTargets: boolean);
     Property ListMode : Boolean Read FListMode Write FListMode;
     Property ForceCompile : Boolean Read FForceCompile Write FForceCompile;
     Property ExternalPackages: TPackages Read FExternalPackages;
@@ -903,7 +904,7 @@ Type
     Procedure AnalyzeOptions;
     Procedure Usage(const FMT : String; Args : Array of const);
     Procedure Compile(Force : Boolean); virtual;
-    Procedure Clean; virtual;
+    Procedure Clean(AllTargets: boolean); virtual;
     Procedure Install; virtual;
     Procedure Archive; virtual;
     Procedure Manifest; virtual;
@@ -2329,8 +2330,8 @@ Var
   OB,OU : String;
   I : Integer;
 begin
-  OB:=IncludeTrailingPathDelimiter(GetBinOutputDir(Defaults.CPU,Defaults.OS));
-  OU:=IncludeTrailingPathDelimiter(GetUnitsOutputDir(Defaults.CPU,Defaults.OS));
+  OB:=IncludeTrailingPathDelimiter(GetBinOutputDir(ACPU,AOS));
+  OU:=IncludeTrailingPathDelimiter(GetUnitsOutputDir(ACPU,AOS));
   AddConditionalStrings(List,CleanFiles,ACPU,AOS);
   For I:=0 to FTargets.Count-1 do
     FTargets.TargetItems[I].GetCleanFiles(List, OU, OB, ACPU, AOS);
@@ -3297,6 +3298,8 @@ begin
       FRunMode:=rmInstall
     else if CheckCommand(I,'c','clean') then
       FRunMode:=rmClean
+    else if CheckCommand(I,'dc','distclean') then
+      FRunMode:=rmDistClean
     else if CheckCommand(I,'a','archive') then
       FRunMode:=rmarchive
     else if CheckCommand(I,'M','manifest') then
@@ -3418,9 +3421,9 @@ begin
 end;
 
 
-procedure TCustomInstaller.Clean;
+procedure TCustomInstaller.Clean(AllTargets: boolean);
 begin
-  BuildEngine.Clean(Packages);
+  BuildEngine.Clean(Packages, AllTargets);
 end;
 
 
@@ -3463,7 +3466,8 @@ begin
       rmBuild   : Compile(True);
       rmInstall : Install;
       rmArchive : Archive;
-      rmClean    : Clean;
+      rmClean    : Clean(False);
+      rmDistClean: Clean(True);
       rmManifest : Manifest;
     end;
   except
@@ -4980,52 +4984,71 @@ begin
 end;
 
 
-procedure TBuildEngine.Clean(APackage: TPackage);
-Var
-  List : TStringList;
-  DirectoryList : TStringList;
+procedure TBuildEngine.Clean(APackage: TPackage; AllTargets: boolean);
+var
+  ACPU: TCpu;
+  AOS: TOS;
 begin
   Log(vlInfo,SInfoCleaningPackage,[APackage.Name]);
   try
     If (APackage.Directory<>'') then
       EnterDir(APackage.Directory);
     DoBeforeClean(Apackage);
-    List:=TStringList.Create;
-    try
-      List.Add(APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS) + PathDelim + UnitConfigFile);
-      APackage.GetCleanFiles(List,Defaults.CPU,Defaults.OS);
-      if (List.Count>0) then
-        begin
-        CmdDeleteFiles(List);
-        DirectoryList := TStringList.Create;
-        try
-          GetDirectoriesFromFilelist(List,DirectoryList);
-          CmdRemoveDirs(DirectoryList);
-
-          DirectoryList.Clear;
-          if DirectoryExists(APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)) then
-            DirectoryList.Add(APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS));
-          if DirectoryExists(APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)) then
-            DirectoryList.Add(APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS));
-          CmdRemoveDirs(DirectoryList);
-
-          DirectoryList.Clear;
-          if DirectoryExists(ExtractFileDir(APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS))) then
-            DirectoryList.Add(ExtractFileDir(APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)));
-          if DirectoryExists(ExtractFileDir(APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS))) then
-            DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)));
-          CmdRemoveDirs(DirectoryList);
-        finally
-          DirectoryList.Free;
-        end;
-        end;
-    Finally
-      List.Free;
-    end;
+    if AllTargets then
+      begin
+        for ACPU:=low(TCpu) to high(TCpu) do
+          for AOS:=low(TOS) to high(TOS) do
+            begin
+              if FileExists(APackage.GetUnitsOutputDir(ACPU,AOS)) or
+                 FileExists(APackage.GetBinOutputDir(ACPU,AOS)) then
+                Clean(APackage,ACPU,AOS);
+            end;
+      end
+    else
+      Clean(APackage, Defaults.CPU, Defaults.OS);
     DoAfterClean(Apackage);
   Finally
     If (APackage.Directory<>'') then
       EnterDir('');
+  end;
+end;
+
+procedure TBuildEngine.Clean(APackage: TPackage; ACPU: TCPU; AOS: TOS);
+Var
+  List : TStringList;
+  DirectoryList : TStringList;
+begin
+  List:=TStringList.Create;
+  try
+    List.Add(APackage.GetUnitsOutputDir(ACPU,AOS) + PathDelim + UnitConfigFile);
+    APackage.GetCleanFiles(List,ACPU,AOS);
+    if (List.Count>0) then
+      begin
+      CmdDeleteFiles(List);
+      DirectoryList := TStringList.Create;
+      try
+        GetDirectoriesFromFilelist(List,DirectoryList);
+        CmdRemoveDirs(DirectoryList);
+
+        DirectoryList.Clear;
+        if DirectoryExists(APackage.GetBinOutputDir(ACPU,AOS)) then
+          DirectoryList.Add(APackage.GetBinOutputDir(ACPU,AOS));
+        if DirectoryExists(APackage.GetUnitsOutputDir(ACPU,AOS)) then
+          DirectoryList.Add(APackage.GetUnitsOutputDir(ACPU,AOS));
+        CmdRemoveDirs(DirectoryList);
+
+        DirectoryList.Clear;
+        if DirectoryExists(ExtractFileDir(APackage.GetBinOutputDir(ACPU,AOS))) then
+          DirectoryList.Add(ExtractFileDir(APackage.GetBinOutputDir(ACPU,AOS)));
+        if DirectoryExists(ExtractFileDir(APackage.GetUnitsOutputDir(ACPU,AOS))) then
+          DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(ACPU,AOS)));
+        CmdRemoveDirs(DirectoryList);
+      finally
+        DirectoryList.Free;
+      end;
+      end;
+  Finally
+    List.Free;
   end;
 end;
 
@@ -5132,7 +5155,7 @@ begin
 end;
 
 
-procedure TBuildEngine.Clean(Packages: TPackages);
+procedure TBuildEngine.Clean(Packages: TPackages; AllTargets: boolean);
 Var
   I : Integer;
   P : TPackage;
@@ -5144,7 +5167,7 @@ begin
     begin
     P:=Packages.PackageItems[i];
     If PackageOK(P) then
-      Clean(P);
+      Clean(P, AllTargets);
     log(vlWarning, SWarnCleanPackagecomplete, [P.Name]);
     end;
   If Assigned(AfterClean) then
