@@ -8,7 +8,7 @@ version=2.5.1
 
 [require]
 libc=n
-packages=fcl-image
+packages=fcl-image fcl-base
 
 [target]
 units=fpvectbuildunit

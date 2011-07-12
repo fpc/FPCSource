@@ -26,6 +26,7 @@ begin
     P.NeedLibC:= true;
 
     P.Dependencies.Add('fcl-image');
+    P.Dependencies.Add('fcl-base');
 
     P.SourcePath.Add('src');
 
