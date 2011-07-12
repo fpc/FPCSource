@@ -10,12 +10,12 @@ uses
 var
   dll1, dll2: HModule;
 
-function T1(Parameter: Pointer): LongInt;
+function T1(Parameter: Pointer): PtrInt;
 begin
   //Sleep(100);
 end;
 
-function T2(Parameter: Pointer): LongInt;
+function T2(Parameter: Pointer): PtrInt;
 begin
   //Sleep(100);
 end;
