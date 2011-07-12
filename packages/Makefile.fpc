@@ -166,11 +166,11 @@ fcl-image_smart: fcl-base_smart paszlib_smart pasjpeg_smart
 fcl-image_release: fcl-base_release paszlib_release pasjpeg_release
 fcl-image_shared: fcl-base_shared paszlib_shared pasjpeg_shared
 
-fpvectorial_all: fcl-image_all  
-fpvectorial_debug: fcl-image_debug  
-fpvectorial_smart: fcl-image_smart  
-fpvectorial_release: fcl-image_release 
-fpvectorial_shared: fcl-image_shared  
+fpvectorial_all: fcl-image_all fcl-base_all
+fpvectorial_debug: fcl-image_debug fcl-base_debug
+fpvectorial_smart: fcl-image_smart fcl-base_all
+fpvectorial_release: fcl-image_release fcl-base_release 
+fpvectorial_shared: fcl-image_shared fcl-base_shared
 
 fcl-fpcunit_all: fcl-xml_all paszlib_all
 fcl-fpcunit_debug: fcl-xml_debug paszlib_debug
