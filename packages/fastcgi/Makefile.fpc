@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for FastCGI
+#   Makefile.fpc for running fpmake
 #
 
 [package]
@@ -44,6 +44,9 @@ debug:	fpmake
 	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o -dDEBUG
 clean:	
 	$(FPMAKE_BIN_CLEAN) clean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
+distclean:	
+	$(FPMAKE_BIN_CLEAN) distclean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
+	-$(DEL) $(LOCALFPMAKE)
 install:	fpmake
 ifdef UNIXHier
 	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX)
@@ -54,5 +57,3 @@ endif
 # Normally distinstall also installs the examples, but in this case there are
 # none.
 distinstall:	install
-distclean:	clean
-	-$(DEL) $(LOCALFPMAKE)
