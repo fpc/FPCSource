@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for running fpmake
+#   Makefile.fpc for TDataSet for FCL
 #
 
 [package]
@@ -55,5 +55,4 @@ endif
 # none.
 distinstall:	install
 distclean:	clean
-fpmakeclean:	clean
 	-$(DEL) $(LOCALFPMAKE)
