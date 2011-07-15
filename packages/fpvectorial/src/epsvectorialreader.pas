@@ -15,6 +15,7 @@ unit epsvectorialreader;
 {.$define FPVECTORIALDEBUG_PATHS}
 {.$define FPVECTORIALDEBUG_COLORS}
 {.$define FPVECTORIALDEBUG_ROLL}
+{.$define FPVECTORIALDEBUG_CODEFLOW}
 
 interface
 
@@ -96,6 +97,8 @@ type
     ExitCalled: Boolean;
     CurrentGraphicState: TGraphicState;
     //
+    procedure DebugStack();
+    //
     procedure RunPostScript(ATokens: TPsTokens; AData: TvVectorialDocument);
     //
     procedure ExecuteProcedureToken(AToken: TProcedureToken; AData: TvVectorialDocument);
@@ -114,7 +117,7 @@ type
     function  ExecuteStringOperator(AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
     //
     procedure PostScriptCoordsToFPVectorialCoords(AParam1, AParam2: TPSToken; var APosX, APosY: Double);
-    procedure DictionarySubstituteOperator(ADictionary: TStringList; var ACurToken: TPSToken);
+    function DictionarySubstituteOperator(ADictionary: TStringList; var ACurToken: TPSToken): Boolean;
   public
     { General reading methods }
     Tokenizer: TPSTokenizer;
@@ -124,6 +127,10 @@ type
   end;
 
 implementation
+
+type
+  TStackAccess = class(TObjectStack)
+  end;
 
 var
   FPointSeparator: TFormatSettings;
@@ -257,6 +264,7 @@ begin
         begin
           ExpressionToken := TExpressionToken.Create;
           ExpressionToken.Line := CurLine;
+          ExpressionToken.StrValue := '';
           if CurChar = '/' then
             ExpressionToken.ETType := ettNamedElement
           else
@@ -302,7 +310,15 @@ begin
           State := ssSearchingToken;
         end
         else
-          ProcedureToken.StrValue := ProcedureToken.StrValue + CurChar;
+        begin
+          // Don't add line ends, because they cause problems when outputing the debug info
+          // but in this case we need to add spaces to compensate, or else items separates only
+          // by line end might get glued together
+          if CurChar in [#10, #13] then
+            ProcedureToken.StrValue := ProcedureToken.StrValue + ' '
+          else
+            ProcedureToken.StrValue := ProcedureToken.StrValue + CurChar;
+        end;
       end;
 
       // Goes until a space comes, or {
@@ -403,10 +419,26 @@ end;
 
 { TvEPSVectorialReader }
 
+procedure TvEPSVectorialReader.DebugStack();
+var
+  i: Integer;
+  lToken: TPSToken;
+begin
+  WriteLn('====================');
+  WriteLn('Stack dump');
+  WriteLn('====================');
+  for i := 0 to TStackAccess(Stack).List.Count - 1 do
+  begin
+    lToken := TPSToken(TStackAccess(Stack).List.Items[i]);
+    WriteLn(Format('Stack #%d : %s', [i, lToken.StrValue]));
+  end;
+end;
+
 procedure TvEPSVectorialReader.RunPostScript(ATokens: TPsTokens;
   AData: TvVectorialDocument);
 var
   i: Integer;
+  lSubstituted: Boolean;
   CurToken: TPSToken;
 begin
   {$ifdef FPVECTORIALDEBUG_CODEFLOW}
@@ -422,6 +454,11 @@ begin
   for i := 0 to ATokens.Count - 1 do
   begin
     CurToken := TPSToken(ATokens.Items[i]);
+
+{    if CurToken.StrValue = 'J' then
+    begin
+      DebugStack();
+    end;}
 
     if CurToken is TCommentToken then
     begin
@@ -447,14 +484,22 @@ begin
       WriteLn(Format('[TvEPSVectorialReader.RunPostScript] Type: TExpressionToken Token: %s', [CurToken.StrValue]));
       {$endif}
 
-      if TExpressionToken(CurToken).ETType <> ettOperator then
+      if TExpressionToken(CurToken).ETType = ettOperand then
       begin
         Stack.Push(CurToken);
         Continue;
       end;
 
       // Now we need to verify if the operator should be substituted in the dictionary
-      DictionarySubstituteOperator(Dictionary, CurToken);
+      lSubstituted := DictionarySubstituteOperator(Dictionary, CurToken);
+
+      // Check if this is the first time that a named element appears, if yes, don't try to execute it
+      // just put it into the stack
+      if (not lSubstituted) and (TExpressionToken(CurToken).ETType = ettNamedElement) then
+      begin
+        Stack.Push(CurToken);
+        Continue;
+      end;
 
       if CurToken is TProcedureToken then ExecuteProcedureToken(TProcedureToken(CurToken), AData)
       else ExecuteOperatorToken(TExpressionToken(CurToken), AData);
@@ -1006,15 +1051,15 @@ end;
   – eofill –      Fill using even-odd rule
   x y width height rectstroke – Define rectangular path and stroke
   x y width height matrix rectstroke – Define rectangular path, concatenate matrix,
-  and stroke
+                                       and stroke
   numarray|numstring rectstroke – Define rectangular paths and stroke
   numarray|numstring matrix rectstroke – Define rectangular paths, concatenate
-  matrix, and stroke
+                                         matrix, and stroke
   x y width height rectfill – Fill rectangular path
   numarray|numstring rectfill – Fill rectangular paths
   userpath ustroke – Interpret and stroke userpath
   userpath matrix ustroke – Interpret userpath, concatenate matrix, and
-  stroke
+                            stroke
   userpath ufill – Interpret and fill userpath
   userpath ueofill – Fill userpath using even-odd rule
   dict shfill – Fill area defined by shading pattern
@@ -1069,7 +1114,7 @@ begin
 
   if AToken.StrValue = 'eofill' then
   begin
-    AData.SetBrushStyle(bsDiagCross);
+    AData.SetBrushStyle(bsSolid);
 
     Exit(True);
   end;
@@ -1483,6 +1528,19 @@ begin
     AData.AddBezierToPath(BaseX + PosX, BaseY + PosY, BaseX + PosX2, BaseY + PosY2, BaseX + PosX3, BaseY + PosY3);
     Exit(True);
   end;
+  //
+  if AToken.StrValue = 'closepath' then
+  begin
+    {$ifdef FPVECTORIALDEBUG_PATHS}
+    WriteLn('[TvEPSVectorialReader.ExecutePathConstructionOperator] closepath');
+    {$endif}
+    AData.EndPath();
+    AData.StartPath();
+
+    AData.SetPenColor(CurrentGraphicState.Color);
+
+    Exit(True);
+  end;
   // x y r angle1 angle2 arc – Append counterclockwise arc
   if AToken.StrValue = 'arc' then
   begin
@@ -1589,6 +1647,12 @@ begin
   end;
   //
   if AToken.StrValue = 'setlinewidth' then
+  begin
+    Param1 := TPSToken(Stack.Pop);
+    Exit(True);
+  end;
+  //
+  if AToken.StrValue = 'setlinecap' then
   begin
     Param1 := TPSToken(Stack.Pop);
     Exit(True);
@@ -1846,15 +1910,19 @@ begin
   APosY := AParam1.FloatValue;
 end;
 
-procedure TvEPSVectorialReader.DictionarySubstituteOperator(
-  ADictionary: TStringList; var ACurToken: TPSToken);
+// Returns true if a dictionary substitution was executed
+function TvEPSVectorialReader.DictionarySubstituteOperator(
+  ADictionary: TStringList; var ACurToken: TPSToken): Boolean;
 var
   lIndex: Integer;
   SubstituteToken, NewToken: TPSToken;
 begin
+  Result := False;
   lIndex := ADictionary.IndexOf(ACurToken.StrValue);
   if lIndex >= 0 then
   begin
+    Result := True;
+
     SubstituteToken := TPSToken(ADictionary.Objects[lIndex]);
 
     if SubstituteToken is TExpressionToken then
@@ -1882,6 +1950,7 @@ begin
   Stack := TObjectStack.Create;
   GraphicStateStack := TObjectStack.Create;
   Dictionary := TStringList.Create;
+  Dictionary.CaseSensitive := True;
   CurrentGraphicState := TGraphicState.Create;
 end;
 

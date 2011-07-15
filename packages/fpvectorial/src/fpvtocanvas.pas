@@ -153,6 +153,8 @@ var
   CurX, CurY: Integer; // Not modified by ADestX, etc
   CurveLength: Integer;
   t: Double;
+  // For polygons
+  Points: array of TPoint;
 begin
   PosX := 0;
   PosY := 0;
@@ -165,10 +167,38 @@ begin
   // Set the path Pen and Brush options
   ADest.Pen.Style := CurPath.Pen.Style;
   ADest.Pen.Width := CurPath.Pen.Width;
-  ADest.Brush.Style := CurPath.Brush.Style;
   ADest.Pen.FPColor := CurPath.Pen.Color;
   ADest.Brush.FPColor := CurPath.Brush.Color;
 
+  //
+  // For solid paths, draw a polygon instead
+  //
+  if CurPath.Brush.Style = bsSolid then
+  begin
+    ADest.Brush.Style := CurPath.Brush.Style;
+
+    SetLength(Points, CurPath.Len);
+
+    for j := 0 to CurPath.Len - 1 do
+    begin
+      //WriteLn('j = ', j);
+      CurSegment := TPathSegment(CurPath.Next());
+
+      CoordX := CoordToCanvasX(Cur2DSegment.X);
+      CoordY := CoordToCanvasY(Cur2DSegment.Y);
+
+      Points[j].X := CoordX;
+      Points[j].Y := CoordY;
+    end;
+
+    ADest.Polygon(Points);
+
+    Exit;
+  end;
+
+  //
+  // For other paths, draw more carefully
+  //
   for j := 0 to CurPath.Len - 1 do
   begin
     //WriteLn('j = ', j);
