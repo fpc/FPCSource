@@ -56,6 +56,7 @@ type
   { TExpressionToken }
 
   TExpressionToken = class(TPSToken)
+  public
     ETType: TETType;
     function IsExpressionOperand: Boolean;
     procedure PrepareFloatValue;
@@ -455,8 +456,11 @@ begin
   begin
     CurToken := TPSToken(ATokens.Items[i]);
 
-{    if CurToken.StrValue = 'J' then
+{    if CurToken.StrValue = 'setrgbcolor' then
     begin
+      WriteLn('===================');
+      WriteLn('CMYK__');
+      WriteLn('===================');
       DebugStack();
     end;}
 
@@ -753,8 +757,8 @@ begin
   begin
     Param1 := TPSToken(Stack.Pop);
     Param2 := TPSToken(Stack.Pop);
-    Stack.Push(Param2);
     Stack.Push(Param1);
+    Stack.Push(Param2);
     Exit(True);
   end;
   // Duplicate top element
@@ -1109,11 +1113,17 @@ begin
 
   if AToken.StrValue = 'stroke' then
   begin
+    {$ifdef FPVECTORIALDEBUG_PATHS}
+    WriteLn('[TvEPSVectorialReader.ExecutePaintingOperator] stroke');
+    {$endif}
     Exit(True);
   end;
 
   if AToken.StrValue = 'eofill' then
   begin
+    {$ifdef FPVECTORIALDEBUG_PATHS}
+    WriteLn('[TvEPSVectorialReader.ExecutePaintingOperator] eofill');
+    {$endif}
     AData.SetBrushStyle(bsSolid);
 
     Exit(True);
@@ -1360,6 +1370,7 @@ function TvEPSVectorialReader.ExecuteArithmeticAndMathOperator(
   AToken: TExpressionToken; AData: TvVectorialDocument): Boolean;
 var
   Param1, Param2: TPSToken;
+  NewToken: TExpressionToken;
 begin
   Result := False;
 
@@ -1369,9 +1380,11 @@ begin
   begin
     Param1 := TPSToken(Stack.Pop);
     Param2 := TPSToken(Stack.Pop);
-    Param1.FloatValue := Param2.FloatValue / Param1.FloatValue;
-    Param1.StrValue := '00'; // Just to mark it as a number
-    Stack.Push(Param1);
+    NewToken := TExpressionToken.Create;
+    NewToken.ETType := ettOperand;
+    NewToken.FloatValue := Param2.FloatValue / Param1.FloatValue;
+    NewToken.StrValue := FloatToStr(Param1.FloatValue);
+    Stack.Push(NewToken);
     Exit(True);
   end;
 
@@ -1380,19 +1393,23 @@ begin
   begin
     Param1 := TPSToken(Stack.Pop);
     Param2 := TPSToken(Stack.Pop);
-    Param1.FloatValue := Param2.FloatValue * Param1.FloatValue;
-    Param1.StrValue := '00'; // Just to mark it as a number
-    Stack.Push(Param1);
+    NewToken := TExpressionToken.Create;
+    NewToken.ETType := ettOperand;
+    NewToken.FloatValue := Param2.FloatValue * Param1.FloatValue;
+    NewToken.StrValue := FloatToStr(Param1.FloatValue);
+    Stack.Push(NewToken);
     Exit(True);
   end;
   // num1 num2 sub difference Return num1 minus num2
   if AToken.StrValue = 'sub' then
   begin
+    NewToken := TExpressionToken.Create;
+    NewToken.ETType := ettOperand;
     Param1 := TPSToken(Stack.Pop); // num2
     Param2 := TPSToken(Stack.Pop); // num1
-    Param1.FloatValue := Param2.FloatValue - Param1.FloatValue;
-    Param1.StrValue := '00'; // Just to mark it as a number
-    Stack.Push(Param1);
+    NewToken.FloatValue := Param2.FloatValue - Param1.FloatValue;
+    NewToken.StrValue := FloatToStr(Param1.FloatValue);
+    Stack.Push(NewToken);
     Exit(True);
   end;
 end;
@@ -1451,6 +1468,7 @@ begin
     AData.StartPath();
 
     AData.SetPenColor(CurrentGraphicState.Color);
+    AData.SetBrushColor(CurrentGraphicState.Color);
 
     Exit(True);
   end;
@@ -1529,15 +1547,14 @@ begin
     Exit(True);
   end;
   //
+  // Don't do anything, because a stroke or fill might come after closepath
+  // and newpath will be called after stroke and fill anyway
+  //
   if AToken.StrValue = 'closepath' then
   begin
     {$ifdef FPVECTORIALDEBUG_PATHS}
     WriteLn('[TvEPSVectorialReader.ExecutePathConstructionOperator] closepath');
     {$endif}
-    AData.EndPath();
-    AData.StartPath();
-
-    AData.SetPenColor(CurrentGraphicState.Color);
 
     Exit(True);
   end;
