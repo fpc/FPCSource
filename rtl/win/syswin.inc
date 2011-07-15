@@ -30,7 +30,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
      EntryInformation:=info;
 {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
      IsLibrary:=true;
-     Dll_entry:=false;
+     Dll_entry:=false;  { return value is ignored, except when DLLreason=DLL_PROCESS_ATTACH }
      case DLLreason of
        DLL_PROCESS_ATTACH :
          begin
@@ -61,7 +61,6 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
 
            if assigned(Dll_Thread_Attach_Hook) then
              Dll_Thread_Attach_Hook(DllParam);
-           Dll_entry:=true; { return value is ignored }
         end;
        DLL_THREAD_DETACH :
          begin
@@ -70,11 +69,9 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
            { Release Threadvars }
            if TlsGetValue(TLSKey)<>nil then
              DoneThread; { Assume everything is idempotent there }
-           Dll_entry:=true; { return value is ignored }
          end;
        DLL_PROCESS_DETACH :
          begin
-           Dll_entry:=true; { return value is ignored }
 	   if MainThreadIDWin32=0 then // already been here.
 	     exit;
            If SetJmp(DLLBuf) = 0 then
@@ -82,7 +79,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
            if assigned(Dll_Process_Detach_Hook) then
              Dll_Process_Detach_Hook(DllParam);
 
-           DoneThread;
+           SysReleaseThreadVars;
            { Free TLS resources used by ThreadVars }
            SysFiniMultiThreading;
            MainThreadIDWin32:=0;

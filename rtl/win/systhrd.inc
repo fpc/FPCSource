@@ -121,10 +121,14 @@ var
         { these aren't allocated yet ...            }
         { allocate room on the heap for the thread vars }
         errorsave:=GetLastError;
+        if tlskey=$ffffffff then
+          RunError(226);
         dataindex:=TlsGetValue(tlskey);
         if dataindex=nil then
           begin
             dataindex:=pointer(LocalAlloc(LMEM_FIXED or LMEM_ZEROINIT,threadvarblocksize));
+            if dataindex=nil then
+              RunError(226);
             TlsSetValue(tlskey,dataindex);
           end;
         SetLastError(errorsave);
@@ -150,11 +154,9 @@ var
 
     procedure SysFiniMultithreading;
       begin
-        if IsMultiThread then
-          begin
-            TlsFree(TLSKey);
-            TLSKey:=$ffffffff;
-          end;
+        if TLSKey<>$ffffffff then
+          TlsFree(TLSKey);
+        TLSKey:=$ffffffff;
       end;
 
     function SysRelocateThreadvar(offset : dword) : pointer;
@@ -176,9 +178,16 @@ var
 
 
     procedure SysReleaseThreadVars;
+      var
+        p: pointer;
       begin
-        LocalFree(TlsGetValue(tlskey));
-        TlsSetValue(tlskey, nil);
+        if TLSKey<>$ffffffff then
+          begin
+            p:=TlsGetValue(tlskey);
+            if Assigned(p) then
+              LocalFree(p);
+            TlsSetValue(tlskey, nil);
+          end;
       end;
 
 
