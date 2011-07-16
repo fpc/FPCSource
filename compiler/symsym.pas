@@ -110,9 +110,6 @@ interface
        end;
 
        ttypesym = class(Tstoredsym)
-       protected
-          fgendeflist      : TFPObjectList;
-          fgendefdereflist : TFPList;
        public
           typedef      : tdef;
           typedefderef : tderef;
@@ -122,7 +119,6 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
-          property gendeflist: TFPObjectList read fgendeflist;
        end;
 
        tabstractvarsym = class(tstoredsym)
@@ -1849,95 +1845,37 @@ implementation
            (typedef.typ<>errordef) and
            not(assigned(typedef.typesym)) then
          typedef.typesym:=self;
-        fgendeflist:=TFPObjectList.Create(false);
-        fgendefdereflist:=nil;
       end;
 
     destructor ttypesym.destroy;
       begin
-        fgendeflist.free;
-        if assigned(fgendefdereflist) then
-          fgendefdereflist.free;
         inherited destroy;
       end;
 
 
     constructor ttypesym.ppuload(ppufile:tcompilerppufile);
-      var
-         gdderef : tderef;
-         i,
-         gdcnt : longint;
       begin
          inherited ppuload(typesym,ppufile);
          ppufile.getderef(typedefderef);
-         fgendeflist:=TFPObjectList.Create(false);
-         fgendefdereflist:=TFPList.Create;
-         gdcnt:=ppufile.getword;
-         for i:=1 to gdcnt do
-          begin
-            ppufile.getderef(gdderef);
-            fgendefdereflist.Add(Pointer(PtrInt(gdderef.dataidx)));
-          end;
       end;
 
 
     procedure ttypesym.buildderef;
-      var
-        i  : longint;
-        d  : tderef;
-        gd : tdef;
       begin
         typedefderef.build(typedef);
-        if not assigned(fgendefdereflist) then
-          fgendefdereflist:=TFPList.Create
-        else
-          fgendefdereflist.Clear;
-        for i:=0 to fgendeflist.Count-1 do
-          begin
-            gd:=tdef(fgendeflist[i]);
-            { only write the type definitions that belong to this typesym }
-            if gd.owner=owner then
-              begin
-                d.build(gd);
-                fgendefdereflist.Add(Pointer(PtrInt(d.dataidx)));
-              end;
-          end;
       end;
 
 
     procedure ttypesym.deref;
-      var
-        i  : longint;
-        gd : tdef;
-        d  : tderef;
       begin
         typedef:=tdef(typedefderef.resolve);
-        { Clear all typedefs }
-        fgendeflist.Clear;
-        if not assigned(fgendefdereflist) then
-          internalerror(201104211);
-        for i:=0 to fgendefdereflist.Count-1 do
-          begin
-            d.dataidx:=PtrInt(fgendefdereflist[i]);
-            gd:=tdef(d.resolve);
-            fgendeflist.Add(gd);
-          end;
       end;
 
 
     procedure ttypesym.ppuwrite(ppufile:tcompilerppufile);
-      var
-        i : longint;
-        d : tderef;
       begin
          inherited ppuwrite(ppufile);
          ppufile.putderef(typedefderef);
-         ppufile.putword(fgendefdereflist.Count);
-         for i:=0 to fgendefdereflist.Count-1 do
-           begin
-             d.dataidx:=PtrInt(fgendefdereflist[i]);
-             ppufile.putderef(d);
-           end;
          ppufile.writeentry(ibtypesym);
       end;
 

@@ -261,9 +261,10 @@ implementation
            table as forwarddef are not resolved directly }
          if assigned(srsym) and
             (srsym.typ=typesym) and
-            (ttypesym(srsym).typedef.typ=errordef) and
-            (not allowgenericsyms or
-            (ttypesym(srsym).gendeflist.Count=0)) then
+            ((ttypesym(srsym).typedef.typ=errordef) or
+            (not allowgenericsyms and
+            (ttypesym(srsym).typedef.typ=undefineddef) and
+            not (sp_generic_para in srsym.symoptions))) then
           begin
             Message1(type_e_type_is_not_completly_defined,ttypesym(srsym).realname);
             def:=generrordef;
@@ -292,9 +293,7 @@ implementation
           end;
          { Give an error when referring to an errordef that does not have
            generic overloads }
-         if (ttypesym(srsym).typedef.typ=errordef) and
-            (not allowgenericsyms or
-            (ttypesym(srsym).gendeflist.Count=0)) then
+         if (ttypesym(srsym).typedef.typ=errordef) then
           begin
             Message(sym_e_error_in_type_def);
             def:=generrordef;
