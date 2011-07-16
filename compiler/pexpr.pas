@@ -2030,7 +2030,13 @@ implementation
                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
 
                { if nothing found give error and return errorsym }
-               if not assigned(srsym) then
+               if not assigned(srsym) or
+                   { is this a generic dummy symbol? }
+                   ((srsym.typ=typesym) and
+                   assigned(ttypesym(srsym).typedef) and
+                   (ttypesym(srsym).typedef.typ=undefineddef) and
+                   not (sp_generic_para in srsym.symoptions) and
+                   not (token in [_LT, _LSHARPBRACKET])) then
                  begin
                    identifier_not_found(orgstoredpattern);
                    srsym:=generrorsym;
@@ -2971,16 +2977,32 @@ implementation
                      begin
                        { this is a normal "<" comparison }
 
-                       { for potential generic types that are followed by a "<"
-                         the hints are not checked }
+                       { potential generic types that are followed by a "<" }
+
+                       { a) are not checked whether they are an undefined def,
+                            but not a generic parameter }
+                       if (p1.nodetype=typen) and
+                           (ttypenode(p1).typedef.typ=undefineddef) and
+                           assigned(ttypenode(p1).typedef.typesym) and
+                           not (sp_generic_para in ttypenode(p1).typedef.typesym.symoptions) then
+                         begin
+                           identifier_not_found(ttypenode(p1).typedef.typesym.RealName);
+                           p1.Free;
+                           p1:=cerrornode.create;
+                         end;
+
+                       { b) don't have their hints checked }
                        if istypenode(p1) then
                          begin
                            gendef:=gettypedef(p1);
                            if gendef.typ in [objectdef,recorddef,arraydef,procvardef] then
                              check_hints(gendef.typesym,gendef.typesym.symoptions,gendef.typesym.deprecatedmsg);
                          end;
-                       if istypenode(p2) and
-                           (token in [_LT, _LSHARPBRACKET]) then
+
+                       { Note: the second part of the expression will be needed
+                               for nested specializations }
+                       if istypenode(p2) {and
+                           not (token in [_LT, _LSHARPBRACKET])} then
                          begin
                            gendef:=gettypedef(p2);
                            if gendef.typ in [objectdef,recorddef,arraydef,procvardef] then
