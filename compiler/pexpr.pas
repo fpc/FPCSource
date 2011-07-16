@@ -2872,8 +2872,7 @@ implementation
         p1,p2   : tnode;
         oldt    : Ttoken;
         filepos : tfileposinfo;
-        again,
-        isgeneric : boolean;
+        again   : boolean;
         gendef,parseddef : tdef;
       begin
         if pred_level=highest_precedence then
@@ -2907,7 +2906,9 @@ implementation
                  p1:=caddnode.create(gtn,p1,p2);
                _LT :
                  begin
-                   isgeneric:=false;
+                   { we need to decice whether we have an inline specialization
+                     (type nodes to the left and right of "<", mode Delphi and
+                     ">" or "," following) or a normal "<" comparison }
                    if istypenode(p1) and istypenode(p2) and
                        (m_delphi in current_settings.modeswitches) and
                        (token in [_GT,_RSHARPBRACKET,_COMMA]) then
@@ -2928,11 +2929,26 @@ implementation
 
                        { generate the specialization }
                        generate_specialization(gendef,false,parseddef);
-                       isgeneric:=true;
-                     end;
 
-                   if not isgeneric then
+                       { we don't need the old left and right nodes anymore }
+                       p1.Free;
+                       p2.Free;
+                       { in case of a class or a record the specialized generic
+                         is always a classrefdef }
+                       again:=false;
+                       { handle potential typecasts, etc }
+                       p1:=handle_factor_typenode(gendef,false,again);
+                       { parse postfix operators }
+                       if postfixoperators(p1,again,false) then
+                         if assigned(p1) then
+                           p1.fileinfo:=filepos
+                         else
+                           p1:=cerrornode.create;
+                     end
+                   else
                      begin
+                       { this is a normal "<" comparison }
+
                        { for potential generic types that are followed by a "<"
                          the hints are not checked }
                        if istypenode(p1) then
@@ -2951,26 +2967,6 @@ implementation
 
                        { create the comparison node for "<" }
                        p1:=caddnode.create(ltn,p1,p2)
-                     end
-                   else
-                     begin
-                       { we don't need the old left and right nodes anymore }
-                       p1.Free;
-                       p2.Free;
-                       { in case of a class or a record the specialized generic
-                         is always a classrefdef }
-                       if is_class_or_interface_or_object(gendef) or
-                           is_record(gendef) then
-                         gendef:=tclassrefdef.create(gendef);
-                       again:=false;
-                       { handle potential typecasts, etc }
-                       p1:=handle_factor_typenode(gendef,false,again);
-                       { parse postfix operators }
-                       if postfixoperators(p1,again,false) then
-                         if assigned(p1) then
-                           p1.fileinfo:=filepos
-                         else
-                           p1:=cerrornode.create;
                      end;
                  end;
                _GTE :
