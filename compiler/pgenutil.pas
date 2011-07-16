@@ -332,6 +332,15 @@ uses
                 ttypesym(srsym).typedef:=tt;
                 tt.typesym:=srsym;
 
+                { Note regarding hint directives:
+                  There is no need to remove the flags for them from the
+                  specialized generic symbol, because hint directives that
+                  follow the specialization are handled by the code in
+                  pdecl.types_dec and added to the type symbol.
+                  E.g.: TFoo = TBar<Blubb> deprecated;
+                  Here the symbol TBar$1$Blubb will contain the
+                  "sp_hint_deprecated" flag while the TFoo symbol won't.}
+
                 case tt.typ of
                   { Build VMT indexes for classes and read hint directives }
                   objectdef:
@@ -391,15 +400,22 @@ uses
             tundefineddef.create;
           end;
 
+        if not (token in [_GT, _RSHARPBRACKET]) then
+          begin
+            consume(_RSHARPBRACKET);
+            exit;
+          end
+        else
+          consume(token);
+
         genericdeflist.free;
         generictypelist.free;
-        if not try_to_consume(_GT) then
-          consume(_RSHARPBRACKET)
-        else
-          if assigned(srsym) then
-            { check the hints of the found generic symbol (this way we are
-              behind the closing ">") }
+        if assigned(genericdef) then
+          begin
+            { check the hints of the found generic symbol }
+            srsym:=genericdef.typesym;
             check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+          end;
       end;
 
 
