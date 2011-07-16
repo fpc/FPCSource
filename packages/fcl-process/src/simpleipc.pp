@@ -48,6 +48,9 @@ Type
     FOwner  : TSimpleIPCServer;
   Protected  
     Function  GetInstanceID : String; virtual; abstract;
+    Procedure DoError(Msg : String; Args : Array of const);
+    Procedure SetMsgType(AMsgType: TMessageType); 
+    Function MsgData : TStream;
   Public
     Constructor Create(AOwner : TSimpleIPCServer); virtual;
     Property Owner : TSimpleIPCServer read FOwner;
@@ -117,6 +120,8 @@ Type
   TIPCClientComm = Class(TObject)
   private
     FOwner: TSimpleIPCClient;
+  protected
+   Procedure DoError(Msg : String; Args : Array of const);
   Public
     Constructor Create(AOwner : TSimpleIPCClient); virtual;
     Property  Owner : TSimpleIPCClient read FOwner;
@@ -185,6 +190,24 @@ begin
   FOwner:=AOWner;
 end;
 
+Procedure TIPCServerComm.DoError(Msg : String; Args : Array of const);
+
+begin
+  FOwner.DoError(Msg,Args);
+end;  
+
+Function TIPCServerComm.MsgData : TStream;
+
+begin
+  Result:=FOwner.FMsgData;
+end;
+
+Procedure TIPCServerComm.SetMsgType(AMsgType: TMessageType); 
+
+begin
+  Fowner.FMsgType:=AMsgType;
+end;
+
 { ---------------------------------------------------------------------
     TIPCClientComm
   ---------------------------------------------------------------------}
@@ -193,6 +216,12 @@ constructor TIPCClientComm.Create(AOwner: TSimpleIPCClient);
 begin
   FOwner:=AOwner;
 end;
+
+Procedure TIPCClientComm.DoError(Msg : String; Args : Array of const);
+
+begin
+  FOwner.DoError(Msg,Args);
+end;  
 
 { ---------------------------------------------------------------------
     TSimpleIPC

@@ -213,7 +213,7 @@ begin
     If (FPackageVersion<>'') then
       Add('    P.Version:='''+FPackageVersion+''';');
     If (FPackageOptions<>'') then
-      Add('    P.Options:='''+FPackageOptions+''';');
+      Add('    P.Options.Add('''+FPackageOptions+''');');
     If (FPackageDeps<>'') then
       begin
       S:=GetWord(FPackageDeps);

@@ -440,7 +440,7 @@ unit cgppc;
       op: TAsmOp;
     begin
       if not (fromsize in [OS_8..OS_INT,OS_S8..OS_SINT]) then
-        internalerror(2002090903);
+        internalerror(2002090904);
       if not (tosize in [OS_8..OS_INT,OS_S8..OS_SINT]) then
         internalerror(2002090905);
 
@@ -580,7 +580,8 @@ unit cgppc;
       current_asmdata.getjumplabel(hl);
       if not ((def.typ=pointerdef) or
              ((def.typ=orddef) and
-              (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,pasbool]))) then
+              (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
+                                        pasbool8,pasbool16,pasbool32,pasbool64]))) then
         begin
           if (current_settings.optimizecputype >= cpu_ppc970) or
              (current_settings.cputype >= cpu_ppc970) then

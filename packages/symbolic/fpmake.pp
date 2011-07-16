@@ -35,6 +35,7 @@ begin
           AddInclude('teval.inc');
           AddInclude('rearrang.inc');
         end;
+    T.ResourceStrings := True;
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('evaltest.pas');

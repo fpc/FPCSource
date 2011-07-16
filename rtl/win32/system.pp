@@ -27,6 +27,7 @@ interface
 {$endif cpui386}
 
 {$define DISABLE_NO_THREAD_MANAGER}
+{$define HAS_WIDESTRINGMANAGER}
 
 { include system-independent routine headers }
 {$I systemh.inc}
@@ -827,52 +828,6 @@ end;
 
 {$endif Set_i386_Exception_handler}
 
-const
-  { MultiByteToWideChar  }
-     MB_PRECOMPOSED = 1;
-     CP_ACP = 0;
-     WC_NO_BEST_FIT_CHARS = $400;
-
-function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
-    stdcall; external 'kernel32' name 'MultiByteToWideChar';
-function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:PWideChar; cchWideChar:longint; lpMultiByteStr:PChar;cchMultiByte:longint; lpDefaultChar:PChar; lpUsedDefaultChar:pointer):longint;
-    stdcall; external 'kernel32' name 'WideCharToMultiByte';
-function CharUpperBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD;
-    stdcall; external 'user32' name 'CharUpperBuffW';
-function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD;
-    stdcall; external 'user32' name 'CharLowerBuffW';
-
-{******************************************************************************
-                              Widestring
- ******************************************************************************}
-
-procedure Win32Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
-  var
-    destlen: SizeInt;
-  begin
-    // retrieve length including trailing #0
-    // not anymore, because this must also be usable for single characters
-    destlen:=MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, nil, 0);
-    // this will null-terminate
-    setlength(dest, destlen);
-    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, @dest[1], destlen);
-  end;
-
-
-function Win32WideUpper(const s : WideString) : WideString;
-  begin
-    result:=s;
-    if length(result)>0 then
-      CharUpperBuff(LPWSTR(result),length(result));
-  end;
-
-
-function Win32WideLower(const s : WideString) : WideString;
-  begin
-    result:=s;
-    if length(result)>0 then
-      CharLowerBuff(LPWSTR(result),length(result));
-  end;
 
 {******************************************************************************}
 { include code common with win64 }
@@ -992,5 +947,14 @@ begin
 {$endif VER2_2}
   InitWin32Widestrings;
   DispCallByIDProc:=@DoDispCallByIDError;
+{$ifdef FPC_USE_TLS_DIRECTORY}
+  { This code is only here to force
+    incorporation of needed labels for
+    _tls_used record in executable
+    when smartlinking is on }
+  _tls_used.Index_pointer:=@FreePascal_TLS_callback;
+  _tls_used.Index_pointer:=@FreePascal_end_of_TLS_callback;
+  _tls_used.Index_pointer:=@_tls_index;
+{$endif FPC_USE_TLS_DIRECTORY}
 end.
 

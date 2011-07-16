@@ -2644,7 +2644,7 @@ begin
     AppendSym(CodeEl, ': ');
     AppendType(CodeEl, TableEl, AConst.VarType, False);
   end;
-  AppendPasSHFragment(CodeEl, ' = ' + AConst.Value + ';', 0);
+  AppendPasSHFragment(CodeEl, ' = ' + AConst.Expr.GetDeclaration(True) + ';', 0);
 
   FinishElementPage(AConst);
 end;

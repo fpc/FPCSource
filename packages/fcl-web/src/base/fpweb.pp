@@ -407,6 +407,7 @@ Var
 begin
   S:=TStringStream.Create('');
   Try
+    B:=False;
     FActions.GetContent(TFPWebTemplate(FTemplate).Request,S,B);
     If Not B then
       Raise EFPWebError.Create(SErrNoContentProduced);

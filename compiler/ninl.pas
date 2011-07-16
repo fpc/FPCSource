@@ -314,7 +314,8 @@ implementation
             scurrency,
             s64bit:
               procname := procname + 'int64';
-            pasbool,bool8bit,bool16bit,bool32bit,bool64bit:
+            pasbool8,pasbool16,pasbool32,pasbool64,
+            bool8bit,bool16bit,bool32bit,bool64bit:
               procname := procname + 'bool';
 {$endif}
             else
@@ -511,7 +512,10 @@ implementation
                       readfunctype:=s64currencytype;
                       is_real:=true;
                     end;
-                  pasbool,
+                  pasbool8,
+                  pasbool16,
+                  pasbool32,
+                  pasbool64,
                   bool8bit,
                   bool16bit,
                   bool32bit,
@@ -524,7 +528,7 @@ implementation
                     else
                       begin
                         name := procprefixes[do_read]+'boolean';
-                        readfunctype:=booltype;
+                        readfunctype:=pasbool8type;
                       end
                   else
                     begin
@@ -746,7 +750,7 @@ implementation
                   { zero-based                                       }
                   if para.left.resultdef.typ=arraydef then
                     para := ccallparanode.create(cordconstnode.create(
-                      ord(tarraydef(para.left.resultdef).lowrange=0),booltype,false),para);
+                      ord(tarraydef(para.left.resultdef).lowrange=0),pasbool8type,false),para);
                   { create the call statement }
                   addstatement(Tstatementnode(newstatement),
                     ccallnode.createintern(name,para));
@@ -1521,6 +1525,74 @@ implementation
         end;
 
 
+      function handle_const_rox : tnode;
+        var
+          vl,vl2    : TConstExprInt;
+          bits,shift: integer;
+          def : tdef;
+        begin
+          result:=nil;
+          if (left.nodetype=ordconstn) or ((left.nodetype=callparan) and (tcallparanode(left).left.nodetype=ordconstn)) then
+            begin
+              if (left.nodetype=callparan) and
+                 assigned(tcallparanode(left).right) then
+                begin
+                  if (tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn) then
+                    begin
+                      def:=tcallparanode(tcallparanode(left).right).left.resultdef;
+                      vl:=tordconstnode(tcallparanode(left).left).value;
+                      vl2:=tordconstnode(tcallparanode(tcallparanode(left).right).left).value;
+                    end
+                  else
+                    exit;
+                end
+              else
+                begin
+                  def:=left.resultdef;
+                  vl:=1;
+                  vl2:=tordconstnode(left).value;
+                end;
+
+              bits:=def.size*8;
+              shift:=vl.svalue and (bits-1);
+{$push}
+{$r-,q-}
+              if shift=0 then
+                result:=cordconstnode.create(vl2.svalue,def,false)
+              else
+                case inlinenumber of
+                  in_ror_x,in_ror_x_y:
+                    case def.size of
+                      1:
+                        result:=cordconstnode.create(RorByte(Byte(vl2.svalue),shift),def,false);
+                      2:
+                        result:=cordconstnode.create(RorWord(Word(vl2.svalue),shift),def,false);
+                      4:
+                        result:=cordconstnode.create(RorDWord(DWord(vl2.svalue),shift),def,false);
+                      8:
+                        result:=cordconstnode.create(RorQWord(QWord(vl2.svalue),shift),def,false);
+                      else
+                        internalerror(2011061903);
+                    end;
+                  in_rol_x,in_rol_x_y:
+                    case def.size of
+                      1:
+                        result:=cordconstnode.create(RolByte(Byte(vl2.svalue),shift),def,false);
+                      2:
+                        result:=cordconstnode.create(RolWord(Word(vl2.svalue),shift),def,false);
+                      4:
+                        result:=cordconstnode.create(RolDWord(DWord(vl2.svalue),shift),def,false);
+                      8:
+                        result:=cordconstnode.create(RolQWord(QWord(vl2.svalue),shift),def,false);
+                      else
+                        internalerror(2011061902);
+                    end;
+                  else
+                    internalerror(2011061901);
+                  end;
+            end;
+        end;
+
       var
         hp        : tnode;
         vl,vl2    : TConstExprInt;
@@ -1567,7 +1639,7 @@ implementation
                    else
                      hp:=create_simplified_ord_const(sqr(vl.uvalue),resultdef,forinline);
                  in_const_odd :
-                   hp:=cordconstnode.create(qword(odd(int64(vl))),booltype,true);
+                   hp:=cordconstnode.create(qword(odd(int64(vl))),pasbool8type,true);
                  in_const_swap_word :
                    hp:=cordconstnode.create((vl and $ff) shl 8+(vl shr 8),left.resultdef,true);
                  in_const_swap_long :
@@ -1623,17 +1695,30 @@ implementation
                     orddef :
                       begin
                         case torddef(left.resultdef).ordtype of
-                          pasbool,
+                          pasbool8,
                           uchar:
                             begin
                               { change to byte() }
                               result:=ctypeconvnode.create_internal(left,u8inttype);
                               left:=nil;
                             end;
+                          pasbool16,
                           uwidechar :
                             begin
                               { change to word() }
                               result:=ctypeconvnode.create_internal(left,u16inttype);
+                              left:=nil;
+                            end;
+                          pasbool32 :
+                            begin
+                              { change to dword() }
+                              result:=ctypeconvnode.create_internal(left,u32inttype);
+                              left:=nil;
+                            end;
+                          pasbool64 :
+                            begin
+                              { change to qword() }
+                              result:=ctypeconvnode.create_internal(left,u64inttype);
                               left:=nil;
                             end;
                           bool8bit:
@@ -1931,6 +2016,11 @@ implementation
                 begin
                   result:=handle_const_sar;
                 end;
+              in_rol_x,
+              in_rol_x_y,
+              in_ror_x,
+              in_ror_x_y :
+                result:=handle_const_rox;
             end;
           end;
       end;
@@ -2284,7 +2374,7 @@ implementation
                     in procvar handling between FPC and Delphi handling, so
                     handle specially }
                   set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
-                  resultdef:=booltype;
+                  resultdef:=pasbool8type;
                 end;
 
               in_ofs_x :
@@ -2621,8 +2711,8 @@ implementation
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                   resultdef:=left.resultdef;
                 end;
-              in_rol_x_x,
-              in_ror_x_x,
+              in_rol_x_y,
+              in_ror_x_y,
               in_sar_x_y:
                 begin
                   set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
@@ -3040,9 +3130,9 @@ implementation
              expectloc:=tcallparanode(left).left.expectloc;
            end;
          in_rol_x,
-         in_rol_x_x,
+         in_rol_x_y,
          in_ror_x,
-         in_ror_x_x,
+         in_ror_x_y,
          in_sar_x,
          in_sar_x_y,
          in_bsf_x,

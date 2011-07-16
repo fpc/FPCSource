@@ -452,7 +452,7 @@ implementation
           end;
           { we need to align by Tconstptruint here to satisfy the alignment rules set by
             records: in the typinfo unit we overlay a TTypeData record on this data, which at
-            the innermost variant record needs an alignment of TConstPtrUint due to e.g. 
+            the innermost variant record needs an alignment of TConstPtrUint due to e.g.
             the "CompType" member for tkSet (also the "BaseType" member for tkEnumeration).
             We need to adhere to this, otherwise things will break.
             Note that other code (e.g. enumdef_rtti_calcstringtablestart()) relies on the
@@ -490,7 +490,8 @@ implementation
               (otUByte{otNone},
                otUByte,otUWord,otULong,otUByte{otNone},
                otSByte,otSWord,otSLong,otUByte{otNone},
-               otUByte,otSByte,otSWord,otSLong,otSByte,
+               otUByte,otUWord,otULong,otUByte,
+               otSByte,otSWord,otSLong,otSByte,
                otUByte,otUWord,otUByte);
           begin
             write_header(def,typekind);
@@ -523,7 +524,7 @@ implementation
                 { high }
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_64bit(def.high.svalue));
               end;
-            pasbool:
+            pasbool8:
                 dointeger(tkBool);
             uchar:
                 dointeger(tkChar);
@@ -698,18 +699,18 @@ implementation
                  potype_class_constructor: methodkind:=mkClassConstructor;
                  potype_class_destructor: methodkind:=mkClassDestructor;
                  potype_operator: methodkind:=mkOperatorOverload;
-                 potype_procedure: 
-                   if po_classmethod in def.procoptions then 
+                 potype_procedure:
+                   if po_classmethod in def.procoptions then
                      methodkind:=mkClassProcedure
                    else
                      methodkind:=mkProcedure;
                  potype_function:
-                   if po_classmethod in def.procoptions then 
+                   if po_classmethod in def.procoptions then
                      methodkind:=mkClassFunction
                    else
                      methodkind:=mkFunction;
                else
-                 begin                   
+                 begin
                    if def.returndef = voidtype then
                      methodkind:=mkProcedure
                    else

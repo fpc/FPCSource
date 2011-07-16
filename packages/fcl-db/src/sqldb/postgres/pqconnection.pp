@@ -104,6 +104,7 @@ ResourceString
 
 const Oid_Bool     = 16;
       Oid_Bytea    = 17;
+      Oid_char     = 18;
       Oid_Text     = 25;
       Oid_Oid      = 26;
       Oid_Name     = 19;
@@ -120,6 +121,8 @@ const Oid_Bool     = 16;
       oid_date      = 1082;
       oid_time      = 1083;
       oid_numeric   = 1700;
+      Oid_uuid      = 2950;
+
 
 constructor TPQConnection.Create(AOwner : TComponent);
 
@@ -420,9 +423,20 @@ begin
                              // The precision is the high 16 bits, the scale the
                              // low 16 bits. Both with an offset of 4.
                              // In this case we need the scale:
+                               begin
                                size := (li-4) and $FFFF;
+                               if size > 4 then size:=4; //ftBCD allows max.scale 4, when ftFmtBCD will be implemented then use it
+                               end;
                              end;
     Oid_Money              : Result := ftCurrency;
+    Oid_char               : begin
+                             Result := ftFixedChar;
+                             Size := 1;
+                             end;
+    Oid_uuid               : begin
+                             Result := ftGuid;
+                             Size := 38;
+                             end;
     Oid_Unknown            : Result := ftUnknown;
   else
     Result := ftUnknown;
@@ -448,27 +462,17 @@ begin
 end;
 
 procedure TPQConnection.PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams);
-{
-  TFieldType = (ftUnknown, ftString, ftSmallint, ftInteger, ftWord,
-      ftBoolean, ftFloat, ftCurrency, ftBCD, ftDate,  ftTime, ftDateTime,
-          ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic, ftFmtMemo,
-              ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor, ftFixedChar,
-                  ftWideString, ftLargeint, ftADT, ftArray, ftReference,
-                      ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
-                          ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar, ftWideMemo);
                           
-                          
-}
 const TypeStrings : array[TFieldType] of string =
     (
       'Unknown',   // ftUnknown
       'text',     // ftString
-      'int',       // ftSmallint
+      'smallint',  // ftSmallint
       'int',       // ftInteger
       'int',       // ftWord
       'bool',      // ftBoolean
       'float',     // ftFloat
-      'numeric',   // ftCurrency
+      'money',     // ftCurrency
       'numeric',   // ftBCD
       'date',      // ftDate
       'time',      // ftTime
@@ -484,7 +488,7 @@ const TypeStrings : array[TFieldType] of string =
       'Unknown',   // ftDBaseOle
       'Unknown',   // ftTypedBinary
       'Unknown',   // ftCursor
-      'text',      // ftFixedChar
+      'char',      // ftFixedChar
       'text',      // ftWideString
       'bigint',    // ftLargeint
       'Unknown',   // ftADT
@@ -496,9 +500,9 @@ const TypeStrings : array[TFieldType] of string =
       'Unknown',   // ftVariant
       'Unknown',   // ftInterface
       'Unknown',   // ftIDispatch
-      'Unknown',   // ftGuid
+      'uuid',      // ftGuid
       'Unknown',   // ftTimeStamp
-      'Unknown',   // ftFMTBcd
+      'numeric',   // ftFMTBcd
       'Unknown',   // ftFixedWideChar
       'Unknown'    // ftWideMemo
     );
@@ -574,11 +578,12 @@ end;
 procedure TPQConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;AParams : TParams);
 
 var ar  : array of pchar;
-    l,i   : integer;
+    l,i : integer;
     s   : string;
     lengths,formats : array of integer;
     ParamNames,
     ParamValues : array of string;
+    cash: int64;
 
 begin
   with cursor as TPQCursor do
@@ -601,16 +606,22 @@ begin
               s := FormatDateTime('yyyy-mm-dd', AParams[i].AsDateTime);
             ftTime:
               s := FormatDateTime('hh:nn:ss', AParams[i].AsDateTime);
-            ftFloat, ftCurrency:
+            ftFloat, ftBCD:
               Str(AParams[i].AsFloat, s);
+            ftCurrency:
+              begin
+                cash:=NtoBE(round(AParams[i].AsCurrency*100));
+                setlength(s, sizeof(cash));
+                Move(cash, s[1], sizeof(cash));
+              end
             else
               s := AParams[i].AsString;
           end; {case}
           GetMem(ar[i],length(s)+1);
           StrMove(PChar(ar[i]),Pchar(s),Length(S)+1);
           lengths[i]:=Length(s);
-          if (AParams[i].DataType in [ftBlob,ftgraphic]) then
-            formats[i]:=1 
+          if (AParams[i].DataType in [ftBlob,ftGraphic,ftCurrency]) then
+            Formats[i]:=1
           else
             Formats[i]:=0;  
           end
@@ -710,12 +721,14 @@ type TNumericRecord = record
 
 var
   x,i           : integer;
+  s             : string;
   li            : Longint;
   CurrBuff      : pchar;
   tel           : byte;
   dbl           : pdouble;
   cur           : currency;
   NumericRecord : ^TNumericRecord;
+  guid          : TGUID;
 
 begin
   Createblob := False;
@@ -739,7 +752,7 @@ begin
       result := true;
 
       case FieldDef.DataType of
-        ftInteger, ftSmallint, ftLargeInt,ftfloat :
+        ftInteger, ftSmallint, ftLargeInt, ftFloat :
           begin
           i := PQfsize(res, x);
           case i of               // postgres returns big-endian numbers
@@ -751,7 +764,7 @@ begin
               pchar(Buffer)[tel-1] := CurrBuff[i-tel];
           end; {case}
           end;
-        ftString  :
+        ftString, ftFixedChar :
           begin
           li := pqgetlength(res,curtuple,x);
           if li > dsMaxStringSize then li := dsMaxStringSize;
@@ -802,7 +815,16 @@ begin
           dbl^ := BEtoN(PInt64(CurrBuff)^) / 100;
           end;
         ftBoolean:
-          pchar(buffer)[0] := CurrBuff[0]
+          pchar(buffer)[0] := CurrBuff[0];
+        ftGuid:
+          begin
+          Move(CurrBuff^, guid, sizeof(guid));
+          guid.D1:=BEtoN(guid.D1);
+          guid.D2:=BEtoN(guid.D2);
+          guid.D3:=BEtoN(guid.D3);
+          s:=GUIDToString(guid);
+          StrPLCopy(PChar(Buffer), s, FieldDef.Size);
+          end
         else
           result := false;
       end;

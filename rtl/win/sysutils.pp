@@ -213,38 +213,41 @@ end;
                               File Functions
 ****************************************************************************}
 
-Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
 const
   AccessMode: array[0..2] of Cardinal  = (
     GENERIC_READ,
     GENERIC_WRITE,
     GENERIC_READ or GENERIC_WRITE);
-  ShareMode: array[0..4] of Integer = (
+  ShareModes: array[0..4] of Integer = (
                0,
                0,
                FILE_SHARE_READ,
                FILE_SHARE_WRITE,
                FILE_SHARE_READ or FILE_SHARE_WRITE);
+
+Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
 begin
   result := CreateFile(PChar(FileName), dword(AccessMode[Mode and 3]),
-                       dword(ShareMode[(Mode and $F0) shr 4]), nil, OPEN_EXISTING,
+                       dword(ShareModes[(Mode and $F0) shr 4]), nil, OPEN_EXISTING,
                        FILE_ATTRIBUTE_NORMAL, 0);
   //if fail api return feInvalidHandle (INVALIDE_HANDLE=feInvalidHandle=-1)
 end;
 
-
 Function FileCreate (Const FileName : String) : THandle;
 begin
-  Result := CreateFile(PChar(FileName), GENERIC_READ or GENERIC_WRITE,
-                       0, nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+  FileCreate:=FileCreate(FileName, fmShareExclusive, 0);
 end;
 
-
-Function FileCreate (Const FileName : String; Mode:longint) : THandle;
+Function FileCreate (Const FileName : String; Rights:longint) : THandle;
 begin
-  FileCreate:=FileCreate(FileName);
+  FileCreate:=FileCreate(FileName, fmShareExclusive, Rights);
 end;
 
+Function FileCreate (Const FileName : String; ShareMode : Integer; Rights : Integer) : THandle;
+begin
+  Result := CreateFile(PChar(FileName), GENERIC_READ or GENERIC_WRITE,
+                       dword(ShareModes[(ShareMode and $F0) shr 4]), nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+end;
 
 Function FileRead (Handle : THandle; out Buffer; Count : longint) : Longint;
 Var

@@ -107,6 +107,7 @@ const
   scan_e_illegal_minfpconstprec=02085;
   scan_w_multiple_main_name_overrides=02086;
   scanner_w_illegal_warn_identifier=02087;
+  scanner_e_illegal_alignment_directive=02088;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -472,7 +473,7 @@ const
   type_h_convert_sub_operands_to_prevent_overflow=04080;
   type_h_convert_mul_operands_to_prevent_overflow=04081;
   type_w_pointer_to_signed=04082;
-  type_interface_has_no_guid=04083;
+  type_e_interface_has_no_guid=04083;
   type_e_invalid_objc_selector_name=04084;
   type_e_expected_objc_method_but_got=04085;
   type_e_expected_objc_method=04086;
@@ -562,6 +563,7 @@ const
   sym_e_interprocgoto_into_init_final_code_not_allowed=05081;
   sym_e_external_class_name_mismatch1=05082;
   sym_e_external_class_name_mismatch2=05083;
+  sym_w_library_overload=05084;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -893,9 +895,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 59465;
+  MsgTxtSize = 60574;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,88,311,103,84,54,111,23,202,63,
+    24,89,311,103,85,54,111,23,202,63,
     49,20,1,1,1,1,1,1,1,1
   );

@@ -806,15 +806,17 @@ Const
     PROPSETFLAG_ANSI      = DWORD(2);
 
 TYPE
-    VARTYPE             = USHORT;
+    TVarType            = USHORT;
+    VARTYPE             = TVarType deprecated;  // not in Delphi, and clashes with VarType function
 
 //TypeInfo stuff.
 
-    DISPID              = Long ;
+    TDispID             = Long;
+    DISPID              = TDispID deprecated;  // not in Delphi and clashes with property modifier
     SCODE               = Long;
     pSCODE              = ^SCODE;
-    lpDISPID            = ^DISPID;
-    MEMBERID            = DispId;
+    lpDISPID            = ^TDispID;
+    MEMBERID            = TDispID;
     HREFTYPE            = DWord;
     TResultList		= array[0..high(integer) div 4-50] of HResult;
     PResultList         = ^TResultList;
@@ -1379,16 +1381,89 @@ TYPE
                                     End;
    FLAG_STGMEDIUM               = _FLAG_STGMEDIUM;
 
+   PPSafeArray = ^PSafeArray;
+   PSafeArray = ^TSafeArray;
 
-   VARIANTARG                   = VARIANT;
-   LPVARIANT                    = ^VARIANT;
-   LPVARIANTARG                 = ^VARIANT;
+   tagDEC = record //  simpler remoting variant without nested unions. see wtypes.h
+         wReserved : ushort;
+         scale,
+         sign : byte;
+         hi32 : ULONG;
+         lo64 : ULONGLONG;
+         end;
+   TDECIMAL=tagDEC;
+   PDecimal=^TDECIMAL;
+
+   tagVariant = record
+   case Integer of
+   0: (
+     vt: TVarType;
+     wReserved1: Word;
+     wReserved2: Word;
+     wReserved3: Word;
+     case Integer of
+       VT_UI1:                  (bVal: Byte);
+       VT_UI2:                  (uiVal: Word);
+       VT_UI4:                  (ulVal: LongWord);
+       VT_UI8:                  (ullVal: QWord);
+       VT_I1:                   (cVal: Char);  { shortint,perhaps? But it is Char both in PSDK and Delphi }
+       VT_I2:                   (iVal: Smallint);
+       VT_I4:                   (lVal: Longint);
+       VT_I8:                   (llVal: Int64);
+       VT_R4:                   (fltVal: Single);
+       VT_R8:                   (dblVal: Double);
+       VT_BOOL:                 (vbool: VARIANT_BOOL);
+       VT_ERROR:                (scode: HResult);
+       VT_CY:                   (cyVal: Currency);
+       VT_DATE:                 (date: TOleDate);
+       VT_BSTR:                 (bstrVal: POleStr{WideString});
+       VT_UNKNOWN:              (unkVal: Pointer{IUnknown});
+       VT_DISPATCH:             (dispVal: Pointer{IDispatch});
+       VT_ARRAY:                (parray: PSafeArray);
+       VT_BYREF or VT_UI1:      (pbVal: PByte);
+       VT_BYREF or VT_UI2:      (puiVal: PWord);
+       VT_BYREF or VT_UI4:      (pulVal: PInteger);
+       VT_BYREF or VT_UI8:      (pullVal: PQWord);
+       VT_BYREF or VT_I1:       (pcVal: PChar); { PShortInt?? }
+       VT_BYREF or VT_I2:       (piVal: PSmallint);
+       VT_BYREF or VT_I4:       (plVal: PLongint);
+       VT_BYREF or VT_I8:       (pllVal: PInt64);
+       VT_BYREF or VT_R4:       (pfltVal: PSingle);
+       VT_BYREF or VT_R8:       (pdblVal: PDouble);
+       VT_BYREF or VT_BOOL:     (pbool: PVARIANT_BOOL);
+       VT_BYREF or VT_ERROR:    (pscode: ^HResult);
+       VT_BYREF or VT_CY:       (pcyVal: PCurrency);
+       VT_BYREF or VT_DATE:     (pdate: POleDate);
+       VT_BYREF or VT_BSTR:     (pbstrVal: PPOleStr);
+       VT_BYREF or VT_UNKNOWN:  (punkVal: ^IUnknown);
+       VT_BYREF or VT_DISPATCH: (pdispVal: ^IDispatch);
+       VT_BYREF or VT_ARRAY:    (pparray: PPSafeArray);
+       VT_BYREF or VT_VARIANT:  (pvarVal: PVariant);
+       VT_BYREF:                (byRef: Pointer);
+       VT_INT:                  (intVal: Longint);
+       VT_UINT:                 (uintVal: LongWord);
+       VT_BYREF or VT_DECIMAL:  (pdecVal: PDecimal);
+
+       VT_BYREF or VT_INT:      (pintVal: PLongint);
+       VT_BYREF or VT_UINT:     (puintVal: PLongWord);
+     );
+   1: (decVal: TDECIMAL);
+   end;
+
+   TVariantArg = tagVariant;
+   PVariantArg = ^TVariantArg;
+
+   PVariantArgList = ^TVariantArgList;
+   TVariantArgList = array[0..65535] of TVariantArg;
+
+   PDispIDList = ^TDispIDList;
+   TDispIDList = array[0..65535] of TDispID;
 
 // parameter description
 
    tagPARAMDESCEX               = Record
                                     cBytes         : ULong;      // size of this structure
-                                    varDefaultValue: VariantARG; // default value of this parameter
+                                    varDefaultValue: TVariantArg; // default value of this parameter
                                     End;
 
    PARAMDESCEX                  = tagPARAMDESCEX;
@@ -1409,6 +1484,8 @@ TYPE
                                      End;
    SAFEARRAYBOUND               = tagSAFEARRAYBOUND;
    LPSAFEARRAYBOUND             = ^SAFEARRAYBOUND;
+   TSafeArrayBound = tagSAFEARRAYBOUND;
+   PSafeArrayBound = ^TSafeArrayBound;
 
    tagSAFEARRAY = record
      cDims: USHORT;
@@ -1420,7 +1497,6 @@ TYPE
    end;
    TSafeArray = tagSAFEARRAY;
    SAFEARRAY = TSafeArray;
-   PSafeArray = ^TSafeArray;
 
 // additional interface information about the incoming call
    tagINTERFACEINFO             = Record
@@ -1473,7 +1549,7 @@ TYPE
    tagTYPEDESC                  = Record
                                     Case Integer OF
                                       VT_PTR,
-                                      VT_SAFEARRAY   :  (lptdesc : PTYPEDESC;vt : VARTYPE);
+                                      VT_SAFEARRAY   :  (lptdesc : PTYPEDESC;vt : TVarType);
                                       VT_CARRAY      :  (lpadesc : PARRAYDESC);
                                       VT_USERDEFINED :  (hreftype : HREFTYPE);
                                       End;
@@ -1523,8 +1599,8 @@ TYPE
   LPVARDESC                     = ^VARDESC;
   pVARDESC			= LPVARDESC;
   tagDISPPARAMS                 = Record
-                                   rgvarg            : lpVARIANTARG;
-                                   rgdispidNamedArgs : lpDISPID;
+                                   rgvarg            : PVariantArgList;
+                                   rgdispidNamedArgs : PDispIDList;
                                    cArgs,
                                    cNamedArgs        : UINT;
                                    End;
@@ -1628,7 +1704,7 @@ TYPE
 
   tagCUSTDATAITEM                = Record
                                      GUID         : TGuid;           // guid identifying this custom data item
-                                     varValue     : VARIANTARG;      // value of this custom data item
+                                     varValue     : TVariantArg;     // value of this custom data item
                                      End;
 
   CUSTDATAITEM                   = tagCUSTDATAITEM;
@@ -1661,7 +1737,7 @@ TYPE
   tagSTATPROPSTG = record
                     lpwstrName : LPOLESTR ;
                     propid:PROPID ;
-                    vt : VARTYPE;
+                    vt : TVarType;
                     end;
   STATPROPSTG = tagSTATPROPSTG;
   TSTATPROPSTG = STATPROPSTG;
@@ -1691,15 +1767,6 @@ TYPE
 
 
    LPSAFEARRAY = ^SAFEARRAY;
-   tagDEC = record //  simpler remoting variant without nested unions. see wtypes.h
-         wReserved : ushort;
-         scale,
-         sign : byte;
-         hi32 : ULONG;
-         lo64 : ULONGLONG;
-         end;
-   TDECIMAL=tagDEC;
-   PDecimal=^TDECIMAL;
 
    tagCAC = record
         cElems : ULONG;
@@ -1858,7 +1925,7 @@ TYPE
 
    { size of this record must be 16, i.e. match Variant }
    TPROPVARIANT = packed record
-          vt : VARTYPE;
+          vt : TVarType;
           wReserved1 : PROPVAR_PAD1;
           wReserved2 : PROPVAR_PAD2;
           wReserved3 : PROPVAR_PAD3;
@@ -2459,10 +2526,10 @@ TYPE
     IConnectionPoint = Interface (IUnknown)
        ['{B196B286-BAB4-101A-B69C-00AA00341D07}']
        Function GetConnectionInterface(out piid : TIID):HResult;StdCall;
-       Function GetConnectionPointContainer(CPC : IConnectionPointContainer):HResult;StdCall;
-       Function Advise(unkSink : IUnknown;Out dwCookie : DWord):HResult;StdCall;
+       Function GetConnectionPointContainer(out CPC : IConnectionPointContainer):HResult;StdCall;
+       Function Advise(Const unkSink : IUnknown;Out dwCookie : DWord):HResult;StdCall;
        Function UnAdvise(dwCookie : DWord):HResult;StdCall;
-       Function EnumConnection(out pEnum : IEnumConnections):HResult;stdCall;
+       Function EnumConnections(out pEnum : IEnumConnections):HResult;StdCall;
       End;
 
     IConnectionPointContainer = Interface (IUnknown)
@@ -3824,11 +3891,6 @@ type
 {$endif wince}
 
   type
-    TDispID = DISPID;
-
-    TDispIDList = array[0..65535] of TDispID;
-    PDispIDList = ^TDispIDList;
-
     REFIID = TIID;
     TREFIID = TIID;
 
@@ -3871,7 +3933,8 @@ function LoadTypeLib(szfile : lpolestr; var pptlib: ITypelib):HResult; stdcall; 
 function LoadRegTypeLib(const rguid:TGUID;wVerMajor:ushort;wVerMinor:ushort;_lcid:lcid;out pptlib:ITypeLib):HResult; stdcall; external oleaut32dll name 'LoadRegTypeLib';
 function RegisterTypeLib(const ptrlib :ITypeLib;szfullpath:lpolestr;szhelpdir:lpolestr):HResult; stdcall; external oleaut32dll name 'RegisterTypeLib';
 function CreateTypeLib2(sysk:TSysKind;szfile:lpolestr;out ppctlib:ICreateTypeLib2):HResult; stdcall; external oleaut32dll name 'CreateTypeLib2';
-function DispInvoke(this:pointer;const ptinfo: ITypeInfo;dispidMember:TDISPID;wflags:ushort;pparams:pDISPParams;var pvarresult:OLEVARIANT;pexcepinfo:EXCEPINFO;puArgErr:puint):HRESULT; stdcall; external oleaut32dll name 'CreateTypeLib2';
+function DispInvoke(this:pointer;const ptinfo: ITypeInfo;dispidMember:TDISPID;wflags:ushort;pparams:pDISPParams;
+   var pvarresult:OLEVARIANT;pexcepinfo:EXCEPINFO;puArgErr:puint):HRESULT; stdcall; external oleaut32dll name 'DispInvoke';
 {$ifndef wince}
 function LoadTypeLibEx(szfile : lpolestr; regk:tregkind; var pptlib: ITypelib):HResult; stdcall; external oleaut32dll name 'LoadTypeLibEx';
 function QueryPathOfRegTypeLib(const guid:TGUID;wVerMajor:ushort;wVerMinor:ushort;_lcid:lcid;lpbstr:LPolestr):HResult; stdcall; external oleaut32dll name 'QueryPathOfRegTypeLib';

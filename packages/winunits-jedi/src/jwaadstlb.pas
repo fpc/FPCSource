@@ -438,7 +438,7 @@ const
   SYS_WIN16 = $00000000;
   SYS_WIN32 = $00000001;
   SYS_MAC = $00000002;
-  SYS_WIN64 = $00000001;
+  SYS_WIN64 = $00000003;
 
 // Constants for enum __MIDL___MIDL_itf_ads_0120_0001
 type

@@ -42,6 +42,8 @@ begin
         begin
           AddUnit('cdrom');
         end;
+    T:=P.Targets.AddUnit('fpcddb.pp');
+    T.ResourceStrings := True;
 
     // Linux
     T:=P.Targets.AddUnit('lincd.pp',[Linux]);

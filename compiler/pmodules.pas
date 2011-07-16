@@ -1357,9 +1357,6 @@ implementation
          gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.globalsymtable,false);
          gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable,false);
 
-         { generate pic helpers to load eip if necessary }
-         gen_pic_helpers(current_asmdata.asmlists[al_procedures]);
-
          { generate rtti/init tables }
          write_persistent_type_info(current_module.globalsymtable);
          write_persistent_type_info(current_module.localsymtable);
@@ -1752,7 +1749,7 @@ implementation
         hp:=texported_item(current_module._exports.first);
         while assigned(hp) do
           begin
-            current_module.AddExternalImport(current_module.realmodulename^,hp.name^,hp.index,hp.is_var,false);
+            current_module.AddExternalImport(current_module.realmodulename^,hp.name^,hp.name^,hp.index,hp.is_var,false);
             hp:=texported_item(hp.next);
           end;
       end;
@@ -2313,9 +2310,6 @@ implementation
 
          InsertThreadvars;
 
-         { generate pic helpers to load eip if necessary }
-         gen_pic_helpers(current_asmdata.asmlists[al_procedures]);
-
          { generate rtti/init tables }
          write_persistent_type_info(current_module.localsymtable);
 
@@ -2353,8 +2347,10 @@ implementation
          InsertWideInitsTablesTable;
          InsertMemorySizes;
 
+{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if target_info.system in systems_interrupt_table then
            InsertInterruptTable;
+{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 
          { Insert symbol to resource info }
          InsertResourceInfo(resources_used);

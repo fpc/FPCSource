@@ -1638,6 +1638,7 @@ implementation
     function tcallnode.gen_self_tree:tnode;
       var
         selftree : tnode;
+        selfdef  : tabstractrecorddef;
       begin
         selftree:=nil;
 
@@ -1685,7 +1686,13 @@ implementation
             begin
               if (procdefinition.typ<>procdef) then
                 internalerror(200305062);
-              if (oo_has_vmt in tprocdef(procdefinition).struct.objectoptions) then
+              { if the method belongs to a helper then we need to use the
+                extended type for references to Self }
+              if is_objectpascal_helper(tprocdef(procdefinition).struct) then
+                selfdef:=tobjectdef(tprocdef(procdefinition).struct).extendeddef
+              else
+                selfdef:=tprocdef(procdefinition).struct;
+              if (oo_has_vmt in selfdef.objectoptions) then
                 begin
                   { we only need the vmt, loading self is not required and there is no
                     need to check for typen, because that will always get the
@@ -2340,12 +2347,12 @@ implementation
                 else
                  if vo_is_range_check in para.parasym.varoptions then
                    begin
-                     para.left:=cordconstnode.create(Ord(cs_check_range in current_settings.localswitches),booltype,false);
+                     para.left:=cordconstnode.create(Ord(cs_check_range in current_settings.localswitches),pasbool8type,false);
                    end
                 else
                  if vo_is_overflow_check in para.parasym.varoptions then
                    begin
-                     para.left:=cordconstnode.create(Ord(cs_check_overflow in current_settings.localswitches),booltype,false);
+                     para.left:=cordconstnode.create(Ord(cs_check_overflow in current_settings.localswitches),pasbool8type,false);
                    end
                 else
                   if vo_is_msgsel in para.parasym.varoptions then
@@ -2868,7 +2875,19 @@ implementation
            begin
              if assigned(left) then
               begin
-                { ptr and settextbuf needs two args }
+                { convert types to those of the prototype, this is required by functions like ror, rol, sar
+                  some use however a dummy type (Typedfile) so this would break them }
+                if not(tprocdef(procdefinition).extnumber in [fpc_in_Reset_TypedFile,fpc_in_Rewrite_TypedFile]) then
+                  begin
+                    { bind parasyms to the callparanodes and insert hidden parameters }
+                    bind_parasym;
+
+                    { insert type conversions for parameters }
+                    if assigned(left) then
+                      tcallparanode(left).insert_typeconv;
+                  end;
+
+                { ptr and settextbuf need two args }
                 if assigned(tcallparanode(left).right) then
                  begin
                    hpt:=geninlinenode(tprocdef(procdefinition).extnumber,is_const,left);

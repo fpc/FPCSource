@@ -687,7 +687,7 @@ begin
     dec(ord(hs[0]));
     actcondition.dirhint := DH_Plus;
   end;
-  actopcode := tasmop(ptrint(iasmops.Find(hs)));
+  actopcode := tasmop(ptruint(iasmops.Find(hs)));
   if actopcode <> A_NONE then
   begin
     if actcondition.dirhint <> DH_None then

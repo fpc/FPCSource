@@ -2640,13 +2640,17 @@ Var
   I : Integer;
 
 begin
+  Result := '';
   For I:=0 to High(Params) do
     begin
     If (Result<>'')  then
       Result:=Result+', ';
     Result:=Result+Params[I].GetDeclaration(Full);  
-    end;  
-  Result:='('+Result+')';
+    end;
+  if Kind = pekSet then
+    Result := '[' + Result + ']'
+  else
+    Result := '(' + Result + ')';
 end;
 
 procedure TParamsExpr.AddParam(xp:TPasExpr);
@@ -2678,9 +2682,10 @@ Function TRecordValues.GetDeclaration(Full : Boolean):AnsiString;
 Var
   I : Integer;
 begin
+  Result := '';
   For I:=0 to High(Fields) do
     begin
-    If Result='' then
+    If Result<>'' then
       Result:=Result+'; ';
     Result:=Result+Fields[I].Name+': '+Fields[i].ValueExp.getDeclaration(Full);
     end;
@@ -2739,9 +2744,10 @@ Var
   I : Integer;
 
 begin
+  Result := '';
   For I:=0 to High(Values) do
     begin
-    If Result='' then
+    If Result<>'' then
       Result:=Result+', ';
     Result:=Result+Values[i].getDeclaration(Full);
     end;

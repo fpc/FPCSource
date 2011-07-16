@@ -30,11 +30,20 @@ begin
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
+    T:=P.Targets.AddUnit('bzip2comn.pas');
     T:=P.Targets.AddUnit('bzip2.pas');
       with T.Dependencies do
         begin
           AddInclude('bzip2i386.inc',[i386],AllOSes);
+          AddUnit('bzip2comn');
         end;
+    T:=P.Targets.AddUnit('bzip2stream.pas');
+      with T.Dependencies do
+        begin
+          AddInclude('bzip2sii386.inc',[i386],AllOSes);
+          AddUnit('bzip2comn');
+        end;
+    T.ResourceStrings := true;
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('pasbzip.pas');

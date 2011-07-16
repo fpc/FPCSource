@@ -391,9 +391,24 @@ begin
            proxy_s[13]:=#0;
            proxy_s[18]:=#0;
            proxy_s[23]:=#0;
+           { Do not set argv[2..4] to PROXY_S
+             values, because PROXY_S is on stack,
+             while ARGV[2..4] need to be on heap.
+             PM 2011-06-08
            argv[2]:=@proxy_s[9];
            argv[3]:=@proxy_s[14];
-           argv[4]:=@proxy_s[19];
+           argv[4]:=@proxy_s[19];}
+           allocarg(2,4);
+           strcopy(argv[2], @proxy_s[9]);
+           allocarg(3,4);
+           strcopy(argv[3], @proxy_s[14]);
+           allocarg(4,4);
+           strcopy(argv[4], @proxy_s[19]);
+           { We need to change this variable env name
+             otherwise it will be used by other DJGPP variables
+             if we call them. PM 2011-07-04
+             Hide it as '_!proxy' instead of ' !proxy' }
+           hp^[0]:='_';
            useproxy:=true;
            break;
          end;

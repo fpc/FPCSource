@@ -1052,7 +1052,8 @@ implementation
             begin
               if not((def.typ=pointerdef) or
                     ((def.typ=orddef) and
-                     (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,pasbool]))) then
+                     (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
+                                               pasbool8,pasbool16,pasbool32,pasbool64]))) then
                 begin
                   ai:=TAiCpu.Op_sym(A_Bxx,hl);
                   ai.SetCondition(C_NO);
@@ -1363,7 +1364,7 @@ implementation
           Internalerror(200109191);
 
         make_global:=false;
-        if (not current_module.is_unit) or
+        if (not current_module.is_unit) or create_smartlink or
            (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
           make_global:=true;
 

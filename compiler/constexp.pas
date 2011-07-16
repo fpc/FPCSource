@@ -57,10 +57,14 @@ var   internalerror:errorproc;
 
 {Same issue, avoid dependency on cpuinfo because the cpu directory isn't
  searched during utils building.}
+{$ifdef GENERIC_CPU}
+type  bestreal=extended;
+{$else}
 {$ifdef x86}
 type  bestreal=extended;
 {$else}
 type  bestreal=double;
+{$endif}
 {$endif}
 
 operator := (const u:qword):Tconstexprint;inline;

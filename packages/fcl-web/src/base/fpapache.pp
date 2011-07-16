@@ -125,7 +125,7 @@ Type
     procedure SetPriority(const AValue: THandlerPriority);
   public
     function InitializeWebHandler: TWebHandler; override;
-    Procedure Initialize;
+    Procedure Initialize;override;
     procedure ShowException(E: Exception); override;
     Function ProcessRequest(P : PRequest_Rec) : Integer; virtual;
     Function AllowRequest(P : PRequest_Rec) : Boolean; virtual;
@@ -277,7 +277,9 @@ end;
 
 function TApacheHandler.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
 begin
-  // Do nothing. Requests are triggered by Apache
+  Result:=False;
+  ARequest:=Nil;
+  AResponse:=Nil;
 end;
 
 function TApacheHandler.AllowRequest(P: PRequest_Rec): Boolean;
@@ -446,8 +448,14 @@ end;
 
 function TApacheRequest.GetFieldValue(Index: Integer): String;
 
+  Function MaybeP(P : Pchar) : String;
+  
+  begin
+    If (P<>Nil) then
+      Result:=StrPas(P);
+  end;
+
 var
-  P : Pchar;
   FN : String;
   I : Integer;
   
@@ -456,36 +464,37 @@ begin
   If (Index in [1..NoHTTPFields]) then
     begin
     FN:=HTTPFieldNames[Index];
-    P:=apr_table_get(FRequest^.headers_in,pchar(FN));
-    If (P<>Nil) then
-      Result:=StrPas(P);
+    Result:=MaybeP(apr_table_get(FRequest^.headers_in,pchar(FN)));
     end;
-  if (Result='') then
+  if (Result='') and Assigned(FRequest) then
     case Index of
-      0  : Result:=strpas(FRequest^.protocol); // ProtocolVersion
-      7  : Result:=Strpas(FRequest^.content_encoding); //ContentEncoding
-      25 : Result:=StrPas(FRequest^.path_info); // PathInfo
-      26 : Result:=StrPas(FRequest^.filename); // PathTranslated
+      0  : Result:=MaybeP(FRequest^.protocol); // ProtocolVersion
+      7  : Result:=MaybeP(FRequest^.content_encoding); //ContentEncoding
+      25 : Result:=MaybeP(FRequest^.path_info); // PathInfo
+      26 : Result:=MaybeP(FRequest^.filename); // PathTranslated
       27 : // RemoteAddr
            If (FRequest^.Connection<>Nil) then
-             Result:=StrPas(FRequest^.Connection^.remote_ip);
+             Result:=MaybeP(FRequest^.Connection^.remote_ip);
       28 : // RemoteHost
            If (FRequest^.Connection<>Nil) then
-             Result:=StrPas(ap_get_remote_host(FRequest^.Connection,
-                                FRequest^.Per_Dir_Config,
-                                REMOTE_HOST,Nil));
+             begin
+             Result:=MaybeP(ap_get_remote_host(FRequest^.Connection,
+                            FRequest^.per_dir_config,
+//                            nil,
+                            REMOTE_NAME,@i));
+             end;                   
       29 : begin // ScriptName
-           Result:=StrPas(FRequest^.unparsed_uri);
+           Result:=MaybeP(FRequest^.unparsed_uri);
            I:=Pos('?',Result)-1;
            If (I=-1) then
              I:=Length(Result);
            Result:=Copy(Result,1,I-Length(PathInfo));
            end;
       30 : Result:=IntToStr(ap_get_server_port(FRequest)); // ServerPort
-      31 : Result:=StrPas(FRequest^.method); // Method
-      32 : Result:=StrPas(FRequest^.unparsed_uri); // URL
-      33 : Result:=StrPas(FRequest^.args); // Query
-      34 : Result:=StrPas(FRequest^.HostName); // Host
+      31 : Result:=MaybeP(FRequest^.method); // Method
+      32 : Result:=MaybeP(FRequest^.unparsed_uri); // URL
+      33 : Result:=MaybeP(FRequest^.args); // Query
+      34 : Result:=MaybeP(FRequest^.HostName); // Host
     else
       Result:=inherited GetFieldValue(Index);
     end;
@@ -721,6 +730,7 @@ end;
 
 procedure TCustomApacheApplication.Initialize;
 begin
+  Inherited;
   TApacheHandler(WebHandler).Initialize;
 end;
 

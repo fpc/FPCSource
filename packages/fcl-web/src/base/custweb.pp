@@ -270,10 +270,11 @@ begin
     R.SendContent;
     Exit;
     end;
-  If not R.HeadersSent then
+  If (not R.HeadersSent) then
     begin
+    R.Code:=500;
+    R.CodeText:='Application error '+E.ClassName;
     R.ContentType:='text/html';
-    R.SendHeaders;
     end;
   If (R.ContentType='text/html') then
     begin
@@ -309,6 +310,7 @@ begin
   try
     MC:=Nil;
     M:=NIL;
+    MI:=Nil;
     If (OnGetModule<>Nil) then
       OnGetModule(Self,ARequest,MC);
     If (MC=Nil) then
@@ -321,7 +323,7 @@ begin
       end;
     M:=FindModule(MC); // Check if a module exists already
     If (M=Nil) then
-      if Mi.SkipStreaming then
+      if assigned(MI) and Mi.SkipStreaming then
         M:=MC.CreateNew(Self)
       else
         M:=MC.Create(Self);
@@ -375,8 +377,11 @@ begin
   If (Result='') then
     begin
     S:=ARequest.PathInfo;
-    If (Length(S)>0) and (S[1]='/') then
-      Delete(S,1,1);
+    If (Length(S)>0) and (S[1]='/') then  
+      Delete(S,1,1);                      //Delete the leading '/' if exists
+    I:=Length(S);
+    If (I>0) and (S[I]='/') then
+      Delete(S,I,1);                      //Delete the trailing '/' if exists
     I:=Pos('/',S);
     if (I>0) then
       Result:=ARequest.GetNextPathInfo;

@@ -1609,7 +1609,7 @@ implementation
                     eq:=te_convert_l2
                   else
                     if equal_defs(def_from,tarraydef(def_to).elementdef) then
-                      eq:=te_convert_l2;
+                      eq:=te_convert_l3;
                 end;
             end;
           pointerdef :
@@ -1864,6 +1864,22 @@ implementation
                { when there is no explicit overload we stop searching }
                if not hasoverload then
                  break;
+             end;
+           if is_objectpascal_helper(structdef) then
+             begin
+               if not assigned(tobjectdef(structdef).extendeddef) then
+                 Internalerror(2011062601);
+               { search methods in the extended type as well }
+               srsym:=tprocsym(tobjectdef(structdef).extendeddef.symtable.FindWithHash(hashedid));
+               if assigned(srsym) and
+                  { Delphi allows hiding a property by a procedure with the same name }
+                  (srsym.typ=procsym) then
+                 begin
+                   hasoverload:=processprocsym(tprocsym(srsym));
+                   { when there is no explicit overload we stop searching }
+                   if not hasoverload then
+                     break;
+                 end;
              end;
            { next parent }
            if (structdef.typ=objectdef) then
@@ -2477,7 +2493,8 @@ implementation
         variantorddef_cl: array[tordtype] of tvariantequaltype =
           (tve_incompatible,tve_byte,tve_word,tve_cardinal,tve_chari64,
            tve_shortint,tve_smallint,tve_longint,tve_chari64,
-           tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,
+           tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,
+           tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,
            tve_chari64,tve_chari64,tve_dblcurrency);
 { TODO: fixme for 128 bit floats }
         variantfloatdef_cl: array[tfloattype] of tvariantequaltype =

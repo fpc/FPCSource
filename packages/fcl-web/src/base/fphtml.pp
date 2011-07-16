@@ -39,6 +39,7 @@ type
   TWebButtons = array of TWebButton;
 
   TMessageBoxHandler = function(Sender: TObject; AText: String; Buttons: TWebButtons; Loaded: string = ''): string of object;
+  TOnGetUrlProc = procedure(ParamNames, ParamValues, KeepParams: array of string; Action: string; var URL: string) of object;
   TWebController = class;
   THTMLContentProducer = class;
 
@@ -125,6 +126,7 @@ type
     FAddRelURLPrefix: boolean;
     FBaseURL: string;
     FMessageBoxHandler: TMessageBoxHandler;
+    FOnGetURL: TOnGetUrlProc;
     FScriptName: string;
     FScriptStack: TFPObjectList;
     FIterationIDs: array of string;
@@ -139,6 +141,7 @@ type
     function GetStyleSheetReferences: TContainerStylesheets; virtual; abstract;
     function GetScripts: TFPObjectList; virtual; abstract;
     function GetRequest: TRequest;
+    property OnGetURL: TOnGetUrlProc read FOnGetURL write FOnGetURL;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -164,6 +167,7 @@ type
     procedure ShowRegisteredScript(ScriptID: integer); virtual; abstract;
 
     function IncrementIterationLevel: integer; virtual;
+    function ResetIterationLevel: integer; virtual;
     procedure SetIterationIDSuffix(AIterationLevel: integer; IDSuffix: string); virtual;
     function GetIterationIDSuffix: string; virtual;
     procedure DecrementIterationLevel; virtual;
@@ -247,6 +251,7 @@ type
     procedure SetParent(const AValue: TComponent);
   Protected
     function CreateWriter (Doc : THTMLDocument) : THTMLWriter; virtual;
+    function GetIdentification: string; virtual;
     function GetIDSuffix: string; virtual;
     procedure SetIDSuffix(const AValue: string); virtual;
   protected
@@ -284,6 +289,7 @@ type
     function MoveContentProducer(MoveElement, MoveBeforeElement: THTMLContentProducer) : boolean;
     procedure HandleAjaxRequest(ARequest: TRequest; AnAjaxResponse: TAjaxResponse); virtual;
     procedure ForeachContentProducer(AForeachChildsProc: TForeachContentProducerProc; Recursive: boolean);
+    property Identification: string read GetIdentification;
     property Childs[Index: integer]: THTMLContentProducer read GetContentProducers;
     property AcceptChildsAtDesignTime: boolean read FAcceptChildsAtDesignTime;
     property parent: TComponent read FParent write SetParent;
@@ -674,6 +680,11 @@ begin
   if not assigned(FChilds) then
     fchilds := tfplist.Create;
   Result := FChilds;
+end;
+
+function THTMLContentProducer.GetIdentification: string;
+begin
+  result := '';
 end;
 
 function THTMLContentProducer.ProduceContent: String;
@@ -1107,6 +1118,7 @@ end;
 Function TCustomHTMLModule.CreateDocument : THTMLDocument;
 
 begin
+  Result:=Nil;
   If Assigned(FOnCreateDocument) then
     FOnCreateDocument(Self,Result);
   If (Result=Nil) then
@@ -1121,12 +1133,13 @@ end;
 
 procedure TCustomHTMLModule.SetActions(const AValue: THTMLContentActions);
 begin
-
+  FActions.Assign(AValue);
 end;
 
 Function TCustomHTMLModule.CreateWriter(ADocument : THTMLDocument) : THTMLWriter;
 
 begin
+  Result:=Nil;
   If Assigned(FOnCreateWriter) then
     FOnCreateWriter(Self,ADocument,Result);
   if (Result=Nil) then
@@ -1438,6 +1451,11 @@ function TWebController.IncrementIterationLevel: integer;
 begin
   result := Length(FIterationIDs)+1;
   SetLength(FIterationIDs,Result);
+end;
+
+function TWebController.ResetIterationLevel: integer;
+begin
+  SetLength(FIterationIDs,0);
 end;
 
 procedure TWebController.SetIterationIDSuffix(AIterationLevel: integer; IDSuffix: string);

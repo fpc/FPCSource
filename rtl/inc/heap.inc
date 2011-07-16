@@ -1507,11 +1507,13 @@ var
   loc_freelists: pfreelists;
 begin
   { this function should be called in main thread context }
-  loc_freelists := @freelists;
 {$ifdef FPC_HAS_FEATURE_THREADING}
+  if heap_lock_use > 0 then
+    exit;
   heap_lock_use := 1;
   initcriticalsection(heap_lock);
 {$endif}
+  loc_freelists := @freelists;
   { loc_freelists still points to main thread's freelists, but they
     have a reference to the global main freelists, fix them to point
     to the main thread specific variable }

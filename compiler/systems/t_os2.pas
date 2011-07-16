@@ -279,24 +279,25 @@ begin
 end;
 
 
-procedure AddImport(const module:string;index:longint;const name:string);
-{func       = Name of function to import.
+procedure AddImport(const module:string;index:longint;const name,mangledname:string);
+{mangledname= Assembler label of the function to import.
  module     = Name of DLL to import from.
  index      = Index of function in DLL. Use 0 to import by name.
  name       = Name of function in DLL. Ignored when index=0;}
 (*
 var tmp1,tmp2,tmp3:string;
 *)
-var tmp1,tmp3:string;
+var tmp1,tmp2,tmp3:string;
     sym_mcount,sym_import:longint;
     fixup_mcount,fixup_import:longint;
 begin
     aout_init;
+    tmp2:=mangledname;
 (*
     tmp2:=func;
     if profile_flag and not (copy(func,1,4)='_16_') then
 *)
-    if profile_flag and not (copy(Name,1,4)='_16_') then
+    if profile_flag and not (copy(tmp2,1,4)='_16_') then
         begin
             {sym_entry:=aout_sym(func,n_text+n_ext,0,0,aout_text_size);}
             sym_mcount:=aout_sym('__mcount',n_ext,0,0,0);
@@ -306,7 +307,7 @@ begin
             tmp2:='__$U_'+func;
             sym_import:=aout_sym(tmp2,n_ext,0,0,0);
 *)
-            sym_import:=aout_sym(name,n_ext,0,0,0);
+            sym_import:=aout_sym(tmp2,n_ext,0,0,0);
             aout_text_byte($55);    {push ebp}
             aout_text_byte($89);    {mov ebp, esp}
             aout_text_byte($e5);
@@ -340,7 +341,7 @@ begin
         tmp3:=func+'='+module+'.'+name;
     aout_sym(tmp2,n_imp1+n_ext,0,0,0);
 *)
-    aout_sym(Name,n_imp1+n_ext,0,0,0);
+    aout_sym(tmp2,n_imp1+n_ext,0,0,0);
     aout_sym(tmp3,n_imp2+n_ext,0,0,0);
     aout_finish;
     write_ar(tmp1,aout_size);
@@ -369,7 +370,8 @@ end;
             for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
               begin
                 ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
-                AddImport(ChangeFileExt(ExtractFileName(ImportLibrary.Name),''),ImportSymbol.OrdNr,ImportSymbol.Name);
+                AddImport(ChangeFileExt(ExtractFileName(ImportLibrary.Name),''),
+                  ImportSymbol.OrdNr,ImportSymbol.Name,ImportSymbol.MangledName);
               end;
          end;
          close(out_file);

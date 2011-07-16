@@ -100,7 +100,7 @@ implementation
 { include system independent routines }
 {$I system.inc}
 
-function fpc_pwidechar_length(p: PWideChar): LongInt; external name 'FPC_PWIDECHAR_LENGTH';
+function fpc_pwidechar_length(p: PWideChar): SizeInt; external name 'FPC_PWIDECHAR_LENGTH';
 
 { based on setup_arguments from Win32 RTL }
 procedure setup_arguments;

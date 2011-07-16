@@ -913,7 +913,7 @@ implementation
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern('fpc_'+chartype+'array_to_shortstr',
               ccallparanode.create(cordconstnode.create(
-                ord(tarraydef(left.resultdef).lowrange=0),booltype,false),
+                ord(tarraydef(left.resultdef).lowrange=0),pasbool8type,false),
               ccallparanode.create(left,ccallparanode.create(
               ctemprefnode.create(restemp),nil)))));
             addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
@@ -924,7 +924,7 @@ implementation
           result:=ccallnode.createinternres(
             'fpc_'+chartype+'array_to_'+tstringdef(resultdef).stringtypname,
             ccallparanode.create(cordconstnode.create(
-               ord(tarraydef(left.resultdef).lowrange=0),booltype,false),
+               ord(tarraydef(left.resultdef).lowrange=0),pasbool8type,false),
              ccallparanode.create(left,nil)),resultdef);
         left:=nil;
       end;
@@ -1377,7 +1377,7 @@ implementation
         if assigned(tobjectdef(left.resultdef).iidstr) then
           begin
             if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
-              CGMessage1(type_interface_has_no_guid,tobjectdef(left.resultdef).typename);
+              CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
             result:=cstringconstnode.createstr(tobjectdef(left.resultdef).iidstr^);
             tstringconstnode(result).changestringtype(cshortstringtype);
           end;
@@ -1389,7 +1389,7 @@ implementation
         if assigned(tobjectdef(left.resultdef).iidguid) then
           begin
             if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
-              CGMessage1(type_interface_has_no_guid,tobjectdef(left.resultdef).typename);
+              CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
             result:=cguidconstnode.create(tobjectdef(left.resultdef).iidguid^);
           end;
       end;
@@ -2463,7 +2463,7 @@ implementation
                   fname:='int64_to_'
                 else
                   { we can't do better currently }
-                  fname:='int64_to_';
+                  fname:='qword_to_';
               end
             else
               { other integers are supposed to be 32 bit }
@@ -3347,7 +3347,7 @@ implementation
               CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
             case nodetype of
               isn:
-                resultdef:=booltype;
+                resultdef:=pasbool8type;
               asn:
                 resultdef:=tclassrefdef(right.resultdef).pointeddef;
             end;
@@ -3361,7 +3361,7 @@ implementation
 
             case nodetype of
               isn:
-                resultdef:=booltype;
+                resultdef:=pasbool8type;
               asn:
                 resultdef:=right.resultdef;
             end;
@@ -3386,7 +3386,7 @@ implementation
                     if assigned(tobjectdef(right.resultdef).iidguid) then
                       begin
                         if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
-                          CGMessage1(type_interface_has_no_guid,tobjectdef(right.resultdef).typename);
+                          CGMessage1(type_e_interface_has_no_guid,tobjectdef(right.resultdef).typename);
                         hp:=cguidconstnode.create(tobjectdef(right.resultdef).iidguid^);
                         right.free;
                         right:=hp;

@@ -972,6 +972,7 @@ var R,R2: TRect;
     i : word;
 begin
   New(C, Init(10,50));
+  CurVP:=nil;
   for i:=0 to GetVideoModeCount-1 do
    begin
       GetVideoModeData(i,VM);

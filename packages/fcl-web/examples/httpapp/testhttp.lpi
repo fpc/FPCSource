@@ -1,0 +1,311 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <General>
+      <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+        <UseDefaultCompilerOptions Value="True"/>
+      </Flags>
+      <MainUnit Value="0"/>
+      <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
+      <Icon Value="0"/>
+      <ActiveWindowIndexAtStart Value="0"/>
+    </General>
+    <i18n>
+      <EnableI18N LFM="False"/>
+    </i18n>
+    <VersionInfo>
+      <StringTable ProductVersion=""/>
+    </VersionInfo>
+    <BuildModes Count="1" Active="Default">
+      <Item1 Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+    <Units Count="12">
+      <Unit0>
+        <Filename Value="testhttp.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="testhttp"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="16" Y="5"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="fpwebfile.pp"/>
+        <UnitName Value="fpwebfile"/>
+        <EditorIndex Value="10"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="8"/>
+        <CursorPos X="22" Y="14"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="../../../../../FPC/trunk/packages/fcl-web/src/base/fphttp.pp"/>
+        <UnitName Value="fphttp"/>
+        <EditorIndex Value="11"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="188"/>
+        <CursorPos X="1" Y="196"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="../../../../../FPC/trunk/packages/fcl-web/src/base/fphttpapp.pp"/>
+        <UnitName Value="fphttpapp"/>
+        <EditorIndex Value="6"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="14"/>
+        <CursorPos X="31" Y="20"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="../../../../../FPC/trunk/packages/fcl-web/src/base/custhttpapp.pp"/>
+        <UnitName Value="custhttpapp"/>
+        <EditorIndex Value="7"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="35"/>
+        <CursorPos X="30" Y="39"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="../../../../../FPC/trunk/packages/fcl-web/src/base/fphttpserver.pp"/>
+        <UnitName Value="fphttpserver"/>
+        <EditorIndex Value="8"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="18"/>
+        <CursorPos X="24" Y="39"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="../../../../../FPC/trunk/packages/fcl-web/src/base/httpdefs.pp"/>
+        <UnitName Value="HTTPDefs"/>
+        <EditorIndex Value="9"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1005"/>
+        <CursorPos X="42" Y="1038"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/reglazwebextra.pp"/>
+        <UnitName Value="reglazwebextra"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="218"/>
+        <CursorPos X="29" Y="235"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/weblazideintf.pp"/>
+        <UnitName Value="WebLazIDEIntf"/>
+        <EditorIndex Value="5"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="623"/>
+        <CursorPos X="1" Y="642"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/frmnewhttpapp.pp"/>
+        <ComponentName Value="NewHTTPApplicationForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="frmnewhttpapp"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="25"/>
+        <CursorPos X="34" Y="104"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/fpwebstrconsts.pas"/>
+        <UnitName Value="fpWebStrConsts"/>
+        <EditorIndex Value="4"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="92"/>
+        <CursorPos X="22" Y="121"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="../../../../../FPC/trunk/packages/fcl-web/src/webdata/fpwebdata.pp"/>
+        <UnitName Value="fpwebdata"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="14" Y="15"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit11>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="testhttp.pp"/>
+        <Caret Line="23" Column="3" TopLine="1"/>
+      </Position1>
+      <Position2>
+        <Filename Value="testhttp.pp"/>
+        <Caret Line="8" Column="44" TopLine="1"/>
+      </Position2>
+      <Position3>
+        <Filename Value="fpwebfile.pp"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position3>
+      <Position4>
+        <Filename Value="testhttp.pp"/>
+        <Caret Line="29" Column="44" TopLine="1"/>
+      </Position4>
+      <Position5>
+        <Filename Value="fpwebfile.pp"/>
+        <Caret Line="63" Column="22" TopLine="48"/>
+      </Position5>
+      <Position6>
+        <Filename Value="../../../../../FPC/trunk/packages/fcl-web/src/base/custhttpapp.pp"/>
+        <Caret Line="39" Column="30" TopLine="35"/>
+      </Position6>
+      <Position7>
+        <Filename Value="../../../../../FPC/trunk/packages/fcl-web/src/base/fphttpserver.pp"/>
+        <Caret Line="35" Column="38" TopLine="18"/>
+      </Position7>
+      <Position8>
+        <Filename Value="../../../../../FPC/trunk/packages/fcl-web/src/base/httpdefs.pp"/>
+        <Caret Line="623" Column="33" TopLine="613"/>
+      </Position8>
+      <Position9>
+        <Filename Value="../../../../../FPC/trunk/packages/fcl-web/src/base/httpdefs.pp"/>
+        <Caret Line="1012" Column="7" TopLine="1009"/>
+      </Position9>
+      <Position10>
+        <Filename Value="../../../../../FPC/trunk/packages/fcl-web/src/base/httpdefs.pp"/>
+        <Caret Line="281" Column="71" TopLine="263"/>
+      </Position10>
+      <Position11>
+        <Filename Value="../../../../../FPC/trunk/packages/fcl-web/src/base/httpdefs.pp"/>
+        <Caret Line="1014" Column="21" TopLine="1010"/>
+      </Position11>
+      <Position12>
+        <Filename Value="../../../../../FPC/trunk/packages/fcl-web/src/base/httpdefs.pp"/>
+        <Caret Line="660" Column="21" TopLine="627"/>
+      </Position12>
+      <Position13>
+        <Filename Value="fpwebfile.pp"/>
+        <Caret Line="77" Column="60" TopLine="48"/>
+      </Position13>
+      <Position14>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/reglazwebextra.pp"/>
+        <Caret Line="86" Column="29" TopLine="58"/>
+      </Position14>
+      <Position15>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/weblazideintf.pp"/>
+        <Caret Line="549" Column="14" TopLine="547"/>
+      </Position15>
+      <Position16>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/frmnewhttpapp.pp"/>
+        <Caret Line="54" Column="17" TopLine="36"/>
+      </Position16>
+      <Position17>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/frmnewhttpapp.pp"/>
+        <Caret Line="41" Column="20" TopLine="41"/>
+      </Position17>
+      <Position18>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/frmnewhttpapp.pp"/>
+        <Caret Line="27" Column="29" TopLine="1"/>
+      </Position18>
+      <Position19>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/reglazwebextra.pp"/>
+        <Caret Line="93" Column="28" TopLine="76"/>
+      </Position19>
+      <Position20>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/frmnewhttpapp.pp"/>
+        <Caret Line="39" Column="43" TopLine="21"/>
+      </Position20>
+      <Position21>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/frmnewhttpapp.pp"/>
+        <Caret Line="97" Column="29" TopLine="68"/>
+      </Position21>
+      <Position22>
+        <Filename Value="../../../../../FPC/trunk/packages/fcl-web/src/webdata/fpwebdata.pp"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position22>
+      <Position23>
+        <Filename Value="../../../../../FPC/trunk/packages/fcl-web/src/webdata/fpwebdata.pp"/>
+        <Caret Line="15" Column="14" TopLine="1"/>
+      </Position23>
+      <Position24>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/reglazwebextra.pp"/>
+        <Caret Line="203" Column="23" TopLine="184"/>
+      </Position24>
+      <Position25>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/frmnewhttpapp.pp"/>
+        <Caret Line="66" Column="10" TopLine="59"/>
+      </Position25>
+      <Position26>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/frmnewhttpapp.pp"/>
+        <Caret Line="71" Column="24" TopLine="39"/>
+      </Position26>
+      <Position27>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/frmnewhttpapp.pp"/>
+        <Caret Line="75" Column="18" TopLine="58"/>
+      </Position27>
+      <Position28>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/reglazwebextra.pp"/>
+        <Caret Line="111" Column="66" TopLine="95"/>
+      </Position28>
+      <Position29>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/reglazwebextra.pp"/>
+        <Caret Line="186" Column="15" TopLine="160"/>
+      </Position29>
+      <Position30>
+        <Filename Value="../../../../../projects/lazarus/components/fpweb/reglazwebextra.pp"/>
+        <Caret Line="200" Column="3" TopLine="184"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="10"/>
+    <Parsing>
+      <SyntaxOptions>
+        <UseAnsiStrings Value="False"/>
+      </SyntaxOptions>
+    </Parsing>
+    <Other>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

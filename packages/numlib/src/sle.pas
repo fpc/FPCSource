@@ -2272,5 +2272,7 @@ Begin
 End; {slegtr}
 
 Begin
+  {$ifdef fixate_random}
   randseed := 12345
+  {$endif}
 End.

@@ -106,7 +106,7 @@ type
   dtree_type = array[0..2*D_CODES+1-1] of ct_data;  { distance tree }
   htree_type = array[0..2*BL_CODES+1-1] of ct_data;  { Huffman tree for bit lengths }
   { generic tree type }
-  tree_type = array[0..(maxint div SizeOf(ct_data))-1] of ct_data;
+  tree_type = array[0..(maxzbaseint div SizeOf(ct_data))-1] of ct_data;
 
   tree_ptr = ^ct_data;
   ltree_ptr = ^ltree_type;
@@ -139,7 +139,7 @@ type
 
   pPosf = ^Posf;
 
-  zPosfArray = array[0..(maxint div SizeOf(Posf))-1] of Posf;
+  zPosfArray = array[0..(maxzbaseint div SizeOf(Posf))-1] of Posf;
   pzPosfArray = ^zPosfArray;
 
 { A Pos is an index in the character window. We use short instead of integer to
@@ -509,7 +509,7 @@ const
 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 28
 );
 
-  
+
 { First normalized length for each code (0 = MIN_MATCH) }
   base_length : array[0..LENGTH_CODES-1] of integer = (
 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 28, 32, 40, 48, 56,

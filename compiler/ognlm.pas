@@ -1198,7 +1198,12 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                     targetSectionName := '';
                     if objreloc.symbol <> nil then
                     begin
-                      // writeln ('  MemPos',objsec.MemPos,' dataOfs:',objreloc.dataoffset,' ',objsec.name,'   objreloc.symbol: ',objreloc.symbol.name,'  objreloc.symbol.objsection.name: ',objreloc.symbol.objsection.name,' ',objreloc.symbol.Typ,' ',objreloc.symbol.bind,' ',objreloc.Typ);
+                      // writeln ('  MemPos',objsec.MemPos,
+                      // ' dataOfs:',objreloc.dataoffset,' ',objsec.name,
+                      // '   objreloc.symbol: ',objreloc.symbol.name,
+                      // '  objreloc.symbol.objsection.name: ',objreloc.symbol.objsection.name,
+                      // ' ',objreloc.symbol.Typ,' ',objrel
+                      // oc.symbol.bind,' ',objreloc.Typ);
                       if objreloc.symbol.objsection.name[1] <> '.' then
                         targetSectionName := objreloc.symbol.name                       // specials like __bss_start__
                       else                                                              // dont use objsection.name because it begins with *
@@ -1313,7 +1318,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                    exit;
                  end;
                fileH := fileOpen (fn,fmOpenRead);
-               if fileH = -1 then
+               if fileH = THandle(-1) then
                  begin
                    comment(v_error,'can not open '+desc+' file '+fn);
                    exit;

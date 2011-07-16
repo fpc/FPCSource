@@ -1,4 +1,5 @@
 #!/usr/bin/env instantfpc
+{$mode objfpc}{$H+}
 var
   i: Integer;
 begin

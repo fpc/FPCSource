@@ -83,6 +83,7 @@ Procedure SearchFiles(SL:TStringList;const APattern:string);
 Function GetCompilerInfo(const ACompiler,AOptions:string):string; overload;
 Procedure GetCompilerInfo(const ACompiler, AOptions: string; out AVersion: string; out ACPU: TCpu; out aOS:TOS); overload;
 function IsSuperUser:boolean;
+procedure ReadIniFile(Const AFileName: String;L:TStrings);
 
 var
   LogLevels : TLogLevels;
@@ -390,6 +391,31 @@ begin
 {$else unix}
   result:=false;
 {$endif unix}
+end;
+
+procedure ReadIniFile(Const AFileName: String;L:TStrings);
+Var
+  F : TFileStream;
+  Line : String;
+  I,P,PC : Integer;
+begin
+  F:=TFileStream.Create(AFileName,fmOpenRead);
+  Try
+    L.LoadFromStream(F);
+    // Fix lines.
+    For I:=L.Count-1 downto 0 do
+      begin
+        Line:=L[I];
+        P:=Pos('=',Line);
+        PC:=Pos(';',Line);  // Comment line.
+        If (P=0) or ((PC<>0) and (PC<P)) then
+          L.Delete(I)
+        else
+          L[i]:=Trim(System.Copy(Line,1,P-1)+'='+Trim(System.Copy(Line,P+1,Length(Line)-P)));
+      end;
+  Finally
+    F.Free;
+  end;
 end;
 
 

@@ -43,7 +43,7 @@ var
 { Macro translated }
 Function  DLE_VAL(elem : PDlelem) : pointer;
 
-Procedure InitialiseDllist;
+Procedure InitialiseDllist(libpath:string=pqlib);
 Procedure ReleaseDllist;
 
 var DllistLibraryHandle : TLibHandle;
@@ -52,17 +52,17 @@ implementation
 
 var RefCount : integer;
 
-Procedure InitialiseDllist;
+Procedure InitialiseDllist(libpath:string=pqlib);
 
 begin
   inc(RefCount);
   if RefCount = 1 then
     begin
-    DllistLibraryHandle := loadlibrary(pqlib);
+    DllistLibraryHandle := loadlibrary(libpath);
     if DllistLibraryHandle = nilhandle then
       begin
       RefCount := 0;
-      Raise EInOutError.Create('Can not load PosgreSQL client. Is it installed? ('+pqlib+')');
+      Raise EInOutError.Create('Can not load PosgreSQL client. Is it installed? ('+libpath+')');
       end;
 
     pointer(DLNewList) := GetProcedureAddress(DllistLibraryHandle,'DLNewList');

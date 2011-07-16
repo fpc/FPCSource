@@ -922,7 +922,7 @@ implementation
                       internalerror(200610011);
                     def.dwarf_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym)));
                     def.dwarf_ref_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBGREF',def.owner,symname(def.typesym)));
-                    if is_class_or_interface_or_dispinterface(def) then
+                    if is_class_or_interface_or_dispinterface(def) or is_objectpascal_helper(def) then
                       tobjectdef(def).dwarf_struct_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym)));
                     def.dbg_state:=dbg_state_written;
                   end
@@ -936,7 +936,7 @@ implementation
                       begin
                         def.dwarf_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym)),AB_GLOBAL,AT_DATA);
                         def.dwarf_ref_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBGREF',def.owner,symname(def.typesym)),AB_GLOBAL,AT_DATA);
-                        if is_class_or_interface_or_dispinterface(def) then
+                        if is_class_or_interface_or_dispinterface(def) or is_objectpascal_helper(def) then
                           tobjectdef(def).dwarf_struct_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym)),AB_GLOBAL,AT_DATA);
                         include(def.defstates,ds_dwarf_dbg_info_written);
                       end
@@ -1418,13 +1418,30 @@ implementation
                 ]);
               finish_entry;
             end;
-          pasbool,
-          bool8bit :
+          pasbool8 :
             begin
               append_entry(DW_TAG_base_type,false,[
                 DW_AT_name,DW_FORM_string,'Boolean'#0,
                 DW_AT_encoding,DW_FORM_data1,DW_ATE_boolean,
                 DW_AT_byte_size,DW_FORM_data1,1
+                ]);
+              finish_entry;
+            end;
+          bool8bit :
+            begin
+              append_entry(DW_TAG_base_type,false,[
+                DW_AT_name,DW_FORM_string,'ByteBool'#0,
+                DW_AT_encoding,DW_FORM_data1,DW_ATE_boolean,
+                DW_AT_byte_size,DW_FORM_data1,1
+                ]);
+              finish_entry;
+            end;
+          pasbool16 :
+            begin
+              append_entry(DW_TAG_base_type,false,[
+                DW_AT_name,DW_FORM_string,'Boolean16'#0,
+                DW_AT_encoding,DW_FORM_data1,DW_ATE_boolean,
+                DW_AT_byte_size,DW_FORM_data1,2
                 ]);
               finish_entry;
             end;
@@ -1437,12 +1454,30 @@ implementation
                 ]);
               finish_entry;
             end;
+          pasbool32 :
+            begin
+              append_entry(DW_TAG_base_type,false,[
+                DW_AT_name,DW_FORM_string,'Boolean32'#0,
+                DW_AT_encoding,DW_FORM_data1,DW_ATE_boolean,
+                DW_AT_byte_size,DW_FORM_data1,4
+                ]);
+              finish_entry;
+            end;
           bool32bit :
             begin
               append_entry(DW_TAG_base_type,false,[
                 DW_AT_name,DW_FORM_string,'LongBool'#0,
                 DW_AT_encoding,DW_FORM_data1,DW_ATE_boolean,
                 DW_AT_byte_size,DW_FORM_data1,4
+                ]);
+              finish_entry;
+            end;
+          pasbool64 :
+            begin
+              append_entry(DW_TAG_base_type,false,[
+                DW_AT_name,DW_FORM_string,'Boolean64'#0,
+                DW_AT_encoding,DW_FORM_data1,DW_ATE_boolean,
+                DW_AT_byte_size,DW_FORM_data1,8
                 ]);
               finish_entry;
             end;
@@ -3506,6 +3541,7 @@ implementation
           odt_interfacecom,
           odt_interfacecorba,
           odt_dispinterface,
+          odt_helper,
           odt_class:
             begin
               { implicit pointer }
@@ -3913,6 +3949,7 @@ implementation
               dostruct(DW_TAG_interface_type);
               doparent(true);
             end;
+          odt_helper,
           odt_class:
             begin
               //dostruct(DW_TAG_class_type);

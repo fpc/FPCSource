@@ -111,7 +111,6 @@ implementation
 
     function tmoddivnode.simplify(forinline : boolean):tnode;
       var
-        t : tnode;
         rv,lv : tconstexprint;
       begin
         result:=nil;
@@ -143,12 +142,10 @@ implementation
 
             case nodetype of
               modn:
-                t:=create_simplified_ord_const(lv mod rv,resultdef,forinline);
+                result:=create_simplified_ord_const(lv mod rv,resultdef,forinline);
               divn:
-                t:=create_simplified_ord_const(lv div rv,resultdef,forinline);
+                result:=create_simplified_ord_const(lv div rv,resultdef,forinline);
             end;
-            result:=t;
-            exit;
          end;
       end;
 
@@ -460,8 +457,6 @@ implementation
  ****************************************************************************}
 
     function tshlshrnode.simplify(forinline : boolean):tnode;
-      var
-        t : tnode;
       begin
         result:=nil;
         { constant folding }
@@ -469,12 +464,10 @@ implementation
           begin
              case nodetype of
                 shrn:
-                  t:=create_simplified_ord_const(tordconstnode(left).value shr tordconstnode(right).value,resultdef,forinline);
+                  result:=create_simplified_ord_const(tordconstnode(left).value shr tordconstnode(right).value,resultdef,forinline);
                 shln:
-                  t:=create_simplified_ord_const(tordconstnode(left).value shl tordconstnode(right).value,resultdef,forinline);
+                  result:=create_simplified_ord_const(tordconstnode(left).value shl tordconstnode(right).value,resultdef,forinline);
              end;
-             result:=t;
-             exit;
           end;
 
       end;
@@ -558,11 +551,18 @@ implementation
         procname: string[31];
       begin
         result := nil;
+        { Normally already done below, but called again,
+          just in case it is called directly }
+        firstpass(left);
         { otherwise create a call to a helper }
-        if nodetype = shln then
-          procname := 'fpc_shl_int64'
+        if is_signed(left.resultdef) then
+          procname:='int64'
         else
-          procname := 'fpc_shr_int64';
+          procname:='qword';
+        if nodetype = shln then
+          procname := 'fpc_shl_'+procname
+        else
+          procname := 'fpc_shr_'+procname;
         { this order of parameters works at least for the arm,
           however it should work for any calling conventions (FK) }
         result := ccallnode.createintern(procname,ccallparanode.create(right,
@@ -884,14 +884,17 @@ implementation
              v:=tordconstnode(left).value;
              def:=left.resultdef;
              case torddef(left.resultdef).ordtype of
-               pasbool,
+               pasbool8,
+               pasbool16,
+               pasbool32,
+               pasbool64,
                bool8bit,
                bool16bit,
                bool32bit,
                bool64bit:
                  begin
                    v:=byte(not(boolean(int64(v))));
-                   if (torddef(left.resultdef).ordtype<>pasbool) then
+                   if is_cbool(left.resultdef) then
                      v:=-v;
                  end;
                uchar,

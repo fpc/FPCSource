@@ -9,7 +9,7 @@ version=2.5.1
 [target]
 units=httpdefs fphttp custweb custcgi fpcgi fphtml iniwebsession websession fpweb \
       webutil fpdatasetform cgiapp ezcgi fpapache webpage fcgigate fphttpserver \
-      fphttpclient
+      fphttpclient custhttpapp fphttpapp fpwebfile
 rsts=fpcgi fphtml fpweb websession cgiapp fphttpserver fphttpclient
 
 # these units are listed separately because they don't work for
@@ -23,7 +23,6 @@ units_openbsd=custfcgi fpfcgi
 units_linux=custfcgi fpfcgi
 units_win32=custfcgi fpfcgi
 units_win64=custfcgi fpfcgi
-units_wince=custfcgi fpfcgi
 
 [require]
 packages=fcl-base fcl-xml fcl-db fcl-process httpd22 fastcgi fcl-net

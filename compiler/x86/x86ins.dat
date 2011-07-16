@@ -792,12 +792,13 @@ reg16,imm8            \324\1\x6B\100\15               286
 reg16,imm             \324\1\x69\100\31               286,SW
 rm8                   \1\xF6\205                      8086
 
+; 64-bit variant does not exist
 [IN,inX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
 reg_al,imm            \1\xE4\25                       8086,SB
-reg_ax|32|64,imm      \320\1\xE5\25                   8086,SB
+reg_ax|32,imm         \320\1\xE5\25                   8086,SB
 reg_al,reg_dx         \1\xEC                          8086
-reg_ax|32|64,reg_dx   \320\1\xED                      8086
+reg_ax|32,reg_dx      \320\1\xED                      8086
 
 [INC,incX]
 (Ch_Mop1, Ch_WFlags, Ch_None)
@@ -876,7 +877,7 @@ imm                   \1\xE3\50                       X86_64
 [JMP,jmpX]
 (Ch_ROp1, Ch_None, Ch_None)
 imm8                  \1\xEB\50                       8086,PASS2
-imm16|32|64           \320\1\xE9\64                   8086,PASS2
+imm16|32              \320\1\xE9\64                   8086,PASS2
 rm16|32|64            \320\1\xFF\204                  8086
 imm|short             \1\xEB\50                       8086,PASS2
 imm|near              \320\1\xE9\64                   8086,ND,PASS2
@@ -1023,19 +1024,23 @@ reg_eax,reg_ecx,reg_edx      \3\x0F\x01\xC8           PRESCOTT,ND
 
 [MOV,movX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
-mem_offs,reg_ax|32    \320\1\xA3\34                   8086,SM,NOX86_64
+mem_offs,reg_ax       \324\1\xA3\44                   8086,SM
+mem_offs,reg_eax      \325\1\xA3\44                   386,SM
+mem_offs,reg_rax      \326\1\xA3\44                   X86_64,SM
 regmem,reg16|32|64    \320\1\x89\101                  8086,SM
-reg_ax,mem_offs       \324\1\xA1\35                   8086,SM,NOX86_64
-reg_eax,mem_offs      \325\1\xA1\35                   386,SM,NOX86_64
+reg_ax,mem_offs       \324\1\xA1\45                   8086,SM
+reg_eax,mem_offs      \325\1\xA1\45                   386,SM
+reg_rax,mem_offs      \326\1\xA1\45                   X86_64,SM
 reg16|32|64,regmem    \320\1\x8B\110                  8086,SM
-reg32|64,imm          \320\10\xB8\35                  386,SD
+reg32,imm             \325\10\xB8\41                  386,SD
+reg64,imm             \326\10\xB8\55                  X86_64,SM
 rm32,imm              \325\1\xC7\200\41               386,SM
 rm64,imm              \326\1\xC7\200\255              X86_64,SM
 reg16,imm             \324\10\xB8\31                  8086,SW
 rm16,imm              \324\1\xC7\200\31               8086,SW
-mem_offs,reg_al       \1\xA2\34                       8086,SM,NOX86_64
+mem_offs,reg_al       \1\xA2\44                       8086,SM
 rm8,reg8              \1\x88\101                      8086
-reg_al,mem_offs       \1\xA0\35                       8086,SM,NOX86_64
+reg_al,mem_offs       \1\xA0\45                       8086,SM
 reg8,rm8              \1\x8A\110                      8086,SM
 reg8,imm              \10\xB0\21                      8086,SB
 rm8,imm               \1\xC6\200\21                   8086,SB
@@ -3007,7 +3012,11 @@ void                  \2\x0F\x3A                      P6,CYRIX
 ;
 [MOVABS]
 (Ch_Wop2, Ch_Rop1, Ch_None)
-reg32,imm             \325\10\xB8\41                  X86_64
+reg_al,mem_offs       \1\xA0\45                       X86_64,SM
+reg_ax|32|64,mem_offs \320\1\xA1\45                   X86_64,SM
+mem_offs,reg_al       \1\xA2\44                       X86_64,SM
+mem_offs,reg_ax|32|64 \321\xA3\44                     X86_64,SM
+reg64,imm             \326\10\xB8\55                  X86_64
 
 [MOVSXD,movslq]
 (Ch_Wop2, Ch_Rop1, Ch_None)

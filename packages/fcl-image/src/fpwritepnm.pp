@@ -19,29 +19,103 @@
     * PPM (P5,P6) : Portable PixelMap foramt : 24 bits per pixel}
 {$mode objfpc}{$h+}
 unit FPWritePNM;
+
 interface
 
 uses FPImage, classes, sysutils;
 
 type
+  TPNMColorDepth = (pcdAuto,pcdBlackWhite, pcdGrayscale, pcdRGB);
+
+  { TFPWriterPNM }
 
   TFPWriterPNM = class(TFPCustomImageWriter)
-    private
-      BitMapType:Integer;
     protected
       procedure InternalWrite(Stream:TStream;Img:TFPCustomImage);override;
     public
-      constructor Create(aBitMapType:Integer);
+      ColorDepth: TPNMColorDepth;
+      BinaryFormat: boolean;
+      function GuessColorDepthOfImage(Img: TFPCustomImage): TPNMColorDepth;
+      function GetColorDepthOfExtension(AExtension: string): TPNMColorDepth;
+      function GetFileExtension(AColorDepth: TPNMColorDepth): string;
+      constructor Create; override;
   end;
+
+  { TFPWriterPBM }
+
+  TFPWriterPBM = class(TFPWriterPNM)
+      constructor Create; override;
+  end;
+
+  { TFPWriterPGM }
+
+  TFPWriterPGM = class(TFPWriterPNM)
+      constructor Create; override;
+  end;
+
+  { TFPWriterPPM }
+
+  TFPWriterPPM = class(TFPWriterPNM)
+      constructor Create; override;
+  end;
+
+procedure SaveImageToPNMFile(Img: TFPCustomImage; filename: string; UseBinaryFormat: boolean = true);
 
 implementation
 
-constructor TFPWriterPNM.Create(aBitMapType:Integer);
+procedure SaveImageToPNMFile(Img: TFPCustomImage; filename: string; UseBinaryFormat: boolean = true);
+var writer: TFPWriterPNM;
+    curExt: string;
+begin
+  writer := TFPWriterPNM.Create;
+  writer.BinaryFormat := UseBinaryFormat;
+  curExt := Lowercase(ExtractFileExt(filename));
+  if (curExt='.pnm') or (curExt='') then
   begin
-    inherited Create;
-    BitMapType:=aBitMapType;
-  end;
+    writer.ColorDepth := writer.GuessColorDepthOfImage(Img);
+    filename := ChangeFileExt(filename,'.'+writer.GetFileExtension(writer.ColorDepth));
+  end else
+    writer.ColorDepth := writer.GetColorDepthOfExtension(curExt);
+  Img.SaveToFile(filename,writer);
+  writer.Free;
+end;
+
+{ TFPWriterPPM }
+
+constructor TFPWriterPPM.Create;
+begin
+  inherited Create;
+  ColorDepth := pcdRGB;
+end;
+
+{ TFPWriterPGM }
+
+constructor TFPWriterPGM.Create;
+begin
+  inherited Create;
+  ColorDepth := pcdGrayscale;
+end;
+
+{ TFPWriterPBM }
+
+constructor TFPWriterPBM.Create;
+begin
+  inherited Create;
+  ColorDepth:= pcdBlackWhite;
+end;
+
+{ TFPWriterPNM }
+
+constructor TFPWriterPNM.Create;
+begin
+  inherited Create;
+  ColorDepth := pcdAuto;
+  BinaryFormat := True;
+end;
+
 procedure TFPWriterPNM.InternalWrite(Stream:TStream;Img:TFPCustomImage);
+var useBitMapType: integer;
+
   function SaveHeader(stream:TStream):boolean;
     const
       MagicWords:Array[1..6]OF String[2]=('P1','P2','P3','P4','P5','P6');
@@ -55,8 +129,8 @@ procedure TFPWriterPNM.InternalWrite(Stream:TStream;Img:TFPCustomImage);
           Str(Img.Width,StrWidth);
           Str(Img.Height,StrHeight);
         end;
-      PNMInfo:=Concat(MagicWords[BitMapType],#10,StrWidth,#32,StrHeight,#10);
-      if BitMapType in [2,3,5,6]
+      PNMInfo:=Concat(MagicWords[useBitMapType],#10,StrWidth,#32,StrHeight,#10);
+      if useBitMapType in [2,3,5,6]
       then
         PNMInfo:=Concat(PNMInfo,'255'#10);
       stream.seek(0,soFromBeginning);
@@ -68,18 +142,31 @@ procedure TFPWriterPNM.InternalWrite(Stream:TStream;Img:TFPCustomImage);
     aColor:TFPColor;
     aLine:PByte;
     strCol:String[3];
+    LinuxEndOfLine: char;
+    UseColorDepth: TPNMColorDepth;
+
   begin
+    LinuxEndOfLine := #10;
+
+    //determine color depth
+    if ColorDepth = pcdAuto then
+      UseColorDepth := GuessColorDepthOfImage(Img) else
+      UseColorDepth := ColorDepth;
+
+    //determine file format number (1-6)
+    case UseColorDepth of
+      pcdBlackWhite: useBitMapType := 1;
+      pcdGrayscale: useBitMapType := 2;
+      pcdRGB: useBitMapType := 3;
+    end;
+    if BinaryFormat then inc(useBitMapType,3);
+
     SaveHeader(Stream);
-    case BitMapType of
+    case useBitMapType of
       1:nBpLine:=Img.Width*2;{p p p}
       2:nBpLine:=Img.Width*4;{lll lll lll}
       3:nBpLine:=Img.Width*3*4;{rrr ggg bbb rrr ggg bbb}
-      4:begin
-          nBpLine:=Img.Width SHR 3;
-          if(Img.Width AND $0F)<>0
-          then
-            Inc(nBpLine);
-        end;
+      4:nBpLine:=(Img.Width+7) SHR 3;
       5:nBpLine:=Img.Width;
       6:nBpLine:=Img.Width*3;
     end;
@@ -91,7 +178,7 @@ procedure TFPWriterPNM.InternalWrite(Stream:TStream;Img:TFPCustomImage);
           begin
             aColor:=img.Colors[Coulumn,Row];
             with aColor do
-              case BitMapType of
+              case useBitMapType of
                 1:begin
                     if(Red<=$2F00)or(Green<=$2F00)or(Blue<=$2F00)
                     then
@@ -136,10 +223,61 @@ procedure TFPWriterPNM.InternalWrite(Stream:TStream;Img:TFPCustomImage);
             end;
           end;
         Stream.Write(aLine^,nBpLine);
+        if useBitMapType in[1..3] then Stream.Write(LinuxEndOfLine,1);
       end;
     FreeMem(aLine,nBpLine);
   end;
 
+function TFPWriterPNM.GetColorDepthOfExtension(AExtension: string
+  ): TPNMColorDepth;
+begin
+  if (length(AExtension) > 0) and (AExtension[1]='.') then
+    delete(AExtension,1,1);
+  AExtension := LowerCase(AExtension);
+  if AExtension='pbm' then result := pcdBlackWhite else
+  if AExtension='pgm' then result := pcdGrayscale else
+  if AExtension='ppm' then result := pcdRGB else
+    result := pcdAuto;
+end;
+
+function TFPWriterPNM.GuessColorDepthOfImage(Img: TFPCustomImage): TPNMColorDepth;
+var Row, Col: integer;
+    aColor: TFPColor;
+begin
+   result := pcdBlackWhite;
+   for Row:=0 to img.Height-1 do
+     for Col:=0 to img.Width-1 do
+     begin
+       aColor:=img.Colors[Col,Row];
+       if (AColor.red >= 256) and (AColor.green >= 256) and (AColor.blue >= 256) and
+          (AColor.red < $FF00) and (AColor.green < $FF00) and (AColor.blue < $FF00) then
+       begin
+          if (AColor.red shr 8 <> AColor.Green shr 8) or
+             (AColor.blue shr 8 <> AColor.Green shr 8) or
+             (AColor.red shr 8 <> AColor.blue shr 8) then
+          begin
+             result := pcdRGB;
+             exit;
+          end else
+            result := pcdGrayscale;
+       end;
+     end;
+end;
+
+function TFPWriterPNM.GetFileExtension(AColorDepth: TPNMColorDepth): string;
+begin
+  case AColorDepth of
+    pcdBlackWhite: result := 'pbm';
+    pcdGrayscale: result := 'pgm';
+    pcdRGB: result := 'ppm';
+  else
+    result := 'pnm';
+  end;
+end;
+
 initialization
-  ImageHandlers.RegisterImageWriter ('PBM Format', 'pbm', TFPWriterPNM);
+  ImageHandlers.RegisterImageWriter ('Netpbm Portable aNyMap', 'pnm', TFPWriterPNM);
+  ImageHandlers.RegisterImageWriter ('Netpbm Portable BitMap', 'pbm', TFPWriterPBM);
+  ImageHandlers.RegisterImageWriter ('Netpbm Portable GrayMap', 'pgm', TFPWriterPGM);
+  ImageHandlers.RegisterImageWriter ('Netpbm Portable PixelMap', 'ppm', TFPWriterPPM);
 end.

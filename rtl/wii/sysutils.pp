@@ -69,7 +69,12 @@ begin
 end;
 
 
-function FileCreate(const FileName: string; Mode: integer): LongInt;
+function FileCreate(const FileName: string; Rights: integer): LongInt;
+begin
+  result := -1;
+end;
+
+function FileCreate(const FileName: string; ShareMode: integer; Rights: integer): LongInt;
 begin
   result := -1;
 end;

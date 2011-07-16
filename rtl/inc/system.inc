@@ -847,6 +847,20 @@ Procedure FinalizeHeap;forward;
 {$endif HAS_MEMORYMANAGER}
 {$endif FPC_HAS_FEATURE_HEAP}
 
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+procedure SysFlushStdIO;
+begin
+  { Make sure that all output is written to the redirected file }
+  if Textrec(Output).Mode=fmOutput then
+    Flush(Output);
+  if Textrec(ErrOutput).Mode=fmOutput then
+    Flush(ErrOutput);
+  if Textrec(stdout).Mode=fmOutput then
+    Flush(stdout);
+  if Textrec(StdErr).Mode=fmOutput then
+    Flush(StdErr);
+end;
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
 
 Procedure InternalExit;
 var
@@ -882,24 +896,25 @@ Begin
      dump_stack(pstdout^,ErrorBase);
      Writeln(pstdout^,'');
    End;
-
-  { Make sure that all output is written to the redirected file }
-  if Textrec(Output).Mode=fmOutput then
-    Flush(Output);
-  if Textrec(ErrOutput).Mode=fmOutput then
-    Flush(ErrOutput);
-  if Textrec(pstdout^).Mode=fmOutput then
-    Flush(pstdout^);
-  if Textrec(StdErr).Mode=fmOutput then
-    Flush(StdErr);
+  SysFlushStdIO;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 
 {$if defined(MSWINDOWS) or defined(OS2)}
   { finally release the heap if possible, especially
-    important for DLLs }
-  for i:=0 to argc do
-    sysfreemem(argv[i]);
-  sysfreemem(argv);
+    important for DLLs.
+    Reset the array to nil, and finally also argv itself to
+    avoid double freeing problem in case this function gets called twice. }
+  if assigned(argv) then
+    begin
+      for i:=0 to argc-1 do
+        if assigned(argv[i]) then
+          begin
+            sysfreemem(argv[i]);
+            argv[i]:=nil;
+          end;
+      sysfreemem(argv);
+      argv:=nil;
+    end;
 {$endif}
 {$ifdef LINUX}
   {sysfreemem already checks for nil}

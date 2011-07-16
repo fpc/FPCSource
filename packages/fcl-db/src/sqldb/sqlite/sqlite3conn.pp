@@ -158,6 +158,7 @@ Var
   cu1: currency;
   do1: double;
   parms : array of Integer;
+  wstr1: widestring;
   
 begin
   for I:=1  to high(fparambinding)+1 do 
@@ -183,6 +184,7 @@ begin
                 end;
         ftFMTBcd,
         ftstring,
+        ftFixedChar,
         ftmemo: begin // According to SQLite documentation, CLOB's (ftMemo) have the Text affinity
                 str1:= p.asstring;
                 checkerror(sqlite3_bind_text(fstatement,I,pcharstr(str1), length(str1),@freebindstring));
@@ -191,6 +193,11 @@ begin
                 str1:= P.asstring;
                 checkerror(sqlite3_bind_blob(fstatement,I,pcharstr(str1), length(str1),@freebindstring));
                 end; 
+        ftWideString, ftFixedWideChar, ftWideMemo:
+        begin
+          wstr1:=P.AsWideString;
+          checkerror(sqlite3_bind_text16(fstatement,I, PWideChar(wstr1), length(wstr1)*sizeof(WideChar), sqlite3_destructor_type(SQLITE_TRANSIENT)));
+        end
       else 
         DatabaseErrorFmt(SUnsupportedParameter, [Fieldtypenames[P.DataType], Self]);
       end; { Case }
@@ -259,16 +266,33 @@ var
  int1: integer;
  st: psqlite3_stmt;
  fnum: integer;
+ p1: Pointer;
 
 begin
   st:=TSQLite3Cursor(cursor).fstatement;
   fnum:= FieldDef.fieldno - 1;
 
-  int1:= sqlite3_column_bytes(st,fnum);
+  case FieldDef.DataType of
+    ftWideMemo:
+      begin
+      p1 := sqlite3_column_text16(st,fnum);
+      int1 := sqlite3_column_bytes16(st,fnum);
+      end;
+    ftMemo:
+      begin
+      p1 := sqlite3_column_text(st,fnum);
+      int1 := sqlite3_column_bytes(st,fnum);
+      end;
+    else //ftBlob
+      begin
+      p1 := sqlite3_column_blob(st,fnum);
+      int1 := sqlite3_column_bytes(st,fnum);
+      end;
+  end;
 
-  ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer,int1);
+  ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer, int1);
   if int1 > 0 then
-    move(sqlite3_column_text(st,fnum)^,ABlobBuf^.BlobBuffer^.Buffer^,int1);
+    move(p1^, ABlobBuf^.BlobBuffer^.Buffer^, int1);
   ABlobBuf^.BlobBuffer^.Size := int1;
 end;
 
@@ -314,7 +338,7 @@ Type
   end;
   
 Const
-  FieldMapCount = 20;
+  FieldMapCount = 23;
   FieldMap : Array [1..FieldMapCount] of TFieldMap = (
    (n:'INT'; t: ftInteger),
    (n:'LARGEINT'; t:ftlargeInt),
@@ -335,7 +359,10 @@ Const
    (n:'DECIMAL'; t: ftBCD),
    (n:'TEXT'; t: ftmemo),
    (n:'CLOB'; t: ftmemo),
-   (n:'BLOB'; t: ftBlob)
+   (n:'BLOB'; t: ftBlob),
+   (n:'NCHAR'; t: ftFixedWideChar),
+   (n:'NVARCHAR'; t: ftWideString),
+   (n:'NCLOB'; t: ftWideMemo)
 { Template:
   (n:''; t: ft)
 }
@@ -378,7 +405,11 @@ begin
     // handle some specials.
     size1:=0;
     case ft1 of
-      ftString: begin
+      ftString,
+      ftFixedChar,
+      ftFixedWideChar,
+      ftWideString:
+                begin
                 fi:=pos('(',FD);
                 if (fi>0) then
                   begin
@@ -395,11 +426,11 @@ begin
                   begin
                   System.Delete(FD,1,fi);
                   fi:=pos(')',FD);
-                  size1:=StrToIntDef(trim(copy(FD,1,fi-1)),255);
+                  size1:=StrToIntDef(trim(copy(FD,1,fi-1)), 0);
                   if size1>4 then
                     ft1 := ftFMTBcd;
                   end
-                else size1 := 4;
+                else size1 := 0;
                 end;
       ftUnknown : DatabaseError('Unknown record type: '+FN);
     end; // Case
@@ -494,14 +525,10 @@ function TSQLite3Connection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;b
 var
  st1: TStorageType;
  fnum: integer;
- i: integer;
- i64: int64;
- int1,int2: integer;
  str1: string;
+ int1 : integer;
  bcd: tBCD;
- StoreDecimalPoint: tDecimalPoint;
  bcdstr: FmtBCDStringtype;
- ar1,ar2: TStringArray;
  st    : psqlite3_stmt;
 
 begin
@@ -535,6 +562,7 @@ begin
                end
              else
                Pdatetime(buffer)^:= sqlite3_column_double(st,fnum);
+    ftFixedChar,
     ftString: begin
               int1:= sqlite3_column_bytes(st,fnum);
               if int1>FieldDef.Size then 
@@ -544,25 +572,30 @@ begin
               end;
     ftFmtBCD: begin
               int1:= sqlite3_column_bytes(st,fnum);
-              if int1>255 then
-                int1:=255;
-              if int1 > 0 then
+              if (int1 > 0) and (int1 <= MAXFMTBcdFractionSize) then
                 begin
                 SetLength(bcdstr,int1);
                 move(sqlite3_column_text(st,fnum)^,bcdstr[1],int1);
-                StoreDecimalPoint:=FmtBCD.DecimalPoint;
                 // sqlite always uses the point as decimal-point
-                FmtBCD.DecimalPoint:=DecimalPoint_is_Point;
-                if not TryStrToBCD(bcdstr,bcd) then
+                if not TryStrToBCD(bcdstr,bcd,FSQLFormatSettings) then
                   // sqlite does the same, if the value can't be interpreted as a
                   // number in sqlite3_column_int, return 0
                   bcd := 0;
-                FmtBCD.DecimalPoint:=StoreDecimalPoint;
                 end
               else
                 bcd := 0;
               pBCD(buffer)^:= bcd;
               end;
+    ftFixedWideChar,
+    ftWideString:
+      begin
+      int1 := sqlite3_column_bytes16(st,fnum)+2; //The value returned does not include the zero terminator at the end of the string
+      if int1>(FieldDef.Size+1)*2 then
+        int1:=(FieldDef.Size+1)*2;
+      if int1 > 0 then
+        move(sqlite3_column_text16(st,fnum)^, buffer^, int1); //Strings returned by sqlite3_column_text() and sqlite3_column_text16(), even empty strings, are always zero terminated.
+      end;
+    ftWideMemo,
     ftMemo,
     ftBlob: CreateBlob:=True;
   else { Case }
@@ -753,7 +786,6 @@ var
   IndexName: string;
   IndexOptions: TIndexOptions;
   PKFields, IXFields: TStrings;
-  l: boolean;
 
   function CheckPKFields:boolean;
   var i: integer;

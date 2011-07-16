@@ -598,9 +598,12 @@ unit cpupara;
         classes: tx64paraclasses;
         numclasses: longint;
       begin
-        if ((target_info.system=system_x86_64_win64) and
-            (calloption=pocall_safecall)) then
-          exit(true);
+        if (tf_safecall_exceptions in target_info.flags) and
+            (calloption=pocall_safecall) then
+          begin
+          result := true;
+          exit;
+          end;
         case def.typ of
           { for records it depends on their contents and size }
           recorddef,

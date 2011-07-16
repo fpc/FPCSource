@@ -458,10 +458,13 @@ unit cpubase;
 
 
     function dwarf_reg(r:tregister):byte;
+      var
+        reg : shortint;
       begin
-        result:=regdwarf_table[findreg_by_number(r)];
-        if result=-1 then
+        reg:=regdwarf_table[findreg_by_number(r)];
+        if reg=-1 then
           internalerror(200603251);
+        result:=reg;
       end;
 
 

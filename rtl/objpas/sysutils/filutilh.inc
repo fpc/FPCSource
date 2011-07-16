@@ -71,9 +71,14 @@ Const
   { File errors }
   feInvalidHandle : THandle = THandle(-1);  //return value on FileOpen error
 
+Type
+  TFileSearchOption = (sfoImplicitCurrentDir,sfoStripQuotes);
+  TFileSearchOptions = set of TFileSearchOption;
+
 Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
 Function FileCreate (Const FileName : String) : THandle;
-Function FileCreate (Const FileName : String; Mode : Integer) : THandle;
+Function FileCreate (Const FileName : String; Rights : Integer) : THandle;
+Function FileCreate (Const FileName : String; ShareMode : Integer; Rights : Integer) : THandle;
 Function FileRead (Handle : THandle; out Buffer; Count : longint) : Longint;
 Function FileWrite (Handle : THandle; const Buffer; Count : Longint) : Longint;
 Function FileSeek (Handle : THandle; FOffset, Origin: Longint) : Longint;
@@ -95,8 +100,10 @@ Function FileGetAttr (Const FileName : String) : Longint;
 Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
 Function DeleteFile (Const FileName : String) : Boolean;
 Function RenameFile (Const OldName, NewName : String) : Boolean;
-Function FileSearch (Const Name, DirList : String; ImplicitCurrentDir : Boolean = True) : String;
-Function ExeSearch  (Const Name, DirList : String) : String;
+
+Function FileSearch (Const Name, DirList : String; Options : TFileSearchoptions = [sfoImplicitCurrentDir]) : String;
+Function FileSearch (Const Name, DirList : String; ImplicitCurrentDir : Boolean) : String;
+Function ExeSearch  (Const Name : String; Const DirList : String = '') : String;
 Function FileIsReadOnly(const FileName: String): Boolean;
 
 Function GetFileHandle(var f : File):THandle;

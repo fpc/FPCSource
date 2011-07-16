@@ -45,6 +45,14 @@ begin
         end;
     T:=P.Targets.AddUnit('jsonscanner.pp');
       T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('fpjsonrtti.pp');
+      T.ResourceStrings:=true;
+      with T.Dependencies do
+        begin
+          AddUnit('fpjson');
+          AddUnit('jsonparser');
+        end;
+      T.ResourceStrings:=true;
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('confdemo.pp');

@@ -439,7 +439,7 @@ implementation
                 member_blocktype:=bt_type;
 
                 { local and anonymous records can not have inner types. skip top record symtable }
-                if (current_structdef.objname^='') or 
+                if (current_structdef.objname^='') or
                    not(symtablestack.stack^.next^.symtable.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]) then
                   Message(parser_e_no_types_in_local_anonymous_records);
               end;
@@ -815,7 +815,7 @@ implementation
                                def:=torddef.create(uchar,lv,hv)
                              else
                                if is_boolean(pt1.resultdef) then
-                                 def:=torddef.create(pasbool,lv,hv)
+                                 def:=torddef.create(pasbool8,lv,hv)
                                else if is_signed(pt1.resultdef) then
                                  def:=torddef.create(range_to_basetype(lv,hv),lv,hv)
                                else
@@ -939,7 +939,8 @@ implementation
 {$ifdef cpu64bitaddr}
                     u32bit,s64bit,
 {$endif cpu64bitaddr}
-                    pasbool,bool8bit,bool16bit,bool32bit,bool64bit,
+                    pasbool8,pasbool16,pasbool32,pasbool64,
+                    bool8bit,bool16bit,bool32bit,bool64bit,
                     uwidechar] then
                     begin
                        lowval:=torddef(def).low;

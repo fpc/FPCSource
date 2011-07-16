@@ -223,17 +223,12 @@ INTERFACE
                             { BCD Nibbles, 00..99 per Byte, high Nibble 1st }
             end;
 
-  type
-    tDecimalPoint = ( DecimalPoint_is_Point, DecimalPoint_is_Comma, DecimalPoint_is_System );
-
 { Exception classes }
   type
     eBCDException = CLASS ( Exception );
     eBCDOverflowException = CLASS ( eBCDException );
     eBCDNotImplementedException = CLASS ( eBCDException );
 
-  var
-    DecimalPoint : tDecimalPoint = DecimalPoint_is_System;
 
 { Utility functions for TBCD access }
 
@@ -326,8 +321,15 @@ INTERFACE
 { Convert string/Double/Integer to BCD struct }
   function StrToBCD ( const aValue : FmtBCDStringtype ) : tBCD;
 
+  function StrToBCD ( const aValue : FmtBCDStringtype;
+                            const Format : TFormatSettings ) : tBCD;
+
   function TryStrToBCD ( const aValue : FmtBCDStringtype;
                            var BCD : tBCD ) : Boolean;
+
+  function TryStrToBCD ( const aValue : FmtBCDStringtype;
+                           var BCD : tBCD;
+                               const Format : TFormatSettings) : Boolean;
 
 {$ifndef FPUNONE}
   function DoubleToBCD ( const aValue : myRealtype ) : tBCD; Inline;
@@ -348,6 +350,9 @@ INTERFACE
 
 { Convert BCD struct to string/Double/Integer }
   function BCDToStr ( const BCD : tBCD ) : FmtBCDStringtype;
+
+  function BCDToStr ( const BCD : tBCD;
+                            const Format : TFormatSettings ) : FmtBCDStringtype;
 
 {$ifndef FPUNONE}
   function BCDToDouble ( const BCD : tBCD ) : myRealtype;
@@ -1201,27 +1206,6 @@ IMPLEMENTATION
       pack_BCD := True;
      end;
 
-  procedure SetDecimals ( out dp,
-                              dc : Char );
-
-    begin
-      case DecimalPoint of
-        DecimalPoint_is_Point: begin
-                                 dp := '.';
-                                 dc := ',';
-                                end;
-        DecimalPoint_is_Comma: begin
-                                 dp := ',';
-                                 dc := '.';
-                                end;
-{ find out language-specific ? }
-        DecimalPoint_is_System: begin
-                                 dp := DefaultFormatSettings.DecimalSeparator;
-                                 dc := DefaultFormatSettings.ThousandSeparator;
-                                end;
-       end;
-     end;
-
   function BCDPrecision ( const BCD : tBCD ) : Word; Inline;
 
     begin
@@ -1373,9 +1357,13 @@ IMPLEMENTATION
 
   function TryStrToBCD ( const aValue : FmtBCDStringtype;
                            var BCD : tBCD ) : Boolean;
+  begin
+    Result := TryStrToBCD(aValue, BCD, DefaultFormatSettings);
+  end;
 
-{ shall this return TRUE when error and FALSE when o.k. or the other way round ? }
-
+  function TryStrToBCD ( const aValue : FmtBCDStringtype;
+                           var BCD : tBCD;
+                               Const Format : TFormatSettings) : Boolean;
     var
 {$ifndef use_ansistring}
       lav : {$ifopt r+} 0..high ( aValue ) {$else} Integer {$endif};
@@ -1385,8 +1373,6 @@ IMPLEMENTATION
       i   : {$ifopt r+} longword {$else} longword {$endif};
 {$endif}
       ch : Char;
-      dp,
-      dc : Char;
 
     type
       ife = ( inint, infrac, inexp );
@@ -1426,7 +1412,6 @@ IMPLEMENTATION
           WITH lvars,
                bh do
             begin
-              SetDecimals ( dp, dc );
               while ( pfnb < lav ) AND ( NOT nbf ) do
                 begin
                   Inc ( pfnb );
@@ -1465,12 +1450,11 @@ IMPLEMENTATION
                                      end;
                                    end;
                         ',',
-                        '.': if ch = dp
-                               then begin
-                                 if inife <> inint
-                                   then result := False
-                                   else inife := infrac;
-                                end;
+                        '.': if ch = Format.DecimalSeparator then
+                             begin
+                               if inife <> inint then result := False
+                               else inife := infrac;
+                             end;
                         'e',
                         'E': if inife = inexp
                                then result := False
@@ -1505,7 +1489,7 @@ IMPLEMENTATION
                       for i := fp[inexp] TO lp[inexp] do
                         if result
                           then
-                            if aValue[i] <> dc
+                            if aValue[i] <> Format.ThousandSeparator
                               then begin
                                 exp := exp * 10 + ( Ord ( aValue[i] ) - Ord ( '0' ) );
                                 if exp > 999
@@ -1524,7 +1508,7 @@ IMPLEMENTATION
                   if fp[infrac] <> 0
                     then begin
                       for i := fp[infrac] TO lp[infrac] do
-                        if aValue[i] <> dc
+                        if aValue[i] <> Format.ThousandSeparator
                           then begin
                             if p < ( MaxFmtBCDFractionSize + 2 )
                               then begin
@@ -1538,7 +1522,7 @@ IMPLEMENTATION
                   if fp[inint] <> 0
                     then
                       for i := lp[inint] DOWNTO fp[inint] do
-                        if aValue[i] <> dc
+                        if aValue[i] <> Format.ThousandSeparator
                           then begin
                             if p > - ( MaxFmtBCDFractionSize + 2 )
                               then begin
@@ -1560,17 +1544,16 @@ IMPLEMENTATION
      end;
 
   function StrToBCD ( const aValue : FmtBCDStringtype ) : tBCD;
+  begin
+    Result := StrToBCD(aValue, DefaultFormatSettings);
+  end;
 
-    var
-      BCD : tBCD;
-
+  function StrToBCD ( const aValue : FmtBCDStringtype;
+                            Const Format : TFormatSettings ) : tBCD;
     begin
-      if not TryStrToBCD ( aValue, BCD )
-        then begin
-          RAISE eBCDOverflowException.create ( 'in StrToBCD' );
-         end
-        else StrToBCD := BCD;
-     end;
+      if not TryStrToBCD ( aValue, Result, Format ) then
+        raise eBCDOverflowException.create ( 'in StrToBCD' );
+    end;
 
 {$ifndef FPUNONE}
   procedure DoubleToBCD ( const aValue : myRealtype;
@@ -1578,14 +1561,13 @@ IMPLEMENTATION
 
     var
       s : string [ 30 ];
-      dp : tDecimalPoint;
+      f : TFormatSettings;
 
     begin
       Str ( aValue : 25, s );
-      dp := DecimalPoint;
-      DecimalPoint := DecimalPoint_is_Point;
-      BCD := StrToBCD ( s );
-      DecimalPoint := dp;
+      f.DecimalSeparator := '.';
+      f.ThousandSeparator := #0;
+      BCD := StrToBCD ( s, f );
      end;
 
   function DoubleToBCD ( const aValue : myRealtype ) : tBCD; Inline;
@@ -1697,13 +1679,17 @@ IMPLEMENTATION
 
 { Convert BCD struct to string/Double/Integer }
   function BCDToStr ( const BCD : tBCD ) : FmtBCDStringtype;
+  begin
+    Result := BCDToStr(BCD, DefaultFormatSettings);
+  end;
 
+  function BCDToStr ( const BCD : tBCD;
+                            Const Format : TFormatSettings ) : FmtBCDStringtype;
     var
       bh : tBCD_helper;
       l :  {$ifopt r+} 0..maxfmtbcdfractionsize + 1 + 1 {$else} Integer {$endif};
       i :  {$ifopt r+} low ( bh.FDig )..high ( bh.LDig ) {$else} Integer {$endif};
       pp : {$ifopt r+} low ( bh.FDig ) - 1..1 {$else} Integer {$endif};
-      dp, dc : Char;
 
     begin
 {$ifdef use_ansistring}
@@ -1712,7 +1698,6 @@ IMPLEMENTATION
       unpack_BCD ( BCD, bh );
       WITH bh do
         begin
-          SetDecimals ( dp, dc );
           l := 0;
           if Neg
             then begin
@@ -1743,9 +1728,9 @@ IMPLEMENTATION
                     then begin
 {$ifndef use_ansistring}
                       Inc ( l );
-                      result[l] := dp;
+                      result[l] := Format.DecimalSeparator;
 {$else}
-                      result := result + dp;
+                      result := result + Format.DecimalSeparator;
 {$endif}
                      end;
 {$ifndef use_ansistring}
@@ -2115,6 +2100,7 @@ writeln;
               bhr.Singles[FDig] := ue MOD 10;
               ue := ue DIV 10;
              end;
+          bhr.neg := bh1.Neg XOR bh2.Neg;
           bhr.Plac := LDig;
           bhr.FDig := FDig;
           if LDig > high ( bhr.Singles )
@@ -2535,7 +2521,8 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
       Result := BCDToStr(BCD);
       if Format = ffGeneral then Exit;
 
-      SetDecimals(DS, TS);
+      DS:=DefaultFormatSettings.DecimalSeparator;
+      TS:=DefaultFormatSettings.ThousandSeparator;
 
       Negative := Result[1] = '-';
       P := Pos(DS, Result);

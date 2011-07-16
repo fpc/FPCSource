@@ -36,6 +36,7 @@ begin
           AddInclude('postgres3types.inc');
           AddUnit('dllistdyn');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('postgres3.pp');
       with T.Dependencies do
         begin

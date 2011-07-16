@@ -138,11 +138,14 @@ type
     procedure SetName(const AValue: String);
     procedure SetUnusedVersion(const AValue: TFPVersion);
     procedure SetVersion(const AValue: TFPVersion);
+  protected
+    procedure LoadUnitConfigFromStringlist(Const AStringList: TStrings); virtual;
   Public
     Constructor Create(ACollection : TCollection); override;
     Destructor Destroy; override;
     Procedure LoadFromStream(Stream : TStream; Streamversion : Integer); override;
     Procedure SaveToStream(Stream : TStream); override;
+    procedure LoadUnitConfigFromFile(Const AFileName: String);
     Procedure Assign(Source : TPersistent); override;
     Function AddDependency(Const APackageName : String; const AMinVersion : String = '') : TFPDependency;
     Property Dependencies : TFPDependencies Read FDependencies;
@@ -191,6 +194,7 @@ type
     Property StreamVersion : Integer Read FVersion Write FVersion;
     Property Packages [Index : Integer] : TFPPackage Read GetPackage Write SetPackage; default;
   end;
+  TFPPackagesClass = class of TFPPackages;
 
   { TFPRepository }
 
@@ -199,10 +203,10 @@ type
     FMaxDependencyLevel : Integer;
     FBackUpFiles: Boolean;
     FFileName: String;
-    FPackages : TFPPackages;
     function GetPackage(Index : Integer): TFPPackage;
     function GetPackageCount: Integer;
   Protected
+    FPackages : TFPPackages;
     procedure CreatePackages; virtual;
     Procedure BackupFile(const AFileName : String); virtual;
     Procedure DoGetPackageDependencies(const APackageName : String; List : TStringList; Level : Integer); virtual;
@@ -232,6 +236,7 @@ type
     Property MaxDependencyLevel : Integer Read FMaxDependencyLevel Write FMaxDependencyLevel;
     Property PackageCollection : TFPPackages Read FPackages;
   end;
+  TFPRepositoryClass = class of TFPRepository;
 
 
   { TFPMirror }
@@ -296,7 +301,21 @@ Implementation
 
 uses
   typinfo,
+  pkgglobals,
   uriparser;
+
+const
+  // Keys for unit config
+  KeyName     = 'Name';
+  KeyVersion  = 'Version';
+  KeyChecksum = 'Checksum';
+  KeyNeedLibC = 'NeedLibC';
+  KeyDepends  = 'Depends';
+  KeyAddIn    = 'FPMakeAddIn';
+  KeySourcePath = 'SourcePath';
+  KeyFPMakeOptions = 'FPMakeOptions';
+  KeyCPU      = 'CPU';
+  KeyOS       = 'OS';
 
 ResourceString
   SErrInvalidCPU           = 'Invalid CPU name : "%s"';
@@ -656,6 +675,70 @@ begin
   WriteBoolean(Stream,FDependencies.Count>0);
   If FDependencies.Count>0 then
     FDependencies.SaveToStream(Stream);
+end;
+
+procedure TFPPackage.LoadUnitConfigFromStringlist(const AStringList: TStrings);
+var
+  L2 : TStrings;
+  VOS : TOS;
+  VCPU : TCPU;
+  i,k : Integer;
+  DepChecksum : Cardinal;
+  DepName : String;
+  D : TFPDependency;
+begin
+  With AStringList do
+    begin
+      Version.AsString:=Values[KeyVersion];
+      SourcePath:=Values[KeySourcePath];
+      FPMakeOptionsString:=Values[KeyFPMakeOptions];
+      Checksum:=Cardinal(StrToInt64Def(Values[KeyChecksum],$ffffffff));
+      VCPU:=StringToCPU(Values[KeyCPU]);
+      VOS:=StringToOS(Values[KeyOS]);
+      OSes:=[VOS];
+      CPUs:=[VCPU];
+      L2:=TStringList.Create;
+      L2.CommaText:=Values[KeyDepends];
+      for i:=0 to L2.Count-1 do
+        begin
+          DepName:=L2[i];
+          k:=Pos('|',DepName);
+          if k>0 then
+            begin
+              DepChecksum:=StrToInt(Copy(DepName,k+1,Length(DepName)-k));
+              DepName:=Copy(DepName,1,k-1);
+            end
+          else
+            DepChecksum:=$ffffffff;
+          D:=nil;
+          for k:=0 to Dependencies.Count-1 do
+            begin
+              D:=Dependencies[k];
+              if D.PackageName=DepName then
+                break;
+              D:=nil;
+            end;
+          if not assigned(D) then
+            D:=AddDependency(DepName,'');
+          D.RequireChecksum:=DepChecksum;
+        end;
+      FreeAndNil(L2);
+      //NeedLibC:=Upcase(Values[KeyNeedLibC])='Y';
+      IsFPMakeAddIn:=Upcase(Values[KeyAddIn])='Y';
+    end;
+end;
+
+procedure TFPPackage.LoadUnitConfigFromFile(const AFileName: String);
+var
+  L : TStrings;
+begin
+  L:=TStringList.Create;
+  Try
+    ReadIniFile(AFileName,L);
+    LoadUnitConfigFromStringlist(L);
+  Finally
+    L.Free;
+  end;
 end;
 
 

@@ -33,6 +33,7 @@ begin
         begin
           AddInclude('ibase60.inc');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('ibase60.pp');
       with T.Dependencies do
         begin

@@ -26,7 +26,7 @@ begin
     P.Dependencies.Add('fastcgi');
     P.Dependencies.Add('httpd22');
     // (Temporary) indirect dependencies, not detected by fpcmake:
-    P.Dependencies.Add('univint',[MacOSX]);
+    P.Dependencies.Add('univint',[MacOSX,iphonesim]);
 
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';
@@ -90,7 +90,6 @@ begin
           AddUnit('httpdefs');
         end;
     T:=P.Targets.AddUnit('websession.pp');
-    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('iniwebsession');
@@ -114,10 +113,12 @@ begin
       end;
     with P.Targets.AddUnit('fpfcgi.pp') do
       begin
+        OSes:=AllOses-[wince];
         Dependencies.AddUnit('custfcgi');
       end;
     with P.Targets.AddUnit('custfcgi.pp') do
       begin
+        OSes:=AllOses-[wince];
         Dependencies.AddUnit('httpdefs');
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
@@ -142,6 +143,12 @@ begin
           AddUnit('httpdefs');
         end;
     T:=P.Targets.AddUnit('fphttpclient.pp');
+    T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('custhttpapp.pp');
+    T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('fphttpapp.pp');
+    T:=P.Targets.AddUnit('fpwebfile.pp');
+    T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fpwebdata.pp');
     T.ResourceStrings:=true;
     With T.Dependencies do

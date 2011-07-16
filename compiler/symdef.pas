@@ -677,7 +677,10 @@ interface
        voidtype,                  { Void (procedure) }
        cchartype,                 { Char }
        cwidechartype,             { WideChar }
-       booltype,                  { boolean type }
+       pasbool8type,              { boolean type }
+       pasbool16type,
+       pasbool32type,
+       pasbool64type,
        bool8type,
        bool16type,
        bool32type,
@@ -786,6 +789,8 @@ interface
 {$endif AVR}
 
     function make_mangledname(const typeprefix:string;st:TSymtable;const suffix:string):string;
+    function make_dllmangledname(const dllname,importname:string;
+                                 import_nr : word; pco : tproccalloption):string;
 
     { should be in the types unit, but the types unit uses the node stuff :( }
     function is_interfacecom(def: tdef): boolean;
@@ -933,6 +938,68 @@ implementation
         { add an underscore on darwin.                                              }
         if (target_info.system in systems_darwin) then
           result := '_' + result;
+      end;
+
+    function make_dllmangledname(const dllname,importname:string;import_nr : word; pco : tproccalloption):string;
+       var
+         crc : cardinal;
+         i : longint;
+         use_crc : boolean;
+         dllprefix : string;
+      begin
+        if (target_info.system in (systems_all_windows + systems_nativent +
+                           [system_i386_emx, system_i386_os2]))
+            and (dllname <> '') then
+          begin
+            dllprefix:=lower(ExtractFileName(dllname));
+            { Remove .dll suffix if present }
+            if copy(dllprefix,length(dllprefix)-3,length(dllprefix))='.dll' then
+              dllprefix:=copy(dllprefix,1,length(dllprefix)-4);
+            use_crc:=false;
+            for i:=1 to length(dllprefix) do
+              if not (dllprefix[i] in ['a'..'z','A'..'Z','_','0'..'9']) then
+                begin
+                  use_crc:=true;
+                  break;
+                end;
+            if use_crc then
+              begin
+                crc:=0;
+                crc:=UpdateCrc32(crc,dllprefix[1],length(dllprefix));
+                dllprefix:='_$dll$crc$'+hexstr(crc,8)+'$';
+              end
+            else
+              dllprefix:='_$dll$'+dllprefix+'$';
+
+            if importname<>'' then
+              result:=dllprefix+importname
+            else
+              result:=dllprefix+'_index_'+tostr(import_nr);
+            { Replace ? and @ in import name, since GNU AS does not allow these characters in symbol names. }
+            { This allows to import VC++ mangled names from DLLs. }
+            { Do not perform replacement, if external symbol is not imported from DLL. }
+            if (dllname<>'') then
+              begin
+                Replace(result,'?','__q$$');
+    {$ifdef arm}
+                { @ symbol is not allowed in ARM assembler only }
+                Replace(result,'@','__a$$');
+    {$endif arm}
+             end;
+          end
+        else
+          begin
+            if importname<>'' then
+             begin
+               if not(pco in [pocall_cdecl,pocall_cppdecl]) then
+                 result:=importname
+               else
+                 result:=target_info.Cprefix+importname;
+             end
+            else
+              result:='_index_'+tostr(import_nr);
+          end;
+
       end;
 
 {****************************************************************************
@@ -1766,7 +1833,8 @@ implementation
           0,
           1,2,4,8,
           1,2,4,8,
-          1,1,2,4,8,
+          1,2,4,8,
+          1,2,4,8,
           1,2,8
         );
       begin
@@ -1815,7 +1883,8 @@ implementation
           varUndefined,
           varbyte,varword,varlongword,varqword,
           varshortint,varsmallint,varinteger,varint64,
-          varboolean,varboolean,varboolean,varUndefined,varUndefined,
+          varboolean,varboolean,varboolean,varboolean,
+          varboolean,varboolean,varUndefined,varUndefined,
           varUndefined,varUndefined,varCurrency);
       begin
         result:=basetype2vardef[ordtype];
@@ -1844,7 +1913,8 @@ implementation
           'untyped',
           'Byte','Word','DWord','QWord',
           'ShortInt','SmallInt','LongInt','Int64',
-          'Boolean','ByteBool','WordBool','LongBool','QWordBool',
+          'Boolean','Boolean16','Boolean32','Boolean64',
+          'ByteBool','WordBool','LongBool','QWordBool',
           'Char','WideChar','Currency');
 
       begin
@@ -3474,8 +3544,10 @@ implementation
          else
            import_name:=nil;
          import_nr:=ppufile.getword;
+{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if target_info.system in systems_interrupt_table then
            interruptvector:=ppufile.getlongint;
+{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if (po_msgint in procoptions) then
            messageinf.i:=ppufile.getlongint;
          if (po_msgstr in procoptions) then
@@ -3612,8 +3684,10 @@ implementation
          if po_has_importname in procoptions then
            ppufile.putstring(import_name^);
          ppufile.putword(import_nr);
+{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if target_info.system in systems_interrupt_table then
            ppufile.putlongint(interruptvector);
+{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if (po_msgint in procoptions) then
            ppufile.putlongint(messageinf.i);
          if (po_msgstr in procoptions) then
@@ -3929,7 +4003,8 @@ implementation
              'v',
              'h','t','j','y',
              'a','s','i','x',
-             'b','b','b','b','b',
+             'b','b','b','b',
+             'b','b','b','b',
              'c','w','x');
 
            floattype2str : array[tfloattype] of string[1] = (
@@ -5275,7 +5350,7 @@ implementation
               begin
                 { copied from psub.read_proc }
                 if assigned(tobjectdef(pd.struct).import_lib) then
-                   current_module.AddExternalImport(tobjectdef(pd.struct).import_lib^,pd.mangledname,0,false,false)
+                   current_module.AddExternalImport(tobjectdef(pd.struct).import_lib^,pd.mangledname,pd.mangledname,0,false,false)
                  else
                    begin
                      { add import name to external list for DLL scanning }
@@ -5420,14 +5495,17 @@ implementation
     function TImplementedInterface.getcopy:TImplementedInterface;
       begin
         Result:=TImplementedInterface.Create(nil);
-        {$warning: this is completely wrong on so many levels...}
         { 1) the procdefs list will be freed once for each copy
           2) since the procdefs list owns its elements, those will also be freed for each copy
           3) idem for the name mappings
         }
+        { warning: this is completely wrong on so many levels...
         Move(pointer(self)^,pointer(result)^,InstanceSize);
+        We need to make clean copies of the different fields
+        this is not implemented yet, and thus we generate an internal
+        error instead PM 2011-06-14 }
+        internalerror(2011061401);
       end;
-
 
 {****************************************************************************
                                 TFORWARDDEF
@@ -5705,7 +5783,7 @@ implementation
         result:=
           assigned(def) and
           (def.typ=objectdef) and
-          (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol]);
+          (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper]);
       end;
 
     function is_class_or_object(def: tdef): boolean;

@@ -37,6 +37,7 @@ begin
           AddInclude('regini.inc');
           AddUnit('xmlreg');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('xmlreg.pp');
 
     P.ExamplePath.Add('examples');

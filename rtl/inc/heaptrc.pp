@@ -19,6 +19,7 @@ interface
 
 {$ifdef FPC_HEAPTRC_EXTRA}
   {$define EXTRA}
+  {$inline off}
 {$endif FPC_HEAPTRC_EXTRA}
 
 {$checkpointer off}
@@ -1349,7 +1350,7 @@ begin
     must be initialized already here
   }
   if IsMultithread then
-    initcriticalsection(todo_lock);
+    TraceRelocateHeap;
 end;
 
 procedure TraceExit;

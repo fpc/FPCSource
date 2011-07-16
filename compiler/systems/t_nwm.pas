@@ -939,7 +939,7 @@ end;
             s := trimspace(s);
             if (length(s) > 0) then
               if copy(s,1,1) <> '#' then
-                AddImportSymbol('!clib',s,0,false);
+                AddImportSymbol('!clib',s,s,0,false);
           end;
         close(t);
       end;
@@ -971,6 +971,7 @@ end;
     Function  TInternalLinkerNetware.MakeSharedLibrary:boolean;
     begin
       Comment(V_Error,'Make shared library not supported for netware');
+      MakeSharedLibrary := false;
     end;
 
 {*****************************************************************************

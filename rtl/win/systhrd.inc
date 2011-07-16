@@ -113,14 +113,25 @@ var
     procedure SysAllocateThreadVars;
       var
         dataindex : pointer;
+        errorsave : dword;
       begin
         { we've to allocate the memory from system  }
         { because the FPC heap management uses      }
         { exceptions which use threadvars but       }
         { these aren't allocated yet ...            }
         { allocate room on the heap for the thread vars }
-        dataindex:=pointer(LocalAlloc(LMEM_FIXED or LMEM_ZEROINIT,threadvarblocksize));
-        TlsSetValue(tlskey,dataindex);
+        errorsave:=GetLastError;
+        if tlskey=$ffffffff then
+          RunError(226);
+        dataindex:=TlsGetValue(tlskey);
+        if dataindex=nil then
+          begin
+            dataindex:=pointer(LocalAlloc(LMEM_FIXED or LMEM_ZEROINIT,threadvarblocksize));
+            if dataindex=nil then
+              RunError(226);
+            TlsSetValue(tlskey,dataindex);
+          end;
+        SetLastError(errorsave);
       end;
 
     function SysRelocateThreadvar(offset : dword) : pointer; forward;
@@ -143,44 +154,16 @@ var
 
     procedure SysFiniMultithreading;
       begin
-        if IsMultiThread then
-          begin
-            TlsFree(TLSKey);
-            TLSKey:=$ffffffff;
-          end;
+        if TLSKey<>$ffffffff then
+          TlsFree(TLSKey);
+        TLSKey:=$ffffffff;
       end;
 
     function SysRelocateThreadvar(offset : dword) : pointer;
       var
         dataindex : pointer;
         errorsave : dword;
-      begin	
-{$ifdef dummy}
-        { it least in the on windows 7 x64, this still doesn't not work, fs:(0x2c) is
-          self referencing on this system (FK)
-          MVC: It also does not work on Windows Vista 32-bit, Home Premium, SP 1. Results in a crash}
-        asm
-          movl TLSKey,%edx
-          movl %fs:(0x2c),%eax
-          orl  %eax,%eax
-          jnz  .LAddressInEAX
-          { this works on Windows 7, but I don't know if it works on other OSes (FK) }
-          movl %fs:(0x18),%eax
-          movl 0xe10(%eax,%edx,4),%eax
-          jmp  .LToDataIndex
-          .LAddressInEAX:
-           movl (%eax,%edx,4),%eax
-          .LToDataIndex:
-          movl %eax,dataindex
-        end;
-        if DataIndex=nil then
-          begin
-            errorsave:=GetLastError;
-            SysAllocateThreadVars;
-            DataIndex:=TlsGetValue(tlskey);
-            SetLastError(errorsave);
-          end;
-{$else win32}
+      begin
         errorsave:=GetLastError;
         dataindex:=TlsGetValue(tlskey);
         if dataindex=nil then
@@ -190,15 +173,21 @@ var
             InitThread($1000000);
           end;
         SetLastError(errorsave);
-{$endif win32}
         SysRelocateThreadvar:=DataIndex+Offset;
       end;
 
 
     procedure SysReleaseThreadVars;
+      var
+        p: pointer;
       begin
-        LocalFree(TlsGetValue(tlskey));
-        TlsSetValue(tlskey, nil);
+        if TLSKey<>$ffffffff then
+          begin
+            p:=TlsGetValue(tlskey);
+            if Assigned(p) then
+              LocalFree(p);
+            TlsSetValue(tlskey, nil);
+          end;
       end;
 
 
@@ -218,16 +207,17 @@ var
       var
         ti : tthreadinfo;
       begin
-        { Allocate local thread vars, this must be the first thing,
-          because the exception management and io depends on threadvars }
-        SysAllocateThreadVars;
-
         { Copy parameter to local data }
         ti:=pthreadinfo(param)^;
-        dispose(pthreadinfo(param));
 
+        { Allocate local thread vars, this must be the first thing,
+          because the exception management and io depends on threadvars }
+{$ifndef FPC_USE_TLS_DIRECTORY}
+        SysAllocateThreadVars;
         { Initialize thread }
         InitThread(ti.stklen);
+{$endif}
+        dispose(pthreadinfo(param));
 
         { Start thread function }
 {$ifdef DEBUG_MT}
@@ -534,16 +524,15 @@ begin
     end;
   SetThreadManager(WinThreadManager);
   ThreadID := GetCurrentThreadID;
+{$ifndef FPC_USE_TLS_DIRECTORY}
   if IsLibrary then
+{$endif}
     SysInitMultithreading;
 {$IFDEF SUPPORT_WIN95}
   { Try to find TryEnterCriticalSection function }
-  KernelHandle:=LoadLibrary(KernelDLL);
+  KernelHandle:=GetModuleHandle(KernelDLL);
   if KernelHandle<>0 then
-    begin
-      WinTryEnterCriticalSection:=TTryEnterCriticalSection(GetProcAddress(KernelHandle,'TryEnterCriticalSection'));
-      FreeLibrary(KernelHandle);
-    end;
+    WinTryEnterCriticalSection:=TTryEnterCriticalSection(GetProcAddress(KernelHandle,'TryEnterCriticalSection'));
   if not assigned(WinTryEnterCriticalSection) then
     WinTryEnterCriticalSection:=@Win95TryEnterCriticalSection;
 {$ENDIF SUPPORT_WIN95}

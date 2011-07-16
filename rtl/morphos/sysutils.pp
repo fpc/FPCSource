@@ -151,7 +151,13 @@ begin
 end;
 
 
-function FileCreate(const FileName: string; Mode: integer): LongInt;
+function FileCreate(const FileName: string; Rights: integer): LongInt;
+begin
+  {$WARNING FIX ME! To do: FileCreate Access Modes}
+  FileCreate:=FileCreate(FileName);
+end;
+
+function FileCreate(const FileName: string; ShareMode: integer; Rights : integer): LongInt;
 begin
   {$WARNING FIX ME! To do: FileCreate Access Modes}
   FileCreate:=FileCreate(FileName);

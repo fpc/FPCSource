@@ -73,7 +73,7 @@ const
 
 { TFileStream create mode }
 const
-  fmCreate        = $FFFF;
+  fmCreate        = $FF00;
   fmOpenRead      = 0;
   fmOpenWrite     = 1;
   fmOpenReadWrite = 2;

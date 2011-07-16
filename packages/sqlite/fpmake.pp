@@ -30,6 +30,7 @@ begin
         begin
           AddInclude('sqlite3.inc');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('sqlite3.pp');
       with T.Dependencies do
         begin

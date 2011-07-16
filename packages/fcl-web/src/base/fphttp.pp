@@ -63,10 +63,11 @@ Type
   Protected
     procedure SetContentProducer(const AValue: THTTPContentProducer);virtual;
     Function  GetDisplayName : String; override;
-    Function  GetNamePath : String; override;
     Procedure SetDisplayName(const AValue : String); override;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean);
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean); virtual;
+  Public
+    Function  GetNamePath : String; override;
   published
     Property Name : String Read GetDisplayName Write SetDisplayName;
     Property ContentProducer : THTTPContentProducer Read FContentproducer Write SetContentProducer;
@@ -147,6 +148,8 @@ Type
 
   TSessionFactory = Class(TComponent)
   private
+    FSessionCookie: String;
+    FSessionCookiePath: String;
     FTimeOut: Integer;
     FCleanupInterval: Integer;
     FDoneCount: Integer;
@@ -167,6 +170,10 @@ Type
     Property CleanupInterval : Integer read FCleanupInterval Write FCleanUpInterval;
     // Default timeout for sessions, in minutes.
     Property DefaultTimeOutMinutes : Integer Read FTimeOut Write FTimeOut;
+    // Default session cookie.
+    property SessionCookie : String Read FSessionCookie Write FSessionCookie;
+    // Default session cookie path
+    Property SessionCookiePath : String Read FSessionCookiePath write FSessionCookiePath;
   end;
   TSessionFactoryClass = Class of TSessionFactory;
 
@@ -242,8 +249,13 @@ end;
 function TSessionFactory.CreateSession(ARequest: TRequest): TCustomSession;
 begin
   Result:=DoCreateSession(ARequest);
-  if (FTimeOut<>0) and Assigned(Result) then
-    Result.TimeoutMinutes:=FTimeOut;
+  if Assigned(Result) then
+    begin
+    if (FTimeOut<>0) then
+      Result.TimeoutMinutes:=FTimeOut;
+    Result.SessionCookie:=Self.SessionCookie;
+    Result.SessionCookiePath:=Self.SessionCookiePath;
+    end;
 end;
 
 procedure TSessionFactory.DoneSession(var ASession: TCustomSession);
@@ -306,7 +318,7 @@ end;
 
 procedure RegisterHTTPModule(ModuleClass: TCustomHTTPModuleClass; SkipStreaming : Boolean = False);
 begin
-  RegisterHTTPModule(ModuleClass.ClassName,ModuleClass);
+  RegisterHTTPModule(ModuleClass.ClassName,ModuleClass,SkipStreaming);
 end;
 
 procedure RegisterHTTPModule(const ModuleName: String;
@@ -630,7 +642,9 @@ end;
 procedure TSessionHTTPModule.DoneSession;
 begin
   // Session manager may or may not destroy the session.
-  SessionFactory.DoneSession(FSession);
+  // Check if we actually have
+  if Assigned(FSession) then
+    SessionFactory.DoneSession(FSession);
   // In each case, our reference is no longer valid.
   FSession:=Nil;
 end;
@@ -638,8 +652,7 @@ end;
 destructor TSessionHTTPModule.destroy;
 begin
   // Prevent memory leaks.
-  If Assigned(FSession) then
-    DoneSession;
+  DoneSession;
   inherited destroy;
 end;
 

@@ -27,6 +27,7 @@ begin
     P.NeedLibC:= false;
 
     D:=P.Dependencies.Add('fcl-xml');
+    D:=P.Dependencies.Add('fcl-base');
     D.Version:='2.2.2-0';
     
     P.SourcePath.Add('src');

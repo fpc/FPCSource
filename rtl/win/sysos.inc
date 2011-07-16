@@ -165,6 +165,13 @@ type
     wMilliseconds: Word;
   end;
 
+  TTlsDirectory=packed record
+    data_start, data_end : pointer;
+    index_pointer, callbacks_pointer : pointer;
+    zero_fill_size : dword;
+    flags : dword;
+  end;
+
 threadvar
   errno : longint;
 

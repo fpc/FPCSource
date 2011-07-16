@@ -199,7 +199,7 @@ interface
         function  resolve_unit(id:longint):tmodule;
         procedure allunitsused;
         procedure setmodulename(const s:string);
-        procedure AddExternalImport(const libname,symname:string;OrdNr: longint;isvar:boolean;ImportByOrdinalOnly:boolean);
+        procedure AddExternalImport(const libname,symname,symmangledname:string;OrdNr: longint;isvar:boolean;ImportByOrdinalOnly:boolean);
         property ImportLibraryList : TFPHashObjectList read FImportLibraryList;
       end;
 
@@ -955,21 +955,40 @@ implementation
       end;
 
 
-    procedure TModule.AddExternalImport(const libname,symname:string;OrdNr: longint;isvar:boolean;ImportByOrdinalOnly:boolean);
+    procedure TModule.AddExternalImport(const libname,symname,symmangledname:string;
+              OrdNr: longint;isvar:boolean;ImportByOrdinalOnly:boolean);
       var
-        ImportLibrary : TImportLibrary;
-        ImportSymbol  : TFPHashObject;
+        ImportLibrary,OtherIL : TImportLibrary;
+        ImportSymbol  : TImportSymbol;
+        i : longint;
       begin
         ImportLibrary:=TImportLibrary(ImportLibraryList.Find(libname));
         if not assigned(ImportLibrary) then
           ImportLibrary:=TImportLibrary.Create(ImportLibraryList,libname);
-        ImportSymbol:=TFPHashObject(ImportLibrary.ImportSymbolList.Find(symname));
+        ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList.Find(symname));
         if not assigned(ImportSymbol) then
           begin
+            { Check that the same name does not exist in another library }
+            { If it does and the same mangled name is used, issue a warning }
+            if ImportLibraryList.Count>1 then
+              for i:=0 To ImportLibraryList.Count-1 do
+                begin
+                  OtherIL:=TImportLibrary(ImportLibraryList.Items[i]);
+                  ImportSymbol:=TImportSymbol(OtherIL.ImportSymbolList.Find(symname));
+                  if assigned(ImportSymbol) then
+                    begin
+                      if ImportSymbol.MangledName=symmangledname then
+                        begin
+                          CGMessage3(sym_w_library_overload,symname,libname,OtherIL.Name);
+                          break;
+                        end;
+                    end;
+                end;
             if not ImportByOrdinalOnly then
               { negative ordinal number indicates import by name with ordinal number as hint }
               OrdNr:=-OrdNr;
-            ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,OrdNr,isvar);
+            ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,
+              symname,symmangledname,OrdNr,isvar);
           end;
       end;
 

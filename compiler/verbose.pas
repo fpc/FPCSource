@@ -80,6 +80,11 @@ interface
     procedure PrepareReport;
 
     function  CheckVerbosity(v:longint):boolean;
+    function  SetMessageVerbosity(v:longint;state:tmsgstate):boolean;
+    procedure RestoreLocalVerbosity(pstate : pmessagestaterecord);
+    procedure FreeLocalVerbosity(var fstate : pmessagestaterecord);
+
+    function ChangeMessageVerbosity(s: string; var i: integer;state:tmsgstate): boolean;
     procedure ShowStatus;
     function  ErrorCount:longint;
     procedure SetErrorFlags(const s:string);
@@ -176,8 +181,29 @@ implementation
          writeln(status.reportbugfile,'FPC bug report file');
       end;
 
+    procedure RestoreLocalVerbosity(pstate : pmessagestaterecord);
+      begin
+        msg^.ResetStates;
+        while assigned(pstate) do
+          begin
+            SetMessageVerbosity(pstate^.value,pstate^.state);
+            pstate:=pstate^.next;
+          end;
+      end;
 
-    function ClearMessageVerbosity(s: string; var i: integer): boolean;
+    procedure FreeLocalVerbosity(var fstate : pmessagestaterecord);
+    var pstate : pmessagestaterecord;
+      begin
+        pstate:=fstate;
+        while assigned(pstate) do
+          begin
+            fstate:=pstate^.next;
+            freemem(pstate);
+            pstate:=fstate;
+          end;
+      end;
+
+    function ChangeMessageVerbosity(s: string; var i: integer;state:tmsgstate): boolean;
       var
         tok  : string;
         code : longint;
@@ -195,12 +221,23 @@ implementation
           val(tok, msgnr, code);
           if (code<>0) then
             exit;
-          if not msg^.clearverbosity(msgnr) then
+          if not msg^.setverbosity(msgnr,state) then
             exit;
         until false;
         result:=true;
       end;
 
+    { This function is only used for command line argument -vmXXX }
+    { thus the message needs to be cleared globally }
+    function ClearMessageVerbosity(s: string; var i: integer): boolean;
+      begin
+        ClearMessageVerbosity:=ChangeMessageVerbosity(s,i,ms_off_global);
+      end;
+
+    function SetMessageVerbosity(v:longint;state:tmsgstate):boolean;
+      begin
+        result:=msg^.setverbosity(v,state);
+      end;
 
     function CheckVerbosity(v:longint):boolean;
       begin
@@ -592,6 +629,8 @@ implementation
                       st:=ms_error
                     else
                       st:=GetMessageState(w);
+                    { We only want to know about local value }
+                    st:= tmsgstate(ord(st) and ms_local_mask);
                     if st=ms_error then
                       begin
                         v:=v or V_Error;

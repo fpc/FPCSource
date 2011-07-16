@@ -604,6 +604,10 @@ const
   BIO_C_SET_EX_ARG		= 153;
   BIO_C_GET_EX_ARG		= 154;
 
+//DES modes
+  DES_ENCRYPT = 1;
+  DES_DECRYPT = 0;
+  
 var
   SSLLibHandle: TLibHandle = 0;
   SSLUtilHandle: TLibHandle = 0;
@@ -706,6 +710,7 @@ var
 
   // 3DES functions
   procedure DESsetoddparity(Key: des_cblock);
+  function DESsetkey(key: des_cblock; schedule: des_key_schedule): cInt;
   function DESsetkeychecked(key: des_cblock; schedule: des_key_schedule): cInt;
   procedure DESecbencrypt(Input: des_cblock; output: des_cblock; ks: des_key_schedule; enc: cInt);
 
@@ -942,6 +947,7 @@ type
   // 3DES functions
   TDESsetoddparity = procedure(Key: des_cblock); cdecl;
   TDESsetkeychecked = function(key: des_cblock; schedule: des_key_schedule): cInt; cdecl;
+  TDESsetkey = TDESsetkeychecked;
   TDESecbencrypt = procedure(Input: des_cblock; output: des_cblock; ks: des_key_schedule; enc: cInt); cdecl;
   //thread lock functions
   TCRYPTOnumlocks = function: cInt; cdecl;
@@ -1146,6 +1152,7 @@ var
 
   // 3DES functions
   _DESsetoddparity: TDESsetoddparity = nil;
+  _DESsetkey	   : TDESsetkey = nil;
   _DESsetkeychecked: TDESsetkeychecked = nil;
   _DESecbencrypt: TDESecbencrypt = nil;
   //thread lock functions
@@ -1921,6 +1928,14 @@ begin
     _DESsetoddparity(Key);
 end;
 
+function DESsetkey(key: des_cblock; schedule: des_key_schedule): cInt;
+begin
+  if InitSSLInterface and Assigned(_DESsetkey) then
+    Result := _DESsetkey(key, schedule)
+  else
+    Result := -1;
+end;
+
 function DESsetkeychecked(key: des_cblock; schedule: des_key_schedule): cInt;
 begin
   if InitlibeaInterface and Assigned(_DESsetkeychecked) then
@@ -2690,6 +2705,7 @@ begin
         // 3DES functions
         _DESsetoddparity := GetProcAddr(SSLUtilHandle, 'des_set_odd_parity', AVerboseLoading);
         _DESsetkeychecked := GetProcAddr(SSLUtilHandle, 'des_set_key_checked', AVerboseLoading);
+        _DESsetkey := GetProcAddr(SSLUtilHandle, 'des_set_key', AVerboseLoading);
         _DESecbencrypt := GetProcAddr(SSLUtilHandle, 'des_ecb_encrypt', AVerboseLoading);
         //
         _CRYPTOnumlocks := GetProcAddr(SSLUtilHandle, 'CRYPTO_num_locks', AVerboseLoading);

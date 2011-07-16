@@ -15,7 +15,6 @@ type
   private
     FRows : TJSONArray;
     FCurrentRow : TJSONObject;
-    FIDValue : TJSONData;
     FRowIndex : integer;
     function CheckData: Boolean;
   Public
@@ -525,7 +524,10 @@ begin
         FCurrentRow:=TJSONObject(D);
         end
       else if D is TJSONInt64Number then
-        FIDValue:=D
+        begin
+        FRows:=nil;
+        FCurrentRow:=TJSONObject.Create(['ID',D]);
+        end
       else
         begin
         FreeAndNil(D);
@@ -545,7 +547,6 @@ begin
   else
     FreeAndNil(FRows);
   FRowIndex:=0;
-  FreeAndNil(FIDValue);
   inherited reset;
 end;
 
@@ -571,22 +572,13 @@ Var
   I : Integer;
 
 begin
-  Avalue:='';
   Result:=False;
   if CheckData then
     begin
-    If Assigned(FIDValue) and (0=CompareText(AFieldName,'ID')) then
-      begin
-      AValue:=FIDValue.AsString;
-      Result:=True;
-      end
-    else
-      begin
-      I:=FCurrentRow.IndexOfName(AFieldName);
-      Result:=I<>-1;
-      if result then
-        AValue:=FCurrentRow.Items[I].AsString;
-      end;
+    I:=FCurrentRow.IndexOfName(AFieldName);
+    Result:=I<>-1;
+    if result and (FCurrentRow.Items[I].JSONType<>jtNull) then
+      AValue:=FCurrentRow.Items[I].AsString;
     end;
 end;
 
@@ -595,9 +587,7 @@ begin
   If Assigned(FRows) then
     FreeAndNil(FRows)
   else if assigned(FCurrentRow) then
-    FreeAndNil(FCurrentRow)
-  else if Assigned(FIDValue) then
-    FreeAndNil(FIDValue);
+    FreeAndNil(FCurrentRow);
   inherited destroy;
 end;
 

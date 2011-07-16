@@ -2766,13 +2766,13 @@ implementation
              _TRUE :
                begin
                  consume(_TRUE);
-                 p1:=cordconstnode.create(1,booltype,false);
+                 p1:=cordconstnode.create(1,pasbool8type,false);
                end;
 
              _FALSE :
                begin
                  consume(_FALSE);
-                 p1:=cordconstnode.create(0,booltype,false);
+                 p1:=cordconstnode.create(0,pasbool8type,false);
                end;
 
              _NIL :

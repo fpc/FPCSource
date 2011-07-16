@@ -217,6 +217,7 @@ unit cgcpu;
       var
         tmpreg : tregister;
         opsize : topsize;
+        tmpref : treference;
       begin
         with r do
           begin
@@ -229,7 +230,35 @@ unit cgcpu;
                 if (segment=NR_NO) and (base=NR_NO) and (index=NR_NO) then
                   begin
                     if assigned(symbol) then
-                      list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset))
+                      begin
+                        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
+                           ((r.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
+                            (cs_create_pic in current_settings.moduleswitches)) then
+                          begin
+                            tmpreg:=getaddressregister(list);
+                            a_loadaddr_ref_reg(list,r,tmpreg);
+                            list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
+                          end
+                        else if cs_create_pic in current_settings.moduleswitches then
+                          begin
+                            if offset<>0 then
+                              begin
+                                tmpreg:=getaddressregister(list);
+                                a_loadaddr_ref_reg(list,r,tmpreg);
+                                list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
+                              end
+                            else
+                              begin
+                                reference_reset_symbol(tmpref,r.symbol,0,r.alignment);
+                                tmpref.refaddr:=addr_pic;
+                                tmpref.base:=current_procinfo.got;
+                                include(current_procinfo.flags,pi_needs_got);
+                                list.concat(taicpu.op_ref(A_PUSH,S_L,tmpref));
+                              end
+                          end
+                        else
+                          list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset));
+                      end
                     else
                       list.concat(Taicpu.Op_const(A_PUSH,opsize,offset));
                   end

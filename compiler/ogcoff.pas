@@ -235,7 +235,7 @@ interface
          procedure ExeSectionList_write_data(p:TObject;arg:pointer);
        protected
          function writedata:boolean;override;
-         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList);override;
+         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
        public
          constructor createcoff(awin32:boolean);
          procedure MemPos_Header;override;
@@ -482,6 +482,14 @@ implementation
          empty   : word;
          typ     : byte;
          aux     : byte;
+       end;
+
+       { This is defined in rtl/win/sysos.inc source }
+       tlsdirectory=packed record
+         data_start, data_end : PUInt;
+         index_pointer, callbacks_pointer : PUInt;
+         zero_fill_size : dword;
+         flags : dword;
        end;
 
      const
@@ -1017,6 +1025,8 @@ const pemagic : array[0..3] of byte = (
         createsection(sec_code);
         createsection(sec_data);
         createsection(sec_bss);
+        if tf_section_threadvars in target_info.flags then
+          createsection(sec_threadvar);
       end;
 
 
@@ -2097,12 +2107,16 @@ const pemagic : array[0..3] of byte = (
             else
               sechdr.vsize:=mempos;
 
-            { sechdr.dataSize is size of initilized data. For .bss section it must be zero }
-            if (Name <> '.bss') then
-              sechdr.dataSize:=Size;
-            if (sechdr.dataSize>0) and
-               (oso_data in SecOptions) then
-              sechdr.datapos:=datapos;
+            { sechdr.dataSize is size of initilized data. Must be zero for sections that
+              do not contain one.
+              TODO: In Windows it must be rounded up to FileAlignment
+              (so it can be greater than VirtualSize) }
+            if (oso_data in SecOptions) then
+              begin
+                sechdr.dataSize:=Size;
+                if (Size>0) then
+                  sechdr.datapos:=datapos;
+              end;
             sechdr.nrelocs:=0;
             sechdr.relocpos:=0;
             if win32 then
@@ -2112,6 +2126,10 @@ const pemagic : array[0..3] of byte = (
                   sechdr.flags:=peencodesechdrflags(SecOptions,SecAlign) or PE_SCN_MEM_NOT_PAGED
                 else
                   sechdr.flags:=peencodesechdrflags(SecOptions,SecAlign);
+                { some flags are invalid in executables, reset them }
+                sechdr.flags:=sechdr.flags and
+                  not(PE_SCN_LNK_INFO or PE_SCN_LNK_REMOVE or
+                      PE_SCN_LNK_COMDAT or PE_SCN_ALIGN_MASK);
               end
             else
               sechdr.flags:=djencodesechdrflags(SecOptions);
@@ -2222,7 +2240,9 @@ const pemagic : array[0..3] of byte = (
         textExeSec,
         dataExeSec,
         bssExeSec,
-        idataExeSec : TExeSection;
+        idataExeSec,
+        tlsExeSec : TExeSection;
+        tlsdir : TlsDirectory;
         hassymbols,
         writeDbgStrings : boolean;
 
@@ -2238,6 +2258,88 @@ const pemagic : array[0..3] of byte = (
            end;
         end;
 
+        procedure UpdateImports;
+        var
+          exesec: TExeSection;
+          objsec, iat_start, iat_end, ilt_start: TObjSection;
+          i: longint;
+        begin
+          exesec:=FindExeSection('.idata');
+          if exesec=nil then
+            exit;
+          iat_start:=nil;
+          iat_end:=nil;
+          ilt_start:=nil;
+          for i:=0 to exesec.ObjSectionList.Count-1 do
+            begin
+              objsec:=TObjSection(exesec.ObjSectionList[i]);
+              if (ilt_start=nil) and (Pos('.idata$4',objsec.Name)=1) then
+                ilt_start:=objsec;
+              if Pos('.idata$5',objsec.Name)=1 then
+                begin
+                  if iat_start=nil then
+                    iat_start:=objsec;
+                end
+              else
+                if Assigned(iat_start) then
+                  begin
+                    iat_end:=objsec;
+                    Break;
+                  end;
+            end;
+
+          peoptheader.DataDirectory[PE_DATADIR_IDATA].vaddr:=exesec.mempos;
+          if Assigned(ilt_start) then
+            peoptheader.DataDirectory[PE_DATADIR_IDATA].size:=ilt_start.mempos-exesec.mempos
+          else  { should not happen }
+            peoptheader.DataDirectory[PE_DATADIR_IDATA].size:=exesec.Size;
+
+          if Assigned(iat_start) and Assigned(iat_end) then
+            begin
+              peoptheader.DataDirectory[PE_DATADIR_IMPORTADDRESSTABLE].vaddr:=iat_start.mempos;
+              peoptheader.DataDirectory[PE_DATADIR_IMPORTADDRESSTABLE].size:=iat_end.mempos-iat_start.mempos;
+            end;
+        end;
+
+        procedure UpdateTlsDataDir;
+        var
+          {callbacksection : TExeSection;}
+          tlsexesymbol: TExeSymbol;
+          tlssymbol: TObjSymbol;
+          callbackexesymbol: TExeSymbol;
+          callbacksymbol: TObjSymbol;
+        begin
+          { according to GNU ld,
+            the callback routines should be placed into .CRT$XL*
+            sections, and the thread local variables in .tls
+            __tls_start__ and __tls_end__ symbols
+            should be used for the initialized part,
+            which we do not support yet. }
+          { For now, we only pass the address of the __tls_used
+            asm symbol into PE_DATADIR_TLS with the correct
+            size of this table (different for win32/win64 }
+          tlsexesymbol:=texesymbol(ExeSymbolList.Find(
+            target_info.Cprefix+'_tls_used'));
+          if assigned(tlsexesymbol) then
+            begin
+              tlssymbol:=tlsexesymbol.ObjSymbol;
+              peoptheader.DataDirectory[PE_DATADIR_TLS].vaddr:=tlssymbol.address;
+              peoptheader.DataDirectory[PE_DATADIR_TLS].size:=Sizeof(tlsdirectory);
+              if IsSharedLibrary then
+                begin
+                  { Here we should reset __FPC_tls_callbacks value to nil }
+                  callbackexesymbol:=texesymbol(ExeSymbolList.Find(
+                                        '__FPC_tls_callbacks'));
+                  if assigned (callbackexesymbol) then
+                    begin
+                      callbacksymbol:=callbackexesymbol.ObjSymbol;
+
+                    end;
+                end;
+
+           end;
+        end;
+
       begin
         result:=false;
         FCoffSyms:=TDynamicArray.Create(SymbolMaxGrow);
@@ -2245,6 +2347,7 @@ const pemagic : array[0..3] of byte = (
         textExeSec:=FindExeSection('.text');
         dataExeSec:=FindExeSection('.data');
         bssExeSec:=FindExeSection('.bss');
+        tlsExeSec:=FindExeSection('.tls');
         if not assigned(TextExeSec) or
            not assigned(DataExeSec) then
           internalerror(200602231);
@@ -2352,7 +2455,8 @@ const pemagic : array[0..3] of byte = (
             peoptheader.SizeOfHeapReserve:=$100000;
             peoptheader.SizeOfHeapCommit:=$1000;
             peoptheader.NumberOfRvaAndSizes:=PE_DATADIR_ENTRIES;
-            UpdateDataDir('.idata',PE_DATADIR_IDATA);
+            UpdateImports;
+            UpdateTlsDataDir;
             UpdateDataDir('.edata',PE_DATADIR_EDATA);
             UpdateDataDir('.rsrc',PE_DATADIR_RSRC);
             UpdateDataDir('.pdata',PE_DATADIR_PDATA);
@@ -2414,9 +2518,12 @@ const pemagic : array[0..3] of byte = (
         Result:=CompareStr(I1.Name,I2.Name);
       end;
 
-    procedure TCoffexeoutput.Order_ObjSectionList(ObjSectionList: TFPObjectList);
+    procedure TCoffexeoutput.Order_ObjSectionList(ObjSectionList: TFPObjectList;const aPattern:string);
       begin
-        if CurrExeSec.Name = '.idata' then
+        { Sort sections having '$' in the name, that's how PECOFF documentation
+          tells to handle them. However, look for '$' in the pattern, not in section
+          names, because the latter often get superfluous '$' due to mangling. }
+        if Pos('$',aPattern)>0 then
           ObjSectionList.Sort(@IdataObjSectionCompare);
       end;
 
@@ -2492,6 +2599,7 @@ const pemagic : array[0..3] of byte = (
           emptyint : longint;
         begin
           emptyint:=0;
+          { These are referenced from idata2, oso_keep is not necessary. }
           idata4objsection:=internalobjdata.createsection(sec_idata4, basedllname+'_z_');
           internalobjdata.SymbolDefine('__imp_names_end_'+basedllname,AB_LOCAL,AT_DATA);
           idata5objsection:=internalobjdata.createsection(sec_idata5, basedllname+'_z_');
@@ -2506,9 +2614,6 @@ const pemagic : array[0..3] of byte = (
           internalobjdata.writebytes(emptyint,sizeof(emptyint));
           if target_info.system=system_x86_64_win64 then
             internalobjdata.writebytes(emptyint,sizeof(emptyint));
-          { be sure that this will not be removed }
-          idata4objsection.SecOptions:=idata4objsection.SecOptions + [oso_keep];
-          idata5objsection.SecOptions:=idata5objsection.SecOptions + [oso_keep];
         end;
 
         function AddImport(const afuncname,amangledname:string; AOrdNr:longint;isvar:boolean):TObjSymbol;

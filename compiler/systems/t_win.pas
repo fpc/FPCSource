@@ -986,19 +986,33 @@ implementation
             Concat('  SYMBOL ___CTOR_LIST__');
             Concat('  SYMBOL __CTOR_LIST__');
             Concat('  LONG -1');
+{$ifdef x86_64}
+            Concat('  LONG -1');
+{$endif x86_64}
             Concat('  OBJSECTION .ctor*');
             Concat('  LONG 0');
+{$ifdef x86_64}
+            Concat('  LONG 0');
+{$endif x86_64}
             Concat('  SYMBOL ___DTOR_LIST__');
             Concat('  SYMBOL __DTOR_LIST__');
             Concat('  LONG -1');
+{$ifdef x86_64}
+            Concat('  LONG -1');
+{$endif x86_64}
             Concat('  OBJSECTION .dtor*');
             Concat('  LONG 0');
+{$ifdef x86_64}
+            Concat('  LONG 0');
+{$endif x86_64}
             Concat('  SYMBOL etext');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .data');
             Concat('  SYMBOL __data_start__');
             Concat('  OBJSECTION .data*');
             Concat('  OBJSECTION .fpc*');
+            Concat('  PROVIDE '+target_info.Cprefix+'_tls_index');
+            Concat('  LONG 0');
             Concat('  SYMBOL edata');
             Concat('  SYMBOL __data_end__');
             Concat('ENDEXESECTION');
@@ -1018,6 +1032,34 @@ implementation
             Concat('  SYMBOL __bss_start__');
             Concat('  OBJSECTION .bss*');
             Concat('  SYMBOL __bss_end__');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .tls');
+            Concat('  SYMBOL ___tls_start__');
+            Concat('  OBJSECTION .tls*');
+            Concat('  SYMBOL ___tls_end__');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .CRT');
+            Concat('  SYMBOL ___crt_xc_start__');
+            Concat('  OBJSECTION .CRT$XC*');{  /* C initialization */');}
+            Concat('  SYMBOL ___crt_xc_end__');
+            Concat('  SYMBOL ___crt_xi_start__');
+            Concat('  OBJSECTION .CRT$XI*');{  /* C++ initialization */');}
+            Concat('  SYMBOL ___crt_xi_end__');
+            Concat('  SYMBOL ___crt_xl_start__');
+            Concat('  OBJSECTION .CRT$XL*'); {  /* TLS callbacks */'); }
+            { In GNU ld, this is defined in the TLS Directory support code }
+            Concat('  PROVIDE ___crt_xl_end__');
+            { Add a nil pointer as last element }
+            Concat('  LONG 0');
+{$ifdef x86_64}
+            Concat('  LONG 0');
+{$endif x86_64}
+            Concat('  SYMBOL ___crt_xp_start__');
+            Concat('  OBJSECTION .CRT$XP*'); {  /* Pre-termination */');}
+            Concat('  SYMBOL ___crt_xp_end__');
+            Concat('  SYMBOL ___crt_xt_start__');
+            Concat('  OBJSECTION .CRT$XT*');{  /* Termination */');}
+            Concat('  SYMBOL ___crt_xt_end__');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .idata');
             Concat('  OBJSECTION .idata$2*');
@@ -1225,9 +1267,23 @@ implementation
             Add('    *(.glue_7)');
             Add('    . = ALIGN(8);');
             Add('     ___CTOR_LIST__ = .; __CTOR_LIST__ = . ;');
-            Add('			LONG (-1);*(.ctors); *(.ctor); *(SORT(.ctors.*));  LONG (0);');
+            Add('    LONG (-1);');
+{$ifdef x86_64}
+            Add('    LONG (-1);');
+{$endif x86_64}
+            Add('    *(.ctors); *(.ctor); *(SORT(.ctors.*));  LONG (0);');
+{$ifdef x86_64}
+            Add('    LONG (0);');
+{$endif x86_64}
             Add('     ___DTOR_LIST__ = .; __DTOR_LIST__ = . ;');
-            Add('			LONG (-1); *(.dtors); *(.dtor); *(SORT(.dtors.*));  LONG (0);');
+            Add('    LONG (-1);');
+{$ifdef x86_64}
+            Add('    LONG (-1);');
+{$endif x86_64}
+            Add('    *(.dtors); *(.dtor); *(SORT(.dtors.*));  LONG (0);');
+{$ifdef x86_64}
+            Add('    LONG (0);');
+{$endif x86_64}
             Add('     *(.fini)');
             Add('    PROVIDE (etext = .);');
             Add('    *(.gcc_except_table)');
@@ -1239,6 +1295,8 @@ implementation
             Add('    *(.data2)');
             Add('    *(SORT(.data$*))');
             Add('    *(.jcr)');
+            Add('    PROVIDE ('+target_info.Cprefix+'_tls_index = .);');
+            Add('    LONG (0);');
             Add('    __data_end__ = . ;');
             Add('    *(.data_cygwin_nocopy)');
             Add('  }');
@@ -1286,6 +1344,7 @@ implementation
             Add('    ___crt_xl_start__ = . ;');
             Add('    *(SORT(.CRT$XL*))  /* TLS callbacks */');
             Add('    /* ___crt_xl_end__ is defined in the TLS Directory support code */');
+            Add('    PROVIDE (___crt_xl_end__ = .);');
             Add('    ___crt_xp_start__ = . ;');
             Add('    *(SORT(.CRT$XP*))  /* Pre-termination */');
             Add('    ___crt_xp_end__ = . ;');
@@ -1597,7 +1656,8 @@ implementation
              cmdstr:=cmdstr+' --version '+dllversion;
            cmdstr:=cmdstr+' --input '+maybequoted(fn);
            cmdstr:=cmdstr+' --stack '+tostr(stacksize);
-           DoExec(FindUtil(utilsprefix+'postw32'),cmdstr,false,false);
+           if target_info.system in [system_i386_win32, system_i386_wdosx] then
+             DoExec(FindUtil(utilsprefix+'postw32'),cmdstr,false,false);
            postprocessexecutable:=true;
            exit;
          end;
@@ -1738,7 +1798,7 @@ implementation
             ExtName:=current_module.dllscannerinputlist.NameOfIndex(i);
             if (ExtName=funcname) then
               begin
-                current_module.AddExternalImport(dllname,funcname,0,false,false);
+                current_module.AddExternalImport(dllname,funcname,funcname,0,false,false);
                 importfound:=true;
                 current_module.dllscannerinputlist.Delete(i);
                 exit;

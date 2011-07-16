@@ -598,14 +598,14 @@ Interface
         fillchar(actcondition,sizeof(actcondition),0);
 
          { Search opcodes }
-         actopcode:=tasmop(PtrInt(iasmops.Find(s)));
+         actopcode:=tasmop(PtrUInt(iasmops.Find(s)));
          if actopcode<>A_NONE then
            begin
              actasmtoken:=AS_OPCODE;
              result:=TRUE;
              exit;
            end;
-           
+
         { not found, check branch instructions }
         if (Upcase(s[1])='B') or
            ((Upcase(s[1])='F') and (Upcase(s[2])='B')) then

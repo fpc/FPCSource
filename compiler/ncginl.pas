@@ -163,9 +163,9 @@ implementation
               end;
 {$endif SUPPORT_MMX}
             in_rol_x,
-            in_rol_x_x,
+            in_rol_x_y,
             in_ror_x,
-            in_ror_x_x:
+            in_ror_x_y:
               second_rox;
             in_sar_x,
             in_sar_x_y:
@@ -741,10 +741,10 @@ implementation
         location_copy(location,op1.location);
         case inlinenumber of
           in_ror_x,
-          in_ror_x_x:
+          in_ror_x_y:
             op:=OP_ROR;
           in_rol_x,
-          in_rol_x_x:
+          in_rol_x_y:
             op:=OP_ROL;
         end;
         location_force_reg(current_asmdata.CurrAsmList,location,location.size,false);

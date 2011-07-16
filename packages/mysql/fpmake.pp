@@ -53,6 +53,7 @@ begin
         begin
           AddInclude('mysql.inc');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('mysql40.pp');
       with T.Dependencies do
         begin
@@ -63,6 +64,7 @@ begin
         begin
           AddInclude('mysql.inc');
         end;
+    T.ResourceStrings := True;;
     T:=P.Targets.AddUnit('mysql41.pp');
       with T.Dependencies do
         begin
@@ -87,6 +89,7 @@ begin
           AddUnit('my4_sys');
           AddUnit('mysql4_comdyn');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('mysql4.pp');
       with T.Dependencies do
         begin
@@ -101,11 +104,23 @@ begin
         begin
           AddInclude('mysql.inc');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('mysql50.pp');
       with T.Dependencies do
         begin
           AddInclude('mysql.inc');
         end;
+    T:=P.Targets.AddUnit('mysql51.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('mysql.inc');
+        end;
+    T:=P.Targets.AddUnit('mysql51dyn.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('mysql.inc');
+        end;
+    T.ResourceStrings := True;
 
     P.ExamplePath.Add('tests');
     P.Targets.AddExampleProgram('testdb3.pp');

@@ -1463,54 +1463,74 @@ begin
                   case More[j] of
                     'A':
                       begin
-                        if UnsetBool(More, j) then
-                          apptype:=app_native
+                        if target_info.system in systems_all_windows then
+                          begin
+                            if UnsetBool(More, j) then
+                              apptype:=app_cui
+                            else
+                              apptype:=app_native;
+                          end
                         else
-                          apptype:=app_cui;
+                          IllegalPara(opt);
                       end;
                     'b':
                       begin
-                        if (target_info.system in systems_darwin) then
+                        if target_info.system in systems_darwin then
                           begin
-                            if not UnsetBool(More, j) then
-                              apptype:=app_bundle
-                            else
+                            if UnsetBool(More, j) then
                               apptype:=app_cui
+                            else
+                              apptype:=app_bundle
                           end
                         else
                           IllegalPara(opt);
                       end;
                     'B':
                       begin
-                        {  -WB200000 means set trefered base address
-                          to $200000, but does not change relocsection boolean
-                          this way we can create both relocatble and
-                          non relocatable DLL at a specific base address PM }
-                        if (length(More)>j) then
+                        if target_info.system in systems_all_windows+systems_symbian then
                           begin
-                            val('$'+Copy(More,j+1,255),imagebase,code);
-                            if code<>0 then
-                              IllegalPara(opt);
-                            ImageBaseSetExplicity:=true;
+                            {  -WB200000 means set trefered base address
+                              to $200000, but does not change relocsection boolean
+                              this way we can create both relocatble and
+                              non relocatable DLL at a specific base address PM }
+                            if (length(More)>j) then
+                              begin
+                                val('$'+Copy(More,j+1,255),imagebase,code);
+                                if code<>0 then
+                                  IllegalPara(opt);
+                                ImageBaseSetExplicity:=true;
+                              end
+                            else
+                              begin
+                                RelocSection:=true;
+                                RelocSectionSetExplicitly:=true;
+                              end;
+                            break;
                           end
                         else
-                          begin
-                            RelocSection:=true;
-                            RelocSectionSetExplicitly:=true;
-                          end;
-                        break;
+                          IllegalPara(opt);
                       end;
                     'C':
                       begin
-                        if UnsetBool(More, j) then
-                          apptype:=app_gui
+                        if target_info.system in systems_all_windows+systems_os2+systems_macos then
+                          begin
+                            if UnsetBool(More, j) then
+                              apptype:=app_gui
+                            else
+                              apptype:=app_cui;
+                          end
                         else
-                          apptype:=app_cui;
+                          IllegalPara(opt);
                       end;
                     'D':
                       begin
-                        UseDeffileForExports:=not UnsetBool(More, j);
-                        UseDeffileForExportsSetExplicitly:=true;
+                        if target_info.system in systems_all_windows then
+                          begin
+                            UseDeffileForExports:=not UnsetBool(More, j);
+                            UseDeffileForExportsSetExplicitly:=true;
+                          end
+                        else
+                          IllegalPara(opt);
                       end;
                     'e':
                       begin
@@ -1525,22 +1545,37 @@ begin
                       end;
                     'F':
                       begin
-                        if UnsetBool(More, j) then
-                          apptype:=app_cui
+                        if target_info.system in systems_os2 then
+                          begin
+                            if UnsetBool(More, j) then
+                              apptype:=app_cui
+                            else
+                              apptype:=app_fs;
+                          end
                         else
-                          apptype:=app_fs;
+                          IllegalPara(opt);
                       end;
                     'G':
                       begin
-                        if UnsetBool(More, j) then
-                          apptype:=app_cui
+                        if target_info.system in systems_all_windows+systems_os2+systems_macos then
+                          begin
+                            if UnsetBool(More, j) then
+                              apptype:=app_cui
+                            else
+                              apptype:=app_gui;
+                          end
                         else
-                          apptype:=app_gui;
+                          IllegalPara(opt);
                       end;
                     'I':
                       begin
-                        GenerateImportSection:=not UnsetBool(More,j);
-                        GenerateImportSectionSetExplicitly:=true;
+                        if target_info.system in systems_all_windows then
+                          begin
+                            GenerateImportSection:=not UnsetBool(More,j);
+                            GenerateImportSectionSetExplicitly:=true;
+                          end
+                        else
+                          IllegalPara(opt);
                       end;
                     'i':
                       begin
@@ -1555,8 +1590,13 @@ begin
                       end;
                     'N':
                       begin
-                        RelocSection:=UnsetBool(More,j);
-                        RelocSectionSetExplicitly:=true;
+                        if target_info.system in systems_all_windows then
+                          begin
+                            RelocSection:=UnsetBool(More,j);
+                            RelocSectionSetExplicitly:=true;
+                          end
+                        else
+                          IllegalPara(opt);
                       end;
                     'p':
                       begin
@@ -1574,16 +1614,26 @@ begin
                       end;
                     'R':
                       begin
-                        { support -WR+ / -WR- as synonyms to -WR / -WN }
-                        RelocSection:=not UnsetBool(More,j);
-                        RelocSectionSetExplicitly:=true;
+                        if target_info.system in systems_all_windows then
+                          begin
+                            { support -WR+ / -WR- as synonyms to -WR / -WN }
+                            RelocSection:=not UnsetBool(More,j);
+                            RelocSectionSetExplicitly:=true;
+                          end
+                        else
+                          IllegalPara(opt);
                       end;
                     'T':
                       begin
-                        if UnsetBool(More, j) then
-                          apptype:=app_cui
+                        if target_info.system in systems_macos then
+                          begin
+                            if UnsetBool(More, j) then
+                              apptype:=app_cui
+                            else
+                              apptype:=app_tool;
+                          end
                         else
-                          apptype:=app_tool;
+                          IllegalPara(opt);
                       end;
                     'X':
                       begin
@@ -2398,6 +2448,9 @@ begin
     end;
   option.firstpass:=false;
 
+  { redefine target options so all defines are written even if no -Txxx is passed on the command line }
+  Option.TargetOptions(true);
+
 { target is set here, for wince the default app type is gui }
   if target_info.system in systems_wince then
     apptype:=app_gui;
@@ -2800,6 +2853,12 @@ if (target_info.system=system_arm_darwin) then
         def_system_macro('FPC_HAS_TYPE_EXTENDED');
 {$endif}
     end;
+    { Not ready yet }
+{$ifdef TEST_TLS_DIRECTORY}
+    if target_info.system in systems_windows then
+      def_system_macro('FPC_USE_TLS_DIRECTORY');
+{$endif TEST_TLS_DIRECTORY}
+
 
 {$ifdef ARM}
   { define FPC_DOUBLE_HILO_SWAPPED if needed to properly handle doubles in RTL }

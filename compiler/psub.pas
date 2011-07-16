@@ -162,6 +162,8 @@ implementation
 
 
     function block(islibrary : boolean) : tnode;
+      var
+        oldfilepos: tfileposinfo;
       begin
          { parse const,types and vars }
          read_declarations(islibrary);
@@ -240,7 +242,14 @@ implementation
             begin
                block:=statement_block(_BEGIN);
                if current_procinfo.procdef.localst.symtabletype=localsymtable then
-                 current_procinfo.procdef.localst.SymList.ForEachCall(@initializevars,block);
+                 begin
+                   { initialization of local variables with their initial
+                     values: part of function entry }
+                   oldfilepos:=current_filepos;
+                   current_filepos:=current_procinfo.entrypos;
+                   current_procinfo.procdef.localst.SymList.ForEachCall(@initializevars,block);
+                   current_filepos:=oldfilepos;
+                 end;
             end;
       end;
 
@@ -1768,7 +1777,16 @@ implementation
 
                  { Import DLL specified? }
                  if assigned(pd.import_dll) then
-                   current_module.AddExternalImport(pd.import_dll^,proc_get_importname(pd),pd.import_nr,false,pd.import_name=nil)
+                   begin
+                     if assigned (pd.import_name) then
+                       current_module.AddExternalImport(pd.import_dll^,
+                         pd.import_name^,proc_get_importname(pd),
+                         pd.import_nr,false,false)
+                     else
+                       current_module.AddExternalImport(pd.import_dll^,
+                         proc_get_importname(pd),proc_get_importname(pd),
+                         pd.import_nr,false,true);
+                   end
                  else
                    begin
                      { add import name to external list for DLL scanning }

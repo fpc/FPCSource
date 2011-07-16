@@ -1104,7 +1104,7 @@ Const
           MxCsr: DWORD;
           MxCsr_Mask: DWORD;
           FloatRegisters: array[0..7] of M128A;
-          XmmRegisters: array[0..16] of M128A;
+          XmmRegisters: array[0..15] of M128A;
           Reserved4: array[0..95] of BYTE;
        end;
      _XMM_SAVE_AREA32 = XMM_SAVE_AREA32;

@@ -192,6 +192,9 @@ begin
 {$endif FPC_ARMEL}
 {$endif arm}
 
+{$ifdef mips}
+     defdynlinker:='/lib/ld.so.1';
+{$endif mips}
      {
        Search order:
          glibc 2.1+
@@ -389,18 +392,12 @@ begin
          if librarysearchpath.FindFile('crti.o',false,s) then
            AddFileName(s);
          { then the crtbegin* }
-         { x86_64 requires this to use entry/exit code with pic,
-           see also issue #8210 regarding a discussion
-           no idea about the other non i386 CPUs (FK)
-         }
-{$ifdef x86_64}
-         if current_module.islibrary then
+         if cs_create_pic in current_settings.moduleswitches then
            begin
              if librarysearchpath.FindFile('crtbeginS.o',false,s) then
                AddFileName(s);
            end
          else
-{$endif x86_64}
            if (cs_link_staticflag in current_settings.globalswitches) and
               librarysearchpath.FindFile('crtbeginT.o',false,s) then
              AddFileName(s)
@@ -484,15 +481,9 @@ begin
       { objects which must be at the end }
       if linklibc and (libctype<>uclibc) then
        begin
-         { x86_64 requires this to use entry/exit code with pic,
-           see also issue #8210 regarding a discussion
-           no idea about the other non i386 CPUs (FK)
-         }
-{$ifdef x86_64}
-         if current_module.islibrary then
+         if cs_create_pic in current_settings.moduleswitches then
            found1:=librarysearchpath.FindFile('crtendS.o',false,s1)
          else
-{$endif x86_64}
            found1:=librarysearchpath.FindFile('crtend.o',false,s1);
          found2:=librarysearchpath.FindFile('crtn.o',false,s2);
          if found1 or found2 then

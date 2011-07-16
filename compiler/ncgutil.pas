@@ -159,8 +159,6 @@ interface
 
     function getprocalign : shortint;
 
-    procedure gen_pic_helpers(list : TAsmList);
-
     procedure gen_fpc_dummy(list : TAsmList);
 
     procedure InsertInterruptTable;
@@ -2535,7 +2533,7 @@ implementation
             sectype:=sec_bss;
           end;
         maybe_new_object_file(list);
-        if sym.section<>'' then
+        if vo_has_section in sym.varoptions then
           new_section(list,sec_user,sym.section,varalign)
         else
           new_section(list,sectype,lower(sym.mangledname),varalign);
@@ -3102,36 +3100,6 @@ implementation
           result:=16
         else
          result:=current_settings.alignment.procalign;
-      end;
-
-
-    procedure gen_pic_helpers(list : TAsmList);
-{$ifdef i386}
-      var
-        href : treference;
-{$endif i386}
-      begin
-        { if other cpus require such helpers as well, it can be solved more cleanly }
-{$ifdef i386}
-        if current_module.requires_ebx_pic_helper then
-          begin
-            new_section(list,sec_code,'fpc_geteipasebx',0);
-            list.concat(tai_symbol.Createname('fpc_geteipasebx',AT_FUNCTION,getprocalign));
-            reference_reset(href,sizeof(pint));
-            href.base:=NR_ESP;
-            list.concat(taicpu.op_ref_reg(A_MOV,S_L,href,NR_EBX));
-            list.concat(taicpu.op_none(A_RET,S_NO));
-          end;
-        if current_module.requires_ecx_pic_helper then
-          begin
-            new_section(list,sec_code,'fpc_geteipasecx',0);
-            list.concat(tai_symbol.Createname('fpc_geteipasecx',AT_FUNCTION,getprocalign));
-            reference_reset(href,sizeof(pint));
-            href.base:=NR_ESP;
-            list.concat(taicpu.op_ref_reg(A_MOV,S_L,href,NR_ECX));
-            list.concat(taicpu.op_none(A_RET,S_NO));
-          end;
-{$endif i386}
       end;
 
 

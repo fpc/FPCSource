@@ -719,12 +719,14 @@ begin
                          (taicpu(hp1).opcode = A_AND) and
                          (taicpu(hp1).oper[0]^.typ = top_const) and
                          (taicpu(hp1).oper[1]^.typ = top_reg) and
-                         (taicpu(p).oper[1]^.reg = taicpu(hp1).oper[1]^.reg) then
+                         (getsupreg(taicpu(p).oper[1]^.reg)=getsupreg(taicpu(hp1).oper[1]^.reg)) and
+                         (getsubreg(taicpu(p).oper[1]^.reg)<=getsubreg(taicpu(hp1).oper[1]^.reg)) then
     {change "and const1, reg; and const2, reg" to "and (const1 and const2), reg"}
                         begin
-                          taicpu(p).loadConst(0,taicpu(p).oper[0]^.val and taicpu(hp1).oper[0]^.val);
-                          asml.remove(hp1);
-                          hp1.free;
+                          taicpu(hp1).loadConst(0,taicpu(p).oper[0]^.val and taicpu(hp1).oper[0]^.val);
+                          asml.remove(p);
+                          p.free;
+                          p:=hp1;
                         end
                       else
     {change "and x, reg; jxx" to "test x, reg", if reg is deallocated before the

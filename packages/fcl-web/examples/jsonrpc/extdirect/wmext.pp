@@ -5,7 +5,7 @@ unit wmext;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LResources, HTTPDefs, websession, fpHTTP, fpWeb, 
+  Classes, SysUtils, HTTPDefs, websession, fpHTTP, fpWeb, 
     fpjsonrpc, webjsonrpc, fpextdirect, fpjson;
 
 type
@@ -27,6 +27,8 @@ var
 
 implementation
 
+{$R *.lfm}
+
 { TDemoClass }
 
 procedure TDemoClass.AddExecute(Sender: TObject;
@@ -45,8 +47,6 @@ begin
 end;
 
 initialization
-  {$I wmext.lrs}
-
   RegisterHTTPModule('demo', TDemoClass);
 end.
 
