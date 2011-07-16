@@ -720,7 +720,16 @@ implementation
          else if assigned(genericlist) then
            current_genericdef:=current_structdef;
 
+         { nested types of specializations are specializations as well }
+         if assigned(old_current_structdef) and
+             (df_specialization in old_current_structdef.defoptions) then
+           include(current_structdef.defoptions,df_specialization);
+
          insert_generic_parameter_types(current_structdef,genericdef,genericlist);
+         { when we are parsing a generic already then this is a generic as
+           well }
+         if old_parse_generic then
+           include(current_structdef.defoptions, df_generic);
          parse_generic:=(df_generic in current_structdef.defoptions);
          if m_advanced_records in current_settings.modeswitches then
            parse_record_members
@@ -829,7 +838,11 @@ implementation
                    if (m_delphi in current_settings.modeswitches) then
                      dospecialize:=token=_LSHARPBRACKET;
                    if dospecialize then
-                     generate_specialization(def,false,nil)
+                     begin
+                       generate_specialization(def,false,nil);
+                       { handle nested types }
+                       post_comp_expr_gendef(def);
+                     end
                    else
                      begin
                        if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
@@ -1055,8 +1068,16 @@ implementation
                { reject declaration of generic class inside generic class }
                else if assigned(genericlist) then
                  current_genericdef:=arrdef;
+               { nested types of specializations are specializations as well }
+               if assigned(current_structdef) and
+                   (df_specialization in current_structdef.defoptions) then
+                 include(arrdef.defoptions,df_specialization);
                symtablestack.push(arrdef.symtable);
                insert_generic_parameter_types(arrdef,genericdef,genericlist);
+               { when we are parsing a generic already then this is a generic as
+                 well }
+               if old_parse_generic then
+                 include(arrdef.defoptions, df_generic);
                parse_generic:=(df_generic in arrdef.defoptions);
              end;
            consume(_OF);
@@ -1102,8 +1123,16 @@ implementation
             { reject declaration of generic class inside generic class }
             else if assigned(genericlist) then
               current_genericdef:=pd;
+            { nested types of specializations are specializations as well }
+            if assigned(current_structdef) and
+                (df_specialization in current_structdef.defoptions) then
+              include(pd.defoptions,df_specialization);
             symtablestack.push(pd.parast);
             insert_generic_parameter_types(pd,genericdef,genericlist);
+            { when we are parsing a generic already then this is a generic as
+              well }
+            if old_parse_generic then
+              include(pd.defoptions, df_generic);
             parse_generic:=(df_generic in pd.defoptions);
             { don't allow to add defs to the symtable - use it for type param search only }
             tparasymtable(pd.parast).readonly:=true;

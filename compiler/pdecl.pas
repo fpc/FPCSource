@@ -360,8 +360,8 @@ implementation
          generictypelist : TFPObjectList;
          generictokenbuf : tdynamicarray;
          vmtbuilder : TVMTBuilder;
-         i : integer;
          s : shortstring;
+         gendef : tstoreddef;
       begin
          old_block_type:=block_type;
          { save unit container of forward declarations -
@@ -486,6 +486,7 @@ implementation
                 referencing the type before it's really set it
                 will give an error (PFV) }
               hdef:=generrordef;
+              gendef:=nil;
               storetokenpos:=current_tokenpos;
               if isgeneric then
                 begin
@@ -508,15 +509,34 @@ implementation
                       Message1(sym_e_duplicate_id,genorgtypename);
                 end
               else
-                if assigned(sym) and (sym.typ=typesym) and
-                    (ttypesym(sym).typedef.typ=undefineddef) and
-                    not (sp_generic_para in sym.symoptions) then
-                  begin
-                    { this is a symbol that was added by an earlier generic
-                      declaration, reuse it }
-                    newtype:=ttypesym(sym);
-                    newtype.typedef:=hdef;
-                  end;
+                begin
+                  if assigned(sym) and (sym.typ=typesym) and
+                      (ttypesym(sym).typedef.typ=undefineddef) and
+                      not (sp_generic_para in sym.symoptions) then
+                    begin
+                      { this is a symbol that was added by an earlier generic
+                        declaration, reuse it }
+                      newtype:=ttypesym(sym);
+                      newtype.typedef:=hdef;
+                      sym:=nil;
+                    end;
+
+                  { check whether this is a declaration of a type inside a
+                    specialization }
+                  if assigned(current_structdef) and
+                      (df_specialization in current_structdef.defoptions) then
+                    begin
+                      if not assigned(current_structdef.genericdef) or
+                          not (current_structdef.genericdef.typ in [recorddef,objectdef]) then
+                        internalerror(2011052301);
+                      sym:=tsym(tabstractrecorddef(current_structdef.genericdef).symtable.Find(gentypename));
+                      if not assigned(sym) or not (sym.typ=typesym) then
+                        internalerror(2011052302);
+                      { use the corresponding type in the generic's symtable as
+                        genericdef for the specialized type }
+                      gendef:=tstoreddef(ttypesym(sym).typedef);
+                    end;
+                end;
               { insert a newtype if we don't reuse an existing symbol }
               if not assigned(newtype) then
                 begin
@@ -527,7 +547,7 @@ implementation
               current_tokenpos:=defpos;
               current_tokenpos:=storetokenpos;
               { read the type definition }
-              read_named_type(hdef,genorgtypename,nil,generictypelist,false);
+              read_named_type(hdef,genorgtypename,gendef,generictypelist,false);
               { update the definition of the type }
               if assigned(hdef) then
                 begin

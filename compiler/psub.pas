@@ -1968,14 +1968,46 @@ implementation
 
     procedure specialize_objectdefs(p:TObject;arg:pointer);
       var
-        i  : longint;
-        hp : tdef;
         oldcurrent_filepos : tfileposinfo;
         oldsymtablestack   : tsymtablestack;
         oldextendeddefs    : TFPHashObjectList;
         pu : tused_unit;
         hmodule : tmodule;
         specobj : tabstractrecorddef;
+
+      procedure process_abstractrecorddef(def:tabstractrecorddef);
+        var
+          i  : longint;
+          hp : tdef;
+        begin
+          for i:=0 to def.symtable.DefList.Count-1 do
+            begin
+              hp:=tdef(def.symtable.DefList[i]);
+              if hp.typ=procdef then
+               begin
+                 if assigned(tprocdef(hp).genericdef) and
+                   (tprocdef(hp).genericdef.typ=procdef) and
+                   assigned(tprocdef(tprocdef(hp).genericdef).generictokenbuf) then
+                   begin
+                     oldcurrent_filepos:=current_filepos;
+                     current_filepos:=tprocdef(tprocdef(hp).genericdef).fileinfo;
+                     { use the index the module got from the current compilation process }
+                     current_filepos.moduleindex:=hmodule.unit_index;
+                     current_tokenpos:=current_filepos;
+                     current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf);
+                     read_proc_body(nil,tprocdef(hp));
+                     current_filepos:=oldcurrent_filepos;
+                   end
+                 else
+                   MessagePos1(tprocdef(hp).fileinfo,sym_e_forward_not_resolved,tprocdef(hp).fullprocname(false));
+               end
+             else
+               if hp.typ in [objectdef,recorddef] then
+                 { generate code for subtypes as well }
+                 process_abstractrecorddef(tabstractrecorddef(hp));
+           end;
+        end;
+
       begin
         if not((tsym(p).typ=typesym) and
                (ttypesym(p).typedef.typesym=tsym(p)) and
@@ -2013,28 +2045,7 @@ implementation
           symtablestack.push(hmodule.localsymtable);
 
         { procedure definitions for classes or objects }
-        for i:=0 to specobj.symtable.DefList.Count-1 do
-          begin
-            hp:=tdef(specobj.symtable.DefList[i]);
-            if hp.typ=procdef then
-             begin
-               if assigned(tprocdef(hp).genericdef) and
-                 (tprocdef(hp).genericdef.typ=procdef) and
-                 assigned(tprocdef(tprocdef(hp).genericdef).generictokenbuf) then
-                 begin
-                   oldcurrent_filepos:=current_filepos;
-                   current_filepos:=tprocdef(tprocdef(hp).genericdef).fileinfo;
-                   { use the index the module got from the current compilation process }
-                   current_filepos.moduleindex:=hmodule.unit_index;
-                   current_tokenpos:=current_filepos;
-                   current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf);
-                   read_proc_body(nil,tprocdef(hp));
-                   current_filepos:=oldcurrent_filepos;
-                 end
-               else
-                 MessagePos1(tprocdef(hp).fileinfo,sym_e_forward_not_resolved,tprocdef(hp).fullprocname(false));
-             end;
-         end;
+        process_abstractrecorddef(specobj);
 
         { Restore symtablestack }
         current_module.extendeddefs.free;

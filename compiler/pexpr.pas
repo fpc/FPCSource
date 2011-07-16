@@ -49,6 +49,10 @@ interface
     function get_intconst:TConstExprInt;
     function get_stringconst:string;
 
+    { Does some postprocessing for a generic type (especially when nested types
+      of the specialization are used) }
+    procedure post_comp_expr_gendef(var def: tdef);
+
 implementation
 
     uses
@@ -2825,6 +2829,24 @@ implementation
         factor:=p1;
       end;
   {$maxfpuregisters default}
+
+    procedure post_comp_expr_gendef(var def: tdef);
+      var
+        p1 : tnode;
+        again : boolean;
+      begin
+        if not assigned(def) then
+          internalerror(2011053001);
+        again:=false;
+        { handle potential typecasts, etc }
+        p1:=handle_factor_typenode(def,false,again);
+        { parse postfix operators }
+        if postfixoperators(p1,again,false) then
+          if assigned(p1) and (p1.nodetype=typen) then
+            def:=ttypenode(p1).typedef
+          else
+            def:=generrordef;
+      end;
 
 {****************************************************************************
                              Sub_Expr

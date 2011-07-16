@@ -1143,6 +1143,11 @@ implementation
         else if assigned(genericlist) then
           current_genericdef:=current_structdef;
 
+        { nested types of specializations are specializations as well }
+        if assigned(old_current_structdef) and
+            (df_specialization in old_current_structdef.defoptions) then
+          include(current_structdef.defoptions,df_specialization);
+
         { set published flag in $M+ mode, it can also be inherited and will
           be added when the parent class set with tobjectdef.set_parent (PFV) }
         if (cs_generate_rtti in current_settings.localswitches) and
@@ -1183,6 +1188,10 @@ implementation
 
             symtablestack.push(current_structdef.symtable);
             insert_generic_parameter_types(current_structdef,genericdef,genericlist);
+            { when we are parsing a generic already then this is a generic as
+              well }
+            if old_parse_generic then
+              include(current_structdef.defoptions, df_generic);
             parse_generic:=(df_generic in current_structdef.defoptions);
 
             { parse list of parent classes }
