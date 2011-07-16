@@ -2937,6 +2937,10 @@ implementation
                    { we need to decice whether we have an inline specialization
                      (type nodes to the left and right of "<", mode Delphi and
                      ">" or "," following) or a normal "<" comparison }
+                   { TODO : p1 could be a non type if e.g. a variable with the
+                            same name is defined in the same unit where the
+                            generic is defined (though "same unit" is not
+                            necessarily needed) }
                    if istypenode(p1) and istypenode(p2) and
                        (m_delphi in current_settings.modeswitches) and
                        (token in [_GT,_RSHARPBRACKET,_COMMA]) then
@@ -3021,12 +3025,48 @@ implementation
                  p1:=caddnode.create(symdifn,p1,p2);
                _STARSTAR :
                  p1:=caddnode.create(starstarn,p1,p2);
-               _OP_AS :
-                 p1:=casnode.create(p1,p2);
+               _OP_AS,
+               _OP_IS :
+                 begin
+                   if token in [_LT, _LSHARPBRACKET] then
+                     begin
+                       { for now we're handling this as a generic declaration;
+                         there could be cases though (because of operator
+                         overloading) where this is the wrong decision... }
+                       { TODO : here the same note as in _LT applies as p2 could
+                                point to a variable, etc }
+                       gendef:=gettypedef(p2);
+
+                       if gendef.typesym.typ<>typesym then
+                         Internalerror(2011071401);
+
+                       { generate the specialization }
+                       generate_specialization(gendef,false,nil);
+
+                       { we don't need the old p2 anymore }
+                       p2.Free;
+
+                       again:=false;
+                       { handle potential typecasts, etc }
+                       p2:=handle_factor_typenode(gendef,false,again);
+                       { parse postfix operators }
+                       if postfixoperators(p2,again,false) then
+                         if assigned(p2) then
+                           p2.fileinfo:=filepos
+                         else
+                           p2:=cerrornode.create;
+                     end;
+
+                   { now generate the "is" or "as" node }
+                   case oldt of
+                     _OP_AS:
+                       p1:=casnode.create(p1,p2);
+                     _OP_IS:
+                       p1:=cisnode.create(p1,p2);
+                   end;
+                 end;
                _OP_IN :
                  p1:=cinnode.create(p1,p2);
-               _OP_IS :
-                 p1:=cisnode.create(p1,p2);
                _OP_OR,
                _PIPE {macpas only} :
                  begin
