@@ -925,7 +925,6 @@ begin
       begin
       oSection.KeyList.Delete(oSection.KeyList.IndexOf(oKey));
       oKey.Free;
-      MaybeDeleteSection(oSection);
       MaybeUpdateFile;
       end;
     end;
