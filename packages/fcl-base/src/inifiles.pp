@@ -777,29 +777,24 @@ var
   oSection: TIniFileSection;
   oKey: TIniFileKey;
 begin
-  if (Section > '') and (Ident > '') then begin
+  if (Section > '') and (Ident > '') then 
+    begin
     // update or add key
     oSection := FSectionList.SectionByName(Section,CaseSensitive);
-    if (Value > '') then begin
-      if oSection = nil then begin
-        oSection := TIniFileSection.Create(Section);
-        FSectionList.Add(oSection);
+    if (oSection = nil) then 
+      begin
+      oSection := TIniFileSection.Create(Section);
+      FSectionList.Add(oSection);
       end;
-      with oSection.KeyList do begin
-        oKey := KeyByName(Ident,CaseSensitive);
-        if oKey <> nil then
-          oKey.Value := Value
-        else
-          oSection.KeyList.Add(TIniFileKey.Create(Ident, Value));
-      end;
-    end else if oSection <> nil then begin
-      // remove key
-      oKey := oSection.KeyList.KeyByName(Ident,CaseSensitive);
-      if oKey <> nil then begin
-        oSection.KeyList.Remove(oKey);
+    with oSection.KeyList do 
+      begin
+      oKey := KeyByName(Ident,CaseSensitive);
+      if oKey <> nil then
+        oKey.Value := Value
+      else
+        oSection.KeyList.Add(TIniFileKey.Create(Ident, Value));
       end;
     end;
-  end;
   MaybeUpdateFile;
 end;
 
