@@ -73,7 +73,7 @@ Var
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
         { Support platforms where threadvar memory is managed outside of the RTL:
           reset ThreadID and allow ReleaseThreadVars to be unassigned }
-        ThreadID := 0;
+        ThreadID := TThreadID(0);
         if assigned(CurrentTM.ReleaseThreadVars) then
           CurrentTM.ReleaseThreadVars;
       end;
