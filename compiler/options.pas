@@ -365,6 +365,9 @@ begin
       'S',
 {$endif}
 {$ifdef vis}
+      'I',
+{$endif}
+{$ifdef avr}
       'V',
 {$endif}
       '*' : show:=true;
