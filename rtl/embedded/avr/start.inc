@@ -1,12 +1,11 @@
     _start:
         clr r1
+{
         // load stack pointer
         ldi r0,lo8(_stack_top)
         out 0x3d,r0
         ldi r0,hi8(_stack_top)
         out 0x3e,r0
-
-
 
         // copy initialized data from flash to ram
         ldr r1,.L_etext
@@ -26,8 +25,9 @@
         cmp r1,r2
         strls r0,[r1],#4
         bls .Lzeroloop
+ }
 
-        xcall PASCALMAIN
-        xcall _FPC_haltproc
+        call PASCALMAIN
+        call _FPC_haltproc
         .text
 
