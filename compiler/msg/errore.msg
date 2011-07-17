@@ -3342,6 +3342,8 @@ A*2WI_Turn on/off the usage of import sections (Windows)
 3*2WN_Do not generate relocation code, needed for debugging (Windows)
 4*2WN_Do not generate relocation code, needed for debugging (Windows)
 A*2WN_Do not generate relocation code, needed for debugging (Windows)
+A*2Wpxxxx_Specify the controller type, see fpc -i for possible values
+V*2Wpxxxx_Specify the controller type, see fpc -i for possible values
 3*2WR_Generate relocation code (Windows)
 4*2WR_Generate relocation code (Windows)
 A*2WR_Generate relocation code (Windows)

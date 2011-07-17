@@ -1382,33 +1382,36 @@ const msgtxt : array[0..000252,1..240] of char=(
   '4*2WN_Do not generate relocation code, needed for debugging (Windows)'#010+
   'A*2WN_Do not generate relocation code, neede','d for debugging (Windows'+
   ')'#010+
+  'A*2Wpxxxx_Specify the controller type, see fpc -i for possible values'#010+
+  'V*2Wpxxxx_Specify the controller type, see fpc -i for possible values'#010+
   '3*2WR_Generate relocation code (Windows)'#010+
-  '4*2WR_Generate relocation code (Windows)'#010+
+  '4*2WR_Generate relocation code (W','indows)'#010+
   'A*2WR_Generate relocation code (Windows)'#010+
   'P*2WT_Specify MPW tool type application (Classic Mac OS)'#010+
-  '**2WX_Enable executable stack (Lin','ux)'#010+
+  '**2WX_Enable executable stack (Linux)'#010+
   '**1X_Executable options:'#010+
   '**2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Lin'+
-  'ux)'#010+
+  'u','x)'#010+
   '**2Xd_Do not use standard library search path (needed for cross compil'+
   'e)'#010+
   '**2Xe_Use external linker'#010+
-  '**2Xg_Create debuginfo in a separate f','ile and add a debuglink sectio'+
-  'n to executable'#010+
-  '**2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)'#010+
+  '**2Xg_Create debuginfo in a separate file and add a debuglink section '+
+  'to executable'#010+
+  '**2XD_Try to link units dynamically      (defines FPC_','LINK_DYNAMIC)'#010+
   '**2Xi_Use internal linker'#010+
   '**2Xm_Generate link map'#010+
   '**2XM<x>_Set the name of the '#039'main'#039' program routine (default i'+
   's '#039'main'#039')'#010+
-  '**2X','P<x>_Prepend the binutils names with the prefix <x>'#010+
-  '**2Xr<x>_Set the linker'#039's rlink-path to <x> (needed for cross comp'+
-  'ile, see the ld manual for more information) (BeOS, Linux)'#010+
-  '**2XR<x>_Prepend <x> to all linker search paths (BeOS, Darwin, ','FreeB'+
-  'SD, Linux, Mac OS, Solaris)'#010+
+  '**2XP<x>_Prepend the binutils names with the prefix <x>'#010+
+  '**2Xr<x>_Set the linker'#039's rlink-path to <x> (nee','ded for cross co'+
+  'mpile, see the ld manual for more information) (BeOS, Linux)'#010+
+  '**2XR<x>_Prepend <x> to all linker search paths (BeOS, Darwin, FreeBSD'+
+  ', Linux, Mac OS, Solaris)'#010+
   '**2Xs_Strip all symbols from executable'#010+
-  '**2XS_Try to link units statically (default, defines FPC_LINK_STATIC)'#010+
+  '**2XS_Try to link units sta','tically (default, defines FPC_LINK_STATIC'+
+  ')'#010+
   '**2Xt_Link with static libraries (-static is passed to linker)'#010+
-  '**2XX_Try to smartlink units      ','       (defines FPC_LINK_SMART)'#010+
+  '**2XX_Try to smartlink units             (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
   '**1?_Show this help'#010+
   '**1h_Shows this help without waiting'
