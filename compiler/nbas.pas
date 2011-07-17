@@ -123,7 +123,7 @@ interface
        { a node which will create a (non)persistent temp of a given type with a given  }
        { size (the size is separate to allow creating "void" temps with a custom size) }
        ttempcreatenode = class(tnode)
-          size: aint;
+          size: tcgint;
           tempinfo: ptempinfo;
           ftemplvalue : tnode;
           { * persistent temps are used in manually written code where the temp }
@@ -133,9 +133,9 @@ interface
           { where the node that receives the temp becomes responsible for       }
           { freeing it. In this last case, you must use only one reference      }
           { to it and *not* generate a ttempdeletenode                          }
-          constructor create(_typedef: tdef; _size: aint; _temptype: ttemptype;allowreg:boolean); virtual;
-          constructor create_withnode(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean; withnode: tnode); virtual;
-          constructor create_value(_typedef:tdef; _size: aint; _temptype: ttemptype;allowreg:boolean; templvalue: tnode);
+          constructor create(_typedef: tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean); virtual;
+          constructor create_withnode(_typedef: tdef; _size: tcgint; _temptype: ttemptype; allowreg:boolean; withnode: tnode); virtual;
+          constructor create_value(_typedef:tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean; templvalue: tnode);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -694,7 +694,7 @@ implementation
                           TEMPCREATENODE
 *****************************************************************************}
 
-    constructor ttempcreatenode.create(_typedef:tdef; _size: aint; _temptype: ttemptype;allowreg:boolean);
+    constructor ttempcreatenode.create(_typedef:tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean);
       begin
         inherited create(tempcreaten);
         size := _size;
@@ -717,14 +717,14 @@ implementation
       end;
 
 
-    constructor ttempcreatenode.create_withnode(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean; withnode: tnode);
+    constructor ttempcreatenode.create_withnode(_typedef: tdef; _size: tcgint; _temptype: ttemptype; allowreg:boolean; withnode: tnode);
       begin
         self.create(_typedef,_size,_temptype,allowreg);
         tempinfo^.withnode:=withnode.getcopy;
       end;
 
 
-    constructor ttempcreatenode.create_value(_typedef:tdef; _size: aint; _temptype: ttemptype;allowreg:boolean; templvalue: tnode);
+    constructor ttempcreatenode.create_value(_typedef:tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean; templvalue: tnode);
       begin
         self.create(_typedef,_size,_temptype,allowreg);
         // store in ppuwrite
