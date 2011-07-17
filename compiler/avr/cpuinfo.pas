@@ -45,13 +45,13 @@ Type
       );
 
    tcpuflags =
-      (AVR_HAVE_JMP_CALL,
-       AVR_HAVE_MOVW,
-       AVR_HAVE_LPMX,
-       AVR_HAVE_MUL,
-       AVR_HAVE_RAMPZ,
-       AVR_HAVE_ELPM,
-       AVR_HAVE_ELPMX,
+      (AVR_HAS_JMP_CALL,
+       AVR_HAS_MOVW,
+       AVR_HAS_LPMX,
+       AVR_HAS_MUL,
+       AVR_HAS_RAMPZ,
+       AVR_HAS_ELPM,
+       AVR_HAS_ELPMX,
        AVR_2_BYTE_PC,
        AVR_3_BYTE_PC
       );
@@ -137,9 +137,21 @@ Const
                                  [cs_opt_level1,cs_opt_level2,cs_opt_level3]+
                                  [cs_opt_regvar,cs_opt_loopunroll,cs_opt_tailrecursion,
 								  cs_opt_stackframe,cs_opt_nodecse];
+   cpuflagsstr : array[tcpuflags] of string[20] =
+      ('AVR_HAS_JMP_CALL',
+       'AVR_HAS_MOVW',
+       'AVR_HAS_LPMX',
+       'AVR_HAS_MUL',
+       'AVR_HAS_RAMPZ',
+       'AVR_HAS_ELPM',
+       'AVR_HAS_ELPMX',
+       'AVR_2_BYTE_PC',
+       'AVR_3_BYTE_PC'
+      );
+
 
    level1optimizerswitches = genericlevel1optimizerswitches;
-   level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches + 
+   level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches +
      [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
 
