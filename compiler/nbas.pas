@@ -747,6 +747,17 @@ implementation
         n.tempinfo^.typedef := tempinfo^.typedef;
         n.tempinfo^.temptype := tempinfo^.temptype;
         n.tempinfo^.flags := tempinfo^.flags * tempinfostoreflags;
+
+        { when the tempinfo has already a hookoncopy then it is not
+          reset by a tempdeletenode }
+        if assigned(tempinfo^.hookoncopy) then
+          internalerror(200211262);
+        { signal the temprefs that the temp they point to has been copied, }
+        { so that if the refs get copied as well, they can hook themselves }
+        { to the copy of the temp                                          }
+        tempinfo^.hookoncopy := n.tempinfo;
+        exclude(tempinfo^.flags,ti_nextref_set_hookoncopy_nil);
+
         if assigned(tempinfo^.withnode) then
           n.tempinfo^.withnode := tempinfo^.withnode.getcopy
         else
@@ -756,17 +767,6 @@ implementation
           n.tempinfo^.tempinitcode := tempinfo^.tempinitcode.getcopy
         else
           n.tempinfo^.tempinitcode := nil;
-
-        { when the tempinfo has already a hookoncopy then it is not
-          reset by a tempdeletenode }
-        if assigned(tempinfo^.hookoncopy) then
-          internalerror(200211262);
-
-        { signal the temprefs that the temp they point to has been copied, }
-        { so that if the refs get copied as well, they can hook themselves }
-        { to the copy of the temp                                          }
-        tempinfo^.hookoncopy := n.tempinfo;
-        exclude(tempinfo^.flags,ti_nextref_set_hookoncopy_nil);
 
         result := n;
       end;
