@@ -210,13 +210,15 @@ var
         { Copy parameter to local data }
         ti:=pthreadinfo(param)^;
 
-        { Allocate local thread vars, this must be the first thing,
-          because the exception management and io depends on threadvars }
-{$ifndef FPC_USE_TLS_DIRECTORY}
-        SysAllocateThreadVars;
-        { Initialize thread }
-        InitThread(ti.stklen);
-{$endif}
+        { Handle all possible threadvar models:
+          - dynamic threadvars: initialized either in DllMain,
+            or upon accessing the threadvar ThreadID;
+          - static threadvars+TLS callback: initialized in TLS callback;
+          - static threadvars, no callback: ThreadID remains 0 and
+            initialization happens here. }
+        if ThreadID=TThreadID(0) then
+          InitThread(ti.stklen);
+
         dispose(pthreadinfo(param));
 
         { Start thread function }
