@@ -625,6 +625,18 @@ begin
     Result := AnsiCompareStr(pchar(subValue),pchar(aValue));
 end;
 
+function DBCompareWideText(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
+begin
+  if [loCaseInsensitive,loPartialKey]=options then
+    Result := WideCompareText(pwidechar(subValue),LeftStr(pwidechar(aValue), Length(pwidechar(subValue))))
+  else if [loPartialKey] = options then
+      Result := WideCompareStr(pwidechar(subValue),LeftStr(pwidechar(aValue), Length(pwidechar(subValue))))
+    else if [loCaseInsensitive] = options then
+         Result := WideCompareText(pwidechar(subValue),pwidechar(aValue))
+       else
+         Result := WideCompareStr(pwidechar(subValue),pwidechar(aValue));
+end;
+
 function DBCompareByte(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 
 begin
@@ -1534,6 +1546,7 @@ procedure TCustomBufDataset.ProcessFieldCompareStruct(AField: TField; var ACompa
 begin
   case AField.DataType of
     ftString, ftFixedChar : ACompareRec.Comparefunc := @DBCompareText;
+    ftWideString, ftFixedWideChar: ACompareRec.Comparefunc := @DBCompareWideText;
     ftSmallint : ACompareRec.Comparefunc := @DBCompareSmallInt;
     ftInteger, ftBCD, ftAutoInc : ACompareRec.Comparefunc :=
       @DBCompareInt;
