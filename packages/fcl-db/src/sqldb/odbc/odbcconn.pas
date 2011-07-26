@@ -307,6 +307,7 @@ var
   IntVal: clong;
   LargeVal: clonglong;
   StrVal: string;
+  WideStrVal: widestring;
   FloatVal: cdouble;
   DateVal: SQL_DATE_STRUCT;
   TimeVal: SQL_TIME_STRUCT;
@@ -381,6 +382,25 @@ begin
               CType:=SQL_C_CHAR;
               SqlType:=SQL_VARCHAR;
               end;
+          end;
+        end;
+      ftWideString, ftFixedWideChar, ftWideMemo:
+        begin
+          WideStrVal:=AParams[ParamIndex].AsWideString;
+          StrLenOrInd:=Length(WideStrVal)*sizeof(widechar);
+          if WideStrVal='' then //HY104
+             begin
+             WideStrVal:=#0;
+             StrLenOrInd:=SQL_NTS;
+             end;
+          PVal:=@WideStrVal[1];
+          Size:=Length(WideStrVal)*sizeof(widechar);
+          ColumnSize:=Size; //The defined or maximum column size in characters of the column or parameter
+          BufferLength:=Size;
+          CType:=SQL_C_WCHAR;
+          case AParams[ParamIndex].DataType of
+            ftWideMemo: SqlType:=SQL_WLONGVARCHAR;
+            else        SqlType:=SQL_WVARCHAR;
           end;
         end;
       ftFloat:
