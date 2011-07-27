@@ -13,6 +13,11 @@ unit SdfData;
 ---------------
 Modifications
 ---------------
+14/Jul/11 BigChimp:
+      Added AllowMultiLine property so user can use fields that have line endings
+      (Carriage Return and/or Line Feed) embedded in their fields (fields need to be
+      quoted). Enabled by default; will break compatibility with earlier versions of
+      SdfData, but using multilines would have resulted in corrupted import anyway.
 12/Mar/04  Lazarus version (Sergey Smirnov AKA SSY)
       Locate and CheckString functions are removed because of Variant data type.
       Many things are changed for FPC/Lazarus compatibility.
@@ -251,6 +256,8 @@ type
   private
     FDelimiter : Char;
     FFirstLineAsSchema : Boolean;
+    FFMultiLine         :Boolean;
+    procedure SetMultiLine(const Value: Boolean);
     procedure SetFirstLineAsSchema(Value : Boolean);
     procedure SetDelimiter(Value : Char);
   protected
@@ -262,6 +269,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
   published
+    property AllowMultiLine: Boolean read FFMultiLine write SetMultiLine default True; //Whether or not to allow fields containing CR and/or LF
     property Delimiter: Char read FDelimiter write SetDelimiter;
     property FirstLineAsSchema: Boolean read FFirstLineAsSchema write SetFirstLineAsSchema;
   end;
@@ -843,6 +851,7 @@ begin
   inherited Create(AOwner);
   FDelimiter := ',';
   FFirstLineAsSchema := FALSE;
+  FFMultiLine :=False;
 end;
 
 procedure TSdfDataSet.InternalInitFieldDefs;
@@ -945,7 +954,21 @@ begin
    begin
 
     while Boolean(Byte(pStrEnd[0])) and (pStrEnd[0] in [#1..' ']) do
-      Inc(pStrEnd);
+    begin
+     if FFMultiLine=true then
+      begin
+       if ((pStrEnd[0]=CR) or (pStrEnd[0]=LF)) then
+        begin
+         //view this as text, not control characters, so do nothing
+         //todo: check if this is really necessary, probably revert
+         //to original code as quoted case is handled below
+        end;
+      end
+     else
+      begin
+       Inc(pStrEnd);
+      end;
+    end;
 
     if not Boolean(Byte(pStrEnd[0])) then
      break;
@@ -954,10 +977,22 @@ begin
 
     if (pStr[0] = '"') then
      begin
-      repeat
-        Inc(pStrEnd);
-      until not Boolean(Byte(pStrEnd[0])) or
-            ((pStrEnd[0] = '"') and ((pStrEnd + 1)[0] in [Delimiter,CR,LF, #0]));
+      if FFMultiLine=true then
+       begin
+        repeat
+         Inc(pStrEnd);
+        until not Boolean(Byte(pStrEnd[0])) or
+         ((pStrEnd[0] = '"') and ((pStrEnd + 1)[0] in [Delimiter,#0]));
+       end
+      else
+       begin
+        // No multiline, so treat cr/lf as end of record
+         repeat
+          Inc(pStrEnd);
+         until not Boolean(Byte(pStrEnd[0])) or
+          ((pStrEnd[0] = '"') and ((pStrEnd + 1)[0] in [Delimiter,CR,LF, #0]));
+       end;
+
 
       if (pStrEnd[0] = '"') then
         Inc(pStr);
@@ -985,18 +1020,36 @@ begin
 end;
 
 function TSdfDataSet.BufToStore(Buffer: PChar): String;
+const
+ QuoteDelimiter='"';
 var
   Str : String;
   p, i : Integer;
+  QuoteMe: boolean;
 begin
   Result := '';
   p := 1;
+  QuoteMe:=false;
   for i := 0 to FieldDefs.Count - 1 do
   begin
     Str := Trim(Copy(Buffer, p, FieldDefs[i].Size));
     Inc(p, FieldDefs[i].Size);
-    if (StrScan(PChar(Str), FDelimiter) <> nil) then
-      Str := '"' + Str + '"';
+    if FFMultiLine=true then
+      begin
+       // If multiline enabled, quote whenever we find carriage return or linefeed
+       if ((QuoteMe=False) and (StrScan(PChar(Str), #10) <> nil)) then QuoteMe:=true;
+       if ((QuoteMe=False) and (StrScan(PChar(Str), #13) <> nil)) then QuoteMe:=true;
+      end
+    else
+      begin
+       // If we don't allow multiline, remove all CR and LF because they mess with the record ends:
+       StringReplace(Str, #10, '', [rfReplaceAll]);
+       StringReplace(Str, #13, '', [rfReplaceAll]);
+      end;
+    // Check for any delimiters occurring in field text
+    if ((QuoteMe=False) and (StrScan(PChar(Str), FDelimiter) <> nil)) then QuoteMe:=true;
+    if (QuoteMe=True) then
+      Str := QuoteDelimiter + Str + QuoteDelimiter;
     Result := Result + Str + FDelimiter;
   end;
   p := Length(Result);
@@ -1019,6 +1072,12 @@ begin
   FFirstLineAsSchema := Value;
   FDataOffset:=Ord(FFirstLineAsSchema);
 end;
+
+procedure TSdfDataSet.SetMultiLine(const Value: Boolean);
+begin
+  FFMultiLine:=Value;
+end;
+
 
 //-----------------------------------------------------------------------------
 // This procedure is used to register this component on the component palette
