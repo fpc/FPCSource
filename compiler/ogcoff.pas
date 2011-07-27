@@ -282,14 +282,17 @@ interface
 {$ifdef i386}
        COFF_MAGIC       = $14c;
        COFF_OPT_MAGIC   = $10b;
+       TLSDIR_SIZE      = $18;
 {$endif i386}
 {$ifdef arm}
        COFF_MAGIC       = $1c0;
        COFF_OPT_MAGIC   = $10b;
+       TLSDIR_SIZE      = $18;
 {$endif arm}
 {$ifdef x86_64}
        COFF_MAGIC       = $8664;
        COFF_OPT_MAGIC   = $20b;
+       TLSDIR_SIZE      = $28;
 {$endif x86_64}
     function ReadDLLImports(const dllname:string;readdllproc:Treaddllproc):boolean;
 
@@ -2324,7 +2327,8 @@ const pemagic : array[0..3] of byte = (
             begin
               tlssymbol:=tlsexesymbol.ObjSymbol;
               peoptheader.DataDirectory[PE_DATADIR_TLS].vaddr:=tlssymbol.address;
-              peoptheader.DataDirectory[PE_DATADIR_TLS].size:=Sizeof(tlsdirectory);
+              { sizeof(TlsDirectory) is different on host and target when cross-compiling }
+              peoptheader.DataDirectory[PE_DATADIR_TLS].size:=TLSDIR_SIZE;
               if IsSharedLibrary then
                 begin
                   { Here we should reset __FPC_tls_callbacks value to nil }

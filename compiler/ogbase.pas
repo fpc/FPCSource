@@ -913,7 +913,7 @@ implementation
     function TObjData.sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;
       const
         secoptions : array[TAsmSectiontype] of TObjSectionOptions = ([],
-          {user} [oso_Data,oso_load,oso_write,oso_executable,oso_keep],
+          {user} [oso_Data,oso_load,oso_write,oso_keep],
           {code} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
           {Data} [oso_Data,oso_load,oso_write,oso_keep],
 { TODO: Fix sec_rodata be read-only-with-relocs}
