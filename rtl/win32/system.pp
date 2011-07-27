@@ -947,14 +947,5 @@ begin
 {$endif VER2_2}
   InitWin32Widestrings;
   DispCallByIDProc:=@DoDispCallByIDError;
-{$ifdef FPC_USE_TLS_DIRECTORY}
-  { This code is only here to force
-    incorporation of needed labels for
-    _tls_used record in executable
-    when smartlinking is on }
-  _tls_used.Index_pointer:=@FreePascal_TLS_callback;
-  _tls_used.Index_pointer:=@FreePascal_end_of_TLS_callback;
-  _tls_used.Index_pointer:=@_tls_index;
-{$endif FPC_USE_TLS_DIRECTORY}
 end.
 

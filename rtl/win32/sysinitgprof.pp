@@ -72,6 +72,9 @@ unit sysinitgprof;
         EXEgmon_start;
         __main;
         SetupEntryInformation;
+{$ifdef FPC_USE_TLS_DIRECTORY}
+        LinkIn(@tlsdir,@tls_callback_end,@tls_callback);
+{$endif}
         EXE_Entry(EntryInformation);
       end;
 

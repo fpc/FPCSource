@@ -440,19 +440,6 @@ function GetConsoleMode(hConsoleHandle: THandle; var lpMode: DWORD): Boolean; st
 
 function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} : longbool;forward;
 
-procedure _FPC_mainCRTStartup;stdcall;public name '_mainCRTStartup';
-begin
-  IsConsole:=true;
-  GetConsoleMode(GetStdHandle((Std_Input_Handle)),StartupConsoleMode);
-  Exe_entry;
-end;
-
-
-procedure _FPC_WinMainCRTStartup;stdcall;public name '_WinMainCRTStartup';
-begin
-  IsConsole:=false;
-  Exe_entry;
-end;
 
 
 procedure _FPC_DLLMainCRTStartup(_hinstance : qword;_dllreason,_dllparam:longint);stdcall;public name '_DLLMainCRTStartup';
@@ -891,6 +878,31 @@ procedure fpc_cpucodeinit;
 {$I syswin.inc}
 {******************************************************************************}
 
+procedure LinkIn(p1,p2,p3: Pointer); inline;
+begin
+end;
+
+procedure _FPC_mainCRTStartup;stdcall;public name '_mainCRTStartup';
+begin
+  IsConsole:=true;
+  GetConsoleMode(GetStdHandle((Std_Input_Handle)),StartupConsoleMode);
+{$ifdef FPC_USE_TLS_DIRECTORY}
+  LinkIn(@_tls_used,@FreePascal_TLS_callback,@FreePascal_end_of_TLS_callback);
+{$endif FPC_USE_TLS_DIRECTORY}
+  Exe_entry;
+end;
+
+
+procedure _FPC_WinMainCRTStartup;stdcall;public name '_WinMainCRTStartup';
+begin
+  IsConsole:=false;
+{$ifdef FPC_USE_TLS_DIRECTORY}
+  LinkIn(@_tls_used,@FreePascal_TLS_callback,@FreePascal_end_of_TLS_callback);
+{$endif FPC_USE_TLS_DIRECTORY}
+  Exe_entry;
+end;
+
+
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;assembler;
 asm
   movq  %gs:(8),%rax
@@ -935,13 +947,4 @@ begin
 {$endif VER2_2}
   InitWin32Widestrings;
   DispCallByIDProc:=@DoDispCallByIDError;
-{$ifdef FPC_USE_TLS_DIRECTORY}
-  { This code is only here to force
-    incorporation of needed labels for
-    _tls_used record in executable
-    when smartlinking is on }
-  _tls_used.Index_pointer:=@FreePascal_TLS_callback;
-  _tls_used.Index_pointer:=@FreePascal_end_of_TLS_callback;
-  _tls_used.Index_pointer:=@_tls_index;
-{$endif FPC_USE_TLS_DIRECTORY}
 end.
