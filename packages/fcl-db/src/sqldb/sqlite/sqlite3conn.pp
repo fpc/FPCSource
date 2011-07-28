@@ -338,10 +338,11 @@ Type
   end;
   
 Const
-  FieldMapCount = 23;
+  FieldMapCount = 24;
   FieldMap : Array [1..FieldMapCount] of TFieldMap = (
    (n:'INT'; t: ftInteger),
    (n:'LARGEINT'; t:ftlargeInt),
+   (n:'BIGINT'; t:ftlargeInt),
    (n:'WORD'; t: ftWord),
    (n:'SMALLINT'; t: ftSmallint),
    (n:'BOOLEAN'; t: ftBoolean),
