@@ -1455,6 +1455,9 @@ function TvEPSVectorialReader.ExecutePathConstructionOperator(
 var
   Param1, Param2, Param3, Param4, Param5, Param6: TPSToken;
   PosX, PosY, PosX2, PosY2, PosX3, PosY3, BaseX, BaseY: Double;
+  // For Arc
+  P1, P2, P3, P4: T3DPoint;
+  startAngle, endAngle: Double;
 begin
   Result := False;
 
@@ -1506,7 +1509,7 @@ begin
     Param1 := TPSToken(Stack.Pop);
     Param2 := TPSToken(Stack.Pop);
     PostScriptCoordsToFPVectorialCoords(Param1, Param2, PosX, PosY);
-    AData.GetCurrenPathPenPos(BaseX, BaseY);
+    AData.GetCurrentPathPenPos(BaseX, BaseY);
     PosX := PosX + CurrentGraphicState.TranslateX;
     PosY := PosY + CurrentGraphicState.TranslateY;
     {$ifdef FPVECTORIALDEBUG_PATHS}
@@ -1534,7 +1537,8 @@ begin
     PostScriptCoordsToFPVectorialCoords(Param5, Param6, PosX, PosY);
     PostScriptCoordsToFPVectorialCoords(Param3, Param4, PosX2, PosY2);
     PostScriptCoordsToFPVectorialCoords(Param1, Param2, PosX3, PosY3);
-    AData.GetCurrenPathPenPos(BaseX, BaseY);
+    AData.GetCurrentPathPenPos(BaseX, BaseY);
+    // First move to the start of the arc
     BaseX := BaseX + CurrentGraphicState.TranslateX;
     BaseY := BaseY + CurrentGraphicState.TranslateY;
     {$ifdef FPVECTORIALDEBUG_PATHS}
@@ -1558,19 +1562,47 @@ begin
 
     Exit(True);
   end;
-  // x y r angle1 angle2 arc – Append counterclockwise arc
+  {
+    x y r angle1 angle2 arc – Append counterclockwise arc
+
+    Arcs in PostScript are described by a center (x, y), a radius r and
+    two angles, angle1 for the start and angle2 for the end. These two
+    angles are relative to the X axis growing to the right (positive direction).
+
+  }
   if AToken.StrValue = 'arc' then
   begin
-    Param1 := TPSToken(Stack.Pop);
-    Param2 := TPSToken(Stack.Pop);
-    Param3 := TPSToken(Stack.Pop);
-    Param4 := TPSToken(Stack.Pop);
-    Param5 := TPSToken(Stack.Pop);
+    Param1 := TPSToken(Stack.Pop); // angle2
+    Param2 := TPSToken(Stack.Pop); // angle1
+    Param3 := TPSToken(Stack.Pop); // r
+    Param4 := TPSToken(Stack.Pop); // y
+    Param5 := TPSToken(Stack.Pop); // x
     PostScriptCoordsToFPVectorialCoords(Param4, Param5, PosX, PosY);
+    PosX := PosX + CurrentGraphicState.TranslateX;
+    PosY := PosY + CurrentGraphicState.TranslateY;
+    startAngle := Param2.FloatValue * Pi / 180;
+    endAngle := Param1.FloatValue * Pi / 180;
+
+    // If the angle is too big we need to use two beziers
+    if endAngle - startAngle > Pi then
+    begin
+      CircularArcToBezier(PosX, PosY, Param3.FloatValue, startAngle, endAngle - Pi, P1, P2, P3, P4);
+      AData.AddMoveToPath(P1.X, P1.Y);
+      AData.AddBezierToPath(P2.X, P2.Y, P3.X, P3.Y, P4.X, P4.Y);
+
+      CircularArcToBezier(PosX, PosY, Param3.FloatValue, startAngle + Pi, endAngle, P1, P2, P3, P4);
+      AData.AddMoveToPath(P1.X, P1.Y);
+      AData.AddBezierToPath(P2.X, P2.Y, P3.X, P3.Y, P4.X, P4.Y);
+    end
+    else
+    begin
+      CircularArcToBezier(PosX, PosY, Param3.FloatValue, startAngle, endAngle, P1, P2, P3, P4);
+      AData.AddMoveToPath(P1.X, P1.Y);
+      AData.AddBezierToPath(P2.X, P2.Y, P3.X, P3.Y, P4.X, P4.Y);
+    end;
 //    {$ifdef FPVECTORIALDEBUG}
 //    WriteLn(Format('[TvEPSVectorialReader.ExecutePathConstructionOperator] rcurveto %f, %f', [BaseX + PosX, BaseY + PosY]));
 //    {$endif}
-//    AData.AddBezierToPath(BaseX + PosX, BaseY + PosY, BaseX + PosX2, BaseY + PosY2, BaseX + PosX3, BaseY + PosY3);
     {$ifdef FPVECTORIALDEBUG_PATHS}
     WriteLn(Format('[TvEPSVectorialReader.ExecutePathConstructionOperator] arc %f, %f', [PosX, PosY]));
     {$endif}

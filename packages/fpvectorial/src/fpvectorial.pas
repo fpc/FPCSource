@@ -295,7 +295,7 @@ type
     procedure AddLineToPath(AX, AY: Double); overload;
     procedure AddLineToPath(AX, AY: Double; AColor: TFPColor); overload;
     procedure AddLineToPath(AX, AY, AZ: Double); overload;
-    procedure GetCurrenPathPenPos(var AX, AY: Double);
+    procedure GetCurrentPathPenPos(var AX, AY: Double);
     procedure AddBezierToPath(AX1, AY1, AX2, AY2, AX3, AY3: Double); overload;
     procedure AddBezierToPath(AX1, AY1, AZ1, AX2, AY2, AZ2, AX3, AY3, AZ3: Double); overload;
     procedure SetBrushColor(AColor: TFPColor);
@@ -661,10 +661,10 @@ end;
 {@@
   Gets the current Pen Pos in the temporary path
 }
-procedure TvVectorialDocument.GetCurrenPathPenPos(var AX, AY: Double);
+procedure TvVectorialDocument.GetCurrentPathPenPos(var AX, AY: Double);
 begin
   // Check if we are the first segment in the tmp path
-  if FTmpPath.PointsEnd = nil then raise Exception.Create('[TvVectorialDocument.GetCurrenPathPenPos] One cannot obtain the Pen Pos if there are no segments in the temporary path');
+  if FTmpPath.PointsEnd = nil then raise Exception.Create('[TvVectorialDocument.GetCurrentPathPenPos] One cannot obtain the Pen Pos if there are no segments in the temporary path');
 
   AX := T2DSegment(FTmpPath.PointsEnd).X;
   AY := T2DSegment(FTmpPath.PointsEnd).Y;
