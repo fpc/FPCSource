@@ -145,9 +145,7 @@ var
   StartPos: LongInt;
   Dir: String;
   CompFile: String;
-  i: Integer;
-  Param: String;
-  
+
 begin
   Result:=CmdCompiler;
   if (Result<>'') then
@@ -166,9 +164,9 @@ begin
   {$ELSE}
   CompFile:='fpc';
   {$ENDIF}
-  Result:=ExeSearch(CompFile);
   Path:=GetEnvironmentVariable('PATH');
-{  if PATH<>'' then begin
+  {$IFDEF VER2_4}
+  if PATH<>'' then begin
     p:=1;
     while p<=length(Path) do begin
       StartPos:=p;
@@ -181,7 +179,10 @@ begin
       inc(p);
     end;
   end;
-}
+  {$ELSE}
+  Result:=ExeSearch(CompFile);
+  {$ENDIF}
+
   if (Result='') then
     begin
     writeln('Error: '+CompFile+' not found in PATH');
