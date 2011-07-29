@@ -684,6 +684,9 @@ begin
     wrtChr('"');
   end;
 *)
+  if TXMLDocument(node).xmlStandalone then
+    wrtStr(' standalone="yes"');
+
   wrtStr('?>');
 
   // TODO: now handled as a regular PI, remove this?

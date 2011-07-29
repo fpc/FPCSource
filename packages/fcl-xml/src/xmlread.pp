@@ -1324,6 +1324,7 @@ begin
   if FSource.FXMLVersion <> xmlVersionUnknown then
     TDOMTopNodeEx(TDOMNode(doc)).FXMLVersion := FSource.FXMLVersion;
   TDOMTopNodeEx(TDOMNode(doc)).FXMLEncoding := FSource.FXMLEncoding;
+  doc.XMLStandalone := FStandalone;
   FNext := xtText;
   ParseContent(doc);
 
