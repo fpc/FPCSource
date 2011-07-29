@@ -11,6 +11,8 @@ AUTHORS: Felipe Monteiro de Carvalho
 }
 unit fpvutils;
 
+{.$define USE_LCL_CANVAS}
+
 {$ifdef fpc}
   {$mode delphi}
 {$endif}
@@ -19,6 +21,9 @@ interface
 
 uses
   Classes, SysUtils, Math,
+  {$ifdef USE_LCL_CANVAS}
+  Graphics, LCLIntf, LCLType,
+  {$endif}
   fpvectorial, fpimage;
 
 type
@@ -27,13 +32,20 @@ type
 // Color Conversion routines
 function FPColorToRGBHexString(AColor: TFPColor): string;
 function RGBToFPColor(AR, AG, AB: byte): TFPColor; inline;
-// Other routine
+// Coordinate Conversion routines
 function CanvasCoordsToFPVectorial(AY: Integer; AHeight: Integer): Integer; inline;
 function CanvasTextPosToFPVectorial(AY: Integer; ACanvasHeight, ATextHeight: Integer): Integer;
+function CoordToCanvasX(ACoord: Double; ADestX: Integer; AMulX: Double): Integer; inline;
+function CoordToCanvasY(ACoord: Double; ADestY: Integer; AMulY: Double): Integer; inline;
+// Other routines
 function SeparateString(AString: string; ASeparator: char): T10Strings;
 // Mathematical routines
 procedure EllipticalArcToBezier(Xc, Yc, Rx, Ry, startAngle, endAngle: Double; var P1, P2, P3, P4: T3DPoint);
 procedure CircularArcToBezier(Xc, Yc, R, startAngle, endAngle: Double; var P1, P2, P3, P4: T3DPoint);
+// LCL-related routines
+{$ifdef USE_LCL_CANVAS}
+function ConvertPathToRegion(APath: TPath; ADestX, ADestY: Integer; AMulX, AMulY: Double): HRGN;
+{$endif}
 
 implementation
 
@@ -76,6 +88,16 @@ end;
 function CanvasTextPosToFPVectorial(AY: Integer; ACanvasHeight, ATextHeight: Integer): Integer;
 begin
   Result := CanvasCoordsToFPVectorial(AY, ACanvasHeight) - ATextHeight;
+end;
+
+function CoordToCanvasX(ACoord: Double; ADestX: Integer; AMulX: Double): Integer;
+begin
+  Result := Round(ADestX + AmulX * ACoord);
+end;
+
+function CoordToCanvasY(ACoord: Double; ADestY: Integer; AMulY: Double): Integer;
+begin
+  Result := Round(ADestY + AmulY * ACoord);
 end;
 
 {@@
@@ -163,6 +185,39 @@ procedure CircularArcToBezier(Xc, Yc, R, startAngle, endAngle: Double; var P1,
 begin
   EllipticalArcToBezier(Xc, Yc, R, R, startAngle, endAngle, P1, P2, P3, P4);
 end;
+
+{$ifdef USE_LCL_CANVAS}
+function ConvertPathToRegion(APath: TPath; ADestX, ADestY: Integer; AMulX, AMulY: Double): HRGN;
+var
+  i: Integer;
+  WindingMode: Integer;
+  Points: array of TPoint;
+  CoordX, CoordY: Integer;
+  // Segments
+  CurSegment: TPathSegment;
+  Cur2DSegment: T2DSegment absolute CurSegment;
+begin
+  APath.PrepareForSequentialReading;
+
+  SetLength(Points, APath.Len);
+
+  for i := 0 to APath.Len - 1 do
+  begin
+    CurSegment := TPathSegment(APath.Next());
+
+    CoordX := CoordToCanvasX(Cur2DSegment.X, ADestX, AMulX);
+    CoordY := CoordToCanvasY(Cur2DSegment.Y, ADestY, AMulY);
+
+    Points[i].X := CoordX;
+    Points[i].Y := CoordY;
+  end;
+
+  if APath.ClipMode = vcmEvenOddRule then WindingMode := LCLType.ALTERNATE
+  else WindingMode := LCLType.WINDING;
+
+  Result := LCLIntf.CreatePolygonRgn(@Points[0], APath.Len, WindingMode);
+end;
+{$endif}
 
 end.
 

@@ -71,6 +71,8 @@ type
   public
     Color: TFPColor;
     TranslateX, TranslateY: Double;
+    ClipPath: TPath;
+    ClipMode: TvClipMode;
     function Duplicate: TGraphicState;
   end;
 
@@ -144,6 +146,7 @@ begin
   Result.Color := Color;
   Result.TranslateX := TranslateX;
   Result.TranslateY := TranslateY;
+  Result.ClipPath := ClipPath;
 end;
 
 { TPSToken }
@@ -1467,6 +1470,7 @@ begin
     {$ifdef FPVECTORIALDEBUG_PATHS}
     WriteLn('[TvEPSVectorialReader.ExecutePathConstructionOperator] newpath');
     {$endif}
+    AData.SetClipPath(CurrentGraphicState.ClipPath, CurrentGraphicState.ClipMode);
     AData.EndPath();
     AData.StartPath();
 
@@ -1611,6 +1615,10 @@ begin
   // – eoclip – Clip using even-odd rule
   if AToken.StrValue = 'eoclip' then
   begin
+    AData.SetPenStyle(psClear);
+    AData.EndPath();
+    CurrentGraphicState.ClipPath := AData.GetPath(AData.GetPathCount()-1);
+    CurrentGraphicState.ClipMode := vcmEvenOddRule;
     Exit(True);
   end
 end;

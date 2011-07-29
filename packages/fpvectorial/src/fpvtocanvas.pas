@@ -9,11 +9,11 @@ interface
 uses
   Classes, SysUtils, Math,
   {$ifdef USE_LCL_CANVAS}
-  Graphics, LCLIntf,
+  Graphics, LCLIntf, LCLType,
   {$endif}
   fpcanvas,
   fpimage,
-  fpvectorial;
+  fpvectorial, fpvutils;
 
 procedure DrawFPVectorialToCanvas(ASource: TvVectorialDocument;
   ADest: TFPCustomCanvas;
@@ -155,6 +155,11 @@ var
   t: Double;
   // For polygons
   Points: array of TPoint;
+  // Clipping Region
+  {$ifdef USE_LCL_CANVAS}
+  ClipRegion, OldClipRegion: HRGN;
+  ACanvas: TCanvas absolute ADest;
+  {$endif}
 begin
   PosX := 0;
   PosY := 0;
@@ -162,17 +167,29 @@ begin
 
   ADest.MoveTo(ADestX, ADestY);
 
-  CurPath.PrepareForSequentialReading;
-
   // Set the path Pen and Brush options
   ADest.Pen.Style := CurPath.Pen.Style;
   ADest.Pen.Width := CurPath.Pen.Width;
   ADest.Pen.FPColor := CurPath.Pen.Color;
   ADest.Brush.FPColor := CurPath.Brush.Color;
 
+  // Prepare the Clipping Region, if any
+  {$ifdef USE_LCL_CANVAS}
+  if CurPath.ClipPath <> nil then
+  begin
+    OldClipRegion := LCLIntf.CreateEmptyRegion();
+    GetClipRgn(ACanvas.Handle, OldClipRegion);
+    ClipRegion := ConvertPathToRegion(CurPath.ClipPath, ADestX, ADestY, AMulX, AMulY);
+    SelectClipRgn(ACanvas.Handle, ClipRegion);
+    DeleteObject(ClipRegion);
+  end;
+  {$endif}
+
   //
   // For solid paths, draw a polygon instead
   //
+  CurPath.PrepareForSequentialReading;
+
   if CurPath.Brush.Style = bsSolid then
   begin
     ADest.Brush.Style := CurPath.Brush.Style;
@@ -280,6 +297,14 @@ begin
   end;
   {$ifdef FPVECTORIAL_TOCANVAS_DEBUG}
   WriteLn('');
+  {$endif}
+
+  // Restores the previous Clip Region
+  {$ifdef USE_LCL_CANVAS}
+  if CurPath.ClipPath <> nil then
+  begin
+    SelectClipRgn(ACanvas.Handle, OldClipRegion); //Using OldClipRegion crashes in Qt
+  end;
   {$endif}
 end;
 

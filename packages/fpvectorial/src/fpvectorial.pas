@@ -157,11 +157,15 @@ type
     constructor Create; virtual;
   end;
 
+  TvClipMode = (vcmNonzeroWindingRule, vcmEvenOddRule);
+
   TPath = class(TvEntity)
     Len: Integer;
-    Points: TPathSegment; // Beginning of the double-linked list
-    PointsEnd: TPathSegment; // End of the double-linked list
+    Points: TPathSegment;   // Beginning of the double-linked list
+    PointsEnd: TPathSegment;// End of the double-linked list
     CurPoint: TPathSegment; // Used in PrepareForSequentialReading and Next
+    ClipPath: TPath;
+    ClipMode: TvClipMode;
     procedure Assign(ASource: TPath);
     procedure PrepareForSequentialReading;
     function Next(): TPathSegment;
@@ -303,6 +307,7 @@ type
     procedure SetPenColor(AColor: TFPColor);
     procedure SetPenStyle(AStyle: TFPPenStyle);
     procedure SetPenWidth(AWidth: Integer);
+    procedure SetClipPath(AClipPath: TPath; AClipMode: TvClipMode);
     procedure EndPath();
     procedure AddText(AX, AY, AZ: Double; FontName: string; FontSize: integer; AText: utf8string); overload;
     procedure AddText(AX, AY, AZ: Double; AStr: utf8string); overload;
@@ -737,6 +742,13 @@ begin
   FTmPPath.Pen.Width := AWidth;
 end;
 
+procedure TvVectorialDocument.SetClipPath(AClipPath: TPath;
+  AClipMode: TvClipMode);
+begin
+  FTmPPath.ClipPath := AClipPath;
+  FTmPPath.ClipMode := AClipMode;
+end;
+
 {@@
   Finishes writing a Path, which was created in multiple
   steps using StartPath and AddPointToPath,
@@ -885,15 +897,6 @@ procedure TvVectorialDocument.ClearTmpPath();
 var
   segment, oldsegment: TPathSegment;
 begin
-//  segment := FTmpPath.Points;
-// Don't free segments, because they are used when the path is added
-//  while segment <> nil do
-//  begin
-//    oldsegment := segment;
-//    segment := segment^.Next;
-//    oldsegment^.Free;
-//  end;
-
   FTmpPath.Points := nil;
   FTmpPath.PointsEnd := nil;
   FTmpPath.Len := 0;
@@ -1240,6 +1243,8 @@ begin
   CurPoint := ASource.CurPoint;
   Pen := ASource.Pen;
   Brush := ASource.Brush;
+  ClipPath := ASource.ClipPath;
+  ClipMode := ASource.ClipMode;
 end;
 
 procedure TPath.PrepareForSequentialReading;
