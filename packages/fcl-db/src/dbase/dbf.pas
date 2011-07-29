@@ -1040,7 +1040,10 @@ begin
       FieldDefs.Add(TempFieldDef.FieldName, TempFieldDef.FieldType, 0, false);
 
     if TempFieldDef.FieldType = ftFloat then
-      FieldDefs[I].Precision := TempFieldDef.Precision;
+      begin
+      FieldDefs[I].Size := 0;                      // Size is not defined for float-fields
+      FieldDefs[I].Precision := TempFieldDef.Size;
+      end;
 
 {$ifdef SUPPORT_FIELDDEF_ATTRIBUTES}
     // AutoInc fields are readonly
