@@ -673,17 +673,11 @@ begin
   else
     wrtStr('1.0');
   wrtChr('"');
-  
-// DISABLED - we are only able write in UTF-8 which does not require labeling
-// writing incorrect encoding will render xml unreadable...
-(*
-  if Length(TXMLDocument(node).Encoding) > 0 then
-  begin
-    wrtStr(' encoding="');
-    wrtStr(TXMLDocument(node).Encoding);
-    wrtChr('"');
-  end;
-*)
+
+  // Here we ignore doc.xmlEncoding and write a fixed utf-8 label,
+  // because it is the only output encoding currently supported.
+  wrtStr(' encoding="utf-8"');
+
   if TXMLDocument(node).xmlStandalone then
     wrtStr(' standalone="yes"');
 
