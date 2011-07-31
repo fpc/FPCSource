@@ -264,7 +264,7 @@ type
 
   TXMLToken = (xtNone, xtEOF, xtText, xtWhitespace, xtElement, xtEndElement,
     xtCDSect, xtComment, xtPI, xtDoctype, xtEntity, xtEntityEnd, xtPopElement,
-    xtPopEmptyElement, xtPushElement, xtPushEntity, xtPopEntity);
+    xtPopEmptyElement, xtPushElement, xtPushEntity, xtPopEntity, xtFakeLF);
 
   TLiteralType = (ltPlain, ltPubid, ltEntity);
 
@@ -339,6 +339,7 @@ type
     procedure CleanupAttribute(aNode: PNodeData);
     procedure CleanupAttributes;
     procedure SetNodeInfoWithValue(typ: TXMLNodeType; AName: PHashItem = nil);
+    function SetupFakeLF(nextstate: TXMLToken): Boolean;
     function AddId(aNodeData: PNodeData): Boolean;
   protected
     FNesting: Integer;
@@ -391,6 +392,7 @@ type
     procedure DoStartEntity;
     procedure ParseAttribute(ElDef: TElementDecl);
     procedure ParseContent(parent: TDOMNode_WithChildren);              // [43]
+    function  ReadTopLevel: Boolean;
     function  Read: Boolean;
     function  ResolvePredefined: Boolean;
     function  EntityCheck(NoExternals: Boolean = False): TEntityDecl;
@@ -413,7 +415,7 @@ type
     function AddBinding(attrData: PNodeData): Boolean;
 
     procedure PushVC(aElDef: TElementDecl);
-    procedure PopVC;
+    procedure PopElement;
     procedure ValidateDTD;
     procedure ValidateCurrentNode;
     procedure ValidationError(const Msg: string; const args: array of const; LineOffs: Integer = -1);
@@ -1327,9 +1329,6 @@ begin
   doc.XMLStandalone := FStandalone;
   FNext := xtText;
   ParseContent(doc);
-
-  if FState < rsRoot then
-    FatalError('Root element is missing');
 
   if FValidate then
     ValidateIdRefs;
@@ -2921,6 +2920,106 @@ begin
   end;
 end;
 
+function TXMLReader.ReadTopLevel: Boolean;
+var
+  nonWs: Boolean;
+  wc: WideChar;
+  tok: TXMLToken;
+begin
+  if FNext = xtFakeLF then
+  begin
+    Result := SetupFakeLF(xtText);
+    Exit;
+  end;
+
+  StoreLocation(FTokenStart);
+  nonWs := False;
+  FValue.Length := 0;
+
+  if FNext = xtText then
+  repeat
+    wc := FSource.SkipUntil(FValue, [#0, '<'], @nonWs);
+    if wc = '<' then
+    begin
+      Inc(FSource.FBuf);
+      if FSource.FBufEnd < FSource.FBuf + 2 then
+        FSource.Reload;
+      if CheckName([cnOptional]) then
+        tok := xtElement
+      else if FSource.FBuf^ = '!' then
+      begin
+        Inc(FSource.FBuf);
+        if FSource.FBuf^ = '-' then
+        begin
+          if FIgnoreComments then
+          begin
+            ParseComment(True);
+            Continue;
+          end;
+          tok := xtComment;
+        end
+        else
+          tok := xtDoctype;
+      end
+      else if FSource.FBuf^ = '?' then
+        tok := xtPI
+      else
+        RaiseNameNotFound;
+    end
+    else  // #0
+    begin
+      if FState < rsRoot then
+        FatalError('Root element is missing');
+      tok := xtEOF;
+    end;
+    if nonWs then
+      FatalError('Illegal at document level', -1);
+
+    if FCanonical and (FState > rsRoot) and (tok <> xtEOF) then
+    begin
+      Result := SetupFakeLF(tok);
+      Exit;
+    end;
+
+    Break;
+  until False
+  else   // FNext <> xtText
+    tok := FNext;
+
+  if FCanonical and (FState < rsRoot) and (tok <> xtDoctype) then
+    FNext := xtFakeLF
+  else
+    FNext := xtText;
+
+  case tok of
+    xtElement:
+      begin
+        if FState > rsRoot then
+          FatalError('Only one top-level element allowed', FName.Length)
+        else if FState < rsRoot then
+        begin
+          // dispose notation refs from DTD, if any
+          ClearForwardRefs;
+          FState := rsRoot;
+        end;
+        ParseStartTag;
+      end;
+    xtPI:         ParsePI;
+    xtComment:    ParseComment(False);
+    xtDoctype:
+      begin
+        ParseDoctypeDecl;
+        if FCanonical then
+        begin
+          // recurse, effectively ignoring the DTD
+          result := ReadTopLevel;
+          Exit;
+        end;
+      end;
+  end;
+  Result := tok <> xtEOF;
+end;
+
 function TXMLReader.Read: Boolean;
 var
   nonWs: Boolean;
@@ -2946,13 +3045,15 @@ begin
     FNext := xtText;
   end
   else if FNext = xtPopElement then
-  begin
-    if FNamespaces then
-      FNSHelper.EndElement;
-    PopVC;
-  end
+    PopElement
   else if FNext = xtPushEntity then
     DoStartEntity;
+
+  if FState <> rsRoot then
+  begin
+    Result := ReadTopLevel;
+    Exit;
+  end;
 
   InCDATA := (FNext = xtCDSect);
   StoreLocation(FTokenStart);
@@ -2977,8 +3078,6 @@ begin
         if FSource.FBuf^ = '[' then
         begin
           ExpectString('[CDATA[');
-          if FState <> rsRoot then
-            FatalError('Illegal at document level');
           StoreLocation(FTokenStart);
           InCDATA := True;
           if FCDSectionsAsText or (FValue.Length = 0) then
@@ -3048,9 +3147,6 @@ begin
     end
     else if wc = '&' then
     begin
-      if FState <> rsRoot then
-        FatalError('Illegal at document level');
-
       if FValidators[FValidatorNesting].FContentType = ctEmpty then
         ValidationError('References are illegal in EMPTY elements', []);
 
@@ -3072,12 +3168,6 @@ begin
     end;
     if FValue.Length <> 0 then
     begin
-      if FState <> rsRoot then
-        if nonWs then
-          FatalError('Illegal at document level', -1)
-        else
-          Break;
-
       SetNodeInfoWithValue(textNodeTypes[nonWs]);
       FNext := tok;
       Result := True;
@@ -3125,15 +3215,6 @@ var
   ElName: PHashItem;
   b: TBinding;
 begin
-  if FState > rsRoot then
-    FatalError('Only one top-level element allowed', FName.Length)
-  else if FState < rsRoot then
-  begin
-    // dispose notation refs from DTD, if any
-    ClearForwardRefs;
-    FState := rsRoot;
-  end;
-
   // we're about to process a new set of attributes
   Inc(FAttrTag);
 
@@ -3659,6 +3740,15 @@ begin
   FCurrNode^.FValueLength := FValue.Length;
 end;
 
+function TXMLReader.SetupFakeLF(nextstate: TXMLToken): Boolean;
+begin
+  FValue.Buffer[0] := #10;
+  FValue.Length := 1;
+  SetNodeInfoWithValue(ntWhitespace,nil);
+  FNext := nextstate;
+  Result := True;
+end;
+
 procedure TXMLReader.PushVC(aElDef: TElementDecl);
 begin
   Inc(FValidatorNesting);
@@ -3680,8 +3770,11 @@ begin
   end;
 end;
 
-procedure TXMLReader.PopVC;
+procedure TXMLReader.PopElement;
 begin
+  if FNamespaces then
+    FNSHelper.EndElement;
+
   if (FNesting = 1) and (not FFragmentMode) then
     FState := rsEpilog;
   if FNesting > 0 then Dec(FNesting);
