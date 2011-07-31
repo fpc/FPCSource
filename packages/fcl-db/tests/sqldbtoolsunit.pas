@@ -22,7 +22,7 @@ const MySQLdbTypes = [mysql40,mysql41,mysql50,mysql51];
           'SMALLINT',
           'INTEGER',
           '',
-          '',
+          'BOOLEAN',
           'FLOAT',
           '',
           'DECIMAL(18,4)',
@@ -44,7 +44,7 @@ const MySQLdbTypes = [mysql40,mysql41,mysql50,mysql51];
           '',
           'BIGINT',
           '',
-          '',
+          'BIGINT',
           '',
           '',
           '',
@@ -120,6 +120,7 @@ begin
     // mysql's timestamps are only valid in the range 1970-2038.
     // Downside is that fields defined as 'TIMESTAMP' aren't tested
     FieldtypeDefinitions[ftDateTime] := 'DATETIME';
+    FieldtypeDefinitions[ftMemo] := 'TEXT';
     end;
   if SQLDbType in [odbc,mysql40,mysql41,mysql50,mysql51,interbase] then
     begin
@@ -136,21 +137,23 @@ begin
     begin
     Fconnection := TSQLite3Connection.Create(nil);
     FieldtypeDefinitions[ftCurrency] := 'CURRENCY';
+    FieldtypeDefinitions[ftCurrency] := 'CLOB'; //or TEXT SQLite supports both, but CLOB is sql standard (TEXT not)
     FieldtypeDefinitions[ftFixedChar] := '';
     end;
   if SQLDbType = POSTGRESQL then
     begin
     Fconnection := tpqConnection.Create(nil);
+    FieldtypeDefinitions[ftCurrency] := 'MONEY';
     FieldtypeDefinitions[ftBlob] := 'TEXT';
     FieldtypeDefinitions[ftMemo] := 'TEXT';
     FieldtypeDefinitions[ftGraphic] := '';
-    FieldtypeDefinitions[ftCurrency] := 'MONEY';
     end;
   if SQLDbType = INTERBASE then
     begin
     Fconnection := tIBConnection.Create(nil);
     // Firebird does not support time = 24:00:00
     FieldtypeDefinitions[ftMemo] := 'BLOB SUB_TYPE TEXT';
+    FieldtypeDefinitions[ftBoolean] := '';
     testTimeValues[2]:='23:00:00.000';
     testValues[ftTime,2]:='23:00:00.000';
     end;

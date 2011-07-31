@@ -287,6 +287,9 @@ begin
 end;
 
 procedure InitialiseDBConnector;
+
+const B: array[boolean] of char=('0','1');  // should be exported from some main db unit, as SQL true/false?
+
 var DBConnectorClass : TPersistentClass;
     i                : integer;
 begin
@@ -297,6 +300,7 @@ begin
   testValues[ftFMTBcd] := testFmtBCDValues;
   for i := 0 to testValuesCount-1 do
     begin
+    testValues[ftBoolean,i] := B[testBooleanValues[i]];
     testValues[ftFloat,i] := FloatToStr(testFloatValues[i]);
     testValues[ftSmallint,i] := IntToStr(testSmallIntValues[i]);
     testValues[ftInteger,i] := IntToStr(testIntValues[i]);
