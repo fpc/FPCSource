@@ -33,11 +33,13 @@ begin
         begin
           AddUnit('fpgtk');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('fpgtk.pp');
       with T.Dependencies do
         begin
           AddUnit('fpglib');
         end;
+    T.ResourceStrings := True;
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('examples/lister.pp');

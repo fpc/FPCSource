@@ -30,14 +30,14 @@ begin
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
-    T:=P.Targets.AddUnit('bzip2comn.pas');
+    T:=P.Targets.AddUnit('bzip2comn.pp');
     T:=P.Targets.AddUnit('bzip2.pas');
       with T.Dependencies do
         begin
           AddInclude('bzip2i386.inc',[i386],AllOSes);
           AddUnit('bzip2comn');
         end;
-    T:=P.Targets.AddUnit('bzip2stream.pas');
+    T:=P.Targets.AddUnit('bzip2stream.pp');
       with T.Dependencies do
         begin
           AddInclude('bzip2sii386.inc',[i386],AllOSes);

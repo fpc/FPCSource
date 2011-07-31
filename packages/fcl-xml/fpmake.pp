@@ -18,6 +18,7 @@ begin
     P.Directory:='fcl-xml';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+    P.Options.Add('-S2h');
     D:=P.Dependencies.Add('paszlib');
       D.Version:='2.2.2-0';
     D:=P.Dependencies.Add('fcl-base');
@@ -61,6 +62,7 @@ begin
           AddUnit('htmlelements');
           AddUnit('htmldefs');
         end;
+    T.ResourceStrings:=True;
     T:=P.Targets.AddUnit('htmwrite.pp');
       with T.Dependencies do
         begin
@@ -76,6 +78,7 @@ begin
           AddUnit('htmldefs');
         end;
     T:=P.Targets.AddUnit('sax.pp');
+    T.ResourceStrings:=True;
     T:=P.Targets.AddUnit('xhtml.pp');
       with T.Dependencies do
         begin
@@ -89,6 +92,7 @@ begin
           AddUnit('xmlread');
           AddUnit('xmlwrite');
         end;
+    T.ResourceStrings:=True;
     T:=P.Targets.AddUnit('xmlconf.pp');
       with T.Dependencies do
         begin
@@ -96,6 +100,7 @@ begin
           AddUnit('xmlread');
           AddUnit('xmlwrite');
         end;
+    T.ResourceStrings:=True;
     T:=P.Targets.AddUnit('xmlread.pp');
       with T.Dependencies do
         begin
@@ -122,12 +127,24 @@ begin
         begin
           AddUnit('dom');
         end;
+    T.ResourceStrings:=True;
     T:=P.Targets.AddUnit('sax_xml.pp');
       with T.Dependencies do
         begin
           AddUnit('sax');
           AddUnit('dom');
           AddUnit('htmldefs');
+        end;
+    T:=P.Targets.AddUnit('xmliconv.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('xmlread');
+        end;
+    T.ResourceStrings:=True;
+    T:=P.Targets.AddUnit('dtdmodel.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('xmlutils');
         end;
 
  

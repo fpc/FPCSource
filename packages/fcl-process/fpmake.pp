@@ -22,6 +22,7 @@ begin
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Process (execution) related parts of Free Component Libraries (FCL), FPC''s OOP library.';
+    P.Options.Add('-S2h');
     P.NeedLibC:= false;
 
     P.SourcePath.Add('src');
@@ -34,8 +35,11 @@ begin
       T.Dependencies.AddInclude('pipes.inc');
     T:=P.Targets.AddUnit('process.pp');
       T.Dependencies.AddInclude('process.inc');
-//      T.ResourceStrings:=True;
+    T.ResourceStrings:=True;
     T:=P.Targets.AddUnit('simpleipc.pp');
+      T.Dependencies.AddInclude('simpleipc.inc');
+      T.ResourceStrings:=True;
+    T:=P.Targets.AddUnit('pipesipc.pp');
       T.Dependencies.AddInclude('simpleipc.inc');
       T.ResourceStrings:=True;
     T:=P.Targets.AddUnit('dbugmsg.pp');

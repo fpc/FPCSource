@@ -32,13 +32,16 @@ begin
 
     T:=P.Targets.AddImplicitUnit('jwazmouse.pas');
     T:=P.Targets.AddImplicitUnit('avisocncgcodereader'); 
-    T:=P.Targets.AddImplicitUnit('avisocncgcodewriter'); 
-    T:=P.Targets.AddImplicitUnit('avisozlib'); 
+    T:=P.Targets.AddImplicitUnit('avisocncgcodewriter');
+    T:=P.Targets.AddImplicitUnit('svgvectorialwriter');
+    T:=P.Targets.AddImplicitUnit('avisozlib');
     T:=P.Targets.AddImplicitUnit('fpvectorial'); 
     T:=P.Targets.AddImplicitUnit('fpvtocanvas');  
-    T:=P.Targets.AddImplicitUnit('pdfvectorialreader'); 
-    T:=P.Targets.AddImplicitUnit('pdfvrlexico'); 
+    T:=P.Targets.AddImplicitUnit('pdfvectorialreader');
+    T:=P.Targets.AddImplicitUnit('cdrvectorialreader');
+    T:=P.Targets.AddImplicitUnit('pdfvrlexico');
     T:=P.Targets.AddImplicitUnit('pdfvrsemantico');
+    T:=P.Targets.AddImplicitUnit('pdfvrsintatico');
     T:=P.Targets.AddImplicitUnit('epsvectorialreader');
     T:=P.Targets.AddImplicitUnit('fpvutils');
 
