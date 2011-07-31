@@ -150,6 +150,7 @@ begin
     begin
     Fconnection := tIBConnection.Create(nil);
     // Firebird does not support time = 24:00:00
+    FieldtypeDefinitions[ftMemo] := 'BLOB SUB_TYPE TEXT';
     testTimeValues[2]:='23:00:00.000';
     testValues[ftTime,2]:='23:00:00.000';
     end;
