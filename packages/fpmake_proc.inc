@@ -100,6 +100,12 @@ begin
 {$include fcl-image/fpmake.pp}
 end;
 
+procedure add_fcl_js;
+begin
+  with Installer do
+{$include fcl-js/fpmake.pp}
+end;
+
 procedure add_fcl_json;
 begin
   with Installer do
@@ -302,6 +308,12 @@ procedure add_libndsfpc;
 begin
   with Installer do
 {$include libndsfpc/fpmake.pp}
+end;
+
+procedure add_libogcfpc;
+begin
+  with Installer do
+{$include libogcfpc/fpmake.pp}
 end;
 
 procedure add_libpng;

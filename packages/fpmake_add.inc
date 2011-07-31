@@ -15,6 +15,7 @@
   add_fcl_extra;
   add_fcl_fpcunit;
   add_fcl_image;
+  add_fcl_js;
   add_fcl_json;
   add_fcl_net;
   add_fcl_passrc;
@@ -49,6 +50,7 @@
   add_libgbafpc;
   add_libgd;
   add_libndsfpc;
+  add_libogcfpc;
   add_libpng;
   add_librsvg;
   add_libsee;
