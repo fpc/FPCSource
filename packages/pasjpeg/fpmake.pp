@@ -21,7 +21,7 @@ begin
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
-    T:=P.Targets.AddUnit('jctrans.pp');
+    T:=P.Targets.AddUnit('jctrans.pas');
     with T.Dependencies do
       begin
       AddUnit('jmorecfg');
