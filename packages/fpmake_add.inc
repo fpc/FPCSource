@@ -37,6 +37,7 @@
   add_gtk1;
   add_gtk2;
   add_hash;
+  add_hermes;
   add_httpd13;
   add_httpd20;
   add_httpd22;
@@ -79,6 +80,7 @@
   add_pcap;
   add_postgres;
   add_proj4;
+  add_ptc;
   add_pthreads;
   add_pxlib;
   add_regexpr;

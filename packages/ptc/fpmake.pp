@@ -19,7 +19,9 @@ begin
     P.Directory:='ptc';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+    p.OSes:=[linux,win32,win64];
     P.SourcePath.Add('src');
+    P.SourcePath.Add('src/ptcwrapper');
     P.IncludePath.Add('src');
     P.IncludePath.Add('src/dos',[go32v2]);
     P.IncludePath.Add('src/dos/base',[go32v2]);
@@ -38,7 +40,8 @@ begin
     P.IncludePath.Add('src/x11',AllUnixOSes);
 
   P.Dependencies.Add('hermes');
-  P.Dependencies.Add('x');
+  P.Dependencies.Add('x11');
+  P.Dependencies.Add('fcl-base');
 
   T:=P.Targets.AddUnit('ptc.pp');
   with T.Dependencies do
@@ -106,6 +109,17 @@ begin
       AddUnit('vesa',[Go32v2]);
       AddUnit('vga',[Go32v2]);
      end;
+    T:=P.Targets.AddUnit('ptceventqueue.pp');
+    with T.Dependencies do
+      begin
+        AddUnit('ptc');
+      end;
+    T:=P.Targets.AddUnit('ptcwrapper.pp');
+    with T.Dependencies do
+      begin
+        AddUnit('ptc');
+        AddUnit('ptceventqueue');
+      end;
 
     P.ExamplePath.Add('examples/');
     P.Targets.AddExampleProgram('random.pp');

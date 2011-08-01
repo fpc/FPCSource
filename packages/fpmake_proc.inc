@@ -232,6 +232,12 @@ begin
 {$include hash/fpmake.pp}
 end;
 
+procedure add_hermes;
+begin
+  with Installer do
+{$include hermes/fpmake.pp}
+end;
+
 procedure add_httpd13;
 begin
   with Installer do
@@ -482,6 +488,12 @@ procedure add_proj4;
 begin
   with Installer do
 {$include proj4/fpmake.pp}
+end;
+
+procedure add_ptc;
+begin
+  with Installer do
+{$include ptc/fpmake.pp}
 end;
 
 procedure add_pthreads;
