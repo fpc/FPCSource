@@ -274,7 +274,7 @@ begin
   TestFieldDeclaration(ftBCD,sizeof(Currency));
 
   for i := 0 to testValuesCount-1 do
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + CurrToStrF(testValues[i],ffFixed,3) + ')');
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + CurrToStrF(testValues[i],ffFixed,3,DBConnector.FormatSettings) + ')');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
@@ -614,7 +614,7 @@ begin
   TestFieldDeclaration(ftFloat,sizeof(double));
 
   for i := 0 to testValuesCount-1 do
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + floattostr(testValues[i]) + ')');
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + floattostr(testValues[i],DBConnector.FormatSettings) + ')');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
@@ -803,7 +803,7 @@ begin
                      Params.ParamByName('field1').AsString:= testDateValues[i]
                    else
                      Params.ParamByName('field1').AsDateTime:= StrToDate(testDateValues[i],'yyyy/mm/dd','-');
-        ftFMTBcd : Params.ParamByName('field1').AsFMTBCD:= StrToBCD(testFmtBCDValues[i]{,DBConnector.FormatSettings})
+        ftFMTBcd : Params.ParamByName('field1').AsFMTBCD:= StrToBCD(testFmtBCDValues[i],DBConnector.FormatSettings)
       else
         AssertTrue('no test for paramtype available',False);
       end;
@@ -826,7 +826,7 @@ begin
         ftString : AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString);
         ftTime   : AssertEquals(testTimeValues[i],DateTimeToTimeString(FieldByName('FIELD1').AsDateTime));
         ftdate   : AssertEquals(testDateValues[i],FormatDateTime('yyyy/mm/dd',FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
-        ftFMTBcd : AssertEquals(testFmtBCDValues[i],BCDToStr(FieldByName('FIELD1').AsBCD{,DBConnector.FormatSettings}))
+        ftFMTBcd : AssertEquals(testFmtBCDValues[i],BCDToStr(FieldByName('FIELD1').AsBCD,DBConnector.FormatSettings))
       else
         AssertTrue('no test for paramtype available',False);
       end;
@@ -1770,7 +1770,8 @@ procedure TTestFieldTypes.TestParametersAndDates;
 // See bug 7205
 var ADateStr : String;
 begin
-  if SQLDbType in [interbase,mysql40,mysql41,mysql50,sqlite3] then Ignore('This test does not apply to this sqldb-connection type, since it doesn''t use semicolons for casts');
+  if not(SQLDbType in [postgresql,odbc,oracle]) then
+    Ignore('This test does not apply to this sqldb-connection type, since it doesn''t use semicolons for casts');
 
   with TSQLDBConnector(DBConnector).Query do
     begin

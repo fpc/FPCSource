@@ -1992,9 +1992,8 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    AssertEquals(testFmtBCDValues[i],Fld.AsString);
-    AssertEquals(testFmtBCDValues[i],Fld.AsBCD);
-    AssertEquals(StrToFloat(testFmtBCDValues[i]),Fld.AsFloat);
+    AssertEquals(testFmtBCDValues[i], BCDToStr(Fld.AsBCD,DBConnector.FormatSettings));
+    AssertEquals(StrToFloat(testFmtBCDValues[i],DBConnector.FormatSettings), Fld.AsFloat);
     ds.Next;
     end;
   ds.close;
