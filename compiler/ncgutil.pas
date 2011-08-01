@@ -1037,7 +1037,11 @@ implementation
                       tmploc:=l;
                       location_force_mem(list,tmploc);
                       cg.a_load_loc_cgpara(list,tmploc,cgpara);
-                      location_freetemp(list,tmploc);
+                      { do not free the tmploc in case the original value was
+                        already in memory, because the caller (ncgcal) will then
+                        free it again later }
+                      if not(l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                        location_freetemp(list,tmploc);
                     end
                   else
 {$endif not cpu64bitalu}
