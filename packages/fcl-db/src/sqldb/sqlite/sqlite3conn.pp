@@ -100,7 +100,10 @@ implementation
 
 uses
   dbconst, sysutils, dateutils,FmtBCD;
- 
+
+const
+  JulianDateShift = 2415018.5; //distance from "julian day 0" (January 1, 4713 BC 12:00AM) to "1899-12-30 00:00AM"
+
 type
 
  TStorageType = (stNone,stInteger,stFloat,stText,stBlob,stNull);
@@ -175,11 +178,15 @@ begin
         ftlargeint: checkerror(sqlite3_bind_int64(fstatement,I,P.aslargeint));
         ftbcd,
         ftfloat,
-        ftcurrency,
+        ftcurrency:
+                begin
+                do1:= P.AsFloat;
+                checkerror(sqlite3_bind_double(fstatement,I,do1));
+                end;
         ftdatetime,
         ftdate,
         fttime: begin
-                do1:= P.asfloat;
+                do1:= P.AsFloat + JulianDateShift;
                 checkerror(sqlite3_bind_double(fstatement,I,do1));
                 end;
         ftFMTBcd,
@@ -562,7 +569,11 @@ begin
                end; {case}
                end
              else
-               Pdatetime(buffer)^:= sqlite3_column_double(st,fnum);
+               begin
+               PDateTime(buffer)^ := sqlite3_column_double(st,fnum);
+               if PDateTime(buffer)^ > 1721059.5 {Julian 01/01/0000} then
+                  PDateTime(buffer)^ := PDateTime(buffer)^ - JulianDateShift; //backward compatibility hack
+               end;
     ftFixedChar,
     ftString: begin
               int1:= sqlite3_column_bytes(st,fnum);
