@@ -695,6 +695,7 @@ Type
     FBinInstallDir,
     FDocInstallDir,
     FExamplesInstallDir : String;
+    FRemoveTree: String;
     FRemoveDir: String;
     FRemove: String;
     FTarget: String;
@@ -755,6 +756,7 @@ Type
     Property Move : String Read FMove Write FMove;             // Move $(FILES) to $(DEST)
     Property Remove : String Read FRemove Write FRemove;       // Delete $(FILES)
     Property RemoveDir : String Read FRemoveDir Write FRemoveDir;       // Delete $(FILES)
+    Property RemoveTree : String Read FRemoveTree Write FRemoveTree;       // removes $(DIRECTORY)
     Property MkDir : String Read FMkDir write FMkDir;          // Make $(DIRECTORY)
     Property Archive : String Read FArchive Write FArchive;    // zip $(ARCHIVE) $(FILESORDIRS)
     // Misc
@@ -811,6 +813,7 @@ Type
     Procedure SysMoveFile(Const Src,Dest : String); virtual;
     Procedure SysDeleteFile(Const AFileName : String); virtual;
     Procedure SysDeleteDirectory(Const ADirectoryName : String); virtual;
+    Procedure SysDeleteTree(Const ADirectoryName : String); virtual;
     Procedure SysArchiveFiles(List : TStrings; Const AFileName : String); virtual;
     procedure LogIndent;
     procedure LogUnIndent;
@@ -846,6 +849,7 @@ Type
     Procedure CmdArchiveFiles(List : TStrings; Const ArchiveFile : String);
     Procedure CmdRenameFile(SourceName, DestName : String);
     Procedure CmdRemoveDirs(List: TStrings);
+    Procedure CmdRemoveTrees(List: TStrings);
     Procedure ExecuteCommands(Commands : TCommands; At : TCommandAt);
     // Dependency commands
     Function  DependencyOK(ADependency : TDependency) : Boolean;
@@ -1174,6 +1178,7 @@ Const
   KeyMove     = 'Move';
   KeyRemove   = 'Remove';
   KeyRemoveDir= 'RemoveDir';
+  KeyRemoveTree= 'RemoveTree';
   KeyOptions  = 'Options';
   KeyCPU      = 'CPU';
   KeyOS       = 'OS';
@@ -3035,6 +3040,7 @@ begin
       Values[KeyExamplesInstallDir]:=FExamplesInstallDir;
       Values[KeyRemove]:=FRemove;
       Values[KeyRemoveDir]:=FRemoveDir;
+      Values[KeyRemoveTree]:=FRemoveTree;
       Values[KeyTarget]:=FTarget;
       if FNoFPCCfg then
         Values[KeyNoFPCCfg]:='Y';
@@ -3075,6 +3081,7 @@ begin
       FMove:=Values[KeyMove];
       FRemove:=Values[KeyRemove];
       FRemoveDir:=Values[KeyRemoveDir];
+      FRemoveTree:=Values[KeyRemoveTree];
       Options:=OptionsToStringList(Values[KeyOptions]);
       Line:=Values[KeyCPU];
       If (Line<>'') then
@@ -3698,6 +3705,45 @@ begin
 end;
 
 
+procedure TBuildEngine.SysDeleteTree(const ADirectoryName: String);
+
+  function IntRemoveTree(const ADirectoryName: String) : boolean;
+  var
+    searchRec: TSearchRec;
+    SearchResult: longint;
+  begin
+    result := true;
+    SearchResult := FindFirst(IncludeTrailingPathDelimiter(ADirectoryName)+AllFilesMask, faAnyFile+faSymLink, searchRec);
+    try
+      while SearchResult=0 do
+        begin
+          if (searchRec.Name<>'.') and (searchRec.Name<>'..') then
+             begin
+               if (searchRec.Attr and faDirectory)=faDirectory then
+                 begin
+                   if not IntRemoveTree(IncludeTrailingPathDelimiter(ADirectoryName)+searchRec.Name) then
+                     result := false;
+                 end
+               else if not DeleteFile(IncludeTrailingPathDelimiter(ADirectoryName)+searchRec.Name) then
+                 result := False;
+             end;
+          SearchResult := FindNext(searchRec);
+        end;
+    finally
+      FindClose(searchRec);
+    end;
+    if not RemoveDir(ADirectoryName) then
+      result := false;
+  end;
+
+begin
+  if not DirectoryExists(ADirectoryName) then
+    Log(vldebug,SDbgDirectoryDoesNotExist,[ADirectoryName])
+  else If Not IntRemoveTree(ADirectoryName) then
+    Error(SErrRemovingDirectory,[ADirectoryName]);
+end;
+
+
 procedure TBuildEngine.SysArchiveFiles(List: TStrings;Const AFileName: String);
 begin
   If Not (Assigned(OnArchivefiles) or Assigned(ArchiveFilesProc)) then
@@ -3871,6 +3917,21 @@ begin
   else
     For I:=0 to List.Count-1 do
       SysDeleteDirectory(List[i]);
+end;
+
+procedure TBuildEngine.CmdRemoveTrees(List: TStrings);
+Var
+  Args : String;
+  I : Integer;
+begin
+  If (Defaults.RemoveTree<>'') then
+    begin
+      Args:=FileListToString(List,'');
+      ExecuteCommand(Defaults.RemoveTree,Args);
+    end
+  else
+    For I:=0 to List.Count-1 do
+      SysDeleteTree(List[i]);
 end;
 
 Function TBuildEngine.FileNewer(const Src,Dest : String) : Boolean;
@@ -5026,6 +5087,7 @@ procedure TBuildEngine.Clean(APackage: TPackage; AllTargets: boolean);
 var
   ACPU: TCpu;
   AOS: TOS;
+  DirectoryList : TStringList;
 begin
   Log(vlInfo,SInfoCleaningPackage,[APackage.Name]);
   try
@@ -5034,13 +5096,22 @@ begin
     DoBeforeClean(Apackage);
     if AllTargets then
       begin
-        for ACPU:=low(TCpu) to high(TCpu) do
+        // Remove the unit-directory completely. This is safer in case of files
+        // being renamed and such. See also bug 19655
+        DirectoryList := TStringList.Create;
+        try
+          DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(ACPU,AOS)));
+          CmdRemoveTrees(DirectoryList);
+        finally
+          DirectoryList.Free;
+        end;
+{        for ACPU:=low(TCpu) to high(TCpu) do
           for AOS:=low(TOS) to high(TOS) do
             begin
               if FileExists(APackage.GetUnitsOutputDir(ACPU,AOS)) or
                  FileExists(APackage.GetBinOutputDir(ACPU,AOS)) then
                 Clean(APackage,ACPU,AOS);
-            end;
+            end;}
       end
     else
       Clean(APackage, Defaults.CPU, Defaults.OS);
