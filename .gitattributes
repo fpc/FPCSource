@@ -2873,6 +2873,7 @@ packages/gmp/examples/printf_example.pas svneol=native#text/plain
 packages/gmp/examples/printf_example2.pas svneol=native#text/plain
 packages/gmp/examples/scanf_example.pas svneol=native#text/plain
 packages/gmp/examples/scanf_example2.pas svneol=native#text/plain
+packages/gmp/fpmake.pp svneol=native#text/plain
 packages/gmp/readme svneol=native#text/plain
 packages/gmp/src/gmp.pas svneol=native#text/plain
 packages/gnome1/Makefile svneol=native#text/plain

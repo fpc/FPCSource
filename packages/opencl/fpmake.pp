@@ -26,6 +26,8 @@ begin
     P.OSes:=[linux,win64,win32,darwin];
     P.CPUs:=[i386,x86_64];
 
+    P.Dependencies.Add('opengl');
+
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 

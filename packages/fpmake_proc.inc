@@ -202,6 +202,12 @@ begin
 {$include ggi/fpmake.pp}
 end;
 
+procedure add_gmp;
+begin
+  with Installer do
+{$include gmp/fpmake.pp}
+end;
+
 procedure add_gnome1;
 begin
   with Installer do

@@ -19,10 +19,9 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.Options.Add('-S2h');
-    D:=P.Dependencies.Add('paszlib');
-      D.Version:='2.2.2-0';
     D:=P.Dependencies.Add('fcl-base');
       D.Version:='2.2.2-0';
+    D:=P.Dependencies.Add('iconvenc',[linux,darwin,iphonesim,freebsd,haiku,beos]);
 
     P.Author := 'Sebastian Guenther, Sergei Gorelkin and FPC development team';
     P.License := 'LGPL with modification, ';

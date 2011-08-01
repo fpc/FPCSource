@@ -32,6 +32,7 @@
   add_gdbint;
   add_gdbm;
   add_ggi;
+  add_gmp;
   add_gnome1;
   add_graph;
   add_gtk1;
