@@ -101,6 +101,7 @@ Type
   TDependencyTypes = set of TDependencyType;
 
   TLogEvent = Procedure (Level : TVerboseLevel; Const Msg : String) of Object;
+  TNotifyProcEvent = procedure(Sender: TObject);
 
   TRunMode = (rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmDistClean,rmManifest);
 
@@ -527,15 +528,25 @@ Type
   TPackage = Class(TNamedItem)
   private
     FAfterArchive: TNotifyEvent;
+    FAfterArchiveProc: TNotifyProcEvent;
     FAfterClean: TNotifyEvent;
+    FAfterCleanProc: TNotifyProcEvent;
     FAfterCompile: TNotifyEvent;
+    FAfterCompileProc: TNotifyProcEvent;
     FAfterInstall: TNotifyEvent;
+    FAfterInstallProc: TNotifyProcEvent;
     FAfterManifest: TNotifyEvent;
+    FAfterManifestProc: TNotifyProcEvent;
     FBeforeArchive: TNotifyEvent;
+    FBeforeArchiveProc: TNotifyProcEvent;
     FBeforeClean: TNotifyEvent;
+    FBeforeCleanProc: TNotifyProcEvent;
     FBeforeCompile: TNotifyEvent;
+    FBeforeCompileProc: TNotifyProcEvent;
     FBeforeInstall: TNotifyEvent;
+    FBeforeInstallProc: TNotifyProcEvent;
     FBeforeManifest: TNotifyEvent;
+    FBeforeManifestProc: TNotifyProcEvent;
     FFPDocFormat: TFPDocFormats;
     FIsFPMakeAddIn: boolean;
     FUnitPath,
@@ -626,15 +637,25 @@ Type
     Property UnitDir : String Read FUnitDir Write FUnitDir;
     // events
     Property BeforeCompile : TNotifyEvent Read FBeforeCompile Write FBeforeCompile;
+    Property BeforeCompileProc : TNotifyProcEvent Read FBeforeCompileProc write FBeforeCompileProc;
     Property AfterCompile : TNotifyEvent Read FAfterCompile Write FAfterCompile;
+    Property AfterCompileProc : TNotifyProcEvent Read FAfterCompileProc Write FAfterCompileProc;
     Property BeforeInstall : TNotifyEvent Read FBeforeInstall Write FBeforeInstall;
+    Property BeforeInstallProc : TNotifyProcEvent Read FBeforeInstallProc Write FBeforeInstallProc;
     Property AfterInstall : TNotifyEvent Read FAfterInstall Write FAfterInstall;
+    Property AfterInstallProc : TNotifyProcEvent Read FAfterInstallProc Write FAfterInstallProc;
     Property BeforeClean : TNotifyEvent Read FBeforeClean Write FBeforeClean;
+    Property BeforeCleanProc : TNotifyProcEvent Read FBeforeCleanProc Write FBeforeCleanProc;
     Property AfterClean : TNotifyEvent Read FAfterClean Write FAfterClean;
+    Property AfterCleanProc : TNotifyProcEvent Read FAfterCleanProc Write FAfterCleanProc;
     Property BeforeArchive : TNotifyEvent Read FBeforeArchive Write FBeforeArchive;
+    Property BeforeArchiveProc : TNotifyProcEvent Read FBeforeArchiveProc Write FBeforeArchiveProc;
     Property AfterArchive : TNotifyEvent Read FAfterArchive Write FAfterArchive;
+    Property AfterArchiveProc : TNotifyProcEvent Read FAfterArchiveProc Write FAfterArchiveProc;
     Property BeforeManifest : TNotifyEvent Read FBeforeManifest Write FBeforeManifest;
+    Property BeforeManifestProc : TNotifyProcEvent Read FBeforeManifestProc Write FBeforeManifestProc;
     Property AfterManifest : TNotifyEvent Read FAfterManifest Write FAfterManifest;
+    Property AfterManifestProc : TNotifyProcEvent Read FAfterManifestProc Write FAfterManifestProc;
   end;
 
   { TPackages }
@@ -868,6 +889,7 @@ Type
     Property ListMode : Boolean Read FListMode Write FListMode;
     Property ForceCompile : Boolean Read FForceCompile Write FForceCompile;
     Property ExternalPackages: TPackages Read FExternalPackages;
+    Property StartDir: String Read FStartDir;
     // Events
     Property BeforeCompile : TNotifyEvent Read FBeforeCompile Write FBeforeCompile;
     Property AfterCompile : TNotifyEvent Read FAfterCompile Write FAfterCompile;
@@ -908,13 +930,13 @@ Type
     Procedure Install; virtual;
     Procedure Archive; virtual;
     Procedure Manifest; virtual;
-    Property BuildEngine : TBuildEngine Read FBuildEngine;
   Public
     Constructor Create(AOwner : TComponent); virtual;
     Destructor destroy; override;
     Function AddPackage(Const AName : String) : TPackage;
     Function Run : Boolean;
     Property FPMakeOptionsString: string read FFPMakeOptionsString;
+    Property BuildEngine : TBuildEngine Read FBuildEngine;
     //files in package
     Property Packages : TPackages Read GetPackages;
     Property RunMode : TRunMode Read FRunMode;
@@ -4341,6 +4363,8 @@ begin
   ExecuteCommands(APackage.Commands,caBeforeCompile);
   If Assigned(APackage.BeforeCompile) then
     APackage.BeforeCompile(APackage);
+  If Assigned(APackage.BeforeCompileProc) then
+    APackage.BeforeCompileProc(APackage);
 end;
 
 
@@ -4348,6 +4372,8 @@ procedure TBuildEngine.DoAfterCompile(APackage: TPackage);
 begin
   If Assigned(APackage.AfterCompile) then
     APackage.AfterCompile(APackage);
+  If Assigned(APackage.AfterCompileProc) then
+    APackage.AfterCompileProc(APackage);
   ExecuteCommands(APackage.Commands,caAfterCompile);
 end;
 
@@ -4835,6 +4861,8 @@ begin
   ExecuteCommands(APackage.Commands,caBeforeInstall);
   If Assigned(APackage.BeforeInstall) then
     APackage.BeforeInstall(APackage);
+  If Assigned(APackage.BeforeInstallProc) then
+    APackage.BeforeInstallProc(APackage);
 end;
 
 
@@ -4842,6 +4870,8 @@ procedure TBuildEngine.DoAfterInstall(APackage: TPackage);
 begin
   If Assigned(APackage.AfterInstall) then
     APackage.AfterInstall(APackage);
+  If Assigned(APackage.AfterInstallProc) then
+    APackage.AfterInstallProc(APackage);
   ExecuteCommands(APackage.Commands,caAfterInstall);
 end;
 
@@ -4896,6 +4926,8 @@ begin
   ExecuteCommands(APackage.Commands,caBeforeArchive);
   If Assigned(APackage.BeforeArchive) then
     APackage.BeforeArchive(APackage);
+  If Assigned(APackage.BeforeArchiveProc) then
+    APackage.BeforeArchiveProc(APackage);
 end;
 
 
@@ -4903,6 +4935,8 @@ procedure TBuildEngine.DoAfterArchive(APackage: TPackage);
 begin
   If Assigned(APackage.AfterArchive) then
     APackage.AfterArchive(APackage);
+  If Assigned(APackage.AfterArchiveProc) then
+    APackage.AfterArchiveProc(APackage);
   ExecuteCommands(APackage.Commands,caAfterArchive);
 end;
 
@@ -4973,6 +5007,8 @@ begin
   ExecuteCommands(APackage.Commands,caBeforeClean);
   If Assigned(APackage.BeforeClean) then
     APackage.BeforeClean(APackage);
+  If Assigned(APackage.BeforeCleanProc) then
+    APackage.BeforeCleanProc(APackage);
 end;
 
 
@@ -4980,6 +5016,8 @@ procedure TBuildEngine.DoAfterClean(APackage: TPackage);
 begin
   If Assigned(APackage.AfterClean) then
     APackage.AfterClean(APackage);
+  If Assigned(APackage.AfterInstallProc) then
+    APackage.AfterCleanProc(APackage);
   ExecuteCommands(APackage.Commands,caAfterClean);
 end;
 
