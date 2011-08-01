@@ -204,7 +204,7 @@ begin
     end else if (ColumnStr = 'DATE') then
     begin
       AType := ftDate;
-    end else if (ColumnStr = 'LARGEINT') then
+    end else if (ColumnStr = 'LARGEINT') or (ColumnStr = 'BIGINT') then
     begin
       AType := ftLargeInt;
     end else if (ColumnStr = 'TIME') then
