@@ -73,7 +73,7 @@ begin
   writeln('                         i386, x86_64, arm (coff)');
   writeln('                         i386, x86_64, powerpc, powerpc64, arm, armeb, m68k,');
   writeln('                         sparc, alpha, ia64 (elf)');
-  writeln('                         i386, x86_64, powerpc, powerpc64 (mach-o)');
+  writeln('                         i386, x86_64, powerpc, powerpc64, arm (mach-o)');
   writeln('                         bigendian, littleendian (external)');
   writeln('  --subarch, -s <name> Set object file sub-architecture. Supported values:');
   writeln('                         arm: all, v4t, v6, v5tej, xscale, v7');
