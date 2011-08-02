@@ -21,7 +21,7 @@ interface
 { force ansistrings }
 {$H+}
 
-{$if (defined(BSD) or defined(SUNOS)) and defined(FPC_USE_LIBC)}
+{$if (defined(BSD) or defined(SUNOS)) and defined(FPC_USE_LIBC) and not defined(SYMOBI)}
 {$define USE_VFORK}
 {$endif}
 

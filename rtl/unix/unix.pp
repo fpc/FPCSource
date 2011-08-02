@@ -17,7 +17,7 @@ Interface
 
 Uses BaseUnix,UnixType;
 
-{$if (defined(BSD) or defined(SUNOS)) and defined(FPC_USE_LIBC)}
+{$if (defined(BSD) or defined(SUNOS)) and defined(FPC_USE_LIBC) and not defined(SYMOBI)}
 {$define USE_VFORK}
 {$endif}
 
@@ -1195,7 +1195,7 @@ Function GetDomainName:String;
   end;
 {$endif sunos}
 
-{$ifdef BSD}
+{$if defined(BSD) and not defined(SYMOBI)}
 
 function intGetDomainName(Name:PChar; NameLen:Cint):cint;
 {$ifndef FPC_USE_LIBC}

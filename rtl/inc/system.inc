@@ -142,7 +142,7 @@ function do_isdevice(handle:thandle):boolean;forward;
 { Under Haiku, bcopy cause a problem when searching for include file
   in the compiler. So, we use the internal implementation for now
   under BeOS and Haiku.  }
-{$ifndef BEOS}
+{$if not defined(BEOS) and not defined(SYMOBI)}
 { prefer libc implementations over our own, as they're most likely faster }
 {$i cgeneric.inc}
 { is now declared as external reference to another routine in the interface }

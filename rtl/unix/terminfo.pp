@@ -17,8 +17,10 @@ unit TermInfo;
 
 interface
 
-{$linklib ncurses}
-{$linklib c}
+{$ifndef symobi}
+  {$linklib ncurses}
+  {$linklib c}
+{$endif}
 {$packrecords c}
 
 const curseslib = 'ncurses';

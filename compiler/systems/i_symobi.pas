@@ -43,7 +43,7 @@ unit i_symobi;
                             tf_safecall_exceptions];
             cpu          : cpu_i386;
             unit_env     : 'SYMOBIUNITS';
-            extradefines : 'SYMOBI;UNIX;HASSYMOBI';
+            extradefines : 'SYMOBI;UNIX;BSD;HASSYMOBI';
             exeext       : '.exe';
             defext       : '.def';
             scriptext    : '.sh';

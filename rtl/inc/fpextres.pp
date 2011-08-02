@@ -30,7 +30,11 @@ uses
   {$include extres_multiarch.inc}
 {$else}
   {$ifdef UNIX}
-    {$define EXTRES_MMAP}
+    {$ifdef SYMOBI}
+	  {$define EXTRES_GENERIC}
+	{$else}
+      {$define EXTRES_MMAP}
+	{$endif}
   {$else}
     {$define EXTRES_GENERIC}
   {$endif}

@@ -15,30 +15,16 @@
 
  **********************************************************************}
 
-function SysOSAlloc(size: ptruint): pointer;
-begin
-{$ifdef symobi}
-  result:=FpMalloc(Size);
-{$else}
-  result:=Fpmmap(nil,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
-{$endif}
-  if result=pointer(-1) then
-    result:=nil
-  else
-    seterrno(0);
-end;
-
-{$define HAS_SYSOSFREE}
-
-procedure SysOSFree(p: pointer; size: ptruint);
-begin
-{$ifdef symobi}
-  FpFree(p);
-{$else}
-  fpmunmap(p, size);
-{$endif}
-end;
-
+{Platform specific information}
+type
+  { fd are int in C also for 64bit targets (x86_64) }
+  THandle = Longint;
+  TThreadRec = record end;
+  TThreadID  = ^TThreadRec;
+  
+  { pthread_mutex_t }
+  PRTLCriticalSection = ^TRTLCriticalSection;
+  TRTLCriticalSection = pointer;
 
 
 

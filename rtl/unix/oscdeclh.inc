@@ -41,7 +41,9 @@ const
     function  FpDup2    (oldd:cint;newd:cint):cint; cdecl; external clib name 'dup2';
     function  FpExecve  (path : pchar; argv : ppchar; envp: ppchar): cint; cdecl; external clib name 'execve';
     function  FpFork  : TPid; cdecl; external clib name 'fork';
+{$ifndef symobi}
     function  FpvFork  : TPid; cdecl; external clib name 'vfork';
+{$endif}
     function  FpFtruncate(fd : cint; flength : TOff): cint; cdecl; external clib name 'ftruncate'+suffix64bit;
     function  FpLseek   (fd : cint; offset : TOff; whence : cint): TOff; cdecl; external clib name 'lseek'+suffix64bit;
     function  FpMkdir   (path : pchar; mode: TMode):cint; cdecl; external clib name 'mkdir';
@@ -65,7 +67,7 @@ const
     Function  FpGetcwd  (path:pChar; siz:TSize):pChar; cdecl;  external clib name 'getcwd';
     function  FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint;cdecl; external clib name 'sigprocmask';
     function  FPSigProcMask(how:cint;const nset : sigset;var oset : sigset):cint;cdecl; external clib name 'sigprocmask';
-{$if not defined(darwin) and not defined(haiku)}
+{$if not defined(darwin) and not defined(haiku) and not defined(symobi)}
     Function  FpSigTimedWait (Const sigset : TSigSet; info : Psiginfo; timeout:Ptimespec): cInt; cdecl; external clib name 'sigtimedwait';
     Function  FpSigTimedWait (Const sigset : TSigSet; info : Psiginfo; var timeout:Ttimespec): cInt; cdecl; external clib name 'sigtimedwait';
 {$endif}
@@ -76,7 +78,11 @@ const
     function  FpUnlink  (path: pchar): cint; cdecl; external clib name 'unlink';
     function  FpWaitpid (pid : TPid; stat_loc : pcint; options: cint): TPid; cdecl; external clib name 'waitpid';
     function  FpWrite   (fd: cint;buf:pchar; nbytes : TSize): TSSize; cdecl; external clib name 'write';
+{$ifdef symobi}
+    procedure FpExit    (status : cint); cdecl; external clib name 'exit';
+{$else}
     procedure FpExit    (status : cint); cdecl; external clib name '_exit';
+{$endif}
     function  fpmmap    (addr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;ofs:off_t):pointer; cdecl; external clib name 'mmap'+suffix64bit;
     function  fpmunmap  (addr:pointer;len:size_t):cint; cdecl; external clib name 'munmap';
     { The libc version has "..." as third parameter -> wrap for }
@@ -126,16 +132,21 @@ const
 {$else}
 {$endif}
 {$endif solaris}
+{$ifndef symobi}
     function  fpNice       (N:cint):cint; cdecl; external clib name 'nice';
+{$endif}
     Function  fpGetPriority (Which,Who:cint):cint;      cdecl; external clib name 'getpriority';
     Function  fpSetPriority (Which,Who,What:cint):cint; cdecl; external clib name 'setpriority';
     Function  fpSymlink    (oldname,newname:pchar):cint;   cdecl; external clib name 'symlink';
     Function  fpReadLink           (name,linkname:pchar;maxlen:size_t):cint;  cdecl; external clib name 'readlink';
     Function  FpUmask       (cmask : TMode): TMode; cdecl; external clib name 'umask';
-{$ifndef beos}    
+{$if not defined(beos) and not defined(symobi)}    
     function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
 {$else}
-//    function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
+  {$ifdef symobi}
+    { implemented as a dummy that returns 0 }
+    function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
+  {$endif}
 {$endif}
     function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt; cdecl; external clib name 'getrlimit';
 

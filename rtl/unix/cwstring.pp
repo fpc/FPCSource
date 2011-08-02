@@ -24,14 +24,18 @@ procedure SetCWidestringManager;
 
 implementation
 
-{$linklib c}
+{$ifndef symobi}
+  {$linklib c}
+{$endif}
 
 {$if not defined(linux) and not defined(solaris)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
- {$if defined(haiku)}
-   {$linklib textencoding}
-   {$linklib locale}
- {$else}
-   {$linklib iconv}
+ {$if not defined(symobi}
+   {$if defined(haiku)}
+     {$linklib textencoding}
+     {$linklib locale}
+   {$else}
+     {$linklib iconv}
+   {$endif}
  {$endif}
  {$define useiconv}
 {$endif linux}
@@ -45,12 +49,16 @@ Uses
 
 Const
 {$ifndef useiconv}
-    libiconvname='c';  // is in libc under Linux.
+      libiconvname='c';  // is in libc under Linux.
 {$else}
   {$ifdef haiku}
-    libiconvname='textencoding';  // is in libtextencoding under Haiku
+      libiconvname='textencoding';  // is in libtextencoding under Haiku
   {$else}
-    libiconvname='iconv';
+    {$ifdef symobi}
+      libiconvname='citrus';
+	{$else}
+      libiconvname='iconv';
+	{$endif}
   {$endif}
 {$endif}
 
@@ -58,18 +66,26 @@ Const
 function towlower(__wc:wint_t):wint_t;cdecl;external clib name 'towlower';
 function towupper(__wc:wint_t):wint_t;cdecl;external clib name 'towupper';
 
+{$ifndef symobi}
 function wcscoll (__s1:pwchar_t; __s2:pwchar_t):cint;cdecl;external clib name 'wcscoll';
+{$endif}
 function strcoll (__s1:pchar; __s2:pchar):cint;cdecl;external clib name 'strcoll';
 function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name 'setlocale';
-{$ifndef beos}
+{$ifdef symobi}
+function mbrtowc(pwc: pwchar_t; const s: pchar; n: size_t; ps: pmbstate_t): size_t; cdecl; external libiconvname name 'mbrtowc';
+function wcrtomb(s: pchar; wc: wchar_t; ps: pmbstate_t): size_t; cdecl; external libiconvname name 'wcrtomb';
+function mbrlen(const s: pchar; n: size_t; ps: pmbstate_t): size_t; cdecl; external libiconvname name 'mbrlen';
+{$else}
+  {$ifndef beos}
 function mbrtowc(pwc: pwchar_t; const s: pchar; n: size_t; ps: pmbstate_t): size_t; cdecl; external clib name 'mbrtowc';
 function wcrtomb(s: pchar; wc: wchar_t; ps: pmbstate_t): size_t; cdecl; external clib name 'wcrtomb';
 function mbrlen(const s: pchar; n: size_t; ps: pmbstate_t): size_t; cdecl; external clib name 'mbrlen';
-{$else beos}
+  {$else beos}
 function mbtowc(pwc: pwchar_t; const s: pchar; n: size_t): size_t; cdecl; external clib name 'mbtowc';
 function wctomb(s: pchar; wc: wchar_t): size_t; cdecl; external clib name 'wctomb';
 function mblen(const s: pchar; n: size_t): size_t; cdecl; external clib name 'mblen';
-{$endif beos}
+  {$endif beos}
+{$endif}
 
 
 const
@@ -105,8 +121,13 @@ const
   {$endif}
   ESysEILSEQ = EILSEQ;
 {$else}
+{$ifdef symobi}
+  CODESET = 51;
+  LC_ALL = 0;
+{$else}
 {$error lookup the value of CODESET in /usr/include/langinfo.h, and the value of LC_ALL in /usr/include/locale.h for your OS }
 // and while doing it, check if iconv is in libc, and if the symbols are prefixed with iconv_ or libiconv_
+{$endif symobi}
 {$endif beos}
 {$endif solaris}
 {$endif FreeBSD}
@@ -135,14 +156,18 @@ type
   nl_item = cint;
 
 {$ifdef haiku}
-  function nl_langinfo(__item:nl_item):pchar;cdecl;external 'locale' name 'nl_langinfo';
+      function nl_langinfo(__item:nl_item):pchar;cdecl;external 'locale' name 'nl_langinfo';
 {$else}
   {$ifndef beos}
-  function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
+    {$ifndef symobi}
+      function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
+	{$else}
+      function nl_langinfo(__item:nl_item):pchar;cdecl;external libc name 'nl_langinfo';
+	{$endif}
   {$endif}
 {$endif}
 
-{$if (not defined(bsd) and not defined(beos)) or (defined(darwin) and not defined(cpupowerpc32))}
+{$if (not defined(bsd) and not defined(beos)) or (defined(darwin) and not defined(cpupowerpc32)) or defined(symobi)}
 function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'iconv_open';
 function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'iconv';
 function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'iconv_close';
@@ -551,9 +576,34 @@ function CompareWideString(const s1, s2 : WideString) : PtrInt;
 
 
 function CompareTextWideString(const s1, s2 : WideString): PtrInt;
+{$ifdef symobi}
+  // Symobi doesn't currently define wcscoll(), so we do a simple comparison
+  // taken from GenericAnsiCompareStr in objpas/sysutils/sysstr.inc
+  Var
+    I,L1,L2 : SizeInt;
   begin
-    result:=CompareWideString(UpperWideString(s1),UpperWideString(s2));
+    Result:=0;
+    L1:=Length(S1);
+    L2:=Length(S2);
+    I:=1;
+    While (Result=0) and ((I<=L1) and (I<=L2)) do
+      begin
+      Result:=Ord(S1[I])-Ord(S2[I]); //!! Must be replaced by ansi characters !!
+      Inc(I);
+      end;
+    If Result=0 Then
+      Result:=L1-L2;
   end;
+{$else}
+  var
+    hs1,hs2 : UCS4String;
+  begin
+    { wcscoll interprets null chars as end-of-string -> filter out }
+    hs1:=WideStringToUCS4StringNoNulls(s1);
+    hs2:=WideStringToUCS4StringNoNulls(s2);
+    result:=wcscoll(pwchar_t(hs1),pwchar_t(hs2));
+  end;
+{$endif}
 
 
 function CharLengthPChar(const Str: PChar): PtrInt;

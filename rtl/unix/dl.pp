@@ -61,7 +61,9 @@ function dlerror() : Pchar; cdecl; external libdl;
 { overloaded for compatibility with hmodule }
 function dlsym(Lib : PtrInt; Name : Pchar) : Pointer; cdecl; external Libdl;
 function dlclose(Lib : PtrInt) : Longint; cdecl; external libdl;
+{$ifndef SYMOBI}
 function dladdr(Lib: pointer; info: Pdl_info): Longint; cdecl; external;
+{$endif}
 
 implementation
 
@@ -82,6 +84,7 @@ implementation
     end;
       
 
+{$ifndef SYMOBI}	  
   procedure UnixGetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: openstring);
     var
       dlinfo: dl_info;
@@ -94,7 +97,10 @@ implementation
       if SimpleExtractFilename(filename)=SimpleExtractFilename(ParamStr(0)) then
         baseaddr:=nil;
     end;
+{$endif}
 
 begin
+{$ifndef SYMOBI}
   UnixGetModuleByAddrHook:=@UnixGetModuleByAddr;
+{$endif}
 end.

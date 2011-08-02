@@ -37,7 +37,9 @@ var OrgFormatSettings : TOrgFormatSettings;
 
 implementation
 
-{$linklib c}
+{$ifndef symobi}
+  {$linklib c}
+{$endif}
 
 Uses
   SysUtils, unixtype, initc;

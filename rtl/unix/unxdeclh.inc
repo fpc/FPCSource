@@ -15,15 +15,15 @@
 
 type filedesarray=array[0..1] of cint;
 
-{$ifdef solaris}
+{$if defined(solaris) or defined(symobi)}
 Function fpFlock (fd,mode : longint) : cint;{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
-{$else solaris}
+{$else solaris or symobi}
 {$ifndef beos}
 Function fpFlock (fd,mode : longint) : cint; cdecl; external clib name 'flock';
 {$endif beos}
-{$endif solaris}
+{$endif solaris or symobi}
 
-{$if defined(beos) or defined(solaris) }
+{$if defined(beos) or defined(solaris) or defined(symobi)}
 Function fpfStatFS(Fd:Longint; Info:pstatfs):cint; cdecl; external clib name 'fstatvfs';
 {$else beos or solaris }
 Function fpfStatFS(Fd:Longint; Info:pstatfs):cint; cdecl; external clib name 'fstatfs';
@@ -31,7 +31,7 @@ Function fpfStatFS(Fd:Longint; Info:pstatfs):cint; cdecl; external clib name 'fs
 
 Function fpfsync (fd : cint) : cint; cdecl; external clib name 'fsync';
 
-{$if defined(beos) or defined(solaris) }
+{$if defined(beos) or defined(solaris) or defined(symobi) }
 Function fpStatFS  (Path:pchar; Info:pstatfs):cint; cdecl; external clib name 'statvfs';
 {$else beos or solaris }
 Function fpStatFS  (Path:pchar; Info:pstatfs):cint; cdecl; external clib name 'statfs';

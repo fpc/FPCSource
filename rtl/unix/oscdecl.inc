@@ -52,3 +52,18 @@ begin
   FpFcntl:=real_FpFcntl(fildes, cmd, @arg);
 end;
 
+{$ifdef symobi}
+
+{ ********************************************************************* }
+{ fpsettimeofday                                                        }
+{ ********************************************************************* }
+
+function FpSetTimeOfDay(tp:ptimeval;tzp:ptimezone):cint;
+begin
+  // dummy implementation, so dos.pp does not need an adjustment
+  FpSetTimeOfDay:=0;
+end;
+
+
+{$endif}
+

@@ -17,7 +17,9 @@ unit initc;
 interface
 uses
   ctypes;
-{$linklib c}
+{$ifndef Symobi}
+  {$linklib c}
+{$endif}
 
 function fpgetCerrno:cint;
 procedure fpsetCerrno(err:cint);
@@ -74,6 +76,10 @@ function geterrnolocation: pcint; cdecl;external clib name '___errno';
 
 {$ifdef beos}
 function geterrnolocation: pcint; cdecl;external 'root' name '_errnop';
+{$endif}
+
+{$ifdef Symobi}
+function geterrnolocation: pcint; cdecl;external clib name 'getThdErrno';
 {$endif}
 
 function fpgetCerrno:cint;
