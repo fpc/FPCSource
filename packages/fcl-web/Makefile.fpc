@@ -16,13 +16,7 @@ fpcpackage=y
 fpcdir=../..
 
 [prerules]
-# If no fpmake exists and clean is called, do not try to build fpmake, it will
-# most often fail because the dependencies are cleared. So simply skip the
-# clean by replacing the command with 'echo'
 FPMAKE_BIN_CLEAN=$(wildcard .$(PATHSEP)fpmake$(SRCEXEEXT))
-ifeq ($(FPMAKE_BIN_CLEAN),)
-FPMAKE_BIN_CLEAN=$(ECHO)
-endif
 ifdef OS_TARGET
 FPC_TARGETOPT+=--os=$(OS_TARGET)
 endif
@@ -42,11 +36,24 @@ release:	fpmake
 	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o -dRELEASE
 debug:	fpmake
 	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o -dDEBUG
+# If no fpmake exists and (dist)clean is called, do not try to build fpmake, it will
+# most often fail because the dependencies are cleared.
+# In case of a clean, simply do nothing
+ifeq ($(FPMAKE_BIN_CLEAN),)
+clean:	
+else
 clean:	
 	$(FPMAKE_BIN_CLEAN) clean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
+endif
+# In case of a distclean, perform an 'old'-style distclean. This to avoid problems
+# when the package is compiled using fpcmake prior to running this clean using fpmake
+ifeq ($(FPMAKE_BIN_CLEAN),)
+distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_distclean
+else
 distclean:	
 	$(FPMAKE_BIN_CLEAN) distclean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
 	-$(DEL) $(LOCALFPMAKE)
+endif
 install:	fpmake
 ifdef UNIXHier
 	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX)
