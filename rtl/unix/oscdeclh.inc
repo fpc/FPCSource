@@ -19,6 +19,12 @@
 {   var
      Errno : cint; external clib name 'errno';}
 
+{$if defined(FPC_IS_SYSTEM) and not defined(SYMOBI)}
+  // for Symobi this file is included in the interface section of the system unit,
+  // so we must not use "forward"
+  {$define USE_FORWARD}
+{$endif}	 
+	 
 Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
      pGrpArr = ^TGrpArr;
      TFilDes = Array [0..1] of cInt;
@@ -87,7 +93,7 @@ const
     function  fpmunmap  (addr:pointer;len:size_t):cint; cdecl; external clib name 'munmap';
     { The libc version has "..." as third parameter -> wrap for }
     { interface compatibility with syscalls                     }
-    function  FpIOCtl   (Handle:cint;Ndx: TIOCtlRequest;Data: Pointer):cint; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
+    function  FpIOCtl   (Handle:cint;Ndx: TIOCtlRequest;Data: Pointer):cint; {$ifdef USE_FORWARD}forward;{$endif}
 {$ifdef beos}
   {$ifdef haiku}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external 'network' name 'select';  
@@ -116,9 +122,9 @@ const
     Function  FpPipe       (var fildes : tfildes):cInt; cdecl;external clib name 'pipe';
     { The libc version has "..." as third parameter -> wrap for }
     { interface compatibility with syscalls                     }
-    Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
-    Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
-    Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
+    Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt; {$ifdef USE_FORWARD}forward;{$endif}
+    Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; {$ifdef USE_FORWARD}forward;{$endif}
+    Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; {$ifdef USE_FORWARD}forward;{$endif}
     Function  FpAlarm      (seconds : cuint) : cuint; cdecl;external clib name 'alarm';
     Function  FpPause   : cInt; cdecl; external clib name 'pause';
     Function  FpMkfifo     (path: pchar; mode: tmode): cint; cdecl; external clib name 'mkfifo';

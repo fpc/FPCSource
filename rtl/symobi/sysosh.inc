@@ -25,6 +25,16 @@ type
   { pthread_mutex_t }
   PRTLCriticalSection = ^TRTLCriticalSection;
   TRTLCriticalSection = pointer;
+  
+const clib = 'c';
 
+{$i ostypes.inc}
+
+// because of "external" these functions need to be imported in the inteface part
+{$i oscdeclh.inc}
+
+// used in sysheap.inc
+function FpMalloc(size: size_t): pointer; cdecl; external clib name 'malloc';
+procedure FpFree(p: pointer); cdecl; external clib name 'free';
 
 

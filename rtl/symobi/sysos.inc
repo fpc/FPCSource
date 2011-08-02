@@ -21,12 +21,12 @@ var
   operatingsystem_parameter_argc: ptruint; public name 'operatingsystem_parameter_argc';
   operatingsystem_parameter_argv: ppchar; public name 'operatingsystem_parameter_argv';
 
-const clib = 'c';
+//const clib = 'c';
 
 type libcint=longint;
      plibcint=^libcint;
 
-function geterrnolocation: Plibcint; cdecl;external stdclib name 'getThdErrno';
+function geterrnolocation: Plibcint; cdecl;external clib name 'getThdErrno';
 
 function geterrno:libcint; [public, alias: 'FPC_SYS_GETERRNO'];
 
@@ -42,15 +42,13 @@ end;
 { OS dependant parts  }
 
 {$I errno.inc}                          // error numbers
-{$I ostypes.inc}                        // c-types, unix base types, unix base structures
+// these are needed by oscdeclh.inc
+//{$I ostypes.inc}                        // c-types, unix base types, unix base structures
 {$I osmacro.inc}
 
-{$i oscdeclh.inc}
+// because of "external" the C functions need to be imported in sysos.h
+{.$i oscdeclh.inc}
 {$i oscdecl.inc}
-
-// used in sysheap.inc
-function FpMalloc(size: size_t): pointer; cdecl; external clib name 'malloc';
-procedure FpFree(p: pointer); cdecl; external clib name 'free';
 
 
 {*****************************************************************************

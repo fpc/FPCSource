@@ -78,7 +78,7 @@ override FPCOPT+=-Ur
 endif
 
 # Symobi requires usage of the C library, no syscalls
-override FPCOPT+=-dFPC_USE_LIBC -dDONT_READ_TIMEZONE
+override FPCOPT+=-dFPC_USE_LIBC -dDONT_READ_TIMEZONE -dNOGPM
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
@@ -128,7 +128,6 @@ unixtype$(PPUEXT): $(UNIXINC)/unixtype.pp $(UNIXINC)/ctypes.inc ptypes.inc $(SYS
 
 baseunix$(PPUEXT) : errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
   signal.inc $(UNIXINC)/bunxh.inc \
-  bunxsysc.inc \
   ostypes.inc osmacro.inc $(UNIXINC)/gensigset.inc \
   $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
 
@@ -136,8 +135,6 @@ baseunix$(PPUEXT) : errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
 unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  unxconst.inc $(UNIXINC)/timezone.inc \
                  unxfunc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-linux$(PPUEXT) : baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # TP7 Compatible RTL Units

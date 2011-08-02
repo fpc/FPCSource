@@ -121,7 +121,9 @@ Function POpen       (var F:text;const Prog:Ansistring;rw:char):cint;
 Function POpen       (var F:file;const Prog:Ansistring;rw:char):cint;
 Function AssignStream(Var StreamIn,Streamout:text;Const Prog:ansiString;const args : array of ansistring) : cint;
 Function AssignStream(Var StreamIn,Streamout,streamerr:text;Const Prog:ansiString;const args : array of ansistring) : cint;
+{$ifndef symobi}
 Function  GetDomainName:String; deprecated; // because linux only.
+{$endif}
 Function  GetHostName:String;
 
 {** Utility functions  **}

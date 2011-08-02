@@ -29,7 +29,7 @@ implementation
 {$endif}
 
 {$if not defined(linux) and not defined(solaris)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
- {$if not defined(symobi}
+ {$if not defined(symobi)}
    {$if defined(haiku)}
      {$linklib textencoding}
      {$linklib locale}
@@ -162,7 +162,7 @@ type
     {$ifndef symobi}
       function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
 	{$else}
-      function nl_langinfo(__item:nl_item):pchar;cdecl;external libc name 'nl_langinfo';
+      function nl_langinfo(__item:nl_item):pchar;cdecl;external clib name 'nl_langinfo';
 	{$endif}
   {$endif}
 {$endif}
@@ -565,17 +565,6 @@ function WideStringToUCS4StringNoNulls(const s : WideString) : UCS4String;
 
 
 function CompareWideString(const s1, s2 : WideString) : PtrInt;
-  var
-    hs1,hs2 : UCS4String;
-  begin
-    { wcscoll interprets null chars as end-of-string -> filter out }
-    hs1:=WideStringToUCS4StringNoNulls(s1);
-    hs2:=WideStringToUCS4StringNoNulls(s2);
-    result:=wcscoll(pwchar_t(hs1),pwchar_t(hs2));
-  end;
-
-
-function CompareTextWideString(const s1, s2 : WideString): PtrInt;
 {$ifdef symobi}
   // Symobi doesn't currently define wcscoll(), so we do a simple comparison
   // taken from GenericAnsiCompareStr in objpas/sysutils/sysstr.inc
@@ -604,6 +593,12 @@ function CompareTextWideString(const s1, s2 : WideString): PtrInt;
     result:=wcscoll(pwchar_t(hs1),pwchar_t(hs2));
   end;
 {$endif}
+
+
+function CompareTextWideString(const s1, s2 : WideString): PtrInt;
+  begin
+    result:=CompareWideString(UpperWideString(s1),UpperWideString(s2));
+  end;
 
 
 function CharLengthPChar(const Str: PChar): PtrInt;
