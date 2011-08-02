@@ -75,7 +75,7 @@ implementation
 uses
   SysUtils,
   cutils,cfileutl,cclasses,
-  Globtype,Globals,Verbose,Fmodule, comphook;
+  Globtype,Globals,Verbose,Fmodule, comphook,cpuinfo;
 
 {****************************************************************************
                               TRESOURCEFILE
@@ -237,7 +237,8 @@ var
   srcfilepath,
   preprocessorbin,
   s : TCmdStr;
-  arch : ansistring;
+  arch,
+  subarch: ansistring;
 
   function WindresFileName(filename: TCmdStr): TCmdStr;
   // to be on the safe side, for files that are passed to the preprocessor,
@@ -271,11 +272,18 @@ begin
       else
         ObjUsed:=(pos('$OBJ',s)>0);
       Replace(s,'$OBJ',maybequoted(OutName));
+      subarch:='all';
       arch:=cpu2str[target_cpu];
-      //Differentiate between arm and armeb
-      if (source_info.cpu=cpu_arm) and (source_info.endian=endian_big) then
-        arch:=arch+'eb';
+      if (source_info.cpu=systems.cpu_arm) then
+        begin
+          //Differentiate between arm and armeb
+          if (source_info.endian=endian_big) then
+            arch:=arch+'eb';
+        end;
       Replace(s,'$ARCH',arch);
+      if target_info.system=system_arm_darwin then
+        subarch:=lower(cputypestr[current_settings.cputype]);
+      Replace(s,'$SUBARCH',subarch);
       case target_info.endian of
         endian_little : Replace(s,'$ENDIAN','littleendian');
         endian_big : Replace(s,'$ENDIAN','bigendian');

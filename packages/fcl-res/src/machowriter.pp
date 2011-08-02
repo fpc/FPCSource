@@ -30,6 +30,15 @@ type
 
   { TMachOResourceWriter }
 
+  TMachoSubMachineType = record
+    case TMachOMachineType of
+      msmppc_all: (fPpcSubType: TMachOSubMachineTypePowerPC);
+      msmppc64_all: (fPpc64SubType: TMachOSubMachineTypePowerPC64);
+      msm386_all: (f386SubType: TMachOSubMachineType386);
+      msmx64_all: (fX64SubType: TMachOSubMachineTypex64);
+      mmtarm: (fArmSubType: TMachOSubMachineTypeArm);
+  end;
+
   TMachOResourceWriter = class(TAbstractResourceWriter)
   private
     fExtensions : string;
@@ -38,10 +47,12 @@ type
     fEndianess : integer;
     fOppositeEndianess : boolean;
     fMachineType : TMachOMachineType;
+    fSubMachineType : TMachoSubMachineType;
     fBits : integer;
 
     procedure SetDefaultTarget;
     procedure SetMachineType(const aMachineType : TMachOMachineType);
+    procedure SetSubMachineType(const aSubMachineType: TMachoSubMachineType);
   protected
     function GetExtensions : string; override;
     function GetDescription : string; override;
@@ -50,6 +61,7 @@ type
     constructor Create; override;
     destructor Destroy; override;
     property MachineType : TMachOMachineType read fMachineType write SetMachineType;
+    property SubMachineType : TMachOSubMachineType read fSubMachineType write SetSubMachineType;
   end;
 
 implementation
@@ -115,6 +127,7 @@ type
     fParent : TMachOResourceWriter;
     fOppositeEndianess : boolean;
     fMachineType : TMachOMachineType;
+    fSubMachineType: TMachoSubMachineType;
     fDataAlignment : integer;
     fSectAlignment : integer;
     fSegType : longword;
@@ -154,7 +167,8 @@ type
     procedure Write(aResources: TResources; aStream: TStream);
   public
     constructor Create(aParent : TMachOResourceWriter; const aMachineType
-      : TMachOMachineType; const aOppositeEndianess : boolean); virtual;
+      : TMachOMachineType; const aSubMachineType: TMachoSubMachineType;
+      const aOppositeEndianess : boolean); virtual;
     destructor Destroy; override;
   end;
 
@@ -469,33 +483,41 @@ begin
 end;
 
 procedure TAbstractMachOSubWriter.FixHeader(aStream: TStream);
+const
+  ppcsm2int: array[TMachOSubMachineTypePowerPC] of longint = (CPU_SUBTYPE_POWERPC_ALL);
+  ppc64sm2int: array[TMachOSubMachineTypePowerPC64] of longint = (CPU_SUBTYPE_POWERPC_ALL);
+  i386sm2int: array[TMachOSubMachineType386] of longint = (CPU_SUBTYPE_I386_ALL);
+  x86_64sm2int: array[TMachOSubMachineTypex64] of longint = (CPU_SUBTYPE_X86_64_ALL);
+  armsm2int: array[TMachOSubMachineTypeArm] of longint = (CPU_SUBTYPE_ARM_ALL,
+    CPU_SUBTYPE_ARM_V4T,CPU_SUBTYPE_ARM_V6,CPU_SUBTYPE_ARM_V5TEJ,
+    CPU_SUBTYPE_ARM_XSCALE,CPU_SUBTYPE_ARM_V7);
 begin
   aStream.Position:=0;
   case fMachineType of
     mmtpowerpc   : begin
                      fHeader.magic:=MH_MAGIC;
                      fHeader.cputype:=CPU_TYPE_POWERPC;
-                     fHeader.cpusubtype:=CPU_SUBTYPE_POWERPC_ALL;
+                     fHeader.cpusubtype:=ppcsm2int[fSubMachineType.fPpcSubType];
                    end;
     mmtpowerpc64 : begin
                      fHeader.magic:=MH_MAGIC_64;
                      fHeader.cputype:=CPU_TYPE_POWERPC64;
-                     fHeader.cpusubtype:=CPU_SUBTYPE_POWERPC_ALL;
+                     fHeader.cpusubtype:=ppc64sm2int[fSubMachineType.fPpc64SubType];
                    end;
     mmti386      : begin
                      fHeader.magic:=MH_MAGIC;
                      fHeader.cputype:=CPU_TYPE_I386;
-                     fHeader.cpusubtype:=CPU_SUBTYPE_I386_ALL;
+                     fHeader.cpusubtype:=i386sm2int[fSubMachineType.f386SubType];
                    end;
     mmtx86_64    : begin
                      fHeader.magic:=MH_MAGIC_64;
                      fHeader.cputype:=CPU_TYPE_X86_64;
-                     fHeader.cpusubtype:=CPU_SUBTYPE_X86_64_ALL;
+                     fHeader.cpusubtype:=x86_64sm2int[fSubMachineType.fX64SubType];
                    end;
     mmtarm      : begin
                      fHeader.magic:=MH_MAGIC;
                      fHeader.cputype:=CPU_TYPE_ARM;
-                     fHeader.cpusubtype:=CPU_SUBTYPE_ARM_ALL;
+                     fHeader.cpusubtype:=armsm2int[fSubMachineType.fArmSubType];
                    end;
   end;
   fHeader.filetype:=MH_OBJECT;
@@ -541,10 +563,12 @@ begin
 end;
 
 constructor TAbstractMachOSubWriter.Create(aParent : TMachOResourceWriter;
-  const aMachineType : TMachOMachineType; const aOppositeEndianess : boolean);
+  const aMachineType : TMachOMachineType; const aSubMachineType:
+  TMachoSubMachineType; const aOppositeEndianess : boolean);
 begin
   fParent:=aParent;
   fMachineType:=aMachineType;
+  fSubMachineType:=aSubMachineType;
   fOppositeEndianess:=aOppositeEndianess;
   fRoot:=nil;
   fMachOStringTable:=TObjectStringTable.Create(nil,0);
@@ -570,8 +594,7 @@ begin
   {$INCLUDE machodefaulttarget.inc}
 end;
 
-procedure TMachOResourceWriter.SetMachineType(
-  const aMachineType: TMachOMachineType);
+procedure TMachOResourceWriter.SetMachineType(const aMachineType: TMachOMachineType);
 begin
   case aMachineType of
     mmtpowerpc   : begin fBits:=MACH_32BIT; fEndianess:=MACH_BIG_ENDIAN; end;
@@ -582,6 +605,11 @@ begin
   end;
   fMachineType:=aMachineType;
   fOppositeEndianess:=fNativeEndianess<>fEndianess;
+end;
+
+procedure TMachOResourceWriter.SetSubMachineType(const aSubMachineType: TMachoSubMachineType);
+begin
+  fSubMachineType:=aSubMachineType;
 end;
 
 function TMachOResourceWriter.GetExtensions: string;
@@ -598,8 +626,8 @@ procedure TMachOResourceWriter.Write(aResources: TResources; aStream: TStream);
 var subwriter : TAbstractMachOSubWriter;
 begin
   case fBits of
-    MACH_32BIT : subwriter:=TMachO32SubWriter.Create(self,fMachineType,fOppositeEndianess);
-    MACH_64BIT : subwriter:=TMachO64SubWriter.Create(self,fMachineType,fOppositeEndianess)
+    MACH_32BIT : subwriter:=TMachO32SubWriter.Create(self,fMachineType,fSubMachineType,fOppositeEndianess);
+    MACH_64BIT : subwriter:=TMachO64SubWriter.Create(self,fMachineType,fSubMachineType,fOppositeEndianess)
   else
     raise EMachOResourceWriterUnknownBitSizeException.Create('');
   end;

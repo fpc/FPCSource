@@ -37,7 +37,7 @@ unit i_bsd;
            (
              id     : res_macho;
              resbin : 'fpcres';
-             rescmd : '-o $OBJ -a $ARCH -of mach-o $DBG';
+             rescmd : '-o $OBJ -a $ARCH -s $SUBARCH -of mach-o $DBG';
              rcbin  : 'windres';
              rccmd  : '--include $INC -O res -o $RES $RC';
              resourcefileclass : nil;

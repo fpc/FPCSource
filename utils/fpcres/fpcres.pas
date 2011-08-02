@@ -62,20 +62,23 @@ begin
   writeln('Syntax: '+progname+' [options] <inputfile> [<inputfile>...] [-o <outputfile>]');
   writeln;
   writeln('Options:');
-  writeln('  --help, -h, -?     Show this screen.');
-  writeln('  --version, -V      Show program version.');
-  writeln('  --verbose, -v      Be verbose.');
-  writeln('  --input, -i <x>    Ignored for compatibility.');
-  writeln('  --output, -o <x>   Set the output file name.');
-  writeln('  -of <format>       Set the output file format. Supported formats:');
-  writeln('                       res, elf, coff, mach-o, external');
-  writeln('  --arch, -a <name>  Set object file architecture. Supported architectures:');
-  writeln('                       i386, x86_64, arm (coff)');
-  writeln('                       i386, x86_64, powerpc, powerpc64, arm, armeb, m68k,');
-  writeln('                       sparc, alpha, ia64 (elf)');
-  writeln('                       i386, x86_64, powerpc, powerpc64 (mach-o)');
-  writeln('                       bigendian, littleendian (external)');
-  writeln('  @<file>            Read more options from file <file>');
+  writeln('  --help, -h, -?       Show this screen.');
+  writeln('  --version, -V        Show program version.');
+  writeln('  --verbose, -v        Be verbose.');
+  writeln('  --input, -i <x>      Ignored for compatibility.');
+  writeln('  --output, -o <x>     Set the output file name.');
+  writeln('  -of <format>         Set the output file format. Supported formats:');
+  writeln('                         res, elf, coff, mach-o, external');
+  writeln('  --arch, -a <name>    Set object file architecture. Supported architectures:');
+  writeln('                         i386, x86_64, arm, arm (coff)');
+  writeln('                         i386, x86_64, powerpc, powerpc64, arm, armeb, m68k,');
+  writeln('                         sparc, alpha, ia64 (elf)');
+  writeln('                         i386, x86_64, powerpc, powerpc64 (mach-o)');
+  writeln('                         bigendian, littleendian (external)');
+  writeln('  --subarch, -s <name> Set object file sub-architecture. Supported values:');
+  writeln('                         arm: all, v4t, v6, v5tej, xscale, v7');
+  writeln('                         other architectures: all');
+  writeln('  @<file>              Read more options from file <file>');
   writeln('Default output target: '+TargetToStr(currenttarget));
 end;
 
@@ -112,9 +115,16 @@ begin
   if params.Target.machine=mtNone then
   begin
     if not (CurrentTarget.machine in ObjFormats[CurrentTarget.objformat].machines) then
-      CurrentTarget.machine:=GetDefaultMachineForFormat(CurrentTarget.objformat);
+      begin
+        CurrentTarget.machine:=GetDefaultMachineForFormat(CurrentTarget.objformat);
+        CurrentTarget.submachine:=GetDefaultSubMachineForMachine(currentTarget.machine);
+      end
   end
-  else CurrentTarget.machine:=params.Target.machine;
+  else
+    begin
+      CurrentTarget.machine:=params.Target.machine;
+      CurrentTarget.submachine:=params.Target.submachine;
+    end;
 
   if not (CurrentTarget.machine in ObjFormats[CurrentTarget.objformat].machines) then
   begin
@@ -255,16 +265,42 @@ begin
 end;
 
 function SetUpMachOWriter : TMachOResourceWriter;
+const
+  ArmSubMachine2MachOSubMachine: array[TSubMachineTypeArm] of TMachOSubMachineTypeArm =
+    (msmarm_all,msmarm_v4t,msmarm_v6,msmarm_v5tej,msmarm_xscale,msmarm_v7);
+var
+  MachOSubMachineType: TMachoSubMachineType;
 begin
   Result:=TMachOResourceWriter.Create;
   case CurrentTarget.machine of
 //    mtnone :
-    mti386 : Result.MachineType:=mmti386;
-    mtx86_64 : Result.MachineType:=mmtx86_64;
-    mtppc : Result.MachineType:=mmtpowerpc;
-    mtppc64 : Result.MachineType:=mmtpowerpc64;
-    mtarm : Result.MachineType:=mmtarm;
+    mti386 :
+      begin
+        Result.MachineType:=mmti386;
+        MachOSubMachineType.f386SubType:=msm386_all;
+      end;
+    mtx86_64 :
+      begin
+        Result.MachineType:=mmtx86_64;
+        MachOSubMachineType.fX64SubType:=msmx64_all;
+      end;
+    mtppc :
+      begin
+        Result.MachineType:=mmtpowerpc;
+        MachOSubMachineType.fPpcSubType:=msmppc_all;
+      end;
+    mtppc64 :
+      begin
+        Result.MachineType:=mmtpowerpc64;
+        MachOSubMachineType.fPpc64SubType:=msmppc64_all;
+      end;
+    mtarm :
+      begin
+        Result.MachineType:=mmtarm;
+        MachOSubMachineType.fArmSubType:=ArmSubMachine2MachOSubMachine[CurrentTarget.submachine.subarm];
+      end;
   end;
+  Result.SubMachineType:=MachOSubMachineType;
 end;
 
 
