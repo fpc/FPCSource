@@ -116,6 +116,9 @@ uses
 {$ifdef nativent}
   ,i_nativent
 {$endif nativent}
+{$ifdef symobi}
+  ,i_symobi
+{$endif}
   ,globtype;
 
 function Compile(const cmd:TCmdStr):longint;

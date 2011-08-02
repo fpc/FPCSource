@@ -1004,7 +1004,7 @@ implementation
 
       { Windows uses an indirect reference using import tables }
       if is_dll and
-         (target_info.system in systems_all_windows) then
+         (target_info.system in systems_all_windows+[system_i386_symobi]) then
         include(vs.varoptions,vo_is_dll_var);
 
       { This can only happen if vs.typ=staticvarsym }

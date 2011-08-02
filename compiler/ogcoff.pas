@@ -2545,6 +2545,9 @@ const pemagic : array[0..3] of byte = (
         inherited createcoff(true);
         CExeSection:=TPECoffExeSection;
         CObjData:=TPECoffObjData;
+        { always generate the relocation section for Symobi }
+        if target_info.system=system_i386_symobi then
+          RelocSection:=true;
       end;
 
 
@@ -3048,7 +3051,7 @@ const pemagic : array[0..3] of byte = (
             idtxt  : 'PECOFF';
             asmbin : '';
             asmcmd : '';
-            supported_targets : [system_i386_win32,system_i386_nativent];
+            supported_targets : [system_i386_win32,system_i386_nativent,system_i386_symobi];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';

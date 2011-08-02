@@ -1490,7 +1490,7 @@ implementation
         FMangledName:=AMangledName;
         { Replace ? and @ in import name, since GNU AS does not allow these characters in symbol names. }
         { This allows to import VC++ mangled names from DLLs. }
-        if target_info.system in systems_all_windows then
+        if target_info.system in systems_all_windows+[system_i386_symobi] then
           begin
             Replace(FMangledName,'?','__q$$');
 {$ifdef arm}

@@ -2293,6 +2293,8 @@ begin
     system_i386_nativent:
       // until these features are implemented, they are disabled in the compiler
       target_unsup_features:=[f_stackcheck];
+	system_i386_symobi:
+	  target_unsup_features:=[f_stackcheck];
     else
       target_unsup_features:=[];
   end;

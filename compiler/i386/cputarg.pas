@@ -83,6 +83,9 @@ implementation
     {$ifndef NOTARGETEMBEDDED}
       ,t_embed
     {$endif}
+	{$ifndef NOTARGETSYMOBI}
+	  ,t_symobi
+	{$endif}
 
 {**************************************
              Assemblers
