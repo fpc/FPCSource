@@ -70,7 +70,7 @@ begin
   writeln('  -of <format>         Set the output file format. Supported formats:');
   writeln('                         res, elf, coff, mach-o, external');
   writeln('  --arch, -a <name>    Set object file architecture. Supported architectures:');
-  writeln('                         i386, x86_64, arm, arm (coff)');
+  writeln('                         i386, x86_64, arm (coff)');
   writeln('                         i386, x86_64, powerpc, powerpc64, arm, armeb, m68k,');
   writeln('                         sparc, alpha, ia64 (elf)');
   writeln('                         i386, x86_64, powerpc, powerpc64 (mach-o)');
