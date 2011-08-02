@@ -398,9 +398,13 @@ begin
 end;
 
 procedure TFPSList.Put(Index: Integer; Item: Pointer);
+var p : Pointer;
 begin
   if (Index < 0) or (Index >= FCount) then
     RaiseIndexError(Index);
+  p:=InternalItems[Index];
+  if assigned(p) then
+    DeRef(p);	
   InternalItems[Index] := Item;
 end;
 
