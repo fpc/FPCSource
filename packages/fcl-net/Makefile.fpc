@@ -22,6 +22,7 @@ units_os2=resolve ssockets
 units_win32=resolve ssockets 
 units_win64=resolve ssockets 
 units_wince=resolve ssockets 
+units_symobi=netdb resolve ssockets cnetdb
 
 [require]
 packages=fcl-base fcl-xml fcl-passrc fcl-async
@@ -43,6 +44,7 @@ includedir_emx=src/os2
 includedir_win32=src/win
 includedir_win64=src/win
 includedir_wince=src/win
+includedir_symobi=src/unix
 sourcedir=src/$(OS_TARGET) src
 
 [install]

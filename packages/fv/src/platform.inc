@@ -226,6 +226,12 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$DEFINE OS_UNIX}
 {$ENDIF}
 
+{$IFDEF SYMOBI}
+  {$UNDEF OS_DOS}
+  {$DEFINE OS_SYMOBI}
+  {$DEFINE OS_UNIX}
+{$ENDIF}
+
 {------------------------------------------------}
 {  FPC Netware COMPILER changes operating system }
 {------------------------------------------------}

@@ -33,6 +33,7 @@ includedir_iphonesim=src/unix
 includedir_solaris=src/unix
 includedir_netbsd=src/unix
 includedir_openbsd=src/unix
+includedir_symobi=src/unix
 
 [default]
 fpcdir=../..

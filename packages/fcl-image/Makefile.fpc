@@ -22,6 +22,7 @@ units_freebsd=freetypeh freetype ftfont
 units_darwin=freetypeh freetype ftfont
 units_iphonesim=freetypeh freetype ftfont
 units_solaris=freetypeh freetype ftfont
+units_symobi=freetypeh freetype ftfont
 rsts=pscanvas
 exampledirs=examples
 

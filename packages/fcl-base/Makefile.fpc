@@ -31,6 +31,7 @@ units_wince=fileinfo syncobjs fptimer
 # syncobjs requires GetLastOSError function
 units_netware=syncobjs
 units_netwlibc=syncobjs
+units_symobi=syncobjs
 rsts=cachecls custapp cgiapp eventlog registry streamcoll inicol
 
 [compiler]
@@ -51,6 +52,7 @@ includedir_go32v2=src/go32v2 src/dummy
 includedir_win32=src/win
 includedir_win64=src/win
 includedir_wince=src/dummy
+includedir_symobi=src/unix
 sourcedir=src/$(OS_TARGET) src
 
 [prerules]

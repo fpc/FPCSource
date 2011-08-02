@@ -20,6 +20,7 @@ dirs_openbsd=src/dbase src/sqlite src/paradox
 dirs_win32=src/dbase src/paradox src/sqlite src/export src/datadict src/codegen 
 dirs_win64=src/dbase src/export src/datadict src/codegen 
 dirs_wince=src/dbase src/sqlite src/export src/datadict src/codegen
+dirs_symobi=src/dbase src/sqlite src/export src/datadict src/codegen
 
 [require]
 packages=fcl-base fcl-xml

@@ -23,6 +23,7 @@ units_wince=simpleipc dbugmsg dbugintf
 units_qnx=simpleipc dbugmsg dbugintf pipesipc
 units_os2=simpleipc dbugmsg dbugintf
 units_emx=simpleipc dbugmsg dbugintf
+units_symobi=simpleipc dbugmsg dbugintf
 rsts=process simpleipc
 
 [compiler]
@@ -48,6 +49,7 @@ includedir_morphos=src/dummy
 includedir_amiga=src/dummy
 includedir_netware=src/dummy
 includedir_netwlibc=src/dummy
+includedir_symobi=src/unix src/dummy
 sourcedir=src/$(OS_TARGET) src
 
 [install]

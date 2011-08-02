@@ -18,6 +18,7 @@ packages_openbsd=x11
 packages_netbsd=x11
 packages_darwin=x11
 packages_iphonesim=x11
+packages_symobi=x11
 
 [target]
 units=src/buildgtk2 
@@ -39,7 +40,7 @@ build=n
 fpcdir=../..
 
 [prerules]
-ifneq ($(findstring $(OS_TARGET),linux freebsd netbsd openbsd solaris darwin iphonesim beos haiku ),)
+ifneq ($(findstring $(OS_TARGET),linux freebsd netbsd openbsd solaris darwin iphonesim beos haiku symobi),)
 GDK2X=gdk2x
 GTK2X11=gtk2x11
 GTK2X11INCLUDE=src/gtk2x11/include
