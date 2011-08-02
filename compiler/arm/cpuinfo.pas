@@ -36,6 +36,7 @@ Type
        cpu_armv4,
        cpu_armv5,
        cpu_armv6,
+       cpu_armv7,
        cpu_armv7m,
        cpu_cortexm3
       );
@@ -109,6 +110,7 @@ Const
      'ARMV4',
      'ARMV5',
      'ARMV6',
+     'ARMV7',
      'ARMV7M',
      'CORTEXM3'
    );
