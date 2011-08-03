@@ -28,8 +28,8 @@ begin
     P.SourcePath.Add('src');
     P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/win',AllWindowsOSes);
+    P.IncludePath.Add('src/dummy',AllOSes-AllWindowsOSes-AllUnixOSes);
     P.IncludePath.Add('src/$(OS)',AllOSes-AllWindowsOSes-AllUnixOSes);
-    P.IncludePath.Add('src/dummy');
 
     T:=P.Targets.AddUnit('pipes.pp');
       T.Dependencies.AddInclude('pipes.inc');
@@ -39,7 +39,7 @@ begin
     T:=P.Targets.AddUnit('simpleipc.pp');
       T.Dependencies.AddInclude('simpleipc.inc');
       T.ResourceStrings:=True;
-    T:=P.Targets.AddUnit('pipesipc.pp');
+    T:=P.Targets.AddUnit('pipesipc.pp',AllUnixOSes);
       T.Dependencies.AddInclude('simpleipc.inc');
       T.ResourceStrings:=True;
     T:=P.Targets.AddUnit('dbugmsg.pp');

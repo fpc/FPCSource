@@ -134,7 +134,12 @@ begin
           AddUnit('dom');
           AddUnit('htmldefs');
         end;
-    T:=P.Targets.AddUnit('xmliconv.pas');
+    T:=P.Targets.AddUnit('xmliconv.pas',[linux,freebsd,darwin,iphonesim,haiku,beos]);
+      with T.Dependencies do
+        begin
+          AddUnit('xmlread');
+        end;
+    T:=P.Targets.AddUnit('xmliconv_windows.pas',[win32,win64]);
       with T.Dependencies do
         begin
           AddUnit('xmlread');
