@@ -18,7 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
-    P.OSes:=[darwin];
+    P.OSes:=[darwin,iphonesim];
     P.Options.Add('-Mmacpas');
   T:=P.Targets.AddImplicitUnit('ABActions.pas');
     with T.Dependencies do
