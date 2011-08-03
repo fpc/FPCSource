@@ -289,7 +289,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=fcl-db
-override PACKAGE_VERSION=2.5.1
+override PACKAGE_VERSION=2.7.1
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base src/sql  src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 endif

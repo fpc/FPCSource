@@ -289,7 +289,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=gtk2
-override PACKAGE_VERSION=2.5.1
+override PACKAGE_VERSION=2.7.1
 ifneq ($(findstring $(OS_TARGET),linux freebsd netbsd openbsd solaris darwin iphonesim beos haiku ),)
 GDK2X=gdk2x
 GTK2X11=gtk2x11

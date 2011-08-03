@@ -289,7 +289,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=fcl-stl
-override PACKAGE_VERSION=2.5.1
+override PACKAGE_VERSION=2.7.1
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=garrayutils gdeque gmap gpriorityqueue gqueue gset gstack gutil gvector ghashset ghashmap
 endif

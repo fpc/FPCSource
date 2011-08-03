@@ -289,7 +289,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=fcl-res
-override PACKAGE_VERSION=2.5.1
+override PACKAGE_VERSION=2.7.1
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=acceleratorsresource bitmapresource coffconsts coffreader cofftypes coffwriter dfmreader elfconsts elfreader elftypes elfwriter externalreader externaltypes externalwriter fpcrestypes groupcursorresource groupiconresource groupresource icocurtypes machoconsts machoreader machotypes machowriter resdatastream resfactory resmerger resource resourcetree resreader reswriter stringtableresource strtable tlbreader versionconsts versionresource versiontypes winpeimagereader
 endif

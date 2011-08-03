@@ -289,7 +289,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=fpc
-override PACKAGE_VERSION=2.5.1
+override PACKAGE_VERSION=2.7.1
 ifndef inOS2
 override FPCDIR:=$(BASEDIR)
 export FPCDIR

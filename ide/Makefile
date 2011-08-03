@@ -289,7 +289,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=ide
-override PACKAGE_VERSION=2.5.1
+override PACKAGE_VERSION=2.7.1
 ifndef PPC_TARGET
 PPC_TARGET=$(CPU_TARGET)
 endif

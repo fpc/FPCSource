@@ -289,7 +289,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=fpmkunit
-override PACKAGE_VERSION=2.5.1
+override PACKAGE_VERSION=2.7.1
 TARGET_UNITDIRBS=units_bs/$(SOURCESUFFIX)
 CLEAN_FILES+=units_bs/$(SOURCESUFFIX)/fpmkunit.ppu units_bs/$(SOURCESUFFIX)/fpmkunit.rst units_bs/$(SOURCESUFFIX)/fpmkunit.o
 ifeq ($(FULL_TARGET),i386-linux)

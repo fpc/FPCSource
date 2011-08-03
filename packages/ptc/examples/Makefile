@@ -289,7 +289,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=ptc-examples
-override PACKAGE_VERSION=2.5.1
+override PACKAGE_VERSION=2.7.1
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_PROGRAMS+=area buffer clear clip con_info console fire  flower hicolor image keyboard keyboard2 land lights modes mojo palette pixel random save stretch texwarp timer tunnel3d tunnel
 endif

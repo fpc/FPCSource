@@ -289,7 +289,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=sdl
-override PACKAGE_VERSION=2.5.1
+override PACKAGE_VERSION=2.7.1
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_mixer_nosmpeg sdl_ttf sdl_gfx sdl_net smpeg logger   sdlutils
 endif

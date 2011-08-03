@@ -289,7 +289,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=zorba
-override PACKAGE_VERSION=0.9.9
+override PACKAGE_VERSION=2.7.1
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=xqc zorba zorbadyn
 endif

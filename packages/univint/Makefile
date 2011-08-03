@@ -289,7 +289,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=univint
-override PACKAGE_VERSION=2.5.1
+override PACKAGE_VERSION=2.7.1
 override FPCOPT+=-Mmacpas
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=MacOSAll MacOS

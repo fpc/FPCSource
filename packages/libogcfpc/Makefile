@@ -291,7 +291,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=libogcfpc
-override PACKAGE_VERSION=2.5.1
+override PACKAGE_VERSION=2.7.1
 BINUTILSPREFIX=powerpc-eabi-
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=gctypes gccore debug mp3player fat asndlib aesndlib gcmodplay iso9660 network

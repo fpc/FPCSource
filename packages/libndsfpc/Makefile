@@ -291,7 +291,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=libndsfpc
-override PACKAGE_VERSION=2.5.1
+override PACKAGE_VERSION=2.7.1
 BINUTILSPREFIX=arm-eabi-
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=nds9 nds7 dswifi9 dswifi7 fat gbfs filesystem maxmod9  maxmod7

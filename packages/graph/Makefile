@@ -289,7 +289,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=graph
-override PACKAGE_VERSION=2.5.1
+override PACKAGE_VERSION=2.7.1
 GRAPHDIR=src/inc
 UNIXINC=src/unix
 ifndef USELIBGGI

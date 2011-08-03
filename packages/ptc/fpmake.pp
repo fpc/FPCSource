@@ -18,7 +18,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='ptc';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     p.OSes:=[linux,win32,win64];
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/ptcwrapper');

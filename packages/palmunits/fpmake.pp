@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='palmunits';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
 
     P.SourcePath.Add('src');
     P.Targets.AddUnit('day.pp',[PalmOS]);

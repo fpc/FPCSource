@@ -289,7 +289,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=fcl-fpcunit
-override PACKAGE_VERSION=2.5.1
+override PACKAGE_VERSION=2.7.1
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=testregistry testreport testdecorator ubmockobject xmlreporter fpcunitreport latextestreport xmltestreport plaintestreport fpcunit testutils digesttestreport
 endif

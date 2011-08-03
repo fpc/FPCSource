@@ -291,7 +291,7 @@ FPCFPMAKE=$(FPC)
 endif
 endif
 override PACKAGE_NAME=libgbafpc-template-examples
-override PACKAGE_VERSION=2.4.0
+override PACKAGE_VERSION=2.7.1
 BUILD = build
 INC = inc
 AUDIO_FILES = $(foreach dir, $(notdir $(wildcard audio/*.*)), $(CURDIR)/audio/$(dir))
