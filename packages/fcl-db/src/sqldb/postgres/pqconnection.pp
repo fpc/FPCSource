@@ -402,7 +402,7 @@ begin
                              if size > dsMaxStringSize then size := dsMaxStringSize;
                              end;
 //    Oid_text               : Result := ftstring;
-    Oid_text               : Result := ftBlob;
+    Oid_text               : Result := ftMemo;
     Oid_Bytea              : Result := ftBlob;
     Oid_oid                : Result := ftInteger;
     Oid_int8               : Result := ftLargeInt;
@@ -620,7 +620,7 @@ begin
           GetMem(ar[i],length(s)+1);
           StrMove(PChar(ar[i]),Pchar(s),Length(S)+1);
           lengths[i]:=Length(s);
-          if (AParams[i].DataType in [ftBlob,ftGraphic,ftCurrency]) then
+          if (AParams[i].DataType in [ftBlob,ftMemo,ftGraphic,ftCurrency]) then
             Formats[i]:=1
           else
             Formats[i]:=0;  
@@ -771,8 +771,9 @@ begin
           Move(CurrBuff^, Buffer^, li);
           pchar(Buffer + li)^ := #0;
           end;
-        ftBlob : Createblob := True;
-        ftdate :
+        ftBlob, ftMemo :
+          CreateBlob := True;
+        ftDate :
           begin
           dbl := pointer(buffer);
           dbl^ := BEtoN(plongint(CurrBuff)^) + 36526;
