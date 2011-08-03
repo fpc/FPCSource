@@ -1336,6 +1336,14 @@ begin
   Result:=GetAsInteger<>0;
 end;
 
+procedure TNumericField.SetAsBoolean(AValue: Boolean);
+begin
+  if AValue then
+    SetAsLongint(1)
+  else
+    SetAsLongint(0);
+end; 
+
 { ---------------------------------------------------------------------
     TLongintField
   ---------------------------------------------------------------------}

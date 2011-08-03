@@ -514,7 +514,8 @@ type
     procedure RangeError(AValue, Min, Max: Double);
     procedure SetDisplayFormat(const AValue: string);
     procedure SetEditFormat(const AValue: string);
-    function GetAsBoolean: Boolean; override;
+    function  GetAsBoolean: Boolean; override;
+    Procedure SetAsBoolean(AValue: Boolean); override;
   public
     constructor Create(AOwner: TComponent); override;
   published
