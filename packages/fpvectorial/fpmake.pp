@@ -30,7 +30,6 @@ begin
 
     P.SourcePath.Add('src');
 
-    T:=P.Targets.AddImplicitUnit('jwazmouse.pas');
     T:=P.Targets.AddImplicitUnit('avisocncgcodereader'); 
     T:=P.Targets.AddImplicitUnit('avisocncgcodewriter');
     T:=P.Targets.AddImplicitUnit('svgvectorialwriter');
