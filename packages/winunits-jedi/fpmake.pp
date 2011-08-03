@@ -19,6 +19,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.OSes:=[win32,win64];
+    P.Options.Add('-Ur');
     P.Author := 'Marcel van Brakel, Jedi-apilib team';
     P.License := 'LGPL with modification/MPL dual licensed ';
     P.HomepageURL := 'www.freepascal.org';
