@@ -817,8 +817,6 @@ Type
     Procedure SysArchiveFiles(List : TStrings; Const AFileName : String); virtual;
     procedure LogIndent;
     procedure LogUnIndent;
-    Procedure Log(Level : TVerboseLevel; Const Msg : String);
-    Procedure Log(Level : TVerboseLevel; Const Fmt : String; const Args : Array Of Const);
     Procedure EnterDir(ADir : String);
     Function GetCompiler : String;
     Function InstallPackageFiles(APAckage : TPackage; tt : TTargetType; Const Dest : String):Boolean;
@@ -830,7 +828,6 @@ Type
 
     procedure GetDirectoriesFromFilelist(const AFileList, ADirectoryList: TStringList);
     //package commands
-    Procedure ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true);
     function  GetUnitDir(APackage:TPackage):String;
     procedure AddDependencyIncludePaths(L:TStrings;ATarget: TTarget);
     procedure AddDependencyUnitPaths(L:TStrings;APackage: TPackage);
@@ -839,6 +836,7 @@ Type
     destructor Destroy;override;
 
     property Verbose : boolean read FVerbose write FVerbose;
+    Procedure ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true);
 
     // Public Copy/delete/Move/Archive/Mkdir Commands.
     Procedure ExecuteCommand(const Cmd,Args : String; IgnoreError : Boolean = False); virtual;
@@ -890,6 +888,10 @@ Type
     Procedure Archive(Packages : TPackages);
     procedure Manifest(Packages: TPackages);
     Procedure Clean(Packages : TPackages; AllTargets: boolean);
+
+    Procedure Log(Level : TVerboseLevel; Const Msg : String);
+    Procedure Log(Level : TVerboseLevel; Const Fmt : String; const Args : Array Of Const);
+
     Property ListMode : Boolean Read FListMode Write FListMode;
     Property ForceCompile : Boolean Read FForceCompile Write FForceCompile;
     Property ExternalPackages: TPackages Read FExternalPackages;
@@ -1288,11 +1290,7 @@ begin
   BytesRead := 0;
   P := TProcess.Create(nil);
   try
-    if Verbose then
-      P.CommandLine := Path + ' ' + ComLine
-    else
-      P.CommandLine := Path + ' -viq ' + ComLine;
-
+    P.CommandLine := Path + ' ' + ComLine;
     P.Options := [poUsePipes];
 
     P.Execute;
@@ -4340,6 +4338,13 @@ begin
     Args.AddStrings(APackage.Options);
   If (ATarget.HaveOptions) then
     Args.AddStrings(ATarget.Options);
+
+  {$ifdef HAS_UNIT_PROCESS}
+  // Force the compiler-output to be easy parseable
+  if not Verbose then
+    args.Add('-viq');
+  {$endif}
+
   // Add Filename to compile
   Args.Add(ATarget.TargetSourceFileName);
   // Convert to string
