@@ -6,6 +6,7 @@
   add_cairo;
   add_cdrom;
   add_chm;
+  add_cocoaint;
   add_dbus;
   add_dts;
   add_fastcgi;
@@ -59,7 +60,6 @@
   add_libxml;
   add_lua;
   add_mad;
-  add_matroska;
   add_modplug;
   add_mysql;
   add_ncurses;

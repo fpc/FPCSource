@@ -2,7 +2,7 @@
 {$define allpackages}
 program fpmake;
 
-uses fpmkunit;
+uses fpmkunit, sysutils, Classes;
 
 Var
   TBuild,T : TTarget;
