@@ -2235,7 +2235,7 @@ ifeq ($(FPMAKE_BIN_CLEAN),)
 distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_distclean
 else
 distclean:	
-	$(FPMAKE_BIN_CLEAN) distclean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
+	{ $(FPMAKE_BIN_CLEAN) distclean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC); if [ $$? != "0" ]; then { echo Something wrong with fpmake exectable. Remove the executable and call make recursively to recover.; $(DEL) $(FPMAKE_BIN_CLEAN); $(MAKE) fpc_cleanall; }; fi;  }
 	-$(DEL) $(LOCALFPMAKE)
 endif
 install:	fpmake
