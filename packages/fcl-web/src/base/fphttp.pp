@@ -38,13 +38,13 @@ Type
   Protected
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean); virtual;
     Procedure DoGetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean); virtual;
-    Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean);
     Function ProduceContent : String; virtual;
     Procedure SetRequest(ARequest: TRequest);
   Protected
     Property BeforeRequest : TRequestEvent Read FBeforeRequest Write FBeforeRequest;
     Property AfterResponse : TResponseEvent Read FAfterResponse Write FAfterResponse;
   Public
+    Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean);
     Procedure GetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean);
     Function  HaveContent : Boolean; virtual;
     function ContentToStream(Stream : TStream) : boolean; virtual;
