@@ -383,6 +383,7 @@ type
     procedure ExpectEq;
     procedure ParseDoctypeDecl;                                         // [28]
     procedure ParseMarkupDecl;                                          // [29]
+    procedure ParseIgnoreSection;
     procedure ParseStartTag;                                            // [39]
     procedure ParseEndTag;                                              // [42]
     function DoStartElement: TDOMElement;
@@ -1306,8 +1307,8 @@ begin
     FStdPrefix_xml := FNSHelper.GetPrefix(@PrefixDefault, 3);
     FStdPrefix_xmlns := FNSHelper.GetPrefix(@PrefixDefault, 5);
 
-    FStdUri_xmlns := FNameTable.FindOrAdd(PWideChar(stduri_xmlns), Length(stduri_xmlns));
-    FStdUri_xml := FNameTable.FindOrAdd(PWideChar(stduri_xml), Length(stduri_xml));
+    FStdUri_xmlns := FNameTable.FindOrAdd(stduri_xmlns);
+    FStdUri_xml := FNameTable.FindOrAdd(stduri_xml);
   end;
 end;
 
@@ -2499,19 +2500,36 @@ begin
     Entity.Free;
 end;
 
+procedure TXMLTextReader.ParseIgnoreSection;
+var
+  IgnoreLoc: TLocation;
+  IgnoreLevel: Integer;
+  wc: WideChar;
+begin
+  StoreLocation(IgnoreLoc);
+  IgnoreLevel := 1;
+  repeat
+    FValue.Length := 0;
+    wc := FSource.SkipUntil(FValue, [#0, '<', ']']);
+    if FSource.Matches('<![') then
+      Inc(IgnoreLevel)
+    else if FSource.Matches(']]>') then
+      Dec(IgnoreLevel)
+    else if wc <> #0 then
+      FSource.NextChar
+    else // PE's aren't recognized in ignore section, cannot ContextPop()
+      DoErrorPos(esFatal, 'IGNORE section is not closed', IgnoreLoc);
+  until IgnoreLevel=0;
+end;
 
 procedure TXMLTextReader.ParseMarkupDecl;        // [29]
 var
   IncludeLevel: Integer;
-  IgnoreLevel: Integer;
   CurrentEntity: TObject;
   IncludeLoc: TLocation;
-  IgnoreLoc: TLocation;
-  wc: WideChar;
   CondType: (ctUnknown, ctInclude, ctIgnore);
 begin
   IncludeLevel := 0;
-  IgnoreLevel := 0;
   repeat
     SkipWhitespace;
 
@@ -2563,22 +2581,7 @@ begin
           Inc(IncludeLevel);
         end
         else if CondType = ctIgnore then
-        begin
-          StoreLocation(IgnoreLoc);
-          IgnoreLevel := 1;
-          repeat
-            FValue.Length := 0;
-            wc := FSource.SkipUntil(FValue, [#0, '<', ']']);
-            if FSource.Matches('<![') then
-              Inc(IgnoreLevel)
-            else if FSource.Matches(']]>') then
-              Dec(IgnoreLevel)
-            else if wc <> #0 then
-              FSource.NextChar
-            else // PE's aren't recognized in ignore section, cannot ContextPop()
-              DoErrorPos(esFatal, 'IGNORE section is not closed', IgnoreLoc);
-          until IgnoreLevel=0;
-        end;
+          ParseIgnoreSection;
       end
       else
       begin
@@ -3275,13 +3278,13 @@ begin
       b := TBinding(FCurrNode^.FPrefix^.Data);
       if not (Assigned(b) and (b.uri <> '')) then
         DoErrorPos(esFatal, 'Unbound element name prefix "%s"', [FCurrNode^.FPrefix^.Key],FCurrNode^.FLoc);
-      FCurrNode^.FNsUri := FNameTable.FindOrAdd(PWideChar(b.uri), Length(b.uri));
+      FCurrNode^.FNsUri := FNameTable.FindOrAdd(b.uri);
     end
     else
     begin
       b := FNSHelper.DefaultNSBinding;
       if Assigned(b) then
-        FCurrNode^.FNsUri := FNameTable.FindOrAdd(PWideChar(b.uri), Length(b.uri));
+        FCurrNode^.FNsUri := FNameTable.FindOrAdd(b.uri);
     end;
   end;
 
@@ -3464,7 +3467,7 @@ function TXMLTextReader.AddBinding(attrData: PNodeData): Boolean;
 var
   nsUri, Pfx: PHashItem;
 begin
-  nsUri := FNameTable.FindOrAdd(PWideChar(attrData^.FValueStr), Length(attrData^.FValueStr));
+  nsUri := FNameTable.FindOrAdd(attrData^.FValueStr);
   if attrData^.FColonPos > 0 then
     Pfx := FNSHelper.GetPrefix(@attrData^.FQName^.key[7], Length(attrData^.FQName^.key)-6)
   else
@@ -3514,7 +3517,7 @@ begin
     if FNsAttHash.Locate(@b.uri, @AttrName^.Key[J], Length(AttrName^.Key) - J+1) then
       DoErrorPos(esFatal, 'Duplicate prefixed attribute', attrData^.FLoc);
 
-    attrData^.FNsUri := FNameTable.FindOrAdd(PWideChar(b.uri), Length(b.uri));
+    attrData^.FNsUri := FNameTable.FindOrAdd(b.uri);
   end;
 end;
 
@@ -3634,7 +3637,7 @@ var
   Notation: TNotationDecl;
   Entry: PHashItem;
 begin
-  Entry := FDocType.Notations.FindOrAdd(PWideChar(aName), Length(aName));
+  Entry := FDocType.Notations.FindOrAdd(aName);
   if Entry^.Data = nil then
   begin
     Notation := TNotationDecl.Create;
