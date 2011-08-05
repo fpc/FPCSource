@@ -395,8 +395,7 @@ end;
 
 procedure TProcess.SetParameters(const AValue: TStrings);
 begin
-  if FParameters=AValue then exit;
-  FParameters:=AValue;
+  FParameters.Assign(AValue);
 end;
 
 Procedure TProcess.SetWindowRect (Value : Trect);
