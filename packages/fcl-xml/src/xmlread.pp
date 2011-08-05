@@ -1884,7 +1884,7 @@ begin
 
   if not discard then
   begin
-    FCurrNode := @FNodeStack[FNesting+1];
+    FCurrNode := @FNodeStack[FNesting];
     FCurrNode^.FNodeType := ntComment;
     FCurrNode^.FQName := nil;
     FCurrNode^.FValueStart := @FValue.Buffer[SaveLength];
@@ -2667,7 +2667,7 @@ begin
   case FCurrNode^.FNodeType of
     ntElement:
       begin
-        if (FNesting = 1) and (not FFragmentMode) then
+        if (FNesting = 0) and (not FFragmentMode) then
         begin
           if Assigned(FDocType) then
           begin
@@ -2755,8 +2755,7 @@ end;
 
 procedure TXMLTextReader.HandleEntityStart;
 begin
-  { FNesting+1 is available due to overallocation in AllocNodeData() }
-  FCurrNode := @FNodeStack[FNesting+1];
+  FCurrNode := @FNodeStack[FNesting];
   FCurrNode^.FNodeType := ntEntityReference;
   FCurrNode^.FQName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
   FCurrNode^.FValueStart := nil;
@@ -2767,7 +2766,7 @@ procedure TXMLTextReader.HandleEntityEnd;
 begin
   ContextPop(True);
   if FNesting > 0 then Dec(FNesting);
-  FCurrNode := @FNodeStack[FNesting+1];
+  FCurrNode := @FNodeStack[FNesting];
   FCurrNode^.FNodeType := ntEndEntity;
   // TODO: other properties of FCurrNode
   FNext := xtText;
@@ -3045,6 +3044,7 @@ begin
     if FAttrCleanupFlag then
       CleanupAttributes;
     FAttrCount := 0;
+    Inc(FNesting);
     FNext := xtText;
   end
   else if FNext = xtPopElement then
@@ -3114,7 +3114,7 @@ begin
       if InCDATA then
         FatalError('Unterminated CDATA section', -1);
       if FNesting > FSource.FStartNesting then
-        FatalError('End-tag is missing for ''%s''', [FNodeStack[FNesting].FQName^.Key]);
+        FatalError('End-tag is missing for ''%s''', [FNodeStack[FNesting-1].FQName^.Key]);
 
       if Assigned(FSource.FParent) then
       begin
@@ -3231,7 +3231,6 @@ begin
   FPrefixedAttrs := 0;
   FSpecifiedAttrs := 0;
 
-  Inc(FNesting);
   FCurrNode := AllocNodeData(FNesting);
   FCurrNode^.FQName := ElName;
   FCurrNode^.FNodeType := ntElement;
@@ -3304,6 +3303,7 @@ var
 begin
   if FNesting <= FSource.FStartNesting then
     FatalError('End-tag is not allowed here');
+  if FNesting > 0 then Dec(FNesting);
   Inc(FSource.FBuf);
 
   FCurrNode := @FNodeStack[FNesting];  // move off the possible child
@@ -3735,8 +3735,7 @@ end;
 
 procedure TXMLTextReader.SetNodeInfoWithValue(typ: TXMLNodeType; AName: PHashItem = nil);
 begin
-  {FNesting+1 is available due to overallocation in AllocNodeData() }
-  FCurrNode := @FNodeStack[FNesting+1];
+  FCurrNode := @FNodeStack[FNesting];
   FCurrNode^.FNodeType := typ;
   FCurrNode^.FQName := AName;
   FCurrNode^.FValueStart := FValue.Buffer;
@@ -3778,9 +3777,8 @@ begin
   if FNamespaces then
     FNSHelper.EndElement;
 
-  if (FNesting = 1) and (not FFragmentMode) then
+  if (FNesting = 0) and (not FFragmentMode) then
     FState := rsEpilog;
-  if FNesting > 0 then Dec(FNesting);
   FCurrNode := @FNodeStack[FNesting];
   FNext := xtText;
 end;
