@@ -142,8 +142,8 @@ function StrToDate(const S: AnsiString; const useformat : string; separator : ch
 function StrToTime(const S: PChar; Len : integer; separator : char = #0): TDateTime;
 function StrToDate(const S: PChar; Len : integer; const useformat : string; separator : char = #0): TDateTime;
 function StrToDateTime(const S: string): TDateTime;
-function StrToDateTime(const s: ShortString; const UseFormat : TFormatSettings): TDateTime;
-function StrToDateTime(const s: AnsiString; const UseFormat : TFormatSettings): TDateTime;
+function StrToDateTime(const s: ShortString; const Formatsettings : TFormatSettings): TDateTime;
+function StrToDateTime(const s: AnsiString; const Formatsettings : TFormatSettings): TDateTime;
 function FormatDateTime(const FormatStr: string; DateTime: TDateTime):string;
 function FormatDateTime(const FormatStr: string; DateTime: TDateTime; const FormatSettings: TFormatSettings): string;
 procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime);
