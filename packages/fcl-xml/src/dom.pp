@@ -2898,7 +2898,7 @@ begin
     begin
       case curr^.FNodeType of
         ntText: result.InternalAppend(doc.CreateTextNode(curr^.FValueStr));
-        ntEntityReference: result.InternalAppend(doc.CreateEntityReference(curr^.FValueStr));
+        ntEntityReference: result.InternalAppend(doc.CreateEntityReference(curr^.FQName^.Key));
       end;
       curr := curr^.FNext;
     end;

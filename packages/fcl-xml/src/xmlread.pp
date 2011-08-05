@@ -314,6 +314,7 @@ type
     FCanonical: Boolean;
     FMaxChars: Cardinal;
 
+    procedure SetEOFState;
     procedure SkipQuote(out Delim: WideChar; required: Boolean = True);
     procedure Initialize(ASource: TXMLCharSource);
     procedure NSPrepare;
@@ -1286,6 +1287,8 @@ begin
   FIDMap.Free;
   FForwardRefs.Free;
   FAttrChunks.Free;
+  if doc = nil then
+    FNameTable.Free;
   inherited Destroy;
 end;
 
@@ -1569,6 +1572,7 @@ var
   start: TObject;
   curr: PNodeData;
   StartPos: Integer;
+  entName: PHashItem;
 begin
   SkipQuote(Delim);
   curr := AttrData;
@@ -1584,6 +1588,7 @@ begin
       if ParseRef(FValue) or ResolvePredefined then
         Continue;
 
+      entName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
       ent := EntityCheck(True);
       if ((ent = nil) or (not FExpandEntities)) and (FSource.FEntity = start) then
       begin
@@ -1596,11 +1601,7 @@ begin
         end;
         curr := AllocAttributeValueChunk(curr);
         curr^.FNodeType := ntEntityReference;
-        // TODO: this probably should be placed to 'name'
-        if ent = nil then
-          SetString(curr^.FValueStr, FName.Buffer, FName.Length)
-        else
-          curr^.FValueStr := ent.FName;
+        curr^.FQName := entName;
       end;
       StartPos := FValue.Length;
       if Assigned(ent) then
@@ -2548,7 +2549,8 @@ begin
     if FSource.FBuf^ = '?' then
     begin
       ParsePI;
-      doc.AppendChild(CreatePINode);
+      if Assigned(doc) then
+        doc.AppendChild(CreatePINode);
     end
     else
     begin
@@ -2634,7 +2636,10 @@ var
   Ent: TDOMEntityEx;
   DoctypeNode: TDOMDocumentType;
 begin
-  DoctypeNode := doc.DocType;
+  if Assigned(doc) then
+    DoctypeNode := doc.DocType
+  else
+    Exit;
   if DoctypeNode = nil then
     Exit;
   Ent := TDOMEntityEx(DocTypeNode.Entities.GetNamedItem(AEntity.FName));
@@ -2655,6 +2660,14 @@ begin
     AEntity.FOnStack := False;
     Ent.SetReadOnly(True);
   end;
+end;
+
+
+procedure TXMLTextReader.SetEOFState;
+begin
+  FCurrNode := @FNodeStack[0];
+  Finalize(FCurrNode^);
+  FillChar(FCurrNode^, sizeof(TNodeData), 0);
 end;
 
 procedure TXMLTextReader.ValidateCurrentNode;
@@ -3018,6 +3031,7 @@ begin
           Exit;
         end;
       end;
+    xtEOF:  SetEofState;
   end;
   Result := tok <> xtEOF;
 end;
@@ -3191,6 +3205,7 @@ begin
     xtPI:         ParsePI;
     xtDoctype:    ParseDoctypeDecl;
     xtComment:    ParseComment(False);
+    xtEOF:        SetEofState;
   end;
   Result := tok <> xtEOF;
 end;
@@ -3677,9 +3692,12 @@ begin
     SetLength(FNodeStack, AIndex * 2 + 2);
 
   Result := @FNodeStack[AIndex];
+  Result^.FNext := nil;
   Result^.FPrefix := nil;
   Result^.FNsUri := nil;
   Result^.FIDEntry := nil;
+  Result^.FValueStart := nil;
+  Result^.FValueLength := 0;
 end;
 
 function TXMLTextReader.AllocAttributeValueChunk(APrev: PNodeData): PNodeData;
