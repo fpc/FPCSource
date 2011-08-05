@@ -257,7 +257,7 @@ begin
     deLayoutChange  : FEnableControlsEvent:=deLayoutChange;    
   end;
 
-  if not ControlsDisabled then begin
+  if not ControlsDisabled and (FState <> dsBlockRead) then begin
     for i := 0 to FDataSources.Count - 1 do
       TDataSource(FDataSources[i]).ProcessEvent(Event, Info);
   end;
@@ -862,6 +862,24 @@ begin
       CloseCursor;
       end;
     end;
+end;
+
+procedure TDataSet.SetBlockReadSize(AValue: Integer);
+begin
+  // the state is changed even when setting the same BlockReadSize (follows Delphi behavior)
+  // e.g., state is dsBrowse and BlockReadSize is 1. Setting BlockReadSize to 1 will change state to dsBlockRead
+  FBlockReadSize := AValue;
+  if AValue > 0 then
+  begin
+    CheckActive; 
+    SetState(dsBlockRead);
+  end	
+  else
+  begin
+    //update state only when in dsBlockRead 
+    if FState = dsBlockRead then
+      SetState(dsBrowse);
+  end;	
 end;
 
 Procedure TDataSet.SetFieldDefs(AFieldDefs: TFieldDefs);

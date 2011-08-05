@@ -1343,6 +1343,7 @@ type
     FBeforeRefresh: TDataSetNotifyEvent;
     FBeforeScroll: TDataSetNotifyEvent;
     FBlobFieldCount: Longint;
+    FBlockReadSize: Integer;
     FBookmarkSize: Longint;
     FBuffers : TBufferArray;
     FBufferCount: Longint;
@@ -1387,6 +1388,7 @@ type
     Function GetActive : boolean;
     Procedure UnRegisterDataSource(ADatasource : TDatasource);
     Procedure UpdateFieldDefs;
+    procedure SetBlockReadSize(AValue: Integer);
     Procedure SetFieldDefs(AFieldDefs: TFieldDefs);
     procedure DoInsertAppendRecord(const Values: array of const; DoAppend : boolean);
   protected
@@ -1591,6 +1593,7 @@ type
     procedure UpdateCursorPos;
     procedure UpdateRecord;
     function UpdateStatus: TUpdateStatus; virtual;
+    property BlockReadSize: Integer read FBlockReadSize write SetBlockReadSize;
     property BOF: Boolean read FBOF;
     property Bookmark: TBookmarkStr read GetBookmarkStr write SetBookmarkStr;
     property CanModify: Boolean read GetCanModify;
