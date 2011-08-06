@@ -20,7 +20,7 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-passrc');
-    P.Dependencies.Add('fcl-async');
+    P.Dependencies.Add('fcl-async',[linux,freebsd,netbsd,openbsd]);
 
     P.Author := 'Sebastian Guenther and Free Pascal development team';
     P.License := 'LGPL with modification, ';
