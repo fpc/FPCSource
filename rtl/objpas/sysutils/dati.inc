@@ -708,18 +708,13 @@ begin
     Raise EConvertError.Create(Msg);
 end;
 
-function StrToTime(const S: PChar; Len : integer; FormatSettings : TFormatSettings; separator : char = #0): TDateTime;
+function StrToTime(const S: string; FormatSettings : TFormatSettings): TDateTime;
 Var
   Msg : AnsiString;
 begin
-  Result:=IntStrToTime(Msg,S,Len,FormatSettings,#0);
+  Result:=IntStrToTime(Msg, @S[1], length(S), FormatSettings, #0);
   If (Msg<>'') then
     Raise EConvertError.Create(Msg);
-end;
-
-function StrToTime(const S: string; FormatSettings : TFormatSettings): TDateTime;
-begin
-  Result := StrToTime(@S[1], length(S), FormatSettings);
 end;
 
 function StrToTime(const s: ShortString; separator : char): TDateTime;

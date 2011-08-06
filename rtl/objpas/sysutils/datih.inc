@@ -135,15 +135,14 @@ function StrToTime(const S: Shortstring): TDateTime;                  {$ifdef SY
 function StrToTime(const S: Ansistring): TDateTime;                   {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToTime(const S: ShortString; separator : char): TDateTime;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToTime(const S: AnsiString; separator : char): TDateTime; {$ifdef SYSUTILSINLINE}inline;{$endif}
-function StrToTime(const S: PChar; Len : integer; FormatSettings : TFormatSettings; separator : char = #0): TDateTime;
 function StrToTime(const S: string; FormatSettings : TFormatSettings): TDateTime;
 function StrToDate(const S: ShortString; const useformat : string; separator : char): TDateTime;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToDate(const S: AnsiString; const useformat : string; separator : char): TDateTime;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToTime(const S: PChar; Len : integer; separator : char = #0): TDateTime;
 function StrToDate(const S: PChar; Len : integer; const useformat : string; separator : char = #0): TDateTime;
 function StrToDateTime(const S: string): TDateTime;
-function StrToDateTime(const s: ShortString; const Formatsettings : TFormatSettings): TDateTime;
-function StrToDateTime(const s: AnsiString; const Formatsettings : TFormatSettings): TDateTime;
+function StrToDateTime(const s: ShortString; const FormatSettings : TFormatSettings): TDateTime;
+function StrToDateTime(const s: AnsiString; const FormatSettings : TFormatSettings): TDateTime;
 function FormatDateTime(const FormatStr: string; DateTime: TDateTime):string;
 function FormatDateTime(const FormatStr: string; DateTime: TDateTime; const FormatSettings: TFormatSettings): string;
 procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime);
