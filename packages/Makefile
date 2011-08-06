@@ -9638,43 +9638,43 @@ fpmkunit_bootstrap:
 ifdef CROSSCOMPILE
 	$(MAKE) -C fpmkunit bootstrap
 endif
-fpmkunit_all: fpmkunit_bootstrap fcl-base_all fcl-process_all paszlib_all
-fpmkunit_debug: fpmkunit_bootstrap fcl-base_debug fcl-process_debug paszlib_debug
-fpmkunit_smart: fpmkunit_bootstrap fcl-base_smart fcl-process_smart paszlib_smart
-fpmkunit_release: fpmkunit_bootstrap fcl-base_release fcl-process_release paszlib_release
-fpmkunit_shared: fpmkunit_bootstrap fcl-base_shared fcl-process_shared paszlib_shared
+fpmkunit_all: fpmkunit_bootstrap fcl-process_all paszlib_all
+fpmkunit_debug: fpmkunit_bootstrap fcl-process_debug paszlib_debug
+fpmkunit_smart: fpmkunit_bootstrap fcl-process_smart paszlib_smart
+fpmkunit_release: fpmkunit_bootstrap fcl-process_release paszlib_release
+fpmkunit_shared: fpmkunit_bootstrap fcl-process_shared paszlib_shared
 ifneq ($(findstring $(OS_TARGET),darwin iphonesim),)
-fcl-base_all: univint_all paszlib_all
-fcl-base_debug: univint_debug paszlib_debug
-fcl-base_smart: univint_smart paszlib_smart
-fcl-base_release: univint_release paszlib_release
-fcl-base_shared: univint_shared paszlib_shared
+fcl-base_all: fpmkunit_all univint_all paszlib_all
+fcl-base_debug: fpmkunit_debug univint_debug paszlib_debug
+fcl-base_smart: fpmkunit_smart univint_smart paszlib_smart
+fcl-base_release: fpmkunit_release univint_release paszlib_release
+fcl-base_shared: fpmkunit_shared univint_shared paszlib_shared
 else
-fcl-base_all: paszlib_all
-fcl-base_debug: paszlib_debug
-fcl-base_smart: paszlib_smart
-fcl-base_release: paszlib_release
-fcl-base_shared: paszlib_shared
+fcl-base_all: fpmkunit_all paszlib_all
+fcl-base_debug: fpmkunit_debug paszlib_debug
+fcl-base_smart: fpmkunit_smart paszlib_smart
+fcl-base_release: fpmkunit_release paszlib_release
+fcl-base_shared: fpmkunit_shared paszlib_shared
 endif
 ifneq ($(findstring $(OS_TARGET),win32 win64),)
-fcl-extra_all: fcl-base winunits-base_all winunits-jedi_all
-fcl-extra_debug: fcl-base_debug winunits-base_debug winunits-jedi_debug
-fcl-extra_smart: fcl-base_smart winunits-base_smart winunits-jedi_smart
-fcl-extra_release: fcl-base_release winunits-base_release winunits-jedi_release
-fcl-extra_shared: fcl-base_shared winunits-base_shared winunits-jedi_shared
+fcl-extra_all: fpmkunit_all fcl-base winunits-base_all winunits-jedi_all
+fcl-extra_debug: fpmkunit_debug fcl-base_debug winunits-base_debug winunits-jedi_debug
+fcl-extra_smart: fpmkunit_smart fcl-base_smart winunits-base_smart winunits-jedi_smart
+fcl-extra_release: fpmkunit_release fcl-base_release winunits-base_release winunits-jedi_release
+fcl-extra_shared: fpmkunit_shared fcl-base_shared winunits-base_shared winunits-jedi_shared
 else
 ifneq ($(findstring $(OS_TARGET),darwin iphonesim),)
-fcl-extra_all: univint_all fcl-base_all
-fcl-extra_debug: univint_debug fcl-base_debug
-fcl-extra_smart: univint_smart fcl-base_smart
-fcl-extra_release: univint_release fcl-base_release
-fcl-extra_shared: univint_shared fcl-base_shared
+fcl-extra_all: fpmkunit_all univint_all fcl-base_all
+fcl-extra_debug: fpmkunit_debug univint_debug fcl-base_debug
+fcl-extra_smart: fpmkunit_smart univint_smart fcl-base_smart
+fcl-extra_release: fpmkunit_release univint_release fcl-base_release
+fcl-extra_shared: fpmkunit_shared univint_shared fcl-base_shared
 else
-fcl-extra_all: fcl-base_all
-fcl-extra_debug: fcl-base_debug
-fcl-extra_smart: fcl-base_smart
-fcl-extra_release: fcl-base_release
-fcl-extra_shared: fcl-base_shared
+fcl-extra_all: fpmkunit_all fcl-base_all
+fcl-extra_debug: fpmkunit_debug fcl-base_debug
+fcl-extra_smart: fpmkunit_smart fcl-base_smart
+fcl-extra_release: fpmkunit_release fcl-base_release
+fcl-extra_shared: fpmkunit_shared fcl-base_shared
 endif
 endif
 ifneq ($(findstring $(FULL_TARGET),i386-darwin powerpc-darwin x86_64-darwin powerpc64-darwin),)
@@ -9727,34 +9727,49 @@ fcl-fpcunit_debug: fcl-xml_debug paszlib_debug
 fcl-fpcunit_smart: fcl-xml_smart paszlib_smart
 fcl-fpcunit_release: fcl-xml_release paszlib_release
 fcl-fpcunit_shared: fcl-xml_shared paszlib_shared
-fcl-registry_all: fcl-xml_all
-fcl-registry_debug: fcl-xml_debug
-fcl-registry_smart: fcl-xml_smart
-fcl-registry_release: fcl-xml_release
-fcl-registry_shared: fcl-xml_shared
+fcl-registry_all: fpmkunit_all fcl-xml_all
+fcl-registry_debug: fpmkunit_debug fcl-xml_debug
+fcl-registry_smart: fpmkunit_smart fcl-xml_smart
+fcl-registry_release: fpmkunit_release fcl-xml_release
+fcl-registry_shared: fpmkunit_shared fcl-xml_shared
 ifeq ($(findstring $(OS_TARGET),linux darwin iphonesim freebsd openbsd netbsd solaris),)
-fcl-net_all: fcl-passrc_all fcl-xml_all
-fcl-net_debug: fcl-passrc_debug fcl-xml_debug
-fcl-net_smart: fcl-passrc_smart fcl-xml_smart
-fcl-net_release: fcl-passrc_release fcl-xml_release
-fcl-net_shared: fcl-passrc_shared fcl-xml_shared
+fcl-net_all: fpmkunit_all fcl-passrc_all fcl-xml_all
+fcl-net_debug: fpmkunit_debug fcl-passrc_debug fcl-xml_debug
+fcl-net_smart: fpmkunit_smart fcl-passrc_smart fcl-xml_smart
+fcl-net_release: fpmkunit_release fcl-passrc_release fcl-xml_release
+fcl-net_shared: fpmkunit_shared fcl-passrc_shared fcl-xml_shared
 else
-fcl-net_all: fcl-passrc_all fcl-xml_all fcl-async_all
-fcl-net_debug: fcl-passrc_debug fcl-xml_debug fcl-async_debug
-fcl-net_smart: fcl-passrc_smart fcl-xml_smart fcl-async_smart
-fcl-net_release: fcl-passrc_release fcl-xml_release fcl-async_release
-fcl-net_shared: fcl-passrc_shared fcl-xml_shared fcl-async_shared
+fcl-net_all: fpmkunit_all fcl-passrc_all fcl-xml_all fcl-async_all
+fcl-net_debug: fpmkunit_debug fcl-passrc_debug fcl-xml_debug fcl-async_debug
+fcl-net_smart: fpmkunit_smart fcl-passrc_smart fcl-xml_smart fcl-async_smart
+fcl-net_release: fpmkunit_release fcl-passrc_release fcl-xml_release fcl-async_release
+fcl-net_shared: fpmkunit_shared fcl-passrc_shared fcl-xml_shared fcl-async_shared
 endif
 fcl-web_all: fpmkunit_all fcl-db_all fcl-xml_all fcl-process_all httpd22_all fastcgi_all fcl-net_all fcl-json_all
 fcl-web_debug: fpmkunit_debug fcl-db_debug fcl-xml_debug fcl-process_debug httpd22_debug fastcgi_debug fcl-net_debug fcl-json_debug
 fcl-web_smart: fpmkunit_smart fcl-db_smart fcl-xml_smart fcl-process_smart httpd22_smart fastcgi_smart fcl-net_smart fcl-json_smart
 fcl-web_release: fpmkunit_release fcl-db_release fcl-xml_release fcl-process_release httpd22_release fastcgi_release fcl-net_release fcl-json_release
 fcl-web_shared: fpmkunit_shared fcl-db_shared fcl-xml_shared fcl-process_shared httpd22_shared fastcgi_shared fcl-net_shared fcl-json_shared
+fcl-passrc_all: fpmkunit_all
+fcl-passrc_debug: fpmkunit_debug
+fcl-passrc_smart: fpmkunit_smart
+fcl-passrc_release: fpmkunit_release
+fcl-passrc_shared: fpmkunit_shared
 fastcgi_all: fpmkunit_all
 fastcgi_debug: fpmkunit_debug
 fastcgi_smart: fpmkunit_smart
 fastcgi_release: fpmkunit_release
 fastcgi_shared: fpmkunit_shared
+fcl-res_all: fpmkunit_all
+fcl-res_debug: fpmkunit_debug
+fcl-res_smart: fpmkunit_smart
+fcl-res_release: fpmkunit_release
+fcl-res_shared: fpmkunit_shared
+fcl-async_all: fpmkunit_all
+fcl-async_debug: fpmkunit_debug
+fcl-async_smart: fpmkunit_smart
+fcl-async_release: fpmkunit_release
+fcl-async_shared: fpmkunit_shared
 ifneq ($(findstring $(OS_TARGET),linux freebsd openbsd netbsd win32 beos haiku),)
 fcl-db_all: fcl-xml_all mysql_all ibase_all oracle_all odbc_all postgres_all sqlite_all pxlib_all
 fcl-db_debug: fcl-xml_debug mysql_debug ibase_debug oracle_debug odbc_debug postgres_debug sqlite_debug pxlib_debug

@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for Free Component Library
+#   Makefile.fpc for running fpmake
 #
 
 [package]
@@ -7,43 +7,7 @@ name=fcl-extra
 version=2.7.1
 
 [require]
-packages=fcl-base
-packages_win32=winunits-base winunits-jedi  
-packages_win64=winunits-base winunits-jedi   
-packages_darwin=univint  
-packages_iphonesim=univint  
-
-[target]
- 
-units_freebsd=daemonapp
-units_darwin=daemonapp 
-units_iphonesim=daemonapp 
-units_solaris= daemonapp 
-units_netbsd=daemonapp 
-units_openbsd=daemonapp
-units_linux=daemonapp  
-units_win32= daemonapp ServiceManager 
-units_win64=daemonapp ServiceManager 
-rsts=daemonapp servicemanager
- 
-[compiler]
-options=-S2h
-includedir=src/$(OS_TARGET) src src/dummy
-includedir_linux=src/unix
-includedir_freebsd=src/unix
-includedir_darwin=src/unix
-includedir_iphonesim=src/unix
-includedir_netbsd=src/unix
-includedir_openbsd=src/unix
-includedir_solaris=src/unix
-includedir_qnx=src/unix
-includedir_beos=src/unix
-includedir_haiku=src/unix
-includedir_emx=src/os2
-includedir_win32=src/win
-includedir_win64=src/win
-includedir_wince=src/win
-sourcedir=src/$(OS_TARGET) src
+packages=rtl fpmkunit
 
 [install]
 fpcpackage=y
@@ -51,5 +15,60 @@ fpcpackage=y
 [default]
 fpcdir=../..
 
+[prerules]
+FPMAKE_BIN_CLEAN=$(wildcard .$(PATHSEP)fpmake$(SRCEXEEXT))
+ifdef OS_TARGET
+FPC_TARGETOPT+=--os=$(OS_TARGET)
+endif
+ifdef CPU_TARGET
+FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
+endif
+LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
+
 [rules]
-.NOTPARALLEL:
+fpmake: fpmake.pp
+	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR))
+all:	fpmake
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
+smart:	fpmake
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o -XX -o -CX
+release:	fpmake
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o -dRELEASE
+debug:	fpmake
+	$(LOCALFPMAKE) compile --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) -o -dDEBUG
+# If no fpmake exists and (dist)clean is called, do not try to build fpmake, it will
+# most often fail because the dependencies are cleared.
+# In case of a clean, simply do nothing
+ifeq ($(FPMAKE_BIN_CLEAN),)
+clean:	
+else
+clean:	
+	$(FPMAKE_BIN_CLEAN) clean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
+endif
+# In case of a distclean, perform an 'old'-style distclean. This to avoid problems
+# when the package is compiled using fpcmake prior to running this clean using fpmake
+ifeq ($(FPMAKE_BIN_CLEAN),)
+distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_distclean
+else
+distclean:	
+ifdef inUnix
+        { $(FPMAKE_BIN_CLEAN) distclean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC); if [ $$? != "0" ]; then { echo Something wrong with fpmake exectable. Remove the executable and call make recursively to recover.; $(DEL) $(FPMAKE_BIN_CLEAN); $(MAKE) fpc_cleanall; }; fi;  }
+else
+        $(FPMAKE_BIN_CLEAN) distclean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
+endif
+	-$(DEL) $(LOCALFPMAKE)
+endif
+install:	fpmake
+ifdef UNIXHier
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX)
+else
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_BASEDIR)
+endif
+# distinstall also installs the example-sources
+distinstall:	fpmake
+ifdef UNIXHier
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX) -ie
+else
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_BASEDIR) -ie
+endif
+
