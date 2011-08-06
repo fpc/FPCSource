@@ -2232,7 +2232,7 @@ clean:
 	$(FPMAKE_BIN_CLEAN) clean --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC)
 endif
 ifeq ($(FPMAKE_BIN_CLEAN),)
-distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_distclean
+distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_cleanall
 else
 distclean:	
 ifdef inUnix

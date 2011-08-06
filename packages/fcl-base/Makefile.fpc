@@ -48,7 +48,7 @@ endif
 # In case of a distclean, perform an 'old'-style distclean. This to avoid problems
 # when the package is compiled using fpcmake prior to running this clean using fpmake
 ifeq ($(FPMAKE_BIN_CLEAN),)
-distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_distclean
+distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_cleanall
 else
 distclean:	
 ifdef inUnix
