@@ -8282,6 +8282,13 @@
     flags   : if_sse41 or if_sm
   ),
   (
+    opcode  : A_PMULLD;
+    ops     : 2;
+    optypes : (ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #241#3#15#56#64#72;
+    flags   : if_sse41 or if_sm
+  ),
+  (
     opcode  : A_PTEST;
     ops     : 2;
     optypes : (ot_xmmreg,ot_xmmrm,ot_none);
