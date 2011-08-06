@@ -3001,7 +3001,7 @@ implementation
              trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).padalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).usefieldalignment:=shortint(ppufile.getbyte);
-             trecordsymtable(symtable).datasize:=ppufile.getaint;
+             trecordsymtable(symtable).datasize:=ppufile.getasizeint;
              trecordsymtable(symtable).ppuload(ppufile);
              { requires usefieldalignment to be set }
              symtable.defowner:=self;
@@ -3086,7 +3086,7 @@ implementation
              ppufile.putbyte(byte(trecordsymtable(symtable).recordalignment));
              ppufile.putbyte(byte(trecordsymtable(symtable).padalignment));
              ppufile.putbyte(byte(trecordsymtable(symtable).usefieldalignment));
-             ppufile.putaint(trecordsymtable(symtable).datasize);
+             ppufile.putasizeint(trecordsymtable(symtable).datasize);
            end;
 
          ppufile.writeentry(ibrecorddef);
@@ -4384,9 +4384,9 @@ implementation
          if (import_lib^='') then
            stringdispose(import_lib);
          symtable:=tObjectSymtable.create(self,objrealname^,0);
-         tObjectSymtable(symtable).datasize:=ppufile.getaint;
-         tObjectSymtable(symtable).fieldalignment:=ppufile.getbyte;
-         tObjectSymtable(symtable).recordalignment:=ppufile.getbyte;
+         tObjectSymtable(symtable).datasize:=ppufile.getasizeint;
+         tObjectSymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
+         tObjectSymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
          vmt_offset:=ppufile.getlongint;
          ppufile.getderef(childofderef);
 
@@ -4554,9 +4554,9 @@ implementation
            ppufile.putstring(import_lib^)
          else
            ppufile.putstring('');
-         ppufile.putaint(tObjectSymtable(symtable).datasize);
-         ppufile.putbyte(tObjectSymtable(symtable).fieldalignment);
-         ppufile.putbyte(tObjectSymtable(symtable).recordalignment);
+         ppufile.putasizeint(tObjectSymtable(symtable).datasize);
+         ppufile.putbyte(byte(tObjectSymtable(symtable).fieldalignment));
+         ppufile.putbyte(byte(tObjectSymtable(symtable).recordalignment));
          ppufile.putlongint(vmt_offset);
          ppufile.putderef(childofderef);
          if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
