@@ -9733,17 +9733,17 @@ fcl-registry_smart: fpmkunit_smart fcl-xml_smart
 fcl-registry_release: fpmkunit_release fcl-xml_release
 fcl-registry_shared: fpmkunit_shared fcl-xml_shared
 ifeq ($(findstring $(OS_TARGET),linux darwin iphonesim freebsd openbsd netbsd solaris),)
-fcl-net_all: fpmkunit_all fcl-passrc_all fcl-xml_all
-fcl-net_debug: fpmkunit_debug fcl-passrc_debug fcl-xml_debug
-fcl-net_smart: fpmkunit_smart fcl-passrc_smart fcl-xml_smart
-fcl-net_release: fpmkunit_release fcl-passrc_release fcl-xml_release
-fcl-net_shared: fpmkunit_shared fcl-passrc_shared fcl-xml_shared
+fcl-net_all: fpmkunit_all fcl-async fcl-passrc_all fcl-xml_all
+fcl-net_debug: fpmkunit_debug fcl-async fcl-passrc_debug fcl-xml_debug
+fcl-net_smart: fpmkunit_smart fcl-async fcl-passrc_smart fcl-xml_smart
+fcl-net_release: fpmkunit_release fcl-async fcl-passrc_release fcl-xml_release
+fcl-net_shared: fpmkunit_shared fcl-async fcl-passrc_shared fcl-xml_shared
 else
-fcl-net_all: fpmkunit_all fcl-passrc_all fcl-xml_all fcl-async_all
-fcl-net_debug: fpmkunit_debug fcl-passrc_debug fcl-xml_debug fcl-async_debug
-fcl-net_smart: fpmkunit_smart fcl-passrc_smart fcl-xml_smart fcl-async_smart
-fcl-net_release: fpmkunit_release fcl-passrc_release fcl-xml_release fcl-async_release
-fcl-net_shared: fpmkunit_shared fcl-passrc_shared fcl-xml_shared fcl-async_shared
+fcl-net_all: fpmkunit_all fcl-async fcl-passrc_all fcl-xml_all fcl-async_all
+fcl-net_debug: fpmkunit_debug fcl-async fcl-passrc_debug fcl-xml_debug fcl-async_debug
+fcl-net_smart: fpmkunit_smart fcl-async fcl-passrc_smart fcl-xml_smart fcl-async_smart
+fcl-net_release: fpmkunit_release fcl-async fcl-passrc_release fcl-xml_release fcl-async_release
+fcl-net_shared: fpmkunit_shared fcl-async fcl-passrc_shared fcl-xml_shared fcl-async_shared
 endif
 fcl-web_all: fpmkunit_all fcl-db_all fcl-xml_all fcl-process_all httpd22_all fastcgi_all fcl-net_all fcl-json_all
 fcl-web_debug: fpmkunit_debug fcl-db_debug fcl-xml_debug fcl-process_debug httpd22_debug fastcgi_debug fcl-net_debug fcl-json_debug
