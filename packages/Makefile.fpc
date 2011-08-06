@@ -31,8 +31,8 @@ dirs_iphonesim=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc
                libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc gmp fcl-extra univint
 dirs_i386_darwin=graph sdl opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1  httpd22 imlib objcrtl cocoaint opencl openal
 dirs_powerpc_darwin=graph sdl opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1  httpd22 imlib objcrtl cocoaint
-dirs_x86_64_darwin=opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1  httpd22 imlib cocoaint
-dirs_powerpc64_darwin=opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1  httpd22 imlib cocoaint
+dirs_x86_64_darwin=opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1  httpd22 imlib cocoaint objcrtl
+dirs_powerpc64_darwin=opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1  httpd22 imlib cocoaint objcrtl
 dirs_arm_darwin= httpd22 opengles objcrtl
 dirs_i386_iphonesim= httpd22 opengles objcrtl
 dirs_solaris=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
