@@ -366,6 +366,22 @@ end;
                              Read Routines
 ****************************************************************************}
 
+procedure readrecsymtableoptions;
+var
+  usefieldalignment : shortint;
+begin
+  if ppufile.readentry<>ibrecsymtableoptions then
+    begin
+      has_errors:=true;
+      exit;
+    end;
+  writeln(space,' recordalignment: ',shortint(ppufile.getbyte));
+  usefieldalignment:=shortint(ppufile.getbyte);
+  writeln(space,' usefieldalignment: ',usefieldalignment);
+  if (usefieldalignment=C_alignment) then
+    writeln(space,' fieldalignment: ',shortint(ppufile.getbyte));
+end;
+
 procedure readsymtableoptions(const s: string);
 type
   tsymtblopt=record
@@ -1968,6 +1984,7 @@ begin
                HasMoreInfos;
              {read the record definitions and symbols}
              space:='    '+space;
+             readrecsymtableoptions;
              readsymtableoptions('fields');
              readdefinitions('fields');
              readsymbols('fields');
@@ -2051,6 +2068,7 @@ begin
                begin
                  {read the record definitions and symbols}
                  space:='    '+space;
+                 readrecsymtableoptions;
                  readsymtableoptions('fields');
                  readdefinitions('fields');
                  readsymbols('fields');
