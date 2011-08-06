@@ -580,11 +580,14 @@ class ObjectivePParser extends ObjectivePParserBase {
 	// Makes a struct field into an inline array (or returns field un-changed)
 	function MakeFieldInlineArray ($io_field, $line, $name, $type) {
 
-		if (eregi("\[([0-9]+)\];", $line, $array_size)) {
-			$length = (int)$array_size[1] - 1;
-			if ($length > 0) {
-				$io_field = "    $name: array[0..$length] of $type;";
-			}
+		if (eregi("\[([^]]+)\];", $line, $array_size)) {
+			if ($array_size[1] == "")
+				$io_field = "$name: array[0..0] of $type; { dynamically expanding, 0 elements in C }";
+			else if ($array_size[1] == "0")
+				$io_field = "$name: record end; { array of 0 elements in C, does not allocate space }";
+			else
+				// array_size[1] may be a symbolic constant rather than a number, so don't calculate in php
+				$io_field = "$name: array[0..($array_size[1])-1] of $type;";
 		}
 		
 		return $io_field;
