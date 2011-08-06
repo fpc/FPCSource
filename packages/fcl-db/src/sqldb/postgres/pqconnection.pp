@@ -601,11 +601,11 @@ begin
           begin
           case AParams[i].DataType of
             ftDateTime:
-              s := FormatDateTime('yyyy-mm-dd hh:nn:ss', AParams[i].AsDateTime);
+              s := FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', AParams[i].AsDateTime);
             ftDate:
               s := FormatDateTime('yyyy-mm-dd', AParams[i].AsDateTime);
             ftTime:
-              s := FormatDateTime('hh:nn:ss', AParams[i].AsDateTime);
+              s := FormatDateTime('hh:nn:ss.zzz', AParams[i].AsDateTime);
             ftFloat, ftBCD:
               Str(AParams[i].AsFloat, s);
             ftCurrency:
@@ -778,12 +778,14 @@ begin
           dbl := pointer(buffer);
           dbl^ := BEtoN(plongint(CurrBuff)^) + 36526;
           end;
-        ftDateTime, fttime :
+        ftDateTime, ftTime :
           begin
           pint64(buffer)^ := BEtoN(pint64(CurrBuff)^);
           dbl := pointer(buffer);
           if FIntegerDatetimes then dbl^ := pint64(buffer)^/1000000;
-          dbl^ := (dbl^+3.1558464E+009)/86400;  // postgres counts seconds elapsed since 1-1-2000
+          if FieldDef.DataType = ftDateTime then
+            dbl^ := dbl^ + 3.1558464E+009; // postgres counts seconds elapsed since 1-1-2000
+          dbl^ := dbl^ / 86400;
           // Now convert the mathematically-correct datetime to the
           // illogical windows/delphi/fpc TDateTime:
           if (dbl^ <= 0) and (frac(dbl^)<0) then
