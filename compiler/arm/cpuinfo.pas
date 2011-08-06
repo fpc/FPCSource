@@ -76,7 +76,7 @@ Type
       ct_stm32f103re,
 
       { TI }
-      stellaris
+      ct_stellaris
      );
 
 Const
