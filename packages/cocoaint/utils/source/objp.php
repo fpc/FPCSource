@@ -3346,7 +3346,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 					}
 					
 					// instance var section terminated.
-					if (eregi("^\s*}\s*[;]*$", $line)) {
+					if (preg_match("!^\s*}\s*[;]*$!", $line)) {
 						$struct = null;
 						$got_instance_vars = false;
 						$this->instance_var_scope = null;
@@ -3356,7 +3356,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 					
 					// the instance variable section started after the class line and no other ivar's were parsed yet
 					if (!$this->dump[$file_name]["classes"][$current]["ivars"]) {
-						if (eregi("{\s*$", $line)) {
+						if (preg_match("!{\s*$!", $line)) {
 							$got_instance_vars = true;
 							continue;
 						}
@@ -3437,7 +3437,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 					$has_superclass = true;
 					
 					// check for instance variable section
-					if (eregi("{\s*$", $line)) $got_instance_vars = true;
+					if (preg_match("!{\s*$!", $line)) $got_instance_vars = true;
 					
 					// get the protocols which the class adopts
 					if (eregi($this->regex_objc_class, $line, $captures)) {
