@@ -92,14 +92,18 @@ interface
           function has_single_field(out sym:tfieldvarsym): boolean;
           function get_unit_symtable: tsymtable;
         protected
-          _datasize       : asizeint;
+          { size in bytes including padding }
+          _datasize      : asizeint;
           { size in bits of the data in case of bitpacked record. Only important during construction, }
           { no need to save in/restore from ppu file. datasize is always (databitsize+7) div 8.       }
           databitsize    : asizeint;
+          { size in bytes of padding }
+          _paddingsize   : word;
           procedure setdatasize(val: asizeint);
         public
           function iscurrentunit: boolean; override;
           property datasize : asizeint read _datasize write setdatasize;
+          property paddingsize: word read _paddingsize write _paddingsize;
        end;
 
        trecordsymtable = class(tabstractrecordsymtable)
@@ -1021,6 +1025,8 @@ implementation
 
 
     procedure tabstractrecordsymtable.addalignmentpadding;
+      var
+        padded_datasize: asizeint;
       begin
         { make the record size aligned correctly so it can be
           used as elements in an array. For C records we
@@ -1043,7 +1049,9 @@ implementation
             else
               padalignment:=min(recordalignment,usefieldalignment);
           end;
-        _datasize:=align(_datasize,padalignment);
+        padded_datasize:=align(_datasize,padalignment);
+        _paddingsize:=padded_datasize-_datasize;
+        _datasize:=padded_datasize;
       end;
 
 

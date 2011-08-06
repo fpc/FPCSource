@@ -3002,6 +3002,7 @@ implementation
              trecordsymtable(symtable).padalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).usefieldalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).datasize:=ppufile.getasizeint;
+             trecordsymtable(symtable).paddingsize:=ppufile.getword;
              trecordsymtable(symtable).ppuload(ppufile);
              { requires usefieldalignment to be set }
              symtable.defowner:=self;
@@ -3087,6 +3088,7 @@ implementation
              ppufile.putbyte(byte(trecordsymtable(symtable).padalignment));
              ppufile.putbyte(byte(trecordsymtable(symtable).usefieldalignment));
              ppufile.putasizeint(trecordsymtable(symtable).datasize);
+             ppufile.putword(trecordsymtable(symtable).paddingsize);
            end;
 
          ppufile.writeentry(ibrecorddef);
@@ -4385,6 +4387,7 @@ implementation
            stringdispose(import_lib);
          symtable:=tObjectSymtable.create(self,objrealname^,0);
          tObjectSymtable(symtable).datasize:=ppufile.getasizeint;
+         tObjectSymtable(symtable).paddingsize:=ppufile.getword;
          tObjectSymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
          tObjectSymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
          vmt_offset:=ppufile.getlongint;
@@ -4555,6 +4558,7 @@ implementation
          else
            ppufile.putstring('');
          ppufile.putasizeint(tObjectSymtable(symtable).datasize);
+         ppufile.putword(tObjectSymtable(symtable).paddingsize);
          ppufile.putbyte(byte(tObjectSymtable(symtable).fieldalignment));
          ppufile.putbyte(byte(tObjectSymtable(symtable).recordalignment));
          ppufile.putlongint(vmt_offset);
@@ -4804,6 +4808,10 @@ implementation
             if (tObjectSymtable(c.symtable).usefieldalignment=C_alignment) and
                (tObjectSymtable(symtable).usefieldalignment=C_alignment) then
               tObjectSymtable(symtable).fieldalignment:=tObjectSymtable(c.symtable).fieldalignment;
+            { the padding is not inherited for Objective-C classes (maybe not
+              for cppclass either?) }
+            if objecttype=odt_objcclass then
+              tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize-tObjectSymtable(c.symtable).paddingsize;
             if (oo_has_vmt in objectoptions) and
                (oo_has_vmt in c.objectoptions) then
               tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize-sizeof(pint);
