@@ -1251,6 +1251,7 @@ implementation
                 list.add(current_structdef);
               end;
           end;
+        tabstractrecordsymtable(current_objectdef.symtable).addalignmentpadding;
 
         { return defined objectdef }
         result:=current_objectdef;

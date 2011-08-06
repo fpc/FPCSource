@@ -833,6 +833,12 @@ implementation
 
     procedure tabstractrecordsymtable.ppuload(ppufile:tcompilerppufile);
       begin
+        if ppufile.readentry<>ibrecsymtableoptions then
+          Message(unit_f_ppu_read_error);
+        recordalignment:=shortint(ppufile.getbyte);
+        usefieldalignment:=shortint(ppufile.getbyte);
+        if (usefieldalignment=C_alignment) then
+          fieldalignment:=shortint(ppufile.getbyte);
         inherited ppuload(ppufile);
       end;
 
@@ -843,6 +849,13 @@ implementation
       begin
          oldtyp:=ppufile.entrytyp;
          ppufile.entrytyp:=subentryid;
+         { in case of classes using C alignment, the alignment of the parent
+           affects the alignment of fields of the childs }
+         ppufile.putbyte(byte(recordalignment));
+         ppufile.putbyte(byte(usefieldalignment));
+         if (usefieldalignment=C_alignment) then
+           ppufile.putbyte(byte(fieldalignment));
+         ppufile.writeentry(ibrecsymtableoptions);
 
          inherited ppuwrite(ppufile);
 

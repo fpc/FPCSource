@@ -4799,6 +4799,11 @@ implementation
             tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize+tObjectSymtable(c.symtable).datasize;
             { inherit recordalignment }
             tObjectSymtable(symtable).recordalignment:=tObjectSymtable(c.symtable).recordalignment;
+            { if both the parent and this record use C-alignment, also inherit
+              the current field alignment }
+            if (tObjectSymtable(c.symtable).usefieldalignment=C_alignment) and
+               (tObjectSymtable(symtable).usefieldalignment=C_alignment) then
+              tObjectSymtable(symtable).fieldalignment:=tObjectSymtable(c.symtable).fieldalignment;
             if (oo_has_vmt in objectoptions) and
                (oo_has_vmt in c.objectoptions) then
               tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize-sizeof(pint);
