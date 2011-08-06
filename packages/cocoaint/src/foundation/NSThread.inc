@@ -49,7 +49,7 @@ var
   NSThread = objcclass external (NSObject)
   private
     _private: id;
-        _bytes: array[0..43] of cuint8;
+    _bytes: array[0..(44)-1] of cuint8;
     
   public
     class function currentThread: NSThread; message 'currentThread';

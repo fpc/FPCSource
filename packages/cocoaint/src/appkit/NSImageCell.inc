@@ -70,15 +70,16 @@ type
   NSImageCell = objcclass external (NSCell, NSCopyingProtocol, NSCodingProtocol)
   private
     _controlView: id;
-    __icFlags: bitpacked record
+    __icFlags: record
       case byte of
        0: (_anonbitfield_NSImageCell0: cuint);
-       1: (
+       1: (data: bitpacked record
         _unused: 0..((1 shl 22)-1);
         _animates: 0..1;
         _align: 0..((1 shl 4)-1);
         _scale: 0..((1 shl 2)-1);
         _style: 0..((1 shl 3)-1);
+       end;
       );
       end;
     __animationState: Pointer;

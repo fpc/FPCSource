@@ -67,10 +67,10 @@ var
     _quotesBrowser: id;
     _replacementsBrowser: id;
     _defineButton: id;
-    __scFlags: bitpacked record
+    __scFlags: record
       case byte of
        0: (_anonbitfield_NSSpellChecker0: cuint);
-       1: (
+       1: (data: bitpacked record
         autoShowGuesses: 0..1;
         needDelayedGuess: 0..1;
         unignoreInProgress: 0..1;
@@ -83,6 +83,7 @@ var
         languagesHidden: 0..1;
         quotesByLanguage: 0..1;
         _reserved: 0..((1 shl 21)-1);
+       end;
       );
       end;
     _substitutionsPanel: id;

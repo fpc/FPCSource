@@ -53,12 +53,13 @@ const
     _reserved4: Pointer;
     _fetchRequest: NSExpression;
     _managedObjectContext: NSExpression;
-    __flags: bitpacked record
+    __flags: record
       case byte of
        0: (_anonbitfield_NSFetchRequestExpression0: cuint);
-       1: (
+       1: (data: bitpacked record
         isCountOnly: 0..1;
         _RESERVED: 0..((1 shl 31)-1);
+       end;
       );
       end;
     

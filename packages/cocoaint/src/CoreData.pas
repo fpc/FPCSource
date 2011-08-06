@@ -1,6 +1,7 @@
 {$mode delphi}
 {$modeswitch cvar}
 {$modeswitch objectivec1}
+{$packrecords c}
 unit CoreData;
 interface
 uses

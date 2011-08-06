@@ -76,10 +76,10 @@ type
     _activeSeed: cuint;
     _staleSeed: cuint;
     _obsMask: culonglong;
-    __aflags: bitpacked record
+    __aflags: record
       case byte of
        0: (_anonbitfield_NSRunningApplication0: cuint);
-       1: (
+       1: (data: bitpacked record
         fetchedDynamic: 0..1;
         deadToUs: 0..1;
         terminated: 0..1;
@@ -89,6 +89,7 @@ type
         arch: 0..((1 shl 3)-1);
         activationPolicy: 0..((1 shl 3)-1);
         reserved1: 0..((1 shl 20)-1);
+       end;
       );
       end;
     _appReserved: id;

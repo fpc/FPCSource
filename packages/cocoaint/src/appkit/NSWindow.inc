@@ -173,10 +173,10 @@ var
     _sizeLimits: NSSizePtr;
     _frameSaveName: NSString;
     _regDragTypes: NSSet;
-    __wFlags: bitpacked record
+    __wFlags: record
       case byte of
        0: (_anonbitfield_NSWindow0: cuint);
-       1: (
+       1: (data: bitpacked record
         backing: 0..((1 shl 2)-1);
         visible: 0..1;
         _isMainWindow: 0..1;
@@ -234,6 +234,7 @@ var
         needsZoom: 0..1;
         sentWindowNeedsDisplayMsg: 0..1;
         liveResizeActive: 0..1;
+       end;
       );
       end;
     _defaultButtonCell: id;

@@ -47,15 +47,16 @@
     _document: NSDocument;
     _topLevelObjects: NSArray;
     _owner: id;
-    __wcFlags: bitpacked record
+    __wcFlags: record
       case byte of
        0: (_anonbitfield_NSWindowController0: cuint);
-       1: (
+       1: (data: bitpacked record
         _shouldCloseDocument: 0..1;
         shouldCascade: 0..1;
         nibIsLoaded: 0..1;
         nibNameIsPath: 0..1;
         RESERVED: 0..((1 shl 28)-1);
+       end;
       );
       end;
     _frameAutosaveName: NSString;

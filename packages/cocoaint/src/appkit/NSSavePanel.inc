@@ -19,10 +19,10 @@ const
 
 { Records }
 type
-  __SPFlags = bitpacked record
+  __SPFlags = record
     case byte of
     0: (_anonbitfield_NSSavePanel0: cuint);
-    1: (
+    1: (data: bitpacked record
           saveMode: 0..1;
           isExpanded: 0..1;
           allowsOtherFileTypes: 0..1;
@@ -38,6 +38,7 @@ type
           movingAccessoryView: 0..1;
           userAccessoryViewFrameChange: 0..1;
           reserved: 0..((1 shl 18)-1);
+         end;
        );
   end;
 _SPFlags = __SPFlags;
@@ -102,7 +103,7 @@ __SPFlagsPtr = ^__SPFlags;
     _newFolderController: id;
     _spFlags: _SPFlags;
     _spAuxiliaryStorage: NSSavePanelAuxiliary;
-        _reserved: array[0..4] of char;
+    _reserved: array[0..(5)-1] of char;
     _openProgressIndicator: NSProgressIndicator;
     
   public

@@ -45,10 +45,10 @@
     _reserved4: Pointer;
     _rearrangementExtensions: id;
     _temporaryWorkObjects: NSMutableArray;
-    __arrayControllerFlags: bitpacked record
+    __arrayControllerFlags: record
       case byte of
        0: (_anonbitfield_NSArrayController0: cuint);
-       1: (
+       1: (data: bitpacked record
         _avoidsEmptySelection: 0..1;
         _preservesSelection: 0..1;
         _selectsInsertedObjects: 0..1;
@@ -65,6 +65,7 @@
         _skipSortingAfterFetch: 0..1;
         _automaticallyRearrangesObjects: 0..1;
         _reservedArrayController: 0..((1 shl 17)-1);
+       end;
       );
       end;
     _observedIndexHint: NSUInteger;

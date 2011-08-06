@@ -72,10 +72,10 @@ type
     _offsets: NSSize;
     _borderRect: NSRect;
     _titleRect: NSRect;
-    __bFlags: bitpacked record
+    __bFlags: record
       case byte of
        0: (_anonbitfield_NSBox0: NSBorderType);
-       1: (
+       1: (data: bitpacked record
         _borderType: 0..((1 shl 2)-1);
         _titlePosition: 0..((1 shl 3)-1);
         backgroundTransparent: 0..1;
@@ -85,6 +85,7 @@ type
         colorAltInterpretation: 0..1;
         _boxType: 0..((1 shl 3)-1);
         _RESERVED: 0..((1 shl 18)-1);
+       end;
       );
       end;
     _unused: id;

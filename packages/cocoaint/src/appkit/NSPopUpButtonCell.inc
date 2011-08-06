@@ -60,10 +60,10 @@ var
   private
     _menu: NSMenu;
     _selectedIndex: cint;
-    __pbcFlags: bitpacked record
+    __pbcFlags: record
       case byte of
        0: (_anonbitfield_NSPopUpButtonCell0: cuint);
-       1: (
+       1: (data: bitpacked record
         _pullsDown: 0..1;
         _preferredEdge: 0..((1 shl 3)-1);
         menuIsAttached: 0..1;
@@ -75,6 +75,7 @@ var
         drawing: 0..1;
         menuShouldBeUniquedAgainstMain: 0..1;
         RESERVED: 0..((1 shl 19)-1);
+       end;
       );
       end;
     {$ifdef cpu64}

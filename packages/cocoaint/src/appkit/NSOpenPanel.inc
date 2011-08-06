@@ -42,7 +42,7 @@
 { NSOpenPanel }
   NSOpenPanel = objcclass external (NSSavePanel)
   private
-        _reservedOpenPanel: array[0..3] of char;
+    _reservedOpenPanel: array[0..(4)-1] of char;
     _privateOpenPanel: Pointer;
     
   public

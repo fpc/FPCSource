@@ -43,12 +43,13 @@
   NSToolbarItemGroup = objcclass external (NSToolbarItem)
   private
     _groupItems: id;
-    __giFlags: bitpacked record
+    __giFlags: record
       case byte of
        0: (_anonbitfield_NSToolbarItemGroup0: cuint);
-       1: (
+       1: (data: bitpacked record
         dirtiedLayout: 0..1;
         reserved: 0..((1 shl 31)-1);
+       end;
       );
       end;
     _giReserved: id;

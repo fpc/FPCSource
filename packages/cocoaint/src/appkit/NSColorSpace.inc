@@ -60,10 +60,10 @@ type
   NSColorSpace = objcclass external (NSObject, NSCodingProtocol)
   private
     _profile: id;
-    __flags: bitpacked record
+    __flags: record
       case byte of
        0: (_anonbitfield_NSColorSpace2: cuint);
-       1: (
+       1: (data: bitpacked record
         colorSpaceID: 0..((1 shl 8)-1);
         storageType: 0..((1 shl 3)-1);
         replacedDuringUnarchiving: 0..1;
@@ -71,10 +71,11 @@ type
         {$ifdef cpu64}
         _anonbitfield_NSColorSpace1: 0..((1 shl 32)-1);
         {$endif}
+       end;
       );
       end;
     __cgColorSpace: Pointer;
-        _reserved: array[0..4] of Pointer;
+    _reserved: array[0..(5)-1] of Pointer;
     
   public
     function initWithICCProfileData(iccData: NSData): id; message 'initWithICCProfileData:';

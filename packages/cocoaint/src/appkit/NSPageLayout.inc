@@ -50,9 +50,9 @@
     _presentedPrintInfo: NSPrintInfo;
     _windowController: NSWindowController;
     {$ifdef cpu64}
-        _reserved: array[0..3] of id;
+    _reserved: array[0..(4)-1] of id;
     {$else}
-        _compatibilityPadding: array[0..155] of char;
+    _compatibilityPadding: array[0..(156)-1] of char;
     {$endif}
     
   public

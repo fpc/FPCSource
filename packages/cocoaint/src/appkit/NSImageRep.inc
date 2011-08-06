@@ -51,10 +51,10 @@ var
 { NSImageRep }
   NSImageRep = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __repFlags: bitpacked record
+    __repFlags: record
       case byte of
        0: (_anonbitfield_NSImageRep0: cuint);
-       1: (
+       1: (data: bitpacked record
         _hasAlpha: 0..1;
         _isOpaque: 0..1;
         cacheParamsComputed: 0..1 deprecated;
@@ -64,6 +64,7 @@ var
         reserved: 0..1;
         _bitsPerSample: 0..((1 shl 8)-1);
         gsaved: 0..((1 shl 16)-1);
+       end;
       );
       end;
     _colorSpaceName: NSString;

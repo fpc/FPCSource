@@ -43,7 +43,7 @@
   NSAnimationContext = objcclass external (NSObject)
   private
     _duration: NSTimeInterval;
-        _reserved: array[0..4] of id;
+    _reserved: array[0..(5)-1] of id;
     
   public
     class procedure beginGrouping; message 'beginGrouping';

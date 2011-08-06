@@ -66,11 +66,12 @@ type
     _allowedTypes: NSArray;
     _doubleAction: SEL;
     _delegate: id;
-    __piFlags: bitpacked record
+    __piFlags: record
       case byte of
        0: (_anonbitfield_NSPathCell0: cuint);
-       1: (
+       1: (data: bitpacked record
         reserved: 0..((1 shl 32)-1);
+       end;
       );
       end;
     _pathStyle: NSPathStyle;

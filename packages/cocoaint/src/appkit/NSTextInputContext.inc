@@ -52,12 +52,12 @@ var
     _keyBindings: id;
     _keyBindingManager: id;
     _commandCharacters: NSString;
-        _reserved: array[0..2] of id;
+    _reserved: array[0..(3)-1] of id;
     _auxiliary: id;
-    __ticFlags: bitpacked record
+    __ticFlags: record
       case byte of
        0: (_anonbitfield_NSTextInputContext0: cuint);
-       1: (
+       1: (data: bitpacked record
         _acceptsGlyphInfo: 0..1;
         
         _attributedString: 0..1;
@@ -77,6 +77,7 @@ var
         _bindingFound: 0..1;
         
         __reserved: 0..((1 shl 3)-1);
+       end;
       );
       end;
     

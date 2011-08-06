@@ -66,10 +66,10 @@ var
     _objectStore: NSPersistentStoreCoordinator;
     _undoManager: NSUndoManager;
     _children: NSMutableArray;
-    __flags: bitpacked record
+    __flags: record
       case byte of
        0: (_anonbitfield_NSManagedObjectContext0: cuint);
-       1: (
+       1: (data: bitpacked record
         _registeredForCallback: 0..1;
         _propagatesDeletesAtEndOfEvent: 0..1;
         _exhaustiveValidation: 0..1;
@@ -86,6 +86,7 @@ var
         _isNSEditorEditing: 0..1;
         _isMainThreadBlessed: 0..1;
         _reservedFlags: 0..((1 shl 17)-1);
+       end;
       );
       end;
     _unprocessedChanges: NSMutableSet;
