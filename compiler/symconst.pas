@@ -433,7 +433,10 @@ type
     { first field of variant part of a record }
     vo_is_first_field,
     vo_volatile,
-    vo_has_section
+    vo_has_section,
+    { variable contains a winlike WideString which should be finalized
+      even in $J- state }
+    vo_force_finalize
   );
   tvaroptions=set of tvaroption;
 

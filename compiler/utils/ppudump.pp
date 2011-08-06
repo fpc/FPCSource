@@ -1232,7 +1232,8 @@ const
      (mask:vo_is_weak_external;str:'WeakExternal'),
      (mask:vo_is_first_field;str:'IsFirstField'),
      (mask:vo_volatile;str:'Volatile'),
-     (mask:vo_has_section;str:'HasSection')
+     (mask:vo_has_section;str:'HasSection'),
+     (mask:vo_force_finalize;str:'ForceFinalize')
   );
 var
   i : longint;
