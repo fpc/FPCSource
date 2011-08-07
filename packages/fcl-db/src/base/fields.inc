@@ -1102,6 +1102,7 @@ begin
   if DataSize <= dsMaxStringSize then
     begin
     Result:=GetData(@Buf);
+    buf[Size]:=#0;  //limit string to Size
     If Result then
       begin
       if transliterate then
@@ -1117,6 +1118,7 @@ begin
     begin
     SetLength(DynBuf,DataSize);
     Result:=GetData(@DynBuf[0]);
+    Dynbuf[Size]:=#0;  //limit string to Size
     If Result then
       begin
       if transliterate then
@@ -1223,11 +1225,13 @@ var
 begin
   if DataSize <= dsMaxStringSize then begin
     Result := GetData(@FixBuffer, False);
+    FixBuffer[Size]:=#0;     //limit string to Size
     aValue := FixBuffer;
   end else begin
     SetLength(DynBuffer, Succ(Size));
     Buffer := PWideChar(DynBuffer);
     Result := GetData(Buffer, False);
+    Buffer[Size]:=#0;     //limit string to Size
     if Result then
       aValue := Buffer;
   end;
