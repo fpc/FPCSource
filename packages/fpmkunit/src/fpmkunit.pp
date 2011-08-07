@@ -720,6 +720,7 @@ Type
     procedure SetOS(const AValue: TOS);
     procedure SetPrefix(const AValue: String);
     procedure SetTarget(const AValue: String);
+    procedure SetUnitInstallDir(const AValue: String);
   Protected
     procedure RecalcTarget;
     Function CmdLineOptions : String;
@@ -746,7 +747,7 @@ Type
     Property GlobalUnitDir : String Read GetGlobalUnitDir Write SetGlobalUnitDir;
     Property Prefix : String Read FPrefix Write SetPrefix;
     Property BaseInstallDir : String Read GetBaseInstallDir Write SetBaseInstallDir;
-    Property UnitInstallDir : String Read GetUnitInstallDir Write FUnitInstallDir;
+    Property UnitInstallDir : String Read GetUnitInstallDir Write SetUnitInstallDir;
     Property BinInstallDir : String Read GetBinInstallDir Write FBinInstallDir;
     Property DocInstallDir : String Read GetDocInstallDir Write FDocInstallDir;
     Property ExamplesInstallDir : String Read GetExamplesInstallDir Write FExamplesInstallDir;
@@ -1166,6 +1167,7 @@ ResourceString
   SHelpBaseInstallDir = 'Use indicated directory as base install dir.';
   SHelpLocalUnitDir   = 'Use indicated directory as local (user) unit dir.';
   SHelpGlobalUnitDir  = 'Use indicated directory as global unit dir.';
+  SHelpUnitInstallDir = 'Use indicated directory to install units into.';
   SHelpCompiler       = 'Use indicated binary as compiler';
   SHelpConfig         = 'Use indicated config file when compiling.';
   SHelpOptions        = 'Pass extra options to the compiler.';
@@ -2798,10 +2800,9 @@ end;
 
 function TCustomDefaults.GetUnitInstallDir: String;
 begin
-  If (FUnitInstallDir<>'') then
-    Result:=FUnitInstallDir
-  else
-    Result:=BaseInstallDir+'units'+PathDelim+Target;
+  Dictionary.AddVariable('target',Target);
+  Dictionary.AddVariable('BaseInstallDir',BaseInstallDir);
+  result := FixPath(Dictionary.ReplaceStrings(FUnitInstallDir));
 end;
 
 
@@ -2855,7 +2856,6 @@ begin
     FBaseInstallDir:=IncludeTrailingPathDelimiter(ExpandFileName(AValue))
   else
     FBaseInstallDir:='';
-  UnitInstallDir:='';
   BinInstallDir:='';
   ExamplesInstallDir:='';
 end;
@@ -2894,6 +2894,14 @@ begin
     end;
 end;
 
+procedure TCustomDefaults.SetUnitInstallDir(const AValue: String);
+begin
+  if AValue<>'' then
+    FUnitInstallDir:=IncludeTrailingPathDelimiter(AValue)
+  else
+    FUnitInstallDir:='';
+end;
+
 
 procedure TCustomDefaults.RecalcTarget;
 begin
@@ -2923,6 +2931,7 @@ begin
   FNoFPCCfg:=False;
   FCPU:=cpuNone;
   FOS:=osNone;
+  FUnitInstallDir:='$(BaseInstallDir)units/$(target)/$(packagename)';
 end;
 
 function TCustomDefaults.HaveOptions: Boolean;
@@ -3362,6 +3371,8 @@ begin
       Defaults.NoFPCCfg:=true
     else if CheckOption(I,'B','baseinstalldir') then
       Defaults.BaseInstallDir:=OptionArg(I)
+    else if CheckOption(I,'U','unitinstalldir') then
+      Defaults.UnitInstallDir:=OptionArg(I)
     else if CheckOption(I,'UL','localunitdir') then
       Defaults.LocalUnitDir:=OptionArg(I)
     else if CheckOption(I,'UG','globalunitdir') then
@@ -3444,6 +3455,7 @@ begin
   LogArgOption('B','baseinstalldir',SHelpBaseInstalldir);
   LogArgOption('UL','localunitdir',SHelpLocalUnitdir);
   LogArgOption('UG','globalunitdir',SHelpGlobalUnitdir);
+  LogArgOption('U','unitinstalldir',SHelpUnitInstallDir);
   LogArgOption('r','compiler',SHelpCompiler);
   LogArgOption('f','config',SHelpConfig);
   LogArgOption('o','options',SHelpOptions);
@@ -4974,7 +4986,8 @@ begin
     DoBeforeInstall(APackage);
     // units
     B:=false;
-    D:=IncludeTrailingPathDelimiter(Defaults.UnitInstallDir)+APackage.Name;
+    Dictionary.AddVariable('PackageName',APackage.Name);
+    D:=IncludeTrailingPathDelimiter(Defaults.UnitInstallDir);
     if InstallPackageFiles(APAckage,ttUnit,D) then
       B:=true;
     if InstallPackageFiles(APAckage,ttImplicitUnit,D) then
