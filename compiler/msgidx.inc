@@ -23,6 +23,8 @@ const
   general_i_number_of_warnings=01021;
   general_i_number_of_hints=01022;
   general_i_number_of_notes=01023;
+  general_f_ioerror=01024;
+  general_f_oserror=01025;
   scan_f_end_of_file=02000;
   scan_f_string_exceeds_line=02001;
   scan_f_illegal_char=02002;
@@ -895,9 +897,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 60714;
+  MsgTxtSize = 60771;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,89,311,103,85,54,111,23,202,63,
+    26,89,311,103,85,54,111,23,202,63,
     49,20,1,1,1,1,1,1,1,1
   );

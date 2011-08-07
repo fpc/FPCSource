@@ -124,6 +124,10 @@ general_i_number_of_hints=01022_I_$1 hint(s) issued
 % Total number of hints issued during compilation.
 general_i_number_of_notes=01023_I_$1 note(s) issued
 % Total number of notes issued during compilation.
+general_f_ioerror=01024_F_I/O error: $1
+% During compilation an I/O error happened which allows no further compilation.
+general_f_oserror=01025_F_Operating system error: $1
+% During compilation an operanting system error happened which allows no further compilation.
 % \end{description}
 #
 # Scanner
