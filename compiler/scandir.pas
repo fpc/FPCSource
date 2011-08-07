@@ -946,7 +946,9 @@ unit scandir;
       recordpendinglocalfullswitch(switchesstatestack[switchesstatestackpos].localsw);
       recordpendingverbosityfullswitch(switchesstatestack[switchesstatestackpos].verbosity);
       pendingstate.nextmessagerecord:=switchesstatestack[switchesstatestackpos].pmessage;
+      { Reset verbosity and forget previous pmeesage }
       RestoreLocalVerbosity(nil);
+      current_settings.pmessage:=nil;
       flushpendingswitchesstate;
     end;
 
