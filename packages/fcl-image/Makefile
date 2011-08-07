@@ -2244,13 +2244,13 @@ endif
 endif
 install:	fpmake
 ifdef UNIXHier
-	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX)
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX) --unitinstalldir=$(INSTALL_UNITDIR)
 else
-	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_BASEDIR)
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_BASEDIR) --unitinstalldir=$(INSTALL_UNITDIR)
 endif
 distinstall:	fpmake
 ifdef UNIXHier
-	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX) -ie
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_PREFIX)  --unitinstalldir=$(INSTALL_UNITDIR) -ie
 else
-	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_BASEDIR) -ie
+	$(LOCALFPMAKE) install --localunitdir=../.. --globalunitdir=.. $(FPC_TARGETOPT) $(addprefix -o ,$(FPCOPT)) --compiler=$(FPC) --prefix=$(INSTALL_BASEDIR)  --unitinstalldir=$(INSTALL_UNITDIR) -ie
 endif
