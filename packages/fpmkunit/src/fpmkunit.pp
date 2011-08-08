@@ -69,7 +69,8 @@ Type
     linux,go32v2,win32,os2,freebsd,beos,netbsd,
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
     palmos,macos,darwin,emx,watcom,morphos,netwlibc,
-    win64,wince,gba,nds,embedded,symbian,haiku,iphonesim
+    win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
+	symobi
   );
   TOSes = Set of TOS;
 
@@ -115,8 +116,8 @@ Const
 
   AllOSes = [Low(TOS)..High(TOS)];
   AllCPUs = [Low(TCPU)..High(TCPU)];
-  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim];
-  AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim];
+  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,Symobi];
+  AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim,Symobi];
   AllWindowsOSes  = [Win32,Win64,WinCE];
 
   AllSmartLinkLibraryOSes = [Linux]; // OSes that use .a library files for smart-linking
@@ -153,7 +154,8 @@ Const
     { embedded }( false, true,  true,  true,  true,  true,  true,  true,  true,  true ),
     { symbian } ( false, true,  false, false, false, false, true,  false, false, false),
     { haiku }   ( false, true,  false, false, false, false, false, false, false, false),
-    { iphonesim}( false, true,  false, false, false, false, false, false, false, false)
+    { iphonesim}( false, true,  false, false, false, false, false, false, false, false),
+    { symobi }  ( false, true,  false, false, false, false, false, false, false, false)
   );
 
   // Useful
