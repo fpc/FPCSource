@@ -1190,7 +1190,9 @@ begin
       WS.ws_Col:=80;
      if WS.ws_Row=0 then
 {$ifdef symobi}
-      WS.ws_Row:=24;
+      { normally Symobi's terminal has 24 rows, but a new line is added at the
+        end, so applications like the IDE get visually garbaged }
+      WS.ws_Row:=23;
 {$else}
       WS.ws_Row:=25;
 {$endif}

@@ -777,11 +777,18 @@ begin
        end;
      If Copy(GetEnv('TERM'),1,6)='cons25' Then
        Console:=ttyFreeBSD;
+     FillChar(WS, SizeOf(WS), 0);
      fpioctl(stdinputhandle, TIOCGWINSZ, @WS);
      if WS.ws_Col=0 then
        WS.ws_Col:=80;
      if WS.ws_Row=0 then
+{$ifdef symobi}
+      { normally Symobi's terminal has 24 rows, but a new line is added at the
+        end, so applications like the IDE get visually garbaged }
+       WS.ws_Row:=23;
+{$else}
        WS.ws_Row:=25;
+{$endif}
      ConsWidth:=WS.ws_Col;
      ConsHeight:=WS.ws_row;
    end;

@@ -295,9 +295,12 @@ begin
           SetStatus('Parsing User Screen line '+IntToStr(y)+'/'+IntToStr(YMax));
           CompilerMessageWindow^.Lock;
         end;
+{$ifndef symobi}
+      { on Symobi this will block :( }
       GetKeyEvent(LEvent);
       if (LEvent.What=evKeyDown) and (LEvent.KeyCode=kbEsc) then
         break;
+{$endif}
       SearchBackTrace;
       InsertInMessages(' Fatal:',v_Fatal or v_lineinfo,true);
       InsertInMessages(' Error:',v_Error or v_lineinfo,true);
