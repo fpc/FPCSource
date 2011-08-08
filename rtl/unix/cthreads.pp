@@ -52,14 +52,12 @@ interface
 {$S-}
 
 {$ifndef dynpthreads}   // If you have problems compiling this on FreeBSD 5.x
- {$ifndef symobi} 
-  {$linklib c}           // try adding -Xf
-  {$ifndef Darwin}
-    {$ifndef haiku}
-      {$linklib pthread}
-    {$endif haiku}
-  {$endif darwin}
- {$endif symobi}
+ {$linklib c}           // try adding -Xf
+ {$ifndef Darwin}
+   {$ifndef haiku}
+     {$linklib pthread}
+   {$endif haiku}
+ {$endif darwin}
 {$endif}
 
 {$define basicevents_with_pthread_cond}
