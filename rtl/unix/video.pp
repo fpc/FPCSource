@@ -190,7 +190,21 @@ const term_codes_ansi:Ttermcodes=
          nil,//#$1B#$5B#$3F#$37#$6C,                              {exit_am_mode}
          nil);//#$1B#$28#$42#$1B#$29#$30);                         {ena_acs}
 
-const    terminal_names:array[0..11] of string[7]=(
+      term_codes_symobi:Ttermcodes=
+        (nil,                                               {enter_alt_charset_mode}
+         nil,                                               {exit_alt_charset_mode}
+         #$1B#$5B#$48#$1B#$5B#$4A,                          {clear_screen}
+         #$1B#$5B#$48,                                      {cursor_home}
+         nil,                                               {cursor_normal}
+         nil,                                               {cursor visible, underline}
+         nil,                                               {cursor visible, block}
+         nil,                                               {cursor_invisible}
+         nil,                                               {enter_ca_mode}
+         nil,                                               {exit_ca_mode}
+         nil,                                               {exit_am_mode}
+         nil);                                              {ena_acs}
+
+const    terminal_names:array[0..12] of string[7]=(
                         'ansi',
                         'cons',
                         'eterm',
@@ -202,8 +216,9 @@ const    terminal_names:array[0..11] of string[7]=(
                         'vt100',
                         'vt220',
                         'xterm',
-                        'beterm');
-         terminal_data:array[0..11] of Ptermcodes=(
+                        'beterm',
+                        'symobi');
+         terminal_data:array[0..12] of Ptermcodes=(
                         @term_codes_ansi,
                         @term_codes_freebsd,
                         @term_codes_xterm,
@@ -215,7 +230,8 @@ const    terminal_names:array[0..11] of string[7]=(
                         @term_codes_vt100,
                         @term_codes_vt220,
                         @term_codes_xterm,
-                        @term_codes_beos);
+                        @term_codes_beos,
+                        @term_codes_symobi);
 
 const convert:Tconversion=cv_none;
 
@@ -962,7 +978,7 @@ function UTF8Enabled: Boolean;
 var
   lang:string;
 begin
-  {$ifdef BEOS}
+  {$if defined(BEOS) or defined(SYMOBI)}
   UTF8Enabled := true;
   exit;
   {$endif}
@@ -1061,6 +1077,9 @@ var
 
 const font_vga:array[0..11] of char=#15#27'%@'#27'(U'#27'[3h';
       font_lat1:array[0..5] of char=#27'%@'#27'(B';
+{$ifdef symobi}
+	  font_utf8:array[0..2] of char=#27'(U';
+{$endif}
 
 begin
   { check for tty }
@@ -1109,6 +1128,10 @@ begin
          if (ThisTTY[10]>='0') and (ThisTTY[10]<='9') Then
             Console:=ttyFreeBSD;   {TTYFd ?}
        end;
+   {$endif}
+   {$ifdef symobi}
+     { we use the UTF8 output mode on Symobi }
+     fpwrite(stdoutputhandle,font_utf8,sizeof(font_utf8));
    {$endif}
      term:=fpgetenv('TERM');
      for i:=low(terminal_names) to high(terminal_names) do
@@ -1161,11 +1184,16 @@ begin
    {$ifdef linux}
       end;
    {$endif}
+     FillChar(WS, SizeOf(WS), 0);
      fpioctl(stdinputhandle, TIOCGWINSZ, @WS);
      if WS.ws_Col=0 then
       WS.ws_Col:=80;
      if WS.ws_Row=0 then
+{$ifdef symobi}
+      WS.ws_Row:=24;
+{$else}
       WS.ws_Row:=25;
+{$endif}
      ScreenWidth:=WS.ws_Col;
      { TDrawBuffer only has FVMaxWidth elements
        larger values lead to crashes }
@@ -1222,6 +1250,9 @@ end;
 procedure SysDoneVideo;
 
 var font_custom:array[0..2] of char=#27'(K';
+{$ifdef symobi}
+    font_default:array[0..2] of char=#27'(B';
+{$endif}
 
 begin
   prepareDoneVideo;
@@ -1252,6 +1283,9 @@ begin
        end;
 {$ifdef linux}
    end;
+{$endif}
+{$ifdef symobi}
+  fpwrite(stdoutputhandle,font_default,sizeof(font_default));
 {$endif}
   ACSIn:='';
   ACSOut:='';

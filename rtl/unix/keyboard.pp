@@ -387,9 +387,14 @@ begin
   if (InHead=InTail) then
     begin
       {Calc Amount of Chars to Read}
+{$ifdef symobi}
+      { only read bytewise or the application will hang }
+      i:=1;
+{$else}
       i:=InSize-InHead;
       if InTail>InHead then
         i:=InTail-InHead;
+{$endif}
       {Read}
       repeat
         Readed:=fpRead(StdInputHandle,InBuf[InHead],i);
@@ -742,7 +747,7 @@ type  key_sequence=packed record
         st:string[7];
       end;
 
-const key_sequences:array[0..276] of key_sequence=(
+const key_sequences:array[0..280] of key_sequence=(
        (char:0;scan:kbAltA;st:#27'A'),
        (char:0;scan:kbAltA;st:#27'a'),
        (char:0;scan:kbAltB;st:#27'B'),
@@ -873,6 +878,10 @@ const key_sequences:array[0..276] of key_sequence=(
        (char:0;scan:kbDown;st:#27'OB'),          {xterm}
        (char:0;scan:kbRight;st:#27'OC'),         {xterm}
        (char:0;scan:kbLeft;st:#27'OD'),          {xterm}
+       (char:0;scan:kbUp;st:#27'A'),             {symobi}
+       (char:0;scan:kbDown;st:#27'B'),           {symobi}
+       (char:0;scan:kbRight;st:#27'C'),          {symobi}
+       (char:0;scan:kbLeft;st:#27'D'),           {symobi}
 (* Already recognized above as F11!
        (char:0;scan:kbShiftF1;st:#27'[23~'),     {rxvt}
        (char:0;scan:kbShiftF2;st:#27'[24~'),     {rxvt}
