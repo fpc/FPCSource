@@ -4,96 +4,98 @@ Preliminary startup code
 Geoffrey Barton 2010 08 01  gjb@periphon.net
 based on stm32f103 created by Jeppe Johansen 2009 - jepjoh2@kom.aau.dk
 }
+{$goto on}
 unit stellaris;
 
-{$goto on}
+  interface
 
-interface
+    type
+      TBitvector32 = bitpacked array[0..31] of 0..1;
 
-type
- TBitvector32 = bitpacked array[0..31] of 0..1;
-
-{$PACKRECORDS 4}
-const
-PeripheralBase 	= $40000000;
-PPBbase			= $E0000fff;
-APBbase 		= PeripheralBase;
-AHBbase 		= PeripheralBase+$54000;
-portAoffset=APBbase+$4000;
-portBoffset=APBbase+$5000;
-portCoffset=APBbase+$6000;
-portDoffset=APBbase+$7000;
-portEoffset=APBbase+$24000;
-portFoffset=APBbase+$25000;
-portGoffset=APBbase+$26000;
-portHoffset=APBbase+$27000;
-portJoffset=APBbase+$3d000;
-sysconoffset=APBbase+$fe000;
+    {$PACKRECORDS 4}
+    const
+      PeripheralBase 	= $40000000;
+      PPBbase			= $E0000fff;
+      APBbase 		= PeripheralBase;
+      AHBbase 		= PeripheralBase+$54000;
+      portAoffset=APBbase+$4000;
+      portBoffset=APBbase+$5000;
+      portCoffset=APBbase+$6000;
+      portDoffset=APBbase+$7000;
+      portEoffset=APBbase+$24000;
+      portFoffset=APBbase+$25000;
+      portGoffset=APBbase+$26000;
+      portHoffset=APBbase+$27000;
+      portJoffset=APBbase+$3d000;
+      sysconoffset=APBbase+$fe000;
 
 
-type
-TgpioPort=record
-				    data:array[0..255] of dword;dir,is,ibe,iev,im,ris,mis,icr,
-				    afsel:dword;dummy1:array[0..54] of dword;dr2r,dr4r,dr8r,odr,pur,pdr,slr,den,lock,cr,amsel,pctl:dword;
-				  end;
-Tsyscon=record
-				  did0,did1,dc0,res0c,dc1,dc2,dc3,dc4,dc5,dc6,dc7,dc8,borc,res34,res38,res3c,
-				  src0,src1,src2,res4c,ris,imc,misc,resc,rcc,pllcfg,res68,gpiohbctl,rcc2,res74,res78,moscctl:dword;res80:array[0..31] of dword;rcgc0,
-				  rcgc1,rcgc2,res10,scgc0,scgc1,scgc2,
-				  res11,dcgc0,dcgc1,dcgc2,res12c,res130,res134,res138,res13c,res140,dsplpclk,res13,res14,res15,piosccal,
-				  i2smclk,res174,res178,res17c,res180,res184,res188,res18c,dc9,res194,res198,res19c,nvmstat:dword;
-				end;		
+    type
+      TgpioPort=record
+        data:array[0..255] of dword;dir,_is,ibe,iev,im,ris,mis,icr,
+        afsel:dword;dummy1:array[0..54] of dword;dr2r,dr4r,dr8r,odr,pur,pdr,slr,den,lock,cr,amsel,pctl:dword;
+      end;
 
-{$ALIGN 4}
-var
+      Tsyscon=record
+        did0,did1,dc0,res0c,dc1,dc2,dc3,dc4,dc5,dc6,dc7,dc8,borc,res34,res38,res3c,
+        src0,src1,src2,res4c,ris,imc,misc,resc,rcc,pllcfg,res68,gpiohbctl,rcc2,res74,res78,moscctl:dword;res80:array[0..31] of dword;
+        rcgc0,rcgc1,rcgc2,res10,scgc0,scgc1,scgc2,
+        res11,dcgc0,dcgc1,dcgc2,res12c,res130,res134,res138,res13c,res140,dsplpclk,res13,res14,res15,piosccal,
+        i2smclk,res174,res178,res17c,res180,res184,res188,res18c,dc9,res194,res198,res19c,nvmstat:dword;
+      end;
 
-  PortA			:Tgpioport 	absolute portAoffset;
-  PortB			:Tgpioport	absolute portBoffset;
-  PortC			:Tgpioport 	absolute portCoffset;
-  PortD			:Tgpioport	absolute portDoffset;
-  PortE			:Tgpioport 	absolute portEoffset;
-  PortF			:Tgpioport	absolute portFoffset;
-  PortG			:Tgpioport 	absolute portGoffset;
-  PortH			:Tgpioport	absolute portHoffset;
-  PortJ			:Tgpioport	absolute portJoffset;
-  
-  syscon		:Tsyscon	absolute sysconoffset;
-  rcgc0			:dword absolute (sysconoffset+$100);
-  rcgc1			:dword absolute (sysconoffset+$104);
-  rcgc2			:dword absolute (sysconoffset+$108);
+    {$ALIGN 4}
+    var
+      PortA			:Tgpioport 	absolute portAoffset;
+      PortB			:Tgpioport	absolute portBoffset;
+      PortC			:Tgpioport 	absolute portCoffset;
+      PortD			:Tgpioport	absolute portDoffset;
+      PortE			:Tgpioport 	absolute portEoffset;
+      PortF			:Tgpioport	absolute portFoffset;
+      PortG			:Tgpioport 	absolute portGoffset;
+      PortH			:Tgpioport	absolute portHoffset;
+      PortJ			:Tgpioport	absolute portJoffset;
 
-var
-NMI_Handler,
-HardFault_Handler,
-MemManage_Handler,
-BusFault_Handler,
-UsageFault_Handler,
-SWI_Handler,
-DebugMonitor_Handler,
-PendingSV_Handler,
-Systick_Handler,UART0intvector: pointer;
+      syscon		:Tsyscon	absolute sysconoffset;
+      rcgc0			:dword absolute (sysconoffset+$100);
+      rcgc1			:dword absolute (sysconoffset+$104);
+      rcgc2			:dword absolute (sysconoffset+$108);
+
+
+    var
+      NMI_Handler,
+      HardFault_Handler,
+      MemManage_Handler,
+      BusFault_Handler,
+      UsageFault_Handler,
+      SWI_Handler,
+      DebugMonitor_Handler,
+      PendingSV_Handler,
+      Systick_Handler,UART0intvector: pointer;
 	
-implementation
+  implementation
 
-var
-	_data: record end; external name '_data';
-	_edata: record end; external name '_edata';
-	_etext: record end; external name '_etext';
-	_bss_start: record end; external name '_bss_start';
-	_bss_end: record end; external name '_bss_end';
-	_stack_top: record end; external name '_stack_top';
+    var
+      _data: record end; external name '_data';
+      _edata: record end; external name '_edata';
+      _etext: record end; external name '_etext';
+      _bss_start: record end; external name '_bss_start';
+      _bss_end: record end; external name '_bss_end';
+      _stack_top: record end; external name '_stack_top';
 
-procedure PASCALMAIN; external name 'PASCALMAIN';
+    procedure PASCALMAIN; external name 'PASCALMAIN';
 
-procedure _FPC_haltproc; assembler; nostackframe; public name '_haltproc';
-asm
-.Lhalt:
-	b .Lhalt
-end;
+    procedure _FPC_haltproc; assembler; nostackframe; public name '_haltproc';
+      asm
+        .Lhalt:
+	  b .Lhalt
+      end;
 
-procedure _FPC_start; assembler; nostackframe;
-label _start;
-asm
+
+    procedure _FPC_start; assembler; nostackframe;
+      label
+        _start;
+      asm
 	.init
 	.align 16
 	
@@ -286,7 +288,7 @@ _start:
 	// default irq handler just returns
 .LDefaultHandler:
 	mov pc,r14
-end;
+    end;
 
 end.
 
