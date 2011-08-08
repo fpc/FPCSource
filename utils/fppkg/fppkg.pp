@@ -21,7 +21,9 @@ uses
   // Downloaders
 {$if defined(unix) or defined(windows)}
   ,pkgwget
+ {$ifndef symobi}
   ,pkglnet
+ {$endif}
 {$endif}
   ;
 
