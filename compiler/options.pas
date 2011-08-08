@@ -2406,6 +2406,11 @@ begin
        foundfn:=exepath+fn
      else
 {$else}
+  {$ifdef symobi}
+      if CfgFileExists('/system/conf/'+fn) then
+       foundfn:='/system/conf/'+fn
+	 else  
+  {$endif}
       if CfgFileExists('/etc/'+fn) then
        foundfn:='/etc/'+fn
      else
