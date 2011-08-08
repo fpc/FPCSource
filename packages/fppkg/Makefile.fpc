@@ -20,6 +20,7 @@ units_solaris=pkgwget pkgfphttp
 units_win32=pkgwget pkgfphttp
 units_win64=pkgwget pkgfphttp
 units_wince=pkgwget pkgfphttp
+units_symobi=pkgwget pkgfphttp
 rsts=fprepos fpxmlrep pkgmessages
 
 
