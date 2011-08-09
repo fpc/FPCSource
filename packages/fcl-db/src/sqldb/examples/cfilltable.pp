@@ -45,6 +45,7 @@ begin
     SQL.Add('  1,                         ');
     SQL.Add('  ''Florian Klaempfl'',      ');
     SQL.Add('  ''florian@freepascal.org'',');
+// Please update the date format according to your database (ie. MySQL 1975-1-1)
     SQL.Add('  ''1-jan-1975''               ');
     SQL.Add(')                            ');
 
