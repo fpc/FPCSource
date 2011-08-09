@@ -220,6 +220,8 @@ begin
   FFormatSettings.ThousandSeparator:=#0;
   FFormatSettings.DateSeparator:='-';
   FFormatSettings.TimeSeparator:=':';
+  FFormatSettings.ShortDateFormat:='yyyy/mm/dd';
+  FFormatSettings.LongTimeFormat:='hh:nn:ss.zzz';
   FUsedDatasets := TFPList.Create;
   CreateFieldDataset;
   CreateNDatasets;
@@ -315,9 +317,13 @@ begin
     // The decimalseparator was set to a comma for currencies and to a dot for ftBCD values.
     // DecimalSeparator for PostgreSQL must correspond to monetary locale set on PostgreSQL server
     // Here we assume, that locale on client side is same as locale on server
-        
     testValues[ftCurrency,i] := CurrToStr(testCurrencyValues[i]);
     testValues[ftBCD,i] := CurrToStr(testCurrencyValues[i],FormatSettings);
+    // For date '0001-01-01' other time-part like '00:00:00' causes "Invalid variant type cast", because of < MinDateTime constant
+    if (testDateValues[i]>'0001-01-01') and (testTimeValues[i]>='00:00:01') and (testTimeValues[i]<'24:00:00') then
+      testValues[ftDateTime,i] := testDateValues[i] + ' ' + testTimeValues[i]
+    else
+      testValues[ftDateTime,i] := testDateValues[i];
     end;
 
   if dbconnectorname = '' then raise Exception.Create('There is no db-connector specified');

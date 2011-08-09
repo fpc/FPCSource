@@ -137,7 +137,7 @@ begin
     begin
     Fconnection := tPQConnection.Create(nil);
     FieldtypeDefinitions[ftCurrency] := 'MONEY';
-    FieldtypeDefinitions[ftBlob] := 'TEXT';
+    FieldtypeDefinitions[ftBlob] := 'BYTEA';
     FieldtypeDefinitions[ftMemo] := 'TEXT';
     FieldtypeDefinitions[ftGraphic] := '';
     end;
@@ -152,12 +152,14 @@ begin
 
   if SQLDbType in [mysql40,mysql41,mysql50,mysql51,odbc,interbase] then
     begin
-    // Some DB's do not support milliseconds in time-fields.
+    // Some DB's do not support milliseconds in datetime and time fields.
     // Firebird support miliseconds, see BUG 17199 (when resolved, then interbase can be excluded)
     for t := 0 to testValuesCount-1 do
       begin
       testTimeValues[t] := copy(testTimeValues[t],1,8)+'.000';
       testValues[ftTime,t] := copy(testTimeValues[t],1,8)+'.000';
+      if length(testValues[ftDateTime,t]) > 19 then
+        testValues[ftDateTime,t] := copy(testValues[ftDateTime,t],1,19)+'.000';
       end;
     end;
   if SQLDbType in [postgresql,interbase] then
