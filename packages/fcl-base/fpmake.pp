@@ -32,7 +32,7 @@ begin
     P.IncludePath.Add('src');
     P.IncludePath.Add('src/$(OS)');
     P.IncludePath.Add('src/unix',AllUnixOSes);
-    P.IncludePath.Add('src/win',AllWindowsOSes);
+    P.IncludePath.Add('src/win',AllWindowsOSes-[WinCE]);
     P.IncludePath.Add('src/dummy',AllOSes);
 
     T:=P.Targets.AddUnit('ascii85.pp');
