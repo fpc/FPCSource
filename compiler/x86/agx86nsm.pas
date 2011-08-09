@@ -481,7 +481,14 @@ interface
       begin
         AsmLn;
         AsmWrite('SECTION ');
-        AsmWrite(secnames[atype]);
+        { go32v2 stub only loads .text and .data sections, and allocates space for .bss.
+          Thus, data which normally goes into .rodata and .rodata_norel sections must
+          end up in .data section }
+        if (atype in [sec_rodata,sec_rodata_norel]) and
+          (target_info.system=system_i386_go32v2) then
+          AsmWrite('.data')
+        else
+          AsmWrite(secnames[atype]);
         if create_smartlink_sections and
            (atype<>sec_bss) and
            (aname<>'') then
