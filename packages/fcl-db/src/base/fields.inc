@@ -709,7 +709,7 @@ begin
 
     FLookupDataSet.DisableControls;
     try
-      FLookupDataSet.Open;
+      FLookupDataSet.First;
       repeat
         FLookupList.Add(FLookupDataSet.FieldValues[FLookupKeyfields], FLookupDataSet.FieldValues[FLookupResultField]);
         FLookupDataSet.Next;
