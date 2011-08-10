@@ -118,6 +118,7 @@ Const
   AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim];
   AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim];
   AllWindowsOSes  = [Win32,Win64,WinCE];
+  AllLimit83fsOses= [go32v2,os2,emx,watcom];
 
   AllSmartLinkLibraryOSes = [Linux]; // OSes that use .a library files for smart-linking
 
@@ -1633,7 +1634,10 @@ end;
 Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
 
 begin
-  Result:=CPUToString(CPU)+'-'+OSToString(OS);
+  if OS in AllLimit83fsOses then
+    Result := OSToString(OS)
+  else
+    Result:=CPUToString(CPU)+'-'+OSToString(OS);
 end;
 
 Procedure StringToCPUOS(const S : String; Var CPU : TCPU; Var OS: TOS);
@@ -4235,7 +4239,7 @@ begin
               APackage.UnitDir := IncludeTrailingPathDelimiter(APackage.UnitDir) + APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS);
               // If the unit-directory does not exist, you know for sure that
               // the package is not compiled
-              if not DirectoryExists(APackage.UnitDir) then
+              if not SysDirectoryExists(APackage.UnitDir) then
                 APackage.UnitDir:=DirNotFound
               else
                 APackage.FTargetState:=tsCompiled;
