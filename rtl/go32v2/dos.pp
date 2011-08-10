@@ -312,21 +312,26 @@ var
           current_arg:=current_arg+c[i];
         if i=length(c) then
           end_of_arg:=true;
-        if end_of_arg and (current_arg<>'') then
+        if end_of_arg then
           begin
-            if proxy_argc>MAX_ARGS then
+            { Allow empty args using "" or '' }
+            if (current_arg<>'') or (quote<>#0) then
               begin
-                writeln(stderr,'Too many arguments in Dos.exec');
-                RunError(217);
+                if proxy_argc>MAX_ARGS then
+                  begin
+                    writeln(stderr,'Too many arguments in Dos.exec');
+                    RunError(217);
+                  end;
+                la_argv_ofs[proxy_argc]:=current_dos_buffer_pos-la_proxy_seg*16;
+    {$ifdef DEBUG_PROXY}
+                writeln(stderr,'arg ',proxy_argc,'="',current_arg,'"');
+    {$endif DEBUG_PROXY}
+                paste_to_dos(current_arg,false,false);
+                inc(proxy_argc);
+                quote:=#0;
+                current_arg:='';
               end;
-            la_argv_ofs[proxy_argc]:=current_dos_buffer_pos-la_proxy_seg*16;
-{$ifdef DEBUG_PROXY}
-            writeln(stderr,'arg ',proxy_argc,'="',current_arg,'"');
-{$endif DEBUG_PROXY}
-            paste_to_dos(current_arg,false,false);
-            inc(proxy_argc);
-            quote:=#0;
-            current_arg:='';
+            { Always reset end_of_arg boolean }
             end_of_arg:=false;
           end;
       end;
