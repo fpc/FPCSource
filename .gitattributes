@@ -9133,6 +9133,7 @@ tests/tbs/tb0573.pp svneol=native#text/plain
 tests/tbs/tb0574.pp svneol=native#text/pascal
 tests/tbs/tb0575.pp svneol=native#text/plain
 tests/tbs/tb0576.pp svneol=native#text/plain
+tests/tbs/tb0577.pp svneol=native#text/plain
 tests/tbs/tb205.pp svneol=native#text/plain
 tests/tbs/ub0060.pp svneol=native#text/plain
 tests/tbs/ub0069.pp svneol=native#text/plain
