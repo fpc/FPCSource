@@ -37,6 +37,38 @@ Type
 
 {$i dosh.inc}
 
+{$IfDef SYSTEM_DEBUG_STARTUP}
+  {$DEFINE FORCE_PROXY}
+{$endif SYSTEM_DEBUG_STARTUP}
+Const
+  { This variable can be set to true
+    to force use of !proxy command lines even for short
+    strings, for debugging purposes mainly, as
+    this might have negative impact if trying to
+    call non-go32v2 programs }
+  force_go32v2_proxy : boolean =
+{$ifdef FORCE_PROXY}
+  true;
+{$DEFINE DEBUG_PROXY}
+{$else not FORCE_PROXY}
+  false;
+{$endif not FORCE_PROXY}
+  { This variable allows to use !proxy if command line is
+    longer than 126 characters.
+    This will only work if the called program knows how to handle
+    those command lines.
+    Luckily this is the case for Free Pascal compiled
+    programs (even old versions)
+    and go32v2 DJGPP programs.
+    You can set this to false to get a warning to stderr
+    if command line is too long. }
+  Use_go32v2_proxy : boolean = true;
+
+{ Added to interface so that there is no need to implement it
+  both in dos and sysutils units }
+
+procedure exec_ansistring(path : string;comline : ansistring);
+
 implementation
 
 uses
@@ -165,7 +197,7 @@ end;
 const
   DOS_MAX_COMMAND_LINE_LENGTH = 126;
 
-procedure exec(const path : pathstr;const comline : comstr);
+procedure exec_ansistring(path : string;comline : ansistring);
 type
   realptr = packed record
     ofs,seg : word;
@@ -184,23 +216,30 @@ var
   i,la_env,
   la_p,la_c,la_e,
   fcb1_la,fcb2_la : longint;
+  use_proxy       : boolean;
+  proxy_argc      : longint;
   execblock       : texecblock;
-  c,p             : string;
+  c               : ansistring;
+  p               : string;
 
-  function paste_to_dos(src : string;cr : boolean; n : longint) : boolean;
+  function paste_to_dos(src : string;add_cr_at_end, include_string_length : boolean) : boolean;
   {Changed by Laaca - added parameter N}
   var
     c : pchar;
     CLen : cardinal;
-    ls : longint;
+    start_pos,ls : longint;
   begin
      paste_to_dos:=false;
-     ls:=Length(src)-n;
+     if include_string_length then
+       start_pos:=0
+     else
+       start_pos:=1;
+     ls:=Length(src)-start_pos;
      if current_dos_buffer_pos+ls+3>transfer_buffer+tb_size then
       RunError(217);
      getmem(c,ls+3);
-     move(src[n],c^,ls+1);
-     if cr then
+     move(src[start_pos],c^,ls+1);
+     if add_cr_at_end then
       begin
         c[ls+1]:=#13;
         c[ls+2]:=#0;
@@ -214,17 +253,120 @@ var
      paste_to_dos:=true;
   end;
 
+  procedure setup_proxy_cmdline;
+  const
+    MAX_ARGS = 128;
+  var
+    i : longint;
+    quote : char;
+    end_of_arg, skip_char : boolean;
+    la_proxy_seg    : word;
+    la_proxy_ofs    : longint;
+    current_arg : string;
+    la_argv_ofs : array [0..MAX_ARGS] of word;
+  begin
+    quote:=#0;
+    current_arg:='';
+    proxy_argc:=0;
+    end_of_arg:=false;
+    while current_dos_buffer_pos mod 16 <> 0 do
+      inc(current_dos_buffer_pos);
+    la_proxy_seg:=current_dos_buffer_pos shr 4;
+    { Also copy parameter 0 }
+    la_argv_ofs[0]:=current_dos_buffer_pos-la_proxy_seg*16;
+    { Note that this should be done before
+      alteriing p value }
+    paste_to_dos(p,false,false);
+    inc(proxy_argc);
+    for i:=1 to length(c) do
+      begin
+        skip_char:=false;
+        case c[i] of
+          #1..#32:
+            begin
+              if quote=#0 then
+                end_of_arg:=true;
+            end;
+          '"' :
+            begin
+              if quote=#0 then
+                begin
+                  quote:='"';
+                  skip_char:=true;
+                end
+              else if quote='"' then
+                end_of_arg:=true;
+            end;
+          '''' :
+            begin
+              if quote=#0 then
+                begin
+                  quote:='''';
+                  skip_char:=true;
+                end
+              else if quote='''' then
+                end_of_arg:=true;
+            end;
+        end;
+        if not end_of_arg and not skip_char then
+          current_arg:=current_arg+c[i];
+        if i=length(c) then
+          end_of_arg:=true;
+        if end_of_arg and (current_arg<>'') then
+          begin
+            if proxy_argc>MAX_ARGS then
+              begin
+                writeln(stderr,'Too many arguments in Dos.exec');
+                RunError(217);
+              end;
+            la_argv_ofs[proxy_argc]:=current_dos_buffer_pos-la_proxy_seg*16;
+{$ifdef DEBUG_PROXY}
+            writeln(stderr,'arg ',proxy_argc,'="',current_arg,'"');
+{$endif DEBUG_PROXY}
+            paste_to_dos(current_arg,false,false);
+            inc(proxy_argc);
+            quote:=#0;
+            current_arg:='';
+            end_of_arg:=false;
+          end;
+      end;
+    la_proxy_ofs:=current_dos_buffer_pos - la_proxy_seg*16;
+    seg_move(get_ds,longint(@la_argv_ofs),dosmemselector,
+             current_dos_buffer_pos,proxy_argc*sizeof(word));
+    current_dos_buffer_pos:=current_dos_buffer_pos + proxy_argc*sizeof(word);
+    c:='!proxy '+hexstr(proxy_argc,4)+' '+hexstr(la_proxy_seg,4)
+       +' '+hexstr(la_proxy_ofs,4);
+{$ifdef DEBUG_PROXY}
+    writeln(stderr,'Using comline "',c,'"');
+{$endif DEBUG_PROXY}
+  end;
+
+
 begin
 { create command line }
   c:=comline;
-  if length(c)>DOS_MAX_COMMAND_LINE_LENGTH then
-    c[0]:=chr(DOS_MAX_COMMAND_LINE_LENGTH);
+  if force_go32v2_proxy then
+    Use_proxy:=true
+  else if length(c)>DOS_MAX_COMMAND_LINE_LENGTH then
+    begin
+      if Use_go32v2_proxy then
+        begin
+          Use_Proxy:=true;
+        end
+      else
+        begin
+           writeln(stderr,'Dos.exec command line truncated to ',
+                   DOS_MAX_COMMAND_LINE_LENGTH,' chars');
+           writeln(stderr,'Before: "',c,'"');
+           setlength(c, DOS_MAX_COMMAND_LINE_LENGTH);
+           writeln(stderr,'After: "',c,'"');
+         end;
+    end;
 { create path }
+{$ifdef DEBUG_PROXY}
+  writeln(stderr,'Dos.exec path="',path,'"');
+{$endif DEBUG_PROXY}
   p:=path;
-{ allow slash as backslash }
-  DoDirSeparators(p);
-  if LFNSupport then
-    GetShortName(p);
 { create buffer }
   la_env:=transfer_buffer;
   while (la_env and 15)<>0 do
@@ -232,13 +374,24 @@ begin
   current_dos_buffer_pos:=la_env;
 { copy environment }
   for i:=1 to envcount do
-   paste_to_dos(envstr(i),false,1);
+   paste_to_dos(envstr(i),false,false);
   {the behaviour is still suboptimal because variable COMMAND is stripped out}
-  paste_to_dos(chr(0),false,1); { adds a double zero at the end }
+  paste_to_dos(chr(0),false,false); { adds a double zero at the end }
+  if use_proxy then
+    setup_proxy_cmdline;
+{ allow slash as backslash }
+  DoDirSeparators(p);
+  if LFNSupport then
+    GetShortName(p);
+  { Add program to DosBuffer with
+    length at start }
   la_p:=current_dos_buffer_pos;
-  paste_to_dos(p,false,0);
+  paste_to_dos(p,false,true);
+  { Add command line args to DosBuffer with
+    length at start and Carriage Return at end }
   la_c:=current_dos_buffer_pos;
-  paste_to_dos(c,true,0);
+  paste_to_dos(c,true,true);
+
   la_e:=current_dos_buffer_pos;
   fcb1_la:=la_e;
   la_e:=la_e+16;
@@ -261,6 +414,9 @@ begin
   dosregs.esi:=(la_c+arg_ofs) and 15;
   dosregs.es:=fcb2_la shr 4;
   dosregs.edi:=fcb2_la and 15;
+{$ifdef DEBUG_PROXY}
+  flush(stderr);
+{$endif DEBUG_PROXY}
   msdos(dosregs);
   with execblock do
    begin
@@ -288,6 +444,11 @@ begin
    end
   else
    LastDosExitCode:=0;
+end;
+
+procedure exec(const path : pathstr;const comline : comstr);
+begin
+  exec_ansistring(path, comline);
 end;
 
 

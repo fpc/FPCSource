@@ -782,7 +782,7 @@ var
   CommandLine: AnsiString;
 
 begin
-  dos.exec(path,comline);
+  dos.exec_ansistring(path,comline);
 
   if (Dos.DosError <> 0) then
     begin
