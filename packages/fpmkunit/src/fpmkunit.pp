@@ -703,6 +703,7 @@ Type
     FTarget: String;
     FUnixPaths: Boolean;
     FNoFPCCfg: Boolean;
+    FUseEnvironment: Boolean;
     function GetFPDocOutputDir: String;
     function GetLocalUnitDir: String;
     function GetGlobalUnitDir: String;
@@ -763,6 +764,7 @@ Type
     Property MkDir : String Read FMkDir write FMkDir;          // Make $(DIRECTORY)
     Property Archive : String Read FArchive Write FArchive;    // zip $(ARCHIVE) $(FILESORDIRS)
     // Misc
+    Property UseEnvironment : Boolean read FUseEnvironment write FUseEnvironment;
     Property IgnoreInvalidOptions: Boolean read FIgnoreInvalidOptions write FIgnoreInvalidOptions;
     // Installation optioms
     Property InstallExamples: Boolean read FInstallExamples write FInstallExamples;
@@ -844,7 +846,7 @@ Type
     Procedure ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true);
 
     // Public Copy/delete/Move/Archive/Mkdir Commands.
-    Procedure ExecuteCommand(const Cmd,Args : String; IgnoreError : Boolean = False); virtual;
+    Procedure ExecuteCommand(const Cmd,Args : String; const Env: TStrings = nil; IgnoreError : Boolean = False); virtual;
     Procedure CmdCopyFiles(List : TStrings; Const DestDir : String);
     Procedure CmdCreateDir(const DestDir : String);
     Procedure CmdMoveFiles(List : TStrings; Const DestDir : String);
@@ -857,7 +859,7 @@ Type
     // Dependency commands
     Function  DependencyOK(ADependency : TDependency) : Boolean;
     // Target commands
-    Function  GetCompilerCommand(APackage : TPackage; ATarget : TTarget) : String;
+    Function  GetCompilerCommand(APackage : TPackage; ATarget : TTarget; Env: TStrings) : String;
     Function  TargetOK(ATarget : TTarget) : Boolean;
     Function  NeedsCompile(APackage:TPackage; ATarget : TTarget) : Boolean;
     Procedure Compile(APackage:TPackage; ATarget : TTarget);  virtual;
@@ -1176,6 +1178,7 @@ ResourceString
   SHelpInstExamples   = 'Install the example-sources.';
   SHelpIgnoreInvOpt   = 'Ignore further invalid options.';
   sHelpFpdocOutputDir = 'Use indicated directory as fpdoc output folder.';
+  sHelpUseEnvironment = 'Use environment to pass options to compiler.';
 
 
 Const
@@ -1195,6 +1198,7 @@ Const
   KeyPrefix   = 'Prefix';
   KeyTarget   = 'Target';
   KeyNoFPCCfg = 'NoFPCCfg';
+  KeyUseEnv   = 'UseEnv';
   KeyLocalUnitDir       = 'LocalUnitDir';
   KeyGlobalUnitDir      = 'GlobalUnitDir';
   KeyBaseInstallDir     = 'BaseInstallDir';
@@ -1218,7 +1222,7 @@ Const
 ****************************************************************************}
 
 {$ifdef HAS_UNIT_PROCESS}
-function ExecuteFPC(Verbose: boolean; const Path: string; const ComLine: string; ConsoleOutput: TMemoryStream): integer;
+function ExecuteFPC(Verbose: boolean; const Path: string; const ComLine: string; const Env: TStrings; ConsoleOutput: TMemoryStream): integer;
 var
   P: TProcess;
   BytesRead: longint;
@@ -1299,6 +1303,9 @@ begin
   P := TProcess.Create(nil);
   try
     P.CommandLine := Path + ' ' + ComLine;
+    if assigned(Env) then
+      P.Environment.Assign(Env);
+
     P.Options := [poUsePipes];
 
     P.Execute;
@@ -3067,6 +3074,8 @@ begin
       Values[KeyTarget]:=FTarget;
       if FNoFPCCfg then
         Values[KeyNoFPCCfg]:='Y';
+      if FUseEnvironment then
+        Values[KeyUseEnv]:='Y';
       if FInstallExamples then
           Values[KeyInstallExamples]:='Y';
       end;
@@ -3128,6 +3137,7 @@ begin
       FExamplesInstallDir:=Values[KeyExamplesInstallDir];
       FInstallExamples:=(Upcase(Values[KeyInstallExamples])='Y');
       FNoFPCCfg:=(Upcase(Values[KeyNoFPCCfg])='Y');
+      FUseEnvironment:=(Upcase(Values[KeyUseEnv])='Y');
       end;
   Finally
     L.Free;
@@ -3373,6 +3383,10 @@ begin
       Defaults.Prefix:=OptionArg(I)
     else if Checkoption(I,'n','nofpccfg') then
       Defaults.NoFPCCfg:=true
+{$ifdef HAS_UNIT_PROCESS}
+    else if Checkoption(I,'e','useenv') then
+      Defaults.UseEnvironment:=true
+{$endif}
     else if CheckOption(I,'B','baseinstalldir') then
       Defaults.BaseInstallDir:=OptionArg(I)
     else if CheckOption(I,'U','unitinstalldir') then
@@ -3451,6 +3465,9 @@ begin
   LogOption('l','list-commands',SHelpList);
   LogOption('n','nofpccfg',SHelpNoFPCCfg);
   LogOption('v','verbose',SHelpVerbose);
+{$ifdef HAS_UNIT_PROCESS}
+  LogOption('e', 'useenv', sHelpUseEnvironment);
+{$endif}
   LogOption('ie','installexamples',SHelpInstExamples);
   LogArgOption('C','cpu',SHelpCPU);
   LogArgOption('O','os',SHelpOS);
@@ -3606,7 +3623,7 @@ begin
 end;
 
 
-procedure TBuildEngine.ExecuteCommand(const Cmd,Args : String; IgnoreError : Boolean = False);
+procedure TBuildEngine.ExecuteCommand(const Cmd,Args : String; const Env: TStrings = nil; IgnoreError : Boolean = False);
 Var
   E : Integer;
   cmdLine: string;
@@ -3622,7 +3639,7 @@ begin
       ConsoleOutput := TMemoryStream.Create;
       try
         {$ifdef HAS_UNIT_PROCESS}
-        E:=ExecuteFPC(Verbose, cmd, args, ConsoleOutput);
+        E:=ExecuteFPC(Verbose, cmd, args, env, ConsoleOutput);
         {$else}
         E:=ExecuteProcess(cmd,args);
         {$endif}
@@ -4007,7 +4024,7 @@ begin
             Cmd:=C.Command;
             If (ExtractFilePath(Cmd)='') then
               Cmd:=ExeSearch(Cmd,GetEnvironmentvariable('PATH'));
-            ExecuteCommand(Cmd,O,C.IgnoreResult);
+            ExecuteCommand(Cmd,O,nil,C.IgnoreResult);
             If Assigned(C.AfterCommand) then
               C.AfterCommand(C);
             end;
@@ -4309,10 +4326,11 @@ begin
 end;
 
 
-Function TBuildEngine.GetCompilerCommand(APackage : TPackage; ATarget : TTarget) : String;
+Function TBuildEngine.GetCompilerCommand(APackage : TPackage; ATarget : TTarget; Env: TStrings) : String;
 Var
   L : TUnsortedDuplicatesStringList;
   Args : TStringList;
+  s : string;
   i : Integer;
 begin
   if ATarget.TargetSourceFileName = '' then
@@ -4386,6 +4404,20 @@ begin
   for i:=0 to Args.Count-1 do
     Result:=Result+' '+maybequoted(Args[i]);
   Delete(result,1,1);
+
+  if Defaults.UseEnvironment and assigned(Env) then
+    begin
+      env.Values['FPCEXTCMD'] := Result;
+      result := '!FPCEXTCMD';
+      // Make sure that this process' environment variables are passed to the
+      // compiler's environment
+      for i := 0 to GetEnvironmentVariableCount-1 do
+        env.Add(GetEnvironmentString(i));
+    end;
+
+  // Add Filename to compile
+  result := result + ' ' + ATarget.TargetSourceFileName;
+
   Args.Free;
 end;
 
@@ -4559,14 +4591,29 @@ end;
 procedure TBuildEngine.Compile(APackage: TPackage; ATarget: TTarget);
 Var
   S : String;
+  Env : TStrings;
 begin
   Log(vlInfo,SInfoCompilingTarget,[ATarget.Name]);
   LogIndent;
   ExecuteCommands(ATarget.Commands,caBeforeCompile);
   If Assigned(ATarget.BeforeCompile) then
     ATarget.BeforeCompile(ATarget);
-  S:=GetCompilerCommand(APackage,ATarget);
-  ExecuteCommand(GetCompiler,S);
+
+  if Defaults.UseEnvironment then
+    begin
+      Env := TStringList.Create;
+      try
+        S:=GetCompilerCommand(APackage,ATarget,Env);
+        ExecuteCommand(GetCompiler,S,Env);
+      finally
+        Env.Free;
+      end;
+    end
+  else
+    begin
+      S:=GetCompilerCommand(APackage,ATarget,Env);
+      ExecuteCommand(GetCompiler,S,nil);
+    end;
   If Assigned(ATarget.AfterCompile) then
     ATarget.AfterCompile(ATarget);
   ExecuteCommands(ATarget.Commands,caAfterCompile);
