@@ -1,4 +1,5 @@
 { %target=win32,win64,linux}
+{ %needlibrary }
 
 program prog;
 {$mode objfpc}
