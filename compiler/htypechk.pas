@@ -1810,10 +1810,24 @@ implementation
               pd:=tprocdef(srsym.ProcdefList[j]);
               { in case of anonymous inherited, only match procdefs identical
                 to the current one (apart from hidden parameters), rather than
-                anything compatible to the parameters }
-              if anoninherited and
-                 (compare_paras(current_procinfo.procdef.paras,pd.paras,cp_all,[cpo_ignorehidden])<te_equal) then
-                continue;
+                anything compatible to the parameters -- except in case of
+                the presence of a messagestr/int, in which case those have to
+                match exactly }
+              if anoninherited then
+                if po_msgint in current_procinfo.procdef.procoptions then
+                  begin
+                    if not(po_msgint in pd.procoptions) or
+                       (pd.messageinf.i<>current_procinfo.procdef.messageinf.i) then
+                      continue
+                  end
+                else if po_msgstr in current_procinfo.procdef.procoptions then
+                  begin
+                    if not(po_msgstr in pd.procoptions) or
+                       (pd.messageinf.str^<>current_procinfo.procdef.messageinf.str^) then
+                      continue
+                  end
+                else if (compare_paras(current_procinfo.procdef.paras,pd.paras,cp_all,[cpo_ignorehidden])<te_equal) then
+                  continue;
               foundanything:=true;
               { Store first procsym found }
               if not assigned(FProcsym) then
