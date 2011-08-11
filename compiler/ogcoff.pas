@@ -2111,12 +2111,14 @@ const pemagic : array[0..3] of byte = (
               sechdr.vsize:=mempos;
 
             { sechdr.dataSize is size of initilized data. Must be zero for sections that
-              do not contain one.
-              TODO: In Windows it must be rounded up to FileAlignment
+              do not contain one. In Windows it must be rounded up to FileAlignment
               (so it can be greater than VirtualSize) }
             if (oso_data in SecOptions) then
               begin
-                sechdr.dataSize:=Size;
+                if win32 then
+                  sechdr.dataSize:=Align(Size,SectionDataAlign)
+                else
+                  sechdr.dataSize:=Size;
                 if (Size>0) then
                   sechdr.datapos:=datapos;
               end;
@@ -2229,7 +2231,7 @@ const pemagic : array[0..3] of byte = (
         inherited DataPos_Symbols;
         { Calculating symbols position and size }
         nsyms:=ExeSymbolList.Count;
-        sympos:=CurrDataPos;
+        sympos:=Align(CurrDataPos,SectionDataAlign);
         inc(CurrDataPos,sizeof(coffsymbol)*nsyms);
       end;
 
@@ -2495,6 +2497,9 @@ const pemagic : array[0..3] of byte = (
         ExeSectionList.ForEachCall(@ExeSectionList_write_header,nil);
         { Section data }
         ExeSectionList.ForEachCall(@ExeSectionList_write_data,nil);
+        { Align after the last section }
+        FWriter.Writezeros(Align(FWriter.Size,SectionDataAlign)-FWriter.Size);
+
         { Optional Symbols }
         if SymPos<>FWriter.Size then
           internalerror(200602252);
