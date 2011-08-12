@@ -2642,6 +2642,7 @@ packages/fcl-web/src/base/fphttp.pp svneol=native#text/plain
 packages/fcl-web/src/base/fphttpapp.pp svneol=native#text/plain
 packages/fcl-web/src/base/fphttpclient.pp svneol=native#text/plain
 packages/fcl-web/src/base/fphttpserver.pp svneol=native#text/plain
+packages/fcl-web/src/base/fphttpstatus.pas svneol=native#text/plain
 packages/fcl-web/src/base/fpweb.pp svneol=native#text/plain
 packages/fcl-web/src/base/fpwebfile.pp svneol=native#text/plain
 packages/fcl-web/src/base/httpdefs.pp svneol=native#text/plain
