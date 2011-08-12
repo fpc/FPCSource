@@ -10662,6 +10662,7 @@ tests/test/units/system/tvalc.pp svneol=native#text/plain
 tests/test/units/sysutils/strtotimetest.pp svneol=native#text/plain
 tests/test/units/sysutils/tastrcmp.pp svneol=native#text/plain
 tests/test/units/sysutils/tastrcmp1.pp svneol=native#text/plain
+tests/test/units/sysutils/tdirex.pp svneol=native#text/plain
 tests/test/units/sysutils/texec1.pp svneol=native#text/plain
 tests/test/units/sysutils/texec2.pp svneol=native#text/plain
 tests/test/units/sysutils/textractquote.pp svneol=native#text/plain
