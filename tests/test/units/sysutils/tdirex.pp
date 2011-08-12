@@ -60,7 +60,7 @@ begin
 end;
 
 var
-  dir,dir2 : string;
+  dir,dir1,dir2 : string;
   P,N,E : shortstring;
 begin
   Dos.FSplit(paramstr(0),P,N,E);
@@ -76,23 +76,25 @@ begin
   TestParents(dir);
   dir:=P+'_Dummy';
   TestDirectoryExists(dir,false);
-  dir:=P+'_Dummy'+DirectorySeparator;
-  TestDirectoryExists(dir,false);
+  dir1:=P+'_Dummy'+DirectorySeparator;
+  TestDirectoryExists(dir1,false);
   mkdir(dir);
   TestDirectoryExists(dir,true);
+  TestDirectoryExists(dir1,true);
   { Check that using two directory separators fails }
-  TestDirectoryExists(dir+DirectorySeparator,AllowsTrailingSepartors);
-  TestDirectoryExists(dir+'/',AllowsTrailingSepartors);
-  TestDirectoryExists(dir+'//',AllowsTrailingSepartors);
+  TestDirectoryExists(dir1+DirectorySeparator,AllowsTrailingSepartors);
+  TestDirectoryExists(dir1+'/',AllowsTrailingSepartors);
+  TestDirectoryExists(dir1+'//',AllowsTrailingSepartors);
   if DirectorySeparator='\' then
-    TestDirectoryExists(dir+'\\',AllowsTrailingSepartors);
-  dir2:=dir+'_Dummy2';
+    TestDirectoryExists(dir1+'\\',AllowsTrailingSepartors);
+  dir2:=dir1+'_Dummy2';
   TestDirectoryExists(dir2,false);
   mkdir(dir2);
   TestDirectoryExists(dir2,true);
   rmdir(dir2);
   rmdir(dir);
   TestDirectoryExists(dir,false);
+  TestDirectoryExists(dir1,false);
   if HasErrors then
     begin
       Writeln('Program encountered errors');
