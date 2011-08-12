@@ -105,9 +105,15 @@ Type
     FAddress: string;
     FTimeOut,
     FPort: integer;
+
 {$ifdef windowspipe}
     FIsWinPipe: Boolean;
 {$endif}
+{$IFDEF WINDOWS}
+    FShutdownThread : TThread;
+    Procedure CheckShutDownEvent;
+    Procedure HandleShutDownEvent(Sender : TObject);
+{$ENDIF}
     function AcceptConnection: Integer;
     procedure CloseConnection;
     function Read_FCGIRecord : PFCGI_Header;
@@ -169,17 +175,52 @@ Implementation
 uses
   dbugintf;
 {$endif}
- 
-
-
 {$undef nosignal}
 
 {$if defined(FreeBSD) or defined(Linux)}
   {$define nosignal}
 {$ifend}
 
+{$IFDEF WINDOWS}
+Type
+
+  { TShutdownThread }
+  TShutdownEvent = Procedure (Sender : TObject) Of Object;
+  TShutdownThread = Class(TThread)
+  Private
+    FEvent : THandle;
+    FOnShutDown : TShutdownEvent;
+  Public
+    Constructor CreateWithEvent(AEvent : THandle; AOnShutDown : TShutdownEvent);
+    Procedure Execute; override;
+  end;
+{$ENDIF}
+
 Const 
    NoSignalAttr =  {$ifdef nosignal} MSG_NOSIGNAL{$else}0{$endif};
+
+{$IFDEF WINDOWS}
+{ TShutdownThread }
+
+constructor TShutdownThread.CreateWithEvent(AEvent: THandle; AOnShutDown : TShutdownEvent);
+begin
+  Inherited Create(False);
+  FEvent:=AEvent;
+  FOnShutDown:=AOnShutDown;
+  OnTerminate:=AOnShutDown;
+end;
+
+procedure TShutdownThread.Execute;
+begin
+  WaitForSingleObject(FEvent,INFINITE);
+  If Assigned(FOnShutDown) then
+    FOnShutDown(Self);
+  // This is very ugly, but there is no other way to stop the named pipe
+  // from accepting new connections.
+  // Using Halt(0) is not enough.
+  ExitProcess(0);
+end;
+{$ENDIF WINDOWS}
 
 { TFCGIHTTPRequest }
 
@@ -473,16 +514,27 @@ end;
 { TFCgiHandler }
 
 constructor TFCgiHandler.Create(AOwner: TComponent);
+
 begin
   Inherited Create(AOwner);
   FRequestsAvail:=5;
   SetLength(FRequestsArray,FRequestsAvail);
   FHandle := THandle(-1);
   FTimeOut:=50;
+{$IFDEF WINDOWS}
+  CheckShutdownEvent;
+{$ENDIF}
 end;
 
 destructor TFCgiHandler.Destroy;
 begin
+{$IFDEF WINDOWS}
+  IF (FShutDownThread<>Nil) then
+    begin
+    TShutDownThread(FShutDownThread).FOnShutDown:=Nil;
+    TShutDownThread(FShutDownThread).OnTerminate:=Nil;
+    end;
+{$ENDIF}
   SetLength(FRequestsArray,0);
   if (Socket<>0) then
     begin
@@ -491,6 +543,30 @@ begin
     end;
   inherited Destroy;
 end;
+
+{$IFDEF WINDOWS}
+Procedure TFCgiHandler.CheckShutdownEvent;
+
+Var
+  H : THandle;
+
+begin
+  // This is normally only used in mod_fastcgi.
+  // mod_fcgid just kills off the process...
+  H:=THandle(StrToIntDef(sysutils.GetEnvironmentVariable('_FCGI_SHUTDOWN_EVENT_'),0));
+  If (H<>0) then
+    FShutDownThread:=TShutdownThread.CreateWithEvent(H,@HandleShutDownEvent);
+end;
+
+procedure TFCgiHandler.HandleShutDownEvent(Sender : TOBject);
+begin
+  TShutDownThread(Sender).FOnShutDown:=Nil;
+  TShutDownThread(Sender).OnTerminate:=Nil;
+  FShutDownThread:=Nil;
+  Terminate;
+end;
+
+{$ENDIF}
 
 procedure TFCgiHandler.CloseConnection;
 Var
