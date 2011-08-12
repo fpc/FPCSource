@@ -1392,6 +1392,14 @@ parser_e_inherited_not_in_record=03309_E_The use of "inherited" is not allowed i
 parser_e_no_types_in_local_anonymous_records=03310_E_Type declarations are not allowed in local or anonymous records
 % Records with types must be defined globally. Types cannot be defined inside records which are defined in a
 % procedure or function or in anonymous records.
+parser_e_duplicate_implements_clause=03311_E_Duplicate implements clause for interface "$1"
+% A class may delegate an interface using the "implements" clause only to a single property. Delegating it multiple times
+% is a error.
+parser_e_mapping_no_implements=03312_E_Interface "$1" can't be delegated by "$2", it already has method resolutions
+% Method resolution clause maps a method of an interface to a method of the current class. Therefore the current class
+% has to implement the interface directly. Delegation is not possible.
+parser_e_implements_no_mapping=03313_E_Interface "$1" can't have method resolutions, "$2" already delegates it
+% Method resoulution is only possible for interfaces that are implemented directly, not by delegation.
 % \end{description}
 # Type Checking
 #
