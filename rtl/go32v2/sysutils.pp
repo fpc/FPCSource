@@ -166,7 +166,7 @@ begin
         Result:=-1;
         exit;
       end;
-     syscopyfromdos(Longint(@Buffer)+readsize,lo(regs.realeax));
+     syscopyfromdos(Longint(dword(@Buffer)+readsize),lo(regs.realeax));
      inc(readsize,lo(regs.realeax));
      dec(Count,lo(regs.realeax));
      { stop when not the specified size is read }
@@ -190,7 +190,7 @@ begin
       size:=tb_size
      else
       size:=Count;
-     syscopytodos(Longint(@Buffer)+writesize,size);
+     syscopytodos(Longint(dword(@Buffer)+writesize),size);
      regs.realecx:=size;
      regs.realedx:=tb_offset;
      regs.realds:=tb_segment;
@@ -303,8 +303,40 @@ end;
 Function DirectoryExists (Const Directory : String) : Boolean;
 Var
   Sr : Searchrec;
+  Dir : String;
+  drive : byte;
+  StoredIORes : longint;
 begin
-  DOS.FindFirst(Directory,$3f,sr);
+  Dir:=Directory;
+  if (length(dir)=2) and (dir[2]=':') and
+     ((dir[1] in ['A'..'Z']) or (dir[1] in ['a'..'z'])) then
+    begin
+      { We want to test GetCurDir }
+      if dir[1] in ['A'..'Z'] then
+        drive:=ord(dir[1])-ord('A')+1
+      else
+        drive:=ord(dir[1])-ord('a')+1;
+{$undef OPT_I}
+{$ifopt I+}
+  {$define OPT_I}
+{$endif}
+{$I-}
+      StoredIORes:=InOutRes;
+      InOutRes:=0;
+      GetDir(drive,dir);
+      if InOutRes <> 0 then
+        begin
+          InOutRes:=StoredIORes;
+          result:=false;
+          exit;
+        end;
+    end;
+{$ifdef OPT_I}
+  {$I+}
+{$endif}
+  if (length(dir)>1) and (dir[length(dir)] in ['/','\']) then
+    dir:=copy(dir,1,length(dir)-1);
+  DOS.FindFirst(Dir,$3f,sr);
   if DosError = 0 then
    begin
      Result:=(sr.attr and $10)=$10;
