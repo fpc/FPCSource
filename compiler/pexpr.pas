@@ -515,10 +515,11 @@ implementation
                          err:=true;
                        end;
                    else
-                     begin
-                       Message(parser_e_illegal_parameter_list);
-                       err:=true;
-                     end;
+                     if p1.resultdef.typ<>undefineddef then
+                       begin
+                         Message(parser_e_illegal_parameter_list);
+                         err:=true;
+                       end;
                  end;
                end
               else
