@@ -244,6 +244,8 @@ const InfixOperatorName   : array[addo..powo] of char= ('+','-','*','/','^');
 
 {$I exprstrs.inc}
 
+function QuickEvaluate(formula:ansistring;variablenames : array of ansistring;variablevalues:array of const):Double;
+
 implementation
 
 
@@ -483,6 +485,52 @@ end;
 {$I symbexpr.inc} {standard symbolic manip}
 {$I teval.inc}
 {$I rearrang.inc}
+
+
+function QuickEvaluate(formula:ansistring;variablenames : array of ansistring;variablevalues:array of const):Double;
+
+VAR Expr    : TExpression;
+    SymVars,VarName : TStringList;
+    I,j       : Longint;
+    Eval    : TEvaluator;
+    Vars    : Array[0..1] OF ArbFloat;
+    x : double;
+begin
+ Expr:=TExpression.Create(formula);
+ try
+   SymVars:=Expr.SymbolicValueNames;
+   try
+     VarName:=TStringList.Create;
+       try
+         Eval:=TEvaluator.Create(Varname,Expr);
+         if high(variablenames)>0 then
+           begin
+             for i:=low(variablenames) to high(variablenames) do
+               begin
+                 j:=symvars.indexof(variablenames[i]);
+                 if j<>-1 then
+                   begin
+                     case variablevalues[i].vtype of
+                       vtinteger : x:=variablevalues[i].vinteger;
+                       vtextended: x:=variablevalues[i].vextended^;		
+                     else
+                       raise exception.create('unknown parameter type');
+                       end;
+                     Eval.SetConstant(variablenames[i],x);
+                   end;
+               end;
+           end; 
+         result:=Eval.Evaluate([]);
+       finally
+         VarName.free;
+         end
+   finally
+     SymVars.free;
+     end;
+ finally
+   expr.free;
+   end;
+end;
 
 end.
 {
