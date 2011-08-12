@@ -7,6 +7,7 @@ uses
 
 const
   HasErrors : boolean = false;
+  AllowsTrailingSepartors: boolean = false;
 
 procedure TestDirectoryExists(Const DirName : string; ExpectedResult : boolean);
 var
@@ -67,6 +68,10 @@ begin
   Writeln('Name="',N,'"');
   Writeln('Ext="',E,'"');
   TestDirectoryExists(P,true);
+  if DirectoryExists(P+DirectorySeparator) and
+     DirectoryExists(P+DirectorySeparator+DirectorySeparator) then
+    AllowsTrailingSepartors:=true;
+
   dir:=P;
   TestParents(dir);
   dir:=P+'_Dummy';
@@ -75,6 +80,12 @@ begin
   TestDirectoryExists(dir,false);
   mkdir(dir);
   TestDirectoryExists(dir,true);
+  { Check that using two directory separators fails }
+  TestDirectoryExists(dir+DirectorySeparator,AllowsTrailingSepartors);
+  TestDirectoryExists(dir+'/',AllowsTrailingSepartors);
+  TestDirectoryExists(dir+'//',AllowsTrailingSepartors);
+  if DirectorySeparator='\' then
+    TestDirectoryExists(dir+'\\',AllowsTrailingSepartors);
   dir2:=dir+'_Dummy2';
   TestDirectoryExists(dir2,false);
   mkdir(dir2);
