@@ -30,3 +30,13 @@ begin
     Result := 0;
 end;
 
+function TInputPipeStream.GetPosition: Int64;
+begin
+  Result:=FPos;
+end;
+
+procedure TInputPipeStream.InvalidSeek;
+begin
+  Raise EPipeSeek.Create (ENoSeekMsg);
+end;
+
