@@ -811,6 +811,7 @@ begin
       ThousandSeparator:=GetLocaleChar(LID, LOCALE_STHOUSAND, ',');
       DecimalSeparator:=GetLocaleChar(LID, LOCALE_SDECIMAL, '.');
       CurrencyDecimals:=StrToIntDef(GetLocaleStr(LID, LOCALE_ICURRDIGITS, '0'), 0);
+      ListSeparator := GetLocaleChar(LID, LOCALE_SLIST, ',');
     end;
 end;
 
