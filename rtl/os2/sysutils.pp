@@ -817,11 +817,22 @@ end;
 
 function DirectoryExists (const Directory: string): boolean;
 var
-  SR: TSearchRec;
+  L: longint;
 begin
-  DirectoryExists := (FindFirst (Directory, faAnyFile, SR) = 0) and
-                                                (SR.Attr and faDirectory <> 0);
-  FindClose(SR);
+  if Directory = '' then
+   Result := false
+  else
+   begin
+    if (Directory [Length (Directory)] in AllowDirectorySeparators) and
+                                              (Length (Directory) > 1) and
+(* Do not remove '\' after ':' (root directory of a drive) 
+   or in '\\' (invalid path, possibly broken UNC path). *)
+      not (Directory [Length (Directory) - 1] in AllowDriveSeparators + AllowDirectorySeparators) then
+     L := FileGetAttr (ExpandFileName (Copy (Directory, 1, Length (Directory) - 1)))
+    else
+     L := FileGetAttr (ExpandFileName (Directory));
+    Result := (L > 0) and (L and faDirectory = faDirectory);
+   end;
 end;
 
 {****************************************************************************

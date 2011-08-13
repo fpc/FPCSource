@@ -302,7 +302,6 @@ end;
 
 Function DirectoryExists (Const Directory : String) : Boolean;
 Var
-  Sr : Searchrec;
   Dir : String;
   drive : byte;
   StoredIORes : longint;
@@ -334,16 +333,13 @@ begin
 {$ifdef OPT_I}
   {$I+}
 {$endif}
-  if (length(dir)>1) and (dir[length(dir)] in ['/','\']) then
+  if (Length (Dir) > 1) and
+    (Dir [Length (Dir)] in AllowDirectorySeparators) and
+(* Do not remove '\' after ':' (root directory of a drive) 
+   or in '\\' (invalid path, possibly broken UNC path). *)
+     not (Dir [Length (Dir - 1)] in (AllowDriveSeparators + AllowDirectorySeparators)) then
     dir:=copy(dir,1,length(dir)-1);
-  DOS.FindFirst(Dir,$3f,sr);
-  if DosError = 0 then
-   begin
-     Result:=(sr.attr and $10)=$10;
-     Dos.FindClose(sr);
-   end
-  else
-   Result:=false;
+  Result := FileGetAttr (Dir) and faDirectory = faDirectory;
 end;
 
 
