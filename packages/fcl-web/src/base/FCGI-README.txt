@@ -256,9 +256,6 @@ LoadModule fastcgi_module "modules/mod_fastcgi-2.4.6-AP22.dll"
   ScriptAlias /myfcgi "C:/My Programs/LazarusFCGITest/helloworld.exe"
 </IfModule>
 
-Known issues on Windows:
-http://bugs.freepascal.org/view.php?id=19440
-
 2.1.4 Start/Restart your Apache server.
 If you will use the FastCgiExternalServer, then start your application 
 manually, so it can start accepting incoming requests from the web server.
