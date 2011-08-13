@@ -337,7 +337,7 @@ begin
     (Dir [Length (Dir)] in AllowDirectorySeparators) and
 (* Do not remove '\' after ':' (root directory of a drive) 
    or in '\\' (invalid path, possibly broken UNC path). *)
-     not (Dir [Length (Dir - 1)] in (AllowDriveSeparators + AllowDirectorySeparators)) then
+     not (Dir [Length (Dir) - 1] in (AllowDriveSeparators + AllowDirectorySeparators)) then
     dir:=copy(dir,1,length(dir)-1);
   Result := FileGetAttr (Dir) and faDirectory = faDirectory;
 end;
