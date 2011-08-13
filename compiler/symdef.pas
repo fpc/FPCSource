@@ -272,9 +272,10 @@ interface
           vmtentries     : TFPList;
           vmcallstaticinfo : pmvcallstaticinfo;
           vmt_offset     : longint;
-          objecttype     : tobjecttyp;
           iidguid        : pguid;
           iidstr         : pshortstring;
+          { store implemented interfaces defs and name mappings }
+          ImplementedInterfaces : TFPObjectList;
           writing_class_record_dbginfo,
           { a class of this type has been created in this module }
           created_in_current_module,
@@ -288,8 +289,7 @@ interface
             this module
           }
           classref_created_in_current_module : boolean;
-          { store implemented interfaces defs and name mappings }
-          ImplementedInterfaces : TFPObjectList;
+          objecttype     : tobjecttyp;
           constructor create(ot:tobjecttyp;const n:string;c:tobjectdef);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -423,14 +423,14 @@ interface
           procoptions     : tprocoptions;
           callerargareasize,
           calleeargareasize: pint;
-          { number of user visibile parameters }
-          maxparacount,
-          minparacount    : byte;
 {$ifdef m68k}
           exp_funcretloc : tregister;   { explicit funcretloc for AmigaOS }
 {$endif}
           funcretloc : array[tcallercallee] of TCGPara;
           has_paraloc_info : tcallercallee; { paraloc info is available }
+          { number of user visible parameters }
+          maxparacount,
+          minparacount    : byte;
           constructor create(dt:tdeftyp;level:byte);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -536,6 +536,8 @@ interface
 {$ifdef oldregvars}
           regvarinfo: pregvarinfo;
 {$endif oldregvars}
+          { interrupt vector }
+          interruptvector : longint;
           { First/last assembler symbol/instruction in aasmoutput list.
             Note: initialised after compiling the code for the procdef, but
               not saved to/restored from ppu. Used when inserting debug info }
@@ -554,8 +556,6 @@ interface
           interfacedef : boolean;
           { true if the procedure has a forward declaration }
           hasforward  : boolean;
-          { interrupt vector }
-          interruptvector : longint;
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -613,10 +613,10 @@ interface
        tenumdef = class(tstoreddef)
           minval,
           maxval    : asizeint;
-          has_jumps : boolean;
           basedef   : tenumdef;
           basedefderef : tderef;
           symtable  : TSymtable;
+          has_jumps : boolean;
           constructor create;
           constructor create_subrange(_basedef:tenumdef;_min,_max:asizeint);
           constructor ppuload(ppufile:tcompilerppufile);

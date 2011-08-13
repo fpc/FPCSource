@@ -93,11 +93,11 @@ type
   end;
 
   TOperand = class
-    typesize : aint;
+    opr    : TOprRec;
+    typesize : byte;
     hastype,          { if the operand has typecasted variable }
     hasvar : boolean; { if the operand is loaded with a variable }
     size   : TCGSize;
-    opr    : TOprRec;
     constructor create;virtual;
     destructor  destroy;override;
     Procedure SetSize(_size:longint;force:boolean);virtual;
@@ -112,11 +112,11 @@ type
   TCOperand = class of TOperand;
 
   TInstruction = class
+    operands  : array[1..max_operands] of toperand;
     opcode    : tasmop;
     condition : tasmcond;
     ops       : byte;
     labeled   : boolean;
-    operands  : array[1..max_operands] of toperand;
     constructor create(optype : tcoperand);virtual;
     destructor  destroy;override;
     { converts the instruction to an instruction how it's used by the assembler writer
