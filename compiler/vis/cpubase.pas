@@ -374,44 +374,9 @@ uses
       LoReg = R_R0;
       HiReg = R_R11;
 
-      {# Table of registers which can be allocated by the code generator
-         internally, when generating the code.
-      }
-      { legend:                                                                }
-      { xxxregs = set of all possibly used registers of that type in the code  }
-      {           generator                                                    }
-      { usableregsxxx = set of all 32bit components of registers that can be   }
-      {           possible allocated to a regvar or using getregisterxxx (this }
-      {           excludes registers which can be only used for parameter      }
-      {           passing on ABI's that define this)                           }
-      { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
-
       maxintregs = 12;
-      intregs    = [R_R0..R_R11];
-      usableregsint = [R_R2..R_R11];
-      c_countusableregsint = 18;
-
       maxfpuregs = 16;
-      fpuregs    = [R_FP0..R_FP15];
-      usableregsfpu = [R_FP1..R_FP15];
-      c_countusableregsfpu = 15;
-
-      mmregs     = [];
-      usableregsmm  = [];
-      c_countusableregsmm  = 0;
-
-      { no distinction on this platform }
       maxaddrregs = 0;
-      addrregs    = [];
-      usableregsaddr = [];
-      c_countusableregsaddr = 0;
-
-      firstsaveintreg = R_R2;
-      lastsaveintreg  = R_R11;
-      firstsavefpureg = R_FP1;
-      lastsavefpureg  = R_FP15;
-      firstsavemmreg  = R_NO;
-      lastsavemmreg   = R_NO;
 
       maxvarregs = 10;
       varregs : Array [1..maxvarregs] of toldregister =

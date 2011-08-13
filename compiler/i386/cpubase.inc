@@ -49,30 +49,6 @@
       std_op2str:op2strtable={$i i386int.inc}
 
 {*****************************************************************************
-                                 Constants
-*****************************************************************************}
-      c_countusableregsint = 4;
-
-{
-      firstsaveintreg = RS_EAX;
-      lastsaveintreg  = RS_EDX;
-      firstsavefpureg = RS_INVALID;
-      lastsavefpureg  = RS_INVALID;
-      firstsavemmreg  = RS_MM0;
-      lastsavemmreg   = RS_MM7;
-
-      general_superregisters = [RS_EAX,RS_EBX,RS_ECX,RS_EDX];
-
-      maxvarregs = 4;
-      varregs : array[1..maxvarregs] of tsuperregister =
-         (RS_EBX,RS_EDX,RS_ECX,RS_EAX);
-
-      maxfpuvarregs = 8;
-
-      maxmmvarregs = 8;
-}
-
-{*****************************************************************************
                                GDB Information
 *****************************************************************************}
 
@@ -169,5 +145,3 @@
          PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
       }
       std_param_align = 4;
-
-
