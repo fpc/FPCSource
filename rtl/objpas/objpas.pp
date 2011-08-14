@@ -249,17 +249,17 @@ end;
 
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure MkDir(const s:ansistring);
+Procedure MkDir(const s:ansistring);[IOCheck];
 begin
   mkdirpchar(pchar(s),length(s));
 end;
 
-Procedure RmDir(const s:ansistring);
+Procedure RmDir(const s:ansistring);[IOCheck];
 begin
   RmDirpchar(pchar(s),length(s));
 end;
 
-Procedure ChDir(const s:ansistring);
+Procedure ChDir(const s:ansistring);[IOCheck];
 begin
   ChDirpchar(pchar(s),length(s));
 end;
