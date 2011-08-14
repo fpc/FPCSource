@@ -66,7 +66,7 @@ type
     class procedure Error(const Msg: string; Data: PtrInt);
     procedure Exchange(Index1, Index2: Integer);
     function Expand: TFPSList;
-    function Extract(Item: Pointer): Pointer;
+    procedure Extract(Item: Pointer; ResultPtr: Pointer);
     function First: Pointer;
     function IndexOf(Item: Pointer): Integer;
     procedure Insert(Index: Integer; Item: Pointer);
@@ -486,18 +486,21 @@ begin
   end;
 end;
 
-function TFPSList.Extract(Item: Pointer): Pointer;
+procedure TFPSList.Extract(Item: Pointer; ResultPtr: Pointer);
 var
   i : Integer;
+  ListItemPtr : Pointer;
 begin
-  Result := nil;
   i := IndexOf(Item);
   if i >= 0 then
   begin
-    Result := InternalItems[i];
-    System.Move(Result^, InternalItems[FCapacity]^, FItemSize);
+    ListItemPtr := InternalItems[i];
+    System.Move(ListItemPtr^, ResultPtr^, FItemSize);
+    { fill with zeros, to avoid freeing/decreasing reference on following Delete }
+    System.FillByte(ListItemPtr^, FItemSize, 0);
     Delete(i);
-  end;
+  end else
+    System.FillByte(ResultPtr^, FItemSize, 0);
 end;
 
 class procedure TFPSList.Error(const Msg: string; Data: PtrInt);
@@ -761,14 +764,8 @@ begin
 end;
 
 function TFPGList.Extract(const Item: T): T;
-var
-  ResPtr: Pointer;
 begin
-  ResPtr := inherited Extract(@Item);
-  if ResPtr <> nil then
-    Result := T(ResPtr^)
-  else
-    FillByte(Result, sizeof(T), 0);
+  inherited Extract(@Item, @Result);
 end;
 
 function TFPGList.First: T;
@@ -873,14 +870,8 @@ begin
 end;
 
 function TFPGObjectList.Extract(const Item: T): T;
-var
-  ResPtr: Pointer;
 begin
-  ResPtr := inherited Extract(@Item);
-  if ResPtr <> nil then
-    Result := T(ResPtr^)
-  else
-    FillByte(Result, sizeof(T), 0);
+  inherited Extract(@Item, @Result);
 end;
 
 function TFPGObjectList.First: T;
@@ -988,14 +979,8 @@ begin
 end;
 
 function TFPGInterfacedObjectList.Extract(const Item: T): T;
-var
-  ResPtr: Pointer;
 begin
-  ResPtr := inherited Extract(@Item);
-  if ResPtr <> nil then
-    Result := T(ResPtr^)
-  else
-    FillByte(Result, sizeof(T), 0);
+  inherited Extract(@Item, @Result);
 end;
 
 function TFPGInterfacedObjectList.First: T;
