@@ -1018,19 +1018,32 @@ end;
     Var
       p : toperand;
     Begin
-      case Ops of
-       2 :
-        begin
-          p:=Operands[1];
-          Operands[1]:=Operands[2];
-          Operands[2]:=p;
-        end;
-       3 :
-        begin
-          p:=Operands[1];
-          Operands[1]:=Operands[3];
-          Operands[3]:=p;
-        end;
+      case ops of
+        0,1:
+          ;
+        2 : begin
+              { 0,1 -> 1,0 }
+              p:=Operands[1];
+              Operands[1]:=Operands[2];
+              Operands[2]:=p;
+            end;
+        3 : begin
+              { 0,1,2 -> 2,1,0 }
+              p:=Operands[1];
+              Operands[1]:=Operands[3];
+              Operands[3]:=p;
+            end;
+        4 : begin
+              { 0,1,2,3 -> 3,2,1,0 }
+              p:=Operands[1];
+              Operands[1]:=Operands[4];
+              Operands[4]:=p;
+              p:=Operands[2];
+              Operands[2]:=Operands[3];
+              Operands[3]:=p;
+            end;
+        else
+          internalerror(201108142);
       end;
     end;
 
