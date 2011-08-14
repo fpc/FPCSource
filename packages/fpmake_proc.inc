@@ -148,6 +148,12 @@ begin
 {$include fcl-res/fpmake.pp}
 end;
 
+procedure add_fcl_stl;
+begin
+  with Installer do
+{$include fcl-stl/fpmake.pp}
+end;
+
 procedure add_fcl_web;
 begin
   with Installer do

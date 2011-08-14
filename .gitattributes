@@ -2341,6 +2341,7 @@ packages/fcl-stl/doc/stackexample.pp svneol=native#text/plain
 packages/fcl-stl/doc/util.tex svneol=native#text/plain
 packages/fcl-stl/doc/vector.tex svneol=native#text/plain
 packages/fcl-stl/doc/vectorexample.pp svneol=native#text/plain
+packages/fcl-stl/fpmake.pp svneol=native#text/pascal
 packages/fcl-stl/src/garrayutils.pp svneol=native#text/plain
 packages/fcl-stl/src/gdeque.pp svneol=native#text/plain
 packages/fcl-stl/src/ghashmap.pp svneol=native#text/plain

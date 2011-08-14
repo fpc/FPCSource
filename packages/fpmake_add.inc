@@ -23,6 +23,7 @@
   add_fcl_process;
   add_fcl_registry;
   add_fcl_res;
+  add_fcl_stl;
   add_fcl_web;
   add_fcl_xml;
   add_fftw;
