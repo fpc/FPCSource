@@ -503,24 +503,39 @@ begin
      VarName:=TStringList.Create;
        try
          Eval:=TEvaluator.Create(Varname,Expr);
-         if high(variablenames)>0 then
-           begin
-             for i:=low(variablenames) to high(variablenames) do
-               begin
-                 j:=symvars.indexof(variablenames[i]);
-                 if j<>-1 then
-                   begin
-                     case variablevalues[i].vtype of
-                       vtinteger : x:=variablevalues[i].vinteger;
-                       vtextended: x:=variablevalues[i].vextended^;		
-                     else
-                       raise exception.create('unknown parameter type');
-                       end;
-                     Eval.SetConstant(variablenames[i],x);
-                   end;
-               end;
+         try 
+           if high(variablenames)>0 then
+             begin
+               for i:=low(variablenames) to high(variablenames) do
+                 begin
+                   j:=symvars.indexof(variablenames[i]);
+                   if j<>-1 then
+                     begin
+                       case variablevalues[i].vtype of
+                         vtinteger : x:=variablevalues[i].vinteger;
+                         vtextended: x:=variablevalues[i].vextended^;		
+                       else
+                         raise exception.CreateFmt(SEvalUnknownParameterType,[variablenames[i]]);
+                         end;
+                       Eval.SetConstant(variablenames[i],x);
+                       symvars.objects[j]:=tobject(1);
+                       writeln(variablenames[i],'!');
+                     end;
+                 end;
+                 
+             end; 
+           i:=0;
+           while (i<symvars.count) and (symvars.objects[i]=tobject(1)) do inc(i);
+           if i<symvars.count then
+             begin
+               writeln(i, ' ',symvars.count);
+               raise Exception.CreateFmt(SEvalUndefinedVar,[symvars[i]]);
+             end;
+           result:=Eval.Evaluate([]);
+         finally 
+           varname:=nil;
+           eval.free;
            end; 
-         result:=Eval.Evaluate([]);
        finally
          VarName.free;
          end

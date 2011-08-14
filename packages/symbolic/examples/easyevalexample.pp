@@ -36,4 +36,16 @@ begin
   // variable names are case sensitive!
   writeln(s,'=',QuickEvaluate(s,['A','B'],[a,b]):10:1,' with A=',a:0:1,' and B=',b);
 
+ // now let's do that again, but add a symbol (C) that we don't define:
+
+ try
+   a:=2.0;
+   b:=3;
+   s:='(5+A+10)*B+C';
+   // variable names are case sensitive!
+   writeln(s,'=',QuickEvaluate(s,['A','B'],[a,b]):10:1,' with A=',a:0:1,' and B=',b);
+ except
+   on E:Exception do
+     Writeln('An exception occured: ',e.message);
+   end;
 end.
