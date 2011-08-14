@@ -100,7 +100,7 @@ type
   end;
 
   generic TFPGList<T> = class(TFPSList)
-  public
+  private
     type
       TCompareFunc = function(const Item1, Item2: T): Integer;
       TTypeList = array[0..MaxGListSize] of T;
@@ -134,7 +134,7 @@ type
   end;
 
   generic TFPGObjectList<T> = class(TFPSList)
-  public
+  private
     type
       TCompareFunc = function(const Item1, Item2: T): Integer;
       TTypeList = array[0..MaxGListSize] of T;
@@ -170,7 +170,7 @@ type
   end;
 
   generic TFPGInterfacedObjectList<T> = class(TFPSList)
-  public
+  private
     type
       TCompareFunc = function(const Item1, Item2: T): Integer;
       TTypeList = array[0..MaxGListSize] of T;
@@ -254,7 +254,7 @@ type
   end;
 
   generic TFPGMap<TKey, TData> = class(TFPSMap)
-  public
+  private
     type
       TKeyCompareFunc = function(const Key1, Key2: TKey): Integer;
       TDataCompareFunc = function(const Data1, Data2: TData): Integer;
@@ -299,7 +299,7 @@ type
   end;
 
   generic TFPGMapInterfacedObjectData<TKey, TData> = class(TFPSMap)
-  public
+  private
     type
       TKeyCompareFunc = function(const Key1, Key2: TKey): Integer;
       TDataCompareFunc = function(const Data1, Data2: TData): Integer;
