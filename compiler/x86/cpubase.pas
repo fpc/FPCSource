@@ -231,7 +231,7 @@ uses
       LOC_SSEREGISTER = LOC_MMREGISTER;
       LOC_CSSEREGISTER = LOC_CMMREGISTER;
 
-      max_operands = 3;
+      max_operands = 4;
       maxfpuregs = 8;
 
 {*****************************************************************************
