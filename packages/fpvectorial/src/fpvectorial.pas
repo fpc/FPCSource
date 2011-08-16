@@ -64,7 +64,7 @@ type
     {@@
       Font orientation is measured in degrees and uses the
       same direction as the LCL TFont.orientation, which is counter-clockwise.
-      Zero is the normal, horizontal, orientation.
+      Zero is the normal, horizontal, orientation, directed to the right.
     }
     Orientation: Double;
   end;
@@ -172,10 +172,7 @@ type
   end;
 
   {@@
-    TvText represents a text in memory.
-
-    At the moment fonts are unsupported, only simple texts
-    up to 255 chars are supported.
+    TvText represents a text entity.
   }
   TvText = class(TvEntity)
   public
@@ -580,7 +577,7 @@ end;
   Should be followed by zero or more calls to AddPointToPath
   and by a call to EndPath to effectively add the data.
 
-  @see    StartPath, AddPointToPath
+  @see    EndPath, AddPointToPath
 }
 procedure TvVectorialDocument.StartPath(AX, AY: Double);
 var
@@ -991,7 +988,7 @@ end;
 {@@
   Reads the document from a file.
 
-  Any current contents will be removed.
+  Any current contents in this object will be removed.
 }
 procedure TvVectorialDocument.ReadFromFile(AFileName: string;
   AFormat: TvVectorialFormat);
@@ -1009,7 +1006,7 @@ begin
 end;
 
 {@@
-  Reads the document from a file.  A variant that auto-detects the format from the extension.
+  Reads the document from a file.  A variant that auto-detects the format from the extension and other factors.
 }
 procedure TvVectorialDocument.ReadFromFile(AFileName: string);
 var
@@ -1022,7 +1019,7 @@ end;
 {@@
   Reads the document from a stream.
 
-  Any current contents will be removed.
+  Any current contents in this object will be removed.
 }
 procedure TvVectorialDocument.ReadFromStream(AStream: TStream;
   AFormat: TvVectorialFormat);
