@@ -2015,7 +2015,11 @@ implementation
             if (cs_create_pic in current_settings.moduleswitches) and
               assigned(r.symbol) and
               not assigned(r.relsymbol) and
-              (r.refaddr=addr_no) then
+              (r.refaddr=addr_no)
+{$ifdef ARM}
+              and not(r.base=NR_R15)
+{$endif ARM}
+              then
               internalerror(200502052);
             typ:=top_ref;
             if assigned(add_reg_instruction_hook) then
