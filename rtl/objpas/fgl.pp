@@ -57,6 +57,10 @@ type
     procedure SetCount(NewCount: Integer);
     procedure RaiseIndexError(Index : Integer);
     property InternalItems[Index: Integer]: Pointer read InternalGet write InternalPut;
+    function GetLast: Pointer;
+    procedure SetLast(const Value: Pointer);
+    function GetFirst: Pointer;
+    procedure SetFirst(const Value: Pointer);
   public
     constructor Create(AItemSize: Integer = sizeof(Pointer));
     destructor Destroy; override;
@@ -67,11 +71,9 @@ type
     procedure Exchange(Index1, Index2: Integer);
     function Expand: TFPSList;
     procedure Extract(Item: Pointer; ResultPtr: Pointer);
-    function First: Pointer;
     function IndexOf(Item: Pointer): Integer;
     procedure Insert(Index: Integer; Item: Pointer);
     function Insert(Index: Integer): Pointer;
-    function Last: Pointer;
     procedure Move(CurIndex, NewIndex: Integer);
     procedure Assign(Obj: TFPSList);
     function Remove(Item: Pointer): Integer;
@@ -82,6 +84,8 @@ type
     property Items[Index: Integer]: Pointer read Get write Put; default;
     property ItemSize: Integer read FItemSize;
     property List: PByte read FList;
+    property First: Pointer read GetFirst write SetFirst;
+    property Last: Pointer read GetLast write SetLast;
   end;
 
 const
@@ -115,15 +119,19 @@ type
     function  GetList: PTypeList; {$ifdef CLASSESINLINE} inline; {$endif}
     function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
     procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetLast: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure SetLast(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetFirst: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure SetFirst(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
   public
     constructor Create;
     function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
-    function First: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    property First: T read GetFirst write SetFirst;
     function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef CLASSESINLINE} inline; {$endif}
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
-    function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    property Last: T read GetLast write SetLast;
 {$ifndef VER2_4}
     procedure Assign(Source: TFPGList);
 {$endif VER2_4}
@@ -150,15 +158,19 @@ type
     function  GetList: PTypeList; {$ifdef CLASSESINLINE} inline; {$endif}
     function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
     procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetLast: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure SetLast(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetFirst: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure SetFirst(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
   public
     constructor Create(FreeObjects: Boolean = True);
     function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
-    function First: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    property First: T read GetFirst write SetFirst;
     function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef CLASSESINLINE} inline; {$endif}
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
-    function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    property Last: T read GetLast write SetLast;
 {$ifndef VER2_4}
     procedure Assign(Source: TFPGObjectList);
 {$endif VER2_4}
@@ -185,15 +197,19 @@ type
     function  GetList: PTypeList; {$ifdef CLASSESINLINE} inline; {$endif}
     function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
     procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetLast: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure SetLast(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetFirst: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure SetFirst(const Value: T); {$ifdef CLASSESINLINE} inline; {$endif}
   public
     constructor Create;
     function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
-    function First: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    property First: T read GetFirst write SetFirst;
     function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef CLASSESINLINE} inline; {$endif}
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
-    function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    property Last: T read GetLast write SetLast;
 {$ifndef VER2_4}
     procedure Assign(Source: TFPGInterfacedObjectList);
 {$endif VER2_4}
@@ -537,12 +553,17 @@ begin
   Result := Self;
 end;
 
-function TFPSList.First: Pointer;
+function TFPSList.GetFirst: Pointer;
 begin
   If FCount = 0 then
     Result := Nil
   else
     Result := InternalItems[0];
+end;
+
+procedure TFPSList.SetFirst(const Value: Pointer);
+begin
+  Put(0, Value);
 end;
 
 function TFPSList.IndexOf(Item: Pointer): Integer;
@@ -579,12 +600,17 @@ begin
   CopyItem(Item, Insert(Index));
 end;
 
-function TFPSList.Last: Pointer;
+function TFPSList.GetLast: Pointer;
 begin
   if FCount = 0 then
     Result := nil
   else
     Result := InternalItems[FCount - 1];
+end;
+
+procedure TFPSList.SetLast(const Value: Pointer);
+begin
+  Put(FCount - 1, Value);
 end;
 
 procedure TFPSList.Move(CurIndex, NewIndex: Integer);
@@ -768,9 +794,14 @@ begin
   inherited Extract(@Item, @Result);
 end;
 
-function TFPGList.First: T;
+function TFPGList.GetFirst: T;
 begin
-  Result := T(inherited First^);
+  Result := T(inherited GetFirst^);
+end;
+
+procedure TFPGList.SetFirst(const Value: T);
+begin
+  inherited SetFirst(@Value);
 end;
 
 function TFPGList.GetEnumerator: TFPGListEnumeratorSpec;
@@ -793,9 +824,14 @@ begin
   T(inherited Insert(Index)^) := Item;
 end;
 
-function TFPGList.Last: T;
+function TFPGList.GetLast: T;
 begin
-  Result := T(inherited Last^);
+  Result := T(inherited GetLast^);
+end;
+
+procedure TFPGList.SetLast(const Value: T);
+begin
+  inherited SetLast(@Value);
 end;
 
 {$ifndef VER2_4}
@@ -874,9 +910,14 @@ begin
   inherited Extract(@Item, @Result);
 end;
 
-function TFPGObjectList.First: T;
+function TFPGObjectList.GetFirst: T;
 begin
-  Result := T(inherited First^);
+  Result := T(inherited GetFirst^);
+end;
+
+procedure TFPGObjectList.SetFirst(const Value: T);
+begin
+  inherited SetFirst(@Value);
 end;
 
 function TFPGObjectList.GetEnumerator: TFPGListEnumeratorSpec;
@@ -899,9 +940,14 @@ begin
   T(inherited Insert(Index)^) := Item;
 end;
 
-function TFPGObjectList.Last: T;
+function TFPGObjectList.GetLast: T;
 begin
-  Result := T(inherited Last^);
+  Result := T(inherited GetLast^);
+end;
+
+procedure TFPGObjectList.SetLast(const Value: T);
+begin
+  inherited SetLast(@Value);
 end;
 
 {$ifndef VER2_4}
@@ -983,9 +1029,14 @@ begin
   inherited Extract(@Item, @Result);
 end;
 
-function TFPGInterfacedObjectList.First: T;
+function TFPGInterfacedObjectList.GetFirst: T;
 begin
-  Result := T(inherited First^);
+  Result := T(inherited GetFirst^);
+end;
+
+procedure TFPGInterfacedObjectList.SetFirst(const Value: T);
+begin
+  inherited SetFirst(@Value);
 end;
 
 function TFPGInterfacedObjectList.GetEnumerator: TFPGListEnumeratorSpec;
@@ -1008,9 +1059,14 @@ begin
   T(inherited Insert(Index)^) := Item;
 end;
 
-function TFPGInterfacedObjectList.Last: T;
+function TFPGInterfacedObjectList.GetLast: T;
 begin
-  Result := T(inherited Last^);
+  Result := T(inherited GetLast^);
+end;
+
+procedure TFPGInterfacedObjectList.SetLast(const Value: T);
+begin
+  inherited SetLast(@Value);
 end;
 
 {$ifndef VER2_4}
