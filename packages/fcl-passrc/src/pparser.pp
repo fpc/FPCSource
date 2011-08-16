@@ -27,7 +27,7 @@ resourcestring
   SErrNoSourceGiven = 'No source file specified';
   SErrMultipleSourceFiles = 'Please specify only one source file';
   SParserError = 'Error';
-  SParserErrorAtToken = '%s at token "%s"';
+  SParserErrorAtToken = '%s at token "%s" in file %s at line %d column %d';
   SParserUngetTokenError = 'Internal error: Cannot unget more tokens, history buffer is full';
   SParserExpectTokenError = 'Expected "%s"';
   SParserExpectedCommaRBracket = 'Expected "," or ")"';
@@ -240,7 +240,8 @@ end;
 
 procedure TPasParser.ParseExc(const Msg: String);
 begin
-  raise EParserError.Create(Format(SParserErrorAtToken, [Msg, CurTokenName]) {$ifdef addlocation}+' ('+inttostr(scanner.currow)+' '+inttostr(scanner.curcolumn)+')'{$endif},
+  raise EParserError.Create(Format(SParserErrorAtToken, [Msg, CurTokenName, Scanner.CurFilename, Scanner.CurRow, Scanner.CurColumn])
+    {$ifdef addlocation}+' ('+inttostr(scanner.currow)+' '+inttostr(scanner.curcolumn)+')'{$endif},
     Scanner.CurFilename, Scanner.CurRow, Scanner.CurColumn);
 end;
 
