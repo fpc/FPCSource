@@ -637,14 +637,18 @@ implementation
             ((tsym(sym).owner.symtabletype in
              [parasymtable,localsymtable,ObjectSymtable,recordsymtable,staticsymtable])) then
            begin
-            { unused symbol should be reported only if no }
-            { error is reported                     }
-            { if the symbol is in a register it is used   }
-            { also don't count the value parameters which have local copies }
-            { also don't claim for high param of open parameters (PM) }
+            { unused symbol should be reported only if no                    }
+            { error is reported                                              }
+            { if the symbol is in a register it is used                      }
+            { also don't count the value parameters which have local copies  }
+            { also don't claim for high param of open parameters    (PM)     }
+            { also don't complain about unused symbols in generic procedures }
+            { and methods                                                    }
             if (Errorcount<>0) or
                ([vo_is_hidden_para,vo_is_funcret] * tabstractvarsym(sym).varoptions = [vo_is_hidden_para]) or
-               (sp_internal in tsym(sym).symoptions) then
+               (sp_internal in tsym(sym).symoptions) or
+               ((assigned(tsym(sym).owner.defowner) and
+                (df_generic in tprocdef(tsym(sym).owner.defowner).defoptions))) then
               exit;
             if (tstoredsym(sym).refs=0) then
               begin
