@@ -113,7 +113,9 @@ interface
             relsyms (nor do they support dwarf, for that matter)
           }
           aitconst_darwin_dwarf_delta64,
-          aitconst_darwin_dwarf_delta32
+          aitconst_darwin_dwarf_delta32,
+          { ARM Thumb-2 only }
+          aitconst_half16bit { used for table jumps. The actual value is the 16bit value shifted left once }
         );
 
     const
@@ -1326,6 +1328,8 @@ implementation
             result:=LengthUleb128(qword(value));
           aitconst_sleb128bit :
             result:=LengthSleb128(value);
+          aitconst_half16bit:
+            result:=2;
           else
             internalerror(200603253);
         end;
