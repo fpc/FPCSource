@@ -304,7 +304,7 @@ Function DirectoryExists (Const Directory : String) : Boolean;
 Var
   Dir : String;
   drive : byte;
-  StoredIORes : longint;
+  FADir, StoredIORes : longint;
 begin
   Dir:=Directory;
   if (length(dir)=2) and (dir[2]=':') and
@@ -335,11 +335,14 @@ begin
 {$endif}
   if (Length (Dir) > 1) and
     (Dir [Length (Dir)] in AllowDirectorySeparators) and
-(* Do not remove '\' after ':' (root directory of a drive) 
+(* Do not remove '\' after ':' (root directory of a drive)
    or in '\\' (invalid path, possibly broken UNC path). *)
      not (Dir [Length (Dir) - 1] in (AllowDriveSeparators + AllowDirectorySeparators)) then
     dir:=copy(dir,1,length(dir)-1);
-  Result := FileGetAttr (Dir) and faDirectory = faDirectory;
+(* FileGetAttr returns -1 on error *)
+  FADir := FileGetAttr (Dir);
+  Result := (FADir <> -1) and
+            ((FADir and faDirectory) = faDirectory);
 end;
 
 
