@@ -499,7 +499,6 @@ implementation
         stabchar : string[2];
         symname  : string[20];
         st    : ansistring;
-        p     : pchar;
       begin
         { type prefix }
         if def.typ in tagtypes then
@@ -528,9 +527,7 @@ implementation
           unit and then the linenumber is invalid in the current sourcefile }
         st:=st+def_stabstr_evaluate(def,'",${N_LSYM},0,0,0',[]);
         { add to list }
-        getmem(p,length(st)+1);
-        move(pchar(st)^,p^,length(st)+1);
-        list.concat(Tai_stab.create(stab_stabs,p));
+        list.concat(Tai_stab.create_ansistr(stab_stabs,st));
       end;
 
 
@@ -800,8 +797,8 @@ implementation
         if (oo_has_vmt in def.objectoptions) and
            assigned(def.owner) and
            assigned(def.owner.name) then
-          list.concat(Tai_stab.create(stab_stabs,strpnew('"vmt_'+GetSymTableName(def.owner)+tobjectdef(def).objname^+':S'+
-                 def_stab_number(vmttype)+'",'+tostr(N_STSYM)+',0,0,'+tobjectdef(def).vmt_mangledname)));
+          list.concat(Tai_stab.create_ansistr(stab_stabs,ansistring('"vmt_')+GetSymTableName(def.owner)+tobjectdef(def).objname^+':S'+
+                 def_stab_number(vmttype)+'",'+tostr(N_STSYM)+',0,0,'+ansistring(tobjectdef(def).vmt_mangledname)));
       end;
 
 
@@ -832,7 +829,6 @@ implementation
       var
         st,
         ss : ansistring;
-        p: pchar;
         elementdefstabnr: string;
       begin
         { ugly hack: create a temporary subrange type if the lower bound of
@@ -851,9 +847,7 @@ implementation
               st:=st+def_stabstr_evaluate(def.elementdef,'r'+elementdefstabnr+';$1;$2;',[tostr(longint(def.setbase)),tostr(longint(get_max_value(def.elementdef).svalue))]);
             st:=st+'",'+tostr(N_LSYM)+',0,0,0';
             { add to list }
-            getmem(p,length(st)+1);
-            move(pchar(st)^,p^,length(st)+1);
-            list.concat(Tai_stab.create(stab_stabs,p));
+            list.concat(Tai_stab.create_ansistr(stab_stabs,st));
           end
         else
           elementdefstabnr:=def_stab_number(def.elementdef);
@@ -1023,7 +1017,6 @@ implementation
       var
         templist : TAsmList;
         stabsendlabel : tasmlabel;
-        p  : pchar;
         RType : Char;
         Obj,Info : String;
         hs : string;
@@ -1073,9 +1066,7 @@ implementation
               ss:=ss+'.';
             ss:=ss+def.mangledname;
           end;
-        getmem(p,length(ss)+1);
-        move(pchar(ss)^,p^,length(ss)+1);
-        templist.concat(Tai_stab.Create(stab_stabn,p));
+        templist.concat(Tai_stab.Create_ansistr(stab_stabn,ss));
         // RBRAC
         ss:=tostr(N_RBRAC)+',0,0,'+stabsendlabel.name;
         if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
@@ -1085,9 +1076,7 @@ implementation
               ss:=ss+'.';
             ss:=ss+def.mangledname;
           end;
-        getmem(p,length(ss)+1);
-        move(pchar(ss)^,p^,length(ss)+1);
-        templist.concat(Tai_stab.Create(stab_stabn,p));
+        templist.concat(Tai_stab.Create_ansistr(stab_stabn,ss));
 
         { the stabsendlabel must come after all other stabs for this }
         { function                                                   }
@@ -1134,10 +1123,7 @@ implementation
                assigned(tprocdef(def.owner.defowner).procsym) then
               info := ','+GetSymName(def.procsym)+','+GetSymName(tprocdef(def.owner.defowner).procsym);
           end;
-        ss:='"'+ansistring(obj)+':'+RType+def_stab_number(def.returndef)+info+'",'+tostr(n_function)+',0,'+tostr(def.fileinfo.line)+','+ansistring(def.mangledname);
-        getmem(p,length(ss)+1);
-        move(pchar(ss)^,p^,length(ss)+1);
-        templist.concat(Tai_stab.Create(stab_stabs,p));
+        templist.concat(Tai_stab.Create_ansistr(stab_stabs,'"'+ansistring(obj)+':'+RType+def_stab_number(def.returndef)+info+'",'+tostr(n_function)+',0,'+tostr(def.fileinfo.line)+','+ansistring(def.mangledname)));
 
         current_asmdata.asmlists[al_procedures].insertlistbefore(def.procstarttai,templist);
 
@@ -1197,15 +1183,11 @@ implementation
 
 
     procedure TDebugInfoStabs.write_sym_stabstr(list:TAsmList;sym:tsym;const ss:ansistring);
-      var
-        p : pchar;
       begin
         if ss='' then
           exit;
         { add to list }
-        getmem(p,length(ss)+1);
-        move(pchar(ss)^,p^,length(ss)+1);
-        list.concat(Tai_stab.create(stab_stabs,p));
+        list.concat(Tai_stab.create_ansistr(stab_stabs,ss));
       end;
 
 

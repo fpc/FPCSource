@@ -498,11 +498,14 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
+       { tai_stab }
+
        tai_stab = class(tai)
           str : pchar;
           stabtype : TStabType;
           constructor Create(_stabtype:TStabType;_str : pchar);
           constructor Create_str(_stabtype:TStabType;const s:string);
+          constructor create_ansistr(_stabtype: TStabType; const s: ansistring);
           destructor Destroy;override;
        end;
 
@@ -1646,6 +1649,15 @@ implementation
     constructor tai_stab.create_str(_stabtype:TStabType;const s:string);
       begin
          self.create(_stabtype,strpnew(s));
+      end;
+
+    constructor tai_stab.create_ansistr(_stabtype:TStabType;const s:ansistring);
+      begin
+         inherited create;
+         typ:=ait_stab;
+         stabtype:=_stabtype;
+         getmem(str,length(s)+1);
+         move(s[1],str^,length(s)+1);
       end;
 
     destructor tai_stab.destroy;
