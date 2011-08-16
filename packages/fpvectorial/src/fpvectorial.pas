@@ -266,8 +266,8 @@ type
     procedure ClearTmpPath();
     procedure AppendSegmentToTmpPath(ASegment: TPathSegment);
   public
-    Name: string;
     Width, Height: Double; // in millimeters
+    Name: string;
     { Base methods }
     constructor Create;
     destructor Destroy; override;
