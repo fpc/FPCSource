@@ -71,7 +71,7 @@ asm
 	call .Lpiclab
 .Lpiclab:
         popl  %ebx
-        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+        addl  $_GLOBAL_OFFSET_TABLE_+1,%ebx
 
 	movl  dlexitproc@GOT(%ebx),%ecx
 	movl  %edx,(%ecx)
@@ -100,7 +100,7 @@ asm
         call  .Lpiclab2
 .Lpiclab2:
         popl  %ebx
-        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+        addl  $_GLOBAL_OFFSET_TABLE_+1,%ebx
 	movl  initialstkptr@GOT(%ebx),%ebx
   	movl  %esp,(%ebx)
 	popl  %ebx
@@ -139,7 +139,7 @@ asm
         call  .Lpiclab
 .Lpiclab:
         popl  %ebx
-        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+        addl  $_GLOBAL_OFFSET_TABLE_+1,%ebx
         movl  dlexitproc@GOT(%ebx),%eax
         movl  (%eax),%eax
   {$else FPC_PIC}
@@ -155,7 +155,7 @@ asm
   call    .Lpiclab2
 .Lpiclab2:
   popl    %ebx
-  addl    $_GLOBAL_OFFSET_TABLE_,%ebx
+  addl    $_GLOBAL_OFFSET_TABLE_+1,%ebx
   movl    ExitCode@GOT(%ebx),%ebx
  {$if sizeof(ExitCode)=2}
   movzwl  (%ebx),%ebx
@@ -177,7 +177,7 @@ asm
   call    .Lpiclab3
 .Lpiclab3:
   popl    %ebx
-  addl    $_GLOBAL_OFFSET_TABLE_,%ebx
+  addl    $_GLOBAL_OFFSET_TABLE_+1,%ebx
   movl    ExitCode@GOT(%ebx),%ebx
  {$if sizeof(ExitCode)=2}
   movzwl  (%ebx),%ebx
