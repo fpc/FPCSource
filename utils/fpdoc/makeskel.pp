@@ -15,7 +15,11 @@
 }
 
 
+{%RunCommand $MakeExe($(EdFile)) --package=fpvectorial --input=/home/felipe/Programas/fpctrunk/packages/fpvectorial/src/fpvectorial.pas}
 program MakeSkel;
+
+{$mode objfpc}
+{$h+}
 
 uses
   SysUtils, Classes, Gettext,
@@ -379,6 +383,7 @@ Var
   Engine: TSkelEngine;
 
 begin
+  Result:='';
   Assign(f, AOutputName);
   Rewrite(f);
   Try
@@ -399,7 +404,10 @@ begin
             Engine.DocumentFile(F,InputFiles[I],OSTarget,CPUTarget);
           except
             on E:Exception do
+            begin
+              WriteLn('Error while documenting: '+E.message);
               Result:='Error while documenting: '+E.message;
+            end;
           end;
         Finally
           Engine.Free;
