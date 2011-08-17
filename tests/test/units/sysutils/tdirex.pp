@@ -55,7 +55,10 @@ begin
         begin
           dir:=copy(dir,1,maxpos-1);
           TestDirectoryExists(dir,true);
-        end;
+        end
+      else
+      { if length(dir)<=1, exit test }
+        exit;
     end;
 end;
 
