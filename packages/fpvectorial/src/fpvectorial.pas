@@ -146,6 +146,8 @@ type
     they might contain.
   }
 
+  { TvEntity }
+
   TvEntity = class
   public
     {@@ The global Pen for the entire entity. In the case of paths, individual
@@ -155,6 +157,8 @@ type
         elements might be able to override this setting. }
     Brush: TvBrush;
     constructor Create; virtual;
+    procedure CalculateBoundingBox(var ALeft, ATop, ARight, ABottom: Double); virtual;
+    procedure ExpandBoundingBox(var ALeft, ATop, ARight, ABottom: Double);
   end;
 
   TvClipMode = (vcmNonzeroWindingRule, vcmEvenOddRule);
@@ -169,6 +173,7 @@ type
     procedure Assign(ASource: TPath);
     procedure PrepareForSequentialReading;
     function Next(): TPathSegment;
+    procedure CalculateBoundingBox(var ALeft, ATop, ARight, ABottom: Double); override;
   end;
 
   {@@
@@ -265,8 +270,10 @@ type
   public
     Width, Height: Double; // in millimeters
     Name: string;
+    // User-Interface information
+    ZoomLevel: Double; // 1 = 100%
     { Base methods }
-    constructor Create;
+    constructor Create; virtual;
     destructor Destroy; override;
     procedure Assign(ASource: TvVectorialDocument);
     procedure AssignTo(ADest: TvVectorialDocument);
@@ -280,13 +287,15 @@ type
     procedure ReadFromStrings(AStrings: TStrings; AFormat: TvVectorialFormat);
     class function GetFormatFromExtension(AFileName: string): TvVectorialFormat;
     function  GetDetailedFileFormat(): string;
+    procedure GuessDocumentSize();
+    procedure GuessGoodZoomLevel(AScreenSize: Integer = 500);
     { Data reading methods }
     function  GetPath(ANum: Cardinal): TPath;
     function  GetPathCount: Integer;
     function  GetEntity(ANum: Cardinal): TvEntity;
     function  GetEntitiesCount: Integer;
     { Data removing methods }
-    procedure Clear;
+    procedure Clear; virtual;
     { Data writing methods }
     procedure AddEntity(AEntity: TvEntity);
     procedure AddPathCopyMem(APath: TPath);
@@ -475,6 +484,25 @@ begin
   Pen.Color := colBlack;
   Brush.Style := bsClear;
   Brush.Color := colBlue;
+end;
+
+procedure TvEntity.CalculateBoundingBox(var ALeft, ATop, ARight, ABottom: Double);
+begin
+  ALeft := 0;
+  ATop := 0;
+  ARight := 0;
+  ABottom := 0;
+end;
+
+procedure TvEntity.ExpandBoundingBox(var ALeft, ATop, ARight, ABottom: Double);
+var
+  lLeft, lTop, lRight, lBottom: Double;
+begin
+  CalculateBoundingBox(lLeft, lTop, lRight, lBottom);
+  if lLeft < ALeft then ALeft := lLeft;
+  if lTop < ATop then ATop := lTop;
+  if lRight > ARight then ARight := lRight;
+  if lBottom > ABottom then ABottom := lBottom;
 end;
 
 { TvEllipse }
@@ -1073,6 +1101,32 @@ begin
 
 end;
 
+procedure TvVectorialDocument.GuessDocumentSize();
+var
+  i: Integer;
+  lEntity: TvEntity;
+  lLeft, lTop, lRight, lBottom: Double;
+begin
+  lLeft := 0;
+  lTop := 0;
+  lRight := 0;
+  lBottom := 0;
+
+  for i := 0 to GetEntitiesCount() - 1 do
+  begin
+    lEntity := GetEntity(I);
+    lEntity.ExpandBoundingBox(lLeft, lTop, lRight, lBottom);
+  end;
+
+  Width := lRight - lLeft;
+  Height := lBottom - lTop;
+end;
+
+procedure TvVectorialDocument.GuessGoodZoomLevel(AScreenSize: Integer);
+begin
+  ZoomLevel := AScreenSize / Height;
+end;
+
 function TvVectorialDocument.GetPath(ANum: Cardinal): TPath;
 var
   i: Integer;
@@ -1255,6 +1309,42 @@ begin
   else Result := CurPoint.Next;
 
   CurPoint := Result;
+end;
+
+procedure TPath.CalculateBoundingBox(var ALeft, ATop, ARight, ABottom: Double);
+var
+  lSegment: TPathSegment;
+  l2DSegment: T2DSegment;
+  lFirstValue: Boolean = True;
+begin
+  inherited CalculateBoundingBox(ALeft, ATop, ARight, ABottom);
+
+  PrepareForSequentialReading();
+  lSegment := Next();
+  while lSegment <> nil do
+  begin
+    if lSegment is T2DSegment then
+    begin
+      l2DSegment := T2DSegment(lSegment);
+      if lFirstValue then
+      begin
+        ALeft := l2DSegment.X;
+        ATop := l2DSegment.Y;
+        ARight := l2DSegment.X;
+        ABottom := l2DSegment.Y;
+        lFirstValue := False;
+      end
+      else
+      begin
+        if l2DSegment.X < ALeft then ALeft := l2DSegment.X;
+        if l2DSegment.Y < ATop then ATop := l2DSegment.Y;
+        if l2DSegment.X > ARight then ARight := l2DSegment.X;
+        if l2DSegment.Y > ABottom then ABottom := l2DSegment.Y;
+      end;
+    end;
+
+    lSegment := Next();
+  end;
 end;
 
 finalization

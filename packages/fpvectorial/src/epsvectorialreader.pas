@@ -2035,6 +2035,10 @@ begin
 
   // Make sure we have at least one path
   AData.EndPath();
+
+  // PostScript has no document size information, so lets calculate it ourselves
+  AData.GuessDocumentSize();
+  AData.GuessGoodZoomLevel()
 end;
 
 initialization
