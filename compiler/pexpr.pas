@@ -1492,7 +1492,7 @@ implementation
                        if (df_generic in hdef.defoptions) and
                           (token=_LT) and
                           (m_delphi in current_settings.modeswitches) then
-                          generate_specialization(hdef,false);
+                          generate_specialization(hdef,false,'');
                        if try_to_consume(_LKLAMMER) then
                         begin
                           p1:=comp_expr(true,false);

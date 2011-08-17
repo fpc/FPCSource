@@ -4612,7 +4612,7 @@ implementation
         if not assigned(typesym) then
           result:='<Currently Parsed Class>'
         else
-          result:=typename;
+          result:=typesymbolprettyname;
       end;
 
 

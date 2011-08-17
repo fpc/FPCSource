@@ -112,11 +112,13 @@ interface
        ttypesym = class(Tstoredsym)
           typedef      : tdef;
           typedefderef : tderef;
+          fprettyname : ansistring;
           constructor create(const n : string;def:tdef);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
+          function prettyname : string;override;
        end;
 
        tabstractvarsym = class(tstoredsym)
@@ -1850,6 +1852,7 @@ implementation
       begin
          inherited ppuload(typesym,ppufile);
          ppufile.getderef(typedefderef);
+         fprettyname:=ppufile.getansistring;
       end;
 
 
@@ -1869,7 +1872,17 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putderef(typedefderef);
+         ppufile.putansistring(fprettyname);
          ppufile.writeentry(ibtypesym);
+      end;
+
+
+    function ttypesym.prettyname : string;
+      begin
+        if fprettyname<>'' then
+          result:=fprettyname
+        else
+          result:=inherited prettyname;
       end;
 
 

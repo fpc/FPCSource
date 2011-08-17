@@ -286,6 +286,7 @@ implementation
           result:=result+'<no type symbol>'
       end;
 
+
     function tdef.mangledparaname:string;
       begin
         if assigned(typesym) then
