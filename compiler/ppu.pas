@@ -947,8 +947,13 @@ begin
      error:=true;
      exit;
    end;
-  SetLength(Result,l);
-  ReadData(result[1],l);
+  if l>0 then
+    begin
+      SetLength(Result,l);
+      ReadData(result[1],l);
+    end
+  else
+    Result:='';
   inc(entryidx,l);
 end;
 
@@ -1311,7 +1316,8 @@ procedure tppufile.putansistring(const s: ansistring);
   begin
     l:=length(s);
     putdata(l,4);
-    putdata(s[1],l);
+    if l>0 then
+      putdata(s[1],l);
   end;
 
 
