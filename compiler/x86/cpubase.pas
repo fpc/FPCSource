@@ -348,7 +348,11 @@ implementation
           R_SPECIALREGISTER :
             case reg of
               NR_CS,NR_DS,NR_ES,NR_SS,NR_FS,NR_GS:
-                reg_cgsize:=OS_16
+                reg_cgsize:=OS_16;
+{$ifdef x86_64}
+              NR_DR0..NR_TR7:
+                reg_cgsize:=OS_64;
+{$endif x86_64}
               else
                 reg_cgsize:=OS_32
             end

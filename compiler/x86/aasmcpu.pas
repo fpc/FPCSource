@@ -92,7 +92,11 @@ interface
       OT_REG_SMASK = otf_sub0 or otf_sub1 or otf_sub2 or otf_sub3;
 
       { register class 0: CRx, DRx and TRx }
+{$ifdef x86_64}
+      OT_REG_CDT   = OT_REGISTER or otf_reg_cdt or OT_BITS64;
+{$else x86_64}
       OT_REG_CDT   = OT_REGISTER or otf_reg_cdt or OT_BITS32;
+{$endif x86_64}
       OT_REG_CREG  = OT_REG_CDT or otf_sub0;  { CRn  }
       OT_REG_DREG  = OT_REG_CDT or otf_sub1;  { DRn  }
       OT_REG_TREG  = OT_REG_CDT or otf_sub2;  { TRn  }
