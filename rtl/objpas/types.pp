@@ -386,7 +386,7 @@ begin
   if R2.Bottom>R1.Bottom then
     lRect.Bottom:=R2.Bottom;
 
-  if IsRectEmpty(Rect) then
+  if IsRectEmpty(lRect) then
   begin
     FillChar(Rect,SizeOf(Rect),0);
     UnionRect:=false;
