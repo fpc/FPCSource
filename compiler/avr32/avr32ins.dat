@@ -288,3 +288,6 @@ reg32,imm5              \42\7                           1
 
 [FRCPA]
 [FRSQRTA]
+
+; Pseudo instruction
+[LDA]

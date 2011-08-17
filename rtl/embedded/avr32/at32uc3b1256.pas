@@ -248,17 +248,22 @@ end;
 
 procedure StartCode; nostackframe; assembler; [public, alias: '_START'];// interrupt 0;
 asm
+   .init
+   lda.w pc, .Lstart
+   
+   .text
+.Lstart:
    // Update stack
-   lddpc sp, .L_stack_top
+   lda.w sp, .L_stack_top
    
    // Set EVBA
-   lddpc r0, .L_evba_base
+   lda.w r0, .L_evba_base
    mtsr 4, r0 // EVBA
    
    // copy initialized data from flash to ram
-   lddpc r1,.L_etext
-   lddpc r2,.L_data
-   lddpc r3,.L_edata
+   lda.w r1,.L_etext
+   lda.w r2,.L_data
+   lda.w r3,.L_edata
 .Lcopyloop:
    cp.w r2,r3
    brhi .Lecopyloop
@@ -268,8 +273,8 @@ asm
 .Lecopyloop:
 
    // clear onboard ram
-   lddpc r1,.L_bss_start
-   lddpc r2,.L_bss_end
+   lda.w r1,.L_bss_start
+   lda.w r2,.L_bss_end
    mov r0, 0
 .Lzeroloop:
    cp.w r1,r2

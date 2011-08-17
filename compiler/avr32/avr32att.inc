@@ -177,5 +177,6 @@
 'fcp',
 'fchk',
 'frcpa',
-'frsqrta'
+'frsqrta',
+'lda'
 );
