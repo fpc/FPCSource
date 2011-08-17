@@ -2,5 +2,7 @@ uses
   sysutils;
 
 begin
-  executeprocess('cmd.exe','/c echo abcdefghijklmnopqrstuvwxyz1 | tw19851a');
+{$ifdef WINDOWS}
+  executeprocess(GetEnvironmentVariable('COMSPEC'),'/c echo abcdefghijklmnopqrstuvwxyz1 | tw19851a');
+{$endif WINDOWS}
 end.
