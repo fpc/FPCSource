@@ -279,11 +279,11 @@ type
   {$ifndef OldSyntax}protected var{$else}var protected{$endif}
       FOnKeyCompare: TKeyCompareFunc;
       FOnDataCompare: TDataCompareFunc;
-      procedure CopyItem(Src, Dest: Pointer); override;
-      procedure CopyKey(Src, Dest: Pointer); override;
-      procedure CopyData(Src, Dest: Pointer); override;
-      procedure Deref(Item: Pointer); override;
-      procedure InitOnPtrCompare; override;
+    procedure CopyItem(Src, Dest: Pointer); override;
+    procedure CopyKey(Src, Dest: Pointer); override;
+    procedure CopyData(Src, Dest: Pointer); override;
+    procedure Deref(Item: Pointer); override;
+    procedure InitOnPtrCompare; override;
     function GetKey(Index: Integer): TKey; {$ifdef CLASSESINLINE} inline; {$endif}
     function GetKeyData(const AKey: TKey): TData; {$ifdef CLASSESINLINE} inline; {$endif}
     function GetData(Index: Integer): TData; {$ifdef CLASSESINLINE} inline; {$endif}
@@ -324,11 +324,11 @@ type
   {$ifndef OldSyntax}protected var{$else}var protected{$endif}
       FOnKeyCompare: TKeyCompareFunc;
       FOnDataCompare: TDataCompareFunc;
-      procedure CopyItem(Src, Dest: Pointer); override;
-      procedure CopyKey(Src, Dest: Pointer); override;
-      procedure CopyData(Src, Dest: Pointer); override;
-      procedure Deref(Item: Pointer); override;
-      procedure InitOnPtrCompare; override;
+    procedure CopyItem(Src, Dest: Pointer); override;
+    procedure CopyKey(Src, Dest: Pointer); override;
+    procedure CopyData(Src, Dest: Pointer); override;
+    procedure Deref(Item: Pointer); override;
+    procedure InitOnPtrCompare; override;
     function GetKey(Index: Integer): TKey; {$ifdef CLASSESINLINE} inline; {$endif}
     function GetKeyData(const AKey: TKey): TData; {$ifdef CLASSESINLINE} inline; {$endif}
     function GetData(Index: Integer): TData; {$ifdef CLASSESINLINE} inline; {$endif}
