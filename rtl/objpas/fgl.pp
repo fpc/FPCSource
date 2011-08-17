@@ -500,6 +500,11 @@ begin
     FCapacity := FCapacity shr 1;
     ReallocMem(FList, (FCapacity+1) * FItemSize);
   end;
+  { Keep the ending of the list filled with zeros, don't leave garbage data
+    there. Otherwise, we could accidentally have there a copy of some item
+    on the list, and accidentally Deref it too soon.
+    See http://bugs.freepascal.org/view.php?id=20005. }
+  FillChar(InternalItems[FCount]^, (FCapacity+1-FCount) * FItemSize, #0);
 end;
 
 procedure TFPSList.Extract(Item: Pointer; ResultPtr: Pointer);
