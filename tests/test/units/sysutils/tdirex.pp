@@ -5,9 +5,11 @@ program test_directoryexists;
 uses
   dos, sysutils;
 
+{$I+}
+
 const
   HasErrors : boolean = false;
-  AllowsTrailingSepartors: boolean = false;
+  AllowTrailingSeparators: boolean = false;
 
 procedure TestDirectoryExists(Const DirName : string; ExpectedResult : boolean);
 var
@@ -26,8 +28,7 @@ procedure TestParents(var dir : string);
 var
   backslashpos,slashpos,maxpos,i : longint;
 begin
-  slashpos:=1;
-  while (backslashpos<>0) or (slashpos<>0) do
+  while true do
     begin
       backslashpos:=0;
       for i:=length(dir) downto 1 do
@@ -50,7 +51,7 @@ begin
       else
         maxpos:=backslashpos;
       dir:=copy(dir,1,maxpos);
-      TestDirectoryExists(dir,true);
+      TestDirectoryExists(dir,AllowTrailingSeparators);
       if length(dir)>1 then
         begin
           dir:=copy(dir,1,maxpos-1);
@@ -63,20 +64,30 @@ begin
 end;
 
 var
-  dir,dir1,dir2 : string;
+  dir,dir1,dir2,StoredDir : string;
   P,N,E : shortstring;
 begin
   Dos.FSplit(paramstr(0),P,N,E);
   Writeln('Path="',P,'"');
   Writeln('Name="',N,'"');
   Writeln('Ext="',E,'"');
+  Writeln('DirectorySeparator="',DirectorySeparator,'"');
   TestDirectoryExists(P,true);
   if DirectoryExists(P+DirectorySeparator) and
      DirectoryExists(P+DirectorySeparator+DirectorySeparator) then
-    AllowsTrailingSepartors:=true;
+    AllowTrailingSeparators:=true;
 
   dir:=P;
   TestParents(dir);
+  dir:=P;
+  if (length(dir)>2) and (dir[2]=':') and (dir[3]=DirectorySeparator) then
+    begin
+      GetDir(0,StoredDir);
+      Writeln('Testing from Root drive');
+      ChDir(Copy(Dir,1,3));
+      TestParents(dir);
+      ChDir(StoredDir);
+    end;
   dir:=P+'_Dummy';
   TestDirectoryExists(dir,false);
   dir1:=P+'_Dummy'+DirectorySeparator;
@@ -85,11 +96,11 @@ begin
   TestDirectoryExists(dir,true);
   TestDirectoryExists(dir1,true);
   { Check that using two directory separators fails }
-  TestDirectoryExists(dir1+DirectorySeparator,AllowsTrailingSepartors);
-  TestDirectoryExists(dir1+'/',AllowsTrailingSepartors);
-  TestDirectoryExists(dir1+'//',AllowsTrailingSepartors);
+  TestDirectoryExists(dir1+DirectorySeparator,AllowTrailingSeparators);
+  TestDirectoryExists(dir1+'/',AllowTrailingSeparators);
+  TestDirectoryExists(dir1+'//',AllowTrailingSeparators);
   if DirectorySeparator='\' then
-    TestDirectoryExists(dir1+'\\',AllowsTrailingSepartors);
+    TestDirectoryExists(dir1+'\\',AllowTrailingSeparators);
   dir2:=dir1+'_Dummy2';
   TestDirectoryExists(dir2,false);
   mkdir(dir2);
