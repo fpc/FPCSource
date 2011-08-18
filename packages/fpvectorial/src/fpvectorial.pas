@@ -163,6 +163,7 @@ type
     procedure CalculateBoundingBox(var ALeft, ATop, ARight, ABottom: Double); virtual;
     procedure ExpandBoundingBox(var ALeft, ATop, ARight, ABottom: Double);
     function TryToSelect(APos: TPoint): TvFindEntityResult; virtual;
+    procedure Translate(ADeltaX, ADeltaY: Integer); virtual;
   end;
 
   TvClipMode = (vcmNonzeroWindingRule, vcmEvenOddRule);
@@ -189,8 +190,10 @@ type
 
   TvText = class(TvEntity)
   public
-    Value: utf8string;
+    Value: TStringList;
     Font: TvFont;
+    constructor Create; override;
+    destructor Destroy; override;
     function TryToSelect(APos: TPoint): TvFindEntityResult; override;
   end;
 
@@ -489,6 +492,18 @@ end;
 
 { TvText }
 
+constructor TvText.Create;
+begin
+  inherited Create;
+  Value := TStringList.Create;
+end;
+
+destructor TvText.Destroy;
+begin
+  Value.Free;
+  inherited Destroy;
+end;
+
 function TvText.TryToSelect(APos: TPoint): TvFindEntityResult;
 var
   lProximityFactor: Integer;
@@ -532,6 +547,12 @@ end;
 function TvEntity.TryToSelect(APos: TPoint): TvFindEntityResult;
 begin
   Result := vfrNotFound;
+end;
+
+procedure TvEntity.Translate(ADeltaX, ADeltaY: Integer);
+begin
+  X := X + ADeltaX;
+  Y := Y + ADeltaY;
 end;
 
 { TvEllipse }
@@ -825,7 +846,7 @@ var
   lText: TvText;
 begin
   lText := TvText.Create;
-  lText.Value := AText;
+  lText.Value.Text := AText;
   lText.X := AX;
   lText.Y := AY;
   lText.Font.Name := FontName;

@@ -548,8 +548,14 @@ begin
   ALCLDest.Font.Orientation := Round(CurText.Font.Orientation * 16);
   {$endif}
 
-  LowerDim.Y := CurText.Y + CurText.Font.Size;
-  ADest.TextOut(CoordToCanvasX(CurText.X), CoordToCanvasY(LowerDim.Y), CurText.Value);
+  // TvText supports multiple lines
+  for i := 0 to CurText.Value.Count - 1 do
+  begin
+    if CurText.Font.Size = 0 then LowerDim.Y := CurText.Y - 12 * (i + 1)
+    else LowerDim.Y := CurText.Y - CurText.Font.Size * (i + 1);
+
+    ADest.TextOut(CoordToCanvasX(CurText.X), CoordToCanvasY(LowerDim.Y), CurText.Value.Strings[i]);
+  end;
 end;
 
 end.
