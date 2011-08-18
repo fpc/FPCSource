@@ -77,7 +77,7 @@ unit cgcpu;
 
         { find out whether a is of the form 11..00..11b or 00..11...00. If }
         { that's the case, we can use rlwinm to do an AND operation        }
-        function get_rlwi_const(a: aint; var l1, l2: longint): boolean;
+        function get_rlwi_const(a: tcgint; var l1, l2: longint): boolean;
 
       protected
        procedure a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
@@ -1627,11 +1627,11 @@ const
 
     { find out whether a is of the form 11..00..11b or 00..11...00. If }
     { that's the case, we can use rlwinm to do an AND operation        }
-    function tcgppc.get_rlwi_const(a: aint; var l1, l2: longint): boolean;
+    function tcgppc.get_rlwi_const(a: tcgint; var l1, l2: longint): boolean;
 
       var
         temp : longint;
-        testbit : aint;
+        testbit : tcgint;
         compare: boolean;
 
       begin
