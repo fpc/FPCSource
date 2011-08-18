@@ -782,7 +782,7 @@ implementation
 
             { using sqr(x) for reals instead of x*x might reduces register pressure and/or
               memory accesses while sqr(<real>) has no drawback }
-            if is_real(left.resultdef) and is_real(left.resultdef) and
+            if is_real(left.resultdef) and is_real(right.resultdef) and
               left.isequal(right) then
               begin
                 result:=cinlinenode.create(in_sqr_real,false,left);
