@@ -625,7 +625,16 @@ implementation
           begin
             { check if the assignment may cause a range check error }
             check_ranges(fileinfo,right,left.resultdef);
-            inserttypeconv(right,left.resultdef);
+
+            { beginners might be confused about an error message like
+              Incompatible types: got "untyped" expected "LongInt"
+              when trying to assign the result of a procedure, so give
+              a better error message, see also #19122 }
+            if (left.resultdef.typ<>procvardef) and
+              (right.nodetype=calln) and is_void(right.resultdef) then
+              CGMessage(type_e_procedures_return_no_value)
+            else
+              inserttypeconv(right,left.resultdef);
           end;
 
         { call helpers for interface }

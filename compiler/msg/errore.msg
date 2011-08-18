@@ -1761,7 +1761,10 @@ type_e_class_helper_must_extend_subclass=04101_E_Derived class helper must exten
 type_e_record_helper_must_extend_same_record=04102_E_Derived record helper must extend "$1"
 % If a record helper inherits from another record helper it must extend the same
 % record that the parent record helper extended.
-%
+type_e_procedures_return_no_value=04103_E_Invalid assignment, procedures return no value
+% This error occurs when one tries to assign the result of a procedure or destructor call.
+% A procedure or destructor returns no value so this is not
+% possible.
 % \end{description}
 #
 # Symtable
