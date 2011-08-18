@@ -204,11 +204,11 @@ fcl-web_smart: fpmkunit_smart fcl-db_smart fcl-xml_smart fcl-process_smart httpd
 fcl-web_release: fpmkunit_release fcl-db_release fcl-xml_release fcl-process_release httpd22_release fastcgi_release fcl-net_release fcl-json_release
 fcl-web_shared: fpmkunit_shared fcl-db_shared fcl-xml_shared fcl-process_shared httpd22_shared fastcgi_shared fcl-net_shared fcl-json_shared
 
-fcl-passrc_all: fpmkunit_all
-fcl-passrc_debug: fpmkunit_debug
-fcl-passrc_smart: fpmkunit_smart
-fcl-passrc_release: fpmkunit_release
-fcl-passrc_shared: fpmkunit_shared
+fcl-passrc_all: fpmkunit_all fcl-base_all
+fcl-passrc_debug: fpmkunit_debug fcl-base_debug
+fcl-passrc_smart: fpmkunit_smart fcl-base_smart
+fcl-passrc_release: fpmkunit_release fcl-base_release
+fcl-passrc_shared: fpmkunit_shared  fcl-base_shared
 
 fastcgi_all: fpmkunit_all
 fastcgi_debug: fpmkunit_debug
