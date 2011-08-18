@@ -1744,6 +1744,7 @@ begin
   Result:=APath;
   If (result<>'') then
     begin
+      UniqueString(Result);
       P:=PChar(Result);
       While (P^<>#0) do
         begin
