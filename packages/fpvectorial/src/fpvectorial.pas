@@ -139,6 +139,8 @@ type
     X3, Y3, Z3: Double;
   end;
 
+  TvFindEntityResult = (vfrNotFound, vfrFound, vfrSubpartFound);
+
   { Now all elements }
 
   {@@
@@ -150,6 +152,7 @@ type
 
   TvEntity = class
   public
+    X, Y: Double;
     {@@ The global Pen for the entire entity. In the case of paths, individual
         elements might be able to override this setting. }
     Pen: TvPen;
@@ -159,6 +162,7 @@ type
     constructor Create; virtual;
     procedure CalculateBoundingBox(var ALeft, ATop, ARight, ABottom: Double); virtual;
     procedure ExpandBoundingBox(var ALeft, ATop, ARight, ABottom: Double);
+    function TryToSelect(APos: TPoint): TvFindEntityResult; virtual;
   end;
 
   TvClipMode = (vcmNonzeroWindingRule, vcmEvenOddRule);
@@ -174,30 +178,34 @@ type
     procedure PrepareForSequentialReading;
     function Next(): TPathSegment;
     procedure CalculateBoundingBox(var ALeft, ATop, ARight, ABottom: Double); override;
+    procedure AppendSegment(ASegment: TPathSegment);
   end;
 
   {@@
     TvText represents a text entity.
   }
+
+  { TvText }
+
   TvText = class(TvEntity)
   public
-    X, Y, Z: Double; // Z is ignored in 2D formats
     Value: utf8string;
     Font: TvFont;
+    function TryToSelect(APos: TPoint): TvFindEntityResult; override;
   end;
 
   {@@
   }
   TvCircle = class(TvEntity)
   public
-    CenterX, CenterY, CenterZ, Radius: Double;
+    Radius: Double;
   end;
 
   {@@
   }
   TvCircularArc = class(TvEntity)
   public
-    CenterX, CenterY, CenterZ, Radius: Double;
+    Radius: Double;
     {@@ The Angle is measured in degrees in relation to the positive X axis }
     StartAngle, EndAngle: Double;
   end;
@@ -207,7 +215,7 @@ type
   TvEllipse = class(TvEntity)
   public
     // Mandatory fields
-    CenterX, CenterY, CenterZ, MajorHalfAxis, MinorHalfAxis: Double;
+    MajorHalfAxis, MinorHalfAxis: Double;
     {@@ The Angle is measured in degrees in relation to the positive X axis }
     Angle: Double;
     // Calculated fields
@@ -272,6 +280,8 @@ type
     Name: string;
     // User-Interface information
     ZoomLevel: Double; // 1 = 100%
+    { Selection fields }
+    SelectedvElement: TvEntity;
     { Base methods }
     constructor Create; virtual;
     destructor Destroy; override;
@@ -294,10 +304,11 @@ type
     function  GetPathCount: Integer;
     function  GetEntity(ANum: Cardinal): TvEntity;
     function  GetEntitiesCount: Integer;
+    function  FindAndSelectEntity(Pos: TPoint): TvFindEntityResult;
     { Data removing methods }
     procedure Clear; virtual;
     { Data writing methods }
-    procedure AddEntity(AEntity: TvEntity);
+    function AddEntity(AEntity: TvEntity): Integer;
     procedure AddPathCopyMem(APath: TPath);
     procedure StartPath(AX, AY: Double); overload;
     procedure StartPath(); overload;
@@ -315,11 +326,11 @@ type
     procedure SetPenWidth(AWidth: Integer);
     procedure SetClipPath(AClipPath: TPath; AClipMode: TvClipMode);
     procedure EndPath();
-    procedure AddText(AX, AY, AZ: Double; FontName: string; FontSize: integer; AText: utf8string); overload;
-    procedure AddText(AX, AY, AZ: Double; AStr: utf8string); overload;
-    procedure AddCircle(ACenterX, ACenterY, ACenterZ, ARadius: Double);
-    procedure AddCircularArc(ACenterX, ACenterY, ACenterZ, ARadius, AStartAngle, AEndAngle: Double; AColor: TFPColor);
-    procedure AddEllipse(CenterX, CenterY, CenterZ, MajorHalfAxis, MinorHalfAxis, Angle: Double);
+    procedure AddText(AX, AY: Double; FontName: string; FontSize: integer; AText: utf8string); overload;
+    procedure AddText(AX, AY: Double; AStr: utf8string); overload;
+    procedure AddCircle(ACenterX, ACenterY, ARadius: Double);
+    procedure AddCircularArc(ACenterX, ACenterY, ARadius, AStartAngle, AEndAngle: Double; AColor: TFPColor);
+    procedure AddEllipse(CenterX, CenterY, MajorHalfAxis, MinorHalfAxis, Angle: Double);
     // Dimensions
     procedure AddAlignedDimension(BaseLeft, BaseRight, DimLeft, DimRight: T3DPoint);
     { properties }
@@ -476,6 +487,19 @@ begin
   Result.Z := 0;
 end;
 
+{ TvText }
+
+function TvText.TryToSelect(APos: TPoint): TvFindEntityResult;
+var
+  lProximityFactor: Integer;
+begin
+  lProximityFactor := 5;
+  if (APos.X > X - lProximityFactor) and (APos.X < X + lProximityFactor)
+    and (APos.Y > Y - lProximityFactor) and (APos.Y < Y + lProximityFactor) then
+    Result := vfrFound
+  else Result := vfrNotFound;
+end;
+
 { TvEntity }
 
 constructor TvEntity.Create;
@@ -503,6 +527,11 @@ begin
   if lTop < ATop then ATop := lTop;
   if lRight > ARight then ARight := lRight;
   if lBottom > ABottom then ABottom := lBottom;
+end;
+
+function TvEntity.TryToSelect(APos: TPoint): TvFindEntityResult;
+begin
+  Result := vfrNotFound;
 end;
 
 { TvEllipse }
@@ -533,7 +562,7 @@ begin
     tan(t) = b*cot(phi)/a
   }
   t := cotan(-MinorHalfAxis*tan(Angle)/MajorHalfAxis);
-  tmp := CenterX + MajorHalfAxis*cos(t)*cos(Angle) - MinorHalfAxis*sin(t)*sin(Angle);
+  tmp := X + MajorHalfAxis*cos(t)*cos(Angle) - MinorHalfAxis*sin(t)*sin(Angle);
   BoundingRect.Right := Round(tmp);
 end;
 
@@ -791,7 +820,7 @@ begin
   ClearTmpPath();
 end;
 
-procedure TvVectorialDocument.AddText(AX, AY, AZ: Double; FontName: string; FontSize: integer; AText: utf8string);
+procedure TvVectorialDocument.AddText(AX, AY: Double; FontName: string; FontSize: integer; AText: utf8string);
 var
   lText: TvText;
 begin
@@ -799,38 +828,35 @@ begin
   lText.Value := AText;
   lText.X := AX;
   lText.Y := AY;
-  lText.Z := AZ;
   lText.Font.Name := FontName;
   lText.Font.Size := FontSize;
   AddEntity(lText);
 end;
 
-procedure TvVectorialDocument.AddText(AX, AY, AZ: Double; AStr: utf8string);
+procedure TvVectorialDocument.AddText(AX, AY: Double; AStr: utf8string);
 begin
-  AddText(AX, AY, AZ, '', 10, AStr);
+  AddText(AX, AY, '', 10, AStr);
 end;
 
-procedure TvVectorialDocument.AddCircle(ACenterX, ACenterY, ACenterZ, ARadius: Double);
+procedure TvVectorialDocument.AddCircle(ACenterX, ACenterY, ARadius: Double);
 var
   lCircle: TvCircle;
 begin
   lCircle := TvCircle.Create;
-  lCircle.CenterX := ACenterX;
-  lCircle.CenterY := ACenterY;
-  lCircle.CenterZ := ACenterZ;
+  lCircle.X := ACenterX;
+  lCircle.Y := ACenterY;
   lCircle.Radius := ARadius;
   AddEntity(lCircle);
 end;
 
-procedure TvVectorialDocument.AddCircularArc(ACenterX, ACenterY, ACenterZ,
+procedure TvVectorialDocument.AddCircularArc(ACenterX, ACenterY,
   ARadius, AStartAngle, AEndAngle: Double; AColor: TFPColor);
 var
   lCircularArc: TvCircularArc;
 begin
   lCircularArc := TvCircularArc.Create;
-  lCircularArc.CenterX := ACenterX;
-  lCircularArc.CenterY := ACenterY;
-  lCircularArc.CenterZ := ACenterZ;
+  lCircularArc.X := ACenterX;
+  lCircularArc.Y := ACenterY;
   lCircularArc.Radius := ARadius;
   lCircularArc.StartAngle := AStartAngle;
   lCircularArc.EndAngle := AEndAngle;
@@ -838,15 +864,14 @@ begin
   AddEntity(lCircularArc);
 end;
 
-procedure TvVectorialDocument.AddEllipse(CenterX, CenterY, CenterZ,
+procedure TvVectorialDocument.AddEllipse(CenterX, CenterY,
   MajorHalfAxis, MinorHalfAxis, Angle: Double);
 var
   lEllipse: TvEllipse;
 begin
   lEllipse := TvEllipse.Create;
-  lEllipse.CenterX := CenterX;
-  lEllipse.CenterY := CenterY;
-  lEllipse.CenterZ := CenterZ;
+  lEllipse.X := CenterX;
+  lEllipse.Y := CenterY;
   lEllipse.MajorHalfAxis := MajorHalfAxis;
   lEllipse.MinorHalfAxis := MinorHalfAxis;
   lEllipse.Angle := Angle;
@@ -854,10 +879,11 @@ begin
 end;
 
 {@@
-  Don't free the passed TvText because it will be added directly to the list
+  Adds an entity to the document and returns it's current index
 }
-procedure TvVectorialDocument.AddEntity(AEntity: TvEntity);
+function TvVectorialDocument.AddEntity(AEntity: TvEntity): Integer;
 begin
+  Result := FEntities.Count;
   FEntities.Add(Pointer(AEntity));
 end;
 
@@ -933,28 +959,8 @@ begin
 end;
 
 procedure TvVectorialDocument.AppendSegmentToTmpPath(ASegment: TPathSegment);
-var
-  L: Integer;
 begin
-  // Check if we are the first segment in the tmp path
-  if FTmpPath.PointsEnd = nil then
-  begin
-    if FTmpPath.Len <> 0 then
-      Exception.Create('[TvVectorialDocument.AppendSegmentToTmpPath]' + Str_Error_Nil_Path);
-
-    FTmpPath.Points := ASegment;
-    FTmpPath.PointsEnd := ASegment;
-    FTmpPath.Len := 1;
-    Exit;
-  end;
-
-  L := FTmpPath.Len;
-  Inc(FTmpPath.Len);
-
-  // Adds the element to the end of the list
-  FTmpPath.PointsEnd.Next := ASegment;
-  ASegment.Previous := FTmpPath.PointsEnd;
-  FTmpPath.PointsEnd := ASegment;
+  FTmpPath.AppendSegment(ASegment);
 end;
 
 {@@
@@ -1170,6 +1176,27 @@ begin
   Result := FEntities.Count;
 end;
 
+function TvVectorialDocument.FindAndSelectEntity(Pos: TPoint): TvFindEntityResult;
+var
+  lEntity: TvEntity;
+  i: Integer;
+begin
+  Result := vfrNotFound;
+
+  for i := 0 to GetEntitiesCount() - 1 do
+  begin
+    lEntity := GetEntity(i);
+
+    Result := lEntity.TryToSelect(Pos);
+
+    if Result <> vfrNotFound then
+    begin
+      SelectedvElement := lEntity;
+      Exit;
+    end;
+  end;
+end;
+
 {@@
   Clears all data in the document
 }
@@ -1345,6 +1372,31 @@ begin
 
     lSegment := Next();
   end;
+end;
+
+procedure TPath.AppendSegment(ASegment: TPathSegment);
+var
+  L: Integer;
+begin
+  // Check if we are the first segment in the tmp path
+  if PointsEnd = nil then
+  begin
+    if Len <> 0 then
+      Exception.Create('[TPath.AppendSegment] Assertion failed Len <> 0 with PointsEnd = nil');
+
+    Points := ASegment;
+    PointsEnd := ASegment;
+    Len := 1;
+    Exit;
+  end;
+
+  L := Len;
+  Inc(Len);
+
+  // Adds the element to the end of the list
+  PointsEnd.Next := ASegment;
+  ASegment.Previous := PointsEnd;
+  PointsEnd := ASegment;
 end;
 
 finalization

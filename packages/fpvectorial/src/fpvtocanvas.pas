@@ -65,8 +65,8 @@ begin
   y2 := CurEllipse.BoundingRect.Bottom;
 
   dk := Round(0.654 * Abs(y2-y1));
-  f.x := Round(CurEllipse.CenterX);
-  f.y := Round(CurEllipse.CenterY - 1);
+  f.x := Round(CurEllipse.X);
+  f.y := Round(CurEllipse.Y - 1);
   PointList[0] := Rotate2DPoint(Point(x1, f.y), f, CurEllipse.Angle) ;  // Startpoint
   PointList[1] := Rotate2DPoint(Point(x1,  f.y - dk), f, CurEllipse.Angle);
   //Controlpoint of Startpoint first part
@@ -353,10 +353,10 @@ begin
   begin
     CurCircle := CurEntity as TvCircle;
     ADest.Ellipse(
-      CoordToCanvasX(CurCircle.CenterX - CurCircle.Radius),
-      CoordToCanvasY(CurCircle.CenterY - CurCircle.Radius),
-      CoordToCanvasX(CurCircle.CenterX + CurCircle.Radius),
-      CoordToCanvasY(CurCircle.CenterY + CurCircle.Radius)
+      CoordToCanvasX(CurCircle.X - CurCircle.Radius),
+      CoordToCanvasY(CurCircle.Y - CurCircle.Radius),
+      CoordToCanvasX(CurCircle.X + CurCircle.Radius),
+      CoordToCanvasY(CurCircle.Y + CurCircle.Radius)
       );
   end
   else if CurEntity is TvEllipse then
@@ -370,10 +370,10 @@ begin
     {$ifdef USE_LCL_CANVAS}
     // ToDo: Consider a X axis inversion
     // If the Y axis is inverted, then we need to mirror our angles as well
-    BoundsLeft := CoordToCanvasX(CurArc.CenterX - CurArc.Radius);
-    BoundsTop := CoordToCanvasY(CurArc.CenterY - CurArc.Radius);
-    BoundsRight := CoordToCanvasX(CurArc.CenterX + CurArc.Radius);
-    BoundsBottom := CoordToCanvasY(CurArc.CenterY + CurArc.Radius);
+    BoundsLeft := CoordToCanvasX(CurArc.X - CurArc.Radius);
+    BoundsTop := CoordToCanvasY(CurArc.Y - CurArc.Radius);
+    BoundsRight := CoordToCanvasX(CurArc.X + CurArc.Radius);
+    BoundsBottom := CoordToCanvasY(CurArc.Y + CurArc.Radius);
     {if AMulY > 0 then
     begin}
       FinalStartAngle := CurArc.StartAngle;
