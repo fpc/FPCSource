@@ -648,6 +648,7 @@ implementation
                ([vo_is_hidden_para,vo_is_funcret] * tabstractvarsym(sym).varoptions = [vo_is_hidden_para]) or
                (sp_internal in tsym(sym).symoptions) or
                ((assigned(tsym(sym).owner.defowner) and
+                (tsym(sym).owner.defowner.typ=procdef) and
                 (df_generic in tprocdef(tsym(sym).owner.defowner).defoptions))) then
               exit;
             if (tstoredsym(sym).refs=0) then
