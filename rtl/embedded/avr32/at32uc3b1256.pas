@@ -254,16 +254,16 @@ asm
    .text
 .Lstart:
    // Update stack
-   lda.w sp, .L_stack_top
+   ld.w sp, .L_stack_top
    
    // Set EVBA
-   lda.w r0, .L_evba_base
+   ld.w r0, .L_evba_base
    mtsr 4, r0 // EVBA
    
    // copy initialized data from flash to ram
-   lda.w r1,.L_etext
-   lda.w r2,.L_data
-   lda.w r3,.L_edata
+   ld.w r1,.L_etext
+   ld.w r2,.L_data
+   ld.w r3,.L_edata
 .Lcopyloop:
    cp.w r2,r3
    brhi .Lecopyloop
@@ -273,8 +273,8 @@ asm
 .Lecopyloop:
 
    // clear onboard ram
-   lda.w r1,.L_bss_start
-   lda.w r2,.L_bss_end
+   ld.w r1,.L_bss_start
+   ld.w r2,.L_bss_end
    mov r0, 0
 .Lzeroloop:
    cp.w r1,r2
@@ -296,7 +296,7 @@ asm
 .L_edata:
    .long _edata
 .L_evba_base:
-   .long 0x80000004
+   .long 0x0
 .L_stack_top:
    .long _stack_top
 end;
