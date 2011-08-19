@@ -784,7 +784,8 @@ implementation
               memory accesses while sqr(<real>) has no drawback }
             if (nodetype=muln) and
                is_real(left.resultdef) and is_real(right.resultdef) and
-               left.isequal(right) then
+               left.isequal(right) and
+               not(might_have_sideeffects(left)) then
               begin
                 result:=cinlinenode.create(in_sqr_real,false,left);
                 left:=nil;
