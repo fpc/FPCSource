@@ -802,6 +802,8 @@ Type
     FForceCompile : Boolean;
     FListMode : Boolean;
     FVerbose : boolean;
+    FProgressMax : integer;
+    FProgressCount : integer;
 {$ifdef HAS_UNIT_ZIPPER}
     FZipFile: TZipper;
 {$endif HAS_UNIT_ZIPPER}
@@ -1111,12 +1113,13 @@ ResourceString
   SWarnDepUnitNotFound     = 'Warning: Dependency on unit %s is not supported for %s';
   SWarnTargetDependsOnPackage = 'Warning: Target %s of package %s depends on another package (%s). These kind of dependencies are not processed';
   SWarnDependOnOtherPlatformPackage = 'Warning: Package %s depends on package %s which is not available for the %s platform';
-  SWarnStartBuildingPackage = 'Start building package %s for target %s.';
-  SWarnBuildingPackagecomplete = '[%3.0f%%] Built target %s';
+  SWarnStartCompilingPackage = 'Start compiling package %s for target %s.';
+  SWarnCompilingPackagecompleteProgress = '[%3.0f%%] Compiled package %s';
+  SWarnCompilingPackagecomplete = 'Compiled package %s';
+  SWarnSkipPackageTarget = '[%3.0f%%] Skipped package %s which has been disabled for target %s';
   SWarnInstallationPackagecomplete = 'Installation package %s for target %s succeeded';
   SWarnCleanPackagecomplete = 'Clean of package %s completed';
 
-  SInfoCompilingPackage   = 'Compiling package %s';
   SInfoPackageAlreadyProcessed = 'Package %s is already processed';
   SInfoCompilingTarget    = 'Compiling target %s';
   SInfoExecutingCommand   = 'Executing command "%s %s"';
@@ -4938,7 +4941,7 @@ Var
 begin
   cmdOpts := '';
 
-  Log(vlInfo,SInfoCompilingPackage,[APackage.Name]);
+  log(vlWarning,SWarnStartCompilingPackage,[APackage.Name, Defaults.Target]);
 
   case Defaults.BuildMode of
     bmOneByOne:  begin
@@ -5065,6 +5068,11 @@ begin
     If (APackage.Directory<>'') then
       EnterDir('');
   end;
+  inc(FProgressCount);
+  if FProgressMax>0 then
+    log(vlWarning,SWarnCompilingPackagecompleteProgress,[(FProgressCount)/FProgressMax * 100, APackage.Name])
+  else
+    log(vlWarning,SWarnCompilingPackagecomplete,[APackage.Name]);
 end;
 
 
@@ -5089,7 +5097,10 @@ begin
       APackage.FTargetState:=tsCompiled;
     end
   else
-    APackage.FTargetState:=tsNoCompile;
+    begin
+      APackage.FTargetState:=tsNoCompile;
+      inc(FProgressCount);
+    end;
   LogUnIndent;
 end;
 
@@ -5425,15 +5436,18 @@ Var
 begin
   If Assigned(BeforeCompile) then
     BeforeCompile(Self);
+  FProgressMax:=Packages.Count;
+  FProgressCount:=0;
   For I:=0 to Packages.Count-1 do
     begin
       P:=Packages.PackageItems[i];
-      log(vlWarning,SWarnStartBuildingPackage,[P.Name, Defaults.Target]);
       If PackageOK(P) then
-        MaybeCompile(P);
-
-      //show compile progress
-      log(vlWarning,SWarnBuildingPackagecomplete,[(I + 1)/Packages.Count * 100, P.Name]);
+        MaybeCompile(P)
+      else
+        begin
+        inc(FProgressCount);
+        log(vlWarning,SWarnSkipPackageTarget,[(FProgressCount)/FProgressMax * 100, P.Name, Defaults.Target]);
+        end;
     end;
   If Assigned(AfterCompile) then
     AfterCompile(Self);
