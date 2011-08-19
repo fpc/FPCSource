@@ -10,7 +10,7 @@ end;
 
 
 const
-  test_expected : array[0..2{$ifdef cpux86_64}+2{$ifdef cpux86_64}] of byte = (
+  test_expected : array[0..2{$ifdef cpux86_64}+2{$endif cpux86_64}] of byte = (
     $CF,$66,$CF{$ifdef cpux86_64},$48,$cf{$endif cpux86_64});
 
 var
@@ -26,5 +26,4 @@ begin
         halt(1);
       end;
   writeln('ok');
-end.
 end.
