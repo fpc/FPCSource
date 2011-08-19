@@ -2430,6 +2430,13 @@
     flags   : if_8086
   ),
   (
+    opcode  : A_IRETQ;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none,ot_none);
+    code    : #214#1#207;
+    flags   : if_x86_64
+  ),
+  (
     opcode  : A_JECXZ;
     ops     : 1;
     optypes : (ot_immediate,ot_none,ot_none,ot_none);

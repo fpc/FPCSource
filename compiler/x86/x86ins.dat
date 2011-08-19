@@ -862,6 +862,10 @@ void                  \325\1\xCF                      386
 (Ch_All, Ch_None, Ch_None)
 void                  \324\1\xCF                      8086
 
+[IRETQ]
+(Ch_All, Ch_None, Ch_None)
+void                  \326\1\xCF                      X86_64
+
 [JCXZ]
 (Ch_RECX, Ch_None, Ch_None)
 imm                   \310\1\xE3\50                   8086,NOX86_64
