@@ -2799,6 +2799,8 @@ implementation
         oldhi, newhi: tregister;
 {$endif not cpu64bitalu}
         ressym: tsym;
+        { moved sym }
+        sym : tsym;
       end;
 
 
@@ -2830,6 +2832,7 @@ implementation
                       exit;
 {$endif not cpu64bitalu}
                   tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register := rr^.new;
+                  rr^.sym := tabstractnormalvarsym(tloadnode(n).symtableentry);
                   result := fen_norecurse_true;
                 end;
             end;
@@ -2875,6 +2878,7 @@ implementation
           exit;
         rr.old := n.location.register;
         rr.ressym := nil;
+        rr.sym := nil;
       {$ifndef cpu64bitalu}
         rr.oldhi := NR_NO;
       {$endif not cpu64bitalu}
@@ -2937,6 +2941,9 @@ implementation
             else
               internalerror(2006090920);
           end;
+
+        if assigned(rr.sym) then
+          list.concat(tai_varloc.create(rr.sym,rr.new));
 
         { now that we've change the loadn/temp, also change the node result location }
       {$ifndef cpu64bitalu}

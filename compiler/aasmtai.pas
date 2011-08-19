@@ -84,7 +84,9 @@ interface
           ait_regalloc,
           ait_tempalloc,
           { used to mark assembler blocks and inlined functions }
-          ait_marker
+          ait_marker,
+          { used to describe a new location of a variable }
+          ait_varloc
           );
 
         taiconst_type = (
@@ -170,7 +172,8 @@ interface
           'cut',
           'regalloc',
           'tempalloc',
-          'marker'
+          'marker',
+          'varloc'
           );
 
     type
@@ -233,14 +236,15 @@ interface
         a new ait type!                                                              }
       SkipInstr = [ait_comment, ait_symbol,ait_section
                    ,ait_stab, ait_function_name, ait_force_line
-                   ,ait_regalloc, ait_tempalloc, ait_symbol_end, ait_directive];
+                   ,ait_regalloc, ait_tempalloc, ait_symbol_end, ait_directive
+                   ,ait_varloc];
 
       { ait_* types which do not have line information (and hence which are of type
         tai, otherwise, they are of type tailineinfo }
       SkipLineInfo =[ait_label,
                      ait_regalloc,ait_tempalloc,
                      ait_stab,ait_function_name,
-                     ait_cutobject,ait_marker,ait_align,ait_section,ait_comment,
+                     ait_cutobject,ait_marker,ait_varloc,ait_align,ait_section,ait_comment,
                      ait_const,
 {$ifdef arm}
                      ait_thumb_func,
@@ -645,6 +649,16 @@ interface
         end;
         tai_align_class = class of tai_align_abstract;
 
+        tai_varloc = class(tai)
+           newlocation : tregister;
+           varsym : tsym;
+           constructor create(sym : tsym;loc : tregister);
+           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+           procedure ppuwrite(ppufile:tcompilerppufile);override;
+           procedure buildderefimpl;override;
+           procedure derefimpl;override;
+        end;
+
     var
       { array with all class types for tais }
       aiclass : taiclassarray;
@@ -754,6 +768,39 @@ implementation
          end
         else
          ppufile.putbyte(byte(ait_none));
+      end;
+
+
+    constructor tai_varloc.create(sym: tsym; loc: tregister);
+      begin
+        inherited Create;
+        typ:=ait_varloc;
+        newlocation:=loc;
+        varsym:=sym;
+      end;
+
+
+    constructor tai_varloc.ppuload(t: taitype; ppufile: tcompilerppufile);
+      begin
+        inherited ppuload(t, ppufile);
+      end;
+
+
+    procedure tai_varloc.ppuwrite(ppufile: tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+      end;
+
+
+    procedure tai_varloc.buildderefimpl;
+      begin
+        inherited buildderefimpl;
+      end;
+
+
+    procedure tai_varloc.derefimpl;
+      begin
+        inherited derefimpl;
       end;
 
 
@@ -2426,5 +2473,8 @@ implementation
         ppufile.putbyte(fillop);
         ppufile.putbyte(byte(use_op));
       end;
-
+begin
+  { taitype should fit into a 4 byte set for speed reasons }
+  if ord(high(taitype))>31 then
+    internalerror(201108181);
 end.
