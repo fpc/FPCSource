@@ -1590,14 +1590,16 @@ type_e_type_is_not_completly_defined=04042_E_Type "$1" is not completely defined
 type_w_string_too_long=04043_W_String literal has more characters than short string length
 % The size of the constant string, which is assigned to a shortstring,
 % is longer than the maximum size of the shortstring (255 characters).
-type_w_signed_unsigned_always_false=04044_W_Comparison is always false due to range of values
-% There is a comparison between an unsigned value and a signed constant which is
-% less than zero. Because of type promotion, the statement will always evaluate to
-% false. Explicitly typecast the constant to the correct range to avoid this problem.
-type_w_signed_unsigned_always_true=04045_W_Comparison is always true due to range of values
-% There is a comparison between an unsigned value and a signed constant which is
-% less than zero. Because of type promotion, the statement will always evaluate to
-% true. Explicitly typecast the constant to the correct range to avoid this problem.
+type_w_comparison_always_false=04044_W_Comparison might be always false due to range of constant and expression
+% There is a comparison between a constant and an expression where the constant is out of the
+% valid range of values of the expression. Because of type promotion, the statement will always evaluate to
+% false. Explicitly typecast the constant or the expression to the correct range to avoid this warning
+% if you think the code is correct.
+type_w_comparison_always_true=04045_W_Comparison might be always true due to range of constant and expression
+% There is a comparison between a constant and an expression where the constant is out of the
+% valid range of values of the expression. Because of type promotion, the statement will always evaluate to
+% true. Explicitly typecast the constant or the expression to the correct range to avoid this warning
+% if you think the code is correct.
 type_w_instance_with_abstract=04046_W_Constructing a class "$1" with abstract method "$2"
 % An instance of a class is created which contains non-implemented abstract
 % methods. This will probably lead to a runtime error 211 in the code if that

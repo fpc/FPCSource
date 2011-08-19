@@ -448,8 +448,8 @@ const
   type_e_class_or_interface_type_expected=04041;
   type_e_type_is_not_completly_defined=04042;
   type_w_string_too_long=04043;
-  type_w_signed_unsigned_always_false=04044;
-  type_w_signed_unsigned_always_true=04045;
+  type_w_comparison_always_false=04044;
+  type_w_comparison_always_true=04045;
   type_w_instance_with_abstract=04046;
   type_h_in_range_check=04047;
   type_w_smaller_possible_range_check=04048;
@@ -901,7 +901,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 61046;
+  MsgTxtSize = 61092;
 
   MsgIdxMax : array[1..20] of longint=(
     26,89,314,104,85,54,111,23,202,63,
