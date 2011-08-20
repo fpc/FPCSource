@@ -584,9 +584,16 @@ var
   cdecl_pocalls      : tproccalloptions;
 
 const
+{$ifndef jvm}
    inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has_protected,
                 oo_has_strictprotected,oo_has_strictprivate,oo_has_constructor,oo_has_destructor,
                 oo_can_have_published];
+{$else not jvm}
+{ constructors are not inherited in Java }
+inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has_protected,
+             oo_has_strictprotected,oo_has_strictprivate,oo_has_destructor,
+             oo_can_have_published];
+{$endif not jvm}
 
 {$ifdef i386}
    { we only take this into account on i386, on other platforms we always
