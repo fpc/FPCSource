@@ -607,6 +607,7 @@ Procedure fpc_Copy_proc (Src, Dest, TypeInfo : Pointer); compilerproc; inline;
     -> normalarrdim will be 2
 }
 procedure fpc_initialize_array_unicodestring(arr: TJObjectArray; normalarrdim: longint);compilerproc;
+procedure fpc_initialize_array_ansistring(arr: TJObjectArray; normalarrdim: longint);compilerproc;
 { normalarrdim contains the number of dimensions
   a regular array, if any, that contains these unicodestrings. E.g.:
    type

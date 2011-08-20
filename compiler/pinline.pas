@@ -314,7 +314,7 @@ implementation
                      { create call to fpc_initialize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) or
                        ((m_iso in current_settings.modeswitches) and (tpointerdef(p.resultdef).pointeddef.typ=filedef)) then
-                       addstatement(newstatement,cnodeutils.initialize_data_node(cderefnode.create(ctemprefnode.create(temp))));
+                       addstatement(newstatement,cnodeutils.initialize_data_node(cderefnode.create(ctemprefnode.create(temp)),false));
 
                      { copy the temp to the destination }
                      addstatement(newstatement,cassignmentnode.create(
@@ -518,7 +518,7 @@ implementation
         else
          begin
            if isinit then
-             newblock:=cnodeutils.initialize_data_node(ppn.left)
+             newblock:=cnodeutils.initialize_data_node(ppn.left,true)
            else
              newblock:=cnodeutils.finalize_data_node(ppn.left);
          end;

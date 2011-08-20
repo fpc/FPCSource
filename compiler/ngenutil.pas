@@ -33,7 +33,7 @@ interface
   type
     tnodeutils = class
       class function call_fail_node:tnode; virtual;
-      class function initialize_data_node(p:tnode):tnode; virtual;
+      class function initialize_data_node(p:tnode; force: boolean):tnode; virtual;
       class function finalize_data_node(p:tnode):tnode; virtual;
       { returns true if the unit requires an initialisation section (e.g.,
         to force class constructors for the JVM target to initialise global
@@ -143,7 +143,7 @@ implementation
     end;
 
 
-  class function tnodeutils.initialize_data_node(p:tnode):tnode;
+  class function tnodeutils.initialize_data_node(p:tnode; force: boolean):tnode;
     begin
       if not assigned(p.resultdef) then
         typecheckpass(p);

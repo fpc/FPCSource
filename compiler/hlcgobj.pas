@@ -2103,7 +2103,7 @@ implementation
         begin
           OldAsmList:=current_asmdata.CurrAsmList;
           current_asmdata.CurrAsmList:=TAsmList(arg);
-          hp:=cnodeutils.initialize_data_node(cloadnode.create(tsym(p),tsym(p).owner));
+          hp:=cnodeutils.initialize_data_node(cloadnode.create(tsym(p),tsym(p).owner),false);
           firstpass(hp);
           secondpass(hp);
           hp.free;

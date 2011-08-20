@@ -33,7 +33,7 @@ interface
 
   type
     tjvmnodeutils = class(tnodeutils)
-      class function initialize_data_node(p:tnode):tnode; override;
+      class function initialize_data_node(p:tnode; force: boolean):tnode; override;
       class function finalize_data_node(p:tnode):tnode; override;
       class function force_init: boolean; override;
       class procedure insertbssdata(sym: tstaticvarsym); override;
@@ -54,14 +54,21 @@ interface
 implementation
 
     uses
-      verbose,cutils,globals,constexp,fmodule,
+      verbose,cutils,globtype,globals,constexp,fmodule,
       aasmdata,aasmtai,cpubase,aasmcpu,
       symdef,symbase,symtable,defutil,jvmdef,
-      nbas,ncnv,ncon,ninl,ncal,
+      nbas,ncnv,ncon,ninl,ncal,nld,nmem,
       ppu,
       pass_1;
 
-  class function tjvmnodeutils.initialize_data_node(p:tnode):tnode;
+  class function tjvmnodeutils.initialize_data_node(p:tnode; force: boolean):tnode;
+    var
+      normaldim: longint;
+      temp: ttempcreatenode;
+      stat: tstatementnode;
+      def: tdef;
+      paras: tcallparanode;
+      proc: string;
     begin
       if not assigned(p.resultdef) then
         typecheckpass(p);
@@ -84,6 +91,57 @@ implementation
           result:=cinlinenode.create(in_setlength_x,false,
             ccallparanode.create(genintconstnode(0),
               ccallparanode.create(p,nil)));
+        end
+      else if force then
+        begin
+          { an explicit call to initialize() }
+          if p.resultdef.typ=recorddef then
+            result:=ccallnode.createinternmethod(p,'FPCINITIALIZEREC',nil)
+          else if p.resultdef.typ=arraydef then
+            begin
+              stat:=nil;
+              { in case it's an open array whose elements are regular arrays, put the
+                dimension of the regular arrays on the stack (otherwise pass 0) }
+              normaldim:=0;
+              def:=tarraydef(p.resultdef).elementdef;
+              while (def.typ=arraydef) and
+                    not is_dynamic_array(def) do
+                begin
+                  inc(normaldim);
+                  def:=tarraydef(def).elementdef;
+                end;
+              if jvmimplicitpointertype(p.resultdef) then
+                begin
+                  p:=caddrnode.create(p);
+                  include(p.flags,nf_typedaddr);
+                end;
+              paras:=ccallparanode.create(ctypeconvnode.create_explicit(p,
+                search_system_type('TJOBJECTARRAY').typedef),nil);
+              paras:=ccallparanode.create(genintconstnode(normaldim),paras);
+              if is_wide_or_unicode_string(def) then
+                proc:='fpc_initialize_array_unicodestring'
+              else if is_ansistring(def) then
+                proc:='fpc_initialize_array_ansistring'
+              else if is_dynamic_array(def) then
+                proc:='fpc_initialize_array_dynarr'
+              else if is_record(def) then
+                begin
+                  result:=internalstatements(stat);
+                  temp:=ctempcreatenode.create(def,def.size,tt_persistent,true);
+                  addstatement(stat,temp);
+                  paras:=ccallparanode.create(ctemprefnode.create(temp),paras);
+                  proc:='fpc_initialize_array_record'
+                end;
+              if assigned(stat) then
+                begin
+                  addstatement(stat,ccallnode.createintern(proc,paras));
+                  addstatement(stat,ctempdeletenode.create(temp));
+                end
+              else
+                result:=ccallnode.createintern(proc,paras);
+            end
+          else
+            result:=cassignmentnode.create(p,cnilnode.create);
         end
       else
         begin
