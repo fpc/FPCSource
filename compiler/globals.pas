@@ -422,9 +422,18 @@ interface
         optimizecputype : cpu_mips32;
         fputype : fpu_mips2;
   {$endif mips}
+  {$ifdef jvm}
+        cputype : cpu_none;
+        optimizecputype : cpu_none;
+        fputype : fpu_standard;
+  {$endif jvm}
 {$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
+{$ifndef jvm}
         interfacetype : it_interfacecom;
+{$else jvm}
+        interfacetype : it_interfacejava;
+{$endif jvm}
         defproccall : pocall_default;
         sourcecodepage : '8859-1';
         minfpconstprec : s32real;

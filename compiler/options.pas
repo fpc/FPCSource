@@ -1269,6 +1269,9 @@ begin
                  IllegalPara(opt);
                if more[1]='I' then
                  begin
+{$ifdef jvm}
+                   UnsupportedPara('-SI');
+{$endif}
                    if upper(more)='ICOM' then
                      init_settings.interfacetype:=it_interfacecom
                    else if upper(more)='ICORBA' then

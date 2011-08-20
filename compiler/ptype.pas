@@ -1632,7 +1632,7 @@ implementation
                     def:=object_dec(odt_helper,name,genericdef,genericlist,nil,ht_class);
                   end
                 else
-                  def:=object_dec(odt_class,name,genericdef,genericlist,nil,ht_none);
+                  def:=object_dec(default_class_type,name,genericdef,genericlist,nil,ht_none);
               end;
             _CPPCLASS :
               begin
@@ -1654,10 +1654,16 @@ implementation
                 if not(m_class in current_settings.modeswitches) then
                   Message(parser_f_need_objfpc_or_delphi_mode);
                 consume(token);
-                if current_settings.interfacetype=it_interfacecom then
-                  def:=object_dec(odt_interfacecom,name,genericdef,genericlist,nil,ht_none)
-                else {it_interfacecorba}
-                  def:=object_dec(odt_interfacecorba,name,genericdef,genericlist,nil,ht_none);
+                case current_settings.interfacetype of
+                  it_interfacecom:
+                    def:=object_dec(odt_interfacecom,name,genericdef,genericlist,nil,ht_none);
+                  it_interfacecorba:
+                    def:=object_dec(odt_interfacecorba,name,genericdef,genericlist,nil,ht_none);
+                  it_interfacejava:
+                    def:=object_dec(odt_interfacejava,name,genericdef,genericlist,nil,ht_none);
+                  else
+                    internalerror(2010122612);
+                end;
               end;
             _OBJCPROTOCOL :
                begin

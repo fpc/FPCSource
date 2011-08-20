@@ -457,11 +457,14 @@ unit scandir;
         {corba/com/default}
         current_scanner.skipspace;
         hs:=current_scanner.readid;
+{$ifndef jvm}
         if (hs='CORBA') then
           current_settings.interfacetype:=it_interfacecorba
         else if (hs='COM') then
           current_settings.interfacetype:=it_interfacecom
-        else if (hs='DEFAULT') then
+        else
+{$endif jvm}
+             if (hs='DEFAULT') then
           current_settings.interfacetype:=init_settings.interfacetype
         else
           Message(scan_e_invalid_interface_type);

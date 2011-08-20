@@ -308,7 +308,8 @@ interface
        { interface types }
        tinterfacetypes = (
          it_interfacecom,
-         it_interfacecorba
+         it_interfacecorba,
+         it_interfacejava
        );
 
        { currently parsed block type }

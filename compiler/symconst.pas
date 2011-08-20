@@ -331,7 +331,9 @@ type
     odt_objcclass,
     odt_objcprotocol,
     odt_objccategory, { note that these are changed into odt_class afterwards }
-    odt_helper
+    odt_helper,
+    odt_javaclass,
+    odt_interfacejava
   );
 
   { defines the type of the extended "structure"; only used for parsing }
@@ -613,6 +615,12 @@ const
        'public','published'
      );
 
+
+{$ifndef jvm}
+     default_class_type=odt_class;
+{$else not jvm}
+     default_class_type=odt_javaclass;
+{$endif not jvm}
 
 { !! Be sure to keep these in sync with ones in rtl/inc/varianth.inc }
       varempty = 0;

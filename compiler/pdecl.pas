@@ -483,12 +483,18 @@ implementation
                   begin
                     case token of
                       _CLASS :
-                        objecttype:=odt_class;
+                        objecttype:=default_class_type;
                       _INTERFACE :
-                        if current_settings.interfacetype=it_interfacecom then
-                          objecttype:=odt_interfacecom
-                        else
-                          objecttype:=odt_interfacecorba;
+                        case current_settings.interfacetype of
+                          it_interfacecom:
+                            objecttype:=odt_interfacecom;
+                          it_interfacecorba:
+                            objecttype:=odt_interfacecorba;
+                          it_interfacejava:
+                            objecttype:=odt_interfacejava;
+                          else
+                            internalerror(2010122611);
+                        end;
                       _DISPINTERFACE :
                         objecttype:=odt_dispinterface;
                       _OBJCCLASS,
