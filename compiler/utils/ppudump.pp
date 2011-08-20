@@ -1148,7 +1148,8 @@ const
      (mask:po_objc;            str:'ObjC'),
      (mask:po_enumerator_movenext; str:'EnumeratorMoveNext'),
      (mask:po_optional;        str: 'Optional'),
-     (mask:po_delphi_nested_cc;str: 'Delphi-style nested frameptr')
+     (mask:po_delphi_nested_cc;str: 'Delphi-style nested frameptr'),
+     (mask:po_java_nonvirtual; str: 'Java non-virtual method')
   );
 var
   proctypeoption  : tproctypeoption;

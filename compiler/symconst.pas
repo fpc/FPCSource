@@ -315,7 +315,10 @@ type
       (when calling a regular procedure using the above convention, it will
        simply not see the frame pointer parameter, and since the caller cleans
        up the stack will also remain balanced) }
-    po_delphi_nested_cc
+    po_delphi_nested_cc,
+    { Non-virtual method of a Java class that has been transformed into a
+      "virtual; final;" method for JVM-implementation reasons }
+    po_java_nonvirtual
   );
   tprocoptions=set of tprocoption;
 

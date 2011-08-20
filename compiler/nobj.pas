@@ -240,6 +240,10 @@ implementation
 
       // returns true if we can stop checking, false if we have to continue
       function found_entry(var vmtpd: tprocdef; var vmtentryvis: tvisibility; updatevalues: boolean): boolean;
+{$ifdef jvm}
+        var
+          javanewtreeok: boolean;
+{$endif jvm}
         begin
           result:=false;
 
@@ -269,9 +273,16 @@ implementation
           hasequalpara:=(compare_paras(vmtpd.paras,pd.paras,cp_none,[cpo_ignoreuniv,cpo_ignorehidden])>=te_equal);
 
           { check that we are not trying to override a final method }
+          { in Java, new virtual inheritance trees can never be started ->
+            treat all methods as "overriding" in the context of this check
+            (Java does check whether the mangled names are identical, so if they
+             are not we can stil get away with it) }
           if (po_finalmethod in vmtpd.procoptions) and
-             hasequalpara and (po_overridingmethod in pd.procoptions) and
-             (is_class(_class) or is_objectpascal_helper(_class)) then
+             hasequalpara and
+             ((po_overridingmethod in pd.procoptions) or
+              (is_javaclass(_class) and
+               (pd.mangledname=vmtpd.mangledname))) and
+             (is_class(_class) or is_objectpascal_helper(_class) or is_javaclass(_class)) then
             MessagePos1(pd.fileinfo,parser_e_final_can_no_be_overridden,pd.fullprocname(false))
           else
           { old definition has virtual
@@ -296,9 +307,21 @@ implementation
                   hasequalpara
                  ) then
                 begin
-                  if not(po_reintroduce in pd.procoptions) then
-                    if not(is_objc_class_or_protocol(_class)) and
-                       not(is_java_class_or_interface(_class)) then
+{$ifdef jvm}
+                  { if the mangled names are different, the inheritance trees
+                    are different too in Java }
+                  javanewtreeok:=
+                    is_java_class_or_interface(_class) and
+                    (pd.jvmmangledbasename(false)<>vmtpd.jvmmangledbasename(false));
+{$endif}
+                  if not(po_reintroduce in pd.procoptions) and
+                     not(po_java_nonvirtual in vmtpd.procoptions) then
+                    if not(is_objc_class_or_protocol(_class))
+{$ifdef jvm}
+                       and (not is_java_class_or_interface(_class) or
+                        javanewtreeok)
+{$endif jvm}
+                       then
                       MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
                     else
                       begin
@@ -341,6 +364,15 @@ implementation
                           dec(tobjectdef(pd.owner.defowner).abstractcnt);
                         result:=true;
                         exit;
+{$ifdef jvm}
+                      end
+                  else
+                    if not javanewtreeok and
+                       is_java_class_or_interface(_class) then
+                      begin
+                        { mangled names are the same -> can only override }
+                        MessagePos1(pd.fileinfo,parser_e_must_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+{$endif jvm}
                       end;
                   { disable/hide old VMT entry }
                   if updatevalues then

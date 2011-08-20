@@ -782,6 +782,24 @@ implementation
         begin
           if is_java_class_or_interface(pd.struct) then
             begin
+              { mark all non-virtual instance methods as "virtual; final;",
+                because
+                 a) that's the only way to guarantee "non-virtual" behaviour
+                    (other than making them class methods with an explicit self
+                     pointer, but that causes problems with interface mappings
+                     and procvars)
+                 b) if we don't mark them virtual, they don't get added to the
+                    vmt and we can't check whether child classes try to override
+                    them
+              }
+              if is_javaclass(pd.struct) and
+                 not(po_virtualmethod in pd.procoptions) and
+                 not(po_classmethod in pd.procoptions) then
+                begin
+                  include(pd.procoptions,po_virtualmethod);
+                  include(pd.procoptions,po_finalmethod);
+                  include(pd.procoptions,po_java_nonvirtual);
+                end;
             end;
         end;
 
