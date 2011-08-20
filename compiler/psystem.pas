@@ -214,6 +214,10 @@ implementation
         sc80floattype:=tfloatdef.create(sc80real);
         s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
 {$endif avr}
+{$ifdef jvm}
+        create_fpu_types;
+        s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
+{$endif POWERPC64}
 {$ifdef cpu64bitaddr}
         uinttype:=u64inttype;
         sinttype:=s64inttype;
@@ -221,6 +225,8 @@ implementation
         ptrsinttype:=s64inttype;
 {$endif cpu64bitaddr}
 {$ifdef cpu32bitaddr}
+        uinttype:=u32inttype;
+        sinttype:=s32inttype;
         ptruinttype:=u32inttype;
         ptrsinttype:=s32inttype;
 {$endif cpu32bitaddr}
