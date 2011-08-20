@@ -1864,7 +1864,7 @@ implementation
             case tobjectdef(pd.owner.defowner).objecttype of
               odt_javaclass:
                 begin
-                  if (po_staticmethod in pd.procoptions) then
+                  if (po_classmethod in pd.procoptions) then
                     opc:=a_invokestatic
                   else if (pd.visibility=vis_private) or
                      (pd.proctypeoption=potype_constructor) or

@@ -702,7 +702,7 @@ implementation
       begin
         result:=VisibilityToStr(pd.visibility);
         if (pd.procsym.owner.symtabletype in [globalsymtable,staticsymtable,localsymtable]) or
-           (po_staticmethod in pd.procoptions) then
+           (po_classmethod in pd.procoptions) then
           result:=result+'static ';
         if is_javainterface(tdef(pd.owner.defowner)) then
           result:=result+'abstract ';

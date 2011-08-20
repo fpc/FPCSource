@@ -781,10 +781,6 @@ implementation
           if is_java_class_or_interface(pd.struct) then
             begin
               include(pd.procoptions,po_java);
-              { In java, all methods are either regular virtual methods,
-                or static class methods }
-              if [po_staticmethod,po_classmethod]*pd.procoptions=[po_classmethod] then
-                messagepos(pd.fileinfo,type_e_java_class_method_not_static);
             end;
         end;
 

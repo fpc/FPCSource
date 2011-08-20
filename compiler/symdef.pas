@@ -4488,9 +4488,14 @@ implementation
             for i:=0 to paras.count-1 do
               begin
                 vs:=tparavarsym(paras[i]);
-                { function result and self pointer are not part of the mangled
-                  name }
-                if ([vo_is_funcret,vo_is_self] * vs.varoptions <> []) then
+                { function result is not part of the mangled name }
+                if vo_is_funcret in vs.varoptions then
+                  exit;
+                { self pointer neither, except for class methods (the JVM only
+                  supports static class methods natively, so the self pointer
+                  here is a regular parameter as far as the JVM is concerned }
+                if not(po_classmethod in procoptions) and
+                   (vo_is_self in vs.varoptions) then
                   continue;
                 { passing by reference is emulated by passing an array of one
                   element containing the value; for types that aren't pointers
