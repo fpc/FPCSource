@@ -1721,6 +1721,10 @@ implementation
         def : tdef;
         vmtwriter  : TVMTWriter;
       begin
+{$ifdef jvm}
+        { no Delphi-style RTTI }
+        exit;
+{$endif jvm}
         for i:=0 to st.DefList.Count-1 do
           begin
             def:=tdef(st.DefList[i]);
