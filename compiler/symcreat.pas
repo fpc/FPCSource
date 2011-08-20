@@ -1150,12 +1150,15 @@ implementation
         there is nothing in this case (class+field name will be
         encoded in the mangled symbol name) }
       recst.insert(hstaticvs);
-      { has to be delayed until now, because the calculated
-        mangled name depends on the owner }
+      { only set the staticvarsym's basename (= field name, without any
+        mangling), because generating the fully mangled name right now can
+        result in a wrong string in case the field's type is a forward
+        declared class whose external name will change when the actual
+        definition is parsed }
       if (vo_has_mangledname in fieldvs.varoptions) then
-        hstaticvs.set_mangledname(fieldvs.externalname^)
+        hstaticvs.set_mangledbasename(fieldvs.externalname^)
       else
-        hstaticvs.set_mangledname(fieldvs.realname);
+        hstaticvs.set_mangledbasename(fieldvs.realname);
       { for definition in class file }
       hstaticvs.visibility:=fieldvs.visibility;
 {$else jvm}
