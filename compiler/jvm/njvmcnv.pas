@@ -346,16 +346,15 @@ implementation
           end
         else
           begin
-            location_copy(location,left.location);
-            location.size:=def_cgsize(resultdef);
             if (ressize < sizeof(aint)) and
-               (location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
                (def_cgsize(left.resultdef)<>def_cgsize(resultdef)) then
               begin
+                location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
                 location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-                location.loc:=LOC_REGISTER;
-                hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
-              end;
+                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location,location.register);
+              end
+            else
+              location_copy(location,left.location);
           end;
       end;
 
