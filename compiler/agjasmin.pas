@@ -214,7 +214,7 @@ implementation
              ord('"'),ord('\'):
                result:=result+'\'+chr(w[i]);
              else if (w[i]<32) or
-                (w[i]>127) then
+                (w[i]>=127) then
                result:=result+'\u'+hexstr(w[i],4)
              else
                result:=result+char(w[i]);
