@@ -26,8 +26,9 @@ public class PascalMethodData extends MethodData {
      * Return modifiers of the method that matter to Pascal import.
      */
     public String getModifiers(){
-        if ((access & ACC_FINAL)    !=0) return " final;";
-        if ((access & ACC_ABSTRACT) !=0) return " abstract;";
+        if ((access & ACC_FINAL)    !=0) return " virtual; final;";
+        if ((access & ACC_ABSTRACT) !=0) return " virtual; abstract;";
+        if (!isStatic()) return " virtual;";
         return "";
     }
 
@@ -36,7 +37,7 @@ public class PascalMethodData extends MethodData {
      */
     public String getReturnType(){
 
-        String rttype = (new PascalTypeSignature(getInternalSig(), cls)).getReturnType();
+        String rttype = (new PascalTypeSignature(getInternalSig(), cls, false, false)).getReturnType();
         return rttype;
     }
 
@@ -55,8 +56,8 @@ public class PascalMethodData extends MethodData {
     /**
      * Return java type parameter signature.
      */
-    public String getParameters(){
-        String ptype = (new PascalTypeSignature(getInternalSig(),cls)).getParameters();
+    public String getParameters(boolean useOpenArrays, boolean useConstOpenArrays){
+        String ptype = (new PascalTypeSignature(getInternalSig(),cls,useOpenArrays,useConstOpenArrays)).getParameters();
 
         return ptype;
     }

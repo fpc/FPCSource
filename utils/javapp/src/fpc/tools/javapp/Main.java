@@ -32,6 +32,7 @@ package fpc.tools.javapp;
 
 import java.util.*;
 import java.io.*;
+import java.nio.charset.Charset;
 
 import org.jgrapht.alg.CycleDetector;
 import org.jgrapht.graph.*;
@@ -98,6 +99,7 @@ public class Main{
 		out.println("   -classpath <pathlist>     Specify where to find user class files");
 		out.println("   -help                     Print this usage message");
 		out.println("   -J<flag>                  Pass <flag> directly to the runtime system");
+		out.println("   -i                        Generate include files instead of complete unit");
 		out.println("   -l                        Print line number and local variable tables");
 		out.println("   -o <output_base_name>     Base name of output unit (default: java");
 		out.println("   -public                   Print only public classes and members");
@@ -134,6 +136,8 @@ public class Main{
 					env.showVerbose = true;
 				} else if (arg.equals("-v")) {
 					env.showVerbose = true;
+				} else if (arg.equals("-i"))  {
+					env.generateInclude = true;
 				} else if (arg.equals("-h")) {
 					error("-h is no longer available - use the 'javah' program");
 					return false;
@@ -249,7 +253,11 @@ public class Main{
 		PascalUnit thisUnit;
 		String includeName, mainUnitName;
 
-		mainUnitName = env.outputName+".pas";
+		if (env.generateInclude) {
+			mainUnitName = env.outputName+"h.inc";
+		} else {
+			mainUnitName = env.outputName+".pas";			
+		}
 		includeName = env.outputName+".inc";
 
 		includeFile = createFile(includeName);
@@ -272,45 +280,49 @@ public class Main{
 
 		try {
 			String currentExcludePkg; 
-			String currentPkgPrefix;
+			String currentPrefix;
 			if (skipPkgsStepper.hasNext())
 				currentExcludePkg = skipPkgsStepper.next();
 			else
 				currentExcludePkg = ".......";
-			if (argStepper.hasNext())
-				currentPkgPrefix = argStepper.next().replace('.', '/');
-			else
-				currentPkgPrefix = ".......";
-			System.out.println("Indexing classes under "+currentPkgPrefix+"...");
+			if (argStepper.hasNext()) {
+				currentPrefix = argStepper.next();
+				if (!currentPrefix.equals(".")) {
+					currentPrefix = currentPrefix.replace('.', '/');
+				} else {
+					currentPrefix = "./";
+				}
+			} else
+				currentPrefix = ".......";
+			System.out.println("Indexing classes under "+currentPrefix+"...");
 			do {
 				String currentClass = classStepper.next();
 				// if the current class name is > the current package name, skip packages
 				// until we have a package to which the current class belongs, or the
 				// next in line
 				while (argStepper.hasNext() &&
-						!currentClass.startsWith(currentPkgPrefix) &&
-						(currentClass.compareTo(currentPkgPrefix) > 0)) {
+						!PascalUnit.classOrPackageInPrefix(currentClass,currentPrefix) &&
+						(currentClass.compareTo(currentPrefix) > 0)) {
 					String currentArg = argStepper.next();
-					// convention: '.' as package name = no package name, otherwise actual package name
 					if (!currentArg.equals(".")) {
 						currentArg = currentArg.replace('.', '/');
-						currentPkgPrefix = currentArg;
+						currentPrefix = currentArg;
 					} else {
 						currentArg = "./";
-						currentPkgPrefix = currentArg;
+						currentPrefix = currentArg;
 					}
-					System.out.println("Indexing classes under "+currentPkgPrefix+"...");
-					currentPkgPrefix = currentArg;
+					System.out.println("Indexing classes under "+currentPrefix+"...");
+					currentPrefix = currentArg;
 				}
 				boolean doPrintClass = false;
 				// should check whether the class is explicitly excluded from being printed
-				if (currentClass.startsWith(currentPkgPrefix)) {
+				if (PascalUnit.classOrPackageInPrefix(currentClass,currentPrefix)) {
 					while (skipPkgsStepper.hasNext() &&
-							!currentClass.startsWith(currentExcludePkg) &&
+							!PascalUnit.classOrPackageInPrefix(currentClass,currentExcludePkg) &&
 							(currentClass.compareTo(currentExcludePkg) > 0)) {
 						currentExcludePkg = skipPkgsStepper.next();
 					}
-					if (!currentClass.startsWith(currentExcludePkg)) {
+					if (!PascalUnit.classOrPackageInPrefix(currentClass,currentExcludePkg)) {
 						doPrintClass = true;
 					}
 				}

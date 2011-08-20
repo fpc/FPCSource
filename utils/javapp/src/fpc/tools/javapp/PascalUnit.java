@@ -170,6 +170,25 @@ public class PascalUnit {
 		}
 	}
 
+	/**
+	 * 
+	 * @param currentName name to check
+	 * @param currentPrefix if prefix ends in '.' or '/', assumed to be package, otherwise class
+	 * @return whether currentName is a class inside currentPrefix
+	 */
+	public static boolean classOrPackageInPrefix(String currentName, String currentPrefix) {
+		boolean res = currentName.startsWith(currentPrefix);
+		char lastPrefixChar = currentPrefix.charAt(currentPrefix.length()-1);
+		if ((lastPrefixChar != '.') &&
+				(lastPrefixChar != '/')) {
+			res &=
+				(currentName.length() == currentPrefix.length()) ||
+				((currentName.length() > currentPrefix.length()) &&
+						(currentName.charAt(currentPrefix.length()) == '$'));
+		}
+		return res;
+	}
+	
 		
 	public void registerUsedClass(String className) {
 		className = className.replace('.','/');
@@ -181,7 +200,7 @@ public class PascalUnit {
 		isSkel = false;
 		// first check for skeleton classes/packages
 		for (int i = 0; i < skelPrefixes.length; i++) {
-			if (className.startsWith(skelPrefixes[i])) {
+			if (classOrPackageInPrefix(className,skelPrefixes[i])) {
 				isSkel = true;
 				break;
 			}
@@ -194,11 +213,11 @@ public class PascalUnit {
 			// check whether we should fully print it; if not,
 			// declare as anonymous external
 			for (int i = 0; i < pkgPrefixes.length; i++) {
-				if (className.startsWith(pkgPrefixes[i])) {
+				if (classOrPackageInPrefix(className,pkgPrefixes[i])) {
 					boolean excluded = false;
 					// then excluded
 					for (int j = 0; j < excludePrefixes.length; j++) {
-						if (className.startsWith(excludePrefixes[j])) {
+						if (classOrPackageInPrefix(className,excludePrefixes[j])) {
 							excluded = true;
 							break;
 						}
@@ -378,16 +397,18 @@ public class PascalUnit {
 		Enumeration<String> strIterator;
 		Enumeration<SkelItem> skelIterator;
 		
-		unitFile.print("{ Imports for Java packages: "+RealPkgName(pkgPrefixes[0]));
+		unitFile.print("{ Imports for Java packages/classes: "+RealPkgName(pkgPrefixes[0]));
 		for (int i = 1; i < pkgPrefixes.length; i++) {
 			unitFile.print(", "+RealPkgName(pkgPrefixes[i]));
 		}
 		unitFile.println(" }");
-		unitFile.println("unit "+env.outputName+";");
-		unitFile.println("{$mode delphi}");
-		unitFile.println();
-		unitFile.println("interface");
-		unitFile.println();
+		if (!env.generateInclude) {
+			unitFile.println("unit "+env.outputName+";");
+			unitFile.println("{$mode delphi}");
+			unitFile.println();
+			unitFile.println("interface");
+			unitFile.println();
+		}
 		unitFile.println("type");
 		// forward declaration for all classes/interfaces in this package
 		strIterator = Collections.enumeration(registeredInternalClasses);
@@ -402,11 +423,13 @@ public class PascalUnit {
 		skelIterator = Collections.enumeration(registeredSkelObjs);
 		printSkelObjs(skelIterator);
 		unitFile.println();
-		unitFile.println("{$include "+includeName+"}");
-		unitFile.println();
-		unitFile.println("implementation");
-		unitFile.println();
-		unitFile.println("end.");
+		if (!env.generateInclude) {
+			unitFile.println("{$include "+includeName+"}");
+			unitFile.println();
+			unitFile.println("implementation");
+			unitFile.println();
+			unitFile.println("end.");
+		}
 	}
 
 

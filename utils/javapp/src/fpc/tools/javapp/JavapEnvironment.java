@@ -71,6 +71,7 @@ public class JavapEnvironment {
     boolean extDirflag;
     boolean nothingToDo = true;
     boolean showallAttr = false;
+    boolean generateInclude = false;
     String classpath = null;
     String outputName = "java";
     ArrayList<String> excludePrefixes;

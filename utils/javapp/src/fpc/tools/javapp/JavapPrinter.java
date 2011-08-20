@@ -282,11 +282,6 @@ public class JavapPrinter {
             		prevVis=newVis;
             	}
                 printMethodSignature(method);
-                // all interface methods are marked as "abstract", and cannot be final
-                if (!cls.isInterface())
-                	out.print(method.getModifiers());
-                printExceptions(method);
-                out.println();
             }
         }
         prefix=prefix.substring(2);
@@ -296,33 +291,60 @@ public class JavapPrinter {
      * Print method signature.
      */
     public void printMethodSignature(PascalMethodData method){
-    	out.print(prefix);
+    	StringBuilder sigStart = new StringBuilder();
+    	StringBuilder sigEnd;
+    	sigStart.append(prefix);
     	String pascalName = method.getName();
         if(pascalName.equals("<init>")){
-            out.print("constructor create");
-            out.print(method.getParameters());
+        	sigStart.append("constructor create");
+        	sigEnd = new StringBuilder();
+            // to fix compilation in Delphi mode
+        	sigEnd.append("; overload;");
+        	String dynArrParas = method.getParameters(false,true);
+        	String openArrParas = method.getParameters(true,true);
+            out.print(sigStart+dynArrParas+sigEnd);
+            printExceptions(method);
+            out.println();
+        	if (!dynArrParas.equals(openArrParas)) {
+        		out.print(sigStart+openArrParas+sigEnd);
+                printExceptions(method);
+                out.println();
+        	}
         }else if(pascalName.equals("<clinit>")){
-            out.print("class constructor classcreate");
+        	sigStart.append("class constructor classcreate");
         }else{
         	String rettype = method.getReturnType();
         	if (method.isStatic())
-        		out.print("class ");
+        		sigStart.append("class ");
         	if (rettype.equals(""))
-        		out.print("procedure ");
+        		sigStart.append("procedure ");
         	else
-        		out.print("function ");
-            out.print(pascalName);
-            out.print(method.getParameters());
+        		sigStart.append("function ");
+        	sigStart.append(pascalName);
+        	sigEnd = new StringBuilder();
             if (!rettype.equals(""))
-            	out.print(": "+rettype);
+            	sigEnd.append(": "+rettype);
         	if (method.isStatic())
-        		out.print("; static");
+        		sigEnd.append("; static");
         	String externalName = method.getExternalName();
         	if (externalName != null)
-        		out.print("; external name '"+externalName+"'");
+        		sigEnd.append("; external name '"+externalName+"'");
+            // to fix compilation in Delphi mode
+        	sigEnd.append("; overload;");
+            // all interface methods are marked as "abstract", and cannot be final
+            if (!cls.isInterface())
+            	sigEnd.append(method.getModifiers());
+        	String dynArrParas = method.getParameters(false,false);
+        	String openArrParas = method.getParameters(true,false);
+        	out.print(sigStart+dynArrParas+sigEnd);
+            printExceptions(method);
+            out.println();
+        	if (!dynArrParas.equals(openArrParas)) {
+        		out.print(sigStart+openArrParas+sigEnd);
+                printExceptions(method);
+                out.println();
+        	}
         }
-        // to fix compilation in Delphi mode
-        out.print("; overload;");
     }
 
     /**
@@ -760,7 +782,12 @@ public class JavapPrinter {
             		String[] accflags = innerClasses[i].getAccess();
             		PascalInnerClassData inner = (PascalInnerClassData)innerClasses[i];
             		String innerClassName = cls.StringValue(inner.inner_class_info_index);
-            		if (innerClassName.startsWith(curClassName+"$")){
+            		// * inner class names that do not begin with this class' name are
+            		//   unrelated to this class (they're nested somewhere else)
+            		// * inner class names that start with 0-9 are anonymous
+            		if (innerClassName.startsWith(curClassName+"$") &&
+            				!((innerClassName.charAt(curClassName.length()+1) >= '0') &&
+            						(innerClassName.charAt(curClassName.length()+1) <= '9'))) {
             			boolean accessOk = checkAccess(accflags);
             			boolean isStaticInner = inner.isStatic();
             			innerPrinter = new JavapPrinter(env.getFileInputStream(javaclassname(innerClassName)), out, env, prefix+"    ", cls,
@@ -800,7 +827,10 @@ public class JavapPrinter {
 		case VIS_PRIVATE:
 			return "strict private";
 		case VIS_PACKAGE:
-			return "private";
+			// should be "private", but then won't work for classes of the
+			// same package declared in different units, which happens
+			// at least for the classes in the system unit...
+			return "public";
 		case VIS_PROTECTED:
 			return "protected";
 		case VIS_PUBLIC:

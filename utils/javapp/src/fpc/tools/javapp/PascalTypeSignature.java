@@ -3,8 +3,17 @@ package fpc.tools.javapp;
 import java.util.Vector;
 
 public class PascalTypeSignature extends TypeSignature {
+	
+	// use open arrays rather than dynamic arrays for array parameters
+	private boolean useOpenArrays;
+	// when creating open array parameters, declare them as "const" rather than var
+	// (done for constructors, under the assumption that these won't change the
+	//  incoming data)
+	private boolean useConstOpenArrays;
 
-	public PascalTypeSignature(String JVMSignature, ClassData cls) {
+	public PascalTypeSignature(String JVMSignature, ClassData cls, boolean useOpenArrays, boolean useConstOpenArrays) {
+		this.useOpenArrays = useOpenArrays;
+		this.useConstOpenArrays = useConstOpenArrays;
 		init(JVMSignature);
 	}
 
@@ -74,7 +83,11 @@ public class PascalTypeSignature extends TypeSignature {
             }else {
                 componentType = getBaseType(arrayType);
             }
-            return outerClass+"Arr"+dimCount+componentType;
+            if (!useOpenArrays ||
+            		(dimCount>1))
+            	return outerClass+"Arr"+dimCount+componentType;
+            else
+            	return "array of "+outerClass+componentType;
         }
         return null;
     }
@@ -84,17 +97,28 @@ public class PascalTypeSignature extends TypeSignature {
         /* number of arguments of a method.*/
         argumentlength =  parameters.size();
         /* Pascal type signature.*/
-        String parametersignature = "(";
+        StringBuilder parametersignature = new StringBuilder("(");
         int i;
         
         for(i = 0; i < argumentlength; i++){
-        	parametersignature += "para"+(i+1)+": "+(String)parameters.elementAt(i);
+        	String paraType = (String)parameters.elementAt(i);
+        	// contents of open arrays could be changed -> var parameters
+        	if (paraType.contains("array of")) {
+        		if (!useConstOpenArrays)
+        		  parametersignature.append("var ");
+        		else
+          		  parametersignature.append("const ");
+        	}
+        	parametersignature.append("para");
+        	parametersignature.append(i+1);
+        	parametersignature.append(": ");
+        	parametersignature.append(paraType);
             if(i != parameters.size()-1){
-                parametersignature += "; ";
+                parametersignature.append("; ");
             }
         }
-        parametersignature += ")";
-        return parametersignature;
+        parametersignature.append(")");
+        return parametersignature.toString();
     }
     
 }
