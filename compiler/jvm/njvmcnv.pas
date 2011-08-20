@@ -238,24 +238,32 @@ implementation
            not is_void(left.resultdef) then
           begin
             location_copy(location,left.location);
-            { reuse a loc_reference when the newsize is smaller than
-              than the original, except
-                a) for arrays (they use different load instructions for
-                   differently sized data types)
-                b) when going from 8 to 4 bytes, because these are different
-                   data types
+            { reuse a loc_reference when the newsize is larger than
+              than the original, because all <= 4 byte loads will result in
+              a stack slot that occupies 4 bytes.
 
-               -- note that this is different from other targets, and will
-                  break stuff like passing byte(shortintvar) to a var-parameter;
-                  although that may be "fixed" again because we have to use
-                  copy-in/copy-out to emulate var-parameters anyway... }
+              Except
+                a) for arrays (they use different load instructions for
+                   differently sized data types) or symbols (idem)
+                b) when going from 4 to 8 bytes, because these are different
+                   data types
+            }
             if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
+               not assigned(location.reference.symbol) and
                (location.reference.arrayreftype=art_none) and
-               (ressize<leftsize) and
-               (leftsize<=4) then
+               (ressize>leftsize) and
+               ((ressize=4) or
+               { this will kill any sign/zero-extension after the load, so
+                 in case the result is 2 bytes (and source is 1 bytes), the
+                 source must be unsigned (-> already zero-extended in memory),
+                 or the destination must be signed (sign-extension in memory
+                 can be loaded onto the stack without problems) }
+                ((ressize=2) and
+                 (not is_signed(left.resultdef) or
+                  is_signed(resultdef)))) then
               begin
                 location.size:=def_cgsize(resultdef);
-                { no adjustment of the ffset even though Java is big endian,
+                { no adjustment of the offset even though Java is big endian,
                   because the load instruction will remain the same }
               end
             else
