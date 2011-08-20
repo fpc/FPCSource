@@ -147,6 +147,10 @@ implementation
 
     function TJVMParaManager.ret_in_param(def: tdef; calloption: tproccalloption): boolean;
       begin
+        { not as efficient as returning in param for jvmimplicitpointertypes,
+          but in the latter case the routines are harder to use from Java
+          (especially for arrays), because the caller then manually has to
+          allocate the instance/array of the right size }
         Result:=false;
       end;
 

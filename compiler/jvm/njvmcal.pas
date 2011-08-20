@@ -80,7 +80,12 @@ implementation
     procedure tjvmcallnode.set_result_location(realresdef: tstoreddef);
       begin
         location_reset_ref(location,LOC_REFERENCE,def_cgsize(realresdef),1);
-        tg.gethltemp(current_asmdata.CurrAsmList,realresdef,realresdef.size,tt_normal,location.reference);
+        { in case of jvmimplicitpointertype(), the function will have allocated
+          it already and we don't have to allocate it again here }
+        if not jvmimplicitpointertype(realresdef) then
+          tg.gethltemp(current_asmdata.CurrAsmList,realresdef,realresdef.size,tt_normal,location.reference)
+        else
+          tg.gethltemp(current_asmdata.CurrAsmList,java_jlobject,java_jlobject.size,tt_normal,location.reference);
       end;
 
 
