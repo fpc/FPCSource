@@ -454,7 +454,9 @@ implementation
           begin
             if assigned(ppn.left) then
               begin
-                if (ppn.outcopybasereg<>NR_NO) then
+                { don't try to copy back vs_constref }
+                if (ppn.parasym.varspez in [vs_var,vs_out]) and
+                   (ppn.outcopybasereg<>NR_NO) then
                   begin
                     reference_reset_base(pararef,NR_NO,0,4);
                     pararef.arrayreftype:=art_indexconst;
