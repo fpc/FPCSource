@@ -26,8 +26,8 @@ type
   FpcBaseProcVarType = class(jlobject,jlcloneable)
     method: TMethod;
 
-    constructor create(inst: jlobject; const methodName: unicodestring; const argTypes: array of JLClass);
-    constructor create(const meth: tmethod);
+    constructor create(inst: jlobject; const methodName: unicodestring; const argTypes: array of JLClass);overload;
+    constructor create(const meth: tmethod);overload;
 
     procedure setFpcBaseProcVarTypeBySignature(const methodName: unicodestring; const argTypes: array of JLClass); virtual;
     procedure fpcDeepCopy(result: FpcBaseProcVarType); virtual;
