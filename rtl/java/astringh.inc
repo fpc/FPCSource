@@ -34,6 +34,7 @@ type
 //    function concat(const a: ansistring): ansistring;
 //    function concatmultiple(const arr: array of ansistring): ansistring;
     function length: jint;
+    property internChars: TAnsiCharArray read fdata;
   end;
 
 Function Pos (Const Substr : Ansistring; Const Source : Ansistring) : SizeInt;

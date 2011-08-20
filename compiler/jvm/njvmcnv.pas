@@ -39,6 +39,7 @@ interface
           function first_set_to_set : tnode;override;
           function first_nil_to_methodprocvar: tnode; override;
           function first_proc_to_procvar: tnode; override;
+          function first_ansistring_to_pchar: tnode; override;
 
           procedure second_int_to_int;override;
          { procedure second_string_to_string;override; }
@@ -46,7 +47,7 @@ interface
          { procedure second_string_to_chararray;override; }
          { procedure second_array_to_pointer;override; }
           function first_int_to_real: tnode; override;
-         { procedure second_pointer_to_array;override; }
+          procedure second_pointer_to_array;override;
          { procedure second_chararray_to_string;override; }
          { procedure second_char_to_string;override; }
           procedure second_int_to_real;override;
@@ -452,6 +453,26 @@ implementation
       end;
 
 
+    function tjvmtypeconvnode.first_ansistring_to_pchar: tnode;
+      var
+        ps: tsym;
+      begin
+        result:=ctypeconvnode.create_explicit(left,java_ansistring);
+        ps:=search_struct_member(java_ansistring,'INTERNCHARS');
+        if not assigned(ps) or
+           (ps.typ<>propertysym) then
+          internalerror(2011081401);
+        ps:=tpropertysym(ps).propaccesslist[palt_read].firstsym^.sym;
+        if (ps.typ<>procsym) then
+          internalerror(2011081402);
+        result:=ccallnode.create(nil,tprocsym(ps),ps.owner,result,[]);
+        include(result.flags,nf_isproperty);
+        result:=ctypeconvnode.create_explicit(result,resultdef);
+        { reused }
+        left:=nil;
+      end;
+
+
 {*****************************************************************************
                              SecondTypeConv
 *****************************************************************************}
@@ -523,6 +544,13 @@ implementation
            (tarraydef(left.resultdef).elementdef.typ<>orddef) or
            (torddef(tarraydef(left.resultdef).elementdef).ordtype<>uchar) then
           internalerror(2011081304);
+        location_copy(location,left.location);
+      end;
+
+
+    procedure tjvmtypeconvnode.second_pointer_to_array;
+      begin
+        { arrays are implicit pointers in Java -> same location }
         location_copy(location,left.location);
       end;
 
