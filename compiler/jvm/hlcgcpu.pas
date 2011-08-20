@@ -772,14 +772,16 @@ implementation
 
     procedure thlcgjvm.maybe_adjust_cmp_stackval(list: TAsmlist; size: tdef; cmp_op: topcmp);
       begin
-        if (cmp_op in [OC_EQ,OC_NE]) or
+        { use cmp_op because eventually that's what indicates the
+          signed/unsigned character of the operation, not the size... }
+        if (cmp_op in [OC_EQ,OC_NE,OC_LT,OC_LTE,OC_GT,OC_GTE]) or
            (def2regtyp(size)<>R_INTREGISTER) then
           exit;
         { http://stackoverflow.com/questions/4068973/c-performing-signed-comparison-in-unsigned-variables-without-casting }
         case def_cgsize(size) of
-          OS_32:
+          OS_32,OS_S32:
             a_op_const_stack(list,OP_XOR,size,cardinal($80000000));
-          OS_64:
+          OS_64,OS_S64:
             a_op_const_stack(list,OP_XOR,size,aint($8000000000000000));
         end;
       end;
@@ -787,13 +789,15 @@ implementation
     function thlcgjvm.maybe_adjust_cmp_constval(size: tdef; cmp_op: topcmp; a: aint): aint;
       begin
         result:=a;
-        if (cmp_op in [OC_EQ,OC_NE]) or
+        { use cmp_op because eventually that's what indicates the
+          signed/unsigned character of the operation, not the size... }
+        if (cmp_op in [OC_EQ,OC_NE,OC_LT,OC_LTE,OC_GT,OC_GTE]) or
            (def2regtyp(size)<>R_INTREGISTER) then
           exit;
         case def_cgsize(size) of
-          OS_32:
+          OS_32,OS_S32:
             result:=a xor cardinal($80000000);
-          OS_64:
+          OS_64,OS_S64:
             result:=a xor aint($8000000000000000);
         end;
       end;
