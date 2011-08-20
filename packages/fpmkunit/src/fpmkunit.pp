@@ -4484,7 +4484,7 @@ begin
   //also create a bin directory for programtargets
   For i := 0 to Pred(APackage.Targets.Count) do
     begin
-      if APackage.Targets.TargetItems[i].TargetType in ProgramTargets then
+      if APackage.Targets.TargetItems[i].TargetType in (ProgramTargets-[ttExampleProgram]) then
         begin
           D:=APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS);
           If not SysDirectoryExists(D) then
@@ -4549,6 +4549,10 @@ begin
   // Forced recompile?
   if FForceCompile then
     Result:=true;
+
+  // For now exampleprograms are not compiled at all
+  if ATarget.TargetType = ttExampleProgram then
+    Exit;
 
   // Check output file
   if not result then
