@@ -86,14 +86,18 @@ implementation
               ccallparanode.create(p,nil)));
         end
       else
-        { records/arrays/... are automatically initialised }
-        result:=cnothingnode.create;
+        begin
+          p.free;
+          { records/arrays/... are automatically initialised }
+          result:=cnothingnode.create;
+        end;
     end;
 
 
   class function tjvmnodeutils.finalize_data_node(p:tnode):tnode;
     begin
       // do nothing
+      p.free;
       result:=cnothingnode.create;
     end;
 
