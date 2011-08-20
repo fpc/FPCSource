@@ -308,23 +308,35 @@ implementation
                 assignmenttempn.free;
               end;
           end;
-        { create the array temp that and assign the parameter value (typecasted
-          to java_jlobject) }
+        { create the array temp that that will serve as the paramter }
         arrdef:=tarraydef.create(0,1,s32inttype);
-        arrdef.elementdef:=java_jlobject;
+        if parasym.vardef.typ=formaldef then
+          arrdef.elementdef:=java_jlobject
+        else
+          arrdef.elementdef:=parasym.vardef;
         arraytemp:=ctempcreatenode.create(arrdef,java_jlobject.size,
           tt_persistent,true);
         addstatement(initstat,arraytemp);
-        { wrap the primitive type in an object container
-          if required }
-        if (left.resultdef.typ in [orddef,floatdef]) then
+        { in case of a non-out parameter, pass in the original value }
+        if parasym.varspez<>vs_out then
           begin
-            left:=cinlinenode.create(in_box_x,false,ccallparanode.create(left,nil));
-            typecheckpass(left);
-          end;
-        addstatement(initstat,cassignmentnode.create(
-          cvecnode.create(ctemprefnode.create(arraytemp),genintconstnode(0)),
-          ctypeconvnode.create_explicit(left,java_jlobject)));
+            { wrap the primitive type in an object container
+              if required }
+            if parasym.vardef.typ=formaldef then
+              begin
+                if (left.resultdef.typ in [orddef,floatdef]) then
+                  begin
+                    left:=cinlinenode.create(in_box_x,false,ccallparanode.create(left,nil));
+                    typecheckpass(left);
+                  end;
+                left:=ctypeconvnode.create_explicit(left,java_jlobject);
+              end;
+            addstatement(initstat,cassignmentnode.create(
+              cvecnode.create(ctemprefnode.create(arraytemp),genintconstnode(0)),
+              left));
+          end
+        else
+          left.free;
         { replace the parameter with the array }
         left:=ctemprefnode.create(arraytemp);
         { add the extraction of the parameter and assign it back to the
@@ -332,9 +344,12 @@ implementation
         fparacopyback:=internalstatements(finistat);
         tempn:=cvecnode.create(ctemprefnode.create(arraytemp),genintconstnode(0));
         { unbox if necessary }
-        if orgparadef.typ in [orddef,floatdef] then
-          tempn:=cinlinenode.create(in_unbox_x_y,false,ccallparanode.create(
-            ctypenode.create(orgparadef),ccallparanode.create(tempn,nil)));
+        if parasym.vardef.typ=formaldef then
+          begin
+            if orgparadef.typ in [orddef,floatdef] then
+              tempn:=cinlinenode.create(in_unbox_x_y,false,ccallparanode.create(
+                ctypenode.create(orgparadef),ccallparanode.create(tempn,nil)));
+          end;
         if (deref) then
           begin
             inserttypeconv_explicit(tempn,getpointerdef(derefbasedef));
