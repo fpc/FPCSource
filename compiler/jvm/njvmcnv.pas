@@ -479,7 +479,7 @@ implementation
             get_most_nested_types(fromdef,todef);
             fromarrtype:=jvmarrtype_setlength(fromdef);
             toarrtype:=jvmarrtype_setlength(todef);
-            if not left.resultdef.is_related(resultdef) and
+            if not fromdef.is_related(todef) and
                (((fromdef.typ<>objectdef) and
                  not is_dynamic_array(fromdef)) or
                 (todef<>java_jlobject)) and
@@ -576,23 +576,29 @@ implementation
       fromelt, toelt: tdef;
       realfromdef,
       realtodef: tdef;
+
+    function isrecordconv(var res: boolean): boolean;
+      begin
+        if is_record(realtodef) then
+          result:=
+            (realfromdef=java_jlobject) or
+            (realfromdef=java_fpcbaserecordtype)
+        else if is_record(realfromdef) then
+          result:=
+            (realtodef=java_jlobject) or
+            (realtodef=java_fpcbaserecordtype)
+        else
+      end;
+
     begin
       realfromdef:=maybe_find_real_class_definition(node.left.resultdef,false);
       realtodef:=node.right.resultdef;
       if realtodef.typ=classrefdef then
         realtodef:=tclassrefdef(realtodef).pointeddef;
       realtodef:=maybe_find_real_class_definition(realtodef,false);
-
-      if is_record(realtodef) then
-        result:=
-          (realfromdef=java_jlobject) or
-          (realfromdef=java_fpcbaserecordtype)
-      else if is_record(realfromdef) then
-        result:=
-          (realtodef=java_jlobject) or
-          (realtodef=java_fpcbaserecordtype)
+      if not isrecordconv(result) then
       { dynamic arrays can be converted to java.lang.Object and vice versa }
-      else if realtodef=java_jlobject then
+      if realtodef=java_jlobject then
         { dynamic array to java.lang.Object }
         result:=is_dynamic_array(realfromdef)
       else if is_dynamic_array(realtodef) then
@@ -606,12 +612,13 @@ implementation
                or
               b) the same primitive/class type
           }
-          result:=
-           (compare_defs(fromelt,toelt,node.left.nodetype) in [te_exact,te_equal]) or
-           (((fromelt.typ=objectdef) or
-             (fromelt.typ=arraydef)) and
-            ((toelt.typ=objectdef) or
-             (toelt.typ=arraydef)));
+          if not isrecordconv(result) then
+            result:=
+             (compare_defs(fromelt,toelt,node.left.nodetype) in [te_exact,te_equal]) or
+             (((fromelt.typ=objectdef) or
+               (fromelt.typ=arraydef)) and
+              ((toelt.typ=objectdef) or
+               (toelt.typ=arraydef)));
         end
       else
         begin
