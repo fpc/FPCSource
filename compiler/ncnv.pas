@@ -3360,7 +3360,11 @@ implementation
                 { int 2 bool/bool 2 int, explicit typecast, see also nx86cnv }
                 ((convtype in [tc_int_2_bool,tc_bool_2_int,tc_bool_2_bool]) and
                  (nf_explicit in flags) and
-                 (resultdef.size=left.resultdef.size));
+                 (resultdef.size=left.resultdef.size)) or
+                { on managed platforms, converting an element to an open array
+                  involves creating an actual array -> value location changes }
+                ((convtype=tc_elem_2_openarray) and
+                 not(target_info.system in systems_managed_vm));
       end;
 
 
