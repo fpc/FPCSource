@@ -212,6 +212,7 @@ implementation
         fsym: tfieldvarsym;
         sstate: tscannerstate;
         sl: tpropaccesslist;
+        temptypesym: ttypesym;
       begin
         { if it's a subrange type, don't create a new class }
         if assigned(tenumdef(def).basedef) then
@@ -226,10 +227,18 @@ implementation
           name that can be used in generated Pascal code without risking an
           identifier conflict (since it is local to this class; the global name
           is unique because it's an identifier that contains $-signs) }
-        enumclass.symtable.insert(ttypesym.create('__FPC_TEnumClassAlias',enumclass));
+
+        temptypesym:=ttypesym.create('__FPC_TEnumClassAlias',nil);
+        { don't pass enumclass to the ttypesym constructor, because then it
+          will replace the current (real) typesym of that def with the alias }
+        temptypesym.typedef:=enumclass;
+        enumclass.symtable.insert(temptypesym);
+
         { also create an alias for the enum type so that we can iterate over
           all enum values when creating the body of the class constructor }
-        enumclass.symtable.insert(ttypesym.create('__FPC_TEnumAlias',def));
+        temptypesym:=ttypesym.create('__FPC_TEnumAlias',nil);
+        temptypesym.typedef:=def;
+        enumclass.symtable.insert(temptypesym);
         { but the name of the class as far as the JVM is concerned will match
           the enum's original name (the enum type itself won't be output in
           any class file, so no conflict there) }
