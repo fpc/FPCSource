@@ -928,7 +928,9 @@ implementation
                end;
              constsym:
                begin
-                 WriteConstSym(tconstsym(sym));
+                 { multiple procedures can have constants with the same name }
+                 if tdef(sym.owner.defowner).typ<>procdef then
+                   WriteConstSym(tconstsym(sym));
                end;
              procsym:
                begin
