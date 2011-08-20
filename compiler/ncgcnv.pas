@@ -364,7 +364,7 @@ interface
          case tstringdef(resultdef).stringtype of
            st_shortstring :
              begin
-               tg.GetTemp(current_asmdata.CurrAsmList,256,2,tt_normal,location.reference);
+               tg.gethltemp(current_asmdata.CurrAsmList,cshortstringtype,256,tt_normal,location.reference);
                cg.a_load_loc_ref(current_asmdata.CurrAsmList,left.location.size,left.location,
                  location.reference);
                location_freetemp(current_asmdata.CurrAsmList,left.location);
@@ -393,7 +393,7 @@ interface
              if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
              { round them down to the proper precision }
-             tg.gettemp(current_asmdata.currasmlist,resultdef.size,resultdef.alignment,tt_normal,tr);
+             tg.gethltemp(current_asmdata.currasmlist,resultdef,resultdef.size,tt_normal,tr);
              cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,tr);
              location_reset_ref(left.location,LOC_REFERENCE,location.size,tr.alignment);
              left.location.reference:=tr;
@@ -494,7 +494,7 @@ interface
                 { assigning a global function to a nested procvar -> create
                   tmethodpointer record and set the "frame pointer" to nil }
                 location_reset_ref(location,LOC_REFERENCE,int_cgsize(sizeof(pint)*2),sizeof(pint));
-                tg.gettemp(current_asmdata.CurrAsmList,resultdef.size,sizeof(pint),tt_normal,location.reference);
+                tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
                 tmpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
                 cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,tmpreg);
                 cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpreg,location.reference);
@@ -513,7 +513,7 @@ interface
     var r:Treference;
 
     begin
-      tg.gettemp(current_asmdata.currasmlist,2*sizeof(puint),sizeof(puint),tt_normal,r);
+      tg.gethltemp(current_asmdata.currasmlist,methodpointertype,methodpointertype.size,tt_normal,r);
       location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),0);
       location.reference:=r;
       cg.a_load_const_ref(current_asmdata.currasmlist,OS_ADDR,0,r);

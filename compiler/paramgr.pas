@@ -390,7 +390,10 @@ implementation
                     duplicatecgparaloc(paraloc,newparaloc)
                   else
                     begin
-                      tg.gettemp(list,len,cgpara.alignment,tt_persistent,href);
+                      if assigned(cgpara.def) then
+                        tg.gethltemp(list,cgpara.def,len,tt_persistent,href)
+                      else
+                        tg.gettemp(list,len,cgpara.alignment,tt_persistent,href);
                       newparaloc^.reference.index:=href.base;
                       newparaloc^.reference.offset:=href.offset;
                     end;

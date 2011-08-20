@@ -460,7 +460,7 @@ implementation
                      {$else}
                         internalerror(20020520);
                      {$endif} {$endif}
-                     tg.GetTemp(current_asmdata.CurrAsmList,2*sizeof(pint),sizeof(pint),tt_normal,location.reference);
+                     tg.gethltemp(current_asmdata.CurrAsmList,methodpointertype,methodpointertype.size,tt_normal,location.reference);
                      secondpass(left);
 
                      { load class instance/classrefdef address }
@@ -810,7 +810,7 @@ implementation
                             { convert an extended into a double/single, since sse   }
                             { doesn't support extended)                             }
                             r:=cg.getfpuregister(current_asmdata.CurrAsmList,right.location.size);
-                            tg.gettemp(current_asmdata.CurrAsmList,left.resultdef.size,left.resultdef.alignment,tt_normal,href);
+                            tg.gethltemp(current_asmdata.CurrAsmList,left.resultdef,left.resultdef.size,tt_normal,href);
                             cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,right.location.size,right.location.size,right.location.reference,r);
                             cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,r,href);
                             if releaseright then
@@ -894,7 +894,7 @@ implementation
                         begin
                           { perform size conversion if needed (the mm-code cannot convert an   }
                           { extended into a double/single, since sse doesn't support extended) }
-                          tg.gettemp(current_asmdata.CurrAsmList,left.resultdef.size,left.resultdef.alignment,tt_normal,href);
+                          tg.gethltemp(current_asmdata.CurrAsmList,left.resultdef, left.resultdef.size,tt_normal,href);
                           cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,href);
                           location_reset_ref(right.location,LOC_REFERENCE,left.location.size,0);
                           right.location.reference:=href;
@@ -1016,8 +1016,8 @@ implementation
         otlabel,
         oflabel : tasmlabel;
         vtype : longint;
-        elesize,
-        elealign : longint;
+        eledef: tdef;
+        elesize : longint;
         tmpreg  : tregister;
         vaddr : boolean;
         freetemp,
@@ -1028,23 +1028,23 @@ implementation
         dovariant:=(nf_forcevaria in flags) or is_variant_array(resultdef);
         if dovariant then
           begin
-            elesize:=sizeof(pint)+sizeof(pint);
-            elealign:=sizeof(pint);
+            eledef:=search_system_type('TVARREC').typedef;
+            elesize:=eledef.size;
           end
         else
           begin
+            eledef:=tarraydef(resultdef).elementdef;
             elesize:=tarraydef(resultdef).elesize;
-            elealign:=tarraydef(resultdef).elementdef.alignment;
           end;
-        { alignment is filled in by tg.gettemp below }
+        { alignment is filled in by tg.gethltemp below }
         location_reset_ref(location,LOC_CREFERENCE,OS_NO,0);
         fillchar(paraloc,sizeof(paraloc),0);
         { Allocate always a temp, also if no elements are required, to
           be sure that location is valid (PFV) }
          if tarraydef(resultdef).highrange=-1 then
-           tg.GetTemp(current_asmdata.CurrAsmList,elesize,elealign,tt_normal,location.reference)
+           tg.gethltemp(current_asmdata.CurrAsmList,eledef,elesize,tt_normal,location.reference)
          else
-           tg.GetTemp(current_asmdata.CurrAsmList,(tarraydef(resultdef).highrange+1)*elesize,resultdef.alignment,tt_normal,location.reference);
+           tg.gethltemp(current_asmdata.CurrAsmList,eledef,(tarraydef(resultdef).highrange+1)*elesize,tt_normal,location.reference);
          href:=location.reference;
         { Process nodes in array constructor }
         hp:=self;

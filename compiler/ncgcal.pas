@@ -317,7 +317,7 @@ implementation
         else
           begin
             location_reset_ref(location,LOC_REFERENCE,def_cgsize(realresdef),0);
-            tg.GetTemp(current_asmdata.CurrAsmList,retloc.intsize,retloc.Alignment,tt_normal,location.reference);
+            tg.gethltemp(current_asmdata.CurrAsmList,realresdef,retloc.intsize,tt_normal,location.reference);
           end;
       end;
 

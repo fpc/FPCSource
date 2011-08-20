@@ -80,7 +80,7 @@ implementation
     procedure tjvmcallnode.set_result_location(realresdef: tstoreddef);
       begin
         location_reset_ref(location,LOC_REFERENCE,def_cgsize(realresdef),1);
-        tg.gettemp(current_asmdata.CurrAsmList,realresdef.size,1,tt_normal,location.reference);
+        tg.gethltemp(current_asmdata.CurrAsmList,realresdef,realresdef.size,tt_normal,location.reference);
       end;
 
 

@@ -411,7 +411,7 @@ interface
         else
           begin
             location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0);
-            tg.GetTemp(current_asmdata.CurrAsmList,size,tempinfo^.typedef.alignment,tempinfo^.temptype,tempinfo^.location.reference);
+            tg.gethltemp(current_asmdata.CurrAsmList,tempinfo^.typedef,size,tempinfo^.temptype,tempinfo^.location.reference);
           end;
         include(tempinfo^.flags,ti_valid);
         if assigned(tempinfo^.tempinitcode) then

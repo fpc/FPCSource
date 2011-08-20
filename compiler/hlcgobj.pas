@@ -595,10 +595,10 @@ implementation
 *)
          LOC_FPUREGISTER,LOC_CFPUREGISTER:
            begin
-             tg.GetTemp(list,size.size,size.alignment,tt_normal,ref);
+             tg.gethltemp(list,size,size.size,tt_normal,ref);
              a_load_reg_ref(list,size,size,r,ref);
              a_loadfpu_ref_cgpara(list,size,ref,cgpara);
-             tg.Ungettemp(list,ref);
+             tg.ungettemp(list,ref);
            end
          else
            internalerror(2010120415);
@@ -1039,7 +1039,7 @@ implementation
           LOC_REGISTER,LOC_CREGISTER:
             begin
               { paramfpu_ref does the check_simpe_location check here if necessary }
-              tg.GetTemp(list,fromsize.size,fromsize.alignment,tt_normal,ref);
+              tg.gethltemp(list,fromsize,fromsize.size,tt_normal,ref);
               a_loadfpu_reg_ref(list,fromsize,fromsize,r,ref);
               a_loadfpu_ref_cgpara(list,fromsize,ref,cgpara);
               tg.Ungettemp(list,ref);
@@ -1676,7 +1676,7 @@ implementation
         LOC_FPUREGISTER,
         LOC_CFPUREGISTER :
           begin
-            tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
+            tg.gethltemp(list,size,size.size,tt_normal,r);
             hlcg.a_loadfpu_reg_ref(list,size,size,l.register,r);
             location_reset_ref(l,LOC_REFERENCE,l.size,0);
             l.reference:=r;
@@ -1685,7 +1685,7 @@ implementation
         LOC_MMREGISTER,
         LOC_CMMREGISTER:
           begin
-            tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
+            tg.gethltemp(list,size,size.size,tt_normal,r);
             cg.a_loadmm_reg_ref(list,l.size,l.size,l.register,r,mms_movescalar);
             location_reset_ref(l,LOC_REFERENCE,l.size,0);
             l.reference:=r;
@@ -1695,7 +1695,7 @@ implementation
         LOC_REGISTER,
         LOC_CREGISTER :
           begin
-            tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
+            tg.gethltemp(list,size,size.size,tt_normal,r);
             hlcg.a_load_loc_ref(list,size,size,l,r);
             location_reset_ref(l,LOC_REFERENCE,l.size,0);
             l.reference:=r;
@@ -1706,7 +1706,7 @@ implementation
         LOC_SUBSETREF,
         LOC_CSUBSETREF:
           begin
-            tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
+            tg.gethltemp(list,size,size.size,tt_normal,r);
             cg.a_load_loc_ref(list,l.size,l,r);
             location_reset_ref(l,LOC_REFERENCE,l.size,0);
             l.reference:=r;

@@ -80,6 +80,13 @@ unit tgobj;
           }
           procedure setfirsttemp(l : longint); virtual;
 
+          { version of gettemp that is compatible with hlcg-based targets;
+            always use in common code, only use gettemp in cgobj and
+            architecture-specific backends.
+
+            the forcesize parameter is so that it can be used for defs that
+            don't have an inherent size (e.g., array of const) }
+          procedure gethltemp(list: TAsmList; def: tdef; forcesize: aint; temptype: ttemptype; out ref: treference);
           procedure gettemp(list: TAsmList; size, alignment : longint;temptype:ttemptype;out ref : treference);
           procedure gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
           procedure ungettemp(list: TAsmList; const ref : treference);
@@ -492,6 +499,12 @@ implementation
             hprev:=hp;
             hp:=hp^.next;
           end;
+      end;
+
+
+    procedure ttgobj.gethltemp(list: TAsmList; def: tdef; forcesize: aint; temptype: ttemptype; out ref: treference);
+      begin
+        gettemp(list,forcesize,def.alignment,temptype,ref);
       end;
 
 
