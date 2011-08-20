@@ -32,7 +32,7 @@ implementation
   uses
     ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,
     ncgadd, ncgcal,ncgmat,ncginl,
-    njvmadd,njvmcal,njvmmat,njvmcon
+    njvmadd,njvmcal,njvmmat,njvmcnv,njvmcon
 {    ncpuadd,ncpucall,ncpumat,ncpuinln,ncpucnv,ncpuset, }
     { this not really a node }
 {    rgcpu},tgcpu;

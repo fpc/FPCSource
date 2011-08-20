@@ -220,6 +220,7 @@ compiler/jvm/itcpujas.pas svneol=native#text/plain
 compiler/jvm/jvmreg.dat svneol=native#text/plain
 compiler/jvm/njvmadd.pas svneol=native#text/plain
 compiler/jvm/njvmcal.pas svneol=native#text/plain
+compiler/jvm/njvmcnv.pas svneol=native#text/plain
 compiler/jvm/njvmcon.pas svneol=native#text/plain
 compiler/jvm/njvmmat.pas svneol=native#text/plain
 compiler/jvm/rgcpu.pas svneol=native#text/plain
