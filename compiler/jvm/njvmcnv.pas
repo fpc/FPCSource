@@ -664,6 +664,11 @@ implementation
         toarrtype: char;
       begin
         resnode:=nil;
+        if convtype<>tc_equal then
+          begin
+            result:=false;
+            exit
+          end;
         { This routine is only called for explicit typeconversions of same-sized
           entities that aren't handled by normal type conversions -> bit pattern
           reinterpretations. In the JVM, many of these also need special
@@ -757,8 +762,7 @@ implementation
           except for a few special cases }
 
         { float to int/enum explicit type conversion: get the bits }
-        if (convtype<>tc_int_2_real) and
-           (left.resultdef.typ=floatdef) and
+        if (left.resultdef.typ=floatdef) and
            (is_integer(resultdef) or
             (resultdef.typ=enumdef)) then
           begin
@@ -772,16 +776,13 @@ implementation
             (left.resultdef.typ=enumdef)) and
            (resultdef.typ=floatdef) then
           begin
-            if (convtype<>tc_int_2_real) then
+            if not check_only then
               begin
                 if (left.resultdef.typ=enumdef) then
                   inserttypeconv_explicit(left,s32inttype);
-                if not check_only then
-                  resnode:=int_real_explicit_typecast(tfloatdef(resultdef),'INTBITSTOFLOAT','LONGBITSTODOUBLE');
-                result:=true;
-              end
-            else
-              result:=false;
+                resnode:=int_real_explicit_typecast(tfloatdef(resultdef),'INTBITSTOFLOAT','LONGBITSTODOUBLE');
+              end;
+            result:=true;
             exit;
           end;
 
