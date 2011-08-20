@@ -4492,16 +4492,16 @@ implementation
                   name }
                 if ([vo_is_funcret,vo_is_self] * vs.varoptions <> []) then
                   continue;
-                { reference parameters are not yet supported }
-                if (vs.varspez in [vs_var,vs_out,vs_constref]) then
-                  begin
-                    { passing by reference is emulated by passing an array of one
-                      element containing the value; for types that aren't pointers
-                      in regular Pascal, simply passing the underlying pointer type
-                      does achieve regular call-by-reference semantics though }
-                    if not jvmimplicitpointertype(vs.vardef) then
-                      tmpresult:=tmpresult+'[';
-                  end;
+                { passing by reference is emulated by passing an array of one
+                  element containing the value; for types that aren't pointers
+                  in regular Pascal, simply passing the underlying pointer type
+                  does achieve regular call-by-reference semantics though;
+                  formaldefs always have to be passed like that because their
+                  contents can be replaced }
+                if (vs.vardef.typ=formaldef) or
+                   ((vs.varspez in [vs_var,vs_out,vs_constref]) and
+                    not jvmimplicitpointertype(vs.vardef)) then
+                  tmpresult:=tmpresult+'[';
                 { Add the parameter type.  }
                 if not jvmaddencodedtype(vs.vardef,false,tmpresult,signature,founderror) then
                   { should be checked earlier on }

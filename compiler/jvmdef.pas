@@ -303,8 +303,7 @@ implementation
           formaldef :
             begin
 {$ifndef nounsupported}
-              { var x: JLObject }
-              encodedstr:=encodedstr+'[';
+              { var/const/out x: JLObject }
               result:=jvmaddencodedtype(java_jlobject,false,encodedstr,forcesignature,founderror);
 {$else}
               result:=false;
