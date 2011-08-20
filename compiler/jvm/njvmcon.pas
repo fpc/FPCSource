@@ -343,6 +343,7 @@ implementation
           setconsttype:=sct_construct;
         result:=nil;
         case setconsttype of
+(*
           sct_constsymbol:
             begin
               { normally a codegen pass routine, but we have to insert a typed
@@ -354,12 +355,14 @@ implementation
               { no smallsets }
               expectloc:=LOC_CREFERENCE;
             end;
+*)
           sct_notransform:
             begin
               result:=inherited pass_1;
               { no smallsets }
               expectloc:=LOC_CREFERENCE;
             end;
+          sct_constsymbol,
           sct_construct:
             begin
               eledef:=tsetdef(resultdef).elementdef;
