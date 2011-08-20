@@ -184,12 +184,12 @@ begin
 end;
 
 
-class function AnsiCharArrayClass.CreateFromLiteralStringBytes(const u: unicodestring; maxlen: byte): TAnsiCharArray;
+class function AnsiCharArrayClass.CreateFromLiteralStringBytes(const u: unicodestring): TAnsiCharArray;
 var
   i: longint;
 begin
   { used to construct constant chararrays from Java string constants }
-  setlength(result,maxlen);
+  setlength(result,length(u));
   for i:=1 to system.length(u) do
     result[i-1]:=ansichar(ord(u[i]));
 end;

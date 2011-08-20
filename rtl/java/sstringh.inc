@@ -47,7 +47,7 @@ type
   end;
 
   AnsiCharArrayClass = class sealed (JLObject)
-   class function CreateFromLiteralStringBytes(const u: unicodestring; maxlen: byte): TAnsiCharArray; static;
+   class function CreateFromLiteralStringBytes(const u: unicodestring): TAnsiCharArray; static;
   end;
 
 //Function Pos (Const Substr : Ansistring; Const Source : Ansistring) : SizeInt;

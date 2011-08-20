@@ -42,7 +42,7 @@ interface
 
           procedure second_int_to_int;override;
          { procedure second_string_to_string;override; }
-         { procedure second_cstring_to_pchar;override; }
+          procedure second_cstring_to_pchar;override;
          { procedure second_string_to_chararray;override; }
          { procedure second_array_to_pointer;override; }
           function first_int_to_real: tnode; override;
@@ -511,6 +511,17 @@ implementation
             else
               location_copy(location,left.location);
           end;
+      end;
+
+
+    procedure tjvmtypeconvnode.second_cstring_to_pchar;
+      begin
+        { don't use is_chararray because it doesn't support special arrays }
+        if (left.resultdef.typ<>arraydef) or
+           (tarraydef(left.resultdef).elementdef.typ<>orddef) or
+           (torddef(tarraydef(left.resultdef).elementdef).ordtype<>uchar) then
+          internalerror(2011081304);
+        location_copy(location,left.location);
       end;
 
 
