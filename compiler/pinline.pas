@@ -457,21 +457,8 @@ implementation
 
     function inline_setlength : tnode;
       var
-        paras   : tnode;
-        npara,
-        ppn     : tcallparanode;
-        dims,
-        counter : integer;
-        isarray : boolean;
-        def     : tdef;
-        destppn : tnode;
-        newstatement : tstatementnode;
-        temp    : ttempcreatenode;
-        newblock : tnode;
+        paras: tnode;
       begin
-        { for easy exiting if something goes wrong }
-        result := cerrornode.create;
-
         consume(_LKLAMMER);
         paras:=parse_paras(false,false,_RKLAMMER);
         consume(_RKLAMMER);
@@ -480,111 +467,7 @@ implementation
            CGMessage1(parser_e_wrong_parameter_size,'SetLength');
            exit;
          end;
-
-        dims:=0;
-        if assigned(paras) then
-         begin
-           { check type of lengths }
-           ppn:=tcallparanode(paras);
-           while assigned(ppn.right) do
-            begin
-              set_varstate(ppn.left,vs_read,[vsf_must_be_valid]);
-              inserttypeconv(ppn.left,sinttype);
-              inc(dims);
-              ppn:=tcallparanode(ppn.right);
-            end;
-         end;
-        if dims=0 then
-         begin
-           CGMessage1(parser_e_wrong_parameter_size,'SetLength');
-           paras.free;
-           exit;
-         end;
-        { last param must be var }
-        destppn:=ppn.left;
-        valid_for_var(destppn,true);
-        set_varstate(destppn,vs_written,[]);
-        { first param must be a string or dynamic array ...}
-        isarray:=is_dynamic_array(destppn.resultdef);
-        if not((destppn.resultdef.typ=stringdef) or
-               isarray) then
-         begin
-           CGMessage(type_e_mismatch);
-           paras.free;
-           exit;
-         end;
-
-        { only dynamic arrays accept more dimensions }
-        if (dims>1) then
-         begin
-           if (not isarray) then
-            CGMessage(type_e_mismatch)
-           else
-            begin
-              { check if the amount of dimensions is valid }
-              def := tarraydef(destppn.resultdef).elementdef;
-              counter:=dims;
-              while counter > 1 do
-                begin
-                  if not(is_dynamic_array(def)) then
-                    begin
-                      CGMessage1(parser_e_wrong_parameter_size,'SetLength');
-                      break;
-                    end;
-                  dec(counter);
-                  def := tarraydef(def).elementdef;
-                end;
-            end;
-         end;
-
-        if isarray then
-         begin
-            { create statements with call initialize the arguments and
-              call fpc_dynarr_setlength }
-            newblock:=internalstatements(newstatement);
-
-            { get temp for array of lengths }
-            temp := ctempcreatenode.create(sinttype,dims*sinttype.size,tt_persistent,false);
-            addstatement(newstatement,temp);
-
-            { load array of lengths }
-            ppn:=tcallparanode(paras);
-            counter:=0;
-            while assigned(ppn.right) do
-             begin
-               addstatement(newstatement,cassignmentnode.create(
-                   ctemprefnode.create_offset(temp,counter*sinttype.size),
-                   ppn.left));
-               ppn.left:=nil;
-               inc(counter);
-               ppn:=tcallparanode(ppn.right);
-             end;
-            { destppn is also reused }
-            ppn.left:=nil;
-
-            { create call to fpc_dynarr_setlength }
-            npara:=ccallparanode.create(caddrnode.create_internal
-                      (ctemprefnode.create(temp)),
-                   ccallparanode.create(cordconstnode.create
-                      (counter,s32inttype,true),
-                   ccallparanode.create(caddrnode.create_internal
-                      (crttinode.create(tstoreddef(destppn.resultdef),initrtti,rdt_normal)),
-                   ccallparanode.create(ctypeconvnode.create_internal(destppn,voidpointertype),nil))));
-            addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',npara));
-            addstatement(newstatement,ctempdeletenode.create(temp));
-
-            { we don't need original the callparanodes tree }
-            paras.free;
-         end
-        else
-         begin
-            { we can reuse the supplied parameters }
-            newblock:=ccallnode.createintern(
-               'fpc_'+tstringdef(destppn.resultdef).stringtypname+'_setlength',paras);
-         end;
-
-        result.free;
-        result:=newblock;
+        result:=cinlinenode.create(in_setlength_x,false,paras);
       end;
 
 

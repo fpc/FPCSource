@@ -45,6 +45,7 @@ interface
           { pack and unpack are changed into for-loops by the compiler }
           function first_pack_unpack: tnode; virtual;
 
+         protected
           { All the following routines currently
             call compilerprocs, unless they are
             overridden in which case, the code
@@ -64,6 +65,7 @@ interface
           function first_trunc_real: tnode; virtual;
           function first_int_real: tnode; virtual;
           function first_abs_long: tnode; virtual;
+          function first_setlength: tnode; virtual;
         private
           function handle_str: tnode;
           function handle_reset_rewrite_typed: tnode;
@@ -71,6 +73,7 @@ interface
           function handle_typed_read_write(filepara,params:Ttertiarynode;var newstatement:Tnode):boolean;
           function handle_read_write: tnode;
           function handle_val: tnode;
+          function handle_setlength: tnode;
        end;
        tinlinenodeclass = class of tinlinenode;
 
@@ -1350,6 +1353,77 @@ implementation
         result := newblock;
       end;
 
+    function tinlinenode.handle_setlength: tnode;
+      var
+        def: tdef;
+        destppn,
+        paras: tnode;
+        ppn: tcallparanode;
+        counter,
+        dims: longint;
+        isarray: boolean;
+      begin
+        { for easy exiting if something goes wrong }
+        result:=cerrornode.create;
+        resultdef:=voidtype;
+        paras:=left;
+        dims:=0;
+        if assigned(paras) then
+         begin
+           { check type of lengths }
+           ppn:=tcallparanode(paras);
+           while assigned(ppn.right) do
+            begin
+              set_varstate(ppn.left,vs_read,[vsf_must_be_valid]);
+              inserttypeconv(ppn.left,sinttype);
+              inc(dims);
+              ppn:=tcallparanode(ppn.right);
+            end;
+         end;
+        if dims=0 then
+         begin
+           CGMessage1(parser_e_wrong_parameter_size,'SetLength');
+           exit;
+         end;
+        { last param must be var }
+        destppn:=ppn.left;
+        valid_for_var(destppn,true);
+        set_varstate(destppn,vs_written,[]);
+        { first param must be a string or dynamic array ...}
+        isarray:=is_dynamic_array(destppn.resultdef);
+        if not((destppn.resultdef.typ=stringdef) or
+               isarray) then
+         begin
+           CGMessage(type_e_mismatch);
+           exit;
+         end;
+
+        { only dynamic arrays accept more dimensions }
+        if (dims>1) then
+         begin
+           if (not isarray) then
+            CGMessage(type_e_mismatch)
+           else
+            begin
+              { check if the amount of dimensions is valid }
+              def:=tarraydef(destppn.resultdef).elementdef;
+              counter:=dims;
+              while counter > 1 do
+                begin
+                  if not(is_dynamic_array(def)) then
+                    begin
+                      CGMessage1(parser_e_wrong_parameter_size,'SetLength');
+                      break;
+                    end;
+                  dec(counter);
+                  def:=tarraydef(def).elementdef;
+                end;
+            end;
+         end;
+        result.free;
+        result:=nil;
+      end;
+
 {$maxfpuregisters 0}
 
     function getpi : bestreal;
@@ -2403,13 +2477,15 @@ implementation
                 end;
 
               in_initialize_x,
-              in_finalize_x,
-              in_setlength_x:
+              in_finalize_x:
                 begin
                   { inlined from pinline }
                   internalerror(200204231);
                 end;
-
+              in_setlength_x:
+                begin
+                  result:=handle_setlength;
+                end;
               in_inc_x,
               in_dec_x:
                 begin
@@ -2887,7 +2963,8 @@ implementation
                 end;
             end;
 
-          in_setlength_x,
+          in_setlength_x:
+            result:=first_setlength;
           in_initialize_x,
           in_finalize_x:
             begin
@@ -3265,6 +3342,78 @@ implementation
       begin
         expectloc:=LOC_REGISTER;
         result:=nil;
+      end;
+
+     function tinlinenode.first_setlength: tnode;
+      var
+        paras   : tnode;
+        npara,
+        ppn     : tcallparanode;
+        dims,
+        counter : integer;
+        isarray : boolean;
+        destppn : tnode;
+        newstatement : tstatementnode;
+        temp    : ttempcreatenode;
+        newblock : tnode;
+      begin
+        paras:=left;
+        ppn:=tcallparanode(paras);
+        dims:=0;
+        while assigned(ppn.right) do
+          begin
+            inc(dims);
+            ppn:=tcallparanode(ppn.right);
+          end;
+
+        destppn:=ppn.left;
+        isarray:=is_dynamic_array(destppn.resultdef);
+        { first param must be a string or dynamic array ...}
+        if isarray then
+         begin
+           { create statements with call initialize the arguments and
+             call fpc_dynarr_setlength }
+           newblock:=internalstatements(newstatement);
+
+           { get temp for array of lengths }
+           temp:=ctempcreatenode.create(sinttype,dims*sinttype.size,tt_persistent,false);
+           addstatement(newstatement,temp);
+
+           { load array of lengths }
+           ppn:=tcallparanode(paras);
+           counter:=0;
+           while assigned(ppn.right) do
+             begin
+               addstatement(newstatement,cassignmentnode.create(
+                   ctemprefnode.create_offset(temp,counter*sinttype.size),
+                   ppn.left));
+               ppn.left:=nil;
+               inc(counter);
+               ppn:=tcallparanode(ppn.right);
+             end;
+           { destppn is also reused }
+           ppn.left:=nil;
+
+           { create call to fpc_dynarr_setlength }
+           npara:=ccallparanode.create(caddrnode.create_internal
+                     (ctemprefnode.create(temp)),
+                  ccallparanode.create(cordconstnode.create
+                     (counter,s32inttype,true),
+                  ccallparanode.create(caddrnode.create_internal
+                     (crttinode.create(tstoreddef(destppn.resultdef),initrtti,rdt_normal)),
+                  ccallparanode.create(ctypeconvnode.create_internal(destppn,voidpointertype),nil))));
+           addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',npara));
+           addstatement(newstatement,ctempdeletenode.create(temp));
+         end
+        else
+         begin
+           { we can reuse the supplied parameters }
+           newblock:=ccallnode.createintern(
+              'fpc_'+tstringdef(destppn.resultdef).stringtypname+'_setlength',paras);
+           { we reused the parameters, make sure we don't release them }
+           left:=nil;
+         end;
+        result:=newblock;
       end;
 
      function tinlinenode.first_pack_unpack: tnode;
