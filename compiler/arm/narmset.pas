@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Florian Klaempfl
+   Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate arm assembler for in set/case nodes
 
@@ -74,6 +74,7 @@ implementation
         indexreg : tregister;
         href : treference;
         tablelabel: TAsmLabel;
+        opcgsize : tcgsize;
 
         procedure genitem(list:TAsmList;t : pcaselabel);
           var
@@ -108,16 +109,17 @@ implementation
           end;
 
       begin
+        opcgsize:=def_cgsize(opsize);
         if not(jumptable_no_range) then
           begin
              { case expr less than min_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(min_),hregister,elselabel);
+             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(min_),hregister,elselabel);
              { case expr greater than max_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,aint(max_),hregister,elselabel);
+             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_gt,aint(max_),hregister,elselabel);
           end;
         { make it a 32bit register }
         indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,OS_INT,hregister,indexreg);
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList,opcgsize,OS_INT,hregister,indexreg);
 
         if current_settings.cputype in cpu_thumb2 then
           begin
@@ -160,6 +162,7 @@ implementation
         lastrange : boolean;
         last : TConstExprInt;
         cond_lt,cond_le : tresflags;
+        opcgsize : tcgsize;
 
         procedure genitem(t : pcaselabel);
           begin
@@ -168,16 +171,16 @@ implementation
              { need we to test the first value }
              if first and (t^._low>get_min_value(left.resultdef)) then
                begin
-                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
+                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
                end;
              if t^._low=t^._high then
                begin
                   if t^._low-last=0 then
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
+                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
                   else
                     begin
                       tcgarm(cg).cgsetflags:=true;
-                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(int64(t^._low-last)), hregister);
+                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(int64(t^._low-last)), hregister);
                       tcgarm(cg).cgsetflags:=false;
                       cg.a_jmp_flags(current_asmdata.CurrAsmList,F_EQ,blocklabel(t^.blockid));
                     end;
@@ -195,7 +198,7 @@ implementation
                        if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
                          begin
                            tcgarm(cg).cgsetflags:=true;
-                           cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(int64(t^._low)), hregister);
+                           cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(int64(t^._low)), hregister);
                            tcgarm(cg).cgsetflags:=false;
                          end;
                     end
@@ -206,7 +209,7 @@ implementation
                       { immediately. else check the range in between:       }
 
                       tcgarm(cg).cgsetflags:=true;
-                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(int64(t^._low-last)), hregister);
+                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(int64(t^._low-last)), hregister);
                       tcgarm(cg).cgsetflags:=false;
                       { no jump necessary here if the new range starts at }
                       { at the value following the previous one           }
@@ -215,7 +218,7 @@ implementation
                         cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
                     end;
                   tcgarm(cg).cgsetflags:=true;
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,aint(int64(t^._high-t^._low)),hregister);
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opcgsize,aint(int64(t^._high-t^._low)),hregister);
                   tcgarm(cg).cgsetflags:=false;
                   cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
 
@@ -228,6 +231,7 @@ implementation
           end;
 
         begin
+           opcgsize:=def_cgsize(opsize);
            if with_sign then
              begin
                 cond_lt:=F_LT;

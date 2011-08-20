@@ -26,7 +26,7 @@ unit ncgset;
 interface
 
     uses
-       globtype,globals,constexp,
+       globtype,globals,constexp,symtype,
        node,nset,cpubase,cgbase,cgutils,cgobj,aasmbase,aasmtai,aasmdata;
 
     type
@@ -59,7 +59,7 @@ interface
 
         protected
           with_sign : boolean;
-          opsize : tcgsize;
+          opsize : tdef;
           jmp_gt,jmp_lt,jmp_le : topcmp;
           { register with case expression }
           hregister,hregister2 : tregister;
@@ -88,7 +88,7 @@ implementation
       paramgr,
       procinfo,pass_2,tgobj,
       nbas,ncon,nflw,
-      ncgutil;
+      ncgutil,hlcgobj;
 
 
 {*****************************************************************************
@@ -511,8 +511,8 @@ implementation
                 to move the result before subtract to help
                 the register allocator
               }
-              cg.a_load_reg_reg(current_asmdata.CurrAsmList, opsize, opsize, hregister, scratch_reg);
-              cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, value, hregister);
+              hlcg.a_load_reg_reg(current_asmdata.CurrAsmList, opsize, opsize, hregister, scratch_reg);
+              hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, value, hregister);
             end;
 
         begin
@@ -520,15 +520,15 @@ implementation
              genitem(t^.less);
            { do we need to test the first value? }
            if first and (t^._low>get_min_value(left.resultdef)) then
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
+             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
            if t^._low=t^._high then
              begin
                if t^._low-last=0 then
-                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_EQ,0,hregister,blocklabel(t^.blockid))
+                 hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_EQ,0,hregister,blocklabel(t^.blockid))
                else
                  begin
                    gensub(aint(t^._low.svalue-last.svalue));
-                   cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,
+                   hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,
                                             OC_EQ,aint(t^._low.svalue-last.svalue),scratch_reg,blocklabel(t^.blockid));
                  end;
                last:=t^._low;
@@ -550,10 +550,10 @@ implementation
                     { present label then the lower limit can be checked    }
                     { immediately. else check the range in between:       }
                     gensub(aint(t^._low.svalue-last.svalue));
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize,jmp_lt,aint(t^._low.svalue-last.svalue),scratch_reg,elselabel);
+                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize,jmp_lt,aint(t^._low.svalue-last.svalue),scratch_reg,elselabel);
                   end;
                 gensub(aint(t^._high.svalue-t^._low.svalue));
-                cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_le,aint(t^._high.svalue-t^._low.svalue),scratch_reg,blocklabel(t^.blockid));
+                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_le,aint(t^._high.svalue-t^._low.svalue),scratch_reg,blocklabel(t^.blockid));
                 last:=t^._high;
              end;
            first:=false;
@@ -569,9 +569,9 @@ implementation
            begin
               last:=0;
               first:=true;
-              scratch_reg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+              scratch_reg:=hlcg.getintregister(current_asmdata.CurrAsmList,opsize);
               genitem(hp);
-              cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
+              hlcg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
            end;
       end;
 
@@ -595,7 +595,7 @@ implementation
            if t^._low=t^._high then
              begin
 {$ifndef cpu64bitalu}
-                if opsize in [OS_S64,OS_64] then
+                if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
                      current_asmdata.getjumplabel(l1);
                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, OC_NE, aint(hi(int64(t^._low.svalue))),hregister2,l1);
@@ -605,7 +605,7 @@ implementation
                 else
 {$endif not cpu64bitalu}
                   begin
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, aint(t^._low.svalue),hregister, blocklabel(t^.blockid));
+                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, aint(t^._low.svalue),hregister, blocklabel(t^.blockid));
                   end;
                 { Reset last here, because we've only checked for one value and need to compare
                   for the next range both the lower and upper bound }
@@ -619,7 +619,7 @@ implementation
                 if not lastwasrange or (t^._low-last>1) then
                   begin
 {$ifndef cpu64bitalu}
-                     if opsize in [OS_64,OS_S64] then
+                     if def_cgsize(opsize) in [OS_64,OS_S64] then
                        begin
                           current_asmdata.getjumplabel(l1);
                           cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_lt, aint(hi(int64(t^._low.svalue))),
@@ -633,12 +633,12 @@ implementation
                      else
 {$endif not cpu64bitalu}
                        begin
-                        cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_lt, aint(t^._low.svalue), hregister,
+                        hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_lt, aint(t^._low.svalue), hregister,
                            elselabel);
                        end;
                   end;
 {$ifndef cpu64bitalu}
-                if opsize in [OS_S64,OS_64] then
+                if def_cgsize(opsize) in [OS_S64,OS_64] then
                   begin
                      current_asmdata.getjumplabel(l1);
                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_32, jmp_lt, aint(hi(int64(t^._high.svalue))), hregister2,
@@ -651,7 +651,7 @@ implementation
                 else
 {$endif not cpu64bitalu}
                   begin
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_le, aint(t^._high.svalue), hregister, blocklabel(t^.blockid));
+                     hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_le, aint(t^._high.svalue), hregister, blocklabel(t^.blockid));
                   end;
 
                 last:=t^._high;
@@ -665,7 +665,7 @@ implementation
          last:=0;
          lastwasrange:=false;
          genitem(hp);
-         cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
+         hlcg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
       end;
 
 
@@ -720,11 +720,11 @@ implementation
           end;
          secondpass(left);
          { determines the size of the operand }
-         opsize:=def_cgsize(left.resultdef);
+         opsize:=left.resultdef;
          { copy the case expression to a register }
-         location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
+         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opsize,false);
 {$ifndef cpu64bitalu}
-         if opsize in [OS_S64,OS_64] then
+         if def_cgsize(opsize) in [OS_S64,OS_64] then
            begin
              hregister:=left.location.register64.reglo;
              hregister2:=left.location.register64.reghi;
@@ -750,7 +750,7 @@ implementation
          load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
 {$ifndef cpu64bitalu}
-         if opsize in [OS_64,OS_S64] then
+         if def_cgsize(opsize) in [OS_64,OS_S64] then
            genlinearcmplist(labels)
          else
 {$endif not cpu64bitalu}
@@ -847,11 +847,11 @@ implementation
 {$ifdef OLDREGVARS}
               load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
-              cg.a_jmp_always(current_asmdata.CurrAsmList,endlabel);
+              hlcg.a_jmp_always(current_asmdata.CurrAsmList,endlabel);
            end;
          current_asmdata.CurrAsmList.concat(cai_align.create(current_settings.alignment.jumpalign));
          { ...and the else block }
-         cg.a_label(current_asmdata.CurrAsmList,elselabel);
+         hlcg.a_label(current_asmdata.CurrAsmList,elselabel);
          if assigned(elseblock) then
            begin
               secondpass(elseblock);
@@ -863,7 +863,7 @@ implementation
          cg.executionweight:=oldexecutionweight;
 
          current_asmdata.CurrAsmList.concat(cai_align.create(current_settings.alignment.jumpalign));
-         cg.a_label(current_asmdata.CurrAsmList,endlabel);
+         hlcg.a_label(current_asmdata.CurrAsmList,endlabel);
 
          { Reset labels }
          for i:=0 to blocks.count-1 do

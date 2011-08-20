@@ -89,6 +89,7 @@ implementation
         href : treference;
         jtlist: tasmlist;
         sectype: TAsmSectiontype;
+        opcgsize: tcgsize;
 
         procedure genitem(list:TAsmList;t : pcaselabel);
           var
@@ -116,18 +117,19 @@ implementation
 
       begin
         last:=min_;
+        opcgsize:=def_cgsize(opsize);
         if not(jumptable_no_range) then
           begin
              { a <= x <= b <-> unsigned(x-a) <= (b-a) }
-             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,aint(min_),hregister);
+             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opcgsize,aint(min_),hregister);
              { case expr greater than max_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
+             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
              min_:=0;
           end;
         current_asmdata.getdatalabel(table);
         { make it a 32bit register }
         indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,OS_INT,hregister,indexreg);
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList,opcgsize,OS_INT,hregister,indexreg);
         { create reference }
         reference_reset_symbol(href,table,0,sizeof(pint));
         href.offset:=(-aint(min_))*sizeof(aint);

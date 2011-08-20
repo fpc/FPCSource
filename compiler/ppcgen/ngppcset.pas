@@ -107,7 +107,7 @@ implementation
         // allocate base and index registers register
         indexreg:= cg.makeregsize(current_asmdata.CurrAsmList, hregister, OS_INT);
         { indexreg := hregister; }
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList, opsize, OS_INT, hregister, indexreg);
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList, def_cgsize(opsize), OS_INT, hregister, indexreg);
         if not(jumptable_no_range) then
           begin
              { use aword(value-min)<aword(max-min) instead of two comparisons }
@@ -225,7 +225,7 @@ implementation
       begin
          { do we need to generate cmps? }
          if (with_sign and (min_label<0)) or
-            (opsize in [OS_32,OS_64,OS_S64]) then
+            (def_cgsize(opsize) in [OS_32,OS_64,OS_S64]) then
            genlinearcmplist(hp)
          else
            begin

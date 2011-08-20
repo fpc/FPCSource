@@ -48,7 +48,7 @@ uses
   cpubase,
   aasmbase, aasmtai, aasmcpu, aasmdata,
   cgbase, cgutils, cgobj,
-  procinfo;
+  defutil,procinfo;
 
 procedure tcpucasenode.optimizevalues(var max_linear_list: aint; var max_dist: aword);
 begin
@@ -70,6 +70,7 @@ var
   indexreg, jmpreg, basereg: tregister;
   href:  treference;
   jumpsegment: TAsmlist;
+  opcgsize: tcgsize;
 
   procedure genitem(t: pcaselabel);
   var
@@ -88,13 +89,14 @@ var
   end;
 
 begin
+  opcgsize:=def_cgsize(opsize);
   jumpsegment := current_procinfo.aktlocaldata;
   if not (jumptable_no_range) then
     begin
       { case expr less than min_ => goto elselabel }
-      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_lt, aint(min_), hregister, elselabel);
+      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, jmp_lt, aint(min_), hregister, elselabel);
       { case expr greater than max_ => goto elselabel }
-      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, jmp_gt, aint(max_), hregister, elselabel);
+      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opcgsize, jmp_gt, aint(max_), hregister, elselabel);
     end;
   current_asmdata.getjumplabel(table);
   indexreg := cg.getaddressregister(current_asmdata.CurrAsmList);
