@@ -1144,7 +1144,8 @@ implementation
                  sep:=' ';
               end;
           end;
-        owner.AsmWriteLn(s);
+        owner.AsmWritePChar(PChar(s));
+        owner.AsmLn;
       end;
 
 {****************************************************************************}
