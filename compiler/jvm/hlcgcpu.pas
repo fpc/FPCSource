@@ -270,20 +270,20 @@ implementation
       incstack(list,1);
     end;
 
-    procedure thlcgjvm.a_load_loc_stack(list: TAsmList;size: tdef;const loc: tlocation);
-      begin
-        case loc.loc of
-          LOC_REGISTER,LOC_CREGISTER,
-          LOC_FPUREGISTER,LOC_CFPUREGISTER:
-            a_load_reg_stack(list,size,loc.register);
-          LOC_REFERENCE,LOC_CREFERENCE:
-            a_load_ref_stack(list,size,loc.reference,prepare_stack_for_ref(list,loc.reference,false));
-          LOC_CONSTANT:
-            a_load_const_stack(list,size,loc.value,def2regtyp(size));
-          else
-            internalerror(2011010401);
-        end;
+  procedure thlcgjvm.a_load_loc_stack(list: TAsmList;size: tdef;const loc: tlocation);
+    begin
+      case loc.loc of
+        LOC_REGISTER,LOC_CREGISTER,
+        LOC_FPUREGISTER,LOC_CFPUREGISTER:
+          a_load_reg_stack(list,size,loc.register);
+        LOC_REFERENCE,LOC_CREFERENCE:
+          a_load_ref_stack(list,size,loc.reference,prepare_stack_for_ref(list,loc.reference,false));
+        LOC_CONSTANT:
+          a_load_const_stack(list,size,loc.value,def2regtyp(size));
+        else
+          internalerror(2011010401);
       end;
+    end;
 
   procedure thlcgjvm.a_loadfpu_const_stack(list: TAsmList; size: tdef; a: double);
     begin
