@@ -754,10 +754,81 @@ implementation
       var
         pd : tprocdef;
         has_destructor,
-        oldparse_only: boolean;
+        oldparse_only,
+        typedconstswritable: boolean;
         object_member_blocktype : tblock_type;
-        fields_allowed, is_classdef, classfields: boolean;
+        fields_allowed, is_classdef, class_fields, is_final, final_fields: boolean;
         vdoptions: tvar_dec_options;
+
+
+      procedure parse_const;
+        begin
+          if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass]) then
+            Message(parser_e_type_var_const_only_in_records_and_classes);
+          consume(_CONST);
+          object_member_blocktype:=bt_const;
+          final_fields:=is_final;
+          is_final:=false;
+        end;
+
+
+      procedure parse_var;
+        begin
+          if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass]) then
+            Message(parser_e_type_var_const_only_in_records_and_classes);
+          consume(_VAR);
+          fields_allowed:=true;
+          object_member_blocktype:=bt_general;
+          class_fields:=is_classdef;
+          final_fields:=is_final;
+          is_classdef:=false;
+          is_final:=false;
+        end;
+
+
+      procedure parse_class;
+        begin
+          is_classdef:=false;
+          { read class method/field/property }
+          consume(_CLASS);
+          { class modifier is only allowed for procedures, functions, }
+          { constructors, destructors, fields and properties          }
+          if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR]) then
+            Message(parser_e_procedure_or_function_expected);
+
+          if is_interface(current_structdef) or
+             is_javainterface(current_structdef) then
+            Message(parser_e_no_static_method_in_interfaces)
+          else
+            { class methods are also allowed for Objective-C protocols }
+            is_classdef:=true;
+        end;
+
+
+      procedure parse_visibility(vis: tvisibility; oo: tobjectoption);
+        begin
+          { Objective-C and Java classes do not support "published",
+            as basically everything is published.  }
+          if (vis=vis_published) and
+             (is_objc_class_or_protocol(current_structdef) or
+              is_java_class_or_interface(current_structdef)) then
+             Message(parser_e_no_objc_published)
+          else if is_interface(current_structdef) or
+             is_objc_protocol_or_category(current_structdef) or
+             is_javainterface(current_structdef) then
+            Message(parser_e_no_access_specifier_in_interfaces);
+          current_structdef.symtable.currentvisibility:=vis;
+          consume(token);
+          if (oo<>oo_none) then
+            include(current_structdef.objectoptions,oo);
+          fields_allowed:=true;
+          is_classdef:=false;
+          class_fields:=false;
+          is_final:=false;
+          object_member_blocktype:=bt_general;
+        end;
+
+
       begin
         { empty class declaration ? }
         if (current_objectdef.objecttype in [odt_class,odt_objcclass,odt_javaclass]) and
@@ -772,7 +843,9 @@ implementation
         has_destructor:=false;
         fields_allowed:=true;
         is_classdef:=false;
-        classfields:=false;
+        class_fields:=false;
+        is_final:=false;
+        final_fields:=false;
         object_member_blocktype:=bt_general;
         repeat
           case token of
@@ -785,20 +858,11 @@ implementation
               end;
             _VAR :
               begin
-                if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass]) then
-                  Message(parser_e_type_var_const_only_in_records_and_classes);
-                consume(_VAR);
-                fields_allowed:=true;
-                object_member_blocktype:=bt_general;
-                classfields:=is_classdef;
-                is_classdef:=false;
+                parse_var;
               end;
             _CONST:
               begin
-                if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass]) then
-                  Message(parser_e_type_var_const_only_in_records_and_classes);
-                consume(_CONST);
-                object_member_blocktype:=bt_const;
+                parse_const
               end;
             _ID :
               begin
@@ -812,63 +876,19 @@ implementation
                 else case idtoken of
                   _PRIVATE :
                     begin
-                      if is_interface(current_structdef) or
-                         is_objc_protocol_or_category(current_structdef) or
-                         is_javainterface(current_structdef) then
-                        Message(parser_e_no_access_specifier_in_interfaces);
-                       consume(_PRIVATE);
-                       current_structdef.symtable.currentvisibility:=vis_private;
-                       include(current_structdef.objectoptions,oo_has_private);
-                       fields_allowed:=true;
-                       is_classdef:=false;
-                       classfields:=false;
-                       object_member_blocktype:=bt_general;
+                      parse_visibility(vis_private,oo_has_private);
                      end;
                    _PROTECTED :
                      begin
-                       if is_interface(current_structdef) or
-                          is_objc_protocol_or_category(current_structdef) or
-                          is_javainterface(current_structdef) then
-                         Message(parser_e_no_access_specifier_in_interfaces);
-                       consume(_PROTECTED);
-                       current_structdef.symtable.currentvisibility:=vis_protected;
-                       include(current_structdef.objectoptions,oo_has_protected);
-                       fields_allowed:=true;
-                       is_classdef:=false;
-                       classfields:=false;
-                       object_member_blocktype:=bt_general;
+                       parse_visibility(vis_protected,oo_has_protected);
                      end;
                    _PUBLIC :
                      begin
-                       if is_interface(current_structdef) or
-                          is_objc_protocol_or_category(current_structdef) or
-                          is_javainterface(current_structdef) then
-                         Message(parser_e_no_access_specifier_in_interfaces);
-                       consume(_PUBLIC);
-                       current_structdef.symtable.currentvisibility:=vis_public;
-                       fields_allowed:=true;
-                       is_classdef:=false;
-                       classfields:=false;
-                       object_member_blocktype:=bt_general;
+                       parse_visibility(vis_public,oo_none);
                      end;
                    _PUBLISHED :
                      begin
-                       { we've to check for a pushlished section in non-  }
-                       { publishable classes later, if a real declaration }
-                       { this is the way, delphi does it                  }
-                       if is_interface(current_structdef) then
-                         Message(parser_e_no_access_specifier_in_interfaces);
-                       { Objective-C and Java classes do not support "published",
-                         as basically everything is published.  }
-                       if is_objc_class_or_protocol(current_structdef) or
-                          is_java_class_or_interface(current_structdef) then
-                         Message(parser_e_no_objc_published);
-                       consume(_PUBLISHED);
-                       current_structdef.symtable.currentvisibility:=vis_published;
-                       fields_allowed:=true;
-                       is_classdef:=false;
-                       classfields:=false;
-                       object_member_blocktype:=bt_general;
+                       parse_visibility(vis_published,oo_none);
                      end;
                    _STRICT :
                      begin
@@ -900,9 +920,27 @@ implementation
                           message(parser_e_protected_or_private_expected);
                         fields_allowed:=true;
                         is_classdef:=false;
-                        classfields:=false;
+                        class_fields:=false;
+                        is_final:=false;
+                        final_fields:=false;
                         object_member_blocktype:=bt_general;
                      end
+                    else if (m_final_fields in current_settings.modeswitches) and
+                            (token=_ID) and
+                            (idtoken=_FINAL) then
+                      begin
+                        { currently only supported for external classes, because
+                          requires fully working DFA otherwise }
+                        if (current_structdef.typ<>objectdef) or
+                           not(oo_is_external in tobjectdef(current_structdef).objectoptions) then
+                          Message(parser_e_final_only_external);
+                        consume(_final);
+                        is_final:=true;
+                        if token=_CLASS then
+                          parse_class;
+                        if not(token in [_CONST,_VAR]) then
+                          message(parser_e_final_only_const_var);
+                      end
                     else
                       begin
                         if object_member_blocktype=bt_general then
@@ -920,14 +958,28 @@ implementation
                               Message(parser_e_field_not_allowed_here);
 
                             vdoptions:=[vd_object];
-                            if classfields then
+                            if class_fields then
                               include(vdoptions,vd_class);
+                            if final_fields then
+                              include(vdoptions,vd_final);
                             read_record_fields(vdoptions);
                           end
                         else if object_member_blocktype=bt_type then
                           types_dec(true)
                         else if object_member_blocktype=bt_const then
-                          consts_dec(true)
+                          begin
+                            if final_fields then
+                              begin
+                                { the value of final fields cannot be changed
+                                  once they've been assigned a value }
+                                typedconstswritable:=cs_typed_const_writable in current_settings.localswitches;
+                                exclude(current_settings.localswitches,cs_typed_const_writable);
+                              end;
+                            consts_dec(true);
+                            if final_fields and
+                               typedconstswritable then
+                              include(current_settings.localswitches,cs_typed_const_writable);
+                          end
                         else
                           internalerror(201001110);
                       end;
@@ -941,20 +993,7 @@ implementation
               end;
             _CLASS:
               begin
-                is_classdef:=false;
-                { read class method/field/property }
-                consume(_CLASS);
-                { class modifier is only allowed for procedures, functions, }
-                { constructors, destructors, fields and properties          }
-                if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR]) then
-                  Message(parser_e_procedure_or_function_expected);
-
-                if is_interface(current_structdef) or
-                   is_javainterface(current_structdef) then
-                  Message(parser_e_no_static_method_in_interfaces)
-                else
-                  { class methods are also allowed for Objective-C protocols }
-                  is_classdef:=true;
+                parse_class;
               end;
             _PROCEDURE,
             _FUNCTION:

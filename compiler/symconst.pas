@@ -517,7 +517,7 @@ type
     vs_referred_not_inited,vs_written,vs_readwritten
   );
 
-  tvarspez = (vs_value,vs_const,vs_var,vs_out,vs_constref);
+  tvarspez = (vs_value,vs_const,vs_var,vs_out,vs_constref,vs_final);
 
   absolutetyp = (tovar,toasm,toaddr);
 

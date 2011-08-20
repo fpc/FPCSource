@@ -290,7 +290,11 @@ implementation
                 { generate an error }
                 consume(_EQ);
            end;
-         until (token<>_ID)or(in_structure and (idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]));
+         until (token<>_ID) or
+               (in_structure and
+                ((idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
+                 ((m_final_fields in current_settings.modeswitches) and
+                  (idtoken=_FINAL))));
          block_type:=old_block_type;
       end;
 
@@ -666,7 +670,11 @@ implementation
                hdef.typesym:=newtype;
                generictypelist.free;
              end;
-         until (token<>_ID)or(in_structure and (idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]));
+         until (token<>_ID) or
+               (in_structure and
+                ((idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
+                 ((m_final_fields in current_settings.modeswitches) and
+                  (idtoken=_FINAL))));
          { resolve type block forward declarations and restore a unit
            container for them }
          resolve_forward_types;

@@ -194,7 +194,7 @@ const
   parser_f_unsupported_feature=03092;
   parser_e_mix_of_classes_and_objects=03093;
   parser_w_unknown_proc_directive_ignored=03094;
-  parser_e_absolute_only_one_var=03095;
+  parser_e_directive_only_one_var=03095;
   parser_e_absolute_only_to_var_or_const=03096;
   parser_e_initialized_only_one_var=03097;
   parser_e_abstract_no_definition=03098;
@@ -405,6 +405,8 @@ const
   parser_e_duplicate_implements_clause=03311;
   parser_e_mapping_no_implements=03312;
   parser_e_implements_no_mapping=03313;
+  parser_e_final_only_const_var=03314;
+  parser_e_final_only_external=03315;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -499,6 +501,7 @@ const
   type_e_class_helper_must_extend_subclass=04101;
   type_e_record_helper_must_extend_same_record=04102;
   type_e_java_class_method_not_static=04103;
+  type_e_invalid_final_assignment=04104;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -901,9 +904,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 61050;
+  MsgTxtSize = 61281;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,89,314,104,85,54,111,23,202,63,
+    26,89,316,105,85,54,111,23,202,63,
     49,20,1,1,1,1,1,1,1,1
   );

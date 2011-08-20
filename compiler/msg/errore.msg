@@ -375,7 +375,7 @@ scanner_e_illegal_alignment_directive=02088_E_Illegal alignment directive
 #
 # Parser
 #
-# 03310 is the last used one
+# 03315 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -675,9 +675,10 @@ parser_e_mix_of_classes_and_objects=03093_E_The mix of different kind of objects
 % a class cannot have an object as parent and vice versa.
 parser_w_unknown_proc_directive_ignored=03094_W_Unknown procedure directive had to be ignored: "$1"
 % The procedure directive you specified is unknown.
-parser_e_absolute_only_one_var=03095_E_absolute can only be associated to one variable
-% You cannot specify more than one variable before the \var{absolute} directive.
-% Thus, the following construct will provide this error:
+parser_e_directive_only_one_var=03095_E_$1 can be associated with only one variable
+% You cannot specify more than one variable before the \var{absolute}, \var{export}, \var{external},
+% \var{weakexternal}, \var{public} and \var{cvar} directives.
+% As a result, for example the following construct will provide this error:
 % \begin{verbatim}
 % Var Z : Longint;
 %     X,Y : Longint absolute Z;
@@ -1400,10 +1401,16 @@ parser_e_mapping_no_implements=03312_E_Interface "$1" can't be delegated by "$2"
 % has to implement the interface directly. Delegation is not possible.
 parser_e_implements_no_mapping=03313_E_Interface "$1" can't have method resolutions, "$2" already delegates it
 % Method resoulution is only possible for interfaces that are implemented directly, not by delegation.
+parser_e_final_only_const_var=03314_E_Only fields (var-sections) and constants can be final in object types
+% A final (class) field must be assigned a single value in the (class) constructor, and cannot
+% be overwritten afterwards. A final (typed) constant is read-only.
+parser_e_final_only_external=03315_E_Final fields are currently only supported for external classes
+% Support for final fields in non-external classes requires a full data flow
+% analysis implementation in FPC, which it currently still lacks.
 % \end{description}
 # Type Checking
 #
-# 04103 is the last used one
+# 04104 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1764,6 +1771,9 @@ type_e_record_helper_must_extend_same_record=04102_E_Derived record helper must 
 type_e_java_class_method_not_static=04103_E_Java class methods have to be static
 % All methods in Java are either regular (virtual) methods, or static class
 % methods. It is not possible to declare non-static class methods.
+type_e_invalid_final_assignment=04104_E_Final (class) fields can only be assigned in their class' (class) constructor
+% It is only possible to assign a value to a final (class) field inside a (class) constructor of its owning class.
+%
 %
 % \end{description}
 #

@@ -983,6 +983,11 @@ implementation
                  if (tloadnode(p).symtableentry.typ in [localvarsym,paravarsym,staticvarsym]) then
                    begin
                      hsym:=tabstractvarsym(tloadnode(p).symtableentry);
+                     { this check requires proper data flow analysis... }
+(*                     if (hsym.varspez=vs_final) and
+                        (hsym.varstate in [vs_written,vs_readwritten]) and
+                        (newstate in [vs_written,vs_readwritten]) then
+                       CGMessagePos1(p.fileinfo,sym_e_final_write_once); *)
                      if (vsf_must_be_valid in varstateflags) and
                         (hsym.varstate in [vs_declared,vs_read_not_warned,vs_referred_not_inited]) then
                        begin
@@ -1080,6 +1085,32 @@ implementation
         todef    : tdef;
         errmsg,
         temp     : longint;
+
+        function constaccessok(vs: tabstractvarsym): boolean;
+          begin
+            result:=false;
+            { allow p^:= constructions with p is const parameter }
+            if gotderef or gotdynarray or (Valid_Const in opts) or
+              (nf_isinternal_ignoreconst in hp.flags) then
+              result:=true
+            { final (class) fields can only be initialised in the (class) constructors of
+              class in which they have been declared (not in descendent constructors) }
+            else if vs.varspez=vs_final then
+              begin
+                if (current_procinfo.procdef.owner=vs.owner) then
+                  if sp_static in vs.symoptions then
+                    result:=current_procinfo.procdef.proctypeoption=potype_class_constructor
+                  else
+                    result:=current_procinfo.procdef.proctypeoption=potype_constructor;
+                if not result and
+                   report_errors then
+                  CGMessagePos(hp.fileinfo,type_e_invalid_final_assignment);
+              end
+            else
+              if report_errors then
+                CGMessagePos(hp.fileinfo,type_e_no_assign_to_const);
+          end;
+
       begin
         if valid_const in opts then
           errmsg:=type_e_variable_id_expected
@@ -1316,6 +1347,10 @@ implementation
                          CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr);
                      exit;
                    end;
+                 { check for final fields }
+                 if (tsubscriptnode(hp).vs.varspez=vs_final) and
+                    not constaccessok(tsubscriptnode(hp).vs) then
+                   exit;
                  gotsubscript:=true;
                  { loop counter? }
                  if not(Valid_Const in opts) and
@@ -1480,15 +1515,9 @@ implementation
                            exit;
                          end;
                        { read-only variable? }
-                       if (tabstractvarsym(tloadnode(hp).symtableentry).varspez in [vs_const,vs_constref]) then
+                       if (tabstractvarsym(tloadnode(hp).symtableentry).varspez in [vs_const,vs_constref,vs_final]) then
                         begin
-                          { allow p^:= constructions with p is const parameter }
-                          if gotderef or gotdynarray or (Valid_Const in opts) or
-                            (nf_isinternal_ignoreconst in tloadnode(hp).flags) then
-                            result:=true
-                          else
-                            if report_errors then
-                              CGMessagePos(tloadnode(hp).fileinfo,type_e_no_assign_to_const);
+                          result:=constaccessok(tabstractvarsym(tloadnode(hp).symtableentry));
                           exit;
                         end;
                        result:=true;

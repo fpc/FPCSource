@@ -30,7 +30,7 @@ interface
       symsym,symdef;
 
     type
-      tvar_dec_option=(vd_record,vd_object,vd_threadvar,vd_class);
+      tvar_dec_option=(vd_record,vd_object,vd_threadvar,vd_class,vd_final);
       tvar_dec_options=set of tvar_dec_option;
 
     function  read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;
@@ -925,7 +925,7 @@ implementation
       { only allowed for one var }
       vs:=tabstractvarsym(sc[0]);
       if sc.count>1 then
-        Message(parser_e_absolute_only_one_var);
+        Message1(parser_e_directive_only_one_var,arraytokeninfo[idtoken].str);
       read_public_and_external(vs);
     end;
 
@@ -1127,7 +1127,7 @@ implementation
           C_Name:=get_stringconst;
           vs:=tabstractnormalvarsym(sc[0]);
           if sc.count>1 then
-            Message(parser_e_absolute_only_one_var);
+            Message(parser_e_directive_only_one_var,'ABSOLUTE');
           if vs.typ=staticvarsym then
             begin
               tstaticvarsym(vs).set_mangledname(C_Name);
@@ -1152,7 +1152,7 @@ implementation
           { only allowed for one var }
           vs:=tabstractvarsym(sc[0]);
           if sc.count>1 then
-            Message(parser_e_absolute_only_one_var);
+            Message1(parser_e_directive_only_one_var,'ABSOLUTE');
           if vo_is_typed_const in vs.varoptions then
             Message(parser_e_initialized_not_for_external);
           { parse the rest }
@@ -1525,7 +1525,9 @@ implementation
          while (token=_ID) and
             not(((vd_object in options) or
                  ((vd_record in options) and (m_advanced_records in current_settings.modeswitches))) and
-                (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT])) do
+                ((idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT]) or
+                 ((m_final_fields in current_settings.modeswitches) and
+                  (idtoken=_FINAL)))) do
            begin
              visibility:=symtablestack.top.currentvisibility;
              semicoloneaten:=false;
@@ -1688,10 +1690,21 @@ implementation
                      fieldvs.Rename(internal_static_field_name(fieldvs.name));
                      recst.insert(hstaticvs);
 {$endif not jvm}
+                     if vd_final in options then
+                       hstaticvs.varspez:=vs_final;
                      { generate the symbol for the access }
                      sl:=tpropaccesslist.create;
                      sl.addsym(sl_load,hstaticvs);
                      recst.insert(tabsolutevarsym.create_ref('$'+static_name,hdef,sl));
+                   end;
+               end;
+             if vd_final in options then
+               begin
+                 { add final flag }
+                 for i:=0 to sc.count-1 do
+                   begin
+                     fieldvs:=tfieldvarsym(sc[i]);
+                     fieldvs.varspez:=vs_final;
                    end;
                end;
              if (visibility=vis_published) and

@@ -356,6 +356,11 @@ implementation
         else
          b:=false;
 
+{$ifdef jvm}
+          { enable final fields by default for the JVM targets }
+          include(current_settings.modeswitches,m_final_fields);
+{$endif jvm}
+
         if b and changeInit then
           init_settings.modeswitches := current_settings.modeswitches;
 
