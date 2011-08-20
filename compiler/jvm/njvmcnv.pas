@@ -33,6 +33,7 @@ interface
           function typecheck_dynarray_to_openarray: tnode; override;
           function typecheck_string_to_chararray: tnode; override;
           function pass_1: tnode; override;
+          function simplify(forinline: boolean): tnode; override;
 
           procedure second_int_to_int;override;
          { procedure second_string_to_string;override; }
@@ -194,6 +195,19 @@ implementation
               exit;
           end;
         result:=inherited pass_1;
+      end;
+
+    function tjvmtypeconvnode.simplify(forinline: boolean): tnode;
+      begin
+        result:=inherited simplify(forinline);
+        if assigned(result) then
+          exit;
+        { string constants passed to java.lang.String must be converted to
+          widestring }
+        if (left.nodetype=stringconstn) and
+           not(tstringconstnode(left).cst_type in [cst_unicodestring,cst_widestring]) and
+           (maybe_find_real_class_definition(resultdef,false)=java_jlstring) then
+          inserttypeconv(left,cunicodestringtype);
       end;
 
 
