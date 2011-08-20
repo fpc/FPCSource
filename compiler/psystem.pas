@@ -401,15 +401,6 @@ implementation
             addfield(hrecst,tfieldvarsym.create('$self',vs_value,voidpointertype,[]));
             methodpointertype:=trecorddef.create('',hrecst);
             addtype('$methodpointer',methodpointertype);
-          end
-        else
-          begin
-{$if defined(jvm) and not defined(nounsupported)}
-            hrecst:=trecordsymtable.create('',1);
-            addfield(hrecst,tfieldvarsym.create('$proc',vs_value,voidpointertype,[]));
-            methodpointertype:=trecorddef.create('',hrecst);
-            addtype('$methodpointer',methodpointertype);
-{$endif}
           end;
         symtablestack.pop(systemunit);
       end;

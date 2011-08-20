@@ -1217,6 +1217,8 @@ implementation
         old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
         old_current_specializedef: tstoreddef;
+        hrecst: trecordsymtable;
+        fsym: tfieldvarsym;
         old_parse_generic: boolean;
         list: TFPObjectList;
         s: String;
@@ -1279,7 +1281,18 @@ implementation
                       if (current_structdef.objname^='TOBJECT') then
                         class_tobject:=current_objectdef;
                       if (current_objectdef.objname^='JLOBJECT') then
-                        java_jlobject:=current_objectdef;
+                        begin
+                          java_jlobject:=current_objectdef;
+                          { the methodpointer type is normally created in
+                            psystem, but java_jlobject is not yet available
+                            there... }
+                          hrecst:=trecordsymtable.create('',1);
+                          fsym:=tfieldvarsym.create('$proc',vs_value,java_jlobject,[]);
+                          hrecst.insert(fsym);
+                          hrecst.addfield(fsym,vis_hidden);
+                          methodpointertype:=trecorddef.create('',hrecst);
+                          systemunit.insert(ttypesym.create('$methodpointer',methodpointertype));
+                        end;
                       if (current_objectdef.objname^='JLTHROWABLE') then
                         java_jlthrowable:=current_objectdef;
                       if (current_objectdef.objname^='FPCBASERECORDTYPE') then
