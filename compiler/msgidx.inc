@@ -575,6 +575,8 @@ const
   sym_e_external_class_name_mismatch1=05082;
   sym_e_external_class_name_mismatch2=05083;
   sym_w_library_overload=05084;
+  sym_e_duplicate_id_create_java_constructor=05085;
+  sym_e_no_matching_inherited_parameterless_constructor=05086;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -906,9 +908,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 61491;
+  MsgTxtSize = 61683;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,89,318,105,85,54,111,23,202,63,
+    26,89,318,105,87,54,111,23,202,63,
     49,20,1,1,1,1,1,1,1,1
   );

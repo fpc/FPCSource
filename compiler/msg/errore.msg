@@ -1788,7 +1788,7 @@ type_e_invalid_final_assignment=04104_E_Final (class) fields can only be assigne
 #
 # Symtable
 #
-# 05084 is the last used one
+# 05086 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2038,7 +2038,20 @@ sym_w_library_overload=05084_W_Possible library conflict: symbol "$1" from libra
 % the 'libname' part is only a hint, funcname might also be loaded
 % by another library. This warning appears if 'funcname' is used twice
 % with two different library names.
-%
+sym_e_duplicate_id_create_java_constructor=05085_E_Cannot add implicit constructor 'Create' because identifier already used by "$1"
+% Java does not automatically add inherited constructors to child classes, so that they can be hidden.
+% However, if a class does not explicitly declare at least one constructor, the compiler is
+% required to add a public, parameterless constructor. In Java, constructors are nameless,
+% but in FPC they are all called ``Create''. Therefore, if you do not add a constructor to
+% a Java class and furthermore use the ``Create'' identifier for another entity (e.g., a field,
+% or a parameterless method), the compiler cannot satisfy this requirement.
+sym_e_no_matching_inherited_parameterless_constructor=05086_E_Cannot generate default constructor for class, because parent has no parameterless constructor
+% Java does not automatically add inherited constructors to child classes, so that they can be hidden.
+% However, if a class does not explicitly declare at least one constructor, the compiler is
+% required to add a public, parameterless constructor. This compiler must then call
+% the parameterless constructor from the parent class inside this added constructor.
+% This is however impossible if the parent class does not declare such a constructor.
+% In this case you must add a valid constructor yourself.
 % \end{description}
 #
 # Codegenerator
