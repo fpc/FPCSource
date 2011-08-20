@@ -935,7 +935,8 @@ implementation
                 if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR]) then
                   Message(parser_e_procedure_or_function_expected);
 
-                if is_interface(current_structdef) then
+                if is_interface(current_structdef) or
+                   is_javainterface(current_structdef) then
                   Message(parser_e_no_static_method_in_interfaces)
                 else
                   { class methods are also allowed for Objective-C protocols }
