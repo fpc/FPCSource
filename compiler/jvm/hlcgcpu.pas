@@ -113,6 +113,11 @@ uses
 
       procedure g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation); override;
 
+      { assumes that initdim dimensions have already been pushed on the
+        evaluation stack, and creates a new array of type arrdef with these
+        dimensions }
+      procedure g_newarray(list : TAsmList; arrdef: tdef; initdim: longint);
+
       { this routine expects that all values are already massaged into the
         required form (sign bits xor'ed for gt/lt comparisons for OS_32/OS_64,
         see http://stackoverflow.com/questions/4068973/c-performing-signed-comparison-in-unsigned-variables-without-casting ) }
@@ -169,7 +174,7 @@ implementation
     verbose,cutils,globals,
     defutil,
     aasmtai,aasmcpu,
-    symconst,
+    symconst,jvmdef,
     procinfo,cgcpu;
 
   const
@@ -463,7 +468,6 @@ implementation
       end;
     end;
 
-
   procedure thlcgjvm.g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation);
 
     procedure handle_reg_move(regsize: tdef; const fromreg: tregister; out toreg: tregister; regtyp: tregistertype);
@@ -519,6 +523,62 @@ implementation
         else
           internalerror(2011031407);
       end;
+    end;
+
+  procedure thlcgjvm.g_newarray(list: TAsmList; arrdef: tdef; initdim: longint);
+    var
+      recref: treference;
+      elemdef: tdef;
+      i: longint;
+      mangledname: string;
+      opc: tasmop;
+      primitivetype: boolean;
+    begin
+      elemdef:=arrdef;
+      if initdim>1 then
+        begin
+          { multianewarray typedesc ndim }
+          list.concat(taicpu.op_sym_const(a_multianewarray,
+            current_asmdata.RefAsmSymbol(jvmarrtype(elemdef,primitivetype)),initdim));
+          { has to be a multi-dimensional array type }
+          if primitivetype then
+            internalerror(2011012207);
+        end
+      else
+        begin
+          { for primitive types:
+              newarray typedesc
+            for reference types:
+              anewarray typedesc
+          }
+          { get the type of the elements of the array we are creating }
+          elemdef:=tarraydef(arrdef).elementdef;
+          mangledname:=jvmarrtype(elemdef,primitivetype);
+          if primitivetype then
+            opc:=a_newarray
+          else
+            opc:=a_anewarray;
+          list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname)));
+        end;
+      { all dimensions are removed from the stack, an array reference is
+        added }
+      decstack(list,initdim-1);
+      { in case of an array of records, initialise }
+      elemdef:=tarraydef(arrdef).elementdef;
+      for i:=1 to pred(initdim) do
+        elemdef:=tarraydef(elemdef).elementdef;
+      if elemdef.typ=recorddef then
+        begin
+          { duplicate array reference }
+          list.concat(taicpu.op_none(a_dup));
+          incstack(list,1);
+          a_load_const_stack(list,s32inttype,initdim-1,R_INTREGISTER);
+          tg.gethltemp(list,elemdef,elemdef.size,tt_persistent,recref);
+          a_load_ref_stack(list,elemdef,recref,prepare_stack_for_ref(list,recref,false));
+          g_call_system_proc(list,'fpc_initialize_array_record');
+          tg.ungettemp(list,recref);
+          decstack(list,3);
+        end;
     end;
 
     procedure thlcgjvm.a_cmp_stack_label(list: TAsmlist; size: tdef; cmp_op: topcmp; lab: tasmlabel);

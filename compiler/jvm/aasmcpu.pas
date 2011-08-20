@@ -51,6 +51,8 @@ uses
          constructor op_ref(op : tasmop;const _op1 : treference);
          constructor op_sym(op : tasmop;_op1 : tasmsymbol);
 
+         constructor op_sym_const(op : tasmop;_op1 : tasmsymbol;_op2 : aint);
+
          constructor op_single(op : tasmop;_op1 : single);
          constructor op_double(op : tasmop;_op1 : double);
          constructor op_string(op : tasmop;_op1len : aint;_op1 : pchar);
@@ -124,6 +126,16 @@ implementation
           a_ifeq, a_ifge, a_ifgt, a_ifle, a_iflt, a_ifne, a_ifnonnull, a_ifnull];
         loadsymbol(0,_op1,0);
       end;
+
+
+    constructor taicpu.op_sym_const(op: tasmop; _op1: tasmsymbol; _op2: aint);
+      begin
+        inherited create(op);
+        ops:=2;
+        loadsymbol(0,_op1,0);
+        loadconst(1,_op2);
+      end;
+
 
     constructor taicpu.op_single(op: tasmop; _op1: single);
       begin

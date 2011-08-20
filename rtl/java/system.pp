@@ -69,6 +69,20 @@ type
     function hashcode: longint;
   end;
 
+  { Java Float class type }
+  TJFloat = class external 'java.lang' name 'Float'
+   constructor create(f: jfloat);
+   class function floatToRawIntBits(f: jfloat): jint; static;
+   class function intBitsToFloat(j: jint): jfloat; static;
+  end;
+
+  { Java Dloat class type }
+  TJDouble = class external 'java.lang' name 'Double'
+   constructor create(d: jdouble);
+   class function doubleToRawLongBits(d: jdouble): jlong; static;
+   class function longBitsToDouble(l: jlong): jdouble; static;
+  end;
+
 {$i innr.inc}
 {$i jmathh.inc}
 {$i jdynarrh.inc}

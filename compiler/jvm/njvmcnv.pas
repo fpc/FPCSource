@@ -25,11 +25,11 @@ unit njvmcnv;
 interface
 
     uses
-      node,ncnv,ncgcnv,defcmp;
+      node,ncnv,ncgcnv,
+      symtype;
 
     type
        tjvmtypeconvnode = class(tcgtypeconvnode)
-         protected
           procedure second_int_to_int;override;
          { procedure second_string_to_string;override; }
          { procedure second_cstring_to_pchar;override; }
@@ -50,16 +50,26 @@ interface
          { procedure second_pchar_to_string;override; }
          { procedure second_class_to_intf;override; }
          { procedure second_char_to_char;override; }
+         protected
+          function target_specific_explicit_typeconv: tnode; override;
+       end;
+
+       tjvmasnode = class(tcgasnode)
+        protected
+         function target_specific_typecheck: boolean;override;
+        public
+         function pass_1 : tnode;override;
+         procedure pass_generate_code; override;
        end;
 
 implementation
 
    uses
       verbose,globals,globtype,
-      symconst,symtype,symdef,aasmbase,aasmdata,
-      defutil,
+      symconst,symdef,symsym,symtable,aasmbase,aasmdata,
+      defutil,defcmp,jvmdef,
       cgbase,cgutils,pass_1,pass_2,
-      ncon,ncal,procinfo,
+      nbas,ncon,ncal,nld,nmem,procinfo,
       nutils,
       cpubase,aasmcpu,
       tgobj,hlcgobj,hlcgcpu;
@@ -333,6 +343,203 @@ implementation
      end;
 
 
+    procedure get_most_nested_types(var fromdef, todef: tdef);
+      begin
+       while is_dynamic_array(fromdef) and
+             is_dynamic_array(todef) do
+         begin
+           fromdef:=tarraydef(fromdef).elementdef;
+           todef:=tarraydef(todef).elementdef;
+         end;
+      end;
+
+
+    function tjvmtypeconvnode.target_specific_explicit_typeconv: tnode;
+
+      { handle explicit typecast from int to to real or vice versa }
+      function int_real_explicit_typecast(fdef: tfloatdef; const singlemethod, doublemethod: string): tnode;
+        var
+          csym: ttypesym;
+          psym: tsym;
+        begin
+         { use the float/double to raw bits methods to get the bit pattern }
+          if fdef.floattype=s32real then
+            begin
+              csym:=search_system_type('TJFLOAT');
+              psym:=search_struct_member(tobjectdef(csym.typedef),singlemethod);
+            end
+          else
+            begin
+              csym:=search_system_type('TJDOUBLE');
+              psym:=search_struct_member(tobjectdef(csym.typedef),doublemethod);
+            end;
+          if not assigned(psym) or
+             (psym.typ<>procsym) then
+            internalerror(2011012901);
+          { call the (static class) method to get the raw bits }
+          result:=ccallnode.create(ccallparanode.create(left,nil),
+            tprocsym(psym),psym.owner,
+            cloadvmtaddrnode.create(ctypenode.create(csym.typedef)),[]);
+          { convert the result to the result type of this type conversion node }
+          inserttypeconv_explicit(result,resultdef);
+          { left is reused }
+          left:=nil;
+        end;
+
+
+      var
+        frominclass,
+        toinclass: boolean;
+        fromdef,
+        todef: tdef;
+      begin
+        result:=nil;
+        { This routine is only called for explicit typeconversions of same-sized
+          entities that aren't handled by normal type conversions -> bit pattern
+          reinterpretations. In the JVM, many of these also need special
+          handling because of the type safety. }
+
+        { don't allow conversions between object-based and non-object-based
+          types }
+        frominclass:=
+          (left.resultdef.typ=objectdef) or
+          is_dynamic_array(left.resultdef);
+        toinclass:=
+          (resultdef.typ=objectdef) or
+          is_dynamic_array(resultdef);
+        if frominclass and
+           toinclass then
+          begin
+            { we need an as-node to check the validity of the conversion (since
+              it wasn't handled by another type conversion, we know it can't
+              have been valid normally)
+
+              Exception: (most nested) destination is java.lang.Object, since
+                everything is compatible with that type }
+            fromdef:=left.resultdef;
+            todef:=resultdef;
+            get_most_nested_types(fromdef,todef);
+            if ((fromdef.typ<>objectdef) and
+                not is_dynamic_array(fromdef)) or
+               (todef<>java_jlobject) then
+              begin
+                result:=casnode.create(left,ctypenode.create(resultdef));
+                left:=nil;
+              end;
+            exit;
+          end;
+
+        { don't allow conversions between different classes of primitive types,
+          except for a few special cases }
+
+        { float to int/enum explicit type conversion: get the bits }
+        if (left.resultdef.typ=floatdef) and
+           (is_integer(resultdef) or
+            (resultdef.typ=enumdef)) then
+          begin
+            result:=int_real_explicit_typecast(tfloatdef(left.resultdef),'FLOATTORAWINTBITS','DOUBLETORAWLONGBITS');
+            exit;
+          end;
+        { int to float explicit type conversion: also use the bits }
+        if (is_integer(left.resultdef) or
+            (left.resultdef.typ=enumdef)) and
+           (resultdef.typ=floatdef) then
+          begin
+            result:=int_real_explicit_typecast(tfloatdef(resultdef),'INTBITSTOFLOAT','LONGBITSTODOUBLE');
+            exit;
+          end;
+        { nothing special required when going between ordinals and enums }
+        if (left.resultdef.typ in [orddef,enumdef])=(resultdef.typ in [orddef,enumdef]) then
+          exit;
+
+        { Todo:
+            * int to set and vice versa
+            * set to float and vice versa (via int) (maybe)
+            * regular array of primitive to primitive and vice versa (maybe)
+            * packed record to primitive and vice versa (maybe)
+          Definitely not:
+            * unpacked record to anything and vice versa (no alignment rules
+              for Java)
+        }
+        { anything not explicitly handled is a problem }
+        CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
+      end;
+
+    {*****************************************************************************
+                                 TJVMAsNode
+    *****************************************************************************}
+
+  function tjvmasnode.target_specific_typecheck: boolean;
+    var
+      fromelt, toelt: tdef;
+    begin
+      { dynamic arrays can be converted to java.lang.Object and vice versa }
+      if right.resultdef=java_jlobject then
+        { dynamic array to java.lang.Object }
+        result:=is_dynamic_array(left.resultdef)
+      else if is_dynamic_array(right.resultdef) then
+        begin
+          { <x> to dynamic array: only if possibly valid }
+          fromelt:=left.resultdef;
+          toelt:=right.resultdef;
+          get_most_nested_types(fromelt,toelt);
+          { final levels must be convertable:
+              a) from dynarray to java.lang.Object or vice versa, or
+              b) the same primitive/class type
+          }
+          result:=
+           (compare_defs(fromelt,toelt,left.nodetype) in [te_exact,te_equal]) or
+           (((fromelt.typ=objectdef) or
+             is_dynamic_array(fromelt)) and
+            ((toelt.typ=objectdef) or
+             is_dynamic_array(toelt)));
+        end
+      else
+        begin
+          { full class reference support requires using the Java reflection API,
+            not yet implemented }
+          if (right.nodetype<>typen) then
+            internalerror(2011012601);
+          result:=false;
+        end;
+      if result then
+        resultdef:=right.resultdef;
+    end;
+
+
+  function tjvmasnode.pass_1: tnode;
+    begin
+      { call-by-reference does not exist in Java, so it's no problem to
+        change a memory location to a register }
+      firstpass(left);
+      expectloc:=LOC_REGISTER;
+      result:=nil;
+    end;
+
+
+  procedure tjvmasnode.pass_generate_code;
+    begin
+      secondpass(left);
+      thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,resultdef,left.location);
+      location_freetemp(current_asmdata.CurrAsmList,left.location);
+      { Perform a checkcast instruction, which will raise an exception in case
+        the actual type does not match/inherit from the expected type.
+
+        Object types need the full type name (package+class name), arrays only
+        the array definition }
+      if resultdef.typ=objectdef then
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_checkcast,current_asmdata.RefAsmSymbol(tobjectdef(resultdef).jvm_full_typename)))
+      else
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_checkcast,current_asmdata.RefAsmSymbol(jvmencodetype(resultdef))));
+      location_reset(location,LOC_REGISTER,OS_ADDR);
+      location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+      thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+    end;
+
+
+
+
 begin
   ctypeconvnode:=tjvmtypeconvnode;
+  casnode:=tjvmasnode;
 end.

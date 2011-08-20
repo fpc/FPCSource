@@ -36,6 +36,9 @@ interface
       and in that case also the failing definition.  }
     function jvmtryencodetype(def: tdef; out encodedtype: string; out founderror: tdef): boolean;
 
+    { same as above, but throws an internal error on failure }
+    function jvmencodetype(def: tdef): string;
+
     { Check whether a type can be used in a JVM methom signature or field
       declaration.  }
     function jvmchecktype(def: tdef; out founderror: tdef): boolean;
@@ -48,6 +51,11 @@ interface
 
     { generate internal static field name based on regular field name }
     function jvminternalstaticfieldname(const fieldname: string): string;
+
+    { returns type string for a single-dimensional array (different from normal
+      typestring in case of a primitive type) }
+    function jvmarrtype(def: tdef; out primitivetype: boolean): string;
+    function jvmarrtype_setlength(def: tdef): char;
 
 implementation
 
@@ -251,9 +259,59 @@ implementation
       end;
 
 
+    function jvmarrtype(def: tdef; out primitivetype: boolean): string;
+      var
+        errdef: tdef;
+      begin
+        if not jvmtryencodetype(def,result,errdef) then
+          internalerror(2011012205);
+        primitivetype:=false;
+        if length(result)=1 then
+          begin
+            case result[1] of
+              'Z': result:='boolean';
+              'C': result:='char';
+              'B': result:='byte';
+              'S': result:='short';
+              'I': result:='int';
+              'J': result:='long';
+              'F': result:='float';
+              'D': result:='double';
+              else
+                internalerror(2011012206);
+              end;
+            primitivetype:=true;
+          end;
+        { in other cases, use the actual reference type }
+      end;
+
+
+    function jvmarrtype_setlength(def: tdef): char;
+      var
+        errdef: tdef;
+        res: string;
+      begin
+        if not jvmtryencodetype(def,res,errdef) then
+          internalerror(2011012209);
+        if length(res)=1 then
+          result:=res[1]
+        else
+          result:='A';
+      end;
+
+
 {******************************************************************
                     jvm type validity checking
 *******************************************************************}
+
+   function jvmencodetype(def: tdef): string;
+     var
+       errordef: tdef;
+     begin
+       if not jvmtryencodetype(def,result,errordef) then
+         internalerror(2011012305);
+     end;
+
 
    function jvmchecktype(def: tdef; out founderror: tdef): boolean;
       var
