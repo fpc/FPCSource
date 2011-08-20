@@ -90,7 +90,8 @@ interface
           tc_enum_2_variant,
           tc_interface_2_variant,
           tc_variant_2_interface,
-          tc_array_2_dynarray
+          tc_array_2_dynarray,
+          tc_elem_2_openarray
        );
 
     function compare_defs_ext(def_from,def_to : tdef;
@@ -680,7 +681,7 @@ implementation
                   (def_from.typ=tarraydef(def_to).elementdef.typ) and
                   equal_defs(def_from,tarraydef(def_to).elementdef) then
                 begin
-                  doconv:=tc_equal;
+                  doconv:=tc_elem_2_openarray;
                   { also update in htypechk.pas/var_para_allowed if changed
                     here }
                   eq:=te_convert_l3;

@@ -50,6 +50,7 @@ interface
          procedure second_ansistring_to_pchar;override;
          procedure second_class_to_intf;override;
          procedure second_char_to_char;override;
+         procedure second_elem_to_openarray;override;
          procedure second_nothing;override;
          procedure pass_generate_code;override;
 {$ifdef cpuflags}
@@ -703,6 +704,12 @@ interface
     procedure tcgtypeconvnode.second_char_to_char;
       begin
         internalerror(2007081202);
+      end;
+
+    procedure tcgtypeconvnode.second_elem_to_openarray;
+      begin
+        { nothing special to do by default }
+        second_nothing;
       end;
 
 

@@ -54,6 +54,7 @@ interface
          { procedure second_pchar_to_string;override; }
          { procedure second_class_to_intf;override; }
          { procedure second_char_to_char;override; }
+          procedure second_elem_to_openarray; override;
           function target_specific_explicit_typeconv: boolean; override;
           function target_specific_general_typeconv: boolean; override;
          protected
@@ -441,6 +442,36 @@ implementation
        current_procinfo.CurrTrueLabel:=oldTrueLabel;
        current_procinfo.CurrFalseLabel:=oldFalseLabel;
      end;
+
+
+    procedure tjvmtypeconvnode.second_elem_to_openarray;
+      var
+        primitivetype: boolean;
+        opc: tasmop;
+        mangledname: string;
+        basereg: tregister;
+        arrayref: treference;
+      begin
+        { create an array with one element of the required type }
+        thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,s32inttype,1,R_INTREGISTER);
+        mangledname:=jvmarrtype(left.resultdef,primitivetype);
+        if primitivetype then
+          opc:=a_newarray
+        else
+          opc:=a_anewarray;
+        { doesn't change stack height: one int replaced by one reference }
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname)));
+        { store the data in the newly created array }
+        basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
+        thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,java_jlobject,basereg);
+        reference_reset_base(arrayref,basereg,0,4);
+        arrayref.arrayreftype:=art_indexconst;
+        arrayref.indexoffset:=0;
+        hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,arrayref);
+        location_reset_ref(location,LOC_REFERENCE,OS_ADDR,4);
+        tg.gethltemp(current_asmdata.CurrAsmList,java_jlobject,4,tt_normal,location.reference);
+        hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,java_jlobject,java_jlobject,basereg,location.reference);
+      end;
 
 
     procedure get_most_nested_types(var fromdef, todef: tdef);

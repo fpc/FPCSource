@@ -95,6 +95,7 @@ interface
           function typecheck_variant_to_interface : tnode; virtual;
           function typecheck_interface_to_variant : tnode; virtual;
           function typecheck_array_2_dynarray : tnode; virtual;
+          function typecheck_elem_2_openarray : tnode; virtual;
        private
           function _typecheck_int_to_int : tnode;
           function _typecheck_cord_to_pointer : tnode;
@@ -124,6 +125,7 @@ interface
           function _typecheck_variant_to_interface : tnode;
           function _typecheck_interface_to_variant : tnode;
           function _typecheck_array_2_dynarray : tnode;
+          function _typecheck_elem_2_openarray : tnode;
        protected
           function first_int_to_int : tnode;virtual;
           function first_cstring_to_pchar : tnode;virtual;
@@ -199,6 +201,7 @@ interface
           procedure _second_ansistring_to_pchar;virtual;
           procedure _second_class_to_intf;virtual;
           procedure _second_char_to_char;virtual;
+          procedure _second_elem_to_openarray;virtual;
           procedure _second_nothing; virtual;
 
         protected
@@ -223,6 +226,7 @@ interface
           procedure second_ansistring_to_pchar;virtual;abstract;
           procedure second_class_to_intf;virtual;abstract;
           procedure second_char_to_char;virtual;abstract;
+          procedure second_elem_to_openarray;virtual;abstract;
           procedure second_nothing; virtual;abstract;
        end;
        ttypeconvnodeclass = class of ttypeconvnode;
@@ -904,7 +908,8 @@ implementation
           'tc_enum_2_variant',
           'tc_interface_2_variant',
           'tc_variant_2_interface',
-          'tc_array_2_dynarray'
+          'tc_array_2_dynarray',
+          'tc_elem_2_openarray'
         );
       begin
         inherited printnodeinfo(t);
@@ -1619,6 +1624,12 @@ implementation
       end;
 
 
+    function ttypeconvnode.typecheck_elem_2_openarray : tnode;
+      begin
+        result:=nil;
+      end;
+
+
     function ttypeconvnode._typecheck_int_to_int : tnode;
       begin
         result := typecheck_int_to_int;
@@ -1787,6 +1798,12 @@ implementation
       end;
 
 
+    function ttypeconvnode._typecheck_elem_2_openarray : tnode;
+      begin
+        result := typecheck_elem_2_openarray;
+      end;
+
+
     function ttypeconvnode.target_specific_general_typeconv: boolean;
       begin
         result:=false;
@@ -1901,7 +1918,8 @@ implementation
           { enum_2_variant} @ttypeconvnode._typecheck_enum_to_variant,
           { variant_2_interface} @ttypeconvnode._typecheck_interface_to_variant,
           { interface_2_variant} @ttypeconvnode._typecheck_variant_to_interface,
-          { array_2_dynarray} @ttypeconvnode._typecheck_array_2_dynarray
+          { array_2_dynarray} @ttypeconvnode._typecheck_array_2_dynarray,
+          { elem_2_openarray } @ttypeconvnode._typecheck_elem_2_openarray
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -3281,7 +3299,8 @@ implementation
            nil,
            nil,
            nil,
-           nil
+           nil,
+           @ttypeconvnode._first_nothing
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -3490,6 +3509,12 @@ implementation
       end;
 
 
+    procedure ttypeconvnode._second_elem_to_openarray;
+      begin
+        second_elem_to_openarray;
+      end;
+
+
     procedure ttypeconvnode._second_nothing;
       begin
         second_nothing;
@@ -3538,7 +3563,8 @@ implementation
            @ttypeconvnode._second_nothing,  { enum_2_variant }
            @ttypeconvnode._second_nothing,  { variant_2_interface }
            @ttypeconvnode._second_nothing,  { interface_2_variant }
-           @ttypeconvnode._second_nothing   { array_2_dynarray }
+           @ttypeconvnode._second_nothing,  { array_2_dynarray }
+           @ttypeconvnode._second_elem_to_openarray   { elem_2_openarray }
          );
       type
          tprocedureofobject = procedure of object;
