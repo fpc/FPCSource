@@ -314,7 +314,9 @@ type
       (when calling a regular procedure using the above convention, it will
        simply not see the frame pointer parameter, and since the caller cleans
        up the stack will also remain balanced) }
-    po_delphi_nested_cc
+    po_delphi_nested_cc,
+    { Java method }
+    po_java
   );
   tprocoptions=set of tprocoption;
 

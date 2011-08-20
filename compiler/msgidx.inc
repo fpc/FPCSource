@@ -367,7 +367,7 @@ const
   parser_e_must_use_override_objc=03273;
   parser_h_should_use_override_objc=03274;
   parser_e_objc_message_name_changed=03275;
-  parser_e_no_objc_unique=03276;
+  parser_e_unique_unsupported=03276;
   parser_e_no_category_as_types=03277;
   parser_e_no_category_override=03278;
   parser_e_must_use_reintroduce_objc=03279;
@@ -564,7 +564,7 @@ const
   sym_w_library_unit=05077;
   sym_w_non_implemented_unit=05078;
   sym_w_experimental_unit=05079;
-  sym_e_objc_formal_class_not_resolved=05080;
+  sym_e_formal_class_not_resolved=05080;
   sym_e_interprocgoto_into_init_final_code_not_allowed=05081;
   sym_e_external_class_name_mismatch1=05082;
   sym_e_external_class_name_mismatch2=05083;
@@ -900,7 +900,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 60991;
+  MsgTxtSize = 60995;
 
   MsgIdxMax : array[1..20] of longint=(
     26,89,314,103,85,54,111,23,202,63,

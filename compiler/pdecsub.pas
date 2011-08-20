@@ -44,7 +44,9 @@ interface
         pd_cppobject,    { directive can be used with cppclass }
         pd_objcclass,    { directive can be used with objcclass }
         pd_objcprot,     { directive can be used with objcprotocol }
-        pd_nothelper     { directive can not be used with record/class helper declaration }
+        pd_nothelper,    { directive can not be used with record/class helper declaration }
+        pd_javaclass,    { directive can be used with Java class }
+        pd_intfjava      { directive can be used with Java interface }
       );
       tpdflags=set of tpdflag;
 
@@ -295,7 +297,9 @@ implementation
 
                 { Generate VMT variable for constructor/destructor }
                 if (pd.proctypeoption in [potype_constructor,potype_destructor]) and
-                   not(is_cppclass(tprocdef(pd).struct) or is_record(tprocdef(pd).struct)) then
+                   not(is_cppclass(tprocdef(pd).struct) or
+                       is_record(tprocdef(pd).struct) or
+                       is_javaclass(tprocdef(pd).struct)) then
                  begin
                    { can't use classrefdef as type because inheriting
                      will then always file because of a type mismatch }
@@ -2073,6 +2077,9 @@ begin
             hs:=ChangeFileExt(hs,target_info.sharedlibext);
           if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
             hs:=target_info.sharedlibprefix+hs;
+          { the JVM expects java/lang/Object rather than java.lang.Object }
+          if target_info.system=system_jvm_java32 then
+            Replace(hs,'.','/');
           import_dll:=stringdup(hs);
           include(procoptions,po_has_importdll);
           if (idtoken=_NAME) then
@@ -2379,7 +2386,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_OVERRIDE;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass,pd_notrecord];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass,pd_javaclass,pd_notrecord];
       handler  : @pd_override;
       pocall   : pocall_none;
       pooption : [po_overridingmethod,po_virtualmethod];
@@ -2444,7 +2451,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_STATIC;
-      pd_flags : [pd_interface,pd_implemen,pd_body,pd_object,pd_record,pd_notobjintf];
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_object,pd_record,pd_javaclass,pd_notobjintf];
       handler  : @pd_static;
       pocall   : pocall_none;
       pooption : [po_staticmethod];
@@ -2680,6 +2687,15 @@ const
            { check if method and directive not for record/class helper }
            if is_objectpascal_helper(tprocdef(pd).struct) and
              (pd_nothelper in proc_direcdata[p].pd_flags) then
+
+           { check if method and directive not for java class }
+           if is_javaclass(tprocdef(pd).struct) and
+             not(pd_javaclass in proc_direcdata[p].pd_flags) then
+            exit;
+
+           { check if method and directive not for java interface }
+           if is_javainterface(tprocdef(pd).struct) and
+             not(pd_intfjava in proc_direcdata[p].pd_flags) then
             exit;
 
          end;

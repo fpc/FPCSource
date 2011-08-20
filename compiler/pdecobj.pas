@@ -280,7 +280,7 @@ implementation
 
     procedure handleImplementedProtocol(intfdef : tobjectdef);
       begin
-        intfdef:=find_real_objcclass_definition(intfdef,false);
+        intfdef:=find_real_class_definition(intfdef,false);
         if not is_objcprotocol(intfdef) then
           begin
              Message1(type_e_protocol_type_expected,intfdef.typename);
@@ -345,7 +345,7 @@ implementation
         p.free;
       end;
 
-    procedure get_cpp_class_external_status(od: tobjectdef);
+    procedure get_cpp_or_java_class_external_status(od: tobjectdef);
       var
         hs: string;
       begin
@@ -363,6 +363,9 @@ implementation
                   hs:=ChangeFileExt(hs,target_info.sharedlibext);
                 if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
                   hs:=target_info.sharedlibprefix+hs;
+                { the JVM expects java/lang/Object rather than java.lang.Object }
+                if target_info.system=system_jvm_java32 then
+                  Replace(hs,'.','/');
                 od.import_lib:=stringdup(hs);
               end;
             include(od.objectoptions, oo_is_external);
@@ -419,8 +422,9 @@ implementation
               if [oo_is_abstract, oo_is_sealed] * current_structdef.objectoptions = [oo_is_abstract, oo_is_sealed] then
                 Message(parser_e_abstract_and_sealed_conflict);
             end;
-          odt_cppclass:
-            get_cpp_class_external_status(current_objectdef);
+          odt_cppclass,
+          odt_javaclass:
+            get_cpp_or_java_class_external_status(current_objectdef);
           odt_objcclass,odt_objcprotocol,odt_objccategory:
             get_objc_class_or_protocol_external_status(current_objectdef);
           odt_helper: ; // nothing
@@ -460,10 +464,14 @@ implementation
                 { a mix of class, interfaces, objects and cppclasses
                   isn't allowed }
                 case current_objectdef.objecttype of
-                   odt_class:
-                     if not(is_class(childof)) then
+                   odt_class,
+                   odt_javaclass:
+                     if (childof.objecttype<>current_objectdef.objecttype) then
                        begin
-                          if is_interface(childof) then
+                          if (is_interface(childof) and
+                              is_class(current_objectdef)) or
+                             (is_javainterface(childof) and
+                              is_javaclass(current_objectdef)) then
                             begin
                                { we insert the interface after the child
                                  is set, see below
@@ -476,7 +484,9 @@ implementation
                        end
                      else
                        if oo_is_sealed in childof.objectoptions then
-                         Message1(parser_e_sealed_descendant,childof.typename);
+                         Message1(parser_e_sealed_descendant,childof.typename)
+                       else
+                         childof:=find_real_class_definition(childof,true);
                    odt_interfacecorba,
                    odt_interfacecom:
                      begin
@@ -507,12 +517,19 @@ implementation
                            Message(parser_e_mix_of_classes_and_objects);
                        end
                      else
-                       childof:=find_real_objcclass_definition(childof,true);
+                       childof:=find_real_class_definition(childof,true);
                    odt_objcprotocol:
                      begin
                        if not(is_objcprotocol(childof)) then
                          Message(parser_e_mix_of_classes_and_objects);
                        intfchildof:=childof;
+                       childof:=nil;
+                     end;
+                   odt_interfacejava:
+                     begin
+                       if not(is_javainterface(childof)) then
+                         Message(parser_e_mix_of_classes_and_objects);
+                       intfchildof:=find_real_class_definition(childof,true);
                        childof:=nil;
                      end;
                    odt_object:
@@ -548,6 +565,9 @@ implementation
                 childof:=interface_idispatch;
               odt_objcclass:
                 CGMessage(parser_h_no_objc_parent);
+              odt_javaclass:
+                if current_objectdef<>java_jlobject then
+                  childof:=java_jlobject;
             end;
           end;
 
@@ -562,7 +582,7 @@ implementation
             else if not(oo_is_formal in childof.objectoptions) then
               current_objectdef.set_parent(childof)
             else
-              Message1(sym_e_objc_formal_class_not_resolved,childof.objrealname^);
+              Message1(sym_e_formal_class_not_resolved,childof.objrealname^);
           end;
 
         { remove forward flag, is resolved }
@@ -570,7 +590,7 @@ implementation
 
         if hasparentdefined then
           begin
-            if current_objectdef.objecttype in [odt_class,odt_objcclass,odt_objcprotocol] then
+            if current_objectdef.objecttype in [odt_class,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
               begin
                 if assigned(intfchildof) then
                   if current_objectdef.objecttype=odt_class then
@@ -664,6 +684,15 @@ implementation
         end;
 
 
+      procedure chkjava(pd: tprocdef);
+        begin
+          if is_java_class_or_interface(pd.struct) then
+            begin
+              include(pd.procoptions,po_java);
+            end;
+        end;
+
+
         procedure chkcpp(pd:tprocdef);
           begin
             { nothing currently }
@@ -696,7 +725,7 @@ implementation
         vdoptions: tvar_dec_options;
       begin
         { empty class declaration ? }
-        if (current_objectdef.objecttype in [odt_class,odt_objcclass]) and
+        if (current_objectdef.objecttype in [odt_class,odt_objcclass,odt_javaclass]) and
            (token=_SEMICOLON) then
           exit;
 
@@ -749,7 +778,8 @@ implementation
                   _PRIVATE :
                     begin
                       if is_interface(current_structdef) or
-                         is_objc_protocol_or_category(current_structdef) then
+                         is_objc_protocol_or_category(current_structdef) or
+                         is_javainterface(current_structdef) then
                         Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PRIVATE);
                        current_structdef.symtable.currentvisibility:=vis_private;
@@ -762,7 +792,8 @@ implementation
                    _PROTECTED :
                      begin
                        if is_interface(current_structdef) or
-                          is_objc_protocol_or_category(current_structdef) then
+                          is_objc_protocol_or_category(current_structdef) or
+                          is_javainterface(current_structdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PROTECTED);
                        current_structdef.symtable.currentvisibility:=vis_protected;
@@ -775,7 +806,8 @@ implementation
                    _PUBLIC :
                      begin
                        if is_interface(current_structdef) or
-                          is_objc_protocol_or_category(current_structdef) then
+                          is_objc_protocol_or_category(current_structdef) or
+                          is_javainterface(current_structdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PUBLIC);
                        current_structdef.symtable.currentvisibility:=vis_public;
@@ -791,9 +823,10 @@ implementation
                        { this is the way, delphi does it                  }
                        if is_interface(current_structdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
-                       { Objective-C classes do not support "published",
+                       { Objective-C and Java classes do not support "published",
                          as basically everything is published.  }
-                       if is_objc_class_or_protocol(current_structdef) then
+                       if is_objc_class_or_protocol(current_structdef) or
+                          is_java_class_or_interface(current_structdef) then
                          Message(parser_e_no_objc_published);
                        consume(_PUBLISHED);
                        current_structdef.symtable.currentvisibility:=vis_published;
@@ -805,9 +838,10 @@ implementation
                    _STRICT :
                      begin
                        if is_interface(current_structdef) or
-                          is_objc_protocol_or_category(current_structdef) then
-                          Message(parser_e_no_access_specifier_in_interfaces);
-                        consume(_STRICT);
+                          is_objc_protocol_or_category(current_structdef) or
+                          is_javainterface(current_structdef) then
+                         Message(parser_e_no_access_specifier_in_interfaces);
+                         consume(_STRICT);
                         if token=_ID then
                           begin
                             case idtoken of
@@ -840,7 +874,8 @@ implementation
                           begin
                             if is_interface(current_structdef) or
                                is_objc_protocol_or_category(current_structdef) or
-                               is_objectpascal_helper(current_structdef) then
+                               is_objectpascal_helper(current_structdef) or
+                               is_javainterface(current_structdef) then
                               Message(parser_e_no_vars_in_interfaces);
 
                             if (current_structdef.symtable.currentvisibility=vis_published) and
@@ -937,6 +972,7 @@ implementation
 
                     chkcpp(pd);
                     chkobjc(pd);
+                    chkjava(pd);
                   end;
 
                 maybe_parse_hint_directives(pd);
@@ -1124,6 +1160,9 @@ implementation
                   odt_class :
                     if (current_structdef.objname^='TOBJECT') then
                       class_tobject:=current_objectdef;
+                  odt_javaclass:
+                    if (current_objectdef.objname^='TOBJECT') then
+                      java_jlobject:=current_objectdef;
                 end;
               end;
             if (current_module.modulename^='OBJCBASE') then
@@ -1149,11 +1188,11 @@ implementation
            (current_objectdef.objecttype in [odt_interfacecom,odt_class,odt_helper]) then
           include(current_structdef.objectoptions,oo_can_have_published);
 
-        { Objective-C objectdefs can be "formal definitions", in which case
+        { Objective-C/Java objectdefs can be "formal definitions", in which case
           the syntax is "type tc = objcclass external;" -> we have to parse
           its object options (external) already here, to make sure that such
           definitions are recognised as formal defs }
-        if objecttype in [odt_objcclass,odt_objcprotocol,odt_objccategory] then
+        if objecttype in [odt_objcclass,odt_objcprotocol,odt_objccategory,odt_javaclass,odt_interfacejava] then
           parse_object_options;
 
         { forward def? }
@@ -1178,7 +1217,7 @@ implementation
               include(current_objectdef.objectoptions,oo_is_classhelper);
 
             { parse list of options (abstract / sealed) }
-            if not(objecttype in [odt_objcclass,odt_objcprotocol,odt_objccategory]) then
+            if not(objecttype in [odt_objcclass,odt_objcprotocol,odt_objccategory,odt_javaclass,odt_interfacejava]) then
               parse_object_options;
 
             symtablestack.push(current_structdef.symtable);
@@ -1221,11 +1260,13 @@ implementation
         if (oo_has_vmt in current_structdef.objectoptions) and
            not(oo_is_forward in current_structdef.objectoptions) and
            not(oo_has_constructor in current_structdef.objectoptions) and
-           not is_objc_class_or_protocol(current_structdef) then
+           not is_objc_class_or_protocol(current_structdef) and
+           not is_java_class_or_interface(current_structdef) then
           Message1(parser_w_virtual_without_constructor,current_structdef.objrealname^);
 
         if is_interface(current_structdef) or
-           is_objcprotocol(current_structdef) then
+           is_objcprotocol(current_structdef) or
+           is_javainterface(current_structdef) then
           setinterfacemethodoptions
         else if is_objcclass(current_structdef) then
           setobjcclassmethodoptions;

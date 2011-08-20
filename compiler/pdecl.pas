@@ -383,7 +383,7 @@ implementation
 
     procedure types_dec(in_structure: boolean);
 
-      procedure finalize_objc_class_or_protocol_external_status(od: tobjectdef);
+      procedure finalize_class_external_status(od: tobjectdef);
         begin
           if  [oo_is_external,oo_is_forward] <= od.objectoptions then
             begin
@@ -537,8 +537,9 @@ implementation
                     istyperenaming:=true;
                   if isunique then
                     begin
-                      if is_objc_class_or_protocol(hdef) then
-                        Message(parser_e_no_objc_unique);
+                      if is_objc_class_or_protocol(hdef) or
+                         is_java_class_or_interface(hdef) then
+                        Message(parser_e_unique_unsupported);
 
                       hdef:=tstoreddef(hdef).getcopy;
 
@@ -606,11 +607,12 @@ implementation
                     try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
                     consume(_SEMICOLON);
 
-                    { change a forward and external objcclass declaration into
+                    { change a forward and external class declaration into
                       formal external definition, so the compiler does not
                       expect an real definition later }
-                    if is_objc_class_or_protocol(hdef) then
-                      finalize_objc_class_or_protocol_external_status(tobjectdef(hdef));
+                    if is_objc_class_or_protocol(hdef) or
+                       is_java_class_or_interface(hdef) then
+                      finalize_class_external_status(tobjectdef(hdef));
 
                     { Build VMT indexes, skip for type renaming and forward classes }
                     if (hdef.typesym=newtype) and

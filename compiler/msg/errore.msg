@@ -1268,9 +1268,9 @@ parser_e_objc_message_name_changed=03275_E_Message name "$1" in inherited class 
 % An overriding Objective-C method cannot have a different message name than an inherited method. The reason
 % is that these message names uniquely define the message to the Objective-C runtime, which means that
 % giving them a different message name breaks the ``override'' semantics.
-parser_e_no_objc_unique=03276_E_It is not yet possible to make unique copies of Objective-C types
-% Duplicating an Objective-C type using \var{type x = type y;} is not yet supported. You may be able to
-% obtain the desired effect using \var{type x = objcclass(y) end;} instead.
+parser_e_unique_unsupported=03276_E_It is not yet possible to make unique copies of Objective-C or Java types
+% Duplicating an Objective-C or Java type using \var{type x = type y;} is not yet supported. You may be able to
+% obtain the desired effect using \var{type x = objcclass(y) end;} resp.{} \var{type x = class(y) end;} instead.
 parser_e_no_category_as_types=03277_E_Objective-C categories and Object Pascal class helpers cannot be used as types
 % It is not possible to declare a variable as an instance of an Objective-C
 % category or an Object Pascal class helper. A category/class helper adds
@@ -1997,8 +1997,8 @@ sym_w_experimental_unit=05079_W_Unit "$1" is experimental
 % declared as \var{experimental} is used. Experimental units
 % might disappear or change semantics in future versions. Usage of this unit
 % should be avoided as much as possible.
-sym_e_objc_formal_class_not_resolved=05080_E_No complete definition of the formally declared objcclass "$1" is in scope
-% Objecive-C classes can be imported formally, without using the the unit in which it is fully declared.
+sym_e_formal_class_not_resolved=05080_E_No complete definition of the formally declared class "$1" is in scope
+% Objecive-C and Java classes can be imported formally, without using the the unit in which it is fully declared.
 % This enables making forward references to such classes and breaking circular dependencies amongst units.
 % However, as soon as you wish to actually do something with an entity of this class type (such as
 % access one of its fields, send a message to it, or use it to inherit from), the compiler requires the full definition

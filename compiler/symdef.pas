@@ -760,6 +760,10 @@ interface
        objc_fastenumeration      : tobjectdef;
        objc_fastenumerationstate : trecorddef;
 
+       { Java base types }
+       { java.lang.Object }
+       java_jlobject             : tobjectdef;
+
     const
 {$ifdef i386}
        pbestrealtype : ^tdef = @s80floattype;
@@ -829,6 +833,10 @@ interface
     function is_implicit_pointer_object_type(def: tdef): boolean;
     function is_class_or_object(def: tdef): boolean;
     function is_record(def: tdef): boolean;
+
+    function is_javaclass(def: tdef): boolean;
+    function is_javainterface(def: tdef): boolean;
+    function is_java_class_or_interface(def: tdef): boolean;
 
     procedure loadobjctypes;
     procedure maybeloadcocoatypes;
@@ -4516,7 +4524,7 @@ implementation
         if objecttype in [odt_interfacecorba,odt_interfacecom,odt_dispinterface] then
           prepareguid;
         { setup implemented interfaces }
-        if objecttype in [odt_class,odt_objcclass,odt_objcprotocol] then
+        if objecttype in [odt_class,odt_objcclass,odt_objcprotocol,odt_interfacejava] then
           ImplementedInterfaces:=TFPObjectList.Create(true)
         else
           ImplementedInterfaces:=nil;
@@ -4575,7 +4583,7 @@ implementation
            end;
 
          { load implemented interfaces }
-         if objecttype in [odt_class,odt_objcclass,odt_objcprotocol] then
+         if objecttype in [odt_class,odt_objcclass,odt_objcprotocol,odt_interfacejava] then
            begin
              ImplementedInterfaces:=TFPObjectList.Create(true);
              implintfcount:=ppufile.getlongint;
@@ -4613,6 +4621,10 @@ implementation
             (objecttype=odt_objcclass) and
             (objname^='PROTOCOL') then
            objc_protocoltype:=self;
+         if (childof=nil) and
+            (objecttype=odt_javaclass) and
+            (objname^='TOBJECT') then
+           java_jlobject:=self;
          writing_class_record_dbginfo:=false;
        end;
 
@@ -4955,7 +4967,7 @@ implementation
         { inherit options and status }
         objectoptions:=objectoptions+(c.objectoptions*inherited_objectoptions);
         { add the data of the anchestor class/object }
-        if (objecttype in [odt_class,odt_object,odt_objcclass]) then
+        if (objecttype in [odt_class,odt_object,odt_objcclass,odt_javaclass]) then
           begin
             tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize+tObjectSymtable(c.symtable).datasize;
             { inherit recordalignment }
@@ -4986,7 +4998,7 @@ implementation
      var
        vs: tfieldvarsym;
      begin
-        if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol] then
+        if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
           exit;
         if (oo_has_vmt in objectoptions) then
           internalerror(12345)
@@ -5017,7 +5029,7 @@ implementation
 
    procedure tobjectdef.check_forwards;
      begin
-        if not(objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcprotocol]) then
+        if not(objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcprotocol,odt_interfacejava]) then
           inherited;
         if (oo_is_forward in objectoptions) then
           begin
@@ -5029,7 +5041,7 @@ implementation
 
 
    { true if prot implements d (or if they are equal) }
-   function is_related_protocol(prot: tobjectdef; d : tdef) : boolean;
+   function is_related_interface_multiple(prot: tobjectdef; d : tdef) : boolean;
      var
        i  : longint;
      begin
@@ -5041,7 +5053,7 @@ implementation
 
        for i:=0 to prot.ImplementedInterfaces.count-1 do
          begin
-           result:=is_related_protocol(TImplementedInterface(prot.ImplementedInterfaces[i]).intfdef,d);
+           result:=is_related_interface_multiple(TImplementedInterface(prot.ImplementedInterfaces[i]).intfdef,d);
            if result then
              exit;
          end;
@@ -5065,22 +5077,34 @@ implementation
             exit;
           end;
 
-        { Objective-C protocols can use multiple inheritance }
-        if (objecttype=odt_objcprotocol) then
+        { Objective-C protocols and Java interfaces can use multiple
+           inheritance }
+        if (objecttype in [odt_objcprotocol,odt_interfacejava]) then
           begin
-            is_related:=is_related_protocol(self,d);
+            is_related:=is_related_interface_multiple(self,d);
             exit
           end;
 
-        { formally declared Objective-C classes match Objective-C classes with
-          the same name }
-        if (objecttype=odt_objcclass) and
-           (tobjectdef(d).objecttype=odt_objcclass) and
+        { formally declared Objective-C and Java classes match Objective-C/Java
+          classes with the same name. In case of Java, the package must also
+          match}
+        if (objecttype in [odt_objcclass,odt_javaclass]) and
+           (tobjectdef(d).objecttype=objecttype) and
            ((oo_is_formal in objectoptions) or
             (oo_is_formal in tobjectdef(d).objectoptions)) and
            (objrealname^=tobjectdef(d).objrealname^) then
           begin
-            is_related:=true;
+            { check package name for Java }
+            if objecttype=odt_objcclass then
+              is_related:=true
+            else
+              begin
+                is_related:=
+                  assigned(import_lib)=assigned(tobjectdef(d).import_lib);
+                if is_related and
+                   assigned(import_lib) then
+                  is_related:=import_lib^=tobjectdef(d).import_lib^;
+              end;
             exit;
           end;
 
@@ -5120,7 +5144,7 @@ implementation
 
     function tobjectdef.size : asizeint;
       begin
-        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper] then
+        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper,odt_javaclass,odt_interfacejava] then
           result:=sizeof(pint)
         else
           result:=tObjectSymtable(symtable).datasize;
@@ -5129,7 +5153,7 @@ implementation
 
     function tobjectdef.alignment:shortint;
       begin
-        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper] then
+        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper,odt_javaclass,odt_interfacejava] then
           alignment:=sizeof(pint)
         else
           alignment:=tObjectSymtable(symtable).recordalignment;
@@ -5149,6 +5173,10 @@ implementation
           vmtmethodoffset:=0;
         odt_interfacecom,odt_interfacecorba,odt_dispinterface:
           vmtmethodoffset:=index*sizeof(pint);
+        odt_javaclass,
+        odt_interfacejava:
+          { invalid }
+          vmtmethodoffset:=-1;
         else
 {$ifdef WITHDMT}
           vmtmethodoffset:=(index+4)*sizeof(pint);
@@ -5182,7 +5210,9 @@ implementation
               needs_inittable:=tObjectSymtable(symtable).needs_init_final;
             odt_cppclass,
             odt_objcclass,
-            odt_objcprotocol:
+            odt_objcprotocol,
+            odt_javaclass,
+            odt_interfacejava:
               needs_inittable:=false;
             else
               internalerror(200108267);
@@ -5953,7 +5983,7 @@ implementation
         result:=
           assigned(def) and
           (def.typ=objectdef) and
-          (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper]);
+          (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper,odt_javaclass,odt_interfacejava]);
       end;
 
     function is_class_or_object(def: tdef): boolean;
@@ -5969,6 +5999,30 @@ implementation
         result:=
           assigned(def) and
           (def.typ=recorddef);
+      end;
+
+    function is_javaclass(def: tdef): boolean;
+      begin
+        result:=
+          assigned(def) and
+          (def.typ=objectdef) and
+          (tobjectdef(def).objecttype=odt_javaclass);
+      end;
+
+    function is_javainterface(def: tdef): boolean;
+      begin
+        result:=
+          assigned(def) and
+          (def.typ=objectdef) and
+          (tobjectdef(def).objecttype=odt_interfacejava);
+      end;
+
+    function is_java_class_or_interface(def: tdef): boolean;
+      begin
+        result:=
+          assigned(def) and
+          (def.typ=objectdef) and
+          (tobjectdef(def).objecttype in [odt_javaclass,odt_interfacejava]);
       end;
 
     procedure loadobjctypes;

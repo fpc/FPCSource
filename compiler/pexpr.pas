@@ -367,6 +367,7 @@ implementation
               { Allow classrefdef, which is required for
                 Typeof(self) in static class methods }
               if not(is_objc_class_or_protocol(p1.resultdef)) and
+                 not(is_java_class_or_interface(p1.resultdef)) and
                  ((p1.resultdef.typ = objectdef) or
                   (assigned(current_procinfo) and
                    ((po_classmethod in current_procinfo.procdef.procoptions) or
