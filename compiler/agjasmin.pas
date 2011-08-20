@@ -917,6 +917,9 @@ implementation
         { internal static field definition alias -> skip }
         if sp_static in sym.symoptions then
           exit;
+        { external definition -> no definition here }
+        if vo_is_external in sym.varoptions then
+          exit;
         AsmWrite('.field ');
         AsmWriteln(FieldDefinition(sym));
       end;
