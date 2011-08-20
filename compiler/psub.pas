@@ -1080,7 +1080,7 @@ implementation
 
             cg.set_regalloc_live_range_direction(rad_backwards);
 
-            gen_entry_code(templist);
+            hlcg.gen_entry_code(templist);
             aktproccode.insertlistafter(entry_asmnode.currenttai,templist);
             hlcg.gen_initialize_code(templist);
             aktproccode.insertlistafter(init_asmnode.currenttai,templist);
@@ -1107,7 +1107,7 @@ implementation
             else
               aktproccode.concatlist(templist);
             { exit code }
-            gen_exit_code(templist);
+            hlcg.gen_exit_code(templist);
             aktproccode.concatlist(templist);
 
 {$ifdef OLDREGVARS}

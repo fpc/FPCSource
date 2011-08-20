@@ -100,6 +100,9 @@ uses
 
       procedure gen_initialize_code(list: TAsmList); override;
 
+      procedure gen_entry_code(list: TAsmList); override;
+      procedure gen_exit_code(list: TAsmList); override;
+
       { JVM-specific routines }
 
       procedure a_load_stack_reg(list : TAsmList;size: tdef;reg: tregister);
@@ -1471,6 +1474,16 @@ implementation
         else
           inherited
       end;
+    end;
+
+  procedure thlcgjvm.gen_entry_code(list: TAsmList);
+    begin
+      list.concat(Tai_force_line.Create);
+    end;
+
+  procedure thlcgjvm.gen_exit_code(list: TAsmList);
+    begin
+      { nothing }
     end;
 
   procedure thlcgjvm.a_load_stack_reg(list: TAsmList; size: tdef; reg: tregister);

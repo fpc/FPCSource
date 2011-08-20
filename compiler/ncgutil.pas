@@ -90,8 +90,6 @@ interface
     procedure gen_stack_check_call(list:TAsmList);
     procedure gen_save_used_regs(list:TAsmList);
     procedure gen_restore_used_regs(list:TAsmList);
-    procedure gen_entry_code(list:TAsmList);
-    procedure gen_exit_code(list:TAsmList);
     procedure gen_load_para_value(list:TAsmList);
 
     procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
@@ -1837,52 +1835,6 @@ implementation
               allocator is concerned }
             current_procinfo.procdef.parast.SymList.ForEachCall(@init_paras,list);
           end;
-      end;
-
-
-    procedure gen_entry_code(list:TAsmList);
-      begin
-        { the actual profile code can clobber some registers,
-          therefore if the context must be saved, do it before
-          the actual call to the profile code
-        }
-        if (cs_profile in current_settings.moduleswitches) and
-           not(po_assembler in current_procinfo.procdef.procoptions) then
-          begin
-            { non-win32 can call mcout even in main }
-            if not (target_info.system in [system_i386_win32,system_i386_wdosx]) or
-               not (current_procinfo.procdef.proctypeoption=potype_proginit) then
-              begin
-                cg.g_profilecode(list);
-              end;
-          end;
-
-        { call startup helpers from main program }
-        if (current_procinfo.procdef.proctypeoption=potype_proginit) then
-         begin
-           { initialize units }
-           cg.allocallcpuregisters(list);
-           if not(current_module.islibrary) then
-             cg.a_call_name(list,'FPC_INITIALIZEUNITS',false)
-           else
-             cg.a_call_name(list,'FPC_LIBINITIALIZEUNITS',false);
-           cg.deallocallcpuregisters(list);
-         end;
-
-        list.concat(Tai_force_line.Create);
-
-{$ifdef OLDREGVARS}
-        load_regvars(list,nil);
-{$endif OLDREGVARS}
-      end;
-
-
-    procedure gen_exit_code(list:TAsmList);
-      begin
-        { call __EXIT for main program }
-        if (not DLLsource) and
-           (current_procinfo.procdef.proctypeoption=potype_proginit) then
-          cg.a_call_name(list,'FPC_DO_EXIT',false);
       end;
 
 

@@ -449,6 +449,10 @@ unit hlcgobj;
 
           procedure gen_initialize_code(list:TAsmList);virtual;
           procedure gen_finalize_code(list:TAsmList);virtual;
+
+          procedure gen_entry_code(list:TAsmList);virtual;
+          procedure gen_exit_code(list:TAsmList);virtual;
+
          protected
           { helpers called by gen_initialize_code/gen_finalize_code }
           procedure inittempvariables(list:TAsmList);virtual;
@@ -2008,6 +2012,56 @@ implementation
       if assigned(current_procinfo.procdef.parast) and
          not(po_assembler in current_procinfo.procdef.procoptions) then
         current_procinfo.procdef.parast.SymList.ForEachCall(@final_paras,list);
+    end;
+
+  procedure thlcgobj.gen_entry_code(list: TAsmList);
+    begin
+      { the actual profile code can clobber some registers,
+        therefore if the context must be saved, do it before
+        the actual call to the profile code
+      }
+      if (cs_profile in current_settings.moduleswitches) and
+         not(po_assembler in current_procinfo.procdef.procoptions) then
+        begin
+          { non-win32 can call mcout even in main }
+          if not (target_info.system in [system_i386_win32,system_i386_wdosx]) or
+             not (current_procinfo.procdef.proctypeoption=potype_proginit) then
+            begin
+              g_profilecode(list);
+            end;
+        end;
+
+      { TODO: create high level version (create compilerprocs in system unit,
+          look up procdef, use hlcgobj.a_call_name()) }
+
+      { call startup helpers from main program }
+      if (current_procinfo.procdef.proctypeoption=potype_proginit) then
+       begin
+         { initialize units }
+         cg.allocallcpuregisters(list);
+         if not(current_module.islibrary) then
+           cg.a_call_name(list,'FPC_INITIALIZEUNITS',false)
+         else
+           cg.a_call_name(list,'FPC_LIBINITIALIZEUNITS',false);
+         cg.deallocallcpuregisters(list);
+       end;
+
+      list.concat(Tai_force_line.Create);
+
+{$ifdef OLDREGVARS}
+      load_regvars(list,nil);
+{$endif OLDREGVARS}
+    end;
+
+  procedure thlcgobj.gen_exit_code(list: TAsmList);
+    begin
+      { TODO: create high level version (create compilerproc in system unit,
+          look up procdef, use hlcgobj.a_call_name()) }
+
+      { call __EXIT for main program }
+      if (not DLLsource) and
+         (current_procinfo.procdef.proctypeoption=potype_proginit) then
+        cg.a_call_name(list,'FPC_DO_EXIT',false);
     end;
 
   procedure thlcgobj.inittempvariables(list: TAsmList);
