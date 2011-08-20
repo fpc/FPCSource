@@ -2164,33 +2164,38 @@ implementation
                    (tobjectdef(ttypesym(srsym).typedef).objecttype=pd.objecttype) and
                    not(oo_is_formal in tobjectdef(ttypesym(srsym).typedef).objectoptions) then
                   begin
-                    { the external name for the formal and the real definition must match }
-                    if assigned(tobjectdef(ttypesym(srsym).typedef).import_lib) or
-                       assigned(pd.import_lib) then
+                    if not(oo_is_forward in tobjectdef(ttypesym(srsym).typedef).objectoptions) then
                       begin
-                        if assigned(pd.import_lib) then
-                          formalname:=pd.import_lib^
-                        else
-                          formalname:='';
-                        formalname:=formalname+'.'+pd.objextname^;
-                        if assigned(tobjectdef(ttypesym(srsym).typedef).import_lib) then
-                          foundname:=tobjectdef(ttypesym(srsym).typedef).import_lib^+'.'
-                        else
-                          foundname:='';
-                        foundname:=foundname+tobjectdef(ttypesym(srsym).typedef).objextname^;
+                        { the external name for the formal and the real
+                          definition must match (forward declarations don't have
+                          an external name set yet) }
+                        if assigned(tobjectdef(ttypesym(srsym).typedef).import_lib) or
+                           assigned(pd.import_lib) then
+                          begin
+                            if assigned(pd.import_lib) then
+                              formalname:=pd.import_lib^
+                            else
+                              formalname:='';
+                            formalname:=formalname+'.'+pd.objextname^;
+                            if assigned(tobjectdef(ttypesym(srsym).typedef).import_lib) then
+                              foundname:=tobjectdef(ttypesym(srsym).typedef).import_lib^+'.'
+                            else
+                              foundname:='';
+                            foundname:=foundname+tobjectdef(ttypesym(srsym).typedef).objextname^;
 
-                        formalnameptr:=@formalname;
-                        foundnameptr:=@foundname;
-                      end
-                    else
-                      begin
-                        formalnameptr:=pd.objextname;
-                        foundnameptr:=tobjectdef(ttypesym(srsym).typedef).objextname;
-                      end;
-                    if foundnameptr^<>formalnameptr^ then
-                      begin
-                        Message2(sym_e_external_class_name_mismatch1,formalnameptr^,pd.typename);
-                        MessagePos1(srsym.fileinfo,sym_e_external_class_name_mismatch2,foundnameptr^);
+                            formalnameptr:=@formalname;
+                            foundnameptr:=@foundname;
+                          end
+                        else
+                          begin
+                            formalnameptr:=pd.objextname;
+                            foundnameptr:=tobjectdef(ttypesym(srsym).typedef).objextname;
+                          end;
+                        if foundnameptr^<>formalnameptr^ then
+                          begin
+                            Message2(sym_e_external_class_name_mismatch1,formalnameptr^,pd.typename);
+                            MessagePos1(srsym.fileinfo,sym_e_external_class_name_mismatch2,foundnameptr^);
+                          end;
                       end;
                     result:=tobjectdef(ttypesym(srsym).typedef);
                     if assigned(current_procinfo) and
