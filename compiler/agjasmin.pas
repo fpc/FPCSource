@@ -728,6 +728,7 @@ implementation
         if (pd.procsym.owner.symtabletype in [globalsymtable,staticsymtable,localsymtable]) or
            (po_finalmethod in pd.procoptions) or
            (not(po_virtualmethod in pd.procoptions) and
+            not(po_classmethod in pd.procoptions) and
             not(pd.proctypeoption in [potype_constructor,potype_class_constructor])) then
           result:=result+'final ';
         result:=result+pd.jvmmangledbasename(false);
