@@ -132,6 +132,7 @@ interface
           constructor createinternres(const name: string; params: tnode; res:tdef);
           constructor createinternresfromunit(const fromunit, procname: string; params: tnode; res:tdef);
           constructor createinternreturn(const name: string; params: tnode; returnnode : tnode);
+          constructor createinternmethod(mp: tnode; const name: string; params: tnode);
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1115,6 +1116,24 @@ implementation
       begin
         createintern(name,params);
         funcretnode:=returnnode;
+      end;
+
+
+    constructor tcallnode.createinternmethod(mp: tnode; const name: string; params: tnode);
+      var
+        ps: tsym;
+        recdef: tabstractrecorddef;
+      begin
+        typecheckpass(mp);
+        if mp.resultdef.typ=classrefdef then
+          recdef:=tabstractrecorddef(tclassrefdef(mp.resultdef).pointeddef)
+        else
+          recdef:=tabstractrecorddef(mp.resultdef);
+        ps:=search_struct_member(recdef,name);
+        if not assigned(ps) or
+           (ps.typ<>procsym) then
+          internalerror(2011062806);
+        create(params,tprocsym(ps),ps.owner,mp,[]);
       end;
 
 
