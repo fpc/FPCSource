@@ -1192,10 +1192,11 @@ implementation
       else
         checkdef:=node.right.resultdef;
       { replace special types with their equivalent class type }
+      if (checkdef.typ=pointerdef) and
+         jvmimplicitpointertype(tpointerdef(checkdef).pointeddef) then
+        checkdef:=tpointerdef(checkdef).pointeddef;
       if checkdef=voidpointertype then
         checkdef:=java_jlobject
-      else if checkdef.typ=pointerdef then
-        checkdef:=tpointerdef(checkdef).pointeddef
       else if checkdef.typ=enumdef then
         checkdef:=tenumdef(checkdef).classdef
       else if checkdef.typ=setdef then
