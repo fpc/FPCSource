@@ -1328,7 +1328,9 @@ implementation
                    else if ((is_interface(def_to) and
                              is_class(def_from)) or
                             (is_objcprotocol(def_to) and
-                             is_objcclass(def_from))) and
+                             is_objcclass(def_from)) or
+                            (is_javainterface(def_to) and
+                             is_javaclass(def_from))) and
                            assigned(tobjectdef(def_from).ImplementedInterfaces) then
                      begin
                         { we've to search in parent classes as well }
