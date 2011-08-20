@@ -32,6 +32,7 @@ interface
 
     type
        tjvmvecnode = class(tcgvecnode)
+         function pass_1: tnode; override;
          procedure pass_generate_code;override;
        end;
 
@@ -39,14 +40,38 @@ implementation
 
     uses
       systems,
-      cutils,verbose,
-      symdef,defutil,
+      cutils,verbose,constexp,
+      symconst,symtype,symtable,symsym,symdef,defutil,
+      nadd,ncal,ncnv,ncon,
       aasmdata,pass_2,
       cgutils,hlcgobj,hlcgcpu;
 
 {*****************************************************************************
                              TJVMVECNODE
 *****************************************************************************}
+
+    function tjvmvecnode.pass_1: tnode;
+      var
+        psym: tsym;
+      begin
+        if is_wide_or_unicode_string(left.resultdef) then
+          begin
+            psym:=search_struct_member(java_jlstring,'CHARAT');
+            if not assigned(psym) or
+               (psym.typ<>procsym) then
+              internalerror(2011031501);
+            { Pascal strings are 1-based, Java strings 0-based }
+            result:=ccallnode.create(ccallparanode.create(
+              caddnode.create(subn,right,genintconstnode(1)),nil),tprocsym(psym),
+              psym.owner,ctypeconvnode.create_explicit(left,java_jlstring),[]);
+            left:=nil;
+            right:=nil;
+            exit;
+          end
+        else
+          result:=inherited;
+      end;
+
 
     procedure tjvmvecnode.pass_generate_code;
       var

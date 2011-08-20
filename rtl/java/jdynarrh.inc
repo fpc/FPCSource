@@ -25,6 +25,7 @@ type
   TJDoubleArray = array of jdouble;
   TJObjectArray = array of JLObject;
   TJRecordArray = array of FpcBaseRecordType;
+  TJStringArray = array of unicodestring;
 
 const
   FPCJDynArrTypeJByte   = 'B';

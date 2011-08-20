@@ -28,7 +28,15 @@ Unit system;
 {$implicitexceptions off}
 {$mode objfpc}
 
+{$undef FPC_HAS_FEATURE_ANSISTRINGS}
+{$undef FPC_HAS_FEATURE_TEXTIO}
+{$undef FPC_HAS_FEATURE_VARIANTS}
+{$undef FPC_HAS_FEATURE_CLASSES}
+{$undef FPC_HAS_FEATURE_EXCEPTIONS}
+{$undef FPC_HAS_FEATURE_OBJECTS}
 {$undef FPC_HAS_FEATURE_RTTI}
+{$undef FPC_HAS_FEATURE_FILEIO}
+{$undef FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
 
 Type
   { The compiler has all integer types defined internally. Here
@@ -37,9 +45,16 @@ Type
   Cardinal = LongWord;
   Integer  = SmallInt;
   UInt64   = QWord;
-  
+  SizeInt  = Longint;
+  SizeUInt = Longint;
+  PtrInt   = Longint;
+  PtrUInt  = Longint;
+
   ValReal = Double;
-  
+
+  AnsiChar    = Char;
+  UnicodeChar = WideChar;
+
   { map comp to int64, }
   Comp = Int64;
 
@@ -109,7 +124,61 @@ type
 {$i jrech.inc}
 {$i jdynarrh.inc}
 
+Function  lo(i : Integer) : byte;  [INTERNPROC: fpc_in_lo_Word];
+Function  lo(w : Word) : byte;     [INTERNPROC: fpc_in_lo_Word];
+Function  lo(l : Longint) : Word;  [INTERNPROC: fpc_in_lo_long];
+Function  lo(l : DWord) : Word;    [INTERNPROC: fpc_in_lo_long];
+Function  lo(i : Int64) : DWord;   [INTERNPROC: fpc_in_lo_qword];
+Function  lo(q : QWord) : DWord;   [INTERNPROC: fpc_in_lo_qword];
+Function  hi(i : Integer) : byte;  [INTERNPROC: fpc_in_hi_Word];
+Function  hi(w : Word) : byte;     [INTERNPROC: fpc_in_hi_Word];
+Function  hi(l : Longint) : Word;  [INTERNPROC: fpc_in_hi_long];
+Function  hi(l : DWord) : Word;    [INTERNPROC: fpc_in_hi_long];
+Function  hi(i : Int64) : DWord;   [INTERNPROC: fpc_in_hi_qword];
+Function  hi(q : QWord) : DWord;   [INTERNPROC: fpc_in_hi_qword];
+
+Function chr(b : byte) : AnsiChar;      [INTERNPROC: fpc_in_chr_byte];
+
+function RorByte(Const AValue : Byte): Byte;[internproc:fpc_in_ror_x];
+function RorByte(Const AValue : Byte;Dist : Byte): Byte;[internproc:fpc_in_ror_x_x];
+
+function RolByte(Const AValue : Byte): Byte;[internproc:fpc_in_rol_x];
+function RolByte(Const AValue : Byte;Dist : Byte): Byte;[internproc:fpc_in_rol_x_x];
+
+function RorWord(Const AValue : Word): Word;[internproc:fpc_in_ror_x];
+function RorWord(Const AValue : Word;Dist : Byte): Word;[internproc:fpc_in_ror_x_x];
+
+function RolWord(Const AValue : Word): Word;[internproc:fpc_in_rol_x];
+function RolWord(Const AValue : Word;Dist : Byte): Word;[internproc:fpc_in_rol_x_x];
+
+function RorDWord(Const AValue : DWord): DWord;[internproc:fpc_in_ror_x];
+function RorDWord(Const AValue : DWord;Dist : Byte): DWord;[internproc:fpc_in_ror_x_x];
+
+function RolDWord(Const AValue : DWord): DWord;[internproc:fpc_in_rol_x];
+function RolDWord(Const AValue : DWord;Dist : Byte): DWord;[internproc:fpc_in_rol_x_x];
+
+function RorQWord(Const AValue : QWord): QWord;[internproc:fpc_in_ror_x];
+function RorQWord(Const AValue : QWord;Dist : Byte): QWord;[internproc:fpc_in_ror_x_x];
+
+function RolQWord(Const AValue : QWord): QWord;[internproc:fpc_in_rol_x];
+function RolQWord(Const AValue : QWord;Dist : Byte): QWord;[internproc:fpc_in_rol_x_x];
+
+function SarShortint(Const AValue : Shortint): Shortint;[internproc:fpc_in_sar_x];
+function SarShortint(Const AValue : Shortint;Shift : Byte): Shortint;[internproc:fpc_in_sar_x_y];
+
+function SarSmallint(Const AValue : Smallint): Smallint;[internproc:fpc_in_sar_x];
+function SarSmallint(Const AValue : Smallint;Shift : Byte): Smallint;[internproc:fpc_in_sar_x_y];
+
+function SarLongint(Const AValue : Longint): Longint;[internproc:fpc_in_sar_x];
+function SarLongint(Const AValue : Longint;Shift : Byte): Longint;[internproc:fpc_in_sar_x_y];
+
+function SarInt64(Const AValue : Int64): Int64;[internproc:fpc_in_sar_x];
+function SarInt64(Const AValue : Int64;Shift : Byte): Int64;[internproc:fpc_in_sar_x_y];
+
+
 {$i compproc.inc}
+
+{$i ustringh.inc}
 
 {*****************************************************************************}
                                  implementation
@@ -133,6 +202,7 @@ type
  **********************************************************************
 }
 
+{$i ustrings.inc}
 {$i rtti.inc}
 {$i jrec.inc}
 
@@ -482,3 +552,4 @@ function fpc_setlength_dynarr_multidim(aorg, anew: TJObjectArray; deepcopy: bool
 *****************************************************************************}
 
 end.
+

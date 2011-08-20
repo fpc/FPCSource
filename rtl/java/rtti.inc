@@ -12,6 +12,25 @@
 
  **********************************************************************}
 
+procedure fpc_initialize_array_jstring_intern(arr: TJObjectArray; normalarrdim: longint); external name 'fpc_initialize_array_unicodestring';
+
+procedure fpc_initialize_array_unicodestring(arr: TJObjectArray; normalarrdim: longint);compilerproc;
+  var
+    i: longint;
+  begin
+    if normalarrdim > 0 then
+      begin
+        for i:=low(arr) to high(arr) do
+          fpc_initialize_array_jstring_intern(TJObjectArray(arr[i]),normalarrdim-1);
+      end
+    else
+      begin
+        for i:=low(arr) to high(arr) do
+          unicodestring(arr[i]):='';
+      end;
+  end;
+
+
 procedure fpc_initialize_array_dynarr_intern(arr: TJObjectArray; normalarrdim: longint); external name 'fpc_initialize_array_dynarr';
 
 procedure fpc_initialize_array_dynarr(arr: TJObjectArray; normalarrdim: longint);compilerproc;

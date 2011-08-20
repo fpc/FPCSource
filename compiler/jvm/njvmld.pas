@@ -36,6 +36,10 @@ type
     function is_addr_param_load: boolean; override;
   end;
 
+  tjvmassignmentnode  = class(tcgassignmentnode)
+    function pass_1: tnode; override;
+  end;
+
   tjvmarrayconstructornode = class(tcgarrayconstructornode)
    protected
     procedure makearrayref(var ref: treference; eledef: tdef); override;
@@ -47,9 +51,41 @@ implementation
 uses
   verbose,
   aasmdata,
-  nld,
-  symsym,symdef,jvmdef,
+  nbas,nld,ncal,nmem,ncnv,
+  symsym,symdef,defutil,jvmdef,
   cgbase,hlcgobj;
+
+{ tjvmassignmentnode }
+
+function tjvmassignmentnode.pass_1: tnode;
+  var
+    target: tnode;
+  begin
+    { intercept writes to string elements, because Java strings are immutable
+      -> detour via StringBuilder
+    }
+    target:=left.actualtargetnode;
+    if (target.nodetype=vecn) and
+       is_wide_or_unicode_string(tvecnode(target).left.resultdef) then
+      begin
+        { prevent errors in case of an expression such as
+            word(str[x]):=1234;
+        }
+        inserttypeconv_explicit(right,cwidechartype);
+        result:=ccallnode.createintern('fpc_unicodestr_setchar',
+          ccallparanode.create(right,
+            ccallparanode.create(tvecnode(target).right,
+              ccallparanode.create(tvecnode(target).left.getcopy,nil))));
+        result:=cassignmentnode.create(tvecnode(target).left,result);
+        right:=nil;
+        tvecnode(target).left:=nil;
+        tvecnode(target).right:=nil;
+        exit;
+      end
+    else
+      result:=inherited;
+  end;
+
 
 function tjvmloadnode.is_addr_param_load: boolean;
   begin
@@ -82,6 +118,7 @@ procedure tjvmarrayconstructornode.advancearrayoffset(var ref: treference; elesi
 
 begin
   cloadnode:=tjvmloadnode;
+  cassignmentnode:=tjvmassignmentnode;
   carrayconstructornode:=tjvmarrayconstructornode;
 end.
 

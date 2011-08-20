@@ -200,6 +200,12 @@ implementation
             exit;
           end;
 
+         { resolve anonymous external definitions }
+         if def_from.typ=objectdef then
+           def_from:=find_real_class_definition(tobjectdef(def_from),false);
+         if def_to.typ=objectdef then
+           def_to:=find_real_class_definition(tobjectdef(def_to),false);
+
          { same def? then we've an exact match }
          if def_from=def_to then
           begin
@@ -523,7 +529,13 @@ implementation
                       begin
                         doconv:=tc_intf_2_string;
                         eq:=te_convert_l1;
-                      end;
+                      end
+                     else if (def_from=java_jlstring) and
+                         is_wide_or_unicode_string(def_to) then
+                       begin
+                         doconv:=tc_equal;
+                         eq:=te_equal;
+                       end
                    end;
                end;
              end;
@@ -1267,23 +1279,24 @@ implementation
 
            objectdef :
              begin
-               { Objective-C/Java classes (handle anonymous externals) }
-               if (def_from.typ=objectdef) and
-                  (find_real_class_definition(tobjectdef(def_from),false) =
-                   find_real_class_definition(tobjectdef(def_to),false)) then
-                 begin
-                   doconv:=tc_equal;
-                   { exact, not equal, because can change between interface
-                     and implementation }
-                   eq:=te_exact;
-                 end
                { object pascal objects }
-               else if (def_from.typ=objectdef) and
+               if (def_from.typ=objectdef) and
                   (tobjectdef(def_from).is_related(tobjectdef(def_to))) then
                 begin
                   doconv:=tc_equal;
                   eq:=te_convert_l1;
                 end
+               { java.lang.string -> unicodestring }
+               else if (def_to=java_jlstring) and
+                       (is_wide_or_unicode_string(def_from) or
+                        (fromtreetype=stringconstn)) then
+                 begin
+                   doconv:=tc_equal;
+                   if is_wide_or_unicode_string(def_from) then
+                     eq:=te_equal
+                   else
+                     eq:=te_convert_l2;
+                 end
                else
                { specific to implicit pointer object types }
                 if is_implicit_pointer_object_type(def_to) then

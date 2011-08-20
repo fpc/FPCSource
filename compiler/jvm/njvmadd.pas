@@ -34,8 +34,9 @@ interface
        { tjvmaddnode }
 
        tjvmaddnode = class(tcgaddnode)
-       protected
           function pass_1: tnode;override;
+       protected
+          function first_addstring: tnode; override;
 
           function cmpnode2signedtopcmp: TOpCmp;
 
@@ -54,12 +55,13 @@ interface
 
     uses
       systems,
-      cutils,verbose,
+      cutils,verbose,constexp,
+      symtable,symdef,
       paramgr,procinfo,
       aasmtai,aasmdata,aasmcpu,defutil,
       hlcgobj,hlcgcpu,cgutils,
       cpupara,
-      ncon,nset,nadd,
+      ncon,nset,nadd,ncal,
       cgobj;
 
 {*****************************************************************************
@@ -73,6 +75,62 @@ interface
           expectloc:=LOC_JUMP;
       end;
 
+
+    function tjvmaddnode.first_addstring: tnode;
+      var
+        cmpfuncname: string;
+      begin
+        { when we get here, we are sure that both the left and the right }
+        { node are both strings of the same stringtype (JM)              }
+        case nodetype of
+          addn:
+            begin
+              if (left.nodetype=stringconstn) and (tstringconstnode(left).len=0) then
+                begin
+                  result:=right;
+                  left.free;
+                  left:=nil;
+                  right:=nil;
+                  exit;
+                end;
+              if (right.nodetype=stringconstn) and (tstringconstnode(right).len=0) then
+                begin
+                  result:=left;
+                  left:=nil;
+                  right.free;
+                  right:=nil;
+                  exit;
+                end;
+
+              { create the call to the concat routine both strings as arguments }
+              result:=ccallnode.createintern('fpc_'+
+                tstringdef(resultdef).stringtypname+'_concat',
+                ccallparanode.create(right,
+                ccallparanode.create(left,nil)));
+              { we reused the arguments }
+              left := nil;
+              right := nil;
+            end;
+          ltn,lten,gtn,gten,equaln,unequaln :
+            begin
+              { call compare routine }
+              cmpfuncname := 'fpc_'+tstringdef(left.resultdef).stringtypname+'_compare';
+              { for equality checks use optimized version }
+              if nodetype in [equaln,unequaln] then
+                cmpfuncname := cmpfuncname + '_equal';
+
+              result := ccallnode.createintern(cmpfuncname,
+                ccallparanode.create(right,ccallparanode.create(left,nil)));
+              { and compare its result with 0 according to the original operator }
+              result := caddnode.create(nodetype,result,
+                cordconstnode.create(0,s32inttype,false));
+              left := nil;
+              right := nil;
+            end;
+          else
+            internalerror(2011031401);
+        end;
+      end;
 
     function tjvmaddnode.cmpnode2signedtopcmp: TOpCmp;
       begin

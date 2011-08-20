@@ -1293,6 +1293,8 @@ implementation
                         java_jlthrowable:=current_objectdef;
                       if (current_objectdef.objname^='FPCBASERECORDTYPE') then
                         java_fpcbaserecordtype:=current_objectdef;
+                      if (current_objectdef.objname^='JLSTRING') then
+                        java_jlstring:=current_objectdef;
                     end;
                 end;
               end;

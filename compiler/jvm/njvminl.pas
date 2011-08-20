@@ -37,6 +37,7 @@ interface
           function typecheck_new(var handled: boolean): tnode;
 
           function first_setlength_array: tnode;
+          function first_setlength_string: tnode;
          public
           { typecheck override to intercept handling }
           function pass_typecheck: tnode; override;
@@ -55,6 +56,7 @@ interface
 *)
           function first_new: tnode; override;
           function first_setlength: tnode; override;
+          function first_length: tnode; override;
 
           procedure second_length; override;
 (*
@@ -93,7 +95,8 @@ implementation
       begin
         typecheckpass(left);
         if is_dynamic_array(left.resultdef) or
-           is_open_array(left.resultdef) then
+           is_open_array(left.resultdef) or
+           is_wide_or_unicode_string(left.resultdef) then
           begin
             resultdef:=s32inttype;
             result:=nil;
@@ -334,6 +337,44 @@ implementation
       end;
 
 
+    function tjvminlinenode.first_setlength_string: tnode;
+      var
+        newblock: tblocknode;
+        newstatement: tstatementnode;
+        lefttemp: ttempcreatenode;
+        assignmenttarget: tnode;
+      begin
+        if is_wide_or_unicode_string(left.resultdef) then
+          begin
+            { store left into a temp in case it may contain a function call
+              (which must not be evaluated twice) }
+            lefttemp:=maybereplacewithtempref(tcallparanode(left).left,tcallparanode(left).left.resultdef.size,false);
+            if assigned(lefttemp) then
+              begin
+                newblock:=internalstatements(newstatement);
+                addstatement(newstatement,lefttemp);
+                assignmenttarget:=ctemprefnode.create(lefttemp);
+                typecheckpass(tnode(assignmenttarget));
+              end
+            else
+              assignmenttarget:=tcallparanode(left).left.getcopy;
+            { back to original order for the call }
+            left:=reverseparameters(tcallparanode(left));
+            result:=cassignmentnode.create(assignmenttarget,
+              ccallnode.createintern('fpc_unicodestr_setlength',left));
+            if assigned(lefttemp) then
+              begin
+                addstatement(newstatement,result);
+                addstatement(newstatement,ctempdeletenode.create(lefttemp));
+                result:=newblock;
+              end;
+            left:=nil;
+          end
+        else
+          internalerror(2011031405);
+      end;
+
+
     function tjvminlinenode.first_setlength: tnode;
 
       begin
@@ -351,9 +392,61 @@ implementation
         case left.resultdef.typ of
           arraydef:
             result:=first_setlength_array;
+          stringdef:
+            result:=first_setlength_string;
           else
             internalerror(2011031204);
         end;
+      end;
+
+
+    function tjvminlinenode.first_length: tnode;
+      var
+        newblock: tblocknode;
+        newstatement: tstatementnode;
+        lentemp: ttempcreatenode;
+        ifcond,
+        stringnonnull,
+        stringnull: tnode;
+        psym: tsym;
+      begin
+        if is_wide_or_unicode_string(left.resultdef) then
+          begin
+            { if assigned(JLString(left)) then
+                lentemp:=JLString(left).length()
+              else
+                lentemp:=0;
+              --> return lentemp
+            }
+            newblock:=internalstatements(newstatement);
+            lentemp:=ctempcreatenode.create(s32inttype,s32inttype.size,tt_persistent,true);
+            addstatement(newstatement,lentemp);
+            { if-condition }
+            ifcond:=cinlinenode.create(in_assigned_x,false,
+              ccallparanode.create(ctypeconvnode.create_explicit(left.getcopy,java_jlstring),nil));
+            { then-path (reuse left, since last use) }
+            psym:=search_struct_member(java_jlstring,'LENGTH');
+            if not assigned(psym) or
+               (psym.typ<>procsym) then
+              internalerror(2011031403);
+            stringnonnull:=cassignmentnode.create(
+              ctemprefnode.create(lentemp),
+              ccallnode.create(nil,tprocsym(psym),psym.owner,
+                ctypeconvnode.create_explicit(left,java_jlstring),[]));
+            left:=nil;
+            { else-path}
+            stringnull:=cassignmentnode.create(
+              ctemprefnode.create(lentemp),
+              genintconstnode(0));
+            { complete if-statement }
+            addstatement(newstatement,cifnode.create(ifcond,stringnonnull,stringnull));
+            { return temp }
+            addstatement(newstatement,ctempdeletenode.create_normal_temp(lentemp));
+            addstatement(newstatement,ctemprefnode.create(lentemp));
+            result:=newblock;
+          end
+       else
+         result:=inherited first_length;
       end;
 
 
@@ -497,6 +590,7 @@ implementation
       var
         target: tnode;
         lenpara: tnode;
+        emptystr: ansichar;
       begin
         target:=tcallparanode(left).left;
         lenpara:=tcallparanode(tcallparanode(left).right).left;
@@ -506,7 +600,13 @@ implementation
           internalerror(2011031801);
 
         secondpass(target);
-        if is_dynamic_array(target.resultdef) then
+        if is_wide_or_unicode_string(target.resultdef) then
+          begin
+            emptystr:=#0;
+            current_asmdata.CurrAsmList.concat(taicpu.op_string(a_ldc,0,@emptystr));
+            thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
+          end
+        else if is_dynamic_array(target.resultdef) then
           begin
             thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,s32inttype,0,R_INTREGISTER);
             thlcgjvm(hlcg).g_newarray(current_asmdata.CurrAsmList,target.resultdef,1);

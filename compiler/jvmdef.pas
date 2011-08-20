@@ -86,8 +86,9 @@ implementation
           stringdef :
             begin
               case tstringdef(def).stringtype of
-                { translated into Java.Lang.String }
-                st_widestring:
+                { translated into java.lang.String }
+                st_widestring,
+                st_unicodestring:
                   encodedstr:=encodedstr+'Ljava/lang/String;';
                 else
                   { May be handled via wrapping later  }

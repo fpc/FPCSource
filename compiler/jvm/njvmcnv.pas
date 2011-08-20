@@ -31,6 +31,7 @@ interface
     type
        tjvmtypeconvnode = class(tcgtypeconvnode)
           function typecheck_dynarray_to_openarray: tnode; override;
+          function typecheck_string_to_chararray: tnode; override;
 
           procedure second_int_to_int;override;
          { procedure second_string_to_string;override; }
@@ -95,6 +96,34 @@ implementation
        { all arrays are equal in Java }
        left.resultdef:=resultdef;
        result:=left;
+       left:=nil;
+     end;
+
+
+   function tjvmtypeconvnode.typecheck_string_to_chararray: tnode;
+     var
+       newblock: tblocknode;
+       newstat: tstatementnode;
+       restemp: ttempcreatenode;
+       chartype: string;
+     begin
+       if (left.nodetype = stringconstn) and
+          (tstringconstnode(left).cst_type=cst_conststring) then
+         inserttypeconv(left,cunicodestringtype);
+       { even constant strings have to be handled via a helper }
+       if is_widechar(tarraydef(resultdef).elementdef) then
+         chartype:='widechar'
+       else
+         chartype:='char';
+       newblock:=internalstatements(newstat);
+       restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+       addstatement(newstat,restemp);
+       addstatement(newstat,ccallnode.createintern('fpc_'+tstringdef(left.resultdef).stringtypname+
+         '_to_'+chartype+'array',ccallparanode.create(left,ccallparanode.create(
+         ctemprefnode.create(restemp),nil))));
+       addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
+       addstatement(newstat,ctemprefnode.create(restemp));
+       result:=newblock;
        left:=nil;
      end;
 

@@ -783,6 +783,8 @@ interface
        java_jlthrowable          : tobjectdef;
        { FPC base type for records }
        java_fpcbaserecordtype    : tobjectdef;
+       { java.lang.String }
+       java_jlstring             : tobjectdef;
 
     const
 {$ifdef i386}
@@ -4703,6 +4705,8 @@ implementation
                java_jlthrowable:=self;
              if (objname^='FPCBASERECORDTYPE') then
                java_fpcbaserecordtype:=self;
+             if (objname^='JLSTRING') then
+               java_jlstring:=self;
            end;
          writing_class_record_dbginfo:=false;
        end;
