@@ -4282,7 +4282,10 @@ begin
               if not SysDirectoryExists(APackage.UnitDir) then
                 APackage.UnitDir:=DirNotFound
               else
-                APackage.FTargetState:=tsCompiled;
+                // Set the state to tsNoCompile and not tsCompiled. Because packages
+                // in the tsCompiled state trigger a rebuild of packages that depend
+                // on it.
+                APackage.FTargetState:=tsNoCompile;
             end
           else if not (APackage.FTargetState in [tsCompiled, tsNoCompile]) then
             begin
