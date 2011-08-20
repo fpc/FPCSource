@@ -121,6 +121,11 @@ type
     procedure finalize; override;
   end;
 
+  FpcEnumValueObtainable = interface
+    function fpcOrdinal: jint;
+    function fpcGenericValueOf(__fpc_int: longint): JLEnum;
+  end;
+
 {$i innr.inc}
 {$i jmathh.inc}
 {$i jrech.inc}

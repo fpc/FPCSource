@@ -458,16 +458,20 @@ implementation
     var
       enumclass: tobjectdef;
       enumdef: tenumdef;
+      isclassmethod: boolean;
     begin
+      isclassmethod:=
+        (po_classmethod in pd.procoptions) and
+        not(pd.proctypeoption in [potype_constructor,potype_destructor]);
       enumclass:=tobjectdef(pd.owner.defowner);
       enumdef:=tenumdef(ttypesym(search_struct_member(enumclass,'__FPC_TENUMALIAS')).typedef);
       { convert integer to corresponding enum instance: in case of no jumps
         get it from the $VALUES array, otherwise from the __fpc_ord2enum
         hashmap }
       if not enumdef.has_jumps then
-        str_parse_method_impl('begin result:=__fpc_FVALUES[__fpc_int] end;',pd,false)
+        str_parse_method_impl('begin result:=__fpc_FVALUES[__fpc_int] end;',pd,isclassmethod)
       else
-        str_parse_method_impl('begin result:=__FPC_TEnumClassAlias(__fpc_ord2enum.get(JLInteger.valueOf(__fpc_int))) end;',pd,true);
+        str_parse_method_impl('begin result:=__FPC_TEnumClassAlias(__fpc_ord2enum.get(JLInteger.valueOf(__fpc_int))) end;',pd,isclassmethod);
     end;
 
 

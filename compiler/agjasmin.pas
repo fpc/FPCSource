@@ -603,10 +603,6 @@ implementation
                   AsmWrite(superclass.import_lib^+'/');
                 AsmWriteln(superclass.objextname^);
               end;
-            { signature for enum classes (must come after superclass) }
-            if (obj.typ=objectdef) and
-               (oo_is_enum_class in tobjectdef(obj).objectoptions) then
-              AsmWriteln('.signature "Ljava/lang/Enum<'+obj.jvm_full_typename(true)+';>;"');
             { implemented interfaces }
             if (obj.typ=objectdef) and
                assigned(tobjectdef(obj).ImplementedInterfaces) then
@@ -620,6 +616,11 @@ implementation
                     AsmWriteln(intf.objextname^);
                   end;
               end;
+            { signature for enum classes (must come after superclass and
+              implemented interfaces) }
+            if (obj.typ=objectdef) and
+               (oo_is_enum_class in tobjectdef(obj).objectoptions) then
+              AsmWriteln('.signature "Ljava/lang/Enum<'+obj.jvm_full_typename(true)+';>;"');
             { in case of nested class: relation to parent class }
             if obj.owner.symtabletype in [objectsymtable,recordsymtable] then
               AsmWriteln(InnerStructDef(obj));

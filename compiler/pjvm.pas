@@ -241,6 +241,8 @@ implementation
         tenumdef(def).classdef:=enumclass;
         include(enumclass.objectoptions,oo_is_enum_class);
         include(enumclass.objectoptions,oo_is_sealed);
+        { implement FpcEnumValueObtainable interface }
+        enumclass.ImplementedInterfaces.add(TImplementedInterface.Create(tobjectdef(search_system_type('FPCENUMVALUEOBTAINABLE').typedef)));
         { create an alias for this type inside itself: this way we can choose a
           name that can be used in generated Pascal code without risking an
           identifier conflict (since it is local to this class; the global name
@@ -332,6 +334,10 @@ implementation
         pd.synthetickind:=tsk_jvm_enum_fpcordinal;
         { add static class method to convert an ordinal to the corresponding enum }
         if not str_parse_method_dec('function FPCValueOf(__fpc_int: longint): __FPC_TEnumClassAlias; static;',potype_function,true,enumclass,pd) then
+          internalerror(2011062402);
+        pd.synthetickind:=tsk_jvm_enum_fpcvalueof;
+        { similar (instance) function for use in set factories; implements FpcEnumValueObtainable interface }
+        if not str_parse_method_dec('function fpcGenericValueOf(__fpc_int: longint): JLEnum;',potype_function,false,enumclass,pd) then
           internalerror(2011062402);
         pd.synthetickind:=tsk_jvm_enum_fpcvalueof;
 
