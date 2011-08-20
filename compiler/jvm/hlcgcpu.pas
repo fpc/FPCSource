@@ -1222,7 +1222,7 @@ implementation
       retdef: tdef;
       opc: tasmop;
     begin
-      if current_procinfo.procdef.proctypeoption=potype_constructor then
+      if current_procinfo.procdef.proctypeoption in [potype_constructor,potype_class_constructor] then
         retdef:=voidtype
       else
         retdef:=current_procinfo.procdef.returndef;
@@ -1256,7 +1256,7 @@ implementation
   procedure thlcgjvm.gen_load_return_value(list: TAsmList);
     begin
       { constructors don't return anything in the jvm }
-      if current_procinfo.procdef.proctypeoption=potype_constructor then
+      if current_procinfo.procdef.proctypeoption in [potype_constructor,potype_class_constructor] then
         exit;
       inherited gen_load_return_value(list);
     end;
@@ -1447,6 +1447,14 @@ implementation
               allocate_implicit_structs_for_st_with_base_ref(list,current_module.globalsymtable,ref,staticvarsym);
             allocate_implicit_structs_for_st_with_base_ref(list,current_module.localsymtable,ref,staticvarsym);
           end;
+        potype_class_constructor:
+          begin
+            { also initialise local variables, if any }
+            inherited;
+            { initialise class fields }
+            reference_reset_base(ref,NR_NO,0,1);
+            allocate_implicit_structs_for_st_with_base_ref(list,tabstractrecorddef(current_procinfo.procdef.owner.defowner).symtable,ref,staticvarsym);
+          end
         else
           inherited
       end;
@@ -1721,6 +1729,8 @@ implementation
           if (tsym(st.symlist[i]).typ<>allocvartyp) then
             continue;
           vs:=tabstractvarsym(st.symlist[i]);
+          if sp_internal in vs.symoptions then
+            continue;
           if not jvmimplicitpointertype(vs.vardef) then
             continue;
           allocate_implicit_struct_with_base_ref(list,vs,ref);

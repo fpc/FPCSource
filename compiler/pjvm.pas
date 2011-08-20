@@ -54,102 +54,139 @@ implementation
     { the JVM specs require that you add a default parameterless
       constructor in case the programmer hasn't specified any }
     procedure maybe_add_public_default_java_constructor(obj: tabstractrecorddef);
-
-      function find_parameterless_def(psym: tprocsym): tprocdef;
-        var
-          paras: tparalist;
-        begin
-          paras:=tparalist.create;
-          result:=psym.find_procdef_bypara_no_rettype(paras,[cpo_ignorehidden,cpo_openequalisexact]);
-          paras.free;
-        end;
-
       var
         sym: tsym;
         ps: tprocsym;
         pd: tprocdef;
         topowner: tdefentry;
+        i: longint;
+        needclassconstructor: boolean;
       begin
         { if there is at least one constructor for a class, do nothing (for
            records, we'll always also need a parameterless constructor) }
-        if is_javaclass(obj) and
-           (oo_has_constructor in obj.objectoptions) then
-          exit;
-        { check whether the parent has a parameterless constructor that we can
-          call (in case of a class; all records will derive from
-          java.lang.Object or a shim on top of that with a parameterless
-          constructor) }
-        if is_javaclass(obj) then
+        if not is_javaclass(obj) or
+           not (oo_has_constructor in obj.objectoptions) then
           begin
-            pd:=nil;
-            sym:=tsym(tobjectdef(obj).childof.symtable.find('CREATE'));
-            if assigned(sym) and
-               (sym.typ=procsym) then
+            { check whether the parent has a parameterless constructor that we can
+              call (in case of a class; all records will derive from
+              java.lang.Object or a shim on top of that with a parameterless
+              constructor) }
+            if is_javaclass(obj) then
               begin
-                pd:=find_parameterless_def(tprocsym(sym));
-                { make sure it's a constructor }
-                if assigned(pd) and
-                   (pd.proctypeoption<>potype_constructor) then
-                  pd:=nil;
+                pd:=nil;
+                sym:=tsym(tobjectdef(obj).childof.symtable.find('CREATE'));
+                if assigned(sym) and
+                   (sym.typ=procsym) then
+                  pd:=tprocsym(sym).find_bytype_parameterless(potype_constructor);
+                if not assigned(pd) then
+                  begin
+                    Message(sym_e_no_matching_inherited_parameterless_constructor);
+                    exit
+                  end;
               end;
-            if not assigned(pd) then
+            { we call all constructors CREATE, because they don't have a name in
+              Java and otherwise we can't determine whether multiple overloads
+              are created with the same parameters }
+            sym:=tsym(obj.symtable.find('CREATE'));
+            if assigned(sym) then
               begin
-                Message(sym_e_no_matching_inherited_parameterless_constructor);
-                exit
+                { does another, non-procsym, symbol already exist with that name? }
+                if (sym.typ<>procsym) then
+                  begin
+                    Message1(sym_e_duplicate_id_create_java_constructor,sym.realname);
+                    exit;
+                  end;
+                ps:=tprocsym(sym);
+                { is there already a parameterless function/procedure create? }
+                pd:=ps.find_bytype_parameterless(potype_function);
+                if not assigned(pd) then
+                  pd:=ps.find_bytype_parameterless(potype_procedure);
+                if assigned(pd) then
+                  begin
+                    Message1(sym_e_duplicate_id_create_java_constructor,pd.fullprocname(false));
+                    exit;
+                  end;
+              end;
+            if not assigned(sym) then
+              begin
+                ps:=tprocsym.create('Create');
+                obj.symtable.insert(ps);
+              end;
+            { determine symtable level }
+            topowner:=obj;
+            while not(topowner.owner.symtabletype in [staticsymtable,globalsymtable,localsymtable]) do
+              topowner:=topowner.owner.defowner;
+            { create procdef }
+            pd:=tprocdef.create(topowner.owner.symtablelevel+1);
+            { method of this objectdef }
+            pd.struct:=obj;
+            { associated procsym }
+            pd.procsym:=ps;
+            { constructor }
+            pd.proctypeoption:=potype_constructor;
+            { needs to be exported }
+            include(pd.procoptions,po_global);
+            { for Delphi mode }
+            include(pd.procoptions,po_overload);
+            { generate anonymous inherited call in the implementation }
+            pd.synthetickind:=tsk_anon_inherited;
+            { public }
+            pd.visibility:=vis_public;
+            { result type }
+            pd.returndef:=obj;
+            { calling convention, self, ... }
+            handle_calling_convention(pd);
+            { register forward declaration with procsym }
+            proc_add_definition(pd);
+          end;
+
+        { also add class constructor if class fields that need wrapping, and
+          if none was defined }
+        if obj.find_procdef_bytype(potype_class_constructor)=nil then
+          begin
+            needclassconstructor:=false;
+            for i:=0 to obj.symtable.symlist.count-1 do
+              begin
+                if (tsym(obj.symtable.symlist[i]).typ=staticvarsym) and
+                   jvmimplicitpointertype(tstaticvarsym(obj.symtable.symlist[i]).vardef) then
+                  begin
+                    needclassconstructor:=true;
+                    break;
+                  end;
+              end;
+            if needclassconstructor then
+              begin
+                { determine symtable level }
+                topowner:=obj;
+                while not(topowner.owner.symtabletype in [staticsymtable,globalsymtable,localsymtable]) do
+                  topowner:=topowner.owner.defowner;
+                { name doesn't matter, so pick something that hopefully conflict }
+                ps:=tprocsym.create('$fpc_jvm_class_constructor');
+                obj.symtable.insert(ps);
+                { create procdef }
+                pd:=tprocdef.create(topowner.owner.symtablelevel+1);
+                { method of this objectdef }
+                pd.struct:=obj;
+                { associated procsym }
+                pd.procsym:=ps;
+                { constructor }
+                pd.proctypeoption:=potype_class_constructor;
+                { needs to be exported }
+                include(pd.procoptions,po_global);
+                { class constructor is a class method }
+                include(pd.procoptions,po_classmethod);
+                { empty body; proc entry code will add inits for class fields }
+                pd.synthetickind:=tsk_empty;
+                { private (= package visibility) }
+                pd.visibility:=vis_private;
+                { result type }
+                pd.returndef:=obj;
+                { calling convention, self, ... }
+                handle_calling_convention(pd);
+                { register forward declaration with procsym }
+                proc_add_definition(pd);
               end;
           end;
-        { we call all constructors CREATE, because they don't have a name in
-          Java and otherwise we can't determine whether multiple overloads
-          are created with the same parameters }
-        sym:=tsym(obj.symtable.find('CREATE'));
-        if assigned(sym) then
-          begin
-            { does another, non-procsym, symbol already exist with that name? }
-            if (sym.typ<>procsym) then
-              begin
-                Message1(sym_e_duplicate_id_create_java_constructor,sym.realname);
-                exit;
-              end;
-            ps:=tprocsym(sym);
-            { is there already a parameterless function/procedure create? }
-            pd:=find_parameterless_def(ps);
-            if assigned(pd) then
-              begin
-                Message1(sym_e_duplicate_id_create_java_constructor,pd.fullprocname(false));
-                exit;
-              end;
-          end;
-        if not assigned(sym) then
-          begin
-            ps:=tprocsym.create('Create');
-            obj.symtable.insert(ps);
-          end;
-        { determine symtable level }
-        topowner:=obj;
-        while not(topowner.owner.symtabletype in [staticsymtable,globalsymtable,localsymtable]) do
-          topowner:=topowner.owner.defowner;
-        { create procdef }
-        pd:=tprocdef.create(topowner.owner.symtablelevel+1);
-        { method of this objectdef }
-        pd.struct:=obj;
-        { associated procsym }
-        pd.procsym:=ps;
-        { constructor }
-        pd.proctypeoption:=potype_constructor;
-        { needs to be exported }
-        include(pd.procoptions,po_global);
-        { for Delphi mode }
-        include(pd.procoptions,po_overload);
-        { generate anonymous inherited call in the implementation }
-        pd.synthetickind:=tsk_anon_inherited;
-        { public }
-        pd.visibility:=vis_public;
-        { result type }
-        pd.returndef:=obj;
-        { calling convention, self, ... }
-        handle_calling_convention(pd);
-        { register forward declaration with procsym }
-        proc_add_definition(pd);
       end;
 
 

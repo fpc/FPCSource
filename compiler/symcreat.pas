@@ -190,7 +190,7 @@ implementation
             (po_classmethod in tprocdef(pd).procoptions) and
             not(tprocdef(pd).proctypeoption in [potype_constructor,potype_destructor]);
           { + 'overload' for Delphi modes }
-          str:=tprocdef(pd).customprocname([pno_proctypeoption,pno_paranames,pno_noclassmarker])+'overload;';
+          str:=tprocdef(pd).customprocname([pno_proctypeoption,pno_paranames,pno_noclassmarker,pno_noleadingdollar])+'overload;';
           if not str_parse_method_dec(str,isclassmethod,obj,newpd) then
             internalerror(2011032001);
           newpd.synthetickind:=tsk_anon_inherited;
@@ -207,7 +207,7 @@ implementation
       isclassmethod:=
         (po_classmethod in pd.procoptions) and
         not(pd.proctypeoption in [potype_constructor,potype_destructor]);
-      str:=pd.customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker]);
+      str:=pd.customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker,pno_noleadingdollar]);
       str:=str+'begin inherited end;';
       str_parse_method_impl(str,isclassmethod);
     end;
@@ -229,7 +229,7 @@ implementation
       if (struct.typ=recorddef) and
          not assigned(struct.typesym) then
         internalerror(2011032812);
-      str:=pd.customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker]);
+      str:=pd.customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker,pno_noleadingdollar]);
       { the inherited clone will already copy all fields in a shallow way ->
         copy records/regular arrays in a regular way }
       str:=str+'begin result:=inherited;';
@@ -268,7 +268,7 @@ implementation
       if (struct.typ=recorddef) and
          not assigned(struct.typesym) then
         internalerror(2011032811);
-      str:=pd.customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker]);
+      str:=pd.customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker,pno_noleadingdollar]);
       { copy all fields }
       str:=str+'begin ';
       for i:=0 to struct.symtable.symlist.count-1 do
@@ -283,6 +283,21 @@ implementation
       str:=str+'end;';
       str_parse_method_impl(str,false);
     end;
+
+
+  procedure implement_empty(pd: tprocdef);
+    var
+      str: ansistring;
+      isclassmethod: boolean;
+    begin
+      isclassmethod:=
+        (po_classmethod in pd.procoptions) and
+        not(pd.proctypeoption in [potype_constructor,potype_destructor]);
+      str:=pd.customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker,pno_noleadingdollar]);
+      str:=str+'begin end;';
+      str_parse_method_impl(str,isclassmethod);
+    end;
+
 
 
   procedure add_synthetic_method_implementations_for_struct(struct: tabstractrecorddef);
@@ -306,6 +321,8 @@ implementation
               implement_jvm_clone(pd);
             tsk_record_deepcopy:
               implement_record_deepcopy(pd);
+            tsk_empty:
+              implement_empty(pd);
             else
               internalerror(2011032801);
           end;

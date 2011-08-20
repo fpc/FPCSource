@@ -1715,10 +1715,10 @@ implementation
                        there is nothing in this case (class+field name will be
                        encoded in the mangled symbol name) }
                      hstaticvs:=tstaticvarsym.create(fieldvs.realname,vs_value,hdef,[]);
-                     include(hstaticvs.symoptions,sp_internal);
                      { rename the original field to prevent a name clash when
                        inserting the new one }
                      fieldvs.Rename(internal_static_field_name(fieldvs.name));
+                     include(fieldvs.symoptions,sp_internal);
                      recst.insert(hstaticvs);
                      { has to be delayed until now, because the calculated
                        mangled name depends on the owner }

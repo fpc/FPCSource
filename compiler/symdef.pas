@@ -418,7 +418,7 @@ interface
        { tabstractprocdef }
 
        tprocnameoption = (pno_showhidden, pno_proctypeoption, pno_paranames,
-         pno_ownername, pno_noclassmarker);
+         pno_ownername, pno_noclassmarker, pno_noleadingdollar);
        tprocnameoptions = set of tprocnameoption;
 
        tabstractprocdef = class(tstoreddef)
@@ -3869,7 +3869,7 @@ implementation
 
     function tprocdef.customprocname(pno: tprocnameoptions):ansistring;
       var
-        s : ansistring;
+        s, rn : ansistring;
         t : ttoken;
       begin
 {$ifdef EXTDEBUG}
@@ -3892,18 +3892,15 @@ implementation
         else
           begin
             if (po_classmethod in procoptions) and
-               not(pno_noclassmarker in pno) and
-               not (proctypeoption in [potype_class_constructor,potype_class_destructor]) then
+               not(pno_noclassmarker in pno) then
               s:='class ';
             case proctypeoption of
-              potype_constructor:
-                s:=s+'constructor ';
-              potype_destructor:
-                s:=s+'destructor '+s;
+              potype_constructor,
               potype_class_constructor:
-                s:=s+'class constructor ';
-              potype_class_destructor:
-                s:=s+'class destructor ';
+                s:=s+'constructor ';
+              potype_class_destructor,
+              potype_destructor:
+                s:=s+'destructor ';
               else
                 if (pno_proctypeoption in pno) and
                    assigned(returndef) and
@@ -3915,7 +3912,11 @@ implementation
             if (pno_ownername in pno) and
                (owner.symtabletype in [recordsymtable,objectsymtable]) then
               s:=s+tabstractrecorddef(owner.defowner).RttiName+'.';
-            s:=s+procsym.realname+typename_paras(pno);
+            rn:=procsym.realname;
+            if (pno_noleadingdollar in pno) and
+               (rn[1]='$') then
+              delete(rn,1,1);
+            s:=s+rn+typename_paras(pno);
           end;
         if not(proctypeoption in [potype_constructor,potype_destructor,
              potype_class_constructor,potype_class_destructor]) and
@@ -4383,7 +4384,7 @@ implementation
         tmpresult:=tmpresult+')';
         { And the type of the function result (void in case of a procedure and
           constructor). }
-        if (proctypeoption=potype_constructor) then
+        if (proctypeoption in [potype_constructor,potype_class_constructor]) then
           jvmaddencodedtype(voidtype,false,tmpresult,founderror)
         else if not jvmaddencodedtype(returndef,false,tmpresult,founderror) then
           internalerror(2010122610);
