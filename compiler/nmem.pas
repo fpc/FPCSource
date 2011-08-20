@@ -75,7 +75,7 @@ interface
           function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
-         private
+         protected
           mark_read_written: boolean;
        end;
        taddrnodeclass = class of taddrnode;

@@ -31,6 +31,11 @@ interface
       node,nmem,ncgmem;
 
     type
+       tjvmaddrnode = class(tcgaddrnode)
+         function pass_typecheck: tnode; override;
+         procedure pass_generate_code; override;
+       end;
+
        tjvmloadvmtaddrnode = class(tcgloadvmtaddrnode)
          procedure pass_generate_code; override;
        end;
@@ -47,12 +52,81 @@ interface
 implementation
 
     uses
-      systems,
+      systems,globals,
       cutils,verbose,constexp,
-      symconst,symtype,symtable,symsym,symdef,defutil,
-      nadd,ncal,ncnv,ncon,
+      symconst,symtype,symtable,symsym,symdef,defutil,jvmdef,
+      htypechk,
+      nadd,ncal,ncnv,ncon,pass_1,
       aasmdata,aasmcpu,pass_2,
       cgutils,hlcgobj,hlcgcpu;
+
+{*****************************************************************************
+                              TJVMADDRNODE
+*****************************************************************************}
+
+    function tjvmaddrnode.pass_typecheck: tnode;
+      begin
+        result:=nil;
+        typecheckpass(left);
+        if codegenerror then
+         exit;
+
+        make_not_regable(left,[ra_addr_regable,ra_addr_taken]);
+
+        if (left.resultdef.typ=procdef) or
+           (
+            (left.resultdef.typ=procvardef) and
+            ((m_tp_procvar in current_settings.modeswitches) or
+             (m_mac_procvar in current_settings.modeswitches))
+           ) then
+          begin
+            result:=inherited;
+            exit;
+          end;
+
+        if not jvmimplicitpointertype(left.resultdef) then
+          begin
+            CGMessage(parser_e_illegal_expression);
+            exit
+          end;
+
+        resultdef:=java_jlobject;
+
+        if mark_read_written then
+          begin
+            { This is actually only "read", but treat it nevertheless as  }
+            { modified due to the possible use of pointers                }
+            { To avoid false positives regarding "uninitialised"          }
+            { warnings when using arrays, perform it in two steps         }
+            set_varstate(left,vs_written,[]);
+            { vsf_must_be_valid so it doesn't get changed into }
+            { vsf_referred_not_inited                          }
+            set_varstate(left,vs_read,[vsf_must_be_valid]);
+          end;
+      end;
+
+
+    procedure tjvmaddrnode.pass_generate_code;
+      begin
+        secondpass(left);
+        if jvmimplicitpointertype(left.resultdef) then
+          begin
+            { this is basically a typecast: the left node is an implicit
+              pointer, and we typecast it to a regular 'pointer'
+              (java.lang.Object) }
+            location_copy(location,left.location);
+          end
+        else
+          begin
+{$ifndef nounsupported}
+            location_reset(location,LOC_REGISTER,OS_ADDR);
+            location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
+            hlcg.a_load_const_reg(current_asmdata.CurrAsmList,java_jlobject,0,location.register);
+{$else}
+            internalerror(2011051601);
+{$endif}
+          end;
+      end;
 
 {*****************************************************************************
                          TJVMLOADVMTADDRNODE
@@ -189,4 +263,5 @@ begin
    cvecnode:=tjvmvecnode;
    cloadparentfpnode:=tjvmloadparentfpnode;
    cloadvmtaddrnode:=tjvmloadvmtaddrnode;
+   caddrnode:=tjvmaddrnode;
 end.
