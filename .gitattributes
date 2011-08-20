@@ -206,6 +206,7 @@ compiler/ia64/cpuinfo.pas svneol=native#text/plain
 compiler/ia64/ia64reg.dat svneol=native#text/plain
 compiler/impdef.pas svneol=native#text/plain
 compiler/import.pas svneol=native#text/plain
+compiler/jvm/aasmcpu.pas svneol=native#text/plain
 compiler/jvm/cpubase.pas svneol=native#text/plain
 compiler/jvm/cpuinfo.pas svneol=native#text/plain
 compiler/jvm/jvmreg.dat svneol=native#text/plain
