@@ -409,6 +409,7 @@ const
   parser_e_final_only_external=03315;
   parser_e_no_typed_const=03316;
   parser_e_java_no_inherited_constructor=03317;
+  parser_d_internal_parser_string=03318;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -908,9 +909,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 61683;
+  MsgTxtSize = 61729;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,89,318,105,87,54,111,23,202,63,
+    26,89,319,105,87,54,111,23,202,63,
     49,20,1,1,1,1,1,1,1,1
   );

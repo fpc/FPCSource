@@ -375,7 +375,7 @@ scanner_e_illegal_alignment_directive=02088_E_Illegal alignment directive
 #
 # Parser
 #
-# 03317 is the last used one
+# 03318 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1416,6 +1416,10 @@ parser_e_java_no_inherited_constructor=03317_E_Constructors are not automaticall
 % For compatibility with external Java code, FPC does the same. If you require access to the same
 % constructors in a child class, define them in the child class and call the inherited one from
 % there.
+parser_d_internal_parser_string=03318_D_Parsing internally generated code: $1
+% The compiler sometimes internally constructs Pascal code that is subsequently
+% injected into the program. These messages display such code, in order to help
+% with debugging errors in them.
 % \end{description}
 # Type Checking
 #

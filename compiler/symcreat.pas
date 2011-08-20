@@ -27,35 +27,9 @@ unit symcreat;
 interface
 
   uses
-    finput,
+    finput,tokens,scanner,
     symconst,symdef,symbase;
 
-  { in the JVM, constructors are not automatically inherited (so you can hide
-    them). To emulate the Pascal behaviour, we have to automatically add
-    all parent constructors to the current class as well. }
-  procedure add_missing_parent_constructors_intf(obj: tobjectdef);
-  procedure add_missing_parent_constructors_impl(obj: tobjectdef);
-
-  { parses a (class or regular) method/constructor/destructor declaration from
-    str, as if it were declared in astruct's declaration body }
-  function str_parse_method_dec(str: ansistring; is_classdef: boolean; astruct: tabstractrecorddef; out pd: tprocdef): boolean;
-
-  { parses a (class or regular)  method/constructor/destructor implementation
-    from str, as if it appeared in the current unit's implementation section }
-  function str_parse_method_impl(str: ansistring; is_classdef: boolean):boolean;
-
-  { goes through all defs in st to add implementations for synthetic methods
-    added earlier }
-  procedure add_synthetic_method_implementations(st: tsymtable);
-
-implementation
-
-  uses
-    verbose,systems,
-    tokens,scanner,
-    symtype,symsym,symtable,
-    pbase,pdecobj,psub,
-    defcmp;
 
   type
     tscannerstate = record
@@ -65,7 +39,44 @@ implementation
       valid: boolean;
     end;
 
-  procedure save_scanner(out sstate: tscannerstate);
+  { save/restore the scanner state before/after injecting }
+  procedure replace_scanner(const tempname: string; out sstate: tscannerstate);
+  procedure restore_scanner(const sstate: tscannerstate);
+
+  { parses a (class or regular) method/constructor/destructor declaration from
+    str, as if it were declared in astruct's declaration body
+
+    WARNING: save the scanner state before calling this routine, and restore
+      when done. }
+  function str_parse_method_dec(str: ansistring; is_classdef: boolean; astruct: tabstractrecorddef; out pd: tprocdef): boolean;
+
+  { parses a (class or regular)  method/constructor/destructor implementation
+    from str, as if it appeared in the current unit's implementation section
+
+      WARNING: save the scanner state before calling this routine, and restore
+        when done. }
+  function str_parse_method_impl(str: ansistring; is_classdef: boolean):boolean;
+
+
+  { in the JVM, constructors are not automatically inherited (so you can hide
+    them). To emulate the Pascal behaviour, we have to automatically add
+    all parent constructors to the current class as well.}
+  procedure add_missing_parent_constructors_intf(obj: tobjectdef);
+//  procedure add_missing_parent_constructors_impl(obj: tobjectdef);
+
+  { goes through all defs in st to add implementations for synthetic methods
+    added earlier }
+  procedure add_synthetic_method_implementations(st: tsymtable);
+
+implementation
+
+  uses
+    verbose,systems,
+    symtype,symsym,symtable,defutil,
+    pbase,pdecobj,psub,
+    defcmp;
+
+  procedure replace_scanner(const tempname: string; out sstate: tscannerstate);
     begin
       { would require saving of idtoken, pattern etc }
       if (token=_ID) then
@@ -74,6 +85,7 @@ implementation
       sstate.old_token:=token;
       sstate.old_c:=c;
       sstate.valid:=true;
+      current_scanner:=tscannerfile.Create('_Macro_.'+tempname);
     end;
 
 
@@ -93,6 +105,7 @@ implementation
     var
       oldparse_only: boolean;
     begin
+      Message1(parser_d_internal_parser_string,str);
       oldparse_only:=parse_only;
       parse_only:=true;
       result:=false;
@@ -115,6 +128,7 @@ implementation
      var
        oldparse_only: boolean;
      begin
+      Message1(parser_d_internal_parser_string,str);
       oldparse_only:=parse_only;
       parse_only:=false;
       result:=false;
@@ -174,10 +188,7 @@ implementation
           { if we get here, we did not find it in the current objectdef ->
             add }
           if not sstate.valid then
-            begin
-              save_scanner(sstate);
-              current_scanner:=tscannerfile.Create('_Macro_.parent_constructors_intf');
-            end;
+            replace_scanner('parent_constructors_intf',sstate);
           isclassmethod:=
             (po_classmethod in tprocdef(pd).procoptions) and
             not(tprocdef(pd).proctypeoption in [potype_constructor,potype_destructor]);
@@ -231,10 +242,7 @@ implementation
              not(oo_is_external in tobjectdef(def).objectoptions) then
            begin
              if not sstate.valid then
-               begin
-                 save_scanner(sstate);
-                 current_scanner:=tscannerfile.Create('_Macro_.parent_constructors_impl');
-               end;
+               replace_scanner('synthetic_impl',sstate);
             add_missing_parent_constructors_impl(tobjectdef(def));
            end;
         end;
