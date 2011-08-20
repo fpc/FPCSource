@@ -1,6 +1,7 @@
 unit tformalpara;
 
 {$mode delphi}
+{$modeswitch unicodestrings}
 
 interface
 
@@ -114,7 +115,7 @@ procedure testformalvar(var x; typ: tformalkind);
         end;
       fchar:
         begin
-          if ccharin<>char(x) then
+          if ccharin<>ansichar(x) then
             raise jlexception.create('char in');
           x:=ccharout;
         end;
@@ -302,7 +303,7 @@ procedure testformalconst(const x; typ: tformalkind);
         end;
       fchar:
         begin
-          if ccharin<>char(x) then
+          if ccharin<>ansichar(x) then
             raise jlexception.create('const char in');
         end;
       fwidechar:
@@ -372,7 +373,7 @@ procedure testformalvars;
     vsmallint: smallint;
     vcardinal: cardinal;
     vint64: int64;
-    vchar: char;
+    vchar: ansichar;
     vwidechar: widechar;
     vsingle: single;
     vdouble: double;
@@ -473,7 +474,7 @@ procedure testformalouts;
     vsmallint: smallint;
     vcardinal: cardinal;
     vint64: int64;
-    vchar: char;
+    vchar: ansichar;
     vwidechar: widechar;
     vsingle: single;
     vdouble: double;
@@ -574,7 +575,7 @@ procedure testformalconsts;
     vsmallint: smallint;
     vcardinal: cardinal;
     vint64: int64;
-    vchar: char;
+    vchar: ansichar;
     vwidechar: widechar;
     vsingle: single;
     vdouble: double;

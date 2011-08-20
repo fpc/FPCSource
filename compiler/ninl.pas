@@ -1463,7 +1463,7 @@ implementation
         if is_ansistring(paradef) or
            (is_chararray(paradef) and
             (paradef.size>255)) or
-           ((cs_ansistrings in current_settings.localswitches) and
+           ((cs_refcountedstrings in current_settings.localswitches) and
             is_pchar(paradef)) then
           resultdef:=cansistringtype
         else

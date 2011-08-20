@@ -1544,8 +1544,14 @@ implementation
             if (nodetype in [addn,equaln,unequaln,lten,gten,ltn,gtn]) then
               begin
                 { Is there a unicodestring? }
-                if (cs_unicodestrings in current_settings.localswitches) or
-                   is_unicodestring(rd) or is_unicodestring(ld) then
+                if is_unicodestring(rd) or is_unicodestring(ld) or
+                   ((m_default_unicodestring in current_settings.modeswitches) and
+                    (cs_refcountedstrings in current_settings.localswitches) and
+                    (
+                     is_pwidechar(rd) or is_widechararray(rd) or is_open_widechararray(rd) or (lt = stringconstn) or
+                     is_pwidechar(ld) or is_widechararray(ld) or is_open_widechararray(ld) or (rt = stringconstn)
+                    )
+                   ) then
                   strtype:=st_unicodestring
                 else
                 { Is there a widestring? }
@@ -1555,7 +1561,7 @@ implementation
                     strtype:=st_widestring
                 else
                   if is_ansistring(rd) or is_ansistring(ld) or
-                     ((cs_ansistrings in current_settings.localswitches) and
+                     ((cs_refcountedstrings in current_settings.localswitches) and
                      //todo: Move some of this to longstring's then they are implemented?
                       (
                        is_pchar(rd) or (is_chararray(rd) and (rd.size > 255)) or is_open_chararray(rd) or (lt = stringconstn) or

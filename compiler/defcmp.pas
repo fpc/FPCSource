@@ -430,13 +430,15 @@ implementation
                           begin
                             doconv:=tc_string_2_string;
                             { prefered string type depends on the $H switch }
-                            if (cs_unicodestrings in current_settings.localswitches) and
+                            if (m_default_unicodestring in current_settings.modeswitches) and
+                               (cs_refcountedstrings in current_settings.localswitches) and
                                is_wide_or_unicode_string(def_to) then
                               eq:=te_equal
-                            else if not(cs_ansistrings in current_settings.localswitches) and
+                            else if not(cs_refcountedstrings in current_settings.localswitches) and
                                (tstringdef(def_to).stringtype=st_shortstring) then
                               eq:=te_equal
-                            else if (cs_ansistrings in current_settings.localswitches) and
+                            else if not(m_default_unicodestring in current_settings.modeswitches) and
+                               (cs_refcountedstrings in current_settings.localswitches) and
                                (tstringdef(def_to).stringtype=st_ansistring) then
                               eq:=te_equal
                             else if tstringdef(def_to).stringtype in [st_widestring,st_unicodestring] then
@@ -506,9 +508,9 @@ implementation
                              { prefer ansistrings because pchars can overflow shortstrings, }
                              { but only if ansistrings are the default (JM)                 }
                              if (is_shortstring(def_to) and
-                                 not(cs_ansistrings in current_settings.localswitches)) or
+                                 not(cs_refcountedstrings in current_settings.localswitches)) or
                                 (is_ansistring(def_to) and
-                                 (cs_ansistrings in current_settings.localswitches)) then
+                                 (cs_refcountedstrings in current_settings.localswitches)) then
                                eq:=te_convert_l1
                              else
                                eq:=te_convert_l2;
@@ -531,12 +533,22 @@ implementation
                         doconv:=tc_intf_2_string;
                         eq:=te_convert_l1;
                       end
-                     else if (def_from=java_jlstring) and
-                         is_wide_or_unicode_string(def_to) then
+                     else if (def_from=java_jlstring) then
                        begin
-                         doconv:=tc_equal;
-                         eq:=te_equal;
-                       end
+                         if is_wide_or_unicode_string(def_to) then
+                           begin
+                             doconv:=tc_equal;
+                             eq:=te_equal;
+                           end
+                         else if def_to.typ=stringdef then
+                           begin
+                             doconv:=tc_string_2_string;
+                             if is_ansistring(def_to) then
+                               eq:=te_convert_l2
+                             else
+                               eq:=te_convert_l3
+                           end;
+                      end;
                    end;
                end;
              end;
@@ -1289,16 +1301,24 @@ implementation
                     here }
                   eq:=te_convert_l3;
                 end
-               { unicodestring -> java.lang.string }
+               { string -> java.lang.string }
                else if (def_to=java_jlstring) and
-                       (is_wide_or_unicode_string(def_from) or
+                       ((def_from.typ=stringdef) or
                         (fromtreetype=stringconstn)) then
                  begin
-                   doconv:=tc_equal;
-                   if is_wide_or_unicode_string(def_from) then
-                     eq:=te_equal
+                   if is_wide_or_unicode_string(def_from) or
+                      ((fromtreetype=stringconstn) and
+                       (cs_refcountedstrings in current_settings.localswitches) and
+                       (m_default_unicodestring in current_settings.modeswitches)) then
+                     begin
+                       doconv:=tc_equal;
+                       eq:=te_equal
+                     end
                    else
-                     eq:=te_convert_l2;
+                     begin
+                       doconv:=tc_string_2_string;
+                       eq:=te_convert_l2;
+                     end;
                  end
                else if (def_to=java_jlstring) and
                        is_anychar(def_from) then

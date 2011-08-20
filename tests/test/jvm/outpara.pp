@@ -1,4 +1,5 @@
 {$mode objfpc}
+{$modeswitch unicodestrings}
 
 unit outpara;
 

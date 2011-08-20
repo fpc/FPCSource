@@ -71,6 +71,7 @@ interface
           function typecheck_cord_to_pointer : tnode; virtual;
           function typecheck_chararray_to_string : tnode; virtual;
           function typecheck_string_to_chararray : tnode; virtual;
+          function typecheck_string_to_string : tnode; virtual;
           function typecheck_char_to_string : tnode; virtual;
           function typecheck_char_to_chararray : tnode; virtual;
           function typecheck_int_to_real : tnode; virtual;
@@ -101,6 +102,7 @@ interface
           function _typecheck_cord_to_pointer : tnode;
           function _typecheck_chararray_to_string : tnode;
           function _typecheck_string_to_chararray : tnode;
+          function _typecheck_string_to_string : tnode;
           function _typecheck_char_to_string : tnode;
           function _typecheck_char_to_chararray : tnode;
           function _typecheck_int_to_real : tnode;
@@ -1051,6 +1053,13 @@ implementation
       end;
 
 
+    function ttypeconvnode.typecheck_string_to_string: tnode;
+      begin
+        { nothing to do by default }
+        result:=nil;
+      end;
+
+
     function ttypeconvnode.typecheck_char_to_string : tnode;
       var
         procname: string[31];
@@ -1661,6 +1670,12 @@ implementation
       end;
 
 
+    function ttypeconvnode._typecheck_string_to_string: tnode;
+      begin
+        result := typecheck_string_to_string;
+      end;
+
+
     function ttypeconvnode._typecheck_char_to_string : tnode;
       begin
         result := typecheck_char_to_string;
@@ -1861,7 +1876,7 @@ implementation
           {none} nil,
           {equal} nil,
           {not_possible} nil,
-          { string_2_string } nil,
+          { string_2_string } @ttypeconvnode._typecheck_string_to_string,
           { char_2_string } @ttypeconvnode._typecheck_char_to_string,
           { char_2_chararray } @ttypeconvnode._typecheck_char_to_chararray,
           { pchar_2_string } @ttypeconvnode._typecheck_pchar_to_string,
@@ -2411,6 +2426,7 @@ implementation
         case left.nodetype of
           stringconstn :
             if (convtype=tc_string_2_string) and
+               (resultdef.typ=stringdef) and
               (
                 ((not is_widechararray(left.resultdef) and
                   not is_wide_or_unicode_string(left.resultdef)) or

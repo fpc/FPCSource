@@ -32,6 +32,7 @@ interface
        tjvmtypeconvnode = class(tcgtypeconvnode)
           function typecheck_dynarray_to_openarray: tnode; override;
           function typecheck_string_to_chararray: tnode; override;
+          function typecheck_string_to_string: tnode;override;
           function typecheck_char_to_string: tnode; override;
           function typecheck_proc_to_procvar: tnode; override;
           function pass_1: tnode; override;
@@ -42,7 +43,6 @@ interface
           function first_ansistring_to_pchar: tnode; override;
 
           procedure second_int_to_int;override;
-         { procedure second_string_to_string;override; }
           procedure second_cstring_to_pchar;override;
          { procedure second_string_to_chararray;override; }
          { procedure second_array_to_pointer;override; }
@@ -179,6 +179,23 @@ implementation
        addstatement(newstat,ctemprefnode.create(restemp));
        result:=newblock;
        left:=nil;
+     end;
+
+
+   function tjvmtypeconvnode.typecheck_string_to_string: tnode;
+     begin
+       { make sure the generic code gets a stringdef }
+       if (maybe_find_real_class_definition(resultdef,false)=java_jlstring) or
+          (maybe_find_real_class_definition(left.resultdef,false)=java_jlstring) then
+         begin
+           left:=ctypeconvnode.create(left,cunicodestringtype);
+           left.flags:=flags;
+           result:=ctypeconvnode.create(left,resultdef);
+           result.flags:=flags;
+           left:=nil;
+         end
+       else
+         result:=inherited;
      end;
 
 

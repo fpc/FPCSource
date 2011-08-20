@@ -3297,7 +3297,7 @@ S*2Aas_Assemble using GNU AS
 **3*_n : Compiler also halts after notes
 **3*_h : Compiler also halts after hints
 **2Sg_Enable LABEL and GOTO (default in -Mtp and -Mdelphi)
-**2Sh_Use ansistrings by default instead of shortstrings
+**2Sh_Use reference counted strings (ansistring by default) instead of shortstrings
 **2Si_Turn on inlining of procedures/functions declared as "inline"
 **2Sk_Load fpcylix unit
 **2SI<x>_Set interface style to <x>

@@ -1328,9 +1328,9 @@ begin
                            include(init_settings.moduleswitches,cs_support_goto);
                        'h' :
                          If UnsetBool(More, j) then
-                           exclude(init_settings.localswitches,cs_ansistrings)
+                           exclude(init_settings.localswitches,cs_refcountedstrings)
                          else
-                           include(init_settings.localswitches,cs_ansistrings);
+                           include(init_settings.localswitches,cs_refcountedstrings);
                        'i' :
                          If UnsetBool(More, j) then
                            exclude(init_settings.localswitches,cs_do_inline)
@@ -1379,7 +1379,7 @@ begin
                            init_settings.globalswitches:=init_settings.globalswitches - [cs_constructor_name,cs_support_exceptions,
                                                                                          cs_support_vectors,cs_load_fpcylix_unit];
 
-                           init_settings.localswitches:=init_settings.localswitches - [cs_do_assertion,cs_do_inline, cs_ansistrings,
+                           init_settings.localswitches:=init_settings.localswitches - [cs_do_assertion,cs_do_inline, cs_refcountedstrings,
                                                                                        cs_typed_addresses];
 
                            init_settings.moduleswitches:=init_settings.moduleswitches - [cs_support_c_operators, cs_support_goto,

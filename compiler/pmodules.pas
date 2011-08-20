@@ -343,6 +343,10 @@ implementation
         if m_iso in current_settings.modeswitches then
           AddUnit('iso7185');
 
+        { default char=widechar? }
+        if m_default_unicodestring in current_settings.modeswitches then
+          AddUnit('uuchar');
+
         { Objective-C support unit? }
         if (m_objectivec1 in current_settings.modeswitches) then
           begin

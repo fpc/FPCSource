@@ -306,11 +306,6 @@ interface
          system_jvm_java32
        ];
 
-       { all systems where string = unicodestring by default }
-       systems_default_unicodestring = [
-         system_jvm_java32
-       ];
-
        { all systems that use a managed vm (-> no real pointers, internal VMT
          format, ...) }
        systems_managed_vm = [

@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0 cprt0 func dllprt
-units=system baseunix unixtype ctypes objpas macpas iso7185 strings \
+units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings \
 #      beos \
       errors dos dl objects \
       sysconst sysutils \
@@ -106,6 +106,8 @@ dllprt$(OEXT) : $(CPU_TARGET)/dllprt.as
 
 system$(PPUEXT) : system.pp $(SYSDEPS) $(UNIXINC)/sysunixh.inc
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp

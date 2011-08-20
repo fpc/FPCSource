@@ -130,7 +130,7 @@ interface
          { mmx }
          cs_mmx,cs_mmx_saturation,
          { parser }
-         cs_typed_addresses,cs_strict_var_strings,cs_ansistrings,cs_unicodestrings,
+         cs_typed_addresses,cs_strict_var_strings,cs_refcountedstrings,
          cs_bitpacking,cs_varpropsetter,cs_scopedenums,cs_pointermath,
          { macpas specific}
          cs_external_var, cs_externally_visible
@@ -296,9 +296,12 @@ interface
          m_non_local_goto,      { support non local gotos (like iso pascal) }
          m_advanced_records,    { advanced record syntax with visibility sections, methods and properties }
          m_isolike_unary_minus, { unary minus like in iso pascal: same precedence level as binary minus/plus }
-         m_final_fields         { allows declaring fields as "final", which means they must be initialised
+         m_final_fields,        { allows declaring fields as "final", which means they must be initialised
                                   in the (class) constructor and are constant from then on (same as final
                                   fields in Java) }
+         m_default_unicodestring { makes the default string type in {$h+} mode unicodestring rather than
+                                   ansistring; similarly, char becomes unicodechar rather than ansichar }
+
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -451,7 +454,8 @@ interface
          'NONLOCALGOTO',
          'ADVANCEDRECORDS',
          'ISOUNARYMINUS',
-         'FINALFIELDS');
+         'FINALFIELDS',
+         'UNICODESTRINGS');
 
 
      type

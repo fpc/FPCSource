@@ -132,10 +132,13 @@ implementation
            end
           else
             begin
-              if cs_unicodestrings in current_settings.localswitches then
-                def:=cunicodestringtype
-              else if cs_ansistrings in current_settings.localswitches then
-                def:=cansistringtype
+              if cs_refcountedstrings in current_settings.localswitches then
+                begin
+                  if m_default_unicodestring in current_settings.modeswitches then
+                    def:=cunicodestringtype
+                  else
+                    def:=cansistringtype
+                end
               else
                 def:=cshortstringtype;
             end;

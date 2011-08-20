@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=
-units=system strings objpas macpas iso7185 heaptrc getopts macostp macutils \
+units=system uuchar strings objpas macpas iso7185 heaptrc getopts macostp macutils \
       unixutil dos objects matrix cmem charset ctypes
 #      exec  \
 #      crt printer \
@@ -99,6 +99,8 @@ strings$(PPUEXT) : $(INC)/strings.pp system$(PPUEXT)
 #
 # Delphi Object Model
 #
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp system$(PPUEXT)
 	$(COPY) $(OBJPASDIR)/objpas.pp .

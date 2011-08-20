@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=nwplibc nwl_main nwl_dlle
-units=$(SYSTEMUNIT) objpas macpas iso7185 strings \
+units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
       lineinfo lnfodwrf winsock heaptrc matrix \
       nwsnut libc dos crt objects sysconst \
       initc sysutils types typinfo fgl classes fmtbcd \
@@ -124,6 +124,8 @@ nwl_dlle$(OEXT) : nwl_dlle.as
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp libc.pp $(SYSDEPS)
 	$(COPY) $(IMPFILES) $(COMPILER_UNITTARGETDIR)
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
+
+uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp

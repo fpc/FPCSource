@@ -1,6 +1,7 @@
 program sort;
 
 {$mode delphi}
+{$modeswitch unicodestrings}
 
 uses
   jdk15;

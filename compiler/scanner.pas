@@ -286,25 +286,18 @@ implementation
 
     Procedure HandleModeSwitches(changeInit: boolean);
       begin
-        { turn unicodestrings on by default ? }
-        if (target_info.system in systems_default_unicodestring) then
-          begin
-            include(current_settings.localswitches,cs_unicodestrings);
-            if changeinit then
-             include(init_settings.localswitches,cs_unicodestrings);
-          end
-        { turn ansistrings on by default ? }
-        else if (m_default_ansistring in current_settings.modeswitches) then
+        { turn ansi/unicodestrings on by default ? }
+        if ([m_default_ansistring,m_default_unicodestring]*current_settings.modeswitches)<>[] then
          begin
-           include(current_settings.localswitches,cs_ansistrings);
+           include(current_settings.localswitches,cs_refcountedstrings);
            if changeinit then
-            include(init_settings.localswitches,cs_ansistrings);
+            include(init_settings.localswitches,cs_refcountedstrings);
          end
         else
          begin
-           exclude(current_settings.localswitches,cs_ansistrings);
+           exclude(current_settings.localswitches,cs_refcountedstrings);
            if changeinit then
-            exclude(init_settings.localswitches,cs_ansistrings);
+            exclude(init_settings.localswitches,cs_refcountedstrings);
          end;
 
         { turn inline on by default ? }
