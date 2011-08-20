@@ -12,7 +12,7 @@
 
  **********************************************************************}
 
-Unit CPUInfo;
+Unit cpuinfo;
 
 Interface
 
@@ -43,10 +43,10 @@ Type
 Const
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
-     pocall_internproc,
+     pocall_internproc
    ];
 
-   cputypestr : array[tcputype] of string[1] = ('',
+   cputypestr : array[tcputype] of string[1] = (''
    );
 
    fputypestr : array[tfputype] of string[8] = (
