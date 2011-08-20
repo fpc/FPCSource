@@ -30,6 +30,8 @@ interface
 
     type
        tjvmtypeconvnode = class(tcgtypeconvnode)
+          function typecheck_dynarray_to_openarray: tnode; override;
+
           procedure second_int_to_int;override;
          { procedure second_string_to_string;override; }
          { procedure second_cstring_to_pchar;override; }
@@ -81,6 +83,19 @@ implementation
       nutils,
       cpubase,aasmcpu,
       tgobj,hlcgobj,hlcgcpu;
+
+
+{*****************************************************************************
+                            TypeCheckTypeConv
+*****************************************************************************}
+
+   function tjvmtypeconvnode.typecheck_dynarray_to_openarray: tnode;
+     begin
+       { all arrays are equal in Java }
+       left.resultdef:=resultdef;
+       result:=left;
+       left:=nil;
+     end;
 
 
 {*****************************************************************************
@@ -493,15 +508,16 @@ implementation
           toelt:=node.right.resultdef;
           get_most_nested_types(fromelt,toelt);
           { final levels must be convertable:
-              a) from dynarray to java.lang.Object or vice versa, or
+              a) from array (dynamic or not) to java.lang.Object or vice versa,
+               or
               b) the same primitive/class type
           }
           result:=
            (compare_defs(fromelt,toelt,node.left.nodetype) in [te_exact,te_equal]) or
            (((fromelt.typ=objectdef) or
-             is_dynamic_array(fromelt)) and
+             (fromelt.typ=arraydef)) and
             ((toelt.typ=objectdef) or
-             is_dynamic_array(toelt)));
+             (toelt.typ=arraydef)));
         end
       else
         begin
