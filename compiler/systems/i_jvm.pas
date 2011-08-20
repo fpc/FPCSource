@@ -74,7 +74,7 @@ unit i_jvm;
             linkextern   : nil;
             ar           : ar_none;
             res          : res_none;
-            dbg          : dbg_none;
+            dbg          : dbg_jasmin;
             script       : script_unix;
             endian       : endian_big;
             alignment    :

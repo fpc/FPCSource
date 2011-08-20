@@ -381,6 +381,29 @@ implementation
                  AsmLn;
                end;
 
+             ait_jvar:
+               begin
+                 AsmWrite('.var ');
+                 AsmWrite(tostr(tai_jvar(hp).stackslot));
+                 AsmWrite(' is ');
+                 AsmWrite(tai_jvar(hp).desc^);
+                 AsmWrite(' from ');
+                 AsmWrite(tai_jvar(hp).startlab.name);
+                 AsmWrite(' to ');
+                 AsmWriteLn(tai_jvar(hp).stoplab.name);
+               end;
+
+             ait_jcatch:
+               begin
+                 AsmWrite('.catch ');
+                 AsmWrite(tai_jcatch(hp).name^);
+                 AsmWrite(' from ');
+                 AsmWrite(tai_jcatch(hp).startlab.name);
+                 AsmWrite(' to ');
+                 AsmWrite(tai_jcatch(hp).stoplab.name);
+                 AsmWrite(' using ');
+                 AsmWriteLn(tai_jcatch(hp).handlerlab.name);
+               end;
              else
                internalerror(2010122707);
            end;

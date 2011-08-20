@@ -625,6 +625,8 @@ implementation
         aiclass[ait_regalloc]:=tai_regalloc;
         aiclass[ait_tempalloc]:=tai_tempalloc;
         aiclass[ait_marker]:=tai_marker;
+        aiclass[ait_jvar]:=tai_jvar;
+        aiclass[ait_jcatch]:=tai_jcatch;
       end;
 
 end.

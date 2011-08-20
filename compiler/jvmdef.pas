@@ -148,6 +148,9 @@ implementation
             end;
           setdef :
             begin
+              if is_smallset(def) then
+                encodedstr:=encodedstr+'I'
+              else
               { will be hanlded via wrapping later, although wrapping may
                 happen at higher level }
               result:=false;

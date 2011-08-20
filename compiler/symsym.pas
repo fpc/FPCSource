@@ -1154,7 +1154,14 @@ implementation
       begin
         if not jvmtryencodetype(vardef,result,founderror) then
           internalerror(2011011203);
-        result:=realname+' '+result;
+        if (typ=paravarsym) and
+           (vo_is_self in tparavarsym(self).varoptions) then
+          result:='this ' +result
+        else if (typ in [paravarsym,localvarsym]) and
+                ([vo_is_funcret,vo_is_result] * tabstractnormalvarsym(self).varoptions <> []) then
+          result:='result '+result
+        else
+          result:=realname+' '+result;
       end;
 
 

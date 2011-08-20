@@ -203,7 +203,7 @@
             ,res_single_file);
 
        tdbg = (dbg_none
-            ,dbg_stabs,dbg_dwarf2,dbg_dwarf3,dbg_dwarf4
+            ,dbg_stabs,dbg_dwarf2,dbg_dwarf3,dbg_dwarf4,dbg_jasmin
        );
 
        tscripttype = (script_none

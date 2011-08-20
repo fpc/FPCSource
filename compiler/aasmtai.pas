@@ -88,7 +88,10 @@ interface
           ait_regalloc,
           ait_tempalloc,
           { used to mark assembler blocks and inlined functions }
-          ait_marker
+          ait_marker,
+          { JVM only }
+          ait_jvar,    { debug information for a local variable }
+          ait_jcatch   { exception catch clause }
           );
 
         taiconst_type = (
@@ -174,7 +177,9 @@ interface
           'cut',
           'regalloc',
           'tempalloc',
-          'marker'
+          'marker',
+          'jvar',
+          'jcatch'
           );
 
     type
@@ -250,7 +255,8 @@ interface
         a new ait type!                                                              }
       SkipInstr = [ait_comment, ait_symbol,ait_section
                    ,ait_stab, ait_function_name, ait_force_line
-                   ,ait_regalloc, ait_tempalloc, ait_symbol_end, ait_directive];
+                   ,ait_regalloc, ait_tempalloc, ait_symbol_end, ait_directive
+                   ,ait_jvar, ait_jcatch];
 
       { ait_* types which do not have line information (and hence which are of type
         tai, otherwise, they are of type tailineinfo }
@@ -258,12 +264,13 @@ interface
                      ait_regalloc,ait_tempalloc,
                      ait_stab,ait_function_name,
                      ait_cutobject,ait_marker,ait_align,ait_section,ait_comment,
-                     ait_const,
+                     ait_const,ait_directive,
 {$ifdef arm}
                      ait_thumb_func,
 {$endif arm}
                      ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit,
-                     ait_symbol
+                     ait_symbol,
+                     ait_jvar,ait_jcatch
                     ];
 
 
@@ -665,6 +672,29 @@ interface
            function calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;virtual;
         end;
         tai_align_class = class of tai_align_abstract;
+
+        { JVM variable live range description }
+        tai_jvar = class(tai)
+          stackslot: longint;
+          desc: pshortstring;
+          startlab,stoplab: tasmsymbol;
+
+          constructor Create(_stackslot: longint; const _desc: shortstring; _startlab, _stoplab: TAsmSymbol);
+          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+        end;
+        tai_jvar_class = class of tai_jvar;
+
+        { JVM exception catch description }
+        tai_jcatch = class(tai)
+          name: pshortstring;
+          startlab,stoplab,handlerlab: tasmsymbol;
+
+          constructor Create(const _name: shortstring; _startlab, _stoplab, _handlerlab: TAsmSymbol);
+          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+        end;
+        tai_jcatch_class = class of tai_jcatch;
 
     var
       { array with all class types for tais }
@@ -2452,6 +2482,82 @@ implementation
         ppufile.putbyte(aligntype);
         ppufile.putbyte(fillop);
         ppufile.putbyte(byte(use_op));
+      end;
+
+
+{****************************************************************************
+                              tai_jvar
+ ****************************************************************************}
+
+    constructor tai_jvar.Create(_stackslot: longint; const _desc: shortstring; _startlab, _stoplab: TAsmSymbol);
+      begin
+        Inherited create;
+        typ:=ait_jvar;
+        stackslot:=_stackslot;
+        desc:=stringdup(_desc);
+        startlab:=_startlab;
+        stoplab:=_stoplab;
+      end;
+
+
+    constructor tai_jvar.ppuload(t: taitype; ppufile: tcompilerppufile);
+      begin
+        inherited ppuload(t, ppufile);
+        stackslot:=ppufile.getlongint;
+        desc:=stringdup(ppufile.getstring);
+        startlab:=ppufile.getasmsymbol;
+        stoplab:=ppufile.getasmsymbol;
+      end;
+
+
+    procedure tai_jvar.ppuwrite(ppufile: tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putlongint(stackslot);
+        ppufile.putstring(desc^);
+        ppufile.putasmsymbol(startlab);
+        ppufile.putasmsymbol(stoplab);
+      end;
+
+
+    {****************************************************************************
+                                  tai_jvar
+     ****************************************************************************}
+
+    constructor tai_jcatch.Create(const _name: shortstring; _startlab, _stoplab, _handlerlab: TAsmSymbol);
+      begin
+        Inherited create;
+        typ:=ait_jcatch;
+        name:=stringdup(_name);
+        startlab:=_startlab;
+        startlab.increfs;
+        stoplab:=_stoplab;
+        stoplab.increfs;
+        handlerlab:=_handlerlab;
+        handlerlab.increfs;
+      end;
+
+
+    constructor tai_jcatch.ppuload(t: taitype; ppufile: tcompilerppufile);
+      begin
+        inherited ppuload(t, ppufile);
+        name:=stringdup(ppufile.getstring);
+        startlab:=ppufile.getasmsymbol;
+        startlab.increfs;
+        stoplab:=ppufile.getasmsymbol;
+        stoplab.increfs;
+        handlerlab:=ppufile.getasmsymbol;
+        handlerlab.increfs;
+      end;
+
+
+    procedure tai_jcatch.ppuwrite(ppufile: tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putstring(name^);
+        ppufile.putasmsymbol(startlab);
+        ppufile.putasmsymbol(stoplab);
+        ppufile.putasmsymbol(handlerlab);
       end;
 
 end.

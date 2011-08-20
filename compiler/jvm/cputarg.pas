@@ -57,9 +57,7 @@ implementation
              Debuginfo
 **************************************}
 
-  {$ifdef Dbgjvm}
-      ,dbgjvm
-  {$endif Dbgjvm}
+      ,dbgjasm
 
       ;
 
