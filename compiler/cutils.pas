@@ -52,6 +52,8 @@ interface
     {# Return @var(b) with the bit order reversed }
     function reverse_byte(b: byte): byte;
 
+    function next_prime(l: longint): longint;
+
     function used_align(varalign,minalign,maxalign:shortint):shortint;
     function isbetteralignedthan(new, org, limit: cardinal): boolean;
     function size_2_align(len : longint) : shortint;
@@ -314,6 +316,33 @@ implementation
             cnt:=cnt*2;
           end;
         result:=false;
+      end;
+
+
+    function next_prime(l: longint): longint;
+      var
+        check, checkbound: longint;
+        ok: boolean;
+      begin
+        result:=l or 1;
+        while l<high(longint) do
+          begin
+            ok:=true;
+            checkbound:=trunc(sqrt(l));
+            check:=3;
+            while check<checkbound do
+              begin
+                if (l mod check) = 0 then
+                  begin
+                    ok:=false;
+                    break;
+                  end;
+                inc(check,2);
+              end;
+            if ok then
+              exit;
+            inc(l);
+          end;
       end;
 
 

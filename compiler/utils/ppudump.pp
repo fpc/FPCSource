@@ -2132,6 +2132,10 @@ begin
              writeln(space,' Smallest element : ',getaint);
              writeln(space,'  Largest element : ',getaint);
              writeln(space,'             Size : ',getaint);
+{$ifdef jvm}
+             write(space,'        Class def : ');
+             readderef('');
+{$endif}
              if df_copied_def in defoptions then
                begin
                  write(space,'Base enumeration type : ');

@@ -1,4 +1,4 @@
-{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.LinkageError, java.lang.Number, java.lang.Object, java.lang.RuntimeException, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.GenericDeclaration, java.lang.reflect.Type, java.text.Collator, java.util.Arrays, java.util.Comparator }
+{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.Boolean, java.lang.Byte, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Enum, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.Integer, java.lang.Iterable, java.lang.LinkageError, java.lang.Long, java.lang.Number, java.lang.Object, java.lang.RuntimeException, java.lang.Short, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.GenericDeclaration, java.lang.reflect.Type, java.text.Collator, java.util.AbstractMap, java.util.Arrays, java.util.Collection, java.util.Comparator, java.util.HashMap, java.util.Map, java.util.Set }
 type
   JLStringBuffer = class;
   Arr1JLStringBuffer = array of JLStringBuffer;
@@ -10,11 +10,6 @@ type
   Arr2JLObject = array of Arr1JLObject;
   Arr3JLObject = array of Arr2JLObject;
 
-  JLThrowable = class;
-  Arr1JLThrowable = array of JLThrowable;
-  Arr2JLThrowable = array of Arr1JLThrowable;
-  Arr3JLThrowable = array of Arr2JLThrowable;
-
   JLStringBuilder = class;
   Arr1JLStringBuilder = array of JLStringBuilder;
   Arr2JLStringBuilder = array of Arr1JLStringBuilder;
@@ -25,15 +20,10 @@ type
   Arr2JLAbstractStringBuilder = array of Arr1JLAbstractStringBuilder;
   Arr3JLAbstractStringBuilder = array of Arr2JLAbstractStringBuilder;
 
-  JLLinkageError = class;
-  Arr1JLLinkageError = array of JLLinkageError;
-  Arr2JLLinkageError = array of Arr1JLLinkageError;
-  Arr3JLLinkageError = array of Arr2JLLinkageError;
-
-  JLRArray = class;
-  Arr1JLRArray = array of JLRArray;
-  Arr2JLRArray = array of Arr1JLRArray;
-  Arr3JLRArray = array of Arr2JLRArray;
+  JLEnum = class;
+  Arr1JLEnum = array of JLEnum;
+  Arr2JLEnum = array of Arr1JLEnum;
+  Arr3JLEnum = array of Arr2JLEnum;
 
   JLError = class;
   Arr1JLError = array of JLError;
@@ -45,6 +35,61 @@ type
   Arr2JLNumber = array of Arr1JLNumber;
   Arr3JLNumber = array of Arr2JLNumber;
 
+  JLCharacter = class;
+  Arr1JLCharacter = array of JLCharacter;
+  Arr2JLCharacter = array of Arr1JLCharacter;
+  Arr3JLCharacter = array of Arr2JLCharacter;
+
+  JUArrays = class;
+  Arr1JUArrays = array of JUArrays;
+  Arr2JUArrays = array of Arr1JUArrays;
+  Arr3JUArrays = array of Arr2JUArrays;
+
+  JLBoolean = class;
+  Arr1JLBoolean = array of JLBoolean;
+  Arr2JLBoolean = array of Arr1JLBoolean;
+  Arr3JLBoolean = array of Arr2JLBoolean;
+
+  JLLong = class;
+  Arr1JLLong = array of JLLong;
+  Arr2JLLong = array of Arr1JLLong;
+  Arr3JLLong = array of Arr2JLLong;
+
+  JLShort = class;
+  Arr1JLShort = array of JLShort;
+  Arr2JLShort = array of Arr1JLShort;
+  Arr3JLShort = array of Arr2JLShort;
+
+  JLThrowable = class;
+  Arr1JLThrowable = array of JLThrowable;
+  Arr2JLThrowable = array of Arr1JLThrowable;
+  Arr3JLThrowable = array of Arr2JLThrowable;
+
+  JLInteger = class;
+  Arr1JLInteger = array of JLInteger;
+  Arr2JLInteger = array of Arr1JLInteger;
+  Arr3JLInteger = array of Arr2JLInteger;
+
+  JLLinkageError = class;
+  Arr1JLLinkageError = array of JLLinkageError;
+  Arr2JLLinkageError = array of Arr1JLLinkageError;
+  Arr3JLLinkageError = array of Arr2JLLinkageError;
+
+  JLByte = class;
+  Arr1JLByte = array of JLByte;
+  Arr2JLByte = array of Arr1JLByte;
+  Arr3JLByte = array of Arr2JLByte;
+
+  JLRArray = class;
+  Arr1JLRArray = array of JLRArray;
+  Arr2JLRArray = array of Arr1JLRArray;
+  Arr3JLRArray = array of Arr2JLRArray;
+
+  JUAbstractMap = class;
+  Arr1JUAbstractMap = array of JUAbstractMap;
+  Arr2JUAbstractMap = array of Arr1JUAbstractMap;
+  Arr3JUAbstractMap = array of Arr2JUAbstractMap;
+
   JLException = class;
   Arr1JLException = array of JLException;
   Arr2JLException = array of Arr1JLException;
@@ -55,10 +100,10 @@ type
   Arr2JLIndexOutOfBoundsException = array of Arr1JLIndexOutOfBoundsException;
   Arr3JLIndexOutOfBoundsException = array of Arr2JLIndexOutOfBoundsException;
 
-  JLCharacter = class;
-  Arr1JLCharacter = array of JLCharacter;
-  Arr2JLCharacter = array of Arr1JLCharacter;
-  Arr3JLCharacter = array of Arr2JLCharacter;
+  JUHashMap = class;
+  Arr1JUHashMap = array of JUHashMap;
+  Arr2JUHashMap = array of Arr1JUHashMap;
+  Arr3JUHashMap = array of Arr2JUHashMap;
 
   JLDouble = class;
   Arr1JLDouble = array of JLDouble;
@@ -70,25 +115,20 @@ type
   Arr2JTCollator = array of Arr1JTCollator;
   Arr3JTCollator = array of Arr2JTCollator;
 
-  JUArrays = class;
-  Arr1JUArrays = array of JUArrays;
-  Arr2JUArrays = array of Arr1JUArrays;
-  Arr3JUArrays = array of Arr2JUArrays;
-
   JLIllegalArgumentException = class;
   Arr1JLIllegalArgumentException = array of JLIllegalArgumentException;
   Arr2JLIllegalArgumentException = array of Arr1JLIllegalArgumentException;
   Arr3JLIllegalArgumentException = array of Arr2JLIllegalArgumentException;
 
-  JLClass = class;
-  Arr1JLClass = array of JLClass;
-  Arr2JLClass = array of Arr1JLClass;
-  Arr3JLClass = array of Arr2JLClass;
-
   JLString = class;
   Arr1JLString = array of JLString;
   Arr2JLString = array of Arr1JLString;
   Arr3JLString = array of Arr2JLString;
+
+  JLClass = class;
+  Arr1JLClass = array of JLClass;
+  Arr2JLClass = array of Arr1JLClass;
+  Arr3JLClass = array of Arr2JLClass;
 
   JLFloat = class;
   Arr1JLFloat = array of JLFloat;
@@ -105,6 +145,46 @@ type
   Arr2JLRuntimeException = array of Arr1JLRuntimeException;
   Arr3JLRuntimeException = array of Arr2JLRuntimeException;
 
+  JLIterable = interface;
+  Arr1JLIterable = array of JLIterable;
+  Arr2JLIterable = array of Arr1JLIterable;
+  Arr3JLIterable = array of Arr2JLIterable;
+
+  JLCloneable = interface;
+  Arr1JLCloneable = array of JLCloneable;
+  Arr2JLCloneable = array of Arr1JLCloneable;
+  Arr3JLCloneable = array of Arr2JLCloneable;
+
+  JLAppendable = interface;
+  Arr1JLAppendable = array of JLAppendable;
+  Arr2JLAppendable = array of Arr1JLAppendable;
+  Arr3JLAppendable = array of Arr2JLAppendable;
+
+  JUCollection = interface;
+  Arr1JUCollection = array of JUCollection;
+  Arr2JUCollection = array of Arr1JUCollection;
+  Arr3JUCollection = array of Arr2JUCollection;
+
+  JUMap = interface;
+  Arr1JUMap = array of JUMap;
+  Arr2JUMap = array of Arr1JUMap;
+  Arr3JUMap = array of Arr2JUMap;
+
+  JUSet = interface;
+  Arr1JUSet = array of JUSet;
+  Arr2JUSet = array of Arr1JUSet;
+  Arr3JUSet = array of Arr2JUSet;
+
+  JLRType = interface;
+  Arr1JLRType = array of JLRType;
+  Arr2JLRType = array of Arr1JLRType;
+  Arr3JLRType = array of Arr2JLRType;
+
+  JLComparable = interface;
+  Arr1JLComparable = array of JLComparable;
+  Arr2JLComparable = array of Arr1JLComparable;
+  Arr3JLComparable = array of Arr2JLComparable;
+
   JLCharSequence = interface;
   Arr1JLCharSequence = array of JLCharSequence;
   Arr2JLCharSequence = array of Arr1JLCharSequence;
@@ -120,35 +200,15 @@ type
   Arr2JLRAnnotatedElement = array of Arr1JLRAnnotatedElement;
   Arr3JLRAnnotatedElement = array of Arr2JLRAnnotatedElement;
 
-  JLCloneable = interface;
-  Arr1JLCloneable = array of JLCloneable;
-  Arr2JLCloneable = array of Arr1JLCloneable;
-  Arr3JLCloneable = array of Arr2JLCloneable;
-
   JUComparator = interface;
   Arr1JUComparator = array of JUComparator;
   Arr2JUComparator = array of Arr1JUComparator;
   Arr3JUComparator = array of Arr2JUComparator;
 
-  JLAppendable = interface;
-  Arr1JLAppendable = array of JLAppendable;
-  Arr2JLAppendable = array of Arr1JLAppendable;
-  Arr3JLAppendable = array of Arr2JLAppendable;
-
-  JLRType = interface;
-  Arr1JLRType = array of JLRType;
-  Arr2JLRType = array of Arr1JLRType;
-  Arr3JLRType = array of Arr2JLRType;
-
   JISerializable = interface;
   Arr1JISerializable = array of JISerializable;
   Arr2JISerializable = array of Arr1JISerializable;
   Arr3JISerializable = array of Arr2JISerializable;
-
-  JLComparable = interface;
-  Arr1JLComparable = array of JLComparable;
-  Arr2JLComparable = array of Arr1JLComparable;
-  Arr3JLComparable = array of Arr2JLComparable;
 
   JLStackTraceElement = class external 'java.lang' name 'StackTraceElement';
   Arr1JLStackTraceElement = array of JLStackTraceElement;
@@ -245,6 +305,11 @@ type
   Arr2JLAAnnotation = array of Arr1JLAAnnotation;
   Arr3JLAAnnotation = array of Arr2JLAAnnotation;
 
+  JUIterator = interface external 'java.util' name 'Iterator';
+  Arr1JUIterator = array of JUIterator;
+  Arr2JUIterator = array of Arr1JUIterator;
+  Arr3JUIterator = array of Arr2JUIterator;
+
   JNCChannel = interface external 'java.nio.channels' name 'Channel';
   Arr1JNCChannel = array of JNCChannel;
   Arr2JNCChannel = array of Arr1JNCChannel;
@@ -254,10 +319,5 @@ type
   Arr1JLRTypeVariable = array of JLRTypeVariable;
   Arr2JLRTypeVariable = array of Arr1JLRTypeVariable;
   Arr3JLRTypeVariable = array of Arr2JLRTypeVariable;
-
-  JUMap = interface external 'java.util' name 'Map';
-  Arr1JUMap = array of JUMap;
-  Arr2JUMap = array of Arr1JUMap;
-  Arr3JUMap = array of Arr2JUMap;
 
 

@@ -572,6 +572,8 @@ implementation
                           AsmWrite('final ');
                         if toplevelowner.symtabletype=globalsymtable then
                           AsmWrite('public ');
+                        if (oo_is_enum_class in tobjectdef(obj).objectoptions) then
+                          AsmWrite('enum ');
                         AsmWriteln(obj.jvm_full_typename(true));
                         superclass:=tobjectdef(obj).childof;
                       end;
@@ -598,6 +600,10 @@ implementation
                   AsmWrite(superclass.import_lib^+'/');
                 AsmWriteln(superclass.objextname^);
               end;
+            { signature for enum classes (must come after superclass) }
+            if (obj.typ=objectdef) and
+               (oo_is_enum_class in tobjectdef(obj).objectoptions) then
+              AsmWriteln('.signature "Ljava/lang/Enum<'+obj.jvm_full_typename(true)+';>;"');
             { implemented interfaces }
             if (obj.typ=objectdef) and
                assigned(tobjectdef(obj).ImplementedInterfaces) then
@@ -828,6 +834,16 @@ implementation
           result:=result+'final ';
         if sp_internal in sym.symoptions then
           result:=result+'synthetic ';
+        { mark the class fields of enum classes that contain the initialised
+          enum instances as "enum" (recognise them by the fact that their type
+          is the same as their parent class, and that this parent class is
+          marked as oo_is_enum_class) }
+        if assigned(sym.owner.defowner) and
+           (tdef(sym.owner.defowner).typ=objectdef) and
+           (oo_is_enum_class in tobjectdef(sym.owner.defowner).objectoptions) and
+           (sym.typ=staticvarsym) and
+           (tstaticvarsym(sym).vardef=tdef(sym.owner.defowner)) then
+          result:=result+'enum ';
         result:=result+jvmmangledbasename(sym,true);
       end;
 

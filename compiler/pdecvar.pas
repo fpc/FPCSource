@@ -53,7 +53,7 @@ implementation
        globtype,globals,tokens,verbose,constexp,
        systems,
        { symtable }
-       symconst,symbase,symtype,symtable,defutil,defcmp,
+       symconst,symbase,symtype,symtable,defutil,defcmp,symcreat,
 {$ifdef jvm}
        jvmdef,
 {$endif}
@@ -1372,7 +1372,7 @@ implementation
 {$endif}
 
              read_anon_type(hdef,false);
-             jvm_guarantee_record_typesym(hdef,symtablestack.top);
+             maybe_guarantee_record_typesym(hdef,symtablestack.top);
              for i:=0 to sc.count-1 do
                begin
                  vs:=tabstractvarsym(sc[i]);
@@ -1587,7 +1587,7 @@ implementation
                  symtablestack.pop(recst);
                end;
              read_anon_type(hdef,false);
-             jvm_guarantee_record_typesym(hdef,symtablestack.top);
+             maybe_guarantee_record_typesym(hdef,symtablestack.top);
              block_type:=bt_var;
              { allow only static fields reference to struct where they are declared }
              if not (vd_class in options) and

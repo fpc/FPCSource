@@ -1544,6 +1544,9 @@ implementation
                 until not try_to_consume(_COMMA);
                 def:=aktenumdef;
                 consume(_RKLAMMER);
+{$ifdef jvm}
+                jvm_maybe_create_enum_class(name,def);
+{$endif}
               end;
             _ARRAY:
               begin

@@ -28,7 +28,8 @@ interface
 
   uses
     finput,tokens,scanner,globtype,
-    symconst,symbase,symtype,symdef;
+    aasmdata,
+    symconst,symbase,symtype,symdef,symsym;
 
 
   type
@@ -94,19 +95,20 @@ interface
   { finalises the parentfpstruct (alignment padding, ...) }
   procedure finish_parentfpstruct(pd: tprocdef);
 
+  procedure maybe_guarantee_record_typesym(var def: tdef; st: tsymtable);
 
 implementation
 
   uses
-    cutils,globals,verbose,systems,comphook,fmodule,
-    symsym,symtable,defutil,
-    pbase,pdecobj,pdecsub,psub,
+    cutils,cclasses,globals,verbose,systems,comphook,fmodule,
+    symtable,defutil,
+    pbase,pdecobj,pdecsub,psub,ptconst,
+{$ifdef jvm}
+    pjvm,
+{$endif jvm}
     node,nbas,nld,nmem,
     defcmp,
-    paramgr
-    {$ifdef jvm}
-    ,pjvm
-    {$endif};
+    paramgr;
 
   procedure replace_scanner(const tempname: string; out sstate: tscannerstate);
     var
@@ -356,6 +358,116 @@ implementation
     end;
 
 
+  procedure implement_jvm_enum_values(pd: tprocdef);
+    begin
+      str_parse_method_impl('begin result:=__fpc_FVALUES end;',pd,true);
+    end;
+
+
+  procedure implement_jvm_enum_valuof(pd: tprocdef);
+    begin
+      str_parse_method_impl('begin result:=__FPC_TEnumClassAlias(inherited valueOf(JLClass(__FPC_TEnumClassAlias),__fpc_str)) end;',pd,true);
+    end;
+
+
+  procedure implement_jvm_enum_jumps_constr(pd: tprocdef);
+    begin
+      str_parse_method_impl('begin inherited create(__fpc_name,__fpc_ord); __fpc_fenumval:=__fpc_initenumval end;',pd,false);
+    end;
+
+
+  procedure implement_jvm_enum_fpcordinal(pd: tprocdef);
+    var
+      enumclass: tobjectdef;
+      enumdef: tenumdef;
+    begin
+      enumclass:=tobjectdef(pd.owner.defowner);
+      enumdef:=tenumdef(ttypesym(search_struct_member(enumclass,'__FPC_TENUMALIAS')).typedef);
+      if not enumdef.has_jumps then
+        str_parse_method_impl('begin result:=ordinal end;',pd,false)
+      else
+        str_parse_method_impl('begin result:=__fpc_fenumval end;',pd,false);
+    end;
+
+
+  procedure implement_jvm_enum_fpcvalueof(pd: tprocdef);
+    var
+      enumclass: tobjectdef;
+      enumdef: tenumdef;
+    begin
+      enumclass:=tobjectdef(pd.owner.defowner);
+      enumdef:=tenumdef(ttypesym(search_struct_member(enumclass,'__FPC_TENUMALIAS')).typedef);
+      { convert integer to corresponding enum instance: in case of no jumps
+        get it from the $VALUES array, otherwise from the __fpc_ord2enum
+        hashmap }
+      if not enumdef.has_jumps then
+        str_parse_method_impl('begin result:=__fpc_FVALUES[__fpc_int] end;',pd,false)
+      else
+        str_parse_method_impl('begin result:=__FPC_TEnumClassAlias(__fpc_ord2enum.get(JLInteger.valueOf(__fpc_int))) end;',pd,true);
+    end;
+
+
+  function CompareEnumSyms(Item1, Item2: Pointer): Integer;
+    var
+      I1 : tenumsym absolute Item1;
+      I2 : tenumsym absolute Item2;
+    begin
+      Result:=I1.value-I2.value;
+    end;
+
+
+  procedure implement_jvm_enum_classconstr(pd: tprocdef);
+    var
+      enumclass: tobjectdef;
+      enumdef: tenumdef;
+      str: ansistring;
+      i: longint;
+      enumsym: tenumsym;
+      classfield: tstaticvarsym;
+      orderedenums: tfpobjectlist;
+    begin
+      enumclass:=tobjectdef(pd.owner.defowner);
+      enumdef:=tenumdef(ttypesym(search_struct_member(enumclass,'__FPC_TENUMALIAS')).typedef);
+      if not assigned(enumdef) then
+        internalerror(2011062305);
+      str:='begin ';
+      if enumdef.has_jumps then
+        { init hashmap for ordinal -> enum instance mapping; don't let it grow,
+          and set the capacity to the next prime following the total number of
+          enum elements to minimise the number of collisions }
+        str:=str+'__fpc_ord2enum:=JUHashMap.Create('+tostr(next_prime(enumdef.symtable.symlist.count))+',1.0);';
+      { iterate over all enum elements and initialise the class fields, and
+        store them in the values array. Since the java.lang.Enum doCompare
+        method is final and hardcoded to compare based on declaration order
+        (= java.lang.Enum.ordinal() value), we have to create them in order of
+        ascending FPC ordinal values (which may not be the same as the FPC
+        declaration order in case of jumps }
+      orderedenums:=tfpobjectlist.create(false);
+      for i:=0 to enumdef.symtable.symlist.count-1 do
+        orderedenums.add(enumdef.symtable.symlist[i]);
+      if enumdef.has_jumps then
+        orderedenums.sort(@CompareEnumSyms);
+      for i:=0 to orderedenums.count-1 do
+        begin
+          enumsym:=tenumsym(orderedenums[i]);
+          classfield:=tstaticvarsym(search_struct_member(enumclass,enumsym.name));
+          if not assigned(classfield) then
+            internalerror(2011062306);
+          str:=str+classfield.name+':=__FPC_TEnumClassAlias.Create('''+enumsym.realname+''','+tostr(i);
+          if enumdef.has_jumps then
+            str:=str+','+tostr(enumsym.value);
+          str:=str+');';
+          { alias for $VALUES array used internally by the JDK, and also by FPC
+            in case of no jumps }
+          str:=str+'__fpc_FVALUES['+tostr(i)+']:='+classfield.name+';';
+          if enumdef.has_jumps then
+            str:=str+'__fpc_ord2enum.put(JLInteger.valueOf('+tostr(enumsym.value)+'),'+classfield.name+');';
+        end;
+      orderedenums.free;
+      str:=str+' end;';
+      str_parse_method_impl(str,pd,true);
+    end;
+
 
   procedure add_synthetic_method_implementations_for_struct(struct: tabstractrecorddef);
     var
@@ -382,6 +494,18 @@ implementation
             { special handling for this one is done in tnodeutils.wrap_proc_body }
             tsk_tcinit:
               implement_empty(pd);
+            tsk_jvm_enum_values:
+              implement_jvm_enum_values(pd);
+            tsk_jvm_enum_valueof:
+              implement_jvm_enum_valuof(pd);
+            tsk_jvm_enum_classconstr:
+              implement_jvm_enum_classconstr(pd);
+            tsk_jvm_enum_jumps_constr:
+              implement_jvm_enum_jumps_constr(pd);
+            tsk_jvm_enum_fpcordinal:
+              implement_jvm_enum_fpcordinal(pd);
+            tsk_jvm_enum_fpcvalueof:
+              implement_jvm_enum_fpcvalueof(pd);
             else
               internalerror(2011032801);
           end;
@@ -492,7 +616,7 @@ implementation
       nestedvarsst:=trecordsymtable.create(current_module.realmodulename^+'$$_fpc_nestedvars$'+tostr(pd.defid),current_settings.alignment.localalignmax);
       nestedvarsdef:=trecorddef.create(nestedvarsst.name^,nestedvarsst);
 {$ifdef jvm}
-      jvm_guarantee_record_typesym(nestedvarsdef,nestedvarsdef.owner);
+      maybe_guarantee_record_typesym(nestedvarsdef,nestedvarsdef.owner);
       { don't add clone/FpcDeepCopy, because the field names are not all
         representable in source form and we don't need them anyway }
       symtablestack.push(trecorddef(nestedvarsdef).symtable);
@@ -624,6 +748,21 @@ implementation
     end;
 
 
+  procedure maybe_guarantee_record_typesym(var def: tdef; st: tsymtable);
+    var
+      ts: ttypesym;
+    begin
+      { create a dummy typesym for the JVM target, because the record
+        has to be wrapped by a class }
+      if (target_info.system=system_jvm_java32) and
+         (def.typ=recorddef) and
+         not assigned(def.typesym) then
+        begin
+          ts:=ttypesym.create(trecorddef(def).symtable.realname^,def);
+          st.insert(ts);
+          ts.visibility:=vis_strictprivate;
+        end;
+    end;
 
 
 end.

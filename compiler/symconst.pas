@@ -381,7 +381,8 @@ type
     oo_is_formal,         { the class is only formally defined in this module (x = objcclass; external [name 'x'];) }
     oo_is_classhelper,    { objcclasses that represent categories, and Delpi-style class helpers, are marked like this }
     oo_has_class_constructor, { the object/class has a class constructor }
-    oo_has_class_destructor   { the object/class has a class destructor  }
+    oo_has_class_destructor,  { the object/class has a class destructor  }
+    oo_is_enum_class      { the class represents an enum (JVM) }
   );
   tobjectoptions=set of tobjectoption;
 

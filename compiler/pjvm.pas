@@ -27,7 +27,8 @@ unit pjvm;
 interface
 
     uses
-     symtype,symbase,symdef;
+      globtype,
+      symtype,symbase,symdef;
 
     { the JVM specs require that you add a default parameterless
       constructor in case the programmer hasn't specified any }
@@ -38,13 +39,13 @@ interface
       to initialse dynamic arrays }
     procedure add_java_default_record_methods_intf(def: trecorddef);
 
-    procedure jvm_guarantee_record_typesym(var def: tdef; st: tsymtable);
+    procedure jvm_maybe_create_enum_class(const name: TIDString; def: tdef);
+
 
 
 implementation
 
   uses
-    globtype,
     cutils,cclasses,
     verbose,systems,
     fmodule,
@@ -195,20 +196,137 @@ implementation
       end;
 
 
-    procedure jvm_guarantee_record_typesym(var def: tdef; st: tsymtable);
+    procedure jvm_maybe_create_enum_class(const name: TIDString; def: tdef);
       var
-        ts: ttypesym;
+        arrdef: tarraydef;
+        arrsym: ttypesym;
+        juhashmap: tdef;
+        enumclass: tobjectdef;
+        pd: tprocdef;
+        old_current_structdef: tabstractrecorddef;
+        i: longint;
+        sym: tstaticvarsym;
+        fsym: tfieldvarsym;
+        sstate: symcreat.tscannerstate;
+        sl: tpropaccesslist;
       begin
-        { create a dummy typesym for the JVM target, because the record
-          has to be wrapped by a class }
-        if (target_info.system=system_jvm_java32) and
-           (def.typ=recorddef) and
-           not assigned(def.typesym) then
+        { if it's a subrange type, don't create a new class }
+        if assigned(tenumdef(def).basedef) then
+          exit;
+        replace_scanner('jvm_enum_class',sstate);
+        { create new class (different internal name than enum to prevent name clash) }
+        enumclass:=tobjectdef.create(odt_javaclass,'$'+name+'$InternEnum',java_jlenum);
+        tenumdef(def).classdef:=enumclass;
+        include(enumclass.objectoptions,oo_is_enum_class);
+        include(enumclass.objectoptions,oo_is_sealed);
+        { create an alias for this type inside itself: this way we can choose a
+          name that can be used in generated Pascal code without risking an
+          identifier conflict (since it is local to this class; the global name
+          is unique because it's an identifier that contains $-signs) }
+        enumclass.symtable.insert(ttypesym.create('__FPC_TEnumClassAlias',enumclass));
+        { also create an alias for the enum type so that we can iterate over
+          all enum values when creating the body of the class constructor }
+        enumclass.symtable.insert(ttypesym.create('__FPC_TEnumAlias',def));
+        { but the name of the class as far as the JVM is concerned will match
+          the enum's original name (the enum type itself won't be output in
+          any class file, so no conflict there) }
+        enumclass.objextname:=stringdup(name);
+        { now add a bunch of extra things to the enum class }
+        old_current_structdef:=current_structdef;
+        current_structdef:=enumclass;
+        symtablestack.push(enumclass.symtable);
+        { create static fields representing all enums }
+        for i:=0 to tenumdef(def).symtable.symlist.count-1 do
           begin
-            ts:=ttypesym.create(trecorddef(def).symtable.realname^,def);
-            st.insert(ts);
-            ts.visibility:=vis_strictprivate;
+            sym:=tstaticvarsym.create(tenumsym(tenumdef(def).symtable.symlist[i]).realname,vs_final,enumclass,[]);
+            enumclass.symtable.insert(sym);
+            { alias for consistency with parsed staticvarsyms }
+            sl:=tpropaccesslist.create;
+            sl.addsym(sl_load,sym);
+            enumclass.symtable.insert(tabsolutevarsym.create_ref('$'+internal_static_field_name(sym.name),enumclass,sl));
           end;
+        { create local "array of enumtype" type for the "values" functionality
+          (used internally by the JDK) }
+        arrdef:=tarraydef.create(0,tenumdef(def).symtable.symlist.count-1,s32inttype);
+        arrdef.elementdef:=enumclass;
+        arrsym:=ttypesym.create('__FPC_TEnumValues',arrdef);
+        enumclass.symtable.insert(arrsym);
+        { insert "public static values: array of enumclass" that returns $VALUES.clone()
+          (rather than a dynamic array and using clone --which we don't support yet for arrays--
+           simply use a fixed length array and copy it) }
+        if not str_parse_method_dec('function values: __FPC_TEnumValues;',potype_function,true,enumclass,pd) then
+          internalerror(2011062301);
+        include(pd.procoptions,po_staticmethod);
+        pd.synthetickind:=tsk_jvm_enum_values;
+        { do we have to store the ordinal value separately? (if no jumps, we can
+          just call the default ordinal() java.lang.Enum function) }
+        if tenumdef(def).has_jumps then
+          begin
+            { add field for the value }
+            fsym:=tfieldvarsym.create('__fpc_fenumval',vs_final,s32inttype,[]);
+            enumclass.symtable.insert(fsym);
+            tobjectsymtable(enumclass.symtable).addfield(fsym,vis_strictprivate);
+            { add class field with hash table that maps from FPC-declared ordinal value -> enum instance }
+            juhashmap:=search_system_type('JUHASHMAP').typedef;
+            sym:=tstaticvarsym.create('__fpc_ord2enum',vs_final,juhashmap,[]);
+            enumclass.symtable.insert(sym);
+            { alias for consistency with parsed staticvarsyms }
+            sl:=tpropaccesslist.create;
+            sl.addsym(sl_load,sym);
+            enumclass.symtable.insert(tabsolutevarsym.create_ref('$'+internal_static_field_name(sym.name),enumclass,sl));
+            { add custom constructor }
+            if not str_parse_method_dec('constructor Create(const __fpc_name: JLString; const __fpc_ord, __fpc_initenumval: longint);',potype_constructor,false,enumclass,pd) then
+              internalerror(2011062401);
+            pd.synthetickind:=tsk_jvm_enum_jumps_constr;
+            pd.visibility:=vis_strictprivate;
+          end
+        else
+          begin
+            { insert "private constructor(string,int,int)" that calls inherited and
+              initialises the FPC value field }
+            add_missing_parent_constructors_intf(enumclass,vis_strictprivate);
+          end;
+        { add instance method to get the enum's value as declared in FPC }
+        if not str_parse_method_dec('function FPCOrdinal: longint;',potype_function,false,enumclass,pd) then
+          internalerror(2011062402);
+        pd.synthetickind:=tsk_jvm_enum_fpcordinal;
+        { add static class method to convert an ordinal to the corresponding enum }
+        if not str_parse_method_dec('function FPCValueOf(__fpc_int: longint): __FPC_TEnumClassAlias; static;',potype_function,true,enumclass,pd) then
+          internalerror(2011062402);
+        pd.synthetickind:=tsk_jvm_enum_fpcvalueof;
+
+        { insert "public static valueOf(string): tenumclass" that returns tenumclass(inherited valueOf(tenumclass,string)) }
+        if not str_parse_method_dec('function valueOf(const __fpc_str: JLString): __FPC_TEnumClassAlias; static;',potype_function,true,enumclass,pd) then
+          internalerror(2011062302);
+        include(pd.procoptions,po_staticmethod);
+        pd.synthetickind:=tsk_jvm_enum_valueof;
+        { create array called "$VALUES" that will contain a reference to all
+          enum instances (JDK convention)
+          Disable duplicate identifier checking when inserting, because it will
+          check for a conflict with "VALUES" ($<id> normally means "check for
+          <id> without uppercasing first"), which will conflict with the
+          "Values" instance method -- that's also the reason why we insert the
+          field only now, because we cannot disable duplicate identifier
+          checking when creating the "Values" method }
+        sym:=tstaticvarsym.create('$VALUES',vs_final,arrdef,[]);
+        sym.visibility:=vis_strictprivate;
+        enumclass.symtable.insert(sym,false);
+        { alias for consistency with parsed staticvarsyms }
+        sl:=tpropaccesslist.create;
+        sl.addsym(sl_load,sym);
+        enumclass.symtable.insert(tabsolutevarsym.create_ref('$'+internal_static_field_name(sym.name),arrdef,sl));
+        { alias for accessing the field in generated Pascal code }
+        sl:=tpropaccesslist.create;
+        sl.addsym(sl_load,sym);
+        enumclass.symtable.insert(tabsolutevarsym.create_ref('__fpc_FVALUES',arrdef,sl));
+        { add initialization of the static class fields created above }
+        if not str_parse_method_dec('constructor fpc_enum_class_constructor;',potype_class_constructor,true,enumclass,pd) then
+          internalerror(2011062303);
+        pd.synthetickind:=tsk_jvm_enum_classconstr;
+
+        symtablestack.pop(enumclass.symtable);
+        current_structdef:=old_current_structdef;
+        restore_scanner(sstate);
       end;
 
 end.

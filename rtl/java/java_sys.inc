@@ -40,6 +40,10 @@
     function compareTo(para1: JLObject): jint; overload;
   end;
 
+  JLIterable = interface external 'java.lang' name 'Iterable' 
+    function iterator(): JUIterator; overload;
+  end;
+
   JLSystem = class sealed external 'java.lang' name 'System' (JLObject)
   public
     final class var
@@ -343,6 +347,36 @@
     function equals(para1: JLObject): jboolean; overload;
   end;
 
+  JUMap = interface external 'java.util' name 'Map' 
+    type
+      InnerEntry = interface;
+      Arr1InnerEntry = array of InnerEntry;
+      Arr2InnerEntry = array of Arr1InnerEntry;
+      Arr3InnerEntry = array of Arr2InnerEntry;
+      InnerEntry = interface external 'java.util' name 'Map$Entry' 
+        function getKey(): JLObject; overload;
+        function getValue(): JLObject; overload;
+        function setValue(para1: JLObject): JLObject; overload;
+        function equals(para1: JLObject): jboolean; overload;
+        function hashCode(): jint; overload;
+      end;
+
+    function size(): jint; overload;
+    function isEmpty(): jboolean; overload;
+    function containsKey(para1: JLObject): jboolean; overload;
+    function containsValue(para1: JLObject): jboolean; overload;
+    function get(para1: JLObject): JLObject; overload;
+    function put(para1: JLObject; para2: JLObject): JLObject; overload;
+    function remove(para1: JLObject): JLObject; overload;
+    procedure putAll(para1: JUMap); overload;
+    procedure clear(); overload;
+    function keySet(): JUSet; overload;
+    function values(): JUCollection; overload;
+    function entrySet(): JUSet; overload;
+    function equals(para1: JLObject): jboolean; overload;
+    function hashCode(): jint; overload;
+  end;
+
   JLNumber = class abstract external 'java.lang' name 'Number' (JLObject, JISerializable)
   public
     constructor create(); overload;
@@ -434,6 +468,28 @@
     function append(para1: jchar): JLAppendable; overload; virtual;  // throws java.io.IOException
     function append(para1: JLCharSequence; para2: jint; para3: jint): JLAppendable; overload; virtual;  // throws java.io.IOException
     function append(para1: JLCharSequence): JLAppendable; overload; virtual;  // throws java.io.IOException
+  end;
+
+  JLBoolean = class sealed external 'java.lang' name 'Boolean' (JLObject, JISerializable, JLComparable)
+  public
+    final class var
+      fTRUE: JLBoolean; external name 'TRUE';
+      fFALSE: JLBoolean; external name 'FALSE';
+      fTYPE: JLClass; external name 'TYPE';
+  public
+    constructor create(para1: jboolean); overload;
+    constructor create(para1: JLString); overload;
+    class function parseBoolean(para1: JLString): jboolean; static; overload;
+    function booleanValue(): jboolean; overload; virtual;
+    class function valueOf(para1: jboolean): JLBoolean; static; overload;
+    class function valueOf(para1: JLString): JLBoolean; static; overload;
+    class function toString(para1: jboolean): JLString; static; overload;
+    function toString(): JLString; overload; virtual;
+    function hashCode(): jint; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual;
+    class function getBoolean(para1: JLString): jboolean; static; overload;
+    function compareTo(para1: JLBoolean): jint; overload; virtual;
+    function compareTo(para1: JLObject): jint; overload; virtual;
   end;
 
   JLCharacter = class sealed external 'java.lang' name 'Character' (JLObject, JISerializable, JLComparable)
@@ -760,6 +816,28 @@
     function compareTo(para1: JLObject): jint; overload; virtual;
   end;
 
+  JLEnum = class abstract external 'java.lang' name 'Enum' (JLObject, JLComparable, JISerializable)
+  public
+    function name(): JLString; overload; virtual; final;
+    function ordinal(): jint; overload; virtual; final;
+  strict protected
+    constructor create(para1: JLString; para2: jint); overload;
+  public
+    function toString(): JLString; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual; final;
+    function hashCode(): jint; overload; virtual; final;
+  strict protected
+    function clone(): JLObject; overload; virtual; final;  // throws java.lang.CloneNotSupportedException
+  public
+    function compareTo(para1: JLEnum): jint; overload; virtual; final;
+    function getDeclaringClass(): JLClass; overload; virtual; final;
+    class function valueOf(para1: JLClass; para2: JLString): JLEnum; static; overload;
+  strict protected
+    procedure finalize(); overload; virtual; final;
+  public
+    function compareTo(para1: JLObject): jint; overload; virtual;
+  end;
+
   JLString = class sealed external 'java.lang' name 'String' (JLObject, JISerializable, JLComparable, JLCharSequence)
   public
     type
@@ -876,21 +954,40 @@
     function compareTo(para1: JLObject): jint; overload; virtual;
   end;
 
+  JUCollection = interface external 'java.util' name 'Collection' (JLIterable)
+    function size(): jint; overload;
+    function isEmpty(): jboolean; overload;
+    function contains(para1: JLObject): jboolean; overload;
+    function iterator(): JUIterator; overload;
+    function toArray(): Arr1JLObject; overload;
+    function toArray(para1: Arr1JLObject): Arr1JLObject; overload;
+    function toArray(var para1: array of JLObject): Arr1JLObject; overload;
+    function add(para1: JLObject): jboolean; overload;
+    function remove(para1: JLObject): jboolean; overload;
+    function containsAll(para1: JUCollection): jboolean; overload;
+    function addAll(para1: JUCollection): jboolean; overload;
+    function removeAll(para1: JUCollection): jboolean; overload;
+    function retainAll(para1: JUCollection): jboolean; overload;
+    procedure clear(); overload;
+    function equals(para1: JLObject): jboolean; overload;
+    function hashCode(): jint; overload;
+  end;
+
   JLClass = class sealed external 'java.lang' name 'Class' (JLObject, JISerializable, JLRGenericDeclaration, JLRType, JLRAnnotatedElement)
   public
     type
-      InnerEnclosingMethodInfo = class;
-      Arr1InnerEnclosingMethodInfo = array of InnerEnclosingMethodInfo;
-      Arr2InnerEnclosingMethodInfo = array of Arr1InnerEnclosingMethodInfo;
-      Arr3InnerEnclosingMethodInfo = array of Arr2InnerEnclosingMethodInfo;
       InnerMethodArray = class;
       Arr1InnerMethodArray = array of InnerMethodArray;
       Arr2InnerMethodArray = array of Arr1InnerMethodArray;
       Arr3InnerMethodArray = array of Arr2InnerMethodArray;
-      InnerEnclosingMethodInfo = class sealed external 'java.lang' name 'Class$EnclosingMethodInfo' 
+      InnerEnclosingMethodInfo = class;
+      Arr1InnerEnclosingMethodInfo = array of InnerEnclosingMethodInfo;
+      Arr2InnerEnclosingMethodInfo = array of Arr1InnerEnclosingMethodInfo;
+      Arr3InnerEnclosingMethodInfo = array of Arr2InnerEnclosingMethodInfo;
+      InnerMethodArray = class external 'java.lang' name 'Class$MethodArray' 
       end;
 
-      InnerMethodArray = class external 'java.lang' name 'Class$MethodArray' 
+      InnerEnclosingMethodInfo = class sealed external 'java.lang' name 'Class$EnclosingMethodInfo' 
       end;
 
   public
@@ -995,6 +1092,106 @@
     constructor create(); overload;
   end;
 
+  JUAbstractMap = class abstract external 'java.util' name 'AbstractMap' (JLObject, JUMap)
+  public
+    type
+      InnerSimpleImmutableEntry = class;
+      Arr1InnerSimpleImmutableEntry = array of InnerSimpleImmutableEntry;
+      Arr2InnerSimpleImmutableEntry = array of Arr1InnerSimpleImmutableEntry;
+      Arr3InnerSimpleImmutableEntry = array of Arr2InnerSimpleImmutableEntry;
+      InnerSimpleEntry = class;
+      Arr1InnerSimpleEntry = array of InnerSimpleEntry;
+      Arr2InnerSimpleEntry = array of Arr1InnerSimpleEntry;
+      Arr3InnerSimpleEntry = array of Arr2InnerSimpleEntry;
+      InnerSimpleImmutableEntry = class external 'java.util' name 'AbstractMap$SimpleImmutableEntry' (JLObject, JUMap.InnerEntry, JISerializable)
+      public
+        constructor create(para1: JLObject; para2: JLObject); overload;
+        constructor create(para1: JUMap.InnerEntry); overload;
+        function getKey(): JLObject; overload; virtual;
+        function getValue(): JLObject; overload; virtual;
+        function setValue(para1: JLObject): JLObject; overload; virtual;
+        function equals(para1: JLObject): jboolean; overload; virtual;
+        function hashCode(): jint; overload; virtual;
+        function toString(): JLString; overload; virtual;
+      end;
+
+      InnerSimpleEntry = class external 'java.util' name 'AbstractMap$SimpleEntry' (JLObject, JUMap.InnerEntry, JISerializable)
+      public
+        constructor create(para1: JLObject; para2: JLObject); overload;
+        constructor create(para1: JUMap.InnerEntry); overload;
+        function getKey(): JLObject; overload; virtual;
+        function getValue(): JLObject; overload; virtual;
+        function setValue(para1: JLObject): JLObject; overload; virtual;
+        function equals(para1: JLObject): jboolean; overload; virtual;
+        function hashCode(): jint; overload; virtual;
+        function toString(): JLString; overload; virtual;
+      end;
+
+  strict protected
+    constructor create(); overload;
+  public
+    function size(): jint; overload; virtual;
+    function isEmpty(): jboolean; overload; virtual;
+    function containsValue(para1: JLObject): jboolean; overload; virtual;
+    function containsKey(para1: JLObject): jboolean; overload; virtual;
+    function get(para1: JLObject): JLObject; overload; virtual;
+    function put(para1: JLObject; para2: JLObject): JLObject; overload; virtual;
+    function remove(para1: JLObject): JLObject; overload; virtual;
+    procedure putAll(para1: JUMap); overload; virtual;
+    procedure clear(); overload; virtual;
+    function keySet(): JUSet; overload; virtual;
+    function values(): JUCollection; overload; virtual;
+    function entrySet(): JUSet; overload; virtual; abstract;
+    function equals(para1: JLObject): jboolean; overload; virtual;
+    function hashCode(): jint; overload; virtual;
+    function toString(): JLString; overload; virtual;
+  strict protected
+    function clone(): JLObject; overload; virtual;  // throws java.lang.CloneNotSupportedException
+  end;
+
+  JLByte = class sealed external 'java.lang' name 'Byte' (JLNumber, JLComparable)
+  public
+    type
+      InnerByteCache = class;
+      Arr1InnerByteCache = array of InnerByteCache;
+      Arr2InnerByteCache = array of Arr1InnerByteCache;
+      Arr3InnerByteCache = array of Arr2InnerByteCache;
+      InnerByteCache = class external 'java.lang' name 'Byte$ByteCache' 
+      end;
+
+  public
+    const
+      MIN_VALUE = -128;
+      MAX_VALUE = 127;
+  public
+    final class var
+      fTYPE: JLClass; external name 'TYPE';
+  public
+    const
+      SIZE = 8;
+  public
+    class function toString(para1: jbyte): JLString; static; overload;
+    class function valueOf(para1: jbyte): JLByte; static; overload;
+    class function parseByte(para1: JLString): jbyte; static; overload;  // throws java.lang.NumberFormatException
+    class function parseByte(para1: JLString; para2: jint): jbyte; static; overload;  // throws java.lang.NumberFormatException
+    class function valueOf(para1: JLString; para2: jint): JLByte; static; overload;  // throws java.lang.NumberFormatException
+    class function valueOf(para1: JLString): JLByte; static; overload;  // throws java.lang.NumberFormatException
+    class function decode(para1: JLString): JLByte; static; overload;  // throws java.lang.NumberFormatException
+    constructor create(para1: jbyte); overload;
+    constructor create(para1: JLString); overload;  // throws java.lang.NumberFormatException
+    function byteValue(): jbyte; overload; virtual;
+    function shortValue(): jshort; overload; virtual;
+    function intValue(): jint; overload; virtual;
+    function longValue(): jlong; overload; virtual;
+    function floatValue(): jfloat; overload; virtual;
+    function doubleValue(): jdouble; overload; virtual;
+    function toString(): JLString; overload; virtual;
+    function hashCode(): jint; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual;
+    function compareTo(para1: JLByte): jint; overload; virtual;
+    function compareTo(para1: JLObject): jint; overload; virtual;
+  end;
+
   JLDouble = class sealed external 'java.lang' name 'Double' (JLNumber, JLComparable)
   public
     const
@@ -1081,6 +1278,170 @@
     class function intBitsToFloat(para1: jint): jfloat; static; overload;
     function compareTo(para1: JLFloat): jint; overload; virtual;
     class function compare(para1: jfloat; para2: jfloat): jint; static; overload;
+    function compareTo(para1: JLObject): jint; overload; virtual;
+  end;
+
+  JLInteger = class sealed external 'java.lang' name 'Integer' (JLNumber, JLComparable)
+  public
+    type
+      InnerIntegerCache = class;
+      Arr1InnerIntegerCache = array of InnerIntegerCache;
+      Arr2InnerIntegerCache = array of Arr1InnerIntegerCache;
+      Arr3InnerIntegerCache = array of Arr2InnerIntegerCache;
+      InnerIntegerCache = class external 'java.lang' name 'Integer$IntegerCache' 
+      end;
+
+  public
+    const
+      MIN_VALUE = -2147483648;
+      MAX_VALUE = 2147483647;
+  public
+    final class var
+      fTYPE: JLClass; external name 'TYPE';
+  public
+    const
+      SIZE = 32;
+  public
+    class function toString(para1: jint; para2: jint): JLString; static; overload;
+    class function toHexString(para1: jint): JLString; static; overload;
+    class function toOctalString(para1: jint): JLString; static; overload;
+    class function toBinaryString(para1: jint): JLString; static; overload;
+    class function toString(para1: jint): JLString; static; overload;
+    class function parseInt(para1: JLString; para2: jint): jint; static; overload;  // throws java.lang.NumberFormatException
+    class function parseInt(para1: JLString): jint; static; overload;  // throws java.lang.NumberFormatException
+    class function valueOf(para1: JLString; para2: jint): JLInteger; static; overload;  // throws java.lang.NumberFormatException
+    class function valueOf(para1: JLString): JLInteger; static; overload;  // throws java.lang.NumberFormatException
+    class function valueOf(para1: jint): JLInteger; static; overload;
+    constructor create(para1: jint); overload;
+    constructor create(para1: JLString); overload;  // throws java.lang.NumberFormatException
+    function byteValue(): jbyte; overload; virtual;
+    function shortValue(): jshort; overload; virtual;
+    function intValue(): jint; overload; virtual;
+    function longValue(): jlong; overload; virtual;
+    function floatValue(): jfloat; overload; virtual;
+    function doubleValue(): jdouble; overload; virtual;
+    function toString(): JLString; overload; virtual;
+    function hashCode(): jint; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual;
+    class function getInteger(para1: JLString): JLInteger; static; overload;
+    class function getInteger(para1: JLString; para2: jint): JLInteger; static; overload;
+    class function getInteger(para1: JLString; para2: JLInteger): JLInteger; static; overload;
+    class function decode(para1: JLString): JLInteger; static; overload;  // throws java.lang.NumberFormatException
+    function compareTo(para1: JLInteger): jint; overload; virtual;
+    class function highestOneBit(para1: jint): jint; static; overload;
+    class function lowestOneBit(para1: jint): jint; static; overload;
+    class function numberOfLeadingZeros(para1: jint): jint; static; overload;
+    class function numberOfTrailingZeros(para1: jint): jint; static; overload;
+    class function bitCount(para1: jint): jint; static; overload;
+    class function rotateLeft(para1: jint; para2: jint): jint; static; overload;
+    class function rotateRight(para1: jint; para2: jint): jint; static; overload;
+    class function reverse(para1: jint): jint; static; overload;
+    class function signum(para1: jint): jint; static; overload;
+    class function reverseBytes(para1: jint): jint; static; overload;
+    function compareTo(para1: JLObject): jint; overload; virtual;
+  end;
+
+  JLLong = class sealed external 'java.lang' name 'Long' (JLNumber, JLComparable)
+  public
+    type
+      InnerLongCache = class;
+      Arr1InnerLongCache = array of InnerLongCache;
+      Arr2InnerLongCache = array of Arr1InnerLongCache;
+      Arr3InnerLongCache = array of Arr2InnerLongCache;
+      InnerLongCache = class external 'java.lang' name 'Long$LongCache' 
+      end;
+
+  public
+    const
+      MIN_VALUE = jlong(-9223372036854775808);
+      MAX_VALUE = jlong(9223372036854775807);
+  public
+    final class var
+      fTYPE: JLClass; external name 'TYPE';
+  public
+    const
+      SIZE = 64;
+  public
+    class function toString(para1: jlong; para2: jint): JLString; static; overload;
+    class function toHexString(para1: jlong): JLString; static; overload;
+    class function toOctalString(para1: jlong): JLString; static; overload;
+    class function toBinaryString(para1: jlong): JLString; static; overload;
+    class function toString(para1: jlong): JLString; static; overload;
+    class function parseLong(para1: JLString; para2: jint): jlong; static; overload;  // throws java.lang.NumberFormatException
+    class function parseLong(para1: JLString): jlong; static; overload;  // throws java.lang.NumberFormatException
+    class function valueOf(para1: JLString; para2: jint): JLLong; static; overload;  // throws java.lang.NumberFormatException
+    class function valueOf(para1: JLString): JLLong; static; overload;  // throws java.lang.NumberFormatException
+    class function valueOf(para1: jlong): JLLong; static; overload;
+    class function decode(para1: JLString): JLLong; static; overload;  // throws java.lang.NumberFormatException
+    constructor create(para1: jlong); overload;
+    constructor create(para1: JLString); overload;  // throws java.lang.NumberFormatException
+    function byteValue(): jbyte; overload; virtual;
+    function shortValue(): jshort; overload; virtual;
+    function intValue(): jint; overload; virtual;
+    function longValue(): jlong; overload; virtual;
+    function floatValue(): jfloat; overload; virtual;
+    function doubleValue(): jdouble; overload; virtual;
+    function toString(): JLString; overload; virtual;
+    function hashCode(): jint; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual;
+    class function getLong(para1: JLString): JLLong; static; overload;
+    class function getLong(para1: JLString; para2: jlong): JLLong; static; overload;
+    class function getLong(para1: JLString; para2: JLLong): JLLong; static; overload;
+    function compareTo(para1: JLLong): jint; overload; virtual;
+    class function highestOneBit(para1: jlong): jlong; static; overload;
+    class function lowestOneBit(para1: jlong): jlong; static; overload;
+    class function numberOfLeadingZeros(para1: jlong): jint; static; overload;
+    class function numberOfTrailingZeros(para1: jlong): jint; static; overload;
+    class function bitCount(para1: jlong): jint; static; overload;
+    class function rotateLeft(para1: jlong; para2: jint): jlong; static; overload;
+    class function rotateRight(para1: jlong; para2: jint): jlong; static; overload;
+    class function reverse(para1: jlong): jlong; static; overload;
+    class function signum(para1: jlong): jint; static; overload;
+    class function reverseBytes(para1: jlong): jlong; static; overload;
+    function compareTo(para1: JLObject): jint; overload; virtual;
+  end;
+
+  JLShort = class sealed external 'java.lang' name 'Short' (JLNumber, JLComparable)
+  public
+    type
+      InnerShortCache = class;
+      Arr1InnerShortCache = array of InnerShortCache;
+      Arr2InnerShortCache = array of Arr1InnerShortCache;
+      Arr3InnerShortCache = array of Arr2InnerShortCache;
+      InnerShortCache = class external 'java.lang' name 'Short$ShortCache' 
+      end;
+
+  public
+    const
+      MIN_VALUE = -32768;
+      MAX_VALUE = 32767;
+  public
+    final class var
+      fTYPE: JLClass; external name 'TYPE';
+  public
+    const
+      SIZE = 16;
+  public
+    class function toString(para1: jshort): JLString; static; overload;
+    class function parseShort(para1: JLString): jshort; static; overload;  // throws java.lang.NumberFormatException
+    class function parseShort(para1: JLString; para2: jint): jshort; static; overload;  // throws java.lang.NumberFormatException
+    class function valueOf(para1: JLString; para2: jint): JLShort; static; overload;  // throws java.lang.NumberFormatException
+    class function valueOf(para1: JLString): JLShort; static; overload;  // throws java.lang.NumberFormatException
+    class function valueOf(para1: jshort): JLShort; static; overload;
+    class function decode(para1: JLString): JLShort; static; overload;  // throws java.lang.NumberFormatException
+    constructor create(para1: jshort); overload;
+    constructor create(para1: JLString); overload;  // throws java.lang.NumberFormatException
+    function byteValue(): jbyte; overload; virtual;
+    function shortValue(): jshort; overload; virtual;
+    function intValue(): jint; overload; virtual;
+    function longValue(): jlong; overload; virtual;
+    function floatValue(): jfloat; overload; virtual;
+    function doubleValue(): jdouble; overload; virtual;
+    function toString(): JLString; overload; virtual;
+    function hashCode(): jint; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual;
+    function compareTo(para1: JLShort): jint; overload; virtual;
+    class function reverseBytes(para1: jshort): jshort; static; overload;
     function compareTo(para1: JLObject): jint; overload; virtual;
   end;
 
@@ -1298,6 +1659,104 @@
     function append(para1: jchar): JLAppendable; overload; virtual;  // throws java.io.IOException
     function append(para1: JLCharSequence; para2: jint; para3: jint): JLAppendable; overload; virtual;  // throws java.io.IOException
     function append(para1: JLCharSequence): JLAppendable; overload; virtual;  // throws java.io.IOException
+  end;
+
+  JUSet = interface external 'java.util' name 'Set' (JUCollection)
+    function size(): jint; overload;
+    function isEmpty(): jboolean; overload;
+    function contains(para1: JLObject): jboolean; overload;
+    function iterator(): JUIterator; overload;
+    function toArray(): Arr1JLObject; overload;
+    function toArray(para1: Arr1JLObject): Arr1JLObject; overload;
+    function toArray(var para1: array of JLObject): Arr1JLObject; overload;
+    function add(para1: JLObject): jboolean; overload;
+    function remove(para1: JLObject): jboolean; overload;
+    function containsAll(para1: JUCollection): jboolean; overload;
+    function addAll(para1: JUCollection): jboolean; overload;
+    function retainAll(para1: JUCollection): jboolean; overload;
+    function removeAll(para1: JUCollection): jboolean; overload;
+    procedure clear(); overload;
+    function equals(para1: JLObject): jboolean; overload;
+    function hashCode(): jint; overload;
+  end;
+
+  JUHashMap = class external 'java.util' name 'HashMap' (JUAbstractMap, JUMap, JLCloneable, JISerializable)
+  public
+    type
+      InnerEntrySet = class;
+      Arr1InnerEntrySet = array of InnerEntrySet;
+      Arr2InnerEntrySet = array of Arr1InnerEntrySet;
+      Arr3InnerEntrySet = array of Arr2InnerEntrySet;
+      InnerKeySet = class;
+      Arr1InnerKeySet = array of InnerKeySet;
+      Arr2InnerKeySet = array of Arr1InnerKeySet;
+      Arr3InnerKeySet = array of Arr2InnerKeySet;
+      InnerValues = class;
+      Arr1InnerValues = array of InnerValues;
+      Arr2InnerValues = array of Arr1InnerValues;
+      Arr3InnerValues = array of Arr2InnerValues;
+      InnerKeyIterator = class;
+      Arr1InnerKeyIterator = array of InnerKeyIterator;
+      Arr2InnerKeyIterator = array of Arr1InnerKeyIterator;
+      Arr3InnerKeyIterator = array of Arr2InnerKeyIterator;
+      InnerValueIterator = class;
+      Arr1InnerValueIterator = array of InnerValueIterator;
+      Arr2InnerValueIterator = array of Arr1InnerValueIterator;
+      Arr3InnerValueIterator = array of Arr2InnerValueIterator;
+      InnerEntryIterator = class;
+      Arr1InnerEntryIterator = array of InnerEntryIterator;
+      Arr2InnerEntryIterator = array of Arr1InnerEntryIterator;
+      Arr3InnerEntryIterator = array of Arr2InnerEntryIterator;
+      InnerEntry = class;
+      Arr1InnerEntry = array of InnerEntry;
+      Arr2InnerEntry = array of Arr1InnerEntry;
+      Arr3InnerEntry = array of Arr2InnerEntry;
+      InnerHashIterator = class;
+      Arr1InnerHashIterator = array of InnerHashIterator;
+      Arr2InnerHashIterator = array of Arr1InnerHashIterator;
+      Arr3InnerHashIterator = array of Arr2InnerHashIterator;
+      InnerEntrySet = class sealed external 'java.util' name 'HashMap$EntrySet' 
+      end;
+
+      InnerKeySet = class sealed external 'java.util' name 'HashMap$KeySet' 
+      end;
+
+      InnerValues = class sealed external 'java.util' name 'HashMap$Values' 
+      end;
+
+      InnerKeyIterator = class sealed external 'java.util' name 'HashMap$KeyIterator' 
+      end;
+
+      InnerValueIterator = class sealed external 'java.util' name 'HashMap$ValueIterator' 
+      end;
+
+      InnerEntryIterator = class sealed external 'java.util' name 'HashMap$EntryIterator' 
+      end;
+
+      InnerEntry = class external 'java.util' name 'HashMap$Entry' 
+      end;
+
+      InnerHashIterator = class abstract external 'java.util' name 'HashMap$HashIterator' 
+      end;
+
+  public
+    constructor create(para1: jint; para2: jfloat); overload;
+    constructor create(para1: jint); overload;
+    constructor create(); overload;
+    constructor create(para1: JUMap); overload;
+    function size(): jint; overload; virtual;
+    function isEmpty(): jboolean; overload; virtual;
+    function get(para1: JLObject): JLObject; overload; virtual;
+    function containsKey(para1: JLObject): jboolean; overload; virtual;
+    function put(para1: JLObject; para2: JLObject): JLObject; overload; virtual;
+    procedure putAll(para1: JUMap); overload; virtual;
+    function remove(para1: JLObject): JLObject; overload; virtual;
+    procedure clear(); overload; virtual;
+    function containsValue(para1: JLObject): jboolean; overload; virtual;
+    function clone(): JLObject; overload; virtual;
+    function keySet(): JUSet; overload; virtual;
+    function values(): JUCollection; overload; virtual;
+    function entrySet(): JUSet; overload; virtual;
   end;
 
   JLLinkageError = class external 'java.lang' name 'LinkageError' (JLError)

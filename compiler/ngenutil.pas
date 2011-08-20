@@ -278,13 +278,15 @@ implementation
                     pd.struct.tcinitcode:=nil;
                   end;
                 psym:=tsym(pd.struct.symtable.find('FPC_INIT_TYPED_CONSTS_HELPER'));
-                if not assigned(psym) or
-                   (psym.typ<>procsym) or
-                   (tprocsym(psym).procdeflist.count<>1) then
-                  internalerror(2011040301);
-                tcinitproc:=tprocdef(tprocsym(psym).procdeflist[0]);
-                addstatement(stat,ccallnode.create(nil,tprocsym(psym),
-                  pd.struct.symtable,nil,[]));
+                if assigned(psym) then
+                  begin
+                    if (psym.typ<>procsym) or
+                       (tprocsym(psym).procdeflist.count<>1) then
+                      internalerror(2011040301);
+                    tcinitproc:=tprocdef(tprocsym(psym).procdeflist[0]);
+                    addstatement(stat,ccallnode.create(nil,tprocsym(psym),
+                      pd.struct.symtable,nil,[]));
+                  end;
                 addstatement(stat,result);
                 result:=block
               end;

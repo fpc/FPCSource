@@ -496,7 +496,13 @@ interface
          tsk_jvm_clone,             // Java-style clone method
          tsk_record_deepcopy,       // deepcopy for records field by field
          tsk_empty,                 // an empty routine
-         tsk_tcinit                 // initialisation of typed constants
+         tsk_tcinit,                // initialisation of typed constants
+         tsk_jvm_enum_values,       // Java "values" class method of JLEnum descendants
+         tsk_jvm_enum_valueof,      // Java "valueOf" class method of JLEnum descendants
+         tsk_jvm_enum_classconstr,  // Java class constructor for JLEnum descendants
+         tsk_jvm_enum_jumps_constr, // Java constructor for JLEnum descendants for enums with jumps
+         tsk_jvm_enum_fpcordinal,   // Java FPCOrdinal function that returns the enum's ordinal value from an FPC POV
+         tsk_jvm_enum_fpcvalueof    // Java FPCValueOf function that returns the enum instance corresponding to an ordinal from an FPC POV
        );
 
 {$ifdef oldregvars}
@@ -672,6 +678,11 @@ interface
           basedef   : tenumdef;
           basedefderef : tderef;
           symtable  : TSymtable;
+{$ifdef jvm}
+          { class representing this enum on the Java side }
+          classdef  : tobjectdef;
+          classdefderef : tderef;
+{$endif}
           has_jumps : boolean;
           constructor create;
           constructor create_subrange(_basedef:tenumdef;_min,_max:asizeint);
@@ -815,6 +826,8 @@ interface
        java_fpcbaserecordtype    : tobjectdef;
        { java.lang.String }
        java_jlstring             : tobjectdef;
+       { java.lang.Enum }
+       java_jlenum               : tobjectdef;
        { FPC java implementation of ansistrings }
        java_ansistring           : tobjectdef;
        { FPC java implementation of shortstrings }
@@ -1707,6 +1720,9 @@ implementation
          maxval:=ppufile.getaint;
          savesize:=ppufile.getaint;
          has_jumps:=false;
+{$ifdef jvm}
+        ppufile.getderef(classdefderef);
+{$endif}
          if df_copied_def in defoptions then
            begin
              symtable:=nil;
@@ -1742,6 +1758,9 @@ implementation
             tenumdef(result).symtable:=symtable.getcopy;
             tenumdef(result).basedef:=self;
           end;
+{$ifdef jvm}
+        tenumdef(result).classdef:=classdef;
+{$endif}
         tenumdef(result).has_jumps:=has_jumps;
         tenumdef(result).basedefderef:=basedefderef;
         include(tenumdef(result).defoptions,df_copied_def);
@@ -1832,6 +1851,9 @@ implementation
           basedefderef.build(basedef)
         else
           tenumsymtable(symtable).buildderef;
+{$ifdef jvm}
+        classdefderef.build(classdef);
+{$endif}
       end;
 
 
@@ -1845,6 +1867,9 @@ implementation
           end
         else
           tenumsymtable(symtable).deref;
+{$ifdef jvm}
+        classdef:=tobjectdef(classdefderef.resolve);
+{$endif}
       end;
 
 
@@ -1854,6 +1879,9 @@ implementation
          ppufile.putaint(min);
          ppufile.putaint(max);
          ppufile.putaint(savesize);
+{$ifdef jvm}
+         ppufile.putderef(classdefderef);
+{$endif}
          if df_copied_def in defoptions then
            ppufile.putderef(basedefderef);
          ppufile.writeentry(ibenumdef);
@@ -4923,6 +4951,8 @@ implementation
                java_ansistring:=self
              else if (objname^='SHORTSTRINGCLASS') then
                java_shortstring:=self
+             else if (objname^='JLENUM') then
+               java_jlenum:=self
            end;
          writing_class_record_dbginfo:=false;
        end;

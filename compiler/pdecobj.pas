@@ -1299,6 +1299,8 @@ implementation
                         java_ansistring:=current_objectdef
                       else if (current_objectdef.objname^='SHORTSTRINGCLASS') then
                         java_shortstring:=current_objectdef
+                      else if (current_objectdef.objname^='JLENUM') then
+                        java_jlenum:=current_objectdef
                     end;
                 end;
               end;
