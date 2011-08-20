@@ -1472,6 +1472,8 @@ implementation
                       result:=a_lload
                     else
                       result:=a_lstore;
+                  else
+                    internalerror(2011032814);
                 end;
               end
             { array }
