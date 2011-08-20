@@ -294,7 +294,7 @@ implementation
         { insert "public static values: array of enumclass" that returns $VALUES.clone()
           (rather than a dynamic array and using clone --which we don't support yet for arrays--
            simply use a fixed length array and copy it) }
-        if not str_parse_method_dec('function values: __FPC_TEnumValues;',potype_function,true,enumclass,pd) then
+        if not str_parse_method_dec('function values: __FPC_TEnumValues;static;',potype_function,true,enumclass,pd) then
           internalerror(2011062301);
         include(pd.procoptions,po_staticmethod);
         pd.synthetickind:=tsk_jvm_enum_values;
