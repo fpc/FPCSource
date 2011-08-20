@@ -369,36 +369,39 @@ implementation
             addtype('$sc80real',sc80floattype);
           end;
         addtype('$s64currency',s64currencytype);
-        { Add a type for virtual method tables }
-        hrecst:=trecordsymtable.create('',current_settings.packrecords);
-        vmttype:=trecorddef.create('',hrecst);
-        pvmttype:=tpointerdef.create(vmttype);
-        { can't use addtype for pvmt because the rtti of the pointed
-          type is not available. The rtti for pvmt will be written implicitly
-          by thev tblarray below }
-        systemunit.insert(ttypesym.create('$pvmt',pvmttype));
-        addfield(hrecst,tfieldvarsym.create('$length',vs_value,ptrsinttype,[]));
-        addfield(hrecst,tfieldvarsym.create('$mlength',vs_value,ptrsinttype,[]));
-        addfield(hrecst,tfieldvarsym.create('$parent',vs_value,pvmttype,[]));
-        { it seems vmttype is used both for TP objects and Delphi classes,
-          so the next entry could either be the first virtual method (vm1)
-          (object) or the class name (class). We can't easily create separate
-          vtable formats for both, as gdb is hard coded to search for
-          __vtbl_ptr_type in all cases (JM) }
-        addfield(hrecst,tfieldvarsym.create('$vm1_or_classname',vs_value,tpointerdef.create(cshortstringtype),[]));
-        vmtarraytype:=tarraydef.create(0,0,s32inttype);
-        tarraydef(vmtarraytype).elementdef:=voidpointertype;
-        addfield(hrecst,tfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[]));
-        addtype('$__vtbl_ptr_type',vmttype);
-        vmtarraytype:=tarraydef.create(0,1,s32inttype);
-        tarraydef(vmtarraytype).elementdef:=pvmttype;
-        addtype('$vtblarray',vmtarraytype);
-        { Add a type for methodpointers }
-        hrecst:=trecordsymtable.create('',1);
-        addfield(hrecst,tfieldvarsym.create('$proc',vs_value,voidpointertype,[]));
-        addfield(hrecst,tfieldvarsym.create('$self',vs_value,voidpointertype,[]));
-        methodpointertype:=trecorddef.create('',hrecst);
-        addtype('$methodpointer',methodpointertype);
+        if not(target_info.system in systems_managed_vm) then
+          begin
+            { Add a type for virtual method tables }
+            hrecst:=trecordsymtable.create('',current_settings.packrecords);
+            vmttype:=trecorddef.create('',hrecst);
+            pvmttype:=tpointerdef.create(vmttype);
+            { can't use addtype for pvmt because the rtti of the pointed
+              type is not available. The rtti for pvmt will be written implicitly
+              by thev tblarray below }
+            systemunit.insert(ttypesym.create('$pvmt',pvmttype));
+            addfield(hrecst,tfieldvarsym.create('$length',vs_value,ptrsinttype,[]));
+            addfield(hrecst,tfieldvarsym.create('$mlength',vs_value,ptrsinttype,[]));
+            addfield(hrecst,tfieldvarsym.create('$parent',vs_value,pvmttype,[]));
+            { it seems vmttype is used both for TP objects and Delphi classes,
+              so the next entry could either be the first virtual method (vm1)
+              (object) or the class name (class). We can't easily create separate
+              vtable formats for both, as gdb is hard coded to search for
+              __vtbl_ptr_type in all cases (JM) }
+            addfield(hrecst,tfieldvarsym.create('$vm1_or_classname',vs_value,tpointerdef.create(cshortstringtype),[]));
+            vmtarraytype:=tarraydef.create(0,0,s32inttype);
+            tarraydef(vmtarraytype).elementdef:=voidpointertype;
+            addfield(hrecst,tfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[]));
+            addtype('$__vtbl_ptr_type',vmttype);
+            vmtarraytype:=tarraydef.create(0,1,s32inttype);
+            tarraydef(vmtarraytype).elementdef:=pvmttype;
+            addtype('$vtblarray',vmtarraytype);
+            { Add a type for methodpointers }
+            hrecst:=trecordsymtable.create('',1);
+            addfield(hrecst,tfieldvarsym.create('$proc',vs_value,voidpointertype,[]));
+            addfield(hrecst,tfieldvarsym.create('$self',vs_value,voidpointertype,[]));
+            methodpointertype:=trecorddef.create('',hrecst);
+            addtype('$methodpointer',methodpointertype);
+          end;
         symtablestack.pop(systemunit);
       end;
 
@@ -466,12 +469,16 @@ implementation
         loadtype('widechar_pointer',widecharpointertype);
         loadtype('void_farpointer',voidfarpointertype);
         loadtype('file',cfiletype);
-        loadtype('pvmt',pvmttype);
-        loadtype('vtblarray',vmtarraytype);
-        loadtype('__vtbl_ptr_type',vmttype);
+        if not(target_info.system in systems_managed_vm) then
+          begin
+            loadtype('pvmt',pvmttype);
+            loadtype('vtblarray',vmtarraytype);
+            loadtype('__vtbl_ptr_type',vmttype);
+          end;
         loadtype('variant',cvarianttype);
         loadtype('olevariant',colevarianttype);
-        loadtype('methodpointer',methodpointertype);
+        if not(target_info.system in systems_managed_vm) then
+          loadtype('methodpointer',methodpointertype);
         loadtype('HRESULT',hresultdef);
 {$ifdef cpu64bitaddr}
         uinttype:=u64inttype;
