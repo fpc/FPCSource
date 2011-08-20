@@ -418,11 +418,36 @@ implementation
         realresdef: tdef;
         ppn: tjvmcallparanode;
         pararef: treference;
+{$ifndef nounsupported}
+        i: longint;
+{$endif}
       begin
         if not assigned(typedef) then
           realresdef:=tstoreddef(resultdef)
         else
           realresdef:=tstoreddef(typedef);
+{$ifndef nounsupported}
+        if assigned(right) then
+          begin
+            for i:=1 to pushedparasize do
+              current_asmdata.CurrAsmList.concat(taicpu.op_none(a_pop));
+            if (tabstractprocdef(procdefinition).proctypeoption<>potype_constructor) and
+               (realresdef<>voidtype) then
+              begin
+                case hlcg.def2regtyp(realresdef) of
+                  R_INTREGISTER,
+                  R_ADDRESSREGISTER:
+                    begin
+                      thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,realresdef,0,hlcg.def2regtyp(realresdef));
+                    end;
+                  R_FPUREGISTER:
+                    thlcgjvm(hlcg).a_loadfpu_const_stack(current_asmdata.CurrAsmList,realresdef,0.0);
+                end;
+                { calling code assumes this result was already put on the stack by the callee }
+                thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,align(realresdef.size,4) shr 2);
+              end;
+          end;
+{$endif}
         { a constructor doesn't actually return a value in the jvm }
         if (tabstractprocdef(procdefinition).proctypeoption=potype_constructor) then
           totalremovesize:=pushedparasize

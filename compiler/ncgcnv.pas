@@ -525,7 +525,8 @@ interface
 {$ifdef jvm}
 {$ifndef nounsupported}
       tg.gethltemp(current_asmdata.currasmlist,java_jlobject,java_jlobject.size,tt_normal,r);
-      location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),0);
+      hlcg.a_load_const_ref(current_asmdata.CurrAsmList,java_jlobject,0,r);
+      location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
       location.reference:=r;
       exit;
 {$endif}
