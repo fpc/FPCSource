@@ -41,6 +41,10 @@ interface
          procedure second_boolean;override;
       end;
 
+      tjvmunaryminusnode = class(tcgunaryminusnode)
+        procedure second_float;override;
+      end;
+
 implementation
 
     uses
@@ -192,8 +196,26 @@ implementation
       end;
 
 
+    procedure tjvmunaryminusnode.second_float;
+      var
+        opc: tasmop;
+      begin
+        secondpass(left);
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+        location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+        thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+        if (tfloatdef(left.resultdef).floattype=s32real) then
+          opc:=a_fneg
+        else
+          opc:=a_dneg;
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(opc));
+        thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+      end;
+
+
 begin
    cmoddivnode:=tjvmmoddivnode;
    cshlshrnode:=tjvmshlshrnode;
    cnotnode:=tjvmnotnode;
+   cunaryminusnode:=tjvmunaryminusnode;
 end.
