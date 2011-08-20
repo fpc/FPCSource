@@ -367,7 +367,7 @@ implementation
           if (sym.typ=fieldvarsym) then
             begin
               fsym:=tfieldvarsym(sym);
-              str:=str+'result.&'+fsym.realname+':='+fsym.realname+';';
+              str:=str+'result.&'+fsym.realname+':=&'+fsym.realname+';';
             end;
         end;
       str:=str+'end;';
