@@ -123,6 +123,7 @@ type
 {$i jmathh.inc}
 {$i jrech.inc}
 {$i jdynarrh.inc}
+{$i astringh.inc}
 
 {$ifndef nounsupported}
 type
@@ -173,7 +174,7 @@ type
        vtObject        : (VObject: TObject);
 //       vtClass         : (VClass: TClass);
 //       vtPWideChar     : (VPWideChar: PWideChar);
-       vtAnsiString    : (VAnsiString: JLString);
+       vtAnsiString    : (VAnsiString: JLObject);
        vtCurrency      : (VCurrency: Currency);
 //       vtVariant       : (VVariant: PVariant);
        vtInterface     : (VInterface: JLObject);

@@ -798,6 +798,8 @@ interface
        java_fpcbaserecordtype    : tobjectdef;
        { java.lang.String }
        java_jlstring             : tobjectdef;
+       { FPC java implementation of ansistrings }
+       java_ansistring           : tobjectdef;
 
     const
 {$ifdef i386}
@@ -1607,9 +1609,12 @@ implementation
       begin
         result:=
           (target_info.system=system_jvm_java32) and
-          (stringtype in [st_unicodestring,st_widestring]) and
-          ((d=java_jlobject) or
-           (d=java_jlstring));
+          (((stringtype in [st_unicodestring,st_widestring]) and
+            ((d=java_jlobject) or
+             (d=java_jlstring))) or
+           ((stringtype=st_ansistring) and
+            (d=java_jlobject) or
+            (d=java_ansistring)));
       end;
 
 
@@ -4832,6 +4837,8 @@ implementation
                java_fpcbaserecordtype:=self;
              if (objname^='JLSTRING') then
                java_jlstring:=self;
+             if (objname^='ANSISTRINGCLASS') then
+               java_ansistring:=self;
            end;
          writing_class_record_dbginfo:=false;
        end;

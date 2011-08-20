@@ -1295,6 +1295,8 @@ implementation
                         java_fpcbaserecordtype:=current_objectdef;
                       if (current_objectdef.objname^='JLSTRING') then
                         java_jlstring:=current_objectdef;
+                      if (current_objectdef.objname^='ANSISTRINGCLASS') then
+                        java_ansistring:=current_objectdef;
                     end;
                 end;
               end;

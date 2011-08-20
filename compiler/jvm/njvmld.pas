@@ -68,11 +68,8 @@ function tjvmassignmentnode.pass_1: tnode;
     }
     target:=left.actualtargetnode;
     if (target.nodetype=vecn) and
-       (is_wide_or_unicode_string(tvecnode(target).left.resultdef)
-{$ifndef nounsupported}
-        or is_ansistring(tvecnode(target).left.resultdef)
-{$endif}
-       ) then
+       (is_wide_or_unicode_string(tvecnode(target).left.resultdef) or
+        is_ansistring(tvecnode(target).left.resultdef)) then
       begin
         { prevent errors in case of an expression such as
             word(str[x]):=1234;

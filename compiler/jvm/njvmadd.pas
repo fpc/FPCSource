@@ -87,7 +87,7 @@ interface
           addn:
             begin
 {$ifndef nounsupported}
-               if not is_wide_or_unicode_string(resultdef) then
+               if is_shortstring(resultdef) then
                  begin
                    result:=left;
                    left:=nil;

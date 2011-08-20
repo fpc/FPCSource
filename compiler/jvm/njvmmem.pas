@@ -163,17 +163,23 @@ implementation
     function tjvmvecnode.pass_1: tnode;
       var
         psym: tsym;
+        stringclass: tdef;
       begin
-        if is_wide_or_unicode_string(left.resultdef) then
+        if is_wide_or_unicode_string(left.resultdef) or
+           is_ansistring(left.resultdef) then
           begin
-            psym:=search_struct_member(java_jlstring,'CHARAT');
+            if is_ansistring(left.resultdef) then
+              stringclass:=java_ansistring
+            else
+              stringclass:=java_jlstring;
+            psym:=search_struct_member(tabstractrecorddef(stringclass),'CHARAT');
             if not assigned(psym) or
                (psym.typ<>procsym) then
               internalerror(2011031501);
             { Pascal strings are 1-based, Java strings 0-based }
             result:=ccallnode.create(ccallparanode.create(
               caddnode.create(subn,right,genintconstnode(1)),nil),tprocsym(psym),
-              psym.owner,ctypeconvnode.create_explicit(left,java_jlstring),[]);
+              psym.owner,ctypeconvnode.create_explicit(left,stringclass),[]);
             left:=nil;
             right:=nil;
             exit;

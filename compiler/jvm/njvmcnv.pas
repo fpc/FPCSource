@@ -751,18 +751,37 @@ implementation
       end;
 
     function isstringconv(fromdef, todef: tdef): boolean;
+
+      function unicodestrcompatible(def: tdef): boolean;
+        begin
+          result:=
+            (def=java_jlobject) or
+            (def=java_jlstring);
+        end;
+
+      function ansistrcompatible(def: tdef): boolean;
+        begin
+          result:=
+            (def=java_jlobject) or
+            (def=java_ansistring);
+        end;
+
       begin
         if is_wide_or_unicode_string(todef) then
           begin
-            result:=
-              (fromdef=java_jlobject) or
-              (fromdef=java_jlstring)
+            result:=unicodestrcompatible(fromdef)
           end
         else if is_wide_or_unicode_string(fromdef) then
           begin
-            result:=
-              (todef=java_jlobject) or
-              (todef=java_jlstring)
+            result:=unicodestrcompatible(todef);
+          end
+        else if is_ansistring(todef) then
+          begin
+            result:=ansistrcompatible(fromdef);
+          end
+        else if is_ansistring(fromdef) then
+          begin
+            result:=ansistrcompatible(todef);
           end
         else
           result:=false;
@@ -937,7 +956,9 @@ implementation
         checkdef:=java_jlobject
 {$endif}
       else if is_wide_or_unicode_string(checkdef) then
-        checkdef:=java_jlstring;
+        checkdef:=java_jlstring
+      else if is_ansistring(checkdef) then
+        checkdef:=java_ansistring;
       if checkdef.typ in [objectdef,recorddef] then
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcode,current_asmdata.RefAsmSymbol(tabstractrecorddef(checkdef).jvm_full_typename(true))))
       else if checkdef.typ=classrefdef then

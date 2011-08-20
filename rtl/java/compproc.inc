@@ -232,7 +232,7 @@ Procedure fpc_ansistr_decr_ref (Var S : Pointer); compilerproc;
 Procedure fpc_ansistr_incr_ref (S : Pointer); compilerproc;
 *)
 {$ifndef nounsupported}
-Procedure fpc_AnsiStr_Assign (Var DestS : jlobject;S2 : jlobject); compilerproc;
+//Procedure fpc_AnsiStr_Assign (Var DestS : jlobject;S2 : jlobject); compilerproc;
 {$endif}
 (*
 {$ifdef STR_CONCAT_PROCS}
@@ -277,7 +277,7 @@ Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): SizeInt; compilerproc;
 Function fpc_AnsiStr_Compare_equal(const S1,S2 : AnsiString): SizeInt; compilerproc;
 //Procedure fpc_AnsiStr_CheckZero(p : jlobject); compilerproc;
 //Procedure fpc_AnsiStr_CheckRange(len,index : SizeInt); compilerproc;
-Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : SizeInt); compilerproc;
+function fpc_AnsiStr_SetLength (S : AnsiString; l : SizeInt): ansistring; compilerproc;
 Function  fpc_ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;compilerproc;
 {$endif}
 {$ifdef EXTRAANSISHORT}
@@ -286,7 +286,7 @@ Function  fpc_ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiSt
 { pointer argument because otherwise when calling this, we get
   an endless loop since a 'var s: ansistring' must be made
   unique as well                                               }
-Function fpc_ansistr_Unique(Var S : jlobject): jlobject; compilerproc;
+//Function fpc_ansistr_Unique(Var S : jlobject): jlobject; compilerproc;
 (*
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 *)

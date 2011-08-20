@@ -3116,9 +3116,15 @@ implementation
         restemp  : ttempcreatenode;
       begin
 {$if defined(jvm) and not defined(nounsupported)}
-        convtype:=tc_equal;
-        result:=nil;
-        exit;
+        if (not is_ansistring(left.resultdef) and
+            not is_unicodestring(left.resultdef)) or
+           (not is_ansistring(resultdef) and
+            not is_unicodestring(resultdef)) then
+          begin
+            convtype:=tc_equal;
+            result:=nil;
+            exit;
+          end;
 {$endif}
         { get the correct procedure name }
         procname := 'fpc_'+tstringdef(left.resultdef).stringtypname+

@@ -12480,11 +12480,6 @@ type
   Arr2JXTSSAXTransformerFactory = array of Arr1JXTSSAXTransformerFactory;
   Arr3JXTSSAXTransformerFactory = array of Arr2JXTSSAXTransformerFactory;
 
-  JUArrays = class;
-  Arr1JUArrays = array of JUArrays;
-  Arr2JUArrays = array of Arr1JUArrays;
-  Arr3JUArrays = array of Arr2JUArrays;
-
   JSPMMultiTabbedPaneUI = class;
   Arr1JSPMMultiTabbedPaneUI = array of JSPMMultiTabbedPaneUI;
   Arr2JSPMMultiTabbedPaneUI = array of Arr1JSPMMultiTabbedPaneUI;

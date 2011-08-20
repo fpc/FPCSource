@@ -17,193 +17,179 @@
 { This will release some functions for special shortstring support }
 { define EXTRAANSISHORT}
 
-{
-  This file contains the implementation of the AnsiString type,
-  and all things that are needed for it.
-  AnsiString is defined as a 'silent' pchar :
-  a pchar that points to :
+constructor AnsistringClass.Create(const arr: array of ansichar);
+begin
+  { make explicit copy so that changing the array afterwards doesn't change
+    the string }
+  if high(arr)=-1 then
+    exit;
+  setlength(fdata,high(arr)+1);
+  JLSystem.ArrayCopy(JLObject(@arr),0,JLObject(fdata),0,high(arr)+1);
+end;
 
-  @-8  : SizeInt for reference count;
-  @-4  : SizeInt for size;
-  @    : String + Terminating #0;
-  Pchar(Ansistring) is a valid typecast.
-  So AS[i] is converted to the address @AS+i-1.
 
-  Constants should be assigned a reference count of -1
-  Meaning that they can't be disposed of.
-}
+constructor AnsistringClass.Create(const arr: array of unicodechar);
+begin
+  if high(arr)=-1 then
+    exit;
+  fdata:=TAnsiCharArray(JLString.Create(arr).getBytes);
+end;
+
+
+constructor AnsistringClass.Create(const u: unicodestring);
+begin
+  if system.length(u)=0 then
+    exit;
+  fdata:=TAnsiCharArray(JLString(u).getBytes);
+end;
+
+
+constructor AnsistringClass.Create(const a: ansistring);
+begin
+  Create(AnsistringClass(a).fdata);
+end;
+
+
+constructor AnsistringClass.Create(ch: ansichar);
+begin
+  setlength(fdata,1);
+  fdata[0]:=ch;
+end;
+
+
+constructor AnsistringClass.Create(ch: unicodechar);
+begin
+  fdata:=TAnsiCharArray(JLString.Create(ch).getBytes);
+end;
+
+
+class function AnsistringClass.CreateFromLiteralStringBytes(const u: unicodestring): ansistring;
+var
+  res: AnsistringClass;
+  i: longint;
+begin
+  { used to construct constant ansisitrings for Java string constants }
+  res:=AnsistringClass.Create;
+  setlength(res.fdata,system.length(u));
+  for i:=1 to system.length(u) do
+    res.fdata[i-1]:=ansichar(ord(u[i]));
+  result:=ansistring(res);
+end;
+
+
+function AnsistringClass.charAt(index: jint): ansichar;
+begin
+  { index is already decreased by one, because same calling code is used for
+    JLString.charAt() }
+  result:=fdata[index];
+end;
+
+
+function AnsistringClass.toUnicodeString: unicodestring;
+begin
+  result:=UnicodeString(JLString.Create(TJByteArray(fdata)));
+end;
+
+
+function AnsistringClass.toString: JLString;
+begin
+  result:=JLString.Create(TJByteArray(fdata));
+end;
+
 (*
-Type
-  PAnsiRec = ^TAnsiRec;
-  TAnsiRec = Packed Record
-    Ref,
-    Len   : SizeInt;
-    First : Char;
-  end;
+function AnsistringClass.concat(const a: ansistring): ansistring;
+var
+  newdata: array of ansichar;
+  addlen: sizeint;
+begin
+  addlen:=length(a);
+  thislen:=this.length;
+  setlength(newdata,addlen+thislen);
+  if thislen>0 then
+    JLSystem.ArrayCopy(JLObject(fdata),0,JLObject(newdata),0,thislen);
+  if addlen>0 then
+    JLSystem.ArrayCopy(JLObject(AnsistringClass(a).fdata),0,JLObject(newdata),thislen,addlen);
+end;
 
-Const
-  AnsiRecLen = SizeOf(TAnsiRec);
-  FirstOff   = SizeOf(TAnsiRec)-1;
+
+procedure AnsistringClass.concatmultiple(const arr: array of ansistring): ansistring;
+  Var
+    i  : longint;
+    size, newsize : sizeint;
+    curlen, addlen : sizeint
+    newdata: array of ansichar;
+  begin
+    { First calculate size of the result so we can allocate an array of
+      the right size }
+    NewSize:=0;
+    for i:=low(arr) to high(arr) do
+      inc(newsize,length(arr[i]));
+    setlength(newdata,newsize);
+    curlen
+    for i:=low(arr) to high(arr) do
+      begin
+        if length(arr[i])>0 then
+          sb.append(arr[i]);
+      end;
+    DestS:=sb.toString;
+end;
 *)
+
+function AnsiStringClass.length: jint;
+begin
+  result:=system.length(fdata);
+end;
 
 {****************************************************************************
                     Internal functions, not in interface.
 ****************************************************************************}
 
-
-(*
-Function NewAnsiString(Len : SizeInt) : Pointer;
-{
-  Allocate a new AnsiString on the heap.
-  initialize it to zero length and reference count 1.
-}
-Var
-  P : Pointer;
-begin
-  { request a multiple of 16 because the heap manager alloctes anyways chunks of 16 bytes }
-  GetMem(P,Len+AnsiRecLen);
-  If P<>Nil then
-   begin
-     PAnsiRec(P)^.Ref:=1;         { Set reference count }
-     PAnsiRec(P)^.Len:=0;         { Initial length }
-     PAnsiRec(P)^.First:=#0;      { Terminating #0 }
-     inc(p,firstoff);             { Points to string now }
-   end;
-  NewAnsiString:=P;
-end;
-
-
-Procedure DisposeAnsiString(Var S : Pointer); {$IFNDEF VER2_0} Inline; {$ENDIF}
-{
-  Deallocates a AnsiString From the heap.
-}
-begin
-  If S=Nil then
-    exit;
-  Dec (S,FirstOff);
-  FreeMem (S);
-  S:=Nil;
-end;
-
-{$ifndef FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
-Procedure fpc_ansistr_decr_ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF'];  compilerproc;
-{
-  Decreases the ReferenceCount of a non constant ansistring;
-  If the reference count is zero, deallocate the string;
-}
-Type
-  pSizeInt = ^SizeInt;
-Var
-  l : pSizeInt;
-Begin
-  { Zero string }
-  If S=Nil then exit;
-  { check for constant strings ...}
-  l:=@PAnsiRec(S-FirstOff)^.Ref;
-  If l^<0 then exit;
-  { declocked does a MT safe dec and returns true, if the counter is 0 }
-  If declocked(l^) then
-    { Ref count dropped to zero }
-    DisposeAnsiString (S);        { Remove...}
-end;
-
-{$endif FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
-
-{ also define alias for internal use in the system unit }
-Procedure fpc_ansistr_decr_ref (Var S : Pointer); [external name 'FPC_ANSISTR_DECR_REF'];
-
-Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); [Public,Alias:'FPC_ANSISTR_INCR_REF'];  compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
-Begin
-  If S=Nil then
-    exit;
-  { Let's be paranoid : Constant string ??}
-  If PAnsiRec(S-FirstOff)^.Ref<0 then exit;
-  inclocked(PAnsiRec(S-FirstOff)^.Ref);
-end;
-
-
-{ also define alias which can be used inside the system unit }
-Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); [external name 'FPC_ANSISTR_INCR_REF'];
-*)
-
-Procedure fpc_AnsiStr_Assign (Var DestS : jlobject;S2 : jlobject); compilerproc;
-{
-  Assigns S2 to S1 (S1:=S2), taking in account reference counts.
-}
-begin
-(*
-  if DestS=S2 then
-    exit;
-  If S2<>nil then
-    If PAnsiRec(S2-FirstOff)^.Ref>0 then
-      inclocked(PAnsiRec(S2-FirstOff)^.ref);
-  { Decrease the reference count on the old S1 }
-  fpc_ansistr_decr_ref (DestS);
-  { And finally, have DestS pointing to S2 (or its copy) }
-  DestS:=S2;
-*)
-end;
-(*
-{ alias for internal use }
-Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer);[external name 'FPC_ANSISTR_ASSIGN'];
-*)
-
 function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): ansistring; compilerproc;
-(*
-Var
-  Size,Location : SizeInt;
-  pc : pchar;
-*)
+var
+  newdata: array of ansichar;
+  thislen, addlen: sizeint;
 begin
-(*
-  { only assign if s1 or s2 is empty }
-  if (S1='') then
-    begin
-      result:=s2;
-      exit;
-    end;
-  if (S2='') then
-    begin
-      result:=s1;
-      exit;
-    end;
-  Location:=Length(S1);
-  Size:=length(S2);
-  SetLength(result,Size+Location);
-  pc:=pchar(result);
-  Move(S1[1],pc^,Location);
-  inc(pc,location);
-  Move(S2[1],pc^,Size+1);
-*)
+  thislen:=length(s1);
+  addlen:=length(s2);
+  setlength(newdata,thislen+addlen);
+  if thislen>0 then
+    JLSystem.ArrayCopy(JLObject(AnsistringClass(s1).fdata),0,JLObject(newdata),0,thislen);
+  if addlen>0 then
+    JLSystem.ArrayCopy(JLObject(AnsistringClass(s2).fdata),0,JLObject(newdata),thislen,addlen);
+  result:=Ansistring(AnsistringClass.Create);
+  AnsistringClass(result).fdata:=newdata;
 end;
 
-(*
-function fpc_AnsiStr_Concat_multi (const sarr:array of Ansistring): ansistring; compilerproc;
-Var
-  i  : Longint;
-  p  : pointer;
-  pc : pchar;
-  Size,NewLen : SizeInt;
-begin
-  { First calculate size of the result so we can do
-    a single call to SetLength() }
-  NewLen:=0;
-  for i:=low(sarr) to high(sarr) do
-    inc(NewLen,length(sarr[i]));
-  SetLength(result,NewLen);
-  pc:=pchar(result);
-  for i:=low(sarr) to high(sarr) do
-    begin
-      p:=pointer(sarr[i]);
-      if assigned(p) then
-        begin
-          Size:=length(ansistring(p));
-          Move(pchar(p)^,pc^,Size+1);
-          inc(pc,size);
-        end;
-    end;
+
+procedure fpc_AnsiStr_Concat_multi (var DestS:Ansistring;const sarr:array of Ansistring); compilerproc;
+  Var
+    i  : longint;
+    size, newsize : sizeint;
+    curlen, addlen, nextlen : sizeint;
+    newdata: array of ansichar;
+    res : AnsistringClass;
+  begin
+    { First calculate size of the result so we can allocate an array of
+      the right size }
+    NewSize:=0;
+    for i:=low(sarr) to high(sarr) do
+      inc(newsize,length(sarr[i]));
+    setlength(newdata,newsize);
+    curlen:=0;
+    for i:=low(sarr) to high(sarr) do
+      begin
+        nextlen:=length(sarr[i]);
+        if nextlen>0 then
+          begin
+            JLSystem.ArrayCopy(JLObject(AnsistringClass(sarr[i]).fdata),0,JLObject(newdata),curlen,nextlen);
+            inc(curlen,nextlen);
+          end;
+      end;
+    res:=AnsistringClass.Create;
+    res.fdata:=newdata;
+    dests:=Ansistring(res);
 end;
-*)
+
 
 (*
 {$ifndef FPC_STRTOSHORTSTRINGPROC}
@@ -269,17 +255,12 @@ begin
 end;
 *)
 
-Function fpc_Char_To_AnsiStr(const c : Char): AnsiString; compilerproc;
+Function fpc_Char_To_AnsiStr(const c : AnsiChar): AnsiString; compilerproc;
 {
   Converts a Char to a AnsiString;
 }
 begin
-(*
-  Setlength (fpc_Char_To_AnsiStr,1);
-  PByte(Pointer(fpc_Char_To_AnsiStr))^:=byte(c);
-  { Terminating Zero }
-  PByte(Pointer(fpc_Char_To_AnsiStr)+1)^:=0;
-*)
+  result:=ansistring(AnsistringClass.Create(c));
 end;
 
 (*
@@ -298,57 +279,66 @@ end;
 *)
 
 
-Function fpc_CharArray_To_AnsiStr(const arr: array of char; zerobased: boolean = true): ansistring; compilerproc;
-(*
+Function fpc_CharArray_To_AnsiStr(const arr: array of ansichar; zerobased: boolean = true): ansistring; compilerproc;
 var
-  i  : SizeInt;
-*)
+  i,j  : SizeInt;
+  localarr: array of jbyte;
+  foundnull: boolean;
+  res: AnsistringClass;
 begin
-(*
   if (zerobased) then
     begin
       if (arr[0]=#0) Then
-        i := 0
-      else
       begin
-        i:=IndexChar(arr,high(arr)+1,#0);
-        if i = -1 then
-          i := high(arr)+1;
+        fpc_CharArray_To_AnsiStr := '';
+        exit;
       end;
+      foundnull:=false;
+      for i:=low(arr) to high(arr) do
+        if arr[i]=#0 then
+          begin
+            foundnull:=true;
+            break;
+          end;
+      if not foundnull then
+        begin
+          res:=AnsistringClass.Create(arr);
+          exit;
+        end
     end
   else
-    i := high(arr)+1;
-  SetLength(fpc_CharArray_To_AnsiStr,i);
-  if i > 0 then
-    Move (arr[0],Pointer(fpc_CharArray_To_AnsiStr)^,i);
-*)
+    begin
+      res:=AnsistringClass.Create(arr);
+      exit;
+    end;
+  res:=AnsistringClass.Create;
+  setlength(res.fdata,i);
+  JLSystem.ArrayCopy(JLObject(@arr),0,JLObject(res.fdata),0,i);
+  result:=Ansistring(res);
 end;
 
-procedure  fpc_ansistr_to_chararray(out res: array of char; const src: ansistring); compilerproc;
-(*
+procedure  fpc_ansistr_to_chararray(out res: array of ansichar; const src: ansistring); compilerproc;
 var
-  len: SizeInt;
-*)
+  i, len: SizeInt;
 begin
-(*
   len := length(src);
   if len > length(res) then
     len := length(res);
-{$r-}
   { make sure we don't try to access element 1 of the ansistring if it's nil }
   if len > 0 then
-    move(src[1],res[0],len);
-  { fpc_big_chararray is defined as array[0..0], see compproc.inc why }
-  fillchar(res[len],length(res)-len,0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
-*)
+    JLSystem.ArrayCopy(JLObject(AnsistringClass(src).fdata),0,JLObject(@res),0,len);
+  for i:=len to length(res) do
+    res[i]:=#0;
 end;
 
 
 function fpc_ansistr_setchar(const s: AnsiString; const index: longint; const ch: ansichar): AnsiString; compilerproc;
+var
+  res: AnsistringClass;
 begin
+  res:=AnsistringClass.Create(s);
+  res.fdata[index-1]:=ch;
+  result:=Ansistring(res);
 end;
 
 
@@ -360,13 +350,10 @@ Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): SizeInt;  compilerproc;
    0 if S1=S2
    >0 if S1>S2
 }
-(*
 Var
-  MaxI,Temp : SizeInt;
-*)
+  MaxI,Temp, i : SizeInt;
 begin
-(*
-  if pointer(S1)=pointer(S2) then
+  if JLObject(S1)=JLObject(S2) then
     begin
       result:=0;
       exit;
@@ -377,13 +364,16 @@ begin
     MaxI:=Temp;
   if MaxI>0 then
     begin
-      result:=CompareByte(S1[1],S2[1],MaxI);
-      if result=0 then
-        result:=Length(S1)-Length(S2);
+      for i:=0 to MaxI-1 do
+        begin
+          result:=ord(AnsistringClass(S1).fdata[i])-ord(AnsistringClass(S2).fdata[i]);
+          if result<>0 then
+            exit;
+        end;
+      result:=Length(S1)-Length(S2);
     end
   else
     result:=Length(S1)-Length(S2);
-*)
 end;
 
 Function fpc_AnsiStr_Compare_equal(const S1,S2 : AnsiString): SizeInt; compilerproc;
@@ -393,89 +383,30 @@ Function fpc_AnsiStr_Compare_equal(const S1,S2 : AnsiString): SizeInt; compilerp
    0 if S1=S2
    <>0 if S1<>S2
 }
-(*
 Var
   MaxI,Temp : SizeInt;
-*)
 begin
-(*
-  if pointer(S1)=pointer(S2) then
+  if JLObject(S1)=JLObject(S2) then
     begin
       result:=0;
       exit;
     end;
-  Maxi:=Length(S1);
-  temp:=Length(S2);
-  Result := Maxi - temp;
-  if Result = 0 then
-    if MaxI>0 then
-      result:=CompareByte(S1[1],S2[1],MaxI);
-*)
+  result:=ord(not JUArrays.equals(TJByteArray(AnsistringClass(S1).fdata),TJByteArray(AnsistringClass(S2).fdata)));
 end;
 
 
 
-Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : SizeInt); compilerproc;
+function fpc_AnsiStr_SetLength (S : AnsiString; l : SizeInt): Ansistring; compilerproc;
 {
   Sets The length of string S to L.
   Makes sure S is unique, and contains enough room.
 }
-(*
 Var
-  Temp : Pointer;
   lens, lena,
   movelen : SizeInt;
-*)
 begin
-(*
-  if (l>0) then
-    begin
-      if Pointer(S)=nil then
-       begin
-         GetMem(Pointer(S),AnsiRecLen+L);
-         PAnsiRec(S)^.Ref:=1;
-         inc(Pointer(S),firstoff);
-       end
-      else if PAnsiRec(Pointer(S)-FirstOff)^.Ref=1 then
-        begin
-          Dec(Pointer(S),FirstOff);
-          lens:=MemSize(Pointer(s));
-          lena:=AnsiRecLen+L;
-          { allow shrinking string if that saves at least half of current size }
-          if (lena>lens) or ((lens>32) and (lena<=(lens div 2))) then
-            reallocmem(pointer(S),AnsiRecLen+L);
-          Inc(Pointer(S),FirstOff);
-        end
-      else
-        begin
-          { Reallocation is needed... }
-          Temp:=Pointer(NewAnsiString(L));
-
-          { also move terminating null }
-          lens:=succ(length(s));
-          if l < lens then
-            movelen := l
-          else
-            movelen := lens;
-          Move(Pointer(S)^,Temp^,movelen);
-          { ref count dropped to zero in the mean time? }
-          If (PAnsiRec(Pointer(S)-FirstOff)^.Ref > 0) and
-             declocked(PAnsiRec(Pointer(S)-FirstOff)^.Ref) then
-            freemem(PAnsiRec(Pointer(s)-FirstOff));
-          Pointer(S):=Temp;
-       end;
-      { Force nil termination in case it gets shorter }
-      PByte(Pointer(S)+l)^:=0;
-      PAnsiRec(Pointer(S)-FirstOff)^.Len:=l;
-    end
-  else
-    begin
-      { Length=0 }
-      if Pointer(S)<>nil then
-       fpc_ansistr_decr_ref (Pointer(S));
-      Pointer(S):=Nil;
-    end;
-*)
+  setlength(AnsistringClass(s).fdata,l);
+  result:=s;
 end;
 
 {*****************************************************************************
@@ -497,6 +428,7 @@ begin
 end;
 *)
 
+(*
 {$ifndef FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
 // MV: inline the basic checks for case that S is already unique.
 // Rest is too complex to inline, so factor that out as a call.
@@ -506,25 +438,22 @@ Function fpc_ansistr_Unique(Var S : jlobject): jlobject; compilerproc;
   using copy-on-write semantics.
 }
 begin
-(*
   pointer(result) := pointer(s);
   If Pointer(S)=Nil then
     exit;
   if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then
     result:=fpc_truely_ansistr_unique(s);
-*)
 end;
 {$endif FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
-
-
-Procedure fpc_ansistr_append_char(Var S : AnsiString;c : char); compilerproc;
-begin
-(*
-  SetLength(S,length(S)+1);
-  // avoid unique call
-  PChar(Pointer(S)+length(S)-1)^:=c;
-  PByte(Pointer(S)+length(S))^:=0; { Terminating Zero }
 *)
+
+Procedure fpc_ansistr_append_char(Var S : AnsiString;c : ansichar); compilerproc;
+var
+  curlen: sizeint;
+begin
+  curlen:=length(s);
+  SetLength(s,curlen+1);
+  AnsistringClass(s).fdata[curlen]:=c;
 end;
 
 Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;const Str : ShortString); compilerproc;
@@ -545,37 +474,23 @@ begin
 end;
 
 Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;const Str : AnsiString); compilerproc;
-(*
 var
-   ofs, strlength: SizeInt;
-   samestring: boolean;
-*)
+  ofs, strlength: longint;
 begin
-(*
    if Str='' then
      exit;
-   samestring := pointer(s) = pointer(str);
-   { needed in case s and str are the same string }
-   strlength := length(str);
+   strlength:=length(str);
    ofs:=Length(S);
+   { no problem if s and str are the same string, because "var" parameters are
+     copy-in/out for ansistring }
    SetLength(S,ofs+strlength);
-   { the pbyte cast avoids an unique call which isn't necessary because SetLength was just called }
-   if not(samestring) then
-     move(Str[1],(pointer(S)+ofs)^,strlength+1)
-   else
-     { the setlength may have relocated the string, so str may no longer be valid }
-     move(S[1],(pointer(S)+ofs)^,strlength+1)
-*)
+   JLSystem.ArrayCopy(JLObject(AnsistringClass(Str).fdata),0,JLObject(AnsistringClass(S).fdata),ofs,strlength);
 end;
 
 Function Fpc_Ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;compilerproc;
-(*
 var
-  ResultAddress : Pointer;
-*)
+  res: AnsistringClass;
 begin
-(*
-  ResultAddress:=Nil;
   dec(index);
   if Index < 0 then
     Index := 0;
@@ -583,32 +498,23 @@ begin
     Size can be maxint and will get <0 when adding index }
   if (Size>Length(S)) or
      (Index+Size>Length(S)) then
-   Size:=Length(S)-Index;
+    Size:=Length(S)-Index;
   If Size>0 then
    begin
-     If Index<0 Then
-      Index:=0;
-     ResultAddress:=Pointer(NewAnsiString (Size));
-     if ResultAddress<>Nil then
-      begin
-        Move (Pointer(Pointer(S)+index)^,ResultAddress^,Size);
-        PAnsiRec(ResultAddress-FirstOff)^.Len:=Size;
-        PByte(ResultAddress+Size)^:=0;
-      end;
+     res:=AnsistringClass.Create;
+     setlength(res.fdata,size);
+     JLSystem.ArrayCopy(JLObject(AnsistringClass(S).fdata),index,JLObject(res.fdata),0,size);
+     result:=ansistring(res);
    end;
-   fpc_ansistr_decr_ref(Pointer(fpc_ansistr_copy));
-  Pointer(fpc_ansistr_Copy):=ResultAddress;
-*)
+  { default function result is empty string }
 end;
 
-Function Pos (Const Substr : ShortString; Const Source : AnsiString) : SizeInt;
 (*
+Function Pos (Const Substr : ShortString; Const Source : AnsiString) : SizeInt;
 var
   i,MaxLen : SizeInt;
   pc : pchar;
-*)
 begin
-(*
   Pos:=0;
   if Length(SubStr)>0 then
    begin
@@ -627,37 +533,37 @@ begin
         inc(pc);
       end;
    end;
-*)
 end;
-
+*)
 
 Function Pos (Const Substr : AnsiString; Const Source : AnsiString) : SizeInt;
-(*
 var
-  i,MaxLen : SizeInt;
-  pc : pchar;
-*)
+  i,j,k,MaxLen, SubstrLen : SizeInt;
 begin
-(*
   Pos:=0;
-  if Length(SubStr)>0 then
+  SubstrLen:=Length(SubStr);
+  if SubstrLen>0 then
    begin
      MaxLen:=Length(source)-Length(SubStr);
      i:=0;
-     pc:=@source[1];
      while (i<=MaxLen) do
       begin
         inc(i);
-        if (SubStr[1]=pc^) and
-           (CompareByte(Substr[1],pc^,Length(SubStr))=0) then
+        j:=0;
+        k:=i-1;
+        while (j<SubstrLen) and
+              (AnsistringClass(SubStr).fdata[j]=AnsistringClass(Source).fdata[k]) do
+          begin
+            inc(j);
+            inc(k);
+          end;
+        if (j=SubstrLen) then
          begin
            Pos:=i;
            exit;
          end;
-        inc(pc);
       end;
    end;
-*)
 end;
 
 
@@ -666,25 +572,18 @@ end;
 { using pos(char,pchar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
 Function Pos (c : Char; Const s : AnsiString) : SizeInt;
-(*
 var
   i: SizeInt;
-  pc : pchar;
-*)
 begin
-(*
-  pc:=@s[1];
   for i:=1 to length(s) do
    begin
-     if pc^=c then
+     if AnsistringClass(s).fdata[i-1]=c then
       begin
         pos:=i;
         exit;
       end;
-     inc(pc);
    end;
   pos:=0;
-*)
 end;
 
 (*
@@ -936,29 +835,21 @@ end;
 *)
 
 function upcase(const s : ansistring) : ansistring;
-(*
 var
   i : SizeInt;
-*)
+  u : unicodestring;
 begin
-(*
-  Setlength(result,length(s));
-  for i := 1 to length (s) do
-    result[i] := upcase(s[i]);
-*)
+  u:=s;
+  result:=upcase(u);
 end;
 
 
 function lowercase(const s : ansistring) : ansistring;
-(*
 var
   i : SizeInt;
-*)
+  u : unicodestring;
 begin
-(*
-  Setlength(result,length(s));
-  for i := 1 to length (s) do
-    result[i] := lowercase(s[i]);
-*)
+  u:=s;
+  result:=lowercase(u);
 end;
 

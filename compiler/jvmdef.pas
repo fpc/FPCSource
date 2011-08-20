@@ -182,7 +182,7 @@ implementation
       end;
 
 
-    function jvmaddencodedtypeintern(def: tdef; bpacked: boolean; var encodedstr: string; forcesignature: boolean; out founderror: tdef): boolean;
+    function jvmaddencodedtype(def: tdef; bpacked: boolean; var encodedstr: string; forcesignature: boolean; out founderror: tdef): boolean;
       var
         c: char;
       begin
@@ -195,9 +195,9 @@ implementation
                 st_widestring,
                 st_unicodestring:
                   encodedstr:=encodedstr+'Ljava/lang/String;';
-{$ifndef nounsupported}
                 st_ansistring:
-                  encodedstr:=encodedstr+'Lorg/freepascal/rtl/AnsiString;';
+                  result:=jvmaddencodedtype(java_ansistring,false,encodedstr,forcesignature,founderror);
+{$ifndef nounsupported}
                 st_shortstring:
                   encodedstr:=encodedstr+'Lorg/freepascal/rtl/ShortString;';
 {$else}
@@ -359,12 +359,6 @@ implementation
         end;
         if not result then
           founderror:=def;
-      end;
-
-
-    function jvmaddencodedtype(def: tdef; bpacked: boolean; var encodedstr: string; forcesignature: boolean; out founderror: tdef): boolean;
-      begin
-        result:=jvmaddencodedtypeintern(def,bpacked,encodedstr,forcesignature,founderror);
       end;
 
 

@@ -1,4 +1,4 @@
-{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.LinkageError, java.lang.Number, java.lang.Object, java.lang.RuntimeException, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.GenericDeclaration, java.lang.reflect.Type, java.text.Collator, java.util.Comparator }
+{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.LinkageError, java.lang.Number, java.lang.Object, java.lang.RuntimeException, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.GenericDeclaration, java.lang.reflect.Type, java.text.Collator, java.util.Arrays, java.util.Comparator }
 type
   JLStringBuffer = class;
   Arr1JLStringBuffer = array of JLStringBuffer;
@@ -69,6 +69,11 @@ type
   Arr1JTCollator = array of JTCollator;
   Arr2JTCollator = array of Arr1JTCollator;
   Arr3JTCollator = array of Arr2JTCollator;
+
+  JUArrays = class;
+  Arr1JUArrays = array of JUArrays;
+  Arr2JUArrays = array of Arr1JUArrays;
+  Arr3JUArrays = array of Arr2JUArrays;
 
   JLIllegalArgumentException = class;
   Arr1JLIllegalArgumentException = array of JLIllegalArgumentException;
@@ -229,6 +234,11 @@ type
   Arr1JNCCharset = array of JNCCharset;
   Arr2JNCCharset = array of Arr1JNCCharset;
   Arr3JNCCharset = array of Arr2JNCCharset;
+
+  JUList = interface external 'java.util' name 'List';
+  Arr1JUList = array of JUList;
+  Arr2JUList = array of Arr1JUList;
+  Arr3JUList = array of Arr2JUList;
 
   JLAAnnotation = interface external 'java.lang.annotation' name 'Annotation';
   Arr1JLAAnnotation = array of JLAAnnotation;

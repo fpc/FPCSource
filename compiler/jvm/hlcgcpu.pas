@@ -1340,6 +1340,8 @@ implementation
       { highloc is invalid, the length is part of the array in Java }
       if is_wide_or_unicode_string(t) then
         g_call_system_proc(list,'fpc_initialize_array_unicodestring')
+      else if is_ansistring(t) then
+        g_call_system_proc(list,'fpc_initialize_array_ansistring')
       else if is_dynamic_array(t) then
         g_call_system_proc(list,'fpc_initialize_array_dynarr')
       else if is_record(t) then

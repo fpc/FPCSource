@@ -187,10 +187,11 @@ implementation
                  inc(runlen);
                end
              else
-               // since Jasmin expects an UTF-16 string, we can't safely
-               // have high ASCII characters since they'll be
-               // re-interpreted as utf-16 anyway
-               internalerror(2010122808);
+               begin
+                 { see comments in njvmcon }
+                 flush;
+                 result:=result+'\u'+hexstr(ord(p[i]),4)
+               end;
            end;
          end;
        flush;

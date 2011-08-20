@@ -78,17 +78,10 @@ Function fpc_UnicodeStr_To_AnsiStr (const S2 : UnicodeString): AnsiString; compi
 {
   Converts a UnicodeString to an AnsiString
 }
-{$ifdef nounsupported}
 Var
   Size : SizeInt;
-{$endif}
 begin
-{$ifdef nounsupported}
-  result:='';
-  Size:=Length(S2);
-  if Size>0 then
-    widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(S2)),result,Size);
-{$endif}
+  result:=Ansistring(AnsistringClass.Create(s2));
 end;
 
 
@@ -96,17 +89,13 @@ Function fpc_AnsiStr_To_UnicodeStr (Const S2 : AnsiString): UnicodeString; compi
 {
   Converts an AnsiString to a UnicodeString;
 }
-{$ifdef nounsupported}
 Var
   Size : SizeInt;
-{$endif}
 begin
-{$ifdef nounsupported}
-  result:='';
-  Size:=Length(S2);
-  if Size>0 then
-    widestringmanager.Ansi2UnicodeMoveProc(PChar(S2),result,Size);
-{$endif}
+  if length(s2)=0 then
+    result:=''
+  else
+    result:=AnsistringClass(S2).toString;
 end;
 
 Function fpc_UnicodeStr_To_WideStr (const S2 : UnicodeString): WideString; compilerproc;
@@ -277,9 +266,8 @@ Function fpc_UChar_To_UnicodeStr(const c : UnicodeChar): UnicodeString; compiler
   Converts a UnicodeChar to a UnicodeString;
 }
 var
-  arr: array of UnicodeChar;
+  arr: array[0..0] of UnicodeChar;
 begin
-  setlength(arr,1);
   arr[0]:=c;
   result:=JLString.create(arr);
 end;
@@ -933,26 +921,28 @@ begin
   result:=Pos(wc,s);
 end;
 
-
 (*
 Procedure Delete (Var S : UnicodeString; Index,Size: SizeInt);
 Var
   LS : SizeInt;
+  sb: JLStringBuilder;
 begin
   LS:=Length(S);
   if (Index>LS) or (Index<=0) or (Size<=0) then
     exit;
 
-  UniqueString (S);
   { (Size+Index) will overflow if Size=MaxInt. }
   if Size>LS-Index then
     Size:=LS-Index+1;
   if Size<=LS-Index then
-  begin
-    Dec(Index);
-    Move(PUnicodeChar(S)[Index+Size],PUnicodeChar(S)[Index],(LS-Index-Size+1)*sizeof(UnicodeChar));
-  end;
-  Setlength(s,LS-Size);
+    begin
+      Dec(Index);
+      sb:=JLStringBuilder.Create(s);
+      sb.delete(index,size);
+      s:=sb.toString;
+    end
+  else
+    s:=JLString(s).substring(0,index-1);
 end;
 
 
@@ -960,6 +950,7 @@ Procedure Insert (Const Source : UnicodeString; Var S : UnicodeString; Index : S
 var
   Temp : UnicodeString;
   LS : SizeInt;
+  sb : JLStringBuilder;
 begin
   If Length(Source)=0 then
    exit;
@@ -969,14 +960,9 @@ begin
   if index > LS then
    index := LS+1;
   Dec(Index);
-  Pointer(Temp) := NewUnicodeString(Length(Source)+LS);
-  SetLength(Temp,Length(Source)+LS);
-  If Index>0 then
-    move (PUnicodeChar(S)^,PUnicodeChar(Temp)^,Index*sizeof(UnicodeChar));
-  Move (PUnicodeChar(Source)^,PUnicodeChar(Temp)[Index],Length(Source)*sizeof(UnicodeChar));
-  If (LS-Index)>0 then
-    Move(PUnicodeChar(S)[Index],PUnicodeChar(temp)[Length(Source)+index],(LS-Index)*sizeof(UnicodeChar));
-  S:=Temp;
+  sb:=JLStringBuilder.Create(S);
+  sb.insert(Index,Source);
+  S:=sb.toString;
 end;
 *)
 

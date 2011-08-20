@@ -446,12 +446,15 @@ implementation
         newstatement: tstatementnode;
         lefttemp: ttempcreatenode;
         assignmenttarget: tnode;
+        stringtype: tstringdef;
       begin
-        if is_wide_or_unicode_string(left.resultdef) then
+        if is_wide_or_unicode_string(left.resultdef) or
+           is_ansistring(left.resultdef) then
           begin
+            stringtype:=tstringdef(left.resultdef);
             { store left into a temp in case it may contain a function call
               (which must not be evaluated twice) }
-            lefttemp:=maybereplacewithtempref(tcallparanode(left).left,tcallparanode(left).left.resultdef.size,false);
+            lefttemp:=maybereplacewithtempref(tcallparanode(left).left,stringtype.size,false);
             if assigned(lefttemp) then
               begin
                 newblock:=internalstatements(newstatement);
@@ -464,7 +467,7 @@ implementation
             { back to original order for the call }
             left:=reverseparameters(tcallparanode(left));
             result:=cassignmentnode.create(assignmenttarget,
-              ccallnode.createintern('fpc_unicodestr_setlength',left));
+              ccallnode.createintern('fpc_'+stringtype.stringtypname+'_setlength',left));
             if assigned(lefttemp) then
               begin
                 addstatement(newstatement,result);
@@ -518,30 +521,36 @@ implementation
         stringnonnull,
         stringnull: tnode;
         psym: tsym;
+        stringclass: tdef;
       begin
-        if is_wide_or_unicode_string(left.resultdef) then
+        if is_wide_or_unicode_string(left.resultdef) or
+           is_ansistring(left.resultdef) then
           begin
-            { if assigned(JLString(left)) then
-                lentemp:=JLString(left).length()
+            { if assigned(stringclass(left)) then
+                lentemp:=stringclass(left).length()
               else
                 lentemp:=0;
               --> return lentemp
             }
+            if is_ansistring(left.resultdef) then
+              stringclass:=java_ansistring
+            else
+              stringclass:=java_jlstring;
             newblock:=internalstatements(newstatement);
             lentemp:=ctempcreatenode.create(s32inttype,s32inttype.size,tt_persistent,true);
             addstatement(newstatement,lentemp);
             { if-condition }
             ifcond:=cinlinenode.create(in_assigned_x,false,
-              ccallparanode.create(ctypeconvnode.create_explicit(left.getcopy,java_jlstring),nil));
+              ccallparanode.create(ctypeconvnode.create_explicit(left.getcopy,stringclass),nil));
             { then-path (reuse left, since last use) }
-            psym:=search_struct_member(java_jlstring,'LENGTH');
+            psym:=search_struct_member(tabstractrecorddef(stringclass),'LENGTH');
             if not assigned(psym) or
                (psym.typ<>procsym) then
               internalerror(2011031403);
             stringnonnull:=cassignmentnode.create(
               ctemprefnode.create(lentemp),
               ccallnode.create(nil,tprocsym(psym),psym.owner,
-                ctypeconvnode.create_explicit(left,java_jlstring),[]));
+                ctypeconvnode.create_explicit(left,stringclass),[]));
             left:=nil;
             { else-path}
             stringnull:=cassignmentnode.create(
