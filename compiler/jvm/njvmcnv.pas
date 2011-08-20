@@ -222,7 +222,8 @@ implementation
 
     function tjvmtypeconvnode.first_int_to_real: tnode;
       begin
-        if not is_64bitint(left.resultdef) then
+        if not is_64bitint(left.resultdef) and
+           not is_currency(left.resultdef) then
           if is_signed(left.resultdef) or
              (left.resultdef.size<4) then
             inserttypeconv(left,s32inttype)
