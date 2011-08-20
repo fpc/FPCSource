@@ -614,6 +614,7 @@ implementation
       i: longint;
       mangledname: string;
       opc: tasmop;
+      parasize: longint;
       primitivetype: boolean;
     begin
       elemdef:=arrdef;
@@ -654,17 +655,24 @@ implementation
           get_enum_init_val_ref(elemdef,enuminitref)) or
          is_shortstring(elemdef) or
          ((elemdef.typ=procvardef) and
-          not tprocvardef(elemdef).is_addressonly) then
+          not tprocvardef(elemdef).is_addressonly) or
+         is_ansistring(elemdef) or
+         is_wide_or_unicode_string(elemdef) or
+         is_dynamic_array(elemdef) then
         begin
           { duplicate array instance }
           list.concat(taicpu.op_none(a_dup));
           incstack(list,1);
           a_load_const_stack(list,s32inttype,initdim-1,R_INTREGISTER);
+          parasize:=2;
           case elemdef.typ of
+            arraydef:
+              g_call_system_proc(list,'fpc_initialize_array_dynarr');
             recorddef,setdef,procvardef:
               begin
                 tg.gethltemp(list,elemdef,elemdef.size,tt_persistent,recref);
                 a_load_ref_stack(list,elemdef,recref,prepare_stack_for_ref(list,recref,false));
+                inc(parasize);
                 case elemdef.typ of
                   recorddef:
                     g_call_system_proc(list,'fpc_initialize_array_record');
@@ -682,16 +690,32 @@ implementation
               end;
             enumdef:
               begin
+                inc(parasize);
                 a_load_ref_stack(list,java_jlobject,enuminitref,prepare_stack_for_ref(list,enuminitref,false));
                 g_call_system_proc(list,'fpc_initialize_array_object');
               end;
-            else
+            stringdef:
               begin
-                a_load_const_stack(list,u8inttype,tstringdef(elemdef).len,R_INTREGISTER);
-                g_call_system_proc(list,'fpc_initialize_array_shortstring');
+                case tstringdef(elemdef).stringtype of
+                  st_shortstring:
+                    begin
+                      inc(parasize);
+                      a_load_const_stack(list,u8inttype,tstringdef(elemdef).len,R_INTREGISTER);
+                      g_call_system_proc(list,'fpc_initialize_array_shortstring');
+                    end;
+                  st_ansistring:
+                    g_call_system_proc(list,'fpc_initialize_array_ansistring');
+                  st_unicodestring,
+                  st_widestring:
+                    g_call_system_proc(list,'fpc_initialize_array_unicodestring');
+                  else
+                    internalerror(2011081801);
+                end;
               end;
+            else
+              internalerror(2011081801);
           end;
-          decstack(list,3);
+          decstack(list,parasize);
         end;
     end;
 
