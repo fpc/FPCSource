@@ -782,7 +782,6 @@ implementation
         begin
           if is_java_class_or_interface(pd.struct) then
             begin
-              include(pd.procoptions,po_java);
             end;
         end;
 

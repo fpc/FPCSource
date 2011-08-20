@@ -608,7 +608,7 @@ implementation
         { in case the referred method is from an external class }
         exclude(result.procoptions,po_external);
         { not virtual/override/abstract/... }
-        result.procoptions:=result.procoptions*[po_classmethod,po_staticmethod,po_java,po_varargs,po_public];
+        result.procoptions:=result.procoptions*[po_classmethod,po_staticmethod,po_varargs,po_public];
         result.synthetickind:=tsk_callthrough;
         { so we know the name of the routine to call through to }
         result.skpara:=pd;
