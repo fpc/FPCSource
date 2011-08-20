@@ -366,11 +366,11 @@ implementation
         { start with org (save assignmenttarget itself to assign the result back to) }
         { store left into a temp in case it may contain a function call
           (which must not be evaluated twice) }
-        lefttemp:=maybereplacewithtempref(tcallparanode(left).left,tcallparanode(left).left.resultdef.size,false);
+        newblock:=nil;
+        newstatement:=nil;
+        lefttemp:=maybereplacewithtempref(tcallparanode(left).left,newblock,newstatement,tcallparanode(left).left.resultdef.size,false);
         if assigned(lefttemp) then
           begin
-            newblock:=internalstatements(newstatement);
-            addstatement(newstatement,lefttemp);
             assignmenttarget:=ctemprefnode.create(lefttemp);
             typecheckpass(tnode(assignmenttarget));
           end
@@ -461,11 +461,11 @@ implementation
             stringtype:=tstringdef(left.resultdef);
             { store left into a temp in case it may contain a function call
               (which must not be evaluated twice) }
-            lefttemp:=maybereplacewithtempref(tcallparanode(left).left,stringtype.size,false);
+            newblock:=nil;
+            newstatement:=nil;
+            lefttemp:=maybereplacewithtempref(tcallparanode(left).left,newblock,newstatement,stringtype.size,false);
             if assigned(lefttemp) then
               begin
-                newblock:=internalstatements(newstatement);
-                addstatement(newstatement,lefttemp);
                 assignmenttarget:=ctemprefnode.create(lefttemp);
                 typecheckpass(tnode(assignmenttarget));
               end
