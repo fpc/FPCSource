@@ -183,7 +183,7 @@ implementation
                           defaultresultdef:=false;
                         end
                       else
-                        message(parser_e_cant_create_generics_of_this_type);
+                        CGMessage(parser_e_cant_create_generics_of_this_type);
                   end
                 else
                   message(parser_e_cant_create_generics_of_this_type);
@@ -193,7 +193,7 @@ implementation
             else
               resultdef:=tclassrefdef.create(left.resultdef);
           else
-            Message(parser_e_pointer_to_class_expected);
+            CGMessage(parser_e_pointer_to_class_expected);
         end;
       end;
 
