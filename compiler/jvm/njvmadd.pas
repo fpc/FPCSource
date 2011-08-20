@@ -48,6 +48,7 @@ interface
           procedure second_cmpboolean;override;
           procedure second_cmpsmallset;override;
           procedure second_cmp64bit;override;
+          procedure second_add64bit; override;
           procedure second_cmpordinal;override;
        end;
 
@@ -345,6 +346,12 @@ interface
     procedure tjvmaddnode.second_cmp64bit;
       begin
         second_generic_compare;
+      end;
+
+
+    procedure tjvmaddnode.second_add64bit;
+      begin
+        second_opordinal;
       end;
 
 

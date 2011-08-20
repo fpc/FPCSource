@@ -2597,7 +2597,7 @@ implementation
                   internalerror(200103291);
                  expectloc:=LOC_FLAGS;
                end
-{$ifndef cpu64bitaddr}
+{$ifndef cpu64bitalu}
               { is there a 64 bit type ? }
              else if (torddef(ld).ordtype in [s64bit,u64bit,scurrency]) then
                begin
@@ -2609,7 +2609,7 @@ implementation
                   else
                     expectloc:=LOC_JUMP;
                end
-{$endif cpu64bitaddr}
+{$endif cpu64bitalu}
 {$ifndef cpuneedsmulhelper}
              { is there a cardinal? }
              else if (torddef(ld).ordtype=u32bit) then
