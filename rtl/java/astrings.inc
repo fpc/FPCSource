@@ -68,7 +68,7 @@ var
   res: AnsistringClass;
   i: longint;
 begin
-  { used to construct constant ansisitrings for Java string constants }
+  { used to construct constant ansistrings from Java string constants }
   res:=AnsistringClass.Create;
   setlength(res.fdata,system.length(u));
   for i:=1 to system.length(u) do
