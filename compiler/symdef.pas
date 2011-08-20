@@ -4152,12 +4152,17 @@ implementation
         tprocdef(result).aliasnames.concatListcopy(aliasnames);
         if assigned(funcretsym) then
           begin
-            if (funcretsym.owner=parast) then
+            if funcretsym.owner=parast then
               begin
                 j:=parast.symlist.indexof(funcretsym);
                 if j<0 then
                   internalerror(2011040606);
                 tprocdef(result).funcretsym:=tsym(tprocdef(result).parast.symlist[j]);
+              end
+            else if funcretsym.owner=localst then
+              begin
+                { nothing to do, will be inserted for the new procdef while
+                  parsing its body (by pdecsub.insert_funcret_local) }
               end
             else
               internalerror(2011040605);
