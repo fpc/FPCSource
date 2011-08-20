@@ -317,6 +317,12 @@ interface
          system_jvm_java32
        ];
 
+       { all systems where typed constants have to be translated into node
+         trees that initialise the data instead of into data sections }
+       systems_typed_constants_node_init = [
+         system_jvm_java32
+       ];
+
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm');

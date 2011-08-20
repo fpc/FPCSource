@@ -60,15 +60,20 @@ implementation
         { generate data for typed const }
         storefilepos:=current_filepos;
         current_filepos:=sym.fileinfo;
-        if sym.varspez=vs_const then
-          cursectype:=sec_rodata
-        else
-          cursectype:=sec_data;
-        maybe_new_object_file(list);
 
-        tcbuilder:=ttypedconstbuilder.create(sym);
-        reslist:=tcbuilder.parse_into_asmlist;
-        tcbuilder.free;
+        if not(target_info.system in systems_typed_constants_node_init) then
+          begin
+            if sym.varspez=vs_const then
+              cursectype:=sec_rodata
+            else
+              cursectype:=sec_data;
+            maybe_new_object_file(list);
+            tcbuilder:=tasmlisttypedconstbuilder.create(sym);
+            reslist:=tasmlisttypedconstbuilder(tcbuilder).parse_into_asmlist;
+            tcbuilder.free;
+          end
+        else
+          internalerror(2011040203);
 
         { Parse hints }
         try_consume_hintdirective(sym.symoptions,sym.deprecatedmsg);
@@ -93,7 +98,8 @@ implementation
            ) then
           read_public_and_external(sym);
 
-         { try to parse a section directive }
+
+        { try to parse a section directive }
         if not in_structure and (target_info.system in systems_allow_section) and
           (symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) and
            (idtoken=_SECTION) then
@@ -110,25 +116,31 @@ implementation
                    end;
                end;
 
-        { only now add items based on the symbolname, because it may }
-        { have been modified by the directives parsed above          }
-        if vo_has_section in sym.varoptions then
-          new_section(list,sec_user,sym.section,const_align(sym.vardef.alignment))
-        else
-          new_section(list,cursectype,lower(sym.mangledname),const_align(sym.vardef.alignment));
-        if (sym.owner.symtabletype=globalsymtable) or
-           create_smartlink or
-           (assigned(current_procinfo) and
-            (po_inline in current_procinfo.procdef.procoptions)) or
-           DLLSource then
-          list.concat(Tai_symbol.Createname_global(sym.mangledname,AT_DATA,0))
-        else
-          list.concat(Tai_symbol.Createname(sym.mangledname,AT_DATA,0));
+        if not(target_info.system in systems_typed_constants_node_init) then
+          begin
+            { only now add items based on the symbolname, because it may }
+            { have been modified by the directives parsed above          }
+            if vo_has_section in sym.varoptions then
+              new_section(list,sec_user,sym.section,const_align(sym.vardef.alignment))
+            else
+              new_section(list,cursectype,lower(sym.mangledname),const_align(sym.vardef.alignment));
+            if (sym.owner.symtabletype=globalsymtable) or
+               create_smartlink or
+               (assigned(current_procinfo) and
+                (po_inline in current_procinfo.procdef.procoptions)) or
+               DLLSource then
+              list.concat(Tai_symbol.Createname_global(sym.mangledname,AT_DATA,0))
+            else
+              list.concat(Tai_symbol.Createname(sym.mangledname,AT_DATA,0));
 
-        { add the parsed value }
-        list.concatlist(reslist);
-        reslist.free;
-        list.concat(tai_symbol_end.Createname(sym.mangledname));
+            { add the parsed value }
+            list.concatlist(reslist);
+            reslist.free;
+            list.concat(tai_symbol_end.Createname(sym.mangledname));
+          end
+        else
+          internalerror(2011040204);
+
         current_filepos:=storefilepos;
       end;
 
