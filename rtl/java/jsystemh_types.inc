@@ -256,33 +256,25 @@ Type
 
   NativeInt  = PtrInt;
   NativeUint = PtrUint;
-(*
 { Zero - terminated strings }
   PChar               = ^Char;
   PPChar              = ^PChar;
   PPPChar             = ^PPChar;
-*)
   { AnsiChar is equivalent of Char, so we need
     to use type renamings }
   TAnsiChar           = Char;
   AnsiChar            = Char;
-(*
   PAnsiChar           = PChar;
   PPAnsiChar          = PPChar;
-*)
 
   UCS4Char            = type 0..$10ffff;
-(*
   PUCS4Char           = ^UCS4Char;
-*)
 {$ifdef CPU16}
   TUCS4CharArray      = array[0..32767 div sizeof(UCS4Char)-1] of UCS4Char;
 {$else CPU16}
   TUCS4CharArray      = array[0..$effffff] of UCS4Char;
 {$endif CPU16}
-(*
   PUCS4CharArray      = ^TUCS4CharArray;
-*)
   UCS4String          = array of UCS4Char;
 
   UTF8String          = type ansistring;
@@ -299,23 +291,16 @@ Type
   TError               = type Longint;
 
 {$ifndef FPUNONE}
-(*
   PSingle             = ^Single;
   PDouble             = ^Double;
   PExtended           = ^Extended;
 
   PPDouble            = ^PDouble;
-*)
 {$endif}
-(*
   PCurrency           = ^Currency;
-*)
 {$ifdef SUPPORT_COMP}
-(*
   PComp               = ^Comp;
-*)
 {$endif SUPPORT_COMP}
-(*
   PSmallInt           = ^Smallint;
   PShortInt           = ^Shortint;
   PInteger            = ^Integer;
@@ -340,9 +325,7 @@ Type
   PBoolean            = ^Boolean;
   PWordBool           = ^WordBool;
   PLongBool           = ^LongBool;
-*)
   PShortString        = ^ShortString;
-(*
   PAnsiString         = ^AnsiString;
 
 {$ifndef FPUNONE}
@@ -356,19 +339,15 @@ Type
   PWideChar           = ^WideChar;
   PPWideChar          = ^PWideChar;
   PPPWideChar         = ^PPWideChar;
-*)
   WChar               = Widechar;
   UCS2Char            = WideChar;
-(*
   PUCS2Char           = PWideChar;
   PWideString         = ^WideString;
-*)
 
   UnicodeChar         = WideChar;
-(*
   PUnicodeChar        = ^UnicodeChar;
   PUnicodeString      = ^UnicodeString;
-
+(*
   { Needed for fpc_get_output }
   PText               = ^Text;
 *)
