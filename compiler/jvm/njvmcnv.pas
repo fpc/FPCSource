@@ -797,6 +797,9 @@ implementation
         checkdef:=tclassrefdef(node.right.resultdef).pointeddef
       else
         checkdef:=node.right.resultdef;
+      { replace special types with their equivalent class type }
+      if is_wide_or_unicode_string(checkdef) then
+        checkdef:=java_jlstring;
       if checkdef.typ in [objectdef,recorddef] then
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcode,current_asmdata.RefAsmSymbol(tabstractrecorddef(checkdef).jvm_full_typename(true))))
       else
