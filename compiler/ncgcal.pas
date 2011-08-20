@@ -75,6 +75,11 @@ interface
             can work with it. This routine decides what the most appropriate
             tlocation is and sets self.location based on that. }
           procedure set_result_location(realresdef: tstoreddef);virtual;
+
+          { if an unused return value is in another location than a
+            LOC_REFERENCE, this method will be called to perform the necessary
+            cleanups. By default it does not do anything }
+          procedure release_unused_return_value_cpu;virtual;
        public
           procedure pass_generate_code;override;
           destructor destroy;override;
@@ -309,6 +314,12 @@ implementation
       end;
 
 
+    procedure tcgcallnode.release_unused_return_value_cpu;
+      begin
+        { do nothing }
+      end;
+
+
     procedure tcgcallnode.pop_parasize(pop_size:longint);
       begin
       end;
@@ -431,14 +442,8 @@ implementation
                      cg.g_finalize(current_asmdata.CurrAsmList,resultdef,location.reference);
                    tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
                 end;
-{$ifdef x86}
-              LOC_FPUREGISTER :
-                 begin
-                   { release FPU stack }
-                   emit_reg(A_FSTP,S_NO,NR_FPU_RESULT_REG);
-                   tcgx86(cg).dec_fpu_stack;
-                 end;
-{$endif x86}
+              else
+                release_unused_return_value_cpu;
             end;
             if (retloc.intsize<>0) then
               paramanager.freecgpara(current_asmdata.CurrAsmList,retloc);

@@ -656,6 +656,7 @@ compiler/x86/hlcgx86.pas svneol=native#text/plain
 compiler/x86/itcpugas.pas svneol=native#text/plain
 compiler/x86/itx86int.pas svneol=native#text/plain
 compiler/x86/nx86add.pas svneol=native#text/plain
+compiler/x86/nx86cal.pas svneol=native#text/plain
 compiler/x86/nx86cnv.pas svneol=native#text/plain
 compiler/x86/nx86con.pas svneol=native#text/plain
 compiler/x86/nx86inl.pas svneol=native#text/plain

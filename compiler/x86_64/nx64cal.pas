@@ -27,10 +27,10 @@ interface
 
     uses
       symdef,
-      ncal,ncgcal;
+      ncal,nx86cal;
 
     type
-       tx8664callnode = class(tcgcallnode)
+       tx8664callnode = class(tx86callnode)
         protected
          procedure extra_call_code;override;
          procedure set_result_location(realresdef: tstoreddef);override;
