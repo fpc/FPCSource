@@ -145,7 +145,6 @@ interface
           function register_notification(flags:Tnotification_flags;
                                          callback:Tnotification_callback):cardinal;
           procedure unregister_notification(id:cardinal);
-          function  jvmmangledbasename:string;
         private
           _vardef     : tdef;
           vardefderef : tderef;
@@ -1148,23 +1147,6 @@ implementation
     end;
 
 
-    function tabstractvarsym.jvmmangledbasename: string;
-      var
-        founderror: tdef;
-      begin
-        if not jvmtryencodetype(vardef,result,founderror) then
-          internalerror(2011011203);
-        if (typ=paravarsym) and
-           (vo_is_self in tparavarsym(self).varoptions) then
-          result:='this ' +result
-        else if (typ in [paravarsym,localvarsym]) and
-                ([vo_is_funcret,vo_is_result] * tabstractnormalvarsym(self).varoptions <> []) then
-          result:='result '+result
-        else
-          result:=realname+' '+result;
-      end;
-
-
     procedure tabstractvarsym.setvardef(def:tdef);
       begin
         _vardef := def;
@@ -1233,7 +1215,7 @@ implementation
               result:=cachedmangledname^
             else
               begin
-                result:=jvmmangledbasename;
+                result:=jvmmangledbasename(self);
                 jvmaddtypeownerprefix(owner,result);
                 cachedmangledname:=stringdup(result);
               end;
@@ -1391,7 +1373,7 @@ implementation
         if not assigned(_mangledname) then
           begin
 {$ifdef jvm}
-            tmpname:=jvmmangledbasename;
+            tmpname:=jvmmangledbasename(self);
             jvmaddtypeownerprefix(owner,tmpname);
             _mangledname:=stringdup(tmpname);
 {$else jvm}

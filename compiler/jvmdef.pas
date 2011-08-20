@@ -61,6 +61,10 @@ interface
       JVM target (e.g., records, regular arrays, ...) }
     function jvmimplicitpointertype(def: tdef): boolean;
 
+    { returns the mangled base name for a tsym (type + symbol name, no
+      visibility etc) }
+    function jvmmangledbasename(sym: tsym): string;
+
 implementation
 
   uses
@@ -327,6 +331,41 @@ implementation
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
           else
             result:=false;
+        end;
+      end;
+
+
+    function jvmmangledbasename(sym: tsym): string;
+      var
+        vsym: tabstractvarsym;
+        csym: tconstsym;
+        founderror: tdef;
+      begin
+        case sym.typ of
+          staticvarsym,
+          paravarsym,
+          localvarsym,
+          fieldvarsym:
+            begin
+              vsym:=tabstractvarsym(sym);
+              result:=jvmencodetype(vsym.vardef);
+              if (vsym.typ=paravarsym) and
+                 (vo_is_self in tparavarsym(vsym).varoptions) then
+                result:='this ' +result
+              else if (vsym.typ in [paravarsym,localvarsym]) and
+                      ([vo_is_funcret,vo_is_result] * tabstractnormalvarsym(vsym).varoptions <> []) then
+                result:='result '+result
+              else
+                result:=vsym.realname+' '+result;
+            end;
+          constsym:
+            begin
+              csym:=tconstsym(sym);
+              result:=jvmencodetype(csym.constdef);
+              result:=csym.realname+' '+result;
+            end;
+          else
+            internalerror(2011021703);
         end;
       end;
 

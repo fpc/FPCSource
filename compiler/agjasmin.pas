@@ -603,7 +603,7 @@ implementation
         if (vissym.owner.symtabletype in [staticsymtable,globalsymtable]) or
            (sp_static in vissym.symoptions) then
           result:=result+'static ';
-        result:=result+sym.jvmmangledbasename;
+        result:=result+jvmmangledbasename(sym);
       end;
 
 

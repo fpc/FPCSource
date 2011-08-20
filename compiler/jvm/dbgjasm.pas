@@ -58,7 +58,7 @@ implementation
       version,globals,verbose,systems,
       cpubase,cpuinfo,cgbase,paramgr,
       fmodule,
-      defutil,symtable,ppu
+      defutil,symtable,jvmdef,ppu
       ;
 
 {****************************************************************************
@@ -75,7 +75,7 @@ implementation
       if not(sym.localloc.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
         exit;
       proc:=tprocdef(sym.owner.defowner);
-      jvar:=tai_jvar.create(sym.localloc.reference.offset,sym.jvmmangledbasename,fcurrprocstart,fcurrprocend);
+      jvar:=tai_jvar.create(sym.localloc.reference.offset,jvmmangledbasename(sym),fcurrprocstart,fcurrprocend);
       proc.exprasmlist.InsertAfter(jvar,proc.procstarttai);
     end;
 
