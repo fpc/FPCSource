@@ -199,7 +199,8 @@ implementation
    function tjvmtypeconvnode.typecheck_proc_to_procvar: tnode;
     begin
       result:=inherited typecheck_proc_to_procvar;
-      if not assigned(totypedef) then
+      if not assigned(totypedef) or
+         (totypedef.typ<>procvardef) then
         begin
           if assigned(tprocvardef(resultdef).classdef) then
             internalerror(2011072405);
