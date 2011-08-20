@@ -1782,9 +1782,10 @@ begin
     Message(parser_e_no_object_override)
   else if is_objccategory(tprocdef(pd).struct) then
     Message(parser_e_no_category_override)
-  else if not is_objc_class_or_protocol(tprocdef(pd).struct) and
+  else if (po_external in pd.procoptions) and
+          not is_objc_class_or_protocol(tprocdef(pd).struct) and
           not is_cppclass(tprocdef(pd).struct) and
-          (po_external in pd.procoptions) then
+          not is_java_class_or_interface(tprocdef(pd).struct) then
     Message1(parser_e_proc_dir_conflict,'OVERRIDE');
 end;
 
