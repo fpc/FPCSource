@@ -74,8 +74,9 @@ interface
 
   { in the JVM, constructors are not automatically inherited (so you can hide
     them). To emulate the Pascal behaviour, we have to automatically add
-    all parent constructors to the current class as well.}
-  procedure add_missing_parent_constructors_intf(obj: tobjectdef; forcevis: tvisibility);
+    all parent constructors to the current class as well. We also have to do
+    the same for the (emulated) virtual class methods }
+  procedure add_missing_parent_constructors_intf(obj: tobjectdef; addvirtclassmeth: boolean; forcevis: tvisibility);
 
   { goes through all defs in st to add implementations for synthetic methods
     added earlier }
@@ -245,7 +246,7 @@ implementation
     end;
 
 
-  procedure add_missing_parent_constructors_intf(obj: tobjectdef; forcevis: tvisibility);
+  procedure add_missing_parent_constructors_intf(obj: tobjectdef; addvirtclassmeth: boolean; forcevis: tvisibility);
     var
       parent: tobjectdef;
       def: tdef;
@@ -264,7 +265,9 @@ implementation
         begin
           def:=tdef(tobjectsymtable(parent.symtable).deflist[i]);
           if (def.typ<>procdef) or
-             (tprocdef(def).proctypeoption<>potype_constructor) or
+             ((tprocdef(def).proctypeoption<>potype_constructor) and
+              (not addvirtclassmeth or
+               not([po_classmethod,po_virtualmethod]<=tprocdef(def).procoptions))) or
              not is_visible_for_object(tprocdef(def),obj) then
             continue;
           parentpd:=tprocdef(def);
@@ -273,12 +276,12 @@ implementation
             search parents too) }
           if searchsym_in_record(obj,parentpd.procsym.name,srsym,srsymtable) then
             begin
-              { there's a symbol with the same name, is it a constructor
-                with the same parameters? }
+              { there's a symbol with the same name, is it a routine of the
+                same type with the same parameters? }
               if srsym.typ=procsym then
                 begin
                   childpd:=tprocsym(srsym).find_procdef_bytype_and_para(
-                    potype_constructor,parentpd.paras,nil,
+                    tprocdef(def).proctypeoption,parentpd.paras,nil,
                     [cpo_ignorehidden,cpo_ignoreuniv,cpo_openequalisexact]);
                   if assigned(childpd) then
                     continue;
@@ -287,6 +290,13 @@ implementation
           { if we get here, we did not find it in the current objectdef ->
             add }
           childpd:=tprocdef(parentpd.getcopy);
+          { get rid of the import name for inherited virtual class methods,
+            it has to be regenerated rather than amended }
+          if [po_classmethod,po_virtualmethod]<=childpd.procoptions then
+            begin
+              stringdispose(childpd.import_name);
+              exclude(childpd.procoptions,po_has_importname);
+            end;
           if forcevis<>vis_none then
             childpd.visibility:=forcevis;
           if po_virtualmethod in childpd.procoptions then

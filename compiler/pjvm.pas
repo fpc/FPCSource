@@ -357,7 +357,7 @@ implementation
           begin
             { insert "private constructor(string,int,int)" that calls inherited and
               initialises the FPC value field }
-            add_missing_parent_constructors_intf(enumclass,vis_strictprivate);
+            add_missing_parent_constructors_intf(enumclass,false,vis_strictprivate);
           end;
         { add instance method to get the enum's value as declared in FPC }
         if not str_parse_method_dec('function FPCOrdinal: longint;',potype_function,false,enumclass,pd) then
@@ -463,7 +463,7 @@ implementation
         symtablestack.push(pvclass.symtable);
 
         { inherit constructor and keep public }
-        add_missing_parent_constructors_intf(pvclass,vis_public);
+        add_missing_parent_constructors_intf(pvclass,true,vis_public);
 
         { add a method to call the procvar using unwrapped arguments, which
           then wraps them and calls through to JLRMethod.invoke }

@@ -1429,7 +1429,7 @@ implementation
                 we obviously cannot add constructors to those) }
               if is_javaclass(current_structdef) then
                 begin
-                  add_missing_parent_constructors_intf(tobjectdef(current_structdef),vis_none);
+                  add_missing_parent_constructors_intf(tobjectdef(current_structdef),true,vis_none);
 {$ifdef jvm}
                   maybe_add_public_default_java_constructor(tobjectdef(current_structdef));
                   jvm_wrap_virtual_class_methods(tobjectdef(current_structdef));
