@@ -2063,7 +2063,7 @@ implementation
                 begin
                   if (po_classmethod in pd.procoptions) then
                     opc:=a_invokestatic
-                  else if (pd.visibility=vis_private) or
+                  else if (pd.visibility=vis_strictprivate) or
                      (pd.proctypeoption=potype_constructor) or
                      inheritedcall then
                     opc:=a_invokespecial
@@ -2081,7 +2081,7 @@ implementation
           begin
             if (po_staticmethod in pd.procoptions) then
               opc:=a_invokestatic
-            else if (pd.visibility=vis_private) or
+            else if (pd.visibility=vis_strictprivate) or
                (pd.proctypeoption=potype_constructor) or
                inheritedcall then
               opc:=a_invokespecial
