@@ -796,6 +796,8 @@ implementation
         result:=VisibilityToStr(sym.visibility);
         { formal constants are always class-level, not instance-level }
         result:=result+'static final ';
+        if sp_internal in sym.symoptions then
+          result:=result+'synthetic ';
         result:=result+jvmmangledbasename(sym,true);
         result:=result+ConstAssignmentValue(tconstsym(sym));
       end;
