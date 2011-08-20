@@ -561,14 +561,18 @@ implementation
             exit;
           end;
         { int to float explicit type conversion: also use the bits }
-        if (convtype<>tc_int_2_real) and
-           (is_integer(left.resultdef) or
+        if (is_integer(left.resultdef) or
             (left.resultdef.typ=enumdef)) and
            (resultdef.typ=floatdef) then
           begin
-            if not check_only then
-              resnode:=int_real_explicit_typecast(tfloatdef(resultdef),'INTBITSTOFLOAT','LONGBITSTODOUBLE');
-            result:=true;
+            if (convtype<>tc_int_2_real) then
+              begin
+                if not check_only then
+                  resnode:=int_real_explicit_typecast(tfloatdef(resultdef),'INTBITSTOFLOAT','LONGBITSTODOUBLE');
+                result:=true;
+              end
+            else
+              result:=false;
             exit;
           end;
         { nothing special required when going between ordinals and enums }
@@ -579,10 +583,14 @@ implementation
             exit;
           end;
 
-{ifndef nounsupported}
-        result:=false;
-        exit;
-{endif}
+{$ifndef nounsupported}
+        if (left.resultdef.typ in [orddef,enumdef,setdef]) and
+           (resultdef.typ in [orddef,enumdef,setdef]) then
+          begin
+            result:=false;
+            exit;
+          end;
+{$endif}
 
         { Todo:
             * int to set and vice versa
@@ -594,6 +602,7 @@ implementation
               for Java)
         }
         { anything not explicitly handled is a problem }
+        result:=true;
         CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
       end;
 
