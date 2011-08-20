@@ -26,6 +26,7 @@ unit njvmcon;
 interface
 
     uses
+       symtype,
        node,ncon,ncgcon;
 
     type
@@ -33,12 +34,18 @@ interface
           procedure pass_generate_code;override;
        end;
 
+       tjvmstringconstnode = class(tstringconstnode)
+          procedure pass_generate_code;override;
+       end;
+
+
 implementation
 
     uses
-      globtype,
-      aasmdata,defutil,
-      cgbase,hlcgobj,hlcgcpu,cgutils
+      globtype,widestr,
+      symdef,symtable,symconst,
+      aasmdata,aasmcpu,defutil,
+      cgbase,hlcgobj,hlcgcpu,cgutils,cpubase
       ;
 
 
@@ -55,6 +62,28 @@ implementation
       end;
 
 
+    { tcgstringconstnode }
+
+    procedure tjvmstringconstnode.pass_generate_code;
+      begin
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+        case cst_type of
+          cst_ansistring,
+          cst_shortstring,
+          cst_conststring:
+            current_asmdata.CurrAsmList.concat(taicpu.op_string(a_ldc,len,value_str));
+          cst_unicodestring,
+          cst_widestring:
+            current_asmdata.CurrAsmList.concat(taicpu.op_wstring(a_ldc,pcompilerwidestring(value_str)));
+        end;
+        thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
+        thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+      end;
+
+
+
 begin
    crealconstnode:=tjvmrealconstnode;
+   cstringconstnode:=tjvmstringconstnode;
 end.
