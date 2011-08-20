@@ -622,22 +622,19 @@ implementation
 
     procedure tcginlinenode.second_abs_long;
       var
-        opsize : tcgsize;
-        tempreg1, tempreg2 : tregister;
+        tempreg1, tempreg2: tregister;
       begin
-        opsize := def_cgsize(left.resultdef);
-
         secondpass(left);
-        location_force_reg(current_asmdata.CurrAsmList, left.location, opsize, false);
-        location := left.location;
-        location.register := cg.getintregister(current_asmdata.CurrAsmList, opsize);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+        location:=left.location;
+        location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
 
-        tempreg1 := cg.getintregister(current_asmdata.CurrAsmList, opsize);
-        tempreg2 := cg.getintregister(current_asmdata.CurrAsmList, opsize);
+        tempreg1:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
+        tempreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
 	
-        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, tcgsize2size[opsize]*8-1, left.location.register, tempreg1);
-        cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_XOR, OS_INT, left.location.register, tempreg1, tempreg2);
-        cg.a_op_reg_reg_reg(current_asmdata.CurrAsmlist, OP_SUB, OS_INT, tempreg1, tempreg2, location.register);
+        hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,left.resultdef,left.resultdef.size*8-1,left.location.register,tempreg1);
+        hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.resultdef,left.location.register,tempreg1,tempreg2);
+        hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmlist,OP_SUB,left.resultdef,tempreg1,tempreg2,location.register);
       end;
 
 
