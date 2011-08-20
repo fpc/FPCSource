@@ -573,7 +573,15 @@ implementation
                 if assigned(implprocdef) then
                   begin
                     if (tobjectdef(implprocdef.struct).objecttype<>odt_objcclass) then
-                      ImplIntf.AddImplProc(implprocdef)
+                      begin
+                        { in case of Java, copy the real name from the parent,
+                          since overriding "Destroy" with "destroy" is not
+                          going to work very well }
+                        if is_javaclass(implprocdef.struct) and
+                           (implprocdef.procsym.realname<>tprocdef(def).procsym.realname) then
+                          implprocdef.procsym.realname:=tprocdef(def).procsym.realname;
+                        ImplIntf.AddImplProc(implprocdef);
+                      end
                     else
                       begin
                         { If no message name has been specified for the method

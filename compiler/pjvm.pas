@@ -55,7 +55,7 @@ implementation
     fmodule,
     parabase,aasmdata,
     pdecsub,ngenutil,pparautl,
-    symtable,symcreat,defcmp,jvmdef,
+    symtable,symcreat,defcmp,jvmdef,nobj,
     defutil,paramgr;
 
 
@@ -241,6 +241,7 @@ implementation
 
     procedure jvm_maybe_create_enum_class(const name: TIDString; def: tdef);
       var
+        vmtbuilder: tvmtbuilder;
         arrdef: tarraydef;
         arrsym: ttypesym;
         juhashmap: tdef;
@@ -415,6 +416,11 @@ implementation
         pd.synthetickind:=tsk_jvm_enum_classconstr;
 
         symtablestack.pop(enumclass.symtable);
+
+        vmtbuilder:=TVMTBuilder.Create(enumclass);
+        vmtbuilder.generate_vmt;
+        vmtbuilder.free;
+
         restore_after_new_class(sstate,islocal,oldsymtablestack);
         current_structdef:=old_current_structdef;
       end;
@@ -422,6 +428,7 @@ implementation
 
     procedure jvm_create_procvar_class(const name: TIDString; def: tdef);
       var
+        vmtbuilder: tvmtbuilder;
         oldsymtablestack: tsymtablestack;
         pvclass: tobjectdef;
         temptypesym: ttypesym;
@@ -473,6 +480,11 @@ implementation
         pvclass.symtable.insert(temptypesym);
 
         symtablestack.pop(pvclass.symtable);
+
+        vmtbuilder:=TVMTBuilder.Create(pvclass);
+        vmtbuilder.generate_vmt;
+        vmtbuilder.free;
+
         restore_after_new_class(sstate,islocal,oldsymtablestack);
       end;
 
