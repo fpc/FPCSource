@@ -53,11 +53,15 @@ interface
 
         function VisibilityToStr(vis: tvisibility): string;
         function MethodDefinition(pd: tprocdef): string;
+        function ConstValue(csym: tconstsym): ansistring;
+        function ConstAssignmentValue(csym: tconstsym): ansistring;
+        function ConstDefinition(sym: tconstsym): string;
         function FieldDefinition(sym: tabstractvarsym): string;
         function InnerObjDef(obj: tobjectdef): string;
 
         procedure WriteProcDef(pd: tprocdef);
         procedure WriteFieldSym(sym: tabstractvarsym);
+        procedure WriteConstSym(sym: tconstsym);
         procedure WriteSymtableVarSyms(st: TSymtable);
         procedure WriteSymtableProcdefs(st: TSymtable);
         procedure WriteSymtableObjectDefs(st: TSymtable);
@@ -96,7 +100,7 @@ implementation
       cutils,cfileutl,systems,script,
       fmodule,finput,verbose,
       symtype,symtable,jvmdef,
-      itcpujas,cpubase,cgutils,
+      itcpujas,cpubase,cpuinfo,cgutils,
       widestr
       ;
 
@@ -129,6 +133,114 @@ implementation
          s[k]:='.';
        fixline:=Copy(s,j,i-j+1);
      end;
+
+
+   function constastr(p: pchar; len: longint): ansistring;
+     var
+       i,runstart,runlen: longint;
+
+       procedure flush;
+         begin
+           if runlen>0 then
+             begin
+               setlength(result,length(result)+runlen);
+               move(p[runstart],result[length(result)-runlen+1],runlen);
+               runlen:=0;
+             end;
+         end;
+
+     begin
+       result:='"';
+       runlen:=0;
+       runstart:=0;
+       for i:=0 to len-1 do
+         begin
+           { escape control codes }
+           case p[i] of
+             { LF and CR must be escaped specially, because \uXXXX parsing
+               happens in the pre-processor, so it's the same as actually
+               inserting a newline in the middle of a string constant }
+             #10:
+               begin
+                 flush;
+                 result:=result+'\n';
+               end;
+             #13:
+               begin
+                 flush;
+                 result:=result+'\r';
+               end;
+             '"','\':
+               begin
+                 flush;
+                 result:=result+'\'+p[i];
+               end
+             else if p[i]<#32 then
+               begin
+                 flush;
+                 result:=result+'\u'+hexstr(ord(p[i]),4);
+               end
+             else if p[i]<#127 then
+               begin
+                 if runlen=0 then
+                   runstart:=i;
+                 inc(runlen);
+               end
+             else
+               // since Jasmin expects an UTF-16 string, we can't safely
+               // have high ASCII characters since they'll be
+               // re-interpreted as utf-16 anyway
+               internalerror(2010122808);
+           end;
+         end;
+       flush;
+       result:=result+'"';
+     end;
+
+
+   function constwstr(w: pcompilerwidechar; len: longint): ansistring;
+     var
+       i: longint;
+     begin
+       result:='"';
+       for i:=0 to len-1 do
+         begin
+           { escape control codes }
+           case w[i] of
+             10:
+               result:=result+'\n';
+             13:
+               result:=result+'\r';
+             ord('"'),ord('\'):
+               result:=result+'\'+chr(w[i]);
+             else if (w[i]<32) or
+                (w[i]>127) then
+               result:=result+'\u'+hexstr(w[i],4)
+             else
+               result:=result+char(w[i]);
+           end;
+         end;
+       result:=result+'"';
+     end;
+
+
+   function constsingle(s: single): string;
+     begin
+       result:='0fx'+hexstr(longint(t32bitarray(s)),8);
+     end;
+
+
+   function constdouble(d: double): string;
+      begin
+        // force interpretation as double (since we write it out as an
+        // integer, we never have to swap the endianess). We have to
+        // include the sign separately because of the way Java parses
+        // hex numbers (0x8000000000000000 is not a valid long)
+       result:=hexstr(abs(int64(t64bitarray(d))),16);
+       if int64(t64bitarray(d))<0 then
+         result:='-'+result;
+       result:='0dx'+result;
+      end;
 
 {****************************************************************************}
 {                       Jasmin Assembler writer                              }
@@ -569,6 +681,72 @@ implementation
       end;
 
 
+    function TJasminAssembler.ConstValue(csym: tconstsym): ansistring;
+      begin
+        case csym.consttyp of
+          constord:
+            { always interpret as signed value, because the JVM does not
+              support unsigned 64 bit values }
+            result:=tostr(csym.value.valueord.svalue);
+          conststring:
+            result:=constastr(pchar(csym.value.valueptr),csym.value.len);
+          constreal:
+            case tfloatdef(csym.constdef).floattype of
+              s32real:
+                result:=constsingle(pbestreal(csym.value.valueptr)^);
+              s64real:
+                result:=constdouble(pbestreal(csym.value.valueptr)^);
+              else
+                internalerror(2011021204);
+              end;
+          constset:
+            result:='TODO: add support for constant sets';
+          constpointer:
+            { can only be null, but that's the default value and should not
+              be written; there's no primitive type that can hold nill }
+            internalerror(2011021201);
+          constnil:
+            internalerror(2011021202);
+          constresourcestring:
+            result:='TODO: add support for constant resource strings';
+          constwstring:
+            result:=constwstr(pcompilerwidestring(csym.value.valueptr)^.data,pcompilerwidestring(csym.value.valueptr)^.len);
+          constguid:
+            result:='TODO: add support for constant guids';
+          else
+            internalerror(2011021205);
+        end;
+      end;
+
+
+    function TJasminAssembler.ConstAssignmentValue(csym: tconstsym): ansistring;
+      begin
+        { nil is the default value -> don't write explicitly }
+        case csym.consttyp of
+          constpointer:
+            begin
+              if csym.value.valueordptr<>0 then
+                internalerror(2011021206);
+              result:='';
+            end;
+          constnil:
+            result:='';
+        else
+          result:=' = '+ConstValue(csym)
+        end;
+      end;
+
+
+    function TJasminAssembler.ConstDefinition(sym: tconstsym): string;
+      begin
+        result:=VisibilityToStr(sym.visibility);
+        { formal constants are always class-level, not instance-level }
+        result:=result+'static final ';
+        result:=result+jvmmangledbasename(sym);
+        result:=result+ConstAssignmentValue(tconstsym(sym));
+      end;
+
+
     function TJasminAssembler.FieldDefinition(sym: tabstractvarsym): string;
       var
         vissym: tabstractvarsym;
@@ -596,7 +774,7 @@ implementation
                 result:='';
             end;
           fieldvarsym:
-            result:=VisibilityToStr(tfieldvarsym(vissym).visibility);
+            result:=VisibilityToStr(tstoredsym(vissym).visibility);
           else
             internalerror(2011011204);
         end;
@@ -661,6 +839,13 @@ implementation
       end;
 
 
+    procedure TJasminAssembler.WriteConstSym(sym: tconstsym);
+      begin
+        AsmWrite('.field ');
+        AsmWriteln(ConstDefinition(sym));
+      end;
+
+
     procedure TJasminAssembler.WriteSymtableVarSyms(st: TSymtable);
       var
         sym : tsym;
@@ -676,6 +861,10 @@ implementation
              fieldvarsym:
                begin
                  WriteFieldSym(tabstractvarsym(sym));
+               end;
+             constsym:
+               begin
+                 WriteConstSym(tconstsym(sym));
                end;
            end;
          end;
@@ -822,7 +1011,6 @@ implementation
 
     function getopstr(const o:toper) : ansistring;
       var
-        i,runstart,runlen: longint;
         d: double;
         s: single;
       begin
@@ -840,69 +1028,19 @@ implementation
             getopstr:=getreferencestring(o.ref^);
           top_single:
             begin
-              s:=o.sval;
-              // force interpretation as single (since we write it out as an
-              // integer, we never have to swap the endianess).
-              result:='0fx'+hexstr(longint(t32bitarray(s)),8);
+              result:=constsingle(o.sval);
             end;
           top_double:
             begin
-              d:=o.dval;
-              // force interpretation as double (since we write it out as an
-              // integer, we never have to swap the endianess). We have to
-              // include the sign separately because of the way Java parses
-              // hex numbers (0x8000000000000000 is not a valid long)
-              result:=hexstr(abs(int64(t64bitarray(d))),16);
-              if int64(t64bitarray(d))<0 then
-                result:='-'+result;
-              result:='0dx'+result;
+              result:=constdouble(o.dval);
             end;
           top_string:
             begin
-              { escape control codes }
-              runlen:=0;
-              runstart:=0;
-              for i:=1 to o.pcvallen do
-                begin
-                  if o.pcval[i]<#32 then
-                    begin
-                      if runlen>0 then
-                        begin
-                          setlength(result,length(result)+runlen);
-                          move(result[length(result)-runlen],o.pcval[runstart],runlen);
-                          runlen:=0;
-                        end;
-                      result:=result+'\u'+hexstr(ord(o.pcval[i]),4);
-                    end
-                  else if o.pcval[i]<#127 then
-                    begin
-                      if runlen=0 then
-                        runstart:=i;
-                      inc(runlen);
-                    end
-                  else
-                    // since Jasmin expects an UTF-16 string, we can't safely
-                    // have high ASCII characters since they'll be
-                    // re-interpreted as utf-16 anyway
-                    internalerror(2010122808);
-                end;
-              if runlen>0 then
-                begin
-                  setlength(result,length(result)+runlen);
-                  move(result[length(result)-runlen],o.pcval[runstart],runlen);
-                end;
+              result:=constastr(o.pcval,o.pcvallen);
             end;
           top_wstring:
             begin
-              { escape control codes }
-              for i:=1 to getlengthwidestring(o.pwstrval) do
-                begin
-                  if (o.pwstrval^.data[i]<32) or
-                     (o.pwstrval^.data[i]>127) then
-                    result:=result+'\u'+hexstr(o.pwstrval^.data[i],4)
-                  else
-                    result:=result+char(o.pwstrval^.data[i]);
-                end;
+              result:=constwstr(o.pwstrval^.data,getlengthwidestring(o.pwstrval));
             end
           else
             internalerror(2010122802);

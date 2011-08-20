@@ -201,7 +201,7 @@ implementation
            clearop(opidx);
            pcvallen:=vallen;
            getmem(pcval,vallen);
-           move(pcval^,pc^,vallen);
+           move(pc^,pcval^,vallen);
            typ:=top_string;
          end;
       end;
