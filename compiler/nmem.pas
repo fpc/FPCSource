@@ -239,7 +239,8 @@ implementation
                firstpass(left)
            end
          else if not is_objcclass(left.resultdef) and
-                 not is_objcclassref(left.resultdef) then
+                 not is_objcclassref(left.resultdef) and
+                 not is_javaclass(left.resultdef) then
            begin
              if not(nf_ignore_for_wpo in flags) and
                 (not assigned(current_procinfo) or

@@ -3364,7 +3364,8 @@ implementation
                 { relation checks are not possible }
               end
             { or left must be a class }
-            else if is_class(left.resultdef) then
+            else if is_class(left.resultdef) or
+                    is_javaclass(left.resultdef) then
               begin
                 { the operands must be related }
                 if (not(tobjectdef(left.resultdef).is_related(

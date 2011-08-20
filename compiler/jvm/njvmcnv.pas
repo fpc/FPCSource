@@ -62,6 +62,14 @@ interface
          procedure pass_generate_code; override;
        end;
 
+       tjvmisnode = class(tisnode)
+        protected
+         function target_specific_typecheck: boolean;override;
+        public
+         function pass_1 : tnode;override;
+         procedure pass_generate_code; override;
+       end;
+
 implementation
 
    uses
@@ -420,7 +428,10 @@ implementation
                 not is_dynamic_array(fromdef)) or
                (todef<>java_jlobject) then
               begin
-                result:=casnode.create(left,ctypenode.create(resultdef));
+                result:=ctypenode.create(resultdef);
+                if resultdef.typ=objectdef then
+                  result:=cloadvmtaddrnode.create(result);
+                result:=casnode.create(left,result);
                 left:=nil;
               end;
             exit;
@@ -462,30 +473,31 @@ implementation
         CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
       end;
 
+
     {*****************************************************************************
-                                 TJVMAsNode
+                         AsNode and IsNode common helpers
     *****************************************************************************}
 
-  function tjvmasnode.target_specific_typecheck: boolean;
+  function asis_target_specific_typecheck(node: tasisnode): boolean;
     var
       fromelt, toelt: tdef;
     begin
       { dynamic arrays can be converted to java.lang.Object and vice versa }
-      if right.resultdef=java_jlobject then
+      if node.right.resultdef=java_jlobject then
         { dynamic array to java.lang.Object }
-        result:=is_dynamic_array(left.resultdef)
-      else if is_dynamic_array(right.resultdef) then
+        result:=is_dynamic_array(node.left.resultdef)
+      else if is_dynamic_array(node.right.resultdef) then
         begin
           { <x> to dynamic array: only if possibly valid }
-          fromelt:=left.resultdef;
-          toelt:=right.resultdef;
+          fromelt:=node.left.resultdef;
+          toelt:=node.right.resultdef;
           get_most_nested_types(fromelt,toelt);
           { final levels must be convertable:
               a) from dynarray to java.lang.Object or vice versa, or
               b) the same primitive/class type
           }
           result:=
-           (compare_defs(fromelt,toelt,left.nodetype) in [te_exact,te_equal]) or
+           (compare_defs(fromelt,toelt,node.left.nodetype) in [te_exact,te_equal]) or
            (((fromelt.typ=objectdef) or
              is_dynamic_array(fromelt)) and
             ((toelt.typ=objectdef) or
@@ -495,12 +507,58 @@ implementation
         begin
           { full class reference support requires using the Java reflection API,
             not yet implemented }
-          if (right.nodetype<>typen) then
+          if (node.right.nodetype<>loadvmtaddrn) or
+             (tloadvmtaddrnode(node.right).left.nodetype<>typen) then
             internalerror(2011012601);
           result:=false;
         end;
       if result then
-        resultdef:=right.resultdef;
+        if node.nodetype=asn then
+          begin
+            if node.right.resultdef.typ<>classrefdef then
+              node.resultdef:=node.right.resultdef
+            else
+              node.resultdef:=tclassrefdef(node.right.resultdef).pointeddef
+          end
+        else
+          node.resultdef:=pasbool8type;
+    end;
+
+
+  procedure asis_generate_code(node: tasisnode; opcode: tasmop);
+    var
+      checkdef: tdef;
+    begin
+      secondpass(node.left);
+      thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,node.left.resultdef,node.left.location);
+      location_freetemp(current_asmdata.CurrAsmList,node.left.location);
+      { Perform a checkcast instruction, which will raise an exception in case
+        the actual type does not match/inherit from the expected type.
+
+        Object types need the full type name (package+class name), arrays only
+        the array definition }
+      if node.nodetype=asn then
+        checkdef:=node.resultdef
+      else if node.right.resultdef.typ=classrefdef then
+        checkdef:=tclassrefdef(node.right.resultdef).pointeddef
+      else
+        checkdef:=node.right.resultdef;
+      if checkdef.typ=objectdef then
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcode,current_asmdata.RefAsmSymbol(tobjectdef(checkdef).jvm_full_typename(true))))
+      else
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcode,current_asmdata.RefAsmSymbol(jvmencodetype(checkdef))));
+      location_reset(node.location,LOC_REGISTER,OS_ADDR);
+      node.location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,node.resultdef);
+      thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,node.resultdef,node.location.register);
+    end;
+
+    {*****************************************************************************
+                                 TJVMAsNode
+    *****************************************************************************}
+
+  function tjvmasnode.target_specific_typecheck: boolean;
+    begin
+      result:=asis_target_specific_typecheck(self);
     end;
 
 
@@ -509,6 +567,8 @@ implementation
       { call-by-reference does not exist in Java, so it's no problem to
         change a memory location to a register }
       firstpass(left);
+      if right.nodetype<>typen then
+        firstpass(right);
       expectloc:=LOC_REGISTER;
       result:=nil;
     end;
@@ -516,21 +576,34 @@ implementation
 
   procedure tjvmasnode.pass_generate_code;
     begin
-      secondpass(left);
-      thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,resultdef,left.location);
-      location_freetemp(current_asmdata.CurrAsmList,left.location);
-      { Perform a checkcast instruction, which will raise an exception in case
-        the actual type does not match/inherit from the expected type.
+      asis_generate_code(self,a_checkcast);
+    end;
 
-        Object types need the full type name (package+class name), arrays only
-        the array definition }
-      if resultdef.typ=objectdef then
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_checkcast,current_asmdata.RefAsmSymbol(tobjectdef(resultdef).jvm_full_typename)))
-      else
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_checkcast,current_asmdata.RefAsmSymbol(jvmencodetype(resultdef))));
-      location_reset(location,LOC_REGISTER,OS_ADDR);
-      location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-      thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+
+  {*****************************************************************************
+                               TJVMIsNode
+  *****************************************************************************}
+
+
+  function tjvmisnode.target_specific_typecheck: boolean;
+    begin
+      result:=asis_target_specific_typecheck(self);
+    end;
+
+
+  function tjvmisnode.pass_1: tnode;
+    begin
+      firstpass(left);
+      if right.nodetype<>typen then
+        firstpass(right);
+      expectloc:=LOC_REGISTER;
+      result:=nil;
+    end;
+
+
+  procedure tjvmisnode.pass_generate_code;
+    begin
+      asis_generate_code(self,a_instanceof);
     end;
 
 
@@ -539,4 +612,5 @@ implementation
 begin
   ctypeconvnode:=tjvmtypeconvnode;
   casnode:=tjvmasnode;
+  cisnode:=tjvmisnode;
 end.
