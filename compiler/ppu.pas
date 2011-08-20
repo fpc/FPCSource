@@ -38,7 +38,7 @@ var
 const
   CRC_array_Size = 200000;
 type
-  tcrc_array = array[0..crc_array_size] of longint;
+  tcrc_array = array[0..crc_array_size] of dword;
   pcrc_array = ^tcrc_array;
 {$endif Test_Double_checksum}
 
