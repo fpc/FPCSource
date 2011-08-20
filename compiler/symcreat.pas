@@ -74,12 +74,14 @@ interface
 implementation
 
   uses
-    cutils,verbose,systems,comphook,
+    cutils,globtype,globals,verbose,systems,comphook,
     symtype,symsym,symtable,defutil,
     pbase,pdecobj,pdecsub,psub,
     defcmp;
 
   procedure replace_scanner(const tempname: string; out sstate: tscannerstate);
+    var
+      old_block_type: tblock_type;
     begin
       { would require saving of idtoken, pattern etc }
       if (token=_ID) then
@@ -88,7 +90,11 @@ implementation
       sstate.old_token:=token;
       sstate.old_c:=c;
       sstate.valid:=true;
+      { creating a new scanner resets the block type, while we want to continue
+        in the current one }
+      old_block_type:=block_type;
       current_scanner:=tscannerfile.Create('_Macro_.'+tempname);
+      block_type:=old_block_type;
     end;
 
 
