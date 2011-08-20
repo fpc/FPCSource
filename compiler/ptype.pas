@@ -1568,6 +1568,8 @@ implementation
               begin
                 consume(_CARET);
                 single_type(tt2,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
+                { don't use getpointerdef() here, since this is a type
+                  declaration (-> must create new typedef) }
                 def:=tpointerdef.create(tt2);
                 if tt2.typ=forwarddef then
                   current_module.checkforwarddefs.add(def);

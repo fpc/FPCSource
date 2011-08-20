@@ -312,7 +312,7 @@ implementation
                      resultdef:=tclassrefdef.create(resultdef)
                    else if (is_object(resultdef) or is_record(resultdef)) and
                            (nf_load_self_pointer in flags) then
-                     resultdef:=tpointerdef.create(resultdef);
+                     resultdef:=getpointerdef(resultdef);
                  end
                else if vo_is_vmt in tabstractvarsym(symtableentry).varoptions then
                  begin

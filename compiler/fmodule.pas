@@ -143,6 +143,7 @@ interface
         checkforwarddefs,
         deflist,
         symlist       : TFPObjectList;
+        ptrdefs       : THashSet; { list of pointerdefs created in this module so we can reuse them (not saved/restored) }
         wpoinfo       : tunitwpoinfobase; { whole program optimization-related information that is generated during the current run for this unit }
         globalsymtable,           { pointer to the global symtable of this unit }
         localsymtable : TSymtable;{ pointer to the local symtable of this unit }
@@ -525,6 +526,7 @@ implementation
         derefdataintflen:=0;
         deflist:=TFPObjectList.Create(false);
         symlist:=TFPObjectList.Create(false);
+        ptrdefs:=THashSet.Create(64,true,false);
         wpoinfo:=nil;
         checkforwarddefs:=TFPObjectList.Create(false);
         extendeddefs := TFPHashObjectList.Create(true);
@@ -640,6 +642,7 @@ implementation
         derefdata.free;
         deflist.free;
         symlist.free;
+        ptrdefs.free;
         wpoinfo.free;
         checkforwarddefs.free;
         globalsymtable.free;
@@ -699,6 +702,8 @@ implementation
         deflist:=TFPObjectList.Create(false);
         symlist.free;
         symlist:=TFPObjectList.Create(false);
+        ptrdefs.free;
+        ptrdefs:=THashSet.Create(64,true,false);
         wpoinfo.free;
         wpoinfo:=nil;
         checkforwarddefs.free;

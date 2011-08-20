@@ -573,7 +573,7 @@ implementation
                (tabsolutevarsym(tloadnode(hp).symtableentry).abstyp=toaddr) then
                begin
                  if nf_typedaddr in flags then
-                   result:=cpointerconstnode.create(tabsolutevarsym(tloadnode(hp).symtableentry).addroffset,tpointerdef.create(left.resultdef))
+                   result:=cpointerconstnode.create(tabsolutevarsym(tloadnode(hp).symtableentry).addroffset,getpointerdef(left.resultdef))
                  else
                    result:=cpointerconstnode.create(tabsolutevarsym(tloadnode(hp).symtableentry).addroffset,voidpointertype);
                  exit;
@@ -584,7 +584,7 @@ implementation
                   if not(nf_typedaddr in flags) then
                     resultdef:=voidpointertype
                   else
-                    resultdef:=tpointerdef.create(left.resultdef);
+                    resultdef:=getpointerdef(left.resultdef);
                 end
             else
               CGMessage(type_e_variable_id_expected);

@@ -1451,7 +1451,7 @@ implementation
                       is_object(p.resultdef);
 
             if usederef then
-              hdef:=tpointerdef.create(p.resultdef)
+              hdef:=getpointerdef(p.resultdef)
             else
               hdef:=p.resultdef;
 
@@ -3715,7 +3715,7 @@ implementation
                 { temp                                                        }
                 else if (paracomplexity > 1) then
                   begin
-                    ptrtype:=tpointerdef.create(para.left.resultdef);
+                    ptrtype:=getpointerdef(para.left.resultdef);
                     tempnode := ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,tparavarsym(para.parasym).is_regvar(true));
                     addstatement(inlineinitstatement,tempnode);
                     addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));

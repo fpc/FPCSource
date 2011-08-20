@@ -928,6 +928,10 @@ interface
 
     function use_vectorfpu(def : tdef) : boolean;
 
+    { returns a pointerdef for def, reusing an existing one in case it exists
+      in the current module }
+    function getpointerdef(def: tdef): tpointerdef;
+
 implementation
 
     uses
@@ -6478,6 +6482,25 @@ implementation
 {$ifndef use_vectorfpuimplemented}
         use_vectorfpu:=false;
 {$endif}
+      end;
+
+
+    function getpointerdef(def: tdef): tpointerdef;
+      var
+        res: PHashSetItem;
+      begin
+        if not assigned(current_module) then
+          internalerror(2011071101);
+        res:=current_module.ptrdefs.FindOrAdd(@def,sizeof(def));
+        if not assigned(res^.Data) then
+          begin
+            { since these pointerdefs can be reused anywhere in the current
+              unit, add them to the global/staticsymtable }
+            symtablestack.push(current_module.localsymtable);
+            res^.Data:=tpointerdef.create(def);
+            symtablestack.pop(current_module.localsymtable);
+          end;
+        result:=tpointerdef(res^.Data);
       end;
 
 end.
