@@ -62,10 +62,16 @@ interface
 
        tjvmasnode = class(tcgasnode)
         protected
+         { to discern beween "obj as tclassref" and "tclassref(obj)" }
+         classreftypecast: boolean;
          function target_specific_typecheck: boolean;override;
         public
          function pass_1 : tnode;override;
          procedure pass_generate_code; override;
+         function dogetcopy: tnode; override;
+         function docompare(p: tnode): boolean; override;
+         constructor ppuload(t: tnodetype; ppufile: tcompilerppufile); override;
+         procedure ppuwrite(ppufile: tcompilerppufile); override;
        end;
 
        tjvmisnode = class(tisnode)
@@ -445,6 +451,8 @@ implementation
            fromdef:=tarraydef(fromdef).elementdef;
            todef:=tarraydef(todef).elementdef;
          end;
+       fromdef:=maybe_find_real_class_definition(fromdef,false);
+       todef:=maybe_find_real_class_definition(todef,false);
       end;
 
 
@@ -486,8 +494,7 @@ implementation
         toclasscompatible,
         procvarconv: boolean;
         fromdef,
-        todef,
-        jlclass: tdef;
+        todef: tdef;
         fromarrtype,
         toarrtype: char;
       begin
@@ -503,13 +510,13 @@ implementation
         fromclasscompatible:=
           (left.resultdef.typ=objectdef) or
           is_dynamic_array(left.resultdef) or
-          ((left.resultdef.typ in [recorddef,stringdef]) and
+          ((left.resultdef.typ in [recorddef,stringdef,classrefdef]) and
            (resultdef.typ=objectdef)) or
           procvarconv;
         toclasscompatible:=
           (resultdef.typ=objectdef) or
           is_dynamic_array(resultdef) or
-          ((resultdef.typ in [recorddef,stringdef]) and
+          ((resultdef.typ in [recorddef,stringdef,classrefdef]) and
            (left.resultdef.typ=objectdef)) or
           procvarconv;
         if fromclasscompatible and toclasscompatible then
@@ -523,6 +530,8 @@ implementation
                 * related to source
                 * a primitive that are represented by the same type in Java
                   (e.g., byte and shortint) }
+
+            { in case of arrays, check the compatibility of the innermost types }
             fromdef:=left.resultdef;
             todef:=resultdef;
             get_most_nested_types(fromdef,todef);
@@ -532,7 +541,10 @@ implementation
                not fromdef.is_related(todef) and
                (todef<>java_jlobject) and
                ((fromarrtype in ['A','R']) or
-                (fromarrtype<>toarrtype)) then
+                (fromarrtype<>toarrtype)) and
+               ((fromdef.typ<>classrefdef) or
+                (todef.typ<>classrefdef) or
+                not tclassrefdef(fromdef).pointeddef.is_related(tclassrefdef(todef).pointeddef)) then
               begin
                 if not check_only and
                    not assignment_side then
@@ -541,6 +553,8 @@ implementation
                     if resultdef.typ=objectdef then
                       resnode:=cloadvmtaddrnode.create(resnode);
                     resnode:=casnode.create(left,resnode);
+                    if resultdef.typ=classrefdef then
+                      tjvmasnode(resnode).classreftypecast:=true;
                     left:=nil;
                   end
               end
@@ -552,31 +566,6 @@ implementation
             result:=true;
             exit;
           end;
-
-        { from classrefdef to JLClass and JLObject and back }
-        if (left.resultdef.typ=classrefdef) or
-           (resultdef.typ=classrefdef) then
-          begin
-            if (left.resultdef.typ=classrefdef) and
-               (resultdef.typ=classrefdef) then
-              begin
-                if not tclassrefdef(left.resultdef).pointeddef.is_related(resultdef) and
-                   not tclassrefdef(resultdef).pointeddef.is_related(left.resultdef) then
-                 CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
-              end
-            else
-              begin
-                jlclass:=search_system_type('JLCLASS').typedef;
-                if (left.resultdef<>jlclass) and
-                   (left.resultdef<>java_jlobject) and
-                   (resultdef<>jlclass) and
-                   (resultdef<>java_jlobject) then
-                  CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
-              end;
-            result:=true;
-            exit;
-          end;
-
 
         { don't allow conversions between different classes of primitive types,
           except for a few special cases }
@@ -748,20 +737,67 @@ implementation
           result:=false;
       end;
 
+    function isclassrefconv(fromdef, todef: tdef): boolean;
+      var
+        jlclass: tdef;
+      begin
+        jlclass:=nil;
+        if fromdef.typ=classrefdef then
+          begin
+            result:=todef=java_jlobject;
+            if not result and
+               (todef.typ=classrefdef) then
+              { the fromdef.is_related(todef) case should not become an as-node,
+                handled in typeconversion itself and ignored since always ok
+                -- this one is not very useful either since everything is plain
+                JLClass anyway, but maybe in the future it will be different }
+              result:=tclassrefdef(todef).pointeddef.is_related(tclassrefdef(fromdef).pointeddef);
+            if not result then
+              begin
+                jlclass:=search_system_type('JLCLASS').typedef;
+                result:=todef=jlclass;
+              end;
+          end
+        else if todef.typ=classrefdef then
+          begin
+            result:=fromdef=java_jlobject;
+            if not result then
+              begin
+                jlclass:=search_system_type('JLCLASS').typedef;
+                result:=fromdef=jlclass;
+              end;
+          end
+        else
+          result:=false;
+      end;
+
 
     var
       fromelt, toelt: tdef;
       realfromdef,
       realtodef: tdef;
     begin
+      if is_java_class_or_interface(node.left.resultdef) and
+         (node.right.resultdef.typ=classrefdef) and
+         ((node.nodetype<>asn) or
+          not tjvmasnode(node).classreftypecast) then
+        begin
+          { handle using normal code }
+          result:=false;
+          exit;
+        end;
       realfromdef:=maybe_find_real_class_definition(node.left.resultdef,false);
       realtodef:=node.right.resultdef;
-      if realtodef.typ=classrefdef then
+      if (realtodef.typ=classrefdef) and
+         ((node.nodetype<>asn) or
+          not tjvmasnode(node).classreftypecast) then
         realtodef:=tclassrefdef(realtodef).pointeddef;
       realtodef:=maybe_find_real_class_definition(realtodef,false);
       result:=isrecordconv(realfromdef,realtodef);
       if not result then
         result:=isstringconv(realfromdef,realtodef);
+      if not result then
+        result:=isclassrefconv(realfromdef,realtodef);
       if not result then
         { dynamic arrays can be converted to java.lang.Object and vice versa }
         if realtodef=java_jlobject then
@@ -786,22 +822,10 @@ implementation
                (fromelt.typ=arraydef)) and
               ((toelt.typ=objectdef) or
                (toelt.typ=arraydef)));
-          end
-        else
-          begin
-            if (node.right.resultdef.typ<>classrefdef) then
-              result:=false
-            else
-              result:=true;
           end;
       if result then
         if node.nodetype=asn then
-          begin
-            if realtodef.typ<>classrefdef then
-              node.resultdef:=realtodef
-            else
-              node.resultdef:=tclassrefdef(realtodef).pointeddef
-          end
+          node.resultdef:=realtodef
         else
           node.resultdef:=pasbool8type;
     end;
@@ -885,6 +909,8 @@ implementation
         checkdef:=java_jlstring;
       if checkdef.typ in [objectdef,recorddef] then
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcode,current_asmdata.RefAsmSymbol(tabstractrecorddef(checkdef).jvm_full_typename(true))))
+      else if checkdef.typ=classrefdef then
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcode,current_asmdata.RefAsmSymbol('java/lang/Class')))
       else
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcode,current_asmdata.RefAsmSymbol(jvmencodetype(checkdef,false))));
       location_reset(node.location,LOC_REGISTER,OS_ADDR);
@@ -912,6 +938,35 @@ implementation
     begin
       if not asis_generate_code(self,a_checkcast) then
         inherited;
+    end;
+
+
+  function tjvmasnode.dogetcopy: tnode;
+    begin
+      result:=inherited dogetcopy;
+      tjvmasnode(result).classreftypecast:=classreftypecast;
+    end;
+
+
+  function tjvmasnode.docompare(p: tnode): boolean;
+    begin
+      result:=
+        inherited docompare(p) and
+        (tjvmasnode(p).classreftypecast=classreftypecast);
+    end;
+
+
+  constructor tjvmasnode.ppuload(t: tnodetype; ppufile: tcompilerppufile);
+    begin
+      inherited;
+      classreftypecast:=boolean(ppufile.getbyte);
+    end;
+
+
+  procedure tjvmasnode.ppuwrite(ppufile: tcompilerppufile);
+    begin
+      inherited ppuwrite(ppufile);
+      ppufile.putbyte(byte(classreftypecast));
     end;
 
 
