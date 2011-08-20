@@ -88,6 +88,7 @@ interface
           function typecheck_interface_to_variant : tnode;
           function typecheck_array_2_dynarray : tnode;
        protected
+          function target_specific_explicit_typeconv: tnode;virtual;
           function first_int_to_int : tnode;virtual;
           function first_cstring_to_pchar : tnode;virtual;
           function first_cstring_to_int : tnode;virtual;
@@ -190,6 +191,10 @@ interface
 
        { common functionality of as-nodes and is-nodes }
        tasisnode = class(tbinarynode)
+          protected
+           { if non-standard usage of as-nodes is possible, targets can override
+           this method and return true in case the conditions are fulfilled }
+          function target_specific_typecheck: boolean;virtual;
          public
           function pass_typecheck:tnode;override;
        end;
@@ -1568,6 +1573,12 @@ implementation
       end;
 
 
+    function ttypeconvnode.target_specific_explicit_typeconv: tnode;
+      begin
+        result:=nil;
+      end;
+
+
     procedure copyparasym(p:TObject;arg:pointer);
       var
         newparast : TSymtable absolute arg;
@@ -1982,7 +1993,15 @@ implementation
                                  (left.nodetype=derefn)
                                 )
                                ) then
-                           CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
+                           CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename)
+                         else
+                           begin
+                             { perform target-specific explicit typecast
+                               checks }
+                             result:=target_specific_explicit_typeconv;
+                             if assigned(result) then
+                               exit;
+                           end;
                        end;
                    end
                   else
@@ -3313,6 +3332,12 @@ implementation
                                 TASNODE
 *****************************************************************************}
 
+    function tasisnode.target_specific_typecheck: boolean;
+      begin
+        result:=false;
+      end;
+
+
     function tasisnode.pass_typecheck: tnode;
       var
         hp : tnode;
@@ -3327,7 +3352,11 @@ implementation
         if codegenerror then
           exit;
 
-        if (right.resultdef.typ=classrefdef) then
+        if target_specific_typecheck then
+          begin
+            // ok
+          end
+        else if (right.resultdef.typ=classrefdef) then
           begin
             { left maybe an interface reference }
             if is_interfacecom(left.resultdef) then
