@@ -511,8 +511,19 @@ implementation
       if ref.base=NR_EVAL_STACK_BASE then
         internalerror(2010121102);
       maybepreparedivu32(list,op,size,trunc32);
-      if not(op in [OP_NEG,OP_NOT]) then
-        a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false));
+      case op of
+        OP_NEG,OP_NOT:
+          ;
+        OP_SHL,OP_SHR,OP_SAR:
+          begin
+            if not is_64bitint(size) then
+              a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false))
+            else
+              a_load_ref_stack(list,s32inttype,ref,prepare_stack_for_ref(list,ref,false));
+          end;
+        else
+          a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false));
+      end;
       a_op_stack(list,op,size,trunc32);
     end;
 
