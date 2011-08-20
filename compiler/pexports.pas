@@ -107,7 +107,7 @@ implementation
                           not(po_exports in pd.procoptions)) then
                         Message(parser_e_illegal_symbol_exported)
                       else
-                        InternalProcName:=pd.mangledname;
+                        InternalProcName:=pd.mangledname(false);
                     end;
                   typesym :
                     begin

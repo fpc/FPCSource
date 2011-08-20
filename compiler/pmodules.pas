@@ -404,12 +404,12 @@ implementation
             begin
               pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_constructor);
               if assigned(pd) then
-                unitinits.concat(Tai_const.Createname(pd.mangledname,0))
+                unitinits.concat(Tai_const.Createname(pd.mangledname(false),0))
               else
                 unitinits.concat(Tai_const.Create_pint(0));
               pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_destructor);
               if assigned(pd) then
-                unitinits.concat(Tai_const.Createname(pd.mangledname,0))
+                unitinits.concat(Tai_const.Createname(pd.mangledname(false),0))
               else
                 unitinits.concat(Tai_const.Create_pint(0));
               inc(count);
@@ -908,7 +908,7 @@ implementation
         include(pd.procoptions,po_hascallingconvention);
         pd.forwarddef:=false;
         pd.setmangledname(target_info.cprefix+name);
-        pd.aliasnames.insert(pd.mangledname);
+        pd.aliasnames.insert(pd.mangledname(true));
         handle_calling_convention(pd);
         { We don't need is a local symtable. Change it into the static
           symtable }
@@ -1522,13 +1522,13 @@ implementation
                      ((tsymtable(arg).symtabletype=staticsymtable) and (po_public in tprocdef(tprocsym(sym).ProcdefList[i]).procoptions))
                     ) then
                     begin
-                      procexport(tprocdef(tprocsym(sym).ProcdefList[i]).mangledname);
+                      procexport(tprocdef(tprocsym(sym).ProcdefList[i]).mangledname(false));
                       { walk through all aliases }
                       item:=TCmdStrListItem(tprocdef(tprocsym(sym).ProcdefList[i]).aliasnames.first);
                       while assigned(item) do
                         begin
                           { avoid duplicate entries, sometimes aliasnames contains the mangledname }
-                          if item.str<>tprocdef(tprocsym(sym).ProcdefList[i]).mangledname then
+                          if item.str<>tprocdef(tprocsym(sym).ProcdefList[i]).mangledname(false) then
                             procexport(item.str);
                           item:=TCmdStrListItem(item.next);
                         end;

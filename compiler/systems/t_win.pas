@@ -866,7 +866,7 @@ implementation
                   staticvarsym :
                     asmsym:=current_asmdata.RefAsmSymbol(tstaticvarsym(hp.sym).mangledname);
                   procsym :
-                    asmsym:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname)
+                    asmsym:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname(false))
                   else
                     internalerror(200709272);
                 end

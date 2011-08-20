@@ -708,7 +708,7 @@ unit optvirt;
               vmcs_yes:
                 begin
                   { add info about devirtualised vmt entry }
-                  classdevirtinfo.addstaticmethod(i,pvmtentry(node.def.vmtentries[i])^.procdef.mangledname);
+                  classdevirtinfo.addstaticmethod(i,pvmtentry(node.def.vmtentries[i])^.procdef.mangledname(false));
                 end;
               vmcs_unreachable:
                 begin

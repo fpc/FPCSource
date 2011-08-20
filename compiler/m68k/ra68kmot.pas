@@ -699,7 +699,7 @@ const
                                begin
                                  if tprocsym(sym).procdeflist.count>1 then
                                       Message(asmr_w_calling_overload_func);
-                                 hs:=tprocdef(tprocsym(sym).procdeflist[0]).mangledname;
+                                 hs:=tprocdef(tprocsym(sym).procdeflist[0]).mangledname(false);
                                end;
                              typesym :
                                begin

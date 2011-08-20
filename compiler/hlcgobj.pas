@@ -1526,7 +1526,7 @@ implementation
 
   procedure thlcgobj.gen_proc_symbol_end(list: TAsmList);
     begin
-      list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
+      list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname(true)));
 
       current_procinfo.procdef.procendtai:=tai(list.last);
 

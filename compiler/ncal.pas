@@ -1722,7 +1722,7 @@ implementation
         begin
           if assigned(current_procinfo) and
              not(po_inline in current_procinfo.procdef.procoptions) and
-             not wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname) then
+             not wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname(true)) then
             begin
 {$ifdef debug_deadcode}
               writeln(' NOT adding creadion of ',def.typename,' because performed in dead stripped proc: ',current_procinfo.procdef.typename);
@@ -1918,7 +1918,7 @@ implementation
            (srsym.typ<>procsym) or
            (tprocsym(srsym).ProcdefList.count<>1) then
           Message1(cg_f_unknown_compilerproc,'objc.'+msgsendname);
-        fobjcforcedprocname:=stringdup(tprocdef(tprocsym(srsym).ProcdefList[0]).mangledname);
+        fobjcforcedprocname:=stringdup(tprocdef(tprocsym(srsym).ProcdefList[0]).mangledname(false));
 
         { B) Handle self }
         { 1) in case of sending a message to a superclass, self is a pointer to
@@ -3862,7 +3862,7 @@ implementation
 
 {$ifdef DEBUGINLINE}
         writeln;
-        writeln('**************************',tprocdef(procdefinition).mangledname);
+        writeln('**************************',tprocdef(procdefinition).mangledname(false));
         printnode(output,result);
 {$endif DEBUGINLINE}
       end;

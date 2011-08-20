@@ -208,6 +208,7 @@ compiler/impdef.pas svneol=native#text/plain
 compiler/import.pas svneol=native#text/plain
 compiler/jvm/cpuinfo.pas svneol=native#text/plain
 compiler/jvm/tgcpu.pas svneol=native#text/plain
+compiler/jvmdef.pas svneol=native#text/plain
 compiler/link.pas svneol=native#text/plain
 compiler/m68k/aasmcpu.pas svneol=native#text/plain
 compiler/m68k/ag68kgas.pas svneol=native#text/plain

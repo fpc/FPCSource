@@ -322,7 +322,7 @@ procedure tobjcrttiwriter.gen_objc_methods(list: tasmlist; objccls: tobjectdef; 
         { reference to the obj-c encoded function parameters (signature) }
         list.Concat(tai_const.Create_sym(defs[i].encsym));
         { mangled name of the method }
-        sym:=current_asmdata.GetAsmSymbol(defs[i].def.mangledname);
+        sym:=current_asmdata.GetAsmSymbol(defs[i].def.mangledname(false));
         if not assigned(sym) then
           internalerror(2009091601);
         list.Concat(tai_const.Create_sym(sym));

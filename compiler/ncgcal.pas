@@ -701,7 +701,7 @@ implementation
                 assigned(methodpointer) and
                 (methodpointer.nodetype<>typen) and
                 (not assigned(current_procinfo) or
-                 wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
+                 wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname(true))) then
                tobjectdef(tprocdef(procdefinition).struct).register_vmt_call(tprocdef(procdefinition).extnumber);
 {$ifdef vtentry}
              if not is_interface(tprocdef(procdefinition)._class) then
@@ -748,7 +748,7 @@ implementation
                  vmtoffset:=tobjectdef(tprocdef(procdefinition).struct).vmtmethodoffset(tprocdef(procdefinition).extnumber);
                  { register call for WPO }
                  if (not assigned(current_procinfo) or
-                     wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
+                     wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname(true))) then
                    tobjectdef(tprocdef(procdefinition).struct).register_vmt_call(tprocdef(procdefinition).extnumber);
 {$ifndef x86}
                  pvreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
@@ -809,7 +809,7 @@ implementation
                         extra_interrupt_code;
                       extra_call_code;
                       if (name_to_call='') then
-                        cg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition).mangledname,po_weakexternal in procdefinition.procoptions)
+                        cg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition).mangledname(false),po_weakexternal in procdefinition.procoptions)
                       else
                         cg.a_call_name(current_asmdata.CurrAsmList,name_to_call,po_weakexternal in procdefinition.procoptions);
                       extra_post_call_code;

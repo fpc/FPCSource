@@ -427,7 +427,7 @@ implementation
         inherited printnodedata(t);
         write(t,printnodeindention,'symbol = ',symtableentry.name);
         if symtableentry.typ=procsym then
-          write(t,printnodeindention,'procdef = ',fprocdef.mangledname);
+          write(t,printnodeindention,'procdef = ',fprocdef.mangledname(false));
         writeln(t,'');
       end;
 

@@ -730,12 +730,12 @@ unit cgppc;
           case target_info.system of
             system_powerpc_darwin,
             system_powerpc64_darwin:
-              list.concat(taicpu.op_sym(A_B,get_darwin_call_stub(procdef.mangledname,false)));
+              list.concat(taicpu.op_sym(A_B,get_darwin_call_stub(procdef.mangledname(false),false)));
             system_powerpc64_linux:
               {$note ts:todo add GOT change?? - think not needed :) }
-              list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname)));
+              list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname(false))));
             else
-              list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)))
+              list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname(false))))
           end;
         List.concat(Tai_symbol_end.Createname(labelname));
       end;

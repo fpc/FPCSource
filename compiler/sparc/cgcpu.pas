@@ -1393,7 +1393,7 @@ implementation
           end
         else
           begin
-            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,sizeof(pint));
+            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname(false)),0,sizeof(pint));
             href.refaddr := addr_high;
             list.concat(taicpu.op_ref_reg(A_SETHI,href,NR_G1));
 	    g1_used:=true;

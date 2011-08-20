@@ -346,7 +346,7 @@ implementation
                 { update wpo info }
                 if not assigned(current_procinfo) or
                    (po_inline in current_procinfo.procdef.procoptions) or
-                   wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname) then
+                   wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname(true)) then
                   tobjectdef(tclassrefdef(n.resultdef).pointeddef).register_maybe_created_object_type;
               end;
              niln:
@@ -547,7 +547,7 @@ implementation
                           if po_abstractmethod in pd.procoptions then
                             Message(type_e_cant_take_address_of_abstract_method)
                           else
-                            list.concat(Tai_const.Createname(pd.mangledname,offset));
+                            list.concat(Tai_const.Createname(pd.mangledname(false),offset));
                         end;
                       staticvarsym :
                         list.concat(Tai_const.Createname(tstaticvarsym(srsym).mangledname,offset));
@@ -1014,7 +1014,7 @@ implementation
              (tloadnode(n).symtableentry.typ=procsym) then
             begin
               pd:=tloadnode(n).procdef;
-              list.concat(Tai_const.createname(pd.mangledname,0));
+              list.concat(Tai_const.createname(pd.mangledname(false),0));
               { nested procvar typed consts can only be initialised with nil
                 (checked above) or with a global procedure (checked here),
                 because in other cases we need a valid frame pointer }
