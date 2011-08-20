@@ -69,7 +69,7 @@ interface
     { reads any routine in the implementation, or a non-method routine
       declaration in the interface (depending on whether or not parse_only is
       true) }
-    procedure read_proc(isclassmethod:boolean);
+    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef);
 
     procedure generate_specialization_procs;
 
@@ -1668,7 +1668,7 @@ implementation
       end;
 
 
-    procedure read_proc(isclassmethod:boolean);
+    procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef);
       {
         Parses the procedure directives, then parses the procedure body, then
         generates the code for it
@@ -1696,8 +1696,11 @@ implementation
          current_genericdef:=nil;
          current_specializedef:=nil;
 
-         { parse procedure declaration }
-         pd:=parse_proc_dec(isclassmethod,old_current_structdef);
+         if not assigned(usefwpd) then
+           { parse procedure declaration }
+           pd:=parse_proc_dec(isclassmethod,old_current_structdef)
+         else
+           pd:=usefwpd;
 
          { set the default function options }
          if parse_only then
@@ -1725,16 +1728,19 @@ implementation
             pd.forwarddef:=false;
           end;
 
-         { parse the directives that may follow }
-         parse_proc_directives(pd,pdflags);
+         if not assigned(usefwpd) then
+           begin
+             { parse the directives that may follow }
+             parse_proc_directives(pd,pdflags);
 
-         { hint directives, these can be separated by semicolons here,
-           that needs to be handled here with a loop (PFV) }
-         while try_consume_hintdirective(pd.symoptions,pd.deprecatedmsg) do
-          Consume(_SEMICOLON);
+             { hint directives, these can be separated by semicolons here,
+               that needs to be handled here with a loop (PFV) }
+             while try_consume_hintdirective(pd.symoptions,pd.deprecatedmsg) do
+              Consume(_SEMICOLON);
 
-         { Set calling convention }
-         handle_calling_convention(pd);
+             { Set calling convention }
+             handle_calling_convention(pd);
+           end;
 
          { search for forward declarations }
          if not proc_add_definition(pd) then
@@ -1898,7 +1904,7 @@ implementation
               _PROCEDURE,
               _OPERATOR:
                 begin
-                  read_proc(is_classdef);
+                  read_proc(is_classdef,nil);
                   is_classdef:=false;
                 end;
               _EXPORTS:
@@ -1933,7 +1939,7 @@ implementation
                       begin
                         if is_classdef then
                           begin
-                            read_proc(is_classdef);
+                            read_proc(is_classdef,nil);
                             is_classdef:=false;
                           end
                         else
@@ -1984,7 +1990,7 @@ implementation
              _FUNCTION,
              _PROCEDURE,
              _OPERATOR :
-               read_proc(false);
+               read_proc(false,nil);
              else
                begin
                  case idtoken of

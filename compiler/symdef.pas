@@ -592,6 +592,14 @@ interface
           procedure deref;override;
           procedure derefimpl;override;
           function  GetSymtable(t:tGetSymtable):TSymtable;override;
+          { warnings:
+              * the symtablestack top has to be the symtable to which the copy
+                should be added
+              * getcopy does not create a finished/ready-to-use procdef; it
+                needs to be finalised afterwards by calling
+                symcreat.finish_copied_procdef() afterwards
+          }
+          function  getcopy: tstoreddef; override;
           function  GetTypeName : string;override;
           function  mangledname : string;
           procedure setmangledname(const s : string);
@@ -3985,6 +3993,94 @@ implementation
           else
             GetSymtable:=nil;
         end;
+      end;
+
+
+    function tprocdef.getcopy: tstoreddef;
+      var
+        i : tcallercallee;
+        j : longint;
+        pvs : tparavarsym;
+      begin
+        result:=tprocdef.create(parast.symtablelevel);
+        tprocdef(result).returndef:=returndef;
+        tprocdef(result).returndefderef:=returndefderef;
+        tprocdef(result).parast:=tparasymtable.create(tprocdef(result),parast.symtablelevel);
+        for j:=0 to parast.symlist.count-1 do
+          begin
+            case tsym(parast.symlist[j]).typ of
+              paravarsym:
+                begin
+                  pvs:=tparavarsym(parast.symlist[j]);
+                  tprocdef(result).parast.insert(tparavarsym.create(
+                    pvs.realname,pvs.paranr,pvs.varspez,pvs.vardef,pvs.varoptions));
+                end;
+              else
+                internalerror(201160604);
+              end;
+          end;
+        tprocdef(result).savesize:=savesize;
+
+        tprocdef(result).proctypeoption:=proctypeoption;
+        tprocdef(result).proccalloption:=proccalloption;
+        tprocdef(result).procoptions:=procoptions;
+        tprocdef(result).callerargareasize:=callerargareasize;
+        tprocdef(result).calleeargareasize:=calleeargareasize;
+        tprocdef(result).maxparacount:=maxparacount;
+        tprocdef(result).minparacount:=minparacount;
+        if po_explicitparaloc in procoptions then
+          tprocdef(result).funcretloc[callerside]:=funcretloc[callerside].getcopy;
+        { recalculate parameter info }
+        tprocdef(result).has_paraloc_info:=callnoside;
+{$ifdef m68k}
+        tprocdef(result).exp_funcretloc:=exp_funcretloc;
+{$endif}
+        { don't copy mangled name, can be different }
+        tprocdef(result).messageinf:=messageinf;
+        if po_msgstr in procoptions then
+          tprocdef(result).messageinf.str:=stringdup(messageinf.str^);
+        tprocdef(result).symoptions:=symoptions;
+        if assigned(deprecatedmsg) then
+          tprocdef(result).deprecatedmsg:=stringdup(deprecatedmsg^);
+        { will have to be associated with appropriate procsym }
+        tprocdef(result).procsym:=nil;
+        tprocdef(result).aliasnames.concatListcopy(aliasnames);
+        if assigned(funcretsym) then
+          begin
+            if (funcretsym.owner=parast) then
+              begin
+                j:=parast.symlist.indexof(funcretsym);
+                if j<0 then
+                  internalerror(2011040606);
+                tprocdef(result).funcretsym:=tsym(tprocdef(result).parast.symlist[j]);
+              end
+            else
+              internalerror(2011040605);
+          end;
+        { will have to be associated with a new struct }
+        tprocdef(result).struct:=nil;
+{$if defined(powerpc) or defined(m68k)}
+        tprocdef(result).libsym:=libsym;
+{$endif powerpc or m68k}
+        if assigned(resultname) then
+          tprocdef(result).resultname:=stringdup(resultname^);
+        if assigned(import_dll) then
+          tprocdef(result).import_dll:=stringdup(import_dll^);
+        if assigned(import_name) then
+          tprocdef(result).import_name:=stringdup(import_name^);
+        tprocdef(result).import_nr:=import_nr;
+        tprocdef(result).extnumber:=$ffff;
+{$ifdef i386}
+        tprocdef(result).fpu_used:=fpu_used;
+{$endif i386}
+        tprocdef(result).visibility:=visibility;
+        tprocdef(result).synthetickind:=synthetickind;
+        { we need a separate implementation for the copied def }
+        tprocdef(result).forwarddef:=true;
+        tprocdef(result).interfacedef:=true;
+
+        { create new paralist }
+        tprocdef(result).calcparas;
       end;
 
 

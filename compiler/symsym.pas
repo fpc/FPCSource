@@ -102,7 +102,6 @@ interface
           procedure deref;override;
           function find_procdef_bytype(pt:Tproctypeoption):Tprocdef;
           function find_bytype_parameterless(pt:Tproctypeoption):Tprocdef;
-          function find_procdef_bypara_no_rettype(para:TFPObjectList;cpoptions:tcompare_paras_options):Tprocdef;
           function find_procdef_bypara(para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
           function find_procdef_bytype_and_para(pt:Tproctypeoption;para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
           function find_procdef_byoptions(ops:tprocoptions): Tprocdef;
@@ -687,18 +686,13 @@ implementation
 
 
     function check_procdef_paras(pd:tprocdef;para:TFPObjectList;retdef:tdef;
-                                            cpoptions:tcompare_paras_options; checkrettype: boolean): tprocdef;
+                                            cpoptions:tcompare_paras_options): tprocdef;
       var
         eq: tequaltype;
       begin
         result:=nil;
-        if checkrettype then
-          begin
-            if assigned(retdef) then
-              eq:=compare_defs(retdef,pd.returndef,nothingn)
-            else
-              eq:=te_equal;
-          end
+        if assigned(retdef) then
+          eq:=compare_defs(retdef,pd.returndef,nothingn)
         else
           eq:=te_equal;
         if (eq>=te_equal) or
@@ -715,22 +709,6 @@ implementation
       end;
 
 
-    function tprocsym.find_procdef_bypara_no_rettype(para: TFPObjectList; cpoptions: tcompare_paras_options): Tprocdef;
-      var
-        i: longint;
-        pd: tprocdef;
-      begin
-        result:=nil;
-        for i:=0 to ProcdefList.Count-1 do
-          begin
-            pd:=tprocdef(ProcdefList[i]);
-            result:=check_procdef_paras(pd,para,nil,cpoptions,false);
-            if assigned(result) then
-              exit;
-          end;
-      end;
-
-
     function Tprocsym.Find_procdef_bypara(para:TFPObjectList;retdef:tdef;
                                             cpoptions:tcompare_paras_options):Tprocdef;
       var
@@ -741,7 +719,7 @@ implementation
         for i:=0 to ProcdefList.Count-1 do
           begin
             pd:=tprocdef(ProcdefList[i]);
-            result:=check_procdef_paras(pd,para,retdef,cpoptions,true);
+            result:=check_procdef_paras(pd,para,retdef,cpoptions);
             if assigned(result) then
               exit;
           end;
@@ -760,7 +738,7 @@ implementation
             pd:=tprocdef(ProcdefList[i]);
             if pd.proctypeoption=pt then
               begin
-                result:=check_procdef_paras(pd,para,retdef,cpoptions,true);
+                result:=check_procdef_paras(pd,para,retdef,cpoptions);
                 if assigned(result) then
                   exit;
               end;

@@ -1376,7 +1376,10 @@ implementation
                 in Pascal (we cannot do it for classes implemented in Java, since
                 we obviously cannot add constructors to those) }
               if is_javaclass(current_structdef) then
-                maybe_add_public_default_java_constructor(tobjectdef(current_structdef));
+                begin
+                  add_missing_parent_constructors_intf(tobjectdef(current_structdef));
+                  maybe_add_public_default_java_constructor(tobjectdef(current_structdef));
+                end;
               { need method to hold the initialization code for typed constants? }
               if (target_info.system in systems_typed_constants_node_init) and
                  not is_any_interface_kind(current_structdef) then

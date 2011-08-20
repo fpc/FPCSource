@@ -55,25 +55,28 @@ interface
 
       WARNING: save the scanner state before calling this routine, and restore
         when done. }
-  function str_parse_method_impl(str: ansistring; is_classdef: boolean):boolean;
+  function str_parse_method_impl(str: ansistring; usefwpd: tprocdef; is_classdef: boolean):boolean;
 
 
   { in the JVM, constructors are not automatically inherited (so you can hide
     them). To emulate the Pascal behaviour, we have to automatically add
     all parent constructors to the current class as well.}
   procedure add_missing_parent_constructors_intf(obj: tobjectdef);
-//  procedure add_missing_parent_constructors_impl(obj: tobjectdef);
 
   { goes through all defs in st to add implementations for synthetic methods
     added earlier }
   procedure add_synthetic_method_implementations(st: tsymtable);
 
+
+  procedure finish_copied_procdef(var pd: tprocdef; const realname: string; newparentst: tsymtable; newstruct: tabstractrecorddef);
+
+
 implementation
 
   uses
-    verbose,systems,
+    cutils,verbose,systems,comphook,
     symtype,symsym,symtable,defutil,
-    pbase,pdecobj,psub,
+    pbase,pdecobj,pdecsub,psub,
     defcmp;
 
   procedure replace_scanner(const tempname: string; out sstate: tscannerstate);
@@ -132,11 +135,24 @@ implementation
     end;
 
 
-  function str_parse_method_impl(str: ansistring; is_classdef: boolean):boolean;
+  function str_parse_method_impl(str: ansistring; usefwpd: tprocdef; is_classdef: boolean):boolean;
      var
        oldparse_only: boolean;
+       tmpstr: ansistring;
      begin
-      Message1(parser_d_internal_parser_string,str);
+      if ((status.verbosity and v_debug)<>0) then
+        begin
+           if assigned(usefwpd) then
+             Message1(parser_d_internal_parser_string,usefwpd.customprocname([pno_proctypeoption,pno_paranames,pno_noclassmarker,pno_noleadingdollar]))
+           else
+             begin
+               if is_classdef then
+                 tmpstr:='class '
+               else
+                 tmpstr:='';
+               Message1(parser_d_internal_parser_string,tmpstr+str);
+             end;
+        end;
       oldparse_only:=parse_only;
       parse_only:=false;
       result:=false;
@@ -145,7 +161,7 @@ implementation
       current_scanner.substitutemacro('meth_impl_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index);
       current_scanner.readtoken(false);
       { and parse it... }
-      read_proc(is_classdef);
+      read_proc(is_classdef,usefwpd);
       parse_only:=oldparse_only;
       result:=true;
      end;
@@ -155,58 +171,50 @@ implementation
     var
       parent: tobjectdef;
       def: tdef;
-      pd: tprocdef;
-      newpd,
-      parentpd: tprocdef;
+      parentpd,
+      childpd: tprocdef;
       i: longint;
       srsym: tsym;
       srsymtable: tsymtable;
-      isclassmethod: boolean;
-      str: ansistring;
-      sstate: tscannerstate;
     begin
-      if not assigned(obj.childof) then
+      if (oo_is_external in obj.objectoptions) or
+         not assigned(obj.childof) then
         exit;
-      sstate.valid:=false;
       parent:=obj.childof;
       { find all constructor in the parent }
       for i:=0 to tobjectsymtable(parent.symtable).deflist.count-1 do
         begin
           def:=tdef(tobjectsymtable(parent.symtable).deflist[i]);
           if (def.typ<>procdef) or
-             (tprocdef(def).proctypeoption<>potype_constructor) then
+             (tprocdef(def).proctypeoption<>potype_constructor) or
+             not is_visible_for_object(tprocdef(def),obj) then
             continue;
-          pd:=tprocdef(def);
+          parentpd:=tprocdef(def);
           { do we have this constructor too? (don't use
             search_struct_member/searchsym_in_class, since those will
             search parents too) }
-          if searchsym_in_record(obj,pd.procsym.name,srsym,srsymtable) then
+          if searchsym_in_record(obj,parentpd.procsym.name,srsym,srsymtable) then
             begin
               { there's a symbol with the same name, is it a constructor
                 with the same parameters? }
               if srsym.typ=procsym then
                 begin
-                  parentpd:=tprocsym(srsym).find_procdef_bytype_and_para(
-                    potype_constructor,pd.paras,tprocdef(def).returndef,
+                  childpd:=tprocsym(srsym).find_procdef_bytype_and_para(
+                    potype_constructor,parentpd.paras,nil,
                     [cpo_ignorehidden,cpo_ignoreuniv,cpo_openequalisexact]);
-                  if assigned(parentpd) then
+                  if assigned(childpd) then
                     continue;
                 end;
             end;
           { if we get here, we did not find it in the current objectdef ->
             add }
-          if not sstate.valid then
-            replace_scanner('parent_constructors_intf',sstate);
-          isclassmethod:=
-            (po_classmethod in tprocdef(pd).procoptions) and
-            not(tprocdef(pd).proctypeoption in [potype_constructor,potype_destructor]);
-          { + 'overload' for Delphi modes }
-          str:=tprocdef(pd).customprocname([pno_proctypeoption,pno_paranames,pno_noclassmarker,pno_noleadingdollar])+'overload;';
-          if not str_parse_method_dec(str,tprocdef(pd).proctypeoption,isclassmethod,obj,newpd) then
-            internalerror(2011032001);
-          newpd.synthetickind:=tsk_anon_inherited;
+          childpd:=tprocdef(parentpd.getcopy);
+          finish_copied_procdef(childpd,parentpd.procsym.realname,obj.symtable,obj);
+          exclude(childpd.procoptions,po_external);
+          include(childpd.procoptions,po_overload);
+          childpd.synthetickind:=tsk_anon_inherited;
+          include(obj.objectoptions,oo_has_constructor);
         end;
-      restore_scanner(sstate);
     end;
 
 
@@ -215,10 +223,11 @@ implementation
       str: ansistring;
       isclassmethod: boolean;
     begin
-      isclassmethod:=(po_classmethod in pd.procoptions);
-      str:=pd.customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker,pno_noleadingdollar]);
-      str:=str+'begin inherited end;';
-      str_parse_method_impl(str,isclassmethod);
+      isclassmethod:=
+        (po_classmethod in pd.procoptions) and
+        not(pd.proctypeoption in [potype_constructor,potype_destructor]);
+      str:='begin inherited end;';
+      str_parse_method_impl(str,pd,isclassmethod);
     end;
 
 
@@ -238,10 +247,9 @@ implementation
       if (struct.typ=recorddef) and
          not assigned(struct.typesym) then
         internalerror(2011032812);
-      str:=pd.customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker,pno_noleadingdollar]);
       { the inherited clone will already copy all fields in a shallow way ->
         copy records/regular arrays in a regular way }
-      str:=str+'begin result:=inherited;';
+      str:='begin clone:=inherited;';
       for i:=0 to struct.symtable.symlist.count-1 do
         begin
           sym:=tsym(struct.symtable.symlist[i]);
@@ -253,11 +261,11 @@ implementation
                   not is_dynamic_array(fsym.vardef)) or
                  ((fsym.vardef.typ=setdef) and
                   not is_smallset(fsym.vardef)) then
-                str:=str+struct.typesym.realname+'(result).'+fsym.realname+':='+fsym.realname+';';
+                str:=str+struct.typesym.realname+'(clone).'+fsym.realname+':='+fsym.realname+';';
             end;
         end;
       str:=str+'end;';
-      str_parse_method_impl(str,false);
+      str_parse_method_impl(str,pd,false);
     end;
 
 
@@ -277,9 +285,8 @@ implementation
       if (struct.typ=recorddef) and
          not assigned(struct.typesym) then
         internalerror(2011032811);
-      str:=pd.customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker,pno_noleadingdollar]);
       { copy all fields }
-      str:=str+'begin ';
+      str:='begin ';
       for i:=0 to struct.symtable.symlist.count-1 do
         begin
           sym:=tsym(struct.symtable.symlist[i]);
@@ -290,7 +297,7 @@ implementation
             end;
         end;
       str:=str+'end;';
-      str_parse_method_impl(str,false);
+      str_parse_method_impl(str,pd,false);
     end;
 
 
@@ -299,10 +306,11 @@ implementation
       str: ansistring;
       isclassmethod: boolean;
     begin
-      isclassmethod:=(po_classmethod in pd.procoptions);
-      str:=pd.customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker,pno_noleadingdollar]);
-      str:=str+'begin end;';
-      str_parse_method_impl(str,isclassmethod);
+      isclassmethod:=
+        (po_classmethod in pd.procoptions) and
+        not(pd.proctypeoption in [potype_constructor,potype_destructor]);
+      str:='begin end;';
+      str_parse_method_impl(str,pd,isclassmethod);
     end;
 
 
@@ -364,6 +372,58 @@ implementation
            end;
         end;
       restore_scanner(sstate);
+    end;
+
+
+  procedure finish_copied_procdef(var pd: tprocdef; const realname: string; newparentst: tsymtable; newstruct: tabstractrecorddef);
+    var
+      sym: tsym;
+      parasym: tparavarsym;
+      ps: tprocsym;
+      hdef: tdef;
+      stname: string;
+      i: longint;
+    begin
+      { associate the procdef with a procsym in the owner }
+      if not(pd.proctypeoption in [potype_class_constructor,potype_class_destructor]) then
+        stname:=upper(realname)
+      else
+        stname:=lower(realname);
+      sym:=tsym(newparentst.find(stname));
+      if assigned(sym) then
+        begin
+          if sym.typ<>procsym then
+            internalerror(2011040601);
+          ps:=tprocsym(sym);
+        end
+      else
+        begin
+          ps:=tprocsym.create(realname);
+          newparentst.insert(ps);
+        end;
+      pd.procsym:=ps;
+      pd.struct:=newstruct;
+      { in case of methods, replace the special parameter types with new ones }
+      if assigned(newstruct) then
+        begin
+          symtablestack.push(pd.parast);
+          for i:=0 to pd.paras.count-1 do
+            begin
+              parasym:=tparavarsym(pd.paras[i]);
+              if vo_is_self in parasym.varoptions then
+                begin
+                  if parasym.vardef.typ=classrefdef then
+                    parasym.vardef:=tclassrefdef.create(newstruct)
+                  else
+                    parasym.vardef:=newstruct;
+                end
+            end;
+          { also fix returndef in case of a constructor }
+          if pd.proctypeoption=potype_constructor then
+            pd.returndef:=newstruct;
+          symtablestack.pop(pd.parast);
+        end;
+      proc_add_definition(pd);
     end;
 
 

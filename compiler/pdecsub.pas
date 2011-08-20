@@ -3121,6 +3121,13 @@ const
          begin
            fwpd:=tprocdef(tprocsym(currpd.procsym).ProcdefList[i]);
 
+           { can happen for internally generated routines }
+           if (fwpd=currpd) then
+             begin
+               result:=true;
+               exit;
+             end;
+
            { Skip overloaded definitions that are declared in other units }
            if fwpd.procsym<>currpd.procsym then
              continue;
