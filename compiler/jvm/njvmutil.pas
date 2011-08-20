@@ -105,10 +105,11 @@ implementation
   class function tjvmnodeutils.force_init: boolean;
     begin
       { we need an initialisation in case the al_globals list is not empty
-        (that's where the initialisation for global records is added) }
-      result:=
-        inherited or
-        not current_asmdata.asmlists[al_globals].empty;
+        (that's where the initialisation for global records etc is added) }
+      { problem: some bss symbols are only registered while processing the main
+        program (e.g. constant sets) -> cannot predict whether or not we'll
+        need it in advance }
+      result:=true;
     end;
 
   class procedure tjvmnodeutils.insertbssdata(sym: tstaticvarsym);
