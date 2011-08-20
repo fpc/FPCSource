@@ -1974,6 +1974,7 @@ begin
            begin
              readcommondef('Record definition',defoptions);
              writeln(space,'   Name of Record : ',getstring);
+             writeln(space,'   Import lib/pkg : ',getstring);
              write  (space,'          Options : ');
              readobjectdefoptions;
              writeln(space,'       FieldAlign : ',shortint(getbyte));
@@ -1997,6 +1998,7 @@ begin
            begin
              readcommondef('Object/Class definition',defoptions);
              writeln(space,'    Name of Class : ',getstring);
+             writeln(space,'   Import lib/pkg : ',getstring);
              write  (space,'          Options : ');
              readobjectdefoptions;
              b:=getbyte;
@@ -2014,7 +2016,6 @@ begin
                else                 writeln('!! Warning: Invalid object type ',b);
              end;
              writeln(space,'    External name : ',getstring);
-             writeln(space,'       Import lib : ',getstring);
              writeln(space,'         DataSize : ',getasizeint);
              writeln(space,'      PaddingSize : ',getword);
              writeln(space,'       FieldAlign : ',shortint(getbyte));

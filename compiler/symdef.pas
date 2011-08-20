@@ -177,6 +177,9 @@ interface
        tabstractrecorddef= class(tstoreddef)
           objname,
           objrealname    : PShortString;
+          { for C++ classes: name of the library this class is imported from }
+          { for Java classes/records: package name }
+          import_lib     : PShortString;
           symtable       : TSymtable;
           cloneddef      : tabstractrecorddef;
           cloneddefderef : tderef;
@@ -194,6 +197,8 @@ interface
           function search_enumerator_get: tprocdef; virtual;
           function search_enumerator_move: tprocdef; virtual;
           function search_enumerator_current: tsym; virtual;
+          { JVM }
+          function jvm_full_typename(with_package_name: boolean): string;
        end;
 
        trecorddef = class(tabstractrecorddef)
@@ -263,8 +268,6 @@ interface
           { for Object Pascal helpers }
           extendeddef   : tabstractrecorddef;
           extendeddefderef: tderef;
-          { for C++ classes: name of the library this class is imported from }
-          import_lib,
           { for Objective-C: protocols and classes can have the same name there }
           objextname     : pshortstring;
           { to be able to have a variable vmt position }
@@ -336,8 +339,6 @@ interface
           function check_objc_types: boolean;
           { C++ }
           procedure finish_cpp_data;
-          { JVM }
-          function jvm_full_typename(with_package_name: boolean): string;
        end;
 
        tclassrefdef = class(tabstractpointerdef)
@@ -2847,6 +2848,10 @@ implementation
         inherited ppuload(dt,ppufile);
         objrealname:=stringdup(ppufile.getstring);
         objname:=stringdup(upper(objrealname^));
+        import_lib:=stringdup(ppufile.getstring);
+        { only used for external C++ classes and Java classes/records }
+        if (import_lib^='') then
+          stringdispose(import_lib);
         ppufile.getsmallset(objectoptions);
       end;
 
@@ -2854,6 +2859,10 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putstring(objrealname^);
+        if assigned(import_lib) then
+          ppufile.putstring(import_lib^)
+        else
+          ppufile.putstring('');
         ppufile.putsmallset(objectoptions);
       end;
 
@@ -2861,6 +2870,7 @@ implementation
       begin
         stringdispose(objname);
         stringdispose(objrealname);
+        stringdispose(import_lib);
         inherited destroy;
       end;
 
@@ -3002,6 +3012,39 @@ implementation
           end;
       end;
 
+
+    function tabstractrecorddef.jvm_full_typename(with_package_name: boolean): string;
+      var
+        st: tsymtable;
+        enclosingobj: tabstractrecorddef;
+      begin
+        if typ=objectdef then
+          result:=tobjectdef(self).objextname^
+        else if assigned(typesym) then
+          result:=typesym.realname
+        { have to generate anonymous nested type in current unit/class/record }
+        else
+          internalerror(2011032601);
+
+        st:=owner;
+        while assigned(st) and
+              (st.symtabletype in [objectsymtable,recordsymtable]) do
+          begin
+            { nested classes are named as "OuterClass$InnerClass" }
+            enclosingobj:=tabstractrecorddef(st.defowner);
+            if enclosingobj.typ=objectdef then
+              result:=tobjectdef(enclosingobj).objextname^+'$'+result
+            else if assigned(enclosingobj.typesym) then
+              result:=enclosingobj.typesym.realname+'$'+result;
+            st:=enclosingobj.owner;
+          end;
+
+        if with_package_name and
+           assigned(import_lib) then
+          result:=import_lib^+'/'+result;
+      end;
+
+
 {***************************************************************************
                                   trecorddef
 ***************************************************************************}
@@ -3055,6 +3098,8 @@ implementation
         result:=trecorddef.create(objrealname^,symtable.getcopy);
         trecorddef(result).isunion:=isunion;
         include(trecorddef(result).defoptions,df_copied_def);
+         if assigned(import_lib) then
+           trecorddef(result).import_lib:=stringdup(import_lib^);
       end;
 
 
@@ -4544,10 +4589,6 @@ implementation
          { only used for external Objective-C classes/protocols }
          if (objextname^='') then
            stringdispose(objextname);
-         import_lib:=stringdup(ppufile.getstring);
-         { only used for external C++ classes }
-         if (import_lib^='') then
-           stringdispose(import_lib);
          symtable:=tObjectSymtable.create(self,objrealname^,0);
          tObjectSymtable(symtable).datasize:=ppufile.getasizeint;
          tObjectSymtable(symtable).paddingsize:=ppufile.getword;
@@ -4639,7 +4680,6 @@ implementation
              symtable:=nil;
            end;
          stringdispose(objextname);
-         stringdispose(import_lib);
          stringdispose(iidstr);
          if assigned(ImplementedInterfaces) then
            begin
@@ -4722,10 +4762,6 @@ implementation
          ppufile.putbyte(byte(objecttype));
          if assigned(objextname) then
            ppufile.putstring(objextname^)
-         else
-           ppufile.putstring('');
-         if assigned(import_lib) then
-           ppufile.putstring(import_lib^)
          else
            ppufile.putstring('');
          ppufile.putasizeint(tObjectSymtable(symtable).datasize);
@@ -5572,28 +5608,6 @@ implementation
     procedure tobjectdef.finish_cpp_data;
       begin
         self.symtable.DefList.ForEachCall(@do_cpp_import_info,nil);
-      end;
-
-
-    function tobjectdef.jvm_full_typename(with_package_name: boolean): string;
-      var
-        st: tsymtable;
-        enclosingobj: tobjectdef;
-      begin
-        result:=objextname^;
-        st:=owner;
-        while assigned(st) and
-              (st.symtabletype=objectsymtable) do
-          begin
-            { nested classes are named as "OuterClass$InnerClass" }
-            enclosingobj:=tobjectdef(st.defowner);
-            result:=enclosingobj.objextname^+'$'+result;
-            st:=enclosingobj.owner;
-          end;
-
-        if with_package_name and
-           assigned(import_lib) then
-          result:=import_lib^+'/'+result;
       end;
 
 
