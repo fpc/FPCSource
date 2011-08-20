@@ -34,7 +34,7 @@ unit cgutils;
 
     type
 {$ifdef jvm}
-      tarrayreftype = (art_none,art_indexreg,art_indexref);
+      tarrayreftype = (art_none,art_indexreg,art_indexref,art_indexconst);
 {$endif jvm}
       { reference record, reordered for best alignment }
       preference = ^treference;

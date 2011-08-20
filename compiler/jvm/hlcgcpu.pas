@@ -631,19 +631,27 @@ implementation
           a_load_reg_stack(list,voidpointertype,ref.base);
           { index can either be in a register, or located in a simple memory
             location (since we have to load it anyway) }
-          if ref.arrayreftype=art_indexreg then
-            begin
-              if ref.index=NR_NO then
-                internalerror(2010120513);
-              { all array indices in Java are 32 bit ints }
-              a_load_reg_stack(list,s32inttype,ref.index);
-            end
-          else
-            begin
-              reference_reset_base(href,ref.indexbase,ref.indexoffset,4);
-              href.symbol:=href.indexsymbol;
-              a_load_ref_stack(list,s32inttype,href,prepare_stack_for_ref(list,href,false));
-            end;
+          case ref.arrayreftype of
+            art_indexreg:
+              begin
+                if ref.index=NR_NO then
+                  internalerror(2010120513);
+                { all array indices in Java are 32 bit ints }
+                a_load_reg_stack(list,s32inttype,ref.index);
+              end;
+            art_indexref:
+              begin
+                reference_reset_base(href,ref.indexbase,ref.indexoffset,4);
+                href.symbol:=ref.indexsymbol;
+                a_load_ref_stack(list,s32inttype,href,prepare_stack_for_ref(list,href,false));
+              end;
+            art_indexconst:
+              begin
+                a_load_const_stack(list,s32inttype,ref.indexoffset,R_INTREGISTER);
+              end;
+            else
+              internalerror(2011012001);
+          end;
           { adjustment of the index }
           if ref.offset<>0 then
             a_op_const_stack(list,OP_ADD,s32inttype,ref.offset);
