@@ -109,10 +109,20 @@ end;
 
 
 procedure ShortstringClass.FpcDeepCopy(dest: ShortstringClass);
+var
+  destmaxlen,
+  copylen: longint;
 begin
-  { should only be called for shortstrings of the same maximum length }
   dest.curlen:=curlen;
-  JLSystem.ArrayCopy(JLObject(fdata),0,JLObject(dest.fdata),0,system.length(fdata));
+  copylen:=system.length(fdata);
+  destmaxlen:=system.length(dest.fdata);
+  if copylen>destmaxlen then
+    begin
+      copylen:=destmaxlen;
+      dest.curlen:=destmaxlen;
+    end;
+  if copylen>0 then
+    JLSystem.ArrayCopy(JLObject(fdata),0,JLObject(dest.fdata),0,copylen);
 end;
 
 
@@ -179,7 +189,7 @@ var
   i: longint;
 begin
   { used to construct constant chararrays from Java string constants }
-  setlength(result,system.length(u));
+  setlength(result,maxlen);
   for i:=1 to system.length(u) do
     result[i-1]:=ansichar(ord(u[i]));
 end;
@@ -394,7 +404,8 @@ begin
   { make sure we don't access char 1 if length is 0 (JM) }
   if len>0 then
     JLSystem.ArrayCopy(JLObject(ShortstringClass(@src).fdata),0,JLObject(@res),0,len);
-  JUArrays.fill(TJByteArray(@res),len,high(res),0);
+  if len<=high(res) then
+    JUArrays.fill(TJByteArray(@res),len,high(res),0);
 end;
 
 
