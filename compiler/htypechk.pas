@@ -170,8 +170,6 @@ interface
 
     function allowenumop(nt:tnodetype):boolean;
 
-    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);
-
     procedure check_ranges(const location: tfileposinfo; source: tnode; destdef: tdef);
 
 implementation
@@ -2939,26 +2937,6 @@ implementation
           CGMessagePos3(pt.left.fileinfo,type_e_wrong_parameter_type,tostr(hp^.wrongparanr),
             FullTypeName(pt.left.resultdef,wrongpara.vardef),
             FullTypeName(wrongpara.vardef,pt.left.resultdef));
-      end;
-
-
-    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);
-      begin
-        if not assigned(srsym) then
-          internalerror(200602051);
-        if sp_hint_deprecated in symoptions then
-          if (sp_has_deprecated_msg in symoptions) and (deprecatedmsg <> nil) then
-            Message2(sym_w_deprecated_symbol_with_msg,srsym.realname,deprecatedmsg^)
-          else
-            Message1(sym_w_deprecated_symbol,srsym.realname);
-        if sp_hint_experimental in symoptions then
-          Message1(sym_w_experimental_symbol,srsym.realname);
-        if sp_hint_platform in symoptions then
-          Message1(sym_w_non_portable_symbol,srsym.realname);
-        if sp_hint_library in symoptions then
-          Message1(sym_w_library_symbol,srsym.realname);
-        if sp_hint_unimplemented in symoptions then
-          Message1(sym_w_non_implemented_symbol,srsym.realname);
       end;
 
 
