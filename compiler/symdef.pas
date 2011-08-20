@@ -640,7 +640,9 @@ interface
           function  defaultmangledname: TSymStr;
           function  cplusplusmangledname : TSymStr;
           function  objcmangledname : TSymStr;
+{$ifdef jvm}
           function  jvmmangledbasename(signature: boolean): TSymStr;
+{$endif}
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
           procedure make_external;
@@ -936,7 +938,10 @@ implementation
       { target }
       systems,aasmcpu,paramgr,
       { symtable }
-      symsym,symtable,symutil,defutil,objcdef,jvmdef,
+      symsym,symtable,symutil,defutil,objcdef,
+{$ifdef jvm}
+      jvmdef,
+{$endif}
       { module }
       fmodule,
       { other }
@@ -4570,7 +4575,7 @@ implementation
         result:=result+' '+messageinf.str^+']"';
       end;
 
-
+{$ifdef jvm}
     function tprocdef.jvmmangledbasename(signature: boolean): TSymStr;
       var
         vs: tparavarsym;
@@ -4664,7 +4669,7 @@ implementation
           tmpresult:='<error>';
         result:=tmpresult;
       end;
-
+{$endif jvm}
 
     procedure tprocdef.setmangledname(const s : TSymStr);
       begin
