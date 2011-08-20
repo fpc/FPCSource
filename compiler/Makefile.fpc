@@ -35,9 +35,9 @@ unexport FPC_VERSION FPC_COMPILERINFO
 CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr
 
 # All supported targets used for clean
-ALLTARGETS=$(CYCLETARGETS)
+ALLTARGETS=$(CYCLETARGETS) jvm
 
-# Allow ALPHA, POWERPC, POWERPC64, M68K, I386 defines for target cpu
+# Allow ALPHA, POWERPC, POWERPC64, M68K, I386, jvm defines for target cpu
 ifdef ALPHA
 PPC_TARGET=alpha
 endif
@@ -70,6 +70,9 @@ PPC_TARGET=mips
 endif
 ifdef MIPSEL
 PPC_TARGET=mipsel
+endif
+ifdef JVM
+PPC_TARGET=jvm
 endif
 
 # Default is to generate a compiler for the same
@@ -154,6 +157,9 @@ endif
 ifeq ($(CPC_TARGET),mipsel)
 CPUSUF=mipsel
 endif
+ifeq ($(CPC_TARGET),jvm)
+CPUSUF=jvm
+endif
 
 # Do not define the default -d$(CPU_TARGET) because that
 # will conflict with our -d$(CPC_TARGET)
@@ -235,6 +241,10 @@ ifeq ($(PPC_TARGET),mipsel)
 override LOCALOPT+=-Fumips
 endif
 
+# jvm specific
+ifeq ($(PPC_TARGET),jvm)
+override LOCALOPT+=-Fujvm
+endif
 
 OPTWPOCOLLECT=-OWdevirtcalls,optvmts -FW$(BASEDIR)/pp1.wpo
 OPTWPOPERFORM=-Owdevirtcalls,optvmts -Fw$(BASEDIR)/pp1.wpo
@@ -314,7 +324,7 @@ endif
 # CPU targets
 #####################################################################
 
-PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 alpha vis ia64 mips mipsel
+PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 alpha vis ia64 mips mipsel jvm
 
 .PHONY: $(PPC_TARGETS)
 

@@ -296,7 +296,7 @@ override PACKAGE_NAME=compiler
 override PACKAGE_VERSION=2.7.1
 unexport FPC_VERSION FPC_COMPILERINFO
 CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr
-ALLTARGETS=$(CYCLETARGETS)
+ALLTARGETS=$(CYCLETARGETS) jvm
 ifdef ALPHA
 PPC_TARGET=alpha
 endif
@@ -329,6 +329,9 @@ PPC_TARGET=mips
 endif
 ifdef MIPSEL
 PPC_TARGET=mipsel
+endif
+ifdef JVM
+PPC_TARGET=jvm
 endif
 ifndef PPC_TARGET
 PPC_TARGET=$(CPU_TARGET)
@@ -386,6 +389,9 @@ endif
 ifeq ($(CPC_TARGET),mipsel)
 CPUSUF=mipsel
 endif
+ifeq ($(CPC_TARGET),jvm)
+CPUSUF=jvm
+endif
 NOCPUDEF=1
 MSGFILE=msg/error$(FPCLANG).msg
 SVNVERSION:=$(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH)))
@@ -433,6 +439,9 @@ override LOCALOPT+=
 endif
 ifeq ($(PPC_TARGET),mipsel)
 override LOCALOPT+=-Fumips
+endif
+ifeq ($(PPC_TARGET),jvm)
+override LOCALOPT+=-Fujvm
 endif
 OPTWPOCOLLECT=-OWdevirtcalls,optvmts -FW$(BASEDIR)/pp1.wpo
 OPTWPOPERFORM=-Owdevirtcalls,optvmts -Fw$(BASEDIR)/pp1.wpo
@@ -3477,7 +3486,7 @@ INSTALLEXEFILE=$(PPCROSSNAME)
 else
 INSTALLEXEFILE=$(EXENAME)
 endif
-PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 alpha vis ia64 mips mipsel
+PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 alpha vis ia64 mips mipsel jvm
 .PHONY: $(PPC_TARGETS)
 $(PPC_TARGETS):
 	$(MAKE) PPC_TARGET=$@ CPU_UNITDIR=$@ all
