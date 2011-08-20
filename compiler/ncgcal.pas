@@ -870,7 +870,6 @@ implementation
          else
            { now procedure variable case }
            begin
-{$if defined(nounsupported) or not defined(jvm)}
               secondpass(right);
 
               pvreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
@@ -880,7 +879,6 @@ implementation
               else
                 cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,right.location,pvreg);
               location_freetemp(current_asmdata.CurrAsmList,right.location);
-{$endif defined(nounsupported) or not defined(jvm)}
 
               { Load parameters that are in temporary registers in the
                 correct parameter register }
@@ -891,7 +889,6 @@ implementation
                   freeparas;
                 end;
 
-{$if defined(nounsupported) or not defined(jvm)}
               cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
               if cg.uses_registers(R_FPUREGISTER) then
                 cg.alloccpuregisters(current_asmdata.CurrAsmList,R_FPUREGISTER,regs_to_save_fpu);
@@ -904,7 +901,6 @@ implementation
                 extra_interrupt_code;
               extra_call_code;
               cg.a_call_reg(current_asmdata.CurrAsmList,pvreg);
-{$endif defined(nounsupported) or not defined(jvm)}
               extra_post_call_code;
            end;
 

@@ -477,9 +477,7 @@ implementation
           end;
         loadtype('variant',cvarianttype);
         loadtype('olevariant',colevarianttype);
-{$if defined(nounsupported) or not defined(jvm)}
         if not(target_info.system in systems_managed_vm) then
-{$endif}
           loadtype('methodpointer',methodpointertype);
         loadtype('HRESULT',hresultdef);
 {$ifdef cpu64bitaddr}
