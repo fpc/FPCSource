@@ -166,6 +166,10 @@ implementation
         if (tabstractprocdef(procdefinition).proctypeoption=potype_constructor) and
            (current_procinfo.procdef.proctypeoption=potype_constructor) then
           exit;
+        if (location.loc=LOC_REFERENCE) then
+          tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
+        if assigned(funcretnode) then
+          exit;
         case resultdef.size of
           0:
             ;
