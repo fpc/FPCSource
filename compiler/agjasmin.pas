@@ -711,8 +711,6 @@ implementation
            (not(po_virtualmethod in pd.procoptions) and
             not(pd.proctypeoption in [potype_constructor,potype_class_constructor])) then
           result:=result+'final ';
-        if (pd.synthetickind<>tsk_none) then
-          result:=result+'synthetic ';
         result:=result+pd.jvmmangledbasename;
       end;
 
