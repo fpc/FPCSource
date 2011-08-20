@@ -1957,8 +1957,10 @@ implementation
          until false;
 
          { add implementations for synthetic method declarations added by
-           the compiler }
-         add_synthetic_method_implementations(current_procinfo.procdef.localst);
+           the compiler (not for unit/program init functions, their localst
+           is the staticst -> would duplicate the work done in pmodules) }
+         if current_procinfo.procdef.localst.symtabletype=localsymtable then
+           add_synthetic_method_implementations(current_procinfo.procdef.localst);
 
          { check for incomplete class definitions, this is only required
            for fpc modes }
