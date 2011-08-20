@@ -211,6 +211,7 @@ compiler/jvm/cgcpu.pas svneol=native#text/plain
 compiler/jvm/cpubase.pas svneol=native#text/plain
 compiler/jvm/cpuinfo.pas svneol=native#text/plain
 compiler/jvm/cpupara.pas svneol=native#text/plain
+compiler/jvm/cpupi.pas svneol=native#text/plain
 compiler/jvm/jvmreg.dat svneol=native#text/plain
 compiler/jvm/rjvmcon.inc svneol=native#text/plain
 compiler/jvm/rjvmnor.inc svneol=native#text/plain
