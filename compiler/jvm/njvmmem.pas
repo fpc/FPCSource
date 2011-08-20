@@ -88,9 +88,19 @@ implementation
              implicitptr) then
           begin
             if implicitptr then
-              { this is basically a typecast: the left node is a regular
-                'pointer', and we typecast it to an implicit pointer }
-              location_copy(location,left.location)
+              begin
+                { this is basically a typecast: the left node is a regular
+                  'pointer', and we typecast it to an implicit pointer }
+                location_copy(location,left.location);
+                { these implicit pointer types (records, sets, shortstrings, ...)
+                  cannot be located in registers on native targets (since
+                  they're not pointers there) -> force into memory to avoid
+                  confusing the compiler; this can happen when typecasting a
+                  Java class type into a pshortstring and then dereferencing etc
+                }
+                if location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                  hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef);
+              end
             else
               begin
                 { these are always arrays (used internally for pointers to var
