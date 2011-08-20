@@ -42,7 +42,7 @@ implementation
     uses
       verbose,constexp,
       symconst,symtype,symdef,symsym,symbase,symtable,defutil,
-      nbas,ncnv,ncon,nld,
+      nbas,ncnv,ncon,ninl,ncal,
       pass_1;
 
   class function tjvmnodeutils.initialize_data_node(p:tnode):tnode;
@@ -54,10 +54,20 @@ implementation
           not is_longstring(p.resultdef)) or
          is_dynamic_array(p.resultdef) then
         begin
-          result:=cassignmentnode.create(
-             ctypeconvnode.create_internal(p,voidpointertype),
-             cnilnode.create
-             );
+          { Always initialise with empty string/array rather than nil. Java
+            makes a distinction between an empty string/array and a null
+            string/array,  but we don't. We therefore have to pick which one we
+            use to represent empty strings/arrays. I've chosen empty rather than
+            null structures, because otherwise it becomes impossible to return
+            an empty string to Java code (it would return null).
+
+            On the consumer side, we do interpret both null and empty as the same
+            thing, so Java code can pass in null strings/arrays and we'll
+            interpret them correctly.
+          }
+          result:=cinlinenode.create(in_setlength_x,false,
+            ccallparanode.create(genintconstnode(0),
+              ccallparanode.create(p,nil)));
         end
       else
         { records/arrays/... are automatically initialised }

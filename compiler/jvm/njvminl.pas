@@ -35,6 +35,8 @@ interface
           function typecheck_length(var handled: boolean): tnode;
           function typecheck_high(var handled: boolean): tnode;
           function typecheck_new(var handled: boolean): tnode;
+
+          function first_setlength_array: tnode;
          public
           { typecheck override to intercept handling }
           function pass_typecheck: tnode; override;
@@ -65,6 +67,7 @@ interface
           procedure second_round_real; override;
 *)
           procedure second_new; override;
+          procedure second_setlength; override;
        protected
           procedure load_fpu_location;
        end;
@@ -74,9 +77,9 @@ implementation
     uses
       cutils,globals,verbose,globtype,constexp,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      symtype,symconst,symdef,symtable,jvmdef,
+      symtype,symconst,symdef,symsym,symtable,jvmdef,
       defutil,
-      nbas,ncon,ncnv,ncal,nld,
+      nbas,ncon,ncnv,ncal,nld,nflw,nutils,
       cgbase,pass_1,pass_2,
       cpuinfo,ncgutil,
       cgutils,hlcgobj,hlcgcpu;
@@ -216,7 +219,7 @@ implementation
       end;
 
 
-    function tjvminlinenode.first_setlength: tnode;
+    function tjvminlinenode.first_setlength_array: tnode;
       var
         assignmenttarget,
         ppn,
@@ -232,8 +235,6 @@ implementation
         newstatement: tstatementnode;
         primitive: boolean;
       begin
-        { reverse the parameter order so we can process them more easily }
-        left:=reverseparameters(tcallparanode(left));
         { first parameter is the array, the rest are the dimensions }
         newparas:=tcallparanode(left).right;
         tcallparanode(left).right:=nil;
@@ -330,6 +331,29 @@ implementation
             addstatement(newstatement,ctempdeletenode.create(lefttemp));
             result:=newblock;
           end;
+      end;
+
+
+    function tjvminlinenode.first_setlength: tnode;
+
+      begin
+        { reverse the parameter order so we can process them more easily }
+        left:=reverseparameters(tcallparanode(left));
+        { treat setlength(x,0) specially: used to init uninitialised locations }
+        if not assigned(tcallparanode(tcallparanode(left).right).right) and
+           is_constintnode(tcallparanode(tcallparanode(left).right).left) and
+           (tordconstnode(tcallparanode(tcallparanode(left).right).left).value=0) then
+          begin
+            result:=nil;
+            expectloc:=LOC_VOID;
+            exit;
+          end;
+        case left.resultdef.typ of
+          arraydef:
+            result:=first_setlength_array;
+          else
+            internalerror(2011031204);
+        end;
       end;
 
 
@@ -466,6 +490,30 @@ implementation
         location_reset(location,LOC_REGISTER,OS_ADDR);
         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
         thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,arr.resultdef,location.register);
+      end;
+
+
+    procedure tjvminlinenode.second_setlength;
+      var
+        target: tnode;
+        lenpara: tnode;
+      begin
+        target:=tcallparanode(left).left;
+        lenpara:=tcallparanode(tcallparanode(left).right).left;
+        if assigned(tcallparanode(tcallparanode(left).right).right) or
+           not is_constintnode(lenpara) or
+           (tordconstnode(lenpara).value<>0) then
+          internalerror(2011031801);
+
+        secondpass(target);
+        if is_dynamic_array(target.resultdef) then
+          begin
+            thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,s32inttype,0,R_INTREGISTER);
+            thlcgjvm(hlcg).g_newarray(current_asmdata.CurrAsmList,target.resultdef,1);
+          end
+        else
+          internalerror(2011031401);
+        thlcgjvm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,target.resultdef,target.location);
       end;
 
 

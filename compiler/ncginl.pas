@@ -58,6 +58,7 @@ interface
           procedure second_sar; virtual;
           procedure second_bsfbsr; virtual;
           procedure second_new; virtual;
+          procedure second_setlength; virtual; abstract;
        end;
 
 implementation
@@ -176,6 +177,8 @@ implementation
                second_BsfBsr;
             in_new_x:
                second_new;
+            in_setlength_x:
+               second_setlength;
             else internalerror(9);
          end;
       end;
