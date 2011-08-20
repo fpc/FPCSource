@@ -55,7 +55,7 @@ interface
         function MethodDefinition(pd: tprocdef): string;
         function ConstValue(csym: tconstsym): ansistring;
         function ConstAssignmentValue(csym: tconstsym): ansistring;
-        function ConstDefinition(sym: tconstsym): string;
+        function ConstDefinition(sym: tconstsym): ansistring;
         function FieldDefinition(sym: tabstractvarsym): string;
         function InnerStructDef(obj: tabstractrecorddef): string;
 
@@ -771,7 +771,7 @@ implementation
       end;
 
 
-    function TJasminAssembler.ConstDefinition(sym: tconstsym): string;
+    function TJasminAssembler.ConstDefinition(sym: tconstsym): ansistring;
       begin
         result:=VisibilityToStr(sym.visibility);
         { formal constants are always class-level, not instance-level }
@@ -895,9 +895,15 @@ implementation
 
 
     procedure TJasminAssembler.WriteConstSym(sym: tconstsym);
+      var
+        a: ansistring;
       begin
         AsmWrite('.field ');
-        AsmWriteln(ConstDefinition(sym));
+        { make sure the ansistring is not freed before we've extracted the
+          pchar }
+        a:=ConstDefinition(sym);
+        AsmWritePChar(pchar(a));
+        AsmLn
       end;
 
 
