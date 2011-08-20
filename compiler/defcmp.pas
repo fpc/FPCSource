@@ -1285,7 +1285,9 @@ implementation
                   (tobjectdef(def_from).is_related(tobjectdef(def_to))) then
                 begin
                   doconv:=tc_equal;
-                  eq:=te_convert_l1;
+                  { also update in htypechk.pas/var_para_allowed if changed
+                    here }
+                  eq:=te_convert_l3;
                 end
                { java.lang.string -> unicodestring }
                else if (def_to=java_jlstring) and
