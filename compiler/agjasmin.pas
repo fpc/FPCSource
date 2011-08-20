@@ -812,8 +812,8 @@ implementation
           else
             internalerror(2011011204);
         end;
-        if (vissym.owner.symtabletype in [staticsymtable,globalsymtable]) or
-           (sp_static in vissym.symoptions) then
+        if (sym.typ=staticvarsym) or
+           (sp_static in sym.symoptions) then
           result:=result+'static ';
         result:=result+jvmmangledbasename(sym);
       end;
@@ -897,7 +897,7 @@ implementation
     procedure TJasminAssembler.WriteSymtableVarSyms(st: TSymtable);
       var
         sym : tsym;
-        i   : longint;
+        i,j : longint;
       begin
         if not assigned(st) then
           exit;
@@ -909,10 +909,18 @@ implementation
              fieldvarsym:
                begin
                  WriteFieldSym(tabstractvarsym(sym));
+                 if (sym.typ=staticvarsym) and
+                    assigned(tstaticvarsym(sym).defaultconstsym) then
+                   WriteFieldSym(tabstractvarsym(tstaticvarsym(sym).defaultconstsym));
                end;
              constsym:
                begin
                  WriteConstSym(tconstsym(sym));
+               end;
+             procsym:
+               begin
+                 for j:=0 to tprocsym(sym).procdeflist.count-1 do
+                   WriteSymtableVarSyms(tprocdef(tprocsym(sym).procdeflist[j]).localst);
                end;
            end;
          end;
