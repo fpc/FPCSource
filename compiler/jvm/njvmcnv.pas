@@ -549,7 +549,8 @@ implementation
           except for a few special cases }
 
         { float to int/enum explicit type conversion: get the bits }
-        if (left.resultdef.typ=floatdef) and
+        if (convtype<>tc_int_2_real) and
+           (left.resultdef.typ=floatdef) and
            (is_integer(resultdef) or
             (resultdef.typ=enumdef)) then
           begin
@@ -559,7 +560,8 @@ implementation
             exit;
           end;
         { int to float explicit type conversion: also use the bits }
-        if (is_integer(left.resultdef) or
+        if (convtype<>tc_int_2_real) and
+           (is_integer(left.resultdef) or
             (left.resultdef.typ=enumdef)) and
            (resultdef.typ=floatdef) then
           begin
