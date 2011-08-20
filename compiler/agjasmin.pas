@@ -411,7 +411,7 @@ implementation
           begin
             { fake class type for unit -> name=unitname and
               superclass=java.lang.object }
-            AsmWriteLn('.class '+ChangeFileExt(ExtractFileName(n),''));
+            AsmWriteLn('.class '+current_module.realmodulename^);
             AsmWriteLn('.super java/lang/Object');
           end
         else
