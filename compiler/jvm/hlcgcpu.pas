@@ -1325,8 +1325,6 @@ implementation
             else
               opc:=a_ireturn;
           end;
-        enumdef:
-          opc:=a_ireturn;
         setdef:
           if is_smallset(retdef) then
             opc:=a_ireturn
