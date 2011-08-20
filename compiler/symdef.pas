@@ -3068,7 +3068,7 @@ implementation
     function tabstractrecorddef.jvm_full_typename(with_package_name: boolean): string;
       var
         st: tsymtable;
-        enclosingobj: tabstractrecorddef;
+        enclosingdef: tdef;
       begin
         if typ=objectdef then
           result:=tobjectdef(self).objextname^
@@ -3080,15 +3080,19 @@ implementation
 
         st:=owner;
         while assigned(st) and
-              (st.symtabletype in [objectsymtable,recordsymtable]) do
+              (st.symtabletype in [objectsymtable,recordsymtable,localsymtable]) do
           begin
             { nested classes are named as "OuterClass$InnerClass" }
-            enclosingobj:=tabstractrecorddef(st.defowner);
-            if enclosingobj.typ=objectdef then
-              result:=tobjectdef(enclosingobj).objextname^+'$'+result
-            else if assigned(enclosingobj.typesym) then
-              result:=enclosingobj.typesym.realname+'$'+result;
-            st:=enclosingobj.owner;
+            enclosingdef:=tdef(st.defowner);
+            if enclosingdef.typ=procdef then
+              result:=result+tprocdef(enclosingdef).procsym.realname+'$$'+tostr(tprocdef(enclosingdef).procsym.symid)+'$'
+            else if enclosingdef.typ=objectdef then
+              result:=tobjectdef(enclosingdef).objextname^+'$'+result
+            else if assigned(enclosingdef.typesym) then
+              result:=enclosingdef.typesym.realname+'$'+result
+            else
+              internalerror(2011060305);
+            st:=enclosingdef.owner;
           end;
 
         if with_package_name and
@@ -4454,6 +4458,7 @@ implementation
         i: longint;
         founderror: tdef;
         tmpresult: string;
+        container: tsymtable;
       begin
         { format:
             * method definition (in Jasmin):
@@ -4483,6 +4488,13 @@ implementation
                 tmpresult:=procsym.realname;
                 if tmpresult[1]='$' then
                   tmpresult:=copy(tmpresult,2,length(tmpresult)-1);
+                { nested functions }
+                container:=owner;
+                while container.symtabletype=localsymtable do
+                  begin
+                    tmpresult:='$'+tprocdef(owner.defowner).procsym.realname+'$'+tostr(tprocdef(owner.defowner).procsym.symid)+'$'+tmpresult;
+                    container:=container.defowner.owner;
+                  end;
               end;
           end
         else
