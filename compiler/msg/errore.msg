@@ -375,7 +375,7 @@ scanner_e_illegal_alignment_directive=02088_E_Illegal alignment directive
 #
 # Parser
 #
-# 03316 is the last used one
+# 03317 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1411,6 +1411,11 @@ parser_e_no_typed_const=03316_E_Typed constants are not allowed here, only forma
 % Java interfaces define a namespace in which formal constant can be defined,
 % but since they define no storage it is not possible to define typed constants
 % in them (those are more or less the same as initialised class fields).
+parser_e_java_no_inherited_constructor=03317_E_Constructors are not automatically inherited in the JVM; explicitly add a constructor that calls the inherited one if you need it
+% Java does not automatically add inherited constructors to child classes, so that they can be hidden.
+% For compatibility with external Java code, FPC does the same. If you require access to the same
+% constructors in a child class, define them in the child class and call the inherited one from
+% there.
 % \end{description}
 # Type Checking
 #

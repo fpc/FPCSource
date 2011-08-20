@@ -1220,10 +1220,19 @@ implementation
                       { calling using classref? }
                       if isclassref and
                          (p1.nodetype=calln) and
-                         assigned(tcallnode(p1).procdefinition) and
-                         not(po_classmethod in tcallnode(p1).procdefinition.procoptions) and
-                         not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) then
-                        Message(parser_e_only_class_members_via_class_ref);
+                         assigned(tcallnode(p1).procdefinition) then
+                        begin
+                          if not(po_classmethod in tcallnode(p1).procdefinition.procoptions) and
+                             not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) then
+                            Message(parser_e_only_class_members_via_class_ref);
+                          { in Java, constructors are not automatically inherited
+                            -> calling a constructor from a parent type will create
+                               an instance of that parent type! }
+                          if is_javaclass(structh) and
+                             (tcallnode(p1).procdefinition.proctypeoption=potype_constructor) and
+                             (tcallnode(p1).procdefinition.owner.defowner<>find_real_class_definition(tobjectdef(structh),false)) then
+                            Message(parser_e_java_no_inherited_constructor);
+                        end;
                    end;
                  fieldvarsym:
                    begin
