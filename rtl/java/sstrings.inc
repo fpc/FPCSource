@@ -153,7 +153,7 @@ end;
 
 function ShortstringClass.toUnicodeString: unicodestring;
 begin
-  result:=UnicodeString(JLString.Create(TJByteArray(fdata)));
+  result:=UnicodeString(toString);
 end;
 
 
@@ -166,7 +166,7 @@ end;
 function ShortstringClass.toString: JLString;
 begin
   if curlen<>0 then
-    result:=JLString.Create(TJByteArray(fdata),0,curlen-1)
+    result:=JLString.Create(TJByteArray(fdata),0,curlen)
   else
     result:='';
 end;
