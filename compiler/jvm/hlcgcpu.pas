@@ -824,9 +824,15 @@ implementation
         R_FPUREGISTER:
           case tfloatdef(resdef).floattype of
             s32real:
-             list.concat(taicpu.op_none(a_fconst_0));
+              begin
+                list.concat(taicpu.op_none(a_fconst_0));
+                incstack(list,1);
+              end;
             s64real:
-             list.concat(taicpu.op_none(a_dconst_0));
+              begin
+                list.concat(taicpu.op_none(a_dconst_0));
+                incstack(list,2);
+              end;
             else
               internalerror(2011010302);
           end
