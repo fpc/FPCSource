@@ -38,6 +38,9 @@ interface
 
           function first_copy: tnode; override;
 
+          function handle_box: tnode; override;
+          function first_box: tnode; override;
+
           function first_setlength_array: tnode;
           function first_setlength_string: tnode;
          public
@@ -72,6 +75,7 @@ interface
 *)
           procedure second_new; override;
           procedure second_setlength; override;
+          procedure second_box; override;
        protected
           procedure load_fpu_location;
        end;
@@ -231,6 +235,23 @@ implementation
           end
         else
           result:=inherited first_copy;
+      end;
+
+
+    function tjvminlinenode.handle_box: tnode;
+      begin
+        Result:=inherited;
+        resultdef:=java_jlobject;
+      end;
+
+
+    function tjvminlinenode.first_box: tnode;
+      begin
+        result:=nil;
+        expectloc:=LOC_REGISTER;
+{$ifdef nounsupported}
+        internalerror(2011042603);
+{$endif}
       end;
 
 
@@ -719,6 +740,18 @@ implementation
         else
           internalerror(2011031401);
         thlcgjvm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,target.resultdef,target.location);
+      end;
+
+    procedure tjvminlinenode.second_box;
+      begin
+{$ifndef nounsupported}
+        secondpass(tcallparanode(left).left);
+        location_reset(location,LOC_REGISTER,OS_ADDR);
+        location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
+        hlcg.a_load_const_reg(current_asmdata.CurrAsmList,java_jlobject,0,location.register);
+{$else}
+        internalerror(2011042606);
+{$endif}
       end;
 
 

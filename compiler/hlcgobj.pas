@@ -615,7 +615,8 @@ implementation
           objectdef,
           procvardef,
           procdef,
-          arraydef :
+          arraydef,
+          formaldef:
             result:=R_ADDRESSREGISTER;
           floatdef:
             if use_vectorfpu(def) then

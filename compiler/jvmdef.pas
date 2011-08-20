@@ -190,8 +190,13 @@ implementation
             end;
           formaldef :
             begin
-              { not supported (may be changed into "java.lang.Object" later) }
+{$ifndef nounsupported}
+              { var x: JLObject }
+              encodedstr:=encodedstr+'[';
+              result:=jvmaddencodedtype(java_jlobject,false,encodedstr,founderror);
+{$else}
               result:=false;
+{$endif}
             end;
           arraydef :
             begin

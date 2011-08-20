@@ -72,6 +72,9 @@ interface
             by the JVM backend to create new dynamic arrays. }
           function first_new: tnode; virtual;
           function first_length: tnode; virtual;
+          function first_box: tnode; virtual; abstract;
+
+          function handle_box: tnode; virtual;
         private
           function handle_str: tnode;
           function handle_reset_rewrite_typed: tnode;
@@ -2895,6 +2898,10 @@ implementation
                 begin
                   result:=handle_objc_encode;
                 end;
+              in_box_x:
+                begin
+                  result:=handle_box;
+                end;
               else
                 internalerror(8);
             end;
@@ -3285,6 +3292,8 @@ implementation
            expectloc:=LOC_REGISTER;
          in_new_x:
            result:=first_new;
+         in_box_x:
+           result:=first_box;
          else
            internalerror(89);
           end;
@@ -3566,6 +3575,12 @@ implementation
             { ansi/wide string }
             expectloc:=LOC_REGISTER;
           end;
+       end;
+
+     function tinlinenode.handle_box: tnode;
+       begin
+         result:=nil;
+         resultdef:=class_tobject;
        end;
 
      function tinlinenode.first_pack_unpack: tnode;

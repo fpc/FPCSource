@@ -545,9 +545,23 @@ implementation
           maybe_call_procvar(right,true);
 
         { assignments to formaldefs and open arrays aren't allowed }
-        if (left.resultdef.typ=formaldef) or
-           is_open_array(left.resultdef) then
-          CGMessage(type_e_assignment_not_allowed);
+        if is_open_array(left.resultdef) then
+          CGMessage(type_e_assignment_not_allowed)
+        else if (left.resultdef.typ=formaldef) then
+          if not(target_info.system in systems_managed_vm) then
+            CGMessage(type_e_assignment_not_allowed)
+          else
+            begin
+              { on managed platforms, assigning to formaldefs is allowed (but
+                typecasting them on the left hand side isn't), but primitive
+                values need to be boxed first }
+              if (right.resultdef.typ in [orddef,floatdef]) then
+                begin
+                  right:=cinlinenode.create(in_box_x,false,ccallparanode.create(right,nil));
+                  typecheckpass(right);
+                end;
+            end;
+
 
         { test if node can be assigned, properties are allowed }
         if not(nf_internal in flags) then

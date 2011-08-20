@@ -1423,7 +1423,7 @@ parser_d_internal_parser_string=03318_D_Parsing internally generated code: $1
 % \end{description}
 # Type Checking
 #
-# 04104 is the last used one
+# 04105 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1786,6 +1786,15 @@ type_e_java_class_method_not_static=04103_E_Java class methods have to be static
 % methods. It is not possible to declare non-static class methods.
 type_e_invalid_final_assignment=04104_E_Final (class) fields can only be assigned in their class' (class) constructor
 % It is only possible to assign a value to a final (class) field inside a (class) constructor of its owning class.
+type_e_no_managed_formal_assign_typecast=04105_E_It is not possible to typecast untyped parameters on managed platforms, simply assign a value to them instead.
+% On managed platforms, untyped parameters are translated by the compiler into
+% the equivalent of \var{var x: BaseClassType}. Non-class-based types passed to
+% such parameters are automatically wrapped (or boxed) in a class, and after the
+% call the potentially modified value is assigned back to the original variable.
+% On the caller side, changing untyped var/out parameters happens by simply assigning
+% values to them (either class-based or primitive ones). On the caller side,
+% they will be extracted and if their type does not match the original variable's,
+% an exception will be raised.
 %
 %
 % \end{description}

@@ -216,7 +216,8 @@ implementation
                    push_value_para;
                end
              { formal def }
-             else if (parasym.vardef.typ=formaldef) then
+             else if (parasym.vardef.typ=formaldef) and
+                     not(target_info.system in systems_managed_vm) then
                begin
                   { allow passing of a constant to a const formaldef }
                   if (parasym.varspez=vs_const) and

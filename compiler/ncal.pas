@@ -869,7 +869,17 @@ implementation
                        vs_out :
                          begin
                            if not valid_for_formal_var(left,true) then
-                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
+                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list)
+                           else if (target_info.system in systems_managed_vm) and
+                              (left.resultdef.typ in [orddef,floatdef]) then
+                             begin
+                               left:=cinlinenode.create(in_box_x,false,ccallparanode.create(left,nil));
+                               typecheckpass(left);
+{$ifdef nounsupported}
+                               { TODO: unbox afterwards }
+                               internalerror(2011042608);
+{$endif}
+                             end;
                          end;
                        vs_const :
                          begin

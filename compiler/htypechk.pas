@@ -1231,7 +1231,12 @@ implementation
                    - typecast from pointer to array }
                  fromdef:=ttypeconvnode(hp).left.resultdef;
                  todef:=hp.resultdef;
-                 if not((nf_absolute in ttypeconvnode(hp).flags) or
+                 { in managed VMs, you cannot typecast formaldef when assigning
+                   to it, see http://hallvards.blogspot.com/2007/10/dn4dp24-net-vs-win32-untyped-parameters.html }
+                 if (target_info.system in systems_managed_vm) and
+                    (fromdef.typ=formaldef) then
+                   CGMessagePos(hp.fileinfo,type_e_no_managed_formal_assign_typecast)
+                 else if not((nf_absolute in ttypeconvnode(hp).flags) or
                         (fromdef.typ=formaldef) or
                         is_void(fromdef) or
                         is_open_array(fromdef) or
