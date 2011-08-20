@@ -66,6 +66,7 @@ unit parabase;
           IntSize   : tcgint; { size of the total location in bytes }
           Alignment : ShortInt;
           Size      : TCGSize;  { Size of the parameter included in all locations }
+          Def       : tdef; { Type of the parameter }
 {$ifdef powerpc}
           composite: boolean; { under the AIX abi, how certain parameters are passed depends on whether they are composite or not }
 {$endif powerpc}
