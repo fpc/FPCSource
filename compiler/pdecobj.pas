@@ -421,10 +421,14 @@ implementation
 
 
     procedure parse_object_options;
+      var
+        gotexternal: boolean;
       begin
         case current_objectdef.objecttype of
-          odt_object,odt_class:
+          odt_object,odt_class,
+          odt_javaclass:
             begin
+              gotexternal:=false;
               while true do
                 begin
                   if try_to_consume(_ABSTRACT) then
@@ -432,14 +436,24 @@ implementation
                   else
                   if try_to_consume(_SEALED) then
                     include(current_structdef.objectoptions,oo_is_sealed)
+                  else if (current_objectdef.objecttype=odt_javaclass) and
+                          (token=_ID) and
+                          (idtoken=_EXTERNAL) then
+                    begin
+                      get_cpp_or_java_class_external_status(current_objectdef);
+                      gotexternal:=true;
+                    end
                   else
                     break;
                 end;
-              if [oo_is_abstract, oo_is_sealed] * current_structdef.objectoptions = [oo_is_abstract, oo_is_sealed] then
+              if [oo_is_abstract, oo_is_sealed] <= current_structdef.objectoptions then
                 Message(parser_e_abstract_and_sealed_conflict);
+              { set default external name in case of no external directive }
+              if (current_objectdef.objecttype=odt_javaclass) and
+                 not gotexternal then
+               get_cpp_or_java_class_external_status(current_objectdef)
             end;
           odt_cppclass,
-          odt_javaclass,
           odt_interfacejava:
             get_cpp_or_java_class_external_status(current_objectdef);
           odt_objcclass,odt_objcprotocol,odt_objccategory:
