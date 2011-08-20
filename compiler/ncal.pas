@@ -184,7 +184,7 @@ interface
             finalization code }
           fparainit,
           fparacopyback: tnode;
-          procedure handleformalcopyoutpara(orgparadef: tdef);virtual;abstract;
+          procedure handlemanagedbyrefpara(orgparadef: tdef);virtual;abstract;
        public
           callparaflags : tcallparaflags;
           parasym       : tparavarsym;
@@ -688,6 +688,12 @@ implementation
           tcallparanode(right).firstcallparan;
         if not assigned(left.resultdef) then
           get_paratype;
+        if assigned(parasym) and
+           (target_info.system in systems_managed_vm) and
+           (parasym.varspez in [vs_var,vs_out,vs_constref]) and
+           (parasym.vardef.typ<>formaldef) then
+          handlemanagedbyrefpara(left.resultdef);
+
         if assigned(fparainit) then
           firstpass(fparainit);
         firstpass(left);
@@ -922,10 +928,7 @@ implementation
                            if not valid_for_formal_var(left,true) then
                             CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list)
                            else if (target_info.system in systems_managed_vm) then
-                             begin
-                               olddef:=left.resultdef;
-                               handleformalcopyoutpara(left.resultdef);
-                             end;
+                             handlemanagedbyrefpara(left.resultdef);
                          end;
                        vs_const :
                          begin
