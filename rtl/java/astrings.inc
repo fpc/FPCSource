@@ -579,7 +579,7 @@ end;
 { pos(c: char; const s: shortstring) also exists, so otherwise   }
 { using pos(char,pchar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
-Function Pos (c : Char; Const s : AnsiString) : SizeInt;
+Function Pos (c : AnsiChar; Const s : AnsiString) : SizeInt;
 var
   i: SizeInt;
 begin
@@ -844,7 +844,6 @@ end;
 
 function upcase(const s : ansistring) : ansistring;
 var
-  i : SizeInt;
   u : unicodestring;
 begin
   u:=s;
@@ -854,7 +853,6 @@ end;
 
 function lowercase(const s : ansistring) : ansistring;
 var
-  i : SizeInt;
   u : unicodestring;
 begin
   u:=s;
