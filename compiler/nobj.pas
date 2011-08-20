@@ -284,9 +284,8 @@ implementation
                (is_objccategory(_class) and
                  not(po_reintroduce in pd.procoptions)) or
                { new one does not have override in case of objpas/objc/java class/intf/proto }
-               ((is_class_or_interface_or_objc(_class) or is_objectpascal_helper(_class)) and
+               ((is_class_or_interface_or_objc_or_java(_class) or is_objectpascal_helper(_class)) and
                 not is_objccategory(_class) and
-                not is_java_class_or_interface(_class) and
                 not(po_overridingmethod in pd.procoptions)
                )
               )
