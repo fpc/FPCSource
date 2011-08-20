@@ -93,6 +93,36 @@ implementation
                             TypeCheckTypeConv
 *****************************************************************************}
 
+    function isvalidprocvartypeconv(fromdef, todef: tdef): boolean;
+
+      var
+        tmethoddef: tdef;
+
+      function docheck(def1,def2: tdef): boolean;
+        begin
+          result:=false;
+          if def1.typ<>procvardef then
+            exit;
+          if tprocvardef(def1).is_addressonly then
+            result:=def2=java_jlobject
+          else
+            begin
+              if not assigned(tmethoddef) then
+                tmethoddef:=search_system_type('TMETHOD').typedef;
+              result:=
+                (def2=methodpointertype) or
+                (def2=tmethoddef);
+            end;
+        end;
+
+      begin
+        tmethoddef:=nil;
+        result:=
+          docheck(fromdef,todef) or
+          docheck(todef,fromdef);
+      end;
+
+
    function tjvmtypeconvnode.typecheck_dynarray_to_openarray: tnode;
      begin
        { all arrays are equal in Java }
@@ -453,7 +483,8 @@ implementation
 
       var
         fromclasscompatible,
-        toclasscompatible: boolean;
+        toclasscompatible,
+        procvarconv: boolean;
         fromdef,
         todef,
         jlclass: tdef;
@@ -468,16 +499,19 @@ implementation
 
         { don't allow conversions between object-based and non-object-based
           types }
+        procvarconv:=isvalidprocvartypeconv(left.resultdef,resultdef);
         fromclasscompatible:=
           (left.resultdef.typ=objectdef) or
           is_dynamic_array(left.resultdef) or
           ((left.resultdef.typ in [recorddef,stringdef]) and
-           (resultdef.typ=objectdef));
+           (resultdef.typ=objectdef)) or
+          procvarconv;
         toclasscompatible:=
           (resultdef.typ=objectdef) or
           is_dynamic_array(resultdef) or
           ((resultdef.typ in [recorddef,stringdef]) and
-           (left.resultdef.typ=objectdef));
+           (left.resultdef.typ=objectdef)) or
+          procvarconv;
         if fromclasscompatible and toclasscompatible then
           begin
             { we need an as-node to check the validity of the conversion (since
@@ -650,12 +684,7 @@ implementation
           end;
 
 {$ifndef nounsupported}
-        if ((left.resultdef.typ=procvardef) and
-            ((resultdef=methodpointertype) or
-             (resultdef=search_system_type('TMETHOD').typedef))) or
-           ((resultdef.typ=procvardef) and
-            ((left.resultdef=methodpointertype)  or
-             (left.resultdef=search_system_type('TMETHOD').typedef))) then
+        if isvalidprocvartypeconv(left.resultdef,resultdef) then
           begin
             convtype:=tc_equal;
             result:=true;
@@ -673,6 +702,12 @@ implementation
 
     function isrecordconv(fromdef, todef: tdef): boolean;
       begin
+        if isvalidprocvartypeconv(fromdef,todef) then
+          begin
+            result:=true;
+            exit;
+          end;
+
         if is_record(todef) then
           begin
             result:=
@@ -836,7 +871,11 @@ implementation
       else
         checkdef:=node.right.resultdef;
       { replace special types with their equivalent class type }
-      if is_wide_or_unicode_string(checkdef) then
+{$ifndef nounsupported}
+      if checkdef.typ=procvardef then
+        checkdef:=java_jlobject
+{$endif}
+      else if is_wide_or_unicode_string(checkdef) then
         checkdef:=java_jlstring;
       if checkdef.typ in [objectdef,recorddef] then
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcode,current_asmdata.RefAsmSymbol(tabstractrecorddef(checkdef).jvm_full_typename(true))))
