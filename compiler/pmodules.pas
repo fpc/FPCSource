@@ -149,372 +149,24 @@ implementation
           end;
       end;
 
-
-    procedure InsertThreadvarTablesTable;
-      var
-        hp : tused_unit;
-        ltvTables : TAsmList;
-        count : longint;
-      begin
-        if (tf_section_threadvars in target_info.flags) then
-          exit;
-        ltvTables:=TAsmList.Create;
-        count:=0;
-        hp:=tused_unit(usedunits.first);
-        while assigned(hp) do
-         begin
-           If (hp.u.flags and uf_threadvars)=uf_threadvars then
-            begin
-              ltvTables.concat(Tai_const.Createname(make_mangledname('THREADVARLIST',hp.u.globalsymtable,''),0));
-              inc(count);
-            end;
-           hp:=tused_unit(hp.next);
-         end;
-        { Add program threadvars, if any }
-        If (current_module.flags and uf_threadvars)=uf_threadvars then
-         begin
-           ltvTables.concat(Tai_const.Createname(make_mangledname('THREADVARLIST',current_module.localsymtable,''),0));
-           inc(count);
-         end;
-        { Insert TableCount at start }
-        ltvTables.insert(Tai_const.Create_32bit(count));
-        { insert in data segment }
-        maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-        new_section(current_asmdata.asmlists[al_globals],sec_data,'FPC_THREADVARTABLES',sizeof(pint));
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('FPC_THREADVARTABLES',AT_DATA,0));
-        current_asmdata.asmlists[al_globals].concatlist(ltvTables);
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('FPC_THREADVARTABLES'));
-        ltvTables.free;
-      end;
-
-    procedure AddToThreadvarList(p:TObject;arg:pointer);
-      var
-        ltvTable : TAsmList;
-      begin
-        ltvTable:=TAsmList(arg);
-        if (tsym(p).typ=staticvarsym) and
-           (vo_is_thread_var in tstaticvarsym(p).varoptions) then
-         begin
-           { address of threadvar }
-           ltvTable.concat(tai_const.Createname(tstaticvarsym(p).mangledname,0));
-           { size of threadvar }
-           ltvTable.concat(tai_const.create_32bit(tstaticvarsym(p).getsize));
-         end;
-      end;
-
-
-    procedure InsertThreadvars;
-      var
-        s : string;
-        ltvTable : TAsmList;
-      begin
-         if (tf_section_threadvars in target_info.flags) then
-           exit;
-         ltvTable:=TAsmList.create;
-         if assigned(current_module.globalsymtable) then
-           current_module.globalsymtable.SymList.ForEachCall(@AddToThreadvarList,ltvTable);
-         current_module.localsymtable.SymList.ForEachCall(@AddToThreadvarList,ltvTable);
-         if ltvTable.first<>nil then
-          begin
-            s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
-            { end of the list marker }
-            ltvTable.concat(tai_const.create_sym(nil));
-            { add to datasegment }
-            maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-            new_section(current_asmdata.asmlists[al_globals],sec_data,s,sizeof(pint));
-            current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0));
-            current_asmdata.asmlists[al_globals].concatlist(ltvTable);
-            current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(s));
-            current_module.flags:=current_module.flags or uf_threadvars;
-          end;
-         ltvTable.Free;
-      end;
-
-    procedure InsertWideInits;
-      var
-        s: string;
-        item: TTCInitItem;
-      begin
-        item:=TTCInitItem(current_asmdata.WideInits.First);
-        if item=nil then
-          exit;
-        s:=make_mangledname('WIDEINITS',current_module.localsymtable,'');
-        maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-        new_section(current_asmdata.asmlists[al_globals],sec_data,s,sizeof(pint));
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0));
-        repeat
-          { optimize away unused local/static symbols }
-          if (item.sym.refs>0) or (item.sym.owner.symtabletype=globalsymtable) then
-            begin
-              { address to initialize }
-              current_asmdata.asmlists[al_globals].concat(Tai_const.createname(item.sym.mangledname, item.offset));
-              { value with which to initialize }
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(item.datalabel));
-            end;
-          item:=TTCInitItem(item.Next);
-        until item=nil;
-        { end-of-list marker }
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(s));
-        current_module.flags:=current_module.flags or uf_wideinits;
-      end;
-
-    procedure InsertWideInitsTablesTable;
-      var
-        hp: tused_unit;
-        lwiTables: TAsmList;
-        count: longint;
-      begin
-        lwiTables:=TAsmList.Create;
-        count:=0;
-        hp:=tused_unit(usedunits.first);
-        while assigned(hp) do
-         begin
-           if (hp.u.flags and uf_wideinits)=uf_wideinits then
-            begin
-              lwiTables.concat(Tai_const.Createname(make_mangledname('WIDEINITS',hp.u.globalsymtable,''),0));
-              inc(count);
-            end;
-           hp:=tused_unit(hp.next);
-         end;
-        { Add program widestring consts, if any }
-        if (current_module.flags and uf_wideinits)=uf_wideinits then
-         begin
-           lwiTables.concat(Tai_const.Createname(make_mangledname('WIDEINITS',current_module.localsymtable,''),0));
-           inc(count);
-         end;
-        { Insert TableCount at start }
-        lwiTables.insert(Tai_const.Create_32bit(count));
-        { insert in data segment }
-        maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-        new_section(current_asmdata.asmlists[al_globals],sec_data,'FPC_WIDEINITTABLES',sizeof(pint));
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('FPC_WIDEINITTABLES',AT_DATA,0));
-        current_asmdata.asmlists[al_globals].concatlist(lwiTables);
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('FPC_WIDEINITTABLES'));
-        lwiTables.free;
-      end;
-
-
     Function CheckResourcesUsed : boolean;
-    var
-      hp           : tused_unit;
-      found        : Boolean;
-    begin
-      CheckResourcesUsed:=tf_has_winlike_resources in target_info.flags;
-      if not CheckResourcesUsed then exit;
-
-      hp:=tused_unit(usedunits.first);
-      found:=((current_module.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
-      If not found then
-        While Assigned(hp) and not found do
-          begin
-          Found:=((hp.u.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
-          hp:=tused_unit(hp.next);
-          end;
-      CheckResourcesUsed:=found;
-    end;
-
-    Procedure InsertResourceInfo(ResourcesUsed : boolean);
-
-    var
-      ResourceInfo : TAsmList;
-
-    begin
-      if (target_res.id in [res_elf,res_macho]) then
-        begin
-        ResourceInfo:=TAsmList.Create;
-
-        maybe_new_object_file(ResourceInfo);
-        new_section(ResourceInfo,sec_data,'FPC_RESLOCATION',sizeof(aint));
-        ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESLOCATION',AT_DATA,0));
-        if ResourcesUsed then
-          { Valid pointer to resource information }
-          ResourceInfo.concat(Tai_const.Createname('FPC_RESSYMBOL',0))
-        else
-          { Nil pointer to resource information }
-          {$IFDEF CPU32}
-          ResourceInfo.Concat(Tai_const.Create_32bit(0));
-          {$ELSE}
-          ResourceInfo.Concat(Tai_const.Create_64bit(0));
-          {$ENDIF}
-        maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-        current_asmdata.asmlists[al_globals].concatlist(ResourceInfo);
-        ResourceInfo.free;
-        end;
-    end;
-
-
-    Procedure InsertResourceTablesTable;
       var
-        hp : tmodule;
-        ResourceStringTables : tasmlist;
-        count : longint;
+        hp           : tused_unit;
+        found        : Boolean;
       begin
-        ResourceStringTables:=tasmlist.Create;
-        count:=0;
-        hp:=tmodule(loaded_units.first);
-        while assigned(hp) do
-          begin
-            If (hp.flags and uf_has_resourcestrings)=uf_has_resourcestrings then
-              begin
-                ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'START'),0));
-                ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'END'),0));
-                inc(count);
-              end;
-            hp:=tmodule(hp.next);
-          end;
-        { Insert TableCount at start }
-        ResourceStringTables.insert(Tai_const.Create_pint(count));
-        { Add to data segment }
-        maybe_new_object_file(current_asmdata.AsmLists[al_globals]);
-        new_section(current_asmdata.AsmLists[al_globals],sec_data,'FPC_RESOURCESTRINGTABLES',sizeof(pint));
-        current_asmdata.AsmLists[al_globals].concat(Tai_symbol.Createname_global('FPC_RESOURCESTRINGTABLES',AT_DATA,0));
-        current_asmdata.AsmLists[al_globals].concatlist(ResourceStringTables);
-        current_asmdata.AsmLists[al_globals].concat(Tai_symbol_end.Createname('FPC_RESOURCESTRINGTABLES'));
-        ResourceStringTables.free;
-      end;
+        CheckResourcesUsed:=tf_has_winlike_resources in target_info.flags;
+        if not CheckResourcesUsed then exit;
 
-    procedure AddToStructInits(p:TObject;arg:pointer);
-      var
-        StructList: TFPList absolute arg;
-      begin
-        if (tdef(p).typ in [objectdef,recorddef]) and
-           ([oo_has_class_constructor,oo_has_class_destructor] * tabstractrecorddef(p).objectoptions <> []) then
-          StructList.Add(p);
-      end;
-
-    procedure InsertInitFinalTable;
-      var
-        hp : tused_unit;
-        unitinits : TAsmList;
-        count : longint;
-
-        procedure write_struct_inits(u: tmodule);
-          var
-            i: integer;
-            structlist: TFPList;
-            pd: tprocdef;
-          begin
-            structlist := TFPList.Create;
-            if assigned(u.globalsymtable) then
-              u.globalsymtable.DefList.ForEachCall(@AddToStructInits,structlist);
-            u.localsymtable.DefList.ForEachCall(@AddToStructInits,structlist);
-            { write structures }
-            for i := 0 to structlist.Count - 1 do
-            begin
-              pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_constructor);
-              if assigned(pd) then
-                unitinits.concat(Tai_const.Createname(pd.mangledname,0))
-              else
-                unitinits.concat(Tai_const.Create_pint(0));
-              pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_destructor);
-              if assigned(pd) then
-                unitinits.concat(Tai_const.Createname(pd.mangledname,0))
-              else
-                unitinits.concat(Tai_const.Create_pint(0));
-              inc(count);
-            end;
-            structlist.free;
-          end;
-
-      begin
-        unitinits:=TAsmList.Create;
-        count:=0;
         hp:=tused_unit(usedunits.first);
-        while assigned(hp) do
-         begin
-           { insert class constructors/destructors of the unit }
-           if (hp.u.flags and uf_classinits) <> 0 then
-             write_struct_inits(hp.u);
-           { call the unit init code and make it external }
-           if (hp.u.flags and (uf_init or uf_finalize))<>0 then
-             begin
-               if (hp.u.flags and uf_init)<>0 then
-                 unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),0))
-               else
-                 unitinits.concat(Tai_const.Create_sym(nil));
-               if (hp.u.flags and uf_finalize)<>0 then
-                 unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),0))
-               else
-                 unitinits.concat(Tai_const.Create_sym(nil));
-               inc(count);
-             end;
-           hp:=tused_unit(hp.next);
-         end;
-        { insert class constructors/destructor of the program }
-        if (current_module.flags and uf_classinits) <> 0 then
-          write_struct_inits(current_module);
-        { Insert initialization/finalization of the program }
-        if (current_module.flags and (uf_init or uf_finalize))<>0 then
-          begin
-            if (current_module.flags and uf_init)<>0 then
-              unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',current_module.localsymtable,''),0))
-            else
-              unitinits.concat(Tai_const.Create_sym(nil));
-            if (current_module.flags and uf_finalize)<>0 then
-              unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,''),0))
-            else
-              unitinits.concat(Tai_const.Create_sym(nil));
-            inc(count);
-          end;
-        { Insert TableCount,InitCount at start }
-        unitinits.insert(Tai_const.Create_32bit(0));
-        unitinits.insert(Tai_const.Create_32bit(count));
-        { Add to data segment }
-        maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-        new_section(current_asmdata.asmlists[al_globals],sec_data,'INITFINAL',sizeof(pint));
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('INITFINAL',AT_DATA,0));
-        current_asmdata.asmlists[al_globals].concatlist(unitinits);
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('INITFINAL'));
-        unitinits.free;
+        found:=((current_module.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
+        If not found then
+          While Assigned(hp) and not found do
+            begin
+            Found:=((hp.u.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
+            hp:=tused_unit(hp.next);
+            end;
+        CheckResourcesUsed:=found;
       end;
-
-
-    procedure InsertMemorySizes;
-{$IFDEF POWERPC}
-      var
-        stkcookie: string;
-{$ENDIF POWERPC}
-      begin
-        maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-        { Insert Ident of the compiler in the .fpc.version section }
-        new_section(current_asmdata.asmlists[al_globals],sec_fpc,'version',const_align(32));
-        current_asmdata.asmlists[al_globals].concat(Tai_string.Create('FPC '+full_version_string+
-          ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
-        if not(tf_no_generic_stackcheck in target_info.flags) then
-          begin
-            { stacksize can be specified and is now simulated }
-            new_section(current_asmdata.asmlists[al_globals],sec_data,'__stklen', sizeof(pint));
-            current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__stklen',AT_DATA,sizeof(pint)));
-            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(stacksize));
-          end;
-{$IFDEF POWERPC}
-        { AmigaOS4 "stack cookie" support }
-        if ( target_info.system = system_powerpc_amiga ) then
-         begin
-           { this symbol is needed to ignite powerpc amigaos' }
-           { stack allocation magic for us with the given stack size. }
-           { note: won't work for m68k amigaos or morphos. (KB) }
-           str(stacksize,stkcookie);
-           stkcookie:='$STACK: '+stkcookie+#0;
-           maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-           new_section(current_asmdata.asmlists[al_globals],sec_data,'__stack_cookie',length(stkcookie));
-           current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__stack_cookie',AT_DATA,length(stkcookie)));
-           current_asmdata.asmlists[al_globals].concat(Tai_string.Create(stkcookie));
-         end;
-{$ENDIF POWERPC}
-        { Initial heapsize }
-        maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-        new_section(current_asmdata.asmlists[al_globals],sec_data,'__heapsize',sizeof(pint));
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,sizeof(pint)));
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(heapsize));
-        { Initial heapsize }
-        maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-        new_section(current_asmdata.asmlists[al_globals],sec_data,'__fpc_valgrind',sizeof(boolean));
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__fpc_valgrind',AT_DATA,sizeof(boolean)));
-        current_asmdata.asmlists[al_globals].concat(Tai_const.create_8bit(byte(cs_gdb_valgrind in current_settings.globalswitches)));
-      end;
-
 
     procedure AddUnit(const s:string);
       var
@@ -898,22 +550,12 @@ implementation
         { main are allways used }
         inc(ps.refs);
         st.insert(ps);
-        pd:=tprocdef.create(main_program_level);
-        include(pd.procoptions,po_global);
-        pd.procsym:=ps;
-        ps.ProcdefList.Add(pd);
-        { set procdef options }
-        pd.proctypeoption:=potype;
-        pd.proccalloption:=pocall_default;
-        include(pd.procoptions,po_hascallingconvention);
-        pd.forwarddef:=false;
-        pd.setmangledname(target_info.cprefix+name);
-        pd.aliasnames.insert(pd.mangledname);
-        handle_calling_convention(pd);
+        pd:=tprocdef(cnodeutils.create_main_procdef(target_info.cprefix+name,potype,ps));
         { We don't need is a local symtable. Change it into the static
           symtable }
         pd.localst.free;
         pd.localst:=st;
+        handle_calling_convention(pd);
         { set procinfo and current_procinfo.procdef }
         result:=tcgprocinfo(cprocinfo.create(nil));
         result.procdef:=pd;
@@ -1372,13 +1014,13 @@ implementation
          write_persistent_type_info(current_module.localsymtable);
 
          { Tables }
-         InsertThreadvars;
+         cnodeutils.InsertThreadvars;
 
          { Resource strings }
          GenerateResourceStrings;
 
          { Widestring typed constants }
-         InsertWideInits;
+         cnodeutils.InsertWideInits;
 
          { generate debuginfo }
          if (cs_debuginfo in current_settings.moduleswitches) then
@@ -2199,6 +1841,8 @@ implementation
          { save file pos for debuginfo }
          current_module.mainfilepos:=main_procinfo.entrypos;
 
+         add_synthetic_method_implementations(current_module.localsymtable);
+
          { Generate specializations of objectdefs methods }
          generate_specialization_procs;
 
@@ -2318,7 +1962,7 @@ implementation
            InsertPData;
 {$endif arm}
 
-         InsertThreadvars;
+         cnodeutils.InsertThreadvars;
 
          { generate rtti/init tables }
          write_persistent_type_info(current_module.localsymtable);
@@ -2348,14 +1992,14 @@ implementation
          GenerateResourceStrings;
 
          { Windows widestring needing initialization }
-         InsertWideInits;
+         cnodeutils.InsertWideInits;
 
          { insert Tables and StackLength }
-         InsertInitFinalTable;
-         InsertThreadvarTablesTable;
-         InsertResourceTablesTable;
-         InsertWideInitsTablesTable;
-         InsertMemorySizes;
+         cnodeutils.InsertInitFinalTable;
+         cnodeutils.InsertThreadvarTablesTable;
+         cnodeutils.InsertResourceTablesTable;
+         cnodeutils.InsertWideInitsTablesTable;
+         cnodeutils.InsertMemorySizes;
 
 {$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if target_info.system in systems_interrupt_table then
@@ -2363,7 +2007,7 @@ implementation
 {$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 
          { Insert symbol to resource info }
-         InsertResourceInfo(resources_used);
+         cnodeutils.InsertResourceInfo(resources_used);
 
          { create callframe info }
          create_dwarf_frame;

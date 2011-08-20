@@ -28,7 +28,7 @@ interface
   uses
     node,
     ngenutil,
-    symsym;
+    symtype,symconst,symsym;
 
 
   type
@@ -37,16 +37,28 @@ interface
       class function finalize_data_node(p:tnode):tnode; override;
       class function force_init: boolean; override;
       class procedure insertbssdata(sym: tstaticvarsym); override;
+      class function create_main_procdef(const name: string; potype: tproctypeoption; ps: tprocsym): tdef; override;
+      class procedure InsertInitFinalTable; override;
+      class procedure InsertThreadvarTablesTable; override;
+      class procedure InsertThreadvars; override;
+      class procedure InsertWideInitsTablesTable; override;
+      class procedure InsertWideInits; override;
+      class procedure InsertResourceTablesTable; override;
+      class procedure InsertResourceInfo(ResourcesUsed : boolean); override;
+      class procedure InsertMemorySizes; override;
+     strict protected
+       class procedure add_main_procdef_paras(pd: tdef); override;
     end;
 
 
 implementation
 
     uses
-      verbose,constexp,fmodule,
-      aasmdata,aasmtai,
-      symconst,symtype,symdef,symbase,symtable,defutil,jvmdef,
+      verbose,globals,constexp,fmodule,
+      aasmdata,aasmtai,cpubase,aasmcpu,
+      symdef,symbase,symtable,defutil,jvmdef,
       nbas,ncnv,ncon,ninl,ncal,
+      ppu,
       pass_1;
 
   class function tjvmnodeutils.initialize_data_node(p:tnode):tnode;
@@ -103,6 +115,117 @@ implementation
       if current_asmdata.asmlists[al_globals].empty and
          jvmimplicitpointertype(sym.vardef) then
         current_asmdata.asmlists[al_globals].concat(cai_align.Create(1));
+    end;
+
+
+  class function tjvmnodeutils.create_main_procdef(const name: string; potype: tproctypeoption; ps: tprocsym): tdef;
+    begin
+      if (potype=potype_proginit) then
+        begin
+          result:=inherited create_main_procdef('main', potype, ps);
+          include(tprocdef(result).procoptions,po_global);
+          tprocdef(result).visibility:=vis_public;
+        end
+      else
+        result:=inherited create_main_procdef(name, potype, ps);
+    end;
+
+
+  class procedure tjvmnodeutils.InsertInitFinalTable;
+    var
+      hp : tused_unit;
+      unitinits : TAsmList;
+      unitclassname: string;
+      mainpsym: tsym;
+      mainpd: tprocdef;
+    begin
+      unitinits:=TAsmList.Create;
+      hp:=tused_unit(usedunits.first);
+      while assigned(hp) do
+        begin
+          { class constructors are automatically handled by the JVM }
+
+          { call the unit init code and make it external }
+          if (hp.u.flags and (uf_init or uf_finalize))<>0 then
+            begin
+              { trigger init code by referencing the class representing the
+                unit; if necessary, it will register the fini code to run on
+                exit}
+              unitclassname:='';
+              if assigned(hp.u.namespace) then
+                unitclassname:=hp.u.namespace^+'.';
+              unitclassname:=unitclassname+hp.u.realmodulename^;
+              unitinits.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(unitclassname)));
+              unitinits.concat(taicpu.op_none(a_pop));
+            end;
+          hp:=tused_unit(hp.next);
+        end;
+      { insert in main program routine }
+      mainpsym:=tsym(current_module.localsymtable.find(mainaliasname));
+      if not assigned(mainpsym) or
+         (mainpsym.typ<>procsym) then
+        internalerror(2011041901);
+      mainpd:=tprocsym(mainpsym).find_procdef_bytype(potype_proginit);
+      if not assigned(mainpd) then
+        internalerror(2011041902);
+      mainpd.exprasmlist.insertList(unitinits);
+      unitinits.free;
+    end;
+
+
+  class procedure tjvmnodeutils.InsertThreadvarTablesTable;
+    begin
+      { not yet supported }
+    end;
+
+
+  class procedure tjvmnodeutils.InsertThreadvars;
+    begin
+      { not yet supported }
+    end;
+
+
+  class procedure tjvmnodeutils.InsertWideInitsTablesTable;
+    begin
+      { not required }
+    end;
+
+
+  class procedure tjvmnodeutils.InsertWideInits;
+    begin
+      { not required }
+    end;
+
+
+  class procedure tjvmnodeutils.InsertResourceTablesTable;
+    begin
+      { not supported }
+    end;
+
+
+  class procedure tjvmnodeutils.InsertResourceInfo(ResourcesUsed: boolean);
+    begin
+      { not supported }
+    end;
+
+
+  class procedure tjvmnodeutils.InsertMemorySizes;
+    begin
+      { not required }
+    end;
+
+
+  class procedure tjvmnodeutils.add_main_procdef_paras(pd: tdef);
+    var
+      pvs: tparavarsym;
+    begin
+      if (tprocdef(pd).proctypeoption=potype_proginit) then
+        begin
+          { add the args parameter }
+          pvs:=tparavarsym.create('$args',1,vs_const,search_system_type('TJSTRINGARRAY').typedef,[]);
+          tprocdef(pd).parast.insert(pvs);
+          tprocdef(pd).calcparas;
+        end;
     end;
 
 

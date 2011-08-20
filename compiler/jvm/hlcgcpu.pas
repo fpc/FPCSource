@@ -1230,6 +1230,10 @@ implementation
       { the localsize is based on tg.lasttemp -> already in terms of stack
         slots rather than bytes }
       list.concat(tai_directive.Create(asd_jlimit,'locals '+tostr(localsize)));
+      { we insert the unit initialisation code afterwards in the proginit code,
+        and it uses one stack slot }
+      if (current_procinfo.procdef.proctypeoption=potype_proginit) then
+        fmaxevalstackheight:=max(1,fmaxevalstackheight);
       list.concat(tai_directive.Create(asd_jlimit,'stack '+tostr(fmaxevalstackheight)));
     end;
 
