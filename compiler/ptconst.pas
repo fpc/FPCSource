@@ -35,10 +35,10 @@ implementation
     uses
        globtype,systems,globals,verbose,cutils,tokens,
        aasmbase,aasmtai,
-       procinfo,
+       procinfo,fmodule,
        scanner,pbase,pdecvar,
-       ngtcon,
-       symconst,symbase
+       node,nbas,ngtcon,
+       symconst,symbase,symdef
        ;
 
 
@@ -49,6 +49,8 @@ implementation
         section      : ansistring;
         tcbuilder    : ttypedconstbuilder;
         reslist      : tasmlist;
+        restree,
+        previnit     : tnode;
       begin
         { mark the staticvarsym as typedconst }
         include(sym.varoptions,vo_is_typed_const);
@@ -73,7 +75,19 @@ implementation
             tcbuilder.free;
           end
         else
-          internalerror(2011040203);
+          begin
+            if assigned(current_structdef) then
+              previnit:=current_structdef.tcinitcode
+            else
+              previnit:=tnode(current_module.tcinitcode);
+            tcbuilder:=tnodetreetypedconstbuilder.create(sym,previnit);
+            restree:=tnodetreetypedconstbuilder(tcbuilder).parse_into_nodetree;
+            if assigned(current_structdef) then
+              current_structdef.tcinitcode:=restree
+            else
+              current_module.tcinitcode:=restree;
+            tcbuilder.free;
+          end;
 
         { Parse hints }
         try_consume_hintdirective(sym.symoptions,sym.deprecatedmsg);
@@ -139,7 +153,9 @@ implementation
             list.concat(tai_symbol_end.Createname(sym.mangledname));
           end
         else
-          internalerror(2011040204);
+          begin
+            { nothing to do }
+          end;
 
         current_filepos:=storefilepos;
       end;

@@ -185,6 +185,13 @@ interface
 
         namespace: pshortstring; { for JVM target: corresponds to Java package name }
 
+        { for targets that initialise typed constants via explicit assignments
+          instead of by generating an initialised data section (holds typed
+          constant assignments at the module level; does not have to be saved
+          into the ppu file, because translated into code during compilation)
+           -- actual type: tnode (but fmodule should not depend on node) }
+         tcinitcode     : tobject;
+
         {create creates a new module which name is stored in 's'. LoadedFrom
         points to the module calling it. It is nil for the first compiled
         module. This allow inheritence of all path lists. MUST pay attention
@@ -543,6 +550,7 @@ implementation
         moduleoptions:=[];
         deprecatedmsg:=nil;
         namespace:=nil;
+        tcinitcode:=nil;
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=TAsmData.create(realmodulename^);
@@ -620,6 +628,7 @@ implementation
         stringdispose(asmprefix);
         stringdispose(deprecatedmsg);
         stringdispose(namespace);
+        tcinitcode.free;
         localunitsearchpath.Free;
         localobjectsearchpath.free;
         localincludesearchpath.free;
@@ -751,6 +760,8 @@ implementation
         mode_switch_allowed:=true;
         stringdispose(deprecatedmsg);
         stringdispose(namespace);
+        tcinitcode.free;
+        tcinitcode:=nil;
         moduleoptions:=[];
         is_dbginfo_written:=false;
         crc:=0;

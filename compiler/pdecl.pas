@@ -238,9 +238,16 @@ implementation
                      begin
                        { generate the symbol which reserves the space }
                        static_name:=lower(generate_nested_name(symtablestack.top,'_'))+'_'+orgname;
+{$ifndef jvm}
                        sym:=tstaticvarsym.create(internal_static_field_name(static_name),varspez,hdef,[]);
                        include(sym.symoptions,sp_internal);
                        tabstractrecordsymtable(symtablestack.top).get_unit_symtable.insert(sym);
+{$else not jvm}
+                       sym:=tstaticvarsym.create(orgname,varspez,hdef,[]);
+                       include(sym.symoptions,sp_internal);
+                       symtablestack.top.insert(sym);
+                       orgname:=static_name;
+{$endif not jvm}
                        { generate the symbol for the access }
                        sl:=tpropaccesslist.create;
                        sl.addsym(sl_load,sym);

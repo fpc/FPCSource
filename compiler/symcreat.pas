@@ -321,7 +321,9 @@ implementation
               implement_jvm_clone(pd);
             tsk_record_deepcopy:
               implement_record_deepcopy(pd);
-            tsk_empty:
+            tsk_empty,
+            { special handling for this one is done in tnodeutils.wrap_proc_body }
+            tsk_tcinit:
               implement_empty(pd);
             else
               internalerror(2011032801);

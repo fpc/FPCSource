@@ -54,6 +54,11 @@ interface
 
     procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname : string);
 
+    { add a definition for a method to a record/objectdef that will contain
+      all code for initialising typed constants (only for targets in
+      systems.systems_typed_constants_node_init) }
+    procedure add_typedconst_init_routine(def: tabstractrecorddef);
+
 implementation
 
     uses
@@ -65,7 +70,7 @@ implementation
        { target }
        paramgr,procinfo,
        { symtable }
-       symconst,symsym,symtable,
+       symconst,symsym,symtable,symcreat,
        defutil,defcmp,jvmdef,
        { modules }
        fmodule,
@@ -405,7 +410,6 @@ implementation
         if not try_to_consume(_GT) then
           consume(_RSHARPBRACKET);
       end;
-
 
     procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef:boolean); forward;
 
@@ -947,6 +951,8 @@ implementation
               begin
                 if (target_info.system=system_jvm_java32) then
                   add_java_default_record_methods_intf(trecorddef(current_structdef));
+                if target_info.system in systems_typed_constants_node_init then
+                  add_typedconst_init_routine(current_structdef);
                 consume(_END);
                 break;
               end;
@@ -996,6 +1002,8 @@ implementation
              { we need a constructor to create temps, a deep copy helper, ... }
              if (target_info.system=system_jvm_java32) then
                add_java_default_record_methods_intf(trecorddef(current_structdef));
+             if target_info.system in systems_typed_constants_node_init then
+               add_typedconst_init_routine(current_structdef);
              consume(_END);
             end;
          { make the record size aligned }
@@ -1788,5 +1796,39 @@ implementation
               RTTIWriter.write_rtti(def,fullrtti);
           end;
       end;
+
+
+    procedure add_typedconst_init_routine(def: tabstractrecorddef);
+      var
+        sstate: symcreat.tscannerstate;
+        pd: tprocdef;
+      begin
+        replace_scanner('tcinit_routine',sstate);
+        { the typed constant initialization code is called from the class
+          constructor by tnodeutils.wrap_proc_body; at this point, we don't
+          know yet whether that will be necessary, because there may be
+          typed constants inside method bodies -> always force the addition
+          of a class constructor.
+
+          We cannot directly add the typed constant initialisations to the
+          class constructor, because when it's parsed not all method bodies
+          are necessarily already parsed }
+        pd:=def.find_procdef_bytype(potype_class_constructor);
+        { the class constructor }
+        if not assigned(pd) then
+          begin
+            if str_parse_method_dec('constructor fpc_init_typed_consts_class_constructor;',true,def,pd) then
+              pd.synthetickind:=tsk_empty
+            else
+              internalerror(2011040206);
+          end;
+        { the initialisation helper }
+        if str_parse_method_dec('procedure fpc_init_typed_consts_helper; static;',true,def,pd) then
+          pd.synthetickind:=tsk_tcinit
+        else
+          internalerror(2011040207);
+        restore_scanner(sstate);
+      end;
+
 
 end.

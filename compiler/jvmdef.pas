@@ -226,37 +226,36 @@ implementation
 
     procedure jvmaddtypeownerprefix(owner: tsymtable; var name: string);
       var
-        owningunit: tsymtable;
+        owningcontainer: tsymtable;
         tmpresult: string;
         module: tmodule;
       begin
         { see tprocdef.jvmmangledbasename for description of the format }
-        case owner.symtabletype of
+        owningcontainer:=owner;
+        while (owningcontainer.symtabletype=localsymtable) do
+          owningcontainer:=owningcontainer.defowner.owner;
+        case owningcontainer.symtabletype of
           globalsymtable,
-          staticsymtable,
-          localsymtable:
+          staticsymtable:
             begin
-              owningunit:=owner;
-              while (owningunit.symtabletype in [localsymtable,objectsymtable,recordsymtable]) do
-                owningunit:=owningunit.defowner.owner;
-              module:=find_module_from_symtable(owningunit);
+              module:=find_module_from_symtable(owningcontainer);
               tmpresult:='';
               if assigned(module.namespace) then
-                tmpresult:=module.namespace^+'.';
+                tmpresult:=module.namespace^+'/';
               tmpresult:=tmpresult+module.realmodulename^+'/';
             end;
           objectsymtable:
-            case tobjectdef(owner.defowner).objecttype of
+            case tobjectdef(owningcontainer.defowner).objecttype of
               odt_javaclass,
               odt_interfacejava:
                 begin
-                  tmpresult:=tobjectdef(owner.defowner).jvm_full_typename(true)+'/'
+                  tmpresult:=tobjectdef(owningcontainer.defowner).jvm_full_typename(true)+'/'
                 end
               else
                 internalerror(2010122606);
             end;
           recordsymtable:
-            tmpresult:=trecorddef(owner.defowner).jvm_full_typename(true)+'/'
+            tmpresult:=trecorddef(owningcontainer.defowner).jvm_full_typename(true)+'/'
           else
             internalerror(2010122605);
         end;
@@ -341,6 +340,7 @@ implementation
 
     function jvmmangledbasename(sym: tsym; const usesymname: string): string;
       var
+        container: tsymtable;
         vsym: tabstractvarsym;
         csym: tconstsym;
         founderror: tdef;
@@ -360,7 +360,22 @@ implementation
                       ([vo_is_funcret,vo_is_result] * tabstractnormalvarsym(vsym).varoptions <> []) then
                 result:='result '+result
               else
-                result:=usesymname+' '+result;
+                begin
+                  { we have to mangle staticvarsyms in localsymtables to
+                    prevent name clashes... }
+                  container:=sym.Owner;
+                  result:=usesymname+' '+result;
+                  while (container.symtabletype=localsymtable) do
+                    begin
+                      if tdef(container.defowner).typ<>procdef then
+                        internalerror(2011040303);
+                      { not safe yet in case of overloaded routines, need to
+                        encode parameters too or find another way for conflict
+                        resolution }
+                      result:=tprocdef(container.defowner).procsym.realname+'$'+result;
+                      container:=container.defowner.owner;
+                    end;
+                end;
             end;
           constsym:
             begin

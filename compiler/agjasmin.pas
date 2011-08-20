@@ -788,14 +788,18 @@ implementation
         vissym:=sym;
         { static field definition -> get original field definition for
           visibility }
-        if (vissym.typ=staticvarsym) and
-           (vissym.owner.symtabletype=objectsymtable) then
+        if (sym.typ=staticvarsym) and
+           (sym.owner.symtabletype=objectsymtable) then
           begin
-            vissym:=tabstractvarsym(search_struct_member(
-              tabstractrecorddef(vissym.owner.defowner),
-              internal_static_field_name(vissym.name)));
+            vissym:=tabstractvarsym(
+              tabstractrecorddef(sym.owner.defowner).symtable.find(
+                internal_static_field_name(sym.name)));
+            if not assigned(vissym) then
+              vissym:=tabstractvarsym(
+                tabstractrecorddef(sym.owner.defowner).symtable.find(
+                  generate_nested_name(sym.owner,'_')+'_'+sym.name));
             if not assigned(vissym) or
-               (vissym.typ<>fieldvarsym) then
+               not(vissym.typ in [fieldvarsym,absolutevarsym]) then
               internalerror(2011011501);
           end;
         case vissym.typ of
@@ -807,7 +811,8 @@ implementation
                 { package visbility }
                 result:='';
             end;
-          fieldvarsym:
+          fieldvarsym,
+          absolutevarsym:
             result:=VisibilityToStr(tstoredsym(vissym).visibility);
           else
             internalerror(2011011204);
@@ -815,6 +820,8 @@ implementation
         if (sym.typ=staticvarsym) or
            (sp_static in sym.symoptions) then
           result:=result+'static ';
+        if sym.varspez=vs_const then
+          result:=result+'final ';
         result:=result+jvmmangledbasename(sym);
       end;
 

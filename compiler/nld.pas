@@ -68,6 +68,8 @@ interface
        tassignmentnode = class(tbinarynode)
           assigntype : tassigntype;
           constructor create(l,r : tnode);virtual;
+          { no checks for validity of assignment }
+          constructor create_internal(l,r : tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function dogetcopy : tnode;override;
@@ -470,6 +472,13 @@ implementation
       end;
 
 
+    constructor tassignmentnode.create_internal(l, r: tnode);
+      begin
+        create(l,r);
+        include(flags,nf_internal);
+      end;
+
+
     constructor tassignmentnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
@@ -541,7 +550,8 @@ implementation
           CGMessage(type_e_assignment_not_allowed);
 
         { test if node can be assigned, properties are allowed }
-        valid_for_assignment(left,true);
+        if not(nf_internal in flags) then
+          valid_for_assignment(left,true);
 
         { assigning nil to a dynamic array clears the array }
         if is_dynamic_array(left.resultdef) and

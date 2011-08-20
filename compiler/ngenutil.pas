@@ -27,7 +27,7 @@ unit ngenutil;
 interface
 
   uses
-    node,symsym;
+    node,symsym,symdef;
 
 
   type
@@ -42,6 +42,12 @@ interface
       { idem for finalization }
       class function force_final: boolean; virtual;
 
+      { called after parsing a routine with the code of the entire routine
+        as argument; can be used to modify the node tree. By default handles
+        insertion of code for systems that perform the typed constant
+        initialisation via the node tree }
+      class function wrap_proc_body(pd: tprocdef; n: tnode): tnode; virtual;
+
       class procedure insertbssdata(sym : tstaticvarsym); virtual;
 
     end;
@@ -55,9 +61,9 @@ implementation
 
     uses
       verbose,globtype,globals,cutils,constexp,
-      scanner,systems,procinfo,
+      scanner,systems,procinfo,fmodule,
       aasmbase,aasmdata,aasmtai,
-      symconst,symtype,symdef,symbase,symtable,defutil,
+      symconst,symtype,symbase,symtable,defutil,
       nadd,nbas,ncal,ncnv,ncon,nflw,nld,nmem,nobj,nutils,
 
       pass_1;
@@ -219,13 +225,81 @@ implementation
 
   class function tnodeutils.force_init: boolean;
     begin
-      result:=false;
+      result:=
+        (target_info.system in systems_typed_constants_node_init) and
+        assigned(current_module.tcinitcode);
     end;
 
 
   class function tnodeutils.force_final: boolean;
     begin
       result:=false;
+    end;
+
+
+  class function tnodeutils.wrap_proc_body(pd: tprocdef; n: tnode): tnode;
+    var
+      stat: tstatementnode;
+      block: tnode;
+      psym: tsym;
+      tcinitproc: tprocdef;
+    begin
+      result:=n;
+      if target_info.system in systems_typed_constants_node_init then
+        begin
+          case pd.proctypeoption of
+            potype_class_constructor:
+              begin
+                { even though the initialisation code for typed constants may
+                  not yet be complete at this point (there may be more inside
+                  method definitions coming after this class constructor), the
+                  ones from inside the class definition have already been parsed.
+                  in case of {$j-}, these are marked "final" in Java and such
+                  static fields must be initialsed in the class constructor
+                  itself -> add them here }
+                block:=internalstatements(stat);
+                if assigned(tabstractrecorddef(pd.owner.defowner).tcinitcode) then
+                  begin
+                    addstatement(stat,tabstractrecorddef(pd.owner.defowner).tcinitcode);
+                    tabstractrecorddef(pd.owner.defowner).tcinitcode:=nil;
+                  end;
+                psym:=tsym(tabstractrecorddef(pd.owner.defowner).symtable.find('FPC_INIT_TYPED_CONSTS_HELPER'));
+                if not assigned(psym) or
+                   (psym.typ<>procsym) or
+                   (tprocsym(psym).procdeflist.count<>1) then
+                  internalerror(2011040301);
+                tcinitproc:=tprocdef(tprocsym(psym).procdeflist[0]);
+                addstatement(stat,ccallnode.create(nil,tprocsym(psym),
+                  tabstractrecorddef(pd.owner.defowner).symtable,nil,[]));
+                addstatement(stat,result);
+                result:=block
+              end;
+            potype_unitinit:
+              begin
+                if assigned(current_module.tcinitcode) then
+                  begin
+                    block:=internalstatements(stat);
+                    addstatement(stat,tnode(current_module.tcinitcode));
+                    current_module.tcinitcode:=nil;
+                    addstatement(stat,result);
+                    result:=block;
+                  end;
+              end;
+            else case pd.synthetickind of
+              tsk_tcinit:
+                begin
+                  if assigned(tabstractrecorddef(pd.owner.defowner).tcinitcode) then
+                    begin
+                      block:=internalstatements(stat);
+                      addstatement(stat,tabstractrecorddef(pd.owner.defowner).tcinitcode);
+                      tabstractrecorddef(pd.owner.defowner).tcinitcode:=nil;
+                      addstatement(stat,result);
+                      result:=block
+                    end
+                end;
+            end;
+          end;
+        end;
     end;
 
 

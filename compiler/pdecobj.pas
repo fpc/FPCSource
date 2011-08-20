@@ -1378,13 +1378,18 @@ implementation
             { parse and insert object members }
             parse_object_members;
 
-            { In Java, constructors are not automatically inherited (so you can
-              hide them). Emulate the Pascal behaviour for classes implemented
-              in Pascal (we cannot do it for classes implemented in Java, since
-              we obviously cannot add constructors to those) }
-          if is_javaclass(current_structdef) and
-             not(oo_is_external in current_structdef.objectoptions) then
-            maybe_add_public_default_java_constructor(tobjectdef(current_structdef));
+          if not(oo_is_external in current_structdef.objectoptions) then
+            begin
+              { In Java, constructors are not automatically inherited (so you can
+                hide them). Emulate the Pascal behaviour for classes implemented
+                in Pascal (we cannot do it for classes implemented in Java, since
+                we obviously cannot add constructors to those) }
+              if is_javaclass(current_structdef) then
+                maybe_add_public_default_java_constructor(tobjectdef(current_structdef));
+              { need method to hold the initialization code for typed constants? }
+              if target_info.system in systems_typed_constants_node_init then
+                add_typedconst_init_routine(current_structdef);
+            end;
 
             symtablestack.pop(current_structdef.symtable);
           end;

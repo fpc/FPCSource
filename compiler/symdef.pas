@@ -184,6 +184,9 @@ interface
           cloneddef      : tabstractrecorddef;
           cloneddefderef : tderef;
           objectoptions  : tobjectoptions;
+          { for targets that initialise typed constants via explicit assignments
+            instead of by generating an initialised data sectino }
+          tcinitcode     : tnode;
           constructor create(const n:string; dt:tdeftyp);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -492,7 +495,8 @@ interface
          tsk_anon_inherited,        // anonymous inherited call
          tsk_jvm_clone,             // Java-style clone method
          tsk_record_deepcopy,       // deepcopy for records field by field
-         tsk_empty                  // an empty routine
+         tsk_empty,                 // an empty routine
+         tsk_tcinit                 // initialisation of typed constants
        );
 
 {$ifdef oldregvars}
@@ -2891,6 +2895,7 @@ implementation
         stringdispose(objname);
         stringdispose(objrealname);
         stringdispose(import_lib);
+        tcinitcode.free;
         inherited destroy;
       end;
 
@@ -3118,6 +3123,8 @@ implementation
         result:=trecorddef.create(objrealname^,symtable.getcopy);
         trecorddef(result).isunion:=isunion;
         include(trecorddef(result).defoptions,df_copied_def);
+        if assigned(tcinitcode) then
+          trecorddef(result).tcinitcode:=tcinitcode.getcopy;
          if assigned(import_lib) then
            trecorddef(result).import_lib:=stringdup(import_lib^);
       end;
@@ -4761,6 +4768,8 @@ implementation
         tobjectdef(result).objectoptions:=objectoptions;
         include(tobjectdef(result).defoptions,df_copied_def);
         tobjectdef(result).extendeddef:=extendeddef;
+        if assigned(tcinitcode) then
+          tobjectdef(result).tcinitcode:=tcinitcode.getcopy;
         tobjectdef(result).vmt_offset:=vmt_offset;
         if assigned(iidguid) then
           begin

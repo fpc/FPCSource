@@ -28,7 +28,7 @@ interface
     uses
       globtype,
       aasmdata,
-      node,
+      node,nbas,
       symtype, symbase, symdef,symsym;
 
 
@@ -99,6 +99,33 @@ interface
         function parse_into_asmlist: tasmlist;
       end;
 
+      tnodetreetypedconstbuilder = class(ttypedconstbuilder)
+       private
+        resultblock: tblocknode;
+        statmnt: tstatementnode;
+
+        { when parsing a record, the base nade becomes a loadnode of the record,
+          etc. }
+        basenode: tnode;
+
+       protected
+        procedure parse_arraydef(def:tarraydef);override;
+        procedure parse_procvardef(def:tprocvardef);override;
+        procedure parse_recorddef(def:trecorddef);override;
+        procedure parse_objectdef(def:tobjectdef);override;
+
+        procedure tc_emit_orddef(def: torddef; var node: tnode);override;
+        procedure tc_emit_floatdef(def: tfloatdef; var node: tnode); override;
+        procedure tc_emit_classrefdef(def: tclassrefdef; var node: tnode);override;
+        procedure tc_emit_pointerdef(def: tpointerdef; var node: tnode);override;
+        procedure tc_emit_setdef(def: tsetdef; var node: tnode);override;
+        procedure tc_emit_enumdef(def: tenumdef; var node: tnode);override;
+        procedure tc_emit_stringdef(def: tstringdef; var node: tnode);override;
+       public
+        constructor create(sym: tstaticvarsym; previnit: tnode);
+        destructor destroy;override;
+        function parse_into_nodetree: tnode;
+      end;
 implementation
 
 uses
@@ -1573,6 +1600,422 @@ uses
         result:=list;
       end;
 
+
+    { tnodetreetypedconstbuilder }
+
+    procedure tnodetreetypedconstbuilder.parse_arraydef(def: tarraydef);
+      var
+        n : tnode;
+        i : longint;
+        orgbase: tnode;
+      begin
+        { dynamic array nil }
+        if is_dynamic_array(def) then
+          begin
+            { Only allow nil initialization }
+            consume(_NIL);
+            addstatement(statmnt,cassignmentnode.create_internal(basenode,cnilnode.create));
+            basenode:=nil;
+          end
+        { array const between brackets }
+        else if try_to_consume(_LKLAMMER) then
+          begin
+            orgbase:=basenode;
+            for i:=def.lowrange to def.highrange-1 do
+              begin
+                basenode:=cvecnode.create(orgbase.getcopy,genintconstnode(i));
+                read_typed_const_data(def.elementdef);
+                if token=_RKLAMMER then
+                  begin
+                    Message1(parser_e_more_array_elements_expected,tostr(def.highrange-i));
+                    consume(_RKLAMMER);
+                    exit;
+                  end
+                else
+                  consume(_COMMA);
+              end;
+            basenode:=cvecnode.create(orgbase,genintconstnode(def.highrange));
+            read_typed_const_data(def.elementdef);
+            consume(_RKLAMMER);
+          end
+        { if array of char then we allow also a string }
+        else if is_anychar(def.elementdef) then
+          begin
+             n:=comp_expr(true,false);
+             addstatement(statmnt,cassignmentnode.create_internal(basenode,n));
+             basenode:=nil;
+          end
+        else
+          begin
+            { we want the ( }
+            consume(_LKLAMMER);
+          end;
+      end;
+
+
+    procedure tnodetreetypedconstbuilder.parse_procvardef(def: tprocvardef);
+      begin
+        addstatement(statmnt,cassignmentnode.create_internal(basenode,comp_expr(true,false)));
+        basenode:=nil;
+      end;
+
+
+    procedure tnodetreetypedconstbuilder.parse_recorddef(def: trecorddef);
+      var
+        n,n2    : tnode;
+        orgbasenode : tnode;
+        symidx  : longint;
+        recsym,
+        srsym   : tsym;
+        sorg,s  : TIDString;
+        recoffset : aint;
+        error,
+        is_packed: boolean;
+
+      procedure handle_stringconstn;
+        begin
+          addstatement(statmnt,cassignmentnode.create_internal(basenode,n));
+          basenode:=nil;
+          n:=nil;
+        end;
+
+      begin
+        { GUID }
+        if (def=rec_tguid) and (token=_ID) then
+          begin
+            n:=comp_expr(true,false);
+            if n.nodetype=stringconstn then
+              handle_stringconstn
+            else
+              begin
+                inserttypeconv(n,rec_tguid);
+                if n.nodetype=guidconstn then
+                  begin
+                    n2:=cstringconstnode.createstr(guid2string(tguidconstnode(n).value));
+                    n.free;
+                    n:=n2;
+                    handle_stringconstn;
+                  end
+                else
+                  Message(parser_e_illegal_expression);
+              end;
+            n.free;
+            exit;
+          end;
+        if (def=rec_tguid) and ((token=_CSTRING) or (token=_CCHAR)) then
+          begin
+            n:=comp_expr(true,false);
+            inserttypeconv(n,cshortstringtype);
+            if n.nodetype=stringconstn then
+              handle_stringconstn
+            else
+              Message(parser_e_illegal_expression);
+            n.free;
+            exit;
+          end;
+        { bitpacked record? }
+        is_packed:=is_packed_record_or_object(def);
+        { normal record }
+        consume(_LKLAMMER);
+        recoffset:=0;
+        symidx:=0;
+        sorg:='';
+        srsym:=tsym(def.symtable.SymList[symidx]);
+        recsym := nil;
+        orgbasenode:=basenode;
+        basenode:=nil;
+        while token<>_RKLAMMER do
+          begin
+            s:=pattern;
+            sorg:=orgpattern;
+            consume(_ID);
+            consume(_COLON);
+            error := false;
+            recsym := tsym(def.symtable.Find(s));
+            if not assigned(recsym) then
+              begin
+                Message1(sym_e_illegal_field,sorg);
+                error := true;
+              end;
+            if (not error) and
+               (not assigned(srsym) or
+                (s <> srsym.name)) then
+              { possible variant record (JM) }
+              begin
+                { All parts of a variant start at the same offset      }
+                { Also allow jumping from one variant part to another, }
+                { as long as the offsets match                         }
+                if (assigned(srsym) and
+                    (tfieldvarsym(recsym).fieldoffset = tfieldvarsym(srsym).fieldoffset)) or
+                   { srsym is not assigned after parsing w2 in the      }
+                   { typed const in the next example:                   }
+                   {   type tr = record case byte of                    }
+                   {          1: (l1,l2: dword);                        }
+                   {          2: (w1,w2: word);                         }
+                   {        end;                                        }
+                   {   const r: tr = (w1:1;w2:1;l2:5);                  }
+                   (tfieldvarsym(recsym).fieldoffset = recoffset) then
+                  begin
+                    srsym := recsym;
+                    symidx := def.symtable.SymList.indexof(srsym)
+                  end
+                { going backwards isn't allowed in any mode }
+                else if (tfieldvarsym(recsym).fieldoffset<recoffset) then
+                  begin
+                    Message(parser_e_invalid_record_const);
+                    error := true;
+                  end
+                { Delphi allows you to skip fields }
+                else if (m_delphi in current_settings.modeswitches) then
+                  begin
+                    Message1(parser_w_skipped_fields_before,sorg);
+                    srsym := recsym;
+                  end
+                { FPC and TP don't }
+                else
+                  begin
+                    Message1(parser_e_skipped_fields_before,sorg);
+                    error := true;
+                  end;
+              end;
+            if error then
+              consume_all_until(_SEMICOLON)
+            else
+              begin
+                { skipping fill bytes happens automatically, since we only
+                  initialize the defined fields }
+                { new position }
+                recoffset:=tfieldvarsym(srsym).fieldoffset;
+                if not(is_packed) then
+                  inc(recoffset,tfieldvarsym(srsym).vardef.size)
+                 else
+                   inc(recoffset,tfieldvarsym(srsym).vardef.packedbitsize);
+
+                { read the data }
+                if is_packed and
+                   { only orddefs and enumdefs are bitpacked, as in gcc/gpc }
+                   not(tfieldvarsym(srsym).vardef.typ in [orddef,enumdef]) then
+                  recoffset:=align(recoffset,8);
+                basenode:=csubscriptnode.create(srsym,orgbasenode.getcopy);
+                read_typed_const_data(tfieldvarsym(srsym).vardef);
+
+                { keep previous field for checking whether whole }
+                { record was initialized (JM)                    }
+                recsym := srsym;
+                { goto next field }
+                repeat
+                  inc(symidx);
+                  if symidx<def.symtable.SymList.Count then
+                    srsym:=tsym(def.symtable.SymList[symidx])
+                  else
+                    srsym:=nil;
+                until (srsym=nil) or
+                      (srsym.typ=fieldvarsym);
+
+                if token=_SEMICOLON then
+                  consume(_SEMICOLON)
+                else if (token=_COMMA) and (m_mac in current_settings.modeswitches) then
+                  consume(_COMMA)
+                else
+                  break;
+              end;
+          end;
+
+        { are there any fields left, but don't complain if there only
+          come other variant parts after the last initialized field }
+        if assigned(srsym) and
+           (
+            (recsym=nil) or
+            (tfieldvarsym(srsym).fieldoffset > tfieldvarsym(recsym).fieldoffset)
+           ) then
+          Message1(parser_w_skipped_fields_after,sorg);
+        orgbasenode.free;
+        basenode:=nil;
+
+        consume(_RKLAMMER);
+      end;
+
+
+    procedure tnodetreetypedconstbuilder.parse_objectdef(def: tobjectdef);
+      var
+        n,
+        orgbasenode : tnode;
+        obj    : tobjectdef;
+        srsym  : tsym;
+        st     : tsymtable;
+        objoffset : aint;
+        s,sorg : TIDString;
+      begin
+        { no support for packed object }
+        if is_packed_record_or_object(def) then
+          begin
+            Message(type_e_no_const_packed_record);
+            exit;
+          end;
+
+        { only allow nil for implicit pointer object types }
+        if is_implicit_pointer_object_type(def) then
+          begin
+            n:=comp_expr(true,false);
+            if n.nodetype<>niln then
+              begin
+                Message(parser_e_type_const_not_possible);
+                consume_all_until(_SEMICOLON);
+              end
+            else
+              begin
+                addstatement(statmnt,cassignmentnode.create_internal(basenode,n));
+                n:=nil;
+                basenode:=nil;
+              end;
+            n.free;
+            exit;
+          end;
+
+        { for objects we allow it only if it doesn't contain a vmt }
+        if (oo_has_vmt in def.objectoptions) and
+           (m_fpc in current_settings.modeswitches) then
+          begin
+            Message(parser_e_type_object_constants);
+            exit;
+          end;
+
+        consume(_LKLAMMER);
+        objoffset:=0;
+        orgbasenode:=basenode;
+        basenode:=nil;
+        while token<>_RKLAMMER do
+          begin
+            s:=pattern;
+            sorg:=orgpattern;
+            consume(_ID);
+            consume(_COLON);
+            srsym:=nil;
+            obj:=tobjectdef(def);
+            st:=obj.symtable;
+            while (srsym=nil) and assigned(st) do
+              begin
+                srsym:=tsym(st.Find(s));
+                if assigned(obj) then
+                  obj:=obj.childof;
+                if assigned(obj) then
+                  st:=obj.symtable
+                else
+                  st:=nil;
+              end;
+
+            if (srsym=nil) or
+               (srsym.typ<>fieldvarsym) then
+              begin
+                if (srsym=nil) then
+                  Message1(sym_e_id_not_found,sorg)
+                else
+                  Message1(sym_e_illegal_field,sorg);
+                consume_all_until(_RKLAMMER);
+                break;
+              end
+            else
+              with tfieldvarsym(srsym) do
+                begin
+                  { check position }
+                  if fieldoffset<objoffset then
+                    message(parser_e_invalid_record_const);
+
+                  { new position }
+                  objoffset:=fieldoffset+vardef.size;
+
+                  { read the data }
+                  basenode:=csubscriptnode.create(srsym,orgbasenode.getcopy);
+                  read_typed_const_data(vardef);
+
+                  if not try_to_consume(_SEMICOLON) then
+                    break;
+                end;
+          end;
+        consume(_RKLAMMER);
+      end;
+
+
+    procedure tnodetreetypedconstbuilder.tc_emit_orddef(def: torddef; var node: tnode);
+      begin
+        addstatement(statmnt,cassignmentnode.create_internal(basenode,node));
+        basenode:=nil;
+        node:=nil;
+      end;
+
+
+    procedure tnodetreetypedconstbuilder.tc_emit_floatdef(def: tfloatdef; var node: tnode);
+      begin
+        addstatement(statmnt,cassignmentnode.create_internal(basenode,node));
+        basenode:=nil;
+        node:=nil;
+      end;
+
+
+    procedure tnodetreetypedconstbuilder.tc_emit_classrefdef(def: tclassrefdef; var node: tnode);
+      begin
+        addstatement(statmnt,cassignmentnode.create_internal(basenode,node));
+        basenode:=nil;
+        node:=nil;
+      end;
+
+
+    procedure tnodetreetypedconstbuilder.tc_emit_pointerdef(def: tpointerdef; var node: tnode);
+      begin
+        addstatement(statmnt,cassignmentnode.create_internal(basenode,node));
+        basenode:=nil;
+        node:=nil;
+      end;
+
+
+    procedure tnodetreetypedconstbuilder.tc_emit_setdef(def: tsetdef; var node: tnode);
+      begin
+        addstatement(statmnt,cassignmentnode.create_internal(basenode,node));
+        basenode:=nil;
+        node:=nil;
+      end;
+
+
+    procedure tnodetreetypedconstbuilder.tc_emit_enumdef(def: tenumdef; var node: tnode);
+      begin
+        addstatement(statmnt,cassignmentnode.create_internal(basenode,node));
+        basenode:=nil;
+        node:=nil;
+      end;
+
+
+    procedure tnodetreetypedconstbuilder.tc_emit_stringdef(def: tstringdef; var node: tnode);
+      begin
+        addstatement(statmnt,cassignmentnode.create_internal(basenode,node));
+        basenode:=nil;
+        node:=nil;
+      end;
+
+
+    constructor tnodetreetypedconstbuilder.create(sym: tstaticvarsym; previnit: tnode);
+      begin
+        inherited create(sym);
+        basenode:=cloadnode.create(sym,sym.owner);
+        resultblock:=internalstatements(statmnt);
+        if assigned(previnit) then
+          addstatement(statmnt,previnit);
+      end;
+
+
+    destructor tnodetreetypedconstbuilder.destroy;
+      begin
+        freeandnil(basenode);
+        freeandnil(resultblock);
+        inherited destroy;
+      end;
+
+
+    function tnodetreetypedconstbuilder.parse_into_nodetree: tnode;
+      begin
+        read_typed_const_data(tcsym.vardef);
+        result:=self.resultblock;
+        self.resultblock:=nil;
+      end;
 
 
 end.

@@ -43,7 +43,7 @@ interface
 implementation
 
     uses
-      verbose,constexp,
+      verbose,constexp,fmodule,
       aasmdata,aasmtai,
       symconst,symtype,symdef,symbase,symtable,defutil,jvmdef,
       nbas,ncnv,ncon,ninl,ncal,
@@ -90,7 +90,9 @@ implementation
     begin
       { we need an initialisation in case the al_globals list is not empty
         (that's where the initialisation for global records is added) }
-      result:=not current_asmdata.asmlists[al_globals].empty;
+      result:=
+        inherited or
+        not current_asmdata.asmlists[al_globals].empty;
     end;
 
   class procedure tjvmnodeutils.insertbssdata(sym: tstaticvarsym);
@@ -102,6 +104,7 @@ implementation
          jvmimplicitpointertype(sym.vardef) then
         current_asmdata.asmlists[al_globals].concat(cai_align.Create(1));
     end;
+
 
 begin
   cnodeutils:=tjvmnodeutils;

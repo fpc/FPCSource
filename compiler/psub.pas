@@ -256,6 +256,7 @@ implementation
                    current_filepos:=oldfilepos;
                  end;
             end;
+        block:=cnodeutils.wrap_proc_body(current_procinfo.procdef,block);
       end;
 
 
