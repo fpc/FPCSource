@@ -252,6 +252,7 @@ interface
 
 {*** Object Helpers ***}
     function search_default_property(pd : tabstractrecorddef) : tpropertysym;
+    function maybe_find_real_class_definition(pd: tdef; erroronfailure: boolean): tdef;
     function find_real_class_definition(pd: tobjectdef; erroronfailure: boolean): tobjectdef;
 
 {*** Macro Helpers ***}
@@ -2126,6 +2127,15 @@ implementation
                 exit;
               end;
           end;
+      end;
+
+
+    function maybe_find_real_class_definition(pd: tdef; erroronfailure: boolean): tdef;
+      begin
+        result:=pd;
+        if pd.typ<>objectdef then
+          exit;
+        result:=find_real_class_definition(tobjectdef(pd),erroronfailure);
       end;
 
 

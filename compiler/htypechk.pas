@@ -1237,8 +1237,7 @@ implementation
                         is_open_array(fromdef) or
                         is_open_array(todef) or
                         ((fromdef.typ=pointerdef) and (todef.typ=arraydef)) or
-                        ((fromdef.typ = objectdef) and (todef.typ = objectdef) and
-                         (tobjectdef(fromdef).is_related(tobjectdef(todef))))) and
+                        (fromdef.is_related(todef))) and
                     (fromdef.size<>todef.size) then
                   begin
                     { in TP it is allowed to typecast to smaller types. But the variable can't

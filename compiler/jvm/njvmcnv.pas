@@ -54,6 +54,7 @@ interface
          { procedure second_char_to_char;override; }
          protected
           function target_specific_explicit_typeconv: tnode; override;
+          function target_specific_general_typeconv(var res: tnode): boolean; override;
        end;
 
        tjvmasnode = class(tcgasnode)
@@ -408,8 +409,8 @@ implementation
 
 
       var
-        frominclass,
-        toinclass: boolean;
+        fromclasscompatible,
+        toclasscompatible: boolean;
         fromdef,
         todef: tdef;
       begin
@@ -421,14 +422,17 @@ implementation
 
         { don't allow conversions between object-based and non-object-based
           types }
-        frominclass:=
+        fromclasscompatible:=
           (left.resultdef.typ=objectdef) or
-          is_dynamic_array(left.resultdef);
-        toinclass:=
+          is_dynamic_array(left.resultdef) or
+          ((left.resultdef.typ=recorddef) and
+           (resultdef.typ=objectdef));
+        toclasscompatible:=
           (resultdef.typ=objectdef) or
-          is_dynamic_array(resultdef);
-        if frominclass and
-           toinclass then
+          is_dynamic_array(resultdef) or
+          ((resultdef.typ=recorddef) and
+           (left.resultdef.typ=objectdef));
+        if fromclasscompatible and toclasscompatible then
           begin
             { we need an as-node to check the validity of the conversion (since
               it wasn't handled by another type conversion, we know it can't
@@ -439,9 +443,10 @@ implementation
             fromdef:=left.resultdef;
             todef:=resultdef;
             get_most_nested_types(fromdef,todef);
-            if ((fromdef.typ<>objectdef) and
-                not is_dynamic_array(fromdef)) or
-               (todef<>java_jlobject) then
+            if not left.resultdef.is_related(resultdef) and
+               (((fromdef.typ<>objectdef) and
+                 not is_dynamic_array(fromdef)) or
+                (todef<>java_jlobject)) then
               begin
                 result:=ctypenode.create(resultdef);
                 if resultdef.typ=objectdef then
@@ -489,6 +494,26 @@ implementation
       end;
 
 
+    function tjvmtypeconvnode.target_specific_general_typeconv(var res: tnode): boolean;
+      begin
+        result:=false;
+        { deal with explicit typecasts between records and classes (for
+          FpcBaseRecordType) }
+        if ((left.resultdef.typ=recorddef) and
+            (resultdef.typ=objectdef) and
+            left.resultdef.is_related(resultdef)) or
+           ((left.resultdef.typ=objectdef) and
+            (resultdef.typ=recorddef) and
+            resultdef.is_related(left.resultdef)) and
+           (nf_explicit in flags) then
+          begin
+            convtype:=tc_equal;
+            res:=target_specific_explicit_typeconv;
+            result:=true;
+          end;
+      end;
+
+
     {*****************************************************************************
                          AsNode and IsNode common helpers
     *****************************************************************************}
@@ -496,16 +521,29 @@ implementation
   function asis_target_specific_typecheck(node: tasisnode): boolean;
     var
       fromelt, toelt: tdef;
+      realfromdef,
+      realtodef: tdef;
     begin
+      realfromdef:=maybe_find_real_class_definition(node.left.resultdef,false);
+      realtodef:=maybe_find_real_class_definition(node.right.resultdef,false);
+
+      if is_record(realtodef) then
+        result:=
+          (realfromdef=java_jlobject) or
+          (realfromdef=java_fpcbaserecordtype)
+      else if is_record(realfromdef) then
+        result:=
+          (realtodef=java_jlobject) or
+          (realtodef=java_fpcbaserecordtype)
       { dynamic arrays can be converted to java.lang.Object and vice versa }
-      if node.right.resultdef=java_jlobject then
+      else if realtodef=java_jlobject then
         { dynamic array to java.lang.Object }
-        result:=is_dynamic_array(node.left.resultdef)
-      else if is_dynamic_array(node.right.resultdef) then
+        result:=is_dynamic_array(realfromdef)
+      else if is_dynamic_array(realtodef) then
         begin
           { <x> to dynamic array: only if possibly valid }
           fromelt:=node.left.resultdef;
-          toelt:=node.right.resultdef;
+          toelt:=realtodef;
           get_most_nested_types(fromelt,toelt);
           { final levels must be convertable:
               a) from array (dynamic or not) to java.lang.Object or vice versa,
@@ -531,10 +569,10 @@ implementation
       if result then
         if node.nodetype=asn then
           begin
-            if node.right.resultdef.typ<>classrefdef then
-              node.resultdef:=node.right.resultdef
+            if realtodef.typ<>classrefdef then
+              node.resultdef:=realtodef
             else
-              node.resultdef:=tclassrefdef(node.right.resultdef).pointeddef
+              node.resultdef:=tclassrefdef(realtodef).pointeddef
           end
         else
           node.resultdef:=pasbool8type;
@@ -559,8 +597,8 @@ implementation
         checkdef:=tclassrefdef(node.right.resultdef).pointeddef
       else
         checkdef:=node.right.resultdef;
-      if checkdef.typ=objectdef then
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcode,current_asmdata.RefAsmSymbol(tobjectdef(checkdef).jvm_full_typename(true))))
+      if checkdef.typ in [objectdef,recorddef] then
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcode,current_asmdata.RefAsmSymbol(tabstractrecorddef(checkdef).jvm_full_typename(true))))
       else
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcode,current_asmdata.RefAsmSymbol(jvmencodetype(checkdef))));
       location_reset(node.location,LOC_REGISTER,OS_ADDR);

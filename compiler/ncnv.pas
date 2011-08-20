@@ -116,6 +116,14 @@ interface
           function _typecheck_interface_to_variant : tnode;
           function _typecheck_array_2_dynarray : tnode;
        protected
+          { always called before any other type conversion checks. If it
+            returns true, the type conversion is ok and no further checks/
+            handling are required. "res" can be set to a node that should
+            replace the type conversion node, but this is not required }
+          function target_specific_general_typeconv(var res: tnode): boolean;virtual;
+          { called in case of a valid explicit type conversion. Can be used to
+            replace this explicit type conversion with a different node, or to
+            reject it after all }
           function target_specific_explicit_typeconv: tnode;virtual;
           function first_int_to_int : tnode;virtual;
           function first_cstring_to_pchar : tnode;virtual;
@@ -1771,6 +1779,12 @@ implementation
       end;
 
 
+    function ttypeconvnode.target_specific_general_typeconv(var res: tnode): boolean;
+      begin
+        result:=false;
+      end;
+
+
     function ttypeconvnode.target_specific_explicit_typeconv: tnode;
       begin
         result:=nil;
@@ -1953,6 +1967,9 @@ implementation
             arrayconstructor_to_set(left);
             typecheckpass(left);
           end;
+
+        if target_specific_general_typeconv(result) then
+          exit;
 
         if convtype=tc_none then
           begin
