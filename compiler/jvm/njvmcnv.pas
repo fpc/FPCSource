@@ -256,8 +256,8 @@ implementation
           begin
             location_copy(location,left.location);
             { reuse a loc_reference when the newsize is larger than
-              than the original, because all <= 4 byte loads will result in
-              a stack slot that occupies 4 bytes.
+              than the original and 4 bytes, because all <= 4 byte loads will
+              result in a stack slot that occupies 4 bytes.
 
               Except
                 a) for arrays (they use different load instructions for
@@ -269,15 +269,7 @@ implementation
                not assigned(location.reference.symbol) and
                (location.reference.arrayreftype=art_none) and
                (ressize>leftsize) and
-               ((ressize=4) or
-               { this will kill any sign/zero-extension after the load, so
-                 in case the result is 2 bytes (and source is 1 bytes), the
-                 source must be unsigned (-> already zero-extended in memory),
-                 or the destination must be signed (sign-extension in memory
-                 can be loaded onto the stack without problems) }
-                ((ressize=2) and
-                 (not is_signed(left.resultdef) or
-                  is_signed(resultdef)))) then
+               (ressize=4) then
               begin
                 location.size:=def_cgsize(resultdef);
                 { no adjustment of the offset even though Java is big endian,
