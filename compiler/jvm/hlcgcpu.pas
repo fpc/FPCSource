@@ -150,6 +150,9 @@ uses
      protected
       procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
 
+      procedure inittempvariables(list:TAsmList);override;
+
+
       { in case of an array, the array base address and index have to be
         put on the evaluation stack before the stored value; similarly, for
         fields the self pointer has to be loaded first. Also checks whether
@@ -773,6 +776,11 @@ implementation
         else
           internalerror(2011010301);
       end;
+    end;
+
+  procedure thlcgjvm.inittempvariables(list: TAsmList);
+    begin
+      { these are automatically initialised when allocated if necessary }
     end;
 
   function thlcgjvm.prepare_stack_for_ref(list: TAsmList; const ref: treference; dup: boolean): longint;
