@@ -503,7 +503,7 @@ const
   type_e_record_type_expected=04100;
   type_e_class_helper_must_extend_subclass=04101;
   type_e_record_helper_must_extend_same_record=04102;
-  type_e_java_class_method_not_static=04103;
+  type_e_java_class_method_not_static_virtual=04103;
   type_e_invalid_final_assignment=04104;
   type_e_no_managed_formal_assign_typecast=04105;
   type_e_no_managed_assign_generic_typecast=04106;
@@ -911,7 +911,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 61950;
+  MsgTxtSize = 61956;
 
   MsgIdxMax : array[1..20] of longint=(
     26,89,319,107,87,54,111,23,202,63,

@@ -420,23 +420,12 @@ implementation
     end;
 
 
-  procedure implement_callthrough(pd: tprocdef);
+  procedure addvisibibleparameters(var str: ansistring; pd: tprocdef);
     var
-      str: ansistring;
-      callpd: tprocdef;
       currpara: tparavarsym;
       i: longint;
-      firstpara,
-      isclassmethod: boolean;
+      firstpara: boolean;
     begin
-      isclassmethod:=
-        (po_classmethod in pd.procoptions) and
-        not(pd.proctypeoption in [potype_constructor,potype_destructor]);
-      callpd:=tprocdef(pd.skpara);
-      str:='begin ';
-      if pd.returndef<>voidtype then
-        str:=str+'result:=';
-      str:=str+callpd.procsym.realname+'(';
       firstpara:=true;
       for i:=0 to pd.paras.count-1 do
         begin
@@ -449,11 +438,31 @@ implementation
               str:=str+currpara.realname;
             end;
         end;
+    end;
+
+
+
+  procedure implement_callthrough(pd: tprocdef);
+    var
+      str: ansistring;
+      callpd: tprocdef;
+      isclassmethod: boolean;
+    begin
+      isclassmethod:=
+        (po_classmethod in pd.procoptions) and
+        not(pd.proctypeoption in [potype_constructor,potype_destructor]);
+      callpd:=tprocdef(pd.skpara);
+      str:='begin ';
+      if pd.returndef<>voidtype then
+        str:=str+'result:=';
+      str:=str+callpd.procsym.realname+'(';
+      addvisibibleparameters(str,pd);
       str:=str+') end;';
       str_parse_method_impl(str,pd,isclassmethod);
     end;
 
 
+{$ifdef jvm}
   procedure implement_jvm_enum_values(pd: tprocdef);
     begin
       str_parse_method_impl('begin result:=__fpc_FVALUES end;',pd,true);
@@ -630,7 +639,6 @@ implementation
 
 
   procedure implement_jvm_procvar_invoke(pd: tprocdef);
-{$ifdef jvm}
     var
       pvclass: tobjectdef;
       procvar: tprocvardef;
@@ -639,11 +647,7 @@ implementation
       paradef,boxdef,boxargdef: tdef;
       i: longint;
       firstpara: boolean;
-{$endif jvm}
     begin
-{$ifndef jvm}
-      internalerror(2011072401);
-{$else not jvm}
       pvclass:=tobjectdef(pd.owner.defowner);
       procvar:=tprocvardef(ttypesym(search_struct_member(pvclass,'__FPC_PROCVARALIAS')).typedef);
       { the procvar wrapper class has a tmethod member called "method", whose
@@ -727,8 +731,26 @@ implementation
         end;
       str:=str+'])'+endstr+' end;';
       str_parse_method_impl(str,pd,false)
-{$endif not jvm}
     end;
+
+
+  procedure implement_jvm_virtual_clmethod(pd: tprocdef);
+    var
+      str: ansistring;
+      callpd: tprocdef;
+    begin
+      callpd:=tprocdef(pd.skpara);
+      str:='var pv: __fpc_virtualclassmethod_pv_t'+tostr(pd.defid)+'; begin '
+        + 'pv:=@'+callpd.procsym.RealName+';';
+      if (pd.proctypeoption<>potype_constructor) and
+         not is_void(pd.returndef) then
+        str:=str+'result:=';
+      str:=str+'pv(';
+      addvisibibleparameters(str,pd);
+      str:=str+') end;';
+      str_parse_method_impl(str,pd,true)
+    end;
+{$endif jvm}
 
 
   procedure add_synthetic_method_implementations_for_struct(struct: tabstractrecorddef);
@@ -760,6 +782,7 @@ implementation
               implement_empty(pd);
             tsk_callthrough:
               implement_callthrough(pd);
+{$ifdef jvm}
             tsk_jvm_enum_values:
               implement_jvm_enum_values(pd);
             tsk_jvm_enum_valueof:
@@ -780,6 +803,9 @@ implementation
               implement_jvm_enum_set2set(pd);
             tsk_jvm_procvar_invoke:
               implement_jvm_procvar_invoke(pd);
+            tsk_jvm_virtual_clmethod:
+              implement_jvm_virtual_clmethod(pd);
+{$endif jvm}
             else
               internalerror(2011032801);
           end;

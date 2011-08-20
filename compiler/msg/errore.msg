@@ -1781,9 +1781,9 @@ type_e_class_helper_must_extend_subclass=04101_E_Derived class helper must exten
 type_e_record_helper_must_extend_same_record=04102_E_Derived record helper must extend "$1"
 % If a record helper inherits from another record helper it must extend the same
 % record that the parent record helper extended.
-type_e_java_class_method_not_static=04103_E_Java class methods have to be static
-% All methods in Java are either regular (virtual) methods, or static class
-% methods. It is not possible to declare non-static class methods.
+type_e_java_class_method_not_static_virtual=04103_E_JVM virtual class methods cannot be static
+% Virtual class methods cannot be static when targetting the JVM platform, because
+% the self pointer is required for correct dispatching.
 type_e_invalid_final_assignment=04104_E_Final (class) fields can only be assigned in their class' (class) constructor
 % It is only possible to assign a value to a final (class) field inside a (class) constructor of its owning class.
 type_e_no_managed_formal_assign_typecast=04105_E_It is not possible to typecast untyped parameters on managed platforms, simply assign a value to them instead.

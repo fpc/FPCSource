@@ -780,6 +780,7 @@ implementation
 
       procedure chkjava(pd: tprocdef);
         begin
+{$ifdef jvm}
           if is_java_class_or_interface(pd.struct) then
             begin
               { mark all non-virtual instance methods as "virtual; final;",
@@ -792,15 +793,23 @@ implementation
                     vmt and we can't check whether child classes try to override
                     them
               }
-              if is_javaclass(pd.struct) and
-                 not(po_virtualmethod in pd.procoptions) and
-                 not(po_classmethod in pd.procoptions) then
+              if is_javaclass(pd.struct) then
                 begin
-                  include(pd.procoptions,po_virtualmethod);
-                  include(pd.procoptions,po_finalmethod);
-                  include(pd.procoptions,po_java_nonvirtual);
+                  if not(po_virtualmethod in pd.procoptions) and
+                     not(po_classmethod in pd.procoptions) then
+                    begin
+                      include(pd.procoptions,po_virtualmethod);
+                      include(pd.procoptions,po_finalmethod);
+                      include(pd.procoptions,po_java_nonvirtual);
+                    end
+                  else if [po_virtualmethod,po_classmethod]<=pd.procoptions then
+                    begin
+                      if po_staticmethod in pd.procoptions then
+                        Message(type_e_java_class_method_not_static_virtual);
+                    end;
                 end;
             end;
+{$endif}
         end;
 
 
@@ -1423,6 +1432,7 @@ implementation
                   add_missing_parent_constructors_intf(tobjectdef(current_structdef),vis_none);
 {$ifdef jvm}
                   maybe_add_public_default_java_constructor(tobjectdef(current_structdef));
+                  jvm_wrap_virtual_class_methods(tobjectdef(current_structdef));
 {$endif}
                 end;
               { need method to hold the initialization code for typed constants? }

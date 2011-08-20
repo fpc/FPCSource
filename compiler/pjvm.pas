@@ -42,6 +42,8 @@ interface
     procedure jvm_maybe_create_enum_class(const name: TIDString; def: tdef);
     procedure jvm_create_procvar_class(const name: TIDString; def: tdef);
 
+    procedure jvm_wrap_virtual_class_methods(obj: tobjectdef);
+
     function jvm_add_typed_const_initializer(csym: tconstsym): tstaticvarsym;
 
     function jvm_wrap_method_with_vis(pd: tprocdef; vis: tvisibility): tprocdef;
@@ -486,6 +488,76 @@ implementation
         vmtbuilder.free;
 
         restore_after_new_class(sstate,islocal,oldsymtablestack);
+      end;
+
+
+    procedure jvm_wrap_virtual_class_method(pd: tprocdef);
+      var
+        wrapperpd: tprocdef;
+        wrapperpv: tprocvardef;
+        typ: ttypesym;
+      begin
+        if (po_external in pd.procoptions) or
+           (oo_is_external in pd.struct.objectoptions) then
+          exit;
+        { the JVM does not support virtual class methods -> we generate
+          wrappers with the original name so they can be called normally,
+          and these wrappers will then perform a dynamic lookup. To enable
+          calling the class method by its intended name from external Java code,
+          we have to change its external name so that we give that original
+          name to the wrapper function -> "switch" the external names around for
+          the original and wrapper methods }
+        { wrapper is part of the same symtable as the original procdef }
+        symtablestack.push(pd.owner);
+        { get a copy of the virtual class method }
+        wrapperpd:=tprocdef(pd.getcopy);
+        { this one is not virtual nor override }
+        exclude(wrapperpd.procoptions,po_virtualmethod);
+        exclude(wrapperpd.procoptions,po_overridingmethod);
+        { import/external name = name of original class method }
+        stringdispose(wrapperpd.import_name);
+        if not assigned(pd.import_name) then
+          wrapperpd.import_name:=stringdup(pd.procsym.realname)
+        else
+          wrapperpd.import_name:=stringdup(pd.import_name^);
+        include(wrapperpd.procoptions,po_has_importname);
+        { replace importname of original procdef }
+        include(pd.procoptions,po_has_importname);
+        stringdispose(pd.import_name);
+        pd.import_name:=stringdup(wrapperpd.import_name^+'__fpcvirtualclassmethod__');
+        { implementation }
+        wrapperpd.synthetickind:=tsk_jvm_virtual_clmethod;
+        { associate with wrapper procsym (Pascal-level name = wrapper name ->
+          in callnodes, we will have to replace the calls to virtual class
+          methods with calls to the wrappers) }
+        finish_copied_procdef(wrapperpd,pd.import_name^,pd.owner,tabstractrecorddef(pd.owner.defowner));
+        { also create procvar type that we can use in the implementation }
+        wrapperpv:=tprocvardef(pd.getcopyas(procvardef,pc_normal));
+        wrapperpv.calcparas;
+        jvm_create_procvar_class('__fpc_virtualclassmethod_pv_t'+tostr(wrapperpd.defid),wrapperpv);
+        { create alias for the procvar type so we can use it in generated
+          Pascal code }
+        typ:=ttypesym.create('__fpc_virtualclassmethod_pv_t'+tostr(wrapperpd.defid),wrapperpv);
+        wrapperpv.classdef.typesym.visibility:=vis_strictprivate;
+        symtablestack.top.insert(typ);
+        wrapperpd.skpara:=pd;
+        symtablestack.pop(pd.owner);
+      end;
+
+
+    procedure jvm_wrap_virtual_class_methods(obj: tobjectdef);
+      var
+        i: longint;
+        def: tdef;
+      begin
+        for i:=0 to obj.symtable.deflist.count-1 do
+          begin
+            def:=tdef(obj.symtable.deflist[i]);
+            if def.typ<>procdef then
+              continue;
+            if [po_classmethod,po_virtualmethod]<=tprocdef(def).procoptions then
+              jvm_wrap_virtual_class_method(tprocdef(def))
+          end;
       end;
 
 

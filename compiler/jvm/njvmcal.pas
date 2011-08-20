@@ -51,6 +51,7 @@ interface
          procedure do_release_unused_return_value;override;
          procedure extra_post_call_code; override;
          function dispatch_procvar: tnode;
+         procedure remove_hidden_paras;
         public
          function pass_1: tnode; override;
        end;
@@ -59,8 +60,9 @@ interface
 implementation
 
     uses
-      verbose,globtype,constexp,
-      symconst,defutil,ncal,
+      verbose,globtype,constexp,cutils,
+      symconst,symtable,symsym,defutil,
+      ncal,
       cgutils,tgobj,procinfo,
       cpubase,aasmdata,aasmcpu,
       hlcgobj,hlcgcpu,
@@ -482,25 +484,10 @@ implementation
       end;
 
 
-  function tjvmcallnode.dispatch_procvar: tnode;
+  procedure tjvmcallnode.remove_hidden_paras;
     var
-      pdclass: tobjectdef;
       prevpara, para, nextpara: tcallparanode;
     begin
-      pdclass:=tprocvardef(right.resultdef).classdef;
-      { convert procvar type into corresponding class }
-      if not tprocvardef(right.resultdef).is_addressonly then
-        begin
-          right:=caddrnode.create_internal(right);
-          include(right.flags,nf_typedaddr);
-        end;
-      right:=ctypeconvnode.create_explicit(right,pdclass);
-      include(right.flags,nf_load_procvar);
-      typecheckpass(right);
-
-      { call the invoke method with these parameters. It will take care of the
-        wrapping and typeconversions; first filter out the automatically added
-        hidden parameters though }
       prevpara:=nil;
       para:=tcallparanode(left);
       while assigned(para) do
@@ -519,6 +506,28 @@ implementation
             prevpara:=para;
           para:=nextpara;
         end;
+    end;
+
+
+  function tjvmcallnode.dispatch_procvar: tnode;
+    var
+      pdclass: tobjectdef;
+    begin
+      pdclass:=tprocvardef(right.resultdef).classdef;
+      { convert procvar type into corresponding class }
+      if not tprocvardef(right.resultdef).is_addressonly then
+        begin
+          right:=caddrnode.create_internal(right);
+          include(right.flags,nf_typedaddr);
+        end;
+      right:=ctypeconvnode.create_explicit(right,pdclass);
+      include(right.flags,nf_load_procvar);
+      typecheckpass(right);
+
+      { call the invoke method with these parameters. It will take care of the
+        wrapping and typeconversions; first filter out the automatically added
+        hidden parameters though }
+      remove_hidden_paras;
       result:=ccallnode.createinternmethod(right,'INVOKE',left);
       { reused }
       left:=nil;
@@ -527,12 +536,41 @@ implementation
 
 
   function tjvmcallnode.pass_1: tnode;
+    var
+      sym: tsym;
     begin
       { transform procvar calls }
       if assigned(right) then
         result:=dispatch_procvar
       else
         begin
+          { replace virtual class method calls in case they may be indirect }
+          if (procdefinition.typ=procdef) and
+             ([po_classmethod,po_virtualmethod]<=procdefinition.procoptions) and
+             (methodpointer.nodetype<>loadvmtaddrn) then
+            begin
+              sym:=
+                search_struct_member(tobjectdef(procdefinition.owner.defowner),
+                  upper(tprocdef(procdefinition).import_name^));
+              if not assigned(sym) or
+                 (sym.typ<>procsym) then
+                internalerror(2011072801);
+              { check whether we can simply replace the symtableprocentry, or
+                whether we have to reresolve overloads }
+              if symtableprocentry.ProcdefList.count=1 then
+                begin
+                  symtableprocentry:=tprocsym(sym);
+                  procdefinition:=tprocdef(symtableprocentry.ProcdefList[0]);
+                end
+              else
+                begin
+                  remove_hidden_paras;
+                  result:=ccallnode.create(left,tprocsym(sym),symtableproc,methodpointer,callnodeflags);
+                  left:=nil;
+                  methodpointer:=nil;
+                  exit;
+                end;
+            end;
           result:=inherited pass_1;
           if assigned(result) then
             exit;

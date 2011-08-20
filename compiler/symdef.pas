@@ -527,7 +527,8 @@ interface
          tsk_jvm_enum_long2set,     // Java fpcLongToEnumSet function that returns an enumset corresponding to a bit pattern in a jlong
          tsk_jvm_enum_bitset2set,   // Java fpcBitSetToEnumSet function that returns an enumset corresponding to a BitSet
          tsk_jvm_enum_set2Set,      // Java fpcEnumSetToEnumSet function that returns an enumset corresponding to another enumset (different enum kind)
-         tsk_jvm_procvar_invoke     // Java invoke method that calls a wrapped procvar
+         tsk_jvm_procvar_invoke,    // Java invoke method that calls a wrapped procvar
+         tsk_jvm_virtual_clmethod   // Java wrapper for virtual class method
        );
 
 {$ifdef oldregvars}
