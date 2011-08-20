@@ -590,6 +590,23 @@ implementation
             result:=false;
             exit;
           end;
+
+        { non-literal type conversions }
+        if convtype in
+             [tc_char_2_string,
+              tc_char_2_chararray,
+              tc_string_2_string,
+              tc_string_2_chararray,
+              tc_real_2_real,
+              tc_proc_2_procvar,
+              tc_arrayconstructor_2_set,
+              tc_set_to_set,
+              tc_class_2_intf,
+              tc_array_2_dynarray] then
+          begin
+            result:=false;
+            exit;
+          end;
 {$endif}
 
         { Todo:
