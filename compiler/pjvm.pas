@@ -194,7 +194,7 @@ implementation
         { can't use def.typesym, not yet set at this point }
         if not assigned(def.symtable.realname) then
           internalerror(2011032803);
-        if str_parse_method_dec('procedure fpcDeepCopy(out result:'+def.symtable.realname^+');',potype_procedure,false,def,pd) then
+        if str_parse_method_dec('procedure fpcDeepCopy(result: FpcBaseRecordType);override;',potype_procedure,false,def,pd) then
           pd.synthetickind:=tsk_record_deepcopy
         else
           internalerror(2011032807);

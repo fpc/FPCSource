@@ -382,14 +382,14 @@ implementation
          not assigned(struct.typesym) then
         internalerror(2011032811);
       { copy all fields }
-      str:='begin ';
+      str:='type _fpc_ptrt = ^'+struct.typesym.realname+'; var res: _fpc_ptrt; begin res:=_fpc_ptrt(result);';
       for i:=0 to struct.symtable.symlist.count-1 do
         begin
           sym:=tsym(struct.symtable.symlist[i]);
           if (sym.typ=fieldvarsym) then
             begin
               fsym:=tfieldvarsym(sym);
-              str:=str+'result.&'+fsym.realname+':=&'+fsym.realname+';';
+              str:=str+'res^.&'+fsym.realname+':=&'+fsym.realname+';';
             end;
         end;
       str:=str+'end;';

@@ -24,5 +24,6 @@ type
     function clone: JLObject;override;
     { create an empty instance of the current type }
     function newEmpty: FpcBaseRecordType;
+    procedure fpcDeepCopy(result: FpcBaseRecordType);virtual;abstract;
   end;
 
