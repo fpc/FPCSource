@@ -442,6 +442,8 @@ implementation
         toclasscompatible: boolean;
         fromdef,
         todef: tdef;
+        fromarrtype,
+        toarrtype: char;
       begin
         result:=nil;
         { This routine is only called for explicit typeconversions of same-sized
@@ -467,15 +469,22 @@ implementation
               it wasn't handled by another type conversion, we know it can't
               have been valid normally)
 
-              Exception: (most nested) destination is java.lang.Object, since
-                everything is compatible with that type }
+              Exceptions: (most nested) destination is
+                * java.lang.Object, since everything is compatible with that type
+                * related to source
+                * a primitive that are represented by the same type in Java
+                  (e.g., byte and shortint) }
             fromdef:=left.resultdef;
             todef:=resultdef;
             get_most_nested_types(fromdef,todef);
+            fromarrtype:=jvmarrtype_setlength(fromdef);
+            toarrtype:=jvmarrtype_setlength(todef);
             if not left.resultdef.is_related(resultdef) and
                (((fromdef.typ<>objectdef) and
                  not is_dynamic_array(fromdef)) or
-                (todef<>java_jlobject)) then
+                (todef<>java_jlobject)) and
+               ((fromarrtype in ['A','R']) or
+                (fromarrtype<>toarrtype)) then
               begin
                 result:=ctypenode.create(resultdef);
                 if resultdef.typ=objectdef then
