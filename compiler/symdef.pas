@@ -491,7 +491,8 @@ interface
          tsk_none,
          tsk_anon_inherited,        // anonymous inherited call
          tsk_jvm_clone,             // Java-style clone method
-         tsk_record_deepcopy        // deepcopy for records field by field
+         tsk_record_deepcopy,       // deepcopy for records field by field
+         tsk_empty                  // an empty routine
        );
 
 {$ifdef oldregvars}
@@ -3123,6 +3124,8 @@ implementation
 
     function trecorddef.is_related(d: tdef): boolean;
       begin
+        if d.typ=objectdef then
+          d:=find_real_class_definition(tobjectdef(d),false);
         { records are implemented via classes in the JVM target, and are
           all descendents of the java_fpcbaserecordtype class }
         if (target_info.system=system_jvm_java32) and
