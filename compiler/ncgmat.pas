@@ -131,7 +131,7 @@ implementation
       parabase,
       pass_2,
       ncon,
-      tgobj,ncgutil,cgobj,cgutils,paramgr
+      tgobj,ncgutil,cgobj,cgutils,paramgr,hlcgobj
 {$ifndef cpu64bitalu}
       ,cg64f32
 {$endif not cpu64bitalu}
@@ -488,10 +488,10 @@ implementation
     procedure tcgnotnode.second_integer;
       begin
         secondpass(left);
-        location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),false);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
         location_copy(location,left.location);
         { perform the NOT operation }
-        cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,location.size,location.register,location.register);
+        hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,left.resultdef,location.register,location.register);
       end;
 
 
