@@ -230,9 +230,9 @@ implementation
       sym: tsym;
       fsym: tfieldvarsym;
     begin
-      if not(pd.owner.defowner.typ in [recorddef,objectdef]) then
+      if not(pd.struct.typ in [recorddef,objectdef]) then
         internalerror(2011032802);
-      struct:=tabstractrecorddef(pd.owner.defowner);
+      struct:=pd.struct;
       { anonymous record types must get an artificial name, so we can generate
         a typecast at the scanner level }
       if (struct.typ=recorddef) and
@@ -269,9 +269,9 @@ implementation
       sym: tsym;
       fsym: tfieldvarsym;
     begin
-      if not(pd.owner.defowner.typ in [recorddef,objectdef]) then
+      if not(pd.struct.typ in [recorddef,objectdef]) then
         internalerror(2011032810);
-      struct:=tabstractrecorddef(pd.owner.defowner);
+      struct:=pd.struct;
       { anonymous record types must get an artificial name, so we can generate
         a typecast at the scanner level }
       if (struct.typ=recorddef) and
