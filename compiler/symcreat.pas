@@ -204,9 +204,7 @@ implementation
       str: ansistring;
       isclassmethod: boolean;
     begin
-      isclassmethod:=
-        (po_classmethod in pd.procoptions) and
-        not(pd.proctypeoption in [potype_constructor,potype_destructor]);
+      isclassmethod:=(po_classmethod in pd.procoptions);
       str:=pd.customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker,pno_noleadingdollar]);
       str:=str+'begin inherited end;';
       str_parse_method_impl(str,isclassmethod);
