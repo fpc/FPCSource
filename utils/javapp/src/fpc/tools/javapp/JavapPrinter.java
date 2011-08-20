@@ -118,7 +118,7 @@ public class JavapPrinter {
     	String pkgname = cls.getClassPackageName();
     	if (pkgname != null)
     		out.print("'"+pkgname+"' ");
-    	out.print("name '"+cls.getExternalClassName()+"' ");
+    	out.print("name '"+cls.getExternalShortClassName()+"' ");
 
     	if (!printOnlySkel) {
     		// FPC doesn't like it when you say that an interface's superclass is

@@ -225,6 +225,20 @@ public class PascalClassData extends ClassData {
 			return className;
 	}
 
+	/* returns the name of the class according to the JVM
+	 * (in case of nested class: just the name of the nested
+	 * class, ignoring parent classes)
+	 */
+	public static String getExternalShortClassName(String className) {
+		int index;
+		
+		if (isInnerClass(className)) {
+			index=className.lastIndexOf("$")+1;
+			return className.substring(index);
+		}
+		return getExternalClassName(className);
+	}
+
 	public String getShortClassName() {
 		return getShortClassName(getClassName());
     }
@@ -248,6 +262,10 @@ public class PascalClassData extends ClassData {
 	public String getExternalClassName() {
 		return getExternalClassName(getClassName());
 	}
+
+	public String getExternalShortClassName() {
+		return getExternalShortClassName(getClassName());
+	}	
 	
 	public String[] getPascalSuperInterfaces(){
 		String[] res = super.getSuperInterfaces();
