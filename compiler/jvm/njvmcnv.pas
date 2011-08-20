@@ -684,6 +684,12 @@ implementation
           end;
 
 {$ifndef nounsupported}
+        { generated in nmem; replace voidpointertype with java_jlobject }
+        if nf_load_procvar in flags then
+          begin
+            self.totypedef:=java_jlobject;
+            resultdef:=java_jlobject;
+          end;
         if isvalidprocvartypeconv(left.resultdef,resultdef) then
           begin
             convtype:=tc_equal;
