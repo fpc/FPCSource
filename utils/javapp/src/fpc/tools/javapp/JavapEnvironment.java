@@ -22,9 +22,12 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
+/*
+ * Portions Copyright (c) 2011 Jonas Maebe
+ */
 
 
-package sun.tools.javap;
+package fpc.tools.javapp;
 
 import java.util.*;
 import java.io.*;
@@ -61,18 +64,23 @@ public class JavapEnvironment {
     // JavapEnvironment flag settings
     boolean showLineAndLocal = false;
     int showAccess = PACKAGE;
-    boolean showDisassembled = false;
     boolean showVerbose = false;
-    boolean showInternalSigs = false;
     String classPathString = null;
     String bootClassPathString = null;
     String extDirsString = null;
-    boolean extDirflag = false;
+    boolean extDirflag;
     boolean nothingToDo = true;
     boolean showallAttr = false;
     String classpath = null;
-    int searchpath = start;
+    String outputName = "java";
+    ArrayList<String> excludePrefixes;
+    ArrayList<String> skelPrefixes;
 
+    public JavapEnvironment() {
+    	excludePrefixes = new ArrayList<String>();
+    	skelPrefixes = new ArrayList<String>();
+    }
+    
     /**
      *  According to which flags are set,
      *  returns file input stream for classfile to disassemble.
@@ -80,7 +88,8 @@ public class JavapEnvironment {
 
     public InputStream getFileInputStream(String Name){
         InputStream fileInStream = null;
-        searchpath = cmdboot;
+        int searchpath = cmdboot;
+        extDirflag = false;
         try{
             if(searchpath == cmdboot){
                 if(bootClassPathString != null){
@@ -259,7 +268,7 @@ public class JavapEnvironment {
         }
         else return (resolveclasspathhelper(classpath, classname));
     }
-
+    
 
     /**
      * Returns file input stream for classfile to disassemble if exdir is set.
@@ -352,4 +361,239 @@ public class JavapEnvironment {
         }
         return null;
     }
+    
+    
+    
+    protected SortedSet<String> getJarEntries(String jarname) {
+    	SortedSet<String> res = new TreeSet<String>();
+
+    	try{
+    		JarFile jfile = new JarFile(jarname);
+    		Enumeration<JarEntry> entries = jfile.entries();
+    		while (entries.hasMoreElements()) {
+    			JarEntry entry = entries.nextElement();
+    			String name = entry.getName();    			
+    			int classpos = name.lastIndexOf(".class");
+    			if ((classpos != -1) &&
+    					!PascalClassData.isInnerClass(name.substring(0, classpos)) &&
+    					!entry.isDirectory()) {
+    				res.add(name.substring(0, classpos));
+    			}
+    		}
+    	}catch(FileNotFoundException fnexce){
+//    		fnexce.printStackTrace();
+//    		error("cant read file");
+//    		error("fatal exception");
+    	}catch(IOException ioexc){
+//    		ioexc.printStackTrace();
+//    		error("fatal exception");
+    	}
+    	return res;
+    }
+
+
+    protected SortedSet<String> getDirEntries(File fileobj, boolean includeJarEntries) {
+    	SortedSet<String> res = new TreeSet<String>();
+
+    	File[] filelist = fileobj.listFiles();
+    	for(int i = 0; i < filelist.length; i++){
+    		//file is a jar file.
+    		String fname = filelist[i].toString();
+    		if(includeJarEntries &&
+    				fname.endsWith(".jar")){
+    			res.addAll(getJarEntries(fname));
+    		}
+    		else if (fname.endsWith(".class")) {
+    			int classpos = fname.lastIndexOf(".class");
+    			if (classpos != -1)
+    				fname = fname.substring(0, classpos);
+    			if (!PascalClassData.isInnerClass(fname))
+    				res.add(fname);
+    		}
+    	}
+    	return res;
+    }
+
+    /**
+     * Returns list of non-nested classes found in a path
+     */
+    public SortedSet<String> getExdirEntries(String path){
+    	File fileobj = new File(path);
+    	if(fileobj.isDirectory()){
+    		return getDirEntries(fileobj,true);
+    	}
+    	return new TreeSet<String>();
+    }
+
+    
+    /**
+     * Returns list of non-nested classes found in class path
+     */
+    public SortedSet<String>  getClasspathEntries(String path){
+        File fileobj = new File(path);
+        if(fileobj.isDirectory()){
+        	return getDirEntries(fileobj, false);
+
+        }else if(fileobj.toString().endsWith(".jar")){
+        	return getJarEntries(fileobj.toString());
+        }
+        return new TreeSet<String>();
+    }
+
+    
+    /**
+     * Return a list of all non-nested classes in the currently set exdir classpath
+     */
+    public SortedSet<String> getAllExdirEntries(){
+    	SortedSet<String> res;
+        if(classpath.indexOf(File.pathSeparator) != -1){
+        	res = new TreeSet<String>();
+            //separates path
+            StringTokenizer st = new StringTokenizer(classpath, File.pathSeparator);
+            while(st.hasMoreTokens()){
+                String path = st.nextToken();
+                res.addAll(getExdirEntries(path));
+            }
+        }else res = getExdirEntries(classpath);
+
+        return res;
+    }
+
+    /**
+     * Return a list of all non-nested classes in the currently set classpath
+     */
+    public SortedSet<String> getAllClasspathEntries(){
+    	SortedSet<String> res;
+        if(classpath.indexOf(File.pathSeparator) != -1){
+        	res = new TreeSet<String>();
+            StringTokenizer st = new StringTokenizer(classpath, File.pathSeparator);
+            //separates path.
+            while(st.hasMoreTokens()){
+                String path = (st.nextToken()).trim();
+                res.addAll(getClasspathEntries(path));
+            }
+        }
+        else res = getClasspathEntries(classpath);
+        return res;
+    }
+
+
+    public SortedSet<String> getAllEntries(){
+    	if (extDirflag)
+    	  return getAllExdirEntries();
+    	else
+      	  return getAllClasspathEntries();
+    }
+    
+    
+    public SortedSet<String> getClassesList(){
+    	SortedSet<String> res = new TreeSet<String>();
+        int searchpath = cmdboot;
+        extDirflag = false;
+        try{
+            if(searchpath == cmdboot){
+                if(bootClassPathString != null){
+                    //search in specified bootclasspath.
+                    classpath = bootClassPathString;
+                    res.addAll(getAllEntries());
+                    searchpath = cmdextdir;
+                }
+                else searchpath = sunboot;
+            }
+
+            if(searchpath == sunboot){
+                if(System.getProperty("sun.boot.class.path") != null){
+                    //search in sun.boot.class.path
+                    classpath = System.getProperty("sun.boot.class.path");
+                    res.addAll(getAllEntries());
+                    searchpath = cmdextdir;
+                }
+                else searchpath = javaclass;
+            }
+
+            if(searchpath == javaclass){
+                if(System.getProperty("java.class.path") != null){
+                    //search in java.class.path
+                    classpath =System.getProperty("java.class.path");
+                    res.addAll(getAllEntries());
+                    searchpath = cmdextdir;
+                }
+                else searchpath = cmdextdir;
+            }
+
+            if(searchpath == cmdextdir){
+                if(extDirsString != null){
+                    //search in specified extdir.
+                    classpath = extDirsString;
+                    extDirflag = true;
+                    res.addAll(getAllEntries());
+                    searchpath = cmdclasspath;
+                    extDirflag = false;
+                }
+                else searchpath = javaext;
+            }
+
+            if(searchpath == javaext){
+                if(System.getProperty("java.ext.dirs") != null){
+                    //search in java.ext.dirs
+                    classpath = System.getProperty("java.ext.dirs");
+                    extDirflag = true;
+                    res.addAll(getAllEntries());
+                    searchpath = cmdclasspath;
+                    extDirflag = false;
+                }
+                else searchpath = cmdclasspath;
+            }
+            if(searchpath == cmdclasspath){
+                if(classPathString != null){
+                    //search in specified classpath.
+                    classpath = classPathString;
+                    res.addAll(getAllEntries());
+                    searchpath = 8;
+                }
+                else searchpath = envclasspath;
+            }
+
+            if(searchpath == envclasspath){
+                if(System.getProperty("env.class.path")!= null){
+                    //search in env.class.path
+                    classpath = System.getProperty("env.class.path");
+                    res.addAll(getAllEntries());
+                    searchpath = javaclasspath;
+                }
+                else searchpath = javaclasspath;
+            }
+
+            if(searchpath == javaclasspath){
+                if(("application.home") == null){
+                    //search in java.class.path
+                    classpath = System.getProperty("java.class.path");
+                    res.addAll(getAllEntries());
+                    searchpath = currentdir;
+                }
+                else searchpath = currentdir;
+            }
+
+            if(searchpath == currentdir){
+                classpath = ".";
+                //search in current dir.
+                res.addAll(getAllEntries());
+            }
+        }catch(SecurityException excsec){
+            excsec.printStackTrace();
+            error("fatal exception");
+        }catch(NullPointerException excnull){
+            excnull.printStackTrace();
+            error("fatal exception");
+        }catch(IllegalArgumentException excill){
+            excill.printStackTrace();
+            error("fatal exception");
+        }
+
+        return res;
+    }
+
+    
+
+    
 }

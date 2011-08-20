@@ -22,9 +22,12 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
+/*
+ * Portions Copyright (c) 2011 Jonas Maebe
+ */
 
 
-package sun.tools.javap;
+package fpc.tools.javapp;
 
 import java.io.*;
 import java.util.*;
@@ -63,9 +66,11 @@ class InnerClassData  implements RuntimeConstants {
      * Returns the access of this class or interface.
      */
     public String[] getAccess(){
-        Vector v = new Vector();
+        Vector<String> v = new Vector<String>();
         if ((access & ACC_PUBLIC)   !=0) v.addElement("public");
-        if ((access & ACC_FINAL)    !=0) v.addElement("final");
+        if ((access & ACC_PROTECTED)   !=0) v.addElement("protected");
+        if ((access & ACC_PRIVATE)    !=0) v.addElement("private");
+        if ((access & ACC_FINAL)   !=0) v.addElement("final");
         if ((access & ACC_ABSTRACT) !=0) v.addElement("abstract");
         String[] accflags = new String[v.size()];
         v.copyInto(accflags);

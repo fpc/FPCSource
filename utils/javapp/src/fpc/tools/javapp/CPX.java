@@ -22,9 +22,12 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
+/*
+ * Portions Copyright (c) 2011 Jonas Maebe
+ */
 
 
-package sun.tools.javap;
+package fpc.tools.javapp;
 
 /**
  * Stores constant pool entry information with one field.

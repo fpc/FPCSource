@@ -22,10 +22,13 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
+/*
+ * Portions Copyright (c) 2011 Jonas Maebe
+ */
 
 
 
-package sun.tools.javap;
+package fpc.tools.javapp;
 
 /**
  * This interface defines constant that are used

@@ -22,13 +22,16 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
+/*
+ * Portions Copyright (c) 2011 Jonas Maebe
+ */
 
-package sun.tools.javap;
+package fpc.tools.javapp;
 
 import java.util.*;
 import java.io.*;
 
-import static sun.tools.javap.RuntimeConstants.*;
+import static fpc.tools.javapp.RuntimeConstants.*;
 
 /**
  * Strores method data informastion.
@@ -42,16 +45,20 @@ public class MethodData {
     int name_index;
     int descriptor_index;
     int attributes_count;
+/*    
     byte[] code;
     Vector exception_table = new Vector(0);
     Vector lin_num_tb = new Vector(0);
     Vector loc_var_tb = new Vector(0);
     StackMapTableData[] stackMapTable;
     StackMapData[] stackMap;
+*/
     int[] exc_index_table=null;
     Vector attrs=new Vector(0);
+/*    
     Vector code_attrs=new Vector(0);
     int max_stack,  max_locals;
+*/
     boolean isSynthetic=false;
     boolean isDeprecated=false;
 
@@ -116,24 +123,28 @@ public class MethodData {
     public void readCode(DataInputStream in) throws IOException {
 
         int attr_length = in.readInt();
-        max_stack=in.readUnsignedShort();
-        max_locals=in.readUnsignedShort();
+//        max_stack=in.readUnsignedShort();
+//        max_locals=in.readUnsignedShort();
+        int max_stack=in.readUnsignedShort();
+        int max_locals=in.readUnsignedShort();
         int codelen=in.readInt();
 
-        code=new byte[codelen];
+//        code=new byte[codelen];
         int totalread = 0;
         while(totalread < codelen){
-            totalread += in.read(code, totalread, codelen-totalread);
+//            totalread += in.read(code, totalread, codelen-totalread);
+        	totalread += in.skipBytes(codelen-totalread);
         }
         //      in.read(code, 0, codelen);
         int clen = 0;
         readExceptionTable(in);
         int code_attributes_count = in.readUnsignedShort();
 
+        AttrData attr=new AttrData(cls);
         for (int k = 0 ; k < code_attributes_count ; k++) {
             int table_name_index=in.readUnsignedShort();
             int table_name_tag=cls.getTag(table_name_index);
-            AttrData attr=new AttrData(cls);
+//            AttrData attr=new AttrData(cls);
             if (table_name_tag==CONSTANT_UTF8) {
                 String table_name_tstr=cls.getString(table_name_index);
                 if (table_name_tstr.equals("LineNumberTable")) {
@@ -151,12 +162,12 @@ public class MethodData {
                 } else {
                     attr.read(table_name_index, in);
                 }
-                code_attrs.addElement(attr);
+//                code_attrs.addElement(attr);
                 continue;
             }
 
             attr.read(table_name_index, in);
-            code_attrs.addElement(attr);
+//            code_attrs.addElement(attr);
         }
     }
 
@@ -165,7 +176,8 @@ public class MethodData {
      */
     void readExceptionTable (DataInputStream in) throws IOException {
         int exception_table_len=in.readUnsignedShort();
-        exception_table=new Vector(exception_table_len);
+//        exception_table=new Vector(exception_table_len);
+        Vector exception_table=new Vector(exception_table_len);
         for (int l = 0; l < exception_table_len; l++) {
             exception_table.addElement(new TrapData(in, l));
         }
@@ -177,7 +189,8 @@ public class MethodData {
     void readLineNumTable (DataInputStream in) throws IOException {
         int attr_len = in.readInt(); // attr_length
         int lin_num_tb_len = in.readUnsignedShort();
-        lin_num_tb=new Vector(lin_num_tb_len);
+//        lin_num_tb=new Vector(lin_num_tb_len);
+        Vector lin_num_tb=new Vector(lin_num_tb_len);
         for (int l = 0; l < lin_num_tb_len; l++) {
             lin_num_tb.addElement(new LineNumData(in));
         }
@@ -189,7 +202,8 @@ public class MethodData {
     void readLocVarTable (DataInputStream in) throws IOException {
         int attr_len=in.readInt(); // attr_length
         int loc_var_tb_len = in.readUnsignedShort();
-        loc_var_tb = new Vector(loc_var_tb_len);
+//        loc_var_tb = new Vector(loc_var_tb_len);
+        Vector loc_var_tb = new Vector(loc_var_tb_len);
         for (int l = 0; l < loc_var_tb_len; l++) {
             loc_var_tb.addElement(new LocVarData(in));
         }
@@ -202,6 +216,7 @@ public class MethodData {
         int attr_len=in.readInt(); // attr_length in prog
         int num_exceptions = in.readUnsignedShort();
         exc_index_table=new int[num_exceptions];
+        int[] exc_index_table=new int[num_exceptions];
         for (int l = 0; l < num_exceptions; l++) {
             int exc=in.readShort();
             exc_index_table[l]=exc;
@@ -214,7 +229,8 @@ public class MethodData {
     void readStackMapTable(DataInputStream in) throws IOException {
         int attr_len = in.readInt();  //attr_length
         int stack_map_tb_len = in.readUnsignedShort();
-        stackMapTable = new StackMapTableData[stack_map_tb_len];
+//        stackMapTable = new StackMapTableData[stack_map_tb_len];
+        StackMapTableData[] stackMapTable = new StackMapTableData[stack_map_tb_len];
         for (int i=0; i<stack_map_tb_len; i++) {
             stackMapTable[i] = StackMapTableData.getInstance(in, this);
         }
@@ -226,7 +242,8 @@ public class MethodData {
     void readStackMap(DataInputStream in) throws IOException {
         int attr_len = in.readInt();  //attr_length
         int stack_map_len = in.readUnsignedShort();
-        stackMap = new StackMapData[stack_map_len];
+//        stackMap = new StackMapData[stack_map_len];
+        StackMapData[] stackMap = new StackMapData[stack_map_len];
         for (int i = 0; i<stack_map_len; i++) {
             stackMap[i] = new StackMapData(in, this);
         }
@@ -288,52 +305,52 @@ public class MethodData {
     /**
      * Return code attribute data of a method.
      */
-    public byte[] getCode(){
-        return code;
-    }
+//    public byte[] getCode(){
+//        return code;
+//    }
 
     /**
      * Return LineNumberTable size.
      */
-    public int getnumlines(){
-        return lin_num_tb.size();
-    }
+//    public int getnumlines(){
+//        return lin_num_tb.size();
+//    }
 
     /**
      * Return LineNumberTable
      */
-    public Vector getlin_num_tb(){
-        return lin_num_tb;
-    }
+//    public Vector getlin_num_tb(){
+//        return lin_num_tb;
+//    }
 
     /**
      * Return LocalVariableTable size.
      */
-    public int getloc_var_tbsize(){
-        return loc_var_tb.size();
-    }
+//    public int getloc_var_tbsize(){
+//        return loc_var_tb.size();
+//    }
 
 
     /**
      * Return LocalVariableTable.
      */
-    public Vector getloc_var_tb(){
-        return loc_var_tb;
-    }
+//    public Vector getloc_var_tb(){
+//        return loc_var_tb;
+//    }
 
     /**
      * Return StackMap.
      */
-    public StackMapData[] getStackMap() {
-        return stackMap;
-    }
+//    public StackMapData[] getStackMap() {
+//        return stackMap;
+//    }
 
     /**
      * Return StackMapTable.
      */
-    public StackMapTableData[] getStackMapTable() {
-        return stackMapTable;
-    }
+//    public StackMapTableData[] getStackMapTable() {
+//        return stackMapTable;
+//    }
 
     /**
      * Return number of arguments of that method.
@@ -354,17 +371,17 @@ public class MethodData {
     /**
      * Return max depth of operand stack.
      */
-    public int getMaxStack(){
-        return  max_stack;
-    }
+//    public int getMaxStack(){
+//        return  max_stack;
+//    }
 
 
     /**
      * Return number of local variables.
      */
-    public int getMaxLocals(){
-        return max_locals;
-    }
+//    public int getMaxLocals(){
+//        return max_locals;
+//    }
 
 
     /**
@@ -378,9 +395,9 @@ public class MethodData {
     /**
      * Return exception table in code attributre.
      */
-    public Vector getexception_table(){
-        return exception_table;
-    }
+//    public Vector getexception_table(){
+//        return exception_table;
+//    }
 
 
     /**
@@ -394,9 +411,9 @@ public class MethodData {
     /**
      * Return code attributes.
      */
-    public Vector getCodeAttributes(){
-        return code_attrs;
-    }
+//    public Vector getCodeAttributes(){
+//        return code_attrs;
+//    }
 
 
     /**

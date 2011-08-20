@@ -22,14 +22,17 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
+/*
+ * Portions Copyright (c) 2011 Jonas Maebe
+ */
 
 
-package sun.tools.javap;
+package fpc.tools.javapp;
 
 import java.util.*;
 import java.io.*;
 
-import static sun.tools.javap.RuntimeConstants.*;
+import static fpc.tools.javapp.RuntimeConstants.*;
 
 /* represents one entry of StackMap attribute
  */

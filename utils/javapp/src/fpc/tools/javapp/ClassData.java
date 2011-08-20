@@ -22,9 +22,12 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
+/*
+ * Portions Copyright (c) 2011 Jonas Maebe
+ */
 
 
-package sun.tools.javap;
+package fpc.tools.javapp;
 
 import java.util.*;
 import java.io.*;
@@ -41,23 +44,23 @@ public class ClassData implements RuntimeConstants {
     private int minor_version;
     private int major_version;
     private int cpool_count;
-    private Object cpool[];
-    private int access;
+    protected Object cpool[];
+    protected int access;
     private int this_class = 0;;
     private int super_class;
     private int interfaces_count;
     private int[] interfaces = new int[0];;
     private int fields_count;
-    private FieldData[] fields;
+    protected FieldData[] fields;
     private int methods_count;
-    private MethodData[] methods;
-    private InnerClassData[] innerClasses;
+    protected MethodData[] methods;
+    protected InnerClassData[] innerClasses;
     private int attributes_count;
     private AttrData[] attrs;
     private String classname;
     private String superclassname;
     private int source_cpx=0;
-    private byte tags[];
+    protected byte tags[];
     private Hashtable indexHashAscii = new Hashtable();
     private String pkgPrefix="";
     private int pkgPrefixLen=0;
@@ -79,6 +82,10 @@ public class ClassData implements RuntimeConstants {
         }
     }
 
+    protected InnerClassData NewInnerClassData() {
+    	return new InnerClassData(this);
+    }
+    
     /**
      * Reads and stores class file information.
      */
@@ -138,7 +145,7 @@ public class ClassData implements RuntimeConstants {
                            throw new ClassFormatError("invalid attr length");
                        innerClasses=new InnerClassData[num];
                        for (int j = 0; j < num; j++) {
-                           InnerClassData innerClass=new InnerClassData(this);
+                           InnerClassData innerClass=NewInnerClassData();
                            innerClass.read(in);
                            innerClasses[j]=innerClass;
                        }

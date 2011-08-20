@@ -22,9 +22,12 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
+/*
+ * Portions Copyright (c) 2011 Jonas Maebe
+ */
 
 
-package sun.tools.javap;
+package fpc.tools.javapp;
 
 import java.util.*;
 import java.io.*;
@@ -37,18 +40,26 @@ import java.io.*;
 public class TypeSignature {
 
     String parameters = null;
+    String parameterdes = null;
     String returntype = null;
     String fieldtype = null;
     int argumentlength = 0;
 
+    protected TypeSignature() {
+    	
+    }
+    
     public TypeSignature(String JVMSignature){
+    	init(JVMSignature);
+    }
+    
+    protected void init(String JVMSignature){
 
         if(JVMSignature != null){
             if(JVMSignature.indexOf("(") == -1){
                 //This is a field type.
                 this.fieldtype = getFieldTypeSignature(JVMSignature);
             }else {
-                String parameterdes = null;
                 if((JVMSignature.indexOf(")")-1) > (JVMSignature.indexOf("("))){
                     //Get parameter signature.
                     parameterdes =
@@ -61,6 +72,30 @@ public class TypeSignature {
                 this.returntype = getReturnTypeHelper(returndes);
             }
         }
+    }
+
+    /**
+     * Checks access of class, field or method.
+     */
+    public static boolean checkAccess(String accflags[], JavapEnvironment env){
+
+        boolean ispublic = false;
+        boolean isprotected = false;
+        boolean isprivate = false;
+        boolean ispackage = false;
+
+        for(int i= 0; i < accflags.length; i++){
+            if(accflags[i].equals("public")) ispublic = true;
+            else if (accflags[i].indexOf("protected")!=-1) isprotected = true;
+            else if (accflags[i].indexOf("private")!=-1) isprivate = true;
+        }
+
+        if(!(ispublic || isprotected || isprivate)) ispackage = true;
+
+        if((env.showAccess == JavapEnvironment.PUBLIC) && (isprotected || isprivate || ispackage)) return false;
+        else if((env.showAccess == JavapEnvironment.PROTECTED) && (isprivate || ispackage)) return false;
+        else if((env.showAccess == JavapEnvironment.PACKAGE) && (isprivate)) return false;
+        else return true;
     }
 
     /**
@@ -78,8 +113,8 @@ public class TypeSignature {
     /**
      * Returns java type signature of a parameter.
      */
-    public String getParametersHelper(String parameterdes){
-        Vector parameters = new Vector();
+    public Vector<String> getParametersList(String parameterdes){
+        Vector<String> parameters = new Vector<String>();
         int startindex = -1;
         int endindex = -1;
         String param = "";
@@ -179,20 +214,15 @@ public class TypeSignature {
             }
         }
 
-        /* number of arguments of a method.*/
-        argumentlength =  parameters.size();
+        return parameters;
+    }
 
-        /* java type signature.*/
-        String parametersignature = "(";
-        int i;
-
-        for(i = 0; i < parameters.size(); i++){
-            parametersignature += (String)parameters.elementAt(i);
-            if(i != parameters.size()-1){
-                parametersignature += ", ";
-            }
-        }
-        parametersignature += ")";
+    /**
+     * Returns java type signature of a parameter.
+     */
+    public String getParametersHelper(String parameterdes){
+        Vector<String> parameters = getParametersList(parameterdes);
+        String parametersignature = parameterSignatureFromParameters(parameters);
         return parametersignature;
     }
 
@@ -292,4 +322,24 @@ public class TypeSignature {
     public int getArgumentlength(){
         return argumentlength;
     }
+    
+    
+    
+    protected String parameterSignatureFromParameters(Vector<String> parameters){
+        /* number of arguments of a method.*/
+        argumentlength =  parameters.size();
+        /* java type signature.*/
+        String parametersignature = "(";
+        int i;
+
+        for(i = 0; i < parameters.size(); i++){
+            parametersignature += (String)parameters.elementAt(i);
+            if(i != parameters.size()-1){
+                parametersignature += ", ";
+            }
+        }
+        parametersignature += ")";
+        return parametersignature;
+    }
+    
 }
