@@ -60,6 +60,7 @@ interface
           function first_round_real: tnode; override;
 *)
           function first_new: tnode; override;
+          function first_IncludeExclude: tnode; override;
           function first_setlength: tnode; override;
           function first_length: tnode; override;
 
@@ -311,6 +312,38 @@ implementation
         tcallparanode(tcallparanode(left).right).firstcallparan;
         expectloc:=LOC_REGISTER;
         result:=nil;
+      end;
+
+
+    function tjvminlinenode.first_IncludeExclude: tnode;
+      var
+        setpara: tnode;
+        valuepara: tcallparanode;
+        seteledef: tdef;
+        procname: string[6];
+      begin
+        setpara:=tcallparanode(left).left;
+        tcallparanode(left).left:=nil;
+        valuepara:=tcallparanode(tcallparanode(left).right);
+        tcallparanode(left).right:=nil;
+        seteledef:=tsetdef(setpara.resultdef).elementdef;
+        setpara:=caddrnode.create_internal(setpara);
+        include(setpara.flags,nf_typedaddr);
+        if seteledef.typ=enumdef then
+          begin
+            inserttypeconv_explicit(setpara,java_juenumset);
+            inserttypeconv_explicit(valuepara.left,tenumdef(seteledef).getbasedef.classdef);
+          end
+        else
+          begin
+            inserttypeconv_explicit(setpara,java_jubitset);
+            inserttypeconv_explicit(valuepara.left,s32inttype);
+          end;
+        if inlinenumber=in_include_x_y then
+          procname:='ADD'
+        else
+          procname:='REMOVE';
+        result:=ccallnode.createinternmethod(setpara,procname,valuepara);
       end;
 
 

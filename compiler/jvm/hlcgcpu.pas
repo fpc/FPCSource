@@ -187,6 +187,7 @@ uses
       { concatcopy helpers }
       procedure concatcopy_normal_array(list: TAsmList; size: tdef; const source, dest: treference);
       procedure concatcopy_record(list: TAsmList; size: tdef; const source, dest: treference);
+      procedure concatcopy_set(list: TAsmList; size: tdef; const source, dest: treference);
       procedure concatcopy_shortstring(list: TAsmList; size: tdef; const source, dest: treference);
 
       { generate a call to a routine in the system unit }
@@ -252,13 +253,9 @@ implementation
       case def.typ of
         { records and enums are implemented via classes }
         recorddef,
-        enumdef:
-          result:=R_ADDRESSREGISTER;
+        enumdef,
         setdef:
-          if is_smallset(def) then
-            result:=R_INTREGISTER
-          else
-            result:=R_ADDRESSREGISTER;
+          result:=R_ADDRESSREGISTER;
         { shortstrings are implemented via classes }
         else if is_shortstring(def) or
         { voiddef can only be typecasted into (implicit) pointers }
@@ -644,22 +641,32 @@ implementation
       { all dimensions are removed from the stack, an array reference is
         added }
       decstack(list,initdim-1);
-      { in case of an array of records or shortstrings, initialise }
+      { in case of an array of records, sets or shortstrings, initialise }
       elemdef:=tarraydef(arrdef).elementdef;
       for i:=1 to pred(initdim) do
         elemdef:=tarraydef(elemdef).elementdef;
-      if (elemdef.typ=recorddef) or
+      if (elemdef.typ in [recorddef,setdef]) or
          is_shortstring(elemdef) then
         begin
-          { duplicate array reference }
+          { duplicate array/string/set instance }
           list.concat(taicpu.op_none(a_dup));
           incstack(list,1);
           a_load_const_stack(list,s32inttype,initdim-1,R_INTREGISTER);
-          if elemdef.typ=recorddef then
+          if elemdef.typ in [recorddef,setdef,procvardef] then
             begin
               tg.gethltemp(list,elemdef,elemdef.size,tt_persistent,recref);
               a_load_ref_stack(list,elemdef,recref,prepare_stack_for_ref(list,recref,false));
-              g_call_system_proc(list,'fpc_initialize_array_record');
+              case elemdef.typ of
+                recorddef:
+                  g_call_system_proc(list,'fpc_initialize_array_record');
+                setdef:
+                  begin
+                    if tsetdef(elemdef).elementdef.typ=enumdef then
+                      g_call_system_proc(list,'fpc_initialize_array_enumset')
+                    else
+                      g_call_system_proc(list,'fpc_initialize_array_bitset')
+                  end
+              end;
               tg.ungettemp(list,recref);
             end
           else
@@ -1135,6 +1142,11 @@ implementation
           end;
         recorddef:
           procname:='FPC_COPY_JRECORD_ARRAY';
+        setdef:
+          if tsetdef(eledef).elementdef.typ=enumdef then
+            procname:='FPC_COPY_JENUMSET_ARRAY'
+          else
+            procname:='FPC_COPY_JBITSET_ARRAY';
         floatdef:
           procname:='FPC_COPY_SHALLOW_ARRAY';
         stringdef:
@@ -1142,7 +1154,6 @@ implementation
             procname:='FPC_COPY_JSHORTSTRING_ARRAY'
           else
             procname:='FPC_COPY_SHALLOW_ARRAY';
-        setdef,
         variantdef:
           begin
 {$ifndef nounsupported}
@@ -1198,6 +1209,20 @@ implementation
       end;
 
 
+    procedure thlcgjvm.concatcopy_set(list: TAsmList; size: tdef; const source, dest: treference);
+      begin
+        a_load_ref_stack(list,size,source,prepare_stack_for_ref(list,source,false));
+        a_load_ref_stack(list,size,dest,prepare_stack_for_ref(list,dest,false));
+        { call set copy helper }
+        if tsetdef(size).elementdef.typ=enumdef then
+          g_call_system_proc(list,'fpc_enumset_copy')
+        else
+          g_call_system_proc(list,'fpc_bitset_copy');
+        { both parameters are removed, no function result }
+        decstack(list,2);
+      end;
+
+
     procedure thlcgjvm.concatcopy_shortstring(list: TAsmList; size: tdef; const source, dest: treference);
       var
         srsym: tsym;
@@ -1236,6 +1261,11 @@ implementation
         recorddef:
           begin
             concatcopy_record(list,size,source,dest);
+            handled:=true;
+          end;
+        setdef:
+          begin
+            concatcopy_set(list,size,source,dest);
             handled:=true;
           end;
         stringdef:
@@ -1324,10 +1354,7 @@ implementation
               opc:=a_ireturn;
           end;
         setdef:
-          if is_smallset(retdef) then
-            opc:=a_ireturn
-          else
-            opc:=a_areturn;
+          opc:=a_areturn;
         floatdef:
           case tfloatdef(retdef).floattype of
             s32real:
@@ -1378,7 +1405,7 @@ implementation
   procedure thlcgjvm.g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation; const name: string);
     var
       normaldim: longint;
-      recref: treference;
+      eleref: treference;
     begin
       { only in case of initialisation, we have to set all elements to "empty" }
       if name<>'FPC_INITIALIZE_ARRAY' then
@@ -1402,12 +1429,18 @@ implementation
         g_call_system_proc(list,'fpc_initialize_array_ansistring')
       else if is_dynamic_array(t) then
         g_call_system_proc(list,'fpc_initialize_array_dynarr')
-      else if is_record(t) then
+      else if is_record(t) or
+              (t.typ=setdef) then
         begin
-          tg.gethltemp(list,t,t.size,tt_persistent,recref);
-          a_load_ref_stack(list,t,recref,prepare_stack_for_ref(list,recref,false));
-          g_call_system_proc(list,'fpc_initialize_array_record');
-          tg.ungettemp(list,recref);
+          tg.gethltemp(list,t,t.size,tt_persistent,eleref);
+          a_load_ref_stack(list,t,eleref,prepare_stack_for_ref(list,eleref,false));
+          if is_record(t) then
+            g_call_system_proc(list,'fpc_initialize_array_record')
+          else if tsetdef(t).elementdef.typ=enumdef then
+            g_call_system_proc(list,'fpc_initialize_array_enumset')
+          else
+            g_call_system_proc(list,'fpc_initialize_array_bitset');
+          tg.ungettemp(list,eleref);
         end
       else
         internalerror(2011031901);
@@ -1851,6 +1884,11 @@ implementation
           vs:=tabstractvarsym(st.symlist[i]);
           if sp_internal in vs.symoptions then
             continue;
+          { vo_is_external and vo_has_local_copy means a staticvarsym that is
+            alias for a constsym, whose sole purpose is for allocating and
+            intialising the constant }
+          if [vo_is_external,vo_has_local_copy]*vs.varoptions=[vo_is_external] then
+             continue;
           if not jvmimplicitpointertype(vs.vardef) then
             continue;
           allocate_implicit_struct_with_base_ref(list,vs,ref);

@@ -30,6 +30,10 @@ interface
       node,nset,ncgset;
 
     type
+      tjvminnode = class(tcginnode)
+         function pass_1: tnode; override;
+      end;
+
       tjvmcasenode = class(tcgcasenode)
          function pass_1: tnode; override;
       end;
@@ -40,7 +44,57 @@ implementation
     uses
       symconst,symdef,
       pass_1,
-      ncnv;
+      ncal,ncnv,ncon,nmem,
+      njvmcon,
+      cgbase;
+
+{*****************************************************************************
+                             TJVMINNODE
+*****************************************************************************}
+
+    function tjvminnode.pass_1: tnode;
+      var
+        setparts: Tsetparts;
+        numparts: byte;
+        use_small: boolean;
+        isenum: boolean;
+      begin
+        { before calling "inherited pass_1", so that in case left is an enum
+          constant it's not yet translated into a class instance }
+        isenum:=left.resultdef.typ=enumdef;
+        { if we can use jumps, don't transform the set constant and (if
+          applicable) the value to be tested }
+        if checkgenjumps(setparts,numparts,use_small) then
+          begin
+            if right.nodetype=setconstn then
+              tjvmsetconstnode(right).setconsttype:=sct_notransform;
+            if isenum and
+               (left.nodetype=ordconstn) then
+              tjvmordconstnode(left).enumconstok:=true;
+          end;
+        result:=inherited pass_1;
+        if assigned(result) then
+          exit;
+        { in case of jumps let the regular code handle it }
+        if expectloc=LOC_JUMP then
+          exit;
+        { otherwise call set helper }
+        right:=caddrnode.create_internal(right);
+        include(right.flags,nf_typedaddr);
+        if isenum then
+          begin
+            inserttypeconv_explicit(left,java_jlenum);
+            inserttypeconv_explicit(right,java_juenumset);
+          end
+        else
+          begin
+            inserttypeconv_explicit(left,s32inttype);
+            inserttypeconv_explicit(right,java_jubitset);
+          end;
+        result:=ccallnode.createinternmethod(right,'CONTAINS',ccallparanode.create(left,nil));
+        right:=nil;
+        left:=nil;
+      end;
 
 
 {*****************************************************************************
@@ -60,5 +114,6 @@ implementation
 
 
 begin
+   cinnode:=tjvminnode;
    ccasenode:=tjvmcasenode;
 end.

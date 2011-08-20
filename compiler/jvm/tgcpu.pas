@@ -124,12 +124,51 @@ unit tgcpu;
             end;
           setdef:
             begin
-              if is_smallset(def) then
-                exit;
-{$ifndef nounsupported}
+              if tsetdef(def).elementdef.typ=enumdef then
+                begin
+                  { load enum class type }
+                  list.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(tenumdef(tsetdef(def).elementdef).getbasedef.classdef.jvm_full_typename(true))));
+                  thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
+                  { call tenumset.noneOf() class method }
+                  sym:=tsym(tobjectdef(java_juenumset).symtable.find('NONEOF'));
+                  if assigned(sym) and
+                     (sym.typ=procsym) then
+                    begin
+                      if tprocsym(sym).procdeflist.Count<>1 then
+                        internalerror(2011062801);
+                      pd:=tprocdef(tprocsym(sym).procdeflist[0]);
+                    end;
+                  hlcg.a_call_name(list,pd,pd.mangledname,false);
+                  { static calls method replaces parameter with set instance
+                    -> no change in stack height }
+                end
+              else
+                begin
+                  list.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(java_jubitset.jvm_full_typename(true))));
+                  { the constructor doesn't return anything, so put a duplicate of the
+                    self pointer on the evaluation stack for use as function result
+                    after the constructor has run }
+                  list.concat(taicpu.op_none(a_dup));
+                  thlcgjvm(hlcg).incstack(list,2);
+                  { call the constructor }
+                  sym:=tsym(java_jubitset.symtable.find('CREATE'));
+                  if assigned(sym) and
+                     (sym.typ=procsym) then
+                    begin
+                      pd:=tprocsym(sym).find_bytype_parameterless(potype_constructor);
+                      if not assigned(pd) then
+                        internalerror(2011062802);
+                    end
+                  else
+                    internalerror(2011062803);
+                  hlcg.a_call_name(list,pd,pd.mangledname,false);
+                  { duplicate self pointer is removed }
+                  thlcgjvm(hlcg).decstack(list,1);
+                end;
+              { store reference to instance }
               gettemp(list,java_jlobject.size,java_jlobject.alignment,temptype,ref);
+              thlcgjvm(hlcg).a_load_stack_ref(list,java_jlobject,ref,0);
               result:=true;
-{$endif}
             end;
           stringdef:
             begin

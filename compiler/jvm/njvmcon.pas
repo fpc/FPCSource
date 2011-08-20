@@ -26,8 +26,9 @@ unit njvmcon;
 interface
 
     uses
+       globtype,aasmbase,
        symtype,
-       node,ncon,ncgcon;
+       node,ncal,ncon,ncgcon;
 
     type
        tjvmordconstnode = class(tcgordconstnode)
@@ -49,14 +50,44 @@ interface
           procedure pass_generate_code;override;
        end;
 
+       tjvmsetconsttype = (
+         { create symbol for the set constant; the symbol will be initialized
+           in the class constructor/unit init code (default) }
+         sct_constsymbol,
+         { normally, we convert the set constant into a constructor/factory
+           method to create a set instance. In some cases (simple "in"
+           expressions, adding an element to an empty set, ...) we want to
+           keep the set constant instead }
+         sct_notransform,
+         { actually construct a JUBitSet/JUEnumSet that contains the set value
+           (for initializing the sets contstants) }
+         sct_construct
+         );
+       tjvmsetconstnode = class(tcgsetconstnode)
+          setconsttype: tjvmsetconsttype;
+          function pass_1: tnode; override;
+          procedure pass_generate_code; override;
+          constructor create(s : pconstset;def:tdef);override;
+          function docompare(p: tnode): boolean; override;
+          function dogetcopy: tnode; override;
+         protected
+          function emitvarsetconst: tasmsymbol; override;
+          { in case the set has only a single run of consecutive elements,
+            this function will return its starting index and length }
+          function find_single_elements_run(from: longint; out start, len: longint): boolean;
+          function buildbitset: tnode;
+          function buildenumset(const eledef: tdef): tnode;
+          function buildsetfromstring(const helpername: string; otherparas: tcallparanode): tnode;
+       end;
+
 
 implementation
 
     uses
-      globtype,cutils,widestr,verbose,constexp,
+      cutils,widestr,verbose,constexp,fmodule,
       symdef,symsym,symtable,symconst,
       aasmdata,aasmcpu,defutil,
-      ncal,nld,
+      ncnv,nld,nmem,pjvm,pass_1,
       cgbase,hlcgobj,hlcgcpu,cgutils,cpubase
       ;
 
@@ -203,9 +234,240 @@ implementation
       end;
 
 
+    {*****************************************************************************
+                               TJVMSETCONSTNODE
+    *****************************************************************************}
+
+    function tjvmsetconstnode.buildsetfromstring(const helpername: string; otherparas: tcallparanode): tnode;
+      var
+        pw: pcompilerwidestring;
+        wc: tcompilerwidechar;
+        i, j, bit, nulls: longint;
+      begin
+        initwidestring(pw);
+        nulls:=0;
+        for i:=0 to 15 do
+          begin
+            wc:=0;
+            for bit:=0 to 15 do
+              if (i*16+bit) in value_set^ then
+                wc:=wc or (1 shl (15-bit));
+            { don't add trailing zeroes }
+            if wc=0 then
+              inc(nulls)
+            else
+              begin
+                for j:=1 to nulls do
+                  concatwidestringchar(pw,0);
+                nulls:=0;
+                concatwidestringchar(pw,wc);
+              end;
+          end;
+        result:=ccallnode.createintern(helpername,
+          ccallparanode.create(cstringconstnode.createwstr(pw),otherparas));
+        donewidestring(pw);
+      end;
+
+
+    function tjvmsetconstnode.buildbitset: tnode;
+      var
+        mp: tnode;
+      begin
+        if value_set^=[] then
+          begin
+            mp:=cloadvmtaddrnode.create(ctypenode.create(java_jubitset));
+            result:=ccallnode.createinternmethod(mp,'CREATE',nil);
+            exit;
+          end;
+        result:=buildsetfromstring('fpc_bitset_from_string',nil);
+      end;
+
+
+    function tjvmsetconstnode.buildenumset(const eledef: tdef): tnode;
+      var
+        stopnode: tnode;
+        startnode: tnode;
+        mp: tnode;
+        len: longint;
+        start: longint;
+        enumele: tnode;
+        paras: tcallparanode;
+        hassinglerun: boolean;
+      begin
+        hassinglerun:=find_single_elements_run(0, start, len);
+        mp:=cloadvmtaddrnode.create(ctypenode.create(java_juenumset));
+        if hassinglerun then
+          begin
+            if len=0 then
+              begin
+                enumele:=cloadvmtaddrnode.create(ctypenode.create(tenumdef(eledef).getbasedef.classdef));
+                inserttypeconv_explicit(enumele,search_system_type('JLCLASS').typedef);
+                paras:=ccallparanode.create(enumele,nil);
+                result:=ccallnode.createinternmethod(mp,'NONEOF',paras)
+              end
+            else
+              begin
+                startnode:=cordconstnode.create(start,eledef,false);
+                { immediately firstpass so the enum gets translated into a JLEnum
+                  instance }
+                firstpass(startnode);
+                if len=1 then
+                  result:=ccallnode.createinternmethod(mp,'OF',ccallparanode.create(startnode,nil))
+                else
+                  begin
+                    stopnode:=cordconstnode.create(start+len-1,eledef,false);
+                    firstpass(stopnode);
+                    result:=ccallnode.createinternmethod(mp,'RANGE',ccallparanode.create(stopnode,ccallparanode.create(startnode,nil)));
+                  end
+              end
+          end
+        else
+          begin
+            enumele:=cordconstnode.create(tenumsym(tenumdef(eledef).symtable.symlist[0]).value,eledef,false);
+            firstpass(enumele);
+            paras:=ccallparanode.create(enumele,nil);
+            result:=buildsetfromstring('fpc_enumset_from_string',paras);
+          end;
+      end;
+
+
+    function tjvmsetconstnode.pass_1: tnode;
+      var
+        eledef: tdef;
+      begin
+        { we want set constants to be global, so we can reuse them. However,
+          if the set's elementdef is local, we can't do that since a global
+          symbol cannot have a local definition (the compiler will crash when
+          loading the ppu file afterwards) }
+        if tsetdef(resultdef).elementdef.owner.symtabletype=localsymtable then
+          setconsttype:=sct_construct;
+        result:=nil;
+        case setconsttype of
+          sct_constsymbol:
+            begin
+              { normally a codegen pass routine, but we have to insert a typed
+                const in case the set constant does not exist yet, and that
+                should happen in pass_1 (especially since it involves creating
+                new nodes, which may even have to be tacked on to this code in
+                case it's the unit initialization code) }
+              handlevarsetconst;
+              { no smallsets }
+              expectloc:=LOC_CREFERENCE;
+            end;
+          sct_notransform:
+            begin
+              result:=inherited pass_1;
+              { no smallsets }
+              expectloc:=LOC_CREFERENCE;
+            end;
+          sct_construct:
+            begin
+              eledef:=tsetdef(resultdef).elementdef;
+              { empty sets don't have an element type, so we don't know whether we
+                have to constructor a bitset or enumset (and of which type) }
+              if not assigned(eledef) then
+                internalerror(2011070202);
+              if eledef.typ=enumdef then
+                begin
+                  result:=buildenumset(eledef);
+                end
+              else
+                begin
+                  result:=buildbitset;
+                end;
+              inserttypeconv_explicit(result,getpointerdef(resultdef));
+              result:=cderefnode.create(result);
+            end;
+          else
+            internalerror(2011060301);
+        end;
+      end;
+
+
+    procedure tjvmsetconstnode.pass_generate_code;
+      begin
+        case setconsttype of
+          sct_constsymbol:
+            begin
+              { all sets are varsets for the JVM target, no setbase differences }
+              handlevarsetconst;
+            end;
+          else
+            { must be handled in pass_1 or otherwise transformed }
+            internalerror(2011070201)
+        end;
+      end;
+
+    constructor tjvmsetconstnode.create(s: pconstset; def: tdef);
+      begin
+        inherited create(s, def);
+        setconsttype:=sct_constsymbol;
+      end;
+
+
+    function tjvmsetconstnode.docompare(p: tnode): boolean;
+      begin
+        result:=
+          inherited docompare(p) and
+          (setconsttype=tjvmsetconstnode(p).setconsttype);
+      end;
+
+
+    function tjvmsetconstnode.dogetcopy: tnode;
+      begin
+        result:=inherited dogetcopy;
+        tjvmsetconstnode(result).setconsttype:=setconsttype;
+      end;
+
+
+    function tjvmsetconstnode.emitvarsetconst: tasmsymbol;
+      var
+        csym: tconstsym;
+        ssym: tstaticvarsym;
+        ps: pnormalset;
+      begin
+        { add a read-only typed constant }
+        new(ps);
+        ps^:=value_set^;
+        csym:=tconstsym.create_ptr('_$setconst'+tostr(current_module.symlist.count),constset,ps,resultdef);
+        csym.visibility:=vis_private;
+        include(csym.symoptions,sp_internal);
+        current_module.localsymtable.insert(csym);
+        { generate assignment of the constant to the typed constant symbol }
+        ssym:=jvm_add_typed_const_initializer(csym);
+        result:=current_asmdata.RefAsmSymbol(ssym.mangledname);
+      end;
+
+
+    function tjvmsetconstnode.find_single_elements_run(from: longint; out start, len: longint): boolean;
+      var
+        i: longint;
+      begin
+        i:=from;
+        result:=true;
+        { find first element in set }
+        while (i<=255) and
+              not(i in value_set^) do
+          inc(i);
+        start:=i;
+        { go to end of the run }
+        while (i<=255) and
+              (i in value_set^) do
+          inc(i);
+        len:=i-start;
+        { rest must be unset }
+        while (i<=255) and
+              not(i in value_set^) do
+          inc(i);
+        if i<>256 then
+          result:=false;
+      end;
+
+
 
 begin
    cordconstnode:=tjvmordconstnode;
    crealconstnode:=tjvmrealconstnode;
    cstringconstnode:=tjvmstringconstnode;
+   csetconstnode:=tjvmsetconstnode;
 end.

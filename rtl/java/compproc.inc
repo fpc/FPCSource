@@ -627,7 +627,28 @@ procedure fpc_initialize_array_unicodestring(arr: TJObjectArray; normalarrdim: l
   level elements types of the array) }
 procedure fpc_initialize_array_dynarr(arr: TJObjectArray; normalarrdim: longint);compilerproc;
 procedure fpc_initialize_array_record(arr: TJObjectArray; normalarrdim: longint; inst: FpcBaseRecordType);compilerproc;
+procedure fpc_initialize_array_bitset(arr: TJObjectArray; normalarrdim: longint; inst: FpcBitSet);compilerproc;
+procedure fpc_initialize_array_enumset(arr: TJObjectArray; normalarrdim: longint; inst: JUEnumSet);compilerproc;
 procedure fpc_initialize_array_shortstring(arr: TJObjectArray; normalarrdim: longint; maxlen: byte);compilerproc;
+
+{ set helpers }
+procedure fpc_bitset_copy(const src: FpcBitSet; dst: FpcBitSet); compilerproc;
+procedure fpc_enumset_copy(const src: JUEnumSet; dst: JUEnumSet); compilerproc;
+
+function fpc_enumset_symdif(const set1, set2: JUEnumSet): JUEnumSet; compilerproc;
+
+function fpc_bitset_from_string(const s: unicodestring): FpcBitSet; compilerproc;
+function fpc_enumset_from_string(dummy: FpcEnumValueObtainable; const s: unicodestring): JUEnumSet; compilerproc;
+
+function fpc_enumset_to_int(const s: JUEnumSet; setbase, setsize: longint): jint; compilerproc;
+function fpc_enumset_to_long(const s: JUEnumSet; setbase, setsize: longint): jlong; compilerproc;
+function fpc_bitset_to_int(const s: FpcBitSet; setbase, setsize: longint): jint; compilerproc;
+function fpc_bitset_to_long(const s: FpcBitSet; setbase, setsize: longint): jlong; compilerproc;
+function fpc_int_to_bitset(const val: jint; setbase, setsize: jint): FpcBitSet; compilerproc;
+function fpc_long_to_bitset(const val: jint; setbase, setsize: jint): FpcBitSet; compilerproc;
+
+function fpc_enumset_to_bitset(const val: JUEnumSet; fromsetbase, tosetbase: jint): FpcBitSet; compilerproc;
+function fpc_bitset_to_bitset(const s: FpcBitSet; fromsetbase, tosetbase: jint): FpcBitSet; compilerproc;
 
 (*
 {$ifdef FPC_SETBASE_USED}

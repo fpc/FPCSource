@@ -1,4 +1,4 @@
-{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.Boolean, java.lang.Byte, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Enum, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.Integer, java.lang.Iterable, java.lang.LinkageError, java.lang.Long, java.lang.Number, java.lang.Object, java.lang.RuntimeException, java.lang.Short, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.GenericDeclaration, java.lang.reflect.Type, java.text.Collator, java.util.AbstractCollection, java.util.AbstractMap, java.util.AbstractSet, java.util.Arrays, java.util.BitSet, java.util.Collection, java.util.Comparator, java.util.EnumSet, java.util.HashMap, java.util.Map, java.util.Set }
+{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.Boolean, java.lang.Byte, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Enum, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.Integer, java.lang.Iterable, java.lang.LinkageError, java.lang.Long, java.lang.Number, java.lang.Object, java.lang.RuntimeException, java.lang.Short, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.GenericDeclaration, java.lang.reflect.Type, java.text.Collator, java.util.AbstractCollection, java.util.AbstractMap, java.util.AbstractSet, java.util.Arrays, java.util.BitSet, java.util.Collection, java.util.Comparator, java.util.EnumSet, java.util.HashMap, java.util.Iterator, java.util.Map, java.util.Set }
 type
   JLStringBuffer = class;
   Arr1JLStringBuffer = array of JLStringBuffer;
@@ -170,6 +170,11 @@ type
   Arr2JLIterable = array of Arr1JLIterable;
   Arr3JLIterable = array of Arr2JLIterable;
 
+  JUIterator = interface;
+  Arr1JUIterator = array of JUIterator;
+  Arr2JUIterator = array of Arr1JUIterator;
+  Arr3JUIterator = array of Arr2JUIterator;
+
   JLCloneable = interface;
   Arr1JLCloneable = array of JLCloneable;
   Arr2JLCloneable = array of Arr1JLCloneable;
@@ -324,11 +329,6 @@ type
   Arr1JLAAnnotation = array of JLAAnnotation;
   Arr2JLAAnnotation = array of Arr1JLAAnnotation;
   Arr3JLAAnnotation = array of Arr2JLAAnnotation;
-
-  JUIterator = interface external 'java.util' name 'Iterator';
-  Arr1JUIterator = array of JUIterator;
-  Arr2JUIterator = array of Arr1JUIterator;
-  Arr3JUIterator = array of Arr2JUIterator;
 
   JNCChannel = interface external 'java.nio.channels' name 'Channel';
   Arr1JNCChannel = array of JNCChannel;

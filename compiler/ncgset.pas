@@ -215,8 +215,11 @@ implementation
          pleftreg   : tregister;
          setparts   : Tsetparts;
          opsize     : tcgsize;
+         opdef      : tdef;
          uopsize    : tcgsize;
+         uopdef     : tdef;
          orgopsize  : tcgsize;
+         orgopdef   : tdef;
          genjumps,
          use_small,
          isjump     : boolean;
@@ -228,12 +231,21 @@ implementation
 
          genjumps := checkgenjumps(setparts,numparts,use_small);
 
+
          orgopsize := def_cgsize(left.resultdef);
+         orgopdef := left.resultdef;
          uopsize := OS_32;
+         uopdef := u32inttype;
          if is_signed(left.resultdef) then
-           opsize := tcgsize(ord(uopsize)+(ord(OS_S8)-ord(OS_8)))
+           begin
+             opsize := OS_S32;
+             opdef := s32inttype;
+           end
          else
-           opsize := uopsize;
+           begin
+             opsize := uopsize;
+             opdef := uopdef;
+           end;
          needslabel := false;
 
          isjump:=false;
@@ -259,7 +271,8 @@ implementation
          secondpass(left);
          if isjump then
            begin
-             location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,orgopdef,opdef,true);
+             left.resultdef:=opdef;
              current_procinfo.CurrTrueLabel:=otl;
              current_procinfo.CurrFalseLabel:=ofl;
            end
@@ -276,17 +289,6 @@ implementation
          if nf_swapped in flags then
           swapleftright;
 
-{$if defined(jvm) and not defined(nounsupported)}
-          if not is_smallset(left.resultdef) then
-            begin
-              location_reset(location, LOC_REGISTER, uopsize{def_cgsize(resultdef)});
-              { allocate a register for the result }
-              location.register:=cg.getintregister(current_asmdata.CurrAsmList, uopsize);
-              hlcg.a_load_const_reg(current_asmdata.CurrAsmList,s32inttype,0,location.register);
-              exit;
-            end;
-{$endif}
-
          setbase:=tsetdef(right.resultdef).setbase;
          if genjumps then
           begin
@@ -294,7 +296,7 @@ implementation
             location_reset(location,LOC_JUMP,OS_NO);
 
             { If register is used, use only lower 8 bits }
-            location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
             pleftreg := left.location.register;
 
             { how much have we already substracted from the x in the }
@@ -319,15 +321,15 @@ implementation
                          (hr<>pleftreg) then
                         begin
                           { don't change this back to a_op_const_reg/a_load_reg_reg, since pleftreg must not be modified }
-                          hr:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,setparts[i].start,pleftreg,hr);
+                          hr:=hlcg.getintregister(current_asmdata.CurrAsmList,opdef);
+                          hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,opdef,setparts[i].start,pleftreg,hr);
                           pleftreg:=hr;
                         end
                       else
                         begin
                           { otherwise, the value is already in a register   }
                           { that can be modified                            }
-                          cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,
+                          hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opdef,
                              setparts[i].start-adjustment,pleftreg)
                         end;
                     { new total value substracted from x:           }
@@ -338,25 +340,25 @@ implementation
                     { we need a carry in case the element is in the range }
                     { (this will never overflow since we check at the     }
                     { beginning whether stop-start <> 255)                }
-                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_B,
+                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opdef, OC_B,
                       setparts[i].stop-setparts[i].start+1,pleftreg,current_procinfo.CurrTrueLabel);
                   end
                 else
                   { if setparts[i].start = 0 and setparts[i].stop = 255,  }
                   { it's always true since "in" is only allowed for bytes }
                   begin
-                    cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                    hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
                   end;
               end
              else
               begin
                 { Emit code to check if left is an element }
-                cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ,
+                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opdef, OC_EQ,
                       setparts[i].stop-adjustment,pleftreg,current_procinfo.CurrTrueLabel);
               end;
              { To compensate for not doing a second pass }
              right.location.reference.symbol:=nil;
-             cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+             hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
           end
          else
          {*****************************************************************}

@@ -87,6 +87,48 @@ procedure fpc_initialize_array_record(arr: TJObjectArray; normalarrdim: longint;
   end;
 
 
+{ exactly the same as fpc_initialize_array_record, but can't use generic
+  routine because of Java clonable design :( (except by rtti/invoke, but that's
+  not particularly fast either) }
+procedure fpc_initialize_array_bitset_intern(arr: TJObjectArray; normalarrdim: longint; inst: FpcBitSet); external name 'fpc_initialize_array_bitset';
+
+procedure fpc_initialize_array_bitset(arr: TJObjectArray; normalarrdim: longint; inst: FpcBitSet);compilerproc;
+  var
+    i: longint;
+  begin
+    if normalarrdim > 0 then
+      begin
+        for i:=low(arr) to high(arr) do
+          fpc_initialize_array_bitset_intern(TJObjectArray(arr[i]),normalarrdim-1,inst);
+      end
+    else
+      begin
+        for i:=low(arr) to high(arr) do
+          arr[i]:=inst.clone;
+      end;
+  end;
+
+
+{ idem }
+procedure fpc_initialize_array_enumset_intern(arr: TJObjectArray; normalarrdim: longint; inst: JUEnumSet); external name 'fpc_initialize_array_enumset';
+
+procedure fpc_initialize_array_enumset(arr: TJObjectArray; normalarrdim: longint; inst: JUEnumSet);compilerproc;
+  var
+    i: longint;
+  begin
+    if normalarrdim > 0 then
+      begin
+        for i:=low(arr) to high(arr) do
+          fpc_initialize_array_enumset_intern(TJObjectArray(arr[i]),normalarrdim-1,inst);
+      end
+    else
+      begin
+        for i:=low(arr) to high(arr) do
+          arr[i]:=inst.clone;
+      end;
+  end;
+
+
 procedure fpc_initialize_array_shortstring_intern(arr: TJObjectArray; normalarrdim: longint; maxlen: byte); external name 'fpc_initialize_array_shortstring';
 
 procedure fpc_initialize_array_shortstring(arr: TJObjectArray; normalarrdim: longint; maxlen: byte);compilerproc;

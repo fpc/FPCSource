@@ -37,6 +37,7 @@ interface
           function pass_1: tnode;override;
        protected
           function first_addstring: tnode; override;
+          function jvm_first_addset: tnode;
 
           function cmpnode2signedtopcmp: TOpCmp;
 
@@ -46,7 +47,6 @@ interface
           procedure second_addfloat;override;
           procedure second_cmpfloat;override;
           procedure second_cmpboolean;override;
-          procedure second_cmpsmallset;override;
           procedure second_cmp64bit;override;
           procedure second_add64bit; override;
           procedure second_cmpordinal;override;
@@ -56,13 +56,14 @@ interface
 
     uses
       systems,
-      cutils,verbose,constexp,
+      cutils,verbose,constexp,globtype,
       symconst,symtable,symdef,
-      paramgr,procinfo,
+      paramgr,procinfo,pass_1,
       aasmtai,aasmdata,aasmcpu,defutil,
       hlcgobj,hlcgcpu,cgutils,
       cpupara,
-      ncon,nset,nadd,ncal,ncnv,
+      nbas,ncon,nset,nadd,ncal,ncnv,nld,nmat,nmem,
+      njvmcon,
       cgobj;
 
 {*****************************************************************************
@@ -84,6 +85,13 @@ interface
               internalerror(2011062603);
             inserttypeconv_explicit(left,s32inttype);
             inserttypeconv_explicit(right,s32inttype);
+          end;
+        { special handling for sets: all sets are JUBitSet/JUEnumSet on the JVM
+          target to ease interoperability with Java code }
+        if left.resultdef.typ=setdef then
+          begin
+            result:=jvm_first_addset;
+            exit;
           end;
         result:=inherited pass_1;
         if expectloc=LOC_FLAGS then
@@ -155,6 +163,225 @@ interface
             internalerror(2011031401);
         end;
       end;
+
+
+    function tjvmaddnode.jvm_first_addset: tnode;
+
+      procedure call_set_helper_paras(const n : string; isenum: boolean; paras: tcallparanode);
+        var
+          block: tblocknode;
+          stat: tstatementnode;
+          temp: ttempcreatenode;
+        begin
+          result:=ccallnode.createinternmethod(left,'CLONE',nil);
+          if isenum then
+            inserttypeconv_explicit(result,java_juenumset)
+          else
+            inserttypeconv_explicit(result,java_jubitset);
+          if isenum then
+            begin
+              { all enum instance methods return a boolean, while we are
+                interested in the resulting set }
+              block:=internalstatements(stat);
+              temp:=ctempcreatenode.create(java_juenumset,4,tt_persistent,true);
+              addstatement(stat,temp);
+              addstatement(stat,cassignmentnode.create(
+                ctemprefnode.create(temp),result));
+              addstatement(stat,ccallnode.createinternmethod(
+                ctemprefnode.create(temp),n,paras));
+              addstatement(stat,ctempdeletenode.create_normal_temp(temp));
+              addstatement(stat,ctemprefnode.create(temp));
+              result:=block;
+            end
+          else
+            result:=ccallnode.createinternmethod(result,n,paras);
+        end;
+
+      procedure call_set_helper(const n: string; isenum: boolean);
+        begin
+          call_set_helper_paras(n,isenum,ccallparanode.create(right,nil));
+        end;
+
+      var
+        procname: string;
+        tmpn: tnode;
+        paras: tcallparanode;
+        isenum: boolean;
+      begin
+        isenum:=
+          (assigned(tsetdef(left.resultdef).elementdef) and
+           (tsetdef(left.resultdef).elementdef.typ=enumdef)) or
+          ((right.nodetype=setelementn) and
+           (tsetelementnode(right).left.resultdef.typ=enumdef)) or
+          ((right.resultdef.typ=setdef) and
+           assigned(tsetdef(right.resultdef).elementdef) and
+           (tsetdef(right.resultdef).elementdef.typ=enumdef));
+        { don't destroy optimization opportunity }
+        if not((nodetype=addn) and
+               (right.nodetype=setelementn) and
+               is_emptyset(left)) then
+          begin
+            left:=caddrnode.create_internal(left);
+            include(left.flags,nf_typedaddr);
+            if isenum then
+              begin
+                inserttypeconv_explicit(left,java_juenumset);
+                if right.resultdef.typ=setdef then
+                  begin
+                    right:=caddrnode.create_internal(right);
+                    include(right.flags,nf_typedaddr);
+                    inserttypeconv_explicit(right,java_juenumset);
+                  end;
+              end
+            else
+              begin
+                inserttypeconv_explicit(left,java_jubitset);
+                if right.resultdef.typ=setdef then
+                  begin
+                    right:=caddrnode.create_internal(right);
+                    include(right.flags,nf_typedaddr);
+                    inserttypeconv_explicit(right,java_jubitset);
+                  end;
+              end;
+          end
+        else
+          tjvmsetconstnode(left).setconsttype:=sct_notransform;
+        firstpass(left);
+        firstpass(right);
+        case nodetype of
+          equaln,unequaln,lten,gten:
+            begin
+              case nodetype of
+                equaln,unequaln:
+                  procname:='EQUALS';
+                lten,gten:
+                  begin
+                    { (left <= right) = (right >= left) }
+                    if nodetype=lten then
+                      begin
+                        tmpn:=left;
+                        left:=right;
+                        right:=tmpn;
+                      end;
+                      procname:='CONTAINSALL'
+                    end;
+                end;
+              result:=ccallnode.createinternmethod(left,procname,ccallparanode.create(right,nil));
+              { for an unequaln, we have to negate the result of equals }
+              if nodetype=unequaln then
+                result:=cnotnode.create(result);
+            end;
+          addn:
+            begin
+              { optimize first loading of a set }
+              if (right.nodetype=setelementn) and
+                  is_emptyset(left) then
+                begin
+                  paras:=nil;
+                  procname:='OF';
+                  if isenum then
+                    begin
+                      inserttypeconv_explicit(tsetelementnode(right).left,tenumdef(tsetelementnode(right).left.resultdef).getbasedef.classdef);
+                      result:=cloadvmtaddrnode.create(ctypenode.create(java_juenumset));
+                    end
+                  else
+                    begin
+                      { for boolean, char, etc }
+                      inserttypeconv_explicit(tsetelementnode(right).left,s32inttype);
+                      result:=cloadvmtaddrnode.create(ctypenode.create(java_jubitset));
+                    end;
+                  paras:=ccallparanode.create(tsetelementnode(right).left,nil);
+                  tsetelementnode(right).left:=nil;
+                  if assigned(tsetelementnode(right).right) then
+                    begin
+                      procname:='RANGE';
+                      if isenum then
+                        begin
+                          inserttypeconv_explicit(tsetelementnode(right).right,tenumdef(tsetelementnode(right).right.resultdef).getbasedef.classdef);
+                        end
+                      else
+                        begin
+                          inserttypeconv_explicit(tsetelementnode(right).right,s32inttype);
+                        end;
+                      paras:=ccallparanode.create(tsetelementnode(right).right,paras);
+                      tsetelementnode(right).right:=nil;
+                    end;
+                  right.free;
+                  result:=ccallnode.createinternmethod(result,procname,paras)
+                end
+              else
+                begin
+                  if right.nodetype=setelementn then
+                    begin
+                      paras:=nil;
+                      { get a copy of left to add to }
+                      procname:='ADD';
+                      if isenum then
+                        begin
+                          inserttypeconv_explicit(tsetelementnode(right).left,tenumdef(tsetelementnode(right).left.resultdef).getbasedef.classdef);
+                        end
+                      else
+                        begin
+                          { for boolean, char, etc }
+                          inserttypeconv_explicit(tsetelementnode(right).left,s32inttype);
+                        end;
+                      paras:=ccallparanode.create(tsetelementnode(right).left,paras);
+                      tsetelementnode(right).left:=nil;
+                      if assigned(tsetelementnode(right).right) then
+                        begin
+                          procname:='ADDALL';
+                          { create a set containing the range via the class
+                            factory method, then add all of its elements }
+                          if isenum then
+                            begin
+                              inserttypeconv_explicit(tsetelementnode(right).right,tenumdef(tsetelementnode(right).right.resultdef).getbasedef.classdef);
+                              tmpn:=cloadvmtaddrnode.create(ctypenode.create(java_juenumset));
+                            end
+                          else
+                            begin
+                              inserttypeconv_explicit(tsetelementnode(right).right,s32inttype);
+                              tmpn:=cloadvmtaddrnode.create(ctypenode.create(java_jubitset));
+                            end;
+                          paras:=ccallparanode.create(ccallnode.createinternmethod(tmpn,'RANGE',ccallparanode.create(tsetelementnode(right).right,paras)),nil);
+                          tsetelementnode(right).right:=nil;
+                        end;
+                      call_set_helper_paras(procname,isenum,paras);
+                    end
+                  else
+                    call_set_helper('ADDALL',isenum)
+                end
+            end;
+          subn:
+            call_set_helper('REMOVEALL',isenum);
+          symdifn:
+            if isenum then
+              begin
+                { "s1 xor s2" is the same as "(s1 + s2) - (s1 * s2)"
+                  -> call helper to prevent double evaluations }
+                result:=ccallnode.createintern('fpc_enumset_symdif',
+                  ccallparanode.create(right,ccallparanode.create(left,nil)));
+                left:=nil;
+                right:=nil;
+              end
+            else
+              call_set_helper('SYMDIF',isenum);
+          muln:
+            call_set_helper('RETAINALL',isenum)
+          else
+            internalerror(2011062807);
+        end;
+        { convert helper result back to original set type for further expression
+          evaluation }
+        if not is_boolean(resultdef) then
+          begin
+            inserttypeconv_explicit(result,getpointerdef(resultdef));
+            result:=cderefnode.create(result);
+          end;
+        { left and right are reused as parameters }
+        left:=nil;
+        right:=nil;
+      end;
+
 
     function tjvmaddnode.cmpnode2signedtopcmp: TOpCmp;
       begin
@@ -320,38 +547,6 @@ interface
     procedure tjvmaddnode.second_cmpboolean;
       begin
         second_generic_compare;
-      end;
-
-
-    procedure tjvmaddnode.second_cmpsmallset;
-      begin
-        if (nodetype in [equaln,unequaln]) then
-          begin
-            second_generic_compare;
-            exit;
-          end;
-        case nodetype of
-          lten,gten:
-            begin
-              pass_left_right;
-              If (not(nf_swapped in flags) and
-                  (nodetype=lten)) or
-                 ((nf_swapped in flags) and
-                  (nodetype=gten)) then
-                swapleftright;
-              location_reset(location,LOC_JUMP,OS_NO);
-              // now we have to check whether left >= right:
-              // (right and not(left)=0)
-              thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-              thlcgjvm(hlcg).a_op_reg_stack(current_asmdata.CurrAsmList,OP_NOT,left.resultdef,NR_NO);
-              thlcgjvm(hlcg).a_op_loc_stack(current_asmdata.CurrAsmList,OP_AND,right.resultdef,right.location);
-              current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_ifeq,current_procinfo.CurrTrueLabel));
-              thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1);
-              hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
-            end;
-          else
-            internalerror(2011010414);
-        end;
       end;
 
 

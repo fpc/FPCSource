@@ -27,6 +27,7 @@ unit ncgcon;
 interface
 
     uses
+       aasmbase,
        node,ncon;
 
     type
@@ -51,6 +52,10 @@ interface
        end;
 
        tcgsetconstnode = class(tsetconstnode)
+         protected
+          function emitvarsetconst: tasmsymbol; virtual;
+          procedure handlevarsetconst;
+         public
           procedure pass_generate_code;override;
        end;
 
@@ -68,7 +73,7 @@ implementation
     uses
       globtype,widestr,systems,
       verbose,globals,cutils,
-      symconst,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
+      symconst,symdef,aasmtai,aasmdata,aasmcpu,defutil,
       cpuinfo,cpubase,
       cgbase,cgobj,cgutils,
       ncgutil, cclasses,asmutils,tgobj
@@ -372,11 +377,52 @@ implementation
                            TCGSETCONSTNODE
 *****************************************************************************}
 
-    procedure tcgsetconstnode.pass_generate_code;
-
+    function tcgsetconstnode.emitvarsetconst: tasmsymbol;
       type
-         setbytes=array[0..31] of byte;
-         Psetbytes=^setbytes;
+        setbytes=array[0..31] of byte;
+        Psetbytes=^setbytes;
+      var
+        lab: tasmlabel;
+        i: longint;
+      begin
+        current_asmdata.getdatalabel(lab);
+        result:=lab;
+        lab_set:=lab;
+        maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
+        new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,result.name,const_align(8));
+        current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lab));
+        if (source_info.endian=target_info.endian) then
+          for i:=0 to 31 do
+            current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i]))
+        else
+          for i:=0 to 31 do
+            current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i])));
+      end;
+
+
+    procedure tcgsetconstnode.handlevarsetconst;
+      var
+         i           : longint;
+         entry       : PHashSetItem;
+      begin
+        location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(8));
+        { const already used ? }
+        if not assigned(lab_set) then
+          begin
+            if current_asmdata.ConstPools[sp_varsets] = nil then
+              current_asmdata.ConstPools[sp_varsets] := THashSet.Create(64, True, False);
+            entry := current_asmdata.ConstPools[sp_varsets].FindOrAdd(value_set, 32);
+
+             { :-(, we must generate a new entry }
+             if not assigned(entry^.Data) then
+               entry^.Data:=emitvarsetconst;
+             lab_set := TAsmSymbol(entry^.Data);
+          end;
+        location.reference.symbol:=lab_set;
+      end;
+
+
+    procedure tcgsetconstnode.pass_generate_code;
 
         procedure smallsetconst;
         begin
@@ -403,49 +449,6 @@ implementation
             location.value:=location.value shr (32-resultdef.size*8);
         end;
 
-        procedure varsetconst;
-        var
-           lastlabel   : tasmlabel;
-           i           : longint;
-           entry       : PHashSetItem;
-        begin
-{$ifdef jvm}
-{$ifndef nounsupported}
-          location_reset_ref(location,LOC_REFERENCE,OS_ADDR,1);
-          tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_persistent,location.reference);
-          exit;
-{$endif nounsupported}
-{$endif jvm}
-          location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(8));
-          lastlabel:=nil;
-          { const already used ? }
-          if not assigned(lab_set) then
-            begin
-              if current_asmdata.ConstPools[sp_varsets] = nil then
-                current_asmdata.ConstPools[sp_varsets] := THashSet.Create(64, True, False);
-              entry := current_asmdata.ConstPools[sp_varsets].FindOrAdd(value_set, 32);
-
-              lab_set := TAsmLabel(entry^.Data);  // is it needed anymore?
-
-               { :-(, we must generate a new entry }
-               if not assigned(entry^.Data) then
-                 begin
-                   current_asmdata.getdatalabel(lastlabel);
-                   lab_set:=lastlabel;
-                   entry^.Data:=lastlabel;
-                   maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                   new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(8));
-                   current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
-                   if (source_info.endian=target_info.endian) then
-                     for i:=0 to 31 do
-                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i]))
-                   else
-                     for i:=0 to 31 do
-                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i])));
-                 end;
-            end;
-          location.reference.symbol:=lab_set;
-        end;
 
       begin
         adjustforsetbase;
@@ -454,7 +457,7 @@ implementation
         if is_smallset(resultdef) then
           smallsetconst
         else
-          varsetconst;
+          handlevarsetconst;
       end;
 
 

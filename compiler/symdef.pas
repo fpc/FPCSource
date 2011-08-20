@@ -507,7 +507,10 @@ interface
          tsk_jvm_enum_classconstr,  // Java class constructor for JLEnum descendants
          tsk_jvm_enum_jumps_constr, // Java constructor for JLEnum descendants for enums with jumps
          tsk_jvm_enum_fpcordinal,   // Java FPCOrdinal function that returns the enum's ordinal value from an FPC POV
-         tsk_jvm_enum_fpcvalueof    // Java FPCValueOf function that returns the enum instance corresponding to an ordinal from an FPC POV
+         tsk_jvm_enum_fpcvalueof,   // Java FPCValueOf function that returns the enum instance corresponding to an ordinal from an FPC POV
+         tsk_jvm_enum_long2set,     // Java fpcLongToEnumSet function that returns an enumset corresponding to a bit pattern in a jlong
+         tsk_jvm_enum_bitset2set,   // Java fpcBitSetToEnumSet function that returns an enumset corresponding to a BitSet
+         tsk_jvm_enum_set2Set       // Java fpcEnumSetToEnumSet function that returns an enumset corresponding to another enumset (different enum kind)
        );
 
 {$ifdef oldregvars}
@@ -841,6 +844,10 @@ interface
        java_jlstring             : tobjectdef;
        { java.lang.Enum }
        java_jlenum               : tobjectdef;
+       { java.util.EnumSet }
+       java_juenumset            : tobjectdef;
+       { java.util.BitSet }
+       java_jubitset             : tobjectdef;
        { FPC java implementation of ansistrings }
        java_ansistring           : tobjectdef;
        { FPC java implementation of shortstrings }
@@ -5004,6 +5011,10 @@ implementation
                java_shortstring:=self
              else if (objname^='JLENUM') then
                java_jlenum:=self
+             else if (objname^='JUENUMSET') then
+               java_juenumset:=self
+             else if (objname^='FPCBITSET') then
+               java_jubitset:=self
            end;
          writing_class_record_dbginfo:=false;
        end;

@@ -129,6 +129,7 @@ type
 {$i innr.inc}
 {$i jmathh.inc}
 {$i jrech.inc}
+{$i jseth.inc}
 {$i sstringh.inc}
 {$i jdynarrh.inc}
 {$i astringh.inc}
@@ -287,6 +288,7 @@ function min(a,b : longint) : longint;
 {$i ustrings.inc}
 {$i rtti.inc}
 {$i jrec.inc}
+{$i jset.inc}
 {$i jint64.inc}
 
 { copying helpers }
@@ -337,6 +339,48 @@ procedure fpc_copy_jrecord_array(src, dst: TJRecordArray; srcstart: jint = -1; s
     { no arraycopy, have to clone each element }
     for i:=0 to min(srccopylen,dstlen)-1 do
       dst[i]:=FpcBaseRecordType(src[srcstart+i].clone);
+  end;
+
+
+procedure fpc_copy_jenumset_array(src, dst: TJEnumSetArray; srcstart: jint = -1; srccopylen: jint = -1);
+  var
+    i: longint;
+    srclen, dstlen: jint;
+  begin
+    srclen:=length(src);
+    dstlen:=length(dst);
+    if srcstart=-1 then
+      srcstart:=0
+    else if srcstart>=srclen then
+      exit;
+    if srccopylen=-1 then
+      srccopylen:=srclen
+    else if srcstart+srccopylen>srclen then
+      srccopylen:=srclen-srcstart;
+    { no arraycopy, have to clone each element }
+    for i:=0 to min(srccopylen,dstlen)-1 do
+      dst[i]:=JUEnumSet(src[srcstart+i].clone);
+  end;
+
+
+procedure fpc_copy_jbitset_array(src, dst: TJBitSetArray; srcstart: jint = -1; srccopylen: jint = -1);
+  var
+    i: longint;
+    srclen, dstlen: jint;
+  begin
+    srclen:=length(src);
+    dstlen:=length(dst);
+    if srcstart=-1 then
+      srcstart:=0
+    else if srcstart>=srclen then
+      exit;
+    if srccopylen=-1 then
+      srccopylen:=srclen
+    else if srcstart+srccopylen>srclen then
+      srccopylen:=srclen-srcstart;
+    { no arraycopy, have to clone each element }
+    for i:=0 to min(srccopylen,dstlen)-1 do
+      dst[i]:=JUBitset(src[srcstart+i].clone);
   end;
 
 
@@ -405,6 +449,33 @@ function fpc_setlength_dynarr_jrecord(aorg, anew: TJRecordArray; deepcopy: boole
   end;
 
 
+function fpc_setlength_dynarr_jenumset(aorg, anew: TJEnumSetArray; deepcopy: boolean): TJEnumSetArray;
+  begin
+    if deepcopy or
+       (length(aorg)<>length(anew)) then
+      begin
+        fpc_copy_jenumset_array(aorg,anew);
+        result:=anew
+      end
+    else
+      result:=aorg;
+  end;
+
+
+function fpc_setlength_dynarr_jbitset(aorg, anew: TJBitSetArray; deepcopy: boolean): TJBitSetArray;
+  begin
+    if deepcopy or
+       (length(aorg)<>length(anew)) then
+      begin
+        fpc_copy_jbitset_array(aorg,anew);
+        result:=anew
+      end
+    else
+      result:=aorg;
+  end;
+
+
+
 function fpc_setlength_dynarr_jshortstring(aorg, anew: TShortstringArray; deepcopy: boolean): TShortstringArray;
   begin
     if deepcopy or
@@ -450,6 +521,20 @@ function fpc_setlength_dynarr_multidim(aorg, anew: TJObjectArray; deepcopy: bool
                 result[i]:=JLObject(fpc_setlength_dynarr_jrecord(TJRecordArray(aorg[i]),TJRecordArray(anew[i]),deepcopy));
               for i:=succ(partdone) to high(result) do
                 result[i]:=JLObject(fpc_setlength_dynarr_jrecord(nil,TJRecordArray(anew[i]),deepcopy));
+            end;
+          FPCJDynArrTypeEnumSet:
+            begin
+              for i:=low(result) to partdone do
+                result[i]:=JLObject(fpc_setlength_dynarr_jenumset(TJEnumSetArray(aorg[i]),TJEnumSetArray(anew[i]),deepcopy));
+              for i:=succ(partdone) to high(result) do
+                result[i]:=JLObject(fpc_setlength_dynarr_jenumset(nil,TJEnumSetArray(anew[i]),deepcopy));
+            end;
+          FPCJDynArrTypeBitSet:
+            begin
+              for i:=low(result) to partdone do
+                result[i]:=JLObject(fpc_setlength_dynarr_jbitset(TJBitSetArray(aorg[i]),TJBitSetArray(anew[i]),deepcopy));
+              for i:=succ(partdone) to high(result) do
+                result[i]:=JLObject(fpc_setlength_dynarr_jbitset(nil,TJBitSetArray(anew[i]),deepcopy));
             end;
           FPCJDynArrTypeShortstring:
             begin

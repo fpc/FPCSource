@@ -782,9 +782,9 @@ implementation
             result:='';
         else
           begin
-            { enums are initialized as typed constants }
+            { enums and sets are initialized as typed constants }
             if not assigned(csym.constdef) or
-               (csym.constdef.typ<>enumdef) then
+               not(csym.constdef.typ in [enumdef,setdef]) then
               result:=' = '+ConstValue(csym)
           end;
         end;

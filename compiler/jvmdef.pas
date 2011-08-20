@@ -93,7 +93,8 @@ implementation
       begin
         result:=false;
         case def.typ of
-          classrefdef :
+          classrefdef,
+          setdef:
             begin
               result:=true;
             end;
@@ -140,8 +141,14 @@ implementation
             end;
           setdef :
             begin
-              { maybe one day }
-              internalerror(2011051404);
+              if tsetdef(def).elementdef.typ=enumdef then
+                begin
+                  encodedstr:=encodedstr+'Ljava/util/EnumSet<';
+                  jvmaddencodedtype(tenumdef(tsetdef(def).elementdef).getbasedef,false,encodedstr,true,founderror);
+                  encodedstr:=encodedstr+'>;';
+                end
+              else
+                internalerror(2011051404);
             end;
           arraydef :
             begin
@@ -283,25 +290,20 @@ implementation
               { we can however annotate it with extra signature information in
                 using Java's generic annotations }
               else
-                begin
-                  encodedstr:=encodedstr+'Ljava/lang/Class<';
-                  result:=jvmaddencodedtype(tclassrefdef(def).pointeddef,true,encodedstr,forcesignature,founderror);
-                  encodedstr:=encodedstr+'>;';
-                end;
+                jvmaddencodedsignature(def,false,encodedstr);
               result:=true;
             end;
           setdef :
             begin
-              if is_smallset(def) then
-                encodedstr:=encodedstr+'I'
+              if tsetdef(def).elementdef.typ=enumdef then
+                begin
+                  if forcesignature then
+                    jvmaddencodedsignature(def,false,encodedstr)
+                  else
+                    result:=jvmaddencodedtype(java_juenumset,false,encodedstr,forcesignature,founderror)
+                end
               else
-{$ifndef nounsupported}
-                result:=jvmaddencodedtype(java_jlobject,false,encodedstr,forcesignature,founderror);
-{$else}
-                { will be hanlded via wrapping later, although wrapping may
-                  happen at higher level }
-                result:=false;
-{$endif}
+                result:=jvmaddencodedtype(java_jubitset,false,encodedstr,forcesignature,founderror)
             end;
           formaldef :
             begin
@@ -461,6 +463,13 @@ implementation
           result:='R'
         else if is_shortstring(def) then
           result:='T'
+        else if def.typ=setdef then
+          begin
+            if tsetdef(def).elementdef.typ=enumdef then
+              result:='E'
+            else
+              result:='L'
+          end
         else
           begin
             if not jvmtryencodetype(def,res,false,errdef) then
@@ -481,12 +490,11 @@ implementation
                 is_open_array(def) or
                 is_array_of_const(def) or
                 is_array_constructor(def);
-          recorddef:
+          recorddef,
+          setdef:
             result:=true;
           objectdef:
             result:=is_object(def);
-          setdef:
-            result:=not is_smallset(def);
           stringdef :
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
           else

@@ -1303,6 +1303,10 @@ implementation
                         java_shortstring:=current_objectdef
                       else if (current_objectdef.objname^='JLENUM') then
                         java_jlenum:=current_objectdef
+                      else if (current_objectdef.objname^='JUENUMSET') then
+                        java_juenumset:=current_objectdef
+                      else if (current_objectdef.objname^='FPCBITSET') then
+                        java_jubitset:=current_objectdef
                     end;
                 end;
               end;

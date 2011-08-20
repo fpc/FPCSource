@@ -35,6 +35,7 @@ interface
           function typecheck_char_to_string: tnode; override;
           function pass_1: tnode; override;
           function simplify(forinline: boolean): tnode; override;
+          function first_set_to_set : tnode;override;
 
           procedure second_int_to_int;override;
          { procedure second_string_to_string;override; }
@@ -88,7 +89,7 @@ interface
 implementation
 
    uses
-      verbose,globals,globtype,
+      verbose,globals,globtype,constexp,
       symconst,symdef,symsym,symtable,aasmbase,aasmdata,
       defutil,defcmp,jvmdef,
       cgbase,cgutils,pass_1,pass_2,
@@ -226,6 +227,71 @@ implementation
             is_constcharnode(left)) and
            (maybe_find_real_class_definition(resultdef,false)=java_jlstring) then
           inserttypeconv(left,cunicodestringtype);
+      end;
+
+
+    function tjvmtypeconvnode.first_set_to_set: tnode;
+      var
+        setclassdef: tdef;
+        helpername: string;
+      begin
+        result:=nil;
+        if (left.nodetype=setconstn) then
+          result:=inherited
+        { on native targets, only the binary layout has to match. Here, both
+          sets also have to be either of enums or ordinals, and in case of
+          enums they have to be of the same base type }
+        else if (tsetdef(left.resultdef).elementdef.typ=enumdef)=(tsetdef(resultdef).elementdef.typ=enumdef) and
+            ((tsetdef(left.resultdef).elementdef.typ<>enumdef) or
+             (tenumdef(tsetdef(left.resultdef).elementdef).getbasedef=tenumdef(tsetdef(resultdef).elementdef).getbasedef)) and
+            (tsetdef(left.resultdef).setbase=tsetdef(resultdef).setbase) and
+            (left.resultdef.size=resultdef.size) then
+          begin
+            result:=left;
+            left:=nil;
+          end
+        else
+          begin
+            { 'deep' conversion }
+            if tsetdef(resultdef).elementdef.typ<>enumdef then
+              begin
+                if tsetdef(left.resultdef).elementdef.typ<>enumdef then
+                  helpername:='fpc_bitset_to_bitset'
+                else
+                  helpername:='fpc_enumset_to_bitset';
+                result:=ccallnode.createintern(helpername,ccallparanode.create(
+                  genintconstnode(tsetdef(resultdef).setbase), ccallparanode.create(
+                    genintconstnode(tsetdef(left.resultdef).setbase),
+                      ccallparanode.create(left,nil))));
+              end
+            else
+              begin
+                if tsetdef(left.resultdef).elementdef.typ<>enumdef then
+                  begin
+                    helpername:='fpcBitSetToEnumSet';
+                    setclassdef:=java_jubitset;
+                  end
+                else
+                  begin
+                    helpername:='fpcEnumSetToEnumSet';
+                    setclassdef:=java_juenumset;
+                  end;
+                left:=caddrnode.create_internal(left);
+                include(left.flags,nf_typedaddr);
+                inserttypeconv_explicit(left,setclassdef);
+                result:=ccallnode.createinternmethod(
+                  cloadvmtaddrnode.create(ctypenode.create(setclassdef)),
+                  helpername,ccallparanode.create(
+                    genintconstnode(tsetdef(resultdef).setbase), ccallparanode.create(
+                      genintconstnode(tsetdef(left.resultdef).setbase),
+                        ccallparanode.create(left,nil))));
+              end;
+            inserttypeconv_explicit(result,getpointerdef(resultdef));
+            result:=cderefnode.create(result);
+            { reused }
+            left:=nil;
+          end;
+
       end;
 
 
@@ -587,6 +653,68 @@ implementation
           left:=nil;
         end;
 
+      function from_set_explicit_typecast: tnode;
+        var
+          helpername: string;
+          setconvdef: tdef;
+        begin
+         if tsetdef(left.resultdef).elementdef.typ=enumdef then
+           begin
+             setconvdef:=java_juenumset;
+             helpername:='fpc_enumset_to_'
+           end
+         else
+           begin
+             setconvdef:=java_jubitset;
+             helpername:='fpc_bitset_to_'
+           end;
+         if left.resultdef.size<=4 then
+           helpername:=helpername+'int'
+         else
+           helpername:=helpername+'long';
+          result:=ccallnode.createintern(helpername,ccallparanode.create(
+            genintconstnode(left.resultdef.size),ccallparanode.create(genintconstnode(tsetdef(left.resultdef).setbase),
+            ccallparanode.create(ctypeconvnode.create_explicit(left,setconvdef),nil))));
+          left:=nil;
+        end;
+
+      function to_set_explicit_typecast: tnode;
+        var
+          enumclassdef: tobjectdef;
+          mp: tnode;
+          helpername: string;
+        begin
+          if tsetdef(resultdef).elementdef.typ=enumdef then
+            begin
+              inserttypeconv_explicit(left,s64inttype);
+              enumclassdef:=tenumdef(tsetdef(resultdef).elementdef).getbasedef.classdef;
+              mp:=cloadvmtaddrnode.create(ctypenode.create(enumclassdef));
+              helpername:='fpcLongToEnumSet';
+              { enumclass.fpcLongToEnumSet(left,setbase,setsize) }
+              result:=ccallnode.createinternmethod(mp,helpername,
+                ccallparanode.create(genintconstnode(resultdef.size),
+                  ccallparanode.create(genintconstnode(tsetdef(resultdef).setbase),
+                    ccallparanode.create(left,nil))));
+            end
+          else
+            begin
+              if left.resultdef.size<=4 then
+                begin
+                  helpername:='fpc_int_to_bitset';
+                  inserttypeconv_explicit(left,s32inttype);
+                end
+              else
+                begin
+                  helpername:='fpc_long_to_bitset';
+                  inserttypeconv_explicit(left,s64inttype);
+                end;
+              result:=ccallnode.createintern(helpername,
+                ccallparanode.create(genintconstnode(resultdef.size),
+                  ccallparanode.create(genintconstnode(tsetdef(resultdef).setbase),
+                    ccallparanode.create(left,nil))));
+            end;
+        end;
+
       function ptr_no_typecheck_required(fromdef, todef: tdef): boolean;
 
         function check_type_equality(def1,def2: tdef): boolean;
@@ -603,6 +731,23 @@ implementation
                 if is_shortstring(tpointerdef(def1).pointeddef) and
                    (def2=java_shortstring) then
                   exit;
+                { pointer-to-set to JUEnumSet/JUBitSet }
+                if (tpointerdef(def1).pointeddef.typ=setdef) then
+                  begin
+                    if not assigned(tsetdef(tpointerdef(def1).pointeddef).elementdef) then
+                      begin
+                        if (def2=java_jubitset) or
+                           (def2=java_juenumset) then
+                          exit;
+                      end
+                    else if tsetdef(tpointerdef(def1).pointeddef).elementdef.typ=enumdef then
+                      begin
+                        if def2=java_juenumset then
+                          exit;
+                      end
+                    else if def2=java_jubitset then
+                      exit;
+                  end;
               end;
             result:=false;
           end;
@@ -841,14 +986,41 @@ implementation
              end
           end;
 
-{$ifndef nounsupported}
-        if (left.resultdef.typ in [orddef,enumdef,setdef]) and
-           (resultdef.typ in [orddef,enumdef,setdef]) then
+        { sets }
+        if (left.resultdef.typ=setdef) or
+           (resultdef.typ=setdef) then
           begin
-            result:=false;
-            exit;
+            { set -> ord/enum/other-set-type }
+            if (resultdef.typ in [orddef,enumdef]) then
+              begin
+                if not check_only then
+                  begin
+                    resnode:=from_set_explicit_typecast;
+                    { convert to desired result }
+                    inserttypeconv_explicit(resnode,resultdef);
+                  end;
+                result:=true;
+                exit;
+              end
+            { ord/enum -> set }
+            else if (left.resultdef.typ in [orddef,enumdef]) then
+              begin
+                if not check_only then
+                  begin
+                    resnode:=to_set_explicit_typecast;
+                    { convert to desired result }
+                    inserttypeconv_explicit(resnode,getpointerdef(resultdef));
+                    resnode:=cderefnode.create(resnode);
+                  end;
+                result:=true;
+                exit;
+              end;
+            { if someone needs it, float->set and set->float explicit typecasts
+              could also be added (cannot be handled by the above, because
+              float(intvalue) will convert rather than re-interpret the value) }
           end;
 
+{$ifndef nounsupported}
         { non-literal type conversions }
         if convtype in
              [tc_char_2_string,
@@ -858,7 +1030,6 @@ implementation
               tc_real_2_real,
               tc_proc_2_procvar,
               tc_arrayconstructor_2_set,
-              tc_set_to_set,
               tc_class_2_intf,
               tc_array_2_dynarray] then
           begin
@@ -1027,7 +1198,14 @@ implementation
       else if checkdef.typ=pointerdef then
         checkdef:=tpointerdef(checkdef).pointeddef
       else if checkdef.typ=enumdef then
-        checkdef:=tenumdef(checkdef).classdef;
+        checkdef:=tenumdef(checkdef).classdef
+      else if checkdef.typ=setdef then
+        begin
+          if tsetdef(checkdef).elementdef.typ=enumdef then
+            checkdef:=java_juenumset
+          else
+            checkdef:=java_jubitset;
+        end;
 {$ifndef nounsupported}
       if checkdef.typ=procvardef then
         checkdef:=java_jlobject

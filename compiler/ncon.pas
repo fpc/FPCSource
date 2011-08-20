@@ -144,7 +144,7 @@ interface
           typedef : tdef;
           typedefderef : tderef;
           value_set : pconstset;
-          lab_set : tasmlabel;
+          lab_set : tasmsymbol;
           constructor create(s : pconstset;def:tdef);virtual;
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;

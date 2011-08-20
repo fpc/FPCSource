@@ -212,7 +212,7 @@ implementation
                          initialized at run time (enums, sets) -> create fake
                          typed const to do so }
                        if assigned(tconstsym(sym).constdef) and
-                          (tconstsym(sym).constdef.typ=enumdef) then
+                          (tconstsym(sym).constdef.typ in [enumdef,setdef]) then
                          jvm_add_typed_const_initializer(tconstsym(sym));
 {$endif}
                      end

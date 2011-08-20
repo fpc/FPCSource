@@ -25,6 +25,8 @@ type
   TJDoubleArray = array of jdouble;
   TJObjectArray = array of JLObject;
   TJRecordArray = array of FpcBaseRecordType;
+  TJEnumSetArray = array of JUEnumSet;
+  TJBitSetArray = array of JUBitSet;
   TShortstringArray = array of ShortstringClass;
   TJStringArray = array of unicodestring;
 
@@ -38,6 +40,8 @@ const
   FPCJDynArrTypeJDouble = 'D';
   FPCJDynArrTypeJObject = 'A';
   FPCJDynArrTypeRecord  = 'R';
+  FPCJDynArrTypeEnumSet = 'E';
+  FPCJDynArrTypeBitSet  = 'L';
   FPCJDynArrTypeShortstring  = 'T';
 
 { 1-dimensional setlength routines
@@ -54,6 +58,8 @@ function fpc_setlength_dynarr_jshortstring(aorg, anew: TShortstringArray; deepco
 
 procedure fpc_copy_shallow_array(src, dst: JLObject; srcstart: jint = -1; srccopylen: jint = -1);
 procedure fpc_copy_jrecord_array(src, dst: TJRecordArray; srcstart: jint = -1; srccopylen: jint = -1);
+procedure fpc_copy_jenumset_array(src, dst: TJEnumSetArray; srcstart: jint = -1; srccopylen: jint = -1);
+procedure fpc_copy_jbitset_array(src, dst: TJBitSetArray; srcstart: jint = -1; srccopylen: jint = -1);
 procedure fpc_copy_jshortstring_array(src, dst: TShortstringArray; srcstart: jint = -1; srccopylen: jint = -1);
 
 { multi-dimendional setlength routine: all intermediate dimensions are arrays

@@ -347,6 +347,12 @@
     function equals(para1: JLObject): jboolean; overload;
   end;
 
+  JUIterator = interface external 'java.util' name 'Iterator' 
+    function hasNext(): jboolean; overload;
+    function next(): JLObject; overload;
+    procedure remove(); overload;
+  end;
+
   JUMap = interface external 'java.util' name 'Map' 
     type
       InnerEntry = interface;

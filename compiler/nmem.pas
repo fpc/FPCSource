@@ -476,11 +476,11 @@ implementation
         make_not_regable(left,[ra_addr_regable,ra_addr_taken]);
 
         { don't allow constants, for internal use we also
-          allow taking the address of strings }
+          allow taking the address of strings and sets }
         if is_constnode(left) and
            not(
                (nf_internal in flags) and
-               (left.nodetype in [stringconstn])
+               (left.nodetype in [stringconstn,setconstn])
               ) then
          begin
            CGMessagePos(left.fileinfo,type_e_no_addr_of_constant);

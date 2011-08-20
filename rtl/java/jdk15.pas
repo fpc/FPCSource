@@ -6935,15 +6935,15 @@ type
   Arr2JNByteBufferAsIntBufferRL = array of Arr1JNByteBufferAsIntBufferRL;
   Arr3JNByteBufferAsIntBufferRL = array of Arr2JNByteBufferAsIntBufferRL;
 
-  JXVSchemaFactoryLoader = class;
-  Arr1JXVSchemaFactoryLoader = array of JXVSchemaFactoryLoader;
-  Arr2JXVSchemaFactoryLoader = array of Arr1JXVSchemaFactoryLoader;
-  Arr3JXVSchemaFactoryLoader = array of Arr2JXVSchemaFactoryLoader;
-
   JTRuleBasedCollator = class;
   Arr1JTRuleBasedCollator = array of JTRuleBasedCollator;
   Arr2JTRuleBasedCollator = array of Arr1JTRuleBasedCollator;
   Arr3JTRuleBasedCollator = array of Arr2JTRuleBasedCollator;
+
+  JXVSchemaFactoryLoader = class;
+  Arr1JXVSchemaFactoryLoader = array of JXVSchemaFactoryLoader;
+  Arr2JXVSchemaFactoryLoader = array of Arr1JXVSchemaFactoryLoader;
+  Arr3JXVSchemaFactoryLoader = array of Arr2JXVSchemaFactoryLoader;
 
   JSPBBasicTextPaneUI = class;
   Arr1JSPBBasicTextPaneUI = array of JSPBBasicTextPaneUI;
@@ -17775,15 +17775,15 @@ type
   Arr2OWDDOMImplementation = array of Arr1OWDDOMImplementation;
   Arr3OWDDOMImplementation = array of Arr2OWDDOMImplementation;
 
-  OOCUNSUPPORTED_POLICY = interface;
-  Arr1OOCUNSUPPORTED_POLICY = array of OOCUNSUPPORTED_POLICY;
-  Arr2OOCUNSUPPORTED_POLICY = array of Arr1OOCUNSUPPORTED_POLICY;
-  Arr3OOCUNSUPPORTED_POLICY = array of Arr2OOCUNSUPPORTED_POLICY;
-
   JTCharacterIterator = interface;
   Arr1JTCharacterIterator = array of JTCharacterIterator;
   Arr2JTCharacterIterator = array of Arr1JTCharacterIterator;
   Arr3JTCharacterIterator = array of Arr2JTCharacterIterator;
+
+  OOCUNSUPPORTED_POLICY = interface;
+  Arr1OOCUNSUPPORTED_POLICY = array of OOCUNSUPPORTED_POLICY;
+  Arr2OOCUNSUPPORTED_POLICY = array of Arr1OOCUNSUPPORTED_POLICY;
+  Arr3OOCUNSUPPORTED_POLICY = array of Arr2OOCUNSUPPORTED_POLICY;
 
   JXBAXmlSchemaType = interface;
   Arr1JXBAXmlSchemaType = array of JXBAXmlSchemaType;
@@ -19665,11 +19665,6 @@ type
   Arr2JNLExtendedResponse = array of Arr1JNLExtendedResponse;
   Arr3JNLExtendedResponse = array of Arr2JNLExtendedResponse;
 
-  JUIterator = interface;
-  Arr1JUIterator = array of JUIterator;
-  Arr2JUIterator = array of Arr1JUIterator;
-  Arr3JUIterator = array of Arr2JUIterator;
-
   JAEComponentListener = interface;
   Arr1JAEComponentListener = array of JAEComponentListener;
   Arr2JAEComponentListener = array of Arr1JAEComponentListener;
@@ -20829,6 +20824,11 @@ type
   Arr1JLCloneable = array of JLCloneable;
   Arr2JLCloneable = array of Arr1JLCloneable;
   Arr3JLCloneable = array of Arr2JLCloneable;
+
+  JUIterator = interface external 'java.util' name 'Iterator';
+  Arr1JUIterator = array of JUIterator;
+  Arr2JUIterator = array of Arr1JUIterator;
+  Arr3JUIterator = array of Arr2JUIterator;
 
   JUCollection = interface external 'java.util' name 'Collection';
   Arr1JUCollection = array of JUCollection;

@@ -41,7 +41,7 @@ interface
 
     procedure jvm_maybe_create_enum_class(const name: TIDString; def: tdef);
 
-    procedure jvm_add_typed_const_initializer(csym: tconstsym);
+    function jvm_add_typed_const_initializer(csym: tconstsym): tstaticvarsym;
 
     function jvm_wrap_method_with_vis(pd: tprocdef; vis: tvisibility): tprocdef;
 
@@ -53,7 +53,7 @@ implementation
     verbose,systems,
     fmodule,
     parabase,aasmdata,
-    pdecsub,
+    pdecsub,ngenutil,
     symtable,symcreat,defcmp,jvmdef,
     defutil,paramgr;
 
@@ -346,6 +346,22 @@ implementation
           internalerror(2011062302);
         include(pd.procoptions,po_staticmethod);
         pd.synthetickind:=tsk_jvm_enum_valueof;
+
+        { add instance method to convert an ordinal and an array into a set of
+          (we always need/can use both in case of subrange types and/or array
+           -> set type casts) }
+        if not str_parse_method_dec('function fpcLongToEnumSet(__val: jlong; __setbase, __setsize: jint): JUEnumSet;',potype_function,true,enumclass,pd) then
+          internalerror(2011070501);
+        pd.synthetickind:=tsk_jvm_enum_long2set;
+
+        if not str_parse_method_dec('function fpcBitSetToEnumSet(const __val: FpcBitSet; __fromsetbase, __tosetbase: jint): JUEnumSet; static;',potype_function,true,enumclass,pd) then
+          internalerror(2011071004);
+        pd.synthetickind:=tsk_jvm_enum_bitset2set;
+
+        if not str_parse_method_dec('function fpcEnumSetToEnumSet(const __val: JUEnumSet; __fromsetbase, __tosetbase: jint): JUEnumSet; static;',potype_function,true,enumclass,pd) then
+          internalerror(2011071005);
+        pd.synthetickind:=tsk_jvm_enum_set2set;
+
         { create array called "$VALUES" that will contain a reference to all
           enum instances (JDK convention)
           Disable duplicate identifier checking when inserting, because it will
@@ -381,12 +397,16 @@ implementation
       end;
 
 
-    procedure jvm_add_typed_const_initializer(csym: tconstsym);
+    function jvm_add_typed_const_initializer(csym: tconstsym): tstaticvarsym;
       var
         ssym: tstaticvarsym;
         esym: tenumsym;
         i: longint;
         sstate: tscannerstate;
+        elemdef: tdef;
+        elemdefname,
+        conststr: ansistring;
+        first: boolean;
       begin
         case csym.constdef.typ of
           enumdef:
@@ -414,7 +434,58 @@ implementation
                 end;
               str_parse_typedconst(current_asmdata.asmlists[al_typedconsts],esym.name+';',ssym);
               restore_scanner(sstate);
-            end
+              result:=ssym;
+            end;
+          setdef:
+            begin
+              replace_scanner('jvm_set_const',sstate);
+              { make sure we don't emit a definition for this field (we'll do
+                that for the constsym already) -> mark as external;
+                on the other hand, we don't create instances for constsyms in
+                (or external syms) the program/unit initialization code -> add
+                vo_has_local_copy to indicate that this should be done after all
+                (in thlcgjvm.allocate_implicit_structs_for_st_with_base_ref) }
+
+              { the constant can be defined in the body of a function and its
+                def can also belong to that -> will be freed when the function
+                has been compiler -> insert a copy in the unit's staticsymtable
+              }
+              symtablestack.push(current_module.localsymtable);
+              ssym:=tstaticvarsym.create(internal_static_field_name(csym.realname),vs_final,tsetdef(csym.constdef).getcopy,[vo_is_external,vo_has_local_copy]);
+              symtablestack.top.insert(ssym);
+              symtablestack.pop(current_module.localsymtable);
+              { alias storage to the constsym }
+              ssym.set_mangledname(csym.realname);
+              { ensure that we allocate space for global symbols (won't actually
+                allocate space for this one, since it's external, but for the
+                constsym) }
+              cnodeutils.insertbssdata(ssym);
+              elemdef:=tsetdef(csym.constdef).elementdef;
+              if not assigned(elemdef) then
+                begin
+                  internalerror(2011070502);
+                end
+              else
+                begin
+                  elemdefname:=elemdef.typename;
+                  conststr:='[';
+                  first:=true;
+                  for i:=0 to 255 do
+                    if i in pnormalset(csym.value.valueptr)^ then
+                      begin
+                        if not first then
+                          conststr:=conststr+',';
+                        first:=false;
+                        { instead of looking up all enum value names/boolean
+                           names, type cast integers to the required type }
+                        conststr:=conststr+elemdefname+'('+tostr(i)+')';
+                      end;
+                  conststr:=conststr+'];';
+                end;
+              str_parse_typedconst(current_asmdata.asmlists[al_typedconsts],conststr,ssym);
+              restore_scanner(sstate);
+              result:=ssym;
+            end;
           else
             internalerror(2011062701);
         end;

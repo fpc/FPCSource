@@ -537,6 +537,66 @@ implementation
     end;
 
 
+  procedure implement_jvm_enum_long2set(pd: tprocdef);
+    begin
+      str_parse_method_impl(
+        'var '+
+          'i, setval: jint;'+
+        'begin '+
+          'result:=JUEnumSet.noneOf(JLClass(__FPC_TEnumClassAlias));'+
+          'if __val<>0 then '+
+            'begin '+
+              '__setsize:=__setsize*8;'+
+              'for i:=0 to __setsize-1 do '+
+              // setsize-i because JVM = big endian
+              'if (__val and (jlong(1) shl (__setsize-i)))<>0 then '+
+                'result.add(fpcValueOf(i+__setbase));'+
+            'end '+
+          'end;',
+        pd,true);
+    end;
+
+
+  procedure implement_jvm_enum_bitset2set(pd: tprocdef);
+    begin
+      str_parse_method_impl(
+        'var '+
+          'i, setval: jint;'+
+        'begin '+
+          'result:=JUEnumSet.noneOf(JLClass(__FPC_TEnumClassAlias));'+
+          'i:=__val.nextSetBit(0);'+
+          'while i>=0 do '+
+            'begin '+
+              'setval:=-__fromsetbase;'+
+              'result.add(fpcValueOf(setval+__tosetbase));'+
+              'i:=__val.nextSetBit(i+1);'+
+            'end '+
+          'end;',
+        pd,true);
+    end;
+
+
+  procedure implement_jvm_enum_set2set(pd: tprocdef);
+    begin
+      str_parse_method_impl(
+        'var '+
+          'it: JUIterator;'+
+          'ele: FpcEnumValueObtainable;'+
+          'i: longint;'+
+        'begin '+
+          'result:=JUEnumSet.noneOf(JLClass(__FPC_TEnumClassAlias));'+
+          'it:=__val.iterator;'+
+          'while it.hasNext do '+
+            'begin '+
+              'ele:=FpcEnumValueObtainable(it.next);'+
+              'i:=ele.fpcOrdinal-__fromsetbase;'+
+              'result.add(fpcValueOf(i+__tosetbase));'+
+             'end '+
+          'end;',
+        pd,true);
+    end;
+
+
   procedure add_synthetic_method_implementations_for_struct(struct: tabstractrecorddef);
     var
       i   : longint;
@@ -576,6 +636,12 @@ implementation
               implement_jvm_enum_fpcordinal(pd);
             tsk_jvm_enum_fpcvalueof:
               implement_jvm_enum_fpcvalueof(pd);
+            tsk_jvm_enum_long2set:
+              implement_jvm_enum_long2set(pd);
+            tsk_jvm_enum_bitset2set:
+              implement_jvm_enum_bitset2set(pd);
+            tsk_jvm_enum_set2set:
+              implement_jvm_enum_set2set(pd);
             else
               internalerror(2011032801);
           end;
