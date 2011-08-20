@@ -54,7 +54,7 @@ interface
 implementation
 
     uses
-      verbose,globals,constexp,fmodule,
+      verbose,cutils,globals,constexp,fmodule,
       aasmdata,aasmtai,cpubase,aasmcpu,
       symdef,symbase,symtable,defutil,jvmdef,
       nbas,ncnv,ncon,ninl,ncal,
@@ -157,7 +157,10 @@ implementation
                 exit}
               unitclassname:='';
               if assigned(hp.u.namespace) then
-                unitclassname:=hp.u.namespace^+'.';
+                begin
+                  unitclassname:=hp.u.namespace^+'/';
+                  replace(unitclassname,'.','/');
+                end;
               unitclassname:=unitclassname+hp.u.realmodulename^;
               unitinits.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(unitclassname)));
               unitinits.concat(taicpu.op_none(a_pop));

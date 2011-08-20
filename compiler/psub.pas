@@ -269,7 +269,10 @@ implementation
                    finish_parentfpstruct(current_procinfo.procdef);
                  end;
             end;
-        block:=cnodeutils.wrap_proc_body(current_procinfo.procdef,block);
+        { init/final code must be wrapped later (after code for main proc body
+          has been generated }
+        if not(current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
+          block:=cnodeutils.wrap_proc_body(current_procinfo.procdef,block);
       end;
 
 

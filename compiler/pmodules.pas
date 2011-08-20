@@ -954,12 +954,14 @@ implementation
            a register that is also used in the finalize body (PFV) }
          if assigned(init_procinfo) then
            begin
+             init_procinfo.code:=cnodeutils.wrap_proc_body(init_procinfo.procdef,init_procinfo.code);
              init_procinfo.generate_code;
              init_procinfo.resetprocdef;
              release_main_proc(init_procinfo);
            end;
          if assigned(finalize_procinfo) then
            begin
+             finalize_procinfo.code:=cnodeutils.wrap_proc_body(finalize_procinfo.procdef,finalize_procinfo.code);
              finalize_procinfo.generate_code;
              finalize_procinfo.resetprocdef;
              release_main_proc(finalize_procinfo);
@@ -1889,12 +1891,14 @@ implementation
          release_main_proc(main_procinfo);
          if assigned(init_procinfo) then
            begin
+             init_procinfo.code:=cnodeutils.wrap_proc_body(init_procinfo.procdef,init_procinfo.code);
              init_procinfo.generate_code;
              init_procinfo.resetprocdef;
              release_main_proc(init_procinfo);
            end;
          if assigned(finalize_procinfo) then
            begin
+             finalize_procinfo.code:=cnodeutils.wrap_proc_body(finalize_procinfo.procdef,finalize_procinfo.code);
              finalize_procinfo.generate_code;
              finalize_procinfo.resetprocdef;
              release_main_proc(finalize_procinfo);
