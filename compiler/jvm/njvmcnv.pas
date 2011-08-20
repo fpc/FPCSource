@@ -136,9 +136,8 @@ implementation
    function tjvmtypeconvnode.typecheck_dynarray_to_openarray: tnode;
      begin
        { all arrays are equal in Java }
-       left.resultdef:=resultdef;
-       result:=left;
-       left:=nil;
+       result:=nil;
+       convtype:=tc_equal;
      end;
 
 
