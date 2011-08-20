@@ -33,6 +33,9 @@ unit cgutils;
       cpubase,cgbase;
 
     type
+{$ifdef jvm}
+      tarrayreftype = (art_none,art_indexreg,art_indexref);
+{$endif jvm}
       { reference record, reordered for best alignment }
       preference = ^treference;
       treference = record
@@ -61,6 +64,12 @@ unit cgutils;
          { (An)+ and -(An)                      }
          direction : tdirection;
 {$endif m68k}
+{$ifdef jvm}
+         arrayreftype: tarrayreftype;
+         indexbase: tregister;
+         indexsymbol: tasmsymbol;
+         indexoffset: aint;
+{$endif jvm}
          alignment : byte;
       end;
 

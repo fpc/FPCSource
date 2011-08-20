@@ -533,6 +533,11 @@ interface
           { info for inlining the subroutine, if this pointer is nil,
             the procedure can't be inlined }
           inlininginfo : pinlininginfo;
+{$ifdef jvm}
+          { generated assembler code; used by JVM backend so it can afterwards
+            easily write out all methods grouped per class }
+          exprasmlist      : TAsmList;
+{$endif jvm}
 {$ifdef oldregvars}
           regvarinfo: pregvarinfo;
 {$endif oldregvars}
@@ -3641,6 +3646,9 @@ implementation
             dispose(inlininginfo);
             inlininginfo:=nil;
           end;
+{$ifdef jvm}
+         exprasmlist.free;
+{$endif}
          stringdispose(resultname);
          stringdispose(import_dll);
          stringdispose(import_name);

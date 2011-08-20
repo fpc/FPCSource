@@ -1003,7 +1003,7 @@ implementation
 
 {$endif}
             { Create register allocator }
-            cg.init_register_allocators;
+            hlcg.init_register_allocators;
 
             set_first_temp_offset;
             generate_parameter_info;
@@ -1244,21 +1244,14 @@ implementation
                (cs_use_lineinfo in current_settings.globalswitches) then
               current_debuginfo.insertlineinfo(aktproccode);
 
-            { add the procedure to the al_procedures }
-            maybe_new_object_file(current_asmdata.asmlists[al_procedures]);
-            new_section(current_asmdata.asmlists[al_procedures],sec_code,lower(procdef.mangledname(true)),getprocalign);
-            current_asmdata.asmlists[al_procedures].concatlist(aktproccode);
-            { save local data (casetable) also in the same file }
-            if assigned(aktlocaldata) and
-               (not aktlocaldata.empty) then
-              current_asmdata.asmlists[al_procedures].concatlist(aktlocaldata);
+            hlcg.record_generated_code_for_procdef(current_procinfo.procdef,aktproccode,aktlocaldata);
 
             { only now we can remove the temps }
             tg.resettempgen;
 
             { stop tempgen and ra }
             tg.free;
-            cg.done_register_allocators;
+            hlcg.done_register_allocators;
             destroy_hlcodegen;
             tg:=nil;
           end;

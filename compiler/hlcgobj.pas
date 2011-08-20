@@ -411,6 +411,7 @@ unit hlcgobj;
           The default implementation issues a jump instruction to the external name. }
 //          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); virtual;
 
+
           { routines migrated from ncgutil }
 
           procedure location_force_reg(list:TAsmList;var l:tlocation;src_size,dst_size:tdef;maybeconst:boolean);virtual;abstract;
@@ -423,6 +424,13 @@ unit hlcgobj;
 
           procedure gen_proc_symbol(list:TAsmList);virtual;
           procedure gen_proc_symbol_end(list:TAsmList);virtual;
+
+          { extras refactored from other units }
+
+          { queue the code/data generated for a procedure for writing out to
+            the assembler/object file }
+          procedure record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList); virtual;
+
        end;
 
     var
@@ -1588,6 +1596,18 @@ implementation
             cg.a_jmp_name(list,target_info.cprefix+'FPC_SYSTEMMAIN');
            end;
         end;
+    end;
+
+  procedure thlcgobj.record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);
+    begin
+      { add the procedure to the al_procedures }
+      maybe_new_object_file(current_asmdata.asmlists[al_procedures]);
+      new_section(current_asmdata.asmlists[al_procedures],sec_code,lower(pd.mangledname(true)),getprocalign);
+      current_asmdata.asmlists[al_procedures].concatlist(code);
+      { save local data (casetable) also in the same file }
+      if assigned(data) and
+         (not data.empty) then
+        current_asmdata.asmlists[al_procedures].concatlist(data);
     end;
 
 end.
