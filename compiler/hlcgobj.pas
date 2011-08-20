@@ -369,7 +369,7 @@ unit hlcgobj;
              @param(p Node which contains the value to check)
              @param(todef Type definition of node to range check)
           }
-          procedure g_rangecheck(list: TAsmList; const l:tlocation; fromdef,todef: tdef); virtual; abstract;
+          procedure g_rangecheck(list: TAsmList; const l:tlocation; fromdef,todef: tdef); virtual;
 
           {# Generates overflow checking code for a node }
           procedure g_overflowcheck(list: TAsmList; const Loc:tlocation; def:tdef); virtual; abstract;
@@ -1583,6 +1583,13 @@ implementation
   procedure thlcgobj.g_concatcopy_unaligned(list: TAsmList; size: tdef; const source, dest: treference);
     begin
       g_concatcopy(list,size,source,dest);
+    end;
+
+  procedure thlcgobj.g_rangecheck(list: TAsmList; const l: tlocation; fromdef, todef: tdef);
+    begin
+      if not(cs_check_range in current_settings.localswitches) then
+        exit;
+      internalerror(2011010610);
     end;
 
   procedure thlcgobj.g_profilecode(list: TAsmList);
