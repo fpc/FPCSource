@@ -701,7 +701,7 @@
       public
         class function &of(para1: jchar): JLCharacter.InnerUnicodeBlock; static; overload;
         class function &of(para1: jint): JLCharacter.InnerUnicodeBlock; static; overload;
-        class function forName(para1: JLString): JLCharacter.InnerUnicodeBlock; static; overload; virtual; final;
+        class function forName(para1: JLString): JLCharacter.InnerUnicodeBlock; static; overload; final;
       end;
 
   public

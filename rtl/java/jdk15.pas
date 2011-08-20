@@ -5,15 +5,15 @@ unit jdk15;
 interface
 
 type
-  JSPComponentUI = class;
-  Arr1JSPComponentUI = array of JSPComponentUI;
-  Arr2JSPComponentUI = array of Arr1JSPComponentUI;
-  Arr3JSPComponentUI = array of Arr2JSPComponentUI;
-
   JNHeapIntBuffer = class;
   Arr1JNHeapIntBuffer = array of JNHeapIntBuffer;
   Arr2JNHeapIntBuffer = array of Arr1JNHeapIntBuffer;
   Arr3JNHeapIntBuffer = array of Arr2JNHeapIntBuffer;
+
+  JSPComponentUI = class;
+  Arr1JSPComponentUI = array of JSPComponentUI;
+  Arr2JSPComponentUI = array of Arr1JSPComponentUI;
+  Arr3JSPComponentUI = array of Arr2JSPComponentUI;
 
   JSTTableView = class;
   Arr1JSTTableView = array of JSTTableView;
@@ -5295,11 +5295,6 @@ type
   Arr2JSTRRTFParser = array of Arr1JSTRRTFParser;
   Arr3JSTRRTFParser = array of Arr2JSTRRTFParser;
 
-  JLRMethod = class;
-  Arr1JLRMethod = array of JLRMethod;
-  Arr2JLRMethod = array of Arr1JLRMethod;
-  Arr3JLRMethod = array of Arr2JLRMethod;
-
   JIIOException = class;
   Arr1JIIOException = array of JIIOException;
   Arr2JIIOException = array of Arr1JIIOException;
@@ -6690,11 +6685,6 @@ type
   Arr2JSCPKIXParameters = array of Arr1JSCPKIXParameters;
   Arr3JSCPKIXParameters = array of Arr2JSCPKIXParameters;
 
-  JLRAccessibleObject = class;
-  Arr1JLRAccessibleObject = array of JLRAccessibleObject;
-  Arr2JLRAccessibleObject = array of Arr1JLRAccessibleObject;
-  Arr3JLRAccessibleObject = array of Arr2JLRAccessibleObject;
-
   OOCOBJ_ADAPTER = class;
   Arr1OOCOBJ_ADAPTER = array of OOCOBJ_ADAPTER;
   Arr2OOCOBJ_ADAPTER = array of Arr1OOCOBJ_ADAPTER;
@@ -6935,15 +6925,15 @@ type
   Arr2JNByteBufferAsIntBufferRL = array of Arr1JNByteBufferAsIntBufferRL;
   Arr3JNByteBufferAsIntBufferRL = array of Arr2JNByteBufferAsIntBufferRL;
 
-  JTRuleBasedCollator = class;
-  Arr1JTRuleBasedCollator = array of JTRuleBasedCollator;
-  Arr2JTRuleBasedCollator = array of Arr1JTRuleBasedCollator;
-  Arr3JTRuleBasedCollator = array of Arr2JTRuleBasedCollator;
-
   JXVSchemaFactoryLoader = class;
   Arr1JXVSchemaFactoryLoader = array of JXVSchemaFactoryLoader;
   Arr2JXVSchemaFactoryLoader = array of Arr1JXVSchemaFactoryLoader;
   Arr3JXVSchemaFactoryLoader = array of Arr2JXVSchemaFactoryLoader;
+
+  JTRuleBasedCollator = class;
+  Arr1JTRuleBasedCollator = array of JTRuleBasedCollator;
+  Arr2JTRuleBasedCollator = array of Arr1JTRuleBasedCollator;
+  Arr3JTRuleBasedCollator = array of Arr2JTRuleBasedCollator;
 
   JSPBBasicTextPaneUI = class;
   Arr1JSPBBasicTextPaneUI = array of JSPBBasicTextPaneUI;
@@ -11585,6 +11575,11 @@ type
   Arr2JISIIORegistry = array of Arr1JISIIORegistry;
   Arr3JISIIORegistry = array of Arr2JISIIORegistry;
 
+  JUDate = class;
+  Arr1JUDate = array of JUDate;
+  Arr2JUDate = array of Arr1JUDate;
+  Arr3JUDate = array of Arr2JUDate;
+
   JACICC_Profile = class;
   Arr1JACICC_Profile = array of JACICC_Profile;
   Arr2JACICC_Profile = array of Arr1JACICC_Profile;
@@ -11594,11 +11589,6 @@ type
   Arr1JLRFinalReference = array of JLRFinalReference;
   Arr2JLRFinalReference = array of Arr1JLRFinalReference;
   Arr3JLRFinalReference = array of Arr2JLRFinalReference;
-
-  JUDate = class;
-  Arr1JUDate = array of JUDate;
-  Arr2JUDate = array of Arr1JUDate;
-  Arr3JUDate = array of Arr2JUDate;
 
   JBPersistenceDelegate = class;
   Arr1JBPersistenceDelegate = array of JBPersistenceDelegate;
@@ -17725,11 +17715,6 @@ type
   Arr2JMDescriptorAccess = array of Arr1JMDescriptorAccess;
   Arr3JMDescriptorAccess = array of Arr2JMDescriptorAccess;
 
-  OOCUNSUPPORTED_POLICY_VALUE = interface;
-  Arr1OOCUNSUPPORTED_POLICY_VALUE = array of OOCUNSUPPORTED_POLICY_VALUE;
-  Arr2OOCUNSUPPORTED_POLICY_VALUE = array of Arr1OOCUNSUPPORTED_POLICY_VALUE;
-  Arr3OOCUNSUPPORTED_POLICY_VALUE = array of Arr2OOCUNSUPPORTED_POLICY_VALUE;
-
   JAKeyEventPostProcessor = interface;
   Arr1JAKeyEventPostProcessor = array of JAKeyEventPostProcessor;
   Arr2JAKeyEventPostProcessor = array of Arr1JAKeyEventPostProcessor;
@@ -17739,6 +17724,11 @@ type
   Arr1JXSEEntityDeclaration = array of JXSEEntityDeclaration;
   Arr2JXSEEntityDeclaration = array of Arr1JXSEEntityDeclaration;
   Arr3JXSEEntityDeclaration = array of Arr2JXSEEntityDeclaration;
+
+  OOCUNSUPPORTED_POLICY_VALUE = interface;
+  Arr1OOCUNSUPPORTED_POLICY_VALUE = array of OOCUNSUPPORTED_POLICY_VALUE;
+  Arr2OOCUNSUPPORTED_POLICY_VALUE = array of Arr1OOCUNSUPPORTED_POLICY_VALUE;
+  Arr3OOCUNSUPPORTED_POLICY_VALUE = array of Arr2OOCUNSUPPORTED_POLICY_VALUE;
 
   JXWRequestWrapper = interface;
   Arr1JXWRequestWrapper = array of JXWRequestWrapper;
@@ -18679,11 +18669,6 @@ type
   Arr1JNURLStreamHandlerFactory = array of JNURLStreamHandlerFactory;
   Arr2JNURLStreamHandlerFactory = array of Arr1JNURLStreamHandlerFactory;
   Arr3JNURLStreamHandlerFactory = array of Arr2JNURLStreamHandlerFactory;
-
-  JLRMember = interface;
-  Arr1JLRMember = array of JLRMember;
-  Arr2JLRMember = array of Arr1JLRMember;
-  Arr3JLRMember = array of Arr2JLRMember;
 
   JRAActivationInstantiator = interface;
   Arr1JRAActivationInstantiator = array of JRAActivationInstantiator;
@@ -20715,6 +20700,11 @@ type
   Arr2JLNumber = array of Arr1JLNumber;
   Arr3JLNumber = array of Arr2JLNumber;
 
+  JLRMethod = class external 'java.lang.reflect' name 'Method';
+  Arr1JLRMethod = array of JLRMethod;
+  Arr2JLRMethod = array of Arr1JLRMethod;
+  Arr3JLRMethod = array of Arr2JLRMethod;
+
   JLCharacter = class external 'java.lang' name 'Character';
   Arr1JLCharacter = array of JLCharacter;
   Arr2JLCharacter = array of Arr1JLCharacter;
@@ -20815,6 +20805,11 @@ type
   Arr2JLRuntimeException = array of Arr1JLRuntimeException;
   Arr3JLRuntimeException = array of Arr2JLRuntimeException;
 
+  JLRAccessibleObject = class external 'java.lang.reflect' name 'AccessibleObject';
+  Arr1JLRAccessibleObject = array of JLRAccessibleObject;
+  Arr2JLRAccessibleObject = array of Arr1JLRAccessibleObject;
+  Arr3JLRAccessibleObject = array of Arr2JLRAccessibleObject;
+
   JLIterable = interface external 'java.lang' name 'Iterable';
   Arr1JLIterable = array of JLIterable;
   Arr2JLIterable = array of Arr1JLIterable;
@@ -20859,6 +20854,11 @@ type
   Arr1JLComparable = array of JLComparable;
   Arr2JLComparable = array of Arr1JLComparable;
   Arr3JLComparable = array of Arr2JLComparable;
+
+  JLRMember = interface external 'java.lang.reflect' name 'Member';
+  Arr1JLRMember = array of JLRMember;
+  Arr2JLRMember = array of Arr1JLRMember;
+  Arr3JLRMember = array of Arr2JLRMember;
 
   JLCharSequence = interface external 'java.lang' name 'CharSequence';
   Arr1JLCharSequence = array of JLCharSequence;
