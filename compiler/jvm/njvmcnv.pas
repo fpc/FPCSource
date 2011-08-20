@@ -496,9 +496,7 @@ implementation
             toarrtype:=jvmarrtype_setlength(todef);
             if (compare_defs(fromdef,todef,nothingn)<te_equal) and
                not fromdef.is_related(todef) and
-               (((fromdef.typ in [objectdef,recorddef,stringdef]) and
-                 not is_dynamic_array(fromdef)) or
-                (todef<>java_jlobject)) and
+               (todef<>java_jlobject) and
                ((fromarrtype in ['A','R']) or
                 (fromarrtype<>toarrtype)) then
               begin
