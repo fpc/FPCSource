@@ -98,6 +98,8 @@ function tjvmassignmentnode.pass_1: tnode;
         inserttypeconv_explicit(right,cchartype);
         { call ShortstringClass(@shortstring).setChar(index,char) }
         tvecnode(target).left:=caddrnode.create_internal(tvecnode(target).left);
+        { avoid useless typecheck when casting to shortstringclass }
+        include(tvecnode(target).left.flags,nf_typedaddr);
         inserttypeconv_explicit(tvecnode(target).left,java_shortstring);
         psym:=search_struct_member(tabstractrecorddef(java_shortstring),'SETCHAR');
         if not assigned(psym) or

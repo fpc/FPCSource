@@ -218,6 +218,8 @@ implementation
                 begin
                   stringclass:=java_shortstring;
                   left:=caddrnode.create_internal(left);
+                  { avoid useless typecheck when casting to shortstringclass }
+                  include(left.flags,nf_typedaddr);
                 end
               else
                 internalerror(2011052407);
