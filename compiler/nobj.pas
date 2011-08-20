@@ -329,6 +329,12 @@ implementation
                         { no new entry, but copy the message name if any from
                           the procdef in the parent class }
                         check_msg_str(vmtpd,pd);
+                        { in case of Java, copy the real name from the parent,
+                          since overriding "Destroy" with "destroy" is not
+                          going to work very well }
+                        if is_java_class_or_interface(_class) and
+                           (pd.procsym.realname<>vmtpd.procsym.realname) then
+                          pd.procsym.realname:=vmtpd.procsym.realname;
                         result:=true;
                         exit;
                       end;
@@ -384,6 +390,12 @@ implementation
                       if (vmtpd.extnumber<>i) then
                         internalerror(200611084);
                       pd.extnumber:=vmtpd.extnumber;
+                      { in case of Java, copy the real name from the parent,
+                        since overriding "Destroy" with "destroy" is not
+                        going to work very well }
+                      if is_java_class_or_interface(_class) and
+                         (pd.procsym.realname<>vmtpd.procsym.realname) then
+                        pd.procsym.realname:=vmtpd.procsym.realname;
                       vmtpd:=pd;
                     end;
                   result:=true;
