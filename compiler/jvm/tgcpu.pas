@@ -113,7 +113,9 @@ unit tgcpu;
                   pd:=tprocsym(sym).find_bytype_parameterless(potype_constructor);
                   if not assigned(pd) then
                     internalerror(2011032701);
-                end;
+                end
+              else
+                internalerror(2011060301);
               hlcg.a_call_name(list,pd,pd.mangledname,false);
               thlcgjvm(hlcg).decstack(list,1);
               { store reference to instance }
