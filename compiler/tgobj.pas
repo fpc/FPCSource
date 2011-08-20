@@ -61,6 +61,7 @@ unit tgobj;
           tempfreelist  : ptemprecord;
           function alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype; def:tdef) : longint; virtual;
           procedure freetemp(list: TAsmList; pos:longint;temptypes:ttemptypeset);
+          procedure gettempinternal(list: TAsmList; size, alignment : longint;temptype:ttemptype;def: tdef;out ref : treference);
        public
           { contains all temps }
           templist      : ptemprecord;
@@ -87,6 +88,7 @@ unit tgobj;
             the forcesize parameter is so that it can be used for defs that
             don't have an inherent size (e.g., array of const) }
           procedure gethltemp(list: TAsmList; def: tdef; forcesize: aint; temptype: ttemptype; out ref: treference); virtual;
+          procedure gethltemptyped(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); virtual;
           procedure gettemp(list: TAsmList; size, alignment : longint;temptype:ttemptype;out ref : treference);
           procedure gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
           procedure ungettemp(list: TAsmList; const ref : treference);
@@ -508,7 +510,20 @@ implementation
       end;
 
 
+    procedure ttgobj.gethltemptyped(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
+      begin
+        gettemptyped(list,def,temptype,ref);
+      end;
+
+
+
     procedure ttgobj.gettemp(list: TAsmList; size, alignment : longint;temptype:ttemptype;out ref : treference);
+      begin
+        gettempinternal(list,size,alignment,temptype,nil,ref);
+      end;
+
+
+    procedure ttgobj.gettempinternal(list: TAsmList; size, alignment : longint;temptype:ttemptype;def: tdef;out ref : treference);
       var
         varalign : shortint;
       begin
@@ -517,23 +532,14 @@ implementation
           on cgobj (PFV) }
         fillchar(ref,sizeof(ref),0);
         ref.base:=current_procinfo.framepointer;
-        ref.offset:=alloctemp(list,size,varalign,temptype,nil);
+        ref.offset:=alloctemp(list,size,varalign,temptype,def);
         ref.alignment:=varalign;
       end;
 
 
     procedure ttgobj.gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
-      var
-        varalign : shortint;
       begin
-        varalign:=def.alignment;
-        varalign:=used_align(varalign,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
-        { can't use reference_reset_base, because that will let tgobj depend
-          on cgobj (PFV) }
-        fillchar(ref,sizeof(ref),0);
-        ref.base:=current_procinfo.framepointer;
-        ref.offset:=alloctemp(list,def.size,varalign,temptype,def);
-        ref.alignment:=varalign;
+        gettempinternal(list,def.size,def.alignment,temptype,def,ref);
       end;
 
 
