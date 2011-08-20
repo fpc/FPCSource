@@ -229,6 +229,7 @@ implementation
       var
         owningunit: tsymtable;
         tmpresult: string;
+        module: tmodule;
       begin
         { see tprocdef.jvmmangledbasename for description of the format }
         case owner.symtabletype of
@@ -239,7 +240,11 @@ implementation
               owningunit:=owner;
               while (owningunit.symtabletype in [localsymtable,objectsymtable,recordsymtable]) do
                 owningunit:=owningunit.defowner.owner;
-              tmpresult:=find_module_from_symtable(owningunit).realmodulename^+'/';
+              module:=find_module_from_symtable(owningunit);
+              tmpresult:='';
+              if assigned(module.namespace) then
+                tmpresult:=module.namespace^+'.';
+              tmpresult:=tmpresult+module.realmodulename^+'/';
             end;
           objectsymtable:
             case tobjectdef(owner.defowner).objecttype of

@@ -540,6 +540,8 @@ implementation
             { fake class type for unit -> name=unitname and
               superclass=java.lang.object }
             AsmWrite('.class public ');
+            if assigned(current_module.namespace) then
+              AsmWrite(current_module.namespace^+'.');
             AsmWriteln(current_module.realmodulename^);
             AsmWriteLn('.super java/lang/Object');
           end

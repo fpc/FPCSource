@@ -107,7 +107,7 @@ interface
 implementation
 
 uses
-  SysUtils,
+  SysUtils,strutils,
   cfileutl,
   systems,version,
   symtable, symsym,
@@ -946,6 +946,7 @@ var
       var
         b : byte;
         newmodulename : string;
+        ns: string;
       begin
        { read interface part }
          repeat
@@ -954,6 +955,14 @@ var
              ibmodulename :
                begin
                  newmodulename:=ppufile.getstring;
+                 { namespace? }
+                 b:=rpos('.',newmodulename);
+                 if b<>0 then
+                   begin
+                     stringdispose(namespace);
+                     namespace:=stringdup(copy(newmodulename,1,b-1));
+                     delete(newmodulename,1,b);
+                   end;
                  if (cs_check_unit_name in current_settings.globalswitches) and
                     (upper(newmodulename)<>modulename^) then
                    Message2(unit_f_unit_name_error,realmodulename^,newmodulename);
@@ -1045,6 +1054,8 @@ var
 
 
     procedure tppumodule.writeppu;
+      var
+        ns: string;
       begin
          Message1(unit_u_ppu_write,realmodulename^);
 
@@ -1068,7 +1079,10 @@ var
           Message(unit_f_ppu_cannot_write);
 
          { first the unitname }
-         ppufile.putstring(realmodulename^);
+         ns:='';
+         if assigned(namespace) then
+          ns:=namespace^+'.';
+         ppufile.putstring(ns+realmodulename^);
          ppufile.writeentry(ibmodulename);
 
          ppufile.putsmallset(moduleoptions);
@@ -1207,6 +1221,8 @@ var
 
 
     procedure tppumodule.getppucrc;
+      var
+        ns: string;
       begin
 {$ifdef Test_Double_checksum_write}
          Assign(CRCFile,s+'.INT')
@@ -1220,7 +1236,10 @@ var
            Message(unit_f_ppu_cannot_write);
 
          { first the unitname }
-         ppufile.putstring(realmodulename^);
+         ns:='';
+         if assigned(namespace) then
+          ns:=namespace^+'.';
+         ppufile.putstring(ns+realmodulename^);
          ppufile.writeentry(ibmodulename);
 
          ppufile.putsmallset(moduleoptions);

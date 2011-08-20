@@ -780,6 +780,31 @@ unit scandir;
       end;
 
 
+    procedure dir_namespace;
+      var
+        s : string;
+      begin
+        { used to define Java package names for all types declared in the
+          current unit }
+        if not current_module.in_global then
+          Message(scan_w_switch_is_global)
+        else
+          begin
+            current_scanner.skipspace;
+            current_scanner.readstring;
+            s:=orgpattern;
+            while c='.' do
+              begin
+                current_scanner.readchar;
+                current_scanner.readstring;
+                s:=s+'.'+orgpattern;
+              end;
+            disposestr(current_module.namespace);
+            current_module.namespace:=stringdup(s);
+          end;
+      end;
+
+
     procedure dir_mmx;
       begin
         do_localswitch(cs_mmx);
@@ -1458,6 +1483,7 @@ unit scandir;
         AddDirective('MMX',directive_all, @dir_mmx);
         AddDirective('MODE',directive_all, @dir_mode);
         AddDirective('MODESWITCH',directive_all, @dir_modeswitch);
+        AddDirective('NAMESPACE',directive_all, @dir_namespace);
         AddDirective('NODEFINE',directive_all, @dir_nodefine);
         AddDirective('NOTE',directive_all, @dir_note);
         AddDirective('NOTES',directive_all, @dir_notes);

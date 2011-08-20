@@ -183,6 +183,8 @@ interface
           tobjectdef instances (the helper defs) }
         extendeddefs: TFPHashObjectList;
 
+        namespace: pshortstring; { for JVM target: corresponds to Java package name }
+
         {create creates a new module which name is stored in 's'. LoadedFrom
         points to the module calling it. It is nil for the first compiled
         module. This allow inheritence of all path lists. MUST pay attention
@@ -540,6 +542,7 @@ implementation
         mode_switch_allowed:= true;
         moduleoptions:=[];
         deprecatedmsg:=nil;
+        namespace:=nil;
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=TAsmData.create(realmodulename^);
@@ -616,6 +619,7 @@ implementation
         stringdispose(mainsource);
         stringdispose(asmprefix);
         stringdispose(deprecatedmsg);
+        stringdispose(namespace);
         localunitsearchpath.Free;
         localobjectsearchpath.free;
         localincludesearchpath.free;
@@ -746,6 +750,7 @@ implementation
         in_global:=true;
         mode_switch_allowed:=true;
         stringdispose(deprecatedmsg);
+        stringdispose(namespace);
         moduleoptions:=[];
         is_dbginfo_written:=false;
         crc:=0;

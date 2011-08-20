@@ -67,6 +67,8 @@ interface
     function lower(const c : char) : char;
     function lower(const s : string) : string;
     function lower(const s : ansistring) : ansistring;
+    function rpos(const needle: char; const haystack: shortstring): longint; overload;
+    function rpos(const needle: shortstring; const haystack: shortstring): longint; overload;
     function trimbspace(const s:string):string;
     function trimspace(const s:string):string;
     function space (b : longint): string;
@@ -585,6 +587,34 @@ implementation
             insert('.',TmpStr,i+1);
          end;
         DStr:=TmpStr;
+      end;
+
+
+    function rpos(const needle: char; const haystack: shortstring): longint;
+      begin
+        result:=length(haystack);
+        while (result>0) do
+          begin
+            if haystack[result]=needle then
+              exit;
+            dec(result);
+          end;
+      end;
+
+
+    function rpos(const needle: shortstring; const haystack: shortstring): longint;
+      begin
+        result:=0;
+        if (length(needle)=0) or
+           (length(needle)>length(haystack)) then
+          exit;
+        result:=length(haystack)-length(needle);
+        repeat
+          if (haystack[result]=needle[1]) and
+             (copy(haystack,result,length(needle))=needle) then
+            exit;
+          dec(result);
+        until result=0;
       end;
 
 

@@ -375,6 +375,7 @@ implementation
         }
         if try_to_consume(_EXTERNAL) then
           begin
+            hs:='';
             if token in [_CSTRING,_CWSTRING,_CCHAR,_CWCHAR] then
               begin
                 { Always add library prefix and suffix to create an uniform name }
@@ -383,6 +384,19 @@ implementation
                   hs:=ChangeFileExt(hs,target_info.sharedlibext);
                 if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
                   hs:=target_info.sharedlibprefix+hs;
+              end
+            else if assigned(current_module.namespace) then
+              begin
+                { import_lib is used to specify the package name for the JVM
+                  target (= namespace) }
+                if (target_info.system=system_jvm_java32) and
+                   assigned(current_module.namespace) then
+                  hs:=current_module.namespace^;
+                { not sure how to deal with cppclass here, since namespaces
+                  mean something different there }
+              end;
+            if hs<>'' then
+              begin
                 { the JVM expects java/lang/Object rather than java.lang.Object }
                 if target_info.system=system_jvm_java32 then
                   Replace(hs,'.','/');
@@ -397,9 +411,20 @@ implementation
             include(od.objectoptions,oo_is_external);
           end
         else
-          od.objextname:=stringdup(od.objrealname^);
-        { ToDo: read the namespace of the class (influences the mangled name)}
+          begin
+            od.objextname:=stringdup(od.objrealname^);
+            { ToDo for cpp: read/set the namespace of the class (influences the mangled name)
+                (notice that for the JVM target, there is no difference between
+                 the namespace and import_lib) }
+            if (target_info.system=system_jvm_java32) and
+               assigned(current_module.namespace) then
+              begin
+                od.import_lib:=stringdup(current_module.namespace^);
+                Replace(od.import_lib^,'.','/');
+              end;
+          end;
       end;
+
 
     procedure get_objc_class_or_protocol_external_status(od: tobjectdef);
       begin
@@ -1366,6 +1391,8 @@ implementation
                         java_jlobject:=current_objectdef;
                       if (current_objectdef.objname^='JLTHROWABLE') then
                         java_jlthrowable:=current_objectdef;
+                      if (current_objectdef.objname^='FPCBASERECORDTYPE') then
+                        java_fpcbaserecordtype:=current_objectdef;
                     end;
                 end;
               end;
