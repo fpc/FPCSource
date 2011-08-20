@@ -1908,8 +1908,8 @@ implementation
           (equal_defs(parentretdef,childretdef)) or
           ((parentretdef.typ=objectdef) and
            (childretdef.typ=objectdef) and
-           is_class_or_interface_or_objc(parentretdef) and
-           is_class_or_interface_or_objc(childretdef) and
+           is_class_or_interface_or_objc_or_java(parentretdef) and
+           is_class_or_interface_or_objc_or_java(childretdef) and
            (tobjectdef(childretdef).is_related(tobjectdef(parentretdef))))
       end;
 
