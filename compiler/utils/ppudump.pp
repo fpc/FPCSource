@@ -223,7 +223,7 @@ Function Varspez2Str(w:longint):string;
 const
   { in symconst unit
     tvarspez = (vs_value,vs_const,vs_var,vs_out,vs_constref); }
-  varspezstr : array[tvarspez] of string[6]=('Value','Const','Var','Out','ConstRef','Final');
+  varspezstr : array[tvarspez] of string[8]=('Value','Const','Var','Out','ConstRef','Final');
 begin
   if w<=ord(high(varspezstr)) then
     Varspez2Str:=varspezstr[tvarspez(w)]
