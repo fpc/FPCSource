@@ -98,4 +98,6 @@ initialization
   RegisterImport(system_jvm_java32,timportlibjvm);
   RegisterExport(system_jvm_java32,texportlibjvm);
   RegisterTarget(system_jvm_java32_info);
+
+  RegisterRes(res_jvmraw_info,TJVMRawResourceFile);
 end.

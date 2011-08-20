@@ -3,13 +3,13 @@
 #
 
 [target]
-programs=fpcres
+programs=fpcres fpcjres
 
 [clean]
-units=closablefilestream msghandler paramparser sourcehandler target
+units=closablefilestream msghandler paramparser sourcehandler target jarsourcehandler jarparamparser
 
 [require]
-packages=rtl fcl-res
+packages=rtl fcl-res paszlib
 
 [install]
 fpcpackage=y
@@ -20,3 +20,4 @@ fpcdir=../..
 [rules]
 .NOTPARALLEL:
 fpcres$(EXEEXT): target.pas msghandler.pas closablefilestream.pas paramparser.pas sourcehandler.pas fpcres.pas
+fpcjres$(EXEEXT): msghandler.pas closablefilestream.pas paramparser.pas sourcehandler.pas fpcjres.pas jarsourcehandler.pas jarparamparser.pas

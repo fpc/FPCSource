@@ -27,9 +27,20 @@ unit i_jvm;
   interface
 
     uses
-       systems;
+       systems,rescmn;
 
     const
+       res_jvmraw_info : tresinfo =
+           (
+             id     : res_jvm_raw;
+             resbin : 'fpcjres';
+             rescmd : '-o $OBJ $DBG';
+             rcbin  : '';
+             rccmd  : '';
+             resourcefileclass : nil;
+             resflags : [res_no_compile];
+           );
+
        { The 32 only means that code written for this target behaves
          semantically as if it were written for a 32 bit target (default
          integer evaluation width = 32 bit). It will work equally well on 32
@@ -53,8 +64,8 @@ unit i_jvm;
             unitlibext   : '.ppl';
             asmext       : '.j';
             objext       : '.class';
-            resext       : '.res';
-            resobjext    : '.or';
+            resext       : '';
+            resobjext    : '.jar';
             sharedlibext : '.jar';
             staticlibext : '.jar';
             staticlibprefix : '';
@@ -73,7 +84,7 @@ unit i_jvm;
             link         : nil;
             linkextern   : nil;
             ar           : ar_none;
-            res          : res_none;
+            res          : res_jvm_raw;
             dbg          : dbg_jasmin;
             script       : script_unix;
             endian       : endian_big;

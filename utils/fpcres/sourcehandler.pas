@@ -34,9 +34,9 @@ type
 
   TSourceFiles = class
   private
+  protected
     fFileList : TStringList;
     fStreamList : TFPList;
-  protected
   public
     constructor Create;
     destructor Destroy; override;
