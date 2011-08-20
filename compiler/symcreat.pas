@@ -113,7 +113,7 @@ implementation
     symtable,defutil,
     pbase,pdecobj,pdecsub,psub,ptconst,
 {$ifdef jvm}
-    pjvm,
+    pjvm,jvmdef,
 {$endif jvm}
     node,nbas,nld,nmem,
     defcmp,
@@ -623,9 +623,111 @@ implementation
               'ele:=FpcEnumValueObtainable(it.next);'+
               'i:=ele.fpcOrdinal-__fromsetbase;'+
               'result.add(fpcValueOf(i+__tosetbase));'+
-             'end '+
+            'end '+
           'end;',
         pd,true);
+    end;
+
+
+  procedure implement_jvm_procvar_invoke(pd: tprocdef);
+{$ifdef jvm}
+    var
+      pvclass: tobjectdef;
+      procvar: tprocvardef;
+      paraname,str,endstr: ansistring;
+      pvs: tparavarsym;
+      paradef,boxdef,boxargdef: tdef;
+      i: longint;
+      firstpara: boolean;
+{$endif jvm}
+    begin
+{$ifndef jvm}
+      internalerror(2011072401);
+{$else not jvm}
+      pvclass:=tobjectdef(pd.owner.defowner);
+      procvar:=tprocvardef(ttypesym(search_struct_member(pvclass,'__FPC_PROCVARALIAS')).typedef);
+      { the procvar wrapper class has a tmethod member called "method", whose
+        "code" field is a JLRMethod, and whose "data" field is the self pointer
+        if any (if none is required, it's ignored by the JVM, so there's no
+        problem with always passing it) }
+
+      { force extended syntax to allow calling invokeObjectFunc() without using
+        its result }
+      str:='';
+      endstr:='';
+      { create local pointer to result type for typecasting in case of an
+        implicit pointer type }
+      if jvmimplicitpointertype(procvar.returndef) then
+         str:=str+'type __FPC_returnptrtype = ^'+procvar.returndef.typename+';';
+      str:=str+'begin ';
+      { result handling }
+      if not is_void(procvar.returndef) then
+        begin
+          str:=str+'invoke:=';
+          if procvar.returndef.typ in [orddef,floatdef] then
+            begin
+              { primitivetype(boxtype(..).unboxmethod) }
+              jvmgetboxtype(procvar.returndef,boxdef,boxargdef,false);
+              str:=str+procvar.returndef.typename+'('+boxdef.typename+'(';
+              endstr:=').'+jvmgetunboxmethod(procvar.returndef)+')';
+            end
+          else if jvmimplicitpointertype(procvar.returndef) then
+            begin
+              str:=str+'__FPC_returnptrtype(';
+              { dereference }
+              endstr:=')^';
+            end
+          else
+            begin
+              str:=str+procvar.returndef.typename+'(';
+              endstr:=')';
+            end;
+        end;
+      str:=str+'invokeObjectFunc([';
+      { parameters are a constant array of jlobject }
+      firstpara:=true;
+      for i:=0 to procvar.paras.count-1 do
+        begin
+          { skip self/vmt/parentfp, passed separately }
+          pvs:=tparavarsym(procvar.paras[i]);
+          if ([vo_is_self,vo_is_vmt,vo_is_parentfp]*pvs.varoptions)<>[] then
+            continue;
+          if not firstpara then
+            str:=str+',';
+          firstpara:=false;
+          paraname:=pvs.realname;
+          paradef:=pvs.vardef;
+          { Pascalize hidden high parameter }
+          if vo_is_high_para in pvs.varoptions then
+            paraname:='high('+tparavarsym(procvar.paras[i-1]).realname+')'
+          else if vo_is_hidden_para in pvs.varoptions then
+            begin
+              if ([vo_is_range_check,vo_is_overflow_check]*pvs.varoptions)<>[] then
+                { ok, simple boolean parameters }
+              else
+                internalerror(2011072403);
+            end;
+          { var/out/constref parameters -> pass address through (same for
+            implicit pointer types) }
+          if paramanager.push_addr_param(pvs.varspez,paradef,procvar.proccalloption) or
+             jvmimplicitpointertype(paradef) then
+            begin
+              paraname:='@'+paraname;
+              paradef:=java_jlobject;
+            end;
+          if paradef.typ in [orddef,floatdef] then
+            begin
+              { box primitive types; use valueOf() rather than create because it
+                can give better performance }
+              jvmgetboxtype(paradef,boxdef,boxargdef,false);
+              str:=str+boxdef.typename+'.valueOf('+boxargdef.typename+'('+paraname+'))'
+            end
+          else
+            str:=str+'JLObject('+paraname+')';
+        end;
+      str:=str+'])'+endstr+' end;';
+      str_parse_method_impl(str,pd,false)
+{$endif not jvm}
     end;
 
 
@@ -676,6 +778,8 @@ implementation
               implement_jvm_enum_bitset2set(pd);
             tsk_jvm_enum_set2set:
               implement_jvm_enum_set2set(pd);
+            tsk_jvm_procvar_invoke:
+              implement_jvm_procvar_invoke(pd);
             else
               internalerror(2011032801);
           end;
@@ -747,22 +851,27 @@ implementation
       if assigned(newstruct) then
         begin
           symtablestack.push(pd.parast);
-          for i:=0 to pd.paras.count-1 do
+          { may not be assigned in case we converted a procvar into a procdef }
+          if assigned(pd.paras) then
             begin
-              parasym:=tparavarsym(pd.paras[i]);
-              if vo_is_self in parasym.varoptions then
+              for i:=0 to pd.paras.count-1 do
                 begin
-                  if parasym.vardef.typ=classrefdef then
-                    parasym.vardef:=tclassrefdef.create(newstruct)
-                  else
-                    parasym.vardef:=newstruct;
-                end
+                  parasym:=tparavarsym(pd.paras[i]);
+                  if vo_is_self in parasym.varoptions then
+                    begin
+                      if parasym.vardef.typ=classrefdef then
+                        parasym.vardef:=tclassrefdef.create(newstruct)
+                      else
+                        parasym.vardef:=newstruct;
+                    end
+                end;
             end;
           { also fix returndef in case of a constructor }
           if pd.proctypeoption=potype_constructor then
             pd.returndef:=newstruct;
           symtablestack.pop(pd.parast);
         end;
+      pd.calcparas;
       proc_add_definition(pd);
     end;
 

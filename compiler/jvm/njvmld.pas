@@ -55,7 +55,7 @@ implementation
 uses
   verbose,
   aasmdata,
-  nbas,nld,ncal,ninl,nmem,ncnv,
+  nbas,nld,ncal,ncon,ninl,nmem,ncnv,
   symconst,symsym,symdef,symtable,defutil,jvmdef,
   paramgr,
   pass_1,
@@ -187,6 +187,9 @@ procedure tjvmloadnode.pass_generate_code;
         else
           hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,java_jlobject,java_jlobject,tparavarsym(symtableentry).localloc,location.reference.base);
       end
+    else if symtableentry.typ=procsym then
+      { handled in tjvmcnvnode.first_proc_to_procvar }
+      internalerror(2011072408)
     else
       inherited pass_generate_code;
   end;

@@ -467,14 +467,6 @@ implementation
              end;
            procsym:
               begin
-{$ifdef jvm}
-{$ifndef nounsupported}
-                 location_reset(location,LOC_REGISTER,OS_ADDR);
-                 location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
-                 hlcg.a_load_const_reg(current_asmdata.CurrAsmList,java_jlobject,0,location.register);
-                 exit;
-{$endif nounsupported}
-{$endif jvm}
                  if not assigned(procdef) then
                    internalerror(200312011);
                  if assigned(left) then
@@ -1083,8 +1075,11 @@ implementation
         fillchar(paraloc,sizeof(paraloc),0);
         { Allocate always a temp, also if no elements are required, to
           be sure that location is valid (PFV) }
+        { on the JVM platform, an array can have 0 elements; since the length
+          of the array is part of the array itself, make sure we allocate one
+          of the proper length to avoid getting unexpected results later }
          if tarraydef(resultdef).highrange=-1 then
-           tg.gethltemp(current_asmdata.CurrAsmList,resultdef,elesize,tt_normal,location.reference)
+           tg.gethltemp(current_asmdata.CurrAsmList,resultdef,{$ifdef jvm}0{$else}elesize{$endif},tt_normal,location.reference)
          else
            tg.gethltemp(current_asmdata.CurrAsmList,resultdef,(tarraydef(resultdef).highrange+1)*elesize,tt_normal,location.reference);
          href:=location.reference;

@@ -491,6 +491,9 @@ implementation
           special handling }
         if (left.resultdef.typ=procdef) or
            (
+            { in case of nf_internal, follow the normal FPC semantics so that
+              we can easily get the actual address of a procvar }
+            not(nf_internal in flags) and
             (left.resultdef.typ=procvardef) and
             ((m_tp_procvar in current_settings.modeswitches) or
              (m_mac_procvar in current_settings.modeswitches))

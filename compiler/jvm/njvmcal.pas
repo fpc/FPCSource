@@ -28,7 +28,7 @@ interface
     uses
       cgbase,
       symtype,symdef,
-      ncgcal;
+      node,ncgcal;
 
     type
        tjvmcallparanode = class(tcgcallparanode)
@@ -50,6 +50,9 @@ interface
          procedure set_result_location(realresdef: tstoreddef); override;
          procedure do_release_unused_return_value;override;
          procedure extra_post_call_code; override;
+         function dispatch_procvar: tnode;
+        public
+         function pass_1: tnode; override;
        end;
 
 
@@ -61,7 +64,7 @@ implementation
       cgutils,tgobj,procinfo,
       cpubase,aasmdata,aasmcpu,
       hlcgobj,hlcgcpu,
-      pass_1,node,nutils,nbas,ncnv,ncon,ninl,nld,nmem,
+      pass_1,nutils,nbas,ncnv,ncon,ninl,nld,nmem,
       jvmdef;
 
 {*****************************************************************************
@@ -418,36 +421,11 @@ implementation
         realresdef: tdef;
         ppn: tjvmcallparanode;
         pararef: treference;
-{$ifndef nounsupported}
-        i: longint;
-{$endif}
       begin
         if not assigned(typedef) then
           realresdef:=tstoreddef(resultdef)
         else
           realresdef:=tstoreddef(typedef);
-{$ifndef nounsupported}
-        if assigned(right) then
-          begin
-            for i:=1 to pushedparasize do
-              current_asmdata.CurrAsmList.concat(taicpu.op_none(a_pop));
-            if (tabstractprocdef(procdefinition).proctypeoption<>potype_constructor) and
-               (realresdef<>voidtype) then
-              begin
-                case hlcg.def2regtyp(realresdef) of
-                  R_INTREGISTER,
-                  R_ADDRESSREGISTER:
-                    begin
-                      thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,realresdef,0,hlcg.def2regtyp(realresdef));
-                    end;
-                  R_FPUREGISTER:
-                    thlcgjvm(hlcg).a_loadfpu_const_stack(current_asmdata.CurrAsmList,realresdef,0.0);
-                end;
-                { calling code assumes this result was already put on the stack by the callee }
-                thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,align(realresdef.size,4) shr 2);
-              end;
-          end;
-{$endif}
         { a constructor doesn't actually return a value in the jvm }
         if (tabstractprocdef(procdefinition).proctypeoption=potype_constructor) then
           totalremovesize:=pushedparasize
@@ -502,6 +480,64 @@ implementation
             ppn:=tjvmcallparanode(ppn.right);
           end;
       end;
+
+
+  function tjvmcallnode.dispatch_procvar: tnode;
+    var
+      pdclass: tobjectdef;
+      prevpara, para, nextpara: tcallparanode;
+    begin
+      pdclass:=tprocvardef(right.resultdef).classdef;
+      { convert procvar type into corresponding class }
+      if not tprocvardef(right.resultdef).is_addressonly then
+        begin
+          right:=caddrnode.create_internal(right);
+          include(right.flags,nf_typedaddr);
+        end;
+      right:=ctypeconvnode.create_explicit(right,pdclass);
+      include(right.flags,nf_load_procvar);
+      typecheckpass(right);
+
+      { call the invoke method with these parameters. It will take care of the
+        wrapping and typeconversions; first filter out the automatically added
+        hidden parameters though }
+      prevpara:=nil;
+      para:=tcallparanode(left);
+      while assigned(para) do
+        begin
+          nextpara:=tcallparanode(para.right);
+          if vo_is_hidden_para in para.parasym.varoptions then
+            begin
+              if assigned(prevpara) then
+                prevpara.right:=nextpara
+              else
+                left:=nextpara;
+              para.right:=nil;
+              para.free;
+            end
+          else
+            prevpara:=para;
+          para:=nextpara;
+        end;
+      result:=ccallnode.createinternmethod(right,'INVOKE',left);
+      { reused }
+      left:=nil;
+      right:=nil;
+    end;
+
+
+  function tjvmcallnode.pass_1: tnode;
+    begin
+      { transform procvar calls }
+      if assigned(right) then
+        result:=dispatch_procvar
+      else
+        begin
+          result:=inherited pass_1;
+          if assigned(result) then
+            exit;
+        end;
+    end;
 
 
 begin

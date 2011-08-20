@@ -120,6 +120,8 @@ implementation
 *****************************************************************************}
 
     function tjvmaddrnode.pass_typecheck: tnode;
+      var
+        fsym: tsym;
       begin
         result:=nil;
         typecheckpass(left);
@@ -128,12 +130,73 @@ implementation
 
         make_not_regable(left,[ra_addr_regable,ra_addr_taken]);
 
-        if (left.resultdef.typ=procdef) or
-           (
-            (left.resultdef.typ=procvardef) and
-            ((m_tp_procvar in current_settings.modeswitches) or
-             (m_mac_procvar in current_settings.modeswitches))
-           ) then
+        { in TP/Delphi, @procvar = contents of procvar and @@procvar =
+          address of procvar. In case of a procedure of object, this works
+          by letting the first addrnode typecast the procvar into a tmethod
+          record followed by subscripting its "code" field (= first field),
+          and if there's a second addrnode then it takes the address of
+          this code field (which is hence also the address of the procvar).
+
+          In Java, such ugly hacks don't work -> replace first addrnode
+          with getting procvar.method.code, and second addrnode with
+          the class for procedure of object}
+        if not(nf_internal in flags) and
+           ((m_tp_procvar in current_settings.modeswitches) or
+            (m_mac_procvar in current_settings.modeswitches)) and
+           (((left.nodetype=addrn) and
+             (taddrnode(left).left.resultdef.typ=procvardef)) or
+            (left.resultdef.typ=procvardef)) then
+          begin
+            if (left.nodetype=addrn) and
+               (taddrnode(left).left.resultdef.typ=procvardef) then
+              begin
+                { double address -> pointer that is the address of the
+                  procvardef (don't allow for non-object procvars, as they
+                  aren't implicitpointerdefs) }
+                if not jvmimplicitpointertype(taddrnode(left).left.resultdef) then
+                  CGMessage(parser_e_illegal_expression)
+                else
+                  begin
+                    { an internal address node will observe "normal" address
+                      operator semantics (= take the actual address!) }
+                    result:=caddrnode.create_internal(taddrnode(left).left);
+                    result:=ctypeconvnode.create_explicit(result,tprocvardef(taddrnode(left).left.resultdef).classdef);
+                    taddrnode(left).left:=nil;
+                 end;
+              end
+            else if left.resultdef.typ=procvardef then
+              begin
+                if not tprocvardef(left.resultdef).is_addressonly then
+                  begin
+                    { the "code" field from the procvar }
+                    result:=caddrnode.create_internal(left);
+                    result:=ctypeconvnode.create_explicit(result,tprocvardef(left.resultdef).classdef);
+                    { procvarclass.method }
+                    fsym:=search_struct_member(tprocvardef(left.resultdef).classdef,'METHOD');
+                    if not assigned(fsym) or
+                       (fsym.typ<>fieldvarsym) then
+                      internalerror(2011072501);
+                    result:=csubscriptnode.create(fsym,result);
+                    { procvarclass.method.code }
+                    fsym:=search_struct_member(trecorddef(tfieldvarsym(fsym).vardef),'CODE');
+                    if not assigned(fsym) or
+                       (fsym.typ<>fieldvarsym) then
+                      internalerror(2011072502);
+                    result:=csubscriptnode.create(fsym,result);
+                    left:=nil
+                  end
+                else
+                  { convert contents to plain pointer }
+                  begin
+                    result:=ctypeconvnode.create_explicit(left,java_jlobject);
+                    include(result.flags,nf_load_procvar);
+                    left:=nil;
+                  end;
+              end
+            else
+              internalerror(2011072506);
+          end
+        else if (left.resultdef.typ=procdef) then
           begin
             result:=inherited;
             exit;
@@ -181,14 +244,7 @@ implementation
           end
         else
           begin
-            { procvar }
-{$ifndef nounsupported}
-            location_reset(location,LOC_REGISTER,OS_ADDR);
-            location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
-            hlcg.a_load_const_reg(current_asmdata.CurrAsmList,java_jlobject,0,location.register);
-{$else}
             internalerror(2011051601);
-{$endif}
           end;
       end;
 
@@ -199,7 +255,7 @@ implementation
     procedure tjvmloadvmtaddrnode.pass_generate_code;
       begin
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(
-          tobjectdef(tclassrefdef(resultdef).pointeddef).jvm_full_typename(true))));
+          tabstractrecorddef(tclassrefdef(resultdef).pointeddef).jvm_full_typename(true))));
         thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
         location_reset(location,LOC_REGISTER,OS_ADDR);
         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);

@@ -131,15 +131,12 @@ type
 {$i jrech.inc}
 {$i jseth.inc}
 {$i sstringh.inc}
+{$i jpvarh.inc}
 {$i jdynarrh.inc}
 {$i astringh.inc}
 
-{$ifndef nounsupported}
-type
-  tmethod = record
-    code: jlobject;
-  end;
 
+{$ifndef nounsupported}
 const
    vtInteger       = 0;
    vtBoolean       = 1;
@@ -290,6 +287,7 @@ function min(a,b : longint) : longint;
 {$i jrec.inc}
 {$i jset.inc}
 {$i jint64.inc}
+{$i jpvar.inc}
 
 { copying helpers }
 
@@ -384,6 +382,27 @@ procedure fpc_copy_jbitset_array(src, dst: TJBitSetArray; srcstart: jint = -1; s
   end;
 
 
+procedure fpc_copy_jprocvar_array(src, dst: TJProcVarArray; srcstart: jint = -1; srccopylen: jint = -1);
+  var
+    i: longint;
+    srclen, dstlen: jint;
+  begin
+    srclen:=length(src);
+    dstlen:=length(dst);
+    if srcstart=-1 then
+      srcstart:=0
+    else if srcstart>=srclen then
+      exit;
+    if srccopylen=-1 then
+      srccopylen:=srclen
+    else if srcstart+srccopylen>srclen then
+      srccopylen:=srclen-srcstart;
+    { no arraycopy, have to clone each element }
+    for i:=0 to min(srccopylen,dstlen)-1 do
+      dst[i]:=FpcBaseProcVarType(src[srcstart+i].clone);
+  end;
+
+
 procedure fpc_copy_jshortstring_array(src, dst: TShortstringArray; srcstart: jint = -1; srccopylen: jint = -1);
   var
     i: longint;
@@ -475,6 +494,18 @@ function fpc_setlength_dynarr_jbitset(aorg, anew: TJBitSetArray; deepcopy: boole
   end;
 
 
+function fpc_setlength_dynarr_jprocvar(aorg, anew: TJProcVarArray; deepcopy: boolean): TJProcVarArray;
+  begin
+    if deepcopy or
+       (length(aorg)<>length(anew)) then
+      begin
+        fpc_copy_jprocvar_array(aorg,anew);
+        result:=anew
+      end
+    else
+      result:=aorg;
+  end;
+
 
 function fpc_setlength_dynarr_jshortstring(aorg, anew: TShortstringArray; deepcopy: boolean): TShortstringArray;
   begin
@@ -536,6 +567,13 @@ function fpc_setlength_dynarr_multidim(aorg, anew: TJObjectArray; deepcopy: bool
               for i:=succ(partdone) to high(result) do
                 result[i]:=JLObject(fpc_setlength_dynarr_jbitset(nil,TJBitSetArray(anew[i]),deepcopy));
             end;
+          FPCJDynArrTypeProcVar:
+            begin
+              for i:=low(result) to partdone do
+                result[i]:=JLObject(fpc_setlength_dynarr_jprocvar(TJProcVarArray(aorg[i]),TJProcVarArray(anew[i]),deepcopy));
+              for i:=succ(partdone) to high(result) do
+                result[i]:=JLObject(fpc_setlength_dynarr_jprocvar(nil,TJProcVarArray(anew[i]),deepcopy));
+            end;
           FPCJDynArrTypeShortstring:
             begin
               for i:=low(result) to partdone do
@@ -592,6 +630,8 @@ function fpc_dynarray_copy(src: JLObject; start, len: longint; ndim: longint; el
             fpc_copy_jenumset_array(TJEnumSetArray(src),TJEnumSetArray(result),start,len);
           FPCJDynArrTypeBitSet:
             fpc_copy_jbitset_array(TJBitSetArray(src),TJBitSetArray(result),start,len);
+          FPCJDynArrTypeProcvar:
+            fpc_copy_jprocvar_array(TJProcVarArray(src),TJProcVarArray(result),start,len);
           FPCJDynArrTypeShortstring:
             fpc_copy_jshortstring_array(TShortstringArray(src),TShortstringArray(result),start,len);
           else

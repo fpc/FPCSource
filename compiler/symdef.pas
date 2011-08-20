@@ -427,6 +427,10 @@ interface
        tprocnameoption = (pno_showhidden, pno_proctypeoption, pno_paranames,
          pno_ownername, pno_noclassmarker, pno_noleadingdollar);
        tprocnameoptions = set of tprocnameoption;
+       tproccopytyp = (pc_normal,
+                       { always creates a top-level function, removes all
+                         special parameters (self, vmt, parentfp, ...) }
+                       pc_procvar2bareproc);
 
        tabstractprocdef = class(tstoreddef)
           { saves a definition to the return type }
@@ -458,6 +462,8 @@ interface
           function  is_methodpointer:boolean;virtual;
           function  is_addressonly:boolean;virtual;
           function  no_self_node:boolean;
+          { get either a copy as a procdef or procvardef }
+          function  getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp): tstoreddef;
           procedure check_mark_as_nested;
           procedure init_paraloc_info(side: tcallercallee);
           function stack_tainting_parameter(side: tcallercallee): boolean;
@@ -467,10 +473,19 @@ interface
        end;
 
        tprocvardef = class(tabstractprocdef)
+{$ifdef jvm}
+          { class representing this procvar on the Java side }
+          classdef  : tobjectdef;
+          classdefderef : tderef;
+{$endif}
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+{$ifdef jvm}
+          procedure buildderef;override;
+          procedure deref;override;
+{$endif}
           function  GetSymtable(t:tGetSymtable):TSymtable;override;
           function  size : asizeint;override;
           function  GetTypeName:string;override;
@@ -511,7 +526,8 @@ interface
          tsk_jvm_enum_fpcvalueof,   // Java FPCValueOf function that returns the enum instance corresponding to an ordinal from an FPC POV
          tsk_jvm_enum_long2set,     // Java fpcLongToEnumSet function that returns an enumset corresponding to a bit pattern in a jlong
          tsk_jvm_enum_bitset2set,   // Java fpcBitSetToEnumSet function that returns an enumset corresponding to a BitSet
-         tsk_jvm_enum_set2Set       // Java fpcEnumSetToEnumSet function that returns an enumset corresponding to another enumset (different enum kind)
+         tsk_jvm_enum_set2Set,      // Java fpcEnumSetToEnumSet function that returns an enumset corresponding to another enumset (different enum kind)
+         tsk_jvm_procvar_invoke     // Java invoke method that calls a wrapped procvar
        );
 
 {$ifdef oldregvars}
@@ -853,6 +869,8 @@ interface
        java_ansistring           : tobjectdef;
        { FPC java implementation of shortstrings }
        java_shortstring          : tobjectdef;
+       { FPC java procvar base class }
+       java_procvarbase          : tobjectdef;
 
     const
 {$ifdef i386}
@@ -3663,6 +3681,81 @@ implementation
       end;
 
 
+    function tabstractprocdef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp): tstoreddef;
+      var
+        j, nestinglevel: longint;
+        pvs, npvs: tparavarsym;
+        csym, ncsym: tconstsym;
+      begin
+        nestinglevel:=parast.symtablelevel;
+        if newtyp=procdef then
+          begin
+            if (typ=procdef) or
+               (copytyp<>pc_procvar2bareproc) then
+              result:=tprocdef.create(nestinglevel)
+            else
+              result:=tprocdef.create(normal_function_level);
+            tprocdef(result).visibility:=vis_public;
+          end
+        else
+          begin
+            result:=tprocvardef.create(nestinglevel);
+          end;
+        tabstractprocdef(result).returndef:=returndef;
+        tabstractprocdef(result).returndefderef:=returndefderef;
+        tabstractprocdef(result).parast:=tparasymtable.create(tabstractprocdef(result),parast.symtablelevel);
+        pvs:=nil;
+        npvs:=nil;
+        for j:=0 to parast.symlist.count-1 do
+          begin
+            case tsym(parast.symlist[j]).typ of
+              paravarsym:
+                begin
+                  pvs:=tparavarsym(parast.symlist[j]);
+                  { in case of bare proc, don't copy self, vmt or framepointer
+                    parameters }
+                  if (copytyp=pc_procvar2bareproc) and
+                     (([vo_is_self,vo_is_vmt,vo_is_parentfp,vo_is_result]*pvs.varoptions)<>[]) then
+                    continue;
+                  npvs:=tparavarsym.create(pvs.realname,pvs.paranr,pvs.varspez,
+                    pvs.vardef,pvs.varoptions);
+                  npvs.defaultconstsym:=pvs.defaultconstsym;
+                  tabstractprocdef(result).parast.insert(npvs);
+                end;
+              constsym:
+                begin
+                  // ignore, reuse original constym. Should also be duplicated
+                  // be safe though
+                end
+              else
+                internalerror(201160604);
+              end;
+          end;
+        tabstractprocdef(result).savesize:=savesize;
+
+        tabstractprocdef(result).proctypeoption:=proctypeoption;
+        tabstractprocdef(result).proccalloption:=proccalloption;
+        tabstractprocdef(result).procoptions:=procoptions;
+        if (copytyp=pc_procvar2bareproc) then
+          tabstractprocdef(result).procoptions:=tabstractprocdef(result).procoptions*[po_explicitparaloc,po_hascallingconvention,po_varargs,po_iocheck];
+        tabstractprocdef(result).callerargareasize:=callerargareasize;
+        tabstractprocdef(result).calleeargareasize:=calleeargareasize;
+        tabstractprocdef(result).maxparacount:=maxparacount;
+        tabstractprocdef(result).minparacount:=minparacount;
+        if po_explicitparaloc in procoptions then
+          tabstractprocdef(result).funcretloc[callerside]:=funcretloc[callerside].getcopy;
+        { recalculate parameter info }
+        tabstractprocdef(result).has_paraloc_info:=callnoside;
+{$ifdef m68k}
+        tabstractprocdef(result).exp_funcretloc:=exp_funcretloc;
+{$endif}
+        if (typ=procdef) and
+           (newtyp=procvardef) and
+           (owner.symtabletype=ObjectSymtable) then
+          include(tprocvardef(result).procoptions,po_methodpointer);
+      end;
+
+
     procedure tabstractprocdef.check_mark_as_nested;
       begin
          { nested procvars require that nested functions use the Delphi-style
@@ -4143,42 +4236,10 @@ implementation
         j : longint;
         pvs : tparavarsym;
       begin
-        result:=tprocdef.create(parast.symtablelevel);
-        tprocdef(result).dispid:=dispid;
-        tprocdef(result).returndef:=returndef;
-        tprocdef(result).returndefderef:=returndefderef;
-        tprocdef(result).parast:=tparasymtable.create(tprocdef(result),parast.symtablelevel);
-        for j:=0 to parast.symlist.count-1 do
-          begin
-            case tsym(parast.symlist[j]).typ of
-              paravarsym:
-                begin
-                  pvs:=tparavarsym(parast.symlist[j]);
-                  tprocdef(result).parast.insert(tparavarsym.create(
-                    pvs.realname,pvs.paranr,pvs.varspez,pvs.vardef,pvs.varoptions));
-                end;
-              else
-                internalerror(201160604);
-              end;
-          end;
-        tprocdef(result).savesize:=savesize;
-
-        tprocdef(result).proctypeoption:=proctypeoption;
-        tprocdef(result).proccalloption:=proccalloption;
-        tprocdef(result).procoptions:=procoptions;
-        tprocdef(result).callerargareasize:=callerargareasize;
-        tprocdef(result).calleeargareasize:=calleeargareasize;
-        tprocdef(result).maxparacount:=maxparacount;
-        tprocdef(result).minparacount:=minparacount;
-        if po_explicitparaloc in procoptions then
-          tprocdef(result).funcretloc[callerside]:=funcretloc[callerside].getcopy;
-        { recalculate parameter info }
-        tprocdef(result).has_paraloc_info:=callnoside;
-{$ifdef m68k}
-        tprocdef(result).exp_funcretloc:=exp_funcretloc;
-{$endif}
+        result:=inherited getcopyas(procdef,pc_normal);
         { don't copy mangled name, can be different }
         tprocdef(result).messageinf:=messageinf;
+        tprocdef(result).dispid:=dispid;
         if po_msgstr in procoptions then
           tprocdef(result).messageinf.str:=stringdup(messageinf.str^);
         tprocdef(result).symoptions:=symoptions;
@@ -4741,6 +4802,9 @@ implementation
          inherited ppuload(procvardef,ppufile);
          { load para symtable }
          parast:=tparasymtable.create(self,ppufile.getbyte);
+{$ifdef jvm}
+        ppufile.getderef(classdefderef);
+{$endif}
          tparasymtable(parast).ppuload(ppufile);
       end;
 
@@ -4775,6 +4839,9 @@ implementation
 {$ifdef m68k}
         tprocvardef(result).exp_funcretloc:=exp_funcretloc;
 {$endif}
+{$ifdef jvm}
+        tprocvardef(result).classdef:=classdef;
+{$endif}
       end;
 
 
@@ -4786,12 +4853,29 @@ implementation
           procvars) }
         ppufile.putbyte(parast.symtablelevel);
 
+{$ifdef jvm}
+        ppufile.putderef(classdefderef);
+{$endif}
         { Write this entry }
         ppufile.writeentry(ibprocvardef);
 
         { Save the para symtable, this is taken from the interface }
         tparasymtable(parast).ppuwrite(ppufile);
       end;
+
+{$ifdef jvm}
+    procedure tprocvardef.buildderef;
+      begin
+        inherited buildderef;
+        classdefderef.build(classdef);
+      end;
+
+    procedure tprocvardef.deref;
+      begin
+        inherited deref;
+        classdef:=tobjectdef(classdefderef.resolve);
+      end;
+{$endif}
 
 
     function tprocvardef.GetSymtable(t:tGetSymtable):TSymtable;
@@ -5014,6 +5098,8 @@ implementation
                java_juenumset:=self
              else if (objname^='FPCBITSET') then
                java_jubitset:=self
+             else if (objname^='FPCBASEPROCVARTYPE') then
+               java_procvarbase:=self;
            end;
          writing_class_record_dbginfo:=false;
        end;

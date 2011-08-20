@@ -87,6 +87,25 @@ procedure fpc_initialize_array_record(arr: TJObjectArray; normalarrdim: longint;
   end;
 
 
+procedure fpc_initialize_array_procvar_intern(arr: TJObjectArray; normalarrdim: longint; inst: FpcBaseProcVarType); external name 'fpc_initialize_array_procvar';
+
+procedure fpc_initialize_array_procvar(arr: TJObjectArray; normalarrdim: longint; inst: FpcBaseProcVarType);compilerproc;
+  var
+    i: longint;
+  begin
+    if normalarrdim > 0 then
+      begin
+        for i:=low(arr) to high(arr) do
+          fpc_initialize_array_procvar_intern(TJObjectArray(arr[i]),normalarrdim-1,inst);
+      end
+    else
+      begin
+        for i:=low(arr) to high(arr) do
+          arr[i]:=inst.clone;
+      end;
+  end;
+
+
 { exactly the same as fpc_initialize_array_record, but can't use generic
   routine because of Java clonable design :( (except by rtti/invoke, but that's
   not particularly fast either) }

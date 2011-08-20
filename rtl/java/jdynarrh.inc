@@ -27,6 +27,7 @@ type
   TJRecordArray = array of FpcBaseRecordType;
   TJEnumSetArray = array of JUEnumSet;
   TJBitSetArray = array of JUBitSet;
+  TJProcVarArray = array of FpcBaseProcVarType;
   TShortstringArray = array of ShortstringClass;
   TJStringArray = array of unicodestring;
 
@@ -42,6 +43,7 @@ const
   FPCJDynArrTypeRecord  = 'R';
   FPCJDynArrTypeEnumSet = 'E';
   FPCJDynArrTypeBitSet  = 'L';
+  FPCJDynArrTypeProcVar = 'P';
   FPCJDynArrTypeShortstring  = 'T';
 
 { 1-dimensional setlength routines
@@ -60,6 +62,7 @@ procedure fpc_copy_shallow_array(src, dst: JLObject; srcstart: jint = -1; srccop
 procedure fpc_copy_jrecord_array(src, dst: TJRecordArray; srcstart: jint = -1; srccopylen: jint = -1);
 procedure fpc_copy_jenumset_array(src, dst: TJEnumSetArray; srcstart: jint = -1; srccopylen: jint = -1);
 procedure fpc_copy_jbitset_array(src, dst: TJBitSetArray; srcstart: jint = -1; srccopylen: jint = -1);
+procedure fpc_copy_jprocvar_array(src, dst: TJProcVarArray; srcstart: jint = -1; srccopylen: jint = -1);
 procedure fpc_copy_jshortstring_array(src, dst: TShortstringArray; srcstart: jint = -1; srccopylen: jint = -1);
 
 { multi-dimendional setlength routine: all intermediate dimensions are arrays

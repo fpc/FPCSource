@@ -33,9 +33,12 @@ interface
           function typecheck_dynarray_to_openarray: tnode; override;
           function typecheck_string_to_chararray: tnode; override;
           function typecheck_char_to_string: tnode; override;
+          function typecheck_proc_to_procvar: tnode; override;
           function pass_1: tnode; override;
           function simplify(forinline: boolean): tnode; override;
           function first_set_to_set : tnode;override;
+          function first_nil_to_methodprocvar: tnode; override;
+          function first_proc_to_procvar: tnode; override;
 
           procedure second_int_to_int;override;
          { procedure second_string_to_string;override; }
@@ -49,7 +52,7 @@ interface
           procedure second_int_to_real;override;
          { procedure second_real_to_real;override; }
          { procedure second_cord_to_pointer;override; }
-         { procedure second_proc_to_procvar;override; }
+          procedure second_proc_to_procvar;override;
           procedure second_bool_to_int;override;
           procedure second_int_to_bool;override;
          { procedure second_load_smallset;override;  }
@@ -90,11 +93,11 @@ implementation
 
    uses
       verbose,globals,globtype,constexp,
-      symconst,symdef,symsym,symtable,aasmbase,aasmdata,
+      symbase,symconst,symdef,symsym,symtable,aasmbase,aasmdata,
       defutil,defcmp,jvmdef,
       cgbase,cgutils,pass_1,pass_2,
       nbas,ncon,ncal,ninl,nld,nmem,procinfo,
-      nutils,
+      nutils,paramgr,
       cpubase,aasmcpu,
       tgobj,hlcgobj,hlcgcpu;
 
@@ -113,18 +116,25 @@ implementation
           result:=false;
           if def1.typ<>procvardef then
             exit;
+          { is_addressonly procvars are treated like regular pointer-sized data,
+            po_methodpointer procvars like implicit pointers to a struct }
           if tprocvardef(def1).is_addressonly then
             result:=
+              ((def2.typ=procvardef) and
+               tprocvardef(def2).is_addressonly) or
               (def2=java_jlobject) or
               (def2=voidpointertype)
-          else
+          else if po_methodpointer in tprocvardef(def1).procoptions then
             begin
               if not assigned(tmethoddef) then
                 tmethoddef:=search_system_type('TMETHOD').typedef;
               result:=
                 (def2=methodpointertype) or
-                (def2=tmethoddef);
+                (def2=tmethoddef) or
+                ((def2.typ=procvardef) and
+                 (po_methodpointer in tprocvardef(def2).procoptions));
             end;
+          { can't typecast nested procvars, they need 3 data pointers }
         end;
 
       begin
@@ -183,6 +193,26 @@ implementation
           exit;
         end;
       result:=inherited;
+    end;
+
+
+   function tjvmtypeconvnode.typecheck_proc_to_procvar: tnode;
+    begin
+      result:=inherited typecheck_proc_to_procvar;
+      if not assigned(totypedef) then
+        begin
+          if assigned(tprocvardef(resultdef).classdef) then
+            internalerror(2011072405);
+          { associate generic classdef; this is the result of an @proc
+            expression, and such expressions can never result in a direct call
+            -> no invoke() method required (which only exists in custom
+            constructed descendents created for defined procvar types) }
+          if is_nested_pd(tabstractprocdef(resultdef)) then
+            { todo }
+            internalerror(2011072406)
+          else
+            tprocvardef(resultdef).classdef:=java_procvarbase;
+        end;
     end;
 
 
@@ -292,6 +322,127 @@ implementation
             left:=nil;
           end;
 
+      end;
+
+
+    function tjvmtypeconvnode.first_nil_to_methodprocvar: tnode;
+      begin
+        result:=inherited first_nil_to_methodprocvar;
+        if assigned(result) then
+          exit;
+        if not assigned(tprocvardef(resultdef).classdef) then
+          tprocvardef(resultdef).classdef:=java_procvarbase;
+        result:=ccallnode.createinternmethod(
+          cloadvmtaddrnode.create(ctypenode.create(tprocvardef(resultdef).classdef)),'CREATE',nil);
+        { method pointer is an implicit pointer type }
+        result:=ctypeconvnode.create_explicit(result,getpointerdef(resultdef));
+        result:=cderefnode.create(result);
+      end;
+
+
+    function tjvmtypeconvnode.first_proc_to_procvar: tnode;
+      var
+        constrparas: tcallparanode;
+        newpara: tnode;
+        procdefparas: tarrayconstructornode;
+        pvs: tparavarsym;
+        fvs: tsym;
+        i: longint;
+        corrclass: tdef;
+        jlclass: tobjectdef;
+        encodedtype: tsymstr;
+        procload: tnode;
+        procdef: tprocdef;
+        st: tsymtable;
+        pushaddr: boolean;
+      begin
+        result:=inherited first_proc_to_procvar;
+        if assigned(result) then
+          exit;
+        procdef:=tloadnode(left).procdef;
+        procload:=tloadnode(left).left;
+        if not assigned(procload) then
+          begin
+            { nested or regular routine -> figure out whether unit-level or
+              nested, and if nested whether it's nested in a method or in a
+              regular routine }
+            st:=procdef.owner;
+            while st.symtabletype=localsymtable do
+              st:=st.defowner.owner;
+            if st.symtabletype in [objectsymtable,recordsymtable] then
+              { nested routine in method -> part of encloding class }
+              procload:=cloadvmtaddrnode.create(ctypenode.create(tdef(st.defowner)))
+            else
+              begin
+                { regular procedure/function -> get type representing unit
+                  class }
+                while not(st.symtabletype in [staticsymtable,globalsymtable]) do
+                  st:=st.defowner.owner;
+                corrclass:=search_named_unit_globaltype(st.realname^,'__FPC_JVM_MODULE_CLASS_ALIAS$',true).typedef;
+                procload:=cloadvmtaddrnode.create(ctypenode.create(tdef(corrclass)));
+              end;
+          end;
+        { todo: support nested procvars }
+        if is_nested_pd(procdef) then
+          internalerror(2011072607);
+        { constructor FpcBaseProcVarType.create(inst: jlobject; const method: unicodestring; const argTypes: array of JLClass); }
+        constrparas:=ccallparanode.create(ctypeconvnode.create_explicit(procload,java_jlobject),nil);
+        constrparas:=ccallparanode.create(cstringconstnode.createstr(procdef.procsym.realname),constrparas);
+        procdefparas:=nil;
+        jlclass:=tobjectdef(search_system_type('JLCLASS').typedef);
+        { in reverse to make it easier to build the arrayconstructorn }
+        for i:=procdef.paras.count-1 downto 0 do
+          begin
+            pvs:=tparavarsym(procdef.paras[i]);
+            { self is deal with via the "inst" parameter }
+            if vo_is_self in pvs.varoptions then
+              continue;
+            { in case of an arraydef, pass by jlclass.forName() to get the classdef
+              (could be optimized by adding support to loadvmtaddrnode to also deal
+               with arrays, although we'd have to create specific arraydefs for var/
+               out/constref parameters }
+             pushaddr:=paramanager.push_copyout_param(pvs.varspez,pvs.vardef,procdef.proccalloption);
+             if pushaddr or
+                (pvs.vardef.typ=arraydef) then
+               begin
+                 encodedtype:=jvmencodetype(pvs.vardef,false);
+                 if pushaddr then
+                   encodedtype:='['+encodedtype;
+                 newpara:=ccallnode.createinternmethod(cloadvmtaddrnode.create(ctypenode.create(jlclass)),'FORNAME',
+                   ccallparanode.create(cstringconstnode.createstr(encodedtype),nil));
+               end
+             else
+               begin
+                 corrclass:=jvmgetcorrespondingclassdef(pvs.vardef);
+                 if pvs.vardef.typ in [orddef,floatdef] then
+                   begin
+                     { get the class representing the primitive type }
+                     fvs:=search_struct_member(tobjectdef(corrclass),'FTYPE');
+                     if not assigned(fvs) or
+                        (fvs.typ<>staticvarsym) then
+                       internalerror(2011072417);
+                     newpara:=cloadnode.create(fvs,fvs.owner);
+                   end
+                 else
+                   newpara:=cloadvmtaddrnode.create(ctypenode.create(corrclass));
+                 newpara:=ctypeconvnode.create_explicit(newpara,jlclass);
+               end;
+            procdefparas:=carrayconstructornode.create(newpara,procdefparas);
+          end;
+        if not assigned(procdefparas) then
+          procdefparas:=carrayconstructornode.create(nil,nil);
+        constrparas:=ccallparanode.create(procdefparas,constrparas);
+        result:=ccallnode.createinternmethod(cloadvmtaddrnode.create(ctypenode.create(tprocvardef(resultdef).classdef)),'CREATE',constrparas);
+        { typecast to the procvar type }
+        if tprocvardef(resultdef).is_addressonly then
+          result:=ctypeconvnode.create_explicit(result,resultdef)
+        else
+          begin
+            result:=ctypeconvnode.create_explicit(result,getpointerdef(resultdef));
+            result:=cderefnode.create(result)
+          end;
+        { reused }
+        tloadnode(left).left:=nil;
       end;
 
 
@@ -430,6 +581,12 @@ implementation
             hlcg.a_label(current_asmdata.CurrAsmList,l1);
           end;
         thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+      end;
+
+
+    procedure tjvmtypeconvnode.second_proc_to_procvar;
+      begin
+        internalerror(2011072506);
       end;
 
 
@@ -714,6 +871,61 @@ implementation
             end;
         end;
 
+      function procvar_to_procvar(fromdef, todef: tdef): tnode;
+        var
+          fsym: tsym;
+        begin
+          result:=nil;
+          if fromdef=todef then
+            exit;
+          fsym:=tfieldvarsym(search_struct_member(tprocvardef(fromdef).classdef,'METHOD'));
+          if not assigned(fsym) or
+             (fsym.typ<>fieldvarsym) then
+            internalerror(2011072414);
+          { can either be a procvar or a procvarclass }
+          if fromdef.typ=procvardef then
+            begin
+              left:=ctypeconvnode.create_explicit(left,tprocvardef(fromdef).classdef);
+              include(left.flags,nf_load_procvar);
+              typecheckpass(left);
+            end;
+          result:=csubscriptnode.create(fsym,left);
+          { create destination procvartype with info from source }
+          result:=ccallnode.createinternmethod(
+            cloadvmtaddrnode.create(ctypenode.create(tprocvardef(todef).classdef)),
+            'CREATE',ccallparanode.create(result,nil));
+          left:=nil;
+        end;
+
+      function procvar_to_tmethod(fromdef, todef: tdef): tnode;
+        var
+          fsym: tsym;
+        begin
+          { must be procedure-of-object -> implicit pointer type -> get address
+            before typecasting to corresponding classdef }
+          left:=caddrnode.create_internal(left);
+          inserttypeconv_explicit(left,tprocvardef(fromdef).classdef);
+          fsym:=tfieldvarsym(search_struct_member(tprocvardef(fromdef).classdef,'METHOD'));
+          if not assigned(fsym) or
+             (fsym.typ<>fieldvarsym) then
+            internalerror(2011072414);
+          result:=csubscriptnode.create(fsym,left);
+          left:=nil;
+        end;
+
+      function tmethod_to_procvar(fromdef, todef: tdef): tnode;
+        var
+          fsym: tsym;
+        begin
+          fsym:=tfieldvarsym(search_struct_member(tprocvardef(todef).classdef,'METHOD'));
+          if not assigned(fsym) or
+             (fsym.typ<>fieldvarsym) then
+            internalerror(2011072415);
+          result:=ccallnode.createinternmethod(cloadvmtaddrnode.create(ctypenode.create(tprocvardef(todef).classdef)),
+            'CREATE',ccallparanode.create(left,nil));
+          left:=nil;
+        end;
+
       function ptr_no_typecheck_required(fromdef, todef: tdef): boolean;
 
         function check_type_equality(def1,def2: tdef): boolean;
@@ -762,6 +974,11 @@ implementation
 
         begin
           result:=true;
+          { check procvar conversion compatibility via their classes }
+          if fromdef.typ=procvardef then
+            fromdef:=tprocvardef(fromdef).classdef;
+          if todef.typ=procvardef then
+            todef:=tprocvardef(todef).classdef;
           if (todef=java_jlobject) or
              (todef=voidpointertype) then
             exit;
@@ -809,8 +1026,7 @@ implementation
 
       var
         fromclasscompatible,
-        toclasscompatible,
-        procvarconv: boolean;
+        toclasscompatible: boolean;
         fromdef,
         todef: tdef;
         fromarrtype,
@@ -832,7 +1048,6 @@ implementation
 
         { don't allow conversions between object-based and non-object-based
           types }
-        procvarconv:=isvalidprocvartypeconv(left.resultdef,resultdef);
         fromclasscompatible:=
           (left.resultdef.typ=formaldef) or
           (left.resultdef.typ=pointerdef) or
@@ -841,7 +1056,10 @@ implementation
           ((left.resultdef.typ in [stringdef,classrefdef]) and
            not is_shortstring(left.resultdef)) or
           (left.resultdef.typ=enumdef) or
-          procvarconv;
+          { procvar2procvar needs special handling }
+          ((left.resultdef.typ=procvardef) and
+           tprocvardef(left.resultdef).is_addressonly and
+           (resultdef.typ<>procvardef));
         toclasscompatible:=
           (resultdef.typ=pointerdef) or
           is_java_class_or_interface(resultdef) or
@@ -849,7 +1067,8 @@ implementation
           ((resultdef.typ in [stringdef,classrefdef]) and
            not is_shortstring(resultdef)) or
           (resultdef.typ=enumdef) or
-          procvarconv;
+          ((resultdef.typ=procvardef) and
+           tprocvardef(resultdef).is_addressonly);
         { typescasts from void (the result of untyped_ptr^) to an implicit
           pointertype (record, array, ...) also needs a typecheck }
         if is_void(left.resultdef) and
@@ -884,7 +1103,7 @@ implementation
             toarrtype:=jvmarrtype_setlength(todef);
             if not ptr_no_typecheck_required(fromdef,todef) then
               begin
-                if (fromarrtype in ['A','R','T','E','L']) or
+                if (fromarrtype in ['A','R','T','E','L','P']) or
                    (fromarrtype<>toarrtype) then
                   begin
                     if not check_only and
@@ -939,6 +1158,23 @@ implementation
                 exit;
               end;
             result:=false;
+            exit;
+          end;
+
+        { procvar to tmethod and vice versa, and procvar to procvar }
+        if isvalidprocvartypeconv(left.resultdef,resultdef) then
+          begin
+            if not check_only then
+              begin
+                if (left.resultdef.typ=procvardef) and
+                   (resultdef.typ=procvardef) then
+                  resnode:=procvar_to_procvar(left.resultdef,resultdef)
+                else if left.resultdef.typ=procvardef then
+                  resnode:=procvar_to_tmethod(left.resultdef,resultdef)
+                else
+                  resnode:=tmethod_to_procvar(left.resultdef,resultdef);
+              end;
+            result:=true;
             exit;
           end;
 
@@ -1102,20 +1338,6 @@ implementation
            (left.resultdef.typ=enumdef) and
            (resultdef.typ=objectdef) then
           firstpass(left);
-{$ifndef nounsupported}
-        { generated in nmem; replace voidpointertype with java_jlobject }
-        if nf_load_procvar in flags then
-          begin
-            self.totypedef:=java_jlobject;
-            resultdef:=java_jlobject;
-          end;
-        if isvalidprocvartypeconv(left.resultdef,resultdef) then
-          begin
-            convtype:=tc_equal;
-            result:=true;
-            exit;
-          end;
-{$endif}
       end;
 
 
@@ -1234,13 +1456,10 @@ implementation
             checkdef:=java_juenumset
           else
             checkdef:=java_jubitset;
-        end;
-{$ifndef nounsupported}
-      if checkdef.typ=procvardef then
-        checkdef:=java_jlobject
-      else
-{$endif}
-      if is_wide_or_unicode_string(checkdef) then
+        end
+      else if checkdef.typ=procvardef then
+        checkdef:=tprocvardef(checkdef).classdef
+      else if is_wide_or_unicode_string(checkdef) then
         checkdef:=java_jlstring
       else if is_ansistring(checkdef) then
         checkdef:=java_ansistring

@@ -40,6 +40,7 @@ interface
     procedure add_java_default_record_methods_intf(def: trecorddef);
 
     procedure jvm_maybe_create_enum_class(const name: TIDString; def: tdef);
+    procedure jvm_create_procvar_class(const name: TIDString; def: tdef);
 
     function jvm_add_typed_const_initializer(csym: tconstsym): tstaticvarsym;
 
@@ -53,7 +54,7 @@ implementation
     verbose,systems,
     fmodule,
     parabase,aasmdata,
-    pdecsub,ngenutil,
+    pdecsub,ngenutil,pparautl,
     symtable,symcreat,defcmp,jvmdef,
     defutil,paramgr;
 
@@ -208,6 +209,36 @@ implementation
       end;
 
 
+    procedure setup_for_new_class(const scannername: string; out sstate: tscannerstate; out islocal: boolean; out oldsymtablestack: TSymtablestack);
+      begin
+        replace_scanner(scannername,sstate);
+        oldsymtablestack:=symtablestack;
+        islocal:=symtablestack.top.symtablelevel>=normal_function_level;
+        if islocal then
+          begin
+            { we cannot add a class local to a procedure -> insert it in the
+              static symtable. This is not ideal because this means that it will
+              be saved to the ppu file for no good reason, and loaded again
+              even though it contains a reference to a type that was never
+              saved to the ppu file (the locally defined enum type). Since this
+              alias for the locally defined enumtype is only used while
+              implementing the class' methods, this is however no problem. }
+            symtablestack:=symtablestack.getcopyuntil(current_module.localsymtable);
+          end;
+      end;
+
+
+    procedure restore_after_new_class(const sstate: tscannerstate; const islocal: boolean; const oldsymtablestack: TSymtablestack);
+      begin
+        if islocal then
+          begin
+            symtablestack.free;
+            symtablestack:=oldsymtablestack;
+          end;
+        restore_scanner(sstate);
+      end;
+
+
     procedure jvm_maybe_create_enum_class(const name: TIDString; def: tdef);
       var
         arrdef: tarraydef;
@@ -228,20 +259,8 @@ implementation
         { if it's a subrange type, don't create a new class }
         if assigned(tenumdef(def).basedef) then
           exit;
-        replace_scanner('jvm_enum_class',sstate);
-        oldsymtablestack:=symtablestack;
-        islocal:=symtablestack.top.symtablelevel>=normal_function_level;
-        if islocal then
-          begin
-            { we cannot add a class local to a procedure -> insert it in the
-              static symtable. This is not ideal because this means that it will
-              be saved to the ppu file for no good reason, and loaded again
-              even though it contains a reference to a type that was never
-              saved to the ppu file (the locally defined enum type). Since this
-              alias for the locally defined enumtype is only used while
-              implementing the class' methods, this is however no problem. }
-            symtablestack:=symtablestack.getcopyuntil(current_module.localsymtable);
-          end;
+
+        setup_for_new_class('jvm_enum_class',sstate,islocal,oldsymtablestack);
 
         { create new class (different internal name than enum to prevent name
           clash; at unit level because we don't want its methods to be nested
@@ -396,13 +415,65 @@ implementation
         pd.synthetickind:=tsk_jvm_enum_classconstr;
 
         symtablestack.pop(enumclass.symtable);
-        if islocal then
-          begin
-            symtablestack.free;
-            symtablestack:=oldsymtablestack;
-          end;
+        restore_after_new_class(sstate,islocal,oldsymtablestack);
         current_structdef:=old_current_structdef;
-        restore_scanner(sstate);
+      end;
+
+
+    procedure jvm_create_procvar_class(const name: TIDString; def: tdef);
+      var
+        oldsymtablestack: tsymtablestack;
+        pvclass: tobjectdef;
+        temptypesym: ttypesym;
+        sstate: tscannerstate;
+        methoddef: tprocdef;
+        islocal: boolean;
+      begin
+        { inlined definition of procvar -> generate name, derive from
+          FpcBaseNestedProcVarType, pass nestedfpstruct to constructor and
+          copy it }
+        if name='' then
+          internalerror(2011071901);
+
+        setup_for_new_class('jvm_pvar_class',sstate,islocal,oldsymtablestack);
+
+        { create new class (different internal name than pvar to prevent name
+          clash; at unit level because we don't want its methods to be nested
+          inside a function in case its a local type) }
+        pvclass:=tobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternProcvar$'+tostr(def.defid),java_procvarbase);
+        tprocvardef(def).classdef:=pvclass;
+        include(pvclass.objectoptions,oo_is_sealed);
+        { associate typesym }
+        pvclass.symtable.insert(ttypesym.create('__FPC_TProcVarClassAlias',pvclass));
+        { set external name to match procvar type name }
+        if not islocal then
+          pvclass.objextname:=stringdup(name)
+        else
+          pvclass.objextname:=stringdup(pvclass.objrealname^);
+
+        symtablestack.push(pvclass.symtable);
+
+        { inherit constructor and keep public }
+        add_missing_parent_constructors_intf(pvclass,vis_public);
+
+        { add a method to call the procvar using unwrapped arguments, which
+          then wraps them and calls through to JLRMethod.invoke }
+        methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_procvar2bareproc));
+        finish_copied_procdef(methoddef,'invoke',pvclass.symtable,pvclass);
+        insert_self_and_vmt_para(methoddef);
+        methoddef.synthetickind:=tsk_jvm_procvar_invoke;
+        methoddef.calcparas;
+
+        { add local alias for the procvartype that we can use when implementing
+          the invoke method }
+        temptypesym:=ttypesym.create('__FPC_ProcVarAlias',nil);
+        { don't pass def to the ttypesym constructor, because then it
+          will replace the current (real) typesym of that def with the alias }
+        temptypesym.typedef:=def;
+        pvclass.symtable.insert(temptypesym);
+
+        symtablestack.pop(pvclass.symtable);
+        restore_after_new_class(sstate,islocal,oldsymtablestack);
       end;
 
 

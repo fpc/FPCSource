@@ -628,6 +628,7 @@ procedure fpc_initialize_array_ansistring(arr: TJObjectArray; normalarrdim: long
   level elements types of the array) }
 procedure fpc_initialize_array_dynarr(arr: TJObjectArray; normalarrdim: longint);compilerproc;
 procedure fpc_initialize_array_record(arr: TJObjectArray; normalarrdim: longint; inst: FpcBaseRecordType);compilerproc;
+procedure fpc_initialize_array_procvar(arr: TJObjectArray; normalarrdim: longint; inst: FpcBaseProcVarType);compilerproc;
 procedure fpc_initialize_array_bitset(arr: TJObjectArray; normalarrdim: longint; inst: FpcBitSet);compilerproc;
 procedure fpc_initialize_array_enumset(arr: TJObjectArray; normalarrdim: longint; inst: JUEnumSet);compilerproc;
 procedure fpc_initialize_array_shortstring(arr: TJObjectArray; normalarrdim: longint; maxlen: byte);compilerproc;

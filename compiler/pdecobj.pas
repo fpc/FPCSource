@@ -1288,6 +1288,9 @@ implementation
                           fsym:=tfieldvarsym.create('$proc',vs_value,java_jlobject,[]);
                           hrecst.insert(fsym);
                           hrecst.addfield(fsym,vis_hidden);
+                          fsym:=tfieldvarsym.create('$data',vs_value,java_jlobject,[]);
+                          hrecst.insert(fsym);
+                          hrecst.addfield(fsym,vis_hidden);
                           methodpointertype:=trecorddef.create('',hrecst);
                           systemunit.insert(ttypesym.create('$methodpointer',methodpointertype));
                         end
@@ -1307,6 +1310,8 @@ implementation
                         java_juenumset:=current_objectdef
                       else if (current_objectdef.objname^='FPCBITSET') then
                         java_jubitset:=current_objectdef
+                      else if (current_objectdef.objname^='FPCBASEPROCVARTYPE') then
+                        java_procvarbase:=current_objectdef;
                     end;
                 end;
               end;

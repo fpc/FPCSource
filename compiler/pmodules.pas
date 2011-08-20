@@ -684,6 +684,24 @@ implementation
       end;
 
 
+{$ifdef jvm}
+      procedure addmoduleclass;
+        var
+          def: tobjectdef;
+          typesym: ttypesym;
+        begin
+          { java_jlobject may not have been parsed yet (system unit); in any
+            case, we only use this to refer to the class type, so inheritance
+            does not matter }
+          def:=tobjectdef.create(odt_javaclass,'__FPC_JVM_Module_Class_Alias$',nil);
+          include(def.objectoptions,oo_is_external);
+          include(def.objectoptions,oo_is_sealed);
+          def.objextname:=stringdup(current_module.realmodulename^);
+          typesym:=ttypesym.create('__FPC_JVM_Module_Class_Alias$',def);
+          symtablestack.top.insert(typesym);
+        end;
+{$endif jvm}
+
     procedure proc_unit;
 
       function is_assembler_generated:boolean;
@@ -835,6 +853,10 @@ implementation
          { ... parse the declarations }
          Message1(parser_u_parsing_interface,current_module.realmodulename^);
          symtablestack.push(current_module.globalsymtable);
+{$ifdef jvm}
+         { fake classdef to represent the class corresponding to the unit }
+         addmoduleclass;
+{$endif}
          read_interface_declarations;
          symtablestack.pop(current_module.globalsymtable);
 
@@ -1812,6 +1834,11 @@ implementation
          Message1(parser_u_parsing_implementation,current_module.mainsource^);
 
          symtablestack.push(current_module.localsymtable);
+
+{$ifdef jvm}
+         { fake classdef to represent the class corresponding to the unit }
+         addmoduleclass;
+{$endif}
 
          { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
          maybe_load_got;

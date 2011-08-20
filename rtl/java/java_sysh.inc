@@ -1,4 +1,4 @@
-{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.Boolean, java.lang.Byte, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Enum, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.Integer, java.lang.Iterable, java.lang.LinkageError, java.lang.Long, java.lang.Number, java.lang.Object, java.lang.RuntimeException, java.lang.Short, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.GenericDeclaration, java.lang.reflect.Type, java.text.Collator, java.util.AbstractCollection, java.util.AbstractMap, java.util.AbstractSet, java.util.Arrays, java.util.BitSet, java.util.Collection, java.util.Comparator, java.util.EnumSet, java.util.HashMap, java.util.Iterator, java.util.Map, java.util.Set }
+{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.Boolean, java.lang.Byte, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Enum, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.Integer, java.lang.Iterable, java.lang.LinkageError, java.lang.Long, java.lang.Number, java.lang.Object, java.lang.RuntimeException, java.lang.Short, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.lang.reflect.AccessibleObject, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.GenericDeclaration, java.lang.reflect.Member, java.lang.reflect.Method, java.lang.reflect.Type, java.text.Collator, java.util.AbstractCollection, java.util.AbstractMap, java.util.AbstractSet, java.util.Arrays, java.util.BitSet, java.util.Collection, java.util.Comparator, java.util.EnumSet, java.util.HashMap, java.util.Iterator, java.util.Map, java.util.Set }
 type
   JLStringBuffer = class;
   Arr1JLStringBuffer = array of JLStringBuffer;
@@ -34,6 +34,11 @@ type
   Arr1JLNumber = array of JLNumber;
   Arr2JLNumber = array of Arr1JLNumber;
   Arr3JLNumber = array of Arr2JLNumber;
+
+  JLRMethod = class;
+  Arr1JLRMethod = array of JLRMethod;
+  Arr2JLRMethod = array of Arr1JLRMethod;
+  Arr3JLRMethod = array of Arr2JLRMethod;
 
   JLCharacter = class;
   Arr1JLCharacter = array of JLCharacter;
@@ -165,6 +170,11 @@ type
   Arr2JLRuntimeException = array of Arr1JLRuntimeException;
   Arr3JLRuntimeException = array of Arr2JLRuntimeException;
 
+  JLRAccessibleObject = class;
+  Arr1JLRAccessibleObject = array of JLRAccessibleObject;
+  Arr2JLRAccessibleObject = array of Arr1JLRAccessibleObject;
+  Arr3JLRAccessibleObject = array of Arr2JLRAccessibleObject;
+
   JLIterable = interface;
   Arr1JLIterable = array of JLIterable;
   Arr2JLIterable = array of Arr1JLIterable;
@@ -209,6 +219,11 @@ type
   Arr1JLComparable = array of JLComparable;
   Arr2JLComparable = array of Arr1JLComparable;
   Arr3JLComparable = array of Arr2JLComparable;
+
+  JLRMember = interface;
+  Arr1JLRMember = array of JLRMember;
+  Arr2JLRMember = array of Arr1JLRMember;
+  Arr3JLRMember = array of Arr2JLRMember;
 
   JLCharSequence = interface;
   Arr1JLCharSequence = array of JLCharSequence;
@@ -265,20 +280,15 @@ type
   Arr2JSProtectionDomain = array of Arr1JSProtectionDomain;
   Arr3JSProtectionDomain = array of Arr2JSProtectionDomain;
 
-  JLRField = class external 'java.lang.reflect' name 'Field';
-  Arr1JLRField = array of JLRField;
-  Arr2JLRField = array of Arr1JLRField;
-  Arr3JLRField = array of Arr2JLRField;
-
   JIPrintStream = class external 'java.io' name 'PrintStream';
   Arr1JIPrintStream = array of JIPrintStream;
   Arr2JIPrintStream = array of Arr1JIPrintStream;
   Arr3JIPrintStream = array of Arr2JIPrintStream;
 
-  JLRMethod = class external 'java.lang.reflect' name 'Method';
-  Arr1JLRMethod = array of JLRMethod;
-  Arr2JLRMethod = array of Arr1JLRMethod;
-  Arr3JLRMethod = array of Arr2JLRMethod;
+  JLRField = class external 'java.lang.reflect' name 'Field';
+  Arr1JLRField = array of JLRField;
+  Arr2JLRField = array of Arr1JLRField;
+  Arr3JLRField = array of Arr2JLRField;
 
   JTCollationKey = class external 'java.text' name 'CollationKey';
   Arr1JTCollationKey = array of JTCollationKey;

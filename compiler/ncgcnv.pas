@@ -480,14 +480,6 @@ interface
       var
         tmpreg: tregister;
       begin
-{$ifdef jvm}
-{$ifndef nounsupported}
-         location_reset(location,LOC_REGISTER,OS_ADDR);
-         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
-         hlcg.a_load_const_reg(current_asmdata.CurrAsmList,java_jlobject,0,location.register);
-         exit;
-{$endif nounsupported}
-{$endif jvm}
         if tabstractprocdef(resultdef).is_addressonly then
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);

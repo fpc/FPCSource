@@ -648,7 +648,9 @@ implementation
       for i:=1 to pred(initdim) do
         elemdef:=tarraydef(elemdef).elementdef;
       if (elemdef.typ in [recorddef,setdef]) or
-         is_shortstring(elemdef) then
+         is_shortstring(elemdef) or
+         ((elemdef.typ=procvardef) and
+          not tprocvardef(elemdef).is_addressonly) then
         begin
           { duplicate array/string/set instance }
           list.concat(taicpu.op_none(a_dup));
@@ -667,7 +669,9 @@ implementation
                       g_call_system_proc(list,'fpc_initialize_array_enumset')
                     else
                       g_call_system_proc(list,'fpc_initialize_array_bitset')
-                  end
+                  end;
+                procvardef:
+                  g_call_system_proc(list,'fpc_initialize_array_procvar');
               end;
               tg.ungettemp(list,recref);
             end
@@ -1170,6 +1174,11 @@ implementation
           end;
         recorddef:
           procname:='FPC_COPY_JRECORD_ARRAY';
+        procvardef:
+          if tprocvardef(eledef).is_addressonly then
+            procname:='FPC_COPY_SHALLOW_ARRAY'
+          else
+            procname:='FPC_COPY_JPROCVAR_ARRAY';
         setdef:
           if tsetdef(eledef).elementdef.typ=enumdef then
             procname:='FPC_COPY_JENUMSET_ARRAY'
@@ -1229,7 +1238,7 @@ implementation
         srsym:=search_struct_member(tabstractrecorddef(size),'FPCDEEPCOPY');
         if not assigned(srsym) or
            (srsym.typ<>procsym) then
-          Message1(cg_f_unknown_compilerproc,'FpcRecordBaseType.fpcDeepCopy');
+          Message1(cg_f_unknown_compilerproc,size.typename+'.fpcDeepCopy');
         pd:=tprocdef(tprocsym(srsym).procdeflist[0]);
         a_call_name(list,pd,pd.mangledname,false);
         { both parameters are removed, no function result }
@@ -1301,6 +1310,14 @@ implementation
             if is_shortstring(size) then
               begin
                 concatcopy_shortstring(list,size,source,dest);
+                handled:=true;
+              end;
+          end;
+        procvardef:
+          begin
+            if not tprocvardef(size).is_addressonly then
+              begin
+                concatcopy_record(list,tprocvardef(size).classdef,source,dest);
                 handled:=true;
               end;
           end;

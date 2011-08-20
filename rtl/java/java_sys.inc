@@ -116,6 +116,16 @@
     function getTypeParameters(): Arr1JLRTypeVariable; overload;
   end;
 
+  JLRMember = interface external 'java.lang.reflect' name 'Member' 
+    const
+      &PUBLIC = 0;
+      DECLARED = 1;
+    function getDeclaringClass(): JLClass; overload;
+    function getName(): JLString; overload;
+    function getModifiers(): jint; overload;
+    function isSynthetic(): jboolean; overload;
+  end;
+
   JLRType = interface external 'java.lang.reflect' name 'Type' 
   end;
 
@@ -1011,6 +1021,21 @@
     function hashCode(): jint; overload;
   end;
 
+  JLRAccessibleObject = class external 'java.lang.reflect' name 'AccessibleObject' (JLObject, JLRAnnotatedElement)
+  public
+    class procedure setAccessible(para1: Arr1JLRAccessibleObject; para2: jboolean); static; overload;  // throws java.lang.SecurityException
+    class procedure setAccessible(var para1: array of JLRAccessibleObject; para2: jboolean); static; overload;  // throws java.lang.SecurityException
+    procedure setAccessible(para1: jboolean); overload; virtual;  // throws java.lang.SecurityException
+    function isAccessible(): jboolean; overload; virtual;
+  strict protected
+    constructor create(); overload;
+  public
+    function getAnnotation(para1: JLClass): JLAAnnotation; overload; virtual;
+    function isAnnotationPresent(para1: JLClass): jboolean; overload; virtual;
+    function getAnnotations(): Arr1JLAAnnotation; overload; virtual;
+    function getDeclaredAnnotations(): Arr1JLAAnnotation; overload; virtual;
+  end;
+
   JLClass = class sealed external 'java.lang' name 'Class' (JLObject, JISerializable, JLRGenericDeclaration, JLRType, JLRAnnotatedElement)
   public
     type
@@ -1737,6 +1762,33 @@
     procedure clear(); overload;
     function equals(para1: JLObject): jboolean; overload;
     function hashCode(): jint; overload;
+  end;
+
+  JLRMethod = class sealed external 'java.lang.reflect' name 'Method' (JLRAccessibleObject, JLRGenericDeclaration, JLRMember)
+  public
+    function getDeclaringClass(): JLClass; overload; virtual;
+    function getName(): JLString; overload; virtual;
+    function getModifiers(): jint; overload; virtual;
+    function getTypeParameters(): Arr1JLRTypeVariable; overload; virtual;
+    function getReturnType(): JLClass; overload; virtual;
+    function getGenericReturnType(): JLRType; overload; virtual;
+    function getParameterTypes(): Arr1JLClass; overload; virtual;
+    function getGenericParameterTypes(): Arr1JLRType; overload; virtual;
+    function getExceptionTypes(): Arr1JLClass; overload; virtual;
+    function getGenericExceptionTypes(): Arr1JLRType; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual;
+    function hashCode(): jint; overload; virtual;
+    function toString(): JLString; overload; virtual;
+    function toGenericString(): JLString; overload; virtual;
+    function invoke(para1: JLObject; para2: Arr1JLObject): JLObject; overload; virtual;  // throws java.lang.IllegalAccessException, java.lang.IllegalArgumentException, java.lang.reflect.InvocationTargetException
+    function invoke(para1: JLObject; const para2: array of JLObject): JLObject; overload; virtual;  // throws java.lang.IllegalAccessException, java.lang.IllegalArgumentException, java.lang.reflect.InvocationTargetException
+    function isBridge(): jboolean; overload; virtual;
+    function isVarArgs(): jboolean; overload; virtual;
+    function isSynthetic(): jboolean; overload; virtual;
+    function getAnnotation(para1: JLClass): JLAAnnotation; overload; virtual;
+    function getDeclaredAnnotations(): Arr1JLAAnnotation; overload; virtual;
+    function getDefaultValue(): JLObject; overload; virtual;
+    function getParameterAnnotations(): Arr2JLAAnnotation; overload; virtual;
   end;
 
   JUHashMap = class external 'java.util' name 'HashMap' (JUAbstractMap, JUMap, JLCloneable, JISerializable)

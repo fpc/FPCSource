@@ -1724,6 +1724,9 @@ implementation
             _FUNCTION:
               begin
                 def:=procvar_dec(genericdef,genericlist);
+{$ifdef jvm}
+                jvm_create_procvar_class(name,def);
+{$endif}
               end;
             else
               if (token=_KLAMMERAFFE) and (m_iso in current_settings.modeswitches) then

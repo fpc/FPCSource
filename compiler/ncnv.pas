@@ -1823,22 +1823,6 @@ implementation
       end;
 
 
-    procedure copyparasym(p:TObject;arg:pointer);
-      var
-        newparast : TSymtable absolute arg;
-        vs : tparavarsym;
-      begin
-        if tsym(p).typ<>paravarsym then
-          exit;
-        with tparavarsym(p) do
-          begin
-            vs:=tparavarsym.create(realname,paranr,varspez,vardef,varoptions);
-            vs.defaultconstsym:=defaultconstsym;
-            newparast.insert(vs);
-          end;
-      end;
-
-
     function ttypeconvnode.typecheck_proc_to_procvar : tnode;
       var
         pd : tabstractprocdef;
@@ -1856,15 +1840,7 @@ implementation
           resultdef:=totypedef
         else
          begin
-           nestinglevel:=pd.parast.symtablelevel;
-           resultdef:=tprocvardef.create(nestinglevel);
-           tprocvardef(resultdef).proctypeoption:=pd.proctypeoption;
-           tprocvardef(resultdef).proccalloption:=pd.proccalloption;
-           tprocvardef(resultdef).procoptions:=pd.procoptions;
-           tprocvardef(resultdef).returndef:=pd.returndef;
-           { method ? then set the methodpointer flag }
-           if (pd.owner.symtabletype=ObjectSymtable) then
-             include(tprocvardef(resultdef).procoptions,po_methodpointer);
+           resultdef:=pd.getcopyas(procvardef,pc_normal);
            { only need the address of the method? this is needed
              for @tobject.create. In this case there will be a loadn without
              a methodpointer. }
@@ -1873,11 +1849,7 @@ implementation
               (not(m_nested_procvars in current_settings.modeswitches) or
                not is_nested_pd(tprocvardef(resultdef))) then
              include(tprocvardef(resultdef).procoptions,po_addressonly);
-
-           { Add parameters use only references, we don't need to keep the
-             parast. We use the parast from the original function to calculate
-             our parameter data and reset it afterwards }
-           pd.parast.SymList.ForEachCall(@copyparasym,tprocvardef(resultdef).parast);
+           { calculate parameter list & order }
            tprocvardef(resultdef).calcparas;
          end;
       end;

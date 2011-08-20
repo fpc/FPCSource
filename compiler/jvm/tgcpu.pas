@@ -40,6 +40,7 @@ unit tgcpu;
 
        ttgjvm = class(ttgobj)
         protected
+         procedure getimplicitobjtemp(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
          function getifspecialtemp(list: TAsmList; def: tdef; forcesize: aint; temptype: ttemptype; out ref: treference): boolean;
          function alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef): longint; override;
         public
@@ -60,6 +61,36 @@ unit tgcpu;
 
 
     { ttgjvm }
+
+    procedure ttgjvm.getimplicitobjtemp(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
+      var
+        sym: tsym;
+        pd: tprocdef;
+      begin
+        gettemp(list,java_jlobject.size,java_jlobject.alignment,temptype,ref);
+        list.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tabstractrecorddef(def).jvm_full_typename(true))));
+        { the constructor doesn't return anything, so put a duplicate of the
+          self pointer on the evaluation stack for use as function result
+          after the constructor has run }
+        list.concat(taicpu.op_none(a_dup));
+        thlcgjvm(hlcg).incstack(list,2);
+        { call the constructor }
+        sym:=tsym(tabstractrecorddef(def).symtable.find('CREATE'));
+        if assigned(sym) and
+           (sym.typ=procsym) then
+          begin
+            pd:=tprocsym(sym).find_bytype_parameterless(potype_constructor);
+            if not assigned(pd) then
+              internalerror(2011032701);
+          end
+        else
+          internalerror(2011060301);
+        hlcg.a_call_name(list,pd,pd.mangledname,false);
+        thlcgjvm(hlcg).decstack(list,1);
+        { store reference to instance }
+        thlcgjvm(hlcg).a_load_stack_ref(list,java_jlobject,ref,0);
+      end;
+
 
     function ttgjvm.getifspecialtemp(list: TAsmList; def: tdef; forcesize: aint; temptype: ttemptype; out ref: treference): boolean;
       var
@@ -99,28 +130,7 @@ unit tgcpu;
             end;
           recorddef:
             begin
-              gettemp(list,java_jlobject.size,java_jlobject.alignment,temptype,ref);
-              list.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(trecorddef(def).jvm_full_typename(true))));
-              { the constructor doesn't return anything, so put a duplicate of the
-                self pointer on the evaluation stack for use as function result
-                after the constructor has run }
-              list.concat(taicpu.op_none(a_dup));
-              thlcgjvm(hlcg).incstack(list,2);
-              { call the constructor }
-              sym:=tsym(trecorddef(def).symtable.find('CREATE'));
-              if assigned(sym) and
-                 (sym.typ=procsym) then
-                begin
-                  pd:=tprocsym(sym).find_bytype_parameterless(potype_constructor);
-                  if not assigned(pd) then
-                    internalerror(2011032701);
-                end
-              else
-                internalerror(2011060301);
-              hlcg.a_call_name(list,pd,pd.mangledname,false);
-              thlcgjvm(hlcg).decstack(list,1);
-              { store reference to instance }
-              thlcgjvm(hlcg).a_load_stack_ref(list,java_jlobject,ref,0);
+              getimplicitobjtemp(list,def,temptype,ref);
               result:=true;
             end;
           setdef:
@@ -170,6 +180,14 @@ unit tgcpu;
               gettemp(list,java_jlobject.size,java_jlobject.alignment,temptype,ref);
               thlcgjvm(hlcg).a_load_stack_ref(list,java_jlobject,ref,0);
               result:=true;
+            end;
+          procvardef:
+            begin
+              if not tprocvardef(def).is_addressonly then
+                begin
+                  getimplicitobjtemp(list,tprocvardef(def).classdef,temptype,ref);
+                  result:=true;
+                end;
             end;
           stringdef:
             begin

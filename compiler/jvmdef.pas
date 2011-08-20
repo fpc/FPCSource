@@ -79,6 +79,8 @@ interface
     procedure jvmgetboxtype(def: tdef; out objdef, paradef: tdef; mergeints: boolean);
     function jvmgetunboxmethod(def: tdef): string;
 
+    function jvmgetcorrespondingclassdef(def: tdef): tdef;
+
 implementation
 
   uses
@@ -338,13 +340,7 @@ implementation
             end;
           procvardef :
             begin
-{$ifndef nounsupported}
-              result:=jvmaddencodedtype(java_jlobject,false,encodedstr,forcesignature,founderror);
-{$else}
-              { will be hanlded via wrapping later, although wrapping may
-                happen at higher level }
-              result:=false;
-{$endif}
+              result:=jvmaddencodedtype(tprocvardef(def).classdef,false,encodedstr,forcesignature,founderror);
             end;
           objectdef :
             case tobjectdef(def).objecttype of
@@ -471,6 +467,9 @@ implementation
             else
               result:='L'
           end
+        else if (def.typ=procvardef) and
+                not tprocvardef(def).is_addressonly then
+          result:='P'
         else
           begin
             if not jvmtryencodetype(def,res,false,errdef) then
@@ -640,6 +639,90 @@ implementation
           else
             internalerror(2011071704);
         end;
+      end;
+
+
+    function jvmgetcorrespondingclassdef(def: tdef): tdef;
+      var
+        paradef: tdef;
+      begin
+        if def.typ in [orddef,floatdef] then
+          jvmgetboxtype(def,result,paradef,false)
+        else
+          begin
+            case def.typ of
+              stringdef :
+                begin
+                  case tstringdef(def).stringtype of
+                    { translated into java.lang.String }
+                    st_widestring,
+                    st_unicodestring:
+                      result:=java_jlstring;
+                    st_ansistring:
+                      result:=java_ansistring;
+                    st_shortstring:
+                      result:=java_shortstring;
+                    else
+                      internalerror(2011072409);
+                  end;
+                end;
+              enumdef:
+                begin
+                  result:=tenumdef(def).classdef;
+                end;
+              pointerdef :
+                begin
+                  if def=voidpointertype then
+                    result:=java_jlobject
+                  else if jvmimplicitpointertype(tpointerdef(def).pointeddef) then
+                    result:=tpointerdef(def).pointeddef
+                  else
+                    internalerror(2011072410);
+                end;
+              recorddef :
+                begin
+                  result:=def;
+                end;
+              variantdef :
+                begin
+                  result:=cvarianttype;
+                end;
+              classrefdef :
+                begin
+                  result:=search_system_type('JLCLASS').typedef;
+                end;
+              setdef :
+                begin
+                  if tsetdef(def).elementdef.typ=enumdef then
+                    result:=java_juenumset
+                  else
+                    result:=java_jubitset;
+                end;
+              formaldef :
+                begin
+                  result:=java_jlobject;
+                end;
+              arraydef :
+                begin
+                  { cannot represent statically }
+                  internalerror(2011072411);
+                end;
+              procvardef :
+                begin
+                  result:=tprocvardef(def).classdef;
+                end;
+              objectdef :
+                case tobjectdef(def).objecttype of
+                  odt_javaclass,
+                  odt_interfacejava:
+                    result:=def
+                  else
+                    internalerror(2011072412);
+                end;
+              else
+                internalerror(2011072413);
+            end;
+          end;
       end;
 
 

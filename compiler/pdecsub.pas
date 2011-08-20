@@ -93,6 +93,9 @@ implementation
        { parser }
        scanner,
        pbase,pexpr,ptype,pdecl,pparautl
+{$ifdef jvm}
+       ,pjvm
+{$endif}
        ;
 
     const
@@ -311,6 +314,10 @@ implementation
                end;
              { Add implicit hidden parameters and function result }
              handle_calling_convention(pv);
+{$ifdef jvm}
+             { anonymous -> no name }
+             jvm_create_procvar_class('',pv);
+{$endif}
            end
           else
           { read type declaration, force reading for value paras }
