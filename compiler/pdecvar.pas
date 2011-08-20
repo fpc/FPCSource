@@ -576,6 +576,14 @@ implementation
                              if (ppo_hasparameters in p.propoptions) or
                                 ((sp_static in p.symoptions) <> (sp_static in sym.symoptions)) then
                                Message(parser_e_ill_property_access_sym);
+{$ifdef jvm}
+                             { if the visibility of the field is lower than the
+                               visibility of the property, wrap it in a getter
+                               so that we can access it from all contexts in
+                               which the property is visibile }
+                             if (tfieldvarsym(sym).visibility<p.visibility) then
+                               jvm_create_getter_for_property(p);
+{$endif}
                            end
                           else
                            IncompatibleTypes(def,p.propdef);
@@ -638,6 +646,14 @@ implementation
                              if (ppo_hasparameters in p.propoptions) or
                                 ((sp_static in p.symoptions) <> (sp_static in sym.symoptions)) then
                               Message(parser_e_ill_property_access_sym);
+{$ifdef jvm}
+                             { if the visibility of the field is lower than the
+                               visibility of the property, wrap it in a getter
+                               so that we can access it from all contexts in
+                               which the property is visibile }
+                             if (tfieldvarsym(sym).visibility<p.visibility) then
+                               jvm_create_setter_for_property(p);
+{$endif}
                            end
                           else
                            IncompatibleTypes(def,p.propdef);

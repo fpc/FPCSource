@@ -783,6 +783,27 @@ implementation
     end;
 {$endif jvm}
 
+  procedure implement_field_getter(pd: tprocdef);
+    var
+      str: ansistring;
+      callthroughprop: tpropertysym;
+    begin
+      callthroughprop:=tpropertysym(pd.skpara);
+      str:='begin result:='+callthroughprop.realname+'; end;';
+      str_parse_method_impl(str,pd,po_classmethod in pd.procoptions)
+    end;
+
+
+  procedure implement_field_setter(pd: tprocdef);
+    var
+      str: ansistring;
+      callthroughprop: tpropertysym;
+    begin
+      callthroughprop:=tpropertysym(pd.skpara);
+      str:='begin '+callthroughprop.realname+':=__fpc_newval__; end;';
+      str_parse_method_impl(str,pd,po_classmethod in pd.procoptions)
+    end;
+
 
   procedure add_synthetic_method_implementations_for_struct(struct: tabstractrecorddef);
     var
@@ -837,6 +858,10 @@ implementation
             tsk_jvm_virtual_clmethod:
               implement_jvm_virtual_clmethod(pd);
 {$endif jvm}
+            tsk_field_getter:
+              implement_field_getter(pd);
+            tsk_field_setter:
+              implement_field_setter(pd);
             else
               internalerror(2011032801);
           end;

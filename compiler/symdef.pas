@@ -529,7 +529,9 @@ interface
          tsk_jvm_enum_bitset2set,   // Java fpcBitSetToEnumSet function that returns an enumset corresponding to a BitSet
          tsk_jvm_enum_set2Set,      // Java fpcEnumSetToEnumSet function that returns an enumset corresponding to another enumset (different enum kind)
          tsk_jvm_procvar_invoke,    // Java invoke method that calls a wrapped procvar
-         tsk_jvm_virtual_clmethod   // Java wrapper for virtual class method
+         tsk_jvm_virtual_clmethod,  // Java wrapper for virtual class method
+         tsk_field_getter,          // getter for a field (callthrough property is passed in skpara)
+         tsk_field_setter           // Setter for a field (callthrough property is passed in skpara)
        );
 
 {$ifdef oldregvars}

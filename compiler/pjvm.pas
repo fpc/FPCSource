@@ -48,6 +48,13 @@ interface
 
     function jvm_wrap_method_with_vis(pd: tprocdef; vis: tvisibility): tprocdef;
 
+    { when a private/protected field is exposed via a property with a higher
+      visibility, then we have to create a getter and/or setter with that same
+      higher visibility to make sure that using the property does not result
+      in JVM verification errors }
+    procedure jvm_create_getter_for_property(p: tpropertysym);
+    procedure jvm_create_setter_for_property(p: tpropertysym);
+
 
 implementation
 
@@ -746,6 +753,123 @@ implementation
         { so we know the name of the routine to call through to }
         result.skpara:=pd;
         symtablestack.pop(obj.symtable);
+      end;
+
+
+    procedure jvm_create_getter_or_setter_for_property(p: tpropertysym; getter: boolean);
+      var
+        obj: tabstractrecorddef;
+        ps: tprocsym;
+        pvs: tparavarsym;
+        pd: tprocdef;
+        callthroughpropname,
+        name: string;
+        callthroughprop: tpropertysym;
+        accesstyp: tpropaccesslisttypes;
+      begin
+        obj:=current_structdef;
+        { if someone gets the idea to add a property to an external class
+          definition, don't try to wrap it since we cannot add methods to
+          external classes }
+        if oo_is_external in obj.objectoptions then
+          exit;
+        symtablestack.push(obj.symtable);
+
+        if getter then
+          accesstyp:=palt_read
+        else
+          accesstyp:=palt_write;
+
+        { create a property for the old symaccesslist with a new name, so that
+          we can reuse it in the implementation (rather than having to
+          translate the symaccesslist back to Pascal code) }
+        callthroughpropname:='__fpc__'+p.realname;
+        if getter then
+          callthroughpropname:=callthroughpropname+'__getter_wrapper'
+        else
+          callthroughpropname:=callthroughpropname+'__setter_wrapper';
+        callthroughprop:=tpropertysym.create(callthroughpropname);
+        callthroughprop.visibility:=p.visibility;
+        callthroughprop.default:=longint($80000000);
+        if sp_static in p.symoptions then
+          include(callthroughprop.symoptions, sp_static);
+        { copy original property target to callthrough property }
+        callthroughprop.propaccesslist[accesstyp]:=p.propaccesslist[accesstyp];
+        p.propaccesslist[accesstyp]:=tpropaccesslist.create;
+        p.owner.insert(callthroughprop);
+
+        { we can't use str_parse_method_dec here because the type of the field
+          may not be visible at the Pascal level }
+
+        { create procdef }
+        pd:=tprocdef.create(normal_function_level);
+
+        { construct procsym name (unique for this access; reusing the same
+          helper for multiple accesses to the same field is hard because the
+          propacesslist can contain subscript nodes etc) }
+        name:=visibilityName[p.visibility];
+        replace(name,' ','_');
+        if getter then
+          name:=name+'$getter'
+        else
+          name:=name+'$setter';
+        name:='$'+obj.symtable.realname^+'$'+p.realname+'$'+name+'$'+tostr(pd.defid);
+
+        { new procsym }
+        ps:=tprocsym.create(name);
+        obj.symtable.insert(ps);
+        { associate procsym with procdef}
+        pd.procsym:=ps;
+
+        { method of this objectdef }
+        pd.struct:=obj;
+        { visibility }
+        pd.visibility:=p.visibility;
+        { function/procedure }
+        if getter then
+          begin
+            pd.proctypeoption:=potype_function;
+            pd.synthetickind:=tsk_field_getter;
+            { result type }
+            pd.returndef:=p.propdef;
+          end
+        else
+          begin
+            pd.proctypeoption:=potype_procedure;
+            pd.synthetickind:=tsk_field_setter;
+            pd.returndef:=voidtype;
+            { parameter with value to set }
+            pvs:=tparavarsym.create('__fpc_newval__',10,vs_const,p.propdef,[]);
+            pd.parast.insert(pvs);
+          end;
+        pd.skpara:=callthroughprop;
+        { needs to be exported }
+        include(pd.procoptions,po_global);
+        { class property -> static class method }
+        if sp_static in p.symoptions then
+          pd.procoptions:=pd.procoptions+[po_classmethod,po_staticmethod];
+        { calling convention, self, ... }
+        handle_calling_convention(pd);
+        { register forward declaration with procsym }
+        proc_add_definition(pd);
+
+        { make the property call this new function }
+        p.propaccesslist[accesstyp].addsym(sl_call,ps);
+        p.propaccesslist[accesstyp].procdef:=pd;
+
+        symtablestack.pop(obj.symtable);
+      end;
+
+
+    procedure jvm_create_getter_for_property(p: tpropertysym);
+      begin
+        jvm_create_getter_or_setter_for_property(p,true);
+      end;
+
+
+    procedure jvm_create_setter_for_property(p: tpropertysym);
+      begin
+        jvm_create_getter_or_setter_for_property(p,false);
       end;
 
 end.
