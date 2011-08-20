@@ -35,8 +35,8 @@ interface
     { parses a (class) method declaration }
     function method_dec(astruct: tabstractrecorddef; is_classdef: boolean): tprocdef;
 
-    function class_constructor_head:tprocdef;
-    function class_destructor_head:tprocdef;
+    function class_constructor_head(astruct: tabstractrecorddef):tprocdef;
+    function class_destructor_head(astruct: tabstractrecorddef):tprocdef;
     function constructor_head:tprocdef;
     function destructor_head:tprocdef;
     procedure struct_property_dec(is_classproperty:boolean);
@@ -63,7 +63,31 @@ implementation
     var
       current_objectdef : tobjectdef absolute current_structdef;
 
-    function class_constructor_head:tprocdef;
+
+    procedure constr_destr_finish_head(pd: tprocdef; const astruct: tabstractrecorddef);
+      begin
+        case astruct.typ of
+          recorddef:
+            parse_record_proc_directives(pd);
+          objectdef:
+            parse_object_proc_directives(pd);
+          else
+            internalerror(2011040502);
+        end;
+        handle_calling_convention(pd);
+
+        { add definition to procsym }
+        proc_add_definition(pd);
+
+        { add procdef options to objectdef options }
+        if (po_virtualmethod in pd.procoptions) then
+          include(astruct.objectoptions,oo_has_virtual);
+
+        maybe_parse_hint_directives(pd);
+      end;
+
+
+    function class_constructor_head(astruct: tabstractrecorddef):tprocdef;
       var
         pd : tprocdef;
       begin
@@ -80,10 +104,11 @@ implementation
         if (pd.maxparacount>0) then
           Message(parser_e_no_paras_for_class_constructor);
         consume(_SEMICOLON);
-        include(current_structdef.objectoptions,oo_has_class_constructor);
+        include(astruct.objectoptions,oo_has_class_constructor);
         current_module.flags:=current_module.flags or uf_classinits;
         { no return value }
         pd.returndef:=voidtype;
+        constr_destr_finish_head(pd,astruct);
         result:=pd;
       end;
 
@@ -117,6 +142,7 @@ implementation
 {$else CPU64bitaddr}
           pd.returndef:=bool32type;
 {$endif CPU64bitaddr}
+        constr_destr_finish_head(pd,pd.struct);
         result:=pd;
       end;
 
@@ -179,7 +205,7 @@ implementation
       end;
 
 
-    function class_destructor_head:tprocdef;
+    function class_destructor_head(astruct: tabstractrecorddef):tprocdef;
       var
         pd : tprocdef;
       begin
@@ -195,10 +221,11 @@ implementation
         if (pd.maxparacount>0) then
           Message(parser_e_no_paras_for_class_destructor);
         consume(_SEMICOLON);
-        include(current_structdef.objectoptions,oo_has_class_destructor);
+        include(astruct.objectoptions,oo_has_class_destructor);
         current_module.flags:=current_module.flags or uf_classinits;
         { no return value }
         pd.returndef:=voidtype;
+        constr_destr_finish_head(pd,astruct);
         result:=pd;
       end;
 
@@ -225,6 +252,7 @@ implementation
         include(current_structdef.objectoptions,oo_has_destructor);
         { no return value }
         pd.returndef:=voidtype;
+        constr_destr_finish_head(pd,pd.struct);
         result:=pd;
       end;
 
@@ -765,25 +793,6 @@ implementation
             { nothing currently }
           end;
 
-
-        procedure maybe_parse_hint_directives(pd:tprocdef);
-          var
-            dummysymoptions : tsymoptions;
-            deprecatedmsg : pshortstring;
-          begin
-            dummysymoptions:=[];
-            deprecatedmsg:=nil;
-            while try_consume_hintdirective(dummysymoptions,deprecatedmsg) do
-              Consume(_SEMICOLON);
-            if assigned(pd) then
-              begin
-                pd.symoptions:=pd.symoptions+dummysymoptions;
-                pd.deprecatedmsg:=deprecatedmsg;
-              end
-            else
-              stringdispose(deprecatedmsg);
-          end;
-
       var
         oldparse_only: boolean;
       begin
@@ -879,20 +888,11 @@ implementation
               oldparse_only:=parse_only;
               parse_only:=true;
               if is_classdef then
-                result:=class_constructor_head
+                result:=class_constructor_head(current_structdef)
               else
                 result:=constructor_head;
-              parse_object_proc_directives(result);
-              handle_calling_convention(result);
 
-              { add definition to procsym }
-              proc_add_definition(result);
-
-              { add procdef options to objectdef options }
-              if (po_virtualmethod in result.procoptions) then
-                include(astruct.objectoptions,oo_has_virtual);
               chkcpp(result);
-              maybe_parse_hint_directives(result);
 
               parse_only:=oldparse_only;
             end;
@@ -927,21 +927,11 @@ implementation
               oldparse_only:=parse_only;
               parse_only:=true;
               if is_classdef then
-                result:=class_destructor_head
+                result:=class_destructor_head(current_structdef)
               else
                 result:=destructor_head;
-              parse_object_proc_directives(result);
-              handle_calling_convention(result);
-
-              { add definition to procsym }
-              proc_add_definition(result);
-
-              { add procdef options to objectdef options }
-              if (po_virtualmethod in result.procoptions) then
-                include(astruct.objectoptions,oo_has_virtual);
 
               chkcpp(result);
-              maybe_parse_hint_directives(result);
 
               parse_only:=oldparse_only;
             end;

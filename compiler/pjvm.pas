@@ -60,6 +60,7 @@ implementation
         pd: tprocdef;
         topowner: tdefentry;
         i: longint;
+        sstate: symcreat.tscannerstate;
         needclassconstructor: boolean;
       begin
         { if there is at least one constructor for a class, do nothing (for
@@ -156,35 +157,12 @@ implementation
               end;
             if needclassconstructor then
               begin
-                { determine symtable level }
-                topowner:=obj;
-                while not(topowner.owner.symtabletype in [staticsymtable,globalsymtable,localsymtable]) do
-                  topowner:=topowner.owner.defowner;
-                { name doesn't matter, so pick something that hopefully conflict }
-                ps:=tprocsym.create('$fpc_jvm_class_constructor');
-                obj.symtable.insert(ps);
-                { create procdef }
-                pd:=tprocdef.create(topowner.owner.symtablelevel+1);
-                { method of this objectdef }
-                pd.struct:=obj;
-                { associated procsym }
-                pd.procsym:=ps;
-                { constructor }
-                pd.proctypeoption:=potype_class_constructor;
-                { needs to be exported }
-                include(pd.procoptions,po_global);
-                { class constructor is a class method }
-                include(pd.procoptions,po_classmethod);
-                { empty body; proc entry code will add inits for class fields }
-                pd.synthetickind:=tsk_empty;
-                { private (= package visibility) }
-                pd.visibility:=vis_private;
-                { result type }
-                pd.returndef:=obj;
-                { calling convention, self, ... }
-                handle_calling_convention(pd);
-                { register forward declaration with procsym }
-                proc_add_definition(pd);
+                replace_scanner('custom_class_constructor',sstate);
+                if str_parse_method_dec('constructor fpc_jvm_class_constructor;',potype_class_constructor,true,obj,pd) then
+                  pd.synthetickind:=tsk_empty
+                else
+                  internalerror(2011040501);
+                restore_scanner(sstate);
               end;
           end;
       end;
@@ -199,14 +177,14 @@ implementation
         replace_scanner('record_jvm_helpers',sstate);
         { no override, because not supported in records; the parser will still
           accept "inherited" though }
-        if str_parse_method_dec('function clone: JLObject;',false,def,pd) then
+        if str_parse_method_dec('function clone: JLObject;',potype_function,false,def,pd) then
           pd.synthetickind:=tsk_jvm_clone
         else
           internalerror(2011032806);
         { can't use def.typesym, not yet set at this point }
         if def.symtable.realname^='' then
           internalerror(2011032803);
-        if str_parse_method_dec('procedure fpcDeepCopy(out result:'+def.symtable.realname^+');',false,def,pd) then
+        if str_parse_method_dec('procedure fpcDeepCopy(out result:'+def.symtable.realname^+');',potype_procedure,false,def,pd) then
           pd.synthetickind:=tsk_record_deepcopy
         else
           internalerror(2011032807);

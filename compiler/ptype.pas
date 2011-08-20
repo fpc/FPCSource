@@ -59,6 +59,9 @@ interface
       systems.systems_typed_constants_node_init) }
     procedure add_typedconst_init_routine(def: tabstractrecorddef);
 
+    { parse hint directives (platform, deprecated, ...) for a procdef }
+    procedure maybe_parse_hint_directives(pd:tprocdef);
+
 implementation
 
     uses
@@ -81,6 +84,26 @@ implementation
        scanner,
        pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl,
        pjvm;
+
+
+    procedure maybe_parse_hint_directives(pd:tprocdef);
+      var
+        dummysymoptions : tsymoptions;
+        deprecatedmsg : pshortstring;
+      begin
+        dummysymoptions:=[];
+        deprecatedmsg:=nil;
+        while try_consume_hintdirective(dummysymoptions,deprecatedmsg) do
+          Consume(_SEMICOLON);
+        if assigned(pd) then
+          begin
+            pd.symoptions:=pd.symoptions+dummysymoptions;
+            pd.deprecatedmsg:=deprecatedmsg;
+          end
+        else
+          stringdispose(deprecatedmsg);
+      end;
+
 
 
     procedure resolve_forward_types;
@@ -664,25 +687,6 @@ implementation
       end;
 
     procedure parse_record_members;
-
-        procedure maybe_parse_hint_directives(pd:tprocdef);
-        var
-          dummysymoptions : tsymoptions;
-          deprecatedmsg : pshortstring;
-        begin
-          dummysymoptions:=[];
-          deprecatedmsg:=nil;
-          while try_consume_hintdirective(dummysymoptions,deprecatedmsg) do
-            Consume(_SEMICOLON);
-          if assigned(pd) then
-            begin
-              pd.symoptions:=pd.symoptions+dummysymoptions;
-              pd.deprecatedmsg:=deprecatedmsg;
-            end
-          else
-            stringdispose(deprecatedmsg);
-        end;
-
       var
         pd : tprocdef;
         oldparse_only: boolean;
@@ -905,16 +909,9 @@ implementation
                 oldparse_only:=parse_only;
                 parse_only:=true;
                 if is_classdef then
-                  pd:=class_constructor_head
+                  pd:=class_constructor_head(current_structdef)
                 else
                   pd:=constructor_head;
-                parse_record_proc_directives(pd);
-                handle_calling_convention(pd);
-
-                { add definition to procsym }
-                proc_add_definition(pd);
-
-                maybe_parse_hint_directives(pd);
 
                 parse_only:=oldparse_only;
                 fields_allowed:=false;
@@ -932,16 +929,9 @@ implementation
                 oldparse_only:=parse_only;
                 parse_only:=true;
                 if is_classdef then
-                  pd:=class_destructor_head
+                  pd:=class_destructor_head(current_structdef)
                 else
                   pd:=destructor_head;
-                parse_record_proc_directives(pd);
-                handle_calling_convention(pd);
-
-                { add definition to procsym }
-                proc_add_definition(pd);
-
-                maybe_parse_hint_directives(pd);
 
                 parse_only:=oldparse_only;
                 fields_allowed:=false;
@@ -1817,13 +1807,13 @@ implementation
         { the class constructor }
         if not assigned(pd) then
           begin
-            if str_parse_method_dec('constructor fpc_init_typed_consts_class_constructor;',true,def,pd) then
+            if str_parse_method_dec('constructor fpc_init_typed_consts_class_constructor;',potype_class_constructor,true,def,pd) then
               pd.synthetickind:=tsk_empty
             else
               internalerror(2011040206);
           end;
         { the initialisation helper }
-        if str_parse_method_dec('procedure fpc_init_typed_consts_helper; static;',true,def,pd) then
+        if str_parse_method_dec('procedure fpc_init_typed_consts_helper; static;',potype_procedure,true,def,pd) then
           pd.synthetickind:=tsk_tcinit
         else
           internalerror(2011040207);

@@ -48,7 +48,7 @@ interface
 
     WARNING: save the scanner state before calling this routine, and restore
       when done. }
-  function str_parse_method_dec(str: ansistring; is_classdef: boolean; astruct: tabstractrecorddef; out pd: tprocdef): boolean;
+  function str_parse_method_dec(str: ansistring; potype: tproctypeoption; is_classdef: boolean; astruct: tabstractrecorddef; out pd: tprocdef): boolean;
 
   { parses a (class or regular)  method/constructor/destructor implementation
     from str, as if it appeared in the current unit's implementation section
@@ -101,7 +101,7 @@ implementation
     end;
 
 
-  function str_parse_method_dec(str: ansistring; is_classdef: boolean; astruct: tabstractrecorddef; out pd: tprocdef): boolean;
+  function str_parse_method_dec(str: ansistring; potype: tproctypeoption; is_classdef: boolean; astruct: tabstractrecorddef; out pd: tprocdef): boolean;
     var
       oldparse_only: boolean;
     begin
@@ -114,7 +114,18 @@ implementation
       current_scanner.substitutemacro('meth_head_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index);
       current_scanner.readtoken(false);
       { and parse it... }
-      pd:=method_dec(astruct,is_classdef);
+      case potype of
+        potype_class_constructor:
+          pd:=class_constructor_head(astruct);
+        potype_class_destructor:
+          pd:=class_destructor_head(astruct);
+        potype_constructor:
+          pd:=constructor_head;
+        potype_destructor:
+          pd:=destructor_head;
+        else
+          pd:=method_dec(astruct,is_classdef);
+      end;
       if assigned(pd) then
         result:=true;
       parse_only:=oldparse_only;
@@ -191,7 +202,7 @@ implementation
             not(tprocdef(pd).proctypeoption in [potype_constructor,potype_destructor]);
           { + 'overload' for Delphi modes }
           str:=tprocdef(pd).customprocname([pno_proctypeoption,pno_paranames,pno_noclassmarker,pno_noleadingdollar])+'overload;';
-          if not str_parse_method_dec(str,isclassmethod,obj,newpd) then
+          if not str_parse_method_dec(str,tprocdef(pd).proctypeoption,isclassmethod,obj,newpd) then
             internalerror(2011032001);
           newpd.synthetickind:=tsk_anon_inherited;
         end;
