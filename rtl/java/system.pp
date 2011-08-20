@@ -87,38 +87,13 @@ const
 
   maxint   = maxsmallint;
 
+
+{ Java base class type }
+{$i java_sysh.inc}
+{$i java_sys.inc}
+
 type
-  { Java base class type }
-  TObject = class external 'java.lang' name 'Object'
-   protected
-    function clone: TObject;
-   public
-    constructor create;
-    function equals(obj: TObject): boolean;
-    function hashcode: longint;
-  end;
-  TJLObject = TObject;
-
-  TJISerializable = interface external 'java.lang' name 'Serializable'
-  end;
-
-  TJLThrowable = class external 'java.lang' name 'Throwable' (TObject,TJISerializable)
-    constructor create;
-  end;
-
-  { Java Float class type }
-  TJFloat = class external 'java.lang' name 'Float'
-   constructor create(f: jfloat);
-   class function floatToRawIntBits(f: jfloat): jint; static;
-   class function intBitsToFloat(j: jint): jfloat; static;
-  end;
-
-  { Java Dloat class type }
-  TJDouble = class external 'java.lang' name 'Double'
-   constructor create(d: jdouble);
-   class function doubleToRawLongBits(d: jdouble): jlong; static;
-   class function longBitsToDouble(l: jlong): jdouble; static;
-  end;
+  TObject = JLObject;
 
 {$i innr.inc}
 {$i jmathh.inc}

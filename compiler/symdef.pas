@@ -4586,11 +4586,12 @@ implementation
             (objecttype=odt_objcclass) and
             (objname^='PROTOCOL') then
            objc_protocoltype:=self;
-         if (objecttype=odt_javaclass) then
+         if (objecttype=odt_javaclass) and
+            not(oo_is_formal in objectoptions) then
            begin
-             if (objname^='TOBJECT') then
+             if (objname^='JLOBJECT') then
                java_jlobject:=self;
-             if (objname^='TJLTHROWABLE') then
+             if (objname^='JLTHROWABLE') then
                java_jlthrowable:=self;
            end;
          writing_class_record_dbginfo:=false;

@@ -1244,9 +1244,9 @@ implementation
                       class_tobject:=current_objectdef;
                   odt_javaclass:
                     begin
-                      if (current_objectdef.objname^='TOBJECT') then
+                      if (current_objectdef.objname^='JLOBJECT') then
                         java_jlobject:=current_objectdef;
-                      if (current_objectdef.objname^='TJLTHROWABLE') then
+                      if (current_objectdef.objname^='JLTHROWABLE') then
                         java_jlthrowable:=current_objectdef;
                     end;
                 end;

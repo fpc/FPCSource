@@ -370,12 +370,12 @@ implementation
          { use the float/double to raw bits methods to get the bit pattern }
           if fdef.floattype=s32real then
             begin
-              csym:=search_system_type('TJFLOAT');
+              csym:=search_system_type('JLFLOAT');
               psym:=search_struct_member(tobjectdef(csym.typedef),singlemethod);
             end
           else
             begin
-              csym:=search_system_type('TJDOUBLE');
+              csym:=search_system_type('JLDOUBLE');
               psym:=search_struct_member(tobjectdef(csym.typedef),doublemethod);
             end;
           if not assigned(psym) or

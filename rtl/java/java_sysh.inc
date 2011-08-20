@@ -1,0 +1,188 @@
+{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.CharSequence, java.lang.Character, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.LinkageError, java.lang.Number, java.lang.Object, java.lang.RuntimeException, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.text.Collator, java.util.Comparator }
+type
+  JLStringBuffer = class;
+  Arr1JLStringBuffer = array of JLStringBuffer;
+  Arr2JLStringBuffer = array of Arr1JLStringBuffer;
+  Arr3JLStringBuffer = array of Arr2JLStringBuffer;
+
+  JLObject = class;
+  Arr1JLObject = array of JLObject;
+  Arr2JLObject = array of Arr1JLObject;
+  Arr3JLObject = array of Arr2JLObject;
+
+  JLThrowable = class;
+  Arr1JLThrowable = array of JLThrowable;
+  Arr2JLThrowable = array of Arr1JLThrowable;
+  Arr3JLThrowable = array of Arr2JLThrowable;
+
+  JLStringBuilder = class;
+  Arr1JLStringBuilder = array of JLStringBuilder;
+  Arr2JLStringBuilder = array of Arr1JLStringBuilder;
+  Arr3JLStringBuilder = array of Arr2JLStringBuilder;
+
+  JLAbstractStringBuilder = class;
+  Arr1JLAbstractStringBuilder = array of JLAbstractStringBuilder;
+  Arr2JLAbstractStringBuilder = array of Arr1JLAbstractStringBuilder;
+  Arr3JLAbstractStringBuilder = array of Arr2JLAbstractStringBuilder;
+
+  JLLinkageError = class;
+  Arr1JLLinkageError = array of JLLinkageError;
+  Arr2JLLinkageError = array of Arr1JLLinkageError;
+  Arr3JLLinkageError = array of Arr2JLLinkageError;
+
+  JLError = class;
+  Arr1JLError = array of JLError;
+  Arr2JLError = array of Arr1JLError;
+  Arr3JLError = array of Arr2JLError;
+
+  JLNumber = class;
+  Arr1JLNumber = array of JLNumber;
+  Arr2JLNumber = array of Arr1JLNumber;
+  Arr3JLNumber = array of Arr2JLNumber;
+
+  JLException = class;
+  Arr1JLException = array of JLException;
+  Arr2JLException = array of Arr1JLException;
+  Arr3JLException = array of Arr2JLException;
+
+  JLIndexOutOfBoundsException = class;
+  Arr1JLIndexOutOfBoundsException = array of JLIndexOutOfBoundsException;
+  Arr2JLIndexOutOfBoundsException = array of Arr1JLIndexOutOfBoundsException;
+  Arr3JLIndexOutOfBoundsException = array of Arr2JLIndexOutOfBoundsException;
+
+  JLCharacter = class;
+  Arr1JLCharacter = array of JLCharacter;
+  Arr2JLCharacter = array of Arr1JLCharacter;
+  Arr3JLCharacter = array of Arr2JLCharacter;
+
+  JLDouble = class;
+  Arr1JLDouble = array of JLDouble;
+  Arr2JLDouble = array of Arr1JLDouble;
+  Arr3JLDouble = array of Arr2JLDouble;
+
+  JTCollator = class;
+  Arr1JTCollator = array of JTCollator;
+  Arr2JTCollator = array of Arr1JTCollator;
+  Arr3JTCollator = array of Arr2JTCollator;
+
+  JLIllegalArgumentException = class;
+  Arr1JLIllegalArgumentException = array of JLIllegalArgumentException;
+  Arr2JLIllegalArgumentException = array of Arr1JLIllegalArgumentException;
+  Arr3JLIllegalArgumentException = array of Arr2JLIllegalArgumentException;
+
+  JLString = class;
+  Arr1JLString = array of JLString;
+  Arr2JLString = array of Arr1JLString;
+  Arr3JLString = array of Arr2JLString;
+
+  JLFloat = class;
+  Arr1JLFloat = array of JLFloat;
+  Arr2JLFloat = array of Arr1JLFloat;
+  Arr3JLFloat = array of Arr2JLFloat;
+
+  JLSystem = class;
+  Arr1JLSystem = array of JLSystem;
+  Arr2JLSystem = array of Arr1JLSystem;
+  Arr3JLSystem = array of Arr2JLSystem;
+
+  JLRuntimeException = class;
+  Arr1JLRuntimeException = array of JLRuntimeException;
+  Arr2JLRuntimeException = array of Arr1JLRuntimeException;
+  Arr3JLRuntimeException = array of Arr2JLRuntimeException;
+
+  JLCharSequence = interface;
+  Arr1JLCharSequence = array of JLCharSequence;
+  Arr2JLCharSequence = array of Arr1JLCharSequence;
+  Arr3JLCharSequence = array of Arr2JLCharSequence;
+
+  JLCloneable = interface;
+  Arr1JLCloneable = array of JLCloneable;
+  Arr2JLCloneable = array of Arr1JLCloneable;
+  Arr3JLCloneable = array of Arr2JLCloneable;
+
+  JUComparator = interface;
+  Arr1JUComparator = array of JUComparator;
+  Arr2JUComparator = array of Arr1JUComparator;
+  Arr3JUComparator = array of Arr2JUComparator;
+
+  JLAppendable = interface;
+  Arr1JLAppendable = array of JLAppendable;
+  Arr2JLAppendable = array of Arr1JLAppendable;
+  Arr3JLAppendable = array of Arr2JLAppendable;
+
+  JISerializable = interface;
+  Arr1JISerializable = array of JISerializable;
+  Arr2JISerializable = array of Arr1JISerializable;
+  Arr3JISerializable = array of Arr2JISerializable;
+
+  JLComparable = interface;
+  Arr1JLComparable = array of JLComparable;
+  Arr2JLComparable = array of Arr1JLComparable;
+  Arr3JLComparable = array of Arr2JLComparable;
+
+  JLStackTraceElement = class external 'java.lang' name 'StackTraceElement';
+  Arr1JLStackTraceElement = array of JLStackTraceElement;
+  Arr2JLStackTraceElement = array of Arr1JLStackTraceElement;
+  Arr3JLStackTraceElement = array of Arr2JLStackTraceElement;
+
+  JTCollationKey = class external 'java.text' name 'CollationKey';
+  Arr1JTCollationKey = array of JTCollationKey;
+  Arr2JTCollationKey = array of Arr1JTCollationKey;
+  Arr3JTCollationKey = array of Arr2JTCollationKey;
+
+  JIPrintWriter = class external 'java.io' name 'PrintWriter';
+  Arr1JIPrintWriter = array of JIPrintWriter;
+  Arr2JIPrintWriter = array of Arr1JIPrintWriter;
+  Arr3JIPrintWriter = array of Arr2JIPrintWriter;
+
+  JUProperties = class external 'java.util' name 'Properties';
+  Arr1JUProperties = array of JUProperties;
+  Arr2JUProperties = array of Arr1JUProperties;
+  Arr3JUProperties = array of Arr2JUProperties;
+
+  JIInputStream = class external 'java.io' name 'InputStream';
+  Arr1JIInputStream = array of JIInputStream;
+  Arr2JIInputStream = array of Arr1JIInputStream;
+  Arr3JIInputStream = array of Arr2JIInputStream;
+
+  JIConsole = class external 'java.io' name 'Console';
+  Arr1JIConsole = array of JIConsole;
+  Arr2JIConsole = array of Arr1JIConsole;
+  Arr3JIConsole = array of Arr2JIConsole;
+
+  JLClass = class external 'java.lang' name 'Class';
+  Arr1JLClass = array of JLClass;
+  Arr2JLClass = array of Arr1JLClass;
+  Arr3JLClass = array of Arr2JLClass;
+
+  JULocale = class external 'java.util' name 'Locale';
+  Arr1JULocale = array of JULocale;
+  Arr2JULocale = array of Arr1JULocale;
+  Arr3JULocale = array of Arr2JULocale;
+
+  JLSecurityManager = class external 'java.lang' name 'SecurityManager';
+  Arr1JLSecurityManager = array of JLSecurityManager;
+  Arr2JLSecurityManager = array of Arr1JLSecurityManager;
+  Arr3JLSecurityManager = array of Arr2JLSecurityManager;
+
+  JNCCharset = class external 'java.nio.charset' name 'Charset';
+  Arr1JNCCharset = array of JNCCharset;
+  Arr2JNCCharset = array of Arr1JNCCharset;
+  Arr3JNCCharset = array of Arr2JNCCharset;
+
+  JIPrintStream = class external 'java.io' name 'PrintStream';
+  Arr1JIPrintStream = array of JIPrintStream;
+  Arr2JIPrintStream = array of Arr1JIPrintStream;
+  Arr3JIPrintStream = array of Arr2JIPrintStream;
+
+  JNCChannel = interface external 'java.nio.channels' name 'Channel';
+  Arr1JNCChannel = array of JNCChannel;
+  Arr2JNCChannel = array of Arr1JNCChannel;
+  Arr3JNCChannel = array of Arr2JNCChannel;
+
+  JUMap = interface external 'java.util' name 'Map';
+  Arr1JUMap = array of JUMap;
+  Arr2JUMap = array of Arr1JUMap;
+  Arr3JUMap = array of Arr2JUMap;
+
+

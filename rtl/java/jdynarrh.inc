@@ -23,7 +23,7 @@ type
   TJCharArray = array of jchar;
   TJFloatArray = array of jfloat;
   TJDoubleArray = array of jdouble;
-  TJObjectArray = array of tobject;
+  TJObjectArray = array of JLObject;
 
 const
   FPCJDynArrTypeJByte   = 'B';
