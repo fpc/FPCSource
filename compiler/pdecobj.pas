@@ -774,7 +774,10 @@ implementation
 
       procedure parse_var;
         begin
-          if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass]) then
+          if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass]) and
+             { Java interfaces can contain static final class vars }
+             not((current_objectdef.objecttype=odt_interfacejava) and
+                 is_final and is_classdef) then
             Message(parser_e_type_var_const_only_in_records_and_classes);
           consume(_VAR);
           fields_allowed:=true;
@@ -796,8 +799,11 @@ implementation
           if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR]) then
             Message(parser_e_procedure_or_function_expected);
 
+          { Java interfaces can contain final class vars }
           if is_interface(current_structdef) or
-             is_javainterface(current_structdef) then
+             (is_javainterface(current_structdef) and
+              (not(is_final) or
+               (token<>_VAR))) then
             Message(parser_e_no_static_method_in_interfaces)
           else
             { class methods are also allowed for Objective-C protocols }
@@ -851,7 +857,7 @@ implementation
           case token of
             _TYPE :
               begin
-                if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass]) then
+                if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass,odt_interfacejava]) then
                   Message(parser_e_type_var_const_only_in_records_and_classes);
                 consume(_TYPE);
                 object_member_blocktype:=bt_type;
@@ -948,7 +954,8 @@ implementation
                             if is_interface(current_structdef) or
                                is_objc_protocol_or_category(current_structdef) or
                                is_objectpascal_helper(current_structdef) or
-                               is_javainterface(current_structdef) then
+                               (is_javainterface(current_structdef) and
+                                not(class_fields and final_fields)) then
                               Message(parser_e_no_vars_in_interfaces);
 
                             if (current_structdef.symtable.currentvisibility=vis_published) and
