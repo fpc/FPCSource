@@ -1020,7 +1020,7 @@ implementation
         if l>high(asizeint)-sym.fieldoffset then
           begin
             Message(sym_e_segment_too_large);
-            _datasize:=high(aint);
+            _datasize:=high(asizeint);
           end
         else
           _datasize:=sym.fieldoffset+l;
@@ -1194,8 +1194,8 @@ implementation
                 if bitsize>high(asizeint)-databitsize then
                   begin
                     Message(sym_e_segment_too_large);
-                    _datasize:=high(aint);
-                    databitsize:=high(aint);
+                    _datasize:=high(asizeint);
+                    databitsize:=high(asizeint);
                   end
                 else
                   begin
@@ -1210,7 +1210,7 @@ implementation
                 if tfieldvarsym(sym).getsize>high(asizeint)-_datasize then
                   begin
                     Message(sym_e_segment_too_large);
-                    _datasize:=high(aint);
+                    _datasize:=high(asizeint);
                   end
                 else
                   _datasize:=tfieldvarsym(sym).fieldoffset+offset;
