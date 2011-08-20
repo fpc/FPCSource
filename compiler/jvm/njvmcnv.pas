@@ -548,6 +548,7 @@ implementation
             convtype:=tc_equal;
             res:=target_specific_explicit_typeconv;
             result:=true;
+            exit;
           end;
       end;
 
