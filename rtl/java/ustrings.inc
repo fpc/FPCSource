@@ -262,20 +262,22 @@ begin
   result:=u;
 end;
 
-(*
+
 Function fpc_PChar_To_UnicodeStr(const p : pchar): UnicodeString; compilerproc;
-Var
-  L : SizeInt;
+var
+  i, len: longint;
+  arr: TAnsiCharArray;
 begin
-  if (not assigned(p)) or (p[0]=#0) Then
-  begin
-    fpc_pchar_to_unicodestr := '';
-    exit;
-  end;
-  l:=IndexChar(p^,-1,#0);
-  widestringmanager.Ansi2UnicodeMoveProc(P,fpc_PChar_To_UnicodeStr,l);
+  arr:=TAnsiCharArray(p);
+  i:=0;
+  while arr[i]<>#0 do
+    inc(i);
+  if i<>0 then
+    result:=JLString.create(TJByteArray(arr),0,i)
+  else
+    result:=''
 end;
-*)
+
 
 Function fpc_CharArray_To_UnicodeStr(const arr: array of ansichar; zerobased: boolean = true): UnicodeString; compilerproc;
 var

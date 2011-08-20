@@ -97,7 +97,22 @@ function Sptr:Pointer;
 {$define FPC_STRTOSHORTSTRINGPROC}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 {$define FPC_SYSTEM_HAS_FPC_PWIDECHAR_LENGTH}
+
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
+procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar); compilerproc;
+var
+  i, len: longint;
+  arr: TAnsiCharArray;
+begin
+  arr:=TAnsiCharArray(p);
+  i:=0;
+  while arr[i]<>#0 do
+    inc(i);
+  if i<>0 then
+    res:=pshortstring(ShortStringClass.create(arr,min(i,high(res))))^
+  else
+    res:=''
+end;
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring); compilerproc;

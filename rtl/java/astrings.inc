@@ -268,20 +268,21 @@ begin
   result:=ansistring(AnsistringClass.Create(c));
 end;
 
-(*
+
 Function fpc_PChar_To_AnsiStr(const p : pchar): ansistring; compilerproc;
-Var
-  L : SizeInt;
+var
+  i, len: longint;
+  arr: TAnsiCharArray;
 begin
-  if (not assigned(p)) or (p[0]=#0) Then
-    L := 0
+  arr:=TAnsiCharArray(p);
+  i:=0;
+  while arr[i]<>#0 do
+    inc(i);
+  if i<>0 then
+    result:=ansistring(AnsiStringClass.create(arr,i))
   else
-    l:=IndexChar(p^,-1,#0);
-  SetLength(fpc_PChar_To_AnsiStr,L);
-  if L > 0 then
-    Move (P[0],Pointer(fpc_PChar_To_AnsiStr)^,L)
+    result:=''
 end;
-*)
 
 
 Function fpc_CharArray_To_AnsiStr(const arr: array of ansichar; zerobased: boolean = true): ansistring; compilerproc;

@@ -45,13 +45,12 @@ procedure fpc_shortstr_append_shortstr(var s1:shortstring;const s2:shortstring);
 function fpc_shortstr_compare(const left,right:shortstring) : longint; compilerproc;
 function fpc_shortstr_compare_equal(const left,right:shortstring) : longint; compilerproc;
 
-(*
 {$ifndef FPC_STRTOSHORTSTRINGPROC}
 function fpc_pchar_to_shortstr(p:pchar):shortstring; compilerproc;
 {$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar); compilerproc;
 {$endif FPC_STRTOSHORTSTRINGPROC}
-
+(*
 function fpc_pchar_length(p:pchar):longint; compilerproc;
 function fpc_pwidechar_length(p:pwidechar):longint; compilerproc;
 *)
@@ -256,9 +255,7 @@ Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; compilerp
 {$ifndef nounsupported}
 Function fpc_Char_To_AnsiStr(const c : AnsiChar): AnsiString; compilerproc;
 {$endif}
-(*
 Function fpc_PChar_To_AnsiStr(const p : pchar): ansistring; compilerproc;
-*)
 {$ifndef nounsupported}
 Function fpc_CharArray_To_AnsiStr(const arr: array of AnsiChar; zerobased: boolean = true): ansistring; compilerproc;
 procedure fpc_ansistr_to_chararray(out res: array of AnsiChar; const src: ansistring)compilerproc;
