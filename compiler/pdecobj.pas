@@ -764,14 +764,14 @@ implementation
           case token of
             _TYPE :
               begin
-                if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper]) then
+                if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass]) then
                   Message(parser_e_type_var_const_only_in_records_and_classes);
                 consume(_TYPE);
                 object_member_blocktype:=bt_type;
               end;
             _VAR :
               begin
-                if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper]) then
+                if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass]) then
                   Message(parser_e_type_var_const_only_in_records_and_classes);
                 consume(_VAR);
                 fields_allowed:=true;
@@ -781,7 +781,7 @@ implementation
               end;
             _CONST:
               begin
-                if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper]) then
+                if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass]) then
                   Message(parser_e_type_var_const_only_in_records_and_classes);
                 consume(_CONST);
                 object_member_blocktype:=bt_const;

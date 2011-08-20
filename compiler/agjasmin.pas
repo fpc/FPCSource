@@ -54,6 +54,7 @@ interface
         function VisibilityToStr(vis: tvisibility): string;
         function MethodDefinition(pd: tprocdef): string;
         function FieldDefinition(sym: tabstractvarsym): string;
+        function InnerObjDef(obj: tobjectdef): string;
 
         procedure WriteProcDef(pd: tprocdef);
         procedure WriteFieldSym(sym: tabstractvarsym);
@@ -433,7 +434,7 @@ implementation
             case obj.objecttype of
               odt_javaclass:
                 begin
-                  AsmWriteLn('.class '+obj.objextname^);
+                  AsmWriteLn('.class '+obj.jvm_full_typename(false));
                   superclass:=obj.childof;
                 end;
               odt_interfacejava:
@@ -466,6 +467,13 @@ implementation
                     AsmWriteln(intf.objextname^);
                   end;
               end;
+            { in case of nested class: relation to parent class }
+            if obj.owner.symtabletype=objectsymtable then
+              AsmWriteln(InnerObjDef(obj));
+            { all all nested classes }
+            for i:=0 to obj.symtable.deflist.count-1 do
+              if is_java_class_or_interface(tdef(obj.symtable.deflist[i])) then
+                AsmWriteln(InnerObjDef(tobjectdef(obj.symtable.deflist[i])));
           end;
         AsmLn;
       end;
@@ -525,16 +533,7 @@ implementation
         else
           AsmClear;
 
-        AsmFileName:=obj.objextname^;
-        st:=obj.owner;
-        while assigned(st) and
-              (st.symtabletype=objectsymtable) do
-          begin
-            { nested classes are named as "OuterClass$InnerClass" }
-            enclosingobj:=tobjectdef(st.defowner);
-            AsmFileName:=enclosingobj.objextname^+'$'+AsmFileName;
-            st:=enclosingobj.owner;
-          end;
+        AsmFileName:=obj.jvm_full_typename(false);
         AsmFileName:=Path+FixFileName(AsmFileName)+target_info.asmext;
         AsmCreate(cut_normal);
       end;
@@ -608,6 +607,36 @@ implementation
            (sp_static in vissym.symoptions) then
           result:=result+'static ';
         result:=result+sym.jvmmangledbasename;
+      end;
+
+
+    function TJasminAssembler.InnerObjDef(obj: tobjectdef): string;
+      var
+        kindname: string;
+      begin
+        if obj.owner.defowner.typ<>objectdef then
+          internalerror(2011021701);
+        case obj.objecttype of
+          odt_javaclass:
+            kindname:='class ';
+          odt_interfacejava:
+            kindname:='interface ';
+          else
+            internalerror(2011021702);
+        end;
+        result:=
+          '.inner '+
+          kindname+
+          VisibilityToStr(obj.typesym.visibility)+
+          { Nested classes in the Pascal sense are equivalent to "static"
+            inner classes in Java -- will be changed when support for
+            Java-style non-static classes is added }
+         ' static '+
+         obj.objextname^+
+         ' inner '+
+         obj.jvm_full_typename(true)+
+         ' outer '+
+         tobjectdef(obj.owner.defowner).jvm_full_typename(true);
       end;
 
 

@@ -195,7 +195,7 @@ implementation
             case tobjectdef(def).objecttype of
               odt_javaclass,
               odt_interfacejava:
-                encodedstr:=encodedstr+'L'+tobjectdef(def).jvm_full_typename+';'
+                encodedstr:=encodedstr+'L'+tobjectdef(def).jvm_full_typename(true)+';'
               else
                 result:=false;
             end;
@@ -241,7 +241,7 @@ implementation
               odt_javaclass,
               odt_interfacejava:
                 begin
-                  tmpresult:=tobjectdef(owner.defowner).jvm_full_typename+'/'
+                  tmpresult:=tobjectdef(owner.defowner).jvm_full_typename(true)+'/'
                 end
               else
                 internalerror(2010122606);

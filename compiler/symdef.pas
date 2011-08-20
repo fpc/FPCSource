@@ -337,7 +337,7 @@ interface
           { C++ }
           procedure finish_cpp_data;
           { JVM }
-          function jvm_full_typename: string;
+          function jvm_full_typename(with_package_name: boolean): string;
        end;
 
        tclassrefdef = class(tabstractpointerdef)
@@ -5510,12 +5510,25 @@ implementation
       end;
 
 
-    function tobjectdef.jvm_full_typename: string;
+    function tobjectdef.jvm_full_typename(with_package_name: boolean): string;
+      var
+        st: tsymtable;
+        enclosingobj: tobjectdef;
       begin
-        result:='';
-        if assigned(import_lib) then
-          result:=import_lib^+'/';
-        result:=result+objextname^;
+        result:=objextname^;
+        st:=owner;
+        while assigned(st) and
+              (st.symtabletype=objectsymtable) do
+          begin
+            { nested classes are named as "OuterClass$InnerClass" }
+            enclosingobj:=tobjectdef(st.defowner);
+            result:=enclosingobj.objextname^+'$'+result;
+            st:=enclosingobj.owner;
+          end;
+
+        if with_package_name and
+           assigned(import_lib) then
+          result:=import_lib^+'/'+result;
       end;
 
 {****************************************************************************

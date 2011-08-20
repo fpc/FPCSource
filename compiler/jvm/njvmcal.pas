@@ -68,7 +68,7 @@ implementation
           exit;
         if (methodpointer.resultdef.typ<>classrefdef) then
           exit;
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tobjectdef(tprocdef(procdefinition).owner.defowner).jvm_full_typename)));
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tobjectdef(tprocdef(procdefinition).owner.defowner).jvm_full_typename(true))));
         { the constructor doesn't return anything, so put a duplicate of the
           self pointer on the evaluation stack for use as function result
           after the constructor has run }
