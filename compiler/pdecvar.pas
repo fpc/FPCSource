@@ -1085,6 +1085,32 @@ implementation
       end;
 
 
+    procedure try_read_field_external(vs: tabstractvarsym);
+      var
+        extname: string;
+      begin
+        if try_to_consume(_EXTERNAL) then
+          begin
+            consume(_NAME);
+            extname:=get_stringconst;
+            tfieldvarsym(vs).set_externalname(extname);
+            consume(_SEMICOLON);
+          end;
+      end;
+
+
+    procedure try_read_field_external_sc(sc:TFPObjectList);
+    var
+      vs: tabstractvarsym;
+    begin
+      { only allowed for one var }
+      vs:=tabstractvarsym(sc[0]);
+      if sc.count>1 then
+        Message1(parser_e_directive_only_one_var,arraytokeninfo[idtoken].str);
+      try_read_field_external(vs);
+    end;
+
+
     procedure read_var_decls(options:Tvar_dec_options);
 
         procedure read_default_value(sc : TFPObjectList);
@@ -1652,7 +1678,6 @@ implementation
                 (hdef.typesym=nil) then
                handle_calling_convention(tprocvardef(hdef));
 
-             { check if it is a class field }
              if (vd_object in options) then
                begin
                  { if it is not a class var section and token=STATIC then it is a class field too }
@@ -1661,6 +1686,11 @@ implementation
                      consume(_SEMICOLON);
                      include(options, vd_class);
                    end;
+                 { Fields in Java classes/interfaces can have a separately
+                   specified external name }
+                 if is_java_class_or_interface(tdef(recst.defowner)) and
+                    (oo_is_external in tobjectdef(recst.defowner).objectoptions) then
+                   try_read_field_external_sc(sc);
                end;
              if vd_class in options then
                begin
@@ -1690,6 +1720,10 @@ implementation
                        inserting the new one }
                      fieldvs.Rename(internal_static_field_name(fieldvs.name));
                      recst.insert(hstaticvs);
+                     { has to be delayed until now, because the calculated
+                       mangled name depends on the owner }
+                     if (vo_has_mangledname in fieldvs.varoptions) then
+                       hstaticvs.set_mangledname(fieldvs.externalname^);
 {$endif not jvm}
                      if vd_final in options then
                        hstaticvs.varspez:=vs_final;

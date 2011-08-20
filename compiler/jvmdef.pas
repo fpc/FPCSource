@@ -61,6 +61,7 @@ interface
     { returns the mangled base name for a tsym (type + symbol name, no
       visibility etc) }
     function jvmmangledbasename(sym: tsym): string;
+    function jvmmangledbasename(sym: tsym; const usesymname: string): string;
 
 implementation
 
@@ -326,7 +327,7 @@ implementation
       end;
 
 
-    function jvmmangledbasename(sym: tsym): string;
+    function jvmmangledbasename(sym: tsym; const usesymname: string): string;
       var
         vsym: tabstractvarsym;
         csym: tconstsym;
@@ -347,19 +348,28 @@ implementation
                       ([vo_is_funcret,vo_is_result] * tabstractnormalvarsym(vsym).varoptions <> []) then
                 result:='result '+result
               else
-                result:=vsym.realname+' '+result;
+                result:=usesymname+' '+result;
             end;
           constsym:
             begin
               csym:=tconstsym(sym);
               result:=jvmencodetype(csym.constdef);
-              result:=csym.realname+' '+result;
+              result:=usesymname+' '+result;
             end;
           else
             internalerror(2011021703);
         end;
       end;
 
+
+    function jvmmangledbasename(sym: tsym): string;
+      begin
+        if (sym.typ=fieldvarsym) and
+           assigned(tfieldvarsym(sym).externalname) then
+          result:=jvmmangledbasename(sym,tfieldvarsym(sym).externalname^)
+        else
+          result:=jvmmangledbasename(sym,sym.RealName);
+      end;
 
 {******************************************************************
                     jvm type validity checking

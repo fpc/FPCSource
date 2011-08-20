@@ -156,10 +156,12 @@ interface
 
       tfieldvarsym = class(tabstractvarsym)
           fieldoffset   : asizeint;   { offset in record/object }
+          externalname  : pshortstring;
           cachedmangledname: pshortstring; { mangled name for ObjC or Java }
           constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure set_externalname(const s:string);
           function mangledname:string;override;
           destructor destroy;override;
       end;
@@ -1201,6 +1203,10 @@ implementation
       begin
          inherited ppuload(fieldvarsym,ppufile);
          fieldoffset:=ppufile.getaint;
+         if (vo_has_mangledname in varoptions) then
+           externalname:=stringdup(ppufile.getstring)
+         else
+           externalname:=nil;
       end;
 
 
@@ -1208,7 +1214,27 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putaint(fieldoffset);
+         if (vo_has_mangledname in varoptions) then
+           ppufile.putstring(externalname^);
          ppufile.writeentry(ibfieldvarsym);
+      end;
+
+
+    procedure tfieldvarsym.set_externalname(const s: string);
+      var
+        tmp: string;
+      begin
+        { make sure it is recalculated }
+        stringdispose(cachedmangledname);
+{$ifdef jvm}
+        if is_java_class_or_interface(tdef(owner.defowner)) then
+          begin
+            externalname:=stringdup(s);
+            include(varoptions,vo_has_mangledname);
+          end
+        else
+{$endif jvm}
+          internalerror(2011031201);
       end;
 
 
@@ -1402,10 +1428,16 @@ implementation
 
 
     procedure tstaticvarsym.set_mangledname(const s:string);
+{$ifdef jvm}
+      var
+        tmpname: string;
+{$endif}
       begin
         stringdispose(_mangledname);
 {$if defined(jvm)}
-        internalerror(2011011202);
+        tmpname:=jvmmangledbasename(self,s);
+        jvmaddtypeownerprefix(owner,tmpname);
+        _mangledname:=stringdup(tmpname);
 {$elseif defined(compress)}
         _mangledname:=stringdup(minilzw_encode(s));
 {$else}
