@@ -457,6 +457,15 @@ implementation
       var
         ps: tsym;
       begin
+        { also called for unicodestring->pwidechar, not supported since we can't
+          directly access the characters in java.lang.String }
+        if not is_ansistring(left.resultdef) or
+           not is_pchar(resultdef) then
+          begin
+            CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
+            result:=nil;
+            exit;
+          end;
         result:=ctypeconvnode.create_explicit(left,java_ansistring);
         ps:=search_struct_member(java_ansistring,'INTERNCHARS');
         if not assigned(ps) or
