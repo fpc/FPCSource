@@ -1553,7 +1553,8 @@ implementation
                This just speedup the search a bit. }
              recstlist.count:=0;
              if not is_class_or_object(tdef(recst.defowner)) and
-                not is_record(tdef(recst.defowner)) then
+                not is_record(tdef(recst.defowner)) and
+                not is_java_class_or_interface(tdef(recst.defowner)) then
                begin
                  recstlist.add(recst);
                  symtablestack.pop(recst);

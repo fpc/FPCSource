@@ -435,8 +435,10 @@ implementation
                  consume(_POINT);
                  consume(_ID);
               end
-             else if is_class_or_object(def) or is_record(def) then
+             else if is_class_or_object(def) or is_record(def) or is_java_class_or_interface(def) then
                begin
+                 if (def.typ=objectdef) then
+                   def:=find_real_class_definition(tobjectdef(def),false);
                  consume(_POINT);
                  if (structstackindex>=0) and
                     (tabstractrecorddef(currentstructstack[structstackindex]).objname^=pattern) then
