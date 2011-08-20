@@ -4661,10 +4661,7 @@ implementation
                   does achieve regular call-by-reference semantics though;
                   formaldefs always have to be passed like that because their
                   contents can be replaced }
-                if ((vs.vardef.typ=formaldef) and
-                    (vs.varspez<>vs_const)) or
-                   ((vs.varspez in [vs_var,vs_out,vs_constref]) and
-                    not jvmimplicitpointertype(vs.vardef)) then
+                if paramanager.push_copyout_param(vs.varspez,vs.vardef,proccalloption) then
                   tmpresult:=tmpresult+'[';
                 { Add the parameter type.  }
                 if not jvmaddencodedtype(vs.vardef,false,tmpresult,signature,founderror) then
