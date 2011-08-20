@@ -548,7 +548,8 @@ interface
         checkoverflow:=
           checkoverflow and
           (left.resultdef.typ<>pointerdef) and
-          (right.resultdef.typ<>pointerdef);
+          (right.resultdef.typ<>pointerdef) and
+          (cs_check_overflow in current_settings.localswitches);
 
 {$ifdef cpu64bitalu}
         case nodetype of
@@ -572,12 +573,12 @@ interface
                     // reg64 - reg64
                     hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
                       right.location.register,left.location.register,location.register,
-                      checkoverflow and (cs_check_overflow in current_settings.localswitches),ovloc)
+                      checkoverflow,ovloc)
                   else
                     // reg64 - const64
                     hlcg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
                       right.location.value,left.location.register,location.register,
-                      checkoverflow and (cs_check_overflow in current_settings.localswitches),ovloc);
+                      checkoverflow,ovloc);
                 end
               else
                 begin
@@ -585,7 +586,7 @@ interface
                   hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
                   hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
                     right.location.register,left.location.register,location.register,
-                    checkoverflow and (cs_check_overflow in current_settings.localswitches),ovloc);
+                    checkoverflow,ovloc);
                 end;
             end;
           else
@@ -598,11 +599,11 @@ interface
               if (right.location.loc = LOC_CONSTANT) then
                 cg64.a_op64_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,op,location.size,right.location.value64,
                   left.location.register64,location.register64,
-                  checkoverflow and (cs_check_overflow in current_settings.localswitches),ovloc)
+                  checkoverflow,ovloc)
               else
                 cg64.a_op64_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,op,location.size,right.location.register64,
                   left.location.register64,location.register64,
-                  checkoverflow and (cs_check_overflow in current_settings.localswitches),ovloc);
+                  checkoverflow,ovloc);
             end;
           subn:
             begin
@@ -616,13 +617,13 @@ interface
                     cg64.a_op64_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,location.size,
                       right.location.register64,left.location.register64,
                       location.register64,
-                      checkoverflow and (cs_check_overflow in current_settings.localswitches),ovloc)
+                      checkoverflow,ovloc)
                   else
                     // reg64 - const64
                     cg64.a_op64_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,location.size,
                       right.location.value64,left.location.register64,
                       location.register64,
-                      checkoverflow and (cs_check_overflow in current_settings.localswitches),ovloc)
+                      checkoverflow,ovloc)
                 end
               else
                 begin
@@ -631,7 +632,7 @@ interface
                   cg64.a_op64_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,location.size,
                     right.location.register64,left.location.register64,
                     location.register64,
-                    checkoverflow and (cs_check_overflow in current_settings.localswitches),ovloc);
+                    checkoverflow,ovloc);
                 end;
             end;
           else
@@ -739,18 +740,19 @@ interface
        checkoverflow:=
          checkoverflow and
           (left.resultdef.typ<>pointerdef) and
-          (right.resultdef.typ<>pointerdef);
+          (right.resultdef.typ<>pointerdef) and
+          (cs_check_overflow in current_settings.localswitches);
 
        if nodetype<>subn then
         begin
           if (right.location.loc<>LOC_CONSTANT) then
             hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,cgop,resultdef,
                left.location.register,right.location.register,
-               location.register,checkoverflow and (cs_check_overflow in current_settings.localswitches),ovloc)
+               location.register,checkoverflow,ovloc)
           else
             hlcg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,cgop,resultdef,
                right.location.value,left.location.register,
-               location.register,checkoverflow and (cs_check_overflow in current_settings.localswitches),ovloc);
+               location.register,checkoverflow,ovloc);
         end
       else  { subtract is a special case since its not commutative }
         begin
@@ -761,11 +763,11 @@ interface
               if right.location.loc<>LOC_CONSTANT then
                 hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
                     right.location.register,left.location.register,
-                    location.register,checkoverflow and (cs_check_overflow in current_settings.localswitches),ovloc)
+                    location.register,checkoverflow,ovloc)
               else
                 hlcg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
                   right.location.value,left.location.register,
-                  location.register,checkoverflow and (cs_check_overflow in current_settings.localswitches),ovloc);
+                  location.register,checkoverflow,ovloc);
             end
           else
             begin
@@ -773,7 +775,7 @@ interface
               hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,
                 left.location.value,tmpreg);
               hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,resultdef,
-                right.location.register,tmpreg,location.register,checkoverflow and (cs_check_overflow in current_settings.localswitches),ovloc);
+                right.location.register,tmpreg,location.register,checkoverflow,ovloc);
             end;
         end;
 
