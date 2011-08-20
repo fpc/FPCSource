@@ -308,7 +308,11 @@ implementation
       isclassmethod:=
         (po_classmethod in pd.procoptions) and
         not(pd.proctypeoption in [potype_constructor,potype_destructor]);
-      str:='begin inherited end;';
+      str:='begin ';
+      if (pd.proctypeoption<>potype_constructor) and
+         not is_void(pd.returndef) then
+        str:=str+'result:=';
+      str:=str+'inherited end;';
       str_parse_method_impl(str,pd,isclassmethod);
     end;
 
