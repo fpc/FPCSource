@@ -139,6 +139,34 @@ implementation
               result:=tai_regalloc(p).reg=reg;
         end;
 
+      function regininstruction(p: tai; reg: tregister): boolean;
+        var
+          sr: tsuperregister;
+          i: longint;
+        begin
+          result:=false;
+          if p.typ<>ait_instruction then
+            exit;
+          sr:=getsupreg(reg);
+          for i:=0 to taicpu(p).ops-1 do
+            case taicpu(p).oper[0]^.typ of
+              top_reg:
+                if (getsupreg(taicpu(p).oper[0]^.reg)=sr) then
+                  exit(true);
+              top_ref:
+                begin
+                  if (getsupreg(taicpu(p).oper[0]^.ref^.base)=sr) then
+                    exit(true);
+                  if (getsupreg(taicpu(p).oper[0]^.ref^.index)=sr) then
+                    exit(true);
+                  if (getsupreg(taicpu(p).oper[0]^.ref^.indexbase)=sr) then
+                    exit(true);
+                  if (getsupreg(taicpu(p).oper[0]^.ref^.indexbase)=sr) then
+                    exit(true);
+                end;
+            end;
+        end;
+
       function try_remove_store_dealloc_load(var p: tai): boolean;
         var
           dealloc,
@@ -174,7 +202,7 @@ implementation
 
 
       var
-        p,next: tai;
+        p,next,nextnext: tai;
         reg: tregister;
         removedsomething: boolean;
       begin
@@ -188,21 +216,27 @@ implementation
                   begin
                     reg:=NR_NO;
                     next:=nextskipping(p,[ait_comment]);
-                    { remove
-                        alloc reg
-                        dealloc reg
-                      (can appear after optimisations, necessary to prevent
-                       useless stack slot allocations) }
-                    if isregallocoftyp(p,ra_alloc,reg) and
-                       isregallocoftyp(next,ra_dealloc,reg) then
+                    nextnext:=nextskipping(next,[ait_comment,ait_regalloc]);
+                    if assigned(nextnext) then
                       begin
-                        list.remove(p);
-                        p.free;
-                        p:=tai(next.next);
-                        list.remove(next);
-                        next.free;
-                        removedsomething:=true;
-                        continue;
+                        { remove
+                            alloc reg
+                            dealloc reg
+
+                          (can appear after optimisations, necessary to prevent
+                           useless stack slot allocations) }
+                        if isregallocoftyp(p,ra_alloc,reg) and
+                           isregallocoftyp(next,ra_dealloc,reg) and
+                           not regininstruction(nextnext,reg) then
+                          begin
+                            list.remove(p);
+                            p.free;
+                            p:=tai(next.next);
+                            list.remove(next);
+                            next.free;
+                            removedsomething:=true;
+                            continue;
+                          end;
                       end;
                   end;
                 ait_instruction:
