@@ -496,6 +496,7 @@ implementation
         wrapperpd: tprocdef;
         wrapperpv: tprocvardef;
         typ: ttypesym;
+        wrappername: shortstring;
       begin
         if (po_external in pd.procoptions) or
            (oo_is_external in pd.struct.objectoptions) then
@@ -507,6 +508,21 @@ implementation
           we have to change its external name so that we give that original
           name to the wrapper function -> "switch" the external names around for
           the original and wrapper methods }
+
+        { replace importname of original procdef }
+        include(pd.procoptions,po_has_importname);
+        if not assigned(pd.import_name) then
+          wrappername:=pd.procsym.realname
+        else
+          wrappername:=pd.import_name^;
+        stringdispose(pd.import_name);
+        pd.import_name:=stringdup(wrappername+'__fpcvirtualclassmethod__');
+
+        { we only have to generate the dispatching routine for non-overriding
+          methods; the overriding ones can use the original one }
+        if po_overridingmethod in pd.procoptions then
+          exit;
+
         { wrapper is part of the same symtable as the original procdef }
         symtablestack.push(pd.owner);
         { get a copy of the virtual class method }
@@ -516,15 +532,8 @@ implementation
         exclude(wrapperpd.procoptions,po_overridingmethod);
         { import/external name = name of original class method }
         stringdispose(wrapperpd.import_name);
-        if not assigned(pd.import_name) then
-          wrapperpd.import_name:=stringdup(pd.procsym.realname)
-        else
-          wrapperpd.import_name:=stringdup(pd.import_name^);
+        wrapperpd.import_name:=stringdup(wrappername);
         include(wrapperpd.procoptions,po_has_importname);
-        { replace importname of original procdef }
-        include(pd.procoptions,po_has_importname);
-        stringdispose(pd.import_name);
-        pd.import_name:=stringdup(wrapperpd.import_name^+'__fpcvirtualclassmethod__');
         { implementation }
         wrapperpd.synthetickind:=tsk_jvm_virtual_clmethod;
         { associate with wrapper procsym (Pascal-level name = wrapper name ->
@@ -582,7 +591,7 @@ implementation
         wrapperpd.synthetickind:=tsk_callthrough;
         wrapperpd.skpara:=pd;
         symtablestack.pop(pd.owner);
-        { and now wrap this generated virtual static method itself as well}
+        { and now wrap this generated virtual static method itself as well }
         jvm_wrap_virtual_class_method(wrapperpd);
       end;
 
