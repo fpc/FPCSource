@@ -289,6 +289,8 @@ implementation
           childpd:=tprocdef(parentpd.getcopy);
           if forcevis<>vis_none then
             childpd.visibility:=forcevis;
+          if po_virtualmethod in childpd.procoptions then
+            include(childpd.procoptions,po_overridingmethod);
           finish_copied_procdef(childpd,parentpd.procsym.realname,obj.symtable,obj);
           exclude(childpd.procoptions,po_external);
           include(childpd.procoptions,po_overload);
