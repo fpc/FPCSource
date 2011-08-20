@@ -340,7 +340,7 @@ implementation
                     { we need a carry in case the element is in the range }
                     { (this will never overflow since we check at the     }
                     { beginning whether stop-start <> 255)                }
-                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opdef, OC_B,
+                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, uopdef, OC_B,
                       setparts[i].stop-setparts[i].start+1,pleftreg,current_procinfo.CurrTrueLabel);
                   end
                 else
