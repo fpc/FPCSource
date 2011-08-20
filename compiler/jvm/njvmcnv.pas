@@ -884,7 +884,7 @@ implementation
             toarrtype:=jvmarrtype_setlength(todef);
             if not ptr_no_typecheck_required(fromdef,todef) then
               begin
-                if (fromarrtype in ['A','R','T']) or
+                if (fromarrtype in ['A','R','T','E','L']) or
                    (fromarrtype<>toarrtype) then
                   begin
                     if not check_only and
