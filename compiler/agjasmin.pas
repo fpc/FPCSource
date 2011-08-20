@@ -697,9 +697,13 @@ implementation
           vis_hidden,
           vis_strictprivate:
             result:='private ';
+          { protected in Java means "accessible by subclasses *and* by classes
+            in the same package" -> similar to regular "protected" in Pascal;
+            "strict protected" is actually more strict in Pascal than in Java,
+            but there's not much we can do about that }
+          vis_protected,
           vis_strictprotected:
             result:='protected ';
-          vis_protected,
           vis_private:
             { pick default visibility = "package" visibility; required because
               other classes in the same unit can also access these symbols }
