@@ -393,6 +393,8 @@ unit hlcg2ll;
 //          procedure location_force_mmreg(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);override;
 
           procedure maketojumpbool(list:TAsmList; p : tnode);override;
+
+          procedure gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara); override;
        end;
 
 
@@ -1158,6 +1160,11 @@ procedure thlcg2ll.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; co
       { loadregvars parameter is no longer used, should be removed from
          ncgutil version as well }
       ncgutil.maketojumpbool(list,p,lr_dont_load_regvars);
+    end;
+
+  procedure thlcg2ll.gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara);
+    begin
+      ncgutil.gen_load_loc_cgpara(list,vardef,l,cgpara);
     end;
 
 end.

@@ -22,24 +22,41 @@
  ****************************************************************************
 }
 
-unit hlcgcpu;
-
-{$i fpcdefs.inc}
+unit hlcgx86;
 
 interface
 
-  procedure create_hlcodegen;
+{$i fpcdefs.inc}
+
+  uses
+    aasmdata,
+    symtype,symdef,
+    parabase,
+    hlcgobj, hlcg2ll;
+
+  type
+
+    { thlcgx86 }
+
+    thlcgx86 = class(thlcg2ll)
+     protected
+      procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
+    end;
 
 implementation
 
   uses
-    hlcgobj, hlcgx86,
-    cgcpu;
+    cgbase,
+    cpubase,aasmcpu;
 
-  procedure create_hlcodegen;
+{ thlcgx86 }
+
+  procedure thlcgx86.gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara);
     begin
-      hlcg:=thlcgx86.create;
-      create_codegen;
+      { the caller will pop a value from the fpu stack }
+      if assigned(resloc.location) and
+         (resloc.location^.loc=LOC_FPUREGISTER) then
+        list.concat(taicpu.op_none(A_FLDZ));
     end;
 
 end.

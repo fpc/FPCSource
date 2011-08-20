@@ -95,7 +95,7 @@ implementation
       cga,cgx86,aasmcpu,
 {$endif x86}
       ncgutil,
-      cgobj,tgobj,
+      cgobj,tgobj,hlcgobj,
       procinfo,
       wpobase;
 
@@ -134,10 +134,10 @@ implementation
 
         { Move flags and jump in register to make it less complex }
         if left.location.loc in [LOC_FLAGS,LOC_JUMP,LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF] then
-          location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),false);
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
 
         { load the parameter's tlocation into its cgpara }
-        gen_load_loc_cgpara(current_asmdata.CurrAsmList,left.resultdef,left.location,tempcgpara)
+        hlcg.gen_load_loc_cgpara(current_asmdata.CurrAsmList,left.resultdef,left.location,tempcgpara)
       end;
 
 

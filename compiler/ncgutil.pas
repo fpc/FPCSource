@@ -98,7 +98,6 @@ interface
     procedure gen_entry_code(list:TAsmList);
     procedure gen_exit_code(list:TAsmList);
     procedure gen_load_para_value(list:TAsmList);
-    procedure gen_load_return_value(list:TAsmList);
 
     procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
     procedure gen_intf_wrappers(list:TAsmList;st:TSymtable;nested:boolean);
@@ -1761,46 +1760,6 @@ implementation
             end;
            hp:=hp^.next;
          end;
-      end;
-
-
-    procedure gen_load_return_value(list:TAsmList);
-      var
-        ressym : tabstractnormalvarsym;
-        funcretloc : TCGPara;
-      begin
-        { Is the loading needed? }
-        if is_void(current_procinfo.procdef.returndef) or
-           (
-            (po_assembler in current_procinfo.procdef.procoptions) and
-            (not(assigned(current_procinfo.procdef.funcretsym)) or
-             (tabstractvarsym(current_procinfo.procdef.funcretsym).refs=0))
-           ) then
-           exit;
-
-        funcretloc:=current_procinfo.procdef.funcretloc[calleeside];
-
-        { constructors return self }
-        if (current_procinfo.procdef.proctypeoption=potype_constructor) then
-          ressym:=tabstractnormalvarsym(current_procinfo.procdef.parast.Find('self'))
-        else
-          ressym:=tabstractnormalvarsym(current_procinfo.procdef.funcretsym);
-        if (ressym.refs>0) or
-           is_managed_type(ressym.vardef) then
-          begin
-            { was: don't do anything if funcretloc.loc in [LOC_INVALID,LOC_REFERENCE] }
-            if not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption) then
-              gen_load_loc_cgpara(list,ressym.vardef,ressym.localloc,funcretloc);
-          end
-{$ifdef x86}
-         else
-          begin
-            { the caller will pop a value from the fpu stack }
-            if assigned(funcretloc.location) and
-               (funcretloc.location^.loc = LOC_FPUREGISTER) then
-              list.concat(taicpu.op_none(A_FLDZ));
-          end;
-{$endif x86}
       end;
 
 

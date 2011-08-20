@@ -1116,7 +1116,7 @@ implementation
             { add code that will load the return value, this is not done
               for assembler routines when they didn't reference the result
               variable }
-            gen_load_return_value(templist);
+            hlcg.gen_load_return_value(templist);
             aktproccode.concatlist(templist);
 
             { Already reserve all registers for stack checking code and

@@ -652,6 +652,7 @@ compiler/x86/agx86nsm.pas svneol=native#text/plain
 compiler/x86/cga.pas svneol=native#text/plain
 compiler/x86/cgx86.pas svneol=native#text/plain
 compiler/x86/cpubase.pas svneol=native#text/plain
+compiler/x86/hlcgx86.pas svneol=native#text/plain
 compiler/x86/itcpugas.pas svneol=native#text/plain
 compiler/x86/itx86int.pas svneol=native#text/plain
 compiler/x86/nx86add.pas svneol=native#text/plain

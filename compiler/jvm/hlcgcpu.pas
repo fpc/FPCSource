@@ -30,7 +30,7 @@ uses
   globtype,
   aasmbase,aasmdata,
   symtype,symdef,
-  cpubase, hlcgobj, cgbase, cgutils;
+  cpubase, hlcgobj, cgbase, cgutils, parabase;
 
   type
 
@@ -120,6 +120,8 @@ uses
       property maxevalstackheight: longint read fmaxevalstackheight;
 
      protected
+      procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
+
       { in case of an array, the array base address and index have to be
         put on the evaluation stack before the stored value; similarly, for
         fields the self pointer has to be loaded first. Also checks whether
@@ -158,7 +160,7 @@ implementation
     defutil,
     aasmtai,aasmcpu,
     symconst,
-    cgcpu;
+    procinfo,cgcpu;
 
   const
     TOpCG2IAsmOp : array[topcg] of TAsmOp=(                       { not = xor -1 }
@@ -469,6 +471,30 @@ implementation
           resize_stack_int_val(list,OS_S32,def_cgsize(size),false);
       end;
 
+  procedure thlcgjvm.gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara);
+    begin
+      { constructors don't return anything in Java }
+      if pd.proctypeoption=potype_constructor then
+        exit;
+      { must return a value of the correct type on the evaluation stack }
+      case def2regtyp(resdef) of
+        R_INTREGISTER,
+        R_ADDRESSREGISTER:
+          a_load_const_cgpara(list,resdef,0,resloc);
+        R_FPUREGISTER:
+          case tfloatdef(resdef).floattype of
+            s32real:
+             list.concat(taicpu.op_none(a_fconst_0));
+            s64real:
+             list.concat(taicpu.op_none(a_dconst_0));
+            else
+              internalerror(2011010302);
+          end
+        else
+          internalerror(2011010301);
+      end;
+    end;
+
   function thlcgjvm.prepare_stack_for_ref(list: TAsmList; const ref: treference; dup: boolean): longint;
     var
       href: treference;
@@ -761,10 +787,34 @@ implementation
     end;
 
   procedure thlcgjvm.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
+    var
+      opc: tasmop;
     begin
-      // TODO: must be made part of returning the result, because ret opcode
-      // depends on that
-      list.concat(taicpu.op_none(a_return));
+      case current_procinfo.procdef.returndef.typ of
+        orddef:
+          case torddef(current_procinfo.procdef.returndef).ordtype of
+            uvoid:
+              opc:=a_return;
+            s64bit,
+            u64bit,
+            scurrency:
+              opc:=a_lreturn;
+            else
+              opc:=a_ireturn;
+          end;
+        floatdef:
+          case tfloatdef(current_procinfo.procdef.returndef).floattype of
+            s32real:
+              opc:=a_freturn;
+            s64real:
+              opc:=a_dreturn;
+            else
+              internalerror(2011010213);
+          end;
+        else
+          opc:=a_areturn;
+      end;
+      list.concat(taicpu.op_none(opc));
     end;
 
   procedure thlcgjvm.record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);

@@ -33,12 +33,12 @@ interface
 implementation
 
   uses
-    hlcgobj, hlcg2ll,
+    hlcgobj, hlcgx86,
     cgcpu;
 
   procedure create_hlcodegen;
     begin
-      hlcg:=thlcg2ll.create;
+      hlcg:=thlcgx86.create;
       create_codegen;
     end;
 

@@ -426,6 +426,20 @@ unit hlcgobj;
           procedure gen_proc_symbol(list:TAsmList);virtual;
           procedure gen_proc_symbol_end(list:TAsmList);virtual;
 
+         private
+          procedure gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation;const cgpara: tcgpara;locintsize: longint);virtual;
+         protected
+          { Some targets have to put "something" in the function result
+            location if it's not initialised by the Pascal code, e.g.
+            stack-based architectures. By default it does nothing }
+          procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara);virtual;
+         public
+          { load a tlocation into a cgpara }
+          procedure gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara);virtual;
+
+          { load the function return value into the ABI-defined function return location }
+          procedure gen_load_return_value(list:TAsmList);virtual;
+
           { extras refactored from other units }
 
           { queue the code/data generated for a procedure for writing out to
@@ -1686,6 +1700,161 @@ implementation
             cg.a_jmp_name(list,target_info.cprefix+'FPC_SYSTEMMAIN');
            end;
         end;
+    end;
+
+  procedure thlcgobj.gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation; const cgpara: tcgpara; locintsize: longint);
+    begin
+      case l.loc of
+(*
+        LOC_MMREGISTER,
+        LOC_CMMREGISTER:
+          case cgpara.location^.loc of
+            LOC_REFERENCE,
+            LOC_CREFERENCE,
+            LOC_MMREGISTER,
+            LOC_CMMREGISTER,
+            LOC_REGISTER,
+            LOC_CREGISTER :
+              cg.a_loadmm_reg_cgpara(list,locsize,l.register,cgpara,mms_movescalar);
+            LOC_FPUREGISTER,
+            LOC_CFPUREGISTER:
+              begin
+                tmploc:=l;
+                location_force_fpureg(list,tmploc,false);
+                cg.a_loadfpu_reg_cgpara(list,tmploc.size,tmploc.register,cgpara);
+              end;
+            else
+              internalerror(200204249);
+          end;
+*)
+        LOC_FPUREGISTER,
+        LOC_CFPUREGISTER:
+          case cgpara.location^.loc of
+(*
+            LOC_MMREGISTER,
+            LOC_CMMREGISTER:
+              begin
+                tmploc:=l;
+                location_force_mmregscalar(list,tmploc,false);
+                cg.a_loadmm_reg_cgpara(list,tmploc.size,tmploc.register,cgpara,mms_movescalar);
+              end;
+*)
+            { Some targets pass floats in normal registers }
+            LOC_REGISTER,
+            LOC_CREGISTER,
+            LOC_REFERENCE,
+            LOC_CREFERENCE,
+            LOC_FPUREGISTER,
+            LOC_CFPUREGISTER:
+              hlcg.a_loadfpu_reg_cgpara(list,size,l.register,cgpara);
+            else
+              internalerror(2011010210);
+          end;
+        LOC_REFERENCE,
+        LOC_CREFERENCE:
+          case cgpara.location^.loc of
+(*
+            LOC_MMREGISTER,
+            LOC_CMMREGISTER:
+              cg.a_loadmm_ref_cgpara(list,locsize,l.reference,cgpara,mms_movescalar);
+*)
+            { Some targets pass floats in normal registers }
+            LOC_REGISTER,
+            LOC_CREGISTER,
+            LOC_REFERENCE,
+            LOC_CREFERENCE,
+            LOC_FPUREGISTER,
+            LOC_CFPUREGISTER:
+              hlcg.a_loadfpu_ref_cgpara(list,size,l.reference,cgpara);
+            else
+              internalerror(2011010211);
+          end;
+        LOC_REGISTER,
+        LOC_CREGISTER :
+          hlcg.a_load_loc_cgpara(list,size,l,cgpara);
+         else
+           internalerror(2011010212);
+      end;
+    end;
+
+  procedure thlcgobj.gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara);
+    begin
+      { do nothing by default }
+    end;
+
+  procedure thlcgobj.gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara);
+    begin
+      { Handle Floating point types differently
+
+        This doesn't depend on emulator settings, emulator settings should
+        be handled by cpupara }
+      if (vardef.typ=floatdef) or
+         { some ABIs return certain records in an fpu register }
+         (l.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) or
+         (assigned(cgpara.location) and
+          (cgpara.Location^.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER])) then
+        begin
+          gen_loadfpu_loc_cgpara(list,vardef,l,cgpara,vardef.size);
+          exit;
+        end;
+
+      case l.loc of
+        LOC_CONSTANT,
+        LOC_REGISTER,
+        LOC_CREGISTER,
+        LOC_REFERENCE,
+        LOC_CREFERENCE :
+          begin
+            hlcg.a_load_loc_cgpara(list,vardef,l,cgpara);
+          end;
+(*
+        LOC_MMREGISTER,
+        LOC_CMMREGISTER:
+          begin
+            case l.size of
+              OS_F32,
+              OS_F64:
+                cg.a_loadmm_loc_cgpara(list,l,cgpara,mms_movescalar);
+              else
+                cg.a_loadmm_loc_cgpara(list,l,cgpara,nil);
+            end;
+          end;
+*)
+        else
+          internalerror(2011010212);
+      end;
+    end;
+
+  procedure thlcgobj.gen_load_return_value(list: TAsmList);
+    var
+      ressym : tabstractnormalvarsym;
+      funcretloc : TCGPara;
+    begin
+      { Is the loading needed? }
+      if is_void(current_procinfo.procdef.returndef) or
+         (
+          (po_assembler in current_procinfo.procdef.procoptions) and
+          (not(assigned(current_procinfo.procdef.funcretsym)) or
+           (tabstractvarsym(current_procinfo.procdef.funcretsym).refs=0))
+         ) then
+         exit;
+
+      funcretloc:=current_procinfo.procdef.funcretloc[calleeside];
+
+      { constructors return self }
+      if (current_procinfo.procdef.proctypeoption=potype_constructor) then
+        ressym:=tabstractnormalvarsym(current_procinfo.procdef.parast.Find('self'))
+      else
+        ressym:=tabstractnormalvarsym(current_procinfo.procdef.funcretsym);
+      if (ressym.refs>0) or
+         is_managed_type(ressym.vardef) then
+        begin
+          { was: don't do anything if funcretloc.loc in [LOC_INVALID,LOC_REFERENCE] }
+          if not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption) then
+            hlcg.gen_load_loc_cgpara(list,ressym.vardef,ressym.localloc,funcretloc);
+        end
+      else
+        gen_load_uninitialized_function_result(list,current_procinfo.procdef,ressym.vardef,funcretloc)
     end;
 
   procedure thlcgobj.record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);
