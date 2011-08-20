@@ -44,12 +44,16 @@ interface
 
       TJasminAssembler=class(texternalassembler)
        protected
-        procedure WriteExtraHeader;virtual;
+        jasminjar: tcmdstr;
+        procedure WriteExtraHeader(obj: tobjectdef);
         procedure WriteInstruction(hp: tai);
+        procedure NewAsmFileForObjectDef(obj: tobjectdef);
         procedure WriteProcDef(pd: tprocdef);
         procedure WriteSymtableProcdefs(st: TSymtable);
+        procedure WriteSymtableObjectDefs(st: TSymtable);
        public
         constructor Create(smart: boolean); override;
+        function MakeCmdLine: TCmdStr;override;
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
         destructor destroy; override;
@@ -79,7 +83,7 @@ implementation
 
     uses
       SysUtils,
-      cutils,cfileutl,systems,
+      cutils,cfileutl,systems,script,
       fmodule,finput,verbose,
       symconst,symtype,
       itcpujas,cpubase,cgutils,
@@ -379,14 +383,103 @@ implementation
       end;
 
 
-    procedure TJasminAssembler.WriteExtraHeader;
+    procedure TJasminAssembler.WriteExtraHeader(obj: tobjectdef);
+      var
+        n: string;
       begin
+        { JVM 1.5+ }
+        AsmWriteLn('.bytecode 49.0');
+        // include files are not support by Java, and the directory of the main
+        // source file must not be specified
+        if assigned(current_module.mainsource) then
+          n:=ExtractFileName(current_module.mainsource^)
+        else
+          n:=InputFileName;
+        AsmWriteLn('.source '+ExtractFileName(n));
+        if not assigned(obj) then
+          begin
+            { fake class type for unit -> name=unitname and
+              superclass=java.lang.object }
+            AsmWriteLn('.class '+ChangeFileExt(ExtractFileName(n),''));
+            AsmWriteLn('.super java/lang/Object');
+          end
+        else
+          begin
+            AsmWriteLn('.class '+obj.objextname^);
+            if assigned(obj.childof) then
+              begin
+                AsmWrite('.super ');
+                if assigned(obj.childof.import_lib) then
+                  AsmWrite(obj.childof.import_lib^+'/');
+                AsmWriteln(obj.childof.objextname^);
+              end;
+          end;
+        AsmLn;
       end;
 
 
     procedure TJasminAssembler.WriteInstruction(hp: tai);
       begin
         InstrWriter.WriteInstruction(hp);
+      end;
+
+
+   function TJasminAssembler.MakeCmdLine: TCmdStr;
+     const
+       jasminjarname = 'jasmin.jar';
+     var
+       jasminjarfound: boolean;
+     begin
+       if jasminjar='' then
+         begin
+           jasminjarfound:=false;
+           if utilsdirectory<>'' then
+             jasminjarfound:=FindFile(jasminjarname,utilsdirectory,false,jasminjar);
+           if not jasminjarfound then
+             jasminjarfound:=FindFileInExeLocations(jasminjarname,false,jasminjar);
+           if (not jasminjarfound) and not(cs_asm_extern in current_settings.globalswitches) then
+             begin
+               Message1(exec_e_assembler_not_found,jasminjarname);
+               current_settings.globalswitches:=current_settings.globalswitches+[cs_asm_extern];
+             end;
+           if jasminjarfound then
+             Message1(exec_t_using_assembler,jasminjar);
+         end;
+       result:=target_asm.asmcmd;
+       Replace(result,'$ASM',maybequoted(ScriptFixFileName(AsmFileName)));
+       if (path<>'') then
+         Replace(result,'$OBJDIR',maybequoted(ScriptFixFileName(path)))
+       else
+         Replace(result,'$OBJDIR','.');
+       Replace(result,'$JASMINJAR',maybequoted(ScriptFixFileName(jasminjar)));
+     end;
+
+
+   procedure TJasminAssembler.NewAsmFileForObjectDef(obj: tobjectdef);
+      var
+        enclosingobj: tobjectdef;
+        st: tsymtable;
+      begin
+        if AsmSize<>AsmStartSize then
+          begin
+            AsmClose;
+            DoAssemble;
+          end
+        else
+          AsmClear;
+
+        AsmFileName:=obj.objextname^;
+        st:=obj.owner;
+        while assigned(st) and
+              (st.symtabletype=objectsymtable) do
+          begin
+            { nested classes are named as "OuterClass$InnerClass" }
+            enclosingobj:=tobjectdef(st.defowner);
+            AsmFileName:=enclosingobj.objextname^+'$'+AsmFileName;
+            st:=enclosingobj.owner;
+          end;
+        AsmFileName:=Path+FixFileName(AsmFileName)+target_info.asmext;
+        AsmCreate(cut_normal);
       end;
 
 
@@ -399,6 +492,7 @@ implementation
       var
         i   : longint;
         def : tdef;
+        obj : tobjectdef;
       begin
         if not assigned(st) then
           exit;
@@ -408,14 +502,50 @@ implementation
             case def.typ of
               procdef :
                 begin
-                  WriteProcDef(tprocdef(def));
-                  if assigned(tprocdef(def).localst) then
-                    WriteSymtableProcdefs(tprocdef(def).localst);
+                  { methods are also in the static/globalsymtable of the unit
+                    -> make sure they are only written for the objectdefs that
+                    own them }
+                  if not(st.symtabletype in [staticsymtable,globalsymtable]) or
+                     (def.owner=st) then
+                    begin
+                      WriteProcDef(tprocdef(def));
+                      if assigned(tprocdef(def).localst) then
+                        WriteSymtableProcdefs(tprocdef(def).localst);
+                    end;
                 end;
             end;
           end;
       end;
 
+    procedure TJasminAssembler.WriteSymtableObjectDefs(st: TSymtable);
+      var
+        i   : longint;
+        def : tdef;
+        obj : tobjectdef;
+        nestedclasses: tfpobjectlist;
+      begin
+        if not assigned(st) then
+          exit;
+        nestedclasses:=tfpobjectlist.create(false);
+        for i:=0 to st.DefList.Count-1 do
+          begin
+            def:=tdef(st.DefList[i]);
+            case def.typ of
+              objectdef:
+                if not(oo_is_external in tobjectdef(def).objectoptions) then
+                  nestedclasses.add(def);
+            end;
+          end;
+        for i:=0 to nestedclasses.count-1 do
+          begin
+            obj:=tobjectdef(nestedclasses[i]);
+            NewAsmFileForObjectDef(obj);
+            WriteExtraHeader(obj);
+            WriteSymtableProcDefs(obj.symtable);
+            WriteSymtableObjectDefs(obj.symtable);
+          end;
+        nestedclasses.free;
+      end;
 
     constructor TJasminAssembler.Create(smart: boolean);
       begin
@@ -426,7 +556,6 @@ implementation
 
     procedure TJasminAssembler.WriteAsmList;
     var
-      n : string;
       hal : tasmlisttype;
       i: longint;
     begin
@@ -435,24 +564,8 @@ implementation
        Comment(V_Debug,'Start writing Jasmin-styled assembler output for '+current_module.mainsource^);
 {$endif}
 
-      if assigned(current_module.mainsource) then
-        n:=ExtractFileName(current_module.mainsource^)
-      else
-        n:=InputFileName;
-
-      { JVM 1.5+ }
-      AsmWriteLn('.bytecode 49.0');
-      // include files are not support by Java, and the directory of the main
-      // source file must not be specified
-      AsmWriteLn('.source '+ExtractFileName(n));
-      // TODO: actual class
-      AsmWriteLn('.class '+ChangeFileExt(ExtractFileName(n),''));
-      // TODO: real superclass
-      AsmWriteLn('.super java/lang/Object');
-      AsmLn;
-
-      WriteExtraHeader;
       AsmStartSize:=AsmSize;
+      WriteExtraHeader(nil);
 (*
       for hal:=low(TasmlistType) to high(TasmlistType) do
         begin
@@ -464,6 +577,9 @@ implementation
       { print all global procedures/functions }
       WriteSymtableProcdefs(current_module.globalsymtable);
       WriteSymtableProcdefs(current_module.localsymtable);
+
+      WriteSymtableObjectDefs(current_module.globalsymtable);
+      WriteSymtableObjectDefs(current_module.localsymtable);
 
       AsmLn;
 {$ifdef EXTDEBUG}
@@ -612,7 +728,7 @@ implementation
          id     : as_jvm_jasmin;
          idtxt  : 'Jasmin';
          asmbin : 'java';
-         asmcmd : '-jar jasmin.jar $ASM';
+         asmcmd : '-jar $JASMINJAR $ASM -d $OBJDIR';
          supported_targets : [system_jvm_java32];
          flags : [];
          labelprefix : 'L';

@@ -119,6 +119,7 @@ interface
     procedure SplitBinCmd(const s:TCmdStr;var bstr: TCmdStr;var cstr:TCmdStr);
     function  FindFile(const f : TCmdStr; const path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
 {    function  FindFilePchar(const f : TCmdStr;path : pchar;allowcache:boolean;var foundfile:TCmdStr):boolean;}
+    function  FindFileInExeLocations(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     function  GetShortName(const n:TCmdStr):TCmdStr;
 
@@ -1233,22 +1234,28 @@ end;
      end;
 }
 
-   function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
-     var
-       Path : TCmdStr;
-       found : boolean;
-     begin
-       found:=FindFile(FixFileName(ChangeFileExt(bin,source_info.exeext)),exepath,allowcache,foundfile);
-       if not found then
-        begin
+  function  FindFileInExeLocations(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
+    var
+      Path : TCmdStr;
+      found : boolean;
+    begin
+       found:=FindFile(FixFileName(bin),exepath,allowcache,foundfile);
+      if not found then
+       begin
 {$ifdef macos}
-          Path:=GetEnvironmentVariable('Commands');
+         Path:=GetEnvironmentVariable('Commands');
 {$else}
-          Path:=GetEnvironmentVariable('PATH');
+         Path:=GetEnvironmentVariable('PATH');
 {$endif}
-          found:=FindFile(FixFileName(ChangeFileExt(bin,source_info.exeext)),Path,allowcache,foundfile);
-        end;
-       FindExe:=found;
+         found:=FindFile(FixFileName(bin),Path,allowcache,foundfile);
+       end;
+      FindFileInExeLocations:=found;
+    end;
+
+
+   function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
+     begin
+       FindExe:=FindFileInExeLocations(ChangeFileExt(bin,source_info.exeext),allowcache,foundfile);
      end;
 
 
