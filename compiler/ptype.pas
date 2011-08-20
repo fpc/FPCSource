@@ -969,8 +969,21 @@ implementation
          current_genericdef:=nil;
          current_specializedef:=nil;
          { create recdef }
-         recst:=trecordsymtable.create(n,current_settings.packrecords);
-         current_structdef:=trecorddef.create(n,recst);
+         if (n<>'') or
+            (target_info.system<>system_jvm_java32) then
+           begin
+             recst:=trecordsymtable.create(n,current_settings.packrecords);
+             { can't use recst.realname^ instead of n, because recst.realname is
+               nil in case of an empty name }
+             current_structdef:=trecorddef.create(n,recst);
+           end
+         else
+           begin
+             { for the JVM target records always need a name, because they are
+               represented by a class }
+             recst:=trecordsymtable.create('fpc_intern_recname_'+tostr(symtablestack.top.deflist.count),current_settings.packrecords);
+             current_structdef:=trecorddef.create(recst.name^,recst);
+           end;
          result:=current_structdef;
          { insert in symtablestack }
          symtablestack.push(recst);

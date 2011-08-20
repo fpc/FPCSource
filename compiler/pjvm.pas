@@ -27,7 +27,7 @@ unit pjvm;
 interface
 
     uses
-     symdef;
+     symtype,symdef;
 
     { the JVM specs require that you add a default parameterless
       constructor in case the programmer hasn't specified any }
@@ -38,6 +38,9 @@ interface
       to initialse dynamic arrays }
     procedure add_java_default_record_methods_intf(def: trecorddef);
 
+    procedure jvm_guarantee_record_typesym(var def: tdef);
+
+
 implementation
 
   uses
@@ -47,7 +50,7 @@ implementation
     fmodule,
     parabase,
     pdecsub,
-    symbase,symtype,symtable,symconst,symsym,symcreat,defcmp,jvmdef,
+    symbase,symtable,symconst,symsym,symcreat,defcmp,jvmdef,
     defutil,paramgr;
 
 
@@ -182,7 +185,7 @@ implementation
         else
           internalerror(2011032806);
         { can't use def.typesym, not yet set at this point }
-        if def.symtable.realname^='' then
+        if not assigned(def.symtable.realname) then
           internalerror(2011032803);
         if str_parse_method_dec('procedure fpcDeepCopy(out result:'+def.symtable.realname^+');',potype_procedure,false,def,pd) then
           pd.synthetickind:=tsk_record_deepcopy
@@ -191,6 +194,23 @@ implementation
         restore_scanner(sstate);
       end;
 
+
+    procedure jvm_guarantee_record_typesym(var def: tdef);
+      var
+        ts: ttypesym;
+      begin
+        { create a dummy typesym for the JVM target, because the record
+          has to be wrapped by a class }
+        if (target_info.system=system_jvm_java32) and
+           (def.typ=recorddef) and
+           not assigned(def.typesym) then
+          begin
+            ts:=ttypesym.create(trecorddef(def).symtable.realname^,def);
+            symtablestack.top.insert(ts);
+            ts.visibility:=vis_strictprivate;
+            def.typesym:=ts;
+          end;
+      end;
 
 {******************************************************************
                     jvm type validity checking
