@@ -381,6 +381,7 @@ implementation
         owningcontainer: tsymtable;
         tmpresult: string;
         module: tmodule;
+        nameendpos: longint;
       begin
         { see tprocdef.jvmmangledbasename for description of the format }
         owningcontainer:=owner;
@@ -412,6 +413,11 @@ implementation
             internalerror(2010122605);
         end;
         name:=tmpresult+name;
+        nameendpos:=pos(' ',name);
+        if nameendpos=0 then
+          nameendpos:=length(name)+1;
+        insert('''',name,nameendpos);
+        name:=''''+name;
       end;
 
 
@@ -512,13 +518,18 @@ implementation
                 end;
               if (vsym.typ=paravarsym) and
                  (vo_is_self in tparavarsym(vsym).varoptions) then
-                result:='this ' +result
+                result:='''this'' ' +result
               else if (vsym.typ in [paravarsym,localvarsym]) and
                       ([vo_is_funcret,vo_is_result] * tabstractnormalvarsym(vsym).varoptions <> []) then
-                result:='result '+result
+                result:='''result'' '+result
               else
                 begin
-                  result:=usesymname+' '+result;
+                  { single quotes for definitions to prevent clashes with Java
+                    opcodes }
+                  if withsignature then
+                    result:=usesymname+''' '+result
+                  else
+                    result:=usesymname+' '+result;
                   { we have to mangle staticvarsyms in localsymtables to
                     prevent name clashes... }
                   if (vsym.typ=staticvarsym) then
@@ -535,6 +546,8 @@ implementation
                           container:=container.defowner.owner;
                         end;
                     end;
+                  if withsignature then
+                    result:=''''+result
                 end;
             end;
           constsym:
@@ -572,7 +585,10 @@ implementation
                       internalerror(2011040703);
                   end;
                 end;
-              result:=usesymname+' '+result;
+              if withsignature then
+                result:=''''+usesymname+''' '+result
+              else
+                result:=usesymname+' '+result
             end;
           else
             internalerror(2011021703);
