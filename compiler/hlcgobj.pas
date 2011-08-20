@@ -173,6 +173,9 @@ unit hlcgobj;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
           procedure a_call_name_static(list : TAsmList;pd : tprocdef;const s : string);virtual;
+          { same as a_call_name, might be overridden on certain architectures to emit
+            special static calls for inherited methods }
+          procedure a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : string);virtual;
 
           { move instructions }
           procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : aint;register : tregister);virtual;abstract;
@@ -628,6 +631,11 @@ implementation
     begin
       a_call_name(list,pd,s,false);
     end;
+
+    procedure thlcgobj.a_call_name_inherited(list: TAsmList; pd: tprocdef; const s: string);
+      begin
+        a_call_name(list,pd,s,false);
+      end;
 
   procedure thlcgobj.a_load_const_ref(list: TAsmList; tosize: tdef; a: aint; const ref: treference);
     var
