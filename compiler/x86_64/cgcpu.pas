@@ -192,7 +192,7 @@ unit cgcpu;
           end
         else
           begin
-            sym:=current_asmdata.RefAsmSymbol(procdef.mangledname(false));
+            sym:=current_asmdata.RefAsmSymbol(procdef.mangledname);
             reference_reset_symbol(r,sym,0,sizeof(pint));
             if (cs_create_pic in current_settings.moduleswitches) and
                { darwin/x86_64's assembler doesn't want @PLT after call symbols }

@@ -50,6 +50,7 @@ interface
         procedure WriteExtraHeader(obj: tobjectdef);
         procedure WriteInstruction(hp: tai);
         procedure NewAsmFileForObjectDef(obj: tobjectdef);
+        function MethodDefinition(pd: tprocdef): string;
         procedure WriteProcDef(pd: tprocdef);
         procedure WriteSymtableProcdefs(st: TSymtable);
         procedure WriteSymtableObjectDefs(st: TSymtable);
@@ -336,8 +337,6 @@ implementation
                begin
                   if (tai_symbol(hp).sym.typ = AT_FUNCTION) then
                     begin
-                      AsmWrite('.method ');
-                      AsmWriteLn(tai_symbol(hp).sym.name);
                     end
                   else
                    begin
@@ -348,8 +347,6 @@ implementation
                end;
              ait_symbol_end :
                begin
-                 AsmWriteLn('.end method');
-                 AsmLn;
                end;
 
              ait_instruction :
@@ -523,21 +520,45 @@ implementation
       end;
 
 
-    procedure TJasminAssembler.WriteProcDef(pd: tprocdef);
+    function TJasminAssembler.MethodDefinition(pd: tprocdef): string;
       begin
-        { abstract method? }
-        if is_javainterface(tdef(pd.owner.defowner)) or
-           (po_abstractmethod in pd.procoptions) then
-          begin
-            AsmWrite('.method ');
-            AsmWriteln(pd.mangledname(true));
-            AsmWriteln('.end method');
-            AsmLn;
-            exit;
-          end;
-
-        WriteTree(pd.exprasmlist);
+        case pd.visibility of
+          vis_hidden,
+          vis_strictprivate:
+            result:='private ';
+          vis_strictprotected:
+            result:='protected ';
+          vis_protected,
+          vis_private,
+          vis_public:
+            result:='public ';
+          else
+            internalerror(2010122609);
+        end;
+        if (pd.procsym.owner.symtabletype in [globalsymtable,staticsymtable,localsymtable]) or
+           (po_staticmethod in pd.procoptions) then
+          result:=result+'static ';
+        if is_javainterface(tdef(pd.owner.defowner)) then
+          result:=result+'abstract ';
+        result:=result+pd.jvmmangledbasename;
       end;
+
+
+    procedure TJasminAssembler.WriteProcDef(pd: tprocdef);
+      var
+        procname: string;
+      begin
+        if not assigned(pd.exprasmlist) and
+           (not is_javainterface(pd.struct) or
+            (pd.proctypeoption in [potype_unitinit,potype_unitfinalize])) then
+          exit;
+        AsmWrite('.method ');
+        AsmWriteln(MethodDefinition(pd));
+        WriteTree(pd.exprasmlist);
+        AsmWriteln('.end method');
+        AsmLn;
+      end;
+
 
     procedure TJasminAssembler.WriteSymtableProcdefs(st: TSymtable);
       var

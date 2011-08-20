@@ -1807,7 +1807,7 @@ implementation
 
   procedure thlcgobj.gen_proc_symbol_end(list: TAsmList);
     begin
-      list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname(true)));
+      list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
 
       current_procinfo.procdef.procendtai:=tai(list.last);
 
@@ -1815,7 +1815,7 @@ implementation
         if (current_procinfo.procdef.proctypeoption = potype_proginit) then
           { setinitname may generate a new section -> don't add to the
             current list, because we assume this remains a text section }
-          exportlib.setinitname(current_asmdata.AsmLists[al_exports],current_procinfo.procdef.mangledname(false));
+          exportlib.setinitname(current_asmdata.AsmLists[al_exports],current_procinfo.procdef.mangledname);
 
       if (current_procinfo.procdef.proctypeoption=potype_proginit) then
         begin
@@ -2015,7 +2015,7 @@ implementation
     begin
       { add the procedure to the al_procedures }
       maybe_new_object_file(current_asmdata.asmlists[al_procedures]);
-      new_section(current_asmdata.asmlists[al_procedures],sec_code,lower(pd.mangledname(true)),getprocalign);
+      new_section(current_asmdata.asmlists[al_procedures],sec_code,lower(pd.mangledname),getprocalign);
       current_asmdata.asmlists[al_procedures].concatlist(code);
       { save local data (casetable) also in the same file }
       if assigned(data) and

@@ -987,28 +987,28 @@ unit raatt;
 
            AS_DATA:
              Begin
-               new_section(curList,sec_data,lower(current_procinfo.procdef.mangledname(true)),0);
+               new_section(curList,sec_data,lower(current_procinfo.procdef.mangledname),0);
                lasTSec:=sec_data;
                Consume(AS_DATA);
              end;
 
            AS_TEXT:
              Begin
-               new_section(curList,sec_code,lower(current_procinfo.procdef.mangledname(true)),0);
+               new_section(curList,sec_code,lower(current_procinfo.procdef.mangledname),0);
                lasTSec:=sec_code;
                Consume(AS_TEXT);
              end;
 
            AS_INIT:
              Begin
-               new_section(curList,sec_init,lower(current_procinfo.procdef.mangledname(true)),0);
+               new_section(curList,sec_init,lower(current_procinfo.procdef.mangledname),0);
                lasTSec:=sec_init;
                Consume(AS_INIT);
              end;
 
            AS_FINI:
              Begin
-               new_section(curList,sec_fini,lower(current_procinfo.procdef.mangledname(true)),0);
+               new_section(curList,sec_fini,lower(current_procinfo.procdef.mangledname),0);
                lasTSec:=sec_fini;
                Consume(AS_FINI);
              end;
@@ -1178,7 +1178,7 @@ unit raatt;
        if lasTSec<>sec_code then
         begin
           Message(asmr_w_assembler_code_not_returned_to_text);
-          new_section(curList,sec_code,lower(current_procinfo.procdef.mangledname(true)),0);
+          new_section(curList,sec_code,lower(current_procinfo.procdef.mangledname),0);
         end;
        { Return the list in an asmnode }
        assemble:=curlist;
@@ -1450,7 +1450,7 @@ unit raatt;
                              begin
                                if Tprocsym(sym).ProcdefList.Count>1 then
                                 Message(asmr_w_calling_overload_func);
-                               hs:=tprocdef(tprocsym(sym).ProcdefList[0]).mangledname(false);
+                               hs:=tprocdef(tprocsym(sym).ProcdefList[0]).mangledname;
                                hssymtyp:=AT_FUNCTION;
                              end;
                            typesym :

@@ -341,7 +341,7 @@ implementation
                 if not(po_virtualmethod in tprocdef(propaccesslist.procdef).procoptions) or
                    is_objectpascal_helper(tprocdef(propaccesslist.procdef).struct) then
                   begin
-                     current_asmdata.asmlists[al_rtti].concat(Tai_const.createname(tprocdef(propaccesslist.procdef).mangledname(false),0));
+                     current_asmdata.asmlists[al_rtti].concat(Tai_const.createname(tprocdef(propaccesslist.procdef).mangledname,0));
                      typvalue:=1;
                   end
                 else

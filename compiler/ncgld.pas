@@ -500,7 +500,7 @@ implementation
                         not is_objectpascal_helper(procdef.struct) then
                        begin
                          if (not assigned(current_procinfo) or
-                             wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname(true))) then
+                             wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
                            tobjectdef(procdef.struct).register_vmt_call(procdef.extnumber);
             {$ifdef vtentry}
                          if not is_interface(procdef.struct) then
@@ -527,7 +527,7 @@ implementation
                      else
                        begin
                          { load address of the function }
-                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname(false)),0,sizeof(pint));
+                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,sizeof(pint));
                          hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
                          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
                          cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hregister,location.reference);
@@ -538,14 +538,14 @@ implementation
                       pd:=tprocdef(tprocsym(symtableentry).ProcdefList[0]);
                       if (po_external in pd.procoptions) then
                         location.reference.base :=
-                           cg.g_indirect_sym_load(current_asmdata.CurrAsmList,pd.mangledname(false),
+                           cg.g_indirect_sym_load(current_asmdata.CurrAsmList,pd.mangledname,
                                                   po_weakexternal in pd.procoptions);
                       {!!!!! Be aware, work on virtual methods too }
                       if (location.reference.base = NR_NO) then
                         if not(po_weakexternal in pd.procoptions) then
-                          location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname(false))
+                          location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname)
                         else
-                          location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(procdef.mangledname(false));
+                          location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(procdef.mangledname);
                    end;
               end;
            labelsym :

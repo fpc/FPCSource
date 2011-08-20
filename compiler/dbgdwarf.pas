@@ -2097,7 +2097,7 @@ implementation
             ])
         else
           append_entry(DW_TAG_subprogram,true,
-            [DW_AT_name,DW_FORM_string,def.mangledname(false)+#0
+            [DW_AT_name,DW_FORM_string,def.mangledname+#0
             { data continues below }
             { problem: base reg isn't known here
               DW_AT_frame_base,DW_FORM_block1,1
@@ -2152,9 +2152,9 @@ implementation
             current_asmdata.asmlists[al_procedures].insertbefore(tai_label.create(procendlabel),def.procendtai);
 
             if (target_info.system = system_powerpc64_linux) then
-              procentry := '.' + def.mangledname(false)
+              procentry := '.' + def.mangledname
             else
-              procentry := def.mangledname(false);
+              procentry := def.mangledname;
 
             append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(procentry));
             append_labelentry(DW_AT_high_pc,procendlabel);

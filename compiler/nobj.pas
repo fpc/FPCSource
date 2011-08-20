@@ -980,7 +980,7 @@ implementation
          current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(p^.nl));
          current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(p^.data.mangledname(false),0));
+         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(p^.data.mangledname,0));
 
          if assigned(p^.r) then
            writestrentry(p^.r);
@@ -1024,7 +1024,7 @@ implementation
          current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(longint))));
          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(p^.data.messageinf.i));
          current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(p^.data.mangledname(false),0));
+         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(p^.data.mangledname,0));
 
          if assigned(p^.r) then
            writeintentry(p^.r);
@@ -1102,7 +1102,7 @@ implementation
       begin
          if assigned(p^.l) then
            writedmtaddressentry(p^.l);
-         al_globals.concat(Tai_const_symbol.Createname(p^.data.mangledname(false),0));
+         al_globals.concat(Tai_const_symbol.Createname(p^.data.mangledname,0));
          if assigned(p^.r) then
            writedmtaddressentry(p^.r);
       end;
@@ -1186,7 +1186,7 @@ implementation
                 if po_abstractmethod in pd.procoptions then
                   current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil))
                 else
-                  current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(pd.mangledname(false),0));
+                  current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(pd.mangledname,0));
               end;
            end;
       end;
@@ -1311,7 +1311,7 @@ implementation
               begin
                 pd:=tprocdef(AImplIntf.procdefs[i]);
                 hs:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+AImplIntf.IntfDef.objname^+'_$_'+
-                                     tostr(i)+'_$_'+pd.mangledname(false));
+                                     tostr(i)+'_$_'+pd.mangledname);
                 { create reference }
                 rawdata.concat(Tai_const.Createname(hs,0));
               end;
@@ -1358,7 +1358,7 @@ implementation
             current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(AImplIntf.VtblImplIntf.IOffset));
           etStaticMethodResult, etStaticMethodClass:
             current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(
-              tprocdef(tpropertysym(AImplIntf.ImplementsGetter).propaccesslist[palt_read].procdef).mangledname(false),
+              tprocdef(tpropertysym(AImplIntf.ImplementsGetter).propaccesslist[palt_read].procdef).mangledname,
               0
             ));
           etVirtualMethodResult, etVirtualMethodClass:
@@ -1468,7 +1468,7 @@ implementation
            if (po_abstractmethod in vmtpd.procoptions) then
              procname:='FPC_ABSTRACTERROR'
            else if not wpoinfomanager.optimized_name_for_vmt(_class,vmtpd,procname) then
-             procname:=vmtpd.mangledname(false);
+             procname:=vmtpd.mangledname;
            List.concat(Tai_const.createname(procname,0));
 {$ifdef vtentry}
            hs:='VTENTRY'+'_'+_class.vmt_mangledname+'$$'+tostr(_class.vmtmethodoffset(i) div sizeof(pint));

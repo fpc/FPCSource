@@ -157,7 +157,7 @@ begin
              (target_info.system in [system_i386_freebsd,system_x86_64_freebsd,system_x86_64_linux,system_i386_linux,system_x86_64_solaris,system_i386_solaris]) then
              begin
 {$ifdef x86}
-               sym:=current_asmdata.RefAsmSymbol(pd.mangledname(false));
+               sym:=current_asmdata.RefAsmSymbol(pd.mangledname);
                reference_reset_symbol(r,sym,0,sizeof(pint));
                if cs_create_pic in current_settings.moduleswitches then
                  r.refaddr:=addr_pic
@@ -167,7 +167,7 @@ begin
 {$endif x86}
              end
            else
-             cg.a_jmp_name(current_asmdata.asmlists[al_procedures],pd.mangledname(false));
+             cg.a_jmp_name(current_asmdata.asmlists[al_procedures],pd.mangledname);
            current_asmdata.asmlists[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
          end;
         exportedsymnames.insert(hp2.name^);

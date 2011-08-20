@@ -147,7 +147,7 @@ implementation
             jtlist:=current_procinfo.aktlocaldata;
             sectype:=sec_data;
           end;
-        new_section(jtlist,sectype,current_procinfo.procdef.mangledname(true),sizeof(aint));
+        new_section(jtlist,sectype,current_procinfo.procdef.mangledname,sizeof(aint));
         jtlist.concat(Tai_label.Create(table));
         genitem(jtlist,hp);
       end;

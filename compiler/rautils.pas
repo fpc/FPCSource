@@ -906,7 +906,7 @@ Begin
           Message(asmr_w_calling_overload_func);
         l:=opr.ref.offset;
         opr.typ:=OPR_SYMBOL;
-        opr.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname(false));
+        opr.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
         opr.symofs:=l;
         hasvar:=true;
         SetupVar:=TRUE;
@@ -1400,7 +1400,7 @@ Begin
            procdef:=tprocdef(tprocsym(sym).ProcdefList[0]);
            if (not needvmtofs) then
              begin
-               mangledname:=procdef.mangledname(false);
+               mangledname:=procdef.mangledname;
              end
            else
              begin

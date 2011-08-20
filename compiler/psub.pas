@@ -1582,7 +1582,7 @@ implementation
         isnestedproc:=(current_procinfo.procdef.parast.symtablelevel>normal_function_level);
 
         { Insert mangledname }
-        pd.aliasnames.insert(pd.mangledname(true));
+        pd.aliasnames.insert(pd.mangledname);
 
         { Handle Export of this procedure }
         if (po_exports in pd.procoptions) and
@@ -1590,7 +1590,7 @@ implementation
           begin
             pd.aliasnames.insert(pd.procsym.realname);
             if cs_link_deffile in current_settings.globalswitches then
-              deffile.AddExport(pd.mangledname(false));
+              deffile.AddExport(pd.mangledname);
           end;
 
         { Insert result variables in the localst }
@@ -1817,9 +1817,9 @@ implementation
            begin
              if (po_global in pd.procoptions) or
                 (cs_profile in current_settings.moduleswitches) then
-               current_asmdata.DefineAsmSymbol(pd.mangledname(false),AB_GLOBAL,AT_FUNCTION)
+               current_asmdata.DefineAsmSymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION)
              else
-               current_asmdata.DefineAsmSymbol(pd.mangledname(false),AB_LOCAL,AT_FUNCTION);
+               current_asmdata.DefineAsmSymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
            end;
 
          current_structdef:=old_current_structdef;

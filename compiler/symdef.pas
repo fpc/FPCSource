@@ -573,16 +573,14 @@ interface
           procedure derefimpl;override;
           function  GetSymtable(t:tGetSymtable):TSymtable;override;
           function  GetTypeName : string;override;
-          { on some targets the mangled name for defining a procedure is
-            different from the mangled name used for calling it later }
-          function  mangledname(fordefinition: boolean) : string;
+          function  mangledname : string;
           procedure setmangledname(const s : string);
           function  fullprocname(showhidden:boolean):string;
           function  defaultmangledname: string;
           function  cplusplusmangledname : string;
           function  objcmangledname : string;
-          function  jvmmangledname: string;
-          procedure adornmangledname(var name: string; fordefinition: boolean);{$ifndef jvm}inline;{$endif}
+          function  jvmmangledbasename: string;
+          procedure makejvmmangledcallname(var name: string);
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
           procedure make_external;
@@ -3616,7 +3614,7 @@ implementation
          if (cs_link_deffile in current_settings.globalswitches) and
             (tf_need_export in target_info.flags) and
             (po_exports in procoptions) then
-           deffile.AddExport(mangledname(false));
+           deffile.AddExport(mangledname);
          forwarddef:=false;
          interfacedef:=false;
          hasforward:=false;
@@ -3954,7 +3952,7 @@ implementation
       end;
 
 
-    function tprocdef.mangledname(fordefinition: boolean) : string;
+    function tprocdef.mangledname : string;
       begin
         if assigned(_mangledname) then
          begin
@@ -3963,20 +3961,19 @@ implementation
          {$else}
            mangledname:=_mangledname^;
          {$endif}
-           adornmangledname(mangledname,fordefinition);
            exit;
          end;
 {$ifndef jvm}
         mangledname:=defaultmangledname;
 {$else not jvm}
-        mangledname:=jvmmangledname;
+        mangledname:=jvmmangledbasename;
+        makejvmmangledcallname(mangledname);
 {$endif not jvm}
        {$ifdef compress}
         _mangledname:=stringdup(minilzw_encode(mangledname));
        {$else}
         _mangledname:=stringdup(mangledname);
        {$endif}
-       adornmangledname(mangledname,fordefinition);
       end;
 
 
@@ -4202,78 +4199,50 @@ implementation
       end;
 
 
-    procedure tprocdef.adornmangledname(var name: string; fordefinition: boolean);
-{$ifdef jvm}
+    procedure tprocdef.makejvmmangledcallname(var name: string);
       var
         owningunit: tsymtable;
         tmpresult: string;
-{$endif jvm}
       begin
-{$ifdef jvm}
-        { see tprocdef.jvmmangledname for description of the format }
-        if fordefinition then
-          begin
-            case visibility of
-              vis_hidden,
-              vis_strictprivate:
-                tmpresult:='private ';
-              vis_strictprotected:
-                tmpresult:='protected ';
-              vis_protected,
-              vis_private,
-              vis_public:
-                tmpresult:='public ';
-              else
-                internalerror(2010122609);
-            end;
-            if (procsym.owner.symtabletype in [globalsymtable,staticsymtable,localsymtable]) or
-               (po_staticmethod in procoptions) then
-              tmpresult:=tmpresult+'static ';
-            if is_javainterface(tdef(owner.defowner)) then
-              tmpresult:=tmpresult+'abstract ';
-          end
-        else
-          begin
-            { invocation: package/class name }
-            case procsym.owner.symtabletype of
-              globalsymtable,
-              staticsymtable,
-              localsymtable:
+        { see tprocdef.jvmmangledbasename for description of the format }
+        { invocation: package/class name }
+        case procsym.owner.symtabletype of
+          globalsymtable,
+          staticsymtable,
+          localsymtable:
+            begin
+              if po_has_importdll in procoptions then
                 begin
-                  if po_has_importdll in procoptions then
-                    begin
-                      tmpresult:='';
-                      { import_dll comes from "external 'import_dll_name' name 'external_name'" }
-                      if assigned(import_dll) then
-                        tmpresult:=import_dll^+'/'
-                      else
-                        internalerror(2010122607);
-                    end;
-                  owningunit:=procsym.owner;
-                  while (owningunit.symtabletype in [localsymtable,objectsymtable,recordsymtable]) do
-                    owningunit:=owner.defowner.owner;
-                  tmpresult:=tmpresult+owningunit.realname^+'/';
-                end;
-              objectsymtable:
-                case tobjectdef(procsym.owner.defowner).objecttype of
-                  odt_javaclass,
-                  odt_interfacejava:
-                    begin
-                      tmpresult:=tobjectdef(procsym.owner.defowner).jvm_full_typename+'/'
-                    end
+                  tmpresult:='';
+                  { import_dll comes from "external 'import_dll_name' name 'external_name'" }
+                  if assigned(import_dll) then
+                    tmpresult:=import_dll^+'/'
                   else
-                    internalerror(2010122606);
+                    internalerror(2010122607);
+                end;
+              owningunit:=procsym.owner;
+              while (owningunit.symtabletype in [localsymtable,objectsymtable,recordsymtable]) do
+                owningunit:=owner.defowner.owner;
+              tmpresult:=tmpresult+owningunit.realname^+'/';
+            end;
+          objectsymtable:
+            case tobjectdef(procsym.owner.defowner).objecttype of
+              odt_javaclass,
+              odt_interfacejava:
+                begin
+                  tmpresult:=tobjectdef(procsym.owner.defowner).jvm_full_typename+'/'
                 end
               else
-                internalerror(2010122605);
-            end;
-          end;
+                internalerror(2010122606);
+            end
+          else
+            internalerror(2010122605);
+        end;
         name:=tmpresult+name;
-{$endif}
       end;
 
 
-    function tprocdef.jvmmangledname: string;
+    function tprocdef.jvmmangledbasename: string;
       var
         owningunit: tsymtable;
         parasize,
@@ -4283,7 +4252,7 @@ implementation
         tmpresult: ansistring;
       begin
         { format:
-            * method definition:
+            * method definition (in Jasmin):
                 (private|protected|public) [static] method(parametertypes)returntype
             * method invocation
                 package/class/method(parametertypes)returntype
@@ -5559,12 +5528,12 @@ implementation
               begin
                 { copied from psub.read_proc }
                 if assigned(tobjectdef(pd.struct).import_lib) then
-                   current_module.AddExternalImport(tobjectdef(pd.struct).import_lib^,pd.mangledname(false),pd.mangledname(false),0,false,false)
+                   current_module.AddExternalImport(tobjectdef(pd.struct).import_lib^,pd.mangledname,pd.mangledname,0,false,false)
                  else
                    begin
                      { add import name to external list for DLL scanning }
                      if tf_has_dllscanner in target_info.flags then
-                       current_module.dllscannerinputlist.Add(pd.mangledname(false),pd);
+                       current_module.dllscannerinputlist.Add(pd.mangledname,pd);
                    end;
 
               end;

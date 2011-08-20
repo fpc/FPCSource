@@ -104,7 +104,7 @@ unit opttail;
                   begin
                     { found one! }
                     {
-                    writeln('tail recursion optimization for ',p.mangledname(false));
+                    writeln('tail recursion optimization for ',p.mangledname);
                     printnode(output,n);
                     }
                     { create assignments for all parameters }

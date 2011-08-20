@@ -135,13 +135,13 @@ procedure exportname(const s : string; options: word);
     var
       item: TCmdStrListItem;
     begin
-      exportprocsym(sym,pd.mangledname(false),0,options);
+      exportprocsym(sym,pd.mangledname,0,options);
       { walk through all aliases }
       item:=TCmdStrListItem(pd.aliasnames.first);
       while assigned(item) do
         begin
           { avoid duplicate entries, sometimes aliasnames contains the mangledname }
-          if item.str<>pd.mangledname(false) then
+          if item.str<>pd.mangledname then
             exportprocsym(sym,item.str,0,options);
           item:=TCmdStrListItem(item.next);
         end;

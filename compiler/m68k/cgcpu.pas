@@ -1613,7 +1613,7 @@ unit cgcpu;
           end
         { case 0 }
         else
-//          list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname(false))));
+//          list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)));
 
         List.concat(Tai_symbol_end.Createname(labelname));
       end;

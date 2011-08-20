@@ -1058,13 +1058,13 @@ implementation
         ss:=tostr(N_LBRAC)+',0,0,';
         if target_info.cpu=cpu_powerpc64 then
           ss:=ss+'.';
-        ss:=ss+def.mangledname(false);
+        ss:=ss+def.mangledname;
         if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
           begin
             ss:=ss+'-';
             if target_info.cpu=cpu_powerpc64 then
               ss:=ss+'.';
-            ss:=ss+def.mangledname(false);
+            ss:=ss+def.mangledname;
           end;
         templist.concat(Tai_stab.Create_ansistr(stab_stabn,ss));
         // RBRAC
@@ -1074,7 +1074,7 @@ implementation
             ss:=ss+'-';
             if target_info.cpu=cpu_powerpc64 then
               ss:=ss+'.';
-            ss:=ss+def.mangledname(false);
+            ss:=ss+def.mangledname;
           end;
         templist.concat(Tai_stab.Create_ansistr(stab_stabn,ss));
 
@@ -1091,7 +1091,7 @@ implementation
         { including the LBRAC/RBRAC ones                                  }
         if (target_info.system in systems_darwin) then
           templist.concat(Tai_stab.create(stab_stabs,
-            strpnew('"",'+tostr(N_FUNCTION)+',0,0,'+stabsendlabel.name+'-'+def.mangledname(false))));
+            strpnew('"",'+tostr(N_FUNCTION)+',0,0,'+stabsendlabel.name+'-'+def.mangledname)));
 
         current_asmdata.asmlists[al_procedures].insertlistafter(def.procendtai,templist);
 
@@ -1123,8 +1123,7 @@ implementation
                assigned(tprocdef(def.owner.defowner).procsym) then
               info := ','+GetSymName(def.procsym)+','+GetSymName(tprocdef(def.owner.defowner).procsym);
           end;
-        templist.concat(Tai_stab.Create_ansistr(stab_stabs,'"'+ansistring(obj)+':'+RType+def_stab_number(def.returndef)+info+'",'+tostr(n_function)+',0,'+tostr(def.fileinfo.line)+','+ansistring(def.mangledname(false))));
-
+        templist.concat(Tai_stab.Create_ansistr(stab_stabs,'"'+ansistring(obj)+':'+RType+def_stab_number(def.returndef)+info+'",'+tostr(n_function)+',0,'+tostr(def.fileinfo.line)+','+ansistring(def.mangledname)));
         current_asmdata.asmlists[al_procedures].insertlistbefore(def.procstarttai,templist);
 
         { para types }
