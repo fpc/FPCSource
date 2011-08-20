@@ -732,8 +732,8 @@ implementation
         bodyentrycode,
         bodyexitcode,
         exceptcode,
-        wrappedbody: tnode;
-        newblock     : tblocknode;
+        wrappedbody,
+        newblock     : tnode;
         codestatement,
         newstatement : tstatementnode;
         oldfilepos   : tfileposinfo;
@@ -805,7 +805,7 @@ implementation
             addstatement(newstatement,bodyexitcode);
             addstatement(newstatement,final_asmnode);
           end;
-        do_firstpass(tnode(newblock));
+        do_firstpass(newblock);
         code:=newblock;
         current_filepos:=oldfilepos;
       end;
