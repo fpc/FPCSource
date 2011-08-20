@@ -566,6 +566,7 @@ implementation
                 begin
                   remove_hidden_paras;
                   result:=ccallnode.create(left,tprocsym(sym),symtableproc,methodpointer,callnodeflags);
+                  result.flags:=flags;
                   left:=nil;
                   methodpointer:=nil;
                   exit;
