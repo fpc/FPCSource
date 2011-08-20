@@ -1553,7 +1553,6 @@ implementation
         href : treference;
         hsym : tparavarsym;
         eldef : tdef;
-        tmpreg : tregister;
         list : TAsmList;
         needs_inittable,
         do_trashing       : boolean;
@@ -1595,12 +1594,10 @@ implementation
                  if needs_inittable or
                     do_trashing then
                    begin
-                     tmpreg:=cg.getaddressregister(list);
-                     cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).initialloc,tmpreg);
                      { we have no idea about the alignment at the callee side,
                        and the user also cannot specify "unaligned" here, so
                        assume worst case }
-                     reference_reset_base(href,tmpreg,0,1);
+                     hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,true,1);
                      if do_trashing and
                         { needs separate implementation to trash open arrays }
                         { since their size is only known at run time         }
@@ -1629,14 +1626,12 @@ implementation
              else if do_trashing and
                      ([vo_is_funcret,vo_is_hidden_para] * tparavarsym(p).varoptions = [vo_is_funcret,vo_is_hidden_para]) then
                    begin
-                     tmpreg:=cg.getaddressregister(list);
-                     cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).initialloc,tmpreg);
                      { should always have standard alignment. If a function is assigned
                        to a non-aligned variable, the optimisation to pass this variable
                        directly as hidden function result must/cannot be performed
                        (see tcallnode.funcret_can_be_reused)
                      }
-                     reference_reset_base(href,tmpreg,0,
+                     hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,true,
                        used_align(tparavarsym(p).vardef.alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax));
                      { may be an open string, even if is_open_string() returns }
                      { false (for some helpers in the system unit)             }
@@ -1658,6 +1653,7 @@ implementation
         href : treference;
         hsym : tparavarsym;
         eldef : tdef;
+        highloc : tlocation;
       begin
         if not(tsym(p).typ=paravarsym) then
           exit;
@@ -1670,11 +1666,17 @@ implementation
               hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
               if is_open_array(tparavarsym(p).vardef) then
                 begin
-                  hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                  if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption) then
+                    begin
+                      hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                      if not assigned(hsym) then
+                        internalerror(201003032);
+                      highloc:=hsym.initialloc
+                    end
+                  else
+                    highloc.loc:=LOC_INVALID;
                   eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
-                  if not assigned(hsym) then
-                    internalerror(201003032);
-                  cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_DECREF_ARRAY');
+                  hlcg.g_array_rtti_helper(list,eldef,href,highloc,'FPC_DECREF_ARRAY');
                 end
               else
                 hlcg.g_decrrefcount(list,tparavarsym(p).vardef,href);

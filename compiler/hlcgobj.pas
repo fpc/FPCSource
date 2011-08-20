@@ -361,6 +361,8 @@ unit hlcgobj;
           procedure g_decrrefcount(list : TAsmList;t: tdef; const ref: treference);virtual;abstract;
           procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);virtual;abstract;
           procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);virtual;abstract;
+          procedure g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation;
+            const name: string);virtual;abstract;
 
           {# Generates range checking code. It is to note
              that this routine does not need to be overridden,
@@ -1887,13 +1889,17 @@ implementation
         end;
     end;
 
+{ generates the code for incrementing the reference count of parameters and
+  initialize out parameters }
   { generates the code for incrementing the reference count of parameters and
     initialize out parameters }
   procedure thlcgobj.init_paras(p:TObject;arg:pointer);
     var
       href : treference;
-      tmpreg : tregister;
+      hsym : tparavarsym;
+      eldef : tdef;
       list : TAsmList;
+      highloc : tlocation;
       needs_inittable (*,
       do_trashing     *)  : boolean;
     begin
@@ -1917,7 +1923,26 @@ implementation
                    paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
                    begin
                      location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
-                     hlcg.g_incrrefcount(list,tparavarsym(p).vardef,href);
+                     if is_open_array(tparavarsym(p).vardef) then
+                       begin
+                         if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption) then
+                           begin
+                             hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                             if not assigned(hsym) then
+                               internalerror(201003032);
+                             highloc:=hsym.initialloc
+                           end
+                         else
+                           highloc.loc:=LOC_INVALID;
+                         { open arrays do not contain correct element count in their rtti,
+                           the actual count must be passed separately. }
+                         eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
+                         if not assigned(hsym) then
+                           internalerror(201003031);
+                         g_array_rtti_helper(list,eldef,href,highloc,'FPC_ADDREF_ARRAY');
+                       end
+                     else
+                      g_incrrefcount(list,tparavarsym(p).vardef,href);
                    end;
                end;
            vs_out :
@@ -1925,12 +1950,10 @@ implementation
                if needs_inittable (*or
                   do_trashing*) then
                  begin
-                   tmpreg:=cg.getaddressregister(list);
-                   hlcg.a_load_loc_reg(list,tparavarsym(p).vardef,tparavarsym(p).vardef,tparavarsym(p).initialloc,tmpreg);
                    { we have no idea about the alignment at the callee side,
                      and the user also cannot specify "unaligned" here, so
                      assume worst case }
-                   reference_reset_base(href,tmpreg,0,1);
+                   location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,true,1);
 (*
                    if do_trashing and
                       { needs separate implementation to trash open arrays }
@@ -1944,21 +1967,36 @@ implementation
                        trash_reference(list,href,2);
 *)
                    if needs_inittable then
-                     hlcg.g_initialize(list,tparavarsym(p).vardef,href);
+                     begin
+                       if is_open_array(tparavarsym(p).vardef) then
+                         begin
+                           if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption) then
+                             begin
+                               hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                               if not assigned(hsym) then
+                                 internalerror(201003032);
+                               highloc:=hsym.initialloc
+                             end
+                           else
+                             highloc.loc:=LOC_INVALID;
+                           eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
+                           g_array_rtti_helper(list,eldef,href,highloc,'FPC_INITIALIZE_ARRAY');
+                         end
+                       else
+                         g_initialize(list,tparavarsym(p).vardef,href);
+                     end;
                  end;
              end;
 (*
            else if do_trashing and
                    ([vo_is_funcret,vo_is_hidden_para] * tparavarsym(p).varoptions = [vo_is_funcret,vo_is_hidden_para]) then
                  begin
-                   tmpreg:=cg.getaddressregister(list);
-                   a_load_loc_reg(list,tparavarsym(p).vardef,tparavarsym(p).vardef,tparavarsym(p).initialloc,tmpreg);
                    { should always have standard alignment. If a function is assigned
                      to a non-aligned variable, the optimisation to pass this variable
                      directly as hidden function result must/cannot be performed
                      (see tcallnode.funcret_can_be_reused)
                    }
-                   reference_reset_base(href,tmpreg,0,
+                   location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,true,
                      used_align(tparavarsym(p).vardef.alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax));
                    { may be an open string, even if is_open_string() returns }
                    { false (for some helpers in the system unit)             }

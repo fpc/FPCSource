@@ -172,7 +172,8 @@ implementation
 
              { release memory for refcnt out parameters }
              if (parasym.varspez=vs_out) and
-                is_managed_type(left.resultdef) then
+                is_managed_type(left.resultdef) and
+                not(target_info.system in systems_garbage_collected_managed_types) then
                begin
                  hlcg.location_get_data_ref(current_asmdata.CurrAsmList,left.resultdef,left.location,href,false,sizeof(pint));
                  if is_open_array(resultdef) then

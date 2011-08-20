@@ -26,6 +26,8 @@ Unit system;
 {$implicitexceptions off}
 {$mode objfpc}
 
+{$undef FPC_HAS_FEATURE_RTTI}
+
 Type
   { The compiler has all integer types defined internally. Here
     we define only aliases }
@@ -122,6 +124,8 @@ type
 {$i jmathh.inc}
 {$i jdynarrh.inc}
 
+{$i compproc.inc}
+
 {*****************************************************************************}
                                  implementation
 {*****************************************************************************}
@@ -143,6 +147,8 @@ type
 
  **********************************************************************
 }
+
+{$i rtti.inc}
 
 function min(a,b : longint) : longint;
   begin

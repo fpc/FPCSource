@@ -333,6 +333,8 @@ unit hlcg2ll;
 
           procedure g_incrrefcount(list : TAsmList;t: tdef; const ref: treference);override;
           procedure g_decrrefcount(list : TAsmList;t: tdef; const ref: treference);override;
+          procedure g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation;
+            const name: string);override;
           procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);override;
           procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);override;
 
@@ -1081,6 +1083,11 @@ procedure thlcg2ll.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; co
   procedure thlcg2ll.g_decrrefcount(list: TAsmList; t: tdef; const ref: treference);
     begin
       cg.g_decrrefcount(list,t,ref);
+    end;
+
+  procedure thlcg2ll.g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation; const name: string);
+    begin
+      cg.g_array_rtti_helper(list, t, ref, highloc, name);
     end;
 
   procedure thlcg2ll.g_initialize(list: TAsmList; t: tdef; const ref: treference);

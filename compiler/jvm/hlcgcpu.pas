@@ -88,6 +88,7 @@ uses
 
       procedure g_incrrefcount(list : TAsmList;t: tdef; const ref: treference);override;
       procedure g_decrrefcount(list : TAsmList;t: tdef; const ref: treference);override;
+      procedure g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation; const name: string); override;
       procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);override;
       procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);override;
 
@@ -172,6 +173,8 @@ uses
       { concatcopy helpers }
       procedure concatcopy_normal_array(list: TAsmList; size: tdef; const source, dest: treference);
 
+      { generate a call to a routine in the system unit }
+      procedure g_call_system_proc(list: TAsmList; const procname: string);
     end;
 
   procedure create_hlcodegen;
@@ -1020,8 +1023,6 @@ implementation
     var
       procname: string;
       eledef: tdef;
-      pd: tprocdef;
-      srsym: tsym;
       ndim: longint;
     begin
       { load copy helper parameters on the stack }
@@ -1089,12 +1090,7 @@ implementation
         else
           procname:='FPC_COPY_JOBJECT_ARRAY';
       end;
-     srsym:=tsym(systemunit.find(procname));
-     if not assigned(srsym) or
-        (srsym.typ<>procsym) then
-       Message1(cg_f_unknown_compilerproc,procname);
-     pd:=tprocdef(tprocsym(srsym).procdeflist[0]);
-     a_call_name(list,pd,pd.mangledname,false);
+     g_call_system_proc(list,procname);
      if ndim=1 then
        decstack(list,2)
      else
@@ -1235,9 +1231,46 @@ implementation
       // do nothing
     end;
 
-  procedure thlcgjvm.g_initialize(list: TAsmList; t: tdef; const ref: treference);
+  procedure thlcgjvm.g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation; const name: string);
+    var
+      normaldim: longint;
     begin
-      a_load_const_ref(list,t,0,ref);
+      { only in case of initialisation, we have to set all elements to "empty" }
+      if name<>'FPC_INITIALIZE_ARRAY' then
+        exit;
+      { put array on the stack }
+      a_load_ref_stack(list,java_jlobject,ref,prepare_stack_for_ref(list,ref,false));
+      { in case it's an open array whose elements are regular arrays, put the
+        dimension of the regular arrays on the stack (otherwise pass 0) }
+      normaldim:=0;
+      while (t.typ=arraydef) and
+            not is_dynamic_array(t) do
+        begin
+          inc(normaldim);
+          t:=tarraydef(t).elementdef;
+        end;
+      a_load_const_stack(list,s32inttype,normaldim,R_INTREGISTER);
+      { highloc is invalid, the length is part of the array in Java }
+      if is_wide_or_unicode_string(t) then
+        g_call_system_proc(list,'fpc_initialize_array_unicodestring')
+      else if is_dynamic_array(t) then
+        g_call_system_proc(list,'fpc_initialize_array_dynarr')
+      else
+        internalerror(2011031901);
+    end;
+
+  procedure thlcgjvm.g_initialize(list: TAsmList; t: tdef; const ref: treference);
+    var
+      dummyloc: tlocation;
+    begin
+      if (t.typ=arraydef) and
+         not is_dynamic_array(t) then
+        begin
+          dummyloc.loc:=LOC_INVALID;
+          g_array_rtti_helper(list,tarraydef(t).elementdef,ref,dummyloc,'FPC_INITIALIZE_ARRAY')
+        end
+      else
+        a_load_const_ref(list,t,0,ref);
     end;
 
   procedure thlcgjvm.g_finalize(list: TAsmList; t: tdef; const ref: treference);
@@ -1647,6 +1680,19 @@ implementation
           internalerror(2010122602);
       end;
       list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(s)));
+    end;
+
+  procedure thlcgjvm.g_call_system_proc(list: TAsmList; const procname: string);
+    var
+      srsym: tsym;
+      pd: tprocdef;
+    begin
+      srsym:=tsym(systemunit.find(procname));
+      if not assigned(srsym) or
+         (srsym.typ<>procsym) then
+        Message1(cg_f_unknown_compilerproc,procname);
+      pd:=tprocdef(tprocsym(srsym).procdeflist[0]);
+      a_call_name(list,pd,pd.mangledname,false);
     end;
 
   procedure create_hlcodegen;
