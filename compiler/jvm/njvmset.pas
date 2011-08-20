@@ -68,9 +68,13 @@ implementation
           begin
             if right.nodetype=setconstn then
               tjvmsetconstnode(right).setconsttype:=sct_notransform;
-            if isenum and
-               (left.nodetype=ordconstn) then
-              tjvmordconstnode(left).enumconstok:=true;
+            if isenum then
+              if (left.nodetype=ordconstn) then
+                tjvmordconstnode(left).enumconstok:=true
+              else
+                { not very clean, since we now have "longint in enumset", but
+                  the code generator doesn't really mind }
+                inserttypeconv_explicit(left,s32inttype);
           end;
         result:=inherited pass_1;
         if assigned(result) then
