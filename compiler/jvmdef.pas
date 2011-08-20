@@ -775,8 +775,8 @@ implementation
                         begin
                           if tdef(container.defowner).typ<>procdef then
                             internalerror(2011040303);
-                          { symid is added to prevent problem with overloads }
-                          result:=tprocdef(container.defowner).procsym.realname+'$$'+tostr(tprocdef(container.defowner).procsym.symid)+'$'+result;
+                          { defid is added to prevent problem with overloads }
+                          result:=tprocdef(container.defowner).procsym.realname+'$$'+tostr(tprocdef(container.defowner).defid)+'$'+result;
                           container:=container.defowner.owner;
                         end;
                     end;
