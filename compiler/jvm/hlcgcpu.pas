@@ -259,7 +259,9 @@ implementation
           else
             result:=R_ADDRESSREGISTER;
         { shortstrings are implemented via classes }
-        else if is_shortstring(def) then
+        else if is_shortstring(def) or
+        { voiddef can only be typecasted into (implicit) pointers }
+                is_void(def) then
           result:=R_ADDRESSREGISTER
         else
           result:=inherited;

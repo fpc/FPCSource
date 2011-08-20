@@ -73,7 +73,8 @@ implementation
       begin
         result:=inherited;
         if not(left.resultdef.typ=pointerdef) or
-          not jvmimplicitpointertype(tpointerdef(left.resultdef).pointeddef) then
+           ((left.resultdef<>voidpointertype) and
+            not jvmimplicitpointertype(tpointerdef(left.resultdef).pointeddef)) then
           begin
             CGMessage(parser_e_illegal_expression);
             exit
@@ -83,8 +84,9 @@ implementation
     procedure tjvmderefnode.pass_generate_code;
       begin
         secondpass(left);
-        if (left.resultdef.typ=pointerdef) or
-           jvmimplicitpointertype(left.resultdef) then
+        if (left.resultdef.typ=pointerdef) and
+            ((left.resultdef=voidpointertype) or
+             jvmimplicitpointertype(tpointerdef(left.resultdef).pointeddef)) then
           begin
             { this is basically a typecast: the left node is a regular
               'pointer', and we typecast it to an implicit pointer }

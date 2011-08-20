@@ -644,6 +644,15 @@ implementation
           ((resultdef.typ in [stringdef,classrefdef]) and
            not is_shortstring(resultdef)) or
           procvarconv;
+        { typescasts from void (the result of untyped_ptr^) to an implicit
+          pointertype (record, array, ...) also needs a typecheck }
+        if is_void(left.resultdef) and
+           jvmimplicitpointertype(resultdef) then
+          begin
+            fromclasscompatible:=true;
+            toclasscompatible:=true;
+          end;
+
         if fromclasscompatible and toclasscompatible then
           begin
             { we need an as-node to check the validity of the conversion (since
