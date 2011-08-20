@@ -1264,7 +1264,7 @@ implementation
 
            objectdef :
              begin
-               { Objective-C classes (handle anonymous externals) }
+               { Objective-C/Java classes (handle anonymous externals) }
                if (def_from.typ=objectdef) and
                   (find_real_class_definition(tobjectdef(def_from),false) =
                    find_real_class_definition(tobjectdef(def_to),false)) then
