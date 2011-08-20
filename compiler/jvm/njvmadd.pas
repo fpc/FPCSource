@@ -183,7 +183,13 @@ interface
         { compares two floating point values and puts 1/0/-1 on stack depending
           on whether value1 >/=/< value2 }
         if left.location.size=OS_F64 then
-          op:=a_dcmpl
+          { make sure that comparisons with NaNs always return false for </> }
+          if nodetype in [ltn,lten] then
+            op:=a_dcmpg
+          else
+            op:=a_dcmpl
+        else if nodetype in [ltn,lten] then
+          op:=a_fcmpg
         else
           op:=a_fcmpl;
         current_asmdata.CurrAsmList.concat(taicpu.op_none(op));
