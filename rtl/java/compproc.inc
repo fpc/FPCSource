@@ -515,7 +515,6 @@ function fpc_shr_qword(value,shift : qword) : qword; compilerproc;
 function fpc_shl_int64(value,shift : int64) : int64; compilerproc;
 function fpc_shr_int64(value,shift : int64) : int64; compilerproc;
 {$endif  FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
-(*
 {$ifndef FPUNONE}
 function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
 function fpc_arctan_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
@@ -531,7 +530,6 @@ function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;
 function fpc_round_real(d : ValReal) : int64;compilerproc;
 function fpc_trunc_real(d : ValReal) : int64;compilerproc;
 {$endif}
-*)
 {$ifdef FPC_HAS_FEATURE_CLASSES}
 function fpc_do_is(aclass : tclass;aobject : tobject) : boolean; compilerproc;
 function fpc_do_as(aclass : tclass;aobject : tobject): tobject; compilerproc;

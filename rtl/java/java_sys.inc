@@ -44,6 +44,68 @@
     function iterator(): JUIterator; overload;
   end;
 
+  JLMath = class sealed external 'java.lang' name 'Math' (JLObject)
+  public
+    const
+      E = jdouble(2.718281828459045);
+      PI = jdouble(3.141592653589793);
+  public
+    class function sin(para1: jdouble): jdouble; static; overload;
+    class function cos(para1: jdouble): jdouble; static; overload;
+    class function tan(para1: jdouble): jdouble; static; overload;
+    class function asin(para1: jdouble): jdouble; static; overload;
+    class function acos(para1: jdouble): jdouble; static; overload;
+    class function atan(para1: jdouble): jdouble; static; overload;
+    class function toRadians(para1: jdouble): jdouble; static; overload;
+    class function toDegrees(para1: jdouble): jdouble; static; overload;
+    class function exp(para1: jdouble): jdouble; static; overload;
+    class function log(para1: jdouble): jdouble; static; overload;
+    class function log10(para1: jdouble): jdouble; static; overload;
+    class function sqrt(para1: jdouble): jdouble; static; overload;
+    class function cbrt(para1: jdouble): jdouble; static; overload;
+    class function IEEEremainder(para1: jdouble; para2: jdouble): jdouble; static; overload;
+    class function ceil(para1: jdouble): jdouble; static; overload;
+    class function floor(para1: jdouble): jdouble; static; overload;
+    class function rint(para1: jdouble): jdouble; static; overload;
+    class function atan2(para1: jdouble; para2: jdouble): jdouble; static; overload;
+    class function pow(para1: jdouble; para2: jdouble): jdouble; static; overload;
+    class function round(para1: jfloat): jint; static; overload;
+    class function round(para1: jdouble): jlong; static; overload;
+    class function random(): jdouble; static; overload;
+    class function abs(para1: jint): jint; static; overload;
+    class function abs(para1: jlong): jlong; static; overload;
+    class function abs(para1: jfloat): jfloat; static; overload;
+    class function abs(para1: jdouble): jdouble; static; overload;
+    class function max(para1: jint; para2: jint): jint; static; overload;
+    class function max(para1: jlong; para2: jlong): jlong; static; overload;
+    class function max(para1: jfloat; para2: jfloat): jfloat; static; overload;
+    class function max(para1: jdouble; para2: jdouble): jdouble; static; overload;
+    class function min(para1: jint; para2: jint): jint; static; overload;
+    class function min(para1: jlong; para2: jlong): jlong; static; overload;
+    class function min(para1: jfloat; para2: jfloat): jfloat; static; overload;
+    class function min(para1: jdouble; para2: jdouble): jdouble; static; overload;
+    class function ulp(para1: jdouble): jdouble; static; overload;
+    class function ulp(para1: jfloat): jfloat; static; overload;
+    class function signum(para1: jdouble): jdouble; static; overload;
+    class function signum(para1: jfloat): jfloat; static; overload;
+    class function sinh(para1: jdouble): jdouble; static; overload;
+    class function cosh(para1: jdouble): jdouble; static; overload;
+    class function tanh(para1: jdouble): jdouble; static; overload;
+    class function hypot(para1: jdouble; para2: jdouble): jdouble; static; overload;
+    class function expm1(para1: jdouble): jdouble; static; overload;
+    class function log1p(para1: jdouble): jdouble; static; overload;
+    class function copySign(para1: jdouble; para2: jdouble): jdouble; static; overload;
+    class function copySign(para1: jfloat; para2: jfloat): jfloat; static; overload;
+    class function getExponent(para1: jfloat): jint; static; overload;
+    class function getExponent(para1: jdouble): jint; static; overload;
+    class function nextAfter(para1: jdouble; para2: jdouble): jdouble; static; overload;
+    class function nextAfter(para1: jfloat; para2: jdouble): jfloat; static; overload;
+    class function nextUp(para1: jdouble): jdouble; static; overload;
+    class function nextUp(para1: jfloat): jfloat; static; overload;
+    class function scalb(para1: jdouble; para2: jint): jdouble; static; overload;
+    class function scalb(para1: jfloat; para2: jint): jfloat; static; overload;
+  end;
+
   JLSystem = class sealed external 'java.lang' name 'System' (JLObject)
   public
     final class var

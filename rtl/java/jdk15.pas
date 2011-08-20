@@ -1025,11 +1025,6 @@ type
   Arr2JSJSplitPane = array of Arr1JSJSplitPane;
   Arr3JSJSplitPane = array of Arr2JSJSplitPane;
 
-  JLMath = class;
-  Arr1JLMath = array of JLMath;
-  Arr2JLMath = array of Arr1JLMath;
-  Arr3JLMath = array of Arr2JLMath;
-
   JXWHolder = class;
   Arr1JXWHolder = array of JXWHolder;
   Arr2JXWHolder = array of Arr1JXWHolder;
@@ -7379,6 +7374,11 @@ type
   Arr1JSRSSerialRef = array of JSRSSerialRef;
   Arr2JSRSSerialRef = array of Arr1JSRSSerialRef;
   Arr3JSRSSerialRef = array of Arr2JSRSSerialRef;
+
+  JLNoSuchMethodException = class;
+  Arr1JLNoSuchMethodException = array of JLNoSuchMethodException;
+  Arr2JLNoSuchMethodException = array of Arr1JLNoSuchMethodException;
+  Arr3JLNoSuchMethodException = array of Arr2JLNoSuchMethodException;
 
   JSDefaultListModel = class;
   Arr1JSDefaultListModel = array of JSDefaultListModel;

@@ -1,4 +1,4 @@
-{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.Boolean, java.lang.Byte, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Enum, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.Integer, java.lang.Iterable, java.lang.LinkageError, java.lang.Long, java.lang.NoSuchMethodException, java.lang.Number, java.lang.Object, java.lang.RuntimeException, java.lang.Short, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.lang.reflect.AccessibleObject, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.GenericDeclaration, java.lang.reflect.Member, java.lang.reflect.Method, java.lang.reflect.Type, java.text.Collator, java.util.AbstractCollection, java.util.AbstractMap, java.util.AbstractSet, java.util.Arrays, java.util.BitSet, java.util.Collection, java.util.Comparator, java.util.EnumSet, java.util.HashMap, java.util.Iterator, java.util.Map, java.util.Set }
+{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.Boolean, java.lang.Byte, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Enum, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.Integer, java.lang.Iterable, java.lang.LinkageError, java.lang.Long, java.lang.Math, java.lang.NoSuchMethodException, java.lang.Number, java.lang.Object, java.lang.RuntimeException, java.lang.Short, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.lang.reflect.AccessibleObject, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.GenericDeclaration, java.lang.reflect.Member, java.lang.reflect.Method, java.lang.reflect.Type, java.text.Collator, java.util.AbstractCollection, java.util.AbstractMap, java.util.AbstractSet, java.util.Arrays, java.util.BitSet, java.util.Collection, java.util.Comparator, java.util.EnumSet, java.util.HashMap, java.util.Iterator, java.util.Map, java.util.Set }
 type
   JLNoSuchMethodException = class;
   Arr1JLNoSuchMethodException = array of JLNoSuchMethodException;
@@ -64,6 +64,11 @@ type
   Arr1JLLong = array of JLLong;
   Arr2JLLong = array of Arr1JLLong;
   Arr3JLLong = array of Arr2JLLong;
+
+  JLMath = class;
+  Arr1JLMath = array of JLMath;
+  Arr2JLMath = array of Arr1JLMath;
+  Arr3JLMath = array of Arr2JLMath;
 
   JLShort = class;
   Arr1JLShort = array of JLShort;

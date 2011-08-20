@@ -50,7 +50,12 @@ Type
   PtrInt   = Longint;
   PtrUInt  = Longint;
 
+  {$define DEFAULT_DOUBLE}
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+
   ValReal = Double;
+  Real = type Double;
 
   AnsiChar    = Char;
   UnicodeChar = WideChar;
@@ -127,13 +132,13 @@ type
   end;
 
 {$i innr.inc}
-{$i jmathh.inc}
 {$i jrech.inc}
 {$i jseth.inc}
 {$i sstringh.inc}
 {$i jpvarh.inc}
 {$i jdynarrh.inc}
 {$i astringh.inc}
+{$i mathh.inc}
 
 
 {$ifndef nounsupported}
@@ -280,6 +285,8 @@ function min(a,b : longint) : longint;
   end;
 
 
+Procedure HandleError (Errno : longint); forward;
+
 {$i sstrings.inc}
 {$i astrings.inc}
 {$i ustrings.inc}
@@ -288,6 +295,8 @@ function min(a,b : longint) : longint;
 {$i jset.inc}
 {$i jint64.inc}
 {$i jpvar.inc}
+{$i jmath.inc}
+{$i genmath.inc}
 
 { copying helpers }
 
@@ -653,6 +662,29 @@ function fpc_dynarray_copy(src: JLObject; start, len: longint; ndim: longint; el
 
 
 {i jdynarr.inc end}
+
+{*****************************************************************************
+                       Things from system.inc
+*****************************************************************************}
+
+Procedure HandleError (Errno : longint);[public,alias : 'FPC_HANDLEERROR'];
+{
+  Procedure to handle internal errors, i.e. not user-invoked errors
+  Internal function should ALWAYS call HandleError instead of RunError.
+
+  For now this one cannot be intercepted in Java and always simply raise an
+  exception.
+}
+begin
+  raise JLException.Create('Runtime error '+UnicodeString(JLInteger.valueOf(Errno).toString));
+end;
+
+{$ifdef SUPPORT_DOUBLE}
+operator := (b:real48) d:double;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+ D:=real2double(b);
+end;
+{$endif SUPPORT_DOUBLE}
 
 
 

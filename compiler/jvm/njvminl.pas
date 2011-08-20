@@ -51,29 +51,16 @@ interface
             so that the code generator will actually generate
             these nodes.
           }
-(*
-          function first_sqrt_real: tnode; override;
-          *)
           function first_sqr_real: tnode; override;
           function first_trunc_real: tnode; override;
-(*
-          function first_round_real: tnode; override;
-*)
           function first_new: tnode; override;
           function first_IncludeExclude: tnode; override;
           function first_setlength: tnode; override;
           function first_length: tnode; override;
 
           procedure second_length; override;
-(*
-          procedure second_sqrt_real; override;
-          procedure second_abs_real; override;
-*)
           procedure second_sqr_real; override;
           procedure second_trunc_real; override;
-(*
-          procedure second_round_real; override;
-*)
           procedure second_new; override;
           procedure second_setlength; override;
        protected
