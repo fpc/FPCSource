@@ -642,8 +642,9 @@ implementation
       old_symtablestack:=symtablestack;
       symtablestack:=old_symtablestack.getcopyuntil(current_module.localsymtable);
       { create struct to hold local variables and parameters that are
-        accessed from within nested routines }
-      nestedvarsst:=trecordsymtable.create(current_module.realmodulename^+'$$_fpc_nestedvars$'+tostr(pd.defid),current_settings.alignment.localalignmax);
+        accessed from within nested routines (start with extra dollar to prevent
+        the JVM from thinking this is a nested class in the unit) }
+      nestedvarsst:=trecordsymtable.create('$'+current_module.realmodulename^+'$$_fpc_nestedvars$'+tostr(pd.defid),current_settings.alignment.localalignmax);
       nestedvarsdef:=trecorddef.create(nestedvarsst.name^,nestedvarsst);
 {$ifdef jvm}
       maybe_guarantee_record_typesym(nestedvarsdef,nestedvarsdef.owner);
