@@ -84,6 +84,11 @@ uses
       procedure gen_load_return_value(list:TAsmList);override;
       procedure record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList); override;
 
+      procedure g_incrrefcount(list : TAsmList;t: tdef; const ref: treference);override;
+      procedure g_decrrefcount(list : TAsmList;t: tdef; const ref: treference);override;
+      procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);override;
+      procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);override;
+
       { JVM-specific routines }
 
       procedure a_load_stack_reg(list : TAsmList;size: tdef;reg: tregister);
@@ -908,6 +913,28 @@ implementation
       if assigned(data) and
          not data.empty then
         internalerror(2010122801);
+    end;
+
+  procedure thlcgjvm.g_incrrefcount(list: TAsmList; t: tdef; const ref: treference);
+    begin
+      // do nothing
+    end;
+
+  procedure thlcgjvm.g_decrrefcount(list: TAsmList; t: tdef; const ref: treference);
+    begin
+      // do nothing
+    end;
+
+  procedure thlcgjvm.g_initialize(list: TAsmList; t: tdef; const ref: treference);
+    var
+      extra_slots: longint;
+    begin
+      a_load_const_ref(list,t,0,ref);
+    end;
+
+  procedure thlcgjvm.g_finalize(list: TAsmList; t: tdef; const ref: treference);
+    begin
+      // do nothing
     end;
 
   procedure thlcgjvm.a_load_stack_reg(list: TAsmList; size: tdef; reg: tregister);
