@@ -152,8 +152,9 @@ implementation
         p : tpropertysym;
       begin
         { check for a class, record or helper }
-        if not((is_class_or_interface_or_dispinterface(current_structdef) or is_record(current_structdef) or is_objectpascal_helper(current_structdef)) or
-           (not(m_tp7 in current_settings.modeswitches) and (is_object(current_structdef)))) then
+        if not((is_class_or_interface_or_dispinterface(current_structdef) or is_record(current_structdef) or
+                is_objectpascal_helper(current_structdef) or is_java_class_or_interface(current_structdef)) or
+               (not(m_tp7 in current_settings.modeswitches) and (is_object(current_structdef)))) then
           Message(parser_e_syntax_error);
         consume(_PROPERTY);
         p:=read_property_dec(is_classproperty,current_structdef);
