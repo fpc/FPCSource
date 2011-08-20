@@ -131,7 +131,6 @@ implementation
          { try block }
          { set control flow labels for the try block }
 
-         flowcontrol:=[fc_inflowcontrol];
          hlcg.a_label(current_asmdata.CurrAsmList,begintrylabel);
          secondpass(left);
          hlcg.a_label(current_asmdata.CurrAsmList,endtrylabel);
@@ -177,7 +176,9 @@ implementation
              current_except_loc.loc:=LOC_INVALID;
 
              exceptflowcontrol:=flowcontrol;
-           end;
+           end
+         else
+           exceptflowcontrol:=flowcontrol;
          hlcg.a_label(current_asmdata.CurrAsmList,endexceptlabel);
 
          { restore all saved labels }
@@ -321,7 +322,9 @@ implementation
                 exit;
               { reason: no exception occurred }
               hlcg.a_load_const_reg(current_asmdata.CurrAsmList,s32inttype,0,reasonbuf);
-           end;
+           end
+         else
+           tryflowcontrol:=[fc_inflowcontrol];
 
          { begin of the finally code }
          hlcg.a_label(current_asmdata.CurrAsmList,finallylabel);
