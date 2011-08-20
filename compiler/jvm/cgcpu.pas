@@ -113,8 +113,6 @@ implementation
 
 
     procedure tcgjvm.do_register_allocation(list:TAsmList;headertai:tai);
-      var
-        rt : tregistertype;
       begin
         { We only run the "register allocation" once for an arbitrary allocator,
           which will perform the register->temp mapping for all register types.

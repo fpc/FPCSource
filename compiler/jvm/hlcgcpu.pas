@@ -1054,8 +1054,6 @@ implementation
     end;
 
   procedure thlcgjvm.g_initialize(list: TAsmList; t: tdef; const ref: treference);
-    var
-      extra_slots: longint;
     begin
       a_load_const_ref(list,t,0,ref);
     end;
@@ -1127,8 +1125,6 @@ implementation
       getputopc: array[boolean,boolean] of tasmop =
         ((a_putfield,a_putstatic),
          (a_getfield,a_getstatic));
-    var
-      size: aint;
     begin
       if assigned(ref.symbol) then
         begin

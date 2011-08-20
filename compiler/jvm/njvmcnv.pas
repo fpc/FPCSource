@@ -195,7 +195,6 @@ implementation
         end;
 
       var
-        href : treference;
         signeddef : tdef;
         l1 : tasmlabel;
 
@@ -276,8 +275,6 @@ implementation
 
     procedure tjvmtypeconvnode.second_int_to_bool;
       var
-        href: treference;
-        hreg2 : tregister;
         hlabel1,hlabel2,oldTrueLabel,oldFalseLabel : tasmlabel;
         newsize  : tcgsize;
       begin

@@ -1661,7 +1661,6 @@ implementation
   procedure thlcgobj.location_force_fpureg(list: TAsmList; var l: tlocation; size: tdef; maybeconst: boolean);
     var
       reg : tregister;
-      href : treference;
     begin
       if (l.loc<>LOC_FPUREGISTER)  and
          ((l.loc<>LOC_CFPUREGISTER) or (not maybeconst)) then

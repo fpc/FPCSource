@@ -146,22 +146,14 @@ implementation
         ch       : char;
         hp       : tai;
         hp1      : tailineinfo;
-        constdef : taiconst_type;
-        s,t      : string;
-        i,pos,l  : longint;
+        s        : string;
+        i,pos    : longint;
         InlineLevel : longint;
-        last_align : longint;
-        co       : comp;
-        sin      : single;
-        d        : double;
         do_line  : boolean;
-
-        sepChar : char;
       begin
         if not assigned(p) then
          exit;
 
-        last_align := 2;
         InlineLevel:=0;
         { lineinfo is only needed for al_procedures (PFV) }
         do_line:=(cs_asm_source in current_settings.globalswitches);
@@ -733,9 +725,6 @@ implementation
 
 
     procedure TJasminAssembler.WriteAsmList;
-    var
-      hal : tasmlisttype;
-      i: longint;
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
@@ -808,7 +797,6 @@ implementation
     function getopstr(const o:toper) : ansistring;
       var
         i,runstart,runlen: longint;
-        num: string[4];
         d: double;
         s: single;
       begin

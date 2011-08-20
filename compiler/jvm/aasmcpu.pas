@@ -274,12 +274,14 @@ implementation
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
       begin
        internalerror(2010122614);
+       result:=nil;
       end;
 
 
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
       begin
        internalerror(2010122615);
+       result:=nil;
       end;
 
 
