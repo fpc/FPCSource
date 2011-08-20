@@ -101,7 +101,7 @@ implementation
 {$endif}
        { parser }
        scanner,import,gendef,
-       pbase,pstatmnt,pdecl,pdecsub,pexports,
+       pbase,pstatmnt,pdecl,pdecsub,pexports,pparautl,
        { codegen }
        tgobj,cgbase,cgobj,cgcpu,hlcgobj,hlcgcpu,dbgbase,
        ncgutil,regvars,
