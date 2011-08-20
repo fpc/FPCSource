@@ -59,6 +59,7 @@ interface
     procedure Replace(var s:string;s1:string;const s2:string);
     procedure Replace(var s:AnsiString;s1:string;const s2:AnsiString);
     procedure ReplaceCase(var s:string;const s1,s2:string);
+    procedure ReplaceCase(var s:ansistring;const s1,s2:ansistring);
     Function MatchPattern(const pattern,what:string):boolean;
     function upper(const c : char) : char;
     function upper(const s : string) : string;
@@ -376,6 +377,26 @@ implementation
 
 
     procedure ReplaceCase(var s:string;const s1,s2:string);
+      var
+         last,
+         i  : longint;
+      begin
+        last:=0;
+        repeat
+          i:=pos(s1,s);
+          if i=last then
+           i:=0;
+          if (i>0) then
+           begin
+             Delete(s,i,length(s1));
+             Insert(s2,s,i);
+             last:=i;
+           end;
+        until (i=0);
+      end;
+
+
+    procedure ReplaceCase(var s: ansistring; const s1, s2: ansistring);
       var
          last,
          i  : longint;

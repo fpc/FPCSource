@@ -444,7 +444,7 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           procedure calcparas;
-          function  typename_paras(pno: tprocnameoptions): string;
+          function  typename_paras(pno: tprocnameoptions): ansistring;
           function  is_methodpointer:boolean;virtual;
           function  is_addressonly:boolean;virtual;
           function  no_self_node:boolean;
@@ -580,7 +580,7 @@ interface
           function  mangledname : string;
           procedure setmangledname(const s : string);
           function  fullprocname(showhidden:boolean):string;
-          function  customprocname(pno: tprocnameoptions):string;
+          function  customprocname(pno: tprocnameoptions):ansistring;
           function  defaultmangledname: string;
           function  cplusplusmangledname : string;
           function  objcmangledname : string;
@@ -2792,17 +2792,17 @@ implementation
              if (ado_isvariant in arrayoptions) or ((highrange=-1) and (lowrange=0)) then
                GetTypeName:='Array Of Const'
              else
-               GetTypeName:='Array Of Const/Constant Open Array of '+elementdef.typename;
+               GetTypeName:='{Array Of Const/Constant Open} Array of '+elementdef.typename;
            end
          else if (ado_IsDynamicArray in arrayoptions) then
-           GetTypeName:='Dynamic Array Of '+elementdef.typename
+           GetTypeName:='{Dynamic} Array Of '+elementdef.typename
          else if ((highrange=-1) and (lowrange=0)) then
-           GetTypeName:='Open Array Of '+elementdef.typename
+           GetTypeName:='{Open} Array Of '+elementdef.typename
          else
            begin
               result := '';
               if (ado_IsBitPacked in arrayoptions) then
-                result:='Packed ';
+                result:='BitPacked ';
               if rangedef.typ=enumdef then
                 result:=result+'Array['+rangedef.typename+'] Of '+elementdef.typename
               else
@@ -3316,9 +3316,9 @@ implementation
       end;
 
 
-    function tabstractprocdef.typename_paras(pno: tprocnameoptions) : string;
+    function tabstractprocdef.typename_paras(pno: tprocnameoptions) : ansistring;
       var
-        hs,s  : string;
+        hs,s  : ansistring;
         hp    : TParavarsym;
         hpc   : tconstsym;
         first : boolean;
@@ -3359,7 +3359,7 @@ implementation
                  begin
                    hs:=hp.vardef.typesym.realname;
                    if hs[1]<>'$' then
-                     s:=s+hs
+                     s:=s+hp.vardef.OwnerHierarchyName+hs
                    else
                      s:=s+hp.vardef.GetTypeName;
                  end
@@ -3793,9 +3793,9 @@ implementation
       end;
 
 
-    function tprocdef.customprocname(pno: tprocnameoptions):string;
+    function tprocdef.customprocname(pno: tprocnameoptions):ansistring;
       var
-        s : string;
+        s : ansistring;
         t : ttoken;
       begin
 {$ifdef EXTDEBUG}
@@ -5594,6 +5594,7 @@ implementation
            assigned(import_lib) then
           result:=import_lib^+'/'+result;
       end;
+
 
 {****************************************************************************
                              TImplementedInterface
