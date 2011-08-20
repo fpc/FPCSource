@@ -492,6 +492,10 @@ implementation
                       addstatement(newstatement,
                           ccallnode.createintern('fpc_help_destructor',para));
                     end
+                else if is_javaclass(current_structdef) then
+                  begin
+                    { nothing to do }
+                  end
                 else
                   internalerror(200305105);
               end;
