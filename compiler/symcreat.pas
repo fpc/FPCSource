@@ -744,7 +744,7 @@ implementation
             end;
           { var/out/constref parameters -> pass address through (same for
             implicit pointer types) }
-          if paramanager.push_addr_param(pvs.varspez,paradef,procvar.proccalloption) or
+          if paramanager.push_copyout_param(pvs.varspez,paradef,procvar.proccalloption) or
              jvmimplicitpointertype(paradef) then
             begin
               paraname:='@'+paraname;
