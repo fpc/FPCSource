@@ -1657,8 +1657,9 @@ begin
   if assigned(tprocdef(pd).struct) and
     (oo_is_sealed in tprocdef(pd).struct.objectoptions) then
     Message(parser_e_sealed_class_cannot_have_abstract_methods)
-  else
-  if (po_virtualmethod in pd.procoptions) then
+  else if (po_virtualmethod in pd.procoptions) or
+     { all Java methods are virtual }
+     is_javaclass(tdef(pd.owner.defowner)) then
     include(pd.procoptions,po_abstractmethod)
   else
     Message(parser_e_only_virtual_methods_abstract);
@@ -2154,13 +2155,13 @@ const
    (
     (
       idtok:_ABSTRACT;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord,pd_javaclass];
       handler  : @pd_abstract;
       pocall   : pocall_none;
       pooption : [po_abstractmethod];
       mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
-      mutexclpo     : [po_exports,po_interrupt,po_external,po_inline]
+      mutexclpo     : [po_exports,po_interrupt,po_inline]
     ),(
       idtok:_ALIAS;
       pd_flags : [pd_implemen,pd_body,pd_notobjintf];
