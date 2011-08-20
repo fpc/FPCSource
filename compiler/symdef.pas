@@ -430,7 +430,8 @@ interface
        tproccopytyp = (pc_normal,
                        { always creates a top-level function, removes all
                          special parameters (self, vmt, parentfp, ...) }
-                       pc_procvar2bareproc);
+                       pc_bareproc
+                       );
 
        tabstractprocdef = class(tstoreddef)
           { saves a definition to the return type }
@@ -463,7 +464,7 @@ interface
           function  is_addressonly:boolean;virtual;
           function  no_self_node:boolean;
           { get either a copy as a procdef or procvardef }
-          function  getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp): tstoreddef;
+          function  getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp): tstoreddef; virtual;
           procedure check_mark_as_nested;
           procedure init_paraloc_info(side: tcallercallee);
           function stack_tainting_parameter(side: tcallercallee): boolean;
@@ -652,6 +653,7 @@ interface
                 needs to be finalised afterwards by calling
                 symcreat.finish_copied_procdef() afterwards
           }
+          function  getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp): tstoreddef; override;
           function  getcopy: tstoreddef; override;
           function  GetTypeName : string;override;
           function  mangledname : TSymStr;
@@ -3691,8 +3693,7 @@ implementation
         nestinglevel:=parast.symtablelevel;
         if newtyp=procdef then
           begin
-            if (typ=procdef) or
-               (copytyp<>pc_procvar2bareproc) then
+            if (copytyp<>pc_bareproc) then
               result:=tprocdef.create(nestinglevel)
             else
               result:=tprocdef.create(normal_function_level);
@@ -3715,7 +3716,7 @@ implementation
                   pvs:=tparavarsym(parast.symlist[j]);
                   { in case of bare proc, don't copy self, vmt or framepointer
                     parameters }
-                  if (copytyp=pc_procvar2bareproc) and
+                  if (copytyp=pc_bareproc) and
                      (([vo_is_self,vo_is_vmt,vo_is_parentfp,vo_is_result]*pvs.varoptions)<>[]) then
                     continue;
                   npvs:=tparavarsym.create(pvs.realname,pvs.paranr,pvs.varspez,
@@ -3737,8 +3738,10 @@ implementation
         tabstractprocdef(result).proctypeoption:=proctypeoption;
         tabstractprocdef(result).proccalloption:=proccalloption;
         tabstractprocdef(result).procoptions:=procoptions;
-        if (copytyp=pc_procvar2bareproc) then
-          tabstractprocdef(result).procoptions:=tabstractprocdef(result).procoptions*[po_explicitparaloc,po_hascallingconvention,po_varargs,po_iocheck];
+        if (copytyp=pc_bareproc) then
+          tabstractprocdef(result).procoptions:=tabstractprocdef(result).procoptions*[po_explicitparaloc,po_hascallingconvention,po_varargs,po_iocheck,po_has_importname,po_has_importdll];
+        if newtyp=procvardef then
+          tabstractprocdef(result).procoptions:=tabstractprocdef(result).procoptions-[po_has_importname,po_has_importdll];
         tabstractprocdef(result).callerargareasize:=callerargareasize;
         tabstractprocdef(result).calleeargareasize:=calleeargareasize;
         tabstractprocdef(result).maxparacount:=maxparacount;
@@ -4231,13 +4234,15 @@ implementation
       end;
 
 
-    function tprocdef.getcopy: tstoreddef;
+    function tprocdef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef;
       var
         i : tcallercallee;
         j : longint;
         pvs : tparavarsym;
       begin
-        result:=inherited getcopyas(procdef,pc_normal);
+        result:=inherited getcopyas(newtyp,copytyp);
+        if newtyp=procvardef then
+          exit;
         { don't copy mangled name, can be different }
         tprocdef(result).messageinf:=messageinf;
         tprocdef(result).dispid:=dispid;
@@ -4248,7 +4253,8 @@ implementation
           tprocdef(result).deprecatedmsg:=stringdup(deprecatedmsg^);
         { will have to be associated with appropriate procsym }
         tprocdef(result).procsym:=nil;
-        tprocdef(result).aliasnames.concatListcopy(aliasnames);
+        if copytyp<>pc_bareproc then
+          tprocdef(result).aliasnames.concatListcopy(aliasnames);
         if assigned(funcretsym) then
           begin
             if funcretsym.owner=parast then
@@ -4290,6 +4296,12 @@ implementation
 
         { create new paralist }
         tprocdef(result).calcparas;
+      end;
+
+
+    function tprocdef.getcopy: tstoreddef;
+      begin
+        result:=getcopyas(procdef,pc_normal);
       end;
 
 

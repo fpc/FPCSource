@@ -467,7 +467,7 @@ implementation
 
         { add a method to call the procvar using unwrapped arguments, which
           then wraps them and calls through to JLRMethod.invoke }
-        methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_procvar2bareproc));
+        methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc));
         finish_copied_procdef(methoddef,'invoke',pvclass.symtable,pvclass);
         insert_self_and_vmt_para(methoddef);
         methoddef.synthetickind:=tsk_jvm_procvar_invoke;
