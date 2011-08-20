@@ -1543,12 +1543,12 @@ implementation
     begin
       opc:=loadstoreopc(size,true,false,finishandval);
       list.concat(taicpu.op_reg(opc,reg));
-      if finishandval<>-1 then
-        a_op_const_stack(list,OP_AND,size,finishandval);
       { avoid problems with getting the size of an open array etc }
       if jvmimplicitpointertype(size) then
         size:=java_jlobject;
       incstack(list,1+ord(size.size>4));
+      if finishandval<>-1 then
+        a_op_const_stack(list,OP_AND,size,finishandval);
     end;
 
   procedure thlcgjvm.a_load_ref_stack(list: TAsmList; size: tdef; const ref: treference; extra_slots: longint);
@@ -1564,12 +1564,12 @@ implementation
         list.concat(taicpu.op_ref(opc,ref))
       else
         list.concat(taicpu.op_none(opc));
-      if finishandval<>-1 then
-        a_op_const_stack(list,OP_AND,size,finishandval);
       { avoid problems with getting the size of an open array etc }
       if jvmimplicitpointertype(size) then
         size:=java_jlobject;
       incstack(list,1+ord(size.size>4)-extra_slots);
+      if finishandval<>-1 then
+        a_op_const_stack(list,OP_AND,size,finishandval);
     end;
 
   function thlcgjvm.loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: aint): tasmop;
@@ -1581,12 +1581,19 @@ implementation
     begin
       if assigned(ref.symbol) then
         begin
-          finishandval:=-1;
           { -> either a global (static) field, or a regular field. If a regular
             field, then ref.base contains the self pointer, otherwise
             ref.base=NR_NO. In both cases, the symbol contains all other
             information (combined field name and type descriptor) }
           result:=getputopc[isload,ref.base=NR_NO];
+          finishandval:=-1;
+          { erase sign extension for byte/smallint loads }
+          if (def2regtyp(def)=R_INTREGISTER) and
+             not is_signed(def) then
+            case def.size of
+              1: finishandval:=255;
+              2: finishandval:=65535;
+            end;
         end
       else
         result:=loadstoreopc(def,isload,ref.arrayreftype<>art_none,finishandval);
