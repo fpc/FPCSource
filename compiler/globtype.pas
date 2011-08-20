@@ -326,8 +326,27 @@ interface
 
        { Temp types }
        ttemptype = (tt_none,
-                    tt_free,tt_normal,tt_persistent,
-                    tt_noreuse,tt_freenoreuse);
+                    { free temp location, can be reused for something else }
+                    tt_free,
+                    { temp location that will be freed when ttgobj.UnGetTemp/
+                      ttgobj.UnGetIfTemp is called on it }
+                    tt_normal,
+                    { temp location that will not be freed; if it has to be
+                      freed, first ttgobj.changetemptype() it to tt_normal,
+                      or call ttgobj.UnGetLocal() instead (for local variables,
+                      since they are also persistent temps) }
+                    tt_persistent,
+                    { temp location that can never be reused anymore, even
+                      after it has been freed }
+                    tt_noreuse,
+                    { freed version of the above }
+                    tt_freenoreuse,
+                    { temp location that has been allocated by the register
+                      allocator and that can be reallocated only by the
+                      register allocator }
+                    tt_regallocator,
+                    { freed version of the above }
+                    tt_freeregallocator);
        ttemptypeset = set of ttemptype;
 
        { calling convention for tprocdef and tprocvardef }

@@ -125,20 +125,22 @@ implementation
 
 
     const
-      FreeTempTypes = [tt_free,tt_freenoreuse];
+      FreeTempTypes = [tt_free,tt_freenoreuse,tt_freeregallocator];
 
 {$ifdef EXTDEBUG}
       TempTypeStr : array[ttemptype] of string[18] = (
           '<none>',
           'free','normal','persistant',
-          'noreuse','freenoreuse'
+          'noreuse','freenoreuse',
+          'regallocator','freeregallocator'
       );
 {$endif EXTDEBUG}
 
       Used2Free : array[ttemptype] of ttemptype = (
         tt_none,
         tt_none,tt_free,tt_free,
-        tt_freenoreuse,tt_none
+        tt_freenoreuse,tt_none,
+        tt_freeregallocator,tt_none
       );
 
 
@@ -163,7 +165,7 @@ implementation
        tempfreelist:=nil;
        templist:=nil;
        { we could create a new child class for this but I don't if it is worth the effort (FK) }
-{$if defined(powerpc) or defined(powerpc64) or defined(avr)}
+{$if defined(powerpc) or defined(powerpc64) or defined(avr) or defined(jvm)}
        direction:=1;
 {$else}
        direction:=-1;
@@ -628,7 +630,7 @@ implementation
 
     procedure ttgobj.UnGetTemp(list: TAsmList; const ref : treference);
       begin
-        FreeTemp(list,ref.offset,[tt_normal,tt_noreuse,tt_persistent]);
+        FreeTemp(list,ref.offset,[tt_normal,tt_noreuse,tt_persistent,tt_regallocator]);
       end;
 
 
