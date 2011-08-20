@@ -1049,7 +1049,7 @@ implementation
 {$endif oldreg}
             current_filepos:=entrypos;
 
-            gen_load_para_value(templist);
+            hlcg.gen_load_para_value(templist);
 
             { caller paraloc info is also necessary in the stackframe_entry
               code of the ppc (and possibly other processors)               }

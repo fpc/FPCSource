@@ -394,6 +394,8 @@ unit hlcg2ll;
 
           procedure maketojumpbool(list:TAsmList; p : tnode);override;
 
+          procedure gen_load_para_value(list:TAsmList);override;
+
           procedure gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara); override;
           procedure gen_load_cgpara_loc(list: TAsmList; vardef: tdef; const para: TCGPara; var destloc: tlocation; reusepara: boolean); override;
        end;
@@ -1161,6 +1163,11 @@ procedure thlcg2ll.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; co
       { loadregvars parameter is no longer used, should be removed from
          ncgutil version as well }
       ncgutil.maketojumpbool(list,p,lr_dont_load_regvars);
+    end;
+
+  procedure thlcg2ll.gen_load_para_value(list: TAsmList);
+    begin
+      ncgutil.gen_load_para_value(list);
     end;
 
   procedure thlcg2ll.gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara);

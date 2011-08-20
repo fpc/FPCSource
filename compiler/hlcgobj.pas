@@ -426,6 +426,8 @@ unit hlcgobj;
           procedure gen_proc_symbol(list:TAsmList);virtual;
           procedure gen_proc_symbol_end(list:TAsmList);virtual;
 
+          procedure gen_load_para_value(list:TAsmList);virtual;
+
          private
           procedure gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation;const cgpara: tcgpara;locintsize: longint);virtual;
          protected
@@ -1822,6 +1824,131 @@ implementation
             { keep argc, argv and envp properly on the stack }
             cg.a_jmp_name(list,target_info.cprefix+'FPC_SYSTEMMAIN');
            end;
+        end;
+    end;
+
+  { generates the code for incrementing the reference count of parameters and
+    initialize out parameters }
+  procedure init_paras(p:TObject;arg:pointer);
+    var
+      href : treference;
+      tmpreg : tregister;
+      list : TAsmList;
+      needs_inittable (*,
+      do_trashing     *)  : boolean;
+    begin
+      list:=TAsmList(arg);
+      if (tsym(p).typ=paravarsym) then
+       begin
+         needs_inittable:=is_managed_type(tparavarsym(p).vardef);
+(*
+         do_trashing:=
+           (localvartrashing <> -1) and
+           (not assigned(tparavarsym(p).defaultconstsym)) and
+           not needs_inittable;
+*)
+         case tparavarsym(p).varspez of
+           vs_value :
+             if needs_inittable then
+               begin
+                 { variants are already handled by the call to fpc_variant_copy_overwrite if
+                   they are passed by reference }
+                 if not((tparavarsym(p).vardef.typ=variantdef) and
+                   paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
+                   begin
+                     location_get_data_ref(list,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
+                     hlcg.g_incrrefcount(list,tparavarsym(p).vardef,href);
+                   end;
+               end;
+           vs_out :
+             begin
+               if needs_inittable (*or
+                  do_trashing*) then
+                 begin
+                   tmpreg:=cg.getaddressregister(list);
+                   hlcg.a_load_loc_reg(list,tparavarsym(p).vardef,tparavarsym(p).vardef,tparavarsym(p).initialloc,tmpreg);
+                   { we have no idea about the alignment at the callee side,
+                     and the user also cannot specify "unaligned" here, so
+                     assume worst case }
+                   reference_reset_base(href,tmpreg,0,1);
+(*
+                   if do_trashing and
+                      { needs separate implementation to trash open arrays }
+                      { since their size is only known at run time         }
+                      not is_special_array(tparavarsym(p).vardef) then
+                      { may be an open string, even if is_open_string() returns }
+                      { false (for some helpers in the system unit)             }
+                     if not is_shortstring(tparavarsym(p).vardef) then
+                       trash_reference(list,href,tparavarsym(p).vardef.size)
+                     else
+                       trash_reference(list,href,2);
+*)
+                   if needs_inittable then
+                     hlcg.g_initialize(list,tparavarsym(p).vardef,href);
+                 end;
+             end;
+(*
+           else if do_trashing and
+                   ([vo_is_funcret,vo_is_hidden_para] * tparavarsym(p).varoptions = [vo_is_funcret,vo_is_hidden_para]) then
+                 begin
+                   tmpreg:=cg.getaddressregister(list);
+                   a_load_loc_reg(list,tparavarsym(p).vardef,tparavarsym(p).vardef,tparavarsym(p).initialloc,tmpreg);
+                   { should always have standard alignment. If a function is assigned
+                     to a non-aligned variable, the optimisation to pass this variable
+                     directly as hidden function result must/cannot be performed
+                     (see tcallnode.funcret_can_be_reused)
+                   }
+                   reference_reset_base(href,tmpreg,0,
+                     used_align(tparavarsym(p).vardef.alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax));
+                   { may be an open string, even if is_open_string() returns }
+                   { false (for some helpers in the system unit)             }
+                   if not is_shortstring(tparavarsym(p).vardef) then
+                     trash_reference(list,href,tparavarsym(p).vardef.size)
+                   else
+                     { an open string has at least size 2 }
+                     trash_reference(list,href,2);
+                 end
+*)
+         end;
+       end;
+    end;
+
+  procedure thlcgobj.gen_load_para_value(list: TAsmList);
+    var
+      i: longint;
+      currpara: tparavarsym;
+    begin
+      if (po_assembler in current_procinfo.procdef.procoptions) then
+        exit;
+
+      { Copy parameters to local references/registers }
+      for i:=0 to current_procinfo.procdef.paras.count-1 do
+        begin
+          currpara:=tparavarsym(current_procinfo.procdef.paras[i]);
+          gen_load_cgpara_loc(list,currpara.vardef,currpara.paraloc[calleeside],currpara.initialloc,paramanager.param_use_paraloc(currpara.paraloc[calleeside]));
+        end;
+
+      { generate copies of call by value parameters, must be done before
+        the initialization and body is parsed because the refcounts are
+        incremented using the local copies }
+//      current_procinfo.procdef.parast.SymList.ForEachCall(@copyvalueparas,list);
+
+      if not(po_assembler in current_procinfo.procdef.procoptions) then
+        begin
+          { has to be done here rather than in gen_initialize_code, because
+            the initialisation code is generated a) later and b) with
+            rad_backwards, so the register allocator would generate
+            information as if this code comes before loading the parameters
+            from their original registers to their local location }
+//          if (localvartrashing <> -1) then
+//            current_procinfo.procdef.localst.SymList.ForEachCall(@trash_variable,list);
+          { initialize refcounted paras, and trash others. Needed here
+            instead of in gen_initialize_code, because when a reference is
+            intialised or trashed while the pointer to that reference is kept
+            in a regvar, we add a register move and that one again has to
+            come after the parameter loading code as far as the register
+            allocator is concerned }
+          current_procinfo.procdef.parast.SymList.ForEachCall(@init_paras,list);
         end;
     end;
 
