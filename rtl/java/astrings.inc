@@ -17,55 +17,75 @@
 { This will release some functions for special shortstring support }
 { define EXTRAANSISHORT}
 
-constructor AnsistringClass.Create(const arr: array of ansichar);
+constructor AnsistringClass.Create(const arr: array of ansichar; length: longint);
 begin
   { make explicit copy so that changing the array afterwards doesn't change
     the string }
-  if high(arr)=-1 then
-    exit;
-  setlength(fdata,high(arr)+1);
-  JLSystem.ArrayCopy(JLObject(@arr),0,JLObject(fdata),0,high(arr)+1);
+  if length=0 then
+    begin
+      { terminating #0 }
+      setlength(fdata,1);
+      exit;
+    end;
+  setlength(fdata,length+1);
+  JLSystem.ArrayCopy(JLObject(@arr),0,JLObject(fdata),0,length);
+  // last char is already #0 because of setlength
 end;
 
 
 constructor AnsistringClass.Create(const arr: array of unicodechar);
 begin
   if high(arr)=-1 then
-    exit;
+    begin
+      { terminating #0 }
+      setlength(fdata,1);
+      exit;
+    end;
   fdata:=TAnsiCharArray(JLString.Create(arr).getBytes);
+  setlength(fdata,system.length(fdata)+1);
+  // last char is already #0 because of setlength
 end;
 
 
 constructor AnsistringClass.Create(const u: unicodestring);
 begin
   if system.length(u)=0 then
-    exit;
+    begin
+      { terminating #0 }
+      setlength(fdata,1);
+      exit;
+    end;
   fdata:=TAnsiCharArray(JLString(u).getBytes);
+  setlength(fdata,system.length(fdata)+1);
+  // last char is already #0 because of setlength
 end;
 
 
 constructor AnsistringClass.Create(const a: ansistring);
 begin
-  Create(AnsistringClass(a).fdata);
+  Create(AnsistringClass(a).fdata,system.length(AnsistringClass(a).fdata)-1);
 end;
 
 
 constructor AnsistringClass.Create(const s: shortstring);
 begin
-  Create(ShortstringClass(@s).fdata);
+  Create(ShortstringClass(@s).fdata,system.length(ShortstringClass(@s).fdata));
 end;
 
 
 constructor AnsistringClass.Create(ch: ansichar);
 begin
-  setlength(fdata,1);
+  setlength(fdata,2);
   fdata[0]:=ch;
+  // last char is already #0 because of setlength
 end;
 
 
 constructor AnsistringClass.Create(ch: unicodechar);
 begin
   fdata:=TAnsiCharArray(JLString.Create(ch).getBytes);
+  setlength(fdata,system.length(fdata)+1);
+  // last char is already #0 because of setlength
 end;
 
 
@@ -76,7 +96,8 @@ var
 begin
   { used to construct constant ansistrings from Java string constants }
   res:=AnsistringClass.Create;
-  setlength(res.fdata,system.length(u));
+  { +1 for terminating #0 }
+  setlength(res.fdata,system.length(u)+1);
   for i:=1 to system.length(u) do
     res.fdata[i-1]:=ansichar(ord(u[i]));
   result:=ansistring(res);
@@ -93,7 +114,7 @@ end;
 
 function AnsistringClass.toUnicodeString: unicodestring;
 begin
-  result:=UnicodeString(JLString.Create(TJByteArray(fdata)));
+  result:=UnicodeString(JLString.Create(TJByteArray(fdata),0,system.length(fdata)-1));
 end;
 
 
@@ -105,7 +126,7 @@ end;
 
 function AnsistringClass.toString: JLString;
 begin
-  result:=JLString.Create(TJByteArray(fdata));
+  result:=JLString.Create(TJByteArray(fdata),0,system.length(fdata)-1);
 end;
 
 (*
@@ -149,7 +170,7 @@ end;
 
 function AnsiStringClass.length: jint;
 begin
-  result:=system.length(fdata);
+  result:=system.length(fdata)-1;
 end;
 
 {****************************************************************************
@@ -163,7 +184,8 @@ var
 begin
   thislen:=length(s1);
   addlen:=length(s2);
-  setlength(newdata,thislen+addlen);
+  { +1 for terminating #0 }
+  setlength(newdata,thislen+addlen+1);
   if thislen>0 then
     JLSystem.ArrayCopy(JLObject(AnsistringClass(s1).fdata),0,JLObject(newdata),0,thislen);
   if addlen>0 then
@@ -186,7 +208,8 @@ procedure fpc_AnsiStr_Concat_multi (var DestS:Ansistring;const sarr:array of Ans
     NewSize:=0;
     for i:=low(sarr) to high(sarr) do
       inc(newsize,length(sarr[i]));
-    setlength(newdata,newsize);
+    { +1 for terminating #0 }
+    setlength(newdata,newsize+1);
     curlen:=0;
     for i:=low(sarr) to high(sarr) do
       begin
@@ -231,7 +254,7 @@ Var
   Size : SizeInt;
 begin
   Size:=Length(S2);
-  Setlength (result,Size);
+  Setlength(result,Size);
   if Size>0 then
     JLSystem.ArrayCopy(JLObject(ShortstringClass(@S2).fdata),0,JLObject(AnsistringClass(result).fdata),0,Size);
 end;
@@ -276,15 +299,17 @@ begin
         exit;
       end;
       foundnull:=false;
+      j:=0;
       for i:=low(arr) to high(arr) do
         if arr[i]=#0 then
           begin
             foundnull:=true;
+            j:=i;
             break;
           end;
-      if not foundnull then
+      if foundnull then
         begin
-          res:=AnsistringClass.Create(arr);
+          res:=AnsistringClass.Create(arr,j);
           exit;
         end
     end
@@ -294,12 +319,13 @@ begin
       exit;
     end;
   res:=AnsistringClass.Create;
-  setlength(res.fdata,high(arr)+1);
+  { +1 for terminating 0 }
+  setlength(res.fdata,high(arr)+2);
   JLSystem.ArrayCopy(JLObject(@arr),0,JLObject(res.fdata),0,high(arr)+1);
   result:=Ansistring(res);
 end;
 
-procedure  fpc_ansistr_to_chararray(out res: array of ansichar; const src: ansistring); compilerproc;
+procedure fpc_ansistr_to_chararray(out res: array of ansichar; const src: ansistring); compilerproc;
 var
   len: longint;
 begin
@@ -388,7 +414,8 @@ begin
     result:=ansistring(AnsistringClass.Create)
   else
     result:=s;
-  setlength(AnsistringClass(result).fdata,l);
+  { +1 for terminating #0 }
+  setlength(AnsistringClass(result).fdata,l+1);
 end;
 
 {*****************************************************************************
@@ -479,7 +506,8 @@ begin
   If Size>0 then
    begin
      res:=AnsistringClass.Create;
-     setlength(res.fdata,size);
+     { +1 for terminating #0 }
+     setlength(res.fdata,size+1);
      JLSystem.ArrayCopy(JLObject(AnsistringClass(S).fdata),index,JLObject(res.fdata),0,size);
      result:=ansistring(res);
    end;

@@ -19,7 +19,7 @@ type
    private
     fdata: TAnsiCharArray;
    public
-    constructor Create(const arr: array of ansichar);overload;
+    constructor Create(const arr: array of ansichar; length: longint);overload;
     constructor Create(const arr: array of unicodechar);overload;
     constructor Create(const u: unicodestring);overload;
     constructor Create(const a: ansistring);overload;

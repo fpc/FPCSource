@@ -189,9 +189,10 @@ var
   i: longint;
 begin
   { used to construct constant chararrays from Java string constants }
-  setlength(result,length(u));
-  for i:=1 to system.length(u) do
+  setlength(result,length(u)+1);
+  for i:=1 to length(u) do
     result[i-1]:=ansichar(ord(u[i]));
+  result[length(u)]:=#0;
 end;
 
 
