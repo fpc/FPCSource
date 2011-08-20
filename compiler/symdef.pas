@@ -781,7 +781,7 @@ interface
        cformaltype,               { unique formal definition }
        ctypedformaltype,          { unique typed formal definition }
        voidtype,                  { Void (procedure) }
-       cchartype,                 { Char }
+       cansichartype,             { Char }
        cwidechartype,             { WideChar }
        pasbool8type,              { boolean type }
        pasbool16type,

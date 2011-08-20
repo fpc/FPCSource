@@ -2616,7 +2616,7 @@ implementation
 
              _CCHAR :
                begin
-                 p1:=cordconstnode.create(ord(pattern[1]),cchartype,true);
+                 p1:=cordconstnode.create(ord(pattern[1]),cansichartype,true);
                  consume(_CCHAR);
                end;
 

@@ -503,7 +503,7 @@ implementation
                       { iso pascal needs a different handler }
                       if (m_iso in current_settings.modeswitches) and do_read then
                         name:=name+'_iso';
-                      readfunctype:=cchartype;
+                      readfunctype:=cansichartype;
                     end;
                   uwidechar :
                     begin
@@ -1933,7 +1933,7 @@ implementation
               in_chr_byte:
                 begin
                    { convert to explicit char() }
-                   result:=ctypeconvnode.create_internal(left,cchartype);
+                   result:=ctypeconvnode.create_internal(left,cansichartype);
                    left:=nil;
                 end;
               in_length_x:
@@ -3557,7 +3557,7 @@ implementation
           result:=ccallnode.createintern('fpc_widestr_copy',paras)
         else if is_unicodestring(resultdef) then
           result:=ccallnode.createintern('fpc_unicodestr_copy',paras)
-          { can't check for resultdef = cchartype, because resultdef=
+          { can't check for resultdef = cansichartype, because resultdef=
             cshortstringtype here }
         else if is_char(paradef) then
           result:=ccallnode.createintern('fpc_char_copy',paras)

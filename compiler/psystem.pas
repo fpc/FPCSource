@@ -162,7 +162,7 @@ implementation
         bool16type:=torddef.create(bool16bit,low(int64),high(int64));
         bool32type:=torddef.create(bool32bit,low(int64),high(int64));
         bool64type:=torddef.create(bool64bit,low(int64),high(int64));
-        cchartype:=torddef.create(uchar,0,255);
+        cansichartype:=torddef.create(uchar,0,255);
         cwidechartype:=torddef.create(uwidechar,0,65535);
         cshortstringtype:=tstringdef.createshort(255);
         { should we give a length to the default long and ansi string definition ?? }
@@ -176,7 +176,7 @@ implementation
         { length=0 for shortstring is open string (needed for readln(string) }
         openshortstringtype:=tstringdef.createshort(0);
         openchararraytype:=tarraydef.create(0,-1,s32inttype);
-        tarraydef(openchararraytype).elementdef:=cchartype;
+        tarraydef(openchararraytype).elementdef:=cansichartype;
 {$ifdef x86}
         create_fpu_types;
         if target_info.system<>system_x86_64_win64 then
@@ -248,7 +248,7 @@ implementation
 {$endif cpu8bitalu}
         { some other definitions }
         voidpointertype:=tpointerdef.create(voidtype);
-        charpointertype:=tpointerdef.create(cchartype);
+        charpointertype:=tpointerdef.create(cansichartype);
         widecharpointertype:=tpointerdef.create(cwidechartype);
         voidfarpointertype:=tpointerdef.createfar(voidtype);
         cfiletype:=tfiledef.createuntyped;
@@ -318,7 +318,7 @@ implementation
         addtype('LongInt',s32inttype);
         addtype('QWord',u64inttype);
         addtype('Int64',s64inttype);
-        addtype('Char',cchartype);
+        addtype('Char',cansichartype);
         addtype('WideChar',cwidechartype);
         addtype('Text',tfiledef.createtext);
         addtype('TypedFile',tfiledef.createtyped(voidtype));
@@ -337,7 +337,7 @@ implementation
         addtype('$longint',s32inttype);
         addtype('$qword',u64inttype);
         addtype('$int64',s64inttype);
-        addtype('$char',cchartype);
+        addtype('$char',cansichartype);
         addtype('$widechar',cwidechartype);
         addtype('$shortstring',cshortstringtype);
         addtype('$longstring',clongstringtype);
@@ -439,7 +439,7 @@ implementation
         loadtype('formal',cformaltype);
         loadtype('typedformal',ctypedformaltype);
         loadtype('void',voidtype);
-        loadtype('char',cchartype);
+        loadtype('char',cansichartype);
         loadtype('widechar',cwidechartype);
         loadtype('shortstring',cshortstringtype);
         loadtype('longstring',clongstringtype);

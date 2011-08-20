@@ -100,7 +100,7 @@ function tjvmassignmentnode.pass_1: tnode;
         { prevent errors in case of an expression such as
             byte(str[x]):=12;
         }
-        inserttypeconv_explicit(right,cchartype);
+        inserttypeconv_explicit(right,cansichartype);
         { call ShortstringClass(@shortstring).setChar(index,char) }
         tvecnode(target).left:=caddrnode.create_internal(tvecnode(target).left);
         { avoid useless typecheck when casting to shortstringclass }

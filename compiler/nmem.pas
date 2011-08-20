@@ -942,11 +942,11 @@ implementation
                   st_widestring :
                     elementdef:=cwidechartype;
                   st_ansistring :
-                    elementdef:=cchartype;
+                    elementdef:=cansichartype;
                   st_longstring :
-                    elementdef:=cchartype;
+                    elementdef:=cansichartype;
                   st_shortstring :
-                    elementdef:=cchartype;
+                    elementdef:=cansichartype;
                 end;
                 if right.nodetype=rangen then
                   begin
