@@ -38,7 +38,7 @@ unit rgcpu;
 
       trgcpu=class(trgobj)
        protected
-        class function  do_spill_replace_all(list:TAsmList;instr:taicpu;const spilltemps: tspilltemps):boolean;
+        class procedure do_spill_replace_all(list:TAsmList;instr:taicpu;const spilltemps: tspilltemps);
         class procedure remove_dummy_load_stores(list: TAsmList; headertai: tai);
        public
         { performs the register allocation for *all* register types }
@@ -56,7 +56,7 @@ implementation
 
     { trgcpu }
 
-    class function trgcpu.do_spill_replace_all(list:TAsmList;instr:taicpu;const spilltemps: tspilltemps):boolean;
+    class procedure trgcpu.do_spill_replace_all(list:TAsmList;instr:taicpu;const spilltemps: tspilltemps);
       var
         l: longint;
         reg: tregister;
