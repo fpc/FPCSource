@@ -735,8 +735,13 @@ implementation
         case csym.consttyp of
           constord:
             { always interpret as signed value, because the JVM does not
-              support unsigned 64 bit values }
-            result:=tostr(csym.value.valueord.svalue);
+              support unsigned values }
+            case csym.constdef.size of
+              1:result:=tostr(shortint(csym.value.valueord.svalue));
+              2:result:=tostr(smallint(csym.value.valueord.svalue));
+              4:result:=tostr(longint(csym.value.valueord.svalue));
+              8:result:=tostr(csym.value.valueord.svalue);
+            end;
           conststring:
             result:=constastr(pchar(csym.value.valueptr),csym.value.len);
           constreal:
