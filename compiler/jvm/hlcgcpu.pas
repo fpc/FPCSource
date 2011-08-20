@@ -1932,6 +1932,7 @@ implementation
   procedure thlcgjvm.allocate_implicit_structs_for_st_with_base_ref(list: TAsmList; st: tsymtable; const ref: treference; allocvartyp: tsymtyp);
     var
       vs: tabstractvarsym;
+      def: tdef;
       i: longint;
     begin
       for i:=0 to st.symlist.count-1 do
@@ -1949,6 +1950,25 @@ implementation
           if not jvmimplicitpointertype(vs.vardef) then
             continue;
           allocate_implicit_struct_with_base_ref(list,vs,ref);
+        end;
+      { process symtables of routines part of this symtable (for local typed
+        constants) }
+      if allocvartyp=staticvarsym then
+        begin
+          for i:=0 to st.deflist.count-1 do
+            begin
+              def:=tdef(st.deflist[i]);
+              { the unit symtable also contains the methods of classes defined
+                in that unit -> skip them when processing the unit itself.
+                Localst is not assigned for the main program code.
+                Localst can be the same as st in case of unit init code. }
+              if (def.typ<>procdef) or
+                 (def.owner<>st) or
+                 not assigned(tprocdef(def).localst) or
+                 (tprocdef(def).localst=st) then
+                continue;
+              allocate_implicit_structs_for_st_with_base_ref(list,tprocdef(def).localst,ref,allocvartyp);
+            end;
         end;
     end;
 
