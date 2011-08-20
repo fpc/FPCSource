@@ -1629,7 +1629,7 @@ uses
             orgbase:=basenode;
             for i:=def.lowrange to def.highrange-1 do
               begin
-                basenode:=cvecnode.create(orgbase.getcopy,genintconstnode(i));
+                basenode:=cvecnode.create(orgbase.getcopy,ctypeconvnode.create_explicit(genintconstnode(i),tarraydef(def).rangedef));
                 read_typed_const_data(def.elementdef);
                 if token=_RKLAMMER then
                   begin
@@ -1640,7 +1640,7 @@ uses
                 else
                   consume(_COMMA);
               end;
-            basenode:=cvecnode.create(orgbase,genintconstnode(def.highrange));
+            basenode:=cvecnode.create(orgbase,ctypeconvnode.create_explicit(genintconstnode(def.highrange),tarraydef(def).rangedef));
             read_typed_const_data(def.elementdef);
             consume(_RKLAMMER);
           end
