@@ -793,7 +793,7 @@ implementation
         { static field definition -> get original field definition for
           visibility }
         if (sym.typ=staticvarsym) and
-           (sym.owner.symtabletype=objectsymtable) then
+           (sym.owner.symtabletype in [objectsymtable,recordsymtable]) then
           begin
             vissym:=tabstractvarsym(
               tabstractrecorddef(sym.owner.defowner).symtable.find(
