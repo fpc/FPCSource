@@ -199,13 +199,8 @@ implementation
       var
         newsize: tcgsize;
       begin
-{$ifndef nounsupported}
         if left.resultdef.typ=stringdef then
-          begin
-            location:=left.location;
-            exit;
-          end;
-{$endif}
+          internalerror(2011052702);
 
         { This routine is not used for Strings, as they are a class type and
           you have to use charAt() there to load a character (and you cannot
