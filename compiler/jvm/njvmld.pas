@@ -26,6 +26,9 @@ unit njvmld;
 interface
 
 uses
+  globtype,
+  symtype,
+  cgutils,
   node, ncgld;
 
 type
@@ -33,12 +36,20 @@ type
     function is_addr_param_load: boolean; override;
   end;
 
+  tjvmarrayconstructornode = class(tcgarrayconstructornode)
+   protected
+    procedure makearrayref(var ref: treference; eledef: tdef); override;
+    procedure advancearrayoffset(var ref: treference; elesize: asizeint); override;
+  end;
+
 implementation
 
 uses
+  verbose,
+  aasmdata,
   nld,
-  symsym,
-  jvmdef;
+  symsym,symdef,jvmdef,
+  cgbase,hlcgobj;
 
 function tjvmloadnode.is_addr_param_load: boolean;
   begin
@@ -48,7 +59,29 @@ function tjvmloadnode.is_addr_param_load: boolean;
   end;
 
 
+{ tjvmarrayconstructornode }
+
+procedure tjvmarrayconstructornode.makearrayref(var ref: treference; eledef: tdef);
+  var
+    basereg: tregister;
+  begin
+    { arrays are implicitly dereferenced }
+    basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
+    hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,java_jlobject,java_jlobject,ref,basereg);
+    reference_reset_base(ref,basereg,0,1);
+    ref.arrayreftype:=art_indexconst;
+    ref.indexoffset:=0;
+  end;
+
+
+procedure tjvmarrayconstructornode.advancearrayoffset(var ref: treference; elesize: asizeint);
+  begin
+    inc(ref.indexoffset);
+  end;
+
+
 begin
   cloadnode:=tjvmloadnode;
+  carrayconstructornode:=tjvmarrayconstructornode;
 end.
 

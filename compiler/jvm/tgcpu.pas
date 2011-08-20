@@ -78,9 +78,13 @@ unit tgcpu;
                   ndim:=0;
                   eledef:=def;
                   repeat
-                    thlcgjvm(hlcg).a_load_const_stack(list,s32inttype,tarraydef(eledef).elecount,R_INTREGISTER);
+                    if forcesize<>-1 then
+                      thlcgjvm(hlcg).a_load_const_stack(list,s32inttype,forcesize div tarraydef(eledef).elesize,R_INTREGISTER)
+                    else
+                      thlcgjvm(hlcg).a_load_const_stack(list,s32inttype,tarraydef(eledef).elecount,R_INTREGISTER);
                     eledef:=tarraydef(eledef).elementdef;
                     inc(ndim);
+                    forcesize:=-1;
                   until (eledef.typ<>arraydef) or
                         is_dynamic_array(eledef);
                   eledef:=tarraydef(def).elementdef;

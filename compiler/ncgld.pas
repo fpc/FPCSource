@@ -27,6 +27,8 @@ unit ncgld;
 interface
 
     uses
+      globtype,
+      symtype,
       node,nld,cgutils;
 
     type
@@ -41,6 +43,10 @@ interface
        end;
 
        tcgarrayconstructornode = class(tarrayconstructornode)
+         protected
+          procedure makearrayref(var ref: treference; eledef: tdef);virtual;
+          procedure advancearrayoffset(var ref: treference; elesize: asizeint);virtual;
+         public
           procedure pass_generate_code;override;
        end;
 
@@ -54,9 +60,9 @@ implementation
     uses
       cutils,
       systems,
-      verbose,globtype,globals,constexp,
+      verbose,globals,constexp,
       nutils,
-      symtable,symconst,symtype,symdef,symsym,defutil,paramgr,
+      symtable,symconst,symdef,symsym,defutil,paramgr,
       ncnv,ncon,nmem,nbas,ncgrtti,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,pass_2,
@@ -1007,6 +1013,19 @@ implementation
         vtAnsiString16  = 19;
         vtAnsiString64  = 20;
 
+
+    procedure tcgarrayconstructornode.makearrayref(var ref: treference; eledef: tdef);
+      begin
+        { do nothing by default }
+      end;
+
+
+    procedure tcgarrayconstructornode.advancearrayoffset(var ref: treference; elesize: asizeint);
+      begin
+        inc(ref.offset,elesize);
+      end;
+
+
     procedure tcgarrayconstructornode.pass_generate_code;
       var
         hp    : tarrayconstructornode;
@@ -1042,10 +1061,11 @@ implementation
         { Allocate always a temp, also if no elements are required, to
           be sure that location is valid (PFV) }
          if tarraydef(resultdef).highrange=-1 then
-           tg.gethltemp(current_asmdata.CurrAsmList,eledef,elesize,tt_normal,location.reference)
+           tg.gethltemp(current_asmdata.CurrAsmList,resultdef,elesize,tt_normal,location.reference)
          else
-           tg.gethltemp(current_asmdata.CurrAsmList,eledef,(tarraydef(resultdef).highrange+1)*elesize,tt_normal,location.reference);
+           tg.gethltemp(current_asmdata.CurrAsmList,resultdef,(tarraydef(resultdef).highrange+1)*elesize,tt_normal,location.reference);
          href:=location.reference;
+         makearrayref(href,eledef);
         { Process nodes in array constructor }
         hp:=self;
         while assigned(hp) do
@@ -1063,7 +1083,7 @@ implementation
               secondpass(hp.left);
               { Move flags and jump in register }
               if hp.left.location.loc in [LOC_FLAGS,LOC_JUMP] then
-                location_force_reg(current_asmdata.CurrAsmList,hp.left.location,def_cgsize(hp.left.resultdef),false);
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,hp.left.location,hp.left.resultdef,hp.left.resultdef,false);
 
               if (hp.left.location.loc=LOC_JUMP) then
                 begin
@@ -1193,7 +1213,7 @@ implementation
                  dec(href.offset,sizeof(pint));
                  cg.a_load_const_ref(current_asmdata.CurrAsmList, OS_INT,vtype,href);
                  { goto next array element }
-                 inc(href.offset,sizeof(pint)*2);
+                 advancearrayoffset(href,sizeof(pint)*2);
                end
               else
               { normal array constructor of the same type }
@@ -1207,15 +1227,15 @@ implementation
                        hp.left.location.register,href,mms_movescalar);
                    LOC_FPUREGISTER,
                    LOC_CFPUREGISTER :
-                     cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,hp.left.location.size,hp.left.location.size,hp.left.location.register,href);
+                     hlcg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,hp.left.resultdef,hp.left.resultdef,hp.left.location.register,href);
                    LOC_REFERENCE,
                    LOC_CREFERENCE :
                      begin
                        if is_shortstring(hp.left.resultdef) then
-                         cg.g_copyshortstring(current_asmdata.CurrAsmList,hp.left.location.reference,href,
-                             Tstringdef(hp.left.resultdef).len)
+                         hlcg.g_copyshortstring(current_asmdata.CurrAsmList,hp.left.location.reference,href,
+                             Tstringdef(hp.left.resultdef))
                        else
-                         cg.g_concatcopy(current_asmdata.CurrAsmList,hp.left.location.reference,href,elesize);
+                         hlcg.g_concatcopy(current_asmdata.CurrAsmList,eledef,hp.left.location.reference,href);
                      end;
                    else
                      begin
@@ -1224,10 +1244,10 @@ implementation
                          cg64.a_load64_loc_ref(current_asmdata.CurrAsmList,hp.left.location,href)
                        else
 {$endif not cpu64bitalu}
-                         cg.a_load_loc_ref(current_asmdata.CurrAsmList,hp.left.location.size,hp.left.location,href);
+                         hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,eledef,eledef,hp.left.location,href);
                      end;
                  end;
-                 inc(href.offset,elesize);
+                 advancearrayoffset(href,elesize);
                end;
               if freetemp then
                 location_freetemp(current_asmdata.CurrAsmList,hp.left.location);
