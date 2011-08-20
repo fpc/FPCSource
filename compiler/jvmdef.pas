@@ -312,12 +312,8 @@ implementation
             end;
           formaldef :
             begin
-{$ifndef nounsupported}
               { var/const/out x: JLObject }
               result:=jvmaddencodedtype(java_jlobject,false,encodedstr,forcesignature,founderror);
-{$else}
-              result:=false;
-{$endif}
             end;
           arraydef :
             begin
