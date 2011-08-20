@@ -430,7 +430,8 @@ implementation
               internalerror(2010120533);
             list.concat(taicpu.op_none(TOpCG2LAsmOp[op]));
             case op of
-              OP_NOT:
+              OP_NOT,
+              OP_NEG:
                 ;
               { the second argument here is an int rather than a long }
               OP_SHL,OP_SHR,OP_SAR:
