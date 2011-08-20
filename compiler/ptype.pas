@@ -85,8 +85,11 @@ implementation
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
-       pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl,
-       pjvm;
+       pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl
+{$ifdef jvm}
+       ,pjvm
+{$endif}
+       ;
 
 
     procedure maybe_parse_hint_directives(pd:tprocdef);
@@ -943,8 +946,9 @@ implementation
               end;
             _END :
               begin
-                if (target_info.system=system_jvm_java32) then
-                  add_java_default_record_methods_intf(trecorddef(current_structdef));
+{$ifdef jvm}
+                add_java_default_record_methods_intf(trecorddef(current_structdef));
+{$endif}
                 if target_info.system in systems_typed_constants_node_init then
                   add_typedconst_init_routine(current_structdef);
                 consume(_END);
@@ -1006,9 +1010,10 @@ implementation
          else
            begin
              read_record_fields([vd_record]);
+{$ifdef jvm}
              { we need a constructor to create temps, a deep copy helper, ... }
-             if (target_info.system=system_jvm_java32) then
-               add_java_default_record_methods_intf(trecorddef(current_structdef));
+             add_java_default_record_methods_intf(trecorddef(current_structdef));
+{$endif}
              if target_info.system in systems_typed_constants_node_init then
                add_typedconst_init_routine(current_structdef);
              consume(_END);
