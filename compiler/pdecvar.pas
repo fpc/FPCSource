@@ -543,7 +543,21 @@ implementation
                           if not assigned(p.propaccesslist[palt_read].procdef) or
                             { because of cpo_ignorehidden we need to compare if it is a static class method and we have a class property }
                             ((sp_static in p.symoptions) <> tprocdef(p.propaccesslist[palt_read].procdef).no_self_node) then
-                            Message(parser_e_ill_property_access_sym);
+                            Message(parser_e_ill_property_access_sym)
+                          else
+                            begin
+{$ifdef jvm}
+                              { if the visibility of the getter is lower than
+                                the visibility of the property, wrap it so that
+                                we can call it from all contexts in which the
+                                property is visible }
+                              if (tprocdef(p.propaccesslist[palt_read].procdef).visibility<p.visibility) then
+                                begin
+                                  p.propaccesslist[palt_read].procdef:=jvm_wrap_method_with_vis(tprocdef(p.propaccesslist[palt_read].procdef),p.visibility);
+                                  p.propaccesslist[palt_read].firstsym^.sym:=tprocdef(p.propaccesslist[palt_read].procdef).procsym;
+                                end;
+{$endif jvm}
+                            end;
                         end;
                       fieldvarsym :
                         begin
@@ -591,7 +605,21 @@ implementation
                           else
                             p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults]);
                           if not assigned(p.propaccesslist[palt_write].procdef) then
-                            Message(parser_e_ill_property_access_sym);
+                            Message(parser_e_ill_property_access_sym)
+                          else
+                            begin
+{$ifdef jvm}
+                              { if the visibility of the getter is lower than
+                                the visibility of the property, wrap it so that
+                                we can call it from all contexts in which the
+                                property is visible }
+                              if (tprocdef(p.propaccesslist[palt_write].procdef).visibility<p.visibility) then
+                                begin
+                                  p.propaccesslist[palt_write].procdef:=jvm_wrap_method_with_vis(tprocdef(p.propaccesslist[palt_write].procdef),p.visibility);
+                                  p.propaccesslist[palt_write].firstsym^.sym:=tprocdef(p.propaccesslist[palt_write].procdef).procsym;
+                                end;
+{$endif jvm}
+                            end;
                         end;
                       fieldvarsym :
                         begin

@@ -388,6 +388,40 @@ implementation
     end;
 
 
+  procedure implement_callthrough(pd: tprocdef);
+    var
+      str: ansistring;
+      callpd: tprocdef;
+      currpara: tparavarsym;
+      i: longint;
+      firstpara,
+      isclassmethod: boolean;
+    begin
+      isclassmethod:=
+        (po_classmethod in pd.procoptions) and
+        not(pd.proctypeoption in [potype_constructor,potype_destructor]);
+      callpd:=tprocdef(pd.skpara);
+      str:='begin ';
+      if pd.returndef<>voidtype then
+        str:=str+'result:=';
+      str:=str+callpd.procsym.realname+'(';
+      firstpara:=true;
+      for i:=0 to pd.paras.count-1 do
+        begin
+          currpara:=tparavarsym(pd.paras[i]);
+          if not(vo_is_hidden_para in currpara.varoptions) then
+            begin
+              if not firstpara then
+                str:=str+',';
+              firstpara:=false;
+              str:=str+currpara.realname;
+            end;
+        end;
+      str:=str+') end;';
+      str_parse_method_impl(str,pd,isclassmethod);
+    end;
+
+
   procedure implement_jvm_enum_values(pd: tprocdef);
     begin
       str_parse_method_impl('begin result:=__fpc_FVALUES end;',pd,true);
@@ -524,6 +558,8 @@ implementation
             { special handling for this one is done in tnodeutils.wrap_proc_body }
             tsk_tcinit:
               implement_empty(pd);
+            tsk_callthrough:
+              implement_callthrough(pd);
             tsk_jvm_enum_values:
               implement_jvm_enum_values(pd);
             tsk_jvm_enum_valueof:

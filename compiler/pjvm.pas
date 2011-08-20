@@ -28,7 +28,7 @@ interface
 
     uses
       globtype,
-      symtype,symbase,symdef,symsym;
+      symconst,symtype,symbase,symdef,symsym;
 
     { the JVM specs require that you add a default parameterless
       constructor in case the programmer hasn't specified any }
@@ -43,6 +43,8 @@ interface
 
     procedure jvm_add_typed_const_initializer(csym: tconstsym);
 
+    function jvm_wrap_method_with_vis(pd: tprocdef; vis: tvisibility): tprocdef;
+
 
 implementation
 
@@ -52,7 +54,7 @@ implementation
     fmodule,
     parabase,aasmdata,
     pdecsub,
-    symtable,symconst,symcreat,defcmp,jvmdef,
+    symtable,symcreat,defcmp,jvmdef,
     defutil,paramgr;
 
 
@@ -368,6 +370,37 @@ implementation
           else
             internalerror(2011062701);
         end;
+      end;
+
+
+    function jvm_wrap_method_with_vis(pd: tprocdef; vis: tvisibility): tprocdef;
+      var
+        obj: tabstractrecorddef;
+        visname: string;
+      begin
+        obj:=current_structdef;
+        { if someone gets the idea to add a property to an external class
+          definition, don't try to wrap it since we cannot add methods to
+          external classes }
+        if oo_is_external in obj.objectoptions then
+          begin
+            result:=pd;
+            exit
+          end;
+        result:=tprocdef(pd.getcopy);
+        result.visibility:=vis;
+        visname:=visibilityName[vis];
+        replace(visname,' ','_');
+        { create a name that is unique amongst all units (start with '$unitname$$') and
+          unique in this unit (result.defid) }
+        finish_copied_procdef(result,'$'+current_module.realmodulename^+'$$'+tostr(result.defid)+pd.procsym.realname+'$'+visname,obj.symtable,obj);
+        { in case the referred method is from an external class }
+        exclude(result.procoptions,po_external);
+        { not virtual/override/abstract/... }
+        result.procoptions:=result.procoptions*[po_classmethod,po_staticmethod,po_java,po_varargs,po_public];
+        result.synthetickind:=tsk_callthrough;
+        { so we know the name of the routine to call through to }
+        result.skpara:=pd;
       end;
 
 end.
