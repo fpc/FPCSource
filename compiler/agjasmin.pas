@@ -874,7 +874,7 @@ implementation
             for i:=0 to taicpu(hp).ops-1 do
               begin
                  s:=s+sep+getopstr(taicpu(hp).oper[i]^);
-                 sep:=',';
+                 sep:=' ';
               end;
           end;
         owner.AsmWriteLn(s);
