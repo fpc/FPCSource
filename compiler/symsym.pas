@@ -327,6 +327,10 @@ interface
     var
        generrorsym : tsym;
 
+    { generate internal static field name based on regular field name }
+    function internal_static_field_name(const fieldname: string): string;
+
+
 implementation
 
     uses
@@ -349,6 +353,11 @@ implementation
 {****************************************************************************
                                Helpers
 ****************************************************************************}
+
+    function internal_static_field_name(const fieldname: string): string;
+      begin
+        result:='$_static_'+fieldname;
+      end;
 
 {****************************************************************************
                           TSYM (base for all symtypes)

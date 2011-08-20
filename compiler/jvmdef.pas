@@ -49,9 +49,6 @@ interface
     { add type prefix (package name) to a type }
     procedure jvmaddtypeownerprefix(owner: tsymtable; var name: string);
 
-    { generate internal static field name based on regular field name }
-    function jvminternalstaticfieldname(const fieldname: string): string;
-
     { returns type string for a single-dimensional array (different from normal
       typestring in case of a primitive type) }
     function jvmarrtype(def: tdef; out primitivetype: boolean): string;
@@ -257,12 +254,6 @@ implementation
             internalerror(2010122605);
         end;
         name:=tmpresult+name;
-      end;
-
-
-    function jvminternalstaticfieldname(const fieldname: string): string;
-      begin
-        result:='$_static_'+fieldname;
       end;
 
 

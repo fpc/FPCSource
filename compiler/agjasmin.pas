@@ -761,7 +761,7 @@ implementation
           begin
             vissym:=tabstractvarsym(search_struct_member(
               tobjectdef(vissym.owner.defowner),
-              jvminternalstaticfieldname(vissym.name)));
+              internal_static_field_name(vissym.name)));
             if not assigned(vissym) or
                (vissym.typ<>fieldvarsym) then
               internalerror(2011011501);

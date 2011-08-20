@@ -233,7 +233,7 @@ implementation
                      begin
                        { generate the symbol which reserves the space }
                        static_name:=lower(generate_nested_name(symtablestack.top,'_'))+'_'+orgname;
-                       sym:=tstaticvarsym.create('$_static_'+static_name,varspez,hdef,[]);
+                       sym:=tstaticvarsym.create(internal_static_field_name(static_name),varspez,hdef,[]);
                        include(sym.symoptions,sp_internal);
                        tabstractrecordsymtable(symtablestack.top).get_unit_symtable.insert(sym);
                        { generate the symbol for the access }

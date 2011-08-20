@@ -1669,7 +1669,7 @@ implementation
                      { generate the symbol which reserves the space }
                      static_name:=lower(generate_nested_name(recst,'_'))+'_'+fieldvs.name;
 {$ifndef jvm}
-                     hstaticvs:=tstaticvarsym.create('$_static_'+static_name,vs_value,hdef,[]);
+                     hstaticvs:=tstaticvarsym.create(internal_static_field_name(static_name),vs_value,hdef,[]);
                      include(hstaticvs.symoptions,sp_internal);
                      recst.get_unit_symtable.insert(hstaticvs);
                      insertbssdata(hstaticvs);
@@ -1685,7 +1685,7 @@ implementation
                      include(hstaticvs.symoptions,sp_internal);
                      { rename the original field to prevent a name clash when
                        inserting the new one }
-                     fieldvs.Rename(jvminternalstaticfieldname(fieldvs.name));
+                     fieldvs.Rename(internal_static_field_name(fieldvs.name));
                      recst.insert(hstaticvs);
 {$endif not jvm}
                      { generate the symbol for the access }
