@@ -29,7 +29,9 @@ unit tgcpu;
   interface
 
     uses
-       tgobj;
+       globtype,
+       aasmdata,
+       symtype,tgobj;
 
     type
 
@@ -38,25 +40,39 @@ unit tgcpu;
        ttgjvm = class(ttgobj)
         protected
          function alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef): longint; override;
+        public
+         procedure setfirsttemp(l : longint); override;
        end;
 
-implementation
+  implementation
 
-{ ttgjvm }
+    uses
+       verbose;
 
-function ttgjvm.alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef): longint;
+
+    { ttgjvm }
+
+    function ttgjvm.alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef): longint;
+      begin
+        { the JVM only supports 1 slot (= 4 bytes in FPC) and 2 slot (= 8 bytes in
+          FPC) temps on the stack. double and int64 are 2 slots, the rest is one slot.
+          There are no problems with reusing the same slot for a value of a different
+          type. There are no alignment requirements either. }
+        if size<4 then
+          size:=4;
+        if not(size in [4,8]) then
+          internalerror(2010121401);
+        { don't pass on "def", since we don't care if a slot is used again for a
+          different type }
+        result:=inherited alloctemp(list, size shr 2, 1, temptype, nil);
+      end;
+
+    procedure ttgjvm.setfirsttemp(l: longint);
+      begin
+        firsttemp:=l;
+        lasttemp:=l;
+      end;
+
 begin
-  { the JVM only support s1 slot (= 4 bytes in FPC) and 2 slot (= 8 bytes in
-    FPC) temps on the stack. double and int64 are 2 slots, the rest is one slot.
-    There are no problems with reusing the same slot for a vakue of a different
-    type. There are no alignment requirements either. }
-  if size<4 then
-    size:=4;
-  if not(size in [4,8]) then
-    internalerror(2010121401);
-  Result:=inherited alloctemp(list, size div 4, 1, temptype, def);
-end;
-
-begin
-  tgclass:=ttgjvm;
+  tgobjclass:=ttgjvm;
 end.

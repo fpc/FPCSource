@@ -78,7 +78,7 @@ unit tgobj;
 
              @param(l start offset where temps will start in stack)
           }
-          procedure setfirsttemp(l : longint);
+          procedure setfirsttemp(l : longint); virtual;
 
           procedure gettemp(list: TAsmList; size, alignment : longint;temptype:ttemptype;out ref : treference);
           procedure gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
