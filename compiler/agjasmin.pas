@@ -809,6 +809,8 @@ implementation
       var
         i,runstart,runlen: longint;
         num: string[4];
+        d: double;
+        s: single;
       begin
         case o.typ of
           top_reg:
@@ -823,12 +825,23 @@ implementation
           top_ref:
             getopstr:=getreferencestring(o.ref^);
           top_single:
-            str(o.sval:0:20,result);
+            begin
+              s:=o.sval;
+              // force interpretation as single (since we write it out as an
+              // integer, we never have to swap the endianess).
+              result:='0fx'+hexstr(longint(t32bitarray(s)),8);
+            end;
           top_double:
             begin
-              str(o.dval:0:20,result);
-              // force interpretation as double
-              result:=result+'d';
+              d:=o.dval;
+              // force interpretation as double (since we write it out as an
+              // integer, we never have to swap the endianess). We have to
+              // include the sign separately because of the way Java parses
+              // hex numbers (0x8000000000000000 is not a valid long)
+              result:=hexstr(abs(int64(t64bitarray(d))),16);
+              if int64(t64bitarray(d))<0 then
+                result:='-'+result;
+              result:='0dx'+result;
             end;
           top_string:
             begin
