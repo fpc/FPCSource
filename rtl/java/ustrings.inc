@@ -422,19 +422,21 @@ end;
 
 procedure fpc_unicodestr_to_chararray(out res: array of AnsiChar; const src: UnicodeString); compilerproc;
 var
-  i, len: SizeInt;
+  len: longint;
   temp: array of jbyte;
 begin
-  len := length(src);
+  len:=length(src);
   { make sure we don't dereference src if it can be nil (JM) }
-  if len > 0 then
+  if len>0 then
     begin
       temp:=JLString(src).getBytes;
-      if len > length(temp) then
-        len := length(temp);
-      for i := 0 to len-1 do
-        res[i] := chr(temp[i]);
+      len:=length(temp);
+      if len>length(res) then
+        len:=length(res);
+      JLSystem.ArrayCopy(JLObject(temp),0,JLObject(@res),0,len);
     end;
+  if len<=high(res) then
+    JUArrays.fill(TJByteArray(@res),len,high(res),0);
 end;
 
 

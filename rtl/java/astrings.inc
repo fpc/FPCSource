@@ -301,16 +301,16 @@ end;
 
 procedure  fpc_ansistr_to_chararray(out res: array of ansichar; const src: ansistring); compilerproc;
 var
-  i, len: SizeInt;
+  len: longint;
 begin
-  len := length(src);
-  if len > length(res) then
-    len := length(res);
+  len:=length(src);
+  if len>length(res) then
+    len:=length(res);
   { make sure we don't try to access element 1 of the ansistring if it's nil }
-  if len > 0 then
+  if len>0 then
     JLSystem.ArrayCopy(JLObject(AnsistringClass(src).fdata),0,JLObject(@res),0,len);
-  for i:=len to length(res) do
-    res[i]:=#0;
+  if len<=high(res) then
+    JUArrays.fill(TJByteArray(@res),len,high(res),0);
 end;
 
 
