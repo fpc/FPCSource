@@ -692,7 +692,7 @@ implementation
         fromclasscompatible:=
           (left.resultdef.typ=formaldef) or
           (left.resultdef.typ=pointerdef) or
-          (left.resultdef.typ=objectdef) or
+          is_java_class_or_interface(left.resultdef) or
           is_dynamic_array(left.resultdef) or
           ((left.resultdef.typ in [stringdef,classrefdef]) and
            not is_shortstring(left.resultdef)) or
@@ -700,7 +700,7 @@ implementation
           procvarconv;
         toclasscompatible:=
           (resultdef.typ=pointerdef) or
-          (resultdef.typ=objectdef) or
+          is_java_class_or_interface(resultdef) or
           is_dynamic_array(resultdef) or
           ((resultdef.typ in [stringdef,classrefdef]) and
            not is_shortstring(resultdef)) or
