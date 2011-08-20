@@ -102,7 +102,9 @@ implementation
         include(current_structdef.objectoptions,oo_has_constructor);
         { Set return type, class and record constructors return the
           created instance, object constructors return boolean }
-        if is_class(pd.struct) or is_record(pd.struct) then
+        if is_class(pd.struct) or
+           is_record(pd.struct) or
+           is_javaclass(pd.struct) then
           pd.returndef:=pd.struct
         else
 {$ifdef CPU64bitaddr}

@@ -81,6 +81,7 @@ uses
       procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean); override;
       procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean); override;
 
+      procedure gen_load_return_value(list:TAsmList);override;
       procedure record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList); override;
 
       { JVM-specific routines }
@@ -788,11 +789,16 @@ implementation
 
   procedure thlcgjvm.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
     var
+      retdef: tdef;
       opc: tasmop;
     begin
-      case current_procinfo.procdef.returndef.typ of
+      if current_procinfo.procdef.proctypeoption=potype_constructor then
+        retdef:=voidtype
+      else
+        retdef:=current_procinfo.procdef.returndef;
+      case retdef.typ of
         orddef:
-          case torddef(current_procinfo.procdef.returndef).ordtype of
+          case torddef(retdef).ordtype of
             uvoid:
               opc:=a_return;
             s64bit,
@@ -803,7 +809,7 @@ implementation
               opc:=a_ireturn;
           end;
         floatdef:
-          case tfloatdef(current_procinfo.procdef.returndef).floattype of
+          case tfloatdef(retdef).floattype of
             s32real:
               opc:=a_freturn;
             s64real:
@@ -815,6 +821,14 @@ implementation
           opc:=a_areturn;
       end;
       list.concat(taicpu.op_none(opc));
+    end;
+
+  procedure thlcgjvm.gen_load_return_value(list: TAsmList);
+    begin
+      { constructors don't return anything in the jvm }
+      if current_procinfo.procdef.proctypeoption=potype_constructor then
+        exit;
+      inherited gen_load_return_value(list);
     end;
 
   procedure thlcgjvm.record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);

@@ -292,6 +292,7 @@ implementation
       var
         srsym        : tsym;
         para         : tcallparanode;
+        call         : tcallnode;
         newstatement : tstatementnode;
       begin
         result:=internalstatements(newstatement);
@@ -349,6 +350,25 @@ implementation
                               load_self_pointer_node,
                               voidpointertype),
                           ccallnode.createintern('fpc_help_constructor',para)));
+                    end
+                else
+                  if is_javaclass(current_structdef) then
+                    begin
+                      if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+                         not current_procinfo.ConstructorCallingConstructor then
+                       begin
+                         { call inherited constructor }
+                         srsym:=search_struct_member(tobjectdef(current_structdef).childof,'CREATE');
+                         if assigned(srsym) and
+                            (srsym.typ=procsym) then
+                           begin
+                             call:=ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[cnf_inherited]);
+                             exclude(tcallnode(call).callnodeflags,cnf_return_value_used);
+                             addstatement(newstatement,call);
+                           end
+                         else
+                           internalerror(2011010312);
+                       end;
                     end
                 else
                   if not is_record(current_structdef) then

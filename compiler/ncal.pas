@@ -1670,7 +1670,12 @@ implementation
               { push 0 as self when allocation is needed }
               if (methodpointer.resultdef.typ=classrefdef) or
                  (cnf_new_call in callnodeflags) then
-                selftree:=cpointerconstnode.create(0,voidpointertype)
+                if not is_javaclass(tdef(procdefinition.owner.defowner)) then
+                  selftree:=cpointerconstnode.create(0,voidpointertype)
+                else
+                 { special handling for Java constructors, handled in
+                   tjvmcallnode.extra_pre_call_code }
+                  selftree:=cnothingnode.create
               else
                 begin
                   if methodpointer.nodetype=typen then
@@ -3339,6 +3344,15 @@ implementation
              typecheckpass(tnode(callcleanupblock));
              doinlinesimplify(tnode(callcleanupblock));
            end;
+
+         { If a constructor calls another constructor of the same or of an
+           inherited class, some targets (jvm) have to generate different
+           entry code for the constructor. }
+         if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+            (procdefinition.typ=procdef) and
+            (tprocdef(procdefinition).proctypeoption=potype_constructor) and
+            ([cnf_member_call,cnf_inherited] * callnodeflags <> []) then
+           current_procinfo.ConstructorCallingConstructor:=true;
 
          { Continue with checking a normal call or generate the inlined code }
          if cnf_do_inline in callnodeflags then

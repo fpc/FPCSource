@@ -35,6 +35,7 @@ interface
 
        tjvmcallnode = class(tcgcallnode)
         protected
+         procedure extra_pre_call_code; override;
          procedure set_result_location(realresdef: tstoreddef); override;
          procedure do_release_unused_return_value;override;
          procedure extra_post_call_code; override;
@@ -45,15 +46,36 @@ implementation
 
     uses
       verbose,globtype,
-      symtype,defutil,ncal,
-      cgbase,cgutils,tgobj,
+      symconst,symtype,defutil,ncal,
+      cgbase,cgutils,tgobj,procinfo,
       cpubase,aasmdata,aasmcpu,
-      hlcgobj,hlcgcpu;
+      hlcgobj,hlcgcpu,
+      jvmdef;
 
 
 {*****************************************************************************
                              TJVMCALLNODE
 *****************************************************************************}
+
+    procedure tjvmcallnode.extra_pre_call_code;
+      begin
+        { when calling a constructor, first create a new instance, except
+          when calling it from another constructor (because then this has
+          already been done before calling the current constructor) }
+        if procdefinition.typ<>procdef then
+          exit;
+        if tprocdef(procdefinition).proctypeoption<>potype_constructor then
+          exit;
+        if (methodpointer.resultdef.typ<>classrefdef) then
+          exit;
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tobjectdef(tprocdef(procdefinition).owner.defowner).jvm_full_typename)));
+        { the constructor doesn't return anything, so put a duplicate of the
+          self pointer on the evaluation stack for use as function result
+          after the constructor has run }
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_dup));
+        thlcgjvm(hlcg).incstack(2);
+      end;
+
 
     procedure tjvmcallnode.set_result_location(realresdef: tstoreddef);
       begin
@@ -64,6 +86,9 @@ implementation
 
     procedure tjvmcallnode.do_release_unused_return_value;
       begin
+        if (tprocdef(procdefinition).proctypeoption=potype_constructor) and
+           (current_procinfo.procdef.proctypeoption=potype_constructor) then
+          exit;
         case resultdef.size of
           0:
             ;
@@ -92,7 +117,11 @@ implementation
           realresdef:=tstoreddef(resultdef)
         else
           realresdef:=tstoreddef(typedef);
-        totalremovesize:=pushedparasize-realresdef.size;
+        { a constructor doesn't actually return a value in the jvm }
+        if (tprocdef(procdefinition).proctypeoption=potype_constructor) then
+          totalremovesize:=pushedparasize
+        else
+          totalremovesize:=pushedparasize-realresdef.size;
         { remove parameters from internal evaluation stack counter (in case of
           e.g. no parameters and a result, it can also increase) }
         if totalremovesize>0 then

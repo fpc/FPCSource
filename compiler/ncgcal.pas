@@ -68,6 +68,7 @@ interface
           }
           procedure pop_parasize(pop_size:longint);virtual;
           procedure extra_interrupt_code;virtual;
+          procedure extra_pre_call_code;virtual;
           procedure extra_call_code;virtual;
           procedure extra_post_call_code;virtual;
           procedure do_syscall;virtual;abstract;
@@ -281,6 +282,11 @@ implementation
 *****************************************************************************}
 
     procedure tcgcallnode.extra_interrupt_code;
+      begin
+      end;
+
+
+    procedure tcgcallnode.extra_pre_call_code;
       begin
       end;
 
@@ -649,6 +655,8 @@ implementation
          if not assigned(procdefinition) or
             not(procdefinition.has_paraloc_info in [callerside,callbothsides]) then
            internalerror(200305264);
+
+         extra_pre_call_code;
 
          if assigned(callinitblock) then
            secondpass(tnode(callinitblock));

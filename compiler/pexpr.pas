@@ -1257,7 +1257,9 @@ implementation
                      else
                        begin
                          p1:=ctypenode.create(ttypesym(sym).typedef);
-                         if (is_class(ttypesym(sym).typedef) or is_objcclass(ttypesym(sym).typedef)) and
+                         if (is_class(ttypesym(sym).typedef) or
+                             is_objcclass(ttypesym(sym).typedef) or
+                             is_javaclass(ttypesym(sym).typedef)) and
                             not(block_type in [bt_type,bt_const_type,bt_var_type]) then
                            p1:=cloadvmtaddrnode.create(p1);
                        end;
@@ -1553,7 +1555,8 @@ implementation
                             (for "TClassHelper.Something") }
                           { class reference ? }
                           if is_class(hdef) or
-                             is_objcclass(hdef) then
+                             is_objcclass(hdef) or
+                             is_javaclass(hdef) then
                            begin
                              if getaddr and (token=_POINT) then
                               begin

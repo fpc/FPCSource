@@ -1402,7 +1402,9 @@ implementation
                 begin
                   { Set return type, class constructors return the
                     created instance, object constructors return boolean }
-                  if is_class(pd.struct) or is_record(pd.struct) then
+                  if is_class(pd.struct) or
+                     is_record(pd.struct) or
+                     is_javaclass(pd.struct) then
                     pd.returndef:=pd.struct
                   else
 {$ifdef CPU64bitaddr}
@@ -2377,7 +2379,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_OVERLOAD;
-      pd_flags : [pd_implemen,pd_interface,pd_body];
+      pd_flags : [pd_implemen,pd_interface,pd_body,pd_javaclass,pd_intfjava];
       handler  : @pd_overload;
       pocall   : pocall_none;
       pooption : [po_overload];
@@ -2386,7 +2388,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_OVERRIDE;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass,pd_javaclass,pd_notrecord];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass,pd_javaclass,pd_intfjava,pd_notrecord];
       handler  : @pd_override;
       pocall   : pocall_none;
       pooption : [po_overridingmethod,po_virtualmethod];
