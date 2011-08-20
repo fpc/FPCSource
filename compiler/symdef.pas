@@ -4238,24 +4238,41 @@ implementation
               internalerror(2010122608);
           end
         else
-          tmpresult:=procsym.realname;
+          begin
+            tmpresult:=procsym.realname;
+            if tmpresult[1]='$' then
+              tmpresult:=copy(tmpresult,2,length(tmpresult)-1);
+          end;
         { parameter types }
         tmpresult:=tmpresult+'(';
-        init_paraloc_info(callerside);
-        for i:=0 to paras.count-1 do
+        { not the case for the main program (not required for defaultmangledname
+          because setmangledname() is called for the main program; in case of
+          the JVM, this only sets the importname, however) }
+        if assigned(paras) then
           begin
-            vs:=tparavarsym(paras[i]);
-            { function result and self pointer are not part of the mangled
-              name }
-            if ([vo_is_funcret,vo_is_self] * vs.varoptions <> []) then
-              continue;
-            { reference parameters are not yet supported }
-            if (vs.varspez in [vs_var,vs_out,vs_constref]) then
-              internalerror(2010122603);
-            { Add the parameter type.  }
-            if not jvmaddencodedtype(vs.vardef,false,tmpresult,founderror) then
-              { should be checked earlier on }
-              internalerror(2010122604);
+            init_paraloc_info(callerside);
+            for i:=0 to paras.count-1 do
+              begin
+                vs:=tparavarsym(paras[i]);
+                { function result and self pointer are not part of the mangled
+                  name }
+                if ([vo_is_funcret,vo_is_self] * vs.varoptions <> []) then
+                  continue;
+                { reference parameters are not yet supported }
+                if (vs.varspez in [vs_var,vs_out,vs_constref]) then
+                  begin
+                    { passing by reference is emulated by passing an array of one
+                      element containing the value; for types that aren't pointers
+                      in regular Pascal, simply passing the underlying pointer type
+                      does achieve regular call-by-reference semantics though }
+                    if not jvmimplicitpointertype(vs.vardef) then
+                      tmpresult:=tmpresult+'[';
+                  end;
+                { Add the parameter type.  }
+                if not jvmaddencodedtype(vs.vardef,false,tmpresult,founderror) then
+                  { should be checked earlier on }
+                  internalerror(2010122604);
+              end;
           end;
         tmpresult:=tmpresult+')';
         { And the type of the function result (void in case of a procedure and
@@ -4281,11 +4298,20 @@ implementation
             stringdispose(_mangledname)
           else
             internalerror(200411171);
+      {$ifdef jvm}
+        { this routine can be called for compilerproces. can't set mangled
+          name since it must be calculated, but it uses import_name when set
+          -> set that one }
+        import_name:=stringdup(s);
+        include(procoptions,po_has_importname);
+        include(procoptions,po_has_mangledname);
+      {$else}
       {$ifdef compress}
         _mangledname:=stringdup(minilzw_encode(s));
       {$else}
         _mangledname:=stringdup(s);
       {$endif}
+      {$endif jvm}
         include(procoptions,po_has_mangledname);
       end;
 
