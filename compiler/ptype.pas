@@ -145,7 +145,8 @@ implementation
                         { we need a class type for classrefdef }
                         if (def.typ=classrefdef) and
                            not(is_class(ttypesym(srsym).typedef)) and
-                           not(is_objcclass(ttypesym(srsym).typedef)) then
+                           not(is_objcclass(ttypesym(srsym).typedef)) and
+                           not(is_javaclass(ttypesym(srsym).typedef)) then
                           MessagePos1(def.typesym.fileinfo,type_e_class_type_expected,ttypesym(srsym).typedef.typename);
                       end
                      else
@@ -1633,7 +1634,8 @@ implementation
                     consume(_OF);
                     single_type(hdef,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
                     if is_class(hdef) or
-                       is_objcclass(hdef) then
+                       is_objcclass(hdef) or
+                       is_javaclass(hdef) then
                       def:=tclassrefdef.create(hdef)
                     else
                       if hdef.typ=forwarddef then
