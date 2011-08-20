@@ -116,7 +116,9 @@ implementation
       fcurrprocend:=procendlabel;
 
       write_symtable_parasyms(list,def.paras);
-      write_symtable_syms(list,def.localst);
+      { not assigned for unit init }
+      if assigned(def.localst) then
+        write_symtable_syms(list,def.localst);
     end;
 
 

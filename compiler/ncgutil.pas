@@ -144,8 +144,6 @@ interface
     procedure new_exception(list:TAsmList;const t:texceptiontemps;exceptlabel:tasmlabel);
     procedure free_exception(list:TAsmList;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
 
-    procedure insertbssdata(sym : tstaticvarsym);
-
     procedure gen_alloc_symtable(list:TAsmList;st:TSymtable);
     procedure gen_free_symtable(list:TAsmList;st:TSymtable);
 
@@ -2127,66 +2125,6 @@ implementation
 {****************************************************************************
                                Const Data
 ****************************************************************************}
-
-    procedure insertbssdata(sym : tstaticvarsym);
-      var
-        l : asizeint;
-        varalign : shortint;
-        storefilepos : tfileposinfo;
-        list : TAsmList;
-        sectype : TAsmSectiontype;
-      begin
-        storefilepos:=current_filepos;
-        current_filepos:=sym.fileinfo;
-        l:=sym.getsize;
-        varalign:=sym.vardef.alignment;
-        if (varalign=0) then
-          varalign:=var_align_size(l)
-        else
-          varalign:=var_align(varalign);
-        if tf_section_threadvars in target_info.flags then
-          begin
-            if (vo_is_thread_var in sym.varoptions) then
-              begin
-                list:=current_asmdata.asmlists[al_threadvars];
-                sectype:=sec_threadvar;
-              end
-            else
-              begin
-                list:=current_asmdata.asmlists[al_globals];
-                sectype:=sec_bss;
-              end;
-          end
-        else
-          begin
-            if (vo_is_thread_var in sym.varoptions) then
-              begin
-                inc(l,sizeof(pint));
-                { it doesn't help to set a higher alignment, as  }
-                { the first sizeof(pint) bytes field will offset }
-                { everything anyway                              }
-                varalign:=sizeof(pint);
-              end;
-            list:=current_asmdata.asmlists[al_globals];
-            sectype:=sec_bss;
-          end;
-        maybe_new_object_file(list);
-        if vo_has_section in sym.varoptions then
-          new_section(list,sec_user,sym.section,varalign)
-        else
-          new_section(list,sectype,lower(sym.mangledname),varalign);
-        if (sym.owner.symtabletype=globalsymtable) or
-           create_smartlink or
-           DLLSource or
-           (assigned(current_procinfo) and
-            (po_inline in current_procinfo.procdef.procoptions)) or
-           (vo_is_public in sym.varoptions) then
-          list.concat(Tai_datablock.create_global(sym.mangledname,l))
-        else
-          list.concat(Tai_datablock.create(sym.mangledname,l));
-        current_filepos:=storefilepos;
-      end;
-
 
     procedure gen_alloc_symtable(list:TAsmList;st:TSymtable);
 

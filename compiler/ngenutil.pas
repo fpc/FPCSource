@@ -27,7 +27,7 @@ unit ngenutil;
 interface
 
   uses
-    node;
+    node,symsym;
 
 
   type
@@ -35,6 +35,15 @@ interface
       class function call_fail_node:tnode; virtual;
       class function initialize_data_node(p:tnode):tnode; virtual;
       class function finalize_data_node(p:tnode):tnode; virtual;
+      { returns true if the unit requires an initialisation section (e.g.,
+        to force class constructors for the JVM target to initialise global
+        records/arrays) }
+      class function force_init: boolean; virtual;
+      { idem for finalization }
+      class function force_final: boolean; virtual;
+
+      class procedure insertbssdata(sym : tstaticvarsym); virtual;
+
     end;
     tnodeutilsclass = class of tnodeutils;
 
@@ -45,9 +54,12 @@ interface
 implementation
 
     uses
-      verbose,constexp,
-      symconst,symtype,symdef,symsym,symbase,symtable,defutil,
+      verbose,globtype,globals,cutils,constexp,
+      scanner,systems,procinfo,
+      aasmbase,aasmdata,aasmtai,
+      symconst,symtype,symdef,symbase,symtable,defutil,
       nadd,nbas,ncal,ncnv,ncon,nflw,nld,nmem,nobj,nutils,
+
       pass_1;
 
   class function tnodeutils.call_fail_node:tnode;
@@ -202,6 +214,78 @@ implementation
               ccallparanode.create(
                   caddrnode.create_internal(p),
               nil)));
+    end;
+
+
+  class function tnodeutils.force_init: boolean;
+    begin
+      result:=false;
+    end;
+
+
+  class function tnodeutils.force_final: boolean;
+    begin
+      result:=false;
+    end;
+
+
+  class procedure tnodeutils.insertbssdata(sym: tstaticvarsym);
+    var
+      l : asizeint;
+      varalign : shortint;
+      storefilepos : tfileposinfo;
+      list : TAsmList;
+      sectype : TAsmSectiontype;
+    begin
+      storefilepos:=current_filepos;
+      current_filepos:=sym.fileinfo;
+      l:=sym.getsize;
+      varalign:=sym.vardef.alignment;
+      if (varalign=0) then
+        varalign:=var_align_size(l)
+      else
+        varalign:=var_align(varalign);
+      if tf_section_threadvars in target_info.flags then
+        begin
+          if (vo_is_thread_var in sym.varoptions) then
+            begin
+              list:=current_asmdata.asmlists[al_threadvars];
+              sectype:=sec_threadvar;
+            end
+          else
+            begin
+              list:=current_asmdata.asmlists[al_globals];
+              sectype:=sec_bss;
+            end;
+        end
+      else
+        begin
+          if (vo_is_thread_var in sym.varoptions) then
+            begin
+              inc(l,sizeof(pint));
+              { it doesn't help to set a higher alignment, as  }
+              { the first sizeof(pint) bytes field will offset }
+              { everything anyway                              }
+              varalign:=sizeof(pint);
+            end;
+          list:=current_asmdata.asmlists[al_globals];
+          sectype:=sec_bss;
+        end;
+      maybe_new_object_file(list);
+      if vo_has_section in sym.varoptions then
+        new_section(list,sec_user,sym.section,varalign)
+      else
+        new_section(list,sectype,lower(sym.mangledname),varalign);
+      if (sym.owner.symtabletype=globalsymtable) or
+         create_smartlink or
+         DLLSource or
+         (assigned(current_procinfo) and
+          (po_inline in current_procinfo.procdef.procoptions)) or
+         (vo_is_public in sym.varoptions) then
+        list.concat(Tai_datablock.create_global(sym.mangledname,l))
+      else
+        list.concat(Tai_datablock.create(sym.mangledname,l));
+      current_filepos:=storefilepos;
     end;
 
 

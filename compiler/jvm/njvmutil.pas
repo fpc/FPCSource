@@ -27,13 +27,16 @@ interface
 
   uses
     node,
-    ngenutil;
+    ngenutil,
+    symsym;
 
 
   type
     tjvmnodeutils = class(tnodeutils)
       class function initialize_data_node(p:tnode):tnode; override;
       class function finalize_data_node(p:tnode):tnode; override;
+      class function force_init: boolean; override;
+      class procedure insertbssdata(sym: tstaticvarsym); override;
     end;
 
 
@@ -41,7 +44,8 @@ implementation
 
     uses
       verbose,constexp,
-      symconst,symtype,symdef,symsym,symbase,symtable,defutil,
+      aasmdata,aasmtai,
+      symconst,symtype,symdef,symbase,symtable,defutil,jvmdef,
       nbas,ncnv,ncon,ninl,ncal,
       pass_1;
 
@@ -79,6 +83,24 @@ implementation
     begin
       // do nothing
       result:=cnothingnode.create;
+    end;
+
+
+  class function tjvmnodeutils.force_init: boolean;
+    begin
+      { we need an initialisation in case the al_globals list is not empty
+        (that's where the initialisation for global records is added) }
+      result:=not current_asmdata.asmlists[al_globals].empty;
+    end;
+
+  class procedure tjvmnodeutils.insertbssdata(sym: tstaticvarsym);
+    begin
+      { handled while generating the unit/program init code, or class
+        constructor; add something to al_globals to indicate that we need to
+        insert an init section though }
+      if current_asmdata.asmlists[al_globals].empty and
+         jvmimplicitpointertype(sym.vardef) then
+        current_asmdata.asmlists[al_globals].concat(cai_align.Create(1));
     end;
 
 begin

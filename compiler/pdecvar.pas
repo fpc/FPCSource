@@ -62,7 +62,7 @@ implementation
        node,pass_1,aasmdata,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nmem,nutils,
        { codegen }
-       ncgutil,
+       ncgutil,ngenutil,
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,
@@ -1493,7 +1493,7 @@ implementation
                  if (vs.typ=staticvarsym) and
                     not(vo_is_typed_const in vs.varoptions) and
                     not(vo_is_external in vs.varoptions) then
-                   insertbssdata(tstaticvarsym(vs));
+                   cnodeutils.insertbssdata(tstaticvarsym(vs));
                end;
            end;
          block_type:=old_block_type;
@@ -1705,7 +1705,7 @@ implementation
                      hstaticvs:=tstaticvarsym.create(internal_static_field_name(static_name),vs_value,hdef,[]);
                      include(hstaticvs.symoptions,sp_internal);
                      recst.get_unit_symtable.insert(hstaticvs);
-                     insertbssdata(hstaticvs);
+                     cnodeutils.insertbssdata(hstaticvs);
 {$else not jvm}
                      { for the JVM, static field accesses are name-based and
                        hence we have to keep the original name of the field.

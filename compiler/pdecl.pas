@@ -67,7 +67,7 @@ implementation
        { pass 1 }
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
        { codegen }
-       ncgutil,
+       ncgutil,ngenutil,
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,
@@ -332,7 +332,7 @@ implementation
                       begin
                         labelsym.jumpbuf:=tstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
                         symtablestack.top.insert(labelsym.jumpbuf);
-                        insertbssdata(tstaticvarsym(labelsym.jumpbuf));
+                        cnodeutils.insertbssdata(tstaticvarsym(labelsym.jumpbuf));
                       end;
                     include(labelsym.jumpbuf.symoptions,sp_internal);
                     { the buffer will be setup later, but avoid a hint }

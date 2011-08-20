@@ -39,7 +39,7 @@ implementation
        symconst,symbase,symtype,symdef,symsym,symtable,symcreat,
        wpoinfo,
        aasmtai,aasmdata,aasmcpu,aasmbase,
-       cgbase,cgobj,
+       cgbase,cgobj,ngenutil,
        nbas,ncgutil,
        link,assemble,import,export,gendef,ppu,comprsrc,dbgbase,
        cresstr,procinfo,
@@ -1284,7 +1284,8 @@ implementation
 
          { should we force unit initialization? }
          { this is a hack, but how can it be done better ? }
-         if force_init_final and ((current_module.flags and uf_init)=0) then
+         if (force_init_final or cnodeutils.force_init) and
+            ((current_module.flags and uf_init)=0) then
            begin
              { first release the not used init procinfo }
              if assigned(init_procinfo) then
@@ -1302,7 +1303,7 @@ implementation
               finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
               finalize_procinfo.parse_body;
            end
-         else if force_init_final then
+         else if force_init_final or cnodeutils.force_final then
            finalize_procinfo:=gen_implicit_initfinal(uf_finalize,current_module.localsymtable);
 
          { Now both init and finalize bodies are read and it is known
@@ -1872,7 +1873,7 @@ implementation
 
          { should we force unit initialization? }
          force_init_final:=tstaticsymtable(current_module.localsymtable).needs_init_final;
-         if force_init_final then
+         if force_init_final or cnodeutils.force_init then
            {init_procinfo:=gen_implicit_initfinal(uf_init,current_module.localsymtable)};
 
          { Add symbol to the exports section for win32 so smartlinking a
@@ -2203,7 +2204,7 @@ implementation
 
          { should we force unit initialization? }
          force_init_final:=tstaticsymtable(current_module.localsymtable).needs_init_final;
-         if force_init_final then
+         if force_init_final or cnodeutils.force_init then
            init_procinfo:=gen_implicit_initfinal(uf_init,current_module.localsymtable);
 
          { Add symbol to the exports section for win32 so smartlinking a
@@ -2226,7 +2227,7 @@ implementation
               finalize_procinfo.parse_body;
            end
          else
-           if force_init_final then
+           if force_init_final or cnodeutils.force_final then
              finalize_procinfo:=gen_implicit_initfinal(uf_finalize,current_module.localsymtable);
 
           { the finalization routine of libraries is generic (and all libraries need to }

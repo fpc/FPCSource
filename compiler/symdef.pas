@@ -4331,7 +4331,7 @@ implementation
         { special names for constructors and class constructors }
         if proctypeoption=potype_constructor then
           tmpresult:='<init>'
-        else if proctypeoption=potype_class_constructor then
+        else if proctypeoption in [potype_class_constructor,potype_unitinit] then
           tmpresult:='<clinit>'
         else if po_has_importname in procoptions then
           begin

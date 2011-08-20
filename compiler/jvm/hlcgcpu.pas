@@ -29,7 +29,7 @@ interface
 uses
   globtype,
   aasmbase,aasmdata,
-  symbase,symconst,symtype,symdef,
+  symbase,symconst,symtype,symdef,symsym,
   cpubase, hlcgobj, cgbase, cgutils, parabase;
 
   type
@@ -98,6 +98,8 @@ uses
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
       procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
 
+      procedure gen_initialize_code(list: TAsmList); override;
+
       { JVM-specific routines }
 
       procedure a_load_stack_reg(list : TAsmList;size: tdef;reg: tregister);
@@ -149,7 +151,8 @@ uses
 
       procedure gen_initialize_fields_code(list:TAsmList);
      protected
-      procedure allocate_implicit_structs_for_st_with_base_ref(list: TAsmList; st: tsymtable; ref: treference; allocvartyp: tsymtyp);
+      procedure allocate_implicit_structs_for_st_with_base_ref(list: TAsmList; st: tsymtable; const ref: treference; allocvartyp: tsymtyp);
+      procedure allocate_implicit_struct_with_base_ref(list: TAsmList; vs: tabstractvarsym; ref: treference);
       procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
 
       procedure inittempvariables(list:TAsmList);override;
@@ -196,10 +199,10 @@ uses
 implementation
 
   uses
-    verbose,cutils,globals,
+    verbose,cutils,globals,fmodule,
     defutil,
     aasmtai,aasmcpu,
-    symtable,symsym,jvmdef,
+    symtable,jvmdef,
     procinfo,cgcpu,tgobj;
 
   const
@@ -1431,6 +1434,24 @@ implementation
       // do nothing, long live garbage collection!
     end;
 
+  procedure thlcgjvm.gen_initialize_code(list: TAsmList);
+    var
+      ref: treference;
+    begin
+      { create globals with wrapped types such as arrays/records  }
+      case current_procinfo.procdef.proctypeoption of
+        potype_unitinit:
+          begin
+            reference_reset_base(ref,NR_NO,0,1);
+            if assigned(current_module.globalsymtable) then
+              allocate_implicit_structs_for_st_with_base_ref(list,current_module.globalsymtable,ref,staticvarsym);
+            allocate_implicit_structs_for_st_with_base_ref(list,current_module.localsymtable,ref,staticvarsym);
+          end;
+        else
+          inherited
+      end;
+    end;
+
   procedure thlcgjvm.a_load_stack_reg(list: TAsmList; size: tdef; reg: tregister);
     var
       opc: tasmop;
@@ -1677,9 +1698,21 @@ implementation
         end;
     end;
 
-  procedure thlcgjvm.allocate_implicit_structs_for_st_with_base_ref(list: TAsmList; st: tsymtable; ref: treference; allocvartyp: tsymtyp);
+  procedure thlcgjvm.allocate_implicit_struct_with_base_ref(list: TAsmList; vs: tabstractvarsym; ref: treference);
     var
       tmpref: treference;
+    begin
+      ref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
+      tg.gethltemp(list,vs.vardef,vs.vardef.size,tt_persistent,tmpref);
+      { only copy the reference, not the actual data }
+      a_load_ref_ref(list,java_jlobject,java_jlobject,tmpref,ref);
+      { remains live since there's still a reference to the created
+        entity }
+      tg.ungettemp(list,tmpref);
+    end;
+
+  procedure thlcgjvm.allocate_implicit_structs_for_st_with_base_ref(list: TAsmList; st: tsymtable; const ref: treference; allocvartyp: tsymtyp);
+    var
       vs: tabstractvarsym;
       i: longint;
     begin
@@ -1690,13 +1723,7 @@ implementation
           vs:=tabstractvarsym(st.symlist[i]);
           if not jvmimplicitpointertype(vs.vardef) then
             continue;
-          ref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
-          tg.gethltemp(list,vs.vardef,vs.vardef.size,tt_persistent,tmpref);
-          { only copy the reference, not the actual data }
-          a_load_ref_ref(list,java_jlobject,java_jlobject,tmpref,ref);
-          { remains live since there's still a reference to the created
-            entity }
-          tg.ungettemp(list,tmpref);
+          allocate_implicit_struct_with_base_ref(list,vs,ref);
         end;
     end;
 
