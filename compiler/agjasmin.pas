@@ -538,8 +538,9 @@ implementation
         if not assigned(obj) then
           begin
             { fake class type for unit -> name=unitname and
-              superclass=java.lang.object }
-            AsmWrite('.class public ');
+              superclass=java.lang.object, make final so you cannot descend
+              from it }
+            AsmWrite('.class final public ');
             if assigned(current_module.namespace) then
               AsmWrite(current_module.namespace^+'.');
             AsmWriteln(current_module.realmodulename^);
