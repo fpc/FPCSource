@@ -2399,7 +2399,7 @@ implementation
         for i:=0 to tprocsym(sym).ProcdefList.Count-1 do
           begin
             pd:=tprocdef(tprocsym(sym).ProcdefList[i]);
-            hs:=pd.procsym.name+pd.typename_paras(false);
+            hs:=pd.procsym.name+pd.typename_paras([]);
             j:=AbstractMethodsList.FindIndexOf(hs);
             if j<>-1 then
               AbstractMethodsList[j]:=pd

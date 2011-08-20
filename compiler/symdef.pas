@@ -414,6 +414,10 @@ interface
 
        { tabstractprocdef }
 
+       tprocnameoption = (pno_showhidden, pno_proctypeoption, pno_paranames,
+         pno_ownername, pno_noclassmarker);
+       tprocnameoptions = set of tprocnameoption;
+
        tabstractprocdef = class(tstoreddef)
           { saves a definition to the return type }
           returndef       : tdef;
@@ -440,7 +444,7 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           procedure calcparas;
-          function  typename_paras(showhidden:boolean): string;
+          function  typename_paras(pno: tprocnameoptions): string;
           function  is_methodpointer:boolean;virtual;
           function  is_addressonly:boolean;virtual;
           function  no_self_node:boolean;
@@ -576,6 +580,7 @@ interface
           function  mangledname : string;
           procedure setmangledname(const s : string);
           function  fullprocname(showhidden:boolean):string;
+          function  customprocname(pno: tprocnameoptions):string;
           function  defaultmangledname: string;
           function  cplusplusmangledname : string;
           function  objcmangledname : string;
@@ -3311,7 +3316,7 @@ implementation
       end;
 
 
-    function tabstractprocdef.typename_paras(showhidden:boolean) : string;
+    function tabstractprocdef.typename_paras(pno: tprocnameoptions) : string;
       var
         hs,s  : string;
         hp    : TParavarsym;
@@ -3325,7 +3330,7 @@ implementation
          begin
            hp:=tparavarsym(paras[i]);
            if not(vo_is_hidden_para in hp.varoptions) or
-              (showhidden) then
+              (pno_showhidden in pno) then
             begin
                if first then
                 begin
@@ -3346,6 +3351,8 @@ implementation
                  vs_constref :
                    s:=s+'constref ';
                end;
+               if (pno_paranames in pno) then
+                 s:=s+hp.realname+':';
                if hp.univpara then
                  s:=s+'univ ';
                if assigned(hp.vardef.typesym) then
@@ -3777,45 +3784,70 @@ implementation
 
     function tprocdef.fullprocname(showhidden:boolean):string;
       var
+        pno: tprocnameoptions;
+      begin
+        pno:=[];
+        if showhidden then
+          include(pno,pno_showhidden);
+        result:=customprocname(pno);
+      end;
+
+
+    function tprocdef.customprocname(pno: tprocnameoptions):string;
+      var
         s : string;
         t : ttoken;
       begin
 {$ifdef EXTDEBUG}
-        showhidden:=true;
+        include(pno,pno_showhidden);
 {$endif EXTDEBUG}
         s:='';
-        if assigned(struct) then
-         begin
-           s:=struct.RttiName+'.';
-           if (po_classmethod in procoptions) and
-              not (proctypeoption in [potype_class_constructor,potype_class_destructor]) then
-             s:='class ' + s;
-         end;
         if proctypeoption=potype_operator then
           begin
             for t:=NOTOKEN to last_overloaded do
               if procsym.realname='$'+overloaded_names[t] then
                 begin
-                  s:='operator '+arraytokeninfo[t].str+typename_paras(showhidden);
+                  s:='operator ';
+                  if (pno_ownername in pno) and
+                     assigned(struct) then
+                    s:=s+struct.RttiName+'.';
+                  s:=s+arraytokeninfo[t].str+typename_paras(pno);
                   break;
                 end;
           end
         else
-          s:=s+procsym.realname+typename_paras(showhidden);
-        case proctypeoption of
-          potype_constructor:
-            s:='constructor '+s;
-          potype_destructor:
-            s:='destructor '+s;
-          potype_class_constructor:
-            s:='class constructor '+s;
-          potype_class_destructor:
-            s:='class destructor '+s;
-          else
-            if assigned(returndef) and
-              not(is_void(returndef)) then
-              s:=s+':'+returndef.GetTypeName;
-        end;
+          begin
+            if (po_classmethod in procoptions) and
+               not(pno_noclassmarker in pno) and
+               not (proctypeoption in [potype_class_constructor,potype_class_destructor]) then
+              s:='class ';
+            case proctypeoption of
+              potype_constructor:
+                s:=s+'constructor ';
+              potype_destructor:
+                s:=s+'destructor '+s;
+              potype_class_constructor:
+                s:=s+'class constructor ';
+              potype_class_destructor:
+                s:=s+'class destructor ';
+              else
+                if (pno_proctypeoption in pno) and
+                   assigned(returndef) and
+                   not(is_void(returndef)) then
+                  s:=s+'function '
+                else
+                  s:=s+'procedure ';
+            end;
+            if (pno_ownername in pno) and
+               (owner.symtabletype in [recordsymtable,objectsymtable]) then
+              s:=s+tabstractrecorddef(owner.defowner).RttiName+'.';
+            s:=s+procsym.realname+typename_paras(pno);
+          end;
+        if not(proctypeoption in [potype_constructor,potype_destructor,
+             potype_class_constructor,potype_class_destructor]) and
+           assigned(returndef) and
+           not(is_void(returndef)) then
+          s:=s+':'+returndef.GetTypeName;
         if owner.symtabletype=localsymtable then
           s:=s+' is nested';
         s:=s+';';
@@ -3825,7 +3857,7 @@ implementation
         if (po_staticmethod in procoptions) and
            not (proctypeoption in [potype_class_constructor,potype_class_destructor]) then
           s:=s+' Static;';
-        fullprocname:=s;
+        customprocname:=s;
       end;
 
 
@@ -4441,12 +4473,12 @@ implementation
     function tprocvardef.GetTypeName : string;
       var
         s: string;
-        showhidden : boolean;
+        pno : tprocnameoptions;
       begin
 {$ifdef EXTDEBUG}
-         showhidden:=true;
+         pno:=[pno_showhidden];
 {$else EXTDEBUG}
-         showhidden:=false;
+         pno:=[];
 {$endif EXTDEBUG}
          s:='<';
          if po_classmethod in procoptions then
@@ -4458,9 +4490,9 @@ implementation
              s := s+'procedure variable type of';
          if assigned(returndef) and
             (returndef<>voidtype) then
-           s:=s+' function'+typename_paras(showhidden)+':'+returndef.GetTypeName
+           s:=s+' function'+typename_paras(pno)+':'+returndef.GetTypeName
          else
-           s:=s+' procedure'+typename_paras(showhidden);
+           s:=s+' procedure'+typename_paras(pno);
          if po_methodpointer in procoptions then
            s := s+' of object';
          if is_nested_pd(self) then
