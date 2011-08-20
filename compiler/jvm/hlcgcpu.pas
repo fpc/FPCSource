@@ -1846,7 +1846,8 @@ implementation
     begin
       {
         invoke types:
-          * invokeinterface: call method from an interface
+          * invokeinterface: call method from an interface (must also specify
+              number of parameters in terms of stack slot count!)
           * invokespecial: invoke a constructor, method in a superclass,
               or private instance method
           * invokestatic: invoke a class method (private or not)
@@ -1893,7 +1894,13 @@ implementation
         else
           internalerror(2010122602);
       end;
-      list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(s)));
+      if (opc<>a_invokeinterface) then
+        list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(s)))
+      else
+        begin
+          pd.init_paraloc_info(calleeside);
+          list.concat(taicpu.op_sym_const(opc,current_asmdata.RefAsmSymbol(s),pd.calleeargareasize));
+        end;
     end;
 
   procedure thlcgjvm.g_call_system_proc(list: TAsmList; const procname: string);
