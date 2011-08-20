@@ -501,6 +501,21 @@ interface
 
     procedure tcgtempdeletenode.pass_generate_code;
       begin
+        if ti_reference in tempinfo^.flags then
+          begin
+            { release_to_normal means that the temp will be freed the next
+              time it's used. However, reference temps reference some other
+              location that is not managed by this temp and hence cannot be
+              freed }
+            if release_to_normal then
+              internalerror(2011052205);
+            { so we only mark this temp location as "no longer valid" when
+              it's deleted (ttempdeletenodes are also used during getcopy, so
+              we really do need one) }
+            exclude(tempinfo^.flags,ti_valid);
+            exit;
+          end;
+
         location_reset(location,LOC_VOID,OS_NO);
 
         case tempinfo^.location.loc of
