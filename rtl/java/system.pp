@@ -40,6 +40,16 @@ Type
 
   HResult = type longint;
 
+  { Java primitive types }
+  jboolean = boolean;
+  jbyte = shortint;
+  jshort = smallint;
+  jint = longint;
+  jlong = int64;
+  jchar = widechar;
+  jfloat = single;
+  jdouble = double;
+
 const
 { max. values for longint and int}
   maxLongint  = $7fffffff;
