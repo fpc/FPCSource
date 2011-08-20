@@ -90,7 +90,7 @@
   public
     class function newInstance(para1: JLClass; para2: jint): JLObject; static; overload;  // throws java.lang.NegativeArraySizeException
     class function newInstance(para1: JLClass; para2: Arr1jint): JLObject; static; overload;  // throws java.lang.IllegalArgumentException, java.lang.NegativeArraySizeException
-    class function newInstance(para1: JLClass; var para2: array of jint): JLObject; static; overload;  // throws java.lang.IllegalArgumentException, java.lang.NegativeArraySizeException
+    class function newInstance(para1: JLClass; const para2: array of jint): JLObject; static; overload;  // throws java.lang.IllegalArgumentException, java.lang.NegativeArraySizeException
     class function getLength(para1: JLObject): jint; static; overload;  // throws java.lang.IllegalArgumentException
     class function get(para1: JLObject; para2: jint): JLObject; static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
     class function getBoolean(para1: JLObject; para2: jint): jboolean; static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
@@ -297,7 +297,7 @@
     class function copyOfRange(para1: Arr1jboolean; para2: jint; para3: jint): Arr1jboolean; static; overload;
     class function copyOfRange(var para1: array of jboolean; para2: jint; para3: jint): Arr1jboolean; static; overload;
     class function asList(para1: Arr1JLObject): JUList; static; overload;
-    class function asList(var para1: array of JLObject): JUList; static; overload;
+    class function asList(const para1: array of JLObject): JUList; static; overload;
     class function hashCode(para1: Arr1jlong): jint; static; overload;
     class function hashCode(var para1: array of jlong): jint; static; overload;
     class function hashCode(para1: Arr1jint): jint; static; overload;
@@ -970,9 +970,9 @@
     function toString(): JLString; overload; virtual;
     function toCharArray(): Arr1jchar; overload; virtual;
     class function format(para1: JLString; para2: Arr1JLObject): JLString; static; overload;
-    class function format(para1: JLString; var para2: array of JLObject): JLString; static; overload;
+    class function format(para1: JLString; const para2: array of JLObject): JLString; static; overload;
     class function format(para1: JULocale; para2: JLString; para3: Arr1JLObject): JLString; static; overload;
-    class function format(para1: JULocale; para2: JLString; var para3: array of JLObject): JLString; static; overload;
+    class function format(para1: JULocale; para2: JLString; const para3: array of JLObject): JLString; static; overload;
     class function valueOf(para1: JLObject): JLString; static; overload;
     class function valueOf(para1: Arr1jchar): JLString; static; overload;
     class function valueOf(var para1: array of jchar): JLString; static; overload;
@@ -1066,18 +1066,18 @@
     function getConstructors(): Arr1JLRConstructor; overload; virtual;  // throws java.lang.SecurityException
     function getField(para1: JLString): JLRField; overload; virtual;  // throws java.lang.NoSuchFieldException, java.lang.SecurityException
     function getMethod(para1: JLString; para2: Arr1JLClass): JLRMethod; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
-    function getMethod(para1: JLString; var para2: array of JLClass): JLRMethod; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
+    function getMethod(para1: JLString; const para2: array of JLClass): JLRMethod; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
     function getConstructor(para1: Arr1JLClass): JLRConstructor; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
-    function getConstructor(var para1: array of JLClass): JLRConstructor; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
+    function getConstructor(const para1: array of JLClass): JLRConstructor; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
     function getDeclaredClasses(): Arr1JLClass; overload; virtual;  // throws java.lang.SecurityException
     function getDeclaredFields(): Arr1JLRField; overload; virtual;  // throws java.lang.SecurityException
     function getDeclaredMethods(): Arr1JLRMethod; overload; virtual;  // throws java.lang.SecurityException
     function getDeclaredConstructors(): Arr1JLRConstructor; overload; virtual;  // throws java.lang.SecurityException
     function getDeclaredField(para1: JLString): JLRField; overload; virtual;  // throws java.lang.NoSuchFieldException, java.lang.SecurityException
     function getDeclaredMethod(para1: JLString; para2: Arr1JLClass): JLRMethod; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
-    function getDeclaredMethod(para1: JLString; var para2: array of JLClass): JLRMethod; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
+    function getDeclaredMethod(para1: JLString; const para2: array of JLClass): JLRMethod; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
     function getDeclaredConstructor(para1: Arr1JLClass): JLRConstructor; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
-    function getDeclaredConstructor(var para1: array of JLClass): JLRConstructor; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
+    function getDeclaredConstructor(const para1: array of JLClass): JLRConstructor; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
     function getResourceAsStream(para1: JLString): JIInputStream; overload; virtual;
     function getResource(para1: JLString): JNURL; overload; virtual;
     function getProtectionDomain(): JSProtectionDomain; overload; virtual;
@@ -1877,7 +1877,7 @@
     class function &of(para1: JLEnum; para2: JLEnum; para3: JLEnum; para4: JLEnum): JUEnumSet; static; overload;
     class function &of(para1: JLEnum; para2: JLEnum; para3: JLEnum; para4: JLEnum; para5: JLEnum): JUEnumSet; static; overload;
     class function &of(para1: JLEnum; para2: Arr1JLEnum): JUEnumSet; static; overload;
-    class function &of(para1: JLEnum; var para2: array of JLEnum): JUEnumSet; static; overload;
+    class function &of(para1: JLEnum; const para2: array of JLEnum): JUEnumSet; static; overload;
     class function range(para1: JLEnum; para2: JLEnum): JUEnumSet; static; overload;
     function clone(): JUEnumSet; overload; virtual;
     function clone(): JLObject; overload; virtual;  // throws java.lang.CloneNotSupportedException
