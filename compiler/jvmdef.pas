@@ -518,19 +518,22 @@ implementation
                 result:='result '+result
               else
                 begin
+                  result:=usesymname+' '+result;
                   { we have to mangle staticvarsyms in localsymtables to
                     prevent name clashes... }
-                  container:=sym.Owner;
-                  result:=usesymname+' '+result;
-                  while (container.symtabletype=localsymtable) do
+                  if (vsym.typ=staticvarsym) then
                     begin
-                      if tdef(container.defowner).typ<>procdef then
-                        internalerror(2011040303);
-                      { not safe yet in case of overloaded routines, need to
-                        encode parameters too or find another way for conflict
-                        resolution }
-                      result:=tprocdef(container.defowner).procsym.realname+'$'+result;
-                      container:=container.defowner.owner;
+                      container:=sym.Owner;
+                      while (container.symtabletype=localsymtable) do
+                        begin
+                          if tdef(container.defowner).typ<>procdef then
+                            internalerror(2011040303);
+                          { not safe yet in case of overloaded routines, need to
+                            encode parameters too or find another way for conflict
+                            resolution }
+                          result:=tprocdef(container.defowner).procsym.realname+'$'+result;
+                          container:=container.defowner.owner;
+                        end;
                     end;
                 end;
             end;
