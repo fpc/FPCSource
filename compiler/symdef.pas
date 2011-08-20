@@ -701,6 +701,8 @@ interface
           function  min:asizeint;
           function  max:asizeint;
           function  getfirstsym:tsym;
+          { returns basedef if assigned, otherwise self }
+          function getbasedef: tenumdef;
        end;
 
        tsetdef = class(tstoreddef)
@@ -1841,6 +1843,15 @@ implementation
               exit;
           end;
         result:=nil;
+      end;
+
+
+    function tenumdef.getbasedef: tenumdef;
+      begin
+        if not assigned(basedef) then
+          result:=self
+        else
+          result:=basedef;
       end;
 
 

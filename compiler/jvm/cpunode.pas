@@ -32,7 +32,8 @@ implementation
   uses
     ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,
     ncgadd, ncgcal,ncgmat,ncginl,
-    njvmadd,njvmcal,njvmmat,njvmcnv,njvmcon,njvminl,njvmmem,njvmflw,njvmld
+    njvmadd,njvmcal,njvmmat,njvmcnv,njvmcon,njvminl,njvmmem,njvmflw,njvmld,
+    njvmset
     { these are not really nodes }
     ,rgcpu,tgcpu,njvmutil;
 

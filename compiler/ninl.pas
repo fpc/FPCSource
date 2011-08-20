@@ -2992,7 +2992,10 @@ implementation
               expectloc:=LOC_REGISTER;
               { in case of range/overflow checking, use a regular addnode
                 because it's too complex to handle correctly otherwise }
+{$ifndef jvm}
+              { enums are class instances in the JVM -> always need conversion }
               if ([cs_check_overflow,cs_check_range]*current_settings.localswitches)<>[] then
+{$endif}
                 begin
                   { create constant 1 }
                   hp:=cordconstnode.create(1,left.resultdef,false);
@@ -3053,11 +3056,16 @@ implementation
 
                { range/overflow checking doesn't work properly }
                { with the inc/dec code that's generated (JM)   }
-               if (current_settings.localswitches * [cs_check_overflow,cs_check_range] <> []) and
+               if ((current_settings.localswitches * [cs_check_overflow,cs_check_range] <> []) and
                  { No overflow check for pointer operations, because inc(pointer,-1) will always
                    trigger an overflow. For uint32 it works because then the operation is done
                    in 64bit. Range checking is not applicable to pointers either }
-                  (tcallparanode(left).left.resultdef.typ<>pointerdef) then
+                   (tcallparanode(left).left.resultdef.typ<>pointerdef))
+{$ifdef jvm}
+                   { enums are class instances on the JVM -> special treatment }
+                   or (tcallparanode(left).left.resultdef.typ=enumdef)
+{$endif}
+                  then
                  { convert to simple add (JM) }
                  begin
                    newblock := internalstatements(newstatement);

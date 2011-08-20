@@ -776,7 +776,12 @@ implementation
           constnil:
             result:='';
         else
-          result:=' = '+ConstValue(csym)
+          begin
+            { enums are initialized as typed constants }
+            if not assigned(csym.constdef) or
+               (csym.constdef.typ<>enumdef) then
+              result:=' = '+ConstValue(csym)
+          end;
         end;
       end;
 

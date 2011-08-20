@@ -309,6 +309,7 @@ implementation
            staticvarsym :
              begin
                gvs:=tstaticvarsym(symtableentry);
+{$ifndef jvm}
                if ([vo_is_dll_var,vo_is_external] * gvs.varoptions <> []) then
                  begin
                   { assume external variables use the default alignment }
@@ -319,6 +320,7 @@ implementation
                      exit;
                  end
                else
+{$endif jvm}
                  begin
                    location.reference.alignment:=var_align(gvs.vardef.alignment);
                  end;

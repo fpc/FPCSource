@@ -26,9 +26,13 @@ unit njvmflw;
 interface
 
     uses
-      aasmbase,node,nflw;
+      aasmbase,node,nflw,ncgflw;
 
     type
+       tjvmfornode = class(tcgfornode)
+          function pass_1: tnode; override;
+       end;
+
        tjvmraisenode = class(traisenode)
           function pass_typecheck: tnode; override;
           procedure pass_generate_code;override;
@@ -53,10 +57,60 @@ implementation
       symconst,symdef,symsym,aasmtai,aasmdata,aasmcpu,defutil,jvmdef,
       procinfo,cgbase,pass_2,parabase,
       cpubase,cpuinfo,
-      nld,ncon,
+      nbas,nld,ncon,ncnv,
       tgobj,paramgr,
       cgutils,hlcgobj,hlcgcpu
       ;
+
+{*****************************************************************************
+                             TFJVMFORNODE
+*****************************************************************************}
+
+    function tjvmfornode.pass_1: tnode;
+      var
+        iteratortmp: ttempcreatenode;
+        olditerator: tnode;
+        block,
+        newbody: tblocknode;
+        stat,
+        newbodystat: tstatementnode;
+      begin
+        { transform for-loops with enums to:
+            for tempint:=ord(lowval) to ord(upperval) do
+              begin
+                originalctr:=tenum(tempint);
+                <original loop body>
+              end;
+
+          enums are class instances in Java and hence can't be increased or so.
+          The type conversion consists of an array lookup in a final method,
+          so it shouldn't be too expensive.
+        }
+        if left.resultdef.typ=enumdef then
+          begin
+            block:=internalstatements(stat);
+            iteratortmp:=ctempcreatenode.create(s32inttype,left.resultdef.size,tt_persistent,true);
+            addstatement(stat,iteratortmp);
+            olditerator:=left;
+            left:=ctemprefnode.create(iteratortmp);
+            inserttypeconv_explicit(right,s32inttype);
+            inserttypeconv_explicit(t1,s32inttype);
+            newbody:=internalstatements(newbodystat);
+            addstatement(newbodystat,cassignmentnode.create(olditerator,
+              ctypeconvnode.create_explicit(ctemprefnode.create(iteratortmp),
+                olditerator.resultdef)));
+            addstatement(newbodystat,t2);
+            addstatement(stat,cfornode.create(left,right,t1,newbody,lnf_backward in loopflags));
+            addstatement(stat,ctempdeletenode.create(iteratortmp));
+            left:=nil;
+            right:=nil;
+            t1:=nil;
+            t2:=nil;
+            result:=block
+          end
+        else
+          result:=inherited pass_1;
+      end;
 
 {*****************************************************************************
                              SecondRaise
@@ -425,6 +479,7 @@ implementation
       end;
 
 begin
+   cfornode:=tjvmfornode;
    craisenode:=tjvmraisenode;
    ctryexceptnode:=tjvmtryexceptnode;
    ctryfinallynode:=tjvmtryfinallynode;

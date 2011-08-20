@@ -534,6 +534,42 @@ implementation
           left:=nil;
         end;
 
+      function ord_enum_explicit_typecast(fdef: torddef; todef: tenumdef): tnode;
+        var
+          psym: tsym;
+        begin
+          { we only create a class for the basedefs }
+          todef:=todef.getbasedef;
+          psym:=search_struct_member(todef.classdef,'FPCVALUEOF');
+          if not assigned(psym) or
+             (psym.typ<>procsym) then
+            internalerror(2011062601);
+          result:=ccallnode.create(ccallparanode.create(left,nil),
+            tprocsym(psym),psym.owner,
+            cloadvmtaddrnode.create(ctypenode.create(todef.classdef)),[]);
+          { convert the result to the result type of this type conversion node }
+          inserttypeconv_explicit(result,resultdef);
+          { left is reused }
+          left:=nil;
+        end;
+
+      function enum_ord_explicit_typecast(fdef: tenumdef; todef: torddef): tnode;
+        var
+          psym: tsym;
+        begin
+          { we only create a class for the basedef }
+          fdef:=fdef.getbasedef;
+          psym:=search_struct_member(fdef.classdef,'FPCORDINAL');
+          if not assigned(psym) or
+             (psym.typ<>procsym) then
+            internalerror(2011062602);
+          result:=ccallnode.create(nil,tprocsym(psym),psym.owner,left,[]);
+          { convert the result to the result type of this type conversion node }
+          inserttypeconv_explicit(result,resultdef);
+          { left is reused }
+          left:=nil;
+        end;
+
       function ptr_no_typecheck_required(fromdef, todef: tdef): boolean;
 
         function check_type_equality(def1,def2: tdef): boolean;
@@ -635,6 +671,7 @@ implementation
           is_dynamic_array(left.resultdef) or
           ((left.resultdef.typ in [stringdef,classrefdef]) and
            not is_shortstring(left.resultdef)) or
+          (left.resultdef.typ=enumdef) or
           procvarconv;
         toclasscompatible:=
           (resultdef.typ=pointerdef) or
@@ -642,6 +679,7 @@ implementation
           is_dynamic_array(resultdef) or
           ((resultdef.typ in [stringdef,classrefdef]) and
            not is_shortstring(resultdef)) or
+          (resultdef.typ=enumdef) or
           procvarconv;
         { typescasts from void (the result of untyped_ptr^) to an implicit
           pointertype (record, array, ...) also needs a typecheck }
@@ -668,6 +706,11 @@ implementation
             fromdef:=left.resultdef;
             todef:=resultdef;
             get_most_nested_types(fromdef,todef);
+            { in case of enums, get the equivalent class definitions }
+            if (fromdef.typ=enumdef) then
+              fromdef:=tenumdef(fromdef).getbasedef;
+            if (todef.typ=enumdef) then
+              todef:=tenumdef(todef).getbasedef;
             fromarrtype:=jvmarrtype_setlength(fromdef);
             toarrtype:=jvmarrtype_setlength(todef);
             if not ptr_no_typecheck_required(fromdef,todef) then
@@ -723,6 +766,8 @@ implementation
           begin
             if (convtype<>tc_int_2_real) then
               begin
+                if (left.resultdef.typ=enumdef) then
+                  inserttypeconv_explicit(left,s32inttype);
                 if not check_only then
                   resnode:=int_real_explicit_typecast(tfloatdef(resultdef),'INTBITSTOFLOAT','LONGBITSTODOUBLE');
                 result:=true;
@@ -731,12 +776,48 @@ implementation
               result:=false;
             exit;
           end;
-        { nothing special required when going between ordinals and enums }
-        if (left.resultdef.typ in [orddef,enumdef]) and
-           (resultdef.typ in [orddef,enumdef]) then
+
+        { enums }
+        if (left.resultdef.typ=enumdef) or
+           (resultdef.typ=enumdef) then
           begin
-            result:=false;
-            exit;
+            { both enum? }
+           if (resultdef.typ=left.resultdef.typ) then
+             begin
+               { same base type -> nothing special }
+               fromdef:=tenumdef(left.resultdef).getbasedef;
+               todef:=tenumdef(resultdef).getbasedef;
+               if fromdef=todef then
+                 begin
+                   result:=false;
+                   exit;
+                 end;
+               { convert via ordinal intermediate }
+               if not check_only then
+                 begin;
+                   inserttypeconv_explicit(left,s32inttype);
+                   inserttypeconv_explicit(left,resultdef);
+                   resnode:=left;
+                   left:=nil
+                 end;
+               result:=true;
+               exit;
+             end;
+           { enum to orddef & vice versa }
+           if left.resultdef.typ=orddef then
+             begin
+               if not check_only then
+                 resnode:=ord_enum_explicit_typecast(torddef(left.resultdef),tenumdef(resultdef));
+               result:=true;
+               exit;
+             end
+           else if resultdef.typ=orddef then
+             begin
+               if not check_only then
+                 resnode:=enum_ord_explicit_typecast(tenumdef(left.resultdef),torddef(resultdef));
+               result:=true;
+               exit;
+             end
           end;
 
 {$ifndef nounsupported}
@@ -792,6 +873,16 @@ implementation
     function tjvmtypeconvnode.target_specific_general_typeconv: boolean;
       begin
         result:=false;
+        { on the JVM platform, enums can always be converted to class instances,
+          because enums /are/ class instances there. To prevent the
+          typechecking/conversion code from assuming it can treat it like any
+          ordinal constant, firstpass() it so that the ordinal constant gets
+          replaced with a load of a staticvarsym. This is not done in
+          pass_typecheck, because that would prevent many optimizations }
+        if (left.nodetype=ordconstn) and
+           (left.resultdef.typ=enumdef) and
+           (resultdef.typ=objectdef) then
+          firstpass(left);
 {$ifndef nounsupported}
         { generated in nmem; replace voidpointertype with java_jlobject }
         if nf_load_procvar in flags then
@@ -913,7 +1004,9 @@ implementation
       if checkdef=voidpointertype then
         checkdef:=java_jlobject
       else if checkdef.typ=pointerdef then
-        checkdef:=tpointerdef(checkdef).pointeddef;
+        checkdef:=tpointerdef(checkdef).pointeddef
+      else if checkdef.typ=enumdef then
+        checkdef:=tenumdef(checkdef).classdef;
 {$ifndef nounsupported}
       if checkdef.typ=procvardef then
         checkdef:=java_jlobject

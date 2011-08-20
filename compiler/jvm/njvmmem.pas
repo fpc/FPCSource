@@ -57,7 +57,7 @@ implementation
       cutils,verbose,constexp,
       symconst,symtype,symtable,symsym,symdef,defutil,jvmdef,
       htypechk,
-      nadd,ncal,ncnv,ncon,pass_1,
+      nadd,ncal,ncnv,ncon,pass_1,njvmcon,
       aasmdata,aasmcpu,pass_2,
       cgutils,hlcgobj,hlcgcpu;
 
@@ -235,12 +235,21 @@ implementation
             exit;
           end
         else
-          result:=inherited;
+          begin
+            { keep indices that are enum constants that way, rather than
+              transforming them into a load of the class instance that
+              represents this constant (since we then would have to extract
+              the int constant value again at run time anyway) }
+            if right.nodetype=ordconstn then
+              tjvmordconstnode(right).enumconstok:=true;
+            result:=inherited;
+          end;
       end;
 
 
     procedure tjvmvecnode.pass_generate_code;
       var
+        psym: tsym;
         newsize: tcgsize;
       begin
         if left.resultdef.typ=stringdef then
@@ -269,6 +278,29 @@ implementation
         if (right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
            (right.location.reference.arrayreftype<>art_none) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+        { replace enum class instance with the corresponding integer value }
+        if (right.resultdef.typ=enumdef) then
+          begin
+           if (right.location.loc<>LOC_CONSTANT) then
+             begin
+               psym:=search_struct_member(tenumdef(right.resultdef).classdef,'FPCORDINAL');
+               if not assigned(psym) or
+                  (psym.typ<>procsym) or
+                  (tprocsym(psym).ProcdefList.count<>1) then
+                 internalerror(2011062607);
+               thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
+               hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(tprocsym(psym).procdeflist[0]),tprocdef(tprocsym(psym).procdeflist[0]).mangledname,false);
+               { call replaces self parameter with longint result -> no stack
+                 height change }
+               location_reset(right.location,LOC_REGISTER,OS_S32);
+               right.location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,s32inttype);
+               thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,s32inttype,right.location.register);
+             end;
+           { always force to integer location, because enums are handled as
+             object instances (since that's what they are in Java) }
+           right.resultdef:=s32inttype;
+           right.location.size:=OS_S32;
+          end;
 
         { adjust index if necessary }
         if not is_special_array(left.resultdef) and

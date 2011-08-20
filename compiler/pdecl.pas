@@ -71,6 +71,9 @@ implementation
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,
+{$ifdef jvm}
+       pjvm,
+{$endif}
        { cpu-information }
        cpuinfo
        ;
@@ -204,6 +207,14 @@ implementation
                        sym.deprecatedmsg:=deprecatedmsg;
                        sym.visibility:=symtablestack.top.currentvisibility;
                        symtablestack.top.insert(sym);
+{$ifdef jvm}
+                       { for the JVM target, some constants need to be
+                         initialized at run time (enums, sets) -> create fake
+                         typed const to do so }
+                       if assigned(tconstsym(sym).constdef) and
+                          (tconstsym(sym).constdef.typ=enumdef) then
+                         jvm_add_typed_const_initializer(tconstsym(sym));
+{$endif}
                      end
                    else
                      stringdispose(deprecatedmsg);

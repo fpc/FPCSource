@@ -204,7 +204,10 @@ implementation
                   result:=false;
               end;
             end;
-          enumdef,
+          enumdef:
+            begin
+              result:=jvmaddencodedtype(tenumdef(def).classdef,false,encodedstr,forcesignature,founderror);
+            end;
           orddef :
             begin
               { for procedure "results" }

@@ -30,6 +30,16 @@ interface
        node,ncon,ncgcon;
 
     type
+       tjvmordconstnode = class(tcgordconstnode)
+          { normally, we convert the enum constant into a load of the
+            appropriate enum class field in pass_1. In some cases (array index),
+            we want to keep it as an enum constant however }
+          enumconstok: boolean;
+          function pass_1: tnode; override;
+          function docompare(p: tnode): boolean; override;
+          function dogetcopy: tnode; override;
+       end;
+
        tjvmrealconstnode = class(tcgrealconstnode)
           procedure pass_generate_code;override;
        end;
@@ -43,12 +53,71 @@ interface
 implementation
 
     uses
-      globtype,cutils,widestr,verbose,
+      globtype,cutils,widestr,verbose,constexp,
       symdef,symsym,symtable,symconst,
       aasmdata,aasmcpu,defutil,
-      ncal,
+      ncal,nld,
       cgbase,hlcgobj,hlcgcpu,cgutils,cpubase
       ;
+
+
+{*****************************************************************************
+                           TJVMORDCONSTNODE
+*****************************************************************************}
+
+    function tjvmordconstnode.pass_1: tnode;
+      var
+        basedef: tenumdef;
+        sym: tenumsym;
+        classfield: tsym;
+        i: longint;
+      begin
+        if (resultdef.typ<>enumdef) or
+           enumconstok then
+          begin
+            result:=inherited pass_1;
+            exit;
+          end;
+        { convert into JVM class instance }
+        { a) find the enumsym corresponding to the value (may not exist in case
+             of an explicit typecast of an integer -> error) }
+        sym:=nil;
+        basedef:=tenumdef(resultdef).getbasedef;
+        for i:=0 to tenumdef(resultdef).symtable.symlist.count-1 do
+          begin
+            sym:=tenumsym(basedef.symtable.symlist[i]);
+            if sym.value=value then
+              break;
+            sym:=nil;
+          end;
+        if not assigned(sym) then
+          begin
+            Message(parser_e_range_check_error);
+            exit;
+          end;
+        { b) find the corresponding class field }
+        classfield:=search_struct_member(basedef.classdef,sym.name);
+        if not assigned(classfield) or
+           (classfield.typ<>staticvarsym) then
+          internalerror(2011062606);
+        { c) create loadnode of the field }
+        result:=cloadnode.create(classfield,classfield.owner);
+      end;
+
+
+    function tjvmordconstnode.docompare(p: tnode): boolean;
+      begin
+        result:=inherited docompare(p);
+        if result then
+          result:=(enumconstok=tjvmordconstnode(p).enumconstok);
+      end;
+
+
+    function tjvmordconstnode.dogetcopy: tnode;
+      begin
+        result:=inherited dogetcopy;
+        tjvmordconstnode(result).enumconstok:=enumconstok;
+      end;
 
 
 {*****************************************************************************
@@ -136,6 +205,7 @@ implementation
 
 
 begin
+   cordconstnode:=tjvmordconstnode;
    crealconstnode:=tjvmrealconstnode;
    cstringconstnode:=tjvmstringconstnode;
 end.

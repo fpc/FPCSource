@@ -250,8 +250,9 @@ implementation
   function thlcgjvm.def2regtyp(def: tdef): tregistertype;
     begin
       case def.typ of
-        { records are implemented via classes }
-        recorddef:
+        { records and enums are implemented via classes }
+        recorddef,
+        enumdef:
           result:=R_ADDRESSREGISTER;
         setdef:
           if is_smallset(def) then

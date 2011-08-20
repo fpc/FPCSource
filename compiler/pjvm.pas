@@ -28,7 +28,7 @@ interface
 
     uses
       globtype,
-      symtype,symbase,symdef;
+      symtype,symbase,symdef,symsym;
 
     { the JVM specs require that you add a default parameterless
       constructor in case the programmer hasn't specified any }
@@ -41,6 +41,7 @@ interface
 
     procedure jvm_maybe_create_enum_class(const name: TIDString; def: tdef);
 
+    procedure jvm_add_typed_const_initializer(csym: tconstsym);
 
 
 implementation
@@ -49,9 +50,9 @@ implementation
     cutils,cclasses,
     verbose,systems,
     fmodule,
-    parabase,
+    parabase,aasmdata,
     pdecsub,
-    symtable,symconst,symsym,symcreat,defcmp,jvmdef,
+    symtable,symconst,symcreat,defcmp,jvmdef,
     defutil,paramgr;
 
 
@@ -327,6 +328,46 @@ implementation
         symtablestack.pop(enumclass.symtable);
         current_structdef:=old_current_structdef;
         restore_scanner(sstate);
+      end;
+
+
+    procedure jvm_add_typed_const_initializer(csym: tconstsym);
+      var
+        ssym: tstaticvarsym;
+        esym: tenumsym;
+        i: longint;
+        sstate: symcreat.tscannerstate;
+      begin
+        case csym.constdef.typ of
+          enumdef:
+            begin
+              replace_scanner('jvm_enum_const',sstate);
+              { make sure we don't emit a definition for this field (we'll do
+                that for the constsym already) -> mark as external }
+              ssym:=tstaticvarsym.create(internal_static_field_name(csym.realname),vs_final,csym.constdef,[vo_is_external]);
+              csym.owner.insert(ssym);
+              { alias storage to the constsym }
+              ssym.set_mangledname(csym.realname);
+              for i:=0 to tenumdef(csym.constdef).symtable.symlist.count-1 do
+                begin
+                  esym:=tenumsym(tenumdef(csym.constdef).symtable.symlist[i]);
+                  if esym.value=csym.value.valueord.svalue then
+                    break;
+                  esym:=nil;
+                end;
+              { can happen in case of explicit typecast from integer constant
+                to enum type }
+              if not assigned(esym) then
+                begin
+                  MessagePos(csym.fileinfo,parser_e_range_check_error);
+                  exit;
+                end;
+              str_parse_typedconst(current_asmdata.asmlists[al_typedconsts],esym.name+';',ssym);
+              restore_scanner(sstate);
+            end
+          else
+            internalerror(2011062701);
+        end;
       end;
 
 end.

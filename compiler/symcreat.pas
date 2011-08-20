@@ -61,6 +61,15 @@ interface
   }
   function str_parse_method_impl(str: ansistring; usefwpd: tprocdef; is_classdef: boolean):boolean;
 
+  { parses a typed constant assignment to ssym
+
+      WARNINGS:
+        * save the scanner state before calling this routine, and restore when done.
+        * the code *must* be written in objfpc style
+  }
+  procedure str_parse_typedconst(list: TAsmList; str: ansistring; ssym: tstaticvarsym);
+
+
 
   { in the JVM, constructors are not automatically inherited (so you can hide
     them). To emulate the Pascal behaviour, we have to automatically add
@@ -207,6 +216,27 @@ implementation
       parse_only:=oldparse_only;
       result:=true;
      end;
+
+
+  procedure str_parse_typedconst(list: TAsmList; str: ansistring; ssym: tstaticvarsym);
+    var
+      old_block_type: tblock_type;
+      old_parse_only: boolean;
+    begin
+      Message1(parser_d_internal_parser_string,str);
+      { a string that will be interpreted as the start of a new section ->
+        typed constant parsing will stop }
+      str:=str+'type ';
+      old_parse_only:=parse_only;
+      old_block_type:=block_type;
+      parse_only:=true;
+      block_type:=bt_const;
+      current_scanner.substitutemacro('typed_const_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index);
+      current_scanner.readtoken(false);
+      read_typed_const(list,ssym,ssym.owner.symtabletype in [recordsymtable,objectsymtable]);
+      parse_only:=old_parse_only;
+      block_type:=old_block_type;
+    end;
 
 
   procedure add_missing_parent_constructors_intf(obj: tobjectdef; forcevis: tvisibility);

@@ -2221,6 +2221,14 @@ implementation
                          { structured types                         }
                          if not(
                                 (left.resultdef.typ=formaldef) or
+{$ifdef jvm}
+                                { enums /are/ class instances on the JVM
+                                  platform }
+                                (((left.resultdef.typ=enumdef) and
+                                  (resultdef.typ=objectdef)) or
+                                 ((resultdef.typ=enumdef) and
+                                  (left.resultdef.typ=objectdef))) or
+{$endif}
                                 (
                                  not(is_open_array(left.resultdef)) and
                                  not(is_array_constructor(left.resultdef)) and

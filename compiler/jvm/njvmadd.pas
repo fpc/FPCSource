@@ -57,12 +57,12 @@ interface
     uses
       systems,
       cutils,verbose,constexp,
-      symtable,symdef,
+      symconst,symtable,symdef,
       paramgr,procinfo,
       aasmtai,aasmdata,aasmcpu,defutil,
       hlcgobj,hlcgcpu,cgutils,
       cpupara,
-      ncon,nset,nadd,ncal,
+      ncon,nset,nadd,ncal,ncnv,
       cgobj;
 
 {*****************************************************************************
@@ -71,6 +71,20 @@ interface
 
     function tjvmaddnode.pass_1: tnode;
       begin
+        { special handling for enums: they're classes in the JVM -> get their
+          ordinal value to compare them (do before calling inherited pass_1,
+          because pass_1 will convert enum constants from ordinals into class
+          instances) }
+        if (left.resultdef.typ=enumdef) and
+           (right.resultdef.typ=enumdef) then
+          begin
+            { enums can only be compared at this stage (add/sub is only allowed
+              in constant expressions) }
+            if not is_boolean(resultdef) then
+              internalerror(2011062603);
+            inserttypeconv_explicit(left,s32inttype);
+            inserttypeconv_explicit(right,s32inttype);
+          end;
         result:=inherited pass_1;
         if expectloc=LOC_FLAGS then
           expectloc:=LOC_JUMP;
