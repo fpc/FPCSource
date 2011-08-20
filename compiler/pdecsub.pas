@@ -2459,7 +2459,7 @@ const
       pooption : [po_staticmethod];
       mutexclpocall : [pocall_internproc];
       mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
-      mutexclpo     : [po_external,po_interrupt,po_exports]
+      mutexclpo     : [po_interrupt,po_exports]
     ),(
       idtok:_STDCALL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
