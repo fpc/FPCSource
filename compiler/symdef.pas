@@ -4531,8 +4531,8 @@ implementation
                   tmpresult:=tmpresult+'[';
                 { Add the parameter type.  }
                 if not jvmaddencodedtype(vs.vardef,false,tmpresult,signature,founderror) then
-                  { should be checked earlier on }
-                  internalerror(2010122604);
+                  { an internalerror here is also triggered in case of errors in the source code }
+                  tmpresult:='<error>';
               end;
           end;
         tmpresult:=tmpresult+')';
@@ -4541,7 +4541,8 @@ implementation
         if (proctypeoption in [potype_constructor,potype_class_constructor]) then
           jvmaddencodedtype(voidtype,false,tmpresult,signature,founderror)
         else if not jvmaddencodedtype(returndef,false,tmpresult,signature,founderror) then
-          internalerror(2010122610);
+          { an internalerror here is also triggered in case of errors in the source code }
+          tmpresult:='<error>';
         result:=tmpresult;
       end;
 
