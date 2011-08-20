@@ -2296,6 +2296,8 @@ begin
     system_i386_nativent:
       // until these features are implemented, they are disabled in the compiler
       target_unsup_features:=[f_stackcheck];
+    system_jvm_java32:
+      target_unsup_features:=[f_threading,f_commandargs,f_fileio,f_textio,f_consoleio,f_dynlibs];
     else
       target_unsup_features:=[];
   end;
@@ -2606,6 +2608,12 @@ begin
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
 {$endif avr}
+{$ifdef jvm}
+  def_system_macro('CPUJVM');
+  def_system_macro('CPU32');
+  def_system_macro('FPC_CURRENCY_IS_INT64');
+  def_system_macro('FPC_COMP_IS_INT64');
+{$endif jvm}
 
   { read configuration file }
   if (not disable_configfile) and
