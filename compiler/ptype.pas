@@ -74,7 +74,10 @@ implementation
        paramgr,procinfo,
        { symtable }
        symconst,symsym,symtable,symcreat,
-       defutil,defcmp,jvmdef,
+       defutil,defcmp,
+{$ifdef jvm}
+       jvmdef,
+{$endif}
        { modules }
        fmodule,
        { pass 1 }
