@@ -1,9 +1,9 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2005 by Florian Klaempfl,
-    member of the Free Pascal development team.
+    Copyright (c) 1999-2005,2011 by Florian Klaempfl and Jonas Maebe,
+    members of the Free Pascal development team.
 
-    This file implements support routines for UnicodeStrings with FPC
+    This file implements support routines for AnsiStrings with FPC/JVM
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
