@@ -571,6 +571,7 @@ interface
           function  mangledname(fordefinition: boolean) : string;
           procedure setmangledname(const s : string);
           function  fullprocname(showhidden:boolean):string;
+          function  defaultmangledname: string;
           function  cplusplusmangledname : string;
           function  objcmangledname : string;
           function  jvmmangledname: string;
@@ -3933,13 +3934,6 @@ implementation
 
 
     function tprocdef.mangledname(fordefinition: boolean) : string;
-      var
-        hp   : TParavarsym;
-        hs   : string;
-        crc  : dword;
-        newlen,
-        oldlen,
-        i    : integer;
       begin
         if assigned(_mangledname) then
          begin
@@ -3951,22 +3945,45 @@ implementation
            adornmangledname(mangledname,fordefinition);
            exit;
          end;
+{$ifndef jvm}
+        mangledname:=defaultmangledname;
+{$else not jvm}
+        mangledname:=jvmmangledname;
+{$endif not jvm}
+       {$ifdef compress}
+        _mangledname:=stringdup(minilzw_encode(mangledname));
+       {$else}
+        _mangledname:=stringdup(mangledname);
+       {$endif}
+       adornmangledname(mangledname,fordefinition);
+      end;
+
+
+    function tprocdef.defaultmangledname: string;
+      var
+        hp   : TParavarsym;
+        hs   : string;
+        crc  : dword;
+        newlen,
+        oldlen,
+        i    : integer;
+      begin
         { we need to use the symtable where the procsym is inserted,
           because that is visible to the world }
-        mangledname:=make_mangledname('',procsym.owner,procsym.name);
-        oldlen:=length(mangledname);
+        defaultmangledname:=make_mangledname('',procsym.owner,procsym.name);
+        oldlen:=length(defaultmangledname);
         { add parameter types }
         for i:=0 to paras.count-1 do
          begin
            hp:=tparavarsym(paras[i]);
            if not(vo_is_hidden_para in hp.varoptions) then
-             mangledname:=mangledname+'$'+hp.vardef.mangledparaname;
+             defaultmangledname:=defaultmangledname+'$'+hp.vardef.mangledparaname;
          end;
         { add resultdef, add $$ as separator to make it unique from a
           parameter separator }
         if not is_void(returndef) then
-          mangledname:=mangledname+'$$'+returndef.mangledparaname;
-        newlen:=length(mangledname);
+          defaultmangledname:=defaultmangledname+'$$'+returndef.mangledparaname;
+        newlen:=length(defaultmangledname);
         { Replace with CRC if the parameter line is very long }
         if (newlen-oldlen>12) and
            ((newlen>100) or (newlen-oldlen>64)) then
@@ -3983,14 +4000,8 @@ implementation
               end;
             hs:=hp.vardef.mangledparaname;
             crc:=UpdateCrc32(crc,hs[1],length(hs));
-            mangledname:=Copy(mangledname,1,oldlen)+'$crc'+hexstr(crc,8);
+            defaultmangledname:=Copy(defaultmangledname,1,oldlen)+'$crc'+hexstr(crc,8);
           end;
-       {$ifdef compress}
-        _mangledname:=stringdup(minilzw_encode(mangledname));
-       {$else}
-        _mangledname:=stringdup(mangledname);
-       {$endif}
-       adornmangledname(mangledname,fordefinition);
       end;
 
 
@@ -4171,8 +4182,11 @@ implementation
 
 
     procedure tprocdef.adornmangledname(var name: string; fordefinition: boolean);
+{$ifdef jvm}
       var
+        owningunit:tsymtable;
         tmpresult:string;
+{$endif jvm}
       begin
 {$ifdef jvm}
         { see tprocdef.jvmmangledname for description of the format }
@@ -4180,12 +4194,13 @@ implementation
           begin
             { definition: visibility/static }
             case visibility of
-              vis_private,
+              vis_hidden,
               vis_strictprivate:
                 tmpresult:='private ';
-              vis_protected,
               vis_strictprotected:
                 tmpresult:='protected ';
+              vis_protected,
+              vis_private,
               vis_public:
                 tmpresult:='public ';
               else
@@ -4207,29 +4222,29 @@ implementation
                   while (owningunit.symtabletype in [localsymtable,objectsymtable,recordsymtable]) do
                     owningunit:=owner.defowner.owner;
                   { TODO: add package name !!! }
-                  tmpresult:=owningunit.realname^;
+                  tmpresult:=owningunit.realname^+'/';
                 end;
               objectsymtable:
                 case tobjectdef(procsym.owner.defowner).objecttype of
                   odt_javaclass,
                   odt_interfacejava:
-                    tmpresult:=tobjectdef(procsym.owner.defowner).objextname^;
+                    tmpresult:=tobjectdef(procsym.owner.defowner).objextname^+'/';
                   else
                     internalerror(2010122606);
                 end
               else
                 internalerror(2010122605);
             end;
-            if po_has_importname in procoptions then
+            if po_has_importdll in procoptions then
               begin
                 { import_dll comes from "external 'import_dll_name' name 'external_name'" }
                 if assigned(import_dll) then
-                  tmpresult:=result+import_dll^+'/'
+                  tmpresult:=tmpresult+import_dll^+'/'
                 else
                   internalerror(2010122607);
               end;
           end;
-        name:=name+tmpresult;
+        name:=tmpresult+name;
 {$endif}
       end;
 
@@ -4252,21 +4267,20 @@ implementation
              adorn as required when using it.
         }
         { method name }
-        if po_has_importname in procoptions then
+        { special names for constructors and class constructors }
+        if proctypeoption=potype_constructor then
+          tmpresult:='<init>'
+        else if proctypeoption=potype_class_constructor then
+          tmpresult:='<clinit>'
+        else if po_has_importname in procoptions then
           begin
             if assigned(import_name) then
-              tmpresult:=result+import_name^
+              tmpresult:=import_name^
             else
               internalerror(2010122608);
           end
         else
-          begin
-            { package name must be set for all external routines }
-            if po_external in procoptions then
-              internalerror(2010122607);
-            { TODO: add current package name! }
-            tmpresult:=result+procsym.realname;
-          end;
+          tmpresult:=procsym.realname;
         { parameter types }
         tmpresult:=tmpresult+'(';
         init_paraloc_info(callerside);
