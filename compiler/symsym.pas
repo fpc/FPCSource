@@ -1218,7 +1218,7 @@ implementation
         srsymtable : tsymtable;
       begin
 {$ifdef jvm}
-        if is_javaclass(tdef(owner.defowner)) then
+        if is_java_class_or_interface(tdef(owner.defowner)) then
           begin
             if assigned(cachedmangledname) then
               result:=cachedmangledname^
