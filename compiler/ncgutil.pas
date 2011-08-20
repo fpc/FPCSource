@@ -2801,6 +2801,9 @@ implementation
       var
         rr: treplaceregrec;
       begin
+{$ifdef jvm}
+        exit;
+{$endif}
         if not (n.location.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) or
           ([fc_inflowcontrol,fc_gotolabel,fc_lefthandled] * flowcontrol <> []) then
           exit;
