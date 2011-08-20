@@ -352,7 +352,10 @@ implementation
        { target }
        systems,
        { symtable }
-       defutil,symtable,jvmdef,
+       defutil,symtable,
+{$ifdef jvm}
+       jvmdef,
+{$endif}
        fmodule,
        { tree }
        node,
