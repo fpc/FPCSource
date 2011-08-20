@@ -4305,15 +4305,15 @@ type
   Arr2JCKeyGeneratorSpi = array of Arr1JCKeyGeneratorSpi;
   Arr3JCKeyGeneratorSpi = array of Arr2JCKeyGeneratorSpi;
 
-  JSCX509CertSelector = class;
-  Arr1JSCX509CertSelector = array of JSCX509CertSelector;
-  Arr2JSCX509CertSelector = array of Arr1JSCX509CertSelector;
-  Arr3JSCX509CertSelector = array of Arr2JSCX509CertSelector;
-
   JUGregorianCalendar = class;
   Arr1JUGregorianCalendar = array of JUGregorianCalendar;
   Arr2JUGregorianCalendar = array of Arr1JUGregorianCalendar;
   Arr3JUGregorianCalendar = array of Arr2JUGregorianCalendar;
+
+  JSCX509CertSelector = class;
+  Arr1JSCX509CertSelector = array of JSCX509CertSelector;
+  Arr2JSCX509CertSelector = array of Arr1JSCX509CertSelector;
+  Arr3JSCX509CertSelector = array of Arr2JSCX509CertSelector;
 
   JSSECFieldFp = class;
   Arr1JSSECFieldFp = array of JSSECFieldFp;
@@ -4374,11 +4374,6 @@ type
   Arr1JNCCharacterCodingException = array of JNCCharacterCodingException;
   Arr2JNCCharacterCodingException = array of Arr1JNCCharacterCodingException;
   Arr3JNCCharacterCodingException = array of Arr2JNCCharacterCodingException;
-
-  JUEnumSet = class;
-  Arr1JUEnumSet = array of JUEnumSet;
-  Arr2JUEnumSet = array of Arr1JUEnumSet;
-  Arr3JUEnumSet = array of Arr2JUEnumSet;
 
   JIIIOParam = class;
   Arr1JIIIOParam = array of JIIIOParam;
@@ -5000,15 +4995,15 @@ type
   Arr2JUFormatter = array of Arr1JUFormatter;
   Arr3JUFormatter = array of Arr2JUFormatter;
 
-  JSBTitledBorder = class;
-  Arr1JSBTitledBorder = array of JSBTitledBorder;
-  Arr2JSBTitledBorder = array of Arr1JSBTitledBorder;
-  Arr3JSBTitledBorder = array of Arr2JSBTitledBorder;
-
   JBSimpleBeanInfo = class;
   Arr1JBSimpleBeanInfo = array of JBSimpleBeanInfo;
   Arr2JBSimpleBeanInfo = array of Arr1JBSimpleBeanInfo;
   Arr3JBSimpleBeanInfo = array of Arr2JBSimpleBeanInfo;
+
+  JSBTitledBorder = class;
+  Arr1JSBTitledBorder = array of JSBTitledBorder;
+  Arr2JSBTitledBorder = array of Arr1JSBTitledBorder;
+  Arr3JSBTitledBorder = array of Arr2JSBTitledBorder;
 
   JNDirectShortBufferRU = class;
   Arr1JNDirectShortBufferRU = array of JNDirectShortBufferRU;
@@ -5715,11 +5710,6 @@ type
   Arr2OOCPERSIST_STORE = array of Arr1OOCPERSIST_STORE;
   Arr3OOCPERSIST_STORE = array of Arr2OOCPERSIST_STORE;
 
-  JUBitSet = class;
-  Arr1JUBitSet = array of JUBitSet;
-  Arr2JUBitSet = array of Arr1JUBitSet;
-  Arr3JUBitSet = array of Arr2JUBitSet;
-
   JLProcess = class;
   Arr1JLProcess = array of JLProcess;
   Arr2JLProcess = array of Arr1JLProcess;
@@ -6385,15 +6375,15 @@ type
   Arr2OOCNO_MEMORY = array of Arr1OOCNO_MEMORY;
   Arr3OOCNO_MEMORY = array of Arr2OOCNO_MEMORY;
 
-  JMMBeanParameterInfo = class;
-  Arr1JMMBeanParameterInfo = array of JMMBeanParameterInfo;
-  Arr2JMMBeanParameterInfo = array of Arr1JMMBeanParameterInfo;
-  Arr3JMMBeanParameterInfo = array of Arr2JMMBeanParameterInfo;
-
   JTPatternEntry = class;
   Arr1JTPatternEntry = array of JTPatternEntry;
   Arr2JTPatternEntry = array of Arr1JTPatternEntry;
   Arr3JTPatternEntry = array of Arr2JTPatternEntry;
+
+  JMMBeanParameterInfo = class;
+  Arr1JMMBeanParameterInfo = array of JMMBeanParameterInfo;
+  Arr2JMMBeanParameterInfo = array of Arr1JMMBeanParameterInfo;
+  Arr3JMMBeanParameterInfo = array of Arr2JMMBeanParameterInfo;
 
   JRCGetORBPropertiesFileAction = class;
   Arr1JRCGetORBPropertiesFileAction = array of JRCGetORBPropertiesFileAction;
@@ -6664,11 +6654,6 @@ type
   Arr1OODNameValuePairSeqHelper = array of OODNameValuePairSeqHelper;
   Arr2OODNameValuePairSeqHelper = array of Arr1OODNameValuePairSeqHelper;
   Arr3OODNameValuePairSeqHelper = array of Arr2OODNameValuePairSeqHelper;
-
-  JUAbstractSet = class;
-  Arr1JUAbstractSet = array of JUAbstractSet;
-  Arr2JUAbstractSet = array of Arr1JUAbstractSet;
-  Arr3JUAbstractSet = array of Arr2JUAbstractSet;
 
   JPASJobMessageFromOperator = class;
   Arr1JPASJobMessageFromOperator = array of JPASJobMessageFromOperator;
@@ -6950,15 +6935,15 @@ type
   Arr2JNByteBufferAsIntBufferRL = array of Arr1JNByteBufferAsIntBufferRL;
   Arr3JNByteBufferAsIntBufferRL = array of Arr2JNByteBufferAsIntBufferRL;
 
-  JTRuleBasedCollator = class;
-  Arr1JTRuleBasedCollator = array of JTRuleBasedCollator;
-  Arr2JTRuleBasedCollator = array of Arr1JTRuleBasedCollator;
-  Arr3JTRuleBasedCollator = array of Arr2JTRuleBasedCollator;
-
   JXVSchemaFactoryLoader = class;
   Arr1JXVSchemaFactoryLoader = array of JXVSchemaFactoryLoader;
   Arr2JXVSchemaFactoryLoader = array of Arr1JXVSchemaFactoryLoader;
   Arr3JXVSchemaFactoryLoader = array of Arr2JXVSchemaFactoryLoader;
+
+  JTRuleBasedCollator = class;
+  Arr1JTRuleBasedCollator = array of JTRuleBasedCollator;
+  Arr2JTRuleBasedCollator = array of Arr1JTRuleBasedCollator;
+  Arr3JTRuleBasedCollator = array of Arr2JTRuleBasedCollator;
 
   JSPBBasicTextPaneUI = class;
   Arr1JSPBBasicTextPaneUI = array of JSPBBasicTextPaneUI;
@@ -13025,15 +13010,15 @@ type
   Arr2JSPBorderUIResource = array of Arr1JSPBorderUIResource;
   Arr3JSPBorderUIResource = array of Arr2JSPBorderUIResource;
 
-  JSCX509CRLSelector = class;
-  Arr1JSCX509CRLSelector = array of JSCX509CRLSelector;
-  Arr2JSCX509CRLSelector = array of Arr1JSCX509CRLSelector;
-  Arr3JSCX509CRLSelector = array of Arr2JSCX509CRLSelector;
-
   JNLSortKey = class;
   Arr1JNLSortKey = array of JNLSortKey;
   Arr2JNLSortKey = array of Arr1JNLSortKey;
   Arr3JNLSortKey = array of Arr2JNLSortKey;
+
+  JSCX509CRLSelector = class;
+  Arr1JSCX509CRLSelector = array of JSCX509CRLSelector;
+  Arr2JSCX509CRLSelector = array of Arr1JSCX509CRLSelector;
+  Arr3JSCX509CRLSelector = array of Arr2JSCX509CRLSelector;
 
   OOCINVALID_TRANSACTION = class;
   Arr1OOCINVALID_TRANSACTION = array of OOCINVALID_TRANSACTION;
@@ -14719,11 +14704,6 @@ type
   Arr1JBjava_awt_Dimension_PersistenceDelegate = array of JBjava_awt_Dimension_PersistenceDelegate;
   Arr2JBjava_awt_Dimension_PersistenceDelegate = array of Arr1JBjava_awt_Dimension_PersistenceDelegate;
   Arr3JBjava_awt_Dimension_PersistenceDelegate = array of Arr2JBjava_awt_Dimension_PersistenceDelegate;
-
-  JUAbstractCollection = class;
-  Arr1JUAbstractCollection = array of JUAbstractCollection;
-  Arr2JUAbstractCollection = array of Arr1JUAbstractCollection;
-  Arr3JUAbstractCollection = array of Arr2JUAbstractCollection;
 
   JUCAAtomicLongFieldUpdater = class;
   Arr1JUCAAtomicLongFieldUpdater = array of JUCAAtomicLongFieldUpdater;
@@ -20720,35 +20700,15 @@ type
   Arr2JLStringBuffer = array of Arr1JLStringBuffer;
   Arr3JLStringBuffer = array of Arr2JLStringBuffer;
 
-  JLThrowable = class external 'java.lang' name 'Throwable';
-  Arr1JLThrowable = array of JLThrowable;
-  Arr2JLThrowable = array of Arr1JLThrowable;
-  Arr3JLThrowable = array of Arr2JLThrowable;
-
-  JLInteger = class external 'java.lang' name 'Integer';
-  Arr1JLInteger = array of JLInteger;
-  Arr2JLInteger = array of Arr1JLInteger;
-  Arr3JLInteger = array of Arr2JLInteger;
-
   JLObject = class external 'java.lang' name 'Object';
   Arr1JLObject = array of JLObject;
   Arr2JLObject = array of Arr1JLObject;
   Arr3JLObject = array of Arr2JLObject;
 
-  JLLinkageError = class external 'java.lang' name 'LinkageError';
-  Arr1JLLinkageError = array of JLLinkageError;
-  Arr2JLLinkageError = array of Arr1JLLinkageError;
-  Arr3JLLinkageError = array of Arr2JLLinkageError;
-
   JLEnum = class external 'java.lang' name 'Enum';
   Arr1JLEnum = array of JLEnum;
   Arr2JLEnum = array of Arr1JLEnum;
   Arr3JLEnum = array of Arr2JLEnum;
-
-  JUAbstractMap = class external 'java.util' name 'AbstractMap';
-  Arr1JUAbstractMap = array of JUAbstractMap;
-  Arr2JUAbstractMap = array of Arr1JUAbstractMap;
-  Arr3JUAbstractMap = array of Arr2JUAbstractMap;
 
   JLError = class external 'java.lang' name 'Error';
   Arr1JLError = array of JLError;
@@ -20760,15 +20720,55 @@ type
   Arr2JLNumber = array of Arr1JLNumber;
   Arr3JLNumber = array of Arr2JLNumber;
 
-  JLException = class external 'java.lang' name 'Exception';
-  Arr1JLException = array of JLException;
-  Arr2JLException = array of Arr1JLException;
-  Arr3JLException = array of Arr2JLException;
-
   JLCharacter = class external 'java.lang' name 'Character';
   Arr1JLCharacter = array of JLCharacter;
   Arr2JLCharacter = array of Arr1JLCharacter;
   Arr3JLCharacter = array of Arr2JLCharacter;
+
+  JLBoolean = class external 'java.lang' name 'Boolean';
+  Arr1JLBoolean = array of JLBoolean;
+  Arr2JLBoolean = array of Arr1JLBoolean;
+  Arr3JLBoolean = array of Arr2JLBoolean;
+
+  JLLong = class external 'java.lang' name 'Long';
+  Arr1JLLong = array of JLLong;
+  Arr2JLLong = array of Arr1JLLong;
+  Arr3JLLong = array of Arr2JLLong;
+
+  JLInteger = class external 'java.lang' name 'Integer';
+  Arr1JLInteger = array of JLInteger;
+  Arr2JLInteger = array of Arr1JLInteger;
+  Arr3JLInteger = array of Arr2JLInteger;
+
+  JLThrowable = class external 'java.lang' name 'Throwable';
+  Arr1JLThrowable = array of JLThrowable;
+  Arr2JLThrowable = array of Arr1JLThrowable;
+  Arr3JLThrowable = array of Arr2JLThrowable;
+
+  JLLinkageError = class external 'java.lang' name 'LinkageError';
+  Arr1JLLinkageError = array of JLLinkageError;
+  Arr2JLLinkageError = array of Arr1JLLinkageError;
+  Arr3JLLinkageError = array of Arr2JLLinkageError;
+
+  JUAbstractCollection = class external 'java.util' name 'AbstractCollection';
+  Arr1JUAbstractCollection = array of JUAbstractCollection;
+  Arr2JUAbstractCollection = array of Arr1JUAbstractCollection;
+  Arr3JUAbstractCollection = array of Arr2JUAbstractCollection;
+
+  JUAbstractMap = class external 'java.util' name 'AbstractMap';
+  Arr1JUAbstractMap = array of JUAbstractMap;
+  Arr2JUAbstractMap = array of Arr1JUAbstractMap;
+  Arr3JUAbstractMap = array of Arr2JUAbstractMap;
+
+  JUEnumSet = class external 'java.util' name 'EnumSet';
+  Arr1JUEnumSet = array of JUEnumSet;
+  Arr2JUEnumSet = array of Arr1JUEnumSet;
+  Arr3JUEnumSet = array of Arr2JUEnumSet;
+
+  JLException = class external 'java.lang' name 'Exception';
+  Arr1JLException = array of JLException;
+  Arr2JLException = array of Arr1JLException;
+  Arr3JLException = array of Arr2JLException;
 
   JLIndexOutOfBoundsException = class external 'java.lang' name 'IndexOutOfBoundsException';
   Arr1JLIndexOutOfBoundsException = array of JLIndexOutOfBoundsException;
@@ -20785,35 +20785,35 @@ type
   Arr2JTCollator = array of Arr1JTCollator;
   Arr3JTCollator = array of Arr2JTCollator;
 
-  JLBoolean = class external 'java.lang' name 'Boolean';
-  Arr1JLBoolean = array of JLBoolean;
-  Arr2JLBoolean = array of Arr1JLBoolean;
-  Arr3JLBoolean = array of Arr2JLBoolean;
-
-  JLClass = class external 'java.lang' name 'Class';
-  Arr1JLClass = array of JLClass;
-  Arr2JLClass = array of Arr1JLClass;
-  Arr3JLClass = array of Arr2JLClass;
-
-  JLString = class external 'java.lang' name 'String';
-  Arr1JLString = array of JLString;
-  Arr2JLString = array of Arr1JLString;
-  Arr3JLString = array of Arr2JLString;
+  JUBitSet = class external 'java.util' name 'BitSet';
+  Arr1JUBitSet = array of JUBitSet;
+  Arr2JUBitSet = array of Arr1JUBitSet;
+  Arr3JUBitSet = array of Arr2JUBitSet;
 
   JLIllegalArgumentException = class external 'java.lang' name 'IllegalArgumentException';
   Arr1JLIllegalArgumentException = array of JLIllegalArgumentException;
   Arr2JLIllegalArgumentException = array of Arr1JLIllegalArgumentException;
   Arr3JLIllegalArgumentException = array of Arr2JLIllegalArgumentException;
 
+  JUAbstractSet = class external 'java.util' name 'AbstractSet';
+  Arr1JUAbstractSet = array of JUAbstractSet;
+  Arr2JUAbstractSet = array of Arr1JUAbstractSet;
+  Arr3JUAbstractSet = array of Arr2JUAbstractSet;
+
+  JLString = class external 'java.lang' name 'String';
+  Arr1JLString = array of JLString;
+  Arr2JLString = array of Arr1JLString;
+  Arr3JLString = array of Arr2JLString;
+
+  JLClass = class external 'java.lang' name 'Class';
+  Arr1JLClass = array of JLClass;
+  Arr2JLClass = array of Arr1JLClass;
+  Arr3JLClass = array of Arr2JLClass;
+
   JLFloat = class external 'java.lang' name 'Float';
   Arr1JLFloat = array of JLFloat;
   Arr2JLFloat = array of Arr1JLFloat;
   Arr3JLFloat = array of Arr2JLFloat;
-
-  JLLong = class external 'java.lang' name 'Long';
-  Arr1JLLong = array of JLLong;
-  Arr2JLLong = array of Arr1JLLong;
-  Arr3JLLong = array of Arr2JLLong;
 
   JLRuntimeException = class external 'java.lang' name 'RuntimeException';
   Arr1JLRuntimeException = array of JLRuntimeException;

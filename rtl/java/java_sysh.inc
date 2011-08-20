@@ -1,4 +1,4 @@
-{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.Boolean, java.lang.Byte, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Enum, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.Integer, java.lang.Iterable, java.lang.LinkageError, java.lang.Long, java.lang.Number, java.lang.Object, java.lang.RuntimeException, java.lang.Short, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.GenericDeclaration, java.lang.reflect.Type, java.text.Collator, java.util.AbstractMap, java.util.Arrays, java.util.Collection, java.util.Comparator, java.util.HashMap, java.util.Map, java.util.Set }
+{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.Boolean, java.lang.Byte, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Enum, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.Integer, java.lang.Iterable, java.lang.LinkageError, java.lang.Long, java.lang.Number, java.lang.Object, java.lang.RuntimeException, java.lang.Short, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.GenericDeclaration, java.lang.reflect.Type, java.text.Collator, java.util.AbstractCollection, java.util.AbstractMap, java.util.AbstractSet, java.util.Arrays, java.util.BitSet, java.util.Collection, java.util.Comparator, java.util.EnumSet, java.util.HashMap, java.util.Map, java.util.Set }
 type
   JLStringBuffer = class;
   Arr1JLStringBuffer = array of JLStringBuffer;
@@ -60,15 +60,15 @@ type
   Arr2JLShort = array of Arr1JLShort;
   Arr3JLShort = array of Arr2JLShort;
 
-  JLThrowable = class;
-  Arr1JLThrowable = array of JLThrowable;
-  Arr2JLThrowable = array of Arr1JLThrowable;
-  Arr3JLThrowable = array of Arr2JLThrowable;
-
   JLInteger = class;
   Arr1JLInteger = array of JLInteger;
   Arr2JLInteger = array of Arr1JLInteger;
   Arr3JLInteger = array of Arr2JLInteger;
+
+  JLThrowable = class;
+  Arr1JLThrowable = array of JLThrowable;
+  Arr2JLThrowable = array of Arr1JLThrowable;
+  Arr3JLThrowable = array of Arr2JLThrowable;
 
   JLLinkageError = class;
   Arr1JLLinkageError = array of JLLinkageError;
@@ -80,15 +80,25 @@ type
   Arr2JLByte = array of Arr1JLByte;
   Arr3JLByte = array of Arr2JLByte;
 
-  JLRArray = class;
-  Arr1JLRArray = array of JLRArray;
-  Arr2JLRArray = array of Arr1JLRArray;
-  Arr3JLRArray = array of Arr2JLRArray;
+  JUAbstractCollection = class;
+  Arr1JUAbstractCollection = array of JUAbstractCollection;
+  Arr2JUAbstractCollection = array of Arr1JUAbstractCollection;
+  Arr3JUAbstractCollection = array of Arr2JUAbstractCollection;
 
   JUAbstractMap = class;
   Arr1JUAbstractMap = array of JUAbstractMap;
   Arr2JUAbstractMap = array of Arr1JUAbstractMap;
   Arr3JUAbstractMap = array of Arr2JUAbstractMap;
+
+  JLRArray = class;
+  Arr1JLRArray = array of JLRArray;
+  Arr2JLRArray = array of Arr1JLRArray;
+  Arr3JLRArray = array of Arr2JLRArray;
+
+  JUEnumSet = class;
+  Arr1JUEnumSet = array of JUEnumSet;
+  Arr2JUEnumSet = array of Arr1JUEnumSet;
+  Arr3JUEnumSet = array of Arr2JUEnumSet;
 
   JLException = class;
   Arr1JLException = array of JLException;
@@ -115,6 +125,11 @@ type
   Arr2JTCollator = array of Arr1JTCollator;
   Arr3JTCollator = array of Arr2JTCollator;
 
+  JUBitSet = class;
+  Arr1JUBitSet = array of JUBitSet;
+  Arr2JUBitSet = array of Arr1JUBitSet;
+  Arr3JUBitSet = array of Arr2JUBitSet;
+
   JLIllegalArgumentException = class;
   Arr1JLIllegalArgumentException = array of JLIllegalArgumentException;
   Arr2JLIllegalArgumentException = array of Arr1JLIllegalArgumentException;
@@ -129,6 +144,11 @@ type
   Arr1JLClass = array of JLClass;
   Arr2JLClass = array of Arr1JLClass;
   Arr3JLClass = array of Arr2JLClass;
+
+  JUAbstractSet = class;
+  Arr1JUAbstractSet = array of JUAbstractSet;
+  Arr2JUAbstractSet = array of Arr1JUAbstractSet;
+  Arr3JUAbstractSet = array of Arr2JUAbstractSet;
 
   JLFloat = class;
   Arr1JLFloat = array of JLFloat;

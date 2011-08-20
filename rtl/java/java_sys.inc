@@ -126,7 +126,7 @@
       Arr1InnerArrayList = array of InnerArrayList;
       Arr2InnerArrayList = array of Arr1InnerArrayList;
       Arr3InnerArrayList = array of Arr2InnerArrayList;
-      InnerArrayList = class external 'java.util' name 'Arrays$ArrayList' 
+      InnerArrayList = class external 'java.util' name 'ArrayList' 
       end;
 
   public
@@ -353,7 +353,7 @@
       Arr1InnerEntry = array of InnerEntry;
       Arr2InnerEntry = array of Arr1InnerEntry;
       Arr3InnerEntry = array of Arr2InnerEntry;
-      InnerEntry = interface external 'java.util' name 'Map$Entry' 
+      InnerEntry = interface external 'java.util' name 'Entry' 
         function getKey(): JLObject; overload;
         function getValue(): JLObject; overload;
         function setValue(para1: JLObject): JLObject; overload;
@@ -470,6 +470,38 @@
     function append(para1: JLCharSequence): JLAppendable; overload; virtual;  // throws java.io.IOException
   end;
 
+  JUBitSet = class external 'java.util' name 'BitSet' (JLObject, JLCloneable, JISerializable)
+  public
+    constructor create(); overload;
+    constructor create(para1: jint); overload;
+    procedure flip(para1: jint); overload; virtual;
+    procedure flip(para1: jint; para2: jint); overload; virtual;
+    procedure &set(para1: jint); overload; virtual;
+    procedure &set(para1: jint; para2: jboolean); overload; virtual;
+    procedure &set(para1: jint; para2: jint); overload; virtual;
+    procedure &set(para1: jint; para2: jint; para3: jboolean); overload; virtual;
+    procedure clear(para1: jint); overload; virtual;
+    procedure clear(para1: jint; para2: jint); overload; virtual;
+    procedure clear(); overload; virtual;
+    function get(para1: jint): jboolean; overload; virtual;
+    function get(para1: jint; para2: jint): JUBitSet; overload; virtual;
+    function nextSetBit(para1: jint): jint; overload; virtual;
+    function nextClearBit(para1: jint): jint; overload; virtual;
+    function length(): jint; overload; virtual;
+    function isEmpty(): jboolean; overload; virtual;
+    function intersects(para1: JUBitSet): jboolean; overload; virtual;
+    function cardinality(): jint; overload; virtual;
+    procedure &and(para1: JUBitSet); overload; virtual;
+    procedure &or(para1: JUBitSet); overload; virtual;
+    procedure &xor(para1: JUBitSet); overload; virtual;
+    procedure andNot(para1: JUBitSet); overload; virtual;
+    function hashCode(): jint; overload; virtual;
+    function size(): jint; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual;
+    function clone(): JLObject; overload; virtual;
+    function toString(): JLString; overload; virtual;
+  end;
+
   JLBoolean = class sealed external 'java.lang' name 'Boolean' (JLObject, JISerializable, JLComparable)
   public
     final class var
@@ -499,7 +531,7 @@
       Arr1InnerCharacterCache = array of InnerCharacterCache;
       Arr2InnerCharacterCache = array of Arr1InnerCharacterCache;
       Arr3InnerCharacterCache = array of Arr2InnerCharacterCache;
-      InnerCharacterCache = class external 'java.lang' name 'Character$CharacterCache' 
+      InnerCharacterCache = class external 'java.lang' name 'CharacterCache' 
       end;
 
   public
@@ -512,7 +544,7 @@
       Arr1InnerUnicodeBlock = array of InnerUnicodeBlock;
       Arr2InnerUnicodeBlock = array of Arr1InnerUnicodeBlock;
       Arr3InnerUnicodeBlock = array of Arr2InnerUnicodeBlock;
-      InnerSubset = class external 'java.lang' name 'Character$Subset' (JLObject)
+      InnerSubset = class external 'java.lang' name 'Subset' (JLObject)
       strict protected
         constructor create(para1: JLString); overload;
       public
@@ -521,7 +553,7 @@
         function toString(): JLString; overload; virtual; final;
       end;
 
-      InnerUnicodeBlock = class sealed external 'java.lang' name 'Character$UnicodeBlock' (InnerSubset)
+      InnerUnicodeBlock = class sealed external 'java.lang' name 'UnicodeBlock' (InnerSubset)
       public
         final class var
           fBASIC_LATIN: JLCharacter.InnerUnicodeBlock; external name 'BASIC_LATIN';
@@ -845,7 +877,7 @@
       Arr1InnerCaseInsensitiveComparator = array of InnerCaseInsensitiveComparator;
       Arr2InnerCaseInsensitiveComparator = array of Arr1InnerCaseInsensitiveComparator;
       Arr3InnerCaseInsensitiveComparator = array of Arr2InnerCaseInsensitiveComparator;
-      InnerCaseInsensitiveComparator = class external 'java.lang' name 'String$CaseInsensitiveComparator' 
+      InnerCaseInsensitiveComparator = class external 'java.lang' name 'CaseInsensitiveComparator' 
       end;
 
   public
@@ -984,10 +1016,10 @@
       Arr1InnerEnclosingMethodInfo = array of InnerEnclosingMethodInfo;
       Arr2InnerEnclosingMethodInfo = array of Arr1InnerEnclosingMethodInfo;
       Arr3InnerEnclosingMethodInfo = array of Arr2InnerEnclosingMethodInfo;
-      InnerMethodArray = class external 'java.lang' name 'Class$MethodArray' 
+      InnerMethodArray = class external 'java.lang' name 'MethodArray' 
       end;
 
-      InnerEnclosingMethodInfo = class sealed external 'java.lang' name 'Class$EnclosingMethodInfo' 
+      InnerEnclosingMethodInfo = class sealed external 'java.lang' name 'EnclosingMethodInfo' 
       end;
 
   public
@@ -1061,7 +1093,7 @@
       Arr1InnerCollatorGetter = array of InnerCollatorGetter;
       Arr2InnerCollatorGetter = array of Arr1InnerCollatorGetter;
       Arr3InnerCollatorGetter = array of Arr2InnerCollatorGetter;
-      InnerCollatorGetter = class external 'java.text' name 'Collator$CollatorGetter' 
+      InnerCollatorGetter = class external 'java.text' name 'CollatorGetter' 
       end;
 
   public
@@ -1103,7 +1135,7 @@
       Arr1InnerSimpleEntry = array of InnerSimpleEntry;
       Arr2InnerSimpleEntry = array of Arr1InnerSimpleEntry;
       Arr3InnerSimpleEntry = array of Arr2InnerSimpleEntry;
-      InnerSimpleImmutableEntry = class external 'java.util' name 'AbstractMap$SimpleImmutableEntry' (JLObject, JUMap.InnerEntry, JISerializable)
+      InnerSimpleImmutableEntry = class external 'java.util' name 'SimpleImmutableEntry' (JLObject, JUMap.InnerEntry, JISerializable)
       public
         constructor create(para1: JLObject; para2: JLObject); overload;
         constructor create(para1: JUMap.InnerEntry); overload;
@@ -1115,7 +1147,7 @@
         function toString(): JLString; overload; virtual;
       end;
 
-      InnerSimpleEntry = class external 'java.util' name 'AbstractMap$SimpleEntry' (JLObject, JUMap.InnerEntry, JISerializable)
+      InnerSimpleEntry = class external 'java.util' name 'SimpleEntry' (JLObject, JUMap.InnerEntry, JISerializable)
       public
         constructor create(para1: JLObject; para2: JLObject); overload;
         constructor create(para1: JUMap.InnerEntry); overload;
@@ -1156,7 +1188,7 @@
       Arr1InnerByteCache = array of InnerByteCache;
       Arr2InnerByteCache = array of Arr1InnerByteCache;
       Arr3InnerByteCache = array of Arr2InnerByteCache;
-      InnerByteCache = class external 'java.lang' name 'Byte$ByteCache' 
+      InnerByteCache = class external 'java.lang' name 'ByteCache' 
       end;
 
   public
@@ -1288,7 +1320,7 @@
       Arr1InnerIntegerCache = array of InnerIntegerCache;
       Arr2InnerIntegerCache = array of Arr1InnerIntegerCache;
       Arr3InnerIntegerCache = array of Arr2InnerIntegerCache;
-      InnerIntegerCache = class external 'java.lang' name 'Integer$IntegerCache' 
+      InnerIntegerCache = class external 'java.lang' name 'IntegerCache' 
       end;
 
   public
@@ -1348,7 +1380,7 @@
       Arr1InnerLongCache = array of InnerLongCache;
       Arr2InnerLongCache = array of Arr1InnerLongCache;
       Arr3InnerLongCache = array of Arr2InnerLongCache;
-      InnerLongCache = class external 'java.lang' name 'Long$LongCache' 
+      InnerLongCache = class external 'java.lang' name 'LongCache' 
       end;
 
   public
@@ -1408,7 +1440,7 @@
       Arr1InnerShortCache = array of InnerShortCache;
       Arr2InnerShortCache = array of Arr1InnerShortCache;
       Arr3InnerShortCache = array of Arr2InnerShortCache;
-      InnerShortCache = class external 'java.lang' name 'Short$ShortCache' 
+      InnerShortCache = class external 'java.lang' name 'ShortCache' 
       end;
 
   public
@@ -1661,6 +1693,27 @@
     function append(para1: JLCharSequence): JLAppendable; overload; virtual;  // throws java.io.IOException
   end;
 
+  JUAbstractCollection = class abstract external 'java.util' name 'AbstractCollection' (JLObject, JUCollection)
+  strict protected
+    constructor create(); overload;
+  public
+    function iterator(): JUIterator; overload; virtual; abstract;
+    function size(): jint; overload; virtual; abstract;
+    function isEmpty(): jboolean; overload; virtual;
+    function contains(para1: JLObject): jboolean; overload; virtual;
+    function toArray(): Arr1JLObject; overload; virtual;
+    function toArray(para1: Arr1JLObject): Arr1JLObject; overload; virtual;
+    function toArray(var para1: array of JLObject): Arr1JLObject; overload; virtual;
+    function add(para1: JLObject): jboolean; overload; virtual;
+    function remove(para1: JLObject): jboolean; overload; virtual;
+    function containsAll(para1: JUCollection): jboolean; overload; virtual;
+    function addAll(para1: JUCollection): jboolean; overload; virtual;
+    function removeAll(para1: JUCollection): jboolean; overload; virtual;
+    function retainAll(para1: JUCollection): jboolean; overload; virtual;
+    procedure clear(); overload; virtual;
+    function toString(): JLString; overload; virtual;
+  end;
+
   JUSet = interface external 'java.util' name 'Set' (JUCollection)
     function size(): jint; overload;
     function isEmpty(): jboolean; overload;
@@ -1715,28 +1768,28 @@
       Arr1InnerHashIterator = array of InnerHashIterator;
       Arr2InnerHashIterator = array of Arr1InnerHashIterator;
       Arr3InnerHashIterator = array of Arr2InnerHashIterator;
-      InnerEntrySet = class sealed external 'java.util' name 'HashMap$EntrySet' 
+      InnerEntrySet = class sealed external 'java.util' name 'EntrySet' 
       end;
 
-      InnerKeySet = class sealed external 'java.util' name 'HashMap$KeySet' 
+      InnerKeySet = class sealed external 'java.util' name 'KeySet' 
       end;
 
-      InnerValues = class sealed external 'java.util' name 'HashMap$Values' 
+      InnerValues = class sealed external 'java.util' name 'Values' 
       end;
 
-      InnerKeyIterator = class sealed external 'java.util' name 'HashMap$KeyIterator' 
+      InnerKeyIterator = class sealed external 'java.util' name 'KeyIterator' 
       end;
 
-      InnerValueIterator = class sealed external 'java.util' name 'HashMap$ValueIterator' 
+      InnerValueIterator = class sealed external 'java.util' name 'ValueIterator' 
       end;
 
-      InnerEntryIterator = class sealed external 'java.util' name 'HashMap$EntryIterator' 
+      InnerEntryIterator = class sealed external 'java.util' name 'EntryIterator' 
       end;
 
-      InnerEntry = class external 'java.util' name 'HashMap$Entry' 
+      InnerEntry = class external 'java.util' name 'Entry' 
       end;
 
-      InnerHashIterator = class abstract external 'java.util' name 'HashMap$HashIterator' 
+      InnerHashIterator = class abstract external 'java.util' name 'HashIterator' 
       end;
 
   public
@@ -1773,6 +1826,15 @@
     constructor create(para1: JLThrowable); overload;
   end;
 
+  JUAbstractSet = class abstract external 'java.util' name 'AbstractSet' (JUAbstractCollection, JUSet)
+  strict protected
+    constructor create(); overload;
+  public
+    function equals(para1: JLObject): jboolean; overload; virtual;
+    function hashCode(): jint; overload; virtual;
+    function removeAll(para1: JUCollection): jboolean; overload; virtual;
+  end;
+
   JLIllegalArgumentException = class external 'java.lang' name 'IllegalArgumentException' (JLRuntimeException)
   public
     constructor create(); overload;
@@ -1785,5 +1847,33 @@
   public
     constructor create(); overload;
     constructor create(para1: JLString); overload;
+  end;
+
+  JUEnumSet = class abstract external 'java.util' name 'EnumSet' (JUAbstractSet, JLCloneable, JISerializable)
+  public
+    type
+      InnerSerializationProxy = class;
+      Arr1InnerSerializationProxy = array of InnerSerializationProxy;
+      Arr2InnerSerializationProxy = array of Arr1InnerSerializationProxy;
+      Arr3InnerSerializationProxy = array of Arr2InnerSerializationProxy;
+      InnerSerializationProxy = class external 'java.util' name 'SerializationProxy' 
+      end;
+
+  public
+    class function noneOf(para1: JLClass): JUEnumSet; static; overload;
+    class function allOf(para1: JLClass): JUEnumSet; static; overload;
+    class function copyOf(para1: JUEnumSet): JUEnumSet; static; overload;
+    class function copyOf(para1: JUCollection): JUEnumSet; static; overload;
+    class function complementOf(para1: JUEnumSet): JUEnumSet; static; overload;
+    class function &of(para1: JLEnum): JUEnumSet; static; overload;
+    class function &of(para1: JLEnum; para2: JLEnum): JUEnumSet; static; overload;
+    class function &of(para1: JLEnum; para2: JLEnum; para3: JLEnum): JUEnumSet; static; overload;
+    class function &of(para1: JLEnum; para2: JLEnum; para3: JLEnum; para4: JLEnum): JUEnumSet; static; overload;
+    class function &of(para1: JLEnum; para2: JLEnum; para3: JLEnum; para4: JLEnum; para5: JLEnum): JUEnumSet; static; overload;
+    class function &of(para1: JLEnum; para2: Arr1JLEnum): JUEnumSet; static; overload;
+    class function &of(para1: JLEnum; var para2: array of JLEnum): JUEnumSet; static; overload;
+    class function range(para1: JLEnum; para2: JLEnum): JUEnumSet; static; overload;
+    function clone(): JUEnumSet; overload; virtual;
+    function clone(): JLObject; overload; virtual;  // throws java.lang.CloneNotSupportedException
   end;
 
