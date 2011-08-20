@@ -3347,6 +3347,8 @@ implementation
         { the same goes for changing the sign of equal-sized values which
           are smaller than an entire register }
         if result and
+           { don't try to check the size of an open array }
+           is_open_array(resultdef) or
            (resultdef.size<left.resultdef.size) or
            ((resultdef.size=left.resultdef.size) and
             (left.resultdef.size<sizeof(aint)) and
