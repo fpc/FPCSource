@@ -763,6 +763,7 @@ implementation
         target: tnode;
         lenpara: tnode;
         emptystr: ansichar;
+        tmpreg: tregister;
       begin
         target:=tcallparanode(left).left;
         lenpara:=tcallparanode(tcallparanode(left).right).left;
@@ -772,6 +773,10 @@ implementation
           internalerror(2011031801);
 
         secondpass(target);
+        { can't directly load from stack to destination, because if target is
+          a reference then its address must be placed on the stack before the
+          value }
+        tmpreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,target.resultdef);
         if is_wide_or_unicode_string(target.resultdef) then
           begin
             emptystr:=#0;
@@ -787,7 +792,8 @@ implementation
           end
         else
           internalerror(2011031401);
-        thlcgjvm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,target.resultdef,target.location);
+        thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,target.resultdef,tmpreg);
+        thlcgjvm(hlcg).a_load_reg_loc(current_asmdata.CurrAsmList,target.resultdef,target.resultdef,tmpreg,target.location);
       end;
 
     procedure tjvminlinenode.second_box;
