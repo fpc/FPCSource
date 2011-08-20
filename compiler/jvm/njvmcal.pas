@@ -121,13 +121,14 @@ implementation
         if (tprocdef(procdefinition).proctypeoption=potype_constructor) then
           totalremovesize:=pushedparasize
         else
-          totalremovesize:=pushedparasize-realresdef.size;
+          { even a byte takes up a full stackslot -> align size to multiple of 4 }
+          totalremovesize:=pushedparasize-(align(realresdef.size,4) shr 2);
         { remove parameters from internal evaluation stack counter (in case of
           e.g. no parameters and a result, it can also increase) }
         if totalremovesize>0 then
-          thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,totalremovesize shr 2)
+          thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,totalremovesize)
         else if totalremovesize<0 then
-          thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,(-totalremovesize) shr 2);
+          thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,-totalremovesize);
       end;
 
 
