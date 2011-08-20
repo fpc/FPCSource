@@ -402,6 +402,8 @@ unit hlcgobj;
           The default implementation issues a jump instruction to the external name. }
 //          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); virtual;
 
+          { routines migrated from ncgutil }
+
           procedure location_force_reg(list:TAsmList;var l:tlocation;src_size,dst_size:tdef;maybeconst:boolean);virtual;abstract;
           procedure location_force_fpureg(list:TAsmList;var l: tlocation;size: tdef;maybeconst:boolean);virtual;abstract;
           procedure location_force_mem(list:TAsmList;var l:tlocation;size:tdef);virtual;abstract;
@@ -409,6 +411,9 @@ unit hlcgobj;
 //          procedure location_force_mmreg(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);virtual;abstract;
 
           procedure maketojumpbool(list:TAsmList; p : tnode);virtual;abstract;
+
+          procedure gen_proc_symbol(list:TAsmList);virtual;
+          procedure gen_proc_symbol_end(list:TAsmList);virtual;
        end;
 
     var
@@ -421,8 +426,9 @@ implementation
 
     uses
        globals,options,systems,
+       fmodule,export,
        verbose,defutil,paramgr,symsym,
-       cgobj,tgobj,cutils,procinfo,
+       cpuinfo,cgobj,tgobj,cutils,procinfo,
        ncgutil;
 
 
@@ -1480,6 +1486,68 @@ implementation
 
   procedure thlcgobj.g_profilecode(list: TAsmList);
     begin
+    end;
+
+  procedure thlcgobj.gen_proc_symbol(list: TAsmList);
+    var
+      item,
+      previtem : TCmdStrListItem;
+    begin
+      previtem:=nil;
+      item := TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
+      while assigned(item) do
+        begin
+{$ifdef arm}
+          if current_settings.cputype in cpu_thumb2 then
+            list.concat(tai_thumb_func.create);
+{$endif arm}
+          { "double link" all procedure entry symbols via .reference }
+          { directives on darwin, because otherwise the linker       }
+          { sometimes strips the procedure if only on of the symbols }
+          { is referenced                                            }
+          if assigned(previtem) and
+             (target_info.system in systems_darwin) then
+            list.concat(tai_directive.create(asd_reference,item.str));
+          if (cs_profile in current_settings.moduleswitches) or
+            (po_global in current_procinfo.procdef.procoptions) then
+            list.concat(Tai_symbol.createname_global(item.str,AT_FUNCTION,0))
+          else
+            list.concat(Tai_symbol.createname(item.str,AT_FUNCTION,0));
+          if assigned(previtem) and
+             (target_info.system in systems_darwin) then
+            list.concat(tai_directive.create(asd_reference,previtem.str));
+          if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
+            list.concat(Tai_function_name.create(item.str));
+          previtem:=item;
+          item := TCmdStrListItem(item.next);
+        end;
+      current_procinfo.procdef.procstarttai:=tai(list.last);
+    end;
+
+  procedure thlcgobj.gen_proc_symbol_end(list: TAsmList);
+    begin
+      list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
+
+      current_procinfo.procdef.procendtai:=tai(list.last);
+
+      if (current_module.islibrary) then
+        if (current_procinfo.procdef.proctypeoption = potype_proginit) then
+          { setinitname may generate a new section -> don't add to the
+            current list, because we assume this remains a text section }
+          exportlib.setinitname(current_asmdata.AsmLists[al_exports],current_procinfo.procdef.mangledname(false));
+
+      if (current_procinfo.procdef.proctypeoption=potype_proginit) then
+        begin
+         if (target_info.system in (systems_darwin+[system_powerpc_macos])) and
+            not(current_module.islibrary) then
+           begin
+            new_section(list,sec_code,'',4);
+            list.concat(tai_symbol.createname_global(
+              target_info.cprefix+mainaliasname,AT_FUNCTION,0));
+            { keep argc, argv and envp properly on the stack }
+            cg.a_jmp_name(list,target_info.cprefix+'FPC_SYSTEMMAIN');
+           end;
+        end;
     end;
 
 end.

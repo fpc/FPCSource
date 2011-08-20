@@ -1094,7 +1094,7 @@ implementation
 
             { generate symbol and save end of header position }
             current_filepos:=entrypos;
-            gen_proc_symbol(templist);
+            hlcg.gen_proc_symbol(templist);
             headertai:=tai(templist.last);
             { insert symbol }
             aktproccode.insertlist(templist);
@@ -1234,7 +1234,7 @@ implementation
               so it should be inserted before the end symbol (FK)
             }
             current_filepos:=exitpos;
-            gen_proc_symbol_end(templist);
+            hlcg.gen_proc_symbol_end(templist);
             aktproccode.concatlist(templist);
 {$if defined(POWERPC) or defined(POWERPC64)}
             fixup_jmps(aktproccode);
