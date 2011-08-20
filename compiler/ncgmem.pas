@@ -295,7 +295,8 @@ implementation
          { several object types must be dereferenced implicitly }
          if is_implicit_pointer_object_type(left.resultdef) then
            begin
-             if not is_managed_type(left.resultdef) then
+             if (not is_managed_type(left.resultdef)) or
+                (target_info.system in systems_garbage_collected_managed_types) then
                begin
                  { the contents of a class are aligned to a sizeof(pointer) }
                  location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),sizeof(pint));
