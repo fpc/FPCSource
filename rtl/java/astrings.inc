@@ -218,14 +218,17 @@ begin
 end;
 
 {$else FPC_STRTOSHORTSTRINGPROC}
-
+*)
 procedure fpc_AnsiStr_To_ShortStr (out res: shortstring; const S2 : Ansistring);[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];  compilerproc;
 {
   Converts a AnsiString to a ShortString;
 }
+(*
 Var
   Size : SizeInt;
+*)
 begin
+(*
   if S2='' then
    res:=''
   else
@@ -236,24 +239,29 @@ begin
      Move (S2[1],res[1],Size);
      byte(res[0]):=byte(Size);
    end;
+*)
 end;
-
+(*
 {$endif FPC_STRTOSHORTSTRINGPROC}
-
+*)
 
 Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; compilerproc;
 {
   Converts a ShortString to a AnsiString;
 }
+(*
 Var
   Size : SizeInt;
+*)
 begin
+(*
   Size:=Length(S2);
   Setlength (fpc_ShortStr_To_AnsiStr,Size);
   if Size>0 then
     Move(S2[1],Pointer(fpc_ShortStr_To_AnsiStr)^,Size);
-end;
 *)
+end;
+
 
 Function fpc_Char_To_AnsiStr(const c : AnsiChar): AnsiString; compilerproc;
 {

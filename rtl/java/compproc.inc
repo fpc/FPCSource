@@ -259,10 +259,12 @@ Procedure fpc_AnsiStr_ShortStr_Concat (Var S1: AnsiString; Var S2 : ShortString)
 {$ifndef FPC_STRTOSHORTSTRINGPROC}
 function fpc_AnsiStr_To_ShortStr (high_of_res: SizeInt;const S2 : Ansistring): shortstring; compilerproc;
 {$else FPC_STRTOSHORTSTRINGPROC}
-procedure fpc_AnsiStr_To_ShortStr (out res : shortstring;const S2 : Ansistring); compilerproc;
-{$endif FPC_STRTOSHORTSTRINGPROC}
-Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; compilerproc;
 *)
+procedure fpc_AnsiStr_To_ShortStr (out res : shortstring;const S2 : Ansistring); compilerproc;
+(*
+{$endif FPC_STRTOSHORTSTRINGPROC}
+*)
+Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; compilerproc;
 {$ifndef nounsupported}
 Function fpc_Char_To_AnsiStr(const c : AnsiChar): AnsiString; compilerproc;
 {$endif}
