@@ -71,7 +71,7 @@ interface
       cpubase,systems,
       procinfo,pass_2,
       cgbase,
-      cgutils,cgobj,
+      cgutils,cgobj,hlcgobj,
       ncgutil,
       tgobj
       ;
@@ -412,8 +412,8 @@ interface
                       { on sparc a move from double -> single means from two to one register. }
                       { On all other platforms it also needs rounding to avoid that           }
                       { single(double_regvar) = double_regvar is true in all cases            }
-                      location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                      cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
+                      location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
+                      hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
                     end;
                   LOC_MMREGISTER:
                     begin
@@ -436,9 +436,9 @@ interface
                    end
                   else
                     begin
-                      location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
+                      hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
                       location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                      cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
+                      hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
                     end;
                  location_freetemp(current_asmdata.CurrAsmList,left.location);
               end;
