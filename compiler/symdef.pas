@@ -499,6 +499,7 @@ interface
          tsk_anon_inherited,        // anonymous inherited call
          tsk_jvm_clone,             // Java-style clone method
          tsk_record_deepcopy,       // deepcopy for records field by field
+         tsk_record_initialize,     // initialize for records field by field (explicit rather than via rtti)
          tsk_empty,                 // an empty routine
          tsk_tcinit,                // initialisation of typed constants
          tsk_callthrough,           // call through to another routine with the same parameters/return type (its def is stored in the skpara field)

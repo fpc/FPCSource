@@ -195,6 +195,15 @@ implementation
           pd.synthetickind:=tsk_record_deepcopy
         else
           internalerror(2011032807);
+        if def.needs_inittable then
+          begin
+            { 'var' instead of 'out' parameter, because 'out' would trigger
+               calling the initialize method recursively }
+            if str_parse_method_dec('procedure fpcInitializeRec;',potype_procedure,false,def,pd) then
+              pd.synthetickind:=tsk_record_initialize
+            else
+              internalerror(2011071711);
+          end;
         restore_scanner(sstate);
       end;
 

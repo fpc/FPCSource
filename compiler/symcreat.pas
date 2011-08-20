@@ -375,6 +375,38 @@ implementation
     end;
 
 
+  procedure implement_record_initialize(pd: tprocdef);
+    var
+      struct: tabstractrecorddef;
+      str: ansistring;
+      i: longint;
+      sym: tsym;
+      fsym: tfieldvarsym;
+    begin
+      if not(pd.struct.typ in [recorddef,objectdef]) then
+        internalerror(2011071710);
+      struct:=pd.struct;
+      { anonymous record types must get an artificial name, so we can generate
+        a typecast at the scanner level }
+      if (struct.typ=recorddef) and
+         not assigned(struct.typesym) then
+        internalerror(2011032811);
+      { walk over all fields that need initialization }
+      str:='begin ';
+      for i:=0 to struct.symtable.symlist.count-1 do
+        begin
+          sym:=tsym(struct.symtable.symlist[i]);
+          if (sym.typ=fieldvarsym) then
+            begin
+              fsym:=tfieldvarsym(sym);
+              if fsym.vardef.needs_inittable then
+                str:=str+'system.initialize(&'+fsym.realname+');';
+            end;
+        end;
+      str:=str+'end;';
+      str_parse_method_impl(str,pd,false);
+    end;
+
   procedure implement_empty(pd: tprocdef);
     var
       str: ansistring;
@@ -618,6 +650,8 @@ implementation
               implement_jvm_clone(pd);
             tsk_record_deepcopy:
               implement_record_deepcopy(pd);
+            tsk_record_initialize:
+              implement_record_initialize(pd);
             tsk_empty,
             { special handling for this one is done in tnodeutils.wrap_proc_body }
             tsk_tcinit:

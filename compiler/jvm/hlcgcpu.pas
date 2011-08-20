@@ -1449,7 +1449,8 @@ implementation
   procedure thlcgjvm.g_initialize(list: TAsmList; t: tdef; const ref: treference);
     var
       dummyloc: tlocation;
-      recref: treference;
+      sym: tsym;
+      pd: tprocdef;
     begin
       if (t.typ=arraydef) and
          not is_dynamic_array(t) then
@@ -1459,12 +1460,19 @@ implementation
         end
       else if is_record(t) then
         begin
-          { create a new, empty record and replace the contents of the old one
-            with those of the new one (in the future we can generate a dedicate
-            initialization helper) }
-          tg.gethltemp(list,t,t.size,tt_persistent,recref);
-          g_concatcopy(list,t,recref,ref);
-          tg.ungettemp(list,recref);
+          { call the fpcInitializeRec method }
+          sym:=tsym(trecorddef(t).symtable.find('FPCINITIALIZEREC'));
+          if assigned(sym) and
+             (sym.typ=procsym) then
+            begin
+              if tprocsym(sym).procdeflist.Count<>1 then
+                internalerror(2011071713);
+              pd:=tprocdef(tprocsym(sym).procdeflist[0]);
+            end;
+          a_load_ref_stack(list,java_jlobject,ref,prepare_stack_for_ref(list,ref,false));
+          a_call_name(list,pd,pd.mangledname,false);
+          { parameter removed, no result }
+          decstack(list,1);
         end
       else
         a_load_const_ref(list,t,0,ref);
