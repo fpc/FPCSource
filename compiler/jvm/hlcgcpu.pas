@@ -98,6 +98,8 @@ uses
 
       procedure a_load_loc_stack(list : TAsmList;size: tdef;const loc: tlocation);
 
+      procedure a_loadfpu_const_stack(list : TAsmList;size: tdef;a :double);
+
       procedure a_op_stack(list : TAsmList;op: topcg; size: tdef; trunc32: boolean);
       procedure a_op_const_stack(list : TAsmList;op: topcg; size: tdef;a : aint);
       procedure a_op_reg_stack(list : TAsmList;op: topcg; size: tdef;reg: tregister);
@@ -151,7 +153,7 @@ uses
 
   const
     opcmp2if: array[topcmp] of tasmop = (A_None,
-      a_ifeq,a_ifgt,a_if_icmplt,a_ifge,a_ifle,
+      a_ifeq,a_ifgt,a_iflt,a_ifge,a_ifle,
       a_ifne,a_ifle,a_iflt,a_ifge,a_ifgt);
 
 implementation
@@ -269,6 +271,36 @@ implementation
             internalerror(2011010401);
         end;
       end;
+
+  procedure thlcgjvm.a_loadfpu_const_stack(list: TAsmList; size: tdef; a: double);
+    begin
+      case tfloatdef(size).floattype of
+        s32real:
+          begin
+            if a=0.0 then
+              list.concat(taicpu.op_none(a_fconst_0))
+            else if a=1.0 then
+              list.concat(taicpu.op_none(a_fconst_1))
+            else if a=2.0 then
+              list.concat(taicpu.op_none(a_fconst_2))
+            else
+              list.concat(taicpu.op_single(a_ldc,a));
+            incstack(1);
+          end;
+        s64real:
+          begin
+            if a=0.0 then
+              list.concat(taicpu.op_none(a_dconst_0))
+            else if a=1.0 then
+              list.concat(taicpu.op_none(a_dconst_1))
+            else
+              list.concat(taicpu.op_double(a_ldc2_w,a));
+            incstack(2);
+          end
+        else
+          internalerror(2011010501);
+      end;
+    end;
 
   procedure thlcgjvm.a_op_stack(list: TAsmList; op: topcg; size: tdef; trunc32: boolean);
     var
