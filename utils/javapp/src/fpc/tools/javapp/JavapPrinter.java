@@ -295,6 +295,7 @@ public class JavapPrinter {
     	StringBuilder sigEnd;
     	sigStart.append(prefix);
     	String pascalName = method.getName();
+    	boolean varargs = (method.access & ACC_VARARGS) != 0;
         if(pascalName.equals("<init>")){
         	sigStart.append("constructor create");
         	sigEnd = new StringBuilder();
@@ -335,7 +336,7 @@ public class JavapPrinter {
             if (!cls.isInterface())
             	sigEnd.append(method.getModifiers());
         	String dynArrParas = method.getParameters(false,false);
-        	String openArrParas = method.getParameters(true,false);
+        	String openArrParas = method.getParameters(true,varargs);
         	out.print(sigStart+dynArrParas+sigEnd);
             printExceptions(method);
             out.println();

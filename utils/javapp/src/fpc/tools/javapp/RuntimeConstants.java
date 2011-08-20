@@ -89,6 +89,8 @@ public interface RuntimeConstants {
     public static final int ACC_STATIC                   = 0x00000008;
     public static final int ACC_FINAL                    = 0x00000010;
     public static final int ACC_SYNCHRONIZED             = 0x00000020;
+    public static final int ACC_BRIDGE                   = 0x00000040;
+    public static final int ACC_VARARGS                  = 0x00000080;
     public static final int ACC_SUPER                        = 0x00000020;
     public static final int ACC_VOLATILE                 = 0x00000040;
     public static final int ACC_TRANSIENT                = 0x00000080;
