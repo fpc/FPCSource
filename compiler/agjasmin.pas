@@ -677,6 +677,8 @@ implementation
           result:=result+'static ';
         if is_javainterface(tdef(pd.owner.defowner)) then
           result:=result+'abstract ';
+        if po_finalmethod in pd.procoptions then
+          result:=result+'final ';
         result:=result+pd.jvmmangledbasename;
       end;
 

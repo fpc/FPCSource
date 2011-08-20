@@ -1673,7 +1673,9 @@ begin
   if is_objectpascal_helper(tprocdef(pd).struct) and
       (m_objfpc in current_settings.modeswitches) then
     Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_FINAL].str);
-  if (po_virtualmethod in pd.procoptions) then
+  if (po_virtualmethod in pd.procoptions) or
+     { all Java methods are virtual }
+     is_javaclass(tdef(pd.owner.defowner)) then
     include(pd.procoptions,po_finalmethod)
   else
     Message(parser_e_only_virtual_methods_final);
@@ -2261,13 +2263,13 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_FINAL;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord,pd_javaclass];
       handler  : @pd_final;
       pocall   : pocall_none;
       pooption : [po_finalmethod];
       mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
-      mutexclpo     : [po_exports,po_interrupt,po_external,po_inline]
+      mutexclpo     : [po_exports,po_interrupt,po_inline]
     ),(
       idtok:_FORWARD;
       pd_flags : [pd_implemen,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];
