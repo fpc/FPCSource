@@ -553,6 +553,8 @@ implementation
 
           in_ofs_x :
             begin
+              if target_info.system in systems_managed_vm then
+                message(parser_e_feature_unsupported_for_vm);
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true,false);

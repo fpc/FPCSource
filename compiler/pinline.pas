@@ -75,6 +75,8 @@ implementation
         destructorpos,
         storepos : tfileposinfo;
       begin
+        if target_info.system in systems_managed_vm then
+          message(parser_e_feature_unsupported_for_vm);
         consume(_LKLAMMER);
         p:=comp_expr(true,false);
         { calc return type }
@@ -352,6 +354,8 @@ implementation
         srsymtable : TSymtable;
         again  : boolean; { dummy for do_proc_call }
       begin
+        if target_info.system in systems_managed_vm then
+          message(parser_e_feature_unsupported_for_vm);
         consume(_LKLAMMER);
         p1:=factor(false,false);
         if p1.nodetype<>typen then

@@ -2371,6 +2371,8 @@ implementation
 
               in_typeof_x:
                 begin
+                  if target_info.system in systems_managed_vm then
+                    message(parser_e_feature_unsupported_for_vm);
                   set_varstate(left,vs_read,[]);
                   resultdef:=voidpointertype;
                 end;
@@ -2499,6 +2501,8 @@ implementation
 
               in_typeinfo_x:
                 begin
+                  if target_info.system in systems_managed_vm then
+                    message(parser_e_feature_unsupported_for_vm);
                    if (left.resultdef.typ=enumdef) and
                       (tenumdef(left.resultdef).has_jumps) then
                      CGMessage(type_e_no_type_info);
@@ -2531,6 +2535,8 @@ implementation
 
               in_seg_x :
                 begin
+                  if target_info.system in systems_managed_vm then
+                    message(parser_e_feature_unsupported_for_vm);
                   set_varstate(left,vs_read,[]);
                   result:=cordconstnode.create(0,s32inttype,false);
                 end;
@@ -2642,6 +2648,8 @@ implementation
 
               in_settextbuf_file_x :
                 begin
+                  if target_info.system in systems_managed_vm then
+                    message(parser_e_feature_unsupported_for_vm);
                   resultdef:=voidtype;
                   { now we know the type of buffer }
                   hp:=ccallparanode.create(cordconstnode.create(
@@ -2696,6 +2704,8 @@ implementation
 
               in_slice_x:
                 begin
+                  if target_info.system in systems_managed_vm then
+                    message(parser_e_feature_unsupported_for_vm);
                   result:=nil;
                   resultdef:=tcallparanode(left).left.resultdef;
                   if (resultdef.typ <> arraydef) then

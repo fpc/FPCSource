@@ -746,6 +746,8 @@ implementation
          sp : pchar;
          sym : tsym;
       begin
+         if target_info.system in systems_managed_vm then
+           message(parser_e_feature_unsupported_for_vm);
          consume(_RESOURCESTRING);
          if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
            message(parser_e_resourcestring_only_sg);

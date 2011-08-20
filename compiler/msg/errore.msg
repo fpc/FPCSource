@@ -375,7 +375,7 @@ scanner_e_illegal_alignment_directive=02088_E_Illegal alignment directive
 #
 # Parser
 #
-# 03318 is the last used one
+# 03319 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1420,6 +1420,8 @@ parser_d_internal_parser_string=03318_D_Parsing internally generated code: $1
 % The compiler sometimes internally constructs Pascal code that is subsequently
 % injected into the program. These messages display such code, in order to help
 % with debugging errors in them.
+parser_e_feature_unsupported_for_vm=03319_E_This language feature is not supported on managed VM targets
+% Certain language features are not supported on targets that are managed virtual machines.
 % \end{description}
 # Type Checking
 #

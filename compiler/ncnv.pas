@@ -2490,6 +2490,9 @@ implementation
               if (resultdef.typ=pointerdef) and
                  (convtype<>tc_cchar_2_pchar) then
                 begin
+                   if (target_info.system in systems_managed_vm) and
+                      (tordconstnode(left).value<>0) then
+                     message(parser_e_feature_unsupported_for_vm);
                    hp:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef);
                    if ([nf_explicit,nf_internal] * flags <> []) then
                      include(hp.flags, nf_explicit);
