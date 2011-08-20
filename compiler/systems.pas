@@ -306,6 +306,11 @@ interface
          system_jvm_java32
        ];
 
+       { all systems where string = unicodestring by default }
+       systems_default_unicodestring = [
+         system_jvm_java32
+       ];
+
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm');

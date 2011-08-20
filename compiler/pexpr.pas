@@ -132,7 +132,9 @@ implementation
            end
           else
             begin
-              if cs_ansistrings in current_settings.localswitches then
+              if cs_unicodestrings in current_settings.localswitches then
+                def:=cunicodestringtype
+              else if cs_ansistrings in current_settings.localswitches then
                 def:=cansistringtype
               else
                 def:=cshortstringtype;

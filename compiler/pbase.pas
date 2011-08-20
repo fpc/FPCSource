@@ -270,7 +270,9 @@ implementation
                       { system.string? }
                       if tmodule(tunitsym(srsym).module).globalsymtable=systemunit then
                         begin
-                          if cs_ansistrings in current_settings.localswitches then
+                          if cs_unicodestrings in current_settings.localswitches then
+                            searchsym_in_module(tunitsym(srsym).module,'UNICODESTRING',srsym,srsymtable)
+                          else if cs_ansistrings in current_settings.localswitches then
                             searchsym_in_module(tunitsym(srsym).module,'ANSISTRING',srsym,srsymtable)
                           else
                             searchsym_in_module(tunitsym(srsym).module,'SHORTSTRING',srsym,srsymtable);

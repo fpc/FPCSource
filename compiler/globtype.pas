@@ -123,8 +123,8 @@ interface
          { mmx }
          cs_mmx,cs_mmx_saturation,
          { parser }
-         cs_typed_addresses,cs_strict_var_strings,cs_ansistrings,cs_bitpacking,
-         cs_varpropsetter,cs_scopedenums,cs_pointermath,
+         cs_typed_addresses,cs_strict_var_strings,cs_ansistrings,cs_unicodestrings,
+         cs_bitpacking,cs_varpropsetter,cs_scopedenums,cs_pointermath,
          { macpas specific}
          cs_external_var, cs_externally_visible
        );

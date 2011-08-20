@@ -423,7 +423,10 @@ implementation
                           begin
                             doconv:=tc_string_2_string;
                             { prefered string type depends on the $H switch }
-                            if not(cs_ansistrings in current_settings.localswitches) and
+                            if (cs_unicodestrings in current_settings.localswitches) and
+                               is_wide_or_unicode_string(def_to) then
+                              eq:=te_equal
+                            else if not(cs_ansistrings in current_settings.localswitches) and
                                (tstringdef(def_to).stringtype=st_shortstring) then
                               eq:=te_equal
                             else if (cs_ansistrings in current_settings.localswitches) and

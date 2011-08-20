@@ -1544,7 +1544,8 @@ implementation
             if (nodetype in [addn,equaln,unequaln,lten,gten,ltn,gtn]) then
               begin
                 { Is there a unicodestring? }
-                if is_unicodestring(rd) or is_unicodestring(ld) then
+                if (cs_unicodestrings in current_settings.localswitches) or
+                   is_unicodestring(rd) or is_unicodestring(ld) then
                   strtype:=st_unicodestring
                 else
                 { Is there a widestring? }

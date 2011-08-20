@@ -300,7 +300,7 @@ implementation
           conststring :
             begin
               len:=p.value.len;
-              if not(cs_ansistrings in current_settings.localswitches) and (len>255) then
+              if (([cs_ansistrings,cs_unicodestrings] * current_settings.localswitches) = []) and (len>255) then
                 begin
                   message(parser_e_string_const_too_long);
                   len:=255;
