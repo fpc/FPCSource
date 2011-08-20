@@ -249,7 +249,7 @@ const
 
   visibilityName : array[tvisibility] of string[16] = (
     'hidden','strict private','private','strict protected','protected',
-    'public','published'
+    'public','published','<none>'
   );
 begin
   if w<=ord(high(visibilityName)) then
