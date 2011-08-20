@@ -1299,7 +1299,8 @@ const
      (mask:oo_is_formal;          str:'Formal'),
      (mask:oo_is_classhelper;     str:'Class Helper/Category'),
      (mask:oo_has_class_constructor; str:'HasClassConstructor'),
-     (mask:oo_has_class_destructor; str:'HasClassDestructor')
+     (mask:oo_has_class_destructor; str:'HasClassDestructor'),
+     (mask:oo_is_enum_class;      str:'JvmEnumClass')
   );
 var
   i      : longint;
