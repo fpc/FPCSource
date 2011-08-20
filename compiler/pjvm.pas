@@ -545,11 +545,56 @@ implementation
       end;
 
 
+    procedure jvm_wrap_virtual_constructor(pd: tprocdef);
+      var
+        wrapperpd: tprocdef;
+      begin
+        { to avoid having to implement procvar-like support for dynamically
+          invoking constructors, call the constructors from virtual class
+          methods and replace calls to the constructors with calls to the
+          virtual class methods -> we can reuse lots of infrastructure }
+        if (po_external in pd.procoptions) or
+           (oo_is_external in pd.struct.objectoptions) then
+          exit;
+        { wrapper is part of the same symtable as the original procdef }
+        symtablestack.push(pd.owner);
+        { get a copy of the constructor }
+        wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_bareproc));
+        { this one is is a class method rather than a constructor }
+        include(wrapperpd.procoptions,po_classmethod);
+        wrapperpd.proctypeoption:=potype_function;
+        wrapperpd.returndef:=tobjectdef(pd.owner.defowner);
+
+        { import/external name = name of original constructor (since
+          constructors don't have names in Java, this won't conflict with the
+          original constructor definition) }
+        stringdispose(wrapperpd.import_name);
+        wrapperpd.import_name:=stringdup(pd.procsym.realname);
+        { associate with wrapper procsym (Pascal-level name = wrapper name ->
+          in callnodes, we will have to replace the calls to virtual
+          constructors with calls to the wrappers) }
+        finish_copied_procdef(wrapperpd,pd.procsym.realname+'__fpcvirtconstrwrapper__',pd.owner,tabstractrecorddef(pd.owner.defowner));
+        { since it was a bare copy, insert the self parameter (we can't just
+          copy the vmt parameter from the constructor, that's different) }
+        insert_self_and_vmt_para(wrapperpd);
+        wrapperpd.calcparas;
+        { implementation: call through to the constructor }
+        wrapperpd.synthetickind:=tsk_callthrough;
+        wrapperpd.skpara:=pd;
+        symtablestack.pop(pd.owner);
+        { and now wrap this generated virtual static method itself as well}
+        jvm_wrap_virtual_class_method(wrapperpd);
+      end;
+
+
     procedure jvm_wrap_virtual_class_methods(obj: tobjectdef);
       var
         i: longint;
         def: tdef;
       begin
+        { new methods will be inserted while we do this, but since
+          symtable.deflist.count is evaluated at the start of the loop that
+          doesn't matter }
         for i:=0 to obj.symtable.deflist.count-1 do
           begin
             def:=tdef(obj.symtable.deflist[i]);
@@ -557,6 +602,9 @@ implementation
               continue;
             if [po_classmethod,po_virtualmethod]<=tprocdef(def).procoptions then
               jvm_wrap_virtual_class_method(tprocdef(def))
+            else if (tprocdef(def).proctypeoption=potype_constructor) and
+               (po_virtualmethod in tprocdef(def).procoptions) then
+              jvm_wrap_virtual_constructor(tprocdef(def));
           end;
       end;
 

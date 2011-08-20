@@ -538,26 +538,36 @@ implementation
   function tjvmcallnode.pass_1: tnode;
     var
       sym: tsym;
+      wrappername: shortstring;
     begin
       { transform procvar calls }
       if assigned(right) then
         result:=dispatch_procvar
       else
         begin
-          { replace virtual class method calls in case they may be indirect }
+          { replace virtual class method and constructor calls in case they may
+            be indirect; make sure we don't replace the callthrough to the
+            original constructor with another call to the wrapper }
           if (procdefinition.typ=procdef) and
-             ([po_classmethod,po_virtualmethod]<=procdefinition.procoptions) and
+             (current_procinfo.procdef.synthetickind<>tsk_callthrough) and
+             ((procdefinition.proctypeoption=potype_constructor) or
+              (po_classmethod in procdefinition.procoptions)) and
+             (po_virtualmethod in procdefinition.procoptions) and
              (methodpointer.nodetype<>loadvmtaddrn) then
             begin
+              wrappername:=symtableprocentry.name+'__FPCVIRTUALCLASSMETHOD__';
               sym:=
                 search_struct_member(tobjectdef(procdefinition.owner.defowner),
-                  upper(tprocdef(procdefinition).import_name^));
+                  wrappername);
               if not assigned(sym) or
                  (sym.typ<>procsym) then
                 internalerror(2011072801);
               { check whether we can simply replace the symtableprocentry, or
-                whether we have to reresolve overloads }
-              if symtableprocentry.ProcdefList.count=1 then
+                whether we have to reresolve overloads -- can never simply
+                replace in case of constructor -> class method call, because
+                constructors have a vmt parameter and class methods don't }
+              if (procdefinition.proctypeoption<>potype_constructor) and
+                 (symtableprocentry.ProcdefList.count=1) then
                 begin
                   symtableprocentry:=tprocsym(sym);
                   procdefinition:=tprocdef(symtableprocentry.ProcdefList[0]);
