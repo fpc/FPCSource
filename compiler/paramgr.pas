@@ -55,6 +55,10 @@ unit paramgr;
             the address is pushed
           }
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;abstract;
+          { returns true if a parameter must be handled via copy-out (construct
+            a reference, copy the parameter's value there in case of copy-in/out, pass the reference)
+          }
+          function push_copyout_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;
           { return the size of a push }
           function push_size(varspez:tvarspez;def : tdef;calloption : tproccalloption) : longint;virtual;
           {# Returns a structure giving the information on
@@ -177,6 +181,12 @@ implementation
                            is_open_string(def) or
                            is_array_of_const(def)
                           );
+      end;
+
+
+    function tparamanager.push_copyout_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;
+      begin
+        push_copyout_param:=false;
       end;
 
 

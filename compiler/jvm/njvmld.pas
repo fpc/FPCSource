@@ -34,6 +34,7 @@ uses
 type
   tjvmloadnode = class(tcgloadnode)
     function is_addr_param_load: boolean; override;
+    procedure pass_generate_code; override;
   end;
 
   tjvmassignmentnode  = class(tcgassignmentnode)
@@ -52,7 +53,8 @@ uses
   verbose,
   aasmdata,
   nbas,nld,ncal,nmem,ncnv,
-  symsym,symdef,defutil,jvmdef,
+  symconst,symsym,symdef,defutil,jvmdef,
+  paramgr,
   cgbase,hlcgobj;
 
 { tjvmassignmentnode }
@@ -96,6 +98,25 @@ function tjvmloadnode.is_addr_param_load: boolean;
     result:=
       inherited and
       not jvmimplicitpointertype(tparavarsym(symtableentry).vardef);
+  end;
+
+
+procedure tjvmloadnode.pass_generate_code;
+  begin
+    if (symtable.symtabletype=parasymtable) and
+       (symtableentry.typ=paravarsym) and
+       paramanager.push_copyout_param(tparavarsym(symtableentry).varspez,resultdef,tprocdef(symtable.defowner).proccalloption) then
+      begin
+        { the parameter is passed as an array of one element containing the
+          parameter value }
+        location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),4);
+        location.reference.arrayreftype:=art_indexconst;
+        location.reference.base:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
+        hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,java_jlobject,java_jlobject,tparavarsym(symtableentry).localloc,location.reference.base);
+        location.reference.indexoffset:=0;
+      end
+    else
+      inherited pass_generate_code;
   end;
 
 

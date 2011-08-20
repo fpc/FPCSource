@@ -33,10 +33,12 @@ interface
 
     type
        tcgcallparanode = class(tcallparanode)
-       private
+       protected
           tempcgpara : tcgpara;
           procedure push_addr_para;
           procedure push_value_para;
+          procedure push_formal_para;virtual;
+          procedure push_copyout_para;virtual;abstract;
        public
           constructor create(expr,next : tnode);override;
           destructor destroy;override;
@@ -149,6 +151,16 @@ implementation
       end;
 
 
+    procedure tcgcallparanode.push_formal_para;
+      begin
+        { allow passing of a constant to a const formaldef }
+        if (parasym.varspez=vs_const) and
+           (left.location.loc in [LOC_CONSTANT,LOC_REGISTER]) then
+          hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+        push_addr_para;
+      end;
+
+
     procedure tcgcallparanode.secondcallparan;
       var
          href    : treference;
@@ -216,16 +228,12 @@ implementation
                    push_value_para;
                end
              { formal def }
-             else if (parasym.vardef.typ=formaldef) and
-                     not(target_info.system in systems_managed_vm) then
-               begin
-                  { allow passing of a constant to a const formaldef }
-                  if (parasym.varspez=vs_const) and
-                     (left.location.loc in [LOC_CONSTANT,LOC_REGISTER]) then
-                    hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
-                  push_addr_para;
-               end
+             else if (parasym.vardef.typ=formaldef) then
+               push_formal_para
              { Normal parameter }
+             else if paramanager.push_copyout_param(parasym.varspez,parasym.vardef,
+                         aktcallnode.procdefinition.proccalloption) then
+               push_copyout_para
              else
                begin
                  { don't push a node that already generated a pointer type

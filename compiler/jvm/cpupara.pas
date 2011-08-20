@@ -37,6 +37,7 @@ interface
       TJVMParaManager=class(TParaManager)
         function  push_high_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
         function  push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
+        function  push_copyout_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean; override;
         function  push_size(varspez: tvarspez; def: tdef; calloption: tproccalloption): longint;override;
         {Returns a structure giving the information on the storage of the parameter
         (which must be an integer parameter)
@@ -58,7 +59,8 @@ implementation
     uses
       cutils,verbose,systems,
       defutil,jvmdef,
-      cgobj;
+      aasmcpu,
+      hlcgobj;
 
 
     procedure TJVMParaManager.GetIntParaLoc(calloption : tproccalloption; nr : longint;var cgpara : tcgpara);
@@ -82,6 +84,16 @@ implementation
     function TJVMParaManager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
         result:=jvmimplicitpointertype(def);
+      end;
+
+
+    function TJVMParaManager.push_copyout_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;
+      begin
+        { in principle also for vs_constref, but since we can't have real
+          references, that won't make a difference }
+        result:=
+          (varspez in [vs_var,vs_out]) and
+          not jvmimplicitpointertype(def);
       end;
 
 
@@ -169,17 +181,29 @@ implementation
         hp           : tparavarsym;
         paracgsize   : tcgsize;
         paraofs      : longint;
+        paradef      : tdef;
       begin
         paraofs:=0;
         for i:=0 to paras.count-1 do
           begin
             hp:=tparavarsym(paras[i]);
-            paracgsize:=def_cgsize(hp.vardef);
-            if paracgsize=OS_NO then
-              paracgsize:=OS_ADDR;
+            if push_copyout_param(hp.varspez,hp.vardef,p.proccalloption) then
+              begin
+                { passed via array reference (instead of creating a new array
+                  type for every single parameter, use java_jlobject) }
+                paracgsize:=OS_ADDR;
+                paradef:=java_jlobject;
+              end
+            else
+              begin
+                paracgsize:=def_cgsize(hp.vardef);
+                if paracgsize=OS_NO then
+                  paracgsize:=OS_ADDR;
+                paradef:=hp.vardef;
+              end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
-            hp.paraloc[side].def:=hp.vardef;
+            hp.paraloc[side].def:=paradef;
             hp.paraloc[side].alignment:=std_param_align;
             hp.paraloc[side].intsize:=tcgsize2size[paracgsize];
             paraloc:=hp.paraloc[side].add_location;
@@ -205,9 +229,9 @@ implementation
                 end;
             end;
             { 2 slots for 64 bit integers and floats, 1 slot for the rest }
-            if not(is_64bit(hp.vardef) or
-                   ((hp.vardef.typ=floatdef) and
-                    (tfloatdef(hp.vardef).floattype=s64real))) then
+            if not(is_64bit(paradef) or
+                   ((paradef.typ=floatdef) and
+                    (tfloatdef(paradef).floattype=s64real))) then
               inc(paraofs)
             else
               inc(paraofs,2);

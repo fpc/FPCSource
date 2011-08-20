@@ -26,10 +26,17 @@ unit njvmcal;
 interface
 
     uses
+      cgbase,
       symdef,
       ncgcal;
 
     type
+
+       tjvmcallparanode = class(tcgcallparanode)
+        protected
+         outcopybasereg: tregister;
+         procedure push_copyout_para; override;
+       end;
 
        { tjvmcallnode }
 
@@ -47,11 +54,53 @@ implementation
     uses
       verbose,globtype,
       symconst,symtype,defutil,ncal,
-      cgbase,cgutils,tgobj,procinfo,
+      cgutils,tgobj,procinfo,
       cpubase,aasmdata,aasmcpu,
       hlcgobj,hlcgcpu,
       node,
       jvmdef;
+
+{*****************************************************************************
+                           TJVMCALLPARANODE
+*****************************************************************************}
+
+    procedure tjvmcallparanode.push_copyout_para;
+      var
+        mangledname: string;
+        primitivetype: boolean;
+        opc: tasmop;
+        arrayloc: tlocation;
+        arrayref: treference;
+      begin
+        { create an array with one element of the parameter type }
+        thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,s32inttype,1,R_INTREGISTER);
+        mangledname:=jvmarrtype(left.resultdef,primitivetype);
+        if primitivetype then
+          opc:=a_newarray
+        else
+          opc:=a_anewarray;
+        { doesn't change stack height: one int replaced by one reference }
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname)));
+        { cannot be a regular array or record, because those are passed by
+          plain reference (since they are reference types at the Java level,
+          but not at the Pascal level) -> no special initialisation necessary }
+        outcopybasereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
+        thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,java_jlobject,outcopybasereg);
+        reference_reset_base(arrayref,outcopybasereg,0,4);
+        arrayref.arrayreftype:=art_indexconst;
+        arrayref.indexoffset:=0;
+        { load the current parameter value into the array in case it's not an
+          out-parameter; if it's an out-parameter the contents must be nil
+          but that's already ok, since the anewarray opcode takes care of that }
+        if (parasym.varspez<>vs_out) then
+          hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,arrayref);
+
+        { store the array reference into the parameter location (don't change
+          left.location, we may need it for copy-back after the call) }
+        location_reset(arrayloc,LOC_REGISTER,OS_ADDR);
+        arrayloc.register:=outcopybasereg;
+        hlcg.gen_load_loc_cgpara(current_asmdata.CurrAsmList,java_jlobject,arrayloc,tempcgpara)
+      end;
 
 
 {*****************************************************************************
@@ -118,6 +167,8 @@ implementation
       var
         totalremovesize: longint;
         realresdef: tdef;
+        ppn: tjvmcallparanode;
+        pararef: treference;
       begin
         if not assigned(typedef) then
           realresdef:=tstoreddef(resultdef)
@@ -141,9 +192,37 @@ implementation
         if (tabstractprocdef(procdefinition).proctypeoption=potype_constructor) and
            (cnf_inherited in callnodeflags) then
           thlcgjvm(hlcg).gen_initialize_fields_code(current_asmdata.CurrAsmList);
+
+        { copy back the copyout parameter values, if any }
+        { Release temps from parameters }
+        ppn:=tjvmcallparanode(left);
+        while assigned(ppn) do
+          begin
+            if assigned(ppn.left) then
+              begin
+                if (ppn.outcopybasereg<>NR_NO) then
+                  begin
+                    reference_reset_base(pararef,NR_NO,0,4);
+                    pararef.arrayreftype:=art_indexconst;
+                    pararef.base:=ppn.outcopybasereg;
+                    pararef.indexoffset:=0;
+                    { the value has to be copied back into persistent storage }
+                    case ppn.left.location.loc of
+                      LOC_REFERENCE:
+                        hlcg.a_load_ref_ref(current_asmdata.CurrAsmList,ppn.left.resultdef,ppn.left.resultdef,pararef,ppn.left.location.reference);
+                      LOC_CREGISTER:
+                        hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,ppn.left.resultdef,ppn.left.resultdef,pararef,ppn.left.location.register);
+                    else
+                      internalerror(2011051201);
+                    end;
+                  end;
+              end;
+            ppn:=tjvmcallparanode(ppn.right);
+          end;
       end;
 
 
 begin
   ccallnode:=tjvmcallnode;
+  ccallparanode:=tjvmcallparanode;
 end.

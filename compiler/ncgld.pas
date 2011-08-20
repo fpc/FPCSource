@@ -436,10 +436,10 @@ implementation
                       hregister:=location.register
                     else
                       begin
-                        hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                        hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
                         { we need to load only an address }
                         location.size:=OS_ADDR;
-                        cg.a_load_loc_reg(current_asmdata.CurrAsmList,location.size,location,hregister);
+                        hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,location,hregister);
                       end;
                     { assume packed records may always be unaligned }
                     if not(resultdef.typ in [recorddef,objectdef]) or
