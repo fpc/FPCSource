@@ -521,9 +521,6 @@ implementation
 
 
    procedure TJasminAssembler.NewAsmFileForObjectDef(obj: tobjectdef);
-      var
-        enclosingobj: tobjectdef;
-        st: tsymtable;
       begin
         if AsmSize<>AsmStartSize then
           begin
