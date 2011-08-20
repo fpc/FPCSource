@@ -2061,10 +2061,19 @@ procedure pd_external(pd:tabstractprocdef);
 var
   hs : string;
   v:Tconstexprint;
-
+  is_java_external: boolean;
 begin
   if pd.typ<>procdef then
     internalerror(2003042615);
+  { Allow specifying a separate external name for methods in external Java
+    because its identifier naming constraints are laxer than FPC's
+    (e.g., case sensitive).
+    Limitation: only allows specifying the symbol name and not the package name,
+    and only for external classes/interfaces }
+  is_java_external:=
+    (pd.typ=procdef) and
+    is_java_class_or_interface(tdef(pd.owner.defowner)) and
+    (oo_is_external in tobjectdef(pd.owner.defowner).objectoptions);
   with tprocdef(pd) do
     begin
       forwarddef:=false;
@@ -2075,7 +2084,8 @@ begin
         This isn't really correct, an contant string expression follows
         so we check if an semicolon follows, else a string constant have to
         follow (FK) }
-      if not(token=_SEMICOLON) and not(idtoken=_NAME) then
+      if not is_java_external and
+         not(token=_SEMICOLON) and not(idtoken=_NAME) then
         begin
           { Always add library prefix and suffix to create an uniform name }
           hs:=get_stringconst;
@@ -2115,7 +2125,8 @@ begin
         end
       else
         begin
-          if (idtoken=_NAME) then
+          if (idtoken=_NAME) or
+             is_java_external then
            begin
              consume(_NAME);
              import_name:=stringdup(get_stringconst);
@@ -2237,7 +2248,7 @@ const
       mutexclpo     : [po_external,po_interrupt,po_inline]
     ),(
       idtok:_EXTERNAL;
-      pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf,pd_cppobject,pd_notrecord,pd_nothelper];
+      pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf,pd_cppobject,pd_notrecord,pd_nothelper,pd_javaclass,pd_intfjava];
       handler  : @pd_external;
       pocall   : pocall_none;
       pooption : [po_external];
@@ -2622,7 +2633,9 @@ const
         if (pd_notobject in proc_direcdata[p].pd_flags) and
            (symtablestack.top.symtabletype=ObjectSymtable) and
            { directive allowed for cpp classes? }
-           not(is_cppclass(tdef(symtablestack.top.defowner)) and (pd_cppobject in proc_direcdata[p].pd_flags)) then
+           not((pd_cppobject in proc_direcdata[p].pd_flags) and is_cppclass(tdef(symtablestack.top.defowner))) and
+           not((pd_javaclass in proc_direcdata[p].pd_flags) and is_javaclass(tdef(symtablestack.top.defowner))) and
+           not((pd_intfjava in proc_direcdata[p].pd_flags) and is_javainterface(tdef(symtablestack.top.defowner))) then
            exit;
 
         if (pd_notrecord in proc_direcdata[p].pd_flags) and
