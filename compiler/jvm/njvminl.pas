@@ -243,7 +243,7 @@ implementation
         boxparadef: tdef;
       begin
         { get class wrapper type }
-        jvmgetboxtype(left.resultdef,boxdef,boxparadef);
+        jvmgetboxtype(left.resultdef,boxdef,boxparadef,true);
         { created wrapped instance }
         inserttypeconv_explicit(tcallparanode(left).left,boxparadef);
         result:=ccallnode.createinternmethod(
@@ -259,7 +259,7 @@ implementation
         boxdef,
         boxparadef: tdef;
       begin
-        jvmgetboxtype(resultdef,boxdef,boxparadef);
+        jvmgetboxtype(resultdef,boxdef,boxparadef,true);
         val:=tcallparanode(tcallparanode(left).right).left;
         tcallparanode(tcallparanode(left).right).left:=nil;
         { typecast to the boxing type }

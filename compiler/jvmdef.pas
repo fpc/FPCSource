@@ -76,7 +76,7 @@ interface
 
     { sometimes primitive types have to be boxed/unboxed via class types. This
       routine returns the appropriate box type for the passed primitive type }
-    procedure jvmgetboxtype(def: tdef; out objdef, paradef: tdef);
+    procedure jvmgetboxtype(def: tdef; out objdef, paradef: tdef; mergeints: boolean);
     function jvmgetunboxmethod(def: tdef): string;
 
 implementation
@@ -498,13 +498,17 @@ implementation
             result:=is_object(def);
           stringdef :
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
+          procvardef:
+            result:=not tprocvardef(def).is_addressonly;
           else
             result:=false;
         end;
       end;
 
 
-    procedure jvmgetboxtype(def: tdef; out objdef, paradef: tdef);
+    { mergeints = true means that all integer types are mapped to jllong,
+      otherwise they are mapped to the closest corresponding type }
+    procedure jvmgetboxtype(def: tdef; out objdef, paradef: tdef; mergeints: boolean);
       begin
         case def.typ of
           orddef:
@@ -515,36 +519,53 @@ implementation
                     objdef:=tobjectdef(search_system_type('JLBOOLEAN').typedef);
                     paradef:=pasbool8type;
                   end;
-                { wrap all integer types into a JLLONG, so that we don't get
-                  errors after returning a byte assigned to a long etc }
-                s8bit,
-                u8bit,
-                uchar,
-                bool8bit,
-                s16bit,
-                u16bit,
-                bool16bit,
-                pasbool16,
-                s32bit,
-                u32bit,
-                bool32bit,
-                pasbool32,
-                s64bit,
-                u64bit,
-                scurrency,
-                bool64bit,
-                pasbool64:
-                  begin
-                    objdef:=tobjectdef(search_system_type('JLLONG').typedef);
-                    paradef:=s64inttype;
-                  end;
                 uwidechar:
                   begin
                     objdef:=tobjectdef(search_system_type('JLCHARACTER').typedef);
                     paradef:=cwidechartype;
                   end;
                 else
-                  internalerror(2011052101);
+                  begin
+                    { wrap all integer types into a JLLONG, so that we don't get
+                      errors after returning a byte assigned to a long etc }
+                    if mergeints or
+                       (torddef(def).ordtype in [s64bit,u64bit,scurrency,bool64bit,pasbool64]) then
+                      begin
+                        objdef:=tobjectdef(search_system_type('JLLONG').typedef);
+                        paradef:=s64inttype;
+                      end
+                    else
+                      begin
+                        case torddef(def).ordtype of
+                          s8bit,
+                          u8bit,
+                          uchar,
+                          bool8bit:
+                            begin
+                              objdef:=tobjectdef(search_system_type('JLBYTE').typedef);
+                              paradef:=s8inttype;
+                            end;
+                          s16bit,
+                          u16bit,
+                          bool16bit,
+                          pasbool16:
+                            begin
+                              objdef:=tobjectdef(search_system_type('JLSHORT').typedef);
+                              paradef:=s16inttype;
+                            end;
+                          s32bit,
+                          u32bit,
+                          bool32bit,
+                          pasbool32:
+                            begin
+                              objdef:=tobjectdef(search_system_type('JLINTEGER').typedef);
+                              paradef:=s32inttype;
+                            end;
+                          else
+                            internalerror(2011052101);
+                        end;
+                      end;
+                  end;
               end;
             end;
           floatdef:
