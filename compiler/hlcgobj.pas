@@ -326,7 +326,7 @@ unit hlcgobj;
              @param(dest Destination reference of copy)
 
           }
-          procedure g_concatcopy(list : TAsmList;size: tdef; const source,dest : treference);virtual;abstract;
+          procedure g_concatcopy(list : TAsmList;size: tdef; const source,dest : treference);virtual;
           {# This should emit the opcode to copy len bytes from the an unaligned source
              to destination.
 
@@ -1477,6 +1477,19 @@ implementation
         else
           internalerror(2010120432);
       end;
+    end;
+
+  procedure thlcgobj.g_concatcopy(list: TAsmList; size: tdef; const source, dest: treference);
+    begin
+{
+      if use_vectorfpu(size) then
+        a_loadmm_ref_ref()
+      else
+ }
+      if size.typ<>floatdef then
+        a_load_ref_ref(list,size,size,source,dest)
+      else
+        a_loadfpu_ref_ref(list,size,size,source,dest);
     end;
 
   procedure thlcgobj.g_concatcopy_unaligned(list: TAsmList; size: tdef; const source, dest: treference);
