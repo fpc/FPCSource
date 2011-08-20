@@ -685,10 +685,11 @@ procedure fpc_largeset_symdif_sets(set1,set2,dest : pointer;size : longint); com
 procedure fpc_largeset_comp_sets(set1,set2 : pointer;size : longint); compilerproc;
 procedure fpc_largeset_contains_sets(set1,set2 : pointer; size: longint); compilerproc;
 {$endif LARGESETS}
-
+*)
 procedure fpc_rangeerror; compilerproc;
 procedure fpc_divbyzero; compilerproc;
 procedure fpc_overflow; compilerproc;
+(*
 procedure fpc_iocheck; compilerproc;
 
 procedure fpc_InitializeUnits; compilerproc;

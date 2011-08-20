@@ -192,8 +192,6 @@ uses
       procedure concatcopy_set(list: TAsmList; size: tdef; const source, dest: treference);
       procedure concatcopy_shortstring(list: TAsmList; size: tdef; const source, dest: treference);
 
-      { generate a call to a routine in the system unit }
-      procedure g_call_system_proc(list: TAsmList; const procname: string);
     end;
 
   procedure create_hlcodegen;
@@ -2100,19 +2098,6 @@ implementation
           pd.init_paraloc_info(calleeside);
           list.concat(taicpu.op_sym_const(opc,current_asmdata.RefAsmSymbol(s),pd.calleeargareasize));
         end;
-    end;
-
-  procedure thlcgjvm.g_call_system_proc(list: TAsmList; const procname: string);
-    var
-      srsym: tsym;
-      pd: tprocdef;
-    begin
-      srsym:=tsym(systemunit.find(procname));
-      if not assigned(srsym) or
-         (srsym.typ<>procsym) then
-        Message1(cg_f_unknown_compilerproc,procname);
-      pd:=tprocdef(tprocsym(srsym).procdeflist[0]);
-      a_call_name(list,pd,pd.mangledname,false);
     end;
 
   procedure create_hlcodegen;

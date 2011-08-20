@@ -648,17 +648,22 @@ function SysSetCtrlBreakHandler (Handler: TCtrlBreakHandler): TCtrlBreakHandler;
 *)
 
 { Error handlers }
-(*
 Type
+(*
   TBackTraceStrFunc = Function (Addr: Pointer): ShortString;
+*)
   TErrorProc = Procedure (ErrNo : Longint; Address,Frame : Pointer);
+(*
   TAbstractErrorProc = Procedure;
   TAssertErrorProc = Procedure(const msg,fname:ShortString;lineno:longint;erroraddr:pointer);
   TSafeCallErrorProc = Procedure(error : HResult;addr : pointer);
-
+*)
 const
+(*
   BackTraceStrFunc  : TBackTraceStrFunc = @SysBackTraceStr;
+*)
   ErrorProc         : TErrorProc = nil;
+(*
   AbstractErrorProc : TAbstractErrorProc = nil;
   AssertErrorProc   : TAssertErrorProc = @SysAssert;
   SafeCallErrorProc : TSafeCallErrorProc = nil;

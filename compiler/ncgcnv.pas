@@ -89,7 +89,7 @@ interface
 
         { insert range check if not explicit conversion }
         if not(nf_explicit in flags) then
-          cg.g_rangecheck(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef);
+          hlcg.g_rangecheck(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef);
 
         { is the result size smaller? when typecasting from void
           we always reuse the current location, because there is

@@ -496,6 +496,8 @@ unit hlcgobj;
             the assembler/object file }
           procedure record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList); virtual;
 
+          { generate a call to a routine in the system unit }
+          procedure g_call_system_proc(list: TAsmList; const procname: string);
        end;
 
     var
@@ -510,7 +512,7 @@ implementation
        globals,options,systems,
        fmodule,export,
        verbose,defutil,paramgr,
-       symbase,symsym,
+       symbase,symsym,symtable,
        ncon,nld,pass_1,pass_2,
        cpuinfo,cgobj,tgobj,cutils,procinfo,
        ncgutil,ngenutil;
@@ -1662,10 +1664,195 @@ implementation
     end;
 
   procedure thlcgobj.g_rangecheck(list: TAsmList; const l: tlocation; fromdef, todef: tdef);
+    var
+      aintmax: aint;
+      neglabel : tasmlabel;
+      hreg : tregister;
+      lto,hto,
+      lfrom,hfrom : TConstExprInt;
+      fromsize, tosize: cardinal;
+      maxdef: tdef;
+      from_signed, to_signed: boolean;
     begin
-      if not(cs_check_range in current_settings.localswitches) then
+      { range checking on and range checkable value? }
+      if not(cs_check_range in current_settings.localswitches) or
+         not(fromdef.typ in [orddef,enumdef]) or
+         { C-style booleans can't really fail range checks, }
+         { all values are always valid                      }
+         is_cbool(todef) then
         exit;
-      internalerror(2011010610);
+      { only check when assigning to scalar, subranges are different, }
+      { when todef=fromdef then the check is always generated         }
+      getrange(fromdef,lfrom,hfrom);
+      getrange(todef,lto,hto);
+      from_signed := is_signed(fromdef);
+      to_signed := is_signed(todef);
+      { check the rangedef of the array, not the array itself }
+      { (only change now, since getrange needs the arraydef)   }
+      if (todef.typ = arraydef) then
+        todef := tarraydef(todef).rangedef;
+      { no range check if from and to are equal and are both longint/dword }
+      { (if we have a 32bit processor) or int64/qword, since such          }
+      { operations can at most cause overflows (JM)                        }
+      { Note that these checks are mostly processor independent, they only }
+      { have to be changed once we introduce 64bit subrange types          }
+      if (fromdef = todef) and
+         (fromdef.typ=orddef) and
+         (((((torddef(fromdef).ordtype = s64bit) and
+             (lfrom = low(int64)) and
+             (hfrom = high(int64))) or
+            ((torddef(fromdef).ordtype = u64bit) and
+             (lfrom = low(qword)) and
+             (hfrom = high(qword))) or
+            ((torddef(fromdef).ordtype = scurrency) and
+             (lfrom = low(int64)) and
+             (hfrom = high(int64)))))) then
+        exit;
+      { 32 bit operations are automatically widened to 64 bit on 64 bit addr
+        targets }
+{$ifdef cpu32bitaddr}
+      if (fromdef = todef) and
+         (fromdef.typ=orddef) and
+         (((((torddef(fromdef).ordtype = s32bit) and
+             (lfrom = int64(low(longint))) and
+             (hfrom = int64(high(longint)))) or
+            ((torddef(fromdef).ordtype = u32bit) and
+             (lfrom = low(cardinal)) and
+             (hfrom = high(cardinal)))))) then
+        exit;
+{$endif cpu32bitaddr}
+
+      { optimize some range checks away in safe cases }
+      fromsize := fromdef.size;
+      tosize := todef.size;
+      if ((from_signed = to_signed) or
+          (not from_signed)) and
+         (lto<=lfrom) and (hto>=hfrom) and
+         (fromsize <= tosize) then
+        begin
+          { if fromsize < tosize, and both have the same signed-ness or }
+          { fromdef is unsigned, then all bit patterns from fromdef are }
+          { valid for todef as well                                     }
+          if (fromsize < tosize) then
+            exit;
+          if (fromsize = tosize) and
+             (from_signed = to_signed) then
+            { only optimize away if all bit patterns which fit in fromsize }
+            { are valid for the todef                                      }
+            begin
+{$ifopt Q+}
+{$define overflowon}
+{$Q-}
+{$endif}
+{$ifopt R+}
+{$define rangeon}
+{$R-}
+{$endif}
+              if to_signed then
+                begin
+                  { calculation of the low/high ranges must not overflow 64 bit
+                   otherwise we end up comparing with zero for 64 bit data types on
+                   64 bit processors }
+                  if (lto = (int64(-1) << (tosize * 8 - 1))) and
+                     (hto = (-((int64(-1) << (tosize * 8 - 1))+1))) then
+                    exit
+                end
+              else
+                begin
+                  { calculation of the low/high ranges must not overflow 64 bit
+                   otherwise we end up having all zeros for 64 bit data types on
+                   64 bit processors }
+                  if (lto = 0) and
+                     (qword(hto) = (qword(-1) >> (64-(tosize * 8))) ) then
+                    exit
+                end;
+{$ifdef overflowon}
+{$Q+}
+{$undef overflowon}
+{$endif}
+{$ifdef rangeon}
+{$R+}
+{$undef rangeon}
+{$endif}
+            end
+        end;
+
+      { depending on the types involved, we perform the range check for 64 or
+        for 32 bit }
+      if fromsize=8 then
+        maxdef:=fromdef
+      else
+        maxdef:=todef;
+{$if sizeof(aintmax) = 8}
+      if maxdef.size=8 then
+        aintmax:=high(int64)
+      else
+{$endif}
+        begin
+          aintmax:=high(longint);
+          maxdef:=u32inttype;
+        end;
+
+      { generate the rangecheck code for the def where we are going to }
+      { store the result                                               }
+
+      { use the trick that                                                 }
+      { a <= x <= b <=> 0 <= x-a <= b-a <=> unsigned(x-a) <= unsigned(b-a) }
+
+      { To be able to do that, we have to make sure however that either    }
+      { fromdef and todef are both signed or unsigned, or that we leave    }
+      { the parts < 0 and > maxlongint out                                 }
+
+      if from_signed xor to_signed then
+        begin
+           if from_signed then
+             { from is signed, to is unsigned }
+             begin
+               { if high(from) < 0 -> always range error }
+               if (hfrom < 0) or
+                  { if low(to) > maxlongint also range error }
+                  (lto > aintmax) then
+                 begin
+                   g_call_system_proc(list,'fpc_rangeerror');
+                   exit
+                 end;
+               { from is signed and to is unsigned -> when looking at to }
+               { as an signed value, it must be < maxaint (otherwise     }
+               { it will become negative, which is invalid since "to" is unsigned) }
+               if hto > aintmax then
+                 hto := aintmax;
+             end
+           else
+             { from is unsigned, to is signed }
+             begin
+               if (lfrom > aintmax) or
+                  (hto < 0) then
+                 begin
+                   g_call_system_proc(list,'fpc_rangeerror');
+                   exit
+                 end;
+               { from is unsigned and to is signed -> when looking at to }
+               { as an unsigned value, it must be >= 0 (since negative   }
+               { values are the same as values > maxlongint)             }
+               if lto < 0 then
+                 lto := 0;
+             end;
+        end;
+      hreg:=getintregister(list,maxdef);
+      a_load_loc_reg(list,fromdef,maxdef,l,hreg);
+      a_op_const_reg(list,OP_SUB,maxdef,tcgint(int64(lto)),hreg);
+      current_asmdata.getjumplabel(neglabel);
+      {
+      if from_signed then
+        a_cmp_const_reg_label(list,OS_INT,OC_GTE,aint(hto-lto),hreg,neglabel)
+      else
+      }
+      if qword(hto-lto)>qword(aintmax) then
+        a_cmp_const_reg_label(list,maxdef,OC_BE,aintmax,hreg,neglabel)
+      else
+        a_cmp_const_reg_label(list,maxdef,OC_BE,tcgint(int64(hto-lto)),hreg,neglabel);
+      g_call_system_proc(list,'fpc_rangeerror');
+      a_label(list,neglabel);
     end;
 
   procedure thlcgobj.g_profilecode(list: TAsmList);
@@ -2722,5 +2909,20 @@ implementation
          (not data.empty) then
         current_asmdata.asmlists[al_procedures].concatlist(data);
     end;
+
+  procedure thlcgobj.g_call_system_proc(list: TAsmList; const procname: string);
+    var
+      srsym: tsym;
+      pd: tprocdef;
+    begin
+      srsym:=tsym(systemunit.find(procname));
+      if not assigned(srsym) or
+         (srsym.typ<>procsym) then
+        Message1(cg_f_unknown_compilerproc,procname);
+      pd:=tprocdef(tprocsym(srsym).procdeflist[0]);
+      a_call_name(list,pd,pd.mangledname,false);
+    end;
+
+
 
 end.

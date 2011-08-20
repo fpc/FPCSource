@@ -18,5 +18,6 @@
 constructor FpcRunTimeError.create(l: longint);
   begin
     inherited Create('Run time error '+unicodestring(JLInteger.valueOf(l).toString));
+    errornr:=l;
   end;
 

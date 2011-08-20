@@ -463,6 +463,8 @@ unit cgobj;
              @param(p Node which contains the value to check)
              @param(todef Type definition of node to range check)
           }
+          { only left here because used by cg64f32; normally, the code in
+            hlcgobj is used }
           procedure g_rangecheck(list: TAsmList; const l:tlocation; fromdef,todef: tdef); virtual;
 
           {# Generates overflow checking code for a node }

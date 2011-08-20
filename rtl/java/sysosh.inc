@@ -17,5 +17,6 @@
 
 type
   FpcRunTimeError = class(JLException)
+    errornr: longint;
     constructor create(l: longint);
   end;

@@ -983,10 +983,10 @@ end;
 
 Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPU86} register; {$endif}
 begin
-  raise FpcRunTimeError.Create(Errno);
-(*
   If pointer(ErrorProc)<>Nil then
     ErrorProc(Errno,addr,frame);
+  raise FpcRunTimeError.Create(Errno);
+(*
   errorcode:=word(Errno);
   erroraddr:=addr;
   errorbase:=frame;
