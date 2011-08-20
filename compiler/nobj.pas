@@ -799,7 +799,10 @@ implementation
           and Java interfaces can have multiple parent interfaces, but in that
           case obviously no implementations are required) }
         if assigned(_class.ImplementedInterfaces) and
-           not(_class.objecttype in [odt_objcprotocol,odt_interfacejava]) then
+           not(_class.objecttype in [odt_objcprotocol,odt_interfacejava]) and
+           // abstract java classes do not have to implement all interface
+           // methods. todo: check that non-abstract descendents do!
+           not((_class.objecttype=odt_javaclass) and (oo_is_abstract in _class.objectoptions)) then
           begin
             { Collect implementor functions into the tImplementedInterface.procdefs }
             case _class.objecttype of
