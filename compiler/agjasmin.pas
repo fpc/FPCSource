@@ -164,9 +164,7 @@ implementation
         last_align := 2;
         InlineLevel:=0;
         { lineinfo is only needed for al_procedures (PFV) }
-        do_line:=(cs_asm_source in current_settings.globalswitches) or
-                 ((cs_lineinfo in current_settings.moduleswitches)
-                   and (p=current_asmdata.asmlists[al_procedures]));
+        do_line:=(cs_asm_source in current_settings.globalswitches);
         hp:=tai(p.first);
         while assigned(hp) do
          begin
@@ -193,6 +191,7 @@ implementation
                      { be sure to change line !! }
                      lastfileinfo.line:=-1;
                    end;
+
                 { write source }
                   if (cs_asm_source in current_settings.globalswitches) and
                      assigned(infile) then

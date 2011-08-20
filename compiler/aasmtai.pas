@@ -295,7 +295,7 @@ interface
         asd_reference,asd_no_dead_strip,asd_weak_reference,asd_lazy_reference,
         asd_weak_definition,
         { for Jasmin }
-        asd_jclass,asd_jinterface,asd_jsuper,asd_jfield,asd_jlimit
+        asd_jclass,asd_jinterface,asd_jsuper,asd_jfield,asd_jlimit,asd_jline
       );
 
     const
@@ -307,7 +307,7 @@ interface
         'extern','nasm_import', 'tc', 'reference',
         'no_dead_strip','weak_reference','lazy_reference','weak_definition',
         { for Jasmin }
-        'class','interface','super','field','limit'
+        'class','interface','super','field','limit','line'
       );
 
     type
