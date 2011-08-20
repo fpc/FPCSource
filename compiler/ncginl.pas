@@ -797,21 +797,21 @@ implementation
         { load left operator in a register }
         location_copy(location,op1.location);
 
-        location_force_reg(current_asmdata.CurrAsmList,location,location.size,false);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,location,op1.resultdef,resultdef,false);
 
         if not(assigned(op2)) then
-          cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,location.size,1,location.register)
+          hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,resultdef,1,location.register)
         else
           begin
             secondpass(op2);
             { shifting by a constant directly coded: }
             if op2.nodetype=ordconstn then
-              cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,location.size,
+              hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,resultdef,
                                   tordconstnode(op2).value.uvalue and (resultdef.size*8-1),location.register)
             else
               begin
-                location_force_reg(current_asmdata.CurrAsmList,op2.location,location.size,false);
-                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SAR,location.size,op2.location.register,location.register);
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,op2.location,op2.resultdef,resultdef,false);
+                hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SAR,resultdef,op2.location.register,location.register);
              end;
           end;
       end;
