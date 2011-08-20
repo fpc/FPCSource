@@ -2505,7 +2505,7 @@ implementation
 {$endif cpuneedsmulhelper}
       begin
          result:=nil;
-
+{$ifndef jvm}
          { Can we optimize multiple string additions into a single call?
            This need to be done on a complete tree to detect the multiple
            add nodes and is therefor done before the subtrees are processed }
@@ -2514,7 +2514,7 @@ implementation
              result := genmultistringadd(self);
              exit;
            end;
-
+{$endif jvm}
          { first do the two subtrees }
          firstpass(left);
          firstpass(right);
