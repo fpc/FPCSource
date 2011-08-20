@@ -27,7 +27,7 @@ interface
 
     uses
       cgbase,
-      symdef,
+      symtype,symdef,
       ncgcal;
 
     type
@@ -35,7 +35,10 @@ interface
        tjvmcallparanode = class(tcgcallparanode)
         protected
          outcopybasereg: tregister;
+         procedure push_formal_para; override;
          procedure push_copyout_para; override;
+
+         procedure load_arrayref_para(useparadef: tdef);
        end;
 
        { tjvmcallnode }
@@ -53,7 +56,7 @@ implementation
 
     uses
       verbose,globtype,
-      symconst,symtype,defutil,ncal,
+      symconst,defutil,ncal,
       cgutils,tgobj,procinfo,
       cpubase,aasmdata,aasmcpu,
       hlcgobj,hlcgcpu,
@@ -64,23 +67,11 @@ implementation
                            TJVMCALLPARANODE
 *****************************************************************************}
 
-    procedure tjvmcallparanode.push_copyout_para;
+    procedure tjvmcallparanode.load_arrayref_para(useparadef: tdef);
       var
-        mangledname: string;
-        primitivetype: boolean;
-        opc: tasmop;
         arrayloc: tlocation;
         arrayref: treference;
       begin
-        { create an array with one element of the parameter type }
-        thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,s32inttype,1,R_INTREGISTER);
-        mangledname:=jvmarrtype(left.resultdef,primitivetype);
-        if primitivetype then
-          opc:=a_newarray
-        else
-          opc:=a_anewarray;
-        { doesn't change stack height: one int replaced by one reference }
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname)));
         { cannot be a regular array or record, because those are passed by
           plain reference (since they are reference types at the Java level,
           but not at the Pascal level) -> no special initialisation necessary }
@@ -93,13 +84,44 @@ implementation
           out-parameter; if it's an out-parameter the contents must be nil
           but that's already ok, since the anewarray opcode takes care of that }
         if (parasym.varspez<>vs_out) then
-          hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,arrayref);
+          hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,useparadef,useparadef,left.location,arrayref);
 
         { store the array reference into the parameter location (don't change
           left.location, we may need it for copy-back after the call) }
         location_reset(arrayloc,LOC_REGISTER,OS_ADDR);
         arrayloc.register:=outcopybasereg;
         hlcg.gen_load_loc_cgpara(current_asmdata.CurrAsmList,java_jlobject,arrayloc,tempcgpara)
+      end;
+
+
+    procedure tjvmcallparanode.push_formal_para;
+      var
+        primitivetype: boolean;
+      begin
+        { create an array with one element of JLObject }
+        thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,s32inttype,1,R_INTREGISTER);
+        { left is either an object-derived type, or has been boxed into one }
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_anewarray,current_asmdata.RefAsmSymbol(jvmarrtype(java_jlobject,primitivetype))));
+        load_arrayref_para(java_jlobject);
+      end;
+
+
+    procedure tjvmcallparanode.push_copyout_para;
+      var
+        mangledname: string;
+        primitivetype: boolean;
+        opc: tasmop;
+      begin
+        { create an array with one element of the parameter type }
+        thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,s32inttype,1,R_INTREGISTER);
+        mangledname:=jvmarrtype(left.resultdef,primitivetype);
+        if primitivetype then
+          opc:=a_newarray
+        else
+          opc:=a_anewarray;
+        { doesn't change stack height: one int replaced by one reference }
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname)));
+        load_arrayref_para(left.resultdef);
       end;
 
 
@@ -207,14 +229,26 @@ implementation
                     pararef.base:=ppn.outcopybasereg;
                     pararef.indexoffset:=0;
                     { the value has to be copied back into persistent storage }
-                    case ppn.left.location.loc of
-                      LOC_REFERENCE:
-                        hlcg.a_load_ref_ref(current_asmdata.CurrAsmList,ppn.left.resultdef,ppn.left.resultdef,pararef,ppn.left.location.reference);
-                      LOC_CREGISTER:
-                        hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,ppn.left.resultdef,ppn.left.resultdef,pararef,ppn.left.location.register);
+                    if (ppn.parasym.vardef.typ<>formaldef) then
+                      begin
+                        case ppn.left.location.loc of
+                          LOC_REFERENCE:
+                            hlcg.a_load_ref_ref(current_asmdata.CurrAsmList,ppn.left.resultdef,ppn.left.resultdef,pararef,ppn.left.location.reference);
+                          LOC_CREGISTER:
+                            hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,ppn.left.resultdef,ppn.left.resultdef,pararef,ppn.left.location.register);
+                        else
+                          internalerror(2011051201);
+                        end;
+                      end
                     else
-                      internalerror(2011051201);
-                    end;
+                      begin
+{$ifndef nounsupported}
+                        { to do: extract value from boxed parameter or load
+                          value back }
+{$else}
+                        internalerror(2011051901);
+{$endif}
+                      end;
                   end;
               end;
             ppn:=tjvmcallparanode(ppn.right);
