@@ -901,18 +901,26 @@ implementation
                  addsymref(plist^.sym);
                  if not assigned(st) then
                    st:=plist^.sym.owner;
-                 { p1 can already contain the loadnode of
-                   the class variable. When there is no tree yet we
-                   may need to load it for with or objects }
-                 if not assigned(p1) then
-                  begin
-                    case st.symtabletype of
-                      withsymtable :
-                        p1:=tnode(twithsymtable(st).withrefnode).getcopy;
-                      ObjectSymtable :
-                        p1:=load_self_node;
-                    end;
-                  end;
+                 if (plist^.sym.typ<>staticvarsym) then
+                   begin
+                     { p1 can already contain the loadnode of
+                       the class variable. When there is no tree yet we
+                       may need to load it for with or objects }
+                     if not assigned(p1) then
+                      begin
+                        case st.symtabletype of
+                          withsymtable :
+                            p1:=tnode(twithsymtable(st).withrefnode).getcopy;
+                          ObjectSymtable :
+                            p1:=load_self_node;
+                        end;
+                      end
+                   end
+                 else
+                   begin
+                     p1.free;
+                     p1:=nil;
+                   end;
                  if assigned(p1) then
                   p1:=csubscriptnode.create(plist^.sym,p1)
                  else
