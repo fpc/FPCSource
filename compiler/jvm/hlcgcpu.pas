@@ -664,7 +664,6 @@ implementation
       extra_slots:=prepare_stack_for_ref(list,ref,false);
       a_load_const_stack(list,tosize,a,def2regtyp(tosize));
       a_load_stack_ref(list,tosize,ref,extra_slots);
-      decstack(list,extra_slots);
     end;
 
   procedure thlcgjvm.a_load_reg_ref(list: TAsmList; fromsize, tosize: tdef; register: tregister; const ref: treference);
@@ -674,7 +673,6 @@ implementation
       extra_slots:=prepare_stack_for_ref(list,ref,false);
       a_load_reg_stack(list,fromsize,register);
       a_load_stack_ref(list,tosize,ref,extra_slots);
-      decstack(list,extra_slots);
     end;
 
   procedure thlcgjvm.a_load_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister);
