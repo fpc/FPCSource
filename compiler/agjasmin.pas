@@ -691,7 +691,9 @@ implementation
         if is_javainterface(tdef(pd.owner.defowner)) then
           result:=result+'abstract ';
         if (pd.procsym.owner.symtabletype in [globalsymtable,staticsymtable,localsymtable]) or
-           (po_finalmethod in pd.procoptions) then
+           (po_finalmethod in pd.procoptions) or
+           (not(po_virtualmethod in pd.procoptions) and
+            not(pd.proctypeoption in [potype_constructor,potype_class_constructor])) then
           result:=result+'final ';
         result:=result+pd.jvmmangledbasename;
       end;
