@@ -412,6 +412,15 @@ unit hlcgobj;
           The default implementation issues a jump instruction to the external name. }
 //          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); virtual;
 
+          { create "safe copy" of a tlocation that can be used later: all
+            registers used in the tlocation are copied to new ones, so that
+            even if the original ones change, things stay the same (except if
+            the original location was already a register, then the register is
+            kept). Must only be used on lvalue locations.
+            It's intended as some kind of replacement for a_loadaddr_ref_reg()
+            for targets without pointers. }
+          procedure g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation); virtual; abstract;
+
 
           { routines migrated from ncgutil }
 

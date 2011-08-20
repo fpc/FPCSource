@@ -111,6 +111,8 @@ uses
       procedure a_op_ref_stack(list : TAsmList;op: topcg; size: tdef;const ref: treference);
       procedure a_op_loc_stack(list : TAsmList;op: topcg; size: tdef;const loc: tlocation);
 
+      procedure g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation); override;
+
       { this routine expects that all values are already massaged into the
         required form (sign bits xor'ed for gt/lt comparisons for OS_32/OS_64,
         see http://stackoverflow.com/questions/4068973/c-performing-signed-comparison-in-unsigned-variables-without-casting ) }
@@ -458,6 +460,64 @@ implementation
           a_op_const_stack(list,op,size,loc.value);
         else
           internalerror(2011011415)
+      end;
+    end;
+
+
+  procedure thlcgjvm.g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation);
+
+    procedure handle_reg_move(regsize: tdef; const fromreg: tregister; out toreg: tregister; regtyp: tregistertype);
+      begin
+        case regtyp of
+          R_INTREGISTER:
+            toreg:=getintregister(list,regsize);
+          R_ADDRESSREGISTER:
+            toreg:=getaddressregister(list,regsize);
+          R_FPUREGISTER:
+            toreg:=getfpuregister(list,regsize);
+        end;
+        a_load_reg_reg(list,regsize,regsize,fromreg,toreg);
+      end;
+
+    begin
+      toloc:=fromloc;
+      case fromloc.loc of
+        { volatile location, can't get a permanent reference }
+        LOC_REGISTER,
+        LOC_FPUREGISTER:
+          internalerror(2011031406);
+        LOC_CONSTANT:
+          { finished }
+          ;
+        LOC_CREGISTER:
+          handle_reg_move(def,fromloc.reference.index,toloc.reference.index,R_INTREGISTER);
+        LOC_CFPUREGISTER:
+          handle_reg_move(def,fromloc.reference.index,toloc.reference.index,R_FPUREGISTER);
+        { although LOC_CREFERENCE cannot be an lvalue, we may want to take a
+          reference to such a location for multiple reading }
+        LOC_CREFERENCE,
+        LOC_REFERENCE:
+          begin
+            if (fromloc.reference.base<>NR_NO) and
+               (fromloc.reference.base<>current_procinfo.framepointer) and
+               (fromloc.reference.base<>NR_STACK_POINTER_REG) then
+              handle_reg_move(java_jlobject,fromloc.reference.base,toloc.reference.base,R_ADDRESSREGISTER);
+            case fromloc.reference.arrayreftype of
+              art_indexreg:
+                begin
+                  { all array indices in Java are 32 bit ints }
+                  handle_reg_move(s32inttype,fromloc.reference.index,toloc.reference.index,R_INTREGISTER);
+                end;
+              art_indexref:
+                begin
+                  if (fromloc.reference.indexbase<>NR_NO) and
+                     (fromloc.reference.indexbase<>NR_STACK_POINTER_REG) then
+                    handle_reg_move(s32inttype,fromloc.reference.indexbase,toloc.reference.indexbase,R_ADDRESSREGISTER);
+                end;
+            end;
+          end;
+        else
+          internalerror(2011031407);
       end;
     end;
 

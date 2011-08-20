@@ -1181,7 +1181,7 @@ implementation
            case hp.nodetype of
              temprefn :
                begin
-                 valid_for_assign := true;
+                 valid_for_assign := not(ti_readonly in ttemprefnode(hp).tempinfo^.flags);
                  exit;
                end;
              derefn :
