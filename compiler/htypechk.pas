@@ -1098,7 +1098,7 @@ implementation
             else if vs.varspez=vs_final then
               begin
                 if (current_procinfo.procdef.owner=vs.owner) then
-                  if sp_static in vs.symoptions then
+                  if vs.typ=staticvarsym then
                     result:=current_procinfo.procdef.proctypeoption=potype_class_constructor
                   else
                     result:=current_procinfo.procdef.proctypeoption=potype_constructor;
