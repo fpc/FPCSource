@@ -1165,7 +1165,6 @@ implementation
 {$else jvm}
       include(hstaticvs.symoptions,sp_internal);
       tabstractrecordsymtable(recst).get_unit_symtable.insert(hstaticvs);
-      cnodeutils.insertbssdata(hstaticvs);
 {$endif jvm}
       { generate the symbol for the access }
       sl:=tpropaccesslist.create;
