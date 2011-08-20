@@ -416,7 +416,7 @@ unit hlcgobj;
           { routines migrated from ncgutil }
 
           procedure location_force_reg(list:TAsmList;var l:tlocation;src_size,dst_size:tdef;maybeconst:boolean);virtual;
-          procedure location_force_fpureg(list:TAsmList;var l: tlocation;size: tdef;maybeconst:boolean);virtual;abstract;
+          procedure location_force_fpureg(list:TAsmList;var l: tlocation;size: tdef;maybeconst:boolean);virtual;
           procedure location_force_mem(list:TAsmList;var l:tlocation;size:tdef);virtual;
 //          procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);virtual;abstract;
 //          procedure location_force_mmreg(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);virtual;abstract;
@@ -1647,6 +1647,25 @@ implementation
       { Release temp if it was a reference }
       if oldloc.loc=LOC_REFERENCE then
         location_freetemp(list,oldloc);
+    end;
+
+  procedure thlcgobj.location_force_fpureg(list: TAsmList; var l: tlocation; size: tdef; maybeconst: boolean);
+    var
+      reg : tregister;
+      href : treference;
+    begin
+      if (l.loc<>LOC_FPUREGISTER)  and
+         ((l.loc<>LOC_CFPUREGISTER) or (not maybeconst)) then
+        begin
+          { if it's in an mm register, store to memory first }
+          if (l.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
+            internalerror(2011012903);
+          reg:=getfpuregister(list,size);
+          a_loadfpu_loc_reg(list,size,size,l,reg);
+          location_freetemp(list,l);
+          location_reset(l,LOC_FPUREGISTER,l.size);
+          l.register:=reg;
+        end;
     end;
 
   procedure thlcgobj.location_force_mem(list: TAsmList; var l: tlocation; size: tdef);
