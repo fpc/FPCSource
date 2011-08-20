@@ -33,6 +33,9 @@ uses
 
 type
   tjvmloadnode = class(tcgnestloadnode)
+   protected
+    function is_copyout_addr_param_load: boolean;
+   public
     function is_addr_param_load: boolean; override;
     procedure pass_generate_code; override;
   end;
@@ -115,19 +118,28 @@ function tjvmassignmentnode.pass_1: tnode;
   end;
 
 
+function tjvmloadnode.is_copyout_addr_param_load: boolean;
+  begin
+    result:=
+      { passed via array of one element }
+      ((symtable.symtabletype=parasymtable) and
+       (symtableentry.typ=paravarsym) and
+       paramanager.push_copyout_param(tparavarsym(symtableentry).varspez,resultdef,tprocdef(symtable.defowner).proccalloption));
+  end;
+
+
 function tjvmloadnode.is_addr_param_load: boolean;
   begin
     result:=
-      inherited and
-      not jvmimplicitpointertype(tparavarsym(symtableentry).vardef);
+      (inherited and
+       not jvmimplicitpointertype(tparavarsym(symtableentry).vardef)) or
+      is_copyout_addr_param_load;
   end;
 
 
 procedure tjvmloadnode.pass_generate_code;
   begin
-    if (symtable.symtabletype=parasymtable) and
-       (symtableentry.typ=paravarsym) and
-       paramanager.push_copyout_param(tparavarsym(symtableentry).varspez,resultdef,tprocdef(symtable.defowner).proccalloption) then
+    if is_copyout_addr_param_load then
       begin
         { the parameter is passed as an array of one element containing the
           parameter value }
