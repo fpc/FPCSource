@@ -10,7 +10,7 @@ public class PascalKeywords {
 	}
 	
 	static public String escapeIfPascalKeyword(String str) {
-		if (isPascalKeyword(str))
+		if (isPascalKeyword(str.toUpperCase()))
 			return "&"+str;
 		return str;
 	}

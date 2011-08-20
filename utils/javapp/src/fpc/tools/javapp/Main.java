@@ -103,7 +103,7 @@ public class Main{
 		out.println("   -public                   Print only public classes and members");
 		out.println("   -protected                Print protected/public classes and members");
 		out.println("   -private                  Show all classes and members");
-		out.println("   -x <class_or_pkgename>    Do not print a certain classes or package (suffix package names with '.'");
+		out.println("   -x <class_or_pkgename>    Treat this class/package as defined in another unit (suffix package names with '.'");
 		out.println("   -s                        Print internal type signatures");
 		out.println("   -bootclasspath <pathlist> Override location of class files loaded");
 		out.println("                             by the bootstrap class loader");
@@ -236,9 +236,13 @@ public class Main{
 
 		// collect all class names in the environment (format: /package/name/classname)
 		SortedSet<String> classes = env.getClassesList();
-		// same for arguments
+		// sort package lists that should/should not be printed
+		// to optimize checking; combine exclude and skeleton prefixes in one list
 		Collections.sort(pkgList);
-		Collections.sort(env.excludePrefixes);
+		ArrayList<String> dontPrintPrefixes = new ArrayList<String>(env.excludePrefixes.size()+env.skelPrefixes.size());
+		dontPrintPrefixes.addAll(env.excludePrefixes);
+		dontPrintPrefixes.addAll(env.skelPrefixes);
+		Collections.sort(dontPrintPrefixes);
 		// create the unit
 		PrintWriter includeFile;
 		PrintWriter mainUnitFile;
@@ -262,7 +266,7 @@ public class Main{
 		// first read all requested classes and build dependency graph
 		Iterator<String> classStepper = classes.iterator();
 		Iterator<String> argStepper = pkgList.iterator();
-		Iterator<String> skipPkgsStepper = env.excludePrefixes.iterator();
+		Iterator<String> skipPkgsStepper = dontPrintPrefixes.iterator();
 		HashSet<String> classesToPrintList = new HashSet<String>();
 		SimpleDirectedGraph<String,DefaultEdge> classDependencies = new SimpleDirectedGraph<String, DefaultEdge>(DefaultEdge.class);
 
@@ -315,7 +319,7 @@ public class Main{
 				// but only collect dependency information if we actually
 				// have to print the class
 				InputStream classin = env.getFileInputStream(currentClass);
-				JavapPrinter printer = new JavapPrinter(classin, includeFile, env, "  ",null,doPrintClass);
+				JavapPrinter printer = new JavapPrinter(classin, includeFile, env, "  ",null,doPrintClass,true);
 				if (doPrintClass) {
 					if (!classDependencies.containsVertex(currentClass))
 						classDependencies.addVertex(currentClass);
@@ -354,7 +358,7 @@ public class Main{
 					continue;
 				try {
 					InputStream classin = env.getFileInputStream(currentClass);
-					JavapPrinter printer = new JavapPrinter(classin, includeFile, env, "  ",null, true);
+					JavapPrinter printer = new JavapPrinter(classin, includeFile, env, "  ",null, true,false);
 					printer.print();
 
 					//					JavapClassPrinter.PrintClass(env,includeFile,currentClass,"  ");
@@ -378,7 +382,7 @@ public class Main{
 
 					try {
 						InputStream classin = env.getFileInputStream(currentClass);
-						JavapPrinter printer = new JavapPrinter(classin, includeFile, env, "  ",null,true);
+						JavapPrinter printer = new JavapPrinter(classin, includeFile, env, "  ",null,true,false);
 						printer.print();
 
 						//					JavapClassPrinter.PrintClass(env,includeFile,currentClass,"  ");

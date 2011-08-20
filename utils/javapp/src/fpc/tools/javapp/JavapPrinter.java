@@ -51,15 +51,17 @@ public class JavapPrinter {
     PrintWriter out;
     String prefix;
     boolean doCollectDependencies;
+    boolean printOnlySkel;
     
     private ArrayList<JavapPrinter> innerClassPrinters;
 
-    public JavapPrinter(InputStream cname, PrintWriter out, JavapEnvironment env, String prefix, PascalClassData outerClass, boolean doCollectDependencies){
+    public JavapPrinter(InputStream cname, PrintWriter out, JavapEnvironment env, String prefix, PascalClassData outerClass, boolean doCollectDependencies, boolean printOnlySkel){
         this.out = out;
         this.cls = new PascalClassData(cname,outerClass,env,doCollectDependencies);
         this.env = env;
         this.prefix = prefix;
         this.doCollectDependencies = doCollectDependencies;
+        this.printOnlySkel = printOnlySkel;
         innerClassPrinters = new ArrayList<JavapPrinter>();
         collectInnerClasses();
     }
@@ -69,11 +71,10 @@ public class JavapPrinter {
      */
     public void print(){
     	printclassHeader();
-    	// avoid some circular dependencies 
-    	if ((cls.access & ACC_PUBLIC) != 0) {
+    	if (!printOnlySkel) {
     		printfields();
+    		printMethods();
     	}
-   		printMethods();
         printend();
     }
 
@@ -101,66 +102,67 @@ public class JavapPrinter {
     	}
     	// the actual class/interface
     	out.print(prefix);
-        if(cls.isInterface())   {
-            // The only useful access modifier of an interface is
-            // public; interfaces are always marked as abstract and
-            // cannot be final.
-        	out.print(shortname + " = interface ");
-        }
-        else if(cls.isClass()) {
-            out.print(shortname+" = class ");
-            String []accflags = cls.getModifiers();
-            printAccess(accflags);
-        }
+    	if(cls.isInterface())   {
+    		// The only useful access modifier of an interface is
+    		// public; interfaces are always marked as abstract and
+    		// cannot be final.
+    		out.print(shortname + " = interface ");
+    	}
+    	else if(cls.isClass()) {
+    		out.print(shortname+" = class ");
+    		String []accflags = cls.getModifiers();
+    		printAccess(accflags);
+    	}
 
-        out.print("external ");
-        String pkgname = cls.getClassPackageName();
-        if (pkgname != null)
-        	out.print("'"+pkgname+"' ");
-        out.print("name '"+cls.getExternalClassName()+"' ");
-        
-        // FPC doesn't like it when you say that an interface's superclass is
-        // java.lang.Object, since that's a class (although at the JVM level
-        // it's true)
-        boolean printedOpeningBracket = false;
-    	String superClass = cls.getSuperClassName();
-        if((superClass != null) &&
-        		(cls.isClass() ||
-        				!PascalClassData.getShortPascalClassName(superClass).equals("JLObject"))){
-        	printedOpeningBracket = true;
-        	String fullPascalSuperClass = PascalClassData.getFullPascalClassName(superClass);
-        	String reducedPascalSuperClass = fullPascalSuperClass;
-        	if (!PascalClassData.currentUnit.isExternalInnerClass(superClass) &&
-        			((PascalClassData)cls).outerClass != null) {
-        		reducedPascalSuperClass = fullPascalSuperClass.replace(((PascalClassData)cls).outerClass.getShortPascalClassName()+".","");
-        	}
-        	if (reducedPascalSuperClass.equals(fullPascalSuperClass)) {
-        		out.print("(" + PascalClassData.getShortPascalClassName(superClass));
-        	} else {
-        		out.print("(" + reducedPascalSuperClass);
-        	}
-        	
-        }
+    	out.print("external ");
+    	String pkgname = cls.getClassPackageName();
+    	if (pkgname != null)
+    		out.print("'"+pkgname+"' ");
+    	out.print("name '"+cls.getExternalClassName()+"' ");
 
-        String []interfacelist =  cls.getPascalSuperInterfaces();
-        if(interfacelist.length > 0){
-        	// assume all classes that implement interfaces inherit from
-        	// a class (correct, since java.lang.Object does not implement
-        	// any interfaces
-        	if (!printedOpeningBracket) {
-        		out.print("(");
-        		printedOpeningBracket=true;
-        		out.print(interfacelist[0]);
-        	}
-        	else
-                out.print(", "+interfacelist[0]);
-            for(int j = 1; j < interfacelist.length; j++){
-                out.print(", "+interfacelist[j]);
-            }
-        }
-        if (printedOpeningBracket)
-        	out.print(")");
+    	if (!printOnlySkel) {
+    		// FPC doesn't like it when you say that an interface's superclass is
+    		// java.lang.Object, since that's a class (although at the JVM level
+    		// it's true)
+    		boolean printedOpeningBracket = false;
+    		String superClass = cls.getSuperClassName();
+    		if((superClass != null) &&
+    				(cls.isClass() ||
+    						!PascalClassData.getShortPascalClassName(superClass).equals("JLObject"))){
+    			printedOpeningBracket = true;
+    			String fullPascalSuperClass = PascalClassData.getFullPascalClassName(superClass);
+    			String reducedPascalSuperClass = fullPascalSuperClass;
+    			if (!PascalClassData.currentUnit.isExternalInnerClass(superClass) &&
+    					((PascalClassData)cls).outerClass != null) {
+    				reducedPascalSuperClass = fullPascalSuperClass.replace(((PascalClassData)cls).outerClass.getShortPascalClassName()+".","");
+    			}
+    			if (reducedPascalSuperClass.equals(fullPascalSuperClass)) {
+    				out.print("(" + PascalClassData.getShortPascalClassName(superClass));
+    			} else {
+    				out.print("(" + reducedPascalSuperClass);
+    			}
 
+    		}
+
+    		String []interfacelist =  cls.getPascalSuperInterfaces();
+    		if(interfacelist.length > 0){
+    			// assume all classes that implement interfaces inherit from
+    			// a class (correct, since java.lang.Object does not implement
+    			// any interfaces
+    			if (!printedOpeningBracket) {
+    				out.print("(");
+    				printedOpeningBracket=true;
+    				out.print(interfacelist[0]);
+    			}
+    			else
+    				out.print(", "+interfacelist[0]);
+    			for(int j = 1; j < interfacelist.length; j++){
+    				out.print(", "+interfacelist[j]);
+    			}
+    		}
+    		if (printedOpeningBracket)
+    			out.print(")");
+        }
         /* inner classes */
         printClassAttributes();
     }
@@ -295,12 +297,12 @@ public class JavapPrinter {
      */
     public void printMethodSignature(PascalMethodData method){
     	out.print(prefix);
-    	String methodName = method.getName(); 
-        if(methodName.equals("<init>")){
+    	String pascalName = method.getName();
+        if(pascalName.equals("<init>")){
             out.print("constructor create");
             out.print(method.getParameters());
-        }else if(methodName.equals("<clinit>")){
-            out.print("class constructor create");
+        }else if(pascalName.equals("<clinit>")){
+            out.print("class constructor classcreate");
         }else{
         	String rettype = method.getReturnType();
         	if (method.isStatic())
@@ -309,12 +311,15 @@ public class JavapPrinter {
         		out.print("procedure ");
         	else
         		out.print("function ");
-            out.print(method.getName());
+            out.print(pascalName);
             out.print(method.getParameters());
             if (!rettype.equals(""))
             	out.print(": "+rettype);
         	if (method.isStatic())
         		out.print("; static");
+        	String externalName = method.getExternalName();
+        	if (externalName != null)
+        		out.print("; external name '"+externalName+"'");
         }
         // to fix compilation in Delphi mode
         out.print("; overload;");
@@ -759,18 +764,8 @@ public class JavapPrinter {
             			boolean accessOk = checkAccess(accflags);
             			boolean isStaticInner = inner.isStatic();
             			innerPrinter = new JavapPrinter(env.getFileInputStream(javaclassname(innerClassName)), out, env, prefix+"    ", cls,
-            					doCollectDependencies && accessOk && isStaticInner);
-            			if(accessOk){
-            				// no support yet for non-static inner classes
-            				if (!isStaticInner) {
-            					// register as external class
-            					PascalClassData.currentUnit.registerInnerClassAsExternalClass(innerClassName);
-            					continue;
-            				}
-            				innerClassPrinters.add(innerPrinter);
-            			}
-            			else
-            				PascalClassData.currentUnit.registerInnerClassAsExternalClass(innerClassName);
+            					doCollectDependencies && accessOk && isStaticInner, printOnlySkel || !accessOk || !isStaticInner);
+            			innerClassPrinters.add(innerPrinter);
             		}
             	}
             }
@@ -780,11 +775,17 @@ public class JavapPrinter {
     /**
      * Print InnerClass attribute information.
      */
-	private final int VIS_PROTECTED = 0;
-	private final int VIS_PUBLIC = 1;
+	private final int VIS_PRIVATE = 0;
+	private final int VIS_PACKAGE = 1;
+	private final int VIS_PROTECTED = 2;
+	private final int VIS_PUBLIC = 3;
 
 	private boolean checkInnerVisibility(int access, int visOk) {
 		switch (visOk) {
+		case VIS_PRIVATE:
+			return ((access & ACC_PRIVATE) != 0);
+		case VIS_PACKAGE:
+			return ((access & (ACC_PUBLIC|ACC_PROTECTED|ACC_PRIVATE)) == 0);
 		case VIS_PROTECTED:
 			return ((access & ACC_PROTECTED) != 0);
 		case VIS_PUBLIC:
@@ -793,14 +794,29 @@ public class JavapPrinter {
 			return false;
 		}
 	}
+	
+	private String visibilitySectionName(int vis) {
+		switch (vis) {
+		case VIS_PRIVATE:
+			return "strict private";
+		case VIS_PACKAGE:
+			return "private";
+		case VIS_PROTECTED:
+			return "protected";
+		case VIS_PUBLIC:
+			return "public";
+		default:
+			return "";
+		}
+	}
     
     public void printInnerClasses(){//throws ioexception
     	
-		if (innerClassPrinters.size() > 1)
+    	if (innerClassPrinters.size() > 1)
     		orderInnerClasses();
 
 		if (innerClassPrinters.size() > 0) {
-    		for (int protpub = 0; protpub < 2; protpub++) {
+    		for (int protpub = VIS_PACKAGE; protpub <= VIS_PUBLIC; protpub++) {
     			// no vibility sections in interfaces
     			boolean first = true;
     			for (int i = 0; i < innerClassPrinters.size(); i++) {
@@ -811,10 +827,7 @@ public class JavapPrinter {
     					if (first) {
     						if (!cls.isInterface()) {
     							out.print(prefix);
-    							if (protpub==VIS_PROTECTED)
-    								out.println("strict protected");
-    							else
-    								out.println("public");
+    							out.println(visibilitySectionName(protpub));
     						}
     			    		out.println(innerPrinter.prefix.substring(2)+"type");
     						first = false;
@@ -1026,6 +1039,7 @@ public class JavapPrinter {
 
     public void printend(){
         out.println(prefix+"end;");
+        out.println();
 /*        
         if (cls.isInnerClass()) {
         	String shortName = PascalClassData.getShortClassName(cls.getClassName());

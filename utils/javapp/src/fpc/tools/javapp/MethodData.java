@@ -216,7 +216,7 @@ public class MethodData {
         int attr_len=in.readInt(); // attr_length in prog
         int num_exceptions = in.readUnsignedShort();
         exc_index_table=new int[num_exceptions];
-        int[] exc_index_table=new int[num_exceptions];
+//        int[] exc_index_table=new int[num_exceptions];
         for (int l = 0; l < num_exceptions; l++) {
             int exc=in.readShort();
             exc_index_table[l]=exc;

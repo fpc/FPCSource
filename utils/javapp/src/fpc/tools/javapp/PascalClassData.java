@@ -40,6 +40,8 @@ public class PascalClassData extends ClassData {
 			HashSet<String> myDeps = getDependencies();
 			String mySuperClass = getSuperClassName();
 			boolean foundMatch = false;
+			String [] interfaces = getSuperInterfaces();
+			boolean intfMatches[] = new boolean[interfaces.length];
 			PascalClassData outerMostClass = this;
 			while (outerMostClass.outerClass != null) {
 				/**
@@ -57,11 +59,22 @@ public class PascalClassData extends ClassData {
 				 *  end;
 				 *    -> Retry must depend on Result
 				 */
+				String outerClassName = outerMostClass.outerClass.getClassName();
 				if (!foundMatch &&
-						mySuperClass.startsWith(outerMostClass.outerClass.getClassName()) &&
-						!mySuperClass.equals(outerMostClass.outerClass.getClassName())) {
+						mySuperClass.startsWith(outerClassName) &&
+						!mySuperClass.equals(outerClassName)) {
 					foundMatch = true;
 					outerMostClass.addNestedDepdency(mySuperClass);
+				}
+				for (int i = 0; i < interfaces.length; i++) {
+					if (!intfMatches[i]) {
+						String intf = interfaces[i];
+						if (intf.startsWith(outerClassName) &&
+								!intf.equals(outerClassName)) {
+							intfMatches[i] = true;
+							outerMostClass.addNestedDepdency(intf);
+						}
+					}
 				}
 				outerMostClass = outerMostClass.outerClass;
 			}
@@ -369,7 +382,7 @@ public class PascalClassData extends ClassData {
     	return new PascalInnerClassData(this);
     }
     
-        public HashSet<String> getDependencies() {
+    public HashSet<String> getDependencies() {
     	HashSet<String> res = new HashSet<String>();
     	// inheritance dependencies (superclass and implemented interfaces)
     	String superClass = getSuperClassName();

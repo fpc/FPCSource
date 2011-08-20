@@ -61,18 +61,31 @@ public class PascalMethodData extends MethodData {
         return ptype;
     }
     
-
+    /**
+     * 
+     * @return if the method requires a separate "external" name due to identifier
+     * disambiguation, it is returned. Otherwise returns null.
+     */
+    public String getExternalName() {
+		String realName = super.getName();
+		// handled separately
+		if (realName.equals("<init>") ||
+				realName.equals("<clinit>"))
+			return null;
+		String pascalName = getName();
+		if (pascalName.charAt(0) == '&')
+			pascalName = pascalName.substring(1);
+		if (!pascalName.equals(realName)) {
+			return realName;
+		} else {
+			return null;
+		}
+    }
+    
     public String getName(){
     	if (cachedName == null) {
     		String realName = super.getName();
-    		cachedName = ClassIdentifierInfo.AddIdentifierNameForClass(cls.getClassName(),realName);
-    		// this will require compiler support for remapping field names
-    		// (we also need it for Objective-C and C++ anyway)
-    		if ((cachedName.charAt(0) != '&') &&
-    				!cachedName.equals(realName)) {
-    			System.out.println("  Duplicate identifier conflict in "+cls.getClassName()+" for method '"+realName+"', disabled");
-    		}
-    				
+    		cachedName = ClassIdentifierInfo.AddMethodIdentifierNameForClass(cls.getClassName(),realName);
     	}
     	return cachedName;
     }

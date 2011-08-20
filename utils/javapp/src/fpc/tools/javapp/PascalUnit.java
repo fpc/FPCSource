@@ -293,6 +293,7 @@ public class PascalUnit {
 			unitFile.println("  "+getShortPascalName(curClass)+" = "+kind+";");
 	    	// create formal array types for array parameters
 			printArrayTypes("  ",getShortPascalName(curClass));
+	        unitFile.println();
 		}
 	}
 	
@@ -308,6 +309,7 @@ public class PascalUnit {
 			unitFile.println("  "+shortPascalName+" = "+kind+" external '"+pkgExternalName+"' name '"+shortExternalName+"';");
 	    	// create formal array types for array parameters
 			printArrayTypes("  ",shortPascalName);
+	        unitFile.println();
 		}
 	}
 	
@@ -349,6 +351,7 @@ public class PascalUnit {
 				shortPascalName = PascalClassData.getShortClassName(curClass);
 			} else {
 				shortPascalName = PascalClassData.getShortPascalClassName(curClass);
+		        unitFile.println();
 			}
 			unitFile.println(prefix+shortPascalName+" = "+curSkelItem.kind+" external '"+pkgExternalName+"' name '"+shortExternalName+"'");
 			// make sure we only match inner classes, not classes that start with the word in the current package
@@ -381,7 +384,7 @@ public class PascalUnit {
 		}
 		unitFile.println(" }");
 		unitFile.println("unit "+env.outputName+";");
-		unitFile.println("{$mode objfpc}");
+		unitFile.println("{$mode delphi}");
 		unitFile.println();
 		unitFile.println("interface");
 		unitFile.println();
