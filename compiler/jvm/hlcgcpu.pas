@@ -159,6 +159,8 @@ uses
       procedure allocate_implicit_struct_with_base_ref(list: TAsmList; vs: tabstractvarsym; ref: treference);
       procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
 
+      procedure g_copyvalueparas(p: TObject; arg: pointer); override;
+
       procedure inittempvariables(list:TAsmList);override;
 
 
@@ -205,7 +207,7 @@ uses
 implementation
 
   uses
-    verbose,cutils,globals,fmodule,
+    verbose,cutils,globals,fmodule,constexp,
     defutil,
     aasmtai,aasmcpu,
     symtable,jvmdef,
@@ -824,6 +826,32 @@ implementation
           internalerror(2011010301);
       end;
     end;
+
+
+  procedure thlcgjvm.g_copyvalueparas(p: TObject; arg: pointer);
+    var
+      list: tasmlist;
+    begin
+      { zero-extend < 32 bit primitive types (FPC can zero-extend when calling,
+        but that doesn't help when we're called from Java code or indirectly
+        as a procvar -- exceptions: widechar (Java-specific type) and ordinal
+        types whose upper bound does not set the sign bit }
+      if (tsym(p).typ=paravarsym) and
+         (tparavarsym(p).varspez=vs_value) and
+         (tparavarsym(p).vardef.typ=orddef) and
+         not is_pasbool(tparavarsym(p).vardef) and
+         not is_widechar(tparavarsym(p).vardef) and
+         (tparavarsym(p).vardef.size<4) and
+         not is_signed(tparavarsym(p).vardef) and
+         (torddef(tparavarsym(p).vardef).high>=(1 shl ((tparavarsym(p).vardef.size-1)*8))) then
+        begin
+          list:=TAsmList(arg);
+          a_op_const_loc(list,OP_AND,tparavarsym(p).vardef,(1 shl (tparavarsym(p).vardef.size*8))-1,tparavarsym(p).initialloc);
+        end;
+
+      inherited g_copyvalueparas(p, arg);
+    end;
+
 
   procedure thlcgjvm.inittempvariables(list: TAsmList);
     begin
