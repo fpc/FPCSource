@@ -45,6 +45,8 @@ interface
       TJasminAssembler=class(texternalassembler)
        protected
         jasminjar: tcmdstr;
+        asmfiles: TCmdStrList;
+
         procedure WriteExtraHeader(obj: tobjectdef);
         procedure WriteInstruction(hp: tai);
         procedure NewAsmFileForObjectDef(obj: tobjectdef);
@@ -127,6 +129,7 @@ implementation
     destructor TJasminAssembler.Destroy;
       begin
         InstrWriter.free;
+        asmfiles.free;
         inherited destroy;
       end;
 
@@ -428,6 +431,7 @@ implementation
      const
        jasminjarname = 'jasmin.jar';
      var
+       filenames: tcmdstr;
        jasminjarfound: boolean;
      begin
        if jasminjar='' then
@@ -446,7 +450,10 @@ implementation
              Message1(exec_t_using_assembler,jasminjar);
          end;
        result:=target_asm.asmcmd;
-       Replace(result,'$ASM',maybequoted(ScriptFixFileName(AsmFileName)));
+       filenames:=maybequoted(ScriptFixFileName(AsmFileName));
+       while not asmfiles.empty do
+         filenames:=filenames+' '+asmfiles.GetFirst;
+       Replace(result,'$ASM',filenames);
        if (path<>'') then
          Replace(result,'$OBJDIR',maybequoted(ScriptFixFileName(path)))
        else
@@ -463,7 +470,7 @@ implementation
         if AsmSize<>AsmStartSize then
           begin
             AsmClose;
-            DoAssemble;
+            asmfiles.Concat(maybequoted(ScriptFixFileName(AsmFileName)));
           end
         else
           AsmClear;
@@ -551,6 +558,7 @@ implementation
       begin
         inherited create(smart);
         InstrWriter:=TJasminInstrWriter.Create(self);
+        asmfiles:=TCmdStrList.Create;
       end;
 
 
