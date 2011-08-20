@@ -522,6 +522,7 @@ implementation
         intf: tobjectdef;
         n: string;
         i: longint;
+        toplevelowner: tsymtable;
       begin
         { JVM 1.5+ }
         AsmWriteLn('.bytecode 49.0');
@@ -538,20 +539,30 @@ implementation
           begin
             { fake class type for unit -> name=unitname and
               superclass=java.lang.object }
-            AsmWriteLn('.class '+current_module.realmodulename^);
+            AsmWrite('.class public ');
+            AsmWriteln(current_module.realmodulename^);
             AsmWriteLn('.super java/lang/Object');
           end
         else
           begin
+            toplevelowner:=obj.owner;
+            while not(toplevelowner.symtabletype in [staticsymtable,globalsymtable]) do
+              toplevelowner:=toplevelowner.defowner.owner;
             case obj.objecttype of
               odt_javaclass:
                 begin
-                  AsmWriteLn('.class '+obj.jvm_full_typename(false));
+                  AsmWrite('.class ');
+                  if toplevelowner.symtabletype=globalsymtable then
+                    AsmWrite('public ');
+                  AsmWriteln(obj.jvm_full_typename(true));
                   superclass:=obj.childof;
                 end;
               odt_interfacejava:
                 begin
-                  AsmWriteLn('.interface abstract '+obj.objextname^);
+                  AsmWrite('.interface abstract ');
+                  if toplevelowner.symtabletype=globalsymtable then
+                    AsmWrite('public ');
+                  AsmWriteLn(obj.jvm_full_typename(true));
                   { interfaces must always specify Java.lang.object as
                     superclass }
                   superclass:=java_jlobject;
