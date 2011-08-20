@@ -1068,6 +1068,7 @@ implementation
 
     function  valid_for_assign(p:tnode;opts:TValidAssigns; report_errors: boolean):boolean;
       var
+        typeconvs: tfpobjectlist;
         hp2,
         hp : tnode;
         gotstring,
@@ -1109,6 +1110,22 @@ implementation
                 CGMessagePos(hp.fileinfo,type_e_no_assign_to_const);
           end;
 
+
+        procedure mayberesettypeconvs;
+          var
+            i: longint;
+          begin
+            if assigned(typeconvs) then
+              begin
+                if not report_errors and
+                   not result then
+                  for i:=0 to typeconvs.Count-1 do
+                    ttypeconvnode(typeconvs[i]).assignment_side:=false;
+                typeconvs.free;
+              end;
+          end;
+
+
       begin
         if valid_const in opts then
           errmsg:=type_e_variable_id_expected
@@ -1134,6 +1151,7 @@ implementation
              CGMessagePos(hp.fileinfo,errmsg);
            exit;
          end;
+        typeconvs:=nil;
         while assigned(hp) do
          begin
            { property allowed? calln has a property check itself }
@@ -1205,12 +1223,14 @@ implementation
                      if report_errors then
                        CGMessagePos(hp.fileinfo,errmsg);
                  end;
+               mayberesettypeconvs;
                exit;
              end;
            case hp.nodetype of
              temprefn :
                begin
                  valid_for_assign := not(ti_readonly in ttemprefnode(hp).tempinfo^.flags);
+                 mayberesettypeconvs;
                  exit;
                end;
              derefn :
@@ -1234,12 +1254,22 @@ implementation
                  if not(gotderef or
                         ((target_info.system=system_jvm_java32) and
                          (gotsubscript or gotvec))) then
-                   ttypeconvnode(hp).assignment_side:=true;
+                   begin
+                     ttypeconvnode(hp).assignment_side:=true;
+                     if not assigned(typeconvs) then
+                       typeconvs:=tfpobjectlist.create(false);
+                     typeconvs.add(hp);
+                   end;
                  { in managed VMs, you cannot typecast formaldef when assigning
                    to it, see http://hallvards.blogspot.com/2007/10/dn4dp24-net-vs-win32-untyped-parameters.html }
                  if (target_info.system in systems_managed_vm) and
                     (fromdef.typ=formaldef) then
-                   CGMessagePos(hp.fileinfo,type_e_no_managed_formal_assign_typecast)
+                   begin
+                     if report_errors then
+                       CGMessagePos(hp.fileinfo,type_e_no_managed_formal_assign_typecast);
+                     mayberesettypeconvs;
+                     exit;
+                   end
                  else if not((nf_absolute in ttypeconvnode(hp).flags) or
                         ttypeconvnode(hp).target_specific_general_typeconv or
                         ((nf_explicit in hp.flags) and
@@ -1268,6 +1298,7 @@ implementation
                    begin
                      if report_errors then
                        CGMessagePos(hp.fileinfo,errmsg);
+                     mayberesettypeconvs;
                      exit;
                    end;
                  case hp.resultdef.typ of
@@ -1303,6 +1334,7 @@ implementation
                          CGMessagePos(hp.fileinfo,parser_e_packed_element_no_loop)
                        else
                          CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr);
+                     mayberesettypeconvs;
                      exit;
                    end;
                  gotvec:=true;
@@ -1326,6 +1358,7 @@ implementation
                    begin
                      if report_errors then
                       CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                     mayberesettypeconvs;
                      exit;
                    end;
                end;
@@ -1337,6 +1370,7 @@ implementation
                    begin
                      if report_errors then
                        CGMessagePos(hp.fileinfo,errmsg);
+                     mayberesettypeconvs;
                      exit;
                    end;
                  hp:=tunarynode(hp).left;
@@ -1356,12 +1390,16 @@ implementation
                          CGMessagePos(hp.fileinfo,parser_e_packed_element_no_loop)
                        else
                          CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr);
+                     mayberesettypeconvs;
                      exit;
                    end;
                  { check for final fields }
                  if (tsubscriptnode(hp).vs.varspez=vs_final) and
                     not constaccessok(tsubscriptnode(hp).vs) then
-                   exit;
+                   begin
+                     mayberesettypeconvs;
+                     exit;
+                   end;
                  gotsubscript:=true;
                  { loop counter? }
                  if not(Valid_Const in opts) and
@@ -1369,6 +1407,7 @@ implementation
                    begin
                      if report_errors then
                        CGMessage1(parser_e_illegal_assignment_to_count_var,tsubscriptnode(hp).vs.realname);
+                     mayberesettypeconvs;
                      exit;
                    end;
                  { implicit pointer object types result in dereferencing }
@@ -1402,6 +1441,7 @@ implementation
                  else
                   if report_errors then
                    CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                 mayberesettypeconvs;
                  exit;
                end;
              niln,
@@ -1413,6 +1453,7 @@ implementation
                  else
                   if report_errors then
                    CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
+                 mayberesettypeconvs;
                  exit;
                end;
              ordconstn,
@@ -1421,6 +1462,7 @@ implementation
                  { these constants will be passed by value }
                  if report_errors then
                    CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                 mayberesettypeconvs;
                  exit;
                end;
              setconstn,
@@ -1433,6 +1475,7 @@ implementation
                  else
                    if report_errors then
                      CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                 mayberesettypeconvs;
                  exit;
                end;
              addrn :
@@ -1442,6 +1485,7 @@ implementation
                  else
                   if report_errors then
                    CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
+                 mayberesettypeconvs;
                  exit;
                end;
              calln :
@@ -1489,6 +1533,7 @@ implementation
                  else
                   if report_errors then
                    CGMessagePos(hp.fileinfo,errmsg);
+                 mayberesettypeconvs;
                  exit;
                end;
              inlinen :
@@ -1500,12 +1545,14 @@ implementation
                  else
                    if report_errors then
                     CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                 mayberesettypeconvs;
                  exit;
                end;
              dataconstn:
                begin
                  { only created internally, so no additional checks necessary }
                  result:=true;
+                 mayberesettypeconvs;
                  exit;
                end;
              loadn :
@@ -1523,15 +1570,18 @@ implementation
                          begin
                            if report_errors then
                              CGMessage1(parser_e_illegal_assignment_to_count_var,tloadnode(hp).symtableentry.realname);
+                           mayberesettypeconvs;
                            exit;
                          end;
                        { read-only variable? }
                        if (tabstractvarsym(tloadnode(hp).symtableentry).varspez in [vs_const,vs_constref,vs_final]) then
                         begin
                           result:=constaccessok(tabstractvarsym(tloadnode(hp).symtableentry));
+                          mayberesettypeconvs;
                           exit;
                         end;
                        result:=true;
+                       mayberesettypeconvs;
                        exit;
                      end;
                    procsym :
@@ -1541,6 +1591,7 @@ implementation
                        else
                          if report_errors then
                           CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                       mayberesettypeconvs;
                        exit;
                      end;
                    labelsym :
@@ -1550,6 +1601,7 @@ implementation
                        else
                          if report_errors then
                           CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                       mayberesettypeconvs;
                        exit;
                      end;
                    constsym:
@@ -1560,12 +1612,14 @@ implementation
                        else
                          if report_errors then
                           CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                       mayberesettypeconvs;
                        exit;
                      end;
                    else
                      begin
                        if report_errors then
                         CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                       mayberesettypeconvs;
                        exit;
                      end;
                  end;
@@ -1574,10 +1628,12 @@ implementation
                begin
                  if report_errors then
                   CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                 mayberesettypeconvs;
                  exit;
                end;
             end;
          end;
+         mayberesettypeconvs;
       end;
 
 
