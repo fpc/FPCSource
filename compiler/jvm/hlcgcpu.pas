@@ -1108,8 +1108,9 @@ implementation
           end;
         recorddef:
           procname:='FPC_COPY_JRECORD_ARRAY';
+        stringdef:
+          procname:='FPC_COPY_JOBJECT_ARRAY';
         setdef,
-        stringdef,
         variantdef:
           begin
             { todo: make a deep copy via clone... }
