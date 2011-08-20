@@ -4773,7 +4773,7 @@ implementation
            end;
 
          { load implemented interfaces }
-         if objecttype in [odt_class,odt_objcclass,odt_objcprotocol,odt_interfacejava] then
+         if objecttype in [odt_class,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
            begin
              ImplementedInterfaces:=TFPObjectList.Create(true);
              implintfcount:=ppufile.getlongint;
