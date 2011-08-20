@@ -37,7 +37,6 @@ interface
        end;
 
        tjvmderefnode = class(tcgderefnode)
-          function pass_typecheck:tnode;override;
           procedure pass_generate_code; override;
        end;
 
@@ -65,54 +64,35 @@ implementation
                               TJVMDEREFNODE
 *****************************************************************************}
 
-    function tjvmderefnode.pass_typecheck: tnode;
-      begin
-        result:=inherited;
-        if not(left.resultdef.typ=pointerdef) or
-           ((left.resultdef<>voidpointertype) and
-            not jvmimplicitpointertype(tpointerdef(left.resultdef).pointeddef)) then
-          begin
-            CGMessage(parser_e_illegal_expression);
-            exit
-          end;
-      end;
-
     procedure tjvmderefnode.pass_generate_code;
       var
         implicitptr: boolean;
       begin
         secondpass(left);
         implicitptr:=jvmimplicitpointertype(tpointerdef(left.resultdef).pointeddef);
-        if (left.resultdef.typ=pointerdef) and
-            ((left.resultdef=voidpointertype) or
-             implicitptr) then
+        if implicitptr then
           begin
-            if implicitptr then
-              begin
-                { this is basically a typecast: the left node is a regular
-                  'pointer', and we typecast it to an implicit pointer }
-                location_copy(location,left.location);
-                { these implicit pointer types (records, sets, shortstrings, ...)
-                  cannot be located in registers on native targets (since
-                  they're not pointers there) -> force into memory to avoid
-                  confusing the compiler; this can happen when typecasting a
-                  Java class type into a pshortstring and then dereferencing etc
-                }
-                if location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                  hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef);
-              end
-            else
-              begin
-                { these are always arrays (used internally for pointers to var
-                  parameters stored in nestedfpstructs) }
-                hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-                location_reset_ref(location,LOC_REFERENCE,OS_ADDR,4);
-                reference_reset_base(location.reference,left.location.register,0,4);
-                location.reference.arrayreftype:=art_indexconst;
-              end;
+            { this is basically a typecast: the left node is a regular
+              'pointer', and we typecast it to an implicit pointer }
+            location_copy(location,left.location);
+            { these implicit pointer types (records, sets, shortstrings, ...)
+              cannot be located in registers on native targets (since
+              they're not pointers there) -> force into memory to avoid
+              confusing the compiler; this can happen when typecasting a
+              Java class type into a pshortstring and then dereferencing etc
+            }
+            if location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+              hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef);
           end
         else
-          internalerror(2011052901);
+          begin
+            { these are always arrays (used internally for pointers to var
+              parameters stored in nestedfpstructs) }
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+            location_reset_ref(location,LOC_REFERENCE,OS_ADDR,4);
+            reference_reset_base(location.reference,left.location.register,0,4);
+            location.reference.arrayreftype:=art_indexconst;
+          end
       end;
 
 {*****************************************************************************
