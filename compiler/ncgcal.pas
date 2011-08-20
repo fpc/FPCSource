@@ -81,7 +81,7 @@ interface
           { if an unused return value is in another location than a
             LOC_REFERENCE, this method will be called to perform the necessary
             cleanups. By default it does not do anything }
-          procedure release_unused_return_value_cpu;virtual;
+          procedure do_release_unused_return_value;virtual;
        public
           procedure pass_generate_code;override;
           destructor destroy;override;
@@ -316,9 +316,16 @@ implementation
       end;
 
 
-    procedure tcgcallnode.release_unused_return_value_cpu;
+    procedure tcgcallnode.do_release_unused_return_value;
       begin
-        { do nothing }
+        case location.loc of
+          LOC_REFERENCE :
+            begin
+              if is_managed_type(resultdef) then
+                 hlcg.g_finalize(current_asmdata.CurrAsmList,resultdef,location.reference);
+               tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
+            end;
+        end;
       end;
 
 
@@ -437,20 +444,11 @@ implementation
           tree is generated, because that converts the temp from persistent to normal }
         if not(cnf_return_value_used in callnodeflags) then
           begin
-            case location.loc of
-              LOC_REFERENCE :
-                begin
-                  if is_managed_type(resultdef) then
-                     hlcg.g_finalize(current_asmdata.CurrAsmList,resultdef,location.reference);
-                   tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
-                end;
-              else
-                release_unused_return_value_cpu;
-            end;
+            do_release_unused_return_value;
             if (retloc.intsize<>0) then
               paramanager.freecgpara(current_asmdata.CurrAsmList,retloc);
             location_reset(location,LOC_VOID,OS_NO);
-          end;
+         end;
       end;
 
 

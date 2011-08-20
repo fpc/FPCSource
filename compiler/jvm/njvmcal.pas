@@ -36,7 +36,7 @@ interface
        tjvmcallnode = class(tcgcallnode)
         protected
          procedure set_result_location(realresdef: tstoreddef); override;
-         procedure release_unused_return_value_cpu;override;
+         procedure do_release_unused_return_value;override;
          procedure extra_post_call_code; override;
        end;
 
@@ -62,7 +62,7 @@ implementation
       end;
 
 
-    procedure tjvmcallnode.release_unused_return_value_cpu;
+    procedure tjvmcallnode.do_release_unused_return_value;
       begin
         case resultdef.size of
           0:

@@ -36,7 +36,7 @@ interface
 
        tx86callnode = class(tcgcallnode)
         protected
-         procedure release_unused_return_value_cpu;override;
+         procedure do_release_unused_return_value;override;
        end;
 
 
@@ -51,7 +51,7 @@ implementation
                              TX86CALLNODE
 *****************************************************************************}
 
-    procedure tx86callnode.release_unused_return_value_cpu;
+    procedure tx86callnode.do_release_unused_return_value;
       begin
         case location.loc of
           LOC_FPUREGISTER :
@@ -59,7 +59,9 @@ implementation
                { release FPU stack }
                emit_reg(A_FSTP,S_NO,NR_FPU_RESULT_REG);
                tcgx86(cg).dec_fpu_stack;
-             end;
+             end
+          else
+            inherited do_release_unused_return_value;
         end;
       end;
 
