@@ -1374,7 +1374,9 @@ begin
   if is_objectpascal_helper(tprocdef(pd).struct) and
       (m_objfpc in current_settings.modeswitches) then
     Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_FINAL].str);
-  if (po_virtualmethod in pd.procoptions) then
+  if (po_virtualmethod in pd.procoptions) or
+     (is_javaclass(tprocdef(pd).struct) and
+      (po_classmethod in pd.procoptions)) then
     include(pd.procoptions,po_finalmethod)
   else
     Message(parser_e_only_virtual_methods_final);
