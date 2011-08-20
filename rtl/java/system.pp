@@ -128,7 +128,7 @@ function min(a,b : longint) : longint;
 { copying helpers }
 
 { also for booleans }
-procedure copy_jbyte_array(src, dst: TJByteArray);
+procedure fpc_copy_jbyte_array(src, dst: TJByteArray);
   var
     i: longint;
   begin
@@ -137,7 +137,7 @@ procedure copy_jbyte_array(src, dst: TJByteArray);
   end;
 
 
-procedure copy_jshort_array(src, dst: TJShortArray);
+procedure fpc_copy_jshort_array(src, dst: TJShortArray);
   var
     i: longint;
   begin
@@ -146,7 +146,7 @@ procedure copy_jshort_array(src, dst: TJShortArray);
   end;
 
 
-procedure copy_jint_array(src, dst: TJIntArray);
+procedure fpc_copy_jint_array(src, dst: TJIntArray);
   var
     i: longint;
   begin
@@ -155,7 +155,7 @@ procedure copy_jint_array(src, dst: TJIntArray);
   end;
 
 
-procedure copy_jlong_array(src, dst: TJLongArray);
+procedure fpc_copy_jlong_array(src, dst: TJLongArray);
   var
     i: longint;
   begin
@@ -164,7 +164,7 @@ procedure copy_jlong_array(src, dst: TJLongArray);
   end;
 
 
-procedure copy_jchar_array(src, dst: TJCharArray);
+procedure fpc_copy_jchar_array(src, dst: TJCharArray);
   var
     i: longint;
   begin
@@ -173,7 +173,7 @@ procedure copy_jchar_array(src, dst: TJCharArray);
   end;
 
 
-procedure copy_jfloat_array(src, dst: TJFloatArray);
+procedure fpc_copy_jfloat_array(src, dst: TJFloatArray);
   var
     i: longint;
   begin
@@ -182,7 +182,7 @@ procedure copy_jfloat_array(src, dst: TJFloatArray);
   end;
 
 
-procedure copy_jdouble_array(src, dst: TJDoubleArray);
+procedure fpc_copy_jdouble_array(src, dst: TJDoubleArray);
   var
     i: longint;
   begin
@@ -191,7 +191,7 @@ procedure copy_jdouble_array(src, dst: TJDoubleArray);
   end;
 
 
-procedure copy_jobject_array(src, dst: TJObjectArray);
+procedure fpc_copy_jobject_array(src, dst: TJObjectArray);
   var
     i: longint;
   begin
@@ -207,7 +207,7 @@ function fpc_setlength_dynarr_jbyte(aorg, anew: TJByteArray; deepcopy: boolean):
     if deepcopy or
        (length(aorg)<>length(anew)) then
       begin
-        copy_jbyte_array(aorg,anew);
+        fpc_copy_jbyte_array(aorg,anew);
         result:=anew
       end
     else
@@ -220,7 +220,7 @@ function fpc_setlength_dynarr_jshort(aorg, anew: TJShortArray; deepcopy: boolean
     if deepcopy or
        (length(aorg)<>length(anew)) then
       begin
-        copy_jshort_array(aorg,anew);
+        fpc_copy_jshort_array(aorg,anew);
         result:=anew
       end
     else
@@ -233,7 +233,7 @@ function fpc_setlength_dynarr_jint(aorg, anew: TJIntArray; deepcopy: boolean): T
     if deepcopy or
        (length(aorg)<>length(anew)) then
       begin
-        copy_jint_array(aorg,anew);
+        fpc_copy_jint_array(aorg,anew);
         result:=anew
       end
     else
@@ -246,7 +246,7 @@ function fpc_setlength_dynarr_jlong(aorg, anew: TJLongArray; deepcopy: boolean):
     if deepcopy or
        (length(aorg)<>length(anew)) then
       begin
-        copy_jlong_array(aorg,anew);
+        fpc_copy_jlong_array(aorg,anew);
         result:=anew
       end
     else
@@ -259,7 +259,7 @@ function fpc_setlength_dynarr_jchar(aorg, anew: TJCharArray; deepcopy: boolean):
     if deepcopy or
        (length(aorg)<>length(anew)) then
       begin
-        copy_jchar_array(aorg,anew);
+        fpc_copy_jchar_array(aorg,anew);
         result:=anew
       end
     else
@@ -272,7 +272,7 @@ function fpc_setlength_dynarr_jfloat(aorg, anew: TJFloatArray; deepcopy: boolean
     if deepcopy or
        (length(aorg)<>length(anew)) then
       begin
-        copy_jfloat_array(aorg,anew);
+        fpc_copy_jfloat_array(aorg,anew);
         result:=anew
       end
     else
@@ -285,7 +285,7 @@ function fpc_setlength_dynarr_jdouble(aorg, anew: TJDoubleArray; deepcopy: boole
     if deepcopy or
        (length(aorg)<>length(anew)) then
       begin
-        copy_jdouble_array(aorg,anew);
+        fpc_copy_jdouble_array(aorg,anew);
         result:=anew
       end
     else
@@ -299,7 +299,7 @@ function fpc_setlength_dynarr_jobject(aorg, anew: TJObjectArray; deepcopy: boole
        (length(aorg)<>length(anew)) then
       begin
         if docopy then
-          copy_jobject_array(aorg,anew);
+          fpc_copy_jobject_array(aorg,anew);
         result:=anew
       end
     else

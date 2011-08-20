@@ -328,8 +328,8 @@ unit hlcg2ll;
              @param(dest Destination reference of copy)
 
           }
-//          procedure g_copyshortstring(list : TAsmList;const source,dest : treference;len:byte);
-//          procedure g_copyvariant(list : TAsmList;const source,dest : treference);
+          procedure g_copyshortstring(list : TAsmList;const source,dest : treference;strdef:tstringdef);override;
+          procedure g_copyvariant(list : TAsmList;const source,dest : treference;vardef:tvariantdef);override;
 
           procedure g_incrrefcount(list : TAsmList;t: tdef; const ref: treference);override;
           procedure g_decrrefcount(list : TAsmList;t: tdef; const ref: treference);override;
@@ -349,8 +349,8 @@ unit hlcg2ll;
           procedure g_overflowcheck(list: TAsmList; const Loc:tlocation; def:tdef); override;
           procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation);override;
 
-//          procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);override;
-//          procedure g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);override;
+          procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;arrdef: tarraydef;destreg:tregister);override;
+          procedure g_releasevaluepara_openarray(list : TAsmList;arrdef: tarraydef;const l:tlocation);override;
 
           {# Emits instructions when compilation is done in profile
              mode (this is set as a command line option). The default
@@ -1063,6 +1063,16 @@ procedure thlcg2ll.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; co
       cg.g_concatcopy_unaligned(list,source,dest,size.size);
     end;
 
+  procedure thlcg2ll.g_copyshortstring(list: TAsmList; const source, dest: treference; strdef: tstringdef);
+    begin
+      cg.g_copyshortstring(list,source,dest,strdef.len);
+    end;
+
+  procedure thlcg2ll.g_copyvariant(list: TAsmList; const source, dest: treference; vardef: tvariantdef);
+    begin
+      cg.g_copyvariant(list,source,dest);
+    end;
+
   procedure thlcg2ll.g_incrrefcount(list: TAsmList; t: tdef; const ref: treference);
     begin
       cg.g_incrrefcount(list,t,ref);
@@ -1096,6 +1106,16 @@ procedure thlcg2ll.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; co
   procedure thlcg2ll.g_overflowCheck_loc(List: TAsmList; const Loc: TLocation; def: TDef; var ovloc: tlocation);
     begin
       cg.g_overflowCheck_loc(list,loc,def,ovloc);
+    end;
+
+  procedure thlcg2ll.g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister);
+    begin
+      cg.g_copyvaluepara_openarray(list,ref,lenloc,arrdef.elesize,destreg);
+    end;
+
+  procedure thlcg2ll.g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation);
+    begin
+      cg.g_releasevaluepara_openarray(list,l);
     end;
 
   procedure thlcg2ll.g_profilecode(list: TAsmList);

@@ -130,7 +130,7 @@ implementation
       begin
         if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
           internalerror(200304235);
-        cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,left.location.reference,tempcgpara);
+        hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,left.resultdef,tempcgpara.def,left.location.reference,tempcgpara);
       end;
 
 
@@ -174,7 +174,7 @@ implementation
              if (parasym.varspez=vs_out) and
                 is_managed_type(left.resultdef) then
                begin
-                 location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false,sizeof(pint));
+                 hlcg.location_get_data_ref(current_asmdata.CurrAsmList,left.resultdef,left.location,href,false,sizeof(pint));
                  if is_open_array(resultdef) then
                    begin
                      if third=nil then

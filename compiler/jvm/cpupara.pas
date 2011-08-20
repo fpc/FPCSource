@@ -35,7 +35,9 @@ interface
       { TJVMParaManager }
 
       TJVMParaManager=class(TParaManager)
+        function  push_high_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
         function  push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
+        function  push_size(varspez: tvarspez; def: tdef; calloption: tproccalloption): longint;override;
         {Returns a structure giving the information on the storage of the parameter
         (which must be an integer parameter)
         @param(nr Parameter number of routine, starting from 1)}
@@ -55,7 +57,7 @@ implementation
 
     uses
       cutils,verbose,systems,
-      defutil,
+      defutil,jvmdef,
       cgobj;
 
 
@@ -65,12 +67,31 @@ implementation
         internalerror(2010121001);
       end;
 
+    function TJVMParaManager.push_high_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;
+      begin
+        { we don't need a separate high parameter, since all arrays in Java
+          have an implicit associated length }
+        if not is_open_array(def) then
+          result:=inherited
+        else
+          result:=false;
+      end;
+
 
     { true if a parameter is too large to copy and only the address is pushed }
     function TJVMParaManager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
-        { call by reference does not exist in Java bytecode }
-        result:=false;
+        result:=jvmimplicitpointertype(def);
+      end;
+
+
+    function TJVMParaManager.push_size(varspez: tvarspez; def: tdef; calloption: tproccalloption): longint;
+      begin
+        { all aggregate types are emulated using indirect pointer types }
+        if def.typ in [arraydef,recorddef,setdef,stringdef] then
+          result:=4
+        else
+          result:=inherited;
       end;
 
 

@@ -50,6 +50,17 @@ function fpc_setlength_dynarr_jfloat(aorg, anew: TJFloatArray; deepcopy: boolean
 function fpc_setlength_dynarr_jdouble(aorg, anew: TJDoubleArray; deepcopy: boolean): TJDoubleArray;
 function fpc_setlength_dynarr_jobject(aorg, anew: TJObjectArray; deepcopy: boolean; docopy : boolean = true): TJObjectArray;
 
+{ array copying helpers }
+
+procedure fpc_copy_jbyte_array(src, dst: TJByteArray);
+procedure fpc_copy_jshort_array(src, dst: TJShortArray);
+procedure fpc_copy_jint_array(src, dst: TJIntArray);
+procedure fpc_copy_jlong_array(src, dst: TJLongArray);
+procedure fpc_copy_jchar_array(src, dst: TJCharArray);
+procedure fpc_copy_jfloat_array(src, dst: TJFloatArray);
+procedure fpc_copy_jdouble_array(src, dst: TJDoubleArray);
+procedure fpc_copy_jobject_array(src, dst: TJObjectArray);
+
 { multi-dimendional setlength routine: all intermediate dimensions are arrays
   of arrays, so that's the same for all array kinds. Only the type of the final
   dimension matters.

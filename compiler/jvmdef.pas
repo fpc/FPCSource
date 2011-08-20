@@ -57,6 +57,10 @@ interface
     function jvmarrtype(def: tdef; out primitivetype: boolean): string;
     function jvmarrtype_setlength(def: tdef): char;
 
+    { returns whether a def is emulated using an implicit pointer type on the
+      JVM target (e.g., records, regular arrays, ...) }
+    function jvmimplicitpointertype(def: tdef): boolean;
+
 implementation
 
   uses
@@ -171,7 +175,6 @@ implementation
           arraydef :
             begin
               if is_array_of_const(def) or
-                 is_open_array(def) or
                  is_packed_array(def) then
                 result:=false
               else
@@ -281,8 +284,15 @@ implementation
                 internalerror(2011012206);
               end;
             primitivetype:=true;
+          end
+        else if (result[1]='L') then
+          begin
+            { in case of a class reference, strip the leading 'L' and the
+              trailing ';' }
+            setlength(result,length(result)-1);
+            delete(result,1,1);
           end;
-        { in other cases, use the actual reference type }
+        { for arrays, use the actual reference type }
       end;
 
 
@@ -297,6 +307,27 @@ implementation
           result:=res[1]
         else
           result:='A';
+      end;
+
+    function jvmimplicitpointertype(def: tdef): boolean;
+      begin
+        case def.typ of
+          arraydef:
+            result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
+                is_open_array(def) or
+                is_array_of_const(def) or
+                is_array_constructor(def);
+          recorddef:
+            result:=true;
+          objectdef:
+            result:=is_object(def);
+          setdef:
+            result:=not is_smallset(def);
+          stringdef :
+            result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
+          else
+            result:=false;
+        end;
       end;
 
 

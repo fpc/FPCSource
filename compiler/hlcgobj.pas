@@ -354,8 +354,8 @@ unit hlcgobj;
              @param(dest Destination reference of copy)
 
           }
-//          procedure g_copyshortstring(list : TAsmList;const source,dest : treference;len:byte);
-//          procedure g_copyvariant(list : TAsmList;const source,dest : treference);
+          procedure g_copyshortstring(list : TAsmList;const source,dest : treference;strdef:tstringdef);virtual;abstract;
+          procedure g_copyvariant(list : TAsmList;const source,dest : treference;vardef:tvariantdef);virtual;abstract;
 
           procedure g_incrrefcount(list : TAsmList;t: tdef; const ref: treference);virtual;abstract;
           procedure g_decrrefcount(list : TAsmList;t: tdef; const ref: treference);virtual;abstract;
@@ -375,8 +375,8 @@ unit hlcgobj;
           procedure g_overflowcheck(list: TAsmList; const Loc:tlocation; def:tdef); virtual; abstract;
           procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation);virtual; abstract;
 
-//          procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);virtual;
-//          procedure g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);virtual;
+          procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;arrdef: tarraydef;destreg:tregister);virtual;abstract;
+          procedure g_releasevaluepara_openarray(list : TAsmList;arrdef: tarraydef;const l:tlocation);virtual;abstract;
 
           {# Emits instructions when compilation is done in profile
              mode (this is set as a command line option). The default
@@ -430,15 +430,21 @@ unit hlcgobj;
 //          procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);virtual;abstract;
 //          procedure location_force_mmreg(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);virtual;abstract;
 
+          { Retrieve the location of the data pointed to in location l, when the location is
+            a register it is expected to contain the address of the data }
+          procedure location_get_data_ref(list:TAsmList;def: tdef; const l:tlocation;var ref:treference;loadref:boolean; alignment: longint);virtual;
+
           procedure maketojumpbool(list:TAsmList; p : tnode);virtual;
 
           procedure gen_proc_symbol(list:TAsmList);virtual;
           procedure gen_proc_symbol_end(list:TAsmList);virtual;
 
           procedure gen_load_para_value(list:TAsmList);virtual;
-
-         private
+         protected
+          { helpers called by gen_load_para_value }
+          procedure g_copyvalueparas(p:TObject;arg:pointer);virtual;
           procedure gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation;const cgpara: tcgpara;locintsize: longint);virtual;
+          procedure init_paras(p:TObject;arg:pointer);
          protected
           { Some targets have to put "something" in the function result
             location if it's not initialised by the Pascal code, e.g.
@@ -1727,6 +1733,33 @@ implementation
       end;
     end;
 
+    procedure thlcgobj.location_get_data_ref(list: TAsmList; def: tdef; const l: tlocation; var ref: treference; loadref: boolean; alignment: longint);
+      begin
+        case l.loc of
+          LOC_REGISTER,
+          LOC_CREGISTER :
+            begin
+              if not loadref then
+                internalerror(200410231);
+              reference_reset_base(ref,l.register,0,alignment);
+            end;
+          LOC_REFERENCE,
+          LOC_CREFERENCE :
+            begin
+              if loadref then
+                begin
+                  reference_reset_base(ref,cg.getaddressregister(list),0,alignment);
+                  { it's a pointer to def }
+                  hlcg.a_load_ref_reg(list,voidpointertype,voidpointertype,l.reference,ref.base);
+                end
+              else
+                ref:=l.reference;
+            end;
+          else
+            internalerror(200309181);
+        end;
+      end;
+
   procedure thlcgobj.maketojumpbool(list: TAsmList; p: tnode);
   {
     produces jumps to true respectively false labels using boolean expressions
@@ -1856,7 +1889,7 @@ implementation
 
   { generates the code for incrementing the reference count of parameters and
     initialize out parameters }
-  procedure init_paras(p:TObject;arg:pointer);
+  procedure thlcgobj.init_paras(p:TObject;arg:pointer);
     var
       href : treference;
       tmpreg : tregister;
@@ -1883,7 +1916,7 @@ implementation
                  if not((tparavarsym(p).vardef.typ=variantdef) and
                    paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
                    begin
-                     location_get_data_ref(list,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
+                     location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
                      hlcg.g_incrrefcount(list,tparavarsym(p).vardef,href);
                    end;
                end;
@@ -1958,7 +1991,7 @@ implementation
       { generate copies of call by value parameters, must be done before
         the initialization and body is parsed because the refcounts are
         incremented using the local copies }
-//      current_procinfo.procdef.parast.SymList.ForEachCall(@copyvalueparas,list);
+      current_procinfo.procdef.parast.SymList.ForEachCall(@g_copyvalueparas,list);
 
       if not(po_assembler in current_procinfo.procdef.procoptions) then
         begin
@@ -1976,6 +2009,86 @@ implementation
             come after the parameter loading code as far as the register
             allocator is concerned }
           current_procinfo.procdef.parast.SymList.ForEachCall(@init_paras,list);
+        end;
+    end;
+
+  procedure thlcgobj.g_copyvalueparas(p: TObject; arg: pointer);
+    var
+      href : treference;
+      hreg : tregister;
+      list : TAsmList;
+      hsym : tparavarsym;
+      l    : longint;
+      highloc,
+      localcopyloc : tlocation;
+    begin
+      list:=TAsmList(arg);
+      if (tsym(p).typ=paravarsym) and
+         (tparavarsym(p).varspez=vs_value) and
+        (paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
+        begin
+          { we have no idea about the alignment at the caller side }
+          location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,true,1);
+          if is_open_array(tparavarsym(p).vardef) or
+             is_array_of_const(tparavarsym(p).vardef) then
+            begin
+              { cdecl functions don't have a high pointer so it is not possible to generate
+                a local copy }
+              if not(current_procinfo.procdef.proccalloption in cdecl_pocalls) then
+                begin
+                  if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption) then
+                    begin
+                      hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                      if not assigned(hsym) then
+                        internalerror(2011020506);
+                      highloc:=hsym.initialloc
+                    end
+                  else
+                    highloc.loc:=LOC_INVALID;
+                  hreg:=cg.getaddressregister(list);
+                  if not is_packed_array(tparavarsym(p).vardef) then
+                    g_copyvaluepara_openarray(list,href,highloc,tarraydef(tparavarsym(p).vardef),hreg)
+                  else
+                    internalerror(2011020507);
+//                      cg.g_copyvaluepara_packedopenarray(list,href,hsym.intialloc,tarraydef(tparavarsym(p).vardef).elepackedbitsize,hreg);
+                  a_load_reg_loc(list,tparavarsym(p).vardef,tparavarsym(p).vardef,hreg,tparavarsym(p).initialloc);
+                end;
+            end
+          else
+            begin
+              { Allocate space for the local copy }
+              l:=tparavarsym(p).getsize;
+              localcopyloc.loc:=LOC_REFERENCE;
+              localcopyloc.size:=int_cgsize(l);
+              tg.GetLocal(list,l,tparavarsym(p).vardef,localcopyloc.reference);
+              { Copy data }
+              if is_shortstring(tparavarsym(p).vardef) then
+                begin
+                  { this code is only executed before the code for the body and the entry/exit code is generated
+                    so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
+                  }
+                  include(current_procinfo.flags,pi_do_call);
+                  g_copyshortstring(list,href,localcopyloc.reference,tstringdef(tparavarsym(p).vardef))
+                end
+              else if tparavarsym(p).vardef.typ=variantdef then
+                begin
+                  { this code is only executed before the code for the body and the entry/exit code is generated
+                    so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
+                  }
+                  include(current_procinfo.flags,pi_do_call);
+                  g_copyvariant(list,href,localcopyloc.reference,tvariantdef(tparavarsym(p).vardef))
+                end
+              else
+                begin
+                  { pass proper alignment info }
+                  localcopyloc.reference.alignment:=tparavarsym(p).vardef.alignment;
+                  g_concatcopy(list,tparavarsym(p).vardef,href,localcopyloc.reference);
+                end;
+              { update localloc of varsym }
+              tg.Ungetlocal(list,tparavarsym(p).localloc.reference);
+              tparavarsym(p).localloc:=localcopyloc;
+              tparavarsym(p).initialloc:=localcopyloc;
+            end;
         end;
     end;
 

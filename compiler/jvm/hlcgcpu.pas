@@ -73,6 +73,8 @@ uses
 
       procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
 
+      procedure g_concatcopy(list : TAsmList;size: tdef; const source,dest : treference);override;
+
       procedure a_loadfpu_ref_ref(list: TAsmList; fromsize, tosize: tdef; const ref1, ref2: treference); override;
       procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister); override;
       procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference); override;
@@ -88,6 +90,10 @@ uses
       procedure g_decrrefcount(list : TAsmList;t: tdef; const ref: treference);override;
       procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);override;
       procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);override;
+
+      procedure location_get_data_ref(list:TAsmList;def: tdef; const l:tlocation;var ref:treference;loadref:boolean; alignment: longint);override;
+      procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
+      procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
 
       { JVM-specific routines }
 
@@ -118,6 +124,9 @@ uses
         evaluation stack, and creates a new array of type arrdef with these
         dimensions }
       procedure g_newarray(list : TAsmList; arrdef: tdef; initdim: longint);
+      { gets the length of the array whose reference is stored in arrloc,
+        and puts it on the evaluation stack }
+      procedure g_getarraylen(list : TAsmList; const arrloc: tlocation);
 
       { this routine expects that all values are already massaged into the
         required form (sign bits xor'ed for gt/lt comparisons for OS_32/OS_64,
@@ -159,6 +168,10 @@ uses
       procedure maybepreparedivu32(list: TAsmList; var op: topcg; size: tdef; out isdivu32: boolean);
       { common implementation of a_call_* }
       procedure a_call_name_intern(list : TAsmList;pd : tprocdef;const s : string; inheritedcall: boolean);
+
+      { concatcopy helpers }
+      procedure concatcopy_normal_array(list: TAsmList; size: tdef; const source, dest: treference);
+
     end;
 
   procedure create_hlcodegen;
@@ -175,8 +188,8 @@ implementation
     verbose,cutils,globals,
     defutil,
     aasmtai,aasmcpu,
-    symconst,jvmdef,
-    procinfo,cgcpu;
+    symconst,symtable,symsym,jvmdef,
+    procinfo,cgcpu,tgobj;
 
   const
     TOpCG2IAsmOp : array[topcg] of TAsmOp=(                       { not = xor -1 }
@@ -595,6 +608,46 @@ implementation
         end;
     end;
 
+  procedure thlcgjvm.g_getarraylen(list: TAsmList; const arrloc: tlocation);
+    var
+      nillab,endlab: tasmlabel;
+    begin
+      { inline because we have to use the arraylength opcode, which
+        cannot be represented directly in Pascal. Even though the JVM
+        supports allocated arrays with length=0, we still also have to
+        check for nil pointers because even if FPC always generates
+        allocated empty arrays under all circumstances, external Java
+        code could pass in nil pointers.
+
+        Note that this means that assigned(arr) can be different from
+        length(arr)<>0 for dynamic arrays when targeting the JVM.
+      }
+      current_asmdata.getjumplabel(nillab);
+      current_asmdata.getjumplabel(endlab);
+
+      { if assigned(arr) ... }
+      a_load_loc_stack(list,java_jlobject,arrloc);
+      list.concat(taicpu.op_none(a_dup));
+      incstack(list,1);
+      list.concat(taicpu.op_none(a_aconst_null));
+      incstack(list,1);
+      list.concat(taicpu.op_sym(a_if_acmpeq,nillab));
+      decstack(list,2);
+
+      { ... then result:=arraylength(arr) ... }
+      list.concat(taicpu.op_none(a_arraylength));
+      a_jmp_always(list,endlab);
+
+      { ... else result:=0 }
+      a_label(list,nillab);
+      list.concat(taicpu.op_none(a_pop));
+      decstack(list,1);
+      list.concat(taicpu.op_none(a_iconst_0));
+      incstack(list,1);
+
+      a_label(list,endlab);
+    end;
+
     procedure thlcgjvm.a_cmp_stack_label(list: TAsmlist; size: tdef; cmp_op: topcmp; lab: tasmlabel);
       const
         opcmp2icmp: array[topcmp] of tasmop = (A_None,
@@ -859,7 +912,12 @@ implementation
 
   procedure thlcgjvm.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister);
     begin
-      internalerror(2010120534);
+      { only allowed for types that are not implicit pointers in Pascal (in
+        that case, ref contains a pointer to the actual data and we simply
+        return that pointer) }
+      if not jvmimplicitpointertype(fromsize) then
+        internalerror(2010120534);
+      a_load_ref_reg(list,java_jlobject,java_jlobject,ref,r);
     end;
 
   procedure thlcgjvm.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: Aint; reg: TRegister);
@@ -955,6 +1013,115 @@ implementation
   procedure thlcgjvm.a_jmp_always(list: TAsmList; l: tasmlabel);
     begin
       list.concat(taicpu.op_sym(a_goto,current_asmdata.RefAsmSymbol(l.name)));
+    end;
+
+  procedure thlcgjvm.concatcopy_normal_array(list: TAsmList; size: tdef; const source, dest: treference);
+    var
+      procname: string;
+      eledef: tdef;
+      pd: tprocdef;
+      srsym: tsym;
+      ndim: longint;
+    begin
+      { load copy helper parameters on the stack }
+      a_load_ref_stack(list,java_jlobject,source,prepare_stack_for_ref(list,source,false));
+      a_load_ref_stack(list,java_jlobject,dest,prepare_stack_for_ref(list,dest,false));
+      { call copy helper }
+      eledef:=tarraydef(size).elementdef;
+      ndim:=1;
+      case eledef.typ of
+        orddef:
+          begin
+            case torddef(eledef).ordtype of
+              pasbool8,s8bit,u8bit,bool8bit,uchar:
+                procname:='FPC_COPY_JBYTE_ARRAY';
+              s16bit,u16bit,bool16bit,pasbool16:
+                procname:='FPC_COPY_JSHORT_ARRAY';
+              uwidechar:
+                procname:='FPC_COPY_JCHAR_ARRAY';
+              s32bit,u32bit,bool32bit,pasbool32:
+                procname:='FPC_COPY_JINT_ARRAY';
+              s64bit,u64bit,bool64bit,pasbool64,scurrency:
+                procname:='FPC_COPY_JLONG_ARRAY';
+              else
+                internalerror(2011020504);
+            end;
+          end;
+        floatdef:
+          case tfloatdef(eledef).floattype of
+            s32real:
+              procname:='FPC_COPY_JFLOAT_ARRAY';
+            s64real:
+              procname:='FPC_COPY_JDOUBLE_ARRAY';
+          end;
+        arraydef:
+          begin
+            { call fpc_setlength_dynarr_multidim with deepcopy=true, and extra
+              parameters }
+            while (eledef.typ=arraydef) and
+                  not is_dynamic_array(eledef) do
+              begin
+                eledef:=tarraydef(eledef).elementdef;
+                inc(ndim)
+              end;
+            if (ndim=1) then
+              procname:='FPC_COPY_JOBJECT_ARRAY'
+            else
+              begin
+                { deepcopy=true }
+                a_load_const_stack(list,pasbool8type,1,R_INTREGISTER);
+                { ndim }
+                a_load_const_stack(list,s32inttype,ndim,R_INTREGISTER);
+                { eletype }
+                a_load_const_stack(list,cwidechartype,ord(jvmarrtype_setlength(eledef)),R_INTREGISTER);
+                procname:='FPC_SETLENGTH_DYNARR_MULTIDIM';
+              end;
+          end;
+        setdef,
+        recorddef,
+        stringdef,
+        variantdef:
+          begin
+            { todo: make a (recursive for records) deep copy, not sure yet how... }
+            internalerror(2011020505);
+          end;
+        else
+          procname:='FPC_COPY_JOBJECT_ARRAY';
+      end;
+     srsym:=tsym(systemunit.find(procname));
+     if not assigned(srsym) or
+        (srsym.typ<>procsym) then
+       Message1(cg_f_unknown_compilerproc,procname);
+     pd:=tprocdef(tprocsym(srsym).procdeflist[0]);
+     a_call_name(list,pd,pd.mangledname,false);
+     if ndim=1 then
+       decstack(list,2)
+     else
+       begin
+         decstack(list,4);
+         { pop return value, must be the same as dest }
+         list.concat(taicpu.op_none(a_pop));
+         decstack(list,1);
+       end;
+    end;
+
+  procedure thlcgjvm.g_concatcopy(list: TAsmList; size: tdef; const source, dest: treference);
+    var
+      handled: boolean;
+    begin
+      handled:=false;
+      case size.typ of
+        arraydef:
+          begin
+            if not is_dynamic_array(size) then
+              begin
+                concatcopy_normal_array(list,size,source,dest);
+                handled:=true;
+              end;
+          end;
+      end;
+      if not handled then
+        inherited;
     end;
 
   procedure thlcgjvm.a_loadfpu_ref_ref(list: TAsmList; fromsize, tosize: tdef; const ref1, ref2: treference);
@@ -1077,6 +1244,90 @@ implementation
       // do nothing
     end;
 
+  procedure thlcgjvm.location_get_data_ref(list: TAsmList; def: tdef; const l: tlocation; var ref: treference; loadref: boolean; alignment: longint);
+    var
+      tmploc: tlocation;
+    begin
+      { This routine is a combination of a generalised a_loadaddr_ref_reg()
+        that also works for addresses in registers (in case loadref is false)
+        and of a_load_ref_reg (in case loadref is true). It is used for
+        a) getting the address of managed types
+        b) getting to the actual data of value types that are passed by
+           reference by the compiler (and then get a local copy at the caller
+           side). Normally, depending on whether this reference is passed in a
+           register or reference, we either need a reference with that register
+           as base or load the address in that reference and use that as a new
+           base.
+
+        Since the JVM cannot take the address of anything, all
+        "pass-by-reference" value parameters (which are always aggregate types)
+        are already simply the implicit pointer to the data (since arrays,
+        records, etc are already internally implicit pointers). This means
+        that if "loadref" is true, we must simply return this implicit pointer.
+        If it is false, we are supposed the take the address of this implicit
+        pointer, which is not possible.
+
+        However, managed types are also implicit pointers in Pascal, so in that
+        case "taking the address" again consists of simply returning the
+        implicit pointer/current value.
+      }
+      if not loadref then
+        begin
+          if not is_managed_type(def) then
+            internalerror(2011020601);
+        end
+      else
+        begin
+          if not jvmimplicitpointertype(def) then
+            internalerror(2011020602);
+        end;
+      case l.loc of
+        LOC_REGISTER,
+        LOC_CREGISTER :
+          begin
+            { the implicit pointer is in a register and has to be in a
+              reference -> create a reference and put it there }
+            tmploc:=l;
+            location_force_mem(list,tmploc,java_jlobject);
+            ref:=tmploc.reference;
+          end;
+        LOC_REFERENCE,
+        LOC_CREFERENCE :
+          begin
+            ref:=l.reference;
+          end;
+        else
+          internalerror(2011020603);
+      end;
+    end;
+
+  procedure thlcgjvm.g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister);
+    var
+      localref: treference;
+      arrloc: tlocation;
+      stackslots: longint;
+    begin
+      { temporary reference for passing to concatcopy }
+      tg.gethltemp(list,java_jlobject,java_jlobject.size,tt_persistent,localref);
+      stackslots:=prepare_stack_for_ref(list,localref,false);
+      { create the local copy of the array (lenloc is invalid, get length
+        directly from the array) }
+      location_reset_ref(arrloc,LOC_REFERENCE,OS_ADDR,sizeof(pint));
+      arrloc.reference:=ref;
+      g_getarraylen(list,arrloc);
+      g_newarray(list,arrdef,1);
+      a_load_stack_ref(list,java_jlobject,localref,stackslots);
+      { copy the source array to the destination }
+      g_concatcopy(list,arrdef,ref,localref);
+      { and put the array pointer in the register as expected by the caller }
+      a_load_ref_reg(list,java_jlobject,java_jlobject,localref,destreg);
+    end;
+
+  procedure thlcgjvm.g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation);
+    begin
+      // do nothing, long live garbage collection!
+    end;
+
   procedure thlcgjvm.a_load_stack_reg(list: TAsmList; size: tdef; reg: tregister);
     var
       opc: tasmop;
@@ -1084,6 +1335,9 @@ implementation
     begin
       opc:=loadstoreopc(size,false,false,finishandval);
       list.concat(taicpu.op_reg(opc,reg));
+      { avoid problems with getting the size of an open array etc }
+      if jvmimplicitpointertype(size) then
+        size:=java_jlobject;
       decstack(list,1+ord(size.size>4));
     end;
 
@@ -1100,6 +1354,9 @@ implementation
         list.concat(taicpu.op_ref(opc,ref))
       else
         list.concat(taicpu.op_none(opc));
+      { avoid problems with getting the size of an open array etc }
+      if jvmimplicitpointertype(size) then
+        size:=java_jlobject;
       decstack(list,1+ord(size.size>4)+extra_slots);
     end;
 
@@ -1112,6 +1369,9 @@ implementation
       list.concat(taicpu.op_reg(opc,reg));
       if finishandval<>-1 then
         a_op_const_stack(list,OP_AND,size,finishandval);
+      { avoid problems with getting the size of an open array etc }
+      if jvmimplicitpointertype(size) then
+        size:=java_jlobject;
       incstack(list,1+ord(size.size>4));
     end;
 
@@ -1130,6 +1390,9 @@ implementation
         list.concat(taicpu.op_none(opc));
       if finishandval<>-1 then
         a_op_const_stack(list,OP_AND,size,finishandval);
+      { avoid problems with getting the size of an open array etc }
+      if jvmimplicitpointertype(size) then
+        size:=java_jlobject;
       incstack(list,1+ord(size.size>4)-extra_slots);
     end;
 

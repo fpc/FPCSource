@@ -89,7 +89,8 @@ implementation
     function tjvminlinenode.typecheck_length(var handled: boolean): tnode;
       begin
         typecheckpass(left);
-        if is_dynamic_array(left.resultdef) then
+        if is_dynamic_array(left.resultdef) or
+           is_open_array(left.resultdef) then
           begin
             resultdef:=s32inttype;
             result:=nil;
@@ -101,7 +102,8 @@ implementation
     function tjvminlinenode.typecheck_high(var handled: boolean): tnode;
       begin
         typecheckpass(left);
-        if is_dynamic_array(left.resultdef) then
+        if is_dynamic_array(left.resultdef) or
+           is_open_array(left.resultdef) then
           begin
             { replace with pred(length(arr)) }
             result:=cinlinenode.create(in_pred_x,false,
@@ -247,6 +249,18 @@ implementation
             eledef:=tarraydef(eledef).elementdef;
             ppn:=tcallparanode(ppn).right;
           end;
+        { in case it's a dynamic array of static arrays, we must also allocate
+          the static arrays! }
+        while (eledef.typ=arraydef) and
+              not is_dynamic_array(eledef) do
+          begin
+            inc(ndims);
+            tcallparanode(ppn).right:=
+              ccallparanode.create(
+                genintconstnode(tarraydef(eledef).elecount),nil);
+            ppn:=tcallparanode(ppn).right;
+            eledef:=tarraydef(eledef).elementdef;
+          end;
         { prepend type parameter for the array }
         newparas:=ccallparanode.create(ctypenode.create(left.resultdef),newparas);
         ttypenode(tcallparanode(newparas).left).allowed:=true;
@@ -268,8 +282,11 @@ implementation
           assignmenttarget:=tcallparanode(left).left.getcopy;
         newparas:=left;
         left:=nil;
-        { if more than 1 dimension, typecast to generic array of tobject }
-        if ndims>1 then
+        { if more than 1 dimension, or if 1 dimention of a non-primitive type,
+          typecast to generic array of tobject }
+        setlenroutine:=jvmarrtype(eledef,primitive);
+        if (ndims>1) or
+           not primitive then
           begin
             objarraydef:=search_system_type('TJOBJECTARRAY').typedef;
             tcallparanode(newparas).left:=ctypeconvnode.create_explicit(tcallparanode(newparas).left,objarraydef);
@@ -294,7 +311,6 @@ implementation
           end
         else
           begin
-            setlenroutine:=jvmarrtype(eledef,primitive);
             if not primitive then
               setlenroutine:='OBJECT'
             else
@@ -318,43 +334,14 @@ implementation
 
 
     procedure tjvminlinenode.second_length;
-      var
-        nillab,endlab: tasmlabel;
       begin
-        if is_dynamic_array(left.resultdef) then
+        if is_dynamic_array(left.resultdef) or
+           is_open_array(left.resultdef) then
           begin
-            { inline because we have to use the arraylength opcode, which
-              cannot be represented directly in Pascal. Even though the JVM
-              supports allocated arrays with length=0, we still also have to
-              check for nil pointers because even if FPC always generates
-              allocated empty arrays under all circumstances, external Java
-              code could pass in nil pointers.
-
-              Note that this means that assigned(arr) can be different from
-              length(arr)<>0 when targeting the JVM.
-            }
-
-            { if assigned(arr) then result:=arraylength(arr) else result:=0 }
             location_reset(location,LOC_REGISTER,OS_S32);
             location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,s32inttype);
             secondpass(left);
-            current_asmdata.getjumplabel(nillab);
-            current_asmdata.getjumplabel(endlab);
-            thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_dup));
-            thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_aconst_null));
-            thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
-            current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_if_acmpeq,nillab));
-            thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,2);
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_arraylength));
-            hlcg.a_jmp_always(current_asmdata.CurrAsmList,endlab);
-            hlcg.a_label(current_asmdata.CurrAsmList,nillab);
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_pop));
-            thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1);
-            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_iconst_0));
-            thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
-            hlcg.a_label(current_asmdata.CurrAsmList,endlab);
+            thlcgjvm(hlcg).g_getarraylen(current_asmdata.CurrAsmList,left.location);
             thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
           end
         else

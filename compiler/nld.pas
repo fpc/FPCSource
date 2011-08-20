@@ -50,7 +50,7 @@ interface
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           procedure set_mp(p:tnode);
-          function  is_addr_param_load:boolean;
+          function  is_addr_param_load:boolean;virtual;
           function  dogetcopy : tnode;override;
           function  pass_1 : tnode;override;
           function  pass_typecheck:tnode;override;
@@ -149,7 +149,7 @@ interface
 implementation
 
     uses
-      cutils,verbose,globtype,globals,systems,
+      cutils,verbose,globtype,globals,systems,constexp,
       symnot,
       defutil,defcmp,
       htypechk,pass_1,procinfo,paramgr,
@@ -550,10 +550,11 @@ implementation
            { remove property flag to avoid errors, see comments for }
            { tf_winlikewidestring assignments below                 }
            exclude(left.flags,nf_isproperty);
-           hp:=ccallparanode.create(caddrnode.create_internal
-                   (crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
-               ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),nil));
-           result := ccallnode.createintern('fpc_dynarray_clear',hp);
+           { generate a setlength node so it can be intercepted by
+             target-specific code }
+           result:=cinlinenode.create(in_setlength_x,false,
+             ccallparanode.create(genintconstnode(0),
+               ccallparanode.create(left,nil)));
            left:=nil;
            exit;
          end;

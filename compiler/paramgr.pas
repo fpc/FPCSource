@@ -56,7 +56,7 @@ unit paramgr;
           }
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;virtual;abstract;
           { return the size of a push }
-          function push_size(varspez:tvarspez;def : tdef;calloption : tproccalloption) : longint;
+          function push_size(varspez:tvarspez;def : tdef;calloption : tproccalloption) : longint;virtual;
           {# Returns a structure giving the information on
             the storage of the parameter (which must be
             an integer parameter). This is only used when calling

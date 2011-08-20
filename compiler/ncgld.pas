@@ -603,7 +603,7 @@ implementation
               not is_constnode(right) then
             begin
               hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,right.resultdef);
-              location_get_data_ref(current_asmdata.CurrAsmList,right.location,href,false,sizeof(pint));
+              hlcg.location_get_data_ref(current_asmdata.CurrAsmList,right.resultdef,right.location,href,false,sizeof(pint));
               hlcg.g_incrrefcount(current_asmdata.CurrAsmList,right.resultdef,href);
             end;
            if codegenerror then
@@ -615,7 +615,7 @@ implementation
            { decrement destination reference counter }
            if is_managed_type(left.resultdef) then
              begin
-               location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false,sizeof(pint));
+               hlcg.location_get_data_ref(current_asmdata.CurrAsmList,left.resultdef,left.location,href,false,sizeof(pint));
                hlcg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
              end;
            if codegenerror then
@@ -628,7 +628,7 @@ implementation
            { decrement destination reference counter }
            if is_managed_type(left.resultdef) then
              begin
-               location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false,sizeof(pint));
+               hlcg.location_get_data_ref(current_asmdata.CurrAsmList,left.resultdef,left.location,href,false,sizeof(pint));
                hlcg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
              end;
            if codegenerror then
@@ -650,7 +650,7 @@ implementation
               (right.nodetype<>stringconstn) then
              begin
                hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,right.resultdef);
-               location_get_data_ref(current_asmdata.CurrAsmList,right.location,href,false,sizeof(pint));
+               hlcg.location_get_data_ref(current_asmdata.CurrAsmList,left.resultdef,right.location,href,false,sizeof(pint));
                hlcg.g_incrrefcount(current_asmdata.CurrAsmList,right.resultdef,href);
              end;
 

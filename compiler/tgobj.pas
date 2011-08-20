@@ -86,7 +86,7 @@ unit tgobj;
 
             the forcesize parameter is so that it can be used for defs that
             don't have an inherent size (e.g., array of const) }
-          procedure gethltemp(list: TAsmList; def: tdef; forcesize: aint; temptype: ttemptype; out ref: treference);
+          procedure gethltemp(list: TAsmList; def: tdef; forcesize: aint; temptype: ttemptype; out ref: treference); virtual;
           procedure gettemp(list: TAsmList; size, alignment : longint;temptype:ttemptype;out ref : treference);
           procedure gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
           procedure ungettemp(list: TAsmList; const ref : treference);
@@ -109,7 +109,7 @@ unit tgobj;
 
           { Allocate space for a local }
           procedure getlocal(list: TAsmList; size : longint;def:tdef;var ref : treference);
-          procedure getlocal(list: TAsmList; size : longint; alignment : shortint; def:tdef;var ref : treference);
+          procedure getlocal(list: TAsmList; size : longint; alignment : shortint; def:tdef;var ref : treference); virtual;
           procedure UnGetLocal(list: TAsmList; const ref : treference);
        end;
        ttgobjclass = class of ttgobj;

@@ -1,7 +1,7 @@
-{******************************************************************************
-    Copyright (c) 2000-2010 by Florian Klaempfl and Jonas Maebe
+{
+    Copyright (c) 2011 by Jonas Maebe
 
-    Includes the JVM code generator
+    Generate JVM assembler for nodes that handle loads and assignments
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,23 +17,38 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
- *****************************************************************************}
-unit cpunode;
+ ****************************************************************************
+}
+unit njvmld;
 
 {$I fpcdefs.inc}
 
 interface
-{ This unit is used to define the specific CPU implementations. All needed
-actions are included in the INITALIZATION part of these units. This explains
-the behaviour of such a unit having just a USES clause! }
+
+uses
+  node, ncgld;
+
+type
+  tjvmloadnode = class(tcgloadnode)
+    function is_addr_param_load: boolean; override;
+  end;
 
 implementation
 
-  uses
-    ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,
-    ncgadd, ncgcal,ncgmat,ncginl,
-    njvmadd,njvmcal,njvmmat,njvmcnv,njvmcon,njvminl,njvmmem,njvmflw,njvmld
-    { these are not really nodes }
-    ,rgcpu,tgcpu,njvmutil;
+uses
+  nld,
+  symsym,
+  jvmdef;
 
+function tjvmloadnode.is_addr_param_load: boolean;
+  begin
+    result:=
+      inherited and
+      not jvmimplicitpointertype(tparavarsym(symtableentry).vardef);
+  end;
+
+
+begin
+  cloadnode:=tjvmloadnode;
 end.
+

@@ -79,9 +79,6 @@ interface
 
     procedure register_maybe_adjust_setbase(list: TAsmList; var l: tlocation; setbase: aint);
 
-    { Retrieve the location of the data pointed to in location l, when the location is
-      a register it is expected to contain the address of the data }
-    procedure location_get_data_ref(list:TAsmList;const l:tlocation;var ref:treference;loadref:boolean; alignment: longint);
 
     function  has_alias_name(pd:tprocdef;const s:string):boolean;
     procedure alloc_proc_symbol(pd: tprocdef);
@@ -1208,33 +1205,6 @@ implementation
       end;
 
 
-    procedure location_get_data_ref(list:TAsmList;const l:tlocation;var ref:treference;loadref:boolean; alignment: longint);
-      begin
-        case l.loc of
-          LOC_REGISTER,
-          LOC_CREGISTER :
-            begin
-              if not loadref then
-                internalerror(200410231);
-              reference_reset_base(ref,l.register,0,alignment);
-            end;
-          LOC_REFERENCE,
-          LOC_CREFERENCE :
-            begin
-              if loadref then
-                begin
-                  reference_reset_base(ref,cg.getaddressregister(list),0,alignment);
-                  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,l.reference,ref.base);
-                end
-              else
-                ref:=l.reference;
-            end;
-          else
-            internalerror(200309181);
-        end;
-      end;
-
-
 {****************************************************************************
                             Init/Finalize Code
 ****************************************************************************}
@@ -1254,7 +1224,7 @@ implementation
           (paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
           begin
             { we have no idea about the alignment at the caller side }
-            location_get_data_ref(list,tparavarsym(p).initialloc,href,true,1);
+            hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,true,1);
             if is_open_array(tparavarsym(p).vardef) or
                is_array_of_const(tparavarsym(p).vardef) then
               begin
@@ -1605,7 +1575,7 @@ implementation
                    if not((tparavarsym(p).vardef.typ=variantdef) and
                      paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
                      begin
-                       location_get_data_ref(list,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
+                       hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
                        if is_open_array(tparavarsym(p).vardef) then
                          begin
                            { open arrays do not contain correct element count in their rtti,
@@ -1617,7 +1587,7 @@ implementation
                            cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_ADDREF_ARRAY');
                          end
                        else
-                         cg.g_incrrefcount(list,tparavarsym(p).vardef,href);
+                        cg.g_incrrefcount(list,tparavarsym(p).vardef,href);
                      end;
                  end;
              vs_out :
@@ -1697,7 +1667,7 @@ implementation
            if (tparavarsym(p).varspez=vs_value) then
             begin
               include(current_procinfo.flags,pi_needs_implicit_finally);
-              location_get_data_ref(list,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
+              hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
               if is_open_array(tparavarsym(p).vardef) then
                 begin
                   hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
@@ -1718,7 +1688,7 @@ implementation
             { cdecl functions don't have a high pointer so it is not possible to generate
               a local copy }
             if not(current_procinfo.procdef.proccalloption in cdecl_pocalls) then
-              cg.g_releasevaluepara_openarray(list,tparavarsym(p).localloc);
+              hlcg.g_releasevaluepara_openarray(list,tarraydef(tparavarsym(p).vardef),tparavarsym(p).localloc);
           end;
       end;
 
