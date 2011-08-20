@@ -65,11 +65,11 @@ implementation
           already been done before calling the current constructor) }
         if procdefinition.typ<>procdef then
           exit;
-        if tprocdef(procdefinition).proctypeoption<>potype_constructor then
+        if tabstractprocdef(procdefinition).proctypeoption<>potype_constructor then
           exit;
         if not(methodpointer.resultdef.typ in [classrefdef,recorddef]) then
           exit;
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tabstractrecorddef(tprocdef(procdefinition).owner.defowner).jvm_full_typename(true))));
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tabstractrecorddef(tabstractprocdef(procdefinition).owner.defowner).jvm_full_typename(true))));
         { the constructor doesn't return anything, so put a duplicate of the
           self pointer on the evaluation stack for use as function result
           after the constructor has run }
@@ -92,7 +92,7 @@ implementation
 
     procedure tjvmcallnode.do_release_unused_return_value;
       begin
-        if (tprocdef(procdefinition).proctypeoption=potype_constructor) and
+        if (tabstractprocdef(procdefinition).proctypeoption=potype_constructor) and
            (current_procinfo.procdef.proctypeoption=potype_constructor) then
           exit;
         case resultdef.size of
@@ -124,7 +124,7 @@ implementation
         else
           realresdef:=tstoreddef(typedef);
         { a constructor doesn't actually return a value in the jvm }
-        if (tprocdef(procdefinition).proctypeoption=potype_constructor) then
+        if (tabstractprocdef(procdefinition).proctypeoption=potype_constructor) then
           totalremovesize:=pushedparasize
         else
           { even a byte takes up a full stackslot -> align size to multiple of 4 }
@@ -138,7 +138,7 @@ implementation
 
         { if this was an inherited constructor call, initialise all fields that
           are wrapped types following it }
-        if (tprocdef(procdefinition).proctypeoption=potype_constructor) and
+        if (tabstractprocdef(procdefinition).proctypeoption=potype_constructor) and
            (cnf_inherited in callnodeflags) then
           thlcgjvm(hlcg).gen_initialize_fields_code(current_asmdata.CurrAsmList);
       end;
