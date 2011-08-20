@@ -1935,6 +1935,7 @@ implementation
   procedure thlcgobj.location_force_mem(list: TAsmList; var l: tlocation; size: tdef);
     var
       r : treference;
+      forcesize: aint;
     begin
       case l.loc of
         LOC_FPUREGISTER,
@@ -1959,7 +1960,12 @@ implementation
         LOC_REGISTER,
         LOC_CREGISTER :
           begin
-            tg.gethltemp(list,size,size.size,tt_normal,r);
+            if not is_dynamic_array(size) and
+               not is_open_array(size) then
+              forcesize:=size.size
+            else
+              forcesize:=voidpointertype.size;
+            tg.gethltemp(list,size,forcesize,tt_normal,r);
             a_load_loc_ref(list,size,size,l,r);
             location_reset_ref(l,LOC_REFERENCE,l.size,0);
             l.reference:=r;
