@@ -717,6 +717,21 @@ implementation
             exit;
           end;
 
+        { deal with explicit typecasts between shortstrings and classes (for
+          ShortstringClass) }
+        if (is_shortstring(left.resultdef) and
+            (resultdef.typ=objectdef) and
+            left.resultdef.is_related(resultdef)) or
+           ((left.resultdef.typ=objectdef) and
+            is_shortstring(resultdef) and
+            resultdef.is_related(left.resultdef)) and
+           (nf_explicit in flags) then
+          begin
+            convtype:=tc_equal;
+            result:=true;
+            exit;
+          end;
+
 {$ifndef nounsupported}
         { generated in nmem; replace voidpointertype with java_jlobject }
         if nf_load_procvar in flags then
@@ -780,6 +795,13 @@ implementation
             (def=java_ansistring);
         end;
 
+      function shortstrcompatible(def: tdef): boolean;
+        begin
+           result:=
+             (def=java_jlobject) or
+             (def=java_shortstring);
+        end;
+
       begin
         if is_wide_or_unicode_string(todef) then
           begin
@@ -796,6 +818,14 @@ implementation
         else if is_ansistring(fromdef) then
           begin
             result:=ansistrcompatible(todef);
+          end
+        else if is_shortstring(todef) then
+          begin
+            result:=shortstrcompatible(fromdef)
+          end
+        else if is_shortstring(fromdef) then
+          begin
+            result:=shortstrcompatible(todef)
           end
         else
           result:=false;
@@ -972,7 +1002,9 @@ implementation
       else if is_wide_or_unicode_string(checkdef) then
         checkdef:=java_jlstring
       else if is_ansistring(checkdef) then
-        checkdef:=java_ansistring;
+        checkdef:=java_ansistring
+      else if is_shortstring(checkdef) then
+        checkdef:=java_shortstring;
       if checkdef.typ in [objectdef,recorddef] then
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcode,current_asmdata.RefAsmSymbol(tabstractrecorddef(checkdef).jvm_full_typename(true))))
       else if checkdef.typ=classrefdef then

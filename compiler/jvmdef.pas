@@ -197,14 +197,11 @@ implementation
                   encodedstr:=encodedstr+'Ljava/lang/String;';
                 st_ansistring:
                   result:=jvmaddencodedtype(java_ansistring,false,encodedstr,forcesignature,founderror);
-{$ifndef nounsupported}
                 st_shortstring:
-                  encodedstr:=encodedstr+'Lorg/freepascal/rtl/ShortString;';
-{$else}
+                  result:=jvmaddencodedtype(java_shortstring,false,encodedstr,forcesignature,founderror);
                 else
                   { May be handled via wrapping later  }
                   result:=false;
-{$endif}
               end;
             end;
           enumdef,
@@ -453,8 +450,11 @@ implementation
         errdef: tdef;
         res: string;
       begin
+        { keep in sync with rtl/java/jdynarrh.inc and usage in njvminl }
         if is_record(def) then
           result:='R'
+        else if is_shortstring(def) then
+          result:='T'
         else
           begin
             if not jvmtryencodetype(def,res,false,errdef) then

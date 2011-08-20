@@ -68,7 +68,7 @@ implementation
 
     function tjvmstringconstnode.pass_1: tnode;
       var
-        astrclass: tobjectdef;
+        strclass: tobjectdef;
         psym: tsym;
         pw: pcompilerwidestring;
       begin
@@ -89,11 +89,21 @@ implementation
         ascii2unicode(value_str,len,pw,false);
         ansistringdispose(value_str,len);
         pcompilerwidestring(value_str):=pw;
-        cst_type:=cst_unicodestring;
         { and now add a node to convert the data into ansistring format at
           run time }
-        astrclass:=tobjectdef(search_system_type('ANSISTRINGCLASS').typedef);
-        psym:=search_struct_member(astrclass,'CREATEFROMLITERALSTRINGBYTES');
+        case cst_type of
+          cst_ansistring:
+            strclass:=tobjectdef(search_system_type('ANSISTRINGCLASS').typedef);
+          cst_shortstring:
+            strclass:=tobjectdef(search_system_type('SHORTSTRINGCLASS').typedef);
+          cst_conststring:
+            { used for array of char }
+            strclass:=tobjectdef(search_system_type('ANSICHARARRAYCLASS').typedef);
+          else
+           internalerror(2011052401);
+        end;
+        cst_type:=cst_unicodestring;
+        psym:=search_struct_member(strclass,'CREATEFROMLITERALSTRINGBYTES');
         if not assigned(psym) or
            (psym.typ<>procsym) then
           internalerror(2011052001);

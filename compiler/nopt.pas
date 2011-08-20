@@ -319,8 +319,12 @@ begin
       inserttypeconv(sn,p.resultdef);
       if is_shortstr then
         begin
+{$ifndef jvm}
           sn:=caddrnode.create(sn);
           include(sn.flags,nf_internal);
+{$else not jvm}
+          inserttypeconv_internal(sn,java_shortstring);
+{$endif jvm}
         end;
       arrp:=carrayconstructornode.create(sn,arrp);
       hp:=taddnode(hp).left;

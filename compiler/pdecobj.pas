@@ -1275,8 +1275,8 @@ implementation
                   odt_javaclass:
                     begin
                       if (current_structdef.objname^='TOBJECT') then
-                        class_tobject:=current_objectdef;
-                      if (current_objectdef.objname^='JLOBJECT') then
+                        class_tobject:=current_objectdef
+                      else if (current_objectdef.objname^='JLOBJECT') then
                         begin
                           java_jlobject:=current_objectdef;
                           { the methodpointer type is normally created in
@@ -1288,15 +1288,17 @@ implementation
                           hrecst.addfield(fsym,vis_hidden);
                           methodpointertype:=trecorddef.create('',hrecst);
                           systemunit.insert(ttypesym.create('$methodpointer',methodpointertype));
-                        end;
-                      if (current_objectdef.objname^='JLTHROWABLE') then
-                        java_jlthrowable:=current_objectdef;
-                      if (current_objectdef.objname^='FPCBASERECORDTYPE') then
-                        java_fpcbaserecordtype:=current_objectdef;
-                      if (current_objectdef.objname^='JLSTRING') then
-                        java_jlstring:=current_objectdef;
-                      if (current_objectdef.objname^='ANSISTRINGCLASS') then
-                        java_ansistring:=current_objectdef;
+                        end
+                      else if (current_objectdef.objname^='JLTHROWABLE') then
+                        java_jlthrowable:=current_objectdef
+                      else if (current_objectdef.objname^='FPCBASERECORDTYPE') then
+                        java_fpcbaserecordtype:=current_objectdef
+                      else if (current_objectdef.objname^='JLSTRING') then
+                        java_jlstring:=current_objectdef
+                      else if (current_objectdef.objname^='ANSISTRINGCLASS') then
+                        java_ansistring:=current_objectdef
+                      else if (current_objectdef.objname^='SHORTSTRINGCLASS') then
+                        java_shortstring:=current_objectdef
                     end;
                 end;
               end;

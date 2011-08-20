@@ -86,3 +86,22 @@ procedure fpc_initialize_array_record(arr: TJObjectArray; normalarrdim: longint;
       end;
   end;
 
+
+procedure fpc_initialize_array_shortstring_intern(arr: TJObjectArray; normalarrdim: longint; maxlen: byte); external name 'fpc_initialize_array_shortstring';
+
+procedure fpc_initialize_array_shortstring(arr: TJObjectArray; normalarrdim: longint; maxlen: byte);compilerproc;
+  var
+    i: longint;
+  begin
+    if normalarrdim > 0 then
+      begin
+        for i:=low(arr) to high(arr) do
+          fpc_initialize_array_shortstring_intern(TJObjectArray(arr[i]),normalarrdim-1,maxlen);
+      end
+    else
+      begin
+        for i:=low(arr) to high(arr) do
+          arr[i]:=ShortstringClass.CreateEmpty(maxlen);
+      end;
+  end;
+

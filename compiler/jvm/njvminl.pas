@@ -100,9 +100,8 @@ implementation
     function tjvminlinenode.typecheck_length(var handled: boolean): tnode;
       begin
         typecheckpass(left);
-        if is_dynamic_array(left.resultdef) or
-           is_open_array(left.resultdef) or
-           is_wide_or_unicode_string(left.resultdef) then
+        if is_open_array(left.resultdef) or
+           is_dynamic_array(left.resultdef) then
           begin
             resultdef:=s32inttype;
             result:=nil;
@@ -391,17 +390,25 @@ implementation
           end
         else
           begin
-            if finaltype<>'R' then
-              begin
-                { expects JLObject }
-                setlenroutine:='FPC_SETLENGTH_DYNARR_GENERIC';
-                objarraydef:=java_jlobject;
-              end
-            else
-              begin
-                { expects array of FpcBaseRecord}
-                setlenroutine:='FPC_SETLENGTH_DYNARR_JRECORD';
-                objarraydef:=search_system_type('TJRECORDARRAY').typedef;
+            case finaltype of
+              'R':
+                begin
+                  { expects array of FpcBaseRecord}
+                  setlenroutine:='FPC_SETLENGTH_DYNARR_JRECORD';
+                  objarraydef:=search_system_type('TJRECORDARRAY').typedef;
+                end;
+              'T':
+                begin
+                  { expects array of ShortstringClass}
+                  setlenroutine:='FPC_SETLENGTH_DYNARR_JSHORTSTRING';
+                  objarraydef:=search_system_type('TSHORTSTRINGARRAY').typedef;
+                end;
+              else
+                begin
+                  { expects JLObject }
+                  setlenroutine:='FPC_SETLENGTH_DYNARR_GENERIC';
+                  objarraydef:=java_jlobject;
+                end
               end;
           end;
         tcallparanode(newparas).left:=ctypeconvnode.create_explicit(tcallparanode(newparas).left,objarraydef);
@@ -476,22 +483,21 @@ implementation
               end;
             left:=nil;
           end
-{$ifndef nounsupported}
-        else if left.resultdef.typ=stringdef then
-          begin
-            result:=cnothingnode.create;
-          end
-{$endif}
         else
           internalerror(2011031405);
       end;
 
 
     function tjvminlinenode.first_setlength: tnode;
-
       begin
         { reverse the parameter order so we can process them more easily }
         left:=reverseparameters(tcallparanode(left));
+        if is_shortstring(left.resultdef) then
+          begin
+            left:=reverseparameters(tcallparanode(left));
+            result:=inherited first_setlength;
+            exit;
+          end;
         { treat setlength(x,0) specially: used to init uninitialised locations }
         if not assigned(tcallparanode(tcallparanode(left).right).right) and
            is_constintnode(tcallparanode(tcallparanode(left).right).left) and
@@ -563,12 +569,21 @@ implementation
             addstatement(newstatement,ctemprefnode.create(lentemp));
             result:=newblock;
           end
-{$ifndef nounsupported}
-        else if left.resultdef.typ=stringdef then
+        else if is_shortstring(left.resultdef) then
           begin
-            result:=nil;
+            psym:=search_struct_member(tabstractrecorddef(java_shortstring),'LENGTH');
+            if not assigned(psym) or
+               (psym.typ<>procsym) then
+              internalerror(2011052402);
+            result:=
+              ccallnode.create(nil,tprocsym(psym),psym.owner,
+                ctypeconvnode.create_explicit(left,java_shortstring),[]);
+            { reused }
+            left:=nil;
           end
-{$endif}
+        { should be no other string types }
+        else if left.resultdef.typ=stringdef then
+          internalerror(2011052403)
        else
          result:=inherited first_length;
       end;
@@ -585,14 +600,6 @@ implementation
             thlcgjvm(hlcg).g_getarraylen(current_asmdata.CurrAsmList,left.location);
             thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
           end
-{$ifndef nounsupported}
-        else if left.resultdef.typ=stringdef then
-          begin
-            location_reset(location,LOC_REGISTER,OS_S32);
-            location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,s32inttype);
-            thlcgjvm(hlcg).a_load_const_reg(current_asmdata.CurrAsmList,s32inttype,0,location.register);
-          end
-{$endif}
         else
           internalerror(2011012004);
       end;
@@ -738,17 +745,13 @@ implementation
             current_asmdata.CurrAsmList.concat(taicpu.op_string(a_ldc,0,@emptystr));
             thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
           end
+        else if is_ansistring(target.resultdef) then
+          thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,java_jlobject,0,R_ADDRESSREGISTER)
         else if is_dynamic_array(target.resultdef) then
           begin
             thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,s32inttype,0,R_INTREGISTER);
             thlcgjvm(hlcg).g_newarray(current_asmdata.CurrAsmList,target.resultdef,1);
           end
-{$ifndef nounsupported}
-        else if left.resultdef.typ=stringdef then
-          begin
-            thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,java_jlobject,0,R_ADDRESSREGISTER);
-          end
-{$endif}
         else
           internalerror(2011031401);
         thlcgjvm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,target.resultdef,target.location);

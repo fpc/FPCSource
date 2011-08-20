@@ -53,7 +53,7 @@ uses
   verbose,
   aasmdata,
   nbas,nld,ncal,nmem,ncnv,
-  symconst,symsym,symdef,defutil,jvmdef,
+  symconst,symsym,symdef,symtable,defutil,jvmdef,
   paramgr,
   cgbase,hlcgobj;
 
@@ -62,6 +62,7 @@ uses
 function tjvmassignmentnode.pass_1: tnode;
   var
     target: tnode;
+    psym: tsym;
   begin
     { intercept writes to string elements, because Java strings are immutable
       -> detour via StringBuilder
@@ -80,6 +81,29 @@ function tjvmassignmentnode.pass_1: tnode;
             ccallparanode.create(tvecnode(target).right,
               ccallparanode.create(tvecnode(target).left.getcopy,nil))));
         result:=cassignmentnode.create(tvecnode(target).left,result);
+        right:=nil;
+        tvecnode(target).left:=nil;
+        tvecnode(target).right:=nil;
+        exit;
+      end
+    else if (target.nodetype=vecn) and
+       is_shortstring(tvecnode(target).left.resultdef) then
+      begin
+        { prevent errors in case of an expression such as
+            byte(str[x]):=12;
+        }
+        inserttypeconv_explicit(right,cchartype);
+        { call ShortstringClass(shortstring).setChar(index,char) }
+        inserttypeconv_explicit(tvecnode(target).left,java_shortstring);
+        psym:=search_struct_member(tabstractrecorddef(java_shortstring),'SETCHAR');
+        if not assigned(psym) or
+           (psym.typ<>procsym) then
+          internalerror(2011052408);
+        result:=
+          ccallnode.create(
+            ccallparanode.create(right,
+              ccallparanode.create(tvecnode(target).right,nil)),
+            tprocsym(psym),psym.owner,tvecnode(target).left,[]);
         right:=nil;
         tvecnode(target).left:=nil;
         tvecnode(target).right:=nil;

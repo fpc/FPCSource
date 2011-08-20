@@ -35,7 +35,7 @@ begin
   result:=JLString.create(data);
 end;
 
-(*
+
 procedure fpc_UnicodeStr_To_ShortStr (out res: ShortString;const S2 : UnicodeString); [Public, alias: 'FPC_UNICODESTR_TO_SHORTSTR'];compilerproc;
 {
   Converts a UnicodeString to a ShortString;
@@ -48,9 +48,7 @@ begin
   Size:=Length(S2);
   if Size>0 then
     begin
-      If Size>high(res) then
-        Size:=high(res);
-      widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(S2),temp,Size);
+      temp:=s2;
       res:=temp;
     end;
 end;
@@ -66,13 +64,8 @@ begin
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    begin
-      widestringmanager.Ansi2UnicodeMoveProc(PChar(@S2[1]),result,Size);
-      { Terminating Zero }
-      PUnicodeChar(Pointer(fpc_ShortStr_To_UnicodeStr)+Size*sizeof(UnicodeChar))^:=#0;
-    end;
+    result:=unicodestring(JLString.Create(TJByteArray(ShortstringClass(S2).fdata),0,length(S2)));
 end;
-*)
 
 Function fpc_UnicodeStr_To_AnsiStr (const S2 : UnicodeString): AnsiString; compilerproc;
 {
@@ -235,31 +228,16 @@ begin
   result:=chr(arrb[0]);
 end;
 
-(*
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_WChar_To_ShortStr(const c : WideChar): ShortString; compilerproc;
-{
-  Converts a WideChar to a ShortString;
-}
-var
-  s: ansistring;
-begin
-  widestringmanager.Wide2AnsiMoveProc(@c, s, 1);
-  fpc_WChar_To_ShortStr:= s;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_WChar_To_ShortStr(out res : shortstring;const c : WideChar) compilerproc;
 {
   Converts a WideChar to a ShortString;
 }
 var
-  s: ansistring;
+  u: unicodestring;
 begin
-  widestringmanager.Wide2AnsiMoveProc(@c,s,1);
-  res:=s;
+  u:=c;
+  res:=u;
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
-*)
 
 Function fpc_UChar_To_UnicodeStr(const c : UnicodeChar): UnicodeString; compilerproc;
 {
@@ -272,41 +250,19 @@ begin
   result:=JLString.create(arr);
 end;
 
-(*
+
 Function fpc_UChar_To_AnsiStr(const c : UnicodeChar): AnsiString; compilerproc;
 {
   Converts a UnicodeChar to a AnsiString;
 }
-begin
-  widestringmanager.Unicode2AnsiMoveProc(@c, fpc_UChar_To_AnsiStr, 1);
-end;
-
-
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_UChar_To_ShortStr(const c : UnicodeChar): ShortString; compilerproc;
-{
-  Converts a UnicodeChar to a ShortString;
-}
 var
-  s: ansistring;
+  u: unicodestring;
 begin
-  widestringmanager.Unicode2AnsiMoveProc(@c, s, 1);
-  fpc_UChar_To_ShortStr:= s;
+  u:=c;
+  result:=u;
 end;
-{$else FPC_STRTOSHORTSTRINGPROC}
-procedure fpc_UChar_To_ShortStr(out res : shortstring;const c : UnicodeChar) compilerproc;
-{
-  Converts a UnicodeChar to a ShortString;
-}
-var
-  s: ansistring;
-begin
-  widestringmanager.Unicode2AnsiMoveProc(@c,s,1);
-  res:=s;
-end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
-
+(*
 Function fpc_PChar_To_UnicodeStr(const p : pchar): UnicodeString; compilerproc;
 Var
   L : SizeInt;
@@ -425,128 +381,44 @@ begin
   result:=JLString.create(arr,0,i);
 end;
 
+Function real_widechararray_to_unicodestr(const arr: array of widechar; zerobased: boolean): Unicodestring;
+var
+  i  : SizeInt;
+  foundnull  : boolean;
+begin
+  if (zerobased) then
+    begin
+      foundnull:=false;
+      for i:=low(arr) to high(arr) do
+        if arr[i]=#0 then
+          begin
+            foundnull:=true;
+            break;
+          end;
+      if not foundnull then
+        i := high(arr)+1;
+    end
+  else
+    i := high(arr)+1;
+  result:=JLString.create(arr,0,i);
+end;
 
 Function fpc_WideCharArray_To_UnicodeStr(const arr: array of widechar; zerobased: boolean = true): UnicodeString; compilerproc;
-var
-  i  : SizeInt;
-  foundnull  : boolean;
 begin
-  if (zerobased) then
-    begin
-      foundnull:=false;
-      for i:=low(arr) to high(arr) do
-        if arr[i]=#0 then
-          begin
-            foundnull:=true;
-            break;
-          end;
-      if not foundnull then
-        i := high(arr)+1;
-    end
-  else
-    i := high(arr)+1;
-  result:=JLString.create(arr,0,i);
+  result:=real_widechararray_to_unicodestr(arr,zerobased);
 end;
 
-(*
 { due to their names, the following procedures should be in wstrings.inc,
   however, the compiler generates code using this functions on all platforms }
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_WideCharArray_To_ShortStr(const arr: array of widechar; zerobased: boolean = true): shortstring;[public,alias:'FPC_WIDECHARARRAY_TO_SHORTSTR']; compilerproc;
-var
-  l: longint;
- index: longint;
- len: byte;
- temp: ansistring;
-begin
-  l := high(arr)+1;
-  if l>=256 then
-    l:=255
-  else if l<0 then
-    l:=0;
-  if zerobased then
-    begin
-      index:=IndexWord(arr[0],l,0);
-      if (index < 0) then
-        len := l
-      else
-        len := index;
-    end
-  else
-    len := l;
-  widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),temp,len);
-  fpc_WideCharArray_To_ShortStr := temp;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_WideCharArray_To_ShortStr(out res : shortstring;const arr: array of widechar; zerobased: boolean = true);[public,alias:'FPC_WIDECHARARRAY_TO_SHORTSTR']; compilerproc;
-var
-  l: longint;
-  index: ptrint;
-  len: byte;
-  temp: ansistring;
 begin
-  l := high(arr)+1;
-  if l>=high(res)+1 then
-    l:=high(res)
-  else if l<0 then
-    l:=0;
-  if zerobased then
-    begin
-      index:=IndexWord(arr[0],l,0);
-      if index<0 then
-        len:=l
-      else
-        len:=index;
-    end
-  else
-    len:=l;
-  widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),temp,len);
-  res:=temp;
+  res:=real_widechararray_to_unicodestr(arr,zerobased);
 end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
-*)
+
 Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; zerobased: boolean = true): AnsiString; compilerproc;
-{$ifdef nounsupported}
-var
-  i  : SizeInt;
-{$endif}
 begin
-{$ifdef nounsupported}
-  if (zerobased) then
-    begin
-      i:=IndexWord(arr,high(arr)+1,0);
-      if i = -1 then
-        i := high(arr)+1;
-    end
-  else
-    i := high(arr)+1;
-  SetLength(fpc_WideCharArray_To_AnsiStr,i);
-  widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),fpc_WideCharArray_To_AnsiStr,i);
-{$endif}
+  result:=real_widechararray_to_unicodestr(arr,zerobased);
 end;
-
-Function fpc_WideCharArray_To_WideStr(const arr: array of widechar; zerobased: boolean = true): WideString; compilerproc;
-var
-  i  : SizeInt;
-  foundnull  : boolean;
-begin
-  if (zerobased) then
-    begin
-      foundnull:=false;
-      for i:=low(arr) to high(arr) do
-        if arr[i]=#0 then
-          begin
-            foundnull:=true;
-            break;
-          end;
-      if not foundnull then
-        i := high(arr)+1;
-    end
-  else
-    i := high(arr)+1;
-  result:=JLString.create(arr,0,i);
-end;
-
 
 procedure fpc_unicodestr_to_chararray(out res: array of AnsiChar; const src: UnicodeString); compilerproc;
 var
@@ -591,7 +463,6 @@ begin
 end;
 
 
-(*
 procedure fpc_ansistr_to_unicodechararray(out res: array of unicodechar; const src: AnsiString); compilerproc;
 var
   len: SizeInt;
@@ -600,84 +471,68 @@ begin
   len := length(src);
   { make sure we don't dereference src if it can be nil (JM) }
   if len > 0 then
-    widestringmanager.ansi2unicodemoveproc(pchar(@src[1]),temp,len);
+    temp:=src;
   len := length(temp);
   if len > length(res) then
     len := length(res);
 
-{$r-}
-  move(temp[1],res[0],len*sizeof(unicodechar));
-  fillchar(res[len],(length(res)-len)*SizeOf(UnicodeChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+  JLString(temp).getChars(0,len,res,0);
+  JUArrays.fill(res,len,high(res),#0);
 end;
 
+(*
 procedure fpc_shortstr_to_unicodechararray(out res: array of unicodechar; const src: ShortString); compilerproc;
 var
   len: longint;
   temp : unicodestring;
 begin
   len := length(src);
-  { make sure we don't access char 1 if length is 0 (JM) }
+  { temp is initialized with an empty string, so no need to convert src in case
+    it's also empty}
   if len > 0 then
-    widestringmanager.ansi2unicodemoveproc(pchar(@src[1]),temp,len);
+    temp:=src;
   len := length(temp);
-  if len > length(res) then
-    len := length(res);
-{$r-}
-  move(temp[1],res[0],len*sizeof(unicodechar));
-  fillchar(res[len],(length(res)-len)*SizeOf(UnicodeChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+  if len > high(res)+1 then
+    len := high(res)+1;
+
+  JLString(temp).getChars(0,len,res,0);
+  JUArrays.fill(res,len,high(res),#0);
 end;
 *)
 procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: AnsiString); compilerproc;
-{$ifdef nounsupported}
 var
   len: SizeInt;
   temp: widestring;
-{$endif}
 begin
-{$ifdef nounsupported}
   len := length(src);
   { make sure we don't dereference src if it can be nil (JM) }
   if len > 0 then
-    widestringmanager.ansi2widemoveproc(pchar(@src[1]),temp,len);
+    temp:=src;
   len := length(temp);
-  if len > length(res) then
-    len := length(res);
+  if len > high(res)+1 then
+    len := high(res)+1;
 
-{$r-}
-  move(temp[1],res[0],len*sizeof(widechar));
-  fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
-{$endif}
+  JLString(temp).getChars(0,len,res,0);
+  JUArrays.fill(res,len,high(res),#0);
 end;
-(*
+
 procedure fpc_shortstr_to_widechararray(out res: array of widechar; const src: ShortString); compilerproc;
 var
   len: longint;
-  temp : widestring;
+  temp : unicodestring;
 begin
   len := length(src);
-  { make sure we don't access char 1 if length is 0 (JM) }
+  { temp is initialized with an empty string, so no need to convert src in case
+    it's also empty}
   if len > 0 then
-    widestringmanager.ansi2widemoveproc(pchar(@src[1]),temp,len);
+    temp:=src;
   len := length(temp);
-  if len > length(res) then
-    len := length(res);
-{$r-}
-  move(temp[1],res[0],len*sizeof(widechar));
-  fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
+  if len > high(res)+1 then
+    len := high(res)+1;
+
+  JLString(temp).getChars(0,len,res,0);
+  JUArrays.fill(res,len,high(res),#0);
 end;
-*)
 
 procedure fpc_unicodestr_to_widechararray(out res: array of widechar; const src: UnicodeString); compilerproc;
 var
@@ -686,8 +541,7 @@ begin
   len := length(src);
   if len > length(res) then
     len := length(res);
-  for i:=0 to len-1 do
-    res[i]:=src[i+1];
+  JLString(src).getChars(0,len,res,0);
 end;
 
 

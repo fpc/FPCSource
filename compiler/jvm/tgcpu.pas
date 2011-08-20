@@ -133,13 +133,24 @@ unit tgcpu;
             begin
               if is_shortstring(def) then
                 begin
-{$ifndef nounsupported}
                   gettemp(list,java_jlobject.size,java_jlobject.alignment,temptype,ref);
+                  { add the maxlen parameter }
+                  thlcgjvm(hlcg).a_load_const_stack(list,u8inttype,tstringdef(def).len,R_INTREGISTER);
+                  { call the constructor }
+                  sym:=tsym(tobjectdef(java_shortstring).symtable.find('CREATEEMPTY'));
+                  if assigned(sym) and
+                     (sym.typ=procsym) then
+                    begin
+                      if tprocsym(sym).procdeflist.Count<>1 then
+                        internalerror(2011052404);
+                      pd:=tprocdef(tprocsym(sym).procdeflist[0]);
+                    end;
+                  hlcg.a_call_name(list,pd,pd.mangledname,false);
+                  { static calls method replaces parameter with string instance
+                    -> no change in stack height }
+                  { store reference to instance }
+                  thlcgjvm(hlcg).a_load_stack_ref(list,java_jlobject,ref,0);
                   result:=true;
-{$else}
-                  internalerror(2011051701);
-{$endif}
-
                 end;
             end;
         end;

@@ -76,6 +76,7 @@ uses
       procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
 
       procedure g_concatcopy(list : TAsmList;size: tdef; const source,dest : treference);override;
+      procedure g_copyshortstring(list : TAsmList;const source,dest : treference;strdef:tstringdef);override;
 
       procedure a_loadfpu_ref_ref(list: TAsmList; fromsize, tosize: tdef; const ref1, ref2: treference); override;
       procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister); override;
@@ -186,6 +187,7 @@ uses
       { concatcopy helpers }
       procedure concatcopy_normal_array(list: TAsmList; size: tdef; const source, dest: treference);
       procedure concatcopy_record(list: TAsmList; size: tdef; const source, dest: treference);
+      procedure concatcopy_shortstring(list: TAsmList; size: tdef; const source, dest: treference);
 
       { generate a call to a routine in the system unit }
       procedure g_call_system_proc(list: TAsmList; const procname: string);
@@ -256,6 +258,9 @@ implementation
             result:=R_INTREGISTER
           else
             result:=R_ADDRESSREGISTER;
+        { shortstrings are implemented via classes }
+        else if is_shortstring(def) then
+          result:=R_ADDRESSREGISTER
         else
           result:=inherited;
       end;
@@ -636,20 +641,29 @@ implementation
       { all dimensions are removed from the stack, an array reference is
         added }
       decstack(list,initdim-1);
-      { in case of an array of records, initialise }
+      { in case of an array of records or shortstrings, initialise }
       elemdef:=tarraydef(arrdef).elementdef;
       for i:=1 to pred(initdim) do
         elemdef:=tarraydef(elemdef).elementdef;
-      if elemdef.typ=recorddef then
+      if (elemdef.typ=recorddef) or
+         is_shortstring(elemdef) then
         begin
           { duplicate array reference }
           list.concat(taicpu.op_none(a_dup));
           incstack(list,1);
           a_load_const_stack(list,s32inttype,initdim-1,R_INTREGISTER);
-          tg.gethltemp(list,elemdef,elemdef.size,tt_persistent,recref);
-          a_load_ref_stack(list,elemdef,recref,prepare_stack_for_ref(list,recref,false));
-          g_call_system_proc(list,'fpc_initialize_array_record');
-          tg.ungettemp(list,recref);
+          if elemdef.typ=recorddef then
+            begin
+              tg.gethltemp(list,elemdef,elemdef.size,tt_persistent,recref);
+              a_load_ref_stack(list,elemdef,recref,prepare_stack_for_ref(list,recref,false));
+              g_call_system_proc(list,'fpc_initialize_array_record');
+              tg.ungettemp(list,recref);
+            end
+          else
+            begin
+              a_load_const_stack(list,u8inttype,tstringdef(elemdef).len,R_INTREGISTER);
+              g_call_system_proc(list,'fpc_initialize_array_shortstring');
+            end;
           decstack(list,3);
         end;
     end;
@@ -1120,9 +1134,13 @@ implementation
           end;
         recorddef:
           procname:='FPC_COPY_JRECORD_ARRAY';
-        floatdef,
-        stringdef:
+        floatdef:
           procname:='FPC_COPY_SHALLOW_ARRAY';
+        stringdef:
+          if is_shortstring(eledef) then
+            procname:='FPC_COPY_JSHORTSTRING_ARRAY'
+          else
+            procname:='FPC_COPY_SHALLOW_ARRAY';
         setdef,
         variantdef:
           begin
@@ -1179,6 +1197,27 @@ implementation
       end;
 
 
+    procedure thlcgjvm.concatcopy_shortstring(list: TAsmList; size: tdef; const source, dest: treference);
+      var
+        srsym: tsym;
+        pd: tprocdef;
+      begin
+        { self }
+        a_load_ref_stack(list,size,source,prepare_stack_for_ref(list,source,false));
+        { result }
+        a_load_ref_stack(list,size,dest,prepare_stack_for_ref(list,dest,false));
+        { call fpcDeepCopy helper }
+        srsym:=search_struct_member(java_shortstring,'FPCDEEPCOPY');
+        if not assigned(srsym) or
+           (srsym.typ<>procsym) then
+          Message1(cg_f_unknown_compilerproc,'ShortstringClass.FpcDeepCopy');
+        pd:=tprocdef(tprocsym(srsym).procdeflist[0]);
+        a_call_name(list,pd,pd.mangledname,false);
+        { both parameters are removed, no function result }
+        decstack(list,2);
+      end;
+
+
   procedure thlcgjvm.g_concatcopy(list: TAsmList; size: tdef; const source, dest: treference);
     var
       handled: boolean;
@@ -1198,9 +1237,22 @@ implementation
             concatcopy_record(list,size,source,dest);
             handled:=true;
           end;
+        stringdef:
+          begin
+            if is_shortstring(size) then
+              begin
+                concatcopy_shortstring(list,size,source,dest);
+                handled:=true;
+              end;
+          end;
       end;
       if not handled then
         inherited;
+    end;
+
+  procedure thlcgjvm.g_copyshortstring(list: TAsmList; const source, dest: treference; strdef: tstringdef);
+    begin
+      concatcopy_shortstring(list,strdef,source,dest);
     end;
 
   procedure thlcgjvm.a_loadfpu_ref_ref(list: TAsmList; fromsize, tosize: tdef; const ref1, ref2: treference);

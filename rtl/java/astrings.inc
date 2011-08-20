@@ -50,6 +50,12 @@ begin
 end;
 
 
+constructor AnsistringClass.Create(const s: shortstring);
+begin
+  Create(ShortstringClass(s).fdata);
+end;
+
+
 constructor AnsistringClass.Create(ch: ansichar);
 begin
   setlength(fdata,1);
@@ -88,6 +94,12 @@ end;
 function AnsistringClass.toUnicodeString: unicodestring;
 begin
   result:=UnicodeString(JLString.Create(TJByteArray(fdata)));
+end;
+
+
+function AnsistringClass.toShortstring(maxlen: byte): shortstring;
+begin
+  result:=shortstring(ShortstringClass.Create(ansistring(self),maxlen));
 end;
 
 
@@ -191,75 +203,37 @@ procedure fpc_AnsiStr_Concat_multi (var DestS:Ansistring;const sarr:array of Ans
 end;
 
 
-(*
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-
-{ the following declaration has exactly the same effect as                   }
-{ procedure fpc_AnsiStr_To_ShortStr (Var S1 : ShortString;S2 : Pointer);     }
-{ which is what the old helper was, so we don't need an extra implementation }
-{ of the old helper (JM)                                                     }
-function fpc_AnsiStr_To_ShortStr (high_of_res: SizeInt;const S2 : Ansistring): shortstring;[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];  compilerproc;
+procedure fpc_AnsiStr_To_ShortStr (out res: shortstring; const S2 : Ansistring); compilerproc;
 {
   Converts a AnsiString to a ShortString;
 }
 Var
   Size : SizeInt;
 begin
-  if S2='' then
-   fpc_AnsiStr_To_ShortStr:=''
-  else
-   begin
-     Size:=Length(S2);
-     If Size>high_of_res then
-      Size:=high_of_res;
-     Move (S2[1],fpc_AnsiStr_To_ShortStr[1],Size);
-     byte(fpc_AnsiStr_To_ShortStr[0]):=byte(Size);
-   end;
-end;
-
-{$else FPC_STRTOSHORTSTRINGPROC}
-*)
-procedure fpc_AnsiStr_To_ShortStr (out res: shortstring; const S2 : Ansistring);[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];  compilerproc;
-{
-  Converts a AnsiString to a ShortString;
-}
-(*
-Var
-  Size : SizeInt;
-*)
-begin
-(*
   if S2='' then
    res:=''
   else
    begin
      Size:=Length(S2);
      If Size>high(res) then
-      Size:=high(res);
-     Move (S2[1],res[1],Size);
-     byte(res[0]):=byte(Size);
+       Size:=high(res);
+     JLSystem.ArrayCopy(JLObject(AnsistringClass(S2).fdata),0,JLObject(ShortstringClass(res).fdata),0,Size);
+     setlength(res,Size);
    end;
-*)
 end;
-(*
-{$endif FPC_STRTOSHORTSTRINGPROC}
-*)
+
 
 Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; compilerproc;
 {
   Converts a ShortString to a AnsiString;
 }
-(*
 Var
   Size : SizeInt;
-*)
 begin
-(*
   Size:=Length(S2);
-  Setlength (fpc_ShortStr_To_AnsiStr,Size);
+  Setlength (result,Size);
   if Size>0 then
-    Move(S2[1],Pointer(fpc_ShortStr_To_AnsiStr)^,Size);
-*)
+    JLSystem.ArrayCopy(JLObject(ShortstringClass(S2).fdata),0,JLObject(AnsistringClass(result).fdata),0,Size);
 end;
 
 
@@ -320,8 +294,8 @@ begin
       exit;
     end;
   res:=AnsistringClass.Create;
-  setlength(res.fdata,i);
-  JLSystem.ArrayCopy(JLObject(@arr),0,JLObject(res.fdata),0,i);
+  setlength(res.fdata,high(arr)+1);
+  JLSystem.ArrayCopy(JLObject(@arr),0,JLObject(res.fdata),0,high(arr)+1);
   result:=Ansistring(res);
 end;
 
@@ -409,12 +383,12 @@ function fpc_AnsiStr_SetLength (S : AnsiString; l : SizeInt): Ansistring; compil
   Sets The length of string S to L.
   Makes sure S is unique, and contains enough room.
 }
-Var
-  lens, lena,
-  movelen : SizeInt;
 begin
-  setlength(AnsistringClass(s).fdata,l);
-  result:=s;
+  if not assigned(AnsistringClass(s)) then
+    result:=ansistring(AnsistringClass.Create)
+  else
+    result:=s;
+  setlength(AnsistringClass(result).fdata,l);
 end;
 
 {*****************************************************************************
@@ -465,20 +439,15 @@ begin
 end;
 
 Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;const Str : ShortString); compilerproc;
-(*
 var
    ofs : SizeInt;
-*)
 begin
-(*
    if Str='' then
      exit;
    ofs:=Length(S);
    SetLength(S,ofs+length(Str));
    { the pbyte cast avoids an unique call which isn't necessary because SetLength was just called }
-   move(Str[1],(pointer(S)+ofs)^,length(Str));
-   PByte(Pointer(S)+length(S))^:=0; { Terminating Zero }
-*)
+   JLSystem.ArrayCopy(JLObject(ShortstringClass(Str).fdata),0,JLObject(AnsistringClass(S).fdata),ofs,length(Str));
 end;
 
 Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;const Str : AnsiString); compilerproc;

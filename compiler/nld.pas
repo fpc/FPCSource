@@ -590,8 +590,9 @@ implementation
            { insert typeconv, except for chars that are handled in
              secondpass and except for ansi/wide string that can
              be converted immediatly }
-           if not(is_char(right.resultdef) or
-                  (right.resultdef.typ=stringdef)) then
+           if (not is_char(right.resultdef) or
+               (target_info.system in systems_managed_vm)) and
+              (right.resultdef.typ<>stringdef) then
              inserttypeconv(right,left.resultdef);
            if right.resultdef.typ=stringdef then
             begin

@@ -1091,9 +1091,10 @@ implementation
               result:=hp;
            end
          else
-           { shortstrings are handled 'inline' (except for widechars) }
+           { shortstrings are handled 'inline' for non-vm targets (except for widechars) }
            if (tstringdef(resultdef).stringtype <> st_shortstring) or
-              (torddef(left.resultdef).ordtype = uwidechar) then
+              (torddef(left.resultdef).ordtype = uwidechar) or
+              (target_info.system in systems_managed_vm) then
              begin
                if (tstringdef(resultdef).stringtype <> st_shortstring) then
                  begin
@@ -1115,7 +1116,11 @@ implementation
                    newblock:=internalstatements(newstat);
                    restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
                    addstatement(newstat,restemp);
-                   addstatement(newstat,ccallnode.createintern('fpc_wchar_to_shortstr',ccallparanode.create(left,ccallparanode.create(
+                   if torddef(left.resultdef).ordtype<>uwidechar then
+                     procname := 'fpc_char_to_shortstr'
+                   else
+                     procname := 'fpc_wchar_to_shortstr';
+                   addstatement(newstat,ccallnode.createintern(procname,ccallparanode.create(left,ccallparanode.create(
                      ctemprefnode.create(restemp),nil))));
                    addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
                    addstatement(newstat,ctemprefnode.create(restemp));
@@ -2240,7 +2245,10 @@ implementation
                              { perform target-specific explicit typecast
                                checks }
                              if target_specific_explicit_typeconv then
-                               exit;
+                               begin
+                                 result:=simplify(false);
+                                 exit;
+                               end;
                            end;
                        end;
                    end
@@ -3115,17 +3123,6 @@ implementation
         newstat  : tstatementnode;
         restemp  : ttempcreatenode;
       begin
-{$if defined(jvm) and not defined(nounsupported)}
-        if (not is_ansistring(left.resultdef) and
-            not is_unicodestring(left.resultdef)) or
-           (not is_ansistring(resultdef) and
-            not is_unicodestring(resultdef)) then
-          begin
-            convtype:=tc_equal;
-            result:=nil;
-            exit;
-          end;
-{$endif}
         { get the correct procedure name }
         procname := 'fpc_'+tstringdef(left.resultdef).stringtypname+
                     '_to_'+tstringdef(resultdef).stringtypname;

@@ -800,6 +800,8 @@ interface
        java_jlstring             : tobjectdef;
        { FPC java implementation of ansistrings }
        java_ansistring           : tobjectdef;
+       { FPC java implementation of shortstrings }
+       java_shortstring          : tobjectdef;
 
     const
 {$ifdef i386}
@@ -1613,8 +1615,11 @@ implementation
             ((d=java_jlobject) or
              (d=java_jlstring))) or
            ((stringtype=st_ansistring) and
-            (d=java_jlobject) or
-            (d=java_ansistring)));
+            ((d=java_jlobject) or
+             (d=java_ansistring))) or
+           ((stringtype=st_shortstring) and
+            ((d=java_jlobject) or
+             (d=java_shortstring))));
       end;
 
 
@@ -4830,15 +4835,17 @@ implementation
             not(oo_is_formal in objectoptions) then
            begin
              if (objname^='JLOBJECT') then
-               java_jlobject:=self;
-             if (objname^='JLTHROWABLE') then
-               java_jlthrowable:=self;
-             if (objname^='FPCBASERECORDTYPE') then
-               java_fpcbaserecordtype:=self;
-             if (objname^='JLSTRING') then
-               java_jlstring:=self;
-             if (objname^='ANSISTRINGCLASS') then
-               java_ansistring:=self;
+               java_jlobject:=self
+             else if (objname^='JLTHROWABLE') then
+               java_jlthrowable:=self
+             else if (objname^='FPCBASERECORDTYPE') then
+               java_fpcbaserecordtype:=self
+             else if (objname^='JLSTRING') then
+               java_jlstring:=self
+             else if (objname^='ANSISTRINGCLASS') then
+               java_ansistring:=self
+             else if (objname^='SHORTSTRINGCLASS') then
+               java_shortstring:=self
            end;
          writing_class_record_dbginfo:=false;
        end;

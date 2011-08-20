@@ -25,6 +25,7 @@ type
   TJDoubleArray = array of jdouble;
   TJObjectArray = array of JLObject;
   TJRecordArray = array of FpcBaseRecordType;
+  TShortstringArray = array of ShortstringClass;
   TJStringArray = array of unicodestring;
 
 const
@@ -37,6 +38,7 @@ const
   FPCJDynArrTypeJDouble = 'D';
   FPCJDynArrTypeJObject = 'A';
   FPCJDynArrTypeRecord  = 'R';
+  FPCJDynArrTypeShortstring  = 'T';
 
 { 1-dimensional setlength routines
 
@@ -46,11 +48,13 @@ const
 }
 function fpc_setlength_dynarr_generic(aorg, anew: JLObject; deepcopy: boolean; docopy: boolean = true): JLObject;
 function fpc_setlength_dynarr_jrecord(aorg, anew: TJRecordArray; deepcopy: boolean): TJRecordArray;
+function fpc_setlength_dynarr_jshortstring(aorg, anew: TShortstringArray; deepcopy: boolean): TShortstringArray;
 
 { array copying helpers }
 
 procedure fpc_copy_shallow_array(src, dst: JLObject; srcstart: jint = -1; srccopylen: jint = -1);
 procedure fpc_copy_jrecord_array(src, dst: TJRecordArray; srcstart: jint = -1; srccopylen: jint = -1);
+procedure fpc_copy_jshortstring_array(src, dst: TShortstringArray; srcstart: jint = -1; srccopylen: jint = -1);
 
 { multi-dimendional setlength routine: all intermediate dimensions are arrays
   of arrays, so that's the same for all array kinds. Only the type of the final

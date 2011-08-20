@@ -361,13 +361,6 @@ interface
 
     procedure tcgtypeconvnode.second_char_to_string;
       begin
-{$ifdef jvm}
-{$ifndef nounsupported}
-         location_reset_ref(location,LOC_REFERENCE,OS_NO,1);
-         tg.gethltemp(current_asmdata.CurrAsmList,cshortstringtype,256,tt_normal,location.reference);
-         exit;
-{$endif nounsupported}
-{$endif jvm}
          location_reset_ref(location,LOC_REFERENCE,OS_NO,2);
          case tstringdef(resultdef).stringtype of
            st_shortstring :

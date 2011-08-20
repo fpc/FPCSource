@@ -1,9 +1,9 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2005,2011 by Florian Klaempfl and Jonas Maebe,
-    members of the Free Pascal development team.
+    Copyright (c) 1999-2005 by Florian Klaempfl,
+    member of the Free Pascal development team.
 
-    This file implements support routines for AnsiStrings with FPC/JVM
+    This file implements support routines for Shortstrings with FPC/JVM
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -15,34 +15,52 @@
  **********************************************************************}
 
 type
-  AnsistringClass = class sealed
-   private
+  TAnsiCharArray = array of ansichar;
+  ShortstringClass = class sealed (JLCloneable)
+   public
+    { "length byte" }
+    curlen: byte;
+    { length is always the maximum length of the string (so that even reads
+      past the current length of the shortstring work, just like in regular
+      shortstrings }
     fdata: TAnsiCharArray;
    public
-    constructor Create(const arr: array of ansichar);overload;
-    constructor Create(const arr: array of unicodechar);overload;
-    constructor Create(const u: unicodestring);overload;
-    constructor Create(const a: ansistring);overload;
-    constructor Create(const s: shortstring);overload;
-    constructor Create(ch: ansichar);overload;
-    constructor Create(ch: unicodechar);overload;
-    class function CreateFromLiteralStringBytes(const u: unicodestring): ansistring; static;
+    constructor Create(const arr: array of ansichar; maxlen: byte);overload;
+    constructor Create(const arr: array of unicodechar; maxlen: byte);overload;
+    constructor Create(const u: unicodestring; maxlen: byte);overload;
+    constructor Create(const a: ansistring; maxlen: byte);overload;
+    constructor Create(const s: shortstring; maxlen: byte);overload;
+    constructor Create(ch: ansichar; maxlen: byte);overload;
+    constructor Create(ch: unicodechar; maxlen: byte);overload;
+    class function CreateEmpty(maxlen: byte): ShortstringClass; static;
+    class function CreateFromLiteralStringBytes(const u: unicodestring): shortstring; static;
+    procedure FpcDeepCopy(dest: ShortstringClass);
+    procedure setChar(index: jint; char: ansichar);
     function charAt(index: jint): ansichar;
     function toUnicodeString: unicodestring;
-    function toShortstring(maxlen: byte): shortstring;
+    function toAnsistring: ansistring;
     function toString: JLString; override;
-//    function concat(const a: ansistring): ansistring;
-//    function concatmultiple(const arr: array of ansistring): ansistring;
+    function clone: JLObject; override;
+//    function concat(const a: shortstring): shortstring;
+//    function concatmultiple(const arr: array of shortstring): shortstring;
     function length: jint;
   end;
 
-Function Pos (Const Substr : Ansistring; Const Source : Ansistring) : SizeInt;
-Function Pos (c : AnsiChar; Const s : Ansistring) : SizeInt;
+  AnsiCharArrayClass = class sealed
+   class function CreateFromLiteralStringBytes(const u: unicodestring; maxlen: byte): TAnsiCharArray; static;
+  end;
+
+//Function Pos (Const Substr : Ansistring; Const Source : Ansistring) : SizeInt;
+//Function Pos (c : AnsiChar; Const s : Ansistring) : SizeInt;
 //Function Pos (c : AnsiString; Const s : UnicodeString) : SizeInt;
 //Function Pos (c : UnicodeString; Const s : AnsiString) : SizeInt;
 //Function Pos (c : ShortString; Const s : UnicodeString) : SizeInt;
+Function Pos (c : AnsiChar; Const s : Shortstring) : SizeInt;
+Function Pos (const substr : ShortString; Const source : Shortstring) : SizeInt;
+//Function Pos (c : char; Const s : UnicodeString) : SizeInt;
 
-Function UpCase(const s : Ansistring) : Ansistring;
+Function UpCase(const s : shortstring) : shortstring;
+Function LowerCase(const s : shortstring) : shortstring;
 //Function UpCase(c:UnicodeChar):UnicodeChar;
 
 //Procedure Insert (Const Source : UnicodeString; Var S : UnicodeString; Index : SizeInt);

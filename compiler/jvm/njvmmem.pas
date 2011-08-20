@@ -165,13 +165,19 @@ implementation
         psym: tsym;
         stringclass: tdef;
       begin
-        if is_wide_or_unicode_string(left.resultdef) or
-           is_ansistring(left.resultdef) then
+        if (left.resultdef.typ=stringdef) then
           begin
-            if is_ansistring(left.resultdef) then
-              stringclass:=java_ansistring
-            else
-              stringclass:=java_jlstring;
+            case tstringdef(left.resultdef).stringtype of
+              st_ansistring:
+                stringclass:=java_ansistring;
+              st_unicodestring,
+              st_widestring:
+                stringclass:=java_jlstring;
+              st_shortstring:
+                stringclass:=java_shortstring;
+              else
+                internalerror(2011052407);
+            end;
             psym:=search_struct_member(tabstractrecorddef(stringclass),'CHARAT');
             if not assigned(psym) or
                (psym.typ<>procsym) then

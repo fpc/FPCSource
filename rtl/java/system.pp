@@ -24,7 +24,7 @@ Unit system;
 
 {$define FPC_IS_SYSTEM}
 
-{$I-,Q-,H-,R-,V-}
+{$I-,Q-,H-,R-,V-,P+}
 {$implicitexceptions off}
 {$mode objfpc}
 
@@ -122,6 +122,7 @@ type
 {$i innr.inc}
 {$i jmathh.inc}
 {$i jrech.inc}
+{$i sstringh.inc}
 {$i jdynarrh.inc}
 {$i astringh.inc}
 
@@ -264,13 +265,6 @@ function SarInt64(Const AValue : Int64;Shift : Byte): Int64;[internproc:fpc_in_s
  **********************************************************************
 }
 
-{$ifndef nounsupported}
-{$i astrings.inc}
-{$endif}
-{$i ustrings.inc}
-{$i rtti.inc}
-{$i jrec.inc}
-{$i jint64.inc}
 
 function min(a,b : longint) : longint;
   begin
@@ -279,6 +273,14 @@ function min(a,b : longint) : longint;
      else
        min:=b;
   end;
+
+
+{$i sstrings.inc}
+{$i astrings.inc}
+{$i ustrings.inc}
+{$i rtti.inc}
+{$i jrec.inc}
+{$i jint64.inc}
 
 { copying helpers }
 
@@ -331,6 +333,27 @@ procedure fpc_copy_jrecord_array(src, dst: TJRecordArray; srcstart: jint = -1; s
   end;
 
 
+procedure fpc_copy_jshortstring_array(src, dst: TShortstringArray; srcstart: jint = -1; srccopylen: jint = -1);
+  var
+    i: longint;
+    srclen, dstlen: jint;
+  begin
+    srclen:=length(src);
+    dstlen:=length(dst);
+    if srcstart=-1 then
+      srcstart:=0
+    else if srcstart>=srclen then
+      exit;
+    if srccopylen=-1 then
+      srccopylen:=srclen
+    else if srcstart+srccopylen>srclen then
+      srccopylen:=srclen-srcstart;
+    { no arraycopy, have to clone each element }
+    for i:=0 to min(srccopylen,dstlen)-1 do
+      dst[i]:=ShortstringClass(src[srcstart+i].clone);
+  end;
+
+
 { 1-dimensional setlength routines }
 
 function fpc_setlength_dynarr_generic(aorg, anew: JLObject; deepcopy: boolean; docopy: boolean = true): JLObject;
@@ -375,6 +398,19 @@ function fpc_setlength_dynarr_jrecord(aorg, anew: TJRecordArray; deepcopy: boole
   end;
 
 
+function fpc_setlength_dynarr_jshortstring(aorg, anew: TShortstringArray; deepcopy: boolean): TShortstringArray;
+  begin
+    if deepcopy or
+       (length(aorg)<>length(anew)) then
+      begin
+        fpc_copy_jshortstring_array(aorg,anew);
+        result:=anew
+      end
+    else
+      result:=aorg;
+  end;
+
+
 { multi-dimensional setlength routine }
 function fpc_setlength_dynarr_multidim(aorg, anew: TJObjectArray; deepcopy: boolean; ndim: longint; eletype: jchar): TJObjectArray;
   var
@@ -407,6 +443,13 @@ function fpc_setlength_dynarr_multidim(aorg, anew: TJObjectArray; deepcopy: bool
                 result[i]:=JLObject(fpc_setlength_dynarr_jrecord(TJRecordArray(aorg[i]),TJRecordArray(anew[i]),deepcopy));
               for i:=succ(partdone) to high(result) do
                 result[i]:=JLObject(fpc_setlength_dynarr_jrecord(nil,TJRecordArray(anew[i]),deepcopy));
+            end;
+          FPCJDynArrTypeShortstring:
+            begin
+              for i:=low(result) to partdone do
+                result[i]:=JLObject(fpc_setlength_dynarr_jshortstring(TShortstringArray(aorg[i]),TShortstringArray(anew[i]),deepcopy));
+              for i:=succ(partdone) to high(result) do
+                result[i]:=JLObject(fpc_setlength_dynarr_jshortstring(nil,TShortstringArray(anew[i]),deepcopy));
             end;
           else
             begin
@@ -453,6 +496,8 @@ function fpc_dynarray_copy(src: JLObject; start, len: longint; ndim: longint; el
         case eletype of
           FPCJDynArrTypeRecord:
             fpc_copy_jrecord_array(TJRecordArray(src),TJRecordArray(result),start,len);
+          FPCJDynArrTypeShortstring:
+            fpc_copy_jshortstring_array(TShortstringArray(src),TShortstringArray(result),start,len);
           else
             fpc_copy_shallow_array(src,result,start,len);
         end
