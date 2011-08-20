@@ -2339,8 +2339,6 @@ implementation
                          { open arrays do not contain correct element count in their rtti,
                            the actual count must be passed separately. }
                          eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
-                         if not assigned(hsym) then
-                           internalerror(201003031);
                          g_array_rtti_helper(list,eldef,href,highloc,'FPC_ADDREF_ARRAY');
                        end
                      else
