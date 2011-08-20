@@ -65,7 +65,10 @@ implementation
        ncgutil,ngenutil,
        { parser }
        scanner,
-       pbase,pexpr,ptype,ptconst,pdecsub,pjvm,
+       pbase,pexpr,ptype,ptconst,pdecsub,
+{$ifdef jvm}
+       pjvm,
+{$endif}
        { link }
        import
        ;
