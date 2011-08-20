@@ -51,6 +51,33 @@ Type
   jfloat = single;
   jdouble = double;
 
+  Arr1jboolean = array of jboolean;
+  Arr1jbyte = array of jbyte;
+  Arr1jshort = array of jshort;
+  Arr1jint = array of jint;
+  Arr1jlong = array of jlong;
+  Arr1jchar = array of jchar;
+  Arr1jfloat = array of jfloat;
+  Arr1jdouble = array of jdouble;
+
+  Arr2jboolean = array of Arr1jboolean;
+  Arr2jbyte = array of Arr1jbyte;
+  Arr2jshort = array of Arr1jshort;
+  Arr2jint = array of Arr1jint;
+  Arr2jlong = array of Arr1jlong;
+  Arr2jchar = array of Arr1jchar;
+  Arr2jfloat = array of Arr1jfloat;
+  Arr2jdouble = array of Arr1jdouble;
+
+  Arr3jboolean = array of Arr2jboolean;
+  Arr3jbyte = array of Arr2jbyte;
+  Arr3jshort = array of Arr2jshort;
+  Arr3jint = array of Arr2jint;
+  Arr3jlong = array of Arr2jlong;
+  Arr3jchar = array of Arr2jchar;
+  Arr3jfloat = array of Arr2jfloat;
+  Arr3jdouble = array of Arr2jdouble;
+
 const
 { max. values for longint and int}
   maxLongint  = $7fffffff;
