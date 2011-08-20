@@ -199,7 +199,7 @@ implementation
           LOC_REGISTER,
           LOC_CREGISTER:
             begin
-{$ifdef cpu64bitaddr}
+{$ifdef cpu64bitalu}
                 { x86-64 system v abi:
                   structs with up to 16 bytes are returned in registers }
                 if location.size in [OS_128,OS_S128] then
@@ -209,7 +209,7 @@ implementation
                     if getsupreg(location.registerhi)<first_int_imreg then
                       cg.ungetcpuregister(list,location.registerhi);
                   end
-{$else cpu64bitaddr}
+{$else cpu64bitalu}
                 if location.size in [OS_64,OS_S64] then
                   begin
                     if getsupreg(location.register64.reglo)<first_int_imreg then
@@ -664,8 +664,10 @@ implementation
         hregister:=cg.getintregister(list,dst_size);
         { load value in new register }
         case l.loc of
+{$ifdef cpuflags}
           LOC_FLAGS :
             cg.g_flags2reg(list,dst_size,l.resflags,hregister);
+{$endif cpuflags}
           LOC_JUMP :
             begin
               cg.a_label(list,current_procinfo.CurrTrueLabel);
@@ -2386,7 +2388,7 @@ implementation
           end;
 
          { generate target specific proc entry code }
-         cg.g_proc_entry(list,current_procinfo.calc_stackframe_size,(po_nostackframe in current_procinfo.procdef.procoptions));
+         hlcg.g_proc_entry(list,current_procinfo.calc_stackframe_size,(po_nostackframe in current_procinfo.procdef.procoptions));
       end;
 
 
@@ -2413,7 +2415,7 @@ implementation
           end;
 
         { generate target specific proc exit code }
-        cg.g_proc_exit(list,parasize,(po_nostackframe in current_procinfo.procdef.procoptions));
+        hlcg.g_proc_exit(list,parasize,(po_nostackframe in current_procinfo.procdef.procoptions));
 
         { release return registers, needed for optimizer }
         if not is_void(current_procinfo.procdef.returndef) then
@@ -3015,9 +3017,9 @@ implementation
                       ImplIntf.IntfDef.objname^+'_$_'+tostr(j)+'_$_'+pd.mangledname);
                     { create wrapper code }
                     new_section(list,sec_code,tmps,0);
-                    cg.init_register_allocators;
+                    hlcg.init_register_allocators;
                     cg.g_intf_wrapper(list,pd,tmps,ImplIntf.ioffset);
-                    cg.done_register_allocators;
+                    hlcg.done_register_allocators;
                   end;
               end;
           end;
