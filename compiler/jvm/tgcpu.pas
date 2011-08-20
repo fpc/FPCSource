@@ -120,6 +120,15 @@ unit tgcpu;
               thlcgjvm(hlcg).a_load_stack_ref(list,java_jlobject,ref,0);
               result:=true;
             end;
+          setdef:
+            begin
+              if is_smallset(def) then
+                exit;
+{$ifndef nounsupported}
+              gettemp(list,java_jlobject.size,java_jlobject.alignment,temptype,ref);
+              result:=true;
+{$endif}
+            end;
         end;
       end;
 

@@ -360,6 +360,13 @@ interface
 
     procedure tcgtypeconvnode.second_char_to_string;
       begin
+{$ifdef jvm}
+{$ifndef nounsupported}
+         location_reset_ref(location,LOC_REFERENCE,OS_NO,1);
+         tg.gethltemp(current_asmdata.CurrAsmList,cshortstringtype,256,tt_normal,location.reference);
+         exit;
+{$endif nounsupported}
+{$endif jvm}
          location_reset_ref(location,LOC_REFERENCE,OS_NO,2);
          case tstringdef(resultdef).stringtype of
            st_shortstring :
@@ -479,6 +486,14 @@ interface
       var
         tmpreg: tregister;
       begin
+{$ifdef jvm}
+{$ifndef nounsupported}
+         location_reset(location,LOC_REGISTER,OS_ADDR);
+         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
+         hlcg.a_load_const_reg(current_asmdata.CurrAsmList,java_jlobject,0,location.register);
+         exit;
+{$endif nounsupported}
+{$endif jvm}
         if tabstractprocdef(resultdef).is_addressonly then
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);
@@ -513,6 +528,14 @@ interface
     var r:Treference;
 
     begin
+{$ifdef jvm}
+{$ifndef nounsupported}
+      tg.gethltemp(current_asmdata.currasmlist,java_jlobject,java_jlobject.size,tt_normal,r);
+      location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),0);
+      location.reference:=r;
+      exit;
+{$endif}
+{$endif}
       tg.gethltemp(current_asmdata.currasmlist,methodpointertype,methodpointertype.size,tt_normal,r);
       location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),0);
       location.reference:=r;

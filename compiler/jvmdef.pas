@@ -91,8 +91,12 @@ implementation
                 st_unicodestring:
                   encodedstr:=encodedstr+'Ljava/lang/String;';
                 else
+{$ifndef nounsupported}
+                  result:=jvmaddencodedtype(java_jlobject,false,encodedstr,founderror);
+{$else}
                   { May be handled via wrapping later  }
                   result:=false;
+{$endif}
               end;
             end;
           enumdef,
@@ -127,6 +131,11 @@ implementation
             end;
           pointerdef :
             begin
+{$ifndef nounsupported}
+              if def=voidpointertype then
+                result:=jvmaddencodedtype(java_jlobject,false,encodedstr,founderror)
+              else
+{$endif}
               { some may be handled via wrapping later }
               result:=false;
             end;
@@ -156,17 +165,25 @@ implementation
             end;
           classrefdef :
             begin
+{$ifndef nounsupported}
+              result:=jvmaddencodedtype(java_jlobject,false,encodedstr,founderror);
+{$else}
               { may be handled via wrapping later }
               result:=false;
+{$endif}
             end;
           setdef :
             begin
               if is_smallset(def) then
                 encodedstr:=encodedstr+'I'
               else
-              { will be hanlded via wrapping later, although wrapping may
-                happen at higher level }
-              result:=false;
+{$ifndef nounsupported}
+                result:=jvmaddencodedtype(java_jlobject,false,encodedstr,founderror);
+{$else}
+                { will be hanlded via wrapping later, although wrapping may
+                  happen at higher level }
+                result:=false;
+{$endif}
             end;
           formaldef :
             begin
@@ -175,8 +192,13 @@ implementation
             end;
           arraydef :
             begin
-              if is_array_of_const(def) or
-                 is_packed_array(def) then
+              if is_array_of_const(def) then
+{$ifndef nounsupported}
+                result:=jvmaddencodedtype(java_jlobject,false,encodedstr,founderror)
+{$else}
+                result:=false
+{$endif}
+              else if is_packed_array(def) then
                 result:=false
               else
                 begin
@@ -191,9 +213,13 @@ implementation
             end;
           procvardef :
             begin
+{$ifndef nounsupported}
+              result:=jvmaddencodedtype(java_jlobject,false,encodedstr,founderror);
+{$else}
               { will be hanlded via wrapping later, although wrapping may
                 happen at higher level }
               result:=false;
+{$endif}
             end;
           objectdef :
             case tobjectdef(def).objecttype of

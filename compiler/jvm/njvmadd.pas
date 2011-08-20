@@ -85,6 +85,14 @@ interface
         case nodetype of
           addn:
             begin
+{$ifndef nounsupported}
+               if not is_wide_or_unicode_string(resultdef) then
+                 begin
+                   result:=left;
+                   left:=nil;
+                   exit;
+                 end;
+{$endif nounsupported}
               if (left.nodetype=stringconstn) and (tstringconstnode(left).len=0) then
                 begin
                   result:=right;
@@ -113,6 +121,9 @@ interface
             end;
           ltn,lten,gtn,gten,equaln,unequaln :
             begin
+{$ifndef nounsupported}
+             left.resultdef:=cunicodestringtype;
+{$endif nounsupported}
               { call compare routine }
               cmpfuncname := 'fpc_'+tstringdef(left.resultdef).stringtypname+'_compare';
               { for equality checks use optimized version }

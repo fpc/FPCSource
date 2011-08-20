@@ -2112,6 +2112,12 @@ implementation
         newstatement : tstatementnode;
         temp    : ttempcreatenode;
       begin
+{$ifdef jvm}
+{$ifndef nounsupported}
+        result:=cnothingnode.create;
+        exit;
+{$endif nounsupported}
+{$endif}
         result:=nil;
         case nodetype of
           equaln,unequaln,lten,gten:

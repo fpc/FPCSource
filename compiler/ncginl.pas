@@ -528,6 +528,9 @@ implementation
         var
           setpara, elepara: tnode;
         begin
+{$if defined(jvm) and not defined(nounsupported)}
+          exit;
+{$endif}
           { the set }
           secondpass(tcallparanode(left).left);
           { the element to set }

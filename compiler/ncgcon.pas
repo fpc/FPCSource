@@ -71,7 +71,7 @@ implementation
       symconst,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
       cpuinfo,cpubase,
       cgbase,cgobj,cgutils,
-      ncgutil, cclasses,asmutils
+      ncgutil, cclasses,asmutils,tgobj
       ;
 
 
@@ -409,6 +409,13 @@ implementation
            i           : longint;
            entry       : PHashSetItem;
         begin
+{$ifdef jvm}
+{$ifndef nounsupported}
+          location_reset_ref(location,LOC_REFERENCE,OS_ADDR,1);
+          tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_persistent,location.reference);
+          exit;
+{$endif nounsupported}
+{$endif jvm}
           location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(8));
           lastlabel:=nil;
           { const already used ? }

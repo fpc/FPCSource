@@ -276,6 +276,17 @@ implementation
          if nf_swapped in flags then
           swapleftright;
 
+{$if defined(jvm) and not defined(nounsupported)}
+          if not is_smallset(left.resultdef) then
+            begin
+              location_reset(location, LOC_REGISTER, uopsize{def_cgsize(resultdef)});
+              { allocate a register for the result }
+              location.register:=cg.getintregister(current_asmdata.CurrAsmList, uopsize);
+              hlcg.a_load_const_reg(current_asmdata.CurrAsmList,s32inttype,0,location.register);
+              exit;
+            end;
+{$endif}
+
          setbase:=tsetdef(right.resultdef).setbase;
          if genjumps then
           begin

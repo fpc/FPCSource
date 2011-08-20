@@ -550,6 +550,20 @@ implementation
             result:=true;
             exit;
           end;
+
+{$ifndef nounsupported}
+        if ((left.resultdef.typ=procvardef) and
+            ((resultdef=methodpointertype) or
+             (resultdef=search_system_type('TMETHOD').typedef))) or
+           ((resultdef.typ=procvardef) and
+            ((left.resultdef=methodpointertype)  or
+             (left.resultdef=search_system_type('TMETHOD').typedef))) then
+          begin
+            convtype:=tc_equal;
+            result:=true;
+            exit;
+          end;
+{$endif}
       end;
 
 

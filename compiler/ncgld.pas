@@ -412,6 +412,7 @@ implementation
             localvarsym :
               begin
                 vs:=tabstractnormalvarsym(symtableentry);
+{$if not defined(jvm) or not defined(nounsupported)}
                 { Nested variable }
                 if assigned(left) then
                   begin
@@ -423,6 +424,7 @@ implementation
                     reference_reset_base(location.reference,left.location.register,vs.localloc.reference.offset,vs.localloc.reference.alignment);
                   end
                 else
+{$endif}
                   location:=vs.localloc;
 
                 { handle call by reference variables when they are not
@@ -455,6 +457,14 @@ implementation
              end;
            procsym:
               begin
+{$ifdef jvm}
+{$ifndef nounsupported}
+                 location_reset(location,LOC_REGISTER,OS_ADDR);
+                 location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
+                 hlcg.a_load_const_reg(current_asmdata.CurrAsmList,java_jlobject,0,location.register);
+                 exit;
+{$endif nounsupported}
+{$endif jvm}
                  if not assigned(procdef) then
                    internalerror(200312011);
                  if assigned(left) then
@@ -1095,6 +1105,7 @@ implementation
 
               if dovariant then
                begin
+{$if not defined(jvm) or defined(nounsupported)}
                  { find the correct vtype value }
                  vtype:=$ff;
                  vaddr:=false;
@@ -1214,6 +1225,7 @@ implementation
                  cg.a_load_const_ref(current_asmdata.CurrAsmList, OS_INT,vtype,href);
                  { goto next array element }
                  advancearrayoffset(href,sizeof(pint)*2);
+{$endif not jvm or nounsupported}
                end
               else
               { normal array constructor of the same type }

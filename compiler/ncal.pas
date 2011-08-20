@@ -1628,6 +1628,12 @@ implementation
 
     function tcallnode.gen_procvar_context_tree:tnode;
       begin
+{$ifdef jvm}
+{$ifndef nounsupported}
+        result:=cnilnode.create;
+        exit;
+{$endif}
+{$endif}
         { Load tmehodpointer(right).self (either self or parentfp) }
         result:=genloadfield(ctypeconvnode.create_internal(
           right.getcopy,methodpointertype),

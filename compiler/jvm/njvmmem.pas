@@ -31,6 +31,10 @@ interface
       node,nmem,ncgmem;
 
     type
+       tjvmloadparentfpnode = class(tcgloadparentfpnode)
+         procedure pass_generate_code;override;
+       end;
+
        tjvmvecnode = class(tcgvecnode)
          function pass_1: tnode; override;
          procedure pass_generate_code;override;
@@ -45,6 +49,19 @@ implementation
       nadd,ncal,ncnv,ncon,
       aasmdata,pass_2,
       cgutils,hlcgobj,hlcgcpu;
+
+    { tjvmloadparentfpnode }
+
+    procedure tjvmloadparentfpnode.pass_generate_code;
+      begin
+{$ifndef nounsupported}
+        location_reset(location,LOC_REGISTER,OS_ADDR);
+        location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
+        hlcg.a_load_const_reg(current_asmdata.CurrAsmList,java_jlobject,0,location.register);
+{$else}
+       internalerror(2011041301);
+{$endif}
+      end;
 
 {*****************************************************************************
                              TJVMVECNODE
@@ -77,6 +94,14 @@ implementation
       var
         newsize: tcgsize;
       begin
+{$ifndef nounsupported}
+        if left.resultdef.typ=stringdef then
+          begin
+            location:=left.location;
+            exit;
+          end;
+{$endif}
+
         { This routine is not used for Strings, as they are a class type and
           you have to use charAt() there to load a character (and you cannot
           change characters; you have to create a new string in that case)
