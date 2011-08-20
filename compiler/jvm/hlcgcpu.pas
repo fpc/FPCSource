@@ -1056,6 +1056,7 @@ implementation
       procname: string;
       eledef: tdef;
       ndim: longint;
+      adddefaultlenparas: boolean;
     begin
       { load copy helper parameters on the stack }
       a_load_ref_stack(list,java_jlobject,source,prepare_stack_for_ref(list,source,false));
@@ -1063,30 +1064,20 @@ implementation
       { call copy helper }
       eledef:=tarraydef(size).elementdef;
       ndim:=1;
+      adddefaultlenparas:=true;
       case eledef.typ of
         orddef:
           begin
             case torddef(eledef).ordtype of
-              pasbool8,s8bit,u8bit,bool8bit,uchar:
-                procname:='FPC_COPY_JBYTE_ARRAY';
-              s16bit,u16bit,bool16bit,pasbool16:
-                procname:='FPC_COPY_JSHORT_ARRAY';
-              uwidechar:
-                procname:='FPC_COPY_JCHAR_ARRAY';
-              s32bit,u32bit,bool32bit,pasbool32:
-                procname:='FPC_COPY_JINT_ARRAY';
+              pasbool8,s8bit,u8bit,bool8bit,uchar,
+              s16bit,u16bit,bool16bit,pasbool16,
+              uwidechar,
+              s32bit,u32bit,bool32bit,pasbool32,
               s64bit,u64bit,bool64bit,pasbool64,scurrency:
-                procname:='FPC_COPY_JLONG_ARRAY';
+                procname:='FPC_COPY_SHALLOW_ARRAY'
               else
                 internalerror(2011020504);
             end;
-          end;
-        floatdef:
-          case tfloatdef(eledef).floattype of
-            s32real:
-              procname:='FPC_COPY_JFLOAT_ARRAY';
-            s64real:
-              procname:='FPC_COPY_JDOUBLE_ARRAY';
           end;
         arraydef:
           begin
@@ -1099,7 +1090,7 @@ implementation
                 inc(ndim)
               end;
             if (ndim=1) then
-              procname:='FPC_COPY_JOBJECT_ARRAY'
+              procname:='FPC_COPY_SHALLOW_ARRAY'
             else
               begin
                 { deepcopy=true }
@@ -1108,13 +1099,15 @@ implementation
                 a_load_const_stack(list,s32inttype,ndim,R_INTREGISTER);
                 { eletype }
                 a_load_const_stack(list,cwidechartype,ord(jvmarrtype_setlength(eledef)),R_INTREGISTER);
+                adddefaultlenparas:=false;
                 procname:='FPC_SETLENGTH_DYNARR_MULTIDIM';
               end;
           end;
         recorddef:
           procname:='FPC_COPY_JRECORD_ARRAY';
+        floatdef,
         stringdef:
-          procname:='FPC_COPY_JOBJECT_ARRAY';
+          procname:='FPC_COPY_SHALLOW_ARRAY';
         setdef,
         variantdef:
           begin
@@ -1122,11 +1115,21 @@ implementation
             internalerror(2011020505);
           end;
         else
-          procname:='FPC_COPY_JOBJECT_ARRAY';
+          procname:='FPC_COPY_SHALLOW_ARRAY';
       end;
+     if adddefaultlenparas then
+       begin
+         { -1, -1 means "copy entire array" }
+         a_load_const_stack(list,s32inttype,-1,R_INTREGISTER);
+         a_load_const_stack(list,s32inttype,-1,R_INTREGISTER);
+       end;
      g_call_system_proc(list,procname);
      if ndim=1 then
-       decstack(list,2)
+       begin
+         decstack(list,2);
+         if adddefaultlenparas then
+           decstack(list,2);
+       end
      else
        begin
          decstack(list,4);

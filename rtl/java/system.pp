@@ -280,229 +280,79 @@ function min(a,b : longint) : longint;
 
 { copying helpers }
 
-{ also for booleans }
-procedure fpc_copy_jbyte_array(src, dst: TJByteArray);
+procedure fpc_copy_shallow_array(src, dst: JLObject; srcstart: jint = -1; srccopylen: jint = -1);
   var
     srclen, dstlen: jint;
   begin
-    srclen:=length(src);
-    dstlen:=length(dst);
+    if assigned(src) then
+      srclen:=JLRArray.getLength(src)
+    else
+      srclen:=0;
+    if assigned(dst) then
+      dstlen:=JLRArray.getLength(dst)
+    else
+      dstlen:=0;
+    if srcstart=-1 then
+      srcstart:=0
+    else if srcstart>=srclen then
+      exit;
+    if srccopylen=-1 then
+      srccopylen:=srclen
+    else if srcstart+srccopylen>srclen then
+      srccopylen:=srclen-srcstart;
     { causes exception in JLSystem.arraycopy }
-    if (srclen=0) or
+    if (srccopylen=0) or
        (dstlen=0) then
       exit;
-    JLSystem.arraycopy(JLObject(src),0,JLObject(dst),0,min(srclen,dstlen));
+    JLSystem.arraycopy(src,srcstart,dst,0,min(srccopylen,dstlen));
   end;
 
 
-procedure fpc_copy_jshort_array(src, dst: TJShortArray);
-  var
-    srclen, dstlen: jint;
-  begin
-    srclen:=length(src);
-    dstlen:=length(dst);
-    { causes exception in JLSystem.arraycopy }
-    if (srclen=0) or
-       (dstlen=0) then
-      exit;
-    JLSystem.arraycopy(JLObject(src),0,JLObject(dst),0,min(srclen,dstlen));
-  end;
-
-
-procedure fpc_copy_jint_array(src, dst: TJIntArray);
-  var
-    srclen, dstlen: jint;
-  begin
-    srclen:=length(src);
-    dstlen:=length(dst);
-    { causes exception in JLSystem.arraycopy }
-    if (srclen=0) or
-       (dstlen=0) then
-      exit;
-    JLSystem.arraycopy(JLObject(src),0,JLObject(dst),0,min(srclen,dstlen));
-  end;
-
-
-procedure fpc_copy_jlong_array(src, dst: TJLongArray);
-  var
-    srclen, dstlen: jint;
-  begin
-    srclen:=length(src);
-    dstlen:=length(dst);
-    { causes exception in JLSystem.arraycopy }
-    if (srclen=0) or
-       (dstlen=0) then
-      exit;
-    JLSystem.arraycopy(JLObject(src),0,JLObject(dst),0,min(srclen,dstlen));
-  end;
-
-
-procedure fpc_copy_jchar_array(src, dst: TJCharArray);
-  var
-    srclen, dstlen: jint;
-  begin
-    srclen:=length(src);
-    dstlen:=length(dst);
-    { causes exception in JLSystem.arraycopy }
-    if (srclen=0) or
-       (dstlen=0) then
-      exit;
-    JLSystem.arraycopy(JLObject(src),0,JLObject(dst),0,min(srclen,dstlen));
-  end;
-
-
-procedure fpc_copy_jfloat_array(src, dst: TJFloatArray);
-  var
-    srclen, dstlen: jint;
-  begin
-    srclen:=length(src);
-    dstlen:=length(dst);
-    { causes exception in JLSystem.arraycopy }
-    if (srclen=0) or
-       (dstlen=0) then
-      exit;
-    JLSystem.arraycopy(JLObject(src),0,JLObject(dst),0,min(srclen,dstlen));
-  end;
-
-
-procedure fpc_copy_jdouble_array(src, dst: TJDoubleArray);
-  var
-    srclen, dstlen: jint;
-  begin
-    srclen:=length(src);
-    dstlen:=length(dst);
-    { causes exception in JLSystem.arraycopy }
-    if (srclen=0) or
-       (dstlen=0) then
-      exit;
-    JLSystem.arraycopy(JLObject(src),0,JLObject(dst),0,min(srclen,dstlen));
-  end;
-
-
-procedure fpc_copy_jobject_array(src, dst: TJObjectArray);
-  var
-    srclen, dstlen: jint;
-  begin
-    srclen:=length(src);
-    dstlen:=length(dst);
-    { causes exception in JLSystem.arraycopy }
-    if (srclen=0) or
-       (dstlen=0) then
-      exit;
-    JLSystem.arraycopy(JLObject(src),0,JLObject(dst),0,min(srclen,dstlen));
-  end;
-
-
-procedure fpc_copy_jrecord_array(src, dst: TJRecordArray);
+procedure fpc_copy_jrecord_array(src, dst: TJRecordArray; srcstart: jint = -1; srccopylen: jint = -1);
   var
     i: longint;
+    srclen, dstlen: jint;
   begin
+    srclen:=length(src);
+    dstlen:=length(dst);
+    if srcstart=-1 then
+      srcstart:=0
+    else if srcstart>=srclen then
+      exit;
+    if srccopylen=-1 then
+      srccopylen:=srclen
+    else if srcstart+srccopylen>srclen then
+      srccopylen:=srclen-srcstart;
     { no arraycopy, have to clone each element }
-    for i:=0 to min(high(src),high(dst)) do
-      dst[i]:=FpcBaseRecordType(src[i].clone);
+    for i:=0 to min(srccopylen,dstlen)-1 do
+      dst[i]:=FpcBaseRecordType(src[srcstart+i].clone);
   end;
 
 
 { 1-dimensional setlength routines }
 
-function fpc_setlength_dynarr_jbyte(aorg, anew: TJByteArray; deepcopy: boolean): TJByteArray;
+function fpc_setlength_dynarr_generic(aorg, anew: JLObject; deepcopy: boolean; docopy: boolean = true): JLObject;
+  var
+    orglen, newlen: jint;
   begin
-    if deepcopy or
-       (length(aorg)<>length(anew)) then
+    orglen:=0;
+    newlen:=0;
+    if not deepcopy then
       begin
-        fpc_copy_jbyte_array(aorg,anew);
-        result:=anew
-      end
-    else
-      result:=aorg;
-  end;
-
-
-function fpc_setlength_dynarr_jshort(aorg, anew: TJShortArray; deepcopy: boolean): TJShortArray;
-  begin
+        if assigned(aorg) then
+          orglen:=JLRArray.getLength(aorg)
+        else
+          orglen:=0;
+        if assigned(anew) then
+          newlen:=JLRArray.getLength(anew)
+        else
+          newlen:=0;
+      end;
     if deepcopy or
-       (length(aorg)<>length(anew)) then
-      begin
-        fpc_copy_jshort_array(aorg,anew);
-        result:=anew
-      end
-    else
-      result:=aorg;
-  end;
-
-
-function fpc_setlength_dynarr_jint(aorg, anew: TJIntArray; deepcopy: boolean): TJIntArray;
-  begin
-    if deepcopy or
-       (length(aorg)<>length(anew)) then
-      begin
-        fpc_copy_jint_array(aorg,anew);
-        result:=anew
-      end
-    else
-      result:=aorg;
-  end;
-
-
-function fpc_setlength_dynarr_jlong(aorg, anew: TJLongArray; deepcopy: boolean): TJLongArray;
-  begin
-    if deepcopy or
-       (length(aorg)<>length(anew)) then
-      begin
-        fpc_copy_jlong_array(aorg,anew);
-        result:=anew
-      end
-    else
-      result:=aorg;
-  end;
-
-
-function fpc_setlength_dynarr_jchar(aorg, anew: TJCharArray; deepcopy: boolean): TJCharArray;
-  begin
-    if deepcopy or
-       (length(aorg)<>length(anew)) then
-      begin
-        fpc_copy_jchar_array(aorg,anew);
-        result:=anew
-      end
-    else
-      result:=aorg;
-  end;
-
-
-function fpc_setlength_dynarr_jfloat(aorg, anew: TJFloatArray; deepcopy: boolean): TJFloatArray;
-  begin
-    if deepcopy or
-       (length(aorg)<>length(anew)) then
-      begin
-        fpc_copy_jfloat_array(aorg,anew);
-        result:=anew
-      end
-    else
-      result:=aorg;
-  end;
-
-
-function fpc_setlength_dynarr_jdouble(aorg, anew: TJDoubleArray; deepcopy: boolean): TJDoubleArray;
-  begin
-    if deepcopy or
-       (length(aorg)<>length(anew)) then
-      begin
-        fpc_copy_jdouble_array(aorg,anew);
-        result:=anew
-      end
-    else
-      result:=aorg;
-  end;
-
-
-function fpc_setlength_dynarr_jobject(aorg, anew: TJObjectArray; deepcopy: boolean; docopy : boolean = true): TJObjectArray;
-  begin
-    if deepcopy or
-       (length(aorg)<>length(anew)) then
+       (orglen<>newlen) then
       begin
         if docopy then
-          fpc_copy_jobject_array(aorg,anew);
+          fpc_copy_shallow_array(aorg,anew);
         result:=anew
       end
     else
@@ -532,7 +382,9 @@ function fpc_setlength_dynarr_multidim(aorg, anew: TJObjectArray; deepcopy: bool
   begin
     { resize the current dimension; no need to copy the subarrays of the old
       array, as the subarrays will be (re-)initialised immediately below }
-    result:=fpc_setlength_dynarr_jobject(aorg,anew,deepcopy,false);
+    { the srcstart/srccopylen always refers to the first dimension (since copy()
+      performs a shallow copy of a dynamic array }
+    result:=TJObjectArray(fpc_setlength_dynarr_generic(JLObject(aorg),JLObject(anew),deepcopy,false));
     { if aorg was empty, there's nothing else to do since result will now
       contain anew, of which all other dimensions are already initialised
       correctly since there are no aorg elements to copy }
@@ -547,69 +399,20 @@ function fpc_setlength_dynarr_multidim(aorg, anew: TJObjectArray; deepcopy: bool
       begin
         { final dimension -> copy the primitive arrays }
         case eletype of
-          FPCJDynArrTypeJByte:
-            begin
-              for i:=low(result) to partdone do
-                result[i]:=JLObject(fpc_setlength_dynarr_jbyte(TJByteArray(aorg[i]),TJByteArray(anew[i]),deepcopy));
-              for i:=succ(partdone) to high(result) do
-                result[i]:=JLObject(fpc_setlength_dynarr_jbyte(nil,TJByteArray(anew[i]),deepcopy));
-            end;
-          FPCJDynArrTypeJShort:
-            begin
-              for i:=low(result) to partdone do
-                result[i]:=JLObject(fpc_setlength_dynarr_jshort(TJShortArray(aorg[i]),TJShortArray(anew[i]),deepcopy));
-              for i:=succ(partdone) to high(result) do
-                result[i]:=JLObject(fpc_setlength_dynarr_jshort(nil,TJShortArray(anew[i]),deepcopy));
-            end;
-          FPCJDynArrTypeJInt:
-            begin
-              for i:=low(result) to partdone do
-                result[i]:=JLObject(fpc_setlength_dynarr_jint(TJIntArray(aorg[i]),TJIntArray(anew[i]),deepcopy));
-              for i:=succ(partdone) to high(result) do
-                result[i]:=JLObject(fpc_setlength_dynarr_jint(nil,TJIntArray(anew[i]),deepcopy));
-            end;
-          FPCJDynArrTypeJLong:
-            begin
-              for i:=low(result) to partdone do
-                result[i]:=JLObject(fpc_setlength_dynarr_jlong(TJLongArray(aorg[i]),TJLongArray(anew[i]),deepcopy));
-              for i:=succ(partdone) to high(result) do
-                result[i]:=JLObject(fpc_setlength_dynarr_jlong(nil,TJLongArray(anew[i]),deepcopy));
-            end;
-          FPCJDynArrTypeJChar:
-            begin
-              for i:=low(result) to partdone do
-                result[i]:=JLObject(fpc_setlength_dynarr_jchar(TJCharArray(aorg[i]),TJCharArray(anew[i]),deepcopy));
-              for i:=succ(partdone) to high(result) do
-                result[i]:=JLObject(fpc_setlength_dynarr_jchar(nil,TJCharArray(anew[i]),deepcopy));
-            end;
-          FPCJDynArrTypeJFloat:
-            begin
-              for i:=low(result) to partdone do
-                result[i]:=JLObject(fpc_setlength_dynarr_jfloat(TJFloatArray(aorg[i]),TJFloatArray(anew[i]),deepcopy));
-              for i:=succ(partdone) to high(result) do
-                result[i]:=JLObject(fpc_setlength_dynarr_jfloat(nil,TJFloatArray(anew[i]),deepcopy));
-            end;
-          FPCJDynArrTypeJDouble:
-            begin
-              for i:=low(result) to partdone do
-                result[i]:=JLObject(fpc_setlength_dynarr_jdouble(TJDoubleArray(aorg[i]),TJDoubleArray(anew[i]),deepcopy));
-              for i:=succ(partdone) to high(result) do
-                result[i]:=JLObject(fpc_setlength_dynarr_jdouble(nil,TJDoubleArray(anew[i]),deepcopy));
-            end;
-          FPCJDynArrTypeJObject:
-            begin
-              for i:=low(result) to partdone do
-                result[i]:=JLObject(fpc_setlength_dynarr_jobject(TJObjectArray(aorg[i]),TJObjectArray(anew[i]),deepcopy,true));
-              for i:=succ(partdone) to high(result) do
-                result[i]:=JLObject(fpc_setlength_dynarr_jobject(nil,TJObjectArray(anew[i]),deepcopy,true));
-            end;
           FPCJDynArrTypeRecord:
             begin
               for i:=low(result) to partdone do
                 result[i]:=JLObject(fpc_setlength_dynarr_jrecord(TJRecordArray(aorg[i]),TJRecordArray(anew[i]),deepcopy));
               for i:=succ(partdone) to high(result) do
                 result[i]:=JLObject(fpc_setlength_dynarr_jrecord(nil,TJRecordArray(anew[i]),deepcopy));
-          end;
+            end;
+          else
+            begin
+              for i:=low(result) to partdone do
+                result[i]:=fpc_setlength_dynarr_generic(aorg[i],anew[i],deepcopy);
+              for i:=succ(partdone) to high(result) do
+                result[i]:=fpc_setlength_dynarr_generic(nil,anew[i],deepcopy);
+            end;
         end;
       end
     else

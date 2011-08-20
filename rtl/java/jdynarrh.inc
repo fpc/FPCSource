@@ -44,27 +44,13 @@ const
     size specified to setlength. The function either returns org if it had the
     right size already, or copies (part of) org in new and returns new.
 }
-function fpc_setlength_dynarr_jbyte(aorg, anew: TJByteArray; deepcopy: boolean): TJByteArray;
-function fpc_setlength_dynarr_jshort(aorg, anew: TJShortArray; deepcopy: boolean): TJShortArray;
-function fpc_setlength_dynarr_jint(aorg, anew: TJIntArray; deepcopy: boolean): TJIntArray;
-function fpc_setlength_dynarr_jlong(aorg, anew: TJLongArray; deepcopy: boolean): TJLongArray;
-function fpc_setlength_dynarr_jchar(aorg, anew: TJCharArray; deepcopy: boolean): TJCharArray;
-function fpc_setlength_dynarr_jfloat(aorg, anew: TJFloatArray; deepcopy: boolean): TJFloatArray;
-function fpc_setlength_dynarr_jdouble(aorg, anew: TJDoubleArray; deepcopy: boolean): TJDoubleArray;
-function fpc_setlength_dynarr_jobject(aorg, anew: TJObjectArray; deepcopy: boolean; docopy : boolean = true): TJObjectArray;
+function fpc_setlength_dynarr_generic(aorg, anew: JLObject; deepcopy: boolean; docopy: boolean = true): JLObject;
 function fpc_setlength_dynarr_jrecord(aorg, anew: TJRecordArray; deepcopy: boolean): TJRecordArray;
 
 { array copying helpers }
 
-procedure fpc_copy_jbyte_array(src, dst: TJByteArray);
-procedure fpc_copy_jshort_array(src, dst: TJShortArray);
-procedure fpc_copy_jint_array(src, dst: TJIntArray);
-procedure fpc_copy_jlong_array(src, dst: TJLongArray);
-procedure fpc_copy_jchar_array(src, dst: TJCharArray);
-procedure fpc_copy_jfloat_array(src, dst: TJFloatArray);
-procedure fpc_copy_jdouble_array(src, dst: TJDoubleArray);
-procedure fpc_copy_jobject_array(src, dst: TJObjectArray);
-procedure fpc_copy_jrecord_array(src, dst: TJRecordArray);
+procedure fpc_copy_shallow_array(src, dst: JLObject; srcstart: jint = -1; srccopylen: jint = -1);
+procedure fpc_copy_jrecord_array(src, dst: TJRecordArray; srcstart: jint = -1; srccopylen: jint = -1);
 
 { multi-dimendional setlength routine: all intermediate dimensions are arrays
   of arrays, so that's the same for all array kinds. Only the type of the final

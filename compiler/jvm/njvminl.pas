@@ -286,45 +286,33 @@ implementation
           assignmenttarget:=tcallparanode(left).left.getcopy;
         newparas:=left;
         left:=nil;
-        { if more than 1 dimension, or if 1 dimention of a non-primitive type,
-          typecast to generic array of tobject }
-        setlenroutine:=jvmarrtype(eledef,primitive);
         finaltype:=jvmarrtype_setlength(eledef);
-
         { since the setlength prototypes require certain types, insert
           explicit type conversions where necessary }
         objarraydef:=nil;
-        { all arrays, records and object types need to be handled as JLObject }
-        if (ndims>1) or
-           not primitive then
-          objarraydef:=search_system_type('TJOBJECTARRAY').typedef
-        { insert type conversion, because this is used both for signed and
-          unsigned types }
-        else case finaltype of
-          'Z': { boolean is always the same };
-          'C': { char is always the same };
-          'B':
-            { jbyte: used for both shortint and byte }
-            objarraydef:=search_system_type('TJBYTEARRAY').typedef;
-          'S':
-            { jshort: used for both smallint and word }
-            objarraydef:=search_system_type('TJSHORTARRAY').typedef;
-          'I':
-            { jshort: used for both smallint and word }
-            objarraydef:=search_system_type('TJINTARRAY').typedef;
-          'J':
-            { jshort: used for both smallint and word }
-            objarraydef:=search_system_type('TJLONGARRAY').typedef;
-          'F': { float is always the same };
-          'D': { double is always the same };
-          else
-            internalerror(2011040705);
-          end;
-        if assigned(objarraydef) then
+        if (ndims>1) then
           begin
-            tcallparanode(newparas).left:=ctypeconvnode.create_explicit(tcallparanode(newparas).left,objarraydef);
-            newnode:=ctypeconvnode.create_explicit(newnode,objarraydef);
+            { expects array of JLObject }
+            setlenroutine:='FPC_SETLENGTH_DYNARR_MULTIDIM';
+            objarraydef:=search_system_type('TJOBJECTARRAY').typedef
+          end
+        else
+          begin
+            if finaltype<>'R' then
+              begin
+                { expects JLObject }
+                setlenroutine:='FPC_SETLENGTH_DYNARR_GENERIC';
+                objarraydef:=java_jlobject;
+              end
+            else
+              begin
+                { expects array of FpcBaseRecord}
+                setlenroutine:='FPC_SETLENGTH_DYNARR_JRECORD';
+                objarraydef:=search_system_type('TJRECORDARRAY').typedef;
+              end;
           end;
+        tcallparanode(newparas).left:=ctypeconvnode.create_explicit(tcallparanode(newparas).left,objarraydef);
+        newnode:=ctypeconvnode.create_explicit(newnode,objarraydef);
         { prepend new }
         newparas:=ccallparanode.create(newnode,newparas);
         { prepend deepcopy }
@@ -332,7 +320,6 @@ implementation
         { call the right setlenght helper }
         if ndims>1 then
           begin
-            setlenroutine:='FPC_SETLENGTH_DYNARR_MULTIDIM';
             { create proper parameters, from right to left:
                eletype=finaltype, ndim=ndims, deepcopy=false, new=newnode,
                assignmenttarget=tcallparanode(left).left }
@@ -343,11 +330,6 @@ implementation
           end
         else
           begin
-            if not primitive then
-              setlenroutine:='OBJECT'
-            else
-              uppervar(setlenroutine);
-            setlenroutine:='FPC_SETLENGTH_DYNARR_J'+setlenroutine;
             { create proper parameters, from right to left:
                deepcopy=false, new=newnode, assignmenttarget=tcallparnode(left).left
               -> already done in common part above }
