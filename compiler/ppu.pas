@@ -789,11 +789,10 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
-{$ifdef cpu64bitalu}
-  result:=getint64;
-{$else cpu64bitalu}
-  result:=getlongint;
-{$endif cpu64bitalu}
+  if sizeof(aint)=8 then
+    result:=getint64
+  else
+    result:=getlongint;
 {$endif not generic_cpu}
 end;
 
@@ -813,11 +812,10 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
-{$ifdef cpu64bitaddr}
-  result:=getint64;
-{$else cpu64bitaddr}
-  result:=getlongint;
-{$endif cpu32bitaddr}
+  if sizeof(asizeint)=8 then
+    result:=getint64
+  else
+    result:=getlongint;
 {$endif not generic_cpu}
 end;
 
@@ -839,11 +837,10 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
-{$ifdef cpu64bitalu}
-  result:=getqword;
-{$else cpu64bitalu}
-  result:=getdword;
-{$endif cpu64bitalu}
+  if sizeof(aword)=8 then
+    result:=getqword
+  else
+    result:=getdword;
 {$endif not generic_cpu}
 end;
 
