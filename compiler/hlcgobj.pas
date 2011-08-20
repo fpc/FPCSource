@@ -1344,20 +1344,19 @@ implementation
     var
       tmpreg: tregister;
     begin
+      tmpreg:=getintregister(list,size);
+      a_load_ref_reg(list,size,size,ref,tmpreg);
       case op of
         OP_NOT,OP_NEG:
-          { handle it as "load ref,reg; op reg" }
           begin
-            a_load_ref_reg(list,size,size,ref,reg);
-            a_op_reg_reg(list,op,size,reg,reg);
+            a_op_reg_reg(list,op,size,tmpreg,tmpreg);
           end;
         else
           begin
-            tmpreg:=getintregister(list,size);
-            a_load_ref_reg(list,size,size,ref,tmpreg);
-            a_op_reg_reg(list,op,size,tmpreg,reg);
+            a_op_reg_reg(list,op,size,reg,tmpreg);
           end;
       end;
+      a_load_reg_ref(list,size,size,tmpreg,ref);
     end;
 
   procedure thlcgobj.a_op_ref_reg(list: TAsmList; Op: TOpCG; size: tdef; const ref: TReference; reg: TRegister);
