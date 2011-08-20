@@ -301,6 +301,11 @@ interface
         system_x86_64_freebsd,
         system_x86_64_solaris];
 
+       { all systems that use garbage collection for reference-counted types }
+       systems_garbage_collected_managed_types = [
+         system_jvm_java32
+       ];
+
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm');

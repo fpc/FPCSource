@@ -717,7 +717,8 @@ implementation
         else if is_managed_type(left.resultdef) and
             (left.resultdef.typ in [arraydef,objectdef,recorddef]) and
             not is_interfacecom_or_dispinterface(left.resultdef) and
-            not is_dynamic_array(left.resultdef) then
+            not is_dynamic_array(left.resultdef) and
+            not(target_info.system in systems_garbage_collected_managed_types) then
          begin
            hp:=ccallparanode.create(caddrnode.create_internal(
                   crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
@@ -734,7 +735,8 @@ implementation
          end
         { call helpers for variant, they can contain non ref. counted types like
           vararrays which must be really copied }
-        else if left.resultdef.typ=variantdef then
+        else if (left.resultdef.typ=variantdef) and
+            not(target_info.system in systems_garbage_collected_managed_types)  then
          begin
            hp:=ccallparanode.create(ctypeconvnode.create_internal(
                  caddrnode.create_internal(right),voidpointertype),
