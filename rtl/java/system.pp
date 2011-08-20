@@ -426,6 +426,42 @@ function fpc_setlength_dynarr_multidim(aorg, anew: TJObjectArray; deepcopy: bool
   end;
 
 
+function fpc_dynarray_copy(src: JLObject; start, len: longint; ndim: longint; eletype: jchar): JLObject;
+  var
+    i: longint;
+    srclen: longint;
+  begin
+    if not assigned(src) then
+      begin
+        result:=nil;
+        exit;
+      end;
+    srclen:=JLRArray.getLength(src);
+    if (start=-1) and
+       (len=-1) then
+      begin
+        len:=srclen;
+        start:=0;
+      end
+    else if (start+len>srclen) then
+      len:=srclen-start+1;
+    result:=JLRArray.newInstance(src.getClass.getComponentType,len);
+    if ndim=1 then
+      begin
+        case eletype of
+          FPCJDynArrTypeRecord:
+            fpc_copy_jrecord_array(TJRecordArray(src),TJRecordArray(result),start,len);
+          else
+            fpc_copy_shallow_array(src,result,start,len);
+        end
+      end
+    else
+      begin
+        for i:=0 to len-1 do
+          TJObjectArray(result)[i]:=fpc_dynarray_copy(TJObjectArray(src)[start+i],-1,-1,ndim-1,eletype);
+      end;
+  end;
+
 
 {i jdynarr.inc end}
 

@@ -36,6 +36,8 @@ interface
           function typecheck_high(var handled: boolean): tnode;
           function typecheck_new(var handled: boolean): tnode;
 
+          function first_copy: tnode; override;
+
           function first_setlength_array: tnode;
           function first_setlength_string: tnode;
          public
@@ -159,6 +161,76 @@ implementation
             resultdef:=left.resultdef;
             handled:=true;
           end;
+      end;
+
+
+    function tjvminlinenode.first_copy: tnode;
+      var
+        ppn: tcallparanode;
+        arr, len, start, kind: tnode;
+        eledef: tdef;
+        counter, ndims: longint;
+        finaltype: char;
+      begin
+        if is_dynamic_array(resultdef) then
+          begin
+            ppn:=tcallparanode(left);
+            counter:=1;
+            while assigned(ppn.right) do
+              begin
+                inc(counter);
+                ppn:=tcallparanode(ppn.right);
+              end;
+            if (counter=3) then
+              begin
+                len:=tcallparanode(left).left;
+                tcallparanode(left).left:=nil;
+                start:=tcallparanode(tcallparanode(left).right).left;
+                tcallparanode(tcallparanode(left).right).left:=nil;
+                { free the original start/len paras and remove them }
+                ppn:=tcallparanode(left);
+                left:=tcallparanode(tcallparanode(left).right).right;
+                tcallparanode(ppn.right).right:=nil;
+                ppn.free;
+              end
+            else
+              begin
+                { use special -1,-1 argument to copy the whole array }
+                len:=genintconstnode(-1);
+                start:=genintconstnode(-1);
+              end;
+            { currently there is one parameter left: the array itself }
+            arr:=tcallparanode(left).left;
+            tcallparanode(left).left:=nil;
+            { in case it's a dynamic array of static arrays, get the dimensions
+              of the static array components }
+            eledef:=tarraydef(resultdef).elementdef;
+            ndims:=1;
+            while (eledef.typ=arraydef) and
+                  not is_dynamic_array(eledef) do
+              begin
+                inc(ndims);
+                eledef:=tarraydef(eledef).elementdef;
+              end;
+            { get the final element kind }
+            finaltype:=jvmarrtype_setlength(eledef);
+            { construct the call to
+                fpc_dynarray_copy(src: JLObject; start, len: longint; ndim: longint; eletype: jchar) }
+            result:=ccallnode.createintern('FPC_DYNARRAY_COPY',
+              ccallparanode.create(cordconstnode.create(ord(finaltype),cwidechartype,false),
+                ccallparanode.create(genintconstnode(ndims),
+                  ccallparanode.create(len,
+                    ccallparanode.create(start,
+                      ccallparanode.create(ctypeconvnode.create_explicit(arr,java_jlobject),nil)
+                    )
+                  )
+                )
+              )
+            );
+            inserttypeconv_explicit(result,resultdef);
+          end
+        else
+          result:=inherited first_copy;
       end;
 
 

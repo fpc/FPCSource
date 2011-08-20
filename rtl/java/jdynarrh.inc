@@ -66,3 +66,6 @@ procedure fpc_copy_jrecord_array(src, dst: TJRecordArray; srcstart: jint = -1; s
 }
 function fpc_setlength_dynarr_multidim(aorg, anew: TJObjectArray; deepcopy: boolean; ndim: longint; eletype: jchar): TJObjectArray;
 
+
+function fpc_dynarray_copy(src: JLObject; start, len: longint; ndim: longint; eletype: jchar): JLObject;
+
