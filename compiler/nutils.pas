@@ -542,6 +542,8 @@ implementation
             case p.nodetype of
               { floating point constants usually need loading from memory }
               realconstn,
+              setconstn,
+              stringconstn,
               temprefn,
               loadvmtaddrn,
               { main reason for the next one: we can't take the address of }
@@ -635,7 +637,6 @@ implementation
 {$endif ARM}
                   exit;
                 end;
-              stringconstn,
               tempcreaten,
               tempdeleten,
               pointerconstn,
