@@ -1452,7 +1452,7 @@ implementation
       { This routine is a combination of a generalised a_loadaddr_ref_reg()
         that also works for addresses in registers (in case loadref is false)
         and of a_load_ref_reg (in case loadref is true). It is used for
-        a) getting the address of managed types
+        a) getting the address of managed var/out parameters
         b) getting to the actual data of value types that are passed by
            reference by the compiler (and then get a local copy at the caller
            side). Normally, depending on whether this reference is passed in a
@@ -1470,32 +1470,43 @@ implementation
 
         However, managed types are also implicit pointers in Pascal, so in that
         case "taking the address" again consists of simply returning the
-        implicit pointer/current value.
+        implicit pointer/current value (in case of a var/out parameter, this
+        value is stored inside an array).
       }
       if not loadref then
         begin
           if not is_managed_type(def) then
             internalerror(2011020601);
+          tmploc:=l;
         end
       else
         begin
           if not jvmimplicitpointertype(def) then
-            internalerror(2011020602);
+            begin
+              { passed by reference in array of single element; l contains the
+                base address of the array }
+              location_reset_ref(tmploc,LOC_REFERENCE,OS_ADDR,4);
+              reference_reset_base(tmploc.reference,getaddressregister(list,java_jlobject),0,4);
+              tmploc.reference.arrayreftype:=art_indexconst;
+              tmploc.reference.indexoffset:=0;
+              a_load_loc_reg(list,java_jlobject,java_jlobject,l,tmploc.reference.base);
+            end
+          else
+            tmploc:=l;
         end;
-      case l.loc of
+      case tmploc.loc of
         LOC_REGISTER,
         LOC_CREGISTER :
           begin
             { the implicit pointer is in a register and has to be in a
               reference -> create a reference and put it there }
-            tmploc:=l;
             location_force_mem(list,tmploc,java_jlobject);
             ref:=tmploc.reference;
           end;
         LOC_REFERENCE,
         LOC_CREFERENCE :
           begin
-            ref:=l.reference;
+            ref:=tmploc.reference;
           end;
         else
           internalerror(2011020603);
