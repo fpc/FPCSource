@@ -160,15 +160,22 @@ implementation
              { here we don't have to reset flowcontrol           }
              { the default and on flowcontrols are handled equal }
 
-             { pop the exception object from the stack }
+             { get the exception object from the stack and store it for use by
+               the exception code (in case of an anonymous "raise") }
              current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
+             location_reset_ref(current_except_loc,LOC_REFERENCE,OS_ADDR,4);
+             tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),java_jlthrowable,current_except_loc.reference);
              thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
-             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_pop));
-             thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+             thlcgjvm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,java_jlthrowable,current_except_loc);
              current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
 
              { and generate the exception handling code }
              secondpass(t1);
+
+             { free the temp containing the exception and invalidate }
+             tg.UngetLocal(current_asmdata.CurrAsmList,current_except_loc.reference);
+             current_except_loc.loc:=LOC_INVALID;
+
              exceptflowcontrol:=flowcontrol;
            end;
          hlcg.a_label(current_asmdata.CurrAsmList,endexceptlabel);
