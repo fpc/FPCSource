@@ -352,6 +352,7 @@ compiler/ncgutil.pas svneol=native#text/plain
 compiler/ncnv.pas svneol=native#text/plain
 compiler/ncon.pas svneol=native#text/plain
 compiler/nflw.pas svneol=native#text/plain
+compiler/ngenutil.pas svneol=native#text/plain
 compiler/ninl.pas svneol=native#text/plain
 compiler/nld.pas svneol=native#text/plain
 compiler/nmat.pas svneol=native#text/plain

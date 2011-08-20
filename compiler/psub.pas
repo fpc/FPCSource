@@ -85,7 +85,7 @@ implementation
        paramgr,
        ppu,fmodule,
        { pass 1 }
-       nutils,nld,ncal,ncon,nflw,nadd,ncnv,nmem,
+       nutils,ngenutil,nld,ncal,ncon,nflw,nadd,ncnv,nmem,
        pass_1,
     {$ifdef state_tracking}
        nstate,
@@ -467,7 +467,7 @@ implementation
                             caddnode.create(unequaln,
                               ctypeconvnode.create_internal(load_vmt_pointer_node,voidpointertype),
                               cnilnode.create),
-                            finalize_data_node(load_self_node),
+                            cnodeutils.finalize_data_node(load_self_node),
                             nil));
                         end;
                       { parameter 3 : vmt_offset }
@@ -515,7 +515,7 @@ implementation
                is_managed_type(current_procinfo.procdef.returndef) and
                (not paramanager.ret_in_param(current_procinfo.procdef.returndef, current_procinfo.procdef.proccalloption)) and
                (not is_class(current_procinfo.procdef.returndef)) then
-              addstatement(newstatement,finalize_data_node(load_result_node));
+              addstatement(newstatement,cnodeutils.finalize_data_node(load_result_node));
 {$if defined(x86) or defined(arm)}
             { safecall handling }
             if (tf_safecall_exceptions in target_info.flags) and

@@ -52,7 +52,7 @@ implementation
        symbase,symconst,symdef,symsym,symtable,defutil,
        { pass 1 }
        pass_1,htypechk,
-       nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,
+       nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,ngenutil,
        { parser }
        scanner,
        pbase,pexpr,
@@ -314,7 +314,7 @@ implementation
                      { create call to fpc_initialize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) or
                        ((m_iso in current_settings.modeswitches) and (tpointerdef(p.resultdef).pointeddef.typ=filedef)) then
-                       addstatement(newstatement,initialize_data_node(cderefnode.create(ctemprefnode.create(temp))));
+                       addstatement(newstatement,cnodeutils.initialize_data_node(cderefnode.create(ctemprefnode.create(temp))));
 
                      { copy the temp to the destination }
                      addstatement(newstatement,cassignmentnode.create(
@@ -328,7 +328,7 @@ implementation
                    begin
                      { create call to fpc_finalize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) then
-                       addstatement(newstatement,finalize_data_node(cderefnode.create(p.getcopy)));
+                       addstatement(newstatement,cnodeutils.finalize_data_node(cderefnode.create(p.getcopy)));
 
                      { create call to fpc_freemem }
                      para := ccallparanode.create(p,nil);
@@ -635,9 +635,9 @@ implementation
         else
          begin
            if isinit then
-             newblock:=initialize_data_node(ppn.left)
+             newblock:=cnodeutils.initialize_data_node(ppn.left)
            else
-             newblock:=finalize_data_node(ppn.left);
+             newblock:=cnodeutils.finalize_data_node(ppn.left);
          end;
         ppn.left:=nil;
         paras.free;

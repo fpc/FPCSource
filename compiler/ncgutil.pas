@@ -172,7 +172,7 @@ implementation
     procinfo,paramgr,fmodule,
     regvars,dbgbase,
     pass_1,pass_2,
-    nbas,ncon,nld,nmem,nutils,
+    nbas,ncon,nld,nmem,nutils,ngenutil,
     tgobj,cgobj,cgcpu,hlcgobj,hlcgcpu
 {$ifdef powerpc}
     , cpupi
@@ -1494,7 +1494,7 @@ implementation
           begin
             OldAsmList:=current_asmdata.CurrAsmList;
             current_asmdata.CurrAsmList:=TAsmList(arg);
-            hp:=initialize_data_node(cloadnode.create(tsym(p),tsym(p).owner));
+            hp:=cnodeutils.initialize_data_node(cloadnode.create(tsym(p),tsym(p).owner));
             firstpass(hp);
             secondpass(hp);
             hp.free;
@@ -1514,7 +1514,7 @@ implementation
         hp:=cloadnode.create(sym,sym.owner);
         if (sym.typ=staticvarsym) and (vo_force_finalize in tstaticvarsym(sym).varoptions) then
           include(hp.flags,nf_isinternal_ignoreconst);
-        hp:=finalize_data_node(hp);
+        hp:=cnodeutils.finalize_data_node(hp);
         firstpass(hp);
         secondpass(hp);
         hp.free;

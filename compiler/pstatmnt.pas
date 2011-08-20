@@ -50,7 +50,7 @@ implementation
        paramgr,symutil,
        { pass 1 }
        pass_1,htypechk,
-       nutils,nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
+       nutils,ngenutil,nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
        pbase,pexpr,
@@ -1145,7 +1145,7 @@ implementation
                 if (current_procinfo.procdef.proctypeoption<>potype_constructor) then
                   Message(parser_e_fail_only_in_constructor);
                 consume(_FAIL);
-                code:=call_fail_node;
+                code:=cnodeutils.call_fail_node;
              end;
            _ASM :
              code:=_asm_statement;
