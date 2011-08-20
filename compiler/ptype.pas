@@ -982,7 +982,7 @@ implementation
            begin
              { for the JVM target records always need a name, because they are
                represented by a class }
-             recst:=trecordsymtable.create('fpc_intern_recname_'+tostr(symtablestack.top.deflist.count),current_settings.packrecords);
+             recst:=trecordsymtable.create(current_module.realmodulename^+'__fpc_intern_recname_'+tostr(current_module.deflist.count),current_settings.packrecords);
              current_structdef:=trecorddef.create(recst.name^,recst);
            end;
          result:=current_structdef;
