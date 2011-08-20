@@ -917,8 +917,9 @@ implementation
 {$ifndef nounsupported}
       if checkdef.typ=procvardef then
         checkdef:=java_jlobject
+      else
 {$endif}
-      else if is_wide_or_unicode_string(checkdef) then
+      if is_wide_or_unicode_string(checkdef) then
         checkdef:=java_jlstring
       else if is_ansistring(checkdef) then
         checkdef:=java_ansistring
