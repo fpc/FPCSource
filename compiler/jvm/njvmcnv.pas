@@ -673,7 +673,10 @@ implementation
         toarrtype: char;
       begin
         resnode:=nil;
-        if not(convtype in [tc_equal,tc_int_2_int,tc_int_2_bool,tc_bool_2_int]) then
+        if not(convtype in [tc_equal,tc_int_2_int,tc_int_2_bool,tc_bool_2_int,tc_class_2_intf]) or
+           ((convtype in [tc_equal,tc_int_2_int,tc_bool_2_int,tc_int_2_bool]) and
+            ((left.resultdef.typ=orddef) and
+             (resultdef.typ=orddef))) then
           begin
             result:=false;
             exit
