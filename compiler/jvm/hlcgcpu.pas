@@ -692,10 +692,8 @@ implementation
       a_load_loc_stack(list,java_jlobject,arrloc);
       list.concat(taicpu.op_none(a_dup));
       incstack(list,1);
-      list.concat(taicpu.op_none(a_aconst_null));
-      incstack(list,1);
-      list.concat(taicpu.op_sym(a_if_acmpeq,nillab));
-      decstack(list,2);
+      list.concat(taicpu.op_sym(a_ifnull,nillab));
+      decstack(list,1);
 
       { ... then result:=arraylength(arr) ... }
       list.concat(taicpu.op_none(a_arraylength));
