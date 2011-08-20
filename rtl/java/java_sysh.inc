@@ -1,4 +1,4 @@
-{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.Boolean, java.lang.Byte, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Enum, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.Integer, java.lang.Iterable, java.lang.LinkageError, java.lang.Long, java.lang.Math, java.lang.NoSuchMethodException, java.lang.Number, java.lang.Object, java.lang.RuntimeException, java.lang.Short, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.lang.reflect.AccessibleObject, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.GenericDeclaration, java.lang.reflect.Member, java.lang.reflect.Method, java.lang.reflect.Type, java.text.Collator, java.util.AbstractCollection, java.util.AbstractMap, java.util.AbstractSet, java.util.Arrays, java.util.BitSet, java.util.Collection, java.util.Comparator, java.util.EnumSet, java.util.HashMap, java.util.Iterator, java.util.Map, java.util.Set }
+{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.Boolean, java.lang.Byte, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Enum, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.Integer, java.lang.Iterable, java.lang.LinkageError, java.lang.Long, java.lang.Math, java.lang.NoSuchMethodException, java.lang.Number, java.lang.Object, java.lang.Runtime, java.lang.RuntimeException, java.lang.Short, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.lang.reflect.AccessibleObject, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.GenericDeclaration, java.lang.reflect.Member, java.lang.reflect.Method, java.lang.reflect.Type, java.math.BigInteger, java.text.Collator, java.util.AbstractCollection, java.util.AbstractMap, java.util.AbstractSet, java.util.Arrays, java.util.BitSet, java.util.Calendar, java.util.Collection, java.util.Comparator, java.util.EnumSet, java.util.HashMap, java.util.Iterator, java.util.Map, java.util.Set }
 type
   JLNoSuchMethodException = class;
   Arr1JLNoSuchMethodException = array of JLNoSuchMethodException;
@@ -50,6 +50,11 @@ type
   Arr2JLCharacter = array of Arr1JLCharacter;
   Arr3JLCharacter = array of Arr2JLCharacter;
 
+  JMBigInteger = class;
+  Arr1JMBigInteger = array of JMBigInteger;
+  Arr2JMBigInteger = array of Arr1JMBigInteger;
+  Arr3JMBigInteger = array of Arr2JMBigInteger;
+
   JUArrays = class;
   Arr1JUArrays = array of JUArrays;
   Arr2JUArrays = array of Arr1JUArrays;
@@ -59,6 +64,11 @@ type
   Arr1JLBoolean = array of JLBoolean;
   Arr2JLBoolean = array of Arr1JLBoolean;
   Arr3JLBoolean = array of Arr2JLBoolean;
+
+  JLRuntime = class;
+  Arr1JLRuntime = array of JLRuntime;
+  Arr2JLRuntime = array of Arr1JLRuntime;
+  Arr3JLRuntime = array of Arr2JLRuntime;
 
   JLLong = class;
   Arr1JLLong = array of JLLong;
@@ -134,6 +144,11 @@ type
   Arr1JLDouble = array of JLDouble;
   Arr2JLDouble = array of Arr1JLDouble;
   Arr3JLDouble = array of Arr2JLDouble;
+
+  JUCalendar = class;
+  Arr1JUCalendar = array of JUCalendar;
+  Arr2JUCalendar = array of Arr1JUCalendar;
+  Arr3JUCalendar = array of Arr2JUCalendar;
 
   JTCollator = class;
   Arr1JTCollator = array of JTCollator;
@@ -260,6 +275,11 @@ type
   Arr2JISerializable = array of Arr1JISerializable;
   Arr3JISerializable = array of Arr2JISerializable;
 
+  JIFile = class external 'java.io' name 'File';
+  Arr1JIFile = array of JIFile;
+  Arr2JIFile = array of Arr1JIFile;
+  Arr3JIFile = array of Arr2JIFile;
+
   JLStackTraceElement = class external 'java.lang' name 'StackTraceElement';
   Arr1JLStackTraceElement = array of JLStackTraceElement;
   Arr2JLStackTraceElement = array of Arr1JLStackTraceElement;
@@ -269,6 +289,16 @@ type
   Arr1JLClassLoader = array of JLClassLoader;
   Arr2JLClassLoader = array of Arr1JLClassLoader;
   Arr3JLClassLoader = array of Arr2JLClassLoader;
+
+  JUDate = class external 'java.util' name 'Date';
+  Arr1JUDate = array of JUDate;
+  Arr2JUDate = array of Arr1JUDate;
+  Arr3JUDate = array of Arr2JUDate;
+
+  JLThread = class external 'java.lang' name 'Thread';
+  Arr1JLThread = array of JLThread;
+  Arr2JLThread = array of Arr1JLThread;
+  Arr3JLThread = array of Arr2JLThread;
 
   JUProperties = class external 'java.util' name 'Properties';
   Arr1JUProperties = array of JUProperties;
@@ -290,15 +320,15 @@ type
   Arr2JSProtectionDomain = array of Arr1JSProtectionDomain;
   Arr3JSProtectionDomain = array of Arr2JSProtectionDomain;
 
-  JIPrintStream = class external 'java.io' name 'PrintStream';
-  Arr1JIPrintStream = array of JIPrintStream;
-  Arr2JIPrintStream = array of Arr1JIPrintStream;
-  Arr3JIPrintStream = array of Arr2JIPrintStream;
-
   JLRField = class external 'java.lang.reflect' name 'Field';
   Arr1JLRField = array of JLRField;
   Arr2JLRField = array of Arr1JLRField;
   Arr3JLRField = array of Arr2JLRField;
+
+  JIPrintStream = class external 'java.io' name 'PrintStream';
+  Arr1JIPrintStream = array of JIPrintStream;
+  Arr2JIPrintStream = array of Arr1JIPrintStream;
+  Arr3JIPrintStream = array of Arr2JIPrintStream;
 
   JTCollationKey = class external 'java.text' name 'CollationKey';
   Arr1JTCollationKey = array of JTCollationKey;
@@ -325,6 +355,11 @@ type
   Arr2JNURL = array of Arr1JNURL;
   Arr3JNURL = array of Arr2JNURL;
 
+  JLProcess = class external 'java.lang' name 'Process';
+  Arr1JLProcess = array of JLProcess;
+  Arr2JLProcess = array of Arr1JLProcess;
+  Arr3JLProcess = array of Arr2JLProcess;
+
   JIConsole = class external 'java.io' name 'Console';
   Arr1JIConsole = array of JIConsole;
   Arr2JIConsole = array of Arr1JIConsole;
@@ -339,6 +374,21 @@ type
   Arr1JNCCharset = array of JNCCharset;
   Arr2JNCCharset = array of Arr1JNCCharset;
   Arr3JNCCharset = array of Arr2JNCCharset;
+
+  JUTimeZone = class external 'java.util' name 'TimeZone';
+  Arr1JUTimeZone = array of JUTimeZone;
+  Arr2JUTimeZone = array of Arr1JUTimeZone;
+  Arr3JUTimeZone = array of Arr2JUTimeZone;
+
+  JURandom = class external 'java.util' name 'Random';
+  Arr1JURandom = array of JURandom;
+  Arr2JURandom = array of Arr1JURandom;
+  Arr3JURandom = array of Arr2JURandom;
+
+  JIOutputStream = class external 'java.io' name 'OutputStream';
+  Arr1JIOutputStream = array of JIOutputStream;
+  Arr2JIOutputStream = array of Arr1JIOutputStream;
+  Arr3JIOutputStream = array of Arr2JIOutputStream;
 
   JUList = interface external 'java.util' name 'List';
   Arr1JUList = array of JUList;

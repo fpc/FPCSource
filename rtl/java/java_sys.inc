@@ -106,6 +106,39 @@
     class function scalb(para1: jfloat; para2: jint): jfloat; static; overload;
   end;
 
+  JLRuntime = class external 'java.lang' name 'Runtime' (JLObject)
+  public
+    class function getRuntime(): JLRuntime; static; overload;
+    procedure exit(para1: jint); overload; virtual;
+    procedure addShutdownHook(para1: JLThread); overload; virtual;
+    function removeShutdownHook(para1: JLThread): jboolean; overload; virtual;
+    procedure halt(para1: jint); overload; virtual;
+    class procedure runFinalizersOnExit(para1: jboolean); static; overload;
+    function exec(para1: JLString): JLProcess; overload; virtual;  // throws java.io.IOException
+    function exec(para1: JLString; para2: Arr1JLString): JLProcess; overload; virtual;  // throws java.io.IOException
+    function exec(para1: JLString; var para2: array of JLString): JLProcess; overload; virtual;  // throws java.io.IOException
+    function exec(para1: JLString; para2: Arr1JLString; para3: JIFile): JLProcess; overload; virtual;  // throws java.io.IOException
+    function exec(para1: JLString; var para2: array of JLString; para3: JIFile): JLProcess; overload; virtual;  // throws java.io.IOException
+    function exec(para1: Arr1JLString): JLProcess; overload; virtual;  // throws java.io.IOException
+    function exec(var para1: array of JLString): JLProcess; overload; virtual;  // throws java.io.IOException
+    function exec(para1: Arr1JLString; para2: Arr1JLString): JLProcess; overload; virtual;  // throws java.io.IOException
+    function exec(var para1: array of JLString; var para2: array of JLString): JLProcess; overload; virtual;  // throws java.io.IOException
+    function exec(para1: Arr1JLString; para2: Arr1JLString; para3: JIFile): JLProcess; overload; virtual;  // throws java.io.IOException
+    function exec(var para1: array of JLString; var para2: array of JLString; para3: JIFile): JLProcess; overload; virtual;  // throws java.io.IOException
+    function availableProcessors(): jint; overload; virtual;
+    function freeMemory(): jlong; overload; virtual;
+    function totalMemory(): jlong; overload; virtual;
+    function maxMemory(): jlong; overload; virtual;
+    procedure gc(); overload; virtual;
+    procedure runFinalization(); overload; virtual;
+    procedure traceInstructions(para1: jboolean); overload; virtual;
+    procedure traceMethodCalls(para1: jboolean); overload; virtual;
+    procedure load(para1: JLString); overload; virtual;
+    procedure loadLibrary(para1: JLString); overload; virtual;
+    function getLocalizedInputStream(para1: JIInputStream): JIInputStream; overload; virtual;
+    function getLocalizedOutputStream(para1: JIOutputStream): JIOutputStream; overload; virtual;
+  end;
+
   JLSystem = class sealed external 'java.lang' name 'System' (JLObject)
   public
     final class var
@@ -1064,6 +1097,129 @@
     function compareTo(para1: JLObject): jint; overload; virtual;
   end;
 
+  JUCalendar = class abstract external 'java.util' name 'Calendar' (JLObject, JISerializable, JLCloneable, JLComparable)
+  public
+    type
+      InnerCalendarAccessControlContext = class;
+      Arr1InnerCalendarAccessControlContext = array of InnerCalendarAccessControlContext;
+      Arr2InnerCalendarAccessControlContext = array of Arr1InnerCalendarAccessControlContext;
+      Arr3InnerCalendarAccessControlContext = array of Arr2InnerCalendarAccessControlContext;
+      InnerCalendarAccessControlContext = class external 'java.util' name 'CalendarAccessControlContext' 
+      end;
+
+  public
+    const
+      ERA = 0;
+      YEAR = 1;
+      MONTH = 2;
+      WEEK_OF_YEAR = 3;
+      WEEK_OF_MONTH = 4;
+      DATE = 5;
+      DAY_OF_MONTH = 5;
+      DAY_OF_YEAR = 6;
+      DAY_OF_WEEK = 7;
+      DAY_OF_WEEK_IN_MONTH = 8;
+      AM_PM = 9;
+      HOUR = 10;
+      HOUR_OF_DAY = 11;
+      MINUTE = 12;
+      SECOND = 13;
+      MILLISECOND = 14;
+      ZONE_OFFSET = 15;
+      DST_OFFSET = 16;
+      FIELD_COUNT = 17;
+      SUNDAY = 1;
+      MONDAY = 2;
+      TUESDAY = 3;
+      WEDNESDAY = 4;
+      THURSDAY = 5;
+      FRIDAY = 6;
+      SATURDAY = 7;
+      JANUARY = 0;
+      FEBRUARY = 1;
+      MARCH = 2;
+      APRIL = 3;
+      MAY = 4;
+      JUNE = 5;
+      JULY = 6;
+      AUGUST = 7;
+      SEPTEMBER = 8;
+      OCTOBER = 9;
+      NOVEMBER = 10;
+      DECEMBER = 11;
+      UNDECIMBER = 12;
+      AM = 0;
+      PM = 1;
+      ALL_STYLES = 0;
+      SHORT = 1;
+      LONG = 2;
+  strict protected
+    var
+      ffields: Arr1jint; external name 'fields';
+      fisSet: Arr1jboolean; external name 'isSet';
+      ftime: jlong; external name 'time';
+      fisTimeSet: jboolean; external name 'isTimeSet';
+      fareFieldsSet: jboolean; external name 'areFieldsSet';
+  strict protected
+    constructor create(); overload;
+    constructor create(para1: JUTimeZone; para2: JULocale); overload;
+  public
+    class function getInstance(): JUCalendar; static; overload;
+    class function getInstance(para1: JUTimeZone): JUCalendar; static; overload;
+    class function getInstance(para1: JULocale): JUCalendar; static; overload;
+    class function getInstance(para1: JUTimeZone; para2: JULocale): JUCalendar; static; overload;
+    class function getAvailableLocales(): Arr1JULocale; static; overload;
+  strict protected
+    procedure computeTime(); overload; virtual; abstract;
+    procedure computeFields(); overload; virtual; abstract;
+  public
+    function getTime(): JUDate; overload; virtual; final;
+    procedure setTime(para1: JUDate); overload; virtual; final;
+    function getTimeInMillis(): jlong; overload; virtual;
+    procedure setTimeInMillis(para1: jlong); overload; virtual;
+    function get(para1: jint): jint; overload; virtual;
+  strict protected
+    function internalGet(para1: jint): jint; overload; virtual; final;
+  public
+    procedure &set(para1: jint; para2: jint); overload; virtual;
+    procedure &set(para1: jint; para2: jint; para3: jint); overload; virtual; final;
+    procedure &set(para1: jint; para2: jint; para3: jint; para4: jint; para5: jint); overload; virtual; final;
+    procedure &set(para1: jint; para2: jint; para3: jint; para4: jint; para5: jint; para6: jint); overload; virtual; final;
+    procedure clear(); overload; virtual; final;
+    procedure clear(para1: jint); overload; virtual; final;
+    function isSet(para1: jint): jboolean; overload; virtual; final;
+    function getDisplayName(para1: jint; para2: jint; para3: JULocale): JLString; overload; virtual;
+    function getDisplayNames(para1: jint; para2: jint; para3: JULocale): JUMap; overload; virtual;
+  strict protected
+    procedure complete(); overload; virtual;
+  public
+    function equals(para1: JLObject): jboolean; overload; virtual;
+    function hashCode(): jint; overload; virtual;
+    function before(para1: JLObject): jboolean; overload; virtual;
+    function after(para1: JLObject): jboolean; overload; virtual;
+    function compareTo(para1: JUCalendar): jint; overload; virtual;
+    procedure add(para1: jint; para2: jint); overload; virtual; abstract;
+    procedure roll(para1: jint; para2: jboolean); overload; virtual; abstract;
+    procedure roll(para1: jint; para2: jint); overload; virtual;
+    procedure setTimeZone(para1: JUTimeZone); overload; virtual;
+    function getTimeZone(): JUTimeZone; overload; virtual;
+    procedure setLenient(para1: jboolean); overload; virtual;
+    function isLenient(): jboolean; overload; virtual;
+    procedure setFirstDayOfWeek(para1: jint); overload; virtual;
+    function getFirstDayOfWeek(): jint; overload; virtual;
+    procedure setMinimalDaysInFirstWeek(para1: jint); overload; virtual;
+    function getMinimalDaysInFirstWeek(): jint; overload; virtual;
+    function getMinimum(para1: jint): jint; overload; virtual; abstract;
+    function getMaximum(para1: jint): jint; overload; virtual; abstract;
+    function getGreatestMinimum(para1: jint): jint; overload; virtual; abstract;
+    function getLeastMaximum(para1: jint): jint; overload; virtual; abstract;
+    function getActualMinimum(para1: jint): jint; overload; virtual;
+    function getActualMaximum(para1: jint): jint; overload; virtual;
+    function clone(): JLObject; overload; virtual;
+    function toString(): JLString; overload; virtual;
+    function compareTo(para1: JLObject): jint; overload; virtual;
+  end;
+
   JUCollection = interface external 'java.util' name 'Collection' (JLIterable)
     function size(): jint; overload;
     function isEmpty(): jboolean; overload;
@@ -1567,6 +1723,68 @@
     function equals(para1: JLObject): jboolean; overload; virtual;
     function compareTo(para1: JLShort): jint; overload; virtual;
     class function reverseBytes(para1: jshort): jshort; static; overload;
+    function compareTo(para1: JLObject): jint; overload; virtual;
+  end;
+
+  JMBigInteger = class external 'java.math' name 'BigInteger' (JLNumber, JLComparable)
+  public
+    final class var
+      fZERO: JMBigInteger; external name 'ZERO';
+      fONE: JMBigInteger; external name 'ONE';
+      fTEN: JMBigInteger; external name 'TEN';
+  public
+    constructor create(para1: Arr1jbyte); overload;
+    constructor create(const para1: array of jbyte); overload;
+    constructor create(para1: jint; para2: Arr1jbyte); overload;
+    constructor create(para1: jint; const para2: array of jbyte); overload;
+    constructor create(para1: JLString; para2: jint); overload;
+    constructor create(para1: JLString); overload;
+    constructor create(para1: jint; para2: JURandom); overload;
+    constructor create(para1: jint; para2: jint; para3: JURandom); overload;
+    class function probablePrime(para1: jint; para2: JURandom): JMBigInteger; static; overload;
+    function nextProbablePrime(): JMBigInteger; overload; virtual;
+    class function valueOf(para1: jlong): JMBigInteger; static; overload;
+    function add(para1: JMBigInteger): JMBigInteger; overload; virtual;
+    function subtract(para1: JMBigInteger): JMBigInteger; overload; virtual;
+    function multiply(para1: JMBigInteger): JMBigInteger; overload; virtual;
+    function divide(para1: JMBigInteger): JMBigInteger; overload; virtual;
+    function divideAndRemainder(para1: JMBigInteger): Arr1JMBigInteger; overload; virtual;
+    function remainder(para1: JMBigInteger): JMBigInteger; overload; virtual;
+    function pow(para1: jint): JMBigInteger; overload; virtual;
+    function gcd(para1: JMBigInteger): JMBigInteger; overload; virtual;
+    function abs(): JMBigInteger; overload; virtual;
+    function negate(): JMBigInteger; overload; virtual;
+    function signum(): jint; overload; virtual;
+    function &mod(para1: JMBigInteger): JMBigInteger; overload; virtual;
+    function modPow(para1: JMBigInteger; para2: JMBigInteger): JMBigInteger; overload; virtual;
+    function modInverse(para1: JMBigInteger): JMBigInteger; overload; virtual;
+    function shiftLeft(para1: jint): JMBigInteger; overload; virtual;
+    function shiftRight(para1: jint): JMBigInteger; overload; virtual;
+    function &and(para1: JMBigInteger): JMBigInteger; overload; virtual;
+    function &or(para1: JMBigInteger): JMBigInteger; overload; virtual;
+    function &xor(para1: JMBigInteger): JMBigInteger; overload; virtual;
+    function &not(): JMBigInteger; overload; virtual;
+    function andNot(para1: JMBigInteger): JMBigInteger; overload; virtual;
+    function testBit(para1: jint): jboolean; overload; virtual;
+    function setBit(para1: jint): JMBigInteger; overload; virtual;
+    function clearBit(para1: jint): JMBigInteger; overload; virtual;
+    function flipBit(para1: jint): JMBigInteger; overload; virtual;
+    function getLowestSetBit(): jint; overload; virtual;
+    function bitLength(): jint; overload; virtual;
+    function bitCount(): jint; overload; virtual;
+    function isProbablePrime(para1: jint): jboolean; overload; virtual;
+    function compareTo(para1: JMBigInteger): jint; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual;
+    function min(para1: JMBigInteger): JMBigInteger; overload; virtual;
+    function max(para1: JMBigInteger): JMBigInteger; overload; virtual;
+    function hashCode(): jint; overload; virtual;
+    function toString(para1: jint): JLString; overload; virtual;
+    function toString(): JLString; overload; virtual;
+    function toByteArray(): Arr1jbyte; overload; virtual;
+    function intValue(): jint; overload; virtual;
+    function longValue(): jlong; overload; virtual;
+    function floatValue(): jfloat; overload; virtual;
+    function doubleValue(): jdouble; overload; virtual;
     function compareTo(para1: JLObject): jint; overload; virtual;
   end;
 

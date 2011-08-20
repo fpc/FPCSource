@@ -48,7 +48,7 @@ Function UpCase(c:UnicodeChar):UnicodeChar;
 Type
   { hooks for internationalization
     please add new procedures at the end, it makes it easier to detect new procedures }
-  TUnicodeStringManager = class
+  TUnicodeStringManager = class(JLObject)
     collator: JTCollator;
     constructor create;
   end;

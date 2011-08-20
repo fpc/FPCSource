@@ -16,7 +16,7 @@
 
 type
   TAnsiCharArray = array of ansichar;
-  ShortstringClass = class sealed (JLCloneable)
+  ShortstringClass = class sealed (JLObject,JLCloneable)
    public
     { "length byte" }
     curlen: byte;
@@ -46,7 +46,7 @@ type
     function length: jint;
   end;
 
-  AnsiCharArrayClass = class sealed
+  AnsiCharArrayClass = class sealed (JLObject)
    class function CreateFromLiteralStringBytes(const u: unicodestring; maxlen: byte): TAnsiCharArray; static;
   end;
 

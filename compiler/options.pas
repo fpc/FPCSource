@@ -2297,7 +2297,9 @@ begin
       // until these features are implemented, they are disabled in the compiler
       target_unsup_features:=[f_stackcheck];
     system_jvm_java32:
-      target_unsup_features:=[f_threading,f_commandargs,f_fileio,f_textio,f_consoleio,f_dynlibs];
+      target_unsup_features:=[f_heap,f_textio,f_consoleio,f_fileio,
+         f_variants,f_objects,f_threading,f_commandargs,
+         f_processes,f_stackcheck,f_dynlibs,f_softfpu,f_objectivec1,f_resources];
     else
       target_unsup_features:=[];
   end;
@@ -2516,7 +2518,7 @@ begin
   def_system_macro('FPC_HAS_MEMBAR');
   def_system_macro('FPC_SETBASE_USED');
 
-{$if defined(x86) or defined(arm)}
+{$if defined(x86) or defined(arm) or defined(jvm)}
   def_system_macro('INTERNAL_BACKTRACE');
 {$endif}
   def_system_macro('STR_CONCAT_PROCS');

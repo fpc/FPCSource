@@ -62,10 +62,10 @@ procedure fpc_shortstr_to_chararray(out res: array of AnsiChar; const src: Short
 Function  fpc_shortstr_Copy(const s:shortstring;index:SizeInt;count:SizeInt):shortstring;compilerproc;
 function  fpc_char_copy(c:AnsiChar;index : SizeInt;count : SizeInt): shortstring;compilerproc;
 
-(*
 { Str() support }
 procedure fpc_ShortStr_sint(v : valsint;len : SizeInt;out s : shortstring); compilerproc;
 procedure fpc_shortstr_uint(v : valuint;len : SizeInt;out s : shortstring); compilerproc;
+(*
 {$ifndef FPUNONE}
 procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : shortstring); compilerproc;
 {$endif}
@@ -98,10 +98,11 @@ procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring)
   procedure fpc_UnicodeStr_uint(v : valuint;Len : SizeInt; out S : UnicodeString); compilerproc;
   {$endif VER2_2}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
-
+*)
 {$ifndef CPU64}
   procedure fpc_shortstr_qword(v : qword;len : SizeInt;out s : shortstring); compilerproc;
   procedure fpc_shortstr_int64(v : int64;len : SizeInt;out s : shortstring); compilerproc;
+(*
   procedure fpc_chararray_qword(v : qword;len : SizeInt;out a : array of AnsiChar); compilerproc;
   procedure fpc_chararray_int64(v : int64;len : SizeInt;out a : array of AnsiChar); compilerproc;
   {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
@@ -119,7 +120,9 @@ procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring)
     procedure fpc_UnicodeStr_int64(v : int64;len : SizeInt;out s : UnicodeString); compilerproc;
     {$endif VER2_2}
   {$endif FPC_HAS_FEATURE_WIDESTRINGS}
+*)
 {$endif CPU64}
+(*
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
   {$if not(defined(FPC_WIDESTRING_EQUAL_UNICODESTRING)) or defined(VER2_2)}
     {$ifndef FPUNONE}
@@ -346,6 +349,7 @@ Function fpc_WChar_To_ShortStr(const c : WideChar): ShortString; compilerproc;
 procedure fpc_Char_To_ShortStr(out res : shortstring;const c : AnsiChar) compilerproc;
 procedure fpc_WChar_To_ShortStr(out res : shortstring;const c : WideChar) compilerproc;
 {$endif FPC_STRTOSHORTSTRINGPROC}
+(*
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Function fpc_PUnicodeChar_To_AnsiStr(const p : punicodechar): ansistring; compilerproc;
@@ -358,6 +362,7 @@ Function fpc_PUnicodeChar_To_ShortStr(const p : punicodechar): shortstring; comp
 procedure fpc_PUnicodeChar_To_ShortStr(out res : shortstring;const p : punicodechar); compilerproc;
 {$endif FPC_STRTOSHORTSTRINGPROC}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
+*)
 
 (*
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
@@ -530,6 +535,7 @@ function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;
 function fpc_round_real(d : ValReal) : int64;compilerproc;
 function fpc_trunc_real(d : ValReal) : int64;compilerproc;
 {$endif}
+(*
 {$ifdef FPC_HAS_FEATURE_CLASSES}
 function fpc_do_is(aclass : tclass;aobject : tobject) : boolean; compilerproc;
 function fpc_do_as(aclass : tclass;aobject : tobject): tobject; compilerproc;
@@ -553,8 +559,9 @@ function fpc_class_as_corbaintf(const S: pointer; const iid: Shortstring): Point
 procedure fpc_dispatch_by_id(Result: Pointer; const Dispatch: pointer;DispDesc: Pointer; Params: Pointer); compilerproc;
 {$endif FPC_HAS_FEATURE_VARIANTS}
 {$endif FPC_HAS_FEATURE_CLASSES}
+*)
 
-
+(*
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ; compilerproc;
 Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer); compilerproc;
@@ -567,7 +574,7 @@ Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
 Procedure fpc_DestroyException(o : TObject); compilerproc;
 function fpc_GetExceptionAddr : Pointer; compilerproc;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
-
+*)
 
 {$ifdef FPC_HAS_FEATURE_OBJECTS}
 function fpc_help_constructor(_self:pointer;var _vmt:pointer;_vmt_pos:cardinal):pointer;compilerproc;
@@ -581,7 +588,7 @@ procedure fpc_check_object(obj:pointer); compilerproc;
 procedure fpc_check_object_ext(vmt,expvmt:pointer);compilerproc;
 {$endif dummy}
 
-
+(*
 {$ifdef FPC_HAS_FEATURE_RTTI}
 Procedure fpc_Initialize (Data,TypeInfo : pointer); compilerproc;
 Procedure fpc_finalize (Data,TypeInfo: Pointer); compilerproc;
@@ -594,6 +601,7 @@ procedure fpc_decref_array(data,typeinfo: pointer; count: sizeint); compilerproc
 Function fpc_Copy (Src, Dest, TypeInfo : Pointer) : SizeInt; compilerproc;
 Procedure fpc_Copy_proc (Src, Dest, TypeInfo : Pointer); compilerproc; inline;
 {$endif FPC_HAS_FEATURE_RTTI}
+*)
 { array initialisation helpers (for open array "out" parameters whose elements
   are normally refcounted) }
 { open array of unicodestring. normalarrdim contains the number of dimensions

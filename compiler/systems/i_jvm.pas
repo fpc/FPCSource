@@ -39,7 +39,7 @@ unit i_jvm;
             system       : system_jvm_java32;
             name         : 'Java Virtual Machine';
             shortname    : 'Java';
-            flags        : [tf_files_case_sensitive,
+            flags        : [tf_files_case_sensitive,tf_no_generic_stackcheck,
                             { avoid the creation of threadvar tables }
                             tf_section_threadvars];
             cpu          : cpu_jvm;

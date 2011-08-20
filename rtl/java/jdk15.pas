@@ -1645,11 +1645,6 @@ type
   Arr2JNDoubleBuffer = array of Arr1JNDoubleBuffer;
   Arr3JNDoubleBuffer = array of Arr2JNDoubleBuffer;
 
-  JMBigInteger = class;
-  Arr1JMBigInteger = array of JMBigInteger;
-  Arr2JMBigInteger = array of Arr1JMBigInteger;
-  Arr3JMBigInteger = array of Arr2JMBigInteger;
-
   JMOInvalidOpenTypeException = class;
   Arr1JMOInvalidOpenTypeException = array of JMOInvalidOpenTypeException;
   Arr2JMOInvalidOpenTypeException = array of Arr1JMOInvalidOpenTypeException;
@@ -5980,25 +5975,25 @@ type
   Arr2OOPServerForwardRequest = array of Arr1OOPServerForwardRequest;
   Arr3OOPServerForwardRequest = array of Arr2OOPServerForwardRequest;
 
-  JNCookieHandler = class;
-  Arr1JNCookieHandler = array of JNCookieHandler;
-  Arr2JNCookieHandler = array of Arr1JNCookieHandler;
-  Arr3JNCookieHandler = array of Arr2JNCookieHandler;
-
   JUObservable = class;
   Arr1JUObservable = array of JUObservable;
   Arr2JUObservable = array of Arr1JUObservable;
   Arr3JUObservable = array of Arr2JUObservable;
 
-  JUJapaneseImperialCalendar = class;
-  Arr1JUJapaneseImperialCalendar = array of JUJapaneseImperialCalendar;
-  Arr2JUJapaneseImperialCalendar = array of Arr1JUJapaneseImperialCalendar;
-  Arr3JUJapaneseImperialCalendar = array of Arr2JUJapaneseImperialCalendar;
+  JNCookieHandler = class;
+  Arr1JNCookieHandler = array of JNCookieHandler;
+  Arr2JNCookieHandler = array of Arr1JNCookieHandler;
+  Arr3JNCookieHandler = array of Arr2JNCookieHandler;
 
   JXCDDOMStructure = class;
   Arr1JXCDDOMStructure = array of JXCDDOMStructure;
   Arr2JXCDDOMStructure = array of Arr1JXCDDOMStructure;
   Arr3JXCDDOMStructure = array of Arr2JXCDDOMStructure;
+
+  JUJapaneseImperialCalendar = class;
+  Arr1JUJapaneseImperialCalendar = array of JUJapaneseImperialCalendar;
+  Arr2JUJapaneseImperialCalendar = array of Arr1JUJapaneseImperialCalendar;
+  Arr3JUJapaneseImperialCalendar = array of Arr2JUJapaneseImperialCalendar;
 
   JXSUStreamReaderDelegate = class;
   Arr1JXSUStreamReaderDelegate = array of JXSUStreamReaderDelegate;
@@ -8030,11 +8025,6 @@ type
   Arr2JSPBBasicInternalFrameUI = array of Arr1JSPBBasicInternalFrameUI;
   Arr3JSPBBasicInternalFrameUI = array of Arr2JSPBBasicInternalFrameUI;
 
-  JLRuntime = class;
-  Arr1JLRuntime = array of JLRuntime;
-  Arr2JLRuntime = array of Arr1JLRuntime;
-  Arr3JLRuntime = array of Arr2JLRuntime;
-
   JADimension = class;
   Arr1JADimension = array of JADimension;
   Arr2JADimension = array of Arr1JADimension;
@@ -9800,15 +9790,15 @@ type
   Arr2JSSAudioPermission = array of Arr1JSSAudioPermission;
   Arr3JSSAudioPermission = array of Arr2JSSAudioPermission;
 
-  JAEInputEvent = class;
-  Arr1JAEInputEvent = array of JAEInputEvent;
-  Arr2JAEInputEvent = array of Arr1JAEInputEvent;
-  Arr3JAEInputEvent = array of Arr2JAEInputEvent;
-
   JULocaleISOData = class;
   Arr1JULocaleISOData = array of JULocaleISOData;
   Arr2JULocaleISOData = array of Arr1JULocaleISOData;
   Arr3JULocaleISOData = array of Arr2JULocaleISOData;
+
+  JAEInputEvent = class;
+  Arr1JAEInputEvent = array of JAEInputEvent;
+  Arr2JAEInputEvent = array of Arr1JAEInputEvent;
+  Arr3JAEInputEvent = array of Arr2JAEInputEvent;
 
   JAPoint = class;
   Arr1JAPoint = array of JAPoint;
@@ -14704,11 +14694,6 @@ type
   Arr1JSCCRLException = array of JSCCRLException;
   Arr2JSCCRLException = array of Arr1JSCCRLException;
   Arr3JSCCRLException = array of Arr2JSCCRLException;
-
-  JUCalendar = class;
-  Arr1JUCalendar = array of JUCalendar;
-  Arr2JUCalendar = array of Arr1JUCalendar;
-  Arr3JUCalendar = array of Arr2JUCalendar;
 
   JNHeapByteBufferR = class;
   Arr1JNHeapByteBufferR = array of JNHeapByteBufferR;
@@ -20705,6 +20690,11 @@ type
   Arr2JLCharacter = array of Arr1JLCharacter;
   Arr3JLCharacter = array of Arr2JLCharacter;
 
+  JMBigInteger = class external 'java.math' name 'BigInteger';
+  Arr1JMBigInteger = array of JMBigInteger;
+  Arr2JMBigInteger = array of Arr1JMBigInteger;
+  Arr3JMBigInteger = array of Arr2JMBigInteger;
+
   JLBoolean = class external 'java.lang' name 'Boolean';
   Arr1JLBoolean = array of JLBoolean;
   Arr2JLBoolean = array of Arr1JLBoolean;
@@ -20759,6 +20749,11 @@ type
   Arr1JUHashMap = array of JUHashMap;
   Arr2JUHashMap = array of Arr1JUHashMap;
   Arr3JUHashMap = array of Arr2JUHashMap;
+
+  JUCalendar = class external 'java.util' name 'Calendar';
+  Arr1JUCalendar = array of JUCalendar;
+  Arr2JUCalendar = array of Arr1JUCalendar;
+  Arr3JUCalendar = array of Arr2JUCalendar;
 
   JTCollator = class external 'java.text' name 'Collator';
   Arr1JTCollator = array of JTCollator;

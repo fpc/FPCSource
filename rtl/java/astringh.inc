@@ -15,7 +15,7 @@
  **********************************************************************}
 
 type
-  AnsistringClass = class sealed
+  AnsistringClass = class sealed (JLObject)
    private
     fdata: TAnsiCharArray;
    public

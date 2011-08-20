@@ -15,13 +15,19 @@
                     subroutines for string handling
 ****************************************************************************}
 
+{$ifndef FPC_HAS_SHORTSTR_SETLENGTH}
+{$define FPC_HAS_SHORTSTR_SETLENGTH}
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt);[Public,Alias : 'FPC_SHORTSTR_SETLENGTH']; compilerproc;
 begin
   if Len>255 then
    Len:=255;
   s[0]:=chr(len);
 end;
+{$endif FPC_HAS_SHORTSTR_SETLENGTH}
 
+
+{$ifndef FPC_HAS_SHORTSTR_COPY}
+{$define FPC_HAS_SHORTSTR_COPY}
 function fpc_shortstr_copy(const s : shortstring;index : SizeInt;count : SizeInt): shortstring;compilerproc;
 begin
   if count<0 then
@@ -38,8 +44,11 @@ begin
   fpc_shortstr_Copy[0]:=chr(Count);
   Move(s[Index+1],fpc_shortstr_Copy[1],Count);
 end;
+{$endif FPC_HAS_SHORTSTR_COPY}
 
 
+{$ifndef FPC_HAS_SHORTSTR_DELETE}
+{$define FPC_HAS_SHORTSTR_DELETE}
 procedure delete(var s : shortstring;index : SizeInt;count : SizeInt);
 begin
   if index<=0 then
@@ -53,8 +62,11 @@ begin
       Move(s[Index+Count],s[Index],Length(s)-Index+1);
    end;
 end;
+{$endif FPC_HAS_SHORTSTR_DELETE}
 
 
+{$ifndef FPC_HAS_SHORTSTR_INSERT}
+{$define FPC_HAS_SHORTSTR_INSERT}
 procedure insert(const source : shortstring;var s : shortstring;index : SizeInt);
 var
   cut,srclen,indexlen : SizeInt;
@@ -80,8 +92,11 @@ begin
   move(Source[1],s[Index],srclen);
   s[0]:=chr(index+srclen+indexlen-1);
 end;
+{$endif FPC_HAS_SHORTSTR_INSERT}
 
 
+{$ifndef FPC_HAS_SHORTSTR_INSERT_CHAR}
+{$define FPC_HAS_SHORTSTR_INSERT_CHAR}
 procedure insert(source : Char;var s : shortstring;index : SizeInt);
 var
   indexlen : SizeInt;
@@ -97,8 +112,11 @@ begin
   s[Index]:=Source;
   s[0]:=chr(index+indexlen);
 end;
+{$endif FPC_HAS_SHORTSTR_INSERT_CHAR}
 
 
+{$ifndef FPC_HAS_SHORTSTR_POS_SHORTSTR}
+{$define FPC_HAS_SHORTSTR_POS_SHORTSTR}
 function pos(const substr : shortstring;const s : shortstring):SizeInt;
 var
   i,MaxLen : SizeInt;
@@ -123,8 +141,11 @@ begin
       end;
    end;
 end;
+{$endif FPC_HAS_SHORTSTR_POS_SHORTSTR}
 
 
+{$ifndef FPC_HAS_SHORTSTR_POS_CHAR}
+{$define FPC_HAS_SHORTSTR_POS_CHAR}
 {Faster when looking for a single char...}
 function pos(c:char;const s:shortstring):SizeInt;
 var
@@ -143,6 +164,7 @@ begin
    end;
   pos:=0;
 end;
+{$endif FPC_HAS_SHORTSTR_POS_CHAR}
 
 
 function fpc_char_copy(c:char;index : SizeInt;count : SizeInt): shortstring;compilerproc;
@@ -162,12 +184,16 @@ begin
 end;
 
 
+{$if not defined(FPC_UPCASE_CHAR) or not defined(FPC_LOWERCASE_CHAR)}
 {$ifdef IBM_CHAR_SET}
 const
   UpCaseTbl : shortstring[7]=#154#142#153#144#128#143#165;
   LoCaseTbl : shortstring[7]=#129#132#148#130#135#134#164;
 {$endif}
+{$endif}
 
+{$ifndef FPC_UPCASE_CHAR}
+{$define FPC_UPCASE_CHAR}
 function upcase(c : char) : char;
 {$IFDEF IBM_CHAR_SET}
 var
@@ -189,8 +215,11 @@ begin
    upcase:=c;
 {$ENDIF}
 end;
+{$endif FPC_UPCASE_CHAR}
 
 
+{$ifndef FPC_UPCASE_SHORTSTR}
+{$define FPC_UPCASE_SHORTSTR}
 function upcase(const s : shortstring) : shortstring;
 var
   i : longint;
@@ -199,8 +228,11 @@ begin
   for i := 1 to length (s) do
     upcase[i] := upcase (s[i]);
 end;
+{$endif FPC_UPCASE_SHORTSTR}
 
 
+{$ifndef FPC_LOWERCASE_CHAR}
+{$define FPC_LOWERCASE_CHAR}
 function lowercase(c : char) : char;overload;
 {$IFDEF IBM_CHAR_SET}
 var
@@ -222,8 +254,11 @@ begin
    lowercase:=c;
  {$ENDIF}
 end;
+{$endif FPC_LOWERCASE_CHAR}
 
 
+{$ifndef FPC_LOWERCASE_SHORTSTR}
+{$define FPC_LOWERCASE_SHORTSTR}
 function lowercase(const s : shortstring) : shortstring; overload;
 var
   i : longint;
@@ -232,7 +267,7 @@ begin
   for i:=1 to length(s) do
    lowercase[i]:=lowercase (s[i]);
 end;
-
+{$endif FPC_LOWERCASE_SHORTSTR}
 
 const
   HexTbl : array[0..15] of char='0123456789ABCDEF';
@@ -367,7 +402,7 @@ end;
 
 procedure fpc_shortstr_UInt(v : valUInt;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_UINT']; compilerproc;
 begin
-  int_str(v,s);
+  int_str_unsigned(v,s);
   if length(s)<len then
     s:=space(len-length(s))+s;
 end;
@@ -376,7 +411,7 @@ end;
 
 procedure fpc_shortstr_qword(v : qword;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_QWORD']; compilerproc;
 begin
-  int_str(v,s);
+  int_str_unsigned(v,s);
   if length(s)<len then
     s:=space(len-length(s))+s;
 end;
@@ -407,6 +442,8 @@ begin
 end;
 {$endif}
 
+{$ifndef FPC_SHORTSTR_ENUM_INTERN}
+{$define FPC_SHORTSTR_ENUM_INTERN}
 function fpc_shortstr_enum_intern(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring): longint;
 
 { The following contains the TTypeInfo/TTypeData records from typinfo.pp
@@ -544,6 +581,7 @@ end;
 
 { also define alias for internal use in the system unit }
 procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);external name 'FPC_SHORTSTR_ENUM';
+{$endif FPC_SHORTSTR_ENUM_INTERN}
 
 
 procedure fpc_shortstr_bool(b : boolean;len:sizeint;out s:shortstring);[public,alias:'FPC_SHORTSTR_BOOL'];compilerproc;
@@ -768,7 +806,7 @@ var
   ss : shortstring;
   maxlen : SizeInt;
 begin
-  int_str(v,ss);
+  int_str_unsigned(v,ss);
   if length(ss)<len then
     ss:=space(len-length(ss))+ss;
   if length(ss)<high(a)+1 then
@@ -786,7 +824,7 @@ var
   ss : shortstring;
   maxlen : SizeInt;
 begin
-  int_str(v,ss);
+  int_str_unsigned(v,ss);
   if length(ss)<len then
     ss:=space(len-length(ss))+ss;
   if length(ss)<high(a)+1 then
