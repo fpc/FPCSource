@@ -28,7 +28,7 @@ interface
 
   uses
     finput,tokens,scanner,
-    symconst,symdef,symbase;
+    symconst,symbase,symtype,symdef;
 
 
   type
@@ -70,14 +70,40 @@ interface
 
   procedure finish_copied_procdef(var pd: tprocdef; const realname: string; newparentst: tsymtable; newstruct: tabstractrecorddef);
 
+  { create "parent frame pointer" record skeleton for procdef, in which local
+    variables and parameters from pd accessed from nested routines can be
+    stored }
+  procedure build_parentfpstruct(pd: tprocdef);
+  { checks whether sym (a local or para of pd) already has a counterpart in
+    pd's parentfpstruct, and if not adds a new field to the struct with type
+    "vardef" (can be different from sym's type in case it's a call-by-reference
+    parameter, which is indicated by addrparam). If it already has a field in
+    the parentfpstruct, this field is returned. }
+  function maybe_add_sym_to_parentfpstruct(pd: tprocdef; sym: tsym; vardef: tdef; addrparam: boolean): tsym;
+  { given a localvarsym or paravarsym of pd, returns the field of the
+    parentfpstruct corresponding to this sym }
+  function find_sym_in_parentfpstruct(pd: tprocdef; sym: tsym): tsym;
+  { replaces all local and paravarsyms that have been mirrored in the
+    parentfpstruct with aliasvarsyms that redirect to these fields (used to
+    make sure that references to these syms in the owning procdef itself also
+    use the ones in the parentfpstructs) }
+  procedure redirect_parentfpstruct_local_syms(pd: tprocdef);
+  { finalises the parentfpstruct (alignment padding, ...) }
+  procedure finish_parentfpstruct(pd: tprocdef);
+
 
 implementation
 
   uses
-    cutils,globtype,globals,verbose,systems,comphook,
-    symtype,symsym,symtable,defutil,
+    cutils,globtype,globals,verbose,systems,comphook,fmodule,
+    symsym,symtable,defutil,
     pbase,pdecobj,pdecsub,psub,
-    defcmp;
+    node,nbas,nld,nmem,
+    defcmp,
+    paramgr
+    {$ifdef jvm}
+    ,pjvm
+    {$endif};
 
   procedure replace_scanner(const tempname: string; out sstate: tscannerstate);
     var
@@ -366,7 +392,12 @@ implementation
       for i:=0 to st.deflist.count-1 do
         begin
           def:=tdef(st.deflist[i]);
-          if (is_javaclass(def) and
+          if (def.typ=procdef) and
+             assigned(tprocdef(def).localst) and
+             { not true for the "main" procedure, whose localsymtable is the staticsymtable }
+             (tprocdef(def).localst.symtabletype=localsymtable) then
+            add_synthetic_method_implementations(tprocdef(def).localst)
+          else if (is_javaclass(def) and
               not(oo_is_external in tobjectdef(def).objectoptions)) or
               (def.typ=recorddef) then
            begin
@@ -386,7 +417,6 @@ implementation
       sym: tsym;
       parasym: tparavarsym;
       ps: tprocsym;
-      hdef: tdef;
       stname: string;
       i: longint;
     begin
@@ -431,6 +461,159 @@ implementation
         end;
       proc_add_definition(pd);
     end;
+
+
+  procedure build_parentfpstruct(pd: tprocdef);
+    var
+      nestedvars: tsym;
+      nestedvarsst: tsymtable;
+      pnestedvarsdef,
+      nestedvarsdef: tdef;
+      old_symtablestack: tsymtablestack;
+    begin
+      { make sure the defs are not registered in the current symtablestack,
+        because they may be for a parent procdef (changeowner does remove a def
+        from the symtable in which it was originally created, so that by itself
+        is not enough) }
+      old_symtablestack:=symtablestack;
+      symtablestack:=old_symtablestack.getcopyuntil(current_module.localsymtable);
+      { create struct to hold local variables and parameters that are
+        accessed from within nested routines }
+      nestedvarsst:=trecordsymtable.create(current_module.realmodulename^+'$$_fpc_nestedvars$'+tostr(pd.procsym.symid),current_settings.alignment.localalignmax);
+      nestedvarsdef:=trecorddef.create(nestedvarsst.name^,nestedvarsst);
+{$ifdef jvm}
+      jvm_guarantee_record_typesym(nestedvarsdef,nestedvarsdef.owner);
+      { don't add clone/FpcDeepCopy, because the field names are not all
+        representable in source form and we don't need them anyway }
+      symtablestack.push(trecorddef(nestedvarsdef).symtable);
+      maybe_add_public_default_java_constructor(trecorddef(nestedvarsdef));
+      symtablestack.pop(trecorddef(nestedvarsdef).symtable);
+{$endif}
+      symtablestack.free;
+      symtablestack:=old_symtablestack.getcopyuntil(pd.localst);
+      pnestedvarsdef:=tpointerdef.create(nestedvarsdef);
+      nestedvars:=tlocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[]);
+      pd.localst.insert(nestedvars);
+      pd.parentfpstruct:=nestedvars;
+      pd.parentfpstructptrtype:=pnestedvarsdef;
+
+      pd.parentfpinitblock:=cblocknode.create(nil);
+      symtablestack.free;
+      symtablestack:=old_symtablestack;
+    end;
+
+
+  function maybe_add_sym_to_parentfpstruct(pd: tprocdef; sym: tsym; vardef: tdef; addrparam: boolean): tsym;
+    var
+      fieldvardef,
+      nestedvarsdef: tdef;
+      nestedvarsst: tsymtable;
+      initcode: tnode;
+      old_filepos: tfileposinfo;
+    begin
+      nestedvarsdef:=tlocalvarsym(pd.parentfpstruct).vardef;
+      result:=search_struct_member(trecorddef(nestedvarsdef),sym.name);
+      if not assigned(result) then
+        begin
+          { mark that this symbol is mirrored in the parentfpstruct }
+          tabstractnormalvarsym(sym).inparentfpstruct:=true;
+          { add field to the struct holding all locals accessed
+            by nested routines }
+          nestedvarsst:=trecorddef(nestedvarsdef).symtable;
+          { indicate whether or not this is a var/out/constref/... parameter }
+          if addrparam then
+            fieldvardef:=tpointerdef.create(vardef)
+          else
+            fieldvardef:=vardef;
+          result:=tfieldvarsym.create(sym.realname,vs_value,fieldvardef,[]);
+          if nestedvarsst.symlist.count=0 then
+            include(tfieldvarsym(result).varoptions,vo_is_first_field);
+          nestedvarsst.insert(result);
+          trecordsymtable(nestedvarsst).addfield(tfieldvarsym(result),vis_public);
+
+          { add initialization with original value if it's a parameter }
+          if (sym.typ=paravarsym) then
+            begin
+              old_filepos:=current_filepos;
+              fillchar(current_filepos,sizeof(current_filepos),0);
+              initcode:=cloadnode.create(sym,sym.owner);
+              { indicate that this load should not be transformed into a load
+                from the parentfpstruct, but instead should load the original
+                value }
+              include(initcode.flags,nf_internal);
+              { in case it's a var/out/constref parameter, store the address of the
+                parameter in the struct }
+              if addrparam then
+                begin
+                  initcode:=caddrnode.create_internal(initcode);
+                  include(initcode.flags,nf_typedaddr);
+                end;
+              initcode:=cassignmentnode.create(
+                csubscriptnode.create(result,cloadnode.create(pd.parentfpstruct,pd.parentfpstruct.owner)),
+                initcode);
+              tblocknode(pd.parentfpinitblock).left:=cstatementnode.create
+                (initcode,tblocknode(pd.parentfpinitblock).left);
+              current_filepos:=old_filepos;
+            end;
+        end;
+    end;
+
+
+  procedure redirect_parentfpstruct_local_syms(pd: tprocdef);
+    var
+      nestedvarsdef: trecorddef;
+      sl: tpropaccesslist;
+      fsym,
+      lsym,
+      aliassym: tsym;
+      i: longint;
+    begin
+      nestedvarsdef:=trecorddef(tlocalvarsym(pd.parentfpstruct).vardef);
+      for i:=0 to nestedvarsdef.symtable.symlist.count-1 do
+        begin
+          fsym:=tsym(nestedvarsdef.symtable.symlist[i]);
+          if fsym.typ<>fieldvarsym then
+            continue;
+          lsym:=tsym(pd.localst.find(fsym.name));
+          if not assigned(lsym) then
+            lsym:=tsym(pd.parast.find(fsym.name));
+          if not assigned(lsym) then
+            internalerror(2011060408);
+          { add an absolute variable that redirects to the field }
+          sl:=tpropaccesslist.create;
+          sl.addsym(sl_load,pd.parentfpstruct);
+          sl.addsym(sl_subscript,tfieldvarsym(fsym));
+          aliassym:=tabsolutevarsym.create_ref(lsym.name,tfieldvarsym(fsym).vardef,sl);
+          { hide the original variable (can't delete, because there
+            may be other loadnodes that reference it)
+            -- only for locals; hiding parameters changes the
+            function signature }
+          if lsym.typ<>paravarsym then
+            hidesym(lsym);
+          { insert the absolute variable in the localst of the
+            routine; ignore duplicates, because this will also check the
+            parasymtable and we want to override parameters with our local
+            versions }
+          pd.localst.insert(aliassym,false);
+        end;
+    end;
+
+
+  function find_sym_in_parentfpstruct(pd: tprocdef; sym: tsym): tsym;
+    var
+      nestedvarsdef: tdef;
+    begin
+      nestedvarsdef:=tlocalvarsym(pd.parentfpstruct).vardef;
+      result:=search_struct_member(trecorddef(nestedvarsdef),sym.name);
+    end;
+
+
+  procedure finish_parentfpstruct(pd: tprocdef);
+    begin
+      trecordsymtable(trecorddef(tlocalvarsym(pd.parentfpstruct).vardef).symtable).addalignmentpadding;
+    end;
+
+
 
 
 end.

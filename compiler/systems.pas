@@ -323,6 +323,13 @@ interface
          system_jvm_java32
        ];
 
+       { all systems that don't use a built-in framepointer for accessing nested
+         variables, but emulate it by wrapping nested variables in records
+         whose address is passed around }
+       systems_fpnestedstruct = [
+         system_jvm_java32
+       ];
+
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm');

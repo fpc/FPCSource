@@ -29,10 +29,10 @@ uses
   globtype,
   symtype,
   cgutils,
-  node, ncgld;
+  node, ncgld, ncgnstld;
 
 type
-  tjvmloadnode = class(tcgloadnode)
+  tjvmloadnode = class(tcgnestloadnode)
     function is_addr_param_load: boolean; override;
     procedure pass_generate_code; override;
   end;

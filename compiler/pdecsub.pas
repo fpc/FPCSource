@@ -87,7 +87,7 @@ implementation
        systems,fpccrc,
        cpuinfo,
        { symtable }
-       symbase,symtable,defutil,defcmp,paramgr,cpupara,
+       symbase,symtable,symcreat,defutil,defcmp,paramgr,cpupara,
        { pass 1 }
        fmodule,node,htypechk,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
@@ -229,12 +229,21 @@ implementation
 {$endif i386}
             else
               paranr:=paranr_parentfp_delphi_cc;
-            { Generate result variable accessing function result, it
-              can't be put in a register since it must be accessable
-              from the framepointer }
-            vs:=tparavarsym.create('$parentfp',paranr,vs_value
-                  ,voidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
-            vs.varregable:=vr_none;
+            { Generate frame pointer. It can't be put in a register since it
+              must be accessable from nested routines }
+            if not(target_info.system in systems_fpnestedstruct) then
+              begin
+                vs:=tparavarsym.create('$parentfp',paranr,vs_value
+                      ,voidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
+                vs.varregable:=vr_none;
+              end
+            else
+              begin
+                if not assigned(tprocdef(pd.owner.defowner).parentfpstruct) then
+                  build_parentfpstruct(tprocdef(pd.owner.defowner));
+                vs:=tparavarsym.create('$parentfp',paranr,vs_value
+                      ,tprocdef(pd.owner.defowner).parentfpstructptrtype,[vo_is_parentfp,vo_is_hidden_para]);
+              end;
             pd.parast.insert(vs);
 
             current_tokenpos:=storepos;

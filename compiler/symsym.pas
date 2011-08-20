@@ -173,6 +173,7 @@ interface
           defaultconstsymderef : tderef;
           localloc      : TLocation; { register/reference for local var }
           initialloc    : TLocation; { initial location so it can still be initialized later after the location was changed by SSA }
+          inparentfpstruct : boolean;   { migrated to a parentfpstruct because of nested access (not written to ppu, because not important and would change interface crc) }
           constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;

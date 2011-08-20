@@ -241,7 +241,11 @@ implementation
               else if jvmimplicitpointertype(tpointerdef(def).pointeddef) then
                 result:=jvmaddencodedtype(tpointerdef(def).pointeddef,false,encodedstr,forcesignature,founderror)
               else
-                result:=false;
+                begin
+                  { used for internal pointer constructs }
+                  encodedstr:=encodedstr+'[';
+                  result:=jvmaddencodedtype(tpointerdef(def).pointeddef,false,encodedstr,forcesignature,founderror);
+                end;
             end;
           floatdef :
             begin

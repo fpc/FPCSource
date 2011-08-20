@@ -33,6 +33,9 @@ interface
 
     type
        tcgloadnode = class(tloadnode)
+         protected
+          procedure generate_nested_access(vs: tsym);virtual;
+         public
           procedure pass_generate_code;override;
           procedure generate_picvaraccess;virtual;
           procedure changereflocation(const ref: treference);
@@ -235,6 +238,20 @@ implementation
       end;
 
 
+    procedure tcgloadnode.generate_nested_access(vs: tsym);
+      var
+        { paramter declared as tsym to reduce interface unit dependencies }
+        lvs: tabstractnormalvarsym absolute vs;
+      begin
+        secondpass(left);
+        if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          internalerror(200309286);
+        if lvs.localloc.loc<>LOC_REFERENCE then
+          internalerror(200409241);
+        reference_reset_base(location.reference,left.location.register,lvs.localloc.reference.offset,lvs.localloc.reference.alignment);
+      end;
+
+
     procedure tcgloadnode.pass_generate_code;
       var
         hregister : tregister;
@@ -412,19 +429,10 @@ implementation
             localvarsym :
               begin
                 vs:=tabstractnormalvarsym(symtableentry);
-{$if not defined(jvm) or defined(nounsupported)}
                 { Nested variable }
                 if assigned(left) then
-                  begin
-                    secondpass(left);
-                    if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                      internalerror(200309286);
-                    if vs.localloc.loc<>LOC_REFERENCE then
-                      internalerror(200409241);
-                    reference_reset_base(location.reference,left.location.register,vs.localloc.reference.offset,vs.localloc.reference.alignment);
-                  end
+                  generate_nested_access(vs)
                 else
-{$endif}
                   location:=vs.localloc;
 
                 { handle call by reference variables when they are not

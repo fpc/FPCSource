@@ -28,7 +28,7 @@ interface
     uses
       globtype,
       cgbase,cpubase,
-      node,nmem,ncgmem;
+      node,nmem,ncgmem,ncgnstmm;
 
     type
        tjvmaddrnode = class(tcgaddrnode)
@@ -43,10 +43,6 @@ interface
 
        tjvmloadvmtaddrnode = class(tcgloadvmtaddrnode)
          procedure pass_generate_code; override;
-       end;
-
-       tjvmloadparentfpnode = class(tcgloadparentfpnode)
-         procedure pass_generate_code;override;
        end;
 
        tjvmvecnode = class(tcgvecnode)
@@ -121,7 +117,8 @@ implementation
           end
         else
           begin
-            if not jvmimplicitpointertype(left.resultdef) then
+            if not(nf_internal in flags) and
+               not jvmimplicitpointertype(left.resultdef) then
               begin
                 CGMessage(parser_e_illegal_expression);
                 exit
@@ -134,7 +131,8 @@ implementation
     procedure tjvmaddrnode.pass_generate_code;
       begin
         secondpass(left);
-        if jvmimplicitpointertype(left.resultdef) then
+        if jvmimplicitpointertype(left.resultdef) or
+           (nf_internal in flags) then
           begin
             { this is basically a typecast: the left node is an implicit
               pointer, and we typecast it to a regular 'pointer'
@@ -143,6 +141,7 @@ implementation
           end
         else
           begin
+            { procvar }
 {$ifndef nounsupported}
             location_reset(location,LOC_REGISTER,OS_ADDR);
             location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
@@ -167,19 +166,6 @@ implementation
         thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
       end;
 
-
-    { tjvmloadparentfpnode }
-
-    procedure tjvmloadparentfpnode.pass_generate_code;
-      begin
-{$ifndef nounsupported}
-        location_reset(location,LOC_REGISTER,OS_ADDR);
-        location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
-        hlcg.a_load_const_reg(current_asmdata.CurrAsmList,java_jlobject,0,location.register);
-{$else}
-       internalerror(2011041301);
-{$endif}
-      end;
 
 {*****************************************************************************
                              TJVMVECNODE
@@ -298,6 +284,5 @@ begin
    cderefnode:=tjvmderefnode;
    caddrnode:=tjvmaddrnode;
    cvecnode:=tjvmvecnode;
-   cloadparentfpnode:=tjvmloadparentfpnode;
    cloadvmtaddrnode:=tjvmloadvmtaddrnode;
 end.

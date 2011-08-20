@@ -245,7 +245,9 @@ implementation
             end
          else
             begin
+               { parse routine body }
                block:=statement_block(_BEGIN);
+               { initialized variables }
                if current_procinfo.procdef.localst.symtabletype=localsymtable then
                  begin
                    { initialization of local variables with their initial
@@ -254,6 +256,17 @@ implementation
                    current_filepos:=current_procinfo.entrypos;
                    current_procinfo.procdef.localst.SymList.ForEachCall(@initializevars,block);
                    current_filepos:=oldfilepos;
+                 end;
+               if assigned(current_procinfo.procdef.parentfpstruct) then
+                 begin
+                   { we only do this after the code has been parsed because
+                     otherwise for-loop counters moved to the struct cause
+                     errors; we still do it nevertheless to prevent false
+                     "unused" symbols warnings and to assist debug info
+                     generation }
+                   redirect_parentfpstruct_local_syms(current_procinfo.procdef);
+                   { finish the parentfpstruct (add padding, ...) }
+                   finish_parentfpstruct(current_procinfo.procdef);
                  end;
             end;
         block:=cnodeutils.wrap_proc_body(current_procinfo.procdef,block);
@@ -1486,6 +1499,14 @@ implementation
 
              { Finish type checking pass }
              do_typecheckpass(code);
+
+             if assigned(procdef.parentfpinitblock) then
+               begin
+                 tblocknode(code).left:=cstatementnode.create(procdef.parentfpinitblock,tblocknode(code).left);
+                 do_typecheckpass(tblocknode(code).left);
+                 procdef.parentfpinitblock:=nil;
+               end;
+
            end;
 
          { Check for unused labels, forwards, symbols for procedures. Static

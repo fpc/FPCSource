@@ -559,6 +559,19 @@ interface
             easily write out all methods grouped per class }
           exprasmlist      : TAsmList;
 {$endif jvm}
+          { temporary reference to structure containing copies of all local
+            variables and parameters accessed by nested routines; reference to
+            this structure is passed as "parent frame pointer" on targets that
+            lack this concept (at least JVM and LLVM); no need to save to/
+            restore from ppu, since nested routines are always in the same
+            unit (no need to save to ppu) }
+          parentfpstruct: tsym;
+          { pointer to parentfpstruct's type (not yet valid during parsing, so
+            cannot be used for $parentfp parameter) (no need to save to ppu) }
+          parentfpstructptrtype: tdef;
+          { code to copy the parameters accessed from nested routines into the
+            parentfpstruct (no need to save to ppu) }
+          parentfpinitblock: tnode;
 {$ifdef oldregvars}
           regvarinfo: pregvarinfo;
 {$endif oldregvars}
