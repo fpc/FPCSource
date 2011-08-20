@@ -417,7 +417,7 @@ unit hlcgobj;
 
           procedure location_force_reg(list:TAsmList;var l:tlocation;src_size,dst_size:tdef;maybeconst:boolean);virtual;
           procedure location_force_fpureg(list:TAsmList;var l: tlocation;size: tdef;maybeconst:boolean);virtual;abstract;
-          procedure location_force_mem(list:TAsmList;var l:tlocation;size:tdef);virtual;abstract;
+          procedure location_force_mem(list:TAsmList;var l:tlocation;size:tdef);virtual;
 //          procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);virtual;abstract;
 //          procedure location_force_mmreg(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);virtual;abstract;
 
@@ -436,6 +436,9 @@ unit hlcgobj;
          public
           { load a tlocation into a cgpara }
           procedure gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara);virtual;
+
+          { load a cgpara into a tlocation }
+          procedure gen_load_cgpara_loc(list: TAsmList; vardef: tdef; const para: TCGPara; var destloc: tlocation; reusepara: boolean);virtual;
 
           { load the function return value into the ABI-defined function return location }
           procedure gen_load_return_value(list:TAsmList);virtual;
@@ -1640,6 +1643,57 @@ implementation
         location_freetemp(list,oldloc);
     end;
 
+  procedure thlcgobj.location_force_mem(list: TAsmList; var l: tlocation; size: tdef);
+    var
+      r : treference;
+    begin
+      case l.loc of
+        LOC_FPUREGISTER,
+        LOC_CFPUREGISTER :
+          begin
+            tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
+            hlcg.a_loadfpu_reg_ref(list,size,size,l.register,r);
+            location_reset_ref(l,LOC_REFERENCE,l.size,0);
+            l.reference:=r;
+          end;
+(*
+        LOC_MMREGISTER,
+        LOC_CMMREGISTER:
+          begin
+            tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
+            cg.a_loadmm_reg_ref(list,l.size,l.size,l.register,r,mms_movescalar);
+            location_reset_ref(l,LOC_REFERENCE,l.size,0);
+            l.reference:=r;
+          end;
+*)
+        LOC_CONSTANT,
+        LOC_REGISTER,
+        LOC_CREGISTER :
+          begin
+            tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
+            hlcg.a_load_loc_ref(list,size,size,l,r);
+            location_reset_ref(l,LOC_REFERENCE,l.size,0);
+            l.reference:=r;
+          end;
+(*
+        LOC_SUBSETREG,
+        LOC_CSUBSETREG,
+        LOC_SUBSETREF,
+        LOC_CSUBSETREF:
+          begin
+            tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
+            cg.a_load_loc_ref(list,l.size,l,r);
+            location_reset_ref(l,LOC_REFERENCE,l.size,0);
+            l.reference:=r;
+          end;
+*)
+        LOC_CREFERENCE,
+        LOC_REFERENCE : ;
+        else
+          internalerror(2011010304);
+      end;
+    end;
+
   procedure thlcgobj.gen_proc_symbol(list: TAsmList);
     var
       item,
@@ -1822,6 +1876,31 @@ implementation
 *)
         else
           internalerror(2011010212);
+      end;
+    end;
+
+  procedure thlcgobj.gen_load_cgpara_loc(list: TAsmList; vardef: tdef; const para: TCGPara; var destloc: tlocation; reusepara: boolean);
+    var
+      href     : treference;
+    begin
+      para.check_simple_location;
+      { skip e.g. empty records }
+      if (para.location^.loc = LOC_VOID) then
+        exit;
+      case destloc.loc of
+        LOC_REFERENCE :
+          begin
+            { If the parameter location is reused we don't need to copy
+              anything }
+            if not reusepara then
+              begin
+                reference_reset_base(href,para.location^.reference.index,para.location^.reference.offset,para.alignment);
+                a_load_ref_ref(list,para.def,para.def,href,destloc.reference);
+              end;
+          end;
+        { TODO other possible locations }
+        else
+          internalerror(2011010308);
       end;
     end;
 

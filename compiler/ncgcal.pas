@@ -43,6 +43,8 @@ interface
           procedure secondcallparan;override;
        end;
 
+       { tcgcallnode }
+
        tcgcallnode = class(tcallnode)
        private
 
@@ -181,7 +183,7 @@ implementation
                        href,third.location,'FPC_DECREF_ARRAY');
                    end
                  else
-                   cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
+                   hlcg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
                end;
 
              paramanager.createtempparaloc(current_asmdata.CurrAsmList,aktcallnode.procdefinition.proccalloption,parasym,not followed_by_stack_tainting_call_cached,tempcgpara);
@@ -217,7 +219,7 @@ implementation
                   { allow passing of a constant to a const formaldef }
                   if (parasym.varspez=vs_const) and
                      (left.location.loc in [LOC_CONSTANT,LOC_REGISTER]) then
-                    location_force_mem(current_asmdata.CurrAsmList,left.location);
+                    hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
                   push_addr_para;
                end
              { Normal parameter }
@@ -245,13 +247,13 @@ implementation
                           if (left.location.reference.index<>NR_NO) or
                              (left.location.reference.offset<>0) then
                             internalerror(200410107);
-                          cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,left.location.reference.base,tempcgpara)
+                          hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,voidpointertype,left.location.reference.base,tempcgpara)
                         end
                       else
                         begin
                           { Force to be in memory }
                           if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-                            location_force_mem(current_asmdata.CurrAsmList,left.location);
+                            hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
                           push_addr_para;
                         end;
                    end
@@ -371,7 +373,7 @@ implementation
             if (cnf_return_value_used in callnodeflags) or
                assigned(funcretnode) then
               begin
-                gen_load_cgpara_loc(current_asmdata.CurrAsmList,realresdef,retloc,location,false);
+                hlcg.gen_load_cgpara_loc(current_asmdata.CurrAsmList,realresdef,retloc,location,false);
 {$ifdef arm}
                 if (resultdef.typ=floatdef) and
                    (location.loc=LOC_REGISTER) and
@@ -412,9 +414,9 @@ implementation
                 begin
                   case funcretnode.location.loc of
                     LOC_REGISTER:
-                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,location.size,location.size,location.reference,funcretnode.location.register);
+                      hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,location.reference,funcretnode.location.register);
                     LOC_REFERENCE:
-                      cg.g_concatcopy(current_asmdata.CurrAsmList,location.reference,funcretnode.location.reference,resultdef.size);
+                      hlcg.g_concatcopy(current_asmdata.CurrAsmList,resultdef,location.reference,funcretnode.location.reference);
                     else
                       internalerror(200802121);
                   end;
@@ -439,7 +441,7 @@ implementation
               LOC_REFERENCE :
                 begin
                   if is_managed_type(resultdef) then
-                     cg.g_finalize(current_asmdata.CurrAsmList,resultdef,location.reference);
+                     hlcg.g_finalize(current_asmdata.CurrAsmList,resultdef,location.reference);
                    tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
                 end;
               else
@@ -719,6 +721,8 @@ implementation
              name_to_call:='';
              if assigned(fobjcforcedprocname) then
                name_to_call:=fobjcforcedprocname^;
+             { in the JVM, virtual method calls are also name-based }
+{$ifndef jvm}
              { When methodpointer is typen we don't need (and can't) load
                a pointer. We can directly call the correct procdef (PFV) }
              if (name_to_call='') and
@@ -788,6 +792,7 @@ implementation
                  extra_post_call_code;
                end
              else
+{$endif jvm}
                begin
                   { Load parameters that are in temporary registers in the
                     correct parameter register }
@@ -814,9 +819,12 @@ implementation
                         extra_interrupt_code;
                       extra_call_code;
                       if (name_to_call='') then
-                        cg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition).mangledname(false),po_weakexternal in procdefinition.procoptions)
+                        if cnf_inherited in callnodeflags then
+                          hlcg.a_call_name_inherited(current_asmdata.CurrAsmList,tprocdef(procdefinition),tprocdef(procdefinition).mangledname(false))
+                        else
+                          hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),tprocdef(procdefinition).mangledname(false),po_weakexternal in procdefinition.procoptions)
                       else
-                        cg.a_call_name(current_asmdata.CurrAsmList,name_to_call,po_weakexternal in procdefinition.procoptions);
+                        hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,po_weakexternal in procdefinition.procoptions);
                       extra_post_call_code;
                     end;
                end;

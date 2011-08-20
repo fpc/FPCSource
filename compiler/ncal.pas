@@ -3155,18 +3155,20 @@ implementation
                               That means the for pushes the para with the
                               highest offset (see para3) needs to be pushed first
                             }
-{$ifdef i386}
-                            { the i386 code generator expects all reference }
-                            { parameter to be in this order so it can use   }
-                            { pushes in case of no fixed stack              }
+{$if defined(i386)}
+                            { the i386 and jvm code generators expect all reference }
+                            { parameters to be in this order so they can use   }
+                            { pushes in case of no fixed stack                 }
                             if (not paramanager.use_fixed_stack and
                                 (hpcurr.parasym.paraloc[callerside].location^.reference.offset>
                                  hp.parasym.paraloc[callerside].location^.reference.offset)) or
                                (paramanager.use_fixed_stack and
                                 (node_complexity(hpcurr)<node_complexity(hp))) then
-{$else i386}
+{$elseif defined(jvm)}
+                            if (hpcurr.parasym.paraloc[callerside].location^.reference.offset<hp.parasym.paraloc[callerside].location^.reference.offset) then
+{$else jvm}
                             if (node_complexity(hpcurr)<node_complexity(hp)) then
-{$endif i386}
+{$endif jvm}
                               break;
                           end;
                         LOC_MMREGISTER,

@@ -395,6 +395,7 @@ unit hlcg2ll;
           procedure maketojumpbool(list:TAsmList; p : tnode);override;
 
           procedure gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara); override;
+          procedure gen_load_cgpara_loc(list: TAsmList; vardef: tdef; const para: TCGPara; var destloc: tlocation; reusepara: boolean); override;
        end;
 
 
@@ -1165,6 +1166,11 @@ procedure thlcg2ll.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; co
   procedure thlcg2ll.gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara);
     begin
       ncgutil.gen_load_loc_cgpara(list,vardef,l,cgpara);
+    end;
+
+  procedure thlcg2ll.gen_load_cgpara_loc(list: TAsmList; vardef: tdef; const para: TCGPara; var destloc: tlocation; reusepara: boolean);
+    begin
+      ncgutil.gen_load_cgpara_loc(list, vardef, para, destloc, reusepara);
     end;
 
 end.
