@@ -284,6 +284,8 @@ uses
               Freemem(buf,maxbufsize);
               buf:=nil;
             end;
+           stringdispose(name);
+           stringdispose(path);
            closed:=true;
            exit;
          end;
