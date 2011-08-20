@@ -1943,7 +1943,9 @@ implementation
                _LECKKLAMMER:
                   begin
                     if is_class_or_interface_or_object(p1.resultdef) or
-                      is_dispinterface(p1.resultdef) or is_record(p1.resultdef) then
+                       is_dispinterface(p1.resultdef) or
+                       is_record(p1.resultdef) or
+                       is_javaclass(p1.resultdef) then
                       begin
                         { default property }
                         protsym:=search_default_property(tabstractrecorddef(p1.resultdef));
