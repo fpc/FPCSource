@@ -91,6 +91,9 @@ interface
        tarrayconstructorrangenodeclass = class of tarrayconstructorrangenode;
 
        tarrayconstructornode = class(tbinarynode)
+         protected
+          procedure wrapmanagedvarrec(var n: tnode);virtual;abstract;
+         public
           constructor create(l,r : tnode);virtual;
           function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -152,7 +155,7 @@ implementation
 
     uses
       cutils,verbose,globtype,globals,systems,constexp,
-      symnot,
+      symnot,symtable,
       defutil,defcmp,
       htypechk,pass_1,procinfo,paramgr,
       cpuinfo,
@@ -1018,9 +1021,13 @@ implementation
     function tarrayconstructornode.pass_1 : tnode;
       var
         hp : tarrayconstructornode;
-        do_variant:boolean;
+        do_variant,
+        do_managed_variant:boolean;
       begin
         do_variant:=(nf_forcevaria in flags) or (ado_isvariant in tarraydef(resultdef).arrayoptions);
+        do_managed_variant:=
+          do_variant and
+          (target_info.system in systems_managed_vm);
         result:=nil;
         { Insert required type convs, this must be
           done in pass 1, because the call must be
@@ -1040,10 +1047,16 @@ implementation
                     if not do_variant then
                       include(current_procinfo.flags,pi_do_call);
                     firstpass(hp.left);
+                    if do_managed_variant then
+                      wrapmanagedvarrec(hp.left);
                   end;
                 hp:=tarrayconstructornode(hp.right);
               end;
           end;
+        { set the elementdef to the correct type in case of a managed
+          variant array }
+        if do_managed_variant then
+          tarraydef(resultdef).elementdef:=search_system_type('TVARREC').typedef;
         expectloc:=LOC_CREFERENCE;
       end;
 

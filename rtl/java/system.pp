@@ -27,6 +27,7 @@ Unit system;
 {$I-,Q-,H-,R-,V-,P+,T+}
 {$implicitexceptions off}
 {$mode objfpc}
+{$modeswitch advancedrecords}
 
 Type
   { Java primitive types }

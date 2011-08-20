@@ -1055,11 +1055,13 @@ implementation
         tmpreg  : tregister;
         vaddr : boolean;
         freetemp,
-        dovariant : boolean;
+        dovariant: boolean;
       begin
         if is_packed_array(resultdef) then
           internalerror(200608042);
-        dovariant:=(nf_forcevaria in flags) or is_variant_array(resultdef);
+        dovariant:=
+          ((nf_forcevaria in flags) or is_variant_array(resultdef)) and
+          not(target_info.system in systems_managed_vm);
         if dovariant then
           begin
             eledef:=search_system_type('TVARREC').typedef;
@@ -1113,7 +1115,6 @@ implementation
 
               if dovariant then
                begin
-{$if not defined(jvm) or defined(nounsupported)}
                  { find the correct vtype value }
                  vtype:=$ff;
                  vaddr:=false;
@@ -1233,7 +1234,6 @@ implementation
                  cg.a_load_const_ref(current_asmdata.CurrAsmList, OS_INT,vtype,href);
                  { goto next array element }
                  advancearrayoffset(href,sizeof(pint)*2);
-{$endif not jvm or nounsupported}
                end
               else
               { normal array constructor of the same type }

@@ -320,11 +320,10 @@ implementation
           arraydef :
             begin
               if is_array_of_const(def) then
-{$ifndef nounsupported}
-                result:=jvmaddencodedtype(java_jlobject,false,encodedstr,forcesignature,founderror)
-{$else}
-                result:=false
-{$endif}
+                begin
+                  encodedstr:=encodedstr+'[';
+                  result:=jvmaddencodedtype(search_system_type('TVARREC').typedef,false,encodedstr,forcesignature,founderror);
+                end
               else if is_packed_array(def) then
                 result:=false
               else

@@ -26,7 +26,9 @@ type
   end;
   TClass = class of TObject;
 
-   {$ifndef nounsupported}
+  TJClass = class of jlobject;
+
+
    const
       vtInteger       = 0;
       vtBoolean       = 1;
@@ -52,32 +54,51 @@ type
 
    type
      TVarRec = record
-        case VType : sizeint of
-   {$ifdef ENDIAN_BIG}
-          vtInteger       : ({$IFDEF CPU64}integerdummy1 : Longint;{$ENDIF CPU64}VInteger: Longint);
-          vtBoolean       : ({$IFDEF CPU64}booldummy : Longint;{$ENDIF CPU64}booldummy1,booldummy2,booldummy3: byte; VBoolean: Boolean);
-          vtChar          : ({$IFDEF CPU64}chardummy : Longint;{$ENDIF CPU64}chardummy1,chardummy2,chardummy3: byte; VChar: Char);
-          vtWideChar      : ({$IFDEF CPU64}widechardummy : Longint;{$ENDIF CPU64}wchardummy1,VWideChar: WideChar);
-   {$else ENDIAN_BIG}
-          vtInteger       : (VInteger: Longint);
-          vtBoolean       : (VBoolean: Boolean);
-          vtChar          : (VChar: Char);
-          vtWideChar      : (VWideChar: WideChar);
-   {$endif ENDIAN_BIG}
-   //       vtString        : (VString: PShortString);
-          vtPointer       : (VPointer: JLObject);
-          vtPChar         : (VPChar: JLObject);
-          vtObject        : (VObject: TObject);
-          vtClass         : (VClass: TClass);
-          vtPWideChar     : (VPWideChar: JLObject);
-          vtAnsiString    : (VAnsiString: AnsiStringClass);
-          vtCurrency      : (VCurrency: Currency);
-   //       vtVariant       : (VVariant: PVariant);
-          vtInterface     : (VInterface: JLObject);
-          vtWideString    : (VWideString: JLString);
-          vtInt64         : (VInt64: Int64);
-          vtUnicodeString : (VUnicodeString: JLString);
-          vtQWord         : (VQWord: QWord);
+       VType: sizeint;
+       Value: JLObject;
+       procedure init(l: longint);
+       procedure init(b: boolean);
+       procedure init(c: ansichar);
+       procedure init(w: widechar);
+       procedure init(d: extended);
+       procedure init(const s: shortstring);
+       // pointer = object -> use constref to get different signature
+       procedure init(constref p: pointer);
+       procedure init(p: pchar);
+       procedure init(p: JLObject);
+       procedure init(c: TJClass);
+       procedure init(p: pwidechar);
+       procedure init(const a: ansistring);
+       // currency = int64 -> use constref to get different signature
+       procedure init(constref c: currency);
+       // procedure init(const v: variant);
+       // interface = object
+       procedure init(const w: widestring);
+       procedure init(i: int64);
+       // unicodestring = widestring
+
+       // qword = int64 -> extra parameter to solve signature problem
+       procedure init(q: qword; unsigned: boolean = true);
+
+       function VInteger: longint;
+       function VBoolean: boolean;
+       function VChar: ansichar;
+       function VWideChar: widechar;
+       function VExtended: PExtended;
+       function VDouble: double;
+       function VString: PShortString;
+       function VPointer: pointer;
+       function VPChar: PChar;
+       function VObject: JLObject;
+       function VClass: TJClass;
+       function VPWideChar: PWideChar;
+       function VAnsiString: Pointer;
+       function VCurrency: PCurrency;
+       // function VVariant: PVariant;
+       function VInterface: JLObject;
+       function VWideString: Pointer;
+       function VInt64: PInt64;
+       function VUnicodeString: Pointer;
+       function VQWord: PQWord;
       end;
-{$endif}
 

@@ -48,6 +48,7 @@ type
    protected
     procedure makearrayref(var ref: treference; eledef: tdef); override;
     procedure advancearrayoffset(var ref: treference; elesize: asizeint); override;
+    procedure wrapmanagedvarrec(var n: tnode);override;
   end;
 
 implementation
@@ -213,6 +214,30 @@ procedure tjvmarrayconstructornode.makearrayref(var ref: treference; eledef: tde
 procedure tjvmarrayconstructornode.advancearrayoffset(var ref: treference; elesize: asizeint);
   begin
     inc(ref.indexoffset);
+  end;
+
+
+procedure tjvmarrayconstructornode.wrapmanagedvarrec(var n: tnode);
+  var
+    varrecdef: trecorddef;
+    block: tblocknode;
+    stat: tstatementnode;
+    temp: ttempcreatenode;
+  begin
+    varrecdef:=trecorddef(search_system_type('TVARREC').typedef);
+    block:=internalstatements(stat);
+    temp:=ctempcreatenode.create(varrecdef,varrecdef.size,tt_persistent,false);
+    addstatement(stat,temp);
+    addstatement(stat,
+      ccallnode.createinternmethod(
+        ctemprefnode.create(temp),'INIT',ccallparanode.create(n,nil)));
+    { note: this will not free the record contents, but just let its reference
+      on the stack be reused -- which is ok, because the reference will be
+      stored into the open array parameter }
+    addstatement(stat,ctempdeletenode.create_normal_temp(temp));
+    addstatement(stat,ctemprefnode.create(temp));
+    n:=block;
+    firstpass(n);
   end;
 
 
