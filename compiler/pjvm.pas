@@ -27,7 +27,7 @@ unit pjvm;
 interface
 
     uses
-     symtype,symdef;
+     symtype,symbase,symdef;
 
     { the JVM specs require that you add a default parameterless
       constructor in case the programmer hasn't specified any }
@@ -38,7 +38,7 @@ interface
       to initialse dynamic arrays }
     procedure add_java_default_record_methods_intf(def: trecorddef);
 
-    procedure jvm_guarantee_record_typesym(var def: tdef);
+    procedure jvm_guarantee_record_typesym(var def: tdef; st: tsymtable);
 
 
 implementation
@@ -50,7 +50,7 @@ implementation
     fmodule,
     parabase,
     pdecsub,
-    symbase,symtable,symconst,symsym,symcreat,defcmp,jvmdef,
+    symtable,symconst,symsym,symcreat,defcmp,jvmdef,
     defutil,paramgr;
 
 
@@ -118,7 +118,7 @@ implementation
               end;
             { determine symtable level }
             topowner:=obj;
-            while not(topowner.owner.symtabletype in [staticsymtable,globalsymtable,localsymtable]) do
+            while not(topowner.owner.symtabletype in [staticsymtable,globalsymtable]) do
               topowner:=topowner.owner.defowner;
             { create procdef }
             pd:=tprocdef.create(topowner.owner.symtablelevel+1);
@@ -195,7 +195,7 @@ implementation
       end;
 
 
-    procedure jvm_guarantee_record_typesym(var def: tdef);
+    procedure jvm_guarantee_record_typesym(var def: tdef; st: tsymtable);
       var
         ts: ttypesym;
       begin
@@ -206,9 +206,8 @@ implementation
            not assigned(def.typesym) then
           begin
             ts:=ttypesym.create(trecorddef(def).symtable.realname^,def);
-            symtablestack.top.insert(ts);
+            st.insert(ts);
             ts.visibility:=vis_strictprivate;
-            def.typesym:=ts;
           end;
       end;
 
