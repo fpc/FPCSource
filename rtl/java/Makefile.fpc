@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=
-units=$(SYSTEMUNIT) objpas
+units=$(SYSTEMUNIT) objpas jdk15
 
 [require]
 nortl=y
@@ -77,6 +77,8 @@ objpas$(PPUEXT): objpas.pp
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
                    $(SYSTEMUNIT)$(PPUEXT)
+
+jdk15$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) jdk15.inc jdk15.pas 
 
 #
 # System Dependent Units
