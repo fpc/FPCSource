@@ -387,7 +387,10 @@ implementation
           internalerror(2011072607);
         { constructor FpcBaseProcVarType.create(inst: jlobject; const method: unicodestring; const argTypes: array of JLClass); }
         constrparas:=ccallparanode.create(ctypeconvnode.create_explicit(procload,java_jlobject),nil);
-        constrparas:=ccallparanode.create(cstringconstnode.createstr(procdef.procsym.realname),constrparas);
+        if not assigned(procdef.import_name) then
+          constrparas:=ccallparanode.create(cstringconstnode.createstr(procdef.procsym.realname),constrparas)
+        else
+          constrparas:=ccallparanode.create(cstringconstnode.createstr(procdef.import_name^),constrparas);
         procdefparas:=nil;
         jlclass:=tobjectdef(search_system_type('JLCLASS').typedef);
         { in reverse to make it easier to build the arrayconstructorn }
