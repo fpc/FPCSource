@@ -1111,8 +1111,12 @@ implementation
         setdef,
         variantdef:
           begin
+{$ifndef nounsupported}
+            procname:='FPC_COPY_SHALLOW_ARRAY';
+{$else}
             { todo: make a deep copy via clone... }
             internalerror(2011020505);
+{$endif}
           end;
         else
           procname:='FPC_COPY_SHALLOW_ARRAY';
