@@ -141,7 +141,7 @@ begin
 end;
 
 
-procedure fpc_UnicodeStr_Concat_multi (var DestS:Unicodestring;const sarr:array of Unicodestring); compilerproc;
+function fpc_UnicodeStr_Concat_multi (const sarr:array of Unicodestring): unicodestring; compilerproc;
 Var
   i  : Longint;
   Size,NewSize : SizeInt;
@@ -158,7 +158,7 @@ begin
       if length(sarr[i])>0 then
         sb.append(sarr[i]);
     end;
-  DestS:=sb.toString;
+  result:=sb.toString;
 end;
 
 

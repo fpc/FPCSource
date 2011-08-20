@@ -308,7 +308,7 @@ Function fpc_AnsiStr_To_UnicodeStr (Const S2 : AnsiString): UnicodeString; compi
 Function fpc_UnicodeStr_To_WideStr (const S2 : UnicodeString): WideString; compilerproc;
 Function fpc_WideStr_To_UnicodeStr (Const S2 : WideString): UnicodeString; compilerproc;
 Function fpc_UnicodeStr_Concat (const S1,S2 : UnicodeString) : UnicodeString; compilerproc;
-procedure fpc_UnicodeStr_Concat_multi (var DestS:Unicodestring;const sarr:array of Unicodestring); compilerproc;
+function fpc_UnicodeStr_Concat_multi (const sarr:array of Unicodestring): unicodestring; compilerproc;
 Function fpc_Char_To_UnicodeStr(const c : AnsiChar): UnicodeString; compilerproc;
 Function fpc_CharArray_To_UnicodeStr(const arr: array of AnsiChar; zerobased: boolean = true): UnicodeString; compilerproc;
 
