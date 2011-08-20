@@ -563,25 +563,15 @@ implementation
               if not assigned(sym) or
                  (sym.typ<>procsym) then
                 internalerror(2011072801);
-              { check whether we can simply replace the symtableprocentry, or
-                whether we have to reresolve overloads -- can never simply
-                replace in case of constructor -> class method call, because
-                constructors have a vmt parameter and class methods don't }
-              if (procdefinition.proctypeoption<>potype_constructor) and
-                 (symtableprocentry.ProcdefList.count=1) then
-                begin
-                  symtableprocentry:=tprocsym(sym);
-                  procdefinition:=tprocdef(symtableprocentry.ProcdefList[0]);
-                end
-              else
-                begin
-                  remove_hidden_paras;
-                  result:=ccallnode.create(left,tprocsym(sym),symtableproc,methodpointer,callnodeflags);
-                  result.flags:=flags;
-                  left:=nil;
-                  methodpointer:=nil;
-                  exit;
-                end;
+                { do not simply replace the procsym/procdef in case we could
+                  in theory do that, because the parameter nodes have already
+                  been bound to the current procdef's parasyms }
+                remove_hidden_paras;
+                result:=ccallnode.create(left,tprocsym(sym),symtableproc,methodpointer,callnodeflags);
+                result.flags:=flags;
+                left:=nil;
+                methodpointer:=nil;
+                exit;
             end;
           result:=inherited pass_1;
           if assigned(result) then
