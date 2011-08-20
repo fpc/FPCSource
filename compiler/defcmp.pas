@@ -1289,7 +1289,7 @@ implementation
                     here }
                   eq:=te_convert_l3;
                 end
-               { java.lang.string -> unicodestring }
+               { unicodestring -> java.lang.string }
                else if (def_to=java_jlstring) and
                        (is_wide_or_unicode_string(def_from) or
                         (fromtreetype=stringconstn)) then
@@ -1299,6 +1299,12 @@ implementation
                      eq:=te_equal
                    else
                      eq:=te_convert_l2;
+                 end
+               else if (def_to=java_jlstring) and
+                       is_anychar(def_from) then
+                 begin
+                   doconv:=tc_char_2_string;
+                   eq:=te_convert_l2
                  end
                else
                { specific to implicit pointer object types }

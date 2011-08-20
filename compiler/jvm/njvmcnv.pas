@@ -32,6 +32,7 @@ interface
        tjvmtypeconvnode = class(tcgtypeconvnode)
           function typecheck_dynarray_to_openarray: tnode; override;
           function typecheck_string_to_chararray: tnode; override;
+          function typecheck_char_to_string: tnode; override;
           function pass_1: tnode; override;
           function simplify(forinline: boolean): tnode; override;
 
@@ -169,6 +170,21 @@ implementation
      end;
 
 
+   function tjvmtypeconvnode.typecheck_char_to_string: tnode;
+    begin
+      { make sure the generic code gets a stringdef }
+      if self.totypedef=java_jlstring then
+        begin
+          inserttypeconv(left,cunicodestringtype);
+          inserttypeconv(left,totypedef);
+          result:=left;
+          left:=nil;
+          exit;
+        end;
+      result:=inherited;
+    end;
+
+
 {*****************************************************************************
                              FirstTypeConv
 *****************************************************************************}
@@ -205,8 +221,9 @@ implementation
           exit;
         { string constants passed to java.lang.String must be converted to
           widestring }
-        if (left.nodetype=stringconstn) and
-           not(tstringconstnode(left).cst_type in [cst_unicodestring,cst_widestring]) and
+        if ((is_conststringnode(left) and
+             not(tstringconstnode(left).cst_type in [cst_unicodestring,cst_widestring])) or
+            is_constcharnode(left)) and
            (maybe_find_real_class_definition(resultdef,false)=java_jlstring) then
           inserttypeconv(left,cunicodestringtype);
       end;
