@@ -1316,7 +1316,7 @@ implementation
               result:=cachedmangledname^
             else
               begin
-                result:=jvmmangledbasename(self);
+                result:=jvmmangledbasename(self,false);
                 jvmaddtypeownerprefix(owner,result);
                 cachedmangledname:=stringdup(result);
               end;
@@ -1474,7 +1474,7 @@ implementation
         if not assigned(_mangledname) then
           begin
 {$ifdef jvm}
-            tmpname:=jvmmangledbasename(self);
+            tmpname:=jvmmangledbasename(self,false);
             jvmaddtypeownerprefix(owner,tmpname);
             _mangledname:=stringdup(tmpname);
 {$else jvm}
@@ -1501,7 +1501,7 @@ implementation
       begin
         stringdispose(_mangledname);
 {$if defined(jvm)}
-        tmpname:=jvmmangledbasename(self,s);
+        tmpname:=jvmmangledbasename(self,s,false);
         jvmaddtypeownerprefix(owner,tmpname);
         _mangledname:=stringdup(tmpname);
 {$elseif defined(compress)}

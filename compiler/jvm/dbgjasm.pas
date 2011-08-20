@@ -75,7 +75,7 @@ implementation
       if not(sym.localloc.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
         exit;
       proc:=tprocdef(sym.owner.defowner);
-      jvar:=tai_jvar.create(sym.localloc.reference.offset,jvmmangledbasename(sym),fcurrprocstart,fcurrprocend);
+      jvar:=tai_jvar.create(sym.localloc.reference.offset,jvmmangledbasename(sym,true),fcurrprocstart,fcurrprocend);
       proc.exprasmlist.InsertAfter(jvar,proc.procstarttai);
     end;
 

@@ -31,20 +31,29 @@ interface
       node,
       symbase,symtype;
 
+    { returns whether a def can make use of an extra type signature (for
+      Java-style generics annotations; not use for FPC-style generics or their
+      translations, but to annotate the kind of classref a java.lang.Class is
+      and things like that) }
+    function jvmtypeneedssignature(def: tdef): boolean;
+    { create a signature encoding of a particular type; requires that
+      jvmtypeneedssignature returned "true" for this type }
+    procedure jvmaddencodedsignature(def: tdef; bpacked: boolean; var encodedstr: string);
+
     { Encode a type into the internal format used by the JVM (descriptor).
       Returns false if a type is not representable by the JVM,
       and in that case also the failing definition.  }
-    function jvmtryencodetype(def: tdef; out encodedtype: string; out founderror: tdef): boolean;
+    function jvmtryencodetype(def: tdef; out encodedtype: string; forcesignature: boolean; out founderror: tdef): boolean;
 
     { same as above, but throws an internal error on failure }
-    function jvmencodetype(def: tdef): string;
+    function jvmencodetype(def: tdef; withsignature: boolean): string;
 
     { Check whether a type can be used in a JVM methom signature or field
       declaration.  }
     function jvmchecktype(def: tdef; out founderror: tdef): boolean;
 
     { incremental version of jvmtryencodetype() }
-    function jvmaddencodedtype(def: tdef; bpacked: boolean; var encodedstr: string; out founderror: tdef): boolean;
+    function jvmaddencodedtype(def: tdef; bpacked: boolean; var encodedstr: string; forcesignature: boolean; out founderror: tdef): boolean;
 
     { add type prefix (package name) to a type }
     procedure jvmaddtypeownerprefix(owner: tsymtable; var name: string);
@@ -59,9 +68,10 @@ interface
     function jvmimplicitpointertype(def: tdef): boolean;
 
     { returns the mangled base name for a tsym (type + symbol name, no
-      visibility etc) }
-    function jvmmangledbasename(sym: tsym): string;
-    function jvmmangledbasename(sym: tsym; const usesymname: string): string;
+      visibility etc); also adds signature attribute if requested and
+      appropriate }
+    function jvmmangledbasename(sym: tsym; withsignature: boolean): string;
+    function jvmmangledbasename(sym: tsym; const usesymname: string; withsignature: boolean): string;
 
 implementation
 
@@ -77,7 +87,102 @@ implementation
                           Type encoding
 *******************************************************************}
 
-    function jvmaddencodedtype(def: tdef; bpacked: boolean; var encodedstr: string; out founderror: tdef): boolean;
+    function jvmtypeneedssignature(def: tdef): boolean;
+      var
+        i: longint;
+      begin
+        result:=false;
+        case def.typ of
+          classrefdef :
+            begin
+              result:=true;
+            end;
+          arraydef :
+            begin
+              result:=jvmtypeneedssignature(tarraydef(def).elementdef);
+            end;
+          procvardef :
+            begin
+              { may change in the future }
+            end;
+          procdef :
+            begin
+              for i:=0 to tprocdef(def).paras.count-1 do
+                begin
+                  result:=jvmtypeneedssignature(tparavarsym(tprocdef(def).paras[i]).vardef);
+                  if result then
+                    exit;
+                end;
+            end
+          else
+            result:=false;
+        end;
+      end;
+
+
+    procedure jvmaddencodedsignature(def: tdef; bpacked: boolean; var encodedstr: string);
+      var
+        founderror: tdef;
+      begin
+        case def.typ of
+          pointerdef :
+            begin
+              { maybe one day }
+              internalerror(2011051403);
+            end;
+          classrefdef :
+            begin
+              { Ljava/lang/Class<+SomeClassType> means
+                "Ljava/lang/Class<SomeClassType_or_any_of_its_descendents>" }
+              encodedstr:=encodedstr+'Ljava/lang/Class<+';
+              jvmaddencodedtype(tclassrefdef(def).pointeddef,false,encodedstr,true,founderror);
+              encodedstr:=encodedstr+'>;';
+            end;
+          setdef :
+            begin
+              { maybe one day }
+              internalerror(2011051404);
+            end;
+          arraydef :
+            begin
+              if is_array_of_const(def) then
+                begin
+                  internalerror(2011051405);
+                end
+              else if is_packed_array(def) then
+                begin
+                  internalerror(2011051406);
+                end
+              else
+                begin
+                  encodedstr:=encodedstr+'[';
+                  jvmaddencodedsignature(tarraydef(def).elementdef,false,encodedstr);
+                end;
+            end;
+          procvardef :
+            begin
+              { maybe one day }
+              internalerror(2011051407);
+            end;
+          objectdef :
+            begin
+              { maybe one day }
+            end;
+          undefineddef,
+          errordef :
+            begin
+              internalerror(2011051408);
+            end;
+          procdef :
+            { must be done via jvmencodemethod() }
+            internalerror(2011051401);
+        else
+          internalerror(2011051402);
+        end;
+      end;
+
+
+    function jvmaddencodedtypeintern(def: tdef; bpacked: boolean; var encodedstr: string; forcesignature: boolean; out founderror: tdef): boolean;
       var
         c: char;
       begin
@@ -136,7 +241,7 @@ implementation
             begin
 {$ifndef nounsupported}
               if def=voidpointertype then
-                result:=jvmaddencodedtype(java_jlobject,false,encodedstr,founderror)
+                result:=jvmaddencodedtype(java_jlobject,false,encodedstr,forcesignature,founderror)
               else
 {$endif}
               { some may be handled via wrapping later }
@@ -168,12 +273,19 @@ implementation
             end;
           classrefdef :
             begin
-{$ifndef nounsupported}
-              result:=jvmaddencodedtype(java_jlobject,false,encodedstr,founderror);
-{$else}
-              { may be handled via wrapping later }
-              result:=false;
-{$endif}
+              if not forcesignature then
+                { unfortunately, java.lang.Class is final, so we can't create
+                  different versions for difference class reference types }
+                encodedstr:=encodedstr+'Ljava/lang/Class;'
+              { we can however annotate it with extra signature information in
+                using Java's generic annotations }
+              else
+                begin
+                  encodedstr:=encodedstr+'Ljava/lang/Class<';
+                  result:=jvmaddencodedtype(tclassrefdef(def).pointeddef,true,encodedstr,forcesignature,founderror);
+                  encodedstr:=encodedstr+'>;';
+                end;
+              result:=true;
             end;
           setdef :
             begin
@@ -181,7 +293,7 @@ implementation
                 encodedstr:=encodedstr+'I'
               else
 {$ifndef nounsupported}
-                result:=jvmaddencodedtype(java_jlobject,false,encodedstr,founderror);
+                result:=jvmaddencodedtype(java_jlobject,false,encodedstr,forcesignature,founderror);
 {$else}
                 { will be hanlded via wrapping later, although wrapping may
                   happen at higher level }
@@ -193,7 +305,7 @@ implementation
 {$ifndef nounsupported}
               { var x: JLObject }
               encodedstr:=encodedstr+'[';
-              result:=jvmaddencodedtype(java_jlobject,false,encodedstr,founderror);
+              result:=jvmaddencodedtype(java_jlobject,false,encodedstr,forcesignature,founderror);
 {$else}
               result:=false;
 {$endif}
@@ -202,7 +314,7 @@ implementation
             begin
               if is_array_of_const(def) then
 {$ifndef nounsupported}
-                result:=jvmaddencodedtype(java_jlobject,false,encodedstr,founderror)
+                result:=jvmaddencodedtype(java_jlobject,false,encodedstr,forcesignature,founderror)
 {$else}
                 result:=false
 {$endif}
@@ -211,7 +323,7 @@ implementation
               else
                 begin
                   encodedstr:=encodedstr+'[';
-                  if not jvmaddencodedtype(tarraydef(def).elementdef,false,encodedstr,founderror) then
+                  if not jvmaddencodedtype(tarraydef(def).elementdef,false,encodedstr,forcesignature,founderror) then
                     begin
                       result:=false;
                       { report the exact (nested) error defintion }
@@ -222,7 +334,7 @@ implementation
           procvardef :
             begin
 {$ifndef nounsupported}
-              result:=jvmaddencodedtype(java_jlobject,false,encodedstr,founderror);
+              result:=jvmaddencodedtype(java_jlobject,false,encodedstr,forcesignature,founderror);
 {$else}
               { will be hanlded via wrapping later, although wrapping may
                 happen at higher level }
@@ -251,10 +363,16 @@ implementation
       end;
 
 
-    function jvmtryencodetype(def: tdef; out encodedtype: string; out founderror: tdef): boolean;
+    function jvmaddencodedtype(def: tdef; bpacked: boolean; var encodedstr: string; forcesignature: boolean; out founderror: tdef): boolean;
+      begin
+        result:=jvmaddencodedtypeintern(def,bpacked,encodedstr,forcesignature,founderror);
+      end;
+
+
+    function jvmtryencodetype(def: tdef; out encodedtype: string; forcesignature: boolean; out founderror: tdef): boolean;
       begin
         encodedtype:='';
-        result:=jvmaddencodedtype(def,false,encodedtype,founderror);
+        result:=jvmaddencodedtype(def,false,encodedtype,forcesignature,founderror);
       end;
 
 
@@ -301,7 +419,7 @@ implementation
       var
         errdef: tdef;
       begin
-        if not jvmtryencodetype(def,result,errdef) then
+        if not jvmtryencodetype(def,result,false,errdef) then
           internalerror(2011012205);
         primitivetype:=false;
         if length(result)=1 then
@@ -340,7 +458,7 @@ implementation
           result:='R'
         else
           begin
-            if not jvmtryencodetype(def,res,errdef) then
+            if not jvmtryencodetype(def,res,false,errdef) then
               internalerror(2011012209);
             if length(res)=1 then
               result:=res[1]
@@ -372,12 +490,11 @@ implementation
       end;
 
 
-    function jvmmangledbasename(sym: tsym; const usesymname: string): string;
+    function jvmmangledbasename(sym: tsym; const usesymname: string; withsignature: boolean): string;
       var
         container: tsymtable;
         vsym: tabstractvarsym;
         csym: tconstsym;
-        founderror: tdef;
       begin
         case sym.typ of
           staticvarsym,
@@ -386,7 +503,13 @@ implementation
           fieldvarsym:
             begin
               vsym:=tabstractvarsym(sym);
-              result:=jvmencodetype(vsym.vardef);
+              result:=jvmencodetype(vsym.vardef,false);
+              if withsignature and
+                 jvmtypeneedssignature(vsym.vardef) then
+                begin
+                  result:=result+' signature "';
+                  result:=result+jvmencodetype(vsym.vardef,true)+'"';
+                end;
               if (vsym.typ=paravarsym) and
                  (vo_is_self in tparavarsym(vsym).varoptions) then
                 result:='this ' +result
@@ -416,23 +539,31 @@ implementation
               csym:=tconstsym(sym);
               { some constants can be untyped }
               if assigned (csym.constdef) then
-                result:=jvmencodetype(csym.constdef)
+                begin
+                  result:=jvmencodetype(csym.constdef,false);
+                  if withsignature and
+                     jvmtypeneedssignature(csym.constdef) then
+                    begin
+                      result:=result+' signature "';
+                      result:=result+jvmencodetype(csym.constdef,true)+'"';
+                    end;
+                end
               else
                 begin
                   case csym.consttyp of
                     constord:
-                      result:=jvmencodetype(s32inttype);
+                      result:=jvmencodetype(s32inttype,withsignature);
                     constreal:
-                      result:=jvmencodetype(s64floattype);
+                      result:=jvmencodetype(s64floattype,withsignature);
                     constset:
                       internalerror(2011040701);
                     constpointer,
                     constnil:
-                      result:=jvmencodetype(java_jlobject);
+                      result:=jvmencodetype(java_jlobject,withsignature);
                     constwstring,
                     conststring:
-                      result:=jvmencodetype(java_jlstring);
-                    constguid:
+                      result:=jvmencodetype(java_jlstring,withsignature);
+                    constresourcestring:
                       internalerror(2011040702);
                     else
                       internalerror(2011040703);
@@ -446,24 +577,24 @@ implementation
       end;
 
 
-    function jvmmangledbasename(sym: tsym): string;
+    function jvmmangledbasename(sym: tsym; withsignature: boolean): string;
       begin
         if (sym.typ=fieldvarsym) and
            assigned(tfieldvarsym(sym).externalname) then
-          result:=jvmmangledbasename(sym,tfieldvarsym(sym).externalname^)
+          result:=jvmmangledbasename(sym,tfieldvarsym(sym).externalname^,withsignature)
         else
-          result:=jvmmangledbasename(sym,sym.RealName);
+          result:=jvmmangledbasename(sym,sym.RealName,withsignature);
       end;
 
 {******************************************************************
                     jvm type validity checking
 *******************************************************************}
 
-   function jvmencodetype(def: tdef): string;
+   function jvmencodetype(def: tdef; withsignature: boolean): string;
      var
        errordef: tdef;
      begin
-       if not jvmtryencodetype(def,result,errordef) then
+       if not jvmtryencodetype(def,result,withsignature,errordef) then
          internalerror(2011012305);
      end;
 
@@ -474,7 +605,7 @@ implementation
       begin
         { don't duplicate the code like in objcdef, since the resulting strings
           are much shorter here so it's not worth it }
-        result:=jvmtryencodetype(def,encodedtype,founderror);
+        result:=jvmtryencodetype(def,encodedtype,false,founderror);
       end;
 
 

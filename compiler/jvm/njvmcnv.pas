@@ -803,7 +803,7 @@ implementation
       if checkdef.typ in [objectdef,recorddef] then
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcode,current_asmdata.RefAsmSymbol(tabstractrecorddef(checkdef).jvm_full_typename(true))))
       else
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcode,current_asmdata.RefAsmSymbol(jvmencodetype(checkdef))));
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcode,current_asmdata.RefAsmSymbol(jvmencodetype(checkdef,false))));
       location_reset(node.location,LOC_REGISTER,OS_ADDR);
       node.location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,node.resultdef);
       thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,node.resultdef,node.location.register);

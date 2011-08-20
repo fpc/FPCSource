@@ -608,7 +608,7 @@ interface
           function  defaultmangledname: string;
           function  cplusplusmangledname : string;
           function  objcmangledname : string;
-          function  jvmmangledbasename: string;
+          function  jvmmangledbasename(signature: boolean): string;
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
           procedure make_external;
@@ -4196,7 +4196,7 @@ implementation
 {$ifndef jvm}
         mangledname:=defaultmangledname;
 {$else not jvm}
-        mangledname:=jvmmangledbasename;
+        mangledname:=jvmmangledbasename(false);
         if (po_has_importdll in procoptions) then
           begin
             { import_dll comes from "external 'import_dll_name' name 'external_name'" }
@@ -4438,7 +4438,7 @@ implementation
       end;
 
 
-    function tprocdef.jvmmangledbasename: string;
+    function tprocdef.jvmmangledbasename(signature: boolean): string;
       var
         vs: tparavarsym;
         i: longint;
@@ -4453,25 +4453,30 @@ implementation
           -> store common part: method(parametertypes)returntype and
              adorn as required when using it.
         }
-        { method name }
-        { special names for constructors and class constructors }
-        if proctypeoption=potype_constructor then
-          tmpresult:='<init>'
-        else if proctypeoption in [potype_class_constructor,potype_unitinit] then
-          tmpresult:='<clinit>'
-        else if po_has_importname in procoptions then
+        if not signature then
           begin
-            if assigned(import_name) then
-              tmpresult:=import_name^
+            { method name }
+            { special names for constructors and class constructors }
+            if proctypeoption=potype_constructor then
+              tmpresult:='<init>'
+            else if proctypeoption in [potype_class_constructor,potype_unitinit] then
+              tmpresult:='<clinit>'
+            else if po_has_importname in procoptions then
+              begin
+                if assigned(import_name) then
+                  tmpresult:=import_name^
+                else
+                  internalerror(2010122608);
+              end
             else
-              internalerror(2010122608);
+              begin
+                tmpresult:=procsym.realname;
+                if tmpresult[1]='$' then
+                  tmpresult:=copy(tmpresult,2,length(tmpresult)-1);
+              end;
           end
         else
-          begin
-            tmpresult:=procsym.realname;
-            if tmpresult[1]='$' then
-              tmpresult:=copy(tmpresult,2,length(tmpresult)-1);
-          end;
+          tmpresult:='';
         { parameter types }
         tmpresult:=tmpresult+'(';
         { not the case for the main program (not required for defaultmangledname
@@ -4498,7 +4503,7 @@ implementation
                       tmpresult:=tmpresult+'[';
                   end;
                 { Add the parameter type.  }
-                if not jvmaddencodedtype(vs.vardef,false,tmpresult,founderror) then
+                if not jvmaddencodedtype(vs.vardef,false,tmpresult,signature,founderror) then
                   { should be checked earlier on }
                   internalerror(2010122604);
               end;
@@ -4507,8 +4512,8 @@ implementation
         { And the type of the function result (void in case of a procedure and
           constructor). }
         if (proctypeoption in [potype_constructor,potype_class_constructor]) then
-          jvmaddencodedtype(voidtype,false,tmpresult,founderror)
-        else if not jvmaddencodedtype(returndef,false,tmpresult,founderror) then
+          jvmaddencodedtype(voidtype,false,tmpresult,signature,founderror)
+        else if not jvmaddencodedtype(returndef,false,tmpresult,signature,founderror) then
           internalerror(2010122610);
         result:=tmpresult;
       end;

@@ -711,7 +711,7 @@ implementation
            (not(po_virtualmethod in pd.procoptions) and
             not(pd.proctypeoption in [potype_constructor,potype_class_constructor])) then
           result:=result+'final ';
-        result:=result+pd.jvmmangledbasename;
+        result:=result+pd.jvmmangledbasename(false);
       end;
 
 
@@ -776,7 +776,7 @@ implementation
         result:=VisibilityToStr(sym.visibility);
         { formal constants are always class-level, not instance-level }
         result:=result+'static final ';
-        result:=result+jvmmangledbasename(sym);
+        result:=result+jvmmangledbasename(sym,true);
         result:=result+ConstAssignmentValue(tconstsym(sym));
       end;
 
@@ -822,7 +822,7 @@ implementation
           result:=result+'static ';
         if sym.varspez=vs_const then
           result:=result+'final ';
-        result:=result+jvmmangledbasename(sym);
+        result:=result+jvmmangledbasename(sym,true);
       end;
 
 
@@ -878,6 +878,12 @@ implementation
           exit;
         AsmWrite('.method ');
         AsmWriteln(MethodDefinition(pd));
+        if jvmtypeneedssignature(pd) then
+          begin
+            AsmWrite('.signature "');
+            AsmWrite(pd.jvmmangledbasename(true));
+            AsmWriteln('"');
+          end;
         WriteTree(pd.exprasmlist);
         AsmWriteln('.end method');
         AsmLn;
