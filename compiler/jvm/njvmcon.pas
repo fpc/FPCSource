@@ -101,7 +101,6 @@ implementation
         basedef: tenumdef;
         sym: tenumsym;
         classfield: tsym;
-        i: longint;
       begin
         if (resultdef.typ<>enumdef) or
            enumconstok then
@@ -113,20 +112,15 @@ implementation
         { a) find the enumsym corresponding to the value (may not exist in case
              of an explicit typecast of an integer -> error) }
         sym:=nil;
-        basedef:=tenumdef(resultdef).getbasedef;
-        for i:=0 to tenumdef(resultdef).symtable.symlist.count-1 do
-          begin
-            sym:=tenumsym(basedef.symtable.symlist[i]);
-            if sym.value=value then
-              break;
-            sym:=nil;
-          end;
+        sym:=tenumsym(tenumdef(resultdef).int2enumsym(int64(value)));
         if not assigned(sym) then
           begin
             Message(parser_e_range_check_error);
+            result:=nil;
             exit;
           end;
         { b) find the corresponding class field }
+        basedef:=tenumdef(resultdef).getbasedef;
         classfield:=search_struct_member(basedef.classdef,sym.name);
 
         { c) create loadnode of the field }

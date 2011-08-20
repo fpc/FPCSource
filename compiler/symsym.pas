@@ -227,6 +227,7 @@ interface
           function mangledname:TSymStr;override;
           procedure set_mangledbasename(const s: TSymStr);
           procedure set_mangledname(const s:TSymStr);
+          procedure set_raw_mangledname(const s:TSymStr);
       end;
 
       tabsolutevarsym = class(tabstractvarsym)
@@ -1618,6 +1619,18 @@ implementation
   {$else symansistr}
         _mangledname:=stringdup(s);
   {$endif symansistr}
+{$endif}
+        include(varoptions,vo_has_mangledname);
+      end;
+
+
+    procedure tstaticvarsym.set_raw_mangledname(const s: TSymStr);
+      begin
+{$ifndef symansistr}
+        stringdispose(_mangledname);
+        _mangledname:=stringdup(s);
+{$else}
+        _mangledname:=s;
 {$endif}
         include(varoptions,vo_has_mangledname);
       end;

@@ -270,7 +270,8 @@ implementation
         pd: tprocdef;
         old_current_structdef: tabstractrecorddef;
         i: longint;
-        sym: tstaticvarsym;
+        sym,
+        aliassym: tstaticvarsym;
         fsym: tfieldvarsym;
         sstate: tscannerstate;
         sl: tpropaccesslist;
@@ -333,6 +334,14 @@ implementation
             fsym:=tfieldvarsym.create(tenumsym(tenumdef(def).symtable.symlist[i]).realname,vs_final,enumclass,[]);
             enumclass.symtable.insert(fsym);
             sym:=make_field_static(enumclass.symtable,fsym);
+            { add alias for the field representing ordinal(0), for use in
+              initialization code }
+            if tenumsym(tenumdef(def).symtable.symlist[i]).value=0 then
+              begin
+                aliassym:=tstaticvarsym.create('__FPC_Zero_Initializer',vs_final,enumclass,[vo_is_external]);
+                enumclass.symtable.insert(aliassym);
+                aliassym.set_raw_mangledname(sym.mangledname);
+              end;
           end;
         { create local "array of enumtype" type for the "values" functionality
           (used internally by the JDK) }

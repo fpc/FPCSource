@@ -155,7 +155,10 @@ uses
 
       procedure gen_initialize_fields_code(list:TAsmList);
      protected
+      function get_enum_init_val_ref(def: tdef; out ref: treference): boolean;
+
       procedure allocate_implicit_structs_for_st_with_base_ref(list: TAsmList; st: tsymtable; const ref: treference; allocvartyp: tsymtyp);
+      procedure allocate_enum_with_base_ref(list: TAsmList; vs: tabstractvarsym; const initref: treference; destbaseref: treference);
       procedure allocate_implicit_struct_with_base_ref(list: TAsmList; vs: tabstractvarsym; ref: treference);
       procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
 
@@ -605,7 +608,8 @@ implementation
 
   procedure thlcgjvm.g_newarray(list: TAsmList; arrdef: tdef; initdim: longint);
     var
-      recref: treference;
+      recref,
+      enuminitref: treference;
       elemdef: tdef;
       i: longint;
       mangledname: string;
@@ -646,38 +650,47 @@ implementation
       for i:=1 to pred(initdim) do
         elemdef:=tarraydef(elemdef).elementdef;
       if (elemdef.typ in [recorddef,setdef]) or
+         ((elemdef.typ=enumdef) and
+          get_enum_init_val_ref(elemdef,enuminitref)) or
          is_shortstring(elemdef) or
          ((elemdef.typ=procvardef) and
           not tprocvardef(elemdef).is_addressonly) then
         begin
-          { duplicate array/string/set instance }
+          { duplicate array instance }
           list.concat(taicpu.op_none(a_dup));
           incstack(list,1);
           a_load_const_stack(list,s32inttype,initdim-1,R_INTREGISTER);
-          if elemdef.typ in [recorddef,setdef,procvardef] then
-            begin
-              tg.gethltemp(list,elemdef,elemdef.size,tt_persistent,recref);
-              a_load_ref_stack(list,elemdef,recref,prepare_stack_for_ref(list,recref,false));
-              case elemdef.typ of
-                recorddef:
-                  g_call_system_proc(list,'fpc_initialize_array_record');
-                setdef:
-                  begin
-                    if tsetdef(elemdef).elementdef.typ=enumdef then
-                      g_call_system_proc(list,'fpc_initialize_array_enumset')
-                    else
-                      g_call_system_proc(list,'fpc_initialize_array_bitset')
-                  end;
-                procvardef:
-                  g_call_system_proc(list,'fpc_initialize_array_procvar');
+          case elemdef.typ of
+            recorddef,setdef,procvardef:
+              begin
+                tg.gethltemp(list,elemdef,elemdef.size,tt_persistent,recref);
+                a_load_ref_stack(list,elemdef,recref,prepare_stack_for_ref(list,recref,false));
+                case elemdef.typ of
+                  recorddef:
+                    g_call_system_proc(list,'fpc_initialize_array_record');
+                  setdef:
+                    begin
+                      if tsetdef(elemdef).elementdef.typ=enumdef then
+                        g_call_system_proc(list,'fpc_initialize_array_enumset')
+                      else
+                        g_call_system_proc(list,'fpc_initialize_array_bitset')
+                    end;
+                  procvardef:
+                    g_call_system_proc(list,'fpc_initialize_array_procvar');
+                end;
+                tg.ungettemp(list,recref);
               end;
-              tg.ungettemp(list,recref);
-            end
-          else
-            begin
-              a_load_const_stack(list,u8inttype,tstringdef(elemdef).len,R_INTREGISTER);
-              g_call_system_proc(list,'fpc_initialize_array_shortstring');
-            end;
+            enumdef:
+              begin
+                a_load_ref_stack(list,java_jlobject,enuminitref,prepare_stack_for_ref(list,enuminitref,false));
+                g_call_system_proc(list,'fpc_initialize_array_object');
+              end;
+            else
+              begin
+                a_load_const_stack(list,u8inttype,tstringdef(elemdef).len,R_INTREGISTER);
+                g_call_system_proc(list,'fpc_initialize_array_shortstring');
+              end;
+          end;
           decstack(list,3);
         end;
     end;
@@ -1495,6 +1508,14 @@ implementation
             g_call_system_proc(list,'fpc_initialize_array_bitset');
           tg.ungettemp(list,eleref);
         end
+      else if (t.typ=enumdef) then
+        begin
+          if get_enum_init_val_ref(t,eleref) then
+            begin
+              a_load_ref_stack(list,java_jlobject,eleref,prepare_stack_for_ref(list,eleref,false));
+              g_call_system_proc(list,'fpc_initialize_array_object');
+            end;
+        end
       else
         internalerror(2011031901);
     end;
@@ -1933,11 +1954,35 @@ implementation
       tg.ungettemp(list,tmpref);
     end;
 
+
+  procedure thlcgjvm.allocate_enum_with_base_ref(list: TAsmList; vs: tabstractvarsym; const initref: treference; destbaseref: treference);
+    begin
+      destbaseref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
+      { only copy the reference, not the actual data }
+      a_load_ref_ref(list,java_jlobject,java_jlobject,initref,destbaseref);
+    end;
+
+
+  function thlcgjvm.get_enum_init_val_ref(def: tdef; out ref: treference): boolean;
+    var
+      sym: tstaticvarsym;
+    begin
+      result:=false;
+      sym:=tstaticvarsym(tenumdef(def).getbasedef.classdef.symtable.Find('__FPC_ZERO_INITIALIZER'));
+      { no enum with ordinal value 0 -> exit }
+      if not assigned(sym) then
+        exit;
+      reference_reset_symbol(ref,current_asmdata.RefAsmSymbol(sym.mangledname),0,4);
+      result:=true;
+    end;
+
+
   procedure thlcgjvm.allocate_implicit_structs_for_st_with_base_ref(list: TAsmList; st: tsymtable; const ref: treference; allocvartyp: tsymtyp);
     var
       vs: tabstractvarsym;
       def: tdef;
       i: longint;
+      initref: treference;
     begin
       for i:=0 to st.symlist.count-1 do
         begin
@@ -1951,9 +1996,16 @@ implementation
             intialising the constant }
           if [vo_is_external,vo_has_local_copy]*vs.varoptions=[vo_is_external] then
              continue;
-          if not jvmimplicitpointertype(vs.vardef) then
-            continue;
-          allocate_implicit_struct_with_base_ref(list,vs,ref);
+          if jvmimplicitpointertype(vs.vardef) then
+            allocate_implicit_struct_with_base_ref(list,vs,ref)
+          { enums are class instances in Java, while they are ordinals in
+            Pascal. When they are initialized with enum(0), such as in
+            constructors or global variables, initialize them with the
+            enum instance for 0 if it exists (if not, it remains nil since
+            there is no valid enum value in it) }
+          else if (vs.vardef.typ=enumdef) and
+                  get_enum_init_val_ref(vs.vardef,initref) then
+            allocate_enum_with_base_ref(list,vs,initref,ref);
         end;
       { process symtables of routines part of this symtable (for local typed
         constants) }
@@ -1978,6 +2030,7 @@ implementation
 
   procedure thlcgjvm.gen_initialize_fields_code(list: TAsmList);
     var
+      sym: tsym;
       selfpara: tparavarsym;
       selfreg: tregister;
       ref: treference;
@@ -1989,12 +2042,17 @@ implementation
       { check whether there are any fields that need initialisation }
       needinit:=false;
       for i:=0 to obj.symtable.symlist.count-1 do
-        if (tsym(obj.symtable.symlist[i]).typ=fieldvarsym) and
-           jvmimplicitpointertype(tfieldvarsym(obj.symtable.symlist[i]).vardef) then
-          begin
-            needinit:=true;
-            break;
-          end;
+        begin
+          sym:=tsym(obj.symtable.symlist[i]);
+          if (sym.typ=fieldvarsym) and
+             (jvmimplicitpointertype(tfieldvarsym(sym).vardef) or
+              ((tfieldvarsym(sym).vardef.typ=enumdef) and
+               get_enum_init_val_ref(tfieldvarsym(sym).vardef,ref))) then
+            begin
+              needinit:=true;
+              break;
+            end;
+        end;
       if not needinit then
         exit;
       selfpara:=tparavarsym(current_procinfo.procdef.parast.find('self'));

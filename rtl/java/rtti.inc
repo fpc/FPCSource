@@ -148,6 +148,27 @@ procedure fpc_initialize_array_enumset(arr: TJObjectArray; normalarrdim: longint
   end;
 
 
+{ initialize entire array with the same object, without making copies. Used for
+  initialization with enum instance }
+procedure fpc_initialize_array_object_intern(arr: TJObjectArray; normalarrdim: longint; inst: JLObject); external name 'fpc_initialize_array_object';
+
+procedure fpc_initialize_array_object(arr: TJObjectArray; normalarrdim: longint; inst: JLObject);compilerproc;
+  var
+    i: longint;
+  begin
+    if normalarrdim > 0 then
+      begin
+        for i:=low(arr) to high(arr) do
+          fpc_initialize_array_object_intern(TJObjectArray(arr[i]),normalarrdim-1,inst);
+      end
+    else
+      begin
+        for i:=low(arr) to high(arr) do
+          arr[i]:=inst;
+      end;
+  end;
+
+
 procedure fpc_initialize_array_shortstring_intern(arr: TJObjectArray; normalarrdim: longint; maxlen: byte); external name 'fpc_initialize_array_shortstring';
 
 procedure fpc_initialize_array_shortstring(arr: TJObjectArray; normalarrdim: longint; maxlen: byte);compilerproc;

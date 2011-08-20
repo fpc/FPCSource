@@ -637,6 +637,7 @@ procedure fpc_initialize_array_record(arr: TJObjectArray; normalarrdim: longint;
 procedure fpc_initialize_array_procvar(arr: TJObjectArray; normalarrdim: longint; inst: FpcBaseProcVarType);compilerproc;
 procedure fpc_initialize_array_bitset(arr: TJObjectArray; normalarrdim: longint; inst: FpcBitSet);compilerproc;
 procedure fpc_initialize_array_enumset(arr: TJObjectArray; normalarrdim: longint; inst: JUEnumSet);compilerproc;
+procedure fpc_initialize_array_object(arr: TJObjectArray; normalarrdim: longint; inst: JLObject);compilerproc;
 procedure fpc_initialize_array_shortstring(arr: TJObjectArray; normalarrdim: longint; maxlen: byte);compilerproc;
 
 { set helpers }

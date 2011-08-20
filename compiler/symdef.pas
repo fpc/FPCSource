@@ -737,6 +737,7 @@ interface
           function  min:asizeint;
           function  max:asizeint;
           function  getfirstsym:tsym;
+          function  int2enumsym(l: asizeint): tsym;
           { returns basedef if assigned, otherwise self }
           function getbasedef: tenumdef;
        end;
@@ -1892,6 +1893,30 @@ implementation
               exit;
           end;
         result:=nil;
+      end;
+
+
+    function tenumdef.int2enumsym(l: asizeint): tsym;
+      var
+        i: longint;
+        sym: tsym;
+        bdef: tenumdef;
+      begin
+        result:=nil;
+        if (l<minval) or
+           (l>maxval) then
+          exit;
+        bdef:=getbasedef;
+        for i:=0 to bdef.symtable.symlist.count-1 do
+          begin
+            sym:=tsym(bdef.symtable.symlist[i]);
+            if (sym.typ=enumsym) and
+               (tenumsym(sym).value=l) then
+              begin
+                result:=sym;
+                exit;
+              end;
+          end;
       end;
 
 
