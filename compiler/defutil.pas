@@ -101,6 +101,11 @@ interface
     {# Returns whether def is reference counted }
     function is_managed_type(def: tdef) : boolean;{$ifdef USEINLINE}inline;{$endif}
 
+    {# Returns the kind of register this type should be loaded in (it does not
+       check whether this is actually possible, but if it's loaded in a register
+       by the compiler for any purpose other than parameter passing/function
+       result loading, this is the register type used }
+    function def2regtyp(def: tdef): tregistertype;
 
 {    function is_in_limit_value(val_from:TConstExprInt;def_from,def_to : tdef) : boolean;}
 
@@ -539,6 +544,37 @@ implementation
     function is_managed_type(def: tdef): boolean;{$ifdef USEINLINE}inline;{$endif}
       begin
         result:=def.needs_inittable;
+      end;
+
+    function def2regtyp(def: tdef): tregistertype;
+      begin
+        case def.typ of
+          enumdef,
+          orddef,
+          recorddef,
+          setdef:
+            result:=R_INTREGISTER;
+          stringdef,
+          pointerdef,
+          classrefdef,
+          objectdef,
+          procvardef,
+          procdef,
+          arraydef :
+            result:=R_ADDRESSREGISTER;
+          floatdef:
+            if use_vectorfpu(def) then
+              result:=R_MMREGISTER
+            else if cs_fp_emulation in current_settings.moduleswitches then
+              result:=R_INTREGISTER
+            else
+              result:=R_FPUREGISTER;
+          filedef,
+          variantdef:
+            internalerror(2010120507);
+        else
+          internalerror(2010120506);
+        end;
       end;
 
 

@@ -71,6 +71,7 @@ unit hlcgobj;
 //        we don't have high level defs yet that translate into all mm cgsizes
 //          function getmmregister(list:TAsmList;size:tdef):Tregister;virtual;
           function getflagregister(list:TAsmList;size:tdef):Tregister;virtual;
+          function getregisterfordef(list: TAsmList;size:tdef):Tregister;virtual;
           {Does the generic cg need SIMD registers, like getmmxregister? Or should
            the cpu specific child cg object have such a method?}
 
@@ -414,7 +415,7 @@ unit hlcgobj;
 
           { routines migrated from ncgutil }
 
-          procedure location_force_reg(list:TAsmList;var l:tlocation;src_size,dst_size:tdef;maybeconst:boolean);virtual;abstract;
+          procedure location_force_reg(list:TAsmList;var l:tlocation;src_size,dst_size:tdef;maybeconst:boolean);virtual;
           procedure location_force_fpureg(list:TAsmList;var l: tlocation;size: tdef;maybeconst:boolean);virtual;abstract;
           procedure location_force_mem(list:TAsmList;var l:tlocation;size:tdef);virtual;abstract;
 //          procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);virtual;abstract;
@@ -500,6 +501,24 @@ implementation
     begin
       result:=cg.getflagregister(list,def_cgsize(size));
     end;
+
+    function thlcgobj.getregisterfordef(list: TAsmList; size: tdef): Tregister;
+      begin
+        case def2regtyp(size) of
+          R_INTREGISTER:
+            result:=getintregister(list,size);
+          R_ADDRESSREGISTER:
+            result:=getaddressregister(list,size);
+          R_FPUREGISTER:
+            result:=getfpuregister(list,size);
+(*
+          R_MMREGISTER:
+            result:=getmmregister(list,size);
+*)
+          else
+            internalerror(2010122901);
+        end;
+      end;
 
   function thlcgobj.uses_registers(rt: Tregistertype): boolean;
     begin
@@ -1550,6 +1569,61 @@ implementation
 
   procedure thlcgobj.g_profilecode(list: TAsmList);
     begin
+    end;
+
+  procedure thlcgobj.location_force_reg(list: TAsmList; var l: tlocation; src_size, dst_size: tdef; maybeconst: boolean);
+    var
+      hregister,
+      hregister2: tregister;
+      hl : tasmlabel;
+      oldloc : tlocation;
+    begin
+      oldloc:=l;
+      hregister:=getregisterfordef(list,dst_size);
+      { load value in new register }
+      case l.loc of
+{$ifdef cpuflags}
+        LOC_FLAGS :
+          cg.g_flags2reg(list,def_cgsize(dst_size),l.resflags,hregister);
+{$endif cpuflags}
+        LOC_JUMP :
+          begin
+            a_label(list,current_procinfo.CurrTrueLabel);
+            a_load_const_reg(list,dst_size,1,hregister);
+            current_asmdata.getjumplabel(hl);
+            a_jmp_always(list,hl);
+            a_label(list,current_procinfo.CurrFalseLabel);
+            a_load_const_reg(list,dst_size,0,hregister);
+            a_label(list,hl);
+          end;
+        else
+          begin
+            { load_loc_reg can only handle size >= l.size, when the
+              new size is smaller then we need to adjust the size
+              of the orignal and maybe recalculate l.register for i386 }
+            if (dst_size.size<src_size.size) then
+              begin
+                hregister2:=getregisterfordef(list,src_size);
+                { prevent problems with memory locations -- at this high
+                  level we cannot twiddle with the reference offset, since
+                  that may not mean anything (e.g., it refers to fixed-sized
+                  stack slots on Java) }
+                a_load_loc_reg(list,src_size,src_size,l,hregister2);
+                a_load_reg_reg(list,src_size,dst_size,hregister2,hregister);
+              end
+            else
+              a_load_loc_reg(list,src_size,dst_size,l,hregister);
+          end;
+      end;
+      if (l.loc <> LOC_CREGISTER) or
+         not maybeconst then
+        location_reset(l,LOC_REGISTER,def_cgsize(dst_size))
+      else
+        location_reset(l,LOC_CREGISTER,def_cgsize(dst_size));
+      l.register:=hregister;
+      { Release temp if it was a reference }
+      if oldloc.loc=LOC_REFERENCE then
+        location_freetemp(list,oldloc);
     end;
 
   procedure thlcgobj.gen_proc_symbol(list: TAsmList);

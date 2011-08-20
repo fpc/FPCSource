@@ -127,7 +127,6 @@ uses
         twice. Returns how many stack slots have been consumed, disregarding
         the "dup". }
       function prepare_stack_for_ref(list: TAsmList; const ref: treference; dup: boolean): longint;
-      function def2regtyp(def: tdef): tregistertype;
       { return the load/store opcode to load/store from/to ref; if the result
         has to be and'ed after a load to get the final value, that constant
         is returned in finishandval (otherwise that value is set to -1) }
@@ -836,32 +835,6 @@ implementation
       if finishandval<>-1 then
         a_op_const_stack(list,OP_AND,size,finishandval);
       incstack(1+ord(size.size>4)-extra_slots);
-    end;
-
-  function thlcgjvm.def2regtyp(def: tdef): tregistertype;
-    begin
-      case def.typ of
-        enumdef,
-        orddef,
-        setdef:
-          result:=R_INTREGISTER;
-        stringdef,
-        pointerdef,
-        classrefdef,
-        objectdef,
-        procvardef,
-        procdef,
-        arraydef :
-          result:=R_ADDRESSREGISTER;
-        floatdef:
-          result:=R_FPUREGISTER;
-        filedef,
-        recorddef,
-        variantdef:
-          internalerror(2010120507);
-      else
-        internalerror(2010120506);
-      end;
     end;
 
   function thlcgjvm.loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: aint): tasmop;
