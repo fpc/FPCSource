@@ -2116,8 +2116,8 @@ implementation
 
         { If the module is the current unit we also need
           to search the local symtable }
-        if (current_module.globalsymtable=srsymtable) and
-           assigned(current_module.localsymtable) then
+        if assigned(current_module.localsymtable) and
+           (current_module.localsymtable.name^=unitname) then
           begin
             srsymtable:=current_module.localsymtable;
             srsym:=tsym(srsymtable.find(symname));
