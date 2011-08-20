@@ -4041,6 +4041,7 @@ implementation
         pvs : tparavarsym;
       begin
         result:=tprocdef.create(parast.symtablelevel);
+        tprocdef(result).dispid:=dispid;
         tprocdef(result).returndef:=returndef;
         tprocdef(result).returndefderef:=returndefderef;
         tprocdef(result).parast:=tparasymtable.create(tprocdef(result),parast.symtablelevel);
