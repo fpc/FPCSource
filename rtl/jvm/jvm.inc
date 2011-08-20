@@ -95,8 +95,6 @@ function Sptr:Pointer;
 
 { more lies }
 {$define FPC_STRTOSHORTSTRINGPROC}
-{$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
-{$define FPC_SYSTEM_HAS_FPC_PWIDECHAR_LENGTH}
 
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar); compilerproc;

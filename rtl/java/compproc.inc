@@ -50,10 +50,8 @@ function fpc_pchar_to_shortstr(p:pchar):shortstring; compilerproc;
 {$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar); compilerproc;
 {$endif FPC_STRTOSHORTSTRINGPROC}
-(*
 function fpc_pchar_length(p:pchar):longint; compilerproc;
 function fpc_pwidechar_length(p:pwidechar):longint; compilerproc;
-*)
 
 procedure fpc_chararray_to_shortstr(out res : shortstring;const arr: array of AnsiChar; zerobased: boolean = true); compilerproc;
 procedure fpc_shortstr_to_chararray(out res: array of AnsiChar; const src: ShortString); compilerproc;
