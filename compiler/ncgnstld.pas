@@ -38,12 +38,17 @@ interface
        tcgnestloadnode = class(tcgloadnode)
         protected
          nestsym: tsym;
+         nestsymderef: tderef;
          procedure generate_nested_access(vs: tsym);override;
         public
          function  pass_typecheck: tnode; override;
          function  pass_1:tnode;override;
          function  dogetcopy: tnode; override;
          function  docompare(p: tnode): boolean; override;
+         constructor ppuload(t: tnodetype; ppufile: tcompilerppufile); override;
+         procedure ppuwrite(ppufile: tcompilerppufile); override;
+         procedure buildderefimpl; override;
+         procedure derefimpl; override;
        end;
 
 implementation
@@ -189,6 +194,34 @@ implementation
         result:=
           inherited docompare(p) and
           (tcgnestloadnode(p).nestsym=nestsym);
+      end;
+
+
+    constructor tcgnestloadnode.ppuload(t: tnodetype; ppufile: tcompilerppufile);
+      begin
+        inherited ppuload(t, ppufile);
+        ppufile.getderef(nestsymderef);
+      end;
+
+
+    procedure tcgnestloadnode.ppuwrite(ppufile: tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putderef(nestsymderef);
+      end;
+
+
+    procedure tcgnestloadnode.buildderefimpl;
+      begin
+        inherited buildderefimpl;
+        nestsymderef.build(nestsym);
+      end;
+
+
+    procedure tcgnestloadnode.derefimpl;
+      begin
+        inherited derefimpl;
+        nestsym:=tsym(nestsymderef.resolve);
       end;
 
 
