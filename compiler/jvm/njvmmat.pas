@@ -112,12 +112,12 @@ implementation
                (torddef(resultdef).ordtype=s64bit) then
               begin
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_lrem));
-                thlcgjvm(hlcg).decstack(2);
+                thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,2);
               end
             else
               begin
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_irem));
-                thlcgjvm(hlcg).decstack(1);
+                thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1);
               end;
             if isu32int then
               thlcgjvm(hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,OS_S64,OS_32,false);

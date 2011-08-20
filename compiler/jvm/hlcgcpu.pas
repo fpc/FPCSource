@@ -43,8 +43,8 @@ uses
      public
       constructor create;
 
-      procedure incstack(slots: longint);
-      procedure decstack(slots: longint);
+      procedure incstack(list : TAsmList;slots: longint);
+      procedure decstack(list : TAsmList;slots: longint);
 
       procedure a_call_name(list : TAsmList;pd : tprocdef;const s : string; weak: boolean);override;
       procedure a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : string);override;
@@ -159,7 +159,7 @@ uses
 implementation
 
   uses
-    verbose,cutils,
+    verbose,cutils,globals,
     defutil,
     aasmtai,aasmcpu,
     symconst,
@@ -179,18 +179,26 @@ implementation
       fmaxevalstackheight:=0;
     end;
 
-  procedure thlcgjvm.incstack(slots: longint);
+  procedure thlcgjvm.incstack(list: TasmList;slots: longint);
     begin
+      if slots=0 then
+        exit;
       inc(fevalstackheight,slots);
       if (fevalstackheight>fmaxevalstackheight) then
         fmaxevalstackheight:=fevalstackheight;
+      if cs_asm_regalloc in current_settings.globalswitches then
+        list.concat(tai_comment.Create(strpnew('allocated '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
     end;
 
-  procedure thlcgjvm.decstack(slots: longint);
+  procedure thlcgjvm.decstack(list: TAsmList;slots: longint);
     begin
+      if slots=0 then
+        exit;
       dec(fevalstackheight,slots);
       if (fevalstackheight<0) then
         internalerror(2010120501);
+      if cs_asm_regalloc in current_settings.globalswitches then
+        list.concat(tai_comment.Create(strpnew('    freed '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
     end;
 
   procedure thlcgjvm.a_call_name(list: TAsmList; pd: tprocdef; const s: string; weak: boolean);
@@ -239,7 +247,7 @@ implementation
                     else
                       list.concat(taicpu.op_const(a_ldc2_w,a));
                   end;
-                  incstack(1);
+                  incstack(list,1);
                 end;
               else
                 internalerror(2010110702);
@@ -254,7 +262,7 @@ implementation
         else
           internalerror(2010110703);
       end;
-      incstack(1);
+      incstack(list,1);
     end;
 
     procedure thlcgjvm.a_load_loc_stack(list: TAsmList;size: tdef;const loc: tlocation);
@@ -285,7 +293,7 @@ implementation
               list.concat(taicpu.op_none(a_fconst_2))
             else
               list.concat(taicpu.op_single(a_ldc,a));
-            incstack(1);
+            incstack(list,1);
           end;
         s64real:
           begin
@@ -295,7 +303,7 @@ implementation
               list.concat(taicpu.op_none(a_dconst_1))
             else
               list.concat(taicpu.op_double(a_ldc2_w,a));
-            incstack(2);
+            incstack(list,2);
           end
         else
           internalerror(2011010501);
@@ -332,7 +340,7 @@ implementation
             list.concat(taicpu.op_none(TOpCG2IAsmOp[op]));
             maybe_adjust_op_result(list,op,size);
             if op<>OP_NEG then
-              decstack(1);
+              decstack(list,1);
           end;
         OS_64,OS_S64:
           begin
@@ -349,7 +357,7 @@ implementation
               internalerror(2010120533);
             list.concat(taicpu.op_none(TOpCG2LAsmOp[op]));
             if op<>OP_NEG then
-            decstack(2);
+            decstack(list,2);
           end;
         else
           internalerror(2010120531);
@@ -357,7 +365,7 @@ implementation
       if trunc32 then
         begin
           list.concat(taicpu.op_none(a_l2i));
-          decstack(1);
+          decstack(list,1);
         end;
     end;
 
@@ -437,14 +445,14 @@ implementation
                 OS_S32,OS_32:
                   begin
                     list.concat(taicpu.op_sym(opcmp2icmp[cmp_op],lab));
-                    decstack(2);
+                    decstack(list,2);
                   end;
                 OS_64,OS_S64:
                   begin
                     list.concat(taicpu.op_none(a_lcmp));
-                    decstack(3);
+                    decstack(list,3);
                     list.concat(taicpu.op_sym(opcmp2if[cmp_op],lab));
-                    decstack(1);
+                    decstack(list,1);
                   end;
                 else
                   internalerror(2010120538);
@@ -460,7 +468,7 @@ implementation
                 else
                   internalerror(2010120537);
               end;
-              decstack(2);
+              decstack(list,2);
             end;
           else
             internalerror(2010120538);
@@ -550,7 +558,7 @@ implementation
                   if dup then
                     begin
                       list.concat(taicpu.op_none(a_dup));
-                      incstack(1);
+                      incstack(list,1);
                     end;
                   { field name/type encoded in symbol, no index/offset }
                   if not assigned(ref.symbol) or
@@ -608,7 +616,7 @@ implementation
           if dup then
             begin
               list.concat(taicpu.op_none(a_dup2));
-              incstack(2);
+              incstack(list,2);
             end;
           result:=2;
         end;
@@ -627,7 +635,7 @@ implementation
       extra_slots:=prepare_stack_for_ref(list,ref,false);
       a_load_const_stack(list,tosize,a,def2regtyp(tosize));
       a_load_stack_ref(list,tosize,ref,extra_slots);
-      decstack(extra_slots);
+      decstack(list,extra_slots);
     end;
 
   procedure thlcgjvm.a_load_reg_ref(list: TAsmList; fromsize, tosize: tdef; register: tregister; const ref: treference);
@@ -637,7 +645,7 @@ implementation
       extra_slots:=prepare_stack_for_ref(list,ref,false);
       a_load_reg_stack(list,fromsize,register);
       a_load_stack_ref(list,tosize,ref,extra_slots);
-      decstack(extra_slots);
+      decstack(list,extra_slots);
     end;
 
   procedure thlcgjvm.a_load_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister);
@@ -884,7 +892,7 @@ implementation
     begin
       opc:=loadstoreopc(size,false,false,finishandval);
       list.concat(taicpu.op_reg(opc,reg));
-      decstack(1+ord(size.size>4));
+      decstack(list,1+ord(size.size>4));
     end;
 
   procedure thlcgjvm.a_load_stack_ref(list: TAsmList; size: tdef; const ref: treference; extra_slots: longint);
@@ -900,7 +908,7 @@ implementation
         list.concat(taicpu.op_ref(opc,ref))
       else
         list.concat(taicpu.op_none(opc));
-      decstack(1+ord(size.size>4)+extra_slots);
+      decstack(list,1+ord(size.size>4)+extra_slots);
     end;
 
   procedure thlcgjvm.a_load_reg_stack(list: TAsmList; size: tdef; reg: tregister);
@@ -912,7 +920,7 @@ implementation
       list.concat(taicpu.op_reg(opc,reg));
       if finishandval<>-1 then
         a_op_const_stack(list,OP_AND,size,finishandval);
-      incstack(1+ord(size.size>4));
+      incstack(list,1+ord(size.size>4));
     end;
 
   procedure thlcgjvm.a_load_ref_stack(list: TAsmList; size: tdef; const ref: treference; extra_slots: longint);
@@ -930,7 +938,7 @@ implementation
         list.concat(taicpu.op_none(opc));
       if finishandval<>-1 then
         a_op_const_stack(list,OP_AND,size,finishandval);
-      incstack(1+ord(size.size>4)-extra_slots);
+      incstack(list,1+ord(size.size>4)-extra_slots);
     end;
 
   function thlcgjvm.loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: aint): tasmop;
@@ -1074,14 +1082,14 @@ implementation
             begin
               { truncate }
               list.concat(taicpu.op_none(a_l2i));
-              decstack(1);
+              decstack(list,1);
             end;
         end
       else if tosize in [OS_S64,OS_64] then
         begin
           { extend }
           list.concat(taicpu.op_none(a_i2l));
-          incstack(1);
+          incstack(list,1);
           { if it was an unsigned 32 bit value, remove sign extension }
           if fromsize=OS_32 then
             a_op_const_stack(list,OP_AND,s64inttype,cardinal($ffffffff));
@@ -1117,13 +1125,13 @@ implementation
          (tosize=OS_F64) then
         begin
           list.concat(taicpu.op_none(a_f2d));
-          incstack(1);
+          incstack(list,1);
         end
       else if (fromsize=OS_F64) and
               (tosize=OS_F32) then
         begin
           list.concat(taicpu.op_none(a_d2f));
-          decstack(1);
+          decstack(list,1);
         end;
     end;
 

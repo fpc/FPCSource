@@ -159,7 +159,7 @@ interface
         end;
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(op));
-        thlcgjvm(hlcg).decstack(1+ord(location.size=OS_F64));
+        thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1+ord(location.size=OS_F64));
         { could be optimized in the future by keeping the results on the stack,
           if we add code to swap the operands when necessary (a_swap for
           singles, store/load/load for doubles since there is no swap for
@@ -193,10 +193,10 @@ interface
         else
           op:=a_fcmpl;
         current_asmdata.CurrAsmList.concat(taicpu.op_none(op));
-        thlcgjvm(hlcg).decstack((1+ord(left.location.size=OS_F64))*2-1);
+        thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,(1+ord(left.location.size=OS_F64))*2-1);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(opcmp2if[cmpnode2signedtopcmp],current_procinfo.CurrTrueLabel));
-        thlcgjvm(hlcg).decstack(1);
+        thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1);
         hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
       end;
 
@@ -230,7 +230,7 @@ interface
               thlcgjvm(hlcg).a_op_reg_stack(current_asmdata.CurrAsmList,OP_NOT,left.resultdef,NR_NO);
               thlcgjvm(hlcg).a_op_loc_stack(current_asmdata.CurrAsmList,OP_AND,right.resultdef,right.location);
               current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_ifeq,current_procinfo.CurrTrueLabel));
-              thlcgjvm(hlcg).decstack(1);
+              thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1);
               hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
             end;
           else

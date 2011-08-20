@@ -73,7 +73,7 @@ implementation
           self pointer on the evaluation stack for use as function result
           after the constructor has run }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_dup));
-        thlcgjvm(hlcg).incstack(2);
+        thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,2);
       end;
 
 
@@ -95,12 +95,12 @@ implementation
           1..4:
             begin
               current_asmdata.CurrAsmList.concat(taicpu.op_none(a_pop));
-              thlcgjvm(hlcg).decstack(1);
+              thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,1);
             end;
           8:
             begin
               current_asmdata.CurrAsmList.concat(taicpu.op_none(a_pop2));
-              thlcgjvm(hlcg).decstack(2);
+              thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,2);
             end
           else
             internalerror(2011010305);
@@ -125,9 +125,9 @@ implementation
         { remove parameters from internal evaluation stack counter (in case of
           e.g. no parameters and a result, it can also increase) }
         if totalremovesize>0 then
-          thlcgjvm(hlcg).decstack(totalremovesize shr 2)
+          thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,totalremovesize shr 2)
         else if totalremovesize<0 then
-          thlcgjvm(hlcg).incstack((-totalremovesize) shr 2);
+          thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,(-totalremovesize) shr 2);
       end;
 
 
