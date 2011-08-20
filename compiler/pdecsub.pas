@@ -2652,6 +2652,16 @@ const
            (symtablestack.top.symtabletype=recordsymtable) then
            exit;
 
+        { check if method and directive not for java class }
+        if not(pd_javaclass in proc_direcdata[p].pd_flags) and
+           is_javaclass(tdef(symtablestack.top.defowner)) then
+          exit;
+
+        { check if method and directive not for java interface }
+        if not(pd_intfjava in proc_direcdata[p].pd_flags) and
+           is_javainterface(tdef(symtablestack.top.defowner)) then
+          exit;
+
         { Conflicts between directives ? }
         if (pd.proctypeoption in proc_direcdata[p].mutexclpotype) or
            (pd.proccalloption in proc_direcdata[p].mutexclpocall) or
@@ -2716,17 +2726,6 @@ const
            { check if method and directive not for record/class helper }
            if is_objectpascal_helper(tprocdef(pd).struct) and
              (pd_nothelper in proc_direcdata[p].pd_flags) then
-
-           { check if method and directive not for java class }
-           if is_javaclass(tprocdef(pd).struct) and
-             not(pd_javaclass in proc_direcdata[p].pd_flags) then
-            exit;
-
-           { check if method and directive not for java interface }
-           if is_javainterface(tprocdef(pd).struct) and
-             not(pd_intfjava in proc_direcdata[p].pd_flags) then
-            exit;
-
          end;
 
         { consume directive, and turn flag on }
