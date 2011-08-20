@@ -37,6 +37,7 @@ interface
       old_scanner: tscannerfile;
       old_token: ttoken;
       old_c: char;
+      old_orgpattern: string;
       old_modeswitches: tmodeswitches;
       valid: boolean;
     end;
@@ -124,11 +125,14 @@ implementation
       old_block_type: tblock_type;
     begin
       { would require saving of idtoken, pattern etc }
-      if (token=_ID) then
+      if (token=_ID) or
+         (token=_CWCHAR) or
+         (token=_CWSTRING) then
         internalerror(2011032201);
       sstate.old_scanner:=current_scanner;
       sstate.old_token:=token;
       sstate.old_c:=c;
+      sstate.old_orgpattern:=orgpattern;
       sstate.old_modeswitches:=current_settings.modeswitches;
       sstate.valid:=true;
       { creating a new scanner resets the block type, while we want to continue
@@ -151,6 +155,8 @@ implementation
           token:=sstate.old_token;
           current_settings.modeswitches:=sstate.old_modeswitches;
           c:=sstate.old_c;
+          orgpattern:=sstate.old_orgpattern;
+          pattern:=upper(sstate.old_orgpattern);
         end;
     end;
 
