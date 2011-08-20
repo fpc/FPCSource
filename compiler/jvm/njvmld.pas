@@ -66,13 +66,17 @@ function tjvmassignmentnode.pass_1: tnode;
     }
     target:=left.actualtargetnode;
     if (target.nodetype=vecn) and
-       is_wide_or_unicode_string(tvecnode(target).left.resultdef) then
+       (is_wide_or_unicode_string(tvecnode(target).left.resultdef)
+{$ifndef nounsupported}
+        or is_ansistring(tvecnode(target).left.resultdef)
+{$endif}
+       ) then
       begin
         { prevent errors in case of an expression such as
             word(str[x]):=1234;
         }
         inserttypeconv_explicit(right,cwidechartype);
-        result:=ccallnode.createintern('fpc_unicodestr_setchar',
+        result:=ccallnode.createintern('fpc_'+tstringdef(tvecnode(target).left.resultdef).stringtypname+'_setchar',
           ccallparanode.create(right,
             ccallparanode.create(tvecnode(target).right,
               ccallparanode.create(tvecnode(target).left.getcopy,nil))));

@@ -90,10 +90,13 @@ implementation
                 st_widestring,
                 st_unicodestring:
                   encodedstr:=encodedstr+'Ljava/lang/String;';
-                else
 {$ifndef nounsupported}
-                  result:=jvmaddencodedtype(java_jlobject,false,encodedstr,founderror);
+                st_ansistring:
+                  encodedstr:=encodedstr+'Lorg/freepascal/rtl/AnsiString;';
+                st_shortstring:
+                  encodedstr:=encodedstr+'Lorg/freepascal/rtl/ShortString;';
 {$else}
+                else
                   { May be handled via wrapping later  }
                   result:=false;
 {$endif}

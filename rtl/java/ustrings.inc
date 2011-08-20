@@ -72,19 +72,23 @@ begin
       PUnicodeChar(Pointer(fpc_ShortStr_To_UnicodeStr)+Size*sizeof(UnicodeChar))^:=#0;
     end;
 end;
-
+*)
 
 Function fpc_UnicodeStr_To_AnsiStr (const S2 : UnicodeString): AnsiString; compilerproc;
 {
   Converts a UnicodeString to an AnsiString
 }
+{$ifdef nounsupported}
 Var
   Size : SizeInt;
+{$endif}
 begin
+{$ifdef nounsupported}
   result:='';
   Size:=Length(S2);
   if Size>0 then
     widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(S2)),result,Size);
+{$endif}
 end;
 
 
@@ -92,15 +96,18 @@ Function fpc_AnsiStr_To_UnicodeStr (Const S2 : AnsiString): UnicodeString; compi
 {
   Converts an AnsiString to a UnicodeString;
 }
+{$ifdef nounsupported}
 Var
   Size : SizeInt;
+{$endif}
 begin
+{$ifdef nounsupported}
   result:='';
   Size:=Length(S2);
   if Size>0 then
     widestringmanager.Ansi2UnicodeMoveProc(PChar(S2),result,Size);
+{$endif}
 end;
-*)
 
 Function fpc_UnicodeStr_To_WideStr (const S2 : UnicodeString): WideString; compilerproc;
   begin
@@ -509,11 +516,14 @@ begin
   res:=temp;
 end;
 {$endif FPC_STRTOSHORTSTRINGPROC}
-
+*)
 Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; zerobased: boolean = true): AnsiString; compilerproc;
+{$ifdef nounsupported}
 var
   i  : SizeInt;
+{$endif}
 begin
+{$ifdef nounsupported}
   if (zerobased) then
     begin
       i:=IndexWord(arr,high(arr)+1,0);
@@ -524,8 +534,8 @@ begin
     i := high(arr)+1;
   SetLength(fpc_WideCharArray_To_AnsiStr,i);
   widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),fpc_WideCharArray_To_AnsiStr,i);
+{$endif}
 end;
-*)
 
 Function fpc_WideCharArray_To_WideStr(const arr: array of widechar; zerobased: boolean = true): WideString; compilerproc;
 var
@@ -634,12 +644,15 @@ begin
 {$r+}
 {$endif}
 end;
-
+*)
 procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: AnsiString); compilerproc;
+{$ifdef nounsupported}
 var
   len: SizeInt;
   temp: widestring;
+{$endif}
 begin
+{$ifdef nounsupported}
   len := length(src);
   { make sure we don't dereference src if it can be nil (JM) }
   if len > 0 then
@@ -654,8 +667,9 @@ begin
 {$ifdef RangeCheckWasOn}
 {$r+}
 {$endif}
+{$endif}
 end;
-
+(*
 procedure fpc_shortstr_to_widechararray(out res: array of widechar; const src: ShortString); compilerproc;
 var
   len: longint;

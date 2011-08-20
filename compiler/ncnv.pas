@@ -3097,6 +3097,11 @@ implementation
         newstat  : tstatementnode;
         restemp  : ttempcreatenode;
       begin
+{$if defined(jvm) and not defined(nounsupported)}
+        convtype:=tc_equal;
+        result:=nil;
+        exit;
+{$endif}
         { get the correct procedure name }
         procname := 'fpc_'+tstringdef(left.resultdef).stringtypname+
                     '_to_'+tstringdef(resultdef).stringtypname;

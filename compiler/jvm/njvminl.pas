@@ -398,6 +398,12 @@ implementation
               end;
             left:=nil;
           end
+{$ifndef nounsupported}
+        else if left.resultdef.typ=stringdef then
+          begin
+            result:=cnothingnode.create;
+          end
+{$endif}
         else
           internalerror(2011031405);
       end;
@@ -473,6 +479,11 @@ implementation
             addstatement(newstatement,ctemprefnode.create(lentemp));
             result:=newblock;
           end
+{$ifndef nounsupported}
+        else if left.resultdef.typ=stringdef then
+          begin
+          end
+{$endif}
        else
          result:=inherited first_length;
       end;
@@ -489,6 +500,12 @@ implementation
             thlcgjvm(hlcg).g_getarraylen(current_asmdata.CurrAsmList,left.location);
             thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
           end
+{$ifndef nounsupported}
+        else if left.resultdef.typ=stringdef then
+          begin
+            thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,java_jlobject,0,R_ADDRESSREGISTER);
+          end
+{$endif}
         else
           internalerror(2011012004);
       end;
@@ -639,6 +656,12 @@ implementation
             thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,s32inttype,0,R_INTREGISTER);
             thlcgjvm(hlcg).g_newarray(current_asmdata.CurrAsmList,target.resultdef,1);
           end
+{$ifndef nounsupported}
+        else if left.resultdef.typ=stringdef then
+          begin
+            thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,java_jlobject,0,R_ADDRESSREGISTER);
+          end
+{$endif}
         else
           internalerror(2011031401);
         thlcgjvm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,target.resultdef,target.location);

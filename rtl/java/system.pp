@@ -263,6 +263,9 @@ function SarInt64(Const AValue : Int64;Shift : Byte): Int64;[internproc:fpc_in_s
  **********************************************************************
 }
 
+{$ifndef nounsupported}
+{$i astrings.inc}
+{$endif}
 {$i ustrings.inc}
 {$i rtti.inc}
 {$i jrec.inc}
