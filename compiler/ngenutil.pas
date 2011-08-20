@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-20011 by Florian Klaempfl
+    Copyright (c) 1998-2011 by Florian Klaempfl
 
     Generic version of some node tree helper routines that can be overridden
     by cpu-specific versions
