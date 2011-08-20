@@ -27,7 +27,7 @@ unit symcreat;
 interface
 
   uses
-    finput,tokens,scanner,
+    finput,tokens,scanner,globtype,
     symconst,symbase,symtype,symdef;
 
 
@@ -36,6 +36,7 @@ interface
       old_scanner: tscannerfile;
       old_token: ttoken;
       old_c: char;
+      old_modeswitches: tmodeswitches;
       valid: boolean;
     end;
 
@@ -53,8 +54,10 @@ interface
   { parses a (class or regular)  method/constructor/destructor implementation
     from str, as if it appeared in the current unit's implementation section
 
-      WARNING: save the scanner state before calling this routine, and restore
-        when done. }
+      WARNINGS:
+        * save the scanner state before calling this routine, and restore when done.
+        * the code *must* be written in objfpc style
+  }
   function str_parse_method_impl(str: ansistring; usefwpd: tprocdef; is_classdef: boolean):boolean;
 
 
@@ -95,7 +98,7 @@ interface
 implementation
 
   uses
-    cutils,globtype,globals,verbose,systems,comphook,fmodule,
+    cutils,globals,verbose,systems,comphook,fmodule,
     symsym,symtable,defutil,
     pbase,pdecobj,pdecsub,psub,
     node,nbas,nld,nmem,
@@ -115,12 +118,16 @@ implementation
       sstate.old_scanner:=current_scanner;
       sstate.old_token:=token;
       sstate.old_c:=c;
+      sstate.old_modeswitches:=current_settings.modeswitches;
       sstate.valid:=true;
       { creating a new scanner resets the block type, while we want to continue
         in the current one }
       old_block_type:=block_type;
       current_scanner:=tscannerfile.Create('_Macro_.'+tempname);
       block_type:=old_block_type;
+      { required for e.g. FpcDeepCopy record method (uses "out" parameter; field
+        names are escaped via &, so should not cause conflicts }
+      current_settings.modeswitches:=objfpcmodeswitches;
     end;
 
 
@@ -131,6 +138,7 @@ implementation
           current_scanner.free;
           current_scanner:=sstate.old_scanner;
           token:=sstate.old_token;
+          current_settings.modeswitches:=sstate.old_modeswitches;
           c:=sstate.old_c;
         end;
     end;
@@ -293,7 +301,7 @@ implementation
                   not is_dynamic_array(fsym.vardef)) or
                  ((fsym.vardef.typ=setdef) and
                   not is_smallset(fsym.vardef)) then
-                str:=str+'_fpc_ptrt(clone)^.'+fsym.realname+':='+fsym.realname+';';
+                str:=str+'_fpc_ptrt(clone)^.&'+fsym.realname+':='+fsym.realname+';';
             end;
         end;
       str:=str+'end;';
@@ -325,7 +333,7 @@ implementation
           if (sym.typ=fieldvarsym) then
             begin
               fsym:=tfieldvarsym(sym);
-              str:=str+'result.'+fsym.realname+':='+fsym.realname+';';
+              str:=str+'result.&'+fsym.realname+':='+fsym.realname+';';
             end;
         end;
       str:=str+'end;';
