@@ -212,27 +212,4 @@ implementation
           end;
       end;
 
-{******************************************************************
-                    jvm type validity checking
-*******************************************************************}
-
-   function jvmencodetype(def: tdef): string;
-     var
-       errordef: tdef;
-     begin
-       if not jvmtryencodetype(def,result,errordef) then
-         internalerror(2011012305);
-     end;
-
-
-   function jvmchecktype(def: tdef; out founderror: tdef): boolean;
-      var
-        encodedtype: string;
-      begin
-        { don't duplicate the code like in objcdef, since the resulting strings
-          are much shorter here so it's not worth it }
-        result:=jvmtryencodetype(def,encodedtype,founderror);
-      end;
-
-
 end.
