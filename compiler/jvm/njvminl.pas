@@ -557,6 +557,7 @@ implementation
 {$ifndef nounsupported}
         else if left.resultdef.typ=stringdef then
           begin
+            result:=nil;
           end
 {$endif}
        else
@@ -578,7 +579,9 @@ implementation
 {$ifndef nounsupported}
         else if left.resultdef.typ=stringdef then
           begin
-            thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,java_jlobject,0,R_ADDRESSREGISTER);
+            location_reset(location,LOC_REGISTER,OS_S32);
+            location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,s32inttype);
+            thlcgjvm(hlcg).a_load_const_reg(current_asmdata.CurrAsmList,s32inttype,0,location.register);
           end
 {$endif}
         else
