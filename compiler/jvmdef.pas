@@ -346,7 +346,10 @@ implementation
             case tobjectdef(def).objecttype of
               odt_javaclass,
               odt_interfacejava:
-                encodedstr:=encodedstr+'L'+tobjectdef(def).jvm_full_typename(true)+';'
+                begin
+                  def:=maybe_find_real_class_definition(def,false);
+                  encodedstr:=encodedstr+'L'+tobjectdef(def).jvm_full_typename(true)+';'
+                end
               else
                 result:=false;
             end;
