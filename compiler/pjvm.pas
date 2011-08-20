@@ -528,11 +528,6 @@ implementation
         stringdispose(pd.import_name);
         pd.import_name:=stringdup(wrappername+'__fpcvirtualclassmethod__');
 
-        { we only have to generate the dispatching routine for non-overriding
-          methods; the overriding ones can use the original one }
-        if po_overridingmethod in pd.procoptions then
-          exit;
-
         { wrapper is part of the same symtable as the original procdef }
         symtablestack.push(pd.owner);
         { get a copy of the virtual class method }
@@ -544,12 +539,26 @@ implementation
         stringdispose(wrapperpd.import_name);
         wrapperpd.import_name:=stringdup(wrappername);
         include(wrapperpd.procoptions,po_has_importname);
-        { implementation }
-        wrapperpd.synthetickind:=tsk_jvm_virtual_clmethod;
         { associate with wrapper procsym (Pascal-level name = wrapper name ->
           in callnodes, we will have to replace the calls to virtual class
           methods with calls to the wrappers) }
         finish_copied_procdef(wrapperpd,pd.import_name^,pd.owner,tabstractrecorddef(pd.owner.defowner));
+
+        { we only have to generate the dispatching routine for non-overriding
+          methods; the overriding ones can use the original one, but generate
+          a skeleton for that anyway because the overriding one may still
+          change the visibility (but we can just call the inherited routine
+          in that case) }
+        if po_overridingmethod in pd.procoptions then
+          begin
+            wrapperpd.synthetickind:=tsk_anon_inherited;
+            symtablestack.pop(pd.owner);
+            exit;
+          end;
+
+        { implementation }
+        wrapperpd.synthetickind:=tsk_jvm_virtual_clmethod;
+        wrapperpd.skpara:=pd;
         { also create procvar type that we can use in the implementation }
         wrapperpv:=tprocvardef(pd.getcopyas(procvardef,pc_normal));
         wrapperpv.calcparas;
@@ -559,7 +568,6 @@ implementation
         typ:=ttypesym.create('__fpc_virtualclassmethod_pv_t'+tostr(wrapperpd.defid),wrapperpv);
         wrapperpv.classdef.typesym.visibility:=vis_strictprivate;
         symtablestack.top.insert(typ);
-        wrapperpd.skpara:=pd;
         symtablestack.pop(pd.owner);
       end;
 
