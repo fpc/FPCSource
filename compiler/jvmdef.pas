@@ -194,7 +194,7 @@ implementation
                 { translated into java.lang.String }
                 st_widestring,
                 st_unicodestring:
-                  encodedstr:=encodedstr+'Ljava/lang/String;';
+                  result:=jvmaddencodedtype(java_jlstring,false,encodedstr,forcesignature,founderror);
                 st_ansistring:
                   result:=jvmaddencodedtype(java_ansistring,false,encodedstr,forcesignature,founderror);
                 st_shortstring:
