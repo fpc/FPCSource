@@ -410,7 +410,7 @@ implementation
               function since this is code is only executed after the function call has returned }
             if is_managed_type(funcretnode.resultdef) and
                (funcretnode.nodetype<>temprefn) then
-              cg.g_decrrefcount(current_asmdata.CurrAsmList,funcretnode.resultdef,funcretnode.location.reference);
+              hlcg.g_decrrefcount(current_asmdata.CurrAsmList,funcretnode.resultdef,funcretnode.location.reference);
 
             case location.loc of
               LOC_REGISTER :

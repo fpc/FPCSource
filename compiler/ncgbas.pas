@@ -71,7 +71,7 @@ interface
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symsym,symconst,symdef,defutil,
       nflw,pass_2,ncgutil,
-      cgbase,cgobj,
+      cgbase,cgobj,hlcgobj,
       procinfo,
       tgobj
       ;
@@ -402,7 +402,7 @@ interface
             tg.GetTempTyped(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.temptype,tempinfo^.location.reference);
             { the temp could have been used previously either because the memory location was reused or
               because we're in a loop }
-            cg.g_finalize(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.location.reference);
+            hlcg.g_finalize(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.location.reference);
           end
         else if (ti_may_be_in_reg in tempinfo^.flags) then
           begin

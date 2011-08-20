@@ -1707,7 +1707,7 @@ implementation
                   cg.g_array_rtti_helper(list,eldef,href,hsym.initialloc,'FPC_DECREF_ARRAY');
                 end
               else
-                cg.g_decrrefcount(list,tparavarsym(p).vardef,href);
+                hlcg.g_decrrefcount(list,tparavarsym(p).vardef,href);
             end;
          end;
         { open arrays can contain elements requiring init/final code, so the else has been removed here }
@@ -1736,7 +1736,7 @@ implementation
               is_managed_type(hp^.def) then
             begin
               reference_reset_base(href,current_procinfo.framepointer,hp^.pos,sizeof(pint));
-              cg.g_initialize(list,hp^.def,href);
+              hlcg.g_initialize(list,hp^.def,href);
             end;
            hp:=hp^.next;
          end;
@@ -1756,7 +1756,7 @@ implementation
             begin
               include(current_procinfo.flags,pi_needs_implicit_finally);
               reference_reset_base(href,current_procinfo.framepointer,hp^.pos,sizeof(pint));
-              cg.g_finalize(list,hp^.def,href);
+              hlcg.g_finalize(list,hp^.def,href);
             end;
            hp:=hp^.next;
          end;
