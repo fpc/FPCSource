@@ -149,7 +149,7 @@ implementation
       if ((status.verbosity and v_debug)<>0) then
         begin
            if assigned(usefwpd) then
-             Message1(parser_d_internal_parser_string,usefwpd.customprocname([pno_proctypeoption,pno_paranames,pno_noclassmarker,pno_noleadingdollar]))
+             Message1(parser_d_internal_parser_string,usefwpd.customprocname([pno_proctypeoption,pno_paranames,pno_noclassmarker,pno_noleadingdollar])+str)
            else
              begin
                if is_classdef then
