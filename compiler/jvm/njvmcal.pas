@@ -550,6 +550,7 @@ implementation
             original constructor with another call to the wrapper }
           if (procdefinition.typ=procdef) and
              (current_procinfo.procdef.synthetickind<>tsk_callthrough) and
+             not(cnf_inherited in callnodeflags) and
              ((procdefinition.proctypeoption=potype_constructor) or
               (po_classmethod in procdefinition.procoptions)) and
              (po_virtualmethod in procdefinition.procoptions) and
