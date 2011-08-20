@@ -3619,7 +3619,8 @@ implementation
         else if (right.resultdef.typ=classrefdef) then
           begin
             { left maybe an interface reference }
-            if is_interfacecom(left.resultdef) then
+            if is_interfacecom(left.resultdef) or
+               is_javainterface(left.resultdef) then
               begin
                 { relation checks are not possible }
               end
@@ -3645,49 +3646,59 @@ implementation
                 resultdef:=tclassrefdef(right.resultdef).pointeddef;
             end;
           end
-        else if is_interface(right.resultdef) or is_dispinterface(right.resultdef) then
+        else if is_interface(right.resultdef) or
+                is_dispinterface(right.resultdef) or
+                is_javainterface(right.resultdef) then
           begin
-            { left is a class }
-            if not(is_class(left.resultdef) or
-                   is_interfacecom(left.resultdef)) then
-              CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
+           case nodetype of
+             isn:
+               resultdef:=pasbool8type;
+             asn:
+               resultdef:=right.resultdef;
+           end;
 
-            case nodetype of
-              isn:
-                resultdef:=pasbool8type;
-              asn:
-                resultdef:=right.resultdef;
-            end;
-
-            { load the GUID of the interface }
-            if (right.nodetype=typen) then
+            { left is a class or interface }
+            if is_javainterface(right.resultdef) then
               begin
-                if tobjectdef(right.resultdef).objecttype=odt_interfacecorba then
+                if not is_java_class_or_interface(left.resultdef) then
+                  CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
+              end
+            else if not(is_class(left.resultdef) or
+                   is_interfacecom(left.resultdef)) then
+              CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename)
+            else
+              begin
+
+                { load the GUID of the interface }
+                if (right.nodetype=typen) then
                   begin
-                    if assigned(tobjectdef(right.resultdef).iidstr) then
+                    if tobjectdef(right.resultdef).objecttype=odt_interfacecorba then
                       begin
-                        hp:=cstringconstnode.createstr(tobjectdef(right.resultdef).iidstr^);
-                        tstringconstnode(hp).changestringtype(cshortstringtype);
-                        right.free;
-                        right:=hp;
+                        if assigned(tobjectdef(right.resultdef).iidstr) then
+                          begin
+                            hp:=cstringconstnode.createstr(tobjectdef(right.resultdef).iidstr^);
+                            tstringconstnode(hp).changestringtype(cshortstringtype);
+                            right.free;
+                            right:=hp;
+                          end
+                        else
+                          internalerror(201006131);
                       end
                     else
-                      internalerror(201006131);
-                  end
-                else
-                  begin
-                    if assigned(tobjectdef(right.resultdef).iidguid) then
                       begin
-                        if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
-                          CGMessage1(type_e_interface_has_no_guid,tobjectdef(right.resultdef).typename);
-                        hp:=cguidconstnode.create(tobjectdef(right.resultdef).iidguid^);
-                        right.free;
-                        right:=hp;
-                      end
-                    else
-                      internalerror(201006132);
+                        if assigned(tobjectdef(right.resultdef).iidguid) then
+                          begin
+                            if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
+                              CGMessage1(type_e_interface_has_no_guid,tobjectdef(right.resultdef).typename);
+                            hp:=cguidconstnode.create(tobjectdef(right.resultdef).iidguid^);
+                            right.free;
+                            right:=hp;
+                          end
+                        else
+                          internalerror(201006132);
+                      end;
+                    typecheckpass(right);
                   end;
-                typecheckpass(right);
               end;
           end
         else
