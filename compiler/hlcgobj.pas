@@ -80,6 +80,12 @@ unit hlcgobj;
           procedure do_register_allocation(list:TAsmList;headertai:tai); inline;
           procedure translate_register(var reg : tregister); inline;
 
+          {# Returns the kind of register this type should be loaded in (it does not
+             check whether this is actually possible, but if it's loaded in a register
+             by the compiler for any purpose other than parameter passing/function
+             result loading, this is the register type used }
+          function def2regtyp(def: tdef): tregistertype; virtual;
+
           {# Emit a label to the instruction stream. }
           procedure a_label(list : TAsmList;l : tasmlabel); inline;
 
@@ -570,6 +576,37 @@ implementation
   procedure thlcgobj.translate_register(var reg: tregister);
     begin
       cg.translate_register(reg);
+    end;
+
+  function thlcgobj.def2regtyp(def: tdef): tregistertype;
+    begin
+        case def.typ of
+          enumdef,
+          orddef,
+          recorddef,
+          setdef:
+            result:=R_INTREGISTER;
+          stringdef,
+          pointerdef,
+          classrefdef,
+          objectdef,
+          procvardef,
+          procdef,
+          arraydef :
+            result:=R_ADDRESSREGISTER;
+          floatdef:
+            if use_vectorfpu(def) then
+              result:=R_MMREGISTER
+            else if cs_fp_emulation in current_settings.moduleswitches then
+              result:=R_INTREGISTER
+            else
+              result:=R_FPUREGISTER;
+          filedef,
+          variantdef:
+            internalerror(2010120507);
+        else
+          internalerror(2010120506);
+        end;
     end;
 
   procedure thlcgobj.a_label(list: TAsmList; l: tasmlabel); inline;

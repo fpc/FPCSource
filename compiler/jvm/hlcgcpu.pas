@@ -46,6 +46,8 @@ uses
       procedure incstack(list : TAsmList;slots: longint);
       procedure decstack(list : TAsmList;slots: longint);
 
+      function def2regtyp(def: tdef): tregistertype; override;
+
       procedure a_call_name(list : TAsmList;pd : tprocdef;const s : string; weak: boolean);override;
       procedure a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : string);override;
 
@@ -229,6 +231,17 @@ implementation
         internalerror(2010120501);
       if cs_asm_regalloc in current_settings.globalswitches then
         list.concat(tai_comment.Create(strpnew('    freed '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
+    end;
+
+  function thlcgjvm.def2regtyp(def: tdef): tregistertype;
+    begin
+      case def.typ of
+        { records are implemented via classes }
+        recorddef:
+          result:=R_ADDRESSREGISTER;
+        else
+          result:=inherited;
+      end;
     end;
 
   procedure thlcgjvm.a_call_name(list: TAsmList; pd: tprocdef; const s: string; weak: boolean);
