@@ -654,14 +654,21 @@ implementation
     function isrecordconv(var res: boolean): boolean;
       begin
         if is_record(realtodef) then
-          result:=
-            (realfromdef=java_jlobject) or
-            (realfromdef=java_fpcbaserecordtype)
+          begin
+            result:=true;
+            res:=
+              (realfromdef=java_jlobject) or
+              (realfromdef=java_fpcbaserecordtype);
+          end
         else if is_record(realfromdef) then
-          result:=
-            (realtodef=java_jlobject) or
-            (realtodef=java_fpcbaserecordtype)
+          begin
+            result:=true;
+            res:=
+              (realtodef=java_jlobject) or
+              (realtodef=java_fpcbaserecordtype)
+          end
         else
+          result:=false;
       end;
 
     function isstringconv(var res: boolean): boolean;
