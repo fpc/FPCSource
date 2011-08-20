@@ -138,8 +138,11 @@ implementation
 
     procedure tcgcallparanode.push_value_para;
       begin
-        { we've nothing to push when the size of the parameter is 0 }
-        if left.resultdef.size=0 then
+        { we've nothing to push when the size of the parameter is 0
+          -- except in case of the self parameter of an emptry record on e.g.
+             the JVM target }
+        if (left.resultdef.size=0) and
+           not(vo_is_self in parasym.varoptions) then
           exit;
 
         { Move flags and jump in register to make it less complex }
