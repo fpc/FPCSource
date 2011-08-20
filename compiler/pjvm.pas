@@ -67,7 +67,7 @@ implementation
         pd: tprocdef;
         topowner: tdefentry;
         i: longint;
-        sstate: symcreat.tscannerstate;
+        sstate: tscannerstate;
         needclassconstructor: boolean;
       begin
         { if there is at least one constructor for a class, do nothing (for
@@ -210,7 +210,7 @@ implementation
         i: longint;
         sym: tstaticvarsym;
         fsym: tfieldvarsym;
-        sstate: symcreat.tscannerstate;
+        sstate: tscannerstate;
         sl: tpropaccesslist;
       begin
         { if it's a subrange type, don't create a new class }
@@ -338,7 +338,7 @@ implementation
         ssym: tstaticvarsym;
         esym: tenumsym;
         i: longint;
-        sstate: symcreat.tscannerstate;
+        sstate: tscannerstate;
       begin
         case csym.constdef.typ of
           enumdef:

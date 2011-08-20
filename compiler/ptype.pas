@@ -1808,7 +1808,7 @@ implementation
 
     procedure add_typedconst_init_routine(def: tabstractrecorddef);
       var
-        sstate: symcreat.tscannerstate;
+        sstate: tscannerstate;
         pd: tprocdef;
       begin
         replace_scanner('tcinit_routine',sstate);

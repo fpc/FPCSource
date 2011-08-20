@@ -78,13 +78,6 @@ interface
 
        tspecialgenerictoken = (ST_LOADSETTINGS,ST_LINE,ST_COLUMN,ST_FILEINDEX);
 
-       tscannerstate = record
-         lasttokenpos: longint;
-         current_tokenpos,
-         current_filepos: tfileposinfo;
-         token: ttoken;
-       end;
-
        { tscannerfile }
        tscannerfile = class
        private
@@ -153,10 +146,6 @@ interface
           procedure reload;
           { replaces current token with the text in p }
           procedure substitutemacro(const macname:string;p:pchar;len,line,fileindex:longint);
-          { inserts the text in p before the current token; the current token
-            will be restored afterwards }
-          procedure inserttext_begin(const macname: string; const str: ansistring; out scannerstate: tscannerstate);
-          procedure inserttext_end(const scannerstate: tscannerstate);
         { Scanner things }
           procedure gettokenpos;
           procedure inc_comment_level;
@@ -2462,35 +2451,6 @@ In case not, the value returned can be arbitrary.
       { load new c }
         c:=inputpointer^;
         inc(inputpointer);
-      end;
-
-
-    procedure tscannerfile.inserttext_begin(const macname: string; const str: ansistring; out scannerstate: tscannerstate);
-      begin
-        if (nexttoken<>NOTOKEN) then
-          internalerror(2011032103);
-        scannerstate.lasttokenpos:=lasttokenpos;
-        scannerstate.token:=token;
-        scannerstate.current_tokenpos:=current_tokenpos;
-        scannerstate.current_filepos:=current_filepos;
-
-        current_scanner.substitutemacro(macname,@str[1],length(str),
-          current_scanner.line_no,current_scanner.inputfile.ref_index);
-        current_scanner.readtoken(false);
-      end;
-
-
-    procedure tscannerfile.inserttext_end(const scannerstate: tscannerstate);
-      begin
-        if nexttoken<>NOTOKEN then
-          internalerror(2011032104);
-        nexttoken:=token;
-        cachenexttokenpos;
-
-        lasttokenpos:=scannerstate.lasttokenpos;
-        token:=scannerstate.token;
-        current_tokenpos:=scannerstate.current_tokenpos;
-        current_filepos:=scannerstate.current_filepos;
       end;
 
 
