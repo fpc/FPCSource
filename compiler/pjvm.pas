@@ -144,8 +144,8 @@ implementation
             pd.proctypeoption:=potype_constructor;
             { needs to be exported }
             include(pd.procoptions,po_global);
-            { for Delphi mode }
-            include(pd.procoptions,po_overload);
+            { by default do not include this routine when looking for overloads }
+            include(pd.procoptions,po_ignore_for_overload_resolution);
             { generate anonymous inherited call in the implementation }
             pd.synthetickind:=tsk_anon_inherited;
             { public }
@@ -551,6 +551,8 @@ implementation
           in that case) }
         if po_overridingmethod in pd.procoptions then
           begin
+            { by default do not include this routine when looking for overloads }
+            include(wrapperpd.procoptions,po_ignore_for_overload_resolution);
             wrapperpd.synthetickind:=tsk_anon_inherited;
             symtablestack.pop(pd.owner);
             exit;

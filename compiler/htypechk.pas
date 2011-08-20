@@ -63,6 +63,7 @@ interface
         FProcsymtable : tsymtable;
         FOperator    : ttoken;
         FCandidateProcs    : pcandidate;
+        FIgnoredCandidateProcs: tfpobjectlist;
         FProcCnt    : integer;
         FParaNode   : tnode;
         FParaLength : smallint;
@@ -1862,6 +1863,7 @@ implementation
         FProcsym:=sym;
         FProcsymtable:=st;
         FParanode:=ppn;
+        FIgnoredCandidateProcs:=tfpobjectlist.create(false);
         create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited);
       end;
 
@@ -1872,6 +1874,7 @@ implementation
         FProcsym:=nil;
         FProcsymtable:=nil;
         FParanode:=ppn;
+        FIgnoredCandidateProcs:=tfpobjectlist.create(false);
         create_candidate_list(false,false,false,false,false,false);
       end;
 
@@ -1881,6 +1884,7 @@ implementation
         hpnext,
         hp : pcandidate;
       begin
+        FIgnoredCandidateProcs.free;
         hp:=FCandidateProcs;
         while assigned(hp) do
          begin
@@ -1904,6 +1908,11 @@ implementation
           for j:=0 to srsym.ProcdefList.Count-1 do
             begin
               pd:=tprocdef(srsym.ProcdefList[j]);
+              if (po_ignore_for_overload_resolution in pd.procoptions) then
+                begin
+                  FIgnoredCandidateProcs.add(pd);
+                  continue;
+                end;
               { in case of anonymous inherited, only match procdefs identical
                 to the current one (apart from hidden parameters), rather than
                 anything compatible to the parameters -- except in case of
@@ -2059,14 +2068,19 @@ implementation
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
-                    { Store first procsym found }
-                    if not assigned(FProcsym) then
-                      FProcsym:=tprocsym(srsym);
                     { add all definitions }
                     hasoverload:=false;
                     for j:=0 to tprocsym(srsym).ProcdefList.Count-1 do
                       begin
                         pd:=tprocdef(tprocsym(srsym).ProcdefList[j]);
+                        if (po_ignore_for_overload_resolution in pd.procoptions) then
+                          begin
+                            FIgnoredCandidateProcs.add(pd);
+                            continue;
+                          end;
+                        { Store first procsym found }
+                        if not assigned(FProcsym) then
+                          FProcsym:=tprocsym(srsym);
                         if po_overload in pd.procoptions then
                           hasoverload:=true;
                         ProcdefOverloadList.Add(tprocsym(srsym).ProcdefList[j]);
@@ -2896,6 +2910,7 @@ implementation
 
     function tcallcandidates.choose_best(var bestpd:tabstractprocdef; singlevariant: boolean):integer;
       var
+        pd: tprocdef;
         besthpstart,
         hp            : pcandidate;
         cntpd,
@@ -2950,6 +2965,32 @@ implementation
             end;
          end;
 
+        { if we've found one, check the procdefs ignored for overload choosing
+          to see whether they contain one from a child class with the same
+          parameters (so the overload choosing was not influenced by their
+          presence, but now that we've decided which overloaded version to call,
+          make sure we call the version closest in terms of visibility }
+        if cntpd=1 then
+          begin
+            for res:=0 to FIgnoredCandidateProcs.count-1 do
+              begin
+                pd:=tprocdef(FIgnoredCandidateProcs[res]);
+                { stop searching when we start comparing methods of parent of
+                  the struct in which the current best method was found }
+                if assigned(pd.struct) and
+                   (pd.struct<>tprocdef(bestpd).struct) and
+                   tprocdef(bestpd).struct.is_related(pd.struct) then
+                  break;
+                if (pd.proctypeoption=bestpd.proctypeoption) and
+                   ((pd.procoptions*[po_classmethod,po_methodpointer])=(bestpd.procoptions*[po_classmethod,po_methodpointer])) and
+                   (compare_paras(pd.paras,bestpd.paras,cp_all,[cpo_ignorehidden,cpo_ignoreuniv,cpo_openequalisexact])=te_exact) then
+                  begin
+                    { first one encountered is closest in terms of visibility }
+                    bestpd:=pd;
+                    break;
+                  end;
+              end;
+          end;
         result:=cntpd;
       end;
 

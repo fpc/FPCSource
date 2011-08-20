@@ -306,9 +306,10 @@ implementation
             childpd.visibility:=forcevis;
           if po_virtualmethod in childpd.procoptions then
             include(childpd.procoptions,po_overridingmethod);
+          { ignore this artificially added procdef when looking for overloads }
+          include(childpd.procoptions,po_ignore_for_overload_resolution);
           finish_copied_procdef(childpd,parentpd.procsym.realname,obj.symtable,obj);
           exclude(childpd.procoptions,po_external);
-          include(childpd.procoptions,po_overload);
           childpd.synthetickind:=tsk_anon_inherited;
           include(obj.objectoptions,oo_has_constructor);
         end;

@@ -1085,7 +1085,7 @@ type
   end;
   tprocopt=record
     mask : tprocoption;
-    str  : string[30];
+    str  : string[31];
   end;
 const
   {proccalloptionStr  is also in globtype unit }
@@ -1149,7 +1149,8 @@ const
      (mask:po_enumerator_movenext; str:'EnumeratorMoveNext'),
      (mask:po_optional;        str: 'Optional'),
      (mask:po_delphi_nested_cc;str: 'Delphi-style nested frameptr'),
-     (mask:po_java_nonvirtual; str: 'Java non-virtual method')
+     (mask:po_java_nonvirtual; str: 'Java non-virtual method'),
+     (mask:po_ignore_for_overload_resolution;str: 'Ignored for overload resolution')
   );
 var
   proctypeoption  : tproctypeoption;

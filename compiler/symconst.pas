@@ -318,7 +318,13 @@ type
     po_delphi_nested_cc,
     { Non-virtual method of a Java class that has been transformed into a
       "virtual; final;" method for JVM-implementation reasons }
-    po_java_nonvirtual
+    po_java_nonvirtual,
+    { automatically inherited routine from parent class, ignore for resolving
+      overloads (on the JVM target, constructors are not automatically
+      inherited, so we explicitly have to add the constructors of the parent
+      class to the child class; this influences the overload resolution logic
+      though, so ignore them there) }
+    po_ignore_for_overload_resolution
   );
   tprocoptions=set of tprocoption;
 
