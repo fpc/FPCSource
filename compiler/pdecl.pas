@@ -63,7 +63,7 @@ implementation
        { aasm }
        aasmbase,aasmtai,aasmdata,fmodule,
        { symtable }
-       symconst,symbase,symtype,symtable,paramgr,defutil,
+       symconst,symbase,symtype,symtable,symcreat,paramgr,defutil,
        { pass 1 }
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
        { codegen }
@@ -174,7 +174,7 @@ implementation
       var
          orgname : TIDString;
          hdef : tdef;
-         sym, tmp : tsym;
+         sym : tsym;
          dummysymoptions : tsymoptions;
          deprecatedmsg : pshortstring;
          storetokenpos,filepos : tfileposinfo;
@@ -182,8 +182,6 @@ implementation
          skipequal : boolean;
          tclist : tasmlist;
          varspez : tvarspez;
-         static_name : string;
-         sl : tpropaccesslist;
       begin
          old_block_type:=block_type;
          block_type:=bt_const;
@@ -247,23 +245,9 @@ implementation
                      to it from the structure or linking will fail }
                    if symtablestack.top.symtabletype in [recordsymtable,ObjectSymtable] then
                      begin
-                       { generate the symbol which reserves the space }
-                       static_name:=lower(generate_nested_name(symtablestack.top,'_'))+'_'+orgname;
-{$ifndef jvm}
-                       sym:=tstaticvarsym.create(internal_static_field_name(static_name),varspez,hdef,[]);
-                       include(sym.symoptions,sp_internal);
-                       tabstractrecordsymtable(symtablestack.top).get_unit_symtable.insert(sym);
-{$else not jvm}
-                       sym:=tstaticvarsym.create(orgname,varspez,hdef,[]);
+                       sym:=tfieldvarsym.create(orgname,varspez,hdef,[]);
                        symtablestack.top.insert(sym);
-                       orgname:=static_name;
-{$endif not jvm}
-                       { generate the symbol for the access }
-                       sl:=tpropaccesslist.create;
-                       sl.addsym(sl_load,sym);
-                       tmp:=tabsolutevarsym.create_ref(orgname,hdef,sl);
-                       tmp.visibility:=symtablestack.top.currentvisibility;
-                       symtablestack.top.insert(tmp);
+                       sym:=make_field_static(symtablestack.top,tfieldvarsym(sym));
                      end
                    else
                      begin

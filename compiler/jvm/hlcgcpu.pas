@@ -1935,7 +1935,7 @@ implementation
           if (tsym(st.symlist[i]).typ<>allocvartyp) then
             continue;
           vs:=tabstractvarsym(st.symlist[i]);
-          if sp_internal in vs.symoptions then
+          if sp_static in vs.symoptions then
             continue;
           { vo_is_external and vo_has_local_copy means a staticvarsym that is
             alias for a constsym, whose sole purpose is for allocating and

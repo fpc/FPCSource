@@ -27,7 +27,7 @@ unit pdecvar;
 interface
 
     uses
-      symsym,symdef;
+      symtable,symsym,symdef;
 
     type
       tvar_dec_option=(vd_record,vd_object,vd_threadvar,vd_class,vd_final);
@@ -53,7 +53,7 @@ implementation
        globtype,globals,tokens,verbose,constexp,
        systems,
        { symtable }
-       symconst,symbase,symtype,symtable,defutil,defcmp,symcreat,
+       symconst,symbase,symtype,defutil,defcmp,symcreat,
 {$ifdef jvm}
        jvmdef,
 {$endif}
@@ -1538,7 +1538,7 @@ implementation
       var
          sc : TFPObjectList;
          i  : longint;
-         hs,sorg,static_name : string;
+         hs,sorg : string;
          hdef,casetype : tdef;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
@@ -1565,7 +1565,6 @@ implementation
          tempdef: tdef;
          is_first_type: boolean;
 {$endif powerpc or powerpc64}
-         sl: tpropaccesslist;
          old_block_type: tblock_type;
       begin
          old_block_type:=block_type;
@@ -1725,56 +1724,6 @@ implementation
                     (oo_is_external in tobjectdef(recst.defowner).objectoptions) then
                    try_read_field_external_sc(sc);
                end;
-             if vd_class in options then
-               begin
-                 { add static flag and staticvarsyms }
-                 for i:=0 to sc.count-1 do
-                   begin
-                     fieldvs:=tfieldvarsym(sc[i]);
-                     include(fieldvs.symoptions,sp_static);
-                     { generate the symbol which reserves the space }
-                     static_name:=lower(generate_nested_name(recst,'_'))+'_'+fieldvs.name;
-{$ifndef jvm}
-                     hstaticvs:=tstaticvarsym.create(internal_static_field_name(static_name),vs_value,hdef,[]);
-                     include(hstaticvs.symoptions,sp_internal);
-                     recst.get_unit_symtable.insert(hstaticvs);
-                     cnodeutils.insertbssdata(hstaticvs);
-{$else not jvm}
-                     { for the JVM, static field accesses are name-based and
-                       hence we have to keep the original name of the field.
-                       Create a staticvarsym instead of a fieldvarsym so we can
-                       nevertheless use a loadn instead of a subscriptn though,
-                       since a subscriptn requires something to subscript and
-                       there is nothing in this case (class+field name will be
-                       encoded in the mangled symbol name) }
-                     hstaticvs:=tstaticvarsym.create(fieldvs.realname,vs_value,hdef,[]);
-                     { rename the original field to prevent a name clash when
-                       inserting the new one }
-                     fieldvs.Rename(internal_static_field_name(fieldvs.name));
-                     include(fieldvs.symoptions,sp_internal);
-                     recst.insert(hstaticvs);
-                     { has to be delayed until now, because the calculated
-                       mangled name depends on the owner }
-                     if (vo_has_mangledname in fieldvs.varoptions) then
-                       hstaticvs.set_mangledname(fieldvs.externalname^);
-{$endif not jvm}
-                     if vd_final in options then
-                       hstaticvs.varspez:=vs_final;
-                     { generate the symbol for the access }
-                     sl:=tpropaccesslist.create;
-                     sl.addsym(sl_load,hstaticvs);
-                     recst.insert(tabsolutevarsym.create_ref('$'+static_name,hdef,sl));
-                   end;
-               end;
-             if vd_final in options then
-               begin
-                 { add final flag }
-                 for i:=0 to sc.count-1 do
-                   begin
-                     fieldvs:=tfieldvarsym(sc[i]);
-                     fieldvs.varspez:=vs_final;
-                   end;
-               end;
              if (visibility=vis_published) and
                 not(is_class(hdef)) then
                begin
@@ -1788,6 +1737,27 @@ implementation
                begin
                  Message(parser_e_only_publishable_classes_can_be_published);
                  visibility:=vis_public;
+               end;
+             if vd_class in options then
+               begin
+                 { add static flag and staticvarsyms }
+                 for i:=0 to sc.count-1 do
+                   begin
+                     fieldvs:=tfieldvarsym(sc[i]);
+                     fieldvs.visibility:=visibility;
+                     hstaticvs:=make_field_static(recst,fieldvs);
+                     if vd_final in options then
+                       hstaticvs.varspez:=vs_final;
+                   end;
+               end;
+             if vd_final in options then
+               begin
+                 { add final flag }
+                 for i:=0 to sc.count-1 do
+                   begin
+                     fieldvs:=tfieldvarsym(sc[i]);
+                     fieldvs.varspez:=vs_final;
+                   end;
                end;
 
              { Generate field in the recordsymtable }

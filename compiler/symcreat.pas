@@ -108,6 +108,11 @@ interface
 
   procedure maybe_guarantee_record_typesym(var def: tdef; st: tsymtable);
 
+  { turns a fieldvarsym into a class/static field definition, and returns the
+    created staticvarsym that is responsible for allocating the global storage }
+  function make_field_static(recst: tsymtable; fieldvs: tfieldvarsym): tstaticvarsym;
+
+
 implementation
 
   uses
@@ -117,7 +122,7 @@ implementation
 {$ifdef jvm}
     pjvm,jvmdef,
 {$endif jvm}
-    node,nbas,nld,nmem,
+    node,nbas,nld,nmem,ngenutil,
     defcmp,
     paramgr;
 
@@ -557,10 +562,10 @@ implementation
     var
       enumclass: tobjectdef;
       enumdef: tenumdef;
+      enumname,
       str: ansistring;
       i: longint;
       enumsym: tenumsym;
-      classfield: tstaticvarsym;
       orderedenums: tfpobjectlist;
     begin
       enumclass:=tobjectdef(pd.owner.defowner);
@@ -587,18 +592,16 @@ implementation
       for i:=0 to orderedenums.count-1 do
         begin
           enumsym:=tenumsym(orderedenums[i]);
-          classfield:=tstaticvarsym(search_struct_member(enumclass,enumsym.name));
-          if not assigned(classfield) then
-            internalerror(2011062306);
-          str:=str+classfield.name+':=__FPC_TEnumClassAlias.Create('''+enumsym.realname+''','+tostr(i);
+          enumname:=enumsym.realname;
+          str:=str+enumsym.name+':=__FPC_TEnumClassAlias.Create('''+enumname+''','+tostr(i);
           if enumdef.has_jumps then
             str:=str+','+tostr(enumsym.value);
           str:=str+');';
           { alias for $VALUES array used internally by the JDK, and also by FPC
             in case of no jumps }
-          str:=str+'__fpc_FVALUES['+tostr(i)+']:='+classfield.name+';';
+          str:=str+'__fpc_FVALUES['+tostr(i)+']:='+enumname+';';
           if enumdef.has_jumps then
-            str:=str+'__fpc_ord2enum.put(JLInteger.valueOf('+tostr(enumsym.value)+'),'+classfield.name+');';
+            str:=str+'__fpc_ord2enum.put(JLInteger.valueOf('+tostr(enumsym.value)+'),'+enumname+');';
         end;
       orderedenums.free;
       str:=str+' end;';
@@ -1101,6 +1104,53 @@ implementation
         end;
     end;
 
+
+  function make_field_static(recst: tsymtable; fieldvs: tfieldvarsym): tstaticvarsym;
+    var
+      static_name: string;
+      hstaticvs: tstaticvarsym;
+      tmp: tabsolutevarsym;
+      sl: tpropaccesslist;
+    begin
+      include(fieldvs.symoptions,sp_static);
+      { generate the symbol which reserves the space }
+      static_name:=lower(generate_nested_name(recst,'_'))+'_'+fieldvs.name;
+      hstaticvs:=tstaticvarsym.create(internal_static_field_name(static_name),vs_value,fieldvs.vardef,[]);
+{$ifdef jvm}
+      { for the JVM, static field accesses are name-based and
+        hence we have to keep the original name of the field.
+        Create a staticvarsym instead of a fieldvarsym so we can
+        nevertheless use a loadn instead of a subscriptn though,
+        since a subscriptn requires something to subscript and
+        there is nothing in this case (class+field name will be
+        encoded in the mangled symbol name) }
+      recst.insert(hstaticvs);
+      { has to be delayed until now, because the calculated
+        mangled name depends on the owner }
+      if (vo_has_mangledname in fieldvs.varoptions) then
+        hstaticvs.set_mangledname(fieldvs.externalname^)
+      else
+        hstaticvs.set_mangledname(fieldvs.realname);
+      { for definition in class file }
+      hstaticvs.visibility:=fieldvs.visibility;
+{$else jvm}
+      include(hstaticvs.symoptions,sp_internal);
+      tabstractrecordsymtable(recst).get_unit_symtable.insert(hstaticvs);
+      cnodeutils.insertbssdata(hstaticvs);
+{$endif jvm}
+      { generate the symbol for the access }
+      sl:=tpropaccesslist.create;
+      sl.addsym(sl_load,hstaticvs);
+      { do *not* change the visibility of this absolutevarsym from vis_public
+        to anything else, because its visibility is used by visibility checks
+        after turning a class property referring to a class variable into a
+        load node (handle_staticfield_access -> searchsym_in_class ->
+        is_visible_for_object), which means that the load will fail if this
+        symbol is e.g. "strict private" while the property is public }
+      tmp:=tabsolutevarsym.create_ref('$'+static_name,fieldvs.vardef,sl);
+      recst.insert(tmp);
+      result:=hstaticvs;
+    end;
 
 end.
 

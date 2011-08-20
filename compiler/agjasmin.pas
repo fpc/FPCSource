@@ -809,30 +809,11 @@ implementation
 
 
     function TJasminAssembler.FieldDefinition(sym: tabstractvarsym): ansistring;
-      var
-        vissym: tabstractvarsym;
       begin
-        vissym:=sym;
-        { static field definition -> get original field definition for
-          visibility }
-        if (sym.typ=staticvarsym) and
-           (sym.owner.symtabletype in [objectsymtable,recordsymtable]) then
-          begin
-            vissym:=tabstractvarsym(
-              tabstractrecorddef(sym.owner.defowner).symtable.find(
-                internal_static_field_name(sym.name)));
-            if not assigned(vissym) then
-              vissym:=tabstractvarsym(
-                tabstractrecorddef(sym.owner.defowner).symtable.find(
-                  generate_nested_name(sym.owner,'_')+'_'+sym.name));
-            if not assigned(vissym) or
-               not(vissym.typ in [fieldvarsym,absolutevarsym]) then
-              internalerror(2011011501);
-          end;
-        case vissym.typ of
+        case sym.typ of
           staticvarsym:
             begin
-              if vissym.owner.symtabletype=globalsymtable then
+              if sym.owner.symtabletype=globalsymtable then
                 result:='public '
               else
                 { package visbility }
@@ -840,7 +821,7 @@ implementation
             end;
           fieldvarsym,
           absolutevarsym:
-            result:=VisibilityToStr(tstoredsym(vissym).visibility);
+            result:=VisibilityToStr(tstoredsym(sym).visibility);
           else
             internalerror(2011011204);
         end;
@@ -933,7 +914,8 @@ implementation
     procedure TJasminAssembler.WriteFieldSym(sym: tabstractvarsym);
       begin
         { internal static field definition alias -> skip }
-        if sp_static in sym.symoptions then
+        if (sym.owner.symtabletype in [recordsymtable,ObjectSymtable]) and
+           (sym.typ=staticvarsym) then
           exit;
         { external definition -> no definition here }
         if vo_is_external in sym.varoptions then

@@ -422,10 +422,9 @@ implementation
                    begin
                      { get the class representing the primitive type }
                      fvs:=search_struct_member(tobjectdef(corrclass),'FTYPE');
-                     if not assigned(fvs) or
-                        (fvs.typ<>staticvarsym) then
+                     newpara:=nil;
+                     if not handle_staticfield_access(fvs,false,newpara) then
                        internalerror(2011072417);
-                     newpara:=cloadnode.create(fvs,fvs.owner);
                    end
                  else
                    newpara:=cloadvmtaddrnode.create(ctypenode.create(corrclass));

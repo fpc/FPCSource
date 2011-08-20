@@ -87,7 +87,7 @@ implementation
       cutils,widestr,verbose,constexp,fmodule,
       symdef,symsym,symtable,symconst,
       aasmdata,aasmcpu,defutil,
-      ncnv,nld,nmem,pjvm,pass_1,
+      nutils,ncnv,nld,nmem,pjvm,pass_1,
       cgbase,hlcgobj,hlcgcpu,cgutils,cpubase
       ;
 
@@ -128,11 +128,11 @@ implementation
           end;
         { b) find the corresponding class field }
         classfield:=search_struct_member(basedef.classdef,sym.name);
-        if not assigned(classfield) or
-           (classfield.typ<>staticvarsym) then
-          internalerror(2011062606);
+
         { c) create loadnode of the field }
-        result:=cloadnode.create(classfield,classfield.owner);
+        result:=nil;
+        if not handle_staticfield_access(classfield,false,result) then
+          internalerror(2011062606);
       end;
 
 

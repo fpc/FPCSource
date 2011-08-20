@@ -323,12 +323,9 @@ implementation
         { create static fields representing all enums }
         for i:=0 to tenumdef(def).symtable.symlist.count-1 do
           begin
-            sym:=tstaticvarsym.create(tenumsym(tenumdef(def).symtable.symlist[i]).realname,vs_final,enumclass,[]);
-            enumclass.symtable.insert(sym);
-            { alias for consistency with parsed staticvarsyms }
-            sl:=tpropaccesslist.create;
-            sl.addsym(sl_load,sym);
-            enumclass.symtable.insert(tabsolutevarsym.create_ref('$'+internal_static_field_name(sym.name),enumclass,sl));
+            fsym:=tfieldvarsym.create(tenumsym(tenumdef(def).symtable.symlist[i]).realname,vs_final,enumclass,[]);
+            enumclass.symtable.insert(fsym);
+            sym:=make_field_static(enumclass.symtable,fsym);
           end;
         { create local "array of enumtype" type for the "values" functionality
           (used internally by the JDK) }
@@ -353,12 +350,9 @@ implementation
             tobjectsymtable(enumclass.symtable).addfield(fsym,vis_strictprivate);
             { add class field with hash table that maps from FPC-declared ordinal value -> enum instance }
             juhashmap:=search_system_type('JUHASHMAP').typedef;
-            sym:=tstaticvarsym.create('__fpc_ord2enum',vs_final,juhashmap,[]);
-            enumclass.symtable.insert(sym);
-            { alias for consistency with parsed staticvarsyms }
-            sl:=tpropaccesslist.create;
-            sl.addsym(sl_load,sym);
-            enumclass.symtable.insert(tabsolutevarsym.create_ref('$'+internal_static_field_name(sym.name),enumclass,sl));
+            fsym:=tfieldvarsym.create('__fpc_ord2enum',vs_final,juhashmap,[]);
+            enumclass.symtable.insert(fsym);
+            make_field_static(enumclass.symtable,fsym);
             { add custom constructor }
             if not str_parse_method_dec('constructor Create(const __fpc_name: JLString; const __fpc_ord, __fpc_initenumval: longint);',potype_constructor,false,enumclass,pd) then
               internalerror(2011062401);
@@ -413,13 +407,10 @@ implementation
           "Values" instance method -- that's also the reason why we insert the
           field only now, because we cannot disable duplicate identifier
           checking when creating the "Values" method }
-        sym:=tstaticvarsym.create('$VALUES',vs_final,arrdef,[]);
-        sym.visibility:=vis_strictprivate;
-        enumclass.symtable.insert(sym,false);
-        { alias for consistency with parsed staticvarsyms }
-        sl:=tpropaccesslist.create;
-        sl.addsym(sl_load,sym);
-        enumclass.symtable.insert(tabsolutevarsym.create_ref('$'+internal_static_field_name(sym.name),arrdef,sl));
+        fsym:=tfieldvarsym.create('$VALUES',vs_final,arrdef,[]);
+        fsym.visibility:=vis_strictprivate;
+        enumclass.symtable.insert(fsym,false);
+        sym:=make_field_static(enumclass.symtable,fsym);
         { alias for accessing the field in generated Pascal code }
         sl:=tpropaccesslist.create;
         sl.addsym(sl_load,sym);
