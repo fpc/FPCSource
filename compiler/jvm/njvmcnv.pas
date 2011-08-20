@@ -674,14 +674,21 @@ implementation
     function isstringconv(var res: boolean): boolean;
       begin
         if is_wide_or_unicode_string(realtodef) then
-          result:=
-            (realfromdef=java_jlobject) or
-            (realfromdef=java_jlstring)
+          begin
+            result:=true;
+            res:=
+              (realfromdef=java_jlobject) or
+              (realfromdef=java_jlstring)
+          end
         else if is_wide_or_unicode_string(realfromdef) then
-          result:=
-            (realtodef=java_jlobject) or
-            (realtodef=java_jlstring)
+          begin
+            result:=true;
+            res:=
+              (realtodef=java_jlobject) or
+              (realtodef=java_jlstring)
+          end
         else
+          result:=false;
       end;
 
     begin
