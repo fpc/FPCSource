@@ -421,7 +421,7 @@ unit hlcgobj;
 //          procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);virtual;abstract;
 //          procedure location_force_mmreg(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);virtual;abstract;
 
-          procedure maketojumpbool(list:TAsmList; p : tnode);virtual;abstract;
+          procedure maketojumpbool(list:TAsmList; p : tnode);virtual;
 
           procedure gen_proc_symbol(list:TAsmList);virtual;
           procedure gen_proc_symbol_end(list:TAsmList);virtual;
@@ -463,6 +463,7 @@ implementation
        globals,options,systems,
        fmodule,export,
        verbose,defutil,paramgr,symsym,
+       ncon,
        cpuinfo,cgobj,tgobj,cutils,procinfo,
        ncgutil;
 
@@ -1692,6 +1693,73 @@ implementation
         else
           internalerror(2011010304);
       end;
+    end;
+
+  procedure thlcgobj.maketojumpbool(list: TAsmList; p: tnode);
+  {
+    produces jumps to true respectively false labels using boolean expressions
+
+    depending on whether the loading of regvars is currently being
+    synchronized manually (such as in an if-node) or automatically (most of
+    the other cases where this procedure is called), loadregvars can be
+    "lr_load_regvars" or "lr_dont_load_regvars"
+  }
+    var
+      opsize : tcgsize;
+      storepos : tfileposinfo;
+      tmpreg : tregister;
+    begin
+       if nf_error in p.flags then
+         exit;
+       storepos:=current_filepos;
+       current_filepos:=p.fileinfo;
+       if is_boolean(p.resultdef) then
+         begin
+            if is_constboolnode(p) then
+              begin
+                 if Tordconstnode(p).value.uvalue<>0 then
+                   a_jmp_always(list,current_procinfo.CurrTrueLabel)
+                 else
+                   a_jmp_always(list,current_procinfo.CurrFalseLabel)
+              end
+            else
+              begin
+                 case p.location.loc of
+(*
+                   LOC_SUBSETREG,LOC_CSUBSETREG,
+                   LOC_SUBSETREF,LOC_CSUBSETREF:
+                     begin
+                       tmpreg := cg.getintregister(list,OS_INT);
+                       cg.a_load_loc_reg(list,OS_INT,p.location,tmpreg);
+                       cg.a_cmp_const_reg_label(list,OS_INT,OC_NE,0,tmpreg,current_procinfo.CurrTrueLabel);
+                       cg.a_jmp_always(list,current_procinfo.CurrFalseLabel);
+                     end;
+*)
+                   LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE :
+                     begin
+                       a_cmp_const_loc_label(list,p.resultdef,OC_NE,0,p.location,current_procinfo.CurrTrueLabel);
+                       a_jmp_always(list,current_procinfo.CurrFalseLabel);
+                     end;
+                   LOC_JUMP:
+                     ;
+{$ifdef cpuflags}
+                   LOC_FLAGS :
+                     begin
+                       a_jmp_flags(list,p.location.resflags,current_procinfo.CurrTrueLabel);
+                       a_jmp_always(list,current_procinfo.CurrFalseLabel);
+                     end;
+{$endif cpuflags}
+                   else
+                     begin
+                       printnode(output,p);
+                       internalerror(2011010418);
+                     end;
+                 end;
+              end;
+         end
+       else
+         internalerror(2011010419);
+       current_filepos:=storepos;
     end;
 
   procedure thlcgobj.gen_proc_symbol(list: TAsmList);
