@@ -269,7 +269,9 @@ interface
         asd_indirect_symbol,
         asd_extern,asd_nasm_import, asd_toc_entry,
         asd_reference,asd_no_dead_strip,asd_weak_reference,asd_lazy_reference,
-        asd_weak_definition
+        asd_weak_definition,
+        { for Jasmin }
+        asd_jclass,asd_jinterface,asd_jsuper,asd_jfield,asd_jlimit
       );
 
     const
@@ -279,7 +281,9 @@ interface
       directivestr : array[TAsmDirective] of string[23]=(
         'indirect_symbol',
         'extern','nasm_import', 'tc', 'reference',
-        'no_dead_strip','weak_reference','lazy_reference','weak_definition'
+        'no_dead_strip','weak_reference','lazy_reference','weak_definition',
+        { for Jasmin }
+        'class','interface','super','field','limit'
       );
 
     type
