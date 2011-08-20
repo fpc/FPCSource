@@ -95,15 +95,15 @@ interface
           swapleftright;
         location_reset(location,LOC_JUMP,OS_NO);
 
-        if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-          hlcg.a_cmp_loc_reg_label(current_asmdata.CurrAsmList,left.resultdef,cmpnode2signedtopcmp,left.location,right.location.register,current_procinfo.CurrTrueLabel)
-        else case left.location.loc of
+        if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+          hlcg.a_cmp_loc_reg_label(current_asmdata.CurrAsmList,left.resultdef,cmpnode2signedtopcmp,right.location,left.location.register,current_procinfo.CurrTrueLabel)
+        else case right.location.loc of
           LOC_REGISTER,LOC_CREGISTER:
-            hlcg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpnode2signedtopcmp,left.location.register,right.location,current_procinfo.CurrTrueLabel);
+            hlcg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpnode2signedtopcmp,right.location.register,left.location,current_procinfo.CurrTrueLabel);
           LOC_REFERENCE,LOC_CREFERENCE:
-            hlcg.a_cmp_ref_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpnode2signedtopcmp,left.location.reference,right.location,current_procinfo.CurrTrueLabel);
+            hlcg.a_cmp_ref_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpnode2signedtopcmp,right.location.reference,left.location,current_procinfo.CurrTrueLabel);
           LOC_CONSTANT:
-            hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpnode2signedtopcmp,left.location.value,right.location,current_procinfo.CurrTrueLabel);
+            hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,left.resultdef,cmpnode2signedtopcmp,right.location.value,left.location,current_procinfo.CurrTrueLabel);
           else
             internalerror(2011010413);
         end;

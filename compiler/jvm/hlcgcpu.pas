@@ -761,7 +761,25 @@ implementation
 
   procedure thlcgjvm.a_cmp_const_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; const ref: treference; l: tasmlabel);
     begin
+      if ref.base<>NR_EVAL_STACK_BASE then
+        a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false));
+      maybe_adjust_cmp_stackval(list,size,cmp_op);
       a_load_const_stack(list,size,maybe_adjust_cmp_constval(size,cmp_op,a),R_INTREGISTER);
+      a_cmp_stack_label(list,size,cmp_op,l);
+    end;
+
+  procedure thlcgjvm.a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; reg: tregister; l: tasmlabel);
+    begin
+      a_load_reg_stack(list,size,reg);
+      maybe_adjust_cmp_stackval(list,size,cmp_op);
+      a_load_const_stack(list,size,maybe_adjust_cmp_constval(size,cmp_op,a),R_INTREGISTER);
+      a_cmp_stack_label(list,size,cmp_op,l);
+    end;
+
+  procedure thlcgjvm.a_cmp_ref_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister; l: tasmlabel);
+    begin
+      a_load_reg_stack(list,size,reg);
+      maybe_adjust_cmp_stackval(list,size,cmp_op);
       if ref.base<>NR_EVAL_STACK_BASE then
         a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false))
       else
@@ -770,15 +788,7 @@ implementation
       a_cmp_stack_label(list,size,cmp_op,l);
     end;
 
-  procedure thlcgjvm.a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; reg: tregister; l: tasmlabel);
-    begin
-      a_load_const_stack(list,size,maybe_adjust_cmp_constval(size,cmp_op,a),R_INTREGISTER);
-      a_load_reg_stack(list,size,reg);
-      maybe_adjust_cmp_stackval(list,size,cmp_op);
-      a_cmp_stack_label(list,size,cmp_op,l);
-    end;
-
-  procedure thlcgjvm.a_cmp_ref_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister; l: tasmlabel);
+  procedure thlcgjvm.a_cmp_reg_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg: tregister; const ref: treference; l: tasmlabel);
     begin
       if ref.base<>NR_EVAL_STACK_BASE then
         a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false));
@@ -788,23 +798,11 @@ implementation
       a_cmp_stack_label(list,size,cmp_op,l);
     end;
 
-  procedure thlcgjvm.a_cmp_reg_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg: tregister; const ref: treference; l: tasmlabel);
-    begin
-      a_load_reg_stack(list,size,reg);
-      maybe_adjust_cmp_stackval(list,size,cmp_op);
-      if ref.base<>NR_EVAL_STACK_BASE then
-        a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,ref,false))
-      else
-        list.concat(taicpu.op_none(a_swap));
-      maybe_adjust_cmp_stackval(list,size,cmp_op);
-      a_cmp_stack_label(list,size,cmp_op,l);
-    end;
-
   procedure thlcgjvm.a_cmp_reg_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);
     begin
-      a_load_reg_stack(list,size,reg1);
-      maybe_adjust_cmp_stackval(list,size,cmp_op);
       a_load_reg_stack(list,size,reg2);
+      maybe_adjust_cmp_stackval(list,size,cmp_op);
+      a_load_reg_stack(list,size,reg1);
       maybe_adjust_cmp_stackval(list,size,cmp_op);
       a_cmp_stack_label(list,size,cmp_op,l);
     end;
