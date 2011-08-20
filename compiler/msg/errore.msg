@@ -1403,7 +1403,7 @@ parser_e_implements_no_mapping=03313_E_Interface "$1" can't have method resoluti
 % \end{description}
 # Type Checking
 #
-# 04100 is the last used one
+# 04103 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1761,6 +1761,9 @@ type_e_class_helper_must_extend_subclass=04101_E_Derived class helper must exten
 type_e_record_helper_must_extend_same_record=04102_E_Derived record helper must extend "$1"
 % If a record helper inherits from another record helper it must extend the same
 % record that the parent record helper extended.
+type_e_java_class_method_not_static=04103_E_Java class methods have to be static
+% All methods in Java are either regular (virtual) methods, or static class
+% methods. It is not possible to declare non-static class methods.
 %
 % \end{description}
 #
