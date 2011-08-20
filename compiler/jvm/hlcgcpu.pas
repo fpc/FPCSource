@@ -221,7 +221,8 @@ implementation
       if slots=0 then
         exit;
       dec(fevalstackheight,slots);
-      if (fevalstackheight<0) then
+      if (fevalstackheight<0) and
+         not(cs_no_regalloc in current_settings.globalswitches) then
         internalerror(2010120501);
       if cs_asm_regalloc in current_settings.globalswitches then
         list.concat(tai_comment.Create(strpnew('    freed '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
