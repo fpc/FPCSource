@@ -343,21 +343,27 @@ implementation
       if (struct.typ=recorddef) and
          not assigned(struct.typesym) then
         internalerror(2011032812);
-      { the inherited clone will already copy all fields in a shallow way ->
-        copy records/regular arrays in a regular way }
-      str:='type _fpc_ptrt = ^'+struct.typesym.realname+'; begin clone:=inherited;';
+      { We can easily use the inherited clone in case we have to create a deep
+        copy of certain fields. The reason is that e.g. sets are pointers at
+        the JVM level, but not in Pascal. So the JVM clone routine will copy the
+        pointer to the set from the old record (= class instance) to the new
+        one, but we have no way to change this pointer itself from inside Pascal
+        code.
+
+        We solve this by relying on the fact that the JVM is garbage collected:
+        we simply declare a temporary instance on the stack, which will be
+        allocated/initialized by the temp generator. We return its address as
+        the result of the clone routine, so it remains live. }
+      str:='type _fpc_ptrt = ^'+struct.typesym.realname+
+        '; var __fpc_newcopy:'+ struct.typesym.realname+'; begin clone:=JLObject(@__fpc_newcopy);';
+      { copy all field contents }
       for i:=0 to struct.symtable.symlist.count-1 do
         begin
           sym:=tsym(struct.symtable.symlist[i]);
           if (sym.typ=fieldvarsym) then
             begin
               fsym:=tfieldvarsym(sym);
-              if (fsym.vardef.typ=recorddef) or
-                 ((fsym.vardef.typ=arraydef) and
-                  not is_dynamic_array(fsym.vardef)) or
-                 ((fsym.vardef.typ=setdef) and
-                  not is_smallset(fsym.vardef)) then
-                str:=str+'_fpc_ptrt(clone)^.&'+fsym.realname+':='+fsym.realname+';';
+              str:=str+'__fpc_newcopy.&'+fsym.realname+':=&'+fsym.realname+';';
             end;
         end;
       str:=str+'end;';

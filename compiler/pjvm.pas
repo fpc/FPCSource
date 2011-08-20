@@ -182,15 +182,27 @@ implementation
       var
         sstate: tscannerstate;
         pd: tprocdef;
+        sym: tsym;
+        i: longint;
       begin
         maybe_add_public_default_java_constructor(def);
         replace_scanner('record_jvm_helpers',sstate);
-        { no override, because not supported in records; the parser will still
-          accept "inherited" though }
-        if str_parse_method_dec('function clone: JLObject;',potype_function,false,def,pd) then
-          pd.synthetickind:=tsk_jvm_clone
-        else
-          internalerror(2011032806);
+        { no override, because not supported in records. Only required in case
+          some of the fields require deep copies (otherwise the default
+          shallow clone is fine) }
+        for i:=0 to def.symtable.symlist.count-1 do
+          begin
+            sym:=tsym(def.symtable.symlist[i]);
+            if (sym.typ=fieldvarsym) and
+               jvmimplicitpointertype(tfieldvarsym(sym).vardef) then
+              begin
+                if str_parse_method_dec('function clone: JLObject;',potype_function,false,def,pd) then
+                  pd.synthetickind:=tsk_jvm_clone
+                else
+                  internalerror(2011032806);
+                break;
+              end;
+          end;
         { can't use def.typesym, not yet set at this point }
         if not assigned(def.symtable.realname) then
           internalerror(2011032803);
