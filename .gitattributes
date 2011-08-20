@@ -218,6 +218,7 @@ compiler/jvm/cputarg.pas svneol=native#text/plain
 compiler/jvm/hlcgcpu.pas svneol=native#text/plain
 compiler/jvm/itcpujas.pas svneol=native#text/plain
 compiler/jvm/jvmreg.dat svneol=native#text/plain
+compiler/jvm/rgcpu.pas svneol=native#text/plain
 compiler/jvm/rjvmcon.inc svneol=native#text/plain
 compiler/jvm/rjvmnor.inc svneol=native#text/plain
 compiler/jvm/rjvmnum.inc svneol=native#text/plain

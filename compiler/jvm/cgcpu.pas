@@ -38,7 +38,10 @@ interface
      public
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
-        function getfpuregister(list:TAsmList;size:Tcgsize):Tregister;override;
+        function  getintregister(list:TAsmList;size:Tcgsize):Tregister;override;
+        function  getfpuregister(list:TAsmList;size:Tcgsize):Tregister;override;
+        function  getaddressregister(list:TAsmList):Tregister;override;
+        procedure do_register_allocation(list:TAsmList;headertai:tai);override;
       end;
 
     procedure create_codegen;
@@ -66,7 +69,7 @@ implementation
         rg[R_INTREGISTER]:=Trgcpu.create(R_INTREGISTER,R_SUBQ,
           [RS_R0],first_int_imreg,[]);
 {$endif not cpu64bitaddr}
-        rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBFD,
+        rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBFS,
           [RS_R0],first_fpu_imreg,[]);
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
           [RS_R0],first_mm_imreg,[]);
@@ -82,12 +85,41 @@ implementation
       end;
 
 
+    function tcgjvm.getintregister(list:TAsmList;size:Tcgsize):Tregister;
+      begin
+        if not(size in [OS_64,OS_S64]) then
+          result:=rg[R_INTREGISTER].getregister(list,R_SUBD)
+        else
+          result:=rg[R_INTREGISTER].getregister(list,R_SUBQ);
+      end;
+
+
     function tcgjvm.getfpuregister(list:TAsmList;size:Tcgsize):Tregister;
       begin
         if size=OS_F64 then
           result:=rg[R_FPUREGISTER].getregister(list,R_SUBFD)
         else
           result:=rg[R_FPUREGISTER].getregister(list,R_SUBFS);
+      end;
+
+
+    function tcgjvm.getaddressregister(list:TAsmList):Tregister;
+      begin
+        { avoid problems in the compiler where int and addr registers are
+          mixed for now; we currently don't have to differentiate between the
+          two as far as the jvm backend is concerned }
+        result:=rg[R_INTREGISTER].getregister(list,R_SUBD)
+      end;
+
+
+    procedure tcgjvm.do_register_allocation(list:TAsmList;headertai:tai);
+      var
+        rt : tregistertype;
+      begin
+        { We only run the "register allocation" once for an arbitrary allocator,
+          which will perform the register->temp mapping for all register types.
+          This allows us to easily reuse temps. }
+        trgcpu(rg[R_INTREGISTER]).do_all_register_allocation(list,headertai);
       end;
 
 
