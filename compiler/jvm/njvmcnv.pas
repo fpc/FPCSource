@@ -32,6 +32,7 @@ interface
        tjvmtypeconvnode = class(tcgtypeconvnode)
           function typecheck_dynarray_to_openarray: tnode; override;
           function typecheck_string_to_chararray: tnode; override;
+          function pass_1: tnode; override;
 
           procedure second_int_to_int;override;
          { procedure second_string_to_string;override; }
@@ -53,9 +54,10 @@ interface
          { procedure second_pchar_to_string;override; }
          { procedure second_class_to_intf;override; }
          { procedure second_char_to_char;override; }
+          function target_specific_explicit_typeconv: boolean; override;
+          function target_specific_general_typeconv: boolean; override;
          protected
-          function target_specific_explicit_typeconv: tnode; override;
-          function target_specific_general_typeconv(var res: tnode): boolean; override;
+          function do_target_specific_explicit_typeconv(check_only: boolean; out resnode: tnode): boolean;
        end;
 
        tjvmasnode = class(tcgasnode)
@@ -143,6 +145,18 @@ implementation
         firstpass(left);
         result := nil;
         expectloc:=LOC_FPUREGISTER;
+      end;
+
+
+    function tjvmtypeconvnode.pass_1: tnode;
+      begin
+        if (nf_explicit in flags) then
+          begin
+            do_target_specific_explicit_typeconv(false,result);
+            if assigned(result) then
+              exit;
+          end;
+        result:=inherited pass_1;
       end;
 
 
@@ -404,7 +418,7 @@ implementation
       end;
 
 
-    function tjvmtypeconvnode.target_specific_explicit_typeconv: tnode;
+    function tjvmtypeconvnode.do_target_specific_explicit_typeconv(check_only: boolean; out resnode: tnode): boolean;
 
       { handle explicit typecast from int to to real or vice versa }
       function int_real_explicit_typecast(fdef: tfloatdef; const singlemethod, doublemethod: string): tnode;
@@ -441,11 +455,12 @@ implementation
         fromclasscompatible,
         toclasscompatible: boolean;
         fromdef,
-        todef: tdef;
+        todef,
+        jlclass: tdef;
         fromarrtype,
         toarrtype: char;
       begin
-        result:=nil;
+        resnode:=nil;
         { This routine is only called for explicit typeconversions of same-sized
           entities that aren't handled by normal type conversions -> bit pattern
           reinterpretations. In the JVM, many of these also need special
@@ -486,12 +501,22 @@ implementation
                ((fromarrtype in ['A','R']) or
                 (fromarrtype<>toarrtype)) then
               begin
-                result:=ctypenode.create(resultdef);
-                if resultdef.typ=objectdef then
-                  result:=cloadvmtaddrnode.create(result);
-                result:=casnode.create(left,result);
-                left:=nil;
-              end;
+                if not check_only and
+                   not assignment_side then
+                  begin
+                    resnode:=ctypenode.create(resultdef);
+                    if resultdef.typ=objectdef then
+                      resnode:=cloadvmtaddrnode.create(resnode);
+                    resnode:=casnode.create(left,resnode);
+                    left:=nil;
+                  end
+              end
+            { typecasting from a child to a parent type on the assignment side
+              will (rightly) mess up the type safety verification of the JVM }
+            else if assignment_side and
+                    (compare_defs(fromdef,todef,nothingn)<te_equal) then
+              CGMessage(type_e_no_managed_assign_generic_typecast);
+            result:=true;
             exit;
           end;
 
@@ -503,7 +528,9 @@ implementation
            (is_integer(resultdef) or
             (resultdef.typ=enumdef)) then
           begin
-            result:=int_real_explicit_typecast(tfloatdef(left.resultdef),'FLOATTORAWINTBITS','DOUBLETORAWLONGBITS');
+            if not check_only then
+              resnode:=int_real_explicit_typecast(tfloatdef(left.resultdef),'FLOATTORAWINTBITS','DOUBLETORAWLONGBITS');
+            result:=true;
             exit;
           end;
         { int to float explicit type conversion: also use the bits }
@@ -511,12 +538,23 @@ implementation
             (left.resultdef.typ=enumdef)) and
            (resultdef.typ=floatdef) then
           begin
-            result:=int_real_explicit_typecast(tfloatdef(resultdef),'INTBITSTOFLOAT','LONGBITSTODOUBLE');
+            if not check_only then
+              resnode:=int_real_explicit_typecast(tfloatdef(resultdef),'INTBITSTOFLOAT','LONGBITSTODOUBLE');
+            result:=true;
             exit;
           end;
         { nothing special required when going between ordinals and enums }
-        if (left.resultdef.typ in [orddef,enumdef])=(resultdef.typ in [orddef,enumdef]) then
-          exit;
+        if (left.resultdef.typ in [orddef,enumdef]) and
+           (resultdef.typ in [orddef,enumdef]) then
+          begin
+            result:=false;
+            exit;
+          end;
+
+{ifndef nounsupported}
+        result:=false;
+        exit;
+{endif}
 
         { Todo:
             * int to set and vice versa
@@ -532,7 +570,16 @@ implementation
       end;
 
 
-    function tjvmtypeconvnode.target_specific_general_typeconv(var res: tnode): boolean;
+    function tjvmtypeconvnode.target_specific_explicit_typeconv: boolean;
+      var
+        dummyres: tnode;
+      begin
+        result:=do_target_specific_explicit_typeconv(true,dummyres);
+      end;
+
+
+
+    function tjvmtypeconvnode.target_specific_general_typeconv: boolean;
       begin
         result:=false;
         { deal with explicit typecasts between records and classes (for
@@ -546,7 +593,6 @@ implementation
            (nf_explicit in flags) then
           begin
             convtype:=tc_equal;
-            res:=target_specific_explicit_typeconv;
             result:=true;
             exit;
           end;

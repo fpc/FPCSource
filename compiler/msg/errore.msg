@@ -1423,7 +1423,7 @@ parser_d_internal_parser_string=03318_D_Parsing internally generated code: $1
 % \end{description}
 # Type Checking
 #
-# 04105 is the last used one
+# 04106 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1795,6 +1795,11 @@ type_e_no_managed_formal_assign_typecast=04105_E_It is not possible to typecast 
 % values to them (either class-based or primitive ones). On the caller side,
 % they will be extracted and if their type does not match the original variable's,
 % an exception will be raised.
+type_e_no_managed_assign_generic_typecast=04106_E_The assignment side of an expression cannot be typecasted to a supertype on managed platforms
+% Managed platforms guarantee type safety at the bytecode level. This means that the virtual machine must be able
+% to statically determine that no type-unsafe assignments or operations occur. By assigning a parent class type to a
+% variable of a child type by typecasting the assignment side to the parent class type, the type safety would no
+% longer be guaranteed and the generated code would fail verification at run time time.
 %
 %
 % \end{description}

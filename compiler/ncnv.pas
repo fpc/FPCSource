@@ -37,7 +37,8 @@ interface
           totypedef   : tdef;
           totypedefderef : tderef;
           convtype : tconverttype;
-          warn_pointer_to_signed: boolean;
+          warn_pointer_to_signed,
+          assignment_side: boolean;
           constructor create(node : tnode;def:tdef);virtual;
           constructor create_explicit(node : tnode;def:tdef);
           constructor create_internal(node : tnode;def:tdef);
@@ -57,6 +58,14 @@ interface
           function retains_value_location:boolean;
           function assign_allowed:boolean;
           procedure second_call_helper(c : tconverttype);
+          { always called before any other type conversion checks. If it
+            returns true, the type conversion is ok and no further checks/
+            handling are required. }
+          function target_specific_general_typeconv: boolean;virtual;
+          { called in case of a valid explicit type conversion. Can be used to
+            replace this explicit type conversion with a different node, or to
+            reject it after all }
+          function target_specific_explicit_typeconv: boolean;virtual;
        protected
           function typecheck_int_to_int : tnode; virtual;
           function typecheck_cord_to_pointer : tnode; virtual;
@@ -116,15 +125,6 @@ interface
           function _typecheck_interface_to_variant : tnode;
           function _typecheck_array_2_dynarray : tnode;
        protected
-          { always called before any other type conversion checks. If it
-            returns true, the type conversion is ok and no further checks/
-            handling are required. "res" can be set to a node that should
-            replace the type conversion node, but this is not required }
-          function target_specific_general_typeconv(var res: tnode): boolean;virtual;
-          { called in case of a valid explicit type conversion. Can be used to
-            replace this explicit type conversion with a different node, or to
-            reject it after all }
-          function target_specific_explicit_typeconv: tnode;virtual;
           function first_int_to_int : tnode;virtual;
           function first_cstring_to_pchar : tnode;virtual;
           function first_cstring_to_int : tnode;virtual;
@@ -858,6 +858,7 @@ implementation
          n:=ttypeconvnode(inherited dogetcopy);
          n.convtype:=convtype;
          n.totypedef:=totypedef;
+         n.assignment_side:=assignment_side;
          dogetcopy:=n;
       end;
 
@@ -1786,15 +1787,15 @@ implementation
       end;
 
 
-    function ttypeconvnode.target_specific_general_typeconv(var res: tnode): boolean;
+    function ttypeconvnode.target_specific_general_typeconv: boolean;
       begin
         result:=false;
       end;
 
 
-    function ttypeconvnode.target_specific_explicit_typeconv: tnode;
+    function ttypeconvnode.target_specific_explicit_typeconv: boolean;
       begin
-        result:=nil;
+        result:=false;
       end;
 
 
@@ -1975,7 +1976,7 @@ implementation
             typecheckpass(left);
           end;
 
-        if target_specific_general_typeconv(result) then
+        if target_specific_general_typeconv then
           exit;
 
         if convtype=tc_none then
@@ -2220,8 +2221,7 @@ implementation
                            begin
                              { perform target-specific explicit typecast
                                checks }
-                             result:=target_specific_explicit_typeconv;
-                             if assigned(result) then
+                             if target_specific_explicit_typeconv then
                                exit;
                            end;
                        end;
