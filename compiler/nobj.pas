@@ -309,10 +309,14 @@ implementation
                 begin
 {$ifdef jvm}
                   { if the mangled names are different, the inheritance trees
-                    are different too in Java }
+                    are different too in Java; exception: when the parent method
+                    is a virtual class method or virtual constructor, because
+                    those are looked up dynamicall by name }
                   javanewtreeok:=
                     is_java_class_or_interface(_class) and
-                    (pd.jvmmangledbasename(false)<>vmtpd.jvmmangledbasename(false));
+                    (pd.jvmmangledbasename(false)<>vmtpd.jvmmangledbasename(false)) and
+                    ((vmtpd.proctypeoption<>potype_constructor) and
+                     not(po_staticmethod in vmtpd.procoptions));
 {$endif}
                   if not(po_reintroduce in pd.procoptions) and
                      not(po_java_nonvirtual in vmtpd.procoptions) then
