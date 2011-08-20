@@ -56,10 +56,10 @@ unit tgobj;
 
        {# Generates temporary variables }
        ttgobj = class
-       private
+       protected
           { contains all free temps using nextfree links }
           tempfreelist  : ptemprecord;
-          function alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype; def:tdef) : longint;
+          function alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype; def:tdef) : longint; virtual;
           procedure freetemp(list: TAsmList; pos:longint;temptypes:ttemptypeset);
        public
           { contains all temps }
@@ -68,7 +68,7 @@ unit tgobj;
           firsttemp,
           lasttemp      : longint;
           direction : shortint;
-          constructor create;
+          constructor create;virtual;reintroduce;
           {# Clear and free the complete linked list of temporary memory
              locations. The list is set to nil.}
           procedure resettempgen;
@@ -105,9 +105,11 @@ unit tgobj;
           procedure getlocal(list: TAsmList; size : longint; alignment : shortint; def:tdef;var ref : treference);
           procedure UnGetLocal(list: TAsmList; const ref : treference);
        end;
+       ttgobjclass = class of ttgobj;
 
      var
        tg: ttgobj;
+       tgobjclass: ttgobjclass = ttgobj;
 
     procedure location_freetemp(list:TAsmList; const l : tlocation);
 

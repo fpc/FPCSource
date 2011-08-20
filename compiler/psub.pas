@@ -948,7 +948,7 @@ implementation
             create_hlcodegen;
 
             { set the start offset to the start of the temp area in the stack }
-            tg:=ttgobj.create;
+            tg:=tgobjclass.create;
 
 {$if defined(x86) or defined(arm)}
             { try to strip the stack frame }
