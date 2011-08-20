@@ -1077,7 +1077,7 @@ implementation
 
             gen_entry_code(templist);
             aktproccode.insertlistafter(entry_asmnode.currenttai,templist);
-            gen_initialize_code(templist);
+            hlcg.gen_initialize_code(templist);
             aktproccode.insertlistafter(init_asmnode.currenttai,templist);
 
             { now generate finalize and exit code with the correct position
@@ -1087,7 +1087,7 @@ implementation
 
             cg.set_regalloc_live_range_direction(rad_forward);
 
-            gen_finalize_code(templist);
+            hlcg.gen_finalize_code(templist);
             { the finalcode must be concated if there was no position available,
               using insertlistafter will result in an insert at the start
               when currentai=nil }

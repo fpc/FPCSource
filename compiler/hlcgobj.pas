@@ -447,6 +447,24 @@ unit hlcgobj;
           procedure gen_proc_symbol(list:TAsmList);virtual;
           procedure gen_proc_symbol_end(list:TAsmList);virtual;
 
+          procedure gen_initialize_code(list:TAsmList);virtual;
+          procedure gen_finalize_code(list:TAsmList);virtual;
+         protected
+          { helpers called by gen_initialize_code/gen_finalize_code }
+          procedure inittempvariables(list:TAsmList);virtual;
+          procedure initialize_data(p:TObject;arg:pointer);virtual;
+          procedure finalizetempvariables(list:TAsmList);virtual;
+          procedure initialize_regvars(p:TObject;arg:pointer);virtual;
+          procedure finalize_sym(asmlist:TAsmList;sym:tsym);virtual;
+          { generates the code for finalisation of local variables }
+          procedure finalize_local_vars(p:TObject;arg:pointer);virtual;
+          { generates the code for finalization of static symtable and
+            all local (static) typed consts }
+          procedure finalize_static_data(p:TObject;arg:pointer);virtual;
+          { generates the code for decrementing the reference count of parameters }
+          procedure final_paras(p:TObject;arg:pointer);
+         public
+
           procedure gen_load_para_value(list:TAsmList);virtual;
          protected
           { helpers called by gen_load_para_value }
@@ -487,10 +505,11 @@ implementation
     uses
        globals,options,systems,
        fmodule,export,
-       verbose,defutil,paramgr,symsym,
-       ncon,
+       verbose,defutil,paramgr,
+       symbase,symsym,
+       ncon,nld,pass_1,pass_2,
        cpuinfo,cgobj,tgobj,cutils,procinfo,
-       ncgutil;
+       ncgutil,ngenutil;
 
 
     procedure destroy_hlcodegen;
@@ -1925,6 +1944,298 @@ implementation
            end;
         end;
     end;
+
+  procedure thlcgobj.gen_initialize_code(list: TAsmList);
+    begin
+      { initialize local data like ansistrings }
+      case current_procinfo.procdef.proctypeoption of
+         potype_unitinit:
+           begin
+              { this is also used for initialization of variables in a
+                program which does not have a globalsymtable }
+              if assigned(current_module.globalsymtable) then
+                TSymtable(current_module.globalsymtable).SymList.ForEachCall(@initialize_data,list);
+              TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_data,list);
+              TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
+           end;
+         { units have seperate code for initilization and finalization }
+         potype_unitfinalize: ;
+         { program init/final is generated in separate procedure }
+         potype_proginit:
+           begin
+             TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
+           end;
+         else
+           current_procinfo.procdef.localst.SymList.ForEachCall(@initialize_data,list);
+      end;
+
+      { initialisizes temp. ansi/wide string data }
+      inittempvariables(list);
+
+{$ifdef OLDREGVARS}
+      load_regvars(list,nil);
+{$endif OLDREGVARS}
+    end;
+
+  procedure thlcgobj.gen_finalize_code(list: TAsmList);
+    begin
+{$ifdef OLDREGVARS}
+      cleanup_regvars(list);
+{$endif OLDREGVARS}
+
+      { finalize temporary data }
+      finalizetempvariables(list);
+
+      { finalize local data like ansistrings}
+      case current_procinfo.procdef.proctypeoption of
+         potype_unitfinalize:
+           begin
+              { this is also used for initialization of variables in a
+                program which does not have a globalsymtable }
+              if assigned(current_module.globalsymtable) then
+                TSymtable(current_module.globalsymtable).SymList.ForEachCall(@finalize_static_data,list);
+              TSymtable(current_module.localsymtable).SymList.ForEachCall(@finalize_static_data,list);
+           end;
+         { units/progs have separate code for initialization and finalization }
+         potype_unitinit: ;
+         { program init/final is generated in separate procedure }
+         potype_proginit: ;
+         else
+           current_procinfo.procdef.localst.SymList.ForEachCall(@finalize_local_vars,list);
+      end;
+
+      { finalize paras data }
+      if assigned(current_procinfo.procdef.parast) and
+         not(po_assembler in current_procinfo.procdef.procoptions) then
+        current_procinfo.procdef.parast.SymList.ForEachCall(@final_paras,list);
+    end;
+
+  procedure thlcgobj.inittempvariables(list: TAsmList);
+    var
+      hp : ptemprecord;
+      href : treference;
+    begin
+      hp:=tg.templist;
+      while assigned(hp) do
+       begin
+         if assigned(hp^.def) and
+            is_managed_type(hp^.def) then
+          begin
+            reference_reset_base(href,current_procinfo.framepointer,hp^.pos,sizeof(pint));
+            g_initialize(list,hp^.def,href);
+          end;
+         hp:=hp^.next;
+       end;
+    end;
+
+  procedure thlcgobj.initialize_data(p: TObject; arg: pointer);
+    var
+      OldAsmList : TAsmList;
+      hp : tnode;
+    begin
+      if (tsym(p).typ = localvarsym) and
+         { local (procedure or unit) variables only need initialization if
+           they are used }
+         ((tabstractvarsym(p).refs>0) or
+          { managed return symbols must be inited }
+          ((tsym(p).typ=localvarsym) and (vo_is_funcret in tlocalvarsym(p).varoptions))
+         ) and
+         not(vo_is_typed_const in tabstractvarsym(p).varoptions) and
+         not(vo_is_external in tabstractvarsym(p).varoptions) and
+         (is_managed_type(tabstractvarsym(p).vardef) or
+          ((m_iso in current_settings.modeswitches) and (tabstractvarsym(p).vardef.typ=filedef))
+         ) then
+        begin
+          OldAsmList:=current_asmdata.CurrAsmList;
+          current_asmdata.CurrAsmList:=TAsmList(arg);
+          hp:=cnodeutils.initialize_data_node(cloadnode.create(tsym(p),tsym(p).owner));
+          firstpass(hp);
+          secondpass(hp);
+          hp.free;
+          current_asmdata.CurrAsmList:=OldAsmList;
+        end;
+    end;
+
+  procedure thlcgobj.finalizetempvariables(list: TAsmList);
+    var
+      hp : ptemprecord;
+      href : treference;
+    begin
+      hp:=tg.templist;
+      while assigned(hp) do
+       begin
+         if assigned(hp^.def) and
+            is_managed_type(hp^.def) then
+          begin
+            include(current_procinfo.flags,pi_needs_implicit_finally);
+            reference_reset_base(href,current_procinfo.framepointer,hp^.pos,sizeof(pint));
+            g_finalize(list,hp^.def,href);
+          end;
+         hp:=hp^.next;
+       end;
+    end;
+
+  procedure thlcgobj.initialize_regvars(p: TObject; arg: pointer);
+    var
+      href : treference;
+    begin
+      if (tsym(p).typ=staticvarsym) then
+       begin
+         { Static variables can have the initialloc only set to LOC_CxREGISTER
+           or LOC_INVALID, for explaination see gen_alloc_symtable (PFV) }
+         case tstaticvarsym(p).initialloc.loc of
+           LOC_CREGISTER :
+             begin
+{$ifndef cpu64bitalu}
+               if (tstaticvarsym(p).initialloc.size in [OS_64,OS_S64]) then
+                 cg64.a_load64_const_reg(TAsmList(arg),0,tstaticvarsym(p).initialloc.register64)
+               else
+{$endif not cpu64bitalu}
+                 a_load_const_reg(TAsmList(arg),tstaticvarsym(p).vardef,0,
+                     tstaticvarsym(p).initialloc.register);
+             end;
+(*
+           LOC_CMMREGISTER :
+             { clear the whole register }
+             cg.a_opmm_reg_reg(TAsmList(arg),OP_XOR,reg_cgsize(tstaticvarsym(p).initialloc.register),
+               tstaticvarsym(p).initialloc.register,
+               tstaticvarsym(p).initialloc.register,
+               nil);
+*)
+           LOC_CFPUREGISTER :
+             begin
+               { initialize fpu regvar by loading from memory }
+               reference_reset_symbol(href,
+                 current_asmdata.RefAsmSymbol(tstaticvarsym(p).mangledname), 0,
+                 var_align(tstaticvarsym(p).vardef.alignment));
+               a_loadfpu_ref_reg(TAsmList(arg), tstaticvarsym(p).vardef,
+                 tstaticvarsym(p).vardef, href, tstaticvarsym(p).initialloc.register);
+             end;
+           LOC_INVALID :
+             ;
+           else
+             internalerror(200410124);
+         end;
+       end;
+    end;
+
+  procedure thlcgobj.finalize_sym(asmlist: TAsmList; sym: tsym);
+    var
+      hp : tnode;
+      OldAsmList : TAsmList;
+    begin
+      include(current_procinfo.flags,pi_needs_implicit_finally);
+      OldAsmList:=current_asmdata.CurrAsmList;
+      current_asmdata.CurrAsmList:=asmlist;
+      hp:=cloadnode.create(sym,sym.owner);
+      if (sym.typ=staticvarsym) and (vo_force_finalize in tstaticvarsym(sym).varoptions) then
+        include(hp.flags,nf_isinternal_ignoreconst);
+      hp:=cnodeutils.finalize_data_node(hp);
+      firstpass(hp);
+      secondpass(hp);
+      hp.free;
+      current_asmdata.CurrAsmList:=OldAsmList;
+    end;
+
+  procedure thlcgobj.finalize_local_vars(p: TObject; arg: pointer);
+    begin
+      if (tsym(p).typ=localvarsym) and
+         (tlocalvarsym(p).refs>0) and
+         not(vo_is_external in tlocalvarsym(p).varoptions) and
+         not(vo_is_funcret in tlocalvarsym(p).varoptions) and
+         is_managed_type(tlocalvarsym(p).vardef) then
+        finalize_sym(TAsmList(arg),tsym(p));
+    end;
+
+  procedure thlcgobj.finalize_static_data(p: TObject; arg: pointer);
+    var
+      i : longint;
+      pd : tprocdef;
+    begin
+      case tsym(p).typ of
+        staticvarsym :
+          begin
+                { local (procedure or unit) variables only need finalization
+                  if they are used
+                }
+            if ((tstaticvarsym(p).refs>0) or
+                { global (unit) variables always need finalization, since
+                  they may also be used in another unit
+                }
+                (tstaticvarsym(p).owner.symtabletype=globalsymtable)) and
+                (
+                  (tstaticvarsym(p).varspez<>vs_const) or
+                  (vo_force_finalize in tstaticvarsym(p).varoptions)
+                ) and
+               not(vo_is_funcret in tstaticvarsym(p).varoptions) and
+               not(vo_is_external in tstaticvarsym(p).varoptions) and
+               is_managed_type(tstaticvarsym(p).vardef) then
+              finalize_sym(TAsmList(arg),tsym(p));
+          end;
+        procsym :
+          begin
+            for i:=0 to tprocsym(p).ProcdefList.Count-1 do
+              begin
+                pd:=tprocdef(tprocsym(p).ProcdefList[i]);
+                if assigned(pd.localst) and
+                   (pd.procsym=tprocsym(p)) and
+                   (pd.localst.symtabletype<>staticsymtable) then
+                  pd.localst.SymList.ForEachCall(@finalize_static_data,arg);
+              end;
+          end;
+      end;
+    end;
+
+  procedure thlcgobj.final_paras(p: TObject; arg: pointer);
+    var
+      list : TAsmList;
+      href : treference;
+      hsym : tparavarsym;
+      eldef : tdef;
+      highloc : tlocation;
+    begin
+      if not(tsym(p).typ=paravarsym) then
+        exit;
+      list:=TAsmList(arg);
+      if is_managed_type(tparavarsym(p).vardef) then
+       begin
+         if (tparavarsym(p).varspez=vs_value) then
+          begin
+            include(current_procinfo.flags,pi_needs_implicit_finally);
+            location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
+            if is_open_array(tparavarsym(p).vardef) then
+              begin
+                if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption) then
+                  begin
+                    hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                    if not assigned(hsym) then
+                      internalerror(201003032);
+                    highloc:=hsym.initialloc
+                  end
+                else
+                  highloc.loc:=LOC_INVALID;
+                eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
+                g_array_rtti_helper(list,eldef,href,highloc,'FPC_DECREF_ARRAY');
+              end
+            else
+              g_decrrefcount(list,tparavarsym(p).vardef,href);
+          end;
+       end;
+      { open arrays can contain elements requiring init/final code, so the else has been removed here }
+      if (tparavarsym(p).varspez=vs_value) and
+         (is_open_array(tparavarsym(p).vardef) or
+          is_array_of_const(tparavarsym(p).vardef)) then
+        begin
+          { cdecl functions don't have a high pointer so it is not possible to generate
+            a local copy }
+          if not(current_procinfo.procdef.proccalloption in cdecl_pocalls) then
+            g_releasevaluepara_openarray(list,tarraydef(tparavarsym(p).vardef),tparavarsym(p).localloc);
+        end;
+    end;
+
+
+
+
 
 { generates the code for incrementing the reference count of parameters and
   initialize out parameters }

@@ -400,6 +400,9 @@ unit hlcg2ll;
 
           procedure gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara); override;
           procedure gen_load_cgpara_loc(list: TAsmList; vardef: tdef; const para: TCGPara; var destloc: tlocation; reusepara: boolean); override;
+
+         protected
+          procedure initialize_regvars(p: TObject; arg: pointer); override;
        end;
 
 
@@ -1205,6 +1208,22 @@ procedure thlcg2ll.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; co
   procedure thlcg2ll.gen_load_cgpara_loc(list: TAsmList; vardef: tdef; const para: TCGPara; var destloc: tlocation; reusepara: boolean);
     begin
       ncgutil.gen_load_cgpara_loc(list, vardef, para, destloc, reusepara);
+    end;
+
+  procedure thlcg2ll.initialize_regvars(p: TObject; arg: pointer);
+    begin
+      if (tsym(p).typ=staticvarsym) and
+         { not yet handled via tlhcgobj... }
+         (tstaticvarsym(p).initialloc.loc=LOC_CMMREGISTER) then
+        begin
+          { clear the whole register }
+          cg.a_opmm_reg_reg(TAsmList(arg),OP_XOR,reg_cgsize(tstaticvarsym(p).initialloc.register),
+            tstaticvarsym(p).initialloc.register,
+            tstaticvarsym(p).initialloc.register,
+            nil);
+        end
+      else
+        inherited initialize_regvars(p, arg);
     end;
 
 end.
