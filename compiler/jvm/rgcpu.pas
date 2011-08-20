@@ -74,7 +74,21 @@ implementation
 
     class procedure trgcpu.remove_dummy_load_stores(list: TAsmList; headertai: tai);
 
-      function issimpleregstore(p: tai; reg: tregister; doubleprecisionok: boolean): boolean;
+      type
+        taitypeset =  set of taitype;
+
+      function nextskipping(p: tai; const skip: taitypeset): tai;
+        begin
+          result:=p;
+          if not assigned(result) then
+            exit;
+          repeat
+            result:=tai(result.next);
+          until not assigned(result) or
+                not(result.typ in skip);
+        end;
+
+      function issimpleregstore(p: tai; var reg: tregister; doubleprecisionok: boolean): boolean;
         const
           simplestoressp = [a_astore,a_fstore,a_istore];
           simplestoresdp = [a_dstore,a_lstore];
@@ -88,9 +102,12 @@ implementation
             ((reg=NR_NO) or
              (taicpu(p).oper[0]^.typ=top_reg) and
              (taicpu(p).oper[0]^.reg=reg));
+          if result and
+             (reg=NR_NO) then
+            reg:=taicpu(p).oper[0]^.reg;
         end;
 
-      function issimpleregload(p: tai; reg: tregister; doubleprecisionok: boolean): boolean;
+      function issimpleregload(p: tai; var reg: tregister; doubleprecisionok: boolean): boolean;
         const
           simpleloadssp = [a_aload,a_fload,a_iload];
           simpleloadsdp = [a_dload,a_lload];
@@ -104,56 +121,60 @@ implementation
             ((reg=NR_NO) or
              (taicpu(p).oper[0]^.typ=top_reg) and
              (taicpu(p).oper[0]^.reg=reg));
+          if result and
+             (reg=NR_NO) then
+            reg:=taicpu(p).oper[0]^.reg;
         end;
 
+      function isregallocoftyp(p: tai; typ: TRegAllocType;var reg: tregister): boolean;
+        begin
+          result:=
+            assigned(p) and
+            (p.typ=ait_regalloc) and
+            (tai_regalloc(p).ratype=typ);
+          if result then
+            if reg=NR_NO then
+              reg:=tai_regalloc(p).reg
+            else
+              result:=tai_regalloc(p).reg=reg;
+        end;
 
-      function try_remove_alloc_store_dealloc_load(var p: tai; reg: tregister): boolean;
+      function try_remove_store_dealloc_load(var p: tai): boolean;
         var
-          q: tai;
+          dealloc,
+          load: tai;
+          reg: tregister;
         begin
           result:=false;
           { check for:
-              alloc regx
               store regx
               dealloc regx
               load regx
             and remove. We don't have to check that the load/store
             types match, because they have to for this to be
             valid JVM code }
-          if issimpleregstore(tai(p.next),reg,true) and
-             assigned(p.next.next) and
-             (tai(p.next.next).typ=ait_regalloc) and
-             (tai_regalloc(p.next.next).ratype=ra_dealloc) and
-             (tai_regalloc(p.next.next).reg=reg) and
-             issimpleregload(tai(p.next.next.next),reg,true) then
+          dealloc:=nextskipping(p,[ait_comment]);
+          load:=nextskipping(dealloc,[ait_comment]);
+          reg:=NR_NO;
+          if issimpleregstore(p,reg,true) and
+             isregallocoftyp(dealloc,ra_dealloc,reg) and
+             issimpleregload(load,reg,true) then
             begin
-              { remove the whole sequence: the allocation }
-              q:=Tai(p.next);
+              { remove the whole sequence: the store }
               list.remove(p);
               p.free;
-              p:=q;
-              { the store }
-              q:=Tai(p.next);
-              list.remove(p);
-              p.free;
-              p:=q;
-              { the dealloc }
-              q:=Tai(p.next);
-              list.remove(p);
-              p.free;
-              p:=q;
+              p:=Tai(load.next);
               { the load }
-              q:=Tai(p.next);
-              list.remove(p);
-              p.free;
-              p:=q;
+              list.remove(load);
+              load.free;
+
               result:=true;
             end;
         end;
 
 
       var
-        p: tai;
+        p,next: tai;
         reg: tregister;
         removedsomething: boolean;
       begin
@@ -165,30 +186,47 @@ implementation
               case p.typ of
                 ait_regalloc:
                   begin
-                    if (tai_regalloc(p).ratype=ra_alloc) then
+                    reg:=NR_NO;
+                    next:=nextskipping(p,[ait_comment]);
+                    { remove
+                        alloc reg
+                        dealloc reg
+                      (can appear after optimisations, necessary to prevent
+                       useless stack slot allocations) }
+                    if isregallocoftyp(p,ra_alloc,reg) and
+                       isregallocoftyp(next,ra_dealloc,reg) then
                       begin
-                        reg:=tai_regalloc(p).reg;
-                        if try_remove_alloc_store_dealloc_load(p,reg) then
-                          begin
-                            removedsomething:=true;
-                            continue;
-                          end;
-                        { todo in peephole optimizer:
-                            alloc regx // not double precision
-                            store regx // not double precision
-                            load  regy or memy
-                            dealloc regx
-                            load regx
-                          -> change into
-                            load regy or memy
-                            swap       // can only handle single precision
-
-                          and then
-                            swap
-                            <commutative op>
-                           -> remove swap
-                        }
+                        list.remove(p);
+                        p.free;
+                        p:=tai(next.next);
+                        list.remove(next);
+                        next.free;
+                        removedsomething:=true;
+                        continue;
                       end;
+                  end;
+                ait_instruction:
+                  begin
+                    if try_remove_store_dealloc_load(p) then
+                      begin
+                        removedsomething:=true;
+                        continue;
+                      end;
+                    { todo in peephole optimizer:
+                        alloc regx // not double precision
+                        store regx // not double precision
+                        load  regy or memy
+                        dealloc regx
+                        load regx
+                      -> change into
+                        load regy or memy
+                        swap       // can only handle single precision
+
+                      and then
+                        swap
+                        <commutative op>
+                       -> remove swap
+                    }
                   end;
               end;
               p:=tai(p.next);
