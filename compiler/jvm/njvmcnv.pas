@@ -93,7 +93,7 @@ implementation
       symconst,symdef,symsym,symtable,aasmbase,aasmdata,
       defutil,defcmp,jvmdef,
       cgbase,cgutils,pass_1,pass_2,
-      nbas,ncon,ncal,nld,nmem,procinfo,
+      nbas,ncon,ncal,ninl,nld,nmem,procinfo,
       nutils,
       cpubase,aasmcpu,
       tgobj,hlcgobj,hlcgcpu;
@@ -912,7 +912,35 @@ implementation
           side }
         if (left.resultdef.typ=formaldef) and
            not assignment_side then
-          exit;
+          begin
+            if resultdef.typ in [orddef,floatdef] then
+              begin
+                if not check_only then
+                  begin
+                    resnode:=cinlinenode.create(in_unbox_x_y,false,
+                      ccallparanode.create(ctypenode.create(resultdef),
+                        ccallparanode.create(left,nil)));
+                    left:=nil;
+                  end;
+                result:=true;
+                exit;
+              end
+            else if jvmimplicitpointertype(resultdef) then
+              begin
+                { typecast formaldef to pointer to the type, then deref, so that
+                  a proper checkcast is inserted }
+                if not check_only then
+                  begin
+                    resnode:=ctypeconvnode.create_explicit(left,getpointerdef(resultdef));
+                    resnode:=cderefnode.create(resnode);
+                    left:=nil;
+                  end;
+                result:=true;
+                exit;
+              end;
+            result:=false;
+            exit;
+          end;
 
         { don't allow conversions between different classes of primitive types,
           except for a few special cases }
@@ -1195,7 +1223,8 @@ implementation
       if (checkdef.typ=pointerdef) and
          jvmimplicitpointertype(tpointerdef(checkdef).pointeddef) then
         checkdef:=tpointerdef(checkdef).pointeddef;
-      if checkdef=voidpointertype then
+      if (checkdef=voidpointertype) or
+         (checkdef.typ=formaldef) then
         checkdef:=java_jlobject
       else if checkdef.typ=enumdef then
         checkdef:=tenumdef(checkdef).classdef

@@ -38,8 +38,8 @@ interface
 
           function first_copy: tnode; override;
 
-          function handle_box: tnode; override;
           function first_box: tnode; override;
+          function first_unbox: tnode; override;
 
           function first_setlength_array: tnode;
           function first_setlength_string: tnode;
@@ -76,7 +76,6 @@ interface
 *)
           procedure second_new; override;
           procedure second_setlength; override;
-          procedure second_box; override;
        protected
           procedure load_fpu_location;
        end;
@@ -238,20 +237,38 @@ implementation
       end;
 
 
-    function tjvminlinenode.handle_box: tnode;
+    function tjvminlinenode.first_box: tnode;
+      var
+        boxdef,
+        boxparadef: tdef;
       begin
-        Result:=inherited;
-        resultdef:=java_jlobject;
+        { get class wrapper type }
+        jvmgetboxtype(left.resultdef,boxdef,boxparadef);
+        { created wrapped instance }
+        inserttypeconv_explicit(tcallparanode(left).left,boxparadef);
+        result:=ccallnode.createinternmethod(
+          cloadvmtaddrnode.create(ctypenode.create(tobjectdef(boxdef))),'CREATE',left);
+        { reused }
+        left:=nil;
       end;
 
 
-    function tjvminlinenode.first_box: tnode;
+    function tjvminlinenode.first_unbox: tnode;
+      var
+        val: tnode;
+        boxdef,
+        boxparadef: tdef;
       begin
-        result:=nil;
-        expectloc:=LOC_REGISTER;
-{$ifdef nounsupported}
-        internalerror(2011042603);
-{$endif}
+        jvmgetboxtype(resultdef,boxdef,boxparadef);
+        val:=tcallparanode(tcallparanode(left).right).left;
+        tcallparanode(tcallparanode(left).right).left:=nil;
+        { typecast to the boxing type }
+        val:=ctypeconvnode.create_explicit(val,boxdef);
+        { call the unboxing method }
+        val:=ccallnode.createinternmethod(val,jvmgetunboxmethod(resultdef),nil);
+        { add type conversion for shortint -> byte etc }
+        inserttypeconv_explicit(val,resultdef);
+        result:=val;
       end;
 
 
@@ -794,18 +811,6 @@ implementation
           internalerror(2011031401);
         thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,target.resultdef,tmpreg);
         thlcgjvm(hlcg).a_load_reg_loc(current_asmdata.CurrAsmList,target.resultdef,target.resultdef,tmpreg,target.location);
-      end;
-
-    procedure tjvminlinenode.second_box;
-      begin
-{$ifndef nounsupported}
-        secondpass(tcallparanode(left).left);
-        location_reset(location,LOC_REGISTER,OS_ADDR);
-        location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
-        hlcg.a_load_const_reg(current_asmdata.CurrAsmList,java_jlobject,0,location.register);
-{$else}
-        internalerror(2011042606);
-{$endif}
       end;
 
 

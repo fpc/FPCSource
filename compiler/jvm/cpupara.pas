@@ -83,7 +83,10 @@ implementation
     { true if a parameter is too large to copy and only the address is pushed }
     function TJVMParaManager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
-        result:=jvmimplicitpointertype(def);
+        result:=
+          jvmimplicitpointertype(def) or
+          ((def.typ=formaldef) and
+           not(varspez in [vs_var,vs_out]));
       end;
 
 
@@ -92,7 +95,7 @@ implementation
         { in principle also for vs_constref, but since we can't have real
           references, that won't make a difference }
         result:=
-          (varspez in [vs_var,vs_out]) and
+          (varspez in [vs_var,vs_out,vs_constref]) and
           not jvmimplicitpointertype(def);
       end;
 

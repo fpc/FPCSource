@@ -74,6 +74,11 @@ interface
     function jvmmangledbasename(sym: tsym; withsignature: boolean): TSymStr;
     function jvmmangledbasename(sym: tsym; const usesymname: TSymStr; withsignature: boolean): TSymStr;
 
+    { sometimes primitive types have to be boxed/unboxed via class types. This
+      routine returns the appropriate box type for the passed primitive type }
+    procedure jvmgetboxtype(def: tdef; out objdef, paradef: tdef);
+    function jvmgetunboxmethod(def: tdef): string;
+
 implementation
 
   uses
@@ -499,6 +504,124 @@ implementation
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
           else
             result:=false;
+        end;
+      end;
+
+
+    procedure jvmgetboxtype(def: tdef; out objdef, paradef: tdef);
+      begin
+        case def.typ of
+          orddef:
+            begin
+              case torddef(def).ordtype of
+                pasbool8:
+                  begin
+                    objdef:=tobjectdef(search_system_type('JLBOOLEAN').typedef);
+                    paradef:=pasbool8type;
+                  end;
+                { wrap all integer types into a JLLONG, so that we don't get
+                  errors after returning a byte assigned to a long etc }
+                s8bit,
+                u8bit,
+                uchar,
+                bool8bit,
+                s16bit,
+                u16bit,
+                bool16bit,
+                pasbool16,
+                s32bit,
+                u32bit,
+                bool32bit,
+                pasbool32,
+                s64bit,
+                u64bit,
+                scurrency,
+                bool64bit,
+                pasbool64:
+                  begin
+                    objdef:=tobjectdef(search_system_type('JLLONG').typedef);
+                    paradef:=s64inttype;
+                  end;
+                uwidechar:
+                  begin
+                    objdef:=tobjectdef(search_system_type('JLCHARACTER').typedef);
+                    paradef:=cwidechartype;
+                  end;
+                else
+                  internalerror(2011052101);
+              end;
+            end;
+          floatdef:
+            begin
+              case tfloatdef(def).floattype of
+                s32real:
+                  begin
+                    objdef:=tobjectdef(search_system_type('JLFLOAT').typedef);
+                    paradef:=s32floattype;
+                  end;
+                s64real:
+                  begin
+                    objdef:=tobjectdef(search_system_type('JLDOUBLE').typedef);
+                    paradef:=s64floattype;
+                  end;
+                else
+                  internalerror(2011052102);
+              end;
+            end;
+          else
+            internalerror(2011052103);
+        end;
+      end;
+
+
+    function jvmgetunboxmethod(def: tdef): string;
+      begin
+        case def.typ of
+          orddef:
+            begin
+              case torddef(def).ordtype of
+                pasbool8:
+                  result:='BOOLEANVALUE';
+                s8bit,
+                u8bit,
+                uchar,
+                bool8bit:
+                  result:='BYTEVALUE';
+                s16bit,
+                u16bit,
+                bool16bit,
+                pasbool16:
+                  result:='SHORTVALUE';
+                s32bit,
+                u32bit,
+                bool32bit,
+                pasbool32:
+                  result:='INTVALUE';
+                s64bit,
+                u64bit,
+                scurrency,
+                bool64bit,
+                pasbool64:
+                  result:='LONGVALUE';
+                uwidechar:
+                  result:='CHARVALUE';
+                else
+                  internalerror(2011071702);
+              end;
+            end;
+          floatdef:
+            begin
+              case tfloatdef(def).floattype of
+                s32real:
+                  result:='FLOATVALUE';
+                s64real:
+                  result:='DOUBLEVALUE';
+                else
+                  internalerror(2011071703);
+              end;
+            end;
+          else
+            internalerror(2011071704);
         end;
       end;
 

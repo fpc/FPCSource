@@ -74,8 +74,8 @@ interface
           function first_new: tnode; virtual;
           function first_length: tnode; virtual;
           function first_box: tnode; virtual; abstract;
+          function first_unbox: tnode; virtual; abstract;
 
-          function handle_box: tnode; virtual;
         private
           function handle_str: tnode;
           function handle_reset_rewrite_typed: tnode;
@@ -85,6 +85,8 @@ interface
           function handle_val: tnode;
           function handle_setlength: tnode;
           function handle_copy: tnode;
+          function handle_box: tnode;
+          function handle_unbox: tnode;
        end;
        tinlinenodeclass = class of tinlinenode;
 
@@ -2903,6 +2905,10 @@ implementation
                 begin
                   result:=handle_box;
                 end;
+              in_unbox_x_y:
+                begin
+                  result:=handle_unbox;
+                end;
               else
                 internalerror(8);
             end;
@@ -3303,6 +3309,8 @@ implementation
            result:=first_new;
          in_box_x:
            result:=first_box;
+         in_unbox_x_y:
+           result:=first_unbox;
          else
            internalerror(89);
           end;
@@ -3597,8 +3605,26 @@ implementation
      function tinlinenode.handle_box: tnode;
        begin
          result:=nil;
+         if not assigned(left) or
+            assigned(tcallparanode(left).right) then
+           CGMessage1(parser_e_wrong_parameter_size,'FpcInternalBox');
          resultdef:=class_tobject;
        end;
+
+
+     function tinlinenode.handle_unbox: tnode;
+       begin
+         result:=nil;
+         if not assigned(left) or
+            not assigned(tcallparanode(left).right) or
+            assigned(tcallparanode(tcallparanode(left).right).right) then
+           CGMessage1(parser_e_wrong_parameter_size,'FpcInternalUnBox');
+         if tcallparanode(left).left.nodetype<>typen then
+           internalerror(2011071701);
+         ttypenode(tcallparanode(left).left).allowed:=true;
+         resultdef:=tcallparanode(left).left.resultdef;
+       end;
+
 
      function tinlinenode.first_pack_unpack: tnode;
        var

@@ -809,6 +809,9 @@ implementation
 { TODO: HACK: unaligned test, maybe remove all unaligned locations (array of char) from the compiler}
                             { Use unaligned copy when the offset is not aligned }
                             len:=left.resultdef.size;
+                            { can be 0 in case of formaldef on JVM target }
+                            if len=0 then
+                              len:=sizeof(pint);
 
                             { data smaller than an aint has less alignment requirements }
                             alignmentrequirement:=min(len,sizeof(aint));

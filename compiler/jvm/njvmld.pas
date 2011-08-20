@@ -55,15 +55,19 @@ implementation
 uses
   verbose,
   aasmdata,
-  nbas,nld,ncal,nmem,ncnv,
+  nbas,nld,ncal,ninl,nmem,ncnv,
   symconst,symsym,symdef,symtable,defutil,jvmdef,
   paramgr,
+  pass_1,
   cgbase,hlcgobj;
 
 { tjvmassignmentnode }
 
 function tjvmassignmentnode.pass_1: tnode;
   var
+    block: tblocknode;
+    tempn: ttempcreatenode;
+    stat: tstatementnode;
     target: tnode;
     psym: tsym;
   begin
@@ -115,6 +119,30 @@ function tjvmassignmentnode.pass_1: tnode;
         tvecnode(target).right:=nil;
         exit;
       end
+    else if target.resultdef.typ=formaldef then
+      begin
+        if right.resultdef.typ in [orddef,floatdef] then
+          right:=cinlinenode.create(in_box_x,false,right)
+        else if jvmimplicitpointertype(right.resultdef) then
+          begin
+            { we have to assign the address of a deep copy of the type to the
+              object in the formalpara -> create a temp, assign the value to
+              the temp, then assign the address in the temp to the para }
+            block:=internalstatements(stat);
+            tempn:=ctempcreatenode.create_value(right.resultdef,right.resultdef.size,
+              tt_persistent,false,right);
+            addstatement(stat,tempn);
+            right:=caddrnode.create(ctemprefnode.create(tempn));
+            inserttypeconv_explicit(right,java_jlobject);
+            addstatement(stat,ctempdeletenode.create_normal_temp(tempn));
+            addstatement(stat,ctypeconvnode.create_explicit(
+              caddrnode.create(ctemprefnode.create(tempn)),java_jlobject));
+            right:=block;
+          end;
+        typecheckpass(right);
+        result:=inherited;
+        exit;
+      end
     else
       result:=inherited;
   end;
@@ -134,7 +162,8 @@ function tjvmloadnode.is_addr_param_load: boolean;
   begin
     result:=
       (inherited and
-       not jvmimplicitpointertype(tparavarsym(symtableentry).vardef)) or
+       not jvmimplicitpointertype(tparavarsym(symtableentry).vardef) and
+       (tparavarsym(symtableentry).vardef.typ<>formaldef)) or
       is_copyout_addr_param_load;
   end;
 

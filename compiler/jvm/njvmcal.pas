@@ -31,12 +31,13 @@ interface
       ncgcal;
 
     type
-
        tjvmcallparanode = class(tcgcallparanode)
         protected
          outcopybasereg: tregister;
          procedure push_formal_para; override;
          procedure push_copyout_para; override;
+
+         procedure handleformalcopyoutpara(orgparadef: tdef); override;
 
          procedure load_arrayref_para(useparadef: tdef);
        end;
@@ -55,12 +56,12 @@ interface
 implementation
 
     uses
-      verbose,globtype,
+      verbose,globtype,constexp,
       symconst,defutil,ncal,
       cgutils,tgobj,procinfo,
       cpubase,aasmdata,aasmcpu,
       hlcgobj,hlcgcpu,
-      node,
+      pass_1,node,nutils,nbas,ncnv,ncon,ninl,nld,nmem,
       jvmdef;
 
 {*****************************************************************************
@@ -95,14 +96,22 @@ implementation
 
 
     procedure tjvmcallparanode.push_formal_para;
-      var
-        primitivetype: boolean;
       begin
-        { create an array with one element of JLObject }
-        thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,s32inttype,1,R_INTREGISTER);
-        { left is either an object-derived type, or has been boxed into one }
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_anewarray,current_asmdata.RefAsmSymbol(jvmarrtype(java_jlobject,primitivetype))));
-        load_arrayref_para(java_jlobject);
+        { primitive values are boxed, so in all cases this is a pointer to
+          something and since it cannot be changed (or is not supposed to be
+          changed anyway), we don't have to create a temporary array to hold a
+          pointer to this value and can just pass the pointer to this value
+          directly.
+
+          In case the value can be changed (formal var/out), then we have
+          already created a temporary array of one element that holds the boxed
+          (or in case of a non-primitive type: original) value. The reason is
+          that copying it back out may be a complex operation which we don't
+          want to handle at the code generator level.
+
+          -> always push a value parameter (which is either an array of one
+          element, or an object) }
+        push_value_para
       end;
 
 
@@ -122,6 +131,220 @@ implementation
         { doesn't change stack height: one int replaced by one reference }
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname)));
         load_arrayref_para(left.resultdef);
+      end;
+
+
+    procedure getparabasenodes(p: tnode; out basenode: tnode; out parent: tunarynode);
+      begin
+        parent:=nil;
+        while assigned(p) do
+          begin
+            case p.nodetype of
+              inlinen:
+                begin
+                  if tinlinenode(p).inlinenumber=in_box_x then
+                    begin
+                      parent:=tunarynode(p);
+                      p:=parent.left;
+                    end
+                  else
+                    break;
+                end;
+              subscriptn,
+              vecn:
+                begin
+                  break;
+                end;
+              typeconvn:
+                begin
+                  parent:=tunarynode(p);
+                  { skip typeconversions that don't change the node type }
+                  p:=p.actualtargetnode;
+                end;
+              derefn:
+                begin
+                  parent:=tunarynode(p);
+                  p:=tunarynode(p).left;
+                end
+              else
+                break;
+            end;
+          end;
+        basenode:=p;
+      end;
+
+
+    function replacewithtemps(var orgnode, copiednode: tnode): ttempcreatenode;
+      begin
+        result:=ctempcreatenode.create_value(
+          orgnode.resultdef,orgnode.resultdef.size,
+          tt_persistent,true,orgnode);
+        { this right is reused while constructing the temp }
+        orgnode:=ctemprefnode.create(result);
+        typecheckpass(orgnode);
+        { this right is not reused }
+        copiednode.free;
+        copiednode:=ctemprefnode.create(result);
+        typecheckpass(copiednode);
+      end;
+
+
+    procedure tjvmcallparanode.handleformalcopyoutpara(orgparadef: tdef);
+      var
+        paravaltemp,
+        arraytemp,
+        indextemp: ttempcreatenode;
+        arrdef: tarraydef;
+        initstat,
+        finistat: tstatementnode;
+        leftcopy: tnode;
+        realpara, copyrealpara, tempn, assignmenttempn: tnode;
+        realparaparent,copyrealparaparent: tunarynode;
+        derefbasedef: tdef;
+        deref: boolean;
+      begin
+        fparainit:=internalstatements(initstat);
+        { In general, we now create a temp array of one element, assign left
+          (or its address in case of a jvmimplicitpointertype) to it, replace
+          the parameter with this array, and add code to paracopyback that
+          extracts the value from the array again and assigns it to the original
+          variable.
+
+          Complications
+            a) in case the parameter involves calling a function, it must not
+               be called twice, so take the address of the location (since this
+               is a var/out parameter, taking the address is conceptually
+               always possible)
+            b) in case this is an element of a string, we can't take the address
+               in JVM code, so we then have to take the address of the string
+               (which conceptually may not be possible since it can be a
+                property or so) and store the index value into a temp, and
+                reconstruct the vecn in te paracopyback code from this data
+                (it's similar for normal var/out parameters)
+        }
+
+        { we'll replace a bunch of stuff in the parameter with temprefnodes,
+          but we can't take a getcopy for the assignment afterwards of this
+          result since a getcopy will always assume that we are copying the
+          init/deletenodes too and that the temprefnodes have to point to the
+          new temps -> get a copy of the parameter in advance, and then replace
+          the nodes in the copy with temps just like in the original para }
+        leftcopy:=left.getcopy;
+        { get the real parameter source in case of type conversions. This is
+          the same logic as for set_unique(). The parent is where we have to
+          replace realpara with the temp that replaces it. }
+        getparabasenodes(left,realpara,realparaparent);
+        getparabasenodes(leftcopy,copyrealpara,copyrealparaparent);
+        { assign either the parameter's address (in case it's an implicit
+          pointer type) or the parameter itself (in case it's a primitive or
+          actual pointer/object type) to the temp }
+        deref:=false;
+        if jvmimplicitpointertype(realpara.resultdef) then
+          begin
+            derefbasedef:=realpara.resultdef;
+            realpara:=caddrnode.create_internal(realpara);
+            include(realpara.flags,nf_typedaddr);
+            typecheckpass(realpara);
+            { we'll have to reference the parameter again in the expression }
+            deref:=true;
+          end;
+        paravaltemp:=nil;
+        { make sure we don't replace simple loadnodes with a temp, because
+          in case of passing e.g. stringvar[3] to a formal var/out parameter,
+          we add "stringvar[3]:=<result>" afterwards. Because Java strings are
+          immutable, this is translated into "stringvar:=stringvar.setChar(3,
+          <result>)". So if we replace stringvar with a temp, this will change
+          the temp rather than stringvar. }
+        indextemp:=nil;
+        if (realpara.nodetype=vecn) then
+          begin
+            if node_complexity(tvecnode(realpara).left)>1 then
+              begin
+                paravaltemp:=replacewithtemps(tvecnode(realpara).left,
+                  tvecnode(copyrealpara).left);
+                addstatement(initstat,paravaltemp);
+              end;
+            { in case of an array index, also replace the index with a temp if
+              necessary/useful }
+            if (node_complexity(tvecnode(realpara).right)>1) then
+              begin
+                indextemp:=replacewithtemps(tvecnode(realpara).right,
+                  tvecnode(copyrealpara).right);
+                addstatement(initstat,indextemp);
+              end;
+          end
+        else
+          begin
+            paravaltemp:=ctempcreatenode.create_value(
+              realpara.resultdef,java_jlobject.size,tt_persistent,true,realpara);
+            addstatement(initstat,paravaltemp);
+            { replace the parameter in the parameter expression with this temp }
+            tempn:=ctemprefnode.create(paravaltemp);
+            assignmenttempn:=ctemprefnode.create(paravaltemp);
+            { will be spliced in the middle of a tree that has already been
+              typecheckpassed }
+            typecheckpass(tempn);
+            typecheckpass(assignmenttempn);
+            if assigned(realparaparent) then
+              begin
+                { left has been reused in paravaltemp (it's realpara itself) ->
+                  don't free }
+                realparaparent.left:=tempn;
+                { the left's copy is not reused }
+                copyrealparaparent.left.free;
+                copyrealparaparent.left:=assignmenttempn;
+              end
+            else
+              begin
+                { left has been reused in paravaltemp (it's realpara itself) ->
+                  don't free }
+                left:=tempn;
+                { leftcopy can remain the same }
+                assignmenttempn.free;
+              end;
+          end;
+        { create the array temp that and assign the parameter value (typecasted
+          to java_jlobject) }
+        arrdef:=tarraydef.create(0,1,s32inttype);
+        arrdef.elementdef:=java_jlobject;
+        arraytemp:=ctempcreatenode.create(arrdef,java_jlobject.size,
+          tt_persistent,true);
+        addstatement(initstat,arraytemp);
+        { wrap the primitive type in an object container
+          if required }
+        if (left.resultdef.typ in [orddef,floatdef]) then
+          begin
+            left:=cinlinenode.create(in_box_x,false,ccallparanode.create(left,nil));
+            typecheckpass(left);
+          end;
+        addstatement(initstat,cassignmentnode.create(
+          cvecnode.create(ctemprefnode.create(arraytemp),genintconstnode(0)),
+          ctypeconvnode.create_explicit(left,java_jlobject)));
+        { replace the parameter with the array }
+        left:=ctemprefnode.create(arraytemp);
+        { add the extraction of the parameter and assign it back to the
+          original location }
+        fparacopyback:=internalstatements(finistat);
+        tempn:=cvecnode.create(ctemprefnode.create(arraytemp),genintconstnode(0));
+        { unbox if necessary }
+        if orgparadef.typ in [orddef,floatdef] then
+          tempn:=cinlinenode.create(in_unbox_x_y,false,ccallparanode.create(
+            ctypenode.create(orgparadef),ccallparanode.create(tempn,nil)));
+        if (deref) then
+          begin
+            inserttypeconv_explicit(tempn,getpointerdef(derefbasedef));
+            tempn:=cderefnode.create(tempn);
+          end;
+        addstatement(finistat,cassignmentnode.create(leftcopy,
+          ctypeconvnode.create_explicit(tempn,orgparadef)));
+        if assigned(indextemp) then
+          addstatement(finistat,ctempdeletenode.create(indextemp));
+        addstatement(finistat,ctempdeletenode.create(arraytemp));
+        if assigned(paravaltemp) then
+          addstatement(finistat,ctempdeletenode.create(paravaltemp));
+        typecheckpass(fparainit);
+        typecheckpass(left);
+        typecheckpass(fparacopyback);
       end;
 
 
@@ -246,12 +469,8 @@ implementation
                       end
                     else
                       begin
-{$ifndef nounsupported}
-                        { to do: extract value from boxed parameter or load
-                          value back }
-{$else}
-                        internalerror(2011051901);
-{$endif}
+                        { extracting values from foramldef parameters is done
+                          by the generic code }
                       end;
                   end;
               end;

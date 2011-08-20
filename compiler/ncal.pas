@@ -178,6 +178,13 @@ interface
        private
           fcontains_stack_tainting_call_cached,
           ffollowed_by_stack_tainting_call_cached : boolean;
+       protected
+          { in case of copy-out parameters: initialization code, and the code to
+            copy back the parameter value after the call (including any required
+            finalization code }
+          fparainit,
+          fparacopyback: tnode;
+          procedure handleformalcopyoutpara(orgparadef: tdef);virtual;abstract;
        public
           callparaflags : tcallparaflags;
           parasym       : tparavarsym;
@@ -187,6 +194,8 @@ interface
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderefimpl; override;
+          procedure derefimpl; override;
           function dogetcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           function pass_typecheck : tnode;override;
@@ -221,6 +230,7 @@ interface
             parameter whose evaluation involves a stack tainting parameter
             (result is only valid after order_parameters has been called) }
           property followed_by_stack_tainting_call_cached: boolean read ffollowed_by_stack_tainting_call_cached;
+          property paracopyback: tnode read fparacopyback;
        end;
        tcallparanodeclass = class of tcallparanode;
 
@@ -573,6 +583,8 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         ppufile.getsmallset(callparaflags);
+        fparainit:=ppuloadnode(ppufile);
+        fparacopyback:=ppuloadnode(ppufile);
       end;
 
 
@@ -580,6 +592,28 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putsmallset(callparaflags);
+        ppuwritenode(ppufile,fparainit);
+        ppuwritenode(ppufile,fparacopyback);
+      end;
+
+
+    procedure tcallparanode.buildderefimpl;
+      begin
+        inherited buildderefimpl;
+        if assigned(fparainit) then
+          fparainit.buildderefimpl;
+        if assigned(fparacopyback) then
+          fparacopyback.buildderefimpl;
+      end;
+
+
+    procedure tcallparanode.derefimpl;
+      begin
+        inherited derefimpl;
+        if assigned(fparainit) then
+          fparainit.derefimpl;
+        if assigned(fparacopyback) then
+          fparacopyback.derefimpl;
       end;
 
 
@@ -587,11 +621,19 @@ implementation
 
       var
          n : tcallparanode;
-
+         initcopy: tnode;
       begin
+         initcopy:=nil;
+         { must be done before calling inherited getcopy, because can create
+           tempcreatenodes for values used in left }
+         if assigned(fparainit) then
+           initcopy:=fparainit.getcopy;
          n:=tcallparanode(inherited dogetcopy);
          n.callparaflags:=callparaflags;
          n.parasym:=parasym;
+         n.fparainit:=initcopy;
+         if assigned(fparacopyback) then
+           n.fparacopyback:=fparacopyback.getcopy;
          result:=n;
       end;
 
@@ -625,9 +667,13 @@ implementation
           tcallparanode(right).get_paratype;
          old_array_constructor:=allow_array_constructor;
          allow_array_constructor:=true;
+         if assigned(fparainit) then
+          typecheckpass(fparainit);
          typecheckpass(left);
          if assigned(third) then
            typecheckpass(third);
+         if assigned(fparacopyback) then
+           typecheckpass(fparacopyback);
          allow_array_constructor:=old_array_constructor;
          if codegenerror then
           resultdef:=generrordef
@@ -642,7 +688,11 @@ implementation
           tcallparanode(right).firstcallparan;
         if not assigned(left.resultdef) then
           get_paratype;
+        if assigned(fparainit) then
+          firstpass(fparainit);
         firstpass(left);
+        if assigned(fparacopyback) then
+          firstpass(fparacopyback);
         if assigned(third) then
           firstpass(third);
         expectloc:=left.expectloc;
@@ -871,21 +921,22 @@ implementation
                          begin
                            if not valid_for_formal_var(left,true) then
                             CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list)
-                           else if (target_info.system in systems_managed_vm) and
-                              (left.resultdef.typ in [orddef,floatdef]) then
+                           else if (target_info.system in systems_managed_vm) then
                              begin
-                               left:=cinlinenode.create(in_box_x,false,ccallparanode.create(left,nil));
-                               typecheckpass(left);
-{$ifdef nounsupported}
-                               { TODO: unbox afterwards }
-                               internalerror(2011042608);
-{$endif}
+                               olddef:=left.resultdef;
+                               handleformalcopyoutpara(left.resultdef);
                              end;
                          end;
                        vs_const :
                          begin
                            if not valid_for_formal_const(left,true) then
-                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
+                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list)
+                           else if (target_info.system in systems_managed_vm) and
+                              (left.resultdef.typ in [orddef,floatdef]) then
+                             begin
+                               left:=cinlinenode.create(in_box_x,false,ccallparanode.create(left,nil));
+                               typecheckpass(left);
+                             end;
                          end;
                      end;
                    end
@@ -1006,6 +1057,8 @@ implementation
       begin
         docompare :=
           inherited docompare(p) and
+          fparainit.isequal(tcallparanode(p).fparainit) and
+          fparacopyback.isequal(tcallparanode(p).fparacopyback) and
           (callparaflags = tcallparanode(p).callparaflags)
           ;
       end;

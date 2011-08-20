@@ -84,6 +84,8 @@ const
    fpc_in_sar_x             = 73;
    fpc_in_bsf_x             = 74;
    fpc_in_bsr_x             = 75;
+   in_box_x                 = 76; { managed platforms: wrap in class instance }
+   in_unbox_x_y             = 77; { manage platforms: extract from class instance }
 
 { Internal constant functions }
    fpc_in_const_sqr        = 100;

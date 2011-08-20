@@ -52,6 +52,7 @@ interface
 
           procedure handle_return_value;
           procedure release_unused_return_value;
+          procedure copy_back_paras;
           procedure release_para_temps;
           procedure pushparas;
           procedure freeparas;
@@ -181,6 +182,8 @@ implementation
              oflabel:=current_procinfo.CurrFalseLabel;
              current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
              current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
+             if assigned(fparainit) then
+               secondpass(fparainit);
              secondpass(left);
 
              maybechangeloadnodereg(current_asmdata.CurrAsmList,left,true);
@@ -468,6 +471,22 @@ implementation
               paramanager.freecgpara(current_asmdata.CurrAsmList,retloc);
             location_reset(location,LOC_VOID,OS_NO);
          end;
+      end;
+
+
+    procedure tcgcallnode.copy_back_paras;
+      var
+        hp,
+        hp2 : tnode;
+        ppn : tcallparanode;
+      begin
+        ppn:=tcallparanode(left);
+        while assigned(ppn) do
+          begin
+             if assigned(ppn.paracopyback) then
+               secondpass(ppn.paracopyback);
+             ppn:=tcallparanode(ppn.right);
+          end;
       end;
 
 
@@ -965,6 +984,9 @@ implementation
          { convert persistent temps for parameters and function result to normal temps }
          if assigned(callcleanupblock) then
            secondpass(tnode(callcleanupblock));
+
+         { copy back copy-out parameters if any }
+         copy_back_paras;
 
          { release temps and finalize unused return values, must be
            after the callcleanupblock because that converts temps
