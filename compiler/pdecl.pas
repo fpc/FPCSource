@@ -38,7 +38,7 @@ interface
     function  readconstant(const orgname:string;const filepos:tfileposinfo):tconstsym;
 
     procedure const_dec;
-    procedure consts_dec(in_structure: boolean);
+    procedure consts_dec(in_structure, allow_typed_const: boolean);
     procedure label_dec;
     procedure type_dec;
     procedure types_dec(in_structure: boolean);
@@ -164,10 +164,10 @@ implementation
     procedure const_dec;
       begin
         consume(_CONST);
-        consts_dec(false);
+        consts_dec(false,true);
       end;
 
-    procedure consts_dec(in_structure: boolean);
+    procedure consts_dec(in_structure, allow_typed_const: boolean);
       var
          orgname : TIDString;
          hdef : tdef;
@@ -212,6 +212,11 @@ implementation
 
              _COLON:
                 begin
+                   if not allow_typed_const then
+                     begin
+                       Message(parser_e_no_typed_const);
+                       consume_all_until(_SEMICOLON);
+                     end;
                    { set the blocktype first so a consume also supports a
                      caret, to support const s : ^string = nil }
                    block_type:=bt_const_type;

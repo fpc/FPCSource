@@ -763,7 +763,7 @@ implementation
 
       procedure parse_const;
         begin
-          if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass]) then
+          if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass,odt_interfacejava]) then
             Message(parser_e_type_var_const_only_in_records_and_classes);
           consume(_CONST);
           object_member_blocktype:=bt_const;
@@ -975,7 +975,7 @@ implementation
                                 typedconstswritable:=cs_typed_const_writable in current_settings.localswitches;
                                 exclude(current_settings.localswitches,cs_typed_const_writable);
                               end;
-                            consts_dec(true);
+                            consts_dec(true,not is_javainterface(current_structdef));
                             if final_fields and
                                typedconstswritable then
                               include(current_settings.localswitches,cs_typed_const_writable);

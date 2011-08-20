@@ -375,7 +375,7 @@ scanner_e_illegal_alignment_directive=02088_E_Illegal alignment directive
 #
 # Parser
 #
-# 03315 is the last used one
+# 03316 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1407,6 +1407,10 @@ parser_e_final_only_const_var=03314_E_Only fields (var-sections) and constants c
 parser_e_final_only_external=03315_E_Final fields are currently only supported for external classes
 % Support for final fields in non-external classes requires a full data flow
 % analysis implementation in FPC, which it currently still lacks.
+parser_e_no_typed_const=03316_E_Typed constants are not allowed here, only formal constants are
+% Java interfaces define a namespace in which formal constant can be defined,
+% but since they define no storage it is not possible to define typed constants
+% in them (those are more or less the same as initialised class fields).
 % \end{description}
 # Type Checking
 #

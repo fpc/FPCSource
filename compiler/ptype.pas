@@ -828,7 +828,7 @@ implementation
                         else if member_blocktype=bt_type then
                           types_dec(true)
                         else if member_blocktype=bt_const then
-                          consts_dec(true)
+                          consts_dec(true,true)
                         else
                           internalerror(201001110);
                       end;
