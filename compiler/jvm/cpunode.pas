@@ -35,6 +35,6 @@ implementation
     njvmadd,njvmcal,njvmmat,njvmcnv,njvmcon,njvminl
 {    ncpuadd,ncpucall,ncpumat,ncpuinln,ncpucnv,ncpuset, }
     { this not really a node }
-{    rgcpu},tgcpu;
+{    rgcpu},tgcpu,njvmutil;
 
 end.

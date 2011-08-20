@@ -225,6 +225,7 @@ compiler/jvm/njvmcnv.pas svneol=native#text/plain
 compiler/jvm/njvmcon.pas svneol=native#text/plain
 compiler/jvm/njvminl.pas svneol=native#text/plain
 compiler/jvm/njvmmat.pas svneol=native#text/plain
+compiler/jvm/njvmutil.pas svneol=native#text/plain
 compiler/jvm/rgcpu.pas svneol=native#text/plain
 compiler/jvm/rjvmcon.inc svneol=native#text/plain
 compiler/jvm/rjvmnor.inc svneol=native#text/plain
