@@ -319,7 +319,7 @@ implementation
                           else
                             MessagePos1(pd.fileinfo,parser_e_must_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil))
                         { there may be a lot of these in auto-translated
-                          heaeders, so only calculate the fulltypename if
+                          headers, so only calculate the fulltypename if
                           the hint will be shown  }
                         else if CheckVerbosity(V_Hint) then
                           if not is_objccategory(_class) then
@@ -335,6 +335,10 @@ implementation
                         if is_java_class_or_interface(_class) and
                            (pd.procsym.realname<>vmtpd.procsym.realname) then
                           pd.procsym.realname:=vmtpd.procsym.realname;
+                        { in case we are overriding an abstract method,
+                          decrease the number of abstract methods in this class }
+                        if (po_abstractmethod in vmtpd.procoptions) then
+                          dec(tobjectdef(pd.owner.defowner).abstractcnt);
                         result:=true;
                         exit;
                       end;
