@@ -30,6 +30,9 @@ interface
 
     type
       tjvmmoddivnode = class(tmoddivnode)
+        protected
+          function use_moddiv64bitint_helper: boolean; override;
+        public
          procedure pass_generate_code;override;
       end;
 
@@ -61,6 +64,16 @@ implementation
 {*****************************************************************************
                              tjvmmoddivnode
 *****************************************************************************}
+
+    function tjvmmoddivnode.use_moddiv64bitint_helper: boolean;
+      begin
+        result:=
+          (left.resultdef.typ=orddef) and
+          (right.resultdef.typ=orddef) and
+          ((torddef(left.resultdef).ordtype=u64bit) or
+           (torddef(right.resultdef).ordtype=u64bit));
+      end;
+
 
     procedure tjvmmoddivnode.pass_generate_code;
       var

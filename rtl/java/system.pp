@@ -269,6 +269,7 @@ function SarInt64(Const AValue : Int64;Shift : Byte): Int64;[internproc:fpc_in_s
 {$i ustrings.inc}
 {$i rtti.inc}
 {$i jrec.inc}
+{$i jint64.inc}
 
 function min(a,b : longint) : longint;
   begin

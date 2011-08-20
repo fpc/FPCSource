@@ -7354,6 +7354,7 @@ rtl/java/compproc.inc svneol=native#text/plain
 rtl/java/java_sys.inc svneol=native#text/plain
 rtl/java/java_sysh.inc svneol=native#text/plain
 rtl/java/jdynarrh.inc svneol=native#text/plain
+rtl/java/jint64.inc svneol=native#text/plain
 rtl/java/jmathh.inc svneol=native#text/plain
 rtl/java/jrec.inc svneol=native#text/plain
 rtl/java/jrech.inc svneol=native#text/plain

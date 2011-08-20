@@ -528,10 +528,10 @@ function fpc_mod_dword(n,z : dword) : dword; compilerproc;
 function fpc_div_longint(n,z : longint) : longint; compilerproc;
 function fpc_mod_longint(n,z : longint) : longint; compilerproc;
 {$endif FPC_INCLUDE_SOFTWARE_MOD_DIV}
-(*
 { from int64.inc }
 function fpc_div_qword(n,z : qword) : qword; compilerproc;
 function fpc_mod_qword(n,z : qword) : qword; compilerproc;
+(*
 function fpc_div_int64(n,z : int64) : int64; compilerproc;
 function fpc_mod_int64(n,z : int64) : int64; compilerproc;
 function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword; compilerproc;
