@@ -213,13 +213,31 @@ implementation
         sstate: tscannerstate;
         sl: tpropaccesslist;
         temptypesym: ttypesym;
+        oldsymtablestack: tsymtablestack;
+        islocal: boolean;
       begin
         { if it's a subrange type, don't create a new class }
         if assigned(tenumdef(def).basedef) then
           exit;
         replace_scanner('jvm_enum_class',sstate);
-        { create new class (different internal name than enum to prevent name clash) }
-        enumclass:=tobjectdef.create(odt_javaclass,'$'+name+'$InternEnum',java_jlenum);
+        oldsymtablestack:=symtablestack;
+        islocal:=symtablestack.top.symtablelevel>=normal_function_level;
+        if islocal then
+          begin
+            { we cannot add a class local to a procedure -> insert it in the
+              static symtable. This is not ideal because this means that it will
+              be saved to the ppu file for no good reason, and loaded again
+              even though it contains a reference to a type that was never
+              saved to the ppu file (the locally defined enum type). Since this
+              alias for the locally defined enumtype is only used while
+              implementing the class' methods, this is however no problem. }
+            symtablestack:=symtablestack.getcopyuntil(current_module.localsymtable);
+          end;
+
+        { create new class (different internal name than enum to prevent name
+          clash; at unit level because we don't want its methods to be nested
+          inside a function in case its a local type) }
+        enumclass:=tobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternEnum$'+tostr(def.defid),java_jlenum);
         tenumdef(def).classdef:=enumclass;
         include(enumclass.objectoptions,oo_is_enum_class);
         include(enumclass.objectoptions,oo_is_sealed);
@@ -227,25 +245,35 @@ implementation
           name that can be used in generated Pascal code without risking an
           identifier conflict (since it is local to this class; the global name
           is unique because it's an identifier that contains $-signs) }
-
-        temptypesym:=ttypesym.create('__FPC_TEnumClassAlias',nil);
-        { don't pass enumclass to the ttypesym constructor, because then it
-          will replace the current (real) typesym of that def with the alias }
-        temptypesym.typedef:=enumclass;
-        enumclass.symtable.insert(temptypesym);
+        enumclass.symtable.insert(ttypesym.create('__FPC_TEnumClassAlias',enumclass));
 
         { also create an alias for the enum type so that we can iterate over
           all enum values when creating the body of the class constructor }
         temptypesym:=ttypesym.create('__FPC_TEnumAlias',nil);
+        { don't pass def to the ttypesym constructor, because then it
+          will replace the current (real) typesym of that def with the alias }
         temptypesym.typedef:=def;
         enumclass.symtable.insert(temptypesym);
         { but the name of the class as far as the JVM is concerned will match
           the enum's original name (the enum type itself won't be output in
           any class file, so no conflict there) }
-        enumclass.objextname:=stringdup(name);
+        if not islocal then
+          enumclass.objextname:=stringdup(name)
+        else
+          { for local types, use a unique name to prevent conflicts (since such
+            types are not visible outside the routine anyway, it doesn't matter
+          }
+          begin
+            enumclass.objextname:=stringdup(enumclass.objrealname^);
+            { also mark it as private (not strict private, because the class
+              is not a subclass of the unit in which it is declared, so then
+              the unit's procedures would not be able to use it) }
+            enumclass.typesym.visibility:=vis_private;
+          end;
         { now add a bunch of extra things to the enum class }
         old_current_structdef:=current_structdef;
         current_structdef:=enumclass;
+
         symtablestack.push(enumclass.symtable);
         { create static fields representing all enums }
         for i:=0 to tenumdef(def).symtable.symlist.count-1 do
@@ -337,6 +365,11 @@ implementation
         pd.synthetickind:=tsk_jvm_enum_classconstr;
 
         symtablestack.pop(enumclass.symtable);
+        if islocal then
+          begin
+            symtablestack.free;
+            symtablestack:=oldsymtablestack;
+          end;
         current_structdef:=old_current_structdef;
         restore_scanner(sstate);
       end;
