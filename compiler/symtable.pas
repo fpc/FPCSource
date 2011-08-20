@@ -1479,6 +1479,7 @@ implementation
         inherited create(n,id);
         symtabletype:=staticsymtable;
         symtablelevel:=main_program_level;
+        currentvisibility:=vis_private;
       end;
 
 
