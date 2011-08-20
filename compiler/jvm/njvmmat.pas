@@ -144,7 +144,7 @@ implementation
           op:=OP_SHL
         else
           op:=OP_SHR;
-        thlcgjvm(hlcg).a_op_loc_stack(current_asmdata.CurrAsmList,op,right.resultdef,right.location);
+        thlcgjvm(hlcg).a_op_loc_stack(current_asmdata.CurrAsmList,op,resultdef,right.location);
         thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
       end;
 

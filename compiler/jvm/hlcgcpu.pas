@@ -356,8 +356,15 @@ implementation
             if TOpCG2LAsmOp[op]=A_None then
               internalerror(2010120533);
             list.concat(taicpu.op_none(TOpCG2LAsmOp[op]));
-            if op<>OP_NEG then
-            decstack(list,2);
+            case op of
+              OP_NOT:
+                ;
+              { the second argument here is an int rather than a long }
+              OP_SHL,OP_SHR,OP_SAR:
+                decstack(list,1);
+              else
+                decstack(list,2);
+            end;
           end;
         else
           internalerror(2010120531);
@@ -381,7 +388,15 @@ implementation
       else
         begin
           maybepreparedivu32(list,op,size,trunc32);
-          a_load_const_stack(list,size,a,R_INTREGISTER);
+          case op of
+            OP_NEG,OP_NOT:
+              internalerror(2011010801);
+            OP_SHL,OP_SHR,OP_SAR:
+              { the second argument here is an int rather than a long }
+              a_load_const_stack(list,s32inttype,a,R_INTREGISTER);
+            else
+              a_load_const_stack(list,size,a,R_INTREGISTER);
+          end;
           a_op_stack(list,op,size,trunc32);
         end;
     end;
@@ -391,8 +406,22 @@ implementation
       trunc32: boolean;
     begin
       maybepreparedivu32(list,op,size,trunc32);
-      if not(op in [OP_NEG,OP_NOT]) then
-        a_load_reg_stack(list,size,reg);
+      case op of
+        OP_NEG,OP_NOT:
+          ;
+        OP_SHL,OP_SHR,OP_SAR:
+          if not is_64bitint(size) then
+            a_load_reg_stack(list,size,reg)
+          else
+            begin
+              { the second argument here is an int rather than a long }
+              if getsubreg(reg)=R_SUBQ then
+                internalerror(2011010802);
+              a_load_reg_stack(list,s32inttype,reg)
+            end
+        else
+          a_load_reg_stack(list,size,reg);
+      end;
       a_op_stack(list,op,size,trunc32);
     end;
 
