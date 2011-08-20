@@ -174,7 +174,7 @@ implementation
     regvars,dbgbase,
     pass_1,pass_2,
     nbas,ncon,nld,nmem,nutils,
-    tgobj,cgobj,cgcpu
+    tgobj,cgobj,cgcpu,hlcgobj,hlcgcpu
 {$ifdef powerpc}
     , cpupi
 {$endif}
@@ -2482,7 +2482,7 @@ implementation
 
     procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
       begin
-        create_codegen;
+        create_hlcodegen;
         { add the procedure to the al_procedures }
         maybe_new_object_file(list);
         new_section(list,sec_code,lower(pd.mangledname),current_settings.alignment.procalign);
@@ -2493,7 +2493,7 @@ implementation
           list.concat(Tai_symbol.createname(pd.mangledname,AT_FUNCTION,0));
 
         cg.g_external_wrapper(list,pd,externalname);
-        destroy_codegen;
+        destroy_hlcodegen;
       end;
 
 {****************************************************************************
@@ -3030,7 +3030,7 @@ implementation
         def : tdef;
       begin
         if not nested then
-          create_codegen;
+          create_hlcodegen;
         for i:=0 to st.DefList.Count-1 do
           begin
             def:=tdef(st.DefList[i]);
@@ -3041,7 +3041,7 @@ implementation
               gen_intf_wrapper(list,tobjectdef(def));
           end;
         if not nested then
-          destroy_codegen;
+          destroy_hlcodegen;
       end;
 
 
