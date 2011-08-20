@@ -141,13 +141,20 @@ procedure tjvmloadnode.pass_generate_code;
   begin
     if is_copyout_addr_param_load then
       begin
-        { the parameter is passed as an array of one element containing the
-          parameter value }
+        { in case of nested access, load address of field in nestedfpstruct }
+        if assigned(left) then
+          generate_nested_access(tabstractnormalvarsym(symtableentry));
         location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),4);
         location.reference.arrayreftype:=art_indexconst;
         location.reference.base:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
-        hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,java_jlobject,java_jlobject,tparavarsym(symtableentry).localloc,location.reference.base);
         location.reference.indexoffset:=0;
+        { load the field from the nestedfpstruct, or the parameter location.
+          In both cases, the result is an array of one element containing the
+          parameter value }
+        if assigned(left) then
+          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,java_jlobject,java_jlobject,left.location,location.reference.base)
+        else
+          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,java_jlobject,java_jlobject,tparavarsym(symtableentry).localloc,location.reference.base);
       end
     else
       inherited pass_generate_code;

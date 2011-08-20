@@ -78,15 +78,28 @@ implementation
       end;
 
     procedure tjvmderefnode.pass_generate_code;
+      var
+        implicitptr: boolean;
       begin
         secondpass(left);
+        implicitptr:=jvmimplicitpointertype(tpointerdef(left.resultdef).pointeddef);
         if (left.resultdef.typ=pointerdef) and
             ((left.resultdef=voidpointertype) or
-             jvmimplicitpointertype(tpointerdef(left.resultdef).pointeddef)) then
+             implicitptr) then
           begin
-            { this is basically a typecast: the left node is a regular
-              'pointer', and we typecast it to an implicit pointer }
-            location_copy(location,left.location);
+            if implicitptr then
+              { this is basically a typecast: the left node is a regular
+                'pointer', and we typecast it to an implicit pointer }
+              location_copy(location,left.location)
+            else
+              begin
+                { these are always arrays (used internally for pointers to var
+                  parameters stored in nestedfpstructs) }
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+                location_reset_ref(location,LOC_REFERENCE,OS_ADDR,4);
+                reference_reset_base(location.reference,left.location.register,0,4);
+                location.reference.arrayreftype:=art_indexconst;
+              end;
           end
         else
           internalerror(2011052901);
@@ -129,15 +142,32 @@ implementation
 
 
     procedure tjvmaddrnode.pass_generate_code;
+      var
+        implicitptr: boolean;
       begin
         secondpass(left);
-        if jvmimplicitpointertype(left.resultdef) or
+        implicitptr:=jvmimplicitpointertype(left.resultdef);
+        if implicitptr or
            (nf_internal in flags) then
           begin
-            { this is basically a typecast: the left node is an implicit
-              pointer, and we typecast it to a regular 'pointer'
-              (java.lang.Object) }
-            location_copy(location,left.location);
+            if implicitptr then
+              { this is basically a typecast: the left node is an implicit
+                pointer, and we typecast it to a regular 'pointer'
+                (java.lang.Object) }
+              location_copy(location,left.location)
+            else
+              begin
+                { these are always arrays (used internally for pointers to var
+                  parameters stored in nestedfpstructs) -> get base pointer to
+                  array }
+                if (left.location.loc<>LOC_REFERENCE) or
+                   (left.location.reference.arrayreftype<>art_indexconst) or
+                   (left.location.reference.base=NR_NO) or
+                   assigned(left.location.reference.symbol) then
+                  internalerror(2011060701);
+                location_reset(location,LOC_REGISTER,OS_ADDR);
+                location.register:=left.location.reference.base;
+              end;
           end
         else
           begin
