@@ -122,9 +122,6 @@ unit tgcpu;
                   eledef:=tarraydef(def).elementdef;
                   thlcgjvm(hlcg).g_newarray(list,def,ndim);
                   thlcgjvm(hlcg).a_load_stack_ref(list,java_jlobject,ref,0);
-                  { allocate the records }
-                  if is_record(eledef) then
-                    hlcg.g_initialize(list,def,ref);
                   result:=true;
                 end;
             end;
