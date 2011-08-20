@@ -471,12 +471,12 @@ implementation
         fromclasscompatible:=
           (left.resultdef.typ=objectdef) or
           is_dynamic_array(left.resultdef) or
-          ((left.resultdef.typ=recorddef) and
+          ((left.resultdef.typ in [recorddef,stringdef]) and
            (resultdef.typ=objectdef));
         toclasscompatible:=
           (resultdef.typ=objectdef) or
           is_dynamic_array(resultdef) or
-          ((resultdef.typ=recorddef) and
+          ((resultdef.typ in [recorddef,stringdef]) and
            (left.resultdef.typ=objectdef));
         if fromclasscompatible and toclasscompatible then
           begin
@@ -519,6 +519,31 @@ implementation
             result:=true;
             exit;
           end;
+
+        { from classrefdef to JLClass and JLObject and back }
+        if (left.resultdef.typ=classrefdef) or
+           (resultdef.typ=classrefdef) then
+          begin
+            if (left.resultdef.typ=classrefdef) and
+               (resultdef.typ=classrefdef) then
+              begin
+                if not tclassrefdef(left.resultdef).pointeddef.is_related(resultdef) and
+                   not tclassrefdef(resultdef).pointeddef.is_related(left.resultdef) then
+                 CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
+              end
+            else
+              begin
+                jlclass:=search_system_type('JLCLASS').typedef;
+                if (left.resultdef<>jlclass) and
+                   (left.resultdef<>java_jlobject) and
+                   (resultdef<>jlclass) and
+                   (resultdef<>java_jlobject) then
+                  CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
+              end;
+            result:=true;
+            exit;
+          end;
+
 
         { don't allow conversions between different classes of primitive types,
           except for a few special cases }
@@ -636,45 +661,57 @@ implementation
         else
       end;
 
+    function isstringconv(var res: boolean): boolean;
+      begin
+        if is_wide_or_unicode_string(realtodef) then
+          result:=
+            (realfromdef=java_jlobject) or
+            (realfromdef=java_jlstring)
+        else if is_wide_or_unicode_string(realfromdef) then
+          result:=
+            (realtodef=java_jlobject) or
+            (realtodef=java_jlstring)
+        else
+      end;
+
     begin
       realfromdef:=maybe_find_real_class_definition(node.left.resultdef,false);
       realtodef:=node.right.resultdef;
       if realtodef.typ=classrefdef then
         realtodef:=tclassrefdef(realtodef).pointeddef;
       realtodef:=maybe_find_real_class_definition(realtodef,false);
-      if not isrecordconv(result) then
-      { dynamic arrays can be converted to java.lang.Object and vice versa }
-      if realtodef=java_jlobject then
-        { dynamic array to java.lang.Object }
-        result:=is_dynamic_array(realfromdef)
-      else if is_dynamic_array(realtodef) then
-        begin
-          { <x> to dynamic array: only if possibly valid }
-          fromelt:=node.left.resultdef;
-          toelt:=realtodef;
-          get_most_nested_types(fromelt,toelt);
-          { final levels must be convertable:
-              a) from array (dynamic or not) to java.lang.Object or vice versa,
-               or
-              b) the same primitive/class type
-          }
-          if not isrecordconv(result) then
-            result:=
-             (compare_defs(fromelt,toelt,node.left.nodetype) in [te_exact,te_equal]) or
-             (((fromelt.typ=objectdef) or
-               (fromelt.typ=arraydef)) and
-              ((toelt.typ=objectdef) or
-               (toelt.typ=arraydef)));
-        end
-      else
-        begin
-          { full class reference support requires using the Java reflection API,
-            not yet implemented }
-          if (node.right.nodetype<>loadvmtaddrn) or
-             (tloadvmtaddrnode(node.right).left.nodetype<>typen) then
-            internalerror(2011012601);
-          result:=false;
-        end;
+      if not isrecordconv(result) and
+         not isstringconv(result) then
+        { dynamic arrays can be converted to java.lang.Object and vice versa }
+        if realtodef=java_jlobject then
+          { dynamic array to java.lang.Object }
+          result:=is_dynamic_array(realfromdef)
+        else if is_dynamic_array(realtodef) then
+          begin
+            { <x> to dynamic array: only if possibly valid }
+            fromelt:=node.left.resultdef;
+            toelt:=realtodef;
+            get_most_nested_types(fromelt,toelt);
+            { final levels must be convertable:
+                a) from array (dynamic or not) to java.lang.Object or vice versa,
+                 or
+                b) the same primitive/class type
+            }
+            if not isrecordconv(result) then
+              result:=
+               (compare_defs(fromelt,toelt,node.left.nodetype) in [te_exact,te_equal]) or
+               (((fromelt.typ=objectdef) or
+                 (fromelt.typ=arraydef)) and
+                ((toelt.typ=objectdef) or
+                 (toelt.typ=arraydef)));
+          end
+        else
+          begin
+            if (node.right.resultdef.typ<>classrefdef) then
+              result:=false
+            else
+              result:=true;
+          end;
       if result then
         if node.nodetype=asn then
           begin
@@ -688,10 +725,61 @@ implementation
     end;
 
 
-  procedure asis_generate_code(node: tasisnode; opcode: tasmop);
+  function asis_pass_1(node: tasisnode; const methodname: string): tnode;
+    var
+      ps: tsym;
+      call: tnode;
+      jlclass: tobjectdef;
+    begin
+      result:=nil;
+      firstpass(node.left);
+      if not(node.right.nodetype in [typen,loadvmtaddrn]) then
+        begin
+          if (node.nodetype=isn) or
+             not assigned(tasnode(node).call) then
+            begin
+              if not is_javaclassref(node.right.resultdef) then
+                internalerror(2011041920);
+              firstpass(node.right);
+              jlclass:=tobjectdef(search_system_type('JLCLASS').typedef);
+              ps:=search_struct_member(jlclass,methodname);
+              if not assigned(ps) or
+                 (ps.typ<>procsym) then
+                internalerror(2011041910);
+              call:=ccallnode.create(ccallparanode.create(node.left,nil),tprocsym(ps),ps.owner,ctypeconvnode.create_explicit(node.right,jlclass),[]);
+              node.left:=nil;
+              node.right:=nil;
+              firstpass(call);
+              if codegenerror then
+                exit;
+              if node.nodetype=isn then
+                result:=call
+              else
+                begin
+                  tasnode(node).call:=call;
+                  node.expectloc:=call.expectloc;
+                end;
+            end;
+        end
+      else
+        begin
+          node.expectloc:=LOC_REGISTER;
+          result:=nil;
+        end;
+    end;
+
+
+  function asis_generate_code(node: tasisnode; opcode: tasmop): boolean;
     var
       checkdef: tdef;
     begin
+      if (node.nodetype=asn) and
+         assigned(tasnode(node).call) then
+        begin
+          result:=false;
+          exit;
+        end;
+      result:=true;
       secondpass(node.left);
       thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,node.left.resultdef,node.left.location);
       location_freetemp(current_asmdata.CurrAsmList,node.left.location);
@@ -727,19 +815,14 @@ implementation
 
   function tjvmasnode.pass_1: tnode;
     begin
-      { call-by-reference does not exist in Java, so it's no problem to
-        change a memory location to a register }
-      firstpass(left);
-      if right.nodetype<>typen then
-        firstpass(right);
-      expectloc:=LOC_REGISTER;
-      result:=nil;
+      result:=asis_pass_1(self,'CAST');
     end;
 
 
   procedure tjvmasnode.pass_generate_code;
     begin
-      asis_generate_code(self,a_checkcast);
+      if not asis_generate_code(self,a_checkcast) then
+        inherited;
     end;
 
 
@@ -756,17 +839,14 @@ implementation
 
   function tjvmisnode.pass_1: tnode;
     begin
-      firstpass(left);
-      if right.nodetype<>typen then
-        firstpass(right);
-      expectloc:=LOC_REGISTER;
-      result:=nil;
+      result:=asis_pass_1(self,'ISINSTANCE');
     end;
 
 
   procedure tjvmisnode.pass_generate_code;
     begin
-      asis_generate_code(self,a_instanceof);
+      if not asis_generate_code(self,a_instanceof) then
+        inherited;
     end;
 
 

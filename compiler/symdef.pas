@@ -644,6 +644,7 @@ interface
           function alignment : shortint;override;
           function  needs_inittable : boolean;override;
           function  getvardef:longint;override;
+          function  is_related(d : tdef) : boolean;override;
        end;
 
        { tenumdef }
@@ -871,6 +872,7 @@ interface
     function is_record(def: tdef): boolean;
 
     function is_javaclass(def: tdef): boolean;
+    function is_javaclassref(def: tdef): boolean;
     function is_javainterface(def: tdef): boolean;
     function is_java_class_or_interface(def: tdef): boolean;
 
@@ -1599,6 +1601,15 @@ implementation
           varUndefined,varUndefined,varString,varOleStr,varUString);
       begin
         result:=vardef[stringtype];
+      end;
+
+    function tstringdef.is_related(d: tdef): boolean;
+      begin
+        result:=
+          (target_info.system=system_jvm_java32) and
+          (stringtype in [st_unicodestring,st_widestring]) and
+          ((d=java_jlobject) or
+           (d=java_jlstring));
       end;
 
 
@@ -6216,6 +6227,14 @@ implementation
           assigned(def) and
           (def.typ=objectdef) and
           (tobjectdef(def).objecttype=odt_javaclass);
+      end;
+
+    function is_javaclassref(def: tdef): boolean;
+      begin
+        is_javaclassref:=
+          assigned(def) and
+          (def.typ=classrefdef) and
+          is_javaclass(tclassrefdef(def).pointeddef);
       end;
 
     function is_javainterface(def: tdef): boolean;

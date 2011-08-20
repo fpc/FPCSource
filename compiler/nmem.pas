@@ -235,12 +235,24 @@ implementation
                  { reused }
                  left:=nil;
                end
+             else if is_javaclass(left.resultdef) and
+                (left.nodetype<>typen) then
+               begin
+                 { call java.lang.Object.getClass() }
+                 vs:=search_struct_member(tobjectdef(left.resultdef),'GETCLASS');
+                 if not assigned(vs) or
+                    (tsym(vs).typ<>procsym) then
+                   internalerror(2011041901);
+                 result:=ccallnode.create(nil,tprocsym(vs),vs.owner,left,[]);
+                 inserttypeconv_explicit(result,resultdef);
+               end
              else
                firstpass(left)
            end
          else if not is_objcclass(left.resultdef) and
                  not is_objcclassref(left.resultdef) and
-                 not is_javaclass(left.resultdef) then
+                 not is_javaclass(left.resultdef) and
+                 not is_javaclassref(left.resultdef) then
            begin
              if not(nf_ignore_for_wpo in flags) and
                 (not assigned(current_procinfo) or

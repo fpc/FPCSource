@@ -31,6 +31,10 @@ interface
       node,nmem,ncgmem;
 
     type
+       tjvmloadvmtaddrnode = class(tcgloadvmtaddrnode)
+         procedure pass_generate_code; override;
+       end;
+
        tjvmloadparentfpnode = class(tcgloadparentfpnode)
          procedure pass_generate_code;override;
        end;
@@ -47,8 +51,23 @@ implementation
       cutils,verbose,constexp,
       symconst,symtype,symtable,symsym,symdef,defutil,
       nadd,ncal,ncnv,ncon,
-      aasmdata,pass_2,
+      aasmdata,aasmcpu,pass_2,
       cgutils,hlcgobj,hlcgcpu;
+
+{*****************************************************************************
+                         TJVMLOADVMTADDRNODE
+*****************************************************************************}
+
+    procedure tjvmloadvmtaddrnode.pass_generate_code;
+      begin
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(
+          tobjectdef(tclassrefdef(resultdef).pointeddef).jvm_full_typename(true))));
+        thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
+        location_reset(location,LOC_REGISTER,OS_ADDR);
+        location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
+        thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+      end;
+
 
     { tjvmloadparentfpnode }
 
@@ -168,4 +187,5 @@ implementation
 
 begin
    cvecnode:=tjvmvecnode;
+   cloadvmtaddrnode:=tjvmloadvmtaddrnode;
 end.

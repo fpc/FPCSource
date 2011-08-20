@@ -101,14 +101,6 @@ implementation
         entry   : PHashSetItem;
 
       begin
-{$ifdef jvm}
-{$ifndef nounsupported}
-         location_reset(location,LOC_REGISTER,OS_ADDR);
-         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
-         hlcg.a_load_const_reg(current_asmdata.CurrAsmList,java_jlobject,0,location.register);
-         exit;
-{$endif nounsupported}
-{$endif jvm}
          location_reset(location,LOC_REGISTER,OS_ADDR);
          if (left.nodetype=typen) then
            begin
