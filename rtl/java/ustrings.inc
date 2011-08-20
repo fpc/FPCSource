@@ -718,7 +718,7 @@ Function fpc_UnicodeStr_Compare_Equal(const S1,S2 : UnicodeString): SizeInt; com
 Var
   MaxI : SizeInt;
 begin
-  result:=ord(JLString(S1).equals(JLString(S2)));
+  result:=ord(not JLString(S1).equals(JLString(S2)));
 end;
 
 function fpc_UnicodeStr_SetLength(const S : UnicodeString; l : SizeInt): UnicodeString; compilerproc;
