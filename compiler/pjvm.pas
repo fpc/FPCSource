@@ -598,6 +598,7 @@ implementation
             result:=pd;
             exit
           end;
+        symtablestack.push(obj.symtable);
         result:=tprocdef(pd.getcopy);
         result.visibility:=vis;
         visname:=visibilityName[vis];
@@ -612,6 +613,7 @@ implementation
         result.synthetickind:=tsk_callthrough;
         { so we know the name of the routine to call through to }
         result.skpara:=pd;
+        symtablestack.pop(obj.symtable);
       end;
 
 end.
