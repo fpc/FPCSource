@@ -588,6 +588,10 @@ function fpc_dynarray_copy(src: JLObject; start, len: longint; ndim: longint; el
         case eletype of
           FPCJDynArrTypeRecord:
             fpc_copy_jrecord_array(TJRecordArray(src),TJRecordArray(result),start,len);
+          FPCJDynArrTypeEnumSet:
+            fpc_copy_jenumset_array(TJEnumSetArray(src),TJEnumSetArray(result),start,len);
+          FPCJDynArrTypeBitSet:
+            fpc_copy_jbitset_array(TJBitSetArray(src),TJBitSetArray(result),start,len);
           FPCJDynArrTypeShortstring:
             fpc_copy_jshortstring_array(TShortstringArray(src),TShortstringArray(result),start,len);
           else
