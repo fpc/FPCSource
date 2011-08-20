@@ -34,7 +34,7 @@ interface
           procedure pass_generate_code;override;
          protected
           { call secondpass for both left and right }
-          procedure pass_left_right;
+          procedure pass_left_right; virtual;
           { set the register of the result location }
           procedure set_result_location_reg;
           { load left and right nodes into registers }
