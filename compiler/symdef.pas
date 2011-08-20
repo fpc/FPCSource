@@ -3441,6 +3441,8 @@ implementation
            exit;
          inherited buildderef;
          returndefderef.build(returndef);
+         if po_explicitparaloc in procoptions then
+           funcretloc[callerside].buildderef;
          { parast }
          tparasymtable(parast).buildderef;
       end;
@@ -3450,6 +3452,20 @@ implementation
       begin
          inherited deref;
          returndef:=tdef(returndefderef.resolve);
+         if po_explicitparaloc in procoptions then
+           begin
+             funcretloc[callerside].deref;
+             has_paraloc_info:=callerside;
+            end
+         else
+           begin
+             { deref is called after loading from a ppu, but also after another
+               unit has been reloaded/recompiled and all references must be
+               re-resolved. Since the funcretloc contains a reference to a tdef,
+               reset it so that we won't try to access the stale def }
+             funcretloc[callerside].init;
+             has_paraloc_info:=callnoside;
+           end;
          { parast }
          tparasymtable(parast).deref;
          { recalculated parameters }
