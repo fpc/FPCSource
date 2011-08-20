@@ -543,105 +543,21 @@ implementation
 
     function inline_copy : tnode;
       var
-        copynode,
-        lowppn,
-        highppn,
-        npara,
         paras   : tnode;
-        ppn     : tcallparanode;
-        paradef : tdef;
-        counter : integer;
-      begin
         { for easy exiting if something goes wrong }
+      begin
         result := cerrornode.create;
 
         consume(_LKLAMMER);
         paras:=parse_paras(false,false,_RKLAMMER);
         consume(_RKLAMMER);
         if not assigned(paras) then
-         begin
-           CGMessage1(parser_e_wrong_parameter_size,'Copy');
-           exit;
-         end;
-
-        { determine copy function to use based on the first argument,
-          also count the number of arguments in this loop }
-        counter:=1;
-        ppn:=tcallparanode(paras);
-        while assigned(ppn.right) do
-         begin
-           inc(counter);
-           ppn:=tcallparanode(ppn.right);
-         end;
-        paradef:=ppn.left.resultdef;
-        if is_ansistring(paradef) or
-           (is_chararray(paradef) and
-            (paradef.size>255)) or
-           ((cs_ansistrings in current_settings.localswitches) and
-            is_pchar(paradef)) then
-          copynode:=ccallnode.createintern('fpc_ansistr_copy',paras)
-        else
-         if is_widestring(paradef) then
-           copynode:=ccallnode.createintern('fpc_widestr_copy',paras)
-        else
-         if is_unicodestring(paradef) or
-            is_widechararray(paradef) or
-            is_pwidechar(paradef) then
-           copynode:=ccallnode.createintern('fpc_unicodestr_copy',paras)
-        else
-         if is_char(paradef) then
-           copynode:=ccallnode.createintern('fpc_char_copy',paras)
-        else
-         if is_dynamic_array(paradef) then
           begin
-            { Only allow 1 or 3 arguments }
-            if (counter<>1) and (counter<>3) then
-             begin
-               CGMessage1(parser_e_wrong_parameter_size,'Copy');
-               exit;
-             end;
-
-            { create statements with call }
-
-            if (counter=3) then
-             begin
-               highppn:=tcallparanode(paras).left.getcopy;
-               lowppn:=tcallparanode(tcallparanode(paras).right).left.getcopy;
-             end
-            else
-             begin
-               { use special -1,-1 argument to copy the whole array }
-               highppn:=cordconstnode.create(int64(-1),s32inttype,false);
-               lowppn:=cordconstnode.create(int64(-1),s32inttype,false);
-             end;
-
-            { create call to fpc_dynarray_copy }
-            npara:=ccallparanode.create(highppn,
-                   ccallparanode.create(lowppn,
-                   ccallparanode.create(caddrnode.create_internal
-                      (crttinode.create(tstoreddef(ppn.left.resultdef),initrtti,rdt_normal)),
-                   ccallparanode.create
-                      (ctypeconvnode.create_internal(ppn.left,voidpointertype),nil))));
-            copynode:=ccallnode.createinternres('fpc_dynarray_copy',npara,ppn.left.resultdef);
-
-            ppn.left:=nil;
-            paras.free;
-          end
-        else
-         begin
-           { generic fallback that will give an error if a wrong
-             type is passed }
-           if (counter=3) then
-             copynode:=ccallnode.createintern('fpc_shortstr_copy',paras)
-           else
-             begin
-               CGMessagePos(ppn.left.fileinfo,type_e_mismatch);
-               copynode:=cerrornode.create;
-             end
-         end;
-
+            CGMessage1(parser_e_wrong_parameter_size,'Copy');
+            exit;
+          end;
         result.free;
-        result:=copynode;
+        result:=cinlinenode.create(in_copy_x,false,paras);
       end;
 
 end.
