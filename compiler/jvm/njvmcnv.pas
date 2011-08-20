@@ -630,6 +630,7 @@ implementation
           types }
         procvarconv:=isvalidprocvartypeconv(left.resultdef,resultdef);
         fromclasscompatible:=
+          (left.resultdef.typ=formaldef) or
           (left.resultdef.typ=pointerdef) or
           (left.resultdef.typ=objectdef) or
           is_dynamic_array(left.resultdef) or
@@ -686,6 +687,12 @@ implementation
             result:=true;
             exit;
           end;
+
+        { a formaldef can be converted to anything, but not on the assignment
+          side }
+        if (left.resultdef.typ=formaldef) and
+           not assignment_side then
+          exit;
 
         { don't allow conversions between different classes of primitive types,
           except for a few special cases }
