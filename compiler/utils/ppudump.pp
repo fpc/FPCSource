@@ -70,7 +70,8 @@ const
     { 10 } 'arm',
     { 11 } 'powerpc64',
     { 12 } 'avr',
-    { 13 } 'mipsel'
+    { 13 } 'mipsel',
+    { 14 } 'jvm'
     );
 
 { List of all supported system-cpu couples }
@@ -146,7 +147,8 @@ const
   { 67 }  'Linux-MIPSel',
   { 68 }  'NativeNT-i386',
   { 69 }  'iPhoneSim-i386',
-  { 70 }  'Wii-powerpc'
+  { 70 }  'Wii-powerpc',
+  { 71 }  'Java-JVM'
   );
 
 const
@@ -221,7 +223,7 @@ Function Varspez2Str(w:longint):string;
 const
   { in symconst unit
     tvarspez = (vs_value,vs_const,vs_var,vs_out,vs_constref); }
-  varspezstr : array[tvarspez] of string[6]=('Value','Const','Var','Out','Hidden');
+  varspezstr : array[tvarspez] of string[6]=('Value','Const','Var','Out','ConstRef','Final');
 begin
   if w<=ord(high(varspezstr)) then
     Varspez2Str:=varspezstr[tvarspez(w)]
@@ -1146,7 +1148,8 @@ const
      (mask:po_objc;            str:'ObjC'),
      (mask:po_enumerator_movenext; str:'EnumeratorMoveNext'),
      (mask:po_optional;        str: 'Optional'),
-     (mask:po_delphi_nested_cc;str: 'Delphi-style nested frameptr')
+     (mask:po_delphi_nested_cc;str: 'Delphi-style nested frameptr'),
+     (mask:po_java            ;str: 'Java method')
   );
 var
   proctypeoption  : tproctypeoption;
@@ -1977,12 +1980,20 @@ begin
              writeln(space,'   Import lib/pkg : ',getstring);
              write  (space,'          Options : ');
              readobjectdefoptions;
-             writeln(space,'       FieldAlign : ',shortint(getbyte));
-             writeln(space,'      RecordAlign : ',shortint(getbyte));
-             writeln(space,'         PadAlign : ',shortint(getbyte));
-             writeln(space,'UseFieldAlignment : ',shortint(getbyte));
-             writeln(space,'         DataSize : ',getasizeint);
-             writeln(space,'      PaddingSize : ',getword);
+             if (df_copied_def in defoptions) then
+               begin
+                 write(space,'      Copied from : ');
+                 readderef('');
+               end
+             else
+               begin
+                 writeln(space,'       FieldAlign : ',shortint(getbyte));
+                 writeln(space,'      RecordAlign : ',shortint(getbyte));
+                 writeln(space,'         PadAlign : ',shortint(getbyte));
+                 writeln(space,'UseFieldAlignment : ',shortint(getbyte));
+                 writeln(space,'         DataSize : ',getasizeint);
+                 writeln(space,'      PaddingSize : ',getword);
+               end;
              if not EndOfEntry then
                HasMoreInfos;
              {read the record definitions and symbols}
@@ -2013,6 +2024,9 @@ begin
                odt_objcclass      : writeln('objcclass');
                odt_objcprotocol   : writeln('objcprotocol');
                odt_helper         : writeln('helper');
+               odt_objccategory   : writeln('objccategory');
+               odt_javaclass      : writeln('Java class');
+               odt_interfacejava  : writeln('Java interface');
                else                 writeln('!! Warning: Invalid object type ',b);
              end;
              writeln(space,'    External name : ',getstring);
@@ -2048,7 +2062,7 @@ begin
                  writeln(space,'      Visibility: ',Visibility2Str(getbyte));
                end;
 
-             if tobjecttyp(b) in [odt_class,odt_interfacecorba,odt_objcclass,odt_objcprotocol] then
+             if tobjecttyp(b) in [odt_class,odt_interfacecorba,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
               begin
                 l:=getlongint;
                 writeln(space,'  Impl Intf Count : ',l);
