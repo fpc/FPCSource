@@ -57,6 +57,7 @@ interface
           procedure second_rox; virtual;
           procedure second_sar; virtual;
           procedure second_bsfbsr; virtual;
+          procedure second_new; virtual;
        end;
 
 implementation
@@ -173,6 +174,8 @@ implementation
             in_bsf_x,
             in_bsr_x:
                second_BsfBsr;
+            in_new_x:
+               second_new;
             else internalerror(9);
          end;
       end;
@@ -825,6 +828,12 @@ implementation
       location.register := cg.getintregister(current_asmdata.CurrAsmList,opsize);
       cg.a_bit_scan_reg_reg(current_asmdata.CurrAsmList,reverse,opsize,left.location.register,location.register);
     end;
+
+
+    procedure tcginlinenode.second_new;
+      begin
+        internalerror(2011012202);
+      end;
 
 
 begin
