@@ -92,7 +92,7 @@ interface
 implementation
 
    uses
-      verbose,globals,globtype,constexp,
+      verbose,globals,globtype,constexp,cutils,
       symbase,symconst,symdef,symsym,symtable,aasmbase,aasmdata,
       defutil,defcmp,jvmdef,
       cgbase,cgutils,pass_1,pass_2,
@@ -413,6 +413,7 @@ implementation
                  encodedtype:=jvmencodetype(pvs.vardef,false);
                  if pushaddr then
                    encodedtype:='['+encodedtype;
+                 replace(encodedtype,'/','.');
                  newpara:=ccallnode.createinternmethod(cloadvmtaddrnode.create(ctypenode.create(jlclass)),'FORNAME',
                    ccallparanode.create(cstringconstnode.createstr(encodedtype),nil));
                end
