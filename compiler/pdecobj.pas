@@ -280,17 +280,31 @@ implementation
       end;
 
 
-    procedure handleImplementedProtocol(intfdef : tobjectdef);
+    procedure handleImplementedProtocolOrJavaIntf(intfdef : tobjectdef);
       begin
         intfdef:=find_real_class_definition(intfdef,false);
-        if not is_objcprotocol(intfdef) then
-          begin
-             Message1(type_e_protocol_type_expected,intfdef.typename);
-             exit;
-          end;
+        case current_objectdef.objecttype of
+          odt_objcclass,
+          odt_objccategory,
+          odt_objcprotocol:
+            if not is_objcprotocol(intfdef) then
+              begin
+                 Message1(type_e_protocol_type_expected,intfdef.typename);
+                 exit;
+              end;
+          odt_javaclass,
+          odt_interfacejava:
+            if not is_javainterface(intfdef) then
+              begin
+                Message1(type_e_interface_type_expected,intfdef.typename);
+                exit
+              end;
+          else
+            internalerror(2011010807);
+        end;
         if ([oo_is_forward,oo_is_formal] * intfdef.objectoptions <> []) then
           begin
-             Message1(parser_e_forward_protocol_declaration_must_be_resolved,intfdef.objrealname^);
+             Message1(parser_e_forward_intf_declaration_must_be_resolved,intfdef.objrealname^);
              exit;
           end;
         if current_objectdef.find_implemented_interface(intfdef)<>nil then
@@ -321,7 +335,7 @@ implementation
              if intf then
                handleImplementedInterface(tobjectdef(hdef))
              else
-               handleImplementedProtocol(tobjectdef(hdef));
+               handleImplementedProtocolOrJavaIntf(tobjectdef(hdef));
           end;
       end;
 
@@ -425,7 +439,8 @@ implementation
                 Message(parser_e_abstract_and_sealed_conflict);
             end;
           odt_cppclass,
-          odt_javaclass:
+          odt_javaclass,
+          odt_interfacejava:
             get_cpp_or_java_class_external_status(current_objectdef);
           odt_objcclass,odt_objcprotocol,odt_objccategory:
             get_objc_class_or_protocol_external_status(current_objectdef);
@@ -598,7 +613,7 @@ implementation
                   if current_objectdef.objecttype=odt_class then
                     handleImplementedInterface(intfchildof)
                   else
-                    handleImplementedProtocol(intfchildof);
+                    handleImplementedProtocolOrJavaIntf(intfchildof);
                 readImplementedInterfacesAndProtocols(current_objectdef.objecttype=odt_class);
               end;
             consume(_RKLAMMER);

@@ -1254,16 +1254,16 @@ parser_e_no_objc_published=03271_E_Objective-C classes cannot have published sec
 parser_f_need_objc=03272_F_This module requires an Objective-C mode switch to be compiled
 % This error indicates the use of Objective-C language features without an Objective-C mode switch
 % active. Enable one via the -M command line switch, or the {\$modeswitch x} directive.
-parser_e_must_use_override_objc=03273_E_Inherited methods can only be overridden in Objective-C, add "override" (inherited method defined in $1)
-parser_h_should_use_override_objc=03274_H_Inherited methods can only be overridden in Objective-C, add "override" (inherited method defined in $1).
-% It is not possible to \var{reintroduce} methods in Objective-C like in Object Pascal. Methods with the same
+parser_e_must_use_override=03273_E_Inherited methods can only be overridden in Objective-C and Java, add "override" (inherited method defined in $1)
+parser_h_should_use_override=03274_H_Inherited methods can only be overridden in Objective-C and Java, add "override" (inherited method defined in $1).
+% It is not possible to \var{reintroduce} methods in Objective-C or Java like in Object Pascal. Methods with the same
 % name always map to the same virtual method entry. In order to make this clear in the source code,
 % the compiler always requires the \var{override} directive to be specified when implementing overriding
-% Objective-C methods in Pascal. If the implementation is external, this rule is relaxed because Objective-C
-% does not have any \var{override}-style keyword (since it's the default and only behaviour in that language),
+% Objective-C or Java methods in Pascal. If the implementation is external, this rule is relaxed because Objective-C and Java
+% do not have any \var{override}-style keyword (since it's the default and only behaviour in these languages),
 % which makes it hard for automated header conversion tools to include it everywhere.
 % The type in which the inherited method is defined is explicitly mentioned, because this may either
-% be an objcclass or an objccategory.
+% be an objcclass or an objccategory in case of Objective-C.
 parser_e_objc_message_name_changed=03275_E_Message name "$1" in inherited class is different from message name "$2" in current class.
 % An overriding Objective-C method cannot have a different message name than an inherited method. The reason
 % is that these message names uniquely define the message to the Objective-C runtime, which means that
@@ -1350,9 +1350,9 @@ parser_f_no_generic_inside_generic=03297_F_Declaration of generic class inside a
 % (guarded by internal error 200511173 in tscannerfile.startrecordtokens).
 % Since generics are implemented by recording tokens, it is not possible to
 % have declaration of generic class inside another generic class.
-parser_e_forward_protocol_declaration_must_be_resolved=03298_E_Forward declaration of objcprotocol "$1" must be resolved before an objcclass can conform to it
-% An objcprotocol must be fully defined before classes can conform to it.
-% This error occurs in the following situation:
+parser_e_forward_intf_declaration_must_be_resolved=03298_E_Forward declaration "$1" must be resolved before a class can conform to or implement it
+% An Objective-C protocol or Java Interface must be fully defined before classes can conform to it.
+% This error occurs in the following situation (example for Objective-C, but the same goes for Java interfaces):
 % \begin{verbatim}
 %  Type MyProtocol = objcprotoocl;
 %       ChildClass = Class(NSObject,MyProtocol)

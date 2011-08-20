@@ -281,11 +281,13 @@ implementation
               not(po_virtualmethod in pd.procoptions) or
               (
                { new one does not have reintroduce in case of an objccategory }
-               (is_objccategory(_class) and not(po_reintroduce in pd.procoptions)) or
-               { new one does not have override in case of objpas/objc class/helper/intf/proto }
-               (
-                (is_class_or_interface_or_objc(_class) or is_objectpascal_helper(_class)) and
-                not is_objccategory(_class) and not(po_overridingmethod in pd.procoptions)
+               (is_objccategory(_class) and
+                 not(po_reintroduce in pd.procoptions)) or
+               { new one does not have override in case of objpas/objc/java class/intf/proto }
+               ((is_class_or_interface_or_objc(_class) or is_objectpascal_helper(_class)) and
+                not is_objccategory(_class) and
+                not is_java_class_or_interface(_class) and
+                not(po_overridingmethod in pd.procoptions)
                )
               )
              ) then
@@ -296,7 +298,8 @@ implementation
                  ) then
                 begin
                   if not(po_reintroduce in pd.procoptions) then
-                    if not(is_objc_class_or_protocol(_class)) then
+                    if not(is_objc_class_or_protocol(_class)) and
+                       not(is_java_class_or_interface(_class)) then
                       MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
                     else
                       begin
@@ -308,10 +311,12 @@ implementation
 
                           In case of external classes, we only give a hint,
                           because requiring override everywhere may make
-                          automated header translation tools too complex.  }
+                          automated header translation tools too complex.
+
+                          The same goes for Java. }
                         if not(oo_is_external in _class.objectoptions) then
                           if not is_objccategory(_class) then
-                            MessagePos1(pd.fileinfo,parser_e_must_use_override_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+                            MessagePos1(pd.fileinfo,parser_e_must_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
                           else
                             MessagePos1(pd.fileinfo,parser_e_must_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil))
                         { there may be a lot of these in auto-translated
@@ -319,7 +324,7 @@ implementation
                           the hint will be shown  }
                         else if CheckVerbosity(V_Hint) then
                           if not is_objccategory(_class) then
-                            MessagePos1(pd.fileinfo,parser_h_should_use_override_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+                            MessagePos1(pd.fileinfo,parser_h_should_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
                           else
                             MessagePos1(pd.fileinfo,parser_h_should_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil));
                         { no new entry, but copy the message name if any from
@@ -397,11 +402,12 @@ implementation
                      if not(po_reintroduce in pd.procoptions) then
                        begin
                          if not is_object(_class) and
-                            not is_objc_class_or_protocol(_class) then
+                            not is_objc_class_or_protocol(_class) and
+                            not is_java_class_or_interface(_class) then
                            MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
                          else
                            { objects don't allow starting a new virtual tree
-                             and neither does Objective-C }
+                             and neither do Objective-C or Java }
                            MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,vmtpd.fullprocname(false));
                        end;
                      { disable/hide old VMT entry }
@@ -771,7 +777,8 @@ implementation
           end;
         build_interface_mappings;
         if assigned(_class.ImplementedInterfaces) and
-           not(is_objc_class_or_protocol(_class)) then
+           not(is_objc_class_or_protocol(_class)) and
+           not(is_java_class_or_interface(_class)) then
           begin
             { Optimize interface tables to reuse wrappers }
             intf_optimize_vtbls;
@@ -788,9 +795,11 @@ implementation
         ImplIntf : TImplementedInterface;
         i: longint;
       begin
-        { Find Procdefs implementing the interfaces }
+        { Find Procdefs implementing the interfaces (both Objective-C protocols
+          and Java interfaces can have multiple parent interfaces, but in that
+          case obviously no implementations are required) }
         if assigned(_class.ImplementedInterfaces) and
-           (_class.objecttype<>odt_objcprotocol) then
+           not(_class.objecttype in [odt_objcprotocol,odt_interfacejava]) then
           begin
             { Collect implementor functions into the tImplementedInterface.procdefs }
             case _class.objecttype of
@@ -802,11 +811,13 @@ implementation
                       intf_get_procdefs_recursive(ImplIntf,ImplIntf.IntfDef)
                     end;
                 end;
-              odt_objcclass:
+              odt_objcclass,
+              odt_javaclass:
                 begin
                   { Object Pascal interfaces are afterwards optimized via the
                     intf_optimize_vtbls() method, but we can't do this for
-                    protocols -> check for duplicates here already. }
+                    protocols/Java interfaces -> check for duplicates here
+                    already. }
                   handledprotocols:=tfpobjectlist.create(false);
                   for i:=0 to _class.ImplementedInterfaces.count-1 do
                     begin

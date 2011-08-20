@@ -4213,7 +4213,6 @@ implementation
         { see tprocdef.jvmmangledname for description of the format }
         if fordefinition then
           begin
-            { definition: visibility/static }
             case visibility of
               vis_hidden,
               vis_strictprivate:
@@ -4230,6 +4229,8 @@ implementation
             if (procsym.owner.symtabletype in [globalsymtable,staticsymtable,localsymtable]) or
                (po_staticmethod in procoptions) then
               tmpresult:=tmpresult+'static ';
+            if is_javainterface(tdef(owner.defowner)) then
+              tmpresult:=tmpresult+'abstract ';
           end
         else
           begin
@@ -4528,7 +4529,7 @@ implementation
         if objecttype in [odt_interfacecorba,odt_interfacecom,odt_dispinterface] then
           prepareguid;
         { setup implemented interfaces }
-        if objecttype in [odt_class,odt_objcclass,odt_objcprotocol,odt_interfacejava] then
+        if objecttype in [odt_class,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
           ImplementedInterfaces:=TFPObjectList.Create(true)
         else
           ImplementedInterfaces:=nil;
@@ -5068,8 +5069,12 @@ implementation
    function tobjectdef.is_related(d : tdef) : boolean;
      var
         hp : tobjectdef;
+        realself: tobjectdef;
      begin
-        if self=d then
+        if (d.typ=objectdef) then
+          d:=find_real_class_definition(tobjectdef(d),false);
+        realself:=find_real_class_definition(self,false);
+        if realself=d then
           begin
             is_related:=true;
             exit;
@@ -5085,7 +5090,7 @@ implementation
            inheritance }
         if (objecttype in [odt_objcprotocol,odt_interfacejava]) then
           begin
-            is_related:=is_related_interface_multiple(self,d);
+            is_related:=is_related_interface_multiple(realself,d);
             exit
           end;
 
@@ -5112,7 +5117,7 @@ implementation
             exit;
           end;
 
-        hp:=childof;
+        hp:=realself.childof;
         while assigned(hp) do
           begin
              if hp=d then

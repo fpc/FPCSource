@@ -364,8 +364,8 @@ const
   parser_h_no_objc_parent=03270;
   parser_e_no_objc_published=03271;
   parser_f_need_objc=03272;
-  parser_e_must_use_override_objc=03273;
-  parser_h_should_use_override_objc=03274;
+  parser_e_must_use_override=03273;
+  parser_h_should_use_override=03274;
   parser_e_objc_message_name_changed=03275;
   parser_e_unique_unsupported=03276;
   parser_e_no_category_as_types=03277;
@@ -389,7 +389,7 @@ const
   parser_e_objc_missing_enumeration_defs=03295;
   parser_e_no_procvarnested_const=03296;
   parser_f_no_generic_inside_generic=03297;
-  parser_e_forward_protocol_declaration_must_be_resolved=03298;
+  parser_e_forward_intf_declaration_must_be_resolved=03298;
   parser_e_no_record_published=03299;
   parser_e_no_destructor_in_records=03300;
   parser_e_class_methods_only_static_in_records=03301;
@@ -900,7 +900,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 60995;
+  MsgTxtSize = 61005;
 
   MsgIdxMax : array[1..20] of longint=(
     26,89,314,103,85,54,111,23,202,63,

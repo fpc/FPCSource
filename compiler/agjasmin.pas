@@ -388,7 +388,10 @@ implementation
 
     procedure TJasminAssembler.WriteExtraHeader(obj: tobjectdef);
       var
+        superclass,
+        intf: tobjectdef;
         n: string;
+        i: longint;
       begin
         { JVM 1.5+ }
         AsmWriteLn('.bytecode 49.0');
@@ -399,6 +402,8 @@ implementation
         else
           n:=InputFileName;
         AsmWriteLn('.source '+ExtractFileName(n));
+
+        { class/interface name }
         if not assigned(obj) then
           begin
             { fake class type for unit -> name=unitname and
@@ -408,13 +413,41 @@ implementation
           end
         else
           begin
-            AsmWriteLn('.class '+obj.objextname^);
-            if assigned(obj.childof) then
+            case obj.objecttype of
+              odt_javaclass:
+                begin
+                  AsmWriteLn('.class '+obj.objextname^);
+                  superclass:=obj.childof;
+                end;
+              odt_interfacejava:
+                begin
+                  AsmWriteLn('.interface abstract '+obj.objextname^);
+                  { interfaces must always specify Java.lang.object as
+                    superclass }
+                  superclass:=java_jlobject;
+                end
+              else
+                internalerror(2011010906);
+            end;
+            { superclass }
+            if assigned(superclass) then
               begin
                 AsmWrite('.super ');
-                if assigned(obj.childof.import_lib) then
-                  AsmWrite(obj.childof.import_lib^+'/');
-                AsmWriteln(obj.childof.objextname^);
+                if assigned(superclass.import_lib) then
+                  AsmWrite(superclass.import_lib^+'/');
+                AsmWriteln(superclass.objextname^);
+              end;
+            { implemented interfaces }
+            if assigned(obj.ImplementedInterfaces) then
+              begin
+                for i:=0 to obj.ImplementedInterfaces.count-1 do
+                  begin
+                    intf:=TImplementedInterface(obj.ImplementedInterfaces[i]).IntfDef;
+                    AsmWrite('.implements ');
+                    if assigned(intf.import_lib) then
+                      AsmWrite(intf.import_lib^+'/');
+                    AsmWriteln(intf.objextname^);
+                  end;
               end;
           end;
         AsmLn;
@@ -492,6 +525,17 @@ implementation
 
     procedure TJasminAssembler.WriteProcDef(pd: tprocdef);
       begin
+        { abstract method? }
+        if is_javainterface(tdef(pd.owner.defowner)) or
+           (po_abstractmethod in pd.procoptions) then
+          begin
+            AsmWrite('.method ');
+            AsmWriteln(pd.mangledname(true));
+            AsmWriteln('.end method');
+            AsmLn;
+            exit;
+          end;
+
         WriteTree(pd.exprasmlist);
       end;
 
