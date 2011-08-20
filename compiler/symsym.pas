@@ -145,6 +145,7 @@ interface
           function register_notification(flags:Tnotification_flags;
                                          callback:Tnotification_callback):cardinal;
           procedure unregister_notification(id:cardinal);
+          function  jvmmangledbasename:string;
         private
           _vardef     : tdef;
           vardefderef : tderef;
@@ -156,7 +157,7 @@ interface
 
       tfieldvarsym = class(tabstractvarsym)
           fieldoffset   : asizeint;   { offset in record/object }
-          objcoffsetmangledname: pshortstring; { mangled name of offset, calculated as needed }
+          cachedmangledname: pshortstring; { mangled name for ObjC or Java }
           constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -335,7 +336,7 @@ implementation
        { target }
        systems,
        { symtable }
-       defutil,symtable,
+       defutil,symtable,jvmdef,
        fmodule,
        { tree }
        node,
@@ -1146,6 +1147,17 @@ implementation
         end;
     end;
 
+
+    function tabstractvarsym.jvmmangledbasename: string;
+      var
+        founderror: tdef;
+      begin
+        if not jvmtryencodetype(vardef,result,founderror) then
+          internalerror(2011011203);
+        result:=realname+' '+result;
+      end;
+
+
     procedure tabstractvarsym.setvardef(def:tdef);
       begin
         _vardef := def;
@@ -1207,6 +1219,20 @@ implementation
         srsym : tsym;
         srsymtable : tsymtable;
       begin
+{$ifdef jvm}
+        if is_javaclass(tdef(owner.defowner)) then
+          begin
+            if assigned(cachedmangledname) then
+              result:=cachedmangledname^
+            else
+              begin
+                result:=jvmmangledbasename;
+                jvmaddtypeownerprefix(owner,result);
+                cachedmangledname:=stringdup(result);
+              end;
+          end
+        else
+{$endif jvm}
         if sp_static in symoptions then
           begin
             if searchsym(lower(owner.name^)+'_'+name,srsym,srsymtable) then
@@ -1221,12 +1247,12 @@ implementation
           end
         else if is_objcclass(tdef(owner.defowner)) then
           begin
-            if assigned(objcoffsetmangledname) then
-              result:=objcoffsetmangledname^
+            if assigned(cachedmangledname) then
+              result:=cachedmangledname^
             else
               begin
                 result:=target_info.cprefix+'OBJC_IVAR_$_'+tobjectdef(owner.defowner).objextname^+'.'+RealName;
-                objcoffsetmangledname:=stringdup(result);
+                cachedmangledname:=stringdup(result);
               end;
           end
         else
@@ -1236,7 +1262,7 @@ implementation
 
     destructor tfieldvarsym.destroy;
       begin
-        stringdispose(objcoffsetmangledname);
+        stringdispose(cachedmangledname);
         inherited destroy;
       end;
 
@@ -1349,19 +1375,29 @@ implementation
 
     function tstaticvarsym.mangledname:string;
       var
+{$ifdef jvm}
+        tmpname: string;
+{$else jvm}
         prefix : string[2];
+{$endif jvm}
       begin
         if not assigned(_mangledname) then
           begin
+{$ifdef jvm}
+            tmpname:=jvmmangledbasename;
+            jvmaddtypeownerprefix(owner,tmpname);
+            _mangledname:=stringdup(tmpname);
+{$else jvm}
             if (vo_is_typed_const in varoptions) then
               prefix:='TC'
             else
               prefix:='U';
-      {$ifdef compress}
+{$ifdef compress}
             _mangledname:=stringdup(minilzw_encode(make_mangledname(prefix,owner,name)));
-      {$else}
+{$else compress}
            _mangledname:=stringdup(make_mangledname(prefix,owner,name));
-      {$endif}
+{$endif compress}
+{$endif jvm}
           end;
         result:=_mangledname^;
       end;
@@ -1370,11 +1406,13 @@ implementation
     procedure tstaticvarsym.set_mangledname(const s:string);
       begin
         stringdispose(_mangledname);
-      {$ifdef compress}
+{$if defined(jvm)}
+        internalerror(2011011202);
+{$elseif defined(compress)}
         _mangledname:=stringdup(minilzw_encode(s));
-      {$else}
+{$else}
         _mangledname:=stringdup(s);
-      {$endif}
+{$endif}
         include(varoptions,vo_has_mangledname);
       end;
 

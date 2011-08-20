@@ -580,7 +580,6 @@ interface
           function  cplusplusmangledname : string;
           function  objcmangledname : string;
           function  jvmmangledbasename: string;
-          procedure makejvmmangledcallname(var name: string);
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
           procedure make_external;
@@ -3967,7 +3966,16 @@ implementation
         mangledname:=defaultmangledname;
 {$else not jvm}
         mangledname:=jvmmangledbasename;
-        makejvmmangledcallname(mangledname);
+        if (po_has_importdll in procoptions) then
+          begin
+            { import_dll comes from "external 'import_dll_name' name 'external_name'" }
+            if assigned(import_dll) then
+              mangledname:=import_dll^+'/'+mangledname
+            else
+              internalerror(2010122607);
+          end
+        else
+          jvmaddtypeownerprefix(owner,mangledname);
 {$endif not jvm}
        {$ifdef compress}
         _mangledname:=stringdup(minilzw_encode(mangledname));
@@ -4199,57 +4207,12 @@ implementation
       end;
 
 
-    procedure tprocdef.makejvmmangledcallname(var name: string);
-      var
-        owningunit: tsymtable;
-        tmpresult: string;
-      begin
-        { see tprocdef.jvmmangledbasename for description of the format }
-        { invocation: package/class name }
-        case procsym.owner.symtabletype of
-          globalsymtable,
-          staticsymtable,
-          localsymtable:
-            begin
-              if po_has_importdll in procoptions then
-                begin
-                  tmpresult:='';
-                  { import_dll comes from "external 'import_dll_name' name 'external_name'" }
-                  if assigned(import_dll) then
-                    tmpresult:=import_dll^+'/'
-                  else
-                    internalerror(2010122607);
-                end;
-              owningunit:=procsym.owner;
-              while (owningunit.symtabletype in [localsymtable,objectsymtable,recordsymtable]) do
-                owningunit:=owner.defowner.owner;
-              tmpresult:=tmpresult+owningunit.realname^+'/';
-            end;
-          objectsymtable:
-            case tobjectdef(procsym.owner.defowner).objecttype of
-              odt_javaclass,
-              odt_interfacejava:
-                begin
-                  tmpresult:=tobjectdef(procsym.owner.defowner).jvm_full_typename+'/'
-                end
-              else
-                internalerror(2010122606);
-            end
-          else
-            internalerror(2010122605);
-        end;
-        name:=tmpresult+name;
-      end;
-
-
     function tprocdef.jvmmangledbasename: string;
       var
-        owningunit: tsymtable;
-        parasize,
         vs: tparavarsym;
         i: longint;
         founderror: tdef;
-        tmpresult: ansistring;
+        tmpresult: string;
       begin
         { format:
             * method definition (in Jasmin):

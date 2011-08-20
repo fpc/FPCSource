@@ -54,6 +54,9 @@ implementation
        systems,
        { symtable }
        symconst,symbase,symtype,symtable,defutil,defcmp,
+{$ifdef jvm}
+       jvmdef,
+{$endif}
        fmodule,htypechk,
        { pass 1 }
        node,pass_1,aasmdata,
@@ -1665,10 +1668,26 @@ implementation
                      include(fieldvs.symoptions,sp_static);
                      { generate the symbol which reserves the space }
                      static_name:=lower(generate_nested_name(recst,'_'))+'_'+fieldvs.name;
+{$ifndef jvm}
                      hstaticvs:=tstaticvarsym.create('$_static_'+static_name,vs_value,hdef,[]);
                      include(hstaticvs.symoptions,sp_internal);
                      recst.get_unit_symtable.insert(hstaticvs);
                      insertbssdata(hstaticvs);
+{$else not jvm}
+                     { for the JVM, static field accesses are name-based and
+                       hence we have to keep the original name of the field.
+                       Create a staticvarsym instead of a fieldvarsym so we can
+                       nevertheless use a loadn instead of a subscriptn though,
+                       since a subscriptn requires something to subscript and
+                       there is nothing in this case (class+field name will be
+                       encoded in the mangled symbol name) }
+                     hstaticvs:=tstaticvarsym.create(fieldvs.realname,vs_value,hdef,[]);
+                     include(hstaticvs.symoptions,sp_internal);
+                     { rename the original field to prevent a name clash when
+                       inserting the new one }
+                     fieldvs.Rename(jvminternalstaticfieldname(fieldvs.name));
+                     recst.insert(hstaticvs);
+{$endif not jvm}
                      { generate the symbol for the access }
                      sl:=tpropaccesslist.create;
                      sl.addsym(sl_load,hstaticvs);

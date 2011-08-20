@@ -29,18 +29,25 @@ interface
 
     uses
       node,
-      symtype;
+      symbase,symtype;
 
     { Encode a type into the internal format used by the JVM (descriptor).
       Returns false if a type is not representable by the JVM,
       and in that case also the failing definition.  }
-    function jvmtryencodetype(def: tdef; out encodedtype: ansistring; out founderror: tdef): boolean;
+    function jvmtryencodetype(def: tdef; out encodedtype: string; out founderror: tdef): boolean;
 
     { Check whether a type can be used in a JVM methom signature or field
       declaration.  }
     function jvmchecktype(def: tdef; out founderror: tdef): boolean;
 
-    function jvmaddencodedtype(def: tdef; bpacked: boolean; var encodedstr: ansistring; out founderror: tdef): boolean;
+    { incremental version of jvmtryencodetype() }
+    function jvmaddencodedtype(def: tdef; bpacked: boolean; var encodedstr: string; out founderror: tdef): boolean;
+
+    { add type prefix (package name) to a type }
+    procedure jvmaddtypeownerprefix(owner: tsymtable; var name: string);
+
+    { generate internal static field name based on regular field name }
+    function jvminternalstaticfieldname(const fieldname: string): string;
 
 implementation
 
@@ -48,6 +55,7 @@ implementation
     globtype,
     cutils,cclasses,
     verbose,systems,
+    fmodule,
     symtable,symconst,symsym,symdef,
     defutil,paramgr;
 
@@ -55,14 +63,9 @@ implementation
                           Type encoding
 *******************************************************************}
 
-    function jvmaddencodedtype(def: tdef; bpacked: boolean; var encodedstr: ansistring; out founderror: tdef): boolean;
+    function jvmaddencodedtype(def: tdef; bpacked: boolean; var encodedstr: string; out founderror: tdef): boolean;
       var
-        recname: ansistring;
-        recdef: trecorddef;
-        objdef: tobjectdef;
-        len: aint;
         c: char;
-        addrpara: boolean;
       begin
         result:=true;
         case def.typ of
@@ -199,9 +202,49 @@ implementation
       end;
 
 
-    function jvmtryencodetype(def: tdef; out encodedtype: ansistring; out founderror: tdef): boolean;
+    function jvmtryencodetype(def: tdef; out encodedtype: string; out founderror: tdef): boolean;
       begin
+        encodedtype:='';
         result:=jvmaddencodedtype(def,false,encodedtype,founderror);
+      end;
+
+
+    procedure jvmaddtypeownerprefix(owner: tsymtable; var name: string);
+      var
+        owningunit: tsymtable;
+        tmpresult: string;
+      begin
+        { see tprocdef.jvmmangledbasename for description of the format }
+        case owner.symtabletype of
+          globalsymtable,
+          staticsymtable,
+          localsymtable:
+            begin
+              owningunit:=owner;
+              while (owningunit.symtabletype in [localsymtable,objectsymtable,recordsymtable]) do
+                owningunit:=owningunit.defowner.owner;
+              tmpresult:=find_module_from_symtable(owningunit).realmodulename^+'/';
+            end;
+          objectsymtable:
+            case tobjectdef(owner.defowner).objecttype of
+              odt_javaclass,
+              odt_interfacejava:
+                begin
+                  tmpresult:=tobjectdef(owner.defowner).jvm_full_typename+'/'
+                end
+              else
+                internalerror(2010122606);
+            end
+          else
+            internalerror(2010122605);
+        end;
+        name:=tmpresult+name;
+      end;
+
+
+    function jvminternalstaticfieldname(const fieldname: string): string;
+      begin
+        result:='$_static_'+fieldname;
       end;
 
 
@@ -211,7 +254,7 @@ implementation
 
    function jvmchecktype(def: tdef; out founderror: tdef): boolean;
       var
-        encodedtype: ansistring;
+        encodedtype: string;
       begin
         { don't duplicate the code like in objcdef, since the resulting strings
           are much shorter here so it's not worth it }

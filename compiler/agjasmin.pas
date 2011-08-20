@@ -30,7 +30,7 @@ interface
     uses
       cclasses,
       globtype,globals,
-      symbase,symdef,
+      symconst,symbase,symdef,symsym,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       assemble;
 
@@ -50,8 +50,14 @@ interface
         procedure WriteExtraHeader(obj: tobjectdef);
         procedure WriteInstruction(hp: tai);
         procedure NewAsmFileForObjectDef(obj: tobjectdef);
+
+        function VisibilityToStr(vis: tvisibility): string;
         function MethodDefinition(pd: tprocdef): string;
+        function FieldDefinition(sym: tabstractvarsym): string;
+
         procedure WriteProcDef(pd: tprocdef);
+        procedure WriteFieldSym(sym: tabstractvarsym);
+        procedure WriteSymtableVarSyms(st: TSymtable);
         procedure WriteSymtableProcdefs(st: TSymtable);
         procedure WriteSymtableObjectDefs(st: TSymtable);
        public
@@ -88,7 +94,7 @@ implementation
       SysUtils,
       cutils,cfileutl,systems,script,
       fmodule,finput,verbose,
-      symconst,symtype,
+      symtype,symtable,jvmdef,
       itcpujas,cpubase,cgutils,
       widestr
       ;
@@ -520,21 +526,30 @@ implementation
       end;
 
 
-    function TJasminAssembler.MethodDefinition(pd: tprocdef): string;
+    function TJasminAssembler.VisibilityToStr(vis: tvisibility): string;
       begin
-        case pd.visibility of
+        case vis of
           vis_hidden,
           vis_strictprivate:
             result:='private ';
           vis_strictprotected:
             result:='protected ';
           vis_protected,
-          vis_private,
+          vis_private:
+            { pick default visibility = "package" visibility; required because
+              other classes in the same unit can also access these symbols }
+            result:='';
           vis_public:
-            result:='public ';
+            result:='public '
           else
             internalerror(2010122609);
         end;
+      end;
+
+
+    function TJasminAssembler.MethodDefinition(pd: tprocdef): string;
+      begin
+        result:=VisibilityToStr(pd.visibility);
         if (pd.procsym.owner.symtabletype in [globalsymtable,staticsymtable,localsymtable]) or
            (po_staticmethod in pd.procoptions) then
           result:=result+'static ';
@@ -544,9 +559,45 @@ implementation
       end;
 
 
-    procedure TJasminAssembler.WriteProcDef(pd: tprocdef);
+    function TJasminAssembler.FieldDefinition(sym: tabstractvarsym): string;
       var
-        procname: string;
+        vissym: tabstractvarsym;
+      begin
+        vissym:=sym;
+        { static field definition -> get original field definition for
+          visibility }
+        if (vissym.typ=staticvarsym) and
+           (vissym.owner.symtabletype=objectsymtable) then
+          begin
+            vissym:=tabstractvarsym(search_struct_member(
+              tobjectdef(vissym.owner.defowner),
+              jvminternalstaticfieldname(vissym.name)));
+            if not assigned(vissym) or
+               (vissym.typ<>fieldvarsym) then
+              internalerror(2011011501);
+          end;
+        case vissym.typ of
+          staticvarsym:
+            begin
+              if vissym.owner.symtabletype=globalsymtable then
+                result:='public '
+              else
+                { package visbility }
+                result:='';
+            end;
+          fieldvarsym:
+            result:=VisibilityToStr(tfieldvarsym(vissym).visibility);
+          else
+            internalerror(2011011204);
+        end;
+        if (vissym.owner.symtabletype in [staticsymtable,globalsymtable]) or
+           (sp_static in vissym.symoptions) then
+          result:=result+'static ';
+        result:=result+sym.jvmmangledbasename;
+      end;
+
+
+    procedure TJasminAssembler.WriteProcDef(pd: tprocdef);
       begin
         if not assigned(pd.exprasmlist) and
            (not is_javainterface(pd.struct) or
@@ -560,11 +611,41 @@ implementation
       end;
 
 
+    procedure TJasminAssembler.WriteFieldSym(sym: tabstractvarsym);
+      begin
+        { internal static field definition alias -> skip }
+        if sp_static in sym.symoptions then
+          exit;
+        AsmWrite('.field ');
+        AsmWriteln(FieldDefinition(sym));
+      end;
+
+
+    procedure TJasminAssembler.WriteSymtableVarSyms(st: TSymtable);
+      var
+        sym : tsym;
+        i   : longint;
+      begin
+        if not assigned(st) then
+          exit;
+        for i:=0 to st.SymList.Count-1 do
+         begin
+           sym:=tsym(st.SymList[i]);
+           case sym.typ of
+             staticvarsym,
+             fieldvarsym:
+               begin
+                 WriteFieldSym(tabstractvarsym(sym));
+               end;
+           end;
+         end;
+      end;
+
+
     procedure TJasminAssembler.WriteSymtableProcdefs(st: TSymtable);
       var
         i   : longint;
         def : tdef;
-        obj : tobjectdef;
       begin
         if not assigned(st) then
           exit;
@@ -613,6 +694,8 @@ implementation
             obj:=tobjectdef(nestedclasses[i]);
             NewAsmFileForObjectDef(obj);
             WriteExtraHeader(obj);
+            WriteSymtableVarSyms(obj.symtable);
+            AsmLn;
             WriteSymtableProcDefs(obj.symtable);
             WriteSymtableObjectDefs(obj.symtable);
           end;
@@ -647,6 +730,10 @@ implementation
           AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
         end;
 *)
+      { print all global variables }
+      WriteSymtableVarSyms(current_module.globalsymtable);
+      WriteSymtableVarSyms(current_module.localsymtable);
+      AsmLn;
       { print all global procedures/functions }
       WriteSymtableProcdefs(current_module.globalsymtable);
       WriteSymtableProcdefs(current_module.localsymtable);
@@ -678,9 +765,11 @@ implementation
           internalerror(2010122809);
         if assigned(ref.symbol) then
           begin
-            // global symbol -> full type/name
-            if (ref.base<>NR_NO) or
-               (ref.offset<>0) then
+            // global symbol or field -> full type and name
+            // ref.base can be <> NR_NO in case an instance field is loaded.
+            // This register is not part of this instruction, it will have
+            // been placed on the stack by the previous one.
+            if (ref.offset<>0) then
               internalerror(2010122811);
             result:=ref.symbol.name;
           end
