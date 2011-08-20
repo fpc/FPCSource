@@ -283,73 +283,113 @@ function min(a,b : longint) : longint;
 { also for booleans }
 procedure fpc_copy_jbyte_array(src, dst: TJByteArray);
   var
-    i: longint;
+    srclen, dstlen: jint;
   begin
-    for i:=0 to min(high(src),high(dst)) do
-      dst[i]:=src[i];
+    srclen:=length(src);
+    dstlen:=length(dst);
+    { causes exception in JLSystem.arraycopy }
+    if (srclen=0) or
+       (dstlen=0) then
+      exit;
+    JLSystem.arraycopy(JLObject(src),0,JLObject(dst),0,min(srclen,dstlen));
   end;
 
 
 procedure fpc_copy_jshort_array(src, dst: TJShortArray);
   var
-    i: longint;
+    srclen, dstlen: jint;
   begin
-    for i:=0 to min(high(src),high(dst)) do
-      dst[i]:=src[i];
+    srclen:=length(src);
+    dstlen:=length(dst);
+    { causes exception in JLSystem.arraycopy }
+    if (srclen=0) or
+       (dstlen=0) then
+      exit;
+    JLSystem.arraycopy(JLObject(src),0,JLObject(dst),0,min(srclen,dstlen));
   end;
 
 
 procedure fpc_copy_jint_array(src, dst: TJIntArray);
   var
-    i: longint;
+    srclen, dstlen: jint;
   begin
-    for i:=0 to min(high(src),high(dst)) do
-      dst[i]:=src[i];
+    srclen:=length(src);
+    dstlen:=length(dst);
+    { causes exception in JLSystem.arraycopy }
+    if (srclen=0) or
+       (dstlen=0) then
+      exit;
+    JLSystem.arraycopy(JLObject(src),0,JLObject(dst),0,min(srclen,dstlen));
   end;
 
 
 procedure fpc_copy_jlong_array(src, dst: TJLongArray);
   var
-    i: longint;
+    srclen, dstlen: jint;
   begin
-    for i:=0 to min(high(src),high(dst)) do
-      dst[i]:=src[i];
+    srclen:=length(src);
+    dstlen:=length(dst);
+    { causes exception in JLSystem.arraycopy }
+    if (srclen=0) or
+       (dstlen=0) then
+      exit;
+    JLSystem.arraycopy(JLObject(src),0,JLObject(dst),0,min(srclen,dstlen));
   end;
 
 
 procedure fpc_copy_jchar_array(src, dst: TJCharArray);
   var
-    i: longint;
+    srclen, dstlen: jint;
   begin
-    for i:=0 to min(high(src),high(dst)) do
-      dst[i]:=src[i];
+    srclen:=length(src);
+    dstlen:=length(dst);
+    { causes exception in JLSystem.arraycopy }
+    if (srclen=0) or
+       (dstlen=0) then
+      exit;
+    JLSystem.arraycopy(JLObject(src),0,JLObject(dst),0,min(srclen,dstlen));
   end;
 
 
 procedure fpc_copy_jfloat_array(src, dst: TJFloatArray);
   var
-    i: longint;
+    srclen, dstlen: jint;
   begin
-    for i:=0 to min(high(src),high(dst)) do
-      dst[i]:=src[i];
+    srclen:=length(src);
+    dstlen:=length(dst);
+    { causes exception in JLSystem.arraycopy }
+    if (srclen=0) or
+       (dstlen=0) then
+      exit;
+    JLSystem.arraycopy(JLObject(src),0,JLObject(dst),0,min(srclen,dstlen));
   end;
 
 
 procedure fpc_copy_jdouble_array(src, dst: TJDoubleArray);
   var
-    i: longint;
+    srclen, dstlen: jint;
   begin
-    for i:=0 to min(high(src),high(dst)) do
-      dst[i]:=src[i];
+    srclen:=length(src);
+    dstlen:=length(dst);
+    { causes exception in JLSystem.arraycopy }
+    if (srclen=0) or
+       (dstlen=0) then
+      exit;
+    JLSystem.arraycopy(JLObject(src),0,JLObject(dst),0,min(srclen,dstlen));
   end;
 
 
 procedure fpc_copy_jobject_array(src, dst: TJObjectArray);
   var
-    i: longint;
+    srclen, dstlen: jint;
   begin
-    for i:=0 to min(high(src),high(dst)) do
-      dst[i]:=src[i];
+    srclen:=length(src);
+    dstlen:=length(dst);
+    { causes exception in JLSystem.arraycopy }
+    if (srclen=0) or
+       (dstlen=0) then
+      exit;
+    JLSystem.arraycopy(JLObject(src),0,JLObject(dst),0,min(srclen,dstlen));
   end;
 
 
@@ -357,6 +397,7 @@ procedure fpc_copy_jrecord_array(src, dst: TJRecordArray);
   var
     i: longint;
   begin
+    { no arraycopy, have to clone each element }
     for i:=0 to min(high(src),high(dst)) do
       dst[i]:=FpcBaseRecordType(src[i].clone);
   end;
