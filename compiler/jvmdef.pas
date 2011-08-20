@@ -380,7 +380,30 @@ implementation
           constsym:
             begin
               csym:=tconstsym(sym);
-              result:=jvmencodetype(csym.constdef);
+              { some constants can be untyped }
+              if assigned (csym.constdef) then
+                result:=jvmencodetype(csym.constdef)
+              else
+                begin
+                  case csym.consttyp of
+                    constord:
+                      result:=jvmencodetype(s32inttype);
+                    constreal:
+                      result:=jvmencodetype(s64floattype);
+                    constset:
+                      internalerror(2011040701);
+                    constpointer,
+                    constnil:
+                      result:=jvmencodetype(java_jlobject);
+                    constwstring,
+                    conststring:
+                      result:=jvmencodetype(java_jlstring);
+                    constguid:
+                      internalerror(2011040702);
+                    else
+                      internalerror(2011040703);
+                  end;
+                end;
               result:=usesymname+' '+result;
             end;
           else
