@@ -64,7 +64,7 @@ interface
   { in the JVM, constructors are not automatically inherited (so you can hide
     them). To emulate the Pascal behaviour, we have to automatically add
     all parent constructors to the current class as well.}
-  procedure add_missing_parent_constructors_intf(obj: tobjectdef);
+  procedure add_missing_parent_constructors_intf(obj: tobjectdef; forcevis: tvisibility);
 
   { goes through all defs in st to add implementations for synthetic methods
     added earlier }
@@ -207,7 +207,7 @@ implementation
      end;
 
 
-  procedure add_missing_parent_constructors_intf(obj: tobjectdef);
+  procedure add_missing_parent_constructors_intf(obj: tobjectdef; forcevis: tvisibility);
     var
       parent: tobjectdef;
       def: tdef;
@@ -249,6 +249,8 @@ implementation
           { if we get here, we did not find it in the current objectdef ->
             add }
           childpd:=tprocdef(parentpd.getcopy);
+          if forcevis<>vis_none then
+            childpd.visibility:=forcevis;
           finish_copied_procdef(childpd,parentpd.procsym.realname,obj.symtable,obj);
           exclude(childpd.procoptions,po_external);
           include(childpd.procoptions,po_overload);

@@ -152,7 +152,8 @@ type
     vis_strictprotected,
     vis_protected,
     vis_public,
-    vis_published
+    vis_published,
+    vis_none
   );
 
   { symbol options }
@@ -621,7 +622,7 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
 
      visibilityName : array[tvisibility] of string[16] = (
        'hidden','strict private','private','strict protected','protected',
-       'public','published'
+       'public','published',''
      );
 
 

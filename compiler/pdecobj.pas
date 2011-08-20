@@ -1390,7 +1390,7 @@ implementation
                 we obviously cannot add constructors to those) }
               if is_javaclass(current_structdef) then
                 begin
-                  add_missing_parent_constructors_intf(tobjectdef(current_structdef));
+                  add_missing_parent_constructors_intf(tobjectdef(current_structdef),vis_none);
                   maybe_add_public_default_java_constructor(tobjectdef(current_structdef));
                 end;
               { need method to hold the initialization code for typed constants? }
