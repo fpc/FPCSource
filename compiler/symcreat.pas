@@ -57,11 +57,41 @@ implementation
     pbase,pdecobj,psub,
     defcmp;
 
+  type
+    tscannerstate = record
+      old_scanner: tscannerfile;
+      old_token: ttoken;
+      old_c: char;
+      valid: boolean;
+    end;
+
+  procedure save_scanner(out sstate: tscannerstate);
+    begin
+      { would require saving of idtoken, pattern etc }
+      if (token=_ID) then
+        internalerror(2011032201);
+      sstate.old_scanner:=current_scanner;
+      sstate.old_token:=token;
+      sstate.old_c:=c;
+      sstate.valid:=true;
+    end;
+
+
+  procedure restore_scanner(const sstate: tscannerstate);
+    begin
+      if sstate.valid then
+        begin
+          current_scanner.free;
+          current_scanner:=sstate.old_scanner;
+          token:=sstate.old_token;
+          c:=sstate.old_c;
+        end;
+    end;
+
 
   function str_parse_method_dec(str: ansistring; is_classdef: boolean; astruct: tabstractrecorddef; out pd: tprocdef): boolean;
     var
       oldparse_only: boolean;
-      scannerstate: tscannerstate;
     begin
       oldparse_only:=parse_only;
       parse_only:=true;
@@ -78,34 +108,30 @@ implementation
           result:=true;
         end;
       parse_only:=oldparse_only;
-//      current_scanner.inserttext_end(scannerstate);
     end;
 
 
   function str_parse_method_impl(str: ansistring; is_classdef: boolean):boolean;
      var
        oldparse_only: boolean;
-       scannerstate: tscannerstate;
      begin
-       str:=str+'end;';
-     (*
-       oldparse_only:=parse_only;
-       parse_only:=false;
+      oldparse_only:=parse_only;
+      parse_only:=false;
+      result:=false;
       { inject the string in the scanner }
-      current_scanner.inserttext_begin('meth_impl_macro',str,scannerstate);
-      dec(current_scanner.yylexcount);
+      str:=str+'end;';
+      current_scanner.substitutemacro('meth_impl_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index);
+      current_scanner.readtoken(false);
+      { and parse it... }
       read_proc(is_classdef);
       parse_only:=oldparse_only;
       result:=true;
-      current_scanner.inserttext_end(scannerstate);
-      *)
      end;
 
 
   procedure add_missing_parent_constructors_intf(obj: tobjectdef);
     var
       parent: tobjectdef;
-      psym: tprocsym;
       def: tdef;
       pd: tprocdef;
       newpd,
@@ -115,11 +141,11 @@ implementation
       srsymtable: tsymtable;
       isclassmethod: boolean;
       str: ansistring;
-      old_scanner: tscannerfile;
+      sstate: tscannerstate;
     begin
       if not assigned(obj.childof) then
         exit;
-      old_scanner:=nil;
+      sstate.valid:=false;
       parent:=obj.childof;
       { find all constructor in the parent }
       for i:=0 to tobjectsymtable(parent.symtable).deflist.count-1 do
@@ -147,9 +173,9 @@ implementation
             end;
           { if we get here, we did not find it in the current objectdef ->
             add }
-          if not assigned(old_scanner) then
+          if not sstate.valid then
             begin
-              old_scanner:=current_scanner;
+              save_scanner(sstate);
               current_scanner:=tscannerfile.Create('_Macro_.parent_constructors_intf');
             end;
           isclassmethod:=
@@ -161,12 +187,7 @@ implementation
             internalerror(2011032001);
           include(newpd.procoptions,po_synthetic);
         end;
-      if assigned(old_scanner) then
-        begin
-          current_scanner.free;
-          current_scanner:=old_scanner;
-          current_scanner.readtoken(false);
-        end;
+      restore_scanner(sstate);
     end;
 
 
@@ -197,17 +218,27 @@ implementation
     var
       i: longint;
       def: tdef;
+      sstate: tscannerstate;
     begin
       { only necessary for the JVM target currently }
       if not (target_info.system in [system_jvm_java32]) then
         exit;
+      sstate.valid:=false;
       for i:=0 to st.deflist.count-1 do
         begin
           def:=tdef(st.deflist[i]);
           if is_javaclass(def) and
              not(oo_is_external in tobjectdef(def).objectoptions) then
+           begin
+             if not sstate.valid then
+               begin
+                 save_scanner(sstate);
+                 current_scanner:=tscannerfile.Create('_Macro_.parent_constructors_impl');
+               end;
             add_missing_parent_constructors_impl(tobjectdef(def));
+           end;
         end;
+      restore_scanner(sstate);
     end;
 
 
