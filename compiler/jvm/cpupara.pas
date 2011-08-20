@@ -44,6 +44,7 @@ interface
         function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;override;
         function param_use_paraloc(const cgpara: tcgpara): boolean; override;
         function ret_in_param(def: tdef; calloption: tproccalloption): boolean; override;
+        function is_stack_paraloc(paraloc: pcgparalocation): boolean;override;
       private
         procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
         procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
@@ -126,6 +127,12 @@ implementation
     function TJVMParaManager.ret_in_param(def: tdef; calloption: tproccalloption): boolean;
       begin
         Result:=false;
+      end;
+
+    function TJVMParaManager.is_stack_paraloc(paraloc: pcgparalocation): boolean;
+      begin
+        { all parameters are passed on the evaluation stack }
+        result:=true;
       end;
 
 
