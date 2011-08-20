@@ -65,6 +65,7 @@ interface
           function first_trunc_real: tnode; virtual;
           function first_int_real: tnode; virtual;
           function first_abs_long: tnode; virtual;
+          function first_IncludeExclude: tnode; virtual;
           function first_setlength: tnode; virtual;
           function first_copy: tnode; virtual;
           { This one by default generates an internal error, because such
@@ -3144,7 +3145,7 @@ implementation
          in_include_x_y,
          in_exclude_x_y:
            begin
-              expectloc:=LOC_VOID;
+              result:=first_IncludeExclude;
            end;
 
          in_pack_x_y_z,
@@ -3430,6 +3431,14 @@ implementation
         expectloc:=LOC_REGISTER;
         result:=nil;
       end;
+
+
+     function tinlinenode.first_IncludeExclude: tnode;
+       begin
+         result:=nil;
+         expectloc:=LOC_VOID;
+       end;
+
 
      function tinlinenode.first_setlength: tnode;
       var
