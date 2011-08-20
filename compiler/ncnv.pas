@@ -308,8 +308,15 @@ implementation
 
         { don't insert superfluous type conversions, but
           in case of bitpacked accesses, the original type must
-          remain too so that not too many/few bits are laoded }
+          remain too so that not too many/few bits are laoded.
+
+          Also, in case the deftyp changes, don't ignore because lots of code
+          expects that if the resultdef is set to e.g. stringdef, it remains
+          that way (e.g., in case of Java where java_jlstring equals
+          unicodestring according to equal_defs, but an add node for strings
+          still expects the resultdef of the node to be a stringdef) }
         if equal_defs(p.resultdef,def) and
+           (p.resultdef.typ=def.typ) and
            not is_bitpacked_access(p) then
           p.resultdef:=def
         else
