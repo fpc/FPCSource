@@ -162,7 +162,7 @@ function tjvmloadnode.is_copyout_addr_param_load: boolean;
 function tjvmloadnode.is_addr_param_load: boolean;
   begin
     result:=
-      (inherited and
+      (inherited is_addr_param_load and
        not jvmimplicitpointertype(tparavarsym(symtableentry).vardef) and
        (tparavarsym(symtableentry).vardef.typ<>formaldef)) or
       is_copyout_addr_param_load;
