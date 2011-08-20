@@ -350,6 +350,8 @@ implementation
              if not sstate.valid then
                replace_scanner('synthetic_impl',sstate);
             add_synthetic_method_implementations_for_struct(tabstractrecorddef(def));
+            { also complete nested types }
+            add_synthetic_method_implementations(tabstractrecorddef(def).symtable);
            end;
         end;
       restore_scanner(sstate);
