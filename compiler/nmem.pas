@@ -236,7 +236,8 @@ implementation
                  left:=nil;
                end
              else if is_javaclass(left.resultdef) and
-                (left.nodetype<>typen) then
+                (left.nodetype<>typen) and
+                (left.resultdef.typ<>classrefdef) then
                begin
                  { call java.lang.Object.getClass() }
                  vs:=search_struct_member(tobjectdef(left.resultdef),'GETCLASS');
@@ -245,6 +246,8 @@ implementation
                    internalerror(2011041901);
                  result:=ccallnode.create(nil,tprocsym(vs),vs.owner,left,[]);
                  inserttypeconv_explicit(result,resultdef);
+                 { reused }
+                 left:=nil;
                end
              else
                firstpass(left)
