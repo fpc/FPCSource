@@ -898,6 +898,9 @@ implementation
           ts:=ttypesym.create(trecorddef(def).symtable.realname^,def);
           st.insert(ts);
           ts.visibility:=vis_strictprivate;
+          { this typesym can't be used by any Pascal code, so make sure we don't
+            print a hint about it being unused }
+          addsymref(ts);
         end;
     end;
 
