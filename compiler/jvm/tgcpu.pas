@@ -129,6 +129,19 @@ unit tgcpu;
               result:=true;
 {$endif}
             end;
+          stringdef:
+            begin
+              if is_shortstring(def) then
+                begin
+{$ifndef nounsupported}
+                  gettemp(list,java_jlobject.size,java_jlobject.alignment,temptype,ref);
+                  result:=true;
+{$else}
+                  internalerror(2011051701);
+{$endif}
+
+                end;
+            end;
         end;
       end;
 
