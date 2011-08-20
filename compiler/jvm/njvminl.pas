@@ -572,8 +572,10 @@ implementation
       var
         newblock: tblocknode;
         newstatement: tstatementnode;
+        lefttemp,
         lentemp: ttempcreatenode;
         ifcond,
+        stringtemp,
         stringnonnull,
         stringnull: tnode;
         psym: tsym;
@@ -593,28 +595,43 @@ implementation
             else
               stringclass:=java_jlstring;
             newblock:=internalstatements(newstatement);
+            { store left into a temp since it may contain a function call
+              (which must not be evaluated twice) }
+            if node_complexity(left)>4 then
+              begin
+                lefttemp:=ctempcreatenode.create_value(stringclass,stringclass.size,tt_persistent,true,ctypeconvnode.create_explicit(left,stringclass));
+                addstatement(newstatement,lefttemp);
+                stringtemp:=ctemprefnode.create(lefttemp)
+              end
+            else
+              begin
+                lefttemp:=nil;
+                stringtemp:=left;
+              end;
+            left:=nil;
             lentemp:=ctempcreatenode.create(s32inttype,s32inttype.size,tt_persistent,true);
             addstatement(newstatement,lentemp);
-            { if-condition }
+            { if-condition: assigned(stringclass(stringvar))? }
             ifcond:=cinlinenode.create(in_assigned_x,false,
-              ccallparanode.create(ctypeconvnode.create_explicit(left.getcopy,stringclass),nil));
-            { then-path (reuse left, since last use) }
+              ccallparanode.create(stringtemp.getcopy,nil));
+            { then-path: call length() method }
             psym:=search_struct_member(tabstractrecorddef(stringclass),'LENGTH');
             if not assigned(psym) or
                (psym.typ<>procsym) then
               internalerror(2011031403);
             stringnonnull:=cassignmentnode.create(
               ctemprefnode.create(lentemp),
-              ccallnode.create(nil,tprocsym(psym),psym.owner,
-                ctypeconvnode.create_explicit(left,stringclass),[]));
-            left:=nil;
-            { else-path}
+              ccallnode.create(nil,tprocsym(psym),psym.owner,stringtemp,[]));
+            { else-path: length is 0 }
             stringnull:=cassignmentnode.create(
               ctemprefnode.create(lentemp),
               genintconstnode(0));
             { complete if-statement }
             addstatement(newstatement,cifnode.create(ifcond,stringnonnull,stringnull));
-            { return temp }
+            { free lefttemp }
+            if assigned(lefttemp) then
+              addstatement(newstatement,ctempdeletenode.create(lefttemp));
+            { return len temp }
             addstatement(newstatement,ctempdeletenode.create_normal_temp(lentemp));
             addstatement(newstatement,ctemprefnode.create(lentemp));
             result:=newblock;
