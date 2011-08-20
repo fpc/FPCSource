@@ -316,7 +316,9 @@ type
        up the stack will also remain balanced) }
     po_delphi_nested_cc,
     { Java method }
-    po_java
+    po_java,
+    { synthetic method, not parsed from source but inserted by compiler }
+    po_synthetic
   );
   tprocoptions=set of tprocoption;
 

@@ -32,6 +32,9 @@ interface
     { parses a object declaration }
     function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
 
+    { parses a (class) method declaration }
+    function method_dec(astruct: tabstractrecorddef; is_classdef: boolean): tprocdef;
+
     function class_constructor_head:tprocdef;
     function class_destructor_head:tprocdef;
     function constructor_head:tprocdef;
@@ -43,7 +46,7 @@ implementation
     uses
       sysutils,cutils,
       globals,verbose,systems,tokens,
-      symbase,symsym,symtable,
+      symbase,symsym,symtable,symcreat,
       node,nld,nmem,ncon,ncnv,ncal,
       fmodule,scanner,
       pbase,pexpr,pdecsub,pdecvar,ptype,pdecl,ppu
@@ -704,7 +707,8 @@ implementation
           message(parser_e_dispinterface_needs_a_guid);
       end;
 
-    procedure parse_object_members;
+
+    function method_dec(astruct: tabstractrecorddef; is_classdef: boolean): tprocdef;
 
       procedure chkobjc(pd: tprocdef);
         begin
@@ -733,28 +737,195 @@ implementation
             { nothing currently }
           end;
 
+
         procedure maybe_parse_hint_directives(pd:tprocdef);
-        var
-          dummysymoptions : tsymoptions;
-          deprecatedmsg : pshortstring;
-        begin
-          dummysymoptions:=[];
-          deprecatedmsg:=nil;
-          while try_consume_hintdirective(dummysymoptions,deprecatedmsg) do
-            Consume(_SEMICOLON);
-          if assigned(pd) then
-            begin
-              pd.symoptions:=pd.symoptions+dummysymoptions;
-              pd.deprecatedmsg:=deprecatedmsg;
-            end
-          else
-            stringdispose(deprecatedmsg);
-        end;
+          var
+            dummysymoptions : tsymoptions;
+            deprecatedmsg : pshortstring;
+          begin
+            dummysymoptions:=[];
+            deprecatedmsg:=nil;
+            while try_consume_hintdirective(dummysymoptions,deprecatedmsg) do
+              Consume(_SEMICOLON);
+            if assigned(pd) then
+              begin
+                pd.symoptions:=pd.symoptions+dummysymoptions;
+                pd.deprecatedmsg:=deprecatedmsg;
+              end
+            else
+              stringdispose(deprecatedmsg);
+          end;
 
       var
-        pd : tprocdef;
-        has_destructor,
-        oldparse_only,
+        oldparse_only: boolean;
+      begin
+        case token of
+          _PROCEDURE,
+          _FUNCTION:
+            begin
+              if (astruct.symtable.currentvisibility=vis_published) and
+                 not(oo_can_have_published in astruct.objectoptions) then
+                Message(parser_e_cant_have_published);
+
+              oldparse_only:=parse_only;
+              parse_only:=true;
+              result:=parse_proc_dec(is_classdef,astruct);
+
+              { this is for error recovery as well as forward }
+              { interface mappings, i.e. mapping to a method  }
+              { which isn't declared yet                      }
+              if assigned(result) then
+                begin
+                  parse_object_proc_directives(result);
+
+                  { check if dispid is set }
+                  if is_dispinterface(result.struct) and not (po_dispid in result.procoptions) then
+                    begin
+                      result.dispid:=tobjectdef(result.struct).get_next_dispid;
+                      include(result.procoptions, po_dispid);
+                    end;
+
+                  { all Macintosh Object Pascal methods are virtual.  }
+                  { this can't be a class method, because macpas mode }
+                  { has no m_class                                    }
+                  if (m_mac in current_settings.modeswitches) then
+                    include(result.procoptions,po_virtualmethod);
+
+                  { for record helpers only static class methods are allowed }
+                  if is_objectpascal_helper(astruct) and
+                     is_record(tobjectdef(astruct).extendeddef) and
+                     is_classdef and not (po_staticmethod in result.procoptions) then
+                    MessagePos(result.fileinfo,parser_e_class_methods_only_static_in_records);
+
+                  handle_calling_convention(result);
+
+                  { add definition to procsym }
+                  proc_add_definition(result);
+
+                  { add procdef options to objectdef options }
+                  if (po_msgint in result.procoptions) then
+                    include(astruct.objectoptions,oo_has_msgint);
+                  if (po_msgstr in result.procoptions) then
+                    include(astruct.objectoptions,oo_has_msgstr);
+                  if (po_virtualmethod in result.procoptions) then
+                    include(astruct.objectoptions,oo_has_virtual);
+
+                  chkcpp(result);
+                  chkobjc(result);
+                  chkjava(result);
+                end;
+
+              maybe_parse_hint_directives(result);
+
+              parse_only:=oldparse_only;
+            end;
+          _CONSTRUCTOR :
+            begin
+              if (astruct.symtable.currentvisibility=vis_published) and
+                not(oo_can_have_published in astruct.objectoptions) then
+                Message(parser_e_cant_have_published);
+
+              if not is_classdef and not(astruct.symtable.currentvisibility in [vis_public,vis_published]) then
+                Message(parser_w_constructor_should_be_public);
+
+              if is_interface(astruct) then
+                Message(parser_e_no_con_des_in_interfaces);
+
+              { Objective-C does not know the concept of a constructor }
+              if is_objc_class_or_protocol(astruct) then
+                Message(parser_e_objc_no_constructor_destructor);
+
+              if is_objectpascal_helper(astruct) then
+                if is_classdef then
+                  { class constructors are not allowed in class helpers }
+                  Message(parser_e_no_class_constructor_in_helpers)
+                else if is_record(tobjectdef(astruct).extendeddef) then
+                  { as long as constructors aren't allowed in records they
+                    aren't allowed in helpers either }
+                  Message(parser_e_no_constructor_in_records);
+
+              { only 1 class constructor is allowed }
+              if is_classdef and (oo_has_class_constructor in astruct.objectoptions) then
+                Message1(parser_e_only_one_class_constructor_allowed, astruct.objrealname^);
+
+              oldparse_only:=parse_only;
+              parse_only:=true;
+              if is_classdef then
+                result:=class_constructor_head
+              else
+                result:=constructor_head;
+              parse_object_proc_directives(result);
+              handle_calling_convention(result);
+
+              { add definition to procsym }
+              proc_add_definition(result);
+
+              { add procdef options to objectdef options }
+              if (po_virtualmethod in result.procoptions) then
+                include(astruct.objectoptions,oo_has_virtual);
+              chkcpp(result);
+              maybe_parse_hint_directives(result);
+
+              parse_only:=oldparse_only;
+            end;
+          _DESTRUCTOR :
+            begin
+              if (astruct.symtable.currentvisibility=vis_published) and
+                 not(oo_can_have_published in astruct.objectoptions) then
+                Message(parser_e_cant_have_published);
+
+              if not is_classdef then
+                if (oo_has_destructor in astruct.objectoptions) then
+                  Message(parser_n_only_one_destructor);
+
+              if is_interface(astruct) then
+                Message(parser_e_no_con_des_in_interfaces);
+
+              { (class) destructors are not allowed in class helpers }
+              if is_objectpascal_helper(astruct) then
+                Message(parser_e_no_destructor_in_records);
+
+              if not is_classdef and (astruct.symtable.currentvisibility<>vis_public) then
+                Message(parser_w_destructor_should_be_public);
+
+              { Objective-C does not know the concept of a destructor }
+              if is_objc_class_or_protocol(astruct) then
+                Message(parser_e_objc_no_constructor_destructor);
+
+              { only 1 class destructor is allowed }
+              if is_classdef and (oo_has_class_destructor in astruct.objectoptions) then
+                Message1(parser_e_only_one_class_destructor_allowed, astruct.objrealname^);
+
+              oldparse_only:=parse_only;
+              parse_only:=true;
+              if is_classdef then
+                result:=class_destructor_head
+              else
+                result:=destructor_head;
+              parse_object_proc_directives(result);
+              handle_calling_convention(result);
+
+              { add definition to procsym }
+              proc_add_definition(result);
+
+              { add procdef options to objectdef options }
+              if (po_virtualmethod in result.procoptions) then
+                include(astruct.objectoptions,oo_has_virtual);
+
+              chkcpp(result);
+              maybe_parse_hint_directives(result);
+
+              parse_only:=oldparse_only;
+            end;
+          else
+            internalerror(2011032102);
+        end;
+      end;
+
+
+    procedure parse_object_members;
+
+      var
         typedconstswritable: boolean;
         object_member_blocktype : tblock_type;
         fields_allowed, is_classdef, class_fields, is_final, final_fields: boolean;
@@ -846,7 +1017,6 @@ implementation
           current_structdef.symtable.currentvisibility:=vis_published
         else
           current_structdef.symtable.currentvisibility:=vis_public;
-        has_destructor:=false;
         fields_allowed:=true;
         is_classdef:=false;
         class_fields:=false;
@@ -1003,168 +1173,11 @@ implementation
                 parse_class;
               end;
             _PROCEDURE,
-            _FUNCTION:
-              begin
-                if (current_structdef.symtable.currentvisibility=vis_published) and
-                   not(oo_can_have_published in current_structdef.objectoptions) then
-                  Message(parser_e_cant_have_published);
-
-                oldparse_only:=parse_only;
-                parse_only:=true;
-                pd:=parse_proc_dec(is_classdef,current_structdef);
-
-                { this is for error recovery as well as forward }
-                { interface mappings, i.e. mapping to a method  }
-                { which isn't declared yet                      }
-                if assigned(pd) then
-                  begin
-                    parse_object_proc_directives(pd);
-
-                    { check if dispid is set }
-                    if is_dispinterface(pd.struct) and not (po_dispid in pd.procoptions) then
-                      begin
-                        pd.dispid:=tobjectdef(pd.struct).get_next_dispid;
-                        include(pd.procoptions, po_dispid);
-                      end;
-
-                    { all Macintosh Object Pascal methods are virtual.  }
-                    { this can't be a class method, because macpas mode }
-                    { has no m_class                                    }
-                    if (m_mac in current_settings.modeswitches) then
-                      include(pd.procoptions,po_virtualmethod);
-
-                    { for record helpers only static class methods are allowed }
-                    if is_objectpascal_helper(current_structdef) and
-                        is_record(current_objectdef.extendeddef) and
-                        is_classdef and not (po_staticmethod in pd.procoptions) then
-                      MessagePos(pd.fileinfo, parser_e_class_methods_only_static_in_records);
-
-                    handle_calling_convention(pd);
-
-                    { add definition to procsym }
-                    proc_add_definition(pd);
-
-                    { add procdef options to objectdef options }
-                    if (po_msgint in pd.procoptions) then
-                      include(current_structdef.objectoptions,oo_has_msgint);
-                    if (po_msgstr in pd.procoptions) then
-                      include(current_structdef.objectoptions,oo_has_msgstr);
-                    if (po_virtualmethod in pd.procoptions) then
-                      include(current_structdef.objectoptions,oo_has_virtual);
-
-                    chkcpp(pd);
-                    chkobjc(pd);
-                    chkjava(pd);
-                  end;
-
-                maybe_parse_hint_directives(pd);
-
-                parse_only:=oldparse_only;
-                fields_allowed:=false;
-                is_classdef:=false;
-              end;
-            _CONSTRUCTOR :
-              begin
-                if (current_structdef.symtable.currentvisibility=vis_published) and
-                  not(oo_can_have_published in current_structdef.objectoptions) then
-                  Message(parser_e_cant_have_published);
-
-                if not is_classdef and not(current_structdef.symtable.currentvisibility in [vis_public,vis_published]) then
-                  Message(parser_w_constructor_should_be_public);
-
-                if is_interface(current_structdef) then
-                  Message(parser_e_no_con_des_in_interfaces);
-
-                { Objective-C does not know the concept of a constructor }
-                if is_objc_class_or_protocol(current_structdef) then
-                  Message(parser_e_objc_no_constructor_destructor);
-
-                if is_objectpascal_helper(current_structdef) then
-                  if is_classdef then
-                    { class constructors are not allowed in class helpers }
-                    Message(parser_e_no_class_constructor_in_helpers)
-                  else
-                  if is_record(current_objectdef.extendeddef) then
-                    { as long as constructors aren't allowed in records they
-                      aren't allowed in helpers either }
-                    Message(parser_e_no_constructor_in_records);
-
-                { only 1 class constructor is allowed }
-                if is_classdef and (oo_has_class_constructor in current_structdef.objectoptions) then
-                  Message1(parser_e_only_one_class_constructor_allowed, current_structdef.objrealname^);
-
-                oldparse_only:=parse_only;
-                parse_only:=true;
-                if is_classdef then
-                  pd:=class_constructor_head
-                else
-                  pd:=constructor_head;
-                parse_object_proc_directives(pd);
-                handle_calling_convention(pd);
-
-                { add definition to procsym }
-                proc_add_definition(pd);
-
-                { add procdef options to objectdef options }
-                if (po_virtualmethod in pd.procoptions) then
-                  include(current_structdef.objectoptions,oo_has_virtual);
-                chkcpp(pd);
-                maybe_parse_hint_directives(pd);
-
-                parse_only:=oldparse_only;
-                fields_allowed:=false;
-                is_classdef:=false;
-              end;
+            _FUNCTION,
+            _CONSTRUCTOR,
             _DESTRUCTOR :
               begin
-                if (current_structdef.symtable.currentvisibility=vis_published) and
-                   not(oo_can_have_published in current_structdef.objectoptions) then
-                  Message(parser_e_cant_have_published);
-
-                if not is_classdef then
-                  if has_destructor then
-                    Message(parser_n_only_one_destructor)
-                  else
-                    has_destructor:=true;
-
-                if is_interface(current_structdef) then
-                  Message(parser_e_no_con_des_in_interfaces);
-
-                { (class) destructors are not allowed in class helpers }
-                if is_objectpascal_helper(current_structdef) then
-                  Message(parser_e_no_destructor_in_records);
-
-                if not is_classdef and (current_structdef.symtable.currentvisibility<>vis_public) then
-                  Message(parser_w_destructor_should_be_public);
-
-                { Objective-C does not know the concept of a destructor }
-                if is_objc_class_or_protocol(current_structdef) then
-                  Message(parser_e_objc_no_constructor_destructor);
-
-                { only 1 class destructor is allowed }
-                if is_classdef and (oo_has_class_destructor in current_structdef.objectoptions) then
-                  Message1(parser_e_only_one_class_destructor_allowed, current_structdef.objrealname^);
-
-                oldparse_only:=parse_only;
-                parse_only:=true;
-                if is_classdef then
-                  pd:=class_destructor_head
-                else
-                  pd:=destructor_head;
-                parse_object_proc_directives(pd);
-                handle_calling_convention(pd);
-
-                { add definition to procsym }
-                proc_add_definition(pd);
-
-                { add procdef options to objectdef options }
-                if (po_virtualmethod in pd.procoptions) then
-                  include(current_structdef.objectoptions,oo_has_virtual);
-
-                chkcpp(pd);
-                maybe_parse_hint_directives(pd);
-
-                parse_only:=oldparse_only;
+                method_dec(current_structdef,is_classdef);
                 fields_allowed:=false;
                 is_classdef:=false;
               end;
@@ -1330,6 +1343,15 @@ implementation
 
             { parse and insert object members }
             parse_object_members;
+
+            { In Java, constructors are not automatically inherited (so you can
+              hide them). Emulate the Pascal behaviour for classes implemented
+              in Pascal (we cannot do it for classes implemented in Java, since
+              we obviously cannot add constructors to those) }
+            if is_javaclass(current_structdef) and
+               not(oo_is_external in current_structdef.objectoptions) then
+              add_missing_parent_constructors_intf(tobjectdef(current_structdef));
+
             symtablestack.pop(current_structdef.symtable);
           end;
 

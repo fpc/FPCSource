@@ -66,6 +66,11 @@ interface
     { reads declarations in the interface part of a unit }
     procedure read_interface_declarations;
 
+    { reads any routine in the implementation, or a non-method routine
+      declaration in the interface (depending on whether or not parse_only is
+      true) }
+    procedure read_proc(isclassmethod:boolean);
+
     procedure generate_specialization_procs;
 
 
@@ -81,7 +86,7 @@ implementation
        { aasm }
        cpuinfo,cpubase,aasmbase,aasmtai,aasmdata,
        { symtable }
-       symconst,symbase,symsym,symtype,symtable,defutil,
+       symconst,symbase,symsym,symtype,symtable,defutil,symcreat,
        paramgr,
        ppu,fmodule,
        { pass 1 }
@@ -1945,6 +1950,10 @@ implementation
                 end;
            end;
          until false;
+
+         { add implementations for synthetic method declarations added by
+           the compiler }
+         add_synthetic_method_implementations(current_procinfo.procdef.localst);
 
          { check for incomplete class definitions, this is only required
            for fpc modes }

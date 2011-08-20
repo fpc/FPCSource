@@ -102,6 +102,7 @@ interface
           procedure deref;override;
           function find_procdef_bytype(pt:Tproctypeoption):Tprocdef;
           function find_procdef_bypara(para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
+          function find_procdef_bytype_and_para(pt:Tproctypeoption;para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
           function find_procdef_byoptions(ops:tprocoptions): Tprocdef;
           function find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function find_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
@@ -652,34 +653,66 @@ implementation
       end;
 
 
+    function check_procdef_paras(pd:tprocdef;para:TFPObjectList;retdef:tdef;
+                                            cpoptions:tcompare_paras_options): tprocdef;
+      var
+        eq: tequaltype;
+      begin
+        result:=nil;
+        if assigned(retdef) then
+          eq:=compare_defs(retdef,pd.returndef,nothingn)
+        else
+          eq:=te_equal;
+        if (eq>=te_equal) or
+           ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
+          begin
+            eq:=compare_paras(para,pd.paras,cp_value_equal_const,cpoptions);
+            if (eq>=te_equal) or
+               ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
+              begin
+                result:=pd;
+                exit;
+              end;
+          end;
+      end;
+
+
     function Tprocsym.Find_procdef_bypara(para:TFPObjectList;retdef:tdef;
                                             cpoptions:tcompare_paras_options):Tprocdef;
       var
         i  : longint;
         pd : tprocdef;
-        eq : tequaltype;
       begin
         result:=nil;
         for i:=0 to ProcdefList.Count-1 do
           begin
             pd:=tprocdef(ProcdefList[i]);
-            if assigned(retdef) then
-              eq:=compare_defs(retdef,pd.returndef,nothingn)
-            else
-              eq:=te_equal;
-            if (eq>=te_equal) or
-               ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
+            result:=check_procdef_paras(pd,para,retdef,cpoptions);
+            if assigned(result) then
+              exit;
+          end;
+      end;
+
+
+    function Tprocsym.find_procdef_bytype_and_para(pt:Tproctypeoption;
+               para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
+      var
+        i  : longint;
+        pd : tprocdef;
+      begin
+        result:=nil;
+        for i:=0 to ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(ProcdefList[i]);
+            if pd.proctypeoption=pt then
               begin
-                eq:=compare_paras(para,pd.paras,cp_value_equal_const,cpoptions);
-                if (eq>=te_equal) or
-                   ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
-                  begin
-                    result:=pd;
-                    exit;
-                  end;
+                result:=check_procdef_paras(pd,para,retdef,cpoptions);
+                if assigned(result) then
+                  exit;
               end;
           end;
       end;
+
 
     function tprocsym.find_procdef_byoptions(ops: tprocoptions): Tprocdef;
       var

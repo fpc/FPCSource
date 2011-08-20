@@ -36,7 +36,7 @@ implementation
        globtype,version,systems,tokens,
        cutils,cfileutl,cclasses,comphook,
        globals,verbose,fmodule,finput,fppu,
-       symconst,symbase,symtype,symdef,symsym,symtable,
+       symconst,symbase,symtype,symdef,symsym,symtable,symcreat,
        wpoinfo,
        aasmtai,aasmdata,aasmcpu,aasmbase,
        cgbase,cgobj,
@@ -1041,6 +1041,7 @@ implementation
         until false;
       end;
 
+
     procedure proc_unit;
 
       function is_assembler_generated:boolean;
@@ -1267,6 +1268,10 @@ implementation
              init_procinfo.parse_body;
              { save file pos for debuginfo }
              current_module.mainfilepos:=init_procinfo.entrypos;
+             { add implementations for synthetic method declarations added by
+               the compiler }
+             add_synthetic_method_implementations(current_module.globalsymtable);
+             add_synthetic_method_implementations(current_module.localsymtable);
            end;
 
          { Generate specializations of objectdefs methods }

@@ -3338,7 +3338,7 @@ implementation
                   first:=false;
                 end
                else
-                s:=s+',';
+                s:=s+';';
                if vo_is_hidden_para in hp.varoptions then
                  s:=s+'<';
                case hp.varspez of
