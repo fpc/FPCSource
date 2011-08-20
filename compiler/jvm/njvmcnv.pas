@@ -664,7 +664,7 @@ implementation
         toarrtype: char;
       begin
         resnode:=nil;
-        if convtype<>tc_equal then
+        if not(convtype in [tc_equal,tc_int_2_int,tc_int_2_bool,tc_bool_2_int]) then
           begin
             result:=false;
             exit
