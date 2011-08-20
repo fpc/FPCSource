@@ -1387,7 +1387,8 @@ implementation
               if is_javaclass(current_structdef) then
                 maybe_add_public_default_java_constructor(tobjectdef(current_structdef));
               { need method to hold the initialization code for typed constants? }
-              if target_info.system in systems_typed_constants_node_init then
+              if (target_info.system in systems_typed_constants_node_init) and
+                 not is_any_interface_kind(current_structdef) then
                 add_typedconst_init_routine(current_structdef);
             end;
 

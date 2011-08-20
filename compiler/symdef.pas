@@ -838,6 +838,7 @@ interface
     { should be in the types unit, but the types unit uses the node stuff :( }
     function is_interfacecom(def: tdef): boolean;
     function is_interfacecom_or_dispinterface(def: tdef): boolean;
+    function is_any_interface_kind(def: tdef): boolean;
     function is_interfacecorba(def: tdef): boolean;
     function is_interface(def: tdef): boolean;
     function is_dispinterface(def: tdef): boolean;
@@ -5905,6 +5906,15 @@ implementation
           assigned(def) and
           (def.typ=objectdef) and
           (tobjectdef(def).objecttype in [odt_interfacecom,odt_dispinterface]);
+      end;
+
+    function is_any_interface_kind(def: tdef): boolean;
+      begin
+        result:=
+          assigned(def) and
+          (def.typ=objectdef) and
+          ((tobjectdef(def).objecttype in [odt_interfacecom,odt_dispinterface,odt_interfacecorba,odt_interfacejava,odt_objcprotocol]) or
+           is_objccategory(def));
       end;
 
     function is_interfacecorba(def: tdef): boolean;
