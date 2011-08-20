@@ -394,8 +394,9 @@ implementation
         for i:=procdef.paras.count-1 downto 0 do
           begin
             pvs:=tparavarsym(procdef.paras[i]);
-            { self is deal with via the "inst" parameter }
-            if vo_is_self in pvs.varoptions then
+            { self is is an implicit parameter for normal methods }
+            if (vo_is_self in pvs.varoptions) and
+               not(po_classmethod in procdef.procoptions) then
               continue;
             { in case of an arraydef, pass by jlclass.forName() to get the classdef
               (could be optimized by adding support to loadvmtaddrnode to also deal

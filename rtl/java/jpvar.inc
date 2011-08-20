@@ -46,6 +46,19 @@
     end;
 
 
+  function FpcBaseProcVarType.getClassProcArgs(const args: array of jlobject): TJLObjectDynArray;
+    var
+      arglen: longint;
+    begin
+      { add the self pointer as first argument (Java class methods don't take an
+        implicit self parameters, Pascal ones do) }
+      arglen:=length(args);
+      setlength(result,arglen+1);
+      JLSystem.ArrayCopy(JLObject(@args),0,JLObject(result),1,arglen);
+      result[0]:=method.data;
+    end;
+
+
   procedure FpcBaseProcVarType.fpcDeepCopy(result: FpcBaseProcVarType);
     begin
       result.method:=method;
@@ -61,61 +74,95 @@
 
   procedure FpcBaseProcVarType.invokeProc(const args: array of jlobject);
     begin
-      method.code.invoke(method.data,args);
+      { caching the length would be faster, but that would have to be done
+        in a synchronised way. Doing it at construction time and in fpcDeepCopy/
+        clone is not enough, because the method field can be manipulated
+        directly }
+      if length(method.code.getParameterTypes)=length(args) then
+        method.code.invoke(method.data,args)
+      else
+        method.code.invoke(method.data,getClassProcArgs(args));
     end;
 
 
   function FpcBaseProcVarType.invokeBooleanFunc(const args: array of jlobject): jboolean;
     begin
-      result:=JLBoolean(method.code.invoke(method.data,args)).booleanValue;
+      if length(method.code.getParameterTypes)=length(args) then
+        result:=JLBoolean(method.code.invoke(method.data,args)).booleanValue
+      else
+        result:=JLBoolean(method.code.invoke(method.data,getClassProcArgs(args))).booleanValue
     end;
 
 
   function FpcBaseProcVarType.invokeCharFunc(const args: array of jlobject): jchar;
     begin
-      result:=JLCharacter(method.code.invoke(method.data,args)).charValue;
+      if length(method.code.getParameterTypes)=length(args) then
+        result:=JLCharacter(method.code.invoke(method.data,args)).charValue
+      else
+        result:=JLCharacter(method.code.invoke(method.data,getClassProcArgs(args))).charValue;
     end;
 
 
   function FpcBaseProcVarType.invokeByteFunc(const args: array of jlobject): jbyte;
     begin
-      result:=JLByte(method.code.invoke(method.data,args)).byteValue;
+      if length(method.code.getParameterTypes)=length(args) then
+        result:=JLByte(method.code.invoke(method.data,args)).byteValue
+      else
+        result:=JLByte(method.code.invoke(method.data,getClassProcArgs(args))).byteValue
     end;
 
 
   function FpcBaseProcVarType.invokeShortFunc(const args: array of jlobject): jshort;
     begin
-      result:=JLShort(method.code.invoke(method.data,args)).shortValue;
+      if length(method.code.getParameterTypes)=length(args) then
+        result:=JLShort(method.code.invoke(method.data,args)).shortValue
+      else
+        result:=JLShort(method.code.invoke(method.data,getClassProcArgs(args))).shortValue
     end;
 
 
   function FpcBaseProcVarType.invokeIntFunc(const args: array of jlobject): jint;
     begin
-      result:=JLInteger(method.code.invoke(method.data,args)).intValue;
+      if length(method.code.getParameterTypes)=length(args) then
+        result:=JLInteger(method.code.invoke(method.data,args)).intValue
+      else
+        result:=JLInteger(method.code.invoke(method.data,getClassProcArgs(args))).intValue
     end;
 
 
   function FpcBaseProcVarType.invokeLongFunc(const args: array of jlobject): jlong;
     begin
-      result:=JLLong(method.code.invoke(method.data,args)).longValue;
+      if length(method.code.getParameterTypes)=length(args) then
+        result:=JLLong(method.code.invoke(method.data,args)).longValue
+      else
+        result:=JLLong(method.code.invoke(method.data,getClassProcArgs(args))).longValue;
     end;
 
 
   function FpcBaseProcVarType.invokeSingleFunc(const args: array of jlobject): jfloat;
     begin
-      result:=JLFloat(method.code.invoke(method.data,args)).floatValue;
+      if length(method.code.getParameterTypes)=length(args) then
+        result:=JLFloat(method.code.invoke(method.data,args)).floatValue
+      else
+        result:=JLFloat(method.code.invoke(method.data,getClassProcArgs(args))).floatValue
     end;
 
 
   function FpcBaseProcVarType.invokeDoubleFunc(const args: array of jlobject): jdouble;
     begin
-      result:=JLDouble(method.code.invoke(method.data,args)).doubleValue;
+      if length(method.code.getParameterTypes)=length(args) then
+        result:=JLDouble(method.code.invoke(method.data,args)).doubleValue
+      else
+        result:=JLDouble(method.code.invoke(method.data,getClassProcArgs(args))).doubleValue
     end;
 
 
   function FpcBaseProcVarType.invokeObjectFunc(const args: array of jlobject): jlobject;
     begin
-      result:=method.code.invoke(method.data,args);
+      if length(method.code.getParameterTypes)=length(args) then
+        result:=method.code.invoke(method.data,args)
+      else
+        result:=method.code.invoke(method.data,getClassProcArgs(args))
     end;
 
 

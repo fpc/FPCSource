@@ -34,6 +34,11 @@ type
     function clone: JLObject; override;
 
    strict protected
+    type
+      { TJObjectArray isn't declared here yet }
+      TJLObjectDynArray = array of JLObject;
+
+    function getClassProcArgs(const args: array of jlobject): TJLObjectDynArray;
     procedure invokeProc(const args: array of jlobject); virtual;
     function invokeBooleanFunc(const args: array of jlobject): jboolean; virtual;
     function invokeCharFunc(const args: array of jlobject): jchar; virtual;
@@ -48,9 +53,6 @@ type
 
   FpcBaseNestedProcVarType = class(FpcBaseProcVarType)
    strict protected
-    type
-      { TJObjectArray isn't declared here yet }
-      TJLObjectDynArray = array of JLObject;
     { add the nestedfpstruct to the list of parameters }
     function getNestedArgs(const args: array of jlobject): TJLObjectDynArray; virtual;
    public
