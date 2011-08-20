@@ -336,6 +336,8 @@ interface
           function check_objc_types: boolean;
           { C++ }
           procedure finish_cpp_data;
+          { JVM }
+          function jvm_full_typename: string;
        end;
 
        tclassrefdef = class(tabstractpointerdef)
@@ -4203,8 +4205,8 @@ implementation
     procedure tprocdef.adornmangledname(var name: string; fordefinition: boolean);
 {$ifdef jvm}
       var
-        owningunit:tsymtable;
-        tmpresult:string;
+        owningunit: tsymtable;
+        tmpresult: string;
 {$endif jvm}
       begin
 {$ifdef jvm}
@@ -4237,31 +4239,33 @@ implementation
               staticsymtable,
               localsymtable:
                 begin
+                  if po_has_importdll in procoptions then
+                    begin
+                      tmpresult:='';
+                      { import_dll comes from "external 'import_dll_name' name 'external_name'" }
+                      if assigned(import_dll) then
+                        tmpresult:=import_dll^+'/'
+                      else
+                        internalerror(2010122607);
+                    end;
                   owningunit:=procsym.owner;
                   while (owningunit.symtabletype in [localsymtable,objectsymtable,recordsymtable]) do
                     owningunit:=owner.defowner.owner;
-                  { TODO: add package name !!! }
-                  tmpresult:=owningunit.realname^+'/';
+                  tmpresult:=tmpresult+owningunit.realname^+'/';
                 end;
               objectsymtable:
                 case tobjectdef(procsym.owner.defowner).objecttype of
                   odt_javaclass,
                   odt_interfacejava:
-                    tmpresult:=tobjectdef(procsym.owner.defowner).objextname^+'/';
+                    begin
+                      tmpresult:=tobjectdef(procsym.owner.defowner).jvm_full_typename+'/'
+                    end
                   else
                     internalerror(2010122606);
                 end
               else
                 internalerror(2010122605);
             end;
-            if po_has_importdll in procoptions then
-              begin
-                { import_dll comes from "external 'import_dll_name' name 'external_name'" }
-                if assigned(import_dll) then
-                  tmpresult:=tmpresult+import_dll^+'/'
-                else
-                  internalerror(2010122607);
-              end;
           end;
         name:=tmpresult+name;
 {$endif}
@@ -5566,6 +5570,15 @@ implementation
     procedure tobjectdef.finish_cpp_data;
       begin
         self.symtable.DefList.ForEachCall(@do_cpp_import_info,nil);
+      end;
+
+
+    function tobjectdef.jvm_full_typename: string;
+      begin
+        result:='';
+        if assigned(import_lib) then
+          result:=import_lib^+'/';
+        result:=result+objextname^;
       end;
 
 {****************************************************************************

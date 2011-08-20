@@ -181,12 +181,7 @@ implementation
             case tobjectdef(def).objecttype of
               odt_javaclass,
               odt_interfacejava:
-                begin
-                  encodedstr:=encodedstr+'L';
-                  if assigned(tobjectdef(def).import_lib) then
-                    encodedstr:=encodedstr+tobjectdef(def).import_lib^+'/';
-                  encodedstr:=encodedstr+tobjectdef(def).objextname^+';';
-                end
+                encodedstr:=encodedstr+'L'+tobjectdef(def).jvm_full_typename+';'
               else
                 result:=false;
             end;
