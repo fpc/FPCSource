@@ -50,6 +50,7 @@ implementation
       cgbase,cgutils,tgobj,procinfo,
       cpubase,aasmdata,aasmcpu,
       hlcgobj,hlcgcpu,
+      node,
       jvmdef;
 
 
@@ -134,6 +135,12 @@ implementation
           thlcgjvm(hlcg).decstack(current_asmdata.CurrAsmList,totalremovesize)
         else if totalremovesize<0 then
           thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,-totalremovesize);
+
+        { if this was an inherited constructor call, initialise all fields that
+          are wrapped types following it }
+        if (tprocdef(procdefinition).proctypeoption=potype_constructor) and
+           (cnf_inherited in callnodeflags) then
+          thlcgjvm(hlcg).gen_initialize_fields_code(current_asmdata.CurrAsmList);
       end;
 
 

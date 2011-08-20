@@ -29,7 +29,7 @@ interface
 uses
   globtype,
   aasmbase,aasmdata,
-  symtype,symdef,
+  symbase,symconst,symtype,symdef,
   cpubase, hlcgobj, cgbase, cgutils, parabase;
 
   type
@@ -147,7 +147,9 @@ uses
 
       property maxevalstackheight: longint read fmaxevalstackheight;
 
+      procedure gen_initialize_fields_code(list:TAsmList);
      protected
+      procedure allocate_implicit_structs_for_st_with_base_ref(list: TAsmList; st: tsymtable; ref: treference; allocvartyp: tsymtyp);
       procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
 
       procedure inittempvariables(list:TAsmList);override;
@@ -197,7 +199,7 @@ implementation
     verbose,cutils,globals,
     defutil,
     aasmtai,aasmcpu,
-    symconst,symtable,symsym,jvmdef,
+    symtable,symsym,jvmdef,
     procinfo,cgcpu,tgobj;
 
   const
@@ -1133,7 +1135,7 @@ implementation
         { self }
         a_load_ref_stack(list,size,source,prepare_stack_for_ref(list,source,false));
         { result }
-        a_load_ref_stack(list,size,dest,prepare_stack_for_ref(list,source,false));
+        a_load_ref_stack(list,size,dest,prepare_stack_for_ref(list,dest,false));
         { call fpcDeepCopy helper }
         srsym:=search_struct_member(tabstractrecorddef(size),'FPCDEEPCOPY');
         if not assigned(srsym) or
@@ -1673,6 +1675,59 @@ implementation
           OS_S16:
             list.concat(taicpu.op_none(a_i2s));
         end;
+    end;
+
+  procedure thlcgjvm.allocate_implicit_structs_for_st_with_base_ref(list: TAsmList; st: tsymtable; ref: treference; allocvartyp: tsymtyp);
+    var
+      tmpref: treference;
+      vs: tabstractvarsym;
+      i: longint;
+    begin
+      for i:=0 to st.symlist.count-1 do
+        begin
+          if (tsym(st.symlist[i]).typ<>allocvartyp) then
+            continue;
+          vs:=tabstractvarsym(st.symlist[i]);
+          if not jvmimplicitpointertype(vs.vardef) then
+            continue;
+          ref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
+          tg.gethltemp(list,vs.vardef,vs.vardef.size,tt_persistent,tmpref);
+          { only copy the reference, not the actual data }
+          a_load_ref_ref(list,java_jlobject,java_jlobject,tmpref,ref);
+          { remains live since there's still a reference to the created
+            entity }
+          tg.ungettemp(list,tmpref);
+        end;
+    end;
+
+  procedure thlcgjvm.gen_initialize_fields_code(list: TAsmList);
+    var
+      selfpara: tparavarsym;
+      selfreg: tregister;
+      ref: treference;
+      obj: tabstractrecorddef;
+      i: longint;
+      needinit: boolean;
+    begin
+      obj:=tabstractrecorddef(current_procinfo.procdef.owner.defowner);
+      { check whether there are any fields that need initialisation }
+      needinit:=false;
+      for i:=0 to obj.symtable.symlist.count-1 do
+        if (tsym(obj.symtable.symlist[i]).typ=fieldvarsym) and
+           jvmimplicitpointertype(tfieldvarsym(obj.symtable.symlist[i]).vardef) then
+          begin
+            needinit:=true;
+            break;
+          end;
+      if not needinit then
+        exit;
+      selfpara:=tparavarsym(current_procinfo.procdef.parast.find('self'));
+      if not assigned(selfpara) then
+        internalerror(2011033001);
+      selfreg:=getaddressregister(list,selfpara.vardef);
+      a_load_loc_reg(list,obj,obj,selfpara.localloc,selfreg);
+      reference_reset_base(ref,selfreg,0,1);
+      allocate_implicit_structs_for_st_with_base_ref(list,obj.symtable,ref,fieldvarsym);
     end;
 
   procedure thlcgjvm.resizestackfpuval(list: TAsmList; fromsize, tosize: tcgsize);
