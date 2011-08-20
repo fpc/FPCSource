@@ -1182,8 +1182,12 @@ implementation
                     if (current_structdef.objname^='TOBJECT') then
                       class_tobject:=current_objectdef;
                   odt_javaclass:
-                    if (current_objectdef.objname^='TOBJECT') then
-                      java_jlobject:=current_objectdef;
+                    begin
+                      if (current_objectdef.objname^='TOBJECT') then
+                        java_jlobject:=current_objectdef;
+                      if (current_objectdef.objname^='TJLTHROWABLE') then
+                        java_jlthrowable:=current_objectdef;
+                    end;
                 end;
               end;
             if (current_module.modulename^='OBJCBASE') then

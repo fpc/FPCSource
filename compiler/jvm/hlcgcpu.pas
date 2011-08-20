@@ -101,6 +101,7 @@ uses
       procedure a_load_ref_stack(list : TAsmList;size: tdef;const ref: treference;extra_slots: longint);
       procedure a_load_const_stack(list : TAsmList;size: tdef;a :aint; typ: TRegisterType);
 
+      procedure a_load_stack_loc(list : TAsmList;size: tdef;const loc: tlocation);
       procedure a_load_loc_stack(list : TAsmList;size: tdef;const loc: tlocation);
 
       procedure a_loadfpu_const_stack(list : TAsmList;size: tdef;a :double);
@@ -275,6 +276,19 @@ implementation
           internalerror(2010110703);
       end;
       incstack(list,1);
+    end;
+
+  procedure thlcgjvm.a_load_stack_loc(list: TAsmList; size: tdef; const loc: tlocation);
+    begin
+      case loc.loc of
+        LOC_REGISTER,LOC_CREGISTER,
+        LOC_FPUREGISTER,LOC_CFPUREGISTER:
+          a_load_stack_reg(list,size,loc.register);
+        LOC_REFERENCE:
+          a_load_stack_ref(list,size,loc.reference,prepare_stack_for_ref(list,loc.reference,false));
+        else
+          internalerror(2011020501);
+      end;
     end;
 
   procedure thlcgjvm.a_load_loc_stack(list: TAsmList;size: tdef;const loc: tlocation);

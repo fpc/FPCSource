@@ -762,6 +762,8 @@ interface
        { Java base types }
        { java.lang.Object }
        java_jlobject             : tobjectdef;
+       { java.lang.Throwable }
+       java_jlthrowable          : tobjectdef;
 
     const
 {$ifdef i386}
@@ -4558,10 +4560,13 @@ implementation
             (objecttype=odt_objcclass) and
             (objname^='PROTOCOL') then
            objc_protocoltype:=self;
-         if (childof=nil) and
-            (objecttype=odt_javaclass) and
-            (objname^='TOBJECT') then
-           java_jlobject:=self;
+         if (objecttype=odt_javaclass) then
+           begin
+             if (objname^='TOBJECT') then
+               java_jlobject:=self;
+             if (objname^='TJLTHROWABLE') then
+               java_jlthrowable:=self;
+           end;
          writing_class_record_dbginfo:=false;
        end;
 

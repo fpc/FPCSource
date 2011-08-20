@@ -68,6 +68,14 @@ type
     function equals(obj: TObject): boolean;
     function hashcode: longint;
   end;
+  TJLObject = TObject;
+
+  TJISerializable = interface external 'java.lang' name 'Serializable'
+  end;
+
+  TJLThrowable = class external 'java.lang' name 'Throwable' (TObject,TJISerializable)
+    constructor create;
+  end;
 
   { Java Float class type }
   TJFloat = class external 'java.lang' name 'Float'

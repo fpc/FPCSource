@@ -865,7 +865,8 @@ implementation
                             begin
                                consume_sym(srsym,srsymtable);
                                if (srsym.typ=typesym) and
-                                  is_class(ttypesym(srsym).typedef) then
+                                  (is_class(ttypesym(srsym).typedef) or
+                                   is_javaclass(ttypesym(srsym).typedef)) then
                                  begin
                                     ot:=ttypesym(srsym).typedef;
                                     sym:=tlocalvarsym.create(objrealname,vs_value,ot,[]);
@@ -878,9 +879,6 @@ implementation
                                     else
                                       Message1(type_e_class_type_expected,ot.typename);
                                  end;
-                               excepTSymtable:=tstt_excepTSymtable.create;
-                               excepTSymtable.insert(sym);
-                               symtablestack.push(excepTSymtable);
                             end
                           else
                             begin
@@ -906,7 +904,8 @@ implementation
                                { check if type is valid, must be done here because
                                  with "e: Exception" the e is not necessary }
                                if (srsym.typ=typesym) and
-                                  is_class(ttypesym(srsym).typedef) then
+                                  (is_class(ttypesym(srsym).typedef) or
+                                   is_javaclass(ttypesym(srsym).typedef)) then
                                  ot:=ttypesym(srsym).typedef
                                else
                                  begin
@@ -916,8 +915,14 @@ implementation
                                     else
                                       Message1(type_e_class_type_expected,ot.typename);
                                  end;
-                               excepTSymtable:=nil;
+                               { create dummy symbol so we don't need a special
+                                 case in ncgflw, and so that we always know the
+                                 type }
+                               sym:=tlocalvarsym.create('$exceptsym',vs_value,ot,[]);
                             end;
+                          excepTSymtable:=tstt_excepTSymtable.create;
+                          excepTSymtable.insert(sym);
+                          symtablestack.push(excepTSymtable);
                        end
                      else
                        consume(_ID);
