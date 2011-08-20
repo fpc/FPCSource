@@ -264,6 +264,9 @@ implementation
          reasonbuf,
          exceptreg: tregister;
       begin
+         { not necessary on a garbage-collected platform }
+         if implicitframe then
+           internalerror(2011031803);
          location_reset(location,LOC_VOID,OS_NO);
 
          { check if child nodes do a break/continue/exit }
@@ -276,25 +279,14 @@ implementation
          { the finally block must catch break, continue and exit }
          { statements                                            }
          oldCurrExitLabel:=current_procinfo.CurrExitLabel;
-         if implicitframe then
-           exitfinallylabel:=finallylabel
-         else
-           current_asmdata.getjumplabel(exitfinallylabel);
+         current_asmdata.getjumplabel(exitfinallylabel);
          current_procinfo.CurrExitLabel:=exitfinallylabel;
          if assigned(current_procinfo.CurrBreakLabel) then
           begin
             oldContinueLabel:=current_procinfo.CurrContinueLabel;
             oldBreakLabel:=current_procinfo.CurrBreakLabel;
-            if implicitframe then
-              begin
-                breakfinallylabel:=finallylabel;
-                continuefinallylabel:=finallylabel;
-              end
-            else
-              begin
-                current_asmdata.getjumplabel(breakfinallylabel);
-                current_asmdata.getjumplabel(continuefinallylabel);
-              end;
+            current_asmdata.getjumplabel(breakfinallylabel);
+            current_asmdata.getjumplabel(continuefinallylabel);
             current_procinfo.CurrContinueLabel:=continuefinallylabel;
             current_procinfo.CurrBreakLabel:=breakfinallylabel;
           end;
@@ -353,43 +345,40 @@ implementation
              2 = exit called
              3 = break called
              4 = continue called }
-         if not(implicitframe) then
+         hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,s32inttype,OC_EQ,0,reasonbuf,endfinallylabel);
+         if fc_exit in tryflowcontrol then
+           if ([fc_break,fc_continue]*tryflowcontrol)<>[] then
+             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,s32inttype,OC_EQ,2,reasonbuf,oldCurrExitLabel)
+           else
+             hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
+         if fc_break in tryflowcontrol then
+           if fc_continue in tryflowcontrol then
+             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,s32inttype,OC_EQ,3,reasonbuf,oldBreakLabel)
+           else
+             hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
+         if fc_continue in tryflowcontrol then
+           hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
+         { now generate the trampolines for exit/break/continue to load the reasonbuf }
+         if fc_exit in tryflowcontrol then
            begin
-             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,s32inttype,OC_EQ,0,reasonbuf,endfinallylabel);
-             if fc_exit in tryflowcontrol then
-               if ([fc_break,fc_continue]*tryflowcontrol)<>[] then
-                 hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,s32inttype,OC_EQ,2,reasonbuf,oldCurrExitLabel)
-               else
-                 hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
-             if fc_break in tryflowcontrol then
-               if fc_continue in tryflowcontrol then
-                 hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,s32inttype,OC_EQ,3,reasonbuf,oldBreakLabel)
-               else
-                 hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
-             if fc_continue in tryflowcontrol then
-               hlcg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
-             { now generate the trampolines for exit/break/continue to load the reasonbuf }
-             if fc_exit in tryflowcontrol then
-               begin
-                  hlcg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
-                  hlcg.a_load_const_reg(current_asmdata.CurrAsmList,s32inttype,2,reasonbuf);
-                  hlcg.a_jmp_always(current_asmdata.CurrAsmList,finallylabel);
-               end;
-             if fc_break in tryflowcontrol then
-              begin
-                  hlcg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
-                  hlcg.a_load_const_reg(current_asmdata.CurrAsmList,s32inttype,3,reasonbuf);
-                  hlcg.a_jmp_always(current_asmdata.CurrAsmList,finallylabel);
-               end;
-             if fc_continue in tryflowcontrol then
-               begin
-                  hlcg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
-                  hlcg.a_load_const_reg(current_asmdata.CurrAsmList,s32inttype,4,reasonbuf);
-                  hlcg.a_jmp_always(current_asmdata.CurrAsmList,finallylabel);
-               end;
-             { jump over finally-code-in-case-an-exception-happened }
-             hlcg.a_jmp_always(current_asmdata.CurrAsmList,endfinallylabel);
+              hlcg.a_label(current_asmdata.CurrAsmList,exitfinallylabel);
+              hlcg.a_load_const_reg(current_asmdata.CurrAsmList,s32inttype,2,reasonbuf);
+              hlcg.a_jmp_always(current_asmdata.CurrAsmList,finallylabel);
            end;
+         if fc_break in tryflowcontrol then
+          begin
+              hlcg.a_label(current_asmdata.CurrAsmList,breakfinallylabel);
+              hlcg.a_load_const_reg(current_asmdata.CurrAsmList,s32inttype,3,reasonbuf);
+              hlcg.a_jmp_always(current_asmdata.CurrAsmList,finallylabel);
+           end;
+         if fc_continue in tryflowcontrol then
+           begin
+              hlcg.a_label(current_asmdata.CurrAsmList,continuefinallylabel);
+              hlcg.a_load_const_reg(current_asmdata.CurrAsmList,s32inttype,4,reasonbuf);
+              hlcg.a_jmp_always(current_asmdata.CurrAsmList,finallylabel);
+           end;
+         { jump over finally-code-in-case-an-exception-happened }
+         hlcg.a_jmp_always(current_asmdata.CurrAsmList,endfinallylabel);
 
          { generate finally code in case an exception occurred }
          if assigned(begintrylabel) then
@@ -406,17 +395,6 @@ implementation
              { generate the finally code again }
              secondpass(finallycodecopy);
              finallycodecopy.free;
-             { in case of an implicit frame, also execute the exception handling
-               code }
-             if implicitframe then
-               begin
-                 flowcontrol:=[fc_inflowcontrol];
-                 secondpass(t1);
-                 if flowcontrol<>[fc_inflowcontrol] then
-                   CGMessage(cg_e_control_flow_outside_finally);
-                 if codegenerror then
-                   exit;
-               end;
              { reraise the exception }
              thlcgjvm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,java_jlthrowable,exceptreg);
              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_athrow));

@@ -736,7 +736,8 @@ implementation
         if (cs_implicit_exceptions in current_settings.moduleswitches) and
            (pi_needs_implicit_finally in flags) and
            { but it's useless in init/final code of units }
-           not(procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
+           not(procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) and
+           not(target_info.system in systems_garbage_collected_managed_types) then
           begin
             { Generate special exception block only needed when
               implicit finaly is used }
@@ -1229,7 +1230,8 @@ implementation
             if (cs_implicit_exceptions in current_settings.moduleswitches) and
                not(procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) and
                (pi_needs_implicit_finally in flags) and
-               not(pi_has_implicit_finally in flags) then
+               not(pi_has_implicit_finally in flags) and
+               not(target_info.system in systems_garbage_collected_managed_types) then
              internalerror(200405231);
 
 {$ifndef NoOpt}
