@@ -248,6 +248,11 @@ implementation
         { records are implemented via classes }
         recorddef:
           result:=R_ADDRESSREGISTER;
+        setdef:
+          if is_smallset(def) then
+            result:=R_INTREGISTER
+          else
+            result:=R_ADDRESSREGISTER;
         else
           result:=inherited;
       end;
