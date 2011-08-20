@@ -56,8 +56,8 @@ implementation
       systems,globals,
       cutils,verbose,constexp,
       symconst,symtype,symtable,symsym,symdef,defutil,jvmdef,
-      htypechk,
-      nadd,ncal,ncnv,ncon,pass_1,njvmcon,
+      htypechk,paramgr,
+      nadd,ncal,ncnv,ncon,nld,pass_1,njvmcon,
       aasmdata,aasmcpu,pass_2,
       cgutils,hlcgobj,hlcgcpu;
 
@@ -203,11 +203,19 @@ implementation
           end
         else
           begin
-            if not(nf_internal in flags) and
-               not jvmimplicitpointertype(left.resultdef) then
+            if not jvmimplicitpointertype(left.resultdef) then
               begin
-                CGMessage(parser_e_illegal_expression);
-                exit
+                { allow taking the address of a copy-out parameter (it's an
+                  array reference) }
+                if (left.nodetype<>loadn) or
+                   (tloadnode(left).symtableentry.typ<>paravarsym) or
+                   not paramanager.push_copyout_param(tparavarsym(tloadnode(left).symtableentry).varspez,
+                     left.resultdef,
+                     tabstractprocdef(tloadnode(left).symtableentry.owner.defowner).proccalloption) then
+                  begin
+                    CGMessage(parser_e_illegal_expression);
+                    exit
+                  end;
               end;
             result:=inherited;
           end;
@@ -220,31 +228,24 @@ implementation
       begin
         secondpass(left);
         implicitptr:=jvmimplicitpointertype(left.resultdef);
-        if implicitptr or
-           (nf_internal in flags) then
-          begin
-            if implicitptr then
-              { this is basically a typecast: the left node is an implicit
-                pointer, and we typecast it to a regular 'pointer'
-                (java.lang.Object) }
-              location_copy(location,left.location)
-            else
-              begin
-                { these are always arrays (used internally for pointers to var
-                  parameters stored in nestedfpstructs) -> get base pointer to
-                  array }
-                if (left.location.loc<>LOC_REFERENCE) or
-                   (left.location.reference.arrayreftype<>art_indexconst) or
-                   (left.location.reference.base=NR_NO) or
-                   assigned(left.location.reference.symbol) then
-                  internalerror(2011060701);
-                location_reset(location,LOC_REGISTER,OS_ADDR);
-                location.register:=left.location.reference.base;
-              end;
-          end
+        if implicitptr then
+          { this is basically a typecast: the left node is an implicit
+            pointer, and we typecast it to a regular 'pointer'
+            (java.lang.Object) }
+          location_copy(location,left.location)
         else
           begin
-            internalerror(2011051601);
+            { these are always arrays (used internally for pointers to var
+              parameters stored in nestedfpstructs) -> get base pointer to
+              array }
+            if (left.location.loc<>LOC_REFERENCE) or
+               (left.location.reference.arrayreftype<>art_indexconst) or
+               (left.location.reference.base=NR_NO) or
+               (left.location.reference.indexoffset<>0) or
+               assigned(left.location.reference.symbol) then
+              internalerror(2011060701);
+            location_reset(location,LOC_REGISTER,OS_ADDR);
+            location.register:=left.location.reference.base;
           end;
       end;
 
