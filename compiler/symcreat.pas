@@ -255,7 +255,7 @@ implementation
         internalerror(2011032812);
       { the inherited clone will already copy all fields in a shallow way ->
         copy records/regular arrays in a regular way }
-      str:='begin clone:=inherited;';
+      str:='type _fpc_ptrt = ^'+struct.typesym.realname+'; begin clone:=inherited;';
       for i:=0 to struct.symtable.symlist.count-1 do
         begin
           sym:=tsym(struct.symtable.symlist[i]);
@@ -267,7 +267,7 @@ implementation
                   not is_dynamic_array(fsym.vardef)) or
                  ((fsym.vardef.typ=setdef) and
                   not is_smallset(fsym.vardef)) then
-                str:=str+struct.typesym.realname+'(clone).'+fsym.realname+':='+fsym.realname+';';
+                str:=str+'_fpc_ptrt(clone)^.'+fsym.realname+':='+fsym.realname+';';
             end;
         end;
       str:=str+'end;';

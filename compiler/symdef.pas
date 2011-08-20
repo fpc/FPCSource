@@ -1616,10 +1616,7 @@ implementation
              (d=java_jlstring))) or
            ((stringtype=st_ansistring) and
             ((d=java_jlobject) or
-             (d=java_ansistring))) or
-           ((stringtype=st_shortstring) and
-            ((d=java_jlobject) or
-             (d=java_shortstring))));
+             (d=java_ansistring))));
       end;
 
 
@@ -3168,16 +3165,19 @@ implementation
 
     function trecorddef.is_related(d: tdef): boolean;
       begin
-        if d.typ=objectdef then
-          d:=find_real_class_definition(tobjectdef(d),false);
         { records are implemented via classes in the JVM target, and are
           all descendents of the java_fpcbaserecordtype class }
-        if (target_info.system=system_jvm_java32) and
-           ((d=java_jlobject) or
-            (d=java_fpcbaserecordtype)) then
-          is_related:=true
-        else
-          is_related:=false;
+        is_related:=false;
+        if (target_info.system=system_jvm_java32) then
+          begin
+            if d.typ=objectdef then
+              begin
+                d:=find_real_class_definition(tobjectdef(d),false);
+                if (d=java_jlobject) or
+                   (d=java_fpcbaserecordtype) then
+                  is_related:=true
+              end;
+          end;
       end;
 
 

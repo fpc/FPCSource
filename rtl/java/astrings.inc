@@ -52,7 +52,7 @@ end;
 
 constructor AnsistringClass.Create(const s: shortstring);
 begin
-  Create(ShortstringClass(s).fdata);
+  Create(ShortstringClass(@s).fdata);
 end;
 
 
@@ -99,7 +99,7 @@ end;
 
 function AnsistringClass.toShortstring(maxlen: byte): shortstring;
 begin
-  result:=shortstring(ShortstringClass.Create(ansistring(self),maxlen));
+  result:=pshortstring(ShortstringClass.Create(ansistring(self),maxlen))^;
 end;
 
 
@@ -217,7 +217,7 @@ begin
      Size:=Length(S2);
      If Size>high(res) then
        Size:=high(res);
-     JLSystem.ArrayCopy(JLObject(AnsistringClass(S2).fdata),0,JLObject(ShortstringClass(res).fdata),0,Size);
+     JLSystem.ArrayCopy(JLObject(AnsistringClass(S2).fdata),0,JLObject(ShortstringClass(@res).fdata),0,Size);
      setlength(res,Size);
    end;
 end;
@@ -233,7 +233,7 @@ begin
   Size:=Length(S2);
   Setlength (result,Size);
   if Size>0 then
-    JLSystem.ArrayCopy(JLObject(ShortstringClass(S2).fdata),0,JLObject(AnsistringClass(result).fdata),0,Size);
+    JLSystem.ArrayCopy(JLObject(ShortstringClass(@S2).fdata),0,JLObject(AnsistringClass(result).fdata),0,Size);
 end;
 
 
@@ -447,7 +447,7 @@ begin
    ofs:=Length(S);
    SetLength(S,ofs+length(Str));
    { the pbyte cast avoids an unique call which isn't necessary because SetLength was just called }
-   JLSystem.ArrayCopy(JLObject(ShortstringClass(Str).fdata),0,JLObject(AnsistringClass(S).fdata),ofs,length(Str));
+   JLSystem.ArrayCopy(JLObject(ShortstringClass(@Str).fdata),0,JLObject(AnsistringClass(S).fdata),ofs,length(Str));
 end;
 
 Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;const Str : AnsiString); compilerproc;

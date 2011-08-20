@@ -64,7 +64,7 @@ begin
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    result:=unicodestring(JLString.Create(TJByteArray(ShortstringClass(S2).fdata),0,length(S2)));
+    result:=unicodestring(JLString.Create(TJByteArray(ShortstringClass(@S2).fdata),0,length(S2)));
 end;
 
 Function fpc_UnicodeStr_To_AnsiStr (const S2 : UnicodeString): AnsiString; compilerproc;

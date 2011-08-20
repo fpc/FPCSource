@@ -69,7 +69,7 @@ begin
   if system.length(s)=0 then
     exit;
   curlen:=min(system.length(s),maxlen);
-  JLSystem.ArrayCopy(JLObject(ShortstringClass(s).fdata),0,JLObject(fdata),0,min(system.length(s),maxlen));
+  JLSystem.ArrayCopy(JLObject(ShortstringClass(@s).fdata),0,JLObject(fdata),0,min(system.length(s),maxlen));
 end;
 
 
@@ -101,10 +101,10 @@ var
   i: longint;
 begin
   { used to construct constant shortstrings from Java string constants }
-  ShortstringClass(result).curlen:=min(system.length(u),255);
-  setlength(ShortstringClass(result).fdata,ShortstringClass(result).curlen);
-  for i:=1 to ShortstringClass(result).curlen do
-    ShortstringClass(result).fdata[i-1]:=ansichar(ord(u[i]));
+  ShortstringClass(@result).curlen:=min(system.length(u),255);
+  setlength(ShortstringClass(@result).fdata,ShortstringClass(@result).curlen);
+  for i:=1 to ShortstringClass(@result).curlen do
+    ShortstringClass(@result).fdata[i-1]:=ansichar(ord(u[i]));
 end;
 
 
@@ -149,7 +149,7 @@ end;
 
 function ShortstringClass.toAnsistring: ansistring;
 begin
-  result:=ansistring(AnsistringClass.Create(shortstring(self)));
+  result:=ansistring(AnsistringClass.Create(pshortstring(self)^));
 end;
 
 
@@ -164,7 +164,7 @@ end;
 
 function ShortstringClass.clone: JLObject;
 begin
-  result:=ShortstringClass.Create(Shortstring(self),system.length(fdata));
+  result:=ShortstringClass.Create(pshortstring(self)^,system.length(fdata));
 end;
 
 
@@ -189,7 +189,7 @@ procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt); compilerproc;
 begin
   if len>255 then
     len:=255;
-  ShortstringClass(s).curlen:=len;
+  ShortstringClass(@s).curlen:=len;
 end;
 
 
@@ -200,8 +200,8 @@ begin
   len:=length(sstr);
   if len>high(res) then
     len:=high(res);
-  ShortstringClass(res).curlen:=len;
-  JLSystem.ArrayCopy(JLObject(ShortstringClass(sstr).fdata),0,JLObject(ShortstringClass(res).fdata),0,len);
+  ShortstringClass(@res).curlen:=len;
+  JLSystem.ArrayCopy(JLObject(ShortstringClass(@sstr).fdata),0,JLObject(ShortstringClass(@res).fdata),0,len);
 end;
 
 
@@ -218,19 +218,19 @@ begin
         s1l:=high(dests);
       s2l:=high(dests)-s1l;
     end;
-  if ShortstringClass(dests)=ShortstringClass(s1) then
-    JLSystem.ArrayCopy(JLObject(ShortstringClass(s2).fdata),0,JLObject(ShortstringClass(dests).fdata),s1l,s2l)
-  else if ShortstringClass(dests)=ShortstringClass(s2) then
+  if ShortstringClass(@dests)=ShortstringClass(@s1) then
+    JLSystem.ArrayCopy(JLObject(ShortstringClass(@s2).fdata),0,JLObject(ShortstringClass(@dests).fdata),s1l,s2l)
+  else if ShortstringClass(@dests)=ShortstringClass(@s2) then
     begin
-      JLSystem.ArrayCopy(JLObject(ShortstringClass(dests).fdata),0,JLObject(ShortstringClass(dests).fdata),s1l,s2l);
-      JLSystem.ArrayCopy(JLObject(ShortstringClass(s1).fdata),0,JLObject(ShortstringClass(dests).fdata),0,s1l);
+      JLSystem.ArrayCopy(JLObject(ShortstringClass(@dests).fdata),0,JLObject(ShortstringClass(@dests).fdata),s1l,s2l);
+      JLSystem.ArrayCopy(JLObject(ShortstringClass(@s1).fdata),0,JLObject(ShortstringClass(@dests).fdata),0,s1l);
     end
   else
     begin
-      JLSystem.ArrayCopy(JLObject(ShortstringClass(s1).fdata),0,JLObject(ShortstringClass(dests).fdata),0,s1l);
-      JLSystem.ArrayCopy(JLObject(ShortstringClass(s2).fdata),0,JLObject(ShortstringClass(dests).fdata),s1l,s2l)
+      JLSystem.ArrayCopy(JLObject(ShortstringClass(@s1).fdata),0,JLObject(ShortstringClass(@dests).fdata),0,s1l);
+      JLSystem.ArrayCopy(JLObject(ShortstringClass(@s2).fdata),0,JLObject(ShortstringClass(@dests).fdata),s1l,s2l)
     end;
-  ShortstringClass(dests).curlen:=s1l+s2l;
+  ShortstringClass(@dests).curlen:=s1l+s2l;
 end;
 
 
@@ -249,14 +249,14 @@ begin
       exit;
     end;
   lowstart:=low(sarr);
-  if ShortstringClass(DestS)=sarr[lowstart] then
+  if ShortstringClass(@DestS)=sarr[lowstart] then
     inc(lowstart);
   { Check for another reuse, then we can't use
     the append optimization and need to use a temp }
   needtemp:=false;
   for i:=lowstart to high(sarr) do
     begin
-      if ShortstringClass(DestS)=sarr[i] then
+      if ShortstringClass(@DestS)=sarr[i] then
         begin
           needtemp:=true;
           break;
@@ -266,7 +266,7 @@ begin
     begin
       lowstart:=low(sarr);
       tmpstr:='';
-      pdest:=ShortstringClass(tmpstr)
+      pdest:=ShortstringClass(@tmpstr)
     end
   else
     begin
@@ -274,7 +274,7 @@ begin
         the first array element }
       if lowstart=low(sarr) then
         DestS:='';
-      pdest:=ShortstringClass(DestS);
+      pdest:=ShortstringClass(@DestS);
     end;
   { Concat all strings, except the string we already
     copied in DestS }
@@ -305,7 +305,7 @@ begin
   s2l:=length(s2);
   if s1l+s2l>high(s1) then
     s2l:=high(s1)-s1l;
-  JLSystem.ArrayCopy(JLObject(ShortstringClass(s2).fdata),0,JLObject(ShortstringClass(s1).fdata),s1l,s2l);
+  JLSystem.ArrayCopy(JLObject(ShortstringClass(@s2).fdata),0,JLObject(ShortstringClass(@s1).fdata),s1l,s2l);
   s1[0]:=chr(s1l+s2l);
 end;
 
@@ -314,7 +314,7 @@ function fpc_shortstr_compare(const left,right:shortstring) : longint; compilerp
 Var
   MaxI,Temp, i : SizeInt;
 begin
-  if ShortstringClass(left)=ShortstringClass(right) then
+  if ShortstringClass(@left)=ShortstringClass(@right) then
     begin
       result:=0;
       exit;
@@ -327,7 +327,7 @@ begin
     begin
       for i:=0 to MaxI-1 do
         begin
-          result:=ord(ShortstringClass(left).fdata[i])-ord(ShortstringClass(right).fdata[i]);
+          result:=ord(ShortstringClass(@left).fdata[i])-ord(ShortstringClass(@right).fdata[i]);
           if result<>0 then
             exit;
         end;
@@ -342,12 +342,12 @@ function fpc_shortstr_compare_equal(const left,right:shortstring) : longint; com
 Var
   MaxI,Temp : SizeInt;
 begin
-  if ShortstringClass(left)=ShortstringClass(right) then
+  if ShortstringClass(@left)=ShortstringClass(@right) then
     begin
       result:=0;
       exit;
     end;
-  result:=ord(not JUArrays.equals(TJByteArray(ShortstringClass(left).fdata),TJByteArray(ShortstringClass(right).fdata)));
+  result:=ord(not JUArrays.equals(TJByteArray(ShortstringClass(@left).fdata),TJByteArray(ShortstringClass(@right).fdata)));
 end;
 
 
@@ -379,8 +379,8 @@ begin
     end
   else
     len:=l;
-  JLSystem.ArrayCopy(JLObject(@arr),0,JLObject(ShortstringClass(res).fdata),0,len);
-  ShortstringClass(res).curlen:=len;
+  JLSystem.ArrayCopy(JLObject(@arr),0,JLObject(ShortstringClass(@res).fdata),0,len);
+  ShortstringClass(@res).curlen:=len;
 end;
 
 
@@ -393,7 +393,7 @@ begin
     len:=length(res);
   { make sure we don't access char 1 if length is 0 (JM) }
   if len>0 then
-    JLSystem.ArrayCopy(JLObject(ShortstringClass(src).fdata),0,JLObject(@res),0,len);
+    JLSystem.ArrayCopy(JLObject(ShortstringClass(@src).fdata),0,JLObject(@res),0,len);
   JUArrays.fill(TJByteArray(@res),len,high(res),0);
 end;
 
@@ -405,7 +405,7 @@ procedure fpc_Char_To_ShortStr(out res : shortstring;const c : AnsiChar) compile
 
 begin
   setlength(res,1);
-  ShortstringClass(res).fdata[0]:=c;
+  ShortstringClass(@res).fdata[0]:=c;
 end;
 
 
@@ -422,8 +422,8 @@ begin
   else
    if count>length(s)-index then
     count:=length(s)-index;
-  ShortstringClass(result).curlen:=count;
-  JLSystem.ArrayCopy(JLObject(ShortstringClass(s).fdata),index,JLObject(ShortstringClass(result).fdata),0,count);
+  ShortstringClass(@result).curlen:=count;
+  JLSystem.ArrayCopy(JLObject(ShortstringClass(@s).fdata),index,JLObject(ShortstringClass(@result).fdata),0,count);
 end;
 
 
@@ -470,7 +470,7 @@ begin
         j:=0;
         k:=i-1;
         while (j<SubstrLen) and
-              (ShortstringClass(SubStr).fdata[j]=ShortstringClass(Source).fdata[k]) do
+              (ShortstringClass(@SubStr).fdata[j]=ShortstringClass(@Source).fdata[k]) do
           begin
             inc(j);
             inc(k);
@@ -495,7 +495,7 @@ var
 begin
   for i:=1 to length(s) do
    begin
-     if ShortstringClass(s).fdata[i-1]=c then
+     if ShortstringClass(@s).fdata[i-1]=c then
       begin
         pos:=i;
         exit;

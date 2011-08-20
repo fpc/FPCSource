@@ -36,6 +36,11 @@ interface
          procedure pass_generate_code; override;
        end;
 
+       tjvmderefnode = class(tcgderefnode)
+          function pass_typecheck:tnode;override;
+          procedure pass_generate_code; override;
+       end;
+
        tjvmloadvmtaddrnode = class(tcgloadvmtaddrnode)
          procedure pass_generate_code; override;
        end;
@@ -61,6 +66,35 @@ implementation
       cgutils,hlcgobj,hlcgcpu;
 
 {*****************************************************************************
+                              TJVMDEREFNODE
+*****************************************************************************}
+
+    function tjvmderefnode.pass_typecheck: tnode;
+      begin
+        result:=inherited;
+        if not(left.resultdef.typ=pointerdef) or
+          not jvmimplicitpointertype(tpointerdef(left.resultdef).pointeddef) then
+          begin
+            CGMessage(parser_e_illegal_expression);
+            exit
+          end;
+      end;
+
+    procedure tjvmderefnode.pass_generate_code;
+      begin
+        secondpass(left);
+        if (left.resultdef.typ=pointerdef) or
+           jvmimplicitpointertype(left.resultdef) then
+          begin
+            { this is basically a typecast: the left node is a regular
+              'pointer', and we typecast it to an implicit pointer }
+            location_copy(location,left.location);
+          end
+        else
+          internalerror(2011052901);
+      end;
+
+{*****************************************************************************
                               TJVMADDRNODE
 *****************************************************************************}
 
@@ -82,26 +116,15 @@ implementation
           begin
             result:=inherited;
             exit;
-          end;
-
-        if not jvmimplicitpointertype(left.resultdef) then
+          end
+        else
           begin
-            CGMessage(parser_e_illegal_expression);
-            exit
-          end;
-
-        resultdef:=java_jlobject;
-
-        if mark_read_written then
-          begin
-            { This is actually only "read", but treat it nevertheless as  }
-            { modified due to the possible use of pointers                }
-            { To avoid false positives regarding "uninitialised"          }
-            { warnings when using arrays, perform it in two steps         }
-            set_varstate(left,vs_written,[]);
-            { vsf_must_be_valid so it doesn't get changed into }
-            { vsf_referred_not_inited                          }
-            set_varstate(left,vs_read,[vsf_must_be_valid]);
+            if not jvmimplicitpointertype(left.resultdef) then
+              begin
+                CGMessage(parser_e_illegal_expression);
+                exit
+              end;
+            result:=inherited;
           end;
       end;
 
@@ -174,7 +197,10 @@ implementation
               st_widestring:
                 stringclass:=java_jlstring;
               st_shortstring:
-                stringclass:=java_shortstring;
+                begin
+                  stringclass:=java_shortstring;
+                  left:=caddrnode.create_internal(left);
+                end
               else
                 internalerror(2011052407);
             end;
@@ -267,8 +293,9 @@ implementation
 
 
 begin
+   cderefnode:=tjvmderefnode;
+   caddrnode:=tjvmaddrnode;
    cvecnode:=tjvmvecnode;
    cloadparentfpnode:=tjvmloadparentfpnode;
    cloadvmtaddrnode:=tjvmloadvmtaddrnode;
-   caddrnode:=tjvmaddrnode;
 end.

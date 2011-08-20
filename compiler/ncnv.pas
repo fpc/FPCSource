@@ -255,6 +255,7 @@ interface
           }
           call: tnode;
           constructor create(l,r : tnode);virtual;
+          constructor create_internal(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function dogetcopy: tnode;override;
           function docompare(p: tnode): boolean; override;
@@ -264,6 +265,7 @@ interface
 
        tisnode = class(tasisnode)
           constructor create(l,r : tnode);virtual;
+          constructor create_internal(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           procedure pass_generate_code;override;
        end;
@@ -3702,6 +3704,15 @@ implementation
          inherited create(isn,l,r);
       end;
 
+
+    constructor tisnode.create_internal(l, r: tnode);
+
+      begin
+        create(l,r);
+        include(flags,nf_internal);
+      end;
+
+
     function tisnode.pass_1 : tnode;
       var
         procname: string;
@@ -3755,6 +3766,14 @@ implementation
       begin
          inherited create(asn,l,r);
          call := nil;
+      end;
+
+
+    constructor tasnode.create_internal(l,r : tnode);
+
+      begin
+        create(l,r);
+        include(flags,nf_internal);
       end;
 
 

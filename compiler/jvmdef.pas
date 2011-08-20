@@ -236,13 +236,12 @@ implementation
             end;
           pointerdef :
             begin
-{$ifndef nounsupported}
               if def=voidpointertype then
                 result:=jvmaddencodedtype(java_jlobject,false,encodedstr,forcesignature,founderror)
+              else if jvmimplicitpointertype(tpointerdef(def).pointeddef) then
+                result:=jvmaddencodedtype(tpointerdef(def).pointeddef,false,encodedstr,forcesignature,founderror)
               else
-{$endif}
-              { some may be handled via wrapping later }
-              result:=false;
+                result:=false;
             end;
           floatdef :
             begin

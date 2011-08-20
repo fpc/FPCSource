@@ -24,7 +24,7 @@ Unit system;
 
 {$define FPC_IS_SYSTEM}
 
-{$I-,Q-,H-,R-,V-,P+}
+{$I-,Q-,H-,R-,V-,P+,T+}
 {$implicitexceptions off}
 {$mode objfpc}
 
@@ -55,10 +55,12 @@ Type
   AnsiChar    = Char;
   UnicodeChar = WideChar;
 
-  { map comp to int64, }
+  { map comp to int64 }
   Comp = Int64;
 
   HResult = type longint;
+
+  PShortString        = ^ShortString;
 
   { Java primitive types }
   jboolean = boolean;

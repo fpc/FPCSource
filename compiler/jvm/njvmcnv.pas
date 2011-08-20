@@ -112,7 +112,9 @@ implementation
           if def1.typ<>procvardef then
             exit;
           if tprocvardef(def1).is_addressonly then
-            result:=def2=java_jlobject
+            result:=
+              (def2=java_jlobject) or
+              (def2=voidpointertype)
           else
             begin
               if not assigned(tmethoddef) then
@@ -533,6 +535,81 @@ implementation
           left:=nil;
         end;
 
+      function ptr_no_typecheck_required(fromdef, todef: tdef): boolean;
+
+        function check_type_equality(def1,def2: tdef): boolean;
+          begin
+            result:=true;
+            if is_ansistring(def1) and
+               (def2=java_ansistring) then
+              exit;
+            if is_wide_or_unicode_string(def1) and
+               (def2=java_jlstring) then
+              exit;
+            if def1.typ=pointerdef then
+              begin
+                if is_shortstring(tpointerdef(def1).pointeddef) and
+                   (def2=java_shortstring) then
+                  exit;
+              end;
+            result:=false;
+          end;
+
+        function check_array_type_equality(def1,def2: tdef): boolean;
+          begin
+            result:=true;
+            if is_shortstring(def1) and
+               (def2=java_shortstring) then
+              exit;
+            result:=false;
+          end;
+
+        begin
+          result:=true;
+          if (todef=java_jlobject) or
+             (todef=voidpointertype) then
+            exit;
+          if compare_defs(fromdef,todef,nothingn)>=te_equal then
+            exit;
+          { trecorddef.is_related() must work for inheritance/method checking,
+            but do not allow records to be directly typecasted into class/
+            pointer types (you have to use FpcBaseRecordType(@rec) instead) }
+          if not is_record(fromdef) and
+             fromdef.is_related(todef) then
+            exit;
+          if check_type_equality(fromdef,todef) then
+            exit;
+          if check_type_equality(todef,fromdef) then
+            exit;
+          if (fromdef.typ=pointerdef) and
+             (tpointerdef(fromdef).pointeddef.typ=recorddef) and
+             (todef=java_fpcbaserecordtype) then
+            exit;
+          { all classrefs are currently java.lang.Class at the bytecode level }
+          if (fromdef.typ=classrefdef) and
+             (todef.typ=objectdef) and
+             (todef=search_system_type('JLCLASS').typedef) then
+            exit;
+          if (fromdef.typ=classrefdef) and
+             (todef.typ=classrefdef) and
+             tclassrefdef(fromdef).pointeddef.is_related(tclassrefdef(todef).pointeddef) then
+            exit;
+          { special case: "array of shortstring" to "array of ShortstringClass"
+            and "array of <record>" to "array of FpcRecordBaseType" (normally
+            you have to use ShortstringClass(@shortstrvar) etc, but that's not
+            possible in case of passing arrays to e.g. setlength) }
+          if is_dynamic_array(left.resultdef) and
+             is_dynamic_array(resultdef) then
+            begin
+             if check_array_type_equality(fromdef,todef) or
+                check_array_type_equality(todef,fromdef) then
+               exit;
+             if is_record(fromdef) and
+                (todef=java_fpcbaserecordtype) then
+               exit;
+            end;
+          result:=false;
+        end;
 
       var
         fromclasscompatible,
@@ -553,16 +630,18 @@ implementation
           types }
         procvarconv:=isvalidprocvartypeconv(left.resultdef,resultdef);
         fromclasscompatible:=
+          (left.resultdef.typ=pointerdef) or
           (left.resultdef.typ=objectdef) or
           is_dynamic_array(left.resultdef) or
-          ((left.resultdef.typ in [recorddef,stringdef,classrefdef]) and
-           (resultdef.typ=objectdef)) or
+          ((left.resultdef.typ in [stringdef,classrefdef]) and
+           not is_shortstring(left.resultdef)) or
           procvarconv;
         toclasscompatible:=
+          (resultdef.typ=pointerdef) or
           (resultdef.typ=objectdef) or
           is_dynamic_array(resultdef) or
-          ((resultdef.typ in [recorddef,stringdef,classrefdef]) and
-           (left.resultdef.typ=objectdef)) or
+          ((resultdef.typ in [stringdef,classrefdef]) and
+           not is_shortstring(resultdef)) or
           procvarconv;
         if fromclasscompatible and toclasscompatible then
           begin
@@ -582,32 +661,28 @@ implementation
             get_most_nested_types(fromdef,todef);
             fromarrtype:=jvmarrtype_setlength(fromdef);
             toarrtype:=jvmarrtype_setlength(todef);
-            if (compare_defs(fromdef,todef,nothingn)<te_equal) and
-               not fromdef.is_related(todef) and
-               (todef<>java_jlobject) and
-               ((fromarrtype in ['A','R']) or
-                (fromarrtype<>toarrtype)) and
-               ((fromdef.typ<>classrefdef) or
-                (todef.typ<>classrefdef) or
-                not tclassrefdef(fromdef).pointeddef.is_related(tclassrefdef(todef).pointeddef)) then
+            if not ptr_no_typecheck_required(fromdef,todef) then
               begin
-                if not check_only and
-                   not assignment_side then
+                if (fromarrtype in ['A','R','T']) or
+                   (fromarrtype<>toarrtype) then
                   begin
-                    resnode:=ctypenode.create(resultdef);
-                    if resultdef.typ=objectdef then
-                      resnode:=cloadvmtaddrnode.create(resnode);
-                    resnode:=casnode.create(left,resnode);
-                    if resultdef.typ=classrefdef then
-                      tjvmasnode(resnode).classreftypecast:=true;
-                    left:=nil;
+                    if not check_only and
+                       not assignment_side then
+                      begin
+                        resnode:=ctypenode.create(resultdef);
+                        if resultdef.typ=objectdef then
+                          resnode:=cloadvmtaddrnode.create(resnode);
+                        resnode:=casnode.create_internal(left,resnode);
+                        if resultdef.typ=classrefdef then
+                          tjvmasnode(resnode).classreftypecast:=true;
+                        left:=nil;
+                      end
                   end
-              end
-            { typecasting from a child to a parent type on the assignment side
-              will (rightly) mess up the type safety verification of the JVM }
-            else if assignment_side and
-                    (compare_defs(fromdef,todef,nothingn)<te_equal) then
-              CGMessage(type_e_no_managed_assign_generic_typecast);
+                { typecasting from a child to a parent type on the assignment side
+                  will (rightly) mess up the type safety verification of the JVM }
+                else if assignment_side then
+                  CGMessage(type_e_no_managed_assign_generic_typecast);
+              end;
             result:=true;
             exit;
           end;
@@ -702,36 +777,6 @@ implementation
     function tjvmtypeconvnode.target_specific_general_typeconv: boolean;
       begin
         result:=false;
-        { deal with explicit typecasts between records and classes (for
-          FpcBaseRecordType) }
-        if ((left.resultdef.typ=recorddef) and
-            (resultdef.typ=objectdef) and
-            left.resultdef.is_related(resultdef)) or
-           ((left.resultdef.typ=objectdef) and
-            (resultdef.typ=recorddef) and
-            resultdef.is_related(left.resultdef)) and
-           (nf_explicit in flags) then
-          begin
-            convtype:=tc_equal;
-            result:=true;
-            exit;
-          end;
-
-        { deal with explicit typecasts between shortstrings and classes (for
-          ShortstringClass) }
-        if (is_shortstring(left.resultdef) and
-            (resultdef.typ=objectdef) and
-            left.resultdef.is_related(resultdef)) or
-           ((left.resultdef.typ=objectdef) and
-            is_shortstring(resultdef) and
-            resultdef.is_related(left.resultdef)) and
-           (nf_explicit in flags) then
-          begin
-            convtype:=tc_equal;
-            result:=true;
-            exit;
-          end;
-
 {$ifndef nounsupported}
         { generated in nmem; replace voidpointertype with java_jlobject }
         if nf_load_procvar in flags then
@@ -754,169 +799,24 @@ implementation
     *****************************************************************************}
 
   function asis_target_specific_typecheck(node: tasisnode): boolean;
-
-    function isrecordconv(fromdef, todef: tdef): boolean;
-      begin
-        if isvalidprocvartypeconv(fromdef,todef) then
-          begin
-            result:=true;
-            exit;
-          end;
-
-        if is_record(todef) then
-          begin
-            result:=
-              (fromdef=java_jlobject) or
-              (fromdef=java_fpcbaserecordtype);
-          end
-        else if is_record(fromdef) then
-          begin
-            result:=
-              (todef=java_jlobject) or
-              (todef=java_fpcbaserecordtype)
-          end
-        else
-          result:=false;
-      end;
-
-    function isstringconv(fromdef, todef: tdef): boolean;
-
-      function unicodestrcompatible(def: tdef): boolean;
-        begin
-          result:=
-            (def=java_jlobject) or
-            (def=java_jlstring);
-        end;
-
-      function ansistrcompatible(def: tdef): boolean;
-        begin
-          result:=
-            (def=java_jlobject) or
-            (def=java_ansistring);
-        end;
-
-      function shortstrcompatible(def: tdef): boolean;
-        begin
-           result:=
-             (def=java_jlobject) or
-             (def=java_shortstring);
-        end;
-
-      begin
-        if is_wide_or_unicode_string(todef) then
-          begin
-            result:=unicodestrcompatible(fromdef)
-          end
-        else if is_wide_or_unicode_string(fromdef) then
-          begin
-            result:=unicodestrcompatible(todef);
-          end
-        else if is_ansistring(todef) then
-          begin
-            result:=ansistrcompatible(fromdef);
-          end
-        else if is_ansistring(fromdef) then
-          begin
-            result:=ansistrcompatible(todef);
-          end
-        else if is_shortstring(todef) then
-          begin
-            result:=shortstrcompatible(fromdef)
-          end
-        else if is_shortstring(fromdef) then
-          begin
-            result:=shortstrcompatible(todef)
-          end
-        else
-          result:=false;
-      end;
-
-    function isclassrefconv(fromdef, todef: tdef): boolean;
-      var
-        jlclass: tdef;
-      begin
-        jlclass:=nil;
-        if fromdef.typ=classrefdef then
-          begin
-            result:=todef=java_jlobject;
-            if not result and
-               (todef.typ=classrefdef) then
-              { the fromdef.is_related(todef) case should not become an as-node,
-                handled in typeconversion itself and ignored since always ok
-                -- this one is not very useful either since everything is plain
-                JLClass anyway, but maybe in the future it will be different }
-              result:=tclassrefdef(todef).pointeddef.is_related(tclassrefdef(fromdef).pointeddef);
-            if not result then
-              begin
-                jlclass:=search_system_type('JLCLASS').typedef;
-                result:=todef=jlclass;
-              end;
-          end
-        else if todef.typ=classrefdef then
-          begin
-            result:=fromdef=java_jlobject;
-            if not result then
-              begin
-                jlclass:=search_system_type('JLCLASS').typedef;
-                result:=fromdef=jlclass;
-              end;
-          end
-        else
-          result:=false;
-      end;
-
-
     var
-      fromelt, toelt: tdef;
-      realfromdef,
       realtodef: tdef;
     begin
-      if is_java_class_or_interface(node.left.resultdef) and
-         (node.right.resultdef.typ=classrefdef) and
-         ((node.nodetype<>asn) or
-          not tjvmasnode(node).classreftypecast) then
+      if not(nf_internal in node.flags) then
         begin
           { handle using normal code }
           result:=false;
           exit;
         end;
-      realfromdef:=maybe_find_real_class_definition(node.left.resultdef,false);
+      result:=true;
+      { these are converted type conversion nodes, to insert the checkcast
+        operations }
       realtodef:=node.right.resultdef;
       if (realtodef.typ=classrefdef) and
          ((node.nodetype<>asn) or
           not tjvmasnode(node).classreftypecast) then
         realtodef:=tclassrefdef(realtodef).pointeddef;
       realtodef:=maybe_find_real_class_definition(realtodef,false);
-      result:=isrecordconv(realfromdef,realtodef);
-      if not result then
-        result:=isstringconv(realfromdef,realtodef);
-      if not result then
-        result:=isclassrefconv(realfromdef,realtodef);
-      if not result then
-        { dynamic arrays can be converted to java.lang.Object and vice versa }
-        if realtodef=java_jlobject then
-          { dynamic array to java.lang.Object }
-          result:=is_dynamic_array(realfromdef)
-        else if is_dynamic_array(realtodef) then
-          begin
-            { <x> to dynamic array: only if possibly valid }
-            fromelt:=node.left.resultdef;
-            toelt:=realtodef;
-            get_most_nested_types(fromelt,toelt);
-            { final levels must be convertable:
-                a) from array (dynamic or not) to java.lang.Object or vice versa,
-                 or
-                b) the same primitive/class type
-            }
-            result:=
-             isrecordconv(fromelt,toelt) or
-             isstringconv(fromelt,toelt) or
-             (compare_defs(fromelt,toelt,node.left.nodetype) in [te_exact,te_equal]) or
-             (((fromelt.typ=objectdef) or
-               (fromelt.typ=arraydef)) and
-              ((toelt.typ=objectdef) or
-               (toelt.typ=arraydef)));
-          end;
       if result then
         if node.nodetype=asn then
           node.resultdef:=realtodef
@@ -995,6 +895,10 @@ implementation
       else
         checkdef:=node.right.resultdef;
       { replace special types with their equivalent class type }
+      if checkdef=voidpointertype then
+        checkdef:=java_jlobject
+      else if checkdef.typ=pointerdef then
+        checkdef:=tpointerdef(checkdef).pointeddef;
 {$ifndef nounsupported}
       if checkdef.typ=procvardef then
         checkdef:=java_jlobject

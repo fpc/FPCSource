@@ -87,7 +87,7 @@ implementation
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symtype,symconst,symdef,symsym,symtable,jvmdef,
       defutil,
-      nbas,ncon,ncnv,ncal,nld,nflw,nutils,
+      nbas,ncon,ncnv,nmem,ncal,nld,nflw,nutils,
       cgbase,pass_1,pass_2,
       cpuinfo,ncgutil,
       cgutils,hlcgobj,hlcgcpu;
@@ -577,7 +577,7 @@ implementation
               internalerror(2011052402);
             result:=
               ccallnode.create(nil,tprocsym(psym),psym.owner,
-                ctypeconvnode.create_explicit(left,java_shortstring),[]);
+                ctypeconvnode.create_explicit(caddrnode.create_internal(left),java_shortstring),[]);
             { reused }
             left:=nil;
           end
