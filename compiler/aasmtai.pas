@@ -37,7 +37,11 @@ interface
        cpuinfo,cpubase,
        cgbase,cgutils,
        symtype,
-       aasmbase,aasmdata,ogbase;
+       aasmbase,aasmdata,ogbase
+{$ifdef jvm}
+       ,widestr
+{$endif jvm}
+       ;
 
     type
        { keep the number of elements in this enumeration less or equal than 32 as long
@@ -187,7 +191,14 @@ interface
        { m68k only }
        ,top_regset
 {$endif m68k}
-       { i386 only});
+{$ifdef jvm}
+       { jvm only}
+       ,top_single
+       ,top_double
+       ,top_string
+       ,top_wstring
+{$endif jvm}
+       );
 
       { kinds of operations that an instruction can perform on an operand }
       topertype = (operand_read,operand_write,operand_readwrite);
@@ -223,6 +234,12 @@ interface
       {$ifdef m68k}
           top_regset : (regset:^tcpuregisterset);
       {$endif m68k}
+      {$ifdef jvm}
+          top_single : (sval:single);
+          top_double : (dval:double);
+          top_string : (pcvallen: aint; pcval: pchar);
+          top_wstring : (pwstrval: pcompilerwidestring);
+      {$endif jvm}
       end;
       poper=^toper;
 
@@ -2119,6 +2136,12 @@ implementation
               top_regset:
                 dispose(regset);
 {$endif ARM}
+{$ifdef jvm}
+              top_string:
+                freemem(pcval);
+              top_wstring:
+                donewidestring(pwstrval);
+{$endif jvm}
             end;
             typ:=top_none;
           end;
