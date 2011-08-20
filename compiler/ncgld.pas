@@ -412,7 +412,7 @@ implementation
             localvarsym :
               begin
                 vs:=tabstractnormalvarsym(symtableentry);
-{$if not defined(jvm) or not defined(nounsupported)}
+{$if not defined(jvm) or defined(nounsupported)}
                 { Nested variable }
                 if assigned(left) then
                   begin

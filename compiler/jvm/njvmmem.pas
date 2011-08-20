@@ -187,5 +187,6 @@ implementation
 
 begin
    cvecnode:=tjvmvecnode;
+   cloadparentfpnode:=tjvmloadparentfpnode;
    cloadvmtaddrnode:=tjvmloadvmtaddrnode;
 end.
