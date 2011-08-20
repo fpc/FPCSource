@@ -157,6 +157,7 @@
   {$define cpu64bitalu}
   {$define cpu32bitaddr}
   {$define cpuhighleveltarget}
+  {$define symansistr}
 {$endif}
 
 {$IFDEF MACOS}

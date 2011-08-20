@@ -103,13 +103,17 @@ interface
         Procedure AsmClear;
 
         {# Write a string to the assembler file }
+        Procedure AsmWrite(const c:char);
         Procedure AsmWrite(const s:string);
+        Procedure AsmWrite(const s:ansistring);
 
         {# Write a string to the assembler file }
         Procedure AsmWritePChar(p:pchar);
 
         {# Write a string to the assembler file followed by a new line }
+        Procedure AsmWriteLn(const c:char);
         Procedure AsmWriteLn(const s:string);
+        Procedure AsmWriteLn(const s:ansistring);
 
         {# Write a new line to the assembler file }
         Procedure AsmLn;
@@ -455,6 +459,16 @@ Implementation
       end;
 
 
+    Procedure TExternalAssembler.AsmWrite(const c: char);
+      begin
+        if OutCnt+1>=AsmOutSize then
+         AsmFlush;
+        OutBuf[OutCnt]:=c;
+        inc(OutCnt);
+        inc(AsmSize);
+      end;
+
+
     Procedure TExternalAssembler.AsmWrite(const s:string);
       begin
         if OutCnt+length(s)>=AsmOutSize then
@@ -465,7 +479,33 @@ Implementation
       end;
 
 
+    Procedure TExternalAssembler.AsmWrite(const s:ansistring);
+      begin
+        if s='' then
+          exit;
+        if OutCnt+length(s)>=AsmOutSize then
+         AsmFlush;
+        Move(s[1],OutBuf[OutCnt],length(s));
+        inc(OutCnt,length(s));
+        inc(AsmSize,length(s));
+      end;
+
+
+    procedure TExternalAssembler.AsmWriteLn(const c: char);
+      begin
+        AsmWrite(c);
+        AsmLn;
+      end;
+
+
     Procedure TExternalAssembler.AsmWriteLn(const s:string);
+      begin
+        AsmWrite(s);
+        AsmLn;
+      end;
+
+
+    Procedure TExternalAssembler.AsmWriteLn(const s: ansistring);
       begin
         AsmWrite(s);
         AsmLn;

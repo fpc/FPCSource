@@ -102,7 +102,7 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           function  GetTypeName:string;override;
-          function  getmangledparaname:string;override;
+          function  getmangledparaname:TSymStr;override;
           procedure setsize;
        end;
 
@@ -147,7 +147,7 @@ interface
           constructor create;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  GetTypeName:string;override;
-          function  getmangledparaname : string;override;
+          function  getmangledparaname : TSymStr;override;
        end;
 
        tabstractpointerdef = class(tstoreddef)
@@ -322,7 +322,7 @@ interface
           function  is_related(d : tdef) : boolean;override;
           function  needs_inittable : boolean;override;
           function  rtti_mangledname(rt:trttitype):string;override;
-          function  vmt_mangledname : string;
+          function  vmt_mangledname : TSymStr;
           procedure check_forwards; override;
           procedure insertvmt;
           procedure set_parent(c : tobjectdef);
@@ -379,7 +379,7 @@ interface
           function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  GetTypeName:string;override;
-          function  getmangledparaname : string;override;
+          function  getmangledparaname : TSymStr;override;
           procedure buildderef;override;
           procedure deref;override;
           function size : asizeint;override;
@@ -473,7 +473,7 @@ interface
           function  is_publishable : boolean;override;
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
-          function  getmangledparaname:string;override;
+          function  getmangledparaname:TSymStr;override;
        end;
 
        tmessageinf = record
@@ -517,7 +517,11 @@ interface
 
        tprocdef = class(tabstractprocdef)
        private
+{$ifdef symansistr}
+          _mangledname : ansistring;
+{$else symansistr}
           _mangledname : pshortstring;
+{$endif}
        public
           messageinf : tmessageinf;
           dispid : longint;
@@ -614,14 +618,14 @@ interface
           }
           function  getcopy: tstoreddef; override;
           function  GetTypeName : string;override;
-          function  mangledname : string;
-          procedure setmangledname(const s : string);
+          function  mangledname : TSymStr;
+          procedure setmangledname(const s : TSymStr);
           function  fullprocname(showhidden:boolean):string;
           function  customprocname(pno: tprocnameoptions):ansistring;
-          function  defaultmangledname: string;
-          function  cplusplusmangledname : string;
-          function  objcmangledname : string;
-          function  jvmmangledbasename(signature: boolean): string;
+          function  defaultmangledname: TSymStr;
+          function  cplusplusmangledname : TSymStr;
+          function  objcmangledname : TSymStr;
+          function  jvmmangledbasename(signature: boolean): TSymStr;
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
           procedure make_external;
@@ -652,7 +656,7 @@ interface
           function  stringtypname:string;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  GetTypeName:string;override;
-          function  getmangledparaname:string;override;
+          function  getmangledparaname:TSymStr;override;
           function  is_publishable : boolean;override;
           function alignment : shortint;override;
           function  needs_inittable : boolean;override;
@@ -857,9 +861,9 @@ interface
        pbestrealtype : ^tdef = @s64floattype;
 {$endif JVM}
 
-    function make_mangledname(const typeprefix:string;st:TSymtable;const suffix:string):string;
-    function make_dllmangledname(const dllname,importname:string;
-                                 import_nr : word; pco : tproccalloption):string;
+    function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr):TSymStr;
+    function make_dllmangledname(const dllname,importname:TSymStr;
+                                 import_nr : word; pco : tproccalloption):TSymStr;
 
     { should be in the types unit, but the types unit uses the node stuff :( }
     function is_interfacecom(def: tdef): boolean;
@@ -920,10 +924,10 @@ implementation
                                   Helpers
 ****************************************************************************}
 
-    function make_mangledname(const typeprefix:string;st:TSymtable;const suffix:string):string;
+    function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr):TSymStr;
       var
         s,hs,
-        prefix : string;
+        prefix : TSymStr;
         oldlen,
         newlen,
         i   : longint;
@@ -1016,12 +1020,12 @@ implementation
           result := '_' + result;
       end;
 
-    function make_dllmangledname(const dllname,importname:string;import_nr : word; pco : tproccalloption):string;
+    function make_dllmangledname(const dllname,importname:TSymStr;import_nr : word; pco : tproccalloption):TSymStr;
        var
          crc : cardinal;
          i : longint;
          use_crc : boolean;
-         dllprefix : string;
+         dllprefix : TSymStr;
       begin
         if (target_info.system in (systems_all_windows + systems_nativent +
                            [system_i386_emx, system_i386_os2]))
@@ -1655,7 +1659,7 @@ implementation
       end;
 
 
-    function tstringdef.getmangledparaname : string;
+    function tstringdef.getmangledparaname : TSymStr;
       begin
         getmangledparaname:='STRING';
       end;
@@ -2249,7 +2253,7 @@ implementation
       end;
 
 
-    function tfiledef.getmangledparaname : string;
+    function tfiledef.getmangledparaname : TSymStr;
       begin
          case filetyp of
            ft_untyped:
@@ -2873,7 +2877,7 @@ implementation
       end;
 
 
-    function tarraydef.getmangledparaname : string;
+    function tarraydef.getmangledparaname : TSymStr;
       begin
          if ado_isarrayofconst in arrayoptions then
           getmangledparaname:='array_of_const'
@@ -3654,7 +3658,11 @@ implementation
       begin
          inherited create(procdef,level);
          localst:=tlocalsymtable.create(self,parast.symtablelevel);
+{$ifdef symansistr}
+         _mangledname:='';
+{$else symansistr}
          _mangledname:=nil;
+{$endif symansistr}
          fileinfo:=current_filepos;
          extnumber:=$ffff;
          aliasnames:=TCmdStrList.create;
@@ -3681,10 +3689,17 @@ implementation
         level : byte;
       begin
          inherited ppuload(procdef,ppufile);
+{$ifdef symansistr}
+         if po_has_mangledname in procoptions then
+           _mangledname:=ppufile.getansistring
+         else
+           _mangledname:='';
+{$else symansistr}
          if po_has_mangledname in procoptions then
           _mangledname:=stringdup(ppufile.getstring)
          else
           _mangledname:=nil;
+{$endif symansistr}
          extnumber:=ppufile.getword;
          level:=ppufile.getbyte;
          ppufile.getderef(structderef);
@@ -3806,6 +3821,7 @@ implementation
          stringdispose(deprecatedmsg);
          if (po_msgstr in procoptions) then
            stringdispose(messageinf.str);
+{$ifndef symansistr}
          if assigned(_mangledname) then
           begin
 {$ifdef MEMDEBUG}
@@ -3816,6 +3832,7 @@ implementation
             memmanglednames.stop;
 {$endif MEMDEBUG}
           end;
+{$endif symansistr}
          inherited destroy;
       end;
 
@@ -3831,8 +3848,13 @@ implementation
            exit;
 
          inherited ppuwrite(ppufile);
+{$ifdef symansistr}
+         if po_has_mangledname in procoptions then
+           ppufile.putansistring(_mangledname);
+{$else symansistr}
          if po_has_mangledname in procoptions then
           ppufile.putstring(_mangledname^);
+{$endif symansistr}
 
          ppufile.putword(extnumber);
          ppufile.putbyte(parast.symtablelevel);
@@ -4210,15 +4232,24 @@ implementation
       end;
 
 
-    function tprocdef.mangledname : string;
+    function tprocdef.mangledname : TSymStr;
       begin
+{$ifdef symansistr}
+        if _mangledname<>'' then
+{$else symansistr}
         if assigned(_mangledname) then
-         begin
-         {$ifdef compress}
+{$endif symansistr}
+          begin
+{$ifdef compress}
+           {$error add support for ansistrings in case of symansistr}
            mangledname:=minilzw_decode(_mangledname^);
-         {$else}
+{$else}
+  {$ifdef symansistr}
+           mangledname:=_mangledname;
+  {$else symansistr}
            mangledname:=_mangledname^;
-         {$endif}
+  {$endif symansistr}
+{$endif}
            exit;
          end;
 {$ifndef jvm}
@@ -4236,18 +4267,23 @@ implementation
         else
           jvmaddtypeownerprefix(owner,mangledname);
 {$endif not jvm}
-       {$ifdef compress}
+{$ifdef compress}
+       {$error add support for ansistrings in case of symansistr}
         _mangledname:=stringdup(minilzw_encode(mangledname));
-       {$else}
+{$else}
+  {$ifdef symansistr}
+        _mangledname:=mangledname;
+  {$else symansistr}
         _mangledname:=stringdup(mangledname);
-       {$endif}
+  {$endif symansistr}
+{$endif}
       end;
 
 
-    function tprocdef.defaultmangledname: string;
+    function tprocdef.defaultmangledname: TSymStr;
       var
         hp   : TParavarsym;
-        hs   : string;
+        hs   : TSymStr;
         crc  : dword;
         newlen,
         oldlen,
@@ -4290,9 +4326,9 @@ implementation
       end;
 
 
-    function tprocdef.cplusplusmangledname : string;
+    function tprocdef.cplusplusmangledname : TSymStr;
 
-      function getcppparaname(p : tdef) : string;
+      function getcppparaname(p : tdef) : TSymStr;
 
         const
 {$ifdef NAMEMANGLING_GCC2}
@@ -4317,7 +4353,7 @@ implementation
 {$endif NAMEMANGLING_GCC2}
 
         var
-           s : string;
+           s : TSymStr;
 
         begin
            case p.typ of
@@ -4336,7 +4372,7 @@ implementation
         end;
 
       var
-         s,s2 : string;
+         s,s2 : TSymStr;
          hp   : TParavarsym;
          i    : integer;
 
@@ -4435,7 +4471,7 @@ implementation
       end;
 
 
-    function  tprocdef.objcmangledname : string;
+    function  tprocdef.objcmangledname : TSymStr;
       var
         manglednamelen: longint;
         iscatmethod   : boolean;
@@ -4466,12 +4502,12 @@ implementation
       end;
 
 
-    function tprocdef.jvmmangledbasename(signature: boolean): string;
+    function tprocdef.jvmmangledbasename(signature: boolean): TSymStr;
       var
         vs: tparavarsym;
         i: longint;
         founderror: tdef;
-        tmpresult: string;
+        tmpresult: TSymStr;
         container: tsymtable;
       begin
         { format:
@@ -4561,33 +4597,47 @@ implementation
       end;
 
 
-    procedure tprocdef.setmangledname(const s : string);
+    procedure tprocdef.setmangledname(const s : TSymStr);
       begin
         { This is not allowed anymore, the forward declaration
           already needs to create the correct mangledname, no changes
           afterwards are allowed (PFV) }
         { Exception: interface definitions in mode macpas, since in that }
         {   case no reference to the old name can exist yet (JM)         }
+{$ifdef symansistr}
+        if _mangledname<>'' then
+          if ((m_mac in current_settings.modeswitches) and
+              (interfacedef)) then
+            _mangledname:=''
+          else
+            internalerror(200411171);
+{$else symansistr}
         if assigned(_mangledname) then
           if ((m_mac in current_settings.modeswitches) and
               (interfacedef)) then
             stringdispose(_mangledname)
           else
             internalerror(200411171);
-      {$ifdef jvm}
+{$endif symansistr}
+{$ifdef jvm}
         { this routine can be called for compilerproces. can't set mangled
           name since it must be calculated, but it uses import_name when set
           -> set that one }
         import_name:=stringdup(s);
         include(procoptions,po_has_importname);
         include(procoptions,po_has_mangledname);
-      {$else}
-      {$ifdef compress}
+{$else}
+  {$ifdef compress}
+        {$error add support for symansistr}
         _mangledname:=stringdup(minilzw_encode(s));
-      {$else}
+  {$else}
+    {$ifdef symansistr}
+        _mangledname:=s;
+    {$else symansistr}
         _mangledname:=stringdup(s);
-      {$endif}
-      {$endif jvm}
+    {$endif symansistr}
+  {$endif}
+{$endif jvm}
         include(procoptions,po_has_mangledname);
       end;
 
@@ -4696,7 +4746,7 @@ implementation
       end;
 
 
-    function tprocvardef.getmangledparaname:string;
+    function tprocvardef.getmangledparaname:TSymStr;
       begin
         if not(po_methodpointer in procoptions) then
           if not is_nested_pd(self) then
@@ -5437,7 +5487,7 @@ implementation
       end;
 
 
-    function tobjectdef.vmt_mangledname : string;
+    function tobjectdef.vmt_mangledname : TSymStr;
       begin
         if not(oo_has_vmt in objectoptions) then
           Message1(parser_n_object_has_no_vmt,objrealname^);
@@ -6040,7 +6090,7 @@ implementation
       end;
 
 
-    function terrordef.getmangledparaname:string;
+    function terrordef.getmangledparaname:TSymStr;
       begin
         getmangledparaname:='error';
       end;

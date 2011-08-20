@@ -28,6 +28,7 @@ unit jvmdef;
 interface
 
     uses
+      globtype,
       node,
       symbase,symtype;
 
@@ -38,29 +39,29 @@ interface
     function jvmtypeneedssignature(def: tdef): boolean;
     { create a signature encoding of a particular type; requires that
       jvmtypeneedssignature returned "true" for this type }
-    procedure jvmaddencodedsignature(def: tdef; bpacked: boolean; var encodedstr: string);
+    procedure jvmaddencodedsignature(def: tdef; bpacked: boolean; var encodedstr: TSymStr);
 
     { Encode a type into the internal format used by the JVM (descriptor).
       Returns false if a type is not representable by the JVM,
       and in that case also the failing definition.  }
-    function jvmtryencodetype(def: tdef; out encodedtype: string; forcesignature: boolean; out founderror: tdef): boolean;
+    function jvmtryencodetype(def: tdef; out encodedtype: TSymStr; forcesignature: boolean; out founderror: tdef): boolean;
 
     { same as above, but throws an internal error on failure }
-    function jvmencodetype(def: tdef; withsignature: boolean): string;
+    function jvmencodetype(def: tdef; withsignature: boolean): TSymStr;
 
     { Check whether a type can be used in a JVM methom signature or field
       declaration.  }
     function jvmchecktype(def: tdef; out founderror: tdef): boolean;
 
     { incremental version of jvmtryencodetype() }
-    function jvmaddencodedtype(def: tdef; bpacked: boolean; var encodedstr: string; forcesignature: boolean; out founderror: tdef): boolean;
+    function jvmaddencodedtype(def: tdef; bpacked: boolean; var encodedstr: TSymStr; forcesignature: boolean; out founderror: tdef): boolean;
 
     { add type prefix (package name) to a type }
-    procedure jvmaddtypeownerprefix(owner: tsymtable; var name: string);
+    procedure jvmaddtypeownerprefix(owner: tsymtable; var name: TSymStr);
 
     { returns type string for a single-dimensional array (different from normal
       typestring in case of a primitive type) }
-    function jvmarrtype(def: tdef; out primitivetype: boolean): string;
+    function jvmarrtype(def: tdef; out primitivetype: boolean): TSymStr;
     function jvmarrtype_setlength(def: tdef): char;
 
     { returns whether a def is emulated using an implicit pointer type on the
@@ -70,13 +71,12 @@ interface
     { returns the mangled base name for a tsym (type + symbol name, no
       visibility etc); also adds signature attribute if requested and
       appropriate }
-    function jvmmangledbasename(sym: tsym; withsignature: boolean): string;
-    function jvmmangledbasename(sym: tsym; const usesymname: string; withsignature: boolean): string;
+    function jvmmangledbasename(sym: tsym; withsignature: boolean): TSymStr;
+    function jvmmangledbasename(sym: tsym; const usesymname: TSymStr; withsignature: boolean): TSymStr;
 
 implementation
 
   uses
-    globtype,
     cutils,cclasses,
     verbose,systems,
     fmodule,
@@ -120,7 +120,7 @@ implementation
       end;
 
 
-    procedure jvmaddencodedsignature(def: tdef; bpacked: boolean; var encodedstr: string);
+    procedure jvmaddencodedsignature(def: tdef; bpacked: boolean; var encodedstr: TSymStr);
       var
         founderror: tdef;
       begin
@@ -182,7 +182,7 @@ implementation
       end;
 
 
-    function jvmaddencodedtype(def: tdef; bpacked: boolean; var encodedstr: string; forcesignature: boolean; out founderror: tdef): boolean;
+    function jvmaddencodedtype(def: tdef; bpacked: boolean; var encodedstr: TSymStr; forcesignature: boolean; out founderror: tdef): boolean;
       var
         c: char;
       begin
@@ -362,17 +362,17 @@ implementation
       end;
 
 
-    function jvmtryencodetype(def: tdef; out encodedtype: string; forcesignature: boolean; out founderror: tdef): boolean;
+    function jvmtryencodetype(def: tdef; out encodedtype: TSymStr; forcesignature: boolean; out founderror: tdef): boolean;
       begin
         encodedtype:='';
         result:=jvmaddencodedtype(def,false,encodedtype,forcesignature,founderror);
       end;
 
 
-    procedure jvmaddtypeownerprefix(owner: tsymtable; var name: string);
+    procedure jvmaddtypeownerprefix(owner: tsymtable; var name: TSymStr);
       var
         owningcontainer: tsymtable;
-        tmpresult: string;
+        tmpresult: TSymStr;
         module: tmodule;
         nameendpos: longint;
       begin
@@ -414,7 +414,7 @@ implementation
       end;
 
 
-    function jvmarrtype(def: tdef; out primitivetype: boolean): string;
+    function jvmarrtype(def: tdef; out primitivetype: boolean): TSymStr;
       var
         errdef: tdef;
       begin
@@ -451,7 +451,7 @@ implementation
     function jvmarrtype_setlength(def: tdef): char;
       var
         errdef: tdef;
-        res: string;
+        res: TSymStr;
       begin
         { keep in sync with rtl/java/jdynarrh.inc and usage in njvminl }
         if is_record(def) then
@@ -492,7 +492,7 @@ implementation
       end;
 
 
-    function jvmmangledbasename(sym: tsym; const usesymname: string; withsignature: boolean): string;
+    function jvmmangledbasename(sym: tsym; const usesymname: TSymStr; withsignature: boolean): TSymStr;
       var
         container: tsymtable;
         vsym: tabstractvarsym;
@@ -590,7 +590,7 @@ implementation
       end;
 
 
-    function jvmmangledbasename(sym: tsym; withsignature: boolean): string;
+    function jvmmangledbasename(sym: tsym; withsignature: boolean): TSymStr;
       begin
         if (sym.typ=fieldvarsym) and
            assigned(tfieldvarsym(sym).externalname) then
@@ -603,7 +603,7 @@ implementation
                     jvm type validity checking
 *******************************************************************}
 
-   function jvmencodetype(def: tdef; withsignature: boolean): string;
+   function jvmencodetype(def: tdef; withsignature: boolean): TSymStr;
      var
        errordef: tdef;
      begin
@@ -614,7 +614,7 @@ implementation
 
    function jvmchecktype(def: tdef; out founderror: tdef): boolean;
       var
-        encodedtype: string;
+        encodedtype: TSymStr;
       begin
         { don't duplicate the code like in objcdef, since the resulting strings
           are much shorter here so it's not worth it }

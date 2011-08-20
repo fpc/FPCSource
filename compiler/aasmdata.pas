@@ -160,10 +160,10 @@ interface
         constructor create(const n:string);
         destructor  destroy;override;
         { asmsymbol }
-        function  DefineAsmSymbol(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
-        function  WeakRefAsmSymbol(const s : string) : TAsmSymbol;
-        function  RefAsmSymbol(const s : string) : TAsmSymbol;
-        function  GetAsmSymbol(const s : string) : TAsmSymbol;
+        function  DefineAsmSymbol(const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
+        function  WeakRefAsmSymbol(const s : TSymStr) : TAsmSymbol;
+        function  RefAsmSymbol(const s : TSymStr) : TAsmSymbol;
+        function  GetAsmSymbol(const s : TSymStr) : TAsmSymbol;
         { create new assembler label }
         procedure getlabel(out l : TAsmLabel;alt:TAsmLabeltype);
         procedure getjumplabel(out l : TAsmLabel);
@@ -377,7 +377,7 @@ implementation
       end;
 
 
-    function TAsmData.DefineAsmSymbol(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
+    function TAsmData.DefineAsmSymbol(const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
       var
         hp : TAsmSymbol;
       begin
@@ -404,7 +404,7 @@ implementation
       end;
 
 
-    function TAsmData.RefAsmSymbol(const s : string) : TAsmSymbol;
+    function TAsmData.RefAsmSymbol(const s : TSymStr) : TAsmSymbol;
       begin
         result:=TAsmSymbol(FAsmSymbolDict.Find(s));
         if not assigned(result) then
@@ -415,7 +415,7 @@ implementation
       end;
 
 
-    function TAsmData.WeakRefAsmSymbol(const s : string) : TAsmSymbol;
+    function TAsmData.WeakRefAsmSymbol(const s : TSymStr) : TAsmSymbol;
       begin
         result:=TAsmSymbol(FAsmSymbolDict.Find(s));
         if not assigned(result) then
@@ -423,7 +423,7 @@ implementation
       end;
 
 
-    function TAsmData.GetAsmSymbol(const s : string) : TAsmSymbol;
+    function TAsmData.GetAsmSymbol(const s : TSymStr) : TAsmSymbol;
       begin
         result:=TAsmSymbol(FAsmSymbolDict.Find(s));
       end;

@@ -34,6 +34,13 @@ interface
        TCmdStr = AnsiString;
        TPathStr = AnsiString;
 
+{$ifdef symansistr}
+       TSymStr = AnsiString;
+{$else symansistr}
+       TSymStr = ShortString;
+{$endif symansistr}
+       PSymStr = ^TSymStr;
+
        { Integer type corresponding to pointer size }
 {$ifdef cpu64bitaddr}
        PUint = qword;

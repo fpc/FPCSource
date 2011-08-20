@@ -51,13 +51,13 @@ interface
         procedure WriteInstruction(hp: tai);
         procedure NewAsmFileForStructDef(obj: tabstractrecorddef);
 
-        function VisibilityToStr(vis: tvisibility): string;
-        function MethodDefinition(pd: tprocdef): string;
+        function VisibilityToStr(vis: tvisibility): ansistring;
+        function MethodDefinition(pd: tprocdef): ansistring;
         function ConstValue(csym: tconstsym): ansistring;
         function ConstAssignmentValue(csym: tconstsym): ansistring;
         function ConstDefinition(sym: tconstsym): ansistring;
-        function FieldDefinition(sym: tabstractvarsym): string;
-        function InnerStructDef(obj: tabstractrecorddef): string;
+        function FieldDefinition(sym: tabstractvarsym): ansistring;
+        function InnerStructDef(obj: tabstractrecorddef): ansistring;
 
         procedure WriteProcDef(pd: tprocdef);
         procedure WriteFieldSym(sym: tabstractvarsym);
@@ -225,13 +225,13 @@ implementation
      end;
 
 
-   function constsingle(s: single): string;
+   function constsingle(s: single): ansistring;
      begin
        result:='0fx'+hexstr(longint(t32bitarray(s)),8);
      end;
 
 
-   function constdouble(d: double): string;
+   function constdouble(d: double): ansistring;
       begin
         // force interpretation as double (since we write it out as an
         // integer, we never have to swap the endianess). We have to
@@ -260,7 +260,7 @@ implementation
         ch       : char;
         hp       : tai;
         hp1      : tailineinfo;
-        s        : string;
+        s        : ansistring;
         i,pos    : longint;
         InlineLevel : longint;
         do_line  : boolean;
@@ -521,7 +521,7 @@ implementation
       var
         superclass,
         intf: tobjectdef;
-        n: string;
+        n: ansistring;
         i: longint;
         toplevelowner: tsymtable;
       begin
@@ -678,7 +678,7 @@ implementation
       end;
 
 
-    function TJasminAssembler.VisibilityToStr(vis: tvisibility): string;
+    function TJasminAssembler.VisibilityToStr(vis: tvisibility): ansistring;
       begin
         case vis of
           vis_hidden,
@@ -699,7 +699,7 @@ implementation
       end;
 
 
-    function TJasminAssembler.MethodDefinition(pd: tprocdef): string;
+    function TJasminAssembler.MethodDefinition(pd: tprocdef): ansistring;
       begin
         result:=VisibilityToStr(pd.visibility);
         if (pd.procsym.owner.symtabletype in [globalsymtable,staticsymtable,localsymtable]) or
@@ -782,7 +782,7 @@ implementation
       end;
 
 
-    function TJasminAssembler.FieldDefinition(sym: tabstractvarsym): string;
+    function TJasminAssembler.FieldDefinition(sym: tabstractvarsym): ansistring;
       var
         vissym: tabstractvarsym;
       begin
@@ -827,10 +827,10 @@ implementation
       end;
 
 
-    function TJasminAssembler.InnerStructDef(obj: tabstractrecorddef): string;
+    function TJasminAssembler.InnerStructDef(obj: tabstractrecorddef): ansistring;
       var
         extname: pshortstring;
-        kindname: string;
+        kindname: ansistring;
       begin
         if not(obj.owner.defowner.typ in [objectdef,recorddef]) then
           internalerror(2011021701);
@@ -902,15 +902,9 @@ implementation
 
 
     procedure TJasminAssembler.WriteConstSym(sym: tconstsym);
-      var
-        a: ansistring;
       begin
         AsmWrite('.field ');
-        { make sure the ansistring is not freed before we've extracted the
-          pchar }
-        a:=ConstDefinition(sym);
-        AsmWritePChar(pchar(a));
-        AsmLn
+        AsmWriteln(ConstDefinition(sym));
       end;
 
 
@@ -1065,7 +1059,7 @@ implementation
          owner := _owner;
        end;
 
-    function getreferencestring(var ref : treference) : string;
+    function getreferencestring(var ref : treference) : ansistring;
       begin
         if (ref.arrayreftype<>art_none) or
            (ref.index<>NR_NO) then
@@ -1133,7 +1127,7 @@ implementation
       var
         s: ansistring;
         i: byte;
-        sep: string[3];
+        sep: ansistring;
       begin
         s:=#9+jas_op2str[taicpu(hp).opcode];
         if taicpu(hp).ops<>0 then
@@ -1145,8 +1139,7 @@ implementation
                  sep:=' ';
               end;
           end;
-        owner.AsmWritePChar(PChar(s));
-        owner.AsmLn;
+        owner.AsmWriteLn(s);
       end;
 
 {****************************************************************************}

@@ -20,7 +20,7 @@
  ****************************************************************************}
 program ppudump;
 
-{$mode objfpc}
+{$i fpcdefs.inc}
 {$H+}
 
 {$define IN_PPUDUMP}
@@ -1663,7 +1663,11 @@ begin
              write  (space,' DefaultConst : ');
              readderef('');
              if (vo_has_mangledname in varoptions) then
+{$ifdef symansistr}
+               writeln(space,' Mangledname : ',getansistring);
+{$else symansistr}
                writeln(space,' Mangledname : ',getstring);
+{$endif symansistr}
            end;
 
          iblocalvarsym :
@@ -1861,7 +1865,11 @@ begin
              readcommondef('Procedure definition',defoptions);
              read_abstract_proc_def(calloption,procoptions);
              if (po_has_mangledname in procoptions) then
+{$ifdef symansistr}
+               writeln(space,'     Mangled name : ',getansistring);
+{$else symansistr}
                writeln(space,'     Mangled name : ',getstring);
+{$endif symansistr}
              writeln(space,'           Number : ',getword);
              writeln(space,'            Level : ',getbyte);
              write  (space,'            Class : ');

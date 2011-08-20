@@ -180,15 +180,15 @@ unit hlcgobj;
           {# Emits instruction to call the method specified by symbol name.
              This routine must be overridden for each new target cpu.
           }
-          procedure a_call_name(list : TAsmList;pd : tprocdef;const s : string; weak: boolean);virtual;abstract;
+          procedure a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; weak: boolean);virtual;abstract;
           procedure a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister);virtual;abstract;
           procedure a_call_ref(list : TAsmList;pd : tabstractprocdef;ref : treference);virtual;abstract;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
-          procedure a_call_name_static(list : TAsmList;pd : tprocdef;const s : string);virtual;
+          procedure a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr);virtual;
           { same as a_call_name, might be overridden on certain architectures to emit
             special static calls for inherited methods }
-          procedure a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : string);virtual;
+          procedure a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : TSymStr);virtual;
 
           { move instructions }
           procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : aint;register : tregister);virtual;abstract;
@@ -771,12 +771,12 @@ implementation
          end;
     end;
 
-  procedure thlcgobj.a_call_name_static(list: TAsmList; pd: tprocdef; const s: string);
+  procedure thlcgobj.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr);
     begin
       a_call_name(list,pd,s,false);
     end;
 
-    procedure thlcgobj.a_call_name_inherited(list: TAsmList; pd: tprocdef; const s: string);
+    procedure thlcgobj.a_call_name_inherited(list: TAsmList; pd: tprocdef; const s: TSymStr);
       begin
         a_call_name(list,pd,s,false);
       end;

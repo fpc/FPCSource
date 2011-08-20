@@ -48,8 +48,8 @@ uses
 
       function def2regtyp(def: tdef): tregistertype; override;
 
-      procedure a_call_name(list : TAsmList;pd : tprocdef;const s : string; weak: boolean);override;
-      procedure a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : string);override;
+      procedure a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; weak: boolean);override;
+      procedure a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : TSymStr);override;
 
       procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : aint;register : tregister);override;
       procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : aint;const ref : treference);override;
@@ -182,7 +182,7 @@ uses
         JVM does not support unsigned divisions }
       procedure maybepreparedivu32(list: TAsmList; var op: topcg; size: tdef; out isdivu32: boolean);
       { common implementation of a_call_* }
-      procedure a_call_name_intern(list : TAsmList;pd : tprocdef;const s : string; inheritedcall: boolean);
+      procedure a_call_name_intern(list : TAsmList;pd : tprocdef;const s : TSymStr; inheritedcall: boolean);
 
       { concatcopy helpers }
       procedure concatcopy_normal_array(list: TAsmList; size: tdef; const source, dest: treference);
@@ -268,12 +268,12 @@ implementation
       end;
     end;
 
-  procedure thlcgjvm.a_call_name(list: TAsmList; pd: tprocdef; const s: string; weak: boolean);
+  procedure thlcgjvm.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; weak: boolean);
     begin
       a_call_name_intern(list,pd,s,false);
     end;
 
-  procedure thlcgjvm.a_call_name_inherited(list: TAsmList; pd: tprocdef; const s: string);
+  procedure thlcgjvm.a_call_name_inherited(list: TAsmList; pd: tprocdef; const s: TSymStr);
     begin
       a_call_name_intern(list,pd,s,true);
     end;
@@ -1903,7 +1903,7 @@ implementation
         isdivu32:=false;
     end;
 
-  procedure thlcgjvm.a_call_name_intern(list: TAsmList; pd: tprocdef; const s: string; inheritedcall: boolean);
+  procedure thlcgjvm.a_call_name_intern(list: TAsmList; pd: tprocdef; const s: TSymStr; inheritedcall: boolean);
     var
       opc: tasmop;
     begin

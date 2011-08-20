@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 135;
+  CurrentPPUVersion = 136;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -939,24 +939,19 @@ begin
 end;
 
 
-function tppufile.getansistring: ansistring;
+function tppufile.getansistring:ansistring;
 var
-  l : longint;
+  len: longint;
 begin
-  l:=getlongint;
-  if entryidx+l>entry.size then
+  len:=getlongint;
+  if entryidx+len>entry.size then
    begin
      error:=true;
      exit;
    end;
-  if l>0 then
-    begin
-      SetLength(Result,l);
-      ReadData(result[1],l);
-    end
-  else
-    Result:='';
-  inc(entryidx,l);
+  setlength(result,len);
+  if len>0 then
+    getdata(result[1],len);
 end;
 
 
@@ -1312,14 +1307,14 @@ procedure tppufile.putstring(const s:string);
   end;
 
 
-procedure tppufile.putansistring(const s: ansistring);
+procedure tppufile.putansistring(const s:ansistring);
   var
-    l : longint;
+    len: longint;
   begin
-    l:=length(s);
-    putdata(l,4);
-    if l>0 then
-      putdata(s[1],l);
+    len:=length(s);
+    putlongint(len);
+    if len>0 then
+      putdata(s[1],len);
   end;
 
 

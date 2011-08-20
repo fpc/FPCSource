@@ -67,7 +67,7 @@ interface
           constructor create(const n : string);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function mangledname:string;override;
+          function mangledname:TSymStr;override;
        end;
 
        tunitsym = class(Tstoredsym)
@@ -159,12 +159,16 @@ interface
       tfieldvarsym = class(tabstractvarsym)
           fieldoffset   : asizeint;   { offset in record/object }
           externalname  : pshortstring;
+{$ifdef symansistr}
+          cachedmangledname: TSymStr; { mangled name for ObjC or Java }
+{$else symansistr}
           cachedmangledname: pshortstring; { mangled name for ObjC or Java }
+{$endif symansistr}
           constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure set_externalname(const s:string);
-          function mangledname:string;override;
+          function mangledname:TSymStr;override;
           destructor destroy;override;
       end;
 
@@ -205,17 +209,21 @@ interface
 
       tstaticvarsym = class(tabstractnormalvarsym)
       private
+{$ifdef symansistr}
+          _mangledname : TSymStr;
+{$else symansistr}
           _mangledname : pshortstring;
+{$endif symansistr}
       public
           section : ansistring;
           constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor create_dll(const n : string;vsp:tvarspez;def:tdef);
-          constructor create_C(const n,mangled : string;vsp:tvarspez;def:tdef);
+          constructor create_C(const n: string; const mangled : TSymStr;vsp:tvarspez;def:tdef);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function mangledname:string;override;
-          procedure set_mangledname(const s:string);
+          function mangledname:TSymStr;override;
+          procedure set_mangledname(const s:TSymStr);
       end;
 
       tabsolutevarsym = class(tabstractvarsym)
@@ -233,7 +241,7 @@ interface
          constructor ppuload(ppufile:tcompilerppufile);
          procedure buildderef;override;
          procedure deref;override;
-         function  mangledname : string;override;
+         function  mangledname : TSymStr;override;
          procedure ppuwrite(ppufile:tcompilerppufile);override;
       end;
 
@@ -450,7 +458,7 @@ implementation
       end;
 
 
-   function tlabelsym.mangledname:string;
+   function tlabelsym.mangledname:TSymStr;
      begin
        if not(defined) then
          begin
@@ -1287,11 +1295,13 @@ implementation
 
 
     procedure tfieldvarsym.set_externalname(const s: string);
-      var
-        tmp: string;
       begin
         { make sure it is recalculated }
+{$ifdef symansistr}
+        cachedmangledname:='';
+{$else symansistr}
         stringdispose(cachedmangledname);
+{$endif symansistr}
 {$ifdef jvm}
         if is_java_class_or_interface(tdef(owner.defowner)) then
           begin
@@ -1304,7 +1314,7 @@ implementation
       end;
 
 
-    function tfieldvarsym.mangledname:string;
+    function tfieldvarsym.mangledname:TSymStr;
       var
         srsym : tsym;
         srsymtable : tsymtable;
@@ -1313,13 +1323,13 @@ implementation
         if is_java_class_or_interface(tdef(owner.defowner)) or
            (tdef(owner.defowner).typ=recorddef) then
           begin
-            if assigned(cachedmangledname) then
-              result:=cachedmangledname^
+            if cachedmangledname<>'' then
+              result:=cachedmangledname
             else
               begin
                 result:=jvmmangledbasename(self,false);
                 jvmaddtypeownerprefix(owner,result);
-                cachedmangledname:=stringdup(result);
+                cachedmangledname:=result;
               end;
           end
         else
@@ -1338,12 +1348,21 @@ implementation
           end
         else if is_objcclass(tdef(owner.defowner)) then
           begin
+{$ifdef symansistr}
+            if cachedmangledname<>'' then
+              result:=cachedmangledname
+{$else symansistr}
             if assigned(cachedmangledname) then
               result:=cachedmangledname^
+{$endif symansistr}
             else
               begin
                 result:=target_info.cprefix+'OBJC_IVAR_$_'+tobjectdef(owner.defowner).objextname^+'.'+RealName;
+{$ifdef symansistr}
+                cachedmangledname:=result;
+{$else symansistr}
                 cachedmangledname:=stringdup(result);
+{$endif symansistr}
               end;
           end
         else
@@ -1353,7 +1372,9 @@ implementation
 
     destructor tfieldvarsym.destroy;
       begin
+{$ifndef symansistr}
         stringdispose(cachedmangledname);
+{$endif symansistr}
         inherited destroy;
       end;
 
@@ -1408,7 +1429,11 @@ implementation
     constructor tstaticvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
          inherited create(staticvarsym,n,vsp,def,vopts);
+{$ifdef symansistr}
+         _mangledname:='';
+{$else symansistr}
          _mangledname:=nil;
+{$endif symansistr}
       end;
 
 
@@ -1418,7 +1443,7 @@ implementation
       end;
 
 
-    constructor tstaticvarsym.create_C(const n,mangled : string;vsp:tvarspez;def:tdef);
+    constructor tstaticvarsym.create_C(const n: string; const mangled : TSymStr;vsp:tvarspez;def:tdef);
       begin
          tstaticvarsym(self).create(n,vsp,def,[]);
          set_mangledname(mangled);
@@ -1428,17 +1453,25 @@ implementation
     constructor tstaticvarsym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(staticvarsym,ppufile);
+{$ifdef symansistr}
+         if vo_has_mangledname in varoptions then
+           _mangledname:=ppufile.getansistring
+         else
+           _mangledname:='';
+{$else symansistr}
          if vo_has_mangledname in varoptions then
            _mangledname:=stringdup(ppufile.getstring)
          else
            _mangledname:=nil;
          if vo_has_section in varoptions then
            section:=ppufile.getansistring;
+{$endif symansistr}
       end;
 
 
     destructor tstaticvarsym.destroy;
       begin
+{$ifndef symansistr}
         if assigned(_mangledname) then
           begin
 {$ifdef MEMDEBUG}
@@ -1449,6 +1482,7 @@ implementation
             memmanglednames.stop;
 {$endif MEMDEBUG}
           end;
+{$endif}
         inherited destroy;
       end;
 
@@ -1457,58 +1491,73 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          if vo_has_mangledname in varoptions then
+{$ifdef symansistr}
+           ppufile.putansistring(_mangledname);
+{$else symansistr}
            ppufile.putstring(_mangledname^);
          if vo_has_section in varoptions then
            ppufile.putansistring(section);
+{$endif symansistr}
          ppufile.writeentry(ibstaticvarsym);
       end;
 
 
-    function tstaticvarsym.mangledname:string;
+    function tstaticvarsym.mangledname:TSymStr;
+{$ifndef jvm}
       var
-{$ifdef jvm}
-        tmpname: string;
-{$else jvm}
-        prefix : string[2];
+        prefix : TSymStr;
 {$endif jvm}
       begin
+{$ifdef symansistr}
+        if _mangledname='' then
+{$else symansistr}
         if not assigned(_mangledname) then
+{$endif symansistr}
           begin
 {$ifdef jvm}
-            tmpname:=jvmmangledbasename(self,false);
-            jvmaddtypeownerprefix(owner,tmpname);
-            _mangledname:=stringdup(tmpname);
+            _mangledname:=jvmmangledbasename(self,false);
+            jvmaddtypeownerprefix(owner,_mangledname);
 {$else jvm}
             if (vo_is_typed_const in varoptions) then
               prefix:='TC'
             else
               prefix:='U';
 {$ifdef compress}
+            {$error add ansistring support for symansistr}
             _mangledname:=stringdup(minilzw_encode(make_mangledname(prefix,owner,name)));
 {$else compress}
+  {$ifdef symansistr}
+           _mangledname:=make_mangledname(prefix,owner,name);
+  {$else symansistr}
            _mangledname:=stringdup(make_mangledname(prefix,owner,name));
+  {$endif symansistr}
 {$endif compress}
 {$endif jvm}
           end;
+{$ifdef symansistr}
+        result:=_mangledname;
+{$else symansistr}
         result:=_mangledname^;
+{$endif symansistr}
       end;
 
 
-    procedure tstaticvarsym.set_mangledname(const s:string);
-{$ifdef jvm}
-      var
-        tmpname: string;
-{$endif}
+    procedure tstaticvarsym.set_mangledname(const s:TSymStr);
       begin
+{$ifndef symansistr}
         stringdispose(_mangledname);
+{$endif}
 {$if defined(jvm)}
-        tmpname:=jvmmangledbasename(self,s,false);
-        jvmaddtypeownerprefix(owner,tmpname);
-        _mangledname:=stringdup(tmpname);
+        _mangledname:=jvmmangledbasename(self,s,false);
+        jvmaddtypeownerprefix(owner,_mangledname);
 {$elseif defined(compress)}
         _mangledname:=stringdup(minilzw_encode(s));
 {$else}
+  {$ifdef symansistr}
+        _mangledname:=s;
+  {$else symansistr}
         _mangledname:=stringdup(s);
+  {$endif symansistr}
 {$endif}
         include(varoptions,vo_has_mangledname);
       end;
@@ -1706,7 +1755,7 @@ implementation
       end;
 
 
-    function tabsolutevarsym.mangledname : string;
+    function tabsolutevarsym.mangledname : TSymStr;
       begin
          case abstyp of
            toasm :
