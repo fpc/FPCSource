@@ -1,20 +1,20 @@
   JLObject = class external 'java.lang' name 'Object' 
   public
     constructor create(); overload;
-    function getClass(): JLClass; overload; final;
-    function hashCode(): jint; overload;
-    function equals(para1: JLObject): jboolean; overload;
+    function getClass(): JLClass; overload; virtual; final;
+    function hashCode(): jint; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual;
   strict protected
-    function clone(): JLObject; overload;  // throws java.lang.CloneNotSupportedException
+    function clone(): JLObject; overload; virtual;  // throws java.lang.CloneNotSupportedException
   public
-    function toString(): JLString; overload;
-    procedure notify(); overload; final;
-    procedure notifyAll(); overload; final;
-    procedure wait(para1: jlong); overload; final;  // throws java.lang.InterruptedException
-    procedure wait(para1: jlong; para2: jint); overload; final;  // throws java.lang.InterruptedException
-    procedure wait(); overload; final;  // throws java.lang.InterruptedException
+    function toString(): JLString; overload; virtual;
+    procedure notify(); overload; virtual; final;
+    procedure notifyAll(); overload; virtual; final;
+    procedure wait(para1: jlong); overload; virtual; final;  // throws java.lang.InterruptedException
+    procedure wait(para1: jlong; para2: jint); overload; virtual; final;  // throws java.lang.InterruptedException
+    procedure wait(); overload; virtual; final;  // throws java.lang.InterruptedException
   strict protected
-    procedure finalize(); overload;  // throws java.lang.Throwable
+    procedure finalize(); overload; virtual;  // throws java.lang.Throwable
   end;
 
   JISerializable = interface external 'java.io' name 'Serializable' 
@@ -83,12 +83,12 @@
   JLNumber = class abstract external 'java.lang' name 'Number' (JLObject, JISerializable)
   public
     constructor create(); overload;
-    function intValue(): jint; overload; abstract;
-    function longValue(): jlong; overload; abstract;
-    function floatValue(): jfloat; overload; abstract;
-    function doubleValue(): jdouble; overload; abstract;
-    function byteValue(): jbyte; overload;
-    function shortValue(): jshort; overload;
+    function intValue(): jint; overload; virtual; abstract;
+    function longValue(): jlong; overload; virtual; abstract;
+    function floatValue(): jfloat; overload; virtual; abstract;
+    function doubleValue(): jdouble; overload; virtual; abstract;
+    function byteValue(): jbyte; overload; virtual;
+    function shortValue(): jshort; overload; virtual;
   end;
 
   JLThrowable = class external 'java.lang' name 'Throwable' (JLObject, JISerializable)
@@ -97,80 +97,80 @@
     constructor create(para1: JLString); overload;
     constructor create(para1: JLString; para2: JLThrowable); overload;
     constructor create(para1: JLThrowable); overload;
-    function getMessage(): JLString; overload;
-    function getLocalizedMessage(): JLString; overload;
-    function getCause(): JLThrowable; overload;
-    function initCause(para1: JLThrowable): JLThrowable; overload;
-    function toString(): JLString; overload;
-    procedure printStackTrace(); overload;
-    procedure printStackTrace(para1: JIPrintStream); overload;
-    procedure printStackTrace(para1: JIPrintWriter); overload;
-    function fillInStackTrace(): JLThrowable; overload;
-    function getStackTrace(): Arr1JLStackTraceElement; overload;
-    procedure setStackTrace(para1: Arr1JLStackTraceElement); overload;
-
-    procedure setStackTrace(var para1: array of JLStackTraceElement); overload;  end;
+    function getMessage(): JLString; overload; virtual;
+    function getLocalizedMessage(): JLString; overload; virtual;
+    function getCause(): JLThrowable; overload; virtual;
+    function initCause(para1: JLThrowable): JLThrowable; overload; virtual;
+    function toString(): JLString; overload; virtual;
+    procedure printStackTrace(); overload; virtual;
+    procedure printStackTrace(para1: JIPrintStream); overload; virtual;
+    procedure printStackTrace(para1: JIPrintWriter); overload; virtual;
+    function fillInStackTrace(): JLThrowable; overload; virtual;
+    function getStackTrace(): Arr1JLStackTraceElement; overload; virtual;
+    procedure setStackTrace(para1: Arr1JLStackTraceElement); overload; virtual;
+    procedure setStackTrace(var para1: array of JLStackTraceElement); overload; virtual;
+  end;
 
   JLAbstractStringBuilder = class abstract external 'java.lang' name 'AbstractStringBuilder' (JLObject, JLAppendable, JLCharSequence)
   public
-    function length(): jint; overload;
-    function capacity(): jint; overload;
-    procedure ensureCapacity(para1: jint); overload;
-    procedure trimToSize(); overload;
-    procedure setLength(para1: jint); overload;
-    function charAt(para1: jint): jchar; overload;
-    function codePointAt(para1: jint): jint; overload;
-    function codePointBefore(para1: jint): jint; overload;
-    function codePointCount(para1: jint; para2: jint): jint; overload;
-    function offsetByCodePoints(para1: jint; para2: jint): jint; overload;
-    procedure getChars(para1: jint; para2: jint; para3: Arr1jchar; para4: jint); overload;
-
-    procedure getChars(para1: jint; para2: jint; var para3: array of jchar; para4: jint); overload;    procedure setCharAt(para1: jint; para2: jchar); overload;
-    function append(para1: JLObject): JLAbstractStringBuilder; overload;
-    function append(para1: JLString): JLAbstractStringBuilder; overload;
-    function append(para1: JLStringBuffer): JLAbstractStringBuilder; overload;
-    function append(para1: JLCharSequence): JLAbstractStringBuilder; overload;
-    function append(para1: JLCharSequence; para2: jint; para3: jint): JLAbstractStringBuilder; overload;
-    function append(para1: Arr1jchar): JLAbstractStringBuilder; overload;
-
-    function append(var para1: array of jchar): JLAbstractStringBuilder; overload;    function append(para1: Arr1jchar; para2: jint; para3: jint): JLAbstractStringBuilder; overload;
-
-    function append(var para1: array of jchar; para2: jint; para3: jint): JLAbstractStringBuilder; overload;    function append(para1: jboolean): JLAbstractStringBuilder; overload;
-    function append(para1: jchar): JLAbstractStringBuilder; overload;
-    function append(para1: jint): JLAbstractStringBuilder; overload;
-    function append(para1: jlong): JLAbstractStringBuilder; overload;
-    function append(para1: jfloat): JLAbstractStringBuilder; overload;
-    function append(para1: jdouble): JLAbstractStringBuilder; overload;
-    function delete(para1: jint; para2: jint): JLAbstractStringBuilder; overload;
-    function appendCodePoint(para1: jint): JLAbstractStringBuilder; overload;
-    function deleteCharAt(para1: jint): JLAbstractStringBuilder; overload;
-    function replace(para1: jint; para2: jint; para3: JLString): JLAbstractStringBuilder; overload;
-    function substring(para1: jint): JLString; overload;
-    function subSequence(para1: jint; para2: jint): JLCharSequence; overload;
-    function substring(para1: jint; para2: jint): JLString; overload;
-    function insert(para1: jint; para2: Arr1jchar; para3: jint; para4: jint): JLAbstractStringBuilder; overload;
-
-    function insert(para1: jint; var para2: array of jchar; para3: jint; para4: jint): JLAbstractStringBuilder; overload;    function insert(para1: jint; para2: JLObject): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: JLString): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: Arr1jchar): JLAbstractStringBuilder; overload;
-
-    function insert(para1: jint; var para2: array of jchar): JLAbstractStringBuilder; overload;    function insert(para1: jint; para2: JLCharSequence): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: JLCharSequence; para3: jint; para4: jint): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jboolean): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jchar): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jint): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jlong): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jfloat): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jdouble): JLAbstractStringBuilder; overload;
-    function indexOf(para1: JLString): jint; overload;
-    function indexOf(para1: JLString; para2: jint): jint; overload;
-    function lastIndexOf(para1: JLString): jint; overload;
-    function lastIndexOf(para1: JLString; para2: jint): jint; overload;
-    function reverse(): JLAbstractStringBuilder; overload;
-    function toString(): JLString; overload; abstract;
-    function append(para1: jchar): JLAppendable; overload;  // throws java.io.IOException
-    function append(para1: JLCharSequence; para2: jint; para3: jint): JLAppendable; overload;  // throws java.io.IOException
-    function append(para1: JLCharSequence): JLAppendable; overload;  // throws java.io.IOException
+    function length(): jint; overload; virtual;
+    function capacity(): jint; overload; virtual;
+    procedure ensureCapacity(para1: jint); overload; virtual;
+    procedure trimToSize(); overload; virtual;
+    procedure setLength(para1: jint); overload; virtual;
+    function charAt(para1: jint): jchar; overload; virtual;
+    function codePointAt(para1: jint): jint; overload; virtual;
+    function codePointBefore(para1: jint): jint; overload; virtual;
+    function codePointCount(para1: jint; para2: jint): jint; overload; virtual;
+    function offsetByCodePoints(para1: jint; para2: jint): jint; overload; virtual;
+    procedure getChars(para1: jint; para2: jint; para3: Arr1jchar; para4: jint); overload; virtual;
+    procedure getChars(para1: jint; para2: jint; var para3: array of jchar; para4: jint); overload; virtual;
+    procedure setCharAt(para1: jint; para2: jchar); overload; virtual;
+    function append(para1: JLObject): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: JLString): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: JLStringBuffer): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: JLCharSequence): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: JLCharSequence; para2: jint; para3: jint): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: Arr1jchar): JLAbstractStringBuilder; overload; virtual;
+    function append(var para1: array of jchar): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: Arr1jchar; para2: jint; para3: jint): JLAbstractStringBuilder; overload; virtual;
+    function append(var para1: array of jchar; para2: jint; para3: jint): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jboolean): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jchar): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jint): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jlong): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jfloat): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jdouble): JLAbstractStringBuilder; overload; virtual;
+    function delete(para1: jint; para2: jint): JLAbstractStringBuilder; overload; virtual;
+    function appendCodePoint(para1: jint): JLAbstractStringBuilder; overload; virtual;
+    function deleteCharAt(para1: jint): JLAbstractStringBuilder; overload; virtual;
+    function replace(para1: jint; para2: jint; para3: JLString): JLAbstractStringBuilder; overload; virtual;
+    function substring(para1: jint): JLString; overload; virtual;
+    function subSequence(para1: jint; para2: jint): JLCharSequence; overload; virtual;
+    function substring(para1: jint; para2: jint): JLString; overload; virtual;
+    function insert(para1: jint; para2: Arr1jchar; para3: jint; para4: jint): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; var para2: array of jchar; para3: jint; para4: jint): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: JLObject): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: JLString): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: Arr1jchar): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; var para2: array of jchar): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: JLCharSequence): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: JLCharSequence; para3: jint; para4: jint): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jboolean): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jchar): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jint): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jlong): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jfloat): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jdouble): JLAbstractStringBuilder; overload; virtual;
+    function indexOf(para1: JLString): jint; overload; virtual;
+    function indexOf(para1: JLString; para2: jint): jint; overload; virtual;
+    function lastIndexOf(para1: JLString): jint; overload; virtual;
+    function lastIndexOf(para1: JLString; para2: jint): jint; overload; virtual;
+    function reverse(): JLAbstractStringBuilder; overload; virtual;
+    function toString(): JLString; overload; virtual; abstract;
+    function append(para1: jchar): JLAppendable; overload; virtual;  // throws java.io.IOException
+    function append(para1: JLCharSequence; para2: jint; para3: jint): JLAppendable; overload; virtual;  // throws java.io.IOException
+    function append(para1: JLCharSequence): JLAppendable; overload; virtual;  // throws java.io.IOException
   end;
 
   JLCharacter = class sealed external 'java.lang' name 'Character' (JLObject, JISerializable, JLComparable)
@@ -197,9 +197,9 @@
       strict protected
         constructor create(para1: JLString); overload;
       public
-        function equals(para1: JLObject): jboolean; overload; final;
-        function hashCode(): jint; overload; final;
-        function toString(): JLString; overload; final;
+        function equals(para1: JLObject): jboolean; overload; virtual; final;
+        function hashCode(): jint; overload; virtual; final;
+        function toString(): JLString; overload; virtual; final;
       end;
 
       InnerUnicodeBlock = class sealed external 'java.lang' name 'Character$UnicodeBlock' (InnerSubset)
@@ -334,7 +334,7 @@
       public
         class function &of(para1: jchar): JLCharacter.InnerUnicodeBlock; static; overload;
         class function &of(para1: jint): JLCharacter.InnerUnicodeBlock; static; overload;
-        class function forName(para1: JLString): JLCharacter.InnerUnicodeBlock; static; overload; final;
+        class function forName(para1: JLString): JLCharacter.InnerUnicodeBlock; static; overload; virtual; final;
       end;
 
   public
@@ -411,10 +411,10 @@
   public
     constructor create(para1: jchar); overload;
     class function valueOf(para1: jchar): JLCharacter; static; overload;
-    function charValue(): jchar; overload;
-    function hashCode(): jint; overload;
-    function equals(para1: JLObject): jboolean; overload;
-    function toString(): JLString; overload;
+    function charValue(): jchar; overload; virtual;
+    function hashCode(): jint; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual;
+    function toString(): JLString; overload; virtual;
     class function toString(para1: jchar): JLString; static; overload;
     class function isValidCodePoint(para1: jint): jboolean; static; overload;
     class function isSupplementaryCodePoint(para1: jint): jboolean; static; overload;
@@ -425,24 +425,24 @@
     class function toCodePoint(para1: jchar; para2: jchar): jint; static; overload;
     class function codePointAt(para1: JLCharSequence; para2: jint): jint; static; overload;
     class function codePointAt(para1: Arr1jchar; para2: jint): jint; static; overload;
-
-    class function codePointAt(var para1: array of jchar; para2: jint): jint; static; overload;    class function codePointAt(para1: Arr1jchar; para2: jint; para3: jint): jint; static; overload;
-
-    class function codePointAt(var para1: array of jchar; para2: jint; para3: jint): jint; static; overload;    class function codePointBefore(para1: JLCharSequence; para2: jint): jint; static; overload;
+    class function codePointAt(var para1: array of jchar; para2: jint): jint; static; overload;
+    class function codePointAt(para1: Arr1jchar; para2: jint; para3: jint): jint; static; overload;
+    class function codePointAt(var para1: array of jchar; para2: jint; para3: jint): jint; static; overload;
+    class function codePointBefore(para1: JLCharSequence; para2: jint): jint; static; overload;
     class function codePointBefore(para1: Arr1jchar; para2: jint): jint; static; overload;
-
-    class function codePointBefore(var para1: array of jchar; para2: jint): jint; static; overload;    class function codePointBefore(para1: Arr1jchar; para2: jint; para3: jint): jint; static; overload;
-
-    class function codePointBefore(var para1: array of jchar; para2: jint; para3: jint): jint; static; overload;    class function toChars(para1: jint; para2: Arr1jchar; para3: jint): jint; static; overload;
-
-    class function toChars(para1: jint; var para2: array of jchar; para3: jint): jint; static; overload;    class function toChars(para1: jint): Arr1jchar; static; overload;
+    class function codePointBefore(var para1: array of jchar; para2: jint): jint; static; overload;
+    class function codePointBefore(para1: Arr1jchar; para2: jint; para3: jint): jint; static; overload;
+    class function codePointBefore(var para1: array of jchar; para2: jint; para3: jint): jint; static; overload;
+    class function toChars(para1: jint; para2: Arr1jchar; para3: jint): jint; static; overload;
+    class function toChars(para1: jint; var para2: array of jchar; para3: jint): jint; static; overload;
+    class function toChars(para1: jint): Arr1jchar; static; overload;
     class function codePointCount(para1: JLCharSequence; para2: jint; para3: jint): jint; static; overload;
     class function codePointCount(para1: Arr1jchar; para2: jint; para3: jint): jint; static; overload;
-
-    class function codePointCount(var para1: array of jchar; para2: jint; para3: jint): jint; static; overload;    class function offsetByCodePoints(para1: JLCharSequence; para2: jint; para3: jint): jint; static; overload;
+    class function codePointCount(var para1: array of jchar; para2: jint; para3: jint): jint; static; overload;
+    class function offsetByCodePoints(para1: JLCharSequence; para2: jint; para3: jint): jint; static; overload;
     class function offsetByCodePoints(para1: Arr1jchar; para2: jint; para3: jint; para4: jint; para5: jint): jint; static; overload;
-
-    class function offsetByCodePoints(var para1: array of jchar; para2: jint; para3: jint; para4: jint; para5: jint): jint; static; overload;    class function isLowerCase(para1: jchar): jboolean; static; overload;
+    class function offsetByCodePoints(var para1: array of jchar; para2: jint; para3: jint; para4: jint; para5: jint): jint; static; overload;
+    class function isLowerCase(para1: jchar): jboolean; static; overload;
     class function isLowerCase(para1: jint): jboolean; static; overload;
     class function isUpperCase(para1: jchar): jboolean; static; overload;
     class function isUpperCase(para1: jint): jboolean; static; overload;
@@ -492,9 +492,9 @@
     class function getDirectionality(para1: jint): jbyte; static; overload;
     class function isMirrored(para1: jchar): jboolean; static; overload;
     class function isMirrored(para1: jint): jboolean; static; overload;
-    function compareTo(para1: JLCharacter): jint; overload;
+    function compareTo(para1: JLCharacter): jint; overload; virtual;
     class function reverseBytes(para1: jchar): jchar; static; overload;
-    function compareTo(para1: JLObject): jint; overload;
+    function compareTo(para1: JLObject): jint; overload; virtual;
   end;
 
   JLString = class sealed external 'java.lang' name 'String' (JLObject, JISerializable, JLComparable, JLCharSequence)
@@ -537,80 +537,80 @@
     constructor create(const para1: array of jbyte); overload;
     constructor create(para1: JLStringBuffer); overload;
     constructor create(para1: JLStringBuilder); overload;
-    function length(): jint; overload;
-    function isEmpty(): jboolean; overload;
-    function charAt(para1: jint): jchar; overload;
-    function codePointAt(para1: jint): jint; overload;
-    function codePointBefore(para1: jint): jint; overload;
-    function codePointCount(para1: jint; para2: jint): jint; overload;
-    function offsetByCodePoints(para1: jint; para2: jint): jint; overload;
-    procedure getChars(para1: jint; para2: jint; para3: Arr1jchar; para4: jint); overload;
-
-    procedure getChars(para1: jint; para2: jint; var para3: array of jchar; para4: jint); overload;    procedure getBytes(para1: jint; para2: jint; para3: Arr1jbyte; para4: jint); overload;
-
-    procedure getBytes(para1: jint; para2: jint; var para3: array of jbyte; para4: jint); overload;    function getBytes(para1: JLString): Arr1jbyte; overload;  // throws java.io.UnsupportedEncodingException
-    function getBytes(para1: JNCCharset): Arr1jbyte; overload;
-    function getBytes(): Arr1jbyte; overload;
-    function equals(para1: JLObject): jboolean; overload;
-    function contentEquals(para1: JLStringBuffer): jboolean; overload;
-    function contentEquals(para1: JLCharSequence): jboolean; overload;
-    function equalsIgnoreCase(para1: JLString): jboolean; overload;
-    function compareTo(para1: JLString): jint; overload;
-    function compareToIgnoreCase(para1: JLString): jint; overload;
-    function regionMatches(para1: jint; para2: JLString; para3: jint; para4: jint): jboolean; overload;
-    function regionMatches(para1: jboolean; para2: jint; para3: JLString; para4: jint; para5: jint): jboolean; overload;
-    function startsWith(para1: JLString; para2: jint): jboolean; overload;
-    function startsWith(para1: JLString): jboolean; overload;
-    function endsWith(para1: JLString): jboolean; overload;
-    function hashCode(): jint; overload;
-    function indexOf(para1: jint): jint; overload;
-    function indexOf(para1: jint; para2: jint): jint; overload;
-    function lastIndexOf(para1: jint): jint; overload;
-    function lastIndexOf(para1: jint; para2: jint): jint; overload;
-    function indexOf(para1: JLString): jint; overload;
-    function indexOf(para1: JLString; para2: jint): jint; overload;
-    function lastIndexOf(para1: JLString): jint; overload;
-    function lastIndexOf(para1: JLString; para2: jint): jint; overload;
-    function substring(para1: jint): JLString; overload;
-    function substring(para1: jint; para2: jint): JLString; overload;
-    function subSequence(para1: jint; para2: jint): JLCharSequence; overload;
-    function concat(para1: JLString): JLString; overload;
-    function replace(para1: jchar; para2: jchar): JLString; overload;
-    function matches(para1: JLString): jboolean; overload;
-    function contains(para1: JLCharSequence): jboolean; overload;
-    function replaceFirst(para1: JLString; para2: JLString): JLString; overload;
-    function replaceAll(para1: JLString; para2: JLString): JLString; overload;
-    function replace(para1: JLCharSequence; para2: JLCharSequence): JLString; overload;
-    function split(para1: JLString; para2: jint): Arr1JLString; overload;
-    function split(para1: JLString): Arr1JLString; overload;
-    function toLowerCase(para1: JULocale): JLString; overload;
-    function toLowerCase(): JLString; overload;
-    function toUpperCase(para1: JULocale): JLString; overload;
-    function toUpperCase(): JLString; overload;
-    function trim(): JLString; overload;
-    function toString(): JLString; overload;
-    function toCharArray(): Arr1jchar; overload;
+    function length(): jint; overload; virtual;
+    function isEmpty(): jboolean; overload; virtual;
+    function charAt(para1: jint): jchar; overload; virtual;
+    function codePointAt(para1: jint): jint; overload; virtual;
+    function codePointBefore(para1: jint): jint; overload; virtual;
+    function codePointCount(para1: jint; para2: jint): jint; overload; virtual;
+    function offsetByCodePoints(para1: jint; para2: jint): jint; overload; virtual;
+    procedure getChars(para1: jint; para2: jint; para3: Arr1jchar; para4: jint); overload; virtual;
+    procedure getChars(para1: jint; para2: jint; var para3: array of jchar; para4: jint); overload; virtual;
+    procedure getBytes(para1: jint; para2: jint; para3: Arr1jbyte; para4: jint); overload; virtual;
+    procedure getBytes(para1: jint; para2: jint; var para3: array of jbyte; para4: jint); overload; virtual;
+    function getBytes(para1: JLString): Arr1jbyte; overload; virtual;  // throws java.io.UnsupportedEncodingException
+    function getBytes(para1: JNCCharset): Arr1jbyte; overload; virtual;
+    function getBytes(): Arr1jbyte; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual;
+    function contentEquals(para1: JLStringBuffer): jboolean; overload; virtual;
+    function contentEquals(para1: JLCharSequence): jboolean; overload; virtual;
+    function equalsIgnoreCase(para1: JLString): jboolean; overload; virtual;
+    function compareTo(para1: JLString): jint; overload; virtual;
+    function compareToIgnoreCase(para1: JLString): jint; overload; virtual;
+    function regionMatches(para1: jint; para2: JLString; para3: jint; para4: jint): jboolean; overload; virtual;
+    function regionMatches(para1: jboolean; para2: jint; para3: JLString; para4: jint; para5: jint): jboolean; overload; virtual;
+    function startsWith(para1: JLString; para2: jint): jboolean; overload; virtual;
+    function startsWith(para1: JLString): jboolean; overload; virtual;
+    function endsWith(para1: JLString): jboolean; overload; virtual;
+    function hashCode(): jint; overload; virtual;
+    function indexOf(para1: jint): jint; overload; virtual;
+    function indexOf(para1: jint; para2: jint): jint; overload; virtual;
+    function lastIndexOf(para1: jint): jint; overload; virtual;
+    function lastIndexOf(para1: jint; para2: jint): jint; overload; virtual;
+    function indexOf(para1: JLString): jint; overload; virtual;
+    function indexOf(para1: JLString; para2: jint): jint; overload; virtual;
+    function lastIndexOf(para1: JLString): jint; overload; virtual;
+    function lastIndexOf(para1: JLString; para2: jint): jint; overload; virtual;
+    function substring(para1: jint): JLString; overload; virtual;
+    function substring(para1: jint; para2: jint): JLString; overload; virtual;
+    function subSequence(para1: jint; para2: jint): JLCharSequence; overload; virtual;
+    function concat(para1: JLString): JLString; overload; virtual;
+    function replace(para1: jchar; para2: jchar): JLString; overload; virtual;
+    function matches(para1: JLString): jboolean; overload; virtual;
+    function contains(para1: JLCharSequence): jboolean; overload; virtual;
+    function replaceFirst(para1: JLString; para2: JLString): JLString; overload; virtual;
+    function replaceAll(para1: JLString; para2: JLString): JLString; overload; virtual;
+    function replace(para1: JLCharSequence; para2: JLCharSequence): JLString; overload; virtual;
+    function split(para1: JLString; para2: jint): Arr1JLString; overload; virtual;
+    function split(para1: JLString): Arr1JLString; overload; virtual;
+    function toLowerCase(para1: JULocale): JLString; overload; virtual;
+    function toLowerCase(): JLString; overload; virtual;
+    function toUpperCase(para1: JULocale): JLString; overload; virtual;
+    function toUpperCase(): JLString; overload; virtual;
+    function trim(): JLString; overload; virtual;
+    function toString(): JLString; overload; virtual;
+    function toCharArray(): Arr1jchar; overload; virtual;
     class function format(para1: JLString; para2: Arr1JLObject): JLString; static; overload;
-
-    class function format(para1: JLString; var para2: array of JLObject): JLString; static; overload;    class function format(para1: JULocale; para2: JLString; para3: Arr1JLObject): JLString; static; overload;
-
-    class function format(para1: JULocale; para2: JLString; var para3: array of JLObject): JLString; static; overload;    class function valueOf(para1: JLObject): JLString; static; overload;
+    class function format(para1: JLString; var para2: array of JLObject): JLString; static; overload;
+    class function format(para1: JULocale; para2: JLString; para3: Arr1JLObject): JLString; static; overload;
+    class function format(para1: JULocale; para2: JLString; var para3: array of JLObject): JLString; static; overload;
+    class function valueOf(para1: JLObject): JLString; static; overload;
     class function valueOf(para1: Arr1jchar): JLString; static; overload;
-
-    class function valueOf(var para1: array of jchar): JLString; static; overload;    class function valueOf(para1: Arr1jchar; para2: jint; para3: jint): JLString; static; overload;
-
-    class function valueOf(var para1: array of jchar; para2: jint; para3: jint): JLString; static; overload;    class function copyValueOf(para1: Arr1jchar; para2: jint; para3: jint): JLString; static; overload;
-
-    class function copyValueOf(var para1: array of jchar; para2: jint; para3: jint): JLString; static; overload;    class function copyValueOf(para1: Arr1jchar): JLString; static; overload;
-
-    class function copyValueOf(var para1: array of jchar): JLString; static; overload;    class function valueOf(para1: jboolean): JLString; static; overload;
+    class function valueOf(var para1: array of jchar): JLString; static; overload;
+    class function valueOf(para1: Arr1jchar; para2: jint; para3: jint): JLString; static; overload;
+    class function valueOf(var para1: array of jchar; para2: jint; para3: jint): JLString; static; overload;
+    class function copyValueOf(para1: Arr1jchar; para2: jint; para3: jint): JLString; static; overload;
+    class function copyValueOf(var para1: array of jchar; para2: jint; para3: jint): JLString; static; overload;
+    class function copyValueOf(para1: Arr1jchar): JLString; static; overload;
+    class function copyValueOf(var para1: array of jchar): JLString; static; overload;
+    class function valueOf(para1: jboolean): JLString; static; overload;
     class function valueOf(para1: jchar): JLString; static; overload;
     class function valueOf(para1: jint): JLString; static; overload;
     class function valueOf(para1: jlong): JLString; static; overload;
     class function valueOf(para1: jfloat): JLString; static; overload;
     class function valueOf(para1: jdouble): JLString; static; overload;
-    function intern(): JLString; overload;
-    function compareTo(para1: JLObject): jint; overload;
+    function intern(): JLString; overload; virtual;
+    function compareTo(para1: JLObject): jint; overload; virtual;
   end;
 
   JTCollator = class abstract external 'java.text' name 'Collator' (JLObject, JUComparator, JLCloneable)
@@ -635,18 +635,18 @@
   public
     class function getInstance(): JTCollator; static; overload;
     class function getInstance(para1: JULocale): JTCollator; static; overload;
-    function compare(para1: JLString; para2: JLString): jint; overload; abstract;
-    function compare(para1: JLObject; para2: JLObject): jint; overload;
-    function getCollationKey(para1: JLString): JTCollationKey; overload; abstract;
-    function equals(para1: JLString; para2: JLString): jboolean; overload;
-    function getStrength(): jint; overload;
-    procedure setStrength(para1: jint); overload;
-    function getDecomposition(): jint; overload;
-    procedure setDecomposition(para1: jint); overload;
+    function compare(para1: JLString; para2: JLString): jint; overload; virtual; abstract;
+    function compare(para1: JLObject; para2: JLObject): jint; overload; virtual;
+    function getCollationKey(para1: JLString): JTCollationKey; overload; virtual; abstract;
+    function equals(para1: JLString; para2: JLString): jboolean; overload; virtual;
+    function getStrength(): jint; overload; virtual;
+    procedure setStrength(para1: jint); overload; virtual;
+    function getDecomposition(): jint; overload; virtual;
+    procedure setDecomposition(para1: jint); overload; virtual;
     class function getAvailableLocales(): Arr1JULocale; static; overload;
-    function clone(): JLObject; overload;
-    function equals(para1: JLObject): jboolean; overload;
-    function hashCode(): jint; overload; abstract;
+    function clone(): JLObject; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual;
+    function hashCode(): jint; overload; virtual; abstract;
   strict protected
     constructor create(); overload;
   end;
@@ -676,23 +676,23 @@
     class function isInfinite(para1: jdouble): jboolean; static; overload;
     constructor create(para1: jdouble); overload;
     constructor create(para1: JLString); overload;  // throws java.lang.NumberFormatException
-    function isNaN(): jboolean; overload;
-    function isInfinite(): jboolean; overload;
-    function toString(): JLString; overload;
-    function byteValue(): jbyte; overload;
-    function shortValue(): jshort; overload;
-    function intValue(): jint; overload;
-    function longValue(): jlong; overload;
-    function floatValue(): jfloat; overload;
-    function doubleValue(): jdouble; overload;
-    function hashCode(): jint; overload;
-    function equals(para1: JLObject): jboolean; overload;
+    function isNaN(): jboolean; overload; virtual;
+    function isInfinite(): jboolean; overload; virtual;
+    function toString(): JLString; overload; virtual;
+    function byteValue(): jbyte; overload; virtual;
+    function shortValue(): jshort; overload; virtual;
+    function intValue(): jint; overload; virtual;
+    function longValue(): jlong; overload; virtual;
+    function floatValue(): jfloat; overload; virtual;
+    function doubleValue(): jdouble; overload; virtual;
+    function hashCode(): jint; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual;
     class function doubleToLongBits(para1: jdouble): jlong; static; overload;
     class function doubleToRawLongBits(para1: jdouble): jlong; static; overload;
     class function longBitsToDouble(para1: jlong): jdouble; static; overload;
-    function compareTo(para1: JLDouble): jint; overload;
+    function compareTo(para1: JLDouble): jint; overload; virtual;
     class function compare(para1: jdouble; para2: jdouble): jint; static; overload;
-    function compareTo(para1: JLObject): jint; overload;
+    function compareTo(para1: JLObject): jint; overload; virtual;
   end;
 
   JLFloat = class sealed external 'java.lang' name 'Float' (JLNumber, JLComparable)
@@ -721,23 +721,23 @@
     constructor create(para1: jfloat); overload;
     constructor create(para1: jdouble); overload;
     constructor create(para1: JLString); overload;  // throws java.lang.NumberFormatException
-    function isNaN(): jboolean; overload;
-    function isInfinite(): jboolean; overload;
-    function toString(): JLString; overload;
-    function byteValue(): jbyte; overload;
-    function shortValue(): jshort; overload;
-    function intValue(): jint; overload;
-    function longValue(): jlong; overload;
-    function floatValue(): jfloat; overload;
-    function doubleValue(): jdouble; overload;
-    function hashCode(): jint; overload;
-    function equals(para1: JLObject): jboolean; overload;
+    function isNaN(): jboolean; overload; virtual;
+    function isInfinite(): jboolean; overload; virtual;
+    function toString(): JLString; overload; virtual;
+    function byteValue(): jbyte; overload; virtual;
+    function shortValue(): jshort; overload; virtual;
+    function intValue(): jint; overload; virtual;
+    function longValue(): jlong; overload; virtual;
+    function floatValue(): jfloat; overload; virtual;
+    function doubleValue(): jdouble; overload; virtual;
+    function hashCode(): jint; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual;
     class function floatToIntBits(para1: jfloat): jint; static; overload;
     class function floatToRawIntBits(para1: jfloat): jint; static; overload;
     class function intBitsToFloat(para1: jint): jfloat; static; overload;
-    function compareTo(para1: JLFloat): jint; overload;
+    function compareTo(para1: JLFloat): jint; overload; virtual;
     class function compare(para1: jfloat; para2: jfloat): jint; static; overload;
-    function compareTo(para1: JLObject): jint; overload;
+    function compareTo(para1: JLObject): jint; overload; virtual;
   end;
 
   JLError = class external 'java.lang' name 'Error' (JLThrowable)
@@ -762,98 +762,98 @@
     constructor create(para1: jint); overload;
     constructor create(para1: JLString); overload;
     constructor create(para1: JLCharSequence); overload;
-    function length(): jint; overload;
-    function capacity(): jint; overload;
-    procedure ensureCapacity(para1: jint); overload;
-    procedure trimToSize(); overload;
-    procedure setLength(para1: jint); overload;
-    function charAt(para1: jint): jchar; overload;
-    function codePointAt(para1: jint): jint; overload;
-    function codePointBefore(para1: jint): jint; overload;
-    function codePointCount(para1: jint; para2: jint): jint; overload;
-    function offsetByCodePoints(para1: jint; para2: jint): jint; overload;
-    procedure getChars(para1: jint; para2: jint; para3: Arr1jchar; para4: jint); overload;
-
-    procedure getChars(para1: jint; para2: jint; var para3: array of jchar; para4: jint); overload;    procedure setCharAt(para1: jint; para2: jchar); overload;
-    function append(para1: JLObject): JLStringBuffer; overload;
-    function append(para1: JLString): JLStringBuffer; overload;
-    function append(para1: JLStringBuffer): JLStringBuffer; overload;
-    function append(para1: JLCharSequence): JLStringBuffer; overload;
-    function append(para1: JLCharSequence; para2: jint; para3: jint): JLStringBuffer; overload;
-    function append(para1: Arr1jchar): JLStringBuffer; overload;
-
-    function append(var para1: array of jchar): JLStringBuffer; overload;    function append(para1: Arr1jchar; para2: jint; para3: jint): JLStringBuffer; overload;
-
-    function append(var para1: array of jchar; para2: jint; para3: jint): JLStringBuffer; overload;    function append(para1: jboolean): JLStringBuffer; overload;
-    function append(para1: jchar): JLStringBuffer; overload;
-    function append(para1: jint): JLStringBuffer; overload;
-    function appendCodePoint(para1: jint): JLStringBuffer; overload;
-    function append(para1: jlong): JLStringBuffer; overload;
-    function append(para1: jfloat): JLStringBuffer; overload;
-    function append(para1: jdouble): JLStringBuffer; overload;
-    function delete(para1: jint; para2: jint): JLStringBuffer; overload;
-    function deleteCharAt(para1: jint): JLStringBuffer; overload;
-    function replace(para1: jint; para2: jint; para3: JLString): JLStringBuffer; overload;
-    function substring(para1: jint): JLString; overload;
-    function subSequence(para1: jint; para2: jint): JLCharSequence; overload;
-    function substring(para1: jint; para2: jint): JLString; overload;
-    function insert(para1: jint; para2: Arr1jchar; para3: jint; para4: jint): JLStringBuffer; overload;
-
-    function insert(para1: jint; var para2: array of jchar; para3: jint; para4: jint): JLStringBuffer; overload;    function insert(para1: jint; para2: JLObject): JLStringBuffer; overload;
-    function insert(para1: jint; para2: JLString): JLStringBuffer; overload;
-    function insert(para1: jint; para2: Arr1jchar): JLStringBuffer; overload;
-
-    function insert(para1: jint; var para2: array of jchar): JLStringBuffer; overload;    function insert(para1: jint; para2: JLCharSequence): JLStringBuffer; overload;
-    function insert(para1: jint; para2: JLCharSequence; para3: jint; para4: jint): JLStringBuffer; overload;
-    function insert(para1: jint; para2: jboolean): JLStringBuffer; overload;
-    function insert(para1: jint; para2: jchar): JLStringBuffer; overload;
-    function insert(para1: jint; para2: jint): JLStringBuffer; overload;
-    function insert(para1: jint; para2: jlong): JLStringBuffer; overload;
-    function insert(para1: jint; para2: jfloat): JLStringBuffer; overload;
-    function insert(para1: jint; para2: jdouble): JLStringBuffer; overload;
-    function indexOf(para1: JLString): jint; overload;
-    function indexOf(para1: JLString; para2: jint): jint; overload;
-    function lastIndexOf(para1: JLString): jint; overload;
-    function lastIndexOf(para1: JLString; para2: jint): jint; overload;
-    function reverse(): JLStringBuffer; overload;
-    function toString(): JLString; overload;
-    function reverse(): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jdouble): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jfloat): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jlong): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jint): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jchar): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jboolean): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: JLCharSequence; para3: jint; para4: jint): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: JLCharSequence): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: Arr1jchar): JLAbstractStringBuilder; overload;
-
-    function insert(para1: jint; var para2: array of jchar): JLAbstractStringBuilder; overload;    function insert(para1: jint; para2: JLString): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: JLObject): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: Arr1jchar; para3: jint; para4: jint): JLAbstractStringBuilder; overload;
-
-    function insert(para1: jint; var para2: array of jchar; para3: jint; para4: jint): JLAbstractStringBuilder; overload;    function replace(para1: jint; para2: jint; para3: JLString): JLAbstractStringBuilder; overload;
-    function deleteCharAt(para1: jint): JLAbstractStringBuilder; overload;
-    function appendCodePoint(para1: jint): JLAbstractStringBuilder; overload;
-    function delete(para1: jint; para2: jint): JLAbstractStringBuilder; overload;
-    function append(para1: jdouble): JLAbstractStringBuilder; overload;
-    function append(para1: jfloat): JLAbstractStringBuilder; overload;
-    function append(para1: jlong): JLAbstractStringBuilder; overload;
-    function append(para1: jint): JLAbstractStringBuilder; overload;
-    function append(para1: jchar): JLAbstractStringBuilder; overload;
-    function append(para1: jboolean): JLAbstractStringBuilder; overload;
-    function append(para1: Arr1jchar; para2: jint; para3: jint): JLAbstractStringBuilder; overload;
-
-    function append(var para1: array of jchar; para2: jint; para3: jint): JLAbstractStringBuilder; overload;    function append(para1: Arr1jchar): JLAbstractStringBuilder; overload;
-
-    function append(var para1: array of jchar): JLAbstractStringBuilder; overload;    function append(para1: JLCharSequence; para2: jint; para3: jint): JLAbstractStringBuilder; overload;
-    function append(para1: JLCharSequence): JLAbstractStringBuilder; overload;
-    function append(para1: JLStringBuffer): JLAbstractStringBuilder; overload;
-    function append(para1: JLString): JLAbstractStringBuilder; overload;
-    function append(para1: JLObject): JLAbstractStringBuilder; overload;
-    function append(para1: jchar): JLAppendable; overload;  // throws java.io.IOException
-    function append(para1: JLCharSequence; para2: jint; para3: jint): JLAppendable; overload;  // throws java.io.IOException
-    function append(para1: JLCharSequence): JLAppendable; overload;  // throws java.io.IOException
+    function length(): jint; overload; virtual;
+    function capacity(): jint; overload; virtual;
+    procedure ensureCapacity(para1: jint); overload; virtual;
+    procedure trimToSize(); overload; virtual;
+    procedure setLength(para1: jint); overload; virtual;
+    function charAt(para1: jint): jchar; overload; virtual;
+    function codePointAt(para1: jint): jint; overload; virtual;
+    function codePointBefore(para1: jint): jint; overload; virtual;
+    function codePointCount(para1: jint; para2: jint): jint; overload; virtual;
+    function offsetByCodePoints(para1: jint; para2: jint): jint; overload; virtual;
+    procedure getChars(para1: jint; para2: jint; para3: Arr1jchar; para4: jint); overload; virtual;
+    procedure getChars(para1: jint; para2: jint; var para3: array of jchar; para4: jint); overload; virtual;
+    procedure setCharAt(para1: jint; para2: jchar); overload; virtual;
+    function append(para1: JLObject): JLStringBuffer; overload; virtual;
+    function append(para1: JLString): JLStringBuffer; overload; virtual;
+    function append(para1: JLStringBuffer): JLStringBuffer; overload; virtual;
+    function append(para1: JLCharSequence): JLStringBuffer; overload; virtual;
+    function append(para1: JLCharSequence; para2: jint; para3: jint): JLStringBuffer; overload; virtual;
+    function append(para1: Arr1jchar): JLStringBuffer; overload; virtual;
+    function append(var para1: array of jchar): JLStringBuffer; overload; virtual;
+    function append(para1: Arr1jchar; para2: jint; para3: jint): JLStringBuffer; overload; virtual;
+    function append(var para1: array of jchar; para2: jint; para3: jint): JLStringBuffer; overload; virtual;
+    function append(para1: jboolean): JLStringBuffer; overload; virtual;
+    function append(para1: jchar): JLStringBuffer; overload; virtual;
+    function append(para1: jint): JLStringBuffer; overload; virtual;
+    function appendCodePoint(para1: jint): JLStringBuffer; overload; virtual;
+    function append(para1: jlong): JLStringBuffer; overload; virtual;
+    function append(para1: jfloat): JLStringBuffer; overload; virtual;
+    function append(para1: jdouble): JLStringBuffer; overload; virtual;
+    function delete(para1: jint; para2: jint): JLStringBuffer; overload; virtual;
+    function deleteCharAt(para1: jint): JLStringBuffer; overload; virtual;
+    function replace(para1: jint; para2: jint; para3: JLString): JLStringBuffer; overload; virtual;
+    function substring(para1: jint): JLString; overload; virtual;
+    function subSequence(para1: jint; para2: jint): JLCharSequence; overload; virtual;
+    function substring(para1: jint; para2: jint): JLString; overload; virtual;
+    function insert(para1: jint; para2: Arr1jchar; para3: jint; para4: jint): JLStringBuffer; overload; virtual;
+    function insert(para1: jint; var para2: array of jchar; para3: jint; para4: jint): JLStringBuffer; overload; virtual;
+    function insert(para1: jint; para2: JLObject): JLStringBuffer; overload; virtual;
+    function insert(para1: jint; para2: JLString): JLStringBuffer; overload; virtual;
+    function insert(para1: jint; para2: Arr1jchar): JLStringBuffer; overload; virtual;
+    function insert(para1: jint; var para2: array of jchar): JLStringBuffer; overload; virtual;
+    function insert(para1: jint; para2: JLCharSequence): JLStringBuffer; overload; virtual;
+    function insert(para1: jint; para2: JLCharSequence; para3: jint; para4: jint): JLStringBuffer; overload; virtual;
+    function insert(para1: jint; para2: jboolean): JLStringBuffer; overload; virtual;
+    function insert(para1: jint; para2: jchar): JLStringBuffer; overload; virtual;
+    function insert(para1: jint; para2: jint): JLStringBuffer; overload; virtual;
+    function insert(para1: jint; para2: jlong): JLStringBuffer; overload; virtual;
+    function insert(para1: jint; para2: jfloat): JLStringBuffer; overload; virtual;
+    function insert(para1: jint; para2: jdouble): JLStringBuffer; overload; virtual;
+    function indexOf(para1: JLString): jint; overload; virtual;
+    function indexOf(para1: JLString; para2: jint): jint; overload; virtual;
+    function lastIndexOf(para1: JLString): jint; overload; virtual;
+    function lastIndexOf(para1: JLString; para2: jint): jint; overload; virtual;
+    function reverse(): JLStringBuffer; overload; virtual;
+    function toString(): JLString; overload; virtual;
+    function reverse(): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jdouble): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jfloat): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jlong): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jint): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jchar): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jboolean): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: JLCharSequence; para3: jint; para4: jint): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: JLCharSequence): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: Arr1jchar): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; var para2: array of jchar): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: JLString): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: JLObject): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: Arr1jchar; para3: jint; para4: jint): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; var para2: array of jchar; para3: jint; para4: jint): JLAbstractStringBuilder; overload; virtual;
+    function replace(para1: jint; para2: jint; para3: JLString): JLAbstractStringBuilder; overload; virtual;
+    function deleteCharAt(para1: jint): JLAbstractStringBuilder; overload; virtual;
+    function appendCodePoint(para1: jint): JLAbstractStringBuilder; overload; virtual;
+    function delete(para1: jint; para2: jint): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jdouble): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jfloat): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jlong): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jint): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jchar): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jboolean): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: Arr1jchar; para2: jint; para3: jint): JLAbstractStringBuilder; overload; virtual;
+    function append(var para1: array of jchar; para2: jint; para3: jint): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: Arr1jchar): JLAbstractStringBuilder; overload; virtual;
+    function append(var para1: array of jchar): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: JLCharSequence; para2: jint; para3: jint): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: JLCharSequence): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: JLStringBuffer): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: JLString): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: JLObject): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jchar): JLAppendable; overload; virtual;  // throws java.io.IOException
+    function append(para1: JLCharSequence; para2: jint; para3: jint): JLAppendable; overload; virtual;  // throws java.io.IOException
+    function append(para1: JLCharSequence): JLAppendable; overload; virtual;  // throws java.io.IOException
   end;
 
   JLStringBuilder = class sealed external 'java.lang' name 'StringBuilder' (JLAbstractStringBuilder, JISerializable, JLCharSequence)
@@ -862,98 +862,98 @@
     constructor create(para1: jint); overload;
     constructor create(para1: JLString); overload;
     constructor create(para1: JLCharSequence); overload;
-    function append(para1: JLObject): JLStringBuilder; overload;
-    function append(para1: JLString): JLStringBuilder; overload;
-    function append(para1: JLStringBuffer): JLStringBuilder; overload;
-    function append(para1: JLCharSequence): JLStringBuilder; overload;
-    function append(para1: JLCharSequence; para2: jint; para3: jint): JLStringBuilder; overload;
-    function append(para1: Arr1jchar): JLStringBuilder; overload;
-
-    function append(var para1: array of jchar): JLStringBuilder; overload;    function append(para1: Arr1jchar; para2: jint; para3: jint): JLStringBuilder; overload;
-
-    function append(var para1: array of jchar; para2: jint; para3: jint): JLStringBuilder; overload;    function append(para1: jboolean): JLStringBuilder; overload;
-    function append(para1: jchar): JLStringBuilder; overload;
-    function append(para1: jint): JLStringBuilder; overload;
-    function append(para1: jlong): JLStringBuilder; overload;
-    function append(para1: jfloat): JLStringBuilder; overload;
-    function append(para1: jdouble): JLStringBuilder; overload;
-    function appendCodePoint(para1: jint): JLStringBuilder; overload;
-    function delete(para1: jint; para2: jint): JLStringBuilder; overload;
-    function deleteCharAt(para1: jint): JLStringBuilder; overload;
-    function replace(para1: jint; para2: jint; para3: JLString): JLStringBuilder; overload;
-    function insert(para1: jint; para2: Arr1jchar; para3: jint; para4: jint): JLStringBuilder; overload;
-
-    function insert(para1: jint; var para2: array of jchar; para3: jint; para4: jint): JLStringBuilder; overload;    function insert(para1: jint; para2: JLObject): JLStringBuilder; overload;
-    function insert(para1: jint; para2: JLString): JLStringBuilder; overload;
-    function insert(para1: jint; para2: Arr1jchar): JLStringBuilder; overload;
-
-    function insert(para1: jint; var para2: array of jchar): JLStringBuilder; overload;    function insert(para1: jint; para2: JLCharSequence): JLStringBuilder; overload;
-    function insert(para1: jint; para2: JLCharSequence; para3: jint; para4: jint): JLStringBuilder; overload;
-    function insert(para1: jint; para2: jboolean): JLStringBuilder; overload;
-    function insert(para1: jint; para2: jchar): JLStringBuilder; overload;
-    function insert(para1: jint; para2: jint): JLStringBuilder; overload;
-    function insert(para1: jint; para2: jlong): JLStringBuilder; overload;
-    function insert(para1: jint; para2: jfloat): JLStringBuilder; overload;
-    function insert(para1: jint; para2: jdouble): JLStringBuilder; overload;
-    function indexOf(para1: JLString): jint; overload;
-    function indexOf(para1: JLString; para2: jint): jint; overload;
-    function lastIndexOf(para1: JLString): jint; overload;
-    function lastIndexOf(para1: JLString; para2: jint): jint; overload;
-    function reverse(): JLStringBuilder; overload;
-    function toString(): JLString; overload;
-    function reverse(): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jdouble): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jfloat): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jlong): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jint): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jchar): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: jboolean): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: JLCharSequence; para3: jint; para4: jint): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: JLCharSequence): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: Arr1jchar): JLAbstractStringBuilder; overload;
-
-    function insert(para1: jint; var para2: array of jchar): JLAbstractStringBuilder; overload;    function insert(para1: jint; para2: JLString): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: JLObject): JLAbstractStringBuilder; overload;
-    function insert(para1: jint; para2: Arr1jchar; para3: jint; para4: jint): JLAbstractStringBuilder; overload;
-
-    function insert(para1: jint; var para2: array of jchar; para3: jint; para4: jint): JLAbstractStringBuilder; overload;    function substring(para1: jint; para2: jint): JLString; overload;
-    function subSequence(para1: jint; para2: jint): JLCharSequence; overload;
-    function substring(para1: jint): JLString; overload;
-    function replace(para1: jint; para2: jint; para3: JLString): JLAbstractStringBuilder; overload;
-    function deleteCharAt(para1: jint): JLAbstractStringBuilder; overload;
-    function appendCodePoint(para1: jint): JLAbstractStringBuilder; overload;
-    function delete(para1: jint; para2: jint): JLAbstractStringBuilder; overload;
-    function append(para1: jdouble): JLAbstractStringBuilder; overload;
-    function append(para1: jfloat): JLAbstractStringBuilder; overload;
-    function append(para1: jlong): JLAbstractStringBuilder; overload;
-    function append(para1: jint): JLAbstractStringBuilder; overload;
-    function append(para1: jchar): JLAbstractStringBuilder; overload;
-    function append(para1: jboolean): JLAbstractStringBuilder; overload;
-    function append(para1: Arr1jchar; para2: jint; para3: jint): JLAbstractStringBuilder; overload;
-
-    function append(var para1: array of jchar; para2: jint; para3: jint): JLAbstractStringBuilder; overload;    function append(para1: Arr1jchar): JLAbstractStringBuilder; overload;
-
-    function append(var para1: array of jchar): JLAbstractStringBuilder; overload;    function append(para1: JLCharSequence; para2: jint; para3: jint): JLAbstractStringBuilder; overload;
-    function append(para1: JLCharSequence): JLAbstractStringBuilder; overload;
-    function append(para1: JLStringBuffer): JLAbstractStringBuilder; overload;
-    function append(para1: JLString): JLAbstractStringBuilder; overload;
-    function append(para1: JLObject): JLAbstractStringBuilder; overload;
-    procedure setCharAt(para1: jint; para2: jchar); overload;
-    procedure getChars(para1: jint; para2: jint; para3: Arr1jchar; para4: jint); overload;
-
-    procedure getChars(para1: jint; para2: jint; var para3: array of jchar; para4: jint); overload;    function offsetByCodePoints(para1: jint; para2: jint): jint; overload;
-    function codePointCount(para1: jint; para2: jint): jint; overload;
-    function codePointBefore(para1: jint): jint; overload;
-    function codePointAt(para1: jint): jint; overload;
-    function charAt(para1: jint): jchar; overload;
-    procedure setLength(para1: jint); overload;
-    procedure trimToSize(); overload;
-    procedure ensureCapacity(para1: jint); overload;
-    function capacity(): jint; overload;
-    function length(): jint; overload;
-    function append(para1: jchar): JLAppendable; overload;  // throws java.io.IOException
-    function append(para1: JLCharSequence; para2: jint; para3: jint): JLAppendable; overload;  // throws java.io.IOException
-    function append(para1: JLCharSequence): JLAppendable; overload;  // throws java.io.IOException
+    function append(para1: JLObject): JLStringBuilder; overload; virtual;
+    function append(para1: JLString): JLStringBuilder; overload; virtual;
+    function append(para1: JLStringBuffer): JLStringBuilder; overload; virtual;
+    function append(para1: JLCharSequence): JLStringBuilder; overload; virtual;
+    function append(para1: JLCharSequence; para2: jint; para3: jint): JLStringBuilder; overload; virtual;
+    function append(para1: Arr1jchar): JLStringBuilder; overload; virtual;
+    function append(var para1: array of jchar): JLStringBuilder; overload; virtual;
+    function append(para1: Arr1jchar; para2: jint; para3: jint): JLStringBuilder; overload; virtual;
+    function append(var para1: array of jchar; para2: jint; para3: jint): JLStringBuilder; overload; virtual;
+    function append(para1: jboolean): JLStringBuilder; overload; virtual;
+    function append(para1: jchar): JLStringBuilder; overload; virtual;
+    function append(para1: jint): JLStringBuilder; overload; virtual;
+    function append(para1: jlong): JLStringBuilder; overload; virtual;
+    function append(para1: jfloat): JLStringBuilder; overload; virtual;
+    function append(para1: jdouble): JLStringBuilder; overload; virtual;
+    function appendCodePoint(para1: jint): JLStringBuilder; overload; virtual;
+    function delete(para1: jint; para2: jint): JLStringBuilder; overload; virtual;
+    function deleteCharAt(para1: jint): JLStringBuilder; overload; virtual;
+    function replace(para1: jint; para2: jint; para3: JLString): JLStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: Arr1jchar; para3: jint; para4: jint): JLStringBuilder; overload; virtual;
+    function insert(para1: jint; var para2: array of jchar; para3: jint; para4: jint): JLStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: JLObject): JLStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: JLString): JLStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: Arr1jchar): JLStringBuilder; overload; virtual;
+    function insert(para1: jint; var para2: array of jchar): JLStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: JLCharSequence): JLStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: JLCharSequence; para3: jint; para4: jint): JLStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jboolean): JLStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jchar): JLStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jint): JLStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jlong): JLStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jfloat): JLStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jdouble): JLStringBuilder; overload; virtual;
+    function indexOf(para1: JLString): jint; overload; virtual;
+    function indexOf(para1: JLString; para2: jint): jint; overload; virtual;
+    function lastIndexOf(para1: JLString): jint; overload; virtual;
+    function lastIndexOf(para1: JLString; para2: jint): jint; overload; virtual;
+    function reverse(): JLStringBuilder; overload; virtual;
+    function toString(): JLString; overload; virtual;
+    function reverse(): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jdouble): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jfloat): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jlong): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jint): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jchar): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: jboolean): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: JLCharSequence; para3: jint; para4: jint): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: JLCharSequence): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: Arr1jchar): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; var para2: array of jchar): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: JLString): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: JLObject): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; para2: Arr1jchar; para3: jint; para4: jint): JLAbstractStringBuilder; overload; virtual;
+    function insert(para1: jint; var para2: array of jchar; para3: jint; para4: jint): JLAbstractStringBuilder; overload; virtual;
+    function substring(para1: jint; para2: jint): JLString; overload; virtual;
+    function subSequence(para1: jint; para2: jint): JLCharSequence; overload; virtual;
+    function substring(para1: jint): JLString; overload; virtual;
+    function replace(para1: jint; para2: jint; para3: JLString): JLAbstractStringBuilder; overload; virtual;
+    function deleteCharAt(para1: jint): JLAbstractStringBuilder; overload; virtual;
+    function appendCodePoint(para1: jint): JLAbstractStringBuilder; overload; virtual;
+    function delete(para1: jint; para2: jint): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jdouble): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jfloat): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jlong): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jint): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jchar): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: jboolean): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: Arr1jchar; para2: jint; para3: jint): JLAbstractStringBuilder; overload; virtual;
+    function append(var para1: array of jchar; para2: jint; para3: jint): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: Arr1jchar): JLAbstractStringBuilder; overload; virtual;
+    function append(var para1: array of jchar): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: JLCharSequence; para2: jint; para3: jint): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: JLCharSequence): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: JLStringBuffer): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: JLString): JLAbstractStringBuilder; overload; virtual;
+    function append(para1: JLObject): JLAbstractStringBuilder; overload; virtual;
+    procedure setCharAt(para1: jint; para2: jchar); overload; virtual;
+    procedure getChars(para1: jint; para2: jint; para3: Arr1jchar; para4: jint); overload; virtual;
+    procedure getChars(para1: jint; para2: jint; var para3: array of jchar; para4: jint); overload; virtual;
+    function offsetByCodePoints(para1: jint; para2: jint): jint; overload; virtual;
+    function codePointCount(para1: jint; para2: jint): jint; overload; virtual;
+    function codePointBefore(para1: jint): jint; overload; virtual;
+    function codePointAt(para1: jint): jint; overload; virtual;
+    function charAt(para1: jint): jchar; overload; virtual;
+    procedure setLength(para1: jint); overload; virtual;
+    procedure trimToSize(); overload; virtual;
+    procedure ensureCapacity(para1: jint); overload; virtual;
+    function capacity(): jint; overload; virtual;
+    function length(): jint; overload; virtual;
+    function append(para1: jchar): JLAppendable; overload; virtual;  // throws java.io.IOException
+    function append(para1: JLCharSequence; para2: jint; para3: jint): JLAppendable; overload; virtual;  // throws java.io.IOException
+    function append(para1: JLCharSequence): JLAppendable; overload; virtual;  // throws java.io.IOException
   end;
 
   JLLinkageError = class external 'java.lang' name 'LinkageError' (JLError)
