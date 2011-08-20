@@ -53,9 +53,9 @@ unit tgcpu;
     uses
        verbose,
        cgbase,
-       symconst,defutil,
-       hlcgobj,hlcgcpu,
-       symdef;
+       symconst,symdef,symsym,defutil,
+       cpubase,aasmcpu,
+       hlcgobj,hlcgcpu;
 
 
     { ttgjvm }
@@ -64,6 +64,8 @@ unit tgcpu;
       var
         eledef: tdef;
         ndim: longint;
+        sym: tsym;
+        pd: tprocdef;
       begin
         result:=false;
         case def.typ of
@@ -84,8 +86,35 @@ unit tgcpu;
                   eledef:=tarraydef(def).elementdef;
                   thlcgjvm(hlcg).g_newarray(list,def,ndim);
                   thlcgjvm(hlcg).a_load_stack_ref(list,java_jlobject,ref,0);
+                  { allocate the records }
+                  if is_record(eledef) then
+                    hlcg.g_initialize(list,def,ref);
                   result:=true;
                 end;
+            end;
+          recorddef:
+            begin
+              gettemp(list,java_jlobject.size,java_jlobject.alignment,temptype,ref);
+              list.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(trecorddef(def).jvm_full_typename(true))));
+              { the constructor doesn't return anything, so put a duplicate of the
+                self pointer on the evaluation stack for use as function result
+                after the constructor has run }
+              list.concat(taicpu.op_none(a_dup));
+              thlcgjvm(hlcg).incstack(list,2);
+              { call the constructor }
+              sym:=tsym(trecorddef(def).symtable.find('CREATE'));
+              if assigned(sym) and
+                 (sym.typ=procsym) then
+                begin
+                  pd:=tprocsym(sym).find_bytype_parameterless(potype_constructor);
+                  if not assigned(pd) then
+                    internalerror(2011032701);
+                end;
+              hlcg.a_call_name(list,pd,pd.mangledname,false);
+              thlcgjvm(hlcg).decstack(list,1);
+              { store reference to instance }
+              thlcgjvm(hlcg).a_load_stack_ref(list,java_jlobject,ref,0);
+              result:=true;
             end;
         end;
       end;

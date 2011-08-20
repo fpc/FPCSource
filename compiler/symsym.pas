@@ -101,6 +101,7 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           function find_procdef_bytype(pt:Tproctypeoption):Tprocdef;
+          function find_bytype_parameterless(pt:Tproctypeoption):Tprocdef;
           function find_procdef_bypara_no_rettype(para:TFPObjectList;cpoptions:tcompare_paras_options):Tprocdef;
           function find_procdef_bypara(para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
           function find_procdef_bytype_and_para(pt:Tproctypeoption;para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
@@ -649,6 +650,37 @@ implementation
               begin
                 result:=pd;
                 exit;
+              end;
+          end;
+      end;
+
+
+    function tprocsym.find_bytype_parameterless(pt: Tproctypeoption): Tprocdef;
+      var
+        i,j : longint;
+        pd  : tprocdef;
+        found : boolean;
+      begin
+        result:=nil;
+        for i:=0 to ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(ProcdefList[i]);
+            if (pd.proctypeoption=pt) then
+              begin
+                found:=true;
+                for j:=0 to pd.paras.count-1 do
+                  begin
+                    if not(vo_is_hidden_para in tparavarsym(pd.paras[j]).varoptions) then
+                      begin
+                        found:=false;
+                        break;
+                      end;
+                  end;
+                if found then
+                  begin
+                    result:=pd;
+                    exit;
+                  end;
               end;
           end;
       end;
@@ -1299,7 +1331,8 @@ implementation
         srsymtable : tsymtable;
       begin
 {$ifdef jvm}
-        if is_java_class_or_interface(tdef(owner.defowner)) then
+        if is_java_class_or_interface(tdef(owner.defowner)) or
+           (tdef(owner.defowner).typ=recorddef) then
           begin
             if assigned(cachedmangledname) then
               result:=cachedmangledname^

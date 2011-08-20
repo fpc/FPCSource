@@ -70,7 +70,7 @@ implementation
     cutils,cclasses,
     verbose,systems,
     fmodule,
-    symtable,symconst,symsym,symdef,
+    symtable,symconst,symsym,symdef,symcreat,
     defutil,paramgr;
 
 {******************************************************************
@@ -145,9 +145,7 @@ implementation
             result:=false;
           recorddef :
             begin
-              { will be hanlded via wrapping later, although wrapping may
-                happen at higher level }
-              result:=false;
+              encodedstr:=encodedstr+'L'+trecorddef(def).jvm_full_typename(true)+';'
             end;
           variantdef :
             begin
@@ -255,7 +253,9 @@ implementation
                 end
               else
                 internalerror(2010122606);
-            end
+            end;
+          recordsymtable:
+            tmpresult:=trecorddef(owner.defowner).jvm_full_typename(true)+'/'
           else
             internalerror(2010122605);
         end;
@@ -302,13 +302,19 @@ implementation
         errdef: tdef;
         res: string;
       begin
-        if not jvmtryencodetype(def,res,errdef) then
-          internalerror(2011012209);
-        if length(res)=1 then
-          result:=res[1]
+        if is_record(def) then
+          result:='R'
         else
-          result:='A';
+          begin
+            if not jvmtryencodetype(def,res,errdef) then
+              internalerror(2011012209);
+            if length(res)=1 then
+              result:=res[1]
+            else
+              result:='A';
+          end;
       end;
+
 
     function jvmimplicitpointertype(def: tdef): boolean;
       begin

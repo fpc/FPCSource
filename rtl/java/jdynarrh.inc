@@ -24,6 +24,7 @@ type
   TJFloatArray = array of jfloat;
   TJDoubleArray = array of jdouble;
   TJObjectArray = array of JLObject;
+  TJRecordArray = array of FpcBaseRecordType;
 
 const
   FPCJDynArrTypeJByte   = 'B';
@@ -34,6 +35,7 @@ const
   FPCJDynArrTypeJFloat  = 'F';
   FPCJDynArrTypeJDouble = 'D';
   FPCJDynArrTypeJObject = 'A';
+  FPCJDynArrTypeRecord  = 'R';
 
 { 1-dimensional setlength routines
 
@@ -49,6 +51,7 @@ function fpc_setlength_dynarr_jchar(aorg, anew: TJCharArray; deepcopy: boolean):
 function fpc_setlength_dynarr_jfloat(aorg, anew: TJFloatArray; deepcopy: boolean): TJFloatArray;
 function fpc_setlength_dynarr_jdouble(aorg, anew: TJDoubleArray; deepcopy: boolean): TJDoubleArray;
 function fpc_setlength_dynarr_jobject(aorg, anew: TJObjectArray; deepcopy: boolean; docopy : boolean = true): TJObjectArray;
+function fpc_setlength_dynarr_jrecord(aorg, anew: TJRecordArray; deepcopy: boolean): TJRecordArray;
 
 { array copying helpers }
 
@@ -60,6 +63,7 @@ procedure fpc_copy_jchar_array(src, dst: TJCharArray);
 procedure fpc_copy_jfloat_array(src, dst: TJFloatArray);
 procedure fpc_copy_jdouble_array(src, dst: TJDoubleArray);
 procedure fpc_copy_jobject_array(src, dst: TJObjectArray);
+procedure fpc_copy_jrecord_array(src, dst: TJRecordArray);
 
 { multi-dimendional setlength routine: all intermediate dimensions are arrays
   of arrays, so that's the same for all array kinds. Only the type of the final

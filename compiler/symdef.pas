@@ -217,6 +217,8 @@ interface
           function  GetTypeName:string;override;
           { debug }
           function  needs_inittable : boolean;override;
+          { jvm }
+          function  is_related(d : tdef) : boolean;override;
        end;
 
        tobjectdef = class;
@@ -484,6 +486,13 @@ interface
        end;
        pinlininginfo = ^tinlininginfo;
 
+       { kinds of synthetic procdefs that can be generated }
+       tsynthetickind = (
+         tsk_none,
+         tsk_anon_inherited,        // anonymous inherited call
+         tsk_jvm_clone,             // Java-style clone method
+         tsk_record_deepcopy        // deepcopy for records field by field
+       );
 
 {$ifdef oldregvars}
        { register variables }
@@ -561,6 +570,7 @@ interface
           fpu_used     : byte;
 {$endif i386}
           visibility   : tvisibility;
+          synthetickind : tsynthetickind;
           { true, if the procedure is only declared
             (forward procedure) }
           forwarddef,
@@ -770,6 +780,8 @@ interface
        java_jlobject             : tobjectdef;
        { java.lang.Throwable }
        java_jlthrowable          : tobjectdef;
+       { FPC base type for records }
+       java_fpcbaserecordtype    : tobjectdef;
 
     const
 {$ifdef i386}
@@ -3109,6 +3121,19 @@ implementation
       end;
 
 
+    function trecorddef.is_related(d: tdef): boolean;
+      begin
+        { records are implemented via classes in the JVM target, and are
+          all descendents of the java_fpcbaserecordtype class }
+        if (target_info.system=system_jvm_java32) and
+           ((d=java_jlobject) or
+            (d=java_fpcbaserecordtype)) then
+          is_related:=true
+        else
+          is_related:=false;
+      end;
+
+
     procedure trecorddef.buildderef;
       begin
          inherited buildderef;
@@ -4667,6 +4692,8 @@ implementation
                java_jlobject:=self;
              if (objname^='JLTHROWABLE') then
                java_jlthrowable:=self;
+             if (objname^='FPCBASERECORDTYPE') then
+               java_fpcbaserecordtype:=self;
            end;
          writing_class_record_dbginfo:=false;
        end;
@@ -6034,8 +6061,10 @@ implementation
       begin
         result:=
           assigned(def) and
-          (def.typ=objectdef) and
-          (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper,odt_javaclass,odt_interfacejava]);
+          (((def.typ=objectdef) and
+            (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper,odt_javaclass,odt_interfacejava])) or
+           ((target_info.system=system_jvm_java32) and
+            (def.typ=recorddef)));
       end;
 
     function is_class_or_object(def: tdef): boolean;

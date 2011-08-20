@@ -2377,7 +2377,9 @@ implementation
                  consume(_INHERITED);
                  if assigned(current_procinfo) and
                     assigned(current_structdef) and
-                    (current_structdef.typ=objectdef) then
+                    ((current_structdef.typ=objectdef) or
+                     ((target_info.system=system_jvm_java32) and
+                      (current_structdef.typ=recorddef)))then
                   begin
                     { for record helpers in mode Delphi "inherited" is not
                       allowed }
@@ -2385,13 +2387,18 @@ implementation
                         (m_delphi in current_settings.modeswitches) and
                         is_record(tobjectdef(current_structdef).extendeddef) then
                       Message(parser_e_inherited_not_in_record);
-                    hclassdef:=tobjectdef(current_structdef).childof;
-                    { Objective-C categories *replace* methods in the class
-                      they extend, or add methods to it. So calling an
-                      inherited method always calls the method inherited from
-                      the parent of the extended class }
-                    if is_objccategory(current_structdef) then
-                      hclassdef:=hclassdef.childof;
+                    if (current_structdef.typ=objectdef) then
+                      begin
+                        hclassdef:=tobjectdef(current_structdef).childof;
+                        { Objective-C categories *replace* methods in the class
+                          they extend, or add methods to it. So calling an
+                          inherited method always calls the method inherited from
+                          the parent of the extended class }
+                        if is_objccategory(current_structdef) then
+                          hclassdef:=hclassdef.childof;
+                      end
+                    else
+                      hclassdef:=java_fpcbaserecordtype;
                     { if inherited; only then we need the method with
                       the same name }
                     if token <> _ID then
@@ -2413,7 +2420,7 @@ implementation
                        if is_objectpascal_helper(current_structdef) then
                          searchsym_in_helper(tobjectdef(current_structdef),tobjectdef(current_structdef),hs,srsym,srsymtable,true)
                        else
-                         searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable,true);
+                         searchsym_in_class(hclassdef,current_structdef,hs,srsym,srsymtable,true);
                      end
                     else
                      begin
@@ -2425,7 +2432,7 @@ implementation
                        if is_objectpascal_helper(current_structdef) then
                          searchsym_in_helper(tobjectdef(current_structdef),tobjectdef(current_structdef),hs,srsym,srsymtable,true)
                        else
-                         searchsym_in_class(hclassdef,tobjectdef(current_structdef),hs,srsym,srsymtable,true);
+                         searchsym_in_class(hclassdef,current_structdef,hs,srsym,srsymtable,true);
                      end;
                     if assigned(srsym) then
                      begin

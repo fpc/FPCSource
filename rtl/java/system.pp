@@ -97,6 +97,7 @@ type
 
 {$i innr.inc}
 {$i jmathh.inc}
+{$i jrech.inc}
 {$i jdynarrh.inc}
 
 {$i compproc.inc}
@@ -124,6 +125,7 @@ type
 }
 
 {$i rtti.inc}
+{$i jrec.inc}
 
 function min(a,b : longint) : longint;
   begin
@@ -205,6 +207,15 @@ procedure fpc_copy_jobject_array(src, dst: TJObjectArray);
   begin
     for i:=0 to min(high(src),high(dst)) do
       dst[i]:=src[i];
+  end;
+
+
+procedure fpc_copy_jrecord_array(src, dst: TJRecordArray);
+  var
+    i: longint;
+  begin
+    for i:=0 to min(high(src),high(dst)) do
+      dst[i]:=FpcBaseRecordType(src[i].clone);
   end;
 
 
@@ -315,6 +326,19 @@ function fpc_setlength_dynarr_jobject(aorg, anew: TJObjectArray; deepcopy: boole
   end;
 
 
+function fpc_setlength_dynarr_jrecord(aorg, anew: TJRecordArray; deepcopy: boolean): TJRecordArray;
+  begin
+    if deepcopy or
+       (length(aorg)<>length(anew)) then
+      begin
+        fpc_copy_jrecord_array(aorg,anew);
+        result:=anew
+      end
+    else
+      result:=aorg;
+  end;
+
+
 { multi-dimensional setlength routine }
 function fpc_setlength_dynarr_multidim(aorg, anew: TJObjectArray; deepcopy: boolean; ndim: longint; eletype: jchar): TJObjectArray;
   var
@@ -395,6 +419,13 @@ function fpc_setlength_dynarr_multidim(aorg, anew: TJObjectArray; deepcopy: bool
               for i:=succ(partdone) to high(result) do
                 result[i]:=TObject(fpc_setlength_dynarr_jobject(nil,TJObjectArray(anew[i]),deepcopy,true));
             end;
+          FPCJDynArrTypeRecord:
+            begin
+              for i:=low(result) to partdone do
+                result[i]:=TObject(fpc_setlength_dynarr_jrecord(TJRecordArray(aorg[i]),TJRecordArray(anew[i]),deepcopy));
+              for i:=succ(partdone) to high(result) do
+                result[i]:=TObject(fpc_setlength_dynarr_jrecord(nil,TJRecordArray(anew[i]),deepcopy));
+          end;
         end;
       end
     else

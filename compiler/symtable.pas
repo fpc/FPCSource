@@ -224,7 +224,7 @@ interface
     function  searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_module(pm:pointer;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_named_module(const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
-    function  searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchhelper:boolean):boolean;
+    function  searchsym_in_class(classh: tobjectdef; contextclassh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchhelper:boolean):boolean;
     function  searchsym_in_record(recordh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_class_by_msgint(classh:tobjectdef;msgid:longint;out srdef : tdef;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:TSymtable):boolean;
@@ -2215,7 +2215,7 @@ implementation
       end;
 
 
-    function searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchhelper:boolean):boolean;
+    function searchsym_in_class(classh: tobjectdef;contextclassh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;searchhelper:boolean):boolean;
       var
         hashedid : THashedIDString;
         orgclass : tobjectdef;
@@ -2231,9 +2231,10 @@ implementation
               or be a parent of contextclassh. E.g. for inherited searches the classh is the
               parent or a class helper. }
             if not (contextclassh.is_related(classh) or
-                (assigned(contextclassh.extendeddef) and
-                (contextclassh.extendeddef.typ=objectdef) and
-                contextclassh.extendeddef.is_related(classh))) then
+                (is_classhelper(contextclassh) and
+                 assigned(tobjectdef(contextclassh).extendeddef) and
+                (tobjectdef(contextclassh).extendeddef.typ=objectdef) and
+                tobjectdef(contextclassh).extendeddef.is_related(classh))) then
               internalerror(200811161);
           end;
         result:=false;
@@ -2265,7 +2266,7 @@ implementation
         if is_objectpascal_helper(classh) then
           begin
             { helpers have their own obscure search logic... }
-            result:=searchsym_in_helper(classh,contextclassh,s,srsym,srsymtable,false);
+            result:=searchsym_in_helper(classh,tobjectdef(contextclassh),s,srsym,srsymtable,false);
             if result then
               exit;
           end

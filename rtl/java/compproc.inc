@@ -52,4 +52,5 @@ Procedure fpc_Copy_proc (Src, Dest, TypeInfo : Pointer); compilerproc; inline;
   dynamic array types, and add an extra parameter to determine the first
   level elements types of the array) }
 procedure fpc_initialize_array_dynarr(arr: TJObjectArray; normalarrdim: longint);compilerproc;
+procedure fpc_initialize_array_record(arr: TJObjectArray; normalarrdim: longint; inst: FpcBaseRecordType);compilerproc;
 

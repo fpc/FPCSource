@@ -454,7 +454,9 @@ implementation
              { always packrecords C -> natural alignment }
              location.reference.alignment:=vs.vardef.alignment;
            end
-         else if is_java_class_or_interface(left.resultdef) then
+         else if is_java_class_or_interface(left.resultdef) or
+                 ((target_info.system=system_jvm_java32) and
+                  (left.resultdef.typ=recorddef)) then
            begin
              if (location.loc<>LOC_REFERENCE) or
                 (location.reference.index<>NR_NO) or

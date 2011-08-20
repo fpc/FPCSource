@@ -66,7 +66,7 @@ implementation
        paramgr,procinfo,
        { symtable }
        symconst,symsym,symtable,
-       defutil,defcmp,
+       defutil,defcmp,jvmdef,
        { modules }
        fmodule,
        { pass 1 }
@@ -74,7 +74,8 @@ implementation
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
-       pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl;
+       pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl,
+       pjvm;
 
 
     procedure resolve_forward_types;
@@ -944,6 +945,8 @@ implementation
               end;
             _END :
               begin
+                if (target_info.system=system_jvm_java32) then
+                  add_java_default_record_methods_intf(trecorddef(current_structdef));
                 consume(_END);
                 break;
               end;
@@ -990,6 +993,9 @@ implementation
          else
            begin
              read_record_fields([vd_record]);
+             { we need a constructor to create temps, a deep copy helper, ... }
+             if (target_info.system=system_jvm_java32) then
+               add_java_default_record_methods_intf(trecorddef(current_structdef));
              consume(_END);
             end;
          { make the record size aligned }

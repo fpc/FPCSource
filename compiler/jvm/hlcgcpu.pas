@@ -174,6 +174,7 @@ uses
 
       { concatcopy helpers }
       procedure concatcopy_normal_array(list: TAsmList; size: tdef; const source, dest: treference);
+      procedure concatcopy_record(list: TAsmList; size: tdef; const source, dest: treference);
 
       { generate a call to a routine in the system unit }
       procedure g_call_system_proc(list: TAsmList; const procname: string);
@@ -1092,12 +1093,13 @@ implementation
                 procname:='FPC_SETLENGTH_DYNARR_MULTIDIM';
               end;
           end;
+        recorddef:
+          procname:='FPC_COPY_JRECORD_ARRAY';
         setdef,
-        recorddef,
         stringdef,
         variantdef:
           begin
-            { todo: make a (recursive for records) deep copy, not sure yet how... }
+            { todo: make a deep copy via clone... }
             internalerror(2011020505);
           end;
         else
@@ -1115,6 +1117,27 @@ implementation
        end;
     end;
 
+    procedure thlcgjvm.concatcopy_record(list: TAsmList; size: tdef; const source, dest: treference);
+      var
+        srsym: tsym;
+        pd: tprocdef;
+      begin
+        { self }
+        a_load_ref_stack(list,size,source,prepare_stack_for_ref(list,source,false));
+        { result }
+        a_load_ref_stack(list,size,dest,prepare_stack_for_ref(list,source,false));
+        { call fpcDeepCopy helper }
+        srsym:=search_struct_member(tabstractrecorddef(size),'FPCDEEPCOPY');
+        if not assigned(srsym) or
+           (srsym.typ<>procsym) then
+          Message1(cg_f_unknown_compilerproc,'FpcRecordBaseType.fpcDeepCopy');
+        pd:=tprocdef(tprocsym(srsym).procdeflist[0]);
+        a_call_name(list,pd,pd.mangledname,false);
+        { both parameters are removed, no function result }
+        decstack(list,2);
+      end;
+
+
   procedure thlcgjvm.g_concatcopy(list: TAsmList; size: tdef; const source, dest: treference);
     var
       handled: boolean;
@@ -1128,6 +1151,11 @@ implementation
                 concatcopy_normal_array(list,size,source,dest);
                 handled:=true;
               end;
+          end;
+        recorddef:
+          begin
+            concatcopy_record(list,size,source,dest);
+            handled:=true;
           end;
       end;
       if not handled then
@@ -1247,6 +1275,7 @@ implementation
   procedure thlcgjvm.g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation; const name: string);
     var
       normaldim: longint;
+      recref: treference;
     begin
       { only in case of initialisation, we have to set all elements to "empty" }
       if name<>'FPC_INITIALIZE_ARRAY' then
@@ -1268,6 +1297,13 @@ implementation
         g_call_system_proc(list,'fpc_initialize_array_unicodestring')
       else if is_dynamic_array(t) then
         g_call_system_proc(list,'fpc_initialize_array_dynarr')
+      else if is_record(t) then
+        begin
+          tg.gethltemp(list,t,t.size,tt_persistent,recref);
+          a_load_ref_stack(list,t,recref,prepare_stack_for_ref(list,recref,false));
+          g_call_system_proc(list,'fpc_initialize_array_record');
+          tg.ungettemp(list,recref);
+        end
       else
         internalerror(2011031901);
     end;
@@ -1275,12 +1311,22 @@ implementation
   procedure thlcgjvm.g_initialize(list: TAsmList; t: tdef; const ref: treference);
     var
       dummyloc: tlocation;
+      recref: treference;
     begin
       if (t.typ=arraydef) and
          not is_dynamic_array(t) then
         begin
           dummyloc.loc:=LOC_INVALID;
           g_array_rtti_helper(list,tarraydef(t).elementdef,ref,dummyloc,'FPC_INITIALIZE_ARRAY')
+        end
+      else if is_record(t) then
+        begin
+          { create a new, empty record and replace the contents of the old one
+            with those of the new one (in the future we can generate a dedicate
+            initialization helper) }
+          tg.gethltemp(list,t,t.size,tt_persistent,recref);
+          g_concatcopy(list,t,recref,ref);
+          tg.ungettemp(list,recref);
         end
       else
         a_load_const_ref(list,t,0,ref);
@@ -1691,6 +1737,17 @@ implementation
                 internalerror(2010122601);
             end;
           end;
+        recordsymtable:
+          begin
+            if (po_staticmethod in pd.procoptions) then
+              opc:=a_invokestatic
+            else if (pd.visibility=vis_private) or
+               (pd.proctypeoption=potype_constructor) or
+               inheritedcall then
+              opc:=a_invokespecial
+            else
+              opc:=a_invokevirtual;
+          end
         else
           internalerror(2010122602);
       end;

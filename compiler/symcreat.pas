@@ -116,10 +116,7 @@ implementation
       { and parse it... }
       pd:=method_dec(astruct,is_classdef);
       if assigned(pd) then
-        begin
-          include(pd.procoptions,po_synthetic);
-          result:=true;
-        end;
+        result:=true;
       parse_only:=oldparse_only;
     end;
 
@@ -196,31 +193,122 @@ implementation
           str:=tprocdef(pd).customprocname([pno_proctypeoption,pno_paranames,pno_noclassmarker])+'overload;';
           if not str_parse_method_dec(str,isclassmethod,obj,newpd) then
             internalerror(2011032001);
-          include(newpd.procoptions,po_synthetic);
+          newpd.synthetickind:=tsk_anon_inherited;
         end;
       restore_scanner(sstate);
     end;
 
 
-  procedure add_missing_parent_constructors_impl(obj: tobjectdef);
+  procedure implement_anon_inherited(pd: tprocdef);
     var
-      i: longint;
-      def: tdef;
       str: ansistring;
       isclassmethod: boolean;
     begin
-      for i:=0 to tobjectsymtable(obj.symtable).deflist.count-1 do
+      isclassmethod:=
+        (po_classmethod in pd.procoptions) and
+        not(pd.proctypeoption in [potype_constructor,potype_destructor]);
+      str:=pd.customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker]);
+      str:=str+'begin inherited end;';
+      str_parse_method_impl(str,isclassmethod);
+    end;
+
+
+  procedure implement_jvm_clone(pd: tprocdef);
+    var
+      struct: tabstractrecorddef;
+      str: ansistring;
+      i: longint;
+      sym: tsym;
+      fsym: tfieldvarsym;
+    begin
+      if not(pd.owner.defowner.typ in [recorddef,objectdef]) then
+        internalerror(2011032802);
+      struct:=tabstractrecorddef(pd.owner.defowner);
+      { anonymous record types must get an artificial name, so we can generate
+        a typecast at the scanner level }
+      if (struct.typ=recorddef) and
+         not assigned(struct.typesym) then
+        internalerror(2011032812);
+      str:=pd.customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker]);
+      { the inherited clone will already copy all fields in a shallow way ->
+        copy records/regular arrays in a regular way }
+      str:=str+'begin result:=inherited;';
+      for i:=0 to struct.symtable.symlist.count-1 do
         begin
-          def:=tdef(tobjectsymtable(obj.symtable).deflist[i]);
-          if (def.typ<>procdef) or
-             not(po_synthetic in tprocdef(def).procoptions) then
+          sym:=tsym(struct.symtable.symlist[i]);
+          if (sym.typ=fieldvarsym) then
+            begin
+              fsym:=tfieldvarsym(sym);
+              if (fsym.vardef.typ=recorddef) or
+                 ((fsym.vardef.typ=arraydef) and
+                  not is_dynamic_array(fsym.vardef)) or
+                 ((fsym.vardef.typ=setdef) and
+                  not is_smallset(fsym.vardef)) then
+                str:=str+struct.typesym.realname+'(result).'+fsym.realname+':='+fsym.realname+';';
+            end;
+        end;
+      str:=str+'end;';
+      str_parse_method_impl(str,false);
+    end;
+
+
+  procedure implement_record_deepcopy(pd: tprocdef);
+    var
+      struct: tabstractrecorddef;
+      str: ansistring;
+      i: longint;
+      sym: tsym;
+      fsym: tfieldvarsym;
+    begin
+      if not(pd.owner.defowner.typ in [recorddef,objectdef]) then
+        internalerror(2011032810);
+      struct:=tabstractrecorddef(pd.owner.defowner);
+      { anonymous record types must get an artificial name, so we can generate
+        a typecast at the scanner level }
+      if (struct.typ=recorddef) and
+         not assigned(struct.typesym) then
+        internalerror(2011032811);
+      str:=pd.customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker]);
+      { copy all fields }
+      str:=str+'begin ';
+      for i:=0 to struct.symtable.symlist.count-1 do
+        begin
+          sym:=tsym(struct.symtable.symlist[i]);
+          if (sym.typ=fieldvarsym) then
+            begin
+              fsym:=tfieldvarsym(sym);
+              str:=str+'result.'+fsym.realname+':='+fsym.realname+';';
+            end;
+        end;
+      str:=str+'end;';
+      str_parse_method_impl(str,false);
+    end;
+
+
+  procedure add_synthetic_method_implementations_for_struct(struct: tabstractrecorddef);
+    var
+      i   : longint;
+      def : tdef;
+      pd  : tprocdef;
+    begin
+      for i:=0 to struct.symtable.deflist.count-1 do
+        begin
+          def:=tdef(struct.symtable.deflist[i]);
+          if (def.typ<>procdef) then
             continue;
-          isclassmethod:=
-            (po_classmethod in tprocdef(def).procoptions) and
-            not(tprocdef(def).proctypeoption in [potype_constructor,potype_destructor]);
-          str:=tprocdef(def).customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker]);
-          str:=str+'overload; begin inherited end;';
-          str_parse_method_impl(str,isclassmethod);
+          pd:=tprocdef(def);
+          case pd.synthetickind of
+            tsk_none:
+              ;
+            tsk_anon_inherited:
+              implement_anon_inherited(pd);
+            tsk_jvm_clone:
+              implement_jvm_clone(pd);
+            tsk_record_deepcopy:
+              implement_record_deepcopy(pd);
+            else
+              internalerror(2011032801);
+          end;
         end;
     end;
 
@@ -238,12 +326,13 @@ implementation
       for i:=0 to st.deflist.count-1 do
         begin
           def:=tdef(st.deflist[i]);
-          if is_javaclass(def) and
-             not(oo_is_external in tobjectdef(def).objectoptions) then
+          if (is_javaclass(def) and
+              not(oo_is_external in tobjectdef(def).objectoptions)) or
+              (def.typ=recorddef) then
            begin
              if not sstate.valid then
                replace_scanner('synthetic_impl',sstate);
-            add_missing_parent_constructors_impl(tobjectdef(def));
+            add_synthetic_method_implementations_for_struct(tabstractrecorddef(def));
            end;
         end;
       restore_scanner(sstate);

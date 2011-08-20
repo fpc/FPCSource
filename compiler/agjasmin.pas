@@ -47,9 +47,9 @@ interface
         jasminjar: tcmdstr;
         asmfiles: TCmdStrList;
 
-        procedure WriteExtraHeader(obj: tobjectdef);
+        procedure WriteExtraHeader(obj: tabstractrecorddef);
         procedure WriteInstruction(hp: tai);
-        procedure NewAsmFileForObjectDef(obj: tobjectdef);
+        procedure NewAsmFileForStructDef(obj: tabstractrecorddef);
 
         function VisibilityToStr(vis: tvisibility): string;
         function MethodDefinition(pd: tprocdef): string;
@@ -57,14 +57,14 @@ interface
         function ConstAssignmentValue(csym: tconstsym): ansistring;
         function ConstDefinition(sym: tconstsym): string;
         function FieldDefinition(sym: tabstractvarsym): string;
-        function InnerObjDef(obj: tobjectdef): string;
+        function InnerStructDef(obj: tabstractrecorddef): string;
 
         procedure WriteProcDef(pd: tprocdef);
         procedure WriteFieldSym(sym: tabstractvarsym);
         procedure WriteConstSym(sym: tconstsym);
         procedure WriteSymtableVarSyms(st: TSymtable);
         procedure WriteSymtableProcdefs(st: TSymtable);
-        procedure WriteSymtableObjectDefs(st: TSymtable);
+        procedure WriteSymtableStructDefs(st: TSymtable);
        public
         constructor Create(smart: boolean); override;
         function MakeCmdLine: TCmdStr;override;
@@ -516,7 +516,7 @@ implementation
       end;
 
 
-    procedure TJasminAssembler.WriteExtraHeader(obj: tobjectdef);
+    procedure TJasminAssembler.WriteExtraHeader(obj: tabstractrecorddef);
       var
         superclass,
         intf: tobjectdef;
@@ -551,27 +551,40 @@ implementation
             toplevelowner:=obj.owner;
             while not(toplevelowner.symtabletype in [staticsymtable,globalsymtable]) do
               toplevelowner:=toplevelowner.defowner.owner;
-            case obj.objecttype of
-              odt_javaclass:
+            case obj.typ of
+              recorddef:
                 begin
                   AsmWrite('.class ');
                   if toplevelowner.symtabletype=globalsymtable then
                     AsmWrite('public ');
                   AsmWriteln(obj.jvm_full_typename(true));
-                  superclass:=obj.childof;
+                  superclass:=java_fpcbaserecordtype;
                 end;
-              odt_interfacejava:
+              objectdef:
                 begin
-                  AsmWrite('.interface abstract ');
-                  if toplevelowner.symtabletype=globalsymtable then
-                    AsmWrite('public ');
-                  AsmWriteLn(obj.jvm_full_typename(true));
-                  { interfaces must always specify Java.lang.object as
-                    superclass }
-                  superclass:=java_jlobject;
-                end
-              else
-                internalerror(2011010906);
+                  case tobjectdef(obj).objecttype of
+                    odt_javaclass:
+                      begin
+                        AsmWrite('.class ');
+                        if toplevelowner.symtabletype=globalsymtable then
+                          AsmWrite('public ');
+                        AsmWriteln(obj.jvm_full_typename(true));
+                        superclass:=tobjectdef(obj).childof;
+                      end;
+                    odt_interfacejava:
+                      begin
+                        AsmWrite('.interface abstract ');
+                        if toplevelowner.symtabletype=globalsymtable then
+                          AsmWrite('public ');
+                        AsmWriteLn(obj.jvm_full_typename(true));
+                        { interfaces must always specify Java.lang.object as
+                          superclass }
+                        superclass:=java_jlobject;
+                      end
+                    else
+                      internalerror(2011010906);
+                  end;
+                end;
             end;
             { superclass }
             if assigned(superclass) then
@@ -582,11 +595,12 @@ implementation
                 AsmWriteln(superclass.objextname^);
               end;
             { implemented interfaces }
-            if assigned(obj.ImplementedInterfaces) then
+            if (obj.typ=objectdef) and
+               assigned(tobjectdef(obj).ImplementedInterfaces) then
               begin
-                for i:=0 to obj.ImplementedInterfaces.count-1 do
+                for i:=0 to tobjectdef(obj).ImplementedInterfaces.count-1 do
                   begin
-                    intf:=TImplementedInterface(obj.ImplementedInterfaces[i]).IntfDef;
+                    intf:=TImplementedInterface(tobjectdef(obj).ImplementedInterfaces[i]).IntfDef;
                     AsmWrite('.implements ');
                     if assigned(intf.import_lib) then
                       AsmWrite(intf.import_lib^+'/');
@@ -594,12 +608,13 @@ implementation
                   end;
               end;
             { in case of nested class: relation to parent class }
-            if obj.owner.symtabletype=objectsymtable then
-              AsmWriteln(InnerObjDef(obj));
+            if obj.owner.symtabletype in [objectsymtable,recordsymtable] then
+              AsmWriteln(InnerStructDef(obj));
             { all all nested classes }
             for i:=0 to obj.symtable.deflist.count-1 do
-              if is_java_class_or_interface(tdef(obj.symtable.deflist[i])) then
-                AsmWriteln(InnerObjDef(tobjectdef(obj.symtable.deflist[i])));
+              if is_java_class_or_interface(tdef(obj.symtable.deflist[i])) or
+                 (tdef(obj.symtable.deflist[i]).typ=recorddef) then
+                AsmWriteln(InnerStructDef(tabstractrecorddef(obj.symtable.deflist[i])));
           end;
         AsmLn;
       end;
@@ -646,7 +661,7 @@ implementation
      end;
 
 
-   procedure TJasminAssembler.NewAsmFileForObjectDef(obj: tobjectdef);
+   procedure TJasminAssembler.NewAsmFileForStructDef(obj: tabstractrecorddef);
       begin
         if AsmSize<>AsmStartSize then
           begin
@@ -696,6 +711,8 @@ implementation
            (not(po_virtualmethod in pd.procoptions) and
             not(pd.proctypeoption in [potype_constructor,potype_class_constructor])) then
           result:=result+'final ';
+        if (pd.synthetickind<>tsk_none) then
+          result:=result+'synthetic ';
         result:=result+pd.jvmmangledbasename;
       end;
 
@@ -777,7 +794,7 @@ implementation
            (vissym.owner.symtabletype=objectsymtable) then
           begin
             vissym:=tabstractvarsym(search_struct_member(
-              tobjectdef(vissym.owner.defowner),
+              tabstractrecorddef(vissym.owner.defowner),
               internal_static_field_name(vissym.name)));
             if not assigned(vissym) or
                (vissym.typ<>fieldvarsym) then
@@ -804,19 +821,33 @@ implementation
       end;
 
 
-    function TJasminAssembler.InnerObjDef(obj: tobjectdef): string;
+    function TJasminAssembler.InnerStructDef(obj: tabstractrecorddef): string;
       var
+        extname: pshortstring;
         kindname: string;
       begin
-        if obj.owner.defowner.typ<>objectdef then
+        if not(obj.owner.defowner.typ in [objectdef,recorddef]) then
           internalerror(2011021701);
-        case obj.objecttype of
-          odt_javaclass:
-            kindname:='class ';
-          odt_interfacejava:
-            kindname:='interface ';
+        case obj.typ of
+          recorddef:
+            begin
+              kindname:='class ';
+              extname:=obj.symtable.realname;
+            end;
+          objectdef:
+            begin
+              extname:=tobjectdef(obj).objextname;
+              case tobjectdef(obj).objecttype of
+                odt_javaclass:
+                  kindname:='class ';
+                odt_interfacejava:
+                  kindname:='interface ';
+                else
+                  internalerror(2011021702);
+              end;
+            end;
           else
-            internalerror(2011021702);
+            internalerror(2011032809);
         end;
         result:=
           '.inner '+
@@ -826,11 +857,11 @@ implementation
             inner classes in Java -- will be changed when support for
             Java-style non-static classes is added }
          ' static '+
-         obj.objextname^+
+         extname^+
          ' inner '+
          obj.jvm_full_typename(true)+
          ' outer '+
-         tobjectdef(obj.owner.defowner).jvm_full_typename(true);
+         tabstractrecorddef(obj.owner.defowner).jvm_full_typename(true);
       end;
 
 
@@ -918,36 +949,38 @@ implementation
           end;
       end;
 
-    procedure TJasminAssembler.WriteSymtableObjectDefs(st: TSymtable);
+    procedure TJasminAssembler.WriteSymtableStructDefs(st: TSymtable);
       var
         i   : longint;
         def : tdef;
-        obj : tobjectdef;
-        nestedclasses: tfpobjectlist;
+        obj : tabstractrecorddef;
+        nestedstructs: tfpobjectlist;
       begin
         if not assigned(st) then
           exit;
-        nestedclasses:=tfpobjectlist.create(false);
+        nestedstructs:=tfpobjectlist.create(false);
         for i:=0 to st.DefList.Count-1 do
           begin
             def:=tdef(st.DefList[i]);
             case def.typ of
               objectdef:
                 if not(oo_is_external in tobjectdef(def).objectoptions) then
-                  nestedclasses.add(def);
+                  nestedstructs.add(def);
+              recorddef:
+                nestedstructs.add(def);
             end;
           end;
-        for i:=0 to nestedclasses.count-1 do
+        for i:=0 to nestedstructs.count-1 do
           begin
-            obj:=tobjectdef(nestedclasses[i]);
-            NewAsmFileForObjectDef(obj);
+            obj:=tabstractrecorddef(nestedstructs[i]);
+            NewAsmFileForStructDef(obj);
             WriteExtraHeader(obj);
             WriteSymtableVarSyms(obj.symtable);
             AsmLn;
             WriteSymtableProcDefs(obj.symtable);
-            WriteSymtableObjectDefs(obj.symtable);
+            WriteSymtableStructDefs(obj.symtable);
           end;
-        nestedclasses.free;
+        nestedstructs.free;
       end;
 
     constructor TJasminAssembler.Create(smart: boolean);
@@ -983,8 +1016,8 @@ implementation
       WriteSymtableProcdefs(current_module.globalsymtable);
       WriteSymtableProcdefs(current_module.localsymtable);
 
-      WriteSymtableObjectDefs(current_module.globalsymtable);
-      WriteSymtableObjectDefs(current_module.localsymtable);
+      WriteSymtableStructDefs(current_module.globalsymtable);
+      WriteSymtableStructDefs(current_module.localsymtable);
 
       AsmLn;
 {$ifdef EXTDEBUG}

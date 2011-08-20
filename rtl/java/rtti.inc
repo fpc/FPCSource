@@ -30,3 +30,21 @@ procedure fpc_initialize_array_dynarr(arr: TJObjectArray; normalarrdim: longint)
       end;
   end;
 
+procedure fpc_initialize_array_record_intern(arr: TJObjectArray; normalarrdim: longint; inst: FpcBaseRecordType); external name 'fpc_initialize_array_record';
+
+procedure fpc_initialize_array_record(arr: TJObjectArray; normalarrdim: longint; inst: FpcBaseRecordType);compilerproc;
+  var
+    i: longint;
+  begin
+    if normalarrdim > 0 then
+      begin
+        for i:=low(arr) to high(arr) do
+          fpc_initialize_array_record_intern(TJObjectArray(arr[i]),normalarrdim-1,inst);
+      end
+    else
+      begin
+        for i:=low(arr) to high(arr) do
+          arr[i]:=inst.clone;
+      end;
+  end;
+

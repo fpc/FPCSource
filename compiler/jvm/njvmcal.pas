@@ -66,9 +66,9 @@ implementation
           exit;
         if tprocdef(procdefinition).proctypeoption<>potype_constructor then
           exit;
-        if (methodpointer.resultdef.typ<>classrefdef) then
+        if not(methodpointer.resultdef.typ in [classrefdef,recorddef]) then
           exit;
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tobjectdef(tprocdef(procdefinition).owner.defowner).jvm_full_typename(true))));
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tabstractrecorddef(tprocdef(procdefinition).owner.defowner).jvm_full_typename(true))));
         { the constructor doesn't return anything, so put a duplicate of the
           self pointer on the evaluation stack for use as function result
           after the constructor has run }
