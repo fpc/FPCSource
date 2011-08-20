@@ -26,7 +26,7 @@ type
   TJObjectArray = array of JLObject;
   TJRecordArray = array of FpcBaseRecordType;
   TJEnumSetArray = array of JUEnumSet;
-  TJBitSetArray = array of JUBitSet;
+  TJBitSetArray = array of FpcBitSet;
   TJProcVarArray = array of FpcBaseProcVarType;
   TShortstringArray = array of ShortstringClass;
   TJStringArray = array of unicodestring;

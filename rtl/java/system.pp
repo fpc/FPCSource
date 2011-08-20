@@ -336,7 +336,7 @@ procedure fpc_copy_jrecord_array(src, dst: TJRecordArray; srcstart: jint = -1; s
       srccopylen:=srclen-srcstart;
     { no arraycopy, have to clone each element }
     for i:=0 to min(srccopylen,dstlen)-1 do
-      dst[i]:=FpcBaseRecordType(src[srcstart+i].clone);
+      src[srcstart+i].fpcDeepCopy(dst[i]);
   end;
 
 
@@ -357,7 +357,10 @@ procedure fpc_copy_jenumset_array(src, dst: TJEnumSetArray; srcstart: jint = -1;
       srccopylen:=srclen-srcstart;
     { no arraycopy, have to clone each element }
     for i:=0 to min(srccopylen,dstlen)-1 do
-      dst[i]:=JUEnumSet(src[srcstart+i].clone);
+      begin
+        dst[i].clear;
+        dst[i].addAll(src[srcstart+i]);
+      end;
   end;
 
 
@@ -378,7 +381,10 @@ procedure fpc_copy_jbitset_array(src, dst: TJBitSetArray; srcstart: jint = -1; s
       srccopylen:=srclen-srcstart;
     { no arraycopy, have to clone each element }
     for i:=0 to min(srccopylen,dstlen)-1 do
-      dst[i]:=JUBitset(src[srcstart+i].clone);
+      begin
+        dst[i].clear;
+        dst[i].addAll(src[srcstart+i]);
+      end;
   end;
 
 
@@ -399,7 +405,7 @@ procedure fpc_copy_jprocvar_array(src, dst: TJProcVarArray; srcstart: jint = -1;
       srccopylen:=srclen-srcstart;
     { no arraycopy, have to clone each element }
     for i:=0 to min(srccopylen,dstlen)-1 do
-      dst[i]:=FpcBaseProcVarType(src[srcstart+i].clone);
+      src[srcstart+i].fpcDeepCopy(dst[i]);
   end;
 
 
@@ -420,7 +426,7 @@ procedure fpc_copy_jshortstring_array(src, dst: TShortstringArray; srcstart: jin
       srccopylen:=srclen-srcstart;
     { no arraycopy, have to clone each element }
     for i:=0 to min(srccopylen,dstlen)-1 do
-      dst[i]:=ShortstringClass(src[srcstart+i].clone);
+      pshortstring(src[srcstart+i])^:=pshortstring(dst[i])^;
   end;
 
 
