@@ -555,7 +555,8 @@ implementation
             case obj.typ of
               recorddef:
                 begin
-                  AsmWrite('.class ');
+                  { can't inherit from records }
+                  AsmWrite('.class final ');
                   if toplevelowner.symtabletype=globalsymtable then
                     AsmWrite('public ');
                   AsmWriteln(obj.jvm_full_typename(true));
@@ -567,6 +568,8 @@ implementation
                     odt_javaclass:
                       begin
                         AsmWrite('.class ');
+                        if oo_is_sealed in tobjectdef(obj).objectoptions then
+                          AsmWrite('final ');
                         if toplevelowner.symtabletype=globalsymtable then
                           AsmWrite('public ');
                         AsmWriteln(obj.jvm_full_typename(true));
@@ -821,7 +824,7 @@ implementation
         if (sym.typ=staticvarsym) or
            (sp_static in sym.symoptions) then
           result:=result+'static ';
-        if sym.varspez=vs_const then
+        if sym.varspez in [vs_const,vs_final] then
           result:=result+'final ';
         result:=result+jvmmangledbasename(sym,true);
       end;
