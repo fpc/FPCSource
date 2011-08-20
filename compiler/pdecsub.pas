@@ -1657,9 +1657,7 @@ begin
   if assigned(tprocdef(pd).struct) and
     (oo_is_sealed in tprocdef(pd).struct.objectoptions) then
     Message(parser_e_sealed_class_cannot_have_abstract_methods)
-  else if (po_virtualmethod in pd.procoptions) or
-     { all Java methods are virtual }
-     is_javaclass(tdef(pd.owner.defowner)) then
+  else if (po_virtualmethod in pd.procoptions) then
     include(pd.procoptions,po_abstractmethod)
   else
     Message(parser_e_only_virtual_methods_abstract);
@@ -1674,9 +1672,7 @@ begin
   if is_objectpascal_helper(tprocdef(pd).struct) and
       (m_objfpc in current_settings.modeswitches) then
     Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_FINAL].str);
-  if (po_virtualmethod in pd.procoptions) or
-     { all Java methods are virtual }
-     is_javaclass(tdef(pd.owner.defowner)) then
+  if (po_virtualmethod in pd.procoptions) then
     include(pd.procoptions,po_finalmethod)
   else
     Message(parser_e_only_virtual_methods_final);
@@ -1716,6 +1712,11 @@ var
   pt : tnode;
 {$endif WITHDMT}
 begin
+  if (not assigned(pd.owner.defowner) or
+      not is_java_class_or_interface(tdef(pd.owner.defowner))) and
+     (po_external in pd.procoptions) then
+    Message1(parser_e_proc_dir_conflict,'EXTERNAL');
+
   if pd.typ<>procdef then
     internalerror(2003042610);
   if (pd.proctypeoption=potype_constructor) and
@@ -1778,7 +1779,7 @@ begin
       if m_objfpc in current_settings.modeswitches then
         Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_OVERRIDE].str)
     end
-  else if not(is_class_or_interface_or_objc(tprocdef(pd).struct)) then
+  else if not(is_class_or_interface_or_objc_or_java(tprocdef(pd).struct)) then
     Message(parser_e_no_object_override)
   else if is_objccategory(tprocdef(pd).struct) then
     Message(parser_e_no_category_override)
@@ -2498,13 +2499,13 @@ const
       mutexclpo     : [po_external,po_assembler,po_interrupt,po_exports]
     ),(
       idtok:_VIRTUAL;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord,pd_javaclass];
       handler  : @pd_virtual;
       pocall   : pocall_none;
       pooption : [po_virtualmethod];
       mutexclpocall : [pocall_internproc];
       mutexclpotype : [potype_class_constructor,potype_class_destructor];
-      mutexclpo     : [po_external,po_interrupt,po_exports,po_overridingmethod,po_inline]
+      mutexclpo     : [po_interrupt,po_exports,po_overridingmethod,po_inline]
     ),(
       idtok:_CPPDECL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
