@@ -627,8 +627,9 @@ implementation
               odt_objcclass:
                 CGMessage(parser_h_no_objc_parent);
               odt_javaclass:
+                { inherit from TObject by default for compatibility }
                 if current_objectdef<>java_jlobject then
-                  childof:=java_jlobject;
+                  childof:=class_tobject;
             end;
           end;
 
@@ -1284,6 +1285,8 @@ implementation
                       class_tobject:=current_objectdef;
                   odt_javaclass:
                     begin
+                      if (current_structdef.objname^='TOBJECT') then
+                        class_tobject:=current_objectdef;
                       if (current_objectdef.objname^='JLOBJECT') then
                         java_jlobject:=current_objectdef;
                       if (current_objectdef.objname^='JLTHROWABLE') then

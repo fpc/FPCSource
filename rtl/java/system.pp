@@ -93,7 +93,14 @@ const
 {$i java_sys.inc}
 
 type
-  TObject = JLObject;
+  TObject = class(JLObject)
+   strict private
+    DestructorCalled: Boolean;
+   public
+    procedure Free;
+    destructor Destroy; virtual;
+    procedure finalize; override;
+  end;
 
 {$i innr.inc}
 {$i jmathh.inc}
@@ -366,65 +373,65 @@ function fpc_setlength_dynarr_multidim(aorg, anew: TJObjectArray; deepcopy: bool
           FPCJDynArrTypeJByte:
             begin
               for i:=low(result) to partdone do
-                result[i]:=TObject(fpc_setlength_dynarr_jbyte(TJByteArray(aorg[i]),TJByteArray(anew[i]),deepcopy));
+                result[i]:=JLObject(fpc_setlength_dynarr_jbyte(TJByteArray(aorg[i]),TJByteArray(anew[i]),deepcopy));
               for i:=succ(partdone) to high(result) do
-                result[i]:=TObject(fpc_setlength_dynarr_jbyte(nil,TJByteArray(anew[i]),deepcopy));
+                result[i]:=JLObject(fpc_setlength_dynarr_jbyte(nil,TJByteArray(anew[i]),deepcopy));
             end;
           FPCJDynArrTypeJShort:
             begin
               for i:=low(result) to partdone do
-                result[i]:=TObject(fpc_setlength_dynarr_jshort(TJShortArray(aorg[i]),TJShortArray(anew[i]),deepcopy));
+                result[i]:=JLObject(fpc_setlength_dynarr_jshort(TJShortArray(aorg[i]),TJShortArray(anew[i]),deepcopy));
               for i:=succ(partdone) to high(result) do
-                result[i]:=TObject(fpc_setlength_dynarr_jshort(nil,TJShortArray(anew[i]),deepcopy));
+                result[i]:=JLObject(fpc_setlength_dynarr_jshort(nil,TJShortArray(anew[i]),deepcopy));
             end;
           FPCJDynArrTypeJInt:
             begin
               for i:=low(result) to partdone do
-                result[i]:=TObject(fpc_setlength_dynarr_jint(TJIntArray(aorg[i]),TJIntArray(anew[i]),deepcopy));
+                result[i]:=JLObject(fpc_setlength_dynarr_jint(TJIntArray(aorg[i]),TJIntArray(anew[i]),deepcopy));
               for i:=succ(partdone) to high(result) do
-                result[i]:=TObject(fpc_setlength_dynarr_jint(nil,TJIntArray(anew[i]),deepcopy));
+                result[i]:=JLObject(fpc_setlength_dynarr_jint(nil,TJIntArray(anew[i]),deepcopy));
             end;
           FPCJDynArrTypeJLong:
             begin
               for i:=low(result) to partdone do
-                result[i]:=TObject(fpc_setlength_dynarr_jlong(TJLongArray(aorg[i]),TJLongArray(anew[i]),deepcopy));
+                result[i]:=JLObject(fpc_setlength_dynarr_jlong(TJLongArray(aorg[i]),TJLongArray(anew[i]),deepcopy));
               for i:=succ(partdone) to high(result) do
-                result[i]:=TObject(fpc_setlength_dynarr_jlong(nil,TJLongArray(anew[i]),deepcopy));
+                result[i]:=JLObject(fpc_setlength_dynarr_jlong(nil,TJLongArray(anew[i]),deepcopy));
             end;
           FPCJDynArrTypeJChar:
             begin
               for i:=low(result) to partdone do
-                result[i]:=TObject(fpc_setlength_dynarr_jchar(TJCharArray(aorg[i]),TJCharArray(anew[i]),deepcopy));
+                result[i]:=JLObject(fpc_setlength_dynarr_jchar(TJCharArray(aorg[i]),TJCharArray(anew[i]),deepcopy));
               for i:=succ(partdone) to high(result) do
-                result[i]:=TObject(fpc_setlength_dynarr_jchar(nil,TJCharArray(anew[i]),deepcopy));
+                result[i]:=JLObject(fpc_setlength_dynarr_jchar(nil,TJCharArray(anew[i]),deepcopy));
             end;
           FPCJDynArrTypeJFloat:
             begin
               for i:=low(result) to partdone do
-                result[i]:=TObject(fpc_setlength_dynarr_jfloat(TJFloatArray(aorg[i]),TJFloatArray(anew[i]),deepcopy));
+                result[i]:=JLObject(fpc_setlength_dynarr_jfloat(TJFloatArray(aorg[i]),TJFloatArray(anew[i]),deepcopy));
               for i:=succ(partdone) to high(result) do
-                result[i]:=TObject(fpc_setlength_dynarr_jfloat(nil,TJFloatArray(anew[i]),deepcopy));
+                result[i]:=JLObject(fpc_setlength_dynarr_jfloat(nil,TJFloatArray(anew[i]),deepcopy));
             end;
           FPCJDynArrTypeJDouble:
             begin
               for i:=low(result) to partdone do
-                result[i]:=TObject(fpc_setlength_dynarr_jdouble(TJDoubleArray(aorg[i]),TJDoubleArray(anew[i]),deepcopy));
+                result[i]:=JLObject(fpc_setlength_dynarr_jdouble(TJDoubleArray(aorg[i]),TJDoubleArray(anew[i]),deepcopy));
               for i:=succ(partdone) to high(result) do
-                result[i]:=TObject(fpc_setlength_dynarr_jdouble(nil,TJDoubleArray(anew[i]),deepcopy));
+                result[i]:=JLObject(fpc_setlength_dynarr_jdouble(nil,TJDoubleArray(anew[i]),deepcopy));
             end;
           FPCJDynArrTypeJObject:
             begin
               for i:=low(result) to partdone do
-                result[i]:=TObject(fpc_setlength_dynarr_jobject(TJObjectArray(aorg[i]),TJObjectArray(anew[i]),deepcopy,true));
+                result[i]:=JLObject(fpc_setlength_dynarr_jobject(TJObjectArray(aorg[i]),TJObjectArray(anew[i]),deepcopy,true));
               for i:=succ(partdone) to high(result) do
-                result[i]:=TObject(fpc_setlength_dynarr_jobject(nil,TJObjectArray(anew[i]),deepcopy,true));
+                result[i]:=JLObject(fpc_setlength_dynarr_jobject(nil,TJObjectArray(anew[i]),deepcopy,true));
             end;
           FPCJDynArrTypeRecord:
             begin
               for i:=low(result) to partdone do
-                result[i]:=TObject(fpc_setlength_dynarr_jrecord(TJRecordArray(aorg[i]),TJRecordArray(anew[i]),deepcopy));
+                result[i]:=JLObject(fpc_setlength_dynarr_jrecord(TJRecordArray(aorg[i]),TJRecordArray(anew[i]),deepcopy));
               for i:=succ(partdone) to high(result) do
-                result[i]:=TObject(fpc_setlength_dynarr_jrecord(nil,TJRecordArray(anew[i]),deepcopy));
+                result[i]:=JLObject(fpc_setlength_dynarr_jrecord(nil,TJRecordArray(anew[i]),deepcopy));
           end;
         end;
       end
@@ -432,9 +439,9 @@ function fpc_setlength_dynarr_multidim(aorg, anew: TJObjectArray; deepcopy: bool
       begin
         { recursively handle the next dimension }
         for i:=low(result) to partdone do
-          result[i]:=TObject(fpc_setlength_dynarr_multidim(TJObjectArray(aorg[i]),TJObjectArray(anew[i]),deepcopy,pred(ndim),eletype));
+          result[i]:=JLObject(fpc_setlength_dynarr_multidim(TJObjectArray(aorg[i]),TJObjectArray(anew[i]),deepcopy,pred(ndim),eletype));
         for i:=succ(partdone) to high(result) do
-          result[i]:=TObject(fpc_setlength_dynarr_multidim(nil,TJObjectArray(anew[i]),deepcopy,pred(ndim),eletype));
+          result[i]:=JLObject(fpc_setlength_dynarr_multidim(nil,TJObjectArray(anew[i]),deepcopy,pred(ndim),eletype));
       end;
   end;
 
@@ -447,6 +454,26 @@ function fpc_setlength_dynarr_multidim(aorg, anew: TJObjectArray; deepcopy: bool
 {*****************************************************************************
                        Misc. System Dependent Functions
 *****************************************************************************}
+
+  procedure TObject.Free;
+    begin
+      if not DestructorCalled then
+        begin
+          DestructorCalled:=true;
+          Destroy;
+        end;
+    end;
+
+
+  destructor TObject.Destroy;
+    begin
+    end;
+
+
+  procedure TObject.Finalize;
+    begin
+      Free;
+    end;
 
 {*****************************************************************************
                          SystemUnit Initialization

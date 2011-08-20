@@ -4680,7 +4680,7 @@ implementation
          { the last TOBJECT which is loaded gets }
          { it !                                  }
          if (childof=nil) and
-            (objecttype=odt_class) and
+            (objecttype in [odt_class,odt_javaclass]) and
             (objname^='TOBJECT') then
            class_tobject:=self;
          if (childof=nil) and
