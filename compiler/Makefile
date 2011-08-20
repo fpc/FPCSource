@@ -3518,11 +3518,11 @@ ppuclean:
 tempclean:
 	-$(DEL) $(PPCROSSNAME) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC) pp1.wpo pp2.wpo
 execlean :
-	-$(DEL) ppc386$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) ppcppc64$(EXEEXT) ppcarm$(EXEEXT) ppcmips$(EXEEXT) ppcmipsel$(EXEEXT) $(EXENAME) $(TEMPWPONAME1) $(TEMPWPONAME2)
+	-$(DEL) ppc386$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) ppcppc64$(EXEEXT) ppcarm$(EXEEXT) ppcmips$(EXEEXT) ppcmipsel$(EXEEXT) ppcjvm$(EXEEXT) $(EXENAME) $(TEMPWPONAME1) $(TEMPWPONAME2)
 $(addsuffix _clean,$(ALLTARGETS)):
 	-$(DELTREE) $(addprefix $(subst _clean,,$@),/units)
 	-$(DEL) $(addprefix $(subst _clean,,$@)/,*$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT))
-	-$(DEL) $(addprefix $(subst _clean,,$@)/,ppc386$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) ppcppc64$(EXEEXT) ppcarm$(EXEEXT) ppcmips$(EXEEXT) ppcmipsel$(EXEEXT) $(EXENAME))
+	-$(DEL) $(addprefix $(subst _clean,,$@)/,ppc386$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) ppcppc64$(EXEEXT) ppcarm$(EXEEXT) ppcmips$(EXEEXT) ppcmipsel$(EXEEXT) ppcjvm$(EXEEXT)  $(EXENAME))
 cycleclean: cleanall $(addsuffix _clean,$(CPC_TARGET))
 	-$(DEL) $(EXENAME)
 clean: tempclean execlean cleanall $(addsuffix _clean,$(CPC_TARGET)) $(addsuffix _clean,$(TARGET_DIRS))
