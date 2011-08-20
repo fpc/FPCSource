@@ -57,36 +57,64 @@ interface
           function retains_value_location:boolean;
           function assign_allowed:boolean;
           procedure second_call_helper(c : tconverttype);
+       protected
+          function typecheck_int_to_int : tnode; virtual;
+          function typecheck_cord_to_pointer : tnode; virtual;
+          function typecheck_chararray_to_string : tnode; virtual;
+          function typecheck_string_to_chararray : tnode; virtual;
+          function typecheck_char_to_string : tnode; virtual;
+          function typecheck_char_to_chararray : tnode; virtual;
+          function typecheck_int_to_real : tnode; virtual;
+          function typecheck_real_to_real : tnode; virtual;
+          function typecheck_real_to_currency : tnode; virtual;
+          function typecheck_cchar_to_pchar : tnode; virtual;
+          function typecheck_cstring_to_pchar : tnode; virtual;
+          function typecheck_cstring_to_int : tnode; virtual;
+          function typecheck_char_to_char : tnode; virtual;
+          function typecheck_arrayconstructor_to_set : tnode; virtual;
+          function typecheck_set_to_set : tnode; virtual;
+          function typecheck_pchar_to_string : tnode; virtual;
+          function typecheck_interface_to_string : tnode; virtual;
+          function typecheck_interface_to_guid : tnode; virtual;
+          function typecheck_dynarray_to_openarray : tnode; virtual;
+          function typecheck_pwchar_to_string : tnode; virtual;
+          function typecheck_variant_to_dynarray : tnode; virtual;
+          function typecheck_dynarray_to_variant : tnode; virtual;
+          function typecheck_variant_to_enum : tnode; virtual;
+          function typecheck_enum_to_variant : tnode; virtual;
+          function typecheck_proc_to_procvar : tnode; virtual;
+          function typecheck_variant_to_interface : tnode; virtual;
+          function typecheck_interface_to_variant : tnode; virtual;
+          function typecheck_array_2_dynarray : tnode; virtual;
        private
-          function typecheck_int_to_int : tnode;
-          function typecheck_cord_to_pointer : tnode;
-          function typecheck_chararray_to_string : tnode;
-          function typecheck_string_to_chararray : tnode;
-          function typecheck_char_to_string : tnode;
-          function typecheck_char_to_chararray : tnode;
-          function typecheck_int_to_real : tnode;
-          function typecheck_real_to_real : tnode;
-          function typecheck_real_to_currency : tnode;
-          function typecheck_cchar_to_pchar : tnode;
-          function typecheck_cstring_to_pchar : tnode;
-          function typecheck_cstring_to_int : tnode;
-          function typecheck_char_to_char : tnode;
-          function typecheck_arrayconstructor_to_set : tnode;
-          function typecheck_set_to_set : tnode;
-          function typecheck_pchar_to_string : tnode;
-          function typecheck_interface_to_string : tnode;
-          function typecheck_interface_to_guid : tnode;
-          function typecheck_dynarray_to_openarray : tnode;
-          function typecheck_pwchar_to_string : tnode;
-          function typecheck_variant_to_dynarray : tnode;
-          function typecheck_dynarray_to_variant : tnode;
-          function typecheck_call_helper(c : tconverttype) : tnode;
-          function typecheck_variant_to_enum : tnode;
-          function typecheck_enum_to_variant : tnode;
-          function typecheck_proc_to_procvar : tnode;
-          function typecheck_variant_to_interface : tnode;
-          function typecheck_interface_to_variant : tnode;
-          function typecheck_array_2_dynarray : tnode;
+          function _typecheck_int_to_int : tnode;
+          function _typecheck_cord_to_pointer : tnode;
+          function _typecheck_chararray_to_string : tnode;
+          function _typecheck_string_to_chararray : tnode;
+          function _typecheck_char_to_string : tnode;
+          function _typecheck_char_to_chararray : tnode;
+          function _typecheck_int_to_real : tnode;
+          function _typecheck_real_to_real : tnode;
+          function _typecheck_real_to_currency : tnode;
+          function _typecheck_cchar_to_pchar : tnode;
+          function _typecheck_cstring_to_pchar : tnode;
+          function _typecheck_cstring_to_int : tnode;
+          function _typecheck_char_to_char : tnode;
+          function _typecheck_arrayconstructor_to_set : tnode;
+          function _typecheck_set_to_set : tnode;
+          function _typecheck_pchar_to_string : tnode;
+          function _typecheck_interface_to_string : tnode;
+          function _typecheck_interface_to_guid : tnode;
+          function _typecheck_dynarray_to_openarray : tnode;
+          function _typecheck_pwchar_to_string : tnode;
+          function _typecheck_variant_to_dynarray : tnode;
+          function _typecheck_dynarray_to_variant : tnode;
+          function _typecheck_variant_to_enum : tnode;
+          function _typecheck_enum_to_variant : tnode;
+          function _typecheck_proc_to_procvar : tnode;
+          function _typecheck_variant_to_interface : tnode;
+          function _typecheck_interface_to_variant : tnode;
+          function _typecheck_array_2_dynarray : tnode;
        protected
           function target_specific_explicit_typeconv: tnode;virtual;
           function first_int_to_int : tnode;virtual;
@@ -113,7 +141,8 @@ interface
           function first_char_to_char : tnode;virtual;
           function first_string_to_string : tnode;virtual;
           function first_call_helper(c : tconverttype) : tnode;
-
+          function typecheck_call_helper(c : tconverttype) : tnode;
+       private
           { these wrapper are necessary, because the first_* stuff is called }
           { through a table. Without the wrappers override wouldn't have     }
           { any effect                                                       }
@@ -164,6 +193,7 @@ interface
           procedure _second_char_to_char;virtual;
           procedure _second_nothing; virtual;
 
+        protected
           procedure second_int_to_int;virtual;abstract;
           procedure second_string_to_string;virtual;abstract;
           procedure second_cstring_to_pchar;virtual;abstract;
@@ -1573,6 +1603,174 @@ implementation
       end;
 
 
+    function ttypeconvnode._typecheck_int_to_int : tnode;
+      begin
+        result := typecheck_int_to_int;
+      end;
+
+
+    function ttypeconvnode._typecheck_cord_to_pointer : tnode;
+      begin
+        result := typecheck_cord_to_pointer;
+      end;
+
+
+    function ttypeconvnode._typecheck_chararray_to_string : tnode;
+      begin
+        result := typecheck_chararray_to_string;
+      end;
+
+
+    function ttypeconvnode._typecheck_string_to_chararray : tnode;
+      begin
+        result := typecheck_string_to_chararray;
+      end;
+
+
+    function ttypeconvnode._typecheck_char_to_string : tnode;
+      begin
+        result := typecheck_char_to_string;
+      end;
+
+
+    function ttypeconvnode._typecheck_char_to_chararray : tnode;
+      begin
+        result := typecheck_char_to_chararray;
+      end;
+
+
+    function ttypeconvnode._typecheck_int_to_real : tnode;
+      begin
+        result := typecheck_int_to_real;
+      end;
+
+
+    function ttypeconvnode._typecheck_real_to_real : tnode;
+      begin
+        result := typecheck_real_to_real;
+      end;
+
+
+    function ttypeconvnode._typecheck_real_to_currency : tnode;
+      begin
+        result := typecheck_real_to_currency;
+      end;
+
+
+    function ttypeconvnode._typecheck_cchar_to_pchar : tnode;
+      begin
+        result := typecheck_cchar_to_pchar;
+      end;
+
+
+    function ttypeconvnode._typecheck_cstring_to_pchar : tnode;
+      begin
+        result := typecheck_cstring_to_pchar;
+      end;
+
+
+    function ttypeconvnode._typecheck_cstring_to_int : tnode;
+      begin
+        result := typecheck_cstring_to_int;
+      end;
+
+
+    function ttypeconvnode._typecheck_char_to_char : tnode;
+      begin
+        result := typecheck_char_to_char;
+      end;
+
+
+    function ttypeconvnode._typecheck_arrayconstructor_to_set : tnode;
+      begin
+        result := typecheck_arrayconstructor_to_set;
+      end;
+
+
+    function ttypeconvnode._typecheck_set_to_set : tnode;
+      begin
+        result := typecheck_set_to_set;
+      end;
+
+
+    function ttypeconvnode._typecheck_pchar_to_string : tnode;
+      begin
+        result := typecheck_pchar_to_string;
+      end;
+
+
+    function ttypeconvnode._typecheck_interface_to_string : tnode;
+      begin
+        result := typecheck_interface_to_string;
+      end;
+
+
+    function ttypeconvnode._typecheck_interface_to_guid : tnode;
+      begin
+        result := typecheck_interface_to_guid;
+      end;
+
+
+    function ttypeconvnode._typecheck_dynarray_to_openarray : tnode;
+      begin
+        result := typecheck_dynarray_to_openarray;
+      end;
+
+
+    function ttypeconvnode._typecheck_pwchar_to_string : tnode;
+      begin
+        result := typecheck_pwchar_to_string;
+      end;
+
+
+    function ttypeconvnode._typecheck_variant_to_dynarray : tnode;
+      begin
+        result := typecheck_variant_to_dynarray;
+      end;
+
+
+    function ttypeconvnode._typecheck_dynarray_to_variant : tnode;
+      begin
+        result := typecheck_dynarray_to_variant;
+      end;
+
+
+    function ttypeconvnode._typecheck_variant_to_enum : tnode;
+      begin
+        result := typecheck_variant_to_enum;
+      end;
+
+
+    function ttypeconvnode._typecheck_enum_to_variant : tnode;
+      begin
+        result := typecheck_enum_to_variant;
+      end;
+
+
+    function ttypeconvnode._typecheck_proc_to_procvar : tnode;
+      begin
+        result := typecheck_proc_to_procvar;
+      end;
+
+
+    function ttypeconvnode._typecheck_variant_to_interface : tnode;
+      begin
+        result := typecheck_variant_to_interface;
+      end;
+
+
+    function ttypeconvnode._typecheck_interface_to_variant : tnode;
+      begin
+        result := typecheck_interface_to_variant;
+      end;
+
+
+    function ttypeconvnode._typecheck_array_2_dynarray : tnode;
+      begin
+        result := typecheck_array_2_dynarray;
+      end;
+
+
     function ttypeconvnode.target_specific_explicit_typeconv: tnode;
       begin
         result:=nil;
@@ -1646,42 +1844,42 @@ implementation
           {equal} nil,
           {not_possible} nil,
           { string_2_string } nil,
-          { char_2_string } @ttypeconvnode.typecheck_char_to_string,
-          { char_2_chararray } @ttypeconvnode.typecheck_char_to_chararray,
-          { pchar_2_string } @ttypeconvnode.typecheck_pchar_to_string,
-          { cchar_2_pchar } @ttypeconvnode.typecheck_cchar_to_pchar,
-          { cstring_2_pchar } @ttypeconvnode.typecheck_cstring_to_pchar,
-          { cstring_2_int } @ttypeconvnode.typecheck_cstring_to_int,
+          { char_2_string } @ttypeconvnode._typecheck_char_to_string,
+          { char_2_chararray } @ttypeconvnode._typecheck_char_to_chararray,
+          { pchar_2_string } @ttypeconvnode._typecheck_pchar_to_string,
+          { cchar_2_pchar } @ttypeconvnode._typecheck_cchar_to_pchar,
+          { cstring_2_pchar } @ttypeconvnode._typecheck_cstring_to_pchar,
+          { cstring_2_int } @ttypeconvnode._typecheck_cstring_to_int,
           { ansistring_2_pchar } nil,
-          { string_2_chararray } @ttypeconvnode.typecheck_string_to_chararray,
-          { chararray_2_string } @ttypeconvnode.typecheck_chararray_to_string,
+          { string_2_chararray } @ttypeconvnode._typecheck_string_to_chararray,
+          { chararray_2_string } @ttypeconvnode._typecheck_chararray_to_string,
           { array_2_pointer } nil,
           { pointer_2_array } nil,
-          { int_2_int } @ttypeconvnode.typecheck_int_to_int,
+          { int_2_int } @ttypeconvnode._typecheck_int_to_int,
           { int_2_bool } nil,
           { bool_2_bool } nil,
           { bool_2_int } nil,
-          { real_2_real } @ttypeconvnode.typecheck_real_to_real,
-          { int_2_real } @ttypeconvnode.typecheck_int_to_real,
-          { real_2_currency } @ttypeconvnode.typecheck_real_to_currency,
-          { proc_2_procvar } @ttypeconvnode.typecheck_proc_to_procvar,
+          { real_2_real } @ttypeconvnode._typecheck_real_to_real,
+          { int_2_real } @ttypeconvnode._typecheck_int_to_real,
+          { real_2_currency } @ttypeconvnode._typecheck_real_to_currency,
+          { proc_2_procvar } @ttypeconvnode._typecheck_proc_to_procvar,
           { nil_2_methodprocvar } nil,
-          { arrayconstructor_2_set } @ttypeconvnode.typecheck_arrayconstructor_to_set,
-          { set_to_set } @ttypeconvnode.typecheck_set_to_set,
-          { cord_2_pointer } @ttypeconvnode.typecheck_cord_to_pointer,
-          { intf_2_string } @ttypeconvnode.typecheck_interface_to_string,
-          { intf_2_guid } @ttypeconvnode.typecheck_interface_to_guid,
+          { arrayconstructor_2_set } @ttypeconvnode._typecheck_arrayconstructor_to_set,
+          { set_to_set } @ttypeconvnode._typecheck_set_to_set,
+          { cord_2_pointer } @ttypeconvnode._typecheck_cord_to_pointer,
+          { intf_2_string } @ttypeconvnode._typecheck_interface_to_string,
+          { intf_2_guid } @ttypeconvnode._typecheck_interface_to_guid,
           { class_2_intf } nil,
-          { char_2_char } @ttypeconvnode.typecheck_char_to_char,
-          { dynarray_2_openarray} @ttypeconvnode.typecheck_dynarray_to_openarray,
-          { pwchar_2_string} @ttypeconvnode.typecheck_pwchar_to_string,
-          { variant_2_dynarray} @ttypeconvnode.typecheck_variant_to_dynarray,
-          { dynarray_2_variant} @ttypeconvnode.typecheck_dynarray_to_variant,
-          { variant_2_enum} @ttypeconvnode.typecheck_variant_to_enum,
-          { enum_2_variant} @ttypeconvnode.typecheck_enum_to_variant,
-          { variant_2_interface} @ttypeconvnode.typecheck_interface_to_variant,
-          { interface_2_variant} @ttypeconvnode.typecheck_variant_to_interface,
-          { array_2_dynarray} @ttypeconvnode.typecheck_array_2_dynarray
+          { char_2_char } @ttypeconvnode._typecheck_char_to_char,
+          { dynarray_2_openarray} @ttypeconvnode._typecheck_dynarray_to_openarray,
+          { pwchar_2_string} @ttypeconvnode._typecheck_pwchar_to_string,
+          { variant_2_dynarray} @ttypeconvnode._typecheck_variant_to_dynarray,
+          { dynarray_2_variant} @ttypeconvnode._typecheck_dynarray_to_variant,
+          { variant_2_enum} @ttypeconvnode._typecheck_variant_to_enum,
+          { enum_2_variant} @ttypeconvnode._typecheck_enum_to_variant,
+          { variant_2_interface} @ttypeconvnode._typecheck_interface_to_variant,
+          { interface_2_variant} @ttypeconvnode._typecheck_variant_to_interface,
+          { array_2_dynarray} @ttypeconvnode._typecheck_array_2_dynarray
          );
       type
          tprocedureofobject = function : tnode of object;
