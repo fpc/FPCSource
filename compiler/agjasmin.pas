@@ -570,6 +570,8 @@ implementation
                         AsmWrite('.class ');
                         if oo_is_sealed in tobjectdef(obj).objectoptions then
                           AsmWrite('final ');
+                        if oo_is_abstract in tobjectdef(obj).objectoptions then
+                          AsmWrite('abstract ');
                         if toplevelowner.symtabletype=globalsymtable then
                           AsmWrite('public ');
                         if (oo_is_enum_class in tobjectdef(obj).objectoptions) then
@@ -714,7 +716,8 @@ implementation
         if (pd.procsym.owner.symtabletype in [globalsymtable,staticsymtable,localsymtable]) or
            (po_classmethod in pd.procoptions) then
           result:=result+'static ';
-        if is_javainterface(tdef(pd.owner.defowner)) then
+        if (po_abstractmethod in pd.procoptions) or
+           is_javainterface(tdef(pd.owner.defowner)) then
           result:=result+'abstract ';
         if (pd.procsym.owner.symtabletype in [globalsymtable,staticsymtable,localsymtable]) or
            (po_finalmethod in pd.procoptions) or
@@ -900,6 +903,7 @@ implementation
     procedure TJasminAssembler.WriteProcDef(pd: tprocdef);
       begin
         if not assigned(pd.exprasmlist) and
+           not(po_abstractmethod in pd.procoptions) and
            (not is_javainterface(pd.struct) or
             (pd.proctypeoption in [potype_unitinit,potype_unitfinalize])) then
           exit;
