@@ -46,7 +46,7 @@ uses
 
 { produces the actual code }
 function do_secondpass(var p : tnode) : boolean;
-procedure secondpass(var p : tnode);
+procedure secondpass(p : tnode);
 
 
 implementation
@@ -168,7 +168,7 @@ implementation
       end;
 {$endif EXTDEBUG}
 
-     procedure secondpass(var p : tnode);
+     procedure secondpass(p : tnode);
       var
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
