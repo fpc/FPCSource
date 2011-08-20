@@ -520,6 +520,7 @@ implementation
       begin
         hlcg.free;
         hlcg:=nil;
+        destroy_codegen;
       end;
 
   { thlcgobj }
