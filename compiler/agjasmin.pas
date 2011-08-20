@@ -826,6 +826,8 @@ implementation
           result:=result+'static ';
         if sym.varspez in [vs_const,vs_final] then
           result:=result+'final ';
+        if sp_internal in sym.symoptions then
+          result:=result+'synthetic ';
         result:=result+jvmmangledbasename(sym,true);
       end;
 

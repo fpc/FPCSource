@@ -244,7 +244,6 @@ implementation
                        tabstractrecordsymtable(symtablestack.top).get_unit_symtable.insert(sym);
 {$else not jvm}
                        sym:=tstaticvarsym.create(orgname,varspez,hdef,[]);
-                       include(sym.symoptions,sp_internal);
                        symtablestack.top.insert(sym);
                        orgname:=static_name;
 {$endif not jvm}
