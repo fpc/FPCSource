@@ -352,6 +352,7 @@ implementation
           end;
         freemem(spill_temps[R_INTREGISTER]);
         freemem(spill_temps[R_FPUREGISTER]);
+        templist.free;
       end;
 
 end.
