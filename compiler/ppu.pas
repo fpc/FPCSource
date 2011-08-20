@@ -327,7 +327,8 @@ const
     { 10 } 32 {'arm'},
     { 11 } 64 {'powerpc64'},
     { 12 } 16 {'avr'},
-    { 13 } 32 {'mipsel'}
+    { 13 } 32 {'mipsel'},
+    { 14 } 32 {'jvm'}
     );
   CpuAluBitSize : array[tsystemcpu] of longint =
     (
@@ -344,7 +345,8 @@ const
     { 10 } 32 {'arm'},
     { 11 } 64 {'powerpc64'},
     { 12 }  8 {'avr'},
-    { 13 } 32 {'mipsel'}
+    { 13 } 32 {'mipsel'},
+    { 14 } 64 {'jvm'}
     );
 {$endif generic_cpu}
 

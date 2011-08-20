@@ -47,7 +47,8 @@
              cpu_arm,                      { 10 }
              cpu_powerpc64,                { 11 }
              cpu_avr,                      { 12 }
-             cpu_mipsel                    { 13 }
+             cpu_mipsel,                   { 13 }
+             cpu_jvm                       { 14 }
        );
 
        tasmmode= (asmmode_none
@@ -146,7 +147,8 @@
              system_mipsel_linux,       { 67 }
              system_i386_nativent,      { 68 }
              system_i386_iphonesim,     { 69 }
-             system_powerpc_wii         { 70 }
+             system_powerpc_wii,        { 70 }
+             system_jvm_java32          { 71 }
        );
 
      type
@@ -180,6 +182,7 @@
              ,as_i386_nasmhaiku
              ,as_powerpc_vasm
              ,as_i386_nlmcoff
+             ,as_jvm_jasmin
        );
 
        tar = (ar_none

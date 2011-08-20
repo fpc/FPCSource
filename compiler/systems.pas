@@ -168,8 +168,8 @@ interface
           smartext,
           unitext,
           unitlibext,
-          asmext,
-          objext,
+          asmext       : string[4];
+          objext       : string[6];
           resext       : string[4];
           resobjext    : string[7];
           sharedlibext : string[10];
@@ -237,7 +237,8 @@ interface
                            system_sparc_embedded,system_vm_embedded,
                            system_iA64_embedded,system_x86_64_embedded,
                            system_mips_embedded,system_arm_embedded,
-                           system_powerpc64_embedded,system_avr_embedded];
+                           system_powerpc64_embedded,system_avr_embedded,
+                           system_jvm_java32];
 
        { all systems that allow section directive }
        systems_allow_section = systems_embedded;
@@ -302,7 +303,7 @@ interface
 
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
-             'mips','arm', 'powerpc64', 'avr', 'mipsel');
+             'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm');
 
        abi2str : array[tabi] of string[10] =
          ('DEFAULT','SYSV','AIX','EABI','ARMEB');
@@ -849,6 +850,10 @@ begin
   default_target(system_mips_linux);
 {$endif mipsel}
 {$endif mips}
+
+{$ifdef jvm}
+  default_target(system_jvm_java32);
+{$endif jvm}
 end;
 
 
