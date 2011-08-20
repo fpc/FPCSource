@@ -1,4 +1,4 @@
-{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.CharSequence, java.lang.Character, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.LinkageError, java.lang.Number, java.lang.Object, java.lang.RuntimeException, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.text.Collator, java.util.Comparator }
+{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.LinkageError, java.lang.Number, java.lang.Object, java.lang.RuntimeException, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.GenericDeclaration, java.lang.reflect.Type, java.text.Collator, java.util.Comparator }
 type
   JLStringBuffer = class;
   Arr1JLStringBuffer = array of JLStringBuffer;
@@ -29,6 +29,11 @@ type
   Arr1JLLinkageError = array of JLLinkageError;
   Arr2JLLinkageError = array of Arr1JLLinkageError;
   Arr3JLLinkageError = array of Arr2JLLinkageError;
+
+  JLRArray = class;
+  Arr1JLRArray = array of JLRArray;
+  Arr2JLRArray = array of Arr1JLRArray;
+  Arr3JLRArray = array of Arr2JLRArray;
 
   JLError = class;
   Arr1JLError = array of JLError;
@@ -70,6 +75,11 @@ type
   Arr2JLIllegalArgumentException = array of Arr1JLIllegalArgumentException;
   Arr3JLIllegalArgumentException = array of Arr2JLIllegalArgumentException;
 
+  JLClass = class;
+  Arr1JLClass = array of JLClass;
+  Arr2JLClass = array of Arr1JLClass;
+  Arr3JLClass = array of Arr2JLClass;
+
   JLString = class;
   Arr1JLString = array of JLString;
   Arr2JLString = array of Arr1JLString;
@@ -95,6 +105,16 @@ type
   Arr2JLCharSequence = array of Arr1JLCharSequence;
   Arr3JLCharSequence = array of Arr2JLCharSequence;
 
+  JLRGenericDeclaration = interface;
+  Arr1JLRGenericDeclaration = array of JLRGenericDeclaration;
+  Arr2JLRGenericDeclaration = array of Arr1JLRGenericDeclaration;
+  Arr3JLRGenericDeclaration = array of Arr2JLRGenericDeclaration;
+
+  JLRAnnotatedElement = interface;
+  Arr1JLRAnnotatedElement = array of JLRAnnotatedElement;
+  Arr2JLRAnnotatedElement = array of Arr1JLRAnnotatedElement;
+  Arr3JLRAnnotatedElement = array of Arr2JLRAnnotatedElement;
+
   JLCloneable = interface;
   Arr1JLCloneable = array of JLCloneable;
   Arr2JLCloneable = array of Arr1JLCloneable;
@@ -109,6 +129,11 @@ type
   Arr1JLAppendable = array of JLAppendable;
   Arr2JLAppendable = array of Arr1JLAppendable;
   Arr3JLAppendable = array of Arr2JLAppendable;
+
+  JLRType = interface;
+  Arr1JLRType = array of JLRType;
+  Arr2JLRType = array of Arr1JLRType;
+  Arr3JLRType = array of Arr2JLRType;
 
   JISerializable = interface;
   Arr1JISerializable = array of JISerializable;
@@ -125,15 +150,10 @@ type
   Arr2JLStackTraceElement = array of Arr1JLStackTraceElement;
   Arr3JLStackTraceElement = array of Arr2JLStackTraceElement;
 
-  JTCollationKey = class external 'java.text' name 'CollationKey';
-  Arr1JTCollationKey = array of JTCollationKey;
-  Arr2JTCollationKey = array of Arr1JTCollationKey;
-  Arr3JTCollationKey = array of Arr2JTCollationKey;
-
-  JIPrintWriter = class external 'java.io' name 'PrintWriter';
-  Arr1JIPrintWriter = array of JIPrintWriter;
-  Arr2JIPrintWriter = array of Arr1JIPrintWriter;
-  Arr3JIPrintWriter = array of Arr2JIPrintWriter;
+  JLClassLoader = class external 'java.lang' name 'ClassLoader';
+  Arr1JLClassLoader = array of JLClassLoader;
+  Arr2JLClassLoader = array of Arr1JLClassLoader;
+  Arr3JLClassLoader = array of Arr2JLClassLoader;
 
   JUProperties = class external 'java.util' name 'Properties';
   Arr1JUProperties = array of JUProperties;
@@ -145,40 +165,85 @@ type
   Arr2JIInputStream = array of Arr1JIInputStream;
   Arr3JIInputStream = array of Arr2JIInputStream;
 
-  JIConsole = class external 'java.io' name 'Console';
-  Arr1JIConsole = array of JIConsole;
-  Arr2JIConsole = array of Arr1JIConsole;
-  Arr3JIConsole = array of Arr2JIConsole;
-
-  JLClass = class external 'java.lang' name 'Class';
-  Arr1JLClass = array of JLClass;
-  Arr2JLClass = array of Arr1JLClass;
-  Arr3JLClass = array of Arr2JLClass;
-
-  JULocale = class external 'java.util' name 'Locale';
-  Arr1JULocale = array of JULocale;
-  Arr2JULocale = array of Arr1JULocale;
-  Arr3JULocale = array of Arr2JULocale;
-
   JLSecurityManager = class external 'java.lang' name 'SecurityManager';
   Arr1JLSecurityManager = array of JLSecurityManager;
   Arr2JLSecurityManager = array of Arr1JLSecurityManager;
   Arr3JLSecurityManager = array of Arr2JLSecurityManager;
 
-  JNCCharset = class external 'java.nio.charset' name 'Charset';
-  Arr1JNCCharset = array of JNCCharset;
-  Arr2JNCCharset = array of Arr1JNCCharset;
-  Arr3JNCCharset = array of Arr2JNCCharset;
+  JSProtectionDomain = class external 'java.security' name 'ProtectionDomain';
+  Arr1JSProtectionDomain = array of JSProtectionDomain;
+  Arr2JSProtectionDomain = array of Arr1JSProtectionDomain;
+  Arr3JSProtectionDomain = array of Arr2JSProtectionDomain;
+
+  JLRField = class external 'java.lang.reflect' name 'Field';
+  Arr1JLRField = array of JLRField;
+  Arr2JLRField = array of Arr1JLRField;
+  Arr3JLRField = array of Arr2JLRField;
 
   JIPrintStream = class external 'java.io' name 'PrintStream';
   Arr1JIPrintStream = array of JIPrintStream;
   Arr2JIPrintStream = array of Arr1JIPrintStream;
   Arr3JIPrintStream = array of Arr2JIPrintStream;
 
+  JLRMethod = class external 'java.lang.reflect' name 'Method';
+  Arr1JLRMethod = array of JLRMethod;
+  Arr2JLRMethod = array of Arr1JLRMethod;
+  Arr3JLRMethod = array of Arr2JLRMethod;
+
+  JTCollationKey = class external 'java.text' name 'CollationKey';
+  Arr1JTCollationKey = array of JTCollationKey;
+  Arr2JTCollationKey = array of Arr1JTCollationKey;
+  Arr3JTCollationKey = array of Arr2JTCollationKey;
+
+  JLRConstructor = class external 'java.lang.reflect' name 'Constructor';
+  Arr1JLRConstructor = array of JLRConstructor;
+  Arr2JLRConstructor = array of Arr1JLRConstructor;
+  Arr3JLRConstructor = array of Arr2JLRConstructor;
+
+  JIPrintWriter = class external 'java.io' name 'PrintWriter';
+  Arr1JIPrintWriter = array of JIPrintWriter;
+  Arr2JIPrintWriter = array of Arr1JIPrintWriter;
+  Arr3JIPrintWriter = array of Arr2JIPrintWriter;
+
+  JLPackage = class external 'java.lang' name 'Package';
+  Arr1JLPackage = array of JLPackage;
+  Arr2JLPackage = array of Arr1JLPackage;
+  Arr3JLPackage = array of Arr2JLPackage;
+
+  JNURL = class external 'java.net' name 'URL';
+  Arr1JNURL = array of JNURL;
+  Arr2JNURL = array of Arr1JNURL;
+  Arr3JNURL = array of Arr2JNURL;
+
+  JIConsole = class external 'java.io' name 'Console';
+  Arr1JIConsole = array of JIConsole;
+  Arr2JIConsole = array of Arr1JIConsole;
+  Arr3JIConsole = array of Arr2JIConsole;
+
+  JULocale = class external 'java.util' name 'Locale';
+  Arr1JULocale = array of JULocale;
+  Arr2JULocale = array of Arr1JULocale;
+  Arr3JULocale = array of Arr2JULocale;
+
+  JNCCharset = class external 'java.nio.charset' name 'Charset';
+  Arr1JNCCharset = array of JNCCharset;
+  Arr2JNCCharset = array of Arr1JNCCharset;
+  Arr3JNCCharset = array of Arr2JNCCharset;
+
+  JLAAnnotation = interface external 'java.lang.annotation' name 'Annotation';
+  Arr1JLAAnnotation = array of JLAAnnotation;
+  Arr2JLAAnnotation = array of Arr1JLAAnnotation;
+  Arr3JLAAnnotation = array of Arr2JLAAnnotation;
+
   JNCChannel = interface external 'java.nio.channels' name 'Channel';
   Arr1JNCChannel = array of JNCChannel;
   Arr2JNCChannel = array of Arr1JNCChannel;
   Arr3JNCChannel = array of Arr2JNCChannel;
+
+  JLRTypeVariable = interface external 'java.lang.reflect' name 'TypeVariable';
+  Arr1JLRTypeVariable = array of JLRTypeVariable;
+  Arr2JLRTypeVariable = array of Arr1JLRTypeVariable;
+  Arr3JLRTypeVariable = array of Arr2JLRTypeVariable;
 
   JUMap = interface external 'java.util' name 'Map';
   Arr1JUMap = array of JUMap;

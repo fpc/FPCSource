@@ -75,6 +75,46 @@
     class function mapLibraryName(para1: JLString): JLString; static; overload;
   end;
 
+  JLRAnnotatedElement = interface external 'java.lang.reflect' name 'AnnotatedElement' 
+    function isAnnotationPresent(para1: JLClass): jboolean; overload;
+    function getAnnotation(para1: JLClass): JLAAnnotation; overload;
+    function getAnnotations(): Arr1JLAAnnotation; overload;
+    function getDeclaredAnnotations(): Arr1JLAAnnotation; overload;
+  end;
+
+  JLRArray = class sealed external 'java.lang.reflect' name 'Array' (JLObject)
+  public
+    class function newInstance(para1: JLClass; para2: jint): JLObject; static; overload;  // throws java.lang.NegativeArraySizeException
+    class function newInstance(para1: JLClass; para2: Arr1jint): JLObject; static; overload;  // throws java.lang.IllegalArgumentException, java.lang.NegativeArraySizeException
+    class function newInstance(para1: JLClass; var para2: array of jint): JLObject; static; overload;  // throws java.lang.IllegalArgumentException, java.lang.NegativeArraySizeException
+    class function getLength(para1: JLObject): jint; static; overload;  // throws java.lang.IllegalArgumentException
+    class function get(para1: JLObject; para2: jint): JLObject; static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+    class function getBoolean(para1: JLObject; para2: jint): jboolean; static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+    class function getByte(para1: JLObject; para2: jint): jbyte; static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+    class function getChar(para1: JLObject; para2: jint): jchar; static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+    class function getShort(para1: JLObject; para2: jint): jshort; static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+    class function getInt(para1: JLObject; para2: jint): jint; static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+    class function getLong(para1: JLObject; para2: jint): jlong; static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+    class function getFloat(para1: JLObject; para2: jint): jfloat; static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+    class function getDouble(para1: JLObject; para2: jint): jdouble; static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+    class procedure &set(para1: JLObject; para2: jint; para3: JLObject); static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+    class procedure setBoolean(para1: JLObject; para2: jint; para3: jboolean); static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+    class procedure setByte(para1: JLObject; para2: jint; para3: jbyte); static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+    class procedure setChar(para1: JLObject; para2: jint; para3: jchar); static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+    class procedure setShort(para1: JLObject; para2: jint; para3: jshort); static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+    class procedure setInt(para1: JLObject; para2: jint; para3: jint); static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+    class procedure setLong(para1: JLObject; para2: jint; para3: jlong); static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+    class procedure setFloat(para1: JLObject; para2: jint; para3: jfloat); static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+    class procedure setDouble(para1: JLObject; para2: jint; para3: jdouble); static; overload;  // throws java.lang.IllegalArgumentException, java.lang.ArrayIndexOutOfBoundsException
+  end;
+
+  JLRGenericDeclaration = interface external 'java.lang.reflect' name 'GenericDeclaration' 
+    function getTypeParameters(): Arr1JLRTypeVariable; overload;
+  end;
+
+  JLRType = interface external 'java.lang.reflect' name 'Type' 
+  end;
+
   JUComparator = interface external 'java.util' name 'Comparator' 
     function compare(para1: JLObject; para2: JLObject): jint; overload;
     function equals(para1: JLObject): jboolean; overload;
@@ -611,6 +651,87 @@
     class function valueOf(para1: jdouble): JLString; static; overload;
     function intern(): JLString; overload; virtual;
     function compareTo(para1: JLObject): jint; overload; virtual;
+  end;
+
+  JLClass = class sealed external 'java.lang' name 'Class' (JLObject, JISerializable, JLRGenericDeclaration, JLRType, JLRAnnotatedElement)
+  public
+    type
+      InnerMethodArray = class;
+      Arr1InnerMethodArray = array of InnerMethodArray;
+      Arr2InnerMethodArray = array of Arr1InnerMethodArray;
+      Arr3InnerMethodArray = array of Arr2InnerMethodArray;
+      InnerEnclosingMethodInfo = class;
+      Arr1InnerEnclosingMethodInfo = array of InnerEnclosingMethodInfo;
+      Arr2InnerEnclosingMethodInfo = array of Arr1InnerEnclosingMethodInfo;
+      Arr3InnerEnclosingMethodInfo = array of Arr2InnerEnclosingMethodInfo;
+      InnerMethodArray = class external 'java.lang' name 'Class$MethodArray' 
+      end;
+
+      InnerEnclosingMethodInfo = class sealed external 'java.lang' name 'Class$EnclosingMethodInfo' 
+      end;
+
+  public
+    function toString(): JLString; overload; virtual;
+    class function forName(para1: JLString): JLClass; static; overload;  // throws java.lang.ClassNotFoundException
+    class function forName(para1: JLString; para2: jboolean; para3: JLClassLoader): JLClass; static; overload;  // throws java.lang.ClassNotFoundException
+    function newInstance(): JLObject; overload; virtual;  // throws java.lang.InstantiationException, java.lang.IllegalAccessException
+    function isInstance(para1: JLObject): jboolean; overload; virtual;
+    function isAssignableFrom(para1: JLClass): jboolean; overload; virtual;
+    function isInterface(): jboolean; overload; virtual;
+    function isArray(): jboolean; overload; virtual;
+    function isPrimitive(): jboolean; overload; virtual;
+    function isAnnotation(): jboolean; overload; virtual;
+    function isSynthetic(): jboolean; overload; virtual;
+    function getName(): JLString; overload; virtual;
+    function getClassLoader(): JLClassLoader; overload; virtual;
+    function getTypeParameters(): Arr1JLRTypeVariable; overload; virtual;
+    function getSuperclass(): JLClass; overload; virtual;
+    function getGenericSuperclass(): JLRType; overload; virtual;
+    function getPackage(): JLPackage; overload; virtual;
+    function getInterfaces(): Arr1JLClass; overload; virtual;
+    function getGenericInterfaces(): Arr1JLRType; overload; virtual;
+    function getComponentType(): JLClass; overload; virtual;
+    function getModifiers(): jint; overload; virtual;
+    function getSigners(): Arr1JLObject; overload; virtual;
+    function getEnclosingMethod(): JLRMethod; overload; virtual;
+    function getEnclosingConstructor(): JLRConstructor; overload; virtual;
+    function getDeclaringClass(): JLClass; overload; virtual;
+    function getEnclosingClass(): JLClass; overload; virtual;
+    function getSimpleName(): JLString; overload; virtual;
+    function getCanonicalName(): JLString; overload; virtual;
+    function isAnonymousClass(): jboolean; overload; virtual;
+    function isLocalClass(): jboolean; overload; virtual;
+    function isMemberClass(): jboolean; overload; virtual;
+    function getClasses(): Arr1JLClass; overload; virtual;
+    function getFields(): Arr1JLRField; overload; virtual;  // throws java.lang.SecurityException
+    function getMethods(): Arr1JLRMethod; overload; virtual;  // throws java.lang.SecurityException
+    function getConstructors(): Arr1JLRConstructor; overload; virtual;  // throws java.lang.SecurityException
+    function getField(para1: JLString): JLRField; overload; virtual;  // throws java.lang.NoSuchFieldException, java.lang.SecurityException
+    function getMethod(para1: JLString; para2: Arr1JLClass): JLRMethod; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
+    function getMethod(para1: JLString; var para2: array of JLClass): JLRMethod; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
+    function getConstructor(para1: Arr1JLClass): JLRConstructor; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
+    function getConstructor(var para1: array of JLClass): JLRConstructor; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
+    function getDeclaredClasses(): Arr1JLClass; overload; virtual;  // throws java.lang.SecurityException
+    function getDeclaredFields(): Arr1JLRField; overload; virtual;  // throws java.lang.SecurityException
+    function getDeclaredMethods(): Arr1JLRMethod; overload; virtual;  // throws java.lang.SecurityException
+    function getDeclaredConstructors(): Arr1JLRConstructor; overload; virtual;  // throws java.lang.SecurityException
+    function getDeclaredField(para1: JLString): JLRField; overload; virtual;  // throws java.lang.NoSuchFieldException, java.lang.SecurityException
+    function getDeclaredMethod(para1: JLString; para2: Arr1JLClass): JLRMethod; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
+    function getDeclaredMethod(para1: JLString; var para2: array of JLClass): JLRMethod; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
+    function getDeclaredConstructor(para1: Arr1JLClass): JLRConstructor; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
+    function getDeclaredConstructor(var para1: array of JLClass): JLRConstructor; overload; virtual;  // throws java.lang.NoSuchMethodException, java.lang.SecurityException
+    function getResourceAsStream(para1: JLString): JIInputStream; overload; virtual;
+    function getResource(para1: JLString): JNURL; overload; virtual;
+    function getProtectionDomain(): JSProtectionDomain; overload; virtual;
+    function desiredAssertionStatus(): jboolean; overload; virtual;
+    function isEnum(): jboolean; overload; virtual;
+    function getEnumConstants(): Arr1JLObject; overload; virtual;
+    function cast(para1: JLObject): JLObject; overload; virtual;
+    function asSubclass(para1: JLClass): JLClass; overload; virtual;
+    function getAnnotation(para1: JLClass): JLAAnnotation; overload; virtual;
+    function isAnnotationPresent(para1: JLClass): jboolean; overload; virtual;
+    function getAnnotations(): Arr1JLAAnnotation; overload; virtual;
+    function getDeclaredAnnotations(): Arr1JLAAnnotation; overload; virtual;
   end;
 
   JTCollator = class abstract external 'java.text' name 'Collator' (JLObject, JUComparator, JLCloneable)
