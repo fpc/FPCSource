@@ -441,7 +441,7 @@ ifeq ($(PPC_TARGET),mipsel)
 override LOCALOPT+=-Fumips
 endif
 ifeq ($(PPC_TARGET),jvm)
-override LOCALOPT+=-Fujvm
+override LOCALOPT+=-Fujvm -dNOOPT
 endif
 OPTWPOCOLLECT=-OWdevirtcalls,optvmts -FW$(BASEDIR)/pp1.wpo
 OPTWPOPERFORM=-Owdevirtcalls,optvmts -Fw$(BASEDIR)/pp1.wpo
