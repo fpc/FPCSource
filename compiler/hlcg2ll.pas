@@ -56,6 +56,11 @@ unit hlcg2ll;
           {************************************************}
           {                 basic routines                 }
           constructor create;
+          procedure init_register_allocators;override;
+          {# Clean up the register allocators needed for the codegenerator.}
+          procedure done_register_allocators;override;
+          {# Set whether live_start or live_end should be updated when allocating registers, needed when e.g. generating initcode after the rest of the code. }
+          procedure set_regalloc_live_range_direction(dir: TRADirection);override;
 
           {# Gets a register suitable to do integer operations on.}
           function getintregister(list:TAsmList;size:tdef):Tregister;override;
@@ -405,6 +410,20 @@ implementation
     begin
     end;
 
+  procedure thlcg2ll.init_register_allocators;
+    begin
+      cg.init_register_allocators;
+    end;
+
+  procedure thlcg2ll.done_register_allocators;
+    begin
+      cg.done_register_allocators;
+    end;
+
+  procedure thlcg2ll.set_regalloc_live_range_direction(dir: TRADirection);
+    begin
+      cg.set_regalloc_live_range_direction(dir);
+    end;
 
   function thlcg2ll.getintregister(list: TAsmList; size: tdef): Tregister;
     begin

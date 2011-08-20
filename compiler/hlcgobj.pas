@@ -57,6 +57,12 @@ unit hlcgobj;
           {                 basic routines                 }
           constructor create;
 
+          {# Initialize the register allocators needed for the codegenerator.}
+          procedure init_register_allocators;virtual;
+          {# Clean up the register allocators needed for the codegenerator.}
+          procedure done_register_allocators;virtual;
+          {# Set whether live_start or live_end should be updated when allocating registers, needed when e.g. generating initcode after the rest of the code. }
+          procedure set_regalloc_live_range_direction(dir: TRADirection);virtual;
           {# Gets a register suitable to do integer operations on.}
           function getintregister(list:TAsmList;size:tdef):Tregister;virtual;
           {# Gets a register suitable to do integer operations on.}
@@ -447,12 +453,25 @@ implementation
     begin
     end;
 
+  procedure thlcgobj.init_register_allocators;
+    begin
+      cg.init_register_allocators;
+    end;
+
+  procedure thlcgobj.done_register_allocators;
+    begin
+      cg.done_register_allocators;
+    end;
+
+  procedure thlcgobj.set_regalloc_live_range_direction(dir: TRADirection);
+    begin
+      cg.set_regalloc_live_range_direction(dir);
+    end;
 
   function thlcgobj.getintregister(list: TAsmList; size: tdef): Tregister;
     begin
       result:=cg.getintregister(list,def_cgsize(size));
     end;
-
 
   function thlcgobj.getaddressregister(list: TAsmList; size: tdef): Tregister;
     begin
