@@ -7380,11 +7380,6 @@ type
   Arr2JSRSSerialRef = array of Arr1JSRSSerialRef;
   Arr3JSRSSerialRef = array of Arr2JSRSSerialRef;
 
-  JLNoSuchMethodException = class;
-  Arr1JLNoSuchMethodException = array of JLNoSuchMethodException;
-  Arr2JLNoSuchMethodException = array of Arr1JLNoSuchMethodException;
-  Arr3JLNoSuchMethodException = array of Arr2JLNoSuchMethodException;
-
   JSDefaultListModel = class;
   Arr1JSDefaultListModel = array of JSDefaultListModel;
   Arr2JSDefaultListModel = array of Arr1JSDefaultListModel;
@@ -12510,15 +12505,15 @@ type
   Arr2JSTVariableHeightLayoutCache = array of Arr1JSTVariableHeightLayoutCache;
   Arr3JSTVariableHeightLayoutCache = array of Arr2JSTVariableHeightLayoutCache;
 
-  JUEnumMap = class;
-  Arr1JUEnumMap = array of JUEnumMap;
-  Arr2JUEnumMap = array of Arr1JUEnumMap;
-  Arr3JUEnumMap = array of Arr2JUEnumMap;
-
   JUJManifest = class;
   Arr1JUJManifest = array of JUJManifest;
   Arr2JUJManifest = array of Arr1JUJManifest;
   Arr3JUJManifest = array of Arr2JUJManifest;
+
+  JUEnumMap = class;
+  Arr1JUEnumMap = array of JUEnumMap;
+  Arr2JUEnumMap = array of Arr1JUEnumMap;
+  Arr3JUEnumMap = array of Arr2JUEnumMap;
 
   JLVerifyError = class;
   Arr1JLVerifyError = array of JLVerifyError;

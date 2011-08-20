@@ -1876,6 +1876,12 @@
     constructor create(para1: JLString); overload;
   end;
 
+  JLNoSuchMethodException = class external 'java.lang' name 'NoSuchMethodException' (JLException)
+  public
+    constructor create(); overload;
+    constructor create(para1: JLString); overload;
+  end;
+
   JLRuntimeException = class external 'java.lang' name 'RuntimeException' (JLException)
   public
     constructor create(); overload;

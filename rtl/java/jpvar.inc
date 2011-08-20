@@ -37,7 +37,19 @@
         owningClass:=JLClass(method.data)
       else
         owningClass:=method.data.getClass;
-      method.code:=owningClass.getDeclaredMethod(methodName,argTypes);
+      method.code:=nil;
+      { getDeclaredMethod does not search superclasses -> manually traverse
+        until found. If we don't find it anywhere, we'll traverse up to the
+        parent of java.lang.Object = null and throw a NullPointerException }
+      repeat
+        try
+          method.code:=owningClass.getDeclaredMethod(methodName,argTypes);
+        except
+          on JLNoSuchMethodException do
+            owningClass:=owningClass.getSuperClass;
+        end;
+      until assigned(method.code);
+
       { required to enable calling private methods in one class from another
         class -- can cause security exceptions if the security manager doesn't
         allow this though... }
