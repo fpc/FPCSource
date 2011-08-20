@@ -1575,7 +1575,8 @@ begin
     end
   else
     if not(is_class_or_interface_or_object(tprocdef(pd).struct)) and
-       not(is_objccategory(tprocdef(pd).struct)) then
+       not(is_objccategory(tprocdef(pd).struct)) and
+       not(is_javaclass(tprocdef(pd).struct)) then
       Message(parser_e_no_object_reintroduce);
 end;
 
@@ -2142,7 +2143,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_REINTRODUCE;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass,pd_notrecord];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass,pd_notrecord,pd_javaclass];
       handler  : @pd_reintroduce;
       pocall   : pocall_none;
       pooption : [po_reintroduce];
