@@ -939,8 +939,6 @@ implementation
     end;
 
   procedure thlcgobj.a_bit_set_reg_loc(list: TAsmList; doset: boolean; fromsize, tosize: tdef; bitnumber: tregister; const loc: tlocation);
-    var
-      tmpreg: tregister;
     begin
       case loc.loc of
         LOC_REFERENCE:
@@ -1439,8 +1437,6 @@ implementation
     end;
 
   procedure thlcgobj.a_cmp_const_loc_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: aint; const loc: tlocation; l: tasmlabel);
-    var
-      tmpreg : tregister;
     begin
       case loc.loc of
         LOC_REGISTER,LOC_CREGISTER:
@@ -1712,9 +1708,7 @@ implementation
     "lr_load_regvars" or "lr_dont_load_regvars"
   }
     var
-      opsize : tcgsize;
       storepos : tfileposinfo;
-      tmpreg : tregister;
     begin
        if nf_error in p.flags then
          exit;
