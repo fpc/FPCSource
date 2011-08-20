@@ -152,6 +152,12 @@
   {$define cpumm}
 {$endif mips}
 
+{$ifdef jvm}
+  {$define cpu64bitalu}
+  {$define cpu32bitaddr}
+  {$define cpuhighleveltarget}
+{$endif}
+
 {$IFDEF MACOS}
 {$DEFINE USE_FAKE_SYSUTILS}
 {$ENDIF MACOS}

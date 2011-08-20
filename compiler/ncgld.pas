@@ -63,7 +63,7 @@ implementation
       procinfo,
       cpubase,parabase,
       tgobj,ncgutil,
-      cgobj,
+      cgobj,hlcgobj,
       ncgbas,ncgflw,
       wpobase;
 
@@ -290,7 +290,7 @@ implementation
                  begin
                   { assume external variables use the default alignment }
                   location.reference.alignment:=gvs.vardef.alignment;
-                   location.reference.base := cg.g_indirect_sym_load(current_asmdata.CurrAsmList,tstaticvarsym(symtableentry).mangledname,
+                   location.reference.base:=hlcg.g_indirect_sym_load(current_asmdata.CurrAsmList,tstaticvarsym(symtableentry).mangledname,
                      vo_is_weak_external in gvs.varoptions);
                    if (location.reference.base <> NR_NO) then
                      exit;
@@ -602,9 +602,9 @@ implementation
            if is_managed_type(right.resultdef) and
               not is_constnode(right) then
             begin
-              location_force_mem(current_asmdata.CurrAsmList,right.location);
+              hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,right.resultdef);
               location_get_data_ref(current_asmdata.CurrAsmList,right.location,href,false,sizeof(pint));
-              cg.g_incrrefcount(current_asmdata.CurrAsmList,right.resultdef,href);
+              hlcg.g_incrrefcount(current_asmdata.CurrAsmList,right.resultdef,href);
             end;
            if codegenerror then
              exit;
@@ -616,7 +616,7 @@ implementation
            if is_managed_type(left.resultdef) then
              begin
                location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false,sizeof(pint));
-               cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
+               hlcg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
              end;
            if codegenerror then
              exit;
@@ -629,7 +629,7 @@ implementation
            if is_managed_type(left.resultdef) then
              begin
                location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false,sizeof(pint));
-               cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
+               hlcg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
              end;
            if codegenerror then
              exit;
@@ -649,9 +649,9 @@ implementation
            if is_managed_type(right.resultdef) and
               (right.nodetype<>stringconstn) then
              begin
-               location_force_mem(current_asmdata.CurrAsmList,right.location);
+               hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,right.resultdef);
                location_get_data_ref(current_asmdata.CurrAsmList,right.location,href,false,sizeof(pint));
-               cg.g_incrrefcount(current_asmdata.CurrAsmList,right.resultdef,href);
+               hlcg.g_incrrefcount(current_asmdata.CurrAsmList,right.resultdef,href);
              end;
 
            if codegenerror then
@@ -681,7 +681,7 @@ implementation
             else if (right.nodetype=stringconstn) and
                (tstringconstnode(right).len=0) then
               begin
-                cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_8,0,left.location.reference);
+                hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u8inttype,0,left.location.reference);
               end
             { char loading }
             else if is_char(right.resultdef) then
@@ -689,27 +689,32 @@ implementation
                 if right.nodetype=ordconstn then
                   begin
                     if (target_info.endian = endian_little) then
-                      cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_16,(tordconstnode(right).value.svalue shl 8) or 1,
+                      hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u16inttype,(tordconstnode(right).value.svalue shl 8) or 1,
                           setalignment(left.location.reference,1))
                     else
-                      cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_16,tordconstnode(right).value.svalue or (1 shl 8),
+                      hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u16inttype,tordconstnode(right).value.svalue or (1 shl 8),
                           setalignment(left.location.reference,1));
                   end
                 else
                   begin
                     href:=left.location.reference;
-                    cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_8,1,href);
+                    hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u8inttype,1,href);
                     inc(href.offset,1);
                     case right.location.loc of
                       LOC_REGISTER,
                       LOC_CREGISTER :
                         begin
+{$ifndef cpuhighleveltarget}
                           r:=cg.makeregsize(current_asmdata.CurrAsmList,right.location.register,OS_8);
-                          cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_8,OS_8,r,href);
+{$else not cpuhighleveltarget}
+                          r:=hlcg.getintregister(list,u8inttype);
+                          hlcg.a_load_reg_reg(list,u8inttype,u8inttype,right.locaction.register,r);
+{$endif cpuhighleveltarget}
+                          hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,u8inttype,u8inttype,r,href);
                         end;
                       LOC_REFERENCE,
                       LOC_CREFERENCE :
-                        cg.a_load_ref_ref(current_asmdata.CurrAsmList,OS_8,OS_8,right.location.reference,href);
+                        hlcg.a_load_ref_ref(current_asmdata.CurrAsmList,u8inttype,u8inttype,right.location.reference,href);
                       else
                         internalerror(200205111);
                     end;
@@ -738,7 +743,7 @@ implementation
                     cg64.a_load64_const_loc(current_asmdata.CurrAsmList,right.location.value64,left.location)
                   else
 {$endif not cpu64bitalu}
-                    cg.a_load_const_loc(current_asmdata.CurrAsmList,right.location.value,left.location);
+                    hlcg.a_load_const_loc(current_asmdata.CurrAsmList,left.resultdef,right.location.value,left.location);
                 end;
               LOC_REFERENCE,
               LOC_CREFERENCE :
@@ -752,13 +757,13 @@ implementation
                           cg64.a_load64_ref_reg(current_asmdata.CurrAsmList,right.location.reference,left.location.register64)
                         else
 {$endif not cpu64bitalu}
-                          cg.a_load_ref_reg(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.reference,left.location.register);
+                          hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.reference,left.location.register);
                       end;
                     LOC_FPUREGISTER,
                     LOC_CFPUREGISTER :
                       begin
-                        cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-                            right.location.size,left.location.size,
+                        hlcg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
+                            right.resultdef,left.resultdef,
                             right.location.reference,
                             left.location.register);
                       end;
@@ -769,8 +774,8 @@ implementation
                            (right.resultdef.typ=floatdef) and
                            (left.location.size<>right.location.size) then
                           begin
-                            cg.a_loadfpu_ref_ref(current_asmdata.CurrAsmList,
-                              right.location.size,left.location.size,
+                            hlcg.a_loadfpu_ref_ref(current_asmdata.CurrAsmList,
+                              right.resultdef,left.resultdef,
                               right.location.reference,left.location.reference)
                           end
                         else
@@ -789,9 +794,9 @@ implementation
                                (right.location.reference.alignment<alignmentrequirement)) or
                               ((left.location.reference.alignment<>0) and
                                (left.location.reference.alignment<alignmentrequirement)) then
-                              cg.g_concatcopy_unaligned(current_asmdata.CurrAsmList,right.location.reference,left.location.reference,len)
+                              hlcg.g_concatcopy_unaligned(current_asmdata.CurrAsmList,left.resultdef,right.location.reference,left.location.reference)
                             else
-                              cg.g_concatcopy(current_asmdata.CurrAsmList,right.location.reference,left.location.reference,len);
+                              hlcg.g_concatcopy(current_asmdata.CurrAsmList,left.resultdef,right.location.reference,left.location.reference);
                           end;
                       end;
                     LOC_MMREGISTER,
@@ -876,7 +881,7 @@ implementation
                       right.location.register64,left.location)
                   else
 {$endif not cpu64bitalu}
-                    cg.a_load_reg_loc(current_asmdata.CurrAsmList,right.location.size,right.location.register,left.location);
+                    hlcg.a_load_reg_loc(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.register,left.location);
                 end;
               LOC_FPUREGISTER,
               LOC_CFPUREGISTER :
@@ -901,8 +906,8 @@ implementation
                           right.location.register,left.location.register,mms_movescalar);
                     end
                   else
-                    cg.a_loadfpu_reg_loc(current_asmdata.CurrAsmList,
-                        right.location.size,
+                    hlcg.a_loadfpu_reg_loc(current_asmdata.CurrAsmList,
+                        right.resultdef,left.resultdef,
                         right.location.register,left.location);
                 end;
               LOC_SUBSETREG,
@@ -925,15 +930,15 @@ implementation
               LOC_JUMP :
                 begin
                   current_asmdata.getjumplabel(hlabel);
-                  cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                  hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
                   if is_pasbool(left.resultdef) then
-                    cg.a_load_const_loc(current_asmdata.CurrAsmList,1,left.location)
+                    hlcg.a_load_const_loc(current_asmdata.CurrAsmList,left.resultdef,1,left.location)
                   else
-                    cg.a_load_const_loc(current_asmdata.CurrAsmList,-1,left.location);
-                  cg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
-                  cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
-                  cg.a_load_const_loc(current_asmdata.CurrAsmList,0,left.location);
-                  cg.a_label(current_asmdata.CurrAsmList,hlabel);
+                    hlcg.a_load_const_loc(current_asmdata.CurrAsmList,left.resultdef,-1,left.location);
+                  hlcg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
+                  hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                  hlcg.a_load_const_loc(current_asmdata.CurrAsmList,left.resultdef,0,left.location);
+                  hlcg.a_label(current_asmdata.CurrAsmList,hlabel);
                 end;
 {$ifdef cpuflags}
               LOC_FLAGS :
