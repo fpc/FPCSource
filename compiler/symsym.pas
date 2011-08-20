@@ -1521,9 +1521,9 @@ implementation
            ppufile.putansistring(_mangledname);
 {$else symansistr}
            ppufile.putstring(_mangledname^);
+{$endif symansistr}
          if vo_has_section in varoptions then
            ppufile.putansistring(section);
-{$endif symansistr}
          ppufile.writeentry(ibstaticvarsym);
       end;
 
