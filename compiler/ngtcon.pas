@@ -62,8 +62,9 @@ interface
         procedure tc_emit_stringdef(def: tstringdef; var node: tnode);virtual;abstract;
        public
         constructor create(sym: tstaticvarsym);
-//        function parse_into_nodetree: tnode;
       end;
+      ttypedconstbuilderclass = class of ttypedconstbuilder;
+
 
       { should be changed into nested type of tasmlisttypedconstbuilder when
         possible }
@@ -95,12 +96,13 @@ interface
         procedure tc_emit_enumdef(def: tenumdef; var node: tnode);override;
         procedure tc_emit_stringdef(def: tstringdef; var node: tnode);override;
        public
-        constructor create(sym: tstaticvarsym);
+        constructor create(sym: tstaticvarsym);virtual;
         function parse_into_asmlist: tasmlist;
       end;
+      tasmlisttypedconstbuilderclass = class of tasmlisttypedconstbuilder;
 
       tnodetreetypedconstbuilder = class(ttypedconstbuilder)
-       private
+       protected
         resultblock: tblocknode;
         statmnt: tstatementnode;
 
@@ -108,7 +110,6 @@ interface
           etc. }
         basenode: tnode;
 
-       protected
         procedure parse_arraydef(def:tarraydef);override;
         procedure parse_procvardef(def:tprocvardef);override;
         procedure parse_recorddef(def:trecorddef);override;
@@ -122,10 +123,15 @@ interface
         procedure tc_emit_enumdef(def: tenumdef; var node: tnode);override;
         procedure tc_emit_stringdef(def: tstringdef; var node: tnode);override;
        public
-        constructor create(sym: tstaticvarsym; previnit: tnode);
+        constructor create(sym: tstaticvarsym; previnit: tnode);virtual;
         destructor destroy;override;
         function parse_into_nodetree: tnode;
       end;
+      tnodetreetypedconstbuilderclass = class of tnodetreetypedconstbuilder;
+
+   var
+     ctypedconstbuilder: ttypedconstbuilderclass;
+
 implementation
 
 uses
@@ -2017,5 +2023,7 @@ uses
         self.resultblock:=nil;
       end;
 
-
+begin
+  { default to asmlist version, best for most targets }
+  ctypedconstbuilder:=tasmlisttypedconstbuilder;
 end.

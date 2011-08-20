@@ -70,7 +70,7 @@ implementation
             else
               cursectype:=sec_data;
             maybe_new_object_file(list);
-            tcbuilder:=tasmlisttypedconstbuilder.create(sym);
+            tcbuilder:=tasmlisttypedconstbuilderclass(ctypedconstbuilder).create(sym);
             reslist:=tasmlisttypedconstbuilder(tcbuilder).parse_into_asmlist;
             tcbuilder.free;
           end
@@ -80,7 +80,7 @@ implementation
               previnit:=current_structdef.tcinitcode
             else
               previnit:=tnode(current_module.tcinitcode);
-            tcbuilder:=tnodetreetypedconstbuilder.create(sym,previnit);
+            tcbuilder:=tnodetreetypedconstbuilderclass(ctypedconstbuilder).create(sym,previnit);
             restree:=tnodetreetypedconstbuilder(tcbuilder).parse_into_nodetree;
             if assigned(current_structdef) then
               current_structdef.tcinitcode:=restree
