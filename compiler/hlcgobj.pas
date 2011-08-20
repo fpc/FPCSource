@@ -1944,7 +1944,7 @@ implementation
           end;
 *)
         else
-          internalerror(2011010212);
+          internalerror(2011010213);
       end;
     end;
 
