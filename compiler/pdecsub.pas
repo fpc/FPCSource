@@ -1667,7 +1667,11 @@ begin
     (oo_is_sealed in tprocdef(pd).struct.objectoptions) then
     Message(parser_e_sealed_class_cannot_have_abstract_methods)
   else if (po_virtualmethod in pd.procoptions) then
-    include(pd.procoptions,po_abstractmethod)
+    begin
+      include(pd.procoptions,po_abstractmethod);
+      { one more abstract method }
+      inc(tobjectdef(pd.owner.defowner).abstractcnt);
+    end
   else
     Message(parser_e_only_virtual_methods_abstract);
   { the method is defined }

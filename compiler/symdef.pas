@@ -284,6 +284,10 @@ interface
           iidstr         : pshortstring;
           { store implemented interfaces defs and name mappings }
           ImplementedInterfaces : TFPObjectList;
+          { number of abstract methods (used by JVM target to determine whether
+            or not the class should be marked as abstract: must be done if 1 or
+            more abstract methods) }
+          abstractcnt    : longint;
           writing_class_record_dbginfo,
           { a class of this type has been created in this module }
           created_in_current_module,
@@ -4902,6 +4906,7 @@ implementation
               ppufile.getguid(iidguid^);
               iidstr:=stringdup(ppufile.getstring);
            end;
+         abstractcnt:=ppufile.getlongint;
 
          if objecttype=odt_helper then
            ppufile.getderef(extendeddefderef);
@@ -5038,6 +5043,7 @@ implementation
           end;
         if assigned(iidstr) then
           tobjectdef(result).iidstr:=stringdup(iidstr^);
+        tobjectdef(result).abstractcnt:=abstractcnt;
         if assigned(ImplementedInterfaces) then
           begin
             for i:=0 to ImplementedInterfaces.count-1 do
@@ -5084,6 +5090,7 @@ implementation
               ppufile.putguid(iidguid^);
               ppufile.putstring(iidstr^);
            end;
+         ppufile.putlongint(abstractcnt);
          if objecttype=odt_helper then
            ppufile.putderef(extendeddefderef);
 
@@ -5313,6 +5320,8 @@ implementation
           exit;
         { inherit options and status }
         objectoptions:=objectoptions+(c.objectoptions*inherited_objectoptions);
+        { initially has the same number of abstract methods as the parent }
+        abstractcnt:=c.abstractcnt;
         { add the data of the anchestor class/object }
         if (objecttype in [odt_class,odt_object,odt_objcclass,odt_javaclass]) then
           begin

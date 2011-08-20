@@ -2055,6 +2055,8 @@ begin
                   writeln(space,'       IID String : ',getstring);
                end;
 
+             writeln(space,' Abstract methods : ',getlongint);
+
              if (tobjecttyp(b)=odt_helper) or
                  (oo_is_classhelper in current_objectoptions) then
                begin

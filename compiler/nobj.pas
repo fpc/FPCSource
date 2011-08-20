@@ -384,6 +384,12 @@ implementation
                         vmtentryvis:=pd.visibility;
                     end;
 
+                  { in case we are overriding an abstract method,
+                    decrease the number of abstract methods in this class }
+                  if (po_overridingmethod in pd.procoptions) and
+                     (po_abstractmethod in vmtpd.procoptions) then
+                    dec(tobjectdef(pd.owner.defowner).abstractcnt);
+
                   { override old virtual method in VMT }
                   if updatevalues then
                     begin

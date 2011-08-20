@@ -570,7 +570,8 @@ implementation
                         AsmWrite('.class ');
                         if oo_is_sealed in tobjectdef(obj).objectoptions then
                           AsmWrite('final ');
-                        if oo_is_abstract in tobjectdef(obj).objectoptions then
+                        if (oo_is_abstract in tobjectdef(obj).objectoptions) or
+                           (tobjectdef(obj).abstractcnt<>0) then
                           AsmWrite('abstract ');
                         if toplevelowner.symtabletype=globalsymtable then
                           AsmWrite('public ');

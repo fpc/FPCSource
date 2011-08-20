@@ -2456,6 +2456,9 @@ implementation
           end;
         if not assigned(objectdf) then
           exit;
+        { quick exit if nothing to check }
+        if objectdf.abstractcnt = 0 then
+          exit;
 
         parents := tlinkedlist.create;
         AbstractMethodsList := TFPHashList.create;
