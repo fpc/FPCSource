@@ -1661,7 +1661,7 @@ implementation
       case l.loc of
 {$ifdef cpuflags}
         LOC_FLAGS :
-          cg.g_flags2reg(list,def_cgsize(dst_size),l.resflags,hregister);
+          g_flags2reg(list,dst_size,l.resflags,hregister);
 {$endif cpuflags}
         LOC_JUMP :
           begin
@@ -1730,7 +1730,7 @@ implementation
         LOC_CFPUREGISTER :
           begin
             tg.gethltemp(list,size,size.size,tt_normal,r);
-            hlcg.a_loadfpu_reg_ref(list,size,size,l.register,r);
+            a_loadfpu_reg_ref(list,size,size,l.register,r);
             location_reset_ref(l,LOC_REFERENCE,l.size,0);
             l.reference:=r;
           end;
@@ -1749,7 +1749,7 @@ implementation
         LOC_CREGISTER :
           begin
             tg.gethltemp(list,size,size.size,tt_normal,r);
-            hlcg.a_load_loc_ref(list,size,size,l,r);
+            a_load_loc_ref(list,size,size,l,r);
             location_reset_ref(l,LOC_REFERENCE,l.size,0);
             l.reference:=r;
           end;
@@ -1787,9 +1787,9 @@ implementation
             begin
               if loadref then
                 begin
-                  reference_reset_base(ref,cg.getaddressregister(list),0,alignment);
+                  reference_reset_base(ref,getaddressregister(list,voidpointertype),0,alignment);
                   { it's a pointer to def }
-                  hlcg.a_load_ref_reg(list,voidpointertype,voidpointertype,l.reference,ref.base);
+                  a_load_ref_reg(list,voidpointertype,voidpointertype,l.reference,ref.base);
                 end
               else
                 ref:=l.reference;
@@ -2120,7 +2120,7 @@ implementation
                     end
                   else
                     highloc.loc:=LOC_INVALID;
-                  hreg:=cg.getaddressregister(list);
+                  hreg:=getaddressregister(list,voidpointertype);
                   if not is_packed_array(tparavarsym(p).vardef) then
                     g_copyvaluepara_openarray(list,href,highloc,tarraydef(tparavarsym(p).vardef),hreg)
                   else
@@ -2211,7 +2211,7 @@ implementation
             LOC_CREFERENCE,
             LOC_FPUREGISTER,
             LOC_CFPUREGISTER:
-              hlcg.a_loadfpu_reg_cgpara(list,size,l.register,cgpara);
+              a_loadfpu_reg_cgpara(list,size,l.register,cgpara);
             else
               internalerror(2011010210);
           end;
@@ -2230,13 +2230,13 @@ implementation
             LOC_CREFERENCE,
             LOC_FPUREGISTER,
             LOC_CFPUREGISTER:
-              hlcg.a_loadfpu_ref_cgpara(list,size,l.reference,cgpara);
+              a_loadfpu_ref_cgpara(list,size,l.reference,cgpara);
             else
               internalerror(2011010211);
           end;
         LOC_REGISTER,
         LOC_CREGISTER :
-          hlcg.a_load_loc_cgpara(list,size,l,cgpara);
+          a_load_loc_cgpara(list,size,l,cgpara);
          else
            internalerror(2011010212);
       end;
@@ -2270,7 +2270,7 @@ implementation
         LOC_REFERENCE,
         LOC_CREFERENCE :
           begin
-            hlcg.a_load_loc_cgpara(list,vardef,l,cgpara);
+            a_load_loc_cgpara(list,vardef,l,cgpara);
           end;
 (*
         LOC_MMREGISTER,
@@ -2341,7 +2341,7 @@ implementation
         begin
           { was: don't do anything if funcretloc.loc in [LOC_INVALID,LOC_REFERENCE] }
           if not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption) then
-            hlcg.gen_load_loc_cgpara(list,ressym.vardef,ressym.localloc,funcretloc);
+            gen_load_loc_cgpara(list,ressym.vardef,ressym.localloc,funcretloc);
         end
       else
         gen_load_uninitialized_function_result(list,current_procinfo.procdef,ressym.vardef,funcretloc)
