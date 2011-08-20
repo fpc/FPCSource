@@ -646,59 +646,58 @@ implementation
     *****************************************************************************}
 
   function asis_target_specific_typecheck(node: tasisnode): boolean;
+
+    function isrecordconv(fromdef, todef: tdef): boolean;
+      begin
+        if is_record(todef) then
+          begin
+            result:=
+              (fromdef=java_jlobject) or
+              (fromdef=java_fpcbaserecordtype);
+          end
+        else if is_record(fromdef) then
+          begin
+            result:=
+              (todef=java_jlobject) or
+              (todef=java_fpcbaserecordtype)
+          end
+        else
+          result:=false;
+      end;
+
+    function isstringconv(fromdef, todef: tdef): boolean;
+      begin
+        if is_wide_or_unicode_string(todef) then
+          begin
+            result:=
+              (fromdef=java_jlobject) or
+              (fromdef=java_jlstring)
+          end
+        else if is_wide_or_unicode_string(fromdef) then
+          begin
+            result:=
+              (todef=java_jlobject) or
+              (todef=java_jlstring)
+          end
+        else
+          result:=false;
+      end;
+
+
     var
       fromelt, toelt: tdef;
       realfromdef,
       realtodef: tdef;
-
-    function isrecordconv(var res: boolean): boolean;
-      begin
-        if is_record(realtodef) then
-          begin
-            result:=true;
-            res:=
-              (realfromdef=java_jlobject) or
-              (realfromdef=java_fpcbaserecordtype);
-          end
-        else if is_record(realfromdef) then
-          begin
-            result:=true;
-            res:=
-              (realtodef=java_jlobject) or
-              (realtodef=java_fpcbaserecordtype)
-          end
-        else
-          result:=false;
-      end;
-
-    function isstringconv(var res: boolean): boolean;
-      begin
-        if is_wide_or_unicode_string(realtodef) then
-          begin
-            result:=true;
-            res:=
-              (realfromdef=java_jlobject) or
-              (realfromdef=java_jlstring)
-          end
-        else if is_wide_or_unicode_string(realfromdef) then
-          begin
-            result:=true;
-            res:=
-              (realtodef=java_jlobject) or
-              (realtodef=java_jlstring)
-          end
-        else
-          result:=false;
-      end;
-
     begin
       realfromdef:=maybe_find_real_class_definition(node.left.resultdef,false);
       realtodef:=node.right.resultdef;
       if realtodef.typ=classrefdef then
         realtodef:=tclassrefdef(realtodef).pointeddef;
       realtodef:=maybe_find_real_class_definition(realtodef,false);
-      if not isrecordconv(result) and
-         not isstringconv(result) then
+      result:=isrecordconv(realfromdef,realtodef);
+      if not result then
+        result:=isstringconv(realfromdef,realtodef);
+      if not result then
         { dynamic arrays can be converted to java.lang.Object and vice versa }
         if realtodef=java_jlobject then
           { dynamic array to java.lang.Object }
@@ -714,13 +713,14 @@ implementation
                  or
                 b) the same primitive/class type
             }
-            if not isrecordconv(result) then
-              result:=
-               (compare_defs(fromelt,toelt,node.left.nodetype) in [te_exact,te_equal]) or
-               (((fromelt.typ=objectdef) or
-                 (fromelt.typ=arraydef)) and
-                ((toelt.typ=objectdef) or
-                 (toelt.typ=arraydef)));
+            result:=
+             isrecordconv(fromelt,toelt) or
+             isstringconv(fromelt,toelt) or
+             (compare_defs(fromelt,toelt,node.left.nodetype) in [te_exact,te_equal]) or
+             (((fromelt.typ=objectdef) or
+               (fromelt.typ=arraydef)) and
+              ((toelt.typ=objectdef) or
+               (toelt.typ=arraydef)));
           end
         else
           begin
