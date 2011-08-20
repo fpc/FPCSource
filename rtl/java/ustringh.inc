@@ -17,7 +17,7 @@
 
 Function Pos (Const Substr : UnicodeString; Const Source : UnicodeString) : SizeInt;
 Function Pos (c : Char; Const s : UnicodeString) : SizeInt;
-Function Pos (c : UnicodeChar; Const s : UnicodeString) : SizeInt;
+//Function Pos (c : UnicodeChar; Const s : UnicodeString) : SizeInt;
 //Function Pos (c : AnsiString; Const s : UnicodeString) : SizeInt;
 //Function Pos (c : UnicodeString; Const s : AnsiString) : SizeInt;
 //Function Pos (c : ShortString; Const s : UnicodeString) : SizeInt;
