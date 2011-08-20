@@ -525,7 +525,10 @@ implementation
       realtodef: tdef;
     begin
       realfromdef:=maybe_find_real_class_definition(node.left.resultdef,false);
-      realtodef:=maybe_find_real_class_definition(node.right.resultdef,false);
+      realtodef:=node.right.resultdef;
+      if realtodef.typ=classrefdef then
+        realtodef:=tclassrefdef(realtodef).pointeddef;
+      realtodef:=maybe_find_real_class_definition(realtodef,false);
 
       if is_record(realtodef) then
         result:=
