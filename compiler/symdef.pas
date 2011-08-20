@@ -834,6 +834,7 @@ interface
     function is_classhelper(def: tdef): boolean;
     function is_class_or_interface(def: tdef): boolean;
     function is_class_or_interface_or_objc(def: tdef): boolean;
+    function is_class_or_interface_or_objc_or_java(def: tdef): boolean;
     function is_class_or_interface_or_object(def: tdef): boolean;
     function is_class_or_interface_or_dispinterface(def: tdef): boolean;
     function is_implicit_pointer_object_type(def: tdef): boolean;
@@ -5985,6 +5986,15 @@ implementation
           assigned(def) and
           (def.typ=objectdef) and
           (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_objcclass,odt_objcprotocol]);
+      end;
+
+
+    function is_class_or_interface_or_objc_or_java(def: tdef): boolean;
+      begin
+        result:=
+          assigned(def) and
+          (def.typ=objectdef) and
+          (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava]);
       end;
 
 
