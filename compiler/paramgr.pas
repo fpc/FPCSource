@@ -350,6 +350,7 @@ implementation
         cgpara.size:=parasym.paraloc[callerside].size;
         cgpara.intsize:=parasym.paraloc[callerside].intsize;
         cgpara.alignment:=parasym.paraloc[callerside].alignment;
+        cgpara.def:=parasym.paraloc[callerside].def;
 {$ifdef powerpc}
         cgpara.composite:=parasym.paraloc[callerside].composite;
 {$endif powerpc}
