@@ -523,6 +523,12 @@ implementation
                 result:='''result'' '+result
               else
                 begin
+                  { add array indirection if required }
+                  if (vsym.typ=paravarsym) and
+                     (vsym.vardef.typ=formaldef) or
+                     ((vsym.varspez in [vs_var,vs_out,vs_constref]) and
+                      not jvmimplicitpointertype(vsym.vardef)) then
+                    result:='['+result;
                   { single quotes for definitions to prevent clashes with Java
                     opcodes }
                   if withsignature then
