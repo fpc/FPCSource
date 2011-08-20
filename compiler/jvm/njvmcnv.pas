@@ -494,8 +494,9 @@ implementation
             get_most_nested_types(fromdef,todef);
             fromarrtype:=jvmarrtype_setlength(fromdef);
             toarrtype:=jvmarrtype_setlength(todef);
-            if not fromdef.is_related(todef) and
-               (((fromdef.typ<>objectdef) and
+            if (compare_defs(fromdef,todef,nothingn)<te_equal) and
+               not fromdef.is_related(todef) and
+               (((fromdef.typ in [objectdef,recorddef,stringdef]) and
                  not is_dynamic_array(fromdef)) or
                 (todef<>java_jlobject)) and
                ((fromarrtype in ['A','R']) or
