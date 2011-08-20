@@ -963,6 +963,9 @@ interface
     { returns a pointerdef for def, reusing an existing one in case it exists
       in the current module }
     function getpointerdef(def: tdef): tpointerdef;
+    { returns an arraydef for an array containing a single array of def, resuing
+      an existing one in case it exists in the current module }
+    function getsingletonarraydef(def: tdef): tarraydef;
 
 implementation
 
@@ -6638,5 +6641,26 @@ implementation
           end;
         result:=tpointerdef(res^.Data);
       end;
+
+
+    function getsingletonarraydef(def: tdef): tarraydef;
+      var
+        res: PHashSetItem;
+      begin
+        if not assigned(current_module) then
+          internalerror(2011081301);
+        res:=current_module.arraydefs.FindOrAdd(@def,sizeof(def));
+        if not assigned(res^.Data) then
+          begin
+            { since these arraydef can be reused anywhere in the current
+              unit, add them to the global/staticsymtable }
+            symtablestack.push(current_module.localsymtable);
+            res^.Data:=tarraydef.create(0,1,s32inttype);
+            tarraydef(res^.Data).elementdef:=def;
+            symtablestack.pop(current_module.localsymtable);
+          end;
+        result:=tarraydef(res^.Data);
+      end;
+
 
 end.
