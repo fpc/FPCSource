@@ -416,7 +416,7 @@ var
 
  { USB }
  USB: TUSBRegisters			absolute (APB1Base+$5C00);
- USBMem: TUSBMem				absolute (APB1Base+$5C00);
+ USBMem: TUSBMem                        absolute (APB1Base+$6000);
 
  { CAN }
  CAN: TCANRegisters			absolute (APB1Base+$6800);
