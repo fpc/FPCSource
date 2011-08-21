@@ -17,6 +17,7 @@ begin
     P.Directory:='gtk2';
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    P.SupportBuildModes := [bmOneByOne];
     P.OSes:=AllUnixOSes+[Win32,Win64];
     P.Author := 'Library: Peter Mattis, Spencer Kimball and Josh MacDonald, header: Mattias Gaertner, Olaf Leidinger';
     P.License := 'Library: LGPL2.1, header: LGPL with modification, ';
