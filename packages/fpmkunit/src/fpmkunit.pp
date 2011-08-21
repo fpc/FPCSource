@@ -4551,12 +4551,12 @@ begin
   if FForceCompile then
     Result:=true;
 
-  // For now exampleprograms are not compiled at all
-  if ATarget.TargetType = ttExampleProgram then
+  // For now examples are not compiled at all
+  if ATarget.TargetType in [ttExampleUnit, ttExampleProgram] then
     Exit;
 
   // Check output file
-  if not result then
+  if not result and TargetOK(ATarget) then
     begin
       if ATarget.TargetType in ProgramTargets then
         OD:=APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)
