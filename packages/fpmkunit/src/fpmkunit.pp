@@ -1116,7 +1116,8 @@ ResourceString
   SWarnStartCompilingPackage = 'Start compiling package %s for target %s.';
   SWarnCompilingPackagecompleteProgress = '[%3.0f%%] Compiled package %s';
   SWarnCompilingPackagecomplete = 'Compiled package %s';
-  SWarnSkipPackageTarget = '[%3.0f%%] Skipped package %s which has been disabled for target %s';
+  SWarnSkipPackageTargetProgress = '[%3.0f%%] Skipped package %s which has been disabled for target %s';
+  SWarnSkipPackageTarget = 'Skipped package %s which has been disabled for target %s';
   SWarnInstallationPackagecomplete = 'Installation package %s for target %s succeeded';
   SWarnCleanPackagecomplete = 'Clean of package %s completed';
 
@@ -4251,7 +4252,7 @@ begin
       //  - Package in this fpmake.pp
       //  - LocalUnitDir
       //  - GlobalUnitDir
-      if (APackage.State in [tsCompiled, tsNoCompile]) then
+      if (APackage.State in [tsCompiled, tsNoCompile, tsInstalled]) then
         begin
           APackage.UnitDir:=IncludeTrailingPathDelimiter(FStartDir)+IncludeTrailingPathDelimiter(APackage.Directory)+APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS);
         end;
@@ -5453,7 +5454,7 @@ begin
       else
         begin
         inc(FProgressCount);
-        log(vlWarning,SWarnSkipPackageTarget,[(FProgressCount)/FProgressMax * 100, P.Name, Defaults.Target]);
+        log(vlWarning,SWarnSkipPackageTargetProgress,[(FProgressCount)/FProgressMax * 100, P.Name, Defaults.Target]);
         end;
     end;
   If Assigned(AfterCompile) then
@@ -5472,8 +5473,12 @@ begin
     begin
       P:=Packages.PackageItems[i];
       If PackageOK(P) then
-        Install(P);
-      log(vlWarning, SWarnInstallationPackagecomplete, [P.Name, Defaults.Target]);
+        begin
+          Install(P);
+          log(vlWarning, SWarnInstallationPackagecomplete, [P.Name, Defaults.Target]);
+        end
+      else
+        log(vlWarning,SWarnSkipPackageTarget,[P.Name, Defaults.Target]);
     end;
   If Assigned(AfterInstall) then
     AfterInstall(Self);
