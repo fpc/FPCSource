@@ -1301,7 +1301,8 @@ const
      (mask:oo_is_classhelper;     str:'Class Helper/Category'),
      (mask:oo_has_class_constructor; str:'HasClassConstructor'),
      (mask:oo_has_class_destructor; str:'HasClassDestructor'),
-     (mask:oo_is_enum_class;      str:'JvmEnumClass')
+     (mask:oo_is_enum_class;      str:'JvmEnumClass'),
+     (mask:oo_has_new_destructor; str:'HasNewDestructor')
   );
 var
   i      : longint;

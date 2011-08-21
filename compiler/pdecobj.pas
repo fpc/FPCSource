@@ -253,6 +253,7 @@ implementation
           Message(parser_e_no_paras_for_destructor);
         consume(_SEMICOLON);
         include(current_structdef.objectoptions,oo_has_destructor);
+        include(current_structdef.objectoptions,oo_has_new_destructor);
         { no return value }
         pd.returndef:=voidtype;
         constr_destr_finish_head(pd,pd.struct);
@@ -928,7 +929,7 @@ implementation
                 Message(parser_e_cant_have_published);
 
               if not is_classdef then
-                if (oo_has_destructor in astruct.objectoptions) then
+                if (oo_has_new_destructor in astruct.objectoptions) then
                   Message(parser_n_only_one_destructor);
 
               if is_interface(astruct) then

@@ -389,7 +389,8 @@ type
     oo_is_classhelper,    { objcclasses that represent categories, and Delpi-style class helpers, are marked like this }
     oo_has_class_constructor, { the object/class has a class constructor }
     oo_has_class_destructor,  { the object/class has a class destructor  }
-    oo_is_enum_class      { the class represents an enum (JVM) }
+    oo_is_enum_class,     { the class represents an enum (JVM) }
+    oo_has_new_destructor { the object/class declares a destructor (apart from potentially inherting one from the parent) }
   );
   tobjectoptions=set of tobjectoption;
 
