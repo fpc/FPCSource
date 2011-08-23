@@ -372,15 +372,30 @@ function fpc_dynarray_copy(src: JLObject; start, len: longint; ndim: longint; el
       begin
         case eletype of
           FPCJDynArrTypeRecord:
-            fpc_copy_jrecord_array(TJRecordArray(src),TJRecordArray(result),start,len);
+            begin
+              for i:=0 to len-1 do
+                TJObjectArray(result)[i]:=FpcBaseRecordType(TJObjectArray(src)[i]).clone;
+            end;
           FPCJDynArrTypeEnumSet:
-            fpc_copy_jenumset_array(TJEnumSetArray(src),TJEnumSetArray(result),start,len);
+            begin
+              for i:=0 to len-1 do
+                TJObjectArray(result)[i]:=JUEnumSet(TJObjectArray(src)[i]).clone;
+            end;
           FPCJDynArrTypeBitSet:
-            fpc_copy_jbitset_array(TJBitSetArray(src),TJBitSetArray(result),start,len);
+            begin
+              for i:=0 to len-1 do
+                TJObjectArray(result)[i]:=FpcBitSet(TJObjectArray(src)[i]).clone;
+            end;
           FPCJDynArrTypeProcvar:
-            fpc_copy_jprocvar_array(TJProcVarArray(src),TJProcVarArray(result),start,len);
+            begin
+              for i:=0 to len-1 do
+                TJObjectArray(result)[i]:=FpcBaseProcVarType(TJObjectArray(src)[i]).clone;
+            end;
           FPCJDynArrTypeShortstring:
-            fpc_copy_jshortstring_array(TShortstringArray(src),TShortstringArray(result),start,len);
+            begin
+              for i:=0 to len-1 do
+                TJObjectArray(result)[i]:=ShortStringClass(TJObjectArray(src)[i]).clone;
+            end;
           else
             fpc_copy_shallow_array(src,result,start,len);
         end

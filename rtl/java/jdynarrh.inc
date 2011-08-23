@@ -80,5 +80,20 @@ procedure fpc_copy_jshortstring_array(src, dst: TShortstringArray; srcstart: jin
 function fpc_setlength_dynarr_multidim(aorg, anew: TJObjectArray; deepcopy: boolean; ndim: longint; eletype: jchar): TJObjectArray;
 
 
+{ create a copy of an array.
+
+  src points to the array.
+
+  Start is the start index and len the length. If both are -1, this means that
+  the entire array has to be copied.
+
+  ndim is the number of array dimensions that needs to be copied (can't be
+  determined by reflection, since we may have dynamic arrays of normal arrays
+  or vice versa).
+
+  eletype is the type of the array elements
+
+  The array copy is returned.
+  }
 function fpc_dynarray_copy(src: JLObject; start, len: longint; ndim: longint; eletype: jchar): JLObject;
 
