@@ -1797,7 +1797,8 @@ implementation
           finishandval:=-1;
           { erase sign extension for byte/smallint loads }
           if (def2regtyp(def)=R_INTREGISTER) and
-             not is_signed(def) then
+             not is_signed(def) and
+             not is_widechar(def) then
             case def.size of
               1: finishandval:=255;
               2: finishandval:=65535;
