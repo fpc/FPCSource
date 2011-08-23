@@ -1958,7 +1958,7 @@ const
       handler  : @pd_external;
       pocall   : pocall_none;
       pooption : [po_external];
-      mutexclpocall : [pocall_internproc,pocall_syscall];
+      mutexclpocall : [pocall_syscall];
       { allowed for external cpp classes }
       mutexclpotype : [{potype_constructor,potype_destructor}potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
