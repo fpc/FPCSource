@@ -253,15 +253,24 @@ implementation
             end;
           pointerdef :
             begin
-              if def=voidpointertype then
+              if is_voidpointer(def) then
                 result:=jvmaddencodedtype(java_jlobject,false,encodedstr,forcesignature,founderror)
+              else if tpointerdef(def).pointeddef.typ in [orddef,floatdef] then
+                begin
+                  encodedstr:=encodedstr+'[';
+                  result:=jvmaddencodedtype(tpointerdef(def).pointeddef,false,encodedstr,forcesignature,founderror);
+                end
               else if jvmimplicitpointertype(tpointerdef(def).pointeddef) then
                 result:=jvmaddencodedtype(tpointerdef(def).pointeddef,false,encodedstr,forcesignature,founderror)
               else
                 begin
-                  { used for internal pointer constructs }
+                  { Semantically, these are pointers to types that are
+                    pointer-based themselves (or typecastable to pointer).
+                    Internally, we represent them all as array of JLObject so that
+                    they are assignment-compatible. We will perform the type
+                    checks when actually loading a value from them }
                   encodedstr:=encodedstr+'[';
-                  result:=jvmaddencodedtype(tpointerdef(def).pointeddef,false,encodedstr,forcesignature,founderror);
+                  result:=jvmaddencodedtype(java_jlobject,false,encodedstr,forcesignature,founderror)
                 end;
             end;
           floatdef :

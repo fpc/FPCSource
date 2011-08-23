@@ -41,6 +41,7 @@ interface
        end;
 
        tjvmderefnode = class(tcgderefnode)
+          function pass_typecheck: tnode; override;
           procedure pass_generate_code; override;
        end;
 
@@ -68,12 +69,25 @@ implementation
                               TJVMDEREFNODE
 *****************************************************************************}
 
+    function tjvmderefnode.pass_typecheck: tnode;
+      begin
+        result:=inherited pass_typecheck;
+        if assigned(result) then
+          exit;
+        { don't allow dereferencing untyped pointers, because how this has to
+          be done depends on whether it's a pointer to an implicit pointer type
+          or not }
+        if is_voidpointer(left.resultdef) then
+          CGMessage(parser_e_illegal_expression);
+      end;
+
+
     procedure tjvmderefnode.pass_generate_code;
       var
         implicitptr: boolean;
       begin
         secondpass(left);
-        implicitptr:=jvmimplicitpointertype(tpointerdef(left.resultdef).pointeddef);
+        implicitptr:=jvmimplicitpointertype(resultdef);
         if implicitptr then
           begin
             { this is basically a typecast: the left node is a regular
@@ -91,11 +105,18 @@ implementation
         else
           begin
             { these are always arrays (used internally for pointers to var
-              parameters stored in nestedfpstructs) }
+              parameters stored in nestedfpstructs, and by programmers for any
+              kind of pointers) }
             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
             location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),4);
             reference_reset_base(location.reference,left.location.register,0,4);
             location.reference.arrayreftype:=art_indexconst;
+            if (left.nodetype<>addrn) and
+               not(resultdef.typ in [orddef,floatdef]) and
+               not is_voidpointer(resultdef) and
+               ((resultdef.typ<>objectdef) or
+                (find_real_class_definition(tobjectdef(resultdef),false)<>java_jlobject)) then
+              location.reference.checkcast:=true;
           end
       end;
 

@@ -69,6 +69,7 @@ unit cgutils;
          indexbase: tregister;
          indexsymbol: tasmsymbol;
          indexoffset: aint;
+         checkcast: boolean;
 {$endif jvm}
          alignment : byte;
       end;

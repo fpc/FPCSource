@@ -154,6 +154,8 @@ uses
       property maxevalstackheight: longint read fmaxevalstackheight;
 
       procedure gen_initialize_fields_code(list:TAsmList);
+
+      procedure gen_typecheck(list: TAsmList; checkop: tasmop; checkdef: tdef);
      protected
       function get_enum_init_val_ref(def: tdef; out ref: treference): boolean;
 
@@ -1778,6 +1780,8 @@ implementation
       incstack(list,1+ord(size.size>4)-extra_slots);
       if finishandval<>-1 then
         a_op_const_stack(list,OP_AND,size,finishandval);
+      if ref.checkcast then
+        gen_typecheck(list,a_checkcast,size);
     end;
 
   function thlcgjvm.loadstoreopcref(def: tdef; isload: boolean; const ref: treference; out finishandval: aint): tasmop;
@@ -2087,6 +2091,40 @@ implementation
       a_load_loc_reg(list,obj,obj,selfpara.localloc,selfreg);
       reference_reset_base(ref,selfreg,0,1);
       allocate_implicit_structs_for_st_with_base_ref(list,obj.symtable,ref,fieldvarsym);
+    end;
+
+  procedure thlcgjvm.gen_typecheck(list: TAsmList; checkop: tasmop; checkdef: tdef);
+    begin
+      { replace special types with their equivalent class type }
+      if (checkdef.typ=pointerdef) and
+         jvmimplicitpointertype(tpointerdef(checkdef).pointeddef) then
+        checkdef:=tpointerdef(checkdef).pointeddef;
+      if (checkdef=voidpointertype) or
+         (checkdef.typ=formaldef) then
+        checkdef:=java_jlobject
+      else if checkdef.typ=enumdef then
+        checkdef:=tenumdef(checkdef).classdef
+      else if checkdef.typ=setdef then
+        begin
+          if tsetdef(checkdef).elementdef.typ=enumdef then
+            checkdef:=java_juenumset
+          else
+            checkdef:=java_jubitset;
+        end
+      else if checkdef.typ=procvardef then
+        checkdef:=tprocvardef(checkdef).classdef
+      else if is_wide_or_unicode_string(checkdef) then
+        checkdef:=java_jlstring
+      else if is_ansistring(checkdef) then
+        checkdef:=java_ansistring
+      else if is_shortstring(checkdef) then
+        checkdef:=java_shortstring;
+      if checkdef.typ in [objectdef,recorddef] then
+        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol(tabstractrecorddef(checkdef).jvm_full_typename(true))))
+      else if checkdef.typ=classrefdef then
+        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol('java/lang/Class')))
+      else
+        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol(jvmencodetype(checkdef,false))));
     end;
 
   procedure thlcgjvm.resizestackfpuval(list: TAsmList; fromsize, tosize: tcgsize);
