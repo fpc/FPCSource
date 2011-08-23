@@ -7343,6 +7343,7 @@ rtl/inc/ucomplex.pp svneol=native#text/plain
 rtl/inc/ufloat128.pp svneol=native#text/plain
 rtl/inc/ustringh.inc svneol=native#text/plain
 rtl/inc/ustrings.inc svneol=native#text/plain
+rtl/inc/uuchar.pp svneol=native#text/plain
 rtl/inc/varerror.inc svneol=native#text/plain
 rtl/inc/variant.inc svneol=native#text/plain
 rtl/inc/varianth.inc svneol=native#text/plain
