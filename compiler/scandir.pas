@@ -899,6 +899,9 @@ unit scandir;
       var
         hs : string;
       begin
+        { can't change packrecords setting on managed vm targets }
+        if target_info.system in systems_managed_vm then
+          Message1(scanner_w_directive_ignored_on_target, 'PACKRECORDS');
         current_scanner.skipspace;
         if not(c in ['0'..'9']) then
          begin

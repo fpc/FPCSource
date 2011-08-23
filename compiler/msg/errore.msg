@@ -132,7 +132,7 @@ general_f_oserror=01025_F_Operating system error: $1
 #
 # Scanner
 #
-# 02087 is the last used one
+# 02089 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -371,6 +371,10 @@ scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN dire
 scanner_e_illegal_alignment_directive=02088_E_Illegal alignment directive
 % The alignment directive is not valid. Either the alignment type is not known or the alignment
 % value is not a power of two.
+scanner_w_directive_ignored_on_target=02089_W_Directive "$1" is ignored for the the current target platform
+% Some directives are ignored for certain targets, such as changing the
+% packrecords and packenum settings on managed platforms.
+%
 % \end{description}
 #
 # Parser
