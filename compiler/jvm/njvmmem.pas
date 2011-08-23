@@ -141,7 +141,7 @@ implementation
           (left.nodetype=vecn) and
           (tvecnode(left).left.resultdef.typ=arraydef) and
           (tvecnode(left).right.nodetype=ordconstn) and
-          (tordconstnode(tvecnode(left).right).value=0);
+          (tordconstnode(tvecnode(left).right).value=tarraydef(tvecnode(left).left.resultdef).lowrange);
       end;
 
 
