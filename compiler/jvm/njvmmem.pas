@@ -32,6 +32,10 @@ interface
 
     type
        tjvmaddrnode = class(tcgaddrnode)
+        protected
+         function isrefparaload: boolean;
+         function isarrayele0load: boolean;
+        public
          function pass_typecheck: tnode; override;
          procedure pass_generate_code; override;
        end;
@@ -98,6 +102,27 @@ implementation
 {*****************************************************************************
                               TJVMADDRNODE
 *****************************************************************************}
+
+    function tjvmaddrnode.isrefparaload: boolean;
+      begin
+        result:=
+         (left.nodetype=loadn) and
+         (tloadnode(left).symtableentry.typ=paravarsym) and
+         paramanager.push_copyout_param(tparavarsym(tloadnode(left).symtableentry).varspez,
+           left.resultdef,
+           tabstractprocdef(tloadnode(left).symtableentry.owner.defowner).proccalloption);
+      end;
+
+
+    function tjvmaddrnode.isarrayele0load: boolean;
+      begin
+        result:=
+          (left.nodetype=vecn) and
+          (tvecnode(left).left.resultdef.typ=arraydef) and
+          (tvecnode(left).right.nodetype=ordconstn) and
+          (tordconstnode(tvecnode(left).right).value=0);
+      end;
+
 
     function tjvmaddrnode.pass_typecheck: tnode;
       var
@@ -186,12 +211,9 @@ implementation
             if not jvmimplicitpointertype(left.resultdef) then
               begin
                 { allow taking the address of a copy-out parameter (it's an
-                  array reference) }
-                if (left.nodetype<>loadn) or
-                   (tloadnode(left).symtableentry.typ<>paravarsym) or
-                   not paramanager.push_copyout_param(tparavarsym(tloadnode(left).symtableentry).varspez,
-                     left.resultdef,
-                     tabstractprocdef(tloadnode(left).symtableentry.owner.defowner).proccalloption) then
+                  array reference) or of the first element of an array }
+                if not isrefparaload and
+                   not isarrayele0load then
                   begin
                     CGMessage(parser_e_illegal_expression);
                     exit
