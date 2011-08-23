@@ -81,6 +81,14 @@ interface
 
     function jvmgetcorrespondingclassdef(def: tdef): tdef;
 
+    { threadvars are wrapped via descendents of java.lang.ThreadLocal }
+    function jvmgetthreadvardef(def: tdef): tdef;
+
+    { gets the number of dimensions and the final element type of a normal
+      array }
+    procedure jvmgetarraydimdef(arrdef: tdef; out eledef: tdef; out ndim: longint);
+
+
 implementation
 
   uses
@@ -735,6 +743,100 @@ implementation
             end;
           end;
       end;
+
+
+    function jvmgetthreadvardef(def: tdef): tdef;
+      begin
+        if (def.typ=arraydef) and
+           not is_dynamic_array(def) then
+          begin
+            result:=search_system_type('FPCNORMALARRAYTHREADVAR').typedef;
+            exit;
+          end;
+        if jvmimplicitpointertype(def) then
+          begin
+            result:=search_system_type('FPCIMPLICITPTRTHREADVAR').typedef;
+            exit;
+          end;
+        case def.typ of
+          orddef:
+            begin
+              case torddef(def).ordtype of
+                pasbool8:
+                  begin
+                    result:=tobjectdef(search_system_type('FPCBOOLEANTHREADVAR').typedef);
+                  end;
+                uwidechar:
+                  begin
+                    result:=tobjectdef(search_system_type('FPCCHARTHREADVAR').typedef);
+                  end;
+                s8bit,
+                u8bit,
+                uchar,
+                bool8bit:
+                  begin
+                    result:=tobjectdef(search_system_type('FPCBYTETHREADVAR').typedef);
+                  end;
+                s16bit,
+                u16bit,
+                bool16bit,
+                pasbool16:
+                  begin
+                    result:=tobjectdef(search_system_type('FPCSHORTTHREADVAR').typedef);
+                  end;
+                s32bit,
+                u32bit,
+                bool32bit,
+                pasbool32:
+                  begin
+                    result:=tobjectdef(search_system_type('FPCINTTHREADVAR').typedef);
+                  end;
+                s64bit,
+                u64bit,
+                scurrency,
+                bool64bit,
+                pasbool64:
+                  begin
+                    result:=tobjectdef(search_system_type('FPCLONGTHREADVAR').typedef);
+                  end
+                else
+                  internalerror(2011082101);
+              end;
+            end;
+          floatdef:
+            begin
+              case tfloatdef(def).floattype of
+                s32real:
+                  begin
+                    result:=tobjectdef(search_system_type('FPCFLOATTHREADVAR').typedef);
+                  end;
+                s64real:
+                  begin
+                    result:=tobjectdef(search_system_type('FPCDOUBLETHREADVAR').typedef);
+                  end;
+                else
+                  internalerror(2011082102);
+              end;
+            end
+          else
+            begin
+              result:=search_system_type('FPCPOINTERTHREADVAR').typedef
+            end;
+        end;
+      end;
+
+
+    procedure jvmgetarraydimdef(arrdef: tdef; out eledef: tdef; out ndim: longint);
+      begin
+        eledef:=arrdef;
+        ndim:=0;
+        repeat
+          eledef:=tarraydef(eledef).elementdef;
+          inc(ndim);
+        until (eledef.typ<>arraydef) or
+              is_dynamic_array(eledef);
+      end;
+
 
 
     function jvmmangledbasename(sym: tsym; const usesymname: TSymStr; withsignature: boolean): TSymStr;

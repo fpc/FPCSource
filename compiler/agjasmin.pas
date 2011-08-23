@@ -922,8 +922,8 @@ implementation
         if (sym.owner.symtabletype in [recordsymtable,ObjectSymtable]) and
            (sym.typ=staticvarsym) then
           exit;
-        { external definition -> no definition here }
-        if vo_is_external in sym.varoptions then
+        { external or threadvar definition -> no definition here }
+        if ([vo_is_external,vo_is_thread_var]*sym.varoptions)<>[] then
           exit;
         AsmWrite('.field ');
         AsmWriteln(FieldDefinition(sym));

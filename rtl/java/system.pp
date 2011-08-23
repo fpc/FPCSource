@@ -84,6 +84,7 @@ const
 {$i jseth.inc}
 {$i jpvarh.inc}
 {$i jsystemh_types.inc}
+{$i jtvarh.inc}
 {$i sstringh.inc}
 {$i jdynarrh.inc}
 {$i astringh.inc}
@@ -95,6 +96,7 @@ const
                                  implementation
 {*****************************************************************************}
 
+{$i jtvar.inc}
 {$i jdynarr.inc}
 
 {*****************************************************************************

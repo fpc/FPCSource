@@ -171,6 +171,16 @@ implementation
     end;
 
   class procedure tjvmnodeutils.insertbssdata(sym: tstaticvarsym);
+    var
+      enuminitsym,
+      vs: tstaticvarsym;
+      block: tblocknode;
+      stat: tstatementnode;
+      temp: ttempcreatenode;
+      initnode: tnode;
+      eledef: tdef;
+      ndim: longint;
+      initnodefinished: boolean;
     begin
       { handled while generating the unit/program init code, or class
         constructor; add something to al_globals to indicate that we need to
@@ -178,6 +188,103 @@ implementation
       if current_asmdata.asmlists[al_globals].empty and
          jvmimplicitpointertype(sym.vardef) then
         current_asmdata.asmlists[al_globals].concat(cai_align.Create(1));
+      { in case of a threadvar, allocate a separate sym that's a subtype of the
+        java.lang.ThreadLocal class which will wrap the actual variable value }
+      if vo_is_thread_var in sym.varoptions then
+        begin
+          vs:=tstaticvarsym.create(sym.realname+'$threadvar',sym.varspez,
+            jvmgetthreadvardef(sym.vardef),
+            sym.varoptions - [vo_is_thread_var]);
+          sym.owner.insert(vs);
+          { make sure that the new sym does not get allocated (we will allocate
+            it when encountering the original sym, because only then we know
+            that it's a threadvar) }
+          include(vs.symoptions,sp_static);
+          { switch around the mangled names of sym and vs, since the wrapper
+            should map to the declared name }
+          sym.set_mangledbasename(vs.realname);
+          vs.set_mangledbasename(sym.realname);
+
+          { add initialization code for the wrapper }
+          block:=internalstatements(stat);
+          if assigned(current_module.tcinitcode) then
+            addstatement(stat,tnode(current_module.tcinitcode));
+          current_module.tcinitcode:=block;
+
+          { create initialization value if necessary }
+          initnode:=nil;
+          initnodefinished:=false;
+          temp:=nil;
+          { in case of enum type, initialize with enum(0) if it exists }
+          if sym.vardef.typ=enumdef then
+            begin
+              enuminitsym:=tstaticvarsym(tenumdef(sym.vardef).getbasedef.classdef.symtable.Find('__FPC_ZERO_INITIALIZER'));
+              if assigned(enuminitsym) then
+                initnode:=cloadnode.create(enuminitsym,enuminitsym.owner);
+            end
+          { normal array -> include dimensions and element type so we can
+            create a deep copy }
+          else if (sym.vardef.typ=arraydef) and
+             not is_dynamic_array(sym.vardef) then
+            begin
+              temp:=ctempcreatenode.create(sym.vardef,sym.vardef.size,tt_persistent,true);
+              addstatement(stat,temp);
+              initnode:=ccallparanode.create(
+                ctypeconvnode.create_explicit(
+                  caddrnode.create_internal(ctemprefnode.create(temp)),
+                  java_jlobject),
+                nil);
+              jvmgetarraydimdef(sym.vardef,eledef,ndim);
+              initnode:=ccallparanode.create(genintconstnode(ndim),initnode);
+              initnode:=ccallparanode.create(
+                cordconstnode.create(ord(jvmarrtype_setlength(eledef)),
+                  cwidechartype,false),
+                initnode);
+              initnodefinished:=true;
+            end
+          { implicitpointertype -> allocate (get temp and assign address) }
+          else if jvmimplicitpointertype(sym.vardef) then
+            begin
+              temp:=ctempcreatenode.create(sym.vardef,sym.vardef.size,tt_persistent,true);
+              addstatement(stat,temp);
+              initnode:=caddrnode.create_internal(ctemprefnode.create(temp));
+            end
+          { unicodestring/ansistring -> empty string }
+          else if is_wide_or_unicode_string(sym.vardef) or
+             is_ansistring(sym.vardef) then
+            begin
+              temp:=ctempcreatenode.create(sym.vardef,sym.vardef.size,tt_persistent,true);
+              addstatement(stat,temp);
+              addstatement(stat,cassignmentnode.create(
+                ctemprefnode.create(temp),
+                cstringconstnode.createstr('')));
+              initnode:=ctemprefnode.create(temp);
+            end
+          { dynamic array -> empty array }
+          else if is_dynamic_array(sym.vardef) then
+            begin
+              temp:=ctempcreatenode.create(sym.vardef,sym.vardef.size,tt_persistent,true);
+              addstatement(stat,temp);
+              addstatement(stat,cinlinenode.create(in_setlength_x,false,
+                ccallparanode.create(genintconstnode(0),
+                  ccallparanode.create(ctemprefnode.create(temp),nil))
+                )
+              );
+              initnode:=ctemprefnode.create(temp);
+            end;
+
+          if assigned(initnode) and
+             not initnodefinished then
+            initnode:=ccallparanode.create(ctypeconvnode.create_explicit(initnode,java_jlobject),nil);
+          addstatement(stat,cassignmentnode.create(
+            cloadnode.create(vs,vs.owner),
+            ccallnode.createinternmethod(
+              cloadvmtaddrnode.create(ctypenode.create(vs.vardef)),
+              'CREATE',initnode)));
+          { deallocate the temp if we allocated one }
+          if assigned(temp) then
+            addstatement(stat,ctempdeletenode.create(temp));
+        end;
     end;
 
 

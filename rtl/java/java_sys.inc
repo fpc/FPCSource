@@ -174,6 +174,41 @@
     class function mapLibraryName(para1: JLString): JLString; static; overload;
   end;
 
+  JLThreadLocal = class external 'java.lang' name 'ThreadLocal' (JLObject)
+  public
+    type
+      InnerThreadLocalMap = class;
+      Arr1InnerThreadLocalMap = array of InnerThreadLocalMap;
+      Arr2InnerThreadLocalMap = array of Arr1InnerThreadLocalMap;
+      Arr3InnerThreadLocalMap = array of Arr2InnerThreadLocalMap;
+      InnerEntry = class;
+      Arr1InnerEntry = array of InnerEntry;
+      Arr2InnerEntry = array of Arr1InnerEntry;
+      Arr3InnerEntry = array of Arr2InnerEntry;
+      InnerThreadLocalMap = class external 'java.lang' name 'ThreadLocalMap' 
+      public
+        type
+          InnerEntry = class;
+          Arr1InnerEntry = array of InnerEntry;
+          Arr2InnerEntry = array of Arr1InnerEntry;
+          Arr3InnerEntry = array of Arr2InnerEntry;
+          InnerEntry = class external 'java.lang' name 'Entry' 
+          end;
+
+      end;
+
+      InnerEntry = class external 'java.lang' name 'Entry' 
+      end;
+
+  strict protected
+    function initialValue(): JLObject; overload; virtual;
+  public
+    constructor create(); overload;
+    function get(): JLObject; overload; virtual;
+    procedure &set(para1: JLObject); overload; virtual;
+    procedure remove(); overload; virtual;
+  end;
+
   JLRAnnotatedElement = interface external 'java.lang.reflect' name 'AnnotatedElement' 
     function isAnnotationPresent(para1: JLClass): jboolean; overload;
     function getAnnotation(para1: JLClass): JLAAnnotation; overload;

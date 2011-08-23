@@ -1080,11 +1080,6 @@ type
   Arr2JMBitSieve = array of Arr1JMBitSieve;
   Arr3JMBitSieve = array of Arr2JMBitSieve;
 
-  JLThreadLocal = class;
-  Arr1JLThreadLocal = array of JLThreadLocal;
-  Arr2JLThreadLocal = array of Arr1JLThreadLocal;
-  Arr3JLThreadLocal = array of Arr2JLThreadLocal;
-
   JAFLineBreakMeasurer = class;
   Arr1JAFLineBreakMeasurer = array of JAFLineBreakMeasurer;
   Arr2JAFLineBreakMeasurer = array of Arr1JAFLineBreakMeasurer;
@@ -8965,15 +8960,15 @@ type
   Arr2OOCNVList = array of Arr1OOCNVList;
   Arr3OOCNVList = array of Arr2OOCNVList;
 
-  JNNamingException = class;
-  Arr1JNNamingException = array of JNNamingException;
-  Arr2JNNamingException = array of Arr1JNNamingException;
-  Arr3JNNamingException = array of Arr2JNNamingException;
-
   JUTimer = class;
   Arr1JUTimer = array of JUTimer;
   Arr2JUTimer = array of Arr1JUTimer;
   Arr3JUTimer = array of Arr2JUTimer;
+
+  JNNamingException = class;
+  Arr1JNNamingException = array of JNNamingException;
+  Arr2JNNamingException = array of Arr1JNNamingException;
+  Arr3JNNamingException = array of Arr2JNNamingException;
 
   JSDebugGraphicsObserver = class;
   Arr1JSDebugGraphicsObserver = array of JSDebugGraphicsObserver;
@@ -20705,15 +20700,15 @@ type
   Arr2JLLong = array of Arr1JLLong;
   Arr3JLLong = array of Arr2JLLong;
 
-  JLInteger = class external 'java.lang' name 'Integer';
-  Arr1JLInteger = array of JLInteger;
-  Arr2JLInteger = array of Arr1JLInteger;
-  Arr3JLInteger = array of Arr2JLInteger;
-
   JLThrowable = class external 'java.lang' name 'Throwable';
   Arr1JLThrowable = array of JLThrowable;
   Arr2JLThrowable = array of Arr1JLThrowable;
   Arr3JLThrowable = array of Arr2JLThrowable;
+
+  JLInteger = class external 'java.lang' name 'Integer';
+  Arr1JLInteger = array of JLInteger;
+  Arr2JLInteger = array of Arr1JLInteger;
+  Arr3JLInteger = array of Arr2JLInteger;
 
   JLLinkageError = class external 'java.lang' name 'LinkageError';
   Arr1JLLinkageError = array of JLLinkageError;
@@ -20724,6 +20719,11 @@ type
   Arr1JUAbstractCollection = array of JUAbstractCollection;
   Arr2JUAbstractCollection = array of Arr1JUAbstractCollection;
   Arr3JUAbstractCollection = array of Arr2JUAbstractCollection;
+
+  JLThreadLocal = class external 'java.lang' name 'ThreadLocal';
+  Arr1JLThreadLocal = array of JLThreadLocal;
+  Arr2JLThreadLocal = array of Arr1JLThreadLocal;
+  Arr3JLThreadLocal = array of Arr2JLThreadLocal;
 
   JUAbstractMap = class external 'java.util' name 'AbstractMap';
   Arr1JUAbstractMap = array of JUAbstractMap;

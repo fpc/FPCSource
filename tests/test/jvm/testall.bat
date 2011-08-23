@@ -180,3 +180,7 @@ ppcjvm -O2 -g getbit
 if %errorlevel% neq 0 exit /b %errorlevel%
 java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. getbit
 if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g tthreadvar
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tthreadvar
+if %errorlevel% neq 0 exit /b %errorlevel%

@@ -35,6 +35,7 @@ type
   tjvmloadnode = class(tcgnestloadnode)
    protected
     function is_copyout_addr_param_load: boolean;
+    function handle_threadvar_access: tnode; override;
    public
     function is_addr_param_load: boolean; override;
     procedure pass_generate_code; override;
@@ -156,6 +157,24 @@ function tjvmloadnode.is_copyout_addr_param_load: boolean;
       ((symtable.symtabletype=parasymtable) and
        (symtableentry.typ=paravarsym) and
        paramanager.push_copyout_param(tparavarsym(symtableentry).varspez,resultdef,tprocdef(symtable.defowner).proccalloption));
+  end;
+
+
+function tjvmloadnode.handle_threadvar_access: tnode;
+  var
+    vs: tsym;
+  begin
+    { get the variable wrapping the threadvar }
+    vs:=tsym(symtable.find(symtableentry.name+'$THREADVAR'));
+    if not assigned(vs) or
+       (vs.typ<>staticvarsym) then
+      internalerror(2011082201);
+    { get a read/write reference to the threadvar value }
+    result:=cloadnode.create(vs,vs.owner);
+    typecheckpass(result);
+    result:=ccallnode.createinternmethod(result,'GETREADWRITEREFERENCE',nil);
+    result:=ctypeconvnode.create_explicit(result,getpointerdef(resultdef));
+    result:=cderefnode.create(result);
   end;
 
 

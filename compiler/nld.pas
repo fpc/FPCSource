@@ -39,6 +39,7 @@ interface
        protected
           fprocdef : tprocdef;
           fprocdefderef : tderef;
+          function handle_threadvar_access: tnode; virtual;
        public
           symtableentry : tsym;
           symtableentryderef : tderef;
@@ -167,6 +168,13 @@ implementation
                              TLOADNODE
 *****************************************************************************}
 
+    function tloadnode.handle_threadvar_access: tnode;
+      begin
+        { nothing special by default }
+        result:=nil;
+      end;
+
+
     constructor tloadnode.create(v : tsym;st : TSymtable);
       begin
          inherited create(loadn,nil);
@@ -283,6 +291,8 @@ implementation
                   ) then
                  make_not_regable(self,[ra_addr_taken]);
                resultdef:=tabstractvarsym(symtableentry).vardef;
+               if vo_is_thread_var in tstaticvarsym(symtableentry).varoptions then
+                 result:=handle_threadvar_access;
              end;
            paravarsym,
            localvarsym :

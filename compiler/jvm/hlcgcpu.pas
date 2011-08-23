@@ -2025,7 +2025,12 @@ implementation
             intialising the constant }
           if [vo_is_external,vo_has_local_copy]*vs.varoptions=[vo_is_external] then
              continue;
-          if jvmimplicitpointertype(vs.vardef) then
+          { threadvar innitializations are handled at the node tree level }
+          if vo_is_thread_var in vs.varoptions then
+            begin
+              { nothing }
+            end
+          else if jvmimplicitpointertype(vs.vardef) then
             allocate_implicit_struct_with_base_ref(list,vs,ref)
           { enums are class instances in Java, while they are ordinals in
             Pascal. When they are initialized with enum(0), such as in

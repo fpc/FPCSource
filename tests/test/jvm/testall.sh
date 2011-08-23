@@ -100,3 +100,5 @@ $PPC -O2 -g tdefpara
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tdefpara
 $PPC -O2 -g getbit
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. getbit
+$PPC -O2 -g tthreadvar
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tthreadvar

@@ -16,6 +16,7 @@
 }
 
 type
+  TJBooleanArray = array of jboolean;
   TJByteArray = array of jbyte;
   TJShortArray = array of jshort;
   TJIntArray = array of jint;
@@ -32,6 +33,7 @@ type
   TJStringArray = array of unicodestring;
 
 const
+  FPCJDynArrTypeBoolean = 'Z';
   FPCJDynArrTypeJByte   = 'B';
   FPCJDynArrTypeJShort  = 'S';
   FPCJDynArrTypeJInt    = 'I';
