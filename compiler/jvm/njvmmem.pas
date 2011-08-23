@@ -89,7 +89,7 @@ implementation
             { these are always arrays (used internally for pointers to var
               parameters stored in nestedfpstructs) }
             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-            location_reset_ref(location,LOC_REFERENCE,OS_ADDR,4);
+            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),4);
             reference_reset_base(location.reference,left.location.register,0,4);
             location.reference.arrayreftype:=art_indexconst;
           end
