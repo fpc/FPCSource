@@ -14,6 +14,11 @@
 
  **********************************************************************}
 
+   function FpcBitSet.clone: JLObject;
+     begin
+       result:=inherited;
+     end;
+
 
   function FpcBitSet.add(elem: jint): FpcBitSet;
     begin

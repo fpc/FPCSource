@@ -18,7 +18,9 @@ type
   { Adds support for a "base" value that is used as lower bound for the set's
     contents }
 
-  FpcBitSet = class sealed (JUBitSet)
+  FpcBitSet = class sealed (JUBitSet,JLCloneable)
+    { so we can look it up in this class rather than only in the parent }
+    function clone: JLObject;override;
     function add(elem: jint): FpcBitSet;
     function addAll(s: FpcBitSet): FpcBitSet;
     function remove(elem: jint): FpcBitSet;
