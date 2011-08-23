@@ -32,7 +32,7 @@ begin
 end;
 
 type
-  tformalkind = (fboolean,fbyte,fsmallint,fcardinal,fint64,fchar,fwidechar,fsingle,fdouble,fsetint,fsetenum,frec,fshortstring,funicodestring,farrbyte,farrset);
+  tformalkind = (fboolean,fbyte,fsmallint,fcardinal,fint64,fchar,fwidechar,fsingle,fdouble,fsetint,fsetenum,frec,fshortstring,funicodestring,farrbyte,farrset,fenum);
 
   tsetint = set of 30..40;
   tsetenum = set of tformalkind;
@@ -60,6 +60,7 @@ const
   cunicodestringin: unicodestring = 'a bit longer!';
   carrbytein: tarrbyte = (4,2,5);
   carrsetin: tarrset = ([31,33,37],[]);
+  cenumin: tformalkind = fsmallint;
   
   cbooleanout: boolean = false;
   cbyteout: byte = 128;
@@ -77,6 +78,7 @@ const
   cunicodestringout: unicodestring = 'yet another bit longer!';
   carrbyteout: tarrbyte = (6,6,6);
   carrsetout: tarrset = ([30,31],[33..38]);
+  cenumout: tformalkind = farrbyte;
 
 procedure testformalvar(var x; typ: tformalkind);
   var
@@ -185,6 +187,12 @@ procedure testformalvar(var x; typ: tformalkind);
               raise jlexception.create('arrset in');
           x:=carrsetout;
         end;
+      fenum:
+        begin
+          if cenumin<>tformalkind(x) then
+            raise jlexception.create('enum in');
+          x:=cenumout;
+        end;
     end;
   end;
 
@@ -266,6 +274,10 @@ procedure testformalout(out x; typ: tformalkind);
       farrset:
         begin
           x:=carrsetout;
+        end;
+      fenum:
+        begin
+          x:=cenumout;
         end;
     end;
   end;
@@ -362,6 +374,11 @@ procedure testformalconst(const x; typ: tformalkind);
             if carrsetin[i]<>tarrset(x)[i] then
               raise jlexception.create('const arrset in');
         end;
+      fenum:
+        begin
+          if cenumin<>tformalkind(x) then
+            raise jlexception.create('const enum in');
+        end;
     end;
   end;
 
@@ -384,6 +401,7 @@ procedure testformalvars;
     vunicodestring: unicodestring;
     varrbyte: tarrbyte;
     varrset: tarrset;
+    venum: tformalkind;
     i: longint;
   begin
     vboolean:=cbooleanin;
@@ -464,6 +482,10 @@ procedure testformalvars;
     for i:=low(carrsetout) to high(carrsetout) do
       if varrset[i]<>carrsetout[i] then
         raise jlexception.create('arrset out');
+    venum:=cenumin;
+    testformalvar(venum,fenum);
+    if venum<>cenumout then
+      raise jlexception.create('enum out');
   end;
 
 
@@ -485,6 +507,7 @@ procedure testformalouts;
     vunicodestring: unicodestring;
     varrbyte: tarrbyte;
     varrset: tarrset;
+    venum: tformalkind;
     i: longint;
   begin
     vboolean:=cbooleanin;
@@ -565,6 +588,10 @@ procedure testformalouts;
     for i:=low(carrsetout) to high(carrsetout) do
       if varrset[i]<>carrsetout[i] then
         raise jlexception.create('out arrset out');
+    venum:=cenumin;
+    testformalout(venum,fenum);
+    if venum<>cenumout then
+      raise jlexception.create('out enum out');
   end;
 
 
@@ -586,6 +613,7 @@ procedure testformalconsts;
     vunicodestring: unicodestring;
     varrbyte: tarrbyte;
     varrset: tarrset;
+    venum: tformalkind;
     i: longint;
   begin
     vboolean:=cbooleanin;
@@ -666,6 +694,10 @@ procedure testformalconsts;
     for i:=low(carrsetin) to high(carrsetin) do
       if varrset[i]<>carrsetin[i] then
         raise jlexception.create('const arrset out');
+    venum:=cenumin;
+    testformalconst(venum,fenum);
+    if venum<>cenumin then
+      raise jlexception.create('const enum out');
   end;
 
 
