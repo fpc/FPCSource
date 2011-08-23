@@ -801,12 +801,20 @@ procedure thlcg2ll.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; co
     end;
 
   procedure thlcg2ll.a_loadfpu_reg_loc(list: TAsmList; fromsize, tosize: tdef; const reg: tregister; const loc: tlocation);
+    var
+      usesize: tcgsize;
     begin
 {$ifdef extdebug}
       if def_cgsize(tosize)<>loc.size then
         internalerror(2010112101);
 {$endif}
-      cg.a_loadfpu_reg_loc(list,def_cgsize(fromsize),reg,loc);
+      { on some platforms, certain records are passed/returned in floating point
+        registers -> def_cgsize() won't give us the result we need -> translate
+        to corresponding fpu size }
+      usesize:=def_cgsize(fromsize);
+      if not(usesize in [OS_F32..OS_F128]) then
+        usesize:=int_float_cgsize(tcgsize2size[usesize]);
+      cg.a_loadfpu_reg_loc(list,usesize,reg,loc);
     end;
 
   procedure thlcg2ll.a_loadfpu_reg_cgpara(list: TAsmList; fromsize: tdef; const r: tregister; const cgpara: TCGPara);
