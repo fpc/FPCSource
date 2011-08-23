@@ -30,12 +30,13 @@
                 owningClass:=owningClass.getSuperClass;
             end;
           until assigned(fCloneMethod);
+          { required to enable calling methods of non-public classes (e.g. a
+            record type defined in the implementation of a unit) -- can cause
+            security exceptions if the security manager doesn't allow this
+            though... }
+          if not fCloneMethod.isAccessible then
+            fCloneMethod.setAccessible(true);
         end;
-      { required to enable calling methods of non-public classes (e.g. a record
-        type defined in the implementation of a unit -- can cause security
-        exceptions if the security manager doesn't allow this though... }
-      if not fCloneMethod.isAccessible then
-        fCloneMethod.setAccessible(true);
       { return a copy of the record/shortstring/set/... }
       result:=fCloneMethod.invoke(fInstanceToClone,[]);
     end;
