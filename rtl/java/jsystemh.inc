@@ -71,10 +71,10 @@ Function  hi(i : Int64) : DWord;   [INTERNPROC: fpc_in_hi_qword];
 Function  hi(q : QWord) : DWord;   [INTERNPROC: fpc_in_hi_qword];
 
 Function swap (X : Word) : Word;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_word];
-(* Function Swap (X : Integer) : Integer;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_word]; *)
+Function swap (X : Integer) : Integer;[internconst:fpc_in_const_swap_word]; external;
 Function swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_long];
-(* Function Swap (X : Cardinal) : Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_long]; *)
-(* Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_qword]; *)
+Function swap (X : Cardinal) : Cardinal;[internconst:fpc_in_const_swap_long]; external;
+Function swap (X : QWord) : QWord;[internconst:fpc_in_const_swap_qword]; external;
 Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_swap_qword];
 
 Function Align (Addr : PtrUInt; Alignment : PtrUInt) : PtrUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -100,46 +100,46 @@ Function abs(l:Longint):Longint;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINL
 Function abs(l:Int64):Int64;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function sqr(l:Longint):Longint;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function sqr(l:Int64):Int64;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
-(* Function sqr(l:QWord):QWord;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif} *)
+Function sqr(l:QWord):QWord;[internconst:fpc_in_const_sqr]; external;
 Function odd(l:Longint):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
-(* Function odd(l:Longword):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif} *)
+Function odd(l:Longword):Boolean;[internconst:fpc_in_const_odd]; external;
 Function odd(l:Int64):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
-(* Function odd(l:QWord):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif} *)
+Function odd(l:QWord):Boolean;[internconst:fpc_in_const_odd]; external;
 
 function SwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-(* function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif} *)
+function SwapEndian(const AValue: Word): Word; external;
 function SwapEndian(const AValue: LongInt): LongInt;
-(* function SwapEndian(const AValue: DWord): DWord; *)
+function SwapEndian(const AValue: DWord): DWord; external;
 function SwapEndian(const AValue: Int64): Int64;
-(* function SwapEndian(const AValue: QWord): QWord; *)
+function SwapEndian(const AValue: QWord): QWord; external;
 
 function BEtoN(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-(* function BEtoN(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif} *)
+function BEtoN(const AValue: Word): Word; external;
 function BEtoN(const AValue: LongInt): LongInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-(* function BEtoN(const AValue: DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif} *)
+function BEtoN(const AValue: DWord): DWord; external;
 function BEtoN(const AValue: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
-(* function BEtoN(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif} *)
+function BEtoN(const AValue: QWord): QWord; external;
 
 function LEtoN(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-(* function LEtoN(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif} *)
+function LEtoN(const AValue: Word): Word; external;
 function LEtoN(const AValue: LongInt): LongInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-(* function LEtoN(const AValue: DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif} *)
+function LEtoN(const AValue: DWord): DWord; external;
 function LEtoN(const AValue: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
-(* function LEtoN(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif} *)
+function LEtoN(const AValue: QWord): QWord; external;
 
 function NtoBE(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-(* function NtoBE(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif} *)
+function NtoBE(const AValue: Word): Word; external;
 function NtoBE(const AValue: LongInt): LongInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-(* function NtoBE(const AValue: DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif} *)
+function NtoBE(const AValue: DWord): DWord; external;
 function NtoBE(const AValue: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
-(* function NtoBE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif} *)
+function NtoBE(const AValue: QWord): QWord; external;
 
 function NtoLE(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-(* function NtoLE(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif} *)
+function NtoLE(const AValue: Word): Word; external;
 function NtoLE(const AValue: LongInt): LongInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-(* function NtoLE(const AValue: DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif} *)
+function NtoLE(const AValue: DWord): DWord; external;
 function NtoLE(const AValue: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
-(* function NtoLE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif} *)
+function NtoLE(const AValue: QWord): QWord; external;
 
 {$ifdef FPC_HAS_INTERNAL_ROX}
 
