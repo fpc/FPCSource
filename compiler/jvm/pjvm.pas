@@ -92,6 +92,9 @@ implementation
             if is_javaclass(obj) then
               begin
                 pd:=nil;
+                { childof may not be assigned in case of a parser error }
+                if not assigned(tobjectdef(obj).childof) then
+                  exit;
                 sym:=tsym(tobjectdef(obj).childof.symtable.find('CREATE'));
                 if assigned(sym) and
                    (sym.typ=procsym) then
