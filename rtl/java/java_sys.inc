@@ -2044,6 +2044,41 @@
     function hashCode(): jint; overload;
   end;
 
+  JLRField = class sealed external 'java.lang.reflect' name 'Field' (JLRAccessibleObject, JLRMember)
+  public
+    function getDeclaringClass(): JLClass; overload; virtual;
+    function getName(): JLString; overload; virtual;
+    function getModifiers(): jint; overload; virtual;
+    function isEnumConstant(): jboolean; overload; virtual;
+    function isSynthetic(): jboolean; overload; virtual;
+    function getType(): JLClass; overload; virtual;
+    function getGenericType(): JLRType; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual;
+    function hashCode(): jint; overload; virtual;
+    function toString(): JLString; overload; virtual;
+    function toGenericString(): JLString; overload; virtual;
+    function get(para1: JLObject): JLObject; overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    function getBoolean(para1: JLObject): jboolean; overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    function getByte(para1: JLObject): jbyte; overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    function getChar(para1: JLObject): jchar; overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    function getShort(para1: JLObject): jshort; overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    function getInt(para1: JLObject): jint; overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    function getLong(para1: JLObject): jlong; overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    function getFloat(para1: JLObject): jfloat; overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    function getDouble(para1: JLObject): jdouble; overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    procedure &set(para1: JLObject; para2: JLObject); overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    procedure setBoolean(para1: JLObject; para2: jboolean); overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    procedure setByte(para1: JLObject; para2: jbyte); overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    procedure setChar(para1: JLObject; para2: jchar); overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    procedure setShort(para1: JLObject; para2: jshort); overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    procedure setInt(para1: JLObject; para2: jint); overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    procedure setLong(para1: JLObject; para2: jlong); overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    procedure setFloat(para1: JLObject; para2: jfloat); overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    procedure setDouble(para1: JLObject; para2: jdouble); overload; virtual;  // throws java.lang.IllegalArgumentException, java.lang.IllegalAccessException
+    function getAnnotation(para1: JLClass): JLAAnnotation; overload; virtual;
+    function getDeclaredAnnotations(): Arr1JLAAnnotation; overload; virtual;
+  end;
+
   JLRMethod = class sealed external 'java.lang.reflect' name 'Method' (JLRAccessibleObject, JLRGenericDeclaration, JLRMember)
   public
     function getDeclaringClass(): JLClass; overload; virtual;

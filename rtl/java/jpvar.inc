@@ -78,9 +78,19 @@
 
 
   function FpcBaseProcVarType.clone: JLObject;
+    var
+      field: JLRField;
+      newmethodrec: tmethod;
     begin
       result:=inherited;
-      FpcBaseProcVarType(result).method:=method;
+      { replace the method record pointer (the inherited clone will have copied
+        it, and there is no way we can change it using Pascal code since it's
+        not a pointer at the Pascal level) }
+      newmethodrec:=method;
+      field:=getClass.getField('method');
+      { doesn't matter that it's a local variable, everything is garbage
+        collected }
+      field.&set(result,JLObject(@newmethodrec));
     end;
 
 

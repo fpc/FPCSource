@@ -1,4 +1,4 @@
-{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.Boolean, java.lang.Byte, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Enum, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.Integer, java.lang.Iterable, java.lang.LinkageError, java.lang.Long, java.lang.Math, java.lang.NoSuchMethodException, java.lang.Number, java.lang.Object, java.lang.Runtime, java.lang.RuntimeException, java.lang.Short, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.lang.reflect.AccessibleObject, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.GenericDeclaration, java.lang.reflect.Member, java.lang.reflect.Method, java.lang.reflect.Type, java.math.BigInteger, java.text.Collator, java.util.AbstractCollection, java.util.AbstractMap, java.util.AbstractSet, java.util.Arrays, java.util.BitSet, java.util.Calendar, java.util.Collection, java.util.Comparator, java.util.EnumSet, java.util.HashMap, java.util.Iterator, java.util.Map, java.util.Set }
+{ Imports for Java packages/classes: java.io.Serializable, java.lang.AbstractStringBuilder, java.lang.Appendable, java.lang.Boolean, java.lang.Byte, java.lang.CharSequence, java.lang.Character, java.lang.Class, java.lang.Cloneable, java.lang.Comparable, java.lang.Double, java.lang.Enum, java.lang.Error, java.lang.Exception, java.lang.Float, java.lang.IllegalArgumentException, java.lang.IndexOutOfBoundsException, java.lang.Integer, java.lang.Iterable, java.lang.LinkageError, java.lang.Long, java.lang.Math, java.lang.NoSuchMethodException, java.lang.Number, java.lang.Object, java.lang.Runtime, java.lang.RuntimeException, java.lang.Short, java.lang.String, java.lang.StringBuffer, java.lang.StringBuilder, java.lang.System, java.lang.Throwable, java.lang.reflect.AccessibleObject, java.lang.reflect.AnnotatedElement, java.lang.reflect.Array, java.lang.reflect.Field, java.lang.reflect.GenericDeclaration, java.lang.reflect.Member, java.lang.reflect.Method, java.lang.reflect.Type, java.math.BigInteger, java.text.Collator, java.util.AbstractCollection, java.util.AbstractMap, java.util.AbstractSet, java.util.Arrays, java.util.BitSet, java.util.Calendar, java.util.Collection, java.util.Comparator, java.util.EnumSet, java.util.HashMap, java.util.Iterator, java.util.Map, java.util.Set }
 type
   JLNoSuchMethodException = class;
   Arr1JLNoSuchMethodException = array of JLNoSuchMethodException;
@@ -29,6 +29,11 @@ type
   Arr1JLEnum = array of JLEnum;
   Arr2JLEnum = array of Arr1JLEnum;
   Arr3JLEnum = array of Arr2JLEnum;
+
+  JLRField = class;
+  Arr1JLRField = array of JLRField;
+  Arr2JLRField = array of Arr1JLRField;
+  Arr3JLRField = array of Arr2JLRField;
 
   JLError = class;
   Arr1JLError = array of JLError;
@@ -319,11 +324,6 @@ type
   Arr1JSProtectionDomain = array of JSProtectionDomain;
   Arr2JSProtectionDomain = array of Arr1JSProtectionDomain;
   Arr3JSProtectionDomain = array of Arr2JSProtectionDomain;
-
-  JLRField = class external 'java.lang.reflect' name 'Field';
-  Arr1JLRField = array of JLRField;
-  Arr2JLRField = array of Arr1JLRField;
-  Arr3JLRField = array of Arr2JLRField;
 
   JIPrintStream = class external 'java.io' name 'PrintStream';
   Arr1JIPrintStream = array of JIPrintStream;

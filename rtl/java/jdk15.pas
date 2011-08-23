@@ -3335,11 +3335,6 @@ type
   Arr2JPASJobMediaSheets = array of Arr1JPASJobMediaSheets;
   Arr3JPASJobMediaSheets = array of Arr2JPASJobMediaSheets;
 
-  JUCCopyOnWriteArraySet = class;
-  Arr1JUCCopyOnWriteArraySet = array of JUCCopyOnWriteArraySet;
-  Arr2JUCCopyOnWriteArraySet = array of Arr1JUCCopyOnWriteArraySet;
-  Arr3JUCCopyOnWriteArraySet = array of Arr2JUCCopyOnWriteArraySet;
-
   JMMutableBigInteger = class;
   Arr1JMMutableBigInteger = array of JMMutableBigInteger;
   Arr2JMMutableBigInteger = array of Arr1JMMutableBigInteger;
@@ -3349,6 +3344,11 @@ type
   Arr1JXStreamFactoryFinder = array of JXStreamFactoryFinder;
   Arr2JXStreamFactoryFinder = array of Arr1JXStreamFactoryFinder;
   Arr3JXStreamFactoryFinder = array of Arr2JXStreamFactoryFinder;
+
+  JUCCopyOnWriteArraySet = class;
+  Arr1JUCCopyOnWriteArraySet = array of JUCCopyOnWriteArraySet;
+  Arr2JUCCopyOnWriteArraySet = array of Arr1JUCCopyOnWriteArraySet;
+  Arr3JUCCopyOnWriteArraySet = array of Arr2JUCCopyOnWriteArraySet;
 
   JUZDeflaterOutputStream = class;
   Arr1JUZDeflaterOutputStream = array of JUZDeflaterOutputStream;
@@ -8414,11 +8414,6 @@ type
   Arr1JBBBeanContextSupport = array of JBBBeanContextSupport;
   Arr2JBBBeanContextSupport = array of Arr1JBBBeanContextSupport;
   Arr3JBBBeanContextSupport = array of Arr2JBBBeanContextSupport;
-
-  JLRField = class;
-  Arr1JLRField = array of JLRField;
-  Arr2JLRField = array of Arr1JLRField;
-  Arr3JLRField = array of Arr2JLRField;
 
   JUJJarException = class;
   Arr1JUJJarException = array of JUJJarException;
@@ -20669,6 +20664,11 @@ type
   Arr1JLEnum = array of JLEnum;
   Arr2JLEnum = array of Arr1JLEnum;
   Arr3JLEnum = array of Arr2JLEnum;
+
+  JLRField = class external 'java.lang.reflect' name 'Field';
+  Arr1JLRField = array of JLRField;
+  Arr2JLRField = array of Arr1JLRField;
+  Arr3JLRField = array of Arr2JLRField;
 
   JLError = class external 'java.lang' name 'Error';
   Arr1JLError = array of JLError;
