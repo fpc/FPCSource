@@ -663,22 +663,40 @@ implementation
                  pointerdef :
                    begin
                      { ugly, but delphi allows it }
-                     if (cdo_explicit in cdoptions) and
-                       (m_delphi in current_settings.modeswitches) then
+                     if cdo_explicit in cdoptions then
                        begin
-                         doconv:=tc_int_2_int;
-                         eq:=te_convert_l1;
+                         if target_info.system in [system_jvm_java32] then
+                           begin
+                             doconv:=tc_equal;
+                             eq:=te_convert_l1;
+                           end
+                         else if m_delphi in current_settings.modeswitches then
+                           begin
+                             doconv:=tc_int_2_int;
+                             eq:=te_convert_l1;
+                           end
                        end;
                    end;
                  objectdef:
                    begin
                      { ugly, but delphi allows it }
-                     if (m_delphi in current_settings.modeswitches) and
-                        is_class_or_interface_or_dispinterface(def_from) and
-                        (cdo_explicit in cdoptions) then
+                     if (cdo_explicit in cdoptions) and
+                        is_class_or_interface_or_objc_or_java(def_from) then
                        begin
-                         doconv:=tc_int_2_int;
-                         eq:=te_convert_l1;
+                         { in Java enums /are/ class instances, and hence such
+                           typecasts must not be treated as integer-like
+                           conversions
+                         }
+                         if target_info.system in [system_jvm_java32] then
+                           begin
+                             doconv:=tc_equal;
+                             eq:=te_convert_l1;
+                           end
+                         else if m_delphi in current_settings.modeswitches then
+                           begin
+                             doconv:=tc_int_2_int;
+                             eq:=te_convert_l1;
+                           end;
                        end;
                    end;
                end;
@@ -1026,14 +1044,31 @@ implementation
                      { allow explicit typecasts from enums to pointer.
                        Support for delphi compatibility
                      }
+                     { in Java enums /are/ class instances, and hence such
+                       typecasts must not be treated as integer-like conversions
+                     }
                      if (((cdo_explicit in cdoptions) and
-                          (m_delphi in current_settings.modeswitches)
-                          ) or
+                          ((m_delphi in current_settings.modeswitches) or
+                           (target_info.system in [system_jvm_java32])
+                          )
+                         ) or
                          (cdo_internal in cdoptions)
                         ) then
                        begin
-                         doconv:=tc_int_2_int;
-                         eq:=te_convert_l1;
+                         { in Java enums /are/ class instances, and hence such
+                           typecasts must not be treated as integer-like
+                           conversions
+                         }
+                         if target_info.system in [system_jvm_java32] then
+                           begin
+                             doconv:=tc_equal;
+                             eq:=te_convert_l1;
+                           end
+                         else if m_delphi in current_settings.modeswitches then
+                           begin
+                             doconv:=tc_int_2_int;
+                             eq:=te_convert_l1;
+                           end;
                        end;
                    end;
                  arraydef :
@@ -1397,9 +1432,14 @@ implementation
                        eq:=te_convert_l2;
                      end
                    { ugly, but delphi allows it }
-                   else if (def_from.typ in [orddef,enumdef]) and
-                     (m_delphi in current_settings.modeswitches) and
-                     (cdo_explicit in cdoptions) then
+                   { in Java enums /are/ class instances, and hence such
+                     typecasts must not be treated as integer-like conversions
+                   }
+                   else if ((not(target_info.system in [system_jvm_java32]) and
+                        (def_from.typ=enumdef)) or
+                       (def_from.typ=orddef)) and
+                      (m_delphi in current_settings.modeswitches) and
+                      (cdo_explicit in cdoptions) then
                      begin
                        doconv:=tc_int_2_int;
                        eq:=te_convert_l1;
