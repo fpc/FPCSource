@@ -837,6 +837,9 @@ implementation
         if (sym.typ=fieldvarsym) and
            assigned(tfieldvarsym(sym).externalname) then
           result:=jvmmangledbasename(sym,tfieldvarsym(sym).externalname^,withsignature)
+        else if (sym.typ=staticvarsym) and
+           (tstaticvarsym(sym).mangledbasename<>'') then
+          result:=jvmmangledbasename(sym,tstaticvarsym(sym).mangledbasename,withsignature)
         else
           result:=jvmmangledbasename(sym,sym.RealName,withsignature);
       end;

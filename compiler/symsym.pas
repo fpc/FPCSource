@@ -226,6 +226,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function mangledname:TSymStr;override;
           procedure set_mangledbasename(const s: TSymStr);
+          function mangledbasename: TSymStr;
           procedure set_mangledname(const s:TSymStr);
           procedure set_raw_mangledname(const s:TSymStr);
       end;
@@ -1594,12 +1595,29 @@ implementation
     procedure tstaticvarsym.set_mangledbasename(const s: TSymStr);
       begin
   {$ifdef symansistr}
+        if _mangledname<>'' then
+          internalerror(2011082202);
         _mangledbasename:=s;
   {$else symansistr}
+        if assigned(_mangledname) then
+          internalerror(2011082202);
         stringdispose(_mangledbasename);
         _mangledbasename:=stringdup(s);
   {$endif symansistr}
         include(varoptions,vo_has_mangledname);
+      end;
+
+
+    function tstaticvarsym.mangledbasename: TSymStr;
+      begin
+{$ifdef symansistr}
+        result:=_mangledbasename;
+{$else symansistr}
+        if assigned(_mangledbasename) then
+          result:=_mangledbasename^
+        else
+          result:='';
+{$endif symansistr}
       end;
 
 
