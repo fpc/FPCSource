@@ -3670,6 +3670,7 @@ implementation
         paraaddr: taddrnode;
         ptrtype: tpointerdef;
         paracomplexity: longint;
+        pushconstaddr: boolean;
       begin
         { parameters }
         para := tcallparanode(left);
@@ -3692,6 +3693,8 @@ implementation
                 { we need to take care that we use the type of the defined parameter and not of the
                   passed parameter, because these can be different in case of a formaldef (PFV) }
                 paracomplexity := node_complexity(para.left);
+                if para.parasym.varspez=vs_const then
+                  pushconstaddr:=paramanager.push_addr_param(vs_const,para.parasym.vardef,procdefinition.proccalloption);
                 { check if we have to create a temp, assign the parameter's }
                 { contents to that temp and then substitute the paramter    }
                 { with the temp everywhere in the function                  }
@@ -3721,7 +3724,7 @@ implementation
                       { variable would be passed by value normally, or if   }
                       { there is such a variable somewhere in an expression }
                        ((para.parasym.varspez = vs_const) and
-                        (not paramanager.push_addr_param(vs_const,para.parasym.vardef,procdefinition.proccalloption) or
+                        (not pushconstaddr or
                          (paracomplexity > 1)))) and
                      { however, if we pass a global variable, an object field or}
                      { an expression containing a pointer dereference as        }
@@ -3757,14 +3760,20 @@ implementation
                       is still folded. (FK)
                       }
                     ((para.parasym.varspez = vs_const) and
-                     { const para's can get vs_readwritten if their address }
-                     { is taken                                             }
-                     ((para.parasym.varstate = vs_readwritten) or
+                     { const para's can get vs_readwritten if their address   }
+                     { is taken -> in case they are not passed by reference,  }
+                     { to keep the same behaviour as without inlining we have }
+                     { to make a copy in case the originally passed parameter }
+                     { value gets changed inside the callee                   }
+                     ((not pushconstaddr and
+                       (para.parasym.varstate = vs_readwritten)
+                      ) or
                       { call-by-reference const's may need to be passed by }
                       { reference to function called in the inlined code   }
-                      (paramanager.push_addr_param(vs_const,para.parasym.vardef,procdefinition.proccalloption) and
-                       not valid_for_addr(para.left,false))
-                     ))
+                       (pushconstaddr and
+                        not valid_for_addr(para.left,false))
+                     )
+                    )
                    )
                   ) then
                   begin
