@@ -54,14 +54,15 @@ var
     _spellServerConnection: id;
     _dictionaries: id;
     _learnedDictionaries: NSArray;
-    __ssFlags: bitpacked record
+    __ssFlags: record
       case byte of
        0: (_anonbitfield_NSSpellServer0: cuint);
-       1: (
+       1: (data: bitpacked record
         delegateLearnsWords: 0..1;
         delegateForgetsWords: 0..1;
         busy: 0..1;
         _reserved: 0..((1 shl 29)-1);
+       end;
       );
       end;
     _reservedSpellServer1: Pointer;

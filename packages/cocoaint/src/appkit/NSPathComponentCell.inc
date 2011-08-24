@@ -47,16 +47,17 @@
     _resizedWidth: CGFloat;
     _currentWidth: CGFloat;
     _url: NSURL;
-    __flags: bitpacked record
+    __flags: record
       case byte of
        0: (_anonbitfield_NSPathComponentCell0: cuint);
-       1: (
+       1: (data: bitpacked record
         shouldDrawArrow: 0..1;
         drawsAsNavigationBar: 0..1;
         isFirstItem: 0..1;
         isLastItem: 0..1;
         isDropTarget: 0..1;
         reserved: 0..((1 shl 27)-1);
+       end;
       );
       end;
     _aux: id;

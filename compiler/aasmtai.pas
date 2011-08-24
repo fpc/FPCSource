@@ -84,7 +84,9 @@ interface
           ait_regalloc,
           ait_tempalloc,
           { used to mark assembler blocks and inlined functions }
-          ait_marker
+          ait_marker,
+          { used to describe a new location of a variable }
+          ait_varloc
           );
 
         taiconst_type = (
@@ -113,7 +115,9 @@ interface
             relsyms (nor do they support dwarf, for that matter)
           }
           aitconst_darwin_dwarf_delta64,
-          aitconst_darwin_dwarf_delta32
+          aitconst_darwin_dwarf_delta32,
+          { ARM Thumb-2 only }
+          aitconst_half16bit { used for table jumps. The actual value is the 16bit value shifted left once }
         );
 
     const
@@ -168,7 +172,8 @@ interface
           'cut',
           'regalloc',
           'tempalloc',
-          'marker'
+          'marker',
+          'varloc'
           );
 
     type
@@ -231,14 +236,15 @@ interface
         a new ait type!                                                              }
       SkipInstr = [ait_comment, ait_symbol,ait_section
                    ,ait_stab, ait_function_name, ait_force_line
-                   ,ait_regalloc, ait_tempalloc, ait_symbol_end, ait_directive];
+                   ,ait_regalloc, ait_tempalloc, ait_symbol_end, ait_directive
+                   ,ait_varloc];
 
       { ait_* types which do not have line information (and hence which are of type
         tai, otherwise, they are of type tailineinfo }
       SkipLineInfo =[ait_label,
                      ait_regalloc,ait_tempalloc,
                      ait_stab,ait_function_name,
-                     ait_cutobject,ait_marker,ait_align,ait_section,ait_comment,
+                     ait_cutobject,ait_marker,ait_varloc,ait_align,ait_section,ait_comment,
                      ait_const,
 {$ifdef arm}
                      ait_thumb_func,
@@ -498,11 +504,14 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
+       { tai_stab }
+
        tai_stab = class(tai)
           str : pchar;
           stabtype : TStabType;
           constructor Create(_stabtype:TStabType;_str : pchar);
           constructor Create_str(_stabtype:TStabType;const s:string);
+          constructor create_ansistr(_stabtype: TStabType; const s: ansistring);
           destructor Destroy;override;
        end;
 
@@ -640,6 +649,16 @@ interface
         end;
         tai_align_class = class of tai_align_abstract;
 
+        tai_varloc = class(tai)
+           newlocation : tregister;
+           varsym : tsym;
+           constructor create(sym : tsym;loc : tregister);
+           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+           procedure ppuwrite(ppufile:tcompilerppufile);override;
+           procedure buildderefimpl;override;
+           procedure derefimpl;override;
+        end;
+
     var
       { array with all class types for tais }
       aiclass : taiclassarray;
@@ -749,6 +768,39 @@ implementation
          end
         else
          ppufile.putbyte(byte(ait_none));
+      end;
+
+
+    constructor tai_varloc.create(sym: tsym; loc: tregister);
+      begin
+        inherited Create;
+        typ:=ait_varloc;
+        newlocation:=loc;
+        varsym:=sym;
+      end;
+
+
+    constructor tai_varloc.ppuload(t: taitype; ppufile: tcompilerppufile);
+      begin
+        inherited ppuload(t, ppufile);
+      end;
+
+
+    procedure tai_varloc.ppuwrite(ppufile: tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+      end;
+
+
+    procedure tai_varloc.buildderefimpl;
+      begin
+        inherited buildderefimpl;
+      end;
+
+
+    procedure tai_varloc.derefimpl;
+      begin
+        inherited derefimpl;
       end;
 
 
@@ -1323,6 +1375,8 @@ implementation
             result:=LengthUleb128(qword(value));
           aitconst_sleb128bit :
             result:=LengthSleb128(value);
+          aitconst_half16bit:
+            result:=2;
           else
             internalerror(200603253);
         end;
@@ -1646,6 +1700,15 @@ implementation
     constructor tai_stab.create_str(_stabtype:TStabType;const s:string);
       begin
          self.create(_stabtype,strpnew(s));
+      end;
+
+    constructor tai_stab.create_ansistr(_stabtype:TStabType;const s:ansistring);
+      begin
+         inherited create;
+         typ:=ait_stab;
+         stabtype:=_stabtype;
+         getmem(str,length(s)+1);
+         move(s[1],str^,length(s)+1);
       end;
 
     destructor tai_stab.destroy;
@@ -2003,7 +2066,11 @@ implementation
             if (cs_create_pic in current_settings.moduleswitches) and
               assigned(r.symbol) and
               not assigned(r.relsymbol) and
-              (r.refaddr=addr_no) then
+              (r.refaddr=addr_no)
+{$ifdef ARM}
+              and not(r.base=NR_R15)
+{$endif ARM}
+              then
               internalerror(200502052);
             typ:=top_ref;
             if assigned(add_reg_instruction_hook) then
@@ -2406,5 +2473,8 @@ implementation
         ppufile.putbyte(fillop);
         ppufile.putbyte(byte(use_op));
       end;
-
+begin
+  { taitype should fit into a 4 byte set for speed reasons }
+  if ord(high(taitype))>31 then
+    internalerror(201108181);
 end.

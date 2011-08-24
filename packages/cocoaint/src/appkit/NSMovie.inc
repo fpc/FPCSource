@@ -44,12 +44,13 @@
   private
     _movie: Pointer;
     _url: NSURL;
-    __movieFlags: bitpacked record
+    __movieFlags: record
       case byte of
        0: (_anonbitfield_NSMovie0: cint);
-       1: (
+       1: (data: bitpacked record
         _dispose: 0..1;
         reserved: 0..((1 shl 31)-1);
+       end;
       );
       end;
     _reserved1: clong;

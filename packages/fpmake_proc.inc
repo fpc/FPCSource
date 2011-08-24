@@ -46,6 +46,12 @@ begin
 {$include chm/fpmake.pp}
 end;
 
+procedure add_cocoaint;
+begin
+  with Installer do
+{$include cocoaint/fpmake.pp}
+end;
+
 procedure add_dbus;
 begin
   with Installer do
@@ -100,6 +106,12 @@ begin
 {$include fcl-image/fpmake.pp}
 end;
 
+procedure add_fcl_js;
+begin
+  with Installer do
+{$include fcl-js/fpmake.pp}
+end;
+
 procedure add_fcl_json;
 begin
   with Installer do
@@ -134,6 +146,12 @@ procedure add_fcl_res;
 begin
   with Installer do
 {$include fcl-res/fpmake.pp}
+end;
+
+procedure add_fcl_stl;
+begin
+  with Installer do
+{$include fcl-stl/fpmake.pp}
 end;
 
 procedure add_fcl_web;
@@ -178,11 +196,7 @@ begin
 {$include fv/fpmake.pp}
 end;
 
-procedure add_gdbint;
-begin
-  with Installer do
 {$include gdbint/fpmake.pp}
-end;
 
 procedure add_gdbm;
 begin
@@ -194,6 +208,12 @@ procedure add_ggi;
 begin
   with Installer do
 {$include ggi/fpmake.pp}
+end;
+
+procedure add_gmp;
+begin
+  with Installer do
+{$include gmp/fpmake.pp}
 end;
 
 procedure add_gnome1;
@@ -224,6 +244,12 @@ procedure add_hash;
 begin
   with Installer do
 {$include hash/fpmake.pp}
+end;
+
+procedure add_hermes;
+begin
+  with Installer do
+{$include hermes/fpmake.pp}
 end;
 
 procedure add_httpd13;
@@ -304,6 +330,12 @@ begin
 {$include libndsfpc/fpmake.pp}
 end;
 
+procedure add_libogcfpc;
+begin
+  with Installer do
+{$include libogcfpc/fpmake.pp}
+end;
+
 procedure add_libpng;
 begin
   with Installer do
@@ -338,12 +370,6 @@ procedure add_mad;
 begin
   with Installer do
 {$include mad/fpmake.pp}
-end;
-
-procedure add_matroska;
-begin
-  with Installer do
-{$include matroska/fpmake.pp}
 end;
 
 procedure add_modplug;
@@ -470,6 +496,12 @@ procedure add_proj4;
 begin
   with Installer do
 {$include proj4/fpmake.pp}
+end;
+
+procedure add_ptc;
+begin
+  with Installer do
+{$include ptc/fpmake.pp}
 end;
 
 procedure add_pthreads;

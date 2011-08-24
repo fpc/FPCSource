@@ -14,12 +14,6 @@
 
  *****************************************************************************}
 
-function __errno: plongint;  cdecl; export;
-begin
-
-end;
-
-
 function S_ISBLK(m: longint): boolean; inline;
 begin
   result := (m and _IFMT) = _IFBLK;

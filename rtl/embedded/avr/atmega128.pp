@@ -6,8 +6,12 @@ Register definitions and startup code for ATMEL ATmega128
 unit atmega128;
 
 {$goto on}
+{$macro on}
 
   interface
+
+    {$define DOCALL:=call}
+    {$define DOJMP:=jmp}
 
   implementation
 
@@ -17,7 +21,7 @@ unit atmega128;
       asm
         cli
       .Lhalt:
-        xjmp .Lhalt
+        jmp .Lhalt
       end;
 
     var
@@ -36,7 +40,7 @@ unit atmega128;
         .init
         .align 16
         .globl _start
-        b   _start
+{        b   _start
         b   .LUndefined_Addr  // Undefined Instruction vector
         b   .LSWI_Addr        // Software Interrupt vector
         b   .LPrefetch_Addr   // Prefetch abort vector
@@ -63,7 +67,6 @@ unit atmega128;
     .LFIQ_Addr:
         ldr r0,.L5
         ldr pc,[r0]
-
     .L1:
         .long     Undefined_Handler
     .L2:
@@ -76,7 +79,7 @@ unit atmega128;
         .long     IRQ_Handler
     .L6:
         .long     FIQ_Handler
-
+}
         {
           all ATMEL MCUs use the same startup code, the details are
           governed by defines

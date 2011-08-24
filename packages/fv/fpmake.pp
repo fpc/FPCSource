@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fv';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.Author := 'Leon De Boer and Pierre Mueller';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -40,6 +40,7 @@ begin
           AddUnit('msgbox');
           AddUnit('fvconsts');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('asciitab.pas');
       with T.Dependencies do
         begin
@@ -97,6 +98,7 @@ begin
           AddUnit('app');
           AddUnit('histlist');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('drivers.pas');
       with T.Dependencies do
         begin
@@ -118,6 +120,7 @@ begin
           AddUnit('stddlg');
           AddUnit('msgbox');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('fvcommon.pas');
       with T.Dependencies do
         begin
@@ -173,6 +176,7 @@ begin
           AddUnit('views');
           AddUnit('app');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('outline.pas');
       with T.Dependencies do
         begin
@@ -204,6 +208,7 @@ begin
           AddUnit('histlist');
           AddUnit('msgbox');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('sysmsg.pas');
       with T.Dependencies do
         begin

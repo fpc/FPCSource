@@ -44,7 +44,7 @@
   NSCache = objcclass external (NSObject)
   private
     _delegate: id;
-        _private: array[0..4] of Pointer;
+    _private: array[0..(5)-1] of Pointer;
     _reserved: Pointer;
     
   public

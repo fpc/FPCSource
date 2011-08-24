@@ -57,9 +57,11 @@ type
   TSort = function (const a, b: pointer): integer;
 procedure qsort(__base: pointer; __nmemb: integer; __size: integer; __compar: TSort); cdecl; external;
 
-function __errno: plongint; cdecl; export;
+var
+  errno: plongint; external name '__errno'; 
 
 type
+{
   _FILE = record
     firstCluster: longword;
     length: longword;
@@ -79,7 +81,16 @@ type
     dirEntOffset: integer;                // The offset within the directory sector
   end;
   P_FILE = ^_FILE;
-
+ }
+ 
+   P_iobuf = ^_iobuf;
+   _iobuf = record
+        reserved : longint;
+     end;
+   _FILE = _iobuf;
+   P_FILE = ^_FILE;
+   PP_FILE = ^P_FILE;
+ 
 const
   SEEK_SET = 0;
   SEEK_CUR = 1;
@@ -203,25 +214,26 @@ function fileno(para1: P_FILE): longint; cdecl; external;
 function fileno(var para1: _FILE): longint; cdecl; external;
 function fstat(fildes: longint; buf: PStat): longint; cdecl; external;
 function fstat(fildes: longint; var buf: TStat): longint; cdecl; external;
-function _stat(__file:Pchar; var __buf:Tstat):longint; cdecl; external name 'stat';
+function _stat(__file: Pchar; var __buf: Tstat): longint; cdecl; external name 'stat';
+function _stat(path: Pchar; buf: Pstat): longint; cdecl; external name 'stat';
 function ftruncate(fildes: longint; len: longint): longint; cdecl; external;
 function unlink(path: Pchar): longint; cdecl; external;
 function rename(para1: Pchar; para2: Pchar): longint; cdecl; external;
 
-function FpOpen(path: Pchar; oflag: longint): longint; cdecl; external name 'open';
-function FpOpen(path: Pchar; oflag, mode: longint): longint; cdecl; external name 'open';
-function FpRead(fildes:longint; buf:pointer; nbytes:dword):longint;cdecl;external name 'read';
-function FpRead(fildes:longint; var buf; nbytes:dword):longint;cdecl;external name 'read';
-function FpWrite(fildes:longint; buf:pointer; nbytes:dword):longint;cdecl;external name 'write';
-function FpWrite(fildes:longint; var buf; nbytes:dword):longint;cdecl;external name 'write';
-function fplseek(fildes:longint; offset:longint; whence:longint):longint;cdecl;external name 'lseek';
-function FpClose(fildes:longint):longint;cdecl;external name 'close';
-function FpChsize(fildes:longint; size:dword):longint;cdecl;external name 'chsize';
-function FpUnlink(path:Pchar):longint;cdecl;external name 'unlink';
-function FpRename(para1: Pchar; para2: Pchar): longint; cdecl; external name 'rename';
-function Fpstat(path:Pchar; buf:Pstat):longint;cdecl;external name 'stat';
-function Fpstat(path:Pchar; var buf:Tstat):longint;cdecl;external name 'stat';
-function FpAccess(path:Pchar; mode:longint):longint;cdecl;external name 'access';
+function _open(path: Pchar; oflag: longint): longint; cdecl; external name 'open';
+function _open(path: Pchar; oflag, mode: longint): longint; cdecl; external name 'open';  
+function _read(fildes:longint; buf:pointer; nbytes:dword):longint;cdecl;external name 'read';
+function _read(fildes:longint; var buf; nbytes:dword):longint;cdecl;external name 'read';
+function _write(fildes:longint; buf:pointer; nbytes:dword):longint;cdecl;external name 'write';
+function _write(fildes:longint; var buf; nbytes:dword):longint;cdecl;external name 'write';
+function _lseek(fildes:longint; offset:longint; whence:longint):longint;cdecl;external name 'lseek';
+function _close(fildes:longint): longint; cdecl; external name 'close';
+function _unlink(path:Pchar): longint; cdecl; external name 'unlink';
+function _rename(para1: Pchar; para2: Pchar): longint; cdecl; external name 'rename';
+function _access(path: Pchar; mode: longint): longint; cdecl; external name 'access';
+function _tell(fildes: longint): longint; cdecl; external name 'tell';
+function _isatty(fildes: longint): longint; cdecl; external name 'isatty';
+function _truncate(fildes: longint; len: longint): longint; cdecl; external name 'truncate';
 
 
 
@@ -276,4 +288,140 @@ const
  SH_DENYRD    = $00000030; // deny read mode
  SH_DENYNO    = $00000040; // deny none mode
  
+Const
+
+Sys_EPERM       = 1;    { Operation not permitted }
+Sys_ENOENT      = 2;    { No such file or directory }
+Sys_ESRCH       = 3;    { No such process }
+Sys_EINTR       = 4;    { Interrupted system call }
+Sys_EIO = 5;    { I/O error }
+Sys_ENXIO       = 6;    { No such device or address }
+Sys_E2BIG       = 7;    { Arg list too long }
+Sys_ENOEXEC     = 8;    { Exec format error }
+Sys_EBADF       = 9;    { Bad file number }
+Sys_ECHILD      = 10;   { No child processes }
+Sys_EAGAIN      = 11;   { Try again }
+Sys_ENOMEM      = 12;   { Out of memory }
+Sys_EACCES      = 13;   { Permission denied }
+Sys_EFAULT      = 14;   { Bad address }
+Sys_ENOTBLK     = 15;   { Block device required, NOT POSIX! }
+Sys_EBUSY       = 16;   { Device or resource busy }
+Sys_EEXIST      = 17;   { File exists }
+Sys_EXDEV       = 18;   { Cross-device link }
+Sys_ENODEV      = 19;   { No such device }
+Sys_ENOTDIR     = 20;   { Not a directory }
+Sys_EISDIR      = 21;   { Is a directory }
+Sys_EINVAL      = 22;   { Invalid argument }
+Sys_ENFILE      = 23;   { File table overflow }
+Sys_EMFILE      = 24;   { Too many open files }
+Sys_ENOTTY      = 25;   { Not a typewriter }
+Sys_ETXTBSY     = 26;   { Text file busy. The new process was
+                      a pure procedure (shared text) file which was
+                      open for writing by another process, or file
+                      which was open for writing by another process,
+                      or while the pure procedure file was being
+                      executed an open(2) call requested write access
+                      requested write access.}
+Sys_EFBIG       = 27;   { File too large }
+Sys_ENOSPC      = 28;   { No space left on device }
+Sys_ESPIPE      = 29;   { Illegal seek }
+Sys_EROFS       = 30;   { Read-only file system }
+Sys_EMLINK      = 31;   { Too many links }
+Sys_EPIPE       = 32;   { Broken pipe }
+Sys_EDOM        = 33;   { Math argument out of domain of func }
+Sys_ERANGE      = 34;   { Math result not representable }
+Sys_EDEADLK     = 35;   { Resource deadlock would occur }
+Sys_ENAMETOOLONG= 36;   { File name too long }
+Sys_ENOLCK      = 37;   { No record locks available }
+Sys_ENOSYS      = 38;   { Function not implemented }
+Sys_ENOTEMPTY= 39;      { Directory not empty }
+Sys_ELOOP       = 40;   { Too many symbolic links encountered }
+Sys_EWOULDBLOCK = Sys_EAGAIN;   { Operation would block }
+Sys_ENOMSG      = 42;   { No message of desired type }
+Sys_EIDRM       = 43;   { Identifier removed }
+Sys_ECHRNG      = 44;   { Channel number out of range }
+Sys_EL2NSYNC= 45;       { Level 2 not synchronized }
+Sys_EL3HLT      = 46;   { Level 3 halted }
+Sys_EL3RST      = 47;   { Level 3 reset }
+Sys_ELNRNG      = 48;   { Link number out of range }
+Sys_EUNATCH     = 49;   { Protocol driver not attached }
+Sys_ENOCSI      = 50;   { No CSI structure available }
+Sys_EL2HLT      = 51;   { Level 2 halted }
+Sys_EBADE       = 52;   { Invalid exchange }
+Sys_EBADR       = 53;   { Invalid request descriptor }
+Sys_EXFULL      = 54;   { Exchange full }
+Sys_ENOANO      = 55;   { No anode }
+Sys_EBADRQC     = 56;   { Invalid request code }
+Sys_EBADSLT     = 57;   { Invalid slot }
+Sys_EDEADLOCK= 58;      { File locking deadlock error }
+Sys_EBFONT      = 59;   { Bad font file format }
+Sys_ENOSTR      = 60;   { Device not a stream }
+Sys_ENODATA     = 61;   { No data available }
+Sys_ETIME       = 62;   { Timer expired }
+Sys_ENOSR       = 63;   { Out of streams resources }
+Sys_ENONET      = 64;   { Machine is not on the network }
+Sys_ENOPKG      = 65;   { Package not installed }
+Sys_EREMOTE     = 66;   { Object is remote }
+Sys_ENOLINK     = 67;   { Link has been severed }
+Sys_EADV        = 68;   { Advertise error }
+Sys_ESRMNT      = 69;   { Srmount error }
+Sys_ECOMM       = 70;   { Communication error on send }
+Sys_EPROTO      = 71;   { Protocol error }
+Sys_EMULTIHOP= 72;      { Multihop attempted }
+Sys_EDOTDOT     = 73;   { RFS specific error }
+Sys_EBADMSG     = 74;   { Not a data message }
+Sys_EOVERFLOW= 75;      { Value too large for defined data type }
+Sys_ENOTUNIQ= 76;       { Name not unique on network }
+Sys_EBADFD      = 77;   { File descriptor in bad state }
+Sys_EREMCHG     = 78;   { Remote address changed }
+Sys_ELIBACC     = 79;   { Can not access a needed shared library }
+Sys_ELIBBAD     = 80;   { Accessing a corrupted shared library }
+Sys_ELIBSCN     = 81;   { .lib section in a.out corrupted }
+Sys_ELIBMAX     = 82;   { Attempting to link in too many shared libraries }
+Sys_ELIBEXEC= 83;       { Cannot exec a shared library directly }
+Sys_EILSEQ      = 84;   { Illegal byte sequence }
+Sys_ERESTART= 85;       { Interrupted system call should be restarted }
+Sys_ESTRPIPE= 86;       { Streams pipe error }
+Sys_EUSERS      = 87;   { Too many users }
+Sys_ENOTSOCK= 88;       { Socket operation on non-socket }
+Sys_EDESTADDRREQ= 89;   { Destination address required }
+Sys_EMSGSIZE= 90;       { Message too long }
+Sys_EPROTOTYPE= 91;     { Protocol wrong type for socket }
+Sys_ENOPROTOOPT= 92;    { Protocol not available }
+Sys_EPROTONOSUPPORT= 93;        { Protocol not supported }
+Sys_ESOCKTNOSUPPORT= 94;        { Socket type not supported }
+Sys_EOPNOTSUPP= 95;     { Operation not supported on transport endpoint }
+Sys_EPFNOSUPPORT= 96;   { Protocol family not supported }
+Sys_EAFNOSUPPORT= 97;   { Address family not supported by protocol }
+Sys_EADDRINUSE= 98;     { Address already in use }
+Sys_EADDRNOTAVAIL= 99;  { Cannot assign requested address }
+Sys_ENETDOWN= 100;      { Network is down }
+Sys_ENETUNREACH= 101;   { Network is unreachable }
+Sys_ENETRESET= 102;     { Network dropped connection because of reset }
+Sys_ECONNABORTED= 103;  { Software caused connection abort }
+Sys_ECONNRESET= 104;    { Connection reset by peer }
+Sys_ENOBUFS     = 105;  { No buffer space available }
+Sys_EISCONN     = 106;  { Transport endpoint is already connected }
+Sys_ENOTCONN= 107;      { Transport endpoint is not connected }
+Sys_ESHUTDOWN= 108;     { Cannot send after transport endpoint shutdown }
+Sys_ETOOMANYREFS= 109;  { Too many references: cannot splice }
+Sys_ETIMEDOUT= 110;     { Connection timed out }
+Sys_ECONNREFUSED= 111;  { Connection refused }
+Sys_EHOSTDOWN= 112;     { Host is down }
+Sys_EHOSTUNREACH= 113;  { No route to host }
+Sys_EALREADY= 114;      { Operation already in progress }
+Sys_EINPROGRESS= 115;   { Operation now in progress }
+Sys_ESTALE      = 116;  { Stale NFS file handle }
+Sys_EUCLEAN     = 117;  { Structure needs cleaning }
+Sys_ENOTNAM     = 118;  { Not a XENIX named type file }
+Sys_ENAVAIL     = 119;  { No XENIX semaphores available }
+Sys_EISNAM      = 120;  { Is a named type file }
+Sys_EREMOTEIO= 121;     { Remote I/O error }
+Sys_EDQUOT      = 122;  { Quota exceeded }
+
+
+{ This value was suggested by Daniel
+  based on infos from www.linuxassembly.org }
+
+Sys_ERROR_MAX = $fff;
  

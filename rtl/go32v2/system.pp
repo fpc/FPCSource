@@ -404,7 +404,11 @@ begin
            strcopy(argv[3], @proxy_s[14]);
            allocarg(4,4);
            strcopy(argv[4], @proxy_s[19]);
-
+           { We need to change this variable env name
+             otherwise it will be used by other DJGPP variables
+             if we call them. PM 2011-07-04
+             Hide it as '_!proxy' instead of ' !proxy' }
+           hp^[0]:='_';
            useproxy:=true;
            break;
          end;

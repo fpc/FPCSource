@@ -216,12 +216,15 @@ var DBConnectorRefCount: integer;
 
 constructor TDBConnector.create;
 begin
-  CreateFieldDataset;
-  CreateNDatasets;
-  FUsedDatasets := TFPList.Create;
   FFormatSettings.DecimalSeparator:='.';
+  FFormatSettings.ThousandSeparator:=#0;
   FFormatSettings.DateSeparator:='-';
   FFormatSettings.TimeSeparator:=':';
+  FFormatSettings.ShortDateFormat:='yyyy/mm/dd';
+  FFormatSettings.LongTimeFormat:='hh:nn:ss.zzz';
+  FUsedDatasets := TFPList.Create;
+  CreateFieldDataset;
+  CreateNDatasets;
 end;
 
 destructor TDBConnector.destroy;
@@ -287,28 +290,40 @@ begin
 end;
 
 procedure InitialiseDBConnector;
+
+const B: array[boolean] of char=('0','1');  // should be exported from some main db unit, as SQL true/false?
+
 var DBConnectorClass : TPersistentClass;
     i                : integer;
+    FormatSettings   : TFormatSettings;
 begin
   if DBConnectorRefCount>0 then exit;
+  
+  FormatSettings.DecimalSeparator:='.';
+  FormatSettings.ThousandSeparator:=#0;
+  
   testValues[ftString] := testStringValues;
   testValues[ftFixedChar] := testStringValues;
   testValues[ftTime] := testTimeValues;
+  testValues[ftDate] := testDateValues;
   testValues[ftFMTBcd] := testFmtBCDValues;
   for i := 0 to testValuesCount-1 do
     begin
-    testValues[ftFloat,i] := FloatToStr(testFloatValues[i]);
+    testValues[ftBoolean,i] := B[testBooleanValues[i]];
+    testValues[ftFloat,i] := FloatToStr(testFloatValues[i],FormatSettings);
     testValues[ftSmallint,i] := IntToStr(testSmallIntValues[i]);
     testValues[ftInteger,i] := IntToStr(testIntValues[i]);
     testValues[ftLargeint,i] := IntToStr(testLargeIntValues[i]);
     // The decimalseparator was set to a comma for currencies and to a dot for ftBCD values.
-    // But why is not clear to me. For Postgres it works now, with a dot for both types.
-    // DecimalSeparator:=',';
-    DecimalSeparator:='.';
+    // DecimalSeparator for PostgreSQL must correspond to monetary locale set on PostgreSQL server
+    // Here we assume, that locale on client side is same as locale on server
     testValues[ftCurrency,i] := CurrToStr(testCurrencyValues[i]);
-    // DecimalSeparator:='.';
-    testValues[ftBCD,i] := CurrToStr(testCurrencyValues[i]);
-    testValues[ftDate,i] := testDateValues[i];
+    testValues[ftBCD,i] := CurrToStr(testCurrencyValues[i],FormatSettings);
+    // For date '0001-01-01' other time-part like '00:00:00' causes "Invalid variant type cast", because of < MinDateTime constant
+    if (testDateValues[i]>'0001-01-01') and (testTimeValues[i]>='00:00:01') and (testTimeValues[i]<'24:00:00') then
+      testValues[ftDateTime,i] := testDateValues[i] + ' ' + testTimeValues[i]
+    else
+      testValues[ftDateTime,i] := testDateValues[i];
     end;
 
   if dbconnectorname = '' then raise Exception.Create('There is no db-connector specified');

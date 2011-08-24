@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='cdrom';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.OSes:=[Win32,Win64,Linux];
 
     P.Author := 'Michael van Canneyt';
@@ -42,6 +42,8 @@ begin
         begin
           AddUnit('cdrom');
         end;
+    T:=P.Targets.AddUnit('fpcddb.pp');
+    T.ResourceStrings := True;
 
     // Linux
     T:=P.Targets.AddUnit('lincd.pp',[Linux]);

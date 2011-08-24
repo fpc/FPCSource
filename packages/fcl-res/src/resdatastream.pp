@@ -33,12 +33,9 @@ type
     procedure SetPosition(const Pos: Int64); override;
     function  GetSize: Int64; override;
     procedure SetSize64(const NewSize: Int64); override;
-    procedure SetSize(NewSize: Longint); override;
-    procedure SetSize(const NewSize: Int64); override;
   public
     constructor Create(aStream : TStream; aResource : TAbstractResource; aSize : int64); virtual;
     function Write(const Buffer; Count: Longint): Longint; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
   end;
 
@@ -74,8 +71,6 @@ type
     procedure SetPosition(const Pos: Int64); override;
     function  GetSize: Int64; override;
     procedure SetSize64(const NewSize: Int64); override;
-    procedure SetSize(NewSize: Longint); override;
-    procedure SetSize(const NewSize: Int64); override;
   public
     constructor Create(aStream : TStream; aResource : TAbstractResource; aSize : int64; aClass: TCachedStreamClass);
     destructor Destroy; override;
@@ -83,7 +78,6 @@ type
     procedure SetCustomStream(aStream : TStream);
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
     property Cached : boolean read GetCached write SetCached;
   end;
@@ -112,16 +106,6 @@ begin
   raise EInvalidOperation.Create('');
 end;
 
-procedure TCachedDataStream.SetSize(NewSize: Longint);
-begin
-  SetSize64(NewSize);
-end;
-
-procedure TCachedDataStream.SetSize(const NewSize: Int64);
-begin
- SetSize64(NewSize);
-end;
-
 constructor TCachedDataStream.Create(aStream: TStream;  aResource : TAbstractResource; aSize : int64);
 begin
   fStream:=aStream;
@@ -134,12 +118,6 @@ begin
   raise EInvalidOperation.Create('');
 end;
 
-function TCachedDataStream.Seek(Offset: Longint; Origin: Word
-  ): Longint;
-begin
-  Result:=Seek(Offset,TSeekOrigin(Origin));
-end;
-
 function TCachedDataStream.Seek(const Offset: Int64; Origin: TSeekOrigin
   ): Int64;
 var newpos : int64;
@@ -147,7 +125,7 @@ begin
   case Origin of
     soBeginning : newpos:=Offset;
     soCurrent : newpos:=Position+Offset;
-    soEnd : newpos:=fSize-Offset;
+    soEnd : newpos:=fSize+Offset;
   end;
   SetPosition(newpos);
   Result:=Position;
@@ -230,16 +208,6 @@ procedure TResourceDataStream.SetSize64(const NewSize: Int64);
 begin
   CheckChangeStream;
   fStream.Size:=NewSize;
-end;
-
-procedure TResourceDataStream.SetSize(NewSize: Longint);
-begin
-  SetSize64(NewSize);
-end;
-
-procedure TResourceDataStream.SetSize(const NewSize: Int64);
-begin
-  SetSize64(NewSize);
 end;
 
 constructor TResourceDataStream.Create(aStream: TStream; aResource :
@@ -327,10 +295,6 @@ begin
   Result:=fStream.Write(Buffer,Count);
 end;
 
-function TResourceDataStream.Seek(Offset: Longint; Origin: Word): Longint;
-begin
-  Result:=Seek(Offset,TSeekOrigin(Origin));
-end;
 
 function TResourceDataStream.Seek(const Offset: Int64; Origin: TSeekOrigin
   ): Int64;
@@ -339,7 +303,7 @@ begin
   case Origin of
     soBeginning : newpos:=Offset;
     soCurrent : newpos:=Position+Offset;
-    soEnd : newpos:=Size-Offset;
+    soEnd : newpos:=Size+Offset;
   end;
   SetPosition(newpos);
   Result:=Position;

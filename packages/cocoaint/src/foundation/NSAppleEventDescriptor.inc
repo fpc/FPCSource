@@ -44,7 +44,7 @@
   private
     _desc: AEDesc;
     _hasValidDesc: Boolean;
-        _padding: array[0..2] of char;
+    _padding: array[0..(3)-1] of char;
     
   public
     class function nullDescriptor: NSAppleEventDescriptor; message 'nullDescriptor';

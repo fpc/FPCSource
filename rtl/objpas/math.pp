@@ -2365,8 +2365,8 @@ begin
 end;
 
 // dilemma here. asm can do the two comparisons in one go?
-// but pascal is portable and can be i inline;ed. Ah well, we need purepascal's anyway:
-function CompareValue ( const A, B  : Integer) : TValueRelationship;
+// but pascal is portable and can be inlined. Ah well, we need purepascal's anyway:
+function CompareValue(const A, B  : Integer): TValueRelationship;
 
 begin
   result:=GreaterThanValue;
@@ -2377,7 +2377,7 @@ begin
      result:=LessThanValue;
 end;
 
-function CompareValue ( const A, B  : Int64) : TValueRelationship;
+function CompareValue(const A, B: Int64): TValueRelationship;
 
 begin
   result:=GreaterThanValue;
@@ -2388,7 +2388,7 @@ begin
      result:=LessThanValue;
 end;
 
-function CompareValue ( const A, B : QWord) : TValueRelationship;
+function CompareValue(const A, B: QWord): TValueRelationship;
 
 begin
   result:=GreaterThanValue;
@@ -2400,7 +2400,7 @@ begin
 end;
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
-function CompareValue ( const A, B : Single; delta : Single = 0.0) : TValueRelationship;
+function CompareValue(const A, B: Single; delta: Single = 0.0): TValueRelationship;
 begin
   result:=GreaterThanValue;
   if abs(a-b)<=delta then
@@ -2412,7 +2412,7 @@ end;
 {$endif}
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function CompareValue ( const A, B : Double; delta : Double = 0.0) : TValueRelationship;
+function CompareValue(const A, B: Double; delta: Double = 0.0): TValueRelationship;
 begin
   result:=GreaterThanValue;
   if abs(a-b)<=delta then
@@ -2424,7 +2424,7 @@ end;
 {$endif}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function CompareValue ( const A, B : Extended; delta : Extended = 0.0) : TValueRelationship;
+function CompareValue (const A, B: Extended; delta: Extended = 0.0): TValueRelationship;
 begin
   result:=GreaterThanValue;
   if abs(a-b)<=delta then

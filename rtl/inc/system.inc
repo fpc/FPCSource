@@ -849,36 +849,25 @@ Procedure FinalizeHeap;forward;
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
 procedure SysFlushStdIO;
-var
-  pstdout : ^Text;
 begin
-  { Show runtime error and exit }
-  pstdout:=@stdout;
-  If erroraddr<>nil Then
-   Begin
-     Writeln(pstdout^,'Runtime error ',Errorcode,' at $',hexstr(erroraddr));
-     { to get a nice symify }
-     Writeln(pstdout^,BackTraceStrFunc(Erroraddr));
-     dump_stack(pstdout^,ErrorBase);
-     Writeln(pstdout^,'');
-   End;
-
   { Make sure that all output is written to the redirected file }
   if Textrec(Output).Mode=fmOutput then
     Flush(Output);
   if Textrec(ErrOutput).Mode=fmOutput then
     Flush(ErrOutput);
-  if Textrec(pstdout^).Mode=fmOutput then
-    Flush(pstdout^);
+  if Textrec(stdout).Mode=fmOutput then
+    Flush(stdout);
   if Textrec(StdErr).Mode=fmOutput then
     Flush(StdErr);
 end;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 
-
 Procedure InternalExit;
 var
   current_exit : Procedure;
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+  pstdout : ^Text;
+{$endif}
 {$if defined(MSWINDOWS) or defined(OS2)}
   i : longint;
 {$endif}
@@ -897,6 +886,16 @@ Begin
   FinalizeUnits;
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+  { Show runtime error and exit }
+  pstdout:=@stdout;
+  If erroraddr<>nil Then
+   Begin
+     Writeln(pstdout^,'Runtime error ',Errorcode,' at $',hexstr(erroraddr));
+     { to get a nice symify }
+     Writeln(pstdout^,BackTraceStrFunc(Erroraddr));
+     dump_stack(pstdout^,ErrorBase);
+     Writeln(pstdout^,'');
+   End;
   SysFlushStdIO;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 

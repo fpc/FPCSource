@@ -32,16 +32,19 @@ Type
     Private
       FPos : Int64;
       function GetNumBytesAvailable: DWord;
+    protected
+      function GetPosition: Int64; override;
+      procedure InvalidSeek; override;
     public
       Function Write (Const Buffer; Count : Longint) :Longint; Override;
-      Function Seek (Offset : Longint;Origin : Word) : longint;override;
+      function Seek(const Offset: int64; Origin: TSeekOrigin): int64; override;
       Function Read (Var Buffer; Count : Longint) : longint; Override;
       property NumBytesAvailable: DWord read GetNumBytesAvailable;
     end;
 
   TOutputPipeStream = Class(THandleStream)
     Public
-      Function Seek (Offset : Longint;Origin : Word) : longint;override;
+      function Seek(const Offset: int64; Origin: TSeekOrigin): int64; override;
       Function Read (Var Buffer; Count : Longint) : longint; Override;
     end;
 
@@ -90,26 +93,10 @@ begin
   Inc(FPos,Result);
 end;
 
-Function TInputPipeStream.Seek (Offset : Longint;Origin : Word) : longint;
-
-Const BufSize = 100;
-
-Var Buf : array[1..BufSize] of Byte;
+function TInputPipeStream.Seek(const Offset: int64; Origin: TSeekOrigin): int64;
 
 begin
-  If (Origin=soFromCurrent) and (Offset=0) then
-     result:=FPos;
-  { Try to fake seek by reading and discarding }
-  if Not((Origin=soFromCurrent) and (Offset>=0) or
-         ((Origin=soFrombeginning) and (OffSet>=FPos))) then
-     Raise EPipeSeek.Create(ENoSeekMSg);
-  if Origin=soFromBeginning then
-    Dec(Offset,FPos);
-  While ((Offset Div BufSize)>0)
-        and (Read(Buf,SizeOf(Buf))=BufSize) do
-     Dec(Offset,BufSize);
-  If (Offset>0) then
-    Read(Buf,BufSize);
+  FakeSeekForward(Offset,Origin,FPos);
   Result:=FPos;
 end;
 
@@ -124,10 +111,10 @@ begin
   Result := 0;
 end;
 
-Function TOutputPipeStream.Seek (Offset : Longint;Origin : Word) : longint;
+function TOutputPipeStream.Seek(const Offset: int64; Origin: TSeekOrigin): int64;
 
 begin
-  Raise EPipeSeek.Create (ENoSeekMsg);
+  InvalidSeek;
 end;
 
 end.

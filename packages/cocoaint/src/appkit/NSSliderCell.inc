@@ -61,17 +61,17 @@ type
 { NSSliderCell }
   NSSliderCell = objcclass external (NSActionCell)
   private
-        _reserved: array[0..2] of cint;
+    _reserved: array[0..(3)-1] of cint;
     _numberOfTickMarks: cint;
     _altIncValue: double;
     _value: double;
     _maxValue: double;
     _minValue: double;
     _trackRect: NSRect;
-    __scFlags: bitpacked record
+    __scFlags: record
       case byte of
        0: (_anonbitfield_NSSliderCell0: cuint);
-       1: (
+       1: (data: bitpacked record
         weAreVertical: 0..1;
         weAreVerticalSet: 0..1;
         reserved1: 0..1;
@@ -81,6 +81,7 @@ type
         _sliderType: 0..((1 shl 2)-1);
         drawing: 0..1;
         reserved2: 0..((1 shl 23)-1);
+       end;
       );
       end;
     

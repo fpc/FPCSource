@@ -439,7 +439,7 @@ interface
         function  writeData:boolean;virtual;abstract;
         property CExeSection:TExeSectionClass read FCExeSection write FCExeSection;
         property CObjData:TObjDataClass read FCObjData write FCObjData;
-        procedure Order_ObjSectionList(ObjSectionList : TFPObjectList);virtual;
+        procedure Order_ObjSectionList(ObjSectionList : TFPObjectList; const aPattern:string);virtual;
       public
         CurrDataPos  : aword;
         MaxMemPos    : qword;
@@ -913,7 +913,7 @@ implementation
     function TObjData.sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;
       const
         secoptions : array[TAsmSectiontype] of TObjSectionOptions = ([],
-          {user} [oso_Data,oso_load,oso_write,oso_executable,oso_keep],
+          {user} [oso_Data,oso_load,oso_write,oso_keep],
           {code} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
           {Data} [oso_Data,oso_load,oso_write,oso_keep],
 { TODO: Fix sec_rodata be read-only-with-relocs}
@@ -921,7 +921,11 @@ implementation
 { TODO: Fix sec_rodata_norel be read-only/constant}
           {roData_norel} [oso_Data,oso_load,oso_write,oso_keep],
           {bss} [oso_load,oso_write,oso_keep],
-          {threadvar} [oso_load,oso_write],
+          {threadvar} [oso_load,oso_write
+{$ifdef FPC_USE_TLS_DIRECTORY}
+                       ,oso_keep
+{$endif FPC_USE_TLS_DIRECTORY}
+          ],
           {pdata} [oso_load,oso_readonly,oso_keep],
           {stub} [oso_Data,oso_load,oso_readonly,oso_executable],
           {data_nonlazy}  [oso_Data,oso_load,oso_write],
@@ -1595,7 +1599,7 @@ implementation
 
     procedure TExeOutput.Load_EntryName(const aname:string);
       begin
-        EntryName:=aname;
+        FEntryName:=aname;
       end;
 
 
@@ -1694,7 +1698,7 @@ implementation
               end;
           end;
         { Order list if needed }
-        Order_ObjSectionList(TmpObjSectionList);
+        Order_ObjSectionList(TmpObjSectionList,aname);
         { Add the (ordered) list to the current ExeSection }
         for i:=0 to TmpObjSectionList.Count-1 do
           begin
@@ -1705,7 +1709,7 @@ implementation
       end;
 
 
-    procedure TExeOutput.Order_ObjSectionList(ObjSectionList : TFPObjectList);
+    procedure TExeOutput.Order_ObjSectionList(ObjSectionList : TFPObjectList; const aPattern:string);
       begin
       end;
 
@@ -1805,27 +1809,34 @@ implementation
           if oneval<>'' then
             begin
               if oneval[1]='-' then
-                val(oneval,signedval,code)
+                begin
+                  val(oneval,signedval,code);
+                  anumval:=qword(signedval);
+                end
               else
                 val(oneval,anumval,code);
               if code<>0 then
                 Comment(V_Error,'Invalid number '+avalue)
-              else if (indexpos<MAXVAL) then
+              else
                 begin
-                  anumval:=qword(signedval);
-                  if source_info.endian<>target_info.endian then
-                    swapendian(anumval);
-                  { No range checking here }
+                  if (indexpos<MAXVAL) then
+                    begin
+                      if source_info.endian<>target_info.endian then
+                        swapendian(anumval);
+                      { No range checking here }
 
-                  if bytesize=1 then
-                    bytevalues[indexpos]:=byte(anumval)
-                  else if bytesize=2 then
-                    twobytevalues[indexpos]:=word(anumval)
-                  else if bytesize=4 then
-                    fourbytevalues[indexpos]:=dword(anumval)
-                  else if bytesize=8 then
-                    eightbytevalues[indexpos]:=anumval;
-                  inc(indexpos);
+                      if bytesize=1 then
+                        bytevalues[indexpos]:=byte(anumval)
+                      else if bytesize=2 then
+                        twobytevalues[indexpos]:=word(anumval)
+                      else if bytesize=4 then
+                        fourbytevalues[indexpos]:=dword(anumval)
+                      else if bytesize=8 then
+                        eightbytevalues[indexpos]:=anumval;
+                      inc(indexpos);
+                    end
+                  else
+                    Comment(V_Error,'Buffer overrun in Order_values');
                 end;
             end;
         until allvals='';

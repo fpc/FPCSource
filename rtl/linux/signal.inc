@@ -195,10 +195,19 @@ type
   tsigrestorerhandler = sigrestorerhandler_t;
   
   psigactionrec = ^sigactionrec;
+
+{$ifdef FPC_USE_LIBC}  // libc order is different ?
+  sigactionrec = record
+    sa_handler: sigactionhandler_t;
+    sa_mask: sigset_t;
+    sa_flags: cint;
+    sa_restorer: sigrestorerhandler_t;
+  end;
+{$else}
   sigactionrec = record
     sa_handler: sigactionhandler_t;
     sa_flags: culong;
     sa_restorer: sigrestorerhandler_t;
     sa_mask: sigset_t;
   end;
-
+{$endif}

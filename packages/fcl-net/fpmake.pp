@@ -16,10 +16,11 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-net';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-passrc');
+    P.Dependencies.Add('fcl-async',[linux,freebsd,netbsd,openbsd]);
 
     P.Author := 'Sebastian Guenther and Free Pascal development team';
     P.License := 'LGPL with modification, ';
@@ -42,18 +43,24 @@ begin
           AddInclude('resolve.inc');
           AddUnit('netdb');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('ssockets.pp',AllUnixOSes+AllWindowsOSes+[OS2,EMX]);
       with T.Dependencies do
         begin
           AddUnit('resolve');
         end;
+    T.ResourceStrings := True;
 
     // HTTP Client
-    T:=P.Targets.AddUnit('fpsock.pp',AllUnixOSes);
+    T:=P.Targets.AddUnit('fpsock.pp',[linux,freebsd,netbsd,openbsd]);
       with T.Dependencies do
         begin
           AddUnit('resolve');
         end;
+    T.ResourceStrings := True;
+
+    T:=P.Targets.AddUnit('cnetdb.pp',[linux,freebsd]);
+
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('examples/ip6test.pp');
     P.Targets.AddExampleProgram('examples/svrclass.pp');

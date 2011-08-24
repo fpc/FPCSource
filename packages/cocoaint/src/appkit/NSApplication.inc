@@ -177,10 +177,10 @@ var
     _previousKeyWindow: id; {garbage collector: __weak }
     _unusedApp: cshort;
     _running: cshort;
-    __appFlags: bitpacked record
+    __appFlags: record
       case byte of
        0: (_anonbitfield_NSApplication0: cuint);
-       1: (
+       1: (data: bitpacked record
         _hidden: 0..1;
         _RESERVED1: 0..1;
         _active: 0..1;
@@ -209,6 +209,7 @@ var
         _waitingForTerminationReply: 0..1;
         _windowMoveDisabled: 0..1;
         _reserved: 0..((1 shl 4)-1);
+       end;
       );
       end;
     _mainMenu: id;

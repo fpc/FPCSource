@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-web';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-db');
     P.Dependencies.Add('fcl-xml');
@@ -143,9 +143,12 @@ begin
           AddUnit('httpdefs');
         end;
     T:=P.Targets.AddUnit('fphttpclient.pp');
+    T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('custhttpapp.pp');
+    T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fphttpapp.pp');
     T:=P.Targets.AddUnit('fpwebfile.pp');
+    T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fpwebdata.pp');
     T.ResourceStrings:=true;
     With T.Dependencies do

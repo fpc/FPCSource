@@ -16,9 +16,9 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='bzip2';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
 
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.Author := 'Library: Julian R. Seward, header: Daniel Mantione';
     // 3 clause becaue "prominent notice" is not required.
     P.License := 'Library: 3 clause BSD, header: 3 clause BSD ';
@@ -30,11 +30,20 @@ begin
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
+    T:=P.Targets.AddUnit('bzip2comn.pp');
     T:=P.Targets.AddUnit('bzip2.pas');
       with T.Dependencies do
         begin
           AddInclude('bzip2i386.inc',[i386],AllOSes);
+          AddUnit('bzip2comn');
         end;
+    T:=P.Targets.AddUnit('bzip2stream.pp');
+      with T.Dependencies do
+        begin
+          AddInclude('bzip2sii386.inc',[i386],AllOSes);
+          AddUnit('bzip2comn');
+        end;
+    T.ResourceStrings := true;
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('pasbzip.pas');

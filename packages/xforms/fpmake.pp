@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='xforms';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
     P.Dependencies.Add('x11');
@@ -26,8 +26,8 @@ begin
         begin
           AddInclude('cursorfont.inc');
         end;
+    T:=P.Targets.AddProgram('fd2pascal.pp');
 
-    
     P.Sources.AddSrc('README.txt');
 
     P.ExamplePath.Add('examples/');

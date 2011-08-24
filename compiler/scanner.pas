@@ -309,9 +309,9 @@ implementation
          end
         else
          begin
-           exclude(current_settings.localswitches,cs_ansistrings);
+           exclude(current_settings.localswitches,cs_do_inline);
            if changeinit then
-            exclude(init_settings.localswitches,cs_ansistrings);
+            exclude(init_settings.localswitches,cs_do_inline);
          end;
       end;
 

@@ -279,9 +279,9 @@ implementation
                       { get init value }
                       consume(_EQ);
                       if (cs_typed_const_writable in current_settings.localswitches) then
-                        tclist:=current_asmdata.asmlists[al_rotypedconsts]
+                        tclist:=current_asmdata.asmlists[al_typedconsts]
                       else
-                        tclist:=current_asmdata.asmlists[al_typedconsts];
+                        tclist:=current_asmdata.asmlists[al_rotypedconsts];
                       read_typed_const(tclist,tstaticvarsym(sym),in_structure);
                     end;
                 end;

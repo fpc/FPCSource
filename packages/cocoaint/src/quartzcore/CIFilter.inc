@@ -126,7 +126,7 @@ var
 { CIFilter }
   CIFilter = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
-        _priv: array[0..7] of Pointer;
+    _priv: array[0..(8)-1] of Pointer;
     
   public
     function inputKeys: NSArray; message 'inputKeys';

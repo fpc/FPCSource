@@ -105,14 +105,16 @@ const
 function futex(uaddr:Pcint;op,val:cint;timeout:Ptimespec;addr2:Pcint;val3:cint):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
 function futex(var uaddr;op,val:cint;timeout:Ptimespec;var addr2;val3:cint):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
 function futex(var uaddr;op,val:cint;var timeout:Ttimespec;var addr2;val3:cint):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
-{$else}
-function futex(uaddr:Pcint;op,val:cint;timeout:Ptimespec;addr2:Pcint;val3:cint):cint; cdecl; external name 'futex';
-function futex(var uaddr;op,val:cint;timeout:Ptimespec;var addr2;val3:cint):cint; cdecl; external name 'futex';
-function futex(var uaddr;op,val:cint;var timeout:Ttimespec;var addr2;val3:cint):cint; cdecl; external name 'futex';
-{$endif}
+// general aliases:
 function futex(uaddr:Pcint;op,val:cint;timeout:Ptimespec):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
 function futex(var uaddr;op,val:cint;timeout:Ptimespec):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
 function futex(var uaddr;op,val:cint;var timeout:Ttimespec):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$else}
+// futex is currently not exposed by glibc
+//function futex(uaddr:Pcint;op,val:cint;timeout:Ptimespec;addr2:Pcint;val3:cint):cint; cdecl; external name 'futex';
+//function futex(var uaddr;op,val:cint;timeout:Ptimespec;var addr2;val3:cint):cint; cdecl; external name 'futex';
+//function futex(var uaddr;op,val:cint;var timeout:Ttimespec;var addr2;val3:cint):cint; cdecl; external name 'futex';
+{$endif}
 
 {$ifndef FPC_USE_LIBC}
 function futex_op(op, oparg, cmp, cmparg: cint): cint; {$ifdef SYSTEMINLINE}inline;{$endif}
@@ -204,6 +206,7 @@ type
 function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clone'; {$endif}
 {$endif}
 
+{$ifndef FPC_USE_LIBC}
 {$if defined(cpui386) or defined(cpux86_64)}
 const
   MODIFY_LDT_CONTENTS_DATA       = 0;
@@ -234,6 +237,7 @@ type
 
 function modify_ldt(func:cint;p:pointer;bytecount:culong):cint;
 {$endif cpui386 or cpux86_64}
+{$endif}
 
 procedure sched_yield; {$ifdef FPC_USE_LIBC} cdecl; external name 'sched_yield'; {$endif}
 
@@ -532,7 +536,7 @@ end;
 {$else}
 
 {Libc case.}
-
+(*
 function futex(uaddr:Pcint;op,val:cint;timeout:Ptimespec):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
@@ -550,9 +554,10 @@ function futex(var uaddr;op,val:cint;var timeout:Ttimespec):cint;{$ifdef SYSTEMI
 begin
   futex:=futex(@uaddr,op,val,@timeout,nil,0);
 end;
-
+*)
 {$endif} // non-libc
 
+{$ifndef FPC_USE_LIBC}
 {$if defined(cpui386) or defined(cpux86_64)}
 { does not exist as a wrapper in glibc, and exists only for x86 }
 function modify_ldt(func:cint;p:pointer;bytecount:culong):cint;
@@ -562,6 +567,7 @@ begin
                                                Tsysparam(p),
                                                Tsysparam(bytecount));
 end;
+{$endif}
 {$endif}
 
 { FUTEX_OP is a macro, doesn't exist in libC as function}

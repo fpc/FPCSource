@@ -1,4 +1,5 @@
 { %norun }
+{ %needlibrary }
 library tw6822a;
 {$mode objfpc}{$H+}
 

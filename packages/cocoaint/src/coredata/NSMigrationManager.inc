@@ -51,12 +51,13 @@
     _destinationManagedObjectContext: NSManagedObjectContext;
     _migrationContext: NSMigrationContext;
     _userInfo: NSDictionary;
-    __migrationManagerFlags: bitpacked record
+    __migrationManagerFlags: record
       case byte of
        0: (_anonbitfield_NSMigrationManager0: cuint);
-       1: (
+       1: (data: bitpacked record
         _migrationWasCancelled: 0..1;
         _reservedMigrationManager: 0..((1 shl 31)-1);
+       end;
       );
       end;
     _migrationCancellationError: NSError;

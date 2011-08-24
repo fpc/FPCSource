@@ -3,6 +3,7 @@ unit WebKit;
 {$mode delphi}
 {$modeswitch cvar}
 {$modeswitch objectivec1}
+{$packrecords c}
 
 interface
 

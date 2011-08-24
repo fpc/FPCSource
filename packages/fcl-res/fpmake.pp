@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-res';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.Author := 'Giulio Bernardi';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -187,6 +187,7 @@ begin
         begin
           AddUnit('resource');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('resmerger.pp');
       with T.Dependencies do
         begin
@@ -202,6 +203,7 @@ begin
           AddUnit('resourcetree');
           AddUnit('resmerger');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('resourcetree.pp');
       with T.Dependencies do
         begin
@@ -226,6 +228,7 @@ begin
           AddUnit('resource');
           AddUnit('resfactory');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('strtable.pp');
       with T.Dependencies do
         begin
@@ -245,6 +248,7 @@ begin
           AddUnit('resource');
           AddUnit('versionconsts');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('winpeimagereader.pp');
       with T.Dependencies do
         begin

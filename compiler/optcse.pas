@@ -173,7 +173,7 @@ unit optcse;
                     if plists(arg)^.equalto[i]<>pointer(-1) then
                       plists(arg)^.equalto[plists(arg)^.nodelist.count-1]:=plists(arg)^.equalto[i]
                     else
-                      plists(arg)^.equalto[plists(arg)^.nodelist.count-1]:=pointer(i);
+                      plists(arg)^.equalto[plists(arg)^.nodelist.count-1]:=pointer(ptrint(i));
                     plists(arg)^.refs[i]:=pointer(plists(arg)^.refs[i])+1;
                     break;
                   end;

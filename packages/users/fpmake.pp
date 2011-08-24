@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='users';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.Author := 'Michael van Canneyt, Marco van de Voort';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -37,6 +37,7 @@ begin
           AddUnit('shadow',[linux]);
           AddUnit('grp');
         end;
+    T.ResourceStrings := true;
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testpass.pp');

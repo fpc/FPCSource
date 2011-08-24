@@ -19,6 +19,7 @@ interface
 
 {$ifdef FPC_HEAPTRC_EXTRA}
   {$define EXTRA}
+  {$inline off}
 {$endif FPC_HEAPTRC_EXTRA}
 
 {$checkpointer off}
@@ -79,6 +80,9 @@ const
     this allows to test for writing into that part }
   usecrc : boolean = true;
 
+  printleakedblock: boolean = false;
+  printfaultyblock: boolean = false;
+  maxprintedblocklength: integer = 128;
 
 implementation
 
@@ -254,14 +258,50 @@ function InternalFreeMemSize(loc_info: pheap_info; p: pointer; pp: pheap_mem_inf
   size: ptruint; release_todo_lock: boolean): ptruint; forward;
 function TraceFreeMem(p: pointer): ptruint; forward;
 
+procedure printhex(p : pointer; const size : PtrUInt; var ptext : text);
+var s: PtrUInt;
+ i: Integer;
+begin
+  s := size;
+  if s > maxprintedblocklength then
+    s := maxprintedblocklength;
+
+  for i:=0 to s-1 do
+    write(ptext, hexstr(pbyte(p + i)^,2));
+
+  if size > maxprintedblocklength then
+    writeln(ptext,'.. - ')
+  else
+    writeln(ptext, ' - ');
+
+  for i:=0 to s-1 do
+    if pchar(p + sizeof(theap_mem_info) + i)^ < ' ' then
+      write(ptext, ' ')
+    else
+      write(ptext, pchar(p + i)^);
+
+  if size > maxprintedblocklength then
+    writeln(ptext,'..')
+  else
+    writeln(ptext);
+end;
+
 procedure call_stack(pp : pheap_mem_info;var ptext : text);
 var
   i  : ptruint;
+  s: PtrUInt;
 begin
   writeln(ptext,'Call trace for block $',hexstr(pointer(pp)+sizeof(theap_mem_info)),' size ',pp^.size);
+  if printleakedblock then
+    begin
+      write(ptext, 'Block content: ');
+      printhex(pointer(pp) + sizeof(theap_mem_info), pp^.size, ptext);
+    end;
+
   for i:=1 to tracesize do
    if pp^.calls[i]<>nil then
      writeln(ptext,BackTraceStrFunc(pp^.calls[i]));
+
   { the check is done to be sure that the procvar is not overwritten }
   if assigned(pp^.extra_info) and
      (pp^.extra_info^.check=$12345678) and
@@ -302,6 +342,11 @@ procedure dump_error(p : pheap_mem_info;var ptext : text);
 begin
   Writeln(ptext,'Marked memory at $',HexStr(pointer(p)+sizeof(theap_mem_info)),' invalid');
   Writeln(ptext,'Wrong signature $',hexstr(p^.sig,8),' instead of ',hexstr(calculate_sig(p),8));
+  if printfaultyblock then
+    begin
+      write(ptext, 'Block content: ');
+      printhex(pointer(p) + sizeof(theap_mem_info), p^.size, ptext);
+    end;
   dump_stack(ptext,get_caller_frame(get_frame));
 end;
 
@@ -1349,7 +1394,7 @@ begin
     must be initialized already here
   }
   if IsMultithread then
-    initcriticalsection(todo_lock);
+    TraceRelocateHeap;
 end;
 
 procedure TraceExit;

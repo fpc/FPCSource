@@ -75,10 +75,10 @@ type
     _displayName: id;
     _privateData: id;
     _undoManager: NSUndoManager;
-    __docFlags: bitpacked record
+    __docFlags: record
       case byte of
        0: (_anonbitfield_NSDocument0: cuint);
-       1: (
+       1: (data: bitpacked record
         inClose: 0..1;
         _hasUndoManager: 0..1;
         isShowingPageLayout: 0..1;
@@ -89,6 +89,7 @@ type
         definitelyHasUnsavedChanges: 0..1;
         definitelyHasUnautosavedChanges: 0..1;
         RESERVED: 0..((1 shl 23)-1);
+       end;
       );
       end;
     _savePanelSaveType: NSString;

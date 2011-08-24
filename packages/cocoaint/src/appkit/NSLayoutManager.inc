@@ -88,10 +88,10 @@ type
     _extraLineFragmentContainer: NSTextContainer;
     _glyphHoles: NSSortedArray;
     _layoutHoles: NSSortedArray;
-    __lmFlags: bitpacked record
+    __lmFlags: record
       case byte of
        0: (_anonbitfield_NSLayoutManager0: cuint);
-       1: (
+       1: (data: bitpacked record
         containersAreFull: 0..1;
         glyphsMightDrawOutsideLines: 0..1;
         _backgroundLayoutEnabled: 0..1;
@@ -122,6 +122,7 @@ type
         flipsIfNeeded: 0..1;
         allowNonContig: 0..1;
         useNonContig: 0..1;
+       end;
       );
       end;
     _delegate: id;

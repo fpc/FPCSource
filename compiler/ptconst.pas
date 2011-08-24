@@ -172,6 +172,7 @@ implementation
         list   : tasmlist;
         origsym: tstaticvarsym;
         offset:  asizeint;
+        origblock: tblock_type;
       end;
 
     { this procedure reads typed constants }
@@ -196,7 +197,7 @@ implementation
            if is_cbool(def) then
              inserttypeconv(n,def);
            case def.ordtype of
-              pasbool,
+              pasbool8,
               bool8bit :
                 begin
                    if is_constboolnode(n) then
@@ -204,6 +205,7 @@ implementation
                    else
                      do_error;
                 end;
+              pasbool16,
               bool16bit :
                 begin
                    if is_constboolnode(n) then
@@ -211,6 +213,7 @@ implementation
                    else
                      do_error;
                 end;
+              pasbool32,
               bool32bit :
                 begin
                    if is_constboolnode(n) then
@@ -218,6 +221,7 @@ implementation
                    else
                      do_error;
                 end;
+              pasbool64,
               bool64bit :
                 begin
                    if is_constboolnode(n) then
@@ -745,13 +749,17 @@ implementation
                               strval,
                               winlike);
 
-                       { collect global Windows widestrings }
-                       if winlike and (hr.origsym.owner.symtablelevel <= main_program_level) then
+                       { Collect Windows widestrings that need initialization at startup.
+                         Local initialized vars are excluded because they are initialized
+                         at function entry instead. }
+                       if winlike and ((hr.origsym.owner.symtablelevel <= main_program_level) or
+                         (hr.origblock=bt_const)) then
                        begin
                          current_asmdata.WideInits.Concat(
                             TTCInitItem.Create(hr.origsym, hr.offset, ll)
                          );
                          ll := nil;
+                         Include(hr.origsym.varoptions, vo_force_finalize);
                        end;
                      end;
                      hr.list.concat(Tai_const.Create_sym(ll));
@@ -1434,6 +1442,7 @@ implementation
         storefilepos : tfileposinfo;
         cursectype   : TAsmSectionType;
         hrec         : threc;
+        section : ansistring;
       begin
         { mark the staticvarsym as typedconst }
         include(sym.varoptions,vo_is_typed_const);
@@ -1453,6 +1462,7 @@ implementation
         hrec.list:=tasmlist.create;
         hrec.origsym:=sym;
         hrec.offset:=0;
+        hrec.origblock:=block_type;
         read_typed_const_data(hrec,sym.vardef);
 
         { Parse hints }
@@ -1478,9 +1488,29 @@ implementation
            ) then
           read_public_and_external(sym);
 
+         { try to parse a section directive }
+        if not in_structure and (target_info.system in systems_allow_section) and
+          (symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) and
+           (idtoken=_SECTION) then
+               begin
+                 try_consume_sectiondirective(section);
+                 if section<>'' then
+                   begin
+                     if (sym.varoptions *[vo_is_external,vo_is_weak_external])<>[] then
+                       Message(parser_e_externals_no_section);
+                     if sym.typ<>staticvarsym then
+                       Message(parser_e_section_no_locals);
+                     tstaticvarsym(sym).section:=section;
+                     include(sym.varoptions, vo_has_section);
+                   end;
+               end;
+
         { only now add items based on the symbolname, because it may }
         { have been modified by the directives parsed above          }
-        new_section(list,cursectype,lower(sym.mangledname),const_align(sym.vardef.alignment));
+        if vo_has_section in sym.varoptions then
+          new_section(list,sec_user,sym.section,const_align(sym.vardef.alignment))
+        else
+          new_section(list,cursectype,lower(sym.mangledname),const_align(sym.vardef.alignment));
         if (sym.owner.symtabletype=globalsymtable) or
            create_smartlink or
            (assigned(current_procinfo) and

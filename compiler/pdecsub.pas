@@ -82,7 +82,7 @@ implementation
        cutils,cclasses,
        { global }
        globtype,globals,verbose,constexp,
-       systems,
+       systems,fpccrc,
        cpuinfo,
        { symtable }
        symbase,symtable,defutil,defcmp,paramgr,cpupara,
@@ -1008,6 +1008,9 @@ implementation
              ImplIntf:=tobjectdef(astruct).find_implemented_interface(tobjectdef(ttypesym(srsym).typedef));
            if ImplIntf=nil then
              Message(parser_e_interface_id_expected);
+           { must be a directly implemented interface }
+           if Assigned(ImplIntf.ImplementsGetter) then
+             Message2(parser_e_implements_no_mapping,ImplIntf.IntfDef.typename,astruct.objrealname^);
            consume(_ID);
            { Create unique name <interface>.<method> }
            hs:=sp+'.'+pattern;
@@ -1468,7 +1471,7 @@ implementation
                        end;
                      if (optoken in [_EQ,_NE,_GT,_LT,_GTE,_LTE,_OP_IN]) and
                         ((pd.returndef.typ<>orddef) or
-                         (torddef(pd.returndef).ordtype<>pasbool)) then
+                         (torddef(pd.returndef).ordtype<>pasbool8)) then
                         Message(parser_e_comparative_operator_return_boolean);
                      if (optoken in [_ASSIGNMENT,_OP_EXPLICIT]) and
                         equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) and
@@ -1626,6 +1629,7 @@ begin
   if pd.parast.symtablelevel>normal_function_level then
     Message(parser_e_dont_nest_interrupt);
 
+{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
   if target_info.system in systems_interrupt_table then
     begin
       if token<>_SEMICOLON then
@@ -1635,6 +1639,7 @@ begin
           Tprocdef(pd).interruptvector:=v.uvalue;
         end;
     end;
+{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 end;
 
 procedure pd_abstract(pd:tabstractprocdef);
@@ -2718,14 +2723,8 @@ const
 
 
     function proc_get_importname(pd:tprocdef):string;
-
-       function maybe_cprefix(const s:string):string;
-         begin
-           if not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
-             result:=s
-           else
-             result:=target_info.Cprefix+s;
-         end;
+      var
+        dllname, importname : string;
 
       begin
         result:='';
@@ -2735,36 +2734,15 @@ const
         if assigned(pd.import_name) or (pd.import_nr<>0) then
           begin
             if assigned(pd.import_dll) then
-              begin
-                { If we are not using direct dll linking under win32 then imports
-                  need to use the normal name since two functions can refer to the
-                  same DLL function. This is also needed for compatability
-                  with Delphi and TP7 }
-(*
-                case target_info.system of
-                  system_i386_emx,
-                  system_i386_os2 :
-                    begin
-                      { keep normal mangledname }
-                      if not (Assigned (PD.Import_Name)) then
-                       Result := PD.MangledName;
-                    end;
-                  else
-*)
-                if assigned(pd.import_name) then
-                  begin
-                    if target_info.system in (systems_all_windows + systems_nativent +
-                                       [system_i386_emx, system_i386_os2]) then
-                   { cprefix is not used in DLL imports under Windows or OS/2 }
-                      result:='_$dll$'+ExtractFileName(pd.import_dll^)+'$'+pd.import_name^
-                    else
-                      result:=maybe_cprefix(pd.import_name^);
-                  end
-                else
-                  result:=ExtractFileName(pd.import_dll^)+'_index_'+tostr(pd.import_nr);
-              end
+              dllname:=pd.import_dll^
             else
-              result:=maybe_cprefix(pd.import_name^);
+              dllname:='';
+            if assigned(pd.import_name) then
+              importname:=pd.import_name^
+            else
+              importname:='';
+            proc_get_importname:=make_dllmangledname(dllname,
+              importname,pd.import_nr,pd.proccalloption);
           end
         else
           begin
@@ -2811,17 +2789,6 @@ const
                     s:=proc_get_importname(pd);
                     if s<>'' then
                       begin
-                        { Replace ? and @ in import name, since GNU AS does not allow these characters in symbol names. }
-                        { This allows to import VC++ mangled names from DLLs. }
-                        { Do not perform replacement, if external symbol is not imported from DLL. }
-                        if (target_info.system in systems_all_windows) and (pd.import_dll<>nil) then
-                          begin
-                            Replace(s,'?','__q$$');
-{$ifdef arm}
-                            { @ symbol is not allowed in ARM assembler only }
-                            Replace(s,'@','__a$$');
-{$endif arm}
-                          end;
                         pd.setmangledname(s);
                       end;
                   end;

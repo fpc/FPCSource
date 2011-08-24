@@ -92,14 +92,18 @@ interface
           function has_single_field(out sym:tfieldvarsym): boolean;
           function get_unit_symtable: tsymtable;
         protected
-          _datasize       : asizeint;
+          { size in bytes including padding }
+          _datasize      : asizeint;
           { size in bits of the data in case of bitpacked record. Only important during construction, }
           { no need to save in/restore from ppu file. datasize is always (databitsize+7) div 8.       }
           databitsize    : asizeint;
+          { size in bytes of padding }
+          _paddingsize   : word;
           procedure setdatasize(val: asizeint);
         public
           function iscurrentunit: boolean; override;
           property datasize : asizeint read _datasize write setdatasize;
+          property paddingsize: word read _paddingsize write _paddingsize;
        end;
 
        trecordsymtable = class(tabstractrecordsymtable)
@@ -633,14 +637,19 @@ implementation
             ((tsym(sym).owner.symtabletype in
              [parasymtable,localsymtable,ObjectSymtable,recordsymtable,staticsymtable])) then
            begin
-            { unused symbol should be reported only if no }
-            { error is reported                     }
-            { if the symbol is in a register it is used   }
-            { also don't count the value parameters which have local copies }
-            { also don't claim for high param of open parameters (PM) }
+            { unused symbol should be reported only if no                    }
+            { error is reported                                              }
+            { if the symbol is in a register it is used                      }
+            { also don't count the value parameters which have local copies  }
+            { also don't claim for high param of open parameters    (PM)     }
+            { also don't complain about unused symbols in generic procedures }
+            { and methods                                                    }
             if (Errorcount<>0) or
                ([vo_is_hidden_para,vo_is_funcret] * tabstractvarsym(sym).varoptions = [vo_is_hidden_para]) or
-               (sp_internal in tsym(sym).symoptions) then
+               (sp_internal in tsym(sym).symoptions) or
+               ((assigned(tsym(sym).owner.defowner) and
+                (tsym(sym).owner.defowner.typ=procdef) and
+                (df_generic in tprocdef(tsym(sym).owner.defowner).defoptions))) then
               exit;
             if (tstoredsym(sym).refs=0) then
               begin
@@ -655,7 +664,7 @@ implementation
                  else if (tsym(sym).owner.symtabletype=parasymtable) then
                    MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_not_used,tsym(sym).prettyname)
                  else if (tsym(sym).owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_not_used,tabstractrecorddef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname)
+                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_not_used,tabstractrecorddef(tsym(sym).owner.defowner).GetTypeName,tsym(sym).prettyname)
                  else
                    MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_not_used,tsym(sym).prettyname);
               end
@@ -668,7 +677,7 @@ implementation
                        MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_only_set,tsym(sym).prettyname)
                    end
                  else if (tsym(sym).owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_only_set,tabstractrecorddef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname)
+                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_only_set,tabstractrecorddef(tsym(sym).owner.defowner).GetTypeName,tsym(sym).prettyname)
                  else if tabstractvarsym(sym).varoptions*[vo_is_funcret,vo_is_public,vo_is_external]=[] then
                    MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_only_set,tsym(sym).prettyname);
               end
@@ -686,13 +695,13 @@ implementation
            if (tsym(sym).refs=0) and (tsym(sym).owner.symtabletype in [ObjectSymtable,recordsymtable]) then
              case tsym(sym).typ of
                typesym:
-                 MessagePos2(tsym(sym).fileinfo,sym_n_private_type_not_used,tabstractrecorddef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
+                 MessagePos2(tsym(sym).fileinfo,sym_n_private_type_not_used,tabstractrecorddef(tsym(sym).owner.defowner).GetTypeName,tsym(sym).prettyname);
                constsym:
-                 MessagePos2(tsym(sym).fileinfo,sym_n_private_const_not_used,tabstractrecorddef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
+                 MessagePos2(tsym(sym).fileinfo,sym_n_private_const_not_used,tabstractrecorddef(tsym(sym).owner.defowner).GetTypeName,tsym(sym).prettyname);
                propertysym:
-                 MessagePos2(tsym(sym).fileinfo,sym_n_private_property_not_used,tabstractrecorddef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
+                 MessagePos2(tsym(sym).fileinfo,sym_n_private_property_not_used,tabstractrecorddef(tsym(sym).owner.defowner).GetTypeName,tsym(sym).prettyname);
              else
-               MessagePos2(tsym(sym).fileinfo,sym_n_private_method_not_used,tabstractrecorddef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
+               MessagePos2(tsym(sym).fileinfo,sym_n_private_method_not_used,tabstractrecorddef(tsym(sym).owner.defowner).GetTypeName,tsym(sym).prettyname);
              end
            { units references are problematic }
            else
@@ -833,6 +842,12 @@ implementation
 
     procedure tabstractrecordsymtable.ppuload(ppufile:tcompilerppufile);
       begin
+        if ppufile.readentry<>ibrecsymtableoptions then
+          Message(unit_f_ppu_read_error);
+        recordalignment:=shortint(ppufile.getbyte);
+        usefieldalignment:=shortint(ppufile.getbyte);
+        if (usefieldalignment=C_alignment) then
+          fieldalignment:=shortint(ppufile.getbyte);
         inherited ppuload(ppufile);
       end;
 
@@ -843,6 +858,13 @@ implementation
       begin
          oldtyp:=ppufile.entrytyp;
          ppufile.entrytyp:=subentryid;
+         { in case of classes using C alignment, the alignment of the parent
+           affects the alignment of fields of the childs }
+         ppufile.putbyte(byte(recordalignment));
+         ppufile.putbyte(byte(usefieldalignment));
+         if (usefieldalignment=C_alignment) then
+           ppufile.putbyte(byte(fieldalignment));
+         ppufile.writeentry(ibrecsymtableoptions);
 
          inherited ppuwrite(ppufile);
 
@@ -1008,6 +1030,8 @@ implementation
 
 
     procedure tabstractrecordsymtable.addalignmentpadding;
+      var
+        padded_datasize: asizeint;
       begin
         { make the record size aligned correctly so it can be
           used as elements in an array. For C records we
@@ -1030,7 +1054,9 @@ implementation
             else
               padalignment:=min(recordalignment,usefieldalignment);
           end;
-        _datasize:=align(_datasize,padalignment);
+        padded_datasize:=align(_datasize,padalignment);
+        _paddingsize:=padded_datasize-_datasize;
+        _datasize:=padded_datasize;
       end;
 
 

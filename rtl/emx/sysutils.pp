@@ -578,22 +578,14 @@ begin
 end;
 
 
-function FileExists (const FileName: string): boolean; assembler;
-asm
-{$IFDEF REGCALL}
- mov edx, eax
-{$ELSE REGCALL}
- mov edx, FileName
-{$ENDIF REGCALL}
- mov ax, 4300h
- call syscall
- mov eax, 0
- jc @FExistsEnd
- test cx, 18h
- jnz @FExistsEnd
- inc eax
-@FExistsEnd:
-end {['eax', 'ecx', 'edx']};
+function FileExists (const FileName: string): boolean;
+begin
+  if Directory = '' then
+   Result := false
+  else
+   Result := FileGetAttr (ExpandFileName (Directory)) and
+                                                     faDirectory = faDirectory;
+end;
 
 
 type    TRec = record
@@ -970,29 +962,32 @@ begin
 end;
 
 
-{$ASMMODE INTEL}
-function DirectoryExists (const Directory: string): boolean; assembler;
-asm
-{$IFDEF REGCALL}
- mov edx, eax
-{$ELSE REGCALL}
- mov edx, Directory
-{$ENDIF REGCALL}
- mov ax, 4300h
- call syscall
- mov eax, 0
- jc @FExistsEnd
- test cx, 10h
- jz @FExistsEnd
- inc eax
-@FExistsEnd:
-end {['eax', 'ecx', 'edx']};
+function DirectoryExists (const Directory: string): boolean;
+var
+  L: longint;
+begin
+  if Directory = '' then
+   Result := false
+  else
+   begin
+    if (Directory [Length (Directory)] in AllowDirectorySeparators) and
+                                              (Length (Directory) > 1) and
+(* Do not remove '\' after ':' (root directory of a drive) 
+   or in '\\' (invalid path, possibly broken UNC path). *)
+      not (Directory [Length (Directory) - 1] in AllowDriveSeparators + AllowDirectorySeparators) then
+     L := FileGetAttr (ExpandFileName (Copy (Directory, 1, Length (Directory) - 1)))
+    else
+     L := FileGetAttr (ExpandFileName (Directory));
+    Result := (L > 0) and (L and faDirectory = faDirectory);
+   end;
+end;
 
 
 {****************************************************************************
                               Time Functions
 ****************************************************************************}
 
+{$ASMMODE INTEL}
 procedure GetLocalTime (var SystemTime: TSystemTime); assembler;
 asm
 (* Expects the default record alignment (word)!!! *)

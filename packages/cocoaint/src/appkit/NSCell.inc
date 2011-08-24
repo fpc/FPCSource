@@ -122,10 +122,10 @@ type
 
 { Records }
 type
-  __CFlags = bitpacked record
+  __CFlags = record
     case byte of
     0: (_anonbitfield_NSCell0: cuint);
-    1: (
+    1: (data: bitpacked record
           state: 0..1;
           highlighted: 0..1;
           disabled: 0..1;
@@ -175,6 +175,7 @@ type
           branchImageDisabled: 0..1;
           drawingInRevealover: 0..1;
           needsHighlightedTextHint: 0..1;
+         end;
        );
   end;
 _CFlags = __CFlags;

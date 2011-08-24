@@ -64,7 +64,7 @@ type
     {@@
       Font orientation is measured in degrees and uses the
       same direction as the LCL TFont.orientation, which is counter-clockwise.
-      Zero is the normal, horizontal, orientation.
+      Zero is the normal, horizontal, orientation, directed to the right.
     }
     Orientation: Double;
   end;
@@ -139,6 +139,8 @@ type
     X3, Y3, Z3: Double;
   end;
 
+  TvFindEntityResult = (vfrNotFound, vfrFound, vfrSubpartFound);
+
   { Now all elements }
 
   {@@
@@ -146,8 +148,11 @@ type
     they might contain.
   }
 
+  { TvEntity }
+
   TvEntity = class
   public
+    X, Y: Double;
     {@@ The global Pen for the entire entity. In the case of paths, individual
         elements might be able to override this setting. }
     Pen: TvPen;
@@ -155,43 +160,55 @@ type
         elements might be able to override this setting. }
     Brush: TvBrush;
     constructor Create; virtual;
+    procedure CalculateBoundingBox(var ALeft, ATop, ARight, ABottom: Double); virtual;
+    procedure ExpandBoundingBox(var ALeft, ATop, ARight, ABottom: Double);
+    function TryToSelect(APos: TPoint): TvFindEntityResult; virtual;
+    procedure Translate(ADeltaX, ADeltaY: Integer); virtual;
   end;
+
+  TvClipMode = (vcmNonzeroWindingRule, vcmEvenOddRule);
 
   TPath = class(TvEntity)
     Len: Integer;
-    Points: TPathSegment; // Beginning of the double-linked list
-    PointsEnd: TPathSegment; // End of the double-linked list
+    Points: TPathSegment;   // Beginning of the double-linked list
+    PointsEnd: TPathSegment;// End of the double-linked list
     CurPoint: TPathSegment; // Used in PrepareForSequentialReading and Next
+    ClipPath: TPath;
+    ClipMode: TvClipMode;
     procedure Assign(ASource: TPath);
     procedure PrepareForSequentialReading;
     function Next(): TPathSegment;
+    procedure CalculateBoundingBox(var ALeft, ATop, ARight, ABottom: Double); override;
+    procedure AppendSegment(ASegment: TPathSegment);
   end;
 
   {@@
-    TvText represents a text in memory.
-
-    At the moment fonts are unsupported, only simple texts
-    up to 255 chars are supported.
+    TvText represents a text entity.
   }
+
+  { TvText }
+
   TvText = class(TvEntity)
   public
-    X, Y, Z: Double; // Z is ignored in 2D formats
-    Value: utf8string;
+    Value: TStringList;
     Font: TvFont;
+    constructor Create; override;
+    destructor Destroy; override;
+    function TryToSelect(APos: TPoint): TvFindEntityResult; override;
   end;
 
   {@@
   }
   TvCircle = class(TvEntity)
   public
-    CenterX, CenterY, CenterZ, Radius: Double;
+    Radius: Double;
   end;
 
   {@@
   }
   TvCircularArc = class(TvEntity)
   public
-    CenterX, CenterY, CenterZ, Radius: Double;
+    Radius: Double;
     {@@ The Angle is measured in degrees in relation to the positive X axis }
     StartAngle, EndAngle: Double;
   end;
@@ -201,7 +218,7 @@ type
   TvEllipse = class(TvEntity)
   public
     // Mandatory fields
-    CenterX, CenterY, CenterZ, MajorHalfAxis, MinorHalfAxis: Double;
+    MajorHalfAxis, MinorHalfAxis: Double;
     {@@ The Angle is measured in degrees in relation to the positive X axis }
     Angle: Double;
     // Calculated fields
@@ -262,10 +279,14 @@ type
     procedure ClearTmpPath();
     procedure AppendSegmentToTmpPath(ASegment: TPathSegment);
   public
-    Name: string;
     Width, Height: Double; // in millimeters
+    Name: string;
+    // User-Interface information
+    ZoomLevel: Double; // 1 = 100%
+    { Selection fields }
+    SelectedvElement: TvEntity;
     { Base methods }
-    constructor Create;
+    constructor Create; virtual;
     destructor Destroy; override;
     procedure Assign(ASource: TvVectorialDocument);
     procedure AssignTo(ADest: TvVectorialDocument);
@@ -279,15 +300,18 @@ type
     procedure ReadFromStrings(AStrings: TStrings; AFormat: TvVectorialFormat);
     class function GetFormatFromExtension(AFileName: string): TvVectorialFormat;
     function  GetDetailedFileFormat(): string;
+    procedure GuessDocumentSize();
+    procedure GuessGoodZoomLevel(AScreenSize: Integer = 500);
     { Data reading methods }
     function  GetPath(ANum: Cardinal): TPath;
     function  GetPathCount: Integer;
     function  GetEntity(ANum: Cardinal): TvEntity;
     function  GetEntitiesCount: Integer;
+    function  FindAndSelectEntity(Pos: TPoint): TvFindEntityResult;
     { Data removing methods }
-    procedure Clear;
+    procedure Clear; virtual;
     { Data writing methods }
-    procedure AddEntity(AEntity: TvEntity);
+    function AddEntity(AEntity: TvEntity): Integer;
     procedure AddPathCopyMem(APath: TPath);
     procedure StartPath(AX, AY: Double); overload;
     procedure StartPath(); overload;
@@ -295,7 +319,7 @@ type
     procedure AddLineToPath(AX, AY: Double); overload;
     procedure AddLineToPath(AX, AY: Double; AColor: TFPColor); overload;
     procedure AddLineToPath(AX, AY, AZ: Double); overload;
-    procedure GetCurrenPathPenPos(var AX, AY: Double);
+    procedure GetCurrentPathPenPos(var AX, AY: Double);
     procedure AddBezierToPath(AX1, AY1, AX2, AY2, AX3, AY3: Double); overload;
     procedure AddBezierToPath(AX1, AY1, AZ1, AX2, AY2, AZ2, AX3, AY3, AZ3: Double); overload;
     procedure SetBrushColor(AColor: TFPColor);
@@ -303,12 +327,13 @@ type
     procedure SetPenColor(AColor: TFPColor);
     procedure SetPenStyle(AStyle: TFPPenStyle);
     procedure SetPenWidth(AWidth: Integer);
+    procedure SetClipPath(AClipPath: TPath; AClipMode: TvClipMode);
     procedure EndPath();
-    procedure AddText(AX, AY, AZ: Double; FontName: string; FontSize: integer; AText: utf8string); overload;
-    procedure AddText(AX, AY, AZ: Double; AStr: utf8string); overload;
-    procedure AddCircle(ACenterX, ACenterY, ACenterZ, ARadius: Double);
-    procedure AddCircularArc(ACenterX, ACenterY, ACenterZ, ARadius, AStartAngle, AEndAngle: Double; AColor: TFPColor);
-    procedure AddEllipse(CenterX, CenterY, CenterZ, MajorHalfAxis, MinorHalfAxis, Angle: Double);
+    procedure AddText(AX, AY: Double; FontName: string; FontSize: integer; AText: utf8string); overload;
+    procedure AddText(AX, AY: Double; AStr: utf8string); overload;
+    procedure AddCircle(ACenterX, ACenterY, ARadius: Double);
+    procedure AddCircularArc(ACenterX, ACenterY, ARadius, AStartAngle, AEndAngle: Double; AColor: TFPColor);
+    procedure AddEllipse(CenterX, CenterY, MajorHalfAxis, MinorHalfAxis, Angle: Double);
     // Dimensions
     procedure AddAlignedDimension(BaseLeft, BaseRight, DimLeft, DimRight: T3DPoint);
     { properties }
@@ -465,6 +490,31 @@ begin
   Result.Z := 0;
 end;
 
+{ TvText }
+
+constructor TvText.Create;
+begin
+  inherited Create;
+  Value := TStringList.Create;
+end;
+
+destructor TvText.Destroy;
+begin
+  Value.Free;
+  inherited Destroy;
+end;
+
+function TvText.TryToSelect(APos: TPoint): TvFindEntityResult;
+var
+  lProximityFactor: Integer;
+begin
+  lProximityFactor := 5;
+  if (APos.X > X - lProximityFactor) and (APos.X < X + lProximityFactor)
+    and (APos.Y > Y - lProximityFactor) and (APos.Y < Y + lProximityFactor) then
+    Result := vfrFound
+  else Result := vfrNotFound;
+end;
+
 { TvEntity }
 
 constructor TvEntity.Create;
@@ -473,6 +523,36 @@ begin
   Pen.Color := colBlack;
   Brush.Style := bsClear;
   Brush.Color := colBlue;
+end;
+
+procedure TvEntity.CalculateBoundingBox(var ALeft, ATop, ARight, ABottom: Double);
+begin
+  ALeft := 0;
+  ATop := 0;
+  ARight := 0;
+  ABottom := 0;
+end;
+
+procedure TvEntity.ExpandBoundingBox(var ALeft, ATop, ARight, ABottom: Double);
+var
+  lLeft, lTop, lRight, lBottom: Double;
+begin
+  CalculateBoundingBox(lLeft, lTop, lRight, lBottom);
+  if lLeft < ALeft then ALeft := lLeft;
+  if lTop < ATop then ATop := lTop;
+  if lRight > ARight then ARight := lRight;
+  if lBottom > ABottom then ABottom := lBottom;
+end;
+
+function TvEntity.TryToSelect(APos: TPoint): TvFindEntityResult;
+begin
+  Result := vfrNotFound;
+end;
+
+procedure TvEntity.Translate(ADeltaX, ADeltaY: Integer);
+begin
+  X := X + ADeltaX;
+  Y := Y + ADeltaY;
 end;
 
 { TvEllipse }
@@ -503,7 +583,7 @@ begin
     tan(t) = b*cot(phi)/a
   }
   t := cotan(-MinorHalfAxis*tan(Angle)/MajorHalfAxis);
-  tmp := CenterX + MajorHalfAxis*cos(t)*cos(Angle) - MinorHalfAxis*sin(t)*sin(Angle);
+  tmp := X + MajorHalfAxis*cos(t)*cos(Angle) - MinorHalfAxis*sin(t)*sin(Angle);
   BoundingRect.Right := Round(tmp);
 end;
 
@@ -575,7 +655,7 @@ end;
   Should be followed by zero or more calls to AddPointToPath
   and by a call to EndPath to effectively add the data.
 
-  @see    StartPath, AddPointToPath
+  @see    EndPath, AddPointToPath
 }
 procedure TvVectorialDocument.StartPath(AX, AY: Double);
 var
@@ -661,10 +741,10 @@ end;
 {@@
   Gets the current Pen Pos in the temporary path
 }
-procedure TvVectorialDocument.GetCurrenPathPenPos(var AX, AY: Double);
+procedure TvVectorialDocument.GetCurrentPathPenPos(var AX, AY: Double);
 begin
   // Check if we are the first segment in the tmp path
-  if FTmpPath.PointsEnd = nil then raise Exception.Create('[TvVectorialDocument.GetCurrenPathPenPos] One cannot obtain the Pen Pos if there are no segments in the temporary path');
+  if FTmpPath.PointsEnd = nil then raise Exception.Create('[TvVectorialDocument.GetCurrentPathPenPos] One cannot obtain the Pen Pos if there are no segments in the temporary path');
 
   AX := T2DSegment(FTmpPath.PointsEnd).X;
   AY := T2DSegment(FTmpPath.PointsEnd).Y;
@@ -737,6 +817,13 @@ begin
   FTmPPath.Pen.Width := AWidth;
 end;
 
+procedure TvVectorialDocument.SetClipPath(AClipPath: TPath;
+  AClipMode: TvClipMode);
+begin
+  FTmPPath.ClipPath := AClipPath;
+  FTmPPath.ClipMode := AClipMode;
+end;
+
 {@@
   Finishes writing a Path, which was created in multiple
   steps using StartPath and AddPointToPath,
@@ -754,46 +841,43 @@ begin
   ClearTmpPath();
 end;
 
-procedure TvVectorialDocument.AddText(AX, AY, AZ: Double; FontName: string; FontSize: integer; AText: utf8string);
+procedure TvVectorialDocument.AddText(AX, AY: Double; FontName: string; FontSize: integer; AText: utf8string);
 var
   lText: TvText;
 begin
   lText := TvText.Create;
-  lText.Value := AText;
+  lText.Value.Text := AText;
   lText.X := AX;
   lText.Y := AY;
-  lText.Z := AZ;
   lText.Font.Name := FontName;
   lText.Font.Size := FontSize;
   AddEntity(lText);
 end;
 
-procedure TvVectorialDocument.AddText(AX, AY, AZ: Double; AStr: utf8string);
+procedure TvVectorialDocument.AddText(AX, AY: Double; AStr: utf8string);
 begin
-  AddText(AX, AY, AZ, '', 10, AStr);
+  AddText(AX, AY, '', 10, AStr);
 end;
 
-procedure TvVectorialDocument.AddCircle(ACenterX, ACenterY, ACenterZ, ARadius: Double);
+procedure TvVectorialDocument.AddCircle(ACenterX, ACenterY, ARadius: Double);
 var
   lCircle: TvCircle;
 begin
   lCircle := TvCircle.Create;
-  lCircle.CenterX := ACenterX;
-  lCircle.CenterY := ACenterY;
-  lCircle.CenterZ := ACenterZ;
+  lCircle.X := ACenterX;
+  lCircle.Y := ACenterY;
   lCircle.Radius := ARadius;
   AddEntity(lCircle);
 end;
 
-procedure TvVectorialDocument.AddCircularArc(ACenterX, ACenterY, ACenterZ,
+procedure TvVectorialDocument.AddCircularArc(ACenterX, ACenterY,
   ARadius, AStartAngle, AEndAngle: Double; AColor: TFPColor);
 var
   lCircularArc: TvCircularArc;
 begin
   lCircularArc := TvCircularArc.Create;
-  lCircularArc.CenterX := ACenterX;
-  lCircularArc.CenterY := ACenterY;
-  lCircularArc.CenterZ := ACenterZ;
+  lCircularArc.X := ACenterX;
+  lCircularArc.Y := ACenterY;
   lCircularArc.Radius := ARadius;
   lCircularArc.StartAngle := AStartAngle;
   lCircularArc.EndAngle := AEndAngle;
@@ -801,15 +885,14 @@ begin
   AddEntity(lCircularArc);
 end;
 
-procedure TvVectorialDocument.AddEllipse(CenterX, CenterY, CenterZ,
+procedure TvVectorialDocument.AddEllipse(CenterX, CenterY,
   MajorHalfAxis, MinorHalfAxis, Angle: Double);
 var
   lEllipse: TvEllipse;
 begin
   lEllipse := TvEllipse.Create;
-  lEllipse.CenterX := CenterX;
-  lEllipse.CenterY := CenterY;
-  lEllipse.CenterZ := CenterZ;
+  lEllipse.X := CenterX;
+  lEllipse.Y := CenterY;
   lEllipse.MajorHalfAxis := MajorHalfAxis;
   lEllipse.MinorHalfAxis := MinorHalfAxis;
   lEllipse.Angle := Angle;
@@ -817,10 +900,11 @@ begin
 end;
 
 {@@
-  Don't free the passed TvText because it will be added directly to the list
+  Adds an entity to the document and returns it's current index
 }
-procedure TvVectorialDocument.AddEntity(AEntity: TvEntity);
+function TvVectorialDocument.AddEntity(AEntity: TvEntity): Integer;
 begin
+  Result := FEntities.Count;
   FEntities.Add(Pointer(AEntity));
 end;
 
@@ -885,15 +969,6 @@ procedure TvVectorialDocument.ClearTmpPath();
 var
   segment, oldsegment: TPathSegment;
 begin
-//  segment := FTmpPath.Points;
-// Don't free segments, because they are used when the path is added
-//  while segment <> nil do
-//  begin
-//    oldsegment := segment;
-//    segment := segment^.Next;
-//    oldsegment^.Free;
-//  end;
-
   FTmpPath.Points := nil;
   FTmpPath.PointsEnd := nil;
   FTmpPath.Len := 0;
@@ -905,28 +980,8 @@ begin
 end;
 
 procedure TvVectorialDocument.AppendSegmentToTmpPath(ASegment: TPathSegment);
-var
-  L: Integer;
 begin
-  // Check if we are the first segment in the tmp path
-  if FTmpPath.PointsEnd = nil then
-  begin
-    if FTmpPath.Len <> 0 then
-      Exception.Create('[TvVectorialDocument.AppendSegmentToTmpPath]' + Str_Error_Nil_Path);
-
-    FTmpPath.Points := ASegment;
-    FTmpPath.PointsEnd := ASegment;
-    FTmpPath.Len := 1;
-    Exit;
-  end;
-
-  L := FTmpPath.Len;
-  Inc(FTmpPath.Len);
-
-  // Adds the element to the end of the list
-  FTmpPath.PointsEnd.Next := ASegment;
-  ASegment.Previous := FTmpPath.PointsEnd;
-  FTmpPath.PointsEnd := ASegment;
+  FTmpPath.AppendSegment(ASegment);
 end;
 
 {@@
@@ -988,7 +1043,7 @@ end;
 {@@
   Reads the document from a file.
 
-  Any current contents will be removed.
+  Any current contents in this object will be removed.
 }
 procedure TvVectorialDocument.ReadFromFile(AFileName: string;
   AFormat: TvVectorialFormat);
@@ -1006,7 +1061,7 @@ begin
 end;
 
 {@@
-  Reads the document from a file.  A variant that auto-detects the format from the extension.
+  Reads the document from a file.  A variant that auto-detects the format from the extension and other factors.
 }
 procedure TvVectorialDocument.ReadFromFile(AFileName: string);
 var
@@ -1019,7 +1074,7 @@ end;
 {@@
   Reads the document from a stream.
 
-  Any current contents will be removed.
+  Any current contents in this object will be removed.
 }
 procedure TvVectorialDocument.ReadFromStream(AStream: TStream;
   AFormat: TvVectorialFormat);
@@ -1073,6 +1128,32 @@ begin
 
 end;
 
+procedure TvVectorialDocument.GuessDocumentSize();
+var
+  i: Integer;
+  lEntity: TvEntity;
+  lLeft, lTop, lRight, lBottom: Double;
+begin
+  lLeft := 0;
+  lTop := 0;
+  lRight := 0;
+  lBottom := 0;
+
+  for i := 0 to GetEntitiesCount() - 1 do
+  begin
+    lEntity := GetEntity(I);
+    lEntity.ExpandBoundingBox(lLeft, lTop, lRight, lBottom);
+  end;
+
+  Width := lRight - lLeft;
+  Height := lBottom - lTop;
+end;
+
+procedure TvVectorialDocument.GuessGoodZoomLevel(AScreenSize: Integer);
+begin
+  ZoomLevel := AScreenSize / Height;
+end;
+
 function TvVectorialDocument.GetPath(ANum: Cardinal): TPath;
 var
   i: Integer;
@@ -1114,6 +1195,27 @@ end;
 function TvVectorialDocument.GetEntitiesCount: Integer;
 begin
   Result := FEntities.Count;
+end;
+
+function TvVectorialDocument.FindAndSelectEntity(Pos: TPoint): TvFindEntityResult;
+var
+  lEntity: TvEntity;
+  i: Integer;
+begin
+  Result := vfrNotFound;
+
+  for i := 0 to GetEntitiesCount() - 1 do
+  begin
+    lEntity := GetEntity(i);
+
+    Result := lEntity.TryToSelect(Pos);
+
+    if Result <> vfrNotFound then
+    begin
+      SelectedvElement := lEntity;
+      Exit;
+    end;
+  end;
 end;
 
 {@@
@@ -1240,6 +1342,8 @@ begin
   CurPoint := ASource.CurPoint;
   Pen := ASource.Pen;
   Brush := ASource.Brush;
+  ClipPath := ASource.ClipPath;
+  ClipMode := ASource.ClipMode;
 end;
 
 procedure TPath.PrepareForSequentialReading;
@@ -1253,6 +1357,67 @@ begin
   else Result := CurPoint.Next;
 
   CurPoint := Result;
+end;
+
+procedure TPath.CalculateBoundingBox(var ALeft, ATop, ARight, ABottom: Double);
+var
+  lSegment: TPathSegment;
+  l2DSegment: T2DSegment;
+  lFirstValue: Boolean = True;
+begin
+  inherited CalculateBoundingBox(ALeft, ATop, ARight, ABottom);
+
+  PrepareForSequentialReading();
+  lSegment := Next();
+  while lSegment <> nil do
+  begin
+    if lSegment is T2DSegment then
+    begin
+      l2DSegment := T2DSegment(lSegment);
+      if lFirstValue then
+      begin
+        ALeft := l2DSegment.X;
+        ATop := l2DSegment.Y;
+        ARight := l2DSegment.X;
+        ABottom := l2DSegment.Y;
+        lFirstValue := False;
+      end
+      else
+      begin
+        if l2DSegment.X < ALeft then ALeft := l2DSegment.X;
+        if l2DSegment.Y < ATop then ATop := l2DSegment.Y;
+        if l2DSegment.X > ARight then ARight := l2DSegment.X;
+        if l2DSegment.Y > ABottom then ABottom := l2DSegment.Y;
+      end;
+    end;
+
+    lSegment := Next();
+  end;
+end;
+
+procedure TPath.AppendSegment(ASegment: TPathSegment);
+var
+  L: Integer;
+begin
+  // Check if we are the first segment in the tmp path
+  if PointsEnd = nil then
+  begin
+    if Len <> 0 then
+      Exception.Create('[TPath.AppendSegment] Assertion failed Len <> 0 with PointsEnd = nil');
+
+    Points := ASegment;
+    PointsEnd := ASegment;
+    Len := 1;
+    Exit;
+  end;
+
+  L := Len;
+  Inc(Len);
+
+  // Adds the element to the end of the list
+  PointsEnd.Next := ASegment;
+  ASegment.Previous := PointsEnd;
+  PointsEnd := ASegment;
 end;
 
 finalization

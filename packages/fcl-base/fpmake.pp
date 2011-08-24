@@ -16,8 +16,8 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-base';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
-    P.Dependencies.Add('univint',[Darwin]);
+    P.Version:='2.7.1';
+    P.Dependencies.Add('univint',[Darwin,iPhoneSim]);
 
     P.Author := '<various>';
     P.License := 'LGPL with modification, ';
@@ -32,7 +32,7 @@ begin
     P.IncludePath.Add('src');
     P.IncludePath.Add('src/$(OS)');
     P.IncludePath.Add('src/unix',AllUnixOSes);
-    P.IncludePath.Add('src/win',AllWindowsOSes);
+    P.IncludePath.Add('src/win',AllWindowsOSes-[WinCE]);
     P.IncludePath.Add('src/dummy',AllOSes);
 
     T:=P.Targets.AddUnit('ascii85.pp');
@@ -104,11 +104,12 @@ begin
 
     // Windows units
     T:=P.Targets.AddUnit('fileinfo.pp',AllWindowsOSes);
-
-    T:=P.Targets.addUnit('fpmimetypes');
-    
+    T:=P.Targets.addUnit('fpmimetypes.pp');
+   
     // Additional sources
     P.Sources.AddSrcFiles('src/win/fclel.*');
+    // Install windows resources
+    P.InstallFiles.Add('src/win/fclel.res',AllWindowsOSes);
 
     // Examples
     P.ExamplePath.Add('examples');
@@ -121,8 +122,6 @@ begin
       T:=P.Targets.AddExampleProgram('base64decodingtestcase.pas');
       T:=P.Targets.AddExampleProgram('cachetest.pp');
       T:=P.Targets.AddExampleProgram('cfgtest.pp');
-      T:=P.Targets.AddExampleProgram('daemon.pp');
-      T:=P.Targets.AddExampleProgram('daemon.txt');
       T:=P.Targets.AddExampleProgram('dbugsrv.pp');
       T:=P.Targets.AddExampleProgram('debugtest.pp');
       T:=P.Targets.AddExampleProgram('doecho.pp');

@@ -41,7 +41,6 @@ cleanrtl:
         -$(DEL) rtl-stamp.$(FULL_TARGET)
 
 distcleanrtl: cleanrtl
-	$(MAKE) -C ../../rtl clean
 
 rtl : rtl-stamp.$(FULL_TARGET)
 
@@ -89,7 +88,6 @@ cleanpackages:
         -$(DEL) packages-stamp.$(FULL_TARGET)
 
 distcleanpackages: cleanpackages
-	$(MAKE) -C ../../packages clean
 
 packages : packages-stamp.$(FULL_TARGET)
 

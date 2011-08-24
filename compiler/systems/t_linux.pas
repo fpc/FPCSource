@@ -192,6 +192,9 @@ begin
 {$endif FPC_ARMEL}
 {$endif arm}
 
+{$ifdef mips}
+     defdynlinker:='/lib/ld.so.1';
+{$endif mips}
      {
        Search order:
          glibc 2.1+

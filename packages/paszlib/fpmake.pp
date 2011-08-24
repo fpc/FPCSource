@@ -17,9 +17,9 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='paszlib';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     D:=P.Dependencies.Add('hash');
-      D.Version:='2.2.2-0';
+      D.Version:='2.7.1';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
     T:=P.Targets.AddUnit('paszlib.pas');
@@ -44,6 +44,7 @@ begin
       T.Dependencies.AddUnit('ziputils');
     T:=P.Targets.AddUnit('zipper.pp');
       T.Dependencies.AddUnit('paszlib');
+    T.ResourceStrings := True;
     T:=P.Targets.AddImplicitUnit('adler.pas');
       T.Dependencies.AddInclude('zconf.inc');
     T:=P.Targets.AddImplicitUnit('gzio.pas');
@@ -54,12 +55,14 @@ begin
     T:=P.Targets.AddImplicitUnit('infutil.pas');
     T:=P.Targets.AddImplicitUnit('trees.pas');
     T:=P.Targets.AddImplicitUnit('zbase.pas');
+    T.ResourceStrings := True;
     T:=P.Targets.AddImplicitUnit('zcompres.pas');
     T:=P.Targets.AddImplicitUnit('zdeflate.pas');
     T:=P.Targets.AddImplicitUnit('zinflate.pas');
     T:=P.Targets.AddImplicitUnit('zuncompr.pas');
     T:=P.Targets.AddImplicitUnit('ziputils.pas');
     T:=P.Targets.AddImplicitUnit('zstream.pp');
+    T.ResourceStrings := True;
     T:=P.Targets.AddExampleProgram('examples/example.pas');
     T:=P.Targets.AddExampleProgram('examples/minigzip.pas');
     T:=P.Targets.AddExampleProgram('examples/miniunz.pas');

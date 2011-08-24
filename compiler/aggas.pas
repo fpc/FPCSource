@@ -45,6 +45,7 @@ interface
       TGNUAssembler=class(texternalassembler)
       protected
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;
+        function sectionattrs_coff(atype:TAsmSectiontype):string;virtual;
         procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder);
         procedure WriteExtraHeader;virtual;
         procedure WriteInstruction(hp: tai);
@@ -194,10 +195,10 @@ implementation
 
 
     const
-      ait_const2str : array[aitconst_128bit..aitconst_darwin_dwarf_delta32] of string[20]=(
+      ait_const2str : array[aitconst_128bit..aitconst_half16bit] of string[20]=(
         #9'.fixme128'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9,#9'.byte'#9,
         #9'.sleb128'#9,#9'.uleb128'#9,
-        #9'.rva'#9,#9'.secrel32'#9,#9'.quad'#9,#9'.long'#9
+        #9'.rva'#9,#9'.secrel32'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9
       );
 
     function ReplaceForbiddenChars(const s: string): string;
@@ -236,6 +237,19 @@ implementation
       begin
         inc(setcount);
         result := target_asm.labelprefix+'$set$'+tostr(setcount);
+      end;
+
+    function is_smart_section(atype:TAsmSectiontype):boolean;
+      begin
+        { For bss we need to set some flags that are target dependent,
+          it is easier to disable it for smartlinking. It doesn't take up
+          filespace }
+        result:=not(target_info.system in systems_darwin) and
+           create_smartlink_sections and
+           (atype<>sec_toc) and
+           (atype<>sec_user) and
+           { on embedded systems every byte counts, so smartlink bss too }
+           ((atype<>sec_bss) or (target_info.system in systems_embedded));
       end;
 
     function TGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
@@ -404,16 +418,7 @@ implementation
         if atype=sec_user then
           secname:=aname;
 
-        { For bss we need to set some flags that are target dependent,
-          it is easier to disable it for smartlinking. It doesn't take up
-          filespace }
-        if not(target_info.system in systems_darwin) and
-           create_smartlink_sections and
-           (aname<>'') and
-           (atype<>sec_toc) and
-           (atype<>sec_user) and
-           { on embedded systems every byte counts, so smartlink bss too }
-           ((atype<>sec_bss) or (target_info.system in systems_embedded)) then
+        if is_smart_section(atype) and (aname<>'') then
           begin
             case aorder of
               secorder_begin :
@@ -427,6 +432,45 @@ implementation
           end
         else
           result:=secname;
+      end;
+
+
+    function TGNUAssembler.sectionattrs_coff(atype:TAsmSectiontype):string;
+      begin
+        case atype of
+          sec_code, sec_init, sec_fini, sec_stub:
+            result:='x';
+
+          { TODO: must be individual for each section }
+          sec_user:
+            result:='d';
+
+          sec_data, sec_data_lazy, sec_data_nonlazy, sec_fpc,
+          sec_idata2, sec_idata4, sec_idata5, sec_idata6, sec_idata7:
+            result:='d';
+
+          { TODO: these need a fix to become read-only }
+          sec_rodata, sec_rodata_norel:
+            result:='d';
+
+          sec_bss:
+            result:='b';
+
+          { TODO: Somewhat questionable. FPC does not allow initialized threadvars,
+            so no sense to mark it as containing data. But Windows allows it to
+            contain data, and Linux even has .tdata and .tbss }
+          sec_threadvar:
+            result:='b';
+
+          sec_pdata, sec_edata, sec_eh_frame, sec_toc:
+            result:='r';
+
+          sec_stab,sec_stabstr,
+          sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev:
+            result:='n';
+        else
+          result:='';  { defaults to data+load }
+        end;
       end;
 
 
@@ -483,6 +527,20 @@ implementation
                 else
                   internalerror(2006031101);
               end;
+            end;
+        else
+          { GNU AS won't recognize '.text.n_something' section name as belonging
+            to '.text' and assigns default attributes to it, which is not
+            always correct. We have to fix it.
+
+            TODO: This likely applies to all systems which smartlink without
+            creating libraries }
+          if (target_info.system in [system_i386_win32,system_x86_64_win64]) and
+            is_smart_section(atype) and (aname<>'') then
+            begin
+              s:=sectionattrs_coff(atype);
+              if (s<>'') then
+                AsmWrite(',"'+s+'"');
             end;
         end;
         AsmLn;
@@ -777,7 +835,8 @@ implementation
                  aitconst_rva_symbol,
                  aitconst_secrel32_symbol,
                  aitconst_darwin_dwarf_delta32,
-                 aitconst_darwin_dwarf_delta64:
+                 aitconst_darwin_dwarf_delta64,
+                 aitconst_half16bit:
                    begin
                      if (target_info.system in systems_darwin) and
                         (constdef in [aitconst_uleb128bit,aitconst_sleb128bit]) then
@@ -823,6 +882,9 @@ implementation
                              { 64 bit constants are already handled above in this case }
                              s:=tostr(longint(tai_const(hp).value));
 {$endif cpu64bitaddr}
+                           if constdef = aitconst_half16bit then
+                             s:='('+s+')/2';
+
                            AsmWrite(s);
                            inc(l,length(s));
                            { Values with symbols are written on a single line to improve

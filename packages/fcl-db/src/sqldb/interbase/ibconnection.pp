@@ -121,7 +121,7 @@ type
 implementation
 
 uses
-  strutils;
+  strutils, FmtBCD;
 
 type
   TTm = packed record
@@ -780,7 +780,8 @@ var
   // This should be a pointer, because the ORIGINAL variables must
   // be modified.
   VSQLVar: ^XSQLVAR;
-
+  d : double;
+  
 begin
 {$R-}
   with cursor as TIBCursor do for SQLVarNr := 0 to High(ParamBinding){AParams.count-1} do
@@ -842,6 +843,11 @@ begin
           begin
             if VSQLVar^.sqlscale = 0 then
               li := AParams[ParNr].AsLargeInt
+            else if AParams[ParNr].DataType = ftFMTBcd then
+              begin
+              d:=AParams[ParNr].AsFMTBCD * IntPower(10, -VSQLVar^.sqlscale);
+              li := Round(d)
+              end
             else
               li := Round(AParams[ParNr].AsCurrency * IntPower(10, -VSQLVar^.sqlscale));
             Move(li, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
@@ -863,6 +869,7 @@ var
   VarcharLen : word;
   CurrBuff     : pchar;
   c            : currency;
+  AFmtBcd      : tBCD;
   smalli       : smallint;
   longi        : longint;
   largei       : largeint;
@@ -919,6 +926,26 @@ begin
                 Result := False; // Just to be sure, in principle this will never happen
             end; {case}
             Move(c, buffer^ , sizeof(c));
+          end;
+        ftFMTBcd :
+          begin
+            case SQLDA^.SQLVar[x].SQLLen of
+              2 : begin
+                  Move(CurrBuff^, smalli, 2);
+                  AFmtBCD:= smalli*intpower(10,SQLDA^.SQLVar[x].SQLScale);
+                  end;
+              4 : begin
+                  Move(CurrBuff^, longi, 4);
+                  AFmtBcd := longi*intpower(10,SQLDA^.SQLVar[x].SQLScale);
+                  end;
+              8 : begin
+                  Move(CurrBuff^, largei, 8);
+                  AFmtBcd := largei*intpower(10,SQLDA^.SQLVar[x].SQLScale);
+                  end;
+              else
+                Result := False; // Just to be sure, in principle this will never happen
+            end; {case}
+            Move(AFmtBcd, buffer^ , sizeof(AFmtBcd));
           end;
         ftInteger :
           begin

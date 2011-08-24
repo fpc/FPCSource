@@ -19,42 +19,21 @@ unit sysinitpas;
 
   implementation
 
-    var
-      SysInstance : Longint;external name '_FPC_SysInstance';
-      EntryInformation : TEntryInformation;
-
-      InitFinalTable : record end; external name 'INITFINAL';
-      ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
-      valgrind_used : boolean;external name '__fpc_valgrind';
 
     procedure asm_exit;stdcall;public name 'asm_exit';
       begin
       end;
 
-    procedure EXE_Entry(const info : TEntryInformation); external name '_FPC_EXE_Entry';
-    function DLL_entry(const info : TEntryInformation) : longbool; external name '_FPC_DLL_Entry';
-    procedure PascalMain;stdcall;external name 'PASCALMAIN';
-
-    procedure SetupEntryInformation;
-      begin
-        EntryInformation.InitFinalTable:=@InitFinalTable;
-        EntryInformation.ThreadvarTablesTable:=@ThreadvarTablesTable;
-        EntryInformation.asm_exit:=@asm_exit;
-        EntryInformation.PascalMain:=@PascalMain;
-        EntryInformation.valgrind_used:=valgrind_used;
-      end;
-
-    const
-      STD_INPUT_HANDLE = dword(-10);
-
-    function GetStdHandle(nStdHandle:DWORD) : THandle; stdcall; external 'kernel32' name 'GetStdHandle';
-    function GetConsoleMode(hConsoleHandle: THandle; var lpMode: DWORD): Boolean; stdcall; external 'kernel32' name 'GetConsoleMode';
+{$i sysinit.inc}
 
     procedure _FPC_mainCRTStartup;stdcall;public name '_mainCRTStartup';
     begin
       IsConsole:=true;
       { do it like it is necessary for the startup code linking against cygwin }
       GetConsoleMode(GetStdHandle((Std_Input_Handle)),StartupConsoleMode);
+{$ifdef FPC_USE_TLS_DIRECTORY}
+      LinkIn(@tlsdir,@tls_callback_end,@tls_callback);
+{$endif}
       SetupEntryInformation;
       Exe_entry(EntryInformation);
     end;
@@ -63,6 +42,9 @@ unit sysinitpas;
     procedure _FPC_WinMainCRTStartup;stdcall;public name '_WinMainCRTStartup';
     begin
       IsConsole:=false;
+{$ifdef FPC_USE_TLS_DIRECTORY}
+      LinkIn(@tlsdir,@tls_callback_end,@tls_callback);
+{$endif}
       SetupEntryInformation;
       Exe_entry(EntryInformation);
     end;

@@ -69,7 +69,11 @@ TEST_FULL_TARGET=$(TEST_CPU_TARGET)-$(TEST_OS_TARGET)
 ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
 TEST_TARGETSUFFIX=$(TEST_OS_TARGET)
 else
+ifneq ($(findstring $(TEST_OS_TARGET),$(LIMIT83fs)),)
+TEST_TARGETSUFFIX=$(TEST_OS_TARGET)
+else
 TEST_TARGETSUFFIX=$(TEST_FULL_TARGET)
+endif
 endif
 
 ifndef TEST_CCOMPILER
@@ -131,7 +135,7 @@ endif
 
 
 # Subdirs available in the test subdir
-TESTSUBDIRS=cg cg/variants cg/cdecl library opt units/system units/dos units/crt units/objects units/strings units/sysutils units/math units/sharemem units/strutils
+TESTSUBDIRS=cg cg/variants cg/cdecl library opt units/system units/dos units/crt units/objects units/strings units/sysutils units/math units/sharemem units/strutils units/matrix
 TESTPACKAGESUBDIRS=packages/win-base packages/webtbs packages/hash packages/fcl-registry packages/fcl-process packages/zlib packages/fcl-db packages/fcl-base packages/fcl-xml packages/cocoaint
 
 ifdef QUICKTEST
@@ -327,8 +331,9 @@ endif
 
 
 ifdef USEENV
-override DOTESTENV=$(DOTESTOPT)
+override DOTESTENV:=$(DOTESTOPT)
 override DOTESTOPT=!DOTESTENV
+export DOTESTENV
 endif
 
 ################################

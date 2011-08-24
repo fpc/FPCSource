@@ -4,10 +4,11 @@
 
 [package]
 name=fpdoc
-version=2.5.1
+version=2.7.1
 
 [require]
-packages=fcl-xml fcl-passrc chm
+packages=fcl-base fcl-xml fcl-passrc chm
+packages_darwin=univint
 
 [target]
 programs=fpdoc makeskel unitdiff fpclasschart

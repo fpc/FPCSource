@@ -265,6 +265,9 @@ interface
         or not }
     function is_nested_pd(def: tabstractprocdef): boolean;{$ifdef USEINLINE}inline;{$endif}
 
+    { # returns whether def is a type parameter of a generic }
+    function is_typeparam(def : tdef) : boolean;{$ifdef USEINLINE}inline;{$endif}
+
 implementation
 
     uses
@@ -384,7 +387,8 @@ implementation
                is_ordinal:=dt in [uchar,uwidechar,
                                   u8bit,u16bit,u32bit,u64bit,
                                   s8bit,s16bit,s32bit,s64bit,
-                                  pasbool,bool8bit,bool16bit,bool32bit,bool64bit];
+                                  pasbool8,pasbool16,pasbool32,pasbool64,
+                                  bool8bit,bool16bit,bool32bit,bool64bit];
              end;
            enumdef :
              is_ordinal:=true;
@@ -441,14 +445,14 @@ implementation
     function is_boolean(def : tdef) : boolean;
       begin
         result:=(def.typ=orddef) and
-                    (torddef(def).ordtype in [pasbool,bool8bit,bool16bit,bool32bit,bool64bit]);
+                    (torddef(def).ordtype in [pasbool8,pasbool16,pasbool32,pasbool64,bool8bit,bool16bit,bool32bit,bool64bit]);
       end;
 
 
     function is_pasbool(def : tdef) : boolean;
       begin
         result:=(def.typ=orddef) and
-                    (torddef(def).ordtype = pasbool);
+                    (torddef(def).ordtype in [pasbool8,pasbool16,pasbool32,pasbool64]);
       end;
 
     { true if def is a C-style boolean (non-zero value = true, zero = false) }
@@ -1142,4 +1146,8 @@ implementation
       end;
 
 
+    function is_typeparam(def : tdef) : boolean;{$ifdef USEINLINE}inline;{$endif}
+      begin
+        result:=(def.typ=undefineddef);
+      end;
 end.

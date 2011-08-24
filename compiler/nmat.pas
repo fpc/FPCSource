@@ -884,14 +884,17 @@ implementation
              v:=tordconstnode(left).value;
              def:=left.resultdef;
              case torddef(left.resultdef).ordtype of
-               pasbool,
+               pasbool8,
+               pasbool16,
+               pasbool32,
+               pasbool64,
                bool8bit,
                bool16bit,
                bool32bit,
                bool64bit:
                  begin
                    v:=byte(not(boolean(int64(v))));
-                   if (torddef(left.resultdef).ordtype<>pasbool) then
+                   if is_cbool(left.resultdef) then
                      v:=-v;
                  end;
                uchar,

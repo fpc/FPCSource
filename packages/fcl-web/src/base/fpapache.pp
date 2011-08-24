@@ -479,7 +479,8 @@ begin
            If (FRequest^.Connection<>Nil) then
              begin
              Result:=MaybeP(ap_get_remote_host(FRequest^.Connection,
-                            nil,
+                            FRequest^.per_dir_config,
+//                            nil,
                             REMOTE_NAME,@i));
              end;                   
       29 : begin // ScriptName

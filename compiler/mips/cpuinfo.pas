@@ -58,11 +58,11 @@ Const
      pocall_cppdecl
    ];
 
-   cputypestr : array[tcputype] of string[5] = ('',
+   cputypestr : array[tcputype] of string[6] = ('',
      'MIPS32'
    );
 
-   fputypestr : array[tfputype] of string[6] = ('',
+   fputypestr : array[tfputype] of string[9] = ('',
      'SOFT',
      'FPU_MIPS2','FPU_MIPS3'
    );

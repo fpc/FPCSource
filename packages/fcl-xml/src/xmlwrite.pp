@@ -130,7 +130,7 @@ end;
   ---------------------------------------------------------------------}
 
 const
-  AttrSpecialChars = ['<', '"', '&', #9, #10, #13];
+  AttrSpecialChars = ['<', '>', '"', '&', #9, #10, #13];
   TextSpecialChars = ['<', '>', '&', #10, #13];
   CDSectSpecialChars = [']'];
   LineEndingChars = [#13, #10];
@@ -312,6 +312,12 @@ begin
     '"': Sender.wrtStr(QuotStr);
     '&': Sender.wrtStr(AmpStr);
     '<': Sender.wrtStr(ltStr);
+    // This is *only* to interoperate with broken parsers out there,
+    // Delphi ClientDataset parser being one of them.
+    '>': if not Sender.FCanonical then
+           Sender.wrtStr(gtStr)
+         else
+           Sender.wrtChr('>');
     // Escape whitespace using CharRefs to be consistent with W3 spec § 3.3.3
     #9: Sender.wrtStr('&#x9;');
     #10: Sender.wrtStr('&#xA;');
@@ -667,17 +673,14 @@ begin
   else
     wrtStr('1.0');
   wrtChr('"');
-  
-// DISABLED - we are only able write in UTF-8 which does not require labeling
-// writing incorrect encoding will render xml unreadable...
-(*
-  if Length(TXMLDocument(node).Encoding) > 0 then
-  begin
-    wrtStr(' encoding="');
-    wrtStr(TXMLDocument(node).Encoding);
-    wrtChr('"');
-  end;
-*)
+
+  // Here we ignore doc.xmlEncoding and write a fixed utf-8 label,
+  // because it is the only output encoding currently supported.
+  wrtStr(' encoding="utf-8"');
+
+  if TXMLDocument(node).xmlStandalone then
+    wrtStr(' standalone="yes"');
+
   wrtStr('?>');
 
   // TODO: now handled as a regular PI, remove this?

@@ -1,4 +1,5 @@
 { %norun }
+{ %needlibrary }
 { %target=win32,win64,wince,darwin,linux,freebsd,solaris,beos}
 
 {$mode delphi}

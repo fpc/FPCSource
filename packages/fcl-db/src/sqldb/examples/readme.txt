@@ -3,8 +3,9 @@ In this directory you can find some examples for SQLdb. They can also be used
 to test functionality and new connections.
 
 To use these examples you need a working login to a DB-Server and have the
-appropiate client installed. You have to change 'database.ini' to work with the
-right database-engine and login-credentials.
+appropiate client installed.  You have to change 'database.ini' to work with
+the right database-engine and login-credentials.  Also check if the format
+of various dates matches the format your db expects.
 
 You can check if everything works fine by compiling & running 'alisttables'. If
 everything works well, you'll get a list of all tables in the database provided

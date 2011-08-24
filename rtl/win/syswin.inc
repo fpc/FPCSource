@@ -30,7 +30,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
      EntryInformation:=info;
 {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
      IsLibrary:=true;
-     Dll_entry:=false;
+     Dll_entry:=false;  { return value is ignored, except when DLLreason=DLL_PROCESS_ATTACH }
      case DLLreason of
        DLL_PROCESS_ATTACH :
          begin
@@ -50,43 +50,39 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
          end;
        DLL_THREAD_ATTACH :
          begin
-           if Win32GetCurrentThreadId <> MainThreadIdWin32 then
-           begin
-             { Allocate Threadvars  }
-             SysAllocateThreadVars;
+           { SysInitMultithreading must not be called here,
+             see comments in exec_tls_callback below }
+           { Allocate Threadvars  }
+           SysAllocateThreadVars;
 
-             { NS : no idea what is correct to pass here - pass dummy value for now }
-             { passing a dummy is ok, the correct value is read from the coff header of SysInstance (FK) }
-             InitThread($1000000); { Assume everything is idempotent there, as the thread could have been created with BeginThread... }
-           end;
+           { NS : no idea what is correct to pass here - pass dummy value for now }
+           { passing a dummy is ok, the correct value is read from the coff header of SysInstance (FK) }
+           InitThread($1000000); { Assume everything is idempotent there, as the thread could have been created with BeginThread... }
 
            if assigned(Dll_Thread_Attach_Hook) then
              Dll_Thread_Attach_Hook(DllParam);
-           Dll_entry:=true; { return value is ignored }
         end;
        DLL_THREAD_DETACH :
          begin
            if assigned(Dll_Thread_Detach_Hook) then
              Dll_Thread_Detach_Hook(DllParam);
            { Release Threadvars }
-           if Win32GetCurrentThreadId<>MainThreadIdWin32 then
+           if TlsGetValue(TLSKey)<>nil then
              DoneThread; { Assume everything is idempotent there }
-           Dll_entry:=true; { return value is ignored }
          end;
        DLL_PROCESS_DETACH :
          begin
-           Dll_entry:=true; { return value is ignored }
-		   if MainThreadIDWin32=0 then // already been here.
-		     exit;
+	   if MainThreadIDWin32=0 then // already been here.
+	     exit;
            If SetJmp(DLLBuf) = 0 then
              FPC_Do_Exit;
            if assigned(Dll_Process_Detach_Hook) then
              Dll_Process_Detach_Hook(DllParam);
 
-           DoneThread;
+           SysReleaseThreadVars;
            { Free TLS resources used by ThreadVars }
            SysFiniMultiThreading;
-		   MainThreadIDWin32:=0;
+           MainThreadIDWin32:=0;
          end;
      end;
   end;
@@ -97,6 +93,88 @@ Procedure ExitDLL(Exitcode : longint);
     DLLExitOK:=ExitCode=0;
     LongJmp(DLLBuf,1);
   end;
+
+{$ifdef FPC_USE_TLS_DIRECTORY}
+{ Process TLS callback function }
+{ This is only useful for executables
+  for DLLs, DLL_Entry gets called. PM }
+
+procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer);
+  stdcall; [public,alias:'_FPC_Tls_Callback'];
+  begin
+     if IsLibrary then
+       Exit;
+     case reason of
+       { For executables, DLL_PROCESS_ATTACH is called *before* the entry point,
+         and DLL_PROCESS_DETACH is called *after* RTL shuts down and calls ExitProcess.
+         It isn't a good idea to handle resources of the main thread at these points. }
+       DLL_THREAD_ATTACH :
+         begin
+         {  !!! SysInitMultithreading must NOT be called here. Windows guarantees that
+            the main thread invokes PROCESS_ATTACH, not THREAD_ATTACH. So this always
+            executes in non-main thread. SysInitMultithreading() here will cause
+            initial threadvars to be copied to TLS of non-main thread, and threadvars
+            of the main thread will be reinitialized upon the next access with zeroes,
+            ending up in a delayed failure which is very hard to debug.
+            Fortunately this nasty scenario can happen only when the first non-main thread
+            was created outside of RTL (Sergei).
+         }
+           { Allocate Threadvars  }
+           SysAllocateThreadVars;
+
+           { NS : no idea what is correct to pass here - pass dummy value for now }
+           { passing a dummy is ok, the correct value is read from the coff header of SysInstance (FK) }
+           InitThread($1000000); { Assume everything is idempotent there, as the thread could have been created with BeginThread... }
+         end;
+       DLL_THREAD_DETACH :
+         begin
+           if TlsGetValue(TLSKey)<>nil then
+             DoneThread; { Assume everything is idempotent there }
+         end;
+     end;
+  end;
+
+const
+  FreePascal_TLS_callback : pointer = @Exec_Tls_callback;
+    public name '__FPC_tls_callbacks' section '.CRT$XLFPC';
+  FreePascal_end_of_TLS_callback : pointer = nil;
+    public name '__FPC_end_of_tls_callbacks' section '.CRT$XLZZZ';
+var
+  tls_callbacks : pointer; external name '___crt_xl_start__';
+  tls_data_start : pointer; external name '___tls_start__';
+  tls_data_end : pointer; external name '___tls_end__';
+
+  _tls_index : dword; cvar; external;
+
+const
+  _tls_used : TTlsDirectory = (
+    data_start : @tls_data_start;
+    data_end : @tls_data_end;
+    index_pointer : @_tls_index;
+    callbacks_pointer : @tls_callbacks;
+    zero_fill_size : 0;
+    flags : 0;
+  ); cvar; public;
+
+{$ifdef win64}
+  { This is a hack to support external linking.
+    All released win64 versions of GNU binutils miss proper prefix handling
+    when searching for _tls_used and expect two leading underscores.
+    The issue has been fixed in binutils snapshots, but not released yet.
+
+    TODO: This should be removed as soon as next version of binutils (>2.21) is
+    released and we upgrade to it. }
+    __tls_used : TTlsDirectory = (
+      data_start : @tls_data_start;
+      data_end : @tls_data_end;
+      index_pointer : @_tls_index;
+      callbacks_pointer : @tls_callbacks;
+      zero_fill_size : 0;
+      flags : 0;
+    ); cvar; public;
+{$endif win64}
+{$endif FPC_USE_TLS_DIRECTORY}
+
 
 {****************************************************************************
                     Error Message writing using messageboxes
@@ -209,6 +287,20 @@ function GetProcessID: SizeUInt;
 {******************************************************************************
                               Unicode
  ******************************************************************************}
+ const
+   { MultiByteToWideChar  }
+      MB_PRECOMPOSED = 1;
+      CP_ACP = 0;
+      WC_NO_BEST_FIT_CHARS = $400;
+
+ function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
+     stdcall; external 'kernel32' name 'MultiByteToWideChar';
+ function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:PWideChar; cchWideChar:longint; lpMultiByteStr:PChar;cchMultiByte:longint; lpDefaultChar:PChar; lpUsedDefaultChar:pointer):longint;
+     stdcall; external 'kernel32' name 'WideCharToMultiByte';
+ function CharUpperBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD;
+     stdcall; external 'user32' name 'CharUpperBuffW';
+ function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD;
+     stdcall; external 'user32' name 'CharLowerBuffW';
 
 procedure Win32Unicode2AnsiMove(source:punicodechar;var dest:ansistring;len:SizeInt);
   var
@@ -248,6 +340,38 @@ function Win32UnicodeLower(const s : UnicodeString) : UnicodeString;
   begin
     result:=s;
     UniqueString(result);
+    if length(result)>0 then
+      CharLowerBuff(LPWSTR(result),length(result));
+  end;
+
+{******************************************************************************
+                              Widestring
+ ******************************************************************************}
+
+procedure Win32Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
+  var
+    destlen: SizeInt;
+  begin
+    // retrieve length including trailing #0
+    // not anymore, because this must also be usable for single characters
+    destlen:=MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, nil, 0);
+    // this will null-terminate
+    setlength(dest, destlen);
+    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, @dest[1], destlen);
+  end;
+
+
+function Win32WideUpper(const s : WideString) : WideString;
+  begin
+    result:=s;
+    if length(result)>0 then
+      CharUpperBuff(LPWSTR(result),length(result));
+  end;
+
+
+function Win32WideLower(const s : WideString) : WideString;
+  begin
+    result:=s;
     if length(result)>0 then
       CharLowerBuff(LPWSTR(result),length(result));
   end;

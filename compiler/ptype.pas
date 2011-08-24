@@ -52,7 +52,7 @@ interface
     { generate persistent type information like VMT, RTTI and inittables }
     procedure write_persistent_type_info(st:tsymtable);
 
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean);
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname : string);
 
 implementation
 
@@ -143,7 +143,7 @@ implementation
       end;
 
 
-    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean);
+    procedure generate_specialization(var tt:tdef;parse_class_parent:boolean;_prettyname : string);
       var
         st  : TSymtable;
         srsym : tsym;
@@ -159,6 +159,7 @@ implementation
         oldextendeddefs    : TFPHashObjectList;
         hmodule : tmodule;
         pu : tused_unit;
+        prettyname : ansistring;
         uspecializename,
         specializename : string;
         vmtbuilder : TVMTBuilder;
@@ -228,6 +229,7 @@ implementation
         if not assigned(genericdef.typesym) then
           internalerror(200710173);
         specializename:=genericdef.typesym.realname;
+        prettyname:=genericdef.typesym.prettyname+'<';
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
@@ -247,7 +249,13 @@ implementation
                     if not assigned(pt2.resultdef.typesym) then
                       message(type_e_generics_cannot_reference_itself)
                     else
-                      specializename:=specializename+'$'+pt2.resultdef.typesym.realname;
+                      begin
+                        specializename:=specializename+'$'+pt2.resultdef.typesym.realname;
+                        if i=0 then
+                          prettyname:=prettyname+pt2.resultdef.typesym.prettyname
+                        else
+                          prettyname:=prettyname+','+pt2.resultdef.typesym.prettyname;
+                      end;
                   end
                 else
                   begin
@@ -257,6 +265,8 @@ implementation
                 pt2.free;
               end;
           end;
+        prettyname:=prettyname+'>';
+
         uspecializename:=upper(specializename);
         { force correct error location if too much type parameters are passed }
         if not (token in [_RSHARPBRACKET,_GT]) then
@@ -334,6 +344,11 @@ implementation
                 read_named_type(tt,specializename,genericdef,generictypelist,false);
                 ttypesym(srsym).typedef:=tt;
                 tt.typesym:=srsym;
+
+                if _prettyname<>'' then
+                  ttypesym(tt.typesym).fprettyname:=_prettyname
+                else
+                  ttypesym(tt.typesym).fprettyname:=prettyname;
 
                 case tt.typ of
                   { Build VMT indexes for classes }
@@ -616,7 +631,7 @@ implementation
            (m_delphi in current_settings.modeswitches) then
           dospecialize:=token=_LSHARPBRACKET;
         if dospecialize then
-          generate_specialization(def,stoParseClassParent in options)
+          generate_specialization(def,stoParseClassParent in options,'')
         else
           begin
             if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
@@ -685,7 +700,7 @@ implementation
                 member_blocktype:=bt_type;
 
                 { local and anonymous records can not have inner types. skip top record symtable }
-                if (current_structdef.objname^='') or 
+                if (current_structdef.objname^='') or
                    not(symtablestack.stack^.next^.symtable.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]) then
                   Message(parser_e_no_types_in_local_anonymous_records);
               end;
@@ -1052,7 +1067,7 @@ implementation
                                def:=torddef.create(uchar,lv,hv)
                              else
                                if is_boolean(pt1.resultdef) then
-                                 def:=torddef.create(pasbool,lv,hv)
+                                 def:=torddef.create(pasbool8,lv,hv)
                                else if is_signed(pt1.resultdef) then
                                  def:=torddef.create(range_to_basetype(lv,hv),lv,hv)
                                else
@@ -1075,7 +1090,7 @@ implementation
                    if (m_delphi in current_settings.modeswitches) then
                      dospecialize:=token=_LSHARPBRACKET;
                    if dospecialize then
-                     generate_specialization(def,false)
+                     generate_specialization(def,false,name)
                    else
                      begin
                        if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
@@ -1172,7 +1187,8 @@ implementation
 {$ifdef cpu64bitaddr}
                     u32bit,s64bit,
 {$endif cpu64bitaddr}
-                    pasbool,bool8bit,bool16bit,bool32bit,bool64bit,
+                    pasbool8,pasbool16,pasbool32,pasbool64,
+                    bool8bit,bool16bit,bool32bit,bool64bit,
                     uwidechar] then
                     begin
                        lowval:=torddef(def).low;

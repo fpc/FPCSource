@@ -99,13 +99,15 @@ interface
       protected
       public
          fileinfo   : tfileposinfo;
+         { size of fileinfo is 10 bytes, so if a >word aligned type would follow,
+           two bytes of memory would be wasted, so we put two one byte fields over here }
+         visibility : tvisibility;
+         isdbgwritten : boolean;
          symoptions : tsymoptions;
          refs       : longint;
          reflist    : TLinkedList;
-         visibility : tvisibility;
          { deprecated optionally can have a message }
          deprecatedmsg: pshortstring;
-         isdbgwritten : boolean;
          constructor create(st:tsymtyp;const aname:string);
          destructor  destroy;override;
          function  mangledname:string; virtual;
@@ -283,6 +285,7 @@ implementation
         else
           result:=result+'<no type symbol>'
       end;
+
 
     function tdef.mangledparaname:string;
       begin

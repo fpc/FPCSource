@@ -1143,17 +1143,20 @@ unit cgx86;
               end
             else
               internalerror(200312202);
+            add_move_instruction(instr);
           end
         else if shufflescalar(shuffle) then
-          instr:=taicpu.op_reg_reg(get_scalar_mm_op(fromsize,tosize),S_NO,reg1,reg2)
+          begin
+            instr:=taicpu.op_reg_reg(get_scalar_mm_op(fromsize,tosize),S_NO,reg1,reg2);
+            case get_scalar_mm_op(fromsize,tosize) of
+              A_MOVSS,
+              A_MOVSD,
+              A_MOVQ:
+                add_move_instruction(instr);
+            end;
+          end
         else
           internalerror(200312201);
-        case get_scalar_mm_op(fromsize,tosize) of
-          A_MOVSS,
-          A_MOVSD,
-          A_MOVQ:
-            add_move_instruction(instr);
-        end;
         list.concat(instr);
       end;
 
@@ -2208,7 +2211,8 @@ unit cgx86;
          current_asmdata.getjumplabel(hl);
          if not ((def.typ=pointerdef) or
                 ((def.typ=orddef) and
-                 (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,pasbool]))) then
+                 (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
+                                           pasbool8,pasbool16,pasbool32,pasbool64]))) then
            cond:=C_NO
          else
            cond:=C_NB;

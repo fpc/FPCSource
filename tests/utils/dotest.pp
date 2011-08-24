@@ -78,6 +78,7 @@ var
 
 const
   DoGraph : boolean = false;
+  UseOSOnly : boolean = false;
   DoInteractive : boolean = false;
   DoExecute : boolean = false;
   DoKnown : boolean = false;
@@ -531,7 +532,10 @@ end;
 
 function CompilerFullTarget:string;
 begin
-  CompilerFullTarget:=CompilerCPU+'-'+CompilerTarget;
+  if UseOSOnly then
+    CompilerFullTarget:=CompilerTarget
+  else
+    CompilerFullTarget:=CompilerCPU+'-'+CompilerTarget;
 end;
 
 { Set the three constants above according to
@@ -579,6 +583,24 @@ begin
   else if LTarget='wince' then
     ExeExt:='.exe';
 end;
+
+{$ifndef LIMIT83FS}
+{ Set the UseOSOnly constant above according to
+  the current target }
+
+procedure SetUseOSOnly;
+var
+  LTarget : string;
+  res : boolean;
+begin
+  { Call this first to ensure that CompilerTarget is not empty }
+  res:=GetCompilerTarget;
+  LTarget := lowercase(CompilerTarget);
+  UseOSOnly:= (LTarget='emx') or
+              (LTarget='go32v2') or
+              (LTarget='os2');
+end;
+{$endif not LIMIT83FS}
 
 procedure SetTargetCanCompileLibraries;
 var
@@ -1082,9 +1104,6 @@ end;
 
 
 procedure getargs;
-var
-  para : string;
-  i  : longint;
 
   procedure helpscreen;
   begin
@@ -1116,11 +1135,12 @@ var
     halt(1);
   end;
 
-  procedure interpret_option (arg : string);
+  procedure interpret_option (para : string);
   var
     ch : char;
     j : longint;
   begin
+   Verbose(V_Debug,'Interpreting  option"'+para+'"');
     ch:=Upcase(para[2]);
     delete(para,1,2);
     case ch of
@@ -1209,9 +1229,11 @@ var
    para : string;
    pspace : longint;
  begin
+   Verbose(V_Debug,'Interpreting environment option"'+arg+'"');
    { Get rid of leading '!' }
    delete(arg,1,1);
    arg:=getenv(arg);
+   Verbose(V_Debug,'Environment value is "'+arg+'"');
    while (length(arg)>0) do
      begin
        while (length(arg)>0) and (arg[1]=' ') do
@@ -1231,18 +1253,22 @@ var
      end;
  end;
 
+var
+  param : string;
+  i  : longint;
+
 begin
   CompilerBin:='ppc386'+srcexeext;
   for i:=1 to paramcount do
    begin
-     para:=Paramstr(i);
-     if (para[1]='-') then
-      interpret_option(para)
-     else if (para[1]='!') then
-       interpret_env(para)
+     param:=Paramstr(i);
+     if (param[1]='-') then
+      interpret_option(param)
+     else if (param[1]='!') then
+       interpret_env(param)
      else
        begin
-         PPFile.Insert(current,ForceExtension(Para,'pp'));
+         PPFile.Insert(current,ForceExtension(Param,'pp'));
          inc(current);
        end;
    end;
@@ -1269,14 +1295,14 @@ begin
       Res:=GetCompilerCPU;
       Res:=GetCompilerTarget;
 {$ifndef MACOS}
-      RTLUnitsDir:='units/'+{$ifdef LIMIT83FS}CompilerTarget{$else}CompilerFullTarget{$endif};
+      RTLUnitsDir:='units/'+CompilerFullTarget;
 {$else MACOS}
       RTLUnitsDir:=':units:'+CompilerFullTarget;
 {$endif MACOS}
       if not PathExists(RTLUnitsDir) then
         Verbose(V_Abort,'Unit path "'+RTLUnitsDir+'" does not exists');
 {$ifndef MACOS}
-      OutputDir:='output/'+{$ifdef LIMIT83FS}CompilerTarget{$else}CompilerFullTarget{$endif};
+      OutputDir:='output/'+CompilerFullTarget;
 {$else MACOS}
       OutputDir:=':output:'+CompilerFullTarget;
 {$endif MACOS}
@@ -1527,6 +1553,11 @@ begin
   GetArgs;
   SetTargetDirectoriesStyle;
   SetTargetCanCompileLibraries;
+{$ifdef LIMIT83fs}
+  UseOSOnly:=true;
+{$else not LIMIT83fs}
+  SetUseOSOnly;
+{$endif not LIMIT83fs}
   Verbose(V_Debug,'Found '+ToStr(PPFile.Count)+' tests to run');
   if current>0 then
     for current:=0 to PPFile.Count-1 do

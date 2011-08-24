@@ -1,5 +1,8 @@
 { %TARGET=win32,win64 }
 { %NOTE=This test requires an installed OpenOffice }
+{ %INTERACTIVE }
+{ This test does create Open Office crashes.
+  So we restrict it to interactive mode }
 program ttt;
 
 {$ifdef fpc}

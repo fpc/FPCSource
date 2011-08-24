@@ -84,6 +84,9 @@ interface
          Function  MakeStaticLibrary:boolean;override;
        end;
 
+      TBooleanArray = array [1..1024] of boolean;
+      PBooleanArray = ^TBooleanArray;
+
       TInternalLinker = class(TLinker)
       private
          FCExeOutput : TExeOutputClass;
@@ -94,7 +97,9 @@ interface
          procedure Load_ReadObject(const para:TCmdStr);
          procedure Load_ReadStaticLibrary(const para:TCmdStr);
          procedure ParseScript_Handle;
+         procedure ParseScript_PostCheck;
          procedure ParseScript_Load;
+         function  ParsePara(const para : string) : string;
          procedure ParseScript_Order;
          procedure ParseScript_MemPos;
          procedure ParseScript_DataPos;
@@ -102,6 +107,8 @@ interface
          function  RunLinkScript(const outputname:TCmdStr):boolean;
       protected
          linkscript : TCmdStrList;
+         ScriptCount : longint;
+         IsHandled : PBooleanArray;
          property CObjInput:TObjInputClass read FCObjInput write FCObjInput;
          property CExeOutput:TExeOutputClass read FCExeOutput write FCExeOutput;
          property StaticLibraryList:TFPHashObjectList read FStaticLibraryList;
@@ -109,6 +116,7 @@ interface
          procedure DefaultLinkScript;virtual;abstract;
       public
          IsSharedLibrary : boolean;
+         UseStabs : boolean;
          Constructor Create;override;
          Destructor Destroy;override;
          Function  MakeExecutable:boolean;override;
@@ -811,7 +819,10 @@ Implementation
         FImportLibraryList:=TFPHashObjectList.Create(true);
         exemap:=nil;
         exeoutput:=nil;
+        UseStabs:=false;
         CObjInput:=TObjInput;
+        ScriptCount:=0;
+        IsHandled:=nil;
       end;
 
 
@@ -820,6 +831,12 @@ Implementation
         linkscript.free;
         StaticLibraryList.Free;
         ImportLibraryList.Free;
+        if assigned(IsHandled) then
+          begin
+            FreeMem(IsHandled,sizeof(boolean)*ScriptCount);
+            IsHandled:=nil;
+            ScriptCount:=0;
+          end;
         if assigned(exeoutput) then
           begin
             exeoutput.free;
@@ -887,15 +904,15 @@ Implementation
 
     procedure TInternalLinker.ParseScript_Handle;
       var
-        s,
-        para,
-        keyword : String;
+        s, para, keyword : String;
         hp : TCmdStrListItem;
+        i : longint;
       begin
-        exeoutput.Load_Start;
         hp:=TCmdStrListItem(linkscript.first);
+        i:=0;
         while assigned(hp) do
           begin
+            inc(i);
             s:=hp.str;
             if (s='') or (s[1]='#') then
               continue;
@@ -904,8 +921,10 @@ Implementation
             if Trim(s)<>'' then
               Comment(V_Warning,'Unknown part "'+s+'" in "'+hp.str+'" internal linker script');
             if (keyword<>'SYMBOL') and
+               (keyword<>'SYMBOLS') and
+               (keyword<>'STABS') and
                (keyword<>'PROVIDE') and
-               (keyword<>'ZEROES') and
+               (keyword<>'ZEROS') and
                (keyword<>'BYTE') and
                (keyword<>'WORD') and
                (keyword<>'LONG') and
@@ -924,6 +943,45 @@ Implementation
                 +'" internal linker script');
             hp:=TCmdStrListItem(hp.next);
           end;
+        ScriptCount:=i;
+        if ScriptCount>0 then
+          begin
+            GetMem(IsHandled,sizeof(boolean)*ScriptCount);
+            Fillchar(IsHandled^,sizeof(boolean)*ScriptCount,#0);
+          end;
+      end;
+
+    procedure TInternalLinker.ParseScript_PostCheck;
+      var
+        s : String;
+        hp : TCmdStrListItem;
+        i : longint;
+      begin
+        hp:=TCmdStrListItem(linkscript.first);
+        i:=0;
+        while assigned(hp) do
+          begin
+            inc(i);
+            if not IsHandled^[i] then
+              begin
+                s:=hp.str;
+                Comment(V_Warning,'"'+hp.str+
+                  '" internal linker script not handled');
+              end;
+            hp:=TCmdStrListItem(hp.next);
+          end;
+      end;
+
+    function  TInternalLinker.ParsePara(const para : string) : string;
+      var
+        res : string;
+      begin
+        res:=trim(para);
+        { Remove enclosing braces }
+        if (length(res)>0) and (res[1]='(') and
+           (res[length(res)]=')') then
+          res:=trim(copy(res,2,length(res)-2));
+        result:=res;
       end;
 
     procedure TInternalLinker.ParseScript_Load;
@@ -932,16 +990,24 @@ Implementation
         para,
         keyword : String;
         hp : TCmdStrListItem;
+        i : longint;
+        handled : boolean;
       begin
         exeoutput.Load_Start;
         hp:=TCmdStrListItem(linkscript.first);
+        i:=0;
         while assigned(hp) do
           begin
+            inc(i);
             s:=hp.str;
             if (s='') or (s[1]='#') then
-              continue;
+              begin
+                IsHandled^[i]:=true;
+                continue;
+              end;
+            handled:=true;
             keyword:=Upper(GetToken(s,' '));
-            para:=GetToken(s,' ');
+            para:=ParsePara(GetToken(s,' '));
             if keyword='SYMBOL' then
               ExeOutput.Load_Symbol(para)
             else if keyword='PROVIDE' then
@@ -954,8 +1020,14 @@ Implementation
               ExeOutput.Load_ImageBase(para)
             else if keyword='READOBJECT' then
               Load_ReadObject(para)
+            else if keyword='STABS' then
+              UseStabs:=true
             else if keyword='READSTATICLIBRARY' then
-              Load_ReadStaticLibrary(para);
+              Load_ReadStaticLibrary(para)
+            else
+              handled:=false;
+            if handled then
+              IsHandled^[i]:=true;
             hp:=TCmdStrListItem(hp.next);
           end;
       end;
@@ -967,16 +1039,22 @@ Implementation
         para,
         keyword : String;
         hp : TCmdStrListItem;
+        i : longint;
+        handled : boolean;
       begin
         exeoutput.Order_Start;
         hp:=TCmdStrListItem(linkscript.first);
+        i:=0;
         while assigned(hp) do
           begin
+            inc(i);
             s:=hp.str;
             if (s='') or (s[1]='#') then
               continue;
+            handled:=true;
             keyword:=Upper(GetToken(s,' '));
-            para:=GetToken(s,' ');
+            para:=ParsePara(GetToken(s,' '));
+
             if keyword='EXESECTION' then
               ExeOutput.Order_ExeSection(para)
             else if keyword='ENDEXESECTION' then
@@ -996,7 +1074,11 @@ Implementation
             else if keyword='SYMBOL' then
               ExeOutput.Order_Symbol(para)
             else if keyword='PROVIDE' then
-              ExeOutput.Order_ProvideSymbol(para);
+              ExeOutput.Order_ProvideSymbol(para)
+            else
+              handled:=false;
+            if handled then
+              IsHandled^[i]:=true;
             hp:=TCmdStrListItem(hp.next);
           end;
         exeoutput.Order_End;
@@ -1009,22 +1091,31 @@ Implementation
         para,
         keyword : String;
         hp : TCmdStrListItem;
+        i : longint;
+        handled : boolean;
       begin
         exeoutput.MemPos_Start;
         hp:=TCmdStrListItem(linkscript.first);
+        i:=0;
         while assigned(hp) do
           begin
+            inc(i);
             s:=hp.str;
             if (s='') or (s[1]='#') then
               continue;
+            handled:=true;
             keyword:=Upper(GetToken(s,' '));
-            para:=GetToken(s,' ');
+            para:=ParsePara(GetToken(s,' '));
             if keyword='EXESECTION' then
               ExeOutput.MemPos_ExeSection(para)
             else if keyword='ENDEXESECTION' then
               ExeOutput.MemPos_EndExeSection
             else if keyword='HEADER' then
-              ExeOutput.MemPos_Header;
+              ExeOutput.MemPos_Header
+            else
+              handled:=false;
+            if handled then
+              IsHandled^[i]:=true;
             hp:=TCmdStrListItem(hp.next);
           end;
       end;
@@ -1036,16 +1127,21 @@ Implementation
         para,
         keyword : String;
         hp : TCmdStrListItem;
+        i : longint;
+        handled : boolean;
       begin
         exeoutput.DataPos_Start;
         hp:=TCmdStrListItem(linkscript.first);
+        i:=0;
         while assigned(hp) do
           begin
+            inc(i);
             s:=hp.str;
             if (s='') or (s[1]='#') then
               continue;
+            handled:=true;
             keyword:=Upper(GetToken(s,' '));
-            para:=GetToken(s,' ');
+            para:=ParsePara(GetToken(s,' '));
             if keyword='EXESECTION' then
               ExeOutput.DataPos_ExeSection(para)
             else if keyword='ENDEXESECTION' then
@@ -1053,7 +1149,11 @@ Implementation
             else if keyword='HEADER' then
               ExeOutput.DataPos_Header
             else if keyword='SYMBOLS' then
-              ExeOutput.DataPos_Symbols;
+              ExeOutput.DataPos_Symbols
+            else
+              handled:=false;
+            if handled then
+              IsHandled^[i]:=true;
             hp:=TCmdStrListItem(hp.next);
           end;
       end;
@@ -1099,6 +1199,8 @@ Implementation
 
         PrintLinkerScript;
 
+        { Check that syntax is OK }
+        ParseScript_Handle;
         { Load .o files and resolve symbols }
         ParseScript_Load;
         exeoutput.ResolveSymbols(StaticLibraryList);
@@ -1115,7 +1217,9 @@ Implementation
         { Create .exe sections and add .o sections }
         ParseScript_Order;
         exeoutput.RemoveUnreferencedSections;
-        exeoutput.MergeStabs;
+        { if UseStabs then, this would remove
+          STABS for empty linker scripts }
+          exeoutput.MergeStabs;
         exeoutput.RemoveEmptySections;
         if ErrorCount>0 then
           goto myexit;
@@ -1148,6 +1252,9 @@ Implementation
             ParseScript_DataPos;
             exeoutput.WriteExeFile(outputname);
           end;
+
+        { Post check that everything was handled }
+        ParseScript_PostCheck;
 
 { TODO: fixed section names}
         status.codesize:=exeoutput.findexesection('.text').size;

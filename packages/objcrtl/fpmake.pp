@@ -14,7 +14,8 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='objcrtl';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
+    P.OSes:=[darwin,iphonesim];
     P.Author := 'Library: Apple, header: Dmitry "skalogryz" Boyarintsev';
     P.License := 'Library: Apple, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

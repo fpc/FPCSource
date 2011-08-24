@@ -246,7 +246,6 @@ begin
 end;
 
 function get_cmdline:Pchar;
-
 begin
   if calculated_cmdline=nil then
     setupcmdline;
@@ -256,11 +255,11 @@ end;
 
 procedure SysInitStdIO;
 begin
-  OpenStdIO(Input,fmInput,0);
-  OpenStdIO(Output,fmOutput,0);
-  OpenStdIO(ErrOutput,fmOutput,0);
-  OpenStdIO(StdOut,fmOutput,0);
-  OpenStdIO(StdErr,fmOutput,0);
+  OpenStdIO(Input,fmInput,StdInputHandle);
+  OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 end;
 
 
@@ -283,7 +282,6 @@ begin
   SysInitExceptions;
 
   SetupCmdLine;
-  
   
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   { Setup stdin, stdout and stderr }

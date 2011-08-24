@@ -15,14 +15,14 @@ const MySQLdbTypes = [mysql40,mysql41,mysql50,mysql51];
       DBTypesNames : Array [TSQLDBTypes] of String[19] =
              ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3');
              
-      FieldtypeDefinitionsConst : Array [TFieldType] of String[15] =
+      FieldtypeDefinitionsConst : Array [TFieldType] of String[20] =
         (
           '',
           'VARCHAR(10)',
           'SMALLINT',
           'INTEGER',
           '',
-          '',
+          'BOOLEAN',
           'FLOAT',
           '',
           'DECIMAL(18,4)',
@@ -90,7 +90,7 @@ type
   end;
 
 var SQLDbType : TSQLDBTypes;
-    FieldtypeDefinitions : Array [TFieldType] of String[15];
+    FieldtypeDefinitions : Array [TFieldType] of String[20];
     
 implementation
 
@@ -107,6 +107,8 @@ begin
     
   if SQLDbType = MYSQL40 then Fconnection := tMySQL40Connection.Create(nil);
   if SQLDbType = MYSQL41 then Fconnection := tMySQL41Connection.Create(nil);
+  if SQLDbType = MYSQL50 then Fconnection := tMySQL50Connection.Create(nil);
+  if SQLDbType = MYSQL51 then Fconnection := tMySQL51Connection.Create(nil);
   if SQLDbType in [mysql40,mysql41] then
     begin
     // Mysql versions prior to 5.0.3 removes the trailing spaces on varchar
@@ -114,53 +116,66 @@ begin
     for t := 0 to testValuesCount-1 do
       testStringValues[t] := TrimRight(testStringValues[t]);
     end;
-  if SQLDbType in [mysql41,mysql50,mysql51] then
+  if SQLDbType in MySQLdbTypes then
     begin
-    // Use 'DATETIME' for datetime-fields in stead of timestamp, because
+    //MySQL recognizes BOOLEAN, but as synonym for TINYINT, not true sql boolean datatype
+    FieldtypeDefinitions[ftBoolean] := '';
+    // Use 'DATETIME' for datetime-fields instead of timestamp, because
     // mysql's timestamps are only valid in the range 1970-2038.
     // Downside is that fields defined as 'TIMESTAMP' aren't tested
     FieldtypeDefinitions[ftDateTime] := 'DATETIME';
+    FieldtypeDefinitions[ftMemo] := 'TEXT';
     end;
-  if SQLDbType in [odbc,mysql40,mysql41,mysql50,mysql51,interbase] then
-    begin
-    // Some DB's do not support milliseconds in time-fields.
-    for t := 0 to testValuesCount-1 do
-      begin
-      testTimeValues[t] := copy(testTimeValues[t],1,8)+'.000';
-      testValues[ftTime,t] := copy(testTimeValues[t],1,8)+'.000';
-      end;
-    end;
-  if SQLDbType = MYSQL50 then Fconnection := tMySQL50Connection.Create(nil);
-  if SQLDbType = MYSQL51 then Fconnection := tMySQL51Connection.Create(nil);
   if SQLDbType = sqlite3 then
     begin
     Fconnection := TSQLite3Connection.Create(nil);
     FieldtypeDefinitions[ftCurrency] := 'CURRENCY';
+    FieldtypeDefinitions[ftMemo] := 'CLOB'; //or TEXT SQLite supports both, but CLOB is sql standard (TEXT not)
     FieldtypeDefinitions[ftFixedChar] := '';
     end;
   if SQLDbType = POSTGRESQL then
     begin
-    Fconnection := tpqConnection.Create(nil);
-    FieldtypeDefinitions[ftBlob] := 'TEXT';
+    Fconnection := tPQConnection.Create(nil);
+    FieldtypeDefinitions[ftCurrency] := 'MONEY';
+    FieldtypeDefinitions[ftBlob] := 'BYTEA';
     FieldtypeDefinitions[ftMemo] := 'TEXT';
     FieldtypeDefinitions[ftGraphic] := '';
-    FieldtypeDefinitions[ftCurrency] := 'MONEY';
     end;
   if SQLDbType = INTERBASE then
     begin
     Fconnection := tIBConnection.Create(nil);
-    // Firebird does not support time = 24:00:00
-    testTimeValues[2]:='23:00:00.000';
-    testValues[ftTime,2]:='23:00:00.000';
+    FieldtypeDefinitions[ftBoolean] := '';
+    FieldtypeDefinitions[ftMemo] := 'BLOB SUB_TYPE TEXT';
+    end;
+  if SQLDbType = ODBC then Fconnection := tODBCConnection.Create(nil);
+  if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
+
+  if SQLDbType in [mysql40,mysql41,mysql50,mysql51,odbc,interbase] then
+    begin
+    // Some DB's do not support milliseconds in datetime and time fields.
+    // Firebird support miliseconds, see BUG 17199 (when resolved, then interbase can be excluded)
+    for t := 0 to testValuesCount-1 do
+      begin
+      testTimeValues[t] := copy(testTimeValues[t],1,8)+'.000';
+      testValues[ftTime,t] := copy(testTimeValues[t],1,8)+'.000';
+      if length(testValues[ftDateTime,t]) > 19 then
+        testValues[ftDateTime,t] := copy(testValues[ftDateTime,t],1,19)+'.000';
+      end;
     end;
   if SQLDbType in [postgresql,interbase] then
     begin
     // Some db's do not support times > 24:00:00
     testTimeValues[3]:='13:25:15.000';
     testValues[ftTime,3]:='13:25:15.000';
+    if SQLDbType = interbase then
+      begin
+      // Firebird does not support time = 24:00:00
+      testTimeValues[2]:='23:00:00.000';
+      testValues[ftTime,2]:='23:00:00.000';
+      end;
     end;
-  if SQLDbType = ODBC then Fconnection := tODBCConnection.Create(nil);
-  if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
+  if SQLDbType in [sqlite3] then
+    testValues[ftCurrency]:=testValues[ftBCD]; //decimal separator for currencies must be decimal point
 
   if not assigned(Fconnection) then writeln('Invalid database-type, check if a valid database-type was provided in the file ''database.ini''');
 
@@ -262,7 +277,7 @@ begin
           begin
           sql := sql + ',F' + Fieldtypenames[FType];
           if testValues[FType,CountID] <> '' then
-            sql1 := sql1 + ',''' + StringReplace(testValues[FType,CountID],'''','''''',[rfReplaceAll]) + ''''
+            sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID])
           else
             sql1 := sql1 + ',NULL';
           end;

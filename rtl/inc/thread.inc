@@ -71,7 +71,11 @@ Var
         { Open all stdio fds again }
         SysFlushStdio;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
-        CurrentTM.ReleaseThreadVars;
+        { Support platforms where threadvar memory is managed outside of the RTL:
+          reset ThreadID and allow ReleaseThreadVars to be unassigned }
+        ThreadID := TThreadID(0);
+        if assigned(CurrentTM.ReleaseThreadVars) then
+          CurrentTM.ReleaseThreadVars;
       end;
 
 {*****************************************************************************
@@ -120,18 +124,13 @@ procedure FlushThread;
 
 begin
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
-  { Make sure that all output is written to the redirected file }
-  Flush(Output);
-  Flush(ErrOutput);
-  Flush(StdOut);
-  Flush(StdErr);
+  SysFlushStdio;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 end;
 
 procedure EndThread(ExitCode : DWord);
 
 begin
-  FlushThread;
   CurrentTM.EndThread(ExitCode);
 end;
 

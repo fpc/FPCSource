@@ -930,7 +930,11 @@ begin
   s1l:=length(s1);
   s2l:=length(s2);
   if s1l+s2l>high(dests) then
-    s2l:=high(dests)-s1l;
+    begin
+      if s1l>high(dests) then
+        s1l:=high(dests);
+      s2l:=high(dests)-s1l;
+    end;
   if @dests=@s1 then
     move(s2[1],dests[s1l+1],s2l)
   else

@@ -29,12 +29,12 @@ Type
       0 : (ifrn_name: array [0..IF_NAMESIZE-1] of char);
   end;
   tifmap = record
-    mem_start : cardinal;
-    mem_end   : cardinal;
-    base_addr : word;
-    irq       : byte;
-    dma       : byte;
-    port      : byte;
+    mem_start : culong;
+    mem_end   : culong;
+    base_addr : cushort;
+    irq       : cuchar;
+    dma       : cuchar;
+    port      : cuchar;
   end;
   PIFrec = ^TIFrec;
   TIFrec = record
@@ -45,16 +45,16 @@ Type
       2 : (ifru_broadaddr : TSockAddr);
       3 : (ifru_netmask   : TSockAddr);
       4 : (ifru_hwaddr    : TSockAddr);
-      5 : (ifru_flags     : word); 
-      6 : (ifru_ivalue    : longint);
-      7 : (ifru_mtu       : longint);
+      5 : (ifru_flags     : cshort);
+      6 : (ifru_ivalue    : cint);
+      7 : (ifru_mtu       : cint);
       8 : (ifru_map       : tifmap);
       9 : (ifru_slave     : Array[0..IF_NAMESIZE-1] of char);
       10 : (ifru_newname  : Array[0..IF_NAMESIZE-1] of char);
       11 : (ifru_data     : pointer);
   end; 
   TIFConf = record
-    ifc_len : longint;
+    ifc_len : cint;
     case integer of
       0 : (ifcu_buf : pointer);
       1 : (ifcu_req : ^tifrec);

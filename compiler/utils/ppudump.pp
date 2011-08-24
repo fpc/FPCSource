@@ -23,6 +23,7 @@ program ppudump;
 {$mode objfpc}
 {$H+}
 
+{$define IN_PPUDUMP}
 uses
   { do NOT add symconst or globtype to make merging easier }
   { do include symconst and globtype now before splitting 2.5 PM 2011-06-15 }
@@ -32,6 +33,7 @@ uses
   ppu,
   globals,
   globtype,
+  widestr,
   tokens;
 
 const
@@ -147,6 +149,13 @@ const
   { 70 }  'Wii-powerpc'
   );
 
+const
+{ in widestr, we have the following definition
+  type
+       tcompilerwidechar = word;
+  thus widecharsize seems to always be 2 bytes }
+
+  widecharsize : longint = 2;
 type
 
   tspecialgenerictoken = (ST_LOADSETTINGS,ST_LINE,ST_COLUMN,ST_FILEINDEX);
@@ -165,7 +174,15 @@ var
 ****************************************************************************}
 
 const has_errors : boolean = false;
-Procedure Error(const S : string);
+      has_more_infos : boolean = false;
+
+Procedure HasMoreInfos;
+begin
+  Writeln('!! Entry has more information stored');
+  has_more_infos:=true;
+end;
+
+Procedure WriteError(const S : string);
 Begin
    Writeln(S);
    has_errors:=true;
@@ -335,6 +352,7 @@ end;
        if t=-1 then
         begin
           Result := 'Not Found';
+          has_errors:=true;
           exit;
         end;
        DT := FileDateToDateTime(t);
@@ -347,6 +365,22 @@ end;
 {****************************************************************************
                              Read Routines
 ****************************************************************************}
+
+procedure readrecsymtableoptions;
+var
+  usefieldalignment : shortint;
+begin
+  if ppufile.readentry<>ibrecsymtableoptions then
+    begin
+      has_errors:=true;
+      exit;
+    end;
+  writeln(space,' recordalignment: ',shortint(ppufile.getbyte));
+  usefieldalignment:=shortint(ppufile.getbyte);
+  writeln(space,' usefieldalignment: ',usefieldalignment);
+  if (usefieldalignment=C_alignment) then
+    writeln(space,' fieldalignment: ',shortint(ppufile.getbyte));
+end;
 
 procedure readsymtableoptions(const s: string);
 type
@@ -365,7 +399,10 @@ var
   i : integer;
 begin
   if ppufile.readentry<>ibsymtableoptions then
-    exit;
+    begin
+      has_errors:=true;
+      exit;
+    end;
   ppufile.getsmallset(options);
   if space<>'' then
    writeln(space,'------ ',s,' ------');
@@ -502,12 +539,22 @@ begin
   derefdatalen:=ppufile.entrysize;
   if derefdatalen=0 then
     begin
-      writeln('!! Error: derefdatalen=0');
+      WriteError('!! Error: derefdatalen=0');
       exit;
     end;
   Writeln('Derefdata length: ',derefdatalen);
   derefdata:=allocmem(derefdatalen);
   ppufile.getdata(derefdata^,derefdatalen);
+end;
+
+Procedure FreeDerefdata;
+begin
+  if assigned(derefdata) then
+    begin
+      FreeMem(derefdata);
+      derefdata:=nil;
+      derefdatalen:=0;
+    end;
 end;
 
 
@@ -563,7 +610,10 @@ begin
        AB_IMPORT :
          bindstr:='Import';
        else
-         bindstr:='<Error !!>'
+         begin
+           bindstr:='<Error !!>';
+           has_errors:=true;
+         end;
      end;
      case tasmsymtype(ppufile.getbyte) of
        AT_FUNCTION :
@@ -577,7 +627,10 @@ begin
        AT_ADDR :
          typestr:='Label (with address taken)';
        else
-         typestr:='<Error !!>'
+         begin
+           typestr:='<Error !!>';
+           has_errors:=true;
+         end;
      end;
      Writeln(space,'  ',i,' : ',s,' [',bindstr,',',typestr,']');
      inc(i);
@@ -630,12 +683,6 @@ end;
 
 
 procedure readderef(const derefspace: string);
-type
-  tdereftype = (deref_nil,
-    deref_unit,
-    deref_symid,
-    deref_defid
-  );
 var
   b : tdereftype;
   first : boolean;
@@ -650,6 +697,7 @@ begin
   if (idx>derefdatalen) then
     begin
       writeln('!! Error: Deref idx ',idx,' > ',derefdatalen);
+      has_errors:=true;
       exit;
     end;
   write(derefspace,'(',idx,') ');
@@ -659,7 +707,7 @@ begin
   inc(i);
   if n<1 then
     begin
-      writeln('!! Error: Deref len < 1');
+      WriteError('!! Error: Deref len < 1');
       exit;
     end;
   while (i<=n) do
@@ -694,6 +742,7 @@ begin
        else
          begin
            writeln('!! unsupported dereftyp: ',ord(b));
+           has_errors:=true;
            break;
          end;
      end;
@@ -1183,7 +1232,8 @@ const
      (mask:vo_is_weak_external;str:'WeakExternal'),
      (mask:vo_is_first_field;str:'IsFirstField'),
      (mask:vo_volatile;str:'Volatile'),
-     (mask:vo_has_section;str:'HasSection')
+     (mask:vo_has_section;str:'HasSection'),
+     (mask:vo_force_finalize;str:'ForceFinalize')
   );
 var
   i : longint;
@@ -1330,7 +1380,7 @@ begin
       end
      else
       begin
-        Writeln('!! ibnodetree not found');
+        WriteError('!! ibnodetree not found');
       end;
    end;
 end;
@@ -1347,6 +1397,7 @@ begin
     begin
       writeln('!! ibcreatedobjtypes entry not found');
       ppufile.skipdata(ppufile.entrysize);
+      has_errors:=true;
       exit
     end;
   writeln;
@@ -1408,18 +1459,16 @@ type
     D4: array[0..7] of Byte;
   end;
 
-  absolutetyp = (tovar,toasm,toaddr);
-  tconsttyp = (constnone,
-    constord,conststring,constreal,
-    constset,constpointer,constnil,
-    constresourcestring,constwstring,constguid
-  );
 var
   b      : byte;
   pc     : pchar;
+  ch : dword;
+  startnewline : boolean;
   i,j,len : longint;
   guid : tguid;
+  realvalue : extended;
   tempbuf : array[0..127] of char;
+  pw : pcompilerwidestring;
   varoptions : tvaroptions;
 begin
   with ppufile do
@@ -1476,7 +1525,7 @@ begin
                  begin
                    write  (space,'  PointerType : ');
                    readderef('');
-                   writeln(space,'        Value : ',getlongint)
+                   writeln(space,'        Value : ',getaint)
                  end;
                conststring,
                constresourcestring :
@@ -1490,7 +1539,18 @@ begin
                    freemem(pc,len+1);
                  end;
                constreal :
-                 writeln(space,'        Value : ',getreal);
+                 begin
+                   if entryleft=sizeof(extended) then
+                     realvalue:=getrealsize(sizeof(extended))
+                   else if entryleft=sizeof(double) then
+                     realvalue:=getrealsize(sizeof(double))
+                   else
+                     begin
+                       realvalue:=0.0;
+                       has_errors:=true;
+                     end;
+                   writeln(space,'        Value : ',realvalue);
+                 end;
                constset :
                  begin
                    write (space,'      Set Type : ');
@@ -1507,8 +1567,49 @@ begin
                       writeln;
                     end;
                  end;
-               constwstring:
+               constnil:
+                 writeln(space,' NIL pointer.');
+               constwstring :
                  begin
+                   initwidestring(pw);
+                   setlengthwidestring(pw,getlongint);
+                   if widecharsize=2 then
+                   { don't use getdata, because the compilerwidechars may have to
+                     be byteswapped
+                   }
+                     begin
+                       for i:=0 to pw^.len-1 do
+                         pw^.data[i]:=ppufile.getword;
+                     end
+                   else if widecharsize=4 then
+                     begin
+                       for i:=0 to pw^.len-1 do
+                         pw^.data[i]:=cardinal(ppufile.getlongint);
+                     end
+                   else
+                     begin
+                       WriteError('Unsupported tcompilerwidechar size');
+                     end;
+                   Writeln(space,'Wide string type');
+                   startnewline:=true;
+                   for i:=0 to pw^.len-1 do
+                     begin
+                       if startnewline then
+                         begin
+                           write(space);
+                           startnewline:=false;
+                         end;
+                       ch:=pw^.data[i];
+                       if widecharsize=2 then
+                         write(hexstr(ch,4))
+                       else
+                         write(hexstr(ch,8));
+                       if (i mod 8)= 0 then
+                         startnewline:=true
+                       else
+                         write(', ');
+                     end;
+                   donewidestring(pw);
                  end;
                constguid:
                  begin
@@ -1641,7 +1742,7 @@ begin
 
          iberror :
            begin
-             Writeln('!! Error in PPU');
+             WriteError('!! Error in PPU');
              exit;
            end;
 
@@ -1649,10 +1750,13 @@ begin
            break;
 
          else
-           WriteLn('!! Skipping unsupported PPU Entry in Symbols: ',b);
+           begin
+             WriteLn('!! Skipping unsupported PPU Entry in Symbols: ',b);
+             has_errors:=true;
+           end;
        end;
        if not EndOfEntry then
-        Writeln('!! Entry has more information stored');
+         HasMoreInfos;
      until false;
    end;
 end;
@@ -1803,7 +1907,7 @@ begin
                  writeln;
                end;
              if not EndOfEntry then
-              Writeln('!! Entry has more information stored');
+               HasMoreInfos;
              space:='    '+space;
              { parast }
              readsymtableoptions('parast');
@@ -1827,7 +1931,7 @@ begin
              read_abstract_proc_def(calloption,procoptions);
              writeln(space,'   Symtable level :',ppufile.getbyte);
              if not EndOfEntry then
-              Writeln('!! Entry has more information stored');
+               HasMoreInfos;
              space:='    '+space;
              { parast }
              readsymtableoptions('parast');
@@ -1845,25 +1949,25 @@ begin
          ibwidestringdef :
            begin
              readcommondef('WideString definition',defoptions);
-             writeln(space,'           Length : ',getlongint);
+             writeln(space,'           Length : ',getaint);
            end;
 
          ibunicodestringdef :
            begin
              readcommondef('UnicodeString definition',defoptions);
-             writeln(space,'           Length : ',getlongint);
+             writeln(space,'           Length : ',getaint);
            end;
 
          ibansistringdef :
            begin
              readcommondef('AnsiString definition',defoptions);
-             writeln(space,'           Length : ',getlongint);
+             writeln(space,'           Length : ',getaint);
            end;
 
          iblongstringdef :
            begin
              readcommondef('Longstring definition',defoptions);
-             writeln(space,'           Length : ',getlongint);
+             writeln(space,'           Length : ',getaint);
            end;
 
          ibrecorddef :
@@ -1872,15 +1976,17 @@ begin
              writeln(space,'   Name of Record : ',getstring);
              write  (space,'          Options : ');
              readobjectdefoptions;
-             writeln(space,'       FieldAlign : ',getbyte);
-             writeln(space,'      RecordAlign : ',getbyte);
-             writeln(space,'         PadAlign : ',getbyte);
-             writeln(space,'UseFieldAlignment : ',getbyte);
-             writeln(space,'         DataSize : ',getaint);
+             writeln(space,'       FieldAlign : ',shortint(getbyte));
+             writeln(space,'      RecordAlign : ',shortint(getbyte));
+             writeln(space,'         PadAlign : ',shortint(getbyte));
+             writeln(space,'UseFieldAlignment : ',shortint(getbyte));
+             writeln(space,'         DataSize : ',getasizeint);
+             writeln(space,'      PaddingSize : ',getword);
              if not EndOfEntry then
-              Writeln('!! Entry has more information stored');
+               HasMoreInfos;
              {read the record definitions and symbols}
              space:='    '+space;
+             readrecsymtableoptions;
              readsymtableoptions('fields');
              readdefinitions('fields');
              readsymbols('fields');
@@ -1909,9 +2015,10 @@ begin
              end;
              writeln(space,'    External name : ',getstring);
              writeln(space,'       Import lib : ',getstring);
-             writeln(space,'         DataSize : ',getaint);
-             writeln(space,'       FieldAlign : ',getbyte);
-             writeln(space,'      RecordAlign : ',getbyte);
+             writeln(space,'         DataSize : ',getasizeint);
+             writeln(space,'      PaddingSize : ',getword);
+             writeln(space,'       FieldAlign : ',shortint(getbyte));
+             writeln(space,'      RecordAlign : ',shortint(getbyte));
              writeln(space,'       Vmt offset : ',getlongint);
              write  (space,  '   Ancestor Class : ');
              readderef('');
@@ -1959,11 +2066,12 @@ begin
                end;
 
              if not EndOfEntry then
-              Writeln('!! Entry has more information stored');
+               HasMoreInfos;
              if not(df_copied_def in current_defoptions) then
                begin
                  {read the record definitions and symbols}
                  space:='    '+space;
+                 readrecsymtableoptions;
                  readsymtableoptions('fields');
                  readdefinitions('fields');
                  readsymbols('fields');
@@ -2051,7 +2159,7 @@ begin
 
          iberror :
            begin
-             Writeln('!! Error in PPU');
+             WriteError('!! Error in PPU');
              exit;
            end;
 
@@ -2059,10 +2167,13 @@ begin
            break;
 
          else
-           WriteLn('!! Skipping unsupported PPU Entry in definitions: ',b);
+           begin
+             WriteLn('!! Skipping unsupported PPU Entry in definitions: ',b);
+             has_errors:=true;
+           end;
        end;
        if not EndOfEntry then
-        Writeln('!! Entry has more information stored');
+         HasMoreInfos;
      until false;
    end;
 end;
@@ -2210,7 +2321,7 @@ begin
 
          iberror :
            begin
-             Writeln('Error in PPU');
+             WriteError('Error in PPU');
              exit;
            end;
 
@@ -2218,7 +2329,10 @@ begin
            break;
 
          else
-           WriteLn('!! Skipping unsupported PPU Entry in General Part: ',b);
+           begin
+             WriteLn('!! Skipping unsupported PPU Entry in General Part: ',b);
+             has_errors:=true;
+           end;
        end;
      until false;
    end;
@@ -2247,13 +2361,16 @@ begin
 
          iberror :
            begin
-             Writeln('Error in PPU');
+             WriteError('Error in PPU');
              exit;
            end;
          ibendimplementation :
            break;
          else
-           WriteLn('!! Skipping unsupported PPU Entry in Implementation: ',b);
+           begin
+             WriteLn('!! Skipping unsupported PPU Entry in Implementation: ',b);
+             has_errors:=true;
+           end;
        end;
      until false;
    end;
@@ -2270,13 +2387,14 @@ begin
   ppufile:=tppufile.create(filename);
   if not ppufile.openfile then
    begin
-     writeln ('IO-Error when opening : ',filename,', Skipping');
+     WriteError('IO-Error when opening : '+filename+', Skipping');
      exit;
    end;
 { PPU File is open, check for PPU Id }
   if not ppufile.CheckPPUID then
    begin
      writeln(Filename,' : Not a valid PPU file, Skipping');
+     has_errors:=true;
      exit;
    end;
 { Check PPU Version }
@@ -2286,6 +2404,7 @@ begin
   if PPUVersion<16 then
    begin
      writeln(Filename,' : Old PPU Formats (<v16) are not supported, Skipping');
+     has_errors:=true;
      exit;
    end;
 { Write PPU Header Information }
@@ -2354,7 +2473,7 @@ begin
    end;
   if ppufile.readentry<>ibexportedmacros then
     begin
-      Writeln('!! Error in PPU');
+      WriteError('!! Error in PPU');
       exit;
     end;
   if boolean(ppufile.getbyte) then
@@ -2409,6 +2528,7 @@ begin
       ppufile.skipuntilentry(ibendsyms);
    end;
   ReadCreatedObjTypes;
+  FreeDerefdata;
 {shutdown ppufile}
   ppufile.closefile;
   ppufile.free;
@@ -2422,6 +2542,7 @@ begin
   writeln('usage: ppudump [options] <filename1> <filename2>...');
   writeln;
   writeln('[options] can be:');
+  writeln('    -M Exit with ExitCode=2 if more information is available');
   writeln('    -V<verbose>  Set verbosity to <verbose>');
   writeln('                   H - Show header info');
   writeln('                   I - Show interface');
@@ -2438,6 +2559,8 @@ var
   startpara,
   nrfile,i  : longint;
   para      : string;
+const
+  error_on_more : boolean = false;
 begin
   writeln(Title+' '+Version);
   writeln(Copyright);
@@ -2455,6 +2578,7 @@ begin
    begin
      para:=paramstr(startpara);
      case upcase(para[2]) of
+      'M' : error_on_more:=true;
       'V' : begin
               verbose:=0;
               for i:=3 to length(para) do
@@ -2477,4 +2601,6 @@ begin
    dofile (paramstr(nrfile));
   if has_errors then
     Halt(1);
+  if error_on_more and has_more_infos then
+    Halt(2);
 end.

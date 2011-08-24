@@ -68,7 +68,7 @@ interface
          [m_gpc,m_all,m_tp_procvar];
 {$endif}
        macmodeswitches =
-         [m_mac,m_all,m_cvar_support,m_mac_procvar,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus];
+         [m_mac,m_all,m_cvar_support,m_mac_procvar,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus,m_default_inline];
        isomodeswitches =
          [m_iso,m_all,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus];
 
@@ -121,6 +121,7 @@ interface
          debugswitches   : tdebugswitches;
          { 0: old behaviour for sets <=256 elements
            >0: round to this size }
+         pmessage : pmessagestaterecord;
          setalloc,
          packenum        : shortint;
 
@@ -176,11 +177,13 @@ interface
         property items[I:longint]:TLinkRec read getlinkrec; default;
       end;
 
+
       tpendingstate = record
         nextverbositystr : shortstring;
         nextlocalswitches : tlocalswitches;
         nextverbosityfullswitch: longint;
         nextcallingstr : shortstring;
+        nextmessagerecord : pmessagestaterecord;
         verbosityfullswitched,
         localswitcheschanged : boolean;
       end;
@@ -358,6 +361,7 @@ interface
         genwpoptimizerswitches : [];
         dowpoptimizerswitches : [];
         debugswitches : [];
+        pmessage : nil;
 
         setalloc : 0;
         packenum : 4;
@@ -426,9 +430,9 @@ interface
         minfpconstprec : s32real;
 
         disabledircache : false;
-{$if defined(ARM)}
+{$if defined(ARM) or defined(AVR)}
         controllertype : ct_none;
-{$endif defined(ARM)}
+{$endif defined(ARM) or defined(AVR)}
       );
 
     var
@@ -759,7 +763,8 @@ implementation
          Replace(s,'$FPCDATE',date_string);
          Replace(s,'$FPCCPU',target_cpu_string);
          Replace(s,'$FPCOS',target_os_string);
-         if tf_use_8_3 in Source_Info.Flags then
+         if (tf_use_8_3 in Source_Info.Flags) or
+            (tf_use_8_3 in Target_Info.Flags) then
            Replace(s,'$FPCTARGET',target_os_string)
          else
            Replace(s,'$FPCTARGET',target_full_string);

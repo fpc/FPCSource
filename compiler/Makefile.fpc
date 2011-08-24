@@ -4,7 +4,7 @@
 
 [package]
 name=compiler
-version=2.5.1
+version=2.7.1
 
 [target]
 programs=pp
@@ -397,18 +397,23 @@ msg: msgtxt.inc
 
 insdatx86 : $(COMPILER_UNITTARGETDIR) x86/x86ins.dat
 	$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkx86ins.pp
-        cd x86 && ../utils/mkx86ins$(SRCEXEEXT) && mv -f *.inc ../i386
-        cd x86 && ../utils/mkx86ins$(SRCEXEEXT) x86_64 && mv -f *.inc ../x86_64
+        cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86ins$(SRCEXEEXT) && mv -f *.inc ../i386
+        cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86ins$(SRCEXEEXT) x86_64 && mv -f *.inc ../x86_64
+	$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkx86reg.pp
+        cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86reg$(SRCEXEEXT)
+        mv -f x86/r386*.inc i386
+        cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86reg$(SRCEXEEXT) x86_64
+        mv -f x86/r8664*.inc x86_64
 
 insdatarm : arm/armins.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmins.pp
-        cd arm && ../utils/mkarmins$(SRCEXEEXT)
+        cd arm && ..$(PATHSEP)utils$(PATHSEP)mkarmins$(SRCEXEEXT)
 
 insdat: insdatx86 insdatarm
 
 regdatarm : arm/armreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmreg.pp
-        cd arm && ../utils/mkarmreg$(SRCEXEEXT)
+        cd arm && ..$(PATHSEP)utils$PATHSEP)mkarmreg$(SRCEXEEXT)
 
 # revision.inc rule
 revision.inc :
@@ -436,7 +441,8 @@ revision :
 # ECHOREDIR sometimes does not remove double quotes
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
              $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
-             $(wildcard $(CPC_TARGET)/*.pas) $(wildcard $(CPC_TARGET)/*.inc)
+             $(wildcard $(CPC_TARGET)/*.pas) $(wildcard $(CPC_TARGET)/*.inc) \
+             $(COMPILER_UNITTARGETDIR) $(COMPILER_TARGETDIR)
 ifneq ($(REVSTR),)
 ifdef USEZIPWRAPPER
 ifneq ($(ECHOREDIR),echo)
@@ -699,6 +705,47 @@ rtlclean:
 rtlinstall:
         $(MAKE) -C $(PACKAGEDIR_RTL) install
 
+#####################################################################
+# PPU testing targets
+#####################################################################
+
+PPUDIR=$(COMPILER_UNITTARGETDIR)
+ALLPPUDIR=$(CPU_TARGET)/units/*
+PPULIST=$(wildcard $(PPUDIR)/*.ppu)
+PPULOGLIST=$(subst .ppu,.log-ppu,$(PPULIST))
+
+RTLPPUDIR=../rtl/units/$(FULL_TARGET)
+RTLPPULIST=$(wildcard $(RTLPPUDIR)/*.ppu)
+RTLPPULOGLIST=$(subst .ppu,.log-ppu,$(RTLPPULIST))
+
+.PHONY : ppulogs cleanppulogs rtlppulogs cleanrtlppulogs testppudump
+
+ppulogs : $(PPULOGLIST)
+
+rtlppulogs : $(RTLPPULOGLIST)
+
+vpath %.ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
+vpath %.log-ppu $(PPUDIR) $(RTLPPUDIR) $(ALLPPUDIR)
+
+%.log-ppu : %.ppu ./utils/ppudump$(EXEEXT)
+	.$(PATHSEP)utils$(PATHSEP)ppudump -VA -M $< > $@
+
+
+./utils/ppudump$(EXEEXT):
+	$(MAKE) -C $(COMPILERUTILSDIR) ppudump$(EXEEXT)
+
+ppuinfo :
+	echo PPU list is "$(PPULIST)"
+	echo PPULOG list is "$(PPULOGLIST)"
+
+cleanppulogs :
+	-$(RMPROG) $(PPULOGLIST)
+
+cleanrtlppulogs :
+	-$(RMPROG) $(RTLPPULOGLIST)
+
+testppudump :
+	$(MAKE) cleanrtlppulogs cleanppulogs ppulogs rtlppulogs
 
 #####################################################################
 # local user configurable file

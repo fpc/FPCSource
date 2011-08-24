@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='zorba';
 {$endif ALLPACKAGES}
-    P.Version:='0.9.9';
+    P.Version:='2.7.1';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
@@ -33,6 +33,7 @@ begin
           AddInclude('zorba.inc');
           AddInclude('zorba_options.inc');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('zorba.pas');
       with T.Dependencies do
         begin

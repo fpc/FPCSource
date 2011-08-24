@@ -1418,13 +1418,30 @@ implementation
                 ]);
               finish_entry;
             end;
-          pasbool,
-          bool8bit :
+          pasbool8 :
             begin
               append_entry(DW_TAG_base_type,false,[
                 DW_AT_name,DW_FORM_string,'Boolean'#0,
                 DW_AT_encoding,DW_FORM_data1,DW_ATE_boolean,
                 DW_AT_byte_size,DW_FORM_data1,1
+                ]);
+              finish_entry;
+            end;
+          bool8bit :
+            begin
+              append_entry(DW_TAG_base_type,false,[
+                DW_AT_name,DW_FORM_string,'ByteBool'#0,
+                DW_AT_encoding,DW_FORM_data1,DW_ATE_boolean,
+                DW_AT_byte_size,DW_FORM_data1,1
+                ]);
+              finish_entry;
+            end;
+          pasbool16 :
+            begin
+              append_entry(DW_TAG_base_type,false,[
+                DW_AT_name,DW_FORM_string,'Boolean16'#0,
+                DW_AT_encoding,DW_FORM_data1,DW_ATE_boolean,
+                DW_AT_byte_size,DW_FORM_data1,2
                 ]);
               finish_entry;
             end;
@@ -1437,12 +1454,30 @@ implementation
                 ]);
               finish_entry;
             end;
+          pasbool32 :
+            begin
+              append_entry(DW_TAG_base_type,false,[
+                DW_AT_name,DW_FORM_string,'Boolean32'#0,
+                DW_AT_encoding,DW_FORM_data1,DW_ATE_boolean,
+                DW_AT_byte_size,DW_FORM_data1,4
+                ]);
+              finish_entry;
+            end;
           bool32bit :
             begin
               append_entry(DW_TAG_base_type,false,[
                 DW_AT_name,DW_FORM_string,'LongBool'#0,
                 DW_AT_encoding,DW_FORM_data1,DW_ATE_boolean,
                 DW_AT_byte_size,DW_FORM_data1,4
+                ]);
+              finish_entry;
+            end;
+          pasbool64 :
+            begin
+              append_entry(DW_TAG_base_type,false,[
+                DW_AT_name,DW_FORM_string,'Boolean64'#0,
+                DW_AT_encoding,DW_FORM_data1,DW_ATE_boolean,
+                DW_AT_byte_size,DW_FORM_data1,8
                 ]);
               finish_entry;
             end;

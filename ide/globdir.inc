@@ -16,7 +16,14 @@
 
 { --- Special OS settings --- }
 {$ifdef Go32V2}
-  {$define SUPPORTVESA}
+  { NOVESA conditional avoids use of
+    vesa unit, it also disables USE_GRAPH_SWITCH
+    conditional, in order to obtain a go32v2 excutable that
+    doesn't require full screen switching
+    at startup on Windows OS }
+  {$ifndef NOVESA}
+    {$define SUPPORTVESA}
+  {$endif ndef NOVESA}
   {$define SUPPORTREDIR}
   {$define WinClipSupported}
   {$define HasSignal}
@@ -25,7 +32,9 @@
   {$define FSCaseInsensitive}
   {$define HasSysMsgUnit}
   {$ifdef DEBUG}
-    {$define USE_GRAPH_SWITCH}
+    {$ifndef NOVESA}
+      {$define USE_GRAPH_SWITCH}
+    {$endif not NOVESA}
   {$endif DEBUG}
 {$endif}
 

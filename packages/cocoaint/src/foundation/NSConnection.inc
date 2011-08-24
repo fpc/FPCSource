@@ -64,10 +64,10 @@ var
     isDead: char;
     _isValid: char;
     wantsInvalid: char;
-    _anoninternstruct_NSConnection0: bitpacked record
+    _anoninternstruct_NSConnection0: record
       case byte of
        0: (_anonbitfield_NSConnection0: char);
-       1: (
+       1: (data: bitpacked record
         authGen: 0..1;
         authCheck: 0..1;
         encryptFlag: 0..1;
@@ -76,6 +76,7 @@ var
         isQueueing: 0..1;
         isMulti: 0..1;
         invalidateRP: 0..1;
+       end;
       );
       end;
     ___1: id;

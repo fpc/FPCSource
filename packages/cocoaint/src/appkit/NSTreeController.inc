@@ -48,10 +48,10 @@
     _arrangedObjects: id;
     _rootNode: id;
     _selectionIndexPaths: id;
-    __treeControllerFlags: bitpacked record
+    __treeControllerFlags: record
       case byte of
        0: (_anonbitfield_NSTreeController0: cuint);
-       1: (
+       1: (data: bitpacked record
         _avoidsEmptySelection: 0..1;
         _preservesSelection: 0..1;
         _selectsInsertedObjects: 0..1;
@@ -65,6 +65,7 @@
         _skipSortingAfterFetch: 0..1;
         _usesIdenticalComparisonOfModelObjects: 0..1;
         _reservedTreeController: 0..((1 shl 20)-1);
+       end;
       );
       end;
     _selectedObjects: NSArray;

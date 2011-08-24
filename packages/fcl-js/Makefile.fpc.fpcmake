@@ -1,0 +1,26 @@
+#
+#   Makefile.fpc for Javascript Parser
+#
+
+[package]
+name=fcl-js
+version=2.7.1
+
+[target]
+units=jsbase jstree jsscanner jsparser
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:

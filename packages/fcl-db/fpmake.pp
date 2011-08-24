@@ -24,7 +24,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-db';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/base');
     P.SourcePath.Add('src/paradox');
@@ -51,6 +51,7 @@ begin
     P.IncludePath.Add('src/memds');  
     P.IncludePath.Add('src/sqlite');
     P.IncludePath.Add('src/dbase');
+    P.SourcePath.Add('src/sql');
 
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
@@ -510,6 +511,13 @@ begin
           AddUnit('db');
           AddUnit('fpdbexport');
         end;
+    T:=P.Targets.AddUnit('fpxmlxsdexport.pp');
+    T.ResourceStrings:=true;
+      with T.Dependencies do
+        begin
+          AddUnit('db');
+          AddUnit('fpdbexport');
+        end;
     T:=P.Targets.AddUnit('ibconnection.pp');
       with T.Dependencies do
         begin
@@ -564,6 +572,18 @@ begin
           AddUnit('db');
           AddUnit('dbconst');
         end;
+
+    T:=P.Targets.AddUnit('mysql51conn.pas');
+    T.ResourceStrings:=true;
+      with T.Dependencies do
+        begin
+          AddInclude('mysqlconn.inc');
+          AddUnit('bufdataset');
+          AddUnit('sqldb');
+          AddUnit('db');
+          AddUnit('dbconst');
+        end;
+
     T:=P.Targets.AddUnit('odbcconn.pas');
       with T.Dependencies do
         begin
@@ -628,6 +648,18 @@ begin
           AddUnit('customsqliteds');
           AddUnit('db');
         end;
+
+    // SQL
+    T:=P.Targets.AddUnit('fpsqltree.pp');
+    T:=P.Targets.AddUnit('fpsqlscanner.pp');
+    T.ResourceStrings := True;
+    T:=P.Targets.AddUnit('fpsqlparser.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpsqltree');
+          AddUnit('fpsqlscanner');
+        end;
+    T.ResourceStrings := True;
 
     P.ExamplePath.Add('tests');
     T:=P.Targets.AddExampleProgram('dbftoolsunit.pas');

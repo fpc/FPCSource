@@ -75,16 +75,17 @@ var
 { NSTextTab }
   NSTextTab = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __flags: bitpacked record
+    __flags: record
       case byte of
        0: (_anonbitfield_NSParagraphStyle1: NSTextAlignment);
-       1: (
+       1: (data: bitpacked record
         _alignment: 0..((1 shl 4)-1);
         refCount: 0..((1 shl 24)-1);
         unused: 0..((1 shl 4)-1);
         {$ifdef cpu64}
         _anonbitfield_NSParagraphStyle0: 0..((1 shl 32)-1);
         {$endif}
+       end;
       );
       end;
     _location: CGFloat;
@@ -115,10 +116,10 @@ var
     _minimumLineHeight: CGFloat;
     _maximumLineHeight: CGFloat;
     _tabStops: NSArray;
-    __flags: bitpacked record
+    __flags: record
       case byte of
        0: (_anonbitfield_NSParagraphStyle3: NSTextAlignment);
-       1: (
+       1: (data: bitpacked record
         _alignment: 0..((1 shl 4)-1);
         _lineBreakMode: 0..((1 shl 4)-1);
         tabStopsIsMutable: 0..1;
@@ -129,6 +130,7 @@ var
         {$ifdef cpu64}
         _anonbitfield_NSParagraphStyle2: 0..((1 shl 32)-1);
         {$endif}
+       end;
       );
       end;
     _defaultTabInterval: CGFloat;

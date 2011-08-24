@@ -590,7 +590,7 @@ begin
   WriteLn(Format('Adding Arc Center=%f,%f Radius=%f StartAngle=%f EndAngle=%f',
     [CenterX, CenterY, Radius, StartAngle, EndAngle]));
   {$endif}
-  AData.AddCircularArc(CenterX, CenterY, CenterZ, Radius, StartAngle, EndAngle, LColor);
+  AData.AddCircularArc(CenterX, CenterY, Radius, StartAngle, EndAngle, LColor);
 end;
 
 {
@@ -638,8 +638,7 @@ begin
   CircleCenterX := CircleCenterX - DOC_OFFSET.X;
   CircleCenterY := CircleCenterY - DOC_OFFSET.Y;
 
-  AData.AddCircle(CircleCenterX, CircleCenterY,
-    CircleCenterZ, CircleRadius);
+  AData.AddCircle(CircleCenterX, CircleCenterY, CircleRadius);
 end;
 
 {
@@ -845,7 +844,7 @@ begin
   CenterY := CenterY - DOC_OFFSET.Y;
 
   //
-  AData.AddEllipse(CenterX, CenterY, CenterZ, MajorHalfAxis, MinorHalfAxis, Angle);
+  AData.AddEllipse(CenterX, CenterY, MajorHalfAxis, MinorHalfAxis, Angle);
 end;
 
 {
@@ -916,7 +915,7 @@ begin
   PosY := PosY - DOC_OFFSET.Y;
 
   //
-  AData.AddText(PosX, PosY, PosZ, '', Round(FontSize), Str);
+  AData.AddText(PosX, PosY, '', Round(FontSize), Str);
 end;
 
 {.$define FPVECTORIALDEBUG_LWPOLYLINE}
@@ -1141,7 +1140,7 @@ begin
   PosY := PosY - DOC_OFFSET.Y;
 
   //
-  AData.AddText(PosX, PosY, PosZ, '', Round(FontSize), Str);
+  AData.AddText(PosX, PosY, '', Round(FontSize), Str);
 end;
 
 procedure TvDXFVectorialReader.ReadENTITIES_POINT(ATokens: TDXFTokens;
@@ -1179,8 +1178,7 @@ begin
   CircleCenterX := CircleCenterX - DOC_OFFSET.X;
   CircleCenterY := CircleCenterY - DOC_OFFSET.Y;
 
-  AData.AddCircle(CircleCenterX, CircleCenterY,
-    CircleCenterZ, CircleRadius);
+  AData.AddCircle(CircleCenterX, CircleCenterY, CircleRadius);
 end;
 
 function TvDXFVectorialReader.GetCoordinateValue(AStr: shortstring): Double;

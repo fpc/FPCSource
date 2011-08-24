@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('libndsfpc');
+    P.OSes:=[nds];
 {$ifdef ALLPACKAGES}
     P.Directory:='libndsfpc';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.4a';
+    P.Version:='2.7.1';
     P.SourcePath.Add('src');
 //    P.Dependencies.Add('x11');
 

@@ -92,7 +92,11 @@ interface
       OT_REG_SMASK = otf_sub0 or otf_sub1 or otf_sub2 or otf_sub3;
 
       { register class 0: CRx, DRx and TRx }
+{$ifdef x86_64}
+      OT_REG_CDT   = OT_REGISTER or otf_reg_cdt or OT_BITS64;
+{$else x86_64}
       OT_REG_CDT   = OT_REGISTER or otf_reg_cdt or OT_BITS32;
+{$endif x86_64}
       OT_REG_CREG  = OT_REG_CDT or otf_sub0;  { CRn  }
       OT_REG_DREG  = OT_REG_CDT or otf_sub1;  { DRn  }
       OT_REG_TREG  = OT_REG_CDT or otf_sub2;  { TRn  }
@@ -222,7 +226,7 @@ interface
       tinsentry=packed record
         opcode  : tasmop;
         ops     : byte;
-        optypes : array[0..2] of longint;
+        optypes : array[0..max_operands-1] of longint;
         code    : array[0..maxinfolen] of char;
         flags   : cardinal;
       end;
@@ -861,6 +865,8 @@ implementation
       begin
         { Fix the operands which are in AT&T style and we need them in Intel style }
         case ops of
+          0,1:
+            ;
           2 : begin
                 { 0,1 -> 1,0 }
                 p:=oper[0];
@@ -873,6 +879,17 @@ implementation
                 oper[0]:=oper[2];
                 oper[2]:=p;
               end;
+          4 : begin
+                { 0,1,2,3 -> 3,2,1,0 }
+                p:=oper[0];
+                oper[0]:=oper[3];
+                oper[3]:=p;
+                p:=oper[1];
+                oper[1]:=oper[2];
+                oper[2]:=p;
+              end;
+          else
+            internalerror(201108141);
         end;
       end;
 
@@ -1056,9 +1073,9 @@ implementation
                 end;
               top_const :
                 begin
-                  { allow 2nd or 3rd operand being a constant and expect no size for shuf* etc. }
+                  { allow 2nd, 3rd or 4th operand being a constant and expect no size for shuf* etc. }
                   { further, allow AAD and AAM with imm. operand }
-                  if (opsize=S_NO) and not((i in [1,2]) or ((i=0) and (opcode in [A_AAD,A_AAM]))) then
+                  if (opsize=S_NO) and not((i in [1,2,3]) or ((i=0) and (opcode in [A_AAD,A_AAM]))) then
                     message(asmr_e_invalid_opcode_and_operand);
                   if (opsize<>S_W) and (aint(val)>=-128) and (val<=127) then
                     ot:=OT_IMM8 or OT_SIGNED
@@ -1112,7 +1129,7 @@ implementation
         currot,
         i,j,asize,oprs : longint;
         insflags:cardinal;
-        siz : array[0..2] of longint;
+        siz : array[0..max_operands-1] of longint;
       begin
         result:=false;
 
@@ -1753,7 +1770,7 @@ implementation
               end;
             12,13,14,
             16,17,18,
-            20,21,22,
+            20,21,22,23,
             40,41,42 :
               inc(len);
             24,25,26,
@@ -1879,7 +1896,7 @@ implementation
        *                 to the condition code value of the instruction.
        * \14, \15, \16 - a signed byte immediate operand, from operand 0, 1 or 2
        * \20, \21, \22 - a byte immediate operand, from operand 0, 1 or 2
-       * \24, \25, \26 - an unsigned byte immediate operand, from operand 0, 1 or 2
+       * \24, \25, \26, \27 - an unsigned byte immediate operand, from operand 0, 1, 2 or 3
        * \30, \31, \32 - a word immediate operand, from operand 0, 1 or 2
        * \34, \35, \36 - select between \3[012] and \4[012] depending on 16/32 bit
        *                 assembly mode or the address-size override on the operand
@@ -2126,7 +2143,7 @@ implementation
                 else
                  objdata.writebytes(currval,1);
               end;
-            20,21,22 :
+            20,21,22,23 :
               begin
                 getvalsym(c-20);
                 if (currval<0) or (currval>255) then

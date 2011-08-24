@@ -24,6 +24,7 @@ interface
 {$endif SYSTEMDEBUG}
 
 {$define DISABLE_NO_THREAD_MANAGER}
+{$define HAS_WIDESTRINGMANAGER}
 
 { include system-independent routine headers }
 {$I systemh.inc}
@@ -439,19 +440,6 @@ function GetConsoleMode(hConsoleHandle: THandle; var lpMode: DWORD): Boolean; st
 
 function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} : longbool;forward;
 
-procedure _FPC_mainCRTStartup;stdcall;public name '_mainCRTStartup';
-begin
-  IsConsole:=true;
-  GetConsoleMode(GetStdHandle((Std_Input_Handle)),StartupConsoleMode);
-  Exe_entry;
-end;
-
-
-procedure _FPC_WinMainCRTStartup;stdcall;public name '_WinMainCRTStartup';
-begin
-  IsConsole:=false;
-  Exe_entry;
-end;
 
 
 procedure _FPC_DLLMainCRTStartup(_hinstance : qword;_dllreason,_dllparam:longint);stdcall;public name '_DLLMainCRTStartup';
@@ -883,61 +871,37 @@ procedure fpc_cpucodeinit;
   begin
   end;
 
-{****************************************************************************
-                      OS dependend widestrings
-****************************************************************************}
-
-const
-  { MultiByteToWideChar  }
-     MB_PRECOMPOSED = 1;
-     CP_ACP = 0;
-     WC_NO_BEST_FIT_CHARS = $400;
-
-function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
-    stdcall; external 'kernel32' name 'MultiByteToWideChar';
-function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:PWideChar; cchWideChar:longint; lpMultiByteStr:PChar;cchMultiByte:longint; lpDefaultChar:PChar; lpUsedDefaultChar:pointer):longint;
-    stdcall; external 'kernel32' name 'WideCharToMultiByte';
-function CharUpperBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD;
-    stdcall; external 'user32' name 'CharUpperBuffW';
-function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD;
-    stdcall; external 'user32' name 'CharLowerBuffW';
-
-
-procedure Win32Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
-  var
-    destlen: SizeInt;
-  begin
-    // retrieve length including trailing #0
-    // not anymore, because this must also be usable for single characters
-    destlen:=MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, nil, 0);
-    // this will null-terminate
-    setlength(dest, destlen);
-    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, @dest[1], destlen);
-  end;
-
-
-function Win32WideUpper(const s : WideString) : WideString;
-  begin
-    result:=s;
-    UniqueString(result);
-    if length(result)>0 then
-      CharUpperBuff(LPWSTR(result),length(result));
-  end;
-
-
-function Win32WideLower(const s : WideString) : WideString;
-  begin
-    result:=s;
-    UniqueString(result);
-    if length(result)>0 then
-      CharLowerBuff(LPWSTR(result),length(result));
-  end;
 
 {******************************************************************************}
 { include code common with win64 }
 
 {$I syswin.inc}
 {******************************************************************************}
+
+procedure LinkIn(p1,p2,p3: Pointer); inline;
+begin
+end;
+
+procedure _FPC_mainCRTStartup;stdcall;public name '_mainCRTStartup';
+begin
+  IsConsole:=true;
+  GetConsoleMode(GetStdHandle((Std_Input_Handle)),StartupConsoleMode);
+{$ifdef FPC_USE_TLS_DIRECTORY}
+  LinkIn(@_tls_used,@FreePascal_TLS_callback,@FreePascal_end_of_TLS_callback);
+{$endif FPC_USE_TLS_DIRECTORY}
+  Exe_entry;
+end;
+
+
+procedure _FPC_WinMainCRTStartup;stdcall;public name '_WinMainCRTStartup';
+begin
+  IsConsole:=false;
+{$ifdef FPC_USE_TLS_DIRECTORY}
+  LinkIn(@_tls_used,@FreePascal_TLS_callback,@FreePascal_end_of_TLS_callback);
+{$endif FPC_USE_TLS_DIRECTORY}
+  Exe_entry;
+end;
+
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;assembler;
 asm

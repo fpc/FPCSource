@@ -237,7 +237,16 @@ interface
                            system_sparc_embedded,system_vm_embedded,
                            system_iA64_embedded,system_x86_64_embedded,
                            system_mips_embedded,system_arm_embedded,
-                           system_powerpc64_embedded];
+                           system_powerpc64_embedded,system_avr_embedded];
+
+       { all systems that allow section directive }
+       systems_allow_section = systems_embedded;
+
+       systems_allow_section_no_semicolon = systems_allow_section
+{$ifdef TEST_TLS_DIRECTORY}
+       + systems_windows
+{$endif TEST_TLS_DIRECTORY}
+       ;
 
        { all symbian systems }
        systems_symbian = [system_i386_symbian,system_arm_symbian];
@@ -271,7 +280,14 @@ interface
 
        systems_internal_sysinit = [system_i386_linux,system_i386_win32];
 
+       {$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
+       { If anyone wants to use interrupt for
+         a specific target, add a
+         $define FPC_HAS_SYSTEMS_INTERRUPT_TABLE
+         to fpcdefs.inc to reactivate
+         the corresponding code }
        systems_interrupt_table = [{system_arm_embedded}];
+       {$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 
        { all systems for which istack must be at a 16 byte boundary
          when calling a function }

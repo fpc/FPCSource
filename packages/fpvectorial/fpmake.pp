@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fpvectorial';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.Author := 'Felipe Monteiro de Carvalho, Pedro Sol Pegorini L de Lima';
     P.License := 'LGPL with static linking modification ';
     P.HomepageURL := 'www.freepascal.org';
@@ -26,18 +26,21 @@ begin
     P.NeedLibC:= true;
 
     P.Dependencies.Add('fcl-image');
+    P.Dependencies.Add('fcl-base');
 
     P.SourcePath.Add('src');
 
-    T:=P.Targets.AddImplicitUnit('jwazmouse.pas');
     T:=P.Targets.AddImplicitUnit('avisocncgcodereader'); 
-    T:=P.Targets.AddImplicitUnit('avisocncgcodewriter'); 
-    T:=P.Targets.AddImplicitUnit('avisozlib'); 
+    T:=P.Targets.AddImplicitUnit('avisocncgcodewriter');
+    T:=P.Targets.AddImplicitUnit('svgvectorialwriter');
+    T:=P.Targets.AddImplicitUnit('avisozlib');
     T:=P.Targets.AddImplicitUnit('fpvectorial'); 
     T:=P.Targets.AddImplicitUnit('fpvtocanvas');  
-    T:=P.Targets.AddImplicitUnit('pdfvectorialreader'); 
-    T:=P.Targets.AddImplicitUnit('pdfvrlexico'); 
+    T:=P.Targets.AddImplicitUnit('pdfvectorialreader');
+    T:=P.Targets.AddImplicitUnit('cdrvectorialreader');
+    T:=P.Targets.AddImplicitUnit('pdfvrlexico');
     T:=P.Targets.AddImplicitUnit('pdfvrsemantico');
+    T:=P.Targets.AddImplicitUnit('pdfvrsintatico');
     T:=P.Targets.AddImplicitUnit('epsvectorialreader');
     T:=P.Targets.AddImplicitUnit('fpvutils');
 

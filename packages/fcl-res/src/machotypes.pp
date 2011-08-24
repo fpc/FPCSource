@@ -21,6 +21,11 @@ interface
 
 type
   TMachOMachineType = (mmtpowerpc, mmtpowerpc64, mmti386, mmtx86_64, mmtarm);
+  TMachOSubMachineTypePowerPC = (msmppc_all);
+  TMachOSubMachineTypePowerPC64 = (msmppc64_all);
+  TMachOSubMachineType386 = (msm386_all);
+  TMachOSubMachineTypex64 = (msmx64_all);
+  TMachOSubMachineTypeArm = (msmarm_all,msmarm_v4t,msmarm_v6,msmarm_v5tej,msmarm_xscale,msmarm_v7);
   TSegSectName = array[0..15] of char;
 
 type

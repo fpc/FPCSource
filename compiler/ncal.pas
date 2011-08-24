@@ -1877,6 +1877,11 @@ implementation
           firstpass would be called multiple times }
         include(callnodeflags,cnf_objc_processed);
 
+        { make sure the methodpointer doesn't get translated into a call
+          as well (endless loop) }
+        if methodpointer.nodetype=loadvmtaddrn then
+          tloadvmtaddrnode(methodpointer).forcall:=true;
+
         { A) set the appropriate objc_msgSend* variant to call }
 
         { record returned via implicit pointer }
@@ -1938,6 +1943,10 @@ implementation
                 (selftree.resultdef.typ<>classrefdef) then
                begin
                  selftree:=cloadvmtaddrnode.create(selftree);
+                 { since we're in a class method of the current class, its
+                   information has already been initialized (and that of all of
+                   its parent classes too) }
+                 tloadvmtaddrnode(selftree).forcall:=true;
                  typecheckpass(selftree);
                end;
              selfrestype:=selftree.resultdef;
@@ -1981,6 +1990,9 @@ implementation
                 (methodpointer.resultdef.typ<>classrefdef)) then
               begin
                 methodpointer:=cloadvmtaddrnode.create(methodpointer);
+                { no need to obtain the class ref by calling class(), sending
+                  this message will initialize it if necessary }
+                tloadvmtaddrnode(methodpointer).forcall:=true;
                 firstpass(methodpointer);
               end;
           end;
@@ -2013,7 +2025,10 @@ implementation
                 vmttree:=methodpointer.getcopy;
                 { Only a typenode can be passed when it is called with <class of xx>.create }
                 if vmttree.nodetype=typen then
-                  vmttree:=cloadvmtaddrnode.create(vmttree);
+                  begin
+                    vmttree:=cloadvmtaddrnode.create(vmttree);
+                    tloadvmtaddrnode(vmttree).forcall:=true;
+                  end;
               end
             else
               begin
@@ -2347,12 +2362,12 @@ implementation
                 else
                  if vo_is_range_check in para.parasym.varoptions then
                    begin
-                     para.left:=cordconstnode.create(Ord(cs_check_range in current_settings.localswitches),booltype,false);
+                     para.left:=cordconstnode.create(Ord(cs_check_range in current_settings.localswitches),pasbool8type,false);
                    end
                 else
                  if vo_is_overflow_check in para.parasym.varoptions then
                    begin
-                     para.left:=cordconstnode.create(Ord(cs_check_overflow in current_settings.localswitches),booltype,false);
+                     para.left:=cordconstnode.create(Ord(cs_check_overflow in current_settings.localswitches),pasbool8type,false);
                    end
                 else
                   if vo_is_msgsel in para.parasym.varoptions then
@@ -2723,7 +2738,7 @@ implementation
                                     ((m_delphi in current_settings.modeswitches) and (cnf_anon_inherited in callnodeflags));
                   candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,ignorevisibility,
                     not(nf_isproperty in flags),cnf_objc_id_call in callnodeflags,cnf_unit_specified in callnodeflags,
-                    callnodeflags*[cnf_anon_inherited,cnf_inherited]=[]);
+                    callnodeflags*[cnf_anon_inherited,cnf_inherited]=[],cnf_anon_inherited in callnodeflags);
 
                    { no procedures found? then there is something wrong
                      with the parameter size or the procedures are

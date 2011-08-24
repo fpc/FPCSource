@@ -20,6 +20,10 @@ unit custfcgi;
 
 Interface
 
+{$if defined(win32) or defined(win64)}
+{$define windowspipe}
+{$ifend}
+
 uses
   Classes,SysUtils, httpdefs, 
 {$ifdef unix}
@@ -101,9 +105,15 @@ Type
     FAddress: string;
     FTimeOut,
     FPort: integer;
-{$ifdef windows}
+
+{$ifdef windowspipe}
     FIsWinPipe: Boolean;
 {$endif}
+{$IFDEF WINDOWS}
+    FShutdownThread : TThread;
+    Procedure CheckShutDownEvent;
+    Procedure HandleShutDownEvent(Sender : TObject);
+{$ENDIF}
     function AcceptConnection: Integer;
     procedure CloseConnection;
     function Read_FCGIRecord : PFCGI_Header;
@@ -165,17 +175,52 @@ Implementation
 uses
   dbugintf;
 {$endif}
- 
-
-
 {$undef nosignal}
 
 {$if defined(FreeBSD) or defined(Linux)}
   {$define nosignal}
 {$ifend}
 
+{$IFDEF WINDOWS}
+Type
+
+  { TShutdownThread }
+  TShutdownEvent = Procedure (Sender : TObject) Of Object;
+  TShutdownThread = Class(TThread)
+  Private
+    FEvent : THandle;
+    FOnShutDown : TShutdownEvent;
+  Public
+    Constructor CreateWithEvent(AEvent : THandle; AOnShutDown : TShutdownEvent);
+    Procedure Execute; override;
+  end;
+{$ENDIF}
+
 Const 
    NoSignalAttr =  {$ifdef nosignal} MSG_NOSIGNAL{$else}0{$endif};
+
+{$IFDEF WINDOWS}
+{ TShutdownThread }
+
+constructor TShutdownThread.CreateWithEvent(AEvent: THandle; AOnShutDown : TShutdownEvent);
+begin
+  Inherited Create(False);
+  FEvent:=AEvent;
+  FOnShutDown:=AOnShutDown;
+  OnTerminate:=AOnShutDown;
+end;
+
+procedure TShutdownThread.Execute;
+begin
+  WaitForSingleObject(FEvent,INFINITE);
+  If Assigned(FOnShutDown) then
+    FOnShutDown(Self);
+  // This is very ugly, but there is no other way to stop the named pipe
+  // from accepting new connections.
+  // Using Halt(0) is not enough.
+  ExitProcess(0);
+end;
+{$ENDIF WINDOWS}
 
 { TFCGIHTTPRequest }
 
@@ -469,16 +514,27 @@ end;
 { TFCgiHandler }
 
 constructor TFCgiHandler.Create(AOwner: TComponent);
+
 begin
   Inherited Create(AOwner);
   FRequestsAvail:=5;
   SetLength(FRequestsArray,FRequestsAvail);
   FHandle := THandle(-1);
   FTimeOut:=50;
+{$IFDEF WINDOWS}
+  CheckShutdownEvent;
+{$ENDIF}
 end;
 
 destructor TFCgiHandler.Destroy;
 begin
+{$IFDEF WINDOWS}
+  IF (FShutDownThread<>Nil) then
+    begin
+    TShutDownThread(FShutDownThread).FOnShutDown:=Nil;
+    TShutDownThread(FShutDownThread).OnTerminate:=Nil;
+    end;
+{$ENDIF}
   SetLength(FRequestsArray,0);
   if (Socket<>0) then
     begin
@@ -488,11 +544,35 @@ begin
   inherited Destroy;
 end;
 
+{$IFDEF WINDOWS}
+Procedure TFCgiHandler.CheckShutdownEvent;
+
+Var
+  H : THandle;
+
+begin
+  // This is normally only used in mod_fastcgi.
+  // mod_fcgid just kills off the process...
+  H:=THandle(StrToIntDef(sysutils.GetEnvironmentVariable('_FCGI_SHUTDOWN_EVENT_'),0));
+  If (H<>0) then
+    FShutDownThread:=TShutdownThread.CreateWithEvent(H,@HandleShutDownEvent);
+end;
+
+procedure TFCgiHandler.HandleShutDownEvent(Sender : TOBject);
+begin
+  TShutDownThread(Sender).FOnShutDown:=Nil;
+  TShutDownThread(Sender).OnTerminate:=Nil;
+  FShutDownThread:=Nil;
+  Terminate;
+end;
+
+{$ENDIF}
+
 procedure TFCgiHandler.CloseConnection;
 Var
   i : Integer;
 begin
-{$ifdef windows}
+{$ifdef windowspipe}
   if FIsWinPipe then
     begin
     if not FlushFileBuffers(FHandle) then
@@ -715,7 +795,7 @@ end;
 
 function TFCgiHandler.DoFastCGIRead(AHandle: THandle; var ABuf; ACount: Integer): Integer;
 begin
-{$ifdef windows}
+{$ifdef windowspipe}
   if FIsWinPipe then
     Result:=FileRead(AHandle,ABuf,ACount)
   else
@@ -726,7 +806,7 @@ end;
 function TFCgiHandler.DoFastCGIWrite(AHandle: THandle; const ABuf;
   ACount: Integer): Integer;
 begin
-  {$ifdef windows}
+  {$ifdef windowspipe}
   if FIsWinPipe then
     Result := FileWrite(AHandle, ABuf, ACount)
   else
@@ -786,12 +866,18 @@ Var
 
 begin
 {$ifndef windows}
-  Result:=fpaccept(Socket,psockaddr(@FIAddress),@FAddressLength);
+  repeat
+    Result:=fpaccept(Socket,nil,nil);
+  until ((result<>-1) or (SocketError<>ESysEINTR)) and not Terminated;
 {$else}
+{$ifndef windowspipe}
+  Result:=fpaccept(Socket,Nil,nil);
+{$else windowspipe}
   if Not fIsWinPipe then
-    Result:=fpaccept(Socket,psockaddr(@FIAddress),@FAddressLength);
+    Result:=fpaccept(Socket,Nil,Nil);
   If FIsWinPipe or ((Result<0) and (socketerror=10038)) then
     begin
+    Result:=-1;
     B:=ConnectNamedPipe(Socket,Nil);
     if B or (GetLastError=ERROR_PIPE_CONNECTED) then
        begin
@@ -806,12 +892,14 @@ begin
        end;
     end;
 {$endif}
+{$endif}
 end;
 
 function TFCgiHandler.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
 
 var
   AFCGI_Record  : PFCGI_Header;
+
 
 begin
   Result := False;
@@ -826,8 +914,11 @@ begin
     FHandle:=AcceptConnection;
   if FHandle=THandle(-1) then
     begin
-    Terminate;
-    raise Exception.CreateFmt(SNoInputHandle,[socketerror]);
+    if not terminated then
+      begin
+      Terminate;
+      raise Exception.CreateFmt(SNoInputHandle,[socketerror]);
+      end
     end;
   repeat
     If (poUseSelect in ProtocolOptions) then

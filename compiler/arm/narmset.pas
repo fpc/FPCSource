@@ -73,6 +73,7 @@ implementation
         last : TConstExprInt;
         indexreg : tregister;
         href : treference;
+        tablelabel: TAsmLabel;
 
         procedure genitem(list:TAsmList;t : pcaselabel);
           var
@@ -90,6 +91,22 @@ implementation
               genitem(list,t^.greater);
           end;
 
+        procedure genitem_thumb2(list:TAsmList;t : pcaselabel);
+          var
+            i : aint;
+          begin
+            if assigned(t^.less) then
+              genitem_thumb2(list,t^.less);
+            { fill possible hole }
+            for i:=last.svalue+1 to t^._low.svalue-1 do
+              list.concat(Tai_const.Create_rel_sym(aitconst_half16bit,tablelabel,elselabel));
+            for i:=t^._low.svalue to t^._high.svalue do
+              list.concat(Tai_const.Create_rel_sym(aitconst_half16bit,tablelabel,blocklabel(t^.blockid)));
+            last:=t^._high.svalue;
+            if assigned(t^.greater) then
+              genitem_thumb2(list,t^.greater);
+          end;
+
       begin
         if not(jumptable_no_range) then
           begin
@@ -101,17 +118,39 @@ implementation
         { make it a 32bit register }
         indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,OS_INT,hregister,indexreg);
-        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_+1,indexreg,indexreg);
-        { create reference }
-        reference_reset(href,4);
-        href.base:=NR_PC;
-        href.index:=indexreg;
-        href.shiftmode:=SM_LSL;
-        href.shiftimm:=2;
-        cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,NR_PC);
-        { generate jump table }
-        last:=min_;
-        genitem(current_asmdata.CurrAsmList,hp);
+
+        if current_settings.cputype in cpu_thumb2 then
+          begin
+            { adjust index }
+            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_,indexreg,indexreg);
+            { create reference and generate jump table }
+            reference_reset(href,4);
+            href.base:=NR_PC;
+            href.index:=indexreg;
+            href.shiftmode:=SM_LSL;
+            href.shiftimm:=1;
+            current_asmdata.CurrAsmList.Concat(taicpu.op_ref(A_TBH,href));
+            { generate jump table }
+            current_asmdata.getjumplabel(tablelabel);
+            cg.a_label(current_asmdata.CurrAsmList,tablelabel);
+            last:=min_;
+            genitem_thumb2(current_asmdata.CurrAsmList,hp);
+          end
+        else
+          begin
+            { adjust index }
+            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_+1,indexreg,indexreg);
+            { create reference and generate jump table }
+            reference_reset(href,4);
+            href.base:=NR_PC;
+            href.index:=indexreg;
+            href.shiftmode:=SM_LSL;
+            href.shiftimm:=2;
+            cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,NR_PC);
+            { generate jump table }
+            last:=min_;
+            genitem(current_asmdata.CurrAsmList,hp);
+          end;
       end;
 
 

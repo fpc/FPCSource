@@ -52,10 +52,10 @@ var
     _name: NSString;
     _printerType: NSString;
     _fileName: NSString;
-    __flags: bitpacked record
+    __flags: record
       case byte of
        0: (_anonbitfield_NSColorList2: cuint);
-       1: (
+       1: (data: bitpacked record
         colorsLoaded: 0..1;
         editable: 0..1;
         hasDeviceSpecificLists: 0..1;
@@ -68,6 +68,7 @@ var
         {$ifdef cpu64}
         _anonbitfield_NSColorList1: 0..((1 shl 32)-1);
         {$endif}
+       end;
       );
       end;
     _clAuxiliaryStorage: id;

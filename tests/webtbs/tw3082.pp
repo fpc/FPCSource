@@ -1,4 +1,5 @@
 { %norun }
+{ %needlibrary }
 { %cpu=x86_64,i386,powerpc,sparc}
 { %skiptarget = go32v2,macos }
 { execute this test only on reasonable fast cpus }

@@ -272,9 +272,10 @@ interface
           vmtentries     : TFPList;
           vmcallstaticinfo : pmvcallstaticinfo;
           vmt_offset     : longint;
-          objecttype     : tobjecttyp;
           iidguid        : pguid;
           iidstr         : pshortstring;
+          { store implemented interfaces defs and name mappings }
+          ImplementedInterfaces : TFPObjectList;
           writing_class_record_dbginfo,
           { a class of this type has been created in this module }
           created_in_current_module,
@@ -288,8 +289,7 @@ interface
             this module
           }
           classref_created_in_current_module : boolean;
-          { store implemented interfaces defs and name mappings }
-          ImplementedInterfaces : TFPObjectList;
+          objecttype     : tobjecttyp;
           constructor create(ot:tobjecttyp;const n:string;c:tobjectdef);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -423,14 +423,14 @@ interface
           procoptions     : tprocoptions;
           callerargareasize,
           calleeargareasize: pint;
-          { number of user visibile parameters }
-          maxparacount,
-          minparacount    : byte;
 {$ifdef m68k}
           exp_funcretloc : tregister;   { explicit funcretloc for AmigaOS }
 {$endif}
           funcretloc : array[tcallercallee] of TCGPara;
           has_paraloc_info : tcallercallee; { paraloc info is available }
+          { number of user visible parameters }
+          maxparacount,
+          minparacount    : byte;
           constructor create(dt:tdeftyp;level:byte);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -536,6 +536,8 @@ interface
 {$ifdef oldregvars}
           regvarinfo: pregvarinfo;
 {$endif oldregvars}
+          { interrupt vector }
+          interruptvector : longint;
           { First/last assembler symbol/instruction in aasmoutput list.
             Note: initialised after compiling the code for the procdef, but
               not saved to/restored from ppu. Used when inserting debug info }
@@ -554,8 +556,6 @@ interface
           interfacedef : boolean;
           { true if the procedure has a forward declaration }
           hasforward  : boolean;
-          { interrupt vector }
-          interruptvector : longint;
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -613,10 +613,10 @@ interface
        tenumdef = class(tstoreddef)
           minval,
           maxval    : asizeint;
-          has_jumps : boolean;
           basedef   : tenumdef;
           basedefderef : tderef;
           symtable  : TSymtable;
+          has_jumps : boolean;
           constructor create;
           constructor create_subrange(_basedef:tenumdef;_min,_max:asizeint);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -677,7 +677,10 @@ interface
        voidtype,                  { Void (procedure) }
        cchartype,                 { Char }
        cwidechartype,             { WideChar }
-       booltype,                  { boolean type }
+       pasbool8type,              { boolean type }
+       pasbool16type,
+       pasbool32type,
+       pasbool64type,
        bool8type,
        bool16type,
        bool32type,
@@ -786,6 +789,8 @@ interface
 {$endif AVR}
 
     function make_mangledname(const typeprefix:string;st:TSymtable;const suffix:string):string;
+    function make_dllmangledname(const dllname,importname:string;
+                                 import_nr : word; pco : tproccalloption):string;
 
     { should be in the types unit, but the types unit uses the node stuff :( }
     function is_interfacecom(def: tdef): boolean;
@@ -933,6 +938,68 @@ implementation
         { add an underscore on darwin.                                              }
         if (target_info.system in systems_darwin) then
           result := '_' + result;
+      end;
+
+    function make_dllmangledname(const dllname,importname:string;import_nr : word; pco : tproccalloption):string;
+       var
+         crc : cardinal;
+         i : longint;
+         use_crc : boolean;
+         dllprefix : string;
+      begin
+        if (target_info.system in (systems_all_windows + systems_nativent +
+                           [system_i386_emx, system_i386_os2]))
+            and (dllname <> '') then
+          begin
+            dllprefix:=lower(ExtractFileName(dllname));
+            { Remove .dll suffix if present }
+            if copy(dllprefix,length(dllprefix)-3,length(dllprefix))='.dll' then
+              dllprefix:=copy(dllprefix,1,length(dllprefix)-4);
+            use_crc:=false;
+            for i:=1 to length(dllprefix) do
+              if not (dllprefix[i] in ['a'..'z','A'..'Z','_','0'..'9']) then
+                begin
+                  use_crc:=true;
+                  break;
+                end;
+            if use_crc then
+              begin
+                crc:=0;
+                crc:=UpdateCrc32(crc,dllprefix[1],length(dllprefix));
+                dllprefix:='_$dll$crc$'+hexstr(crc,8)+'$';
+              end
+            else
+              dllprefix:='_$dll$'+dllprefix+'$';
+
+            if importname<>'' then
+              result:=dllprefix+importname
+            else
+              result:=dllprefix+'_index_'+tostr(import_nr);
+            { Replace ? and @ in import name, since GNU AS does not allow these characters in symbol names. }
+            { This allows to import VC++ mangled names from DLLs. }
+            { Do not perform replacement, if external symbol is not imported from DLL. }
+            if (dllname<>'') then
+              begin
+                Replace(result,'?','__q$$');
+    {$ifdef arm}
+                { @ symbol is not allowed in ARM assembler only }
+                Replace(result,'@','__a$$');
+    {$endif arm}
+             end;
+          end
+        else
+          begin
+            if importname<>'' then
+             begin
+               if not(pco in [pocall_cdecl,pocall_cppdecl]) then
+                 result:=importname
+               else
+                 result:=target_info.Cprefix+importname;
+             end
+            else
+              result:='_index_'+tostr(import_nr);
+          end;
+
       end;
 
 {****************************************************************************
@@ -1766,7 +1833,8 @@ implementation
           0,
           1,2,4,8,
           1,2,4,8,
-          1,1,2,4,8,
+          1,2,4,8,
+          1,2,4,8,
           1,2,8
         );
       begin
@@ -1815,7 +1883,8 @@ implementation
           varUndefined,
           varbyte,varword,varlongword,varqword,
           varshortint,varsmallint,varinteger,varint64,
-          varboolean,varboolean,varboolean,varUndefined,varUndefined,
+          varboolean,varboolean,varboolean,varboolean,
+          varboolean,varboolean,varUndefined,varUndefined,
           varUndefined,varUndefined,varCurrency);
       begin
         result:=basetype2vardef[ordtype];
@@ -1844,7 +1913,8 @@ implementation
           'untyped',
           'Byte','Word','DWord','QWord',
           'ShortInt','SmallInt','LongInt','Int64',
-          'Boolean','ByteBool','WordBool','LongBool','QWordBool',
+          'Boolean','Boolean16','Boolean32','Boolean64',
+          'ByteBool','WordBool','LongBool','QWordBool',
           'Char','WideChar','Currency');
 
       begin
@@ -2931,7 +3001,8 @@ implementation
              trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).padalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).usefieldalignment:=shortint(ppufile.getbyte);
-             trecordsymtable(symtable).datasize:=ppufile.getaint;
+             trecordsymtable(symtable).datasize:=ppufile.getasizeint;
+             trecordsymtable(symtable).paddingsize:=ppufile.getword;
              trecordsymtable(symtable).ppuload(ppufile);
              { requires usefieldalignment to be set }
              symtable.defowner:=self;
@@ -3016,7 +3087,8 @@ implementation
              ppufile.putbyte(byte(trecordsymtable(symtable).recordalignment));
              ppufile.putbyte(byte(trecordsymtable(symtable).padalignment));
              ppufile.putbyte(byte(trecordsymtable(symtable).usefieldalignment));
-             ppufile.putaint(trecordsymtable(symtable).datasize);
+             ppufile.putasizeint(trecordsymtable(symtable).datasize);
+             ppufile.putword(trecordsymtable(symtable).paddingsize);
            end;
 
          ppufile.writeentry(ibrecorddef);
@@ -3474,8 +3546,10 @@ implementation
          else
            import_name:=nil;
          import_nr:=ppufile.getword;
+{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if target_info.system in systems_interrupt_table then
            interruptvector:=ppufile.getlongint;
+{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if (po_msgint in procoptions) then
            messageinf.i:=ppufile.getlongint;
          if (po_msgstr in procoptions) then
@@ -3612,8 +3686,10 @@ implementation
          if po_has_importname in procoptions then
            ppufile.putstring(import_name^);
          ppufile.putword(import_nr);
+{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if target_info.system in systems_interrupt_table then
            ppufile.putlongint(interruptvector);
+{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
          if (po_msgint in procoptions) then
            ppufile.putlongint(messageinf.i);
          if (po_msgstr in procoptions) then
@@ -3929,7 +4005,8 @@ implementation
              'v',
              'h','t','j','y',
              'a','s','i','x',
-             'b','b','b','b','b',
+             'b','b','b','b',
+             'b','b','b','b',
              'c','w','x');
 
            floattype2str : array[tfloattype] of string[1] = (
@@ -4309,9 +4386,10 @@ implementation
          if (import_lib^='') then
            stringdispose(import_lib);
          symtable:=tObjectSymtable.create(self,objrealname^,0);
-         tObjectSymtable(symtable).datasize:=ppufile.getaint;
-         tObjectSymtable(symtable).fieldalignment:=ppufile.getbyte;
-         tObjectSymtable(symtable).recordalignment:=ppufile.getbyte;
+         tObjectSymtable(symtable).datasize:=ppufile.getasizeint;
+         tObjectSymtable(symtable).paddingsize:=ppufile.getword;
+         tObjectSymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
+         tObjectSymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
          vmt_offset:=ppufile.getlongint;
          ppufile.getderef(childofderef);
 
@@ -4479,9 +4557,10 @@ implementation
            ppufile.putstring(import_lib^)
          else
            ppufile.putstring('');
-         ppufile.putaint(tObjectSymtable(symtable).datasize);
-         ppufile.putbyte(tObjectSymtable(symtable).fieldalignment);
-         ppufile.putbyte(tObjectSymtable(symtable).recordalignment);
+         ppufile.putasizeint(tObjectSymtable(symtable).datasize);
+         ppufile.putword(tObjectSymtable(symtable).paddingsize);
+         ppufile.putbyte(byte(tObjectSymtable(symtable).fieldalignment));
+         ppufile.putbyte(byte(tObjectSymtable(symtable).recordalignment));
          ppufile.putlongint(vmt_offset);
          ppufile.putderef(childofderef);
          if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
@@ -4533,7 +4612,7 @@ implementation
         if not assigned(typesym) then
           result:='<Currently Parsed Class>'
         else
-          result:=typename;
+          result:=typesymbolprettyname;
       end;
 
 
@@ -4724,6 +4803,15 @@ implementation
             tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize+tObjectSymtable(c.symtable).datasize;
             { inherit recordalignment }
             tObjectSymtable(symtable).recordalignment:=tObjectSymtable(c.symtable).recordalignment;
+            { if both the parent and this record use C-alignment, also inherit
+              the current field alignment }
+            if (tObjectSymtable(c.symtable).usefieldalignment=C_alignment) and
+               (tObjectSymtable(symtable).usefieldalignment=C_alignment) then
+              tObjectSymtable(symtable).fieldalignment:=tObjectSymtable(c.symtable).fieldalignment;
+            { the padding is not inherited for Objective-C classes (maybe not
+              for cppclass either?) }
+            if objecttype=odt_objcclass then
+              tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize-tObjectSymtable(c.symtable).paddingsize;
             if (oo_has_vmt in objectoptions) and
                (oo_has_vmt in c.objectoptions) then
               tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize-sizeof(pint);

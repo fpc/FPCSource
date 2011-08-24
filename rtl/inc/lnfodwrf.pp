@@ -213,7 +213,6 @@ end;
 function ReadNext() : Longint; inline;
 var
   bytesread : SizeInt;
-  b : Byte;
 begin
   ReadNext := -1;
   if EBufPos >= EBufCnt then begin
@@ -236,7 +235,7 @@ end;
 { Reads the next size bytes into dest. Returns true if successful,
   false otherwise. Note that dest may be partially overwritten after
   returning false. }
-function ReadNext(var dest; size : SizeInt) : Boolean; inline;
+function ReadNext(var dest; size : SizeInt) : Boolean;
 var
   bytesread, totalread : SizeInt;
   r: Boolean;

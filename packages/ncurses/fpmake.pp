@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='ncurses';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
@@ -43,6 +43,11 @@ begin
           AddUnit('menu');
         end;
     T:=P.Targets.AddUnit('panel.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('ncurses');
+        end;
+    T:=P.Targets.AddUnit('form.pp');
       with T.Dependencies do
         begin
           AddUnit('ncurses');

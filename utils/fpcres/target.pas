@@ -25,6 +25,18 @@ type
                   mtsparc,mtalpha,mtia64,mtBigEndian,mtLittleEndian);
   TMachineTypes = set of TMachineType;
 
+  TSubMachineTypeArm = (smtarm_all,smtarm_v4t,smtarm_v6,smtarm_v5tej,smtarm_xscale,smtarm_v7);
+  TSubMachineTypeGeneric = (smtgen_all);
+
+  TSubMachineType = record
+    case TMachineType of
+      mtarm,mtarmeb:
+        (subarm: TSubMachineTypeArm);
+      mtnone, mti386,mtx86_64,mtppc,mtppc64,mtm68k,
+      mtsparc,mtalpha,mtia64,mtBigEndian,mtLittleEndian:
+        (subgen: TSubMachineTypeGeneric);
+  end;
+
   TObjFormat = (ofNone, ofRes, ofElf, ofCoff, ofMachO, ofExt);
   TObjFormats = set of TObjFormat;
   
@@ -42,10 +54,12 @@ type
 
   TResTarget = record
     machine : TMachineType;
+    submachine : TSubMachineType;
     objformat : TObjFormat;
   end;
 
 function GetDefaultMachineForFormat(aFormat : TObjFormat) : TMachineType;
+function GetDefaultSubMachineForMachine(aMachine: TMachineType) : TSubMachineType;
 function TargetToStr(const aTarget : TResTarget) : string;
 function MachineToStr(const aMachine : TMachineType) : string;
 function ObjFormatToStr(const aFormat : TObjFormat) : string;
@@ -67,6 +81,11 @@ var
     (name : 'bigendian';    formats : [ofExt]),                  //mtBigEndian
     (name : 'littleendian'; formats : [ofExt])                   //mtLittleEndian
   );
+
+  SubMachinesArm: array[TSubMachineTypeArm] of string[8] =
+    ('all','armv4','armv6','armv5tej','xscale','armv7');
+  SubMachinesGen: array[TSubMachineTypeGeneric] of string[3] =
+    ('all');
   
   ObjFormats : array[TObjFormat] of TFormatInfo =
   (
@@ -87,36 +106,47 @@ var
   (
   {$IFDEF CPUI386}
     machine : mti386;
+    submachine : (subgen: smtgen_all);
   {$ELSE}
   {$IFDEF CPUX86_64}
     machine : mtx86_64;
+    submachine : (subgen: smtgen_all);
   {$ELSE}
   {$IFDEF CPUPOWERPC32}
     machine : mtppc;
+    submachine : (subgen: smtgen_all);
   {$ELSE}
   {$IFDEF CPUPOWERPC64}
     machine : mtppc64;
+    submachine : (subgen: smtgen_all);
   {$ELSE}
   {$IFDEF CPUARM}
     {$IFDEF ENDIAN_LITTLE}
     machine : mtarm;
+    submachine : (subarm: smtarm_all);
     {$ELSE}
     machine : mtarmeb;
+    submachine : (subarm: smtarm_all);
     {$ENDIF}
   {$ELSE}
   {$IFDEF CPU68K}
     machine : mtm68k;
+    submachine : (subgen: smtgen_all);
   {$ELSE}
   {$IFDEF CPUSPARC}
     machine : mtsparc;
+    submachine : (subgen: smtgen_all);
   {$ELSE}
   {$IFDEF CPUALPHA}
     machine : mtalpha;
+    submachine : (subgen: smtgen_all);
   {$ELSE}
   {$IFDEF CPUIA64}
     machine : mtia64;
+    submachine : (subgen: smtgen_all);
   {$ELSE}
     machine : mti386;  //default i386
+    submachine : (subgen: smtgen_all);
   {$ENDIF}
   {$ENDIF}
   {$ENDIF}
@@ -162,18 +192,43 @@ begin
   Result:=Machines[aMachine].name;
 end;
 
+function SubMachineToStr(const aMachine : TMachineType; const aSubMachine : TSubMachineType) : string;
+begin
+  case aMachine of
+    mtarm,mtarmeb:
+      result:=SubMachinesArm[aSubMachine.subarm];
+    else
+      // no need to confuse people with the "all" suffix, it doesn't do
+      // anything anyway
+      result:='';
+  end;
+end;
+
 function ObjFormatToStr(const aFormat : TObjFormat) : string;
 begin
   Result:=ObjFormats[aFormat].name;
 end;
 
+function GetDefaultSubMachineForMachine(aMachine: TMachineType): TSubMachineType;
+begin
+  case aMachine of
+    mtarm,mtarmeb:
+      result.subarm:=smtarm_all;
+    else
+      result.subgen:=smtgen_all;
+  end;
+end;
+
 function TargetToStr(const aTarget : TResTarget) : string;
-var s1, s2 : string;
+var s1, s2, s3 : string;
 begin
   s1:=MachineToStr(aTarget.machine);
   s2:=ObjFormatToStr(aTarget.objformat);
+  s3:=SubMachineToStr(aTarget.Machine,aTarget.submachine);
   if (s1='') or (s2='') then Result:=s1+s2
   else Result:=s1+' - '+s2;
+  if s3<>'' then
+    Result:=Result+'-'+s3;
 end;
 
 end.

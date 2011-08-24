@@ -515,10 +515,11 @@ implementation
                          err:=true;
                        end;
                    else
-                     begin
-                       Message(parser_e_illegal_parameter_list);
-                       err:=true;
-                     end;
+                     if p1.resultdef.typ<>undefineddef then
+                       begin
+                         Message(parser_e_illegal_parameter_list);
+                         err:=true;
+                       end;
                  end;
                end
               else
@@ -1491,7 +1492,7 @@ implementation
                        if (df_generic in hdef.defoptions) and
                           (token=_LT) and
                           (m_delphi in current_settings.modeswitches) then
-                          generate_specialization(hdef,false);
+                          generate_specialization(hdef,false,'');
                        if try_to_consume(_LKLAMMER) then
                         begin
                           p1:=comp_expr(true,false);
@@ -2306,6 +2307,7 @@ implementation
          hs,hsorg   : string;
          hdef       : tdef;
          filepos    : tfileposinfo;
+         callflags  : tcallnodeflags;
          again,
          updatefpos,
          nodechanged  : boolean;
@@ -2452,7 +2454,10 @@ implementation
                              p1:=cerrornode.create;
                            end;
                        end;
-                       do_member_read(hclassdef,getaddr,srsym,p1,again,[cnf_inherited,cnf_anon_inherited]);
+                       callflags:=[cnf_inherited];
+                       if anon_inherited then
+                         include(callflags,cnf_anon_inherited);
+                       do_member_read(hclassdef,getaddr,srsym,p1,again,callflags);
                      end
                     else
                      begin
@@ -2745,13 +2750,13 @@ implementation
              _TRUE :
                begin
                  consume(_TRUE);
-                 p1:=cordconstnode.create(1,booltype,false);
+                 p1:=cordconstnode.create(1,pasbool8type,false);
                end;
 
              _FALSE :
                begin
                  consume(_FALSE);
-                 p1:=cordconstnode.create(0,booltype,false);
+                 p1:=cordconstnode.create(0,pasbool8type,false);
                end;
 
              _NIL :

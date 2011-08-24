@@ -11,6 +11,8 @@ AUTHORS: Felipe Monteiro de Carvalho
 }
 unit fpvutils;
 
+{.$define USE_LCL_CANVAS}
+
 {$ifdef fpc}
   {$mode delphi}
 {$endif}
@@ -19,6 +21,9 @@ interface
 
 uses
   Classes, SysUtils, Math,
+  {$ifdef USE_LCL_CANVAS}
+  Graphics, LCLIntf, LCLType,
+  {$endif}
   fpvectorial, fpimage;
 
 type
@@ -27,10 +32,20 @@ type
 // Color Conversion routines
 function FPColorToRGBHexString(AColor: TFPColor): string;
 function RGBToFPColor(AR, AG, AB: byte): TFPColor; inline;
-// Other routine
+// Coordinate Conversion routines
 function CanvasCoordsToFPVectorial(AY: Integer; AHeight: Integer): Integer; inline;
 function CanvasTextPosToFPVectorial(AY: Integer; ACanvasHeight, ATextHeight: Integer): Integer;
+function CoordToCanvasX(ACoord: Double; ADestX: Integer; AMulX: Double): Integer; inline;
+function CoordToCanvasY(ACoord: Double; ADestY: Integer; AMulY: Double): Integer; inline;
+// Other routines
 function SeparateString(AString: string; ASeparator: char): T10Strings;
+// Mathematical routines
+procedure EllipticalArcToBezier(Xc, Yc, Rx, Ry, startAngle, endAngle: Double; var P1, P2, P3, P4: T3DPoint);
+procedure CircularArcToBezier(Xc, Yc, R, startAngle, endAngle: Double; var P1, P2, P3, P4: T3DPoint);
+// LCL-related routines
+{$ifdef USE_LCL_CANVAS}
+function ConvertPathToRegion(APath: TPath; ADestX, ADestY: Integer; AMulX, AMulY: Double): HRGN;
+{$endif}
 
 implementation
 
@@ -75,6 +90,16 @@ begin
   Result := CanvasCoordsToFPVectorial(AY, ACanvasHeight) - ATextHeight;
 end;
 
+function CoordToCanvasX(ACoord: Double; ADestX: Integer; AMulX: Double): Integer;
+begin
+  Result := Round(ADestX + AmulX * ACoord);
+end;
+
+function CoordToCanvasY(ACoord: Double; ADestY: Integer; AMulY: Double): Integer;
+begin
+  Result := Round(ADestY + AmulY * ACoord);
+end;
+
 {@@
   Reads a string and separates it in substring
   using ASeparator to delimite them.
@@ -109,6 +134,90 @@ begin
       Result[CurrentPart] := Result[CurrentPart] + Copy(AString, i, 1);
   end;
 end;
+
+{ Considering a counter-clockwise arc, elliptical and alligned to the axises
+
+  An elliptical Arc can be converted to
+  the following Cubic Bezier control points:
+
+  P1 = E(startAngle)            <- start point
+  P2 = P1+alfa * dE(startAngle) <- control point
+  P3 = P4−alfa * dE(endAngle)   <- control point
+  P4 = E(endAngle)              <- end point
+
+  source: http://www.spaceroots.org/documents/ellipse/elliptical-arc.pdf
+
+  The equation of an elliptical arc is:
+
+  X(t) = Xc + Rx * cos(t)
+  Y(t) = Yc + Ry * sin(t)
+
+  dX(t)/dt = - Rx * sin(t)
+  dY(t)/dt = + Ry * cos(t)
+}
+procedure EllipticalArcToBezier(Xc, Yc, Rx, Ry, startAngle, endAngle: Double;
+  var P1, P2, P3, P4: T3DPoint);
+var
+  halfLength, arcLength, alfa: Double;
+begin
+  arcLength := endAngle - startAngle;
+  halfLength := (endAngle - startAngle) / 2;
+  alfa := sin(arcLength) * (Sqrt(4 + 3*sqr(tan(halfLength))) - 1) / 3;
+
+  // Start point
+  P1.X := Xc + Rx * cos(startAngle);
+  P1.Y := Yc + Ry * sin(startAngle);
+
+  // End point
+  P4.X := Xc + Rx * cos(endAngle);
+  P4.Y := Yc + Ry * sin(endAngle);
+
+  // Control points
+  P2.X := P1.X + alfa * -1 * Rx * sin(startAngle);
+  P2.Y := P1.Y + alfa * Ry * cos(startAngle);
+
+  P3.X := P4.X - alfa * -1 * Rx * sin(endAngle);
+  P3.Y := P4.Y - alfa * Ry * cos(endAngle);
+end;
+
+procedure CircularArcToBezier(Xc, Yc, R, startAngle, endAngle: Double; var P1,
+  P2, P3, P4: T3DPoint);
+begin
+  EllipticalArcToBezier(Xc, Yc, R, R, startAngle, endAngle, P1, P2, P3, P4);
+end;
+
+{$ifdef USE_LCL_CANVAS}
+function ConvertPathToRegion(APath: TPath; ADestX, ADestY: Integer; AMulX, AMulY: Double): HRGN;
+var
+  i: Integer;
+  WindingMode: Integer;
+  Points: array of TPoint;
+  CoordX, CoordY: Integer;
+  // Segments
+  CurSegment: TPathSegment;
+  Cur2DSegment: T2DSegment absolute CurSegment;
+begin
+  APath.PrepareForSequentialReading;
+
+  SetLength(Points, APath.Len);
+
+  for i := 0 to APath.Len - 1 do
+  begin
+    CurSegment := TPathSegment(APath.Next());
+
+    CoordX := CoordToCanvasX(Cur2DSegment.X, ADestX, AMulX);
+    CoordY := CoordToCanvasY(Cur2DSegment.Y, ADestY, AMulY);
+
+    Points[i].X := CoordX;
+    Points[i].Y := CoordY;
+  end;
+
+  if APath.ClipMode = vcmEvenOddRule then WindingMode := LCLType.ALTERNATE
+  else WindingMode := LCLType.WINDING;
+
+  Result := LCLIntf.CreatePolygonRgn(@Points[0], APath.Len, WindingMode);
+end;
+{$endif}
 
 end.
 

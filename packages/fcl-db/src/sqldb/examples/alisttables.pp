@@ -36,10 +36,12 @@ begin
 
   with Fconnection do
     begin
-    DatabaseName := dbname;
-    UserName := dbuser;
-    Password := dbpassword;
-    open;
+      if dbhost<>'' then
+        hostname:=dbhost;
+      DatabaseName := dbname;
+      UserName := dbuser;
+      Password := dbpassword;
+      open;
     end;
 
 // create FTransaction

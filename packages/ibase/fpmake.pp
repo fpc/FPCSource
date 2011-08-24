@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='ibase';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.Author := 'Library: (Codegear?), header: ?';
     P.License := 'Library: Interbase License, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -33,6 +33,7 @@ begin
         begin
           AddInclude('ibase60.inc');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('ibase60.pp');
       with T.Dependencies do
         begin

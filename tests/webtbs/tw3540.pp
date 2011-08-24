@@ -1,4 +1,5 @@
 { %target=win32 }
+{ %needlibrary }
 { %norun }
 { %cpu=i386 }
 { %opt=-s -Amasm -TWin32 -Rintel }

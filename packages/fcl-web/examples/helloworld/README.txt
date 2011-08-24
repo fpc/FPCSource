@@ -104,7 +104,7 @@ Note: You need to change the module name if needed. For example on Linux,
 the module is not mod_fastcgi-2.4.6-AP22.dll but mod_fastcgi.so (need to be 
 compiled from sources found at http://www.fastcgi.com/dist/ ).
 The port (2015 in this example) must match the one set in the project main 
-file (echo.lpr).
+file (helloworld.lpr).
 The FCGI application must be running in order for this demo to work (external 
 FCGI server setup). Do not forget to restart it after changes and 
 recompilation.

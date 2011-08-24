@@ -149,7 +149,7 @@ const
 
   STATFLAG_DEFAULT   	      = 0;
   STATFLAG_NONAME    	      = 1;
-  STATFLAG_NOOPEN    	      = 2; 
+  STATFLAG_NOOPEN    	      = 2;
 
 {$ifndef Wince}
   // in Wince these are in unit windows. Under 32/64 in ActiveX.
@@ -253,8 +253,8 @@ type
   TStatStg = tagSTATSTG;
   STATSTG = TStatStg;
   PStatStg = ^TStatStg;
-  
-  { classes depends on these interfaces, we can't use the activex unit in classes though }  
+
+  { classes depends on these interfaces, we can't use the activex unit in classes though }
   IClassFactory = Interface(IUnknown) ['{00000001-0000-0000-C000-000000000046}']
      Function CreateInstance(Const unkOuter : IUnknown;Const riid : TGUID;Out vObject) : HResult;StdCall;
      Function LockServer(fLock : LongBool) : HResult;StdCall;
@@ -265,7 +265,7 @@ type
      function Read(pv : Pointer;cb : DWORD;pcbRead : PDWORD) : HRESULT;stdcall;
      function Write(pv : Pointer;cb : DWORD;pcbWritten : PDWORD): HRESULT;stdcall;
   end;
-  
+
   IStream = interface(ISequentialStream) ['{0000000C-0000-0000-C000-000000000046}']
      function Seek(dlibMove : LargeInt; dwOrigin : Longint;
        out libNewPosition : LargeInt) : HResult;stdcall;
@@ -285,7 +285,7 @@ type
 function EqualRect(const r1,r2 : TRect) : Boolean;
 function Rect(Left,Top,Right,Bottom : Integer) : TRect;
 function Bounds(ALeft,ATop,AWidth,AHeight : Integer) : TRect;
-function Point(x,y : Integer) : TPoint;
+function Point(x,y : Integer) : TPoint; inline;
 function PtInRect(const Rect : TRect; const p : TPoint) : Boolean;
 function IntersectRect(var Rect : TRect; const R1,R2 : TRect) : Boolean;
 function UnionRect(var Rect : TRect; const R1,R2 : TRect) : Boolean;
@@ -326,7 +326,7 @@ begin
 end;
 
 
-function Point(x,y : Integer) : TPoint;
+function Point(x,y : Integer) : TPoint; inline;
 
 begin
   Point.x:=x;
@@ -386,7 +386,7 @@ begin
   if R2.Bottom>R1.Bottom then
     lRect.Bottom:=R2.Bottom;
 
-  if IsRectEmpty(Rect) then
+  if IsRectEmpty(lRect) then
   begin
     FillChar(Rect,SizeOf(Rect),0);
     UnionRect:=false;
@@ -395,7 +395,7 @@ begin
   begin
     Rect:=lRect;
     UnionRect:=true;
-  end;  
+  end;
 end;
 
 function IsRectEmpty(const Rect : TRect) : Boolean;

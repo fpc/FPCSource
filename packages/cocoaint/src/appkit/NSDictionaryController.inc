@@ -54,13 +54,14 @@
     _keyForLocalizedKeyDictionary: NSDictionary;
     _includedKeys: NSArray;
     _excludedKeys: NSArray;
-    __dictionaryControllerFlags: bitpacked record
+    __dictionaryControllerFlags: record
       case byte of
        0: (_anonbitfield_NSDictionaryController0: cuint);
-       1: (
+       1: (data: bitpacked record
         _deepCopiesValues: 0..1;
         _suppressBuildingDictionary: 0..1;
         _reservedDictionaryController: 0..((1 shl 30)-1);
+       end;
       );
       end;
     

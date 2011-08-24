@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-json';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.Dependencies.Add('fcl-base');
     P.Author := 'Michael van Canneyt';
     P.License := 'LGPL with modification, ';
@@ -44,6 +44,14 @@ begin
           AddUnit('jsonscanner');
         end;
     T:=P.Targets.AddUnit('jsonscanner.pp');
+      T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('fpjsonrtti.pp');
+      T.ResourceStrings:=true;
+      with T.Dependencies do
+        begin
+          AddUnit('fpjson');
+          AddUnit('jsonparser');
+        end;
       T.ResourceStrings:=true;
 
     P.ExamplePath.Add('examples');

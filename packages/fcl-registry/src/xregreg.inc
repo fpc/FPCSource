@@ -47,10 +47,9 @@ function TRegistry.SysGetData(const Name: String; Buffer: Pointer;
 
 Var
   DataType : TDataType;
-  BS : Integer;
-
 begin
-  If TXmlregistry(FSysData).GetValueData(Name,DataType,Buffer^,BS) then
+  Result:=BufSize;
+  If TXmlregistry(FSysData).GetValueData(Name,DataType,Buffer^,Result) then
     begin
     Case DataType of
       dtUnknown : RegData:=rdUnknown;

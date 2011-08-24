@@ -40,12 +40,17 @@ const
 { Records }
 type
   NSDecimal = record
-    _exponent: 0..((1 shl 8)-1);
-    _length: 0..((1 shl 4)-1);
-    _isNegative: 0..1;
-    _isCompact: 0..1;
-    _reserved: 0..((1 shl 18)-1);
-    _mantissa: cushort;
+    case byte of
+    0: (_anonbitfield_NSDecimal0: cint);
+    1: (data: bitpacked record
+          _exponent: 0..((1 shl 8)-1);
+          _length: 0..((1 shl 4)-1);
+          _isNegative: 0..1;
+          _isCompact: 0..1;
+          _reserved: 0..((1 shl 18)-1);
+          _mantissa: array[0..(NSDecimalMaxSize)-1] of cushort;
+         end;
+       );
   end;
 NSDecimalPtr = ^NSDecimal;
 

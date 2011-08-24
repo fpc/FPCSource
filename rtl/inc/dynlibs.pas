@@ -67,21 +67,35 @@ begin
 end;
 
 Function SafeLoadLibrary(const Name : AnsiString) : TLibHandle;
-
-{$ifdef i386}
- var w : word;
+{$if defined(cpui386) or defined(cpux86_64)}
+  var
+    fpucw : Word;
+    ssecw : DWord;
 {$endif}
-
-
-Begin
-{$ifdef i386}
-  w:=get8087cw;
+  begin
+    try
+{$if defined(cpui386) or defined(cpux86_64)}
+      fpucw:=Get8087CW;
+{$ifdef cpui386}
+      if has_sse_support then
+{$endif cpui386}
+        ssecw:=GetSSECSR;
 {$endif}
- result:=loadlibrary(name);
-
-{$ifdef i386}
-  set8087cw(w);
+{$if defined(windows) or defined(win32)}
+      Result:=LoadLibraryA(PChar(Name));
+{$else}
+      Result:=loadlibrary(Name);
 {$endif}
-End;
+      finally
+{$if defined(cpui386) or defined(cpux86_64)}
+      Set8087CW(fpucw);
+{$ifdef cpui386}
+      if has_sse_support then
+{$endif cpui386}
+        SetSSECSR(ssecw);
+{$endif}
+    end;
+  end;
+
 
 end.

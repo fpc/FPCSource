@@ -109,6 +109,8 @@ interface
       represented by n }
     function genloadfield(n: tnode; const fieldname: string): tnode;
 
+    { returns true, if the tree given might have side effects }
+    function might_have_sideeffects(n : tnode) : boolean;
 
 implementation
 
@@ -1211,6 +1213,26 @@ implementation
               exit;
             end;
         end;
+      end;
+
+
+    function check_for_sideeffect(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        result:=fen_false;
+        if (n.nodetype in [assignn,calln,asmn]) or
+          ((n.nodetype=inlinen) and
+           (tinlinenode(n).inlinenumber in [in_write_x,in_writeln_x,in_read_x,in_readln_x,in_str_x_string,
+             in_val_x,in_reset_x,in_rewrite_x,in_reset_typedfile,in_rewrite_typedfile,in_settextbuf_file_x,
+             in_inc_x,in_dec_x,in_include_x_y,in_exclude_x_y,in_break,in_continue,in_setlength_x,
+             in_finalize_x,in_new_x,in_dispose_x,in_exit,in_copy_x,in_initialize_x,in_leave,in_cycle])
+          ) then
+          result:=fen_norecurse_true;
+      end;
+
+
+    function might_have_sideeffects(n : tnode) : boolean;
+      begin
+        result:=foreachnodestatic(n,@check_for_sideeffect,nil);
       end;
 
 end.

@@ -210,7 +210,8 @@ type
     uvoid,
     u8bit,u16bit,u32bit,u64bit,
     s8bit,s16bit,s32bit,s64bit,
-    pasbool,bool8bit,bool16bit,bool32bit,bool64bit,
+    pasbool8,pasbool16,pasbool32,pasbool64,
+    bool8bit,bool16bit,bool32bit,bool64bit,
     uchar,uwidechar,scurrency
   );
 
@@ -432,7 +433,10 @@ type
     { first field of variant part of a record }
     vo_is_first_field,
     vo_volatile,
-    vo_has_section
+    vo_has_section,
+    { variable contains a winlike WideString which should be finalized
+      even in $J- state }
+    vo_force_finalize
   );
   tvaroptions=set of tvaroption;
 

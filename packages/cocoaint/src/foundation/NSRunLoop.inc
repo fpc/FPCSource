@@ -52,7 +52,7 @@ var
     _perft: id;
     _info: id;
     _ports: id;
-        _reserved: array[0..5] of Pointer;
+    _reserved: array[0..(6)-1] of Pointer;
     
   public
     class function currentRunLoop: NSRunLoop; message 'currentRunLoop';

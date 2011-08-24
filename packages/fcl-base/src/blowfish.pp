@@ -55,6 +55,9 @@ Type
     FData   : TBFBlock;
     FBufpos : Byte;
     FPos    : Int64;
+  protected
+    function GetPosition: Int64; override;
+    procedure InvalidSeek; override;
   Public
     Constructor Create(AKey : TBlowFishKey; AKeySize : Byte; Dest: TStream);
     Constructor Create(Const KeyPhrase : String; Dest: TStream);
@@ -66,14 +69,14 @@ Type
   public
     Destructor Destroy; override;
     function Write(const Buffer; Count: Longint): Longint; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
+    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
     procedure Flush;
   end;
 
   TBlowFishDeCryptStream = Class(TBlowFishStream)
   public
     function Read(var Buffer; Count: Longint): Longint; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
+    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
   end;
 
 Implementation
@@ -538,6 +541,15 @@ end;
     TBlowFishStream
   ---------------------------------------------------------------------}
 
+function TBlowFishStream.GetPosition: Int64;
+begin
+  Result:=FPos;
+end;
+
+procedure TBlowFishStream.InvalidSeek;
+begin
+  raise EBlowFishError.Create(SNoSeekAllowed);
+end;
 
 Constructor TBlowFishStream.Create(AKey : TBlowFishkey; AKeySize : Byte; Dest: TStream);
 
@@ -626,13 +638,13 @@ begin
 end;
 
 
-function TBlowFishEncryptStream.Seek(Offset: Longint; Origin: Word): Longint;
+function TBlowFishEncryptStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 
 begin
-  if (Offset = 0) and (Origin = soFromCurrent) then
+  if (Offset = 0) and (Origin = soCurrent) then
     Result := FPos
   else
-    Raise EBlowFishError.Create(SNoSeekAllowed);
+    InvalidSeek;
 end;
 
 
@@ -682,23 +694,11 @@ begin
   Inc(FPos,Result);
 end;
 
-function TBlowFishDeCryptStream.Seek(Offset: Longint; Origin: Word): Longint;
-
-Var Buffer : Array[0..1023] of byte;
-    i : longint;
+function TBlowFishDeCryptStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 
 begin
-  // Fake seek if possible by reading and discarding bytes.
-  If ((Offset>=0) and (Origin = soFromCurrent)) or
-    ((Offset>FPos) and (Origin = soFromBeginning)) then
-      begin
-      For I:=1 to (Offset div SizeOf(Buffer)) do
-        ReadBuffer(Buffer,SizeOf(Buffer));
-      ReadBuffer(Buffer,Offset mod SizeOf(Buffer));
-      Result:=FPos;
-      end
-  else
-    Raise EBlowFishError.Create(SNoSeekAllowed);
+  FakeSeekForward(Offset,TSeekOrigin(Origin),FPos);
+  Result:=FPos;
 end;
 
 end.

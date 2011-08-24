@@ -145,6 +145,7 @@ type
   EParserError = class(Exception);
   EOutOfResources = class(EOutOfMemory);
   EInvalidOperation = class(Exception);
+  TExceptionClass = Class of Exception;
 
 { Forward class declarations }
 
@@ -767,15 +768,20 @@ type
 { TStream abstract class }
 
   TStream = class(TObject)
+  private
   protected
+    procedure InvalidSeek; virtual;
+    procedure Discard(const Count: Int64);
+    procedure DiscardLarge(Count: int64; const MaxBufferSize: Longint);
+    procedure FakeSeekForward(Offset: Int64; const Origin: TSeekOrigin; const Pos: Int64);
     function  GetPosition: Int64; virtual;
     procedure SetPosition(const Pos: Int64); virtual;
     function  GetSize: Int64; virtual;
     procedure SetSize64(const NewSize: Int64); virtual;
     procedure SetSize(NewSize: Longint); virtual;overload;
     procedure SetSize(const NewSize: Int64); virtual;overload;
-	  procedure ReadNotImplemented;
-	  procedure WriteNotImplemented;
+    procedure ReadNotImplemented;
+    procedure WriteNotImplemented;
   public
     function Read(var Buffer; Count: Longint): Longint; virtual;
     function Write(const Buffer; Count: Longint): Longint; virtual;
@@ -873,9 +879,10 @@ type
     FMemory: Pointer;
     FSize, FPosition: PtrInt;
   protected
+    Function GetSize : Int64; Override;
+    function GetPosition: Int64; Override;
     procedure SetPointer(Ptr: Pointer; ASize: PtrInt);
   public
-    Function GetSize : Int64; Override;
     function Read(var Buffer; Count: LongInt): LongInt; override;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
     procedure SaveToStream(Stream: TStream);
@@ -908,6 +915,8 @@ type
     FDataString: string;
     FPosition: Integer;
   protected
+    Function GetSize : Int64; Override;
+    function GetPosition: Int64; Override;
     procedure SetSize(NewSize: Longint); override;
   public
     constructor Create(const AString: string);

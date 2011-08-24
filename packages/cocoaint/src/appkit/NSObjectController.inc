@@ -44,10 +44,10 @@
   private
     _reserved3: Pointer;
     _managedProxy: id;
-    __objectControllerFlags: bitpacked record
+    __objectControllerFlags: record
       case byte of
        0: (_anonbitfield_NSObjectController0: cuint);
-       1: (
+       1: (data: bitpacked record
         _editable: 0..1;
         _automaticallyPreparesContent: 0..1;
         _hasLoadedData: 0..1;
@@ -57,6 +57,7 @@
         _hasFetched: 0..1;
         _batches: 0..1;
         _reservedObjectController: 0..((1 shl 24)-1);
+       end;
       );
       end;
     _objectClassName: NSString;

@@ -562,6 +562,8 @@ begin
       Add('  .debug_loc      0 : { *(.debug_loc) }');
       Add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
       Add('}');
+      { last address of ram on an atmega128 }
+      Add('_stack_top = 0x0fff;');
     end;
 {$endif AVR}
 
@@ -625,7 +627,7 @@ begin
    DeleteFile(outputexedir+Info.ResName);
 
 { Post process }
-  if success and (target_info.system=system_arm_embedded) then
+  if success and (target_info.system in [system_arm_embedded,system_avr_embedded]) then
     begin
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
         ChangeFileExt(current_module.exefilename^,'.elf')+' '+

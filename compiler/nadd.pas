@@ -77,6 +77,14 @@ interface
            { checks whether a muln can be calculated as a 32bit }
            { * 32bit -> 64 bit                                  }
            function try_make_mul32to64: boolean;
+           { Match against the ranges, i.e.:
+             var a:1..10;
+             begin
+               if a>0 then
+                 ...
+             always evaluates to true. (DM)
+           }
+           function cmp_of_disjunct_ranges(var res : boolean) : boolean;
        end;
        taddnodeclass = class of taddnode;
 
@@ -173,6 +181,169 @@ implementation
       end;
 
 
+    function taddnode.cmp_of_disjunct_ranges(var res : boolean) : boolean;
+      var
+        hp          : tnode;
+        realdef     : tdef;
+        v           : tconstexprint;
+      begin
+        result:=false;
+        { check for comparision with known result because the ranges of the operands don't overlap }
+        if (is_constintnode(right) and (left.resultdef.typ=orddef) and
+            { don't ignore type checks }
+            is_subequal(right.resultdef,left.resultdef)) or
+           (is_constintnode(left) and (right.resultdef.typ=orddef) and
+            { don't ignore type checks }
+            is_subequal(left.resultdef,right.resultdef)) then
+           begin
+             if is_constintnode(right) then
+               begin
+                 hp:=left;
+                 v:=Tordconstnode(right).value;
+               end
+             else
+               begin
+                 hp:=right;
+                 v:=Tordconstnode(left).value;
+               end;
+
+             realdef:=hp.resultdef;
+             { stop with finding the real def when we either encounter
+                a) an explicit type conversion (then the value has to be
+                   re-interpreted)
+                b) an "absolute" type conversion (also requires
+                   re-interpretation)
+             }
+             while (hp.nodetype=typeconvn) and
+                   ([nf_internal,nf_explicit,nf_absolute] * hp.flags = []) do
+               begin
+                 hp:=ttypeconvnode(hp).left;
+                 realdef:=hp.resultdef;
+               end;
+             if is_constintnode(left) then
+               with torddef(realdef) do
+                 case nodetype of
+                  ltn:
+                    if v<low then
+                      begin
+                        result:=true;
+                        res:=true;
+                      end
+                    else if v>=high then
+                      begin
+                        result:=true;
+                        res:=false;
+                      end;
+                  lten:
+                    if v<=low then
+                      begin
+                        result:=true;
+                        res:=true;
+                      end
+                    else if v>high then
+                      begin
+                        result:=true;
+                        res:=false;
+                      end;
+                  gtn:
+                    if v<=low then
+                      begin
+                        result:=true;
+                        res:=false;
+                      end
+                    else if v>high then
+                      begin
+                        result:=true;
+                        res:=true;
+                      end;
+                  gten :
+                    if v<low then
+                      begin
+                        result:=true;
+                        res:=false;
+                      end
+                    else if v>=high then
+                      begin
+                        result:=true;
+                        res:=true;
+                      end;
+                  equaln:
+                    if (v<low) or (v>high) then
+                      begin
+                        result:=true;
+                        res:=false;
+                      end;
+                  unequaln:
+                    if (v<low) or (v>high) then
+                      begin
+                        result:=true;
+                        res:=true;
+                      end;
+                 end
+             else
+               with torddef(realdef) do
+                 case nodetype of
+                  ltn:
+                    if high<v then
+                      begin
+                        result:=true;
+                        res:=true;
+                      end
+                    else if low>=v then
+                      begin
+                        result:=true;
+                        res:=false;
+                      end;
+                  lten:
+                    if high<=v then
+                      begin
+                        result:=true;
+                        res:=true;
+                      end
+                    else if low>v then
+                      begin
+                        result:=true;
+                        res:=false;
+                      end;
+                  gtn:
+                    if high<=v then
+                      begin
+                        result:=true;
+                        res:=false;
+                      end
+                    else if low>v then
+                      begin
+                        result:=true;
+                        res:=true;
+                      end;
+                  gten:
+                    if high<v then
+                      begin
+                        result:=true;
+                        res:=false;
+                      end
+                    else if low>=v then
+                      begin
+                        result:=true;
+                        res:=true;
+                      end;
+                  equaln:
+                    if (v<low) or (v>high) then
+                      begin
+                        result:=true;
+                        res:=false;
+                      end;
+                  unequaln:
+                    if (v<low) or (v>high) then
+                      begin
+                        result:=true;
+                        res:=true;
+                      end;
+                 end;
+           end;
+      end;
+
+
     function taddnode.simplify(forinline : boolean) : tnode;
       var
         t, hp   : tnode;
@@ -187,6 +358,7 @@ implementation
         s1,s2   : pchar;
         l1,l2   : longint;
         resultset : Tconstset;
+        res,
         b       : boolean;
       begin
         result:=nil;
@@ -334,17 +506,17 @@ implementation
                  else
                    t:=cordconstnode.create(lv and rv,resultdef,true);
                ltn :
-                 t:=cordconstnode.create(ord(lv<rv),booltype,true);
+                 t:=cordconstnode.create(ord(lv<rv),pasbool8type,true);
                lten :
-                 t:=cordconstnode.create(ord(lv<=rv),booltype,true);
+                 t:=cordconstnode.create(ord(lv<=rv),pasbool8type,true);
                gtn :
-                 t:=cordconstnode.create(ord(lv>rv),booltype,true);
+                 t:=cordconstnode.create(ord(lv>rv),pasbool8type,true);
                gten :
-                 t:=cordconstnode.create(ord(lv>=rv),booltype,true);
+                 t:=cordconstnode.create(ord(lv>=rv),pasbool8type,true);
                equaln :
-                 t:=cordconstnode.create(ord(lv=rv),booltype,true);
+                 t:=cordconstnode.create(ord(lv=rv),pasbool8type,true);
                unequaln :
-                 t:=cordconstnode.create(ord(lv<>rv),booltype,true);
+                 t:=cordconstnode.create(ord(lv<>rv),pasbool8type,true);
                slashn :
                  begin
                    { int/int becomes a real }
@@ -358,115 +530,21 @@ implementation
              result:=t;
              exit;
           end
-        {Match against the ranges, i.e.:
-         var a:1..10;
-         begin
-           if a>0 then
-         ... always evaluates to true. (DM)}
-        else if is_constintnode(left) and (right.resultdef.typ=orddef) and
-            { don't ignore type checks }
-            is_subequal(left.resultdef,right.resultdef) then
-            begin
-              t:=nil;
-              hp:=right;
-              realdef:=hp.resultdef;
-              { stop with finding the real def when we either encounter
-                 a) an explicit type conversion (then the value has to be
-                    re-interpreted)
-                 b) an "absolute" type conversion (also requires
-                    re-interpretation)
-              }
-              while (hp.nodetype=typeconvn) and
-                    ([nf_internal,nf_explicit,nf_absolute] * hp.flags = []) do
-                begin
-                  hp:=ttypeconvnode(hp).left;
-                  realdef:=hp.resultdef;
-                end;
-              lv:=Tordconstnode(left).value;
-              with torddef(realdef) do
-                case nodetype of
-                 ltn:
-                   if lv<low then
-                     t:=Cordconstnode.create(1,booltype,true)
-                   else if lv>=high then
-                     t:=Cordconstnode.create(0,booltype,true);
-                 lten:
-                   if lv<=low then
-                     t:=Cordconstnode.create(1,booltype,true)
-                   else if lv>high then
-                     t:=Cordconstnode.create(0,booltype,true);
-                 gtn:
-                   if lv<=low then
-                     t:=Cordconstnode.create(0,booltype,true)
-                   else if lv>high then
-                     t:=Cordconstnode.create(1,booltype,true);
-                 gten :
-                   if lv<low then
-                     t:=Cordconstnode.create(0,booltype,true)
-                   else if lv>=high then
-                     t:=Cordconstnode.create(1,booltype,true);
-                 equaln:
-                   if (lv<low) or (lv>high) then
-                     t:=Cordconstnode.create(0,booltype,true);
-                 unequaln:
-                   if (lv<low) or (lv>high) then
-                     t:=Cordconstnode.create(1,booltype,true);
-                end;
-              if t<>nil then
-                begin
-                  result:=t;
-                  exit;
-                end
-            end
-          else if (left.resultdef.typ=orddef) and is_constintnode(right) and
-              { don't ignore type checks }
-              is_subequal(left.resultdef,right.resultdef) then
-            begin
-              t:=nil;
-              hp:=left;
-              realdef:=hp.resultdef;
-              while (hp.nodetype=typeconvn) and
-                    ([nf_internal,nf_explicit,nf_absolute] * hp.flags = []) do
-                begin
-                  hp:=ttypeconvnode(hp).left;
-                  realdef:=hp.resultdef;
-                end;
-              rv:=Tordconstnode(right).value;
-              with torddef(realdef) do
-                case nodetype of
-                 ltn:
-                   if high<rv then
-                     t:=Cordconstnode.create(1,booltype,true)
-                   else if low>=rv then
-                     t:=Cordconstnode.create(0,booltype,true);
-                 lten:
-                   if high<=rv then
-                     t:=Cordconstnode.create(1,booltype,true)
-                   else if low>rv then
-                     t:=Cordconstnode.create(0,booltype,true);
-                 gtn:
-                   if high<=rv then
-                     t:=Cordconstnode.create(0,booltype,true)
-                   else if low>rv then
-                     t:=Cordconstnode.create(1,booltype,true);
-                 gten:
-                   if high<rv then
-                     t:=Cordconstnode.create(0,booltype,true)
-                   else if low>=rv then
-                     t:=Cordconstnode.create(1,booltype,true);
-                 equaln:
-                   if (rv<low) or (rv>high) then
-                     t:=Cordconstnode.create(0,booltype,true);
-                 unequaln:
-                   if (rv<low) or (rv>high) then
-                     t:=Cordconstnode.create(1,booltype,true);
-                end;
-              if t<>nil then
-                begin
-                  result:=t;
-                  exit;
-                end
-            end;
+        else if cmp_of_disjunct_ranges(res) then
+          begin
+            if res then
+              t:=Cordconstnode.create(1,pasbool8type,true)
+            else
+              t:=Cordconstnode.create(0,pasbool8type,true);
+              { don't do this optimization, if the variable expression might
+                have a side effect }
+              if (is_constintnode(left) and might_have_sideeffects(right)) or
+                (is_constintnode(right) and might_have_sideeffects(left)) then
+                t.free
+              else
+                result:=t;
+              exit;
+          end;
 
         { Add,Sub,Mul with constant 0, 1 or -1?  }
         if is_constintnode(right) and is_integer(left.resultdef) then
@@ -563,17 +641,17 @@ implementation
                 slashn :
                   t:=crealconstnode.create(lvd/rvd,resultrealdef);
                 ltn :
-                  t:=cordconstnode.create(ord(lvd<rvd),booltype,true);
+                  t:=cordconstnode.create(ord(lvd<rvd),pasbool8type,true);
                 lten :
-                  t:=cordconstnode.create(ord(lvd<=rvd),booltype,true);
+                  t:=cordconstnode.create(ord(lvd<=rvd),pasbool8type,true);
                 gtn :
-                  t:=cordconstnode.create(ord(lvd>rvd),booltype,true);
+                  t:=cordconstnode.create(ord(lvd>rvd),pasbool8type,true);
                 gten :
-                  t:=cordconstnode.create(ord(lvd>=rvd),booltype,true);
+                  t:=cordconstnode.create(ord(lvd>=rvd),pasbool8type,true);
                 equaln :
-                  t:=cordconstnode.create(ord(lvd=rvd),booltype,true);
+                  t:=cordconstnode.create(ord(lvd=rvd),pasbool8type,true);
                 unequaln :
-                  t:=cordconstnode.create(ord(lvd<>rvd),booltype,true);
+                  t:=cordconstnode.create(ord(lvd<>rvd),pasbool8type,true);
                 else
                   internalerror(2008022102);
              end;
@@ -602,17 +680,17 @@ implementation
                      t:=cstringconstnode.createwstr(ws1);
                   end;
                 ltn :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<0),booltype,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<0),pasbool8type,true);
                 lten :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<=0),booltype,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<=0),pasbool8type,true);
                 gtn :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>0),booltype,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>0),pasbool8type,true);
                 gten :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>=0),booltype,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>=0),pasbool8type,true);
                 equaln :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)=0),booltype,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)=0),pasbool8type,true);
                 unequaln :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<>0),booltype,true);
+                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<>0),pasbool8type,true);
                 else
                   internalerror(2008022103);
              end;
@@ -676,17 +754,17 @@ implementation
                     tstringconstnode(t).changestringtype(resultdef);
                   end;
                 ltn :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<0),booltype,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<0),pasbool8type,true);
                 lten :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<=0),booltype,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<=0),pasbool8type,true);
                 gtn :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>0),booltype,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>0),pasbool8type,true);
                 gten :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>=0),booltype,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>=0),pasbool8type,true);
                 equaln :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)=0),booltype,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)=0),pasbool8type,true);
                 unequaln :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<>0),booltype,true);
+                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<>0),pasbool8type,true);
                 else
                   internalerror(2008022104);
              end;
@@ -724,22 +802,22 @@ implementation
                unequaln :
                   begin
                     b:=tsetconstnode(right).value_set^ <> tsetconstnode(left).value_set^;
-                    t:=cordconstnode.create(byte(b),booltype,true);
+                    t:=cordconstnode.create(byte(b),pasbool8type,true);
                   end;
                equaln :
                   begin
                     b:=tsetconstnode(right).value_set^ = tsetconstnode(left).value_set^;
-                    t:=cordconstnode.create(byte(b),booltype,true);
+                    t:=cordconstnode.create(byte(b),pasbool8type,true);
                   end;
                lten :
                   begin
                     b:=tsetconstnode(left).value_set^ <= tsetconstnode(right).value_set^;
-                    t:=cordconstnode.create(byte(b),booltype,true);
+                    t:=cordconstnode.create(byte(b),pasbool8type,true);
                   end;
                gten :
                   begin
                     b:=tsetconstnode(left).value_set^ >= tsetconstnode(right).value_set^;
-                    t:=cordconstnode.create(byte(b),booltype,true);
+                    t:=cordconstnode.create(byte(b),pasbool8type,true);
                   end;
                 else
                   internalerror(2008022105);
@@ -748,35 +826,50 @@ implementation
              exit;
           end;
 
-        { the comparison is might be expensive and the nodes are usually only
-          equal if some previous optimizations were done so don't check
-          this simplification always
-        }
-        if (cs_opt_level2 in current_settings.optimizerswitches) and
-          is_boolean(left.resultdef) and is_boolean(right.resultdef) and
-          { since the expressions might have sideeffects, we may only remove them
-            if short boolean evaluation is turned on }
-          (nf_short_bool in flags) then
-            begin
-              if left.isequal(right) then
-                begin
-                  case nodetype of
-                    andn,orn:
-                      begin
-                        result:=left;
-                        left:=nil;
-                        exit;
-                      end;
-                    {
-                    xorn:
-                      begin
-                        result:=cordconstnode.create(0,resultdef,true);
-                        exit;
-                      end;
-                    }
+        { slow simplifications }
+        if (cs_opt_level2 in current_settings.optimizerswitches) then
+          begin
+            { the comparison is might be expensive and the nodes are usually only
+              equal if some previous optimizations were done so don't check
+              this simplification always
+            }
+            if is_boolean(left.resultdef) and is_boolean(right.resultdef) and
+            { since the expressions might have sideeffects, we may only remove them
+              if short boolean evaluation is turned on }
+            (nf_short_bool in flags) then
+              begin
+                if left.isequal(right) then
+                  begin
+                    case nodetype of
+                      andn,orn:
+                        begin
+                          result:=left;
+                          left:=nil;
+                          exit;
+                        end;
+                      {
+                      xorn:
+                        begin
+                          result:=cordconstnode.create(0,resultdef,true);
+                          exit;
+                        end;
+                      }
+                    end;
                   end;
-                end;
-            end;
+              end;
+
+            { using sqr(x) for reals instead of x*x might reduces register pressure and/or
+              memory accesses while sqr(<real>) has no drawback }
+            if (nodetype=muln) and
+               is_real(left.resultdef) and is_real(right.resultdef) and
+               left.isequal(right) and
+               not(might_have_sideeffects(left)) then
+              begin
+                result:=cinlinenode.create(in_sqr_real,false,left);
+                left:=nil;
+                exit;
+              end;
+          end;
       end;
 
 
@@ -816,6 +909,7 @@ implementation
         llow,lhigh,
         rlow,rhigh  : tconstexprint;
         strtype     : tstringtype;
+        res,
         b           : boolean;
         lt,rt       : tnodetype;
         ot          : tnodetype;
@@ -826,6 +920,13 @@ implementation
 
       begin
          result:=nil;
+         { avoid any problems with type parameters later on }
+         if is_typeparam(left.resultdef) or is_typeparam(right.resultdef) then
+           begin
+             resultdef:=cundefinedtype;
+             exit;
+           end;
+
          { both left and right need to be valid }
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
@@ -891,17 +992,19 @@ implementation
           operation on a float and int are also handled }
 {$ifdef x86}
         { use extended as default real type only when the x87 fpu is used }
-{$ifdef i386}
+  {$ifdef i386}
         if not(current_settings.fputype=fpu_x87) then
-{$endif i386}
-{$ifdef x86_64}
-        { x86-64 has no x87 only mode, so use always double as default }
-        if true then
-{$endif x86_6}
           resultrealdef:=s64floattype
         else
-{$endif x86}
           resultrealdef:=pbestrealtype^;
+  {$endif i386}
+  {$ifdef x86_64}
+        { x86-64 has no x87 only mode, so use always double as default }
+        resultrealdef:=s64floattype;
+  {$endif x86_6}
+{$else not x86}
+        resultrealdef:=pbestrealtype^;
+{$endif not x86}
 
         if (right.resultdef.typ=floatdef) or (left.resultdef.typ=floatdef) then
          begin
@@ -1020,12 +1123,12 @@ implementation
                 begin
                   if not is_boolean(ld) then
                     begin
-                      inserttypeconv(left,booltype);
+                      inserttypeconv(left,pasbool8type);
                       ld := left.resultdef;
                     end;
                   if not is_boolean(rd) then
                     begin
-                      inserttypeconv(right,booltype);
+                      inserttypeconv(right,pasbool8type);
                       rd := right.resultdef;
                     end;
                 end;
@@ -1267,39 +1370,6 @@ implementation
              { generic ord conversion is sinttype }
              else
                begin
-                 { if the left or right value is smaller than the normal
-                   type sinttype and is unsigned, and the other value
-                   is a constant < 0, the result will always be false/true
-                   for equal / unequal nodes.
-                 }
-                 if (
-                      { left : unsigned ordinal var, right : < 0 constant }
-                      (
-                       ((is_signed(ld)=false) and (is_constintnode(left) =false)) and
-                       ((is_constintnode(right)) and (tordconstnode(right).value < 0))
-                      ) or
-                      { right : unsigned ordinal var, left : < 0 constant }
-                      (
-                       ((is_signed(rd)=false) and (is_constintnode(right) =false)) and
-                       ((is_constintnode(left)) and (tordconstnode(left).value < 0))
-                      )
-                    )  then
-                    begin
-                      if nodetype = equaln then
-                         CGMessage(type_w_signed_unsigned_always_false)
-                      else
-                      if nodetype = unequaln then
-                         CGMessage(type_w_signed_unsigned_always_true)
-                      else
-                      if (is_constintnode(left) and (nodetype in [ltn,lten])) or
-                         (is_constintnode(right) and (nodetype in [gtn,gten])) then
-                         CGMessage(type_w_signed_unsigned_always_true)
-                      else
-                      if (is_constintnode(right) and (nodetype in [ltn,lten])) or
-                         (is_constintnode(left) and (nodetype in [gtn,gten])) then
-                         CGMessage(type_w_signed_unsigned_always_false);
-                    end;
-
                  { When there is a signed type or there is a minus operation
                    we convert to signed int. Otherwise (both are unsigned) we keep
                    the result also unsigned. This is compatible with Delphi (PFV) }
@@ -1845,12 +1915,20 @@ implementation
             inserttypeconv(right,sinttype);
           end;
 
+         if cmp_of_disjunct_ranges(res) then
+           begin
+             if res then
+               CGMessage(type_w_comparison_always_true)
+             else
+               CGMessage(type_w_comparison_always_false);
+           end;
+
          { set resultdef if not already done }
          if not assigned(resultdef) then
           begin
              case nodetype of
                 ltn,lten,gtn,gten,equaln,unequaln :
-                  resultdef:=booltype;
+                  resultdef:=pasbool8type;
                 slashn :
                   resultdef:=resultrealdef;
                 addn:
@@ -2320,7 +2398,7 @@ implementation
 
         { otherwise, create the parameters for the helper }
         right := ccallparanode.create(
-          cordconstnode.create(ord(cs_check_overflow in current_settings.localswitches),booltype,true),
+          cordconstnode.create(ord(cs_check_overflow in current_settings.localswitches),pasbool8type,true),
           ccallparanode.create(right,ccallparanode.create(left,nil)));
         left := nil;
         { only qword needs the unsigned code, the
@@ -2450,7 +2528,7 @@ implementation
         if not(target_info.system in systems_wince) then
           begin
             if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
-              resultdef:=booltype;
+              resultdef:=pasbool8type;
             result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
                 ctypeconvnode.create_internal(right,fdef),
                 ccallparanode.create(
@@ -2611,7 +2689,7 @@ implementation
                          internalerror(2011022301);
                      end;
                      result := ccallnode.createintern(procname,
-                       ccallparanode.create(cordconstnode.create(0,booltype,false),
+                       ccallparanode.create(cordconstnode.create(0,pasbool8type,false),
                        ccallparanode.create(right,
                        ccallparanode.create(left,nil))));
                      left := nil;

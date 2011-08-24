@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='postgres';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.7.1';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
@@ -36,6 +36,7 @@ begin
           AddInclude('postgres3types.inc');
           AddUnit('dllistdyn');
         end;
+    T.ResourceStrings := True;
     T:=P.Targets.AddUnit('postgres3.pp');
       with T.Dependencies do
         begin

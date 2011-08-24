@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('libgbafpc');
+    P.OSes:=[gba];
 {$ifdef ALLPACKAGES}
     P.Directory:='libgbafpc';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.4a';
+    P.Version:='2.7.1';
     P.SourcePath.Add('src');
 //    P.Dependencies.Add('x11');
 

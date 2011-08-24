@@ -202,5 +202,7 @@
 'iteet',
 'ittet',
 'itett',
-'itttt'
+'itttt',
+'tbb',
+'tbh'
 );

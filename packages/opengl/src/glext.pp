@@ -4215,7 +4215,7 @@ var
   glGetSamplerParameteriv: procedure(sampler: GLuint; pname: GLenum; params: PGLint); extdecl;
   glGetSamplerParameterIiv: procedure(sampler: GLuint; pname: GLenum; params: PGLint); extdecl;
   glGetSamplerParameterfv: procedure(sampler: GLuint; pname: GLenum; params: PGLfloat); extdecl;
-  glGetSamplerParameterIfv: procedure(sampler: GLuint; pname: GLenum; params: PGLfloat); extdecl;
+  glGetSamplerParameterIuiv: procedure(sampler: GLuint; pname: GLenum; params: PGLuint); extdecl;
 
 function Load_GL_ARB_sampler_objects(): Boolean;
 
@@ -4310,6 +4310,16 @@ var
   glUniformMatrix4x2dv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
   glUniformMatrix4x3dv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
   glGetUniformdv: procedure(_program: GLuint; location: GLint; params: PGLdouble); extdecl;
+  
+  { All of the following ProgramUniform* functions are supported if and only
+    if EXT_direct_state_access is supported.
+    (See http://www.opengl.org/registry/specs/ARB/gpu_shader_fp64.txt)
+
+    Load_GL_ARB_gpu_shader_fp64 will try to load them, but their presence/absence
+    will have no effect on the result of Load_GL_ARB_gpu_shader_fp64 and
+    Load_GL_VERSION_4_0 functions. (Because they are not mandatory parts of
+    the extension or OpenGL 4.0 core spec.) }   
+  
   glProgramUniform1dEXT: procedure(_program: GLuint; location: GLint; x: GLdouble); extdecl;
   glProgramUniform2dEXT: procedure(_program: GLuint; location: GLint; x: GLdouble; y: GLdouble); extdecl;
   glProgramUniform3dEXT: procedure(_program: GLuint; location: GLint; x: GLdouble; y: GLdouble; z: GLdouble); extdecl;
@@ -10093,8 +10103,8 @@ begin
     if not Assigned(glGetSamplerParameterIiv) then Exit;
     glGetSamplerParameterfv := wglGetProcAddress('glGetSamplerParameterfv');
     if not Assigned(glGetSamplerParameterfv) then Exit;
-    glGetSamplerParameterIfv := wglGetProcAddress('glGetSamplerParameterIfv');
-    if not Assigned(glGetSamplerParameterIfv) then Exit;
+    glGetSamplerParameterIuiv := wglGetProcAddress('glGetSamplerParameterIuiv');
+    if not Assigned(glGetSamplerParameterIuiv) then Exit;
     Result := True;
   end;
 end;
@@ -10269,40 +10279,47 @@ begin
     if not Assigned(glUniformMatrix4x3dv) then Exit;
     glGetUniformdv := wglGetProcAddress('glGetUniformdv');
     if not Assigned(glGetUniformdv) then Exit;
+    
+    { Ignore presence/absence of functions below.
+      See their special definition in 
+      http://www.opengl.org/registry/specs/ARB/gpu_shader_fp64.txt:
+      "All of the following ProgramUniform* functions are supported if and only
+      if EXT_direct_state_access is supported." }
+    
     glProgramUniform1dEXT := wglGetProcAddress('glProgramUniform1dEXT');
-    if not Assigned(glProgramUniform1dEXT) then Exit;
+//    if not Assigned(glProgramUniform1dEXT) then Exit;
     glProgramUniform2dEXT := wglGetProcAddress('glProgramUniform2dEXT');
-    if not Assigned(glProgramUniform2dEXT) then Exit;
+//    if not Assigned(glProgramUniform2dEXT) then Exit;
     glProgramUniform3dEXT := wglGetProcAddress('glProgramUniform3dEXT');
-    if not Assigned(glProgramUniform3dEXT) then Exit;
+//    if not Assigned(glProgramUniform3dEXT) then Exit;
     glProgramUniform4dEXT := wglGetProcAddress('glProgramUniform4dEXT');
-    if not Assigned(glProgramUniform4dEXT) then Exit;
+//    if not Assigned(glProgramUniform4dEXT) then Exit;
     glProgramUniform1dvEXT := wglGetProcAddress('glProgramUniform1dvEXT');
-    if not Assigned(glProgramUniform1dvEXT) then Exit;
+//    if not Assigned(glProgramUniform1dvEXT) then Exit;
     glProgramUniform2dvEXT := wglGetProcAddress('glProgramUniform2dvEXT');
-    if not Assigned(glProgramUniform2dvEXT) then Exit;
+//    if not Assigned(glProgramUniform2dvEXT) then Exit;
     glProgramUniform3dvEXT := wglGetProcAddress('glProgramUniform3dvEXT');
-    if not Assigned(glProgramUniform3dvEXT) then Exit;
+//    if not Assigned(glProgramUniform3dvEXT) then Exit;
     glProgramUniform4dvEXT := wglGetProcAddress('glProgramUniform4dvEXT');
-    if not Assigned(glProgramUniform4dvEXT) then Exit;
+//    if not Assigned(glProgramUniform4dvEXT) then Exit;
     glProgramUniformMatrix2dvEXT := wglGetProcAddress('glProgramUniformMatrix2dvEXT');
-    if not Assigned(glProgramUniformMatrix2dvEXT) then Exit;
+//    if not Assigned(glProgramUniformMatrix2dvEXT) then Exit;
     glProgramUniformMatrix3dvEXT := wglGetProcAddress('glProgramUniformMatrix3dvEXT');
-    if not Assigned(glProgramUniformMatrix3dvEXT) then Exit;
+//    if not Assigned(glProgramUniformMatrix3dvEXT) then Exit;
     glProgramUniformMatrix4dvEXT := wglGetProcAddress('glProgramUniformMatrix4dvEXT');
-    if not Assigned(glProgramUniformMatrix4dvEXT) then Exit;
+//    if not Assigned(glProgramUniformMatrix4dvEXT) then Exit;
     glProgramUniformMatrix2x3dvEXT := wglGetProcAddress('glProgramUniformMatrix2x3dvEXT');
-    if not Assigned(glProgramUniformMatrix2x3dvEXT) then Exit;
+//    if not Assigned(glProgramUniformMatrix2x3dvEXT) then Exit;
     glProgramUniformMatrix2x4dvEXT := wglGetProcAddress('glProgramUniformMatrix2x4dvEXT');
-    if not Assigned(glProgramUniformMatrix2x4dvEXT) then Exit;
+//    if not Assigned(glProgramUniformMatrix2x4dvEXT) then Exit;
     glProgramUniformMatrix3x2dvEXT := wglGetProcAddress('glProgramUniformMatrix3x2dvEXT');
-    if not Assigned(glProgramUniformMatrix3x2dvEXT) then Exit;
+//    if not Assigned(glProgramUniformMatrix3x2dvEXT) then Exit;
     glProgramUniformMatrix3x4dvEXT := wglGetProcAddress('glProgramUniformMatrix3x4dvEXT');
-    if not Assigned(glProgramUniformMatrix3x4dvEXT) then Exit;
+//    if not Assigned(glProgramUniformMatrix3x4dvEXT) then Exit;
     glProgramUniformMatrix4x2dvEXT := wglGetProcAddress('glProgramUniformMatrix4x2dvEXT');
-    if not Assigned(glProgramUniformMatrix4x2dvEXT) then Exit;
+//    if not Assigned(glProgramUniformMatrix4x2dvEXT) then Exit;
     glProgramUniformMatrix4x3dvEXT := wglGetProcAddress('glProgramUniformMatrix4x3dvEXT');
-    if not Assigned(glProgramUniformMatrix4x3dvEXT) then Exit;
+//    if not Assigned(glProgramUniformMatrix4x3dvEXT) then Exit;
     Result := True;
   end;
 end;

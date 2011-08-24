@@ -68,12 +68,13 @@ type
     _valueTransformerName: NSString;
     _type: NSAttributeType;
     _attributeValueClassName: NSString;
-    __attributeDescriptionFlags: bitpacked record
+    __attributeDescriptionFlags: record
       case byte of
        0: (_anonbitfield_NSAttributeDescription0: cuint);
-       1: (
+       1: (data: bitpacked record
         _useForLocking: 0..1;
         _reservedAttributeDescription: 0..((1 shl 31)-1);
+       end;
       );
       end;
     _defaultValue: id;

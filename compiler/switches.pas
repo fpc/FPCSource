@@ -265,8 +265,14 @@ procedure recordpendingverbosityswitch(sw: char; state: char);
   end;
 
 procedure recordpendingmessagestate(msg: longint; state: tmsgstate);
+  var
+    pstate : pmessagestaterecord;
   begin
-    { todo }
+    new(pstate);
+    pstate^.next:=pendingstate.nextmessagerecord;
+    pstate^.value:=msg;
+    pstate^.state:=state;
+    pendingstate.nextmessagerecord:=pstate;
   end;
 
 procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
@@ -311,6 +317,7 @@ procedure recordpendingcallingswitch(const str: shortstring);
 procedure flushpendingswitchesstate;
   var
     tmpproccal: tproccalloption;
+    fstate, pstate : pmessagestaterecord;
   begin
     { process pending localswitches (range checking, etc) }
     if pendingstate.localswitcheschanged then
@@ -328,6 +335,22 @@ procedure flushpendingswitchesstate;
       begin
         setverbosity(pendingstate.nextverbositystr);
         pendingstate.nextverbositystr:='';
+      end;
+    fstate:=pendingstate.nextmessagerecord;
+    pstate:=pendingstate.nextmessagerecord;
+    while assigned(pstate) do
+      begin
+        pendingstate.nextmessagerecord:=pstate^.next;
+        SetMessageVerbosity(pstate^.value,pstate^.state);
+        if not assigned(pstate^.next) then
+          begin
+            pstate^.next:=current_settings.pmessage;
+            current_settings.pmessage:=fstate;
+            pstate:=nil;
+          end
+        else
+          pstate:=pstate^.next;
+        pendingstate.nextmessagerecord:=nil;
       end;
     { process pending calling convention changes (calling x) }
     if pendingstate.nextcallingstr<>'' then

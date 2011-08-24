@@ -1,3 +1,4 @@
+{ %needlibrary }
 { %norun }
 
 library tw13628a;

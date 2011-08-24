@@ -275,7 +275,7 @@ const
           { TODO: optimize/take into consideration fromsize/tosize. Will }
           { probably only matter for OS_S8 loads though                  }
           if not(fromsize in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
-            internalerror(2002090902);
+            internalerror(2002090903);
           ref2 := ref;
           fixref(list,ref2);
           { the caller is expected to have adjusted the reference already }
@@ -435,7 +435,7 @@ const
           end;
         ophi := TOpCG2AsmOpConstHi[op];
         oplo := TOpCG2AsmOpConstLo[op];
-        gotrlwi := get_rlwi_const(a,l1,l2);
+        gotrlwi := get_rlwi_const(aint(a),l1,l2);
         if (op in [OP_AND,OP_OR,OP_XOR]) then
           begin
             if (a = 0) then
@@ -1742,8 +1742,8 @@ const
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
-              cg.a_op_const_reg_reg(list,op,OS_32,tcgint(value),regsrc.reglo,regdst.reglo);
-              cg.a_op_const_reg_reg(list,op,OS_32,tcgint(value shr 32),regsrc.reghi,
+              cg.a_op_const_reg_reg(list,op,OS_32,aint(value),regsrc.reglo,regdst.reglo);
+              cg.a_op_const_reg_reg(list,op,OS_32,aint(value shr 32),regsrc.reghi,
                 regdst.reghi);
             end;
           OP_ADD, OP_SUB:
@@ -1771,7 +1771,7 @@ const
                   else if ((value shr 32) = 0) then
                     begin
                       tmpreg := tcgppc(cg).rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
-                      cg.a_load_const_reg(list,OS_32,tcgint(value),tmpreg);
+                      cg.a_load_const_reg(list,OS_32,aint(value),tmpreg);
                       list.concat(taicpu.op_reg_reg_reg(ops[issub,2],
                         regdst.reglo,regsrc.reglo,tmpreg));
                       list.concat(taicpu.op_reg_reg(ops[issub,3],
@@ -1788,7 +1788,7 @@ const
               else
                 begin
                   cg.a_load_reg_reg(list,OS_INT,OS_INT,regsrc.reglo,regdst.reglo);
-                  cg.a_op_const_reg_reg(list,op,OS_32,tcgint(value shr 32),regsrc.reghi,
+                  cg.a_op_const_reg_reg(list,op,OS_32,aint(value shr 32),regsrc.reghi,
                     regdst.reghi);
                 end;
             end;

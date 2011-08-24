@@ -77,10 +77,10 @@ const
     _roundColor: id;
     _reserved: id;
      {garbage collector: volatile }
-    __progressIndicatorFlags: bitpacked record
+    __progressIndicatorFlags: record
       case byte of
        0: (_anonbitfield_NSProgressIndicator0: cuint);
-       1: (
+       1: (data: bitpacked record
         isSpinning: 0..1;
         isVector: 0..1;
         isLocked: 0..1;
@@ -96,6 +96,7 @@ const
         _isHeartBeatInstalled: 0..1;
         _lastFrame: 0..((1 shl 8)-1);
         RESERVED: 0..((1 shl 8)-1);
+       end;
       );
       end;
     _NSProgressIndicatorReserved1: id;
