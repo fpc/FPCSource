@@ -39,9 +39,9 @@ interface
           function first_addstring: tnode; override;
           function jvm_first_addset: tnode;
 
-          function cmpnode2signedtopcmp: TOpCmp;
+          function cmpnode2topcmp(unsigned: boolean): TOpCmp;
 
-          procedure second_generic_compare;
+          procedure second_generic_compare(unsigned: boolean);
 
           procedure pass_left_right;override;
           procedure second_addfloat;override;
@@ -383,13 +383,25 @@ interface
       end;
 
 
-    function tjvmaddnode.cmpnode2signedtopcmp: TOpCmp;
+    function tjvmaddnode.cmpnode2topcmp(unsigned: boolean): TOpCmp;
       begin
+        if not unsigned then
+          case nodetype of
+            gtn: result:=OC_GT;
+            gten: result:=OC_GTE;
+            ltn: result:=OC_LT;
+            lten: result:=OC_LTE;
+            equaln: result:=OC_EQ;
+            unequaln: result:=OC_NE;
+            else
+              internalerror(2011010412);
+          end
+        else
         case nodetype of
-          gtn: result:=OC_GT;
-          gten: result:=OC_GTE;
-          ltn: result:=OC_LT;
-          lten: result:=OC_LTE;
+          gtn: result:=OC_A;
+          gten: result:=OC_AE;
+          ltn: result:=OC_B;
+          lten: result:=OC_BE;
           equaln: result:=OC_EQ;
           unequaln: result:=OC_NE;
           else
@@ -398,7 +410,7 @@ interface
       end;
 
 
-    procedure tjvmaddnode.second_generic_compare;
+    procedure tjvmaddnode.second_generic_compare(unsigned: boolean);
       var
         cmpop: TOpCmp;
       begin
@@ -408,7 +420,7 @@ interface
         if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
            (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           swapleftright;
-        cmpop:=cmpnode2signedtopcmp;
+        cmpop:=cmpnode2topcmp(unsigned);
         if (nf_swapped in flags) then
           cmpop:=swap_opcmp(cmpop);
         location_reset(location,LOC_JUMP,OS_NO);
@@ -515,7 +527,7 @@ interface
         if (left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) and
            (right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
           swapleftright;
-        cmpop:=cmpnode2signedtopcmp;
+        cmpop:=cmpnode2topcmp(false);
         if (nf_swapped in flags) then
           cmpop:=swap_opcmp(cmpop);
         location_reset(location,LOC_JUMP,OS_NO);
@@ -546,13 +558,13 @@ interface
 
     procedure tjvmaddnode.second_cmpboolean;
       begin
-        second_generic_compare;
+        second_generic_compare(true);
       end;
 
 
     procedure tjvmaddnode.second_cmp64bit;
       begin
-        second_generic_compare;
+        second_generic_compare(not is_signed(left.resultdef));
       end;
 
 
@@ -564,7 +576,7 @@ interface
 
     procedure tjvmaddnode.second_cmpordinal;
       begin
-        second_generic_compare;
+        second_generic_compare(not is_signed(left.resultdef));
       end;
 
 begin
