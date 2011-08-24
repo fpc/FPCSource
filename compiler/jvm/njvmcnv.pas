@@ -518,8 +518,8 @@ implementation
         ressize:=resultdef.size;
         leftsize :=left.resultdef.size;
         if ((ressize<>leftsize) or
-            ((location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
-             (location.reference.arrayreftype<>art_none) and
+            ((left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
+             (left.location.reference.arrayreftype<>art_none) and
              (is_widechar(left.resultdef)<>is_widechar(resultdef))) or
             is_bitpacked_access(left)) and
            not is_void(left.resultdef) then
