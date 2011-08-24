@@ -187,6 +187,7 @@ type
     Procedure SetContentLength(Value : Integer);
     Function GetFieldIndex(AIndex : Integer) : Integer;
     Function GetServerPort : Word;
+    Procedure SetServerPort(AValue : Word);
     Function GetSetFieldValue(Index : Integer) : String; virtual;
   Protected
     Function GetFieldValue(Index : Integer) : String; virtual;
@@ -241,7 +242,7 @@ type
     Property RemoteAddr : String Index 27 read GetFieldValue Write SetFieldValue; // Alias, Delphi-compat
     Property RemoteHost : String Index 28 read  GetFieldValue Write SetFieldValue;
     Property ScriptName : String Index 29 read  GetFieldValue Write SetFieldValue;
-    Property ServerPort : Word Read GetServerPort; // Index 30
+    Property ServerPort : Word Read GetServerPort Write SetServerPort; // Index 30
     Property HTTPAccept : String Index 1 read GetFieldValue Write SetFieldValue;
     Property HTTPAcceptCharset : String Index 2 read GetFieldValue Write SetFieldValue;
     Property HTTPAcceptEncoding : String Index 3 read GetFieldValue Write SetFieldValue;
@@ -273,6 +274,7 @@ type
     FFiles : TUploadedFiles;
     FReturnedPathInfo : String;
     FLocalPathPrefix : string;
+    FServerPort : String;
     function GetLocalPathPrefix: string;
     function GetFirstHeaderLine: String;
   Protected
@@ -594,6 +596,12 @@ begin
   Result:=StrToIntDef(GetFieldValue(30),0);
 end;
 
+Procedure THTTPHeader.SetServerPort(AValue : Word);
+
+begin
+  SetFieldValue(30,IntToStr(AValue));
+end;
+    
 function THTTPHeader.GetSetFieldValue(Index: Integer): String;
 
 Var
@@ -674,7 +682,7 @@ begin
       27 : ; // Property RemoteAddress : String Index 27 read GetFieldValue Write SetFieldValue;
       28 : ; // Property RemoteHost : String Index 28 read  GetFieldValue Write SetFieldValue;
       29 : ; // Property ScriptName : String Index 29 read  GetFieldValue Write SetFieldValue;
-      30 : ; // Property ServerPort : Word Read GetServerPort; // Index 30
+      30 : ; // Property ServerPort : Word Read GetServerPort; // Index 30 in TRequest
       36 : FHTTPXRequestedWith:=Value;
     end;
 end;
@@ -1042,6 +1050,7 @@ procedure TRequest.SetFieldValue(Index: Integer; Value: String);
 begin
   Case Index of
     25 : FPathInfo:=Value;
+    30 : FServerPort:=Value;
     31 : FCommand:=Value;
     32 : FURI:=Value;
   else

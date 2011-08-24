@@ -37,6 +37,7 @@ Type
     FConnection: TFPHTTPConnection;
   protected
     procedure SetContent(AValue : String);
+  published
     Property Connection : TFPHTTPConnection Read FConnection;
   end;
 
@@ -93,12 +94,15 @@ Type
 
   TFPCustomHttpServer = Class(TComponent)
   Private
+    FAdminMail: string;
+    FAdminName: string;
     FOnAllowConnect: TConnectQuery;
     FOnRequest: THTTPServerRequestHandler;
     FPort: Word;
     FQueueSize: Word;
     FServer : TInetServer;
     FLoadActivate : Boolean;
+    FServerBanner: string;
     FThreaded: Boolean;
     function GetActive: Boolean;
     procedure SetActive(const AValue: Boolean);
@@ -138,6 +142,12 @@ Type
     property Threaded : Boolean read FThreaded Write SetThreaded;
     // Called to handle the request. If Threaded=True, it is called in a the connection thread.
     Property OnRequest : THTTPServerRequestHandler Read FOnRequest Write FOnRequest;
+
+  published
+    //aditional server information
+    property AdminMail: string read FAdminMail write FAdminMail;
+    property AdminName: string read FAdminName write FAdminName;
+    property ServerBanner: string read FServerBanner write FServerBanner;
   end;
 
   TFPHttpServer = Class(TFPCustomHttpServer)
@@ -151,6 +161,8 @@ Type
   end;
 
   EHTTPServer = Class(Exception);
+
+  Function GetStatusCode (ACode: Integer) : String;
 
 implementation
 
@@ -426,8 +438,7 @@ begin
   Until (S='');
 end;
 
-constructor TFPHTTPConnection.Create(AServer: TFPCustomHttpServer; ASocket: TSocketStream
-  );
+constructor TFPHTTPConnection.Create(AServer: TFPCustomHttpServer; ASocket: TSocketStream);
 begin
   FSocket:=ASocket;
   FServer:=AServer;
@@ -448,6 +459,8 @@ Var
 begin
   // Read headers.
   Req:=ReadRequestHeaders;
+  //set port
+  Req.ServerPort := Server.Port;
   try
     // Read content, if any
     If Req.ContentLength>0 then
@@ -611,6 +624,7 @@ begin
   inherited Create(AOwner);
   FPort:=80;
   FQueueSize:=5;
+  FServerBanner := 'Freepascal';
 end;
 
 destructor TFPCustomHttpServer.Destroy;
