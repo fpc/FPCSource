@@ -184,3 +184,20 @@ ppcjvm -O2 -g tthreadvar
 if %errorlevel% neq 0 exit /b %errorlevel%
 java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tthreadvar
 if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g tstring1
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tstring1
+if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g tstrreal1
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;.tstrreal1
+if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g tstrreal2
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tstrreal2
+if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B tval
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tval
+if %errorlevel% neq 0 exit /b %errorlevel%
+

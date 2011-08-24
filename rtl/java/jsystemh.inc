@@ -386,6 +386,7 @@ Function  Sseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 (*
 function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 function strlen(p:pchar):sizeint;external name 'FPC_PCHAR_LENGTH';
+*)
 
 { Shortstring functions }
 Procedure Delete(var s:shortstring;index:SizeInt;count:SizeInt);
@@ -393,11 +394,13 @@ Procedure Insert(const source:shortstring;var s:shortstring;index:SizeInt);
 Procedure Insert(source:Char;var s:shortstring;index:SizeInt);
 Function  Pos(const substr:shortstring;const s:shortstring):SizeInt;
 Function  Pos(C:Char;const s:shortstring):SizeInt;
+(*
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Function  Pos (const Substr : ShortString; const Source : AnsiString) : SizeInt;
 Procedure SetString (out S : AnsiString; Buf : PChar; Len : SizeInt);
 Procedure SetString (out S : AnsiString; Buf : PWideChar; Len : SizeInt);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+*)
 Procedure SetString (out S : Shortstring; Buf : PChar; Len : SizeInt);
 function  ShortCompareText(const S1, S2: shortstring): SizeInt;
 Function  upCase(const s:shortstring):shortstring;
@@ -409,11 +412,10 @@ Function  binStr(Val:Longint;cnt:byte):shortstring;
 Function  hexStr(Val:int64;cnt:byte):shortstring;
 Function  OctStr(Val:int64;cnt:byte):shortstring;
 Function  binStr(Val:int64;cnt:byte):shortstring;
-Function  hexStr(Val:qword;cnt:byte):shortstring;
-Function  OctStr(Val:qword;cnt:byte):shortstring;
-Function  binStr(Val:qword;cnt:byte):shortstring;
+Function  hexStr(Val:qword;cnt:byte):shortstring; {$ifdef cpujvm}external;{$endif}
+Function  OctStr(Val:qword;cnt:byte):shortstring; {$ifdef cpujvm}external;{$endif}
+Function  binStr(Val:qword;cnt:byte):shortstring; {$ifdef cpujvm}external;{$endif}
 Function  hexStr(Val:Pointer):shortstring;
-*)
 
 { Char functions }
 Function chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];

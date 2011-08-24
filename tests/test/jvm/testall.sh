@@ -102,3 +102,11 @@ $PPC -O2 -g getbit
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. getbit
 $PPC -O2 -g tthreadvar
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tthreadvar
+$PPC -O2 -g tstring1
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tstring1
+$PPC -O2 -g tstrreal1
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tstrreal1
+$PPC -O2 -g tstrreal2
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tstrreal2
+$PPC -O2 -g -B tval
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tval

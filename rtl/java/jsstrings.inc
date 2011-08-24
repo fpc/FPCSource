@@ -196,93 +196,34 @@ begin
 end;
 
 
-procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt); compilerproc;
+{$define FPC_HAS_SHORTSTR_SHORTSTR_INTERN_CHARMOVE}
+procedure fpc_shortstr_shortstr_intern_charmove(const src: shortstring; const srcindex: byte; var dst: shortstring; const dstindex, len: byte); {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  if len>255 then
-    len:=255;
-  ShortstringClass(@s).curlen:=len;
+  JLSystem.arraycopy(JLObject(ShortstringClass(@src).fdata),srcindex-1,JLObject(ShortstringClass(@dst).fdata),dstindex-1,len);
+end;
+
+{$define FPC_HAS_SHORTSTR_CHARARRAY_INTERN_CHARMOVE}
+procedure fpc_shortstr_chararray_intern_charmove(const src: shortstring; out dst: array of char; const len: sizeint); {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  JLSystem.arraycopy(JLObject(ShortstringClass(@src).fdata),0,JLObject(@dst),0,len);
 end;
 
 
+
+{$define FPC_HAS_CHAR_TO_SHORTSTR}
 procedure fpc_Char_To_ShortStr(out res : shortstring;const c : AnsiChar) compilerproc;
 {
-  Converts a WideChar to a ShortString;
+  Converts an AnsiChar to a ShortString;
 }
-
 begin
   setlength(res,1);
   ShortstringClass(@res).fdata[0]:=c;
 end;
 
 
-Function  fpc_shortstr_Copy(const s:shortstring;index:SizeInt;count:SizeInt):shortstring;compilerproc;
-begin
-  if count<0 then
-   count:=0;
-  if index>1 then
-   dec(index)
-  else
-   index:=0;
-  if index>length(s) then
-   count:=0
-  else
-   if count>length(s)-index then
-    count:=length(s)-index;
-  ShortstringClass(@result).curlen:=count;
-  JLSystem.ArrayCopy(JLObject(ShortstringClass(@s).fdata),index,JLObject(ShortstringClass(@result).fdata),0,count);
-end;
 
-
-function  fpc_char_copy(c:AnsiChar;index : SizeInt;count : SizeInt): shortstring;compilerproc;
-begin
-  if (index=1) and (Count>0) then
-   fpc_char_Copy:=c
-  else
-   fpc_char_Copy:='';
-end;
-
-
-function upcase(const s : shortstring) : shortstring;
-var
-  u : unicodestring;
-begin
-  u:=s;
-  result:=upcase(u);
-end;
-
-
-Function  upCase(c:Char):Char;
-var
-  u : unicodestring;
-  s: ansistring;
-begin
-  u:=c;
-  s:=upcase(u);
-  c:=s[1];
-end;
-
-
-function lowercase(const s : shortstring) : shortstring;
-var
-  u : unicodestring;
-begin
-  u:=s;
-  result:=lowercase(u);
-end;
-
-
-Function  lowerCase(c:Char):Char; overload;
-var
-  u : unicodestring;
-  s: ansistring;
-begin
-  u:=c;
-  s:=lowercase(u);
-  c:=s[1];
-end;
-
-
-Function Pos (Const Substr : Shortstring; Const Source : Shortstring) : SizeInt;
+{$define FPC_HAS_SHORTSTR_POS_SHORTSTR}
+Function Pos (Const Substr : Shortstring; Const s : Shortstring) : SizeInt;
 var
   i,j,k,MaxLen, SubstrLen : SizeInt;
 begin
@@ -290,7 +231,7 @@ begin
   SubstrLen:=Length(SubStr);
   if SubstrLen>0 then
    begin
-     MaxLen:=Length(source)-Length(SubStr);
+     MaxLen:=Length(s)-Length(SubStr);
      i:=0;
      while (i<=MaxLen) do
       begin
@@ -298,7 +239,7 @@ begin
         j:=0;
         k:=i-1;
         while (j<SubstrLen) and
-              (ShortstringClass(@SubStr).fdata[j]=ShortstringClass(@Source).fdata[k]) do
+              (ShortstringClass(@SubStr).fdata[j]=ShortstringClass(@s).fdata[k]) do
           begin
             inc(j);
             inc(k);
@@ -313,26 +254,81 @@ begin
 end;
 
 
-{ Faster version for a char alone. Must be implemented because   }
-{ pos(c: char; const s: shortstring) also exists, so otherwise   }
-{ using pos(char,pchar) will always call the shortstring version }
-{ (exact match for first argument), also with $h+ (JM)           }
-Function Pos (c : AnsiChar; Const s : ShortString) : SizeInt;
+{$define FPC_HAS_SHORTSTR_POS_CHAR}
+{Faster when looking for a single char...}
+function pos(c:char;const s:shortstring):SizeInt;
 var
-  i: SizeInt;
+  i : SizeInt;
 begin
-  for i:=1 to length(s) do
+  for i:=0 to length(s)-1 do
    begin
-     if ShortstringClass(@s).fdata[i-1]=c then
-      begin
-        pos:=i;
-        exit;
-      end;
+     if ShortStringClass(@s).fdata[i]=c then
+       begin
+         pos:=i+1;
+         exit;
+       end;
    end;
   pos:=0;
 end;
 
 
+{$define FPC_UPCASE_SHORTSTR}
+function upcase(const s : shortstring) : shortstring;
+var
+  u : unicodestring;
+begin
+  u:=s;
+  result:=upcase(u);
+end;
+
+
+{$define FPC_UPCASE_CHAR}
+Function  upCase(c:Char):Char;
+var
+  u : unicodestring;
+  s: ansistring;
+begin
+  u:=c;
+  s:=upcase(u);
+  c:=s[1];
+end;
+
+
+{$define FPC_LOWERCASE_SHORTSTR}
+function lowercase(const s : shortstring) : shortstring;
+var
+  u : unicodestring;
+begin
+  u:=s;
+  result:=lowercase(u);
+end;
+
+
+{$define FPC_LOWERCASE_CHAR}
+Function  lowerCase(c:Char):Char; overload;
+var
+  u : unicodestring;
+  s: ansistring;
+begin
+  u:=c;
+  s:=lowercase(u);
+  c:=s[1];
+end;
+
+
+{ defined as external aliases to the int64 versions }
+{$define FPC_HAS_QWORD_OCT_SHORTSTR}
+{$define FPC_HAS_QWORD_BIN_SHORTSTR}
+{$define FPC_HAS_QWORD_HEX_SHORTSTR}
+
+{$define FPC_HAS_HEXSTR_POINTER_SHORTSTR}
+function hexstr(val : pointer) : shortstring;
+begin
+  hexstr:=hexstr(JLObject(val).hashCode,sizeof(pointer)*2);
+end;
+
+
+{$define FPC_HAS_SPACE_SHORTSTR}
 function space (b : byte): shortstring;
 begin
   setlength(result,b);
@@ -345,35 +341,59 @@ end;
                               Str() Helpers
 *****************************************************************************}
 
-
-procedure fpc_shortstr_SInt(v : valSInt;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_SINT']; compilerproc;
+{$define FPC_HAS_SETSTRING_SHORTSTR}
+Procedure SetString (Out S : Shortstring; Buf : PChar; Len : SizeInt);
 begin
-  int_str(v,s);
-  if length(s)<len then
-    s:=space(len-length(s))+s;
-end;
-
-procedure fpc_shortstr_UInt(v : valUInt;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_UINT']; compilerproc;
-begin
-  int_str_unsigned(v,s);
-  if length(s)<len then
-    s:=space(len-length(s))+s;
-end;
-
-procedure fpc_shortstr_qword(v : qword;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_QWORD']; compilerproc;
-begin
-  int_str_unsigned(v,s);
-  if length(s)<len then
-    s:=space(len-length(s))+s;
+  If Len > High(S) then
+    Len := High(S);
+  SetLength(S,Len);
+  If Buf<>Nil then
+    begin
+      JLSystem.arraycopy(JLObject(Buf),0,JLObject(ShortstringClass(@S).fdata),0,len);
+    end;
 end;
 
 
-procedure fpc_shortstr_int64(v : int64;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_INT64'];  compilerproc;
+{$define FPC_HAS_COMPARETEXT_SHORTSTR}
+function ShortCompareText(const S1, S2: shortstring): SizeInt;
+var
+  c1, c2: Byte;
+  i: Integer;
+  L1, L2, Count: SizeInt;
+  P1, P2: PChar;
 begin
-  int_str(v,s);
-  if length(s)<len then
-    s:=space(len-length(s))+s;
+  L1 := Length(S1);
+  L2 := Length(S2);
+  if L1 > L2 then
+    Count := L2
+  else
+    Count := L1;
+  i := 0;
+  P1 := @ShortstringClass(@S1).fdata[0];
+  P2 := @ShortstringClass(@S2).fdata[0];
+  c1 := 0;
+  c2 := 0;
+  while i < count do
+  begin
+    c1 := byte(p1[i]);
+    c2 := byte(p2[i]);
+    if c1 <> c2 then
+    begin
+      if c1 in [97..122] then
+        Dec(c1, 32);
+      if c2 in [97..122] then
+        Dec(c2, 32);
+      if c1 <> c2 then
+        Break;
+    end;
+    Inc(I);
+  end;
+  if i < count then
+    ShortCompareText := c1 - c2
+  else
+    ShortCompareText := L1 - L2;
 end;
+
 
 { lie, implemented internally in the compiler }
-{$define FPC_SHORTSTR_ENUM_INTERN}
+{$define FPC_STR_ENUM_INTERN}

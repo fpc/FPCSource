@@ -80,12 +80,15 @@ const
     function fpcGenericValueOf(__fpc_int: longint): JLEnum;
   end;
 
+{ generic versions are based on FPC/Delphi-style RTTI }
+{$define FPC_STR_ENUM_INTERN}
+
 {$i jrech.inc}
 {$i jseth.inc}
 {$i jpvarh.inc}
 {$i jsystemh_types.inc}
 {$i jtvarh.inc}
-{$i sstringh.inc}
+{$i jsstringh.inc}
 {$i jdynarrh.inc}
 {$i astringh.inc}
 {$i jsystemh.inc}
@@ -105,6 +108,7 @@ function min(a,b : longint) : longint;
   end;
 
 {$i jtvar.inc}
+{$i jsstrings.inc}
 {$i jrec.inc}
 {$i jset.inc}
 {$i jpvar.inc}
