@@ -16,20 +16,6 @@
 }
 
 
-function min(a,b : longint) : longint;
-  begin
-     if a<=b then
-       min:=a
-     else
-       min:=b;
-  end;
-
-
-{$i jrec.inc}
-{$i jset.inc}
-{$i jpvar.inc}
-{$i jsystem.inc}
-
 { copying helpers }
 
 procedure fpc_copy_shallow_array(src, dst: JLObject; srcstart: jint = -1; srccopylen: jint = -1);

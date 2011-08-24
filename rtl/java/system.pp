@@ -96,8 +96,20 @@ const
                                  implementation
 {*****************************************************************************}
 
+function min(a,b : longint) : longint;
+  begin
+     if a<=b then
+       min:=a
+     else
+       min:=b;
+  end;
+
 {$i jtvar.inc}
+{$i jrec.inc}
+{$i jset.inc}
+{$i jpvar.inc}
 {$i jdynarr.inc}
+{$i jsystem.inc}
 
 {*****************************************************************************
                        Misc. System Dependent Functions
