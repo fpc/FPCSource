@@ -51,6 +51,63 @@ procedure ReadWriteBarrier;
 procedure WriteBarrier;
 *)
 
+procedure fillchar(var arr: array of jbyte; len: sizeint; val: byte);
+{ boolean maps to a different signature }
+procedure fillchar(var arr: array of jbyte; len: sizeint; val: boolean);
+{ don't define since the signature would be the same as the one above (well,
+  we could cheat by changing the case since the JVM is case-sensitive, but
+  this way we also save on code size) -> map it to the byte version via
+  "external" }
+procedure fillchar(var arr: array of jbyte; len: sizeint; val: ansichar); external;
+procedure fillchar(var arr: array of jbyte; len: sizeint; val: jbyte); external;
+procedure fillchar(var arr: array of byte; len: sizeint; val: byte); external;
+procedure fillchar(var arr: array of byte; len: sizeint; val: ansichar); external;
+procedure fillchar(var arr: array of byte; len: sizeint; val: jbyte); external;
+procedure fillchar(var arr: array of ansichar; len: sizeint; val: byte); external;
+procedure fillchar(var arr: array of ansichar; len: sizeint; val: ansichar); external;
+procedure fillchar(var arr: array of ansichar; len: sizeint; val: jbyte); external;
+procedure fillchar(var arr: array of ansichar; len: sizeint; val: boolean); external;
+
+
+procedure fillchar(var arr: array of boolean; len: sizeint; val: byte);
+procedure fillchar(var arr: array of boolean; len: sizeint; val: boolean);
+procedure fillchar(var arr: array of boolean; len: sizeint; val: ansichar); external;
+procedure fillchar(var arr: array of boolean; len: sizeint; val: jbyte); external;
+
+
+procedure fillchar(var arr: array of jshort; len: sizeint; val: byte);
+procedure fillchar(var arr: array of jshort; len: sizeint; val: boolean);
+procedure fillchar(var arr: array of jshort; len: sizeint; val: ansichar); external;
+procedure fillchar(var arr: array of jshort; len: sizeint; val: jbyte); external;
+procedure fillchar(var arr: array of word; len: sizeint; val: byte);  external;
+procedure fillchar(var arr: array of word; len: sizeint; val: boolean);  external;
+procedure fillchar(var arr: array of word; len: sizeint; val: ansichar); external;
+procedure fillchar(var arr: array of word; len: sizeint; val: jbyte); external;
+
+{ widechar maps to a different signature }
+procedure fillchar(var arr: array of widechar; len: sizeint; val: byte);
+procedure fillchar(var arr: array of widechar; len: sizeint; val: boolean);
+procedure fillchar(var arr: array of widechar; len: sizeint; val: ansichar); external;
+procedure fillchar(var arr: array of widechar; len: sizeint; val: jbyte); external;
+
+procedure fillchar(var arr: array of jint; len: sizeint; val: byte);
+procedure fillchar(var arr: array of jint; len: sizeint; val: boolean);
+procedure fillchar(var arr: array of jint; len: sizeint; val: ansichar); external;
+procedure fillchar(var arr: array of jint; len: sizeint; val: jbyte); external;
+procedure fillchar(var arr: array of dword; len: sizeint; val: byte); external;
+procedure fillchar(var arr: array of dword; len: sizeint; val: boolean); external;
+procedure fillchar(var arr: array of dword; len: sizeint; val: ansichar); external;
+procedure fillchar(var arr: array of dword; len: sizeint; val: jbyte); external;
+
+procedure fillchar(var arr: array of jlong; len: sizeint; val: byte);
+procedure fillchar(var arr: array of jlong; len: sizeint; val: boolean);
+procedure fillchar(var arr: array of jlong; len: sizeint; val: ansichar); external;
+procedure fillchar(var arr: array of jlong; len: sizeint; val: jbyte); external;
+procedure fillchar(var arr: array of qword; len: sizeint; val: byte); external;
+procedure fillchar(var arr: array of qword; len: sizeint; val: boolean); external;
+procedure fillchar(var arr: array of qword; len: sizeint; val: ansichar); external;
+procedure fillchar(var arr: array of qword; len: sizeint; val: jbyte); external;
+
 {****************************************************************************
                           Math Routines
 ****************************************************************************}

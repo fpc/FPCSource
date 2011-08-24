@@ -75,6 +75,115 @@ function Sptr:Pointer;
 { lie so that the non-compilable generic versions will be skipped }
 {$define FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
+
+{$push}
+{$q-,r-}
+
+procedure fillchar(var arr: array of jbyte; len: sizeint; val: byte);
+  begin
+    JUArrays.fill(arr,0,len,jbyte(val));
+  end;
+
+{ boolean maps to a different signature }
+procedure fillchar(var arr: array of jbyte; len: sizeint; val: jboolean);
+  begin
+    JUArrays.fill(arr,0,len,jbyte(val));
+  end;
+
+{ don't define since the signature would be the same as the one above (well,
+  we could cheat by changing the case since the JVM is case-sensitive, but
+  this way we also save on code size) -> map it to the byte version via
+  "external" }
+
+procedure fillchar(var arr: array of boolean; len: sizeint; val: byte);
+  begin
+    JUArrays.fill(TJBooleanArray(@arr),0,len,jboolean(val));
+  end;
+
+procedure fillchar(var arr: array of boolean; len: sizeint; val: boolean);
+  begin
+    JUArrays.fill(TJBooleanArray(@arr),0,len,val);
+  end;
+
+
+procedure fillchar(var arr: array of jshort; len: sizeint; val: byte);
+  var
+    w: jshort;
+  begin
+    w:=(val shl 8) or val;
+    JUArrays.fill(arr,0,len div 2,w);
+    if (len and 1) <> 0 then
+      arr[len div 2 + 1]:=(arr[len div 2 + 1] and $ff) or (val shl 8);
+  end;
+
+procedure fillchar(var arr: array of jshort; len: sizeint; val: boolean);
+  begin
+    fillchar(arr,len,jbyte(val));
+  end;
+
+{ widechar maps to a different signature }
+procedure fillchar(var arr: array of widechar; len: sizeint; val: byte);
+  var
+    w: widechar;
+  begin
+    w:=widechar((val shl 8) or val);
+    JUArrays.fill(arr,0,len div 2,w);
+    { jvm is big endian -> set top byte of last word }
+    if (len and 1) <> 0 then
+      arr[len shr 1+1]:=widechar((ord(arr[len shr 1+1]) and $ff) or (val shl 8));
+  end;
+
+procedure fillchar(var arr: array of widechar; len: sizeint; val: boolean);
+  begin
+    fillchar(arr,len,byte(val));
+  end;
+
+procedure fillchar(var arr: array of jint; len: sizeint; val: byte);
+  var
+    d, dmask: jint;
+  begin
+    d:=(val shl 8) or val;
+    d:=(d shl 16) or d;
+    JUArrays.fill(arr,0,len div 4,d);
+    len:=len and 3;
+    if len<>0 then
+      begin
+        dmask:=not((1 shl (32-8*len))-1);
+        d:=d and dmask;
+        arr[len shr 2+1]:=(arr[len shr 2+1] and not(dmask)) or d;
+      end;
+  end;
+
+procedure fillchar(var arr: array of jint; len: sizeint; val: boolean);
+  begin
+    fillchar(arr,len,jbyte(val));
+  end;
+
+
+procedure fillchar(var arr: array of jlong; len: sizeint; val: byte);
+  var
+    i, imask: jlong;
+  begin
+    i:=(val shl 8) or val;
+    i:=cardinal(i shl 16) or i;
+    i:=(i shl 32) or i;
+    JUArrays.fill(arr,0,len shr 3,i);
+    len:=len and 7;
+    if len<>0 then
+      begin
+        imask:=not((jlong(1) shl (64-8*len))-1);
+        i:=i and imask;
+        arr[len shr 3+1]:=(arr[len shr 3+1] and not(imask)) or i;
+      end;
+  end;
+
+procedure fillchar(var arr: array of jlong; len: sizeint; val: boolean);
+  begin
+    fillchar(arr,len,jbyte(val));
+  end;
+
+{$pop}
+
 {$define FPC_SYSTEM_HAS_FILLWORD}
 {$define FPC_SYSTEM_HAS_FILLDWORD}
 {$define FPC_SYSTEM_HAS_FILLQWORD}
