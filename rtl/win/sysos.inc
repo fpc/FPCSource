@@ -102,6 +102,7 @@ const
 {   A pipe has been closed on the other end }
 {   Removing that error allows eof to works as on other OSes }
     ERROR_BROKEN_PIPE = 109;
+    ERROR_DISK_FULL = 112;
     ERROR_DIR_NOT_EMPTY = 145;
     ERROR_ALREADY_EXISTS = 183;
 
@@ -282,6 +283,8 @@ threadvar
            { to the DOS/TP compatible error codes when in this range }
            res := word(pErrno^)+131;
          end;
+       ERROR_DISK_FULL :
+         res := 101;
        ERROR_DIR_NOT_EMPTY,
        ERROR_ALREADY_EXISTS,
        ERROR_SHARING_VIOLATION :

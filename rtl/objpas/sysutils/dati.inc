@@ -708,6 +708,15 @@ begin
     Raise EConvertError.Create(Msg);
 end;
 
+function StrToTime(const S: string; FormatSettings : TFormatSettings): TDateTime;
+Var
+  Msg : AnsiString;
+begin
+  Result:=IntStrToTime(Msg, @S[1], length(S), FormatSettings, #0);
+  If (Msg<>'') then
+    Raise EConvertError.Create(Msg);
+end;
+
 function StrToTime(const s: ShortString; separator : char): TDateTime;
 begin
    result := StrToTime(@s[1], length(s), separator);
@@ -750,42 +759,42 @@ begin
     Result:=StrToDate(S);
 end;
 
-function StrToDateTime(const s: AnsiString; const UseFormat : TFormatSettings): TDateTime;
+function StrToDateTime(const s: AnsiString; const FormatSettings : TFormatSettings): TDateTime;
 var
   I: integer;
 begin
-  I:=Pos(UseFormat.TimeSeparator,S);
+  I:=Pos(FormatSettings.TimeSeparator,S);
   If (I>0) then
     begin
     While (I>0) and (S[I]<>' ') do
       Dec(I);
     If I>0 then
-      result:=ComposeDateTime(StrToDate(Copy(S,1,I-1),UseFormat.ShortDateFormat,UseFormat.DateSeparator),
-                              StrToTime(Copy(S,i+1, Length(S)-i),UseFormat.TimeSeparator))
+      result:=ComposeDateTime(StrToDate(Copy(S,1,I-1),FormatSettings.ShortDateFormat,FormatSettings.DateSeparator),
+                              StrToTime(Copy(S,i+1, Length(S)-i),FormatSettings))
     else
-      result:=StrToTime(S,UseFormat.TimeSeparator)
+      result:=StrToTime(S,FormatSettings)
     end
   else
-    Result:=StrToDate(S,UseFormat.ShortDateFormat,UseFormat.DateSeparator);
+    Result:=StrToDate(S,FormatSettings.ShortDateFormat,FormatSettings.DateSeparator);
 end;
 
-function StrToDateTime(const s: ShortString; const UseFormat : TFormatSettings): TDateTime;
+function StrToDateTime(const s: ShortString; const FormatSettings : TFormatSettings): TDateTime;
 var
   I: integer;
 begin
-  I:=Pos(UseFormat.TimeSeparator,S);
+  I:=Pos(FormatSettings.TimeSeparator,S);
   If (I>0) then
     begin
     While (I>0) and (S[I]<>' ') do
       Dec(I);
     If I>0 then
-      result:=ComposeDateTime(StrToDate(Copy(S,1,I-1),UseFormat.ShortDateFormat,UseFormat.DateSeparator),
-                              StrToTime(Copy(S,i+1, Length(S)-i),UseFormat.TimeSeparator))
+      result:=ComposeDateTime(StrToDate(Copy(S,1,I-1),FormatSettings.ShortDateFormat,FormatSettings.DateSeparator),
+                              StrToTime(Copy(S,i+1, Length(S)-i),FormatSettings.TimeSeparator))
     else
-      result:=StrToTime(S,UseFormat.TimeSeparator)
+      result:=StrToTime(S,FormatSettings.TimeSeparator)
     end
   else
-    Result:=StrToDate(S,UseFormat.ShortDateFormat,UseFormat.DateSeparator);
+    Result:=StrToDate(S,FormatSettings.ShortDateFormat,FormatSettings.DateSeparator);
 end;
 
 {   FormatDateTime formats DateTime to the given format string FormatStr   }
