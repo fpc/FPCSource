@@ -163,7 +163,6 @@ implementation
     function tjvmstringconstnode.pass_1: tnode;
       var
         strclass: tobjectdef;
-        psym: tsym;
         pw: pcompilerwidestring;
       begin
         { all Java strings are utf-16. However, there is no way to
@@ -197,13 +196,11 @@ implementation
            internalerror(2011052401);
         end;
         cst_type:=cst_unicodestring;
-        psym:=search_struct_member(strclass,'CREATEFROMLITERALSTRINGBYTES');
-        if not assigned(psym) or
-           (psym.typ<>procsym) then
-          internalerror(2011052001);
         { since self will be freed, have to make a copy }
-        result:=ccallnode.create(ccallparanode.create(self.getcopy,nil),
-          tprocsym(psym),psym.owner,nil,[]);
+        result:=ccallnode.createinternmethodres(
+          cloadvmtaddrnode.create(ctypenode.create(strclass)),
+          'CREATEFROMLITERALSTRINGBYTES',ccallparanode.create(self.getcopy,nil),
+          resultdef);
       end;
 
 

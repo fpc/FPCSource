@@ -133,6 +133,7 @@ interface
           constructor createinternresfromunit(const fromunit, procname: string; params: tnode; res:tdef);
           constructor createinternreturn(const name: string; params: tnode; returnnode : tnode);
           constructor createinternmethod(mp: tnode; const name: string; params: tnode);
+          constructor createinternmethodres(mp: tnode; const name: string; params: tnode; res:tdef);
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1190,6 +1191,14 @@ implementation
            (ps.typ<>procsym) then
           internalerror(2011062806);
         create(params,tprocsym(ps),ps.owner,mp,[]);
+      end;
+
+
+    constructor tcallnode.createinternmethodres(mp: tnode; const name: string; params: tnode; res: tdef);
+      begin
+        createinternmethod(mp,name,params);
+        typedef:=res;
+        include(callnodeflags,cnf_typedefset)
       end;
 
 
