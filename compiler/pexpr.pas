@@ -1364,7 +1364,7 @@ implementation
                  searchsym(pattern,srsym,srsymtable);
 
                { handle unit specification like System.Writeln }
-               unit_found:=try_consume_unitsym(srsym,srsymtable,t);
+               unit_found:=try_consume_unitsym(srsym,srsymtable,t,true);
                storedpattern:=pattern;
                orgstoredpattern:=orgpattern;
                consume(t);

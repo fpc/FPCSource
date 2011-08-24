@@ -799,6 +799,8 @@ implementation
          objname,objrealname : TIDString;
          srsym : tsym;
          srsymtable : TSymtable;
+         t:ttoken;
+         unit_found:boolean;
          oldcurrent_exceptblock: integer;
       begin
          include(current_procinfo.flags,pi_uses_exceptions);
@@ -886,23 +888,16 @@ implementation
                             begin
                                { check if type is valid, must be done here because
                                  with "e: Exception" the e is not necessary }
-                               if srsym=nil then
-                                begin
-                                  identifier_not_found(objrealname);
-                                  srsym:=generrorsym;
-                                end;
+
                                { support unit.identifier }
-                               if srsym.typ=unitsym then
+                               unit_found:=try_consume_unitsym(srsym,srsymtable,t,false);
+                               if srsym=nil then
                                  begin
-                                    consume(_POINT);
-                                    searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
-                                    if srsym=nil then
-                                     begin
-                                       identifier_not_found(orgpattern);
-                                       srsym:=generrorsym;
-                                     end;
-                                    consume(_ID);
+                                   identifier_not_found(orgpattern);
+                                   srsym:=generrorsym;
                                  end;
+                               if unit_found then
+                                 consume(t);
                                { check if type is valid, must be done here because
                                  with "e: Exception" the e is not necessary }
                                if (srsym.typ=typesym) and

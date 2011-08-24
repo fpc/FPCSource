@@ -518,7 +518,7 @@ implementation
          { Use the special searchsym_type that search only types }
          searchsym_type(s,srsym,srsymtable);
          { handle unit specification like System.Writeln }
-         is_unit_specific:=try_consume_unitsym(srsym,srsymtable,t);
+         is_unit_specific:=try_consume_unitsym(srsym,srsymtable,t,true);
          consume(t);
          { Types are first defined with an error def before assigning
            the real type so check if it's an errordef. if so then
