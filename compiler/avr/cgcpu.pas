@@ -1605,27 +1605,73 @@ unit cgcpu;
 
     procedure tcgavr.a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
       var
-        ai : taicpu;
+        ai1,ai2 : taicpu;
+        hl : TAsmLabel;
       begin
-        { TODO : fix a_jmp_cond }
-      {
-        ai:=Taicpu.Op_sym(A_BRxx,l);
+        ai1:=Taicpu.Op_sym(A_BRxx,l);
+        ai1.is_jmp:=true;
+        l:=nil;
         case cond of
           OC_EQ:
-            ai.SetCondition(C_EQ);
-          OC_GT
-          OC_LT
-          OC_GTE
-          OC_LTE
-          OC_NE
-          OC_BE
-          OC_B
-          OC_AE
-          OC_A:
+            ai1.SetCondition(C_EQ);
+          OC_GT:
+            begin
+              { emulate GT }
+              current_asmdata.getjumplabel(hl);
+              ai2:=Taicpu.Op_Sym(A_BRxx,hl);
+              ai2.SetCondition(C_EQ);
+              ai2.is_jmp:=true;
+              list.concat(ai2);
 
-        ai.is_jmp:=true;
-        list.concat(ai);
-        }
+              ai1.SetCondition(C_GE);
+            end;
+          OC_LT:
+            ai1.SetCondition(C_LT);
+          OC_GTE:
+            ai1.SetCondition(C_GE);
+          OC_LTE:
+            begin
+              { emulate LTE }
+              ai2:=Taicpu.Op_Sym(A_BRxx,l);
+              ai2.SetCondition(C_EQ);
+              ai2.is_jmp:=true;
+              list.concat(ai2);
+
+              ai1.SetCondition(C_LT);
+            end;
+          OC_NE:
+            ai1.SetCondition(C_NE);
+          OC_BE:
+            begin
+              { emulate BE }
+              ai2:=Taicpu.Op_Sym(A_BRxx,l);
+              ai2.SetCondition(C_EQ);
+              ai2.is_jmp:=true;
+              list.concat(ai2);
+
+              ai1.SetCondition(C_LO);
+            end;
+          OC_B:
+            ai1.SetCondition(C_LO);
+          OC_AE:
+            ai1.SetCondition(C_SH);
+          OC_A:
+            begin
+              { emulate A (unsigned GT) }
+              current_asmdata.getjumplabel(hl);
+              ai2:=Taicpu.Op_Sym(A_BRxx,hl);
+              ai2.SetCondition(C_EQ);
+              ai2.is_jmp:=true;
+              list.concat(ai2);
+
+              ai1.SetCondition(C_SH);
+            end;
+          else
+            internalerror(2011082501);
+        end;
+        list.concat(ai1);
+        if assigned(hl) then
+          a_label(list,hl);
       end;
 
 
