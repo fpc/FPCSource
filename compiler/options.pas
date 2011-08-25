@@ -286,7 +286,7 @@ begin
 }
               begin
                 hs:=s;
-                hs1:=ControllerTypeStr[controllertype];
+                hs1:=embedded_controllers[controllertype].ControllerTypeStr;
                 if hs1<>'' then
                   begin
                     Replace(hs,'$CONTROLLERTYPES',hs1);

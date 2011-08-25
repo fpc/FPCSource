@@ -79,6 +79,7 @@ Var
   linklibc : boolean;
   found1,
   found2   : boolean;
+  LinkStr  : string;
 begin
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
@@ -216,49 +217,116 @@ begin
 
 {$ifdef ARM}
   case current_settings.controllertype of
-    ct_none:
-      ;
-    ct_lpc2114,
-    ct_lpc2124,
-    ct_lpc2194:
-      with linkres do
-        begin
-          Add('ENTRY(_START)');
-          Add('MEMORY');
-          Add('{');
-          Add('    flash : ORIGIN = 0, LENGTH = 256K');
-          Add('    ram : ORIGIN = 0x40000000, LENGTH = 16K');
-          Add('}');
-          Add('_stack_top = 0x40003FFC;');
-        end;
+      ct_none:
+           begin
+           end;
+      ct_lpc2114,
+      ct_lpc2124,
+      ct_lpc2194,
       ct_at91sam7s256,
       ct_at91sam7se256,
       ct_at91sam7x256,
-      ct_at91sam7xc256:
-      with linkres do
-        begin
-          Add('ENTRY(_START)');
-          Add('MEMORY');
-          Add('{');
-          Add('    flash : ORIGIN = 0, LENGTH = 256K');
-          Add('    ram : ORIGIN = 0x200000, LENGTH = 64K');
-          Add('}');
-          Add('_stack_top = 0x20FFFC;');
-        end;
-      ct_stm32f103re:
-      with linkres do
-        begin
-          Add('ENTRY(_START)');
-          Add('MEMORY');
-          Add('{');
-          Add('    flash : ORIGIN = 0x08000000, LENGTH = 512K');
-          Add('    ram : ORIGIN = 0x20000000, LENGTH = 64K');
-          Add('}');
-          Add('_stack_top = 0x2000FFFC;');
-        end;
+      ct_at91sam7xc256,
 
+      ct_stm32f103rb,
+      ct_stm32f103re,
+
+      { TI - 64 K Flash, 16 K SRAM Devices }
+      ct_lm3s1110,
+      ct_lm3s1133,
+      ct_lm3s1138,
+      ct_lm3s1150,
+      ct_lm3s1162,
+      ct_lm3s1165,
+      ct_lm3s1166,
+      ct_lm3s2110,
+      ct_lm3s2139,
+      ct_lm3s6100,
+      ct_lm3s6110,
+
+      { TI 128 K Flash, 32 K SRAM devices - Fury Class }
+      ct_lm3s1601,
+      ct_lm3s1608,
+      ct_lm3s1620,
+      ct_lm3s1635,
+      ct_lm3s1636,
+      ct_lm3s1637,
+      ct_lm3s1651,
+      ct_lm3s2601,
+      ct_lm3s2608,
+      ct_lm3s2620,
+      ct_lm3s2637,
+      ct_lm3s2651,
+      ct_lm3s6610,
+      ct_lm3s6611,
+      ct_lm3s6618,
+      ct_lm3s6633,
+      ct_lm3s6637,
+      ct_lm3s8630,
+
+      { TI 256 K Flase, 32 K SRAM devices - Fury Class }
+      ct_lm3s1911,
+      ct_lm3s1918,
+      ct_lm3s1937,
+      ct_lm3s1958,
+      ct_lm3s1960,
+      ct_lm3s1968,
+      ct_lm3s1969,
+      ct_lm3s2911,
+      ct_lm3s2918,
+      ct_lm3s2919,
+      ct_lm3s2939,
+      ct_lm3s2948,
+      ct_lm3s2950,
+      ct_lm3s2965,
+      ct_lm3s6911,
+      ct_lm3s6918,
+      ct_lm3s6938,
+      ct_lm3s6950,
+      ct_lm3s6952,
+      ct_lm3s6965,
+      ct_lm3s8930,
+      ct_lm3s8933,
+      ct_lm3s8938,
+      ct_lm3s8962,
+      ct_lm3s8970,
+      ct_lm3s8971,
+
+      { TI - Tempest Tempest - 256 K Flash, 64 K SRAM }
+      ct_lm3s5951,
+      ct_lm3s5956,
+      ct_lm3s1b21,
+      ct_lm3s2b93,
+      ct_lm3s5b91,
+      ct_lm3s9b81,
+      ct_lm3s9b90,
+      ct_lm3s9b92,
+      ct_lm3s9b95,
+      ct_lm3s9b96,
+      ct_thumb2bare:
+        begin
+         with embedded_controllers[current_settings.controllertype] do
+          with linkres do
+            begin
+              Add('ENTRY(_START)');
+              Add('MEMORY');
+              Add('{');
+
+              LinkStr := '    flash : ORIGIN = 0x' + IntToHex(flashbase,8)
+                + ', LENGTH = ' + IntToStr(flashsize div 1024)+'K';
+              Add(LinkStr);
+
+              LinkStr := '    ram : ORIGIN = 0x' + IntToHex(srambase,8)
+              	+ ', LENGTH = ' + IntToStr(sramsize div 1024)+'K';
+              Add(LinkStr);
+
+              Add('}');
+              Add('_stack_top = 0x' + IntToHex(sramsize+srambase-4,8) + ';');
+            end;
+        end
     else
-      internalerror(200902011);
+      if not (cs_link_nolink in current_settings.globalswitches) then
+      	 internalerror(200902011);
   end;
 
   with linkres do

@@ -1108,7 +1108,7 @@ implementation
         result:=false;
         hs:=Upper(s);
         for t:=low(tcontrollertype) to high(tcontrollertype) do
-          if controllertypestr[t]=hs then
+          if embedded_controllers[t].controllertypestr=hs then
             begin
               a:=t;
               result:=true;

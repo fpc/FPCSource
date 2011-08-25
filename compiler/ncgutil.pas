@@ -3153,7 +3153,7 @@ implementation
       function GetInterruptTableLength: longint;
         begin
 {$if defined(ARM)}
-          result:=interruptvectors[current_settings.controllertype];
+          result:=embedded_controllers[current_settings.controllertype].interruptvectors;
 {$else}
           result:=0;
 {$endif}

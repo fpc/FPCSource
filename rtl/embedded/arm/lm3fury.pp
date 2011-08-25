@@ -5,7 +5,7 @@ Geoffrey Barton 2010 08 01  gjb@periphon.net
 based on stm32f103 created by Jeppe Johansen 2009 - jepjoh2@kom.aau.dk
 }
 {$goto on}
-unit stellaris;
+unit lm3fury;
 
   interface
 
