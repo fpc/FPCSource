@@ -742,7 +742,7 @@ type  key_sequence=packed record
         st:string[7];
       end;
 
-const key_sequences:array[0..276] of key_sequence=(
+const key_sequences:array[0..277] of key_sequence=(
        (char:0;scan:kbAltA;st:#27'A'),
        (char:0;scan:kbAltA;st:#27'a'),
        (char:0;scan:kbAltB;st:#27'B'),
@@ -982,6 +982,7 @@ const key_sequences:array[0..276] of key_sequence=(
        (char:0;scan:kbAltF11;st:#27'[23;3~'),    {xterm on FreeBSD}
        (char:0;scan:kbAltF12;st:#27'[24;3~'),    {xterm on FreeBSD}
 
+       (char:0;scan:kbShiftTab;st:#27#9),        {linux - 'Meta_Tab'}
        (char:0;scan:kbShiftTab;st:#27'[Z'),
        (char:0;scan:kbShiftUp;st:#27'[1;2A'),    {xterm}
        (char:0;scan:kbShiftDown;st:#27'[1;2B'),  {xterm}
@@ -1432,6 +1433,7 @@ begin {main}
         { Handle Ctrl-<x>, but not AltGr-<x> }
         if ((SState and kbCtrl)<>0) and ((SState and kbAlt) = 0)  then
           case MyScan of
+            kbShiftTab: MyScan := kbCtrlTab;
             kbHome..kbDel : { cArrow }
               MyScan:=CtrlArrow[MyScan];
             kbF1..KbF10 : { cF1-cF10 }
@@ -1442,6 +1444,7 @@ begin {main}
         { Handle Alt-<x>, but not AltGr }
         else if ((SState and kbAlt)<>0) and ((SState and kbCtrl) = 0) then
           case MyScan of
+            kbShiftTab: MyScan := kbAltTab;
             kbHome..kbDel : { AltArrow }
               MyScan:=AltArrow[MyScan];
             kbF1..KbF10 : { aF1-aF10 }
@@ -1520,11 +1523,27 @@ begin {main}
     if not again then
       begin
         MyScan:=EvalScan(ord(MyChar));
-        if ((SState and kbAlt)<>0) and ((SState and kbCtrl) = 0) then
+        if ((SState and kbCtrl)<>0) and ((SState and kbAlt) = 0) then
           begin
-            if MyScan in [$02..$0D] then
-              inc(MyScan,$76);
-            MyChar:=chr(0);
+            if MyChar=#9 then
+              begin
+                MyChar:=#0;
+                MyScan:=kbCtrlTab;
+              end;
+          end
+        else if ((SState and kbAlt)<>0) and ((SState and kbCtrl) = 0) then
+          begin
+            if MyChar=#9 then
+              begin
+                MyChar:=#0;
+                MyScan:=kbAltTab;
+              end
+            else
+              begin
+                if MyScan in [$02..$0D] then
+                  inc(MyScan,$76);
+                MyChar:=chr(0);
+              end;
           end
         else if (SState and kbShift)<>0 then
           if MyChar=#9 then
