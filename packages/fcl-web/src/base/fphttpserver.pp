@@ -226,6 +226,7 @@ procedure TFPHTTPConnectionRequest.SetContent(AValue : String);
 begin
   FContent:=Avalue;
   FContentRead:=true;
+  InitRequestVars;
 end;
 (*
 Procedure TFPHTTPConnectionRequest.SetFieldValue(Index : Integer; Value : String);
