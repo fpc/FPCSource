@@ -642,8 +642,9 @@ begin
   if FileName = '' then
    Result := false
   else
-   Result := FileGetAttr (ExpandFileName (Directory)) and
-                                                     faDirectory = faDirectory;
+   Result := FileGetAttr (ExpandFileName (FileName)) and
+                                               (faDirectory or faVolumeID) = 0;
+(* Neither VolumeIDs nor directories are files. *)
 end;
 
 

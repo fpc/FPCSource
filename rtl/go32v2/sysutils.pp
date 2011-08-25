@@ -285,18 +285,13 @@ end;
 
 
 Function FileExists (Const FileName : String) : Boolean;
-Var
-  Sr : Searchrec;
 begin
-  DOS.FindFirst(FileName,$3f,sr);
-  if DosError = 0 then
-   begin
-     { No volumeid,directory }
-     Result:=(sr.attr and $18)=0;
-     Dos.FindClose(sr);
-   end
+  if FileName = '' then
+   Result := false
   else
-   Result:=false;
+   Result := FileGetAttr (ExpandFileName (FileName)) and
+                                               (faDirectory or faVolumeID) = 0;
+(* Neither VolumeIDs nor directories are files. *)
 end;
 
 

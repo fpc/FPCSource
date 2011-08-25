@@ -612,15 +612,15 @@ end;
 
 
 function FileExists (const FileName: string): boolean;
-var
-  SR: TSearchRec;
-  RC: longint;
 begin
-  FileExists:=False;
-  if FindFirst (FileName, faAnyFile and not (faDirectory), SR) = 0
-    then FileExists := True;
-  FindClose(SR);
+  if FileName = '' then
+   Result := false
+  else
+   Result := FileGetAttr (ExpandFileName (FileName)) and
+                                               (faDirectory or faVolumeID) = 0;
+(* Neither VolumeIDs nor directories are files. *)
 end;
+
 
 type    TRec = record
             T, D: word;
