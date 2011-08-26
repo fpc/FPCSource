@@ -1011,7 +1011,7 @@ function DdeCallback(_para1, _para2:UINT; _para3:HCONV; _para4, _para5:HSZ;_para
 function DdeClientTransaction(_para1:PBYTE; _para2:DWORD; _para3:HCONV; _para4:HSZ; _para5:UINT;
            _para6:UINT; _para7:DWORD; _para8:PDWORD):HDDEDATA;external 'user32' name 'DdeClientTransaction';
 function DdeCmpStringHandles(_para1:HSZ; _para2:HSZ):longint; external 'user32' name 'DdeCmpStringHandles';
-function DdeConnect(_para1:DWORD; _para2:HSZ; _para3:HSZ; var _para4:CONVCONTEXT):HCONV; external 'user32' name 'DdeConnect';
+function DdeConnect(_para1:DWORD; _para2:HSZ; _para3:HSZ; _para4:PCONVCONTEXT):HCONV; external 'user32' name 'DdeConnect';
 function DdeConnectList(_para1:DWORD; _para2:HSZ; _para3:HSZ; _para4:HCONVLIST; _para5:PCONVCONTEXT):HCONVLIST;external 'user32' name 'DdeConnectList';
 function DdeCreateDataHandle(_para1:DWORD; _para2:LPBYTE; _para3:DWORD; _para4:DWORD; _para5:HSZ;_para6:UINT; _para7:UINT):HDDEDATA; external 'user32' name 'DdeCreateDataHandle';
 function DdeDisconnect(_para1:HCONV):WINBOOL; external 'user32' name 'DdeDisconnect';
