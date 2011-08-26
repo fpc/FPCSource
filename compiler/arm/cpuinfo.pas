@@ -153,8 +153,6 @@ Type
       ct_thumb2bare
      );
 
-{$I controllerunit.inc}
-
 
 Const
    {# Size of native extended floating point type }
