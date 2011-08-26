@@ -558,8 +558,8 @@ begin
     DatabaseErrorFmt(SNoDataset,[FieldName]);
   If FVAlidating then
     begin
-    result:=Not(FValueBuffer=Nil);
-    If Result then
+    result:=assigned(FValueBuffer);
+    If Result and assigned(Buffer) then
       Move (FValueBuffer^,Buffer^ ,DataSize);
     end
   else
