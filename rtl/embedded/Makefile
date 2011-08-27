@@ -315,7 +315,7 @@ CPU_UNITS=
 SYSINIT_UNITS=
 ifeq ($(ARCH),arm)
 ifeq ($(SUBARCH),armv7m)
-CPU_UNITS=lm3fury lm3tempest thumb2_bare stm32f103
+CPU_UNITS=lm3fury lm3tempest stm32f103 # thumb2_bare 
 endif
 ifeq ($(SUBARCH),armv4t)
 CPU_UNITS=lpc21x4 at91sam7x256
