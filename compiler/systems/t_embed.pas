@@ -32,7 +32,7 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,script,fmodule,i_embed,link,
+       globtype,globals,systems,verbose,comphook,script,fmodule,i_embed,link,
        cpuinfo;
 
     type
@@ -43,6 +43,7 @@ implementation
           constructor Create; override;
           procedure SetDefaultInfo; override;
           function  MakeExecutable:boolean; override;
+          function postprocessexecutable(const fn : string;isdll:boolean):boolean;
        end;
 
 
@@ -695,6 +696,9 @@ begin
    DeleteFile(outputexedir+Info.ResName);
 
 { Post process }
+  if success then
+    success:=PostProcessExecutable(current_module.exefilename^+'.elf',false);
+
   if success and (target_info.system in [system_arm_embedded,system_avr_embedded]) then
     begin
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
@@ -704,6 +708,121 @@ begin
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
+
+
+function TLinkerEmbedded.postprocessexecutable(const fn : string;isdll:boolean):boolean;
+  type
+    TElf32header=packed record
+      magic0123         : longint;
+      file_class        : byte;
+      data_encoding     : byte;
+      file_version      : byte;
+      padding           : array[$07..$0f] of byte;
+
+      e_type            : word;
+      e_machine         : word;
+      e_version         : longint;
+      e_entry           : longint;          { entrypoint }
+      e_phoff           : longint;          { program header offset }
+
+      e_shoff           : longint;          { sections header offset }
+      e_flags           : longint;
+      e_ehsize          : word;             { elf header size in bytes }
+      e_phentsize       : word;             { size of an entry in the program header array }
+      e_phnum           : word;             { 0..e_phnum-1 of entrys }
+      e_shentsize       : word;             { size of an entry in sections header array }
+      e_shnum           : word;             { 0..e_shnum-1 of entrys }
+      e_shstrndx        : word;             { index of string section header }
+    end;
+    TElf32sechdr=packed record
+      sh_name           : longint;
+      sh_type           : longint;
+      sh_flags          : longint;
+      sh_addr           : longint;
+
+      sh_offset         : longint;
+      sh_size           : longint;
+      sh_link           : longint;
+      sh_info           : longint;
+
+      sh_addralign      : longint;
+      sh_entsize        : longint;
+    end;
+
+  var
+    f : file;
+
+  function ReadSectionName(pos : longint) : String;
+    var
+      oldpos : longint;
+      c : char;
+    begin
+      oldpos:=filepos(f);
+      seek(f,pos);
+      Result:='';
+      while true do
+        begin
+          blockread(f,c,1);
+          if c=#0 then
+            break;
+          Result:=Result+c;
+        end;
+      seek(f,oldpos);
+    end;
+
+  var
+    elfheader : TElf32header;
+    secheader : TElf32sechdr;
+    firstsecpos,
+    maxfillsize,
+    i,secheaderpos : longint;
+    stringoffset : longint;
+    secname : string;
+  begin
+    postprocessexecutable:=false;
+    { open file }
+    assign(f,fn);
+    {$I-}
+    reset(f,1);
+    if ioresult<>0 then
+      Message1(execinfo_f_cant_open_executable,fn);
+    { read header }
+    blockread(f,elfheader,sizeof(tElf32header));
+    seek(f,elfheader.e_shoff);
+    { read string section header }
+    seek(f,elfheader.e_shoff+sizeof(TElf32sechdr)*elfheader.e_shstrndx);
+    blockread(f,secheader,sizeof(secheader));
+    stringoffset:=secheader.sh_offset;
+
+    seek(f,elfheader.e_shoff);
+    status.datasize:=0;
+    for i:=0 to elfheader.e_shnum-1 do
+      begin
+        blockread(f,secheader,sizeof(secheader));
+        secname:=ReadSectionName(stringoffset+secheader.sh_name);
+        if secname='.text' then
+          begin
+            Message1(execinfo_x_codesize,tostr(secheader.sh_size));
+            status.codesize:=secheader.sh_size;
+          end
+        else if secname='.data' then
+          begin
+            Message1(execinfo_x_initdatasize,tostr(secheader.sh_size));
+            inc(status.datasize,secheader.sh_size);
+          end
+        else if secname='.bss' then
+          begin
+            Message1(execinfo_x_uninitdatasize,tostr(secheader.sh_size));
+            inc(status.datasize,secheader.sh_size);
+          end;
+
+      end;
+    close(f);
+    {$I+}
+    if ioresult<>0 then
+      ;
+    postprocessexecutable:=true;
+  end;
 
 
 {*****************************************************************************
