@@ -34,6 +34,7 @@ Type
       (cpu_none,
        cpu_armv3,
        cpu_armv4,
+       cpu_armv4t,
        cpu_armv5,
        cpu_armv6,
        cpu_armv7,
@@ -41,7 +42,7 @@ Type
       );
 
 Const
-   cpu_arm = [cpu_none,cpu_armv3,cpu_armv4,cpu_armv5];
+   cpu_arm = [cpu_none,cpu_armv3,cpu_armv4,cpu_armv4t,cpu_armv5];
    cpu_thumb = [];
    cpu_thumb2 = [cpu_armv7m];
 
@@ -182,6 +183,7 @@ Const
    cputypestr : array[tcputype] of string[8] = ('',
      'ARMV3',
      'ARMV4',
+     'ARMV4T',
      'ARMV5',
      'ARMV6',
      'ARMV7',

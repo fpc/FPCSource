@@ -48,11 +48,11 @@ CPU_UNITS=
 SYSINIT_UNITS=
 
 ifeq ($(ARCH),arm)
-ifeq ($(SUBARCH),cortexm3)
+ifeq ($(SUBARCH),armv7m)
 CPU_UNITS=lm3fury lm3tempest thumb2_bare stm32f103
 endif
 
-ifeq ($(SUBARCH),armv7)
+ifeq ($(SUBARCH),armv4t)
 CPU_UNITS=lpc21x4 at91sam7x256
 endif
 endif
