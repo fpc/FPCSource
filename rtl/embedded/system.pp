@@ -130,7 +130,11 @@ procedure haltproc(e:longint);cdecl;external name '_haltproc';
 
 procedure System_exit;
 begin
+{$ifdef FPC_HAS_FEATURE_EXITCODE}
   haltproc(ExitCode);
+{$else FPC_HAS_FEATURE_EXITCODE}
+  haltproc(0);
+{$endif FPC_HAS_FEATURE_EXITCODE}
 End;
 
 
