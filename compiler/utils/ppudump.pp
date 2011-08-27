@@ -1489,6 +1489,13 @@ begin
          ibunitsym :
            readcommonsym('Unit symbol ');
 
+         ibnamespacesym :
+           begin
+             readcommonsym('NameSpace symbol ');
+             write(space,'  Hidden Unit : ');
+             readderef('');
+           end;
+
          iblabelsym :
            readcommonsym('Label symbol ');
 

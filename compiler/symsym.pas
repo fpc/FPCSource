@@ -78,6 +78,16 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
+       tnamespacesym = class(Tstoredsym)
+          unitsym:tsym;
+          unitsymderef:tderef;
+          constructor create(const n : string);
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderef;override;
+          procedure deref;override;
+       end;
+
        terrorsym = class(Tsym)
           constructor create;
        end;
@@ -476,6 +486,42 @@ implementation
          inherited ppuwrite(ppufile);
          ppufile.writeentry(ibunitsym);
       end;
+
+{****************************************************************************
+                                TNAMESPACESYM
+****************************************************************************}
+
+    constructor tnamespacesym.create(const n : string);
+      begin
+         inherited create(namespacesym,n);
+         unitsym:=nil;
+      end;
+
+    constructor tnamespacesym.ppuload(ppufile:tcompilerppufile);
+      begin
+         inherited ppuload(namespacesym,ppufile);
+         ppufile.getderef(unitsymderef);
+      end;
+
+    procedure tnamespacesym.ppuwrite(ppufile:tcompilerppufile);
+      begin
+         inherited ppuwrite(ppufile);
+         ppufile.putderef(unitsymderef);
+         ppufile.writeentry(ibnamespacesym);
+      end;
+
+    procedure tnamespacesym.buildderef;
+      begin
+        inherited buildderef;
+        unitsymderef.build(unitsym);
+      end;
+
+    procedure tnamespacesym.deref;
+      begin
+        inherited deref;
+        unitsym:=tsym(unitsymderef.resolve);
+      end;
+
 
 {****************************************************************************
                                   TPROCSYM

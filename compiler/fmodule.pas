@@ -471,7 +471,7 @@ implementation
       var
         n : string;
       begin
-        n:=ChangeFileExt(ExtractFileName(s),'');
+        n:=s;
         { Programs have the name 'Program' to don't conflict with dup id's }
         if _is_unit then
          inherited create(n)

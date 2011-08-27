@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 135;
+  CurrentPPUVersion = 136;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -97,7 +97,7 @@ const
   ibunitsym        = 29;
   iblabelsym       = 30;
   ibsyssym         = 31;
-//  ibrttisym        = 32;
+  ibnamespacesym   = 32;
   iblocalvarsym    = 33;
   ibparavarsym     = 34;
   ibmacrosym       = 35;

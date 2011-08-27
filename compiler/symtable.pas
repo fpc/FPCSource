@@ -145,7 +145,9 @@ interface
        tabstractuniTSymtable = class(tstoredsymtable)
        public
           constructor create(const n : string;id:word);
+          function checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
           function iscurrentunit:boolean;override;
+          procedure insertunit(sym:TSymEntry);
        end;
 
        tglobalsymtable = class(tabstractuniTSymtable)
@@ -154,7 +156,6 @@ interface
           constructor create(const n : string;id:word);
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
        end;
 
        tstaticsymtable = class(tabstractuniTSymtable)
@@ -455,6 +456,7 @@ implementation
                iblabelsym : sym:=tlabelsym.ppuload(ppufile);
                  ibsyssym : sym:=tsyssym.ppuload(ppufile);
                ibmacrosym : sym:=tmacro.ppuload(ppufile);
+           ibnamespacesym : sym:=tnamespacesym.ppuload(ppufile);
                 ibendsyms : break;
                     ibend : Message(unit_f_ppu_read_error);
            else
@@ -707,7 +709,7 @@ implementation
            else
             begin
               if (tsym(sym).refs=0) and
-                 not(tsym(sym).typ in [enumsym,unitsym]) and
+                 not(tsym(sym).typ in [enumsym,unitsym,namespacesym]) and
                  not(is_funcret_sym(tsym(sym))) and
                  { don't complain about compiler generated syms for specializations, see also #13405 }
                  not((tsym(sym).typ=typesym) and (df_specialization in ttypesym(sym).typedef.defoptions) and
@@ -1460,6 +1462,46 @@ implementation
       end;
 
 
+    function tabstractuniTSymtable.checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;
+      var
+        hsym : tsym;
+      begin
+        result:=false;
+        hsym:=tsym(FindWithHash(hashedid));
+        if assigned(hsym) then
+          begin
+            if hsym.typ=symconst.namespacesym then
+              begin                
+                case sym.typ of
+                  symconst.namespacesym:;
+                  symconst.unitsym:
+                    begin
+                      HideSym(sym); { if we add a unit and there is a namespace with the same name then hide the unit name and not the namespace }
+                      tnamespacesym(hsym).unitsym:=tsym(sym);
+                    end
+                else
+                  HideSym(hsym);
+                end;
+              end
+            else
+            { In delphi (contrary to TP) you can have a symbol with the same name as the
+              unit, the unit can then not be accessed anymore using
+              <unit>.<id>, so we can hide the symbol. 
+              Do the same if we add a namespace and there is a unit with the same name }
+            if (hsym.typ=symconst.unitsym) and
+               ((m_delphi in current_settings.modeswitches) or (sym.typ=symconst.namespacesym)) then
+              begin
+                HideSym(hsym);
+                if sym.typ=symconst.namespacesym then
+                  tnamespacesym(sym).unitsym:=tsym(hsym);
+              end
+            else
+              DuplicateSym(hashedid,sym,hsym);
+            result:=true;
+            exit;
+          end;
+      end;
+
     function tabstractuniTSymtable.iscurrentunit:boolean;
       begin
         result:=assigned(current_module) and
@@ -1469,6 +1511,29 @@ implementation
                 );
       end;
 
+    procedure tabstractuniTSymtable.insertunit(sym:TSymEntry);
+      var
+        p:integer;
+        n,ns:string;
+        oldsym:TSymEntry;
+      begin
+        insert(sym);
+        n:=sym.realname;
+        p:=pos('.',n);
+        ns:='';
+        while p>0 do
+          begin
+            if ns='' then
+              ns:=copy(n,1,p-1)
+            else
+              ns:=ns+'.'+copy(n,1,p-1);
+            system.delete(n,1,p);
+            oldsym:=Find(upper(ns));
+            if not Assigned(oldsym) or (oldsym.typ<>namespacesym) then
+              insert(tnamespacesym.create(ns));
+            p:=pos('.',n);
+          end;
+      end;
 
 {****************************************************************************
                               TStaticSymtable
@@ -1501,23 +1566,10 @@ implementation
       var
         hsym : tsym;
       begin
-        result:=false;
-        hsym:=tsym(FindWithHash(hashedid));
-        if assigned(hsym) then
-          begin
-            { Delphi (contrary to TP) you can have a symbol with the same name as the
-              unit, the unit can then not be accessed anymore using
-              <unit>.<id>, so we can hide the symbol }
-            if (m_delphi in current_settings.modeswitches) and
-               (hsym.typ=symconst.unitsym) then
-              HideSym(hsym)
-            else
-              DuplicateSym(hashedid,sym,hsym);
-            result:=true;
-            exit;
-          end;
+        result:=inherited checkduplicate(hashedid,sym);
 
-        if (current_module.localsymtable=self) and
+        if not result and
+           (current_module.localsymtable=self) and
            assigned(current_module.globalsymtable) then
           result:=tglobalsymtable(current_module.globalsymtable).checkduplicate(hashedid,sym);
       end;
@@ -1548,28 +1600,6 @@ implementation
       begin
         { write the symtable entries }
         inherited ppuwrite(ppufile);
-      end;
-
-
-    function tglobalsymtable.checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;
-      var
-        hsym : tsym;
-      begin
-        result:=false;
-        hsym:=tsym(FindWithHash(hashedid));
-        if assigned(hsym) then
-          begin
-            { Delphi (contrary to TP) you can have a symbol with the same name as the
-              unit, the unit can then not be accessed anymore using
-              <unit>.<id>, so we can hide the symbol }
-            if (m_delphi in current_settings.modeswitches) and
-               (hsym.typ=symconst.unitsym) then
-              HideSym(hsym)
-            else
-              DuplicateSym(hashedid,sym,hsym);
-            result:=true;
-            exit;
-          end;
       end;
 
 
