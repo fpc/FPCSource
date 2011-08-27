@@ -327,7 +327,7 @@ Implementation
                     begin
                       oper.opr.ref.refaddr:=addr_pic;
 {$ifdef x86_64}
-                      { local symbols don't have to 
+                      { local symbols don't have to
                         be accessed via the GOT
                       }
                       if (actasmpattern='GOTPCREL') and
@@ -449,7 +449,27 @@ Implementation
           begin
             MaybeBuildReference:=true;
             case actasmtoken of
-              AS_INTNUM,
+              AS_INTNUM:
+                Begin
+                  { allow %segmentregister:number }
+                  if oper.opr.ref.segment<>NR_NO then
+                    begin
+                      oper.InitRef;
+                      if oper.opr.Ref.Offset <> 0 Then
+                        Message(asmr_e_invalid_reference_syntax)
+                      else
+                        begin
+                          oper.opr.Ref.Offset:=BuildConstExpression(false,true);
+                          if actasmtoken=AS_LPAREN then
+                            BuildReference(oper);
+                        end;
+                    end
+                  else
+                    begin
+                      oper.opr.ref.offset:=BuildConstExpression(True,False);
+                      BuildReference(oper);
+                    end;
+                end;
               AS_MINUS,
               AS_PLUS:
                 Begin
