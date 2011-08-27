@@ -37,14 +37,13 @@ Type
        cpu_armv5,
        cpu_armv6,
        cpu_armv7,
-       cpu_armv7m,
-       cpu_cortexm3
+       cpu_armv7m
       );
 
 Const
    cpu_arm = [cpu_none,cpu_armv3,cpu_armv4,cpu_armv5];
    cpu_thumb = [];
-   cpu_thumb2 = [cpu_armv7m,cpu_cortexm3];
+   cpu_thumb2 = [cpu_armv7m];
 
 Type
    tfputype =
@@ -186,8 +185,7 @@ Const
      'ARMV5',
      'ARMV6',
      'ARMV7',
-     'ARMV7M',
-     'CORTEXM3'
+     'ARMV7M'
    );
 
    fputypestr : array[tfputype] of string[6] = ('',

@@ -3139,7 +3139,7 @@ implementation
 {$ENDIF arm}
         begin
 {$IFDEF arm}
-          if current_settings.cputype in [cpu_armv7m, cpu_cortexm3] then
+          if current_settings.cputype in [cpu_armv7m] then
             current_asmdata.asmlists[al_globals].concat(tai_const.Createname(name,0))
           else
             begin
@@ -3201,7 +3201,7 @@ implementation
         new_section(current_asmdata.asmlists[al_globals],sec_init,'VECTORS',sizeof(pint));
         current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('VECTORS',AT_DATA,0));
 {$IFDEF arm}
-        if current_settings.cputype in [cpu_armv7m, cpu_cortexm3] then
+        if current_settings.cputype in [cpu_armv7m] then
           current_asmdata.asmlists[al_globals].concat(tai_const.Createname('_stack_top',0)); { ARMv7-M processors have the initial stack value at address 0 }
 {$ENDIF arm}
 
