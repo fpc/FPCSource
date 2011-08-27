@@ -77,6 +77,7 @@ type
     procedure RollbackRetaining(trans:TSQLHandle); override;
     // - Statement execution
     procedure Execute(cursor:TSQLCursor; ATransaction:TSQLTransaction; AParams:TParams); override;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
     // - Result retrieving
     procedure AddFieldDefs(cursor:TSQLCursor; FieldDefs:TFieldDefs); override;
     function Fetch(cursor:TSQLCursor):boolean; override;
@@ -437,6 +438,15 @@ begin
     if OCIStmtExecute(TOracleTrans(ATransaction.Handle).FOciSvcCtx,(cursor as TOracleCursor).FOciStmt,FOciError,1,0,nil,nil,OCI_DEFAULT) = OCI_ERROR then
       HandleError;
     end;
+end;
+
+function TOracleConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
+var rowcount: ub4;
+begin
+  if OCIAttrGet((cursor as TOracleCursor).FOciStmt, OCI_HTYPE_STMT, @rowcount, nil, OCI_ATTR_ROW_COUNT, FOciError) = OCI_SUCCESS then
+    Result:=rowcount
+  else
+    Result:=inherited RowsAffected(cursor);
 end;
 
 procedure TOracleConnection.AddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs);

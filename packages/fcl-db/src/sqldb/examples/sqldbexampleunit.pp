@@ -22,6 +22,7 @@ uses
 var dbtype,
     dbname,
     dbuser,
+    dbhost,
     dbpassword   : string;
 
     Fconnection  : tSQLConnection;
@@ -65,23 +66,18 @@ end;
 procedure ReadIniFile;
 
 var IniFile : TIniFile;
-
+    I : integer;
 begin
   IniFile := TIniFile.Create('database.ini');
   dbtype := IniFile.ReadString('Database','Type','');
+  dbhost := IniFile.ReadString('Database','Host','');
   dbname := IniFile.ReadString('Database','Name','');
   dbuser := IniFile.ReadString('Database','User','');
   dbpassword := IniFile.ReadString('Database','Password','');
   IniFile.Free;
   
-  FPdevBirthDates[1] := StrToDate('1-1-1991');
-  FPdevBirthDates[2] := StrToDate('2-2-1992');
-  FPdevBirthDates[3] := StrToDate('3-3-1993');
-  FPdevBirthDates[4] := StrToDate('4-4-1994');
-  FPdevBirthDates[5] := StrToDate('5-5-1995');
-  FPdevBirthDates[6] := StrToDate('6-6-1996');
-  FPdevBirthDates[7] := StrToDate('7-7-1997');
-  FPdevBirthDates[8] := StrToDate('8-8-1998');
+  For I:=1 to 8 do
+    FPdevBirthDates[i] := EncodeDate(1990+i,i,i);
 end;
 
 procedure CreateFConnection;
@@ -99,6 +95,8 @@ begin
 
   with Fconnection do
     begin
+    if dbhost<>'' then
+      Hostname:=dbhost;
     DatabaseName := dbname;
     UserName := dbuser;
     Password := dbpassword;

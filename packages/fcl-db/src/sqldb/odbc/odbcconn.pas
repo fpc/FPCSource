@@ -419,7 +419,7 @@ begin
           Size:=SizeOf(DateVal);
           CType:=SQL_C_TYPE_DATE;
           SqlType:=SQL_TYPE_DATE;
-          ColumnSize:=Size;
+          ColumnSize:=10;
         end;
       ftTime:
         begin
@@ -428,7 +428,7 @@ begin
           Size:=SizeOf(TimeVal);
           CType:=SQL_C_TYPE_TIME;
           SqlType:=SQL_TYPE_TIME;
-          ColumnSize:=Size;
+          ColumnSize:=12;
         end;
       ftDateTime:
         begin
@@ -437,7 +437,7 @@ begin
           Size:=SizeOf(TimeStampVal);
           CType:=SQL_C_TYPE_TIMESTAMP;
           SqlType:=SQL_TYPE_TIMESTAMP;
-          ColumnSize:=Size;
+          ColumnSize:=23;
         end;
       ftBoolean:
         begin
