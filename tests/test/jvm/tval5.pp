@@ -1,7 +1,11 @@
+program tval5;
+
 {$mode objfpc}
 
+{$ifndef cpujvm}
 uses
   sysutils;
+{$endif}
 
 procedure testcard;
 const
@@ -51,7 +55,7 @@ begin
 {$endif cpu64}
             val(s,c,l);
 {$ifdef cpu64}
-          except on e : exception do
+          except on e : jlthrowable do
             caught:=true;
           end;
           if not caught then
@@ -91,7 +95,7 @@ begin
 {$endif cpu64}
           val(s,c,l);
 {$ifdef cpu64}
-      except on e : exception do
+      except on e : jlthrowable do
         caught:=true;
       end;
       if not caught then
@@ -116,7 +120,7 @@ begin
 {$endif cpu64}
             val(s,c,l);
 {$ifdef cpu64}
-          except on e : exception do
+          except on e : jlthrowable do
             caught:=true;
           end;
           if not caught then

@@ -200,4 +200,8 @@ ppcjvm -O2 -g -B tval
 if %errorlevel% neq 0 exit /b %errorlevel%
 java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tval
 if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B tval5
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tval5
+if %errorlevel% neq 0 exit /b %errorlevel%
 
