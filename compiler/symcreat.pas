@@ -806,16 +806,19 @@ implementation
     end;
 
 
-  procedure add_synthetic_method_implementations_for_struct(struct: tabstractrecorddef);
+  procedure add_synthetic_method_implementations_for_st(st: tsymtable);
     var
       i   : longint;
       def : tdef;
       pd  : tprocdef;
     begin
-      for i:=0 to struct.symtable.deflist.count-1 do
+      for i:=0 to st.deflist.count-1 do
         begin
-          def:=tdef(struct.symtable.deflist[i]);
+          def:=tdef(st.deflist[i]);
           if (def.typ<>procdef) then
+            continue;
+          { skip methods when processing unit symtable }
+          if def.owner<>st then
             continue;
           pd:=tprocdef(def);
           case pd.synthetickind of
@@ -879,7 +882,8 @@ implementation
       { only necessary for the JVM target currently }
       if not (target_info.system in [system_jvm_java32]) then
         exit;
-      sstate.valid:=false;
+      replace_scanner('synthetic_impl',sstate);
+      add_synthetic_method_implementations_for_st(st);
       for i:=0 to st.deflist.count-1 do
         begin
           def:=tdef(st.deflist[i]);
@@ -892,9 +896,6 @@ implementation
               not(oo_is_external in tobjectdef(def).objectoptions)) or
               (def.typ=recorddef) then
            begin
-             if not sstate.valid then
-               replace_scanner('synthetic_impl',sstate);
-            add_synthetic_method_implementations_for_struct(tabstractrecorddef(def));
             { also complete nested types }
             add_synthetic_method_implementations(tabstractrecorddef(def).symtable);
            end;
