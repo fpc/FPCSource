@@ -417,6 +417,8 @@ begin
     result:=s;
   { +1 for terminating #0 }
   setlength(AnsistringClass(result).fdata,l+1);
+  { null-terminate in case the string became shorter }
+  AnsistringClass(result).fdata[l]:=#0;
 end;
 
 {*****************************************************************************
