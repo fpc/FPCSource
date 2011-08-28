@@ -67,6 +67,9 @@ interface
        tassigntype = (at_normal,at_plus,at_minus,at_star,at_slash);
 
        tassignmentnode = class(tbinarynode)
+         protected
+          function direct_shortstring_assignment: boolean; virtual;
+         public
           assigntype : tassigntype;
           constructor create(l,r : tnode);virtual;
           { no checks for validity of assignment }
@@ -474,6 +477,14 @@ implementation
                              TASSIGNMENTNODE
 *****************************************************************************}
 
+    function tassignmentnode.direct_shortstring_assignment: boolean;
+      begin
+        result:=
+          is_char(right.resultdef) or
+          (right.resultdef.typ=stringdef);
+      end;
+
+
     constructor tassignmentnode.create(l,r : tnode);
 
       begin
@@ -603,9 +614,7 @@ implementation
            { insert typeconv, except for chars that are handled in
              secondpass and except for ansi/wide string that can
              be converted immediatly }
-           if (not is_char(right.resultdef) or
-               (target_info.system in systems_managed_vm)) and
-              (right.resultdef.typ<>stringdef) then
+           if not direct_shortstring_assignment then
              inserttypeconv(right,left.resultdef);
            if right.resultdef.typ=stringdef then
             begin

@@ -42,6 +42,9 @@ type
   end;
 
   tjvmassignmentnode  = class(tcgassignmentnode)
+   protected
+    function direct_shortstring_assignment: boolean; override;
+   public
     function pass_1: tnode; override;
   end;
 
@@ -64,6 +67,14 @@ uses
   cgbase,hlcgobj;
 
 { tjvmassignmentnode }
+
+function tjvmassignmentnode.direct_shortstring_assignment: boolean;
+  begin
+    if maybe_find_real_class_definition(right.resultdef,false)=java_jlstring then
+      inserttypeconv_explicit(right,cunicodestringtype);
+    result:=right.resultdef.typ=stringdef;
+  end;
+
 
 function tjvmassignmentnode.pass_1: tnode;
   var
