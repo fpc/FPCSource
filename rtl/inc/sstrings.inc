@@ -926,7 +926,8 @@ begin
 end;
 
 
-{$ifdef FPC_HAS_STR_CURRENCY}
+{$ifndef FPC_HAS_CHARARRAY_CURRENCY}
+{$define FPC_HAS_CHARARRAY_CURRENCY}
 procedure fpc_chararray_Currency(c : Currency;len,fr : SizeInt;out a : array of char);compilerproc;
 var
   ss : shortstring;
