@@ -289,33 +289,34 @@ end;
 
 
 Function FileExists (Const FileName : String) : Boolean;
-Var
-  Sr : Searchrec;
 begin
-  DOS.FindFirst(FileName,$3f,sr);
-  if DosError = 0 then
-   begin
-     { No volumeid,directory }
-     Result:=(sr.attr and $18)=0;
-     Dos.FindClose(sr);
-   end
+  if FileName = '' then
+   Result := false
   else
-   Result:=false;
+   Result := FileGetAttr (ExpandFileName (FileName)) and
+                                               (faDirectory or faVolumeID) = 0;
+(* Neither VolumeIDs nor directories are files. *)
 end;
 
 
-Function DirectoryExists (Const Directory : String) : Boolean;
-Var
-  Sr : Searchrec;
+function DirectoryExists (const Directory: string): boolean;
+var
+  L: longint;
 begin
-  DOS.FindFirst(Directory,$3f,sr);
-  if DosError = 0 then
-   begin
-     Result:=(sr.attr and $10)=$10;
-     Dos.FindClose(sr);
-   end
+  if Directory = '' then
+   Result := false
   else
-   Result:=false;
+   begin
+    if (Directory [Length (Directory)] in AllowDirectorySeparators) and
+                                              (Length (Directory) > 1) and
+(* Do not remove '\' after ':' (root directory of a drive) 
+   or in '\\' (invalid path, possibly broken UNC path). *)
+      not (Directory [Length (Directory) - 1] in AllowDriveSeparators + AllowDirectorySeparators) then
+     L := FileGetAttr (ExpandFileName (Copy (Directory, 1, Length (Directory) - 1)))
+    else
+     L := FileGetAttr (ExpandFileName (Directory));
+    Result := (L > 0) and (L and faDirectory = faDirectory);
+   end;
 end;
 
 
