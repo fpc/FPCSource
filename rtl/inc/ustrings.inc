@@ -1673,6 +1673,27 @@ begin
 end;
 
 
+{$ifndef FPC_HAS_LOWERCASE_UNICODECHAR}
+{$define FPC_HAS_LOWERCASE_UNICODECHAR}
+Function  LowerCase(c:UnicodeChar):UnicodeChar;
+var
+  s : UnicodeString;
+begin
+  s:=c;
+  result:=widestringmanager.LowerUnicodeStringProc(s)[1];
+end;
+{$endif FPC_HAS_LOWERCASE_UNICODECHAR}
+
+
+{$ifndef FPC_HAS_LOWERCASE_UNICODESTR}
+{$define FPC_HAS_LOWERCASE_UNICODESTR}
+function LowerCase(const s : UnicodeString) : UnicodeString;
+begin
+  result:=widestringmanager.LowerUnicodeStringProc(s);
+end;
+{$endif FPC_HAS_LOWERCASE_UNICODESTR}
+
+
 Procedure SetString (Out S : UnicodeString; Buf : PUnicodeChar; Len : SizeInt);
 begin
   SetLength(S,Len);

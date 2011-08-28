@@ -442,9 +442,9 @@ Function fpc_UChar_To_UnicodeStr(const c : UnicodeChar): UnicodeString; compiler
 Function fpc_WChar_To_UnicodeStr(const c : WideChar): UnicodeString; compilerproc;
 Function fpc_UChar_To_AnsiStr(const c : UnicodeChar): AnsiString; compilerproc;
 {$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_WChar_To_ShortStr(const c : WideChar): ShortString; compilerproc;
+Function fpc_UChar_To_ShortStr(const c : WideChar): ShortString; compilerproc;
 {$else FPC_STRTOSHORTSTRINGPROC}
-procedure fpc_WChar_To_ShortStr(out res : shortstring;const c : WideChar) compilerproc;
+procedure fpc_UChar_To_ShortStr(out res : shortstring;const c : WideChar) compilerproc;
 {$endif FPC_STRTOSHORTSTRINGPROC}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 

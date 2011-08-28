@@ -1130,7 +1130,7 @@ implementation
                    if torddef(left.resultdef).ordtype<>uwidechar then
                      procname := 'fpc_char_to_shortstr'
                    else
-                     procname := 'fpc_wchar_to_shortstr';
+                     procname := 'fpc_uchar_to_shortstr';
                    addstatement(newstat,ccallnode.createintern(procname,ccallparanode.create(left,ccallparanode.create(
                      ctemprefnode.create(restemp),nil))));
                    addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
