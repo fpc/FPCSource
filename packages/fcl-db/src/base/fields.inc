@@ -820,12 +820,6 @@ procedure TField.SetData(Buffer: Pointer; NativeFormat : Boolean);
 begin
   If Not Assigned(FDataset) then
     DatabaseErrorFmt(SNoDataset,[FieldName]);
-  if (FieldNo>0) and not (FDataSet.State in [dsSetKey, dsFilter]) then
-    begin
-    if ReadOnly then 
-      DatabaseErrorFmt(SReadOnlyField, [DisplayName], Self); 
-    Validate(Buffer);
-    end;
   FDataSet.SetFieldData(Self,Buffer, NativeFormat);
 end;
 

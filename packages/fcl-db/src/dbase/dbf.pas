@@ -764,6 +764,8 @@ var
 begin
   if (Field.FieldNo >= 0) then
   begin
+    if State in [dsEdit, dsInsert, dsNewValue] then
+      Field.Validate(Buffer);
     Dst := @PDbfRecord(ActiveBuffer)^.DeletedFlag;
     FDbfFile.SetFieldData(Field.FieldNo - 1, Field.DataType, Buffer, Dst, NativeFormat);
   end else begin    { ***** fkCalculated, fkLookup ***** }

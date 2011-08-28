@@ -128,7 +128,7 @@ How to Install
 interface
 
 uses
-  DB, Classes, SysUtils;
+  DB, Classes, SysUtils, DBConst;
 
 type
 //-----------------------------------------------------------------------------
@@ -664,16 +664,17 @@ var
   RecBuf, BufEnd: PChar;
   p : Integer;
 begin
-  if not (State in [dsEdit, dsInsert]) then
-    DatabaseError('Dataset not in edit or insert mode', Self);
+  if not (State in dsWriteModes) then
+    DatabaseError(SNotEditing, Self);
   GetActiveRecBuf(RecBuf);
   if Field.FieldNo > 0 then
   begin
     if State = dsCalcFields then
       DatabaseError('Dataset not in edit or insert mode', Self);
     if Field.ReadOnly and not (State in [dsSetKey, dsFilter]) then
-      DatabaseErrorFmt('Field ''%s'' cannot be modified', [Field.DisplayName]);
-    Field.Validate(Buffer);
+      DatabaseErrorFmt(SReadOnlyField, [Field.DisplayName]);
+    if State in [dsEdit, dsInsert, dsNewValue] then
+      Field.Validate(Buffer);
     if Field.FieldKind <> fkInternalCalc then
     begin
       SetFieldPos(RecBuf, Field.FieldNo);
