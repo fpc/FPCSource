@@ -2922,6 +2922,9 @@ implementation
       pd: tprocdef;
     begin
       srsym:=tsym(systemunit.find(procname));
+      if not assigned(srsym) and
+         (cs_compilesystem in current_settings.moduleswitches) then
+        srsym:=tsym(systemunit.Find(upper(procname)));
       if not assigned(srsym) or
          (srsym.typ<>procsym) then
         Message1(cg_f_unknown_compilerproc,procname);
