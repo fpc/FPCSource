@@ -4752,7 +4752,7 @@ implementation
                 vs:=tparavarsym(paras[i]);
                 { function result is not part of the mangled name }
                 if vo_is_funcret in vs.varoptions then
-                  exit;
+                  continue;
                 { self pointer neither, except for class methods (the JVM only
                   supports static class methods natively, so the self pointer
                   here is a regular parameter as far as the JVM is concerned }
