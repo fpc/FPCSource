@@ -106,6 +106,10 @@
     class function scalb(para1: jfloat; para2: jint): jfloat; static; overload;
   end;
 
+  JLReadable = interface external 'java.lang' name 'Readable' 
+    function read(para1: JNCharBuffer): jint; overload;  // throws java.io.IOException
+  end;
+
   JLRuntime = class external 'java.lang' name 'Runtime' (JLObject)
   public
     class function getRuntime(): JLRuntime; static; overload;
@@ -257,6 +261,153 @@
   end;
 
   JLRType = interface external 'java.lang.reflect' name 'Type' 
+  end;
+
+  JNBuffer = class abstract external 'java.nio' name 'Buffer' (JLObject)
+  public
+    function capacity(): jint; overload; virtual; final;
+    function position(): jint; overload; virtual; final;
+    function position(para1: jint): JNBuffer; overload; virtual; final;
+    function limit(): jint; overload; virtual; final;
+    function limit(para1: jint): JNBuffer; overload; virtual; final;
+    function mark(): JNBuffer; overload; virtual; final;
+    function reset(): JNBuffer; overload; virtual; final;
+    function clear(): JNBuffer; overload; virtual; final;
+    function flip(): JNBuffer; overload; virtual; final;
+    function rewind(): JNBuffer; overload; virtual; final;
+    function remaining(): jint; overload; virtual; final;
+    function hasRemaining(): jboolean; overload; virtual; final;
+    function isReadOnly(): jboolean; overload; virtual; abstract;
+    function hasArray(): jboolean; overload; virtual; abstract;
+    function &array(): JLObject; overload; virtual; abstract;
+    function arrayOffset(): jint; overload; virtual; abstract;
+    function isDirect(): jboolean; overload; virtual; abstract;
+  end;
+
+  JNCCharsetDecoder = class abstract external 'java.nio.charset' name 'CharsetDecoder' (JLObject)
+  strict protected
+    constructor create(para1: JNCCharset; para2: jfloat; para3: jfloat); overload;
+  public
+    function charset(): JNCCharset; overload; virtual; final;
+    function replacement(): JLString; overload; virtual; final;
+    function replaceWith(para1: JLString): JNCCharsetDecoder; overload; virtual; final;
+  strict protected
+    procedure implReplaceWith(para1: JLString); overload; virtual;
+  public
+    function malformedInputAction(): JNCCodingErrorAction; overload; virtual;
+    function onMalformedInput(para1: JNCCodingErrorAction): JNCCharsetDecoder; overload; virtual; final;
+  strict protected
+    procedure implOnMalformedInput(para1: JNCCodingErrorAction); overload; virtual;
+  public
+    function unmappableCharacterAction(): JNCCodingErrorAction; overload; virtual;
+    function onUnmappableCharacter(para1: JNCCodingErrorAction): JNCCharsetDecoder; overload; virtual; final;
+  strict protected
+    procedure implOnUnmappableCharacter(para1: JNCCodingErrorAction); overload; virtual;
+  public
+    function averageCharsPerByte(): jfloat; overload; virtual; final;
+    function maxCharsPerByte(): jfloat; overload; virtual; final;
+    function decode(para1: JNByteBuffer; para2: JNCharBuffer; para3: jboolean): JNCCoderResult; overload; virtual; final;
+    function flush(para1: JNCharBuffer): JNCCoderResult; overload; virtual; final;
+  strict protected
+    function implFlush(para1: JNCharBuffer): JNCCoderResult; overload; virtual;
+  public
+    function reset(): JNCCharsetDecoder; overload; virtual; final;
+  strict protected
+    procedure implReset(); overload; virtual;
+    function decodeLoop(para1: JNByteBuffer; para2: JNCharBuffer): JNCCoderResult; overload; virtual; abstract;
+  public
+    function decode(para1: JNByteBuffer): JNCharBuffer; overload; virtual; final;  // throws java.nio.charset.CharacterCodingException
+    function isAutoDetecting(): jboolean; overload; virtual;
+    function isCharsetDetected(): jboolean; overload; virtual;
+    function detectedCharset(): JNCCharset; overload; virtual;
+  end;
+
+  JNCCharsetEncoder = class abstract external 'java.nio.charset' name 'CharsetEncoder' (JLObject)
+  strict protected
+    constructor create(para1: JNCCharset; para2: jfloat; para3: jfloat; para4: Arr1jbyte); overload;
+    constructor create(para1: JNCCharset; para2: jfloat; para3: jfloat; const para4: array of jbyte); overload;
+    constructor create(para1: JNCCharset; para2: jfloat; para3: jfloat); overload;
+  public
+    function charset(): JNCCharset; overload; virtual; final;
+    function replacement(): Arr1jbyte; overload; virtual; final;
+    function replaceWith(para1: Arr1jbyte): JNCCharsetEncoder; overload; virtual; final;
+    function replaceWith(var para1: array of jbyte): JNCCharsetEncoder; overload; virtual; final;
+  strict protected
+    procedure implReplaceWith(para1: Arr1jbyte); overload; virtual;
+    procedure implReplaceWith(var para1: array of jbyte); overload; virtual;
+  public
+    function isLegalReplacement(para1: Arr1jbyte): jboolean; overload; virtual;
+    function isLegalReplacement(var para1: array of jbyte): jboolean; overload; virtual;
+    function malformedInputAction(): JNCCodingErrorAction; overload; virtual;
+    function onMalformedInput(para1: JNCCodingErrorAction): JNCCharsetEncoder; overload; virtual; final;
+  strict protected
+    procedure implOnMalformedInput(para1: JNCCodingErrorAction); overload; virtual;
+  public
+    function unmappableCharacterAction(): JNCCodingErrorAction; overload; virtual;
+    function onUnmappableCharacter(para1: JNCCodingErrorAction): JNCCharsetEncoder; overload; virtual; final;
+  strict protected
+    procedure implOnUnmappableCharacter(para1: JNCCodingErrorAction); overload; virtual;
+  public
+    function averageBytesPerChar(): jfloat; overload; virtual; final;
+    function maxBytesPerChar(): jfloat; overload; virtual; final;
+    function encode(para1: JNCharBuffer; para2: JNByteBuffer; para3: jboolean): JNCCoderResult; overload; virtual; final;
+    function flush(para1: JNByteBuffer): JNCCoderResult; overload; virtual; final;
+  strict protected
+    function implFlush(para1: JNByteBuffer): JNCCoderResult; overload; virtual;
+  public
+    function reset(): JNCCharsetEncoder; overload; virtual; final;
+  strict protected
+    procedure implReset(); overload; virtual;
+    function encodeLoop(para1: JNCharBuffer; para2: JNByteBuffer): JNCCoderResult; overload; virtual; abstract;
+  public
+    function encode(para1: JNCharBuffer): JNByteBuffer; overload; virtual; final;  // throws java.nio.charset.CharacterCodingException
+    function canEncode(para1: jchar): jboolean; overload; virtual;
+    function canEncode(para1: JLCharSequence): jboolean; overload; virtual;
+  end;
+
+  JNCCoderResult = class external 'java.nio.charset' name 'CoderResult' (JLObject)
+  public
+    type
+      InnerCache = class;
+      Arr1InnerCache = array of InnerCache;
+      Arr2InnerCache = array of Arr1InnerCache;
+      Arr3InnerCache = array of Arr2InnerCache;
+      InnerCache = class abstract external 'java.nio.charset' name 'Cache' 
+      end;
+
+  public
+    final class var
+      fUNDERFLOW: JNCCoderResult; external name 'UNDERFLOW';
+      fOVERFLOW: JNCCoderResult; external name 'OVERFLOW';
+  public
+    function toString(): JLString; overload; virtual;
+    function isUnderflow(): jboolean; overload; virtual;
+    function isOverflow(): jboolean; overload; virtual;
+    function isError(): jboolean; overload; virtual;
+    function isMalformed(): jboolean; overload; virtual;
+    function isUnmappable(): jboolean; overload; virtual;
+    function length(): jint; overload; virtual;
+    class function malformedForLength(para1: jint): JNCCoderResult; static; overload;
+    class function unmappableForLength(para1: jint): JNCCoderResult; static; overload;
+    procedure throwException(); overload; virtual;  // throws java.nio.charset.CharacterCodingException
+  end;
+
+  JNCCodingErrorAction = class external 'java.nio.charset' name 'CodingErrorAction' (JLObject)
+  public
+    final class var
+      fIGNORE: JNCCodingErrorAction; external name 'IGNORE';
+      fREPLACE: JNCCodingErrorAction; external name 'REPLACE';
+      fREPORT: JNCCodingErrorAction; external name 'REPORT';
+  public
+    function toString(): JLString; overload; virtual;
+  end;
+
+  JNCSCharsetProvider = class abstract external 'java.nio.charset.spi' name 'CharsetProvider' (JLObject)
+  strict protected
+    constructor create(); overload;
+  public
+    function charsets(): JUIterator; overload; virtual; abstract;
+    function charsetForName(para1: JLString): JNCCharset; overload; virtual; abstract;
   end;
 
   JUArrays = class external 'java.util' name 'Arrays' (JLObject)
@@ -1132,6 +1283,35 @@
     function compareTo(para1: JLObject): jint; overload; virtual;
   end;
 
+  JNCCharset = class abstract external 'java.nio.charset' name 'Charset' (JLObject, JLComparable)
+  public
+    class function isSupported(para1: JLString): jboolean; static; overload;
+    class function forName(para1: JLString): JNCCharset; static; overload;
+    class function availableCharsets(): JUSortedMap; static; overload;
+    class function defaultCharset(): JNCCharset; static; overload;
+  strict protected
+    constructor create(para1: JLString; para2: Arr1JLString); overload;
+    constructor create(para1: JLString; const para2: array of JLString); overload;
+  public
+    function name(): JLString; overload; virtual; final;
+    function aliases(): JUSet; overload; virtual; final;
+    function displayName(): JLString; overload; virtual;
+    function isRegistered(): jboolean; overload; virtual; final;
+    function displayName(para1: JULocale): JLString; overload; virtual;
+    function contains(para1: JNCCharset): jboolean; overload; virtual; abstract;
+    function newDecoder(): JNCCharsetDecoder; overload; virtual; abstract;
+    function newEncoder(): JNCCharsetEncoder; overload; virtual; abstract;
+    function canEncode(): jboolean; overload; virtual;
+    function decode(para1: JNByteBuffer): JNCharBuffer; overload; virtual; final;
+    function encode(para1: JNCharBuffer): JNByteBuffer; overload; virtual; final;
+    function encode(para1: JLString): JNByteBuffer; overload; virtual; final;
+    function compareTo(para1: JNCCharset): jint; overload; virtual; final;
+    function hashCode(): jint; overload; virtual; final;
+    function equals(para1: JLObject): jboolean; overload; virtual; final;
+    function toString(): JLString; overload; virtual; final;
+    function compareTo(para1: JLObject): jint; overload; virtual;
+  end;
+
   JUCalendar = class abstract external 'java.util' name 'Calendar' (JLObject, JISerializable, JLCloneable, JLComparable)
   public
     type
@@ -1368,6 +1548,126 @@
     function isAnnotationPresent(para1: JLClass): jboolean; overload; virtual;
     function getAnnotations(): Arr1JLAAnnotation; overload; virtual;
     function getDeclaredAnnotations(): Arr1JLAAnnotation; overload; virtual;
+  end;
+
+  JNByteBuffer = class abstract external 'java.nio' name 'ByteBuffer' (JNBuffer, JLComparable)
+  public
+    class function allocateDirect(para1: jint): JNByteBuffer; static; overload;
+    class function allocate(para1: jint): JNByteBuffer; static; overload;
+    class function wrap(para1: Arr1jbyte; para2: jint; para3: jint): JNByteBuffer; static; overload;
+    class function wrap(var para1: array of jbyte; para2: jint; para3: jint): JNByteBuffer; static; overload;
+    class function wrap(para1: Arr1jbyte): JNByteBuffer; static; overload;
+    class function wrap(var para1: array of jbyte): JNByteBuffer; static; overload;
+    function slice(): JNByteBuffer; overload; virtual; abstract;
+    function duplicate(): JNByteBuffer; overload; virtual; abstract;
+    function asReadOnlyBuffer(): JNByteBuffer; overload; virtual; abstract;
+    function get(): jbyte; overload; virtual; abstract;
+    function put(para1: jbyte): JNByteBuffer; overload; virtual; abstract;
+    function get(para1: jint): jbyte; overload; virtual; abstract;
+    function put(para1: jint; para2: jbyte): JNByteBuffer; overload; virtual; abstract;
+    function get(para1: Arr1jbyte; para2: jint; para3: jint): JNByteBuffer; overload; virtual;
+    function get(var para1: array of jbyte; para2: jint; para3: jint): JNByteBuffer; overload; virtual;
+    function get(para1: Arr1jbyte): JNByteBuffer; overload; virtual;
+    function get(var para1: array of jbyte): JNByteBuffer; overload; virtual;
+    function put(para1: JNByteBuffer): JNByteBuffer; overload; virtual;
+    function put(para1: Arr1jbyte; para2: jint; para3: jint): JNByteBuffer; overload; virtual;
+    function put(var para1: array of jbyte; para2: jint; para3: jint): JNByteBuffer; overload; virtual;
+    function put(para1: Arr1jbyte): JNByteBuffer; overload; virtual; final;
+    function put(var para1: array of jbyte): JNByteBuffer; overload; virtual; final;
+    function hasArray(): jboolean; overload; virtual; final;
+    function &array(): Arr1jbyte; overload; virtual; final;
+    function arrayOffset(): jint; overload; virtual; final;
+    function compact(): JNByteBuffer; overload; virtual; abstract;
+    function isDirect(): jboolean; overload; virtual; abstract;
+    function toString(): JLString; overload; virtual;
+    function hashCode(): jint; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual;
+    function compareTo(para1: JNByteBuffer): jint; overload; virtual;
+    function order(): JNByteOrder; overload; virtual; final;
+    function order(para1: JNByteOrder): JNByteBuffer; overload; virtual; final;
+    function getChar(): jchar; overload; virtual; abstract;
+    function putChar(para1: jchar): JNByteBuffer; overload; virtual; abstract;
+    function getChar(para1: jint): jchar; overload; virtual; abstract;
+    function putChar(para1: jint; para2: jchar): JNByteBuffer; overload; virtual; abstract;
+    function asCharBuffer(): JNCharBuffer; overload; virtual; abstract;
+    function getShort(): jshort; overload; virtual; abstract;
+    function putShort(para1: jshort): JNByteBuffer; overload; virtual; abstract;
+    function getShort(para1: jint): jshort; overload; virtual; abstract;
+    function putShort(para1: jint; para2: jshort): JNByteBuffer; overload; virtual; abstract;
+    function asShortBuffer(): JNShortBuffer; overload; virtual; abstract;
+    function getInt(): jint; overload; virtual; abstract;
+    function putInt(para1: jint): JNByteBuffer; overload; virtual; abstract;
+    function getInt(para1: jint): jint; overload; virtual; abstract;
+    function putInt(para1: jint; para2: jint): JNByteBuffer; overload; virtual; abstract;
+    function asIntBuffer(): JNIntBuffer; overload; virtual; abstract;
+    function getLong(): jlong; overload; virtual; abstract;
+    function putLong(para1: jlong): JNByteBuffer; overload; virtual; abstract;
+    function getLong(para1: jint): jlong; overload; virtual; abstract;
+    function putLong(para1: jint; para2: jlong): JNByteBuffer; overload; virtual; abstract;
+    function asLongBuffer(): JNLongBuffer; overload; virtual; abstract;
+    function getFloat(): jfloat; overload; virtual; abstract;
+    function putFloat(para1: jfloat): JNByteBuffer; overload; virtual; abstract;
+    function getFloat(para1: jint): jfloat; overload; virtual; abstract;
+    function putFloat(para1: jint; para2: jfloat): JNByteBuffer; overload; virtual; abstract;
+    function asFloatBuffer(): JNFloatBuffer; overload; virtual; abstract;
+    function getDouble(): jdouble; overload; virtual; abstract;
+    function putDouble(para1: jdouble): JNByteBuffer; overload; virtual; abstract;
+    function getDouble(para1: jint): jdouble; overload; virtual; abstract;
+    function putDouble(para1: jint; para2: jdouble): JNByteBuffer; overload; virtual; abstract;
+    function asDoubleBuffer(): JNDoubleBuffer; overload; virtual; abstract;
+    function &array(): JLObject; overload; virtual;
+    function compareTo(para1: JLObject): jint; overload; virtual;
+  end;
+
+  JNCharBuffer = class abstract external 'java.nio' name 'CharBuffer' (JNBuffer, JLComparable, JLAppendable, JLCharSequence, JLReadable)
+  public
+    class function allocate(para1: jint): JNCharBuffer; static; overload;
+    class function wrap(para1: Arr1jchar; para2: jint; para3: jint): JNCharBuffer; static; overload;
+    class function wrap(var para1: array of jchar; para2: jint; para3: jint): JNCharBuffer; static; overload;
+    class function wrap(para1: Arr1jchar): JNCharBuffer; static; overload;
+    class function wrap(var para1: array of jchar): JNCharBuffer; static; overload;
+    function read(para1: JNCharBuffer): jint; overload; virtual;  // throws java.io.IOException
+    class function wrap(para1: JLCharSequence; para2: jint; para3: jint): JNCharBuffer; static; overload;
+    class function wrap(para1: JLCharSequence): JNCharBuffer; static; overload;
+    function slice(): JNCharBuffer; overload; virtual; abstract;
+    function duplicate(): JNCharBuffer; overload; virtual; abstract;
+    function asReadOnlyBuffer(): JNCharBuffer; overload; virtual; abstract;
+    function get(): jchar; overload; virtual; abstract;
+    function put(para1: jchar): JNCharBuffer; overload; virtual; abstract;
+    function get(para1: jint): jchar; overload; virtual; abstract;
+    function put(para1: jint; para2: jchar): JNCharBuffer; overload; virtual; abstract;
+    function get(para1: Arr1jchar; para2: jint; para3: jint): JNCharBuffer; overload; virtual;
+    function get(var para1: array of jchar; para2: jint; para3: jint): JNCharBuffer; overload; virtual;
+    function get(para1: Arr1jchar): JNCharBuffer; overload; virtual;
+    function get(var para1: array of jchar): JNCharBuffer; overload; virtual;
+    function put(para1: JNCharBuffer): JNCharBuffer; overload; virtual;
+    function put(para1: Arr1jchar; para2: jint; para3: jint): JNCharBuffer; overload; virtual;
+    function put(var para1: array of jchar; para2: jint; para3: jint): JNCharBuffer; overload; virtual;
+    function put(para1: Arr1jchar): JNCharBuffer; overload; virtual; final;
+    function put(var para1: array of jchar): JNCharBuffer; overload; virtual; final;
+    function put(para1: JLString; para2: jint; para3: jint): JNCharBuffer; overload; virtual;
+    function put(para1: JLString): JNCharBuffer; overload; virtual; final;
+    function hasArray(): jboolean; overload; virtual; final;
+    function &array(): Arr1jchar; overload; virtual; final;
+    function arrayOffset(): jint; overload; virtual; final;
+    function compact(): JNCharBuffer; overload; virtual; abstract;
+    function isDirect(): jboolean; overload; virtual; abstract;
+    function hashCode(): jint; overload; virtual;
+    function equals(para1: JLObject): jboolean; overload; virtual;
+    function compareTo(para1: JNCharBuffer): jint; overload; virtual;
+    function toString(): JLString; overload; virtual;
+    function length(): jint; overload; virtual; final;
+    function charAt(para1: jint): jchar; overload; virtual; final;
+    function subSequence(para1: jint; para2: jint): JLCharSequence; overload; virtual; abstract;
+    function append(para1: JLCharSequence): JNCharBuffer; overload; virtual;
+    function append(para1: JLCharSequence; para2: jint; para3: jint): JNCharBuffer; overload; virtual;
+    function append(para1: jchar): JNCharBuffer; overload; virtual;
+    function order(): JNByteOrder; overload; virtual; abstract;
+    function &array(): JLObject; overload; virtual;
+    function compareTo(para1: JLObject): jint; overload; virtual;
+    function append(para1: jchar): JLAppendable; overload; virtual;  // throws java.io.IOException
+    function append(para1: JLCharSequence; para2: jint; para3: jint): JLAppendable; overload; virtual;  // throws java.io.IOException
+    function append(para1: JLCharSequence): JLAppendable; overload; virtual;  // throws java.io.IOException
   end;
 
   JTCollator = class abstract external 'java.text' name 'Collator' (JLObject, JUComparator, JLCloneable)
@@ -2226,6 +2526,19 @@
     constructor create(para1: JLString); overload;
   end;
 
+  JNCCoderMalfunctionError = class external 'java.nio.charset' name 'CoderMalfunctionError' (JLError)
+  public
+    constructor create(para1: JLException); overload;
+  end;
+
+  JIIOException = class external 'java.io' name 'IOException' (JLException)
+  public
+    constructor create(); overload;
+    constructor create(para1: JLString); overload;
+    constructor create(para1: JLString; para2: JLThrowable); overload;
+    constructor create(para1: JLThrowable); overload;
+  end;
+
   JLNoSuchMethodException = class external 'java.lang' name 'NoSuchMethodException' (JLException)
   public
     constructor create(); overload;
@@ -2249,7 +2562,20 @@
     function removeAll(para1: JUCollection): jboolean; overload; virtual;
   end;
 
+  JNCCharacterCodingException = class external 'java.nio.charset' name 'CharacterCodingException' (JIIOException)
+  public
+    constructor create(); overload;
+  end;
+
   JLIllegalArgumentException = class external 'java.lang' name 'IllegalArgumentException' (JLRuntimeException)
+  public
+    constructor create(); overload;
+    constructor create(para1: JLString); overload;
+    constructor create(para1: JLString; para2: JLThrowable); overload;
+    constructor create(para1: JLThrowable); overload;
+  end;
+
+  JLIllegalStateException = class external 'java.lang' name 'IllegalStateException' (JLRuntimeException)
   public
     constructor create(); overload;
     constructor create(para1: JLString); overload;
@@ -2261,6 +2587,14 @@
   public
     constructor create(); overload;
     constructor create(para1: JLString); overload;
+  end;
+
+  JLUnsupportedOperationException = class external 'java.lang' name 'UnsupportedOperationException' (JLRuntimeException)
+  public
+    constructor create(); overload;
+    constructor create(para1: JLString); overload;
+    constructor create(para1: JLString; para2: JLThrowable); overload;
+    constructor create(para1: JLThrowable); overload;
   end;
 
   JUEnumSet = class abstract external 'java.util' name 'EnumSet' (JUAbstractSet, JLCloneable, JISerializable)
@@ -2289,5 +2623,31 @@
     class function range(para1: JLEnum; para2: JLEnum): JUEnumSet; static; overload;
     function clone(): JUEnumSet; overload; virtual;
     function clone(): JLObject; overload; virtual;  // throws java.lang.CloneNotSupportedException
+  end;
+
+  JNCMalformedInputException = class external 'java.nio.charset' name 'MalformedInputException' (JNCCharacterCodingException)
+  public
+    constructor create(para1: jint); overload;
+    function getInputLength(): jint; overload; virtual;
+    function getMessage(): JLString; overload; virtual;
+  end;
+
+  JNCUnmappableCharacterException = class external 'java.nio.charset' name 'UnmappableCharacterException' (JNCCharacterCodingException)
+  public
+    constructor create(para1: jint); overload;
+    function getInputLength(): jint; overload; virtual;
+    function getMessage(): JLString; overload; virtual;
+  end;
+
+  JNCIllegalCharsetNameException = class external 'java.nio.charset' name 'IllegalCharsetNameException' (JLIllegalArgumentException)
+  public
+    constructor create(para1: JLString); overload;
+    function getCharsetName(): JLString; overload; virtual;
+  end;
+
+  JNCUnsupportedCharsetException = class external 'java.nio.charset' name 'UnsupportedCharsetException' (JLIllegalArgumentException)
+  public
+    constructor create(para1: JLString); overload;
+    function getCharsetName(): JLString; overload; virtual;
   end;
 

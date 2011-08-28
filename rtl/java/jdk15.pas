@@ -125,11 +125,6 @@ type
   Arr2OOCNStringNameHelper = array of Arr1OOCNStringNameHelper;
   Arr3OOCNStringNameHelper = array of Arr2OOCNStringNameHelper;
 
-  JNCharBuffer = class;
-  Arr1JNCharBuffer = array of JNCharBuffer;
-  Arr2JNCharBuffer = array of Arr1JNCharBuffer;
-  Arr3JNCharBuffer = array of Arr2JNCharBuffer;
-
   OOPServantActivatorPOA = class;
   Arr1OOPServantActivatorPOA = array of OOPServantActivatorPOA;
   Arr2OOPServantActivatorPOA = array of Arr1OOPServantActivatorPOA;
@@ -770,11 +765,6 @@ type
   Arr2JAEMouseEvent = array of Arr1JAEMouseEvent;
   Arr3JAEMouseEvent = array of Arr2JAEMouseEvent;
 
-  JNCCodingErrorAction = class;
-  Arr1JNCCodingErrorAction = array of JNCCodingErrorAction;
-  Arr2JNCCodingErrorAction = array of Arr1JNCCodingErrorAction;
-  Arr3JNCCodingErrorAction = array of Arr2JNCCodingErrorAction;
-
   JNSocketPermissionCollection = class;
   Arr1JNSocketPermissionCollection = array of JNSocketPermissionCollection;
   Arr2JNSocketPermissionCollection = array of Arr1JNSocketPermissionCollection;
@@ -1015,15 +1005,15 @@ type
   Arr2JSecurityTimestamp = array of Arr1JSecurityTimestamp;
   Arr3JSecurityTimestamp = array of Arr2JSecurityTimestamp;
 
-  JNDirectFloatBufferRS = class;
-  Arr1JNDirectFloatBufferRS = array of JNDirectFloatBufferRS;
-  Arr2JNDirectFloatBufferRS = array of Arr1JNDirectFloatBufferRS;
-  Arr3JNDirectFloatBufferRS = array of Arr2JNDirectFloatBufferRS;
-
   JSJSplitPane = class;
   Arr1JSJSplitPane = array of JSJSplitPane;
   Arr2JSJSplitPane = array of Arr1JSJSplitPane;
   Arr3JSJSplitPane = array of Arr2JSJSplitPane;
+
+  JNDirectFloatBufferRS = class;
+  Arr1JNDirectFloatBufferRS = array of JNDirectFloatBufferRS;
+  Arr2JNDirectFloatBufferRS = array of Arr1JNDirectFloatBufferRS;
+  Arr3JNDirectFloatBufferRS = array of Arr2JNDirectFloatBufferRS;
 
   JXWHolder = class;
   Arr1JXWHolder = array of JXWHolder;
@@ -1325,15 +1315,15 @@ type
   Arr2OXSInputSource = array of Arr1OXSInputSource;
   Arr3OXSInputSource = array of Arr2OXSInputSource;
 
-  JNByteBufferAsCharBufferRB = class;
-  Arr1JNByteBufferAsCharBufferRB = array of JNByteBufferAsCharBufferRB;
-  Arr2JNByteBufferAsCharBufferRB = array of Arr1JNByteBufferAsCharBufferRB;
-  Arr3JNByteBufferAsCharBufferRB = array of Arr2JNByteBufferAsCharBufferRB;
-
   JMRRelationNotification = class;
   Arr1JMRRelationNotification = array of JMRRelationNotification;
   Arr2JMRRelationNotification = array of Arr1JMRRelationNotification;
   Arr3JMRRelationNotification = array of Arr2JMRRelationNotification;
+
+  JNByteBufferAsCharBufferRB = class;
+  Arr1JNByteBufferAsCharBufferRB = array of JNByteBufferAsCharBufferRB;
+  Arr2JNByteBufferAsCharBufferRB = array of Arr1JNByteBufferAsCharBufferRB;
+  Arr3JNByteBufferAsCharBufferRB = array of Arr2JNByteBufferAsCharBufferRB;
 
   JNIDN = class;
   Arr1JNIDN = array of JNIDN;
@@ -1685,15 +1675,15 @@ type
   Arr2JMImmutableDescriptor = array of Arr1JMImmutableDescriptor;
   Arr3JMImmutableDescriptor = array of Arr2JMImmutableDescriptor;
 
-  JNHeapIntBufferR = class;
-  Arr1JNHeapIntBufferR = array of JNHeapIntBufferR;
-  Arr2JNHeapIntBufferR = array of Arr1JNHeapIntBufferR;
-  Arr3JNHeapIntBufferR = array of Arr2JNHeapIntBufferR;
-
   JARadialGradientPaint = class;
   Arr1JARadialGradientPaint = array of JARadialGradientPaint;
   Arr2JARadialGradientPaint = array of Arr1JARadialGradientPaint;
   Arr3JARadialGradientPaint = array of Arr2JARadialGradientPaint;
+
+  JNHeapIntBufferR = class;
+  Arr1JNHeapIntBufferR = array of JNHeapIntBufferR;
+  Arr2JNHeapIntBufferR = array of Arr1JNHeapIntBufferR;
+  Arr3JNHeapIntBufferR = array of Arr2JNHeapIntBufferR;
 
   JNDirectLongBufferU = class;
   Arr1JNDirectLongBufferU = array of JNDirectLongBufferU;
@@ -2090,11 +2080,6 @@ type
   Arr2JCSDHPrivateKeySpec = array of Arr1JCSDHPrivateKeySpec;
   Arr3JCSDHPrivateKeySpec = array of Arr2JCSDHPrivateKeySpec;
 
-  JNCSCharsetProvider = class;
-  Arr1JNCSCharsetProvider = array of JNCSCharsetProvider;
-  Arr2JNCSCharsetProvider = array of Arr1JNCSCharsetProvider;
-  Arr3JNCSCharsetProvider = array of Arr2JNCSCharsetProvider;
-
   JAIDataBufferInt = class;
   Arr1JAIDataBufferInt = array of JAIDataBufferInt;
   Arr2JAIDataBufferInt = array of Arr1JAIDataBufferInt;
@@ -2310,15 +2295,15 @@ type
   Arr2OXSSAXNotSupportedException = array of Arr1OXSSAXNotSupportedException;
   Arr3OXSSAXNotSupportedException = array of Arr2OXSSAXNotSupportedException;
 
-  JNCCancelledKeyException = class;
-  Arr1JNCCancelledKeyException = array of JNCCancelledKeyException;
-  Arr2JNCCancelledKeyException = array of Arr1JNCCancelledKeyException;
-  Arr3JNCCancelledKeyException = array of Arr2JNCCancelledKeyException;
-
   JNConfigurationException = class;
   Arr1JNConfigurationException = array of JNConfigurationException;
   Arr2JNConfigurationException = array of Arr1JNConfigurationException;
   Arr3JNConfigurationException = array of Arr2JNConfigurationException;
+
+  JNCCancelledKeyException = class;
+  Arr1JNCCancelledKeyException = array of JNCCancelledKeyException;
+  Arr2JNCCancelledKeyException = array of Arr1JNCCancelledKeyException;
+  Arr3JNCCancelledKeyException = array of Arr2JNCCancelledKeyException;
 
   JMMBeanServerPermission = class;
   Arr1JMMBeanServerPermission = array of JMMBeanServerPermission;
@@ -2850,11 +2835,6 @@ type
   Arr2JCIllegalBlockSizeException = array of Arr1JCIllegalBlockSizeException;
   Arr3JCIllegalBlockSizeException = array of Arr2JCIllegalBlockSizeException;
 
-  JNCFileLockInterruptionException = class;
-  Arr1JNCFileLockInterruptionException = array of JNCFileLockInterruptionException;
-  Arr2JNCFileLockInterruptionException = array of Arr1JNCFileLockInterruptionException;
-  Arr3JNCFileLockInterruptionException = array of Arr2JNCFileLockInterruptionException;
-
   JSTHBlockView = class;
   Arr1JSTHBlockView = array of JSTHBlockView;
   Arr2JSTHBlockView = array of Arr1JSTHBlockView;
@@ -2864,6 +2844,11 @@ type
   Arr1JNLinkException = array of JNLinkException;
   Arr2JNLinkException = array of Arr1JNLinkException;
   Arr3JNLinkException = array of Arr2JNLinkException;
+
+  JNCFileLockInterruptionException = class;
+  Arr1JNCFileLockInterruptionException = array of JNCFileLockInterruptionException;
+  Arr2JNCFileLockInterruptionException = array of Arr1JNCFileLockInterruptionException;
+  Arr3JNCFileLockInterruptionException = array of Arr2JNCFileLockInterruptionException;
 
   OOC_BindingIteratorImplBase = class;
   Arr1OOC_BindingIteratorImplBase = array of OOC_BindingIteratorImplBase;
@@ -3200,15 +3185,15 @@ type
   Arr2JUCTimeUnit = array of Arr1JUCTimeUnit;
   Arr3JUCTimeUnit = array of Arr2JUCTimeUnit;
 
-  JSAPolicy = class;
-  Arr1JSAPolicy = array of JSAPolicy;
-  Arr2JSAPolicy = array of Arr1JSAPolicy;
-  Arr3JSAPolicy = array of Arr2JSAPolicy;
-
   JMOInvalidKeyException = class;
   Arr1JMOInvalidKeyException = array of JMOInvalidKeyException;
   Arr2JMOInvalidKeyException = array of Arr1JMOInvalidKeyException;
   Arr3JMOInvalidKeyException = array of Arr2JMOInvalidKeyException;
+
+  JSAPolicy = class;
+  Arr1JSAPolicy = array of JSAPolicy;
+  Arr2JSAPolicy = array of Arr1JSAPolicy;
+  Arr3JSAPolicy = array of Arr2JSAPolicy;
 
   JSPMMetalLabelUI = class;
   Arr1JSPMMetalLabelUI = array of JSPMMetalLabelUI;
@@ -3330,6 +3315,11 @@ type
   Arr2JPASJobMediaSheets = array of Arr1JPASJobMediaSheets;
   Arr3JPASJobMediaSheets = array of Arr2JPASJobMediaSheets;
 
+  JUCCopyOnWriteArraySet = class;
+  Arr1JUCCopyOnWriteArraySet = array of JUCCopyOnWriteArraySet;
+  Arr2JUCCopyOnWriteArraySet = array of Arr1JUCCopyOnWriteArraySet;
+  Arr3JUCCopyOnWriteArraySet = array of Arr2JUCCopyOnWriteArraySet;
+
   JMMutableBigInteger = class;
   Arr1JMMutableBigInteger = array of JMMutableBigInteger;
   Arr2JMMutableBigInteger = array of Arr1JMMutableBigInteger;
@@ -3339,11 +3329,6 @@ type
   Arr1JXStreamFactoryFinder = array of JXStreamFactoryFinder;
   Arr2JXStreamFactoryFinder = array of Arr1JXStreamFactoryFinder;
   Arr3JXStreamFactoryFinder = array of Arr2JXStreamFactoryFinder;
-
-  JUCCopyOnWriteArraySet = class;
-  Arr1JUCCopyOnWriteArraySet = array of JUCCopyOnWriteArraySet;
-  Arr2JUCCopyOnWriteArraySet = array of Arr1JUCCopyOnWriteArraySet;
-  Arr3JUCCopyOnWriteArraySet = array of Arr2JUCCopyOnWriteArraySet;
 
   JUZDeflaterOutputStream = class;
   Arr1JUZDeflaterOutputStream = array of JUZDeflaterOutputStream;
@@ -3840,11 +3825,6 @@ type
   Arr2JSTFlowView = array of Arr1JSTFlowView;
   Arr3JSTFlowView = array of Arr2JSTFlowView;
 
-  JNCCoderResult = class;
-  Arr1JNCCoderResult = array of JNCCoderResult;
-  Arr2JNCCoderResult = array of Arr1JNCCoderResult;
-  Arr3JNCCoderResult = array of Arr2JNCCoderResult;
-
   JNCannotProceedException = class;
   Arr1JNCannotProceedException = array of JNCannotProceedException;
   Arr2JNCannotProceedException = array of Arr1JNCannotProceedException;
@@ -4290,15 +4270,15 @@ type
   Arr2JCKeyGeneratorSpi = array of Arr1JCKeyGeneratorSpi;
   Arr3JCKeyGeneratorSpi = array of Arr2JCKeyGeneratorSpi;
 
-  JUGregorianCalendar = class;
-  Arr1JUGregorianCalendar = array of JUGregorianCalendar;
-  Arr2JUGregorianCalendar = array of Arr1JUGregorianCalendar;
-  Arr3JUGregorianCalendar = array of Arr2JUGregorianCalendar;
-
   JSCX509CertSelector = class;
   Arr1JSCX509CertSelector = array of JSCX509CertSelector;
   Arr2JSCX509CertSelector = array of Arr1JSCX509CertSelector;
   Arr3JSCX509CertSelector = array of Arr2JSCX509CertSelector;
+
+  JUGregorianCalendar = class;
+  Arr1JUGregorianCalendar = array of JUGregorianCalendar;
+  Arr2JUGregorianCalendar = array of Arr1JUGregorianCalendar;
+  Arr3JUGregorianCalendar = array of Arr2JUGregorianCalendar;
 
   JSSECFieldFp = class;
   Arr1JSSECFieldFp = array of JSSECFieldFp;
@@ -4354,11 +4334,6 @@ type
   Arr1JCSunJCE_j = array of JCSunJCE_j;
   Arr2JCSunJCE_j = array of Arr1JCSunJCE_j;
   Arr3JCSunJCE_j = array of Arr2JCSunJCE_j;
-
-  JNCCharacterCodingException = class;
-  Arr1JNCCharacterCodingException = array of JNCCharacterCodingException;
-  Arr2JNCCharacterCodingException = array of Arr1JNCCharacterCodingException;
-  Arr3JNCCharacterCodingException = array of Arr2JNCCharacterCodingException;
 
   JIIIOParam = class;
   Arr1JIIIOParam = array of JIIIOParam;
@@ -4590,15 +4565,15 @@ type
   Arr2JAIImagingOpException = array of Arr1JAIImagingOpException;
   Arr3JAIImagingOpException = array of Arr2JAIImagingOpException;
 
-  JLVirtualMachineError = class;
-  Arr1JLVirtualMachineError = array of JLVirtualMachineError;
-  Arr2JLVirtualMachineError = array of Arr1JLVirtualMachineError;
-  Arr3JLVirtualMachineError = array of Arr2JLVirtualMachineError;
-
   JSInvalidParameterException = class;
   Arr1JSInvalidParameterException = array of JSInvalidParameterException;
   Arr2JSInvalidParameterException = array of Arr1JSInvalidParameterException;
   Arr3JSInvalidParameterException = array of Arr2JSInvalidParameterException;
+
+  JLVirtualMachineError = class;
+  Arr1JLVirtualMachineError = array of JLVirtualMachineError;
+  Arr2JLVirtualMachineError = array of Arr1JLVirtualMachineError;
+  Arr3JLVirtualMachineError = array of Arr2JLVirtualMachineError;
 
   OJXDIDDOMTransform = class;
   Arr1OJXDIDDOMTransform = array of OJXDIDDOMTransform;
@@ -4850,15 +4825,15 @@ type
   Arr2JADDragSource = array of Arr1JADDragSource;
   Arr3JADDragSource = array of Arr2JADDragSource;
 
-  JAPolygon = class;
-  Arr1JAPolygon = array of JAPolygon;
-  Arr2JAPolygon = array of Arr1JAPolygon;
-  Arr3JAPolygon = array of Arr2JAPolygon;
-
   JUCAAtomicInteger = class;
   Arr1JUCAAtomicInteger = array of JUCAAtomicInteger;
   Arr2JUCAAtomicInteger = array of Arr1JUCAAtomicInteger;
   Arr3JUCAAtomicInteger = array of Arr2JUCAAtomicInteger;
+
+  JAPolygon = class;
+  Arr1JAPolygon = array of JAPolygon;
+  Arr2JAPolygon = array of Arr1JAPolygon;
+  Arr3JAPolygon = array of Arr2JAPolygon;
 
   JSSecureRandom = class;
   Arr1JSSecureRandom = array of JSSecureRandom;
@@ -5279,11 +5254,6 @@ type
   Arr1JSTRRTFParser = array of JSTRRTFParser;
   Arr2JSTRRTFParser = array of Arr1JSTRRTFParser;
   Arr3JSTRRTFParser = array of Arr2JSTRRTFParser;
-
-  JIIOException = class;
-  Arr1JIIOException = array of JIIOException;
-  Arr2JIIOException = array of Arr1JIIOException;
-  Arr3JIIOException = array of Arr2JIIOException;
 
   JUXMLUtils = class;
   Arr1JUXMLUtils = array of JUXMLUtils;
@@ -6070,11 +6040,6 @@ type
   Arr2JTAttributedString = array of Arr1JTAttributedString;
   Arr3JTAttributedString = array of Arr2JTAttributedString;
 
-  JNCCoderMalfunctionError = class;
-  Arr1JNCCoderMalfunctionError = array of JNCCoderMalfunctionError;
-  Arr2JNCCoderMalfunctionError = array of Arr1JNCCoderMalfunctionError;
-  Arr3JNCCoderMalfunctionError = array of Arr2JNCCoderMalfunctionError;
-
   OOCNInvalidNameHolder = class;
   Arr1OOCNInvalidNameHolder = array of OOCNInvalidNameHolder;
   Arr2OOCNInvalidNameHolder = array of Arr1OOCNInvalidNameHolder;
@@ -6335,15 +6300,15 @@ type
   Arr2OOCBindingIteratorHolder = array of Arr1OOCBindingIteratorHolder;
   Arr3OOCBindingIteratorHolder = array of Arr2OOCBindingIteratorHolder;
 
-  JAPFilerException = class;
-  Arr1JAPFilerException = array of JAPFilerException;
-  Arr2JAPFilerException = array of Arr1JAPFilerException;
-  Arr3JAPFilerException = array of Arr2JAPFilerException;
-
   JUCExchanger = class;
   Arr1JUCExchanger = array of JUCExchanger;
   Arr2JUCExchanger = array of Arr1JUCExchanger;
   Arr3JUCExchanger = array of Arr2JUCExchanger;
+
+  JAPFilerException = class;
+  Arr1JAPFilerException = array of JAPFilerException;
+  Arr2JAPFilerException = array of Arr1JAPFilerException;
+  Arr3JAPFilerException = array of Arr2JAPFilerException;
 
   JMMBeanServerNotification = class;
   Arr1JMMBeanServerNotification = array of JMMBeanServerNotification;
@@ -6845,16 +6810,6 @@ type
   Arr2JAMenu = array of Arr1JAMenu;
   Arr3JAMenu = array of Arr2JAMenu;
 
-  JNCUnmappableCharacterException = class;
-  Arr1JNCUnmappableCharacterException = array of JNCUnmappableCharacterException;
-  Arr2JNCUnmappableCharacterException = array of Arr1JNCUnmappableCharacterException;
-  Arr3JNCUnmappableCharacterException = array of Arr2JNCUnmappableCharacterException;
-
-  JNCMalformedInputException = class;
-  Arr1JNCMalformedInputException = array of JNCMalformedInputException;
-  Arr2JNCMalformedInputException = array of Arr1JNCMalformedInputException;
-  Arr3JNCMalformedInputException = array of Arr2JNCMalformedInputException;
-
   OWDLLSException = class;
   Arr1OWDLLSException = array of OWDLLSException;
   Arr2OWDLLSException = array of Arr1OWDLLSException;
@@ -6910,15 +6865,15 @@ type
   Arr2JNByteBufferAsIntBufferRL = array of Arr1JNByteBufferAsIntBufferRL;
   Arr3JNByteBufferAsIntBufferRL = array of Arr2JNByteBufferAsIntBufferRL;
 
-  JXVSchemaFactoryLoader = class;
-  Arr1JXVSchemaFactoryLoader = array of JXVSchemaFactoryLoader;
-  Arr2JXVSchemaFactoryLoader = array of Arr1JXVSchemaFactoryLoader;
-  Arr3JXVSchemaFactoryLoader = array of Arr2JXVSchemaFactoryLoader;
-
   JTRuleBasedCollator = class;
   Arr1JTRuleBasedCollator = array of JTRuleBasedCollator;
   Arr2JTRuleBasedCollator = array of Arr1JTRuleBasedCollator;
   Arr3JTRuleBasedCollator = array of Arr2JTRuleBasedCollator;
+
+  JXVSchemaFactoryLoader = class;
+  Arr1JXVSchemaFactoryLoader = array of JXVSchemaFactoryLoader;
+  Arr2JXVSchemaFactoryLoader = array of Arr1JXVSchemaFactoryLoader;
+  Arr3JXVSchemaFactoryLoader = array of Arr2JXVSchemaFactoryLoader;
 
   JSPBBasicTextPaneUI = class;
   Arr1JSPBBasicTextPaneUI = array of JSPBBasicTextPaneUI;
@@ -7435,15 +7390,15 @@ type
   Arr2JLConditionalSpecialCasing = array of Arr1JLConditionalSpecialCasing;
   Arr3JLConditionalSpecialCasing = array of Arr2JLConditionalSpecialCasing;
 
-  JIObjectInputStream = class;
-  Arr1JIObjectInputStream = array of JIObjectInputStream;
-  Arr2JIObjectInputStream = array of Arr1JIObjectInputStream;
-  Arr3JIObjectInputStream = array of Arr2JIObjectInputStream;
-
   JTFormat = class;
   Arr1JTFormat = array of JTFormat;
   Arr2JTFormat = array of Arr1JTFormat;
   Arr3JTFormat = array of Arr2JTFormat;
+
+  JIObjectInputStream = class;
+  Arr1JIObjectInputStream = array of JIObjectInputStream;
+  Arr2JIObjectInputStream = array of Arr1JIObjectInputStream;
+  Arr3JIObjectInputStream = array of Arr2JIObjectInputStream;
 
   JSDigestException = class;
   Arr1JSDigestException = array of JSDigestException;
@@ -7870,15 +7825,15 @@ type
   Arr2JCSDHPublicKeySpec = array of Arr1JCSDHPublicKeySpec;
   Arr3JCSDHPublicKeySpec = array of Arr2JCSDHPublicKeySpec;
 
-  JMRJMXConnectorFactory = class;
-  Arr1JMRJMXConnectorFactory = array of JMRJMXConnectorFactory;
-  Arr2JMRJMXConnectorFactory = array of Arr1JMRJMXConnectorFactory;
-  Arr3JMRJMXConnectorFactory = array of Arr2JMRJMXConnectorFactory;
-
   JLRReflectAccess = class;
   Arr1JLRReflectAccess = array of JLRReflectAccess;
   Arr2JLRReflectAccess = array of Arr1JLRReflectAccess;
   Arr3JLRReflectAccess = array of Arr2JLRReflectAccess;
+
+  JMRJMXConnectorFactory = class;
+  Arr1JMRJMXConnectorFactory = array of JMRJMXConnectorFactory;
+  Arr2JMRJMXConnectorFactory = array of Arr1JMRJMXConnectorFactory;
+  Arr3JMRJMXConnectorFactory = array of Arr2JMRJMXConnectorFactory;
 
   OOCTRANSACTION_MODE = class;
   Arr1OOCTRANSACTION_MODE = array of OOCTRANSACTION_MODE;
@@ -8079,11 +8034,6 @@ type
   Arr1JSPMMetalScrollPaneUI = array of JSPMMetalScrollPaneUI;
   Arr2JSPMMetalScrollPaneUI = array of Arr1JSPMMetalScrollPaneUI;
   Arr3JSPMMetalScrollPaneUI = array of Arr2JSPMMetalScrollPaneUI;
-
-  JNCCharsetEncoder = class;
-  Arr1JNCCharsetEncoder = array of JNCCharsetEncoder;
-  Arr2JNCCharsetEncoder = array of Arr1JNCCharsetEncoder;
-  Arr3JNCCharsetEncoder = array of Arr2JNCCharsetEncoder;
 
   JXTSStreamResult = class;
   Arr1JXTSStreamResult = array of JXTSStreamResult;
@@ -8410,15 +8360,15 @@ type
   Arr2JBBBeanContextSupport = array of Arr1JBBBeanContextSupport;
   Arr3JBBBeanContextSupport = array of Arr2JBBBeanContextSupport;
 
-  JUJJarException = class;
-  Arr1JUJJarException = array of JUJJarException;
-  Arr2JUJJarException = array of Arr1JUJJarException;
-  Arr3JUJJarException = array of Arr2JUJJarException;
-
   JSCardPermission = class;
   Arr1JSCardPermission = array of JSCardPermission;
   Arr2JSCardPermission = array of Arr1JSCardPermission;
   Arr3JSCardPermission = array of Arr2JSCardPermission;
+
+  JUJJarException = class;
+  Arr1JUJJarException = array of JUJJarException;
+  Arr2JUJJarException = array of Arr1JUJJarException;
+  Arr3JUJJarException = array of Arr2JUJJarException;
 
   JPASPrinterResolution = class;
   Arr1JPASPrinterResolution = array of JPASPrinterResolution;
@@ -8704,11 +8654,6 @@ type
   Arr1JSPMMetalComboBoxIcon = array of JSPMMetalComboBoxIcon;
   Arr2JSPMMetalComboBoxIcon = array of Arr1JSPMMetalComboBoxIcon;
   Arr3JSPMMetalComboBoxIcon = array of Arr2JSPMMetalComboBoxIcon;
-
-  JNCCharset = class;
-  Arr1JNCCharset = array of JNCCharset;
-  Arr2JNCCharset = array of Arr1JNCCharset;
-  Arr3JNCCharset = array of Arr2JNCCharset;
 
   JBReflectionUtils = class;
   Arr1JBReflectionUtils = array of JBReflectionUtils;
@@ -9990,11 +9935,6 @@ type
   Arr2JXWSFactoryFinder = array of Arr1JXWSFactoryFinder;
   Arr3JXWSFactoryFinder = array of Arr2JXWSFactoryFinder;
 
-  JLIllegalStateException = class;
-  Arr1JLIllegalStateException = array of JLIllegalStateException;
-  Arr2JLIllegalStateException = array of Arr1JLIllegalStateException;
-  Arr3JLIllegalStateException = array of Arr2JLIllegalStateException;
-
   JUTimeZone = class;
   Arr1JUTimeZone = array of JUTimeZone;
   Arr2JUTimeZone = array of Arr1JUTimeZone;
@@ -10030,20 +9970,15 @@ type
   Arr2OOCOctetSeqHelper = array of Arr1OOCOctetSeqHelper;
   Arr3OOCOctetSeqHelper = array of Arr2OOCOctetSeqHelper;
 
-  JNByteBuffer = class;
-  Arr1JNByteBuffer = array of JNByteBuffer;
-  Arr2JNByteBuffer = array of Arr1JNByteBuffer;
-  Arr3JNByteBuffer = array of Arr2JNByteBuffer;
+  JNDInvalidSearchFilterException = class;
+  Arr1JNDInvalidSearchFilterException = array of JNDInvalidSearchFilterException;
+  Arr2JNDInvalidSearchFilterException = array of Arr1JNDInvalidSearchFilterException;
+  Arr3JNDInvalidSearchFilterException = array of Arr2JNDInvalidSearchFilterException;
 
   JNCAlreadyConnectedException = class;
   Arr1JNCAlreadyConnectedException = array of JNCAlreadyConnectedException;
   Arr2JNCAlreadyConnectedException = array of Arr1JNCAlreadyConnectedException;
   Arr3JNCAlreadyConnectedException = array of Arr2JNCAlreadyConnectedException;
-
-  JNDInvalidSearchFilterException = class;
-  Arr1JNDInvalidSearchFilterException = array of JNDInvalidSearchFilterException;
-  Arr2JNDInvalidSearchFilterException = array of Arr1JNDInvalidSearchFilterException;
-  Arr3JNDInvalidSearchFilterException = array of Arr2JNDInvalidSearchFilterException;
 
   JXBAXmlAccessType = class;
   Arr1JXBAXmlAccessType = array of JXBAXmlAccessType;
@@ -10220,15 +10155,15 @@ type
   Arr2JAPPageFormat = array of Arr1JAPPageFormat;
   Arr3JAPPageFormat = array of Arr2JAPPageFormat;
 
-  JNUnknownHostException = class;
-  Arr1JNUnknownHostException = array of JNUnknownHostException;
-  Arr2JNUnknownHostException = array of Arr1JNUnknownHostException;
-  Arr3JNUnknownHostException = array of Arr2JNUnknownHostException;
-
   JUJJavaUtilJarAccessImpl = class;
   Arr1JUJJavaUtilJarAccessImpl = array of JUJJavaUtilJarAccessImpl;
   Arr2JUJJavaUtilJarAccessImpl = array of Arr1JUJJavaUtilJarAccessImpl;
   Arr3JUJJavaUtilJarAccessImpl = array of Arr2JUJJavaUtilJarAccessImpl;
+
+  JNUnknownHostException = class;
+  Arr1JNUnknownHostException = array of JNUnknownHostException;
+  Arr2JNUnknownHostException = array of Arr1JNUnknownHostException;
+  Arr3JNUnknownHostException = array of Arr2JNUnknownHostException;
 
   OJXDIDigesterOutputStream = class;
   Arr1OJXDIDigesterOutputStream = array of OJXDIDigesterOutputStream;
@@ -10335,15 +10270,15 @@ type
   Arr2JLRReflectPermission = array of Arr1JLRReflectPermission;
   Arr3JLRReflectPermission = array of Arr2JLRReflectPermission;
 
-  JRUnknownHostException = class;
-  Arr1JRUnknownHostException = array of JRUnknownHostException;
-  Arr2JRUnknownHostException = array of Arr1JRUnknownHostException;
-  Arr3JRUnknownHostException = array of Arr2JRUnknownHostException;
-
   JBjavax_swing_JTabbedPane_PersistenceDelegate = class;
   Arr1JBjavax_swing_JTabbedPane_PersistenceDelegate = array of JBjavax_swing_JTabbedPane_PersistenceDelegate;
   Arr2JBjavax_swing_JTabbedPane_PersistenceDelegate = array of Arr1JBjavax_swing_JTabbedPane_PersistenceDelegate;
   Arr3JBjavax_swing_JTabbedPane_PersistenceDelegate = array of Arr2JBjavax_swing_JTabbedPane_PersistenceDelegate;
+
+  JRUnknownHostException = class;
+  Arr1JRUnknownHostException = array of JRUnknownHostException;
+  Arr2JRUnknownHostException = array of Arr1JRUnknownHostException;
+  Arr3JRUnknownHostException = array of Arr2JRUnknownHostException;
 
   JNByteBufferAsFloatBufferB = class;
   Arr1JNByteBufferAsFloatBufferB = array of JNByteBufferAsFloatBufferB;
@@ -10715,11 +10650,6 @@ type
   Arr2OOPIdUniquenessPolicyValue = array of Arr1OOPIdUniquenessPolicyValue;
   Arr3OOPIdUniquenessPolicyValue = array of Arr2OOPIdUniquenessPolicyValue;
 
-  JLUnsupportedOperationException = class;
-  Arr1JLUnsupportedOperationException = array of JLUnsupportedOperationException;
-  Arr2JLUnsupportedOperationException = array of Arr1JLUnsupportedOperationException;
-  Arr3JLUnsupportedOperationException = array of Arr2JLUnsupportedOperationException;
-
   JAGridBagLayoutInfo = class;
   Arr1JAGridBagLayoutInfo = array of JAGridBagLayoutInfo;
   Arr2JAGridBagLayoutInfo = array of Arr1JAGridBagLayoutInfo;
@@ -10950,11 +10880,6 @@ type
   Arr2JPASOrientationRequested = array of Arr1JPASOrientationRequested;
   Arr3JPASOrientationRequested = array of Arr2JPASOrientationRequested;
 
-  JNUnknownServiceException = class;
-  Arr1JNUnknownServiceException = array of JNUnknownServiceException;
-  Arr2JNUnknownServiceException = array of Arr1JNUnknownServiceException;
-  Arr3JNUnknownServiceException = array of Arr2JNUnknownServiceException;
-
   JLVoid = class;
   Arr1JLVoid = array of JLVoid;
   Arr2JLVoid = array of Arr1JLVoid;
@@ -10964,6 +10889,11 @@ type
   Arr1JIImageReader = array of JIImageReader;
   Arr2JIImageReader = array of Arr1JIImageReader;
   Arr3JIImageReader = array of Arr2JIImageReader;
+
+  JNUnknownServiceException = class;
+  Arr1JNUnknownServiceException = array of JNUnknownServiceException;
+  Arr2JNUnknownServiceException = array of Arr1JNUnknownServiceException;
+  Arr3JNUnknownServiceException = array of Arr2JNUnknownServiceException;
 
   OOCOInvalidName = class;
   Arr1OOCOInvalidName = array of OOCOInvalidName;
@@ -11160,15 +11090,15 @@ type
   Arr2JSTimerQueue = array of Arr1JSTimerQueue;
   Arr3JSTimerQueue = array of Arr2JSTimerQueue;
 
-  JUFormatterClosedException = class;
-  Arr1JUFormatterClosedException = array of JUFormatterClosedException;
-  Arr2JUFormatterClosedException = array of Arr1JUFormatterClosedException;
-  Arr3JUFormatterClosedException = array of Arr2JUFormatterClosedException;
-
   OJXDIDDOMStructure = class;
   Arr1OJXDIDDOMStructure = array of OJXDIDDOMStructure;
   Arr2OJXDIDDOMStructure = array of Arr1OJXDIDDOMStructure;
   Arr3OJXDIDDOMStructure = array of Arr2OJXDIDDOMStructure;
+
+  JUFormatterClosedException = class;
+  Arr1JUFormatterClosedException = array of JUFormatterClosedException;
+  Arr2JUFormatterClosedException = array of Arr1JUFormatterClosedException;
+  Arr3JUFormatterClosedException = array of Arr2JUFormatterClosedException;
 
   JSPBBasicToolBarSeparatorUI = class;
   Arr1JSPBBasicToolBarSeparatorUI = array of JSPBBasicToolBarSeparatorUI;
@@ -11665,15 +11595,15 @@ type
   Arr2JNCPipe = array of Arr1JNCPipe;
   Arr3JNCPipe = array of Arr2JNCPipe;
 
-  JNReadOnlyBufferException = class;
-  Arr1JNReadOnlyBufferException = array of JNReadOnlyBufferException;
-  Arr2JNReadOnlyBufferException = array of Arr1JNReadOnlyBufferException;
-  Arr3JNReadOnlyBufferException = array of Arr2JNReadOnlyBufferException;
-
   JSTHPElement = class;
   Arr1JSTHPElement = array of JSTHPElement;
   Arr2JSTHPElement = array of Arr1JSTHPElement;
   Arr3JSTHPElement = array of Arr2JSTHPElement;
+
+  JNReadOnlyBufferException = class;
+  Arr1JNReadOnlyBufferException = array of JNReadOnlyBufferException;
+  Arr2JNReadOnlyBufferException = array of Arr1JNReadOnlyBufferException;
+  Arr3JNReadOnlyBufferException = array of Arr2JNReadOnlyBufferException;
 
   JXBJAXBException = class;
   Arr1JXBJAXBException = array of JXBJAXBException;
@@ -12485,15 +12415,15 @@ type
   Arr2JSTVariableHeightLayoutCache = array of Arr1JSTVariableHeightLayoutCache;
   Arr3JSTVariableHeightLayoutCache = array of Arr2JSTVariableHeightLayoutCache;
 
-  JUJManifest = class;
-  Arr1JUJManifest = array of JUJManifest;
-  Arr2JUJManifest = array of Arr1JUJManifest;
-  Arr3JUJManifest = array of Arr2JUJManifest;
-
   JUEnumMap = class;
   Arr1JUEnumMap = array of JUEnumMap;
   Arr2JUEnumMap = array of Arr1JUEnumMap;
   Arr3JUEnumMap = array of Arr2JUEnumMap;
+
+  JUJManifest = class;
+  Arr1JUJManifest = array of JUJManifest;
+  Arr2JUJManifest = array of Arr1JUJManifest;
+  Arr3JUJManifest = array of Arr2JUJManifest;
 
   JLVerifyError = class;
   Arr1JLVerifyError = array of JLVerifyError;
@@ -12605,11 +12535,6 @@ type
   Arr2JSPMMetalDesktopIconUI = array of Arr1JSPMMetalDesktopIconUI;
   Arr3JSPMMetalDesktopIconUI = array of Arr2JSPMMetalDesktopIconUI;
 
-  JNCCharsetDecoder = class;
-  Arr1JNCCharsetDecoder = array of JNCCharsetDecoder;
-  Arr2JNCCharsetDecoder = array of Arr1JNCCharsetDecoder;
-  Arr3JNCCharsetDecoder = array of Arr2JNCCharsetDecoder;
-
   JSTGlyphView = class;
   Arr1JSTGlyphView = array of JSTGlyphView;
   Arr2JSTGlyphView = array of Arr1JSTGlyphView;
@@ -12674,11 +12599,6 @@ type
   Arr1JXPDocumentBuilder = array of JXPDocumentBuilder;
   Arr2JXPDocumentBuilder = array of Arr1JXPDocumentBuilder;
   Arr3JXPDocumentBuilder = array of Arr2JXPDocumentBuilder;
-
-  JNCUnsupportedCharsetException = class;
-  Arr1JNCUnsupportedCharsetException = array of JNCUnsupportedCharsetException;
-  Arr2JNCUnsupportedCharsetException = array of Arr1JNCUnsupportedCharsetException;
-  Arr3JNCUnsupportedCharsetException = array of Arr2JNCUnsupportedCharsetException;
 
   JSDebugGraphicsFilter = class;
   Arr1JSDebugGraphicsFilter = array of JSDebugGraphicsFilter;
@@ -12774,11 +12694,6 @@ type
   Arr1JAGPoint2D = array of JAGPoint2D;
   Arr2JAGPoint2D = array of Arr1JAGPoint2D;
   Arr3JAGPoint2D = array of Arr2JAGPoint2D;
-
-  JNBuffer = class;
-  Arr1JNBuffer = array of JNBuffer;
-  Arr2JNBuffer = array of Arr1JNBuffer;
-  Arr3JNBuffer = array of Arr2JNBuffer;
 
   JSEListDataEvent = class;
   Arr1JSEListDataEvent = array of JSEListDataEvent;
@@ -12975,15 +12890,15 @@ type
   Arr2JSPBorderUIResource = array of Arr1JSPBorderUIResource;
   Arr3JSPBorderUIResource = array of Arr2JSPBorderUIResource;
 
-  JNLSortKey = class;
-  Arr1JNLSortKey = array of JNLSortKey;
-  Arr2JNLSortKey = array of Arr1JNLSortKey;
-  Arr3JNLSortKey = array of Arr2JNLSortKey;
-
   JSCX509CRLSelector = class;
   Arr1JSCX509CRLSelector = array of JSCX509CRLSelector;
   Arr2JSCX509CRLSelector = array of Arr1JSCX509CRLSelector;
   Arr3JSCX509CRLSelector = array of Arr2JSCX509CRLSelector;
+
+  JNLSortKey = class;
+  Arr1JNLSortKey = array of JNLSortKey;
+  Arr2JNLSortKey = array of Arr1JNLSortKey;
+  Arr3JNLSortKey = array of Arr2JNLSortKey;
 
   OOCINVALID_TRANSACTION = class;
   Arr1OOCINVALID_TRANSACTION = array of OOCINVALID_TRANSACTION;
@@ -13360,15 +13275,15 @@ type
   Arr2JTAttributeEntry = array of Arr1JTAttributeEntry;
   Arr3JTAttributeEntry = array of Arr2JTAttributeEntry;
 
-  JBDefaultPersistenceDelegate = class;
-  Arr1JBDefaultPersistenceDelegate = array of JBDefaultPersistenceDelegate;
-  Arr2JBDefaultPersistenceDelegate = array of Arr1JBDefaultPersistenceDelegate;
-  Arr3JBDefaultPersistenceDelegate = array of Arr2JBDefaultPersistenceDelegate;
-
   JURPatternSyntaxException = class;
   Arr1JURPatternSyntaxException = array of JURPatternSyntaxException;
   Arr2JURPatternSyntaxException = array of Arr1JURPatternSyntaxException;
   Arr3JURPatternSyntaxException = array of Arr2JURPatternSyntaxException;
+
+  JBDefaultPersistenceDelegate = class;
+  Arr1JBDefaultPersistenceDelegate = array of JBDefaultPersistenceDelegate;
+  Arr2JBDefaultPersistenceDelegate = array of Arr1JBDefaultPersistenceDelegate;
+  Arr3JBDefaultPersistenceDelegate = array of Arr2JBDefaultPersistenceDelegate;
 
   JPAHashPrintRequestAttributeSet = class;
   Arr1JPAHashPrintRequestAttributeSet = array of JPAHashPrintRequestAttributeSet;
@@ -13505,15 +13420,15 @@ type
   Arr2JSPBBasicIconFactory = array of Arr1JSPBBasicIconFactory;
   Arr3JSPBBasicIconFactory = array of Arr2JSPBBasicIconFactory;
 
-  JNCNoConnectionPendingException = class;
-  Arr1JNCNoConnectionPendingException = array of JNCNoConnectionPendingException;
-  Arr2JNCNoConnectionPendingException = array of Arr1JNCNoConnectionPendingException;
-  Arr3JNCNoConnectionPendingException = array of Arr2JNCNoConnectionPendingException;
-
   JNInet4AddressImpl = class;
   Arr1JNInet4AddressImpl = array of JNInet4AddressImpl;
   Arr2JNInet4AddressImpl = array of Arr1JNInet4AddressImpl;
   Arr3JNInet4AddressImpl = array of Arr2JNInet4AddressImpl;
+
+  JNCNoConnectionPendingException = class;
+  Arr1JNCNoConnectionPendingException = array of JNCNoConnectionPendingException;
+  Arr2JNCNoConnectionPendingException = array of Arr1JNCNoConnectionPendingException;
+  Arr3JNCNoConnectionPendingException = array of Arr2JNCNoConnectionPendingException;
 
   JISFileImageOutputStream = class;
   Arr1JISFileImageOutputStream = array of JISFileImageOutputStream;
@@ -13685,15 +13600,15 @@ type
   Arr2JLRReference = array of Arr1JLRReference;
   Arr3JLRReference = array of Arr2JLRReference;
 
-  JLMUSimpleElementVisitor6 = class;
-  Arr1JLMUSimpleElementVisitor6 = array of JLMUSimpleElementVisitor6;
-  Arr2JLMUSimpleElementVisitor6 = array of Arr1JLMUSimpleElementVisitor6;
-  Arr3JLMUSimpleElementVisitor6 = array of Arr2JLMUSimpleElementVisitor6;
-
   JUJJarVerifier = class;
   Arr1JUJJarVerifier = array of JUJJarVerifier;
   Arr2JUJJarVerifier = array of Arr1JUJJarVerifier;
   Arr3JUJJarVerifier = array of Arr2JUJJarVerifier;
+
+  JLMUSimpleElementVisitor6 = class;
+  Arr1JLMUSimpleElementVisitor6 = array of JLMUSimpleElementVisitor6;
+  Arr2JLMUSimpleElementVisitor6 = array of Arr1JLMUSimpleElementVisitor6;
+  Arr3JLMUSimpleElementVisitor6 = array of Arr2JLMUSimpleElementVisitor6;
 
   JSTTableColumn = class;
   Arr1JSTTableColumn = array of JSTTableColumn;
@@ -14425,11 +14340,6 @@ type
   Arr2JSSECPoint = array of Arr1JSSECPoint;
   Arr3JSSECPoint = array of Arr2JSSECPoint;
 
-  JNCIllegalCharsetNameException = class;
-  Arr1JNCIllegalCharsetNameException = array of JNCIllegalCharsetNameException;
-  Arr2JNCIllegalCharsetNameException = array of Arr1JNCIllegalCharsetNameException;
-  Arr3JNCIllegalCharsetNameException = array of Arr2JNCIllegalCharsetNameException;
-
   JSTHPTagElement = class;
   Arr1JSTHPTagElement = array of JSTHPTagElement;
   Arr2JSTHPTagElement = array of Arr1JSTHPTagElement;
@@ -14645,15 +14555,15 @@ type
   Arr2JLIllegalAccessError = array of Arr1JLIllegalAccessError;
   Arr3JLIllegalAccessError = array of Arr2JLIllegalAccessError;
 
-  JAIllegalComponentStateException = class;
-  Arr1JAIllegalComponentStateException = array of JAIllegalComponentStateException;
-  Arr2JAIllegalComponentStateException = array of Arr1JAIllegalComponentStateException;
-  Arr3JAIllegalComponentStateException = array of Arr2JAIllegalComponentStateException;
-
   JLMMemoryNotificationInfo = class;
   Arr1JLMMemoryNotificationInfo = array of JLMMemoryNotificationInfo;
   Arr2JLMMemoryNotificationInfo = array of Arr1JLMMemoryNotificationInfo;
   Arr3JLMMemoryNotificationInfo = array of Arr2JLMMemoryNotificationInfo;
+
+  JAIllegalComponentStateException = class;
+  Arr1JAIllegalComponentStateException = array of JAIllegalComponentStateException;
+  Arr2JAIllegalComponentStateException = array of Arr1JAIllegalComponentStateException;
+  Arr3JAIllegalComponentStateException = array of Arr2JAIllegalComponentStateException;
 
   JMRRRMIIIOPServerImpl = class;
   Arr1JMRRRMIIIOPServerImpl = array of JMRRRMIIIOPServerImpl;
@@ -17075,11 +16985,6 @@ type
   Arr2JMOOpenMBeanOperationInfo = array of Arr1JMOOpenMBeanOperationInfo;
   Arr3JMOOpenMBeanOperationInfo = array of Arr2JMOOpenMBeanOperationInfo;
 
-  JLReadable = interface;
-  Arr1JLReadable = array of JLReadable;
-  Arr2JLReadable = array of Arr1JLReadable;
-  Arr3JLReadable = array of Arr2JLReadable;
-
   JAPProcessingEnvironment = interface;
   Arr1JAPProcessingEnvironment = array of JAPProcessingEnvironment;
   Arr2JAPProcessingEnvironment = array of Arr1JAPProcessingEnvironment;
@@ -17330,15 +17235,15 @@ type
   Arr2OWDText = array of Arr1OWDText;
   Arr3OWDText = array of Arr2OWDText;
 
-  JMPersistentMBean = interface;
-  Arr1JMPersistentMBean = array of JMPersistentMBean;
-  Arr2JMPersistentMBean = array of Arr1JMPersistentMBean;
-  Arr3JMPersistentMBean = array of Arr2JMPersistentMBean;
-
   JXCDSSignatureMethodParameterSpec = interface;
   Arr1JXCDSSignatureMethodParameterSpec = array of JXCDSSignatureMethodParameterSpec;
   Arr2JXCDSSignatureMethodParameterSpec = array of Arr1JXCDSSignatureMethodParameterSpec;
   Arr3JXCDSSignatureMethodParameterSpec = array of Arr2JXCDSSignatureMethodParameterSpec;
+
+  JMPersistentMBean = interface;
+  Arr1JMPersistentMBean = array of JMPersistentMBean;
+  Arr2JMPersistentMBean = array of Arr1JMPersistentMBean;
+  Arr3JMPersistentMBean = array of Arr2JMPersistentMBean;
 
   OWDHHTMLElement = interface;
   Arr1OWDHHTMLElement = array of OWDHHTMLElement;
@@ -20655,6 +20560,11 @@ type
   Arr2JLObject = array of Arr1JLObject;
   Arr3JLObject = array of Arr2JLObject;
 
+  JNByteBuffer = class external 'java.nio' name 'ByteBuffer';
+  Arr1JNByteBuffer = array of JNByteBuffer;
+  Arr2JNByteBuffer = array of Arr1JNByteBuffer;
+  Arr3JNByteBuffer = array of Arr2JNByteBuffer;
+
   JLEnum = class external 'java.lang' name 'Enum';
   Arr1JLEnum = array of JLEnum;
   Arr2JLEnum = array of Arr1JLEnum;
@@ -20680,10 +20590,20 @@ type
   Arr2JLRMethod = array of Arr1JLRMethod;
   Arr3JLRMethod = array of Arr2JLRMethod;
 
+  JIIOException = class external 'java.io' name 'IOException';
+  Arr1JIIOException = array of JIIOException;
+  Arr2JIIOException = array of Arr1JIIOException;
+  Arr3JIIOException = array of Arr2JIIOException;
+
   JLCharacter = class external 'java.lang' name 'Character';
   Arr1JLCharacter = array of JLCharacter;
   Arr2JLCharacter = array of Arr1JLCharacter;
   Arr3JLCharacter = array of Arr2JLCharacter;
+
+  JNBuffer = class external 'java.nio' name 'Buffer';
+  Arr1JNBuffer = array of JNBuffer;
+  Arr2JNBuffer = array of Arr1JNBuffer;
+  Arr3JNBuffer = array of Arr2JNBuffer;
 
   JMBigInteger = class external 'java.math' name 'BigInteger';
   Arr1JMBigInteger = array of JMBigInteger;
@@ -20695,10 +20615,25 @@ type
   Arr2JLBoolean = array of Arr1JLBoolean;
   Arr3JLBoolean = array of Arr2JLBoolean;
 
+  JNCCharsetDecoder = class external 'java.nio.charset' name 'CharsetDecoder';
+  Arr1JNCCharsetDecoder = array of JNCCharsetDecoder;
+  Arr2JNCCharsetDecoder = array of Arr1JNCCharsetDecoder;
+  Arr3JNCCharsetDecoder = array of Arr2JNCCharsetDecoder;
+
   JLLong = class external 'java.lang' name 'Long';
   Arr1JLLong = array of JLLong;
   Arr2JLLong = array of Arr1JLLong;
   Arr3JLLong = array of Arr2JLLong;
+
+  JNCCharset = class external 'java.nio.charset' name 'Charset';
+  Arr1JNCCharset = array of JNCCharset;
+  Arr2JNCCharset = array of Arr1JNCCharset;
+  Arr3JNCCharset = array of Arr2JNCCharset;
+
+  JNCharBuffer = class external 'java.nio' name 'CharBuffer';
+  Arr1JNCharBuffer = array of JNCharBuffer;
+  Arr2JNCharBuffer = array of Arr1JNCharBuffer;
+  Arr3JNCharBuffer = array of Arr2JNCharBuffer;
 
   JLThrowable = class external 'java.lang' name 'Throwable';
   Arr1JLThrowable = array of JLThrowable;
@@ -20715,6 +20650,11 @@ type
   Arr2JLLinkageError = array of Arr1JLLinkageError;
   Arr3JLLinkageError = array of Arr2JLLinkageError;
 
+  JNCCharsetEncoder = class external 'java.nio.charset' name 'CharsetEncoder';
+  Arr1JNCCharsetEncoder = array of JNCCharsetEncoder;
+  Arr2JNCCharsetEncoder = array of Arr1JNCCharsetEncoder;
+  Arr3JNCCharsetEncoder = array of Arr2JNCCharsetEncoder;
+
   JUAbstractCollection = class external 'java.util' name 'AbstractCollection';
   Arr1JUAbstractCollection = array of JUAbstractCollection;
   Arr2JUAbstractCollection = array of Arr1JUAbstractCollection;
@@ -20729,6 +20669,11 @@ type
   Arr1JUAbstractMap = array of JUAbstractMap;
   Arr2JUAbstractMap = array of Arr1JUAbstractMap;
   Arr3JUAbstractMap = array of Arr2JUAbstractMap;
+
+  JLUnsupportedOperationException = class external 'java.lang' name 'UnsupportedOperationException';
+  Arr1JLUnsupportedOperationException = array of JLUnsupportedOperationException;
+  Arr2JLUnsupportedOperationException = array of Arr1JLUnsupportedOperationException;
+  Arr3JLUnsupportedOperationException = array of Arr2JLUnsupportedOperationException;
 
   JUEnumSet = class external 'java.util' name 'EnumSet';
   Arr1JUEnumSet = array of JUEnumSet;
@@ -20765,6 +20710,16 @@ type
   Arr2JUBitSet = array of Arr1JUBitSet;
   Arr3JUBitSet = array of Arr2JUBitSet;
 
+  JLClass = class external 'java.lang' name 'Class';
+  Arr1JLClass = array of JLClass;
+  Arr2JLClass = array of Arr1JLClass;
+  Arr3JLClass = array of Arr2JLClass;
+
+  JLString = class external 'java.lang' name 'String';
+  Arr1JLString = array of JLString;
+  Arr2JLString = array of Arr1JLString;
+  Arr3JLString = array of Arr2JLString;
+
   JLIllegalArgumentException = class external 'java.lang' name 'IllegalArgumentException';
   Arr1JLIllegalArgumentException = array of JLIllegalArgumentException;
   Arr2JLIllegalArgumentException = array of Arr1JLIllegalArgumentException;
@@ -20775,16 +20730,6 @@ type
   Arr2JUAbstractSet = array of Arr1JUAbstractSet;
   Arr3JUAbstractSet = array of Arr2JUAbstractSet;
 
-  JLString = class external 'java.lang' name 'String';
-  Arr1JLString = array of JLString;
-  Arr2JLString = array of Arr1JLString;
-  Arr3JLString = array of Arr2JLString;
-
-  JLClass = class external 'java.lang' name 'Class';
-  Arr1JLClass = array of JLClass;
-  Arr2JLClass = array of Arr1JLClass;
-  Arr3JLClass = array of Arr2JLClass;
-
   JLFloat = class external 'java.lang' name 'Float';
   Arr1JLFloat = array of JLFloat;
   Arr2JLFloat = array of Arr1JLFloat;
@@ -20794,6 +20739,11 @@ type
   Arr1JLRuntimeException = array of JLRuntimeException;
   Arr2JLRuntimeException = array of Arr1JLRuntimeException;
   Arr3JLRuntimeException = array of Arr2JLRuntimeException;
+
+  JLIllegalStateException = class external 'java.lang' name 'IllegalStateException';
+  Arr1JLIllegalStateException = array of JLIllegalStateException;
+  Arr2JLIllegalStateException = array of Arr1JLIllegalStateException;
+  Arr3JLIllegalStateException = array of Arr2JLIllegalStateException;
 
   JLRAccessibleObject = class external 'java.lang.reflect' name 'AccessibleObject';
   Arr1JLRAccessibleObject = array of JLRAccessibleObject;
@@ -20874,6 +20824,11 @@ type
   Arr1JISerializable = array of JISerializable;
   Arr2JISerializable = array of Arr1JISerializable;
   Arr3JISerializable = array of Arr2JISerializable;
+
+  JLReadable = interface external 'java.lang' name 'Readable';
+  Arr1JLReadable = array of JLReadable;
+  Arr2JLReadable = array of Arr1JLReadable;
+  Arr3JLReadable = array of Arr2JLReadable;
 
 
   CSJSPWDesktopProperty = class external 'com.sun.java.swing.plaf.windows' name 'DesktopProperty'

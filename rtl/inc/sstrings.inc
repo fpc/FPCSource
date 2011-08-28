@@ -1062,9 +1062,12 @@ begin
     End;
 end;
 
+{$ifndef FPC_HAS_INT_VAL_SINT_SHORTSTR}
+{$define FPC_HAS_INT_VAL_SINT_SHORTSTR}
 { we need this for fpc_Val_SInt_Ansistr and fpc_Val_SInt_WideStr because }
 { we have to pass the DestSize parameter on (JM)                         }
 Function int_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code: ValSInt): ValSInt; [external name 'FPC_VAL_SINT_SHORTSTR'];
+{$endif FPC_HAS_INT_VAL_SINT_SHORTSTR}
 
 
 Function fpc_Val_UInt_Shortstr(Const S: ShortString; out Code: ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_SHORTSTR']; compilerproc;

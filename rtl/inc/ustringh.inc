@@ -48,6 +48,7 @@ procedure UnicodeCharToStrVar(S : PUnicodeChar;out Dest : AnsiString);
 procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:ansistring;len:SizeInt);
 procedure DefaultAnsi2UnicodeMove(source:pchar;var dest:unicodestring;len:SizeInt);
 
+{$ifndef FPC_HAS_BUILTIN_WIDESTR_MANAGER}
 Type
   { hooks for internationalization
     please add new procedures at the end, it makes it easier to detect new procedures }
@@ -101,6 +102,7 @@ Type
     CompareUnicodeStringProc : function(const s1, s2 : UnicodeString) : PtrInt;
     CompareTextUnicodeStringProc : function(const s1, s2 : UnicodeString): PtrInt;
   end;
+{$endif FPC_HAS_BUILTIN_WIDESTR_MANAGER}
 
 var
   widestringmanager : TUnicodeStringManager;

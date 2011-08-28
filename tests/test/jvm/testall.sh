@@ -112,3 +112,7 @@ $PPC -O2 -g -B tval
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tval
 $PPC -O2 -g -B tval5
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tval5
+$PPC -O2 -g -B tstring9
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tstring9
+$PPC -O2 -g -B tstr
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/jvm-java:. tstr

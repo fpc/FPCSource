@@ -341,6 +341,18 @@ end;
                               Str() Helpers
 *****************************************************************************}
 
+{ this is a bit of a hack: 'public name' aliases don't work yet on the JVM
+  target, so manually add the redirection from FPC_VAL_SINT_SHORTSTR
+  to the fpc_Val_SInt_ShortStr compilerproc since compilerprocs are all lower
+  case }
+{$ifndef FPC_HAS_INT_VAL_SINT_SHORTSTR}
+{$define FPC_HAS_INT_VAL_SINT_SHORTSTR}
+{ we need this for fpc_Val_SInt_Ansistr and fpc_Val_SInt_WideStr because }
+{ we have to pass the DestSize parameter on (JM)                         }
+Function int_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code: ValSInt): ValSInt; [external name 'fpc_val_sint_shortstr'];
+{$endif FPC_HAS_INT_VAL_SINT_SHORTSTR}
+
+
 {$define FPC_HAS_SETSTRING_SHORTSTR}
 Procedure SetString (Out S : Shortstring; Buf : PChar; Len : SizeInt);
 begin
@@ -395,5 +407,12 @@ begin
 end;
 
 
-{ lie, implemented internally in the compiler }
+{ not based on Delphi-style rtti }
 {$define FPC_STR_ENUM_INTERN}
+function fpc_shortstr_enum_intern(enum: JLEnum; len:sizeint;out s:shortstring): longint;
+begin
+  s:=enum.toString;
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
+

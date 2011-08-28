@@ -86,13 +86,16 @@ const
 {$i jrech.inc}
 {$i jseth.inc}
 {$i jpvarh.inc}
+
 {$i jsystemh_types.inc}
+
 {$i jtvarh.inc}
 {$i jsstringh.inc}
 {$i jdynarrh.inc}
 {$i astringh.inc}
+{$i justringh.inc}
+
 {$i jsystemh.inc}
-{$i compproc.inc}
 
 
 {*****************************************************************************}
@@ -109,6 +112,7 @@ function min(a,b : longint) : longint;
 
 {$i jtvar.inc}
 {$i jsstrings.inc}
+{$i justrings.inc}
 {$i jrec.inc}
 {$i jset.inc}
 {$i jpvar.inc}

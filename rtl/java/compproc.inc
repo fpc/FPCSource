@@ -89,6 +89,7 @@ procedure fpc_ansistr_bool(b : boolean;len:sizeint;out s:ansistring); compilerpr
 procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring); compilerproc;
 {$endif FPC_HAS_STR_CURRENCY}
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+*)
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
   {$if not(defined(FPC_WIDESTRING_EQUAL_UNICODESTRING)) or defined(VER2_2)}
@@ -100,7 +101,6 @@ procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring)
   procedure fpc_UnicodeStr_uint(v : valuint;Len : SizeInt; out S : UnicodeString); compilerproc;
   {$endif VER2_2}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
-*)
 {$ifndef CPU64}
   procedure fpc_shortstr_qword(v : qword;len : SizeInt;out s : shortstring); compilerproc;
   procedure fpc_shortstr_int64(v : int64;len : SizeInt;out s : shortstring); compilerproc;
@@ -111,6 +111,7 @@ procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring)
   procedure fpc_ansistr_qword(v : qword;len : SizeInt;out s : ansistring); compilerproc;
   procedure fpc_ansistr_int64(v : int64;len : SizeInt;out s : ansistring); compilerproc;
   {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+  *)
 
   {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
     {$if not(defined(FPC_WIDESTRING_EQUAL_UNICODESTRING)) or defined(VER2_2)}
@@ -122,9 +123,7 @@ procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring)
     procedure fpc_UnicodeStr_int64(v : int64;len : SizeInt;out s : UnicodeString); compilerproc;
     {$endif VER2_2}
   {$endif FPC_HAS_FEATURE_WIDESTRINGS}
-*)
 {$endif CPU64}
-(*
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
   {$if not(defined(FPC_WIDESTRING_EQUAL_UNICODESTRING)) or defined(VER2_2)}
     {$ifndef FPUNONE}
@@ -151,7 +150,6 @@ procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring)
     {$endif FPC_HAS_STR_CURRENCY}
   {$endif VER2_2}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
-*)
 
 {$ifndef FPUNONE}
 procedure fpc_chararray_Float(d : ValReal;len,fr,rt : SizeInt;out a : array of AnsiChar); compilerproc;
@@ -306,21 +304,34 @@ Function  fpc_ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiSt
                         Unicode string support
 *****************************************************************************}
 
-Function fpc_ShortStr_To_UnicodeStr (Const S2 : ShortString): UnicodeString; compilerproc;
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+//Procedure fpc_UnicodeStr_Decr_Ref (Var S : Pointer); compilerproc;
+//Procedure fpc_UnicodeStr_Incr_Ref (S : Pointer); compilerproc;
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
+function fpc_UnicodeStr_To_ShortStr (high_of_res: SizeInt;const S2 : UnicodeString): shortstring; compilerproc;
+{$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_UnicodeStr_To_ShortStr (out res: ShortString;const S2 : UnicodeString); compilerproc;
+{$endif FPC_STRTOSHORTSTRINGPROC}
+Function fpc_ShortStr_To_UnicodeStr (Const S2 : ShortString): UnicodeString; compilerproc;
 Function fpc_UnicodeStr_To_AnsiStr (const S2 : UnicodeString): AnsiString; compilerproc;
 Function fpc_AnsiStr_To_UnicodeStr (Const S2 : AnsiString): UnicodeString; compilerproc;
 Function fpc_UnicodeStr_To_WideStr (const S2 : UnicodeString): WideString; compilerproc;
 Function fpc_WideStr_To_UnicodeStr (Const S2 : WideString): UnicodeString; compilerproc;
+{$ifndef STR_CONCAT_PROCS}
 Function fpc_UnicodeStr_Concat (const S1,S2 : UnicodeString) : UnicodeString; compilerproc;
 function fpc_UnicodeStr_Concat_multi (const sarr:array of Unicodestring): unicodestring; compilerproc;
+{$else STR_CONCAT_PROCS}
+Procedure fpc_UnicodeStr_Concat (Var DestS : Unicodestring;const S1,S2 : UnicodeString); compilerproc;
+Procedure fpc_UnicodeStr_Concat_multi (Var DestS : Unicodestring;const sarr:array of Unicodestring); compilerproc;
+{$endif STR_CONCAT_PROCS}
 Function fpc_Char_To_UnicodeStr(const c : AnsiChar): UnicodeString; compilerproc;
+Function fpc_PChar_To_UnicodeStr(const p : pchar): UnicodeString; compilerproc;
 Function fpc_CharArray_To_UnicodeStr(const arr: array of AnsiChar; zerobased: boolean = true): UnicodeString; compilerproc;
 
 procedure fpc_unicodestr_to_chararray(out res: array of AnsiChar; const src: UnicodeString); compilerproc;
 //procedure fpc_shortstr_to_unicodechararray(out res: array of unicodechar; const src: ShortString); compilerproc;
 //procedure fpc_ansistr_to_unicodechararray(out res: array of unicodechar; const src: AnsiString); compilerproc;
-procedure fpc_unicodestr_to_unicodechararray(out res: array of unicodechar; const src: UnicodeString); compilerproc;
+//procedure fpc_unicodestr_to_unicodechararray(out res: array of unicodechar; const src: UnicodeString); compilerproc;
 
 function fpc_unicodestr_setchar(const s: UnicodeString; const index: longint; const ch: unicodechar): UnicodeString; compilerproc;
 
@@ -332,7 +343,7 @@ procedure fpc_UnicodeCharArray_To_ShortStr(out res : shortstring;const arr: arra
 {$endif FPC_STRTOSHORTSTRINGPROC}
 Function fpc_UnicodeCharArray_To_AnsiStr(const arr: array of unicodechar; zerobased: boolean = true): AnsiString; compilerproc;
 *)
-Function fpc_UnicodeCharArray_To_UnicodeStr(const arr: array of unicodechar; zerobased: boolean = true): UnicodeString; compilerproc;
+//Function fpc_UnicodeCharArray_To_UnicodeStr(const arr: array of unicodechar; zerobased: boolean = true): UnicodeString; compilerproc;
 {$ifndef FPC_STRTOSHORTSTRINGPROC}
 Function fpc_WideCharArray_To_ShortStr(const arr: array of widechar; zerobased: boolean = true): shortstring; compilerproc;
 {$else FPC_STRTOSHORTSTRINGPROC}
@@ -363,30 +374,29 @@ Function  fpc_unicodestr_Copy (Const S : UnicodeString; Index,Size : SizeInt) : 
 Function fpc_Char_To_UChar(const c : AnsiChar): UnicodeChar; compilerproc;
 Function fpc_UChar_To_Char(const c : UnicodeChar): AnsiChar; compilerproc;
 Function fpc_UChar_To_UnicodeStr(const c : UnicodeChar): UnicodeString; compilerproc;
-Function fpc_WChar_To_UnicodeStr(const c : WideChar): UnicodeString; compilerproc;
+//Function fpc_WChar_To_UnicodeStr(const c : WideChar): UnicodeString; compilerproc;
 Function fpc_UChar_To_AnsiStr(const c : UnicodeChar): AnsiString; compilerproc;
 {$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_WChar_To_ShortStr(const c : WideChar): ShortString; compilerproc;
+Function fpc_UChar_To_ShortStr(const c : UnicodeChar): ShortString; compilerproc;
 {$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_Char_To_ShortStr(out res : shortstring;const c : AnsiChar) compilerproc;
-procedure fpc_WChar_To_ShortStr(out res : shortstring;const c : WideChar) compilerproc;
-{$endif FPC_STRTOSHORTSTRINGPROC}
-(*
-{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Function fpc_PUnicodeChar_To_AnsiStr(const p : punicodechar): ansistring; compilerproc;
-{$endif FPC_HAS_FEATURE_ANSISTRINGS}
-Function fpc_PUnicodeChar_To_UnicodeStr(const p : punicodechar): unicodestring; compilerproc;
-Function fpc_PWideChar_To_UnicodeStr(const p : pwidechar): unicodestring; compilerproc;
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_PUnicodeChar_To_ShortStr(const p : punicodechar): shortstring; compilerproc;
-{$else FPC_STRTOSHORTSTRINGPROC}
-procedure fpc_PUnicodeChar_To_ShortStr(out res : shortstring;const p : punicodechar); compilerproc;
+procedure fpc_UChar_To_ShortStr(out res : shortstring;const c : UnicodeChar) compilerproc;
 {$endif FPC_STRTOSHORTSTRINGPROC}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
-*)
 
-(*
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+//Function fpc_PUnicodeChar_To_AnsiStr(const p : punicodechar): ansistring; compilerproc;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+//Function fpc_PUnicodeChar_To_UnicodeStr(const p : punicodechar): unicodestring; compilerproc;
+Function fpc_PWideChar_To_UnicodeStr(const p : pwidechar): unicodestring; compilerproc;
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
+//Function fpc_PUnicodeChar_To_ShortStr(const p : punicodechar): shortstring; compilerproc;
+{$else FPC_STRTOSHORTSTRINGPROC}
+//procedure fpc_PUnicodeChar_To_ShortStr(out res : shortstring;const p : punicodechar); compilerproc;
+{$endif FPC_STRTOSHORTSTRINGPROC}
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
@@ -397,11 +407,10 @@ Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerpr
 procedure fpc_PWideChar_To_ShortStr(out res : shortstring;const p : pwidechar); compilerproc;
 {$endif FPC_STRTOSHORTSTRINGPROC}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
-*)
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-Function fpc_Char_To_WChar(const c : AnsiChar): WideChar; compilerproc;
-Function fpc_WChar_To_Char(const c : WideChar): AnsiChar; compilerproc;
+//Function fpc_Char_To_WChar(const c : AnsiChar): WideChar; compilerproc;
+//Function fpc_WChar_To_Char(const c : WideChar): AnsiChar; compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
