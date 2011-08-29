@@ -31,9 +31,17 @@ interface
 
     type
        tloadvmtaddrnode = class(tunarynode)
+          { unless this is for a call, we have to send the "class" message to
+            the objctype because the type information only gets initialized
+            after the first message has been sent -> crash if you pass an
+            uninitialized type to e.g. class_getInstanceSize() or so. No need
+            to save to/restore from ppu. }
+          forcall: boolean;
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
+          function docompare(p: tnode): boolean; override;
+          function dogetcopy: tnode; override;
        end;
        tloadvmtaddrnodeclass = class of tloadvmtaddrnode;
 
@@ -190,6 +198,21 @@ implementation
       end;
 
 
+    function tloadvmtaddrnode.docompare(p: tnode): boolean;
+      begin
+        result:=inherited docompare(p);
+        if result then
+          result:=forcall=tloadvmtaddrnode(p).forcall;
+      end;
+
+
+    function tloadvmtaddrnode.dogetcopy: tnode;
+      begin
+        result:=inherited dogetcopy;
+        tloadvmtaddrnode(result).forcall:=forcall;
+      end;
+
+
     function tloadvmtaddrnode.pass_1 : tnode;
       var
         vs: tsym;
@@ -229,6 +252,19 @@ implementation
                else if (left.resultdef.typ=objectdef) then
                  tobjectdef(left.resultdef).register_maybe_created_object_type
              end
+           end
+         else if is_objcclass(left.resultdef) and
+              not(forcall) then
+           begin
+             { call "class" method (= "classclass" in FPC), because otherwise
+               we may use the class information before it has been
+               initialized }
+             vs:=search_struct_member(tobjectdef(left.resultdef),'CLASSCLASS');
+             if not assigned(vs) or
+                (vs.typ<>procsym) then
+               internalerror(2011080601);
+             { can't reuse "self", because it will be freed when we return }
+             result:=ccallnode.create(nil,tprocsym(vs),vs.owner,self.getcopy,[]);
            end;
       end;
 

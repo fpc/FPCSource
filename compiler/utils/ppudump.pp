@@ -366,6 +366,22 @@ end;
                              Read Routines
 ****************************************************************************}
 
+procedure readrecsymtableoptions;
+var
+  usefieldalignment : shortint;
+begin
+  if ppufile.readentry<>ibrecsymtableoptions then
+    begin
+      has_errors:=true;
+      exit;
+    end;
+  writeln(space,' recordalignment: ',shortint(ppufile.getbyte));
+  usefieldalignment:=shortint(ppufile.getbyte);
+  writeln(space,' usefieldalignment: ',usefieldalignment);
+  if (usefieldalignment=C_alignment) then
+    writeln(space,' fieldalignment: ',shortint(ppufile.getbyte));
+end;
+
 procedure readsymtableoptions(const s: string);
 type
   tsymtblopt=record
@@ -1959,15 +1975,17 @@ begin
              writeln(space,'   Name of Record : ',getstring);
              write  (space,'          Options : ');
              readobjectdefoptions;
-             writeln(space,'       FieldAlign : ',getbyte);
-             writeln(space,'      RecordAlign : ',getbyte);
-             writeln(space,'         PadAlign : ',getbyte);
-             writeln(space,'UseFieldAlignment : ',getbyte);
-             writeln(space,'         DataSize : ',getaint);
+             writeln(space,'       FieldAlign : ',shortint(getbyte));
+             writeln(space,'      RecordAlign : ',shortint(getbyte));
+             writeln(space,'         PadAlign : ',shortint(getbyte));
+             writeln(space,'UseFieldAlignment : ',shortint(getbyte));
+             writeln(space,'         DataSize : ',getasizeint);
+             writeln(space,'      PaddingSize : ',getword);
              if not EndOfEntry then
                HasMoreInfos;
              {read the record definitions and symbols}
              space:='    '+space;
+             readrecsymtableoptions;
              readsymtableoptions('fields');
              readdefinitions('fields');
              readsymbols('fields');
@@ -1996,9 +2014,10 @@ begin
              end;
              writeln(space,'    External name : ',getstring);
              writeln(space,'       Import lib : ',getstring);
-             writeln(space,'         DataSize : ',getaint);
-             writeln(space,'       FieldAlign : ',getbyte);
-             writeln(space,'      RecordAlign : ',getbyte);
+             writeln(space,'         DataSize : ',getasizeint);
+             writeln(space,'      PaddingSize : ',getword);
+             writeln(space,'       FieldAlign : ',shortint(getbyte));
+             writeln(space,'      RecordAlign : ',shortint(getbyte));
              writeln(space,'       Vmt offset : ',getlongint);
              write  (space,  '   Ancestor Class : ');
              readderef('');
@@ -2051,6 +2070,7 @@ begin
                begin
                  {read the record definitions and symbols}
                  space:='    '+space;
+                 readrecsymtableoptions;
                  readsymtableoptions('fields');
                  readdefinitions('fields');
                  readsymbols('fields');

@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 131;
+  CurrentPPUVersion = 133;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -132,6 +132,7 @@ const
 
   ibmainname       = 90;
   ibsymtableoptions = 91;
+  ibrecsymtableoptions = 91;
   { target-specific things }
   iblinkotherframeworks = 100;
 
@@ -286,6 +287,7 @@ type
     procedure putint64(i:int64);
     procedure putqword(q:qword);
     procedure putaint(i:aint);
+    procedure putasizeint(i:asizeint);
     procedure putaword(i:aword);
     procedure putreal(d:ppureal);
     procedure putstring(const s:string);
@@ -1268,6 +1270,12 @@ end;
 procedure tppufile.putaint(i:aint);
 begin
   putdata(i,sizeof(aint));
+end;
+
+
+procedure tppufile.putasizeint(i: asizeint);
+begin
+  putdata(i,sizeof(asizeint));
 end;
 
 

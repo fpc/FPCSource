@@ -2137,7 +2137,10 @@ implementation
           ordconstn:
             inserttypeconv_internal(n,todef);
           typeconvn:
-            n.resultdef:=todef;
+            begin
+              n.resultdef:=todef;
+              ttypeconvnode(n).totypedef:=todef;
+            end;
         end;
       end;
 {$endif not cpu64bitalu}

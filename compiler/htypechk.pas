@@ -1322,9 +1322,8 @@ implementation
                     (vo_is_loop_counter in tsubscriptnode(hp).vs.varoptions) then
                    begin
                      if report_errors then
-                       CGMessage1(parser_e_illegal_assignment_to_count_var,tsubscriptnode(hp).vs.realname)
-                     else
-                       exit;
+                       CGMessage1(parser_e_illegal_assignment_to_count_var,tsubscriptnode(hp).vs.realname);
+                     exit;
                    end;
                  { implicit pointer object types result in dereferencing }
                  hp:=tsubscriptnode(hp).left;
@@ -1475,10 +1474,11 @@ implementation
                        if not(Valid_Const in opts) and
                           not gotderef and
                           (vo_is_loop_counter in tabstractvarsym(tloadnode(hp).symtableentry).varoptions) then
-                         if report_errors then
-                          CGMessage1(parser_e_illegal_assignment_to_count_var,tloadnode(hp).symtableentry.realname)
-                         else
-                          exit;
+                         begin
+                           if report_errors then
+                             CGMessage1(parser_e_illegal_assignment_to_count_var,tloadnode(hp).symtableentry.realname);
+                           exit;
+                         end;
                        { read-only variable? }
                        if (tabstractvarsym(tloadnode(hp).symtableentry).varspez in [vs_const,vs_constref]) then
                         begin
