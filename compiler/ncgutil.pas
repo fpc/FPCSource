@@ -1510,7 +1510,10 @@ implementation
         include(current_procinfo.flags,pi_needs_implicit_finally);
         OldAsmList:=current_asmdata.CurrAsmList;
         current_asmdata.CurrAsmList:=asmlist;
-        hp:=finalize_data_node(cloadnode.create(sym,sym.owner));
+        hp:=cloadnode.create(sym,sym.owner);
+        if (sym.typ=staticvarsym) and (vo_force_finalize in tstaticvarsym(sym).varoptions) then
+          include(hp.flags,nf_isinternal_ignoreconst);
+        hp:=finalize_data_node(hp);
         firstpass(hp);
         secondpass(hp);
         hp.free;
@@ -1548,7 +1551,10 @@ implementation
                     they may also be used in another unit
                   }
                   (tstaticvarsym(p).owner.symtabletype=globalsymtable)) and
-                 (tstaticvarsym(p).varspez<>vs_const) and
+                  (
+                    (tstaticvarsym(p).varspez<>vs_const) or
+                    (vo_force_finalize in tstaticvarsym(p).varoptions)
+                  ) and
                  not(vo_is_funcret in tstaticvarsym(p).varoptions) and
                  not(vo_is_external in tstaticvarsym(p).varoptions) and
                  is_managed_type(tstaticvarsym(p).vardef) then

@@ -1008,6 +1008,9 @@ implementation
              ImplIntf:=tobjectdef(astruct).find_implemented_interface(tobjectdef(ttypesym(srsym).typedef));
            if ImplIntf=nil then
              Message(parser_e_interface_id_expected);
+           { must be a directly implemented interface }
+           if Assigned(ImplIntf.ImplementsGetter) then
+             Message2(parser_e_implements_no_mapping,ImplIntf.IntfDef.typename,astruct.objrealname^);
            consume(_ID);
            { Create unique name <interface>.<method> }
            hs:=sp+'.'+pattern;

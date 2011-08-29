@@ -841,6 +841,13 @@ implementation
                end;
              if found then
                begin
+                 { An interface may not be delegated by more than one property,
+                   it also may not have method mappings. }
+                 if Assigned(ImplIntf.ImplementsGetter) then
+                   message1(parser_e_duplicate_implements_clause,ImplIntf.IntfDef.typename);
+                 if Assigned(ImplIntf.NameMappings) then
+                   message2(parser_e_mapping_no_implements,ImplIntf.IntfDef.typename,astruct.objrealname^);
+
                  ImplIntf.ImplementsGetter:=p;
                  ImplIntf.VtblImplIntf:=ImplIntf;
                  case p.propaccesslist[palt_read].firstsym^.sym.typ of

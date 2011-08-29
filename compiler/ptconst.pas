@@ -172,6 +172,7 @@ implementation
         list   : tasmlist;
         origsym: tstaticvarsym;
         offset:  asizeint;
+        origblock: tblock_type;
       end;
 
     { this procedure reads typed constants }
@@ -748,13 +749,17 @@ implementation
                               strval,
                               winlike);
 
-                       { collect global Windows widestrings }
-                       if winlike and (hr.origsym.owner.symtablelevel <= main_program_level) then
+                       { Collect Windows widestrings that need initialization at startup.
+                         Local initialized vars are excluded because they are initialized
+                         at function entry instead. }
+                       if winlike and ((hr.origsym.owner.symtablelevel <= main_program_level) or
+                         (hr.origblock=bt_const)) then
                        begin
                          current_asmdata.WideInits.Concat(
                             TTCInitItem.Create(hr.origsym, hr.offset, ll)
                          );
                          ll := nil;
+                         Include(hr.origsym.varoptions, vo_force_finalize);
                        end;
                      end;
                      hr.list.concat(Tai_const.Create_sym(ll));
@@ -1457,6 +1462,7 @@ implementation
         hrec.list:=tasmlist.create;
         hrec.origsym:=sym;
         hrec.offset:=0;
+        hrec.origblock:=block_type;
         read_typed_const_data(hrec,sym.vardef);
 
         { Parse hints }

@@ -243,10 +243,14 @@ implementation
         new_section(current_asmdata.asmlists[al_globals],sec_data,s,sizeof(pint));
         current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0));
         repeat
-          { address to initialize }
-          current_asmdata.asmlists[al_globals].concat(Tai_const.createname(item.sym.mangledname, item.offset));
-          { value with which to initialize }
-          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(item.datalabel));
+          { optimize away unused local/static symbols }
+          if (item.sym.refs>0) or (item.sym.owner.symtabletype=globalsymtable) then
+            begin
+              { address to initialize }
+              current_asmdata.asmlists[al_globals].concat(Tai_const.createname(item.sym.mangledname, item.offset));
+              { value with which to initialize }
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(item.datalabel));
+            end;
           item:=TTCInitItem(item.Next);
         until item=nil;
         { end-of-list marker }

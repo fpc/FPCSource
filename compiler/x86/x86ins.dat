@@ -3321,6 +3321,10 @@ xmmreg,xmmrm          \361\3\x0F\x38\x35\110               SSE41,SM
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmrm          \361\3\x0F\x38\x28\110               SSE41,SM
 
+[PMULLD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmmrm          \361\3\x0F\x38\x40\110               SSE41,SM
+
 [PTEST]
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmrm          \361\3\x0F\x38\x17\110               SSE41,SM

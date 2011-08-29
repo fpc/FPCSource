@@ -662,6 +662,7 @@
 'pmovzxwq',
 'pmovzxdq',
 'pmuldq',
+'pmulld',
 'ptest',
 'roundps',
 'roundpd',
