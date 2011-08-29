@@ -15,24 +15,6 @@
                     subroutines for string handling
 ****************************************************************************}
 
-{$ifndef FPC_HAS_SHORTSTR_SHORTSTR_INTERN_CHARMOVE}
-{$define FPC_HAS_SHORTSTR_SHORTSTR_INTERN_CHARMOVE}
-procedure fpc_shortstr_shortstr_intern_charmove(const src: shortstring; const srcindex: byte; var dst: shortstring; const dstindex, len: byte); {$ifdef SYSTEMINLINE}inline;{$endif}
-begin
-  move(src[srcindex],dst[dstindex],len);
-end;
-{$endif FPC_HAS_SHORTSTR_SHORTSTR_INTERN_CHARMOVE}
-
-{$ifndef FPC_HAS_SHORTSTR_CHARARRAY_INTERN_CHARMOVE}
-{$define FPC_HAS_SHORTSTR_CHARARRAY_INTERN_CHARMOVE}
-procedure fpc_shortstr_chararray_intern_charmove(const src: shortstring; out dst: array of char; const len: sizeint); {$ifdef SYSTEMINLINE}inline;{$endif}
-begin
-  move(src[1],pchar(@dst)^,len);
-end;
-{$endif FPC_HAS_SHORTSTR_CHARARRAY_INTERN_CHARMOVE}
-
-
-
 {$ifndef FPC_HAS_SHORTSTR_SETLENGTH}
 {$define FPC_HAS_SHORTSTR_SETLENGTH}
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt);[Public,Alias : 'FPC_SHORTSTR_SETLENGTH']; compilerproc;

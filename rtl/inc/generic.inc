@@ -21,6 +21,24 @@
 type
   pstring = ^shortstring;
 
+
+{$ifndef FPC_HAS_SHORTSTR_SHORTSTR_INTERN_CHARMOVE}
+{$define FPC_HAS_SHORTSTR_SHORTSTR_INTERN_CHARMOVE}
+procedure fpc_shortstr_shortstr_intern_charmove(const src: shortstring; const srcindex: byte; var dst: shortstring; const dstindex, len: byte); {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  move(src[srcindex],dst[dstindex],len);
+end;
+{$endif FPC_HAS_SHORTSTR_SHORTSTR_INTERN_CHARMOVE}
+
+{$ifndef FPC_HAS_SHORTSTR_CHARARRAY_INTERN_CHARMOVE}
+{$define FPC_HAS_SHORTSTR_CHARARRAY_INTERN_CHARMOVE}
+procedure fpc_shortstr_chararray_intern_charmove(const src: shortstring; out dst: array of char; const len: sizeint); {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  move(src[1],pchar(@dst)^,len);
+end;
+{$endif FPC_HAS_SHORTSTR_CHARARRAY_INTERN_CHARMOVE}
+
+
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
 var
@@ -916,8 +934,8 @@ begin
   s2l:=length(s2);
   if s1l+s2l>255 then
     s2l:=255-s1l;
-  move(s1[1],fpc_shortstr_concat[1],s1l);
-  move(s2[1],fpc_shortstr_concat[s1l+1],s2l);
+  fpc_shortstr_shortstr_intern_charmove(s1,1,fpc_shortstr_concat,1,s1l);
+  fpc_shortstr_shortstr_intern_charmove(s2,1,fpc_shortstr_concat,s1l+1,s2l);
   fpc_shortstr_concat[0]:=chr(s1l+s2l);
 end;
 
@@ -936,17 +954,17 @@ begin
       s2l:=high(dests)-s1l;
     end;
   if @dests=@s1 then
-    move(s2[1],dests[s1l+1],s2l)
+    fpc_shortstr_shortstr_intern_charmove(s2,1,dests,s1l+1,s2l)
   else
     if @dests=@s2 then
       begin
-        move(dests[1],dests[s1l+1],s2l);
-        move(s1[1],dests[1],s1l);
+        fpc_shortstr_shortstr_intern_charmove(dests,1,dests,s1l+1,s2l);
+        fpc_shortstr_shortstr_intern_charmove(s1,1,dests,1,s1l);
       end
   else
     begin
-      move(s1[1],dests[1],s1l);
-      move(s2[1],dests[s1l+1],s2l);
+      fpc_shortstr_shortstr_intern_charmove(s1,1,dests,1,s1l);
+      fpc_shortstr_shortstr_intern_charmove(s2,1,dests,s1l+1,s2l);
     end;
   dests[0]:=chr(s1l+s2l);
 end;
@@ -956,7 +974,6 @@ var
   s2l : byte;
   LowStart,i,
   Len : longint;
-  pc : pchar;
   needtemp : boolean;
   tmpstr  : shortstring;
   p,pdest  : pshortstring;
@@ -997,7 +1014,6 @@ begin
   { Concat all strings, except the string we already
     copied in DestS }
   Len:=length(pdest^);
-  pc:=@pdest^[1+Length(pdest^)];
   for i:=lowstart to high(sarr) do
     begin
       p:=sarr[i];
@@ -1006,8 +1022,7 @@ begin
           s2l:=length(p^);
           if Len+s2l>high(dests) then
             s2l:=high(dests)-Len;
-          Move(p^[1],pc^,s2l);
-          inc(pc,s2l);
+          fpc_shortstr_shortstr_intern_charmove(p^,1,pdest^,Len+1,s2l);
           inc(Len,s2l);
         end;
     end;
