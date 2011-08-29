@@ -309,12 +309,11 @@ class ObjectivePParser extends ObjectivePParserBase {
 		return $name;
 	}
 	
-	// create a variant record with a first anonymous field of type
+	// create a variant normal record with a first anonymous field of type
 	// first_bitpacked_type so that the compiler may correctly align it
-	// (it does not do that currently, but this at least provides a
-	//  hint to the programmer)
+	// the actual bitpacked record is embedded inside
 	function BitPackedForceAlignment($first_bitpacked_type, $firstindent, $otherindents) {
-		$result = $firstindent . "case byte of\n" . $otherindents ."0: (" . $this->GetAnonBitFieldName() . ": $first_bitpacked_type);\n" . $otherindents . "1: (";
+		$result = $firstindent . "case byte of\n" . $otherindents ."0: (" . $this->GetAnonBitFieldName() . ": $first_bitpacked_type);\n" . $otherindents . "1: (data: bitpacked record";
 		return $result;
 	}
 	
@@ -580,11 +579,14 @@ class ObjectivePParser extends ObjectivePParserBase {
 	// Makes a struct field into an inline array (or returns field un-changed)
 	function MakeFieldInlineArray ($io_field, $line, $name, $type) {
 
-		if (eregi("\[([0-9]+)\];", $line, $array_size)) {
-			$length = (int)$array_size[1] - 1;
-			if ($length > 0) {
-				$io_field = "    $name: array[0..$length] of $type;";
-			}
+		if (eregi("\[([^]]+)\];", $line, $array_size)) {
+			if ($array_size[1] == "")
+				$io_field = "$name: array[0..0] of $type; { dynamically expanding, 0 elements in C }";
+			else if ($array_size[1] == "0")
+				$io_field = "$name: record end; { array of 0 elements in C, does not allocate space }";
+			else
+				// array_size[1] may be a symbolic constant rather than a number, so don't calculate in php
+				$io_field = "$name: array[0..($array_size[1])-1] of $type;";
 		}
 		
 		return $io_field;
@@ -594,7 +596,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 	function MakeFieldBitPacked ($ioType, $field, &$bitpacked) {
 		$bitpacked = false;
 		
-		if (preg_match("!:([0-9]+)\s*(?:__attribute__\(\([^)]*\)\))?\s*;$!", $field, $bitpack)) {
+		if (preg_match("!:([0-9]+)\s*(?:__attribute__\(\([^)]*\)\))?\s*;\s*$!", $field, $bitpack)) {
 			$length = (int)$bitpack[1];
 			if ($length > 1) {
 				$ioType = "0..((1 shl $length)-1)";
@@ -2423,7 +2425,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 	}
 	
 	// Parses $line into the combined $struct_fields string
-	function ParseStructFields ($line, $protected_keywords, &$struct_fields, &$found_any_bitpacked, &$all_bitpacked, &$first_bitpacked_type) {
+	function ParseStructFields ($line, $protected_keywords, &$struct_fields, &$any_field_parsed, &$found_any_bitpacked, &$all_bitpacked, &$first_bitpacked_type) {
 		if (preg_match($this->pregex_function_pointer, $line, $captures)) {
 			$struct_fields .= "    " . $this->ParseFunctionDeclaration($captures[1], $captures[2], $captures[3], $captures[4], false, "");
 			$all_bitpacked = false;
@@ -2435,9 +2437,10 @@ class ObjectivePParser extends ObjectivePParserBase {
 //			print("field: '$new_field', bitpacked: $field_bitpacked, any: $found_any_bitpacked, all: $all_bitpacked\n");
 			if ($new_field != "") {
 				$found_any_bitpacked |= $field_bitpacked;
-				if ($struct_fields == "") {
+				if (!$any_field_parsed) {
 					$all_bitpacked = $field_bitpacked;
 					$first_bitpacked_type = $bitpacked_real_type;
+					$any_field_parsed=true;
 				}
 				else $all_bitpacked &= $field_bitpacked;
 				$struct_fields .= "    " . $new_field . $this->AppendEOLComment() . "\n";
@@ -2503,6 +2506,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 	function ParseHeaderTypes ($file) {
 			$contents = file_get_contents($file);
 			$file_name = substr($file, (strripos($file, "/")) + 1, strlen($file));	
+			$any_field_parsed = false;
 			$any_field_bitpacked = false;
 			$all_fields_bitpacked = false;
 			
@@ -2540,7 +2544,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 					if ($macro = $this->InsertMacroBlocks($line, $this->inside_macro_block)) $struct_fields .= "$macro\n";
 					
 					// collect fields
-					$this->ParseStructFields($line, array(), $struct_fields, $any_field_bitpacked, $all_fields_bitpacked, $first_bitpacked_type);
+					$this->ParseStructFields($line, array(), $struct_fields, $any_field_parsed, $any_field_bitpacked, $all_fields_bitpacked, $first_bitpacked_type);
 					
 					// got end of struct
 					if (ereg("^}[[:space:]]*([a-zA-Z_0-9]+);", $line, $captures)) {
@@ -2554,13 +2558,11 @@ class ObjectivePParser extends ObjectivePParserBase {
 						// ignore this struct
 						if (in_array($struct_name, $this->ignore_types)) continue;
 						
-						if ($all_fields_bitpacked) {
-							$struct = "$struct_comment$struct_name = $this->bitpacked_record_keyword\n";
+						$struct = "$struct_comment$struct_name = $this->record_keyword\n";
+						if ($any_field_bitpacked) {
 							$struct .= $this->BitPackedForceAlignment($first_bitpacked_type, "    ", "    ") . "\n";
 							$struct_fields = str_replace("    ","          ",$struct_fields);
-							$struct_fields .= "       );\n";
-						} else {
-							$struct = "$struct_comment$struct_name = $this->record_keyword\n";
+							$struct_fields .= "         end;\n       );\n";
 						}
 						
 						$struct .= $struct_fields;
@@ -2574,6 +2576,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 						$this->dump[$file_name]["types"]["structs"][] = $struct;
 						$this->dump["global_structs"][] = $struct_name;
 						$got_struct = false;
+						$any_field_parsed = false;
 						$any_field_bitpacked = false;
 						$all_fields_bitpacked = false;
 					}
@@ -2594,17 +2597,17 @@ class ObjectivePParser extends ObjectivePParserBase {
 						// parse each line
 						foreach ($fields as $field) {
 							$field = trim($field);
-							$this->ParseStructFields($field.";", array(), $single_struct_fields, $any_field_bitpacked, $all_fields_bitpacked, $first_bitpacked_type);
+							$this->ParseStructFields($field.";", array(), $single_struct_fields, $any_field_parsed, $any_field_bitpacked, $all_fields_bitpacked, $first_bitpacked_type);
 						}
 						
 						// merge the fields into the definition
 						$struct = "$comment\n"."$struct_name = ";
-						if ($all_fields_bitpacked) {
-							$struct .= "$this->bitpacked_record_keyword\n";
+						$struct .= "$this->record_keyword\n";
+						if ($any_field_bitpacked) {
 							$struct .= $this->BitPackedForceAlignment($first_bitpacked_type, "    ", "    ") . "\n";
 							$single_struct_fields = str_replace("    ","          ",$single_struct_fields);
-							$single_struct_fields .= "       );\n";
-						}	else $struct .= "$this->record_keyword\n";
+							$single_struct_fields .= "         end;\n       );\n";
+						}	else ;
 						$struct .= $single_struct_fields;
 						$struct .= "  end$deprecatedmods;\n";
 						// pointer type
@@ -2612,6 +2615,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 						
 						$this->dump[$file_name]["types"]["structs"][] = $struct;
 						$this->dump["global_structs"][] = $struct_name;
+						$any_field_parsed = false;
 						$any_field_bitpacked = false;
 						$all_fields_bitpacked = false;
 						//print("$single_struct_fields\n");
@@ -2626,6 +2630,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 						$this->ResetComment();
 						if ($struct_comment != "") $struct_comment = "$struct_comment\n";
 						$got_struct = true;
+						print("Parsing struct $struct_name\n");
 					}
 				}
 
@@ -3311,19 +3316,19 @@ class ObjectivePParser extends ObjectivePParserBase {
 						$this->dump[$file_name]["classes"][$current]["ivars_structs"][] = $struct;
 						
 						// print inline-record type
+						$this->dump[$file_name]["classes"][$current]["ivars"][] = $struct["name"].": ".$this->record_keyword;
 						if ($struct["bitpacked"]) {
-							$this->dump[$file_name]["classes"][$current]["ivars"][] = $struct["name"].": ".$this->bitpacked_record_keyword;
 							$this->dump[$file_name]["classes"][$current]["ivars"][] = $this->BitPackedForceAlignment($struct["bitpacked_first_type"], "  ", "       ");
-						} else {
-							$this->dump[$file_name]["classes"][$current]["ivars"][] = $struct["name"].": ".$this->record_keyword;
 						}
-						
 						
 						// print fields
 						if ($struct["fields"]) {
 							foreach ($struct["fields"] as $field) $this->dump[$file_name]["classes"][$current]["ivars"][] = "    ".$field;
 						}
-						if ($struct["bitpacked"]) $this->dump[$file_name]["classes"][$current]["ivars"][] = "  );";
+						if ($struct["bitpacked"]) {
+							$this->dump[$file_name]["classes"][$current]["ivars"][] = "   end;";
+							$this->dump[$file_name]["classes"][$current]["ivars"][] = "  );";
+						}
 						$this->dump[$file_name]["classes"][$current]["ivars"][] = "  end;";
 						
 						$struct = null;
@@ -3343,7 +3348,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 					}
 					
 					// instance var section terminated.
-					if (eregi("^\s*}\s*[;]*$", $line)) {
+					if (preg_match("!^\s*}\s*[;]*$!", $line)) {
 						$struct = null;
 						$got_instance_vars = false;
 						$this->instance_var_scope = null;
@@ -3353,7 +3358,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 					
 					// the instance variable section started after the class line and no other ivar's were parsed yet
 					if (!$this->dump[$file_name]["classes"][$current]["ivars"]) {
-						if (eregi("{\s*$", $line)) {
+						if (preg_match("!{\s*$!", $line)) {
 							$got_instance_vars = true;
 							continue;
 						}
@@ -3434,7 +3439,7 @@ class ObjectivePParser extends ObjectivePParserBase {
 					$has_superclass = true;
 					
 					// check for instance variable section
-					if (eregi("{\s*$", $line)) $got_instance_vars = true;
+					if (preg_match("!{\s*$!", $line)) $got_instance_vars = true;
 					
 					// get the protocols which the class adopts
 					if (eregi($this->regex_objc_class, $line, $captures)) {

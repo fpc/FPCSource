@@ -45,25 +45,31 @@
 { NSIndexSet }
   NSIndexSet = objcclass external (NSObject, NSCopyingProtocol, NSMutableCopyingProtocol, NSCodingProtocol)
   private
-    __indexSetFlags: bitpacked record
+    __indexSetFlags: record
       case byte of
        0: (_anonbitfield_NSIndexSet0: NSUInteger);
-       1: (
+       1: (data: bitpacked record
         _isEmpty: 0..1;
         _hasSingleRange: 0..1;
         _cacheValid: 0..1;
         _reservedArrayBinderController: 0..((1 shl 29)-1);
+       end;
       );
       end;
+    _internal: record
+      case byte of
+        0: (
     __singleRange: record
         _range: NSRange;
       end;
+           );
+	1: (
     __multipleRanges: record
         _data: Pointer; {garbage collector: __strong }
         _reserved: Pointer;
       end;
-    __internal: record
-      end;
+           );
+    end;
     
   public
     class function indexSet: id; message 'indexSet';

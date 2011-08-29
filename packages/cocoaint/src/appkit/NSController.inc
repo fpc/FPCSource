@@ -51,15 +51,16 @@
     _dependentKeyToModelKeyTable: NSMutableDictionary;
     _modelKeyToDependentKeyTable: NSMutableDictionary;
     _modelKeysToRefreshEachTime: NSMutableArray;
-    __bindingsControllerFlags: bitpacked record
+    __bindingsControllerFlags: record
       case byte of
        0: (_anonbitfield_NSController0: cuint);
-       1: (
+       1: (data: bitpacked record
         _alwaysPresentsApplicationModalAlerts: 0..1;
         _refreshesAllModelKeys: 0..1;
         _multipleObservedModelObjects: 0..1;
         _isEditing: 0..1;
         _reservedController: 0..((1 shl 28)-1);
+       end;
       );
       end;
     _reservedOther: NSMutableDictionary;

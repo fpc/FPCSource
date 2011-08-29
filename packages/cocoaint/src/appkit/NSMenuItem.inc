@@ -56,10 +56,10 @@
     _action: SEL;
     _tag: NSInteger;
     _extraData: id;
-    __miFlags: bitpacked record
+    __miFlags: record
       case byte of
        0: (_anonbitfield_NSMenuItem0: cuint);
-       1: (
+       1: (data: bitpacked record
         disabled: 0..1;
         isSeparator: 0..1;
         hidden: 0..1;
@@ -75,6 +75,7 @@
         hiddenActiveKE: 0..1;
         noRepeatKEs: 0..1;
         RESERVED: 0..1;
+       end;
       );
       end;
     

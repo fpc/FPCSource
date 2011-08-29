@@ -42,6 +42,15 @@
 
 { NSTokenField }
   NSTokenField = objcclass external (NSTextField)
+  private
+    _reserved1: Boolean;
+    _reserved2: Boolean;
+    _reserved3: Boolean;
+    _reserved4: Boolean;
+    _trackingRectTag: NSTrackingRectTag;
+    _reserved5: id;
+    _reserved6: id;
+    _reserved7: id;
     
   public
     procedure setDelegate(anObject: NSTokenFieldDelegateProtocol); message 'setDelegate:';

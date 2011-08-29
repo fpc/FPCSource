@@ -49,7 +49,7 @@ var
   private
     _delegate: id;
     _info: id;
-        _reserved: array[0..5] of id;
+    _reserved: array[0..(6)-1] of id;
     _sFlags: NSUInteger;
     
   public

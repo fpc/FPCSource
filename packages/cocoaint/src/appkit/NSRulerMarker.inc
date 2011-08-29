@@ -46,15 +46,16 @@
     _location: CGFloat;
     _image: NSImage;
     _imageOrigin: NSPoint;
-    __rFlags: bitpacked record
+    __rFlags: record
       case byte of
        0: (_anonbitfield_NSRulerMarker0: cuint);
-       1: (
+       1: (data: bitpacked record
         movable: 0..1;
         removable: 0..1;
         dragging: 0..1;
         pinned: 0..1;
         _reserved: 0..((1 shl 28)-1);
+       end;
       );
       end;
     _representedObject: id;

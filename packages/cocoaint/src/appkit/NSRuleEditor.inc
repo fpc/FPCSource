@@ -90,10 +90,10 @@ var
     _headerLocalizer: id;
     _predicate: NSPredicate;
     _nestingMode: NSInteger;
-    __ruleEditorFlags: bitpacked record
+    __ruleEditorFlags: record
       case byte of
        0: (_anonbitfield_NSRuleEditor0: cuint);
-       1: (
+       1: (data: bitpacked record
         elideUpdating: 0..1;
         lastAlternateKeyValue: 0..1;
         extendedDelegateCalls: 0..1;
@@ -107,6 +107,7 @@ var
         allowsEmptyCompoundRows: 0..1;
         dropChangedRowCount: 0..1;
         reserved: 0..((1 shl 20)-1);
+       end;
       );
       end;
     _typeKeyPath: NSString;

@@ -47,12 +47,13 @@
     _reserved2: Pointer;
     _entityMappings: NSMutableArray;
     _entityMappingsByName: NSMutableDictionary;
-    __modelMappingFlags: bitpacked record
+    __modelMappingFlags: record
       case byte of
        0: (_anonbitfield_NSMappingModel0: cuint);
-       1: (
+       1: (data: bitpacked record
         _isInUse: 0..1;
         _reservedModelMapping: 0..((1 shl 31)-1);
+       end;
       );
       end;
     

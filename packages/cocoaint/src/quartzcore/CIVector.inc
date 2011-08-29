@@ -43,7 +43,7 @@
   CIVector = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     _count: size_t;
-        vec: array[0..3] of CGFloat;
+    vec: array[0..(4)-1] of CGFloat;
     ptr: CGFloatPtr;
     __u: record
       end;

@@ -61,16 +61,17 @@ var
     _redoStack: id;
     _runLoopModes: NSArray;
     _disabled: NSInteger;
-    __flags: bitpacked record
+    __flags: record
       case byte of
        0: (_anonbitfield_NSUndoManager0: cuint);
-       1: (
+       1: (data: bitpacked record
         undoing: 0..1;
         redoing: 0..1;
         registeredForCallback: 0..1;
         postingCheckpointNotification: 0..1;
         _groupsByEvent: 0..1;
         reserved: 0..((1 shl 27)-1);
+       end;
       );
       end;
     _target: id;

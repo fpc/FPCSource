@@ -131,10 +131,10 @@ var
   private
     _name: NSString;
     _size: NSSize;
-    __flags: bitpacked record
+    __flags: record
       case byte of
        0: (_anonbitfield_NSImage0: cuint);
-       1: (
+       1: (data: bitpacked record
         scalable: 0..1;
         dataRetained: 0..1;
         uniqueWindow: 0..1;
@@ -156,6 +156,7 @@ var
         _isTemplate: 0..1;
         failedToExpand: 0..1;
         reserved1: 0..((1 shl 9)-1);
+       end;
       );
       end;
     _reps: id; {garbage collector: volatile }

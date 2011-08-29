@@ -53,16 +53,17 @@ const
     _frameView: NSView;
     _backstopView: NSView;
     _badgeLabel: NSString;
-    __dFlags: bitpacked record
+    __dFlags: record
       case byte of
        0: (_anonbitfield_NSDockTile0: cuint);
-       1: (
+       1: (data: bitpacked record
         showsAppBadge: 0..1;
         reserved: 0..((1 shl 31)-1);
+       end;
       );
       end;
     _dockTileSize: NSSize;
-        reserved: array[0..4] of id;
+    reserved: array[0..(5)-1] of id;
     
   public
     function size: NSSize; message 'size';

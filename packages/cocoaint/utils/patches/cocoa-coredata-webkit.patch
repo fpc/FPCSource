@@ -250,3 +250,129 @@
  
  
  {$endif}
+diff -ur org/src/appkit/NSEvent.inc src/appkit/NSEvent.inc
+--- org/src/appkit/NSEvent.inc	2011-08-06 19:42:46.000000000 +0200
++++ cocoa-skel/src/appkit/NSEvent.inc	2011-08-06 19:50:06.000000000 +0200
+@@ -235,6 +235,9 @@
+     _windowNumber: NSInteger;
+     _window: NSWindow;
+     _context: NSGraphicsContext;
++    _data: record
++      case byte of
++        1: (
+     _mouse: record
+         _eventNumber: cint;
+         _clickCount: cint;
+@@ -248,6 +251,8 @@
+         reserved2: array[0..(3)-1] of cint;
+         {$endif}
+       end;
++           );
++        2: (
+     _key: record
+         keys: NSString;
+         unmodKeys: NSString;
+@@ -258,6 +263,8 @@
+         reserved: array[0..(5)-1] of cint;
+         {$endif}
+       end;
++           );
++        3: (
+     _tracking: record
+         _eventNumber: cint;
+         _trackingNumber: NSInteger;
+@@ -266,6 +273,8 @@
+         reserved: array[0..(6)-1] of cint;
+         {$endif}
+       end;
++           );
++        4: (
+     _scrollWheel: record
+         _deltaX: CGFloat;
+         _deltaY: CGFloat;
+@@ -276,6 +285,8 @@
+         reserved2: array[0..(6)-1] of cint;
+         {$endif}
+       end;
++           );
++        5: (
+     _axisGesture: record
+         _deltaX: CGFloat;
+         _deltaY: CGFloat;
+@@ -284,6 +295,8 @@
+         reserved: array[0..(7)-1] of cint;
+         {$endif}
+       end;
++           );
++        6: (
+     _miscGesture: record
+         _subtype: cshort;
+         gestureEnded: Boolean;
+@@ -294,6 +307,8 @@
+         reserved2: array[0..(7)-1] of cint;
+         {$endif}
+       end;
++          );
++       7: (
+     _misc: record
+         _subtype: cint;
+         _data1: NSInteger;
+@@ -302,12 +317,16 @@
+         reserved: array[0..(6)-1] of cint;
+         {$endif}
+       end;
++          );
+     {$ifdef cpu64}
++       8: (
+     tabletPointData: array[0..(14)-1] of cint;
++          );
++       9: (
+     tabletProximityData: array[0..(14)-1] of cint;
++          );
+     {$endif}
+-    __data: record
+-      end;
++    end;
+     _eventRef: Pointer;
+     {$ifdef cpu64}
+     reserved1: Pointer;
+diff -ur org/src/appkit/NSWorkspace.inc src/appkit/NSWorkspace.inc
+--- org/src/appkit/NSWorkspace.inc	2011-08-06 17:25:09.000000000 +0200
++++ cocoa-skel/src/appkit/NSWorkspace.inc	2011-08-06 17:25:37.000000000 +0200
+@@ -120,8 +120,10 @@
+   NSWorkspace = objcclass external (NSObject)
+   private
+     _notificationCenter: NSNotificationCenter;
++{$ifndef cpu64}
+     deviceStatusCount: cint;
+     applicationStatusCount: cint;
++{$endif cpu64}
+     _reservedWorkspace1: id;
+     
+   public
+diff -ur org/src/foundation/NSIndexSet.inc src/foundation/NSIndexSet.inc
+--- org/src/foundation/NSIndexSet.inc	2011-08-06 15:21:22.000000000 +0200
++++ cocoa-skel/src/foundation/NSIndexSet.inc	2011-08-06 15:33:51.000000000 +0200
+@@ -56,15 +56,20 @@
+        end;
+       );
+       end;
++    _internal: record
++      case byte of
++        0: (
+     __singleRange: record
+         _range: NSRange;
+       end;
++           );
++	1: (
+     __multipleRanges: record
+         _data: Pointer; {garbage collector: __strong }
+         _reserved: Pointer;
+       end;
+-    __internal: record
+-      end;
++           );
++    end;
+     
+   public
+     class function indexSet: id; message 'indexSet';

@@ -80,10 +80,10 @@ var
     _configPalette: id;
     _toolbarView: id;
     _syncPostEnabledCount: NSInteger;
-    __tbFlags: bitpacked record
+    __tbFlags: record
       case byte of
        0: (_anonbitfield_NSToolbar0: cuint);
-       1: (
+       1: (data: bitpacked record
         _allowsUserCustomization: 0..1;
         autosavesUsingIdentifier: 0..1;
         initialConfigurationDone: 0..1;
@@ -111,6 +111,7 @@ var
         autovalidatesItemsDisabled: 0..1;
         inAutovalidation: 0..1;
         loadedMetrics: 0..1;
+       end;
       );
       end;
     _customizationSheetWidth: NSInteger;

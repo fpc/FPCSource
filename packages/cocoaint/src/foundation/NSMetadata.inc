@@ -65,7 +65,7 @@ var
   private
     _flags: NSUInteger;
     _interval: NSTimeInterval;
-        _private: array[0..10] of id;
+    _private: array[0..(11)-1] of id;
     _reserved: Pointer; {garbage collector: __strong }
     
   public
@@ -129,8 +129,8 @@ var
 { NSMetadataQueryResultGroup }
   NSMetadataQueryResultGroup = objcclass external (NSObject)
   private
-        _private: array[0..8] of id;
-    _private2: NSUInteger;
+    _private: array[0..(9)-1] of id;
+    _private2: array[0..(1)-1] of NSUInteger;
     _reserved: Pointer;
     
   public

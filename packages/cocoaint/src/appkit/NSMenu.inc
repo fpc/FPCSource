@@ -72,10 +72,10 @@ var
     _title: NSString;
     _itemArray: id;
     _extra: id;
-    __mFlags: bitpacked record
+    __mFlags: record
       case byte of
        0: (_anonbitfield_NSMenu0: cuint);
-       1: (
+       1: (data: bitpacked record
         noAutoenable: 0..1;
         inMain: 0..1;
         internalPerformAction: 0..1;
@@ -92,6 +92,7 @@ var
         invertedCMPluginTypes: 0..((1 shl 2)-1);
         allowsDifferentSelection: 0..1;
         RESERVED: 0..((1 shl 15)-1);
+       end;
       );
       end;
     _name: NSString;

@@ -48,13 +48,14 @@
     _leftAttributeType: NSUInteger;
     _rightAttributeType: NSUInteger;
     _views: NSArray;
-    __ptFlags: bitpacked record
+    __ptFlags: record
       case byte of
        0: (_anonbitfield_NSPredicateEditorRowTemplate0: cuint);
-       1: (
+       1: (data: bitpacked record
         leftIsWildcard: 0..1;
         rightIsWildcard: 0..1;
         reserved: 0..((1 shl 30)-1);
+       end;
       );
       end;
     _patternReserved: id;

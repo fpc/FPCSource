@@ -51,12 +51,13 @@ var
     _images: NSArray;
     _sounds: NSArray;
     _bundle: NSBundle;
-    __flags: bitpacked record
+    __flags: record
       case byte of
        0: (_anonbitfield_NSNib0: cuint);
-       1: (
+       1: (data: bitpacked record
         _isKeyed: 0..1;
         _reserved: 0..((1 shl 31)-1);
+       end;
       );
       end;
     _path: NSString;

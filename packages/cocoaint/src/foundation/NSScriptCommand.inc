@@ -63,13 +63,14 @@ const
     _evaluatedReceivers: id;
     _arguments: NSDictionary;
     _evaluatedArguments: NSMutableDictionary;
-    __flags: bitpacked record
+    __flags: record
       case byte of
        0: (_anonbitfield_NSScriptCommand0: cuint);
-       1: (
+       1: (data: bitpacked record
         hasEvaluatedReceivers: 0..1;
         hasEvaluatedArguments: 0..1;
         RESERVED: 0..((1 shl 30)-1);
+       end;
       );
       end;
     _moreVars: id;

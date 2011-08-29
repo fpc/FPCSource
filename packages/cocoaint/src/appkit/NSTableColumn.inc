@@ -54,10 +54,10 @@ const
     _tableView: NSTableView;
     _headerCell: NSCell;
     _dataCell: NSCell;
-    __cFlags: bitpacked record
+    __cFlags: record
       case byte of
        0: (_anonbitfield_NSTableColumn0: cuint);
-       1: (
+       1: (data: bitpacked record
         oldIsResizable: 0..1;
         _isEditable: 0..1;
         resizedPostingDisableCount: 0..((1 shl 8)-1);
@@ -66,6 +66,7 @@ const
         autoResizingAllowed: 0..1;
         hidden: 0..1;
         RESERVED: 0..((1 shl 18)-1);
+       end;
       );
       end;
     _tcAuxiliaryStorage: id;
