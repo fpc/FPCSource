@@ -737,7 +737,7 @@ implementation
 
     procedure loadunits;
       var
-         s,sorg  : TIDString;
+         s,sorg  : ansistring;
          fn      : string;
          pu      : tused_unit;
          hp2     : tmodule;
@@ -1078,7 +1078,7 @@ implementation
          force_init_final : boolean;
          init_procinfo,
          finalize_procinfo : tcgprocinfo;
-         unitname : string;
+         unitname : ansistring;
          unitname8 : string[8];
          ag: boolean;
 {$ifdef debug_devirt}
@@ -2062,7 +2062,7 @@ implementation
          main_procinfo : tcgprocinfo;
          force_init_final : boolean;
          resources_used : boolean;
-         program_name : string;
+         program_name : ansistring;
       begin
          DLLsource:=islibrary;
          Status.IsLibrary:=IsLibrary;

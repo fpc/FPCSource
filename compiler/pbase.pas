@@ -243,7 +243,7 @@ implementation
     function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id:boolean):boolean;
       var
         hmodule: tmodule;
-        ns:string;
+        ns:ansistring;
         nssym:tsym;
       begin
         result:=false;
