@@ -12,7 +12,7 @@ units=system objpas macpas iso7185 strings \
       cpu mmx ucomplex getopts heaptrc lineinfo lnfodwrf ctypes fgl \
       msmouse charset varutils \
       video mouse keyboard variants vesamode types fmtbcd \
-      sysconst rtlconst dateutil convutil strutils
+      sysconst rtlconst dateutil convutil strutils stdconvs
 rsts=math varutils typinfo classes variants dateutil sysconst
 implicitunits=exeinfo
 [require]
@@ -118,10 +118,10 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
         $(COMPILER) -I$(OBJPASDIR) varutils.pp
 variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) sysutils$(PPUEXT) sysconst$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT)
         $(COMPILER) -Fi$(INC) $(INC)/variants.pp
-        
+
 fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
-        
+
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
@@ -134,6 +134,9 @@ convutil$(PPUEXT) : $(OBJPASDIR)/convutil.pp
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/convutil.pp
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
         $(COMPILER) $(OBJPASDIR)/strutils.pp
+stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) system$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/stdconvs.pp
 #
 # Mac Pascal Model
 #
