@@ -1982,6 +1982,16 @@ implementation
                   result:=internalstatements(newstatement);
                   tempnode:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
                   addstatement(newstatement,tempnode);
+                  { initialize the temp, since it will be passed to a
+                    var-parameter (and finalization, which is performed by the
+                    ttempcreate node and which takes care of the initialization
+                    on native targets, is a noop on managed VM targets) }
+                  if (target_info.system in systems_managed_vm) and
+                     is_managed_type(resultdef) then
+                    addstatement(newstatement,cinlinenode.create(in_setlength_x,
+                      false,
+                      ccallparanode.create(genintconstnode(0),
+                        ccallparanode.create(ctemprefnode.create(tempnode),nil))));
                   addstatement(newstatement,ccallnode.createintern('fpc_'+
                     tstringdef(resultdef).stringtypname+'_concat',
                     ccallparanode.create(right,
@@ -2013,7 +2023,8 @@ implementation
                       nodetype:=swap_relation[nodetype];
                     end;
                   if is_shortstring(left.resultdef) or
-                     (nodetype in [gtn,gten,ltn,lten]) then
+                     (nodetype in [gtn,gten,ltn,lten]) or
+                     (target_info.system in systems_managed_vm) then
                     { compare the length with 0 }
                     result := caddnode.create(nodetype,
                       cinlinenode.create(in_length_x,false,left),
