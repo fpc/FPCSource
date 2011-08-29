@@ -17,6 +17,8 @@
 { This will release some functions for special shortstring support }
 { define EXTRAANSISHORT}
 
+
+{$ifndef FPC_ANSISTRING_TYPE_DEFINED}
 {
   This file contains the implementation of the AnsiString type,
   and all things that are needed for it.
@@ -44,14 +46,23 @@ Type
 Const
   AnsiRecLen = SizeOf(TAnsiRec);
   FirstOff   = SizeOf(TAnsiRec)-1;
-
+{$define FPC_ANSISTRING_TYPE_DEFINED}
 
 {****************************************************************************
                     Internal functions, not in interface.
 ****************************************************************************}
 
+{$ifndef FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
+{$define FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
+procedure fpc_pchar_ansistr_intern_charmove(const src: pchar; const srcindex: byte; var dst: ansistring; const dstindex, len: byte); {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  move(src[srcindex],pbyte(pointer(dst))[dstindex],len);
+end;
+{$endif FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
 
 
+{$ifndef FPC_HAS_NEWANSISTR}
+{$endif FPC_HAS_NEWANSISTR}
 Function NewAnsiString(Len : SizeInt) : Pointer;
 {
   Allocate a new AnsiString on the heap.
@@ -71,8 +82,11 @@ begin
    end;
   NewAnsiString:=P;
 end;
+{$endif FPC_HAS_NEWANSISTR}
 
 
+{$ifndef FPC_HAS_DISPOSE_ANSISTR}
+{$define FPC_HAS_DISPOSE_ANSISTR}
 Procedure DisposeAnsiString(Var S : Pointer); {$IFNDEF VER2_0} Inline; {$ENDIF}
 {
   Deallocates a AnsiString From the heap.
@@ -84,8 +98,11 @@ begin
   FreeMem (S);
   S:=Nil;
 end;
+{$endif FPC_HAS_DISPOSE_ANSISTR}
+
 
 {$ifndef FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
+{$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 Procedure fpc_ansistr_decr_ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF'];  compilerproc;
 {
   Decreases the ReferenceCount of a non constant ansistring;
@@ -106,12 +123,14 @@ Begin
     { Ref count dropped to zero }
     DisposeAnsiString (S);        { Remove...}
 end;
-
 {$endif FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 
 { also define alias for internal use in the system unit }
 Procedure fpc_ansistr_decr_ref (Var S : Pointer); [external name 'FPC_ANSISTR_DECR_REF'];
 
+
+{$ifndef FPC_SYSTEM_HAS_ANSISTR_INCR_REF}
+{$define FPC_SYSTEM_HAS_ANSISTR_INCR_REF}
 Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); [Public,Alias:'FPC_ANSISTR_INCR_REF'];  compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 Begin
   If S=Nil then
@@ -120,11 +139,14 @@ Begin
   If PAnsiRec(S-FirstOff)^.Ref<0 then exit;
   inclocked(PAnsiRec(S-FirstOff)^.Ref);
 end;
-
+{$endif FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 
 { also define alias which can be used inside the system unit }
 Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); [external name 'FPC_ANSISTR_INCR_REF'];
 
+
+{$ifndef FPC_HAS_ANSISTR_ASSIGN}
+{$define FPC_HAS_ANSISTR_ASSIGN}
 Procedure fpc_AnsiStr_Assign (Var DestS : Pointer;S2 : Pointer);[Public,Alias:'FPC_ANSISTR_ASSIGN'];  compilerproc;
 {
   Assigns S2 to S1 (S1:=S2), taking in account reference counts.
@@ -140,12 +162,16 @@ begin
   { And finally, have DestS pointing to S2 (or its copy) }
   DestS:=S2;
 end;
+{$endif FPC_HAS_ANSISTR_ASSIGN}
+
 
 { alias for internal use }
 Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer);[external name 'FPC_ANSISTR_ASSIGN'];
 
 {$ifndef STR_CONCAT_PROCS}
 
+{$ifndef FPC_HAS_ANSISTR_CONCAT}
+{$define FPC_HAS_ANSISTR_CONCAT}
 function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): ansistring; compilerproc;
 Var
   Size,Location : SizeInt;
@@ -170,8 +196,11 @@ begin
   inc(pc,location);
   Move(S2[1],pc^,Size+1);
 end;
+{$endif FPC_HAS_ANSISTR_CONCAT}
 
 
+{$ifndef FPC_HAS_ANSISTR_CONCAT_MULTI}
+{$define FPC_HAS_ANSISTR_CONCAT_MULTI}
 function fpc_AnsiStr_Concat_multi (const sarr:array of Ansistring): ansistring; compilerproc;
 Var
   i  : Longint;
@@ -197,9 +226,12 @@ begin
         end;
     end;
 end;
+{$endif FPC_HAS_ANSISTR_CONCAT_MULTI}
 
 {$else STR_CONCAT_PROCS}
 
+{$ifndef FPC_HAS_ANSISTR_CONCAT}
+{$define FPC_HAS_ANSISTR_CONCAT}
 procedure fpc_AnsiStr_Concat (var DestS:ansistring;const S1,S2 : AnsiString); compilerproc;
 Var
   Size,Location : SizeInt;
@@ -242,8 +274,11 @@ begin
       Move(Pointer(S2)^,(Pointer(DestS)+Location)^,Size+1);
     end;
 end;
+{$endif FPC_HAS_ANSISTR_CONCAT}
 
 
+{$ifndef FPC_HAS_ANSISTR_CONCAT_MULTI}
+{$define FPC_HAS_ANSISTR_CONCAT_MULTI}
 procedure fpc_AnsiStr_Concat_multi (var DestS:ansistring;const sarr:array of Ansistring); compilerproc;
 Var
   lowstart,i  : Longint;
@@ -302,7 +337,7 @@ begin
     end;
   fpc_AnsiStr_Decr_Ref(destcopy);
 end;
-
+{$endif FPC_HAS_ANSISTR_CONCAT_MULTI}
 
 {$endif STR_CONCAT_PROCS}
 
@@ -332,6 +367,8 @@ end;
 
 {$ifndef FPC_STRTOSHORTSTRINGPROC}
 
+{$ifndef FPC_HAS_ANSISTR_TO_SHORTSTR}
+{$define FPC_HAS_ANSISTR_TO_SHORTSTR}
 { the following declaration has exactly the same effect as                   }
 { procedure fpc_AnsiStr_To_ShortStr (Var S1 : ShortString;S2 : Pointer);     }
 { which is what the old helper was, so we don't need an extra implementation }
@@ -354,9 +391,12 @@ begin
      byte(fpc_AnsiStr_To_ShortStr[0]):=byte(Size);
    end;
 end;
+{$endif FPC_HAS_ANSISTR_TO_SHORTSTR}
 
 {$else FPC_STRTOSHORTSTRINGPROC}
 
+{$ifndef FPC_HAS_ANSISTR_TO_SHORTSTR}
+{$define FPC_HAS_ANSISTR_TO_SHORTSTR}
 procedure fpc_AnsiStr_To_ShortStr (out res: shortstring; const S2 : Ansistring);[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];  compilerproc;
 {
   Converts a AnsiString to a ShortString;
@@ -375,10 +415,13 @@ begin
      byte(res[0]):=byte(Size);
    end;
 end;
+{$endif FPC_HAS_ANSISTR_TO_SHORTSTR}
 
 {$endif FPC_STRTOSHORTSTRINGPROC}
 
 
+{$ifndef FPC_HAS_SHORTSTR_TO_ANSISTR}
+{$define FPC_HAS_SHORTSTR_TO_ANSISTR}
 Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; compilerproc;
 {
   Converts a ShortString to a AnsiString;
@@ -391,7 +434,11 @@ begin
   if Size>0 then
     Move(S2[1],Pointer(fpc_ShortStr_To_AnsiStr)^,Size);
 end;
+{$endif FPC_HAS_SHORTSTR_TO_ANSISTR}
 
+
+{$ifndef FPC_HAS_CHAR_TO_ANSISTR}
+{$define FPC_HAS_CHAR_TO_ANSISTR}
 Function fpc_Char_To_AnsiStr(const c : Char): AnsiString; compilerproc;
 {
   Converts a Char to a AnsiString;
@@ -402,8 +449,11 @@ begin
   { Terminating Zero }
   PByte(Pointer(fpc_Char_To_AnsiStr)+1)^:=0;
 end;
+{$endif FPC_HAS_CHAR_TO_ANSISTR}
 
 
+{$ifndef FPC_HAS_PCHAR_TO_ANSISTR}
+{$define FPC_HAS_PCHAR_TO_ANSISTR}
 Function fpc_PChar_To_AnsiStr(const p : pchar): ansistring; compilerproc;
 Var
   L : SizeInt;
@@ -416,9 +466,11 @@ begin
   if L > 0 then
     Move (P[0],Pointer(fpc_PChar_To_AnsiStr)^,L)
 end;
+{$endif FPC_HAS_PCHAR_TO_ANSISTR}
 
 
-
+{$ifndef FPC_HAS_CHARARRAY_TO_ANSISTR}
+{$define FPC_HAS_CHARARRAY_TO_ANSISTR}
 Function fpc_CharArray_To_AnsiStr(const arr: array of char; zerobased: boolean = true): ansistring; compilerproc;
 var
   i  : SizeInt;
@@ -440,9 +492,12 @@ begin
   if i > 0 then
     Move (arr[0],Pointer(fpc_CharArray_To_AnsiStr)^,i);
 end;
+{$endif FPC_HAS_CHARARRAY_TO_ANSISTR}
 
 {$ifndef FPC_STRTOCHARARRAYPROC}
 
+{$ifndef FPC_HAS_ANSISTR_TO_CHARARRAY}
+{$define FPC_HAS_ANSISTR_TO_CHARARRAY}
 { note: inside the compiler, the resulttype is modified to be the length }
 { of the actual chararray to which we convert (JM)                       }
 function fpc_ansistr_to_chararray(arraysize: SizeInt; const src: ansistring): fpc_big_chararray; [public, alias: 'FPC_ANSISTR_TO_CHARARRAY']; compilerproc;
@@ -462,9 +517,12 @@ begin
 {$r+}
 {$endif}
 end;
+{$endif FPC_HAS_ANSISTR_TO_CHARARRAY}
 
 {$else ndef FPC_STRTOCHARARRAYPROC}
 
+{$ifndef FPC_HAS_ANSISTR_TO_CHARARRAY}
+{$define FPC_HAS_ANSISTR_TO_CHARARRAY}
 procedure  fpc_ansistr_to_chararray(out res: array of char; const src: ansistring); compilerproc;
 var
   len: SizeInt;
@@ -482,9 +540,12 @@ begin
 {$r+}
 {$endif}
 end;
+{$endif FPC_HAS_ANSISTR_TO_CHARARRAY}
 
 {$endif ndef FPC_STRTOCHARARRAYPROC}
 
+{$ifndef FPC_HAS_ANSISTR_COMPARE}
+{$define FPC_HAS_ANSISTR_COMPARE}
 Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): SizeInt;[Public,Alias : 'FPC_ANSISTR_COMPARE'];  compilerproc;
 {
   Compares 2 AnsiStrings;
@@ -514,7 +575,11 @@ begin
   else
     result:=Length(S1)-Length(S2);
 end;
+{$endif FPC_HAS_ANSISTR_COMPARE}
 
+
+{$ifndef FPC_HAS_ANSISTR_COMPARE_EQUAL}
+{$define FPC_HAS_ANSISTR_COMPARE_EQUAL}
 Function fpc_AnsiStr_Compare_equal(const S1,S2 : AnsiString): SizeInt;[Public,Alias : 'FPC_ANSISTR_COMPARE_EQUAL'];  compilerproc;
 {
   Compares 2 AnsiStrings for equality/inequality only;
@@ -537,6 +602,7 @@ begin
     if MaxI>0 then
       result:=CompareByte(S1[1],S2[1],MaxI);
 end;
+{$endif FPC_HAS_ANSISTR_COMPARE_EQUAL}
 
 {$ifdef VER2_4}
 // obsolete but needed for boostrapping with 2.4
@@ -553,13 +619,19 @@ begin
 end;
 
 {$else VER2_4}
+{$ifndef FPC_HAS_ANSISTR_CHECKRANGE}
+{$define FPC_HAS_ANSISTR_CHECKRANGE}
 Procedure fpc_AnsiStr_CheckRange(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_ANSISTR_RANGECHECK'];  compilerproc;
 begin
   if (p=nil) or (index>PAnsiRec(p-FirstOff)^.Len) or (Index<1) then
     HandleErrorFrame(201,get_frame);
 end;
+{$endif FPC_HAS_ANSISTR_CHECKRANGE}
 {$endif VER2_4}
 
+
+{$ifndef FPC_HAS_ANSISTR_SETLENGTH}
+{$define FPC_HAS_ANSISTR_SETLENGTH}
 Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : SizeInt);[Public,Alias : 'FPC_ANSISTR_SETLENGTH'];  compilerproc;
 {
   Sets The length of string S to L.
@@ -618,6 +690,8 @@ begin
       Pointer(S):=Nil;
     end;
 end;
+{$endif FPC_HAS_ANSISTR_SETLENGTH}
+
 
 {$ifdef EXTRAANSISHORT}
 Function fpc_AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): SizeInt;  compilerproc;
@@ -650,6 +724,8 @@ end;
                      Public functions, In interface.
 *****************************************************************************}
 
+{$ifndef FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
+{$define FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
 function fpc_truely_ansistr_unique(Var S : Pointer): Pointer;
 Var
   SNew : Pointer;
@@ -665,7 +741,6 @@ begin
 end;
 
 
-{$ifndef FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
 // MV: inline the basic checks for case that S is already unique.
 // Rest is too complex to inline, so factor that out as a call.
 Function fpc_ansistr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_ANSISTR_UNIQUE']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
@@ -683,6 +758,8 @@ end;
 {$endif FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
 
 
+{$ifndef FPC_HAS_ANSISTR_APPEND_CHAR}
+{$define FPC_HAS_ANSISTR_APPEND_CHAR}
 Procedure fpc_ansistr_append_char(Var S : AnsiString;c : char); [Public,Alias : 'FPC_ANSISTR_APPEND_CHAR']; compilerproc;
 begin
   SetLength(S,length(S)+1);
@@ -690,7 +767,11 @@ begin
   PChar(Pointer(S)+length(S)-1)^:=c;
   PByte(Pointer(S)+length(S))^:=0; { Terminating Zero }
 end;
+{$endif FPC_HAS_ANSISTR_APPEND_CHAR}
 
+
+{$ifndef FPC_HAS_ANSISTR_APPEND_SHORTSTR}
+{$define FPC_HAS_ANSISTR_APPEND_SHORTSTR}
 Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;const Str : ShortString); [Public,Alias : 'FPC_ANSISTR_APPEND_SHORTSTRING']; compilerproc;
 var
    ofs : SizeInt;
@@ -703,7 +784,11 @@ begin
    move(Str[1],(pointer(S)+ofs)^,length(Str));
    PByte(Pointer(S)+length(S))^:=0; { Terminating Zero }
 end;
+{$endif FPC_HAS_ANSISTR_APPEND_SHORTSTR}
 
+
+{$ifndef FPC_HAS_ANSISTR_APPEND_ANSISTR}
+{$define FPC_HAS_ANSISTR_APPEND_ANSISTR}
 Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;const Str : AnsiString); [Public,Alias : 'FPC_ANSISTR_APPEND_ANSISTRING']; compilerproc;
 var
    ofs, strlength: SizeInt;
@@ -723,7 +808,11 @@ begin
      { the setlength may have relocated the string, so str may no longer be valid }
      move(S[1],(pointer(S)+ofs)^,strlength+1)
 end;
+{$endif FPC_HAS_ANSISTR_APPEND_ANSISTR}
 
+
+{$ifndef FPC_HAS_ANSISTR_COPY}
+{$define FPC_HAS_ANSISTR_COPY}
 Function Fpc_Ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;compilerproc;
 var
   ResultAddress : Pointer;
@@ -752,7 +841,11 @@ begin
    fpc_ansistr_decr_ref(Pointer(fpc_ansistr_copy));
   Pointer(fpc_ansistr_Copy):=ResultAddress;
 end;
+{$endif FPC_HAS_ANSISTR_COPY}
 
+
+{$ifndef FPC_HAS_POS_SHORTSTR_ANSISTR}
+{$define FPC_HAS_POS_SHORTSTR_ANSISTR}
 Function Pos (Const Substr : ShortString; Const Source : AnsiString) : SizeInt;
 
 var
@@ -778,8 +871,11 @@ begin
       end;
    end;
 end;
+{$endif FPC_HAS_POS_SHORTSTR_ANSISTR}
 
 
+{$ifndef FPC_HAS_POS_ANSISTR_ANSISTR}
+{$define FPC_HAS_POS_ANSISTR_ANSISTR}
 Function Pos (Const Substr : AnsiString; Const Source : AnsiString) : SizeInt;
 var
   i,MaxLen : SizeInt;
@@ -804,8 +900,11 @@ begin
       end;
    end;
 end;
+{$endif FPC_HAS_POS_ANSISTR_ANSISTR}
 
 
+{$ifndef FPC_HAS_POS_ANSICHAR_ANSISTR}
+{$define FPC_HAS_POS_ANSICHAR_ANSISTR}
 { Faster version for a char alone. Must be implemented because   }
 { pos(c: char; const s: shortstring) also exists, so otherwise   }
 { using pos(char,pchar) will always call the shortstring version }
@@ -827,6 +926,7 @@ begin
    end;
   pos:=0;
 end;
+{$endif FPC_HAS_POS_ANSICHAR_ANSISTR}
 
 
 {$ifndef FPUNONE}
@@ -937,6 +1037,8 @@ begin
 end;
 {$endif}
 
+
+{$ifndef FPC_STR_ENUM_INTERN}
 procedure fpc_ansistr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:ansistring);[public,alias:'FPC_ANSISTR_ENUM'];compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 
 var ss:shortstring;
@@ -945,6 +1047,7 @@ begin
   fpc_shortstr_enum(ordinal,len,typinfo,ord2strindex,ss);
   s:=ss;
 end;
+{$endif FPC_STR_ENUM_INTERN}
 
 
 procedure fpc_ansistr_bool(b : boolean;len:sizeint;out s:ansistring);[public,alias:'FPC_ANSISTR_BOOL'];compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
@@ -956,11 +1059,13 @@ begin
 end;
 
 
+{$ifndef FPC_STR_ENUM_INTERN}
 function fpc_val_enum_ansistr(str2ordindex:pointer;const s:ansistring;out code:valsint):longint; [public, alias:'FPC_VAL_ENUM_ANSISTR']; compilerproc;
 
 begin
   fpc_val_enum_ansistr:=fpc_val_enum_shortstr(str2ordindex,s,code);
 end;
+{$endif FPC_STR_ENUM_INTERN}
 
 
 {$ifdef FPC_HAS_STR_CURRENCY}
@@ -1025,7 +1130,7 @@ begin
   If (Size<=LS-Index) then
     begin
       Dec(Index);
-      Move(PByte(Pointer(S))[Index+Size],PByte(Pointer(S))[Index],LS-Index-Size+1);
+      fpc_pchar_ansistr_intern_charmove(pchar(S),Index+Size,S,Index,LS-Index-Size+1);
     end;
   Setlength(S,LS-Size);
 end;
@@ -1044,29 +1149,33 @@ begin
   if index > LS then
    index := LS+1;
   Dec(Index);
-  Pointer(Temp) := NewAnsiString(Length(Source)+LS);
   SetLength(Temp,Length(Source)+LS);
   If Index>0 then
-    move (Pointer(S)^,Pointer(Temp)^,Index);
-  Move (Pointer(Source)^,PByte(Temp)[Index],Length(Source));
+    fpc_pchar_ansistr_intern_charmove(pchar(S),0,Temp,0,Index);
+  fpc_pchar_ansistr_intern_charmove(pchar(Source),0,Temp,Index,Length(Source));
   If (LS-Index)>0 then
-    Move(PByte(Pointer(S))[Index],PByte(temp)[Length(Source)+index],LS-Index);
+    fpc_pchar_ansistr_intern_charmove(pchar(S),Index,Temp,Length(Source)+Index,LS-Index);
   S:=Temp;
 end;
 
 
+{$ifndef FPC_HAS_ANSISTR_OF_CHAR}
+{$define FPC_HAS_ANSISTR_OF_CHAR}
 Function StringOfChar(c : char;l : SizeInt) : AnsiString;
 begin
   SetLength(StringOfChar,l);
   FillChar(Pointer(StringOfChar)^,Length(StringOfChar),c);
 end;
+{$endif FPC_HAS_ANSISTR_OF_CHAR}
+
 
 Procedure SetString (Out S : AnsiString; Buf : PChar; Len : SizeInt); {$IFNDEF VER2_0} Inline; {$ENDIF}
 begin
   SetLength(S,Len);
   If (Buf<>Nil) then
-    Move (Buf^,Pointer(S)^,Len);
+    fpc_pchar_ansistr_intern_charmove(Buf,0,S,0,Len);
 end;
+
 
 Procedure SetString (Out S : AnsiString; Buf : PWideChar; Len : SizeInt);
 begin
@@ -1076,6 +1185,9 @@ begin
     SetLength(S, Len);
 end;
 
+
+{$ifndef FPC_HAS_UPCASE_ANSISTR}
+{$define FPC_HAS_UPCASE_ANSISTR}
 function upcase(const s : ansistring) : ansistring;
 var
   i : SizeInt;
@@ -1084,8 +1196,11 @@ begin
   for i := 1 to length (s) do
     result[i] := upcase(s[i]);
 end;
+{$endif FPC_HAS_UPCASE_ANSISTR}
 
 
+{$ifndef FPC_HAS_LOWERCASE_ANSISTR}
+{$define FPC_HAS_LOWERCASE_ANSISTR}
 function lowercase(const s : ansistring) : ansistring;
 var
   i : SizeInt;
@@ -1094,3 +1209,4 @@ begin
   for i := 1 to length (s) do
     result[i] := lowercase(s[i]);
 end;
+{$endif FPC_HAS_LOWERCASE_ANSISTR}

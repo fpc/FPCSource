@@ -17,6 +17,12 @@
 { This will release some functions for special shortstring support }
 { define EXTRAANSISHORT}
 
+constructor AnsistringClass.Create(len: longint);
+begin
+  { +1 for terminating #0 }
+  setlength(fdata,len+1);
+end;
+
 constructor AnsistringClass.Create(const arr: array of ansichar; length: longint);
 begin
   { make explicit copy so that changing the array afterwards doesn't change
@@ -177,6 +183,32 @@ end;
                     Internal functions, not in interface.
 ****************************************************************************}
 
+{$ifndef FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
+{$define FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
+procedure fpc_pchar_ansistr_intern_charmove(const src: pchar; const srcindex: byte; var dst: ansistring; const dstindex, len: byte); {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  JLSystem.arraycopy(JLObject(src),srcindex,JLObject(AnsistringClass(dst).fdata),dstindex,len);
+end;
+{$endif FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
+
+
+{$define FPC_HAS_NEWANSISTR}
+Function NewAnsiString(Len : SizeInt) : Pointer;
+{
+  Allocate a new AnsiString on the heap.
+  initialize it to zero length and reference count 1.
+}
+begin
+  result:=AnsistringClass.Create(len);
+end;
+
+{ not required }
+{$define FPC_HAS_DISPOSE_ANSISTR}
+{$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
+{$define FPC_SYSTEM_HAS_ANSISTR_INCR_REF}
+{$define FPC_HAS_ANSISTR_ASSIGN}
+
+{$define FPC_HAS_ANSISTR_CONCAT}
 function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): ansistring; compilerproc;
 var
   newdata: array of ansichar;
@@ -195,6 +227,7 @@ begin
 end;
 
 
+{$define FPC_HAS_ANSISTR_CONCAT_MULTI}
 procedure fpc_AnsiStr_Concat_multi (var DestS:Ansistring;const sarr:array of Ansistring); compilerproc;
   Var
     i  : longint;
@@ -226,6 +259,7 @@ procedure fpc_AnsiStr_Concat_multi (var DestS:Ansistring;const sarr:array of Ans
 end;
 
 
+{$define FPC_HAS_ANSISTR_TO_SHORTSTR}
 procedure fpc_AnsiStr_To_ShortStr (out res: shortstring; const S2 : Ansistring); compilerproc;
 {
   Converts a AnsiString to a ShortString;
@@ -246,6 +280,7 @@ begin
 end;
 
 
+{$define FPC_HAS_SHORTSTR_TO_ANSISTR}
 Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; compilerproc;
 {
   Converts a ShortString to a AnsiString;
@@ -260,6 +295,7 @@ begin
 end;
 
 
+{$define FPC_HAS_CHAR_TO_ANSISTR}
 Function fpc_Char_To_AnsiStr(const c : AnsiChar): AnsiString; compilerproc;
 {
   Converts a Char to a AnsiString;
@@ -269,6 +305,7 @@ begin
 end;
 
 
+{$define FPC_HAS_PCHAR_TO_ANSISTR}
 Function fpc_PChar_To_AnsiStr(const p : pchar): ansistring; compilerproc;
 var
   i, len: longint;
@@ -285,6 +322,7 @@ begin
 end;
 
 
+{$define FPC_HAS_CHARARRAY_TO_ANSISTR}
 Function fpc_CharArray_To_AnsiStr(const arr: array of ansichar; zerobased: boolean = true): ansistring; compilerproc;
 var
   i,j  : SizeInt;
@@ -326,6 +364,8 @@ begin
   result:=Ansistring(res);
 end;
 
+
+{$define FPC_HAS_ANSISTR_TO_CHARARRAY}
 procedure fpc_ansistr_to_chararray(out res: array of ansichar; const src: ansistring); compilerproc;
 var
   len: longint;
@@ -351,6 +391,7 @@ begin
 end;
 
 
+{$define FPC_HAS_ANSISTR_COMPARE}
 Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): SizeInt;  compilerproc;
 {
   Compares 2 AnsiStrings;
@@ -385,6 +426,8 @@ begin
     result:=Length(S1)-Length(S2);
 end;
 
+
+{$define FPC_HAS_ANSISTR_COMPARE_EQUAL}
 Function fpc_AnsiStr_Compare_equal(const S1,S2 : AnsiString): SizeInt; compilerproc;
 {
   Compares 2 AnsiStrings for equality/inequality only;
@@ -404,7 +447,11 @@ begin
 end;
 
 
+{ not required, the JVM does the range checking for us }
+{$define FPC_HAS_ANSISTR_CHECKRANGE}
 
+
+{$define FPC_HAS_ANSISTR_SETLENGTH}
 function fpc_AnsiStr_SetLength (S : AnsiString; l : SizeInt): Ansistring; compilerproc;
 {
   Sets The length of string S to L.
@@ -424,41 +471,22 @@ end;
 {*****************************************************************************
                      Public functions, In interface.
 *****************************************************************************}
-(*
-function fpc_truely_ansistr_unique(Var S : Pointer): Pointer;
-Var
-  SNew : Pointer;
-  L    : SizeInt;
-begin
-  L:=PAnsiRec(Pointer(S)-FirstOff)^.len;
-  SNew:=NewAnsiString (L);
-  Move (Pointer(S)^,SNew^,L+1);
-  PAnsiRec(SNew-FirstOff)^.len:=L;
-  fpc_ansistr_decr_ref (Pointer(S));  { Thread safe }
-  pointer(S):=SNew;
-  pointer(result):=SNew;
-end;
-*)
 
-(*
-{$ifndef FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
-// MV: inline the basic checks for case that S is already unique.
-// Rest is too complex to inline, so factor that out as a call.
+{ can't implement reference counting since no control over what javacc-compiled
+  code does with ansistrings -> always create a copy }
+{$define FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
+procedure FPC_ANSISTR_UNIQUE(var s: AnsiString); inline;
+begin
+  s:=ansistring(AnsistringClass.Create(s));
+end;
+
 Function fpc_ansistr_Unique(Var S : jlobject): jlobject; compilerproc;
-{
-  Make sure reference count of S is 1,
-  using copy-on-write semantics.
-}
 begin
-  pointer(result) := pointer(s);
-  If Pointer(S)=Nil then
-    exit;
-  if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then
-    result:=fpc_truely_ansistr_unique(s);
+  s:=AnsistringClass.Create(ansistring(s));
+  result:=s;
 end;
-{$endif FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
-*)
 
+{$define FPC_HAS_ANSISTR_APPEND_CHAR}
 Procedure fpc_ansistr_append_char(Var S : AnsiString;c : ansichar); compilerproc;
 var
   curlen: sizeint;
@@ -468,6 +496,8 @@ begin
   AnsistringClass(s).fdata[curlen]:=c;
 end;
 
+
+{$define FPC_HAS_ANSISTR_APPEND_SHORTSTR}
 Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;const Str : ShortString); compilerproc;
 var
    ofs : SizeInt;
@@ -480,6 +510,8 @@ begin
    JLSystem.ArrayCopy(JLObject(ShortstringClass(@Str).fdata),0,JLObject(AnsistringClass(S).fdata),ofs,length(Str));
 end;
 
+
+{$define FPC_HAS_ANSISTR_APPEND_ANSISTR}
 Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;const Str : AnsiString); compilerproc;
 var
   ofs, strlength: longint;
@@ -494,6 +526,8 @@ begin
    JLSystem.ArrayCopy(JLObject(AnsistringClass(Str).fdata),0,JLObject(AnsistringClass(S).fdata),ofs,strlength);
 end;
 
+
+{$define FPC_HAS_ANSISTR_COPY}
 Function Fpc_Ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;compilerproc;
 var
   res: AnsistringClass;
@@ -517,33 +551,40 @@ begin
   { default function result is empty string }
 end;
 
-(*
+
+{$define FPC_HAS_POS_SHORTSTR_ANSISTR}
 Function Pos (Const Substr : ShortString; Const Source : AnsiString) : SizeInt;
 var
-  i,MaxLen : SizeInt;
-  pc : pchar;
+  i,j,k,MaxLen, SubstrLen : SizeInt;
 begin
   Pos:=0;
-  if Length(SubStr)>0 then
+  SubstrLen:=Length(SubStr);
+  if SubstrLen>0 then
    begin
      MaxLen:=Length(source)-Length(SubStr);
      i:=0;
-     pc:=@source[1];
      while (i<=MaxLen) do
       begin
         inc(i);
-        if (SubStr[1]=pc^) and
-           (CompareByte(Substr[1],pc^,Length(SubStr))=0) then
+        j:=0;
+        k:=i-1;
+        while (j<SubstrLen) and
+              (ShortStringClass(@SubStr).fdata[j]=AnsistringClass(Source).fdata[k]) do
+          begin
+            inc(j);
+            inc(k);
+          end;
+        if (j=SubstrLen) then
          begin
            Pos:=i;
            exit;
          end;
-        inc(pc);
       end;
    end;
 end;
-*)
 
+
+{$define FPC_HAS_POS_ANSISTR_ANSISTR}
 Function Pos (Const Substr : AnsiString; Const Source : AnsiString) : SizeInt;
 var
   i,j,k,MaxLen, SubstrLen : SizeInt;
@@ -575,6 +616,7 @@ begin
 end;
 
 
+{$define FPC_HAS_POS_ANSICHAR_ANSISTR}
 { Faster version for a char alone. Must be implemented because   }
 { pos(c: char; const s: shortstring) also exists, so otherwise   }
 { using pos(char,pchar) will always call the shortstring version }
@@ -594,254 +636,16 @@ begin
   pos:=0;
 end;
 
-(*
-{$ifndef FPUNONE}
-Function fpc_Val_Real_AnsiStr(Const S : AnsiString; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_ANSISTR']; compilerproc;
-Var
-  SS : String;
-begin
-  fpc_Val_Real_AnsiStr := 0;
-  if length(S) > 255 then
-    code := 256
-  else
-    begin
-      SS := S;
-      Val(SS,fpc_Val_Real_AnsiStr,code);
-    end;
-end;
-{$endif}
 
-
-Function fpc_Val_Currency_AnsiStr(Const S : AnsiString; out Code : ValSInt): Currency; [public, alias:'FPC_VAL_CURRENCY_ANSISTR']; compilerproc;
-Var
-  SS : String;
-begin
-  if length(S) > 255 then
-    begin
-      fpc_Val_Currency_AnsiStr := 0;
-      code := 256;
-    end
-  else
-    begin
-      SS := S;
-      Val(SS,fpc_Val_Currency_AnsiStr,code);
-    end;
-end;
-
-
-Function fpc_Val_UInt_AnsiStr (Const S : AnsiString; out Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_ANSISTR']; compilerproc;
-Var
-  SS : ShortString;
-begin
-  fpc_Val_UInt_AnsiStr := 0;
-  if length(S) > 255 then
-    code := 256
-  else
-    begin
-      SS := S;
-      Val(SS,fpc_Val_UInt_AnsiStr,code);
-    end;
-end;
-
-
-Function fpc_Val_SInt_AnsiStr (DestSize: SizeInt; Const S : AnsiString; out Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_ANSISTR']; compilerproc;
-Var
-  SS : ShortString;
-begin
-  fpc_Val_SInt_AnsiStr:=0;
-  if length(S)>255 then
-    code:=256
-  else
-    begin
-       SS := S;
-       fpc_Val_SInt_AnsiStr := int_Val_SInt_ShortStr(DestSize,SS,Code);
-    end;
-end;
-
-
-{$ifndef CPU64}
-
-Function fpc_Val_qword_AnsiStr (Const S : AnsiString; out Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_ANSISTR']; compilerproc;
-Var
-  SS : ShortString;
-begin
-  fpc_Val_qword_AnsiStr:=0;
-  if length(S)>255 then
-    code:=256
-  else
-    begin
-       SS := S;
-       Val(SS,fpc_Val_qword_AnsiStr,Code);
-    end;
-end;
-
-
-Function fpc_Val_int64_AnsiStr (Const S : AnsiString; out Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_ANSISTR']; compilerproc;
-Var
-  SS : ShortString;
-begin
-  fpc_Val_int64_AnsiStr:=0;
-  if length(S)>255 then
-    code:=256
-  else
-    begin
-       SS := s;
-       Val(SS,fpc_Val_int64_AnsiStr,Code);
-    end;
-end;
-
-{$endif CPU64}
-
-
-{$ifndef FPUNONE}
-procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : ansistring);[public,alias:'FPC_ANSISTR_FLOAT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
-var
-  ss: ShortString;
-begin
-  str_real(len,fr,d,treal_type(rt),ss);
-  s:=ss;
-end;
-{$endif}
-
-procedure fpc_ansistr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:ansistring);[public,alias:'FPC_ANSISTR_ENUM'];compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
-
-var ss:shortstring;
-
-begin
-  fpc_shortstr_enum(ordinal,len,typinfo,ord2strindex,ss);
-  s:=ss;
-end;
-
-
-procedure fpc_ansistr_bool(b : boolean;len:sizeint;out s:ansistring);[public,alias:'FPC_ANSISTR_BOOL'];compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
-var
-  ss:shortstring;
-begin
-  fpc_shortstr_bool(b,len,ss);
-  s:=ss;
-end;
-
-
-function fpc_val_enum_ansistr(str2ordindex:pointer;const s:ansistring;out code:valsint):longint; [public, alias:'FPC_VAL_ENUM_ANSISTR']; compilerproc;
-
-begin
-  fpc_val_enum_ansistr:=fpc_val_enum_shortstr(str2ordindex,s,code);
-end;
-
-
-{$ifdef FPC_HAS_STR_CURRENCY}
-procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring);[public,alias:'FPC_ANSISTR_CURRENCY']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
-var
-  ss: ShortString;
-begin
-  str(c:len:fr,ss);
-  s:=ss;
-end;
-{$endif FPC_HAS_STR_CURRENCY}
-
-Procedure fpc_AnsiStr_UInt(v : ValUInt;Len : SizeInt; out S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALUINT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
-Var
-  SS : ShortString;
-begin
-  str(v:Len,SS);
-  S:=SS;
-end;
-
-
-
-Procedure fpc_AnsiStr_SInt(v : ValSInt;Len : SizeInt; out S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALSINT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
-Var
-  SS : ShortString;
-begin
-  str (v:Len,SS);
-  S:=SS;
-end;
-
-
-{$ifndef CPU64}
-
-Procedure fpc_AnsiStr_QWord(v : QWord;Len : SizeInt; out S : AnsiString);[Public,Alias : 'FPC_ANSISTR_QWORD']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
-Var
-  SS : ShortString;
-begin
-  str(v:Len,SS);
-  S:=SS;
-end;
-
-Procedure fpc_AnsiStr_Int64(v : Int64; Len : SizeInt; out S : AnsiString);[Public,Alias : 'FPC_ANSISTR_INT64']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
-Var
-  SS : ShortString;
-begin
-  str (v:Len,SS);
-  S:=SS;
-end;
-
-{$endif CPU64}
-
-Procedure Delete (Var S : AnsiString; Index,Size: SizeInt);
-Var
-  LS : SizeInt;
-begin
-  ls:=Length(S);
-  If (Index>LS) or (Index<=0) or (Size<=0) then
-    exit;
-  UniqueString (S);
-  If (Size>LS-Index) then   // Size+Index gives overflow ??
-     Size:=LS-Index+1;
-  If (Size<=LS-Index) then
-    begin
-      Dec(Index);
-      Move(PByte(Pointer(S))[Index+Size],PByte(Pointer(S))[Index],LS-Index-Size+1);
-    end;
-  Setlength(S,LS-Size);
-end;
-
-
-Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : SizeInt);
-var
-  Temp : AnsiString;
-  LS : SizeInt;
-begin
-  If Length(Source)=0 then
-   exit;
-  if index <= 0 then
-   index := 1;
-  Ls:=Length(S);
-  if index > LS then
-   index := LS+1;
-  Dec(Index);
-  Pointer(Temp) := NewAnsiString(Length(Source)+LS);
-  SetLength(Temp,Length(Source)+LS);
-  If Index>0 then
-    move (Pointer(S)^,Pointer(Temp)^,Index);
-  Move (Pointer(Source)^,PByte(Temp)[Index],Length(Source));
-  If (LS-Index)>0 then
-    Move(PByte(Pointer(S))[Index],PByte(temp)[Length(Source)+index],LS-Index);
-  S:=Temp;
-end;
-
-
+{$define FPC_HAS_ANSISTR_OF_CHAR}
 Function StringOfChar(c : char;l : SizeInt) : AnsiString;
 begin
   SetLength(StringOfChar,l);
-  FillChar(Pointer(StringOfChar)^,Length(StringOfChar),c);
-end;
-Procedure SetString (Out S : AnsiString; Buf : PChar; Len : SizeInt); {$IFNDEF VER2_0} Inline; {$ENDIF}
-begin
-  SetLength(S,Len);
-  If (Buf<>Nil) then
-    Move (Buf^,Pointer(S)^,Len);
+  FillChar(AnsistringClass(result).fdata,l,c);
 end;
 
-Procedure SetString (Out S : AnsiString; Buf : PWideChar; Len : SizeInt);
-begin
-  if (Buf<>nil) and (Len>0) then
-    widestringmanager.Wide2AnsiMoveProc(Buf,S,Len)
-  else
-    SetLength(S, Len);
-end;
-*)
 
+{$define FPC_HAS_UPCASE_ANSISTR}
 function upcase(const s : ansistring) : ansistring;
 var
   u : unicodestring;
@@ -851,6 +655,7 @@ begin
 end;
 
 
+{$define FPC_HAS_LOWERCASE_ANSISTR}
 function lowercase(const s : ansistring) : ansistring;
 var
   u : unicodestring;

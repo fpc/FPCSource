@@ -202,7 +202,6 @@ begin
   check('8589934592');
 end;
 
-(*
 procedure test_ansistr;
 type
   tlocalstring = ansistring;
@@ -386,7 +385,6 @@ begin
   str(q:3,s);
   check('8589934592');
 end;
-*)
 
 {$ifdef haswidestring}
 procedure test_widestr;
@@ -575,7 +573,7 @@ end;
 
 begin
   test_shortstr;
-//  test_ansistr;
+  test_ansistr;
 {$ifdef haswidestring}
   test_widestr;
 {$endif haswidestring}

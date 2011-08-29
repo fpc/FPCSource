@@ -421,14 +421,13 @@ Function  hexStr(Val:Pointer):shortstring;
 Function chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
 Function  upCase(c:Char):Char;
 Function  lowerCase(c:Char):Char; overload;
-(*function  pos(const substr : shortstring;c:char): SizeInt;*)
+function  pos(const substr : shortstring;c:char): SizeInt;
 
 
 {****************************************************************************
                              AnsiString Handling
 ****************************************************************************}
 
-(*
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure UniqueString(var S : AnsiString);external name 'FPC_ANSISTR_UNIQUE';
 Function  Pos (const Substr : AnsiString; const Source : AnsiString) : SizeInt;
@@ -439,7 +438,6 @@ Function  StringOfChar(c : char;l : SizeInt) : AnsiString;
 function  upcase(const s : ansistring) : ansistring;
 function  lowercase(const s : ansistring) : ansistring;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
-*)
 
 {****************************************************************************
                              WideString Handling

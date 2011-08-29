@@ -92,7 +92,7 @@ const
 {$i jtvarh.inc}
 {$i jsstringh.inc}
 {$i jdynarrh.inc}
-{$i astringh.inc}
+{$i jastringh.inc}
 {$i justringh.inc}
 
 {$i jsystemh.inc}
@@ -112,6 +112,7 @@ function min(a,b : longint) : longint;
 
 {$i jtvar.inc}
 {$i jsstrings.inc}
+{$i jastrings.inc}
 {$i justrings.inc}
 {$i jrec.inc}
 {$i jset.inc}

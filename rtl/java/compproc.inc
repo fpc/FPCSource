@@ -74,7 +74,6 @@ procedure fpc_ShortStr_Currency({$ifdef cpujvm}constref{$endif} c : currency; le
 
 procedure fpc_chararray_sint(v : valsint;len : SizeInt;out a : array of AnsiChar); compilerproc;
 procedure fpc_chararray_uint(v : valuint;len : SizeInt;out a : array of AnsiChar); compilerproc;
-(*
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 procedure fpc_AnsiStr_sint(v : valsint; Len : SizeInt; out S : AnsiString); compilerproc;
 procedure fpc_AnsiStr_uint(v : valuint;Len : SizeInt; out S : AnsiString); compilerproc;
@@ -89,7 +88,6 @@ procedure fpc_ansistr_bool(b : boolean;len:sizeint;out s:ansistring); compilerpr
 procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring); compilerproc;
 {$endif FPC_HAS_STR_CURRENCY}
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
-*)
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
   {$if not(defined(FPC_WIDESTRING_EQUAL_UNICODESTRING)) or defined(VER2_2)}
@@ -106,12 +104,10 @@ procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring)
   procedure fpc_shortstr_int64(v : int64;len : SizeInt;out s : shortstring); compilerproc;
   procedure fpc_chararray_qword(v : qword;len : SizeInt;out a : array of AnsiChar); compilerproc;
   procedure fpc_chararray_int64(v : int64;len : SizeInt;out a : array of AnsiChar); compilerproc;
-(*
   {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
   procedure fpc_ansistr_qword(v : qword;len : SizeInt;out s : ansistring); compilerproc;
   procedure fpc_ansistr_int64(v : int64;len : SizeInt;out s : ansistring); compilerproc;
   {$endif FPC_HAS_FEATURE_ANSISTRINGS}
-  *)
 
   {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
     {$if not(defined(FPC_WIDESTRING_EQUAL_UNICODESTRING)) or defined(VER2_2)}
@@ -173,7 +169,6 @@ function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code
 {$endif FPC_STR_ENUM_INTERN}
 Function fpc_Val_Currency_ShortStr(const s : shortstring; out Code : ValSInt): currency; compilerproc;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-(*
 {$ifndef FPUNONE}
 Function fpc_Val_Real_AnsiStr(Const S : AnsiString; out Code : ValSInt): ValReal; compilerproc;
 {$endif}
@@ -183,7 +178,6 @@ Function fpc_Val_Currency_AnsiStr(Const S : AnsiString; out Code : ValSInt): Cur
 {$ifndef FPC_STR_ENUM_INTERN}
 function fpc_Val_enum_ansistr(str2ordindex:pointer;const s:ansistring;out code:valsint):longint; compilerproc;
 {$endif}
-*)
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
@@ -199,7 +193,6 @@ function fpc_Val_enum_ansistr(str2ordindex:pointer;const s:ansistring;out code:v
   Function fpc_Val_Currency_WideStr(Const S : WideString; out Code : ValSInt): Currency; compilerproc;
   {$endif not(defined(FPC_WIDESTRING_EQUAL_UNICODESTRING)) or defined(VER2_2)}
   {$ifndef VER2_2}
-  (*
   {$ifndef FPUNONE}
   Function fpc_Val_Real_UnicodeStr(Const S : UnicodeString; out Code : ValSInt): ValReal; compilerproc;
   {$endif}
@@ -209,14 +202,12 @@ function fpc_Val_enum_ansistr(str2ordindex:pointer;const s:ansistring;out code:v
   function fpc_val_Enum_UnicodeStr(str2ordindex:pointer;const s:UnicodeString;out code:valsint):longint;compilerproc;
   {$endif FPC_STR_ENUM_INTERN}
   Function fpc_Val_Currency_UnicodeStr(Const S : UnicodeString; out Code : ValSInt): Currency; compilerproc;
-*)
   {$endif VER2_2}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 {$ifndef CPU64}
 Function fpc_val_int64_shortstr(Const S: ShortString; out Code: ValSInt): Int64; compilerproc;
 Function fpc_val_qword_shortstr(Const S: ShortString; out Code: ValSInt): QWord; compilerproc;
-(*
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Function fpc_Val_qword_AnsiStr (Const S : AnsiString; out Code : ValSInt): qword;compilerproc;
 Function fpc_Val_int64_AnsiStr (Const S : AnsiString; out Code : ValSInt): Int64; compilerproc;
@@ -232,31 +223,26 @@ Function fpc_Val_qword_UnicodeStr (Const S : UnicodeString; out Code : ValSInt):
 Function fpc_Val_int64_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): Int64; compilerproc;
 {$endif VER2_2}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
-*)
 
 {$endif CPU64}
 
-(*
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+(*
 Procedure fpc_ansistr_decr_ref (Var S : Pointer); compilerproc;
 Procedure fpc_ansistr_incr_ref (S : Pointer); compilerproc;
 *)
 {$ifndef nounsupported}
 //Procedure fpc_AnsiStr_Assign (Var DestS : jlobject;S2 : jlobject); compilerproc;
 {$endif}
-(*
-{$ifdef STR_CONCAT_PROCS}
-Procedure fpc_AnsiStr_Concat (Var DestS : Ansistring;const S1,S2 : AnsiString); compilerproc;
+//{$ifdef STR_CONCAT_PROCS}
+//Procedure fpc_AnsiStr_Concat (Var DestS : Ansistring;const S1,S2 : AnsiString); compilerproc;
 Procedure fpc_AnsiStr_Concat_multi (Var DestS : Ansistring;const sarr:array of Ansistring); compilerproc;
-{$else STR_CONCAT_PROCS}
-*)
-{$ifndef nounsupported}
+//{$else STR_CONCAT_PROCS}
+//{$ifndef nounsupported}
 function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): AnsiString; compilerproc;
-{$endif}
-(*
-function fpc_AnsiStr_Concat_multi (const sarr:array of Ansistring): ansistring; compilerproc;
-{$endif STR_CONCAT_PROCS}
-*)
+//{$endif}
+//function fpc_AnsiStr_Concat_multi (const sarr:array of Ansistring): ansistring; compilerproc;
+//{$endif STR_CONCAT_PROCS}
 {$ifndef nounsupported}
 Procedure fpc_ansistr_append_char(Var S : AnsiString;c : AnsiChar); compilerproc;
 Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;const Str : ShortString); compilerproc;
@@ -296,10 +282,8 @@ Function  fpc_ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiSt
 { pointer argument because otherwise when calling this, we get
   an endless loop since a 'var s: ansistring' must be made
   unique as well                                               }
-//Function fpc_ansistr_Unique(Var S : jlobject): jlobject; compilerproc;
-(*
+Function fpc_ansistr_Unique(Var S : jlobject): jlobject; compilerproc;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
-*)
 {*****************************************************************************
                         Unicode string support
 *****************************************************************************}
