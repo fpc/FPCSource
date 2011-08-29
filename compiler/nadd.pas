@@ -1476,8 +1476,13 @@ implementation
                     { a voidpointer of 8 bytes). A conversion to voidpointer would be  }
                     { optimized away, since the result already was a voidpointer, so   }
                     { use a charpointer instead (JM)                                   }
+{$ifndef jvm}
                     inserttypeconv_internal(left,charpointertype);
                     inserttypeconv_internal(right,charpointertype);
+{$else jvm}
+                    inserttypeconv_internal(left,java_jlobject);
+                    inserttypeconv_internal(right,java_jlobject);
+{$endif jvm}
                  end;
                ltn,lten,gtn,gten:
                  begin
