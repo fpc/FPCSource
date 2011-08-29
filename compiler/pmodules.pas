@@ -1781,6 +1781,7 @@ implementation
         main_procinfo : tcgprocinfo;}
         force_init_final : boolean;
         uu : tused_unit;
+        module_name: ansistring;
       begin
          Status.IsPackage:=true;
          Status.IsExe:=true;
@@ -1818,15 +1819,25 @@ implementation
 
          current_module.SetFileName(main_file.path^+main_file.name^,true);
 
+         { consume _PACKAGE word }
          consume(_ID);
-         current_module.setmodulename(orgpattern);
+
+         module_name:=orgpattern;
+         consume(_ID);
+         while token=_POINT do
+           begin
+             consume(_POINT);
+             module_name:=module_name+'.'+orgpattern;
+             consume(_ID);
+           end;
+
+         current_module.setmodulename(module_name);
          current_module.ispackage:=true;
-         exportlib.preparelib(orgpattern);
+         exportlib.preparelib(module_name);
 
          if tf_library_needs_pic in target_info.flags then
            include(current_settings.moduleswitches,cs_create_pic);
 
-         consume(_ID);
          consume(_SEMICOLON);
 
          { global switches are read, so further changes aren't allowed }
@@ -1851,12 +1862,24 @@ implementation
          {Load the units used by the program we compile.}
          if (token=_ID) and (idtoken=_CONTAINS) then
            begin
+             { consume _CONTAINS word }
              consume(_ID);
              while true do
                begin
                  if token=_ID then
-                   AddUnit(pattern);
-                 consume(_ID);
+                   begin
+                     module_name:=pattern;
+                     consume(_ID);
+                     while token=_POINT do
+                       begin
+                         consume(_POINT);
+                         module_name:=module_name+'.'+orgpattern;
+                         consume(_ID);
+                       end;
+                     AddUnit(module_name);
+                   end
+                 else
+                   consume(_ID);
                  if token=_COMMA then
                    consume(_COMMA)
                  else break;
