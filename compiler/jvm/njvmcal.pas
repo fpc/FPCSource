@@ -28,7 +28,7 @@ interface
     uses
       cgbase,
       symtype,symdef,
-      node,ncgcal;
+      node,ncal,ncgcal;
 
     type
        tjvmcallparanode = class(tcgcallparanode)
@@ -43,6 +43,7 @@ interface
 
        tjvmcallnode = class(tcgcallnode)
         protected
+         procedure wrapcomplexinlinepara(para: tcallparanode); override;
          procedure extra_pre_call_code; override;
          procedure set_result_location(realresdef: tstoreddef); override;
          procedure do_release_unused_return_value;override;
@@ -59,7 +60,6 @@ implementation
     uses
       verbose,globtype,constexp,cutils,
       symconst,symtable,symsym,defutil,
-      ncal,
       cgutils,tgobj,procinfo,htypechk,
       cpubase,aasmdata,aasmcpu,
       hlcgobj,hlcgcpu,
@@ -310,6 +310,26 @@ implementation
 {*****************************************************************************
                              TJVMCALLNODE
 *****************************************************************************}
+
+    procedure tjvmcallnode.wrapcomplexinlinepara(para: tcallparanode);
+      var
+        tempnode: ttempcreatenode;
+      begin
+        { don't use caddrnodes for the JVM target, because we can't take the
+          address of every kind of type (e.g., of ansistrings). A temp-reference
+          node does work for any kind of memory reference (and the expectloc
+          is LOC_(C)REFERENCE when this routine is called), but is not (yet)
+          supported for other targets }
+        tempnode:=ctempcreatenode.create_reference(para.parasym.vardef,para.parasym.vardef.size,
+          tt_persistent,tparavarsym(para.parasym).is_regvar(false),para.left,false);
+        addstatement(inlineinitstatement,tempnode);
+        addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
+        para.left:=ctemprefnode.create(tempnode);
+        { inherit addr_taken flag }
+        if (tabstractvarsym(para.parasym).addr_taken) then
+          include(tempnode.tempinfo^.flags,ti_addr_taken);
+      end;
+
 
     procedure tjvmcallnode.extra_pre_call_code;
       begin

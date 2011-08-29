@@ -80,12 +80,13 @@ interface
        protected
           procedure objc_convert_to_message_send;virtual;
 
-       private
+       protected
           { inlining support }
           inlinelocals            : TFPObjectList;
           inlineinitstatement,
           inlinecleanupstatement  : tstatementnode;
           procedure createinlineparas;
+          procedure wrapcomplexinlinepara(para: tcallparanode); virtual;
           function  replaceparaload(var n: tnode; arg: pointer): foreachnoderesult;
           procedure createlocaltemps(p:TObject;arg:pointer);
           function  optimize_funcret_assignment(inlineblock: tblocknode): tnode;
@@ -3667,8 +3668,6 @@ implementation
         para: tcallparanode;
         tempnode: ttempcreatenode;
         n: tnode;
-        paraaddr: taddrnode;
-        ptrtype: tpointerdef;
         paracomplexity: longint;
         pushconstaddr: boolean;
       begin
@@ -3802,18 +3801,7 @@ implementation
                 { temp                                                        }
                 else if (paracomplexity > 1) then
                   begin
-                    ptrtype:=getpointerdef(para.left.resultdef);
-                    tempnode := ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,tparavarsym(para.parasym).is_regvar(true));
-                    addstatement(inlineinitstatement,tempnode);
-                    addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
-                    { inherit addr_taken flag }
-                    if (tabstractvarsym(para.parasym).addr_taken) then
-                      include(tempnode.tempinfo^.flags,ti_addr_taken);
-                    paraaddr:=caddrnode.create_internal(para.left);
-                    include(paraaddr.flags,nf_typedaddr);
-                    addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
-                      paraaddr));
-                    para.left:=cderefnode.create(ctemprefnode.create(tempnode));
+                    wrapcomplexinlinepara(para);
                   end;
               end;
             para := tcallparanode(para.right);
@@ -3824,6 +3812,27 @@ implementation
           exit;
         inlinelocals.count:=tprocdef(procdefinition).localst.SymList.count;
         tprocdef(procdefinition).localst.SymList.ForEachCall(@createlocaltemps,nil);
+      end;
+
+
+    procedure tcallnode.wrapcomplexinlinepara(para: tcallparanode);
+      var
+        ptrtype: tdef;
+        tempnode: ttempcreatenode;
+        paraaddr: taddrnode;
+      begin
+        ptrtype:=getpointerdef(para.left.resultdef);
+        tempnode := ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,tparavarsym(para.parasym).is_regvar(true));
+        addstatement(inlineinitstatement,tempnode);
+        addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
+        { inherit addr_taken flag }
+        if (tabstractvarsym(para.parasym).addr_taken) then
+          include(tempnode.tempinfo^.flags,ti_addr_taken);
+        paraaddr:=caddrnode.create_internal(para.left);
+        include(paraaddr.flags,nf_typedaddr);
+        addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
+          paraaddr));
+        para.left:=cderefnode.create(ctemprefnode.create(tempnode));
       end;
 
 
