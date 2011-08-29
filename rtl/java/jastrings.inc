@@ -209,7 +209,7 @@ end;
 {$define FPC_HAS_ANSISTR_ASSIGN}
 
 {$define FPC_HAS_ANSISTR_CONCAT}
-function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): ansistring; compilerproc;
+procedure fpc_AnsiStr_Concat (var DestS:ansistring;const S1,S2 : AnsiString); compilerproc;
 var
   newdata: array of ansichar;
   thislen, addlen: sizeint;
@@ -222,8 +222,8 @@ begin
     JLSystem.ArrayCopy(JLObject(AnsistringClass(s1).fdata),0,JLObject(newdata),0,thislen);
   if addlen>0 then
     JLSystem.ArrayCopy(JLObject(AnsistringClass(s2).fdata),0,JLObject(newdata),thislen,addlen);
-  result:=Ansistring(AnsistringClass.Create);
-  AnsistringClass(result).fdata:=newdata;
+  dests:=Ansistring(AnsistringClass.Create);
+  AnsistringClass(dests).fdata:=newdata;
 end;
 
 
@@ -479,13 +479,13 @@ procedure FPC_ANSISTR_UNIQUE(var s: AnsiString); inline;
 begin
   s:=ansistring(AnsistringClass.Create(s));
 end;
-
+(*
 Function fpc_ansistr_Unique(Var S : jlobject): jlobject; compilerproc;
 begin
   s:=AnsistringClass.Create(ansistring(s));
   result:=s;
 end;
-
+*)
 {$define FPC_HAS_ANSISTR_APPEND_CHAR}
 Procedure fpc_ansistr_append_char(Var S : AnsiString;c : ansichar); compilerproc;
 var

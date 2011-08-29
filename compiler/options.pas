@@ -2521,9 +2521,7 @@ begin
 {$if defined(x86) or defined(arm) or defined(jvm)}
   def_system_macro('INTERNAL_BACKTRACE');
 {$endif}
-{$ifndef jvm}
   def_system_macro('STR_CONCAT_PROCS');
-{$endif}
 {$warnings off}
   if pocall_default = pocall_register then
     def_system_macro('REGCALL');

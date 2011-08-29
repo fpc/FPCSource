@@ -924,6 +924,9 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
+{$push}
+{$t-}
+
 {$ifndef STR_CONCAT_PROCS}
 
 function fpc_shortstr_concat(const s1,s2:shortstring): shortstring;[public,alias:'FPC_SHORTSTR_CONCAT']; compilerproc;
@@ -1032,6 +1035,8 @@ begin
 end;
 
 {$endif STR_CONCAT_PROCS}
+
+{$pop}
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 

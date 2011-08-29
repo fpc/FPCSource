@@ -40,7 +40,7 @@ procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt); compilerproc;
 procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring); compilerproc;
 
 procedure fpc_shortstr_concat(var dests:shortstring;const s1,s2:shortstring);compilerproc;
-procedure fpc_shortstr_concat_multi(var dests:shortstring;const sarr:array of ShortstringClass);compilerproc;
+procedure fpc_shortstr_concat_multi(var dests:shortstring;const sarr:array of pshortstring);compilerproc;
 procedure fpc_shortstr_append_shortstr(var s1:shortstring;const s2:shortstring); compilerproc;
 function fpc_shortstr_compare(const left,right:shortstring) : longint; compilerproc;
 function fpc_shortstr_compare_equal(const left,right:shortstring) : longint; compilerproc;
@@ -234,20 +234,16 @@ Procedure fpc_ansistr_incr_ref (S : Pointer); compilerproc;
 {$ifndef nounsupported}
 //Procedure fpc_AnsiStr_Assign (Var DestS : jlobject;S2 : jlobject); compilerproc;
 {$endif}
-//{$ifdef STR_CONCAT_PROCS}
-//Procedure fpc_AnsiStr_Concat (Var DestS : Ansistring;const S1,S2 : AnsiString); compilerproc;
+{$ifdef STR_CONCAT_PROCS}
+Procedure fpc_AnsiStr_Concat (Var DestS : Ansistring;const S1,S2 : AnsiString); compilerproc;
 Procedure fpc_AnsiStr_Concat_multi (Var DestS : Ansistring;const sarr:array of Ansistring); compilerproc;
-//{$else STR_CONCAT_PROCS}
-//{$ifndef nounsupported}
+{$else STR_CONCAT_PROCS}
 function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): AnsiString; compilerproc;
-//{$endif}
-//function fpc_AnsiStr_Concat_multi (const sarr:array of Ansistring): ansistring; compilerproc;
-//{$endif STR_CONCAT_PROCS}
-{$ifndef nounsupported}
+function fpc_AnsiStr_Concat_multi (const sarr:array of Ansistring): ansistring; compilerproc;
+{$endif STR_CONCAT_PROCS}
 Procedure fpc_ansistr_append_char(Var S : AnsiString;c : AnsiChar); compilerproc;
 Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;const Str : ShortString); compilerproc;
 Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;const Str : AnsiString); compilerproc;
-{$endif}
 (*
 {$ifdef EXTRAANSISHORT}
 Procedure fpc_AnsiStr_ShortStr_Concat (Var S1: AnsiString; Var S2 : ShortString); compilerproc;
@@ -282,7 +278,7 @@ Function  fpc_ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiSt
 { pointer argument because otherwise when calling this, we get
   an endless loop since a 'var s: ansistring' must be made
   unique as well                                               }
-Function fpc_ansistr_Unique(Var S : jlobject): jlobject; compilerproc;
+//Function fpc_ansistr_Unique(Var S : jlobject): jlobject; compilerproc;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {*****************************************************************************
                         Unicode string support

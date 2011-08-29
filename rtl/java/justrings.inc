@@ -202,29 +202,29 @@ end;
 
 
 {$define FPC_HAS_UNICODESTR_CONCAT}
-function fpc_UnicodeStr_Concat (const S1,S2 : UnicodeString): UnicodeString; compilerproc;
+procedure fpc_UnicodeStr_Concat (var DestS:Unicodestring;const S1,S2 : UnicodeString); compilerproc;
 Var
   sb: JLStringBuilder;
 begin
   { only assign if s1 or s2 is empty }
   if (length(S1)=0) then
     begin
-      result:=s2;
+      DestS:=s2;
       exit;
     end;
   if (length(S2)=0) then
     begin
-      result:=s1;
+      DestS:=s1;
       exit;
     end;
   sb:=JLStringBuilder.create(S1);
   sb.append(s2);
-  result:=sb.toString;
+  DestS:=sb.toString;
 end;
 
 
 {$define FPC_HAS_UNICODESTR_CONCAT_MULTI}
-function fpc_UnicodeStr_Concat_multi (const sarr:array of Unicodestring): unicodestring; compilerproc;
+procedure fpc_UnicodeStr_Concat_multi (var DestS:Unicodestring;const sarr:array of Unicodestring); compilerproc;
 Var
   i  : Longint;
   Size,NewSize : SizeInt;
@@ -241,7 +241,7 @@ begin
       if length(sarr[i])>0 then
         sb.append(sarr[i]);
     end;
-  result:=sb.toString;
+  dests:=sb.toString;
 end;
 
 
