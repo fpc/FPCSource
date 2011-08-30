@@ -1024,6 +1024,8 @@ implementation
     begin
       extra_slots:=prepare_stack_for_ref(list,ref,false);
       a_load_reg_stack(list,fromsize,register);
+      if def2regtyp(fromsize)=R_INTREGISTER then
+        resize_stack_int_val(list,def_cgsize(fromsize),def_cgsize(tosize),ref.arrayreftype<>art_none);
       a_load_stack_ref(list,tosize,ref,extra_slots);
     end;
 
