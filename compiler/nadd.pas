@@ -346,9 +346,8 @@ implementation
 
     function taddnode.simplify(forinline : boolean) : tnode;
       var
-        t, hp   : tnode;
+        t       : tnode;
         lt,rt   : tnodetype;
-        realdef : tdef;
         rd,ld   : tdef;
         rv,lv,v : tconstexprint;
         rvd,lvd : bestreal;

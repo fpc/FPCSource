@@ -1623,7 +1623,9 @@ end;
 
 procedure pd_interrupt(pd:tabstractprocdef);
 
+{$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 var v: Tconstexprint;
+{$endif FPC_HAS_SYSTEMS_INTERRUPT_TABLE}
 
 begin
   if pd.parast.symtablelevel>normal_function_level then

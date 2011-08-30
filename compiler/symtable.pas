@@ -1563,8 +1563,6 @@ implementation
 
 
     function tstaticsymtable.checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;
-      var
-        hsym : tsym;
       begin
         result:=inherited checkduplicate(hashedid,sym);
 
