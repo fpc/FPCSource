@@ -81,6 +81,8 @@ interface
 
     function jvmgetcorrespondingclassdef(def: tdef): tdef;
 
+    function get_para_push_size(def: tdef): tdef;
+
     { threadvars are wrapped via descendents of java.lang.ThreadLocal }
     function jvmgetthreadvardef(def: tdef): tdef;
 
@@ -92,7 +94,7 @@ interface
 implementation
 
   uses
-    cutils,cclasses,
+    cutils,cclasses,constexp,
     verbose,systems,
     fmodule,
     symtable,symconst,symsym,symdef,symcreat,
@@ -743,6 +745,21 @@ implementation
             end;
           end;
       end;
+
+
+  function get_para_push_size(def: tdef): tdef;
+    begin
+      result:=def;
+      if def.typ=orddef then
+        case torddef(def).ordtype of
+          u8bit,uchar:
+            if torddef(def).high>127 then
+              result:=s8inttype;
+          u16bit:
+            if torddef(def).high>32767 then
+              result:=s16inttype;
+        end;
+    end;
 
 
     function jvmgetthreadvardef(def: tdef): tdef;

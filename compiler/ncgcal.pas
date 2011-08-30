@@ -36,7 +36,7 @@ interface
        protected
           tempcgpara : tcgpara;
           procedure push_addr_para;
-          procedure push_value_para;
+          procedure push_value_para;virtual;
           procedure push_formal_para;virtual;
           procedure push_copyout_para;virtual;abstract;
        public

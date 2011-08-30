@@ -48,6 +48,8 @@ uses
 
       function def2regtyp(def: tdef): tregistertype; override;
 
+      procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : aint;const cgpara : TCGPara);override;
+
       procedure a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; weak: boolean);override;
       procedure a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : TSymStr);override;
 
@@ -150,6 +152,12 @@ uses
 
       { performs sign/zero extension as required }
       procedure resize_stack_int_val(list: TAsmList;fromsize,tosize: tcgsize; forarraystore: boolean);
+
+      { 8/16 bit unsigned parameters and return values must be sign-extended on
+        the producer side, because the JVM does not support unsigned variants;
+        then they have to be zero-extended again on the consumer side }
+      procedure maybe_resize_stack_para_val(list: TAsmList; retdef: tdef; callside: boolean);
+
 
       property maxevalstackheight: longint read fmaxevalstackheight;
 
@@ -269,6 +277,16 @@ implementation
         else
           result:=inherited;
       end;
+    end;
+
+  procedure thlcgjvm.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: aint; const cgpara: TCGPara);
+    begin
+      tosize:=get_para_push_size(tosize);
+      if tosize=s8inttype then
+        a:=shortint(a)
+      else if tosize=s16inttype then
+        a:=smallint(a);
+      inherited a_load_const_cgpara(list, tosize, a, cgpara);
     end;
 
   procedure thlcgjvm.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; weak: boolean);
@@ -702,7 +720,7 @@ implementation
                   st_shortstring:
                     begin
                       inc(parasize);
-                      a_load_const_stack(list,u8inttype,tstringdef(elemdef).len,R_INTREGISTER);
+                      a_load_const_stack(list,s8inttype,shortint(tstringdef(elemdef).len),R_INTREGISTER);
                       g_call_system_proc(list,'fpc_initialize_array_shortstring');
                     end;
                   st_ansistring:
@@ -1429,6 +1447,7 @@ implementation
   procedure thlcgjvm.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
     var
       retdef: tdef;
+      cgsize: tcgsize;
       opc: tasmop;
     begin
       if current_procinfo.procdef.proctypeoption in [potype_constructor,potype_class_constructor] then
@@ -1971,6 +1990,31 @@ implementation
             list.concat(taicpu.op_none(a_i2s));
         end;
     end;
+
+    procedure thlcgjvm.maybe_resize_stack_para_val(list: TAsmList; retdef: tdef; callside: boolean);
+      var
+        cgsize: tcgsize;
+      begin
+        if (retdef.typ=orddef) then
+          begin
+            if (torddef(retdef).ordtype in [u8bit,u16bit,uchar]) and
+               (torddef(retdef).high>=(1 shl (retdef.size*8-1))) then
+              begin
+                cgsize:=OS_NO;
+                if callside then
+                  if torddef(retdef).ordtype in [u8bit,uchar] then
+                    cgsize:=OS_S8
+                  else
+                    cgsize:=OS_S16
+                else if torddef(retdef).ordtype in [u8bit,uchar] then
+                    cgsize:=OS_8
+                  else
+                    cgsize:=OS_16;
+                if cgsize<>OS_NO then
+                  resize_stack_int_val(list,OS_S32,cgsize,false);
+              end;
+          end;
+      end;
 
   procedure thlcgjvm.allocate_implicit_struct_with_base_ref(list: TAsmList; vs: tabstractvarsym; ref: treference);
     var

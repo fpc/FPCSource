@@ -121,6 +121,7 @@ implementation
         paraloc : pcgparalocation;
         retcgsize  : tcgsize;
       begin
+        def:=get_para_push_size(def);
         result.init;
         result.alignment:=get_para_align(p.proccalloption);
         result.def:=def;
@@ -204,6 +205,7 @@ implementation
                   paracgsize:=OS_ADDR;
                 paradef:=hp.vardef;
               end;
+            paradef:=get_para_push_size(paradef);
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].def:=paradef;

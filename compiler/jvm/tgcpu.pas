@@ -191,8 +191,9 @@ unit tgcpu;
               if is_shortstring(def) then
                 begin
                   gettemp(list,java_jlobject.size,java_jlobject.alignment,temptype,ref);
-                  { add the maxlen parameter }
-                  thlcgjvm(hlcg).a_load_const_stack(list,u8inttype,tstringdef(def).len,R_INTREGISTER);
+                  { add the maxlen parameter (s8inttype because parameters must
+                    be sign extended) }
+                  thlcgjvm(hlcg).a_load_const_stack(list,s8inttype,shortint(tstringdef(def).len),R_INTREGISTER);
                   { call the constructor }
                   sym:=tsym(tobjectdef(java_shortstring).symtable.find('CREATEEMPTY'));
                   if assigned(sym) and

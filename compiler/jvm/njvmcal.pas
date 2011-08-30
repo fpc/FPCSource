@@ -404,8 +404,16 @@ implementation
         if (tabstractprocdef(procdefinition).proctypeoption=potype_constructor) then
           totalremovesize:=pushedparasize
         else
-          { even a byte takes up a full stackslot -> align size to multiple of 4 }
-          totalremovesize:=pushedparasize-(align(realresdef.size,4) shr 2);
+          begin
+            { zero-extend unsigned 8/16 bit returns (we have to return them
+              sign-extended to keep the Android verifier happy, and even if that
+              one did not exist a plain Java routine could return a
+              sign-extended value) }
+            if cnf_return_value_used in callnodeflags then
+              thlcgjvm(hlcg).maybe_resize_stack_para_val(current_asmdata.CurrAsmList,realresdef,false);
+            { even a byte takes up a full stackslot -> align size to multiple of 4 }
+            totalremovesize:=pushedparasize-(align(realresdef.size,4) shr 2);
+          end;
         { remove parameters from internal evaluation stack counter (in case of
           e.g. no parameters and a result, it can also increase) }
         if totalremovesize>0 then
