@@ -888,13 +888,13 @@ implementation
         as a procvar -- exceptions: widechar (Java-specific type) and ordinal
         types whose upper bound does not set the sign bit }
       if (tsym(p).typ=paravarsym) and
-         (tparavarsym(p).varspez=vs_value) and
+         (tparavarsym(p).varspez in [vs_value,vs_const]) and
          (tparavarsym(p).vardef.typ=orddef) and
          not is_pasbool(tparavarsym(p).vardef) and
          not is_widechar(tparavarsym(p).vardef) and
          (tparavarsym(p).vardef.size<4) and
          not is_signed(tparavarsym(p).vardef) and
-         (torddef(tparavarsym(p).vardef).high>=(1 shl ((tparavarsym(p).vardef.size-1)*8))) then
+         (torddef(tparavarsym(p).vardef).high>=(1 shl (tparavarsym(p).vardef.size*8-1))) then
         begin
           list:=TAsmList(arg);
           a_op_const_loc(list,OP_AND,tparavarsym(p).vardef,(1 shl (tparavarsym(p).vardef.size*8))-1,tparavarsym(p).initialloc);
