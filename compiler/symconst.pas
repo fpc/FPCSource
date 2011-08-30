@@ -487,7 +487,7 @@ type
     staticvarsym,localvarsym,paravarsym,fieldvarsym,
     typesym,procsym,unitsym,constsym,enumsym,
     errorsym,syssym,labelsym,absolutevarsym,propertysym,
-    macrosym
+    macrosym,namespacesym
   );
 
   { State of the variable:
@@ -593,7 +593,7 @@ const
        'abstractsym','globalvar','localvar','paravar','fieldvar',
        'type','proc','unit','const','enum',
        'errorsym','system sym','label','absolutevar','property',
-       'macrosym'
+       'macrosym','namespace'
      );
 
      typName : array[tdeftyp] of string[12] = (

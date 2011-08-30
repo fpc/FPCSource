@@ -533,7 +533,7 @@ implementation
         { insert unitsym }
         unitsym:=tunitsym.create(s,hp);
         inc(unitsym.refs);
-        current_module.localsymtable.insert(unitsym);
+        tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
         { add to used units }
         current_module.addusedunit(hp,false,unitsym);
       end;
@@ -737,7 +737,7 @@ implementation
 
     procedure loadunits;
       var
-         s,sorg  : TIDString;
+         s,sorg  : ansistring;
          fn      : string;
          pu      : tused_unit;
          hp2     : tmodule;
@@ -748,6 +748,13 @@ implementation
            s:=pattern;
            sorg:=orgpattern;
            consume(_ID);
+           while token=_POINT do
+             begin
+               consume(_POINT);
+               s:=s+'.'+pattern;
+               sorg:=sorg+'.'+orgpattern;
+               consume(_ID);
+             end;
            { support "<unit> in '<file>'" construct, but not for tp7 }
            fn:='';
            if not(m_tp7 in current_settings.modeswitches) and
@@ -786,7 +793,7 @@ implementation
                 can not use the modulename because that can be different
                 when -Un is used }
               unitsym:=tunitsym.create(sorg,nil);
-              current_module.localsymtable.insert(unitsym);
+              tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
               { the current module uses the unit hp2 }
               current_module.addusedunit(hp2,true,unitsym);
             end
@@ -1071,6 +1078,7 @@ implementation
          force_init_final : boolean;
          init_procinfo,
          finalize_procinfo : tcgprocinfo;
+         unitname : ansistring;
          unitname8 : string[8];
          ag: boolean;
 {$ifdef debug_devirt}
@@ -1087,8 +1095,15 @@ implementation
          if compile_level=1 then
           Status.IsExe:=false;
 
-         if token=_ID then
+         unitname:=orgpattern;
+         consume(_ID);
+         while token=_POINT do
           begin
+             consume(_POINT);
+             unitname:=unitname+'.'+orgpattern;
+             consume(_ID);
+           end;
+
              { create filenames and unit name }
              main_file := current_scanner.inputfile;
              while assigned(main_file.next) do
@@ -1097,7 +1112,7 @@ implementation
              new(s1);
              s1^:=current_module.modulename^;
              current_module.SetFileName(main_file.path^+main_file.name^,true);
-             current_module.SetModuleName(orgpattern);
+         current_module.SetModuleName(unitname);
 
              { check for system unit }
              new(s2);
@@ -1123,12 +1138,9 @@ implementation
               include(current_settings.moduleswitches,cs_compilesystem);
              dispose(s2);
              dispose(s1);
-          end;
 
          if (target_info.system in systems_unit_program_exports) then
            exportlib.preparelib(current_module.realmodulename^);
-
-         consume(_ID);
 
          { parse hint directives }
          try_consume_hintdirective(current_module.moduleoptions, current_module.deprecatedmsg);
@@ -1162,7 +1174,7 @@ implementation
 
          { insert unitsym of this unit to prevent other units having
            the same name }
-         current_module.localsymtable.insert(tunitsym.create(current_module.realmodulename^,current_module));
+         tabstractunitsymtable(current_module.localsymtable).insertunit(tunitsym.create(current_module.realmodulename^,current_module));
 
          { load default units, like the system unit }
          loaddefaultunits;
@@ -1769,6 +1781,7 @@ implementation
         main_procinfo : tcgprocinfo;}
         force_init_final : boolean;
         uu : tused_unit;
+        module_name: ansistring;
       begin
          Status.IsPackage:=true;
          Status.IsExe:=true;
@@ -1806,15 +1819,25 @@ implementation
 
          current_module.SetFileName(main_file.path^+main_file.name^,true);
 
+         { consume _PACKAGE word }
          consume(_ID);
-         current_module.setmodulename(orgpattern);
+
+         module_name:=orgpattern;
+         consume(_ID);
+         while token=_POINT do
+           begin
+             consume(_POINT);
+             module_name:=module_name+'.'+orgpattern;
+             consume(_ID);
+           end;
+
+         current_module.setmodulename(module_name);
          current_module.ispackage:=true;
-         exportlib.preparelib(orgpattern);
+         exportlib.preparelib(module_name);
 
          if tf_library_needs_pic in target_info.flags then
            include(current_settings.moduleswitches,cs_create_pic);
 
-         consume(_ID);
          consume(_SEMICOLON);
 
          { global switches are read, so further changes aren't allowed }
@@ -1839,12 +1862,24 @@ implementation
          {Load the units used by the program we compile.}
          if (token=_ID) and (idtoken=_CONTAINS) then
            begin
+             { consume _CONTAINS word }
              consume(_ID);
              while true do
                begin
                  if token=_ID then
-                   AddUnit(pattern);
+                   begin
+                     module_name:=pattern;
                  consume(_ID);
+                     while token=_POINT do
+                       begin
+                         consume(_POINT);
+                         module_name:=module_name+'.'+orgpattern;
+                         consume(_ID);
+                       end;
+                     AddUnit(module_name);
+                   end
+                 else
+                   consume(_ID);
                  if token=_COMMA then
                    consume(_COMMA)
                  else break;
@@ -1857,7 +1892,7 @@ implementation
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           current_module.localsymtable.insert(tunitsym.create(current_module.realmodulename^,current_module));
+           tabstractunitsymtable(current_module.localsymtable).insertunit(tunitsym.create(current_module.realmodulename^,current_module));
 
          Message1(parser_u_parsing_implementation,current_module.mainsource^);
 
@@ -2050,6 +2085,7 @@ implementation
          main_procinfo : tcgprocinfo;
          force_init_final : boolean;
          resources_used : boolean;
+         program_name : ansistring;
       begin
          DLLsource:=islibrary;
          Status.IsLibrary:=IsLibrary;
@@ -2097,14 +2133,21 @@ implementation
          if islibrary then
            begin
               consume(_LIBRARY);
-              current_module.setmodulename(orgpattern);
+              program_name:=orgpattern;
+              consume(_ID);
+              while token=_POINT do
+                begin
+                  consume(_POINT);
+                  program_name:=program_name+'.'+orgpattern;
+                  consume(_ID);
+                end;
+              current_module.setmodulename(program_name);
               current_module.islibrary:=true;
-              exportlib.preparelib(orgpattern);
+              exportlib.preparelib(program_name);
 
               if tf_library_needs_pic in target_info.flags then
                 include(current_settings.moduleswitches,cs_create_pic);
 
-              consume(_ID);
               consume(_SEMICOLON);
            end
          else
@@ -2112,10 +2155,17 @@ implementation
            if token=_PROGRAM then
             begin
               consume(_PROGRAM);
-              current_module.setmodulename(orgpattern);
-              if (target_info.system in systems_unit_program_exports) then
-                exportlib.preparelib(orgpattern);
+              program_name:=orgpattern;
               consume(_ID);
+              while token=_POINT do
+                begin
+                  consume(_POINT);
+                  program_name:=program_name+'.'+orgpattern;
+                  consume(_ID);
+                end;
+              current_module.setmodulename(program_name);
+              if (target_info.system in systems_unit_program_exports) then
+                exportlib.preparelib(program_name);
               if token=_LKLAMMER then
                 begin
                    consume(_LKLAMMER);
@@ -2158,7 +2208,7 @@ implementation
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           current_module.localsymtable.insert(tunitsym.create(current_module.realmodulename^,current_module));
+           tabstractunitsymtable(current_module.localsymtable).insertunit(tunitsym.create(current_module.realmodulename^,current_module));
 
          Message1(parser_u_parsing_implementation,current_module.mainsource^);
 

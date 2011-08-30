@@ -243,12 +243,13 @@ implementation
     function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id:boolean):boolean;
       var
         hmodule: tmodule;
+        ns:ansistring;
+        nssym:tsym;
       begin
-        // TODO: dot units
         result:=false;
         tokentoconsume:=_ID;
-        if assigned(srsym) and
-           (srsym.typ=unitsym) then
+
+        if assigned(srsym) and (srsym.typ in [unitsym,namespacesym]) then
           begin
             if not(srsym.owner.symtabletype in [staticsymtable,globalsymtable]) then
               internalerror(200501154);
@@ -264,6 +265,35 @@ implementation
                 if consume_id then
                   consume(_ID);
                 consume(_POINT);
+                if srsym.typ=namespacesym then
+                  begin
+                    ns:=srsym.name;
+                    nssym:=srsym;
+                    while assigned(srsym) and (srsym.typ=namespacesym) do
+                      begin
+                        { we have a namespace. the next identifier should be either a namespace or a unit }
+                        searchsym_in_module(hmodule,ns+'.'+pattern,srsym,srsymtable);
+                        if assigned(srsym) and (srsym.typ in [namespacesym,unitsym]) then
+                          begin
+                            ns:=ns+'.'+pattern;
+                            nssym:=srsym;
+                            consume(_ID);
+                            consume(_POINT);
+                          end;
+                      end;
+                    { check if there is a hidden unit with this pattern in the namespace }
+                    if not assigned(srsym) and
+                       assigned(nssym) and (nssym.typ=namespacesym) and assigned(tnamespacesym(nssym).unitsym) then
+                      srsym:=tnamespacesym(nssym).unitsym;
+                    if assigned(srsym) and (srsym.typ<>unitsym) then
+                      internalerror(201108260);
+                    if not assigned(srsym) then
+                      begin
+                        result:=true;
+                        srsymtable:=nil;
+                        exit;
+                      end;
+                  end;
                 case token of
                   _ID:
                      searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
