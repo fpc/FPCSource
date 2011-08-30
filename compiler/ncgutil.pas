@@ -1261,7 +1261,7 @@ implementation
                   a local copy }
                 if not(current_procinfo.procdef.proccalloption in cdecl_pocalls) then
                   begin
-                    hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                    hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
                     if not assigned(hsym) then
                       internalerror(200306061);
                     hreg:=cg.getaddressregister(list);
@@ -1609,7 +1609,7 @@ implementation
                          begin
                            { open arrays do not contain correct element count in their rtti,
                              the actual count must be passed separately. }
-                           hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                           hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
                            eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
                            if not assigned(hsym) then
                              internalerror(201003031);
@@ -1644,7 +1644,7 @@ implementation
                        begin
                          if is_open_array(tparavarsym(p).vardef) then
                            begin
-                             hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                             hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
                              eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
                              if not assigned(hsym) then
                                internalerror(201103033);
@@ -1699,7 +1699,7 @@ implementation
               location_get_data_ref(list,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
               if is_open_array(tparavarsym(p).vardef) then
                 begin
-                  hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                  hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
                   eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
                   if not assigned(hsym) then
                     internalerror(201003032);
