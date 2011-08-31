@@ -356,16 +356,23 @@ implementation
                         { no new entry, but copy the message name if any from
                           the procdef in the parent class }
                         check_msg_str(vmtpd,pd);
-                        { in case of Java, copy the real name from the parent,
-                          since overriding "Destroy" with "destroy" is not
-                          going to work very well }
-                        if is_java_class_or_interface(_class) and
-                           (pd.procsym.realname<>vmtpd.procsym.realname) then
-                          pd.procsym.realname:=vmtpd.procsym.realname;
-                        { in case we are overriding an abstract method,
-                          decrease the number of abstract methods in this class }
-                        if (po_abstractmethod in vmtpd.procoptions) then
-                          dec(tobjectdef(pd.owner.defowner).abstractcnt);
+                        if updatevalues then
+                          begin
+                            { in case of Java, copy the real name from the parent,
+                              since overriding "Destroy" with "destroy" is not
+                              going to work very well }
+                            if is_java_class_or_interface(_class) and
+                               (pd.procsym.realname<>vmtpd.procsym.realname) then
+                              pd.procsym.realname:=vmtpd.procsym.realname;
+                            { in case we are overriding an abstract method,
+                              decrease the number of abstract methods in this class }
+                            if (po_abstractmethod in vmtpd.procoptions) then
+                              dec(tobjectdef(pd.owner.defowner).abstractcnt);
+                            if (vmtpd.extnumber<>i) then
+                              internalerror(2011083101);
+                            pd.extnumber:=vmtpd.extnumber;
+                            vmtpd:=pd;
+                          end;
                         result:=true;
                         exit;
 {$ifdef jvm}
@@ -424,15 +431,15 @@ implementation
                         vmtentryvis:=pd.visibility;
                     end;
 
-                  { in case we are overriding an abstract method,
-                    decrease the number of abstract methods in this class }
-                  if (po_overridingmethod in pd.procoptions) and
-                     (po_abstractmethod in vmtpd.procoptions) then
-                    dec(tobjectdef(pd.owner.defowner).abstractcnt);
-
                   { override old virtual method in VMT }
                   if updatevalues then
                     begin
+                      { in case we are overriding an abstract method,
+                        decrease the number of abstract methods in this class }
+                      if (po_overridingmethod in pd.procoptions) and
+                         (po_abstractmethod in vmtpd.procoptions) then
+                        dec(tobjectdef(pd.owner.defowner).abstractcnt);
+
                       if (vmtpd.extnumber<>i) then
                         internalerror(200611084);
                       pd.extnumber:=vmtpd.extnumber;
