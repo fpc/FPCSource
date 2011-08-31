@@ -724,8 +724,8 @@ end;
                      Public functions, In interface.
 *****************************************************************************}
 
-{$ifndef FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
-{$define FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
+{$ifndef FPC_SYSTEM_HAS_TRUELY_ANSISTR_UNIQUE}
+{$define FPC_SYSTEM_HAS_TRUELY_ANSISTR_UNIQUE}
 function fpc_truely_ansistr_unique(Var S : Pointer): Pointer;
 Var
   SNew : Pointer;
@@ -739,8 +739,11 @@ begin
   pointer(S):=SNew;
   pointer(result):=SNew;
 end;
+{$endif FPC_SYSTEM_HAS_TRUELY_ANSISTR_UNIQUE}
 
 
+{$ifndef FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
+{$define FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
 // MV: inline the basic checks for case that S is already unique.
 // Rest is too complex to inline, so factor that out as a call.
 Function fpc_ansistr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_ANSISTR_UNIQUE']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
