@@ -1098,46 +1098,46 @@ implementation
          unitname:=orgpattern;
          consume(_ID);
          while token=_POINT do
-          begin
+           begin
              consume(_POINT);
              unitname:=unitname+'.'+orgpattern;
              consume(_ID);
            end;
 
-             { create filenames and unit name }
-             main_file := current_scanner.inputfile;
-             while assigned(main_file.next) do
-               main_file := main_file.next;
+         { create filenames and unit name }
+         main_file := current_scanner.inputfile;
+         while assigned(main_file.next) do
+           main_file := main_file.next;
 
-             new(s1);
-             s1^:=current_module.modulename^;
-             current_module.SetFileName(main_file.path^+main_file.name^,true);
+         new(s1);
+         s1^:=current_module.modulename^;
+         current_module.SetFileName(main_file.path^+main_file.name^,true);
          current_module.SetModuleName(unitname);
 
-             { check for system unit }
-             new(s2);
-             s2^:=upper(ChangeFileExt(ExtractFileName(main_file.name^),''));
-             unitname8:=copy(current_module.modulename^,1,8);
-             if (cs_check_unit_name in current_settings.globalswitches) and
-                (
-                 not(
-                     (current_module.modulename^=s2^) or
-                     (
-                      (length(current_module.modulename^)>8) and
-                      (unitname8=s2^)
-                     )
-                    )
-                 or
+         { check for system unit }
+         new(s2);
+         s2^:=upper(ChangeFileExt(ExtractFileName(main_file.name^),''));
+         unitname8:=copy(current_module.modulename^,1,8);
+         if (cs_check_unit_name in current_settings.globalswitches) and
+            (
+             not(
+                 (current_module.modulename^=s2^) or
                  (
-                  (length(s1^)>8) and
-                  (s1^<>current_module.modulename^)
+                  (length(current_module.modulename^)>8) and
+                  (unitname8=s2^)
                  )
-                ) then
-              Message1(unit_e_illegal_unit_name,current_module.realmodulename^);
-             if (current_module.modulename^='SYSTEM') then
-              include(current_settings.moduleswitches,cs_compilesystem);
-             dispose(s2);
-             dispose(s1);
+                )
+             or
+             (
+              (length(s1^)>8) and
+              (s1^<>current_module.modulename^)
+             )
+            ) then
+          Message1(unit_e_illegal_unit_name,current_module.realmodulename^);
+         if (current_module.modulename^='SYSTEM') then
+          include(current_settings.moduleswitches,cs_compilesystem);
+         dispose(s2);
+         dispose(s1);
 
          if (target_info.system in systems_unit_program_exports) then
            exportlib.preparelib(current_module.realmodulename^);
@@ -1869,7 +1869,7 @@ implementation
                  if token=_ID then
                    begin
                      module_name:=pattern;
-                 consume(_ID);
+                     consume(_ID);
                      while token=_POINT do
                        begin
                          consume(_POINT);
