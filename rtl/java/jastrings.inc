@@ -472,6 +472,9 @@ end;
                      Public functions, In interface.
 *****************************************************************************}
 
+{ lie, not needed }
+{$define FPC_SYSTEM_HAS_TRUELY_ANSISTR_UNIQUE}
+
 { can't implement reference counting since no control over what javacc-compiled
   code does with ansistrings -> always create a copy }
 {$define FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
