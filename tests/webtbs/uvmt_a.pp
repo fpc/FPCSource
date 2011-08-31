@@ -6,10 +6,12 @@ unit uvmt_a;
 
 interface
 
+{$ifndef VAR_ONLY}
 type
   tclass = class (tobject)
     x : integer;
   end;
+{$endif ndef VAR_ONLY}
 var
   int : longint;
 
