@@ -8,6 +8,9 @@
 { Use same name as unit to test also
   possible confusion there }
 
+{ Test should not fail anymore after this change
+  dated 2011-08-31 PM }
+
 {$mode objfpc}
 
 program vmt_uvmt;
@@ -15,6 +18,7 @@ program vmt_uvmt;
 uses
   uvmt, uvmt_a;
 
+{$ifndef VAR_ONLY}
 type
   tclass = class(tobject)
   end;
@@ -26,6 +30,8 @@ var
   a2 : uvmt.a_tclass;
   a3 : tclass;
   a4 : a_tclass;
+{$endif ndef VAR_ONLY}
+var
   t : longint;
 begin
   t:=6;
@@ -40,6 +46,7 @@ begin
         Writeln('Both variables are at same address');
       halt(1);
     end;
+{$ifndef VAR_ONLY}
   a1 := uvmt_a.tclass.create;
   a2 := uvmt.a_tclass.create;
   a3 := tclass.create;
@@ -48,4 +55,5 @@ begin
   a2.destroy;
   a3.destroy;
   a4.destroy;
+{$endif ndef VAR_ONLY}
 end.

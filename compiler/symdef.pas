@@ -930,7 +930,7 @@ implementation
         if prefix<>'' then
           result:=result+'_'+prefix;
         if suffix<>'' then
-          result:=result+'_'+suffix;
+          result:=result+'_$'+suffix;
         { the Darwin assembler assumes that all symbols starting with 'L' are local }
         { Further, the Mac OS X 10.5 linker does not consider symbols which do not  }
         { start with '_' as regular symbols (it does not generate N_GSYM entries    }
