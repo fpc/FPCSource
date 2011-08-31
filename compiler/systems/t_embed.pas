@@ -224,6 +224,7 @@ begin
       ct_lpc2114,
       ct_lpc2124,
       ct_lpc2194,
+      ct_lpc1768,
       ct_at91sam7s256,
       ct_at91sam7se256,
       ct_at91sam7x256,
@@ -312,17 +313,19 @@ begin
               Add('ENTRY(_START)');
               Add('MEMORY');
               Add('{');
-
-              LinkStr := '    flash : ORIGIN = 0x' + IntToHex(flashbase,8)
-                + ', LENGTH = ' + IntToStr(flashsize div 1024)+'K';
-              Add(LinkStr);
+              if flashsize<>0 then
+                begin
+                  LinkStr := '    flash : ORIGIN = 0x' + IntToHex(flashbase,8)
+                    + ', LENGTH = 0x' + IntToHex(flashsize,8);
+                  Add(LinkStr);
+                end;
 
               LinkStr := '    ram : ORIGIN = 0x' + IntToHex(srambase,8)
-              	+ ', LENGTH = ' + IntToStr(sramsize div 1024)+'K';
+              	+ ', LENGTH = 0x' + IntToHex(sramsize,8);
               Add(LinkStr);
 
               Add('}');
-              Add('_stack_top = 0x' + IntToHex(sramsize+srambase-4,8) + ';');
+              Add('_stack_top = 0x' + IntToHex(sramsize+srambase,8) + ';');
             end;
         end
     else
@@ -342,14 +345,28 @@ begin
       Add('    *(.rodata, .rodata.*)');
       Add('    *(.comment)');
       Add('    _etext = .;');
-      Add('    } >flash');
+      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+        begin
+          Add('    } >flash');
+        end
+      else
+        begin
+          Add('    } >ram');
+        end;
       Add('    .data :');
       Add('    {');
       Add('    _data = .;');
       Add('    *(.data, .data.*)');
       Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       Add('    _edata = .;');
-      Add('    } >ram AT >flash');
+      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+        begin
+          Add('    } >ram AT >flash');
+        end
+      else
+        begin
+          Add('    } >ram');
+        end;
       Add('    .bss :');
       Add('    {');
       Add('    _bss_start = .;');

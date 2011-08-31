@@ -65,6 +65,7 @@ Type
       ct_lpc2114,
       ct_lpc2124,
       ct_lpc2194,
+      ct_lpc1768,
 
       { ATMEL }
       ct_at91sam7s256,
@@ -240,6 +241,16 @@ Const
         flashsize:$00040000;
         srambase:$40000000;
         sramsize:$00004000
+    	),
+
+        (
+    	controllertypestr:'LPC1768';
+        controllerunitstr:'LPC1768';
+        interruptvectors:12;
+    	flashbase:$00000000;
+        flashsize:$00040000;
+        srambase:$10000000;
+        sramsize:$00008000
     	),
 
         (
