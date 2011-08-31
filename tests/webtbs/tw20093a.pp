@@ -14,7 +14,7 @@
 program vmt_uvmt;
 
 uses
-  uvmta, uvmta_a;
+  u_uvmta, uvmta, uvmta_a;
 
 var
   t : longint;
@@ -35,7 +35,9 @@ begin
     end;
   test;
   a_test;
+  u_uvmta.a_int;
   if (test_count <> 1) or
+     (u_test_count <> 1) or
      (a_test_count <> 1) then
     begin
       Writeln('Wrong code generated');

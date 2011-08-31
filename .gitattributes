@@ -12546,6 +12546,7 @@ tests/webtbs/tw9918.pp svneol=native#text/plain
 tests/webtbs/tw9919.pp svneol=native#text/plain
 tests/webtbs/tw9985.pp svneol=native#text/plain
 tests/webtbs/tw9985a.pp svneol=native#text/plain
+tests/webtbs/u_uvmta.pp svneol=native#text/pascal
 tests/webtbs/ub1873.pp svneol=native#text/plain
 tests/webtbs/ub1883.pp svneol=native#text/plain
 tests/webtbs/uvmt.pp svneol=native#text/pascal
