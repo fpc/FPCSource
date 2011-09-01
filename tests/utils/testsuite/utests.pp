@@ -1223,7 +1223,7 @@ begin
 
       HeaderEnd(2);
       ParaGraphStart;
-      S:='SELECT TR_ID,TR_TESTRUN_FK,TR_TEST_FK,TR_OK, TR_SKIP,TR_RESULT '
+      S:='SELECT TR_ID,TR_TESTRUN_FK AS RUN,TR_TEST_FK,TR_OK, TR_SKIP,TR_RESULT '
       //S:='SELECT * '
         +' FROM TESTRESULTS '
         +' WHERE  (TR_TEST_FK='+FTestFileID+')';
@@ -1256,7 +1256,7 @@ begin
                 //FL:='TR_ID,TR_TESTRUN_FK,T_NAME,T_CPU,T_VERSION';
                 CreateColumns(Nil);
                 TableColumns.Delete(TableColumns.ColumnByName('TR_TEST_FK').Index);
-                TableColumns.ColumnByNAme('TR_TESTRUN_FK').OnGetCellContents:=
+                TableColumns.ColumnByNAme('RUN').OnGetCellContents:=
                   @FormatTestRunOverview;
                 //OnGetRowAttributes:=@GetRunRowAttr;
                 TableColumns.ColumnByNAme('TR_RESULT').OnGetCellContents:=
@@ -1439,20 +1439,26 @@ begin
   ConnectToDB;
   ContentType:='text/html';
   EmitContentType;
-  if FTestFileID='' then
+  if (FTestFileID='') and (FTestFileName<>'') then
     FTestFileID:=GetSingleton('SELECT T_ID FROM TESTS WHERE T_NAME LIKE ''%'+
      FTestFileName+'%''');
   if FTestFileID<>'' then
     FTestFileName:=GetTestFileName(FTestFileID);
-  EmitTitle(Title+' : File '+FTestFileName+' Results');
+  if FTestFileName<>'' then
+    EmitTitle(Title+' : File '+FTestFileName+' Results')
+  else
+    EmitTitle(Title+' : History overview');
   With FHTMLWriter do
     begin
-    HeaderStart(1);
-    Write('Test suite results for test file '+FTestFileName);
-    HeaderEnd(1);
-    HeaderStart(2);
-    Write('Test run data : ');
-    HeaderEnd(2);
+    if FTestFileName<>'' then
+      begin
+        HeaderStart(1);
+        Write('Test suite results for test file '+FTestFileName);
+        HeaderEnd(1);
+        HeaderStart(2);
+        Write('Test run data : ');
+        HeaderEnd(2);
+      end;
     if FRunID<>'' then
       begin
         Res:=ShowRunData;
@@ -1471,51 +1477,61 @@ begin
       end;
     If Res then
       begin
-      HeaderStart(2);
-      Write('Test file "'+FTestFileName+'" information:');
-      HeaderEnd(2);
-      ParaGraphStart;
-      S:='SELECT * FROM TESTS WHERE T_ID='+FTestFileID;
-      Q:=CreateDataSet(S);
-      With Q do
-        Try
-          Open;
-          Try
-            For i:=0 to FieldCount-1 do
-              begin
-                FieldValue:=Fields[i].AsString;
-                FieldName:=Fields[i].DisplayName;
-                if (FieldValue<>'') and (FieldValue<>'-') and 
-                   (FieldName<>'T_NAME') and (FieldName<>'T_SOURCE') then
+        if (FTestFileName<>'') then
+          begin
+          HeaderStart(2);
+          Write('Test file "'+FTestFileName+'" information:');
+          HeaderEnd(2);
+          ParaGraphStart;
+          S:='SELECT * FROM TESTS WHERE T_ID='+FTestFileID;
+          Q:=CreateDataSet(S);
+          With Q do
+            Try
+              Open;
+              Try
+                For i:=0 to FieldCount-1 do
                   begin
-                    if (FieldValue='+') then
-                      Write('Flag ');
-                    Write(FieldName);
-                    Write(' ');
-                    if FieldValue='+' then
-                      Write(' set')
-                    else
-                      Write(FieldValue);
-                    DumpLn('<BR>');
+                    FieldValue:=Fields[i].AsString;
+                    FieldName:=Fields[i].DisplayName;
+                    if (FieldValue<>'') and (FieldValue<>'-') and 
+                       (FieldName<>'T_NAME') and (FieldName<>'T_SOURCE') then
+                      begin
+                        if (FieldValue='+') then
+                          Write('Flag ');
+                        Write(FieldName);
+                        Write(' ');
+                        if FieldValue='+' then
+                          Write(' set')
+                        else
+                          Write(FieldValue);
+                        DumpLn('<BR>');
+                      end;
                   end;
+               
+              Finally
+                Close;
               end;
-           
-          Finally
-            Close;
-          end;
-        Finally
-          Free;
+            Finally
+              Free;
+            end;
+          ParaGraphEnd;  
+          HeaderStart(2);
+          Write('Detailed test run results:');
         end;
-      ParaGraphEnd;  
-      HeaderStart(2);
-      Write('Detailed test run results:');
-
       HeaderEnd(2);
       ParaGraphStart;
-      S:='SELECT TR_ID,TR_TESTRUN_FK,TR_TEST_FK,TR_OK, TR_SKIP,TR_RESULT '
+      S:='SELECT TR_ID,TR_TESTRUN_FK AS RUN,TR_TEST_FK,TR_OK AS OK'
+        +', TR_SKIP As Skip,TR_RESULT '
       //S:='SELECT * '
         +',TC_NAME AS CPU, TV_VERSION AS VERSION, TO_NAME AS OS'
-        +',TU_ID,TU_DATE,TU_SUBMITTER,TU_MACHINE,TU_COMMENT '
+        +',TU_ID,TU_DATE AS Date,TU_SUBMITTER  AS Submitter'
+        +',TU_MACHINE AS Machine,TU_COMMENT AS Comment'
+        +',TU_COMPILERDATE As COMPDATE'
+        +',TU_SVNTESTSREVISION AS TESTS_REV'
+        +',TU_SVNRTLREVISION AS RTL_REV'
+        +',TU_SVNCOMPILERREVISION AS COMPILER_REV'
+        +',TU_SVNPACKAGESREVISION AS PACKAGES_REV'
+        +',(TU_FAILEDTOCOMPILE + TU_FAILEDTOFAIL + TU_FAILEDTORUN) AS Fails'
         +',TO_ID,TC_ID,TV_ID'
         +' FROM TESTRUN '
         +' LEFT JOIN TESTRESULTS ON  (TR_TESTRUN_FK=TU_ID)'
@@ -1527,6 +1543,9 @@ begin
         S:=S+' AND (TR_OK="-")';
       If FNoSkipped then
         S:=S+' AND (TR_SKIP="-")';
+      If FCond<>'' then
+        S:=S+' AND ('+FCond+')';
+
       If (FCPU<>'') and (GetCPUName(FCPU)<>'All') then
         begin
           S:=S+' AND (TU_CPU_FK='+FCPU+')';
@@ -1624,12 +1643,12 @@ begin
             RecNo:=0;
 
           Try
-           if FDebug then
+           { if FDebug then
              begin
                Writeln(stdout,'FieldKind=',Fields[0].FieldKind);
                Writeln(stdout,'DataType=',Fields[0].DataType);
                system.flush(stdout);
-             end;
+             end; }
 
           total_count:=0;
           OK_count:=0;
@@ -1637,13 +1656,13 @@ begin
           skip_count:=0;
           not_skip_count:=0;
           fillchar(Result_Count,Sizeof(Result_count),#0);
-          ok_ind:=FieldByName('TR_OK').Index;
-          skip_ind:=FieldBYName('TR_SKIP').Index;
+          ok_ind:=FieldByName('OK').Index;
+          skip_ind:=FieldBYName('SKIP').Index;
           result_ind:=FieldByName('TR_RESULT').Index;
           cpu_ind:=FieldByName('TC_ID').Index;
           os_ind:=FieldByName('TO_ID').Index;
           version_ind:=FieldByName('TV_ID').Index;
-          date_ind:=FieldByName('TU_DATE').Index;
+          date_ind:=FieldByName('Date').Index;
           run_ind:=FieldByName('TU_ID').Index;
           For i:=0 to Q.RecordCount-1 do
             begin
@@ -1906,23 +1925,24 @@ begin
             With CreateTableProducer(Q) do
               Try
                 Border:=True;
-                FL:='TR_TESTRUN_FK,TU_DATE,TR_OK,TR_SKIP,TR_RESULT';
+                FL:='RUN,Date,OK,SKIP,TR_RESULT';
                 if FSubmitter='' then
-                  FL:=FL+',TU_SUBMITTER';
+                  FL:=FL+',Submitter';
                 if FMachine='' then
-                  FL:=FL+',TU_MACHINE';
+                  FL:=FL+',Machine';
                 if Fcomment='' then
-                  FL:=FL+',TU_COMMENT';
+                  FL:=FL+',Comment';
                 if (FOS='') or (GetOSName(FOS)='All') then
                   FL:=FL+',OS';
                 if (FCPU='') or (GetCPUName(FCPU)='All') then
                   FL:=FL+',CPU';
                 if (FVersion='') or (GetVersionName(FVersion)='All') then
                   FL:=FL+',VERSION';
-                
+                FL:=FL+',Fails,COMPDATE';
+                FL:=FL+',TESTS_REV,RTL_REV,COMPILER_REV,PACKAGES_REV';
                 CreateColumns(FL);
                 //TableColumns.Delete(TableColumns.ColumnByName('TR_TEST_FK').Index);
-                TableColumns.ColumnByNAme('TR_TESTRUN_FK').OnGetCellContents:=
+                TableColumns.ColumnByNAme('RUN').OnGetCellContents:=
                   @FormatTestRunOverview;
                 //OnGetRowAttributes:=@GetRunRowAttr;
                 TableColumns.ColumnByNAme('TR_RESULT').OnGetCellContents:=
@@ -2294,7 +2314,7 @@ Var
 
 begin
   P:=(Sender as TTableProducer);
-  S:=Format(SDetailsURL,[P.DataSet.FieldByName('TR_TESTRUN_FK').AsString]);
+  S:=Format(SDetailsURL,[P.DataSet.FieldByName('RUN').AsString]);
   if FOnlyFailed then
     S:=S+'&failedonly=1';
   if FNoSkipped then
