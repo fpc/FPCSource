@@ -358,7 +358,7 @@ implementation
            begin
              if assigned(current_module) then
                internalerror(200501158);
-             set_current_module(tppumodule.create(nil,filename,'',false));
+             set_current_module(tppumodule.create(nil,'',filename,false));
              addloadedunit(current_module);
              main_module:=current_module;
              current_module.state:=ms_compile;
