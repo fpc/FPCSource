@@ -420,14 +420,18 @@ allexectests: allexectest allexectbs allexectbf allexecwebtbs allexecwebtbf
 # Clean
 #
 
-.PHONY: clean distclean clean_test
+.PHONY: clean distclean clean_test clean_sources
+
+# Remove any possible PPU files
+clean_sources:
+	-$(DEL) $(wildcard $(patsubst %.pp,%$(PPUEXT),$(wildcard $(addsuffix /*.pp,$(DIRS)))))
 
 clean_test:
         -$(DELTREE) $(TEST_OUTPUTDIR)
         -$(DEL) $(LOG) $(LONGLOG) $(FAILLIST)
         -$(DEL) core gmon.out testprep-stamp.$(TEST_FULL_TARGET) dotgz.bat
 
-clean:
+clean: clean_sources
         $(MAKE) clean_test CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
         $(MAKE) -C units clean CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
 
