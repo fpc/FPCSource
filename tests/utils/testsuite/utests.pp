@@ -1520,18 +1520,18 @@ begin
         end;
       HeaderEnd(2);
       ParaGraphStart;
-      S:='SELECT TR_ID,TR_TESTRUN_FK AS RUN,TR_TEST_FK,TR_OK AS OK'
-        +', TR_SKIP As Skip,TR_RESULT '
+      S:='SELECT TR_ID,TR_TESTRUN_FK AS Run,TR_TEST_FK,TR_OK AS OK'
+        +', TR_SKIP As Skip,TR_RESULT  As Result'
       //S:='SELECT * '
-        +',TC_NAME AS CPU, TV_VERSION AS VERSION, TO_NAME AS OS'
+        +',TC_NAME AS CPU, TV_VERSION AS Version, TO_NAME AS OS'
         +',TU_ID,TU_DATE AS Date,TU_SUBMITTER  AS Submitter'
-        +',TU_MACHINE AS Machine,TU_COMMENT AS Comment'
-        +',TU_COMPILERDATE As COMPDATE'
-        +',TU_SVNTESTSREVISION AS TESTS_REV'
-        +',TU_SVNRTLREVISION AS RTL_REV'
-        +',TU_SVNCOMPILERREVISION AS COMPILER_REV'
-        +',TU_SVNPACKAGESREVISION AS PACKAGES_REV'
         +',(TU_FAILEDTOCOMPILE + TU_FAILEDTOFAIL + TU_FAILEDTORUN) AS Fails'
+        +',TU_MACHINE AS Machine,TU_COMMENT AS Comment'
+        +',TU_COMPILERDATE As CompDate'
+        +',TU_SVNTESTSREVISION AS Tests_rev'
+        +',TU_SVNRTLREVISION AS RTL_rev'
+        +',TU_SVNCOMPILERREVISION AS Compiler_rev'
+        +',TU_SVNPACKAGESREVISION AS Packages_rev'
         +',TO_ID,TC_ID,TV_ID'
         +' FROM TESTRUN '
         +' LEFT JOIN TESTRESULTS ON  (TR_TESTRUN_FK=TU_ID)'
@@ -1658,7 +1658,7 @@ begin
           fillchar(Result_Count,Sizeof(Result_count),#0);
           ok_ind:=FieldByName('OK').Index;
           skip_ind:=FieldBYName('SKIP').Index;
-          result_ind:=FieldByName('TR_RESULT').Index;
+          result_ind:=FieldByName('Result').Index;
           cpu_ind:=FieldByName('TC_ID').Index;
           os_ind:=FieldByName('TO_ID').Index;
           version_ind:=FieldByName('TV_ID').Index;
@@ -1925,7 +1925,7 @@ begin
             With CreateTableProducer(Q) do
               Try
                 Border:=True;
-                FL:='RUN,Date,OK,SKIP,TR_RESULT';
+                FL:='RUN,Date,OK,SKIP,Result';
                 if FSubmitter='' then
                   FL:=FL+',Submitter';
                 if FMachine='' then
@@ -1937,15 +1937,15 @@ begin
                 if (FCPU='') or (GetCPUName(FCPU)='All') then
                   FL:=FL+',CPU';
                 if (FVersion='') or (GetVersionName(FVersion)='All') then
-                  FL:=FL+',VERSION';
-                FL:=FL+',Fails,COMPDATE';
-                FL:=FL+',TESTS_REV,RTL_REV,COMPILER_REV,PACKAGES_REV';
+                  FL:=FL+',Version';
+                FL:=FL+',Fails,CompDate';
+                FL:=FL+',Tests_rev,RTL_rev,Compiler_rev,Packages_rev';
                 CreateColumns(FL);
                 //TableColumns.Delete(TableColumns.ColumnByName('TR_TEST_FK').Index);
                 TableColumns.ColumnByNAme('RUN').OnGetCellContents:=
                   @FormatTestRunOverview;
                 //OnGetRowAttributes:=@GetRunRowAttr;
-                TableColumns.ColumnByNAme('TR_RESULT').OnGetCellContents:=
+                TableColumns.ColumnByNAme('Result').OnGetCellContents:=
                   @FormatTestResult;
                 //(TableColumns.Items[0] as TTableColumn).ActionURL:=ALink;
                 CreateTable(Response);
