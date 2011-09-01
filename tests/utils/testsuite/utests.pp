@@ -166,7 +166,12 @@ type
     ver_2_3_1,
     ver_2_4_0,
     ver_2_4_1,
-    ver_2_5_1);
+    ver_2_4_2,
+    ver_2_4_3,
+    ver_2_4_4,
+    ver_2_4_5,
+    ver_2_5_1,
+    ver_2_7_1);
 
 const
   ver_trunk = high (known_versions);
@@ -193,7 +198,12 @@ const
    '2.3.1',
    '2.4.0',
    '2.4.1',
-   '2.5.1'
+   '2.4.2',
+   '2.4.3',
+   '2.4.4',
+   '2.4.5',
+   '2.5.1',
+   '2.7.1'
   );
 
   ver_branch : array [known_versions] of string = 
@@ -216,7 +226,12 @@ const
    'branches/fixes_2_2',
    'tags/release_2_4_0',
    'tags/release_2_4_0',
+   'tags/release_2_4_2',
+   'tags/release_2_4_2',
+   'tags/release_2_4_4',
+   'tags/release_2_4_4',
    'branches/fixes_2_4',
+   'branches/fixes_2_6',
    'trunk'
   );
 
@@ -1368,7 +1383,7 @@ begin
               begin
                 // Test all but last version, which is assumed to be trunk
                 for ver:=low(known_versions) to pred(high(known_versions)) do
-                  if ver_string[ver]=FVersionBranch then
+                  if VER_String[ver]=FVersionBranch then
                     begin
                       base:=ver_branch[ver];
                       break;
