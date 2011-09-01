@@ -1169,7 +1169,7 @@ end;
 Procedure TTestSuite.ShowOneTest;
 
 Var
-  S : String;
+  S,S2 : String;
   Qry : String;
   Base, Category : string;
   Q : TSQLQuery;
@@ -1265,8 +1265,22 @@ begin
       If FOnlyFailed then
         S:=S+' AND (TR_OK="-")';
       if Fcomparerunid<>'' then
-        S:=S+' AND ((TR_TESTRUN_FK='+Frunid+') OR '+
-             '(TR_TESTRUN_FK='+Fcomparerunid+'))'
+        begin
+          if TESTRESULTSTableName(FRunID)<>TESTRESULTSTableName(FCompareRunID) then
+            begin
+              S2:='SELECT TR_ID,TR_TESTRUN_FK AS RUN,TR_TEST_FK,TR_OK, TR_SKIP,TR_RESULT '
+                  +' FROM '+TESTRESULTSTableName(FCompareRunID)
+                  +' WHERE  (TR_TEST_FK='+FTestFileID+')';
+              If FOnlyFailed then
+                S2:=S2+' AND (TR_OK="-")';
+
+              S:=S+' AND (TR_TESTRUN_FK='+Frunid+') UNION '+
+                 S2+' AND (TR_TESTRUN_FK='+Fcomparerunid+')'
+            end
+          else
+            S:=S+' AND ((TR_TESTRUN_FK='+Frunid+') OR '+
+                 '(TR_TESTRUN_FK='+Fcomparerunid+'))'
+        end
       else if Frunid<>'' then
         S:=S+' AND (TR_TESTRUN_FK='+Frunid+')'
       else
@@ -2186,11 +2200,12 @@ begin
       Q.ExecSQL;
       Q.SQL.Text:='CREATE TEMPORARY TABLE tr2 like TESTRESULTS;';
       Q.ExecSQL;
-      Q.SQL.Text:='INSERT INTO tr1 SELECT * FROM TESTRESULTS '+
-        'WHERE TR_TESTRUN_FK='+FRunID+';';
+      Q.SQL.Text:='INSERT INTO tr1 SELECT * FROM '+TESTRESULTSTableName(FRunId)+
+
+        ' WHERE TR_TESTRUN_FK='+FRunID+';';
       Q.ExecSQL;
-      Q.SQL.Text:='INSERT INTO tr2 SELECT * FROM TESTRESULTS '+
-        'WHERE TR_TESTRUN_FK='+FCompareRunID+';';
+      Q.SQL.Text:='INSERT INTO tr2 SELECT * FROM '+TESTRESULTSTableName(FCompareRunId)+
+        ' WHERE TR_TESTRUN_FK='+FCompareRunID+';';
       Q.ExecSQL;
       S:='SELECT T_ID as Id,T_NAME as Filename,tr1.TR_SKIP as Run1_Skipped,'
          +'tr2.TR_SKIP as Run2_Skipped,tr1.TR_OK as Run1_OK,'
