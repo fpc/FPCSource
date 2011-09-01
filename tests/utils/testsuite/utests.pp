@@ -122,6 +122,26 @@ Const
   DefPassword = ''; // fill this in, too.
 }
 
+Const
+  OldTestResultsTableName = 'OLDTESTRESULTS';
+  NewTestResultsTableName = 'TESTRESULTS';
+  LastOldTestRun = 91178;
+
+  Function TestResultsTableName(const RunId : String) : string;
+  var
+    RunIDVal : qword;
+    Error : word;
+  begin
+    system.val (RunId,RunIdVal,error);
+    if (error<>0) then
+      result:='ErrorTable'
+    else if (RunIdVal <= LastOldTestRun) then
+      result:=OldTestResultsTableName
+    else
+      result:=NewTestResultsTableName;
+  end;
+
+
 Var
   SDetailsURL : string;
 
@@ -1064,7 +1084,7 @@ begin
       ParaGraphStart;
       S:='SELECT T_ID as Id,T_NAME as Filename,TR_SKIP as Skipped'
         +',TR_OK as OK,TR_RESULT as Result'
-        +' FROM TESTRESULTS,TESTS'
+        +' FROM '+TESTRESULTSTableName(FRunID)+',TESTS'
         +' WHERE (TR_TEST_FK=T_ID) AND (TR_TESTRUN_FK='+FRunID+') ';
         
       If FOnlyFailed then
@@ -1225,7 +1245,7 @@ begin
       ParaGraphStart;
       S:='SELECT TR_ID,TR_TESTRUN_FK AS RUN,TR_TEST_FK,TR_OK, TR_SKIP,TR_RESULT '
       //S:='SELECT * '
-        +' FROM TESTRESULTS '
+        +' FROM '+TESTRESULTSTableName(FRunID)
         +' WHERE  (TR_TEST_FK='+FTestFileID+')';
       If FOnlyFailed then
         S:=S+' AND (TR_OK="-")';
