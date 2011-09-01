@@ -54,7 +54,7 @@ Const
 
 {$ifndef FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
 {$define FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
-procedure fpc_pchar_ansistr_intern_charmove(const src: pchar; const srcindex: byte; var dst: ansistring; const dstindex, len: byte); {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fpc_pchar_ansistr_intern_charmove(const src: pchar; const srcindex: sizeint; var dst: ansistring; const dstindex, len: sizeint); {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   move(src[srcindex],pbyte(pointer(dst))[dstindex],len);
 end;
