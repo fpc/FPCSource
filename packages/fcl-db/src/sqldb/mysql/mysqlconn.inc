@@ -78,7 +78,7 @@ Type
     function StrToStatementType(s : string) : TStatementType; override;
     Procedure ConnectToServer; virtual;
     Procedure SelectDatabase; virtual;
-    function MySQLDataType(AType: enum_field_types; ASize, ADecimals: Integer; var NewType: TFieldType; var NewSize: Integer): Boolean;
+    function MySQLDataType(AField: PMYSQL_FIELD; var NewType: TFieldType; var NewSize: Integer): Boolean;
     function MySQLWriteData(AType: enum_field_types;ASize: Integer; AFieldType: TFieldType; Source, Dest: PChar; out CreateBlob : boolean): Boolean;
     // SQLConnection methods
     procedure DoInternalConnect; override;
@@ -539,11 +539,12 @@ begin
     end;
 end;
 
-function TConnectionName.MySQLDataType(AType: enum_field_types; ASize, ADecimals: Integer;
-   var NewType: TFieldType; var NewSize: Integer): Boolean;
+function TConnectionName.MySQLDataType(AField: PMYSQL_FIELD; var NewType: TFieldType; var NewSize: Integer): Boolean;
+var ASize, ADecimals: integer;
 begin
   Result := True;
-  case AType of
+  ASize := AField^.length;
+  case AField^.ftype of
     FIELD_TYPE_LONGLONG:
       begin
       NewType := ftLargeint;
@@ -562,16 +563,19 @@ begin
 {$ifdef mysql50_up}
     FIELD_TYPE_NEWDECIMAL,
 {$endif}
-    FIELD_TYPE_DECIMAL: if ADecimals < 5 then
-                          begin
-                          NewType := ftBCD;
-                          NewSize := ADecimals;
-                          end
-                        else
-                          begin
-                          NewType := ftFloat;
-                          NewSize := 0;
-                          end;
+    FIELD_TYPE_DECIMAL: begin
+			  ADecimals:=AField^.decimals;
+                          if ADecimals < 5 then
+                            begin
+                            NewType := ftBCD;
+                            NewSize := ADecimals;
+                            end
+                          else
+                            begin
+                            NewType := ftFloat;
+                            NewSize := 0;
+                            end;
+                       end;
     FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:
       begin
       NewType := ftFloat;
@@ -609,7 +613,14 @@ begin
       end;
     FIELD_TYPE_BLOB:
       begin
+{$IFDEF MYSQL50_UP}
+      if AField^.charsetnr = 63 then //character set is binary
+        NewType := ftBlob
+      else
+        NewType := ftMemo;
+{$ELSE}
       NewType := ftBlob;
+{$ENDIF}
       NewSize := 0;
       end
   else
@@ -645,7 +656,7 @@ begin
     field := mysql_fetch_field_direct(C.FRES, I);
 //    Writeln('MySQL: creating fielddef ',I+1);
 
-    if MySQLDataType(field^.ftype, field^.length, field^.decimals, DFT, DFS) then
+    if MySQLDataType(field, DFT, DFS) then
       begin
       TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(field^.name), DFT, DFS, False, TF);
       c.MapDSRowToMSQLRow[TF-1] := I;
