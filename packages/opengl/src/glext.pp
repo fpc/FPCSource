@@ -4011,7 +4011,13 @@ var
   glRenderbufferStorageMultisample: procedure(target: GLenum; samples: GLsizei; internalformat: GLenum; width: GLsizei; height: GLsizei); extdecl;
   glFramebufferTextureLayer: procedure(target: GLenum; attachment: GLenum; texture: GLuint; level: GLint; layer: GLint); extdecl;
 
-function Load_GL_ARB_framebuffer_object(): Boolean;
+{ Using LoadAsCore = true means that we will *not* check
+  if the extension is advertised in glGetString(GL_EXTENSIONS) string.
+  This allows to successfully Load_GL_version_3_0 in an OpenGL 3.0
+  forward-compatible context, where the "core extensions" do not have
+  to be mentioned inside glGetString(GL_EXTENSIONS). }
+
+function Load_GL_ARB_framebuffer_object(LoadAsCore: boolean = false): Boolean;
 
 //**** GL_ARB_framebuffer_object DEPRECATED *****//
 const
@@ -4032,7 +4038,7 @@ var
   glMapBufferRange: function(target: GLenum; offset: GLintptr; length: GLsizeiptr; access: GLbitfield): PGLvoid; extdecl;
   glFlushMappedBufferRange: procedure(target: GLenum; offset: GLintptr; length: GLsizeiptr); extdecl;
 
-function Load_GL_ARB_map_buffer_range(): Boolean;
+function Load_GL_ARB_map_buffer_range(LoadAsCore: boolean = false): Boolean;
 
 //**** GL_ARB_vertex_array_object *****//
 const
@@ -4043,7 +4049,7 @@ var
   glGenVertexArrays: procedure(n: GLsizei; arrays: PGLuint); extdecl;
   glIsVertexArray: function(_array: GLuint): GLboolean; extdecl;
 
-function Load_GL_ARB_vertex_array_object(): Boolean;
+function Load_GL_ARB_vertex_array_object(LoadAsCore: boolean = false): Boolean;
 
 //**** GL_ARB_copy_buffer *****//
 const
@@ -4052,7 +4058,7 @@ const
 var
   glCopyBufferSubData: procedure(readTarget: GLenum; writeTarget: GLenum; readOffset: GLintptr; writeOffset: GLintptr; size: GLsizeiptr); extdecl;
 
-function Load_GL_ARB_copy_buffer(): Boolean;
+function Load_GL_ARB_copy_buffer(LoadAsCore: boolean = false): Boolean;
 
 //**** GL_ARB_uniform_buffer_object *****//
 const
@@ -4098,7 +4104,7 @@ var
   glGetActiveUniformBlockName: procedure(_program: GLuint; uniformBlockIndex: GLuint; bufSize: GLsizei; length: PGLsizei; uniformBlockName: PGLchar); extdecl;
   glUniformBlockBinding: procedure(_program: GLuint; uniformBlockIndex: GLuint; uniformBlockBinding: GLuint); extdecl;
 
-function Load_GL_ARB_uniform_buffer_object(): Boolean;
+function Load_GL_ARB_uniform_buffer_object(LoadAsCore: boolean = false): Boolean;
 
 //**** GL_ARB_draw_elements_base_vertex *****//
 var
@@ -4107,7 +4113,7 @@ var
   glDrawElementsInstancedBaseVertex: procedure(mode: GLenum; count: GLsizei; _type: GLenum; const indices: PGLvoid; primcount: GLsizei; basevertex: GLint); extdecl;
   glMultiDrawElementsBaseVertex: procedure(mode: GLenum; const count: PGLsizei; _type: GLenum; const indices: PPGLvoid; primcount: GLsizei; const basevertex: PGLint); extdecl;
 
-function Load_GL_ARB_draw_elements_base_vertex(): Boolean;
+function Load_GL_ARB_draw_elements_base_vertex(LoadAsCore: boolean = false): Boolean;
 
 //**** GL_ARB_provoking_vertex *****//
 const
@@ -4118,7 +4124,7 @@ const
 var
   glProvokingVertex: procedure(mode: GLenum); extdecl;
 
-function Load_GL_ARB_provoking_vertex(): Boolean;
+function Load_GL_ARB_provoking_vertex(LoadAsCore: boolean = false): Boolean;
 
 //**** GL_ARB_sync *****//
 type
@@ -4151,7 +4157,7 @@ var
   glGetInteger64v: procedure(pname: GLenum; params: PGLint64); extdecl;
   glGetSynciv: procedure(sync: GLsync; pname: GLenum; bufSize: GLsizei; length: PGLsizei; values: PGLint); extdecl;
 
-function Load_GL_ARB_sync(): Boolean;
+function Load_GL_ARB_sync(LoadAsCore: boolean = false): Boolean;
 
 //**** GL_ARB_texture_multisample *****//
 const
@@ -4182,7 +4188,7 @@ var
   glGetMultisamplefv: procedure(pname: GLenum; index: GLuint; val: PGLfloat); extdecl;
   glSampleMaski: procedure(index: GLuint; mask: GLbitfield); extdecl;
 
-function Load_GL_ARB_texture_multisample(): Boolean;
+function Load_GL_ARB_texture_multisample(LoadAsCore: boolean = false): Boolean;
 
 //**** GL_ARB_blend_func_extended *****//
 const
@@ -4196,7 +4202,7 @@ var
   glBindFragDataLocationIndexed: procedure(_program: GLuint; colorNumber: GLuint; index: GLuint; const name: PGLchar); extdecl;
   glGetFragDataIndex: function(_program: GLuint; const name: PGLchar): GLint; extdecl;
 
-function Load_GL_ARB_blend_func_extended(): Boolean;
+function Load_GL_ARB_blend_func_extended(LoadAsCore: boolean = false): Boolean;
 
 //**** GL_ARB_sampler_objects *****//
 const
@@ -4217,7 +4223,7 @@ var
   glGetSamplerParameterfv: procedure(sampler: GLuint; pname: GLenum; params: PGLfloat); extdecl;
   glGetSamplerParameterIuiv: procedure(sampler: GLuint; pname: GLenum; params: PGLuint); extdecl;
 
-function Load_GL_ARB_sampler_objects(): Boolean;
+function Load_GL_ARB_sampler_objects(LoadAsCore: boolean = false): Boolean;
 
 //**** GL_ARB_timer_query *****//
 const
@@ -4228,7 +4234,7 @@ var
   glGetQueryObjecti64v: procedure(id: GLuint; pname: GLenum; params: PGLint64); extdecl;
   glGetQueryObjectui64v: procedure(id: GLuint; pname: GLenum; params: PGLuint64); extdecl;
 
-function Load_GL_ARB_timer_query(): Boolean;
+function Load_GL_ARB_timer_query(LoadAsCore: boolean = false): Boolean;
 
 //**** GL_ARB_vertex_type_2_10_10_10_rev *****//
 
@@ -4274,7 +4280,7 @@ var
   glVertexAttribP4ui: procedure(index: GLuint; _type: GLenum; normalized: GLboolean; value: GLuint); extdecl;
   glVertexAttribP4uiv: procedure(index: GLuint; _type: GLenum; normalized: GLboolean; const value: PGLuint); extdecl;
 
-function Load_GL_ARB_vertex_type_2_10_10_10_rev(): Boolean;
+function Load_GL_ARB_vertex_type_2_10_10_10_rev(LoadAsCore: boolean = false): Boolean;
 
 //**** GL_ARB_gpu_shader_fp64 *****//
 // reuse GL_DOUBLE
@@ -4338,7 +4344,7 @@ var
   glProgramUniformMatrix4x2dvEXT: procedure(_program: GLuint; location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
   glProgramUniformMatrix4x3dvEXT: procedure(_program: GLuint; location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
 
-function Load_GL_ARB_gpu_shader_fp64(): Boolean;
+function Load_GL_ARB_gpu_shader_fp64(LoadAsCore: boolean = false): Boolean;
 
 //**** GL_ARB_shader_subroutine *****//
 const
@@ -4362,7 +4368,7 @@ var
   glGetUniformSubroutineuiv: procedure(shadertype: GLenum; location: GLint; params: PGLuint); extdecl;
   glGetProgramStageiv: procedure(_program: GLuint; shadertype: GLenum; pname: GLenum; values: PGLint); extdecl;
 
-function Load_GL_ARB_shader_subroutine(): Boolean;
+function Load_GL_ARB_shader_subroutine(LoadAsCore: boolean = false): Boolean;
 
 //**** GL_ARB_tessellation_shader *****//
 const
@@ -4410,7 +4416,7 @@ var
   glPatchParameteri: procedure(pname: GLenum; value: GLint); extdecl;
   glPatchParameterfv: procedure(pname: GLenum; const values: PGLfloat); extdecl;
 
-function Load_GL_ARB_tessellation_shader(): Boolean;
+function Load_GL_ARB_tessellation_shader(LoadAsCore: boolean = false): Boolean;
 
 //**** GL_ARB_transform_feedback2 *****//
 const
@@ -4427,7 +4433,7 @@ var
   glResumeTransformFeedback: procedure(); extdecl;
   glDrawTransformFeedback: procedure(mode: GLenum; id: GLuint); extdecl;
 
-function Load_GL_ARB_transform_feedback2(): Boolean;
+function Load_GL_ARB_transform_feedback2(LoadAsCore: boolean = false): Boolean;
 
 //**** GL_ARB_transform_feedback3 *****//
 const
@@ -4438,7 +4444,7 @@ var
   glEndQueryIndexed: procedure(target: GLenum; index: GLuint); extdecl;
   glGetQueryIndexediv: procedure(target: GLenum; index: GLuint; pname: GLenum; params: PGLint); extdecl;
 
-function Load_GL_ARB_transform_feedback3(): Boolean;
+function Load_GL_ARB_transform_feedback3(LoadAsCore: boolean = false): Boolean;
 
 
 //***** GL_version_1_4 *****//
@@ -9844,14 +9850,14 @@ begin
 
 end;
 
-function Load_GL_ARB_framebuffer_object(): Boolean;
+function Load_GL_ARB_framebuffer_object(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_framebuffer_object', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_framebuffer_object', extstring) then
   begin
     glIsRenderbuffer := wglGetProcAddress('glIsRenderbuffer');
     if not Assigned(glIsRenderbuffer) then Exit;
@@ -9897,14 +9903,14 @@ begin
   end;
 end;
 
-function Load_GL_ARB_map_buffer_range(): Boolean;
+function Load_GL_ARB_map_buffer_range(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_map_buffer_range', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_map_buffer_range', extstring) then
   begin
     glMapBufferRange := wglGetProcAddress('glMapBufferRange');
     if not Assigned(glMapBufferRange) then Exit;
@@ -9914,14 +9920,14 @@ begin
   end;
 end;
 
-function Load_GL_ARB_vertex_array_object(): Boolean;
+function Load_GL_ARB_vertex_array_object(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_vertex_array_object', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_vertex_array_object', extstring) then
   begin
     glBindVertexArray := wglGetProcAddress('glBindVertexArray');
     if not Assigned(glBindVertexArray) then Exit;
@@ -9935,14 +9941,14 @@ begin
   end;
 end;
 
-function Load_GL_ARB_copy_buffer(): Boolean;
+function Load_GL_ARB_copy_buffer(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_copy_buffer', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_copy_buffer', extstring) then
   begin
     glCopyBufferSubData := wglGetProcAddress('glCopyBufferSubData');
     if not Assigned(glCopyBufferSubData) then Exit;
@@ -9950,14 +9956,14 @@ begin
   end;
 end;
 
-function Load_GL_ARB_uniform_buffer_object(): Boolean;
+function Load_GL_ARB_uniform_buffer_object(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_uniform_buffer_object', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_uniform_buffer_object', extstring) then
   begin
     glGetUniformIndices := wglGetProcAddress('glGetUniformIndices');
     if not Assigned(glGetUniformIndices) then Exit;
@@ -9984,14 +9990,14 @@ begin
   end;
 end;
 
-function Load_GL_ARB_draw_elements_base_vertex(): Boolean;
+function Load_GL_ARB_draw_elements_base_vertex(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_draw_elements_base_vertex', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_draw_elements_base_vertex', extstring) then
   begin
     glDrawElementsBaseVertex := wglGetProcAddress('glDrawElementsBaseVertex');
     if not Assigned(glDrawElementsBaseVertex) then Exit;
@@ -10005,14 +10011,14 @@ begin
   end;
 end;
 
-function Load_GL_ARB_provoking_vertex(): Boolean;
+function Load_GL_ARB_provoking_vertex(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_provoking_vertex', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_provoking_vertex', extstring) then
   begin
     glProvokingVertex := wglGetProcAddress('glProvokingVertex');
     if not Assigned(glProvokingVertex) then Exit;
@@ -10020,14 +10026,14 @@ begin
   end;
 end;
 
-function Load_GL_ARB_sync(): Boolean;
+function Load_GL_ARB_sync(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_sync', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_sync', extstring) then
   begin
     glFenceSync := wglGetProcAddress('glFenceSync');
     if not Assigned(glFenceSync) then Exit;
@@ -10047,14 +10053,14 @@ begin
   end;
 end;
 
-function Load_GL_ARB_texture_multisample(): Boolean;
+function Load_GL_ARB_texture_multisample(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_texture_multisample', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_texture_multisample', extstring) then
   begin
     glTexImage2DMultisample := wglGetProcAddress('glTexImage2DMultisample');
     if not Assigned(glTexImage2DMultisample) then Exit;
@@ -10068,14 +10074,14 @@ begin
   end;
 end;
 
-function Load_GL_ARB_sampler_objects(): Boolean;
+function Load_GL_ARB_sampler_objects(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_sampler_objects', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_sampler_objects', extstring) then
   begin
     glGenSamplers := wglGetProcAddress('glGenSamplers');
     if not Assigned(glGenSamplers) then Exit;
@@ -10109,14 +10115,14 @@ begin
   end;
 end;
 
-function Load_GL_ARB_blend_func_extended(): Boolean;
+function Load_GL_ARB_blend_func_extended(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_blend_func_extended', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_blend_func_extended', extstring) then
   begin
     glBindFragDataLocationIndexed := wglGetProcAddress('glBindFragDataLocationIndexed');
     if not Assigned(glBindFragDataLocationIndexed) then Exit;
@@ -10126,14 +10132,14 @@ begin
   end;
 end;
 
-function Load_GL_ARB_timer_query(): Boolean;
+function Load_GL_ARB_timer_query(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_timer_query', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_timer_query', extstring) then
   begin
     glQueryCounter := wglGetProcAddress('glQueryCounter');
     if not Assigned(glQueryCounter) then Exit;
@@ -10145,14 +10151,14 @@ begin
   end;
 end;
 
-function Load_GL_ARB_vertex_type_2_10_10_10_rev(): Boolean;
+function Load_GL_ARB_vertex_type_2_10_10_10_rev(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_vertex_type_2_10_10_10_rev', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_vertex_type_2_10_10_10_rev', extstring) then
   begin
     glVertexP2ui := wglGetProcAddress('glVertexP2ui');
     if not Assigned(glVertexP2ui) then Exit;
@@ -10234,14 +10240,14 @@ begin
   end;
 end;
 
-function Load_GL_ARB_gpu_shader_fp64(): Boolean;
+function Load_GL_ARB_gpu_shader_fp64(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_gpu_shader_fp64', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_gpu_shader_fp64', extstring) then
   begin
     glUniform1d := wglGetProcAddress('glUniform1d');
     if not Assigned(glUniform1d) then Exit;
@@ -10324,14 +10330,14 @@ begin
   end;
 end;
 
-function Load_GL_ARB_shader_subroutine(): Boolean;
+function Load_GL_ARB_shader_subroutine(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_shader_subroutine', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_shader_subroutine', extstring) then
   begin
     glGetSubroutineUniformLocation := wglGetProcAddress('glGetSubroutineUniformLocation');
     if not Assigned(glGetSubroutineUniformLocation) then Exit;
@@ -10353,14 +10359,14 @@ begin
   end;
 end;
 
-function Load_GL_ARB_tessellation_shader(): Boolean;
+function Load_GL_ARB_tessellation_shader(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_tessellation_shader', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_tessellation_shader', extstring) then
   begin
     glPatchParameteri := wglGetProcAddress('glPatchParameteri');
     if not Assigned(glPatchParameteri) then Exit;
@@ -10370,14 +10376,14 @@ begin
   end;
 end;
 
-function Load_GL_ARB_transform_feedback2(): Boolean;
+function Load_GL_ARB_transform_feedback2(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_transform_feedback2', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_transform_feedback2', extstring) then
   begin
     glBindTransformFeedback := wglGetProcAddress('glBindTransformFeedback');
     if not Assigned(glBindTransformFeedback) then Exit;
@@ -10397,14 +10403,14 @@ begin
   end;
 end;
 
-function Load_GL_ARB_transform_feedback3(): Boolean;
+function Load_GL_ARB_transform_feedback3(LoadAsCore: boolean): Boolean;
 var
   extstring: String;
 begin
   Result := False;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
-  if glext_ExtensionSupported('GL_ARB_transform_feedback3', extstring) then
+  if LoadAsCore or glext_ExtensionSupported('GL_ARB_transform_feedback3', extstring) then
   begin
     glDrawTransformFeedbackStream := wglGetProcAddress('glDrawTransformFeedbackStream');
     if not Assigned(glDrawTransformFeedbackStream) then Exit;
@@ -11113,9 +11119,9 @@ begin
   if not Assigned(glClearBufferfi) then Exit;
   glGetStringi := wglGetProcAddress('glGetStringi');
   if not Assigned(glGetStringi) then Exit;
-  if not Load_GL_ARB_framebuffer_object() then Exit;
-  if not Load_GL_ARB_map_buffer_range() then Exit;
-  if not Load_GL_ARB_vertex_array_object() then Exit;
+  if not Load_GL_ARB_framebuffer_object(true) then Exit;
+  if not Load_GL_ARB_map_buffer_range(true) then Exit;
+  if not Load_GL_ARB_vertex_array_object(true) then Exit;
   Result := Load_GL_VERSION_2_1();
 end;
 
@@ -11130,8 +11136,8 @@ begin
   if not Assigned(glTexBuffer) then Exit;
   glPrimitiveRestartIndex := wglGetProcAddress('glPrimitiveRestartIndex');
   if not Assigned(glPrimitiveRestartIndex) then Exit;
-  if not Load_GL_ARB_copy_buffer() then Exit;
-  if not Load_GL_ARB_uniform_buffer_object() then Exit;
+  if not Load_GL_ARB_copy_buffer(true) then Exit;
+  if not Load_GL_ARB_uniform_buffer_object(true) then Exit;
   Result := Load_GL_VERSION_3_0();
 end;
 
@@ -11146,31 +11152,31 @@ begin
   if not Assigned(glProgramParameteri) then Exit;
   glFramebufferTexture := wglGetProcAddress('glFramebufferTexture');
   if not Assigned(glFramebufferTexture) then Exit;
-  if not Load_GL_ARB_draw_elements_base_vertex() then Exit;
-  if not Load_GL_ARB_provoking_vertex() then Exit;
-  if not Load_GL_ARB_sync() then Exit;
-  if not Load_GL_ARB_texture_multisample() then Exit;
+  if not Load_GL_ARB_draw_elements_base_vertex(true) then Exit;
+  if not Load_GL_ARB_provoking_vertex(true) then Exit;
+  if not Load_GL_ARB_sync(true) then Exit;
+  if not Load_GL_ARB_texture_multisample(true) then Exit;
   Result := Load_GL_VERSION_3_1();
 end;
 
 function Load_GL_VERSION_3_3(): Boolean;
 begin
   Result := False;
-  if not Load_GL_ARB_blend_func_extended() then Exit;
-  if not Load_GL_ARB_sampler_objects() then Exit;
-  if not Load_GL_ARB_timer_query() then Exit;
-  if not Load_GL_ARB_vertex_type_2_10_10_10_rev() then Exit;
+  if not Load_GL_ARB_blend_func_extended(true) then Exit;
+  if not Load_GL_ARB_sampler_objects(true) then Exit;
+  if not Load_GL_ARB_timer_query(true) then Exit;
+  if not Load_GL_ARB_vertex_type_2_10_10_10_rev(true) then Exit;
   Result := Load_GL_VERSION_3_2();
 end;
 
 function Load_GL_VERSION_4_0(): Boolean;
 begin
   Result := False;
-  if not Load_GL_ARB_gpu_shader_fp64() then Exit;
-  if not Load_GL_ARB_shader_subroutine() then Exit;
-  if not Load_GL_ARB_tessellation_shader() then Exit;
-  if not Load_GL_ARB_transform_feedback2() then Exit;
-  if not Load_GL_ARB_transform_feedback3() then Exit;
+  if not Load_GL_ARB_gpu_shader_fp64(true) then Exit;
+  if not Load_GL_ARB_shader_subroutine(true) then Exit;
+  if not Load_GL_ARB_tessellation_shader(true) then Exit;
+  if not Load_GL_ARB_transform_feedback2(true) then Exit;
+  if not Load_GL_ARB_transform_feedback3(true) then Exit;
   Result := Load_GL_VERSION_3_3();
 end;
 
