@@ -917,9 +917,20 @@ implementation
         { symtable must now be static or global }
         if not(st.symtabletype in [staticsymtable,globalsymtable]) then
           internalerror(200204175);
+
+        { The mangled name is made out of at most 4 parts:
+         1) Optional typeprefix given as first parameter
+            with '_$' appended if not empty
+         2) Unit name or 'P$'+program name (never empty)
+         3) optional prefix variable that contains a unique
+            name for the local symbol table (prepended with '$_$'
+            if not empty)
+         4) suffix as given as third parameter,
+            also optional (i.e. can be empty)
+            prepended by '_$$_' if not empty }
         result:='';
         if typeprefix<>'' then
-          result:=result+typeprefix+'_';
+          result:=result+typeprefix+'_$';
         { Add P$ for program, which can have the same name as
           a unit }
         if (TSymtable(main_module.localsymtable)=st) and
@@ -928,9 +939,9 @@ implementation
         else
           result:=result+st.name^;
         if prefix<>'' then
-          result:=result+'_'+prefix;
+          result:=result+'$_$'+prefix;
         if suffix<>'' then
-          result:=result+'_$'+suffix;
+          result:=result+'_$$_'+suffix;
         { the Darwin assembler assumes that all symbols starting with 'L' are local }
         { Further, the Mac OS X 10.5 linker does not consider symbols which do not  }
         { start with '_' as regular symbols (it does not generate N_GSYM entries    }
