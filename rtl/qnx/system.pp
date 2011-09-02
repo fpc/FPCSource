@@ -29,9 +29,9 @@ interface
 {$I heaph.inc}
 
 var
-  argc : longint; public name 'operatingsystem_argc';
-  argv : ppchar;public name 'operatingsystem_argv';
-  envp : ppchar;public name 'operatingsystem_envp';
+  argc : longint; public name 'operatingsystem_parameter_argc';
+  argv : ppchar;public name 'operatingsystem_parameter_argv';
+  envp : ppchar;public name 'operatingsystem_parameter_envp';
   
   
 var

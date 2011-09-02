@@ -3,11 +3,11 @@
      .text
      .globl _mainCRTStartup
 _mainCRTStartup:
-     movb $1,U_SYSTEM_ISCONSOLE
+     movb $1,operatingsystem_isconsole
      jmp .LDLL_Entry
      .globl _WinMainCRTStartup
 _WinMainCRTStartup:
-     movb $0,U_SYSTEM_ISCONSOLE
+     movb $0,operatingsystem_isconsole
 .LDLL_Entry:
      pushl    %ebp
      movl     %esp,%ebp
@@ -17,9 +17,9 @@ _WinMainCRTStartup:
      movl     8(%ebp),%edi
      movl     %edi,SysInstance
      movl     12(%ebp),%edi
-     movl     %edi,U_SYSTEM_DLLREASON
+     movl     %edi,operatingsystem_parameter_dllreason
      movl     16(%ebp),%edi
-     movl     %edi,U_SYSTEM_DLLPARAM
+     movl     %edi,operatingsystem_parameter_dllparam
      movl     %esp,__stkptr
      call     _FPC_DLL_Entry
      popl     %edi
