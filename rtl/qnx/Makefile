@@ -304,6 +304,7 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 POSIXINC=$(RTL)/posix
 SYSCALLINC=$(RTL)/qnx/$(CPU_TARGET)
 UNITPREFIX=rtl
+SYSTEMUNIT=system
 ifdef RELEASE
 ifeq ($(findstring 1.0.2,$(FPC_VERSION)),)
 ifeq ($(findstring 1.0.4,$(FPC_VERSION)),)

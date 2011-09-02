@@ -304,6 +304,7 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 WININC=../win/wininc
 WINDIR=../win
 UNITPREFIX=rtl
+SYSTEMUNIT=system
 ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
 LOADERS=wprt0 wdllprt0 gprt0 wcygprt0
 DLLS=

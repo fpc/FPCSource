@@ -51,6 +51,7 @@ DDKINC=ddk
 NDKINC=ndk
 
 UNITPREFIX=rtl
+SYSTEMUNIT=system
 
 CPU_UNITS=
 

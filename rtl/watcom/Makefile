@@ -302,6 +302,7 @@ RTL=..
 INC=../inc
 PROCINC=../$(CPU_TARGET)
 UNITPREFIX=rtl
+SYSTEMUNIT=system
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif

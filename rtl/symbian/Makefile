@@ -304,6 +304,7 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 SYMBIANINC=./symbianinc
 UIQINC=./uiqinc
 UNITPREFIX=rtl
+SYSTEMUNIT=system
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=system uuchar objpas macpas iso7185 buildrtl

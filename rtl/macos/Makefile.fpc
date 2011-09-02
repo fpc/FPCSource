@@ -39,6 +39,7 @@ PPUEXT=pput
 ASMEXT=.s
 
 UNITPREFIX=rtl
+SYSTEMUNIT=system
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files

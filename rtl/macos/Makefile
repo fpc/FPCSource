@@ -303,6 +303,7 @@ PROCINC=../$(CPU_TARGET)
 PPUEXT=pput
 ASMEXT=.s
 UNITPREFIX=rtl
+SYSTEMUNIT=system
 ifdef RELEASE
 ifeq ($(findstring 1.0.2,$(FPC_VERSION)),)
 ifeq ($(findstring 1.0.4,$(FPC_VERSION)),)
