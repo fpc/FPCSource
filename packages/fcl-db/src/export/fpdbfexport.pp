@@ -42,7 +42,7 @@ Type
     function GetSettings: TDBFExportFormatSettings;
     procedure SetSettings(const AValue: TDBFExportFormatSettings);
   Protected
-    Procedure CheckExportFieldNames; virtual;
+    Procedure CheckExportFieldNames(const MaxFieldNameLength: integer); virtual;
     Function BindFields : Boolean; override;
     Function CreateFormatSettings : TCustomExportFormatSettings; override;
 
@@ -97,7 +97,7 @@ begin
   Inherited FormatSettings.Assign(AValue);
 end;
 
-procedure TFPCustomDBFExport.CheckExportFieldNames;
+procedure TFPCustomDBFExport.CheckExportFieldNames(const MaxFieldNameLength: integer);
 
 Var
   I,J : Integer;
@@ -108,10 +108,10 @@ begin
   For I:=0 to ExportFields.Count-1 do
     begin
     EF:=ExportFields[i];
-    If (Length(EF.ExportedName)>10) then
+    If (Length(EF.ExportedName)>MaxFieldNameLength) then
       begin
-      FN:=Copy(EF.ExportedName,1,10);
-      If ExportFIelds.IndexOfExportedName(FN)<>-1 then
+      FN:=Copy(EF.ExportedName,1,MaxFieldNameLength);
+      If ExportFields.IndexOfExportedName(FN)<>-1 then
         begin
         J:=1;
         Repeat
@@ -133,8 +133,12 @@ Var
   I : Integer;
   
 begin
-  If FormatSettings.AutoRenameFields and (FormatSettings.TableFormat=tfDbaseIII) then
-    CheckExportFieldNames;
+  // DBase III,IV, and FoxPro have a 10 character field length limit.
+  If FormatSettings.AutoRenameFields and (FormatSettings.TableFormat in [tfDbaseIII,tfDbaseIV,tfFoxPro]) then
+    CheckExportFieldNames(10);
+  // DBase VII has a 32 character field length limit.
+  If FormatSettings.AutoRenameFields and (FormatSettings.TableFormat=tfDbaseVII) then
+    CheckExportFieldNames(32);
   Result:=Inherited;
   try
     with FDBF.FieldDefs do
