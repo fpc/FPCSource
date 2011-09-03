@@ -410,16 +410,6 @@ unit cgppc;
       end;
 
 
-    procedure tcgppcgen.a_call_ref(list : TAsmList;ref: treference);
-      var
-        tempreg : TRegister;
-      begin
-        tempreg := getintregister(list, OS_ADDR);
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,tempreg);
-        a_call_reg(list,tempreg);
-      end;
-
-
     procedure tcgppcgen.a_load_reg_ref(list: TAsmList; fromsize, tosize: TCGSize;
       reg: tregister; const ref: treference);
 
