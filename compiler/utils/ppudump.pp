@@ -156,9 +156,15 @@ const
   thus widecharsize seems to always be 2 bytes }
 
   widecharsize : longint = 2;
-type
 
-  tspecialgenerictoken = (ST_LOADSETTINGS,ST_LINE,ST_COLUMN,ST_FILEINDEX);
+{ This type is defined in scanner.pas unit }
+type
+  tspecialgenerictoken = (
+    ST_LOADSETTINGS,
+    ST_LINE,
+    ST_COLUMN,
+    ST_FILEINDEX,
+    ST_LOADMESSAGES);
 
 
 var
@@ -866,6 +872,7 @@ type
     str  : string[30];
   end;
   ptoken=^ttoken;
+  pmsgstate =^tmsgstate;
 const
   defopt : array[1..ord(high(tdefoption))] of tdefopt=(
      (mask:df_unique;         str:'Unique Type'),
@@ -884,12 +891,13 @@ const
   );
 var
   defstates  : tdefstates;
-  i      : longint;
+  i, nb, msgvalue, mesgnb : longint;
   first  : boolean;
   tokenbufsize : longint;
   tokenbuf : pbyte;
   idtoken,
   token : ttoken;
+  state : tmsgstate;
   len : sizeint;
   wstring : widestring;
   astring : ansistring;
@@ -1015,7 +1023,22 @@ begin
                       begin
                         inc(i);
                         write('Settings');
-                        inc(i,sizeof(tsettings));
+                        { This does not load pmessage pointer }
+                        inc(i,sizeof(tsettings)-sizeof(pointer));
+                      end;
+                    ST_LOADMESSAGES:
+                      begin
+                        inc(i);
+                        write('Messages:');
+                        mesgnb:=tokenbuf[i];
+                        inc(i);
+                        for nb:=1 to mesgnb do
+                          begin
+                            msgvalue:=plongint(@tokenbuf[i])^;
+                            inc(i,sizeof(sizeint));
+                            state:=pmsgstate(@tokenbuf[i])^;
+                            inc(i,sizeof(tmsgstate));
+                          end;
                       end;
                     ST_LINE:
                       begin

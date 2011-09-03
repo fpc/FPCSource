@@ -121,7 +121,6 @@ interface
          debugswitches   : tdebugswitches;
          { 0: old behaviour for sets <=256 elements
            >0: round to this size }
-         pmessage : pmessagestaterecord;
          setalloc,
          packenum        : shortint;
 
@@ -144,6 +143,8 @@ interface
 {$if defined(ARM) or defined(AVR)}
         controllertype   : tcontrollertype;
 {$endif defined(ARM) or defined(AVR)}
+         { WARNING: this pointer cannot be written as such in record token }
+         pmessage : pmessagestaterecord;
        end;
 
     const
@@ -361,7 +362,6 @@ interface
         genwpoptimizerswitches : [];
         dowpoptimizerswitches : [];
         debugswitches : [];
-        pmessage : nil;
 
         setalloc : 0;
         packenum : 4;
@@ -433,6 +433,7 @@ interface
 {$if defined(ARM) or defined(AVR)}
         controllertype : ct_none;
 {$endif defined(ARM) or defined(AVR)}
+        pmessage : nil;
       );
 
     var

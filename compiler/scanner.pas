@@ -76,7 +76,12 @@ interface
 
        tcompile_time_predicate = function(var valuedescr: String) : Boolean;
 
-       tspecialgenerictoken = (ST_LOADSETTINGS,ST_LINE,ST_COLUMN,ST_FILEINDEX);
+       tspecialgenerictoken =
+         (ST_LOADSETTINGS,
+          ST_LINE,
+          ST_COLUMN,
+          ST_FILEINDEX,
+          ST_LOADMESSAGES);
 
        { tscannerfile }
 
@@ -115,7 +120,7 @@ interface
 
           { last settings we stored }
           last_settings : tsettings;
-
+          last_message : pmessagestaterecord;
           { last filepos we stored }
           last_filepos,
           { if nexttoken<>NOTOKEN, then nexttokenpos holds its filepos }
@@ -2049,6 +2054,7 @@ In case not, the value returned can be arbitrary.
           internalerror(200511173);
         recordtokenbuf:=buf;
         fillchar(last_settings,sizeof(last_settings),0);
+        last_message:=nil;
         fillchar(last_filepos,sizeof(last_filepos),0);
       end;
 
@@ -2080,7 +2086,8 @@ In case not, the value returned can be arbitrary.
         t : ttoken;
         s : tspecialgenerictoken;
         len : sizeint;
-        b : byte;
+        b,msgnb : byte;
+        pmsg : pmessagestaterecord;
       begin
         if not assigned(recordtokenbuf) then
           internalerror(200511176);
@@ -2092,8 +2099,37 @@ In case not, the value returned can be arbitrary.
             s:=ST_LOADSETTINGS;
             writetoken(t);
             recordtokenbuf.write(s,1);
-            recordtokenbuf.write(current_settings,sizeof(current_settings));
+            recordtokenbuf.write(current_settings,
+              sizeof(current_settings)-sizeof(pointer));
             last_settings:=current_settings;
+          end;
+
+        if current_settings.pmessage<>last_message then
+          begin
+            { use a special token to record it }
+            s:=ST_LOADMESSAGES;
+            writetoken(t);
+            recordtokenbuf.write(s,1);
+            msgnb:=0;
+            pmsg:=current_settings.pmessage;
+            while assigned(pmsg) do
+              begin
+                if msgnb=255 then
+                  { Too many messages }
+                  internalerror(2011090401);
+                inc(msgnb);
+                pmsg:=pmsg^.next;
+              end;
+            recordtokenbuf.write(msgnb,1);
+            pmsg:=current_settings.pmessage;
+            while assigned(pmsg) do
+              begin
+                { What about endianess here? }
+                recordtokenbuf.write(pmsg^.value,sizeof(longint));
+                recordtokenbuf.write(pmsg^.state,sizeof(tmsgstate));
+                pmsg:=pmsg^.next;
+              end;
+            last_message:=current_settings.pmessage;
           end;
 
         { file pos changes? }
@@ -2207,6 +2243,8 @@ In case not, the value returned can be arbitrary.
       var
         wlen : sizeint;
         specialtoken : tspecialgenerictoken;
+        i,mesgnb : byte;
+        pmsg,prevmsg : pmessagestaterecord;
       begin
         if not assigned(replaytokenbuf) then
           internalerror(200511177);
@@ -2282,7 +2320,30 @@ In case not, the value returned can be arbitrary.
                 else
                   case specialtoken of
                     ST_LOADSETTINGS:
-                      replaytokenbuf.read(current_settings,sizeof(current_settings));
+                      replaytokenbuf.read(current_settings,
+                        sizeof(current_settings)-sizeof(pointer));
+                    ST_LOADMESSAGES:
+                      begin
+                        current_settings.pmessage:=nil;
+                        replaytokenbuf.read(mesgnb,sizeof(mesgnb));
+                        if mesgnb>0 then
+                          Comment(V_Error,'Message recordind not yet supported');
+                        for i:=1 to mesgnb do
+                          begin
+                            new(pmsg);
+                            if i=1 then
+                              begin
+                                current_settings.pmessage:=pmsg;
+                                prevmsg:=nil;
+                              end
+                            else
+                              prevmsg^.next:=pmsg;
+                            replaytokenbuf.read(pmsg^.value,sizeof(longint));
+                            replaytokenbuf.read(pmsg^.state,sizeof(tmsgstate));
+                            pmsg^.next:=nil;
+                            prevmsg:=pmsg;
+                          end;
+                      end;
                     ST_LINE:
                       begin
                         replaytokenbuf.read(current_tokenpos.line,sizeof(current_tokenpos.line));
