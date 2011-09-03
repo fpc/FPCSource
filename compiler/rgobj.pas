@@ -1678,18 +1678,28 @@ unit rgobj;
                   end;
               ait_varloc:
                 begin
-                  if cs_asm_source in current_settings.globalswitches then
+                  if (getregtype(tai_varloc(p).newlocation)=regtype) then
                     begin
-                      setsupreg(tai_varloc(p).newlocation,reginfo[getsupreg(tai_varloc(p).newlocation)].colour);
-                      hp:=Tai_comment.Create(strpnew('Var '+tai_varloc(p).varsym.realname+' located in register '+
-                        std_regname(tai_varloc(p).newlocation)));
-                      list.insertafter(hp,p);
+                      if (cs_asm_source in current_settings.globalswitches) then
+                        begin
+                          setsupreg(tai_varloc(p).newlocation,reginfo[getsupreg(tai_varloc(p).newlocation)].colour);
+                          if tai_varloc(p).newlocationhi<>NR_NO then
+                            begin
+                              setsupreg(tai_varloc(p).newlocationhi,reginfo[getsupreg(tai_varloc(p).newlocationhi)].colour);
+                                hp:=Tai_comment.Create(strpnew('Var '+tai_varloc(p).varsym.realname+' located in register '+
+                                  std_regname(tai_varloc(p).newlocationhi)+':'+std_regname(tai_varloc(p).newlocation)));
+                            end
+                          else
+                            hp:=Tai_comment.Create(strpnew('Var '+tai_varloc(p).varsym.realname+' located in register '+
+                              std_regname(tai_varloc(p).newlocation)));
+                          list.insertafter(hp,p);
+                        end;
+                      q:=tai(p.next);
+                      list.remove(p);
+                      p.free;
+                      p:=q;
+                      continue;
                     end;
-                  q:=tai(p.next);
-                  list.remove(p);
-                  p.free;
-                  p:=q;
-                  continue;
                 end;
 
               ait_instruction:

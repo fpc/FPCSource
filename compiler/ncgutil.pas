@@ -2942,19 +2942,22 @@ implementation
               internalerror(2006090920);
           end;
 
-        if assigned(rr.sym) then
-          list.concat(tai_varloc.create(rr.sym,rr.new));
-
         { now that we've change the loadn/temp, also change the node result location }
       {$ifndef cpu64bitalu}
         if (n.location.size in [OS_64,OS_S64]) then
           begin
             n.location.register64.reglo := rr.new;
             n.location.register64.reghi := rr.newhi;
+            if assigned(rr.sym) then
+              list.concat(tai_varloc.create64(rr.sym,rr.new,rr.newhi));
           end
         else
       {$endif not cpu64bitalu}
-          n.location.register := rr.new;
+          begin
+            n.location.register := rr.new;
+            if assigned(rr.sym) then
+              list.concat(tai_varloc.create(rr.sym,rr.new));
+          end;
       end;
 
 
