@@ -650,9 +650,11 @@ interface
         tai_align_class = class of tai_align_abstract;
 
         tai_varloc = class(tai)
-           newlocation : tregister;
+           newlocation,
+           newlocationhi : tregister;
            varsym : tsym;
            constructor create(sym : tsym;loc : tregister);
+           constructor create64(sym : tsym;loc,lochi : tregister);
            constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
            procedure ppuwrite(ppufile:tcompilerppufile);override;
            procedure buildderefimpl;override;
@@ -776,6 +778,17 @@ implementation
         inherited Create;
         typ:=ait_varloc;
         newlocation:=loc;
+        newlocationhi:=NR_NO;
+        varsym:=sym;
+      end;
+
+
+    constructor tai_varloc.create64(sym: tsym; loc: tregister;lochi : tregister);
+      begin
+        inherited Create;
+        typ:=ait_varloc;
+        newlocation:=loc;
+        newlocationhi:=lochi;
         varsym:=sym;
       end;
 
