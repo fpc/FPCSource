@@ -487,7 +487,6 @@ compiler/sparc/cpupi.pas svneol=native#text/plain
 compiler/sparc/cputarg.pas svneol=native#text/plain
 compiler/sparc/itcpugas.pas svneol=native#text/plain
 compiler/sparc/ncpuadd.pas svneol=native#text/plain
-compiler/sparc/ncpucall.pas svneol=native#text/plain
 compiler/sparc/ncpucnv.pas svneol=native#text/plain
 compiler/sparc/ncpuinln.pas svneol=native#text/plain
 compiler/sparc/ncpumat.pas svneol=native#text/plain
