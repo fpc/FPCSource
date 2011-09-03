@@ -1087,12 +1087,12 @@ const   faReadOnly      =  1;
         faDirectory     = 16;
         faArchive       = 32;
 
-        ilStandard      =  1;
-        ilQueryEASize   =  2;
+        ilStandard      =  1; (* Use TFileStatus3/TFindFileBuf3 *)
+        ilQueryEASize   =  2; (* Use TFileStatus4/TFindFileBuf4 *)
         ilQueryEAs      =  3;
         ilQueryFullName =  5;
-        ilStandardL     = 11;
-        ilQueryEASizeL  = 12;
+        ilStandardL     = 11; (* Use TFileStatus3L/TFindFileBuf3L *)
+        ilQueryEASizeL  = 12; (* Use TFileStatus4L/TFindFileBuf4L *)
         ilQueryEAsL     = 13;
 
         FIL_Standard    = ilStandard;
@@ -1137,6 +1137,25 @@ type
             cbList:cardinal;            {Length of entire EA set.}
         end;
         PFileStatus4=^TFileStatus4;
+
+        TFileStatus3L = object (TFileStatus)
+            DateCreation,               {Date of file creation.}
+            TimeCreation,               {Time of file creation.}
+            DateLastAccess,             {Date of last access to file.}
+            TimeLastAccess,             {Time of last access to file.}
+            DateLastWrite,              {Date of last modification of file.}
+            TimeLastWrite:word;         {Time of last modification of file.}
+            FileSize,                   {Size of file.}
+            FileAlloc:int64;         {Amount of space the file really
+                                         occupies on disk.}
+            AttrFile:cardinal;          {Attributes of file.}
+        end;
+        PFileStatus3L=^TFileStatus3L;
+
+        TFileStatus4L=object(TFileStatus3L)
+            cbList:cardinal;            {Length of entire EA set.}
+        end;
+        PFileStatus4L=^TFileStatus4L;
 
         TFileFindBuf3=object(TFileStatus)
             NextEntryOffset: cardinal;  {Offset of next entry}
