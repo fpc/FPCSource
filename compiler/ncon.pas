@@ -342,7 +342,7 @@ implementation
 
     constructor tdataconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       var
-        len : aint;
+        len : tcgint;
         buf : array[0..255] of byte;
       begin
         inherited ppuload(t,ppufile);
@@ -378,7 +378,7 @@ implementation
 
     procedure tdataconstnode.ppuwrite(ppufile:tcompilerppufile);
       var
-        len : aint;
+        len : tcgint;
         buf : array[0..255] of byte;
       begin
         inherited ppuwrite(ppufile);
@@ -406,7 +406,7 @@ implementation
     function tdataconstnode.dogetcopy : tnode;
       var
         n : tdataconstnode;
-        len : aint;
+        len : tcgint;
         buf : array[0..255] of byte;
       begin
         n:=tdataconstnode(inherited dogetcopy);

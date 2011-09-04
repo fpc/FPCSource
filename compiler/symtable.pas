@@ -1149,7 +1149,7 @@ implementation
         i : integer;
         varalignrecord,varalign,
         storesize,storealign : aint;
-        bitsize: aint;
+        bitsize: tcgint;
       begin
         storesize:=_datasize;
         storealign:=fieldalignment;
@@ -1471,7 +1471,7 @@ implementation
         if assigned(hsym) then
           begin
             if hsym.typ=symconst.namespacesym then
-              begin                
+              begin
                 case sym.typ of
                   symconst.namespacesym:;
                   symconst.unitsym:
@@ -1486,7 +1486,7 @@ implementation
             else
             { In delphi (contrary to TP) you can have a symbol with the same name as the
               unit, the unit can then not be accessed anymore using
-              <unit>.<id>, so we can hide the symbol. 
+              <unit>.<id>, so we can hide the symbol.
               Do the same if we add a namespace and there is a unit with the same name }
             if (hsym.typ=symconst.unitsym) and
                ((m_delphi in current_settings.modeswitches) or (sym.typ=symconst.namespacesym)) then
