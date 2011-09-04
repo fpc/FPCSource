@@ -314,6 +314,7 @@ Type
     function Add(AnObject: TJSONObject): Integer;
     Procedure Delete(Index : Integer);
     procedure Exchange(Index1, Index2: Integer);
+    procedure Insert(Index: Integer);
     procedure Insert(Index: Integer; Item : TJSONData);
     procedure Insert(Index: Integer; I : Integer);
     procedure Insert(Index: Integer; I : Int64);
@@ -1539,6 +1540,11 @@ end;
 procedure TJSONArray.Exchange(Index1, Index2: Integer);
 begin
   FList.Exchange(Index1, Index2);
+end;
+
+procedure TJSONArray.Insert(Index: Integer);
+begin
+  Insert(Index,TJSONNull.Create);
 end;
 
 procedure TJSONArray.Insert(Index: Integer; Item: TJSONData);
