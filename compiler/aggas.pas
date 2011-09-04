@@ -94,9 +94,6 @@ interface
        end;
 
 
-     function ReplaceForbiddenChars(const s: string): string;
-
-
 implementation
 
     uses
@@ -200,17 +197,6 @@ implementation
         #9'.sleb128'#9,#9'.uleb128'#9,
         #9'.rva'#9,#9'.secrel32'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9
       );
-
-    function ReplaceForbiddenChars(const s: string): string;
-      var
-      i : longint;
-      begin
-        Result:=s;
-        for i:=1 to Length(Result) do
-          if Result[i]='$' then
-            Result[i]:='s';
-      end;
-
 
 {****************************************************************************}
 {                          GNU Assembler writer                              }

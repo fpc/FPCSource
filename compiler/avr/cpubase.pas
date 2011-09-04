@@ -315,6 +315,8 @@ unit cpubase;
 
     function GetOffsetReg(const r : TRegister;ofs : shortint) : TRegister;
 
+    function ReplaceForbiddenChars(const s: string): string;
+
   implementation
 
     uses
@@ -456,6 +458,17 @@ unit cpubase;
     function GetOffsetReg(const r: TRegister;ofs : shortint): TRegister;
       begin
         result:=TRegister(longint(r)+ofs);
+      end;
+
+
+    function ReplaceForbiddenChars(const s: string): string;
+      var
+      i : longint;
+      begin
+        Result:=s;
+        for i:=1 to Length(Result) do
+          if Result[i]='$' then
+            Result[i]:='s';
       end;
 
 end.
