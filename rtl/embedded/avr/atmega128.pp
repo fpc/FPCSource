@@ -8,7 +8,6 @@ unit atmega128;
 {$macro on}
 
   interface
-    type
     const
       _SFR_OFFSET = $20; //indirect addressing
     var
@@ -66,7 +65,6 @@ unit atmega128;
       TCNT1   : word absolute $2C+_SFR_OFFSET;
       TCNT1L  : byte absolute $2C+_SFR_OFFSET;
       TCNT1H  : byte absolute $2D+_SFR_OFFSET;
-      TCCR1B  : byte absolute $2E+_SFR_OFFSET;
       TCCR1A  : byte absolute $2F+_SFR_OFFSET;
       TCCR1B  : byte absolute $2E+_SFR_OFFSET;
       ASSR    : byte absolute $30+_SFR_OFFSET;
@@ -522,6 +520,12 @@ unit atmega128;
         jmp .Lhalt
       end;
 
+    procedure Default_IRQ_handler; assembler; nostackframe; public name '_Default_IRQ_handler';
+      asm
+      .Lloop:
+        jmp .Lloop
+      end;
+
     var
       _data: record end; external name '_data';
       _edata: record end; external name '_edata';
@@ -530,47 +534,41 @@ unit atmega128;
       _bss_end: record end; external name '_bss_end';
       _stack_top: record end; external name '_stack_top';
 
-      Int00Handler,
-      Int01Handler,
-      Int02Handler,
-      Int03Handler,
-      Int04Handler,
-      Int05Handler,
-      Int06Handler,
-      Int07Handler,
-      Int08Handler,
-      Int09Handler,
-      Int10Handler,
-      Int11Handler,
-      Int12Handler,
-      Int13Handler,
-      Int14Handler,
-      Int15Handler,
-      Int16Handler,
-      Int17Handler,
-      Int18Handler,
-      Int19Handler,
-      Int20Handler,
-      Int21Handler,
-      Int22Handler,
-      Int23Handler,
-      Int24Handler,
-      Int25Handler,
-      Int26Handler,
-      Int27Handler,
-      Int28Handler,
-      Int29Handler,
-      Int30Handler,
-      Int31Handler,
-      Int32Handler,
-      Int33Handler,
-      Int34Handler : Pointer = Default_IRQ_handler;
-
-    procedure Default_IRQ_handler; assembler; nostackframe; public name '_Default_IRQ_handler';
-      asm
-      .Lloop:
-        b .Lloop
-      end;
+      Int00Handler : Pointer = @Default_IRQ_handler;
+      Int01Handler : Pointer = @Default_IRQ_handler;
+      Int02Handler : Pointer = @Default_IRQ_handler;
+      Int03Handler : Pointer = @Default_IRQ_handler;
+      Int04Handler : Pointer = @Default_IRQ_handler;
+      Int05Handler : Pointer = @Default_IRQ_handler;
+      Int06Handler : Pointer = @Default_IRQ_handler;
+      Int07Handler : Pointer = @Default_IRQ_handler;
+      Int08Handler : Pointer = @Default_IRQ_handler;
+      Int09Handler : Pointer = @Default_IRQ_handler;
+      Int10Handler : Pointer = @Default_IRQ_handler;
+      Int11Handler : Pointer = @Default_IRQ_handler;
+      Int12Handler : Pointer = @Default_IRQ_handler;
+      Int13Handler : Pointer = @Default_IRQ_handler;
+      Int14Handler : Pointer = @Default_IRQ_handler;
+      Int15Handler : Pointer = @Default_IRQ_handler;
+      Int16Handler : Pointer = @Default_IRQ_handler;
+      Int17Handler : Pointer = @Default_IRQ_handler;
+      Int18Handler : Pointer = @Default_IRQ_handler;
+      Int19Handler : Pointer = @Default_IRQ_handler;
+      Int20Handler : Pointer = @Default_IRQ_handler;
+      Int21Handler : Pointer = @Default_IRQ_handler;
+      Int22Handler : Pointer = @Default_IRQ_handler;
+      Int23Handler : Pointer = @Default_IRQ_handler;
+      Int24Handler : Pointer = @Default_IRQ_handler;
+      Int25Handler : Pointer = @Default_IRQ_handler;
+      Int26Handler : Pointer = @Default_IRQ_handler;
+      Int27Handler : Pointer = @Default_IRQ_handler;
+      Int28Handler : Pointer = @Default_IRQ_handler;
+      Int29Handler : Pointer = @Default_IRQ_handler;
+      Int30Handler : Pointer = @Default_IRQ_handler;
+      Int31Handler : Pointer = @Default_IRQ_handler;
+      Int32Handler : Pointer = @Default_IRQ_handler;
+      Int33Handler : Pointer = @Default_IRQ_handler;
+      Int34Handler : Pointer = @Default_IRQ_handler;
 
     procedure _FPC_start; assembler; nostackframe;
       label
@@ -580,41 +578,41 @@ unit atmega128;
         .globl _start
 //        .org 0x00
         rjmp _start
-        rjump Int00Handler
-        rjump Int01Handler
-        rjump Int02Handler
-        rjump Int03Handler
-        rjump Int04Handler
-        rjump Int05Handler
-        rjump Int06Handler
-        rjump Int07Handler
-        rjump Int08Handler
-        rjump Int09Handler
-        rjump Int10Handler
-        rjump Int11Handler
-        rjump Int12Handler
-        rjump Int13Handler
-        rjump Int14Handler
-        rjump Int15Handler
-        rjump Int16Handler
-        rjump Int17Handler
-        rjump Int18Handler
-        rjump Int19Handler
-        rjump Int20Handler
-        rjump Int21Handler
-        rjump Int22Handler
-        rjump Int23Handler
-        rjump Int24Handler
-        rjump Int25Handler
-        rjump Int26Handler
-        rjump Int27Handler
-        rjump Int28Handler
-        rjump Int29Handler
-        rjump Int30Handler
-        rjump Int31Handler
-        rjump Int32Handler
-        rjump Int33Handler
-        rjump Int34Handler
+        rjmp Int00Handler
+        rjmp Int01Handler
+        rjmp Int02Handler
+        rjmp Int03Handler
+        rjmp Int04Handler
+        rjmp Int05Handler
+        rjmp Int06Handler
+        rjmp Int07Handler
+        rjmp Int08Handler
+        rjmp Int09Handler
+        rjmp Int10Handler
+        rjmp Int11Handler
+        rjmp Int12Handler
+        rjmp Int13Handler
+        rjmp Int14Handler
+        rjmp Int15Handler
+        rjmp Int16Handler
+        rjmp Int17Handler
+        rjmp Int18Handler
+        rjmp Int19Handler
+        rjmp Int20Handler
+        rjmp Int21Handler
+        rjmp Int22Handler
+        rjmp Int23Handler
+        rjmp Int24Handler
+        rjmp Int25Handler
+        rjmp Int26Handler
+        rjmp Int27Handler
+        rjmp Int28Handler
+        rjmp Int29Handler
+        rjmp Int30Handler
+        rjmp Int31Handler
+        rjmp Int32Handler
+        rjmp Int33Handler
+        rjmp Int34Handler
         {
           all ATMEL MCUs use the same startup code, the details are
           governed by defines
