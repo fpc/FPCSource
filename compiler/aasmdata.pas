@@ -155,6 +155,7 @@ interface
         AsmLists      : array[TAsmListType] of TAsmList;
         CurrAsmList   : TAsmList;
         WideInits     : TLinkedList;
+        ResStrInits   : TLinkedList;
         { hash tables for reusing constant storage }
         ConstPools    : array[TConstPoolType] of THashSet;
         constructor create(const n:string);
@@ -180,8 +181,8 @@ interface
       TTCInitItem = class(TLinkedListItem)
         sym: tsym;
         offset: aint;
-        datalabel: TAsmLabel;
-        constructor Create(asym: tsym; aoffset: aint; alabel: TAsmLabel);
+        datalabel: TAsmSymbol;
+        constructor Create(asym: tsym; aoffset: aint; alabel: TAsmSymbol);
       end;
 
     var
@@ -256,7 +257,7 @@ implementation
 *****************************************************************************}
 
 
-    constructor TTCInitItem.Create(asym: tsym; aoffset: aint; alabel: TAsmLabel);
+    constructor TTCInitItem.Create(asym: tsym; aoffset: aint; alabel: TAsmSymbol);
       begin
         inherited Create;
         sym:=asym;
@@ -334,6 +335,7 @@ implementation
         for hal:=low(TAsmListType) to high(TAsmListType) do
           AsmLists[hal]:=TAsmList.create;
         WideInits :=TLinkedList.create;
+        ResStrInits:=TLinkedList.create;
         { CFI }
         FAsmCFI:=CAsmCFI.Create;
       end;
@@ -365,6 +367,7 @@ implementation
 {$ifdef MEMDEBUG}
          memasmlists.start;
 {$endif}
+        ResStrInits.free;
         WideInits.free;
          for hal:=low(TAsmListType) to high(TAsmListType) do
            AsmLists[hal].free;

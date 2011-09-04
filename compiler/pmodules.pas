@@ -230,15 +230,15 @@ implementation
          ltvTable.Free;
       end;
 
-    procedure InsertWideInits;
+    procedure InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:cardinal);
       var
         s: string;
         item: TTCInitItem;
       begin
-        item:=TTCInitItem(current_asmdata.WideInits.First);
+        item:=TTCInitItem(list.First);
         if item=nil then
           exit;
-        s:=make_mangledname('WIDEINITS',current_module.localsymtable,'');
+        s:=make_mangledname(prefix,current_module.localsymtable,'');
         maybe_new_object_file(current_asmdata.asmlists[al_globals]);
         new_section(current_asmdata.asmlists[al_globals],sec_data,s,sizeof(pint));
         current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0));
@@ -256,44 +256,63 @@ implementation
         { end-of-list marker }
         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
         current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(s));
-        current_module.flags:=current_module.flags or uf_wideinits;
+        current_module.flags:=current_module.flags or unitflag;
       end;
 
-    procedure InsertWideInitsTablesTable;
+    procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:cardinal);
       var
         hp: tused_unit;
-        lwiTables: TAsmList;
+        hlist: TAsmList;
         count: longint;
       begin
-        lwiTables:=TAsmList.Create;
+        hlist:=TAsmList.Create;
         count:=0;
         hp:=tused_unit(usedunits.first);
         while assigned(hp) do
          begin
-           if (hp.u.flags and uf_wideinits)=uf_wideinits then
+           if (hp.u.flags and unitflag)=unitflag then
             begin
-              lwiTables.concat(Tai_const.Createname(make_mangledname('WIDEINITS',hp.u.globalsymtable,''),0));
+              hlist.concat(Tai_const.Createname(make_mangledname(prefix,hp.u.globalsymtable,''),0));
               inc(count);
             end;
            hp:=tused_unit(hp.next);
          end;
-        { Add program widestring consts, if any }
-        if (current_module.flags and uf_wideinits)=uf_wideinits then
+        { Add items from program, if any }
+        if (current_module.flags and unitflag)=unitflag then
          begin
-           lwiTables.concat(Tai_const.Createname(make_mangledname('WIDEINITS',current_module.localsymtable,''),0));
+           hlist.concat(Tai_const.Createname(make_mangledname(prefix,current_module.localsymtable,''),0));
            inc(count);
          end;
         { Insert TableCount at start }
-        lwiTables.insert(Tai_const.Create_32bit(count));
+        hlist.insert(Tai_const.Create_32bit(count));
         { insert in data segment }
         maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-        new_section(current_asmdata.asmlists[al_globals],sec_data,'FPC_WIDEINITTABLES',sizeof(pint));
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('FPC_WIDEINITTABLES',AT_DATA,0));
-        current_asmdata.asmlists[al_globals].concatlist(lwiTables);
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('FPC_WIDEINITTABLES'));
-        lwiTables.free;
+        new_section(current_asmdata.asmlists[al_globals],sec_data,tablename,sizeof(pint));
+        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(tablename,AT_DATA,0));
+        current_asmdata.asmlists[al_globals].concatlist(hlist);
+        current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(tablename));
+        hlist.free;
       end;
 
+    procedure InsertWideInits;
+      begin
+        InsertRuntimeInits('WIDEINITS',current_asmdata.WideInits,uf_wideinits);
+      end;
+
+    procedure InsertResStrInits;
+      begin
+        InsertRuntimeInits('RESSTRINITS',current_asmdata.ResStrInits,uf_resstrinits);
+      end;
+
+    procedure InsertWideInitsTablesTable;
+      begin
+        InsertRuntimeInitsTablesTable('WIDEINITS','FPC_WIDEINITTABLES',uf_wideinits);
+      end;
+
+    procedure InsertResStrTablesTable;
+      begin
+        InsertRuntimeInitsTablesTable('RESSTRINITS','FPC_RESSTRINITTABLES',uf_resstrinits);
+      end;
 
     Function CheckResourcesUsed : boolean;
     var
@@ -1387,6 +1406,9 @@ implementation
          { Widestring typed constants }
          InsertWideInits;
 
+         { Resourcestring references }
+         InsertResStrInits;
+
          { generate debuginfo }
          if (cs_debuginfo in current_settings.moduleswitches) then
            current_debuginfo.inserttypeinfo;
@@ -2395,11 +2417,15 @@ implementation
          { Windows widestring needing initialization }
          InsertWideInits;
 
+         { Resourcestring references (const foo:string=someresourcestring) }
+         InsertResStrInits;
+
          { insert Tables and StackLength }
          InsertInitFinalTable;
          InsertThreadvarTablesTable;
          InsertResourceTablesTable;
          InsertWideInitsTablesTable;
+         InsertResStrTablesTable;
          InsertMemorySizes;
 
 {$ifdef FPC_HAS_SYSTEMS_INTERRUPT_TABLE}

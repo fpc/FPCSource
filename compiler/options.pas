@@ -2488,6 +2488,7 @@ begin
   def_system_macro('FPC_HAS_RIP_RELATIVE');
 {$endif x86_64}
   def_system_macro('FPC_HAS_CEXTENDED');
+  def_system_macro('FPC_HAS_RESSTRINITS');
 
 { these cpus have an inline rol/ror implementaion }
 {$if defined(x86) or defined(arm) or defined(powerpc) or defined(powerpc64)}

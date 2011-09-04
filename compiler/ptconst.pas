@@ -656,6 +656,7 @@ implementation
           ll        : tasmlabel;
           ca        : pchar;
           winlike   : boolean;
+          hsym      : tconstsym;
         begin
           n:=comp_expr(true,false);
           { load strval and strlength of the constant tree }
@@ -691,8 +692,21 @@ implementation
             end
           else if is_constresourcestringnode(n) then
             begin
-              strval:=pchar(tconstsym(tloadnode(n).symtableentry).value.valueptr);
-              strlength:=tconstsym(tloadnode(n).symtableentry).value.len;
+              hsym:=tconstsym(tloadnode(n).symtableentry);
+              strval:=pchar(hsym.value.valueptr);
+              strlength:=hsym.value.len;
+              { Link the string constant to its initializing resourcestring,
+                enabling it to be (re)translated at runtime.
+              }
+              if (hr.origsym.owner.symtablelevel<=main_program_level) or
+                 (hr.origblock=bt_const) then
+                begin
+                  current_asmdata.ResStrInits.Concat(
+                    TTCInitItem.Create(hr.origsym,hr.offset,
+                    current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',hsym.owner,hsym.name)))
+                  );
+                  Include(hr.origsym.varoptions,vo_force_finalize);
+                end;
             end
           else
             begin

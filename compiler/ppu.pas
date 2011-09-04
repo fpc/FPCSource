@@ -160,6 +160,7 @@ const
   uf_has_dwarf_debuginfo = $200000; { this unit has dwarf debuginfo generated }
   uf_wideinits           = $400000; { this unit has winlike widestring typed constants }
   uf_classinits          = $800000; { this unit has class constructors/destructors }
+  uf_resstrinits        = $1000000; { this unit has string consts referencing resourcestrings }
 
 type
   { bestreal is defined based on the target architecture }

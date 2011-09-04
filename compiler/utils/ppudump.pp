@@ -270,7 +270,7 @@ type
     str  : string[30];
   end;
 const
-  flagopts=23;
+  flagopts=24;
   flagopt : array[1..flagopts] of tflagopt=(
     (mask: $1    ;str:'init'),
     (mask: $2    ;str:'final'),
@@ -296,7 +296,8 @@ const
     (mask: $80000  ;str:'has_resourcefiles'),
     (mask: $100000  ;str:'has_exports'),
     (mask: $400000  ;str:'has_wideinits'),
-    (mask: $800000  ;str:'has_classinits')
+    (mask: $800000  ;str:'has_classinits'),
+    (mask: $1000000 ;str:'has_resstrinits')
   );
 var
   i,ntflags : longint;
