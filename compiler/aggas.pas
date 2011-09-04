@@ -704,7 +704,11 @@ implementation
            ait_section :
              begin
                if tai_section(hp).sectype<>sec_none then
+{$ifdef avr}
+                 WriteSection(tai_section(hp).sectype,ReplaceForbiddenChars(tai_section(hp).name^),tai_section(hp).secorder)
+{$else avr}
                  WriteSection(tai_section(hp).sectype,tai_section(hp).name^,tai_section(hp).secorder)
+{$endif avr}
                else
                  begin
 {$ifdef EXTDEBUG}
@@ -756,7 +760,11 @@ implementation
                        if tai_datablock(hp).is_global then
                          begin
                            asmwrite(#9'.comm'#9);
+{$ifdef avr}
+                           asmwrite(ReplaceForbiddenChars(tai_datablock(hp).sym.name));
+{$else avr}
                            asmwrite(tai_datablock(hp).sym.name);
+{$endif avr}
                            asmwrite(','+tostr(tai_datablock(hp).size));
                            asmwrite(','+tostr(last_align));
                            asmln;
@@ -764,7 +772,11 @@ implementation
                        else
                          begin
                            asmwrite(#9'.lcomm'#9);
+{$ifdef avr}
+                           asmwrite(ReplaceForbiddenChars(tai_datablock(hp).sym.name));
+{$else avr}
                            asmwrite(tai_datablock(hp).sym.name);
+{$endif avr}
                            asmwrite(','+tostr(tai_datablock(hp).size));
                            asmwrite(','+tostr(last_align));
                            asmln;
@@ -776,17 +788,30 @@ implementation
                        if Tai_datablock(hp).is_global then
                          begin
                            asmwrite(#9'.globl ');
+{$ifdef avr}
+                           asmwriteln(ReplaceForbiddenChars(Tai_datablock(hp).sym.name));
+{$else avr}
                            asmwriteln(Tai_datablock(hp).sym.name);
+{$endif avr}
                          end;
                        if (target_info.system <> system_arm_linux) then
                          sepChar := '@'
                        else
                          sepChar := '%';
                        if (tf_needs_symbol_type in target_info.flags) then
+{$ifdef avr}
+                       if (tf_needs_symbol_type in target_info.flags) then
+                         asmwriteln(#9'.type '+ReplaceForbiddenChars(Tai_datablock(hp).sym.name)+','+sepChar+'object');
+                       if (tf_needs_symbol_size in target_info.flags) and (tai_datablock(hp).size > 0) then
+                          asmwriteln(#9'.size '+ReplaceForbiddenChars(Tai_datablock(hp).sym.name)+','+tostr(Tai_datablock(hp).size));
+                       asmwrite(ReplaceForbiddenChars(Tai_datablock(hp).sym.name));
+{$else avr}
+                       if (tf_needs_symbol_type in target_info.flags) then
                          asmwriteln(#9'.type '+Tai_datablock(hp).sym.name+','+sepChar+'object');
                        if (tf_needs_symbol_size in target_info.flags) and (tai_datablock(hp).size > 0) then
                          asmwriteln(#9'.size '+Tai_datablock(hp).sym.name+','+tostr(Tai_datablock(hp).size));
                        asmwrite(Tai_datablock(hp).sym.name);
+{$endif avr}
                        asmwriteln(':');
                        asmwriteln(#9'.zero '+tostr(Tai_datablock(hp).size));
                      end;
