@@ -488,8 +488,11 @@ var
 var cmdline:Pchar=nil;
 {$endif}
 
-
+{$ifdef FPC_HAS_FEATURE_THREADING}
 ThreadVar
+{$else FPC_HAS_FEATURE_THREADING}
+Var
+{$endif FPC_HAS_FEATURE_THREADING}
   ThreadID    : TThreadID;
   { Standard In- and Output }
   ErrOutput,
