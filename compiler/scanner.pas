@@ -171,6 +171,8 @@ interface
           procedure stoprecordtokens;
           procedure replaytoken;
           procedure startreplaytokens(buf:tdynamicarray);
+          procedure writesizeint(val : sizeint);
+          function  readsizeint : sizeint;
           procedure readchar;
           procedure readstring;
           procedure readnumber;
@@ -248,6 +250,25 @@ implementation
       symbase,symtable,symtype,symsym,symconst,symdef,defutil,
       fmodule;
 
+   const
+   { Same valus as in ppu unit, but
+   their only goal here is to set change_endian constant }
+
+     uf_big_endian          = $000004;
+     uf_little_endian       = $001000;
+   {$ifdef FPC_BIG_ENDIAN}
+       target_flags = uf_little_endian;
+   {$else not FPC_BIG_ENDIAN}
+       target_flags = uf_big_endian;
+   {$endif not FPC_BIG_ENDIAN}
+   {$IFDEF ENDIAN_LITTLE}
+       source_flags = uf_little_endian;
+   {$ELSE}
+       source_flags = uf_big_endian;
+   {$ENDIF}
+     { Change_endian must be use to store recordtokenbuf in
+       target endian order }
+       change_endian = (source_flags<>target_flags);
     var
       { dictionaries with the supported directives }
       turbo_scannerdirectives : TFPHashObjectList;     { for other modes }
@@ -2080,13 +2101,30 @@ In case not, the value returned can be arbitrary.
         recordtokenbuf.write(b,1);
       end;
 
+    procedure tscannerfile.writesizeint(val : sizeint);
+      begin
+        if change_endian then
+          val:=swapendian(val);
+        recordtokenbuf.write(val,sizeof(sizeint));
+      end;
+
+    function tscannerfile.readsizeint : sizeint;
+      var
+        val : sizeint;
+      begin
+        replaytokenbuf.read(val,sizeof(sizeint));
+        if change_endian then
+          val:=swapendian(val);
+        result:=val;
+      end;
 
     procedure tscannerfile.recordtoken;
       var
         t : ttoken;
         s : tspecialgenerictoken;
-        len : sizeint;
-        b,msgnb : byte;
+        len,val,msgnb : sizeint;
+        copy_size : longint;
+        b : byte;
         pmsg : pmessagestaterecord;
       begin
         if not assigned(recordtokenbuf) then
@@ -2099,8 +2137,9 @@ In case not, the value returned can be arbitrary.
             s:=ST_LOADSETTINGS;
             writetoken(t);
             recordtokenbuf.write(s,1);
-            recordtokenbuf.write(current_settings,
-              sizeof(current_settings)-sizeof(pointer));
+            copy_size:=sizeof(current_settings)-sizeof(pointer);
+            recordtokenbuf.write(copy_size,sizeof(longint));
+            recordtokenbuf.write(current_settings,copy_size);
             last_settings:=current_settings;
           end;
 
@@ -2114,19 +2153,21 @@ In case not, the value returned can be arbitrary.
             pmsg:=current_settings.pmessage;
             while assigned(pmsg) do
               begin
-                if msgnb=255 then
+                if msgnb=high(sizeint) then
                   { Too many messages }
                   internalerror(2011090401);
                 inc(msgnb);
                 pmsg:=pmsg^.next;
               end;
-            recordtokenbuf.write(msgnb,1);
+            writesizeint(msgnb);
             pmsg:=current_settings.pmessage;
             while assigned(pmsg) do
               begin
                 { What about endianess here? }
-                recordtokenbuf.write(pmsg^.value,sizeof(longint));
-                recordtokenbuf.write(pmsg^.state,sizeof(tmsgstate));
+                val:=pmsg^.value;
+                writesizeint(val);
+                val:=ord(pmsg^.state);
+                writesizeint(val);
                 pmsg:=pmsg^.next;
               end;
             last_message:=current_settings.pmessage;
@@ -2174,13 +2215,13 @@ In case not, the value returned can be arbitrary.
           _CWCHAR,
           _CWSTRING :
             begin
-              recordtokenbuf.write(patternw^.len,sizeof(sizeint));
+              writesizeint(patternw^.len);
               recordtokenbuf.write(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
             end;
           _CSTRING:
             begin
               len:=length(cstringpattern);
-              recordtokenbuf.write(len,sizeof(sizeint));
+              writesizeint(len);
               recordtokenbuf.write(cstringpattern[1],length(cstringpattern));
             end;
           _CCHAR,
@@ -2241,9 +2282,9 @@ In case not, the value returned can be arbitrary.
 
     procedure tscannerfile.replaytoken;
       var
-        wlen : sizeint;
+        wlen,mesgnb : sizeint;
         specialtoken : tspecialgenerictoken;
-        i,mesgnb : byte;
+        i : byte;
         pmsg,prevmsg : pmessagestaterecord;
       begin
         if not assigned(replaytokenbuf) then
@@ -2274,7 +2315,7 @@ In case not, the value returned can be arbitrary.
             _CWCHAR,
             _CWSTRING :
               begin
-                replaytokenbuf.read(wlen,sizeof(SizeInt));
+                wlen:=readsizeint;
                 setlengthwidestring(patternw,wlen);
                 replaytokenbuf.read(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
                 orgpattern:='';
@@ -2283,7 +2324,7 @@ In case not, the value returned can be arbitrary.
               end;
             _CSTRING:
               begin
-                replaytokenbuf.read(wlen,sizeof(sizeint));
+                wlen:=readsizeint;
                 setlength(cstringpattern,wlen);
                 replaytokenbuf.read(cstringpattern[1],wlen);
                 orgpattern:='';
@@ -2325,7 +2366,7 @@ In case not, the value returned can be arbitrary.
                     ST_LOADMESSAGES:
                       begin
                         current_settings.pmessage:=nil;
-                        replaytokenbuf.read(mesgnb,sizeof(mesgnb));
+                        mesgnb:=readsizeint;
                         if mesgnb>0 then
                           Comment(V_Error,'Message recordind not yet supported');
                         for i:=1 to mesgnb do

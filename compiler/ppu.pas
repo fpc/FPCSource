@@ -26,7 +26,7 @@ unit ppu;
 interface
 
   uses
-    globtype,constexp,cstreams;
+    systems,globtype,constexp,cstreams;
 
 { Also write the ppu if only crc if done, this can be used with ppudump to
   see the differences between the intf and implementation }
@@ -161,6 +161,46 @@ const
   uf_wideinits           = $400000; { this unit has winlike widestring typed constants }
   uf_classinits          = $800000; { this unit has class constructors/destructors }
   uf_resstrinits        = $1000000; { this unit has string consts referencing resourcestrings }
+
+{$ifdef generic_cpu}
+{ We need to use the correct size of aint and pint for
+  the target CPU }
+const
+  CpuAddrBitSize : array[tsystemcpu] of longint =
+    (
+    {  0 } 32 {'none'},
+    {  1 } 32 {'i386'},
+    {  2 } 32 {'m68k'},
+    {  3 } 32 {'alpha'},
+    {  4 } 32 {'powerpc'},
+    {  5 } 32 {'sparc'},
+    {  6 } 32 {'vis'},
+    {  7 } 64 {'ia64'},
+    {  8 } 64 {'x86_64'},
+    {  9 } 32 {'mips'},
+    { 10 } 32 {'arm'},
+    { 11 } 64 {'powerpc64'},
+    { 12 } 16 {'avr'},
+    { 13 } 32 {'mipsel'}
+    );
+  CpuAluBitSize : array[tsystemcpu] of longint =
+    (
+    {  0 } 32 {'none'},
+    {  1 } 32 {'i386'},
+    {  2 } 32 {'m68k'},
+    {  3 } 32 {'alpha'},
+    {  4 } 32 {'powerpc'},
+    {  5 } 32 {'sparc'},
+    {  6 } 32 {'vis'},
+    {  7 } 64 {'ia64'},
+    {  8 } 64 {'x86_64'},
+    {  9 } 32 {'mips'},
+    { 10 } 32 {'arm'},
+    { 11 } 64 {'powerpc64'},
+    { 12 }  8 {'avr'},
+    { 13 } 32 {'mipsel'}
+    );
+{$endif generic_cpu}
 
 type
   { bestreal is defined based on the target architecture }
@@ -302,52 +342,11 @@ type
 implementation
 
   uses
-    systems,
 {$ifdef Test_Double_checksum}
     comphook,
 {$endif def Test_Double_checksum}
     fpccrc,
     cutils;
-
-{$ifdef generic_cpu}
-{ We need to use the correct size of aint and pint for
-  the target CPU }
-const
-  CpuAddrBitSize : array[tsystemcpu] of longint =
-    (
-    {  0 } 32 {'none'},
-    {  1 } 32 {'i386'},
-    {  2 } 32 {'m68k'},
-    {  3 } 32 {'alpha'},
-    {  4 } 32 {'powerpc'},
-    {  5 } 32 {'sparc'},
-    {  6 } 32 {'vis'},
-    {  7 } 64 {'ia64'},
-    {  8 } 64 {'x86_64'},
-    {  9 } 32 {'mips'},
-    { 10 } 32 {'arm'},
-    { 11 } 64 {'powerpc64'},
-    { 12 } 16 {'avr'},
-    { 13 } 32 {'mipsel'}
-    );
-  CpuAluBitSize : array[tsystemcpu] of longint =
-    (
-    {  0 } 32 {'none'},
-    {  1 } 32 {'i386'},
-    {  2 } 32 {'m68k'},
-    {  3 } 32 {'alpha'},
-    {  4 } 32 {'powerpc'},
-    {  5 } 32 {'sparc'},
-    {  6 } 32 {'vis'},
-    {  7 } 64 {'ia64'},
-    {  8 } 64 {'x86_64'},
-    {  9 } 32 {'mips'},
-    { 10 } 32 {'arm'},
-    { 11 } 64 {'powerpc64'},
-    { 12 }  8 {'avr'},
-    { 13 } 32 {'mipsel'}
-    );
-{$endif generic_cpu}
 
 
 

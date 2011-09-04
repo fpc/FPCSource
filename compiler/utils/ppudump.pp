@@ -31,6 +31,7 @@ uses
   constexp,
   symconst,
   ppu,
+  systems,
   globals,
   globtype,
   widestr,
@@ -51,7 +52,7 @@ const
 //  v_browser        = $20;
   v_all            = $ff;
 
-{$i systems.inc }
+{ not needed anymore $i systems.inc }
 
 { List of all supported cpus }
 const
@@ -156,6 +157,7 @@ const
   thus widecharsize seems to always be 2 bytes }
 
   widecharsize : longint = 2;
+  cpu : tsystemcpu = cpu_no;
 
 { This type is defined in scanner.pas unit }
 type
@@ -217,7 +219,10 @@ end;
 Function Cpu2Str(w:longint):string;
 begin
   if w<=ord(high(tsystemcpu)) then
-    Cpu2Str:=CpuTxt[tsystemcpu(w)]
+    begin
+      cpu:=tsystemcpu(w);
+      Cpu2Str:=CpuTxt[cpu];
+    end
   else
     Cpu2Str:=Unknown('cpu',w);
 end;
@@ -894,11 +899,12 @@ var
   defstates  : tdefstates;
   i, nb, msgvalue, mesgnb : longint;
   first  : boolean;
-  tokenbufsize : longint;
+  copy_size, min_size, tokenbufsize : longint;
   tokenbuf : pbyte;
   idtoken,
   token : ttoken;
   state : tmsgstate;
+  new_settings : Tsettings;
   len : sizeint;
   wstring : widestring;
   astring : ansistring;
@@ -918,6 +924,38 @@ var
       else
         result:=ttoken(b);
     end;
+
+  function gettokenbufsizeint : int64;
+  var
+    var64 : int64;
+    var32 : longint;
+    var16 : smallint;
+
+  begin
+    if CpuAddrBitSize[cpu]=64 then
+      begin
+        var64:=pint64(@tokenbuf[i])^;
+        inc(i,sizeof(int64));
+        result:=var64;
+      end
+    else if CpuAddrBitSize[cpu]=32 then
+      begin
+        var32:=plongint(@tokenbuf[i])^;
+        inc(i,sizeof(longint));
+        result:=var32;
+      end
+    else if CpuAddrBitSize[cpu]=16 then
+      begin
+        var16:=psmallint(@tokenbuf[i])^;
+        inc(i,sizeof(smallint));
+        result:=var32;
+      end
+    else
+      begin
+        WriteError('Wrong CpuAddrBitSize');
+        result:=0;
+      end;
+  end;
 
 begin
   writeln(space,'** Definition Id ',ppufile.getlongint,' **');
@@ -971,15 +1009,21 @@ begin
           token:=readtoken;
           if token<>_GENERICSPECIALTOKEN then
             begin
-              write(arraytokeninfo[token].str);
+              if token <= high(ttoken) then
+                write(arraytokeninfo[token].str)
+              else
+                begin
+                  HasMoreInfos;
+                  write('Error in Token List');
+                  break;
+                end;
               idtoken:=readtoken;
             end;
           case token of
             _CWCHAR,
             _CWSTRING :
               begin
-                len:=psizeint(@tokenbuf[i])^;
-                inc(i,sizeof(sizeint));
+                len:=gettokenbufsizeint;
                 setlength(wstring,len);
                 move(tokenbuf[i],wstring[1],len*2);
                 write(' ',wstring);
@@ -987,8 +1031,7 @@ begin
               end;
             _CSTRING:
               begin
-                len:=psizeint(@tokenbuf[i])^;
-                inc(i,sizeof(sizeint));
+                len:=gettokenbufsizeint;
                 setlength(astring,len);
                 move(tokenbuf[i],astring[1],len);
                 write(' ',astring);
@@ -1025,7 +1068,16 @@ begin
                         inc(i);
                         write('Settings');
                         { This does not load pmessage pointer }
-                        inc(i,sizeof(tsettings)-sizeof(pointer));
+                        new_settings.pmessage:=nil;
+                        { TSettings size depends in target...
+                          We first read the size of the copied part }
+                        copy_size:=gettokenbufsizeint;
+                        if copy_size < sizeof(tsettings)-sizeof(pointer) then
+                          min_size:=copy_size
+                        else
+                          min_size:= sizeof(tsettings)-sizeof(pointer);
+                        move(tokenbuf[i],new_settings, min_size);
+                        inc(i,copy_size);
                       end;
                     ST_LOADMESSAGES:
                       begin
@@ -1035,10 +1087,9 @@ begin
                         inc(i);
                         for nb:=1 to mesgnb do
                           begin
-                            msgvalue:=plongint(@tokenbuf[i])^;
+                            msgvalue:=gettokenbufsizeint;
                             inc(i,sizeof(sizeint));
-                            state:=pmsgstate(@tokenbuf[i])^;
-                            inc(i,sizeof(tmsgstate));
+                            state:=tmsgstate(gettokenbufsizeint);
                           end;
                       end;
                     ST_LINE:
@@ -1528,6 +1579,8 @@ begin
              readcommonsym('Type symbol ');
              write(space,'  Result Type : ');
              readderef('');
+             write(space,' Pretty Name : ');
+             Write(getansistring);
            end;
 
          ibprocsym :
