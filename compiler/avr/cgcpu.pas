@@ -1610,7 +1610,7 @@ unit cgcpu;
       begin
         ai1:=Taicpu.Op_sym(A_BRxx,l);
         ai1.is_jmp:=true;
-        l:=nil;
+        hl:=nil;
         case cond of
           OC_EQ:
             ai1.SetCondition(C_EQ);
