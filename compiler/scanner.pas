@@ -250,25 +250,6 @@ implementation
       symbase,symtable,symtype,symsym,symconst,symdef,defutil,
       fmodule;
 
-   const
-   { Same valus as in ppu unit, but
-   their only goal here is to set change_endian constant }
-
-     uf_big_endian          = $000004;
-     uf_little_endian       = $001000;
-   {$ifdef FPC_BIG_ENDIAN}
-       target_flags = uf_little_endian;
-   {$else not FPC_BIG_ENDIAN}
-       target_flags = uf_big_endian;
-   {$endif not FPC_BIG_ENDIAN}
-   {$IFDEF ENDIAN_LITTLE}
-       source_flags = uf_little_endian;
-   {$ELSE}
-       source_flags = uf_big_endian;
-   {$ENDIF}
-     { Change_endian must be use to store recordtokenbuf in
-       target endian order }
-       change_endian = (source_flags<>target_flags);
     var
       { dictionaries with the supported directives }
       turbo_scannerdirectives : TFPHashObjectList;     { for other modes }
@@ -283,7 +264,6 @@ implementation
       { use any special name that is an invalid file name to avoid problems }
       preprocstring : array [preproctyp] of string[7]
         = ('$IFDEF','$IFNDEF','$IF','$IFOPT','$ELSE','$ELSEIF');
-
 
     function is_keyword(const s:string):boolean;
       var
@@ -2103,7 +2083,7 @@ In case not, the value returned can be arbitrary.
 
     procedure tscannerfile.writesizeint(val : sizeint);
       begin
-        if change_endian then
+        if target_info.endian <> source_info.endian then
           val:=swapendian(val);
         recordtokenbuf.write(val,sizeof(sizeint));
       end;
@@ -2113,7 +2093,7 @@ In case not, the value returned can be arbitrary.
         val : sizeint;
       begin
         replaytokenbuf.read(val,sizeof(sizeint));
-        if change_endian then
+        if target_info.endian <> source_info.endian then
           val:=swapendian(val);
         result:=val;
       end;
@@ -2122,8 +2102,7 @@ In case not, the value returned can be arbitrary.
       var
         t : ttoken;
         s : tspecialgenerictoken;
-        len,val,msgnb : sizeint;
-        copy_size : longint;
+        len,val,msgnb,copy_size : sizeint;
         b : byte;
         pmsg : pmessagestaterecord;
       begin
@@ -2138,7 +2117,7 @@ In case not, the value returned can be arbitrary.
             writetoken(t);
             recordtokenbuf.write(s,1);
             copy_size:=sizeof(current_settings)-sizeof(pointer);
-            recordtokenbuf.write(copy_size,sizeof(longint));
+            writesizeint(copy_size);
             recordtokenbuf.write(current_settings,copy_size);
             last_settings:=current_settings;
           end;
@@ -2282,7 +2261,7 @@ In case not, the value returned can be arbitrary.
 
     procedure tscannerfile.replaytoken;
       var
-        wlen,mesgnb : sizeint;
+        wlen,mesgnb,copy_size : sizeint;
         specialtoken : tspecialgenerictoken;
         i : byte;
         pmsg,prevmsg : pmessagestaterecord;
@@ -2361,8 +2340,12 @@ In case not, the value returned can be arbitrary.
                 else
                   case specialtoken of
                     ST_LOADSETTINGS:
-                      replaytokenbuf.read(current_settings,
-                        sizeof(current_settings)-sizeof(pointer));
+                      begin
+                        copy_size:=readsizeint;
+                        if copy_size <> sizeof(current_settings)-sizeof(pointer) then
+                          internalerror(2011090501);
+                        replaytokenbuf.read(current_settings,copy_size);
+                      end;
                     ST_LOADMESSAGES:
                       begin
                         current_settings.pmessage:=nil;
@@ -4545,6 +4528,5 @@ exit_label:
         mac_scannerdirectives.Free;
         DoneWideString(patternw);
       end;
-
 
 end.

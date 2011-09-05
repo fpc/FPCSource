@@ -936,19 +936,25 @@ var
       begin
         var64:=pint64(@tokenbuf[i])^;
         inc(i,sizeof(int64));
+        if ppufile.change_endian then
+          var64:=swapendian(var64);
         result:=var64;
       end
     else if CpuAddrBitSize[cpu]=32 then
       begin
         var32:=plongint(@tokenbuf[i])^;
         inc(i,sizeof(longint));
+        if ppufile.change_endian then
+          var32:=swapendian(var32);
         result:=var32;
       end
     else if CpuAddrBitSize[cpu]=16 then
       begin
         var16:=psmallint(@tokenbuf[i])^;
         inc(i,sizeof(smallint));
-        result:=var32;
+        if ppufile.change_endian then
+          var16:=swapendian(var16);
+        result:=var16;
       end
     else
       begin

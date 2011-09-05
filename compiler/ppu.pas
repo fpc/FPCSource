@@ -247,7 +247,6 @@ type
     crc_test2  : pcrc_array;
   private
 {$endif def Test_Double_checksum}
-    change_endian : boolean;
     buf      : pchar;
     bufstart,
     bufsize,
@@ -263,6 +262,7 @@ type
     entrytyp : byte;
     header           : tppuheader;
     size             : integer;
+    change_endian    : boolean; { Used in ppudump util }
     { crc for the entire unit }
     crc,
     { crc for the interface definitions in this unit }
