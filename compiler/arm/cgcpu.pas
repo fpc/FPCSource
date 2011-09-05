@@ -510,14 +510,21 @@ unit cgcpu;
 
 
     procedure tcgarm.a_call_name(list : TAsmList;const s : string; weak: boolean);
+      var
+        branchopcode: tasmop;
       begin
+        { check not really correct: should only be used for non-Thumb cpus }
+        if (current_settings.cputype<cpu_armv5) then
+          branchopcode:=A_BL
+        else
+          branchopcode:=A_BLX;
         if target_info.system<>system_arm_darwin then
           if not weak then
-            list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)))
+            list.concat(taicpu.op_sym(branchopcode,current_asmdata.RefAsmSymbol(s)))
           else
-            list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s)))
+            list.concat(taicpu.op_sym(branchopcode,current_asmdata.WeakRefAsmSymbol(s)))
         else
-          list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s,weak)));
+          list.concat(taicpu.op_sym(branchopcode,get_darwin_call_stub(s,weak)));
 {
         the compiler does not properly set this flag anymore in pass 1, and
         for now we only need it after pass 2 (I hope) (JM)

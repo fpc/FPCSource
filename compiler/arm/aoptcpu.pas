@@ -51,7 +51,11 @@ Implementation
 
   function CanBeCond(p : tai) : boolean;
     begin
-      result:=(p.typ=ait_instruction) and (taicpu(p).condition=C_None);
+      result:=
+        (p.typ=ait_instruction) and
+        (taicpu(p).condition=C_None) and
+        ((taicpu(p).opcode<>A_BLX) or
+         (taicpu(p).oper[0]^.typ=top_reg));
     end;
 
 
