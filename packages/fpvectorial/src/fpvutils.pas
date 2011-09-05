@@ -12,6 +12,7 @@ AUTHORS: Felipe Monteiro de Carvalho
 unit fpvutils;
 
 {.$define USE_LCL_CANVAS}
+{.$define FPVECTORIAL_BEZIERTOPOINTS_DEBUG}
 
 {$ifdef fpc}
   {$mode delphi}
@@ -28,6 +29,7 @@ uses
 
 type
   T10Strings = array[0..9] of shortstring;
+  TPointsArray = array of TPoint;
 
 // Color Conversion routines
 function FPColorToRGBHexString(AColor: TFPColor): string;
@@ -42,6 +44,8 @@ function SeparateString(AString: string; ASeparator: char): T10Strings;
 // Mathematical routines
 procedure EllipticalArcToBezier(Xc, Yc, Rx, Ry, startAngle, endAngle: Double; var P1, P2, P3, P4: T3DPoint);
 procedure CircularArcToBezier(Xc, Yc, R, startAngle, endAngle: Double; var P1, P2, P3, P4: T3DPoint);
+procedure AddBezierToPoints(P1, P2, P3, P4: T3DPoint; var Points: TPointsArray);
+procedure ConvertPathToPoints(APath: TPath; ADestX, ADestY: Integer; AMulX, AMulY: Double; var Points: TPointsArray);
 // LCL-related routines
 {$ifdef USE_LCL_CANVAS}
 function ConvertPathToRegion(APath: TPath; ADestX, ADestY: Integer; AMulX, AMulY: Double): HRGN;
@@ -186,20 +190,53 @@ begin
   EllipticalArcToBezier(Xc, Yc, R, R, startAngle, endAngle, P1, P2, P3, P4);
 end;
 
-{$ifdef USE_LCL_CANVAS}
-function ConvertPathToRegion(APath: TPath; ADestX, ADestY: Integer; AMulX, AMulY: Double): HRGN;
+{ This routine converts a Bezier to a Polygon and adds the points of this poligon
+  to the end of the provided Points output variables }
+procedure AddBezierToPoints(P1, P2, P3, P4: T3DPoint; var Points: TPointsArray);
 var
-  i: Integer;
-  WindingMode: Integer;
-  Points: array of TPoint;
+  CurveLength, k, CurX, CurY, LastPoint: Integer;
+  t: Double;
+begin
+  {$ifdef FPVECTORIAL_BEZIERTOPOINTS_DEBUG}
+  Write(Format('[AddBezierToPoints] P1=%f,%f P2=%f,%f P3=%f,%f P4=%f,%f =>', [P1.X, P1.Y, P2.X, P2.Y, P3.X, P3.Y, P4.X, P4.Y]));
+  {$endif}
+
+  CurveLength :=
+    Round(sqrt(sqr(P2.X - P1.X) + sqr(P2.Y - P1.Y))) +
+    Round(sqrt(sqr(P3.X - P2.X) + sqr(P3.Y - P2.Y))) +
+    Round(sqrt(sqr(P4.X - P4.X) + sqr(P4.Y - P3.Y)));
+
+  LastPoint := Length(Points)-1;
+  SetLength(Points, Length(Points)+CurveLength);
+  for k := 1 to CurveLength do
+  begin
+    t := k / CurveLength;
+    CurX := Round(sqr(1 - t) * (1 - t) * P1.X + 3 * t * sqr(1 - t) * P2.X + 3 * t * t * (1 - t) * P3.X + t * t * t * P4.X);
+    CurY := Round(sqr(1 - t) * (1 - t) * P1.Y + 3 * t * sqr(1 - t) * P2.Y + 3 * t * t * (1 - t) * P3.Y + t * t * t * P4.Y);
+    Points[LastPoint+k].X := CurX;
+    Points[LastPoint+k].Y := CurY;
+    {$ifdef FPVECTORIAL_BEZIERTOPOINTS_DEBUG}
+    Write(Format(' P=%d,%d', [CurX, CurY]));
+    {$endif}
+  end;
+  {$ifdef FPVECTORIAL_BEZIERTOPOINTS_DEBUG}
+  WriteLn(Format(' CurveLength=%d', [CurveLength]));
+  {$endif}
+end;
+
+procedure ConvertPathToPoints(APath: TPath; ADestX, ADestY: Integer; AMulX, AMulY: Double; var Points: TPointsArray);
+var
+  i, LastPoint: Integer;
   CoordX, CoordY: Integer;
+  CoordX2, CoordY2, CoordX3, CoordY3, CoordX4, CoordY4: Integer;
   // Segments
   CurSegment: TPathSegment;
   Cur2DSegment: T2DSegment absolute CurSegment;
+  Cur2DBSegment: T2DBezierSegment absolute CurSegment;
 begin
   APath.PrepareForSequentialReading;
 
-  SetLength(Points, APath.Len);
+  SetLength(Points, 0);
 
   for i := 0 to APath.Len - 1 do
   begin
@@ -208,14 +245,49 @@ begin
     CoordX := CoordToCanvasX(Cur2DSegment.X, ADestX, AMulX);
     CoordY := CoordToCanvasY(Cur2DSegment.Y, ADestY, AMulY);
 
-    Points[i].X := CoordX;
-    Points[i].Y := CoordY;
+    case CurSegment.SegmentType of
+    st2DBezier, st3DBezier:
+    begin
+      LastPoint := Length(Points)-1;
+      CoordX4 := CoordX;
+      CoordY4 := CoordY;
+      CoordX := Points[LastPoint].X;
+      CoordY := Points[LastPoint].Y;
+      CoordX2 := CoordToCanvasX(Cur2DBSegment.X2, ADestX, AMulX);
+      CoordY2 := CoordToCanvasY(Cur2DBSegment.Y2, ADestY, AMulY);
+      CoordX3 := CoordToCanvasX(Cur2DBSegment.X3, ADestX, AMulX);
+      CoordY3 := CoordToCanvasY(Cur2DBSegment.Y3, ADestY, AMulY);
+      AddBezierToPoints(
+        Make2DPoint(CoordX, CoordY),
+        Make2DPoint(CoordX2, CoordY2),
+        Make2DPoint(CoordX3, CoordY3),
+        Make2DPoint(CoordX4, CoordY4),
+        Points);
+    end;
+    else
+      LastPoint := Length(Points);
+      SetLength(Points, Length(Points)+1);
+      Points[LastPoint].X := CoordX;
+      Points[LastPoint].Y := CoordY;
+    end;
   end;
+end;
+
+{$ifdef USE_LCL_CANVAS}
+function ConvertPathToRegion(APath: TPath; ADestX, ADestY: Integer; AMulX, AMulY: Double): HRGN;
+var
+  WindingMode: Integer;
+  Points: array of TPoint;
+begin
+  APath.PrepareForSequentialReading;
+
+  SetLength(Points, 0);
+  ConvertPathToPoints(APath, ADestX, ADestY, AMulX, AMulY, Points);
 
   if APath.ClipMode = vcmEvenOddRule then WindingMode := LCLType.ALTERNATE
   else WindingMode := LCLType.WINDING;
 
-  Result := LCLIntf.CreatePolygonRgn(@Points[0], APath.Len, WindingMode);
+  Result := LCLIntf.CreatePolygonRgn(@Points[0], Length(Points), WindingMode);
 end;
 {$endif}
 
