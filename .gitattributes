@@ -11723,6 +11723,7 @@ tests/webtbs/tw1909.pp svneol=native#text/plain
 tests/webtbs/tw1910.pp svneol=native#text/plain
 tests/webtbs/tw1915.pp svneol=native#text/plain
 tests/webtbs/tw1917.pp svneol=native#text/plain
+tests/webtbs/tw19182.pp svneol=native#text/plain
 tests/webtbs/tw1920.pp svneol=native#text/plain
 tests/webtbs/tw19201.pp svneol=native#text/pascal
 tests/webtbs/tw1923.pp svneol=native#text/plain
