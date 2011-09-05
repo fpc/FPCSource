@@ -35,6 +35,7 @@ interface
   type
     tscannerstate = record
       old_scanner: tscannerfile;
+      old_filepos: tfileposinfo;
       old_token: ttoken;
       old_c: char;
       old_orgpattern: string;
@@ -136,6 +137,7 @@ implementation
          (token=_CWSTRING) then
         internalerror(2011032201);
       sstate.old_scanner:=current_scanner;
+      sstate.old_filepos:=current_filepos;
       sstate.old_token:=token;
       sstate.old_c:=c;
       sstate.old_orgpattern:=orgpattern;
@@ -158,6 +160,7 @@ implementation
         begin
           current_scanner.free;
           current_scanner:=sstate.old_scanner;
+          current_filepos:=sstate.old_filepos;
           token:=sstate.old_token;
           current_settings.modeswitches:=sstate.old_modeswitches;
           c:=sstate.old_c;
@@ -220,7 +223,7 @@ implementation
       parse_only:=false;
       result:=false;
       { inject the string in the scanner }
-      str:=str+'end;';
+      str:=str+'const;';
       current_scanner.substitutemacro('meth_impl_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index);
       current_scanner.readtoken(false);
       { and parse it... }
