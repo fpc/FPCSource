@@ -57,8 +57,9 @@ interface
 implementation
 
     uses
-      systems,globals,
+      systems,globals,procinfo,
       cutils,verbose,constexp,
+      aasmbase,
       symconst,symtype,symtable,symsym,symdef,defutil,jvmdef,
       htypechk,paramgr,
       nadd,ncal,ncnv,ncon,nld,pass_1,njvmcon,
@@ -341,8 +342,10 @@ implementation
 
     procedure tjvmvecnode.pass_generate_code;
       var
+        otl,ofl: tasmlabel;
         psym: tsym;
         newsize: tcgsize;
+        isjump: boolean;
       begin
         if left.resultdef.typ=stringdef then
           internalerror(2011052702);
@@ -364,11 +367,28 @@ implementation
           and then asking for the size doesn't make any sense }
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,java_jlobject,java_jlobject,true);
         location.reference.base:=left.location.register;
+        isjump:=(right.expectloc=LOC_JUMP);
+        if isjump then
+         begin
+           otl:=current_procinfo.CurrTrueLabel;
+           current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
+           ofl:=current_procinfo.CurrFalseLabel;
+           current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
+         end;
         secondpass(right);
+
+        if isjump then
+         begin
+           current_procinfo.CurrTrueLabel:=otl;
+           current_procinfo.CurrFalseLabel:=ofl;
+         end
+        else if (right.location.loc = LOC_JUMP) then
+          internalerror(2011090501);
         { simplify index location if necessary, since array references support
           an index in memory, but not an another array index }
-        if (right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
-           (right.location.reference.arrayreftype<>art_none) then
+        if (right.location.loc=LOC_JUMP) or
+           ((right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
+            (right.location.reference.arrayreftype<>art_none)) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
         { replace enum class instance with the corresponding integer value }
         if (right.resultdef.typ=enumdef) then
