@@ -177,9 +177,91 @@ var
   derefdata   : pbyte;
   derefdatalen : longint;
 
+
 {****************************************************************************
                           Helper Routines
 ****************************************************************************}
+
+{****************************************************************************
+                          Routine to read 80-bit reals
+****************************************************************************
+}
+type
+  TSplit80bitReal = packed record
+    case byte of
+      0: (bytes: Array[0..9] of byte);
+      1: (words: Array[0..4] of word);
+      2: (cards: Array[0..1] of cardinal; w: word);
+  end;
+const
+  maxDigits = 17;
+  function Real80bitToStr(var e : TSplit80bitReal) : string;
+  var
+    Temp : string;
+    new : TSplit80bitReal;
+    fraczero, expmaximal, sign, outside_double : boolean;
+    exp : smallint;
+    ext : extended;
+    d : double;
+    i : longint;
+    mantval : qword;
+  begin
+    if ppufile.change_endian then
+      begin
+        for i:=0 to 9 do
+          new.bytes[i]:=e.bytes[9-i];
+        e:=new;
+      end;
+    if sizeof(ext)=10 then
+      begin
+        ext:=pextended(@e)^;
+        str(ext,result);
+        exit;
+      end;
+    { extended, format (MSB): 1 Sign bit, 15 bit exponent, 64 bit mantissa }
+    sign := (e.w and $8000) <> 0;
+    expMaximal := (e.w and $7fff) = 32767;
+    exp:=(e.w and $7fff) - 16383 - 63;
+    fraczero := (e.cards[0] = 0) and
+                    ((e.cards[1] and $7fffffff) = 0);
+    mantval := qword(e.cards[0]) or (qword(e.cards[1]) shl 32);
+    if expMaximal then
+      if fraczero then
+        if sign then
+          temp := '-Inf'
+        else temp := '+Inf'
+      else temp := 'Nan'
+    else
+      begin
+        d:=double(mantval);
+        if sign then
+          d:=-d;
+        outside_double:=false;
+        Try
+          if exp > 0 then
+            begin
+              for i:=1 to exp do
+                d:=d *2.0;
+            end
+          else if exp < 0 then
+            begin
+              for i:=1 to -exp do
+                d:=d /2.0;
+            end;
+        Except
+          outside_double:=true;
+        end;
+      if (mantval<>0) and (d=0.0) then
+        outside_double:=true;
+      if outside_double then
+        Temp:='Extended value outside double bound'
+      else
+        system.str(d,temp);
+
+      end;
+
+    result:=temp;
+  end;
 
 const has_errors : boolean = false;
       has_more_infos : boolean = false;
@@ -1546,8 +1628,12 @@ var
   ch : dword;
   startnewline : boolean;
   i,j,len : longint;
+  prettyname : ansistring;
   guid : tguid;
-  realvalue : extended;
+  realvalue : ppureal;
+  doublevalue : double;
+  singlevalue : single;
+  extended : TSplit80bitReal;
   tempbuf : array[0..127] of char;
   pw : pcompilerwidestring;
   varoptions : tvaroptions;
@@ -1585,8 +1671,12 @@ begin
              readcommonsym('Type symbol ');
              write(space,'  Result Type : ');
              readderef('');
-             write(space,' Pretty Name : ');
-             Write(getansistring);
+             prettyname:=getansistring;
+             if prettyname<>'' then
+               begin
+                 write(space,' Pretty Name : ');
+                 Writeln(prettyname);
+               end;
            end;
 
          ibprocsym :
@@ -1630,16 +1720,33 @@ begin
                  end;
                constreal :
                  begin
-                   if entryleft=sizeof(extended) then
-                     realvalue:=getrealsize(sizeof(extended))
+                   write(space,'        Value : ');
+                   if entryleft=sizeof(ppureal) then
+                     begin
+                       realvalue:=getrealsize(sizeof(ppureal));
+                       writeln(realvalue);
+                     end
                    else if entryleft=sizeof(double) then
-                     realvalue:=getrealsize(sizeof(double))
+                     begin
+                       doublevalue:=getrealsize(sizeof(double));
+                       writeln(doublevalue);
+                     end
+                   else if entryleft=sizeof(single) then
+                     begin
+                       singlevalue:=getrealsize(sizeof(single));
+                       writeln(singlevalue);
+                     end
+                   else if entryleft=10 then
+                     begin
+                       getdata(extended,entryleft);
+                       writeln(Real80bitToStr(extended));
+                     end
                    else
                      begin
                        realvalue:=0.0;
+                       writeln(realvalue,' Error reading real value');
                        has_errors:=true;
                      end;
-                   writeln(space,'        Value : ',realvalue);
                  end;
                constset :
                  begin
@@ -2072,15 +2179,24 @@ begin
              writeln(space,'UseFieldAlignment : ',shortint(getbyte));
              writeln(space,'         DataSize : ',getasizeint);
              writeln(space,'      PaddingSize : ',getword);
+             if df_copied_def in current_defoptions then
+               begin
+                 writeln('  Copy of def: ');
+                 readderef('');
+               end;
+
              if not EndOfEntry then
                HasMoreInfos;
              {read the record definitions and symbols}
-             space:='    '+space;
-             readrecsymtableoptions;
-             readsymtableoptions('fields');
-             readdefinitions('fields');
-             readsymbols('fields');
-             Delete(space,1,4);
+             if not(df_copied_def in current_defoptions) then
+               begin
+                 space:='    '+space;
+                 readrecsymtableoptions;
+                 readsymtableoptions('fields');
+                 readdefinitions('fields');
+                 readsymbols('fields');
+                 Delete(space,1,4);
+               end;
            end;
 
          ibobjectdef :
