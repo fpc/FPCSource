@@ -6655,7 +6655,7 @@ implementation
             { since these arraydef can be reused anywhere in the current
               unit, add them to the global/staticsymtable }
             symtablestack.push(current_module.localsymtable);
-            res^.Data:=tarraydef.create(0,1,s32inttype);
+            res^.Data:=tarraydef.create(0,0,s32inttype);
             tarraydef(res^.Data).elementdef:=def;
             symtablestack.pop(current_module.localsymtable);
           end;
