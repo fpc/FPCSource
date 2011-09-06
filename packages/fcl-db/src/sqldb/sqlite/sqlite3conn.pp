@@ -99,7 +99,7 @@ Var
 implementation
 
 uses
-  dbconst, sysutils, dateutils,FmtBCD;
+  dbconst, sysutils, dateutils, FmtBCD;
 
 const
   JulianDateShift = 2415018.5; //distance from "julian day 0" (January 1, 4713 BC 12:00AM) to "1899-12-30 00:00AM"
@@ -111,6 +111,7 @@ type
  TSQLite3Cursor = class(tsqlcursor)
   private
    fhandle : psqlite3;
+   fconnection: TSQLite3Connection;
    fstatement: psqlite3_stmt;
    ftail: pchar;
    fstate: integer;
@@ -189,7 +190,11 @@ begin
                 do1:= P.AsFloat + JulianDateShift;
                 checkerror(sqlite3_bind_double(fstatement,I,do1));
                 end;
-        ftFMTBcd,
+        ftFMTBcd:
+                begin
+                str1:=BCDToStr(P.AsFMTBCD, Fconnection.FSQLFormatSettings);
+                checkerror(sqlite3_bind_text(fstatement, I, PChar(str1), length(str1), sqlite3_destructor_type(SQLITE_TRANSIENT)));
+                end;
         ftstring,
         ftFixedChar,
         ftmemo: begin // According to SQLite documentation, CLOB's (ftMemo) have the Text affinity
@@ -315,6 +320,7 @@ Var
 
 begin
   Res:= TSQLite3Cursor.create;
+  Res.fconnection:=Self;
   Result:=Res;
 end;
 
@@ -382,11 +388,35 @@ var
  i     : integer;
  FN,FD : string;
  ft1   : tfieldtype;
- size1 : word;
+ size1, size2 : integer;
  ar1   : TStringArray;
  fi    : integer;
  st    : psqlite3_stmt;
- 
+
+ function ExtractPrecisionAndScale(decltype: string; var precision, scale: integer): boolean;
+ var p: integer;
+ begin
+   p:=pos('(', decltype);
+   Result:=p>0;
+   if not Result then Exit;
+   System.Delete(decltype,1,p);
+   p:=pos(')', decltype);
+   Result:=p>0;
+   if not Result then Exit;
+   decltype:=copy(decltype,1,p-1);
+   p:=pos(',', decltype);
+   if p=0 then
+   begin
+     precision:=StrToIntDef(decltype, precision);
+     scale:=0;
+   end
+   else
+   begin
+     precision:=StrToIntDef(copy(decltype,1,p-1), precision);
+     scale:=StrToIntDef(copy(decltype,p+1,length(decltype)-p), scale);
+   end;
+ end;
+
 begin
   st:=TSQLite3Cursor(cursor).fstatement;
   for i:= 0 to sqlite3_column_count(st) - 1 do 
@@ -417,29 +447,21 @@ begin
       ftFixedChar,
       ftFixedWideChar,
       ftWideString:
-                begin
-                fi:=pos('(',FD);
-                if (fi>0) then
-                  begin
-                  System.Delete(FD,1,fi);
-                  fi:=pos(')',FD);
-                  size1:=StrToIntDef(trim(copy(FD,1,fi-1)),255);
-                  if size1 > dsMaxStringSize then size1 := dsMaxStringSize;
-                  end
-                else size1 := 255;
-                end;
-      ftBCD:    begin
-                fi:=pos(',',FD);
-                if (fi>0) then
-                  begin
-                  System.Delete(FD,1,fi);
-                  fi:=pos(')',FD);
-                  size1:=StrToIntDef(trim(copy(FD,1,fi-1)), 0);
-                  if size1>4 then
-                    ft1 := ftFMTBcd;
-                  end
-                else size1 := 0;
-                end;
+               begin
+                 size1 := 255; //sql: if length is omitted then length is 1
+                 size2 := 0;
+                 ExtractPrecisionAndScale(FD, size1, size2);
+                 if size1 > dsMaxStringSize then size1 := dsMaxStringSize;
+               end;
+      ftBCD:   begin
+                 size2 := MaxBCDPrecision; //sql: if a precision is omitted, then use implementation-defined
+                 size1 := 0;               //sql: if a scale is omitted then scale is 0
+                 ExtractPrecisionAndScale(FD, size2, size1);
+                 if (size2<=18) and (size1=0) then
+                   ft1:=ftLargeInt
+                 else if (size2-size1>MaxBCDPrecision-MaxBCDScale) or (size1>MaxBCDScale) then
+                   ft1:=ftFmtBCD;
+               end;
       ftUnknown : DatabaseError('Unknown record type: '+FN);
     end; // Case
     tfielddef.create(fielddefs,FieldDefs.MakeNameUnique(FN),ft1,size1,false,i+1);
@@ -528,6 +550,7 @@ begin
     end;
   Result:=ComposeDateTime(ParseSQLiteDate(DS),ParseSQLiteTime(TS,False));
 end;
+
 function TSQLite3Connection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
 
 var
