@@ -522,7 +522,6 @@ implementation
            set_current_module(olddata^.old_current_module);
 
            FreeLocalVerbosity(current_settings.pmessage);
-           current_settings.pmessage:=nil;
 
            dispose(olddata);
          end;
