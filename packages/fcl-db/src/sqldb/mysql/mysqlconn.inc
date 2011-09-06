@@ -328,7 +328,7 @@ var esc_str : pchar;
 
 begin
   if (not assigned(param)) or param.IsNull then Result := 'Null'
-  else if param.DataType in [ftString,ftBlob,ftMemo] then
+  else if param.DataType in [ftString,ftFixedChar,ftBlob,ftMemo] then
     Result := '''' + EscapeString(Param.AsString) + ''''
   else Result := inherited GetAsSqlText(Param);
 end;
