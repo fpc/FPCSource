@@ -179,7 +179,8 @@ uses
   dbconst,
   ctypes,
   strutils,
-  dateutils;
+  dateutils,
+  FmtBCD;
 
 const
   Mysql_Option_Names : array[mysql_option] of string = ('MYSQL_OPT_CONNECT_TIMEOUT','MYSQL_OPT_COMPRESS',
@@ -563,19 +564,19 @@ begin
 {$ifdef mysql50_up}
     FIELD_TYPE_NEWDECIMAL,
 {$endif}
-    FIELD_TYPE_DECIMAL: begin
-			  ADecimals:=AField^.decimals;
-                          if ADecimals < 5 then
-                            begin
-                            NewType := ftBCD;
-                            NewSize := ADecimals;
-                            end
-                          else
-                            begin
-                            NewType := ftFloat;
-                            NewSize := 0;
-                            end;
-                       end;
+    FIELD_TYPE_DECIMAL: 
+      begin
+        if (ADecimals < 5) and (ASize-2-ADecimals < 15) then //ASize is display size i.e. with sign and decimal point
+          NewType := ftBCD
+        else 
+          begin
+            if (ADecimals = 0) and (ASize < 20) then
+              NewType := ftLargeInt
+            else
+              NewType := ftFmtBCD;
+          end;
+        NewSize := ADecimals;
+      end;
     FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:
       begin
       NewType := ftFloat;
@@ -845,6 +846,7 @@ var
   VF: Double;
   VC: Currency;
   VD: TDateTime;
+  VB: TBCD;
   Src : String;
 
 begin
@@ -886,6 +888,11 @@ begin
         begin
         VC := InternalStrToCurrency(Src);
         Move(VC, Dest^, SizeOf(Currency));
+        end
+      else if AFieldType = ftFmtBCD then
+        begin
+        VB:=StrToBCD(Src, FSQLFormatSettings);
+        Move(VB, Dest^, SizeOf(TBCD));
         end
       else
         begin
