@@ -25,7 +25,7 @@ uses
   Classes, SysUtils, InstantFPTools;
 
 const
-  Version = '1.0';
+  Version = '1.1';
 
 
 Procedure Usage;
@@ -49,6 +49,8 @@ begin
   writeln('      If compilation was successful the program is executed.');
   writeln('      If the compiler options contains -B the program is always');
   writeln('      compiled.');
+  writeln('      If the environment option INSTANTFPCOPTIONS is set it is');
+  writeln('      passed to the compiler as first parameters.');
   writeln;
   writeln('instantfpc --get-cache');
   writeln('      Prints cache directory to stdout.');
