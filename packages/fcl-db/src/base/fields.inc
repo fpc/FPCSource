@@ -1363,6 +1363,11 @@ begin
   Result:=GetAsLongint;
 end;
 
+function TLongintField.GetAsLargeint: Largeint;
+begin
+  Result:=GetAsLongint;
+end;
+
 function TLongintField.GetAsLongint: Longint;
 
 begin
@@ -1430,6 +1435,14 @@ begin
       ftword               : Avalue:=Pword(P)^;
       ftsmallint           : AValue:=PSmallint(P)^;
     end;
+end;
+
+procedure TLongintField.SetAsLargeint(AValue: Largeint);
+begin
+  if (AValue>=FMinRange) and (AValue<=FMaxRange) then
+    SetAsLongint(AValue)
+  else
+    RangeError(AValue,FMinRange,FMaxRange);
 end;
 
 procedure TLongintField.SetAsFloat(AValue: Double);
