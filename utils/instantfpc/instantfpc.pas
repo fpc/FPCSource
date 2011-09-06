@@ -54,7 +54,8 @@ begin
   writeln('      Prints cache directory to stdout.');
   writeln;
   writeln('instantfpc --set-cache=<path to cache>');
-  writeln('      Set the cache to be used.');
+  writeln('      Set the cache to be used. Otherwise using environment variable');
+  writeln('      INSTANTFPCCACHE.');
   writeln;
   writeln('instantfpc --compiler=<path to compiler>');
   writeln('      Normally fpc is searched in PATH and used as compiler.');
