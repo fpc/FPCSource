@@ -566,6 +566,7 @@ begin
 {$endif}
     FIELD_TYPE_DECIMAL: 
       begin
+        ADecimals:=AField^.decimals;
         if (ADecimals < 5) and (ASize-2-ADecimals < 15) then //ASize is display size i.e. with sign and decimal point
           NewType := ftBCD
         else 
